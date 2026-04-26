@@ -252,6 +252,16 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 8 Complete + Stage Closeout
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Final quality gate run (ruff/format/mypy strict/pytest 101/101). Wrote aidlc-docs/construction/models/code/summary.md documenting files, public API, 11 key design decisions, code-review history (3 sub-agent rounds, all findings fixed in-step or registered as TECH-DEBT), NFR verification matrix, and pre-flight for u1 sources.
+**Verification**: 5 source files (439 LOC), 5 test files (934 LOC), 101 tests pass.
+**Status**: All 8 plan steps complete. `models` foundation Code Generation stage CLOSED OUT. Updated aidlc-state.md per-unit table to "✅ Complete (8/8)".
+**Note**: `models` is foundation library, not a unit with stories — cross-check is N/A here. US-001~US-009 remain in progress; each closes when its consumer unit finishes Code Gen.
+**Context**: Construction phase Code Generation — models foundation, Step 8 of 8
+
+---
+
 ## Construction — models — Step 7 Complete (PBT Round-trip)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created tests/unit/models/test_roundtrip.py with 6 hypothesis-based PBT tests covering every public model's model_dump_json ↔ model_validate_json equivalence. SendResult uses a @composite strategy to honor cross-field invariants; the other 5 use st.builds. 100 examples per model = 600 generated assertions. NFR-006 (PBT extension partial) satisfied for foundation.

@@ -125,19 +125,14 @@ None directly. Foundation supports all stories indirectly:
 
 **Verification**: pytest 101/101 (95 unit + 6 PBT × 100 examples). Quality gate clean (ruff, format, mypy strict).
 
-### Step 8: Quality gate + summary
+### Step 8: Quality gate + summary ✅
 
-- [ ] **8.1** Run `ruff check .` — fix any issues
-- [ ] **8.2** Run `ruff format .` — auto-format
-- [ ] **8.3** Run `mypy --strict src/` — fix any type issues
-- [ ] **8.4** Run `pytest tests/unit/models/` — all tests pass
-- [ ] **8.5** Write `aidlc-docs/construction/models/code/summary.md`:
-  - Files created (paths)
-  - Public API surface (re-exports)
-  - Test coverage summary
-  - Any deviations from `component-methods.md` and rationale
-  - Pre-flight for next unit (u1 sources): which models will be consumed where
-- [ ] **8.6** Mark all unit stories as ⏳→ in-progress for consumer units (no story is fully [x] yet — models is foundation).
+- [x] **8.1** `ruff check .` — All checks passed (15 source/test files)
+- [x] **8.2** `ruff format --check .` — 15 files already formatted
+- [x] **8.3** `mypy --strict src/` — Success: no issues found in 7 source files
+- [x] **8.4** `pytest` — 101/101 passed in 1.03s
+- [x] **8.5** `aidlc-docs/construction/models/code/summary.md` written: files (439 LOC source + 934 LOC tests), public API surface, 11 key design decisions, code-review history, NFR verification matrix, pre-flight for u1 sources
+- [x] **8.6** Story status documented in summary — `models` is foundation, no stories close at this stage; consumer units will tick US-001~US-009 as they finish their Code Generation
 
 ---
 
