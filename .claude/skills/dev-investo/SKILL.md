@@ -1,6 +1,6 @@
-# {Project Name} Development Skill
+# Investo Development Skill
 
-AIDLC Construction executor — the daily driver for developing the {Project Name} service.
+AIDLC Construction executor — the daily driver for developing the Investo service.
 
 ## Arguments
 
@@ -18,7 +18,7 @@ Execute AIDLC Construction stages for each unit of work. This skill reads `aidlc
 ## How This Skill Works
 
 ```
-/dev-{name}
+/dev-investo
     │
     ▼
 Read aidlc-state.md → Find first incomplete unit
@@ -260,7 +260,7 @@ Delegate code review to a **separate agent** using the Agent tool.
 
 ```
 Agent(subagent_type="general-purpose", prompt="""
-You are reviewing {PRIMARY_LANGUAGE} code for the {Project Name} project.
+You are reviewing Python code for the Investo project.
 
 ## Files to Review
 [list changed source files from `git diff --name-only HEAD` + `git diff --name-only --cached`]
@@ -285,7 +285,34 @@ protocol from `.claude/skills/code-review/protocols/`:
 Only load protocols whose signals are present in the code.
 
 ## Project-Specific Rules
-{PROJECT_SPECIFIC_RULES}
+
+**LLM call constraint (NFR-002, US-009)**:
+- Never import the Anthropic SDK (`from anthropic ...`, `import anthropic`, `@anthropic-ai/sdk` are all forbidden)
+- All LLM calls go through `briefing/claude_code.py` using the `subprocess.run(["claude", "-p", ...])` pattern
+- Reject any attempt to add the `anthropic` package as a dependency
+
+**Disclaimer enforcement (NFR-004)**:
+- `briefing.append_disclaimer` must be idempotent (no-op if disclaimer already present)
+- `publisher.verify_disclaimer` runs immediately before publish — block publish on failure
+- Do not rely on LLM output alone for disclaimer presence
+
+**Module boundary (Application Design DAG)**:
+- Only `orchestrator` may import `sources / briefing / publisher / notifier`
+- The other 4 work units must not import each other (only `models` is shared)
+- Reject violations and require refactoring
+
+**Zero-cost principle (NFR-002)**:
+- Reject attempts to register paid data-API keys
+- Any new external call must declare its cost impact in the PR description
+
+**Telegram channel separation (FR-004 vs FR-007)**:
+- Briefing body goes through `BriefingPublisher` (public channel) only
+- Operator alerts go through `OperatorAlerter` (1:1 chat) only
+- The two classes must not share a chat_id (assert at construction or test)
+
+**Plugin interface (US-008)**:
+- A new source = single `sources/<name>.py` file + one `@register` decorator line
+- No source-specific code is allowed in any other component (orchestrator, briefing, etc.)
 
 ## Output Format
 Generate a code review report with:
@@ -459,7 +486,7 @@ Provide completion summary:
 
 ### Execution Rules
 
-1. **One step per execution** — Execute one plan step (or enter one new stage) per `/dev-{name}` invocation
+1. **One step per execution** — Execute one plan step (or enter one new stage) per `/dev-investo` invocation
 2. **Skip N/A stages** — Stages marked N/A in execution-plan.md are skipped automatically
 3. **Follow AIDLC rules exactly** — Each stage has a rule file in `construction/`. Load and follow it
 4. **Sequential stage order** — Stages must be completed in order within each unit
@@ -513,15 +540,15 @@ Provide completion summary:
 
 Continue from where you left off:
 ```
-/dev-{project}
+/dev-investo
 ```
 
 Work on specific unit:
 ```
-/dev-{project} auth-service
+/dev-investo auth-service
 ```
 
 Work on specific stage:
 ```
-/dev-{project} auth-service code-generation
+/dev-investo auth-service code-generation
 ```

@@ -19,14 +19,19 @@
 | Reverse Engineering | ⏭️ Skipped (Greenfield) | 2026-04-26 |
 | Requirements Analysis | ✅ Complete (via interactive refinement) | 2026-04-26 |
 | User Stories | ✅ Complete | 2026-04-26 |
-| Workflow Planning | ⏳ Pending | |
-| Application Design | ⏳ Pending | |
-| Units Generation | ⏳ Pending | |
+| Workflow Planning | ✅ Complete | 2026-04-26 |
+| Application Design | ✅ Complete | 2026-04-27 |
+| Units Generation | ✅ Complete | 2026-04-27 |
 
 ### CONSTRUCTION PHASE
 | Stage | Status | Date |
 |-------|--------|------|
-| Determined by Workflow Planning | ⏳ Pending | |
+| Functional Design | ⏳ EXECUTE (selective per-unit) | |
+| NFR Requirements | ⏳ EXECUTE | |
+| NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
+| Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
+| Code Generation | ⏳ EXECUTE | |
+| Build and Test | ⏳ EXECUTE | |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |

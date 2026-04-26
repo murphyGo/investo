@@ -107,3 +107,181 @@ B) Partial"
 **Context**: Stage 1 Step 10 — User Stories Part 2 complete; awaiting final approval
 
 ---
+
+## User Stories — Final Approval
+**Timestamp**: 2026-04-26T00:00:00Z
+**Approval Prompt**: "Please examine the user stories and personas. Approve & Continue or Request Changes."
+**User Input**: "approve"
+**AI Response**: "Approval received. Marking User Stories stage complete and proceeding to Workflow Planning (Step 11)."
+**Status**: Approved
+**Context**: Stage 1 Step 10 complete
+
+---
+
+## Workflow Planning — Approval
+**Timestamp**: 2026-04-26T00:00:00Z
+**Approval Prompt**: "Approve & Continue or Request Changes for execution-plan.md."
+**User Input**: "approve"
+**AI Response**: "Approval received. Marking Workflow Planning complete and proceeding to Application Design (Step 12)."
+**Status**: Approved
+**Context**: Stage 1 Step 11 complete
+
+---
+
+## Application Design — Plan Created
+**Timestamp**: 2026-04-26T00:00:00Z
+**Action**: Created aidlc-docs/inception/plans/application-design-plan.md with embedded Q1-Q9 covering: Component Identification, Source Adapter interface, NormalizedItem model location, Claude Code call pattern, Prompt/Output structure, Disclaimer enforcement, Publisher/Archive structure, Notifier channel split, Orchestrator pipeline error policy.
+**Approval Prompt**: "Please fill [Answer]: tags for Q1-Q9 in application-design-plan.md, or reply 'all recommended' to accept marked recommendations."
+**Context**: Stage 1 Step 12 — Application Design Part 1 (Planning); awaiting user answers + plan approval
+
+---
+
+## Application Design — Q&A Clarification (SiteBuilder role)
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "SiteBuilder`(MkDocs는 무슨 역할이야"
+**AI Response**: "Explained MkDocs role in pipeline (markdown→HTML static site generator) and recommended Q1=A + Q7=B combination so that SiteBuilder responsibility lives in GitHub Actions step rather than as a separate Python component."
+**Context**: Stage 1 Step 12 — Pre-answer clarification on Q1 option B / Q7
+
+---
+
+## Application Design — Plan Answers + Approval
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "전부 권장으로 가자"
+**AI Response**: "Recorded Q1=A, Q2=B, Q3=A, Q4=A, Q5=B, Q6=A, Q7=B, Q8=B, Q9=B. Ambiguity check: Q1=A vs Q8=B surface conflict reconciled as '5 components retained, notifier package contains BriefingPublisher + OperatorAlerter classes'. Q6 strengthened with Publisher disclaimer presence verification AC. Plan approved implicitly."
+**Ambiguity Analysis**:
+- Vague language: none (letter-selected)
+- Q1 vs Q8 reconciliation: documented in plan (5 components at component level, 2 classes inside notifier component)
+- Q6 enhancement: added disclaimer verification to Publisher AC (covers compliance intent of Q6 option C without adding component)
+**Context**: Stage 1 Step 12 — Application Design Part 1 complete
+
+---
+
+## Application Design — Generation Complete
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Generated 5 artifacts in aidlc-docs/inception/application-design/:
+- components.md (5 components + models module + responsibilities + interfaces + summary table)
+- component-methods.md (pydantic models + per-component method signatures + method-to-story traceability)
+- services.md (PipelineService stages + Q9=B graceful degradation policy + DateResolutionService + AlertingService + time budget)
+- component-dependency.md (dependency matrix + communication patterns + ASCII data flow diagram + failure path diagram + external deps inventory)
+- application-design.md (consolidated overview + design principles + component map + pipeline flow + error policy summary + story coverage + deferred open questions)
+**Marked aidlc-state.md: Application Design = Complete (2026-04-27).**
+**Context**: Stage 1 Step 12 — Application Design Part 2 complete; awaiting user approval
+
+---
+
+## Application Design — Approval Prompt
+**Timestamp**: 2026-04-27T00:00:00Z
+**Approval Prompt**: "Examine aidlc-docs/inception/application-design/. Approve to proceed to Units Generation (Step 13), or Request Changes."
+**Context**: Stage 1 Step 12 — Awaiting explicit approval
+
+---
+
+## Application Design — Approval
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "approve"
+**AI Response**: "Approval received. Marking Application Design complete (2026-04-27) and proceeding to Units Generation (Step 13)."
+**Status**: Approved
+**Context**: Stage 1 Step 12 complete
+
+---
+
+## Units Generation — Plan Created
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created aidlc-docs/inception/plans/unit-of-work-plan.md with embedded Q1-Q5 covering: Unit grouping (count + 1:1 vs grouped), Delivery order (incremental sequence), Code organization (src layout + monolith), Module boundary enforcement (convention vs import-linter), Test boundaries (unit + integration + fixtures).
+**Approval Prompt**: "Please fill [Answer]: tags for Q1-Q5 in unit-of-work-plan.md, or reply 'all recommended' to accept marked recommendations."
+**Context**: Stage 1 Step 13 — Units Generation Part 1 (Planning); awaiting user answers + plan approval
+
+---
+
+## Units Generation — Plan Answers + Approval
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "all recommended"
+**AI Response**: "Recorded Q1=A (5 units 1:1), Q2=A (delivery order: models→sources→briefing→publisher→orchestrator→notifier→infra), Q3=A (src/investo/), Q4=A (convention only), Q5=A (unit + integration + fixtures). No ambiguity. Plan approved."
+**Context**: Stage 1 Step 13 — Units Generation Part 1 complete
+
+---
+
+## Units Generation — Generation Complete
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Generated 3 artifacts in aidlc-docs/inception/application-design/:
+- unit-of-work.md (5 units + foundation models + per-unit definition + repo layout + test strategy + module boundary rules)
+- unit-of-work-dependency.md (dependency matrix + DAG verification + sequential delivery order rationale + build phase gates + parallelization within unit + rollback strategy)
+- unit-of-work-story-map.md (US-001~US-009 → unit primary/secondary mapping + per-unit AC delivered + cross-cutting NFR coverage table)
+**Marked aidlc-state.md: Units Generation = Complete (2026-04-27).**
+**INCEPTION PHASE complete with this artifact.**
+**Context**: Stage 1 Step 13 — Units Generation Part 2 complete; awaiting user approval
+
+---
+
+## Units Generation — Approval Prompt
+**Timestamp**: 2026-04-27T00:00:00Z
+**Approval Prompt**: "Examine aidlc-docs/inception/application-design/unit-of-work*.md. Approve to mark INCEPTION complete and proceed to Stage 2 (Skill Generation), or Request Changes."
+**Context**: Stage 1 Step 13 — Awaiting explicit approval
+
+---
+
+## Units Generation — Approval
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "approve"
+**AI Response**: "Approval received. INCEPTION PHASE complete. Marking Units Generation = Complete and proceeding to Stage 2 (Skill Generation)."
+**Status**: Approved
+**Context**: Stage 1 Step 13 complete — INCEPTION PHASE FINISHED
+
+---
+
+## Cleanup — Starter Files Removed
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "cleanup"
+**Action**:
+- Deleted: docs/PROJECT-VISION.md, docs/REVIEW.md (aidlc-starter meta-documentation)
+- Deleted: .claude/skills/{start,ideate,init-project,scaffold,adopt} (bootstrap skills)
+- Deleted: docs/references/ (template directory; copied versions live in .claude/skills/)
+- Deleted: examples/ (aidlc-starter examples)
+- Kept: IDEA.md, aidlc-workflows/, aidlc-docs/, .mcp.json, .gitignore (with anchor fixes below)
+**Side-effect Fix**: Anchored `.gitignore` rules `models/` → `/models/` and `data/` → `/data/` so they don't accidentally ignore `src/investo/models/` (or future `src/investo/data/`).
+**Context**: Stage 2 Step 18 — Cleanup complete
+
+---
+
+## Skill Language Normalization
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "그리고 스킬에 영어랑 한국어가 섞였는데, 영어로만 통일"
+**Action**: Converted Korean text in `.claude/skills/dev-investo/SKILL.md` Project-Specific Rules section to English. Verified `.claude/skills/{code-review,tech-debt,cross-check}/SKILL.md` are English-only (templates carried over unchanged).
+**Verification**: `grep '[가-힣]' .claude/skills/*/SKILL.md` returns no matches.
+**Context**: Post-cleanup polish
+
+---
+
+## Stage 2 — Skill Generation Complete
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Generated project skills + documentation:
+- `.claude/skills/dev-investo/SKILL.md` (customized from dev-skill-template: project name=Investo, language=Python, project-specific rules covering Anthropic SDK ban, disclaimer, module boundary, cost zero, telegram channel separation, plugin interface)
+- `.claude/skills/code-review/SKILL.md` (Python-only, custom Investo rules, ruff/mypy/pytest commands)
+- `.claude/skills/code-review/protocols/` (copied from docs/references/code-review-protocols)
+- `.claude/skills/tech-debt/SKILL.md` (template copy)
+- `.claude/skills/cross-check/SKILL.md` (template copy)
+- `CLAUDE.md` (replaced — Investo project context, quick commands, structure, tech stack, critical rules)
+- `README.md` (replaced — Investo project readme with overview, features, getting started, secrets list, MIT license)
+- `docs/DESIGN.md` (replaced — Investo architecture summary, ASCII data flow diagram, 7 TDs, components table, NFR considerations)
+- `docs/TECH-DEBT.md` (initial empty registry)
+**Context**: Stage 2 Step 14-16 complete; awaiting cleanup approval (Step 18)
+
+---
+
+## Workflow Planning — Execution Plan
+**Timestamp**: 2026-04-26T00:00:00Z
+**Action**: Created aidlc-docs/inception/plans/execution-plan.md.
+**Decisions**:
+- Application Design: EXECUTE (5 components + plugin interface need definition)
+- Units Generation: EXECUTE (4-5 units, incremental delivery)
+- Functional Design: EXECUTE (selective per-unit — Briefing Generator + Source Adapters)
+- NFR Requirements: EXECUTE (NFR-001~005 concrete acceptance)
+- NFR Design: SKIP (covered by NFR Requirements at this scale)
+- Infrastructure Design: SKIP (GitHub Actions YAML is the design)
+- Code Generation: EXECUTE
+- Build and Test: EXECUTE
+**Risk**: Low (solo project, free dependencies, easy rollback via git revert).
+**Extension compliance**: Security Baseline DECLINED (n/a); PBT PARTIAL applies to Code Generation and Build and Test (pure funcs + serialization round-trips).
+**Context**: Stage 1 Step 11 — Workflow Planning artifact complete; awaiting user approval
+
+---

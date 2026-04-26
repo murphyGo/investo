@@ -1,304 +1,198 @@
-# Design Document: AI-DLC Starter
+# Design Document: Investo
+
+*Generated on 2026-04-27*
+*Source: aidlc-docs/inception/application-design/ (see AI-DLC artifacts for detailed design)*
+
+본 문서는 개발자용 요약본이다. 상세 설계의 단일 출처는 `aidlc-docs/inception/application-design/` 이다 — 본 문서가 그 내용과 모순되면 AIDLC 산출물이 우선한다.
+
+---
 
 ## Overview
 
-AI-DLC Starter is a meta-template that transforms rough ideas into fully-specified, development-ready projects through Claude-powered interactive refinement and AWS AI-DLC methodology.
+Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions cron이 매일 `python -m investo`를 실행해 다음 단계를 순차로 수행한다:
+
+1. **수집** (sources): 무료 공개 API/RSS에서 전일 시장 데이터 수집
+2. **시황 작성** (briefing): Claude Code CLI를 two-stage prompt로 호출, 한국어 7섹션 시황 생성, 면책조항 자동 삽입
+3. **게시** (publisher): markdown을 `archive/YYYY/MM/`에 저장 + git commit + push
+4. **알림** (notifier): 공개 Telegram 채널에 요약 푸시 (실패 시 운영자 1:1 chat에 별도 알림)
+
+`mkdocs build`와 GitHub Pages 배포는 별도 GitHub Actions step의 책임이며, Python 코드의 책임이 아니다.
 
 ---
 
 ## Architecture
 
-### High-Level Flow
+### High-Level Design
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      ENTRY POINT                                 │
-│              /start → auto-detects state and routes              │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  PRE-INCEPTION: IDEA CAPTURE                     │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │   /ideate   │───▶│  Dialogue   │───▶│     IDEA.md         │  │
-│  │   skill     │    │   Loop      │    │    (created)        │  │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘  │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   STAGE 0: INTERACTIVE REFINEMENT                │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │   Analyze   │───▶│   Suggest   │───▶│  Dialogue Loop      │  │
-│  │   Intent    │    │Improvements │    │  (until confirmed)  │  │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘  │
-│                                                  │               │
-│                              ┌───────────────────┘               │
-│                              ▼                                   │
-│                    ┌─────────────────┐                          │
-│                    │ requirements.md │                          │
-│                    │ refinement-log  │                          │
-│                    └─────────────────┘                          │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   STAGE 1: SPEC GENERATION                       │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │ vision.md   │    │ tech-env.md │    │    AI-DLC Rules     │  │
-│  │ (AI-DLC)    │    │  (AI-DLC)   │    │    Execution        │  │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘  │
-│                                                  │               │
-│                              ┌───────────────────┘               │
-│                              ▼                                   │
-│                    ┌─────────────────┐                          │
-│                    │   aidlc-docs/   │                          │
-│                    │   (full specs)  │                          │
-│                    └─────────────────┘                          │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   STAGE 2: SKILL GENERATION                      │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │/dev-{name}  │    │/code-review │    │  /tech-debt         │  │
-│  │  (custom)   │    │  (generic)  │    │  /cross-check       │  │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘  │
-│                                                  │               │
-│                              ┌───────────────────┘               │
-│                              ▼                                   │
-│                    ┌─────────────────┐                          │
-│                    │   CLAUDE.md     │                          │
-│                    │ (project ready) │                          │
-│                    └─────────────────┘                          │
-└─────────────────────────────────────────────────────────────────┘
+                                +--------------------+
+                                | GitHub Actions cron|
+                                +---------+----------+
+                                          |  python -m investo
+                                          v
+                                +---------+----------+
+                                |   orchestrator     |
+                                |  (run_pipeline)    |
+                                +---------+----------+
+                                          |
+              +----------------+----------+----------+----------------+
+              | (1) collect    | (2) generate         | (3) publish    | (4) notify
+              v                v                      v                v
+     +----------------+ +----------------+ +----------------+ +----------------+
+     |    sources     | |    briefing    | |   publisher    | |    notifier    |
+     | (asyncio.gather| | (Claude Code   | | (md write +    | | (Telegram Bot  |
+     |  + degradation)| |  CLI two-stage)| |  git push +    | |  API)          |
+     |                | | + disclaimer   | |  verify)       | |                |
+     +-------+--------+ +-------+--------+ +-------+--------+ +---+--------+---+
+             |                  |                  |             |        |
+             v (HTTP)           v (subprocess)     v             v        v
+    +-----------------+ +----------------+ +----------------+ +----------+ +-----------------+
+    | Free APIs       | | claude CLI     | | filesystem     | | Telegram | | Telegram        |
+    | (news, prices,  | | (subscription  | | + git remote   | | public   | | operator 1:1    |
+    |  macro, ...)    | |  via OAUTH     | | (origin/main)  | | channel  | | chat            |
+    |                 | |  TOKEN)        | |                | | (FR-004) | | (FR-007)        |
+    +-----------------+ +----------------+ +----------------+ +----------+ +-----------------+
 ```
+
+### Components
+
+| Component | Responsibility | Module path |
+|-----------|---------------|-------------|
+| sources | 무료 데이터 plugin 수집 + 부분 실패 허용 | `src/investo/sources/` |
+| briefing | Claude Code CLI two-stage 호출 + 면책조항 자동 삽입 | `src/investo/briefing/` |
+| publisher | markdown archive + git commit + disclaimer 검증 | `src/investo/publisher/` |
+| notifier | BriefingPublisher (공개 채널) + OperatorAlerter (1:1) | `src/investo/notifier/` |
+| orchestrator | 파이프라인 단일 진입점 + 단계별 에러 정책 | `src/investo/orchestrator/` |
+| models | 공통 pydantic v2 타입 (NormalizedItem, Briefing, ...) | `src/investo/models/` |
+
+각 컴포넌트의 메서드 시그니처는 `aidlc-docs/inception/application-design/component-methods.md` 참조.
 
 ---
 
-## Core Components
+## Technical Decisions
 
-### 1. Interactive Refinement Engine
+### TD-001: LLM 호출은 Claude Code CLI subprocess로만
 
-**Purpose**: Transform rough ideas into structured requirements through dialogue.
+**Choice**: `subprocess.run(["claude", "-p", prompt, ...])` 패턴
+**Rationale**: 사용자가 Claude Max/Pro 구독자로서 setup token 발급 가능. Anthropic API key 직접 호출은 별도 요금 발생 → NFR-002(월 $0) 위반.
+**Alternatives Considered**: `anthropic` Python SDK (요금 발생), Claude Code Node SDK (Python 프로젝트에 Node 의존성 추가는 과함).
+**Reference**: requirements.md FR-002 + NFR-002, docs/feedback_claude_code_cli.md
 
-**Design Decisions**:
+### TD-002: 데이터 모델 중앙화 (pydantic v2 in `models/`)
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Refinement approach | Iterative dialogue | Users often don't know what they need until they see suggestions |
-| Suggestion format | Structured with categories | Makes it easy to accept/reject individual items |
-| Confirmation model | Explicit "proceed" | Prevents premature advancement |
+**Choice**: 모든 컴포넌트 간 공유 타입을 `src/investo/models/`에 모음.
+**Rationale**: 변환 보일러플레이트 최소, PBT round-trip 적용 위치 단일.
+**Alternatives Considered**: 컴포넌트별 분산 (결합도↓이지만 변환 비용↑).
 
-**Analysis Categories**:
-- Completeness (missing features, edge cases)
-- Clarity (ambiguous requirements)
-- Feasibility (technical complexity)
-- Architecture (component structure)
-- Non-Functional (performance, security, scalability)
+### TD-003: Two-Stage Prompt
 
-### 2. AI-DLC Integration
+**Choice**: 1차 분류·요약 → 2차 7섹션 통합 (각각 Claude Code CLI 호출).
+**Rationale**: 토큰 효율 + 품질 향상. Single-shot은 컨텍스트 폭발 위험.
+**Alternatives Considered**: Single-shot, templating + LLM hybrid.
 
-**Purpose**: Generate comprehensive specifications using proven methodology.
+### TD-004: 면책조항 코드 자동 append + Publisher 검증
 
-**Design Decisions**:
+**Choice**: `briefing.append_disclaimer`가 LLM 출력 뒤에 모듈 상수 disclaimer를 idempotent하게 append. `publisher.verify_disclaimer`가 게시 직전 검증.
+**Rationale**: NFR-004(컴플라이언스) 강제. LLM이 누락하더라도 코드로 보장.
+**Alternatives Considered**: prompt에만 의존 (누락 위험).
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Rule storage | Local copy in repo | Self-contained, version controlled |
-| Input format | vision.md + tech-env.md | Standard AI-DLC format |
-| Output location | aidlc-docs/ | Follows AI-DLC convention |
+### TD-005: 텔레그램 채널 분리
 
-**AI-DLC Phases Used**:
-- Inception: Requirements, user stories, application design
-- Construction: Functional design, NFRs, build plans
+**Choice**: `BriefingPublisher`(공개 채널) + `OperatorAlerter`(운영자 1:1) 두 별도 클래스.
+**Rationale**: FR-004와 FR-007의 채널 혼선 방지. Public Reader가 운영 노이즈를 보지 않도록.
+**Alternatives Considered**: 단일 Notifier + channel 파라미터 (혼선 위험).
 
-### 3. Skill System
+### TD-006: GitHub Actions step에서 mkdocs build / Pages deploy
 
-**Purpose**: Provide executable automation for development workflow.
+**Choice**: Python publisher는 markdown write + git commit까지. `mkdocs build` + `actions/deploy-pages`는 별도 workflow step.
+**Rationale**: 책임 분리, GitHub native 활용, Python 코드 단순화.
+**Alternatives Considered**: Python에서 `mkdocs build` subprocess 호출 (책임 혼합).
 
-**Design Decisions**:
+### TD-007: Graceful Degradation Pipeline
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Skill format | Markdown with structured sections | Human-readable, Claude-parseable |
-| Skill location | .claude/skills/{name}/SKILL.md | Standard Claude Code convention |
-| Common vs custom | Templates + generated | Reuse patterns, customize per project |
-
-**Skill Categories**:
-
-| Category | Skills | Customization |
-|----------|--------|---------------|
-| Entry | /start | None (template) |
-| Ideation | /ideate | None (template) |
-| Bootstrap | /init-project | None (template) |
-| Development | /dev-{name} | Generated per project |
-| Quality | /code-review | Template (language detection) |
-| Tracking | /tech-debt, /cross-check | Template (path customization) |
+**Choice**: 단일 source 실패는 흡수, LLM 최종 실패는 게시 차단, 게시 실패는 retry, 알림 실패는 비차단.
+**Rationale**: 무료 API의 불안정성 + 시황 품질 보장 + 외부 노출 안전.
+**Alternatives Considered**: Fail-fast (단일 장애로 시황 누락).
 
 ---
 
-## Data Flow
+## Data Model
 
-### Input Documents
+### NormalizedItem (Source 출력)
+- `source_name: str`, `category: Literal[...]`, `title: str`, `summary: str | None`, `url: HttpUrl | None`, `published_at: datetime`, `raw_metadata: dict`
 
-```
-IDEA.md (user creates via /ideate or manually)
-    │
-    ├── One-Liner
-    ├── The Problem
-    ├── Core Features
-    ├── Tech Preferences (optional)
-    └── Notes (optional)
-```
+### Briefing (LLM 출력 + 메타)
+- 7섹션 (`market_summary`, `key_issues`, `sector_flow`, `indicators_events`, `notable_tickers`, `today_watch`, `disclaimer`) + `rendered_markdown`
 
-### Generated Documents
+### BriefingNotification / FailureContext / SendResult / PipelineResult
+- 채널 발송 페이로드, 실패 컨텍스트, Bot API 응답, 파이프라인 종료 상태
 
-```
-docs/
-├── requirements.md      ← Stage 0 output (enhanced requirements)
-├── refinement-log.md    ← Stage 0 output (dialogue record)
-├── vision.md            ← Stage 1 input (AI-DLC format)
-├── tech-env.md          ← Stage 1 input (AI-DLC format)
-└── TECH-DEBT.md         ← Initialized template
-
-aidlc-docs/              ← Stage 1 output (AI-DLC generates)
-├── inception/
-│   ├── requirements/
-│   ├── user-stories/
-│   └── application-design/
-└── construction/
-    ├── functional-design/
-    └── nfr-requirements/
-
-.claude/skills/          ← Stage 2 output
-├── dev-{name}/SKILL.md  ← Project-specific
-├── code-review/SKILL.md ← Template
-├── tech-debt/SKILL.md   ← Template
-└── cross-check/SKILL.md ← Template
-```
+자세한 정의는 `aidlc-docs/inception/application-design/component-methods.md`.
 
 ---
 
-## Feedback Loop Design
-
-### Continuous Improvement Mechanisms
+## Component Boundaries (DAG)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     DEVELOPMENT CYCLE                        │
-│                                                              │
-│  /dev-{name}  ──────▶  Implementation  ──────▶  /code-review│
-│       │                      │                       │       │
-│       │                      ▼                       │       │
-│       │              Session Log Created             │       │
-│       │                      │                       │       │
-│       ▼                      ▼                       ▼       │
-│  ┌─────────┐         ┌─────────────┐         ┌──────────┐   │
-│  │ Plan    │◀────────│ TECH-DEBT   │◀────────│ Issues   │   │
-│  │ Update  │         │ Tracking    │         │ Found    │   │
-│  └─────────┘         └─────────────┘         └──────────┘   │
-│       │                      │                              │
-│       │                      ▼                              │
-│       │              Phase Complete?                        │
-│       │                      │                              │
-│       │                     YES                             │
-│       │                      │                              │
-│       │                      ▼                              │
-│       │              /cross-check                           │
-│       │                      │                              │
-│       │                      ▼                              │
-│       └──────────────  Gap Analysis  ───────────────────────│
-│                              │                              │
-│                              ▼                              │
-│                    New Tasks Added                          │
-└─────────────────────────────────────────────────────────────┘
+       orchestrator
+       /  |   |   |  \
+      v   v   v   v   v
+  sources briefing publisher notifier
+      \   |   |   /   /
+       v  v   v  v  v
+          models
 ```
 
-### Traceability
-
-| Artifact | Purpose | Created By |
-|----------|---------|------------|
-| Session logs | Record of each dev session | /dev-{name} |
-| Refinement log | Dialogue during refinement | /init-project |
-| Cross-check reports | Compliance verification | /cross-check |
-| TECH-DEBT entries | Issue tracking | /code-review, manual |
+- 4 working unit (sources / briefing / publisher / notifier)은 서로 import 금지
+- `orchestrator`만 위 4개를 호출
+- `models`는 모두에 의존되는 leaf
+- 강제 방식: Convention only (코드리뷰 + 디렉토리 구조)
 
 ---
 
-## Design Principles
+## Non-Functional Considerations
 
-### 1. Human in the Loop
+### Performance (NFR-001 ≤ 10분)
+| Stage | Time budget |
+|-------|-------------|
+| collect | ≤ 4분 (asyncio.gather, 30s/source timeout) |
+| generate | ≤ 4분 (two-stage with retry) |
+| publish | ≤ 1분 (git push retry) |
+| notify_briefing | ≤ 30초 |
+| GH Actions overhead | ≤ 30초 |
 
-- No automatic commits without approval
-- Interactive refinement requires explicit confirmation
-- Suggestions presented, not imposed
+### Cost (NFR-002 월 $0)
+- LLM = Claude Code CLI only
+- 데이터 = 무료 tier only
+- public repo → GitHub Actions 무제한
 
-### 2. Progressive Enhancement
+### Reliability (NFR-003)
+- Q9=B graceful degradation 다단계 (services.md 참조)
+- 외부 호출은 timeout + retry
 
-- Start with rough idea
-- Incrementally add structure
-- Each stage builds on previous
+### Compliance (NFR-004)
+- 면책조항 자동 append + 게시 직전 검증
 
-### 3. Traceability
-
-- Every decision logged
-- Requirements linked to implementation
-- Gaps tracked and actioned
-
-### 4. Language Agnostic
-
-- Skills detect language automatically
-- Templates work for any tech stack
-- AI-DLC rules are framework-independent
-
-### 5. Self-Contained
-
-- All rules included in repo
-- No external dependencies beyond Claude
-- Version controlled alongside code
+### Security (NFR-007 baseline only — extension SKIP)
+- 모든 시크릿은 GitHub Secrets
+- 공개 채널 발송 메시지에 시크릿/PII 포함 검증
+- public repo: 코드/시황 모두 공개, 시크릿만 비공개
 
 ---
 
-## Extension Points
+## Construction Phase Plan (preview)
 
-### Adding New Skills
+| Stage | Decision | Rationale |
+|-------|----------|-----------|
+| Functional Design | EXECUTE selectively (briefing + sources only) | LLM contract / plugin interface는 비자명 |
+| NFR Requirements | EXECUTE | NFR-001~005 측정 가능 acceptance 필요 |
+| NFR Design | SKIP | NFR Requirements 수준에서 흡수 |
+| Infrastructure Design | SKIP | GitHub Actions YAML이 design 자체 |
+| Code Generation | EXECUTE (always) | — |
+| Build and Test | EXECUTE (always) | lint/type/unit/PBT partial |
 
-1. Create `.claude/skills/{name}/SKILL.md`
-2. Follow standard structure (Arguments, Objective, Steps)
-3. Document in CLAUDE.md
-
-### Customizing Refinement
-
-Modify analysis categories in `/init-project`:
-- Add domain-specific checks
-- Adjust suggestion format
-- Change dialogue patterns
-
-### Integrating Additional AI-DLC Extensions
-
-Add to `aidlc-workflows/aidlc-rules/aws-aidlc-rule-details/extensions/`:
-- Security rules
-- Testing rules
-- Compliance rules
+상세는 `aidlc-docs/inception/plans/execution-plan.md`.
 
 ---
 
-## Limitations
-
-| Limitation | Mitigation |
-|------------|------------|
-| Skills are text-based, not executable | Claude interprets and executes |
-| No IDE integration | Works in any terminal with Claude |
-
----
-
-## Future Considerations
-
-- [x] Automated AI-DLC execution integration (implemented)
-- [x] Pre-inception idea capture (/ideate skill)
-- [x] Unified entry point (/start skill)
-- [ ] IDE-specific skill variants
-- [ ] Multi-language skill templates
-- [ ] Team collaboration patterns
-- [ ] /scaffold skill for project structure generation
+*Update this document as architectural decisions evolve during development. 큰 변경은 ADR(`docs/adr/NNNN-*.md`)로 별도 기록.*

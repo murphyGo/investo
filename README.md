@@ -1,242 +1,102 @@
-# AI-DLC Starter
+# Investo
 
-Transform ideas into fully-specified, development-ready projects using AI-DLC methodology and Claude-powered automation.
+> 매일 미국 주식·크립토(보조: 코스피)의 데일리 시황을 자동 생성·게시하는 1인용 자동화 도구
 
-## What is This?
+## Overview
 
-AI-DLC Starter is a template project that bridges:
-- **AI-DLC** (AWS's AI-Driven Development Life Cycle methodology)
-- **Claude Code Skills** (executable automation commands)
+매일 직접 뉴스를 검색하고 정리하는 시간 비용을 0으로 만들기 위해, 무료 공개 데이터 소스에서 전일 시장 데이터를 수집해 일관된 한국어 시황을 자동 생성한다. 결과는 GitHub Pages 정적 사이트에 영구 보관되고, 공개 Telegram 채널로 푸시된다. 운영비는 월 $0 (Claude Code 구독 외).
 
-**Result**: Idea → Enhanced Requirements → AI-DLC Specs → Working Project
+## Features
 
-## Quick Start
+- 매일 KST 평일 07:00 / 토요일 09:00 자동 실행 (GitHub Actions cron)
+- 무료 데이터 소스 다수 통합 수집 (뉴스, 시세, 거시 지표, 연준 캘린더, 실적)
+- Claude Code CLI 기반 한국어 7섹션 시황 자동 생성 (요약·핵심 이슈·섹터·지표·종목·관전포인트·면책조항)
+- GitHub Pages 정적 사이트에 영구 보관 (`archive/YYYY/MM/`)
+- 공개 Telegram 채널 푸시 + 운영자 실패 알림 (1:1 chat 분리)
+- Plugin 구조로 신규 데이터 소스 추가 = 단일 모듈 + 등록 1줄
 
-### 1. Clone and Setup
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Language | Python 3.11+ |
+| LLM Runtime | Claude Code CLI (subprocess) |
+| HTTP | httpx (async) |
+| Validation | pydantic v2 |
+| Static Site | MkDocs Material → GitHub Pages |
+| Notification | Telegram Bot API |
+| Scheduler | GitHub Actions cron |
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11+
+- Claude Code CLI (Claude Max/Pro subscription)
+- GitHub repository (public 권장 — Actions 무제한)
+- Telegram Bot 1개 (BotFather로 토큰 발급)
+
+### Required Secrets (GitHub Actions)
+
+| Secret | Purpose |
+|--------|---------|
+| `CLAUDE_CODE_OAUTH_TOKEN` | Claude Code CLI 인증 |
+| `TELEGRAM_BOT_TOKEN` | 텔레그램 봇 인증 |
+| `TELEGRAM_BRIEFING_CHANNEL_ID` | 공개 시황 채널 (모든 구독자) |
+| `TELEGRAM_OPERATOR_CHAT_ID` | 운영자 1:1 실패 알림 |
+
+### Local Development
 
 ```bash
-git clone https://github.com/murphyGo/aidlc-starter.git my-project
-cd my-project
+git clone git@github.com:murphyGo/investo.git
+cd investo
+
+# Python venv
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+
+# Lint / Type / Test
+ruff check .
+mypy src/
+pytest
+
+# Manual run (with env set)
+python -m investo
 ```
 
-### 2. Start with Claude
+(설치 명령은 `pyproject.toml` 작성 후 정확해짐)
+
+## Development
+
+This project uses AI-DLC methodology with Claude Code skills.
+
+### Quick Start
 
 ```bash
 claude
+/dev-investo
 ```
 
-Then run:
-```
-/start
-```
+### Development Workflow
 
-**Option A: Guided (Recommended for rough ideas)**
-```
-/ideate
-```
-Claude will ask questions and help you shape your idea into a structured `IDEA.md`.
+1. `/dev-investo` — 다음 task 가져오기 (AIDLC Construction stage 진행)
+2. Implement — `docs/requirements.md` + `docs/DESIGN.md` 따라 구현
+3. `/code-review git` — 커밋 전 리뷰
+4. `/tech-debt` — 발견된 이슈 등록
+5. Commit & push
 
-**Option B: Write directly**
-Edit `IDEA.md` at the project root:
+### Key Documents
 
-```markdown
-# My Project Idea
+| Document | Description |
+|----------|-------------|
+| `aidlc-docs/aidlc-state.md` | AIDLC state and progress |
+| `docs/requirements.md` | Detailed requirements (FR + NFR) |
+| `docs/DESIGN.md` | Architecture summary |
+| `aidlc-docs/inception/application-design/` | Detailed component / unit design |
 
-## One-Liner
-A REST API for managing personal book collections
+## Disclaimer
 
-## The Problem
-Book lovers struggle to track their reading lists across devices
-
-## Core Features
-- User authentication
-- CRUD operations for books
-- Search by title/author
-- Export to CSV
-
-## Tech Preferences
-- Language: Go
-- Database: PostgreSQL
-```
-
-### Applying to an Existing Project
-
-Already have a codebase? Use `/adopt` instead of `/ideate`:
-
-```
-/adopt
-```
-
-Claude will:
-1. **Scan** your existing codebase (languages, frameworks, structure)
-2. **Guide** you through describing what to add and what to preserve
-3. **Generate** a brownfield-formatted `IDEA.md` with Current State / What We Are Adding / What Must Not Change
-
-Then run `/init-project` as usual — AI-DLC will auto-detect the existing code and run a reverse engineering stage before generating specs.
-
-**Quick setup**: Copy these into your existing project, then run `/start`:
-- `.claude/skills/` directory
-- `aidlc-workflows/` directory
-- `docs/references/` directory
-
-### 3. Initialize Project
-
-```
-/init-project
-```
-
-Claude will:
-1. **Analyze** your idea and suggest improvements
-2. **Refine** requirements through interactive dialogue
-3. **Generate** AI-DLC specification documents
-4. **Create** project-specific development skills
-
-## Three-Stage Automation
-
-### Stage 0: Interactive Requirements Refinement
-
-Claude analyzes your `IDEA.md` and:
-- Identifies gaps (error handling, edge cases, security)
-- Suggests improvements with clear rationale
-- Engages in dialogue until requirements are solid
-- Generates enhanced `docs/requirements.md`
-
-### Stage 1: AI-DLC Spec Generation
-
-Creates AI-DLC input documents:
-- `docs/vision.md` - Project vision and goals
-- `docs/tech-env.md` - Technical environment spec
-
-Then guides AI-DLC workflow to produce:
-- `aidlc-docs/inception/` - Requirements, user stories, application design
-- `aidlc-docs/construction/` - Functional design, NFRs, build plans
-
-### Stage 2: Skill Generation
-
-Creates project-specific automation:
-- `/dev-{project}` - Main development driver
-- `/code-review` - Code quality checks
-- `/tech-debt` - Debt management
-- `/cross-check` - Requirements compliance
-
-## Available Skills
-
-| Skill | Purpose |
-|-------|---------|
-| `/start` | Unified entry point - auto-detects state and routes |
-| `/ideate` | Capture lightning idea through guided dialogue |
-| `/adopt` | Onboard existing codebase into AI-DLC workflow |
-| `/init-project` | Bootstrap new project from idea (add `--quick` for fast-track) |
-| `/scaffold` | Generate project structure from specs |
-| `/code-review git` | Review changed files for issues |
-| `/tech-debt` | View/manage technical debt |
-| `/cross-check` | Verify implementation vs requirements |
-
-## Example
-
-See [`examples/book-tracker/`](examples/book-tracker/README.md) for a complete walkthrough from rough idea to project-ready state:
-
-1. **Raw idea**: "I want to build something that helps me track my reading habits"
-2. **After `/ideate`**: Structured IDEA.md with problem, features, suggested tech
-3. **After `/init-project`**: 6 functional requirements, Go + Chi + PostgreSQL decisions, AI-DLC inception artifacts
-4. **After `/scaffold`**: Directories and config files ready for development
-
-## Project Structure
-
-```
-aidlc-starter/
-├── README.md
-├── CLAUDE.md                    # Claude Code context
-├── IDEA.md                      # Your idea (input) ← START HERE
-├── docs/
-│   ├── PROJECT-VISION.md        # About aidlc-starter template
-│   ├── DESIGN.md                # Architecture decisions
-│   └── references/              # Skill templates (copied during init)
-│       ├── dev-skill-template.md
-│       ├── code-review-template.md
-│       ├── tech-debt-template.md
-│       └── cross-check-template.md
-├── .claude/
-│   └── skills/
-│       ├── start/               # Unified entry point
-│       ├── ideate/              # Idea capture skill
-│       ├── adopt/               # Brownfield adoption skill
-│       └── init-project/        # Bootstrap skill
-└── aidlc-workflows/             # AWS AI-DLC rules
-    └── aidlc-rules/
-        ├── aws-aidlc-rules/     # Core workflow
-        └── aws-aidlc-rule-details/  # Stage details
-```
-
-After running `/init-project`, your project will have:
-- `.claude/skills/dev-{project}/` - Project-specific development skill
-- `.claude/skills/code-review/` - Code quality checks
-- `.claude/skills/tech-debt/` - Debt management
-- `.claude/skills/cross-check/` - Requirements compliance
-
-## Feedback Loop
-
-The system supports continuous improvement:
-
-1. **Session Logs** - Every dev session creates traceability
-2. **TECH-DEBT Tracking** - Issues captured and prioritized
-3. **Cross-Check Reports** - Phase completion triggers compliance verification
-4. **Plan Evolution** - Development plan updates as work progresses
-
-## Requirements
-
-- [Claude Code CLI](https://github.com/anthropics/claude-code)
-- Git
-
-## How It Works
-
-```
-┌─────────────────┐
-│     /start      │  Unified entry point
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐ ┌────────┐
-│/ideate │ │/adopt  │  New idea vs. existing codebase
-└───┬────┘ └───┬────┘
-    │          │
-    └────┬─────┘
-         ▼
-┌─────────────────┐
-│    IDEA.md      │  Your structured idea
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  /init-project  │  Claude-powered refinement
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ requirements.md │  Enhanced, structured requirements
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│    AI-DLC       │  Spec generation workflow (auto)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  aidlc-docs/    │  Complete specifications
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   /scaffold     │  Directories + config files
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  /dev-{name}    │  Project automation
-└─────────────────┘
-```
+본 도구가 생성하는 시황은 **투자 자문이 아니라 정보 제공**이며, 손실에 대한 책임은 사용자 본인에게 있다. 모든 시황 본문에 면책조항이 자동 삽입된다.
 
 ## License
 

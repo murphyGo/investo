@@ -1,0 +1,269 @@
+# Units of Work: Investo
+
+**Date**: 2026-04-27
+**Source**: unit-of-work-plan.md (all recommended)
+**Project type**: Greenfield monolith (single deployable Python package, GitHub Actions runner)
+**Terminology**: "Unit of Work" used for development planning. There is no microservice split — this is a logical decomposition within a single deployable.
+
+---
+
+## Foundation: `models` (shared library)
+
+Not a unit (no stories assigned), but a prerequisite for all units.
+
+- Pydantic v2 types: `NormalizedItem`, `Briefing`, `BriefingNotification`, `FailureContext`, `SendResult`, `PipelineStatus`, `PipelineResult`
+- Path: `src/investo/models/`
+- Tests: `tests/unit/models/` (PBT for serialization round-trip per NFR-006)
+- Built first (before u1) so all units can import from a stable surface.
+
+---
+
+## u1: `sources` — Source Adapters
+
+**Purpose**: 무료 공개 데이터 소스 plugin들을 수집하고 비동기로 정규화 데이터를 반환.
+
+**Stories**: US-001 (수집), US-008 (확장성)
+
+**Module path**: `src/investo/sources/`
+- `protocol.py` — `SourceAdapter` Protocol
+- `registry.py` — `@register` 데코레이터 + `list_sources()`
+- `aggregator.py` — `fetch_all(target_date)` (asyncio.gather + per-source isolation)
+- `<source_name>.py` — 개별 어댑터 (PoC 단계에서 1~2개로 시작, 점진 추가)
+
+**Tests**: `tests/unit/sources/`
+- mock 어댑터로 registry/aggregator 동작 검증
+- 부분 실패 시나리오 (단일 어댑터 raise → 다른 결과 유지)
+- timeout/retry 정책
+
+**Definition of Done**:
+- [ ] `SourceAdapter` Protocol 정의
+- [ ] registry + aggregator 동작
+- [ ] 1개 이상의 reference 어댑터 구현 (예: 가장 단순한 RSS 또는 yfinance)
+- [ ] 부분 실패 unit test 통과
+- [ ] README/CONTRIBUTING에 신규 어댑터 추가 절차 문서화 (US-008 AC)
+
+---
+
+## u2: `briefing` — Briefing Generator
+
+**Purpose**: NormalizedItem 리스트 → Claude Code CLI(two-stage prompt) → 면책조항 자동 삽입된 7섹션 한국어 시황 markdown.
+
+**Stories**: US-002 (시황), US-009 (Claude Code only)
+
+**Module path**: `src/investo/briefing/`
+- `prompts.py` — `build_classification_prompt`, `build_briefing_prompt`
+- `claude_code.py` — `call_claude_code(prompt, ...)` (subprocess wrapper)
+- `disclaimer.py` — `DISCLAIMER` 상수 + `append_disclaimer` (idempotent)
+- `generator.py` — `generate_briefing` 진입점 (two-stage 합성)
+
+**Tests**: `tests/unit/briefing/`
+- LLM 호출은 `tests/fixtures/llm/`의 record/replay로 mock
+- prompt 빌더 순수 함수 테스트
+- `append_disclaimer` idempotency 테스트
+- retry 정책 시나리오
+
+**Definition of Done**:
+- [ ] `subprocess.run(["claude", "-p", ...])` wrapper에 timeout/retry/exit-code 처리
+- [ ] Two-stage prompt 흐름 동작 (PoC fixture로 검증)
+- [ ] `DISCLAIMER` 본문 코드 상수로 정의
+- [ ] disclaimer auto-append + idempotent 테스트 통과
+- [ ] **Anthropic SDK import 금지**: `from anthropic ...` 가 코드에 없음 검증 (간단한 grep 또는 lint rule)
+
+---
+
+## u3: `publisher` — Publisher
+
+**Purpose**: 생성된 시황 markdown을 archive/YYYY/MM/YYYY-MM-DD.md에 저장하고 git commit/push. 게시 전 disclaimer 검증.
+
+**Stories**: US-003 (정적 게시), US-006 (영구 보관)
+
+**Module path**: `src/investo/publisher/`
+- `paths.py` — `archive_path`, ARCHIVE_ROOT
+- `verifier.py` — `verify_disclaimer`
+- `writer.py` — `write_briefing`
+- `git_ops.py` — `commit_and_push` (subprocess git)
+
+**Tests**: `tests/unit/publisher/`
+- archive_path 경로 빌드 검증
+- verify_disclaimer false 시 raise 패턴
+- git_ops는 subprocess mock + retry 동작
+- 동일 날짜 재실행 시 덮어쓰기 시나리오
+
+**Definition of Done**:
+- [ ] markdown write가 archive 구조 준수
+- [ ] verify_disclaimer가 코드 상수와 매칭
+- [ ] commit_and_push retry (최대 N회) 동작
+- [ ] 게시 전 disclaimer 누락 시 게시 차단 + 명시적 예외 (NFR-004 강제)
+
+**Note**: `mkdocs build` + GitHub Pages 배포는 본 unit이 아니라 **u6 infra(CI)**의 책임.
+
+---
+
+## u5: `orchestrator` — Orchestrator
+
+**Purpose**: 파이프라인 단일 진입점. 단계 실행 + 단계별 에러 정책 + alert 트리거.
+
+**Stories**: US-005 (스케줄 실행)
+
+**Note**: 딜리버리 순서상 u4(notifier)보다 먼저 만들지만 unit ID는 컴포넌트와 1:1 유지를 위해 u5로 표기.
+
+**Module path**: `src/investo/orchestrator/`
+- `pipeline.py` — `run_pipeline`, `_stage_collect`, `_stage_generate`, `_stage_publish`, `_stage_notify_briefing`
+- `date_resolution.py` — `resolve_target_date`
+- `__main__.py` — `main()` entrypoint (`python -m investo`)
+- `__init__.py` — exports
+
+**Tests**: `tests/unit/orchestrator/`
+- date_resolution 평일/토요일/수동 시나리오
+- 각 _stage 함수의 happy/failure path
+- run_pipeline의 graceful degradation (stage 별 mocked 실패 주입)
+
+**Integration test**: `tests/integration/test_pipeline.py`
+- 모든 외부 호출 mock + run_pipeline 전체 수행
+- Result.status SUCCESS/PARTIAL/FAILED 케이스 각각
+
+**Definition of Done**:
+- [ ] `python -m investo`로 entrypoint 동작 (env 미설정 시 명시적 에러)
+- [ ] Q9=B graceful degradation 정책 모두 구현 + 테스트
+- [ ] resolve_target_date 평일·토요일 분기 검증
+- [ ] integration test가 외부 호출 없이 전체 파이프라인 검증
+
+---
+
+## u4: `notifier` — Notifier (BriefingPublisher + OperatorAlerter)
+
+**Purpose**: 텔레그램 분배. 공개 채널과 운영자 1:1 chat을 별도 클래스로 분리.
+
+**Stories**: US-004 (공개 채널), US-007 (운영자 1:1)
+
+**Module path**: `src/investo/notifier/`
+- `summary.py` — `build_summary` (4096자 한도)
+- `briefing_publisher.py` — `BriefingPublisher` 클래스
+- `operator_alerter.py` — `OperatorAlerter` 클래스
+- `_telegram.py` — 공통 HTTP 호출 (httpx) — internal helper
+
+**Tests**: `tests/unit/notifier/`
+- httpx mock으로 Telegram Bot API 호출 검증
+- 4096자 초과 시 truncation 동작
+- send/alert 모두 non-raising (실패는 `SendResult.ok=False`)
+- 시크릿/PII 노출 방지 검증 (시황 본문 패턴 매칭)
+
+**Definition of Done**:
+- [ ] BriefingPublisher가 공개 채널에만 발송 (channel ID 분리 검증)
+- [ ] OperatorAlerter가 운영자 chat에만 발송
+- [ ] 두 클래스가 같은 발송 경로 공유 안 함 (constructor 파라미터로 분리)
+- [ ] HTTP 실패 시 SendResult로 반환 (raise 안 함)
+- [ ] 본문 길이 한도 / parse_mode / URL 포함 검증
+
+---
+
+## u6: `infra/CI` — GitHub Actions + MkDocs + Pages
+
+**Purpose**: 인프라/배포 단위. Python 코드는 없고 YAML/설정만.
+
+**Stories**: US-005 (cron), US-003 (Pages 호스팅)
+
+**Paths**:
+- `.github/workflows/daily-briefing.yml` — cron + workflow_dispatch + `python -m investo` step
+- `.github/workflows/pages.yml` — markdown commit 후 mkdocs build + actions/deploy-pages 트리거
+- `mkdocs.yml` — 사이트 설정 (테마, 네비, archive plugin 설정)
+- `docs/index.md`, `docs/about.md` — landing 페이지 등 (MkDocs source)
+
+**Tests**: workflow는 직접 자동화 테스트 어려움. 검증:
+- workflow_dispatch로 수동 실행 후 output 확인
+- mkdocs build를 로컬에서 검증
+- 첫 cron 실행을 임시로 가까운 시각으로 잡고 dry-run
+
+**Definition of Done**:
+- [ ] cron이 평일 KST 07:00 (UTC 22:00 전일) + 토 09:00에 실행
+- [ ] `python -m investo`가 GitHub Secrets로 인증되어 동작
+- [ ] commit 후 자동으로 Pages 빌드/배포
+- [ ] 빌드 실패 시 기존 사이트 유지
+
+---
+
+## Code Organization Strategy
+
+### Repository Layout (per Q3=A)
+
+```
+investo/                           # repo root
+├── pyproject.toml
+├── README.md
+├── CLAUDE.md                      # (init-project Stage 2에서 생성)
+├── mkdocs.yml
+├── archive/                       # 시황 markdown (run-time output)
+│   └── YYYY/MM/YYYY-MM-DD.md
+├── docs/                          # mkdocs source (사이트의 정적 페이지)
+│   ├── index.md
+│   └── about.md
+│   # 주의: aidlc 산출물용 docs/와는 별개. 충돌 시 /site-docs/로 이름 변경 검토
+├── src/
+│   └── investo/
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── models/
+│       ├── sources/
+│       ├── briefing/
+│       ├── publisher/
+│       ├── notifier/
+│       └── orchestrator/
+├── tests/
+│   ├── unit/
+│   │   ├── models/
+│   │   ├── sources/
+│   │   ├── briefing/
+│   │   ├── publisher/
+│   │   ├── notifier/
+│   │   └── orchestrator/
+│   ├── integration/
+│   │   └── test_pipeline.py
+│   └── fixtures/
+│       ├── llm/                   # Claude Code record/replay
+│       └── api/                   # 외부 API 응답 샘플
+├── .github/
+│   └── workflows/
+│       ├── daily-briefing.yml
+│       └── pages.yml
+└── (기존 그대로)
+    ├── aidlc-docs/
+    ├── aidlc-workflows/
+    ├── docs/                      # AIDLC 문서. mkdocs source(/docs)와 충돌 가능
+    │                              # → 충돌 시 mkdocs source를 site-docs/로 옮길 것
+    ├── examples/
+    └── IDEA.md
+```
+
+### Naming Convention
+- Python 패키지/모듈: `snake_case`
+- 클래스: `PascalCase`
+- 모듈 ID는 컴포넌트 ID와 일치 (`sources` ↔ u1, etc.)
+
+### Module Boundary Rule (Q4=A — Convention Only)
+- `orchestrator`만 `sources / briefing / publisher / notifier`를 import 가능
+- 나머지 4 unit은 서로 import 금지 (오직 `models`만 공통 의존)
+- 코드리뷰 + 디렉토리 구조로 강제. import-linter 미도입.
+- 위반은 향후 PR 검토 시 차단; 패턴이 반복되면 import-linter 도입 검토 (현재 Open Question)
+
+### Dependency Management (per docs/tech-env.md)
+- `pyproject.toml` (PEP 621)
+- `uv` 또는 `pip` + lock file
+- core deps: `pydantic>=2`, `httpx`, `mkdocs-material`
+- dev deps: `pytest`, `hypothesis`, `ruff`, `mypy`
+
+---
+
+## Test Strategy (Q5=A) — 단위 ↔ 단위별 테스트 매핑
+
+| Unit | tests/unit/ subdir | Mocked externally | PBT applicable |
+|------|--------------------|-------------------|----------------|
+| models | tests/unit/models | — | ✅ 직렬화 round-trip |
+| u1 sources | tests/unit/sources | httpx, 외부 API | partial (정규화 함수) |
+| u2 briefing | tests/unit/briefing | claude CLI (subprocess) | partial (prompt builder, append_disclaimer) |
+| u3 publisher | tests/unit/publisher | git CLI, 파일시스템 | — |
+| u4 notifier | tests/unit/notifier | httpx, Telegram API | partial (build_summary 한도) |
+| u5 orchestrator | tests/unit/orchestrator | 모든 다른 unit | — |
+| u6 infra | (workflow 수동 검증) | — | — |
+| (cross-unit) | tests/integration/test_pipeline.py | 모든 외부 호출 | — |
+
+LLM 호출은 `tests/fixtures/llm/`의 record/replay 데이터로 결정성 보장.

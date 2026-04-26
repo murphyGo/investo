@@ -41,16 +41,16 @@ yarn-error.log*
 secrets/
 credentials/
 
-# Model artifacts
+# Model artifacts (ML weights only — anchored to repo root to avoid src/investo/models/)
 *.onnx
 *.pkl
 *.pt
 *.bin
 *.h5
-models/
+/models/
 
-# Data
-data/
+# Data (anchored to repo root to avoid src/investo/data/ if introduced later)
+/data/
 *.csv
 *.parquet
 *.jsonl
