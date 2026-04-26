@@ -1,5 +1,36 @@
 """Investo shared data models (pydantic v2).
 
-Foundation library — every other unit imports from here. Public API is
-finalized in this file's ``__all__`` once all submodules land (plan Step 5).
+Foundation library — every other unit imports from here. The names
+listed in :data:`__all__` constitute this package's stable public API;
+anything else (e.g. the ``_validators`` helpers) is internal and must
+not be relied on by sibling units.
+
+Reference: aidlc-docs/inception/application-design/component-methods.md
 """
+
+from investo.models.briefing import (
+    TELEGRAM_MESSAGE_LIMIT,
+    Briefing,
+    BriefingNotification,
+)
+from investo.models.items import Category, NormalizedItem
+from investo.models.results import (
+    FailureContext,
+    FailureStage,
+    PipelineResult,
+    PipelineStatus,
+    SendResult,
+)
+
+__all__ = [
+    "TELEGRAM_MESSAGE_LIMIT",
+    "Briefing",
+    "BriefingNotification",
+    "Category",
+    "FailureContext",
+    "FailureStage",
+    "NormalizedItem",
+    "PipelineResult",
+    "PipelineStatus",
+    "SendResult",
+]

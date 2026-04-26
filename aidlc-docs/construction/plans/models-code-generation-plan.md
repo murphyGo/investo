@@ -94,11 +94,16 @@ None directly. Foundation supports all stories indirectly:
 
 **Code review** (sub-agent): 2 High + 3 Medium + 3 Low — all 8 fixed in-step or via shared helper extraction. Quality gate clean. Step 2 / Step 3 regression OK.
 
-### Step 5: Models package `__init__.py` (public API)
+### Step 5: Models package `__init__.py` (public API) ✅
 
-- [ ] **5.1** Create `src/investo/models/__init__.py`:
-  - Re-export every public type from items/briefing/results
-  - Define `__all__` listing all exported names exactly
+- [x] **5.1** Updated `src/investo/models/__init__.py`:
+  - Re-exports `Category`, `NormalizedItem`, `Briefing`, `BriefingNotification`, `TELEGRAM_MESSAGE_LIMIT`, `PipelineStatus`, `SendResult`, `FailureContext`, `PipelineResult`, `FailureStage`
+  - `__all__` lists all 10 names alphabetized
+  - Internal `_validators` helpers stay private (verified via star-import isolation test)
+
+**Verification**: `from investo.models import *` brings exactly the 10 public names — `_validators`, `reject_blank_strict`, `ensure_tz_aware`, etc. are confirmed absent. All 6 model classes construct successfully via top-level import. Quality gate clean.
+
+**Self-check** (no full sub-agent review for this trivial re-export module): public API matches `__all__`; star import isolation OK; direct imports OK; type-checker (`mypy --strict`) green.
 
 ### Step 6: Unit tests (basic construction + validation)
 

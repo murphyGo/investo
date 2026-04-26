@@ -252,6 +252,16 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 5 Complete (`models/__init__.py` public API)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Updated src/investo/models/__init__.py with explicit re-exports of 10 public names: Category, NormalizedItem, Briefing, BriefingNotification, TELEGRAM_MESSAGE_LIMIT, PipelineStatus, SendResult, FailureContext, PipelineResult, FailureStage. __all__ alphabetized. Internal _validators helpers confirmed private via star-import isolation test.
+**Verification**: ruff/mypy clean; star import returns exactly __all__; all 6 model classes construct via top-level import.
+**Code review**: Self-check only (re-export module, ~30 lines, trivial risk surface). No issues.
+**Status**: Step 5 complete; no new TECH-DEBT items. DEBT-001/002 still open.
+**Context**: Construction phase Code Generation — models foundation, Step 5 of 8
+
+---
+
 ## Construction — models — Step 4 Complete (`models/results.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/models/results.py with PipelineStatus (StrEnum), SendResult (with cross-field model_validator), FailureContext, PipelineResult; extracted ensure_tz_aware to _validators.py; refactored items.py to consume the shared helper.
