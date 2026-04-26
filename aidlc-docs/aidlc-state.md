@@ -30,8 +30,19 @@
 | NFR Requirements | ⏳ EXECUTE | |
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
-| Code Generation | ⏳ EXECUTE | |
-| Build and Test | ⏳ EXECUTE | |
+| Code Generation | ⏳ EXECUTE (in progress — models) | 2026-04-27 |
+| Build and Test | ⏳ EXECUTE (deferred until all units done) | |
+
+### Per-Unit Construction Progress
+| Unit | Functional Design | NFR Requirements | Code Generation | Notes |
+|------|-------------------|------------------|-----------------|-------|
+| models (foundation) | N/A | N/A | ⏳ in progress (Step 1/8 ✅) | Bootstrap complete |
+| u1 sources | ⏳ pending | ⏳ pending | ⏳ pending | |
+| u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
+| u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
+| u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
+| u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
+| u6 infra/CI | N/A | N/A | ⏳ pending | YAML/config only |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |

@@ -252,6 +252,38 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 1 Complete (Project Bootstrap)
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "approve" (plan approval) → automatic Step 1 execution
+**Action**: Created bootstrap files: pyproject.toml (hatchling, src layout, ruff/mypy/pytest config), src/investo/__init__.py, src/investo/__main__.py (placeholder), tests/__init__.py, tests/unit/__init__.py, tests/unit/models/__init__.py. Verified install in fresh .venv (Python 3.14.3) and ran quality gate: ruff check ✅, ruff format --check ✅, mypy --strict src/ ✅, pytest ✅ (0 tests). `python -m investo` raises NotImplementedError as designed.
+**Status**: Step 1 complete; updated aidlc-state.md with per-unit construction tracking; session log at docs/sessions/2026-04-27-models-code-generation-step1.md.
+**Context**: Construction phase Code Generation — models foundation, Step 1 of 8
+
+---
+
+## Construction — models — Code Generation Plan Approval
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "approve"
+**AI Response**: "Plan approved. Proceeding to Step 1 execution."
+**Status**: Plan approved
+**Context**: Code Generation Part 1 (Planning) → Part 2 (Generation) transition
+
+---
+
+## Construction — models — Code Generation Plan
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Entered Code Generation stage for `models` foundation. Created `aidlc-docs/construction/plans/models-code-generation-plan.md` with 8 numbered steps:
+- Step 1: Project bootstrap (pyproject.toml + package + tests scaffolding)
+- Step 2-4: Implement `models/items.py`, `models/briefing.py`, `models/results.py` per Application Design `component-methods.md`
+- Step 5: Public API via `models/__init__.py`
+- Step 6: Unit tests (construction + validation)
+- Step 7: Hypothesis PBT round-trip (NFR-006)
+- Step 8: Quality gate (ruff/mypy/pytest) + summary
+**Approval Prompt**: "Review aidlc-docs/construction/plans/models-code-generation-plan.md. Approve to begin Step 1 execution."
+**Context**: Step 6-7 of code-generation.md (Plan + Approval prompt)
+
+---
+
 ## Stage 2 — Skill Generation Complete
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Generated project skills + documentation:
