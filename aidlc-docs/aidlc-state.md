@@ -36,7 +36,7 @@
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |------|-------------------|------------------|-----------------|-------|
-| models (foundation) | N/A | N/A | ⏳ in progress (Step 2/8 ✅) | items.py done |
+| models (foundation) | N/A | N/A | ⏳ in progress (Step 3/8 ✅) | briefing.py done; 2 TECH-DEBT items added |
 | u1 sources | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

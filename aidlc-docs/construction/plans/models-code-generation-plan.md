@@ -74,24 +74,15 @@ None directly. Foundation supports all stories indirectly:
 **Code review** (sub-agent): no Critical/High; M1 (raw_metadata strict union) + M2 (whitespace normalization) fixed in same step. Low cosmetic suggestions deferred.
 **Quality gate**: ruff ✅ · mypy strict ✅ · runtime smoke + validator tests ✅
 
-### Step 3: Implement `models/briefing.py`
+### Step 3: Implement `models/briefing.py` ✅
 
-- [ ] **3.1** Define `Briefing` pydantic v2 BaseModel:
-  - `target_date: date`
-  - `market_summary: str` (① 요약)
-  - `key_issues: str` (② 전일 핵심 이슈)
-  - `sector_flow: str` (③ 섹터/수급 동향)
-  - `indicators_events: str` (④ 지표·이벤트)
-  - `notable_tickers: str` (⑤ 주요 종목)
-  - `today_watch: str` (⑥ 오늘의 관전 포인트)
-  - `disclaimer: str` (⑦ 면책조항)
-  - `rendered_markdown: str` (7섹션 통합 markdown)
-  - `model_config = ConfigDict(extra="forbid")`
-- [ ] **3.2** Define `BriefingNotification` pydantic v2 BaseModel:
-  - `target_date: date`
-  - `summary_text: str` (constraint: ≤ 4096 chars — Telegram limit)
-  - `site_url: HttpUrl`
-  - `model_config = ConfigDict(frozen=True, extra="forbid")`
+- [x] **3.1** `Briefing` pydantic v2 BaseModel: 7 sections + `rendered_markdown` + `disclaimer` + `target_date`, `frozen=True`, `extra="forbid"`. Markdown-preserving blank-rejection validator.
+- [x] **3.2** `BriefingNotification` pydantic v2 BaseModel: `target_date`, `summary_text`, `site_url`, `frozen=True`, `extra="forbid"`.
+- [x] **3.3** **H1 fix**: `summary_text` length validated in **UTF-16 code units** (Telegram's actual measurement) instead of Python char count, so emoji-heavy summaries can't sneak past the 4096-unit cap.
+- [x] **3.4** **L1/L2 refactor**: Extracted `reject_blank_strict` / `reject_blank_preserve` to `models/_validators.py`; `items.py` and `briefing.py` both use it.
+
+**Code review** (sub-agent): no Critical; H1 (High UTF-16 limit) + L1/L2 fixed in-step. M1 (disclaimer-in-markdown invariant) and M2 (date sanity bounds) registered as DEBT-001 and DEBT-002 in `docs/TECH-DEBT.md`.
+**Quality gate**: ruff ✅ · mypy strict ✅ · UTF-16 boundary tests (4096 ASCII / 4097 ASCII / 2048 emoji / 2049 emoji / mixed / Korean BMP) ✅ · Step 2 regression ✅
 
 ### Step 4: Implement `models/results.py`
 

@@ -23,6 +23,8 @@ from pydantic import (
     field_validator,
 )
 
+from investo.models._validators import reject_blank_strict
+
 Category = Literal["news", "price", "macro", "calendar", "earnings"]
 
 # Strict union for raw_metadata values: rejects silent coercion such as
@@ -55,11 +57,9 @@ class NormalizedItem(BaseModel):
     def _reject_blank(cls, value: str) -> str:
         # ``min_length=1`` rejects ``""`` but lets whitespace-only strings
         # through. Strip-then-check ensures these required identifiers carry
-        # actual content.
-        stripped = value.strip()
-        if not stripped:
-            raise ValueError("must contain non-whitespace characters")
-        return stripped
+        # actual content. Shared helper keeps the rule consistent across
+        # sibling models.
+        return reject_blank_strict(value)
 
     @field_validator("summary")
     @classmethod

@@ -252,6 +252,18 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 3 Complete (`models/briefing.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/models/briefing.py (Briefing, BriefingNotification, TELEGRAM_MESSAGE_LIMIT) and src/investo/models/_validators.py (shared reject_blank_strict / reject_blank_preserve helpers). Refactored items.py to use the shared helper.
+**Code review**: Sub-agent surfaced H1 (UTF-16 vs Python char count for Telegram limit, real reliability bug for emoji-containing summaries), M1 (model invariant disclaimer ∈ rendered_markdown), M2 (no date sanity bounds — project-wide), L1/L2 (validator duplication), L3 (HttpUrl → Url object footgun, downstream).
+**User Input**: "fix high + L1/L2"
+**AI Response**: "Applied: H1 replaced max_length=4096 with UTF-16 code-unit validator; L1/L2 extracted shared validators to _validators.py; M1/M2 registered as DEBT-001/DEBT-002 in docs/TECH-DEBT.md; L3 acknowledged for future u4 work."
+**Verification**: Quality gate clean (ruff, mypy strict). UTF-16 boundary tests: 4096 ASCII / 4097 ASCII / 2048 emoji (=4096 UTF-16) / 2049 emoji (=4098 UTF-16) / mixed / Korean BMP — all behave correctly. Step 2 regression OK.
+**Status**: Step 3 complete; 2 medium TECH-DEBT items added (DEBT-001 disclaimer-in-markdown invariant, DEBT-002 date sanity bounds).
+**Context**: Construction phase Code Generation — models foundation, Step 3 of 8
+
+---
+
 ## Construction — models — Step 2 Complete (`models/items.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created `src/investo/models/__init__.py` (placeholder) + `src/investo/models/items.py` with `Category` Literal and `NormalizedItem` pydantic v2 model. Sub-agent code review surfaced M1 (raw_metadata silent coercion) + M2 (whitespace handling); user chose "fix" → both applied in same step. Quality gate clean (ruff, mypy strict, runtime smoke + validator tests). Session log: docs/sessions/2026-04-27-models-code-generation-step2.md.
