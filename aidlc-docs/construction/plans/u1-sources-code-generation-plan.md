@@ -42,28 +42,18 @@
 
 ---
 
-### Step 2: `_window.py` — FetchWindow value object
+### Step 2: `_window.py` — FetchWindow value object ✅
 
-**Spec**: domain-entities.md §E3, business-rules.md R7, NFR ACs 6.1, 6.2.
+- [x] **2.1** `src/investo/sources/_window.py` — frozen+slots dataclass; `from_kst_date` classmethod (KST→UTC via `zoneinfo`); `contains` half-open `[start, end)`; tz-aware checks via shared `_ensure_tz_aware` helper
+- [x] **2.2** Anchor tests: known case `2026-04-27 → [2026-04-26 15:00 UTC, 2026-04-27 15:00 UTC)`; 24-h span; frozen; naive rejection on both bounds + on `contains`; inverted/zero-length window; year-boundary; leap day; fixed-offset tz
+- [x] **2.3** PBT: AC-6.1 window invariants + AC-6.2 half-open membership, 100 examples each
+- [x] **2.4** Sub-agent code review — fixed in-step:
+  - **M1**: `from_kst_date` boundary dates (`date.min`/`date.max`) now wrap `OverflowError` → `ValueError("out of supported range")` + 2 regression tests
+  - **L2**: hostile `tzinfo` whose `utcoffset()` raises → wrapped to `ValueError` + 2 regression tests using a synthetic `_RaisingTZ` subclass
+  - **L1**: documented copy/pickle bypass caveat in module docstring
+  - **L3**: cosmetic, skipped
 
-- [ ] **2.1** Create `src/investo/sources/_window.py`:
-  - `FetchWindow` (frozen dataclass or pydantic model — frozen, extra="forbid")
-    fields `start_utc: datetime`, `end_utc: datetime`, `target_date: date`
-  - `FetchWindow.from_kst_date(target_date: date) -> FetchWindow` classmethod
-  - `FetchWindow.contains(dt: datetime) -> bool` — half-open [start, end)
-  - Tz-aware datetime invariants enforced via post-init or validator
-  - Use `zoneinfo.ZoneInfo("Asia/Seoul")` for KST resolution
-- [ ] **2.2** `tests/unit/sources/test_window.py`:
-  - Construction with valid date produces 24-h tz-aware window
-  - `contains` boundary tests (start inclusive, end exclusive)
-  - Naive datetime in `contains` rejected (or returns False — pin behavior)
-  - Specific known case: `from_kst_date(date(2026, 4, 27))` → `start_utc = 2026-04-26 15:00 UTC`, `end_utc = 2026-04-27 15:00 UTC`
-- [ ] **2.3** `tests/unit/sources/test_window.py` PBT (hypothesis):
-  - **AC-6.1**: arbitrary `date` → window is tz-aware, `start < end`, span exactly 24 h
-  - **AC-6.2**: arbitrary tz-aware `datetime` → `contains(dt)` is exactly `start <= dt < end`
-- [ ] **2.4** Sub-agent code review for `_window.py`. Apply or defer findings.
-
-**Exit**: FetchWindow API stable; PBT pins NFR-006 AC-6.1/6.2.
+**Quality gate**: ruff ✅, mypy strict ✅, pytest 123/123 (101 models + 22 window). PBTs each ran 100 examples.
 
 ---
 

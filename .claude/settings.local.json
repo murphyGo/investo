@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:aws.amazon.com)",
-      "WebFetch(domain:prod.d13rzhkk8cj2z0.amplifyapp.com)"
+      "WebFetch(domain:prod.d13rzhkk8cj2z0.amplifyapp.com)",
+      "Bash(mkdir -p /Users/user/Desktop/Projects/investo/.claude/skills/dev-investo /Users/user/Desktop/Projects/investo/.claude/skills/code-review /Users/user/Desktop/Projects/investo/.claude/skills/tech-debt /Users/user/Desktop/Projects/investo/.claude/skills/cross-check)",
+      "Bash(cp /Users/user/Desktop/Projects/investo/docs/references/tech-debt-template.md /Users/user/Desktop/Projects/investo/.claude/skills/tech-debt/SKILL.md)",
+      "Bash(cp /Users/user/Desktop/Projects/investo/docs/references/cross-check-template.md /Users/user/Desktop/Projects/investo/.claude/skills/cross-check/SKILL.md)",
+      "Bash(cp -r /Users/user/Desktop/Projects/investo/docs/references/code-review-protocols /Users/user/Desktop/Projects/investo/.claude/skills/code-review/protocols)"
     ]
   },
   "enabledMcpjsonServers": [

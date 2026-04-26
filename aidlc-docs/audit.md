@@ -252,6 +252,18 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 2 Complete (`_window.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/_window.py (FetchWindow frozen+slots dataclass, from_kst_date classmethod, contains half-open membership, shared _ensure_tz_aware helper) + tests/unit/sources/test_window.py (22 tests: 18 anchor + 2 PBT × 100 examples covering AC-6.1/6.2 + 4 regression tests for M1/L2 fixes).
+**Code review**: Sub-agent surfaced 1 Medium (M1 — boundary-date OverflowError leakage) + 3 Low (L1 copy/pickle bypass, L2 hostile tzinfo exception, L3 cosmetic).
+**User Input**: "fix all"
+**AI Response**: "Applied: M1 wrapped OverflowError → ValueError in from_kst_date with regression tests for date.min and date.max; L2 wrapped tzinfo exceptions → ValueError in _ensure_tz_aware with regression tests using synthetic _RaisingTZ subclass; L1 documented copy/pickle caveat in module docstring; L3 skipped (cosmetic)."
+**Verification**: ruff ✅, mypy --strict src/ ✅, pytest 123/123 (101 models + 22 window).
+**Status**: Step 2 complete; aidlc-state.md updated to "Step 2/10 ✅"; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — u1 sources, Step 2 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 1 Complete (Bootstrap)
 **Timestamp**: 2026-04-27T00:00:00Z
 **User Input**: "yes" (plan approval)
