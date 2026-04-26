@@ -252,6 +252,18 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 4 Complete (`_sanitize.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/_sanitize.py (`strip_html` pipeline: bleach.clean tags=[]+strip=True → html.unescape → Unicode-aware whitespace collapse via `re.compile(r"\s+")`) + tests/unit/sources/test_sanitize.py (25 tests covering tag stripping, script/style neutralization, entity decoding, Korean+emoji preservation, whitespace normalization, lone `<` / comparison expressions, idempotence). Added `types-bleach>=6` to pyproject.toml dev deps for mypy strict.
+**Code review**: Sub-agent APPROVE_WITH_NOTES; 0 Critical/High/Medium, 4 Lows (L1 redundant `strip_comments` kwarg — kept; L2 Unicode-whitespace comment — applied; L3 comparison-expression test — applied; L4 cross-reference reword — applied) + 1 TECH-DEBT (bleach in maintenance-mode; nh3 successor).
+**User Input**: "yes" (Step 4 approval)
+**AI Response**: "Applied L2/L3/L4 (Unicode-whitespace comment in source; comparison-expression test; reworded script-test comment to keep assertion local). Skipped L1 (defensible explicit kwarg). Registered DEBT-004 in docs/TECH-DEBT.md (Low priority — revisit on bleach EOL)."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 186/186 (101 models + 22 window + 38 retry + 25 sanitize).
+**Status**: Step 4 complete; aidlc-state.md updated to "Step 4/10 ✅"; DEBT-004 added (Low: bleach maintenance-mode).
+**Context**: Construction phase Code Generation — u1 sources, Step 4 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 3 Complete (`_retry.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/_retry.py (RetryConfig frozen+slots dataclass with field validation, SourceFetchError exception class — to be relocated to protocol.py at Step 5, pure compute_sleep with Retry-After precedence, async retry_get wrapping inner loop in asyncio.wait_for for 60-s outer budget) + tests/unit/sources/test_retry.py (38 tests: 24 anchor + 2 PBT × 100 examples covering AC-6.3 + retry_get scenarios via httpx.MockTransport covering AC-1.2/7.1, FD R4/R5/R6).

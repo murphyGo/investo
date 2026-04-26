@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 2 | 2026-04-27 |
-| Low | 1 | 2026-04-27 |
+| Low | 2 | 2026-04-27 |
 
 ---
 
@@ -54,6 +54,16 @@ _No high priority items._
 - **Suggested Fix**: Switch to `client.stream("GET", url)` and (a) reject up-front if `Content-Length` header exceeds the cap, (b) accumulate via `aiter_bytes()` and abort once the running total exceeds the cap. Trade-off: streaming requires constructing a synthetic `httpx.Response` to return, since downstream callers expect a fully-buffered response.
 - **Effort**: ~1 hour including test updates (need a streaming MockTransport response).
 - **Priority Reasoning**: Low — the threat is "hostile server returning huge body", which is unlikely against the curated free-tier endpoints `u1` consumes. Re-evaluate when a non-RSS adapter (e.g. JSON market data) lands.
+
+#### DEBT-004: `_sanitize.py` depends on `bleach` (maintenance-mode)
+
+- **Created**: 2026-04-27
+- **Source**: Code review of `src/investo/sources/_sanitize.py` (Step 4)
+- **Reference**: NFR-007 AC-7.2 (sanitization library)
+- **Description**: `bleach>=6` is in maintenance-only mode and the maintainers have publicly recommended `nh3` (Rust-based, actively maintained) as the successor. Today bleach 6 is correct and behaves as we expect; the risk is future EOL or accumulating `DeprecationWarning`s from the underlying `html5lib`.
+- **Suggested Fix**: When bleach hits EOL, replace `bleach.clean(text, tags=[], strip=True, strip_comments=True)` with `nh3.clean_text(text)` (or `nh3.clean(text, tags=set())` for HTML output). Single-function module makes the migration trivial. Update the pipeline so HTML entities still decode and whitespace still collapses.
+- **Effort**: ~30 min including test updates and verifying nh3 entity-decoding behavior.
+- **Priority Reasoning**: Low — the project's only sanitization need is plain-text output; bleach 6 is fine for v1. Watch for EOL announcements or CI deprecation warnings.
 
 ---
 

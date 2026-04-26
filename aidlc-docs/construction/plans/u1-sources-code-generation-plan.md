@@ -76,21 +76,18 @@
 
 ---
 
-### Step 4: `_sanitize.py` — HTML strip helper
+### Step 4: `_sanitize.py` — HTML strip helper ✅
 
-**Spec**: NFR AC-7.2.
+- [x] **4.1** `src/investo/sources/_sanitize.py` — `strip_html(text: str) -> str` pipeline: `bleach.clean(text, tags=[], strip=True, strip_comments=True)` → `html.unescape` → whitespace collapse via `re.compile(r"\s+")` (matches Unicode whitespace including U+00A0/U+3000, desirable for CJK feeds). Empty/whitespace-only input returns `""`.
+- [x] **4.2** `tests/unit/sources/test_sanitize.py` — 25 anchor tests covering: empty/whitespace input; plain-text passthrough; tag stripping (`<b>` / nested / `<br/>` self-closing / `<a href=javascript:>` attributes); script + style content neutralized (no `<` / `>` in output); HTML comments stripped; entity decoding (named `&amp;` / `&lt;` / `&gt;`, numeric `&#39;`, double-escape decodes once); Unicode preservation (Korean / emoji / mixed); whitespace normalization (spaces, newlines, tabs, outer); lone `<` and comparison expressions (`a < b > c`); idempotence on clean and dirty input.
+- [x] **4.3** Sub-agent code review — APPROVE_WITH_NOTES; 0 Critical/High/Medium, 4 Lows + 1 TECH-DEBT:
+  - **L1**: `strip_comments=True` is the bleach 6 default but defensible to keep explicit — left as-is
+  - **L2**: added comment documenting that `\s` matches Unicode whitespace (NBSP / U+3000) — applied
+  - **L3**: added `test_comparison_expression_preserved` for `"price < 100"` and `"a < b > c"` — applied
+  - **L4**: reworded `test_script_tag_content_neutralized` comment to keep the assertion local (no cross-references to downstream renderer) — applied
+  - **DEBT-004**: bleach is in maintenance-only mode; `nh3` is the actively-maintained successor — registered in `docs/TECH-DEBT.md` as Low; revisit on bleach EOL or deprecation warnings
 
-- [ ] **4.1** Create `src/investo/sources/_sanitize.py`:
-  - `strip_html(text: str) -> str` — wraps `bleach.clean(text, tags=[], strip=True)`, also normalizes whitespace
-- [ ] **4.2** `tests/unit/sources/test_sanitize.py`:
-  - Plain text passes through unchanged
-  - `<script>alert(1)</script>` → empty (or escaped, depending on bleach config)
-  - `<b>title</b>` → `title`
-  - HTML entities (`&amp;`, `&lt;`) decoded to literals
-  - Mixed Unicode (Korean + emoji) preserved
-- [ ] **4.3** Sub-agent code review (small file — likely self-check).
-
-**Exit**: HTML stripping bounded behavior; NFR-007 AC-7.2 pinned.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (added `types-bleach>=6` to dev deps), pytest 186/186 (101 models + 22 window + 38 retry + 25 sanitize).
 
 ---
 
