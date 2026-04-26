@@ -42,11 +42,11 @@ What it does NOT cover (deferred):
 - [x] Plan 명시적 승인
 
 ### Part 2 — Generation (after approval)
-- [ ] `aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md`
-- [ ] `aidlc-docs/construction/u1-sources/functional-design/business-rules.md`
-- [ ] `aidlc-docs/construction/u1-sources/functional-design/domain-entities.md`
-- [ ] aidlc-state.md / audit.md 업데이트
-- [ ] Functional Design 명시적 승인
+- [x] `aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md`
+- [x] `aidlc-docs/construction/u1-sources/functional-design/business-rules.md`
+- [x] `aidlc-docs/construction/u1-sources/functional-design/domain-entities.md`
+- [x] aidlc-state.md / audit.md 업데이트
+- [x] Functional Design 명시적 승인 (2026-04-27, "appvoe" → approve)
 
 ---
 

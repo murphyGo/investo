@@ -252,6 +252,61 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 1 Complete (Bootstrap)
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "yes" (plan approval)
+**Action**: Added httpx>=0.27, defusedxml>=0.7, bleach>=6 to pyproject.toml [project.dependencies]; refreshed venv (got httpx 0.28.1, defusedxml 0.7.1, bleach 6.3.0); created src/investo/sources/__init__.py (placeholder), tests/unit/sources/__init__.py, tests/unit/sources/fixtures/api/.gitkeep. Final quality gate: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 101/101 ✅, imports smoke ✅.
+**Status**: Step 1 complete; aidlc-state.md updated to "Step 1/10 ✅"; no TECH-DEBT added.
+**Code review**: Self-check (config + placeholder only).
+**Context**: Construction phase Code Generation — u1 sources, Step 1 of 10
+
+---
+
+## Construction — u1 sources — Code Generation Plan
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Entered Code Generation stage for u1 sources. Created aidlc-docs/construction/plans/u1-sources-code-generation-plan.md with 10 numbered steps: (1) bootstrap deps defusedxml/bleach + scaffolding, (2) _window.py + tests + PBT (NFR-006 AC-6.1, 6.2), (3) _retry.py + tests + PBT (AC-6.3, 7.1), (4) _sanitize.py (AC-7.2), (5) protocol.py (SourceAdapter, SourceFetchError), (6) _registry.py (AC-5.2, 5.3), (7) aggregator.py + budget tests (AC-1.1, 3.1-3.5), (8) fomc_rss.py reference adapter + recorded fixture + xml-safety grep (AC-7.3, 7.4, 7.6), (9) __init__.py + plugin contract drift guard, (10) CI cost guard + CONTRIBUTING + final QG + summary doc. AC coverage map traces all 30 NFR ACs to specific steps.
+**Approval Prompt**: "Reply 'approve' to begin Step 1, or 'changes [N]' to revise step N."
+**Context**: Construction phase Code Generation — u1 sources Part 1 (Planning); awaiting plan approval
+
+---
+
+## Construction — u1 sources — NFR Requirements Approved
+**Timestamp**: 2026-04-27T00:00:00Z
+**Approval Prompt**: "Approve NFR Requirements and proceed to Code Generation, or request changes."
+**User Input**: "Continue to Next Stage"
+**AI Response**: "Approval recorded. u1 sources NFR Requirements stage closed. Presenting Code Generation as next target."
+**Status**: Approved — NFR Requirements stage CLOSED for u1 sources
+**Context**: Construction phase u1 sources NFR Requirements → Code Generation transition
+
+---
+
+## Construction — u1 sources — NFR Requirements Complete
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "all recommended"
+**AI Response**: "Recorded Q1=A through Q8=A. No ambiguity. Generated 2 NFR artifacts: nfr-requirements.md (acceptance criteria across NFR-001 share, -002, -003, -005, -006, -007 + drift; 30 ACs total) and tech-stack-decisions.md (locked deps: httpx + defusedxml + bleach; explicit rejections: feedparser, pytz, structlog/loguru, HTTP cache, semaphore throttle)."
+**Status**: Stage complete; awaiting user approval to advance to Code Generation. New external deps to add at code-gen step 1: defusedxml>=0.7, bleach>=6.
+**Context**: Construction phase NFR Requirements — u1 sources Part 2 complete
+
+---
+
+## Construction — u1 sources — NFR Requirements Plan
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Entered NFR Requirements stage for u1 sources. Created aidlc-docs/construction/plans/u1-sources-nfr-requirements-plan.md with Q1-Q8 covering: per-adapter time budget, failure budget (where FAIL/PARTIAL decision lives), cost guards (CI grep), plugin extensibility test, PBT scope (FetchWindow + window filter + retry backoff), source response trust boundary (payload cap + HTML strip + URL scheme + defusedxml), tech stack decisions (httpx + defusedxml + bleach), NFR drift guards.
+**Approval Prompt**: "Please fill [Answer]: tags for Q1-Q8 in u1-sources-nfr-requirements-plan.md, or reply 'all recommended' to accept marked recommendations."
+**Context**: Construction phase NFR Requirements — u1 sources Part 1 (Planning); awaiting user answers + plan approval
+
+---
+
+## Construction — u1 sources — Functional Design Approved
+**Timestamp**: 2026-04-27T00:00:00Z
+**Approval Prompt**: "Approve to advance from Functional Design to NFR Requirements, or request changes."
+**User Input**: "appvoe" (interpreted as "approve" — typo)
+**AI Response**: "Approval recorded. u1 sources Functional Design stage closed. Presenting NFR Requirements as next target."
+**Status**: Approved — Functional Design stage CLOSED for u1 sources
+**Context**: Construction phase u1 sources Functional Design → NFR Requirements transition
+
+---
+
 ## Construction — u1 sources — Functional Design Complete
 **Timestamp**: 2026-04-27T00:00:00Z
 **User Input**: "all recommended"
