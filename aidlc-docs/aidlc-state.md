@@ -37,7 +37,7 @@
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
-| u1 sources | ✅ Complete | ✅ Complete | ⏳ in progress (Step 2/10 ✅) | _window.py + 22 tests; AC-6.1/6.2 pinned |
+| u1 sources | ✅ Complete | ✅ Complete | ⏳ in progress (Step 3/10 ✅) | _retry.py + 38 tests; AC-1.2/6.3/7.1 pinned; DEBT-003 added |
 | u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

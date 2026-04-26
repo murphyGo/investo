@@ -57,24 +57,22 @@
 
 ---
 
-### Step 3: `_retry.py` — shared retry/backoff helper
+### Step 3: `_retry.py` — shared retry/backoff helper ✅
 
-**Spec**: business-rules.md R4, R5, R6 (transient/terminal classification), NFR AC-6.3, AC-1.2 (60-s outer cap), AC-7.1 (5MB payload).
+- [x] **3.1** `src/investo/sources/_retry.py` — `RetryConfig` (frozen+slots dataclass with validation in `__post_init__`); `SourceFetchError` (lives here pending Step 5 relocation to `protocol.py`); pure `compute_sleep`; `async retry_get` wrapping inner loop in `asyncio.wait_for(timeout=total_budget_s)` for outer cap. Surface diverges from plan: explicit `url` / `headers` / `params` kwargs instead of `request_kwargs` dict (better mypy strict ergonomics; documented in module docstring). HTTP status classification: 5xx + 429 + `TimeoutException`/`NetworkError`/`RemoteProtocolError` = retryable; 4xx-not-429 + other `httpx.HTTPError` (e.g. `UnsupportedProtocol`) + oversized body = terminal.
+- [x] **3.2** `tests/unit/sources/test_retry.py` — 38 tests including 2 PBTs at 100 examples each:
+  - PBT 1 (**AC-6.3**): `0 ≤ compute_sleep ≤ 30` for arbitrary `attempt` ∈ [-2,10] and arbitrary `retry_after_header` ∈ {None, arbitrary text up to 64 chars}
+  - PBT 2 (**AC-6.3**): `compute_sleep(1, str(seconds))` = `min(seconds, 30)` for arbitrary non-negative `seconds`
+  - MockTransport scenarios: first-try success; 5xx then 200; 429+Retry-After then 200; ConnectError then 200; exhausted 5xx → `SourceFetchError(transient=True)` after 3 calls; exhausted ReadTimeout → same; 4xx-not-429 → `transient=False` no retry; oversized body → `transient=False`; `file://` URL → `transient=False`
+  - Retry-After honoring (FD R5): timing test confirms 50 ms Retry-After overrides 1 s default backoff
+  - Outer budget (**AC-1.2**): 100 ms budget vs 1 s handler sleep → `transient=True, "budget"` at ~100 ms
+- [x] **3.3** Sub-agent code review — APPROVE; 0 Critical/High/Medium, 3 Lows + 1 TECH-DEBT:
+  - **L1**: `last_exc` tracking variable was dead code → removed; defensive trailer simplified to `raise AssertionError(...)  # pragma: no cover`
+  - **L2**: `_mock_client` test helper carries one `# type: ignore[arg-type]` (cosmetic, mypy already passes) — skipped
+  - **L3**: surface choice (explicit kwargs vs `request_kwargs` dict) already documented in module docstring — skipped
+  - **DEBT-003**: post-hoc 5 MB body cap (httpx buffers full body before len-check fires) — registered in `docs/TECH-DEBT.md` as Low; revisit when a non-RSS adapter lands
 
-- [ ] **3.1** Create `src/investo/sources/_retry.py`:
-  - `RetryConfig` value object (frozen dataclass): `timeout_s=30`, `retries=2`, `backoffs=(1.0, 2.0)`, `total_budget_s=60`, `max_retry_after_s=30`, `max_response_bytes=5*1024*1024`
-  - `compute_sleep(attempt: int, retry_after_header: str | None, config: RetryConfig) -> float` — pure function
-  - `async retry_get(client, request_kwargs, *, source_name, config=DEFAULT) -> httpx.Response` — runs the GET with retry/backoff/Retry-After honoring; raises `SourceFetchError(transient=True)` after retries exhausted; checks payload size and raises `SourceFetchError(transient=False, ...)` if exceeded
-  - HTTP status classification: 5xx + 429 + connection error = retryable; 4xx-not-429 + decode error = terminal
-- [ ] **3.2** `tests/unit/sources/test_retry.py`:
-  - `compute_sleep` PBT (**AC-6.3**): `0 ≤ sleep ≤ max_retry_after_s`; `Retry-After` precedence; fallback to deterministic schedule
-  - Retry behavior with `httpx.MockTransport`: 5xx then 200, 429 with Retry-After, connection error then 200, exhausted retries → SourceFetchError(transient=True)
-  - 4xx-not-429 → immediate SourceFetchError(transient=False)
-  - Payload over 5 MB → SourceFetchError(transient=False) (**AC-7.1**)
-  - Outer 60-s budget enforcement: even with eager retries, helper returns by 60 s
-- [ ] **3.3** Sub-agent code review. Apply or defer findings.
-
-**Exit**: retry helper proven against mock transport; NFR-006 AC-6.3 + NFR-007 AC-7.1 pinned.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅, pytest 161/161 (101 models + 22 window + 38 retry). PBTs each ran 100 examples.
 
 ---
 

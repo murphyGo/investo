@@ -252,6 +252,19 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 3 Complete (`_retry.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/_retry.py (RetryConfig frozen+slots dataclass with field validation, SourceFetchError exception class — to be relocated to protocol.py at Step 5, pure compute_sleep with Retry-After precedence, async retry_get wrapping inner loop in asyncio.wait_for for 60-s outer budget) + tests/unit/sources/test_retry.py (38 tests: 24 anchor + 2 PBT × 100 examples covering AC-6.3 + retry_get scenarios via httpx.MockTransport covering AC-1.2/7.1, FD R4/R5/R6).
+**Surface divergence**: implementation uses explicit `url`/`headers`/`params` kwargs instead of plan §3.1's `request_kwargs` dict — better mypy strict ergonomics, sufficient for the FOMC adapter; documented in module docstring.
+**Code review**: Sub-agent APPROVE; 0 Critical/High/Medium, 3 Lows (L1 dead `last_exc` variable, L2 cosmetic test-helper `type: ignore`, L3 already-documented surface choice) + 1 TECH-DEBT candidate (post-hoc 5 MB body cap — buffers full body before rejection).
+**User Input**: "yes" (Step 3 approval)
+**AI Response**: "Applied L1 — removed `last_exc` tracking, replaced defensive trailer with `raise AssertionError(...) # pragma: no cover`. Skipped L2/L3 (cosmetic / already-documented). Registered DEBT-003 in docs/TECH-DEBT.md (Low priority — re-evaluate when a non-RSS adapter lands)."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 161/161 (101 models + 22 window + 38 retry).
+**Status**: Step 3 complete; aidlc-state.md updated to "Step 3/10 ✅"; DEBT-003 added (Low: 5 MB body cap is post-hoc).
+**Context**: Construction phase Code Generation — u1 sources, Step 3 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 2 Complete (`_window.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/_window.py (FetchWindow frozen+slots dataclass, from_kst_date classmethod, contains half-open membership, shared _ensure_tz_aware helper) + tests/unit/sources/test_window.py (22 tests: 18 anchor + 2 PBT × 100 examples covering AC-6.1/6.2 + 4 regression tests for M1/L2 fixes).

@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 2 | 2026-04-27 |
-| Low | 0 | - |
+| Low | 1 | 2026-04-27 |
 
 ---
 
@@ -45,7 +45,15 @@ _No high priority items._
 
 ### Low Priority
 
-_No low priority items._
+#### DEBT-003: `retry_get` 5 MB body cap is post-hoc, not streaming
+
+- **Created**: 2026-04-27
+- **Source**: Code review of `src/investo/sources/_retry.py` (Step 3)
+- **Reference**: NFR-007 AC-7.1 (5 MB response body cap)
+- **Description**: `retry_get` checks `len(response.content) > max_response_bytes` after `httpx.AsyncClient.get()` has already buffered the full body into memory. A hostile server returning a 100 MB payload would briefly hold 100 MB resident before the cap fires. Acceptable for v1 because the only adapter (FOMC RSS, Step 8) returns < 200 KB; would matter if a future adapter pulled larger feeds or hit a hostile endpoint.
+- **Suggested Fix**: Switch to `client.stream("GET", url)` and (a) reject up-front if `Content-Length` header exceeds the cap, (b) accumulate via `aiter_bytes()` and abort once the running total exceeds the cap. Trade-off: streaming requires constructing a synthetic `httpx.Response` to return, since downstream callers expect a fully-buffered response.
+- **Effort**: ~1 hour including test updates (need a streaming MockTransport response).
+- **Priority Reasoning**: Low — the threat is "hostile server returning huge body", which is unlikely against the curated free-tier endpoints `u1` consumes. Re-evaluate when a non-RSS adapter (e.g. JSON market data) lands.
 
 ---
 
