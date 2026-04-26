@@ -37,7 +37,7 @@
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
-| u1 sources | ⏳ pending | ⏳ pending | ⏳ pending | |
+| u1 sources | ✅ Complete | ⏳ pending | ⏳ pending | functional-design artifacts written |
 | u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

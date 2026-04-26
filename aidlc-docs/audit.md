@@ -252,6 +252,23 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — Functional Design Complete
+**Timestamp**: 2026-04-27T00:00:00Z
+**User Input**: "all recommended"
+**AI Response**: "Recorded Q1=A through Q8=A. No ambiguity (option letters explicit). Generated 3 functional-design artifacts: domain-entities.md (5 entities — SourceAdapter Protocol, SourceRegistry singleton, FetchWindow value object, SourceFetchError, AggregatorResult), business-rules.md (10 rules covering free-API-only, plugin shape, async + connection pooling, timeout/retry, 429 handling, failure isolation, UTC date window, NormalizedItem field rules, idempotence, offline test fixtures), business-logic-model.md (end-to-end flow + adapter-internal algorithm + registry algorithm + failure classification + logging contract + FOMC RSS PoC algorithm + sequence diagram)."
+**Status**: Stage complete; awaiting user approval to advance to NFR Requirements.
+**Context**: Construction phase Functional Design — u1 sources Part 2 complete
+
+---
+
+## Construction — u1 sources — Functional Design Plan
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Entered Functional Design stage for u1 sources. Created aidlc-docs/construction/plans/u1-sources-functional-design-plan.md with Q1-Q8 covering: plugin registry mechanism, HTTP client lifecycle, timeout/retry policy, failure isolation contract, reference PoC adapter choice (FOMC RSS recommended), UTC date-range semantics, HTTP 429 rate-limit handling, and future paid-sources hook (recommend YAGNI).
+**Approval Prompt**: "Please fill [Answer]: tags for Q1-Q8 in u1-sources-functional-design-plan.md, or reply 'all recommended' to accept marked recommendations."
+**Context**: Construction phase Functional Design — u1 sources Part 1 (Planning); awaiting user answers + plan approval
+
+---
+
 ## Construction — models — Step 8 Complete + Stage Closeout
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Final quality gate run (ruff/format/mypy strict/pytest 101/101). Wrote aidlc-docs/construction/models/code/summary.md documenting files, public API, 11 key design decisions, code-review history (3 sub-agent rounds, all findings fixed in-step or registered as TECH-DEBT), NFR verification matrix, and pre-flight for u1 sources.
