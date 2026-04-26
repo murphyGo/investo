@@ -105,32 +105,25 @@ None directly. Foundation supports all stories indirectly:
 
 **Self-check** (no full sub-agent review for this trivial re-export module): public API matches `__all__`; star import isolation OK; direct imports OK; type-checker (`mypy --strict`) green.
 
-### Step 6: Unit tests (basic construction + validation)
+### Step 6: Unit tests (basic construction + validation) ✅
 
-- [ ] **6.1** `tests/unit/models/test_items.py`:
-  - Valid `NormalizedItem` construction
-  - Empty title raises ValidationError
-  - Naive `published_at` raises ValidationError
-  - Invalid `category` literal raises ValidationError
-  - Extra field raises ValidationError (extra="forbid")
-- [ ] **6.2** `tests/unit/models/test_briefing.py`:
-  - Valid `Briefing` construction (all 7 sections present)
-  - Valid `BriefingNotification` construction
-  - `summary_text > 4096` raises ValidationError
-  - Invalid `site_url` raises ValidationError
-- [ ] **6.3** `tests/unit/models/test_results.py`:
-  - Valid `SendResult` (success, failure variants)
-  - Valid `FailureContext` for each stage literal
-  - Valid `PipelineResult` with each `PipelineStatus`
-  - Invalid stage literal raises ValidationError
+- [x] **6.1** `tests/unit/models/test_items.py` — 26 tests: minimal/full construction, all 5 categories parametrized, whitespace handling on `source_name`/`title` (rejected) + `summary` (normalized), tz validation (naive rejected, KST tz accepted), invalid category, extra field, `raw_metadata` strict union (str/int/float accepted; bool/None/nested rejected), frozen + `model_copy` roundtrip, `source_name` max_length boundary
+- [x] **6.2** `tests/unit/models/test_briefing.py` — 31 tests: valid Briefing, whitespace preservation, parametrized blank rejection across 8 sections × 2 cases, frozen, extra field, BriefingNotification basics, invalid URL, blank summary, UTF-16 boundary suite (ASCII 4096/4097, Korean BMP, emoji 2048/2049, mixed)
+- [x] **6.3** `tests/unit/models/test_results.py` — 34 tests: PipelineStatus enum values + coercion + invalid, SendResult cross-field invariants (M1 — ok/error/message_id every combination), FailureContext (each stage parametrized, blank error_type/error_message, error_type stripped, error_message preserves whitespace, naive datetime, traceback length boundary 2000/2001, traceback empty normalized, frozen), PipelineResult (minimal/full, duration boundary -1/86400/86401/1e18, frozen, extra field)
+- [x] **6.4** `tests/unit/models/test_init.py` — 4 tests: `__all__` matches expected 10 names, each name resolves, star-import isolation, internal helpers (`reject_blank_strict`, `reject_blank_preserve`, `ensure_tz_aware`) not exposed
 
-### Step 7: Property-based round-trip tests (NFR-006 PBT partial)
+**Total**: 95 unit tests covering all validators, invariants, and edge cases. All pass.
+**Quality gate**: ruff ✅ · mypy strict ✅ · pytest 95/95 ✅
 
-- [ ] **7.1** `tests/unit/models/test_roundtrip.py` using `hypothesis`:
-  - Strategy for `NormalizedItem` → `model_dump_json()` → `model_validate_json()` → equality
-  - Same for `Briefing`, `BriefingNotification`, `SendResult`, `FailureContext`, `PipelineResult`
-  - Use `hypothesis` `from_type()` if pydantic strategy is sufficient; otherwise hand-write `@composite` strategies for complex fields (datetimes with tz, URLs)
-  - `@settings(max_examples=100)` per model
+### Step 7: Property-based round-trip tests (NFR-006 PBT partial) ✅
+
+- [x] **7.1** `tests/unit/models/test_roundtrip.py` — 6 PBT tests with `max_examples=100`:
+  - `NormalizedItem`, `Briefing`, `BriefingNotification`, `FailureContext`, `PipelineResult` via `st.builds()` per-field
+  - `SendResult` via hand-written `@composite` strategy that respects the cross-field invariant (`ok=True ⇒ error=None`, `ok=False ⇒ message_id=None`)
+  - Strategies: ASCII printable text (canonical, non-blank); stripped variant for fields that strip on validation; `zoneinfo`-backed timezones; bounded floats for JSON-safe metadata; ASCII-only summary so 1 char = 1 UTF-16 unit
+  - Round-trip property: `model_dump_json()` → `model_validate_json()` produces an equal instance
+
+**Verification**: pytest 101/101 (95 unit + 6 PBT × 100 examples). Quality gate clean (ruff, format, mypy strict).
 
 ### Step 8: Quality gate + summary
 

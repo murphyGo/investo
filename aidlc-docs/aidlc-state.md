@@ -36,7 +36,7 @@
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |------|-------------------|------------------|-----------------|-------|
-| models (foundation) | N/A | N/A | ⏳ in progress (Step 5/8 ✅) | public API locked; tests next |
+| models (foundation) | N/A | N/A | ⏳ in progress (Step 7/8 ✅) | 101 tests (95 unit + 6 PBT × 100) |
 | u1 sources | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

@@ -252,6 +252,26 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 7 Complete (PBT Round-trip)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created tests/unit/models/test_roundtrip.py with 6 hypothesis-based PBT tests covering every public model's model_dump_json ↔ model_validate_json equivalence. SendResult uses a @composite strategy to honor cross-field invariants; the other 5 use st.builds. 100 examples per model = 600 generated assertions. NFR-006 (PBT extension partial) satisfied for foundation.
+**Verification**: ruff/format/mypy clean; pytest 101/101 (95 unit + 6 PBT). All round-trip properties hold across the bounded random sample.
+**Code review**: Self-check (PBT tests exercising already-reviewed contracts). Strategies match model validators; ASCII-canonical inputs keep round-trip equivalence trivial.
+**Status**: Step 7 complete; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — models foundation, Step 7 of 8
+
+---
+
+## Construction — models — Step 6 Complete (Unit Tests)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created 95 unit tests across 4 files: tests/unit/models/test_items.py (26), test_briefing.py (31), test_results.py (34), test_init.py (4 — drift guard). Coverage exercises every validator, cross-field invariant, frozen/extra-field rule, UTF-16 boundary, and public API surface. One initial test failure (test_internal_helpers_not_re_exported) corrected: Python implicitly binds submodules so the test was over-specified; revised to check helper-name absence + __all__ exclusion (real contract).
+**Verification**: ruff/format/mypy clean; pytest 95/95 pass.
+**Code review**: Self-check (tests exercise already-reviewed contract). Coverage matrix in session log shows full breadth across all 7 model classes + drift guard.
+**Status**: Step 6 complete; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — models foundation, Step 6 of 8
+
+---
+
 ## Construction — models — Step 5 Complete (`models/__init__.py` public API)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Updated src/investo/models/__init__.py with explicit re-exports of 10 public names: Category, NormalizedItem, Briefing, BriefingNotification, TELEGRAM_MESSAGE_LIMIT, PipelineStatus, SendResult, FailureContext, PipelineResult, FailureStage. __all__ alphabetized. Internal _validators helpers confirmed private via star-import isolation test.
