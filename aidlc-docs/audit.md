@@ -252,6 +252,18 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 4 Complete (`models/results.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/models/results.py with PipelineStatus (StrEnum), SendResult (with cross-field model_validator), FailureContext, PipelineResult; extracted ensure_tz_aware to _validators.py; refactored items.py to consume the shared helper.
+**Code review**: Sub-agent surfaced H1 (PipelineResult missing frozen=True), H2 (stages dict[str, str] keys unconstrained), M1 (SendResult contradictory ok/error pair), M2 (duration_seconds no upper bound), M3 (HttpUrl serialization footgun), L1 (ensure_tz_aware duplication), L2 (enum member docstrings), L3 (traceback_excerpt no length cap).
+**User Input**: "fix all"
+**AI Response**: "Applied: H1 frozen=True; H2 docstring clarifies free-form diagnostic intent; M1 model_validator enforces ok=True⇒error=None and ok=False⇒message_id=None; M2 duration_seconds bounded [0, 86400]; M3 HttpUrl caveat in module docstring; L1 ensure_tz_aware extracted to _validators.py + items.py refactored; L2 enum member docstrings added; L3 traceback_excerpt max_length=2000."
+**Verification**: Quality gate clean (ruff, mypy strict). Boundary tests for SendResult cross-field, PipelineResult duration, FailureContext traceback length, shared tz-aware helper, Step 2/3 regression — all pass.
+**Status**: Step 4 complete; no new TECH-DEBT (all issues fixed in-step).
+**Context**: Construction phase Code Generation — models foundation, Step 4 of 8
+
+---
+
 ## Construction — models — Step 3 Complete (`models/briefing.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/models/briefing.py (Briefing, BriefingNotification, TELEGRAM_MESSAGE_LIMIT) and src/investo/models/_validators.py (shared reject_blank_strict / reject_blank_preserve helpers). Refactored items.py to use the shared helper.

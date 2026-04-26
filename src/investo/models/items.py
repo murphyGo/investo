@@ -23,7 +23,7 @@ from pydantic import (
     field_validator,
 )
 
-from investo.models._validators import reject_blank_strict
+from investo.models._validators import ensure_tz_aware, reject_blank_strict
 
 Category = Literal["news", "price", "macro", "calendar", "earnings"]
 
@@ -75,9 +75,5 @@ class NormalizedItem(BaseModel):
     @classmethod
     def _ensure_tz_aware(cls, value: datetime) -> datetime:
         # Naive datetimes lead to silent KST/UTC drift in cron-driven date
-        # math (US-005 resolves target_date from now_utc). Reject upfront.
-        # The double check handles custom tzinfo subclasses that exist but
-        # return ``None`` from ``utcoffset()``.
-        if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
-            raise ValueError("published_at must be timezone-aware")
-        return value
+        # math (US-005 resolves target_date from now_utc). Shared helper.
+        return ensure_tz_aware(value)

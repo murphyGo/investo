@@ -84,28 +84,15 @@ None directly. Foundation supports all stories indirectly:
 **Code review** (sub-agent): no Critical; H1 (High UTF-16 limit) + L1/L2 fixed in-step. M1 (disclaimer-in-markdown invariant) and M2 (date sanity bounds) registered as DEBT-001 and DEBT-002 in `docs/TECH-DEBT.md`.
 **Quality gate**: ruff ✅ · mypy strict ✅ · UTF-16 boundary tests (4096 ASCII / 4097 ASCII / 2048 emoji / 2049 emoji / mixed / Korean BMP) ✅ · Step 2 regression ✅
 
-### Step 4: Implement `models/results.py`
+### Step 4: Implement `models/results.py` ✅
 
-- [ ] **4.1** Define `PipelineStatus` as `enum.StrEnum` with members `SUCCESS`, `PARTIAL`, `FAILED`
-- [ ] **4.2** Define `SendResult` pydantic v2 BaseModel:
-  - `ok: bool`
-  - `error: str | None = None`
-  - `message_id: int | None = None`
-  - `model_config = ConfigDict(frozen=True, extra="forbid")`
-- [ ] **4.3** Define `FailureContext` pydantic v2 BaseModel:
-  - `stage: Literal["collect", "generate", "publish", "notify_briefing"]`
-  - `error_type: str`
-  - `error_message: str`
-  - `traceback_excerpt: str | None = None`
-  - `occurred_at: datetime` (tz-aware required)
-  - `model_config = ConfigDict(frozen=True, extra="forbid")`
-- [ ] **4.4** Define `PipelineResult` pydantic v2 BaseModel:
-  - `target_date: date`
-  - `status: PipelineStatus`
-  - `stages: dict[str, str] = Field(default_factory=dict)`
-  - `duration_seconds: float`
-  - `briefing_url: HttpUrl | None = None`
-  - `model_config = ConfigDict(extra="forbid")`
+- [x] **4.1** `PipelineStatus(StrEnum)` with `SUCCESS`/`PARTIAL`/`FAILED` + member docstrings (L2 cosmetic also addressed)
+- [x] **4.2** `SendResult` BaseModel (`frozen`, `extra="forbid"`) + cross-field `model_validator` enforcing `ok=True ⇒ error=None` and `ok=False ⇒ message_id=None` (M1)
+- [x] **4.3** `FailureContext` BaseModel with `FailureStage` Literal, `traceback_excerpt` capped at 2000 chars (L3), `occurred_at` tz-aware via shared helper (L1)
+- [x] **4.4** `PipelineResult` BaseModel **frozen** (H1), `stages` dict free-form (H2 — documented in docstring), `duration_seconds` bounded `[0, 24h]` (M2), `briefing_url` HttpUrl serialization caveat documented (M3)
+- [x] **4.5** Promoted `ensure_tz_aware` to `models/_validators.py`; refactored `items.py` to use it (L1)
+
+**Code review** (sub-agent): 2 High + 3 Medium + 3 Low — all 8 fixed in-step or via shared helper extraction. Quality gate clean. Step 2 / Step 3 regression OK.
 
 ### Step 5: Models package `__init__.py` (public API)
 
