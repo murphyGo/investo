@@ -252,6 +252,18 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 6 Complete (`_registry.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/_registry.py (module-level `_ADAPTERS: dict[str, SourceAdapter] = {}`, `register` class decorator with TypeVar-bound generic preserving concrete type, duplicate-check before dict mutation raising `RuntimeError("duplicate source name: ...")`, `list_sources` returning fresh list copy each call, `_clear_for_test` for fixture isolation) + tests/unit/sources/test_registry.py (12 tests with autouse snapshot/restore fixture covering: happy-path register; decorator transparency; singleton-instance behavior; insertion-order preservation; empty initial state; duplicate-name RuntimeError; error message slug presence; failed registration does NOT replace existing entry; mutation safety of `list_sources` return; fresh list each call; `_clear_for_test` empties registry; `_clear_for_test` allows re-registration).
+**Code review**: Sub-agent APPROVE; 0 Critical/High/Medium, 3 Lows (L1 PEP 695 syntax — needs 3.12+, skipped; L2 cosmetic test arg nit, skipped; L3 docstring cross-reference, skipped). No TECH-DEBT.
+**User Input**: "yes" (Step 6 approval)
+**AI Response**: "All Lows skipped per reviewer's `Ship it` bottom-line. No new TECH-DEBT."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 211/211 (101 models + 22 window + 38 retry + 25 sanitize + 13 protocol + 12 registry).
+**Status**: Step 6 complete; aidlc-state.md updated to "Step 6/10 ✅"; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — u1 sources, Step 6 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 5 Complete (`protocol.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/protocol.py (canonical home for `SourceFetchError` — relocated from _retry.py; widened `cause` type to `BaseException | None` per FD §E4 — and `SourceAdapter` Protocol with `ClassVar[str] name`, `ClassVar[Category] category`, `async fetch(client, window)`). Updated _retry.py to `from investo.sources.protocol import SourceFetchError` with `__all__` re-export for backward compat. Created tests/unit/sources/test_protocol.py (13 tests covering exception contract, Protocol introspection via `_is_protocol`/`_is_runtime_protocol`, re-export identity, stub-adapter mypy-side proof + async fetch).

@@ -106,22 +106,17 @@
 
 ---
 
-### Step 6: `_registry.py` — @register decorator + list_sources
+### Step 6: `_registry.py` — @register decorator + list_sources ✅
 
-**Spec**: domain-entities.md §E2, business-logic-model.md L3, business-rules.md R2.
+- [x] **6.1** `src/investo/sources/_registry.py` — module-level `_ADAPTERS: dict[str, SourceAdapter] = {}`; `register(cls: type[_AdapterT]) -> type[_AdapterT]` (TypeVar bound to `SourceAdapter` so the decorator preserves the precise concrete type); duplicate-check fires before dict mutation, `RuntimeError("duplicate source name: '...')` on collision; `list_sources()` returns `list(_ADAPTERS.values())` — fresh copy each call; `_clear_for_test()` for fixture isolation.
+- [x] **6.2** `tests/unit/sources/test_registry.py` — 12 tests with autouse `_isolate_registry` fixture (snapshot/clear/yield/restore via try-finally): happy-path register adds adapter; decorator returns `cls` unchanged; `list_sources` returns singleton instances with insertion-order preservation; empty registry initially; duplicate name → `RuntimeError` matching `"duplicate source name"`; error message contains the slug; failed registration does NOT replace existing entry; mutation of `list_sources()` return value does not affect the registry; each call returns a fresh list (but same singleton instances inside); `_clear_for_test` empties the registry; `_clear_for_test` allows re-registration of a previously-used name.
+- [x] **6.3** Sub-agent code review — APPROVE; 0 Critical/High/Medium, 3 Lows (all optional polish):
+  - L1 PEP 695 syntax — requires Python 3.12+; project pins 3.11+, skipped
+  - L2 cosmetic nit on `sources.append("not an adapter")` test fixture — skipped (reads fine as-is)
+  - L3 docstring cross-reference enhancement — skipped (cosmetic)
+  - No TECH-DEBT registered
 
-- [ ] **6.1** Create `src/investo/sources/_registry.py`:
-  - Module-level `_ADAPTERS: dict[str, SourceAdapter] = {}`
-  - `register(cls)` class decorator — registers an instance keyed by `cls.name`; raises `RuntimeError` on duplicate
-  - `list_sources() -> list[SourceAdapter]` — returns a fresh list copy
-  - `_clear_for_test()` private utility for test isolation (used by monkeypatch fixtures)
-- [ ] **6.2** `tests/unit/sources/test_registry.py`:
-  - Register a stub adapter → `list_sources()` contains it
-  - Re-registration with same `name` → `RuntimeError` ("duplicate source name")
-  - Mutation of `list_sources()` return value does not affect the registry
-- [ ] **6.3** Sub-agent code review.
-
-**Exit**: registry mechanism proven independently of any specific adapter.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅, pytest 211/211 (101 models + 22 window + 38 retry + 25 sanitize + 13 protocol + 12 registry).
 
 ---
 
