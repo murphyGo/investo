@@ -252,6 +252,19 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 5 Complete (`protocol.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/protocol.py (canonical home for `SourceFetchError` — relocated from _retry.py; widened `cause` type to `BaseException | None` per FD §E4 — and `SourceAdapter` Protocol with `ClassVar[str] name`, `ClassVar[Category] category`, `async fetch(client, window)`). Updated _retry.py to `from investo.sources.protocol import SourceFetchError` with `__all__` re-export for backward compat. Created tests/unit/sources/test_protocol.py (13 tests covering exception contract, Protocol introspection via `_is_protocol`/`_is_runtime_protocol`, re-export identity, stub-adapter mypy-side proof + async fetch).
+**FD-vs-implementation divergence (ratified)**: FD §E1 / business-rules.md R3 specify `async def fetch(client, target_date: date)`; implementation uses `async def fetch(client, window: FetchWindow)` per the Step 5 plan. Rationale: the aggregator (Step 7) builds `FetchWindow.from_kst_date(target_date)` once and dispatches the prebuilt window to every adapter. With the FD signature, every adapter would re-derive the window from the date on entry — pure duplicated boilerplate. The window carries both `target_date` (preserved as a field) and the pre-computed UTC bounds, so no information is lost. The change is internal: `SourceAdapter` is a unit-internal Protocol; no other unit calls `fetch` directly (R6 — only the aggregator does). This entry is the canonical record of the deviation; FD remains the spec, audit log is the diff.
+**Code review**: Sub-agent APPROVE_WITH_NOTES; 0 Critical/High, 1 Medium (M1 weak `pytest.raises(TypeError)` pin → applied: `_is_runtime_protocol` introspection) + 4 Lows (L1 MRO walk → `_is_protocol` applied; L3 unused AsyncClient — skipped cosmetic; L4 asyncio auto-mode — already configured; L2 informational only).
+**User Input**: "yes" (Step 5 approval); "Go As recommendation" (apply M1+L1+audit-log note, skip L3, no-action L4)
+**AI Response**: "Applied M1 (sharper `_is_runtime_protocol` pin) and L1 (sharper `_is_protocol` pin); removed now-unused `pytest` import. Skipped L3 (cosmetic). L4 confirmed asyncio_mode='auto' is set. Documented FD-vs-impl divergence in this audit entry. No new TECH-DEBT."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 199/199 (101 models + 22 window + 38 retry + 25 sanitize + 13 protocol).
+**Status**: Step 5 complete; aidlc-state.md updated to "Step 5/10 ✅"; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — u1 sources, Step 5 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 4 Complete (`_sanitize.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/_sanitize.py (`strip_html` pipeline: bleach.clean tags=[]+strip=True → html.unescape → Unicode-aware whitespace collapse via `re.compile(r"\s+")`) + tests/unit/sources/test_sanitize.py (25 tests covering tag stripping, script/style neutralization, entity decoding, Korean+emoji preservation, whitespace normalization, lone `<` / comparison expressions, idempotence). Added `types-bleach>=6` to pyproject.toml dev deps for mypy strict.

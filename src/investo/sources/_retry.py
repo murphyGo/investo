@@ -10,9 +10,9 @@ R4 (timeout/retry), R5 (Retry-After), R6 (failure-isolation contract via
 * AC-7.1 — 5 MB response body cap (post-hoc check; v1 does not stream)
 
 This module is internal — adapters consume it via the package, not
-directly. ``SourceFetchError`` lives here pending Step 5 of the
-code-generation plan, which will relocate it to
-:mod:`investo.sources.protocol` (this module will re-import from there).
+directly. :class:`SourceFetchError` is re-exported here for backward
+compatibility with existing imports; its canonical home is
+:mod:`investo.sources.protocol` (Step 5 relocation).
 """
 
 from __future__ import annotations
@@ -24,37 +24,22 @@ from email.utils import parsedate_to_datetime
 
 import httpx
 
+from investo.sources.protocol import SourceFetchError
+
+__all__ = [
+    "DEFAULT_CONFIG",
+    "RetryConfig",
+    "SourceFetchError",
+    "compute_sleep",
+    "retry_get",
+]
+
 _DEFAULT_TIMEOUT_S = 30.0
 _DEFAULT_RETRIES = 2
 _DEFAULT_BACKOFFS: tuple[float, ...] = (1.0, 2.0)
 _DEFAULT_TOTAL_BUDGET_S = 60.0
 _DEFAULT_MAX_RETRY_AFTER_S = 30.0
 _DEFAULT_MAX_RESPONSE_BYTES = 5 * 1024 * 1024
-
-
-class SourceFetchError(Exception):
-    """Signals that a source fetch failed.
-
-    ``transient=True`` means the error class is one the orchestrator
-    *could* in principle retry later (network glitch, exhausted 5xx/429
-    retries, budget overrun); ``transient=False`` means the response is
-    structurally invalid (4xx-not-429, oversized body, unsupported
-    scheme). The aggregator catches the exception either way per FD R6;
-    the flag is informational for logs and future drift work.
-    """
-
-    def __init__(
-        self,
-        source_name: str,
-        message: str,
-        *,
-        transient: bool,
-        cause: Exception | None = None,
-    ) -> None:
-        super().__init__(f"source {source_name!r} failed: {message}")
-        self.source_name = source_name
-        self.transient = transient
-        self.cause = cause
 
 
 @dataclass(frozen=True, slots=True)

@@ -37,7 +37,7 @@
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
-| u1 sources | ✅ Complete | ✅ Complete | ⏳ in progress (Step 4/10 ✅) | _sanitize.py + 25 tests; AC-7.2 pinned; types-bleach added; DEBT-004 added |
+| u1 sources | ✅ Complete | ✅ Complete | ⏳ in progress (Step 5/10 ✅) | protocol.py + 13 tests; SourceFetchError relocated; SourceAdapter Protocol locked |
 | u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

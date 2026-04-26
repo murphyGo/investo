@@ -91,21 +91,18 @@
 
 ---
 
-### Step 5: `protocol.py` — SourceAdapter + SourceFetchError
+### Step 5: `protocol.py` — SourceAdapter + SourceFetchError ✅
 
-**Spec**: domain-entities.md §E1, §E4, business-rules.md R3.
+- [x] **5.1** `src/investo/sources/protocol.py` — canonical home for `SourceFetchError` (Exception subclass with `source_name` / `transient` / `cause: BaseException | None`, message format `source 'name' failed: message`) and the `SourceAdapter` Protocol (class-level `ClassVar[str] name`, `ClassVar[Category] category`, `async def fetch(self, client: httpx.AsyncClient, window: FetchWindow) -> list[NormalizedItem]`). Pinned behavior: NOT `@runtime_checkable` (registry uses class-attribute inspection at registration time, not isinstance). `_retry.py` updated to `from investo.sources.protocol import SourceFetchError` + `__all__` re-exporting it for backward compatibility with prior imports.
+- [x] **5.2** `tests/unit/sources/test_protocol.py` — 13 anchor tests covering: `SourceFetchError` is `Exception` (not `RuntimeError`); attribute presence (with/without cause); `from`-chain preserves `__cause__`; `BaseException` cause accepted; re-export identity (`investo.sources._retry.SourceFetchError is investo.sources.protocol.SourceFetchError`); Protocol introspection via `_is_protocol`; not-runtime-checkable via `_is_runtime_protocol`; annotation presence; concrete `_StubAdapter` assigned to `SourceAdapter`-typed binding (mypy-side proof) + async fetch returns `[]`.
+- [x] **5.3** Sub-agent code review — APPROVE_WITH_NOTES; 0 Critical/High, 1 Medium (M1 weak `pytest.raises(TypeError)` pin) + 4 Lows + audit-log note:
+  - **M1**: replaced `pytest.raises(TypeError)` shape-pin with direct `_is_runtime_protocol` introspection — applied
+  - **L1**: replaced MRO walk with `_is_protocol` introspection — applied
+  - **L3**: stub-fetch test opens an unused `httpx.AsyncClient` — skipped (cosmetic)
+  - **L4**: confirm pytest-asyncio auto-mode — already set in `pyproject.toml`
+  - **Audit-log note**: `fetch(client, window)` signature diverges from FD §E1 / R3 (`fetch(client, target_date)`) — defensible refinement (aggregator builds `FetchWindow` once instead of every adapter re-deriving it from `target_date`); ratified in audit log Step 5 entry
 
-- [ ] **5.1** Create `src/investo/sources/protocol.py`:
-  - `class SourceFetchError(Exception)` with `source_name`, `cause`, `transient` attributes
-  - `class SourceAdapter(Protocol)` with class-level `name: str`, `category: Category`, and `async def fetch(self, client: httpx.AsyncClient, window: FetchWindow) -> list[NormalizedItem]`
-  - Module re-exports `SourceFetchError` and `SourceAdapter` for public use
-- [ ] **5.2** `tests/unit/sources/test_protocol.py`:
-  - `SourceFetchError` construction (with/without cause/transient)
-  - `SourceFetchError` is an `Exception` subclass (not a `RuntimeError`)
-  - `SourceAdapter` is a `Protocol` (runtime-checkable or not — pin chosen behavior)
-- [ ] **5.3** Sub-agent code review.
-
-**Exit**: public adapter contract is locked; consumers can reference it.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅, pytest 199/199 (101 models + 22 window + 38 retry + 25 sanitize + 13 protocol).
 
 ---
 
