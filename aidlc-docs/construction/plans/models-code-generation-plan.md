@@ -63,20 +63,16 @@ None directly. Foundation supports all stories indirectly:
 
 **Quality gate**: `ruff check .` ✅ · `ruff format --check .` ✅ · `mypy --strict src/` ✅ · `pytest` ✅ (0 tests yet) · `python -m investo` → expected `NotImplementedError` ✅
 
-### Step 2: Implement `models/items.py`
+### Step 2: Implement `models/items.py` ✅
 
-- [ ] **2.1** Define `Category` as `Literal["news", "price", "macro", "calendar", "earnings"]`
-- [ ] **2.2** Define `NormalizedItem` pydantic v2 BaseModel:
-  - `source_name: str` (constraint: non-empty, ≤ 100 chars)
-  - `category: Category`
-  - `title: str` (constraint: non-empty)
-  - `summary: str | None`
-  - `url: HttpUrl | None`
-  - `published_at: datetime` (timezone-aware required — validator)
-  - `raw_metadata: dict[str, str | int | float] = Field(default_factory=dict)`
-  - `model_config = ConfigDict(frozen=True, extra="forbid")` for safety
-- [ ] **2.3** Validators:
-  - `published_at` must have tzinfo (else raise validation error — naive datetimes lead to bugs)
+- [x] **2.1** `Category` Literal type
+- [x] **2.2** `NormalizedItem` pydantic v2 BaseModel with all 7 fields, `frozen=True`, `extra="forbid"`
+- [x] **2.3** Validators: tz-aware `published_at`, strip+reject blank for `source_name`/`title`, normalize empty/whitespace `summary` → `None` (M2)
+- [x] **2.4** Strict union for `raw_metadata` values (`StrictStr | StrictInt | StrictFloat`) to block silent coercion incl. `bool` (M1)
+- [x] **2.5** `models/__init__.py` placeholder (full re-exports land in Step 5)
+
+**Code review** (sub-agent): no Critical/High; M1 (raw_metadata strict union) + M2 (whitespace normalization) fixed in same step. Low cosmetic suggestions deferred.
+**Quality gate**: ruff ✅ · mypy strict ✅ · runtime smoke + validator tests ✅
 
 ### Step 3: Implement `models/briefing.py`
 

@@ -252,6 +252,16 @@ B) Partial"
 
 ---
 
+## Construction — models — Step 2 Complete (`models/items.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created `src/investo/models/__init__.py` (placeholder) + `src/investo/models/items.py` with `Category` Literal and `NormalizedItem` pydantic v2 model. Sub-agent code review surfaced M1 (raw_metadata silent coercion) + M2 (whitespace handling); user chose "fix" → both applied in same step. Quality gate clean (ruff, mypy strict, runtime smoke + validator tests). Session log: docs/sessions/2026-04-27-models-code-generation-step2.md.
+**User Input**: "fix" (in response to code review medium issues)
+**AI Response**: "M1 strict union (StrictStr | StrictInt | StrictFloat for raw_metadata) + M2 (strip-reject blank source_name/title; normalize empty summary → None) applied in-place. Quality gate green."
+**Status**: Step 2 complete; aidlc-state.md updated; no TECH-DEBT items added.
+**Context**: Construction phase Code Generation — models foundation, Step 2 of 8
+
+---
+
 ## Construction — models — Step 1 Complete (Project Bootstrap)
 **Timestamp**: 2026-04-27T00:00:00Z
 **User Input**: "approve" (plan approval) → automatic Step 1 execution
