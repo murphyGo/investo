@@ -150,21 +150,17 @@
 
 ---
 
-### Step 9: `__init__.py` — adapter discovery + plugin contract test
+### Step 9: `__init__.py` — adapter discovery + plugin contract test ✅
 
-**Spec**: business-rules.md R2, NFR ACs 5.1, 5.2, 5.3.
+- [x] **9.1** `src/investo/sources/__init__.py` — populated with adapter discovery (`from . import fomc_rss  # noqa: F401` triggers `@register` at first package import) and public re-exports (`SourceAdapter`, `SourceFetchError`, `list_sources`, `fetch_all`, `FetchWindow`). `__all__` lists exactly that 5-name surface — internal helpers (`_window`, `_retry`, `_sanitize`, `_registry`, `register`, `RetryConfig`, etc.) are intentionally NOT re-exported. Module docstring documents the **NFR AC-5.4** 4-step procedure for adding a new adapter (create file → define class → apply `@register` → add `from . import <name>`).
+- [x] **9.2** `tests/unit/sources/test_plugin_contract.py` — 7 tests with an autouse-fixture override that snapshots / clears / re-registers `FomcRssAdapter` / yields / restores (mirrors production state instead of conftest's clean-slate isolation). Covers: **AC-5.2** drift guard (count + names sets); +1 stub registration proves the guard is meaningful (not tautological); **AC-5.3** duplicate-name with the production slug `"fomc-rss"` raises `RuntimeError("duplicate source name")`; `__all__` content lock; internal-helper non-leak guard; re-export identity (each public name `is` the canonical object from its defining module).
+- **Code review**: Sub-agent APPROVE; 0 Critical/High/Medium, 4 Lows (all optional polish):
+  - L1 docstring "4-line" wording — skipped (mirrors NFR AC-5.4 phrasing)
+  - L2 merge count + names tests — skipped (kept split for diagnostic clarity)
+  - L3 comment near `EXPECTED_ADAPTER_COUNT` reminding to bump on adapter add/remove — applied
+  - L4 actual `import *` execution test — skipped (`__all__` IS the contract; asserting on it directly is the canonical approach)
 
-- [ ] **9.1** Update `src/investo/sources/__init__.py`:
-  - Import every adapter module (currently just `fomc_rss`) so `@register` triggers
-  - Re-export public API: `SourceAdapter`, `SourceFetchError`, `list_sources`, `fetch_all`, `FetchWindow`
-  - Define `__all__`
-- [ ] **9.2** `tests/unit/sources/test_plugin_contract.py`:
-  - **AC-5.2** drift guard: `len(list_sources()) == EXPECTED_ADAPTER_COUNT` (constant in test, currently `1`); the names list matches `{"fomc-rss"}` exactly
-  - Adding a stub adapter via `monkeypatch` to `_ADAPTERS` increases count by exactly +1 and exposes the stub at the registered name
-  - **AC-5.3**: registering twice with the same name raises `RuntimeError` ("duplicate source name")
-  - Star import from `investo.sources` exposes only `__all__` (no `_validators`/`_registry`/`_retry`/etc. leaks)
-
-**Exit**: public surface for `u1` is locked and drift-guarded.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅, pytest 248/248 (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator + 13 fomc_rss + 2 xml_safety + **7 plugin_contract**).
 
 ---
 

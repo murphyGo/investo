@@ -252,6 +252,18 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 9 Complete (`__init__.py` + plugin contract)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Populated src/investo/sources/__init__.py — `from . import fomc_rss  # noqa: F401` for adapter discovery (triggers @register at first package import per FD §E2 / R2), public re-exports of SourceAdapter / SourceFetchError / list_sources / fetch_all / FetchWindow, `__all__` listing exactly that 5-name surface, module docstring documenting NFR AC-5.4 4-step procedure for adding new adapters. Created tests/unit/sources/test_plugin_contract.py (7 tests with autouse-fixture override that re-registers production adapters after conftest's clear) covering AC-5.2 drift guard, +1 stub meaningfulness, AC-5.3 duplicate-name with production slug, `__all__` lock, internal-helper non-leak, re-export identity.
+**Code review**: Sub-agent APPROVE; 0 Critical/High/Medium, 4 Lows (L1 "4-line" wording — skipped per NFR AC-5.4 phrasing; L2 merge tests — skipped for diagnostic clarity; L3 bump-comment near EXPECTED_ADAPTER_COUNT — applied; L4 actual `import *` test — skipped, `__all__` is the canonical contract). No TECH-DEBT.
+**User Input**: "yes" (Step 9 approval)
+**AI Response**: "Applied L3 (bump-when-adding comment); skipped L1, L2, L4 as cosmetic. No new TECH-DEBT."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 248/248 (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator + 13 fomc_rss + 2 xml_safety + 7 plugin_contract).
+**Status**: Step 9 complete; aidlc-state.md updated to "Step 9/10 ✅"; public surface locked; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — u1 sources, Step 9 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 8 Complete (`fomc_rss.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/fomc_rss.py (FomcRssAdapter with @register, name="fomc-rss", category="calendar", _FEED_URL=federalreserve.gov/feeds/press_all.xml, async fetch via retry_get + defusedxml parse + per-entry normalization). Recorded real one-off network call to capture tests/unit/sources/fixtures/api/fomc-rss/feed.xml (14 KB) + meta.json. Created tests/unit/sources/test_fomc_rss.py (13 tests covering AC-7.2/7.3/7.4 + edge cases) and tests/unit/sources/test_xml_safety.py (2 grep tests pinning AC-7.6). Added types-defusedxml>=0.7 to dev deps.
