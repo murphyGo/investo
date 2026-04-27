@@ -1,0 +1,12 @@
+{
+  "_recorded_at": "2026-04-27T12:03:59Z",
+  "_recorded_url": "https://www.federalreserve.gov/feeds/press_all.xml",
+  "_note": "One-off recording captured by the Step 8 fixture procedure. Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md.",
+  "status": 200,
+  "headers": {
+    "content-type": "text/xml",
+    "content-length": "14325",
+    "etag": "\"8c45f8f924d4dc1:0\"",
+    "last-modified": "Fri, 24 Apr 2026 20:00:19 GMT"
+  }
+}

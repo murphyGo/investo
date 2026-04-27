@@ -37,7 +37,7 @@
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
-| u1 sources | ✅ Complete | ✅ Complete | ⏳ in progress (Step 7/10 ✅) | aggregator.py + 13 tests; AC-1.1/3.1-3.5 pinned; conftest.py extracted; NaN bug in _retry fixed; DEBT-005 added |
+| u1 sources | ✅ Complete | ✅ Complete | ⏳ in progress (Step 8/10 ✅) | fomc_rss.py + 13 tests + xml-safety grep + 14KB recorded fixture; AC-7.2/7.3/7.4/7.6 pinned; FD L6 Atom→RSS 2.0 corrected; types-defusedxml added |
 | u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

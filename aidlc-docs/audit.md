@@ -252,6 +252,19 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 8 Complete (`fomc_rss.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/fomc_rss.py (FomcRssAdapter with @register, name="fomc-rss", category="calendar", _FEED_URL=federalreserve.gov/feeds/press_all.xml, async fetch via retry_get + defusedxml parse + per-entry normalization). Recorded real one-off network call to capture tests/unit/sources/fixtures/api/fomc-rss/feed.xml (14 KB) + meta.json. Created tests/unit/sources/test_fomc_rss.py (13 tests covering AC-7.2/7.3/7.4 + edge cases) and tests/unit/sources/test_xml_safety.py (2 grep tests pinning AC-7.6). Added types-defusedxml>=0.7 to dev deps.
+**FD-vs-implementation divergence (ratified)**: FD L6 originally listed feed as "Atom 1.0" with field mapping (title ← <title>, summary ← <summary>, url ← <link rel='alternate'>, published_at ← <updated>). Real feed inspection at recording time revealed it is **RSS 2.0** with different element names (<item> not <entry>; <description> not <summary>; <link> as plain text not <link rel='alternate'>) and RFC 822 dates (<pubDate>) instead of RFC 3339 (<updated>). Implementation parses RSS 2.0 per the actual feed shape; FD L6 was updated in this same change to match reality with a "Format correction (Step 8)" callout.
+**Code review**: Sub-agent APPROVE_WITH_NOTES; 0 Critical/High, 2 Mediums (M1 naive-pubDate test partially vacuous — applied: tightened to `assert items == []`; M2 _normalize_entry: Any — skipped after verifying agent's proposed `defusedxml.ElementTree.Element` import doesn't exist at runtime, current Any is documented + tested) + 6 Lows (L1 NBSP test skipped; L2 category comment applied; L3 AC-7.5 grep deferred to Step 10; L4 boundary tests for 280/281 truncation applied; L5 grep regex extended to include xml.parsers.expat applied; L6 defusedxml positive guard tightened to regex applied) + doc note (FD L6 update applied).
+**User Input**: "yes" (Step 8 approval); "fix-all-recommended" (apply 1, 3, 4, 5, 6, 7; skip 2)
+**AI Response**: "Applied M1, L2, L4, L5, L6, FD L6 doc update. Skipped M2 (after verifying agent's proposed import path doesn't work). All 6 Lows + 1 Medium addressed; 1 Medium intentionally skipped with rationale."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 241/241 (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator + 13 fomc_rss + 2 xml_safety).
+**Status**: Step 8 complete; aidlc-state.md updated to "Step 8/10 ✅"; FD L6 corrected (Atom→RSS 2.0); types-defusedxml added to dev deps; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — u1 sources, Step 8 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 7 Complete (`aggregator.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/aggregator.py (`async def fetch_all(target_date)` opening shared `httpx.AsyncClient`, building `FetchWindow.from_kst_date`, dispatching all `list_sources()` adapters concurrently via `asyncio.gather(..., return_exceptions=True)`; per-result loop: SourceFetchError → WARNING log + skip; other BaseException → re-raise; list → flatten; early-return on empty registry). Created tests/unit/sources/test_aggregator.py (11 tests covering AC-3.1-3.5 + programmer-error propagation) and tests/unit/sources/test_fetch_all_budget.py (2 timing tests covering AC-1.1 + concurrency proof). Extracted duplicated `_isolate_registry` autouse fixture to tests/unit/sources/conftest.py (was in 3 test files; now 1).

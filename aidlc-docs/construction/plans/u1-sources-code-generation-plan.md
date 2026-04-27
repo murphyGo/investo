@@ -137,28 +137,16 @@
 
 ---
 
-### Step 8: `fomc_rss.py` reference adapter + recorded fixture
+### Step 8: `fomc_rss.py` reference adapter + recorded fixture ✅
 
-**Spec**: business-logic-model.md L6, business-rules.md R8, NFR-007 AC-7.2/7.3/7.4.
+- [x] **8.1** Recorded `tests/unit/sources/fixtures/api/fomc-rss/feed.xml` (14 KB, real one-off `curl` to `https://www.federalreserve.gov/feeds/press_all.xml`) + `meta.json` (status 200, content-type, etag, last-modified). **FD-vs-impl divergence**: feed turned out to be **RSS 2.0**, not Atom 1.0 as the FD listed. Updated FD L6 to match reality + ratified in audit log Step 8.
+- [x] **8.2** `src/investo/sources/fomc_rss.py` — `FomcRssAdapter` with `@register`, `name="fomc-rss"`, `category="calendar"` (with comment justifying calendar-vs-news taxonomy choice), `_FEED_URL` constant, `fetch` calls `retry_get`, `defusedxml.ElementTree.fromstring` parse, per-entry normalization: `<title>` HTML-stripped, `<description>` HTML-stripped + truncated to 280, `<link>` scheme-guarded (http/https only), `<pubDate>` RFC 822 → tz-aware UTC via `email.utils.parsedate_to_datetime`, `<guid>` + `<category>` to `raw_metadata`, `pydantic.ValidationError` per-entry → drop. `_normalize_entry` parameter typed `Any` (importing `Element` would either touch stdlib XML — forbidden by AC-7.6 grep — or require type-stub gymnastics).
+- [x] **8.3** `tests/unit/sources/test_fomc_rss.py` — 13 tests covering: real-fixture happy path (window includes 2 entries dated 2026-04-24 20:00 GMT against KST 2026-04-25 trading day); empty window returns `[]`; tz-aware UTC `published_at` (AC-7.4); full field population including `raw_metadata` keys; AC-7.2 (HTML-in-title `<b>Stress test</b>` → `"Stress test"`); AC-7.3 (3 entries: https + `file://` + `javascript:` → only https survives); malformed XML → terminal `SourceFetchError`; missing-required-fields entries dropped; summary truncation at 280-char + boundary tests (280 unchanged, 281 trimmed); naive-pubDate (`-0000`) + garbage-pubDate both dropped; class-attribute identity check.
+- [x] **8.4** `tests/unit/sources/test_xml_safety.py` — 2 grep tests pinning AC-7.6: forbidden regex matches `xml.{etree,dom,sax,parsers}.*` top-level imports across `src/investo/sources/**`; positive guard asserts `fomc_rss.py` imports `defusedxml` via top-level import statement (regex match, not just substring).
+- [x] **8.5** Sub-agent code review — APPROVE_WITH_NOTES; 0 Critical/High, 2 Mediums + 6 Lows + 1 doc note. Applied: M1 (tightened naive-pubDate test to `assert items == []`); L2 (calendar-vs-news comment); L4 (boundary tests for summary truncation at 280/281); L5 (regex extended to include `xml.parsers.expat`); L6 (defusedxml positive guard tightened to regex); doc note (FD L6 corrected to RSS 2.0). Skipped: M2 (`Any` typed-`_normalize_entry`) — agent's proposed `defusedxml.ElementTree.Element` import doesn't actually export at runtime (verified); current Any is documented + tested. L1 (NBSP-only title) skipped — chain works through `strip_html`. L3 (AC-7.5 grep) deferred to Step 10 per plan.
+- **Side-update**: added `types-defusedxml>=0.7` to dev deps.
 
-- [ ] **8.1** Capture a recorded fixture: a real FOMC RSS response (Atom XML) saved to `tests/unit/sources/fixtures/api/fomc-rss/feed.xml` (≤ 200 KB). Plus a `meta.json` with `{status: 200, headers: {...}}`. Capture once; commit to repo.
-  - **Note**: this step requires a one-off network call to record. After capture, all tests are offline.
-- [ ] **8.2** Create `src/investo/sources/fomc_rss.py`:
-  - `class FomcRssAdapter` with `name="fomc-rss"`, `category="calendar"`
-  - `_FEED_URL = "https://www.federalreserve.gov/feeds/press_all.xml"`
-  - `async def fetch(self, client, window)` — calls `retry_get`, parses with `defusedxml.ElementTree`, maps each entry to `NormalizedItem` (title via `_sanitize.strip_html`, summary truncated to 280 chars after strip, url validated http/https else dropped, published_at from `<updated>` parsed to tz-aware UTC), filters by `window.contains(item.published_at)`
-  - Apply `@register` decorator at class definition
-- [ ] **8.3** `tests/unit/sources/test_fomc_rss.py`:
-  - Use `httpx.MockTransport` returning the recorded fixture
-  - Adapter returns `list[NormalizedItem]` against a window covering the fixture's known dates
-  - Window outside the fixture's dates → empty list
-  - Each returned item has `source_name == "fomc-rss"`, `category == "calendar"`, `published_at` tz-aware (**AC-7.4** verified by explicit `defusedxml` import + grep test)
-  - **AC-7.3**: mock fixture with a `file://` URL entry → that entry is dropped, others kept
-  - **AC-7.2**: mock fixture with `<title><b>x</b></title>` → title stored as `"x"` (HTML stripped)
-- [ ] **8.4** Add a grep test (`tests/unit/sources/test_xml_safety.py`) that verifies no source file under `src/investo/sources/` imports `xml.etree.ElementTree` directly — must use `defusedxml` (**AC-7.6**).
-- [ ] **8.5** Sub-agent code review.
-
-**Exit**: reference adapter proves the contract end-to-end on a real-world feed shape.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅, pytest 241/241 (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator + 13 fomc_rss + 2 xml_safety).
 
 ---
 

@@ -167,17 +167,19 @@ The orchestrator owns INFO-level lifecycle logs ("collect started",
 
 ## L6. Reference-adapter algorithm — FOMC RSS PoC (Q5=A)
 
+> **Format correction (2026-04-27, Step 8):** the live feed is **RSS 2.0**, not Atom 1.0 as originally predicted. Field names and date format below have been updated to match the real feed; the audit log Step 8 entry records the divergence.
+
 | Step | Detail |
 |------|--------|
 | Source | `https://www.federalreserve.gov/feeds/press_all.xml` |
 | Auth | none |
-| Format | Atom 1.0 |
+| Format | RSS 2.0 |
 | Volume | a few entries per day |
 | `name` | `"fomc-rss"` |
 | `category` | `"calendar"` |
-| Window filter | use entry's `<updated>` field (RFC 3339, tz-aware) |
-| `NormalizedItem` mapping | title ← `<title>`, summary ← `<summary>` (truncated to 280 chars), url ← `<link rel="alternate">`, published_at ← `<updated>`, raw_metadata ← `{"guid": <id>}` |
-| Edge cases | entries without `<updated>` are dropped (cannot window-filter) |
+| Window filter | use entry's `<pubDate>` field (RFC 822 / RFC 5322, tz-aware) |
+| `NormalizedItem` mapping | title ← `<title>` (HTML-stripped), summary ← `<description>` (HTML-stripped, truncated to 280 chars), url ← `<link>` (only `http`/`https` accepted), published_at ← `<pubDate>` parsed via `email.utils.parsedate_to_datetime` and converted to UTC, raw_metadata ← `{"guid": <guid>, "rss_category": <category>}` |
+| Edge cases | entries missing any of `<title>`/`<link>`/`<pubDate>` are dropped; `<pubDate>` returning a naive datetime (e.g. RFC 5322 `-0000`) is dropped; non-http(s) URLs are dropped |
 
 The PoC proves:
 - Plugin contract end-to-end: registration → discovery → invocation
