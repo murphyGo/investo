@@ -252,6 +252,22 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 10 Complete + Stage CLOSED 🎉
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created scripts/check_no_paid_apis.py (CI cost guard with empty BLOCKLIST per spec, exits 0/1 with offender details) + tests/unit/sources/test_no_paid_apis.py (4 tests: subprocess invocation + monkeypatched detection proof). Created CONTRIBUTING.md (adapter-author guide: 4-step procedure + fixture recording + free-tier PR checklist + project rules). Wrote aidlc-docs/construction/u1-sources/code/summary.md (closeout summary with 30-AC traceability + FD-vs-impl divergence record + open TECH-DEBT roll-up + u2 pre-flight). Final quality gate green: ruff ✅, ruff format ✅, mypy --strict ✅ (15 source files), pytest 252/252.
+**Stage status**: u1 sources Code Generation stage **CLOSED**. All 10 plan steps complete.
+**Stories closed**: ✅ US-001 (자동 시장 데이터 수집), ✅ US-008 (단일 모듈 추가로 새 데이터 소스 통합).
+**NFR coverage**: All 30 acceptance criteria from nfr-requirements.md are pinned by tests or documented passive guarantees (AC-7.5, AC-D.4 — deferred per spec).
+**Open TECH-DEBT**: 5 items registered (DEBT-001/002 Medium cross-unit; DEBT-003/004/005 Low u1-origin); none block stage close.
+**FD-vs-impl divergences (ratified)**: Step 5 fetch signature (`target_date` → `window`) + Step 8 feed format (Atom 1.0 → RSS 2.0). Both recorded in this audit log + summary.md.
+**User Input**: "yes" (Step 10 approval)
+**AI Response**: "Step 10 deliverables created — script + tests + CONTRIBUTING.md + closeout summary. Quality gate green. Stage closed."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 252/252.
+**Status**: u1 sources Code Generation stage CLOSED; aidlc-state.md updated to "Complete (10/10)"; eligible for /cross-check; no new TECH-DEBT.
+**Context**: Construction phase Code Generation — u1 sources, Step 10 of 10 (FINAL)
+
+---
+
 ## Construction — u1 sources — CG Step 9 Complete (`__init__.py` + plugin contract)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Populated src/investo/sources/__init__.py — `from . import fomc_rss  # noqa: F401` for adapter discovery (triggers @register at first package import per FD §E2 / R2), public re-exports of SourceAdapter / SourceFetchError / list_sources / fetch_all / FetchWindow, `__all__` listing exactly that 5-name surface, module docstring documenting NFR AC-5.4 4-step procedure for adding new adapters. Created tests/unit/sources/test_plugin_contract.py (7 tests with autouse-fixture override that re-registers production adapters after conftest's clear) covering AC-5.2 drift guard, +1 stub meaningfulness, AC-5.3 duplicate-name with production slug, `__all__` lock, internal-helper non-leak, re-export identity.

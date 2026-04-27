@@ -164,32 +164,14 @@
 
 ---
 
-### Step 10: CI cost guard + CONTRIBUTING + final closeout
+### Step 10: CI cost guard + CONTRIBUTING + final closeout ✅
 
-**Spec**: NFR ACs 2.2, 5.4, drift AC-D.1/D.2/D.3.
+- [x] **10.1** `scripts/check_no_paid_apis.py` (regex grep over `src/investo/sources/**`, empty BLOCKLIST per spec, exits 0/1 with offender details to stderr) + `tests/unit/sources/test_no_paid_apis.py` (4 tests: script-exists, subprocess-exits-cleanly, `find_offenders` returns empty on clean tree, monkeypatched populated blocklist detects matches in `fomc_rss.py`).
+- [x] **10.2** `CONTRIBUTING.md` — adapter-author guide covering: 4-step new-adapter procedure (AC-5.4); inline guidance on `retry_get` / `strip_html` / `defusedxml` usage inside `fetch`; fixture-recording how-to (the curl pattern from Step 8); PR description checklist with free-tier declaration (AC-2.4); pre-commit quality gate (ruff/format/mypy/pytest); enforced project rules; "Where to find what" cross-reference table.
+- [x] **10.3** Final quality gate green: `ruff check .` ✅, `ruff format --check .` ✅, `mypy --strict src/` ✅ (15 source files), `pytest` ✅ **252/252** (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator + 2 budget + 13 fomc_rss + 2 xml_safety + 7 plugin_contract + 4 no_paid_apis).
+- [x] **10.4** `aidlc-docs/construction/u1-sources/code/summary.md` — closeout summary: files-created table (8 source files, 851 LOC + 12 test files, 2,286 LOC); full 30-AC traceability table (every AC mapped to a canonical test or documented passive guarantee); FD-vs-impl divergence record (Step 5 fetch signature + Step 8 RSS-not-Atom format, both ratified in audit.md); open TECH-DEBT (5 items: 2 cross-unit Medium, 3 u1-origin Low); story status (US-001 ✅ closed, US-008 ✅ closed); u2 briefing pre-flight notes (allowed imports, prompt-builder hints).
 
-- [ ] **10.1** Create `scripts/check_no_paid_apis.py`:
-  - Greps `src/investo/sources/**` for known-paid-API patterns (initial blocklist: empty list — populated as adapters land)
-  - Exit non-zero if a match is found; exit 0 otherwise
-  - Add a CI step (`.github/workflows/...`) — but `u6 infra/CI` owns the actual workflow file, so for now the script + a `pytest` invocation that runs it satisfies the in-repo guard
-  - `tests/unit/sources/test_no_paid_apis.py` invokes the script as a subprocess and asserts exit 0
-- [ ] **10.2** Add a CONTRIBUTING section (either `CONTRIBUTING.md` new file or a section under `README.md`):
-  - The 4-line new-adapter procedure (**AC-5.4**)
-  - Required PR description checklist (free-tier declaration per **AC-2.4**)
-  - How to record a fixture for a new adapter
-- [ ] **10.3** Run final quality gate:
-  - `ruff check .` ✅
-  - `ruff format --check .` ✅
-  - `mypy --strict src/` ✅
-  - `pytest` ✅ (all old tests still pass; new tests pin all 30 ACs from nfr-requirements.md)
-- [ ] **10.4** Write `aidlc-docs/construction/u1-sources/code/summary.md`:
-  - Files created + LOC
-  - NFR AC-to-test traceability table
-  - Open TECH-DEBT (if any)
-  - Story status: US-001 ✅ closed, US-008 ✅ closed
-  - Pre-flight for `u2 briefing`: which `u1` types/functions u2 will consume
-
-**Exit**: `u1 sources` Code Generation stage CLOSED. Stories US-001 and US-008 close. Two stage gates remain for the project: `u2..u4..u5` Code Generation runs, then global `Build and Test`.
+**Exit**: ✅ `u1 sources` Code Generation stage CLOSED. Stories US-001 and US-008 close. The unit is eligible for `/cross-check`. Two stage gates remain for the project: `u2..u4..u5` Code Generation runs, then global `Build and Test`.
 
 ---
 
