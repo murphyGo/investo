@@ -7,7 +7,6 @@ Pins the registration mechanism per
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from typing import ClassVar
 
 import httpx
@@ -22,24 +21,7 @@ from investo.sources._registry import (
 )
 from investo.sources._window import FetchWindow
 
-
-@pytest.fixture(autouse=True)
-def _isolate_registry() -> Iterator[None]:
-    """Snapshot/restore the registry around each test.
-
-    The runtime registry is populated at import time of
-    ``investo.sources``; today that's empty (Step 9 will wire adapter
-    imports), but the snapshot/restore keeps the test correct once the
-    real adapters land.
-    """
-
-    snapshot = dict(_ADAPTERS)
-    _clear_for_test()
-    try:
-        yield
-    finally:
-        _clear_for_test()
-        _ADAPTERS.update(snapshot)
+# The registry-isolation fixture lives in tests/unit/sources/conftest.py.
 
 
 # Convenience: a single Protocol-conformant stub used across tests.

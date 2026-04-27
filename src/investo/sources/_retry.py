@@ -18,6 +18,7 @@ compatibility with existing imports; its canonical home is
 from __future__ import annotations
 
 import asyncio
+import math
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -99,6 +100,11 @@ def _parse_retry_after(header: str | None) -> float | None:
     except ValueError:
         pass
     else:
+        # Reject NaN / +-inf — `float("NaN")` succeeds but a NaN bound
+        # would silently bypass `compute_sleep`'s [0, max_retry_after_s]
+        # invariant (any comparison with NaN returns False).
+        if not math.isfinite(seconds):
+            return None
         return max(seconds, 0.0)
     try:
         dt = parsedate_to_datetime(text)

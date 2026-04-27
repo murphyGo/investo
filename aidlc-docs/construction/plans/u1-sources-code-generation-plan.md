@@ -120,31 +120,20 @@
 
 ---
 
-### Step 7: `aggregator.py` — fetch_all
+### Step 7: `aggregator.py` — fetch_all ✅
 
-**Spec**: business-logic-model.md L1, business-rules.md R6, NFR ACs 1.1, 3.1, 3.2, 3.3, 3.4, 3.5.
+- [x] **7.1** `src/investo/sources/aggregator.py` — `async def fetch_all(target_date: date) -> list[NormalizedItem]`. Early-return `[]` if registry is empty. Otherwise: build `FetchWindow.from_kst_date(target_date)`, open shared `httpx.AsyncClient` via `async with`, dispatch via `asyncio.gather(*(adapter.fetch(client, window) for adapter in adapters), return_exceptions=True)`. Per-result loop: `SourceFetchError` → WARNING log with exception's self-reported `source_name` + `transient` flag (intentionally surfaces R8 violations); other `BaseException` (incl. CancelledError / KeyboardInterrupt / SystemExit) → re-raise; `list[NormalizedItem]` → flatten into result.
+- [x] **7.2** `tests/unit/sources/test_aggregator.py` — 11 anchor tests covering: AC-3.5 (empty registry + empty result do not raise); happy path (single adapter, multiple adapters concatenated, window dispatched correctly); AC-3.1/3.2 (`SourceFetchError` caught + logged with source_name and `transient=True`/`False`); AC-3.3 (1 fail / 2 success → 2 good lists); AC-3.4 (all fail → `[]`); programmer-error propagation (`KeyError` and `RuntimeError` both kill the run, even with sibling-success adapters).
+- [x] **7.3** `tests/unit/sources/test_fetch_all_budget.py` — 2 timing tests: AC-1.1 scaled by 100x (1 slow 0.5s + 2 fast → returns ≤ 0.7s); concurrency proof (3 × 0.3s sleeping adapters → returns ≤ 0.75s, distinguishing concurrent vs sequential dispatch).
+- [x] **7.4** Sub-agent code review — APPROVE_WITH_NOTES; 0 Critical/High, 2 Mediums + 3 Lows + 1 TECH-DEBT, all applied:
+  - **M1** BaseException catch covers CancelledError/KeyboardInterrupt/SystemExit — added inline comment confirming the breadth is deliberate
+  - **M2** Log uses `result.source_name` (exception-reported) not `adapter.name` (registry-authoritative) — kept current behavior with comment justifying the choice (R8 violations surface as debug signal)
+  - **L3** Bumped concurrency-test bound from `< 0.6` to `< 0.75` for slow-CI headroom
+  - **L4** Extracted duplicated `_isolate_registry` autouse fixture to `tests/unit/sources/conftest.py` (3 copies → 1)
+  - **DEBT-005** registered (Low): printf-style log line vs L5's structured-fields spec; revisit on operations ADR
+- **Side-fix during Step 7 quality gate**: hypothesis surfaced a pre-existing bug in `_parse_retry_after` (Step 3) where `"NaN"` parses to `float('nan')` and bypasses the `[0, max_retry_after_s]` bound (NaN comparisons return False). Added `math.isfinite` guard + 4 regression tests (`NaN`, `nan`, `Infinity`, `-Infinity`, `inf` all return `None`). Same fix covers `Inf` family.
 
-- [ ] **7.1** Create `src/investo/sources/aggregator.py`:
-  - `async def fetch_all(target_date: date) -> list[NormalizedItem]`
-  - Opens shared `httpx.AsyncClient` via `async with`
-  - Builds `FetchWindow.from_kst_date(target_date)`
-  - `asyncio.gather(*[adapter.fetch(client, window) for adapter in list_sources()], return_exceptions=True)`
-  - Per-result handling:
-    - `list[NormalizedItem]` → flatten into result
-    - `SourceFetchError` → log WARNING with source_name + transient flag → contribute `[]`
-    - Other `Exception` → re-raise (programmer error guard)
-  - Returns flattened list
-- [ ] **7.2** `tests/unit/sources/test_aggregator.py`:
-  - **AC-3.1, 3.2**: `fetch_all` never raises for `SourceFetchError`
-  - **AC-3.3**: 3 adapters where 1 raises → returns 2 good lists' concatenation
-  - **AC-3.4**: all adapters raise → returns `[]`
-  - **AC-3.5**: empty result list does not raise from u1 (confirms orchestrator-owned policy)
-  - Programmer-error exception (e.g. `KeyError`) propagates
-- [ ] **7.3** `tests/unit/sources/test_fetch_all_budget.py`:
-  - **AC-1.1**: 1 mock adapter sleeping 60 s + 2 fast adapters → `fetch_all` returns ≤ 70 s. Use `asyncio.wait_for` or a timer assertion to keep it deterministic.
-- [ ] **7.4** Sub-agent code review.
-
-**Exit**: aggregator behavior pinned for failure isolation + time budget.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅, pytest 226/226 (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator).
 
 ---
 

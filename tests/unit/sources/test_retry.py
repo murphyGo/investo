@@ -130,6 +130,21 @@ def test_parse_retry_after_garbage_returns_none() -> None:
     assert _parse_retry_after("not-a-date") is None
 
 
+def test_parse_retry_after_nan_returns_none() -> None:
+    # `float("NaN")` succeeds but a NaN bound would silently bypass
+    # compute_sleep's [0, max_retry_after_s] invariant (NaN
+    # comparisons always return False). Pinned by hypothesis on
+    # 2026-04-27 — falsifying example was retry_after_header="NaN".
+    assert _parse_retry_after("NaN") is None
+    assert _parse_retry_after("nan") is None
+
+
+def test_parse_retry_after_infinity_returns_none() -> None:
+    assert _parse_retry_after("Infinity") is None
+    assert _parse_retry_after("-Infinity") is None
+    assert _parse_retry_after("inf") is None
+
+
 def test_parse_retry_after_http_date_in_past() -> None:
     # "Sun, 06 Nov 1994 08:49:37 GMT" — RFC 7231 example, far in past.
     result = _parse_retry_after("Sun, 06 Nov 1994 08:49:37 GMT")

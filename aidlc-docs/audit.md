@@ -252,6 +252,19 @@ B) Partial"
 
 ---
 
+## Construction — u1 sources — CG Step 7 Complete (`aggregator.py`)
+**Timestamp**: 2026-04-27T00:00:00Z
+**Action**: Created src/investo/sources/aggregator.py (`async def fetch_all(target_date)` opening shared `httpx.AsyncClient`, building `FetchWindow.from_kst_date`, dispatching all `list_sources()` adapters concurrently via `asyncio.gather(..., return_exceptions=True)`; per-result loop: SourceFetchError → WARNING log + skip; other BaseException → re-raise; list → flatten; early-return on empty registry). Created tests/unit/sources/test_aggregator.py (11 tests covering AC-3.1-3.5 + programmer-error propagation) and tests/unit/sources/test_fetch_all_budget.py (2 timing tests covering AC-1.1 + concurrency proof). Extracted duplicated `_isolate_registry` autouse fixture to tests/unit/sources/conftest.py (was in 3 test files; now 1).
+**Side-fix during quality gate**: hypothesis surfaced a pre-existing NaN bug in `_parse_retry_after` (Step 3) — `"NaN"` parsed to `float('nan')` and bypassed compute_sleep's `[0, max_retry_after_s]` invariant (NaN comparisons return False). Added `math.isfinite` guard in `_retry.py` + 4 regression tests (NaN/Infinity/-Infinity/inf → None).
+**Code review**: Sub-agent APPROVE_WITH_NOTES; 0 Critical/High, 2 Mediums (M1 BaseException scope documentation; M2 log source_name choice — judgment call) + 3 Lows (L3 concurrency-bound bump; L4 conftest extraction; L5 unused fixture) + 1 TECH-DEBT (printf-style log vs L5 structured-fields spec).
+**User Input**: "yes" (Step 7 approval); "fix all" (apply all 5 suggestions + register DEBT-005)
+**AI Response**: "Applied: M1 inline comment confirming BaseException catch is deliberate; M2 inline comment justifying `result.source_name` choice (surfaces R8 violations as debug signal); L3 bumped 0.6 → 0.75 for slow-CI headroom; L4 extracted `_isolate_registry` autouse fixture to tests/unit/sources/conftest.py (removed from test_aggregator.py / test_fetch_all_budget.py / test_registry.py); DEBT-005 registered. Side-fix: NaN bug in `_parse_retry_after` patched with math.isfinite + 4 regression tests."
+**Verification**: ruff ✅, ruff format ✅, mypy --strict src/ ✅, pytest 226/226 (101 models + 22 window + 42 retry + 25 sanitize + 13 protocol + 12 registry + 11 aggregator).
+**Status**: Step 7 complete; aidlc-state.md updated to "Step 7/10 ✅"; DEBT-005 added (Low: printf-style log line); _retry.py NaN fix included.
+**Context**: Construction phase Code Generation — u1 sources, Step 7 of 10
+
+---
+
 ## Construction — u1 sources — CG Step 6 Complete (`_registry.py`)
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created src/investo/sources/_registry.py (module-level `_ADAPTERS: dict[str, SourceAdapter] = {}`, `register` class decorator with TypeVar-bound generic preserving concrete type, duplicate-check before dict mutation raising `RuntimeError("duplicate source name: ...")`, `list_sources` returning fresh list copy each call, `_clear_for_test` for fixture isolation) + tests/unit/sources/test_registry.py (12 tests with autouse snapshot/restore fixture covering: happy-path register; decorator transparency; singleton-instance behavior; insertion-order preservation; empty initial state; duplicate-name RuntimeError; error message slug presence; failed registration does NOT replace existing entry; mutation safety of `list_sources` return; fresh list each call; `_clear_for_test` empties registry; `_clear_for_test` allows re-registration).
