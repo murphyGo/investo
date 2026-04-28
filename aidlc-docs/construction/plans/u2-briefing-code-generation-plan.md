@@ -58,14 +58,14 @@
 
 ---
 
-### Step 2: `disclaimer.py` — DISCLAIMER constant + idempotent append_disclaimer
+### Step 2: `disclaimer.py` — DISCLAIMER constant + idempotent append_disclaimer ✅
 
 **FD refs**: R5, E (output → `Briefing.disclaimer` field).
 **NFR refs**: AC-4.1 (idempotence PBT), AC-4.2 (DISCLAIMER substring), AC-4.3 (last-section anchor),
 AC-4.4 (rendered_markdown substring — pinned in Step 9 integration test), AC-4.5 (Final[str] constant),
 AC-6.1 (idempotence PBT ≥100 examples).
 
-- [ ] **2.1** `src/investo/briefing/disclaimer.py`:
+- [x] **2.1** `src/investo/briefing/disclaimer.py`:
   - `DISCLAIMER: Final[str]` — exact Korean text per FD R5 (5 lines including the `## ⑦ 면책조항`
     header).
   - `append_disclaimer(markdown: str) -> str` — idempotence anchored on the literal substring
@@ -73,7 +73,7 @@ AC-6.1 (idempotence PBT ≥100 examples).
     `DISCLAIMER` (newline separation guarantees the disclaimer header is the last `## ` block).
   - Module docstring documents the cross-unit contract (u3 publisher's `verify_disclaimer` will
     do an exact substring match on the constant).
-- [ ] **2.2** `tests/unit/briefing/test_disclaimer.py` — anchor tests:
+- [x] **2.2** `tests/unit/briefing/test_disclaimer.py` — anchor tests:
   - `DISCLAIMER` contains the literal `## ⑦ 면책조항` header.
   - `append_disclaimer("")` → `DISCLAIMER` is a substring of the result.
   - `append_disclaimer("## ① ...\n## ② ...\n## ⑥ ...\n")` → result ends with `DISCLAIMER`,
@@ -81,16 +81,25 @@ AC-6.1 (idempotence PBT ≥100 examples).
   - `append_disclaimer(append_disclaimer(x))` example-based for representative inputs.
   - `append_disclaimer(prefix + DISCLAIMER + suffix)` returns input unchanged when anchor already
     present (idempotence under non-trivial wrapping).
-- [ ] **2.3** `tests/unit/briefing/test_disclaimer_pbt.py` — hypothesis ≥100 examples:
+- [x] **2.3** `tests/unit/briefing/test_disclaimer_pbt.py` — hypothesis ≥100 examples:
   - **AC-6.1 idempotence**: `append_disclaimer(append_disclaimer(x)) == append_disclaimer(x)` for
-    arbitrary `text()`.
-  - **AC-6.1 presence**: `DISCLAIMER in append_disclaimer(x)` for arbitrary `text()`.
-- [ ] **2.4** Sub-agent code review — focus on idempotence corner cases (empty string, anchor
-  appearing mid-line vs as section header, BOM/whitespace prefixes). Apply Critical/High/Medium
-  fixes inline; document Lows.
+    arbitrary `text()` (unconditional — once anchor is in result, further calls are no-ops).
+  - **AC-6.1 presence**: `DISCLAIMER in append_disclaimer(x)` for `x` not containing the anchor.
+    Conditioned on anchor-absence: when input already has the anchor (e.g. LLM hallucinated
+    section ⑦), R5's anchor-on-header semantics mean we trust the input — u3's
+    `verify_disclaimer` is the safety net for body drift. Documented in PBT docstring.
+  - **Canary** (third PBT): `_ANCHOR in append_disclaimer(x)` unconditionally — if this breaks,
+    the implementation has regressed.
+- [x] **2.4** Sub-agent code review — APPROVE; 0 Critical/High/Medium, 4 Lows + 1 verification:
+  - **L1** DEBT-001 docstring reference — verified registered in `docs/TECH-DEBT.md` ✅
+  - **L2** derive `_ANCHOR` from `DISCLAIMER.split("\n", 1)[0]` — skipped (R5 explicitly decouples
+    the anchor from full body wording; explicit form is defensible)
+  - **L3** test-side `ANCHOR` literal duplication — skipped (black-box virtue; agent agreed)
+  - **L4** regex intent comment in `test_disclaimer.py` — applied
+  - No new TECH-DEBT items.
 
-**Quality gate**: ruff, mypy --strict, pytest (full suite + new disclaimer tests + 2 PBTs at 100
-examples each).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (17 source files; +1 from Step 1's 16),
+pytest **265/265** ✅ (+13 new tests: 9 anchor + 3 PBT + 1 type check; 3 PBTs each ran 100 examples).
 
 ---
 

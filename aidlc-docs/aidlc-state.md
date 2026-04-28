@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (1/10 steps — bootstrap) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Step 1 ✅ — skeleton + zero-dep audit + 252/252 baseline preserved |
+| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (2/10 steps — disclaimer) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Step 1 ✅ bootstrap + Step 2 ✅ disclaimer.py (DISCLAIMER constant + idempotent append_disclaimer; 13 new tests including 3 PBTs at 100 examples each); 265/265 tests passing |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
