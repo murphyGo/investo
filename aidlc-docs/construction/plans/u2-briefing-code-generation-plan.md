@@ -199,14 +199,15 @@ pytest **314/314** ✅ (+20 new tests: BGE stage parametrize × 4 + cause-chain 
 
 ---
 
-### Step 5: `prompts.py` — module-level prompt constants + str.format usage
+### Step 5: `prompts.py` — module-level prompt constants + str.format usage ✅
 
 **FD refs**: L2 prompt skeleton, L3 prompt skeleton, R7 (item serialization shape used in templates),
 R8 (Korean+ticker rule embedded in Stage 2 prompt).
-**NFR refs**: AC-5.1 (4 Final[str] constants), AC-5.2 (pipeline.py no prompt strings —
-deferred-pin in Step 8), AC-5.3 (claude_code.py no prompt strings — deferred-pin in Step 6).
+**NFR refs**: AC-5.1 (4 Final[str] constants), AC-5.2 (pipeline.py no prompt strings — pinned now
+via sentinel-grep test, will continue to enforce when Step 8 lands), AC-5.3 (claude_code.py no
+prompt strings — same grep, enforced when Step 6 lands).
 
-- [ ] **5.1** `src/investo/briefing/prompts.py`:
+- [x] **5.1** `src/investo/briefing/prompts.py`:
   - `STAGE1_SYSTEM: Final[str]` — Korean classifier role + JSON output schema + section-id legend
     + "categories are hints" rule per FD L2.
   - `STAGE1_USER_TEMPLATE: Final[str]` — single placeholder `{items_json}`. Header `Items:` then
@@ -219,17 +220,30 @@ deferred-pin in Step 8), AC-5.3 (claude_code.py no prompt strings — deferred-p
   - Module docstring documents the str.format substitution convention and forbids re-introducing
     prompt strings into other modules.
   - `__all__` re-exports the four constants only.
-- [ ] **5.2** `tests/unit/briefing/test_prompts.py` — anchor tests:
+- [x] **5.2** `tests/unit/briefing/test_prompts.py` — anchor tests:
   - The four constants exist, are non-empty, are `str`.
   - Each constant contains its expected anchor: STAGE1_SYSTEM contains `assignments`, STAGE2_SYSTEM
     contains `## ① 요약` and `## ⑥`, etc.
   - `STAGE1_USER_TEMPLATE.format(items_json="[]")` succeeds (placeholder matches).
   - `STAGE2_USER_TEMPLATE.format(...)` with the documented keyword set succeeds.
   - Type-system pin: each constant is `Final[str]` (mypy strict catches drift; not a runtime test).
-- [ ] **5.3** Sub-agent code review — review the actual Korean prompt copy for correctness against
-  the FD's acceptance criteria; verify Q5 decision (constants + str.format) is followed end-to-end.
+- [x] **5.3** Sub-agent code review — APPROVE; 0 Critical/High, 2 Mediums + 3 Lows + 2 TECH-DEBT
+  candidates. Applied:
+  - **M-1** `grouped_sections` brace-contamination forward-warning — DOCUMENTED in module docstring
+    "Caller obligations" section (Step 8 wiring contract).
+  - **M-2** Defense-in-depth NOT documented in code — DOCUMENTED in module docstring
+    "Defense in depth (NFR-007 R6)" section.
+  - **L-1** Sentinel rephrase ("Section ID legend" generic) — skipped; already unique enough.
+  - **L-2** `pytest.raises(KeyError)` test for SYSTEM-never-formatted convention — APPLIED
+    (`test_stage1_system_format_call_raises_key_error`).
+  - **L-3** Disclaimer collision check — APPLIED
+    (`test_stage1_system_does_not_collide_with_disclaimer_anchor`).
+  - **TD-prompts-001** (locked SYSTEM convention test) — applied as L-2 fix.
+  - **TD-prompts-002** (Step 8 brace-escaping in build_section_plan) — deferred to Step 8 plan as
+    explicit caller obligation.
 
-**Quality gate**: ruff, mypy --strict, pytest (full suite + prompts tests).
+**Quality gate**: ruff ✅, ruff format ✅ (50 files already formatted), mypy --strict ✅
+(20 source files; +1 from Step 4's 19), pytest **332/332** ✅ (+18 new tests: 16 prompts + 2 review-driven).
 
 ---
 
