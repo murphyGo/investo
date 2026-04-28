@@ -305,12 +305,12 @@ anthropic-sdk-import) via AST-stripped grep + 2 module-shape).
 
 ---
 
-### Step 7: `FakeClaudeRunner` — recorded-fixture replay + INVESTO_LIVE_LLM record mode
+### Step 7: `FakeClaudeRunner` — recorded-fixture replay + INVESTO_LIVE_LLM record mode ✅
 
 **FD refs**: R9 (fixture mechanism).
 **NFR refs**: AC-6.5 (no test imports `subprocess` directly to invoke `claude`).
 
-- [ ] **7.1** `tests/_helpers/fake_claude_runner.py`:
+- [x] **7.1** `tests/_helpers/fake_claude_runner.py`:
   - `class FakeClaudeRunner` — initializer accepts `fixture_dir: Path` (default
     `Path("tests/fixtures/llm")`). Method `__call__(self, args: list[str], *, capture_output, text,
     timeout) -> subprocess.CompletedProcess` (signature matches `subprocess.run`).
@@ -322,7 +322,11 @@ anthropic-sdk-import) via AST-stripped grep + 2 module-shape).
   - Live-recording mode: when `os.environ.get("INVESTO_LIVE_LLM") == "1"`, dispatch
     `subprocess.run` for real, then write the resulting `{prompt, stdout, stderr, returncode,
     elapsed_s}` JSON to `fixture_dir / f"{key}.json"` before returning. Otherwise pure replay.
-- [ ] **7.2** `tests/unit/briefing/test_fake_claude_runner.py`:
+  - **Atomic write**: live-record path writes to `<key>.json.tmp` then `os.replace(...)` so a
+    SIGINT mid-write cannot leave a corrupt fixture (Step 7 review M1).
+  - **Args-shape guard**: `args.index("-p")` is wrapped in try/except so a malformed call site
+    surfaces a clear ValueError instead of a raw `ValueError`/`IndexError` (Step 7 review L1).
+- [x] **7.2** `tests/unit/briefing/test_fake_claude_runner.py`:
   - Replay round-trip: write a fixture file → runner returns matching CompletedProcess.
   - Missing fixture → `FixtureMissingError` with key + prompt-prefix in message.
   - Live mode: when `INVESTO_LIVE_LLM=1` is set + a synthetic recordable command (e.g. `["echo",
@@ -335,10 +339,23 @@ anthropic-sdk-import) via AST-stripped grep + 2 module-shape).
     `briefing/claude_code.py`, the FakeClaudeRunner's live-mode escape hatch (also under `tests/`),
     and existing test files (e.g., `test_no_paid_apis.py` which spawns the script for end-to-end
     verification — already excluded by allowlist).
-- [ ] **7.3** Sub-agent code review — focus on the live-recording test design (must not spawn real
-  `claude` in CI), the fixture-key collision risk (16 hex chars), and the exception UX.
+- [x] **7.3** Sub-agent code review — APPROVE; 0 Critical/High, 1 Medium + 4 Lows + 2 TD candidates.
+  Applied:
+  - **M1** Non-atomic fixture write — APPLIED (tmp-file + `os.replace`); test pins no `.tmp`
+    leftover after successful write.
+  - **L1** Args-shape contract guard — APPLIED (clear ValueError for `["claude"]` /
+    `["claude", "-p"]` / etc.); 2 new tests pin the guard.
+  - **L2** `_KEY_LENGTH = 16` "64 bits" comment — sound; no action.
+  - **L3** AST grep doesn't cover `from subprocess import run` aliased imports — acceptable
+    trade-off (false-positive immunity > exhaustiveness); deferred.
+  - **L4** Test reads private `_fixture_dir` attribute — acceptable for internal helper test;
+    deferred.
+  - TD-fake-claude-runner-atomic-write applied as M1 fix (no TECH-DEBT registry entry needed).
+  - TD-fake-claude-runner-args-shape-guard applied as L1 fix (no registry entry needed).
 
-**Quality gate**: ruff, mypy --strict, pytest (full suite + fake_claude_runner tests).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (21 source files; +0 — helper lives
+under `tests/`), pytest **369/369** ✅ (+16 new tests: 13 base behavior + 3 review-driven
+regression pins for atomic write + args-shape guard).
 
 ---
 
