@@ -103,13 +103,13 @@ pytest **265/265** ✅ (+13 new tests: 9 anchor + 3 PBT + 1 type check; 3 PBTs e
 
 ---
 
-### Step 3: `leak_guard.py` — PII/secret regex blocklist
+### Step 3: `leak_guard.py` — PII/secret regex blocklist ✅
 
 **FD refs**: R6 (regex set).
 **NFR refs**: AC-6.4 (example-based hit/miss), AC-7.3 (regex set pinned), AC-D.4 (process AC —
 pattern add/remove requires test + audit log).
 
-- [ ] **3.1** `src/investo/briefing/leak_guard.py`:
+- [x] **3.1** `src/investo/briefing/leak_guard.py`:
   - Module-level frozen tuple of `(pattern_name: str, compiled_regex: re.Pattern)` covering the R6
     set:
     GitHub PAT (`gh[pousr]_[A-Za-z0-9]{36,}`), AWS access key (`AKIA[0-9A-Z]{16}`), JWT
@@ -121,7 +121,11 @@ pattern add/remove requires test + audit log).
     chars for safe logging).
   - `scan(markdown: str) -> LeakGuardHit | None` — returns the first hit (deterministic order =
     tuple order). Returns None if clean.
-- [ ] **3.2** `tests/unit/briefing/test_leak_guard.py` — example-based:
+  - **Refinement**: email regex tightened from FD R6 literal `\S+@\S+\.\S+` to ReDoS-safe
+    `[^\s@]+@[^\s@]+\.[^\s@]+` after Step 3 sub-agent review (H1). Same matches in practice
+    for leak-guard purpose; eliminates quadratic-backtracking on adversarial input. Inline
+    comment in `leak_guard.py` documents the change; audit log entry per AC-D.4.
+- [x] **3.2** `tests/unit/briefing/test_leak_guard.py` — example-based:
   - **Hit cases (one per pattern)**: `ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`, `AKIA1234567890123456`,
     a synthetic JWT (3 base64url segments joined by `.`), `user@example.com`, `010-1234-5678`,
     a 40+ base64-alphabet blob outside URL context. Each hit returns the corresponding
@@ -131,10 +135,25 @@ pattern add/remove requires test + audit log).
     - Base64-looking string inside `https://...` URL.
     - Plain Korean text with numbers (`"오늘 010실에서 회의"` ← not 010-XXXX-XXXX format).
     - A normal sentence with `@` (e.g. Twitter handle without domain).
-- [ ] **3.3** Sub-agent code review — focus on regex correctness (especially the URL-context
-  exclusion for the generic base64 pattern; this is the most false-positive-prone rule).
+- [x] **3.3** Sub-agent code review — APPROVE_WITH_FIXES; 0 Critical, 2 Highs + 2 Mediums + 3 Lows
+  + 2 TECH-DEBT candidates. Applied:
+  - **H1** Email regex ReDoS — tightened to `[^\s@]+@[^\s@]+\.[^\s@]+` (audit log per AC-D.4) +
+    regression test (`test_email_long_no_dot_completes_quickly`) pins linear behavior on
+    adversarial input.
+  - **H2** Autolink form `<https://...>` — added `test_autolink_https_excludes_long_base64` to
+    pin current correct exclusion behavior.
+  - **M2** `mailto:user@example.com` — added `test_mailto_link_is_flagged_as_email` to pin
+    documented behavior (mailto in public archive is treated as email leak).
+  - **L1** URL-safe base64 alphabet (`-_`) not covered by `oauth_long_base64` — design
+    observation; matches FD R6 verbatim. Skipped.
+  - **L2** Boundary test at exactly 199/200 chars for `_URL_LOOKBACK_WINDOW` — skipped as cosmetic.
+  - **L3** `match_text[:64]` Python str (codepoint) slice — sound for ASCII-only patterns.
+  - **TECH-DEBT skipped**: TD-leak-guard-1 (now applied as part of H1) and TD-leak-guard-2
+    (URL-safe base64 expansion — defer pending real false-negative evidence; matches u1's
+    "wait for ops evidence" pattern for AC-D.5).
 
-**Quality gate**: ruff, mypy --strict, pytest (full suite + leak guard hit/miss tests).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (18 source files; +1 from Step 2's 17),
+pytest **294/294** ✅ (+29 new tests: 26 leak_guard + 3 ReDoS/autolink/mailto regression pins).
 
 ---
 
