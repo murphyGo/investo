@@ -247,15 +247,15 @@ prompt strings — same grep, enforced when Step 6 lands).
 
 ---
 
-### Step 6: `claude_code.py` — subprocess wrapper + RetryBudget
+### Step 6: `claude_code.py` — subprocess wrapper + RetryBudget ✅
 
 **FD refs**: R2 (Claude Code CLI subprocess only), R3 (retry policy + total budget), L4 (RetryBudget
 algorithm), E5 (SubprocessOutcome).
 **NFR refs**: AC-1.1/1.2/1.5 (300 s budget, shared across stages), AC-2.1 (only LLM call site —
-deferred-pin in Step 10 grep), AC-2.5/7.2 (no `CLAUDE_CODE_OAUTH_TOKEN` literal in code), AC-7.1
-(list-form subprocess — deferred-pin in Step 10 grep).
+also pinned in Step 10 grep), AC-2.5/7.2 (no `CLAUDE_CODE_OAUTH_TOKEN` literal in executable code),
+AC-7.1 (list-form subprocess — also pinned in Step 10 grep).
 
-- [ ] **6.1** `src/investo/briefing/claude_code.py`:
+- [x] **6.1** `src/investo/briefing/claude_code.py`:
   - `class RetryBudget` — `@dataclass` with `total_budget_s: float = 300.0`, `elapsed_s: float = 0.0`.
     Methods: `record(seconds: float) -> None` (adds), `would_exceed(next_attempt_estimate_s: float)
     -> bool` (returns `self.elapsed_s + next_attempt_estimate_s >= self.total_budget_s`),
@@ -269,8 +269,8 @@ deferred-pin in Step 10 grep), AC-2.5/7.2 (no `CLAUDE_CODE_OAUTH_TOKEN` literal 
     NOT raise — caller decides whether to retry). When `runner` is non-None, delegates to it (test
     seam for `FakeClaudeRunner` from Step 7).
   - Module docstring re-states R2 / NFR-002 (no Anthropic SDK; subprocess list-form only).
-  - `__all__` = `["call_claude_code", "RetryBudget"]`.
-- [ ] **6.2** `tests/unit/briefing/test_claude_code.py` — anchor tests:
+  - `__all__` = `["DEFAULT_TIMEOUT_S", "DEFAULT_TOTAL_BUDGET_S", "ClaudeRunner", "RetryBudget", "call_claude_code"]`.
+- [x] **6.2** `tests/unit/briefing/test_claude_code.py` — anchor tests:
   - `RetryBudget` initial state (`elapsed_s == 0`); `record(120)` then `would_exceed(60)` returns
     False; `record(120)` again → `would_exceed(60)` returns True (240 + 60 = 300, threshold met).
   - `check_or_raise(stage="classification")` raises BGE when budget exhausted, returns None
@@ -285,10 +285,23 @@ deferred-pin in Step 10 grep), AC-2.5/7.2 (no `CLAUDE_CODE_OAUTH_TOKEN` literal 
   - Timeout simulation via the runner seam (returner that raises `subprocess.TimeoutExpired`) →
     `call_claude_code` returns `SubprocessOutcome` with `returncode=124` and `stderr` containing
     "timeout"; does NOT raise.
-- [ ] **6.3** Sub-agent code review — focus on subprocess timeout handling, the asyncio.to_thread
-  pattern (does it correctly propagate cancellation?), and the runner-seam ABI.
+- [x] **6.3** Sub-agent code review — APPROVE (ship as-is); 0 Critical/High, 2 Mediums + 3 Lows
+  + 2 TECH-DEBT candidates. Applied:
+  - **M1** Cancellation propagation gap (`asyncio.to_thread` does not stop the worker thread on
+    awaiter cancellation) — REGISTERED as **DEBT-006** (Low priority, defer until u5 orchestrator
+    finalizes its `wait_for` wrapping pattern).
+  - **M2** Test margin too tight (0.18s for 0.10+0.05 concurrent work) — APPLIED, bumped to
+    0.25s with explanatory comment.
+  - **L1** `del stage` in `check_or_raise` — kept (defensible per agent reasoning).
+  - **L2** `stderr=None` defensive coercion — kept (theoretical defensive code, harmless).
+  - **L3** `_executable_source` nested-function docstring stripping — agent's concern was
+    incorrect; `ast.walk(tree)` already recurses into nested defs. No action.
+  - Added DEBT-006 to TECH-DEBT registry.
 
-**Quality gate**: ruff, mypy --strict, pytest (full suite + claude_code tests).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (21 source files; +1 from Step 5's 20),
+pytest **353/353** ✅ (+21 new tests: 7 RetryBudget + 8 call_claude_code (success/error/passthrough/
+timeout/concurrency) + 4 source self-checks (oauth literal/shell=True/string-form-subprocess/
+anthropic-sdk-import) via AST-stripped grep + 2 module-shape).
 
 ---
 
