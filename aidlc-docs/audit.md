@@ -1,5 +1,27 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 1 COMPLETE ✅
+**Timestamp**: 2026-04-28T00:00:00Z
+**Action**: Executed Step 1 (bootstrap) of u2 briefing Code Generation per `aidlc-docs/construction/plans/u2-briefing-code-generation-plan.md`. Created skeletons: `src/investo/briefing/__init__.py` (docstring placeholder + empty `__all__`); `tests/unit/briefing/__init__.py` (empty); `tests/unit/briefing/conftest.py` (placeholder docstring for later shared fixtures); `tests/_helpers/__init__.py` (empty — FakeClaudeRunner home per TS-9); `tests/fixtures/llm/.gitkeep` (empty — TS-8 fixture-key directory). Audited `pyproject.toml`: confirmed deps `pydantic>=2.0`, `httpx>=0.27`, `defusedxml>=0.7`, `bleach>=6` (unchanged from u1 closeout); dev deps unchanged; no `anthropic` entry (grep clean). **Zero new external dependencies introduced** — matches `tech-stack-decisions.md` cumulative delta = 0.
+**Quality gate**: ruff ✅, ruff format ✅ (41 files already formatted), mypy --strict ✅ (16 source files; +1 from u1 baseline of 15), pytest **252/252 passed in 3.10s** (u1 baseline preserved; no new tests this step — bootstrap only).
+**Sub-agent review**: SKIPPED per u1 Step 1 precedent — diff is docstring placeholders + empty `__init__.py` files only; substantive sub-agent reviews resume at Step 2 (`disclaimer.py`).
+**Decisions logged**: (1) `tests/_helpers/` (underscore-prefix) over `tests/helpers/` — avoids accidental pytest test collection from this support-only package; (2) `tests/fixtures/llm/` (top-level) over `tests/unit/briefing/fixtures/` — LLM fixtures are referenced by both unit and integration tests (Step 9 PoC), so the top-level home is correct per TS-8; (3) `__all__: list[str] = []` (empty list with explicit type annotation) — placeholder until Step 10 finalizes the public re-export surface.
+**User Input**: "approve" (Code Generation plan approval received 2026-04-28).
+**AI Response**: Step 1 executed; Step 1 checkboxes flipped to `[x]` in plan; aidlc-state.md u2 briefing CG column updated to "1/10 steps — bootstrap"; session log written to `docs/sessions/2026-04-28-u2-briefing-code-generation-step1.md`.
+**Status**: ✅ Step 1 complete. Next: Step 2 — `disclaimer.py` (DISCLAIMER constant + idempotent `append_disclaimer` + PBT for AC-4.1/4.2/4.3 + AC-6.1).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 1 of 10.
+
+---
+
+## Construction — u2 briefing — Code Generation Plan READY (awaiting approval)
+**Timestamp**: 2026-04-28T00:00:00Z
+**Action**: Generated `aidlc-docs/construction/plans/u2-briefing-code-generation-plan.md` — 10 numbered steps, each with `[ ]` checkboxes, mirroring u1's plan structure. Steps: (1) bootstrap — confirm zero new deps + skeleton dirs; (2) `disclaimer.py` — DISCLAIMER constant + idempotent `append_disclaimer` + PBT for AC-4.1/4.2/4.3 + AC-6.1; (3) `leak_guard.py` — R6 regex set + hit/miss calibration tests for AC-6.4/7.3; (4) `errors.py` — `BriefingGenerationError` (E4) + `SubprocessOutcome` (E5) + 1024-byte stderr cap test for AC-7.4; (5) `prompts.py` — 4 `Final[str]` constants + sentinel-grep test scaffolding for AC-5.1; (6) `claude_code.py` — `RetryBudget` (FD L4) + `call_claude_code` subprocess wrapper (asyncio.to_thread, list-form only) + token-not-in-code self-check for AC-2.5/7.2; (7) `tests/_helpers/fake_claude_runner.py` + INVESTO_LIVE_LLM record mode + AC-6.5 grep; (8) `pipeline.py` — `classify` + `_synthesize` + `generate_briefing` + R7 `serialize_items_for_prompt` + E3 `build_section_plan` + `parse_six_sections` + 2 PBTs for AC-6.2/6.3 + sentinel-grep test for AC-5.2/5.3; (9) failure-contract tests for AC-3.2/3.4/3.5 + budget tests for AC-1.1/1.4/1.5 + integration PoC against u1's recorded FOMC RSS fixture (FD L9) for AC-4.4/7.5; (10) `scripts/check_no_anthropic_sdk.py` (AC-2.2/2.3 + AC-7.1/7.6 — same grep) + CONTRIBUTING.md updates + closeout summary with full 49-AC traceability.
+**Plan structure**: Unit Context (US-002 + US-009 mapping; deps on models + sources + Briefing pydantic model with 8 fields); Definition of Done (49 ACs + PoC happy path + ruff/mypy/pytest green); Step Dependency Graph (steps 2/3 parallel after 1; 4 → 6; 5 → 8; 6 → 8; 7 → 8/9; all → 10); Estimated Scope (~7 src files + 1 helper + ~10 test files + 1 CI script + ~1.5-2 days solo); NFR AC Coverage Map (every AC pinned to a specific step + test).
+**Approval Prompt**: "Review aidlc-docs/construction/plans/u2-briefing-code-generation-plan.md. Approve to begin Step 1 execution."
+**Context**: Step 6-7 of code-generation.md (Plan + Approval prompt) — awaiting explicit user approval.
+
+---
+
 ## Construction — u2 briefing — NFR Requirements Stage COMPLETE ✅
 **Timestamp**: 2026-04-28T00:00:00Z
 **Action**: Generated 2 NFR Requirements artifacts under `aidlc-docs/construction/u2-briefing/nfr-requirements/`:
