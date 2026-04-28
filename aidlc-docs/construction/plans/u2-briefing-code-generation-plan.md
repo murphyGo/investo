@@ -157,13 +157,13 @@ pytest **294/294** ✅ (+29 new tests: 26 leak_guard + 3 ReDoS/autolink/mailto r
 
 ---
 
-### Step 4: `errors.py` — BriefingGenerationError + SubprocessOutcome
+### Step 4: `errors.py` — BriefingGenerationError + SubprocessOutcome ✅
 
 **FD refs**: E4 (BriefingGenerationError schema), E5 (SubprocessOutcome value object), L5 (failure
 classification matrix).
 **NFR refs**: AC-3.2 (BGE shape — pinned via construction examples), AC-7.4 (stderr 1024-byte cap).
 
-- [ ] **4.1** `src/investo/briefing/errors.py`:
+- [x] **4.1** `src/investo/briefing/errors.py`:
   - `class SubprocessOutcome` — frozen `@dataclass(frozen=True, slots=True)` with `stdout: str`,
     `stderr: str`, `returncode: int`, `elapsed_s: float`. No methods.
   - `BriefingStage = Literal["classification", "synthesis", "post_validation", "budget"]`
@@ -174,7 +174,7 @@ classification matrix).
     character cap; trailing partial multi-byte sequence trimmed safely. Message format:
     `briefing failed at stage={stage} after {attempt_count} attempts`.
   - `__all__` re-exports `BriefingGenerationError`, `BriefingStage`, `SubprocessOutcome`.
-- [ ] **4.2** `tests/unit/briefing/test_errors.py` — anchor tests:
+- [x] **4.2** `tests/unit/briefing/test_errors.py` — anchor tests:
   - `BriefingGenerationError` is `Exception` (not `RuntimeError` — pinned by `assert issubclass(...)
     and not issubclass(BGE, RuntimeError)`).
   - All four `stage` literals construct without error.
@@ -187,11 +187,15 @@ classification matrix).
   - `last_stderr=None` for `post_validation` and `budget` stages — explicit construction example
     per E4.
   - `SubprocessOutcome` is frozen (assignment raises `dataclasses.FrozenInstanceError`).
-- [ ] **4.3** Sub-agent code review — focus on stderr truncation correctness (the multi-byte
-  boundary case is non-trivial; reference Python's `str.encode().decode("utf-8", errors="ignore")`
-  pattern or equivalent).
+- [x] **4.3** Sub-agent code review — APPROVE; 0 Critical/High/Medium, 2 Lows. Applied:
+  - **L1** Stale `__dict__` / "logical immutability" comment in `BGE.__init__` — REMOVED
+    (Exception subclasses cannot be easily frozen; matches u1's `SourceFetchError` pattern).
+  - **L2** `BriefingStage` Literal alias re-declaration — kept (re-exported in `__all__`).
+  - No new TECH-DEBT items.
 
-**Quality gate**: ruff, mypy --strict, pytest (full suite + errors tests).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (19 source files; +1 from Step 3's 18),
+pytest **314/314** ✅ (+20 new tests: BGE stage parametrize × 4 + cause-chain + AC-7.4 truncation
+×4 (at-cap, just-over, far-over, multi-byte boundary) + SubprocessOutcome × 3 + 4 E4 example cases).
 
 ---
 
