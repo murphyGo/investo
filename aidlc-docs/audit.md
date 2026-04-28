@@ -252,6 +252,32 @@ B) Partial"
 
 ---
 
+## Construction — u2 briefing — Functional Design Stage COMPLETE ✅
+**Timestamp**: 2026-04-28T00:00:00Z
+**Action**: Generated 3 FD artifacts under `aidlc-docs/construction/u2-briefing/functional-design/`:
+- `domain-entities.md` — 5 entities (E1 SectionId enumeration; E2 ClassificationResult `{item_id → section_id ∈ {2,3,4,5}}`; E3 SectionPlan grouped items; E4 BriefingGenerationError with stage/attempt_count/last_stderr/cause; E5 SubprocessOutcome carrying elapsed_s for budget tracking) + `Briefing` output field mapping.
+- `business-rules.md` — 12 rules in precedence order (R1 two-stage pipeline; R2 Claude Code CLI subprocess only + Anthropic SDK ban; R3 retry policy 3 attempts × 2 stages × 0/2/8 s backoff × 120 s per-call × 300 s total budget; R4 failure isolation via BriefingGenerationError, no partial Briefing return; R5 disclaimer auto-insert with exact Korean text + idempotent guard via section header substring; R6 PII regex blocklist for GitHub PAT / AWS / JWT / OAuth / email / Korean phone; R7 NormalizedItem → JSON serialization with synthetic ids, raw_metadata excluded; R8 Korean prose with English ticker/index/currency preservation; R9 hash-of-prompt fixtures with INVESTO_LIVE_LLM=1 for refresh; R10 LLM-decided section mapping with category as hint; R11 no --temperature flag, accept variance + use fixtures for determinism; R12 atomic generate_briefing — no partial commits across stage boundaries).
+- `business-logic-model.md` — 9 sections (L1 end-to-end 11-step flow; L2 Stage 1 algorithm + prompt skeleton with JSON schema; L3 Stage 2 algorithm + prompt skeleton with 6-section header constraint; L4 shared RetryBudget across both stages; L5 failure classification table; L6 silent-at-INFO logging contract; L7 happy-path sequence diagram; L8 out-of-scope (concrete Korean wording, --output-format json, multi-LLM fallback, caching); L9 PoC reference flow against u1's FOMC fixture).
+**Discovery questions (Q1-Q9)**: All answered with explicit "Yes, [recommended option]..." — every answer endorses option A (the (권장) default). No "depends" / "maybe" / "not sure" patterns; ambiguity check passed.
+**User Input**: "답변 완료" (answers landed) + "approve" (FD stage close).
+**AI Response**: "Generated 3 FD artifacts; presented standard 2-option AIDLC completion; awaiting approval."
+**Status**: ✅ FD stage complete. aidlc-state.md updated to "u2 briefing FD ✅ Complete". Next stage = NFR Requirements (per execution-plan: EXECUTE).
+**Context**: Construction phase Functional Design — u2 briefing, stage closed.
+
+---
+
+## Cross-Check — u1 sources — Compliance report
+**Timestamp**: 2026-04-28T00:00:00Z (from session of 2026-04-27 stage-completion auto-action)
+**Action**: Created docs/cross-checks/2026-04-27-u1-sources.md (first cross-check artifact for the project). Verified u1 sources implementation against docs/requirements.md FR-001, US-001/US-008/US-009 (u1-slice), and the 30 NFR ACs.
+**Result**: 100% of u1's design contract fulfilled. 11/14 items ✅ Complete, 1 ⚠️ Partial (GAP-001 — only 1 of 6 source categories has an adapter; framework supports all but ships fomc-rss as PoC), 2 🔄 Deferred per execution-plan (NFR Design + Infrastructure Design).
+**GAP-001 disposition**: Recorded as backlog item (5 adapter PRs remaining for MVP usefulness), NOT TECH-DEBT — this is a known scope decision (u1 = framework + reference adapter), not technical debt.
+**User Input**: "yes" (run cross-check after u1 close)
+**AI Response**: "Cross-check passed with 1 documented Partial; 0 critical gaps. Recommended sign-off + backlog the 5 missing adapters."
+**Status**: Cross-check report committed (`ce6af6a`); u1 sources stage CLOSED is sign-off-ready.
+**Context**: Unit-completion auto-action triggered after u1 sources Code Generation Step 10 closeout.
+
+---
+
 ## Construction — u1 sources — CG Step 10 Complete + Stage CLOSED 🎉
 **Timestamp**: 2026-04-27T00:00:00Z
 **Action**: Created scripts/check_no_paid_apis.py (CI cost guard with empty BLOCKLIST per spec, exits 0/1 with offender details) + tests/unit/sources/test_no_paid_apis.py (4 tests: subprocess invocation + monkeypatched detection proof). Created CONTRIBUTING.md (adapter-author guide: 4-step procedure + fixture recording + free-tier PR checklist + project rules). Wrote aidlc-docs/construction/u1-sources/code/summary.md (closeout summary with 30-AC traceability + FD-vs-impl divergence record + open TECH-DEBT roll-up + u2 pre-flight). Final quality gate green: ruff ✅, ruff format ✅, mypy --strict ✅ (15 source files), pytest 252/252.

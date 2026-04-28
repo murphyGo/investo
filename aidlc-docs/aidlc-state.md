@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ⏳ pending | ⏳ pending | ⏳ pending | |
+| u2 briefing | ✅ Complete | ⏳ pending | ⏳ pending | FD approved 2026-04-28; 3 artifacts (domain-entities, business-rules, business-logic-model); two-stage Claude Code CLI flow + R1-R12 + L1-L9 |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
