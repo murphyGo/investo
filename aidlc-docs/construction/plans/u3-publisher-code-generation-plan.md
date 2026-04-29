@@ -211,22 +211,40 @@
 
 **Refs**: component-methods.md (`commit_and_push(message, files, *, retries=2)` with `PublisherGitError` on exhaustion); US-006 (영구 보관 via git commit); module-boundary rule (subprocess list-form, no `shell=True` — already CI-pinned by `scripts/check_no_anthropic_sdk.py` from u2 Step 10.1).
 
-- [ ] **6.1** `src/investo/publisher/git_ops.py`:
-  - `def commit_and_push(message: str, files: Sequence[Path], *, retries: int = 2, runner: GitRunner | None = None) -> None`:
-    - Three subprocess invocations in sequence: `git add <files>`, `git commit -m <message>`, `git push origin <current-branch>`.
-    - List form, capture output, no `shell=True`.
-    - Retry on each step independently? Or whole-pipeline retry? Per FD R3 precedent in u2: **whole-pipeline retry** — easier to reason about (a partial state from a `git commit` succeeding but `git push` failing is recovered by re-running the full sequence; `git commit` is idempotent if the working tree matches).
-    - Backoff: `0s, 2s, 8s` (matches u2 R3). Total budget: not strictly needed for git (no LLM cost concern), but document the worst case (3 attempts × ~5s push each = 15s).
-    - On exhausting `retries + 1` attempts: raise `PublisherGitError(attempt_count=retries+1, last_stderr=..., cause=last_exc)`.
-    - `runner` is a test seam (Protocol matching `subprocess.run`'s shape) so tests can inject a fake without spawning real `git`.
-- [ ] **6.2** `tests/unit/publisher/test_git_ops.py`:
-  - **Happy path**: 3 `add/commit/push` calls succeed on first attempt. Asserts exactly 3 runner invocations + arg shapes (`["git", "add", ...]`, `["git", "commit", "-m", ...]`, `["git", "push", ...]`).
-  - **Retry on transient push failure**: push returncode=1 on attempt 1, returncode=0 on attempt 2 → succeeds. 6 invocations total (3 × 2 attempts).
-  - **Failure exhaustion**: all attempts fail → `PublisherGitError`, `attempt_count=3`, `last_stderr` populated and ≤ 1024 bytes.
-  - **stderr 1024-byte truncation**: 10 KB stderr from a fake-failed `git push` → truncated to ≤ 1024 bytes in `PublisherGitError.last_stderr`.
-  - **List-form pin** (defensive): `inspect.getsource(git_ops)` doesn't contain `shell=True` or string-form `subprocess.run("git ..."` — same pattern as u2 `test_claude_code.py`. Belt-and-braces with the repo-wide CI grep.
-  - **No retry on programmer errors**: a synthetic `TypeError` from the runner propagates as-is (not wrapped in PublisherGitError).
-  - **Backoff respected**: monkeypatch `time.sleep` to record durations; confirm `[0.0, 2.0, 8.0]` schedule (or skip via autouse fixture in tests that don't care about timing).
+- [x] **6.1** `src/investo/publisher/git_ops.py` (~150 lines): `commit_and_push(message,
+  files, *, retries=2, runner=None)` runs `git add → git commit → git push origin HEAD`
+  via injectable `GitRunner` Protocol (test seam matching `subprocess.run`'s shape).
+  Whole-pipeline retry — failure at any step rewinds to attempt-1 of the next attempt;
+  `_BACKOFF_SCHEDULE = (0.0, 2.0, 8.0)` (mirrors u2 R3). Default `_default_runner`
+  delegates to `subprocess.run` with list-form args, no `shell=True`. `OSError` from
+  the runner is caught + counted as a failed attempt with `cause` populated; non-zero
+  rc records `last_stderr` for the operator alert. Exhaustion → `PublisherGitError(
+  attempt_count=retries+1, last_stderr=..., cause=...)`. `git push origin HEAD` avoids
+  branch-name resolution.
+- [x] **6.2** `tests/unit/publisher/test_git_ops.py` (~270 lines, 12 tests):
+  - **Happy path** (2): 3 calls in order with exact argv shapes (`["git", "add", "--",
+    ...]`, `["git", "commit", "-m", message]`, `["git", "push", "origin", "HEAD"]`);
+    multiple files in a single `git add`.
+  - **Retry** (2): push fails on attempt 1, succeeds on attempt 2 → 6 invocations;
+    `add` step failure also triggers retry (fails-anywhere semantics).
+  - **Exhaustion** (3): 3 push failures → `PublisherGitError(attempt_count=3,
+    last_stderr=...)` w/ 9 invocations; 10 KB stderr → truncated to ≤ 1024 bytes
+    end-to-end through git_ops; `retries=0` → 1 attempt only, `attempt_count=1`.
+  - **Programmer-error pass-through** (2): synthetic `TypeError` from runner
+    propagates as-is (not wrapped); `OSError` from runner counts as a failed attempt
+    and lands in `cause` on exhaustion (system-level "git not found" diagnosis).
+  - **List-form pin** (1): AST-stripped `executable` source contains no `shell=True`
+    + no string-form `subprocess.run("git ...")`. Uses local `_strip_docstring`
+    helper since `git_ops`'s docstring intentionally mentions the forbidden patterns
+    in prose ("no `shell=True`") which would false-positive a raw substring grep.
+  - **Backoff** (1): `time.sleep` records `[2.0, 8.0]` for the 2 retry sleeps; no
+    sleep before attempt 0. Autouse `_no_real_sleep` fixture skips sleeps elsewhere
+    so the rest of the test file runs in ms.
+  - **Public surface** (1): module exports `commit_and_push` + `GitRunner`.
+  - Quality gate: ruff ✅ (3 lints fixed: 2 RUF002 multiplication-sign in docstrings
+    swapped for ASCII `x`; 1 UP037 quoted-type-annotation removed by un-deferring
+    the import), mypy --strict ✅ (28 source files; +1 from Step 5's 27 =
+    `publisher/git_ops.py`), pytest **494/494** ✅ (+12 tests; zero regressions).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 

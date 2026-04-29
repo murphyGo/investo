@@ -39,7 +39,7 @@
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
 | u2 briefing | ✅ Complete | ✅ Complete | ✅ Complete (10/10 — CG fully closed 2026-04-30) | FD + NFR + CG all closed; 174 u2 tests + 430/430 total green; bonus PBT NFC-strategy fix landed at 10.5 gate; eligible for /cross-check; US-002 + US-009 closed; DEBT-006/007/008/009/010/011 registered |
-| u3 publisher | ⏭️ SKIP | ⏭️ SKIP | ⏳ in progress (Step 5 of 9 — writer.py) | FD + NFR both SKIP per execution-plan; Steps 1-5 ✅ (bootstrap + errors + paths + verifier + writer atomic write w/ verify-first ordering + 11-test suite covering happy/block/idempotent/atomicity/mkdir/stale-tmp); 27 src files; 482/482 tests; Step 6 (git_ops.py) next |
+| u3 publisher | ⏭️ SKIP | ⏭️ SKIP | ⏳ in progress (Step 6 of 9 — git_ops.py) | FD + NFR both SKIP per execution-plan; Steps 1-6 ✅ (bootstrap + errors + paths + verifier + writer + git_ops w/ whole-pipeline retry + injectable GitRunner + 12-test suite covering happy/retry/exhaustion/list-form pin/backoff/programmer-error pass-through); 28 src files; 494/494 tests; Step 7 (__init__ public surface + smoke) next |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u6 infra/CI | N/A | N/A | ⏳ pending | YAML/config only |

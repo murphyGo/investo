@@ -1,5 +1,26 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 6 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 6 (`git_ops.py` — `commit_and_push` w/ whole-pipeline retry + injectable runner) of u3 publisher Code Generation. Created:
+- `src/investo/publisher/git_ops.py` (~150 lines): `commit_and_push(message, files, *, retries=2, runner=None)` runs `git add → git commit → git push origin HEAD` in sequence via the injectable `GitRunner` Protocol. Whole-pipeline retry — failure at any of the 3 steps rewinds to attempt-1 of the next attempt; FD-R3-style backoff `(0.0, 2.0, 8.0)` mirrors u2. Default `_default_runner` delegates to `subprocess.run` with list-form args + no `shell=True` (CI-pinned by u2 Step 10.1). `OSError` from the runner is caught + counted as a failed attempt (cause populated on exhaustion); non-zero rc records `last_stderr` for operator alerts. `git push origin HEAD` avoids needing branch-name resolution at call time.
+- `tests/unit/publisher/test_git_ops.py` (~270 lines, 12 tests):
+  - Happy path (2): 3 in-order invocations with exact argv shapes; multi-file `git add`.
+  - Retry (2): transient push failure recovers on attempt 2; failure at any step (not just push) triggers retry.
+  - Exhaustion (3): 3 push failures → `PublisherGitError(attempt_count=3)` w/ 9 invocations; 10 KB stderr → truncated to ≤ 1024 bytes end-to-end; `retries=0` → 1 attempt only.
+  - Programmer-error pass-through (2): `TypeError` propagates unwrapped; `OSError` counts as failed attempt and lands in `cause` (system-level "git not found" diagnostic surface).
+  - List-form pin (1): AST-stripped `executable` source has no `shell=True` / no string-form `subprocess.run("git ...")`. Uses inline `_strip_docstring` helper because `git_ops`'s docstring intentionally mentions the forbidden patterns in prose ("no `shell=True`") which would false-positive a raw substring grep. Same pattern as u2 `test_claude_code.py` `_executable_source` (DEBT-009 tracks consolidation).
+  - Backoff (1): `time.sleep` records `[2.0, 8.0]` (no sleep before attempt 0); autouse `_no_real_sleep` fixture skips sleeps elsewhere so the rest of the suite runs in ms.
+  - Public surface (1): exports `commit_and_push` + `GitRunner`.
+**Lint fixes during writing**: 2 RUF002 ambiguous multiplication-sign in docstrings (`×` → `x`); 1 UP037 quoted type annotation in `Iterator[...]` removed by un-deferring the import (`from collections.abc import Iterator` at module top).
+**Sub-agent code review**: DEFERRED to Step 8 (combined u3 review).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (28 source files; +1 from Step 5's 27 = `publisher/git_ops.py`), pytest **494/494 passed in 4.55s** (+12 tests; zero regressions in the prior 482).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 6 complete. Plan checkboxes 6.1 + 6.2 both `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 6 of 9 — git_ops.py". Next: **Step 7** — `publisher/__init__.py` public surface + integration smoke test.
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 6 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 5 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 5 (`writer.py` — atomic markdown write + NFR-004 hard block) of u3 publisher Code Generation. Created:
