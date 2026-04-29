@@ -2,25 +2,43 @@
 
 US-004 (공개 채널) + US-007 (운영자 1:1 chat).
 
-Two clearly-separated dispatcher classes — each takes its own
-``chat_id`` at construction time — so the public-channel briefing
-and the operator-only failure alert NEVER cross-contaminate (CLAUDE
-.md project rule #5). The orchestrator (u5) wires the two from
-disjoint environment variables and is responsible for asserting
-disjointness.
+Public surface for u5 orchestrator:
 
-Both classes follow a non-raising contract: HTTP failures, Telegram
-API errors, and timeouts are encoded in :class:`SendResult.ok=False`
-with a sanitized error message (bot tokens redacted from any URL
-leakage). Programmer errors propagate as-is.
+* :class:`BriefingPublisher` — public-channel sender
+  (FR-004). Constructed with the public ``channel_id``.
+* :class:`OperatorAlerter` — operator 1:1 chat sender (FR-007).
+  Constructed with the disjoint ``operator_chat_id``.
+* :func:`build_summary` — helper that composes the public-channel
+  preview text from a :class:`Briefing` + site URL with UTF-16-aware
+  truncation.
 
-The package's public surface is finalized in Step 6 of the Code
-Generation plan; this docstring is the bootstrap placeholder.
+Both dispatcher classes use **kwargs-only** construction so callers
+(u5 orchestrator) cannot positionally swap the channel and operator
+chat IDs. CLAUDE.md project rule #5: the public-channel
+``channel_id`` and the operator ``operator_chat_id`` MUST be disjoint
+— enforced at construction time by the orchestrator from disjoint
+environment variables (``TELEGRAM_BRIEFING_CHANNEL_ID`` vs
+``TELEGRAM_OPERATOR_CHAT_ID``).
+
+Both dispatchers follow a non-raising contract: HTTP failures,
+Telegram API errors, and timeouts are encoded in
+:class:`SendResult.ok=False` with sanitized error messages (bot
+tokens redacted from any URL leakage).
+
+The internal HTTP helper :mod:`investo.notifier._telegram` is NOT
+re-exported — it's a u4-internal implementation detail.
 
 Reference:
-    aidlc-docs/construction/plans/u4-notifier-code-generation-plan.md
     aidlc-docs/inception/application-design/component-methods.md (C4)
-    docs/requirements.md FR-004 + FR-007 + NFR-003
+    aidlc-docs/construction/plans/u4-notifier-code-generation-plan.md
 """
 
-__all__: list[str] = []
+from investo.notifier.briefing_publisher import BriefingPublisher
+from investo.notifier.operator_alerter import OperatorAlerter
+from investo.notifier.summary import build_summary
+
+__all__ = [
+    "BriefingPublisher",
+    "OperatorAlerter",
+    "build_summary",
+]

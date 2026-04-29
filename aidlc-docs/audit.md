@@ -1,5 +1,23 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 6 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 6 (public surface finalization + integration smoke) of u4 notifier Code Generation. Created/modified:
+- `src/investo/notifier/__init__.py` (~50 lines): replaced bootstrap placeholder with full public surface — re-exports `BriefingPublisher`, `OperatorAlerter`, `build_summary`. Internal `_telegram` helper stays private. Module docstring documents the kwargs-only ctor design (CLAUDE.md #5 anti-swap), the orchestrator's `TELEGRAM_BRIEFING_CHANNEL_ID` vs `TELEGRAM_OPERATOR_CHAT_ID` env-var disjointness contract, and the non-raising failure-encoding-via-SendResult convention.
+- `tests/integration/test_notifier_smoke.py` (~165 lines, 4 tests):
+  - End-to-end public dispatch: `BriefingPublisher.send` against MockTransport → request body chat_id == `_PUBLIC_CHANNEL_ID` + text matches summary + ok=True with message_id.
+  - End-to-end operator dispatch: `OperatorAlerter.alert` → chat_id == `_OPERATOR_CHAT_ID` + alert text contains "Pipeline failure: generate" + error context.
+  - **Chat-ID separation invariant** (CLAUDE.md #5 dispatch-level pin): construct BOTH classes from same bot_token + disjoint chat_ids → run publish + alert against same MockTransport → assert publish lands at public ID, alert lands at operator ID, NEVER swapped.
+  - Public-surface importable: 3 expected names resolve from `investo.notifier`.
+**Plan reconciliation (6.3 consolidation)**: original plan had a separate Step 6.3 for the public-surface pin. Folded into the integration smoke's `test_public_surface_is_importable` — single home, matches u3 Step 7.3 consolidation precedent.
+**Sub-agent code review**: DEFERRED to Step 7 (combined u4 review).
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (33 source files; +0 — `notifier/__init__.py` was already counted in Step 1's mypy baseline; this step replaces its content), pytest **553/553 passed in 4.68s** (+4 tests; zero regressions in the prior 549).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 6 complete. Plan checkboxes 6.1 + 6.2 + 6.3 all `[x]`. aidlc-state.md u4 notifier CG column updated to "Step 6 of 8 — public surface + smoke". Next: **Step 7** — sub-agent code review of all of u4 (focus: bot-token redaction regex robustness, UTF-16 truncation correctness, httpx.AsyncClient lifecycle, Markdown parse_mode safety, module boundary, failure-mode coverage, chat_id separation pin sufficiency).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 6 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 5 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 5 (`operator_alerter.py` — `OperatorAlerter` class) of u4 notifier Code Generation. Created:

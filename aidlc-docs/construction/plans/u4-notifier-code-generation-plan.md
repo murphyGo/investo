@@ -215,29 +215,29 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 ### Step 6: `notifier/__init__.py` public surface + chat_id-separation pin
 
-- [ ] **6.1** Finalize `src/investo/notifier/__init__.py`:
-  - Re-export `BriefingPublisher`, `OperatorAlerter`, `build_summary`. Internal helpers
-    (`_telegram`) stay private.
-  - Module docstring documents the orchestrator wiring contract (disjoint chat IDs
-    from environment variables) and the non-raising failure-encoding-via-SendResult
-    convention.
-- [ ] **6.2** `tests/integration/test_notifier_smoke.py` (~80 lines, 3 tests):
-  - **End-to-end public dispatch** (1): construct `BriefingPublisher` + valid
-    `BriefingNotification` → MockTransport handler captures the request →
-    asserts URL + chat_id + body shape; ok=True returned.
-  - **End-to-end operator dispatch** (1): construct `OperatorAlerter` + valid
-    `FailureContext` → MockTransport captures → asserts chat_id is the operator's
-    + alert text contains stage + error context.
-  - **Chat-ID separation invariant** (1): construct BOTH classes from the same
-    bot_token but DISJOINT chat_ids. Run send + alert against the same MockTransport
-    handler and assert each request's chat_id matches its respective class's
-    constructor parameter — NEVER cross-pollinated. Pins the CLAUDE.md #5 rule
-    at the dispatch level. (The orchestrator-side assertion that the IDs are
-    actually disjoint is u5's responsibility; this test pins the *if* the ids
-    ARE disjoint, the dispatch respects that.)
-- [ ] **6.3** Public-surface pin: `from investo.notifier import BriefingPublisher,
-  OperatorAlerter, build_summary` resolves; folded into the integration smoke
-  (single home; matches u3's Step 7.3 consolidation precedent).
+- [x] **6.1** Finalized `src/investo/notifier/__init__.py` (~50 lines):
+  - Re-exports `BriefingPublisher`, `OperatorAlerter`, `build_summary`. Internal
+    `_telegram` helper stays private.
+  - Module docstring documents the kwargs-only ctor design (CLAUDE.md #5
+    anti-swap), the orchestrator's TELEGRAM_BRIEFING_CHANNEL_ID vs
+    TELEGRAM_OPERATOR_CHAT_ID env-var disjointness, and the non-raising
+    failure-encoding-via-SendResult convention.
+- [x] **6.2** `tests/integration/test_notifier_smoke.py` (~165 lines, 4 tests):
+  - End-to-end public dispatch: construct → BriefingPublisher.send → assert
+    request body chat_id == public channel + text matches.
+  - End-to-end operator dispatch: construct → OperatorAlerter.alert → assert
+    chat_id == operator + alert text contains stage + error context.
+  - **Chat-ID separation invariant** (CLAUDE.md #5 dispatch-level pin):
+    construct BOTH classes from same bot_token but disjoint chat_ids → run
+    publish + alert against same MockTransport → assert each request's
+    chat_id matches its respective constructor parameter, NEVER swapped.
+  - Public surface importable: 3 names resolve from `investo.notifier`.
+- [x] **6.3** Public-surface pin folded into smoke (matches u3 Step 7.3
+  consolidation precedent — single home).
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy
+    --strict ✅ (33 source files; +0 — `notifier/__init__.py` was already
+    counted in Step 1's mypy baseline; this step replaces its content),
+    pytest **553/553** ✅ (+4 tests; zero regressions in the prior 549).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 
