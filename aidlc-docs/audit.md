@@ -1,5 +1,30 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Plan APPROVED ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Entered u4 notifier Code Generation. Per `aidlc-docs/inception/plans/execution-plan.md`, u4 SKIPS Functional Design + NFR Requirements (notifier is "텔레그램 분배 — HTTP call wrapping"; FD/NFR not needed). Created `aidlc-docs/construction/plans/u4-notifier-code-generation-plan.md` (~290 lines, 8 numbered steps with `[ ]` checkboxes).
+**Plan structure**:
+- Step 1: bootstrap (`__init__.py` + tests dir).
+- Step 2: `_telegram.py` (internal httpx HTTP helper with bot-token redaction in error strings).
+- Step 3: `summary.py` (`build_summary` with UTF-16-aware truncation — emojis are 2 units per codepoint).
+- Step 4: `briefing_publisher.py` (BriefingPublisher class — kwargs-only construction, public-channel dispatch).
+- Step 5: `operator_alerter.py` (OperatorAlerter class — kwargs-only, operator 1:1 chat dispatch with traceback excerpt and bot-token redaction).
+- Step 6: `__init__.py` public surface + integration smoke (incl. chat_id-separation invariant pin).
+- Step 7: sub-agent code review.
+- Step 8: closeout summary.md + final quality gate.
+**Stories closed by this stage**: US-004 (텔레그램 채널), US-007 (운영자 1:1)
+**Dependencies**: zero new external deps. Consumes `BriefingNotification`, `SendResult`, `FailureContext`, `FailureStage` (all shipped in models foundation), `Briefing` (consumed by `build_summary`). httpx already locked from u1 sources.
+**Critical project rule (CLAUDE.md #5)**: BriefingPublisher + OperatorAlerter must NOT share chat_id. Plan handles this by:
+- Constructor design: kwargs-only so callers cannot accidentally swap channel_id and operator_chat_id positionally.
+- Unit-level dispatch pin (Step 6.2 third test): if the orchestrator passes disjoint IDs, the dispatch respects that — each class only ever POSTs to its own constructor parameter.
+- Orchestrator-side enforcement (u5): the actual disjointness check (assert `channel_id != operator_chat_id`) lives in u5's wiring code; deferred to u5 CG.
+**UTF-16 truncation note**: Telegram's 4096-unit limit is COUNTED IN UTF-16 CODE UNITS (per the `BriefingNotification` model docstring). Non-BMP chars (emoji, certain CJK) consume 2 units per codepoint, so `len()` is unsafe. Plan uses `len(s.encode("utf-16-le")) // 2` for accurate counting in `build_summary` (Step 3) and the `OperatorAlerter` traceback handling (Step 5).
+**Bot-token redaction**: critical NFR-007 / GitHub Secrets safety — any error string that embeds the bot token (httpx URL leakage, error_message containing the token accidentally) MUST be sanitized. Plan applies redaction in both `_telegram.send_message` (Step 2 — for incoming HTTP errors) and `OperatorAlerter.alert` (Step 5 — for outgoing alert text where error_message could contain the token).
+**Status**: ✅ u4 notifier CG plan approved (implicit approval via `/loop /dev-investo and commit and push` continuation). aidlc-state.md updated: u4 notifier row → "in progress (CG plan approved 2026-04-30, 8 steps; Step 1 next)". Next: Step 1 bootstrap on the next loop iteration.
+**Context**: Construction phase Code Generation — u4 notifier, planning complete, execution to begin.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 9 COMPLETE ✅ (UNIT FULLY CLOSED)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 9 (closeout summary + final quality gate) of u3 publisher Code Generation. **u3 publisher Code Generation is now FULLY CLOSED** — all 9 plan steps complete.
