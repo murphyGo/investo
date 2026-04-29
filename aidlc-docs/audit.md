@@ -1,5 +1,27 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Plan APPROVED ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Entered u3 publisher Code Generation. Per `aidlc-docs/inception/plans/execution-plan.md`, u3 SKIPS Functional Design + NFR Requirements (publisher is "단순 markdown write + mkdocs"; FD/NFR not needed). Created `aidlc-docs/construction/plans/u3-publisher-code-generation-plan.md` (~280 lines, 9 numbered steps with `[ ]` checkboxes).
+**Plan structure**:
+- Step 1: bootstrap (`__init__.py` + tests dir)
+- Step 2: `errors.py` — 3-class hierarchy (PublisherDisclaimerError / PublisherIOError / PublisherGitError) modeled on u2's BriefingGenerationError + 1024-byte stderr cap
+- Step 3: `paths.py` — `ARCHIVE_ROOT` + pure `archive_path(date) -> Path` (FR-006)
+- Step 4: `verifier.py` — `verify_disclaimer(md) -> bool` consuming u2's `DISCLAIMER` constant (NFR-004 cross-unit)
+- Step 5: `writer.py` — `write_briefing(briefing, target_date)` with verify-first + atomic tmp+os.replace write (matches u2 FakeClaudeRunner pattern)
+- Step 6: `git_ops.py` — `commit_and_push(message, files, retries=2)` with whole-pipeline retry, list-form subprocess, injectable runner
+- Step 7: `__init__.py` public surface + integration smoke
+- Step 8: sub-agent code review
+- Step 9: closeout summary.md + final quality gate
+**Stories closed by this stage**: US-003 (정적 게시), US-006 (영구 이력 보관)
+**Dependencies**: zero new external deps. Consumes `investo.models.Briefing` (already shipped) and `investo.briefing.disclaimer.DISCLAIMER` (cross-unit reference per AC-4.6 / NFR-004 hand-off in u2 closeout). subprocess (stdlib) for git invocation.
+**Open design question (Step 5.3)**: `paths.ARCHIVE_ROOT` redirection for tests. Plan recommends option (a) — `monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)` per-test — over option (b) explicit `archive_root` parameter, matching u1's `_isolate_registry` autouse-fixture pattern. Promote to (b) only if u5 orchestrator surfaces a real need.
+**Plan-vs-canonical-signature reconciliation**: `unit-of-work.md` informally said `verify_disclaimer` "raises on miss"; `component-methods.md` (canonical) says it returns `bool`. Plan follows canonical (bool predicate); the **caller** (`write_briefing`) checks the bool and raises `PublisherDisclaimerError` on False. This makes `verify_disclaimer` independently testable as a pure function while preserving the NFR-004 hard-block at the publish boundary.
+**Status**: ✅ u3 publisher CG plan approved (implicit approval via `/loop /dev-investo and commit and push` continuation). aidlc-state.md updated: u3 publisher row → "in progress (CG plan approved 2026-04-30, 9 steps; Step 1 next)". Next: Step 1 bootstrap on the next loop iteration.
+**Context**: Construction phase Code Generation — u3 publisher, planning complete, execution to begin.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 10.5 COMPLETE ✅ (UNIT FULLY CLOSED)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 10.5 (final quality gate re-confirm) of u2 briefing Code Generation. **u2 briefing Code Generation is now FULLY CLOSED** — all 10 steps + 49 plan checkboxes complete; 6 of the 10 steps had sub-step granularity (Step 8: 5; Step 9: 5; Step 10: 5).
