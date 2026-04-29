@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 3 | 2026-04-27 |
-| Low | 6 | 2026-04-27 |
+| Low | 8 | 2026-04-27 |
 
 ---
 
@@ -94,6 +94,26 @@ _No high priority items._
 - **Suggested Fix**: Either (a) add a cheap `len(stdout) > 64 * 1024` upper-bound check before `json.loads` and route over-cap to retry as a malformed response, or (b) add `RecursionError` to the except tuple in `_classify`. (a) is more defensible — bounds the bytes you parse, not just the failure mode.
 - **Effort**: ~15 min including unit test.
 - **Priority Reasoning**: Low — Claude does not emit deeply-nested JSON in normal operation, and even if it did the failure surface is "uncaught exception in production" rather than data loss or security. Defense-in-depth, not a hot bug.
+
+#### DEBT-010: u2 briefing test helpers duplicated across 4 files
+
+- **Created**: 2026-04-30
+- **Source**: Step 9.5 sub-agent code review (L1 / Q8)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: `_valid_classification_stdout(item_count)` is copied across `tests/unit/briefing/test_failure_contract.py`, `test_budget_happy_path.py`, `test_budget_guard.py`, and `tests/integration/test_briefing_pipeline_poc.py` (4 files). `_valid_stage2_markdown()` is duplicated in 2 of those files with subtle Korean-prose variation that's irrelevant to the assertions. The autouse `_zero_backoff` fixture appears in `test_failure_contract.py` and `test_budget_guard.py`. `tests/unit/briefing/conftest.py` is already a placeholder for shared fixtures. Risk: divergence over time as one site updates a helper for a new test concern and the others lag.
+- **Suggested Fix**: Consolidate into `tests/unit/briefing/conftest.py` (already declared as the home for shared fixtures). Move `_valid_classification_stdout`, `_valid_stage2_markdown`, and the `_zero_backoff` autouse fixture there. Integration test under `tests/integration/` would either re-import via `from tests.unit.briefing.conftest import ...` or have its own thin shim.
+- **Effort**: ~30 min including import updates and verifying no new fixture-name collisions.
+- **Priority Reasoning**: Low — defensive duplication, all 11 Step 9 tests pass, no functional risk. Best addressed in a post-Step-10 cleanup pass to avoid merge churn against ongoing work.
+
+#### DEBT-011: Integration PoC bypasses `aggregator.fetch_all`
+
+- **Created**: 2026-04-30
+- **Source**: Step 9.5 sub-agent code review (M2 / Q4)
+- **Reference**: u1 R6 (failure isolation), u1 L5 (warning-log contract), FD L9 (PoC integration scope)
+- **Description**: `tests/integration/test_briefing_pipeline_poc.py` calls `FomcRssAdapter().fetch(client, window)` directly via `httpx.MockTransport`, bypassing `investo.sources.fetch_all`. Consequences: (a) the aggregator's `gather(return_exceptions=True)` failure-isolation contract is not exercised end-to-end — covered only by u1's unit tests; (b) registry-driven adapter discovery is bypassed; (c) the warning-log behavior on adapter failures is not cross-unit-pinned. Today FomcRss is the only registered adapter so the impact is minimal, but this is a brittle assumption that widens silently as u1 grows.
+- **Suggested Fix**: Once a second u1 adapter exists (e.g., a price feed or earnings calendar), upgrade the integration test to call `fetch_all(target_date)` and use `monkeypatch` to control adapter responses (one returns FOMC fixture data, one raises `SourceFetchError`). Verify the failed adapter contributes `[]` and the briefing still generates from the remaining items.
+- **Effort**: ~45 min including the second-adapter mock setup. Cannot land before u1 has a second adapter.
+- **Priority Reasoning**: Low — the contract being uncovered is u1's, which has its own unit tests. The integration test still exercises u1→u2 wiring for the only adapter that currently exists. Re-evaluate when a second adapter is added.
 
 #### DEBT-009: `_executable_source` AST helper is duplicated across two test files
 

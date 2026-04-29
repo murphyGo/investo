@@ -1,5 +1,37 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 9.5 COMPLETE ✅ (Step 9 fully closed)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 9.5 (sub-agent code review of all of Step 9). Delegated to general-purpose sub-agent for fresh-eyes review of the 4 new test files (`test_failure_contract.py` 5 tests, `test_budget_happy_path.py` 2 tests, `test_budget_guard.py` 3 tests, `test_briefing_pipeline_poc.py` 1 test) + the FD R3 `would_exceed` implementation fix in `pipeline.py`.
+**Sub-agent verdict**: APPROVE_WITH_FIXES. 0 Critical / 0 High / 2 Medium / 5 Low / 2 TECH-DEBT candidates. Sub-agent ran all 11 Step 9 tests (`uv run pytest -q` → 11 passed in 0.27s) + walked the leak_guard pattern set against the integration test's Korean Stage 2 markdown (clean — no false positives) + verified `attempt_count` semantics against `BriefingGenerationError`'s docstring ("retries actually consumed").
+**Pre-merge fixes APPLIED**:
+- **L5 — stale docstring** (`test_budget_happy_path.py:84-87` referenced `check_or_raise` which the FD R3 fix replaced with `would_exceed(DEFAULT_TIMEOUT_S)`). Updated to reference the correct method.
+- **M2 — integration PoC bypasses `aggregator.fetch_all` silently** (`test_briefing_pipeline_poc.py`). Added "Bypass of `aggregator.fetch_all`" section to the test docstring documenting the consequences (failure-isolation contract from u1 R6/L5 not exercised; registry-driven adapter discovery bypassed; warning-log contract not cross-unit-pinned). Linked to **DEBT-011**.
+**Deferred to TECH-DEBT** (registered in `docs/TECH-DEBT.md`):
+- **DEBT-010 (Low)** — test helper duplication: `_valid_classification_stdout` copied across 4 files, `_valid_stage2_markdown` across 2, autouse `_zero_backoff` fixture in 2. Consolidate into `tests/unit/briefing/conftest.py` (already a placeholder for shared fixtures) post-Step-10.
+- **DEBT-011 (Low)** — integration PoC bypasses `aggregator.fetch_all`. Upgrade once a second u1 adapter exists so the failure-isolation contract gets cross-unit coverage.
+**Deferred without TECH-DEBT** (judged not worth tracking — cosmetic or low-value):
+- **M1** — `stage="budget"` BGE doesn't carry calling-stage context. Defensible per spec; the stage is "budget" by design, and operator already has `last_stderr`. Could include calling-stage in `cause`, but the value-vs-churn ratio is low.
+- **L2** — duplicated `would_exceed` comment in both `_classify` and `_synthesize`. Cosmetic.
+- **L3** — `subprocess.CompletedProcess(args=[], ...)` in `test_failure_contract.py`. Runner contract doesn't read `args`; only `stdout/stderr/returncode` matter.
+- **L4** — failure-contract assertion uses `isinstance(cause, json.JSONDecodeError | ValueError)`. Agent noted `JSONDecodeError IS a ValueError subclass`; broader pin is fine and the tighter form is not worth the churn.
+**Q1-Q8 specific question answers** (full detail in sub-agent report):
+- Q1: `DEFAULT_TIMEOUT_S=120s` as next-attempt estimate is the defensible conservative-bias choice — alternatives (using elapsed-time-of-last-attempt or a low constant) risk overshooting the budget by ~120s when a fast call near the boundary times out.
+- Q2: `attempt_count=1` for the boundary test matches `BriefingGenerationError`'s docstring ("retries actually consumed"). Implication: a `stage="budget"` BGE that fires *before any dispatch* (e.g., Stage 2 entered with budget already at 280s) carries `attempt_count=0`. Correct.
+- Q3: synthesis BGE 3-attempt path verified — every blank stdout has `len < _STAGE2_SANITY_FLOOR=200`, all 3 retries fail, final BGE has `attempt_count=3`. `last_cause` is the rc=0/stdout_len=0 ValueError.
+- Q4: integration PoC's bypass of `fetch_all` is a coverage gap (now M2/DEBT-011); u1 unit tests cover the aggregator separately.
+- Q5: every Step 9 test handles `_BACKOFF_SCHEDULE` (autouse in 9.1 + 9.3, in-test in 9.2 + 9.4). Pattern is somewhat fragile; mitigated by DEBT-010 consolidation.
+- Q6: empty `args=[]` in `_outcome` is contract-compatible — `call_claude_code` doesn't read `completed.args`.
+- Q7: leak_guard pattern walk confirmed no false positives against `_valid_stage2_markdown` content (no `gh[pousr]_`, no `AKIA`, no `eyJ`, no `@`, no `010-####-####`, no 40+ contiguous base64-alphabet run; Korean text + spaces interrupt every potential run).
+- Q8: defer test-helper consolidation to TECH-DEBT (DEBT-010) — small (~15 LOC each), no functional risk, post-Step-10 cleanup.
+**Self-review checklist (project rules)**: all PASS — no `anthropic` SDK import; LLM calls stubbed only at `pipeline.call_claude_code` boundary (real path covered in `test_claude_code.py`); module boundary preserved (briefing → models only); cross-unit imports in integration test explicitly allowed; `httpx.MockTransport` mocks all HTTP (zero-cost); list-form subprocess unchanged; AC-7.5 `<script>` substring asserted absent.
+**Quality gate after fixes**: ruff ✅, ruff format ✅, mypy --strict ✅ (22 source files; +0), pytest **418/418 passed in 4.75s** (no test logic changed; only docstring updates and TECH-DEBT additions).
+**TECH-DEBT changes**: 2 added (DEBT-010 Low, DEBT-011 Low). 0 resolved.
+**Status**: ✅ Step 9.5 complete; **Step 9 fully closed (9.1-9.5 all `[x]`)**. Plan summary: 11 new tests across 4 files (5 failure-contract + 2 budget-happy + 3 budget-guard + 1 integration PoC) + FD R3 implementation fix (`would_exceed(DEFAULT_TIMEOUT_S)` replaces post-hoc `check_or_raise` in `_classify` and `_synthesize`). aidlc-state.md u2 briefing CG column updated to "Step 9 of 10 — Step 9 fully closed". Next: **Step 10** — `scripts/check_no_anthropic_sdk.py` (CI grep guard) + `CONTRIBUTING.md` updates + `aidlc-docs/construction/u2-briefing/code/summary.md` closeout (49-AC traceability + story closure for US-002 + US-009).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 9 of 10, sub-step 9.5 (final).
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 9.4 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 9.4 (integration PoC `tests/integration/test_briefing_pipeline_poc.py`) of u2 briefing Code Generation. Created `tests/integration/__init__.py` (empty marker) + `tests/integration/test_briefing_pipeline_poc.py` (~180 lines, 1 end-to-end test):

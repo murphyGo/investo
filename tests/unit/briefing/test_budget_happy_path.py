@@ -81,10 +81,11 @@ async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
     returns a valid ``Briefing`` and ``RetryBudget.elapsed_s`` records
     the cumulative time.
 
-    The 300 s budget gate must NOT fire on this path: each
-    ``check_or_raise`` precedes the call, and after both calls the
-    budget is at 120 s. The pin protects against accidentally moving
-    the gate to a position where it would mis-fire.
+    The 300 s budget gate must NOT fire on this path: each pre-dispatch
+    ``would_exceed(DEFAULT_TIMEOUT_S)`` check sees `elapsed + 120 < 300`
+    and lets the call through. After both stages, cumulative is 120 s.
+    The pin protects against accidentally moving the gate to a position
+    where it would mis-fire on the happy path.
     """
     monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
 

@@ -621,9 +621,36 @@ calls go through FakeClaudeRunner — pinned by overall test design).
   - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted; one Korean line
     shortened to fit 100-char limit), mypy --strict ✅ (22 source files; +0), pytest
     **418/418** ✅ (+1; zero regressions).
-- [ ] **9.5** Sub-agent code review — focus on the integration test's coupling to u1's recorded
-  fixture (any change to u1's fetcher should not silently break u2's PoC), and the deterministic-
-  prompt-hash dependency (R7 serializer must produce stable JSON: key ordering, whitespace).
+- [x] **9.5** Sub-agent code review — APPROVE_WITH_FIXES; 0 Critical / 0 High / 2 Medium /
+  5 Low / 2 TECH-DEBT candidates. Sub-agent ran all 11 Step 9 tests (all pass) + reviewed
+  the FD R3 `would_exceed` impl change. Applied:
+  - **L5** (stale `check_or_raise` docstring in `test_budget_happy_path.py`) — APPLIED.
+    Updated to reference `would_exceed(DEFAULT_TIMEOUT_S)` per the impl reality.
+  - **M2** (integration test bypasses `aggregator.fetch_all` silently) — APPLIED via
+    docstring expansion. Added "Bypass of `aggregator.fetch_all`" section to the test
+    docstring naming the consequences (failure-isolation, registry discovery, warning-log
+    contract not exercised) + linking to **DEBT-011**.
+  - **Deferred to TECH-DEBT**:
+    - **L1 / Q8** (test helper duplication across 4 files) → **DEBT-010** (Low; consolidate
+      into `tests/unit/briefing/conftest.py` post-Step-10).
+    - **M2** (aggregator bypass) → **DEBT-011** (Low; upgrade once a 2nd u1 adapter exists).
+  - **Deferred without TECH-DEBT** (judged not worth tracking):
+    - **M1** (calling-stage context lost in `stage="budget"` BGE) — defensible per spec; the
+      stage is "budget" by design, not "classification-then-budget". Could include in
+      `cause`, but operator already has `last_stderr` context. Low value.
+    - **L2** (duplicated `would_exceed` comment in `_classify` + `_synthesize`) — cosmetic.
+    - **L3** (`subprocess.CompletedProcess(args=[], ...)` in failure-contract test) —
+      cosmetic; runner contract doesn't read `args`.
+    - **L4** (failure-contract assertion uses `JSONDecodeError | ValueError`) — agent noted
+      `JSONDecodeError` IS a `ValueError` subclass; broader pin is fine and tighter not
+      worth the test churn.
+  - **Q1-Q8** specific questions answered in audit log; key findings: `DEFAULT_TIMEOUT_S=120`
+    as next-attempt estimate is defensible (conservative bias correct for trusted budget);
+    `attempt_count=1` for boundary test matches BGE docstring semantic ("retries actually
+    consumed"); leak_guard verified clean against integration markdown.
+  - **TECH-DEBT additions**: DEBT-010 (L), DEBT-011 (L). 0 resolved.
+  - Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (22 source files; +0), pytest
+    **418/418** ✅ (no test changes from review fixes; only docstring updates).
 
 **Quality gate**: ruff, mypy --strict, pytest (full suite + failure-contract + 2 budget tests +
 integration PoC).

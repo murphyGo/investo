@@ -34,6 +34,23 @@ subprocess-list-form invocation + stdout parsing) but requires
 recording the fixtures via ``INVESTO_LIVE_LLM=1`` against a real
 ``claude`` CLI. Documented in ``aidlc-docs/construction/u2-briefing/code/summary.md``
 when it lands; current CI does not need it.
+
+## Bypass of ``aggregator.fetch_all``
+
+This test calls u1's ``FomcRssAdapter().fetch(client, window)`` directly
+rather than ``investo.sources.fetch_all(target_date)``. Consequences:
+
+* The aggregator's failure-isolation contract (R6 / L5 — adapters
+  raising ``SourceFetchError`` contribute ``[]``; other exceptions
+  re-raise) is NOT exercised here. It is covered by u1's own unit
+  tests under ``tests/unit/sources/``.
+* Registry-driven adapter discovery is bypassed. Today FOMC-RSS is
+  the only registered adapter, so ``fetch_all`` would yield the same
+  result; this assumption breaks once a second adapter lands.
+
+Tracked as DEBT-011 — upgrade to ``fetch_all`` once a second u1
+adapter exists, so the cross-unit failure-isolation contract gets
+end-to-end coverage.
 """
 
 from __future__ import annotations
