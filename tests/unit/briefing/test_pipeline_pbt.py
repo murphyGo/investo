@@ -7,6 +7,7 @@ Both properties run with hypothesis ≥100 examples per the NFR scope
 from __future__ import annotations
 
 import json
+import unicodedata
 from datetime import UTC, datetime
 
 from hypothesis import given, settings
@@ -76,7 +77,18 @@ def _section_safe(text: str) -> bool:
     return not any(h in text for h in STAGE2_SECTION_HEADERS)
 
 
-_BODY = st.text(min_size=1, max_size=100).filter(_section_safe)
+# Bodies are NFC-normalized at the strategy level. ``parse_six_sections``
+# applies ``unicodedata.normalize("NFC", markdown)`` defensively (Step
+# 9.3 H2 fix — Korean numerals are jamo-decomposable; LLM occasionally
+# emits NFD). That makes the round-trip property hold modulo NFC: an
+# input containing e.g. CJK compatibility ideographs (U+F900 ``豈``)
+# normalizes to its canonical form (U+8C9D ``豈``). Pre-normalizing the
+# strategy makes the round-trip identity instead of "modulo NFC".
+_BODY = (
+    st.text(min_size=1, max_size=100)
+    .map(lambda s: unicodedata.normalize("NFC", s))
+    .filter(_section_safe)
+)
 
 
 # ---------------------------------------------------------------------------

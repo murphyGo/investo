@@ -1,5 +1,22 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 10.5 COMPLETE ✅ (UNIT FULLY CLOSED)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 10.5 (final quality gate re-confirm) of u2 briefing Code Generation. **u2 briefing Code Generation is now FULLY CLOSED** — all 10 steps + 49 plan checkboxes complete; 6 of the 10 steps had sub-step granularity (Step 8: 5; Step 9: 5; Step 10: 5).
+**Final quality gate**:
+- `ruff check .` ✅
+- `ruff format --check .` ✅ (65 files)
+- `mypy --strict src/` ✅ (22 source files: 7 models + 8 sources + 7 briefing)
+- `pytest -q` ✅ **430 passed in 4.55s**
+**Bonus PBT NFC-strategy fix landed during the final gate**: hypothesis discovered a counterexample for AC-6.3 round-trip PBT — `bodies[5] = '豈'` (U+F900 CJK COMPATIBILITY IDEOGRAPH) NFC-normalizes inside `parse_six_sections` (Step 9.3 H2 fix) to its canonical form `'豈'` (U+8C9D). Same glyph, different codepoint. The parser's behavior is correct (the H2 fix is sound); the test was under-specifying its property domain. Fix at `tests/unit/briefing/test_pipeline_pbt.py`: NFC-normalize bodies at the `_BODY` strategy level via `.map(lambda s: unicodedata.normalize("NFC", s))`. The round-trip property is now identity instead of "modulo NFC", which is the cleaner statement. 5 PBTs pass at 100 examples each. This is the second time a PBT has caught a real Unicode-normalization edge case in this unit (Step 8.5 review's H2 fix was the first).
+**Stories closed**: US-002 (한국어 7섹션 시황 자동 생성), US-009 (LLM은 Claude Code CLI로만 호출). Both confirmed in `aidlc-docs/construction/u2-briefing/code/summary.md` story-status section.
+**TECH-DEBT changes**: None added, none resolved at 10.5. Cumulative new TECH-DEBT introduced during u2: DEBT-006, DEBT-007, DEBT-008, DEBT-009, DEBT-010, DEBT-011 (6 items: 1 medium, 5 low). None block u2; all sourced from sub-agent code-review cycles at Steps 6/8.5/9.5.
+**Status**: ✅ **u2 briefing Code Generation FULLY CLOSED**. All plan checkboxes `[x]`. aidlc-state.md u2 briefing CG column updated to "✅ Complete (10/10 — CG fully closed 2026-04-30)". Per the dev-investo skill 4B completion protocol: 2-option completion ("Request Changes" / "Continue to Next Stage") is presented in the same response as this audit entry. Per the skill 6.4 unit-completion auto-action: u2 briefing is now eligible for `/cross-check` (along with the still-pending u1 sources cross-check from Step 0 health check).
+**Next target**: Per `aidlc-docs/inception/plans/execution-plan.md` and `aidlc-state.md`, u3 publisher is the next unit. u3's Functional Design + NFR Requirements are SKIPPED per execution-plan; u3 enters Code Generation directly with a fresh planning cycle.
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 10 of 10, sub-step 10.5 (final). **Stage exit point.**
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 10.4 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 10.4 (closeout summary) of u2 briefing Code Generation. Created `aidlc-docs/construction/u2-briefing/code/summary.md` (~165 lines, doc-only).

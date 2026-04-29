@@ -734,8 +734,18 @@ string-form subprocess — same grep); AC-D.1, AC-D.2, AC-D.3 (drift).
     `verify_disclaimer` sketch with exact-substring check + PublishBlockedError pattern.
   - Quality gate snapshot (Step 10.5 will re-confirm): 430/430 passing.
   - Doc-only artifact; no source/test/code changes. pytest unchanged.
-- [ ] **10.5** Final quality gate green: `ruff check .` ✅, `ruff format --check .` ✅,
-  `mypy --strict src/` ✅, `pytest` ✅ (full suite — u1 baseline + all u2 tests).
+- [x] **10.5** Final quality gate green: `ruff check .` ✅, `ruff format --check .` ✅,
+  `mypy --strict src/` ✅ (22 source files), `pytest` ✅ (**430/430** — u1+models 252
+  baseline + u2 178 tests).
+  - **Bonus fix landed during the gate**: hypothesis exposed an interaction between Step
+    9.3's NFC normalization (defensive `unicodedata.normalize("NFC", markdown)` in
+    `parse_six_sections`) and the AC-6.3 round-trip PBT. Counterexample: `bodies[5] =
+    '豈'` (U+F900 CJK COMPATIBILITY IDEOGRAPH) → after parser NFC normalization →
+    `'豈'` (U+8C9D, the canonical form). Same glyph, different codepoint. Fix:
+    NFC-normalize at the `_BODY` strategy level (`.map(lambda s: unicodedata
+    .normalize("NFC", s))`), making the round-trip identity instead of "modulo NFC".
+    The Step 9.3 NFC defense remains correct — the test was just under-specifying the
+    property domain.
 
 **Exit**: ✅ `u2 briefing` Code Generation stage CLOSED. Stories US-002 and US-009 close. The
 unit is eligible for `/cross-check`. Next: u3 publisher / u4 notifier / u5 orchestrator (all
