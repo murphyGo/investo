@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 8 COMPLETE ✅ (UNIT CG CLOSED)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 8 (closeout summary.md + final quality gate) of u4 notifier Code Generation. Created:
+- `aidlc-docs/construction/u4-notifier/code/summary.md` (~190 lines): final closeout document. Sections:
+  - Files-created table — 5 src files (`__init__.py` 51 / `_telegram.py` 133 / `summary.py` 109 / `briefing_publisher.py` 81 / `operator_alerter.py` 105 = 479 LOC) + 6 test files (5 unit + 1 integration smoke = 1,127 LOC / 56 tests).
+  - Surface area table — 3 public re-exports (`BriefingPublisher`, `OperatorAlerter`, `build_summary`); `_telegram` intentionally NOT re-exported.
+  - Cross-unit imports verified — `investo.models` only.
+  - FR / NFR traceability — 10 rows covering FR-004 (텔레그램 시황 채널 + 4096-unit cap + site URL footer), FR-007 (운영자 1:1 chat + alert text shape), NFR-003 (graceful degradation across 5 transport+API failure modes), NFR-007 (bot-token redaction + defense-in-depth in alerts), CLAUDE.md #5 (dispatch isolation), UTF-16 surrogate-pair safety.
+  - Open TECH-DEBT — 3 new from u4 (DEBT-014/015/016, all Low) + 13 cross-unit / pre-existing = 16 total open. None block u4.
+  - Three ratified FD-vs-implementation divergences: Step 6.3 consolidation (public-surface pin folded into smoke), Step 7 M1 (bot-token redaction extended to shape regex), Step 7 L4 (shared-client production tip in docstring).
+  - Story status — ✅ US-004 closed, ✅ US-007 closed.
+  - Pre-flight notes for u5 orchestrator — stable surface table, CLAUDE.md #5 enforcement contract (u5 must `assert_disjoint_chat_ids` before construction; unit-level smoke test is NOT a substitute), shared-client production tip, failure paths routed via `OperatorAlerter`.
+**Final quality gate**: ruff ✅, ruff format ✅ (89 files), mypy --strict ✅ (33 source files: 7 models + 8 sources + 7 briefing + 6 publisher + 5 notifier), pytest ✅ **556/556 passed in 4.59s** (252 u1+models + 178 u2 + 70 u3 + 56 u4 = 556 total). Zero regressions.
+**TECH-DEBT changes**: None added, none resolved (Step 7's DEBT-014/015/016 already registered).
+**Status**: ✅ Step 8 complete. Plan checkboxes 8.1 + 8.2 both `[x]`. **u4 notifier CG fully CLOSED.** aidlc-state.md u4 notifier row updated to "✅ Complete (8/8 — CG fully closed 2026-04-30)". The unit is eligible for `/cross-check`. Stories US-004 + US-007 are closed. Next: **u5 orchestrator** Code Generation (FD + NFR per execution-plan; the integration glue that wires u1 → u2 → u3 → u4).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 8 of 8 — UNIT CLOSED.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 7 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 7 (sub-agent code review of all of u4 notifier) of u4 notifier Code Generation. Sub-agent verdict: **APPROVE_WITH_FIXES** (0 Critical / 0 High / 1 Medium / 5 Low / 5 TECH-DEBT candidates). Applied changes:

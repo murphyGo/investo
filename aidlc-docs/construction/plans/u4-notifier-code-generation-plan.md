@@ -315,16 +315,17 @@ After review:
 
 ### Step 8: Closeout summary.md + final quality gate
 
-- [ ] **8.1** `aidlc-docs/construction/u4-notifier/code/summary.md`:
-  - Files-created table (source + tests).
-  - FR-004 / FR-007 / NFR-003 traceability table.
-  - Story status: US-004 ✅ closed, US-007 ✅ closed.
-  - Open TECH-DEBT (any new from u4; carry forward DEBT-001 to DEBT-013 from prior).
-  - Hand-off notes for u5 orchestrator: stable surface = `BriefingPublisher`,
-    `OperatorAlerter`, `build_summary`; u5 wires the env-var-derived chat_ids and
-    enforces disjointness at construction time.
-- [ ] **8.2** Final quality gate: ruff ✅, ruff format ✅, mypy --strict ✅
-  (~32 source files: 28 prior + 4 new u4), pytest ✅ (~500 + ~50 u4 = ~550 tests).
+- [x] **8.1** Created `aidlc-docs/construction/u4-notifier/code/summary.md` — files
+  table (5 src / 6 test / 479 src LOC / 1,127 test LOC / 56 tests), FR-004 /
+  FR-007 / NFR-003 / NFR-007 / CLAUDE.md #5 traceability (10 rows), 3 ratified
+  divergences (Step 6.3 consolidation + Step 7 M1 + Step 7 L4), open TECH-DEBT
+  list (3 new u4 + 13 carried forward = 16 open), pre-flight notes for u5
+  orchestrator (disjoint-chat-id construction-time check + shared httpx
+  client + failure paths routed to OperatorAlerter).
+- [x] **8.2** Final quality gate: ruff ✅, ruff format ✅ (89 files), mypy --strict
+  ✅ (33 source files: 7 models + 8 sources + 7 briefing + 6 publisher + 5
+  notifier), pytest ✅ **556/556** passing (252 u1+models + 178 u2 + 70 u3 +
+  56 u4 = 556 total). Zero regressions.
 
 **Exit**: ✅ `u4 notifier` Code Generation stage CLOSED. Stories US-004 + US-007 close.
 The unit is eligible for `/cross-check`. Next: `u5 orchestrator` (the integration
