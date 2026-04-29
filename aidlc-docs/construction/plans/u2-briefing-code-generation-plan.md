@@ -534,19 +534,34 @@ sentinel grep).
 AC-4.4 (rendered_markdown contains DISCLAIMER); AC-7.5 (no `<script>` substring); AC-6.5 (all LLM
 calls go through FakeClaudeRunner — pinned by overall test design).
 
-- [ ] **9.1** `tests/unit/briefing/test_failure_contract.py`:
-  - **Classification BGE**: FakeClaudeRunner serves a fixture with malformed JSON stdout → assert
-    `pytest.raises(BriefingGenerationError) as exc; exc.value.stage == "classification"; exc.value.attempt_count == 3;
-    isinstance(exc.value.cause, json.JSONDecodeError)`.
-  - **Synthesis BGE**: blank stdout × 3 → `stage="synthesis"`, `attempt_count==3`.
-  - **Post-validation BGE**: Stage 2 fixture returns markdown containing a synthetic GitHub PAT
-    → `stage="post_validation"`, `attempt_count==1` (no retry per R6), `cause` is `ValueError`
-    naming the matched pattern.
-  - **AC-3.4 programmer-error**: monkeypatch `build_section_plan` to raise `KeyError("synthetic")`
-    → `pytest.raises(KeyError)` succeeds, `pytest.raises(BriefingGenerationError)` fails (verify
-    the KeyError is NOT wrapped).
-  - **AC-3.5 ValidationError**: monkeypatch `parse_six_sections` to return a dict missing fields →
-    `pytest.raises(pydantic.ValidationError)` (NOT wrapped in BGE).
+- [x] **9.1** `tests/unit/briefing/test_failure_contract.py` (~250 lines, 5 tests, runs in
+  0.21s thanks to autouse `_zero_backoff` fixture):
+  - **Classification BGE** (3 malformed-JSON attempts → `stage="classification"`,
+    `attempt_count=3`, `cause` is `json.JSONDecodeError | ValueError`).
+  - **Synthesis BGE** (1 classification ok, 3 blank stdout attempts → `stage="synthesis"`,
+    `attempt_count=3`). Blank trips the 200-char `_STAGE2_SANITY_FLOOR`.
+  - **Post-validation BGE** (Stage 2 returns valid markdown but with a `ghp_` + 36-A
+    GitHub PAT pattern embedded inside a section body; after `append_disclaimer` the
+    leak_guard scan hits → `stage="post_validation"`, `attempt_count=1` per R6 no-retry).
+    Asserts `"github_pat"` substring in `cause` to pin pattern-name surface.
+  - **AC-3.4 KeyError pass-through**: monkeypatch `build_section_plan` to `raise KeyError`;
+    classification succeeds, then KeyError propagates as-is. `pytest.raises(KeyError)`
+    succeeds; `pytest.raises(BriefingGenerationError)` would NOT catch it.
+  - **AC-3.5 ValidationError pass-through**: monkeypatch `parse_six_sections` to return a
+    degenerate `("", "ok", "ok", "ok", "ok", "ok")` 6-tuple; `Briefing` model construction
+    raises `ValidationError` from `Field(min_length=1)` on `market_summary`. Propagates
+    unwrapped per the failure contract.
+  - **Helpers**: `_runner_returning(outcomes)` builds a runner that pops canned outcomes in
+    order; `_outcome(stdout, ...)` constructs `subprocess.CompletedProcess`;
+    `_valid_classification_stdout(item_count)` emits a JSON shape that passes
+    `_parse_classification` for any `item_count`; `_valid_stage2_markdown()` builds a
+    Stage 2 stdout > 200 chars that parses cleanly + does not trip leak_guard.
+  - **`_zero_backoff` autouse fixture**: replaces `pipeline._BACKOFF_SCHEDULE` with
+    `(0.0, 0.0, 0.0)` so the 3-attempt failure paths complete in milliseconds. Behavioral
+    pinning of the schedule itself is incidental to failure-contract testing; if we ever
+    add a dedicated AC for the backoff numbers, that test will not use this fixture.
+  - Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (22 source files; +0), pytest
+    **412/412** ✅ (+5 tests; zero regressions in the prior 407).
 - [ ] **9.2** `tests/unit/briefing/test_budget_happy_path.py`:
   - **AC-1.1**: FakeClaudeRunner serves Stage 1 + Stage 2 fixtures with `elapsed_s=60.0`. Patch
     `time.monotonic` (or use a controllable clock) so the runner reports those elapsed values.

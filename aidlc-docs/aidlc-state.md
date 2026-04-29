@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 8 of 10 — Step 8 fully closed) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-8 ✅ (bootstrap + disclaimer + leak_guard + errors + prompts + claude_code + FakeClaudeRunner + pipeline.py impl + 28 anchor tests + 5 PBTs + 3 sentinel tests + sub-agent review w/ H1+H2+L3 fixes applied); DEBT-006/007/008/009 registered; 407/407 tests passing; 9 (failure-contract + budget + integration PoC) and 10 (CI guard + closeout) pending |
+| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 9.1 of 10 — failure-contract tests) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-8 ✅ + 9.1 ✅ (bootstrap + disclaimer + leak_guard + errors + prompts + claude_code + FakeClaudeRunner + pipeline.py impl + 28 anchor tests + 5 PBTs + 3 sentinel tests + sub-agent review w/ H1+H2+L3 fixes + 5 failure-contract tests pinning AC-3.2/3.4/3.5); DEBT-006/007/008/009 registered; 412/412 tests passing; 9.2-9.5 (budget happy path + budget guard + integration PoC + sub-agent review) and 10 (CI guard + closeout) pending |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

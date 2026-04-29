@@ -1,5 +1,27 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 9.1 COMPLETE ✅
+**Timestamp**: 2026-04-29T00:00:00Z
+**Action**: Executed Step 9.1 (`tests/unit/briefing/test_failure_contract.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_failure_contract.py` (~250 lines, 5 tests) covering all four BGE stages plus the two pass-through pin tests:
+- **Classification BGE (AC-3.2)**: 3 malformed-JSON attempts via `_runner_returning([_outcome(stdout="not json"), _outcome(stdout="still { broken"), _outcome(stdout="}{{ invalid")])` → `stage="classification"`, `attempt_count=3`, `cause` is `json.JSONDecodeError | ValueError`.
+- **Synthesis BGE (AC-3.2)**: 1 valid classification followed by 3 blank Stage 2 attempts → `stage="synthesis"`, `attempt_count=3`. Blank stdout trips the 200-char `_STAGE2_SANITY_FLOOR`.
+- **Post-validation BGE (AC-3.2)**: Stage 2 returns valid 6-section markdown with a `ghp_` + 36-A GitHub PAT embedded inside section ① body; after `append_disclaimer` runs, `leak_guard.scan` matches → `stage="post_validation"`, `attempt_count=1` (no retry per R6), `cause` is `ValueError`. Test asserts `"github_pat"` substring in cause string to pin the pattern-name surface (which u3 publisher's verify path may surface in operator alerts).
+- **AC-3.4 programmer-error pass-through**: monkeypatch `pipeline.build_section_plan` to raise `KeyError("synthetic programmer error")`; classification succeeds, then KeyError propagates from `generate_briefing` UNWRAPPED. `pytest.raises(KeyError)` succeeds; `pytest.raises(BriefingGenerationError)` would NOT catch — pinned by the test's exact exception class.
+- **AC-3.5 ValidationError pass-through**: monkeypatch `pipeline.parse_six_sections` to return `("", "ok", "ok", "ok", "ok", "ok")` (a "valid-shape" tuple but with empty body 1). `_synthesize`'s parse gate uses the same monkeypatched function so it accepts; `generate_briefing` then constructs `Briefing(market_summary="", ...)` which fails `Field(min_length=1)` and raises `pydantic.ValidationError`. Propagates unwrapped.
+**Test infrastructure**:
+- `_runner_returning(outcomes)` — builds a runner that pops canned `subprocess.CompletedProcess` outcomes in order; raises `AssertionError` (not `StopIteration`) on test setup mismatch.
+- `_outcome(stdout, stderr, returncode)` — constructs a `CompletedProcess` with sensible defaults.
+- `_valid_classification_stdout(item_count)` — emits a JSON object that passes `_parse_classification` for any item count.
+- `_valid_stage2_markdown()` — produces a >200-char 6-section markdown with non-leaking Korean prose. Used by post-validation + ValidationError tests.
+- **`_zero_backoff` autouse fixture**: monkeypatches `pipeline._BACKOFF_SCHEDULE` to `(0.0, 0.0, 0.0)`. Without this, classification BGE + synthesis BGE tests each take 10s wall-clock (FD R3 schedule = 0/2/8s sleeps). With it, all 5 tests run in 0.21s. Trade-off: the schedule numbers themselves are not pinned by these tests; that's a deliberate scope choice (see Step 8.5 audit — L2 deferred reasoning).
+**Sub-agent code review**: DEFERRED to Step 9.5 (combined Step 9 review). Same pattern as Step 8.2/8.3/8.4: tests-only commit with the dedicated review at the end of the step.
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (22 source files; +0 — tests live under `tests/`), pytest **412/412 passed in 4.78s** (+5 tests; zero regressions in the prior 407).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 9.1 complete. Plan checkbox 9.1 marked `[x]`; 9.2 / 9.3 / 9.4 / 9.5 remain `[ ]`. aidlc-state.md u2 briefing CG column updated to "Step 9.1 of 10 — failure-contract tests". Next: Step 9.2 — `tests/unit/briefing/test_budget_happy_path.py` (AC-1.1: pin that `generate_briefing` returns within ≤300s wall-clock under nominal `elapsed_s=60.0` per call).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 9 of 10, sub-step 9.1.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 8.5 COMPLETE ✅ (Step 8 fully closed)
 **Timestamp**: 2026-04-29T00:00:00Z
 **Action**: Executed Step 8.5 (sub-agent code review of all of Step 8) of u2 briefing Code Generation. Delegated to general-purpose sub-agent for fresh-eyes review of `pipeline.py` (8.1) + `test_pipeline_unit.py` (8.2) + `test_pipeline_pbt.py` (8.3) + `test_pipeline_no_prompt_strings.py` (8.4) + the small Step 8 modification to `prompts.py`.
