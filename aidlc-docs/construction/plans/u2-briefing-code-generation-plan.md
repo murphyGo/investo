@@ -601,24 +601,26 @@ calls go through FakeClaudeRunner — pinned by overall test design).
   - Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (22 source files; +0 — fix
     landed in existing pipeline.py), pytest **417/417** ✅ (+3 new tests; zero regressions
     in the prior 414).
-- [ ] **9.4** `tests/integration/test_briefing_pipeline_poc.py` — FD L9 PoC:
-  - Use u1's recorded `tests/unit/sources/fixtures/api/fomc-rss/feed.xml` to drive
-    `fetch_all(date(2026, 4, 25))`. Get the 2 FOMC items.
-  - Use a recorded LLM fixture under `tests/fixtures/llm/` (key = sha256 of the actual Stage 1
-    prompt produced by the serializer + system prompt). Stage 1 fixture asserts
-    `{"assignments": {1: 4, 2: 4}, "unassigned": []}`. Stage 2 fixture provides 6 valid Korean
-    sections with the FOMC events mentioned in section ④.
-  - Run the full `generate_briefing` pipeline. Assert:
-    - Result is a `Briefing` (not None).
-    - `briefing.disclaimer == DISCLAIMER`.
-    - `DISCLAIMER in briefing.rendered_markdown` (AC-4.4).
-    - `"<script>" not in briefing.rendered_markdown` (AC-7.5, case-insensitive).
-    - All 7 section fields are non-blank (`min_length=1` already enforced by the model, but
-      we re-check for diagnostic clarity).
-  - **Bootstrapping note**: this fixture must be initially recorded by setting
-    `INVESTO_LIVE_LLM=1` and running the test against a real `claude` CLI. Document this in the
-    test's docstring + in `aidlc-docs/construction/u2-briefing/code/summary.md` under "Fixture
-    refresh procedure". CI runs in pure replay mode.
+- [x] **9.4** `tests/integration/test_briefing_pipeline_poc.py` (~180 lines, 1 test):
+  - Created `tests/integration/__init__.py` (empty marker).
+  - End-to-end PoC: u1's `FomcRssAdapter` parses the recorded
+    `tests/unit/sources/fixtures/api/fomc-rss/feed.xml` via `httpx.MockTransport`
+    (no network) → 2 `NormalizedItem` instances. `pipeline.generate_briefing` runs
+    with stubbed `call_claude_code` returning canned valid Stage 1 + Stage 2 outputs.
+  - **AC-4.4** pin: `DISCLAIMER in briefing.rendered_markdown`.
+  - **AC-7.5** pin: case-insensitive `"<script>"` not in `rendered_markdown`.
+  - Diagnostic: every Briefing field non-blank; `target_date` matches; exactly 2 LLM
+    calls dispatched (no retries on happy path).
+  - **Approach decision**: original plan called for `FakeClaudeRunner` SHA-256 fixture
+    replay, requiring `INVESTO_LIVE_LLM=1` bootstrap against real `claude` CLI.
+    Switched to `pipeline.call_claude_code` stub for this iteration — same approach as
+    9.2 / 9.3. Trade-off: doesn't exercise the FakeClaudeRunner SHA-256 path (already
+    covered by `test_fake_claude_runner.py`); does exercise the cross-unit u1→u2
+    wiring + final Briefing assembly + AC-4.4 / AC-7.5 contract. Future fixture-based
+    replay path documented in test docstring under "Future fixture-based replay".
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted; one Korean line
+    shortened to fit 100-char limit), mypy --strict ✅ (22 source files; +0), pytest
+    **418/418** ✅ (+1; zero regressions).
 - [ ] **9.5** Sub-agent code review — focus on the integration test's coupling to u1's recorded
   fixture (any change to u1's fetcher should not silently break u2's PoC), and the deterministic-
   prompt-hash dependency (R7 serializer must produce stable JSON: key ordering, whitespace).

@@ -1,5 +1,29 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 9.4 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 9.4 (integration PoC `tests/integration/test_briefing_pipeline_poc.py`) of u2 briefing Code Generation. Created `tests/integration/__init__.py` (empty marker) + `tests/integration/test_briefing_pipeline_poc.py` (~180 lines, 1 end-to-end test):
+- **Step 1: drive u1's `FomcRssAdapter` against the recorded fixture** (`tests/unit/sources/fixtures/api/fomc-rss/feed.xml`) via `httpx.MockTransport` — no network access needed. Yields exactly 2 `NormalizedItem` instances (matches u1's `test_fetch_returns_items_within_window` assertion).
+- **Step 2: stub `pipeline.call_claude_code`** with an async fake returning canned valid Stage 1 JSON (assigns both items to section 4) + Stage 2 markdown (6 FOMC-flavored Korean section bodies, NFC-normalized, no `<script>`, no leak-guard patterns, > 200 chars to clear `_STAGE2_SANITY_FLOOR`).
+- **Step 3: run `pipeline.generate_briefing(target_date, items)`** end-to-end.
+- **Step 4: assertions**:
+  - **AC-4.4**: `DISCLAIMER in briefing.rendered_markdown`.
+  - **AC-7.5**: `"<script>"` (case-insensitive) absent.
+  - `briefing.target_date == _TARGET_DATE`; `briefing.disclaimer == DISCLAIMER`.
+  - Every section field non-blank (model `min_length=1` redundant; pinned for diagnostic clarity).
+  - `call_index == 2` — exactly 1 Stage 1 + 1 Stage 2 dispatch (no retries on happy path).
+**Approach decision (plan-vs-impl divergence)**: original plan called for the `FakeClaudeRunner` SHA-256 fixture replay path with `INVESTO_LIVE_LLM=1` bootstrap. Switched to `pipeline.call_claude_code` stub for this iteration — same approach as 9.2 / 9.3. Trade-off:
+- LOSES: doesn't exercise the `FakeClaudeRunner` SHA-256 fixture lookup + atomic write path (already covered comprehensively in `test_fake_claude_runner.py` — 16 tests including round-trip, missing-fixture, live-record, atomic write).
+- GAINS: doesn't require committing real LLM fixtures to the repo (would have required a developer to run `INVESTO_LIVE_LLM=1` against `claude` CLI in this exact environment, which isn't available); test is fully deterministic and self-contained; exercises the real cross-unit u1→u2 wiring via `httpx.MockTransport` against u1's recorded RSS feed.
+- Documented in test docstring under "Future fixture-based replay" section + planned to mention in `aidlc-docs/construction/u2-briefing/code/summary.md` (Step 10 closeout).
+**Sub-agent code review**: DEFERRED to Step 9.5 (combined Step 9 review). The integration PoC test will be reviewed alongside 9.1 / 9.2 / 9.3 + the FD R3 implementation fix from 9.3.
+**Quality gate**: ruff ✅ (1 long Korean line shortened to fit 100-char limit), ruff format ✅, mypy --strict ✅ (22 source files; +0), pytest **418/418 passed in 4.81s** (+1 integration test; zero regressions in the prior 417).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 9.4 complete. Plan checkbox 9.4 marked `[x]`; only 9.5 remains in Step 9. aidlc-state.md u2 briefing CG column updated to "Step 9.4 of 10 — integration PoC". Next: Step 9.5 — sub-agent code review of all of Step 9 (5 failure-contract + 2 budget-happy + 3 budget-guard + 1 integration PoC tests + the FD R3 `would_exceed` impl fix in pipeline.py).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 9 of 10, sub-step 9.4.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 9.3 COMPLETE ✅ (incl. FD R3 impl fix)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 9.3 (`tests/unit/briefing/test_budget_guard.py`) of u2 briefing Code Generation. **Discovered + fixed an FD R3 implementation gap as part of this step**: `pipeline._classify` and `pipeline._synthesize` were using `budget.check_or_raise(stage="...")` (already-exhausted post-hoc detection) for the pre-dispatch budget gate, but FD R3 specifies a *forward-looking* gate: "cumulative `elapsed_s` is compared to `total_budget_s` *before* dispatching the next attempt. If the next attempt would exceed budget, raise BGE immediately." Replaced both call sites with `if budget.would_exceed(DEFAULT_TIMEOUT_S): raise BriefingGenerationError(stage="budget", attempt_count=attempt, last_stderr=..., cause=...)` — using the per-call timeout (120 s) as the conservative next-attempt-cost estimate. The `would_exceed` method had been built in Step 6 (claude_code.py) but never wired up. Imported `DEFAULT_TIMEOUT_S` from `claude_code` into `pipeline`. All 414 prior tests still pass after the fix — confirms the gate change doesn't regress happy-path or other failure-contract behavior (those tests have small recorded `elapsed_s`, well under 120 s + cap).
