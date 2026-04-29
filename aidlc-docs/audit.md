@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 8.3 COMPLETE ✅
+**Timestamp**: 2026-04-29T00:00:00Z
+**Action**: Executed Step 8.3 (`tests/unit/briefing/test_pipeline_pbt.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_pipeline_pbt.py` (~180 lines, 5 PBTs each at 100 examples per AC-6.6) covering both serialize and parse round-trips:
+- **AC-6.2 serialize shape PBT**: `json.loads(serialize(items))` is `list[dict]` of length `len(items)`; key set is exactly `{id, category, source, title, summary, url, ts}`; `raw_metadata` never present. Locks the FD R7 contract under arbitrary item lists (0..10 items per example).
+- **AC-6.2 None-collapse PBT**: when `original.summary is None` (or pydantic normalized whitespace-only → None), serialized `summary == ""`. Same for `url`. When non-None, value matches `str(url)`. Confirms the prompt-stability rule for adapter-side absence sentinels.
+- **AC-6.2 dense-ids PBT**: synthetic ids always `1..len(items)` in input order; locks Stage 1's contract.
+- **AC-6.3 parse round-trip PBT**: synthetic markdown built from 6 hypothesis-generated non-blank bodies + the six `STAGE2_SECTION_HEADERS` parses back to each body's `.strip()` form. Hypothesis filter `_section_safe` rejects bodies containing ANY of the six exact section header strings (the only confusion vector for `markdown.find(header)`'s first-occurrence search; we do NOT need to forbid `## ` generically).
+- **AC-6.3 companion canary**: parser always returns a 6-tuple of non-blank strings (regression sanity).
+**Strategy design**:
+- `_normalized_items` composite strategy uses printable-ASCII source-name alphabet (avoids exotic-whitespace + unicode-normalization edge cases not representative of real adapters), prefixes title with `"t-"` to ensure non-blank-stripped (matches `NormalizedItem._reject_blank` validator), summary is `None | text(min=1, max=60)` (whitespace-only summaries get pydantic-normalized to None internally — the test handles both branches), URL is `None | "https://example.com/a"` (a full HttpUrl strategy is overkill since the serializer only calls `str()`), and `published_at` is bounded to 2020-2030 UTC.
+- `_BODY = text(min=1, max=100).filter(_section_safe)` — the filter is rarely hit because random hypothesis strings almost never contain `## ① 요약`-class Korean strings; no filter-too-much warnings observed.
+**Sub-agent code review**: DEFERRED to Step 8.5 (combined Step 8 review). Same rationale as Step 8.2: tests-only commit; review of all of Step 8 (impl + 3 test files + sentinel grep) lands once at the end.
+**Quality gate**: ruff ✅, ruff format ✅ (1 new file already formatted), mypy --strict ✅ (22 source files; +0 — tests live under `tests/`), pytest **402/402 passed in 4.51s** (+5 PBTs each at 100 examples; zero regressions in the prior 397).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 8.3 complete. Plan checkbox 8.3 marked `[x]`; 8.4 / 8.5 remain `[ ]`. aidlc-state.md u2 briefing CG column updated to "Step 8.3 of 10 — pipeline PBT". Next: Step 8.4 — `tests/unit/briefing/test_pipeline_no_prompt_strings.py` (sentinel grep against `inspect.getsource(briefing.pipeline)` and `inspect.getsource(briefing.claude_code)` for AC-5.2 / AC-5.3 — already partially enforced by `test_prompts.py::test_prompt_sentinels_only_in_prompts`, but the plan calls for a dedicated test that uses `inspect.getsource` rather than file-reads, matching u1's no-prompt-leak pattern).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 8 of 10, sub-step 8.3.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 8.2 COMPLETE ✅
 **Timestamp**: 2026-04-29T00:00:00Z
 **Action**: Executed Step 8.2 (`tests/unit/briefing/test_pipeline_unit.py` anchor tests) of u2 briefing Code Generation. Created `tests/unit/briefing/test_pipeline_unit.py` (~330 lines, 28 tests) covering the four pure helpers in `pipeline.py`:

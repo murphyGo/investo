@@ -435,12 +435,28 @@ round-trip PBT), AC-6.3 (parse_six_sections round-trip PBT).
     `serialize_items_for_prompt`. Quality gate: ruff ✅, ruff format ✅ (56 files;
     +1 = test_pipeline_unit.py), mypy --strict ✅ (22 source files; +0 — tests live under
     `tests/`), pytest **397/397** ✅ (+28 new tests; zero regressions).
-- [ ] **8.3** `tests/unit/briefing/test_pipeline_pbt.py` — hypothesis ≥100 examples each:
-  - **AC-6.2**: `serialize_items_for_prompt(items)` round-trip — `json.loads(serialize(items))`
-    yields list of dicts, `len == len(items)`, fields exactly `{id, category, source, title,
-    summary, url, ts}`, `raw_metadata` not in keys, empty url/summary serialized as `""`.
-  - **AC-6.3**: `parse_six_sections` round-trip — for synthetic markdown built by joining six
-    non-blank bodies under fixed headers, output equals input bodies (whitespace-normalized).
+- [x] **8.3** `tests/unit/briefing/test_pipeline_pbt.py` (~180 lines, 5 PBTs each at 100
+  examples; AC-6.2 + AC-6.3 + AC-6.6):
+  - **AC-6.2 — serialize round-trip shape**: `json.loads(serialize(items))` is a `list[dict]`
+    of length `len(items)`; each dict's key set is exactly `{id, category, source, title,
+    summary, url, ts}`; `raw_metadata` never appears.
+  - **AC-6.2 — None collapse**: when `original.summary is None` (or pydantic normalized a
+    whitespace-only summary to None), the serialized object emits `""`. Same for `url`. When
+    non-None, the serialized value matches the original (`str(url)` for HttpUrl).
+  - **AC-6.2 — dense ids**: synthetic ids are always `1..len(items)` in input order.
+  - **AC-6.3 — parse round-trip**: synthetic markdown built from six non-blank bodies + the
+    six fixed headers parses back to each body's stripped form. Hypothesis filter rejects
+    bodies containing any of the six exact section header strings (the only confusion vector
+    for the first-occurrence parser).
+  - **AC-6.3 — companion shape**: parser always returns a 6-tuple of non-blank strings.
+  - Strategy design notes: `_normalized_items` uses printable-ASCII source name (avoids
+    exotic-whitespace + unicode-normalization corner cases that don't represent real adapters);
+    `_BODY` filters reject `STAGE2_SECTION_HEADERS` substrings and blank-stripped strings;
+    URL is `None | "https://example.com/a"` (HttpUrl strategy is overkill for this PBT — the
+    serializer just calls `str()`); `published_at` is bounded to 2020–2030 with UTC tz.
+  - Quality gate: ruff ✅, ruff format ✅ (1 file already formatted), mypy --strict ✅
+    (22 source files; +0), pytest **402/402** ✅ (+5 PBTs each at 100 examples; zero
+    regressions in the prior 397).
 - [ ] **8.4** `tests/unit/briefing/test_pipeline_no_prompt_strings.py`:
   - **AC-5.2**: `inspect.getsource(briefing.pipeline)` does NOT contain sentinel substrings of
     Stage 1 / Stage 2 prompts (e.g. `"market-briefing classifier"`, `"## ① 요약"`,
