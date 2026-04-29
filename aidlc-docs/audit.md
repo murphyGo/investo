@@ -1,5 +1,25 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 5 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 5 (`operator_alerter.py` — `OperatorAlerter` class) of u4 notifier Code Generation. Created:
+- `src/investo/notifier/operator_alerter.py` (~95 lines): `class OperatorAlerter` with kwargs-only ctor `(*, bot_token, operator_chat_id, http=None)`. Module-level `_format_alert_text(failure)` helper builds the alert layout: ⚠️ header / `error_type: error_message` / `Occurred: ISO` / optional triple-backtick traceback fence. `async alert(failure)` formats the text → bot-token redacts (defense-in-depth via `_redact_bot_token` from `_telegram` — covers the case where `FailureContext.error_message` embeds the token from poorly-sanitized upstream logs) → UTF-16 truncates to fit under 4096 (defense via `summary._utf16_truncate`) → dispatches via `_telegram.send_message` with `chat_id=self._operator_chat_id`, `parse_mode="Markdown"`, `disable_web_page_preview=True` (operator alerts never need link previews; suppress them).
+- `tests/unit/notifier/test_operator_alerter.py` (~250 lines, 10 tests):
+  - Construction (2): positional ctor → `TypeError`; `repr()` doesn't contain bot token.
+  - Happy path (2): formatted alert text contains `⚠️ Pipeline failure: generate` + `BriefingGenerationError: synthesis failed after 3 attempts` + `Occurred: 2026-04-25T07:00:00+00:00`; `chat_id` matches `operator_chat_id`.
+  - Traceback handling (2): when set → embedded inside triple-backtick code fence + body present; when None → no stray ` ``` ` in output.
+  - Failure mode (1): `ConnectError` → ok=False (non-raising).
+  - Bot-token redaction (1): `FailureContext.error_message` embedding `https://api.telegram.org/bot{token}/sendMessage` → final alert text MUST NOT contain the token; `[REDACTED]` present. Critical NFR-007 GitHub-Secrets safety.
+  - UTF-16 truncation defense (1): 5000 X (error_message) + 1500 Y (traceback) → alert text truncated to ≤ 4096 UTF-16 units with "…" suffix.
+  - Public surface (1): module exports `OperatorAlerter`.
+**Sub-agent code review**: DEFERRED to Step 7 (combined u4 review).
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (33 source files; +1 from Step 4's 32 = `notifier/operator_alerter.py`), pytest **549/549 passed in 4.66s** (+10 tests; zero regressions in the prior 539).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 5 complete. Plan checkboxes 5.1 + 5.2 both `[x]`. aidlc-state.md u4 notifier CG column updated to "Step 5 of 8 — operator_alerter.py". Next: **Step 6** — `notifier/__init__.py` public surface finalization + integration smoke test (3 tests: end-to-end public dispatch + end-to-end operator dispatch + chat_id-separation invariant pin).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 5 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 4 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 4 (`briefing_publisher.py` — `BriefingPublisher` class) of u4 notifier Code Generation. Created:

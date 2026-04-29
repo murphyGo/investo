@@ -179,47 +179,35 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 **Refs**: component-methods.md C4 (`class OperatorAlerter`); FR-007 (운영자 1:1); same non-raising contract as BriefingPublisher.
 
-- [ ] **5.1** `src/investo/notifier/operator_alerter.py`:
-  - `class OperatorAlerter`:
-    - `__init__(self, *, bot_token: str, operator_chat_id: str, http: httpx
-      .AsyncClient | None = None) -> None` — kwargs-only.
-    - `async def alert(self, failure: FailureContext) -> SendResult`:
-      - Format the alert message from `FailureContext` fields:
-        ```
-        ⚠️ Pipeline failure: {stage}
-
-        {error_type}: {error_message}
-
-        Occurred: {occurred_at.isoformat()}
-
-        ```{traceback_excerpt}```  (only if traceback_excerpt is not None)
-        ```
-        Use Markdown parse_mode; preserve the traceback in a code fence.
-      - UTF-16 length: the FailureContext model already caps `traceback_excerpt`
-        at 2000 chars (`_TRACEBACK_EXCERPT_MAX`), and the error_type/message are
-        unbounded. The full alert MUST still fit under 4096 UTF-16 units. Use the
-        same `summary._utf16_truncate` helper (extracted from Step 3) defensively.
-      - Wrap the same `_telegram.send_message` call as BriefingPublisher.
-  - **MUST NOT include the bot token in the alert text** even when `error_message`
-    contains it accidentally. Apply the same redaction regex as Step 2 to the
-    final text.
-- [ ] **5.2** `tests/unit/notifier/test_operator_alerter.py` (~9 tests):
-  - **Construction** (2): kwargs-only; no token leak via repr.
-  - **Happy path** (1): a `FailureContext(stage="briefing", error_type="BriefingGen
-    erationError", error_message="...")` → POST with `chat_id == operator_chat_id`
-    + the formatted alert text → ok=True.
-  - **Traceback included** (1): when `traceback_excerpt` is non-None, the alert
-    text contains the excerpt inside a triple-backtick code fence.
-  - **Traceback omitted gracefully** (1): when `None`, the alert text does NOT
-    contain stray triple-backticks.
-  - **HTTP failure** (1): non-raising; `SendResult.ok=False`.
-  - **Bot-token redaction in error_message** (1): a `FailureContext` whose
-    `error_message` accidentally embeds the bot token → final alert text does NOT
-    contain the token. Critical NFR-007 safety.
-  - **Long error_message truncated** (1): a 10000-char `error_message` → final
-    alert fits under 4096 UTF-16 units; truncation indicator present.
-  - **Operator chat ID is the only target** (1): MockTransport handler asserts
-    `chat_id` is `operator_chat_id`, never the briefing channel.
+- [x] **5.1** `src/investo/notifier/operator_alerter.py` (~95 lines): `class
+  OperatorAlerter` with kwargs-only ctor `(*, bot_token, operator_chat_id,
+  http=None)`. Module-level `_format_alert_text(failure)` helper builds the
+  alert layout (⚠️ header / error_type:error_message / Occurred timestamp /
+  optional ```` ``` ```` traceback fence). `async alert(failure)` formats →
+  bot-token redacts (defense-in-depth — `error_message` could embed the
+  token via poorly-sanitized upstream logs) → UTF-16 truncates if over
+  4096 units → dispatches via `_telegram.send_message` with
+  `chat_id=self._operator_chat_id`, `parse_mode="Markdown"`,
+  `disable_web_page_preview=True` (operator alerts never need link previews).
+- [x] **5.2** `tests/unit/notifier/test_operator_alerter.py` (~250 lines, 10 tests):
+  - **Construction** (2): positional ctor → `TypeError`; `repr()` doesn't contain
+    bot token.
+  - **Happy path** (2): formatted alert text contains `⚠️ Pipeline failure: generate`,
+    `{error_type}: {error_message}`, `Occurred: {ISO}`; chat_id matches
+    `operator_chat_id` (CLAUDE.md #5 isolation pin).
+  - **Traceback handling** (2): when present → embedded inside triple-backtick
+    code fence; when None → no stray ` ``` ` in output.
+  - **Failure mode** (1): `ConnectError` → ok=False (non-raising).
+  - **Bot-token redaction** (1): `FailureContext.error_message` embedding the
+    URL with token → final alert text MUST NOT contain the token; `[REDACTED]`
+    present. Critical NFR-007 safety.
+  - **UTF-16 truncation defense** (1): pathologically long `error_message`
+    (5000 X) + `traceback_excerpt` (1500 Y) → alert text truncated to ≤ 4096
+    UTF-16 units with "…" suffix.
+  - **Public surface** (1): module exports `OperatorAlerter`.
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict
+    ✅ (33 source files; +1 from Step 4's 32 = `notifier/operator_alerter.py`),
+    pytest **549/549** ✅ (+10 tests; zero regressions in the prior 539).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 
