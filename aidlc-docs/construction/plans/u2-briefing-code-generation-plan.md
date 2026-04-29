@@ -562,10 +562,22 @@ calls go through FakeClaudeRunner — pinned by overall test design).
     add a dedicated AC for the backoff numbers, that test will not use this fixture.
   - Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (22 source files; +0), pytest
     **412/412** ✅ (+5 tests; zero regressions in the prior 407).
-- [ ] **9.2** `tests/unit/briefing/test_budget_happy_path.py`:
-  - **AC-1.1**: FakeClaudeRunner serves Stage 1 + Stage 2 fixtures with `elapsed_s=60.0`. Patch
-    `time.monotonic` (or use a controllable clock) so the runner reports those elapsed values.
-    Assert `generate_briefing` returns within ≤300 s wall-clock.
+- [x] **9.2** `tests/unit/briefing/test_budget_happy_path.py` (~140 lines, 2 tests):
+  - **AC-1.1 nominal-elapsed happy path**: stub `pipeline.call_claude_code` with a fake
+    that returns `SubprocessOutcome(elapsed_s=60.0, ...)` per call. Stage 1 + Stage 2 run
+    once each → cumulative `budget.elapsed_s == 120.0`, well under 300 s, `Briefing`
+    returns. Asserts `call_index == 2` to pin no-retry behavior on the happy path.
+  - **AC-1.1 anchor**: `RetryBudget()` default `total_budget_s == 300.0` per FD R3 — locks
+    the constant against drift.
+  - **Mocking strategy decision**: original plan said "Patch `time.monotonic`". Tried;
+    failed because `claude_code.time.monotonic` is the SAME singleton as the global
+    `time.monotonic`, and patching it leaks into asyncio internals (StopIteration in
+    `asyncio.to_thread`). Switched to stubbing `pipeline.call_claude_code` directly with
+    an async fake that returns canned `SubprocessOutcome`. This keeps the budget logic
+    on the real code path while bypassing the subprocess + clock plumbing entirely;
+    the latter is exercised in `test_claude_code.py`.
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅
+    (22 source files; +0), pytest **414/414** ✅ (+2; zero regressions).
 - [ ] **9.3** `tests/unit/briefing/test_budget_guard.py`:
   - **AC-1.4 + 1.5**: Stage 1 first attempt reports `elapsed_s=200`. RetryBudget records 200.
     Stage 2 first attempt would push elapsed to 400 → `would_exceed` returns True before dispatch

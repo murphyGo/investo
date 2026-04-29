@@ -1,5 +1,19 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 9.2 COMPLETE ✅
+**Timestamp**: 2026-04-29T00:00:00Z
+**Action**: Executed Step 9.2 (`tests/unit/briefing/test_budget_happy_path.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_budget_happy_path.py` (~140 lines, 2 tests):
+- **AC-1.1 happy path**: stub `pipeline.call_claude_code` with an async fake that returns `SubprocessOutcome(stdout=..., stderr="", returncode=0, elapsed_s=60.0)`. Stage 1 + Stage 2 calls cumulate to `budget.elapsed_s == 120.0`, well under the 300 s cap. `generate_briefing` returns a valid `Briefing`. `call_index == 2` asserts no-retry happy-path execution.
+- **AC-1.1 constant anchor**: `RetryBudget().total_budget_s == 300.0` — protects against silent constant drift that would let the happy-path test pass under a wrong budget cap.
+**Mocking-strategy decision**: original plan said "Patch `time.monotonic`". First attempt did `monkeypatch.setattr(claude_code.time, "monotonic", ...)` — that fails because `claude_code.time.monotonic` is the SAME singleton as the global `time.monotonic`, so the patch leaks into asyncio internals (`asyncio.to_thread` reads monotonic for its own purposes) and raises `StopIteration` from the patched iterator. Switched to stubbing `pipeline.call_claude_code` directly with an `async` fake returning canned `SubprocessOutcome`. This keeps the budget logic + recording path on the real code path while bypassing the subprocess + clock plumbing entirely (those are already covered in `test_claude_code.py`). The async-fake approach is also more readable: the test directly expresses "Stage 1 took 60 s, Stage 2 took 60 s" rather than encoding monotonic deltas.
+**Sub-agent code review**: DEFERRED to Step 9.5 (combined Step 9 review). Same pattern as Steps 8.2/8.3/8.4/9.1.
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (22 source files; +0), pytest **414/414 passed in 4.60s** (+2; zero regressions in the prior 412).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 9.2 complete. Plan checkbox 9.2 marked `[x]`; 9.3 / 9.4 / 9.5 remain `[ ]`. aidlc-state.md u2 briefing CG column updated to "Step 9.2 of 10 — budget happy path". Next: Step 9.3 — `tests/unit/briefing/test_budget_guard.py` (AC-1.4 + AC-1.5: Stage 1 first attempt reports 200 s elapsed; Stage 2's would-exceed check fires before dispatch and BGE `stage="budget"` raises; assert exactly 1 LLM call dispatched).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 9 of 10, sub-step 9.2.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 9.1 COMPLETE ✅
 **Timestamp**: 2026-04-29T00:00:00Z
 **Action**: Executed Step 9.1 (`tests/unit/briefing/test_failure_contract.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_failure_contract.py` (~250 lines, 5 tests) covering all four BGE stages plus the two pass-through pin tests:
