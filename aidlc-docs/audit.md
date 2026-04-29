@@ -1,5 +1,21 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 8.4 COMPLETE ✅
+**Timestamp**: 2026-04-29T00:00:00Z
+**Action**: Executed Step 8.4 (`tests/unit/briefing/test_pipeline_no_prompt_strings.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_pipeline_no_prompt_strings.py` (~110 lines, 3 tests) using the `inspect.getsource` + AST-docstring-strip pattern (mirrors the `_executable_source` helper already in `test_claude_code.py`):
+- **AC-5.2 sentinel grep**: `_executable_source(pipeline)` contains none of `"market-briefing classifier"`, `"market-briefing writer"`, `"Pre-grouped items"`, `"Section ID legend"`. Stripping docstrings via AST means the test fires only on prompt strings that actually flow through executable code paths — docstring discussions of "the market-briefing classifier" remain allowed.
+- **AC-5.3 sentinel grep**: same check against `_executable_source(claude_code)`.
+- **Tautology guard**: every sentinel must appear in `inspect.getsource(prompts)` — protects against a refactor that quietly drops a prompt anchor and leaves the two grep tests passing vacuously.
+**Sentinel-set decision**: `## ① 요약` (and the other 5 Stage 2 section headers) are intentionally NOT in this test's sentinel set. As of Step 8.1, those headers are imported into `pipeline.py` via `STAGE2_SECTION_HEADERS` (the single-source-of-truth refactor that resolved the original AC-5.2 sentinel-grep failure). The file-read `test_prompts.py::test_prompt_sentinels_only_in_prompts` continues to enforce the rule on raw text where re-introduction of literal headers would matter.
+**Coverage relationship to existing test**: complementary, not redundant. `test_prompts.py::test_prompt_sentinels_only_in_prompts` reads raw file text (catches docstrings + comments + executable code). The new `inspect.getsource`-based test strips docstrings + comments and tests only executable code. A regression that buries a prompt body inside a multi-line raw string assigned to a constant in `pipeline.py` trips both. A regression that mentions `"market-briefing writer"` in a `pipeline.py` docstring trips only the file-read version (correct — that's the broader rule). The two together pin the contract from both angles.
+**Sub-agent code review**: DEFERRED to Step 8.5. Same rationale as 8.2 / 8.3: tests-only commit; the dedicated combined Step 8 review lands at 8.5 (covering pipeline.py impl + 8.2 anchor tests + 8.3 PBT + 8.4 sentinel grep as a single review unit). With 8.4 shipped, every NFR AC currently scheduled for Step 8 is pinned.
+**Quality gate**: ruff ✅, ruff format ✅ (1 new file already formatted), mypy --strict ✅ (22 source files; +0 — tests live under `tests/`), pytest **405/405 passed in 4.89s** (+3 new tests; zero regressions in the prior 402).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 8.4 complete. Plan checkbox 8.4 marked `[x]`; only 8.5 remains. aidlc-state.md u2 briefing CG column updated to "Step 8.4 of 10 — pipeline sentinel grep". Next: Step 8.5 — sub-agent code review focused on the retry-loop algorithm (does it correctly decrement the shared budget?), `parse_six_sections` Korean-numeral split logic, and the L1 ordering (disclaimer must come AFTER `_synthesize` returns and BEFORE `leak_guard.scan`).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 8 of 10, sub-step 8.4.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 8.3 COMPLETE ✅
 **Timestamp**: 2026-04-29T00:00:00Z
 **Action**: Executed Step 8.3 (`tests/unit/briefing/test_pipeline_pbt.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_pipeline_pbt.py` (~180 lines, 5 PBTs each at 100 examples per AC-6.6) covering both serialize and parse round-trips:

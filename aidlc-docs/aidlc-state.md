@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 8.3 of 10 — pipeline PBT) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-7 ✅ + 8.1 ✅ + 8.2 ✅ + 8.3 ✅ (bootstrap + disclaimer + leak_guard + errors + prompts + claude_code + FakeClaudeRunner + pipeline.py impl + 28 anchor tests + 5 PBTs at 100 examples each pinning AC-6.2 serialize round-trip + AC-6.3 parse round-trip); DEBT-006 registered; 402/402 tests passing; 8.4-8.5 (sentinel-grep + sub-agent review) pending |
+| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 8.4 of 10 — pipeline sentinel grep) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-7 ✅ + 8.1 ✅ + 8.2 ✅ + 8.3 ✅ + 8.4 ✅ (bootstrap + disclaimer + leak_guard + errors + prompts + claude_code + FakeClaudeRunner + pipeline.py impl + 28 anchor tests + 5 PBTs + 3 inspect.getsource sentinel tests for AC-5.2/5.3); DEBT-006 registered; 405/405 tests passing; 8.5 (sub-agent review) pending |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

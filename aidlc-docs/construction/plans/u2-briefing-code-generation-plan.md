@@ -457,11 +457,23 @@ round-trip PBT), AC-6.3 (parse_six_sections round-trip PBT).
   - Quality gate: ruff ✅, ruff format ✅ (1 file already formatted), mypy --strict ✅
     (22 source files; +0), pytest **402/402** ✅ (+5 PBTs each at 100 examples; zero
     regressions in the prior 397).
-- [ ] **8.4** `tests/unit/briefing/test_pipeline_no_prompt_strings.py`:
-  - **AC-5.2**: `inspect.getsource(briefing.pipeline)` does NOT contain sentinel substrings of
-    Stage 1 / Stage 2 prompts (e.g. `"market-briefing classifier"`, `"## ① 요약"`,
-    `"market-briefing writer"`). Same shape as u1's no-prompt-leak grep.
-  - **AC-5.3**: same grep against `inspect.getsource(briefing.claude_code)`.
+- [x] **8.4** `tests/unit/briefing/test_pipeline_no_prompt_strings.py` (~110 lines, 3 tests):
+  - **AC-5.2**: `_executable_source(pipeline)` (AST round-trip strips docstrings + comments)
+    contains none of the canonical prompt sentinels (`"market-briefing classifier"`,
+    `"market-briefing writer"`, `"Pre-grouped items"`, `"Section ID legend"`).
+  - **AC-5.3**: same grep against `_executable_source(claude_code)`.
+  - **Tautology guard**: every sentinel actually appears in `prompts.py` source — protects
+    against a refactor that drops a sentinel from `prompts.py` but leaves the test passing
+    vacuously.
+  - **Sentinel choice**: `## ① 요약` is intentionally NOT in this test's sentinel set, since
+    that string is now imported from `prompts.STAGE2_SECTION_HEADERS` (single source of
+    truth). The file-read `test_prompts.py::test_prompt_sentinels_only_in_prompts` continues
+    to enforce the rule on raw text where it matters.
+  - **Helper**: `_executable_source(module)` mirrors the AST-strip helper already in
+    `test_claude_code.py` (used for the AC-2.5 / AC-7.1 / AC-7.6 self-checks). Keeping the
+    same shape means future refactors of one helper update both call sites.
+  - Quality gate: ruff ✅, ruff format ✅ (1 new file already formatted), mypy --strict ✅
+    (22 source files; +0), pytest **405/405** ✅ (+3 new tests; zero regressions).
 - [ ] **8.5** Sub-agent code review — focus on the retry-loop algorithm (does it correctly
   decrement the shared budget?), the parse_six_sections regex/split logic (Korean numerals
   ① through ⑥ are non-ASCII), and the L1 ordering (disclaimer must come AFTER leak_guard? — re-read
