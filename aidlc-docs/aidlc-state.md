@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 8.1 of 10 — pipeline.py impl) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-7 ✅ + 8.1 ✅ (bootstrap + disclaimer + leak_guard + errors + prompts + claude_code + FakeClaudeRunner + pipeline.py impl with STAGE2_SECTION_HEADERS in prompts.py for AC-5.2); DEBT-006 registered; 369/369 tests passing; 8.2-8.5 (anchor tests + PBT + sentinel-grep + sub-agent review) pending |
+| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 8.2 of 10 — pipeline anchor tests) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-7 ✅ + 8.1 ✅ + 8.2 ✅ (bootstrap + disclaimer + leak_guard + errors + prompts + claude_code + FakeClaudeRunner + pipeline.py impl + 28 pipeline anchor tests covering serialize / parse_classification / build_section_plan / parse_six_sections); DEBT-006 registered; 397/397 tests passing; 8.3-8.5 (PBT + sentinel-grep + sub-agent review) pending |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

@@ -1,5 +1,23 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 8.2 COMPLETE ✅
+**Timestamp**: 2026-04-29T00:00:00Z
+**Action**: Executed Step 8.2 (`tests/unit/briefing/test_pipeline_unit.py` anchor tests) of u2 briefing Code Generation. Created `tests/unit/briefing/test_pipeline_unit.py` (~330 lines, 28 tests) covering the four pure helpers in `pipeline.py`:
+- `serialize_items_for_prompt` (7 tests): empty → `"[]"`; full-shape key set; synthetic id from `enumerate(start=1)`; None summary/url → `""`; UTC isoformat ts via KST→prior-day 15:00 round-trip (locks timezone drift); `raw_metadata` excluded along with its keys; Korean characters preserved (locks `ensure_ascii=False`).
+- `_parse_classification` (7 tests): happy round-trip; degenerate empty case; invalid section id → `ValidationError` (substring `{2, 3, 4, 5}`); unknown item id in assignments → `ValueError` mentioning bad id; unknown id in unassigned → same; malformed JSON → `json.JSONDecodeError`; extra top-level field → `ValidationError`.
+- `build_section_plan` (4 tests): 3-item happy bucketing; `published_at desc` sort order pin; unassigned ids preserved as ordered tuple; frozen dataclass — assignment raises `FrozenInstanceError`.
+- `parse_six_sections` (6 tests): happy 6-tuple of stripped bodies; tuple-of-six type pin; missing header rejection (names the missing header); blank body rejection; whitespace-only body rejection; out-of-order headers (② / ③ swapped) rejection.
+- `ClassificationResult` shape (3 tests): frozen — assignment raises `ValidationError`; `extra="forbid"` enforced on `model_validate`; constructor path (not just parse path) enforces section-id constraint.
+- Module surface pin (1 test): `ClassificationResult`, `SectionPlan`, `build_section_plan`, `generate_briefing`, `parse_six_sections`, `serialize_items_for_prompt` are all exposed.
+**Test fixture style**: A small `_item(...)` keyword-only helper builds `NormalizedItem` instances with sensible defaults (UTC noon, `category="news"`, etc.) — matches u1's pattern (`tests/unit/sources/test_aggregator.py`). One test constructs `NormalizedItem` directly to populate `raw_metadata` (the helper doesn't expose that field, since 99% of tests don't need it).
+**Sub-agent code review**: DEFERRED to Step 8.5 per the plan's structure — Step 8 is reviewed once as a whole (impl + anchor tests + PBT + sentinel grep). Matches the plan's explicit checkbox layout (8.5: "Sub-agent code review — focus on the retry-loop algorithm, parse_six_sections regex/split logic, and L1 ordering"). No source code changes in 8.2, so an isolated sub-agent pass on tests-only would have low signal.
+**Quality gate**: ruff ✅, ruff format ✅ (56 files; +1 = test_pipeline_unit.py auto-formatted on creation), mypy --strict ✅ (22 source files; +0 — tests live under `tests/` and are out of strict-mypy scope), pytest **397/397 passed in 4.12s** (+28 new tests; zero regressions in the prior 369).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 8.2 complete. Plan checkbox 8.2 marked `[x]`; 8.3 / 8.4 / 8.5 remain `[ ]`. aidlc-state.md u2 briefing CG column updated to "Step 8.2 of 10 — pipeline anchor tests". Next: Step 8.3 — `tests/unit/briefing/test_pipeline_pbt.py` (hypothesis ≥100 examples each: AC-6.2 `serialize_items_for_prompt` round-trip + AC-6.3 `parse_six_sections` round-trip).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 8 of 10, sub-step 8.2.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 8.1 COMPLETE ✅
 **Timestamp**: 2026-04-29T00:00:00Z
 **Action**: Executed Step 8.1 (`src/investo/briefing/pipeline.py` implementation) of u2 briefing Code Generation. Created `src/investo/briefing/pipeline.py` (~450 lines) implementing the full two-stage pipeline: `ClassificationResult` (pydantic, frozen, extra="forbid", section-id constraint via `field_validator` + `_VALID_SECTION_IDS = frozenset({2,3,4,5})`); `SectionPlan` (frozen dataclass); pure helpers `serialize_items_for_prompt` (FD R7 — `json.dumps(ensure_ascii=False)`, raw_metadata excluded, None→"", UTC isoformat ts), `_parse_classification` (strict JSON + id-set check), `build_section_plan` (sorts by `published_at desc`), `parse_six_sections` (split on six headers, raises on missing/blank/out-of-order — out-of-order is defensive beyond plan); async stages `_classify` / `_synthesize` (FD R3 retry: 3 attempts × 0/2/8s backoff × 120s per-call, shared `RetryBudget`); `generate_briefing` (atomic L1 + R12: classify → plan → synthesize → parse → append_disclaimer → leak_guard.scan → `Briefing`).

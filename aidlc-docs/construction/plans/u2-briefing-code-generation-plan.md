@@ -409,13 +409,32 @@ round-trip PBT), AC-6.3 (parse_six_sections round-trip PBT).
   - Quality gate: ruff ✅, ruff format ✅ (55 files), mypy --strict ✅ (22 source files;
     +1 from Step 7's 21), pytest **369/369** ✅ (no regressions; no new tests yet —
     8.2 / 8.3 / 8.4 still pending).
-- [ ] **8.2** `tests/unit/briefing/test_pipeline_unit.py` — anchor tests for the pure helpers:
-  - `serialize_items_for_prompt([])` returns `"[]"`.
-  - `serialize_items_for_prompt(items)` includes all expected keys, excludes `raw_metadata`,
-    collapses None→"", isoformat ts in UTC.
-  - `_parse_classification` happy + reject (invalid section_id, unknown id, bad JSON, extra keys).
-  - `build_section_plan` happy: items 1,2,3 → section 2,3,4 → plan has 3 buckets each with 1 item.
-  - `parse_six_sections` happy + reject (missing header, blank body, headers in wrong order).
+- [x] **8.2** `tests/unit/briefing/test_pipeline_unit.py` (~330 lines, 28 tests) — anchor
+  coverage for every pure helper in `pipeline.py`:
+  - `serialize_items_for_prompt`: empty → `"[]"`; full-shape key set check
+    (`{id, category, source, title, summary, url, ts}`); synthetic id starts at 1; None
+    summary/url → `""`; UTC isoformat ts (KST source → prior-day 15:00 UTC, locks tz drift);
+    `raw_metadata` and its keys absent from serialized output; Korean characters preserved
+    (locks `ensure_ascii=False`).
+  - `_parse_classification`: happy round-trip; degenerate empty case; invalid section id →
+    `ValidationError` (mentions `{2, 3, 4, 5}`); unknown item id (assignments) → plain
+    `ValueError` mentioning the bad id; unknown id in `unassigned` → same; malformed JSON →
+    `json.JSONDecodeError`; extra top-level field → `ValidationError`.
+  - `build_section_plan`: 3-item happy bucketing (1→2, 2→3, 3→4) + section 5 empty;
+    `published_at desc` sort order; unassigned ids preserved as ordered tuple; frozen
+    dataclass — assignment raises `FrozenInstanceError`.
+  - `parse_six_sections`: happy 6-tuple of stripped bodies; tuple-of-six type pin; missing
+    header → `ValueError` (names the missing header); blank body → `ValueError` (mentions
+    "blank"); whitespace-only body → same; out-of-order headers (② / ③ swapped) →
+    `ValueError` (mentions "out of order").
+  - `ClassificationResult`: frozen pydantic — assignment raises `ValidationError`;
+    `extra="forbid"` enforced on `model_validate`; field-validator rejects bad section ids
+    on direct construction (not just on parse path).
+  - Public surface pin: module exposes `ClassificationResult`, `SectionPlan`,
+    `build_section_plan`, `generate_briefing`, `parse_six_sections`,
+    `serialize_items_for_prompt`. Quality gate: ruff ✅, ruff format ✅ (56 files;
+    +1 = test_pipeline_unit.py), mypy --strict ✅ (22 source files; +0 — tests live under
+    `tests/`), pytest **397/397** ✅ (+28 new tests; zero regressions).
 - [ ] **8.3** `tests/unit/briefing/test_pipeline_pbt.py` — hypothesis ≥100 examples each:
   - **AC-6.2**: `serialize_items_for_prompt(items)` round-trip — `json.loads(serialize(items))`
     yields list of dicts, `len == len(items)`, fields exactly `{id, category, source, title,
