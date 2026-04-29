@@ -1,5 +1,25 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 10.4 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 10.4 (closeout summary) of u2 briefing Code Generation. Created `aidlc-docs/construction/u2-briefing/code/summary.md` (~165 lines, doc-only).
+**Contents**:
+- Files-created tables: 7 source files in `src/investo/briefing/` (1,200 LOC), 1 test helper (`tests/_helpers/fake_claude_runner.py`, 227 LOC), 16 test files (15 unit + 1 integration, 3,448 LOC, 174 tests).
+- Surface-area table — 5 public symbols u3/u5 will consume (`generate_briefing`, `DISCLAIMER`, `append_disclaimer`, `BriefingGenerationError`, `Briefing` re-export).
+- **44-AC traceability table** (all ACs from `nfr-requirements.md`). Per-AC pinning enumerated: AC-1.1 → `test_budget_happy_path.py::test_generate_briefing_succeeds_under_nominal_elapsed_per_call`; AC-1.4 + 1.5 → `test_budget_guard.py`; AC-3.2 → `test_failure_contract.py` (4 BGE stages); AC-4.4 + 7.5 → `test_briefing_pipeline_poc.py`; AC-5.2 + 5.3 → both file-read `test_prompts.py` + AST-stripped `test_pipeline_no_prompt_strings.py`; AC-6.x → 3 disclaimer PBTs + 5 pipeline PBTs at 100 examples each; AC-7.4 → 4 truncation tests; AC-D.5 deferred to v2 per spec; AC-7.7 + AC-4.6 documented passive guarantees.
+- **AC count reconciliation**: the plan repeatedly said "49 ACs traced". The actual NFR-requirements.md file defines 5+5+5+6+5+6+7+5 = **44 distinct ACs**. The plan's 49 likely included the 5 cross-reference (`AC-X ↔ FD-Y`) lines at the end of nfr-requirements.md as separate trace points. Summary is honest about the 44-count — every actual AC has a canonical pin.
+- **Story closure**: US-002 (한국어 7섹션 시황 자동 생성) — closed by `generate_briefing` end-to-end flow. US-009 (LLM은 Claude Code CLI로만 호출) — closed by `claude_code.py` subprocess wrapper + `scripts/check_no_anthropic_sdk.py` repo-wide CI guard.
+- **3 FD-vs-impl divergences ratified**: (1) `_classify`/`_synthesize` import prompts at module level (no `prompts` parameter — defensible for single-prompt-set reality); (2) `STAGE2_SECTION_HEADERS` consolidated into `prompts.py` to satisfy AC-5.2 sentinel grep with single source of truth; (3) FD R3 forward-looking gate fix — `would_exceed(DEFAULT_TIMEOUT_S)` replaces post-hoc `check_or_raise` per FD R3 verbatim ("if next attempt would exceed budget, raise immediately"). All three documented in `aidlc-docs/audit.md`.
+- **Open TECH-DEBT inventory**: 6 new items from u2 (DEBT-006/007/008/009/010/011) + 2 cross-unit from models (DEBT-001/002) + 3 from u1 (DEBT-003/004/005). None block u2; 5 of 6 new items originate inside u2 review cycles.
+- **u3 publisher hand-off notes**: stable surface = `Briefing`, `DISCLAIMER`, `append_disclaimer`. u3 must NOT import `pipeline`, `claude_code`, `prompts`, `errors`, `leak_guard`, `RetryBudget`, or `BriefingGenerationError` (those are u5 orchestrator concerns). `verify_disclaimer` sketch provided with exact-substring check + recommended `PublishBlockedError` pattern. Module-boundary rule enforced informally by `/code-review` (no automated grep yet — could add if drift recurs).
+**Sub-agent code review**: NOT required (doc-only artifact; no behavior change).
+**Quality gate**: ruff/format/mypy/pytest unchanged from Step 10.3 baseline. pytest **430/430** ✅.
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 10.4 complete. Plan checkbox `10.4` `[x]`; only `10.5` (final quality gate re-confirm) remains. aidlc-state.md u2 briefing CG column updated to "Step 10.4 of 10 — closeout summary.md". Next: **Step 10.5** — re-run final quality gate (ruff check / ruff format / mypy --strict / pytest), confirm green, mark step `[x]`, present 2-option Code Generation completion to user. After 10.5, u2 briefing CG is fully CLOSED → unit eligible for `/cross-check`.
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 10 of 10, sub-step 10.4.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 10.3 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 10.3 (CONTRIBUTING.md updates) of u2 briefing Code Generation. Doc-only edit.

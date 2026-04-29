@@ -715,17 +715,25 @@ string-form subprocess — same grep); AC-D.1, AC-D.2, AC-D.3 (drift).
     `check_no_paid_apis.py` (sources/) and `check_no_anthropic_sdk.py` (repo-wide).
   - Quality gate: doc-only edit, no source/test changes. ruff + mypy + pytest still
     green; pytest **430/430** ✅ unchanged.
-- [ ] **10.4** `aidlc-docs/construction/u2-briefing/code/summary.md` — closeout:
-  - Files-created table (source + tests).
-  - Full 49-AC traceability table (every AC mapped to a canonical test or documented passive
-    guarantee).
-  - Story status: US-002 ✅ closed, US-009 ✅ closed.
-  - FD-vs-impl divergences (if any during steps 2-9; record per-step audit log).
-  - Open TECH-DEBT (DEBT-001 referenced under AC-4.4 as future invariant; check for new items
-    introduced during steps 2-9).
-  - Hand-off notes for u3 publisher: u3 imports `briefing.disclaimer.DISCLAIMER` for its
-    `verify_disclaimer` exact-substring match; u3 imports `briefing.Briefing` (already from
-    `models`). u3 does NOT import any other u2 symbol.
+- [x] **10.4** `aidlc-docs/construction/u2-briefing/code/summary.md` written (~165 lines):
+  - Files-created tables (7 source files / 1 test helper / 16 test files / 174 tests / scripts
+    / fixtures / CONTRIBUTING.md updates) + surface-area table (5 public symbols u3/u5 will
+    consume).
+  - Full 44-AC traceability table (44 ACs from `nfr-requirements.md` — the plan's "49"
+    appears to have included drift cross-references; the actual NFR file defines 5+5+5+6+5+
+    6+7+5 = 44 distinct ACs). Each AC mapped to a canonical test or documented passive
+    guarantee (AC-4.6 cross-unit, AC-7.7 passive, AC-D.5 deferred).
+  - Story status: US-002 ✅ + US-009 ✅ both closed with brief closure rationale.
+  - FD-vs-impl divergences (3 documented + ratified): (1) `_classify`/`_synthesize` no
+    `prompts` parameter; (2) `STAGE2_SECTION_HEADERS` consolidated into `prompts.py`;
+    (3) FD R3 forward-looking gate fix in 9.3 (`would_exceed` replaces `check_or_raise`).
+  - Open TECH-DEBT inventory: 5 new items from u2 (DEBT-006/007/008/009/010/011) + 2
+    cross-unit (DEBT-001/002) + 3 from u1 (DEBT-003/004/005). None block u2.
+  - Hand-off notes for u3 publisher: stable surface = `Briefing`, `DISCLAIMER`,
+    `append_disclaimer`; u3 must NOT import `pipeline` / `claude_code` / `prompts` / etc.;
+    `verify_disclaimer` sketch with exact-substring check + PublishBlockedError pattern.
+  - Quality gate snapshot (Step 10.5 will re-confirm): 430/430 passing.
+  - Doc-only artifact; no source/test/code changes. pytest unchanged.
 - [ ] **10.5** Final quality gate green: `ruff check .` ✅, `ruff format --check .` ✅,
   `mypy --strict src/` ✅, `pytest` ✅ (full suite — u1 baseline + all u2 tests).
 
