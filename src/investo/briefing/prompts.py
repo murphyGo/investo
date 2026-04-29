@@ -40,17 +40,17 @@ Forbidden
   ``KeyError`` / ``IndexError``. The convention is locked by
   ``test_stage1_system_format_call_raises_key_error``.
 
-Caller obligations (Step 8 wiring)
-----------------------------------
+Brace handling note
+-------------------
 
-When ``pipeline.py`` substitutes user-controlled content into
-``STAGE2_USER_TEMPLATE`` (e.g. into ``{grouped_sections}`` or
-``{unassigned}``), the rendered string MUST NOT contain unescaped
-``{`` / ``}`` characters that ``str.format`` would interpret as
-placeholders. If a source title or item summary genuinely contains
-braces (rare but possible), the caller must escape them as ``{{`` /
-``}}`` before substitution. The pipeline's rendering helpers will own
-that escaping; ``prompts.py`` deliberately stays oblivious to data.
+``str.format`` inserts substituted values as literals — the substituted
+content is NOT re-parsed for additional placeholders. So a Stage 2
+``grouped_sections`` value that contains literal ``{`` / ``}`` (e.g.
+from a source title or item summary) is fine: ``"a {x} b".format(x="{y}")``
+returns ``"a {y} b"`` — no recursive expansion, no ``KeyError``.
+
+This means ``pipeline.py`` does NOT need to escape braces in user-
+controlled content before substitution.
 
 Defense in depth (NFR-007 R6)
 -----------------------------
@@ -109,6 +109,24 @@ Return only the JSON.
 # Stage 2 — synthesis
 # ---------------------------------------------------------------------------
 
+# Six fixed Stage 2 section headers (FD L3 / R1).
+#
+# Defined here because the headers are part of the Stage 2 output
+# contract that this module owns: the prompt instructs the LLM to
+# emit them verbatim, and ``pipeline.parse_six_sections`` splits on
+# the same strings during post-validation. Keeping a single source
+# of truth prevents drift between "what we ask for" and "what we
+# parse for". AC-5.2 / AC-5.3 sentinel grep allows this constant to
+# be re-imported by ``pipeline.py``.
+STAGE2_SECTION_HEADERS: Final[tuple[str, str, str, str, str, str]] = (
+    "## ① 요약",
+    "## ② 전일 핵심 이슈",
+    "## ③ 섹터/수급 동향",
+    "## ④ 지표·이벤트",
+    "## ⑤ 주요 종목",
+    "## ⑥ 오늘의 관전 포인트",
+)
+
 STAGE2_SYSTEM: Final[str] = """\
 You are a Korean market-briefing writer. Produce markdown with
 EXACTLY these six sections, in this order, with these exact headers:
@@ -158,6 +176,7 @@ Return only the markdown.
 __all__ = [
     "STAGE1_SYSTEM",
     "STAGE1_USER_TEMPLATE",
+    "STAGE2_SECTION_HEADERS",
     "STAGE2_SYSTEM",
     "STAGE2_USER_TEMPLATE",
 ]

@@ -369,33 +369,46 @@ AC-4.4 (DISCLAIMER substring in rendered_markdown — pinned in Step 9 integrati
 contains no prompt body strings — sentinel grep test), AC-6.2 (serialize_items_for_prompt
 round-trip PBT), AC-6.3 (parse_six_sections round-trip PBT).
 
-- [ ] **8.1** `src/investo/briefing/pipeline.py`:
-  - `ClassificationResult: TypeAlias = ...` — pydantic model with `assignments: dict[int, int]`
-    (values constrained to `{2,3,4,5}` via `Field(ge=2, le=5)` + a model_validator) and
-    `unassigned: list[int]`. `model_config = ConfigDict(extra="forbid", frozen=True)`.
+- [x] **8.1** `src/investo/briefing/pipeline.py`:
+  - `ClassificationResult` — pydantic model with `assignments: dict[int, int]` and
+    `unassigned: list[int]`. `model_config = ConfigDict(extra="forbid", frozen=True)`. **Impl
+    note**: section-id constraint enforced via `field_validator("assignments")` with
+    `_VALID_SECTION_IDS = frozenset({2, 3, 4, 5})` rather than the planned
+    `Field(ge=2, le=5)`; identical effect for ints + clearer error.
   - `SectionPlan` — frozen dataclass: `target_date: date`, `items_by_section:
-    Mapping[int, tuple[NormalizedItem, ...]]`, `unassigned: tuple[NormalizedItem, ...]`.
-  - `serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str` — R7: emit JSON array,
-    one object per item, fields `{id, category, source, title, summary, url, ts}`. Synthetic
-    `id` = `enumerate(items, start=1)`. `summary`/`url` collapse `None` → `""`. `ts` =
-    `published_at.astimezone(UTC).isoformat()`. `raw_metadata` excluded. Returns string (not bytes).
-  - `_parse_classification(stdout: str, item_count: int) -> ClassificationResult` — strict JSON
-    parse + `ClassificationResult.model_validate(...)` + extra check that all keys + unassigned
-    elements are valid item ids (1..item_count).
-  - `build_section_plan(items: Sequence[NormalizedItem], result: ClassificationResult,
-    target_date: date) -> SectionPlan` — pure function; preserves `published_at desc` ordering
-    within each section.
-  - `parse_six_sections(markdown: str) -> tuple[str, str, str, str, str, str]` — split on the
-    six fixed `## ① ...` → `## ⑥ ...` headers. Returns 6 bodies in order. Raises `ValueError` if
-    any header is missing or any body is blank (Stage 2 retry-trigger).
-  - `async def _classify(items, prompts, runner, budget) -> ClassificationResult` — Stage 1 retry
-    loop per FD L2 with 3 attempts × 0/2/8s backoff × 120s per-call timeout. Imports prompts from
-    `.prompts`.
-  - `async def _synthesize(plan, prompts, runner, budget) -> str` — Stage 2 retry loop per FD L3.
-  - `async def generate_briefing(target_date: date, items: Sequence[NormalizedItem], *,
-    runner=None, budget: RetryBudget | None = None) -> Briefing` — orchestrates per L1:
-    classify → build_section_plan → synthesize → append_disclaimer → leak_guard.scan
-    (raise BGE post_validation on hit, no retry) → construct Briefing model.
+    dict[int, tuple[NormalizedItem, ...]]`, `unassigned: tuple[NormalizedItem, ...]`.
+  - `serialize_items_for_prompt(items)` — R7: emit JSON array, fields `{id, category, source,
+    title, summary, url, ts}`. Synthetic `id` = `enumerate(items, start=1)`. `summary`/`url`
+    collapse `None` → `""`. `ts` = `published_at.astimezone(UTC).isoformat()`. `raw_metadata`
+    excluded. `json.dumps(payload, ensure_ascii=False)` → str.
+  - `_parse_classification(stdout, item_count)` — strict JSON parse +
+    `ClassificationResult.model_validate(...)` + id-set check (every key + unassigned element
+    in `1..item_count`); raises `ValueError`/`ValidationError`/`json.JSONDecodeError` on mismatch.
+  - `build_section_plan(items, classification, target_date)` — pure; sorts each section bucket
+    by `published_at desc`.
+  - `parse_six_sections(markdown)` — splits on `STAGE2_SECTION_HEADERS`. Returns 6 bodies.
+    Raises `ValueError` if any header missing, headers out of order (defensive — beyond plan),
+    or body blank.
+  - `async def _classify(items, *, runner, budget)` and `async def _synthesize(plan, *,
+    runner, budget)` — FD R3 retry loop (3 attempts × 0/2/8s backoff × 120s per-call). **Impl
+    note**: prompts imported at module level (no `prompts` parameter); single-prompt-set reality
+    doesn't need an injection seam.
+  - `async def generate_briefing(target_date, items, *, runner=None, budget=None) -> Briefing`
+    — atomic L1 + R12: classify → `build_section_plan` → `_synthesize` → `parse_six_sections`
+    (extraction) → `append_disclaimer` → `leak_guard.scan` (raise BGE `post_validation` on
+    hit) → `Briefing(...)`. Verified: `DISCLAIMER` does not trigger `leak_guard`, so the
+    "scan after append" order is safe.
+  - **Cross-module fix**: `STAGE2_SECTION_HEADERS: Final[tuple[str, ...]]` moved to
+    `prompts.py` (Stage 2 output-contract owner) and re-imported here. Resolves the AC-5.2
+    sentinel grep against `## ① 요약` while keeping a single source of truth between "what
+    the prompt asks for" and "what we parse for".
+  - **prompts.py docstring**: "Caller obligations (Step 8 wiring)" section rewritten as
+    "Brace handling note" — `str.format` inserts substituted values as literals (no recursive
+    expansion), so `pipeline.py` does NOT need to escape `{` / `}` in user-controlled
+    content. Verified empirically: `"a {x} b".format(x="{y}") == "a {y} b"`.
+  - Quality gate: ruff ✅, ruff format ✅ (55 files), mypy --strict ✅ (22 source files;
+    +1 from Step 7's 21), pytest **369/369** ✅ (no regressions; no new tests yet —
+    8.2 / 8.3 / 8.4 still pending).
 - [ ] **8.2** `tests/unit/briefing/test_pipeline_unit.py` — anchor tests for the pure helpers:
   - `serialize_items_for_prompt([])` returns `"[]"`.
   - `serialize_items_for_prompt(items)` includes all expected keys, excludes `raw_metadata`,
