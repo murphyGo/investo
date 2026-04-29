@@ -148,44 +148,28 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 **Refs**: component-methods.md C4 (`class BriefingPublisher`); FR-004 (공개 채널); chat_id-separation rule from CLAUDE.md.
 
-- [ ] **4.1** `src/investo/notifier/briefing_publisher.py`:
-  - `class BriefingPublisher`:
-    - `__init__(self, *, bot_token: str, channel_id: str, http: httpx.AsyncClient |
-      None = None) -> None` — kwargs-only construction (caller cannot accidentally
-      swap channel_id with operator_chat_id positionally). Stores fields privately.
-    - `async def send(self, payload: BriefingNotification) -> SendResult`:
-      - Build full message text from `payload.summary_text` + `payload.site_url`
-        (the BriefingNotification model already enforces the 4096 cap; no truncation
-        here).
-      - If `self._http` is None, create an `httpx.AsyncClient(timeout=30.0)` for
-        the duration of the call (`async with`). Otherwise use the injected client.
-      - Call `_telegram.send_message(client, bot_token=..., chat_id=self._channel_id,
-        text=..., parse_mode="Markdown", disable_web_page_preview=False)`.
-      - Return the `SendResult` directly — non-raising.
-    - **Token never logged**: use `repr()`-safe attribute names (`_bot_token`) and
-      do not include the token in any log line or `__repr__`. The default `__repr__`
-      from object suffices.
-  - Module-level docstring documents the FR-004 channel-isolation contract: u4 trusts
-    that the orchestrator wires `channel_id` to a public-channel ID disjoint from the
-    operator chat ID. The unit-level test in Step 6 pins the constructor enforcement.
-- [ ] **4.2** `tests/unit/notifier/test_briefing_publisher.py` (~8 tests):
-  - **Construction** (2): kwargs-only; positional args raise `TypeError`. Stored
-    fields don't leak `bot_token` via `repr()` or `__repr__`.
-  - **Happy path** (1, via `httpx.MockTransport`): a valid `BriefingNotification` →
-    POST to `https://api.telegram.org/bot{TOKEN}/sendMessage` with JSON body
-    containing `chat_id` matching channel_id + the summary text → mock returns
-    `{"ok": true, "result": {"message_id": 99}}` → `SendResult(ok=True,
-    message_id=99)`.
-  - **HTTP failure** (1): MockTransport raises `httpx.TimeoutException` → ok=False;
-    no raise.
-  - **Telegram API failure** (1): mock returns `{"ok": false, "description":
-    "channel not found"}` → ok=False.
-  - **No raise on transport error** (1): non-raising contract pinned.
-  - **Default httpx client created when http=None** (1): inspect-source style
-    pin or runtime trace via mock.
-  - **Channel ID is the only target** (1): MockTransport handler asserts the
-    request body's `chat_id` matches the constructor's `channel_id`, NEVER any
-    other value. Pins isolation at the dispatch level.
+- [x] **4.1** `src/investo/notifier/briefing_publisher.py` (~85 lines): kwargs-only
+  ctor `(*, bot_token, channel_id, http=None)`. `async send(payload)` routes to
+  `_dispatch(client, payload)` — when `http=None`, opens a fresh
+  `httpx.AsyncClient(timeout=30.0)` for the duration of the call; otherwise reuses
+  the injected client. `_dispatch` calls `_telegram.send_message` with
+  `chat_id=self._channel_id`, `parse_mode="Markdown"`. Bot token stored privately;
+  default `__repr__` doesn't leak it.
+- [x] **4.2** `tests/unit/notifier/test_briefing_publisher.py` (~185 lines, 8 tests):
+  - **Construction** (2): positional ctor → `TypeError` (anti-swap pin); `repr()`
+    doesn't contain bot token.
+  - **Happy path** (3 via `MockTransport`): success → ok=True with message_id;
+    request body `chat_id` matches constructor's channel_id (CLAUDE.md #5
+    dispatch isolation); request body `text` is the summary content.
+  - **Failure modes** (2): `ConnectError` → ok=False; Telegram API
+    `{"ok": false, "description": "channel not found"}` → ok=False with
+    description in error.
+  - **Default client lifecycle** (1): when `http=None`, the publisher constructs
+    its own `httpx.AsyncClient(timeout=30.0)` per call. Monkeypatched
+    `_TrackingClient` subclass captures construction kwargs to verify timeout.
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict
+    ✅ (32 source files; +1 from Step 3's 31 = `notifier/briefing_publisher.py`),
+    pytest **539/539** ✅ (+8 tests; zero regressions in the prior 531).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 

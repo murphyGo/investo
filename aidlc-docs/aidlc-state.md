@@ -40,7 +40,7 @@
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
 | u2 briefing | ✅ Complete | ✅ Complete | ✅ Complete (10/10 — CG fully closed 2026-04-30) | FD + NFR + CG all closed; 174 u2 tests + 430/430 total green; bonus PBT NFC-strategy fix landed at 10.5 gate; eligible for /cross-check; US-002 + US-009 closed; DEBT-006/007/008/009/010/011 registered |
 | u3 publisher | ⏭️ SKIP | ⏭️ SKIP | ✅ Complete (9/9 — CG fully closed 2026-04-30) | FD + NFR + CG all closed; 70 u3 tests + 500/500 total green; sub-agent review caught H1 partial-success retry bug (real correctness fix); eligible for /cross-check; US-003 + US-006 closed; DEBT-012/013 registered (2 new) |
-| u4 notifier | ⏭️ SKIP | ⏭️ SKIP | ⏳ in progress (Step 3 of 8 — summary.py) | FD + NFR both SKIP per execution-plan; Steps 1-3 ✅ (bootstrap + _telegram.py + summary.py UTF-16-aware build_summary w/ surrogate-pair-safe truncation; 16 tests covering helpers + happy + Korean/emoji truncation + footer preservation + BriefingNotification round-trip); 31 src files; 531/531 tests; Step 4 (briefing_publisher.py) next |
+| u4 notifier | ⏭️ SKIP | ⏭️ SKIP | ⏳ in progress (Step 4 of 8 — briefing_publisher.py) | FD + NFR both SKIP per execution-plan; Steps 1-4 ✅ (bootstrap + _telegram + summary + BriefingPublisher class kwargs-only ctor + dispatch-isolation pin); 32 src files; 539/539 tests; Step 5 (operator_alerter.py) next |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u6 infra/CI | N/A | N/A | ⏳ pending | YAML/config only |
 

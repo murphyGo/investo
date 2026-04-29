@@ -1,5 +1,22 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 4 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 4 (`briefing_publisher.py` — `BriefingPublisher` class) of u4 notifier Code Generation. Created:
+- `src/investo/notifier/briefing_publisher.py` (~85 lines): `class BriefingPublisher` with kwargs-only ctor `(*, bot_token, channel_id, http=None)`. The kwargs-only design is the CLAUDE.md #5 anti-swap pin — callers cannot accidentally pass `operator_chat_id` positionally as `channel_id`. `async send(payload)` routes to private `_dispatch(client, payload)`: when `http is None`, opens a fresh `httpx.AsyncClient(timeout=30.0)` for the duration of the call (`async with`); otherwise reuses the injected client. `_dispatch` calls `_telegram.send_message` with `chat_id=self._channel_id`, `parse_mode="Markdown"`. Bot token stored as `_bot_token` (private); default `__repr__` doesn't leak it.
+- `tests/unit/notifier/test_briefing_publisher.py` (~185 lines, 8 tests):
+  - Construction (2): positional ctor → `TypeError` (anti-swap); `repr()` doesn't contain bot token.
+  - Happy path (3 via MockTransport): success → ok=True + message_id; request body `chat_id` matches constructor's channel_id (CLAUDE.md #5 dispatch isolation); request body `text` is the summary content.
+  - Failure modes (2): `ConnectError` → ok=False; Telegram `{"ok": false, "description": "channel not found"}` → ok=False with description in error.
+  - Default client lifecycle (1): when `http=None`, the publisher constructs its own `httpx.AsyncClient(timeout=30.0)` per call. Test uses a `_TrackingClient` subclass + monkeypatch to capture construction kwargs and verify the timeout.
+**Sub-agent code review**: DEFERRED to Step 7 (combined u4 review).
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (32 source files; +1 from Step 3's 31 = `notifier/briefing_publisher.py`), pytest **539/539 passed in 4.75s** (+8 tests; zero regressions in the prior 531).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 4 complete. Plan checkboxes 4.1 + 4.2 both `[x]`. aidlc-state.md u4 notifier CG column updated to "Step 4 of 8 — briefing_publisher.py". Next: **Step 5** — `operator_alerter.py` (`OperatorAlerter` class with kwargs-only ctor + `alert(failure: FailureContext)` formatting + traceback embedding + bot-token redaction in alert text + UTF-16 truncation defense).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 4 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 3 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 3 (`summary.py` — UTF-16-aware `build_summary`) of u4 notifier Code Generation. Created:
