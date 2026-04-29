@@ -1,5 +1,33 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 7 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 7 (sub-agent code review of all of u4 notifier) of u4 notifier Code Generation. Sub-agent verdict: **APPROVE_WITH_FIXES** (0 Critical / 0 High / 1 Medium / 5 Low / 5 TECH-DEBT candidates). Applied changes:
+- **M1 fix — bot-token redaction misses bare-shape `bot<TOKEN>` without `/` prefix** (`src/investo/notifier/_telegram.py`): the original `_BOT_TOKEN_RE = re.compile(r"/bot[^/\s'\"]+")` required a `/bot` URL prefix. A hand-crafted log line like `"used token bot{TOKEN}"` would leak the token. Fix: extended to two-layer redaction:
+  - `_BOT_TOKEN_URL_RE = re.compile(r"/bot[^/\s'\"]+")` runs first, replaces with `/bot[REDACTED]` (preserves debug-friendly URL shape).
+  - `_BOT_TOKEN_SHAPE_RE = re.compile(r"\bbot\d+:[A-Za-z0-9_-]{20,}")` runs second, catches anything missed by URL form (replaces with `bot[REDACTED]`). The ≥20-char tail requirement avoids false-positives on `botany`, `bot123:short`, etc.
+- **Q2 follow-up — missing test for lone high surrogate at position 0**: added `test_utf16_truncate_drops_lone_high_surrogate_at_position_zero` pinning `_utf16_truncate("📈AB", 1) == ""` (orphan high surrogate dropped, not half a codepoint emitted). Regression test confirms valid UTF-16 round-trip.
+- **L4 doc — undocumented shared-client guidance**: added "Production tip for u5 orchestrator" section to `src/investo/notifier/__init__.py` docstring recommending shared `httpx.AsyncClient` injection across both classes' `http=` parameter to avoid per-call TLS handshakes.
+- **3 new regression tests**:
+  - `test_redact_bot_token_catches_bare_shape_without_leading_slash` (M1 pin)
+  - `test_redact_bot_token_does_not_false_positive_on_botany` (M1 false-positive guard)
+  - `test_utf16_truncate_drops_lone_high_surrogate_at_position_zero` (Q2 pin)
+- **TECH-DEBT registered (3 new)**:
+  - **DEBT-014** (Low): `parse_mode="Markdown"` without escape fallback — Telegram parse-errors degrade to `SendResult(ok=False)`; orchestrator's operator-alert path covers visibility, but worth tracking for a future `parse_mode=None` retry.
+  - **DEBT-015** (Low): `_TrackingClient` test pattern fragile to httpx version changes — works today; only matters at httpx upgrade.
+  - **DEBT-016** (Low): `_mock_client` test helper duplicated across 3 u4 test files — sibling-shape with DEBT-010/013; address jointly.
+- **Deferred without TECH-DEBT** (judged not worth tracking):
+  - **L2 — negative `body_budget` in `build_summary`**: unreachable in practice via `BriefingNotification` (HttpUrl 2083-char cap means `fixed_units ≤ 2112` and budget stays positive at 4096). Custom `max_units` parameter is the only way to trigger; documented as caller responsibility.
+  - **L1 — `_TrackingClient` fragility**: same as DEBT-015 (registered).
+  - **Q4-Q8 specific questions**: answered in plan / sub-agent review report.
+**Sub-agent recommendation honored**: APPROVE_WITH_FIXES; M1 + Q2 test + L4 doc all applied before commit; DEBT-014/015/016 registered.
+**Quality gate**: ruff ✅, ruff format ✅ (89 files), mypy --strict ✅ (33 source files; +0 — fixes landed in existing files), pytest **556/556 passed in 4.59s** (+3 regression tests; zero regressions in the prior 553).
+**TECH-DEBT changes**: +3 (DEBT-014, DEBT-015, DEBT-016); 0 resolved.
+**Status**: ✅ Step 7 complete. Plan checkbox 7 `[x]` with full triage details. aidlc-state.md u4 notifier CG column updated to "Step 7 of 8 — sub-agent code review APPROVE_WITH_FIXES applied". Next: **Step 8** — closeout `aidlc-docs/construction/u4-notifier/code/summary.md` + final quality gate. After Step 8 completes, u4 notifier CG closes and unit becomes eligible for `/cross-check`.
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 7 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 6 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 6 (public surface finalization + integration smoke) of u4 notifier Code Generation. Created/modified:

@@ -87,6 +87,19 @@ def test_utf16_truncate_zero_max_returns_empty() -> None:
     assert _utf16_truncate("anything", 0) == ""
 
 
+def test_utf16_truncate_drops_lone_high_surrogate_at_position_zero() -> None:
+    """Step 7 sub-agent review Q2 follow-up — ``_utf16_truncate("📈AB", 1)``
+    yields "" because the single requested unit lands on the high
+    surrogate of 📈 with no room for the low surrogate. The orphan
+    must be dropped (returning "" not "\\ud83d") to keep the result
+    valid UTF-16.
+    """
+    result = _utf16_truncate("📈AB", 1)
+    assert result == ""
+    # Sanity: result is valid UTF-16 (re-encoding round-trips cleanly).
+    result.encode("utf-16-le").decode("utf-16-le")
+
+
 # ---------------------------------------------------------------------------
 # Happy path
 # ---------------------------------------------------------------------------

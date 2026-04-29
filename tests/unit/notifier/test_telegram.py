@@ -218,6 +218,30 @@ def test_redact_bot_token_passthrough_when_no_token() -> None:
     assert _redact_bot_token(plain) == plain
 
 
+def test_redact_bot_token_catches_bare_shape_without_leading_slash() -> None:
+    """Step 7 sub-agent review M1 — a hand-crafted log line like
+    ``"used token bot{TOKEN}"`` (no ``/`` prefix) MUST also be
+    redacted via the shape-based regex. Token shape:
+    ``bot<digits>:<≥20 alphanumeric/underscore/dash>``.
+    """
+    leaked = f"used token bot{_BOT_TOKEN}"
+    redacted = _redact_bot_token(leaked)
+    assert _BOT_TOKEN not in redacted
+    assert "bot[REDACTED]" in redacted
+
+
+def test_redact_bot_token_does_not_false_positive_on_botany() -> None:
+    """The shape regex requires ``\\d+:`` after ``bot`` plus a tail
+    of ≥20 alphanumeric/underscore/dash chars — words starting with
+    ``bot`` like ``botany`` or ``robot:foo`` are NOT matched.
+    """
+    plain = "botany analyzed at robot.local"
+    assert _redact_bot_token(plain) == plain
+    # Short tails are also passed through.
+    plain2 = "bot123:short"
+    assert _redact_bot_token(plain2) == plain2
+
+
 @pytest.mark.asyncio
 async def test_send_message_redacts_token_in_timeout_error() -> None:
     """A timeout whose message embeds the URL (with token) → SendResult

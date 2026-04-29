@@ -23,7 +23,14 @@ environment variables (``TELEGRAM_BRIEFING_CHANNEL_ID`` vs
 Both dispatchers follow a non-raising contract: HTTP failures,
 Telegram API errors, and timeouts are encoded in
 :class:`SendResult.ok=False` with sanitized error messages (bot
-tokens redacted from any URL leakage).
+tokens redacted from any URL leakage or bare-shape leakage).
+
+**Production tip for u5 orchestrator**: pass a *shared*
+``httpx.AsyncClient`` to both classes' ``http=`` parameter to avoid
+constructing a fresh client (and a fresh TLS handshake) on every
+publish + alert call. The classes accept ``http=None`` for tests
+and one-shot use; production should inject a single client
+constructed at orchestrator startup.
 
 The internal HTTP helper :mod:`investo.notifier._telegram` is NOT
 re-exported — it's a u4-internal implementation detail.

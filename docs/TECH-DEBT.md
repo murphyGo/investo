@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 4 | 2026-04-27 |
-| Low | 9 | 2026-04-27 |
+| Low | 12 | 2026-04-27 |
 
 ---
 
@@ -134,6 +134,39 @@ _No high priority items._
 - **Suggested Fix**: Lift to a shared `tests/_fixtures/briefings.py` (or extend `tests/_helpers/`) so both unit + integration tests can import. Bundling with DEBT-010's resolution is reasonable since both target test-helper consolidation.
 - **Effort**: ~20 min. Could be folded into DEBT-010's resolution PR.
 - **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk. Address alongside DEBT-010 in a post-u3 cleanup pass.
+
+#### DEBT-014: u4 BriefingPublisher uses `parse_mode="Markdown"` without escape fallback
+
+- **Created**: 2026-04-30
+- **Source**: Step 7 sub-agent code review of u4 notifier (L3 / TD-N01)
+- **Reference**: FR-004 (Telegram channel), NFR-003 (graceful degradation)
+- **Description**: `BriefingPublisher.send` and `OperatorAlerter.alert` both pass `parse_mode="Markdown"` to the Telegram API. If the LLM-generated `briefing.market_summary` (or formatted alert text) contains an unbalanced `*` or `_`, or unescaped `[`, Telegram returns 400 with `"can't parse entities..."` which we encode as `SendResult(ok=False)`. The pipeline degrades gracefully — but the public-channel publish silently fails until an operator notices. The current prompt template doesn't specifically instruct the LLM to avoid Markdown footguns.
+- **Suggested Fix**: One of (in order of effort):
+  1. Document the failure mode in the prompt template (cheapest).
+  2. Add a `parse_mode=None` retry in `BriefingPublisher.send` when the API returns "can't parse entities" — the briefing publishes as plain text instead of failing.
+  3. Switch to `parse_mode="MarkdownV2"` and escape the body with a vetted helper (heaviest; loses some readability).
+- **Effort**: Option 2 ~1 hour including tests; option 1 trivial; option 3 ~3 hours.
+- **Priority Reasoning**: Low — graceful-degradation already covers the failure (operator alert fires when the publish step's `SendResult.ok=False` lands). No silent data loss. Re-evaluate when the first real Markdown-parse failure occurs in production.
+
+#### DEBT-015: `_TrackingClient` test pattern fragile to httpx version changes
+
+- **Created**: 2026-04-30
+- **Source**: Step 7 sub-agent code review of u4 notifier (L1 / TD-N03)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: `tests/unit/notifier/test_briefing_publisher.py::test_briefing_publisher_creates_default_client_when_http_none` subclasses `httpx.AsyncClient` and overrides `__init__(self, **kwargs)` then forwards via `super().__init__(**kwargs)`. This assumes httpx's signature stays compatible — if a future httpx adds a positional-only param or renames a kwarg, the test silently breaks (or worse, masks a real production breakage on httpx upgrade).
+- **Suggested Fix**: Replace with a factory-mock pattern. Patch `httpx.AsyncClient` in the briefing_publisher module to a `MagicMock` that returns a pre-configured `MockTransport`-backed client. Capture construction args via the mock's `call_args`. Less coupled to httpx internals.
+- **Effort**: ~30 min including verifying the new test still pins the timeout=30.0 contract.
+- **Priority Reasoning**: Low — works today; only matters at httpx upgrade time.
+
+#### DEBT-016: `_mock_client` test helper duplicated across 3 u4 test files
+
+- **Created**: 2026-04-30
+- **Source**: Step 7 sub-agent code review of u4 notifier (L5 / TD-N04)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: Three near-identical `_mock_client(handler)` helpers in `test_telegram.py`, `test_briefing_publisher.py`, `test_operator_alerter.py`. `tests/unit/notifier/conftest.py` exists as a placeholder explicitly waiting for shared fixtures. Sibling-shape with DEBT-010 (u2 test helper duplication) and DEBT-013 (u3 test helper duplication).
+- **Suggested Fix**: Move `_mock_client` to `tests/unit/notifier/conftest.py` as a fixture or module-level helper, then import from each test file. Could be folded into the existing DEBT-010 / DEBT-013 cleanup pass.
+- **Effort**: ~10 min.
+- **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk.
 
 #### DEBT-009: `_executable_source` AST helper is duplicated across two test files
 

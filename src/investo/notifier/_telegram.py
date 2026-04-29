@@ -32,17 +32,26 @@ import httpx
 
 from investo.models import SendResult
 
-# Matches ``/bot{token}/`` in any URL or error message. The token can
-# contain digits, colons, letters, underscores, and dashes; it ends
-# at the next slash or end-of-string. Replacing with
-# ``/bot[REDACTED]/`` keeps the URL shape recognizable for debugging
-# while removing the secret.
-_BOT_TOKEN_RE = re.compile(r"/bot[^/\s'\"]+")
+# Two-layer redaction:
+#
+# 1. URL form: ``/bot{token}/...`` in any URL embedded in error
+#    messages (the most common httpx leakage path). Replaced with
+#    ``/bot[REDACTED]`` — keeps URL shape recognizable for debugging.
+# 2. Shape-based form: a bare ``bot<numeric_id>:<token_tail>`` (no
+#    leading ``/``) — catches operator-supplied log lines that don't
+#    embed the URL. Telegram tokens have a deterministic shape:
+#    ``<digits>:<at-least-20-alphanumeric-with-underscore-dash>``;
+#    requiring ≥20 chars in the tail avoids false-positives like
+#    ``botany123:foo``. Sub-agent Step 7 review M1 fix.
+_BOT_TOKEN_URL_RE = re.compile(r"/bot[^/\s'\"]+")
+_BOT_TOKEN_SHAPE_RE = re.compile(r"\bbot\d+:[A-Za-z0-9_-]{20,}")
 
 
 def _redact_bot_token(text: str) -> str:
-    """Replace ``/bot<token>`` with ``/bot[REDACTED]`` in ``text``."""
-    return _BOT_TOKEN_RE.sub("/bot[REDACTED]", text)
+    """Replace bot tokens (URL form + bare shape form) with `[REDACTED]`."""
+    text = _BOT_TOKEN_URL_RE.sub("/bot[REDACTED]", text)
+    text = _BOT_TOKEN_SHAPE_RE.sub("bot[REDACTED]", text)
+    return text
 
 
 def telegram_api_url(bot_token: str, method: str = "sendMessage") -> str:

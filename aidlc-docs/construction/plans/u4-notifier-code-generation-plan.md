@@ -243,7 +243,49 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 ---
 
-### Step 7: Sub-agent code review
+### Step 7: Sub-agent code review — APPROVE_WITH_FIXES (M1 applied)
+
+- [x] **7** Sub-agent code review executed. Verdict: APPROVE_WITH_FIXES; 0 Critical /
+  0 High / 1 Medium / 5 Low / 5 TECH-DEBT candidates. Applied:
+  - **M1 — bot-token regex misses `bot<TOKEN>` without `/` prefix** (`_telegram.py:40`).
+    Empirically verified: a hand-crafted log line `"used token bot{TOKEN}"` would
+    leak the token because the regex required `/bot` URL-prefix. Fix: added a
+    second shape-based regex `r"\bbot\d+:[A-Za-z0-9_-]{20,}"` that catches bare
+    tokens by their deterministic Telegram shape. Two-layer redaction: URL form
+    runs first (preserving `/bot[REDACTED]` for debug-friendly URL shape), then
+    shape regex catches anything missed (replaced with `bot[REDACTED]`). Two
+    regression tests pin: bare-token redaction works; false-positives on `botany`
+    / `bot123:short` (no ≥20-char tail) don't trigger.
+  - **Q2 follow-up missing test** — added `test_utf16_truncate_drops_lone_high
+    _surrogate_at_position_zero` pinning that `_utf16_truncate("📈AB", 1)` returns
+    "" (orphan high surrogate dropped) rather than half a codepoint.
+  - **L4 — undocumented shared-client guidance**: added a "Production tip for u5
+    orchestrator" section to `notifier/__init__.py` docstring recommending a
+    shared `httpx.AsyncClient` injection to avoid per-call TLS handshakes.
+  - **Deferred to TECH-DEBT (3 items)**:
+    - **DEBT-014** (Low): `parse_mode="Markdown"` without escape fallback —
+      Telegram parse-errors degrade to `SendResult(ok=False)`; orchestrator's
+      operator-alert path covers the visibility, but worth tracking for a
+      future `parse_mode=None` retry.
+    - **DEBT-015** (Low): `_TrackingClient` test pattern fragile to httpx
+      version changes — works today; only matters at httpx upgrade.
+    - **DEBT-016** (Low): `_mock_client` test helper duplicated across 3 u4
+      test files — sibling-shape with DEBT-010/013; address jointly.
+  - **Deferred without TECH-DEBT** (judged not worth tracking):
+    - **L2 — negative `body_budget` in `build_summary`**: unreachable in
+      practice via `BriefingNotification` (HttpUrl 2083-char cap means
+      `fixed_units ≤ 2112` and budget stays positive at 4096). The custom
+      `max_units` parameter is the only way to trigger; documented as caller
+      responsibility.
+    - **L1 — `_TrackingClient` fragility**: same as DEBT-015 (registered).
+    - **Q4-Q8 specific questions** answered in audit log.
+  - **Recommendation honored**: APPROVE_WITH_FIXES; M1 + Q2 test + L4 doc all
+    applied before commit; DEBT-014/015/016 registered.
+  - Quality gate: ruff ✅, ruff format ✅ (11 files unchanged), mypy --strict ✅
+    (33 source files; +0 — fixes landed in existing files), pytest **556/556**
+    ✅ (+3 new regression tests; zero regressions in the prior 553).
+
+### Step 7-old: Sub-agent code review (legacy spec)
 
 Delegate fresh-eyes review per dev-investo skill §5.1. Focus areas:
 
