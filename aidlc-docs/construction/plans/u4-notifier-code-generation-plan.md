@@ -73,37 +73,35 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 **Refs**: component-methods.md (`http: httpx.AsyncClient | None = None` injectable in BriefingPublisher + OperatorAlerter); FR-004 / FR-007 (Telegram Bot API endpoint).
 
-- [ ] **2.1** `src/investo/notifier/_telegram.py`:
-  - `def telegram_api_url(bot_token: str, method: str = "sendMessage") -> str` — returns
-    `f"https://api.telegram.org/bot{bot_token}/{method}"`. Pure function; no I/O.
-  - `async def send_message(client: httpx.AsyncClient, *, bot_token: str, chat_id: str,
-    text: str, parse_mode: str = "Markdown", disable_web_page_preview: bool = False)
-    -> SendResult` — non-raising HTTP call. Returns `SendResult(ok=True, message_id=N)`
-    on Telegram API success (rc 200, `{"ok": true, "result": {"message_id": ...}}`);
-    returns `SendResult(ok=False, error=str)` on:
-    - HTTP timeout (`httpx.TimeoutException`)
-    - HTTP transport error (`httpx.HTTPError`)
-    - Non-200 status code
-    - Telegram API `{"ok": false, "description": "..."}` (e.g., chat not found, bot
-      blocked, etc.)
-  - **Bot-token redaction**: error strings MUST NOT include the bot token even when
-    httpx error messages contain the URL. Sanitize via a regex that masks the
-    `/bot{token}/` segment of any URL embedded in the error message.
-  - Internal-only (leading underscore); not re-exported in Step 6's public surface.
-- [ ] **2.2** `tests/unit/notifier/test_telegram.py` (~12 tests):
-  - **URL builder** (2): `telegram_api_url("XYZ:abc")` returns the canonical sendMessage
-    URL; default + custom `method` parameter.
-  - **Happy path** (3 via `httpx.MockTransport`): `{"ok": true, "result": {"message_id":
-    42}}` → `SendResult(ok=True, message_id=42)`. Verify the request body has the
-    expected JSON fields (`chat_id`, `text`, `parse_mode`). Verify Authorization /
-    URL contains the bot token (correctly).
-  - **Telegram API error** (2): non-200 status → `SendResult(ok=False, error=...)`;
-    `{"ok": false, "description": "chat not found"}` even on rc 200 → ok=False.
-  - **HTTP failures** (3): `httpx.TimeoutException` → ok=False; `httpx.HTTPError`
-    (e.g., DNS failure) → ok=False; non-raising contract — none of these raise.
-  - **Bot-token redaction** (2): an `httpx.HTTPError` whose message embeds the bot
-    token (Telegram URL leakage) → `SendResult.error` does NOT contain the token.
-    Same for the timeout message. Critical NFR-007 / GitHub Secrets safety.
+- [x] **2.1** `src/investo/notifier/_telegram.py` (~125 lines):
+  - `telegram_api_url(bot_token, method="sendMessage") -> str` — pure URL builder.
+  - `_BOT_TOKEN_RE = re.compile(r"/bot[^/\s'\"]+")` + `_redact_bot_token(text)`
+    helper — replaces every `/bot{token}` segment with `/bot[REDACTED]` so the
+    URL shape stays recognizable for debugging while removing the secret.
+  - `async send_message(client, *, bot_token, chat_id, text, parse_mode
+    ="Markdown", disable_web_page_preview=False) -> SendResult` — non-raising
+    httpx POST. Catches `httpx.TimeoutException`, `httpx.HTTPError`, non-2xx
+    status, JSON-parse failures, and Telegram API `{"ok": false}`. Every error
+    string is `_redact_bot_token`-sanitized before landing in `SendResult.error`.
+- [x] **2.2** `tests/unit/notifier/test_telegram.py` (~210 lines, 15 tests):
+  - **URL builder** (2): default + custom method.
+  - **Happy path via MockTransport** (3): canonical Telegram OK response → ok=True
+    with message_id; request body has expected fields (chat_id/text/parse_mode/
+    disable_web_page_preview); request URL contains the bot token (correctly —
+    that's how Telegram authenticates).
+  - **Telegram API error** (2): `{"ok": false, "description": ...}` → ok=False
+    with description in error; non-200 HTTP status → ok=False with status code.
+  - **HTTP failures** (3): `TimeoutException` → ok=False; `ConnectError` →
+    ok=False; invalid JSON response body → ok=False. Non-raising contract pinned.
+  - **Bot-token redaction** (5): `_redact_bot_token` direct unit tests
+    (single occurrence / multiple occurrences / passthrough on plain text);
+    end-to-end via `send_message` for both `TimeoutException` and `ConnectError`
+    where the synthetic exception message embeds the URL with token — the
+    `SendResult.error` MUST NOT contain the token.
+  - Quality gate: ruff ✅, ruff format ✅ (2 files reformatted on save),
+    mypy --strict ✅ (30 source files; +1 from Step 1's 29 = `notifier/_telegram
+    .py`), pytest **515/515** ✅ (+15 tests; 1 initial test fixed for an
+    accidental httpx-private-attr usage; zero regressions in the prior 500).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 

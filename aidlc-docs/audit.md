@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 2 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 2 (`_telegram.py` — httpx HTTP helper) of u4 notifier Code Generation. Created:
+- `src/investo/notifier/_telegram.py` (~125 lines): three exports — `telegram_api_url(bot_token, method="sendMessage")` pure URL builder, `_redact_bot_token(text)` helper using regex `r"/bot[^/\s'\"]+"` to replace `/bot{token}` with `/bot[REDACTED]`, and `async send_message(client, *, bot_token, chat_id, text, parse_mode="Markdown", disable_web_page_preview=False) -> SendResult`. Non-raising contract — catches `httpx.TimeoutException`, `httpx.HTTPError`, non-200 status codes, JSON-parse failures, and Telegram API `{"ok": false}`. Every error string is `_redact_bot_token`-sanitized before landing in `SendResult.error`. Internal-only (leading underscore); not re-exported in Step 6's public surface.
+- `tests/unit/notifier/test_telegram.py` (~210 lines, 15 tests):
+  - URL builder (2): default + custom method.
+  - Happy path via MockTransport (3): canonical Telegram OK response → ok=True with message_id; request body has expected JSON fields (chat_id, text, parse_mode, disable_web_page_preview); request URL contains the bot token (correctly — that's how Telegram auths the call).
+  - Telegram API error (2): `{"ok": false, "description": "chat not found"}` → ok=False with description; non-200 status (429 Too Many Requests) → ok=False with status code in error.
+  - HTTP failures (3): `TimeoutException` → ok=False with "timeout" in error; `ConnectError` → ok=False; invalid JSON response body → ok=False. Non-raising contract pinned (none of these raise).
+  - Bot-token redaction (5): direct `_redact_bot_token` unit tests (single occurrence with bot URL → replaced; multiple occurrences → all replaced; plain text without token → passthrough); end-to-end via `send_message` for both `TimeoutException` and `ConnectError` where the synthetic exception message embeds `https://api.telegram.org/bot{token}/sendMessage` — the resulting `SendResult.error` MUST NOT contain the token.
+**One test fix during writing**: initial test `test_send_message_returns_ok_on_telegram_success` used `httpx._content.json_loads` which doesn't exist in this httpx version; replaced with simpler handler that doesn't introspect the request body (the body-shape coverage is in the separate `test_send_message_request_body_has_expected_fields` test).
+**Sub-agent code review**: DEFERRED to Step 7 (combined u4 review).
+**Quality gate**: ruff ✅, ruff format ✅ (2 files reformatted on save), mypy --strict ✅ (30 source files; +1 from Step 1's 29 = `notifier/_telegram.py`), pytest **515/515 passed in 4.69s** (+15 tests; zero regressions in the prior 500).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 2 complete. Plan checkboxes 2.1 + 2.2 both `[x]`. aidlc-state.md u4 notifier CG column updated to "Step 2 of 8 — _telegram.py". Next: **Step 3** — `summary.py` (`build_summary(briefing, *, site_url, max_units=4096)` with UTF-16-aware truncation; ~10 tests covering Korean truncation, emoji 2-unit-per-codepoint accounting, footer URL preservation).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 2 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 1 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 1 (project bootstrap) of u4 notifier Code Generation. Doc-only / structural changes:
