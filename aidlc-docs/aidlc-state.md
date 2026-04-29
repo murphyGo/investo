@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 10.2 of 10 — CI grep guard) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-9 ✅ + 10.1-10.2 ✅ (CI grep `scripts/check_no_anthropic_sdk.py` + 12 tests); DEBT-006/007/008/009/010/011 registered; 430/430 tests passing; 10.3 (CONTRIBUTING.md) + 10.4 (closeout summary.md) + 10.5 (final quality gate) remain |
+| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 10.3 of 10 — CONTRIBUTING.md) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-9 ✅ + 10.1-10.3 ✅ (CI grep guard + 12 tests + CONTRIBUTING.md updates: Briefing prompts / LLM fixture refresh / PR description checklist for any external network call); DEBT-006/007/008/009/010/011 registered; 430/430 tests passing; 10.4 (closeout summary.md) + 10.5 (final quality gate) remain |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

@@ -69,7 +69,79 @@ Atom 1.0 as the FD originally predicted).
 
 ---
 
+## Briefing prompts
+
+Stage 1 (classification) and Stage 2 (synthesis) prompt bodies for
+the Claude Code CLI live in **exactly one place**:
+`src/investo/briefing/prompts.py`. Four module-level constants own
+the contract:
+
+- `STAGE1_SYSTEM` — Korean classifier role + JSON schema legend.
+- `STAGE1_USER_TEMPLATE` — single placeholder `{items_json}`.
+- `STAGE2_SYSTEM` — Korean writer role + 6-section header rules + R8
+  Korean-prose-with-English-tickers rule + R6 PII-leak prompt-side hint.
+- `STAGE2_USER_TEMPLATE` — `{grouped_sections}` / `{unassigned}` /
+  `{target_date}` placeholders.
+- `STAGE2_SECTION_HEADERS` — the six fixed `## ① ...` → `## ⑥ ...`
+  header strings, re-imported by `pipeline.parse_six_sections` so the
+  prompt-side instruction and the parse-side anchor share a single
+  source of truth.
+
+**Forbidden** (CI-pinned by
+`tests/unit/briefing/test_pipeline_no_prompt_strings.py` and
+`tests/unit/briefing/test_prompts.py`):
+
+- Inlining a prompt-body sentinel substring (e.g.
+  `"market-briefing classifier"`, `"Pre-grouped items"`,
+  `"Section ID legend"`) in any other module under
+  `src/investo/briefing/` — pinned by AST-stripped sentinel grep on
+  `pipeline.py` and `claude_code.py`.
+- Calling `.format(...)` on the SYSTEM constants. They contain
+  literal `{` / `}` characters in the JSON-schema example and would
+  raise `KeyError`.
+- Constructing prompts via f-string interpolation in caller code —
+  use the templates' `.format(**kwargs)` so placeholders are
+  explicit and reviewable.
+
+If you need to evolve the prompts, edit `prompts.py` only, then
+re-record any LLM fixtures whose hashes shift (see next section).
+
+---
+
+## LLM fixture refresh
+
+The briefing pipeline's integration + replay tests use recorded
+`claude` CLI outputs keyed by `sha256(prompt)[:16]`, stored under
+`tests/fixtures/llm/`. To record fresh fixtures (after a prompt
+change, model rev, or new test scenario):
+
+```bash
+INVESTO_LIVE_LLM=1 pytest tests/integration/test_briefing_pipeline_poc.py
+# (or any test that drives the FakeClaudeRunner via this env var)
+```
+
+The runner detects `INVESTO_LIVE_LLM=1`, dispatches the real `claude`
+subprocess for cache misses, and atomically writes
+`tests/fixtures/llm/<sha256>.json` containing
+`{prompt, stdout, stderr, returncode, elapsed_s}`. CI runs in pure
+replay mode (`INVESTO_LIVE_LLM` unset) — a missing fixture fails
+loudly with the prompt prefix and the expected fixture path so the
+fix is obvious.
+
+**Commit** the new `<key>.json` files. They are versioned alongside
+the test that depends on them. Do NOT commit `INVESTO_LIVE_LLM=1` to
+any CI config or env file — fixture recording is a manual developer
+step, not a CI behavior.
+
+If the prompt changes (`prompts.py` edit) but the assertion still
+holds, the old fixture key becomes orphaned. Delete the orphan
+manually; there is no automatic GC.
+
+---
+
 ## PR description checklist
+
+### Source adapters
 
 Every PR adding or touching a Source Adapter must declare the cost
 profile (NFR-002 AC-2.4):
@@ -84,6 +156,26 @@ Reviewers reject PRs that fail the declaration. The CI cost guard
 (`scripts/check_no_paid_apis.py`, run by
 `tests/unit/sources/test_no_paid_apis.py`) blocks the merge if the
 source file references a known paid-API hostname.
+
+### Any new external network call (whole-repo, AC-2.4 extension)
+
+Beyond Source Adapters, **every** PR that introduces a new external
+network call — Telegram, GitHub Pages, the Claude CLI, a future
+publishing target, anything — must declare in the PR body:
+
+- [ ] **What it calls**: hostname or service name
+- [ ] **Cost impact**: confirmed zero (free tier or self-hosted),
+      or document the rationale + non-zero estimate
+- [ ] **Failure mode**: how the pipeline degrades when the endpoint
+      is unreachable (FD R6 / NFR-003 graceful-degradation contract)
+
+Two CI guards back this up at the source level:
+- `scripts/check_no_paid_apis.py` — paid-hostname grep on
+  `src/investo/sources/`.
+- `scripts/check_no_anthropic_sdk.py` — repo-wide ban on the
+  `anthropic` Python SDK and on `subprocess` shell-form / string-form
+  invocations (NFR-002 AC-2.2 / AC-2.3 + NFR-007 AC-7.1 / AC-7.6),
+  run by `tests/unit/briefing/test_no_anthropic_sdk.py`.
 
 ---
 

@@ -696,13 +696,25 @@ string-form subprocess — same grep); AC-D.1, AC-D.2, AC-D.3 (drift).
   - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅
     (22 source files; +0 — `scripts/` is out of strict-mypy scope), pytest **430/430**
     ✅ (+12 new; zero regressions in the prior 418).
-- [ ] **10.3** Update `CONTRIBUTING.md` (existing file from u1 Step 10):
-  - Add a "Briefing prompts" section: prompts live ONLY in `src/investo/briefing/prompts.py`;
-    do not embed in `pipeline.py` or `claude_code.py` (AC-5.2/5.3).
-  - Add a "LLM fixture refresh" section: how to set `INVESTO_LIVE_LLM=1` to record fresh
-    fixtures, and what to commit (`tests/fixtures/llm/<key>.json`).
-  - Add a "PR description checklist" item: any new external network call must declare its cost
-    impact in the PR description (AC-2.4 extension to all units).
+- [x] **10.3** Updated `CONTRIBUTING.md`:
+  - Added **"Briefing prompts"** section (between "Recording a fixture" and
+    "PR description checklist"): the four `Final[str]` constants in
+    `briefing/prompts.py` plus `STAGE2_SECTION_HEADERS` are the single source of truth.
+    Forbidden patterns enumerated: prompt-body sentinels in other modules, `.format(...)`
+    on SYSTEM constants, f-string interpolation. CI pin references both
+    `test_pipeline_no_prompt_strings.py` (executable AST) and `test_prompts.py`
+    (file-read).
+  - Added **"LLM fixture refresh"** section: how to set `INVESTO_LIVE_LLM=1` for
+    recording, what gets written (`<sha256>.json` with prompt + stdout + stderr +
+    returncode + elapsed_s), what to commit, what NOT to commit (env var must not
+    leak into CI config), orphan-fixture cleanup procedure.
+  - Extended **"PR description checklist"** with a second subsection — "Any new
+    external network call (whole-repo, AC-2.4 extension)". Source-adapter checklist
+    stays as-is; new subsection covers Telegram / GitHub Pages / Claude CLI / future
+    publishing targets. Lists the two CI guards backing the rule:
+    `check_no_paid_apis.py` (sources/) and `check_no_anthropic_sdk.py` (repo-wide).
+  - Quality gate: doc-only edit, no source/test changes. ruff + mypy + pytest still
+    green; pytest **430/430** ✅ unchanged.
 - [ ] **10.4** `aidlc-docs/construction/u2-briefing/code/summary.md` — closeout:
   - Files-created table (source + tests).
   - Full 49-AC traceability table (every AC mapped to a canonical test or documented passive

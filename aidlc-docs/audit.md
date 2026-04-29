@@ -1,5 +1,20 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 10.3 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 10.3 (CONTRIBUTING.md updates) of u2 briefing Code Generation. Doc-only edit.
+**Three new / extended sections in `CONTRIBUTING.md`**:
+- **"Briefing prompts"** (new section, between "Recording a fixture" and "PR description checklist"): identifies `briefing/prompts.py` as the single source of truth for the four `Final[str]` prompt constants (`STAGE1_SYSTEM`, `STAGE1_USER_TEMPLATE`, `STAGE2_SYSTEM`, `STAGE2_USER_TEMPLATE`) plus `STAGE2_SECTION_HEADERS` (re-imported by `parse_six_sections` to keep the prompt-side instruction and parse-side anchor share one source). Enumerates forbidden patterns (prompt-body sentinels in other modules, `.format(...)` on SYSTEM constants which contain literal `{}` chars in the JSON-schema example, f-string interpolation in caller code). Documents which CI test pins each rule (AST-stripped `test_pipeline_no_prompt_strings.py` + file-read `test_prompts.py`).
+- **"LLM fixture refresh"** (new section): documents the `INVESTO_LIVE_LLM=1` developer workflow for recording fresh `tests/fixtures/llm/<sha256>.json` files, what each fixture contains (`{prompt, stdout, stderr, returncode, elapsed_s}`), commit etiquette (commit fixtures alongside their tests; do NOT commit `INVESTO_LIVE_LLM=1` to CI config or env files — fixture recording is manual), and orphan-fixture cleanup procedure (no automatic GC).
+- **"PR description checklist"** (extended with new subsection — "Any new external network call (whole-repo, AC-2.4 extension)"): the original Source-Adapter checklist stays intact; new subsection extends the AC-2.4 cost-disclosure rule to *every* PR introducing a new external call (Telegram, GitHub Pages, Claude CLI, future publishing targets). Three checkboxes (what it calls / cost impact / failure mode). References both CI guards backing the rule: `check_no_paid_apis.py` (sources/) and `check_no_anthropic_sdk.py` (repo-wide).
+**Sub-agent code review**: NOT required at this sub-step (doc-only edit; no behavior change).
+**Quality gate**: ruff/format/mypy/pytest unchanged from Step 10.2 baseline. pytest **430/430** ✅ (no test changes).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 10.3 complete. Plan checkbox `10.3` `[x]`; `10.4` (closeout `summary.md`) + `10.5` (final quality gate) remain. aidlc-state.md u2 briefing CG column updated to "Step 10.3 of 10 — CONTRIBUTING.md". Next: **Step 10.4** — `aidlc-docs/construction/u2-briefing/code/summary.md` closeout: files-created table, full 49-AC traceability, US-002 + US-009 closure, FD-vs-impl divergences from steps 2-9, open TECH-DEBT, hand-off notes for u3 publisher.
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 10 of 10, sub-step 10.3.
+
+---
+
 ## Construction — u2 briefing — Code Generation Steps 10.1 + 10.2 COMPLETE ✅ (CI grep guard)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Steps 10.1 + 10.2 (bundled — script + its test) of u2 briefing Code Generation. Created:
