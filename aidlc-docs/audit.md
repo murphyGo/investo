@@ -1,5 +1,53 @@
 # AI-DLC Audit Log
 
+## Construction — u5 orchestrator — Code Generation Step 1 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 1 (bootstrap) of u5 orchestrator Code Generation. Created:
+- `src/investo/orchestrator/__init__.py` (~80 lines): module docstring covering US-005 single-entry pipeline contract, Q9=B failure routing summary (per-source-swallow → SUCCESS / empty-collect → FAILED / BriefingGenerationError → FAILED / Publisher*Error → FAILED / SendResult.ok=False from notify → PARTIAL no-alert / top-level unexpected → main best-effort alert), CLAUDE.md #3 module-boundary recap (u5 is the ONLY unit allowed to import all 4 work units), CLAUDE.md #5 chat_id-disjointness enforcement note (orchestrator validates BEFORE constructing dispatchers), full cross-references to design + NFR + plan docs. `__all__: list[str] = []` placeholder (public re-exports finalized in Step 11).
+- `tests/unit/orchestrator/__init__.py` (empty marker).
+- `tests/unit/orchestrator/conftest.py` (~14 lines): placeholder docstring + explicit cross-reference to DEBT-010/013/016 (per-unit test-helper duplication tracked across u2/u3/u4) so any duplication introduced during u5 has a documented destination.
+**Dependency verification**: repo-wide grep on `pyproject.toml` against TS-10 deny-list (anthropic, tenacity, backoff, pandas_market_calendars, structlog, loguru, pytz, pendulum, pydantic_settings, respx) — all absent. No new external dependency needed for u5 (matches TS-1 ~ TS-9 zero-new-dep posture).
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅, ruff format ✅ (94 files), mypy --strict ✅ (**34 source files**: 33 prior + `orchestrator/__init__.py`), pytest ✅ **556/556 passed in 5.74s** (bootstrap-only; no new tests yet).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 1 complete. Plan checkboxes 1.1 + 1.2 + 1.3 + 1.4 all `[x]`. aidlc-state.md u5 CG column updated to "Step 1 of 13 — bootstrap". Next: **Step 2** — extend `PipelineResult` model with `stage_timings: dict[str, float]` field per AC-001-1 (FD-vs-existing-model reconciliation: existing model has `stages: dict[str, str]` + `duration_seconds: float` but no per-stage timings; new field is backward-compatible with default `{}`).
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 1 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Plan APPROVED ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**User Input**: "approve"
+**AI Response**: Approval recorded. Proceeding to Step 1 (bootstrap).
+**Status**: Code Generation plan APPROVED (13 steps). Beginning Part 2 execution.
+**Context**: u5 orchestrator Code Generation Part 1 (Planning) → Part 2 (Execution) transition.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Plan (Part 1 Planning)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Entered Code Generation stage for u5 orchestrator. Created `aidlc-docs/construction/plans/u5-orchestrator-code-generation-plan.md` with 13 numbered steps covering:
+- **Step 1** Bootstrap (`orchestrator/__init__.py` placeholder + tests/unit/orchestrator scaffolding + dep verification)
+- **Step 2** Extend `PipelineResult` model with `stage_timings: dict[str, float]` field (FD-vs-existing-model reconciliation: existing model has `stages: dict[str, str]` + `duration_seconds: float`; per AC-001-1 we add typed per-stage timings as a new field; backward-compatible default `{}`)
+- **Step 3** `errors.py` — `ConfigError` (env validation failure) + `EmptyCollectError` (internal sentinel for AC-003-2)
+- **Step 4** `date_resolution.py` — `resolve_target_date` with KST weekday/saturday branches + ≥100-example PBT (per AC-006-4)
+- **Step 5** `_stage_collect` (wraps u1 `Aggregator.fetch_all`)
+- **Step 6** `_stage_generate` (wraps u2 `generate_briefing` via `asyncio.to_thread`)
+- **Step 7** `_stage_publish` (wraps u3 `write_briefing` + `commit_and_push` via `asyncio.to_thread`)
+- **Step 8** `_stage_notify_briefing` (wraps u4 `BriefingPublisher.send` + `build_summary`)
+- **Step 9** `run_pipeline` composer — applies Q9=B routing per AC-003-1 ~ AC-003-11; AST-grep tests pin AC-001-3 / AC-001-5 / AC-003-11 (no `asyncio.wait_for(_stage_*` / no stage-level `gather` / no orchestrator retry loops)
+- **Step 10** `main()` entrypoint — 5 env vars validation per AC-007-1; chat_id disjointness ConfigError per AC-007-2 + CLAUDE.md #5; best-effort alert per AC-007-3; exit code mapping (SUCCESS|PARTIAL → 0; FAILED → 1); top-level exception alert per AC-003-7. **Open**: `FailureContext.stage` is `Literal["collect","generate","publish","notify_briefing"]`; orchestrator-stage failures (ConfigError, top-level exception) need a stage value — Step 10.3 ratifies adding `"orchestrator"` to FailureStage Literal in models/results.py if needed (small extension, audit-logged).
+- **Step 11** `__init__.py` public surface (re-exports: `run_pipeline`, `main`, `resolve_target_date`, `ConfigError`, `EmptyCollectError`) + integration test (`tests/integration/test_pipeline.py` ~300 lines wiring all 4 existing mock patterns: httpx.MockTransport for u1+u4 / FakeClaudeRunner for u2 / fake GitRunner for u3 — per AC-006-1 + AC-006-2 + AC-006-3)
+- **Step 12** Sub-agent code review (combined u5 review)
+- **Step 13** Closeout `aidlc-docs/construction/u5-orchestrator/code/summary.md` + final quality gate (~610-620 tests target)
+
+**Approval Prompt**: "Reply 'approve' to begin Step 1, or 'changes [N]' to revise step N."
+**Files modified**: created `aidlc-docs/construction/plans/u5-orchestrator-code-generation-plan.md`; updated `aidlc-docs/aidlc-state.md` (u5 CG column → "CG plan created — Part 1 Planning; awaiting approval"); this audit entry.
+**Status**: Plan ready; awaiting user approve/changes response. On approval: Step 1 (bootstrap) executes per code-generation.md Part 2.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 1 (Planning); awaiting plan approval.
+
+---
+
 ## Construction — u5 orchestrator — NFR Requirements Stage CLOSED ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **User Input**: `/loop /dev-investo and commit and push` (the commit/push authorization arriving on the AIDLC 2-option completion gate, per the established session pattern from u1/u2 stages, signals "Continue to Next Stage" approval).
