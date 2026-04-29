@@ -1,5 +1,22 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 7 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 7 (public surface finalization + integration smoke) of u3 publisher Code Generation. Created/modified:
+- `src/investo/publisher/__init__.py` (~75 lines): replaced bootstrap placeholder with the full public surface — re-exports `write_briefing`, `commit_and_push`, `verify_disclaimer`, `archive_path`, `ARCHIVE_ROOT`, `GitRunner` Protocol, and the 4 error classes (`PublisherError`, `PublisherDisclaimerError`, `PublisherIOError`, `PublisherGitError`). Module docstring documents the canonical orchestrator flow (`write_briefing` → stage path → `commit_and_push`), the 3-class failure-mode taxonomy with operator-alert routing hints, and the module-boundary contract (u3 imports ONLY from `investo.models` + `investo.briefing.disclaimer`; the pipeline / claude_code / prompts / errors / leak_guard / RetryBudget / BriefingGenerationError surface from u2 is explicitly NOT u3's concern).
+- `tests/integration/test_publisher_smoke.py` (~145 lines, 3 tests):
+  - End-to-end orchestrator flow: `monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)` → `write_briefing` writes archive file at `tmp_path/archive/2026/04/2026-04-25.md` with byte-exact content and the disclaimer present → `commit_and_push` with a fake `GitRunner` records exactly 3 invocations with exact argv shapes (`["git", "add", "--", ...]` / `["git", "commit", "-m", "publish 2026-04-25"]` / `["git", "push", "origin", "HEAD"]`).
+  - Public-surface pin: `from investo.publisher import ...` resolves all 9 expected names (5 functions/constants + 4 error classes verified via `issubclass(_, PublisherError)`).
+  - Cross-unit alignment: `verify_disclaimer(DISCLAIMER)` returns True, confirming u3's predicate references the canonical u2 constant.
+**Plan reconciliation (7.3 consolidation)**: original plan had a separate Step 7.3 for `tests/unit/publisher/test_public_surface.py`. Folded into the integration smoke's `test_publisher_public_surface_is_importable` — single home, no overlapping 1-test file. Plan checkbox 7.3 marked `[x]` with this consolidation note.
+**Sub-agent code review**: DEFERRED to Step 8 (combined u3 review).
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (28 source files; +0 — `publisher/__init__.py` was already counted in Step 1's mypy baseline; this step replaces its content), pytest **497/497 passed in 4.64s** (+3 tests; zero regressions in the prior 494).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 7 complete. Plan checkboxes 7.1 + 7.2 + 7.3 all `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 7 of 9 — public surface + smoke". Next: **Step 8** — sub-agent code review of all of u3 (errors / paths / verifier / writer / git_ops / __init__ / smoke). Focus areas per plan: `commit_and_push` retry semantics (whole-pipeline vs per-step), atomic-write contract on FR-006 same-day re-runs, `verify_disclaimer` substring sufficiency, module-boundary verification, subprocess hygiene, failure-mode coverage.
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 7 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 6 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 6 (`git_ops.py` — `commit_and_push` w/ whole-pipeline retry + injectable runner) of u3 publisher Code Generation. Created:

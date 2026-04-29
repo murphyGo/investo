@@ -254,17 +254,36 @@
 
 **Refs**: u3 hand-off notes from u2 summary.md (only `Briefing`, `DISCLAIMER`, `append_disclaimer` consumed; u4/u5 will consume u3's `write_briefing` + `commit_and_push`).
 
-- [ ] **7.1** Finalize `src/investo/publisher/__init__.py`:
-  - Re-export the public surface: `write_briefing`, `commit_and_push`, `verify_disclaimer`, `archive_path`, `ARCHIVE_ROOT`, plus the four error classes.
-  - Module docstring documents what u5 orchestrator should call (`write_briefing` then `commit_and_push`) and the failure-mode contract (any raise = block subsequent stages).
-- [ ] **7.2** `tests/integration/test_publisher_smoke.py` (~80 lines, 1 test):
-  - Construct a valid `Briefing` (with DISCLAIMER) by hand.
-  - Call `write_briefing(briefing, target_date)` — verify the archive file is written.
-  - Call `commit_and_push(message="test", files=[path])` with a fake runner — verify the 3 git invocations fire correctly.
-  - Confirm cross-unit imports work: u3 successfully imports `Briefing` from `investo.models` and `DISCLAIMER` from `investo.briefing.disclaimer`.
-- [ ] **7.3** Public-surface pin test:
-  - `tests/unit/publisher/test_public_surface.py` — assert `from investo.publisher import write_briefing, commit_and_push, verify_disclaimer, archive_path, ARCHIVE_ROOT, PublisherError, PublisherDisclaimerError, PublisherIOError, PublisherGitError` all succeed.
-  - Locks against accidental removals from `__all__`.
+- [x] **7.1** Finalized `src/investo/publisher/__init__.py` (~75 lines):
+  - Re-exports the public surface: `write_briefing`, `commit_and_push`, `verify_disclaimer`,
+    `archive_path`, `ARCHIVE_ROOT`, plus `GitRunner` Protocol and the 4 error classes.
+  - Module docstring documents the orchestrator flow (`write_briefing` → stage path →
+    `commit_and_push`), the 3-class failure-mode taxonomy (Disclaimer / IO / Git) with
+    operator-alert routing hints, and the module-boundary contract (u3 imports only from
+    `investo.models` + `investo.briefing.disclaimer`; explicitly NOT pipeline / claude_code
+    / prompts / errors / leak_guard / RetryBudget / BriefingGenerationError).
+- [x] **7.2** `tests/integration/test_publisher_smoke.py` (~145 lines, 3 tests):
+  - **End-to-end orchestrator flow** (1): `monkeypatch ARCHIVE_ROOT` → `write_briefing`
+    → assert archive file at `tmp_path/archive/2026/04/2026-04-25.md` w/ correct content
+    + disclaimer present → `commit_and_push` with fake runner → assert 3 invocations
+    with exact argv shapes (`["git", "add", "--", ...]` / `["git", "commit", "-m", "publish
+    2026-04-25"]` / `["git", "push", "origin", "HEAD"]`).
+  - **Public-surface pin** (1): `from investo.publisher import ...` resolves all 9
+    expected names (5 functions + ARCHIVE_ROOT + 4 error classes via subclass check).
+    The top-of-file import block would have failed if any name were missing — assertions
+    are belt-and-braces + grep-friendly.
+  - **Cross-unit alignment** (1): `verify_disclaimer(DISCLAIMER)` returns True, confirming
+    u3's predicate references the same canonical constant u2 exports.
+  - **Step 7.3 (separate public-surface pin file)**: NOT needed — folded into 7.2's
+    `test_publisher_public_surface_is_importable` test inside the integration smoke file.
+    Avoids a 1-test file with overlapping coverage. Plan checkbox 7.3 marked `[x]` with
+    this consolidation note.
+- [x] **7.3** Public-surface pin consolidated into 7.2 (`test_publisher_public_surface_is
+  _importable`). No separate `test_public_surface.py` created — single home is cleaner.
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅
+    (28 source files; +0 — `publisher/__init__.py` was already counted in Step 1's mypy
+    baseline; this step replaces its content but doesn't add a new file), pytest
+    **497/497** ✅ (+3 tests; zero regressions in the prior 494).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 
