@@ -62,16 +62,32 @@
 
 **Refs**: component-methods.md (`raises: PublisherIOError` / `raises: PublisherGitError`); unit-of-work DoD (explicit exception on disclaimer miss).
 
-- [ ] **2.1** `src/investo/publisher/errors.py`:
-  - `class PublisherError(Exception)` — base (matches u1 / u2 exception-as-`Exception` precedent, NOT `RuntimeError`).
-  - `class PublisherDisclaimerError(PublisherError)` — pre-publish disclaimer missing. Carries the briefing's `target_date` for diagnostic clarity.
-  - `class PublisherIOError(PublisherError)` — markdown write or path-build failure. `__init__(*, target_date: date, path: Path, cause: BaseException | None)`.
-  - `class PublisherGitError(PublisherError)` — `commit_and_push` retry budget exhausted. `__init__(*, attempt_count: int, last_stderr: str | None, cause: BaseException | None)`. Truncates `last_stderr` to **1024 bytes** (UTF-8 safe, matches u2's `BriefingGenerationError` pattern from AC-7.4).
-- [ ] **2.2** `tests/unit/publisher/test_errors.py`:
-  - Each error class is `Exception` (NOT `RuntimeError`).
-  - Field round-trip on access.
-  - `from`-chain preserves `__cause__`.
-  - 1024-byte UTF-8 truncation safety on `PublisherGitError.last_stderr` (4 boundary tests: at-cap / just-over / far-over / multi-byte mid-character).
+- [x] **2.1** `src/investo/publisher/errors.py` (~140 lines):
+  - `class PublisherError(Exception)` — base (matches u1 / u2 precedent: not RuntimeError).
+  - `class PublisherDisclaimerError(PublisherError)` — `target_date: date` field; message
+    mentions both ISO date + NFR-004 anchor for grep-friendly operator alerts.
+  - `class PublisherIOError(PublisherError)` — `target_date / path / cause`; message
+    includes `type(cause).__name__` (or "no-cause") for fast triage of `OSError`
+    sub-types (PermissionError vs FileNotFoundError vs disk full vs ...).
+  - `class PublisherGitError(PublisherError)` — `attempt_count / last_stderr / cause`;
+    `last_stderr` UTF-8 byte-truncated to 1024 via the same `_truncate_stderr` helper
+    shape as u2's `briefing/errors.py` (errors="ignore" decode for multi-byte safety).
+- [x] **2.2** `tests/unit/publisher/test_errors.py` (~210 lines, 20 tests):
+  - **Inheritance** (4 tests): all 4 classes subclass `Exception`, not `RuntimeError`;
+    the 3 specific classes subclass `PublisherError`.
+  - **PublisherDisclaimerError** (2): `target_date` round-trip; message mentions ISO
+    date + "NFR-004" substring.
+  - **PublisherIOError** (4): full field round-trip; None cause → "no-cause" in message;
+    `type(cause).__name__` in message; `from`-chain preserves `__cause__`.
+  - **PublisherGitError** (8): field round-trip; attempt_count in message; None stderr
+    safe; **4 boundary truncation tests** (at-cap=1024, just-over=1025, far-over=10240,
+    multi-byte safe via Korean `가가` straddling the 1024-byte boundary — verifies
+    `errors="ignore"` decode produces valid UTF-8); `from`-chain preserves cause.
+  - **Public surface** (1): module exports the 4 expected names.
+  - **Smoke** (1): `pytest.raises(PublisherDisclaimerError)` round-trip works.
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅
+    (24 source files; +1 from Step 1's 23 = `publisher/errors.py`), pytest **450/450**
+    ✅ (+20 tests; zero regressions).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest (full suite + new error tests).
 

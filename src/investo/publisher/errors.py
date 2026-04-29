@@ -1,0 +1,139 @@
+"""Error types for u3 publisher.
+
+References:
+    aidlc-docs/inception/application-design/component-methods.md
+        — `PublisherIOError`, `PublisherGitError` raise contracts
+    docs/requirements.md NFR-004 — disclaimer enforcement is the
+        publish-boundary hard block
+
+Error contract:
+
+* ``PublisherDisclaimerError`` is raised by ``write_briefing`` when
+  ``verify_disclaimer`` returns False. The write does NOT happen.
+* ``PublisherIOError`` wraps ``OSError`` raised during the atomic
+  markdown write (mkdir / tmp file write / replace).
+* ``PublisherGitError`` is raised by ``commit_and_push`` after the
+  retry budget is exhausted. ``last_stderr`` is truncated to 1024
+  UTF-8 bytes (mirrors u2 ``BriefingGenerationError`` AC-7.4 pattern
+  so operator-alert excerpts are bounded uniformly across units).
+* All four are subclasses of ``Exception`` (NOT ``RuntimeError``) —
+  matches u1 ``SourceFetchError`` and u2 ``BriefingGenerationError``
+  precedent so ``pytest.raises`` discipline stays consistent.
+"""
+
+from __future__ import annotations
+
+from datetime import date
+from pathlib import Path
+from typing import Final
+
+# Cap on the ``last_stderr`` payload (UTF-8 bytes). Mirrors u2
+# briefing/errors.py ``_STDERR_BYTE_CAP``. Operator alerts include
+# this excerpt; bounding it prevents a 10 MB stderr from a misbehaving
+# ``git`` invocation from landing in the alert text. Byte-safe: a
+# multi-byte sequence cut mid-codepoint is repaired via
+# ``errors="ignore"`` decode.
+_STDERR_BYTE_CAP: Final[int] = 1024
+
+
+def _truncate_stderr(value: str | None) -> str | None:
+    """Truncate ``value`` to ``_STDERR_BYTE_CAP`` UTF-8 bytes."""
+    if value is None:
+        return None
+    encoded = value.encode("utf-8")
+    if len(encoded) <= _STDERR_BYTE_CAP:
+        return value
+    return encoded[:_STDERR_BYTE_CAP].decode("utf-8", errors="ignore")
+
+
+class PublisherError(Exception):
+    """Base class for u3 publisher errors. Subclass before raising —
+    a bare ``PublisherError`` carries no actionable context for the
+    orchestrator's stage guard.
+    """
+
+
+class PublisherDisclaimerError(PublisherError):
+    """Pre-publish disclaimer-missing block (NFR-004).
+
+    Raised by ``write_briefing`` when ``verify_disclaimer`` returns
+    False. The publish does NOT happen; no archive file is written.
+    """
+
+    target_date: date
+
+    def __init__(self, *, target_date: date) -> None:
+        super().__init__(
+            f"refusing to publish briefing for {target_date.isoformat()}: "
+            f"disclaimer missing from rendered_markdown (NFR-004)"
+        )
+        self.target_date = target_date
+
+
+class PublisherIOError(PublisherError):
+    """Atomic markdown write failed.
+
+    Wraps the underlying ``OSError`` (mkdir / tmp write / replace).
+    The destination archive file is guaranteed to be unaffected when
+    this error is raised — the atomic-write contract from Step 5.1.
+    """
+
+    target_date: date
+    path: Path
+    cause: BaseException | None
+
+    def __init__(
+        self,
+        *,
+        target_date: date,
+        path: Path,
+        cause: BaseException | None,
+    ) -> None:
+        super().__init__(
+            f"archive write failed for {target_date.isoformat()} at {path}: "
+            f"{type(cause).__name__ if cause is not None else 'no-cause'}"
+        )
+        self.target_date = target_date
+        self.path = path
+        self.cause = cause
+
+
+class PublisherGitError(PublisherError):
+    """``commit_and_push`` retry budget exhausted (US-006).
+
+    Attributes
+    ----------
+    attempt_count:
+        Total attempts of the full add/commit/push sequence (not
+        per-step). ``1`` = single attempt; matches the ``retries``
+        parameter contract: ``retries=2`` permits up to 3 attempts.
+    last_stderr:
+        Last subprocess stderr from the failing step, truncated to
+        1024 UTF-8 bytes for safe inclusion in operator alerts.
+    cause:
+        Original exception (e.g. ``subprocess.CalledProcessError``).
+    """
+
+    attempt_count: int
+    last_stderr: str | None
+    cause: BaseException | None
+
+    def __init__(
+        self,
+        *,
+        attempt_count: int,
+        last_stderr: str | None,
+        cause: BaseException | None,
+    ) -> None:
+        super().__init__(f"git commit/push failed after {attempt_count} attempts")
+        self.attempt_count = attempt_count
+        self.last_stderr = _truncate_stderr(last_stderr)
+        self.cause = cause
+
+
+__all__ = [
+    "PublisherDisclaimerError",
+    "PublisherError",
+    "PublisherGitError",
+    "PublisherIOError",
+]

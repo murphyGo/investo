@@ -1,5 +1,28 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 2 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 2 (`errors.py` — Publisher exception hierarchy) of u3 publisher Code Generation. Created:
+- `src/investo/publisher/errors.py` (~140 lines) — 4-class hierarchy:
+  - `PublisherError(Exception)` — base.
+  - `PublisherDisclaimerError(PublisherError)` — pre-publish NFR-004 hard block; carries `target_date` and emits a message that mentions both the ISO date and "NFR-004" substring (operator-alert friendly).
+  - `PublisherIOError(PublisherError)` — atomic-write failure wrapper; carries `target_date / path / cause`; message includes `type(cause).__name__` for fast OSError-subtype triage.
+  - `PublisherGitError(PublisherError)` — `commit_and_push` retry-exhaustion; carries `attempt_count / last_stderr / cause`. `last_stderr` UTF-8 byte-truncated to 1024 via local `_truncate_stderr` helper (mirrors u2 `briefing/errors.py` `_STDERR_BYTE_CAP` pattern from AC-7.4); `errors="ignore"` decode handles multi-byte mid-codepoint cuts safely.
+- `tests/unit/publisher/test_errors.py` (~210 lines, 20 tests):
+  - **Inheritance** (4): all 4 subclass `Exception` not `RuntimeError`; 3 specific subclass `PublisherError`.
+  - **PublisherDisclaimerError** (2): `target_date` round-trip; message anchors "2026-04-25" + "NFR-004".
+  - **PublisherIOError** (4): field round-trip; None cause → "no-cause"; `type(cause).__name__` surface; `from`-chain `__cause__` preservation.
+  - **PublisherGitError** (8): field round-trip; attempt_count in message; None stderr safe; **4 boundary truncation tests** (at-cap=1024, just-over=1025, far-over=10240, multi-byte safe via Korean `가가` straddling the 1024-byte boundary — verifies the `errors="ignore"` decode produces valid UTF-8); `from`-chain `__cause__` preservation.
+  - **Surface + smoke** (2): module re-exports expected names; `pytest.raises(PublisherDisclaimerError)` round-trip works.
+**Pattern reuse note**: the `_STDERR_BYTE_CAP` + `_truncate_stderr` helper is duplicated between `briefing/errors.py` and `publisher/errors.py`. Acceptable for now — small, stable, and unit-scoped (each unit's stderr-cap policy is independent in principle even if numerically identical today). Could consolidate into `models/_validators.py` or a future shared `errors_utils` module if more units adopt the cap.
+**Sub-agent code review**: DEFERRED to Step 8 (combined u3 review). Same pattern as u2's per-step reviews vs Step 8.5/9.5/10 final review cadence.
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (24 source files; +1 from Step 1's 23 = `publisher/errors.py`), pytest **450/450 passed in 4.65s** (+20 tests; zero regressions in the prior 430).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 2 complete. Plan checkboxes 2.1 + 2.2 both `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 2 of 9 — errors.py". Next: **Step 3** — `paths.py` (`ARCHIVE_ROOT` constant + pure `archive_path(date) -> Path` per FR-006 directory contract).
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 2 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 1 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 1 (project bootstrap) of u3 publisher Code Generation. Doc-only / structural changes:
