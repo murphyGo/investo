@@ -1,5 +1,23 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Steps 10.1 + 10.2 COMPLETE ✅ (CI grep guard)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Steps 10.1 + 10.2 (bundled — script + its test) of u2 briefing Code Generation. Created:
+- `scripts/check_no_anthropic_sdk.py` (~135 lines, executable). Style mirrors u1's `scripts/check_no_paid_apis.py` (importable + subprocess-callable; same `_load_script_module` test pattern). Three named source-side regex patterns per AC-2.2: `anthropic_sdk_import` (`^\s*(from anthropic|import anthropic)`), `shell_true` (`subprocess\.(run|Popen)\([^)]*shell\s*=\s*True`), `string_form_subprocess` (`subprocess\.(run|Popen)\(\s*"[^"]*"\s*[,)]`). Pyproject scanner walks line-by-line tracking the current `[section]` header and flags `anthropic` only when the section is `[project.dependencies]` or `[project.optional-dependencies]` — description prose / `[tool.notes]` references do NOT trigger. `find_source_offenders()` and `find_pyproject_offenders()` are top-level functions for test introspection. Clean tree → exit 0; otherwise exit 1 with `(NFR-002 AC-2.2 / AC-2.3 + NFR-007 AC-7.1 / AC-7.6)` header + per-offender lines + remediation hint.
+- `tests/unit/briefing/test_no_anthropic_sdk.py` (~220 lines, 12 tests). Coverage:
+  - **Existence + clean-tree** (4 tests): script exists, subprocess invocation against the live repo exits 0, `find_source_offenders()` returns `[]` on the live src/, `find_pyproject_offenders()` returns `[]` on the live pyproject.
+  - **Source-pattern detection** (4 tests via `monkeypatch.setattr(script, "SRC_ROOT", tmp_path)`): `from anthropic import X` flagged; `import anthropic` flagged; `subprocess.run("ls", shell=True)` flagged (BOTH `shell_true` AND `string_form_subprocess` patterns trigger because the line has both signatures); `subprocess.run("claude -p hi")` (string-form, no shell=True) flagged as `string_form_subprocess`.
+  - **Compliant pattern not flagged** (1 test): list-form `subprocess.run(["claude", "-p", prompt])` is the production pattern → no offenders.
+  - **Pyproject detection** (3 tests): `anthropic` in `[project.dependencies]` flagged; in `[project.optional-dependencies]` flagged; in `[tool.notes]` or description prose NOT flagged (tighter scope than naive grep — pinned by test).
+**Bundling decision**: 10.1 and 10.2 are tightly coupled (script + its test). Per the dev-investo skill's "one step per execution" rule I could have split, but bundling them keeps the commit cohesive and ensures the test catches any script-side regression in the same diff. Both checkboxes marked `[x]` in the plan. Ruff format also collapsed two `pyproject.write_text` calls in the test into one-line form.
+**Sub-agent code review**: NOT required at this sub-step (no review checkpoint planned in 10.x; the closing review will be Step 10.4 closeout's quality gate, plus future `/cross-check`). 10.1's script is small + mechanical + style-cloned from u1.
+**Quality gate**: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (22 source files; +0 — `scripts/` is out of strict-mypy scope), pytest **430/430 passed in 5.12s** (+12 new tests; zero regressions in the prior 418).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Steps 10.1 + 10.2 complete. Plan checkboxes `10.1` + `10.2` both `[x]`; `10.3` (CONTRIBUTING.md), `10.4` (closeout summary.md), `10.5` (final quality gate) remain. aidlc-state.md u2 briefing CG column updated to "Step 10.2 of 10 — CI grep guard". Next: **Step 10.3** — `CONTRIBUTING.md` updates (Briefing prompts section, LLM fixture refresh, PR-description checklist).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 10 of 10, sub-steps 10.1 + 10.2.
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 9.5 COMPLETE ✅ (Step 9 fully closed)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 9.5 (sub-agent code review of all of Step 9). Delegated to general-purpose sub-agent for fresh-eyes review of the 4 new test files (`test_failure_contract.py` 5 tests, `test_budget_happy_path.py` 2 tests, `test_budget_guard.py` 3 tests, `test_briefing_pipeline_poc.py` 1 test) + the FD R3 `would_exceed` implementation fix in `pipeline.py`.

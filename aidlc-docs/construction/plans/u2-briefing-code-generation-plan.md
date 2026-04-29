@@ -663,21 +663,39 @@ integration PoC).
 **NFR refs**: AC-2.1, AC-2.2, AC-2.3, AC-2.4 (CI grep); AC-7.1, AC-7.6 (no shell=True / no
 string-form subprocess — same grep); AC-D.1, AC-D.2, AC-D.3 (drift).
 
-- [ ] **10.1** `scripts/check_no_anthropic_sdk.py`:
-  - Greps `src/**/*.py` for the three regexes per AC-2.2:
-    `^\s*(from anthropic|import anthropic)`,
-    `subprocess\.(run|Popen)\([^)]*shell\s*=\s*True`,
-    `subprocess\.(run|Popen)\(\s*"[^"]*"\s*[,)]` (string-form first arg).
-  - Greps `pyproject.toml` for `anthropic` in `[project.dependencies]` or
-    `[project.optional-dependencies]`.
-  - Exit 0 on clean tree, exit 1 with offender list to stderr.
-  - Style mirrors u1's `scripts/check_no_paid_apis.py`.
-- [ ] **10.2** `tests/unit/briefing/test_no_anthropic_sdk.py`:
-  - Script-exists + executable.
-  - Subprocess-runs-cleanly on the current tree (exit 0).
-  - `find_offenders` (importable function) returns empty for the repo.
-  - Monkeypatch a synthetic file with `import anthropic` → script flags it. Same for
-    `shell=True` and string-form `subprocess.run("claude ...")`.
+- [x] **10.1** `scripts/check_no_anthropic_sdk.py` (~135 lines, executable):
+  - Three source-side regex patterns per AC-2.2 (named for stable error output):
+    `anthropic_sdk_import` → `^\s*(from anthropic|import anthropic)`;
+    `shell_true` → `subprocess\.(run|Popen)\([^)]*shell\s*=\s*True`;
+    `string_form_subprocess` → `subprocess\.(run|Popen)\(\s*"[^"]*"\s*[,)]`.
+  - Pyproject scanner — walks line-by-line tracking the current `[section]` header;
+    flags `anthropic` only when the section is `[project.dependencies]` or
+    `[project.optional-dependencies]`. Description prose / `[tool.notes]` references
+    do NOT trigger.
+  - `find_source_offenders()` → `[(path, line_no, pattern_name, line_text)]`;
+    `find_pyproject_offenders()` → `[(line_no, section_header, line_text)]`.
+  - Clean tree → exit 0; otherwise exit 1 with `(NFR-002 AC-2.2 / AC-2.3 + NFR-007
+    AC-7.1 / AC-7.6)` header and per-offender lines + remediation hint.
+  - Style mirrors u1's `scripts/check_no_paid_apis.py` (importable + subprocess-callable;
+    same `_load_script_module` test pattern downstream).
+- [x] **10.2** `tests/unit/briefing/test_no_anthropic_sdk.py` (~220 lines, 12 tests):
+  - **Existence + clean-tree** (4 tests): script file exists, subprocess invocation
+    against the live repo exits 0, `find_source_offenders()` returns `[]`,
+    `find_pyproject_offenders()` returns `[]`.
+  - **Source-pattern detection** (4 tests via `monkeypatch.setattr(script, "SRC_ROOT",
+    tmp_path)`): `from anthropic import X` flagged; `import anthropic` flagged;
+    `subprocess.run("ls", shell=True)` flagged (both `shell_true` AND
+    `string_form_subprocess` patterns trigger — verified); `subprocess.run("claude -p
+    hi")` (string-form, no shell=True) flagged as `string_form_subprocess`.
+  - **Compliant pattern not flagged** (1 test): list-form
+    `subprocess.run(["claude", "-p", prompt])` is the production pattern → no offenders.
+  - **Pyproject detection** (3 tests via `monkeypatch.setattr(script, "PYPROJECT",
+    fake_pyproject)`): anthropic in `[project.dependencies]` flagged; in
+    `[project.optional-dependencies]` flagged; in `[tool.notes]` or description prose
+    NOT flagged (tighter scope than naive grep — pinned by test).
+  - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅
+    (22 source files; +0 — `scripts/` is out of strict-mypy scope), pytest **430/430**
+    ✅ (+12 new; zero regressions in the prior 418).
 - [ ] **10.3** Update `CONTRIBUTING.md` (existing file from u1 Step 10):
   - Add a "Briefing prompts" section: prompts live ONLY in `src/investo/briefing/prompts.py`;
     do not embed in `pipeline.py` or `claude_code.py` (AC-5.2/5.3).
