@@ -97,16 +97,28 @@
 
 **Refs**: FR-006 acceptance criteria (`archive/YYYY/MM/YYYY-MM-DD.md`); unit-of-work module path.
 
-- [ ] **3.1** `src/investo/publisher/paths.py`:
-  - `ARCHIVE_ROOT: Final[Path]` — `Path("archive")`. Relative to repo root; the orchestrator (u5) is responsible for cwd alignment when invoking the pipeline.
-  - `def archive_path(target_date: date) -> Path` — returns `ARCHIVE_ROOT / f"{date.year:04d}" / f"{date.month:02d}" / f"{date.isoformat()}.md"`. Pure function; no I/O.
-  - Module docstring documents the FR-006 directory contract.
-- [ ] **3.2** `tests/unit/publisher/test_paths.py`:
-  - `archive_path(date(2026, 4, 25)) == Path("archive/2026/04/2026-04-25.md")`.
-  - Year-end boundary: `date(2026, 12, 31)` → `archive/2026/12/2026-12-31.md`.
-  - Year-start boundary: `date(2026, 1, 1)` → `archive/2026/01/2026-01-01.md`.
-  - Pre-2000 + post-9999 dates: pass through (no clamping; u3 trusts upstream).
-  - `archive_path` is pure (no side effects, no I/O).
+- [x] **3.1** `src/investo/publisher/paths.py` (~50 lines):
+  - `ARCHIVE_ROOT: Final[Path] = Path("archive")` — repo-root-relative.
+  - `def archive_path(target_date: date) -> Path` — `ARCHIVE_ROOT / YYYY / MM /
+    YYYY-MM-DD.md` with zero-padded year + month. Pure function; no I/O.
+  - Module docstring references FR-006 + cross-units the Step 5.3 decision
+    (`monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)` for tests).
+- [x] **3.2** `tests/unit/publisher/test_paths.py` (~130 lines, 12 tests):
+  - **Constant + signature** (1): `ARCHIVE_ROOT == Path("archive")`, not absolute.
+  - **Happy path** (3): typical `2026-04-25`; single-digit month padded; single-digit
+    day padded.
+  - **Boundaries** (5): year-start (Jan 1), year-end (Dec 31), leap day
+    (`date(2024, 2, 29)`), pre-2000 pass-through, year-9999 pass-through. The pass-
+    through tests pin that u3 trusts upstream date validation (DEBT-002 tracks the
+    model-side bounds question).
+  - **Purity** (2): no filesystem stat-check raised on a non-existent path; the
+    function reads `ARCHIVE_ROOT` at call time so monkeypatch redirection works
+    (proves the Step 5.3 (a) testability claim).
+  - **Public surface** (1): module exports `ARCHIVE_ROOT` + `archive_path`.
+  - Quality gate: ruff ✅ (1 SIM300 auto-fix — `Path("archive") == ARCHIVE_ROOT`
+    literal-first form), ruff format ✅, mypy --strict ✅ (25 source files; +1 from
+    Step 2's 24 = `publisher/paths.py`), pytest **462/462** ✅ (+12 tests; zero
+    regressions in the prior 450).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 

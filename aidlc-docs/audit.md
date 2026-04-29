@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 3 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 3 (`paths.py` — archive directory contract) of u3 publisher Code Generation. Created:
+- `src/investo/publisher/paths.py` (~50 lines): `ARCHIVE_ROOT: Final[Path] = Path("archive")` (repo-root-relative; production runs from repo root) + pure `archive_path(target_date: date) -> Path` returning `ARCHIVE_ROOT / YYYY / MM / YYYY-MM-DD.md` with explicit zero-padded year/month formatting (`f"{year:04d}"`, `f"{month:02d}"`). No filesystem I/O. Module docstring references FR-006 + the Step 5.3 testability decision (monkeypatch `ARCHIVE_ROOT` per-test).
+- `tests/unit/publisher/test_paths.py` (~130 lines, 12 tests):
+  - Constant + signature (1): `ARCHIVE_ROOT == Path("archive")`, not absolute.
+  - Happy path (3): typical `2026-04-25`; month-pad on single-digit input; day-pad via `date.isoformat()` round-trip.
+  - Boundaries (5): year-start, year-end, leap day (`date(2024, 2, 29)`), pre-2000, year-9999 — pass-through tests pin that u3 trusts upstream date validation (DEBT-002 tracks model-side bounds).
+  - Purity (2): no filesystem stat-check on a non-existent path; `ARCHIVE_ROOT` is read at call time (monkeypatch redirection works — proves the Step 5.3 (a) testability claim).
+  - Public surface (1): module exports `ARCHIVE_ROOT` + `archive_path`.
+**Lint note**: ruff flagged one SIM300 issue (`assert ARCHIVE_ROOT == Path("archive")`) and auto-fixed to `assert Path("archive") == ARCHIVE_ROOT` (yoda-comparison rule). Cosmetic; no behavior change.
+**Sub-agent code review**: DEFERRED to Step 8 (combined u3 review).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (25 source files; +1 from Step 2's 24 = `publisher/paths.py`), pytest **462/462 passed in 4.49s** (+12 tests; zero regressions in the prior 450).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 3 complete. Plan checkboxes 3.1 + 3.2 both `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 3 of 9 — paths.py". Next: **Step 4** — `verifier.py` (`verify_disclaimer(briefing_md) -> bool` consuming `DISCLAIMER` from `investo.briefing.disclaimer`; cross-unit boundary AC-4.6).
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 3 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 2 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 2 (`errors.py` — Publisher exception hierarchy) of u3 publisher Code Generation. Created:
