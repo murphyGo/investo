@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date
@@ -85,9 +86,10 @@ class ClassificationResult(BaseModel):
     @field_validator("assignments")
     @classmethod
     def _validate_section_ids(cls, value: dict[int, int]) -> dict[int, int]:
+        valid_str = "{" + ", ".join(str(s) for s in sorted(_VALID_SECTION_IDS)) + "}"
         for k, v in value.items():
             if v not in _VALID_SECTION_IDS:
-                raise ValueError(f"assignments value {v!r} for item id {k} not in {{2, 3, 4, 5}}")
+                raise ValueError(f"assignments value {v!r} for item id {k} not in {valid_str}")
         return value
 
 
@@ -189,19 +191,34 @@ def parse_six_sections(markdown: str) -> tuple[str, str, str, str, str, str]:
     Returns the six bodies in section order. Raises ``ValueError`` if:
 
     * any of the six headers is missing,
+    * any of the six headers appears more than once
+      (inline duplicates would silently fuse adjacent bodies),
     * the headers appear out of order,
     * any body (text between consecutive headers, after strip) is empty.
+
+    The input is NFC-normalized before search. Korean numerals (① … ⑥)
+    are sensitive to Unicode normalization form (NFC vs NFD); LLMs
+    occasionally emit NFD even when the prompt and constants are NFC.
+    A single normalization mismatch would otherwise burn all 3 retry
+    attempts before failing.
 
     Used by both ``_synthesize`` (validation gate before returning) and
     ``generate_briefing`` (final extraction into ``Briefing`` fields).
     Pure: no side effects, no I/O.
     """
+    markdown = unicodedata.normalize("NFC", markdown)
+
     positions: list[int] = []
     for header in STAGE2_SECTION_HEADERS:
-        idx = markdown.find(header)
-        if idx == -1:
+        count = markdown.count(header)
+        if count == 0:
             raise ValueError(f"missing section header: {header!r}")
-        positions.append(idx)
+        if count > 1:
+            raise ValueError(
+                f"section header {header!r} appears {count} times; "
+                f"each header must be unique to avoid silent body fusion"
+            )
+        positions.append(markdown.find(header))
 
     for i in range(len(positions) - 1):
         if positions[i] >= positions[i + 1]:

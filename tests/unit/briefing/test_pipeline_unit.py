@@ -359,6 +359,55 @@ def test_parse_six_sections_rejects_headers_in_wrong_order() -> None:
     assert "out of order" in str(exc.value)
 
 
+def test_parse_six_sections_rejects_inline_duplicate_header() -> None:
+    """H1 regression — a Stage 2 body containing another section's header
+    inline must reject, not silently fuse adjacent bodies.
+
+    Scenario: body ① mentions ``## ② 전일 핵심 이슈`` mid-prose (e.g.,
+    the LLM is referring to "the next section"). Without the count
+    check, ``markdown.find`` returns the inline position, fusing the
+    real ② header into body ①'s region.
+    """
+    markdown = (
+        "## ① 요약\n요약 본문 다음 ## ② 전일 핵심 이슈 도 보세요\n\n"
+        "## ② 전일 핵심 이슈\n이슈 본문\n\n"
+        "## ③ 섹터/수급 동향\n섹터\n\n"
+        "## ④ 지표·이벤트\n지표\n\n"
+        "## ⑤ 주요 종목\n종목\n\n"
+        "## ⑥ 오늘의 관전 포인트\n관전\n"
+    )
+    with pytest.raises(ValueError) as exc:
+        parse_six_sections(markdown)
+    assert "## ② 전일 핵심 이슈" in str(exc.value)
+    assert "appears 2 times" in str(exc.value)
+
+
+def test_parse_six_sections_normalizes_nfd_input_to_nfc() -> None:
+    """H2 regression — markdown emitted in NFD form (jamo decomposition)
+    must still parse, because the constants are NFC and Python string
+    matching is codepoint-exact.
+
+    Without the ``unicodedata.normalize("NFC", ...)`` defense, an LLM
+    that emits the same logical Korean characters in decomposed form
+    would burn all 3 retries on a "missing section header" error.
+    """
+    import unicodedata
+
+    nfd_markdown = unicodedata.normalize("NFD", _VALID_SIX_SECTION_MARKDOWN)
+    # Sanity: the NFD form does NOT contain the NFC header substring.
+    assert "## ① 요약" not in nfd_markdown
+    # But parse_six_sections still accepts it via NFC normalization.
+    bodies = parse_six_sections(nfd_markdown)
+    assert bodies == (
+        "오늘 시장 요약",
+        "핵심 이슈 본문",
+        "섹터 본문",
+        "지표 본문",
+        "종목 본문",
+        "관전 포인트 본문",
+    )
+
+
 # ---------------------------------------------------------------------------
 # ClassificationResult shape pin (defensive)
 # ---------------------------------------------------------------------------

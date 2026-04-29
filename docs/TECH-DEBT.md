@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 2 | 2026-04-27 |
-| Low | 4 | 2026-04-27 |
+| Medium | 3 | 2026-04-27 |
+| Low | 6 | 2026-04-27 |
 
 ---
 
@@ -43,6 +43,16 @@ _No high priority items._
 - **Effort**: ~15 min in u5 orchestrator; ~10 min in u1 sources base.
 - **Priority Reasoning**: Medium — defensive only; would catch upstream typos but does not currently block any real flow.
 
+#### DEBT-007: No byte-exact JSON snapshot test for `serialize_items_for_prompt`
+
+- **Created**: 2026-04-29
+- **Source**: Step 8.5 sub-agent code review (L4 / Q4) of `pipeline.py`
+- **Reference**: AC-6.2 (serialize round-trip), `tests/_helpers/fake_claude_runner.py` (FakeClaudeRunner uses `sha256(prompt)[:16]` as fixture key)
+- **Description**: `serialize_items_for_prompt` produces a JSON string that downstream becomes part of the Stage 1 prompt; that prompt is then SHA-256'd to derive the FakeClaudeRunner fixture key. The serializer is *deterministic in practice* (Python ≥3.7 dict insertion order; explicit field order in the dict literal; `astimezone(UTC).isoformat()` always emits `+00:00`) but no test pins the byte-exact JSON output. A future refactor that, e.g., switches to `json.dumps(payload, sort_keys=True)` or reorders keys would silently invalidate every recorded LLM fixture and break replay.
+- **Suggested Fix**: Add a snapshot test in `test_pipeline_unit.py` that constructs a known `NormalizedItem` and asserts the exact bytes returned by `serialize_items_for_prompt([item])`. Pin both the key order (`{"id": 1, "category": ..., "source": ..., "title": ..., "summary": ..., "url": ..., "ts": ...}`) and the timestamp format (`"+00:00"` not `"Z"`). The PBT shape test does NOT cover this — it only checks the key set, not the order or whitespace.
+- **Effort**: ~15 min including a 2-3 line test addition.
+- **Priority Reasoning**: Medium — the determinism assumption is currently correct but undocumented; the FakeClaudeRunner architecture depends on it. Cheap to pin.
+
 ### Low Priority
 
 #### DEBT-003: `retry_get` 5 MB body cap is post-hoc, not streaming
@@ -74,6 +84,26 @@ _No high priority items._
 - **Suggested Fix**: Switch to `asyncio.create_subprocess_exec("claude", "-p", prompt, stdout=PIPE, stderr=PIPE)` for true async cancellation (sends SIGTERM/SIGKILL to the child on cancellation). Trade-off: changes the runner-seam Protocol shape (no more `subprocess.run` signature compatibility); `FakeClaudeRunner` would need a parallel async-mode entry point. Defer until u5 orchestrator's `wait_for` wrapping is finalized.
 - **Effort**: ~2 hours including FakeClaudeRunner refactor + test migration.
 - **Priority Reasoning**: Low — orchestrator does not currently wrap `call_claude_code` in `wait_for` (the per-call timeout is enforced by `subprocess.run` itself, not asyncio). When u5 lands and the wrapping pattern is concrete, re-evaluate; if u5 takes the simpler "no outer wait_for, trust the inner timeout" path, this can be closed without action.
+
+#### DEBT-008: `_parse_classification` does not catch `RecursionError` on adversarial JSON
+
+- **Created**: 2026-04-29
+- **Source**: Step 8.5 sub-agent code review (M2 / Q5) of `pipeline.py`
+- **Reference**: AC-3.2 (failure contract — BGE wraps LLM-traceable failures), AC-3.4 (programmer errors propagate as-is)
+- **Description**: `_parse_classification` calls `json.loads(stdout)` on raw LLM stdout. Default Python `json.loads` raises `RecursionError` (verified) at JSON nesting depth >~1000. `_classify`'s except clause catches `(json.JSONDecodeError, ValidationError, ValueError)` — `RecursionError` is NOT caught and propagates uncaught from `generate_briefing`, bypassing the BGE failure contract. The contract says LLM-traceable failures map to BGE; a recursion-bomb in stdout is logically an LLM failure, not a programmer error.
+- **Suggested Fix**: Either (a) add a cheap `len(stdout) > 64 * 1024` upper-bound check before `json.loads` and route over-cap to retry as a malformed response, or (b) add `RecursionError` to the except tuple in `_classify`. (a) is more defensible — bounds the bytes you parse, not just the failure mode.
+- **Effort**: ~15 min including unit test.
+- **Priority Reasoning**: Low — Claude does not emit deeply-nested JSON in normal operation, and even if it did the failure surface is "uncaught exception in production" rather than data loss or security. Defense-in-depth, not a hot bug.
+
+#### DEBT-009: `_executable_source` AST helper is duplicated across two test files
+
+- **Created**: 2026-04-29
+- **Source**: Step 8.5 sub-agent code review (L1 / Q8); also flagged in the Step 8.4 docstring
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: The `_executable_source(module)` helper (AST round-trip that strips module + class + function docstrings) appears verbatim in `tests/unit/briefing/test_claude_code.py` and `tests/unit/briefing/test_pipeline_no_prompt_strings.py`. Both copies are ~25 lines. A future fix (e.g., handling decorated functions, async vs sync function defs) needs to land in two places.
+- **Suggested Fix**: Move to `tests/_helpers/ast_helpers.py` (the helpers package already exists per `tests/_helpers/fake_claude_runner.py`). Both call sites import as `from tests._helpers.ast_helpers import executable_source`.
+- **Effort**: ~10 min including import updates.
+- **Priority Reasoning**: Low — the duplication is small and stable. The helper is unlikely to need refactoring in v1.
 
 ---
 

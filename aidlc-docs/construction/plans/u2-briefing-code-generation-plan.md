@@ -474,11 +474,53 @@ round-trip PBT), AC-6.3 (parse_six_sections round-trip PBT).
     same shape means future refactors of one helper update both call sites.
   - Quality gate: ruff ✅, ruff format ✅ (1 new file already formatted), mypy --strict ✅
     (22 source files; +0), pytest **405/405** ✅ (+3 new tests; zero regressions).
-- [ ] **8.5** Sub-agent code review — focus on the retry-loop algorithm (does it correctly
-  decrement the shared budget?), the parse_six_sections regex/split logic (Korean numerals
-  ① through ⑥ are non-ASCII), and the L1 ordering (disclaimer must come AFTER leak_guard? — re-read
-  FD L1 step 9 vs 10: append_disclaimer first, THEN leak_guard scan on the disclaimer-included
-  markdown).
+- [x] **8.5** Sub-agent code review — APPROVE_WITH_FIXES; 0 Critical, 2 High + 4 Medium +
+  4 Low + 3 TECH-DEBT candidates. Applied:
+  - **H1** (`parse_six_sections` silently fuses bodies when a header appears inline in
+    another body) — APPLIED. Added `markdown.count(header) == 1` check after the missing-
+    header check; raises `ValueError` mentioning the offending header + occurrence count.
+    Regression test `test_parse_six_sections_rejects_inline_duplicate_header` pins the new
+    behavior.
+  - **H2** (NFD vs NFC sensitivity — Korean numerals ①-⑥ are decomposable; LLM emitting NFD
+    would break `markdown.find` 3 times then BGE) — APPLIED. `unicodedata.normalize("NFC",
+    markdown)` at top of `parse_six_sections` is a single-pass defensive fix; no behavioral
+    change for already-NFC input. Regression test `test_parse_six_sections_normalizes_nfd
+    _input_to_nfc` verifies an NFD-normalized briefing round-trips.
+  - **L3** (literal `{2, 3, 4, 5}` in field-validator error message would silently lie if
+    `_VALID_SECTION_IDS` ever changed) — APPLIED. Built `valid_str` from
+    `sorted(_VALID_SECTION_IDS)` so the error message and the constant cannot drift.
+    Existing test `test_parse_classification_rejects_invalid_section_id` still matches
+    against the literal `"{2, 3, 4, 5}"` substring (deterministic ordering preserved).
+  - **M1** (final-attempt budget exhaustion delivered as `stage="synthesis"` rather than
+    `stage="budget"`) — DEFERRED. Per agent's analysis: "the ordering is correct as written;
+    you cannot pre-charge an unknown elapsed". Current behavior is defensible per FD R3
+    (budget gate prevents *future dispatch*, doesn't relabel completed-but-over failures);
+    no TECH-DEBT entry needed. Documented in audit log.
+  - **M2** (no `RecursionError` catch on adversarial JSON nesting) — DEFERRED to
+    **DEBT-008** (Low; defense-in-depth, very low real-world likelihood).
+  - **M3** (double-parse `parse_six_sections` in `_synthesize` + `generate_briefing`) —
+    DEFERRED. Both calls operate on the same immutable string; the defensive redundancy is
+    cheap and harmless. Refactor to single-parse can land if/when L1 reordering happens.
+    No TECH-DEBT entry.
+  - **M4** (`Briefing` validator vs `parse_six_sections` agreement) — VERIFIED no
+    divergence. `reject_blank_preserve` is exactly `not value.strip() → raise`; matches
+    `parse_six_sections`'s `if not body:` check (where `body = markdown[start:end].strip()`).
+  - **L1** (`_executable_source` helper duplicated across two test files) — DEFERRED to
+    **DEBT-009** (Low; helper is small and stable).
+  - **L2** (`_BACKOFF_SCHEDULE` magic numbers not pinned by a unit test) — DEFERRED. The
+    inline FD R3 reference comment is sufficient documentation; an explicit test would be
+    a regression-pin of the requirement, not a behavior check.
+  - **L4** (no byte-exact JSON snapshot test for `serialize_items_for_prompt`) — DEFERRED
+    to **DEBT-007** (Medium; FakeClaudeRunner key stability depends on serializer
+    determinism that is currently undocumented + unpinned).
+  - Q1-Q8 specific questions — answered in audit log.
+  - **Recommendation honored**: APPROVE_WITH_FIXES. Both High issues fixed before commit;
+    Mediums and Lows triaged into TECH-DEBT or deferred with rationale.
+  - Quality gate: ruff ✅, ruff format ✅ (58 files; pipeline.py auto-formatted to fix
+    long-line break introduced by L3 fix), mypy --strict ✅ (22 source files; +0), pytest
+    **407/407** ✅ (+2 H1 + H2 regression tests; zero regressions in the prior 405).
+  - **TECH-DEBT additions**: DEBT-007 (M, byte-exact JSON snapshot), DEBT-008 (L,
+    RecursionError catch), DEBT-009 (L, helper deduplication).
 
 **Quality gate**: ruff, mypy --strict, pytest (full suite + pipeline unit + 2 PBTs at 100 each +
 sentinel grep).

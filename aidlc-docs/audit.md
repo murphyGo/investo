@@ -1,5 +1,38 @@
 # AI-DLC Audit Log
 
+## Construction — u2 briefing — Code Generation Step 8.5 COMPLETE ✅ (Step 8 fully closed)
+**Timestamp**: 2026-04-29T00:00:00Z
+**Action**: Executed Step 8.5 (sub-agent code review of all of Step 8) of u2 briefing Code Generation. Delegated to general-purpose sub-agent for fresh-eyes review of `pipeline.py` (8.1) + `test_pipeline_unit.py` (8.2) + `test_pipeline_pbt.py` (8.3) + `test_pipeline_no_prompt_strings.py` (8.4) + the small Step 8 modification to `prompts.py`.
+**Sub-agent verdict**: APPROVE_WITH_FIXES. 0 Critical / 2 High / 4 Medium / 4 Low / 3 TECH-DEBT candidates.
+**High issues — APPLIED before commit**:
+- **H1 — `parse_six_sections` silently fuses bodies on inline-duplicate headers** (`pipeline.py:199-204`). If LLM emits `## ② 전일 핵심 이슈` mid-prose in body ① (e.g., "the next section, ## ② ..."), `markdown.find` returns the inline position; real ② content gets fused into body ①. Fix: added `markdown.count(header) == 1` check after the missing-header check; raises `ValueError` with the offending header + occurrence count. Regression test `test_parse_six_sections_rejects_inline_duplicate_header` pins behavior.
+- **H2 — Unicode normalization sensitivity (NFC vs NFD)** (`pipeline.py:200-204`). `STAGE2_SECTION_HEADERS` constants are NFC; if LLM emits NFD form (jamo decomposition), `str.find` returns -1 because Python string ops are codepoint-exact, not normalization-aware. A single transient NFD reply would burn all 3 retries. Fix: `markdown = unicodedata.normalize("NFC", markdown)` at top of `parse_six_sections`. Single-pass, zero behavioral change for already-NFC input. Regression test `test_parse_six_sections_normalizes_nfd_input_to_nfc` verifies an NFD-normalized briefing round-trips.
+**Low issue — APPLIED**: **L3** — literal `{2, 3, 4, 5}` in field-validator error message would silently lie if `_VALID_SECTION_IDS` ever changed. Fix: built `valid_str = "{" + ", ".join(str(s) for s in sorted(_VALID_SECTION_IDS)) + "}"` so error text and constant cannot drift; deterministic sorted ordering preserves the existing `"{2, 3, 4, 5}"` substring assertion.
+**Medium / Low items — DEFERRED with rationale** (per dev-investo skill review-results triage):
+- **M1** (final-attempt budget exhaustion labeled `stage="synthesis"` not `stage="budget"`) — DEFERRED. Per agent: ordering is correct as written; you cannot pre-charge unknown elapsed. Current behavior is defensible per FD R3 (budget gate prevents *future dispatch*, not relabel of completed-but-over failures). No TECH-DEBT.
+- **M2** (no `RecursionError` catch on adversarial JSON nesting) → **DEBT-008** (Low). Defense-in-depth; Claude doesn't emit deeply-nested JSON in normal operation.
+- **M3** (`parse_six_sections` called twice — once as `_synthesize` gate, once for `generate_briefing` extraction) — DEFERRED. Both calls operate on the same immutable string; defensive redundancy is cheap and harmless. No TECH-DEBT.
+- **M4** (`Briefing` validator vs `parse_six_sections` agreement) — VERIFIED no divergence. `reject_blank_preserve` is exactly `not value.strip() → raise`, matches `parse_six_sections`'s `if not body:` check. No fix needed.
+- **L1** (`_executable_source` helper duplicated across two test files) → **DEBT-009** (Low).
+- **L2** (`_BACKOFF_SCHEDULE` magic numbers not test-pinned) — DEFERRED. Inline FD R3 reference is sufficient.
+- **L4** (no byte-exact JSON snapshot test for `serialize_items_for_prompt`) → **DEBT-007** (Medium). FakeClaudeRunner SHA-256 fixture key stability depends on serializer determinism that's currently correct but unpinned.
+**Q1-Q8 specific questions answered**:
+- Q1 (budget check ordering): correct as designed; M1 is labeling not behavior.
+- Q2 (double-parse drift risk): impossible — same immutable string passed by reference.
+- Q3 (validator could reject body parse accepted): no — both use `not value.strip()`.
+- Q4 (JSON dumps determinism): yes for given input (Python ≥3.7 dict order + dict-literal field order + `+00:00` not `Z`); but NO test pins it → DEBT-007.
+- Q5 (RecursionError on `json.loads`): real concern → DEBT-008.
+- Q6 (`isoformat` format): verified `'2026-04-25T15:00:00+00:00'`; test correct.
+- Q7 (PBT filter blind spot): the filter is too aggressive for production — disguises H1.
+- Q8 (helper duplication): should move to `tests/_helpers/` → DEBT-009.
+**L1 ordering verification (FD L1 step 9 vs 10)**: Confirmed: `pipeline.generate_briefing` (line 409 area) does `full_markdown = append_disclaimer(body_markdown)` THEN `hit = leak_guard_scan(full_markdown)`. The `DISCLAIMER` constant text contains no `@`, no `gh[pousr]_`, no `AKIA`, no `eyJ`, no `010-####-####`, no long base64-alphabet run ≥40 chars — verified safe. Korean compliance prose; no leak-guard false positives.
+**Quality gate**: ruff ✅, ruff format ✅ (58 files; `pipeline.py` auto-formatted to fix long-line break introduced by L3 fix), mypy --strict ✅ (22 source files; +0), pytest **407/407 passed in 7.61s** (+2 H1 + H2 regression tests added to `test_pipeline_unit.py`; zero regressions in the prior 405).
+**TECH-DEBT changes**: 3 added (DEBT-007 Medium, DEBT-008 Low, DEBT-009 Low). 0 resolved.
+**Status**: ✅ Step 8.5 complete; **Step 8 fully closed (8.1-8.5 all `[x]`)**. Plan summary: pipeline.py implemented + 36 tests across 3 test files (28 anchor + 5 PBT + 3 sentinel) + sub-agent review with all High issues fixed. aidlc-state.md u2 briefing CG column updated to "Step 8 of 10 — Step 8 fully closed". Next: Step 9 — `tests/unit/briefing/test_failure_contract.py` + `test_budget_happy_path.py` + `test_budget_guard.py` + `tests/integration/test_briefing_pipeline_poc.py` (FD L9 PoC against u1's recorded FOMC fixture).
+**Context**: Construction phase Code Generation — u2 briefing, Part 2 Step 8 of 10, sub-step 8.5 (final).
+
+---
+
 ## Construction — u2 briefing — Code Generation Step 8.4 COMPLETE ✅
 **Timestamp**: 2026-04-29T00:00:00Z
 **Action**: Executed Step 8.4 (`tests/unit/briefing/test_pipeline_no_prompt_strings.py`) of u2 briefing Code Generation. Created `tests/unit/briefing/test_pipeline_no_prompt_strings.py` (~110 lines, 3 tests) using the `inspect.getsource` + AST-docstring-strip pattern (mirrors the `_executable_source` helper already in `test_claude_code.py`):
