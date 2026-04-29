@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 3 | 2026-04-27 |
-| Low | 8 | 2026-04-27 |
+| Medium | 4 | 2026-04-27 |
+| Low | 9 | 2026-04-27 |
 
 ---
 
@@ -52,6 +52,16 @@ _No high priority items._
 - **Suggested Fix**: Add a snapshot test in `test_pipeline_unit.py` that constructs a known `NormalizedItem` and asserts the exact bytes returned by `serialize_items_for_prompt([item])`. Pin both the key order (`{"id": 1, "category": ..., "source": ..., "title": ..., "summary": ..., "url": ..., "ts": ...}`) and the timestamp format (`"+00:00"` not `"Z"`). The PBT shape test does NOT cover this — it only checks the key set, not the order or whitespace.
 - **Effort**: ~15 min including a 2-3 line test addition.
 - **Priority Reasoning**: Medium — the determinism assumption is currently correct but undocumented; the FakeClaudeRunner architecture depends on it. Cheap to pin.
+
+#### DEBT-012: `_truncate_stderr` helper duplicated across u2 + u3 errors modules
+
+- **Created**: 2026-04-30
+- **Source**: Step 8 sub-agent code review of u3 publisher (M1 finding)
+- **Reference**: NFR-006 (test-suite/source maintainability); NFR-007 AC-7.4 (1024-byte stderr cap)
+- **Description**: `_STDERR_BYTE_CAP: Final[int] = 1024` constant + `_truncate_stderr(value: str | None) -> str | None` helper appear byte-identically in `src/investo/briefing/errors.py` and `src/investo/publisher/errors.py`. u4 notifier will likely need the same cap when bounding error-text payloads to Telegram. Three copies risks silent drift if one site changes the cap value or the `errors="ignore"` decode strategy.
+- **Suggested Fix**: Lift to a shared internal module — `src/investo/_internal/text.py` (new) or extend `src/investo/models/_validators.py`. Both u2 + u3 errors modules import from there. u4 notifier picks it up at construction time.
+- **Effort**: ~20 min including import updates and verifying both unit's truncation tests still pass.
+- **Priority Reasoning**: Medium — promotes to High when u4 introduces a third copy. Address before u4 starts to avoid the third-copy problem.
 
 ### Low Priority
 
@@ -114,6 +124,16 @@ _No high priority items._
 - **Suggested Fix**: Once a second u1 adapter exists (e.g., a price feed or earnings calendar), upgrade the integration test to call `fetch_all(target_date)` and use `monkeypatch` to control adapter responses (one returns FOMC fixture data, one raises `SourceFetchError`). Verify the failed adapter contributes `[]` and the briefing still generates from the remaining items.
 - **Effort**: ~45 min including the second-adapter mock setup. Cannot land before u1 has a second adapter.
 - **Priority Reasoning**: Low — the contract being uncovered is u1's, which has its own unit tests. The integration test still exercises u1→u2 wiring for the only adapter that currently exists. Re-evaluate when a second adapter is added.
+
+#### DEBT-013: u3 publisher test `_build_briefing` fixture duplicated
+
+- **Created**: 2026-04-30
+- **Source**: Step 8 sub-agent code review of u3 publisher (M3 finding)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: `_build_briefing()` helper lives in both `tests/unit/publisher/test_writer.py` and `tests/integration/test_publisher_smoke.py`. Sibling-shape with DEBT-010 (u2 test helper duplication). Will recur when u4 notifier + u5 orchestrator need a `Briefing` fixture.
+- **Suggested Fix**: Lift to a shared `tests/_fixtures/briefings.py` (or extend `tests/_helpers/`) so both unit + integration tests can import. Bundling with DEBT-010's resolution is reasonable since both target test-helper consolidation.
+- **Effort**: ~20 min. Could be folded into DEBT-010's resolution PR.
+- **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk. Address alongside DEBT-010 in a post-u3 cleanup pass.
 
 #### DEBT-009: `_executable_source` AST helper is duplicated across two test files
 

@@ -68,27 +68,62 @@ def _default_runner(
     )
 
 
+def _is_idempotent_commit_noop(result: subprocess.CompletedProcess[str]) -> bool:
+    """Detect ``git commit`` returning rc=1 because the working tree
+    is clean (i.e., the same commit already landed in a prior retry
+    attempt; only the subsequent ``push`` step is what we really
+    need to retry).
+
+    Without this check, the retry loop on a "commit succeeded, push
+    failed" partial state would infinite-loop on rc=1 / "nothing to
+    commit" until the budget exhausts, and raise ``PublisherGitError``
+    with a misleading ``last_stderr`` even though the local commit
+    DID land. Operator alert would mis-route as "publish failed
+    entirely" when the truth is "commit landed, push needs retry".
+
+    Match is case-insensitive substring on stderr OR stdout (git
+    versions vary which stream the message lands on).
+    """
+    if result.returncode == 0:
+        return False
+    haystack = (result.stderr + "\n" + result.stdout).lower()
+    return "nothing to commit" in haystack
+
+
 def _try_attempt(
     runner: GitRunner,
     message: str,
     files: Sequence[Path],
-) -> subprocess.CompletedProcess[str] | None:
+) -> subprocess.CompletedProcess[str]:
     """Run one full ``add → commit → push`` sequence.
 
     Returns the final ``CompletedProcess`` (the ``push`` step) on
-    success (returncode == 0 throughout). Returns the FAILING
-    ``CompletedProcess`` on the first non-zero return — the caller
-    inspects ``stderr`` for diagnostic context.
+    success. Returns the FAILING ``CompletedProcess`` on the first
+    non-zero return — the caller inspects ``stderr`` for diagnostic
+    context.
+
+    A ``git commit`` rc=1 with "nothing to commit, working tree clean"
+    is treated as a no-op success (the partial-success retry case)
+    and the loop proceeds to the ``push`` step.
     """
     add_args = ["git", "add", "--", *(str(p) for p in files)]
     commit_args = ["git", "commit", "-m", message]
     push_args = ["git", "push", "origin", "HEAD"]
 
-    for cmd in (add_args, commit_args, push_args):
-        result = runner(cmd, capture_output=True, text=True, check=False)
-        if result.returncode != 0:
-            return result
-    return result  # last successful step's CompletedProcess
+    # Step 1 — add. Idempotent: re-staging an already-staged file
+    # is a no-op and rc=0.
+    result = runner(add_args, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        return result
+
+    # Step 2 — commit. rc=1 with "nothing to commit" is a no-op
+    # success when retrying after a successful prior commit.
+    result = runner(commit_args, capture_output=True, text=True, check=False)
+    if result.returncode != 0 and not _is_idempotent_commit_noop(result):
+        return result
+
+    # Step 3 — push.
+    return runner(push_args, capture_output=True, text=True, check=False)
 
 
 def commit_and_push(

@@ -1,5 +1,36 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 8 COMPLETE ✅ (sub-agent review w/ H1 fix)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 8 (sub-agent code review of all of u3) of u3 publisher Code Generation. Delegated to general-purpose sub-agent for fresh-eyes review of 6 source files + 6 test files (publisher errors / paths / verifier / writer / git_ops / __init__ + their unit + integration smoke).
+**Sub-agent verdict**: REQUEST_CHANGES on submission (H1 found a real correctness bug) → APPROVE_WITH_FIXES after the H1 fix landed. 0 Critical / 1 High / 3 Medium / 4 Low / 3 TECH-DEBT candidates.
+**H1 (HIGH) — `commit_and_push` partial-success retry was broken**: empirically reproduced. Trace: attempt 1 succeeds at `git add` + `git commit`, fails at `git push origin HEAD` (transient network). Attempt 2 starts fresh — `git add` is idempotent (rc=0, no-op), but `git commit -m msg` returns **rc=1 with stderr "nothing to commit, working tree clean"** because the prior commit already absorbed the staged changes. The previous retry loop interpreted this as a step failure and continued retrying, eventually exhausting the budget and raising `PublisherGitError(attempt_count=3, last_stderr="...nothing to commit...")`. The local commit DID land — only the push failed — but the orchestrator received a "publish failed entirely" signal.
+**H1 fix applied**: added `_is_idempotent_commit_noop(result)` helper that detects rc=1 + "nothing to commit" substring case-insensitively across both stdout AND stderr (git versions vary which stream the message lands on — e.g., 2.34 puts it on stdout). `_try_attempt` now treats this as a no-op success and proceeds to push. The structural refactor also resolved M2 (return type was `| None` for an unreachable case) by replacing the `for cmd in (...)` loop with explicit step-by-step returns. Three new regression tests pin the corrected behavior:
+- Partial-success retry recovery (commit landed in attempt 1, push failed; attempt 2 reaches push successfully via the idempotent-noop detection — total 6 invocations).
+- `nothing to commit` message via stdout (some git versions) — also detected.
+- Real commit failure (rc=1 with `pathspec did not match` stderr) remains a failure — non-regression test ensures the idempotent-noop detection doesn't swallow legitimate failures.
+**L1 fix**: tightened `PublisherIOError.cause` from `BaseException | None` to `OSError | None` (only catch site narrows to OSError; existing tests already use OSError so no breakage).
+**L4 fix**: removed the `_ = os` unused-import-suppression hack in `test_writer.py`. The `os.replace` reference goes through string-form `monkeypatch.setattr("investo.publisher.writer.os.replace", boom)` which resolves at runtime via the writer module's `os` import — the test file's own `import os` was dead.
+**Deferred (with rationale)**:
+- **L2** (`verify_disclaimer` substring vs ends-with anchor) — long-term fix is DEBT-001 (model-side invariant); runtime substring is the safety net. No new TECH-DEBT entry needed.
+- **L3** (tmp filename uniqueness) — single-runner architecture per FR-001 rules out concurrent collisions; stale-tmp test covers crash recovery.
+- **M1** (`_truncate_stderr` u2/u3 duplication) → **DEBT-012** (Medium; promotes to High when u4 introduces a third copy).
+- **M3** (`_build_briefing` test fixture u3 duplication) → **DEBT-013** (Low; sibling-shape with DEBT-010, address jointly).
+**Q1-Q8 specific question answers** (full detail in sub-agent report; key findings):
+- Q1: H1 confirmed via real-git reproduction; fixed.
+- Q2-Q3: tmp uniqueness OK for single-runner; `os.replace` atomicity guaranteed (siblings, same FS).
+- Q4: substring sufficient given DEBT-001 long-term plan.
+- Q5: L1 applied.
+- Q6: M2 implicitly resolved by H1 refactor.
+- Q7-Q8: M1 + M3 deferred to TECH-DEBT.
+**Self-review checklist**: all PASS — module boundary verified (u3 imports only `investo.models` + `investo.briefing.disclaimer`); NFR-004 verify-first ordering pinned; zero new external deps; subprocess hygiene (list-form, no shell=True) confirmed by inspect-test; all 4 error classes have `from`-chain preservation tests; atomic-write contract end-to-end including the "destination unaffected when prior content exists" guarantee.
+**Quality gate after fixes**: ruff ✅ (1 RUF059 unused-tuple-element fixed), ruff format ✅ (1 file reformatted), mypy --strict ✅ (28 source files; +0 — fixes landed in existing files), pytest **500/500 passed in 4.56s** (+3 H1 regression tests; zero regressions in the prior 497).
+**TECH-DEBT changes**: 2 added (DEBT-012 Medium, DEBT-013 Low). 0 resolved. Cumulative new u3 TECH-DEBT: 2 (vs u2's 6).
+**Status**: ✅ Step 8 complete. Plan checkbox 8 `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 8 of 9 — sub-agent review w/ H1 fix". Next: **Step 9** — closeout summary.md (files-created tables + FR-003/006/NFR-004 traceability + US-003/006 closure + 3 ratified divergences (Step 7.3 consolidation + L1 typing tighten + H1 idempotent-commit handling) + open TECH-DEBT inventory + u4 notifier hand-off notes).
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 8 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 7 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 7 (public surface finalization + integration smoke) of u3 publisher Code Generation. Created/modified:

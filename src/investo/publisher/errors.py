@@ -76,18 +76,22 @@ class PublisherIOError(PublisherError):
     Wraps the underlying ``OSError`` (mkdir / tmp write / replace).
     The destination archive file is guaranteed to be unaffected when
     this error is raised — the atomic-write contract from Step 5.1.
+
+    ``cause`` is typed as ``OSError | None`` because the only writer
+    catch site narrows to ``OSError``; tightening the annotation
+    documents the contract.
     """
 
     target_date: date
     path: Path
-    cause: BaseException | None
+    cause: OSError | None
 
     def __init__(
         self,
         *,
         target_date: date,
         path: Path,
-        cause: BaseException | None,
+        cause: OSError | None,
     ) -> None:
         super().__init__(
             f"archive write failed for {target_date.isoformat()} at {path}: "

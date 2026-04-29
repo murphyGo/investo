@@ -289,7 +289,43 @@
 
 ---
 
-### Step 8: Sub-agent code review
+### Step 8: Sub-agent code review — APPROVE_WITH_FIXES (after H1 fix)
+
+- [x] **8** Sub-agent code review executed. Verdict: REQUEST_CHANGES on submission, downgraded
+  to APPROVE_WITH_FIXES after H1 fix. 0 Critical / 1 High / 3 Medium / 4 Low / 3 TECH-DEBT
+  candidates. Applied:
+  - **H1 — `commit_and_push` partial-success retry was broken**. Empirically reproduced:
+    when attempt 1 succeeds at add+commit but fails at push, attempt 2's `git commit`
+    returns rc=1 with "nothing to commit, working tree clean" (because the prior commit
+    absorbed the staged changes). The retry treated this as failure and exhausted the
+    budget, raising `PublisherGitError` with misleading stderr even though the local
+    commit DID land. Fix: added `_is_idempotent_commit_noop(result)` helper that
+    detects rc=1 + "nothing to commit" substring (case-insensitive, checks both stdout
+    and stderr — git versions vary on which stream the message lands). `_try_attempt`
+    now treats this as a no-op success and proceeds to push. Three new regression
+    tests pin the corrected behavior + a real-failure non-regression (rc=1 with a
+    different stderr like "pathspec did not match" remains a failure).
+  - **L1 — `PublisherIOError.cause` typing**: tightened `BaseException | None` →
+    `OSError | None` since the only writer catch site narrows to OSError.
+  - **L4 — `_ = os` cleanup hack** in `test_writer.py` removed; the `os` import was
+    only there to silence ruff but the actual `os.replace` reference goes through the
+    string-form `monkeypatch.setattr` which resolves at runtime.
+  - **M2 — `_try_attempt` return type tightening**: implicitly resolved by the H1
+    refactor — the new step-by-step structure has explicit returns at each fail point;
+    the type signature is now `subprocess.CompletedProcess[str]` (no `| None`).
+  - **L2 — `verify_disclaimer` exact-substring vs ends-with anchor**: deferred. The
+    long-term fix is the model-side invariant in DEBT-001; runtime substring is the
+    safety net. No TECH-DEBT entry added (DEBT-001 already covers).
+  - **M1 + M3 — duplication**: registered as **DEBT-012** (`_truncate_stderr` u2/u3
+    duplication, Medium) and **DEBT-013** (test `_build_briefing` u3 duplication, Low).
+  - **L3 — tmp filename uniqueness**: deferred per FR-001 (single-runner architecture
+    rules out concurrent collisions); existing stale-tmp test covers crash recovery.
+- [x] Quality gate after fixes: ruff ✅ (1 RUF059 unused-tuple-element fixed), ruff
+  format ✅ (1 file reformatted), mypy --strict ✅ (28 source files; +0 — fixes landed
+  in existing files), pytest **500/500** ✅ (+3 H1 regression tests; zero regressions
+  in the prior 497).
+
+### Step 8: Sub-agent code review (legacy spec)
 
 Delegate fresh-eyes review per dev-investo skill §5.1. Focus areas:
 

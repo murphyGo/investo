@@ -15,7 +15,6 @@ Covered behaviors:
 
 from __future__ import annotations
 
-import os
 from datetime import date
 from pathlib import Path
 
@@ -306,8 +305,3 @@ def test_write_briefing_succeeds_when_stale_tmp_exists(
     assert expected.read_text(encoding="utf-8") == briefing.rendered_markdown
     # The stale tmp was overwritten + replaced; no leftover.
     assert not stale_tmp.exists()
-
-
-# Suppress unused-import warning when ``os`` is referenced only for
-# the monkeypatch path string.
-_ = os

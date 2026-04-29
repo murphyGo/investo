@@ -214,6 +214,92 @@ def test_commit_and_push_zero_retries_means_one_attempt() -> None:
 
 
 # ---------------------------------------------------------------------------
+# H1 regression — partial-success retry (commit landed, push failed)
+# ---------------------------------------------------------------------------
+
+
+def test_commit_and_push_handles_partial_success_on_retry() -> None:
+    """H1 regression — Step 8 sub-agent review.
+
+    Scenario: attempt 1 succeeds at `add` + `commit`, fails at `push`.
+    On the retry, `git commit` returns rc=1 with "nothing to commit,
+    working tree clean" because the prior commit already absorbed the
+    staged changes. The retry must treat this as a no-op success and
+    proceed to the `push` step (which now succeeds), NOT exhaust the
+    retry budget with a misleading "publish failed entirely" alert.
+
+    Trace:
+      attempt 1: add(rc=0) → commit(rc=0) → push(rc=1, fail) → record
+      attempt 2: add(rc=0) → commit(rc=1, "nothing to commit") → push(rc=0)
+    Total = 6 invocations; commit_and_push returns normally.
+    """
+    nothing_to_commit = subprocess.CompletedProcess(
+        args=[],
+        returncode=1,
+        stdout="",
+        stderr="nothing to commit, working tree clean",
+    )
+    captured, _, runner = _runner_returning(
+        [
+            _ok(),  # attempt 1: add
+            _ok(),  # attempt 1: commit (succeeds)
+            _ok(returncode=1, stderr="connection reset"),  # attempt 1: push fails
+            _ok(),  # attempt 2: add
+            nothing_to_commit,  # attempt 2: commit (no-op success)
+            _ok(),  # attempt 2: push (succeeds)
+        ]
+    )
+
+    # Must NOT raise — partial-success retry recovers.
+    commit_and_push("publish 2026-04-25", [Path("f.md")], runner=runner)
+
+    assert len(captured) == 6
+
+
+def test_commit_and_push_treats_nothing_to_commit_stdout_as_noop() -> None:
+    """Some git versions print "nothing to commit" to stdout instead of
+    stderr. `_is_idempotent_commit_noop` checks both streams.
+    """
+    noop_via_stdout = subprocess.CompletedProcess(
+        args=[],
+        returncode=1,
+        stdout="On branch main\nnothing to commit, working tree clean\n",
+        stderr="",
+    )
+    captured, _, runner = _runner_returning(
+        [_ok(), noop_via_stdout, _ok()],
+    )
+
+    commit_and_push("msg", [Path("f.md")], runner=runner)
+
+    assert len(captured) == 3
+
+
+def test_commit_and_push_does_not_silently_pass_real_commit_failures() -> None:
+    """A `git commit` rc=1 with stderr that does NOT contain "nothing
+    to commit" remains a real failure (e.g., hook rejected, disk full).
+    The idempotent-noop detection must not regress to swallowing
+    legitimate failures.
+    """
+    real_failure = subprocess.CompletedProcess(
+        args=[],
+        returncode=1,
+        stdout="",
+        stderr="error: pathspec 'f.md' did not match any files\n",
+    )
+    _, _, runner = _runner_returning(
+        [_ok(), real_failure] * 3,
+    )
+
+    with pytest.raises(PublisherGitError) as exc:
+        commit_and_push("msg", [Path("f.md")], runner=runner)
+
+    assert exc.value.attempt_count == 3
+    assert exc.value.last_stderr is not None
+    assert "did not match" in exc.value.last_stderr
+
+
+# ---------------------------------------------------------------------------
 # Programmer-error pass-through
 # ---------------------------------------------------------------------------
 
