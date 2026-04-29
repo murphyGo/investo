@@ -128,16 +128,28 @@
 
 **Refs**: NFR-004 (게시 전 disclaimer 검증 강제); component-methods canonical signature `verify_disclaimer(briefing_md: str) -> bool`; cross-unit AC-4.6 (u3 imports u2's `DISCLAIMER` constant).
 
-- [ ] **4.1** `src/investo/publisher/verifier.py`:
-  - `def verify_disclaimer(briefing_md: str) -> bool` — `return DISCLAIMER in briefing_md`. Imports `DISCLAIMER` from `investo.briefing.disclaimer`. Pure boolean predicate; the caller (`write_briefing` in Step 5) blocks the publish on `False`.
-  - Module docstring documents the cross-unit contract: u3 SHOULD NOT redefine `DISCLAIMER`; the canonical anchor lives in u2.
-- [ ] **4.2** `tests/unit/publisher/test_verifier.py`:
-  - `verify_disclaimer(DISCLAIMER)` → True (trivial substring case).
-  - `verify_disclaimer("")` → False.
-  - `verify_disclaimer(prefix + DISCLAIMER + suffix)` → True (substring check).
-  - `verify_disclaimer(DISCLAIMER[:-5])` → False (truncated disclaimer is NOT acceptable; the constraint is exact-substring).
-  - `verify_disclaimer(altered_disclaimer)` → False (a single-character change to the disclaimer body breaks the check).
-  - **Cross-unit pin**: import `DISCLAIMER` from `investo.briefing.disclaimer` directly in the test and confirm `verify_disclaimer(DISCLAIMER)` returns True. If u2 changes the constant, u3 follows automatically because the import is shared.
+- [x] **4.1** `src/investo/publisher/verifier.py` (~40 lines): pure
+  `verify_disclaimer(briefing_md) -> bool` predicate (`DISCLAIMER in briefing_md`).
+  Imports the canonical `DISCLAIMER` from `investo.briefing.disclaimer` — single
+  source of truth across u2 + u3. Module docstring documents the NFR-004 +
+  AC-4.6 cross-unit contract and the relationship to the future model-side
+  invariant (DEBT-001).
+- [x] **4.2** `tests/unit/publisher/test_verifier.py` (~125 lines, 9 tests):
+  - **Trivial** (2): `verify_disclaimer(DISCLAIMER)` → True; `verify_disclaimer("")`
+    → False.
+  - **Substring semantics** (2): typical 6-section briefing + DISCLAIMER appended
+    at the end → True; arbitrary prefix + suffix wrapping → True.
+  - **Negative safety net** (3): truncated DISCLAIMER (`[:-5]`) → False; altered
+    DISCLAIMER (single Korean char replaced) → False; header-only `"## ⑦ 면책조항\n"`
+    → False (catches LLM-emits-header-but-no-body failure mode).
+  - **Cross-unit pin** (1): `inspect.getsource(verifier_module)` contains
+    `"from investo.briefing.disclaimer import DISCLAIMER"` — locks against a
+    refactor that copies the constant locally and silently desyncs u2 vs u3.
+  - **Public surface** (1): module exports `verify_disclaimer`.
+  - Quality gate: ruff ✅ (1 I001 import-sort auto-fix on a deferred import block;
+    1 file auto-formatted), mypy --strict ✅ (26 source files; +1 from Step 3's 25
+    = `publisher/verifier.py`), pytest **471/471** ✅ (+9 tests; zero regressions
+    in the prior 462).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 

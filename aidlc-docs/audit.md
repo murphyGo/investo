@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 4 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 4 (`verifier.py` — NFR-004 disclaimer-presence predicate) of u3 publisher Code Generation. Created:
+- `src/investo/publisher/verifier.py` (~40 lines): pure predicate `verify_disclaimer(briefing_md: str) -> bool` returning `DISCLAIMER in briefing_md`. Imports the canonical `DISCLAIMER` from `investo.briefing.disclaimer` — the AC-4.6 cross-unit boundary. Module docstring documents the contract: u3 does NOT redefine the constant; the caller (`write_briefing` Step 5) blocks the publish on False; and DEBT-001 tracks the future model-side invariant that would make this module a redundant defense-in-depth layer.
+- `tests/unit/publisher/test_verifier.py` (~125 lines, 9 tests):
+  - Trivial cases (2): exact DISCLAIMER → True, empty string → False.
+  - Substring semantics (2): typical 6-section briefing + DISCLAIMER appended → True; arbitrary prefix/suffix wrapping → True.
+  - Negative safety net (3): truncated DISCLAIMER (`[:-5]`) → False; altered DISCLAIMER (single Korean char replaced) → False; header-only `"## ⑦ 면책조항\n"` → False (catches the failure mode where an LLM emits the section header without a body).
+  - Cross-unit pin (1): AST-grep on `inspect.getsource(verifier_module)` confirms `"from investo.briefing.disclaimer import DISCLAIMER"` — locks against a refactor that copies the constant locally and silently desyncs u2/u3.
+  - Public surface (1): module exports `verify_disclaimer`.
+**Lint notes**: 1 I001 import-sort issue (deferred imports inside `test_verifier_uses_u2_disclaimer_constant`) auto-fixed; 1 file auto-formatted (briefing-construction expression collapsed). Cosmetic only.
+**Sub-agent code review**: DEFERRED to Step 8.
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (26 source files; +1 from Step 3's 25 = `publisher/verifier.py`), pytest **471/471 passed in 4.56s** (+9 tests; zero regressions in the prior 462).
+**TECH-DEBT changes**: None added, none resolved. (The cross-unit AC-4.6 boundary is now pinned both at u2's closeout summary and at u3's runtime predicate + import-grep test.)
+**Status**: ✅ Step 4 complete. Plan checkboxes 4.1 + 4.2 both `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 4 of 9 — verifier.py". Next: **Step 5** — `writer.py` (`write_briefing(briefing, target_date) -> Path`: verify-first → `mkdir -p` → atomic tmp+os.replace write → return path; raises `PublisherDisclaimerError` or `PublisherIOError`).
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 4 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 3 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 3 (`paths.py` — archive directory contract) of u3 publisher Code Generation. Created:
