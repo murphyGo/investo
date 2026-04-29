@@ -345,13 +345,27 @@ After review:
 
 ### Step 9: Closeout summary.md + final quality gate
 
-- [ ] **9.1** `aidlc-docs/construction/u3-publisher/code/summary.md`:
-  - Files-created table (source + tests).
-  - FR-003 / FR-006 / NFR-004 acceptance-criteria traceability (smaller table than u1/u2 — only 3 ACs to pin).
-  - Story status: US-003 ✅ closed, US-006 ✅ closed.
-  - Open TECH-DEBT items (any new ones from u3; cross-unit DEBT-001 / 002 still tracked).
-  - Hand-off notes for **u4 notifier** (who consumes `Briefing` for the public Telegram message; doesn't import u3) and **u5 orchestrator** (who calls `write_briefing` then `commit_and_push` on success).
-- [ ] **9.2** Final quality gate: `ruff check .` ✅, `ruff format --check .` ✅, `mypy --strict src/` ✅ (24 source files: 22 prior + ~5 new u3), `pytest` ✅ (~430 + ~30 u3 = ~460 tests).
+- [x] **9.1** `aidlc-docs/construction/u3-publisher/code/summary.md` written (~165 lines):
+  - Files-created tables (6 source files at 581 LOC + 7 test files at 1,334 LOC; 70 u3
+    tests on top of 430 prior = 500 total).
+  - Surface-area table — 9 public re-exports (5 functions/constants + Protocol +
+    4 error classes) with consumer mapping.
+  - FR-003 / FR-006 / NFR-004 / NFR-007 AC-7.1 / NFR-003 traceability table — every AC
+    relevant to publisher mapped to its canonical test or repo-wide CI grep.
+  - Story closure: US-003 ✅ + US-006 ✅ with brief rationale.
+  - 3 ratified FD-vs-impl divergences: (1) Step 5.3 ARCHIVE_ROOT redirection design
+    decision (a) over (b); (2) Step 7.3 public-surface pin folded into smoke test;
+    (3) Step 8 H1 idempotent-commit handling (`_is_idempotent_commit_noop` detector).
+  - Open TECH-DEBT inventory: 2 new from u3 (DEBT-012/013) + 6 from u2 + 3 from u1
+    + 2 cross-unit (models). 13 total; none block u3.
+  - u4 notifier hand-off: stable surface from `investo.models` (`Briefing`,
+    `BriefingNotification`); u4 does NOT import any u3 symbol; `PublisherGitError
+    .last_stderr` is already 1024-byte truncated for direct operator-alert
+    interpolation.
+- [x] **9.2** Final quality gate: `ruff check .` ✅, `ruff format --check .` ✅
+  (79 files), `mypy --strict src/` ✅ (28 source files: 7 models + 8 sources +
+  7 briefing + 6 publisher), `pytest` ✅ **500/500** (252 u1+models baseline +
+  178 u2 briefing + 70 u3 publisher = 500 total).
 
 **Exit**: ✅ `u3 publisher` Code Generation stage CLOSED. Stories US-003 + US-006 close. The unit is eligible for `/cross-check`. Next: u4 notifier / u5 orchestrator (both SKIP FD/NFR per execution-plan), then u6 infra/CI (YAML), then global Build & Test.
 

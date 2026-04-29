@@ -1,5 +1,39 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 9 COMPLETE ✅ (UNIT FULLY CLOSED)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 9 (closeout summary + final quality gate) of u3 publisher Code Generation. **u3 publisher Code Generation is now FULLY CLOSED** — all 9 plan steps complete.
+**Step 9.1 — closeout summary**: Created `aidlc-docs/construction/u3-publisher/code/summary.md` (~165 lines):
+- Files-created tables: 6 source files at 581 LOC + 7 test files at 1,334 LOC (70 u3 tests).
+- Surface-area table — 9 public re-exports with consumer mapping.
+- FR-003 / FR-006 / NFR-004 / NFR-007 AC-7.1 / NFR-003 traceability — every relevant AC mapped to a canonical test or repo-wide CI grep.
+- Story closure: US-003 (정적 게시) + US-006 (영구 이력 보관) both closed with rationale.
+- 3 ratified FD-vs-impl divergences: Step 5.3 ARCHIVE_ROOT (a)-over-(b); Step 7.3 public-surface pin consolidated into smoke; Step 8 H1 idempotent-commit handling.
+- TECH-DEBT inventory: 2 new from u3 (DEBT-012/013) + 11 cross-unit/pre-existing.
+- u4 notifier hand-off: stable surface from `investo.models`; u4 does NOT import u3; `PublisherGitError.last_stderr` is already 1024-byte truncated for direct operator-alert interpolation.
+**Step 9.2 — final quality gate**:
+- `ruff check .` ✅
+- `ruff format --check .` ✅ (79 files)
+- `mypy --strict src/` ✅ (28 source files: 7 models + 8 sources + 7 briefing + 6 publisher)
+- `pytest -q` ✅ **500 passed in 4.49s**
+**Cumulative project state**:
+- 252 baseline (u1 sources + models) + 178 u2 briefing + 70 u3 publisher = **500 total tests**.
+- 28 mypy-strict source files: 7 models + 8 sources + 7 briefing + 6 publisher.
+- 13 open TECH-DEBT items: 0 critical, 0 high, 4 medium, 9 low. None blocking.
+- 3 of 5 work units now CG-closed: u1 sources ✅, u2 briefing ✅, u3 publisher ✅. Remaining: u4 notifier, u5 orchestrator (then u6 infra/CI YAML, then global Build & Test).
+**Story closure summary** for u3:
+- ✅ **US-003** (정적 게시) — `write_briefing` + `commit_and_push` orchestrated by u5.
+- ✅ **US-006** (영구 이력 보관) — FR-006 directory contract + git history.
+**Sub-agent code review at Step 8**: caught + fixed a real partial-success retry correctness bug (H1) before u5 wires u3 in. Without this catch, every transient `git push` failure recovery would have generated a misleading "publish failed entirely" operator alert despite the local commit having landed. The fix (idempotent-commit detector) + 3 regression tests are now part of the unit's contract.
+**Sub-agent code review**: NOT required at Step 9 (doc-only closeout summary).
+**Quality gate**: ruff/format/mypy/pytest all green at the values listed above.
+**TECH-DEBT changes**: None added at Step 9. Cumulative new TECH-DEBT introduced during u3: **DEBT-012 (Medium), DEBT-013 (Low)** — 2 items (vs u2's 6).
+**Status**: ✅ **u3 publisher Code Generation FULLY CLOSED**. All 9 plan checkboxes `[x]`. aidlc-state.md u3 publisher CG column updated to "✅ Complete (9/9 — CG fully closed 2026-04-30)". Per the dev-investo skill 4B completion protocol: 2-option completion ("Request Changes" / "Continue to Next Stage") is presented in the same response as this audit entry. Per the skill 6.4 unit-completion auto-action: u3 publisher is now eligible for `/cross-check` (along with the still-pending u1 sources + u2 briefing cross-checks from prior Step 0 health checks).
+**Next target**: Per `aidlc-docs/inception/plans/execution-plan.md` and `aidlc-state.md`, **u4 notifier** is the next unit. u4's Functional Design + NFR Requirements are SKIPPED per execution-plan; u4 enters Code Generation directly with a fresh planning cycle.
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 9 of 9 (final). **Stage exit point.**
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 8 COMPLETE ✅ (sub-agent review w/ H1 fix)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 8 (sub-agent code review of all of u3) of u3 publisher Code Generation. Delegated to general-purpose sub-agent for fresh-eyes review of 6 source files + 6 test files (publisher errors / paths / verifier / writer / git_ops / __init__ + their unit + integration smoke).
