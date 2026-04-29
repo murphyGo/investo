@@ -38,7 +38,7 @@
 |------|-------------------|------------------|-----------------|-------|
 | models (foundation) | N/A | N/A | ✅ Complete (8/8) | 101 tests; 5 source files; summary.md written |
 | u1 sources | ✅ Complete | ✅ Complete | ✅ Complete (10/10) | 252 tests; 8 source files / 851 LOC; all 30 NFR ACs pinned; US-001 + US-008 closed; summary.md written; eligible for /cross-check |
-| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 9.2 of 10 — budget happy path) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-8 ✅ + 9.1 ✅ + 9.2 ✅ (… + 5 failure-contract tests + 2 budget happy-path tests pinning AC-1.1 + 300s constant anchor); DEBT-006/007/008/009 registered; 414/414 tests passing; 9.3-9.5 (budget guard + integration PoC + sub-agent review) and 10 (CI guard + closeout) pending |
+| u2 briefing | ✅ Complete | ✅ Complete | ⏳ in progress (Step 9.3 of 10 — budget guard + FD R3 impl fix) | FD + NFR approved 2026-04-28; CG plan approved 2026-04-28 (10 steps, 49 ACs traced); Steps 1-8 ✅ + 9.1-9.3 ✅ (… + 3 budget-guard tests pinning AC-1.4 + AC-1.5; pipeline.py fixed to use `would_exceed(DEFAULT_TIMEOUT_S)` per FD R3 — was incorrectly using post-hoc `check_or_raise`); DEBT-006/007/008/009 registered; 417/417 tests passing; 9.4 (integration PoC) + 9.5 (sub-agent review) and 10 (CI guard + closeout) pending |
 | u3 publisher | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u4 notifier | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
 | u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |

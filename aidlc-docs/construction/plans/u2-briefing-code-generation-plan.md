@@ -578,11 +578,29 @@ calls go through FakeClaudeRunner — pinned by overall test design).
     the latter is exercised in `test_claude_code.py`.
   - Quality gate: ruff ✅, ruff format ✅ (1 file auto-formatted), mypy --strict ✅
     (22 source files; +0), pytest **414/414** ✅ (+2; zero regressions).
-- [ ] **9.3** `tests/unit/briefing/test_budget_guard.py`:
-  - **AC-1.4 + 1.5**: Stage 1 first attempt reports `elapsed_s=200`. RetryBudget records 200.
-    Stage 2 first attempt would push elapsed to 400 → `would_exceed` returns True before dispatch
-    → `BriefingGenerationError(stage="budget")` raised. Assert exactly **2** runner invocations
-    (Stage 1 + the budget-check-fired-early case; Stage 2 never dispatches).
+- [x] **9.3** `tests/unit/briefing/test_budget_guard.py` (~210 lines, 3 tests). **Plus
+  implementation fix**: pipeline.py was using `budget.check_or_raise` (already-exhausted
+  detection) instead of `budget.would_exceed(DEFAULT_TIMEOUT_S)` (FD R3 forward-looking
+  gate). Replaced both `_classify` and `_synthesize` pre-dispatch checks with
+  `would_exceed(DEFAULT_TIMEOUT_S)` per FD R3 ("If the next attempt would exceed budget,
+  raise BGE immediately"). All 414 prior tests still pass after the fix.
+  - **AC-1.4 — Stage 2 gate fires after Stage 1 burns 200 s**: Stage 1 attempt 1 reports
+    `elapsed_s=200` and succeeds; cumulative=200. Stage 2 enters loop; pre-dispatch gate
+    `would_exceed(120)` → 200+120=320 ≥ 300 → True → raises BGE `stage="budget"`. Asserts
+    exactly **1** runner dispatch (Stage 2 never enters its first call). Note: plan said
+    "exactly 2 runner invocations" — that was based on the old `check_or_raise` semantics
+    where Stage 2 attempt 1 had to dispatch+complete before the budget could fire. The
+    FD-R3-correct count is **1** (predictive gate prevents the doomed dispatch).
+  - **AC-1.5 — shared budget across stages**: caller-supplied `RetryBudget` is mutated by
+    both stages. Test asserts the caller's `shared_budget.elapsed_s == 200.0` AFTER the
+    BGE — proves Stage 1's record landed on the SAME instance the Stage 2 gate read.
+  - **Boundary — gate inside a single stage's retry loop**: Stage 1 attempt 1 dispatches,
+    reports 280 s, returns malformed JSON; loop continues to attempt 2 but `would_exceed
+    (120)` → 280+120=400 ≥ 300 → BGE budget. `attempt_count=1` (one completed attempt).
+    Pins the gate fires across a single stage's retries, not just at the stage boundary.
+  - Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (22 source files; +0 — fix
+    landed in existing pipeline.py), pytest **417/417** ✅ (+3 new tests; zero regressions
+    in the prior 414).
 - [ ] **9.4** `tests/integration/test_briefing_pipeline_poc.py` — FD L9 PoC:
   - Use u1's recorded `tests/unit/sources/fixtures/api/fomc-rss/feed.xml` to drive
     `fetch_all(date(2026, 4, 25))`. Get the 2 FOMC items.

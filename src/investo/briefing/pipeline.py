@@ -34,6 +34,7 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from investo.briefing.claude_code import (
+    DEFAULT_TIMEOUT_S,
     ClaudeRunner,
     RetryBudget,
     call_claude_code,
@@ -298,7 +299,21 @@ async def _classify(
     last_cause: BaseException | None = None
 
     for attempt in range(MAX_ATTEMPTS):
-        budget.check_or_raise(stage="classification")
+        # FD R3: pre-dispatch budget gate. If the next attempt would
+        # push cumulative elapsed at or past ``total_budget_s``, raise
+        # immediately rather than dispatching a call we cannot afford.
+        # ``DEFAULT_TIMEOUT_S`` is the worst-case duration of a single
+        # call (the per-call timeout); using it as the estimate is the
+        # conservative choice — a fast call may still be allowed when
+        # remaining budget < timeout, but we cannot prove that ahead
+        # of time.
+        if budget.would_exceed(DEFAULT_TIMEOUT_S):
+            raise BriefingGenerationError(
+                stage="budget",
+                attempt_count=attempt,
+                last_stderr=last_outcome.stderr if last_outcome is not None else None,
+                cause=last_cause,
+            )
         if attempt > 0:
             await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
 
@@ -354,7 +369,16 @@ async def _synthesize(
     last_cause: BaseException | None = None
 
     for attempt in range(MAX_ATTEMPTS):
-        budget.check_or_raise(stage="synthesis")
+        # FD R3: pre-dispatch budget gate. See ``_classify`` for the
+        # rationale — same shape, shared budget across both stages
+        # (AC-1.5).
+        if budget.would_exceed(DEFAULT_TIMEOUT_S):
+            raise BriefingGenerationError(
+                stage="budget",
+                attempt_count=attempt,
+                last_stderr=last_outcome.stderr if last_outcome is not None else None,
+                cause=last_cause,
+            )
         if attempt > 0:
             await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
 
