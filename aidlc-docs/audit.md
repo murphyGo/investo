@@ -1,5 +1,29 @@
 # AI-DLC Audit Log
 
+## Construction — u3 publisher — Code Generation Step 5 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 5 (`writer.py` — atomic markdown write + NFR-004 hard block) of u3 publisher Code Generation. Created:
+- `src/investo/publisher/writer.py` (~85 lines): `write_briefing(briefing, target_date) -> Path` orchestrating verify-first → mkdir → atomic tmp+os.replace → return final path. The atomic-write pattern mirrors u2's `FakeClaudeRunner` fixture write. `OSError` during write/replace wraps in `PublisherIOError` with `target_date` + `path` + `cause`; `contextlib.suppress(OSError)` covers the tmp-file cleanup so the original cause bubbles through unobscured.
+- `tests/unit/publisher/test_writer.py` (~250 lines, 11 tests):
+  - Happy path (3): byte-exact content at correct path; nested year/month dirs created; `Path` return type.
+  - NFR-004 hard block (1): missing DISCLAIMER → `PublisherDisclaimerError`; no file written.
+  - FR-006 same-day overwrite (1): second write replaces first.
+  - Atomic-write contract (2): `os.replace` failure → `PublisherIOError` + no destination file + tmp cleaned up; **AND** when a prior successful write exists, a failed second write leaves prior content untouched (true atomic guarantee).
+  - Public surface (1): module exports `write_briefing`.
+  - `archive_root` used at call time (1): pins Step 5.3 (a) testability claim — `monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path / "archive")` redirection works end-to-end through the writer.
+  - Verify-first ordering (1): on disclaimer failure, no `mkdir` runs.
+  - Stale-tmp cleanup (1): a `.md.tmp` left by a prior crashed run doesn't block a fresh write.
+  - `archive_root` test fixture: introduced in `test_writer.py` for Step 5.3 (a). Could promote to `conftest.py` if other publisher tests need it (defer — only writer tests need it today).
+**Step 5.3 design decision finalized**: option (a) `monkeypatch.setattr(paths_module, "ARCHIVE_ROOT", ...)` confirmed clean. `archive_root: Path | None = None` parameter NOT added to public API. Promote to (b) only if u5 orchestrator surfaces a real need (e.g., a "publish to staging archive" mode).
+**Lint note**: 1 SIM105 issue on the `try/except OSError: pass` cleanup block → replaced with `with contextlib.suppress(OSError):` for cleaner intent. Cosmetic; no behavior change.
+**Sub-agent code review**: DEFERRED to Step 8.
+**Quality gate**: ruff ✅, ruff format ✅ (2 files reformatted on initial save), mypy --strict ✅ (27 source files; +1 from Step 4's 26 = `publisher/writer.py`), pytest **482/482 passed in 4.61s** (+11 tests; zero regressions in the prior 471).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 5 complete. Plan checkboxes 5.1 + 5.2 + 5.3 all `[x]`. aidlc-state.md u3 publisher CG column updated to "Step 5 of 9 — writer.py". Next: **Step 6** — `git_ops.py` (`commit_and_push(message, files, retries=2)` with whole-pipeline retry, list-form subprocess, injectable runner; ~6-test suite covering happy path / transient retry / exhaustion / 1024-byte stderr cap / list-form pin / programmer-error pass-through / backoff schedule).
+**Context**: Construction phase Code Generation — u3 publisher, Part 2 Step 5 of 9.
+
+---
+
 ## Construction — u3 publisher — Code Generation Step 4 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 4 (`verifier.py` — NFR-004 disclaimer-presence predicate) of u3 publisher Code Generation. Created:

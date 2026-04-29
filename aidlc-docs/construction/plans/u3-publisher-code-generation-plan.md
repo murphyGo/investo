@@ -159,24 +159,49 @@
 
 **Refs**: component-methods.md (`write_briefing(briefing, target_date) -> Path; raises PublisherIOError`); FR-003 acceptance criteria; NFR-004 (disclaimer enforcement at publish boundary).
 
-- [ ] **5.1** `src/investo/publisher/writer.py`:
-  - `def write_briefing(briefing: Briefing, target_date: date) -> Path`:
-    - Step 1: Call `verify_disclaimer(briefing.rendered_markdown)`. If False → raise `PublisherDisclaimerError` with `target_date` context. **No write happens** (NFR-004 hard block).
-    - Step 2: Compute `path = archive_path(target_date)`.
-    - Step 3: `path.parent.mkdir(parents=True, exist_ok=True)`.
-    - Step 4: **Atomic write** via tmp file + `os.replace`: write `briefing.rendered_markdown` to `path.with_suffix(".md.tmp")`, then `os.replace(tmp, path)`. Same pattern as u2's `FakeClaudeRunner` fixture write.
-    - Step 5: Return `path`.
-    - On any `OSError` during the write/replace path, raise `PublisherIOError(target_date=..., path=path, cause=exc)` and ensure no partial `.tmp` file is left.
-- [ ] **5.2** `tests/unit/publisher/test_writer.py`:
-  - **Happy path**: a valid Briefing (with disclaimer) writes the markdown to `tmp_path/archive/YYYY/MM/YYYY-MM-DD.md`. Use `monkeypatch` to point `paths.ARCHIVE_ROOT` (or pass `archive_root` explicitly — see open question below) at `tmp_path`. Verify file content equals `briefing.rendered_markdown`.
-  - **Disclaimer missing**: a Briefing whose `rendered_markdown` lacks DISCLAIMER (constructed by mutating a valid one — `model_validate` will accept it because the model doesn't enforce the cross-field invariant per DEBT-001) → raises `PublisherDisclaimerError`. Confirm NO file is created.
-  - **Idempotent overwrite (FR-006 same-day re-run)**: write twice with the same `target_date` and slightly different markdown content. Second write overwrites; final content matches the second write.
-  - **Atomic guarantee**: monkeypatch `os.replace` to raise `OSError`; confirm `PublisherIOError` is raised and the destination file does NOT exist (the tmp file may or may not exist depending on the failure mode — pin only that the destination is unaffected).
-  - **mkdir creates nested year/month dirs**: a fresh `tmp_path` with no `archive/` tree → write succeeds and creates the `2026/04/` hierarchy.
-- [ ] **5.3** **Open design question to resolve at planning approval**: `paths.ARCHIVE_ROOT` is a module-level constant (`Path("archive")`). Tests need to redirect it to a tmp directory. Two options:
-  - (a) `monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path / "archive")` per-test. Simple but requires every test to remember.
-  - (b) Add an `archive_root: Path | None = None` parameter to `write_briefing` (and `archive_path`) defaulting to `ARCHIVE_ROOT`. Opens an injection seam for tests + future operations.
-  - **Recommendation**: (a) for v1 — minimal API surface, matches u1's `_isolate_registry` autouse-fixture pattern. Promote to (b) only if u5 orchestrator surfaces a real need to pass a non-default archive root.
+- [x] **5.1** `src/investo/publisher/writer.py` (~85 lines): `write_briefing(briefing,
+  target_date) -> Path` orchestrating verify-first → mkdir → atomic tmp+os.replace
+  → return final path. ``OSError`` during write/replace is wrapped in
+  ``PublisherIOError`` with ``target_date`` + ``path`` + ``cause``; `contextlib
+  .suppress(OSError)` covers the tmp-file cleanup so the original cause bubbles
+  through. Imports `Briefing` from `investo.models`, `archive_path` from
+  `publisher.paths`, `verify_disclaimer` from `publisher.verifier`, and the two
+  error classes — exactly the surface the orchestrator (u5) needs.
+- [x] **5.2** `tests/unit/publisher/test_writer.py` (~250 lines, 11 tests):
+  - **Happy path** (3): markdown lands at `archive_root/2026/04/2026-04-25.md` with
+    byte-exact content; nested year/month dirs created from a fresh archive tree;
+    return value is a `Path` for the orchestrator to stage.
+  - **NFR-004 hard block** (1): a Briefing whose `rendered_markdown` lacks DISCLAIMER
+    raises `PublisherDisclaimerError` and writes no archive file.
+  - **FR-006 same-day overwrite** (1): two writes with the same `target_date` →
+    second content fully replaces the first.
+  - **Atomic-write contract** (2): monkeypatch `os.replace` to raise `OSError` →
+    `PublisherIOError` raised, destination file absent, tmp file cleaned up; AND
+    when a previous successful write exists, a failed second write leaves the
+    prior content untouched (true atomic guarantee, not just "no destination
+    file").
+  - **Public surface** (1): module exports `write_briefing`.
+  - **archive_root used at call time** (1): proves the Step 5.3 (a) testability
+    claim works end-to-end through the writer (function reads `ARCHIVE_ROOT` at
+    call time via `archive_path`).
+  - **Verify-first ordering** (1): on disclaimer failure, no `mkdir` runs → fresh
+    archive tree stays untouched.
+  - **Stale tmp cleanup** (1): a stale `.md.tmp` left by a prior crashed run does
+    NOT block a fresh write; `open("w")` truncates + `os.replace` atomically
+    promotes; no leftover tmp.
+  - **`archive_root` test fixture**: introduced in `test_writer.py` per Step 5.3 (a)
+    — `monkeypatch.setattr(paths_module, "ARCHIVE_ROOT", tmp_path / "archive")`.
+    Could promote to `conftest.py` if other publisher tests need it (defer; only
+    writer tests need it today).
+- [x] **5.3** Decision (a) confirmed: `ARCHIVE_ROOT` redirection via per-test
+  `monkeypatch.setattr` works cleanly and keeps `write_briefing`'s public API
+  minimal. `archive_root: Path | None = None` parameter NOT added — would only
+  be promoted if u5 orchestrator surfaces a real need.
+  - **Lint**: 1 SIM105 issue (`try/except OSError: pass`) → replaced with
+    `with contextlib.suppress(OSError):` for the tmp-cleanup path. Cosmetic.
+  - Quality gate: ruff ✅, ruff format ✅ (2 files reformatted on initial save),
+    mypy --strict ✅ (27 source files; +1 from Step 4's 26 = `publisher/writer.py`),
+    pytest **482/482** ✅ (+11 tests; zero regressions in the prior 471).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 
