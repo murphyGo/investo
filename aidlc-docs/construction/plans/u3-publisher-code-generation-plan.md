@@ -43,10 +43,18 @@
 
 ### Step 1: Project bootstrap
 
-- [ ] **1.1** Create `src/investo/publisher/__init__.py` — docstring placeholder + empty `__all__: list[str] = []` (public surface finalized in Step 7).
-- [ ] **1.2** Create `tests/unit/publisher/__init__.py` (empty) and `tests/unit/publisher/conftest.py` (placeholder docstring for shared fixtures).
-- [ ] **1.3** Confirm `pyproject.toml` deps are unchanged. No new dependency. mypy --strict source-file count baseline before Step 2.
-- [ ] **1.4** Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅, pytest ✅ (430/430 baseline maintained — bootstrap-only step).
+- [x] **1.1** Created `src/investo/publisher/__init__.py` — docstring describes the
+  3-step publisher contract (verify → atomic write → commit/push) + references plan
+  + canonical `component-methods.md`. `__all__: list[str] = []` (public surface
+  finalized in Step 7).
+- [x] **1.2** Created `tests/unit/publisher/__init__.py` (empty) and
+  `tests/unit/publisher/conftest.py` (placeholder docstring noting per-test fixtures
+  will land with the writer + git_ops tests; references the Step 5.3 design decision
+  (a) for `ARCHIVE_ROOT` redirection).
+- [x] **1.3** `pyproject.toml` deps confirmed unchanged. No new dependency.
+- [x] **1.4** Quality gate: ruff ✅, ruff format ✅ (68 files), mypy --strict ✅
+  (**23 source files**; +1 from u2's 22 baseline = `publisher/__init__.py`),
+  pytest **430/430** ✅ (bootstrap-only step; no new tests yet).
 
 ---
 
