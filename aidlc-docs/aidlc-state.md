@@ -41,7 +41,7 @@
 | u2 briefing | ✅ Complete | ✅ Complete | ✅ Complete (10/10 — CG fully closed 2026-04-30) | FD + NFR + CG all closed; 174 u2 tests + 430/430 total green; bonus PBT NFC-strategy fix landed at 10.5 gate; eligible for /cross-check; US-002 + US-009 closed; DEBT-006/007/008/009/010/011 registered |
 | u3 publisher | ⏭️ SKIP | ⏭️ SKIP | ✅ Complete (9/9 — CG fully closed 2026-04-30) | FD + NFR + CG all closed; 70 u3 tests + 500/500 total green; sub-agent review caught H1 partial-success retry bug (real correctness fix); eligible for /cross-check; US-003 + US-006 closed; DEBT-012/013 registered (2 new) |
 | u4 notifier | ⏭️ SKIP | ⏭️ SKIP | ✅ Complete (8/8 — CG fully closed 2026-04-30) | FD + NFR both SKIP per execution-plan; Steps 1-8 ✅ (bootstrap + _telegram + summary + BriefingPublisher + OperatorAlerter + __init__ public surface + 4-test integration smoke + sub-agent code review APPROVE_WITH_FIXES + closeout summary.md); 33 src files; 56 u4 tests + 556/556 total green; sub-agent review caught M1 bot-token shape regex leak (real NFR-007 fix); eligible for /cross-check; US-004 + US-007 closed; DEBT-014/015/016 registered (3 new) |
-| u5 orchestrator | ⏭️ SKIP | ⏳ pending | ⏳ pending | |
+| u5 orchestrator | ⏭️ SKIP | ⏳ in progress (Step 1 of 6 — questions plan w/ proposed answers awaiting user review) | ⏳ pending | FD = SKIP per execution-plan; NFR Requirements plan created with 10 questions covering NFR-001 timeout / NFR-003 status taxonomy + retry / NFR-005 date res + concurrency + logging / NFR-006 testing / NFR-007 env vars; pre-filled w/ proposed answers based on application-design.md Q9=B + CLAUDE.md rules — awaiting user approve/change pass |
 | u6 infra/CI | N/A | N/A | ⏳ pending | YAML/config only |
 
 ## Extension Configuration

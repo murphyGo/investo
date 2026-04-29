@@ -1,5 +1,25 @@
 # AI-DLC Audit Log
 
+## Construction — u5 orchestrator — NFR Requirements Step 1 COMPLETE ✅ (questions plan created)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Entered NFR Requirements stage for u5 orchestrator (FD = SKIP per execution-plan; NFR Requirements = EXECUTE for NFR-001 ≤10분 enforcement). Created `aidlc-docs/construction/plans/u5-orchestrator-nfr-requirements-plan.md` with 10 questions covering:
+- **Q1** Top-level timeout enforcement (NFR-001) — A/B/C w/ proposed A (trust unit-level + GHA `timeout-minutes: 12` safety net).
+- **Q2** PipelineResult status taxonomy SUCCESS/PARTIAL/FAILED (NFR-003) — proposed: PARTIAL = exactly publish-ok + public-notify-fail; per-source collect failure ≠ PARTIAL.
+- **Q3** Date resolution edge cases (US-005) — A/B/C w/ proposed A (US public holidays handled by operator alert; no `pandas_market_calendars` dep per NFR-002).
+- **Q4** Orchestrator-level meta-retry (NFR-003) — A/B/C w/ proposed A (none; trust unit-level retries; transient failure recovers via next day's cron).
+- **Q5** Concurrency between stages (NFR-001) — confirmed: all stages sequential; only u1 aggregator's asyncio.gather provides intra-stage parallelism.
+- **Q6** Logging strategy (NFR-005/NFR-006) — A/B/C w/ proposed B (Python stdlib `logging`; structlog overkill for 1-person GHA).
+- **Q7** Subprocess + asyncio interaction (tech stack) — A/B w/ proposed A (`asyncio.to_thread` wrap for sync subprocess; matches component-methods.md async signatures).
+- **Q8** Test record/replay strategy (NFR-006) — confirmed: integration test reuses 4 existing mock patterns (httpx.MockTransport + FakeClaudeRunner + GitRunner Protocol); no new mock infrastructure.
+- **Q9** Env var validation (NFR-007/US-005) — A/B w/ proposed A+ (validate at main() entry; if BOT_TOKEN+OPERATOR_CHAT_ID present, single best-effort alert "config error: missing X"; chat_id equality → ConfigError).
+- **Q10** AC depth (planning input) — confirmed ~10-15 AC; Q9=B 7-row policy → 7 AC; date_resolution → 3 AC for weekday/saturday/holiday.
+**Pre-filled with proposed answers** to reduce user review burden — answers grounded in application-design.md (Q9=B Error Policy + Time Budget table), CLAUDE.md project rules (#5 chat_id disjointness, #4 free-API-only), and patterns already shipped in u1-u4 (httpx.MockTransport, FakeClaudeRunner, GitRunner Protocol). User retains full override authority via "change Qn to alternative".
+**No code changes** (NFR Requirements is a design stage). Quality gate not run (no source changes).
+**Status**: Plan checkbox 1 [x]; checkbox 2 (user review pass) awaiting user approve/change response. aidlc-state.md u5 row updated to "Step 1 of 6 — questions plan w/ proposed answers awaiting user review". On approval: Step 3 generates `nfr-requirements.md` + `tech-stack-decisions.md`; Step 5 presents 2-option AIDLC completion.
+**Context**: Construction phase NFR Requirements — u5 orchestrator, Step 1 of 6 (questions generation per `construction/nfr-requirements.md` Step 3).
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 8 COMPLETE ✅ (UNIT CG CLOSED)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 8 (closeout summary.md + final quality gate) of u4 notifier Code Generation. Created:
