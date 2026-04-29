@@ -1,5 +1,17 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 1 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 1 (project bootstrap) of u4 notifier Code Generation. Doc-only / structural changes:
+- `src/investo/notifier/__init__.py` — package docstring describes the US-004 + US-007 dual-class dispatcher contract, the CLAUDE.md #5 chat_id-separation invariant (orchestrator-enforced; class-level kwargs-only ctors prevent positional swap), the non-raising failure-encoding-via-`SendResult` convention, and the bot-token redaction commitment. `__all__: list[str] = []` placeholder (public re-exports finalized in Step 6).
+- `tests/unit/notifier/__init__.py` — empty marker.
+- `tests/unit/notifier/conftest.py` — placeholder docstring noting per-test fixtures (`httpx.MockTransport` factories + `BriefingNotification` / `FailureContext` builders) land with the dispatcher tests in Steps 4 + 5.
+**Quality gate**: ruff ✅, ruff format ✅ (82 files), mypy --strict ✅ (**29 source files**; +1 from u3's closing 28 = `notifier/__init__.py`), pytest **500/500 passed in 4.48s** (bootstrap-only; no new tests yet).
+**Status**: ✅ Step 1 complete. Plan checkboxes 1.1/1.2/1.3/1.4 all `[x]`. aidlc-state.md u4 notifier CG column updated to "Step 1 of 8 — bootstrap". Next: **Step 2** — `_telegram.py` (httpx HTTP helper with `telegram_api_url` builder + `send_message` wrapper that returns `SendResult`; bot-token redaction in error strings via regex sanitization of URL leakage in httpx error messages; ~12 tests via `httpx.MockTransport`).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 1 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Plan APPROVED ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Entered u4 notifier Code Generation. Per `aidlc-docs/inception/plans/execution-plan.md`, u4 SKIPS Functional Design + NFR Requirements (notifier is "텔레그램 분배 — HTTP call wrapping"; FD/NFR not needed). Created `aidlc-docs/construction/plans/u4-notifier-code-generation-plan.md` (~290 lines, 8 numbered steps with `[ ]` checkboxes).

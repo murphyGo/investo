@@ -52,10 +52,20 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 ### Step 1: Project bootstrap
 
-- [ ] **1.1** Create `src/investo/notifier/__init__.py` — docstring placeholder + empty `__all__: list[str] = []` (public surface finalized in Step 6).
-- [ ] **1.2** Create `tests/unit/notifier/__init__.py` (empty) and `tests/unit/notifier/conftest.py` (placeholder docstring for shared fixtures).
-- [ ] **1.3** Confirm `pyproject.toml` deps unchanged. `httpx` already locked from u1.
-- [ ] **1.4** Quality gate clean: ruff, ruff format, mypy --strict (29 source files; +1 from u3's 28), pytest 500/500 baseline.
+- [x] **1.1** Created `src/investo/notifier/__init__.py` — docstring describes the
+  US-004 + US-007 dual-class dispatcher contract, the chat_id-separation
+  invariant (CLAUDE.md #5), the non-raising failure-encoding-via-SendResult
+  convention, and the bot-token redaction commitment. `__all__: list[str] = []`
+  placeholder (public re-exports finalized in Step 6).
+- [x] **1.2** Created `tests/unit/notifier/__init__.py` (empty) and
+  `tests/unit/notifier/conftest.py` (placeholder noting per-test fixtures
+  — `httpx.MockTransport` factories + `BriefingNotification` /
+  `FailureContext` builders — land with the dispatcher tests in Steps 4 + 5).
+- [x] **1.3** `pyproject.toml` deps confirmed unchanged. `httpx` already locked
+  from u1; no new external dep.
+- [x] **1.4** Quality gate: ruff ✅, ruff format ✅ (82 files), mypy --strict ✅
+  (**29 source files**; +1 from u3's 28 = `notifier/__init__.py`), pytest
+  **500/500** ✅ (bootstrap-only step; no new tests yet).
 
 ---
 
