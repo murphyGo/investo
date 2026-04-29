@@ -1,5 +1,25 @@
 # AI-DLC Audit Log
 
+## Construction — u4 notifier — Code Generation Step 3 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 3 (`summary.py` — UTF-16-aware `build_summary`) of u4 notifier Code Generation. Created:
+- `src/investo/notifier/summary.py` (~95 lines): `DEFAULT_MAX_UNITS: Final[int] = 4096` mirrors the model's `TELEGRAM_MESSAGE_LIMIT`; `_utf16_units(text)` helper using `len(text.encode("utf-16-le")) // 2` (same formula as the BriefingNotification model validator); `_utf16_truncate(text, max_units)` surrogate-pair-safe (drops orphan high surrogate after slicing if a non-BMP codepoint would be split mid-pair); `build_summary(briefing, *, site_url, max_units=DEFAULT_MAX_UNITS) -> str` composes `📈 {date} 시황 요약\n\n{body}\n\n상세보기: {url}`. Footer URL always preserved; body truncated with "…" suffix when overflow.
+- `tests/unit/notifier/test_summary.py` (~225 lines, 16 tests):
+  - UTF-16 helpers (5): `_utf16_units` for ASCII / Korean (1 per char) / emoji (2 per codepoint); `_utf16_truncate` passthrough + drops partial surrogate pair (`AB📈CD` truncated to 3 units → `AB`, dropping the orphan high surrogate); zero-max returns "".
+  - Happy path (3): summary contains target_date + market_summary + URL + emoji header; short summary has no "…" suffix; result fits under DEFAULT_MAX_UNITS.
+  - Truncation (4): 5000-char Korean → truncated, footer preserved, "…" present; 2100 emoji (4200 units) → truncated (verifies UTF-16 accounting; `len()` would have said 2100 chars and incorrectly thought it fits); footer URL survives long body; `…\n\n상세보기:` pattern exact.
+  - Defense-in-depth (1): summary round-trips through `BriefingNotification`'s own 4096-unit validator without raising. Belt-and-braces — if `build_summary` ever miscalculates the budget by 1 unit, the model rejects on construction.
+  - Custom max_units (1): `max_units=200` → result fits, footer still preserved.
+  - Public surface (1): exports `build_summary` + `DEFAULT_MAX_UNITS=4096`.
+**One test bug fixed during writing**: original "2000 emoji" assumption miscalculated. Recalculation: header (21 units) + footer (61 units) + body 4000 units (2000 emoji) = 4082 units, which actually FITS under 4096. The test was updated to use 2100 emoji (4200 units, guaranteed overflow) so the truncation path is exercised. Pin the lesson: header+footer overhead matters when validating the truncation contract; pick a body that overflows the available budget, not the gross cap.
+**Sub-agent code review**: DEFERRED to Step 7 (combined u4 review).
+**Quality gate**: ruff ✅, ruff format ✅, mypy --strict ✅ (31 source files; +1 from Step 2's 30 = `notifier/summary.py`), pytest **531/531 passed in 4.71s** (+16 tests; zero regressions in the prior 515).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 3 complete. Plan checkboxes 3.1 + 3.2 both `[x]`. aidlc-state.md u4 notifier CG column updated to "Step 3 of 8 — summary.py". Next: **Step 4** — `briefing_publisher.py` (`BriefingPublisher` class with kwargs-only ctor, `send(payload: BriefingNotification) -> SendResult`, default `httpx.AsyncClient` if `http=None`).
+**Context**: Construction phase Code Generation — u4 notifier, Part 2 Step 3 of 8.
+
+---
+
 ## Construction — u4 notifier — Code Generation Step 2 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 2 (`_telegram.py` — httpx HTTP helper) of u4 notifier Code Generation. Created:

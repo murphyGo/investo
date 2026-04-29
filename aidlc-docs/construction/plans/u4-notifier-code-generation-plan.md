@@ -111,44 +111,34 @@ The two classes themselves do not assert disjointness at the unit level (each on
 
 **Refs**: component-methods.md (`build_summary(briefing, max_chars=4096) -> str`); FR-004 (4096-unit Telegram cap COUNTED IN UTF-16 CODE UNITS — emoji = 2 units); `BriefingNotification` model already validates this on construction.
 
-- [ ] **3.1** `src/investo/notifier/summary.py`:
-  - `def build_summary(briefing: Briefing, *, site_url: str, max_units: int = 4096) -> str`
-    — composes the public-channel preview text:
-    ```
-    📈 {target_date.isoformat()} 시황 요약
-
-    {market_summary first ~N chars}
-
-    상세보기: {site_url}
-    ```
-    Layout: emoji header + ISO date + 1-line gap + truncated `briefing.market_summary` +
-    1-line gap + `상세보기: {site_url}` link footer.
-  - **UTF-16 length accounting**: use `len(s.encode("utf-16-le")) // 2` to count units.
-    Non-BMP chars (emoji, certain CJK) consume 2 units per code point; Python's `len`
-    is by code point and would under-count. Truncation algorithm: peel chars off the
-    body until the full message fits under `max_units`, append "…" (1 unit) when
-    truncated. Footer URL is preserved (never truncated — site link is the whole point).
-  - Return value is the SUMMARY TEXT only — `BriefingPublisher.send` wraps it in a
-    `BriefingNotification(summary_text=..., site_url=..., target_date=...)` which
-    re-validates the 4096 cap as a defense-in-depth.
-- [ ] **3.2** `tests/unit/notifier/test_summary.py` (~10 tests):
-  - **Happy path** (2): a typical Briefing → summary contains target_date ISO,
-    market_summary substring, site_url. Manual UTF-16 length check stays under 4096.
-  - **Korean truncation** (2): a 5000-char Korean `market_summary` → truncated body
-    fits under 4096 units; "…" suffix appended; URL preserved verbatim at end.
-  - **Emoji 2-unit-per-codepoint accounting** (2): a market_summary containing 2000
-    📈 emojis (4000 UTF-16 units even though `len()` says 2000) → truncated to fit;
-    pin the UTF-16 measurement.
-  - **Trivial Briefing** (1): minimum-length `market_summary` ("요약") → summary fits
-    well under cap; no truncation suffix.
-  - **Footer always preserved** (1): even at the 4096-unit boundary, the
-    `상세보기: {url}` footer + URL is intact.
-  - **Round-trip via BriefingNotification** (1): the constructed summary, when fed
-    back to `BriefingNotification(summary_text=..., site_url=..., target_date=...)`,
-    passes the model's own 4096-unit validator. Belt-and-braces with the build-time
-    truncation.
-  - **Defense-in-depth max_units override** (1): caller can set a tighter
-    `max_units=200` (e.g., for a future SMS gateway); truncation respects it.
+- [x] **3.1** `src/investo/notifier/summary.py` (~95 lines):
+  - `DEFAULT_MAX_UNITS: Final[int] = 4096` mirrors the model's
+    TELEGRAM_MESSAGE_LIMIT.
+  - `_utf16_units(text)` helper using `len(text.encode("utf-16-le")) // 2`
+    formula (same as the BriefingNotification model validator).
+  - `_utf16_truncate(text, max_units)` — surrogate-pair safe truncation
+    (drops orphan high surrogates after slicing).
+  - `build_summary(briefing, *, site_url, max_units=DEFAULT_MAX_UNITS) -> str`
+    — composes `📈 {date} 시황 요약\n\n{body}\n\n상세보기: {url}`. Footer URL
+    always preserved; body truncated with "…" suffix when overflow.
+- [x] **3.2** `tests/unit/notifier/test_summary.py` (~225 lines, 16 tests):
+  - **UTF-16 helpers** (5): `_utf16_units` for ASCII / Korean / emoji (2 per codepoint);
+    `_utf16_truncate` passthrough + drops partial surrogate pair + zero-max returns "".
+  - **Happy path** (3): summary contains target_date + market_summary + URL + emoji
+    header; short summary has no "…" suffix; result fits under 4096 units.
+  - **Truncation** (4): 5000-char Korean → truncated, footer preserved, "…" present;
+    2100 emoji (4200 units) → truncated (verifies UTF-16 accounting; `len()` would
+    have said it fits); footer URL survives; "…\n\n상세보기:" pattern exact.
+  - **Defense-in-depth** (1): summary round-trips through BriefingNotification's
+    own 4096-unit validator without raising.
+  - **Custom max_units** (1): `max_units=200` → result fits, footer still preserved.
+  - **Public surface** (1): module exports `build_summary` + `DEFAULT_MAX_UNITS=4096`.
+  - **One test bug fixed during writing**: original "2000 emoji" test assumed truncation
+    triggers; recalculated header(21)+footer(61)+body(4000)=4082 actually fits under
+    4096. Fixed by using 2100 emoji (4200 units) which guarantees overflow.
+  - Quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (31 source files; +1
+    from Step 2's 30 = `notifier/summary.py`), pytest **531/531** ✅ (+16 tests;
+    zero regressions in the prior 515).
 
 **Quality gate**: ruff, ruff format, mypy --strict, pytest.
 
