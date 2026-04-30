@@ -1,5 +1,87 @@
 # AI-DLC Audit Log
 
+## Construction — u5 orchestrator — Code Generation Step 5 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 5 (`pipeline.py` — `_stage_collect` wraps u1 aggregator) of u5 orchestrator Code Generation. Created:
+- `src/investo/orchestrator/pipeline.py` (~95 lines): incremental build target — module docstring describes the per-step assembly across plan Steps 5-9 (this commit lands `_stage_collect` only).
+  - `CollectCallable = Callable[[date], Awaitable[list[NormalizedItem]]]` type alias for the injectable aggregator surface.
+  - Module-level `_default_fetch_all = investo.sources.fetch_all` binding — DI seam that tests redirect via `monkeypatch.setattr`.
+  - `_logger = logging.getLogger("investo.orchestrator.pipeline")` per AC-005-4 (logger name pinned).
+  - `async def _stage_collect(target_date, *, fetch=None) -> list[NormalizedItem]`: emits INFO `[collect] starting` on entry, awaits runner (injected `fetch` or `_default_fetch_all`), emits INFO `[collect] returned %d items` BEFORE the empty-check raise (operators see the count in GHA logs even on failure), raises `EmptyCollectError("aggregator returned 0 items for target_date={target_date}")` on empty result.
+  - **Design reconciliation**: the plan's `aggregator: Aggregator` parameter shape was speculative — u1's aggregator is a module-level `fetch_all` function, not a class. Replaced with a callable injection seam. Matches AC-006-3 (DI without monkeypatching internals).
+- `tests/unit/orchestrator/test_stage_collect.py` (~205 lines, **9 tests** vs plan's 4 target — high effort):
+  - **Happy path (3)**: 3-item return forwarded, target_date passes through aggregator, partial aggregator result (AC-003-1: per-source-fail already swallowed inside u1; orchestrator sees the surviving non-empty list and proceeds).
+  - **AC-003-2 (2)**: empty result raises `EmptyCollectError`; error message embeds `target_date` for downstream alert formatting.
+  - **AC-005-5 (2)**: INFO entry+exit logs under `investo.orchestrator.pipeline`; INFO `[collect] returned 0 items` still emitted even when followed by the `EmptyCollectError` raise (visibility in GHA logs).
+  - **Default wiring (1)**: `fetch=None` resolves to `_default_fetch_all`; verified by `monkeypatch.setattr("investo.orchestrator.pipeline._default_fetch_all", ...)` then calling `_stage_collect(target)` without override.
+  - **Propagation (1)**: non-`SourceFetchError` exception (e.g., `RuntimeError("aggregator blew up")`) propagates unchanged — `main()`'s top-level `except Exception` handles per AC-003-7.
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff (initial SIM117 nested-with violation in test → fixed via combined-context form), ruff ✅, ruff format ✅ (98 files; 2 auto-formatted), mypy --strict ✅ (**37 source files** = 36 prior + `orchestrator/pipeline.py`), pytest ✅ **604/604 passed in 5.14s** (+9 tests; zero regressions in the prior 595).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 5 complete. Plan checkboxes 5.1 + 5.2 + 5.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 5 of 13 — _stage_collect". Next: **Step 6** — extend `pipeline.py` with `_stage_generate(items, target_date, *, runner=None) -> Briefing` wrapping u2's `generate_briefing` via `asyncio.to_thread` per TS-2; on `BriefingGenerationError` re-raise so `run_pipeline` (Step 9) can route to operator alert per AC-003-3.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 5 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 4 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 4 (`date_resolution.py` — `resolve_target_date` + ≥100-example PBT) of u5 orchestrator Code Generation. Created:
+- `src/investo/orchestrator/date_resolution.py` (~75 lines): `resolve_target_date(now_utc: datetime, *, weekday_only_us_close: bool = True) -> date`. Module-level `_KST = ZoneInfo("Asia/Seoul")` bound at import time (Asia/Seoul is fixed UTC+9 since 1988; no DST; one-time tz lookup). Algorithm: UTC → KST → `target = kst_today - timedelta(days=1)` → optionally walk back while `target.weekday() >= 5` (bounded ≤ 2 iterations: Sat→Fri or Sun→Fri). Naive datetime raises `ValueError("...timezone-aware...")` at boundary. Module docstring explicitly documents the AC-005-3 / Q3=A no-`pandas_market_calendars` decision (saves ~tens of MB transitive deps for ~10 holidays/year handled via empty-collect → operator alert path).
+- `tests/unit/orchestrator/test_date_resolution.py` (~265 lines, **17 tests** — high effort vs plan's ~10 target):
+  - AC-005-1 weekday morning (5 parametrized): Tue→Mon, Wed→Tue, Thu→Wed, Fri→Thu, Mon→Fri-skip-weekend.
+  - AC-005-2 Saturday (1) + Sunday extension (1).
+  - AC-005-3 US holiday non-consultation (1): KST Fri 2026-07-03 → Thu 2026-07-02 unchanged. Pinning test documents that any future calendar-dep PR must delete this test (anti-drift surface).
+  - UTC input boundary (1): explicit UTC datetime → KST conversion verified.
+  - Naive datetime rejection (1).
+  - Year boundary (2): 2026-01-01 Thu→Wed 2025-12-31, 2026-01-05 Mon→Fri 2026-01-02.
+  - DST guard (1): March 8 + November 1 2026 (US DST transitions) — KST unaffected.
+  - `weekday_only_us_close=False` (2): raw yesterday returned (Sun→Sat allowed); default flag is True.
+  - **2 PBTs at 100 examples each** (per AC-006-4): default-flag post-condition (weekday + strictly < kst_today + ≤ 3-day gap); flag-False post-condition (exactly kst_today - 1).
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅, ruff format ✅ (97 files; 1 auto-formatted), mypy --strict ✅ (**36 source files** = 35 prior + `orchestrator/date_resolution.py`), pytest ✅ **595/595 passed in 4.93s** (+17 tests including 2 100-example PBTs; zero regressions in the prior 578).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 4 complete. Plan checkboxes 4.1 + 4.2 + 4.3 + 4.4 all `[x]`. aidlc-state.md u5 CG column updated to "Step 4 of 13 — date_resolution + PBT". Next: **Step 5** — `pipeline.py` `_stage_collect(target_date, *, aggregator)` (wraps u1's `Aggregator.fetch_all`; raises `EmptyCollectError` on empty result; per-source failure already swallowed at u1's aggregator boundary so AC-003-1 propagates a non-empty list with degraded sources).
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 4 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 3 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 3 (`errors.py` — `ConfigError` + `EmptyCollectError`) of u5 orchestrator Code Generation. Created:
+- `src/investo/orchestrator/errors.py` (~95 lines): two `RuntimeError` subclasses.
+  - `class ConfigError(RuntimeError)` carries an immutable `missing_vars: tuple[str, ...]` (empty tuple for the chat-ID-equality variant) + a constructor message. **Two factory classmethods enforce the two failure modes are never conflated**:
+    - `for_missing(missing_vars)` — non-empty tuple required; builds `"missing required environment variable(s): {comma-joined}"`. Empty input → `ValueError("...use ConfigError.for_equal_chat_ids()...")` to prevent silent type-conflation.
+    - `for_equal_chat_ids()` — explicit factory for CLAUDE.md #5 disjointness violation; message names both `TELEGRAM_BRIEFING_CHANNEL_ID` + `TELEGRAM_OPERATOR_CHAT_ID`, cites "CLAUDE.md project rule #5", and uses "disjoint" so the operator alert is actionable without further context.
+  - `class EmptyCollectError(RuntimeError)` — internal sentinel for AC-003-2 (every source returned 0 items). Not exposed in the public surface; control-flow signal between `_stage_collect` and `run_pipeline`.
+  - Both inherit from `RuntimeError` (not generic `Exception`) so `main()`'s top-level `except Exception` cleanly separates from the dedicated `except ConfigError` block, with truly unexpected programmer errors (KeyError, AttributeError, etc.) routing to AC-003-7's best-effort alert with `stage="orchestrator"`.
+- `tests/unit/orchestrator/test_errors.py` (~195 lines, **17 tests** — high effort coverage vs plan's 3-test target):
+  - Construction (4): inheritance from `RuntimeError`, default empty-tuple `missing_vars`, immutable-tuple invariant, `str(err)` returns the constructor message verbatim.
+  - `for_missing` (4): single var, multiple vars (msg ordering pinned via `index()` comparison), all 5 required vars from AC-007-1 (a contract pin — if the env-var list ever changes, this test fails in lockstep with `component-methods.md` C5), rejection of empty-tuple input.
+  - `for_equal_chat_ids` (3): empty `missing_vars` discriminator, message-names-both-vars assertion, "CLAUDE.md" citation pin.
+  - Raise+catch round-trip (2): `missing_vars` field preserved across raise→except boundary (main() needs this for AC-007-3 routing); `RuntimeError` catch-clause works.
+  - `EmptyCollectError` (4): `RuntimeError` subclass, default no-message construction (pure control-flow signal), str-with-message, distinct-from-ConfigError (neither catches the other — `issubclass` checks both directions).
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅, ruff format ✅ (95 files; 1 auto-formatted then re-verified clean), mypy --strict ✅ (**35 source files** = 34 prior + `orchestrator/errors.py`), pytest ✅ **578/578 passed in 4.95s** (+17 tests; zero regressions in the prior 561).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 3 complete. Plan checkboxes 3.1 + 3.2 + 3.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 3 of 13 — errors.py". Next: **Step 4** — `date_resolution.py` with `resolve_target_date(now_utc, *, weekday_only_us_close=True) -> date` (KST weekday/saturday branch logic via `zoneinfo.ZoneInfo("Asia/Seoul")`; per AC-005-3 NO US trading calendar consultation — US holidays surface via empty-collect → operator alert) + ≥100-example hypothesis PBT per AC-006-4.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 3 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 2 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 2 (extend `PipelineResult` model with `stage_timings` field) of u5 orchestrator Code Generation. Modified:
+- `src/investo/models/results.py`: added `stage_timings: dict[str, float] = Field(default_factory=dict)` to `PipelineResult`. Added `_reject_negative_stage_timings` field validator covering two branches — (a) reject any value `< 0` (wall-clock elapsed cannot be negative; this is always a bug), and (b) reject any value `> _DURATION_CEILING_SECONDS` (24h ceiling, mirroring `duration_seconds`'s sanity bound — no single stage can outlast the whole pipeline). Each violation raises with the stage key embedded for fast debugging (e.g., `stage_timings['collect'] must be >= 0, got -0.5`). Updated `PipelineResult` docstring to document the new field's purpose (typed companion to free-form `stages` dict; per-stage wall-clock seconds; populated by orchestrator on every exit including failure paths; default `{}` is backward-compatible).
+- `tests/unit/models/test_results.py`: +5 tests under a new "PipelineResult.stage_timings (u5 AC-001-1)" section: `test_pipeline_result_default_stage_timings_empty_dict` (backward compat), `test_pipeline_result_stage_timings_round_trip` (model_dump → model_validate roundtrip with all 4 standard stage keys), `test_pipeline_result_stage_timings_accepts_zero` (boundary — skipped stages legitimately record 0.0), `test_pipeline_result_stage_timings_rejects_negative_values` (negative branch), `test_pipeline_result_stage_timings_rejects_value_over_ceiling` (24h ceiling branch).
+**FD-vs-existing-model reconciliation**: existing `PipelineResult` had `stages: dict[str, str]` (free-form diagnostic) + `duration_seconds: float` (total). Per AC-001-1 we needed typed per-stage timings. Chose option A (extend the model with a new `stage_timings` field) over option B (encode timings into existing `stages` strings). Backward-compatible default `{}` keeps prior `_pipeline_kwargs` test fixtures and existing tests passing.
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅, ruff format ✅ (94 files; 2 auto-formatted then re-checked clean), mypy --strict ✅ (34 source files; field addition only — no new src file), pytest ✅ **561/561 passed in 4.82s** (+5 tests; zero regressions in the prior 556).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 2 complete. Plan checkboxes 2.1 + 2.2 + 2.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 2 of 13 — PipelineResult.stage_timings". Next: **Step 3** — `src/investo/orchestrator/errors.py` with `ConfigError` (carries `missing_vars: tuple[str, ...]` for env validation per AC-007-1/-2) and `EmptyCollectError` (internal sentinel for AC-003-2 empty-collect routing) + `tests/unit/orchestrator/test_errors.py`.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 2 of 13.
+
+---
+
 ## Construction — u5 orchestrator — Code Generation Step 1 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 1 (bootstrap) of u5 orchestrator Code Generation. Created:

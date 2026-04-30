@@ -256,3 +256,51 @@ def test_pipeline_result_frozen() -> None:
 def test_pipeline_result_extra_field_rejected() -> None:
     with pytest.raises(ValidationError):
         PipelineResult(**_pipeline_kwargs(extra="x"))
+
+
+# ---------------------------------------------------------------------------
+# PipelineResult.stage_timings (u5 AC-001-1 — per-stage wall-clock surface)
+# ---------------------------------------------------------------------------
+
+
+def test_pipeline_result_default_stage_timings_empty_dict() -> None:
+    """Backward compat — existing callers omit the new field."""
+    pr = PipelineResult(**_pipeline_kwargs())
+    assert pr.stage_timings == {}
+
+
+def test_pipeline_result_stage_timings_round_trip() -> None:
+    """Construct → ``model_dump`` → ``model_validate`` round-trip."""
+    timings = {
+        "collect": 3.21,
+        "generate": 12.34,
+        "publish": 0.45,
+        "notify_briefing": 0.08,
+    }
+    pr = PipelineResult(**_pipeline_kwargs(stage_timings=timings))
+    assert pr.stage_timings == timings
+    dumped = pr.model_dump()
+    rebuilt = PipelineResult.model_validate(dumped)
+    assert rebuilt.stage_timings == timings
+
+
+def test_pipeline_result_stage_timings_accepts_zero() -> None:
+    """A skipped stage may legitimately record 0.0 elapsed."""
+    pr = PipelineResult(
+        **_pipeline_kwargs(
+            stage_timings={"collect": 1.0, "generate": 0.0, "publish": 0.0},
+        )
+    )
+    assert pr.stage_timings["generate"] == 0.0
+
+
+def test_pipeline_result_stage_timings_rejects_negative_values() -> None:
+    """Negative wall-clock is always a bug — reject at the type boundary."""
+    with pytest.raises(ValidationError):
+        PipelineResult(**_pipeline_kwargs(stage_timings={"collect": -0.5}))
+
+
+def test_pipeline_result_stage_timings_rejects_value_over_ceiling() -> None:
+    """A single stage cannot exceed the 24-hour pipeline sanity ceiling."""
+    with pytest.raises(ValidationError):
+        PipelineResult(**_pipeline_kwargs(stage_timings={"collect": _DURATION_CEILING + 1}))

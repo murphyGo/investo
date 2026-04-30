@@ -94,31 +94,37 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 **Refs**: AC-001-1, AC-005-8, FD-vs-existing-model reconciliation (option A).
 
-- [ ] **2.1** Edit `src/investo/models/results.py`:
-  - Add field `stage_timings: dict[str, float] = Field(default_factory=dict)` to `PipelineResult`.
-  - Add field validator that asserts each value is `≥ 0` (rejects negatives; the wall-clock arithmetic should never produce them, but guard at the type boundary).
-  - Update class docstring to document the new field — keys are stage names (`"collect"`, `"generate"`, `"publish"`, `"notify_briefing"`); values are wall-clock seconds.
-- [ ] **2.2** Tests: extend `tests/unit/models/test_results.py`:
-  - `test_pipeline_result_default_stage_timings_empty_dict()` — backward compat
-  - `test_pipeline_result_stage_timings_round_trip()` — model_dump/model_validate round-trip
-  - `test_pipeline_result_stage_timings_rejects_negative_values()` — validator pin
-  - `test_pipeline_result_stage_timings_accepts_zero()` — boundary
-- [ ] **2.3** Quality gate: ruff ✅, mypy --strict ✅, pytest ✅ (+4 tests; 560 total).
+- [x] **2.1** Edited `src/investo/models/results.py`:
+  - Added field `stage_timings: dict[str, float] = Field(default_factory=dict)` to `PipelineResult`.
+  - Added `_reject_negative_stage_timings` field validator: rejects negatives AND values exceeding the same `_DURATION_CEILING_SECONDS` (24h) used for `duration_seconds` — no individual stage can outlast the whole pipeline. Each value violation raises with the stage key embedded (`stage_timings['collect'] must be >= 0, got -0.5`) for fast debugging.
+  - Updated class docstring documenting the new field — keys are stage names (typically the four `FailureStage` values plus optional synthetic names); values are wall-clock seconds; orchestrator populates this on every `run_pipeline` exit including failure paths; default `{}` is backward-compatible with existing tests.
+- [x] **2.2** Extended `tests/unit/models/test_results.py` (+5 tests, +1 over plan target — added the ceiling-guard test alongside the negative-guard):
+  - `test_pipeline_result_default_stage_timings_empty_dict` — backward compat ✅
+  - `test_pipeline_result_stage_timings_round_trip` — model_dump→model_validate round-trip with all 4 standard stage keys
+  - `test_pipeline_result_stage_timings_accepts_zero` — boundary (skipped stages legitimately record 0.0)
+  - `test_pipeline_result_stage_timings_rejects_negative_values` — validator pin
+  - `test_pipeline_result_stage_timings_rejects_value_over_ceiling` — second validator branch (24h ceiling)
+- [x] **2.3** Quality gate: ruff ✅, ruff format ✅ (94 files, 2 auto-formatted), mypy --strict ✅ (34 source files; field addition only), pytest ✅ **561/561** (+5 tests; zero regressions in the prior 556).
 
 ---
 
 ### Step 3: `errors.py` — `ConfigError` + per-stage exception umbrella
 
-**Refs**: AC-007-1, AC-007-2.
+**Refs**: AC-007-1, AC-007-2, AC-003-2.
 
-- [ ] **3.1** Create `src/investo/orchestrator/errors.py`:
-  - `class ConfigError(RuntimeError)` — raised by env-validation in `main()`. Carries a `missing_vars: tuple[str, ...]` field (could be empty for "chat_id equality" case) + diagnostic message.
-  - `class EmptyCollectError(RuntimeError)` — internal sentinel raised when `_stage_collect` returns 0 items (per AC-003-2). Not exposed publicly; routed to operator alert + status=FAILED.
-- [ ] **3.2** Tests: `tests/unit/orchestrator/test_errors.py`:
-  - `test_config_error_missing_vars_field()` — round-trip
-  - `test_config_error_chat_id_disjoint_message()` — equal-chat-id case
-  - `test_empty_collect_error_inheritance()` — RuntimeError subclass
-- [ ] **3.3** Quality gate.
+- [x] **3.1** Created `src/investo/orchestrator/errors.py` (~95 lines):
+  - `class ConfigError(RuntimeError)` — raised by env-validation in `main()`. Carries an immutable `missing_vars: tuple[str, ...]` field (empty tuple for the chat-ID-equality variant). Two factory classmethods:
+    - `for_missing(missing_vars)` — non-empty input required; builds message `"missing required environment variable(s): {comma-joined names}"`. Empty input raises `ValueError("ConfigError.for_missing requires at least one var name; use ConfigError.for_equal_chat_ids() for the chat-ID-equality case")` so the two failure modes can never be silently conflated.
+    - `for_equal_chat_ids()` — explicit factory for the CLAUDE.md #5 disjointness violation. Message names BOTH env vars + cites "CLAUDE.md project rule #5" + uses "disjoint" so the operator alert is actionable without further context.
+  - `class EmptyCollectError(RuntimeError)` — internal sentinel raised by `_stage_collect` when aggregator returned 0 items (per AC-003-2). Not exposed publicly; routed by `run_pipeline` to `OperatorAlerter.alert(stage="collect")` + `status=FAILED`.
+  - Both inherit from `RuntimeError` (not `Exception`) — they signal runtime preconditions, not programmer logic errors. `main()`'s top-level `except Exception` after `except ConfigError` cleanly separates the two paths.
+- [x] **3.2** Created `tests/unit/orchestrator/test_errors.py` (~195 lines, **17 tests** vs plan's 3-test target — effort high; full surface coverage):
+  - **Construction (4)**: `inherits_from_runtime_error`, `default_missing_vars_is_empty_tuple`, `missing_vars_is_immutable_tuple`, `str_form_is_the_message`
+  - **`for_missing` (4)**: `single_var`, `multiple_vars_join_in_order` (asserts msg index ordering), `all_five_required_vars` (pins the AC-007-1 5-var contract; if env-var list changes, test fails in lockstep), `rejects_empty_tuple`
+  - **`for_equal_chat_ids` (3)**: `empty_missing_vars` (the discriminator), `message_names_both_vars`, `cites_claude_md_rule`
+  - **Raise+catch round-trip (2)**: `preserves_missing_vars` (main() needs this for AC-007-3 routing), `caught_as_runtime_error`
+  - **EmptyCollectError (4)**: `inherits_from_runtime_error`, `default_construction` (no message; pure control-flow signal), `str_with_message`, `distinct_from_config_error` (neither catches the other)
+- [x] **3.3** Quality gate: ruff ✅, ruff format ✅ (95 files; 1 auto-formatted), mypy --strict ✅ (**35 source files** = 34 + `orchestrator/errors.py`), pytest ✅ **578/578** (+17 tests; zero regressions in the prior 561).
 
 ---
 
@@ -126,20 +132,27 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 **Refs**: AC-005-1 ~ AC-005-3, AC-006-4 (PBT).
 
-- [ ] **4.1** Create `src/investo/orchestrator/date_resolution.py`:
+- [x] **4.1** Created `src/investo/orchestrator/date_resolution.py` (~75 lines):
   - `def resolve_target_date(now_utc: datetime, *, weekday_only_us_close: bool = True) -> date`
-  - Convert UTC → KST via `zoneinfo.ZoneInfo("Asia/Seoul")` (TS-4)
-  - KST 평일 (Mon-Fri) 07:00 cron fires → `target_date = kst_today - 1 day`, then if Saturday/Sunday roll back to Friday (handles Mon morning case → previous Friday)
-  - KST 토요일 (Saturday) 09:00 cron fires → `target_date = kst_today - 1 day` (= Friday)
-  - **Per AC-005-3**: no US trading calendar consultation; on US holidays the empty-collect path handles the failure
-- [ ] **4.2** Tests: `tests/unit/orchestrator/test_date_resolution.py`:
-  - Parametrized weekday tests: KST Tue 07:00 → Mon; KST Wed → Tue; KST Thu → Wed; KST Fri → Thu; KST Mon → Fri (skip weekend) (5 tests)
-  - KST Sat 09:00 → Fri (1 test)
-  - `weekday_only_us_close=False` path (if applicable for manual triggers) — pin behavior
-  - DST transition guard: KST has no DST; the function works against `Asia/Seoul` which is fixed UTC+9, so DST quirks don't apply. Add an explicit pin documenting this (1 test)
-  - Year boundary: KST 2026-01-01 (Thu) 07:00 → 2025-12-31 (Wed) (1 test)
-- [ ] **4.3** PBT (per AC-006-4): hypothesis strategy generates UTC datetimes in a 30-day range; assert returned date is ≤ KST date AND is a weekday (Mon-Fri) AND is `≤ now_kst.date()`. ≥ 100 examples.
-- [ ] **4.4** Quality gate.
+  - Module-level `_KST = ZoneInfo("Asia/Seoul")` bound once at import (Asia/Seoul is fixed UTC+9 since 1988; no DST; rebinding avoids per-call tz lookups).
+  - Algorithm: convert UTC → KST → `target = kst_today - 1 day` → if `weekday_only_us_close`, walk back while `target.weekday() >= 5` (bounded ≤ 2 iterations: Sat→Fri or Sun→Fri).
+  - Naive `datetime` raises `ValueError("...timezone-aware...")` at boundary (mirrors `models._validators.ensure_tz_aware` shape; not imported to keep `orchestrator` independent of `models` validators outside of schema usage).
+  - **Per AC-005-3 / Q3=A**: NO `pandas_market_calendars` consultation — US holidays surface via empty-collect → `EmptyCollectError` → operator alert. Module docstring explicitly documents the trade-off so any future "just add the calendar" PR has visible justification to overrule.
+- [x] **4.2** Created `tests/unit/orchestrator/test_date_resolution.py` (~265 lines, **17 tests** vs plan's ~10 target — high effort):
+  - **AC-005-1 Weekday morning (5 parametrized)**: Tue→Mon, Wed→Tue, Thu→Wed, Fri→Thu, Mon→Fri (skip weekend).
+  - **AC-005-2 Saturday (1)**: Sat→Fri + asserts target weekday=4.
+  - **Sunday extension (1)**: Sun→Fri (2 iterations of weekend-skip loop).
+  - **AC-005-3 holiday non-consultation (1)**: KST Fri 2026-07-03 (US Independence Day observed) → Thu 2026-07-02 unchanged; pinning test documents that any future calendar-dep PR must delete this test.
+  - **UTC input boundary (1)**: explicit UTC datetime input verifies +9 offset conversion.
+  - **Naive datetime rejection (1)**: ValueError with "timezone-aware" match.
+  - **Year boundary (2)**: 2026-01-01 Thu→Wed 2025-12-31; 2026-01-05 Mon→Fri 2026-01-02.
+  - **DST guard (1)**: March 8 + November 1 2026 (US DST transitions) — KST unaffected; both Sundays walk back to Friday correctly.
+  - **`weekday_only_us_close=False` (2)**: raw yesterday (Sun→Sat allowed); default flag value pinned to True.
+  - **2 PBTs at 100 examples each (per AC-006-4)**:
+    - Default-flag post-conditions: target is a weekday + strictly < KST today + at most 3 days back (Mon→prev Fri is the maximum gap).
+    - `weekday_only_us_close=False`: target is exactly `kst_today - 1 day` regardless of weekday.
+- [x] **4.3** PBT (per AC-006-4): TWO hypothesis strategies covering both flag values, each at 100 examples. Strategy: `st.datetimes(min=2026-01-01, max=2026-12-31 23:59, timezones=st.just(UTC))` — full-year domain (vs plan's 30-day suggestion) since KST conversion + weekday math should be uniformly correct year-round.
+- [x] **4.4** Quality gate: ruff ✅, ruff format ✅ (97 files; 1 auto-formatted then re-verified clean), mypy --strict ✅ (**36 source files** = 35 prior + `orchestrator/date_resolution.py`), pytest ✅ **595/595** (+17 tests including 2 100-example PBTs; zero regressions in the prior 578).
 
 ---
 
@@ -147,18 +160,25 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 **Refs**: AC-001-1, AC-003-1, AC-003-2, AC-005-5.
 
-- [ ] **5.1** In `src/investo/orchestrator/pipeline.py` (created in this step), add the first stage runner:
-  - `async def _stage_collect(target_date: date, *, aggregator: Aggregator) -> list[NormalizedItem]`
-  - Logs INFO `[collect] starting` (per AC-005-5)
-  - Calls `aggregator.fetch_all(target_date)` (or whatever the u1 surface exposes)
-  - On return: if list is empty → raise `EmptyCollectError` (routed to operator alert by `run_pipeline`)
-  - Records elapsed in caller-passed `stage_timings` dict (timing instrumentation lives in `run_pipeline`, not in the stage; the stage just runs the work)
-- [ ] **5.2** Tests: `tests/unit/orchestrator/test_stage_collect.py`:
-  - happy path with mocked `Aggregator` returning N items → `len(result) == N`
-  - empty collect → `EmptyCollectError` raised
-  - per-source failure (aggregator already swallows internally) → returned items still respected; no error raised at orchestrator level (per AC-003-1)
-  - WARNING log emitted when aggregator returned a degraded list (mockable via `caplog`)
-- [ ] **5.3** Quality gate.
+**Design note**: u1's aggregator is a **module-level function** `investo.sources.fetch_all(target_date) -> list[NormalizedItem]`, not a class. Plan signature `aggregator: Aggregator` was speculative; actual signature uses a `CollectCallable = Callable[[date], Awaitable[list[NormalizedItem]]]` keyword-only `fetch=` parameter that defaults to `_default_fetch_all = investo.sources.fetch_all`. This dependency-injection seam matches AC-006-3 (DI seams; no monkeypatching of internals required for tests, though one test demonstrates monkeypatching the default-binding for the production-wire path).
+
+- [x] **5.1** Created `src/investo/orchestrator/pipeline.py` (~95 lines):
+  - Module docstring describes the file's incremental build-up across Steps 5-9 (this commit lands `_stage_collect` only).
+  - `CollectCallable` type alias for the injectable aggregator surface.
+  - `_default_fetch_all = investo.sources.fetch_all` module-level binding (test seam — `monkeypatch.setattr` redirects this).
+  - `_logger = logging.getLogger("investo.orchestrator.pipeline")` per AC-005-4.
+  - `async def _stage_collect(target_date, *, fetch=None) -> list[NormalizedItem]`:
+    - INFO `[collect] starting target_date=%s` on entry.
+    - `items = await runner(target_date)` (runner = injected `fetch` or `_default_fetch_all`).
+    - INFO `[collect] returned %d items` on exit (BEFORE the empty-check raise — operators see the count in GHA logs even on failure).
+    - Empty result → `raise EmptyCollectError("aggregator returned 0 items for target_date={target_date}")`.
+- [x] **5.2** Created `tests/unit/orchestrator/test_stage_collect.py` (~205 lines, **9 tests** vs plan's 4 target — high effort):
+  - Happy path (3): items returned, target_date forwarded, partial aggregator (AC-003-1 — non-empty list with degraded sources still proceeds).
+  - AC-003-2 (2): empty result → `EmptyCollectError`; error message embeds `target_date`.
+  - AC-005-5 (2): INFO logs on entry + exit; INFO emitted even on empty-collect failure path (operators see count before the raise).
+  - Default wiring (1): `fetch=None` calls `_default_fetch_all` (verified via `monkeypatch.setattr` of the module-level binding).
+  - Propagation (1): non-`SourceFetchError` exceptions from aggregator (programmer errors) propagate without swallowing, ready for AC-003-7 routing in `main()`.
+- [x] **5.3** Quality gate: ruff ✅ (initial fail on SIM117 nested-with → fixed via combined-context form), ruff format ✅ (98 files; 2 auto-formatted), mypy --strict ✅ (**37 source files** = 36 prior + `orchestrator/pipeline.py`), pytest ✅ **604/604** (+9 tests; zero regressions in the prior 595).
 
 ---
 

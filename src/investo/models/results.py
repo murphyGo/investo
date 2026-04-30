@@ -159,6 +159,18 @@ class PipelineResult(BaseModel):
     ``"failed: <reason>"``. Orchestrator is responsible for using
     consistent stage names; tests should pin them explicitly.
 
+    ``stage_timings`` is the typed companion to ``stages`` — keys are
+    stage names (typically the four :data:`FailureStage` values plus
+    optional synthetic names) and values are wall-clock seconds spent
+    in that stage, recorded by the orchestrator regardless of the
+    stage's outcome. Default ``{}`` keeps existing constructions
+    backward-compatible. Required by u5 NFR Requirements AC-001-1
+    (per-stage timing surfaced on the result) — the orchestrator
+    populates this on every ``run_pipeline`` exit, including failure
+    paths. Negative values are rejected at construction time; the
+    orchestrator's wall-clock arithmetic should never produce them,
+    and the type-boundary guard catches the bug if it ever happens.
+
     ``briefing_url`` is :class:`HttpUrl` and serializes as a ``Url``
     object via ``model_dump()`` — use ``model_dump(mode="json")`` for
     JSON-safe output.
@@ -169,5 +181,23 @@ class PipelineResult(BaseModel):
     target_date: date
     status: PipelineStatus
     stages: dict[str, str] = Field(default_factory=dict)
+    stage_timings: dict[str, float] = Field(default_factory=dict)
     duration_seconds: float = Field(ge=0, le=_DURATION_CEILING_SECONDS)
     briefing_url: HttpUrl | None = None
+
+    @field_validator("stage_timings")
+    @classmethod
+    def _reject_negative_stage_timings(cls, value: dict[str, float]) -> dict[str, float]:
+        # Wall-clock elapsed seconds — negative is always a bug.
+        # Per-stage values share the same sanity ceiling as
+        # ``duration_seconds`` because no individual stage can run
+        # longer than the whole pipeline.
+        for stage, seconds in value.items():
+            if seconds < 0:
+                raise ValueError(f"stage_timings[{stage!r}] must be >= 0, got {seconds}")
+            if seconds > _DURATION_CEILING_SECONDS:
+                raise ValueError(
+                    f"stage_timings[{stage!r}] must be <= {_DURATION_CEILING_SECONDS}, "
+                    f"got {seconds}"
+                )
+        return value
