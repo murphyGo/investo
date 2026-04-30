@@ -341,33 +341,38 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 ---
 
-### Step 12: Sub-agent code review (combined u5 review)
+### Step 12: Sub-agent code review — APPROVE_WITH_FIXES (H1 + H2 applied)
 
-Delegate fresh-eyes review per dev-investo skill §5.1. Focus areas:
+- [x] **12** Sub-agent fresh-eyes code review executed per dev-investo §5.1. Verdict: **APPROVE_WITH_FIXES**; 0 Critical / 2 High / 3 Medium / 7 Low / 5 TECH-DEBT candidates. Applied:
 
-- **Module boundary**: u5 imports from all 4 work units (allowed) + `investo.models` + stdlib + `httpx`. Verify NO unit-to-unit imports were inadvertently created.
-- **Q9=B routing correctness**: every Error Policy table row has the correct routing (FAILED vs PARTIAL vs SUCCESS); every routing has the correct alerter call vs no-alert behavior.
-- **Time accounting**: `stage_timings` populated even on stage-FAIL paths (so debugging post-mortem can see which stage was slow before failing).
-- **Env validation timing**: `ConfigError` raised BEFORE any `httpx.AsyncClient` is constructed (no resource leak).
-- **Best-effort alert robustness**: when `TELEGRAM_BOT_TOKEN` is missing, the best-effort alert is silently skipped (no nested ConfigError).
-- **Async-sync interaction**: `asyncio.to_thread` wraps the right sync calls; no accidental blocking inside an `async def` body.
-- **Test isolation**: integration tests don't leak files into the real archive/ dir (use tmp_path or `monkeypatch.setattr` for `ARCHIVE_ROOT`).
-- **Logging**: logger name follows AC-005-6 convention; no env-var values in log lines (AC-007-4).
-- **CLAUDE.md #5 enforcement**: `main()` rejects equal chat_ids BEFORE constructing dispatchers; integration test pins this.
+  **H1 — `_safe_alert` exception list misses `httpx.HTTPError` and `asyncio.TimeoutError`** (`pipeline.py:653`). The narrow `(OSError, RuntimeError, ValueError)` tuple was meant to swallow alerter bugs so the underlying stage failure isn't masked. But `httpx.HTTPError` (NOT a subclass of OSError or RuntimeError), `asyncio.TimeoutError`, and arbitrary `TypeError`/`AttributeError` from a future u4-contract change would all leak and replace the `FAILED` exit code with an unrelated traceback. **Fixed** by broadening to `except Exception` — matches the documented intent ("broken alerter should not mask underlying failure") and KeyboardInterrupt / SystemExit / asyncio.CancelledError (BaseException) still propagate so an operator's Ctrl-C is not swallowed. Added 7 regression tests: 6-parametrized `test_run_pipeline_safe_alert_swallows_arbitrary_exceptions` covering OSError / RuntimeError / ValueError (already-caught) + TypeError / AttributeError / ZeroDivisionError (newly-caught) + 1 `test_run_pipeline_safe_alert_lets_base_exception_propagate` confirming KeyboardInterrupt still propagates.
 
-After review: apply Critical / High fixes before commit; triage Medium / Low into TECH-DEBT or apply.
+  **H2 — chat-ID disjointness not whitespace-tolerant** (`__main__.py:112`). A leading/trailing space in one of the two GitHub Secrets used to silently bypass CLAUDE.md #5 — Telegram resolves both `"@invest_brief"` and `" @invest_brief"` to the same chat, but `==` comparison passes. **Fixed** by `.strip()` on all 5 env vars during validation; values flow forward in canonical form too. Added 5-parametrized regression test covering leading/trailing space, leading/trailing newline, and mixed whitespace combinations.
+
+  **TECH-DEBT registered (5 items)**:
+  - **DEBT-017** (Low): `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py` — both must agree or `FailureContext` construction at the catch site silently breaks.
+  - **DEBT-018** (Low): AST-grep deny tests use substring matching; brittle to future `_stage_*` rename.
+  - **DEBT-019** (Low): `resolve_target_date` PBT covers only 2026; missing leap-year edge cases.
+  - **DEBT-020** (Low): `_safe_alert` and `_attempt_boot_alert` exception lists not aligned post-H1 (boot path still narrow).
+  - **DEBT-021** (Low): unused `PublisherError` re-export in `pipeline.__all__`.
+
+  **Deferred without TECH-DEBT** (judged sufficient):
+  - **M1** — `_attempt_boot_alert` could leak pydantic `ValidationError` from `OperatorAlerter` ctor; would still cause exit 1 just with noisier traceback. Subsumed under DEBT-020 (broaden to `except Exception`).
+  - **M2** — `_briefing_url_for` doesn't URL-encode; ints + ISO-date strings have no reserved chars. `HttpUrl.validate_python` fails closed if site_url_base has a query string. Operators set this once.
+  - **M3** — `pipeline_start` measured after target_date resolution; difference is microseconds.
+  - **L3** — integration test loads `stub_u2_claude` fixture but doesn't trigger u2 (test path is empty-collect short-circuit). Harmless.
+  - **L7** — pyproject sanity check passed (no anthropic/pandas-market-calendars).
+
+  **Recommendation honored**: APPROVE_WITH_FIXES; H1 + H2 applied before close; 5 TECH-DEBT registered; M/L items deferred per priority reasoning.
+
+  Quality gate: ruff ✅ (1 RUF100 unused-noqa fixed), ruff format ✅ (106 files), mypy --strict ✅ (37 source files), pytest **705/705** ✅ (+12 regression tests; zero regressions in the prior 693).
 
 ---
 
 ### Step 13: Closeout `summary.md` + final quality gate
 
-- [ ] **13.1** `aidlc-docs/construction/u5-orchestrator/code/summary.md`:
-  - Files-created table (source + tests)
-  - 39 AC traceability table — each AC pinned by named test
-  - Story status: US-005 ✅ closed
-  - Open TECH-DEBT (any new from u5; carry forward 16 from prior units)
-  - Hand-off notes for u6 infra/CI: stable surface = `python -m investo` exit 0/1; integration-tested under all 4 mocks; the GHA workflow YAML wires the cron schedule + env-vars (Secrets) + `timeout-minutes: 12`
-- [ ] **13.2** Final quality gate: ruff ✅, ruff format ✅, mypy --strict ✅ (~40 source files: 33 prior + 7 new u5 — `__init__.py`, `errors.py`, `date_resolution.py`, `pipeline.py`, plus model extension; `__main__.py` replaced; counts confirmed at gate run), pytest ✅ (~556 baseline + ~50-60 u5 = ~610-620 tests).
+- [x] **13.1** Created `aidlc-docs/construction/u5-orchestrator/code/summary.md` (~280 lines): files table (5 src files / 1,232 LOC + 60 LOC model extension; 9 unit test files + 1 integration test / 3,518 LOC / 143 tests; +6 model tests), public-surface table (4 re-exports; `main` deliberately not re-exported per Python convention), cross-unit imports verification (CLAUDE.md #3 — u5 imports from all 4 work units, others don't import each other), 39-AC traceability table (NFR-001 / NFR-003 11-row Q9=B / NFR-005 / NFR-006 / NFR-007 / drift), open TECH-DEBT (5 new + 16 carried = 21 total; all u5 items Low priority), 6 ratified FD-vs-implementation divergences, US-005 ✅ closed, pre-flight for u6 infra/CI (workflow YAML / Pages config / no new Python; failure-path table for operator), final quality gate.
+- [x] **13.2** Final quality gate: ruff ✅, ruff format ✅ (106 files), mypy --strict ✅ (**37 source files**: 7 models + 8 sources + 7 briefing + 6 publisher + 5 notifier + 4 orchestrator + `__main__`), pytest ✅ **705/705** passing (252 baseline + 178 u2 + 70 u3 + 56 u4 + 149 u5 = 705 total). Zero regressions across the entire run.
 
 **Exit**: ✅ `u5 orchestrator` Code Generation stage CLOSED. Story US-005 closes. The unit becomes eligible for `/cross-check`. After u5: `u6 infra/CI` (YAML/config only — Code Generation but no FD/NFR), then global `Build and Test`.
 

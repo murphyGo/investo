@@ -100,15 +100,23 @@ def _validate_env() -> tuple[str, str, str, str, HttpUrl]:
     if missing:
         raise ConfigError.for_missing(missing)
 
-    claude_oauth = os.environ["CLAUDE_CODE_OAUTH_TOKEN"]
-    bot_token = os.environ["TELEGRAM_BOT_TOKEN"]
-    channel_id = os.environ["TELEGRAM_BRIEFING_CHANNEL_ID"]
-    operator_id = os.environ["TELEGRAM_OPERATOR_CHAT_ID"]
-    site_url_raw = os.environ["SITE_URL_BASE"]
+    # ``.strip()`` defangs a sneaky misconfiguration where the operator
+    # pastes ``"@invest_brief"`` into one secret and ``" @invest_brief"``
+    # (leading whitespace) into the other. The raw strings are unequal
+    # but Telegram's API resolves both to the same chat — without the
+    # strip the disjointness check would pass and the public channel
+    # would receive operator alerts. We carry the stripped values
+    # forward so downstream callers see the canonical form too.
+    claude_oauth = os.environ["CLAUDE_CODE_OAUTH_TOKEN"].strip()
+    bot_token = os.environ["TELEGRAM_BOT_TOKEN"].strip()
+    channel_id = os.environ["TELEGRAM_BRIEFING_CHANNEL_ID"].strip()
+    operator_id = os.environ["TELEGRAM_OPERATOR_CHAT_ID"].strip()
+    site_url_raw = os.environ["SITE_URL_BASE"].strip()
 
     # CLAUDE.md project rule #5 — disjointness enforced BEFORE either
-    # dispatcher is constructed. Empty/whitespace are already filtered
-    # by ``_missing_env_vars``, so equality here is a real conflict.
+    # dispatcher is constructed. Whitespace differences (one secret has
+    # a leading/trailing space, the other doesn't) MUST NOT bypass
+    # this — strip both sides above + compare here.
     if channel_id == operator_id:
         raise ConfigError.for_equal_chat_ids()
 

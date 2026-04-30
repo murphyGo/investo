@@ -168,6 +168,56 @@ _No high priority items._
 - **Effort**: ~10 min.
 - **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk.
 
+#### DEBT-017: `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py`
+
+- **Created**: 2026-04-30
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L1)
+- **Reference**: NFR-005 (maintainability — DRY constants across module boundaries)
+- **Description**: `pipeline.py` carries `_TRACEBACK_EXCERPT_MAX_CHARS = 2000`; `models/results.py` carries `_TRACEBACK_EXCERPT_MAX = 2000`. Both must agree or `FailureContext` construction in the orchestrator's catch site will start raising `ValidationError` — the exact bug `_truncate_excerpt` exists to prevent.
+- **Suggested Fix**: Promote one to a public constant (e.g., `FailureContext.MAX_TRACEBACK_EXCERPT` class-attr or module-level `TRACEBACK_EXCERPT_MAX`) and import it in `pipeline.py`. Trivial.
+- **Effort**: ~5 min.
+- **Priority Reasoning**: Low — both values are 2000 and there's no current change pressure on either; but the next person who tweaks one will cause an obscure failure if they miss the other.
+
+#### DEBT-018: AST-grep deny tests use substring matching instead of callable identity
+
+- **Created**: 2026-04-30
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L4)
+- **Reference**: NFR-006 (test robustness)
+- **Description**: `tests/unit/orchestrator/test_run_pipeline.py`'s 3 AST-grep deny tests (AC-001-3 / AC-001-5 / AC-003-11) use `"_stage_"` substring matching against `ast.unparse` output. If a future refactor renames `_stage_collect` → `_collect_stage`, the deny tests silently pass on a real violation. Robust today; brittle to refactoring.
+- **Suggested Fix**: Replace substring match with callable-identity match: walk the AST for `ast.Name(id in {"_stage_collect", "_stage_generate", "_stage_publish", "_stage_notify_briefing"})`. The whitelist becomes the contract — adding a new stage runner without updating it is the new failure mode (which is fine; deliberate).
+- **Effort**: ~20 min.
+- **Priority Reasoning**: Low — current tests work; future-proofing only.
+
+#### DEBT-019: `resolve_target_date` PBT covers only 2026
+
+- **Created**: 2026-04-30
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L5)
+- **Reference**: NFR-006 (PBT coverage breadth)
+- **Description**: `tests/unit/orchestrator/test_date_resolution.py`'s 2 hypothesis PBTs use `min_value=datetime(2026, 1, 1), max_value=datetime(2026, 12, 31, 23, 59)`. Leap-year edges (2024, 2028, 2032) and additional year-boundary crossings (e.g. KST 2027-01-01 cron firing for 2026-12-31) are unverified.
+- **Suggested Fix**: Widen the strategy to span 2024–2030 (or wider). KST has been fixed UTC+9 since 1988 so historical years are safe; future bound limited only by reasonable cron lifetimes.
+- **Effort**: ~5 min (one-line bounds change).
+- **Priority Reasoning**: Low — date math is mechanical; PBT primarily catches strategy bugs, not algorithm bugs.
+
+#### DEBT-020: `_safe_alert` and `_attempt_boot_alert` exception lists not aligned
+
+- **Created**: 2026-04-30
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L6 — partially resolved by H1 fix)
+- **Reference**: NFR-005 (consistency across symmetric helpers)
+- **Description**: H1 broadened `_safe_alert` to `except Exception`. `_attempt_boot_alert` in `__main__.py:171` still uses the narrower `except (OSError, RuntimeError, httpx.HTTPError)`. Symmetric helpers should have symmetric semantics.
+- **Suggested Fix**: Broaden `_attempt_boot_alert`'s `except` to `Exception` for the same reason `_safe_alert` was broadened — programmer errors / pydantic ValidationError / future u4-contract changes should never mask the underlying exit code. Test `test_main_alert_construction_failure_silenced` already exercises one of these paths but more coverage would be welcome.
+- **Effort**: ~5 min for the change + ~10 min for parametrized tests.
+- **Priority Reasoning**: Low — the boot path is rarely exercised + the existing `(OSError, RuntimeError, httpx.HTTPError)` covers the realistic transport failure modes. Pure consistency tightening.
+
+#### DEBT-021: Unused `PublisherError` re-export in `pipeline.__all__`
+
+- **Created**: 2026-04-30
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L2)
+- **Reference**: NFR-005 (no dead code)
+- **Description**: `src/investo/orchestrator/pipeline.py:__all__` re-exports `"PublisherError"` with a comment claiming "the orchestrator's main module imports the umbrella ``PublisherError`` for top-level catch." But `__main__.py` does not import `PublisherError` — it catches `Exception`. So this re-export is unused.
+- **Suggested Fix**: Drop `"PublisherError"` from `pipeline.__all__`. One-line change.
+- **Effort**: ~2 min.
+- **Priority Reasoning**: Low — dead code, but not load-bearing on anything.
+
 #### DEBT-009: `_executable_source` AST helper is duplicated across two test files
 
 - **Created**: 2026-04-29

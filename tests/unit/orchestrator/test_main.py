@@ -167,6 +167,42 @@ def test_main_rejects_equal_channel_and_operator_ids(
     assert calls == []
 
 
+@pytest.mark.parametrize(
+    ("channel", "operator"),
+    [
+        # H2 regression — without strip(), each of these pairs would
+        # bypass the disjointness check (raw strings unequal) but
+        # Telegram resolves both to the same chat. The fix strips both
+        # sides so the check is whitespace-tolerant.
+        ("@invest_brief", " @invest_brief"),  # leading space on operator.
+        ("@invest_brief", "@invest_brief "),  # trailing space on operator.
+        (" @invest_brief", "@invest_brief"),  # leading space on channel.
+        ("@invest_brief\n", "@invest_brief"),  # trailing newline.
+        ("@invest_brief\t", "\t@invest_brief"),  # mixed whitespace.
+    ],
+)
+def test_main_rejects_chat_ids_equal_after_whitespace_strip(
+    monkeypatch: pytest.MonkeyPatch,
+    channel: str,
+    operator: str,
+) -> None:
+    """H2 regression — chat-ID disjointness MUST be whitespace-
+    tolerant. A single stray space in one of the two GitHub Secrets
+    used to silently bypass CLAUDE.md #5 and route operator alerts to
+    the public channel.
+    """
+    _set_env(
+        monkeypatch,
+        TELEGRAM_BRIEFING_CHANNEL_ID=channel,
+        TELEGRAM_OPERATOR_CHAT_ID=operator,
+    )
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        rc = main_mod.main()
+    assert rc == 1
+    # Disjointness rejected → pipeline never invoked.
+    assert calls == []
+
+
 # ---------------------------------------------------------------------------
 # AC-007-3 — best-effort alert on ConfigError when token+operator present
 # ---------------------------------------------------------------------------

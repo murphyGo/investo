@@ -610,6 +610,83 @@ async def test_run_pipeline_alert_raise_during_failed_run_keeps_failed(
     assert any("alert raised unexpected" in m for m in warnings)
 
 
+@pytest.mark.parametrize(
+    "alert_exc",
+    [
+        # H1 regression — broaden _safe_alert exception list. Each of
+        # these used to slip through the narrow (OSError, RuntimeError,
+        # ValueError) tuple and propagate from run_pipeline, masking
+        # the underlying stage failure. The fix catches Exception so
+        # all of these are absorbed.
+        OSError("transport down"),  # already caught pre-fix.
+        RuntimeError("publisher bug"),  # already caught pre-fix.
+        ValueError("pydantic validation in send"),  # already caught pre-fix.
+        # The new coverage — these used to LEAK:
+        TypeError("u4 contract bug"),
+        AttributeError("attr"),
+        ZeroDivisionError("synth"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_run_pipeline_safe_alert_swallows_arbitrary_exceptions(
+    archive_root: Path,
+    alert_exc: Exception,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """H1 regression — ``_safe_alert`` catches ``Exception`` per the
+    documented intent, so the underlying stage failure is never
+    masked by an alerter bug. ``BaseException`` (KeyboardInterrupt,
+    SystemExit, asyncio.CancelledError) still propagates.
+    """
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter(raise_exc=alert_exc)
+
+    with caplog.at_level(logging.WARNING, logger="investo.orchestrator.pipeline"):
+        result = await run_pipeline(
+            _TARGET,
+            publisher=publisher,
+            alerter=alerter,
+            site_url_base=_SITE_BASE,
+            fetch=_success_fetch([]),
+            git_runner=_SuccessfulGitRunner(),
+            generate=_success_generate(),
+        )
+
+    # Underlying stage failure preserved — pipeline returned FAILED,
+    # not raised the alert exception.
+    assert result.status == PipelineStatus.FAILED
+    warnings = [
+        r.getMessage()
+        for r in caplog.records
+        if r.name == "investo.orchestrator.pipeline" and r.levelno == logging.WARNING
+    ]
+    assert any("alert raised unexpected" in m for m in warnings)
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_safe_alert_lets_base_exception_propagate(
+    archive_root: Path,
+) -> None:
+    """H1 sanity — ``BaseException`` (operator Ctrl-C, asyncio
+    cancellation, system exit) MUST still propagate so the runtime
+    can shut the process down. We catch ``Exception`` not
+    ``BaseException`` precisely to preserve this behavior.
+    """
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter(raise_exc=KeyboardInterrupt())
+
+    with pytest.raises(KeyboardInterrupt):
+        await run_pipeline(
+            _TARGET,
+            publisher=publisher,
+            alerter=alerter,
+            site_url_base=_SITE_BASE,
+            fetch=_success_fetch([]),
+            git_runner=_SuccessfulGitRunner(),
+            generate=_success_generate(),
+        )
+
+
 # ---------------------------------------------------------------------------
 # AC-001-1 — stage_timings populated on every exit (success + failure)
 # ---------------------------------------------------------------------------

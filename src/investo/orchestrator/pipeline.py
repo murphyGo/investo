@@ -650,12 +650,16 @@ async def _safe_alert(
                 stage,
                 result.error,
             )
-    except (OSError, RuntimeError, ValueError) as alert_exc:
+    except Exception as alert_exc:
         # Alerter contract is non-raising for transport errors, but a
-        # broken alerter (test stub bug, programmer error) should not
-        # mask the underlying stage failure. Log + swallow so the
-        # pipeline still returns FAILED rather than propagating an
-        # unrelated exception.
+        # broken alerter (test stub bug, programmer error,
+        # ``httpx.HTTPError`` leaked from a future u4 change,
+        # ``asyncio.TimeoutError`` from a misconfigured client, pydantic
+        # ``ValidationError`` constructing the response) should not
+        # mask the underlying stage failure. Catch ``Exception`` to
+        # honor the documented intent — KeyboardInterrupt /
+        # SystemExit / asyncio.CancelledError (BaseException) still
+        # propagate so an operator's Ctrl-C is not swallowed.
         _logger.warning(
             "[pipeline] alert raised unexpected %s during %s failure: %s",
             type(alert_exc).__name__,

@@ -1,5 +1,63 @@
 # AI-DLC Audit Log
 
+## Construction — u5 orchestrator — Code Generation Step 13 COMPLETE ✅ (UNIT CG CLOSED)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 13 (closeout `summary.md` + final quality gate). Created:
+- `aidlc-docs/construction/u5-orchestrator/code/summary.md` (~280 lines): comprehensive closeout document. Sections:
+  - **Files-created table**: 5 src files + 1 model extension = 1,292 LOC source; 9 unit test files + 1 integration test = 3,518 LOC / 143 tests; +6 from PipelineResult.stage_timings model tests = 149 tests added by u5.
+  - **Surface area table**: 4 public re-exports (`run_pipeline`, `resolve_target_date`, `ConfigError`, `EmptyCollectError`); `main` deliberately NOT re-exported per Python convention; 9 internal helpers also not re-exported.
+  - **Cross-unit imports verification**: u5 imports from `models / sources / briefing / publisher / notifier` (CLAUDE.md #3 license — u5 is the ONLY unit allowed to do this). Other 4 units verified across u1-u4 reviews to not import each other.
+  - **FR / NFR traceability**: 39 AC × test pin: NFR-001 (5 — incl. 2 AST-grep deny tests + 2 stage_timings tests + GHA timeout deferred to u6), NFR-003 (11 — full Q9=B Error Policy table; AC-003-1 ~ AC-003-11), NFR-005 (8 — date resolution + logging + StrEnum + frozen pydantic), NFR-006 (5 — integration mocks + per-failure-row + DI seam + PBT + ≥30 unit tests / ACTUAL 143 u5 tests), NFR-007 (5 — env validation + chat-ID disjointness + best-effort alert + redaction proxy + no-env-values-in-logs).
+  - **Open TECH-DEBT**: 5 new from u5 (DEBT-017 through DEBT-021, all Low) + 16 cross-unit / pre-existing = 21 open. None block u5.
+  - **6 ratified FD-vs-implementation divergences**: Step 5 callable-injection vs class-injection (u1 aggregator is module-level fetch_all not class), Step 6 direct await vs asyncio.to_thread (u2 already async-native), Step 6 `_default_generate_briefing` adapter (positional vs keyword-only API), Step 9 skipped-stage convention (no key in stage_timings for stages that didn't run), Step 10 FailureStage Literal extension with "orchestrator" 5th value, Step 12 H1+H2 fixes from sub-agent review (`_safe_alert` Exception broadening + chat-ID whitespace-tolerance).
+  - **Story status**: ✅ US-005 closed.
+  - **Pre-flight for u6 infra/CI**: GHA workflow YAML (cron schedule, timeout-minutes:12, 5 secrets, `python -m investo` entrypoint), Pages YAML, CONTRIBUTING.md update. **No new Python source code.** Failure-path table mapping each Q9=B failure to operator visibility (OperatorAlerter / GHA email / channel manual check) and latency.
+**Final quality gate**: ruff ✅, ruff format ✅ (106 files), mypy --strict ✅ (**37 source files**: 7 models + 8 sources + 7 briefing + 6 publisher + 5 notifier + 4 orchestrator + `__main__`), pytest ✅ **705/705 passed in 5.32s** (252 u1+models baseline + 178 u2 + 70 u3 + 56 u4 + 149 u5 = 705 total). Zero regressions across the entire test suite.
+**TECH-DEBT changes**: None added, none resolved (Step 12's DEBT-017/018/019/020/021 already registered).
+**Status**: ✅ Step 13 complete. Plan checkboxes 13.1 + 13.2 both `[x]`. **u5 orchestrator CG fully CLOSED.** aidlc-state.md u5 orchestrator row updated to "✅ Complete (13/13 — CG fully closed 2026-04-30)". The unit is eligible for `/cross-check`. Story US-005 is closed. **Next: u6 infra/CI** (the final unit — YAML/config only; FD/NFR both N/A per execution-plan; no new Python source; just GHA workflow YAML + Pages YAML + CONTRIBUTING.md update). After u6: global Build and Test.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 13 of 13 — UNIT CLOSED.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 12 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 12 (sub-agent code review of all u5) of u5 orchestrator Code Generation. Sub-agent verdict: **APPROVE_WITH_FIXES** (0 Critical / 2 High / 3 Medium / 7 Low / 5 TECH-DEBT candidates). Applied changes:
+
+**H1 fix — `_safe_alert` exception list misses common transport errors** (`src/investo/orchestrator/pipeline.py:653`):
+- Original: `except (OSError, RuntimeError, ValueError) as alert_exc:` — narrow tuple meant to absorb alerter bugs without masking the underlying stage failure.
+- Problem: `httpx.HTTPError` is NOT a subclass of OSError/RuntimeError; `asyncio.TimeoutError` similarly leaks; arbitrary `TypeError`/`AttributeError` from a future u4-contract change would propagate and replace the `FAILED` exit code with an unrelated traceback. Asymmetric with `_attempt_boot_alert` which DOES catch httpx.HTTPError.
+- Fix: broaden to `except Exception as alert_exc:` to honor the documented intent ("broken alerter should not mask underlying failure"). KeyboardInterrupt / SystemExit / asyncio.CancelledError (BaseException) still propagate so an operator's Ctrl-C is not swallowed.
+- 7 regression tests added: 6-parametrized `test_run_pipeline_safe_alert_swallows_arbitrary_exceptions` covering OSError / RuntimeError / ValueError (already-caught) + TypeError / AttributeError / ZeroDivisionError (newly-caught); 1 `test_run_pipeline_safe_alert_lets_base_exception_propagate` confirming KeyboardInterrupt still propagates.
+
+**H2 fix — chat-ID disjointness not whitespace-tolerant** (`src/investo/__main__.py:112`):
+- Original: `if channel_id == operator_id:` raw string comparison.
+- Problem: a leading/trailing space in one GitHub Secret silently bypassed CLAUDE.md #5 — Telegram resolves both `"@invest_brief"` and `" @invest_brief"` to the same chat, but `==` says they're different. Result: public channel could receive operator alerts.
+- Fix: strip all 5 env vars during `_validate_env`. Stripped values flow forward to dispatcher construction in canonical form so downstream callers see the same canonical strings.
+- 5-parametrized regression test added: `test_main_rejects_chat_ids_equal_after_whitespace_strip` covering leading/trailing space, leading/trailing newline, and mixed whitespace combinations.
+
+**TECH-DEBT registered (5 new)**:
+- **DEBT-017** (Low): `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py` — both must agree or FailureContext construction silently breaks.
+- **DEBT-018** (Low): AST-grep deny tests use substring matching, brittle to future `_stage_*` rename.
+- **DEBT-019** (Low): `resolve_target_date` PBT covers only 2026, missing leap-year edges.
+- **DEBT-020** (Low): post-H1 `_safe_alert` (Exception) and `_attempt_boot_alert` (narrow) exception lists not aligned. Sub-issue of L6.
+- **DEBT-021** (Low): unused `PublisherError` re-export in `pipeline.__all__` (claimed for `__main__` use but `__main__` doesn't import it).
+
+**Deferred without TECH-DEBT (judged sufficient)**:
+- M1: `_attempt_boot_alert` pydantic ValidationError leak — subsumed under DEBT-020 (boot path needs same broadening).
+- M2: `_briefing_url_for` URL-encoding — ints + ISO-date have no reserved chars; HttpUrl validation fails closed.
+- M3: pipeline_start microsecond timing inconsistency — irrelevant.
+- L3: integration test fixture loaded but unused on empty-collect path — harmless.
+- L7: pyproject sanity (no anthropic/pandas-market-calendars) — already passes.
+
+**Sub-agent recommendation honored**: APPROVE_WITH_FIXES — H1 + H2 applied before close; 5 TECH-DEBT registered; M/L items deferred per priority reasoning.
+
+**Quality gate**: ruff ✅ (initial RUF100 unused-noqa from H1 inline comment → fixed), ruff format ✅ (106 files), mypy --strict ✅ (37 source files), pytest ✅ **705/705 passed in 5.90s** (+12 regression tests = 7 H1 + 5 H2; zero regressions in the prior 693).
+**TECH-DEBT changes**: +5 (DEBT-017 through DEBT-021); 0 resolved.
+**Status**: ✅ Step 12 complete. Plan checkbox 12 `[x]` with full triage details. aidlc-state.md u5 CG column updated to "Step 12 of 13 — sub-agent code review APPROVE_WITH_FIXES applied". Next: **Step 13** — closeout `aidlc-docs/construction/u5-orchestrator/code/summary.md` + final quality gate. After Step 13 completes, u5 orchestrator CG closes and unit becomes eligible for `/cross-check`. **u6 infra/CI** is the only remaining unit (YAML/config only).
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 12 of 13.
+
+---
+
 ## Construction — u5 orchestrator — Code Generation Step 11 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 11 (`__init__.py` public surface + integration test) of u5 orchestrator Code Generation.
