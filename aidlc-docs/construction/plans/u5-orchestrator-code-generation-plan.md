@@ -184,18 +184,29 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 ### Step 6: `_stage_generate` — wraps u2 briefing.generate_briefing
 
-**Refs**: AC-001-1, AC-003-3, TS-2 (asyncio.to_thread for sync subprocess wrap).
+**Refs**: AC-001-1, AC-003-3.
 
-- [ ] **6.1** In `pipeline.py`, add:
-  - `async def _stage_generate(items: list[NormalizedItem], target_date: date, *, runner: ClaudeCodeRunner | None = None) -> Briefing`
-  - Logs INFO `[generate] starting`
-  - `briefing = await asyncio.to_thread(generate_briefing, items, target_date, runner=runner)` (per TS-2)
-  - On `BriefingGenerationError`: re-raise (caller handles routing)
-- [ ] **6.2** Tests: `tests/unit/orchestrator/test_stage_generate.py`:
-  - happy path with `FakeClaudeRunner` injected → returns `Briefing`
-  - `BriefingGenerationError` propagates (different stage values: classification, synthesis, post_validation, budget)
-  - asyncio.to_thread wrap doesn't lose context (await completes correctly)
-- [ ] **6.3** Quality gate.
+**Design reconciliation (vs plan)**: ``generate_briefing`` is already async-native (its sync ``subprocess.run`` is bridged via ``asyncio.to_thread`` *inside* ``call_claude_code`` per u2 Step 6). The plan's ``await asyncio.to_thread(generate_briefing, ...)`` form would be a TypeError on an async function. ``_stage_generate`` therefore ``await``s directly. TS-2 (asyncio.to_thread for sync subprocess) still applies — it's just owned by u2's ``call_claude_code``, not duplicated at the orchestrator boundary.
+
+**Signature reconciliation**: u2's ``generate_briefing`` has keyword-only ``runner=`` / ``budget=`` parameters. The orchestrator exposes a positional ``GenerateCallable = Callable[[date, Sequence[NormalizedItem], ClaudeRunner | None], Awaitable[Briefing]]`` shape for test convenience and bridges via a thin module-level adapter ``_default_generate_briefing``. ``budget`` is intentionally NOT exposed at the orchestrator boundary (per Q4=A — orchestrator does not control u2's retry budget).
+
+- [x] **6.1** Extended `src/investo/orchestrator/pipeline.py`:
+  - Imports: `ClaudeRunner` (Protocol from `briefing.claude_code`), `generate_briefing as _u2_generate_briefing`, `Briefing` model.
+  - `GenerateCallable` type alias for the test-seam shape.
+  - `_default_generate_briefing(target_date, items, runner) -> Briefing` adapter — thin wrapper that calls `_u2_generate_briefing(target_date, items, runner=runner)` to bridge positional `GenerateCallable` ↔ u2's keyword-only API. Lives as a module-level function (not `functools.partial`) for type-checker clarity.
+  - `async def _stage_generate(target_date, items, *, runner=None, generate=None) -> Briefing`:
+    - INFO `[generate] starting target_date=%s items=%d` on entry.
+    - `runner_callable = generate if generate is not None else _default_generate_briefing` — DI seam.
+    - `briefing = await runner_callable(target_date, items, runner)` — direct await; no asyncio.to_thread wrap (already-async).
+    - INFO `[generate] briefing built target_date=%s` on success.
+    - `BriefingGenerationError` re-raised unchanged (caller routes per AC-003-3).
+- [x] **6.2** Created `tests/unit/orchestrator/test_stage_generate.py` (~310 lines, **13 tests** vs plan's 3 target — high effort):
+  - **Happy path (4)**: returns Briefing from u2; (target_date, items) forwarded; runner seam forwarded to u2 (critical for integration-test FakeClaudeRunner replay path); default `runner=None` when caller omits.
+  - **AC-003-3 BGE propagation (2)**: 4-stage parametrized test (classification/synthesis/post_validation/budget) confirms each propagates with correct `stage` + `attempt_count`; identity test confirms BGE is NOT wrapped (`exc_info.value is original`).
+  - **Programmer-error propagation (1)**: KeyError from u2 propagates unwrapped per FD failure contract + AC-003-7 routing.
+  - **AC-005-5 INFO logging (2)**: entry + exit log messages with target_date + items count; "starting" emitted BEFORE u2 is invoked even on failure path (no "briefing built" message after raise).
+  - **Default-callable wiring (1)**: `generate=None` resolves to `_default_generate_briefing`; verified via `monkeypatch.setattr` of the module-level adapter binding.
+- [x] **6.3** Quality gate: ruff ✅, ruff format ✅ (100 files; 1 auto-formatted), mypy --strict ✅ (**37 source files** — pipeline.py extended in place; no new src file), pytest ✅ **617/617** (+13 tests; zero regressions in the prior 604).
 
 ---
 
@@ -203,38 +214,44 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 **Refs**: AC-001-1, AC-003-4, AC-003-5, TS-2.
 
-- [ ] **7.1** In `pipeline.py`, add:
-  - `async def _stage_publish(briefing: Briefing, target_date: date, *, git_runner: GitRunner | None = None) -> Path`
-  - Logs INFO `[publish] starting`
-  - Path 1: `path = await asyncio.to_thread(write_briefing, briefing, target_date)` — verify-first (u3 enforces disclaimer); raises `PublisherDisclaimerError` or `PublisherIOError` on failure
-  - Path 2: `await asyncio.to_thread(commit_and_push, message=f"briefing: {target_date}", files=[path], runner=git_runner)` — raises `PublisherGitError` on exhausted retry
-  - Returns the archive path
-- [ ] **7.2** Tests: `tests/unit/orchestrator/test_stage_publish.py`:
-  - happy path (fake `GitRunner`) → returns archive path; commit_and_push called with correct message + files
-  - `PublisherDisclaimerError` from write_briefing → propagates; commit_and_push NOT called
-  - `PublisherGitError` from commit_and_push → propagates after write succeeded
-  - `PublisherIOError` from write_briefing → propagates
-- [ ] **7.3** Quality gate.
+- [x] **7.1** Extended `src/investo/orchestrator/pipeline.py`:
+  - Added imports: `asyncio`, `Path`, u3's public surface (`GitRunner`, `commit_and_push`, `write_briefing`).
+  - `async def _stage_publish(briefing, target_date, *, git_runner=None) -> Path`:
+    - INFO `[publish] starting target_date=%s` on entry.
+    - Phase 1: `archive_path = await asyncio.to_thread(write_briefing, briefing, target_date)` — sync u3 function bridged off the event loop (TS-2). Raises `PublisherDisclaimerError` (NFR-004 verify-first; nothing on disk) or `PublisherIOError` (atomic write OS error).
+    - INFO `[publish] wrote {archive_path}` between phases.
+    - Phase 2: `await asyncio.to_thread(commit_and_push, "briefing: {target_date}", [archive_path], runner=git_runner)` — 3-attempt retry (FD R3 backoff 0/2/8 s) with idempotent-commit detection on retry. `PublisherGitError` after exhaustion; `last_stderr` is 1024-byte UTF-8 truncated.
+    - INFO `[publish] committed + pushed %s` on success. Returns `archive_path` for `run_pipeline` to derive `briefing_url`.
+- [x] **7.2** Created `tests/unit/orchestrator/test_stage_publish.py` (~330 lines, **9 tests** vs plan's 4 target — high effort):
+  - **Happy path (3)**: end-to-end write+commit+push (asserts file on disk + add/commit/push call sequence); returns the archive path; commit message format `"briefing: 2026-04-25"` pinned (so u6 / cross-check can grep).
+  - **AC-003-4 (2)**: PublisherDisclaimerError propagates with no file on disk + commit_and_push NEVER called; PublisherIOError propagates with git phase skipped.
+  - **AC-003-5 (1)**: 3-attempt push exhaustion → PublisherGitError; `last_stderr` propagated; file IS on disk (write succeeded). `_FailingGitPushRunner` simulates the realistic "commit landed, push failed, retry sees clean tree" idempotent-noop case via the `_is_idempotent_commit_noop` detector.
+  - **Default git_runner (1)**: `git_runner=None` forwards `None` to `commit_and_push` so u3 uses real subprocess; verified by `monkeypatch.setattr` on the orchestrator's imported binding.
+  - **AC-005-5 INFO logging (2)**: 3-line happy log (starting → wrote → committed + pushed); "starting" emitted BEFORE any I/O even on disclaimer-fail (operators see attempt in GHA log).
+  - **GitRunner Protocol kwargs reconciliation**: u3's GitRunner uses `(args, *, capture_output, text, check)` — my initial fakes used `timeout` (matching u4's pattern). Fixed mid-step.
+  - **PublisherIOError signature reconciliation**: `__init__` uses `path=` (not `target_path=`). Fixed mid-step.
+- [x] **7.3** Quality gate: ruff ✅ (initial SIM102 nested-if violation in fake → fixed via `and` combine), ruff format ✅ (101 files; 1 auto-formatted), mypy --strict ✅ (37 source files; pipeline.py extended in place), pytest ✅ **626/626** (+9 tests; zero regressions in the prior 617).
 
 ---
 
 ### Step 8: `_stage_notify_briefing` — wraps u4 BriefingPublisher.send
 
-**Refs**: AC-003-6, AC-005-7 (PARTIAL = exactly publish-ok + notify-fail).
+**Refs**: AC-003-6, AC-003-8, AC-005-5, AC-005-6.
 
-- [ ] **8.1** In `pipeline.py`, add:
-  - `async def _stage_notify_briefing(briefing: Briefing, *, publisher: BriefingPublisher, site_url: HttpUrl) -> SendResult`
-  - Logs INFO `[notify_briefing] starting`
-  - `summary = build_summary(briefing, site_url=str(site_url))`
-  - `payload = BriefingNotification(target_date=briefing.target_date, summary_text=summary, site_url=site_url)`
-  - `result = await publisher.send(payload)`
-  - Returns the `SendResult` (orchestrator decides PARTIAL vs SUCCESS based on `result.ok`)
-- [ ] **8.2** Tests: `tests/unit/orchestrator/test_stage_notify_briefing.py`:
-  - happy path (`MockTransport` → 200 + ok=true) → `SendResult(ok=True)`
-  - Telegram API failure → `SendResult(ok=False)` (non-raising contract — u4's responsibility, but pin)
-  - HTTP transport error → `SendResult(ok=False)`
-  - request body shape: chat_id matches `publisher._channel_id`; text matches `summary`
-- [ ] **8.3** Quality gate.
+- [x] **8.1** Extended `src/investo/orchestrator/pipeline.py`:
+  - Added imports: `pydantic.HttpUrl`, `BriefingNotification`, `SendResult`, `BriefingPublisher`, `build_summary`.
+  - `async def _stage_notify_briefing(briefing, *, publisher, site_url) -> SendResult`:
+    - INFO `[notify_briefing] starting target_date=%s` on entry.
+    - 3 phases: `build_summary(briefing, site_url=str(site_url))` → `BriefingNotification(target_date, summary_text, site_url)` (model re-validates 4096 UTF-16 cap as defense in depth) → `await publisher.send(payload)`.
+    - On `result.ok=True`: INFO `[notify_briefing] ok target_date=%s message_id=%s` (message_id helps diagnose chat-ID misconfig).
+    - On `result.ok=False`: WARNING `[notify_briefing] failed target_date=%s error=%s` per AC-005-6 (NOT ERROR — failure here is non-fatal; pipeline marks PARTIAL).
+    - **Non-raising contract**: u4's `BriefingPublisher.send` already encodes HTTP failures as `SendResult(ok=False)`; orchestrator forwards verbatim. Programmer errors (test stubs with bugs, etc.) DO propagate per FD failure contract — orchestrator does not swallow.
+- [x] **8.2** Created `tests/unit/orchestrator/test_stage_notify_briefing.py` (~290 lines, **9 tests** vs plan's 4 target — high effort):
+  - **Happy path (3)**: SendResult(ok=True, message_id) returned; chat_id in request body matches publisher's channel_id (CLAUDE.md #5 stage-layer safety net); text contains date header + market_summary + site_url footer.
+  - **AC-003-6 / AC-003-8 (3)**: Telegram API error (`{"ok":false}`) → SendResult(ok=False, error contains "channel not found"); httpx.ConnectError → SendResult(ok=False); programmer error from broken publisher (RuntimeError) propagates unwrapped (orchestrator doesn't blanket-swallow).
+  - **AC-005-5 / AC-005-6 logging (2)**: success → INFO with message_id, NO WARNING records; failure → WARNING with error message embedded (NOT ERROR level — failure is non-fatal at this layer).
+  - **Site URL flow (1)**: `site_url` flows through both `build_summary` (footer) and `BriefingNotification` (model field); end-to-end pin via request body inspection.
+- [x] **8.3** Quality gate: ruff ✅, ruff format ✅ (102 files; 1 auto-formatted), mypy --strict ✅ (37 source files — pipeline.py extended in place), pytest ✅ **635/635** (+9 tests; zero regressions in the prior 626).
 
 ---
 
@@ -242,28 +259,42 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 **Refs**: AC-001-1, AC-001-3, AC-001-5, AC-003-1 ~ AC-003-11, AC-005-7.
 
-- [ ] **9.1** In `pipeline.py`, add:
-  - `async def run_pipeline(target_date: date | None = None, *, aggregator, runner, git_runner, publisher, alerter, site_url) -> PipelineResult`
-  - `start = time.monotonic()`; `stage_timings = {}`; `stages_status = {}`
-  - **collect**: try `_stage_collect(target_date, aggregator=aggregator)` → on `EmptyCollectError` → alert(FailureStage="collect") → return `PipelineResult(status=FAILED, stages={"collect": "failed: empty"})`
-  - **generate**: try `_stage_generate(items, target_date, runner=runner)` → on `BriefingGenerationError` → alert(stage="generate") → return FAILED
-  - **publish**: try `_stage_publish(briefing, target_date, git_runner=git_runner)` → on `PublisherDisclaimerError | PublisherIOError | PublisherGitError` → alert(stage="publish") → return FAILED
-  - **notify_briefing**: try `_stage_notify_briefing(...)` → if `SendResult.ok=False` → log WARNING, status=PARTIAL (no operator alert per AC-003-6)
-  - **success**: status=SUCCESS, briefing_url derived from `archive_path` + `site_url` base
-  - All stages: record `stage_timings[stage] = time.monotonic() - stage_start` regardless of outcome
-  - Total `duration_seconds = time.monotonic() - start`
-- [ ] **9.2** Tests: `tests/unit/orchestrator/test_run_pipeline.py` — Q9=B Error Policy table coverage:
-  - happy path → SUCCESS + all 4 stage_timings populated + briefing_url set + 0 alerter calls
-  - empty collect → FAILED + stages={"collect": "failed: empty"} + 1 alerter call (stage="collect")
-  - generate fail → FAILED + 1 alerter call (stage="generate") + publish/notify SKIPPED
-  - publish disclaimer fail → FAILED + 1 alerter call (stage="publish") + notify SKIPPED
-  - publish git fail → FAILED + 1 alerter call (stage="publish") + notify SKIPPED
-  - notify fail → PARTIAL + 0 alerter calls + briefing_url still set (publish was OK)
-  - per-source collect failure (aggregator partial) → SUCCESS (per AC-003-9) + 0 alerter calls
-  - alerter failure during FAILED run → status still FAILED (per AC-003-10) + WARNING logged
-  - top-level `KeyError` from a stage (programmer error) → propagates from `run_pipeline` (caught by `main()`)
-- [ ] **9.3** AST-grep tests (per AC-001-3, AC-001-5, AC-003-11): assert `pipeline.py` does NOT contain `asyncio.wait_for(_stage_*` or stage-level `asyncio.gather(_stage_*` or retry loops wrapping stage calls.
-- [ ] **9.4** Quality gate.
+- [x] **9.1** Extended `src/investo/orchestrator/pipeline.py` with `run_pipeline` composer:
+  - Imports added: `asyncio`, `time`, `traceback`, `UTC`/`datetime`, pydantic `TypeAdapter`, `BriefingGenerationError`, models (`FailureContext`, `PipelineResult`, `PipelineStatus`), notifier `OperatorAlerter`, `resolve_target_date`, all 3 publisher errors umbrella + `PublisherError` for re-export.
+  - **Signature**: `async def run_pipeline(target_date=None, *, publisher, alerter, site_url_base, fetch=None, runner=None, git_runner=None, generate=None) -> PipelineResult`. DI seams forward to each stage runner. Default `target_date=None` resolves via `resolve_target_date(datetime.now(UTC))`.
+  - **Q9=B routing** sequential per Q5 (no `asyncio.gather` of stages):
+    - collect → except EmptyCollectError → alert + FAILED + downstream skipped
+    - generate → except BriefingGenerationError → alert + FAILED
+    - publish → except (PublisherDisclaimerError | PublisherIOError | PublisherGitError) → alert + FAILED
+    - notify_briefing → non-raising; SendResult.ok=False → PARTIAL (NO alert per AC-003-6); SendResult.ok=True → SUCCESS
+  - **Stage timings** recorded for each executed stage (not for skipped stages — operators see "where time went" without confusing zeros).
+  - **Briefing URL**: `_briefing_url_for(target_date, site_url_base)` builds `{base}/{YYYY}/{MM}/{YYYY-MM-DD}/`, threaded into both `_stage_notify_briefing(site_url=...)` and `PipelineResult.briefing_url`.
+  - **Best-effort alerter** via `_safe_alert(alerter, stage, exc)` helper:
+    - Constructs `FailureContext` via `_build_failure_context` (truncates traceback to ≤2000 chars per the model's own validator; falls back to `type(exc).__name__` when `str(exc)` is empty so `error_message` min_length=1 holds).
+    - On alerter SendResult(ok=False) → WARNING log, status stays FAILED (AC-003-10).
+    - On alerter raising (programmer error in stub) → catches `OSError | RuntimeError | ValueError`, logs WARNING, status stays FAILED — does NOT mask the underlying stage failure with an unrelated exception.
+  - **No retry** at orchestrator boundary (per Q4=A); **no `asyncio.wait_for`** wrap (per Q1=A); **no stage-level `asyncio.gather`** (per Q5).
+  - Final `_build_result` helper logs `[pipeline] complete target_date=... status=... duration=...` at INFO + constructs the frozen `PipelineResult`.
+
+- [x] **9.2** Created `tests/unit/orchestrator/test_run_pipeline.py` (~700 lines, **25 tests** vs plan's 9 target — high effort):
+  - **Happy path (2)**: SUCCESS with all 4 stage_timings + briefing_url + no alert; target_date=None resolves to a weekday.
+  - **AC-003-1 + AC-003-9 (2)**: per-source partial → SUCCESS not PARTIAL; explicit AC-003-9 invariant pin.
+  - **AC-003-2 (1)**: empty collect → FAILED + 1 alert(stage="collect", error_type="EmptyCollectError"); downstream skipped; publisher never called.
+  - **AC-003-3 (1, parametrized over 4 BGE stages)**: classification/synthesis/post_validation/budget → FAILED + alert(stage="generate", error_type="BriefingGenerationError").
+  - **AC-003-4 (1)**: PublisherDisclaimerError → FAILED + alert(stage="publish", error_type="PublisherDisclaimerError"); notify skipped.
+  - **AC-003-5 (1)**: PushFailingGitRunner exhausts retries → FAILED + alert(stage="publish", error_type="PublisherGitError"); idempotent-noop on retry handled.
+  - **AC-003-6 + AC-003-8 (1)**: notify SendResult(ok=False) → PARTIAL with briefing_url set + NO alert.
+  - **AC-003-10 (2)**: alerter ok=False during FAILED → status stays FAILED + WARNING logged; alerter raising → status stays FAILED + WARNING ("alert raised unexpected").
+  - **AC-001-1 (2)**: stage_timings populated on success (all 4 keys, all non-negative); on abort, only stages that ran get timings (downstream skipped → no key).
+  - **Programmer error propagation (1)**: aggregator RuntimeError → propagates from run_pipeline (orchestrator does NOT catch arbitrary Exception per AC-003-7 routing in main()).
+  - **Briefing URL composition (2)**: trailing-slash base normalized; month padded to 2 digits (`/2026/01/2026-01-05/`).
+  - **Total duration sanity (1)**: `duration_seconds ≥ sum(stage_timings.values()) - 0.1` (loose bound).
+  - **`_build_failure_context` (2)**: traceback truncated to ≤2000 chars; empty `str(exc)` falls back to class name so min_length=1 holds.
+- [x] **9.3** AST-grep deny tests (3) — read `pipeline.py` source, parse with `ast`, assert no offending nodes:
+  - **AC-001-3** — regex `asyncio\.wait_for\s*\(\s*_stage_` returns no match.
+  - **AC-001-5** — walk AST for `asyncio.gather(...)` calls; assert no positional arg contains the substring `_stage_`.
+  - **AC-003-11** — walk AST for `For` / `While` nodes whose body contains an `await _stage_*(...)` expression; assert empty.
+- [x] **9.4** Quality gate: ruff ✅ (initial F401 unused imports + 2× E501 long-line in fake ctors → fixed via `--fix` + manual line-break), ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (initial unused-`type: ignore` on `FailureContext.stage=stage` — type checker accepted the str narrowing → comment removed), pytest ✅ **660/660** (+25 tests; zero regressions in the prior 635).
 
 ---
 
@@ -271,7 +302,9 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
 
 **Refs**: AC-007-1 ~ AC-007-5, US-005 entrypoint contract.
 
-- [ ] **10.1** Replace `src/investo/__main__.py`:
+- [x] **10.1** Replaced `src/investo/__main__.py` (~210 lines, NotImplementedError stub → real entrypoint). Module structure: `_REQUIRED_ENV_VARS` Final tuple; `_ALERT_PREREQ_VARS` (token + operator_chat_id) gate for AC-007-3; `_BOOT_ALERT_TIMEOUT_S=5.0`; `_missing_env_vars()` (treats `""` as missing per GHA Secrets behavior); `_validate_env() -> 5-tuple` (ConfigError.for_missing on absence; `for_equal_chat_ids()` on CLAUDE.md #5 violation BEFORE either dispatcher constructed; pydantic ValidationError on bad SITE_URL_BASE wrapped in ConfigError); `_attempt_boot_alert(exc)` (catches construction `ValidationError|ValueError` + dispatch `OSError|RuntimeError|httpx.HTTPError` so alerter never masks the underlying exit code; uses 5-s timeout client); `_async_main()` (1st try ConfigError → alert+1; 2nd try shared `httpx.AsyncClient(timeout=30.0)` + dispatcher construction + `await run_pipeline(...)`; status → 0/0/1; top-level Exception per AC-003-7 → log.exception + alert + 1, never propagates); `main()` sync wrapper sets `logging.basicConfig(INFO)` + `asyncio.run(_async_main())`.
+
+  Original prose (preserved for traceability):
   - `def main() -> int`: read 5 env vars (`CLAUDE_CODE_OAUTH_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BRIEFING_CHANNEL_ID`, `TELEGRAM_OPERATOR_CHAT_ID`, `SITE_URL_BASE`)
   - Missing var → `ConfigError(missing_vars=(...,))`
   - Equal `TELEGRAM_BRIEFING_CHANNEL_ID == TELEGRAM_OPERATOR_CHAT_ID` → `ConfigError(missing_vars=(), message="...")`
@@ -279,35 +312,32 @@ There is no `stage_timings: dict[str, float]` field today. Two options:
   - On success: build shared `httpx.AsyncClient` + construct `BriefingPublisher` + `OperatorAlerter` (kwargs-only, disjoint chat_ids per CLAUDE.md #5); construct `Aggregator` + obtain `runner` + `git_runner`; call `asyncio.run(run_pipeline(...))`
   - Map `PipelineStatus` → exit code: SUCCESS|PARTIAL → 0; FAILED → 1
   - Top-level unexpected `Exception` (not `ConfigError`) → best-effort alert (stage="orchestrator") + log + return 1 (per AC-003-7)
-- [ ] **10.2** Tests: `tests/unit/orchestrator/test_main.py`:
-  - 5 missing-var parametrized cases → `ConfigError` raised + exit 1 + best-effort alert attempted (when possible)
-  - chat_id equality → `ConfigError` raised + exit 1
-  - happy SUCCESS → exit 0
-  - PARTIAL → exit 0
-  - FAILED → exit 1
-  - top-level exception → exit 1 + alert attempted (mocked OperatorAlerter)
-- [ ] **10.3** Resolve the FailureStage Literal: if needed, add `"orchestrator"` to `FailureStage` literal in `src/investo/models/results.py` (small extension; ratify in Step 10's audit log entry).
-- [ ] **10.4** Quality gate.
+- [x] **10.2** Created `tests/unit/orchestrator/test_main.py` (~360 lines, **25 tests** vs plan's 7 target — high effort): AC-007-1 (3: 5-parametrized missing-var, empty-string, multi-missing); AC-007-2 (1: chat-id equality, pipeline NEVER invoked); AC-007-3 (3: prereqs present → 1 alert with stage="orchestrator"; bot_token missing → no alert; operator_chat_id missing → no alert); site URL parsing (2: malformed → exit 1, happy URL forwarded); exit-code mapping (1 parametrized: SUCCESS|PARTIAL → 0, FAILED → 1); AC-003-7 (2: KeyError → alert(orchestrator, KeyError) + exit 1; RuntimeError without prereqs → exit 1 no alert); happy path (2); _missing_env_vars helper (2: declaration order, empty when all set); best-effort alert robustness (2: FailureContext construction failure silenced, alerter dispatch OSError silenced); forward-args sanity (1: publisher / alerter / site_url_base reach run_pipeline). Uses `_stub_pipeline` + `_capture_alerts` context-manager helpers that monkeypatch the symbols inside `__main__`'s import binding (DI without changing `__main__` signature).
+- [x] **10.3** Extended `FailureStage` Literal in `src/investo/models/results.py` to include `"orchestrator"` (5th value). Updated:
+  - `tests/unit/models/test_results.py::_FAILURE_STAGES` tuple.
+  - `tests/unit/models/test_roundtrip.py::_FAILURE_STAGES` strategy.
+  - This is the explicit stage value for boot/top-level failures (env-validation ConfigError + AC-003-7 unexpected-exception path) — semantically clearer than reusing one of the four stage names. Ratified in audit log.
+- [x] **10.4** Quality gate: ruff ✅ (3 F401 unused imports auto-fixed: `UTC`/`datetime`/`Iterator`-related leftover from initial draft; 1 unused fixture import), ruff format ✅ (105 files), mypy --strict ✅ (37 source files — `__main__.py` rewritten in place; no new src file), pytest ✅ **686/686** (+25 main tests + 1 from FailureStage extension touching the parametrized models tests; zero regressions in the prior 660).
 
 ---
 
 ### Step 11: `__init__.py` public surface + integration test
 
-**Refs**: AC-006-1 ~ AC-006-3.
+**Refs**: AC-006-1, AC-006-3.
 
-- [ ] **11.1** Replace `src/investo/orchestrator/__init__.py` placeholder:
-  - Re-export `run_pipeline`, `main`, `resolve_target_date`, `ConfigError`, `EmptyCollectError`
-  - Internal helpers (`_stage_*`) NOT re-exported (private contract)
-- [ ] **11.2** Create `tests/integration/test_pipeline.py` (~300 lines):
-  - End-to-end happy path: 4 mocks wired (httpx.MockTransport for u1 + u4 / FakeClaudeRunner for u2 / fake GitRunner for u3) → `run_pipeline` → SUCCESS
-  - End-to-end empty collect → FAILED + alerter call
-  - End-to-end generate fail → FAILED + alerter call
-  - End-to-end publish disclaimer fail → FAILED + alerter call
-  - End-to-end publish git fail → FAILED + alerter call
-  - End-to-end notify fail → PARTIAL + no alerter call
-  - End-to-end per-source partial → SUCCESS
-  - Public surface importability: `run_pipeline`, `main`, `resolve_target_date`, `ConfigError`, `EmptyCollectError` all resolve from `investo.orchestrator`
-- [ ] **11.3** Quality gate.
+- [x] **11.1** Finalized `src/investo/orchestrator/__init__.py` public surface:
+  - Re-exports: `run_pipeline`, `resolve_target_date`, `ConfigError`, `EmptyCollectError` (4 names).
+  - **`main` deliberately NOT re-exported** here — it lives in `investo.__main__` per Python convention so `python -m investo` finds it. Re-exporting from `investo.orchestrator` would be redundant + error-prone (two import paths for the same symbol). Inline comment ratifies the decision.
+  - Internal stage runners (`_stage_*`) NOT re-exported — they're implementation details of `run_pipeline` and individually testable via explicit imports from `investo.orchestrator.pipeline`.
+- [x] **11.2** Created `tests/integration/test_pipeline.py` (~430 lines, **7 tests**):
+  - **AC-006-1 happy path (1)**: 4 mocks wired simultaneously — fake `fetch` for u1, real `generate_briefing` driven by canned `call_claude_code` stub for u2 (mirrors `test_briefing_pipeline_poc.py`), real `write_briefing` to `tmp_path` ARCHIVE_ROOT + fake GitRunner for u3, single shared httpx.AsyncClient with MockTransport routing both `BriefingPublisher.send` and any `OperatorAlerter.alert` based on chat_id. Asserts: SUCCESS status, all 4 stage_timings, real file on disk with disclaimer ("투자 자문" or "면책"), git add/commit/push sequence, public-channel send with per-day URL footer, NO operator alert.
+  - **AC-003-2 empty collect (1)**: 0-item fetch → FAILED + 1 operator alert (lands at operator chat ID NOT public channel) + u2/u3/public-channel never invoked.
+  - **AC-003-6 / AC-003-8 notify failure (1)**: Telegram `{"ok":false,"description":"rate limited"}` for the public-channel call → PARTIAL + briefing_url set + NO operator alert + file still on disk + git lifecycle ran.
+  - **CLAUDE.md #5 chat-ID isolation invariant (1)**: empty-collect failure path issues 1 Telegram call → assert `chat_ids_seen == [_OPERATOR_CHAT]`; public channel never receives anything.
+  - **Public-surface importability (2)**: 4 names resolve from `investo.orchestrator`; internal `_stage_*` NOT exposed; `main` NOT re-exported (per Step 11.1 design); `__all__` exact set check; types verified (`callable` / `RuntimeError` subclass).
+  - **resolve_target_date round-trip (1)**: smoke test that the re-export works the same as the module-level import (catches accidental shadowing).
+  - **Test architecture**: `stub_u2_claude` fixture monkeypatches u2's `call_claude_code` with stage1+stage2 stubs and disables `_BACKOFF_SCHEDULE` so retries don't introduce wall-clock delay. `isolated_archive` fixture redirects `ARCHIVE_ROOT` + disables `time.sleep` in u3's git_ops backoff.
+- [x] **11.3** Quality gate: ruff ✅ (3 F401 unused imports auto-fixed: `ConfigError`, `EmptyCollectError`, `logging` from initial draft), ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (37 source files; `__init__.py` extended in place — no new src file), pytest ✅ **693/693** (+7 integration tests; zero regressions in the prior 686).
 
 ---
 

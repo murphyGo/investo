@@ -21,6 +21,7 @@ _FAILURE_STAGES: tuple[FailureStage, ...] = (
     "generate",
     "publish",
     "notify_briefing",
+    "orchestrator",
 )
 
 _DURATION_CEILING = 24 * 60 * 60

@@ -1,5 +1,167 @@
 # AI-DLC Audit Log
 
+## Construction — u5 orchestrator — Code Generation Step 11 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 11 (`__init__.py` public surface + integration test) of u5 orchestrator Code Generation.
+**Files modified**:
+- `src/investo/orchestrator/__init__.py`: replaced `__all__: list[str] = []` placeholder with the 4-name public surface (`run_pipeline`, `resolve_target_date`, `ConfigError`, `EmptyCollectError`). `main` deliberately NOT re-exported here — it lives in `investo.__main__` per Python convention and `python -m investo` finds it there; re-exporting from `investo.orchestrator` would be redundant and create two import paths for the same symbol. Inline comment documents the decision.
+- `tests/integration/test_pipeline.py` (~430 lines, **7 tests**): end-to-end tests wiring all 4 mock patterns simultaneously per AC-006-1 + AC-006-3. Test architecture:
+  - **u1**: fake `fetch` callable (we don't drive FomcRssAdapter against MockTransport — that's exercised by `test_briefing_pipeline_poc.py`; here we only care that `_stage_collect` plumbing surfaces the items).
+  - **u2**: `stub_u2_claude` fixture monkeypatches `investo.briefing.pipeline.call_claude_code` with canned Stage1 + Stage2 stubs (mirrors `test_briefing_pipeline_poc.py` pattern) and disables `_BACKOFF_SCHEDULE` so retries don't add wall-clock delay. **Drives the real `generate_briefing`** so the round-trip exercises u2's prompt-generation + parsing + disclaimer-append + leak-guard layers.
+  - **u3**: `isolated_archive` fixture redirects `ARCHIVE_ROOT` to `tmp_path` and disables `time.sleep` in u3's git_ops backoff. Real `write_briefing` writes to disk; fake `_SuccessfulGitRunner` records add/commit/push.
+  - **u4**: single shared `httpx.AsyncClient(transport=MockTransport)` handles both `BriefingPublisher.send` (chat_id=public) and any `OperatorAlerter.alert` (chat_id=operator) via per-test handler that routes by `chat_id`.
+
+  Test coverage:
+  - AC-006-1 happy path: SUCCESS, all 4 stage_timings, real file on disk with disclaimer ("투자 자문" or "면책"), git add/commit/push sequence, public-channel send with per-day URL footer, NO operator alert.
+  - AC-003-2 empty collect: FAILED + 1 operator alert (lands at operator chat ID, NOT public channel) + u2/u3/public never invoked.
+  - AC-003-6 / AC-003-8 notify failure: Telegram `{"ok":false}` → PARTIAL + briefing_url set + NO operator alert + file still on disk + git lifecycle ran.
+  - CLAUDE.md #5 chat-ID isolation: empty-collect failure path issues exactly 1 Telegram call → asserts `chat_ids_seen == [_OPERATOR_CHAT]`, public channel never received anything.
+  - Public-surface importability: 4 names resolve from `investo.orchestrator`; internal `_stage_*` NOT exposed; `main` NOT re-exported per Step 11.1 design; `__all__` exact set check; types verified.
+  - `resolve_target_date` round-trip via re-export (catches accidental shadowing in __init__).
+
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅ (3 F401 unused imports auto-fixed: `ConfigError`, `EmptyCollectError`, `logging` from initial draft), ruff format ✅ (1 file auto-formatted), mypy --strict ✅ (37 source files; `__init__.py` extended in place — no new src file), pytest ✅ **693/693 passed in 5.30s** (+7 integration tests; zero regressions in the prior 686).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 11 complete. Plan checkboxes 11.1 + 11.2 + 11.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 11 of 13 — public surface + integration test". **The orchestrator is now functionally complete and pinned by integration tests at the public boundary.** Next: **Step 12** — sub-agent code review of all of u5 (focus areas: Q9=B routing correctness, time accounting on failure paths, env-validation order, best-effort-alert robustness, async-sync interaction at the asyncio.to_thread boundaries, test isolation, logging conventions, CLAUDE.md #5 enforcement).
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 11 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 10 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 10 (`main()` entrypoint with env validation + best-effort alert + exit codes) of u5 orchestrator Code Generation. Modified:
+- `src/investo/__main__.py`: replaced the NotImplementedError stub with a ~210-line entrypoint covering AC-007-1 ~ AC-007-5 + AC-003-7. Five helpers: `_missing_env_vars` (treats `""` as missing per GHA Secrets behavior), `_validate_env` (5-tuple return, ConfigError on missing/equal-chat-ids/bad-URL), `_attempt_boot_alert` (best-effort, catches construction + dispatch errors), `_async_main` (1st try ConfigError → alert + 1; 2nd try shared httpx.AsyncClient + dispatcher construction + run_pipeline; status → 0/0/1; top-level Exception per AC-003-7 → log.exception + alert + 1, never propagates), `main()` sync wrapper.
+- `src/investo/models/results.py`: extended `FailureStage` Literal to include `"orchestrator"` as the 5th value — the explicit stage name for env-validation ConfigError + AC-003-7 unexpected-exception paths. Semantically clearer than reusing one of the four stage names. Inline comment ratifies the addition.
+- `tests/unit/models/test_results.py`: extended `_FAILURE_STAGES` tuple to include `"orchestrator"` so the parametrized round-trip test covers all 5 values.
+- `tests/unit/models/test_roundtrip.py`: extended `_FAILURE_STAGES` strategy to include `"orchestrator"` so hypothesis PBT covers it.
+- `tests/unit/orchestrator/test_main.py` (~360 lines, **25 tests**): AC-007-1 (3 — 5-parametrized missing-var, empty-string, multi-missing); AC-007-2 (1 — chat-id equality, pipeline never invoked); AC-007-3 (3 — prereqs present → 1 alert with stage="orchestrator"; bot_token missing → no alert; operator_chat_id missing → no alert); site URL parsing (2); exit-code mapping (1 parametrized over SUCCESS|PARTIAL|FAILED); AC-003-7 (2 — KeyError → alert(orchestrator, KeyError); RuntimeError without prereqs → no alert); happy path (2); `_missing_env_vars` helper (2); best-effort robustness (2 — FailureContext construction silenced, alerter OSError silenced); forward-args sanity (1).
+**Test architecture**: `_stub_pipeline` + `_capture_alerts` context-manager helpers monkeypatch `run_pipeline` and `OperatorAlerter` symbols inside `__main__`'s import binding. This avoids real u1-u4 wiring + real httpx + real Telegram during unit tests, while exercising the exact `main()` code path (DI by symbol replacement, not signature change).
+
+**FailureStage Literal extension** ratified here (Step 10.3): adding `"orchestrator"` is a backward-compatible addition (old `FailureContext` consumers still accept the 4 original values; new code can construct `FailureContext(stage="orchestrator", ...)`). Models test parametrizations were updated in lockstep.
+
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅ (3 F401 unused imports auto-fixed: leftover `UTC`/`datetime`/`Iterator` from initial draft + 1 unused fixture import), ruff format ✅ (105 files), mypy --strict ✅ (37 source files — `__main__.py` rewritten in place; no new src file), pytest ✅ **686/686 passed in 5.08s** (+25 main tests + 1 from FailureStage extension touching the parametrized models tests; zero regressions in the prior 660).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 10 complete. Plan checkboxes 10.1 + 10.2 + 10.3 + 10.4 all `[x]`. aidlc-state.md u5 CG column updated to "Step 10 of 13 — main entrypoint". Next: **Step 11** — finalize `src/investo/orchestrator/__init__.py` public surface (re-export `run_pipeline`, `resolve_target_date`, `ConfigError`, `EmptyCollectError`; `main()` lives in `__main__.py` per Python convention so not re-exported). Plus `tests/integration/test_pipeline.py` end-to-end with all 4 existing mock patterns (httpx.MockTransport for u1+u4 + FakeClaudeRunner for u2 + fake GitRunner for u3).
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 10 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 9 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 9 (`run_pipeline` composer — Q9=B Error Policy router across 11 ACs). Modified:
+- `src/investo/orchestrator/pipeline.py`: extended with `run_pipeline` + 3 helpers (`_safe_alert`, `_build_failure_context`, `_briefing_url_for`, `_build_result`).
+  - Signature: `async def run_pipeline(target_date=None, *, publisher, alerter, site_url_base, fetch=None, runner=None, git_runner=None, generate=None) -> PipelineResult`. DI seams forward to each stage runner. `target_date=None` resolves via `resolve_target_date(datetime.now(UTC))`.
+  - Q9=B routing sequential per Q5: collect → generate → publish → notify_briefing. Each catalogued failure converted into `FailureContext` and routed to `alerter.alert(...)` via `_safe_alert`; status=FAILED + downstream stages marked "skipped". Notify failure alone → PARTIAL with NO alert (per AC-003-6 — PARTIAL is the visibility signal).
+  - **No retry** at orchestrator boundary (Q4=A); **no `asyncio.wait_for`** wrap (Q1=A); **no stage-level `asyncio.gather`** (Q5).
+  - Stage timings recorded for each executed stage; skipped stages have no timing key (operators see "where time went" without confusing zeros).
+  - Briefing URL: `_briefing_url_for(target_date, site_url_base)` builds `{base}/{YYYY}/{MM}/{YYYY-MM-DD}/`, threaded into both `_stage_notify_briefing(site_url=...)` and `PipelineResult.briefing_url`.
+  - `_safe_alert` covers AC-003-10: alerter `ok=False` → WARNING + status stays FAILED; alerter raising (programmer error in stub) → catches `OSError | RuntimeError | ValueError`, logs WARNING, status stays FAILED — does NOT mask the underlying stage failure.
+  - `_build_failure_context` truncates traceback to ≤2000 chars (matches `FailureContext.traceback_excerpt` validator) and falls back to `type(exc).__name__` if `str(exc)` is empty (so `error_message` min_length=1 invariant holds).
+- `tests/unit/orchestrator/test_run_pipeline.py` (~700 lines, **25 tests** vs plan's 9 target — high effort):
+  - Happy path (2): SUCCESS + 4 stage_timings + briefing_url + no alert; target_date=None resolves to a weekday.
+  - AC-003-1 + AC-003-9 (2): per-source partial → SUCCESS, NOT PARTIAL.
+  - AC-003-2 (1): empty collect → FAILED + alert(collect, EmptyCollectError); downstream skipped; publisher never called.
+  - AC-003-3 (1 parametrized over 4 BGE stages): FAILED + alert(generate, BriefingGenerationError).
+  - AC-003-4 (1): PublisherDisclaimerError → FAILED + alert(publish, PublisherDisclaimerError); notify skipped.
+  - AC-003-5 (1): push exhaustion → FAILED + alert(publish, PublisherGitError) with idempotent-noop retry handled.
+  - AC-003-6 + AC-003-8 (1): notify ok=False → PARTIAL with briefing_url + NO alert.
+  - AC-003-10 (2): alerter ok=False during FAILED → status stays FAILED + WARNING; alerter raising → status stays FAILED + "alert raised unexpected" WARNING.
+  - AC-001-1 (2): stage_timings populated on success (all 4 keys, non-negative); on abort, only ran stages get timings.
+  - Programmer error (1): aggregator RuntimeError → propagates (AC-003-7 main()-level catch).
+  - URL composition (2): trailing-slash base normalized; month padded.
+  - Total duration sanity (1).
+  - `_build_failure_context` (2): traceback truncated to ≤2000; empty `str(exc)` falls back to class name.
+  - **AST-grep deny tests (3)** — AC-001-3 (no `asyncio.wait_for(_stage_*`), AC-001-5 (no stage-level `asyncio.gather` — walks AST for gather calls and asserts no positional arg contains `_stage_`), AC-003-11 (no retry loops — walks AST for For/While whose body contains `await _stage_*`).
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅ (F401 unused imports + 2× E501 long-line in fake ctors → fixed via `--fix` + manual line-break), ruff format ✅ (1 auto-formatted), mypy --strict ✅ (initial unused-`type: ignore` on `FailureContext.stage=stage` — narrowing to str accepted; comment removed), pytest ✅ **660/660 passed in 5.03s** (+25 tests; zero regressions in the prior 635).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 9 complete. Plan checkboxes 9.1 + 9.2 + 9.3 + 9.4 all `[x]`. aidlc-state.md u5 CG column updated to "Step 9 of 13 — run_pipeline composer". **The orchestrator's behavioral surface is now complete**: 4 stage runners + Q9=B router. Next: **Step 10** — `main()` entrypoint (replace `src/investo/__main__.py`'s NotImplementedError stub) with env validation per AC-007-1 (5 vars), CLAUDE.md #5 chat_id disjointness ConfigError per AC-007-2, best-effort alert per AC-007-3, exit-code mapping (SUCCESS|PARTIAL → 0; FAILED → 1), and top-level exception alert per AC-003-7.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 9 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 8 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 8 (`_stage_notify_briefing` — wraps u4 `BriefingPublisher.send` + `build_summary`) of u5 orchestrator Code Generation. Modified:
+- `src/investo/orchestrator/pipeline.py`:
+  - Added imports: `pydantic.HttpUrl`, `BriefingNotification`, `SendResult`, `BriefingPublisher`, `build_summary`.
+  - Added `async def _stage_notify_briefing(briefing, *, publisher, site_url) -> SendResult`:
+    - INFO `[notify_briefing] starting target_date=...` on entry.
+    - 3-phase composition: `build_summary(briefing, site_url=str(site_url))` → `BriefingNotification(...)` (model re-validates 4096 UTF-16 cap as defense in depth) → `await publisher.send(payload)`.
+    - **Non-raising contract**: u4's `send` already encodes HTTP failures as `SendResult(ok=False)`; orchestrator returns it verbatim so `run_pipeline` decides PARTIAL vs SUCCESS per AC-003-6 + AC-003-8.
+    - On success: INFO with `message_id` (helps diagnose chat-ID misconfig if message lands in wrong channel).
+    - On failure: WARNING (not ERROR — failure here is non-fatal; pipeline marks PARTIAL) per AC-005-6.
+    - Programmer errors (publisher stub bugs etc.) propagate unwrapped per FD failure contract — orchestrator does NOT blanket-swallow.
+- `tests/unit/orchestrator/test_stage_notify_briefing.py` (~290 lines, **9 tests** vs plan's 4 target — high effort):
+  - Happy path (3): SendResult(ok=True, message_id) returned; chat_id in body matches publisher's channel_id (CLAUDE.md #5 stage-layer safety net beyond main()'s pre-construction check); request body text contains date header + market_summary + site_url footer.
+  - AC-003-6 / AC-003-8 (3): Telegram API error → SendResult(ok=False) with description in error; httpx.ConnectError → SendResult(ok=False); programmer error from broken publisher (RuntimeError) propagates.
+  - AC-005-5 / AC-005-6 logging (2): success → INFO with message_id + NO WARNING records; failure → WARNING with error embedded.
+  - Site URL flow (1): `site_url` flows through both `build_summary` (footer) and `BriefingNotification` (model field).
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅, ruff format ✅ (102 files; 1 auto-formatted), mypy --strict ✅ (37 source files — pipeline.py extended in place), pytest ✅ **635/635 passed in 5.46s** (+9 tests; zero regressions in the prior 626).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 8 complete. Plan checkboxes 8.1 + 8.2 + 8.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 8 of 13 — _stage_notify_briefing". **All 4 stage runners are now in place** (collect / generate / publish / notify_briefing); pipeline.py is ready for the Step 9 composer. Next: **Step 9** — `run_pipeline(target_date, *, aggregator, runner, git_runner, publisher, alerter, site_url) -> PipelineResult` Q9=B-routing composer. 11 AC integration tests (AC-003-1 ~ AC-003-11). AST-grep tests pin AC-001-3 (no `asyncio.wait_for(_stage_*`) + AC-001-5 (no stage-level `asyncio.gather`) + AC-003-11 (no orchestrator-level retry loop wrapping stage calls).
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 8 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 7 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 7 (`_stage_publish` — wraps u3 `write_briefing` + `commit_and_push` via `asyncio.to_thread`) of u5 orchestrator Code Generation. Modified:
+- `src/investo/orchestrator/pipeline.py`:
+  - Added imports: `asyncio`, `Path`, u3 public surface (`GitRunner`, `commit_and_push`, `write_briefing`).
+  - Added `async def _stage_publish(briefing, target_date, *, git_runner=None) -> Path`. Two phases bridged off the event loop via `asyncio.to_thread`:
+    - Phase 1: `archive_path = await asyncio.to_thread(write_briefing, briefing, target_date)` — atomic markdown write w/ verify-first NFR-004 disclaimer block. Raises `PublisherDisclaimerError` (nothing on disk) or `PublisherIOError` (filesystem error).
+    - Phase 2: `await asyncio.to_thread(commit_and_push, "briefing: {target_date}", [archive_path], runner=git_runner)` — 3-attempt retry per FD R3 (backoff 0/2/8 s) with idempotent-commit detection on retry. Raises `PublisherGitError` after exhaustion.
+    - Returns `archive_path` for `run_pipeline` (Step 9) to derive `briefing_url`. INFO logs at three points: starting / wrote / committed+pushed.
+- `tests/unit/orchestrator/test_stage_publish.py` (~330 lines, **9 tests** vs plan's 4 target — high effort):
+  - Happy path (3): end-to-end write + 3-step git lifecycle (add/commit/push); returns archive_path; commit message format `"briefing: 2026-04-25"` pinned (cross-check + u6 may grep).
+  - AC-003-4 (2): PublisherDisclaimerError → no file written + commit_and_push never invoked; PublisherIOError → git phase skipped.
+  - AC-003-5 (1): push exhaustion → PublisherGitError with `last_stderr` propagated; file IS on disk (write succeeded). `_FailingGitPushRunner` exercises the realistic "commit landed, retry sees clean tree" idempotent-noop path via `_is_idempotent_commit_noop`.
+  - Default `git_runner=None` (1): forwards None to commit_and_push → u3 uses real subprocess; verified via monkeypatch.
+  - AC-005-5 INFO logging (2): 3-line happy log; "starting" emitted before I/O even on disclaimer-fail.
+
+**Two reconciliation points caught + fixed mid-step**:
+1. **GitRunner Protocol kwargs**: `(args, *, capture_output, text, check)` — initial fakes used `timeout` (matching u4's `ClaudeRunner` Protocol). Fixed: GitRunner is sync subprocess.run shape, not the async-with-timeout shape.
+2. **PublisherIOError __init__**: uses `path=` keyword (not `target_path=`). Fixed.
+
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅ (initial SIM102 nested-if in `_FailingGitPushRunner` → fixed via `and` combine), ruff format ✅ (101 files; 1 auto-formatted), mypy --strict ✅ (37 source files — pipeline.py extended in place), pytest ✅ **626/626 passed in 5.17s** (+9 tests; zero regressions in the prior 617).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 7 complete. Plan checkboxes 7.1 + 7.2 + 7.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 7 of 13 — _stage_publish". Next: **Step 8** — extend `pipeline.py` with `_stage_notify_briefing(briefing, *, publisher, site_url) -> SendResult`. Builds the summary via u4's `build_summary`, constructs `BriefingNotification`, calls `publisher.send(payload)`. Returns the `SendResult` for `run_pipeline` to consult (PARTIAL vs SUCCESS per AC-003-6 / AC-003-8). Non-raising — u4's contract is already non-raising for HTTP failures.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 7 of 13.
+
+---
+
+## Construction — u5 orchestrator — Code Generation Step 6 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 6 (`_stage_generate` — wraps u2 `generate_briefing`) of u5 orchestrator Code Generation. Modified:
+- `src/investo/orchestrator/pipeline.py` (extended in place):
+  - Added imports: `ClaudeRunner` (Protocol from u2's `briefing.claude_code`), `generate_briefing as _u2_generate_briefing`, `Briefing` model, `Sequence` type.
+  - Added `GenerateCallable` type alias — positional 3-arg shape `Callable[[date, Sequence[NormalizedItem], ClaudeRunner | None], Awaitable[Briefing]]` for test convenience.
+  - Added `_default_generate_briefing(target_date, items, runner) -> Briefing` adapter — module-level wrapper (NOT `functools.partial`, for type-checker clarity) that bridges the positional `GenerateCallable` shape to u2's keyword-only `generate_briefing(target_date, items, runner=runner)` API. `budget` is intentionally NOT exposed at the orchestrator boundary per Q4=A.
+  - Added `_stage_generate(target_date, items, *, runner=None, generate=None) -> Briefing`: emits INFO `[generate] starting` (with target_date + items count) on entry; resolves `runner_callable = generate if generate is not None else _default_generate_briefing`; awaits directly (NO `asyncio.to_thread` wrap — see design reconciliation); emits INFO `[generate] briefing built` on success. `BriefingGenerationError` propagates unchanged for `run_pipeline` to route per AC-003-3.
+- `tests/unit/orchestrator/test_stage_generate.py` (~310 lines, **13 tests** vs plan's 3 target — high effort):
+  - Happy path (4): briefing forwarded from u2; (target_date, items) pair forwarded; runner-seam forwarded (critical for integration-test FakeClaudeRunner replay path); default `runner=None` when caller omits.
+  - AC-003-3 BGE propagation (2): 4-stage parametrized (classification/synthesis/post_validation/budget) confirms each propagates with correct fields; identity test (`exc_info.value is original`) confirms BGE is NEVER wrapped — `run_pipeline`'s except clause matches exact type.
+  - Programmer-error propagation (1): KeyError from u2 propagates unwrapped per FD failure contract + AC-003-7.
+  - AC-005-5 INFO logging (2): entry + exit messages; "starting" emitted BEFORE u2 invocation even on failure path; no "briefing built" message after raise.
+  - Default-callable wiring (1): `generate=None` resolves to `_default_generate_briefing`; verified via `monkeypatch.setattr` of the module-level adapter binding.
+
+**Two reconciliation points ratified in this step**:
+
+1. **No `asyncio.to_thread` at orchestrator boundary**. The plan's `await asyncio.to_thread(generate_briefing, ...)` form would be a TypeError — `generate_briefing` is `async def`. u2's sync `subprocess.run` is already bridged via `asyncio.to_thread` *inside* `call_claude_code` (per u2 Step 6). TS-2 (asyncio.to_thread for sync subprocess) still applies, just owned by u2 not duplicated at u5.
+2. **Positional `GenerateCallable` adapter**. u2's `generate_briefing` has keyword-only `runner=` / `budget=`. Orchestrator exposes a positional 3-arg `GenerateCallable` shape via the `_default_generate_briefing` adapter (a regular `async def` for type-checker clarity, not `functools.partial`). Test fakes mirror the simpler positional shape; production wires through the adapter. `budget` is NOT plumbed through — orchestrator does not control u2's retry budget per Q4=A.
+
+**Sub-agent code review**: DEFERRED to Step 12 (combined u5 review).
+**Quality gate**: ruff ✅, ruff format ✅ (100 files; 1 auto-formatted), mypy --strict ✅ (37 source files — pipeline.py extended in place; no new src file), pytest ✅ **617/617 passed in 5.14s** (+13 tests; zero regressions in the prior 604).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 6 complete. Plan checkboxes 6.1 + 6.2 + 6.3 all `[x]`. aidlc-state.md u5 CG column updated to "Step 6 of 13 — _stage_generate". Next: **Step 7** — extend `pipeline.py` with `_stage_publish(briefing, target_date, *, git_runner=None) -> Path`. Wraps u3's `write_briefing` (atomic markdown write w/ verify-first NFR-004 disclaimer block) + `commit_and_push` (3-attempt retry with idempotent-commit detection). Both are sync, so this stage uses `asyncio.to_thread` per TS-2. Returns the archive path. `PublisherDisclaimerError` / `PublisherIOError` / `PublisherGitError` re-raised unchanged for `run_pipeline` to route per AC-003-4 + AC-003-5.
+**Context**: Construction phase Code Generation — u5 orchestrator, Part 2 Step 6 of 13.
+
+---
+
 ## Construction — u5 orchestrator — Code Generation Step 5 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 5 (`pipeline.py` — `_stage_collect` wraps u1 aggregator) of u5 orchestrator Code Generation. Created:

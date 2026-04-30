@@ -71,7 +71,9 @@ _DATES = st.dates(
 _HTTP_URLS = st.integers(min_value=0, max_value=10**6).map(lambda n: f"https://example.com/r/{n}")
 
 _CATEGORIES = st.sampled_from(("news", "price", "macro", "calendar", "earnings"))
-_FAILURE_STAGES = st.sampled_from(("collect", "generate", "publish", "notify_briefing"))
+_FAILURE_STAGES = st.sampled_from(
+    ("collect", "generate", "publish", "notify_briefing", "orchestrator")
+)
 _PIPELINE_STATUSES = st.sampled_from(list(PipelineStatus))
 
 # raw_metadata values: strict union rejects bool. ``st.integers()`` does

@@ -41,7 +41,18 @@ from investo.models._validators import (
     reject_blank_strict,
 )
 
-FailureStage = Literal["collect", "generate", "publish", "notify_briefing"]
+FailureStage = Literal[
+    "collect",
+    "generate",
+    "publish",
+    "notify_briefing",
+    # u5 orchestrator boot / top-level paths that don't belong to any
+    # of the four stage runners — env-var validation failure
+    # (ConfigError) and the unexpected-exception catch in ``main()``
+    # both emit ``stage="orchestrator"`` so operators can disambiguate
+    # "the orchestrator itself crashed" from "stage X failed".
+    "orchestrator",
+]
 
 # Sanity ceiling for ``PipelineResult.duration_seconds`` — 24 hours.
 # NFR-001 caps a real run at 10 minutes; anything above this is a bug

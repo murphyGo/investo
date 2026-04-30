@@ -68,7 +68,22 @@ Reference:
     aidlc-docs/construction/plans/u5-orchestrator-code-generation-plan.md
 """
 
-# Public surface finalized in Step 11. Step 1 ships an empty
-# ``__all__`` so the module is importable for the early bootstrap
-# tests + mypy --strict scan without leaking unstable symbols.
-__all__: list[str] = []
+from investo.orchestrator.date_resolution import resolve_target_date
+from investo.orchestrator.errors import ConfigError, EmptyCollectError
+from investo.orchestrator.pipeline import run_pipeline
+
+# ``main`` lives in ``investo.__main__`` per Python convention so that
+# ``python -m investo`` finds it. We do NOT re-export it from this
+# package — the entry point is the module-runner, not a callable
+# imported from ``investo.orchestrator``. Internal stage runners
+# (``_stage_collect``, ``_stage_generate``, ``_stage_publish``,
+# ``_stage_notify_briefing``) are likewise not re-exported; they are
+# implementation details of ``run_pipeline`` and are individually
+# testable via explicit imports from ``investo.orchestrator.pipeline``.
+
+__all__ = [
+    "ConfigError",
+    "EmptyCollectError",
+    "resolve_target_date",
+    "run_pipeline",
+]
