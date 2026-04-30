@@ -1,5 +1,48 @@
 # AI-DLC Audit Log
 
+## Construction — u6 infra/CI — Code Generation Step 1 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 1 (bootstrap) of u6 infra/CI Code Generation. Created:
+- `.github/workflows/` directory (was absent — first GHA workflow files land in Step 2 / 3).
+- `site_docs/` directory (mkdocs source root, kept disjoint from existing `docs/` AIDLC documentation root per the path-collision resolution noted in the plan).
+- `site_docs/index.md` and `site_docs/about.md` placeholder pages — Step 4 fills them with real content.
+**Modified**:
+- `pyproject.toml`: added `[project.optional-dependencies] docs = ["mkdocs-material>=9.5"]`. Inline comment ratifies the dev/docs split (NFR-002 minimal-runtime — runtime install carries only pydantic / httpx / defusedxml / bleach; mkdocs lives in the optional `docs` group). Pin floor 9.5 for Korean-friendly default search tokenization.
+**Verification**: `uv sync --extra dev --extra docs` resolves cleanly; `uv run mkdocs --version` returns 1.6.1.
+**Important note for CI**: `uv sync --extra docs` ALONE replaces dev deps (uv's default behavior). CI's Pages job MUST use `uv sync --extra dev --extra docs` (or just `--extra docs` if dev deps aren't needed for the build, which is the case for `mkdocs build --strict`). Documented in Step 5's CONTRIBUTING.md update.
+**Quality gate**: ruff ✅, ruff format ✅ (106 files), mypy --strict ✅ (37 source files unchanged — no Python source changes in u6), pytest ✅ **705/705 passed in 8.11s** (unchanged from u5 closeout; bootstrap-only).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 1 complete. Plan checkboxes 1.1 + 1.2 + 1.3 + 1.4 all `[x]`. aidlc-state.md u6 row updated to "Step 1 of 7 — bootstrap". Next: **Step 2** — `.github/workflows/daily-briefing.yml` (cron + workflow_dispatch + `uv run python -m investo` with 5 GHA Secrets injected per AC-007-1, `timeout-minutes: 12` per AC-001-4).
+**Context**: Construction phase Code Generation — u6 infra/CI, Part 2 Step 1 of 7.
+
+---
+
+## Construction — u6 infra/CI — Code Generation Plan APPROVED ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**User Input**: "approve"
+**AI Response**: Approval recorded. Proceeding to Step 1 (bootstrap).
+**Status**: Code Generation plan APPROVED (7 steps). Beginning Part 2 execution.
+**Context**: u6 infra/CI Code Generation Part 1 (Planning) → Part 2 (Execution) transition. **u6 is the final unit.**
+
+---
+
+## Construction — u6 infra/CI — Code Generation Plan (Part 1 Planning)
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Entered Code Generation stage for u6 infra/CI — the **final** unit. FD + NFR Requirements both N/A per execution-plan (YAML/config only; no new Python source code). Created `aidlc-docs/construction/plans/u6-infra-ci-code-generation-plan.md` with 7 numbered steps:
+- **Step 1** Bootstrap (`.github/workflows/` directory + pyproject `[project.optional-dependencies] docs = ["mkdocs-material>=9.5"]` + placeholder landing pages).
+- **Step 2** `.github/workflows/daily-briefing.yml`: cron schedule (UTC Sun-Thu 22:00 = KST Mon-Fri 07:00 + UTC Sat 00:00 = KST Sat 09:00) + workflow_dispatch w/ optional target_date input. Job runs `uv run python -m investo` with the 5 GHA Secrets injected via `env:` per AC-007-1. `timeout-minutes: 12` per AC-001-4. `permissions: contents: write` for git push.
+- **Step 3** `.github/workflows/pages.yml`: triggered on push to main + workflow_dispatch. `uv sync --extra docs` + `uv run mkdocs build --strict` + `actions/deploy-pages@v4` for atomic deploy (failure preserves prior site per DoD).
+- **Step 4** `mkdocs.yml` + landing pages. Reads from `site_docs/` (NOT `docs/` — keeps AIDLC docs untouched per CLAUDE.md project-structure). 3 nav entries (Home / About / Archive). Archive dir surfaced via symlink option for minimum moving parts (decision deferred to impl per Step 4.4).
+- **Step 5** `pyproject.toml` + `CONTRIBUTING.md`. Adds `[project.optional-dependencies] docs` (mkdocs-material). CONTRIBUTING documents cron schedule (KST↔UTC + DST note), 5 Secret names, manual-trigger flow for US-holiday recovery (Q3=A backfill).
+- **Step 6** Sub-agent code review.
+- **Step 7** Closeout `aidlc-docs/construction/u6-infra-ci/code/summary.md` + final QG.
+**Approval Prompt**: "Reply 'approve' to begin Step 1, or 'changes [N]' to revise step N."
+**Files modified**: created `aidlc-docs/construction/plans/u6-infra-ci-code-generation-plan.md`; updated `aidlc-docs/aidlc-state.md` (u6 row → "CG plan created — awaiting approval"); this audit entry.
+**Status**: Plan ready; awaiting user approve/changes response. **u6 is the final unit** — after closure, only global Build & Test remains.
+**Context**: Construction phase Code Generation — u6 infra/CI, Part 1 (Planning).
+
+---
+
 ## Construction — u5 orchestrator — Code Generation Step 13 COMPLETE ✅ (UNIT CG CLOSED)
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 13 (closeout `summary.md` + final quality gate). Created:

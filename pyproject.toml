@@ -36,6 +36,16 @@ dev = [
     "types-bleach>=6",
     "types-defusedxml>=0.7",
 ]
+# u6 infra/CI: documentation site build dependencies — only the GHA
+# Pages workflow and contributors building the site locally install
+# these. Keeping them in a separate optional group prevents the
+# runtime install from carrying mkdocs / jinja / markdown machinery
+# (NFR-002 zero-cost / minimal-runtime). Pin floor at 9.5 because
+# that's the first major release with the Korean-friendly default
+# search tokenization.
+docs = [
+    "mkdocs-material>=9.5",
+]
 
 [project.scripts]
 investo = "investo.__main__:main"
