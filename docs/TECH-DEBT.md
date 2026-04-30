@@ -218,6 +218,66 @@ _No high priority items._
 - **Effort**: ~2 min.
 - **Priority Reasoning**: Low — dead code, but not load-bearing on anything.
 
+#### DEBT-022: `pages.yml` permissions set at workflow level instead of job level
+
+- **Created**: 2026-05-01
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (M2)
+- **Reference**: NFR-007 (least-privilege secrets / permissions handling)
+- **Description**: `.github/workflows/pages.yml` declares `permissions: { pages: write, id-token: write, contents: read }` at workflow level (lines 48-51). This grants `pages: write` and `id-token: write` to BOTH the `build` and `deploy` jobs — but `build` only needs `contents: read` (it uploads a workflow artifact, not a Pages deploy). The `deploy` job is the only one that talks to GHA Pages.
+- **Suggested Fix**: Move to job-level: `build: { permissions: contents: read }`, `deploy: { permissions: pages: write, id-token: write }`. Tightens least-privilege without changing functionality.
+- **Effort**: ~5 min YAML edit.
+- **Priority Reasoning**: Low — the runner is already trusted (1-person repo); cosmetic least-privilege improvement.
+
+#### DEBT-023: `daily-briefing.yml` installs `--extra dev` but never runs pytest
+
+- **Created**: 2026-05-01
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L7)
+- **Reference**: NFR-001 (cron run wall-clock budget)
+- **Description**: `.github/workflows/daily-briefing.yml:104` step "Install project (runtime + dev for pytest sanity)" runs `uv sync --extra dev`, pulling pytest / hypothesis / ruff / mypy / types-* into the runner. The job only invokes `python -m investo` — it does NOT run any test or lint command. The dev extras are dead weight on the cold-start install (~10-15s per run × 6 fires/week).
+- **Suggested Fix**: Switch to `uv sync --no-dev` (or just `uv sync` without any `--extra`, since runtime deps are in `[project] dependencies` not in `dev`). Update the step name + comment to "Install project (runtime only)".
+- **Effort**: ~5 min YAML edit + visual verification on the next workflow run.
+- **Priority Reasoning**: Low — saves ~60-90s/week of GHA minutes; the 10-min budget per run has plenty of margin so this isn't blocking AC-001-1.
+
+#### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
+
+- **Created**: 2026-05-01
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L4)
+- **Reference**: NFR-007 baseline (supply-chain hygiene)
+- **Description**: Both `.github/workflows/daily-briefing.yml:95` and `pages.yml:72` use `astral-sh/setup-uv@v3` — major-version pin. A compromised v3 release could exfiltrate the 5 GitHub Secrets injected via `env:`. For a 1-person tool with no untrusted contributors the supply-chain risk is minimal, but pinning to a SHA per the canonical GitHub-recommended pattern would tighten the boundary.
+- **Suggested Fix**: Replace both `@v3` references with `@<full-sha>`. Add a Dependabot config (`.github/dependabot.yml`) so the SHA stays current.
+- **Effort**: ~15 min including Dependabot setup.
+- **Priority Reasoning**: Low — see "1-person tool" above. Re-evaluate if the project ever onboards external contributors or stores higher-value secrets.
+
+#### DEBT-025: `ConfigError.missing_vars` overloaded for "malformed value" case
+
+- **Created**: 2026-05-01
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L6 — surfaced by the INVESTO_TARGET_DATE side-quest)
+- **Reference**: NFR-005 (clarity / discriminator integrity)
+- **Description**: `_resolve_target_date_override()` raises `ConfigError("...not a valid ISO-8601 date...", missing_vars=("INVESTO_TARGET_DATE",))`. The `missing_vars` field is documented as "names of required env vars absent" — but `INVESTO_TARGET_DATE` is *present but malformed*, not missing. The current overload works (alert text remains actionable, exit code is correct) but blurs the original 2-mode discriminator (empty tuple ⇒ chat-ID-equality; non-empty tuple ⇒ missing-var). A 3rd mode now exists implicitly: non-empty tuple AND var IS present.
+- **Suggested Fix**: Either (a) add `bad_value_var: str | None = None` field to `ConfigError` and a 3rd factory `ConfigError.for_bad_target_date(raw)`, or (b) rename the field to something neutral like `affected_vars` and document the 3 modes explicitly.
+- **Effort**: ~20 min including factory + tests.
+- **Priority Reasoning**: Low — operator alert text remains correct; this is internal cleanliness. Re-evaluate if a 4th mode appears (e.g., a future override env var with its own validation).
+
+#### DEBT-026: `archive/.gitkeep` redundant once `archive/index.md` exists
+
+- **Created**: 2026-05-01
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L3)
+- **Reference**: NFR-005 (no dead files)
+- **Description**: `archive/.gitkeep` was created in Step 4 to ensure the directory exists in git before the daily-briefing bot's first write. `archive/index.md` (the placeholder landing page) already keeps the directory tracked, so `.gitkeep` is redundant.
+- **Suggested Fix**: `git rm archive/.gitkeep`. One-line change.
+- **Effort**: ~1 min.
+- **Priority Reasoning**: Low — harmless artifact; remove during the next u6 cleanup pass.
+
+#### DEBT-027: Windows checkout symlink limitation undocumented
+
+- **Created**: 2026-05-01
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (Q9)
+- **Reference**: NFR-005 (cross-platform clarity)
+- **Description**: `site_docs/archive` is a git symlink (mode 120000) → `../archive`. Linux runners (GHA `ubuntu-latest`) and macOS dev environments handle it natively. Windows checkouts require `core.symlinks=true` AND either developer mode enabled OR admin privileges. Investo runs on Linux only (GHA + macOS-dev), so this is fine in practice; if a Windows contributor ever appears they'll see the symlink as a regular file containing the literal text `../archive`.
+- **Suggested Fix**: Add a "Cross-platform notes" section to CONTRIBUTING.md documenting the symlink limitation, OR migrate to a non-symlink solution (e.g., mkdocs-monorepo-plugin or post-build copy). Re-evaluate when a Windows contributor surfaces.
+- **Effort**: ~10 min docs edit; ~1 hour for full migration.
+- **Priority Reasoning**: Low — Investo is a 1-person Linux/macOS tool; Windows is hypothetical.
+
 #### DEBT-009: `_executable_source` AST helper is duplicated across two test files
 
 - **Created**: 2026-04-29

@@ -193,6 +193,114 @@ pytest
 Test failures and lint errors block the merge — no `--no-verify`
 shortcuts.
 
+If the change touches the public site (`mkdocs.yml`, `site_docs/`,
+`pyproject.toml` `[project.optional-dependencies] docs`), additionally
+run the strict site build:
+
+```bash
+uv sync --extra dev --extra docs   # ensure both extras present
+uv run mkdocs build --strict
+```
+
+`--strict` fails on broken links, unrecognized config, and pages not
+in `nav` — same gate the `pages.yml` workflow runs. Local preview
+during writing: `uv run mkdocs serve` (no `--strict`).
+
+---
+
+## Operator runbook (u6 infra/CI)
+
+For day-to-day operation of the cron pipeline + manual interventions.
+
+### GitHub Secrets (required)
+
+The five secrets `daily-briefing.yml` injects into `python -m investo`
+must all be set in **Settings → Secrets and variables → Actions** before
+the first cron fires:
+
+| Secret | Source | Purpose |
+|--------|--------|---------|
+| `CLAUDE_CODE_OAUTH_TOKEN` | `claude /login` setup token | Authenticates the `claude` CLI subprocess (NFR-002 / US-009 — never a raw Anthropic API key) |
+| `TELEGRAM_BOT_TOKEN` | BotFather's `/newbot` → token | Bot identity for both dispatchers |
+| `TELEGRAM_BRIEFING_CHANNEL_ID` | `@your_public_channel` username or numeric ID | Public briefing channel (FR-004) |
+| `TELEGRAM_OPERATOR_CHAT_ID` | Operator's 1:1 chat ID (numeric) | Operator failure alerts (FR-007) — **MUST be disjoint** from the channel above (CLAUDE.md #5; `__main__._validate_env` rejects equality, including whitespace-tolerant comparison) |
+| `SITE_URL_BASE` | e.g. `https://murphygo.github.io/investo` | Public mkdocs site base URL — included in the Telegram briefing footer link |
+
+If any are missing the workflow exits 1 with a `ConfigError` that
+names the missing var(s); when `TELEGRAM_BOT_TOKEN` and
+`TELEGRAM_OPERATOR_CHAT_ID` are present the pipeline still attempts a
+single best-effort operator alert before exiting (AC-007-3).
+
+### Cron schedule
+
+Two cron entries in `.github/workflows/daily-briefing.yml`:
+
+| Cron (UTC)              | KST equivalent       | Fires for                          |
+|-------------------------|----------------------|------------------------------------|
+| `0 22 * * 0,1,2,3,4`    | Mon-Fri 07:00 KST    | Prior US trading session (Mon-Fri close) |
+| `0 0 * * 6`             | Sat 09:00 KST        | Friday's US trading session              |
+
+KST has been a fixed UTC+9 since 1988 (no DST), so these cron times
+are stable year-round even though the prior-trading-day's market
+close shifts ±1 hour twice a year via US DST.
+
+### Manual trigger (`workflow_dispatch`)
+
+Use **Actions → daily-briefing → Run workflow** to trigger off-cron.
+The form exposes one optional input:
+
+- **`target_date`** (ISO-8601 `YYYY-MM-DD`): override
+  `resolve_target_date(now_utc)`. Useful for backfills + US-public-
+  holiday recoveries (the orchestrator deliberately does NOT consult
+  a US trading calendar per Q3=A; holiday days surface as
+  empty-collect → operator alert; the operator re-triggers manually
+  with `target_date=last-trading-day`). Leave blank for the cron-time
+  default.
+
+A typo in `target_date` is a hard error (exits 1 with a `ConfigError`
+that includes the malformed value) — the pipeline will NOT silently
+roll back to the cron default, because that would publish for the
+wrong date entirely.
+
+### US public holidays (Q3=A recovery flow)
+
+When the US market is closed (Thanksgiving, July 4, Memorial Day,
+etc.), the cron fires as usual but the FOMC RSS / future adapters
+return zero items for that date. Result:
+
+1. `_stage_collect` raises `EmptyCollectError`.
+2. `run_pipeline` routes to `OperatorAlerter.alert(stage="collect")`
+   → operator gets a Telegram alert.
+3. Pipeline exits with status `FAILED` → workflow turns red + GHA's
+   default email alert fires.
+4. **Operator action**: re-trigger `daily-briefing` via
+   `workflow_dispatch` with `target_date=<last-actual-trading-day>`
+   (e.g. for Thursday 2026-11-26 Thanksgiving, use the Wednesday
+   2026-11-25 close: re-trigger on Friday morning with
+   `target_date=2026-11-25`).
+
+The pipeline writes to `archive/2026/11/2026-11-25.md`, which git
+already contains from the prior day's run — the **same-day overwrite
+contract** (FR-006) replaces it cleanly with the re-run version.
+
+### Pages deploy
+
+`pages.yml` triggers automatically on every push to `main` (including
+the daily-briefing bot's git pushes). The two-job split is:
+
+1. **`build`** — checks out, installs `--extra docs`, runs
+   `mkdocs build --strict`, uploads the `site/` artifact.
+2. **`deploy`** — `actions/deploy-pages@v4` swaps the published site
+   atomically. **A failed build preserves the previously deployed
+   site** (no rollback action needed).
+
+To preview the site locally during a `mkdocs.yml` or `site_docs/`
+edit:
+
+```bash
+uv run mkdocs serve   # localhost:8000, hot-reload, non-strict
+```
+
 ---
 
 ## Project rules (enforced)

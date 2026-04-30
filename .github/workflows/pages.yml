@@ -1,0 +1,111 @@
+# GitHub Pages deploy (FR-003, US-003).
+#
+# Builds the mkdocs site whenever ``main`` is pushed (including the
+# bot commits from ``daily-briefing.yml``) and deploys via the
+# ``actions/deploy-pages`` GitHub-managed pipeline.
+#
+# **Atomic deploy** (DoD: "빌드 실패 시 기존 사이트 유지"): the
+# upload+deploy pair is atomic — if ``mkdocs build`` fails or the
+# upload step fails, no artifact is published and the previously
+# deployed site at ``gh-pages`` remains live. No manual rollback
+# needed.
+#
+# **Why a separate workflow** (vs. tacking onto ``daily-briefing``):
+# the daily-briefing job has ``contents: write`` only and rebuilds the
+# site as a side-effect of pushing the new markdown. That implicitly
+# triggers this workflow on the resulting commit. Keeping the two
+# split:
+#   - keeps each job's ``permissions:`` scope minimal (least privilege),
+#   - lets a manual ``mkdocs.yml`` change trigger only this workflow,
+#   - makes failures easier to attribute (briefing red ≠ pages red).
+#
+# **Concurrency**: GHA's ``pages`` deployment is implicitly serialized
+# via the deploy-pages action, but we add an explicit concurrency
+# group so consecutive pushes (e.g. a content fix pushed during a
+# briefing run) don't queue up redundant builds.
+
+name: pages
+
+on:
+  push:
+    branches: [main]
+    # Save GHA minutes — only rebuild when something the site renders
+    # actually changed. The daily-briefing bot commit always touches
+    # ``archive/...``; manual edits typically touch ``site_docs/`` or
+    # ``mkdocs.yml``.
+    paths:
+      - 'archive/**'
+      - 'site_docs/**'
+      - 'mkdocs.yml'
+      - 'pyproject.toml'   # docs extra version bumps
+      - '.github/workflows/pages.yml'  # workflow self-update
+  workflow_dispatch:
+
+# GHA Pages requires these permissions on the deploy job:
+#   - pages: write    — upload + deploy the artifact
+#   - id-token: write — OIDC for the actions/deploy-pages handshake
+#   - contents: read  — checkout
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+# One in-flight deploy at a time. ``cancel-in-progress: true`` lets a
+# rapid sequence of pushes coalesce — only the latest commit's site is
+# actually published. This is safe for a static site (no partial-state
+# problem).
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build mkdocs site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: '>=0.4'
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install docs dependencies
+        # ``--extra docs`` ALONE replaces dev deps with docs deps —
+        # which is what we want for this job (we don't run pytest /
+        # mypy here; only ``mkdocs build``).
+        run: uv sync --extra docs
+
+      - name: Build site (--strict)
+        # ``--strict`` fails the build on broken links, unrecognized
+        # config, and missing nav pages — gives us FR-006 quality
+        # gating at site-build time. Output lands in ``site/``.
+        run: uv run mkdocs build --strict
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

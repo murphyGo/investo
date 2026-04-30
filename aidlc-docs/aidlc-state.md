@@ -26,12 +26,12 @@
 ### CONSTRUCTION PHASE
 | Stage | Status | Date |
 |-------|--------|------|
-| Functional Design | ⏳ EXECUTE (selective per-unit) | |
-| NFR Requirements | ⏳ EXECUTE | |
+| Functional Design | ✅ Complete (selective per-unit) | 2026-04-30 |
+| NFR Requirements | ✅ Complete | 2026-04-30 |
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
-| Code Generation | ⏳ EXECUTE (in progress — models) | 2026-04-27 |
-| Build and Test | ⏳ EXECUTE (deferred until all units done) | |
+| Code Generation | ✅ Complete (all 6 units) | 2026-05-01 |
+| Build and Test | ✅ Complete | 2026-05-01 |
 
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
@@ -42,7 +42,7 @@
 | u3 publisher | ⏭️ SKIP | ⏭️ SKIP | ✅ Complete (9/9 — CG fully closed 2026-04-30) | FD + NFR + CG all closed; 70 u3 tests + 500/500 total green; sub-agent review caught H1 partial-success retry bug (real correctness fix); eligible for /cross-check; US-003 + US-006 closed; DEBT-012/013 registered (2 new) |
 | u4 notifier | ⏭️ SKIP | ⏭️ SKIP | ✅ Complete (8/8 — CG fully closed 2026-04-30) | FD + NFR both SKIP per execution-plan; Steps 1-8 ✅ (bootstrap + _telegram + summary + BriefingPublisher + OperatorAlerter + __init__ public surface + 4-test integration smoke + sub-agent code review APPROVE_WITH_FIXES + closeout summary.md); 33 src files; 56 u4 tests + 556/556 total green; sub-agent review caught M1 bot-token shape regex leak (real NFR-007 fix); eligible for /cross-check; US-004 + US-007 closed; DEBT-014/015/016 registered (3 new) |
 | u5 orchestrator | ⏭️ SKIP | ✅ Complete (2026-04-30) | ✅ Complete (13/13 — CG fully closed 2026-04-30) | FD = SKIP; NFR Requirements ✅ closed (39 AC); CG fully closed: bootstrap + PipelineResult.stage_timings + errors + date_resolution + 4 stage runners + run_pipeline composer (Q9=B) + main entrypoint + public surface + integration test + sub-agent review APPROVE_WITH_FIXES + closeout; 37 src files; 143 u5 tests + 705/705 total green; eligible for /cross-check; US-005 ✅ closed; DEBT-017/018/019/020/021 registered (5 new) |
-| u6 infra/CI | N/A | N/A | ⏳ in progress (Step 2 of 7 — daily-briefing.yml) | FD/NFR both N/A; CG plan APPROVED; Steps 1-2 ✅ (bootstrap + daily-briefing.yml cron + workflow_dispatch + INVESTO_TARGET_DATE override extension to __main__.py with 15 new tests); 37 src files; 720/720 tests; Step 3 (pages.yml) next |
+| u6 infra/CI | N/A | N/A | ✅ Complete (7/7 — CG fully closed 2026-05-01) | FD/NFR both N/A per execution-plan; CG fully closed: bootstrap + 2 GHA workflows + mkdocs.yml + Korean landing pages + tracked archive symlink + CONTRIBUTING operator runbook + sub-agent review APPROVE_WITH_FIXES (C1 fix) + closeout summary.md; 37 src files; 720/720 tests; mkdocs build --strict ✅; DEBT-022/023/024/025/026/027 registered (6 new); eligible for /cross-check; US-005 + US-003 closed |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |

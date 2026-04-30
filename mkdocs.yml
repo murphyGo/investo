@@ -1,0 +1,107 @@
+# MkDocs configuration for Investo public site (FR-003, US-003).
+#
+# Reads from ``site_docs/`` (NOT ``docs/``, which holds AIDLC
+# documentation that is intentionally out of public render). The
+# ``archive/`` directory at the repo root is exposed under
+# ``site_docs/archive/`` via a tracked symlink, so the daily-briefing
+# bot's ``archive/YYYY/MM/YYYY-MM-DD.md`` writes are picked up by
+# mkdocs without any post-process step.
+#
+# Built by ``.github/workflows/pages.yml`` with ``mkdocs build
+# --strict`` (FR-006 quality gate).
+
+site_name: Investo — 데일리 시황
+site_description: 매일 KST 07:00 (평일) / 09:00 (토)에 자동 게시되는 한국어 미국 주식·크립토 시황.
+site_author: hyunseung.kim
+# ``site_url`` is set per-deployment via the GHA Pages action; we leave
+# the canonical URL out of the YAML so a fork / staging deploy doesn't
+# carry over the production owner's URL accidentally.
+
+docs_dir: site_docs
+# ``site/`` is mkdocs' default build output and is gitignored —
+# pages.yml uploads it as the Pages artifact.
+
+repo_url: https://github.com/murphyGo/investo
+repo_name: murphyGo/investo
+edit_uri: edit/main/site_docs/
+
+theme:
+  name: material
+  language: ko
+  features:
+    # Tabs across the top bar — kept minimal (Home / About / Archive).
+    - navigation.tabs
+    - navigation.tabs.sticky
+    # Fold long sections in the sidebar so the archive index doesn't
+    # explode after months of accumulated daily briefings.
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    # ``content.code.copy`` is unused today (no code blocks in
+    # briefings), but markdown plugins that future briefings might
+    # introduce (snippets, etc.) benefit from it.
+    - content.code.copy
+  palette:
+    # Light / dark scheme toggle.
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: 다크 모드로 전환
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: light blue
+      toggle:
+        icon: material/weather-sunny
+        name: 라이트 모드로 전환
+  font:
+    text: Noto Sans KR
+    code: JetBrains Mono
+
+# Top-level nav. Per-day briefings under ``archive/`` are auto-
+# discovered by mkdocs (any markdown file under ``docs_dir`` is
+# rendered at its corresponding URL even when not explicitly listed in
+# nav). The ``Archive`` entry points at the symlinked ``archive/``
+# directory's index page; mkdocs surfaces the YYYY/MM hierarchy in
+# the sidebar automatically.
+nav:
+  - Home: index.md
+  - About: about.md
+  - Archive:
+      # Point at the index file directly; mkdocs picks up additional
+      # files under the same directory (the daily-briefing bot's
+      # ``archive/YYYY/MM/YYYY-MM-DD.md`` writes) and auto-groups them
+      # in the sidebar under this section. The explicit ``index.md``
+      # entry keeps ``--strict`` happy when only the index exists
+      # (i.e. before the first cron fire).
+      - archive/index.md
+
+markdown_extensions:
+  # Better tables, footnotes, fenced code, attr_list — pinned for
+  # round-trip stability between the daily-briefing markdown and the
+  # rendered HTML.
+  - admonition
+  - attr_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.superfences
+
+plugins:
+  # Built-in search; the Korean tokenization in mkdocs-material >= 9.5
+  # is the reason we pinned that floor in pyproject.
+  - search:
+      lang:
+        - ko
+        - en
+
+# Strict mode is enabled at the CLI level (``mkdocs build --strict``)
+# in ``pages.yml``. We do NOT set ``strict: true`` here so that local
+# preview (``uv run mkdocs serve``) tolerates work-in-progress drafts.
