@@ -1,0 +1,130 @@
+# Daily briefing pipeline (US-005, FR-005).
+#
+# This workflow is the cron entrypoint for ``python -m investo``. It
+# runs twice on weekdays + once on Saturday, mapping KST market-close
+# observation times to UTC. KST has been a fixed UTC+9 since 1988
+# (no DST), so these cron times are stable year-round even though the
+# US trading-day session moves ±1 hour twice a year via US DST.
+#
+# **Schedule** (UTC; mapping shown alongside)
+#
+#   '0 22 * * 0,1,2,3,4'   # UTC Sun..Thu 22:00 = KST Mon..Fri 07:00
+#   '0 0  * * 6'           # UTC Sat       00:00 = KST Sat       09:00
+#
+# The first cron fires for the prior US trading session (US Mon close →
+# KST Tue 07:00 fire; US Fri close → KST Sat 09:00 fire). Date
+# resolution to the actual ``target_date`` happens inside
+# ``investo.orchestrator.date_resolution.resolve_target_date`` per
+# AC-005-1 / AC-005-2.
+#
+# **Manual trigger**: ``workflow_dispatch`` exposes an optional
+# ``target_date`` input (ISO-8601 YYYY-MM-DD). Useful for backfills +
+# US-public-holiday recoveries (per Q3=A: holiday days surface as
+# empty-collect → operator alert; the operator re-triggers manually
+# with ``target_date=last-trading-day``).
+#
+# **Timeout** (AC-001-4): ``timeout-minutes: 12``. Total design budget
+# is 10 min (collect ≤ 4 / generate ≤ 4 / publish ≤ 1 / notify ≤ 30s
+# / GHA overhead ≤ 30s); +2 min safety margin lets a slow upstream
+# resolve gracefully via the orchestrator's stage-level handling
+# rather than a hard kill from outside.
+#
+# **Permissions**: ``contents: write`` only — for the inner
+# ``commit_and_push`` to ``archive/YYYY/MM/YYYY-MM-DD.md``. No
+# ``packages``, no ``pages`` (Pages deploy is a separate workflow,
+# triggered on push by ``pages.yml``).
+#
+# **Secrets** (AC-007-1; 5 required, all GitHub Secrets):
+#
+#   CLAUDE_CODE_OAUTH_TOKEN     -- consumed by the ``claude`` CLI
+#                                 subprocess; not read by Python
+#   TELEGRAM_BOT_TOKEN          -- bot identity; both dispatchers share
+#   TELEGRAM_BRIEFING_CHANNEL_ID -- public channel (FR-004)
+#   TELEGRAM_OPERATOR_CHAT_ID    -- operator 1:1 chat (FR-007)
+#                                  MUST be disjoint from CHANNEL_ID
+#                                  (CLAUDE.md #5; enforced inside
+#                                  ``__main__._validate_env``)
+#   SITE_URL_BASE                -- public mkdocs site base URL
+#                                  (e.g. https://owner.github.io/investo)
+#
+# **Exit code mapping**:
+#   0 = SUCCESS or PARTIAL  (workflow ✅)
+#   1 = FAILED              (workflow ❌ + GHA default email alert)
+
+name: daily-briefing
+
+on:
+  schedule:
+    # KST Mon..Fri 07:00 (UTC Sun..Thu 22:00)
+    - cron: '0 22 * * 0,1,2,3,4'
+    # KST Sat 09:00 (UTC Sat 00:00)
+    - cron: '0 0 * * 6'
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: 'Override target_date (YYYY-MM-DD). Leave blank for the cron default (resolve_target_date(now_utc)).'
+        required: false
+        type: string
+
+# Concurrency: a manual ``workflow_dispatch`` while the cron fire is
+# still running would race for the same archive path + try a parallel
+# git push. Serialize per branch.
+concurrency:
+  group: daily-briefing-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  briefing:
+    name: Generate + publish + notify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          # Full lineage so the inner ``git push`` rebases cleanly.
+          fetch-depth: 0
+          # Use the workflow's GITHUB_TOKEN for the commit author +
+          # subsequent push. ``persist-credentials: true`` (default)
+          # leaves the token in the local clone for the push step.
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          # Pinned floor for the cache-key behavior we rely on; bump
+          # alongside local dev environment.
+          version: '>=0.4'
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install project (runtime + dev for pytest sanity)
+        # ``dev`` covers the runtime install (pydantic / httpx /
+        # defusedxml / bleach) plus the test machinery. We do NOT
+        # install ``docs`` here — mkdocs is a separate concern handled
+        # by ``pages.yml``.
+        run: uv sync --extra dev
+
+      - name: Configure git author for the bot commit
+        run: |
+          git config user.name 'Investo Bot'
+          git config user.email '${{ github.actor_id }}+investo-bot@users.noreply.github.com'
+
+      - name: Run pipeline (python -m investo)
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BRIEFING_CHANNEL_ID: ${{ secrets.TELEGRAM_BRIEFING_CHANNEL_ID }}
+          TELEGRAM_OPERATOR_CHAT_ID: ${{ secrets.TELEGRAM_OPERATOR_CHAT_ID }}
+          SITE_URL_BASE: ${{ secrets.SITE_URL_BASE }}
+          # Manual target_date override (empty string when cron fires
+          # → orchestrator's ``resolve_target_date(now_utc)`` runs).
+          # The orchestrator reads INVESTO_TARGET_DATE if set;
+          # otherwise resolves from now. Wired this way so the
+          # workflow_dispatch input flows in without changing
+          # __main__'s positional API.
+          INVESTO_TARGET_DATE: ${{ inputs.target_date }}
+        run: uv run python -m investo

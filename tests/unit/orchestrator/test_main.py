@@ -475,3 +475,146 @@ def test_main_forwards_publisher_alerter_and_site_url_base_to_pipeline(
     assert "publisher" in kwargs
     assert "alerter" in kwargs
     assert "site_url_base" in kwargs
+
+
+# ---------------------------------------------------------------------------
+# INVESTO_TARGET_DATE override (u6 workflow_dispatch backfill input)
+# ---------------------------------------------------------------------------
+
+
+def test_main_target_date_override_absent_forwards_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Default cron path — env var unset → ``target_date=None``
+    forwarded to ``run_pipeline`` so its
+    ``resolve_target_date(now_utc)`` runs.
+    """
+    _set_env(monkeypatch)
+    monkeypatch.delenv("INVESTO_TARGET_DATE", raising=False)
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == 0
+    assert len(calls) == 1
+    assert calls[0]["target_date"] is None
+
+
+def test_main_target_date_override_empty_string_forwards_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When the YAML ``workflow_dispatch`` input is left blank, GHA
+    sets the env var to ``""``. Same semantics as absent.
+    """
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "")
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == 0
+    assert len(calls) == 1
+    assert calls[0]["target_date"] is None
+
+
+def test_main_target_date_override_whitespace_only_forwards_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Operator paste leaves ``"  "`` in the input → treat as absent."""
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "   ")
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == 0
+    assert len(calls) == 1
+    assert calls[0]["target_date"] is None
+
+
+def test_main_target_date_override_valid_iso_forwards_date(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Valid ISO-8601 ``YYYY-MM-DD`` → forwarded as a ``date`` instance
+    so ``run_pipeline`` skips the ``resolve_target_date`` call.
+    """
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "2026-04-25")
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == 0
+    assert len(calls) == 1
+    assert calls[0]["target_date"] == date(2026, 4, 25)
+
+
+def test_main_target_date_override_strips_whitespace(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Operator-pasted leading/trailing whitespace tolerated."""
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "  2026-04-25 \n")
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == 0
+    assert len(calls) == 1
+    assert calls[0]["target_date"] == date(2026, 4, 25)
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "2026/04/25",  # wrong separator
+        "04-25-2026",  # MM-DD-YYYY (wrong order)
+        "2026-13-01",  # invalid month
+        "2026-04-31",  # invalid day for April
+        "yesterday",  # natural language
+        "2026-04",  # missing day
+    ],
+)
+def test_main_target_date_override_malformed_exits_1(
+    monkeypatch: pytest.MonkeyPatch,
+    bad: str,
+) -> None:
+    """Malformed override → ConfigError → exit 1. Fail-fast: an
+    operator's typo MUST NOT silently roll back to the cron-resolved
+    date (which would publish for the wrong date entirely).
+    """
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", bad)
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == 1
+    # Pipeline never invoked on the malformed-override fail-fast path.
+    assert calls == []
+
+
+def test_main_target_date_override_malformed_attempts_boot_alert(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Malformed override is a ConfigError → AC-007-3 best-effort alert
+    fires when alert prereqs (BOT_TOKEN + OPERATOR_CHAT_ID) are present.
+    """
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "not-a-date")
+    with _stub_pipeline(monkeypatch), _capture_alerts(monkeypatch) as alerts:
+        assert main_mod.main() == 1
+    assert len(alerts) == 1
+    assert alerts[0].stage == "orchestrator"
+    assert alerts[0].error_type == "ConfigError"
+
+
+def test_resolve_target_date_override_helper_returns_none_when_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Direct unit test of the helper without going through main()."""
+    monkeypatch.delenv("INVESTO_TARGET_DATE", raising=False)
+    assert main_mod._resolve_target_date_override() is None
+
+
+def test_resolve_target_date_override_helper_returns_date_when_valid(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "2026-04-25")
+    assert main_mod._resolve_target_date_override() == date(2026, 4, 25)
+
+
+def test_resolve_target_date_override_helper_raises_on_malformed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.orchestrator.errors import ConfigError as _ConfigError
+
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "garbage")
+    with pytest.raises(_ConfigError) as exc_info:
+        main_mod._resolve_target_date_override()
+    # Discriminator: missing_vars carries the override-var name so
+    # main()'s alert text is actionable.
+    assert exc_info.value.missing_vars == ("INVESTO_TARGET_DATE",)
+    assert "ISO-8601" in str(exc_info.value)

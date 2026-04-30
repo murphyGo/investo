@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u6 infra/CI — Code Generation Step 2 COMPLETE ✅
+**Timestamp**: 2026-04-30T00:00:00Z
+**Action**: Executed Step 2 (`daily-briefing.yml`) of u6 infra/CI Code Generation. Created:
+- `.github/workflows/daily-briefing.yml` (~85 lines): cron schedule (UTC `0 22 * * 0,1,2,3,4` for KST Mon-Fri 07:00 + UTC `0 0 * * 6` for KST Sat 09:00), `workflow_dispatch` w/ optional `target_date` input, job `briefing` with `runs-on: ubuntu-latest`, `timeout-minutes: 12` (AC-001-4), `permissions: contents: write`, concurrency group serializing manual + cron fires. Steps: `actions/checkout@v4` (fetch-depth=0) → `astral-sh/setup-uv@v3` → `uv python install 3.11` → `uv sync --extra dev` → git config bot author → `uv run python -m investo` with 5 Secrets + `INVESTO_TARGET_DATE` env var. Comprehensive YAML comment header documents schedule (KST↔UTC + KST-no-DST since 1988), permissions, secrets, and exit-code mapping.
+
+**Side-quest closed** — gap surfaced by writing the workflow: `__main__.py` did NOT honor `INVESTO_TARGET_DATE` so the workflow_dispatch input would have been a non-functional UI element. Closed by extending `__main__.py`:
+- Added `_TARGET_DATE_OVERRIDE_VAR: Final[str] = "INVESTO_TARGET_DATE"` constant.
+- Added `_resolve_target_date_override() -> date | None` helper: empty / whitespace-only / absent → None; non-empty → `date.fromisoformat(raw.strip())`; malformed → `ConfigError("...not a valid ISO-8601 date...", missing_vars=("INVESTO_TARGET_DATE",))` for fail-fast + actionable alert text. **Critical**: malformed override MUST NOT silently roll back to the cron-resolved date — that would publish for the wrong date entirely.
+- `_async_main` parses the override inside the same try/except as `_validate_env` (fail-fast before httpx construction), then forwards `target_date_override` positionally to `run_pipeline`.
+- 15 new tests in `test_main.py`: absent → None (1), empty string → None (1), whitespace-only → None (1), valid ISO → date (1), whitespace-tolerant strip (1), 6-parametrized malformed cases → exit 1 (wrong separator, MM-DD-YYYY, invalid month, invalid day for April, natural language, missing day), malformed → AC-007-3 boot-alert fires (1), 3 direct unit tests of the helper (`returns_none_when_absent`, `returns_date_when_valid`, `raises_on_malformed`).
+
+**Sub-agent code review**: DEFERRED to Step 6 (combined u6 review).
+**Quality gate**: ruff ✅, ruff format ✅ (105 files; 1 auto-formatted in `__main__.py`), mypy --strict ✅ (37 source files — `__main__.py` extended in place; no new src file), pytest ✅ **720/720 passed in 5.72s** (+15 override tests; zero regressions in the prior 705).
+**TECH-DEBT changes**: None added, none resolved.
+**Status**: ✅ Step 2 complete. Plan checkboxes 2.1 + 2.2 + 2.3 all `[x]` + side-quest documented in plan. aidlc-state.md u6 row updated to "Step 2 of 7 — daily-briefing.yml". Next: **Step 3** — `.github/workflows/pages.yml` (mkdocs build + actions/deploy-pages on push to main + workflow_dispatch).
+**Context**: Construction phase Code Generation — u6 infra/CI, Part 2 Step 2 of 7.
+
+---
+
 ## Construction — u6 infra/CI — Code Generation Step 1 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 1 (bootstrap) of u6 infra/CI Code Generation. Created:

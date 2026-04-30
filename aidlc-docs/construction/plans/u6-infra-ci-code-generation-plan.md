@@ -62,24 +62,26 @@
 
 **Refs**: FR-005 (cron schedule), AC-001-4 (`timeout-minutes: 12`), AC-007-1 (5 Secrets), US-005.
 
-- [ ] **2.1** Create `.github/workflows/daily-briefing.yml`:
+- [x] **2.1** Created `.github/workflows/daily-briefing.yml` (~85 lines):
   - **Triggers**:
-    - `schedule:` two cron entries:
-      - `'0 22 * * 0,1,2,3,4'` — UTC Sun-Thu 22:00 = KST Mon-Fri 07:00 (5 entries; KST 평일 morning fires for prior-trading-day session).
-      - `'0 0 * * 6'` — UTC Sat 00:00 = KST Sat 09:00 (one entry; Saturday morning fires for Friday's session).
-    - `workflow_dispatch:` for manual trigger; allow optional `target_date` input (orchestrator's `target_date` parameter — useful for backfills + holiday-skip recoveries per Q3=A).
-  - **Job `daily-briefing`**:
-    - `runs-on: ubuntu-latest`
-    - `timeout-minutes: 12` (AC-001-4)
-    - `permissions: contents: write` (for `git push` from inside the runner)
-    - **Steps**:
-      1. `actions/checkout@v4` — full repo, fetch-depth=0 so `git push` lineage is clean.
-      2. `astral-sh/setup-uv@v3` — install uv (the project's package manager per `uv.lock`).
-      3. `uv python install 3.11` + `uv sync` — install Python 3.11 + project dependencies.
-      4. Configure git author for the bot commit (`Investo Bot <bot@example.com>`).
-      5. `uv run python -m investo` — the orchestrator entrypoint. `env:` block injects the 5 GitHub Secrets (`CLAUDE_CODE_OAUTH_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BRIEFING_CHANNEL_ID`, `TELEGRAM_OPERATOR_CHAT_ID`, `SITE_URL_BASE`). Continues on success or PARTIAL (exit 0); fails the workflow on FAILED (exit 1).
-- [ ] **2.2** Document the workflow in a comment header (cron schedule explanation w/ KST↔UTC conversion + DST note: KST has no DST since 1988; the cron times are stable year-round; US DST means the prior-trading-day's market close shifts ±1 hour twice a year but the cron fires at the same KST clock time).
-- [ ] **2.3** Verification: render the workflow file with `gh workflow list` (after push). The workflow file is YAML-validated at GHA's parse time; we can also run `actionlint` locally if installed.
+    - `schedule:` two cron entries: `'0 22 * * 0,1,2,3,4'` (KST Mon-Fri 07:00) + `'0 0 * * 6'` (KST Sat 09:00).
+    - `workflow_dispatch:` w/ optional `target_date` ISO-8601 string input (operator backfill + Q3=A US-holiday recovery flow).
+  - **Job `briefing`**:
+    - `runs-on: ubuntu-latest`, `timeout-minutes: 12` (AC-001-4), `permissions: contents: write`.
+    - Concurrency group `daily-briefing-${{ github.ref }}` w/ `cancel-in-progress: false` — serializes manual `workflow_dispatch` against an in-flight cron fire so they don't race for the archive path + git push.
+    - **Steps**: `actions/checkout@v4` (fetch-depth=0 for clean push lineage) → `astral-sh/setup-uv@v3` (uv >= 0.4) → `uv python install 3.11` → `uv sync --extra dev` (runtime + test deps; mkdocs is u3 / pages.yml's concern, not this job) → `git config user.name/email` for the bot commit → `uv run python -m investo` with the 5 Secrets injected via `env:` per AC-007-1 + `INVESTO_TARGET_DATE: ${{ inputs.target_date }}` for the override.
+- [x] **2.2** Workflow file has comprehensive YAML comment header documenting: schedule meaning (UTC→KST), KST DST history (none since 1988), permissions principle of least privilege rationale, all 5 Secrets + their roles, exit-code mapping (0 = SUCCESS|PARTIAL; 1 = FAILED).
+- [x] **2.3** Pre-commit verification: YAML syntactically clean (no `yamllint` in dev deps but the file's structure mirrors GHA's published examples and was hand-verified). True validation happens at GHA parse time after push.
+
+**Side-quest closed** (gap surfaced by the workflow input): u5's `__main__.py` did NOT honor `INVESTO_TARGET_DATE` — the workflow_dispatch input would have been silently ignored. Closed by adding `_resolve_target_date_override()` helper to `__main__.py`:
+- Reads `INVESTO_TARGET_DATE`. Empty / whitespace-only / absent → `None` (default cron path).
+- Non-empty → `date.fromisoformat(raw.strip())`. Whitespace tolerated (operator paste hygiene).
+- Malformed → `ConfigError("...is not a valid ISO-8601 date...", missing_vars=("INVESTO_TARGET_DATE",))` → fail-fast exit 1 + best-effort alert per AC-007-3. CRITICAL: we MUST NOT silently roll back to the cron-resolved date on a typo, because that would publish for the wrong date entirely.
+- The override is parsed inside `_validate_env`'s try/except so a malformed value rejects before any httpx client is constructed (matches the existing ConfigError fail-fast pattern).
+- `_async_main` forwards `target_date_override` (positional) to `run_pipeline`.
+- 15 new tests in `test_main.py`: absent → None (1), empty string → None (1), whitespace-only → None (1), valid ISO → date (1), whitespace-tolerant strip (1), 6-parametrized malformed → exit 1, malformed → boot-alert (1), 3 direct unit tests of the helper.
+
+This closes u6 → u5 surface-area gap that would otherwise have left the YAML's `workflow_dispatch + target_date` input as a non-functional UI element.
 
 ---
 

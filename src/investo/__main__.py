@@ -32,7 +32,7 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Final
 
 import httpx
@@ -62,6 +62,17 @@ _ALERT_PREREQ_VARS: Final[tuple[str, ...]] = (
 )
 
 _logger = logging.getLogger("investo")
+
+# Optional override from the GHA ``workflow_dispatch`` input (u6
+# ``daily-briefing.yml``). When present and non-empty, parsed via
+# ``date.fromisoformat`` (ISO-8601 ``YYYY-MM-DD``) and passed to
+# ``run_pipeline(target_date=...)`` — overrides
+# ``resolve_target_date(now_utc)``. Used for backfills + US-public-
+# holiday recoveries (per Q3=A: holiday days surface as empty-collect
+# → operator alert; the operator re-triggers manually with
+# ``target_date=last-trading-day``). Empty string or absent ⇒ default
+# cron behavior (orchestrator resolves from ``now_utc``).
+_TARGET_DATE_OVERRIDE_VAR: Final[str] = "INVESTO_TARGET_DATE"
 
 # One-shot timeout for the boot-failure best-effort alert. Must be
 # short — the pipeline has already failed and we're keeping the
@@ -182,6 +193,37 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
         pass
 
 
+def _resolve_target_date_override() -> date | None:
+    """Parse the optional ``INVESTO_TARGET_DATE`` env-var override.
+
+    Returns
+    -------
+    date | None
+        ``None`` if the var is absent or empty (default cron path —
+        orchestrator resolves from ``now_utc``). A parsed
+        :class:`datetime.date` if it's set to a valid ISO-8601
+        ``YYYY-MM-DD`` string.
+
+    Raises
+    ------
+    ConfigError
+        If the var is set to a non-empty value that isn't a valid
+        ISO-8601 date — fail loudly at the boundary so the operator's
+        manual workflow_dispatch input doesn't silently roll back to
+        the cron default.
+    """
+    raw = os.environ.get(_TARGET_DATE_OVERRIDE_VAR, "").strip()
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(raw)
+    except ValueError as exc:
+        raise ConfigError(
+            f"{_TARGET_DATE_OVERRIDE_VAR} is not a valid ISO-8601 date (YYYY-MM-DD): {raw!r}",
+            missing_vars=(_TARGET_DATE_OVERRIDE_VAR,),
+        ) from exc
+
+
 async def _async_main() -> int:
     """Async core of :func:`main` — separated so ``main`` can synchronously
     drive ``asyncio.run`` and translate the final integer to the
@@ -195,6 +237,11 @@ async def _async_main() -> int:
             operator_id,
             site_url_base,
         ) = _validate_env()
+        # Optional override from u6's workflow_dispatch input. Parsed
+        # alongside the required vars so a malformed value rejects
+        # before any httpx client is constructed (matches the
+        # ConfigError fail-fast pattern).
+        target_date_override = _resolve_target_date_override()
     except ConfigError as exc:
         _logger.error("config error: %s", exc)
         await _attempt_boot_alert(exc)
@@ -218,6 +265,7 @@ async def _async_main() -> int:
             )
 
             result = await run_pipeline(
+                target_date_override,
                 publisher=publisher,
                 alerter=alerter,
                 site_url_base=site_url_base,
