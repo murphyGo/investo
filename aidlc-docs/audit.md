@@ -1,5 +1,76 @@
 # AI-DLC Audit Log
 
+## Construction — u1 sources — Extension #3 CLOSED (3 general news adapters)
+**Timestamp**: 2026-05-01T07:00:00Z
+**Trigger**: Phase 1-4 of u1-sources-extension-2026-05-news-2 plan completed.
+**Deliverables**:
+- 3 new source files: src/investo/sources/{yonhap_market,theblock_crypto,cnbc_top_news}.py
+- 3 new test files: tests/unit/sources/test_{yonhap_market,theblock_crypto,cnbc_top_news}.py
+- 3 new fixtures: tests/unit/sources/fixtures/api/{yonhap-market,theblock-crypto,cnbc-top-news}/{feed.xml,meta.json}
+- src/investo/sources/__init__.py updated to 9-adapter alpha-sorted import block
+- tests/unit/sources/test_plugin_contract.py: EXPECTED_ADAPTER_COUNT 6 → 9, names + leaked sets bumped
+**Coverage delta**:
+- Adapter count: 6 → 9
+- News-adapter count specifically: 2 → 5 (Yahoo + SEC + 3 new)
+- Category coverage stays 4/5 (news already covered by Ext #2; this is depth not breadth — Korean wire + crypto narrative + macro/policy)
+- Total project tests: 810 → 864 (+54 across 3 adapter test files: 16 yonhap + 23 theblock + 15 cnbc)
+- Source files in `src/`: 43 → 46
+**Cross-cutting QA verdict (Phase 4.4)**: APPROVE_WITH_NOTES — 0 Critical / 0 High / 4 Medium / 4 Low. Findings dispatched as: M1 FD §L6.8 drift fixed in this closeout; M2/M3/M4/L1 → DEBT-031/032/033/034.
+**FD divergences ratified**: §L6.8 prose updated to match TheBlock implementation (5-key utm-strip + omit-when-absent + key names `creator`/`categories` per yonhap precedent — superior to the original 2-key+empty-string spec).
+**DEBT items added**:
+- DEBT-031 (Medium): `_NS_DC_CREATOR` duplicated across 2 adapters → extract to `_xml_namespaces.py`
+- DEBT-032 (Medium): `_SUMMARY_MAX_LEN` duplicated across 8 adapters → lift to `_config.py`
+- DEBT-033 (Low): `_FEED_URL` placement inconsistency → align sec_edgar_8k to ClassVar
+- DEBT-034 (Low): `_mock_client` test helper duplicated 5x → shared `_mock_transport.py`
+**DEBT-028 reconfirmation**: news adapters introduce zero numeric `raw_metadata` paths; the precision-drift concern remains scoped to the 3 numeric adapters (yfinance/coingecko/fred). News cohort is clean by construction.
+**Final quality gate**: ruff ✅ / ruff format ✅ / mypy --strict ✅ (46 src files) / pytest ✅ 864/864
+**Status**: u1 sources Extension #3 CLOSED. The unit becomes eligible for `/cross-check` re-run. News-adapter depth complete: 5 adapters covering English broad (Yahoo) + English official (SEC) + Korean wire (Yonhap) + crypto narrative (TheBlock) + macro/policy (CNBC).
+**Context**: Third extension in a row on a unit that AIDLC formally "closed" 3 days ago. Pattern emerging: Construction-closed units may legitimately reopen for product-requirement gaps without that being a process violation, as long as each reopen produces a fresh plan + audit entry + closeout. Worth noting in a future ADR if the pattern continues.
+
+---
+
+## Construction — u1 sources — Extension #3 Approved (3 general news adapters)
+**Timestamp**: 2026-05-01T06:00:00Z
+**Trigger**: Extension #2 (yahoo-finance-news + sec-edgar-8k) closed earlier today at 2026-05-01T05:00:00Z and lifted `Category` enum coverage from 3/5 → 4/5 (calendar / price / macro / **news** added). News category is now nominally covered, but the news *stream itself* is thin: only one general-news source (Yahoo Finance) and one corporate-disclosure feed (SEC 8-K). User confirmed the next extension scope: 3 general-news RSS feeds delivered together to diversify language coverage (Korean), narrative angle (crypto), and macro/policy framing (CNBC).
+**Decision**: Reopen u1 Code Generation in extension mode for the **third** time today. Add 3 RSS news adapters before re-closing: `yonhap-market` (연합뉴스 마켓+ RSS — first Korean-language news adapter), `theblock-crypto` (The Block RSS — crypto narrative), and `cnbc-top-news` (CNBC US Top News RSS — macro/policy). All three carry `category="news"`. Earnings calendar remains deferred. After Extension #3 closes, `Category` enum coverage is unchanged at 4/5 (still only earnings TBD), but **news depth grows from 2 adapters → 5 adapters**.
+**Design Q/A** (resolved with user 2026-05-01 scoping session):
+- Q1 Adapter count this extension: **3 adapters bundled in one extension** — same rationale as Extension #2 (one fixture-recording session, one cross-cutting QA pass, one `EXPECTED_ADAPTER_COUNT` bump 6→9).
+- Q2 Per-feed item cap: **none — full feed fetched, R7 strict for natural cut** — all three feeds carry per-item RFC 822 `<pubDate>` with explicit timezone offsets (yonhap +0900, theblock -0400, cnbc GMT). R7 strict, no R11 relaxation needed (none of these have a cadence gap — Yonhap publishes throughout the KST business day, The Block publishes intraday US-EDT, CNBC publishes 24/7).
+- Q3 Hard item-count cap: **none** — R7 is the only filter.
+- Q4 Category for all three: **`category="news"`** — consistent with L6.5 / L6.6.
+- Q5 The Block URL canonicalization: **adapter-local utm-strip** — `<link>` items end with `?utm_source=rss&utm_medium=rss` tracking parameters. The adapter strips these via `urllib.parse` (urlsplit / parse_qsl / urlencode / urlunsplit) before storing so the canonical URL lands in `NormalizedItem.url` and `raw_metadata.guid` (deduplication-friendly downstream). Documented as adapter-local logic in FD §L6.8 — no R-rule needed (no other adapter has this concern; cross-cutting clearance not warranted).
+- Q6 CNBC `<metadata:*>` namespace: **ignored entirely** — adapter iterates only the canonical RSS 2.0 `<channel>/<item>` element children (`<title>`, `<link>`, `<pubDate>`, `<description>`, `<guid>`). No registration of the metadata namespace handler. Rationale: the metadata fields (cn:lastPubDate, media:thumbnail, etc.) carry no signal the briefing layer needs and would only enlarge `raw_metadata` for no value. Documented as an explicit adapter-local decision in FD §L6.9.
+- Q7 Yonhap CDATA handling: **rely on defusedxml's standard CDATA unwrap + `_sanitize.strip_html`** — Yonhap wraps `<title>` and `<description>` content in `<![CDATA[ ... ]]>`. defusedxml's parser unwraps CDATA transparently (returns the inner text), and `strip_html` then removes any embedded HTML markup. No special-case code needed. Phase 3 qa will confirm the recorded fixture parses cleanly with no encoding garble.
+**Lead's pre-decision (no R14-style rule additions) — adopted**:
+- All three adapters use UTF-8 encoding (declared in their `<?xml ... encoding="utf-8"?>` header) and RFC 822 `<pubDate>` (which `email.utils.parsedate_to_datetime` handles natively on Python 3.11 — no FD divergence anticipated, unlike L6.5's ISO 8601 `Z`-suffix surprise). No source-mandated compliance headers (none of yonhap.co.kr / theblock.co / cnbc.com require a specific UA per their robots.txt or fair-access policies). httpx's default UA is acceptable for all three.
+- The Block utm-strip is **adapter-local logic, not a cross-cutting rule**. Future news adapters that face the same tracking-param issue can adopt the helper pattern by example, but pinning a project-wide R-rule for one adapter's URL canonicalization would over-fit. The planner re-probed business-rules.md and concurs — no rule change.
+**DEBT-028 status**: still open as Medium "address before next adapter" carried over from Extension #1 closeout and re-verified clean in Extension #2. Extension #3's adapters carry pure-string `raw_metadata` only:
+- yonhap-market: `{"guid": str, "rss_source": str}` (mirror of L6.5)
+- theblock-crypto: `{"guid": str, "rss_creator": str, "rss_categories": str}` (`<dc:creator>` + comma-joined `<category>` elements)
+- cnbc-top-news: `{"guid": str}` (CNBC has no `<source>` or `<dc:creator>` we surface; metadata namespace ignored per Q6)
+
+No float / int serialization paths in any of the three. **investo-qa will explicitly verify in Phase 3** (cross-cutting review) that the empirical implementation matches this prediction. If verified clean across the now-5 news adapters, DEBT-028 priority logic stays unchanged (still Medium, age clock continues from 2026-05-01).
+**Affected docs (this batch — design + planning only; no code yet)**:
+- `aidlc-docs/aidlc-state.md` — u1 row Notes column appended " — Extension #3 in progress (3 general news adapters: yonhap-market + theblock-crypto + cnbc-top-news)"
+- `aidlc-docs/inception/application-design/component-dependency.md` — External Dependency Inventory `sources` row extended with the 3 new general-news feeds
+- `aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md` — L6.7 (yonhap), L6.8 (theblock with utm-strip), L6.9 (cnbc with metadata-ns ignore) added; "Extension #3 note" preface added below the existing extension #2 note
+- `aidlc-docs/construction/u1-sources/functional-design/business-rules.md` — **no change** (re-probed; no new cross-cutting concern surfaced)
+- `aidlc-docs/construction/plans/u1-sources-extension-2026-05-news-2-code-generation-plan.md` — NEW (4-step plan: yonhap-market → theblock-crypto with utm-strip → cnbc-top-news → registration/contract bump 6→9 + cross-cutting QA + closeout)
+**NFR / tech-stack docs**: no AC additions or TS additions in this extension. All three adapters reuse:
+- AC-7.6 (defusedxml only) — all three are XML / RSS 2.0
+- AC-2.2 (no paid APIs) — all three are free, no auth
+- AC-7.3 (http/https URL validation) — all three use `<link>` validated for scheme
+- AC-7.2 (HTML stripping on title/summary) — all three use `_sanitize.strip_html`
+- AC-7.4 (tz-aware UTC `published_at`) — all three carry tz-aware RFC 822 `<pubDate>` with explicit offsets
+- R7 strict — no relaxation, no R11 exception (all three have authoritative per-item pubDate, no cadence gap)
+- R8 raw_metadata string-cast — all three carry strings natively
+- R10 fixture-recording — all three will record real responses under `tests/unit/sources/fixtures/api/<slug>/`
+- R14 (UA compliance header) — does NOT apply to any of the three (none of yonhap / theblock / cnbc require a fair-access UA)
+**Status**: Design + planning docs updated. Code Generation (Extension #3) pending user "approve" on the new plan file.
+**Context**: Reopen u1 Code Generation in extension mode for the third time today. Global Build and Test row will re-verify at Extension #3 closeout (Step 4). Plugin contract bump 6→9 lands at Step 4. After this extension closes the same calendar day will have produced three back-to-back planner→developer→qa→closeout cycles for u1 — the cycle has now proven repeatable enough that adapter additions are essentially mechanical.
+
+---
+
 ## Construction — u1 sources — Extension #2 CLOSED (2 news adapters delivered)
 **Timestamp**: 2026-05-01T05:00:00Z
 **Trigger**: Completion of the 4-step extension #2 plan approved earlier today at 2026-05-01T04:00:00Z (plan file `aidlc-docs/construction/plans/u1-sources-extension-2026-05-news-code-generation-plan.md`).
@@ -799,7 +870,7 @@ NFR-002 (Cost) + NFR-004 (Disclaimer) explicitly NOT duplicated — owned by u2 
 **Action**: Executed Step 7 (sub-agent code review of all of u4 notifier) of u4 notifier Code Generation. Sub-agent verdict: **APPROVE_WITH_FIXES** (0 Critical / 0 High / 1 Medium / 5 Low / 5 TECH-DEBT candidates). Applied changes:
 - **M1 fix — bot-token redaction misses bare-shape `bot<TOKEN>` without `/` prefix** (`src/investo/notifier/_telegram.py`): the original `_BOT_TOKEN_RE = re.compile(r"/bot[^/\s'\"]+")` required a `/bot` URL prefix. A hand-crafted log line like `"used token bot{TOKEN}"` would leak the token. Fix: extended to two-layer redaction:
   - `_BOT_TOKEN_URL_RE = re.compile(r"/bot[^/\s'\"]+")` runs first, replaces with `/bot[REDACTED]` (preserves debug-friendly URL shape).
-  - `_BOT_TOKEN_SHAPE_RE = re.compile(r"\bbot\d+:[A-Za-z0-9_-]{20,}")` runs second, catches anything missed by URL form (replaces with `bot[REDACTED]`). The ≥20-char tail requirement avoids false-positives on `botany`, `bot123:short`, etc.
+  - `_BOT_TOKEN_SHAPE_RE = re.compile(r"bot\d+:[A-Za-z0-9_-]{20,}")` runs second, catches anything missed by URL form (replaces with `bot[REDACTED]`). The ≥20-char tail requirement avoids false-positives on `botany`, `bot123:short`, etc.
 - **Q2 follow-up — missing test for lone high surrogate at position 0**: added `test_utf16_truncate_drops_lone_high_surrogate_at_position_zero` pinning `_utf16_truncate("📈AB", 1) == ""` (orphan high surrogate dropped, not half a codepoint emitted). Regression test confirms valid UTF-16 round-trip.
 - **L4 doc — undocumented shared-client guidance**: added "Production tip for u5 orchestrator" section to `src/investo/notifier/__init__.py` docstring recommending shared `httpx.AsyncClient` injection across both classes' `http=` parameter to avoid per-call TLS handshakes.
 - **3 new regression tests**:
@@ -880,11 +951,17 @@ NFR-002 (Cost) + NFR-004 (Disclaimer) explicitly NOT duplicated — owned by u2 
 ## Construction — u4 notifier — Code Generation Step 3 COMPLETE ✅
 **Timestamp**: 2026-04-30T00:00:00Z
 **Action**: Executed Step 3 (`summary.py` — UTF-16-aware `build_summary`) of u4 notifier Code Generation. Created:
-- `src/investo/notifier/summary.py` (~95 lines): `DEFAULT_MAX_UNITS: Final[int] = 4096` mirrors the model's `TELEGRAM_MESSAGE_LIMIT`; `_utf16_units(text)` helper using `len(text.encode("utf-16-le")) // 2` (same formula as the BriefingNotification model validator); `_utf16_truncate(text, max_units)` surrogate-pair-safe (drops orphan high surrogate after slicing if a non-BMP codepoint would be split mid-pair); `build_summary(briefing, *, site_url, max_units=DEFAULT_MAX_UNITS) -> str` composes `📈 {date} 시황 요약\n\n{body}\n\n상세보기: {url}`. Footer URL always preserved; body truncated with "…" suffix when overflow.
+- `src/investo/notifier/summary.py` (~95 lines): `DEFAULT_MAX_UNITS: Final[int] = 4096` mirrors the model's `TELEGRAM_MESSAGE_LIMIT`; `_utf16_units(text)` helper using `len(text.encode("utf-16-le")) // 2` (same formula as the BriefingNotification model validator); `_utf16_truncate(text, max_units)` surrogate-pair-safe (drops orphan high surrogate after slicing if a non-BMP codepoint would be split mid-pair); `build_summary(briefing, *, site_url, max_units=DEFAULT_MAX_UNITS) -> str` composes `📈 {date} 시황 요약
+
+{body}
+
+상세보기: {url}`. Footer URL always preserved; body truncated with "…" suffix when overflow.
 - `tests/unit/notifier/test_summary.py` (~225 lines, 16 tests):
   - UTF-16 helpers (5): `_utf16_units` for ASCII / Korean (1 per char) / emoji (2 per codepoint); `_utf16_truncate` passthrough + drops partial surrogate pair (`AB📈CD` truncated to 3 units → `AB`, dropping the orphan high surrogate); zero-max returns "".
   - Happy path (3): summary contains target_date + market_summary + URL + emoji header; short summary has no "…" suffix; result fits under DEFAULT_MAX_UNITS.
-  - Truncation (4): 5000-char Korean → truncated, footer preserved, "…" present; 2100 emoji (4200 units) → truncated (verifies UTF-16 accounting; `len()` would have said 2100 chars and incorrectly thought it fits); footer URL survives long body; `…\n\n상세보기:` pattern exact.
+  - Truncation (4): 5000-char Korean → truncated, footer preserved, "…" present; 2100 emoji (4200 units) → truncated (verifies UTF-16 accounting; `len()` would have said 2100 chars and incorrectly thought it fits); footer URL survives long body; `…
+
+상세보기:` pattern exact.
   - Defense-in-depth (1): summary round-trips through `BriefingNotification`'s own 4096-unit validator without raising. Belt-and-braces — if `build_summary` ever miscalculates the budget by 1 unit, the model rejects on construction.
   - Custom max_units (1): `max_units=200` → result fits, footer still preserved.
   - Public surface (1): exports `build_summary` + `DEFAULT_MAX_UNITS=4096`.
@@ -1087,7 +1164,8 @@ NFR-002 (Cost) + NFR-004 (Disclaimer) explicitly NOT duplicated — owned by u2 
 - `tests/unit/publisher/test_verifier.py` (~125 lines, 9 tests):
   - Trivial cases (2): exact DISCLAIMER → True, empty string → False.
   - Substring semantics (2): typical 6-section briefing + DISCLAIMER appended → True; arbitrary prefix/suffix wrapping → True.
-  - Negative safety net (3): truncated DISCLAIMER (`[:-5]`) → False; altered DISCLAIMER (single Korean char replaced) → False; header-only `"## ⑦ 면책조항\n"` → False (catches the failure mode where an LLM emits the section header without a body).
+  - Negative safety net (3): truncated DISCLAIMER (`[:-5]`) → False; altered DISCLAIMER (single Korean char replaced) → False; header-only `"## ⑦ 면책조항
+"` → False (catches the failure mode where an LLM emits the section header without a body).
   - Cross-unit pin (1): AST-grep on `inspect.getsource(verifier_module)` confirms `"from investo.briefing.disclaimer import DISCLAIMER"` — locks against a refactor that copies the constant locally and silently desyncs u2/u3.
   - Public surface (1): module exports `verify_disclaimer`.
 **Lint notes**: 1 I001 import-sort issue (deferred imports inside `test_verifier_uses_u2_disclaimer_constant`) auto-fixed; 1 file auto-formatted (briefing-construction expression collapsed). Cosmetic only.
@@ -1481,7 +1559,9 @@ NFR-002 (Cost) + NFR-004 (Disclaimer) explicitly NOT duplicated — owned by u2 
 ## Construction — u2 briefing — Code Generation Step 5 COMPLETE ✅
 **Timestamp**: 2026-04-28T00:00:00Z
 **Action**: Executed Step 5 (`prompts.py`) of u2 briefing Code Generation. Created: `src/investo/briefing/prompts.py` (140 lines) — 4 `Final[str]` constants (`STAGE1_SYSTEM` with classifier role + JSON schema + section-ID legend per FD L2; `STAGE1_USER_TEMPLATE` with `{items_json}` placeholder; `STAGE2_SYSTEM` with the 6 fixed Korean section headers + R8 Korean+ticker rule + R5 disclaimer exclusion + R6 PII prohibition per FD L3; `STAGE2_USER_TEMPLATE` with `{grouped_sections}` + `{unassigned}` + `{target_date}` placeholders) + module docstring documenting (a) substitution convention via `str.format(**kwargs)`, (b) SYSTEM-never-formatted invariant, (c) caller's brace-escaping obligation for `grouped_sections` payload, (d) defense-in-depth layering with `leak_guard.scan`. `tests/unit/briefing/test_prompts.py` (200 lines, 18 tests) — AC-5.1 4-constant non-empty Final[str] parametrize + Stage 1 anchors (role, schema, section-ID legend, sections 2-5, no ⑦ mention) + Stage 2 anchors (six fixed headers, R5 disclaimer-excluded, R8 Korean+ticker rule with concrete `AAPL`/`S&P 500` examples, PII prohibition) + USER template placeholder substitution round-trip + idempotence-under-repeat (catches leftover placeholders) + AC-5.2/5.3 sentinel-grep across `src/investo/briefing/*.py` excluding `prompts.py` itself + anti-tautology check + SYSTEM-never-formatted convention (`pytest.raises(KeyError, IndexError, ValueError)` on `STAGE1_SYSTEM.format()`) + cross-module collision check (`## ① 요약` not in `DISCLAIMER` to confirm sentinel grep won't false-flag disclaimer.py).
-**Substitution model**: SYSTEM constants are concatenated as literals; USER templates use `str.format(**kwargs)` with documented placeholders. Pipeline (Step 8) merges via `f"{SYSTEM}\n\n{USER_TEMPLATE.format(...)}"` — concatenation, not formatting. Stage 1 system has literal `{` / `}` in JSON schema example which would explode if `.format()`-ed; convention locked by test.
+**Substitution model**: SYSTEM constants are concatenated as literals; USER templates use `str.format(**kwargs)` with documented placeholders. Pipeline (Step 8) merges via `f"{SYSTEM}
+
+{USER_TEMPLATE.format(...)}"` — concatenation, not formatting. Stage 1 system has literal `{` / `}` in JSON schema example which would explode if `.format()`-ed; convention locked by test.
 **Quality gate**: ruff ✅, ruff format ✅ (50 files already formatted), mypy --strict ✅ (20 source files; +1 from Step 4's 19), pytest **332/332 passed in 3.45s** (+18 new tests).
 **Sub-agent code review** (general-purpose, fresh-eyes): **APPROVE (ship-ready for Step 5)**; 0 Critical / 0 High / 2 Mediums / 3 Lows + 2 TECH-DEBT candidates. APPLIED — M-1 (brace-contamination forward-warning documented in "Caller obligations" docstring section); M-2 (defense-in-depth documented in "Defense in depth (NFR-007 R6)" section); L-2 (`pytest.raises(KeyError)` test pinning SYSTEM-never-formatted); L-3 (disclaimer-collision assertion). SKIPPED — L-1 (sentinel rephrase — current set already unique enough). TD-prompts-001 applied as L-2 fix; TD-prompts-002 (Step 8 brace escaping in `build_section_plan`) deferred as explicit caller obligation in prompts.py docstring.
 **TECH-DEBT changes**: None added to registry, none resolved. (Two agent-identified candidates were resolved inline: one as a test, one as a deferred-design-constraint docstring.)
@@ -1515,7 +1595,9 @@ NFR-002 (Cost) + NFR-004 (Disclaimer) explicitly NOT duplicated — owned by u2 
 
 ## Construction — u2 briefing — Code Generation Step 2 COMPLETE ✅
 **Timestamp**: 2026-04-28T00:00:00Z
-**Action**: Executed Step 2 (`disclaimer.py`) of u2 briefing Code Generation. Created: `src/investo/briefing/disclaimer.py` (62 lines) — `DISCLAIMER: Final[str]` (5-line Korean text per FD R5, byte-identical with what u3's `verify_disclaimer` will substring-check) + private `_ANCHOR` + pure `append_disclaimer(markdown)` (idempotence anchored on `## ⑦ 면책조항` header per R5; appends `\n\n` + DISCLAIMER if anchor absent); `tests/unit/briefing/test_disclaimer.py` (101 lines, 9 anchor tests covering DISCLAIMER shape + AC-4.2 substring + AC-4.3 last-section anchor + AC-4.5 Final[str] + idempotence example cases including the LLM-hallucination drifted-body case); `tests/unit/briefing/test_disclaimer_pbt.py` (51 lines, 3 PBTs: unconditional idempotence, conditional presence for anchor-less inputs, unconditional anchor-always canary).
+**Action**: Executed Step 2 (`disclaimer.py`) of u2 briefing Code Generation. Created: `src/investo/briefing/disclaimer.py` (62 lines) — `DISCLAIMER: Final[str]` (5-line Korean text per FD R5, byte-identical with what u3's `verify_disclaimer` will substring-check) + private `_ANCHOR` + pure `append_disclaimer(markdown)` (idempotence anchored on `## ⑦ 면책조항` header per R5; appends `
+
+` + DISCLAIMER if anchor absent); `tests/unit/briefing/test_disclaimer.py` (101 lines, 9 anchor tests covering DISCLAIMER shape + AC-4.2 substring + AC-4.3 last-section anchor + AC-4.5 Final[str] + idempotence example cases including the LLM-hallucination drifted-body case); `tests/unit/briefing/test_disclaimer_pbt.py` (51 lines, 3 PBTs: unconditional idempotence, conditional presence for anchor-less inputs, unconditional anchor-always canary).
 **Implementation choice — anchor-on-header**: FD R5 explicitly chose to anchor idempotence on the section header substring, not the full DISCLAIMER body. The "drifted body" pathological case (input contains anchor but with wrong/hallucinated body text) is intentionally NOT fixed by u2 — u3 publisher's `verify_disclaimer` does the strict full-substring check and blocks publish on drift. Operator gets alerted via NFR-003 / FR-007 path. This is the documented defense-in-depth pattern.
 **PBT conditioning decision**: NFR doc AC-6.1 lists "Idempotence" + "Presence" as PBT properties unconditionally, but unconditional "DISCLAIMER in append_disclaimer(x)" does NOT hold under R5 anchor-on-header semantics (an input containing only the anchor passes through unchanged → result lacks full DISCLAIMER). Resolved: Idempotence is the unconditional PBT (AC-4.1, AC-6.1); Presence is conditioned on `_ANCHOR not in x` (the meaningful "no disclaimer yet → append it" invariant); a third unconditional PBT pins `_ANCHOR in result` as a regression canary. Documented in PBT docstrings + session log.
 **Quality gate**: ruff ✅, ruff format ✅ (44 files already formatted), mypy --strict ✅ (17 source files; +1 from Step 1's 16), pytest **265/265 passed in 3.03s** (+13 new tests: 9 anchor + 3 PBT + 1 type check; 3 PBTs each ran 100 examples).

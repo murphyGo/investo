@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 5 | 2026-04-27 |
-| Low | 14 | 2026-04-27 |
+| Medium | 7 | 2026-04-27 |
+| Low | 16 | 2026-04-27 |
 
 ---
 
@@ -76,6 +76,26 @@ _No high priority items._
 - **Suggested Fix**: Lift to a shared internal module — `src/investo/_internal/text.py` (new) or extend `src/investo/models/_validators.py`. Both u2 + u3 errors modules import from there. u4 notifier picks it up at construction time.
 - **Effort**: ~20 min including import updates and verifying both unit's truncation tests still pass.
 - **Priority Reasoning**: Medium — promotes to High when u4 introduces a third copy. Address before u4 starts to avoid the third-copy problem.
+
+#### DEBT-031: `_NS_DC_CREATOR` namespace constant duplicated across 2 news adapters
+
+- **Created**: 2026-05-01
+- **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (M2)
+- **Reference**: NFR-006 (test-suite/source maintainability), NFR-005 (consistency across symmetric components)
+- **Description**: The Dublin Core `<dc:creator>` namespace constant `_NS_DC_CREATOR: Final[str] = "{http://purl.org/dc/elements/1.1/}creator"` appears byte-identically in `src/investo/sources/yonhap_market.py` and `src/investo/sources/theblock_crypto.py`. Both adapters use it the same way: `entry.find(_NS_DC_CREATOR)`. Two copies is the minimum threshold for "extract" under NFR-006 — and any third RSS adapter that needs `<dc:creator>` (a common Dublin Core element across many Korean and English wire feeds) would land a third copy.
+- **Suggested Fix**: Lift to a new module `src/investo/sources/_xml_namespaces.py` exporting a small set of curated Clark-notation namespace constants (`NS_DC_CREATOR`, room for `NS_DC_DATE`, `NS_MEDIA_THUMBNAIL`, etc. as future adapters need them). Update both call sites to import. The module mirrors `_config.py` / `_sanitize.py` as an underscore-prefixed internal helper.
+- **Effort**: ~15 min including the new file + 2 import updates + ruff/mypy verification.
+- **Priority Reasoning**: Medium — promotes to High when a third dc:creator-using adapter lands (likely soon given the Korean/English RSS pattern). Address before the next news-adapter extension.
+
+#### DEBT-032: `_SUMMARY_MAX_LEN = 280` constant duplicated across 8 source adapters
+
+- **Created**: 2026-05-01
+- **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (M3)
+- **Reference**: NFR-006 (test-suite/source maintainability), R8 (NormalizedItem field rules — summary length cap)
+- **Description**: The 280-character summary truncation cap `_SUMMARY_MAX_LEN: Final[int] = 280` appears byte-identically across **8** adapter files: `cnbc_top_news.py`, `coingecko.py`, `fred.py`, `fomc_rss.py`, `sec_edgar_8k.py`, `yfinance.py`, `theblock_crypto.py`, `yonhap_market.py`. All 8 use it the same way: `summary[:_SUMMARY_MAX_LEN]` (or equivalent). Eight copies of a magic-number constant; any future change to the cap (e.g., raising to 400 chars to give the briefing layer richer context) requires touching 8 files in lockstep, with a high silent-drift risk if any is missed during a refactor. Independent of DEBT-028 (DEBT-028 = numeric formatting; this = string-length cap).
+- **Suggested Fix**: Lift to `src/investo/sources/_config.py` as `SUMMARY_MAX_LEN: Final[int] = 280` (un-underscored at the module level since `_config` itself is the underscore boundary). Update all 8 adapters to `from ._config import SUMMARY_MAX_LEN`. Optionally, a small helper `truncate_summary(s: str | None) -> str | None` in `_config.py` would absorb the `summary[:cap] if summary else None` shape too.
+- **Effort**: ~20 min including the constant lift + 8 import updates + verification (the existing per-adapter tests already pin truncation behavior empirically; no test rewrite needed).
+- **Priority Reasoning**: Medium — not breaking anything today (all 8 copies are byte-identical), but the duplication is the single largest constant-drift surface in u1 and the next adapter author will land copy #9 if not fixed. Addresses NFR-006 directly.
 
 ### Low Priority
 
@@ -337,6 +357,30 @@ _No high priority items._
 - **Suggested Fix**: Switch to `entry.find(f"{_ATOM_NS}id").text` parsing during the next fixture re-record. Strip the `urn:tag:sec.gov,2008:accession-number=` prefix; assert the remaining substring matches `r"^\d{10}-\d{2}-\d{6}$"`. The regex on summary becomes the fallback if `<id>` is missing (defensive).
 - **Effort**: ~15 min code change + 1 test update + re-record fixture (or use synthetic Atom for the test).
 - **Priority Reasoning**: Low — current path works on the recorded fixture; future SEC schema change is hypothetical. Address during the next re-record pass (project-wide re-record cadence is also unpinned — a separate concern the lead can re-dispatch later).
+
+---
+
+#### DEBT-033: `_FEED_URL` placement inconsistent — sec_edgar_8k uses module-level while 4 sibling news adapters use `ClassVar`
+
+- **Created**: 2026-05-01
+- **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (L1)
+- **Reference**: NFR-005 (consistency across symmetric components), R2 (plugin module shape)
+- **Description**: Across the 5 news adapters, `_FEED_URL` placement diverges: `yahoo_finance_news.py`, `yonhap_market.py`, `theblock_crypto.py`, `cnbc_top_news.py` declare it as class-level `ClassVar[str]` inside the adapter class; `sec_edgar_8k.py:64` declares it as module-level `Final[str]`. The corresponding tests reflect this divergence — `Adapter._FEED_URL` is accessible on 4 adapters' classes but not on `SecEdgar8kAdapter`. Note: this overlaps with but is narrower than DEBT-029 (which covered the broader cross-category inconsistency including price/macro adapters' `_BASE_URL` / `_ENDPOINT` naming). DEBT-033 specifically tracks the news-cohort `_FEED_URL` divergence — a smaller, mechanically-trivial fix that can land independently.
+- **Suggested Fix**: Move `sec_edgar_8k._FEED_URL` to `ClassVar[str]` on `SecEdgar8kAdapter`. The `_USER_AGENT` constant should follow the same placement decision for symmetry (see DEBT-029 for the broader naming-unification arc).
+- **Effort**: ~5 min — single-file move, no test changes needed (the existing tests don't currently assert `Adapter._FEED_URL` on sec-edgar; adding that assertion for symmetry is optional).
+- **Priority Reasoning**: Low — purely cosmetic; the inconsistency surfaces only when a developer reads two adapter sources side by side and notices the divergence. Closes naturally alongside DEBT-029 in a future cleanup pass.
+
+---
+
+#### DEBT-034: `_mock_client` test helper duplicated across 5 news-adapter test files
+
+- **Created**: 2026-05-01
+- **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (L4)
+- **Reference**: NFR-006 (test-suite/source maintainability)
+- **Description**: A `_mock_client(body, status=200)` test helper appears in 5 news-adapter test files: `test_yahoo_finance_news.py`, `test_sec_edgar_8k.py`, `test_yonhap_market.py`, `test_theblock_crypto.py`, `test_cnbc_top_news.py`. The bodies differ only by content-type header value (`application/rss+xml` vs `application/atom+xml` vs `text/xml`); the SEC variant additionally captures the outgoing request to assert the User-Agent header (R14 test). Five copies of a small but non-trivial httpx `MockTransport`-wrapping helper — a clear consolidation target.
+- **Suggested Fix**: Extract a shared `tests/unit/sources/_mock_transport.py` helper exporting `mock_client(body: bytes | str, status: int = 200, content_type: str = "application/rss+xml", capture_requests: bool = False)`. Returns `httpx.AsyncClient` plus optionally a `list[httpx.Request]` capture sink. Update all 5 test files to import. SEC's UA-pin test uses `capture_requests=True`.
+- **Effort**: ~25 min including the new helper + 5 test-file import updates + verification all 5 test files still green. Test-code only — no production-code touch.
+- **Priority Reasoning**: Low — test code only, not production; works correctly today; cleanup pays off when the 6th news adapter lands or when the underlying httpx test API ever changes (single update site vs five). Pairs naturally with DEBT-016 (`_mock_client` duplicated across 3 u4 test files) — both could be resolved together via a shared `tests/_helpers/mock_transport.py` if the lead chooses to widen scope.
 
 ---
 

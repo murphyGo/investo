@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    xmlns:media="http://search.yahoo.com/mrss/"
+    >
+
+<channel>
+    <title>The Block</title>
+
+    <atom:link href="https://www.theblock.co/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www.theblock.co/rss.xml?paged=2" rel="next" type="application/rss+xml" />
+    <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub"/>
+
+    <link>https://www.theblock.co/rss.xml</link>
+    <description>The Block features breaking Crypto news about Bitcoin, Blockchain, Web3, and DeFi from the web&#039;s most reliable source.</description>
+    <category domain="https://www.theblock.co">News</category>
+    <copyright>© 2026 THE BLOCK</copyright>
+    <lastBuildDate >Fri, 01 May 2026 14:35:20 +0000</lastBuildDate>
+    <language>en-US</language>
+    <ttl>8</ttl>
+    <sy:updatePeriod>hourly</sy:updatePeriod>
+    <sy:updateFrequency>1</sy:updateFrequency>
+    <generator>TheBlock</generator>
+    <image>
+        <url>https://www.tbstat.com/wp/uploads/2024/03/the-block-logo-wordmark-black.png</url>
+        <title>The Block | Bitcoin, Ethereum, and Crypto News</title>
+        <link>https://www.theblock.co</link>
+    </image>
+
+        <item>
+        <title>WisdomTree&#8217;s crypto ETPs reported net inflows of $137 million in Q1</title>
+        <link>https://www.theblock.co/post/399725/wisdomtrees-crypto-etps-reported-net-inflows-of-137-million-in-q1?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 10:35:20 -0400</pubDate>
+        <dc:creator><![CDATA[RT Watson]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Finance firms]]></category>
+		<category><![CDATA[Funds]]></category>
+		<category><![CDATA[Markets]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399725</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2022/05/20220505_Wisdomtree-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Cumulatively, assets under management for the firm's crypto ETPs rose to roughly $1.8 billion during Q1 of this year.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Cumulatively, assets under management for the firm's crypto ETPs rose to roughly $1.8 billion during Q1 of this year.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Crypto onramping solution Fun raises $72 million Series A co-led by Multicoin Capital and SignalFire</title>
+        <link>https://www.theblock.co/post/399726/crypto-onramping-solution-fun-raises-72-million-series-a-co-led-by-multicoin-capital-and-signalfire?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 10:12:45 -0400</pubDate>
+        <dc:creator><![CDATA[Daniel Kuhn]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Infrastructure]]></category>
+		<category><![CDATA[Deals]]></category>
+		<category><![CDATA[Venture Capital]]></category>
+		<category><![CDATA[Series A]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399726</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2019/04/Multicoin-Capital-map-796x450.jpg" width="796" height="450" />
+            <description><![CDATA[
+            <p>Fun powers deposits, withdrawals, and settlement flows for some of crypto’s leading apps, including Polymarket, Lighter, and Aave.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Fun powers deposits, withdrawals, and settlement flows for some of crypto’s leading apps, including Polymarket, Lighter, and Aave.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Tether posts over $1 billion Q1 profit as reserve buffer reaches record $8.2 billion</title>
+        <link>https://www.theblock.co/post/399722/tether-posts-over-1-billion-q1-profit-as-reserve-buffer-reaches-record-8-2-billion?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 08:59:47 -0400</pubDate>
+        <dc:creator><![CDATA[James Hunt]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Stablecoins]]></category>
+		<category><![CDATA[Tether]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399722</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2024/04/20240429_Tether_News-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Tether's approximate $141 billion exposure to U.S. Treasurys positions it as one of the largest holders globally.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Tether's approximate $141 billion exposure to U.S. Treasurys positions it as one of the largest holders globally.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>MoonPay launches stablecoin debit card for AI agents on Mastercard network</title>
+        <link>https://www.theblock.co/post/399716/moonpay-stablecoin-debit-card-ai-agents-mastercard?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 08:11:38 -0400</pubDate>
+        <dc:creator><![CDATA[Yogita Khatri]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Crypto Infrastructure]]></category>
+		<category><![CDATA[Infrastructure]]></category>
+		<category><![CDATA[Tech]]></category>
+		<category><![CDATA[Web3]]></category>
+		<category><![CDATA[Crypto]]></category>
+		<category><![CDATA[Wallets]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399716</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2022/01/20220126_Moonpay-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>MoonPay has launched "MoonAgents Card," a stablecoin debit card for AI agents and users to spend directly from onchain wallets.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>MoonPay has launched "MoonAgents Card," a stablecoin debit card for AI agents and users to spend directly from onchain wallets.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Brazil central bank prohibits crypto use in regulated cross-border payments under new FX rules</title>
+        <link>https://www.theblock.co/post/399713/brazil-central-bank-prohibits-crypto-use-in-regulated-cross-border-payments-under-new-fx-rules?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 07:42:16 -0400</pubDate>
+        <dc:creator><![CDATA[James Hunt]]></dc:creator>
+
+        		<category><![CDATA[Central Banks]]></category>
+		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Finance firms]]></category>
+		<category><![CDATA[International Policymaking]]></category>
+		<category><![CDATA[Markets]]></category>
+		<category><![CDATA[Policy]]></category>
+		<category><![CDATA[Regulation]]></category>
+		<category><![CDATA[Stablecoins]]></category>
+		<category><![CDATA[Token Projects]]></category>
+		<category><![CDATA[Payments]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399713</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2022/05/20220523-Brazil-News-1-800x450.png" width="800" height="450" />
+            <description><![CDATA[
+            <p>The rule forms part of the central bank's broader effort to bring cross-border payments fully inside the regulated FX system.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>The rule forms part of the central bank's broader effort to bring cross-border payments fully inside the regulated FX system.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>SBI Holdings in talks to acquire stake in crypto exchange Bitbank, eyes subsidiary status</title>
+        <link>https://www.theblock.co/post/399709/sbi-holdings-in-talks-to-acquire-stake-in-crypto-exchange-bitbank-eyes-subsidiary-status?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 06:34:13 -0400</pubDate>
+        <dc:creator><![CDATA[James Hunt]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Deals]]></category>
+		<category><![CDATA[Exchanges]]></category>
+		<category><![CDATA[Finance firms]]></category>
+		<category><![CDATA[International Policymaking]]></category>
+		<category><![CDATA[Mergers & Acquisitions]]></category>
+		<category><![CDATA[Policy]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399709</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2024/09/20240917_Japan_News-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>The talks are at an early stage, pending due diligence and internal procedures, with more details on the acquisition timing to come.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>The talks are at an early stage, pending due diligence and internal procedures, with more details on the acquisition timing to come.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>South Korean court grants stay on Bithumb&#8217;s six-month suspension pending final ruling: reports</title>
+        <link>https://www.theblock.co/post/399706/south-korean-court-grants-stay-on-bithumbs-six-month-suspension-pending-final-ruling-reports?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 05:32:59 -0400</pubDate>
+        <dc:creator><![CDATA[James Hunt]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Exchanges]]></category>
+		<category><![CDATA[International Policymaking]]></category>
+		<category><![CDATA[Legal]]></category>
+		<category><![CDATA[Policy]]></category>
+		<category><![CDATA[Regulation]]></category>
+		<category><![CDATA[Asian Regulation]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399706</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2026/02/IMG_1434-e1770700184451-797x450.jpg" width="797" height="450" />
+            <description><![CDATA[
+            <p>South Korea's financial watchdog issued the suspension in March, alongside a 36.8 billion won ($25 million) fine.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>South Korea's financial watchdog issued the suspension in March, alongside a 36.8 billion won ($25 million) fine.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Riot reports $33 million in first data center revenue as AMD doubles contracted capacity</title>
+        <link>https://www.theblock.co/post/399685/riot-33-million-data-center-revenue-debut-amd-doubles-contracted-capacity?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Fri, 01 May 2026 04:31:15 -0400</pubDate>
+        <dc:creator><![CDATA[Kyle Baird]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Infrastructure]]></category>
+		<category><![CDATA[Equities]]></category>
+		<category><![CDATA[Markets]]></category>
+		<category><![CDATA[Public Equities]]></category>
+		<category><![CDATA[The Block]]></category>
+		<category><![CDATA[AI HPC]]></category>
+		<category><![CDATA[bitcoin-price]]></category>
+		<category><![CDATA[Mining Companies]]></category>
+		<category><![CDATA[riot-platforms]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399685</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2022/09/20220907_Riot-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Most of Riot Platforms' data center revenue came from lower-margin fit-out work, while recurring leases played a smaller role.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Most of Riot Platforms' data center revenue came from lower-margin fit-out work, while recurring leases played a smaller role.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Crypto market structure bill nears May push as ethics disputes and Trump ties cloud path forward</title>
+        <link>https://www.theblock.co/post/399680/crypto-market-structure-bill-nears-may-push-as-ethics-disputes-and-trump-ties-cloud-path-forward?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 17:08:33 -0400</pubDate>
+        <dc:creator><![CDATA[Sarah Wynn]]></dc:creator>
+
+        		<category><![CDATA[Legal]]></category>
+		<category><![CDATA[Policy]]></category>
+		<category><![CDATA[Regulation]]></category>
+		<category><![CDATA[U.S. Policymaking]]></category>
+		<category><![CDATA[2024 Elections]]></category>
+		<category><![CDATA[CFTC]]></category>
+		<category><![CDATA[Congress]]></category>
+		<category><![CDATA[SEC]]></category>
+		<category><![CDATA[Senate Agriculture Committee]]></category>
+		<category><![CDATA[Senate Banking Committee]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399680</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2025/06/20250602_Trump_News_2-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Crypto legislation is gaining momentum, with lawmakers eyeing a potential mid-May markup—even as key disputes remain unresolved.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Crypto legislation is gaining momentum, with lawmakers eyeing a potential mid-May markup—even as key disputes remain unresolved.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Arbitrum DAO starts vote to release 30,766 frozen ETH to DeFi United, following Kelp DAO attack</title>
+        <link>https://www.theblock.co/post/399681/arbitrum-dao-starts-vote-to-release-30766-frozen-eth-to-defi-united-following-kelp-dao-attack?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 16:58:46 -0400</pubDate>
+        <dc:creator><![CDATA[Daniel Kuhn]]></dc:creator>
+
+        		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[DeFi]]></category>
+		<category><![CDATA[Governance]]></category>
+		<category><![CDATA[Layer 1s]]></category>
+		<category><![CDATA[Layer 2s and Scaling]]></category>
+		<category><![CDATA[Aave]]></category>
+		<category><![CDATA[Arbitrum]]></category>
+		<category><![CDATA[DAOs]]></category>
+		<category><![CDATA[Ethereum]]></category>
+		<category><![CDATA[Governance Votes]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399681</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2023/11/arbitrum-800x450.jpeg" width="800" height="450" />
+            <description><![CDATA[
+            <p>The Arbitrum Security Council froze 30,766 ETH that the Kelp DAO attacker had moved to an Arbitrum One address.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>The Arbitrum Security Council froze 30,766 ETH that the Kelp DAO attacker had moved to an Arbitrum One address.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Crypto hacks hit record high in April as exploits kept piling up</title>
+        <link>https://www.theblock.co/post/399666/crypto-hacks-hit-record-high-in-april-as-exploits-kept-piling-up?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 15:37:47 -0400</pubDate>
+        <dc:creator><![CDATA[RT Watson]]></dc:creator>
+
+        		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Security]]></category>
+		<category><![CDATA[Exploits]]></category>
+		<category><![CDATA[Hacks]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399666</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2023/04/20230411_Hack_Generic_1-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>With the end of April in sight, another exploit involving dormant Ethereum mainnet addresses appears to have occurred.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>With the end of April in sight, another exploit involving dormant Ethereum mainnet addresses appears to have occurred.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Senate moves to ban themselves from prediction market trading amid insider concerns</title>
+        <link>https://www.theblock.co/post/399667/senate-moves-to-ban-themselves-from-prediction-market-trading-amid-insider-concerns?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 14:36:41 -0400</pubDate>
+        <dc:creator><![CDATA[Sarah Wynn]]></dc:creator>
+
+        		<category><![CDATA[Legal]]></category>
+		<category><![CDATA[Policy]]></category>
+		<category><![CDATA[Regulation]]></category>
+		<category><![CDATA[U.S. Policymaking]]></category>
+		<category><![CDATA[2024 Elections]]></category>
+		<category><![CDATA[Congress]]></category>
+		<category><![CDATA[Senate Banking Committee]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399667</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2022/01/20210120_Capitol_Generic-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>U.S. senators are now barred from trading on prediction markets following the unanimous passage of a resolution on Thursday.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>U.S. senators are now barred from trading on prediction markets following the unanimous passage of a resolution on Thursday.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Senators Warren, Wyden press Tether and Commerce Secretary Lutnick over loan to family trust</title>
+        <link>https://www.theblock.co/post/399660/senators-warren-wyden-press-tether-commerce-secretary-lutnick-loan-family-trust?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 14:12:05 -0400</pubDate>
+        <dc:creator><![CDATA[Sarah Wynn]]></dc:creator>
+
+        		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Legal]]></category>
+		<category><![CDATA[Policy]]></category>
+		<category><![CDATA[Regulation]]></category>
+		<category><![CDATA[Stablecoins]]></category>
+		<category><![CDATA[U.S. Policymaking]]></category>
+		<category><![CDATA[Congress]]></category>
+		<category><![CDATA[Senate Banking Committee]]></category>
+		<category><![CDATA[Tether]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399660</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2021/09/20210927_Elizabeth_Warren_Generic-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Sens. Warren and Wyden are pressing Tether and Commerce Secretary Lutnick over a reported loan made to a trust tied to Lutnick’s children.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Sens. Warren and Wyden are pressing Tether and Commerce Secretary Lutnick over a reported loan made to a trust tied to Lutnick’s children.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Coinbase&#8217;s &#8216;CUSHY&#8217; stablecoin fund to launch tokenized share class via Superstate in Q2</title>
+        <link>https://www.theblock.co/post/399652/coinbase-cushy-stablecoin-fund-launch-tokenized-share-class-superstate-q2?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 13:37:58 -0400</pubDate>
+        <dc:creator><![CDATA[Daniel Kuhn]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[DeFi]]></category>
+		<category><![CDATA[Exchanges]]></category>
+		<category><![CDATA[Funds]]></category>
+		<category><![CDATA[Markets]]></category>
+		<category><![CDATA[Stablecoins]]></category>
+		<category><![CDATA[Web3]]></category>
+		<category><![CDATA[Coinbase]]></category>
+		<category><![CDATA[Lending]]></category>
+		<category><![CDATA[Protocols]]></category>
+		<category><![CDATA[Tokenization]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399652</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2025/06/20250602_Stablecoins_News-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>The Coinbase Stablecoin Yield Fund aims to generate yield by lending stablecoins and private credit investment opportunities. </p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>The Coinbase Stablecoin Yield Fund aims to generate yield by lending stablecoins and private credit investment opportunities. </p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>99.2% of omni-chain Tether-backed stablecoin holders have less than $1,000 USDT0</title>
+        <link>https://www.theblock.co/post/399640/99-2-of-omni-chain-tether-backed-stablecoin-holders-have-less-than-1000-usdt0?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 12:14:24 -0400</pubDate>
+        <dc:creator><![CDATA[Daniel Kuhn]]></dc:creator>
+
+        		<category><![CDATA[Bridges]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[DeFi]]></category>
+		<category><![CDATA[Infrastructure]]></category>
+		<category><![CDATA[Layer 1s]]></category>
+		<category><![CDATA[Layer 2s and Scaling]]></category>
+		<category><![CDATA[Stablecoins]]></category>
+		<category><![CDATA[Cross-chain Swaps]]></category>
+		<category><![CDATA[DEXs]]></category>
+		<category><![CDATA[exclusive]]></category>
+		<category><![CDATA[Interoperability]]></category>
+		<category><![CDATA[Tether]]></category>
+		<category><![CDATA[Wallets]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399640</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2024/04/20240429_Tether_News_3-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>USDT0 is now the third-largest holder of Tether's USDT stablecoin, which it uses to back its multi-chain asset 1:1.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>USDT0 is now the third-largest holder of Tether's USDT stablecoin, which it uses to back its multi-chain asset 1:1.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>&#8216;Not circular&#8217;: Benchmark defends Strategy&#8217;s STRC bitcoin accumulation model</title>
+        <link>https://www.theblock.co/post/399609/not-circular-benchmark-defends-strategys-strc-bitcoin-accumulation-model?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 11:59:44 -0400</pubDate>
+        <dc:creator><![CDATA[Kyle Baird]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Company Intelligence]]></category>
+		<category><![CDATA[Equities]]></category>
+		<category><![CDATA[Markets]]></category>
+		<category><![CDATA[Public Equities]]></category>
+		<category><![CDATA[The Block]]></category>
+		<category><![CDATA[Analyst Reports]]></category>
+		<category><![CDATA[Strategy]]></category>
+		<category><![CDATA[STRC]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399609</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2025/03/20250304_Strategy_News_4-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Some market watchers liken Strategy's STRC preferred stock to a "circular" Ponzi scheme model, but Benchmark disagrees.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Some market watchers liken Strategy's STRC preferred stock to a "circular" Ponzi scheme model, but Benchmark disagrees.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Solana yield exchange Exponent raises $5 million seed led by Multicoin Capital</title>
+        <link>https://www.theblock.co/post/399630/solana-yield-exchange-exponent-funding-multicoin-capital?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 11:16:02 -0400</pubDate>
+        <dc:creator><![CDATA[Yogita Khatri]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Crypto Infrastructure]]></category>
+		<category><![CDATA[Deals]]></category>
+		<category><![CDATA[DeFi]]></category>
+		<category><![CDATA[Infrastructure]]></category>
+		<category><![CDATA[Layer 1s]]></category>
+		<category><![CDATA[Markets]]></category>
+		<category><![CDATA[Startups]]></category>
+		<category><![CDATA[Token Projects]]></category>
+		<category><![CDATA[Venture Capital]]></category>
+		<category><![CDATA[Web3]]></category>
+		<category><![CDATA[Crypto]]></category>
+		<category><![CDATA[Derivatives]]></category>
+		<category><![CDATA[DEXs]]></category>
+		<category><![CDATA[exclusive]]></category>
+		<category><![CDATA[Protocols]]></category>
+		<category><![CDATA[Seed and Pre-Seed]]></category>
+		<category><![CDATA[Tokenization]]></category>
+		<category><![CDATA[Tokens]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399630</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2025/09/solana-sol-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Solana Ventures, Solana Labs' Anatoly Yakovenko and Solana Foundation’s Nick Ducoff have all participated in the round.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Solana Ventures, Solana Labs' Anatoly Yakovenko and Solana Foundation’s Nick Ducoff have all participated in the round.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Polymarket taps Chainalysis to police insider trading as it seeks $15 billion valuation, CFTC signoff</title>
+        <link>https://www.theblock.co/post/399619/polymarket-taps-chainalysis-to-police-insider-trading-seeks-15-billion-valuation?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 10:59:07 -0400</pubDate>
+        <dc:creator><![CDATA[RT Watson]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Infrastructure]]></category>
+		<category><![CDATA[Legal]]></category>
+		<category><![CDATA[Policy]]></category>
+		<category><![CDATA[Chainalysis]]></category>
+		<category><![CDATA[Data Providers]]></category>
+		<category><![CDATA[polymarket]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399619</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2024/06/polymarket-news-editorial-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Both Polymarket and rival Kalshi have attempted to address concerns about insider trading on the platforms.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Both Polymarket and rival Kalshi have attempted to address concerns about insider trading on the platforms.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Bitcoin miner MARA to acquire Long Ridge in $1.5 billion Ohio gas plant deal</title>
+        <link>https://www.theblock.co/post/399605/bitcoin-miner-mara-to-acquire-long-ridge-in-1-5-billion-ohio-gas-plant-deal?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 10:38:33 -0400</pubDate>
+        <dc:creator><![CDATA[Brian Danga]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Infrastructure]]></category>
+		<category><![CDATA[Deals]]></category>
+		<category><![CDATA[Equities]]></category>
+		<category><![CDATA[Markets]]></category>
+		<category><![CDATA[Mergers & Acquisitions]]></category>
+		<category><![CDATA[Public Equities]]></category>
+		<category><![CDATA[acquisitions]]></category>
+		<category><![CDATA[bitcoin-miner]]></category>
+		<category><![CDATA[Marathon Holdings]]></category>
+		<category><![CDATA[Mining Companies]]></category>
+		<category><![CDATA[Public Company Mergers and Acquisitions]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399605</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2026/04/20260428_Mara_News-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>MARA will acquire an Ohio natural gas plant operator for $1.5 billion, shifting from bitcoin mining to digital infrastructure.</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>MARA will acquire an Ohio natural gas plant operator for $1.5 billion, shifting from bitcoin mining to digital infrastructure.</p>
+        ]]></content:encoded>
+            </item>
+        <item>
+        <title>Tether-backed startup Oobit offers AI bots Visa-supported corporate expense cards</title>
+        <link>https://www.theblock.co/post/399583/tether-oobit-ai-agents-visa-corporate-expense-card?utm_source=rss&amp;utm_medium=rss</link>
+        <pubDate>Thu, 30 Apr 2026 10:00:00 -0400</pubDate>
+        <dc:creator><![CDATA[Daniel Kuhn]]></dc:creator>
+
+        		<category><![CDATA[Companies]]></category>
+		<category><![CDATA[Crypto Ecosystems]]></category>
+		<category><![CDATA[Finance firms]]></category>
+		<category><![CDATA[Infrastructure]]></category>
+		<category><![CDATA[Stablecoins]]></category>
+		<category><![CDATA[Web3]]></category>
+		<category><![CDATA[AI]]></category>
+		<category><![CDATA[Fintech]]></category>
+		<category><![CDATA[Tether]]></category>
+		<category><![CDATA[Wallets]]></category>
+
+        
+        <guid isPermaLink="false">https://www.theblock.co/post/399583</guid>
+
+        <media:thumbnail url="https://www.tbstat.com/wp/uploads/2019/07/visa-cards-2-800x450.jpg" width="800" height="450" />
+            <description><![CDATA[
+            <p>Agent Cards will enable AI agents to make purchases using a USDT balance without "requiring a human in every approval loop.”</p>
+        ]]></description>
+        <content:encoded><![CDATA[
+            <p>Agent Cards will enable AI agents to make purchases using a USDT balance without "requiring a human in every approval loop.”</p>
+        ]]></content:encoded>
+            </item>
+    </channel>
+</rss>

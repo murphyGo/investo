@@ -26,16 +26,19 @@ import investo.sources
 from investo.models import Category, NormalizedItem
 from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_all, list_sources
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
+from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
+from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
 from investo.sources.yfinance import YFinancePriceAdapter
+from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 6
+EXPECTED_ADAPTER_COUNT = 9
 EXPECTED_ADAPTER_NAMES = {
     "fomc-rss",
     "yfinance-price",
@@ -43,6 +46,9 @@ EXPECTED_ADAPTER_NAMES = {
     "fred-macro",
     "yahoo-finance-news",
     "sec-edgar-8k",
+    "yonhap-market",
+    "theblock-crypto",
+    "cnbc-top-news",
 }
 
 
@@ -66,6 +72,9 @@ def _isolate_registry() -> Iterator[None]:
     register(FredMacroAdapter)
     register(YahooFinanceNewsAdapter)
     register(SecEdgar8kAdapter)
+    register(YonhapMarketAdapter)
+    register(TheBlockCryptoAdapter)
+    register(CnbcTopNewsAdapter)
     try:
         yield
     finally:
@@ -176,6 +185,12 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "YahooFinanceNewsAdapter",
         "sec_edgar_8k",
         "SecEdgar8kAdapter",
+        "yonhap_market",
+        "YonhapMarketAdapter",
+        "theblock_crypto",
+        "TheBlockCryptoAdapter",
+        "cnbc_top_news",
+        "CnbcTopNewsAdapter",
     }
     assert not (leaked & set(investo.sources.__all__))
 

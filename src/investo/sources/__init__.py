@@ -27,12 +27,15 @@ from investo.sources.protocol import SourceAdapter, SourceFetchError
 # Adapter discovery — each import below runs the module's
 # ``@register`` decorator at first load.
 from . import (
+    cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
+    theblock_crypto,  # noqa: F401
     yahoo_finance_news,  # noqa: F401
     yfinance,  # noqa: F401
+    yonhap_market,  # noqa: F401
 )
 
 __all__ = [

@@ -450,3 +450,186 @@ remains scoped to the 3 ext-#1 adapters. Age clock continues from
 - Total project tests: 720 → 775 → **810**
 - Source files in `src/investo/sources/`: 8 → 12 → **14**
 - Total `src/` files for `mypy --strict`: 37 → 41 → **43**
+
+---
+
+## Extension #3 closeout (2026-05-01) — 3 general-news adapters
+
+### Trigger
+
+After Extension #2 closed at 2026-05-01T05:00:00Z lifting `Category`
+enum coverage to 4/5 (news category nominally added via Yahoo Finance
++ SEC EDGAR 8-K), the news *stream itself* remained thin: only one
+general-news source (Yahoo) and one corporate-disclosure feed (SEC).
+User confirmed the next extension scope: 3 general-news RSS feeds
+delivered together to diversify language coverage (Korean), narrative
+angle (crypto), and macro/policy framing (CNBC). Reopened u1 Code
+Generation in extension mode for the third time per audit log entry
+2026-05-01T06:00:00Z; closeout entry at 2026-05-01T07:00:00Z.
+
+### Deliverables
+
+| Adapter | File | LOC | Category | Stories closed (partial) |
+|---------|------|-----|----------|-----|
+| `yonhap-market` | `src/investo/sources/yonhap_market.py` | ~140 | news | US-001 (Korean-language news depth) |
+| `theblock-crypto` | `src/investo/sources/theblock_crypto.py` | ~165 | news | US-001 (crypto-narrative news depth) |
+| `cnbc-top-news` | `src/investo/sources/cnbc_top_news.py` | ~135 | news | US-001 (US macro/policy news depth) |
+
+All three adapters reuse the R10 plugin contract unchanged. Zero new
+business rules (R-rules), zero new NFR ACs, zero new GitHub Secrets,
+zero new external dependencies. Total adapter count after extension
+#3: **9** (was 6). News-adapter count specifically: **5** (was 2 —
+Yahoo + SEC + Yonhap + TheBlock + CNBC). `Category` enum coverage
+stays 4/5 — Extension #3 grows **depth within news**, not breadth;
+earnings remains the sole gap.
+
+### Test inventory delta
+
+| Test file | Tests added | Notes |
+|-----------|-------------|-------|
+| `test_yonhap_market.py` | 16 | CDATA-wrapped Korean title round-trip / `<dc:creator>` optional (omit-when-absent) / `+0900` pubDate parse / R7 window filter / XML parse error / fixture-driven happy path |
+| `test_theblock_crypto.py` | 23 | utm-strip helper unit tests (5 input shapes) + integration / `<content:encoded>` ignore / `<dc:creator>` + `<category>` raw_metadata / `-0400` pubDate parse / R7 window filter / non-http drop / fixture-driven happy path |
+| `test_cnbc_top_news.py` | 15 | `metadata:*` / `media:*` / `cn:*` namespace-ignore / missing-creator-as-norm / `GMT` pubDate parse / R7 window filter / synthetic namespace-extension robustness / fixture-driven happy path |
+| `test_plugin_contract.py` | 0 | Constants bumped: `EXPECTED_ADAPTER_COUNT` 6→9; expected-name set updated for `"yonhap-market"` + `"theblock-crypto"` + `"cnbc-top-news"`; `leaked` set extended with the 6 new symbols (3 modules + 3 classes) |
+| **Total** | **+54** | |
+
+### NFR AC delta
+
+**ZERO new ACs.** All three adapters reuse existing pins:
+
+- **AC-7.6** (defusedxml-only on XML adapters) — all three are RSS
+  2.0 feeds. `test_xml_safety.py`'s grep guard catches any future
+  regression to stdlib `xml.*`.
+- **AC-7.3** (http/https URL scheme) — all three validate `<link>`
+  against the existing scheme check before emitting.
+- **AC-7.2** (sanitize feed-derived HTML) — all three call
+  `_sanitize.strip_html` on title/summary text. Yonhap's CDATA-wrapped
+  Korean text is unwrapped by defusedxml's parser before strip_html
+  sees it.
+- **AC-7.4** (tz-aware `published_at`) — Yonhap's `+0900`, TheBlock's
+  `-0400`, CNBC's `GMT` all parse to tz-aware UTC via
+  `email.utils.parsedate_to_datetime`; naive-datetime entries
+  defensively dropped per the L4 contract.
+
+R14 (SEC fair-access UA) explicitly does NOT apply to any of the
+three new adapters; SEC remains the only R14-bound adapter.
+
+Total AC count: **32 → 32 → 32** (unchanged across extensions #2 and
+#3).
+
+### FD divergences ratified during extension #3
+
+1. **L6.8 TheBlock utm-strip + raw_metadata prose corrected**
+   The original FD L6.8 prose described:
+   - utm-strip removing 2 keys (`utm_source`, `utm_medium`)
+   - `parse_qsl(keep_blank_values=True)`
+   - raw_metadata key names `rss_creator` / `rss_categories`
+   - Empty string `""` when source field absent
+
+   The implementation actually does:
+   - utm-strip removing 5 keys (full standard utm-set:
+     `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`,
+     `utm_content`)
+   - `parse_qsl(keep_blank_values=False)`
+   - raw_metadata key names `creator` / `categories` (matching
+     yonhap §L6.7's naming convention)
+   - Key OMITTED entirely when source field absent (matching
+     yonhap §L6.7's omit-when-absent pattern)
+
+   FD L6.8 prose updated in this Phase 4 closeout to match the
+   implementation. The 5-key utm-set is more complete; the
+   `keep_blank_values=False` is harmless on The Block's URL shapes;
+   the `creator` / `categories` naming + omit-when-absent pattern
+   aligns L6.8 with L6.7's precedent — superior to the original
+   2-key+empty-string spec. Rationale: minimizes `raw_metadata`
+   surface, lets downstream consumers use plain `dict.get()` with
+   `None` default rather than disambiguating empty-string-vs-missing.
+
+   Per the FD-correction-at-closeout pattern established by
+   Extension #2's L6.5 fix, the FD now pins the actual
+   implementation behavior so a future re-reader cannot "fix" the
+   code back to the broken spec.
+
+### Cross-cutting code review (Phase 4 qa)
+
+Single sub-agent review covering all 5 news adapters end-to-end
+(yahoo-finance-news + sec-edgar-8k + yonhap-market + theblock-crypto
++ cnbc-top-news) per the Phase 1 plan. Result:
+**APPROVE_WITH_NOTES** — 0 Critical / 0 High / 4 Medium / 4 Low.
+
+Findings dispatched:
+- M1 (FD §L6.8 drift) — fixed inline in this closeout; FD prose now
+  matches implementation; no code change.
+- M2/M3/M4/L1 → registered as DEBT-031 / DEBT-032 / DEBT-033 /
+  DEBT-034 per below.
+
+Hard-rule audit all PASS: Anthropic SDK / module boundary /
+defusedxml / free tier / R13 secret hygiene / R7 strict.
+
+Registered as TECH-DEBT (4 new):
+- **DEBT-031 (Medium)**: `_NS_DC_CREATOR` namespace constant
+  duplicated across `yonhap_market.py` + `theblock_crypto.py`
+  (byte-identical Clark-notation string). Suggested fix: extract to
+  new `src/investo/sources/_xml_namespaces.py`. ~15 min. Promotes to
+  High when a third dc:creator-using adapter lands.
+- **DEBT-032 (Medium)**: `_SUMMARY_MAX_LEN = 280` duplicated across
+  **8** adapter files. Suggested fix: lift to
+  `src/investo/sources/_config.py` as `SUMMARY_MAX_LEN`. ~20 min
+  including 8 import updates. Independent of DEBT-028 (DEBT-028 =
+  numeric formatting; this = string-length cap).
+- **DEBT-033 (Low)**: `_FEED_URL` placement inconsistent across the
+  5 news adapters (4 use `ClassVar[str]`, sec_edgar_8k uses
+  module-level `Final[str]`). Suggested fix: align sec_edgar_8k to
+  `ClassVar`. ~5 min. Cosmetic. Pairs with the broader DEBT-029.
+- **DEBT-034 (Low)**: `_mock_client` test helper duplicated across 5
+  news-adapter test files. Suggested fix: shared
+  `tests/unit/sources/_mock_transport.py` helper. ~25 min.
+  Test-code only. Pairs naturally with DEBT-016 (u4-side `_mock_client`
+  duplication).
+
+### DEBT-028 status (extension #3 reconfirmation)
+
+**STAYS Medium.** Phase 1's audit prediction held: news adapters
+introduce zero new numeric `raw_metadata` paths. All three new
+adapters carry pure-string fields:
+- yonhap-market: `{"guid": str}` plus optionally `creator`
+- theblock-crypto: `{"guid": str}` plus optionally `creator` /
+  `categories`
+- cnbc-top-news: `{"guid": str}` (no creator field — CNBC feed has
+  none; namespaces ignored per L6.9)
+
+No precision-drift exposure added; the cross-adapter inconsistency
+tracked by DEBT-028 remains scoped to the 3 ext-#1 numeric adapters
+(yfinance / coingecko / fred). News cohort is clean by construction
+across all 5 news adapters. Age clock continues from 2026-05-01.
+
+### Operations note
+
+**No `.github/workflows/daily-briefing.yml` change required.** All
+three new adapters require **zero new GitHub Secrets**:
+- Yonhap 마켓+ RSS, The Block RSS, CNBC US Top News RSS — all three
+  are public RSS feeds with no auth and no compliance UA (R14 does
+  NOT apply for any of the three; httpx's default UA is acceptable).
+
+### Final quality gate (extension #3 closeout)
+
+| Tool | Result |
+|------|--------|
+| `ruff check .` | ✅ |
+| `ruff format --check .` | ✅ |
+| `mypy --strict src/` | ✅ (46 source files: was 43; +`yonhap_market.py` +`theblock_crypto.py` +`cnbc_top_news.py`) |
+| `pytest` | ✅ **864/864** passing (was 810; +54 new) |
+| `mkdocs build --strict` | ✅ (no docs change in this extension; still clean) |
+
+### Coverage roll-up after extension #3
+
+- Adapter count: 1 (base) → 4 (ext-#1) → 6 (ext-#2) → **9** (ext-#3)
+- News-adapter count specifically: 0 → 0 → 2 → **5**
+- `Category` enum coverage: 1/5 → 3/5 → 4/5 → **4/5** (unchanged in
+  ext-#3 — depth within news, not breadth; only **earnings** still TBD)
+- u1 NFR ACs: 30 → 32 → 32 → **32** (unchanged across ext-#2 and ext-#3)
+- u1 tests: 252 → 307 → 342 → **396** (252 base + 55 ext-#1 + 35
+  ext-#2 + 54 ext-#3)
+- Total project tests: 720 → 775 → 810 → **864**
+- Source files in `src/investo/sources/`: 8 → 12 → 14 → **17**
+- Total `src/` files for `mypy --strict`: 37 → 41 → 43 → **46**
