@@ -24,6 +24,46 @@ Run `/dev-investo` to:
 
 ---
 
+## Agent Team
+
+The project ships with a **5-agent specialist team** at `.claude/agents/` for routed development work. Use the team for non-trivial requests; the lead decomposes and dispatches.
+
+| Agent | Korean role | Responsibility | Owns (write authority) |
+|-------|-------------|----------------|-------------------------|
+| **`investo-lead`** | 팀장 | Orchestrator. Reads aidlc-state, decomposes requests, dispatches specialists, integrates outputs, reports. Does NOT write code/docs itself. | Nothing (routes only) |
+| **`investo-planner`** | 기획 | AIDLC plans, FD/NFR/business-rules edits, audit.md entries, TECH-DEBT triage, aidlc-state.md updates, session logs | `aidlc-docs/`, `docs/requirements.md`, `docs/TECH-DEBT.md`, `docs/DESIGN.md`, `docs/sessions/` |
+| **`investo-developer`** | 개발 | Python implementation per existing patterns (mypy strict, ruff, asyncio, pydantic v2, plugin pattern), test writing, fixture recording, quality gate | `src/investo/`, `tests/`, fixtures |
+| **`investo-qa`** | QA | Code review (post-impl), project-rule audit, NFR AC coverage check, cross-cutting consistency, tech-debt candidate identification. Read-only. | Nothing (review only) |
+| **`investo-ops`** | 운영 | GitHub Actions workflows, GHA secrets injection, mkdocs config, operator runbook | `.github/workflows/`, `mkdocs.yml`, `site_docs/`, CONTRIBUTING runbook section, README operations sections |
+
+### How to invoke
+
+**User pattern**: address the lead in plain language — `"투자 데이터 봇 진행해줘"`, `"DEBT-028 처리해줘"`, `"add a news adapter"`. The main session dispatches `investo-lead` which routes to specialists.
+
+**Specialist pattern**: if you know exactly what you want, address a specialist directly — `"investo-developer: implement Step 2 of u1-sources-extension-plan.md"`.
+
+**Autonomous pattern**: pair with `/loop` or `/schedule` for unattended progress —
+```
+/schedule every Monday at 9am: investo-lead, find work and progress the project
+```
+The lead's "Mode B: autonomous" prompt picks the highest-ROI next step (pending cross-checks / aged TECH-DEBT / FR-001 gap / etc.).
+
+### Critical guarantees the team enforces
+
+Every specialist's prompt re-states the project's hard rules so violations are caught at the team level, not at code-review time:
+
+1. **No Anthropic SDK** — LLM calls only via Claude Code CLI subprocess
+2. **Module boundary** — only `orchestrator` imports `sources/briefing/publisher/notifier`
+3. **No paid APIs** — every external call free-tier reachable
+4. **Disclaimer enforcement** — `publisher.verify_disclaimer` is the gate
+5. **Telegram channel separation** — public channel ID ≠ operator chat ID
+6. **No raw stdlib XML** — `defusedxml` only
+7. **Secret hygiene (R13)** — no secret value in logs/errors/raw_metadata/fixtures
+
+Any specialist returning work that violates a rule is rejected by the lead (or by you, the main session) before integration.
+
+---
+
 ## Key Documents
 
 | Document | Purpose |
