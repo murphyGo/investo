@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 4 | 2026-04-27 |
-| Low | 12 | 2026-04-27 |
+| Medium | 5 | 2026-04-27 |
+| Low | 14 | 2026-04-27 |
 
 ---
 
@@ -52,6 +52,20 @@ _No high priority items._
 - **Suggested Fix**: Add a snapshot test in `test_pipeline_unit.py` that constructs a known `NormalizedItem` and asserts the exact bytes returned by `serialize_items_for_prompt([item])`. Pin both the key order (`{"id": 1, "category": ..., "source": ..., "title": ..., "summary": ..., "url": ..., "ts": ...}`) and the timestamp format (`"+00:00"` not `"Z"`). The PBT shape test does NOT cover this — it only checks the key set, not the order or whitespace.
 - **Effort**: ~15 min including a 2-3 line test addition.
 - **Priority Reasoning**: Medium — the determinism assumption is currently correct but undocumented; the FakeClaudeRunner architecture depends on it. Cheap to pin.
+
+#### DEBT-028: `raw_metadata` numeric serialization is inconsistent across u1 adapters
+
+- **Created**: 2026-05-01
+- **Source**: Cross-cutting sub-agent code review of u1 sources extension Step 5.7 (M1)
+- **Reference**: NFR-005 (consistency across symmetric components), R8 (NormalizedItem field rules), R9 (idempotence)
+- **Description**: The 3 new u1 adapters use 3 different float-to-string idioms for `NormalizedItem.raw_metadata` values:
+  - `yfinance.py` — `f"{value:.4f}"` for OHLC, `str(int)` for volume
+  - `coingecko.py` — `f"{price:.6f}"` / `f"{pct:.6f}"` for prices+pct, `f"{value:.2f}"` for volume/market_cap
+  - `fred.py` — `f"{value}"` (bare repr; depends on Python's float-to-str default)
+  Two issues compound: (a) the bare `f"{value}"` in FRED can drift between Python releases or with payload type (`f"{1.0}"` → `"1.0"` vs `f"{1}"` → `"1"`); (b) cross-adapter, identical numerics serialize to different strings (e.g., `1.5` becomes `"1.5000"` in yfinance, `"1.500000"` in coingecko, `"1.5"` in fred). R9 (idempotence — same source state → equal items) is technically satisfied within each adapter but the cross-adapter inconsistency means u2's downstream prompt sees jagged data.
+- **Suggested Fix**: Add a `_format_numeric()` helper to `src/investo/sources/_config.py` (or a new `_format.py` if scope grows): `format_float(v) -> str` (fixed precision, e.g. 6 decimals), `format_int(v) -> str`. Update all 3 adapters to call the helpers. Bonus: the helper becomes the canonical place to add NaN/inf handling if a future adapter needs it.
+- **Effort**: ~30 min including helper + 3 adapter call-site updates + test fixture string updates (the existing tests pin exact strings like `"272.255"` / `"4.1"` and would need adjustment).
+- **Priority Reasoning**: Medium — not breaking anything today (each adapter's tests pass with their own format), but will surface as soon as a 4th adapter author has to choose between the 3 existing styles, OR when u2 starts grouping items by category and the cross-adapter inconsistency becomes visible in the LLM prompt. Address before the next adapter lands.
 
 #### DEBT-012: `_truncate_stderr` helper duplicated across u2 + u3 errors modules
 
@@ -299,6 +313,30 @@ _No high priority items._
 - **Suggested Fix**: When the project adopts structured logging (likely as part of an operations ADR), migrate to `_logger.warning("source failed", extra={"source_name": ..., "transient": ..., "category": ..., "error": str(result)})`. Update any test that assert on log message format.
 - **Effort**: ~30 min including test updates and verifying the chosen logging adapter (stdlib logging + JSON formatter, structlog, etc.).
 - **Priority Reasoning**: Low — printf logs are fine for a 1-person operator using `journalctl` / `gh actions logs`. Re-evaluate when remote log aggregation enters the picture.
+
+---
+
+#### DEBT-029: SEC URL-constant placement diverges from sibling adapters
+
+- **Created**: 2026-05-01
+- **Source**: Phase 3 cross-cutting qa review of u1 sources Extension #2 (M1)
+- **Reference**: NFR-005 (consistency across symmetric components), R2 (plugin module shape)
+- **Description**: 5 of 6 registered adapters declare their endpoint URL as a class-level `ClassVar[str]` (`fomc_rss._FEED_URL`, `yfinance._BASE_URL`, `coingecko._ENDPOINT`, `fred._ENDPOINT`, `yahoo_finance_news._FEED_URL`). The 6th — `sec_edgar_8k._FEED_URL` — uses module-level `Final[str]`. No test or import requires the module-level position; appears to be authoring-order accident. The cross-adapter inconsistency means the next adapter author has to choose between two precedents.
+- **Suggested Fix**: Move `sec_edgar_8k._FEED_URL` (and `_USER_AGENT` for symmetry, since they're both endpoint-config) to class-level `ClassVar` on `SecEdgar8kAdapter`. Optionally add a passive consistency test in `test_plugin_contract.py` that asserts each registered adapter class has a `ClassVar[str]` whose name matches a known set (`{"_FEED_URL", "_BASE_URL", "_ENDPOINT"}` — or pick one canonical name and migrate all 6).
+- **Effort**: ~5 min code move (sec_edgar_8k only); ~30 min if also adding the consistency test + migrating the field name across all 6 adapters.
+- **Priority Reasoning**: Low — purely cosmetic, no behavior impact, no test pressure. Address in a future cleanup pass.
+
+---
+
+#### DEBT-030: SEC accession-number extraction uses regex on summary instead of canonical `<id>`
+
+- **Created**: 2026-05-01
+- **Source**: Phase 3 cross-cutting qa review of u1 sources Extension #2 (M2 / Developer self-flag #2)
+- **Reference**: R8 (NormalizedItem field rules — `raw_metadata` provenance), R10 (test fixtures)
+- **Description**: `sec_edgar_8k.py` extracts `raw_metadata["accession_no"]` by regex (`r"AccNo:\s*(\S+)"`) on the HTML-stripped summary text. SEC's Atom feed also exposes the accession number canonically in the entry's `<id>` element (e.g. `urn:tag:sec.gov,2008:accession-number=0001193125-26-197921`). The regex path works on every entry in the recorded fixture (40/40), but would silently break if SEC ever reflows the summary HTML; the `<id>` parse would be format-stable. Today's tests (`test_fetch_accession_no_extracted`, `test_no_item_codes_emits_entry_with_empty_items`) cover the current regex path.
+- **Suggested Fix**: Switch to `entry.find(f"{_ATOM_NS}id").text` parsing during the next fixture re-record. Strip the `urn:tag:sec.gov,2008:accession-number=` prefix; assert the remaining substring matches `r"^\d{10}-\d{2}-\d{6}$"`. The regex on summary becomes the fallback if `<id>` is missing (defensive).
+- **Effort**: ~15 min code change + 1 test update + re-record fixture (or use synthetic Atom for the test).
+- **Priority Reasoning**: Low — current path works on the recorded fixture; future SEC schema change is hypothetical. Address during the next re-record pass (project-wide re-record cadence is also unpinned — a separate concern the lead can re-dispatch later).
 
 ---
 

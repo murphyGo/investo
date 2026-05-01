@@ -34,7 +34,7 @@
 # ``packages``, no ``pages`` (Pages deploy is a separate workflow,
 # triggered on push by ``pages.yml``).
 #
-# **Secrets** (AC-007-1; 5 required, all GitHub Secrets):
+# **Secrets** (AC-007-1; 5 required + 1 optional, all GitHub Secrets):
 #
 #   CLAUDE_CODE_OAUTH_TOKEN     -- consumed by the ``claude`` CLI
 #                                 subprocess; not read by Python
@@ -46,6 +46,14 @@
 #                                  ``__main__._validate_env``)
 #   SITE_URL_BASE                -- public mkdocs site base URL
 #                                  (e.g. https://owner.github.io/investo)
+#   FRED_API_KEY (optional)      -- u1 sources extension 2026-05-01;
+#                                  required for the ``fred-macro``
+#                                  adapter only. Absent → that
+#                                  adapter raises SourceFetchError
+#                                  per FD R13; other adapters
+#                                  unaffected (FD R6 graceful
+#                                  degradation). Free key from
+#                                  https://fred.stlouisfed.org/.
 #
 # **Exit code mapping**:
 #   0 = SUCCESS or PARTIAL  (workflow ✅)
@@ -127,4 +135,13 @@ jobs:
           # workflow_dispatch input flows in without changing
           # __main__'s positional API.
           INVESTO_TARGET_DATE: ${{ inputs.target_date }}
+          # u1 sources extension 2026-05-01: optional FRED API key for
+          # the ``fred-macro`` adapter. Absent secret → empty string at
+          # runtime → ``FredMacroAdapter.fetch`` raises
+          # ``SourceFetchError(transient=False)`` per FD R13 and the
+          # aggregator's R6 catches it; the ``fred-macro`` adapter
+          # contributes ``[]`` and other adapters run normally. Set
+          # this secret only when you want macro coverage in the
+          # briefing.
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: uv run python -m investo

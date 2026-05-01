@@ -127,7 +127,7 @@ PipelineResult: SUCCESS | PARTIAL
 | Component | External Dep | Purpose | Auth/Config |
 |-----------|--------------|---------|-------------|
 | sources | httpx | async HTTP | — |
-| sources | 무료 API들 (TBD: yfinance, FRED, CoinGecko, FOMC RSS, Earnings Calendar 등) | 데이터 수집 | 일부는 free API key (선택), 일부는 키 불필요 |
+| sources | 무료 API들 (구현됨 2026-04-29: FOMC RSS — calendar; 구현됨 2026-05-01 extension #1: Yahoo Finance v8 chart — price/주가, CoinGecko Public API — price/crypto, FRED API — macro; 진행 중 2026-05-01 extension #2: Yahoo Finance top stories RSS — news, SEC EDGAR 8-K Atom — news; 향후 TBD: Earnings Calendar) | 데이터 수집 | FRED는 무료 API key 필수 (`FRED_API_KEY` GitHub Secret); SEC EDGAR은 fair-access User-Agent 필수 (compliance string, not a secret); 나머지(FOMC RSS / yfinance / CoinGecko / Yahoo Finance news RSS)는 키·헤더 모두 불필요 |
 | briefing | `claude` CLI binary | LLM 호출 | `CLAUDE_CODE_OAUTH_TOKEN` env (GitHub Secrets) |
 | publisher | `git` CLI binary | commit/push | GH Actions runner의 GITHUB_TOKEN |
 | publisher | 파일시스템 | markdown 저장 | working dir = repo root |

@@ -40,6 +40,88 @@ Adapters MUST sanitize feed-derived text via `_sanitize.strip_html`
 (NFR-007 AC-7.2) and MUST parse XML via `defusedxml`, never stdlib
 (AC-7.6 — enforced by `tests/unit/sources/test_xml_safety.py` grep).
 
+### Configurable symbol / coin / series lists (R12)
+
+Adapters that expose a list of tickers / coins / series ids the
+operator may want to override at runtime use the shared parser
+in `investo.sources._config`:
+
+```python
+from typing import ClassVar, Final
+from investo.sources._config import parse_symbol_list
+
+class MyPriceAdapter:
+    name: ClassVar[str] = "my-price"
+    category: ClassVar[Category] = "price"
+
+    _DEFAULT_SYMBOLS: ClassVar[tuple[str, ...]] = ("AAPL", "MSFT")
+
+    async def fetch(self, client, window):
+        symbols = parse_symbol_list("INVESTO_MY_SYMBOLS", self._DEFAULT_SYMBOLS)
+        # ... fetch per symbol ...
+```
+
+Convention (FD R12):
+
+- Env var name: `INVESTO_<ADAPTER_SHORT>_<NOUN>` —
+  uppercased, no `_price` / `_macro` suffix on the adapter slug.
+  Examples in the codebase: `INVESTO_YFINANCE_TICKERS`,
+  `INVESTO_COINGECKO_COINS`, `INVESTO_FRED_SERIES`.
+- Format: comma-separated, whitespace-trimmed, empty tokens dropped.
+- Defaults live in the module as a `_DEFAULT_<NOUN>: Final[tuple[str, ...]]`
+  constant. Reviewers see exactly what runs on a default-config run.
+- Defaults MUST satisfy NFR-002 (free tier only).
+- The parser falls back to defaults when the env var is unset or
+  yields zero non-empty tokens — never raises on parse failure.
+
+### Adapters that need an authentication secret (R13)
+
+Adapters that require a per-deployment secret (currently only
+`fred-macro` with `FRED_API_KEY`) follow this pattern:
+
+```python
+import os
+from investo.sources.protocol import SourceFetchError
+
+class MySecretAdapter:
+    name: ClassVar[str] = "my-secret"
+
+    async def fetch(self, client, window):
+        api_key = os.environ.get("MY_SECRET", "")
+        if not api_key:
+            raise SourceFetchError(
+                source_name=self.name,
+                message=f"MY_SECRET not set; {self.name} adapter will not run",
+                transient=False,
+                cause=None,
+            )
+        # ... use api_key in request params; never log it ...
+```
+
+Rules (FD R13):
+
+- Read the secret at **fetch time**, not at module import (so the
+  test suite imports without requiring a live secret).
+- Missing or empty secret → `SourceFetchError(transient=False)`.
+  The aggregator catches per R6 and logs WARNING; other adapters
+  continue. Do NOT pre-check secrets in `__main__._validate_env`
+  (R13 keeps the failure surface uniform with all other source-side
+  failures).
+- Error messages MUST name the env var, NEVER any partial/full
+  secret value. Test with a sentinel value (e.g.
+  `"REDACTED_KEY_VALUE_12345"`) and assert it never appears in
+  `str(error)`, `raw_metadata`, or any captured log line.
+- Secret values MUST NOT appear in `raw_metadata`, recorded
+  fixtures, or any committed file.
+- After adding a secret-using adapter, **update
+  `.github/workflows/daily-briefing.yml`** to inject the secret
+  into the `python -m investo` step's `env:` block. CI cannot
+  inject what the workflow file doesn't ask for.
+
+The `fred-macro` adapter at `src/investo/sources/fred.py` is the
+canonical reference for both R12 (`INVESTO_FRED_SERIES`) and R13
+(`FRED_API_KEY`).
+
 ---
 
 ## Recording a fixture
@@ -214,7 +296,7 @@ For day-to-day operation of the cron pipeline + manual interventions.
 
 ### GitHub Secrets (required)
 
-The five secrets `daily-briefing.yml` injects into `python -m investo`
+The five required secrets `daily-briefing.yml` injects into `python -m investo`
 must all be set in **Settings → Secrets and variables → Actions** before
 the first cron fires:
 
@@ -230,6 +312,16 @@ If any are missing the workflow exits 1 with a `ConfigError` that
 names the missing var(s); when `TELEGRAM_BOT_TOKEN` and
 `TELEGRAM_OPERATOR_CHAT_ID` are present the pipeline still attempts a
 single best-effort operator alert before exiting (AC-007-3).
+
+### GitHub Secrets (optional — per-adapter)
+
+| Secret | Source | Effect when absent |
+|--------|--------|---------------------|
+| `FRED_API_KEY` | Free key from <https://fred.stlouisfed.org/docs/api/api_key.html> | The `fred-macro` adapter raises `SourceFetchError(transient=False)` on its first invocation; the aggregator catches per FD R6 and `fred-macro` contributes `[]` for the run. All other adapters (FOMC RSS, yfinance, CoinGecko) run normally. The pipeline still ships a briefing — just without macro-indicator content. |
+
+Adapter-level optional secrets follow FD R13 — failure mode is graceful
+degradation, never pipeline-fatal. Set `FRED_API_KEY` only if you want
+macro coverage in the briefing.
 
 ### Cron schedule
 

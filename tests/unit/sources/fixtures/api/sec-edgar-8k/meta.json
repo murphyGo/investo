@@ -1,0 +1,14 @@
+{
+  "_recorded_at": "2026-05-01T11:30:00Z",
+  "_recorded_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=8-K&company=&dateb=&owner=include&count=40&output=atom",
+  "_recorded_user_agent": "investo investo@example.com",
+  "_note": "One-off recording for u1 sources Extension #2 (FD L6.6, R14). Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md. SEC EDGAR returns 403 without a fair-access User-Agent header (R14): the recording above used the project's compliance UA 'investo investo@example.com'. The XML declaration carries encoding=\"ISO-8859-1\"; defusedxml.ElementTree.fromstring MUST be called on response.content (bytes) so the parser honours that declaration. Atom 1.0 default namespace 'http://www.w3.org/2005/Atom' must be used as a prefix in ElementTree lookups (no string-substitution stripping).",
+  "status": 200,
+  "format": "Atom 1.0",
+  "encoding": "ISO-8859-1",
+  "namespace": "http://www.w3.org/2005/Atom",
+  "size_bytes": 29280,
+  "headers": {
+    "content-type": "application/atom+xml"
+  }
+}

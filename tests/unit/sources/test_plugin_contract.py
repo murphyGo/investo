@@ -26,12 +26,24 @@ import investo.sources
 from investo.models import Category, NormalizedItem
 from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_all, list_sources
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
+from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
+from investo.sources.fred import FredMacroAdapter
+from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
+from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
+from investo.sources.yfinance import YFinancePriceAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 1
-EXPECTED_ADAPTER_NAMES = {"fomc-rss"}
+EXPECTED_ADAPTER_COUNT = 6
+EXPECTED_ADAPTER_NAMES = {
+    "fomc-rss",
+    "yfinance-price",
+    "coingecko-price",
+    "fred-macro",
+    "yahoo-finance-news",
+    "sec-edgar-8k",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -49,6 +61,11 @@ def _isolate_registry() -> Iterator[None]:
     snapshot = dict(_ADAPTERS)
     _clear_for_test()
     register(FomcRssAdapter)
+    register(YFinancePriceAdapter)
+    register(CoinGeckoPriceAdapter)
+    register(FredMacroAdapter)
+    register(YahooFinanceNewsAdapter)
+    register(SecEdgar8kAdapter)
     try:
         yield
     finally:
@@ -134,6 +151,7 @@ def test_all_does_not_leak_internal_helpers() -> None:
     leaked = {
         "_ADAPTERS",
         "_clear_for_test",
+        "_config",
         "_registry",
         "_retry",
         "_sanitize",
@@ -145,8 +163,19 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "RetryConfig",
         "DEFAULT_CONFIG",
         "strip_html",
+        "parse_symbol_list",
         "fomc_rss",
         "FomcRssAdapter",
+        "yfinance",
+        "YFinancePriceAdapter",
+        "coingecko",
+        "CoinGeckoPriceAdapter",
+        "fred",
+        "FredMacroAdapter",
+        "yahoo_finance_news",
+        "YahooFinanceNewsAdapter",
+        "sec_edgar_8k",
+        "SecEdgar8kAdapter",
     }
     assert not (leaked & set(investo.sources.__all__))
 

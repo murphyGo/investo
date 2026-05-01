@@ -1,0 +1,11 @@
+{
+  "_recorded_at": "2026-05-01T11:03:14Z",
+  "_recorded_url": "https://finance.yahoo.com/news/rssindex",
+  "_note": "One-off recording for u1 sources Extension #2 (FD L6.5). Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md. Yahoo's rssindex feed has no <description> element on items (per FD L6.5: summary=None on emitted NormalizedItem); <pubDate> is ISO 8601 with Z suffix on items (channel-level pubDate uses RFC 822 form, but channel pubDate is not consumed). <source> element carries the originating outlet (e.g. \"Reuters\", \"Barchart\"), captured into raw_metadata.rss_source.",
+  "status": 200,
+  "format": "RSS 2.0",
+  "size_bytes": 24767,
+  "headers": {
+    "content-type": "application/rss+xml"
+  }
+}

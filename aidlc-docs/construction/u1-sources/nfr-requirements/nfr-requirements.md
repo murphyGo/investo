@@ -65,6 +65,13 @@ for `u1` (typically owned by orchestrator or briefing).
 - AC-3.5 — The "all sources empty → pipeline FAILED" decision is the
   ORCHESTRATOR's, not `u1`'s. `u1` does not interpret an empty list
   as failure.
+- AC-3.6 *(extension 2026-05-01)* — A source adapter requiring a
+  secret (e.g., FRED via `FRED_API_KEY` per FD R13) raises
+  `SourceFetchError(transient=False)` when the secret is unset or
+  empty. The aggregator catches per R6 and logs WARNING; other
+  adapters continue. Test pin: `tests/unit/sources/test_fred.py`
+  asserts the missing-key path raises and that the aggregator-level
+  isolation contract still holds.
 
 ---
 
@@ -86,6 +93,16 @@ for `u1` (typically owned by orchestrator or briefing).
   the four-line procedure: (a) create file, (b) define class, (c)
   apply `@register`, (d) add 1 import line. Wording must keep this
   count visible.
+- AC-5.5 *(extension 2026-05-01)* — Adapters that expose
+  user-configurable symbol/coin/series lists (per FD R12) follow the
+  shared `INVESTO_<ADAPTER>_<NOUN>` env-var convention and resolve via
+  the shared `sources/_config.py` parser. Tests pin (per adapter):
+  - env var unset → defaults are used
+  - env var set with valid comma list → exact override
+  - env var set with whitespace and empty tokens → tokens stripped,
+    empties dropped
+  - env var set but yields zero non-empty tokens → defaults used
+  (fail-safe; never raise on parse failure)
 
 ---
 
@@ -135,6 +152,13 @@ are NOT in PBT scope at this stage; example-based tests cover them.
   level.
 - AC-7.6 — A test asserts `defusedxml` is the import used by every
   XML-parsing adapter (grep at test time over `src/investo/sources/`).
+  *Scope clarification (extension 2026-05-01)*: this AC applies only
+  to adapters that parse XML/RSS/Atom payloads. JSON-based adapters
+  (yfinance, CoinGecko, FRED) are out of scope — their parsing path
+  uses stdlib `json` (TS-4) which has no XXE-equivalent vulnerability.
+  The grep test continues to assert no `xml.{etree,dom,sax,parsers}`
+  imports anywhere under `src/investo/sources/**` regardless of the
+  adapter's payload format.
 
 ---
 
@@ -159,8 +183,12 @@ are NOT in PBT scope at this stage; example-based tests cover them.
 |-----|--------------|------------------|
 | NFR-001 (share) | US-005 | 3 |
 | NFR-002 | US-001, US-008, US-009 | 4 |
-| NFR-003 | US-001 | 5 |
-| NFR-005 | US-008 | 4 |
+| NFR-003 | US-001 | 6 *(+AC-3.6 in extension)* |
+| NFR-005 | US-008 | 5 *(+AC-5.5 in extension)* |
 | NFR-006 | (cross-cutting) | 4 |
 | NFR-007 | (cross-cutting) | 6 |
 | Drift | (cross-cutting) | 4 |
+
+*Extension 2026-05-01*: total ACs go from 30 to 32 (+AC-3.6, +AC-5.5).
+AC-7.6's wording was clarified (scope limited to XML adapters) but
+not split into a new AC.

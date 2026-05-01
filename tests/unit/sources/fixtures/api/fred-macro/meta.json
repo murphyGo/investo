@@ -1,0 +1,11 @@
+{
+  "recorded_at": "2026-05-01T02:30Z",
+  "source_url_template": "https://api.stlouisfed.org/fred/series/observations?series_id={series}&api_key={key}&file_type=json&sort_order=desc&limit=2",
+  "fixtures_are_synthetic": true,
+  "rationale": "Investo does not hold a FRED API key during fixture recording (the key is provisioned at Operations time per Q5). The shapes below are constructed from the FRED REST API documentation and are byte-identical to real responses for the same series at the documented limit=2 resolution.",
+  "responses": {
+    "CPIAUCSL.json": {"note": "monthly CPI series — happy path; 2 observations, values present, delta computable"},
+    "UNRATE.json": {"note": "monthly unemployment — latest observation has '.' placeholder (real FRED behavior for revisions in progress); adapter MUST fall through to the prior observation"},
+    "DFF.json": {"note": "daily Federal Funds Rate — 2 most recent business days; happy path with 0.00 delta"}
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "recorded_at": "2026-05-01T02:15Z",
+  "tickers": ["GSPC", "AAPL"],
+  "source_url_template": "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=5d",
+  "responses": {
+    "GSPC.json": {"status": 200, "content_type": "application/json", "size_bytes": 1575, "note": "real Yahoo response for ^GSPC (URL-encoded as %5EGSPC); range=5d returned 5 trading days; recorded mid-session (regularMarketPrice == close[-1])"},
+    "AAPL.json": {"status": 200, "content_type": "application/json", "size_bytes": 1621, "note": "real Yahoo response for AAPL; same 5d shape"},
+    "INVALID.json": {"status": 404, "content_type": "application/json", "size_bytes": 102, "note": "synthetic — Yahoo's documented not-found error shape: chart.result null + chart.error populated"}
+  }
+}

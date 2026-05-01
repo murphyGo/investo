@@ -1,5 +1,128 @@
 # AI-DLC Audit Log
 
+## Construction — u1 sources — Extension #2 CLOSED (2 news adapters delivered)
+**Timestamp**: 2026-05-01T05:00:00Z
+**Trigger**: Completion of the 4-step extension #2 plan approved earlier today at 2026-05-01T04:00:00Z (plan file `aidlc-docs/construction/plans/u1-sources-extension-2026-05-news-code-generation-plan.md`).
+**Deliverables**:
+- 2 new source files: `yahoo_finance_news.py` (Yahoo Finance top stories RSS 2.0, `category="news"`) + `sec_edgar_8k.py` (SEC EDGAR 8-K filings Atom 1.0, `category="news"`)
+- 2 new test files: `test_yahoo_finance_news.py` (14) + `test_sec_edgar_8k.py` (21) — **+35 tests**
+- 2 new fixture directories: `tests/unit/sources/fixtures/api/yahoo-finance-news/` + `tests/unit/sources/fixtures/api/sec-edgar-8k/` (real recordings + meta.json)
+- `__init__.py` updated; `EXPECTED_ADAPTER_COUNT` 4 → 6; star-import contract re-pinned for the 6-adapter shape
+- `_USER_AGENT: Final` lives module-local in `sec_edgar_8k.py` per R14 (SEC fair-access UA is a compliance string, not a secret, not user-overridable)
+- Zero new GitHub Secrets required (Yahoo has no auth; SEC's UA is a public identifier) — `daily-briefing.yml` unchanged
+**FD divergences ratified (2)**:
+1. **L6.5 `<pubDate>` parser** — FD claim "parsed via `email.utils.parsedate_to_datetime`" was empirically wrong: Python 3.11's `parsedate_to_datetime` rejects Yahoo's ISO 8601 `Z`-suffixed form. Implementation uses `datetime.fromisoformat` (after `Z`→`+00:00` substitution where needed). FD L6.5 prose updated in this Phase 4 closeout. The FD bug — if uncorrected — would have invited a future re-reader to "fix" the code back to the broken version.
+2. **`SecEdgar8kAdapter` class spelling (lowercase k)** — plan said `SecEdgar8KAdapter`; implementation uses `SecEdgar8kAdapter`. PEP 8 PascalCase digit-letter convention favors lowercase k after a digit (the `k` here is part of the form-name token `8-K`, not a standalone word boundary). qa confirmed defensible; no code change required.
+**Cross-cutting code review (Phase 3 qa)**: APPROVE_WITH_NOTES via single sub-agent run covering both adapters together. **0 Critical / 0 High / 2 Medium → both downgraded to Low and registered as DEBT items / 5 Low observations**. All 10 lead-flagged checks (A-J) PASS. Hard-rule audit: Anthropic SDK / module boundary / defusedxml / free tier / R13 secret hygiene / R7 strict — all PASS.
+**DEBT-028 status**: STAYS Medium (no escalation). Phase 1's audit prediction held: news adapters carry pure-string `raw_metadata` (`<title>`, `<link>`, `<pubDate>`, `<guid>`, `<source>`, `accession_no`, `filer_cik`, `form_type`, `items`) — zero new numeric serialization paths introduced. Age clock continues from 2026-05-01.
+**TECH-DEBT registered (2 new — both Low)**:
+- **DEBT-029** (Low): SEC URL-constant placement diverges from sibling adapters (5/6 use class-level `ClassVar[str]`; sec_edgar_8k uses module-level `Final[str]`). Cosmetic; ~5 min fix.
+- **DEBT-030** (Low): SEC accession-number extraction uses regex on summary instead of canonical `<id>` element. Works on current fixture; future-fragile if SEC reflows summary HTML. Switch during next re-record pass.
+**Coverage delta**:
+- Adapter count: 4 → **6**
+- `Category` enum coverage: 3/5 → **4/5** (calendar / price / macro / **news** added). Earnings still TBD.
+- u1 NFR ACs: 32 → **32** (no new ACs in this extension; AC-7.6 / AC-7.3 / AC-7.2 / AC-7.4 reused)
+- Total project tests: 775 → **810** (+35: yahoo +14 / sec +21)
+- Source files in `src/`: 41 → **43** (+`yahoo_finance_news.py`, +`sec_edgar_8k.py`)
+- u1 tests: 252 base + 55 ext-#1 + 35 ext-#2 = **342**
+- Source files in `src/investo/sources/`: 12 → **14**
+**Final quality gate** (re-verified at extension #2 closeout):
+- `ruff check .` ✅ / `ruff format --check .` ✅
+- `mypy --strict src/` ✅ (43 source files: was 41; +`yahoo_finance_news.py`, +`sec_edgar_8k.py`)
+- `pytest` ✅ **810/810** passing (was 775; +35 new)
+- `mkdocs build --strict` ✅
+**Affected docs (this Phase 4 closeout)**:
+- `aidlc-docs/aidlc-state.md` — u1 row updated to "Extension #2 closed" with new test/source counts; global Code Generation + Build and Test rows appended with extension #2 closure note
+- `aidlc-docs/construction/u1-sources/code/summary.md` — Extension #2 closeout section appended
+- `aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md` — L6.5 `published_at` row corrected to `datetime.fromisoformat` (with rationale + back-pointer to this audit entry)
+- `docs/TECH-DEBT.md` — DEBT-029 + DEBT-030 registered (Low); Summary table Low count 12 → 14
+**Status**: u1 sources Extension #2 CLOSED. The unit becomes eligible for `/cross-check` re-run. FR-001 news category now covered (4/5 categories; only earnings still TBD).
+**Context**: Reopened u1 Code Generation in extension mode for the **second** time today (Extension #1 closed at 2026-05-01T03:00:00Z, Extension #2 approved at 2026-05-01T04:00:00Z, Extension #2 closed at 2026-05-01T05:00:00Z). Re-verified Build and Test stage as part of closeout. Both extensions land in a single calendar day, but each followed the full 4-phase planner→developer→qa→closeout pattern.
+
+---
+
+## Construction — u1 sources — Extension #2 Approved (2 news adapters)
+**Timestamp**: 2026-05-01T04:00:00Z
+**Trigger**: Extension #1 (yfinance / CoinGecko / FRED) closed earlier today at 2026-05-01T03:00:00Z and lifted `Category` enum coverage from 1/5 → 3/5 (calendar / price / macro). FR-001's news category remains unmet (`Category` still 3/5; earnings deferred). User confirmed the next extension scope: 2 news adapters delivered together.
+**Decision**: Reopen u1 Code Generation in extension mode for a second time. Add 2 news adapters before re-closing: `yahoo-finance-news` (Yahoo Finance top stories RSS 2.0) and `sec-edgar-8k` (SEC EDGAR 8-K filings Atom 1.0). Earnings calendar remains deferred. After Extension #2 closes, `Category` enum coverage is 4/5; only earnings still TBD.
+**Design Q/A** (resolved with user 2026-05-01):
+- Q1 Adapter count this extension: **BOTH adapters in this extension, not one** — bundling reuses one fixture-recording session, one cross-cutting QA pass, one `EXPECTED_ADAPTER_COUNT` bump (4→6).
+- Q2 Per-feed item cap: **no per-adapter cap; full feed fetched, R7 strict for natural cut** — both feeds carry per-item `<pubDate>` / `<updated>` so the R7 KST window is the natural bound. Unlike L6.2 (yfinance) or L6.4 (FRED), neither news source has a cadence gap (Yahoo updates continuously; SEC publishes intraday on every weekday). R7 stays strict — no R11-style relaxation.
+- Q3 Hard item-count cap: **no per-adapter item cap** — R7 is the only filter. If a feed produces > N items in 24 h that's a downstream u2 budget concern, not a u1 truncation concern.
+- Q4 Category for both adapters: **`category="news"`** — even though SEC 8-K is technically corporate disclosure, the briefing-side consumer treats it as news (event-driven content, distinct from price snapshots and macro releases).
+**Lead's pre-decision (User-Agent placement) — adopted**:
+- `_USER_AGENT: Final = "investo investo@example.com"` lives as a module-level constant in `src/investo/sources/sec_edgar_8k.py` itself, **not** in `sources/_config.py`. Rationale: R12 / `_config.py` covers user-overridable env-var lists (tickers / coins / series). UA is a fixed compliance string per SEC's fair-access policy — different concern, different override semantics (compliance, not user choice). Future news/data adapters that need different UA strings each declare their own constant, keeping per-adapter compliance values local to where they're used. The planner reviewed the lead's judgment and concurs — no override needed.
+**R14 decision**: ADD. Source-mandated HTTP request headers are a third axis distinct from R12 (env-var overrides) and R13 (secrets). Pinning the rule now (rather than relying on FD L6.6 prose) makes the next compliance-header source — e.g. a future NewsAPI mandating `X-Api-Key`, or any rate-limit-by-UA endpoint — a 1-line spec lookup instead of a re-derivation. Rule text below the audit entry list.
+**DEBT-028 status**: still open as Medium "address before next adapter" after Extension #1 closeout. Extension #2's adapters carry mostly string fields (RSS `<title>` / `<link>` / `<pubDate>` / `<guid>` / `<source>`; Atom `title` / `link` / `summary` / `updated` / accession_no / CIK / Item codes) — no float OHLCV / pct / value fields like the prior batch — so the precision-drift root cause is unlikely to compound here. **investo-qa will explicitly verify in Phase 3** (cross-cutting review Step 4) that neither new adapter introduces fresh raw_metadata numeric serialization paths. If verified clean, DEBT-028 priority logic stays unchanged (still Medium, age clock continues). If new exposure is found, DEBT-028 escalates to High.
+**Affected docs (this batch — design + planning only; no code yet)**:
+- `aidlc-docs/aidlc-state.md` — u1 row Notes column appended " — Extension #2 in progress (news adapters: yahoo-finance-news + sec-edgar-8k)"
+- `aidlc-docs/inception/application-design/component-dependency.md` — External Dependency Inventory `sources` row narrowed: news committed to in-progress Extension #2 (Yahoo Finance RSS + SEC EDGAR 8-K); only earnings calendar remains TBD
+- `aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md` — L6.5 (Yahoo Finance news RSS) + L6.6 (SEC EDGAR 8-K) added
+- `aidlc-docs/construction/u1-sources/functional-design/business-rules.md` — R14 (source-required HTTP request headers, extension 2026-05-Q2) added
+- `aidlc-docs/construction/plans/u1-sources-extension-2026-05-news-code-generation-plan.md` — NEW (4-step plan: yahoo-finance-news → sec-edgar-8k → registration/contract bump → cross-cutting QA + closeout)
+**NFR / tech-stack docs**: no AC additions or TS additions in this extension. Both adapters reuse:
+- AC-7.6 (defusedxml only) — both are XML
+- AC-2.2 (no paid APIs) — both are free, no auth (SEC's UA is a compliance string, not a key)
+- AC-7.3 (http/https URL validation) — both use `<link>` / `<link href>` validated for scheme
+- R7 strict (no relaxation, no R11 exception) — both have per-item pubDate / updated
+- R8 raw_metadata string-cast — both carry strings natively
+- R10 fixture-recording — both will record real responses under `tests/unit/sources/fixtures/api/<slug>/`
+- R14 (NEW) — applies only to `sec-edgar-8k` (Yahoo Finance RSS has no UA requirement; we still send a benign default UA but no compliance string is mandated)
+**Status**: Design + planning docs updated. Code Generation (Extension #2) pending user "approve" on the new plan file.
+**Context**: Reopen u1 Code Generation in extension mode for the second time. Global Build and Test row will re-verify at Extension #2 closeout (Step 4). Plugin contract bump 4→6 lands at Step 3.
+
+---
+
+## Construction — u1 sources — Extension CLOSED (3 new adapters delivered)
+**Timestamp**: 2026-05-01T03:00:00Z
+**Trigger**: Completion of the 5-step extension plan approved earlier today (see entry below).
+**Deliverables**:
+- 4 new source files: `_config.py` (R12 helper), `yfinance.py`, `coingecko.py`, `fred.py` — total ~720 LOC
+- 4 new test files: `test_config.py` (10), `test_yfinance.py` (13), `test_coingecko.py` (15), `test_fred.py` (17) — **+55 tests**
+- 6 new fixture files (real recordings: GSPC.json/AAPL.json/markets.json; synthetic: INVALID.json/CPIAUCSL.json/UNRATE.json/DFF.json + meta.json)
+- `__init__.py` updated; `EXPECTED_ADAPTER_COUNT` 1 → 4; star-import contract re-pinned
+- `daily-briefing.yml` injects `FRED_API_KEY` (optional secret; R13 graceful degradation)
+- `CONTRIBUTING.md` documents R12 (env-var override) + R13 (secret handling) patterns; operator runbook lists `FRED_API_KEY` under "optional secrets"
+**FD divergences ratified (3)**:
+1. L6.2 yfinance R7 relaxation — strict R7 would have produced empty yfinance output on KST Mon/Sat cron fires (US weekend gap). FD updated to "consulted but not enforced"; R11 `Window relaxation for cadence-gapped sources` clause added.
+2. L6.4 FRED widened-window 35d → 65d — the 35d bound dropped monthly-indicator prior releases (~60d back) when the latest observation is `"."`. FD narrative + code constant + 3 stale comments aligned.
+3. L6.4 FRED title delta precision 2dp → 4dp — code/tests pin 4dp so basis-point-scale changes in DGS10/DFF are visible; spec example updated to match implementation.
+**Cross-cutting code review (Step 5.7)**: APPROVE_WITH_NOTES via single sub-agent run covering all 3 new adapters together (per user direction). 0 Critical / 0 High requiring code change / 2 Medium (M1 raw_metadata precision drift, M2 spec drift) / 3 Low cosmetic. H1/L3/M2 fixed in-place; M1 → **DEBT-028** (Medium, pre-next-adapter).
+**Coverage delta**:
+- Adapter count: 1 → **4**
+- `Category` enum coverage: 1/5 (calendar) → **3/5** (calendar / price / macro). News + earnings deferred.
+- u1 NFR ACs: 30 → **32** (+AC-3.6 missing-secret graceful degradation, +AC-5.5 env-var override convention)
+- Total project tests: 720 → **775** (+55)
+- Source files in `src/`: 37 → **41** (+`_config.py`, `yfinance.py`, `coingecko.py`, `fred.py`)
+**Final quality gate**: ruff ✅ / ruff format ✅ (114 files) / mypy --strict ✅ (41 src files) / pytest ✅ 775/775 / mkdocs --strict ✅
+**Status**: u1 sources Extension CLOSED. The unit becomes eligible for `/cross-check` re-run.
+**Context**: Reopened u1 Code Generation in extension mode after Construction phase Build and Test had closed. Re-verified Build and Test stage as part of closeout.
+
+---
+
+## Construction — u1 sources — Extension Approved (3 new adapters)
+**Timestamp**: 2026-05-01T00:00:00Z
+**Trigger**: User observation that FR-001 AC ("소스 카테고리: 주가/지수, 크립토 시세, 거시 지표, 연준 캘린더, 주요 기업 뉴스, 실적 캘린더") was unmet despite u1's DoD ("1개 이상의 reference 어댑터") being closed at 2026-04-29. FOMC RSS was the only registered adapter, covering only 1 of 5 `Category` enum values (calendar). Application Design's TBD list (component-dependency.md:130) was never narrowed.
+**Decision**: Reopen u1 Code Generation in extension mode. Add 3 adapters before Operations: yfinance (price/US 인덱스+메가캡), coingecko (price/crypto), fred (macro). News + earnings categories explicitly deferred to a later extension.
+**Design Q/A** (resolved with user 2026-05-01):
+- Q1 yfinance call style: **B (direct httpx GET to query1.finance.yahoo.com/v8/finance/chart/{ticker})** — matches FD R3 native async + reuses existing `retry_get`; rejects the python `yfinance` library (sync-only, would force `asyncio.to_thread` workaround).
+- Q2 NormalizedItem shape for price: **A (one item per ticker, prior-day close snapshot)** — title=`"{ticker} {close} ({pct:+}%)"`; summary carries OHLCV; raw_metadata holds raw numerics.
+- Q3 published_at for price items: **A (market close timestamp, UTC tz-aware)** — DST-aware via `zoneinfo("America/New_York")` (NY 16:00 EDT → UTC 20:00; EST → UTC 21:00). Falls naturally inside FD R7 KST window when target_date is the next-day KST trading date.
+- Q4 symbols/series: **env-var override** — defaults in code; `INVESTO_YFINANCE_TICKERS`, `INVESTO_COINGECKO_COINS`, `INVESTO_FRED_SERIES` (comma-separated) override at runtime.
+- Q5 FRED API key: **GitHub Secrets `FRED_API_KEY`** — injected via env in `daily-briefing.yml`; absent key → that adapter raises `SourceFetchError(transient=False)` once, other adapters unaffected (FD R6 graceful degradation).
+**Affected docs (this batch — design + planning only; no code yet)**:
+- `aidlc-docs/aidlc-state.md` — u1 row marked extension-in-progress
+- `aidlc-docs/inception/application-design/component-dependency.md` — TBD list narrowed (yfinance/CoinGecko/FRED committed; news + earnings still TBD)
+- `aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md` — L6.2 (yfinance) / L6.3 (CoinGecko) / L6.4 (FRED) added
+- `aidlc-docs/construction/u1-sources/functional-design/business-rules.md` — R11 (price published_at semantics) / R12 (env-var override convention) / R13 (source-specific secret handling) added
+- `aidlc-docs/construction/u1-sources/nfr-requirements/nfr-requirements.md` — AC-3.6 (missing secret → graceful degradation), AC-5.5 (env-var override pinned), AC-7.6 scope clarified (XML adapters only)
+- `aidlc-docs/construction/u1-sources/nfr-requirements/tech-stack-decisions.md` — TS-8 (env-var config helper, no new dep) / TS-9 (FRED key handling, no new dep) added; explicit reject of python `yfinance` library
+- `aidlc-docs/construction/plans/u1-sources-extension-2026-05-code-generation-plan.md` — NEW (5-step plan: _config helper → yfinance → coingecko → fred → __init__/contract/CONTRIBUTING/closeout)
+**Status**: Design + planning docs updated. Code Generation (extension) pending user "approve" on the new plan file.
+**Context**: Reopen u1 Code Generation in extension mode after Construction phase Build and Test had closed (the global Build and Test stage will re-run as part of this extension's closeout).
+
+---
+
 ## Construction — Build and Test Stage COMPLETE ✅ (PROJECT CONSTRUCTION CLOSED)
 **Timestamp**: 2026-05-01T00:00:00Z
 **Build status**: ✅ Success (uv lockfile resolved; 37 source files; mkdocs site builds in 0.27s)

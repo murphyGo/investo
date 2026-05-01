@@ -1,0 +1,7 @@
+{
+  "recorded_at": "2026-05-01T02:25Z",
+  "source_url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana&price_change_percentage=24h",
+  "responses": {
+    "markets.json": {"status": 200, "content_type": "application/json", "size_bytes": 2595, "note": "real CoinGecko response for 3 default coins; full markets shape including high_24h, low_24h, price_change_percentage_24h, last_updated (ISO8601 with Z)"}
+  }
+}
