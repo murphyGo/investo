@@ -187,6 +187,49 @@ async def test_fetch_accession_no_extracted() -> None:
         assert "-" in accno
 
 
+async def test_accession_no_prefers_canonical_atom_id_over_summary() -> None:
+    body = b"""<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<entry>
+<title>8-K - CANONICAL CO (0000444444) (Filer)</title>
+<link rel="alternate" type="text/html" href="https://www.sec.gov/canonical.htm"/>
+<summary type="html"> &lt;b&gt;AccNo:&lt;/b&gt; 1111111111-11-111111 &lt;br&gt;Item 1.01</summary>
+<updated>2026-04-30T17:00:00-04:00</updated>
+<id>urn:tag:sec.gov,2008:accession-number=0000444444-26-000001</id>
+</entry>
+</feed>
+"""
+    adapter = SecEdgar8kAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+
+    async with _mock_client(body) as client:
+        items = await adapter.fetch(client, window)
+
+    assert len(items) == 1
+    assert items[0].raw_metadata["accession_no"] == "0000444444-26-000001"
+
+
+async def test_accession_no_falls_back_to_summary_when_atom_id_missing() -> None:
+    body = b"""<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<entry>
+<title>8-K - FALLBACK CO (0000555555) (Filer)</title>
+<link rel="alternate" type="text/html" href="https://www.sec.gov/fallback.htm"/>
+<summary type="html"> &lt;b&gt;AccNo:&lt;/b&gt; 0000555555-26-000001 &lt;br&gt;Item 8.01</summary>
+<updated>2026-04-30T17:00:00-04:00</updated>
+</entry>
+</feed>
+"""
+    adapter = SecEdgar8kAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+
+    async with _mock_client(body) as client:
+        items = await adapter.fetch(client, window)
+
+    assert len(items) == 1
+    assert items[0].raw_metadata["accession_no"] == "0000555555-26-000001"
+
+
 # ---------------------------------------------------------------------------
 # R14 — UA header pinning + constant non-empty / contains '@'
 # ---------------------------------------------------------------------------

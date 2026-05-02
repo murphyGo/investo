@@ -25,11 +25,9 @@ Design choices (audit log 2026-05-01T04:00:00Z):
   pre-decode using HTTP-header heuristics and break the handshake.
 * **Strict R7** — SEC publishes 8-Ks intraday on weekdays; weekends
   are empty by design, no R11 relaxation.
-* **Accession-number extraction**: parsed from the HTML-stripped
-  summary body via ``r"AccNo:\\s*(\\S+)"``. The Atom ``<id>`` element
-  also carries the accession number canonically, but the summary
-  regex is strictly simpler and the FD does not require canonical
-  parsing — both yield the same string for every entry observed.
+* **Accession-number extraction**: parsed first from the Atom ``<id>``
+  element's canonical ``accession-number=...`` payload, with the
+  HTML-stripped summary body's ``AccNo:`` text retained as fallback.
 * **Item-code extraction**: ``r"Item \\d+\\.\\d+"`` against the same
   HTML-stripped summary body, joined comma-separated for
   ``raw_metadata.items`` (empty string when no items found —
@@ -69,6 +67,8 @@ _TITLE_REGEX: Final[re.Pattern[str]] = re.compile(
 )
 _ITEM_CODE_REGEX: Final[re.Pattern[str]] = re.compile(r"Item \d+\.\d+")
 _ACCESSION_REGEX: Final[re.Pattern[str]] = re.compile(r"AccNo:\s*(\S+)")
+_ACCESSION_ID_PREFIX: Final[str] = "urn:tag:sec.gov,2008:accession-number="
+_ACCESSION_NO_REGEX: Final[re.Pattern[str]] = re.compile(r"^\d{10}-\d{2}-\d{6}$")
 
 _ALLOWED_SCHEMES = ("http", "https")
 
@@ -136,6 +136,7 @@ class SecEdgar8kAdapter:
         # (NFR-007 AC-7.6 grep).
         title_raw = (entry.findtext(f"{_ATOM_NS}title") or "").strip()
         updated_raw = (entry.findtext(f"{_ATOM_NS}updated") or "").strip()
+        id_raw = (entry.findtext(f"{_ATOM_NS}id") or "").strip()
 
         # `<link rel="alternate" href="...">` — namespace-aware lookup.
         link_href: str | None = None
@@ -185,8 +186,7 @@ class SecEdgar8kAdapter:
         item_codes = _ITEM_CODE_REGEX.findall(summary_text)
         items_joined = ",".join(item_codes)
 
-        accession_match = _ACCESSION_REGEX.search(summary_text)
-        accession_no = accession_match.group(1) if accession_match else ""
+        accession_no = _accession_no_from_id(id_raw) or _accession_no_from_summary(summary_text)
 
         # Final shapes per L6.6 mapping.
         title = strip_html(f"8-K: {company} (CIK {cik})")
@@ -217,3 +217,22 @@ class SecEdgar8kAdapter:
             # Per-entry pydantic rejection (e.g. URL host issues that
             # passed the scheme guard but failed HttpUrl validation).
             return None
+
+
+def _accession_no_from_id(value: str) -> str:
+    if not value.startswith(_ACCESSION_ID_PREFIX):
+        return ""
+    accession_no = value.removeprefix(_ACCESSION_ID_PREFIX).strip()
+    if not _ACCESSION_NO_REGEX.fullmatch(accession_no):
+        return ""
+    return accession_no
+
+
+def _accession_no_from_summary(value: str) -> str:
+    accession_match = _ACCESSION_REGEX.search(value)
+    if accession_match is None:
+        return ""
+    accession_no = accession_match.group(1)
+    if not _ACCESSION_NO_REGEX.fullmatch(accession_no):
+        return ""
+    return accession_no

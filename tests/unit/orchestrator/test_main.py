@@ -260,6 +260,18 @@ def test_main_rejects_malformed_site_url_base(
         assert main_mod.main() == 1
 
 
+def test_validate_env_marks_malformed_site_url_as_bad_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.orchestrator.errors import ConfigError as _ConfigError
+
+    _set_env(monkeypatch, SITE_URL_BASE="not-a-url")
+    with pytest.raises(_ConfigError) as exc_info:
+        main_mod._validate_env()
+    assert exc_info.value.missing_vars == ()
+    assert exc_info.value.bad_value_var == "SITE_URL_BASE"
+
+
 def test_main_accepts_https_site_url_base(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -621,9 +633,10 @@ def test_resolve_target_date_override_helper_raises_on_malformed(
     monkeypatch.setenv("INVESTO_TARGET_DATE", "garbage")
     with pytest.raises(_ConfigError) as exc_info:
         main_mod._resolve_target_date_override()
-    # Discriminator: missing_vars carries the override-var name so
-    # main()'s alert text is actionable.
-    assert exc_info.value.missing_vars == ("INVESTO_TARGET_DATE",)
+    # Discriminator: bad_value_var carries the present-but-malformed
+    # override name so absence and malformed values stay distinct.
+    assert exc_info.value.missing_vars == ()
+    assert exc_info.value.bad_value_var == "INVESTO_TARGET_DATE"
     assert "ISO-8601" in str(exc_info.value)
 
 
@@ -637,5 +650,6 @@ def test_resolve_target_date_override_helper_raises_on_unsupported_date(
     monkeypatch.setenv("INVESTO_TARGET_DATE", bad)
     with pytest.raises(_ConfigError) as exc_info:
         main_mod._resolve_target_date_override()
-    assert exc_info.value.missing_vars == ("INVESTO_TARGET_DATE",)
+    assert exc_info.value.missing_vars == ()
+    assert exc_info.value.bad_value_var == "INVESTO_TARGET_DATE"
     assert "valid supported ISO-8601 date" in str(exc_info.value)

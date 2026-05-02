@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 15 | 2026-04-27 |
+| Low | 13 | 2026-04-27 |
 
 ---
 
@@ -130,16 +130,6 @@ _No medium priority items._
 - **Effort**: ~15 min including Dependabot setup.
 - **Priority Reasoning**: Low — see "1-person tool" above. Re-evaluate if the project ever onboards external contributors or stores higher-value secrets.
 
-#### DEBT-025: `ConfigError.missing_vars` overloaded for "malformed value" case
-
-- **Created**: 2026-05-01
-- **Source**: Step 6 sub-agent code review of u6 infra/CI (L6 — surfaced by the INVESTO_TARGET_DATE side-quest)
-- **Reference**: NFR-005 (clarity / discriminator integrity)
-- **Description**: `_resolve_target_date_override()` raises `ConfigError("...not a valid ISO-8601 date...", missing_vars=("INVESTO_TARGET_DATE",))`. The `missing_vars` field is documented as "names of required env vars absent" — but `INVESTO_TARGET_DATE` is *present but malformed*, not missing. The current overload works (alert text remains actionable, exit code is correct) but blurs the original 2-mode discriminator (empty tuple ⇒ chat-ID-equality; non-empty tuple ⇒ missing-var). A 3rd mode now exists implicitly: non-empty tuple AND var IS present.
-- **Suggested Fix**: Either (a) add `bad_value_var: str | None = None` field to `ConfigError` and a 3rd factory `ConfigError.for_bad_target_date(raw)`, or (b) rename the field to something neutral like `affected_vars` and document the 3 modes explicitly.
-- **Effort**: ~20 min including factory + tests.
-- **Priority Reasoning**: Low — operator alert text remains correct; this is internal cleanliness. Re-evaluate if a 4th mode appears (e.g., a future override env var with its own validation).
-
 #### DEBT-027: Windows checkout symlink limitation undocumented
 
 - **Created**: 2026-05-01
@@ -162,18 +152,6 @@ _No medium priority items._
 
 ---
 
-#### DEBT-030: SEC accession-number extraction uses regex on summary instead of canonical `<id>`
-
-- **Created**: 2026-05-01
-- **Source**: Phase 3 cross-cutting qa review of u1 sources Extension #2 (M2 / Developer self-flag #2)
-- **Reference**: R8 (NormalizedItem field rules — `raw_metadata` provenance), R10 (test fixtures)
-- **Description**: `sec_edgar_8k.py` extracts `raw_metadata["accession_no"]` by regex (`r"AccNo:\s*(\S+)"`) on the HTML-stripped summary text. SEC's Atom feed also exposes the accession number canonically in the entry's `<id>` element (e.g. `urn:tag:sec.gov,2008:accession-number=0001193125-26-197921`). The regex path works on every entry in the recorded fixture (40/40), but would silently break if SEC ever reflows the summary HTML; the `<id>` parse would be format-stable. Today's tests (`test_fetch_accession_no_extracted`, `test_no_item_codes_emits_entry_with_empty_items`) cover the current regex path.
-- **Suggested Fix**: Switch to `entry.find(f"{_ATOM_NS}id").text` parsing during the next fixture re-record. Strip the `urn:tag:sec.gov,2008:accession-number=` prefix; assert the remaining substring matches `r"^\d{10}-\d{2}-\d{6}$"`. The regex on summary becomes the fallback if `<id>` is missing (defensive).
-- **Effort**: ~15 min code change + 1 test update + re-record fixture (or use synthetic Atom for the test).
-- **Priority Reasoning**: Low — current path works on the recorded fixture; future SEC schema change is hypothetical. Address during the next re-record pass (project-wide re-record cadence is also unpinned — a separate concern the lead can re-dispatch later).
-
----
-
 #### DEBT-034: `_mock_client` test helper duplicated across 5 news-adapter test files
 
 - **Created**: 2026-05-01
@@ -187,6 +165,28 @@ _No medium priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-030: SEC accession-number extraction uses regex on summary instead of canonical `<id>`
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Changed `SecEdgar8kAdapter` to parse `raw_metadata["accession_no"]` from the canonical Atom `<id>` `accession-number=...` payload first, with the existing summary `AccNo:` regex retained as a defensive fallback. Added synthetic tests for canonical-id precedence and summary fallback.
+- **Source**: Phase 3 cross-cutting qa review of u1 sources Extension #2 (M2 / Developer self-flag #2)
+- **Reference**: R8 (NormalizedItem field rules — `raw_metadata` provenance), R10 (test fixtures)
+- **Description**: `sec_edgar_8k.py` extracted `raw_metadata["accession_no"]` by regex on the HTML-stripped summary text even though SEC's Atom feed exposes the accession number canonically in `<id>`.
+- **Suggested Fix**: Switch to `<id>` parsing first and keep the regex on summary as fallback if `<id>` is missing.
+- **Effort**: ~15 min code change + tests.
+- **Priority Reasoning**: Low — current path worked on the recorded fixture; this removes a future-fragile dependency on summary HTML shape.
+
+#### DEBT-025: `ConfigError.missing_vars` overloaded for "malformed value" case
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Added `ConfigError.bad_value_var` plus `ConfigError.for_bad_value()` for present-but-malformed env vars. Updated malformed `SITE_URL_BASE` and `INVESTO_TARGET_DATE` paths to use the new discriminator while leaving `missing_vars` reserved for absent required vars.
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L6 — surfaced by the INVESTO_TARGET_DATE side-quest)
+- **Reference**: NFR-005 (clarity / discriminator integrity)
+- **Description**: `_resolve_target_date_override()` reported a present-but-malformed `INVESTO_TARGET_DATE` through `missing_vars`, blurring the original absent-var discriminator.
+- **Suggested Fix**: Add `bad_value_var: str | None = None` field to `ConfigError` and a factory for malformed values.
+- **Effort**: ~20 min including factory + tests.
+- **Priority Reasoning**: Low — operator alert text was already actionable; this tightens the internal error contract.
 
 #### DEBT-018: AST-grep deny tests use substring matching instead of callable identity
 

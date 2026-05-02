@@ -7,7 +7,7 @@
   ``TELEGRAM_OPERATOR_CHAT_ID`` happen to be present despite the
   failure, then logs to stderr and exits 1.
 
-  Two failure modes are encoded:
+  Three failure modes are encoded:
 
   - **Missing required env var(s)** — ``missing_vars`` is the tuple of
     variable names absent from ``os.environ`` (per AC-007-1, the five
@@ -15,10 +15,14 @@
     ``TELEGRAM_BOT_TOKEN``, ``TELEGRAM_BRIEFING_CHANNEL_ID``,
     ``TELEGRAM_OPERATOR_CHAT_ID``, ``SITE_URL_BASE``).
   - **Chat-ID disjointness violation** (CLAUDE.md #5, AC-007-2) —
-    ``missing_vars`` is an empty tuple; the message states the
-    invariant. The orchestrator MUST reject equal IDs *before*
+    ``missing_vars`` is empty and ``bad_value_var`` is ``None``; the
+    message states the invariant. The orchestrator MUST reject equal IDs *before*
     constructing either dispatcher class so the two channels are
     never wired together by accident.
+  - **Malformed env var value** — ``bad_value_var`` is the present-but-
+    invalid variable name (e.g. ``SITE_URL_BASE`` or
+    ``INVESTO_TARGET_DATE``). ``missing_vars`` remains empty because
+    the variable was supplied.
 
   Both factory classmethods produce a human-readable message suitable
   for direct interpolation into the operator-alert text and stderr
@@ -47,12 +51,23 @@ from __future__ import annotations
 class ConfigError(RuntimeError):
     """Environment-variable validation failure (AC-007-1, AC-007-2)."""
 
-    def __init__(self, message: str, *, missing_vars: tuple[str, ...] = ()) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        missing_vars: tuple[str, ...] = (),
+        bad_value_var: str | None = None,
+    ) -> None:
         super().__init__(message)
         # Stored as a tuple (immutable) so callers can safely log or
-        # forward without worrying about later mutation. Empty tuple
-        # signals the chat-ID-equality variant.
+        # forward without worrying about later mutation.
         self.missing_vars: tuple[str, ...] = missing_vars
+        # Present-but-invalid env var. Kept separate from
+        # ``missing_vars`` so absence and malformed values are not
+        # conflated at the type boundary.
+        self.bad_value_var: str | None = bad_value_var
+        if self.missing_vars and self.bad_value_var is not None:
+            raise ValueError("ConfigError cannot carry both missing_vars and bad_value_var")
 
     @classmethod
     def for_missing(cls, missing_vars: tuple[str, ...]) -> ConfigError:
@@ -82,6 +97,13 @@ class ConfigError(RuntimeError):
             "the same chat_id"
         )
         return cls(message, missing_vars=())
+
+    @classmethod
+    def for_bad_value(cls, var_name: str, message: str) -> ConfigError:
+        """Construct from a present-but-malformed env var value."""
+        if not var_name:
+            raise ValueError("ConfigError.for_bad_value requires a var name")
+        return cls(message, bad_value_var=var_name)
 
 
 class EmptyCollectError(RuntimeError):

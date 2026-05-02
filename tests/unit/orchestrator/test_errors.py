@@ -33,6 +33,7 @@ def test_config_error_default_missing_vars_is_empty_tuple() -> None:
     """
     err = ConfigError("synthetic")
     assert err.missing_vars == ()
+    assert err.bad_value_var is None
 
 
 def test_config_error_missing_vars_is_immutable_tuple() -> None:
@@ -40,6 +41,7 @@ def test_config_error_missing_vars_is_immutable_tuple() -> None:
     err = ConfigError("x", missing_vars=("A", "B"))
     assert isinstance(err.missing_vars, tuple)
     assert err.missing_vars == ("A", "B")
+    assert err.bad_value_var is None
 
 
 def test_config_error_str_form_is_the_message() -> None:
@@ -115,6 +117,7 @@ def test_config_error_for_equal_chat_ids_empty_missing_vars() -> None:
     """
     err = ConfigError.for_equal_chat_ids()
     assert err.missing_vars == ()
+    assert err.bad_value_var is None
 
 
 def test_config_error_for_equal_chat_ids_message_names_both_vars() -> None:
@@ -134,6 +137,31 @@ def test_config_error_for_equal_chat_ids_cites_claude_md_rule() -> None:
     """
     err = ConfigError.for_equal_chat_ids()
     assert "CLAUDE.md" in str(err)
+
+
+# ---------------------------------------------------------------------------
+# ConfigError.for_bad_value — present but malformed env var
+# ---------------------------------------------------------------------------
+
+
+def test_config_error_for_bad_value_sets_bad_value_var() -> None:
+    err = ConfigError.for_bad_value(
+        "INVESTO_TARGET_DATE",
+        "INVESTO_TARGET_DATE is not a valid supported ISO-8601 date",
+    )
+    assert err.missing_vars == ()
+    assert err.bad_value_var == "INVESTO_TARGET_DATE"
+    assert "ISO-8601" in str(err)
+
+
+def test_config_error_for_bad_value_rejects_empty_var_name() -> None:
+    with pytest.raises(ValueError, match="requires a var name"):
+        ConfigError.for_bad_value("", "bad")
+
+
+def test_config_error_rejects_missing_and_bad_value_together() -> None:
+    with pytest.raises(ValueError, match="both missing_vars and bad_value_var"):
+        ConfigError("bad", missing_vars=("FOO",), bad_value_var="BAR")
 
 
 # ---------------------------------------------------------------------------

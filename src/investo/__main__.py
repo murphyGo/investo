@@ -137,9 +137,9 @@ def _validate_env() -> tuple[str, str, str, str, HttpUrl]:
     except ValidationError as exc:
         # Surfaces as ``ConfigError`` with ``SITE_URL_BASE`` named so
         # the operator alert text is actionable.
-        raise ConfigError(
+        raise ConfigError.for_bad_value(
+            "SITE_URL_BASE",
             f"SITE_URL_BASE is not a valid HTTP URL: {site_url_raw!r}",
-            missing_vars=("SITE_URL_BASE",),
         ) from exc
 
     return claude_oauth, bot_token, channel_id, operator_id, site_url_base
@@ -219,10 +219,10 @@ def _resolve_target_date_override() -> date | None:
     try:
         return validate_target_date_sanity(date.fromisoformat(raw))
     except ValueError as exc:
-        raise ConfigError(
+        raise ConfigError.for_bad_value(
+            _TARGET_DATE_OVERRIDE_VAR,
             f"{_TARGET_DATE_OVERRIDE_VAR} is not a valid supported ISO-8601 date "
             f"(YYYY-MM-DD): {raw!r}",
-            missing_vars=(_TARGET_DATE_OVERRIDE_VAR,),
         ) from exc
 
 
