@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 import httpx
 
@@ -25,6 +25,7 @@ from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _logger = logging.getLogger(__name__)
+_MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
 
 
 async def fetch_all(target_date: date) -> list[NormalizedItem]:
@@ -75,5 +76,14 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             # orchestrator's stage-level guard, which is the right
             # behavior — adapters never silence non-source errors.
             raise result
-        items.extend(result)
+        for item in result:
+            if item.published_at > window.end_utc + _MAX_FUTURE_PUBLISHED_AT:
+                _logger.warning(
+                    "source %s emitted future-dated item: published_at=%s target_date=%s",
+                    item.source_name,
+                    item.published_at.isoformat(),
+                    target_date,
+                )
+                continue
+            items.append(item)
     return items

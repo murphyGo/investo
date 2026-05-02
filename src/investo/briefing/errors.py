@@ -26,15 +26,9 @@ Error contract:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import Literal
 
-# Cap on the ``last_stderr`` payload (UTF-8 bytes). FD E4 / NFR AC-7.4.
-# Operator alerts include this excerpt — bounding it prevents a 10 MB
-# stderr from landing in the alert text. The truncation is byte-safe:
-# a multi-byte sequence cut mid-codepoint is repaired by decoding with
-# ``errors="ignore"``.
-_STDERR_BYTE_CAP: Final[int] = 1024
-
+from investo._internal.text import truncate_stderr
 
 BriefingStage = Literal["classification", "synthesis", "post_validation", "budget"]
 """Stage at which a `BriefingGenerationError` was raised (E4)."""
@@ -56,22 +50,6 @@ class SubprocessOutcome:
     elapsed_s: float
 
 
-def _truncate_stderr(value: str | None) -> str | None:
-    """Truncate ``value`` to ``_STDERR_BYTE_CAP`` UTF-8 bytes.
-
-    Returns ``None`` for ``None`` input. For non-None strings, the cap
-    is enforced on the encoded UTF-8 length (not codepoint count); a
-    cut that lands mid-codepoint is recovered by re-decoding with
-    ``errors="ignore"``, which drops the partial sequence cleanly.
-    """
-    if value is None:
-        return None
-    encoded = value.encode("utf-8")
-    if len(encoded) <= _STDERR_BYTE_CAP:
-        return value
-    return encoded[:_STDERR_BYTE_CAP].decode("utf-8", errors="ignore")
-
-
 class BriefingGenerationError(Exception):
     """Terminal failure raised by ``generate_briefing`` (E4).
 
@@ -88,7 +66,7 @@ class BriefingGenerationError(Exception):
         Retries actually consumed. ``1`` = single attempt;
         ``MAX_ATTEMPTS`` = exhausted under default config.
     last_stderr:
-        Last subprocess stderr (truncated to ``_STDERR_BYTE_CAP`` UTF-8
+        Last subprocess stderr (truncated to ``STDERR_BYTE_CAP`` UTF-8
         bytes). ``None`` for ``post_validation`` and ``budget`` stages
         where no subprocess returned an error stream.
     cause:
@@ -113,7 +91,7 @@ class BriefingGenerationError(Exception):
         super().__init__(message)
         self.stage = stage
         self.attempt_count = attempt_count
-        self.last_stderr = _truncate_stderr(last_stderr)
+        self.last_stderr = truncate_stderr(last_stderr)
         self.cause = cause
 
 

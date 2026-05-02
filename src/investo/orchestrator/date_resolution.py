@@ -28,13 +28,15 @@ year. Holiday-day pipelines naturally surface as empty-collect →
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 # Asia/Seoul has been a fixed UTC+9 offset since 1988; no DST and no
 # scheduled future transitions. Re-binding the ZoneInfo once at import
 # time avoids repeated tz-database lookups per call.
 _KST = ZoneInfo("Asia/Seoul")
+_MIN_TARGET_DATE = date(2024, 1, 1)
+_MAX_TARGET_DATE_FUTURE_DAYS = 1
 
 
 def resolve_target_date(
@@ -92,3 +94,23 @@ def resolve_target_date(
         target -= timedelta(days=1)
 
     return target
+
+
+def validate_target_date_sanity(target_date: date, *, today_utc: date | None = None) -> date:
+    """Reject obviously mistyped target dates at the orchestrator boundary.
+
+    Models intentionally allow broad historical data for replays, but
+    production archive writes should never target pre-project or
+    far-future dates. ``today_utc`` is injectable for tests; production
+    uses the current UTC calendar date.
+    """
+
+    today = today_utc if today_utc is not None else datetime.now(UTC).date()
+    latest_allowed = today + timedelta(days=_MAX_TARGET_DATE_FUTURE_DAYS)
+    if target_date < _MIN_TARGET_DATE or target_date > latest_allowed:
+        raise ValueError(
+            "target_date out of supported range: "
+            f"{target_date} (expected {_MIN_TARGET_DATE.isoformat()} <= "
+            f"target_date <= {latest_allowed.isoformat()})"
+        )
+    return target_date

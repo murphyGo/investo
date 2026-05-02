@@ -10,7 +10,7 @@ Design choices (audit log 2026-05-01T04:00:00Z):
   (https://www.sec.gov/os/accessing-edgar-data) requires every request
   to carry a UA that identifies the requester (project + contact). A
   generic UA (default httpx, ``Mozilla/5.0``) is rate-limited or 403'd.
-  The compliance string lives as :data:`_USER_AGENT` in this module —
+  The compliance string lives as ``SecEdgar8kAdapter._USER_AGENT`` —
   it is **not a secret** (it identifies us publicly), so it does not
   belong in :mod:`_config` (which is for R12 user overrides) or in any
   env var.
@@ -62,18 +62,6 @@ from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
-_FEED_URL: Final[str] = (
-    "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent"
-    "&type=8-K&company=&dateb=&owner=include&count=40&output=atom"
-)
-
-# R14 — fair-access compliance header. Public identifier of the
-# requester; NOT a secret. SEC documents the policy at
-# https://www.sec.gov/os/accessing-edgar-data — missing or generic
-# UA returns 403 / rate-limits the IP. Module-level constant per R14
-# (kept out of _config.py — that module is for R12 user overrides).
-_USER_AGENT: Final[str] = "investo investo@example.com"
-
 _ATOM_NS: Final[str] = "{http://www.w3.org/2005/Atom}"
 
 _TITLE_REGEX: Final[re.Pattern[str]] = re.compile(
@@ -95,6 +83,16 @@ class SecEdgar8kAdapter:
 
     name: ClassVar[str] = "sec-edgar-8k"
     category: ClassVar[Category] = "news"
+    _FEED_URL: ClassVar[str] = (
+        "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent"
+        "&type=8-K&company=&dateb=&owner=include&count=40&output=atom"
+    )
+    # R14 — fair-access compliance header. Public identifier of the
+    # requester; NOT a secret. SEC documents the policy at
+    # https://www.sec.gov/os/accessing-edgar-data — missing or generic
+    # UA returns 403 / rate-limits the IP. Kept out of _config.py
+    # because that module is for R12 user overrides.
+    _USER_AGENT: ClassVar[str] = "investo investo@example.com"
 
     async def fetch(
         self,
@@ -105,9 +103,9 @@ class SecEdgar8kAdapter:
         # never inline-overridden on ``client.get``.
         response = await retry_get(
             client,
-            _FEED_URL,
+            self._FEED_URL,
             source_name=self.name,
-            headers={"User-Agent": _USER_AGENT},
+            headers={"User-Agent": self._USER_AGENT},
         )
         # Bytes (response.content) — let the parser honour the declared
         # ISO-8859-1 encoding. Passing response.text would pre-decode

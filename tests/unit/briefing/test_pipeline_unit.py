@@ -130,6 +130,27 @@ def test_serialize_renders_published_at_as_utc_isoformat() -> None:
     assert payload[0]["ts"] == "2026-04-25T15:00:00+00:00"
 
 
+def test_serialize_byte_exact_snapshot_for_fixture_hash_stability() -> None:
+    """Pin JSON bytes that feed FakeClaudeRunner prompt hashing."""
+    plus_nine = timezone(timedelta(hours=9))
+    item = _item(
+        source_name="market-data",
+        category="price",
+        title="AAPL close",
+        summary="Summary",
+        url="https://example.com/a",
+        published_at=datetime(2026, 4, 26, 0, 0, tzinfo=plus_nine),
+    )
+
+    serialized = serialize_items_for_prompt([item])
+
+    assert serialized == (
+        '[{"id": 1, "category": "price", "source": "market-data", '
+        '"title": "AAPL close", "summary": "Summary", '
+        '"url": "https://example.com/a", "ts": "2026-04-25T15:00:00+00:00"}]'
+    )
+
+
 def test_serialize_excludes_raw_metadata_provenance_bag() -> None:
     """``raw_metadata`` is provenance noise for the LLM — must be dropped."""
     item = NormalizedItem(

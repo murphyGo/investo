@@ -25,25 +25,8 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import Final
 
-# Cap on the ``last_stderr`` payload (UTF-8 bytes). Mirrors u2
-# briefing/errors.py ``_STDERR_BYTE_CAP``. Operator alerts include
-# this excerpt; bounding it prevents a 10 MB stderr from a misbehaving
-# ``git`` invocation from landing in the alert text. Byte-safe: a
-# multi-byte sequence cut mid-codepoint is repaired via
-# ``errors="ignore"`` decode.
-_STDERR_BYTE_CAP: Final[int] = 1024
-
-
-def _truncate_stderr(value: str | None) -> str | None:
-    """Truncate ``value`` to ``_STDERR_BYTE_CAP`` UTF-8 bytes."""
-    if value is None:
-        return None
-    encoded = value.encode("utf-8")
-    if len(encoded) <= _STDERR_BYTE_CAP:
-        return value
-    return encoded[:_STDERR_BYTE_CAP].decode("utf-8", errors="ignore")
+from investo._internal.text import truncate_stderr
 
 
 class PublisherError(Exception):
@@ -131,7 +114,7 @@ class PublisherGitError(PublisherError):
     ) -> None:
         super().__init__(f"git commit/push failed after {attempt_count} attempts")
         self.attempt_count = attempt_count
-        self.last_stderr = _truncate_stderr(last_stderr)
+        self.last_stderr = truncate_stderr(last_stderr)
         self.cause = cause
 
 

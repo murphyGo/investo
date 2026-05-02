@@ -109,12 +109,10 @@ jobs:
       - name: Set up Python 3.11
         run: uv python install 3.11
 
-      - name: Install project (runtime + dev for pytest sanity)
-        # ``dev`` covers the runtime install (pydantic / httpx /
-        # defusedxml / bleach) plus the test machinery. We do NOT
-        # install ``docs`` here — mkdocs is a separate concern handled
-        # by ``pages.yml``.
-        run: uv sync --extra dev
+      - name: Install project (runtime only)
+        # Runtime deps are enough for ``python -m investo``. Test and
+        # docs tooling run in separate jobs.
+        run: uv sync --no-dev
 
       - name: Configure git author for the bot commit
         run: |

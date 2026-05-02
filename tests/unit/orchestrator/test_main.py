@@ -433,12 +433,19 @@ def test_main_alert_construction_failure_silenced(
     assert rc == 1
 
 
+@pytest.mark.parametrize(
+    "exc",
+    [
+        pytest.param(OSError("synthetic transport failure"), id="transport"),
+        pytest.param(ValueError("synthetic validation failure"), id="construction"),
+        pytest.param(Exception("synthetic future contract failure"), id="future-contract"),
+    ],
+)
 def test_main_alerter_dispatch_exception_silenced(
     monkeypatch: pytest.MonkeyPatch,
+    exc: Exception,
 ) -> None:
-    """If the alerter raises an OSError during dispatch, the boot
-    path silently skips and main() still returns 1.
-    """
+    """Alerter exceptions never mask the underlying boot failure."""
     _set_env(monkeypatch, CLAUDE_CODE_OAUTH_TOKEN=None)
 
     class _RaisingAlerter:
@@ -446,7 +453,7 @@ def test_main_alerter_dispatch_exception_silenced(
             pass
 
         async def alert(self, ctx: FailureContext) -> SendResult:
-            raise OSError("synthetic transport failure")
+            raise exc
 
     monkeypatch.setattr(main_mod, "OperatorAlerter", _RaisingAlerter)
     with _stub_pipeline(monkeypatch):
@@ -618,3 +625,17 @@ def test_resolve_target_date_override_helper_raises_on_malformed(
     # main()'s alert text is actionable.
     assert exc_info.value.missing_vars == ("INVESTO_TARGET_DATE",)
     assert "ISO-8601" in str(exc_info.value)
+
+
+@pytest.mark.parametrize("bad", ["2023-12-31", "2206-04-25"])
+def test_resolve_target_date_override_helper_raises_on_unsupported_date(
+    monkeypatch: pytest.MonkeyPatch,
+    bad: str,
+) -> None:
+    from investo.orchestrator.errors import ConfigError as _ConfigError
+
+    monkeypatch.setenv("INVESTO_TARGET_DATE", bad)
+    with pytest.raises(_ConfigError) as exc_info:
+        main_mod._resolve_target_date_override()
+    assert exc_info.value.missing_vars == ("INVESTO_TARGET_DATE",)
+    assert "valid supported ISO-8601 date" in str(exc_info.value)

@@ -108,6 +108,36 @@ async def test_fetch_all_multiple_adapters_concatenates_results() -> None:
     assert names == ["stub-a", "stub-b"]
 
 
+async def test_fetch_all_drops_items_more_than_30_days_in_future(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    future_published = datetime(2026, 6, 28, 0, 0, tzinfo=UTC)
+
+    @register
+    class FutureDatedStub:
+        name: ClassVar[str] = "future-dated"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            return [
+                _item("future-dated", "normal"),
+                NormalizedItem(
+                    source_name="future-dated",
+                    category="news",
+                    title="future typo",
+                    published_at=future_published,
+                ),
+            ]
+
+    with caplog.at_level(logging.WARNING, logger="investo.sources.aggregator"):
+        result = await fetch_all(_TARGET_DATE)
+
+    assert [item.title for item in result] == ["normal"]
+    assert "future-dated item" in caplog.text
+
+
 async def test_fetch_all_passes_window_to_adapter() -> None:
     captured: dict[str, FetchWindow | None] = {"window": None}
 

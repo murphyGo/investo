@@ -22,7 +22,7 @@ import pytest
 
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
-from investo.sources.sec_edgar_8k import _USER_AGENT, SecEdgar8kAdapter
+from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "sec-edgar-8k"
 _REAL_FIXTURE = _FIXTURE_DIR / "feed.xml"
@@ -208,14 +208,15 @@ async def test_request_carries_compliance_user_agent() -> None:
     assert captured[0].headers["user-agent"] == "investo investo@example.com"
 
 
-def test_user_agent_constant_shape() -> None:
+def test_adapter_endpoint_config_shape() -> None:
     # Defensive: the R14 constant must identify the project + a
     # contact mailbox. A blank value would silently fall back to
     # httpx's default UA, which SEC 403's. A future regression that
     # wipes the constant must be caught here.
-    assert _USER_AGENT
-    assert "@" in _USER_AGENT
-    assert _USER_AGENT == "investo investo@example.com"
+    assert SecEdgar8kAdapter._FEED_URL.startswith("https://www.sec.gov/")
+    assert SecEdgar8kAdapter._USER_AGENT
+    assert "@" in SecEdgar8kAdapter._USER_AGENT
+    assert SecEdgar8kAdapter._USER_AGENT == "investo investo@example.com"
 
 
 # ---------------------------------------------------------------------------

@@ -40,6 +40,7 @@ from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo.models import FailureContext, PipelineStatus
 from investo.notifier import BriefingPublisher, OperatorAlerter
+from investo.orchestrator.date_resolution import validate_target_date_sanity
 from investo.orchestrator.errors import ConfigError
 from investo.orchestrator.pipeline import run_pipeline
 
@@ -187,7 +188,7 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
                 http=client,
             )
             await alerter.alert(ctx)
-    except (OSError, RuntimeError, httpx.HTTPError):
+    except Exception:
         # Best-effort — never let alerter exceptions mask the
         # underlying failure exit code.
         pass
@@ -216,10 +217,11 @@ def _resolve_target_date_override() -> date | None:
     if not raw:
         return None
     try:
-        return date.fromisoformat(raw)
+        return validate_target_date_sanity(date.fromisoformat(raw))
     except ValueError as exc:
         raise ConfigError(
-            f"{_TARGET_DATE_OVERRIDE_VAR} is not a valid ISO-8601 date (YYYY-MM-DD): {raw!r}",
+            f"{_TARGET_DATE_OVERRIDE_VAR} is not a valid supported ISO-8601 date "
+            f"(YYYY-MM-DD): {raw!r}",
             missing_vars=(_TARGET_DATE_OVERRIDE_VAR,),
         ) from exc
 

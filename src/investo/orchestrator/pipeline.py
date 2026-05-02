@@ -83,12 +83,11 @@ from investo.models import (
     SendResult,
 )
 from investo.notifier import BriefingPublisher, OperatorAlerter, build_summary
-from investo.orchestrator.date_resolution import resolve_target_date
+from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
 from investo.publisher import (
     GitRunner,
     PublisherDisclaimerError,
-    PublisherError,
     PublisherGitError,
     PublisherIOError,
     commit_and_push,
@@ -529,6 +528,7 @@ async def run_pipeline(
     """
     if target_date is None:
         target_date = resolve_target_date(datetime.now(UTC))
+    target_date = validate_target_date_sanity(target_date)
 
     pipeline_start = time.monotonic()
     stages: dict[str, str] = {}
@@ -695,9 +695,6 @@ def _build_result(
     )
 
 
-# Re-export for type-checker friendliness when the orchestrator's main
-# module imports the umbrella ``PublisherError`` for top-level catch.
-__all__ = [  # noqa: RUF022 — keep grouped by stage / utility / etc.
+__all__ = [
     "run_pipeline",
-    "PublisherError",
 ]

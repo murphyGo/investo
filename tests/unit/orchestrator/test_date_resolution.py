@@ -5,7 +5,7 @@ Pins AC-005-1 (KST 평일 cron → previous US trading day), AC-005-2
 consultation — holidays surface via empty-collect).
 
 Plus a ≥100-example hypothesis PBT per AC-006-4 asserting the
-post-condition holds across a 30-day domain.
+post-condition holds across a multi-year domain.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from investo.orchestrator.date_resolution import resolve_target_date
+from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 
 _KST = ZoneInfo("Asia/Seoul")
 
@@ -126,6 +126,22 @@ def test_resolve_target_date_naive_datetime_rejected() -> None:
         resolve_target_date(naive)
 
 
+def test_validate_target_date_sanity_accepts_supported_date() -> None:
+    assert validate_target_date_sanity(date(2026, 4, 27), today_utc=date(2026, 5, 3)) == date(
+        2026, 4, 27
+    )
+
+
+def test_validate_target_date_sanity_rejects_pre_project_date() -> None:
+    with pytest.raises(ValueError, match="out of supported range"):
+        validate_target_date_sanity(date(2023, 12, 31), today_utc=date(2026, 5, 3))
+
+
+def test_validate_target_date_sanity_rejects_far_future_date() -> None:
+    with pytest.raises(ValueError, match="2026-05-04"):
+        validate_target_date_sanity(date(2026, 5, 5), today_utc=date(2026, 5, 3))
+
+
 def test_resolve_target_date_year_boundary() -> None:
     """KST 2026-01-01 (Thu) 07:00 → Wed 2025-12-31."""
     new_year_kst = _kst(2026, 1, 1, 7)
@@ -201,8 +217,8 @@ def test_resolve_target_date_weekday_flag_default_is_true() -> None:
 
 @given(
     st.datetimes(
-        min_value=datetime(2026, 1, 1),
-        max_value=datetime(2026, 12, 31, 23, 59),
+        min_value=datetime(2024, 1, 1),
+        max_value=datetime(2030, 12, 31, 23, 59),
         timezones=st.just(UTC),
     )
 )
@@ -211,7 +227,7 @@ def test_resolve_target_date_weekday_flag_default_is_true() -> None:
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_resolve_target_date_pbt_post_condition(now_utc: datetime) -> None:
-    """For any UTC instant in 2026, the returned date must:
+    """For any UTC instant from 2024 through 2030, the returned date must:
 
     1. Be a weekday (Mon-Fri) — AC-005-3 + default flag.
     2. Be strictly less than the KST calendar date of ``now_utc``.
@@ -233,8 +249,8 @@ def test_resolve_target_date_pbt_post_condition(now_utc: datetime) -> None:
 
 @given(
     st.datetimes(
-        min_value=datetime(2026, 1, 1),
-        max_value=datetime(2026, 12, 31, 23, 59),
+        min_value=datetime(2024, 1, 1),
+        max_value=datetime(2030, 12, 31, 23, 59),
         timezones=st.just(UTC),
     )
 )

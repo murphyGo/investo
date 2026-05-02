@@ -41,15 +41,6 @@ on:
       - '.github/workflows/pages.yml'  # workflow self-update
   workflow_dispatch:
 
-# GHA Pages requires these permissions on the deploy job:
-#   - pages: write    — upload + deploy the artifact
-#   - id-token: write — OIDC for the actions/deploy-pages handshake
-#   - contents: read  — checkout
-permissions:
-  pages: write
-  id-token: write
-  contents: read
-
 # One in-flight deploy at a time. ``cancel-in-progress: true`` lets a
 # rapid sequence of pushes coalesce — only the latest commit's site is
 # actually published. This is safe for a static site (no partial-state
@@ -63,6 +54,8 @@ jobs:
     name: Build mkdocs site
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
 
     steps:
       - name: Check out repository
@@ -101,6 +94,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

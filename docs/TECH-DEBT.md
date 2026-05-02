@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 3 | 2026-04-29 |
-| Low | 16 | 2026-04-27 |
+| Medium | 0 | - |
+| Low | 19 | 2026-04-27 |
 
 ---
 
@@ -23,35 +23,7 @@ _No high priority items._
 
 ### Medium Priority
 
-#### DEBT-002: No date sanity bounds on `target_date` / `published_at` (project-wide)
-
-- **Created**: 2026-04-27
-- **Source**: Code review of `src/investo/models/briefing.py` (Step 3); same pattern in `items.py`
-- **Reference**: US-005 (scheduled execution), FR-006 (archival)
-- **Description**: `Briefing.target_date`, `BriefingNotification.target_date`, and `NormalizedItem.published_at` accept any valid date — including far-future (`date(2206, 4, 27)`) or pre-epoch values. A typo upstream would commit nonsensical archive paths or stamp items with bad timestamps.
-- **Suggested Fix**: Add sanity bounds at the **orchestrator** boundary (`resolve_target_date`) rather than in the models, since the models are also used in historical replays where wider bounds may be needed. Concrete check: `2024-01-01 ≤ target_date ≤ today + 1`. For Source Adapters, reject items whose `published_at` is more than 30 days in the future.
-- **Effort**: ~15 min in u5 orchestrator; ~10 min in u1 sources base.
-- **Priority Reasoning**: Medium — defensive only; would catch upstream typos but does not currently block any real flow.
-
-#### DEBT-007: No byte-exact JSON snapshot test for `serialize_items_for_prompt`
-
-- **Created**: 2026-04-29
-- **Source**: Step 8.5 sub-agent code review (L4 / Q4) of `pipeline.py`
-- **Reference**: AC-6.2 (serialize round-trip), `tests/_helpers/fake_claude_runner.py` (FakeClaudeRunner uses `sha256(prompt)[:16]` as fixture key)
-- **Description**: `serialize_items_for_prompt` produces a JSON string that downstream becomes part of the Stage 1 prompt; that prompt is then SHA-256'd to derive the FakeClaudeRunner fixture key. The serializer is *deterministic in practice* (Python ≥3.7 dict insertion order; explicit field order in the dict literal; `astimezone(UTC).isoformat()` always emits `+00:00`) but no test pins the byte-exact JSON output. A future refactor that, e.g., switches to `json.dumps(payload, sort_keys=True)` or reorders keys would silently invalidate every recorded LLM fixture and break replay.
-- **Suggested Fix**: Add a snapshot test in `test_pipeline_unit.py` that constructs a known `NormalizedItem` and asserts the exact bytes returned by `serialize_items_for_prompt([item])`. Pin both the key order (`{"id": 1, "category": ..., "source": ..., "title": ..., "summary": ..., "url": ..., "ts": ...}`) and the timestamp format (`"+00:00"` not `"Z"`). The PBT shape test does NOT cover this — it only checks the key set, not the order or whitespace.
-- **Effort**: ~15 min including a 2-3 line test addition.
-- **Priority Reasoning**: Medium — the determinism assumption is currently correct but undocumented; the FakeClaudeRunner architecture depends on it. Cheap to pin.
-
-#### DEBT-012: `_truncate_stderr` helper duplicated across u2 + u3 errors modules
-
-- **Created**: 2026-04-30
-- **Source**: Step 8 sub-agent code review of u3 publisher (M1 finding)
-- **Reference**: NFR-006 (test-suite/source maintainability); NFR-007 AC-7.4 (1024-byte stderr cap)
-- **Description**: `_STDERR_BYTE_CAP: Final[int] = 1024` constant + `_truncate_stderr(value: str | None) -> str | None` helper appear byte-identically in `src/investo/briefing/errors.py` and `src/investo/publisher/errors.py`. u4 notifier will likely need the same cap when bounding error-text payloads to Telegram. Three copies risks silent drift if one site changes the cap value or the `errors="ignore"` decode strategy.
-- **Suggested Fix**: Lift to a shared internal module — `src/investo/_internal/text.py` (new) or extend `src/investo/models/_validators.py`. Both u2 + u3 errors modules import from there. u4 notifier picks it up at construction time.
-- **Effort**: ~20 min including import updates and verifying both unit's truncation tests still pass.
-- **Priority Reasoning**: Medium — promotes to High when u4 introduces a third copy. Address before u4 starts to avoid the third-copy problem.
+_No medium priority items._
 
 ### Low Priority
 
@@ -178,56 +150,6 @@ _No high priority items._
 - **Effort**: ~20 min.
 - **Priority Reasoning**: Low — current tests work; future-proofing only.
 
-#### DEBT-019: `resolve_target_date` PBT covers only 2026
-
-- **Created**: 2026-04-30
-- **Source**: Step 12 sub-agent code review of u5 orchestrator (L5)
-- **Reference**: NFR-006 (PBT coverage breadth)
-- **Description**: `tests/unit/orchestrator/test_date_resolution.py`'s 2 hypothesis PBTs use `min_value=datetime(2026, 1, 1), max_value=datetime(2026, 12, 31, 23, 59)`. Leap-year edges (2024, 2028, 2032) and additional year-boundary crossings (e.g. KST 2027-01-01 cron firing for 2026-12-31) are unverified.
-- **Suggested Fix**: Widen the strategy to span 2024–2030 (or wider). KST has been fixed UTC+9 since 1988 so historical years are safe; future bound limited only by reasonable cron lifetimes.
-- **Effort**: ~5 min (one-line bounds change).
-- **Priority Reasoning**: Low — date math is mechanical; PBT primarily catches strategy bugs, not algorithm bugs.
-
-#### DEBT-020: `_safe_alert` and `_attempt_boot_alert` exception lists not aligned
-
-- **Created**: 2026-04-30
-- **Source**: Step 12 sub-agent code review of u5 orchestrator (L6 — partially resolved by H1 fix)
-- **Reference**: NFR-005 (consistency across symmetric helpers)
-- **Description**: H1 broadened `_safe_alert` to `except Exception`. `_attempt_boot_alert` in `__main__.py:171` still uses the narrower `except (OSError, RuntimeError, httpx.HTTPError)`. Symmetric helpers should have symmetric semantics.
-- **Suggested Fix**: Broaden `_attempt_boot_alert`'s `except` to `Exception` for the same reason `_safe_alert` was broadened — programmer errors / pydantic ValidationError / future u4-contract changes should never mask the underlying exit code. Test `test_main_alert_construction_failure_silenced` already exercises one of these paths but more coverage would be welcome.
-- **Effort**: ~5 min for the change + ~10 min for parametrized tests.
-- **Priority Reasoning**: Low — the boot path is rarely exercised + the existing `(OSError, RuntimeError, httpx.HTTPError)` covers the realistic transport failure modes. Pure consistency tightening.
-
-#### DEBT-021: Unused `PublisherError` re-export in `pipeline.__all__`
-
-- **Created**: 2026-04-30
-- **Source**: Step 12 sub-agent code review of u5 orchestrator (L2)
-- **Reference**: NFR-005 (no dead code)
-- **Description**: `src/investo/orchestrator/pipeline.py:__all__` re-exports `"PublisherError"` with a comment claiming "the orchestrator's main module imports the umbrella ``PublisherError`` for top-level catch." But `__main__.py` does not import `PublisherError` — it catches `Exception`. So this re-export is unused.
-- **Suggested Fix**: Drop `"PublisherError"` from `pipeline.__all__`. One-line change.
-- **Effort**: ~2 min.
-- **Priority Reasoning**: Low — dead code, but not load-bearing on anything.
-
-#### DEBT-022: `pages.yml` permissions set at workflow level instead of job level
-
-- **Created**: 2026-05-01
-- **Source**: Step 6 sub-agent code review of u6 infra/CI (M2)
-- **Reference**: NFR-007 (least-privilege secrets / permissions handling)
-- **Description**: `.github/workflows/pages.yml` declares `permissions: { pages: write, id-token: write, contents: read }` at workflow level (lines 48-51). This grants `pages: write` and `id-token: write` to BOTH the `build` and `deploy` jobs — but `build` only needs `contents: read` (it uploads a workflow artifact, not a Pages deploy). The `deploy` job is the only one that talks to GHA Pages.
-- **Suggested Fix**: Move to job-level: `build: { permissions: contents: read }`, `deploy: { permissions: pages: write, id-token: write }`. Tightens least-privilege without changing functionality.
-- **Effort**: ~5 min YAML edit.
-- **Priority Reasoning**: Low — the runner is already trusted (1-person repo); cosmetic least-privilege improvement.
-
-#### DEBT-023: `daily-briefing.yml` installs `--extra dev` but never runs pytest
-
-- **Created**: 2026-05-01
-- **Source**: Step 6 sub-agent code review of u6 infra/CI (L7)
-- **Reference**: NFR-001 (cron run wall-clock budget)
-- **Description**: `.github/workflows/daily-briefing.yml:104` step "Install project (runtime + dev for pytest sanity)" runs `uv sync --extra dev`, pulling pytest / hypothesis / ruff / mypy / types-* into the runner. The job only invokes `python -m investo` — it does NOT run any test or lint command. The dev extras are dead weight on the cold-start install (~10-15s per run × 6 fires/week).
-- **Suggested Fix**: Switch to `uv sync --no-dev` (or just `uv sync` without any `--extra`, since runtime deps are in `[project] dependencies` not in `dev`). Update the step name + comment to "Install project (runtime only)".
-- **Effort**: ~5 min YAML edit + visual verification on the next workflow run.
-- **Priority Reasoning**: Low — saves ~60-90s/week of GHA minutes; the 10-min budget per run has plenty of margin so this isn't blocking AC-001-1.
-
 #### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
 
 - **Created**: 2026-05-01
@@ -247,16 +169,6 @@ _No high priority items._
 - **Suggested Fix**: Either (a) add `bad_value_var: str | None = None` field to `ConfigError` and a 3rd factory `ConfigError.for_bad_target_date(raw)`, or (b) rename the field to something neutral like `affected_vars` and document the 3 modes explicitly.
 - **Effort**: ~20 min including factory + tests.
 - **Priority Reasoning**: Low — operator alert text remains correct; this is internal cleanliness. Re-evaluate if a 4th mode appears (e.g., a future override env var with its own validation).
-
-#### DEBT-026: `archive/.gitkeep` redundant once `archive/index.md` exists
-
-- **Created**: 2026-05-01
-- **Source**: Step 6 sub-agent code review of u6 infra/CI (L3)
-- **Reference**: NFR-005 (no dead files)
-- **Description**: `archive/.gitkeep` was created in Step 4 to ensure the directory exists in git before the daily-briefing bot's first write. `archive/index.md` (the placeholder landing page) already keeps the directory tracked, so `.gitkeep` is redundant.
-- **Suggested Fix**: `git rm archive/.gitkeep`. One-line change.
-- **Effort**: ~1 min.
-- **Priority Reasoning**: Low — harmless artifact; remove during the next u6 cleanup pass.
 
 #### DEBT-027: Windows checkout symlink limitation undocumented
 
@@ -292,18 +204,6 @@ _No high priority items._
 
 ---
 
-#### DEBT-029: SEC URL-constant placement diverges from sibling adapters
-
-- **Created**: 2026-05-01
-- **Source**: Phase 3 cross-cutting qa review of u1 sources Extension #2 (M1)
-- **Reference**: NFR-005 (consistency across symmetric components), R2 (plugin module shape)
-- **Description**: 5 of 6 registered adapters declare their endpoint URL as a class-level `ClassVar[str]` (`fomc_rss._FEED_URL`, `yfinance._BASE_URL`, `coingecko._ENDPOINT`, `fred._ENDPOINT`, `yahoo_finance_news._FEED_URL`). The 6th — `sec_edgar_8k._FEED_URL` — uses module-level `Final[str]`. No test or import requires the module-level position; appears to be authoring-order accident. The cross-adapter inconsistency means the next adapter author has to choose between two precedents.
-- **Suggested Fix**: Move `sec_edgar_8k._FEED_URL` (and `_USER_AGENT` for symmetry, since they're both endpoint-config) to class-level `ClassVar` on `SecEdgar8kAdapter`. Optionally add a passive consistency test in `test_plugin_contract.py` that asserts each registered adapter class has a `ClassVar[str]` whose name matches a known set (`{"_FEED_URL", "_BASE_URL", "_ENDPOINT"}` — or pick one canonical name and migrate all 6).
-- **Effort**: ~5 min code move (sec_edgar_8k only); ~30 min if also adding the consistency test + migrating the field name across all 6 adapters.
-- **Priority Reasoning**: Low — purely cosmetic, no behavior impact, no test pressure. Address in a future cleanup pass.
-
----
-
 #### DEBT-030: SEC accession-number extraction uses regex on summary instead of canonical `<id>`
 
 - **Created**: 2026-05-01
@@ -313,18 +213,6 @@ _No high priority items._
 - **Suggested Fix**: Switch to `entry.find(f"{_ATOM_NS}id").text` parsing during the next fixture re-record. Strip the `urn:tag:sec.gov,2008:accession-number=` prefix; assert the remaining substring matches `r"^\d{10}-\d{2}-\d{6}$"`. The regex on summary becomes the fallback if `<id>` is missing (defensive).
 - **Effort**: ~15 min code change + 1 test update + re-record fixture (or use synthetic Atom for the test).
 - **Priority Reasoning**: Low — current path works on the recorded fixture; future SEC schema change is hypothetical. Address during the next re-record pass (project-wide re-record cadence is also unpinned — a separate concern the lead can re-dispatch later).
-
----
-
-#### DEBT-033: `_FEED_URL` placement inconsistent — sec_edgar_8k uses module-level while 4 sibling news adapters use `ClassVar`
-
-- **Created**: 2026-05-01
-- **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (L1)
-- **Reference**: NFR-005 (consistency across symmetric components), R2 (plugin module shape)
-- **Description**: Across the 5 news adapters, `_FEED_URL` placement diverges: `yahoo_finance_news.py`, `yonhap_market.py`, `theblock_crypto.py`, `cnbc_top_news.py` declare it as class-level `ClassVar[str]` inside the adapter class; `sec_edgar_8k.py:64` declares it as module-level `Final[str]`. The corresponding tests reflect this divergence — `Adapter._FEED_URL` is accessible on 4 adapters' classes but not on `SecEdgar8kAdapter`. Note: this overlaps with but is narrower than DEBT-029 (which covered the broader cross-category inconsistency including price/macro adapters' `_BASE_URL` / `_ENDPOINT` naming). DEBT-033 specifically tracks the news-cohort `_FEED_URL` divergence — a smaller, mechanically-trivial fix that can land independently.
-- **Suggested Fix**: Move `sec_edgar_8k._FEED_URL` to `ClassVar[str]` on `SecEdgar8kAdapter`. The `_USER_AGENT` constant should follow the same placement decision for symmetry (see DEBT-029 for the broader naming-unification arc).
-- **Effort**: ~5 min — single-file move, no test changes needed (the existing tests don't currently assert `Adapter._FEED_URL` on sec-edgar; adding that assertion for symmetry is optional).
-- **Priority Reasoning**: Low — purely cosmetic; the inconsistency surfaces only when a developer reads two adapter sources side by side and notices the divergence. Closes naturally alongside DEBT-029 in a future cleanup pass.
 
 ---
 
@@ -341,6 +229,127 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-033: `_FEED_URL` placement inconsistent — sec_edgar_8k uses module-level while 4 sibling news adapters use `ClassVar`
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Moved SEC EDGAR endpoint configuration onto `SecEdgar8kAdapter` as class-level `_FEED_URL` / `_USER_AGENT` `ClassVar[str]` fields and updated the adapter/test call sites to use the class attribute, matching sibling news-adapter shape.
+- **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (L1)
+- **Reference**: NFR-005 (consistency across symmetric components), R2 (plugin module shape)
+- **Description**: Across the 5 news adapters, `_FEED_URL` placement diverged: `yahoo_finance_news.py`, `yonhap_market.py`, `theblock_crypto.py`, `cnbc_top_news.py` declared it as class-level `ClassVar[str]` inside the adapter class; `sec_edgar_8k.py` declared it as module-level `Final[str]`.
+- **Suggested Fix**: Move `sec_edgar_8k._FEED_URL` to `ClassVar[str]` on `SecEdgar8kAdapter`. The `_USER_AGENT` constant should follow the same placement decision for symmetry.
+- **Effort**: ~5 min — single-file move, no test changes needed beyond the existing SEC User-Agent assertion.
+- **Priority Reasoning**: Low — purely cosmetic; the inconsistency surfaced only when a developer read two adapter sources side by side.
+
+#### DEBT-029: SEC URL-constant placement diverges from sibling adapters
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Resolved alongside DEBT-033 by moving `sec_edgar_8k` endpoint configuration from module-level constants to class-level `ClassVar` attributes on `SecEdgar8kAdapter`.
+- **Source**: Phase 3 cross-cutting qa review of u1 sources Extension #2 (M1)
+- **Reference**: NFR-005 (consistency across symmetric components), R2 (plugin module shape)
+- **Description**: 5 of 6 registered adapters declared their endpoint URL as a class-level `ClassVar[str]`; the 6th — `sec_edgar_8k._FEED_URL` — used module-level `Final[str]`. No test or import required the module-level position.
+- **Suggested Fix**: Move `sec_edgar_8k._FEED_URL` and `_USER_AGENT` to class-level `ClassVar` on `SecEdgar8kAdapter`.
+- **Effort**: ~5 min code move.
+- **Priority Reasoning**: Low — purely cosmetic, no behavior impact, no test pressure.
+
+#### DEBT-026: `archive/.gitkeep` redundant once `archive/index.md` exists
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Removed `archive/.gitkeep`; `archive/index.md` already keeps the archive directory tracked.
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L3)
+- **Reference**: NFR-005 (no dead files)
+- **Description**: `archive/.gitkeep` was created to ensure the directory existed in git before the daily-briefing bot's first write. `archive/index.md` already keeps the directory tracked, so `.gitkeep` was redundant.
+- **Suggested Fix**: `git rm archive/.gitkeep`.
+- **Effort**: ~1 min.
+- **Priority Reasoning**: Low — harmless artifact.
+
+#### DEBT-023: `daily-briefing.yml` installs `--extra dev` but never runs pytest
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Changed the daily briefing workflow install step to runtime-only (`uv sync --no-dev`) and updated the step name/comment to reflect that tests and docs tooling run elsewhere.
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (L7)
+- **Reference**: NFR-001 (cron run wall-clock budget)
+- **Description**: `.github/workflows/daily-briefing.yml` installed dev dependencies even though the job only invokes `python -m investo`.
+- **Suggested Fix**: Switch to `uv sync --no-dev` and update the step name + comment to "Install project (runtime only)".
+- **Effort**: ~5 min YAML edit.
+- **Priority Reasoning**: Low — saves cold-start install time; the 10-minute budget had margin.
+
+#### DEBT-022: `pages.yml` permissions set at workflow level instead of job level
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Removed workflow-level Pages permissions and moved them to job level: `build` now has only `contents: read`; `deploy` has `pages: write` and `id-token: write`.
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (M2)
+- **Reference**: NFR-007 (least-privilege secrets / permissions handling)
+- **Description**: `.github/workflows/pages.yml` granted `pages: write` and `id-token: write` to both `build` and `deploy`, though only `deploy` needs them.
+- **Suggested Fix**: Move to job-level permissions.
+- **Effort**: ~5 min YAML edit.
+- **Priority Reasoning**: Low — cosmetic least-privilege improvement.
+
+#### DEBT-021: Unused `PublisherError` re-export in `pipeline.__all__`
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Removed the unused `PublisherError` import/re-export and stale comment from `src/investo/orchestrator/pipeline.py`.
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L2)
+- **Reference**: NFR-005 (no dead code)
+- **Description**: `pipeline.__all__` re-exported `"PublisherError"` with a stale comment, but `__main__.py` does not import it.
+- **Suggested Fix**: Drop `"PublisherError"` from `pipeline.__all__`.
+- **Effort**: ~2 min.
+- **Priority Reasoning**: Low — dead code, not load-bearing.
+
+#### DEBT-020: `_safe_alert` and `_attempt_boot_alert` exception lists not aligned
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Broadened `_attempt_boot_alert` to catch `Exception`, matching `_safe_alert`; parametrized the boot-alert test across transport, validation, and future-contract failures.
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L6 — partially resolved by H1 fix)
+- **Reference**: NFR-005 (consistency across symmetric helpers)
+- **Description**: `_safe_alert` caught `Exception`, while `_attempt_boot_alert` used the narrower `(OSError, RuntimeError, httpx.HTTPError)`.
+- **Suggested Fix**: Broaden `_attempt_boot_alert`'s `except` to `Exception`.
+- **Effort**: ~5 min for the change + ~10 min for parametrized tests.
+- **Priority Reasoning**: Low — pure consistency tightening.
+
+#### DEBT-019: `resolve_target_date` PBT covers only 2026
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Widened both `resolve_target_date` hypothesis strategies from 2026-only to 2024-2030 and updated the test docstring to describe the broader domain.
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L5)
+- **Reference**: NFR-006 (PBT coverage breadth)
+- **Description**: `tests/unit/orchestrator/test_date_resolution.py`'s 2 hypothesis PBTs used 2026-only bounds, leaving leap-year edges and additional year-boundary crossings unverified.
+- **Suggested Fix**: Widen the strategy to span 2024-2030.
+- **Effort**: ~5 min.
+- **Priority Reasoning**: Low — date math is mechanical; PBT primarily catches strategy bugs, not algorithm bugs.
+
+#### DEBT-012: `_truncate_stderr` helper duplicated across u2 + u3 errors modules
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Added shared internal `investo._internal.text` module exporting `STDERR_BYTE_CAP` and `truncate_stderr()`. Updated u2 `BriefingGenerationError` and u3 `PublisherGitError` to use the shared helper, removing duplicated truncation implementations while preserving the 1024-byte UTF-8-safe behavior.
+- **Source**: Step 8 sub-agent code review of u3 publisher (M1 finding)
+- **Reference**: NFR-006 (test-suite/source maintainability); NFR-007 AC-7.4 (1024-byte stderr cap)
+- **Description**: `_STDERR_BYTE_CAP: Final[int] = 1024` constant + `_truncate_stderr(value: str | None) -> str | None` helper appeared byte-identically in `src/investo/briefing/errors.py` and `src/investo/publisher/errors.py`. u4 notifier will likely need the same cap when bounding error-text payloads to Telegram. Three copies risked silent drift if one site changed the cap value or the `errors="ignore"` decode strategy.
+- **Suggested Fix**: Lift to a shared internal module — `src/investo/_internal/text.py` (new) or extend `src/investo/models/_validators.py`. Both u2 + u3 errors modules import from there. u4 notifier picks it up at construction time.
+- **Effort**: ~20 min including import updates and verifying both unit's truncation tests still pass.
+- **Priority Reasoning**: Medium — promoted risk if u4 introduced a third copy. Addressed by creating one shared helper before further drift.
+
+#### DEBT-007: No byte-exact JSON snapshot test for `serialize_items_for_prompt`
+
+- **Created**: 2026-04-29
+- **Resolved**: 2026-05-03 — Added a byte-exact snapshot test in `tests/unit/briefing/test_pipeline_unit.py` that pins `serialize_items_for_prompt([item])` including key order, default JSON whitespace, URL string, and UTC timestamp format (`+00:00`). This protects FakeClaudeRunner prompt-hash fixture keys from accidental serializer drift.
+- **Source**: Step 8.5 sub-agent code review (L4 / Q4) of `pipeline.py`
+- **Reference**: AC-6.2 (serialize round-trip), `tests/_helpers/fake_claude_runner.py` (FakeClaudeRunner uses `sha256(prompt)[:16]` as fixture key)
+- **Description**: `serialize_items_for_prompt` produces a JSON string that downstream becomes part of the Stage 1 prompt; that prompt is then SHA-256'd to derive the FakeClaudeRunner fixture key. The serializer is deterministic in practice (Python >=3.7 dict insertion order; explicit field order in the dict literal; `astimezone(UTC).isoformat()` always emits `+00:00`) but no test pinned the byte-exact JSON output. A future refactor that, e.g., switches to `json.dumps(payload, sort_keys=True)` or reorders keys would silently invalidate every recorded LLM fixture and break replay.
+- **Suggested Fix**: Add a snapshot test in `test_pipeline_unit.py` that constructs a known `NormalizedItem` and asserts the exact bytes returned by `serialize_items_for_prompt([item])`. Pin both the key order (`{"id": 1, "category": ..., "source": ..., "title": ..., "summary": ..., "url": ..., "ts": ...}`) and the timestamp format (`"+00:00"` not `"Z"`). The PBT shape test does NOT cover this — it only checks the key set, not the order or whitespace.
+- **Effort**: ~15 min including a 2-3 line test addition.
+- **Priority Reasoning**: Medium — the determinism assumption is currently correct but undocumented; the FakeClaudeRunner architecture depends on it. Cheap to pin.
+
+#### DEBT-002: No date sanity bounds on `target_date` / `published_at` (project-wide)
+
+- **Created**: 2026-04-27
+- **Resolved**: 2026-05-03 — Added `validate_target_date_sanity()` at the orchestrator boundary with `2024-01-01 <= target_date <= today(UTC)+1`; wired it into `run_pipeline()` and `INVESTO_TARGET_DATE` override parsing so malformed manual backfill dates fail before publish. Added an aggregator-level future timestamp guard that drops source items whose `published_at` is more than 30 days after the fetch window and logs a warning.
+- **Source**: Code review of `src/investo/models/briefing.py` (Step 3); same pattern in `items.py`
+- **Reference**: US-005 (scheduled execution), FR-006 (archival)
+- **Description**: `Briefing.target_date`, `BriefingNotification.target_date`, and `NormalizedItem.published_at` accepted any valid date — including far-future (`date(2206, 4, 27)`) or pre-epoch values. A typo upstream could commit nonsensical archive paths or stamp items with bad timestamps.
+- **Suggested Fix**: Add sanity bounds at the **orchestrator** boundary (`resolve_target_date`) rather than in the models, since the models are also used in historical replays where wider bounds may be needed. Concrete check: `2024-01-01 <= target_date <= today + 1`. For Source Adapters, reject items whose `published_at` is more than 30 days in the future.
+- **Effort**: ~15 min in u5 orchestrator; ~10 min in u1 sources base.
+- **Priority Reasoning**: Medium — defensive only; catches upstream typos before writing archive paths or sending future-dated items downstream.
 
 #### DEBT-001: `Briefing` model lacks `disclaimer ∈ rendered_markdown` invariant
 
