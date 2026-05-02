@@ -48,7 +48,7 @@ def _briefing(target_date: date = _TARGET) -> Briefing:
         notable_tickers="종목",
         today_watch="관전 포인트",
         disclaimer="투자 자문이 아닙니다",
-        rendered_markdown="## ① 요약\n요약 본문\n\n... 면책조항 ...",
+        rendered_markdown="## ① 요약\n요약 본문\n\n투자 자문이 아닙니다",
     )
 
 

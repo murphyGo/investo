@@ -7,7 +7,7 @@ Pins FD L6.4 + R13 (secret handling) + AC-3.6 (extension 2026-05-01):
 * AC-3.6 — missing/empty FRED_API_KEY → SourceFetchError(transient=False)
 * R13 — secret-hygiene: api_key never appears in error messages,
   ``raw_metadata``, or test-captured log output.
-* L6.4 — widened R7 window (35-day lookback), "." placeholder
+* L6.4 — widened R7 window (65-day lookback), "." placeholder
   fall-through, delta computation against prior valid observation.
 * R12 — `INVESTO_FRED_SERIES` env-var override.
 """
@@ -35,7 +35,7 @@ _DFF_FIXTURE = _FIXTURE_DIR / "DFF.json"
 _SENTINEL_KEY = "REDACTED_KEY_VALUE_12345_DO_NOT_LEAK"
 
 # Recorded fixture observation dates are early-to-mid April 2026,
-# inside the 35-day lookback when target_date = 2026-05-01.
+# inside the 65-day lookback when target_date = 2026-05-01.
 _WINDOW = FetchWindow.from_kst_date(date(2026, 5, 1))
 
 
@@ -238,9 +238,9 @@ async def test_cpi_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "311.054" in item.title
     assert "+0.4210" in item.title
     assert item.raw_metadata["series_id"] == "CPIAUCSL"
-    assert item.raw_metadata["value"] == "311.054"
+    assert item.raw_metadata["value"] == "311.054000"
     assert item.raw_metadata["release_date"] == "2026-04-01"
-    assert item.raw_metadata["previous_value"] == "310.633"
+    assert item.raw_metadata["previous_value"] == "310.633000"
     assert item.raw_metadata["previous_release_date"] == "2026-03-01"
     assert str(item.url) == "https://fred.stlouisfed.org/series/CPIAUCSL"
     # 2026-04-01 NY midnight (EDT, UTC-4) → 2026-04-01 04:00 UTC
@@ -262,7 +262,7 @@ async def test_unrate_placeholder_falls_through(
         items = await adapter.fetch(client, _WINDOW)
     assert len(items) == 1
     item = items[0]
-    assert item.raw_metadata["value"] == "4.1"
+    assert item.raw_metadata["value"] == "4.100000"
     assert item.raw_metadata["release_date"] == "2026-03-01"
     assert "previous_value" not in item.raw_metadata
     assert "n/a" in item.title
@@ -280,7 +280,7 @@ async def test_dff_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
     async with client:
         items = await adapter.fetch(client, _WINDOW)
     assert len(items) == 1
-    assert items[0].raw_metadata["value"] == "5.33"
+    assert items[0].raw_metadata["value"] == "5.330000"
     assert "+0.0000" in items[0].title
 
 
@@ -346,14 +346,14 @@ async def test_all_placeholder_series_dropped(
 
 
 # ---------------------------------------------------------------------------
-# Widened window (35-day lookback)
+# Widened window (65-day lookback)
 # ---------------------------------------------------------------------------
 
 
 async def test_old_observation_outside_lookback_dropped(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Observation 60 days before target_date — outside 35d lookback
+    # Observation roughly 90 days before target_date — outside 65d lookback
     # → adapter emits nothing.
     _set_key(monkeypatch)
     _override_series(monkeypatch, "OLD")
@@ -377,7 +377,7 @@ async def test_old_observation_outside_lookback_dropped(
 async def test_observation_at_lookback_boundary_included(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Observation exactly 30 days before target — inside 35d window.
+    # Observation exactly 30 days before target — inside 65d window.
     _set_key(monkeypatch)
     _override_series(monkeypatch, "BOUNDARY")
     body = json.dumps(

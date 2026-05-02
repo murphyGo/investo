@@ -47,17 +47,20 @@ def _build_briefing(*, with_disclaimer: bool = True) -> Briefing:
         "## ⑥ 오늘의 관전 포인트\n관전 포인트\n\n"
     )
     rendered = body + (DISCLAIMER if with_disclaimer else "no disclaimer here")
-    return Briefing(
-        target_date=_TARGET_DATE,
-        market_summary="요약",
-        key_issues="이슈",
-        sector_flow="섹터",
-        indicators_events="지표",
-        notable_tickers="종목",
-        today_watch="관전",
-        disclaimer=DISCLAIMER,
-        rendered_markdown=rendered,
-    )
+    kwargs = {
+        "target_date": _TARGET_DATE,
+        "market_summary": "요약",
+        "key_issues": "이슈",
+        "sector_flow": "섹터",
+        "indicators_events": "지표",
+        "notable_tickers": "종목",
+        "today_watch": "관전",
+        "disclaimer": DISCLAIMER,
+        "rendered_markdown": rendered,
+    }
+    if not with_disclaimer:
+        return Briefing.model_construct(**kwargs)
+    return Briefing(**kwargs)
 
 
 @pytest.fixture

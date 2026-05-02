@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 5 | 2026-04-27 |
+| Medium | 3 | 2026-04-29 |
 | Low | 16 | 2026-04-27 |
 
 ---
@@ -22,16 +22,6 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
-
-#### DEBT-001: `Briefing` model lacks `disclaimer ∈ rendered_markdown` invariant
-
-- **Created**: 2026-04-27
-- **Source**: Code review of `src/investo/models/briefing.py` (Step 3)
-- **Reference**: NFR-004 (compliance / disclaimer enforcement)
-- **Description**: The `Briefing` pydantic model permits a state where `disclaimer` text is not actually present in `rendered_markdown`. Today the only enforcement is `publisher.verify_disclaimer` (called pre-publish). Defense-in-depth would shift the guarantee one layer earlier — into the data model — so the bug class becomes impossible by construction.
-- **Suggested Fix**: Add a `model_validator(mode="after")` on `Briefing` that asserts `self.disclaimer.strip() in self.rendered_markdown`. Trade-off: rejects ambiguous test fixtures that pass section text without re-running the rendering pipeline. Either weaken the check (substring of the disclaimer's first line) or update fixtures to always pass full rendered markdown.
-- **Effort**: ~30 min including fixing fixtures
-- **Priority Reasoning**: Medium — not yet a real bug because the publisher guard exists, but if anyone ever bypasses the publisher path (e.g., direct unit-tests, future replays, ADR'd alternate flow), the guard disappears.
 
 #### DEBT-002: No date sanity bounds on `target_date` / `published_at` (project-wide)
 
@@ -52,20 +42,6 @@ _No high priority items._
 - **Suggested Fix**: Add a snapshot test in `test_pipeline_unit.py` that constructs a known `NormalizedItem` and asserts the exact bytes returned by `serialize_items_for_prompt([item])`. Pin both the key order (`{"id": 1, "category": ..., "source": ..., "title": ..., "summary": ..., "url": ..., "ts": ...}`) and the timestamp format (`"+00:00"` not `"Z"`). The PBT shape test does NOT cover this — it only checks the key set, not the order or whitespace.
 - **Effort**: ~15 min including a 2-3 line test addition.
 - **Priority Reasoning**: Medium — the determinism assumption is currently correct but undocumented; the FakeClaudeRunner architecture depends on it. Cheap to pin.
-
-#### DEBT-028: `raw_metadata` numeric serialization is inconsistent across u1 adapters
-
-- **Created**: 2026-05-01
-- **Source**: Cross-cutting sub-agent code review of u1 sources extension Step 5.7 (M1)
-- **Reference**: NFR-005 (consistency across symmetric components), R8 (NormalizedItem field rules), R9 (idempotence)
-- **Description**: The 3 new u1 adapters use 3 different float-to-string idioms for `NormalizedItem.raw_metadata` values:
-  - `yfinance.py` — `f"{value:.4f}"` for OHLC, `str(int)` for volume
-  - `coingecko.py` — `f"{price:.6f}"` / `f"{pct:.6f}"` for prices+pct, `f"{value:.2f}"` for volume/market_cap
-  - `fred.py` — `f"{value}"` (bare repr; depends on Python's float-to-str default)
-  Two issues compound: (a) the bare `f"{value}"` in FRED can drift between Python releases or with payload type (`f"{1.0}"` → `"1.0"` vs `f"{1}"` → `"1"`); (b) cross-adapter, identical numerics serialize to different strings (e.g., `1.5` becomes `"1.5000"` in yfinance, `"1.500000"` in coingecko, `"1.5"` in fred). R9 (idempotence — same source state → equal items) is technically satisfied within each adapter but the cross-adapter inconsistency means u2's downstream prompt sees jagged data.
-- **Suggested Fix**: Add a `_format_numeric()` helper to `src/investo/sources/_config.py` (or a new `_format.py` if scope grows): `format_float(v) -> str` (fixed precision, e.g. 6 decimals), `format_int(v) -> str`. Update all 3 adapters to call the helpers. Bonus: the helper becomes the canonical place to add NaN/inf handling if a future adapter needs it.
-- **Effort**: ~30 min including helper + 3 adapter call-site updates + test fixture string updates (the existing tests pin exact strings like `"272.255"` / `"4.1"` and would need adjustment).
-- **Priority Reasoning**: Medium — not breaking anything today (each adapter's tests pass with their own format), but will surface as soon as a 4th adapter author has to choose between the 3 existing styles, OR when u2 starts grouping items by category and the cross-adapter inconsistency becomes visible in the LLM prompt. Address before the next adapter lands.
 
 #### DEBT-012: `_truncate_stderr` helper duplicated across u2 + u3 errors modules
 
@@ -365,6 +341,32 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-001: `Briefing` model lacks `disclaimer ∈ rendered_markdown` invariant
+
+- **Created**: 2026-04-27
+- **Resolved**: 2026-05-03 — Added a `model_validator(mode="after")` on `Briefing` that rejects instances whose stripped `disclaimer` is absent from `rendered_markdown`. Added a model-level regression test and updated publisher/orchestrator failure-path tests that intentionally need malformed Briefing objects to use `Briefing.model_construct(...)` explicitly.
+- **Source**: Code review of `src/investo/models/briefing.py` (Step 3)
+- **Reference**: NFR-004 (compliance / disclaimer enforcement)
+- **Description**: The `Briefing` pydantic model permitted a state where `disclaimer` text was not actually present in `rendered_markdown`. The only enforcement was `publisher.verify_disclaimer` (called pre-publish). Defense-in-depth shifted the guarantee one layer earlier — into the data model — so normal construction cannot represent that invalid state.
+- **Suggested Fix**: Add a `model_validator(mode="after")` on `Briefing` that asserts `self.disclaimer.strip() in self.rendered_markdown`. Trade-off: rejects ambiguous test fixtures that pass section text without re-running the rendering pipeline. Tests that deliberately exercise publisher failure paths should bypass validation with `model_construct` to make the malformed fixture explicit.
+- **Effort**: ~30 min including fixing fixtures
+- **Priority Reasoning**: Medium — not yet a real bug because the publisher guard existed, but if anyone ever bypassed the publisher path (e.g., direct unit-tests, future replays, ADR'd alternate flow), the guard disappeared.
+
+#### DEBT-028: `raw_metadata` numeric serialization is inconsistent across u1 adapters
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-03 — Added canonical `format_float()` / `format_int()` helpers to `src/investo/sources/_config.py`; updated yfinance, CoinGecko, and FRED numeric `raw_metadata` call sites to use fixed six-decimal float formatting and plain integer formatting. Added helper tests, updated adapter expectation tests, and verified the targeted source test suite.
+- **Source**: Cross-cutting sub-agent code review of u1 sources extension Step 5.7 (M1)
+- **Reference**: NFR-005 (consistency across symmetric components), R8 (NormalizedItem field rules), R9 (idempotence)
+- **Description**: The 3 new u1 adapters used 3 different float-to-string idioms for `NormalizedItem.raw_metadata` values:
+  - `yfinance.py` — `f"{value:.4f}"` for OHLC, `str(int)` for volume
+  - `coingecko.py` — `f"{price:.6f}"` / `f"{pct:.6f}"` for prices+pct, `f"{value:.2f}"` for volume/market_cap
+  - `fred.py` — `f"{value}"` (bare repr; depends on Python's float-to-str default)
+  Two issues compounded: (a) the bare `f"{value}"` in FRED could drift between Python releases or with payload type (`f"{1.0}"` → `"1.0"` vs `f"{1}"` → `"1"`); (b) cross-adapter, identical numerics serialized to different strings (e.g., `1.5` became `"1.5000"` in yfinance, `"1.500000"` in coingecko, `"1.5"` in fred). R9 (idempotence — same source state → equal items) was technically satisfied within each adapter but the cross-adapter inconsistency meant u2's downstream prompt saw jagged data.
+- **Suggested Fix**: Add a `_format_numeric()` helper to `src/investo/sources/_config.py` (or a new `_format.py` if scope grows): `format_float(v) -> str` (fixed precision, e.g. 6 decimals), `format_int(v) -> str`. Update all 3 adapters to call the helpers. Bonus: the helper becomes the canonical place to add NaN/inf handling if a future adapter needs it.
+- **Effort**: ~30 min including helper + 3 adapter call-site updates + test fixture string updates.
+- **Priority Reasoning**: Medium — not breaking anything today (each adapter's tests pass with their own format), but would surface as soon as a 4th adapter author had to choose between the 3 existing styles, OR when u2 starts grouping items by category and the cross-adapter inconsistency becomes visible in the LLM prompt. Addressed before the next adapter lands.
 
 #### DEBT-031: `_NS_DC_CREATOR` namespace constant duplicated across 2 news adapters
 

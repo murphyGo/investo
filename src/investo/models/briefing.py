@@ -13,8 +13,9 @@ Reference: aidlc-docs/inception/application-design/component-methods.md
 from __future__ import annotations
 
 from datetime import date
+from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, model_validator
 
 from investo.models._validators import reject_blank_preserve
 
@@ -62,6 +63,14 @@ class Briefing(BaseModel):
         # Markdown sections legitimately carry leading/trailing newlines
         # so we preserve the value rather than stripping it.
         return reject_blank_preserve(value)
+
+    @model_validator(mode="after")
+    def _validate_disclaimer_in_rendered_markdown(self) -> Self:
+        """Enforce NFR-004 one layer before publisher verification."""
+
+        if self.disclaimer.strip() not in self.rendered_markdown:
+            raise ValueError("disclaimer must be present in rendered_markdown")
+        return self
 
 
 class BriefingNotification(BaseModel):

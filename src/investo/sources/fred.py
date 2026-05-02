@@ -48,7 +48,7 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
+from investo.sources._config import SUMMARY_MAX_LEN, format_float, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -208,11 +208,11 @@ class FredMacroAdapter:
 
         raw_metadata: dict[str, str] = {
             "series_id": series_id,
-            "value": f"{latest_value}",
+            "value": format_float(latest_value),
             "release_date": latest_date_str,
         }
         if prior_value is not None and prior_date_str is not None:
-            raw_metadata["previous_value"] = f"{prior_value}"
+            raw_metadata["previous_value"] = format_float(prior_value)
             raw_metadata["previous_release_date"] = prior_date_str
 
         try:

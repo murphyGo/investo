@@ -43,17 +43,20 @@ def _briefing_with_disclaimer(*, include_disclaimer: bool = True) -> Briefing:
         "## ⑥ 오늘의 관전 포인트\n관전\n\n"
     )
     rendered = body + (DISCLAIMER if include_disclaimer else "## ⑦ 면책조항\n없음")
-    return Briefing(
-        target_date=_TARGET,
-        market_summary="요약 본문",
-        key_issues="핵심 이슈",
-        sector_flow="섹터",
-        indicators_events="지표",
-        notable_tickers="종목",
-        today_watch="관전",
-        disclaimer=DISCLAIMER if include_disclaimer else "없음",
-        rendered_markdown=rendered,
-    )
+    kwargs = {
+        "target_date": _TARGET,
+        "market_summary": "요약 본문",
+        "key_issues": "핵심 이슈",
+        "sector_flow": "섹터",
+        "indicators_events": "지표",
+        "notable_tickers": "종목",
+        "today_watch": "관전",
+        "disclaimer": DISCLAIMER if include_disclaimer else "없음",
+        "rendered_markdown": rendered,
+    }
+    if not include_disclaimer:
+        return Briefing.model_construct(**kwargs)
+    return Briefing(**kwargs)
 
 
 class _SuccessfulGitRunner:

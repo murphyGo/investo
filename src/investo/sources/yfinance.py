@@ -44,7 +44,7 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
+from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -212,12 +212,12 @@ class YFinancePriceAdapter:
 
         raw_metadata: dict[str, str] = {
             "ticker": ticker,
-            "open": f"{open_:.4f}",
-            "high": f"{high:.4f}",
-            "low": f"{low:.4f}",
-            "close": f"{close:.4f}",
-            "volume": str(volume),
-            "prev_close": f"{prev_close:.4f}" if prev_close else "",
+            "open": format_float(open_),
+            "high": format_float(high),
+            "low": format_float(low),
+            "close": format_float(close),
+            "volume": format_int(volume),
+            "prev_close": format_float(prev_close) if prev_close else "",
         }
 
         try:

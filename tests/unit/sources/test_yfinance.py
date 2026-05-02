@@ -103,7 +103,7 @@ async def test_title_and_summary_format_from_real_fixture(
     assert item.title.startswith("AAPL ")
     assert "272.26" in item.title or "272.25" in item.title
     assert "(+0.77%)" in item.title
-    assert item.raw_metadata["prev_close"] == "270.1700"
+    assert item.raw_metadata["prev_close"] == "270.170013"
     assert item.summary is not None
     assert item.summary.startswith("O:")
     assert "C:" in item.summary
@@ -230,7 +230,7 @@ async def test_null_latest_day_falls_through_to_prior(
         items = await adapter.fetch(client, _WINDOW)
     assert len(items) == 1
     item = items[0]
-    assert item.raw_metadata["close"] == "105.5000"
+    assert item.raw_metadata["close"] == "105.500000"
     # prev close = day 0's close (100.5), pct = (105.5 - 100.5) / 100.5 * 100
     assert "+4.98%" in item.title
 
@@ -272,7 +272,7 @@ async def test_missing_prev_close_uses_chart_previous_close(
     assert len(items) == 1
     # pct = (110 - 100) / 100 * 100 = +10%
     assert "+10.00%" in items[0].title
-    assert items[0].raw_metadata["prev_close"] == "100.0000"
+    assert items[0].raw_metadata["prev_close"] == "100.000000"
 
 
 # ---------------------------------------------------------------------------

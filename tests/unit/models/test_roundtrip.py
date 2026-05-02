@@ -103,6 +103,24 @@ _TELEGRAM_SAFE_SUMMARY = st.text(
     max_size=TELEGRAM_MESSAGE_LIMIT,
 ).filter(lambda s: bool(s.strip()))
 
+
+@st.composite
+def _briefings(draw: st.DrawFn) -> Briefing:
+    disclaimer = draw(_PRINTABLE_TEXT)
+    body = draw(_PRINTABLE_TEXT)
+    return Briefing(
+        target_date=draw(_DATES),
+        market_summary=draw(_PRINTABLE_TEXT),
+        key_issues=draw(_PRINTABLE_TEXT),
+        sector_flow=draw(_PRINTABLE_TEXT),
+        indicators_events=draw(_PRINTABLE_TEXT),
+        notable_tickers=draw(_PRINTABLE_TEXT),
+        today_watch=draw(_PRINTABLE_TEXT),
+        disclaimer=disclaimer,
+        rendered_markdown=f"{body}\n\n{disclaimer}",
+    )
+
+
 # Traceback excerpt is optional and capped at 2000.
 _TRACEBACK_EXCERPT = st.one_of(
     st.none(),
@@ -152,20 +170,7 @@ def test_normalized_item_roundtrip(item: NormalizedItem) -> None:
 # ---------------------------------------------------------------------------
 
 
-@given(
-    st.builds(
-        Briefing,
-        target_date=_DATES,
-        market_summary=_PRINTABLE_TEXT,
-        key_issues=_PRINTABLE_TEXT,
-        sector_flow=_PRINTABLE_TEXT,
-        indicators_events=_PRINTABLE_TEXT,
-        notable_tickers=_PRINTABLE_TEXT,
-        today_watch=_PRINTABLE_TEXT,
-        disclaimer=_PRINTABLE_TEXT,
-        rendered_markdown=_PRINTABLE_TEXT,
-    )
-)
+@given(_briefings())
 @PBT_SETTINGS
 def test_briefing_roundtrip(briefing: Briefing) -> None:
     _assert_roundtrip(briefing)

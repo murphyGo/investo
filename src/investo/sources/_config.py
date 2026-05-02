@@ -27,6 +27,7 @@ fail-safe.
 
 from __future__ import annotations
 
+import math
 import os
 from typing import Final
 
@@ -48,3 +49,23 @@ def parse_symbol_list(env_var_name: str, defaults: tuple[str, ...]) -> tuple[str
     if not tokens:
         return defaults
     return tokens
+
+
+def format_float(value: float, *, precision: int = 6) -> str:
+    """Format raw-metadata floats consistently across source adapters.
+
+    R8 requires ``raw_metadata`` values to be strings; R9 needs stable
+    serialization for idempotence. Rejecting NaN/inf keeps non-finite
+    upstream payloads from leaking inconsistent platform spellings into
+    downstream prompts.
+    """
+
+    if not math.isfinite(value):
+        raise ValueError(f"non-finite numeric value: {value!r}")
+    return f"{value:.{precision}f}"
+
+
+def format_int(value: int) -> str:
+    """Format integer raw-metadata values consistently."""
+
+    return str(value)

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from investo.sources._config import parse_symbol_list
+from investo.sources._config import format_float, format_int, parse_symbol_list
 
 _DEFAULTS: tuple[str, ...] = ("AAPL", "MSFT", "GOOGL")
 _ENV = "INVESTO_TEST_TICKERS"
@@ -83,3 +83,17 @@ def test_defaults_not_mutated_by_override(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setenv(_ENV, "AAPL,MSFT")
     parse_symbol_list(_ENV, _DEFAULTS)
     assert _DEFAULTS == ("AAPL", "MSFT", "GOOGL")
+
+
+def test_format_float_uses_canonical_six_decimal_places() -> None:
+    assert format_float(1.5) == "1.500000"
+    assert format_float(311.054) == "311.054000"
+
+
+def test_format_float_rejects_non_finite_values() -> None:
+    with pytest.raises(ValueError):
+        format_float(float("nan"))
+
+
+def test_format_int_uses_plain_decimal_string() -> None:
+    assert format_int(1_100_000) == "1100000"

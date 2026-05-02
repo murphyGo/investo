@@ -34,7 +34,7 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
+from investo.sources._config import SUMMARY_MAX_LEN, format_float, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -148,12 +148,12 @@ class CoinGeckoPriceAdapter:
         raw_metadata: dict[str, str] = {
             "coin_id": coin_id,
             "symbol": symbol,
-            "price_usd": f"{float(price):.6f}",
-            "pct_24h": f"{pct:.6f}",
-            "volume_24h": f"{float(volume_24h):.2f}",
-            "market_cap": f"{float(market_cap):.2f}",
-            "high_24h": f"{float(high_24h):.6f}",
-            "low_24h": f"{float(low_24h):.6f}",
+            "price_usd": format_float(float(price)),
+            "pct_24h": format_float(pct),
+            "volume_24h": format_float(float(volume_24h)),
+            "market_cap": format_float(float(market_cap)),
+            "high_24h": format_float(float(high_24h)),
+            "low_24h": format_float(float(low_24h)),
         }
 
         try:

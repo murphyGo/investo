@@ -382,7 +382,7 @@ async def test_run_pipeline_publisher_disclaimer_error_fails_with_alert(
     ) -> Briefing:
         # Construct a Briefing with rendered_markdown that does NOT
         # include the canonical DISCLAIMER substring.
-        return Briefing(
+        return Briefing.model_construct(
             target_date=target_date,
             market_summary="x",
             key_issues="x",

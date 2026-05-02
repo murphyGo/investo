@@ -87,6 +87,11 @@ def test_whitespace_only_section_rejected(field: str) -> None:
         Briefing(**_briefing_kwargs(**{field: "   \n  "}))
 
 
+def test_disclaimer_must_be_present_in_rendered_markdown() -> None:
+    with pytest.raises(ValidationError, match="disclaimer must be present"):
+        Briefing(**_briefing_kwargs(rendered_markdown="# Briefing\n\nbody only"))
+
+
 # ---------------------------------------------------------------------------
 # Briefing — frozen + extra field
 # ---------------------------------------------------------------------------
