@@ -28,6 +28,10 @@ fail-safe.
 from __future__ import annotations
 
 import os
+from typing import Final
+
+# Per-item summary truncation cap (R8 NormalizedItem field rules — keeps LLM prompt bounded).
+SUMMARY_MAX_LEN: Final[int] = 280
 
 
 def parse_symbol_list(env_var_name: str, defaults: tuple[str, ...]) -> tuple[str, ...]:

@@ -60,13 +60,13 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
-_SUMMARY_MAX_LEN = 280
 _ALLOWED_SCHEMES = ("http", "https")
 
 
@@ -153,8 +153,8 @@ class CnbcTopNewsAdapter:
             return None
         description_raw = (entry.findtext("description") or "").strip()
         summary = strip_html(description_raw) or None
-        if summary and len(summary) > _SUMMARY_MAX_LEN:
-            summary = summary[:_SUMMARY_MAX_LEN]
+        if summary and len(summary) > SUMMARY_MAX_LEN:
+            summary = summary[:SUMMARY_MAX_LEN]
 
         # raw_metadata: provenance bag (R8 — strings only, no nesting).
         # Per FD L6.9: ``guid`` only. The CNBC feed has no <creator>

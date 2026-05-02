@@ -44,14 +44,13 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import parse_symbol_list
+from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _NY = ZoneInfo("America/New_York")
-_SUMMARY_MAX_LEN = 280
 _ENV_TICKERS = "INVESTO_YFINANCE_TICKERS"
 
 
@@ -208,8 +207,8 @@ class YFinancePriceAdapter:
 
         title = f"{ticker} {close:,.2f} ({pct:+.2f}%)"
         summary = f"O:{open_:,.2f} H:{high:,.2f} L:{low:,.2f} C:{close:,.2f} V:{volume:,}"
-        if len(summary) > _SUMMARY_MAX_LEN:
-            summary = summary[:_SUMMARY_MAX_LEN]
+        if len(summary) > SUMMARY_MAX_LEN:
+            summary = summary[:SUMMARY_MAX_LEN]
 
         raw_metadata: dict[str, str] = {
             "ticker": ticker,

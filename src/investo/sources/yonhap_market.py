@@ -58,15 +58,15 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
+from investo.sources._xml_namespaces import DC_CREATOR
 from investo.sources.protocol import SourceFetchError
 
-_SUMMARY_MAX_LEN = 280
 _ALLOWED_SCHEMES = ("http", "https")
-_NS_DC_CREATOR = "{http://purl.org/dc/elements/1.1/}creator"
 
 
 @register
@@ -145,8 +145,8 @@ class YonhapMarketAdapter:
             return None
         description_raw = (entry.findtext("description") or "").strip()
         summary = strip_html(description_raw) or None
-        if summary and len(summary) > _SUMMARY_MAX_LEN:
-            summary = summary[:_SUMMARY_MAX_LEN]
+        if summary and len(summary) > SUMMARY_MAX_LEN:
+            summary = summary[:SUMMARY_MAX_LEN]
 
         # raw_metadata: provenance bag (R8 — strings only, no nesting).
         # <dc:creator> is OPTIONAL per FD L6.7 — the key is OMITTED
@@ -155,7 +155,7 @@ class YonhapMarketAdapter:
         guid = (entry.findtext("guid") or "").strip()
         if guid:
             raw_metadata["guid"] = guid
-        creator_raw = entry.findtext(_NS_DC_CREATOR)
+        creator_raw = entry.findtext(DC_CREATOR)
         if creator_raw is not None:
             creator = creator_raw.strip()
             if creator:

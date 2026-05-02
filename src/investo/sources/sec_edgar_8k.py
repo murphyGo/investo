@@ -55,6 +55,7 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -81,7 +82,6 @@ _TITLE_REGEX: Final[re.Pattern[str]] = re.compile(
 _ITEM_CODE_REGEX: Final[re.Pattern[str]] = re.compile(r"Item \d+\.\d+")
 _ACCESSION_REGEX: Final[re.Pattern[str]] = re.compile(r"AccNo:\s*(\S+)")
 
-_SUMMARY_MAX_LEN = 280
 _ALLOWED_SCHEMES = ("http", "https")
 
 
@@ -195,8 +195,8 @@ class SecEdgar8kAdapter:
         if not title:
             return None
         summary: str | None = summary_text or None
-        if summary and len(summary) > _SUMMARY_MAX_LEN:
-            summary = summary[:_SUMMARY_MAX_LEN]
+        if summary and len(summary) > SUMMARY_MAX_LEN:
+            summary = summary[:SUMMARY_MAX_LEN]
 
         raw_metadata: dict[str, str] = {
             "accession_no": accession_no,

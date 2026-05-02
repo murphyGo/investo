@@ -1,5 +1,23 @@
 # AI-DLC Audit Log
 
+## Construction — u1 sources — DEBT-031 + DEBT-032 RESOLVED (constant dedup cleanup)
+**Timestamp**: 2026-05-01T08:00:00Z
+**Trigger**: User requested "DEBT-031 + DEBT-032 처리" (one consolidated cleanup pass) after Extension #3 closeout (commit `6cf04d0`).
+**Resolution**:
+- DEBT-031: `_NS_DC_CREATOR = "{http://purl.org/dc/elements/1.1/}creator"` extracted from `yonhap_market.py` + `theblock_crypto.py` to new `src/investo/sources/_xml_namespaces.py` module exporting `DC_CREATOR: Final[str]`. Both adapters now import it. New module documented as canonical home for any future RSS/Atom/Dublin-Core namespace constants (don't pre-add unused ones).
+- DEBT-032: `_SUMMARY_MAX_LEN = 280` (was duplicated in 8 adapter files: cnbc_top_news, coingecko, fomc_rss, fred, sec_edgar_8k, theblock_crypto, yfinance, yonhap_market) lifted to `src/investo/sources/_config.py` as `SUMMARY_MAX_LEN: Final[int] = 280`. All 8 adapters now import the constant. Reused the existing `_config.py` instead of creating a new `_limits.py` per the user's "minimal scope" guidance. `yahoo_finance_news.py` correctly excluded (predates the truncation pattern; no use-site).
+**Files**:
+- New: `src/investo/sources/_xml_namespaces.py` (10 LOC)
+- Modified: `_config.py` + 9 adapter files = 10 src files; net `-7 LOC` in `src/investo/sources/`
+- DEBTs marked Resolved in `docs/TECH-DEBT.md`; summary table Medium 7→5
+**Quality gate**: ruff ✅ / ruff format ✅ / mypy --strict ✅ (47 src files; was 46) / pytest 864/864 (no test changes — pure refactor)
+**QA verdict (Phase 2)**: PASS (one-paragraph verification; zero leftover references; imports alpha-sorted; new module conforms to spec).
+**DEBT-033 + DEBT-034 status**: deferred per user's "stay tight on these two" constraint. Remain Low priority in the registry.
+**Status**: DEBT-031 + DEBT-032 closed. Single source of truth for both `DC_CREATOR` and `SUMMARY_MAX_LEN`. Future news adapter authors automatically inherit the canonical constants.
+**Context**: Cleanup pass between extensions; not a new AIDLC stage. Demonstrates the team pattern's value for pure refactor — small change, single dispatch chain, audited and closed in one cycle.
+
+---
+
 ## Construction — u1 sources — Extension #3 CLOSED (3 general news adapters)
 **Timestamp**: 2026-05-01T07:00:00Z
 **Trigger**: Phase 1-4 of u1-sources-extension-2026-05-news-2 plan completed.

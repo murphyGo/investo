@@ -34,13 +34,12 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import parse_symbol_list
+from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
-_SUMMARY_MAX_LEN = 280
 _ENV_COINS = "INVESTO_COINGECKO_COINS"
 
 
@@ -143,8 +142,8 @@ class CoinGeckoPriceAdapter:
             f"high: ${float(high_24h):,.2f}; "
             f"low: ${float(low_24h):,.2f}"
         )
-        if len(summary) > _SUMMARY_MAX_LEN:
-            summary = summary[:_SUMMARY_MAX_LEN]
+        if len(summary) > SUMMARY_MAX_LEN:
+            summary = summary[:SUMMARY_MAX_LEN]
 
         raw_metadata: dict[str, str] = {
             "coin_id": coin_id,

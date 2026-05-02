@@ -48,14 +48,13 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import parse_symbol_list
+from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _NY = ZoneInfo("America/New_York")
-_SUMMARY_MAX_LEN = 280
 _LOOKBACK_DAYS = 65
 _ENV_SERIES = "INVESTO_FRED_SERIES"
 _ENV_KEY = "FRED_API_KEY"
@@ -204,8 +203,8 @@ class FredMacroAdapter:
                 f"{series_id}: latest={latest_value} "
                 f"({latest_date_str}); no prior observation in window"
             )
-        if len(summary) > _SUMMARY_MAX_LEN:
-            summary = summary[:_SUMMARY_MAX_LEN]
+        if len(summary) > SUMMARY_MAX_LEN:
+            summary = summary[:SUMMARY_MAX_LEN]
 
         raw_metadata: dict[str, str] = {
             "series_id": series_id,
