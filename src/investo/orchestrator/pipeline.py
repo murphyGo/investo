@@ -82,6 +82,7 @@ from investo.models import (
     PipelineStatus,
     SendResult,
 )
+from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.notifier import BriefingPublisher, OperatorAlerter, build_summary
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
@@ -94,13 +95,6 @@ from investo.publisher import (
     write_briefing,
 )
 from investo.sources import fetch_all as _default_fetch_all
-
-# Cap traceback excerpts at the FailureContext model's own limit so
-# alert formatting never overflows. The model has its own
-# ``traceback_excerpt`` validator (max 2000 chars); we mirror the
-# constraint here so we excerpt to the minimum first and avoid a
-# surprising ``ValidationError`` at construction.
-_TRACEBACK_EXCERPT_MAX_CHARS = 2000
 
 # Single ``HttpUrl`` adapter — pydantic v2 doesn't expose ``HttpUrl``
 # as directly callable; the TypeAdapter avoids constructing a fresh
@@ -424,9 +418,9 @@ def _truncate_excerpt(text: str | None) -> str | None:
     """Truncate to the FailureContext-validator-safe limit."""
     if text is None:
         return None
-    if len(text) <= _TRACEBACK_EXCERPT_MAX_CHARS:
+    if len(text) <= TRACEBACK_EXCERPT_MAX:
         return text
-    return text[:_TRACEBACK_EXCERPT_MAX_CHARS]
+    return text[:TRACEBACK_EXCERPT_MAX]
 
 
 def _build_failure_context(

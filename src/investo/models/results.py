@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Literal
+from typing import Final, Literal
 
 from pydantic import (
     BaseModel,
@@ -62,7 +62,7 @@ _DURATION_CEILING_SECONDS = 24 * 60 * 60
 # Cap for ``FailureContext.traceback_excerpt`` so a megabyte-sized stack
 # doesn't blow past Telegram's 4096-unit limit when forwarded to the
 # operator chat. Callers should excerpt before constructing the context.
-_TRACEBACK_EXCERPT_MAX = 2000
+TRACEBACK_EXCERPT_MAX: Final[int] = 2000
 
 
 class PipelineStatus(StrEnum):
@@ -124,7 +124,7 @@ class FailureContext(BaseModel):
     stage: FailureStage
     error_type: str = Field(min_length=1)
     error_message: str = Field(min_length=1)
-    traceback_excerpt: str | None = Field(default=None, max_length=_TRACEBACK_EXCERPT_MAX)
+    traceback_excerpt: str | None = Field(default=None, max_length=TRACEBACK_EXCERPT_MAX)
     occurred_at: datetime
 
     @field_validator("error_type")

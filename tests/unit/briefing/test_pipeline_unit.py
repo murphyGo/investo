@@ -235,6 +235,13 @@ def test_parse_classification_rejects_malformed_json() -> None:
         _parse_classification("not json at all", item_count=1)
 
 
+def test_parse_classification_rejects_oversized_stdout_before_json_parse() -> None:
+    """Oversized Stage 1 output is malformed before it reaches json.loads."""
+    oversized = " " * (64 * 1024 + 1)
+    with pytest.raises(ValueError, match="Stage 1 stdout exceeds"):
+        _parse_classification(oversized, item_count=1)
+
+
 def test_parse_classification_rejects_extra_keys() -> None:
     """``ConfigDict(extra="forbid")`` blocks unknown top-level keys."""
     stdout = json.dumps({"assignments": {"1": 4}, "unassigned": [], "extra_field": "boom"})

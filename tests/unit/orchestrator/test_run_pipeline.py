@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import ast
 import logging
-import re
 import subprocess
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -38,6 +37,7 @@ from investo.models import (
     PipelineStatus,
     SendResult,
 )
+from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.orchestrator.pipeline import (
     _briefing_url_for,
     _build_failure_context,
@@ -801,14 +801,47 @@ def _pipeline_source() -> str:
     return Path(pipe_mod.__file__).read_text(encoding="utf-8")
 
 
+_STAGE_CALL_NAMES = frozenset(
+    {
+        "_stage_collect",
+        "_stage_generate",
+        "_stage_publish",
+        "_stage_notify_briefing",
+    }
+)
+
+
+def _is_stage_call(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id in _STAGE_CALL_NAMES
+    )
+
+
+def _is_asyncio_call(node: ast.AST, name: str) -> bool:
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "asyncio"
+        and node.func.attr == name
+    )
+
+
 def test_pipeline_source_has_no_asyncio_wait_for_on_stages() -> None:
     """AC-001-3: per Q1=A, the orchestrator MUST NOT wrap stage calls
     in ``asyncio.wait_for`` — unit-level timeouts are the contract.
     """
     src = _pipeline_source()
-    pattern = re.compile(r"asyncio\.wait_for\s*\(\s*_stage_")
-    assert pattern.search(src) is None, (
-        "pipeline.py contains asyncio.wait_for(_stage_*) which violates AC-001-3"
+    tree = ast.parse(src)
+    offending = [
+        ast.unparse(node)
+        for node in ast.walk(tree)
+        if _is_asyncio_call(node, "wait_for") and node.args and _is_stage_call(node.args[0])
+    ]
+    assert offending == [], (
+        f"pipeline.py contains asyncio.wait_for(stage_call) which violates AC-001-3: {offending}"
     )
 
 
@@ -822,15 +855,8 @@ def test_pipeline_source_has_no_stage_level_asyncio_gather() -> None:
     tree = ast.parse(src)
     offending: list[str] = []
     for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "gather"
-        ):
-            for arg in node.args:
-                arg_src = ast.unparse(arg)
-                if "_stage_" in arg_src:
-                    offending.append(arg_src)
+        if _is_asyncio_call(node, "gather"):
+            offending.extend(ast.unparse(arg) for arg in node.args if _is_stage_call(arg))
     assert offending == [], (
         f"pipeline.py asyncio.gather wraps stage calls (AC-001-5 violation): {offending}"
     )
@@ -848,10 +874,8 @@ def test_pipeline_source_has_no_orchestrator_level_retry_loops() -> None:
     def _body_calls_stage(body: list[ast.stmt]) -> bool:
         for stmt in body:
             for sub in ast.walk(stmt):
-                if isinstance(sub, ast.Await):
-                    target_src = ast.unparse(sub.value)
-                    if "_stage_" in target_src:
-                        return True
+                if isinstance(sub, ast.Await) and _is_stage_call(sub.value):
+                    return True
         return False
 
     for node in ast.walk(tree):
@@ -879,7 +903,7 @@ def test_build_failure_context_truncates_traceback_at_2000_chars() -> None:
         ctx = _build_failure_context(stage="collect", exc=exc)
 
     assert ctx.traceback_excerpt is not None
-    assert len(ctx.traceback_excerpt) <= 2000
+    assert len(ctx.traceback_excerpt) <= TRACEBACK_EXCERPT_MAX
 
 
 def test_build_failure_context_uses_error_class_name_when_message_empty() -> None:

@@ -12,12 +12,11 @@ multi-line raw string assigned to a constant must trip both.
 
 from __future__ import annotations
 
-import ast
 import inspect
-from types import ModuleType
 
 from investo.briefing import claude_code as cc_module
 from investo.briefing import pipeline as pipeline_module
+from tests._helpers.ast_helpers import executable_source
 
 # Sentinel substrings drawn from the canonical Stage 1 / Stage 2 prompt
 # bodies in ``src/investo/briefing/prompts.py``. If any of these appear
@@ -39,33 +38,6 @@ _PROMPT_SENTINELS: tuple[str, ...] = (
     # string outside ``prompts.py``).
 )
 
-
-def _executable_source(module: ModuleType) -> str:
-    """Return module source with module + class + function docstrings
-    stripped, via ``ast.unparse``. Comments are dropped by the AST round
-    trip too. The result is the executable code the runtime sees — not
-    the prose. Mirrors the helper in ``test_claude_code.py``.
-    """
-    source = inspect.getsource(module)
-    tree = ast.parse(source)
-
-    def strip_docstring(body: list[ast.stmt]) -> None:
-        if (
-            body
-            and isinstance(body[0], ast.Expr)
-            and isinstance(body[0].value, ast.Constant)
-            and isinstance(body[0].value.value, str)
-        ):
-            body.pop(0)
-
-    strip_docstring(tree.body)
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
-            strip_docstring(node.body)
-
-    return ast.unparse(tree)
-
-
 # ---------------------------------------------------------------------------
 # AC-5.2 — pipeline.py contains no prompt body strings
 # ---------------------------------------------------------------------------
@@ -75,7 +47,7 @@ def test_pipeline_executable_source_has_no_prompt_sentinels() -> None:
     """AC-5.2 — none of the canonical prompt sentinel substrings appear
     in the executable source of ``investo.briefing.pipeline``.
     """
-    code = _executable_source(pipeline_module)
+    code = executable_source(pipeline_module)
     offenders = [s for s in _PROMPT_SENTINELS if s in code]
     assert not offenders, (
         f"Prompt body sentinel(s) leaked into pipeline.py executable "
@@ -96,7 +68,7 @@ def test_claude_code_executable_source_has_no_prompt_sentinels() -> None:
     The runner module orchestrates the subprocess but must not encode
     the prompt body itself; prompts flow through it as opaque strings.
     """
-    code = _executable_source(cc_module)
+    code = executable_source(cc_module)
     offenders = [s for s in _PROMPT_SENTINELS if s in code]
     assert not offenders, (
         f"Prompt body sentinel(s) leaked into claude_code.py executable "

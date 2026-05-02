@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import ast
-import inspect
 import re
 import subprocess
-from types import ModuleType
 
 import pytest
 
@@ -19,38 +16,7 @@ from investo.briefing.claude_code import (
     call_claude_code,
 )
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
-
-
-def _executable_source(module: ModuleType) -> str:
-    """Return module source with docstrings + comments stripped.
-
-    Used by the source self-check tests so the AC-2.5 / AC-7.1 grep
-    rules don't false-positive on the docstring's negative-statements
-    (e.g. "Never ``shell=True``") or on the literal env-var name
-    appearing in negation context.
-
-    ``ast.unparse`` drops comments and emits only the executable AST,
-    which is what we want — we're checking the *code*, not the prose.
-    """
-    source = inspect.getsource(module)
-    tree = ast.parse(source)
-
-    def strip_docstring(body: list[ast.stmt]) -> None:
-        if (
-            body
-            and isinstance(body[0], ast.Expr)
-            and isinstance(body[0].value, ast.Constant)
-            and isinstance(body[0].value.value, str)
-        ):
-            body.pop(0)
-
-    strip_docstring(tree.body)
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
-            strip_docstring(node.body)
-
-    return ast.unparse(tree)
-
+from tests._helpers.ast_helpers import executable_source
 
 # --- RetryBudget ------------------------------------------------------------
 
@@ -296,11 +262,11 @@ def test_source_has_no_oauth_token_literal() -> None:
     ``claude`` CLI binary itself; this Python module's *executable
     code* never references it.
 
-    The check uses ``_executable_source`` so the negative-context
+    The check uses ``executable_source`` so the negative-context
     mention in the module docstring ("the OAuth token env var is
     consumed by the CLI, not by us") doesn't trigger a false positive.
     """
-    code = _executable_source(cc)
+    code = executable_source(cc)
     assert "CLAUDE_CODE_OAUTH_TOKEN" not in code
 
 
@@ -310,7 +276,7 @@ def test_source_has_no_shell_true() -> None:
     Docstring may discuss the rule (e.g. "Never ``shell=True``"); the
     grep scopes to executable AST only.
     """
-    code = _executable_source(cc)
+    code = executable_source(cc)
     assert not re.search(r"shell\s*=\s*True", code)
 
 
@@ -318,7 +284,7 @@ def test_source_has_no_string_form_subprocess() -> None:
     """AC-7.1 — never the string-form first arg to ``subprocess.run`` /
     ``subprocess.Popen`` in executable code.
     """
-    code = _executable_source(cc)
+    code = executable_source(cc)
     assert not re.search(r"subprocess\.(run|Popen)\(\s*[\"']", code)
 
 
@@ -326,7 +292,7 @@ def test_source_does_not_import_anthropic_sdk() -> None:
     """NFR-002 invariant — locally pinned belt-and-braces. The
     repo-wide CI grep (Step 10) is the safety net.
     """
-    code = _executable_source(cc)
+    code = executable_source(cc)
     assert not re.search(r"^\s*(from anthropic|import anthropic)", code, re.MULTILINE)
 
 

@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 19 | 2026-04-27 |
+| Low | 15 | 2026-04-27 |
 
 ---
 
@@ -56,16 +56,6 @@ _No medium priority items._
 - **Suggested Fix**: Switch to `asyncio.create_subprocess_exec("claude", "-p", prompt, stdout=PIPE, stderr=PIPE)` for true async cancellation (sends SIGTERM/SIGKILL to the child on cancellation). Trade-off: changes the runner-seam Protocol shape (no more `subprocess.run` signature compatibility); `FakeClaudeRunner` would need a parallel async-mode entry point. Defer until u5 orchestrator's `wait_for` wrapping is finalized.
 - **Effort**: ~2 hours including FakeClaudeRunner refactor + test migration.
 - **Priority Reasoning**: Low — orchestrator does not currently wrap `call_claude_code` in `wait_for` (the per-call timeout is enforced by `subprocess.run` itself, not asyncio). When u5 lands and the wrapping pattern is concrete, re-evaluate; if u5 takes the simpler "no outer wait_for, trust the inner timeout" path, this can be closed without action.
-
-#### DEBT-008: `_parse_classification` does not catch `RecursionError` on adversarial JSON
-
-- **Created**: 2026-04-29
-- **Source**: Step 8.5 sub-agent code review (M2 / Q5) of `pipeline.py`
-- **Reference**: AC-3.2 (failure contract — BGE wraps LLM-traceable failures), AC-3.4 (programmer errors propagate as-is)
-- **Description**: `_parse_classification` calls `json.loads(stdout)` on raw LLM stdout. Default Python `json.loads` raises `RecursionError` (verified) at JSON nesting depth >~1000. `_classify`'s except clause catches `(json.JSONDecodeError, ValidationError, ValueError)` — `RecursionError` is NOT caught and propagates uncaught from `generate_briefing`, bypassing the BGE failure contract. The contract says LLM-traceable failures map to BGE; a recursion-bomb in stdout is logically an LLM failure, not a programmer error.
-- **Suggested Fix**: Either (a) add a cheap `len(stdout) > 64 * 1024` upper-bound check before `json.loads` and route over-cap to retry as a malformed response, or (b) add `RecursionError` to the except tuple in `_classify`. (a) is more defensible — bounds the bytes you parse, not just the failure mode.
-- **Effort**: ~15 min including unit test.
-- **Priority Reasoning**: Low — Claude does not emit deeply-nested JSON in normal operation, and even if it did the failure surface is "uncaught exception in production" rather than data loss or security. Defense-in-depth, not a hot bug.
 
 #### DEBT-010: u2 briefing test helpers duplicated across 4 files
 
@@ -130,26 +120,6 @@ _No medium priority items._
 - **Effort**: ~10 min.
 - **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk.
 
-#### DEBT-017: `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py`
-
-- **Created**: 2026-04-30
-- **Source**: Step 12 sub-agent code review of u5 orchestrator (L1)
-- **Reference**: NFR-005 (maintainability — DRY constants across module boundaries)
-- **Description**: `pipeline.py` carries `_TRACEBACK_EXCERPT_MAX_CHARS = 2000`; `models/results.py` carries `_TRACEBACK_EXCERPT_MAX = 2000`. Both must agree or `FailureContext` construction in the orchestrator's catch site will start raising `ValidationError` — the exact bug `_truncate_excerpt` exists to prevent.
-- **Suggested Fix**: Promote one to a public constant (e.g., `FailureContext.MAX_TRACEBACK_EXCERPT` class-attr or module-level `TRACEBACK_EXCERPT_MAX`) and import it in `pipeline.py`. Trivial.
-- **Effort**: ~5 min.
-- **Priority Reasoning**: Low — both values are 2000 and there's no current change pressure on either; but the next person who tweaks one will cause an obscure failure if they miss the other.
-
-#### DEBT-018: AST-grep deny tests use substring matching instead of callable identity
-
-- **Created**: 2026-04-30
-- **Source**: Step 12 sub-agent code review of u5 orchestrator (L4)
-- **Reference**: NFR-006 (test robustness)
-- **Description**: `tests/unit/orchestrator/test_run_pipeline.py`'s 3 AST-grep deny tests (AC-001-3 / AC-001-5 / AC-003-11) use `"_stage_"` substring matching against `ast.unparse` output. If a future refactor renames `_stage_collect` → `_collect_stage`, the deny tests silently pass on a real violation. Robust today; brittle to refactoring.
-- **Suggested Fix**: Replace substring match with callable-identity match: walk the AST for `ast.Name(id in {"_stage_collect", "_stage_generate", "_stage_publish", "_stage_notify_briefing"})`. The whitelist becomes the contract — adding a new stage runner without updating it is the new failure mode (which is fine; deliberate).
-- **Effort**: ~20 min.
-- **Priority Reasoning**: Low — current tests work; future-proofing only.
-
 #### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
 
 - **Created**: 2026-05-01
@@ -179,18 +149,6 @@ _No medium priority items._
 - **Suggested Fix**: Add a "Cross-platform notes" section to CONTRIBUTING.md documenting the symlink limitation, OR migrate to a non-symlink solution (e.g., mkdocs-monorepo-plugin or post-build copy). Re-evaluate when a Windows contributor surfaces.
 - **Effort**: ~10 min docs edit; ~1 hour for full migration.
 - **Priority Reasoning**: Low — Investo is a 1-person Linux/macOS tool; Windows is hypothetical.
-
-#### DEBT-009: `_executable_source` AST helper is duplicated across two test files
-
-- **Created**: 2026-04-29
-- **Source**: Step 8.5 sub-agent code review (L1 / Q8); also flagged in the Step 8.4 docstring
-- **Reference**: NFR-006 (test-suite maintainability)
-- **Description**: The `_executable_source(module)` helper (AST round-trip that strips module + class + function docstrings) appears verbatim in `tests/unit/briefing/test_claude_code.py` and `tests/unit/briefing/test_pipeline_no_prompt_strings.py`. Both copies are ~25 lines. A future fix (e.g., handling decorated functions, async vs sync function defs) needs to land in two places.
-- **Suggested Fix**: Move to `tests/_helpers/ast_helpers.py` (the helpers package already exists per `tests/_helpers/fake_claude_runner.py`). Both call sites import as `from tests._helpers.ast_helpers import executable_source`.
-- **Effort**: ~10 min including import updates.
-- **Priority Reasoning**: Low — the duplication is small and stable. The helper is unlikely to need refactoring in v1.
-
----
 
 #### DEBT-005: Aggregator log line is printf-style, not structured
 
@@ -229,6 +187,50 @@ _No medium priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-018: AST-grep deny tests use substring matching instead of callable identity
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Replaced substring checks with AST callable-identity helpers that only match calls to the explicit stage-runner whitelist (`_stage_collect`, `_stage_generate`, `_stage_publish`, `_stage_notify_briefing`).
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L4)
+- **Reference**: NFR-006 (test robustness)
+- **Description**: `tests/unit/orchestrator/test_run_pipeline.py`'s 3 AST-grep deny tests used `"_stage_"` substring matching against `ast.unparse` output, making them brittle to future stage function renames.
+- **Suggested Fix**: Replace substring match with callable-identity match.
+- **Effort**: ~20 min.
+- **Priority Reasoning**: Low — current tests worked; this future-proofs the static contract.
+
+#### DEBT-017: `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py`
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Promoted the model limit to public `TRACEBACK_EXCERPT_MAX` in `investo.models.results` and updated the orchestrator truncation helper/tests to use the shared constant without widening the package-root `investo.models` public API.
+- **Source**: Step 12 sub-agent code review of u5 orchestrator (L1)
+- **Reference**: NFR-005 (maintainability — DRY constants across module boundaries)
+- **Description**: `pipeline.py` and `models/results.py` both carried the traceback excerpt limit as separate 2000-char constants. Drift would make `FailureContext` construction fail from the orchestrator's catch site.
+- **Suggested Fix**: Promote one to a public constant and import it in `pipeline.py`.
+- **Effort**: ~5 min.
+- **Priority Reasoning**: Low — no current drift, but future edits had an obscure failure mode.
+
+#### DEBT-009: `_executable_source` AST helper is duplicated across two test files
+
+- **Created**: 2026-04-29
+- **Resolved**: 2026-05-03 — Added shared `tests/_helpers/ast_helpers.py::executable_source()` and updated both briefing source-shape test files to import it instead of carrying duplicate helper bodies.
+- **Source**: Step 8.5 sub-agent code review (L1 / Q8); also flagged in the Step 8.4 docstring
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: The `_executable_source(module)` helper appeared verbatim in `tests/unit/briefing/test_claude_code.py` and `tests/unit/briefing/test_pipeline_no_prompt_strings.py`.
+- **Suggested Fix**: Move to `tests/_helpers/ast_helpers.py`.
+- **Effort**: ~10 min including import updates.
+- **Priority Reasoning**: Low — small duplication, but cheap to remove.
+
+#### DEBT-008: `_parse_classification` does not catch `RecursionError` on adversarial JSON
+
+- **Created**: 2026-04-29
+- **Resolved**: 2026-05-03 — Added a 64 KiB Stage 1 stdout byte cap before `json.loads`; over-cap classification output now raises `ValueError` and enters the existing classification retry/failure path. Added a unit test that pins rejection before JSON parsing.
+- **Source**: Step 8.5 sub-agent code review (M2 / Q5) of `pipeline.py`
+- **Reference**: AC-3.2 (failure contract — BGE wraps LLM-traceable failures), AC-3.4 (programmer errors propagate as-is)
+- **Description**: `_parse_classification` called `json.loads(stdout)` on raw LLM stdout. Deep or oversized adversarial JSON could raise outside the intended LLM-failure path.
+- **Suggested Fix**: Add a cheap `len(stdout) > 64 * 1024` upper-bound check before `json.loads` and route over-cap to retry as a malformed response.
+- **Effort**: ~15 min including unit test.
+- **Priority Reasoning**: Low — defense-in-depth for abnormal LLM output.
 
 #### DEBT-033: `_FEED_URL` placement inconsistent — sec_edgar_8k uses module-level while 4 sibling news adapters use `ClassVar`
 

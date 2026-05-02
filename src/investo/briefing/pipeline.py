@@ -62,6 +62,12 @@ _BACKOFF_SCHEDULE: Final[tuple[float, ...]] = (0.0, 2.0, 8.0)
 # empty result (``{"assignments": {}, "unassigned": []}``) is short.
 _STAGE2_SANITY_FLOOR: Final[int] = 200
 
+# Upper bound for Stage 1 stdout before JSON parsing. Classification
+# should be tiny; over-cap output is malformed LLM output and should
+# enter the normal classification retry path instead of stressing the
+# JSON parser.
+_STAGE1_STDOUT_MAX_BYTES: Final[int] = 64 * 1024
+
 # Closed set of section IDs that Stage 1 may assign to (FD R10).
 _VALID_SECTION_IDS: Final[frozenset[int]] = frozenset({2, 3, 4, 5})
 
@@ -143,6 +149,10 @@ def _parse_classification(stdout: str, item_count: int) -> ClassificationResult:
     ``json.JSONDecodeError``) on any structural or semantic mismatch;
     the caller catches and routes to retry.
     """
+    stdout_size = len(stdout.encode("utf-8"))
+    if stdout_size > _STAGE1_STDOUT_MAX_BYTES:
+        raise ValueError(f"Stage 1 stdout exceeds {_STAGE1_STDOUT_MAX_BYTES} bytes: {stdout_size}")
+
     data = json.loads(stdout)
     result = ClassificationResult.model_validate(data)
     valid_ids = set(range(1, item_count + 1))
