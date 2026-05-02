@@ -1,3 +1,8 @@
+---
+name: tech-debt
+description: Display and manage the Investo technical debt dashboard.
+---
+
 # Tech Debt Skill
 
 Display technical debt dashboard and manage debt items.

@@ -31,6 +31,8 @@ from . import (
     coingecko,  # noqa: F401
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
+    nasdaq_earnings_calendar,  # noqa: F401
+    nasdaq_stocks_news,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
     theblock_crypto,  # noqa: F401
     yahoo_finance_news,  # noqa: F401

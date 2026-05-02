@@ -633,3 +633,147 @@ three new adapters require **zero new GitHub Secrets**:
 - Total project tests: 720 → 775 → 810 → **864**
 - Source files in `src/investo/sources/`: 8 → 12 → 14 → **17**
 - Total `src/` files for `mypy --strict`: 37 → 41 → 43 → **46**
+
+## Extension #4 closeout (2026-05-03) — Nasdaq Stocks RSS news adapter
+
+### Trigger
+
+User requested additional news sources useful for the daily market
+briefing. Candidate review favored Nasdaq's official RSS over
+third-party generated feeds: Nasdaq documents category RSS feeds and
+offers a `Stocks` topic feed with US equity/index commentary. This
+extension grows news depth, not category breadth.
+
+### Deliverables
+
+| Adapter | File | LOC | Category | Story impact |
+|---------|------|----:|----------|--------------|
+| `nasdaq-stocks-news` | `src/investo/sources/nasdaq_stocks_news.py` | ~145 | news | US-001 (official exchange-side US market commentary depth) |
+
+Additional changes:
+
+- `src/investo/sources/_xml_namespaces.py` adds `NASDAQ_TICKERS`.
+- `src/investo/sources/__init__.py` imports `nasdaq_stocks_news` for discovery.
+- `tests/unit/sources/test_plugin_contract.py` bumps 9 → 10 adapters.
+- `tests/unit/sources/fixtures/api/nasdaq-stocks-news/` stores a reduced official RSS fixture and recording metadata.
+
+### Test inventory delta
+
+| Test file | Tests added | Notes |
+|-----------|------------:|-------|
+| `test_nasdaq_stocks_news.py` | 15 | fixture happy path, future-window empty, UTC timestamps, URL scheme, flat metadata, User-Agent header, HTML stripping, 280-char truncation, bad URL drop, bad/missing dates, missing fields, empty channel, malformed XML, class attributes |
+| `test_plugin_contract.py` | 0 | Constants bumped: `EXPECTED_ADAPTER_COUNT` 9→10; expected-name set and leaked-symbol set updated for `nasdaq-stocks-news` |
+| **Total** | **+15** | |
+
+### NFR AC delta
+
+**ZERO new ACs.** The adapter reuses existing pins:
+
+- AC-7.6 — XML parsed via `defusedxml`.
+- AC-7.3 — only http/https URLs accepted.
+- AC-7.2 — title/summary sanitized with `_sanitize.strip_html`.
+- AC-7.4 — RFC 822 `pubDate` parsed to tz-aware UTC.
+- AC-5.2 / AC-5.3 — plugin count/name and duplicate-name contract.
+
+### DEBT-028 status
+
+**STAYS Medium.** `nasdaq-stocks-news` carries only string
+`raw_metadata` fields (`guid`, `creator`, `category`, `tickers`), so it
+does not add numeric serialization surface. The existing debt remains
+scoped to yfinance / CoinGecko / FRED.
+
+### Operations note
+
+No GitHub Actions or secret change required. Nasdaq RSS needs a fixed
+adapter-local browser-compatible User-Agent to avoid live-feed
+hangs/failures observed during fixture recording, and the production
+UA matches the fixture-recording UA shape. The value is public and
+non-secret.
+
+### Quality gate
+
+| Tool | Result |
+|------|--------|
+| `ruff check src/investo/sources tests/unit/sources` | ✅ |
+| `ruff format <changed source/test files>` | ✅ |
+| `mypy --strict src/investo/sources` | ✅ (19 source files) |
+| `pytest tests/unit/sources` | ✅ **309/309** passing |
+
+### Coverage roll-up after extension #4
+
+- Adapter count: 1 → 4 → 6 → 9 → **10**
+- News-adapter count specifically: 0 → 0 → 2 → 5 → **6**
+- `Category` enum coverage: **4/5** (unchanged; only earnings still TBD)
+- u1 NFR ACs: **32** (unchanged)
+- u1 extension tests: 252 → 307 → 342 → 396 → **411**
+- Source files in `src/investo/sources/`: 17 → **18**
+
+## Extension #5 closeout (2026-05-03) — Nasdaq Earnings Calendar
+
+### Trigger
+
+User asked the team lead to handle the remaining `earnings` category.
+The lead selected Nasdaq's public earnings calendar JSON endpoint
+because it is date-scoped, free, requires no API key, and closes the
+last `Category` gap without introducing a new GitHub Secret.
+
+### Deliverables
+
+| Adapter | File | LOC | Category | Story impact |
+|---------|------|----:|----------|--------------|
+| `nasdaq-earnings-calendar` | `src/investo/sources/nasdaq_earnings_calendar.py` | ~195 | earnings | US-001 category coverage complete |
+
+Additional changes:
+
+- `src/investo/sources/__init__.py` imports `nasdaq_earnings_calendar`.
+- `tests/unit/sources/test_plugin_contract.py` bumps 10 → 11 adapters.
+- `tests/unit/sources/fixtures/api/nasdaq-earnings-calendar/` stores a reduced JSON fixture and metadata.
+
+### Test inventory delta
+
+| Test file | Tests added | Notes |
+|-----------|------------:|-------|
+| `test_nasdaq_earnings_calendar.py` | 18 | fixture happy path, field mapping, optional omission, request headers/date param, `rows: null`, required-field drops, HTML stripping, summary truncation, malformed JSON, terminal HTTP status, bad response shapes, class attributes |
+| `test_plugin_contract.py` | 0 | Constants bumped: `EXPECTED_ADAPTER_COUNT` 10→11; expected-name set and leaked-symbol set updated for `nasdaq-earnings-calendar` |
+| **Total** | **+18** | |
+
+### NFR AC delta
+
+**ZERO new ACs.** The adapter reuses existing pins:
+
+- AC-7.2 — text sanitized with `_sanitize.strip_html`.
+- AC-5.2 / AC-5.3 — plugin count/name and duplicate-name contract.
+- R8 — flat string `raw_metadata`, optional fields omitted.
+- R10 — fixture-backed offline tests.
+
+### Category coverage
+
+`Category` coverage is now **5/5**:
+
+- `calendar`: FOMC RSS
+- `price`: yfinance, CoinGecko
+- `macro`: FRED
+- `news`: Yahoo Finance, SEC EDGAR 8-K, Yonhap, TheBlock, CNBC, Nasdaq Stocks
+- `earnings`: Nasdaq Earnings Calendar
+
+### Operations note
+
+No GitHub Actions or secret change required. Nasdaq Calendar uses the
+same public browser-compatible access-header pattern as Nasdaq Stocks
+RSS. The value is non-secret and pinned by tests.
+
+### Quality gate
+
+| Tool | Result |
+|------|--------|
+| `ruff check src/investo/sources tests/unit/sources` | ✅ |
+| `ruff format <changed source/test files>` | ✅ |
+| `mypy --strict src/investo/sources` | ✅ (20 source files) |
+| `pytest tests/unit/sources` | ✅ **324/324** passing |
+
+### Coverage roll-up after extension #5
+
+- Adapter count: 1 → 4 → 6 → 9 → 10 → **11**
+- `Category` enum coverage: 4/5 → **5/5**
+- u1 extension tests: 411 → **429**
+- Source files in `src/investo/sources/`: 18 → **19**

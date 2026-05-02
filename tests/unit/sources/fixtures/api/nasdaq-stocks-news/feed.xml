@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:nasdaq="http://nasdaq.com/reference/feeds/1.0"
+     version="2.0"
+     xml:base="https://www.nasdaq.com/feed/rssoutbound">
+ <channel>
+  <title>Stocks Feed</title>
+  <link>https://www.nasdaq.com/feed/rssoutbound</link>
+  <description>This feed is responsible for generating the rss feed related to the topic Stocks</description>
+  <language>en</language>
+  <item>
+   <title>S&amp;P 500 and Nasdaq 100 Post Record Highs on Solid Earnings</title>
+   <link>https://www.nasdaq.com/articles/sp-500-and-nasdaq-100-post-record-highs-solid-earnings</link>
+   <description>
+        The S&amp;P 500 Index ($SPX ) (SPY ) on Friday closed up +0.29%, the Dow Jones Industrial Average ($DOWI ) (DIA ) closed down -0.31%, and the Nasdaq 100 Index ($IUXX ) (QQQ ) closed up +0.94%.
+    </description>
+   <pubDate>Sat, 02 May 2026 16:46:58 +0000</pubDate>
+   <guid isPermaLink="true">https://www.nasdaq.com/articles/sp-500-and-nasdaq-100-post-record-highs-solid-earnings?time=1777740418</guid>
+   <dc:creator>Barchart</dc:creator>
+   <category>Stocks</category>
+   <nasdaq:tickers>MSTR, ALK, AAPL, INTU, SNDK, DDOG, GLXY, VEEV, AMGN, COIN, CLX, MSFT, PSKY, STX, AMD, RBLX, SPY, DIA, TWLO, RDDT, SYK, ADSK, EL, MU, RMD, ORCL, WDAY, QQQ, INTC, NOW, ADBE, TEAM, MCHP, RIOT, CRM</nasdaq:tickers>
+  </item>
+  <item>
+   <title>Dollar Rebounds as Trade Tensions Resurface</title>
+   <link>https://www.nasdaq.com/articles/dollar-rebounds-trade-tensions-resurface</link>
+   <description>
+        The dollar index (DXY00 ) on Friday rose +0.12%. The dollar recovered from a 2-week low on Friday and finished higher.
+    </description>
+   <pubDate>Sat, 02 May 2026 16:46:57 +0000</pubDate>
+   <guid isPermaLink="true">https://www.nasdaq.com/articles/dollar-rebounds-trade-tensions-resurface?time=1777740417</guid>
+   <dc:creator>Barchart</dc:creator>
+   <category>Stocks</category>
+   <nasdaq:tickers></nasdaq:tickers>
+  </item>
+ </channel>
+</rss>

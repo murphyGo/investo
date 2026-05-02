@@ -1,3 +1,8 @@
+---
+name: code-review
+description: Analyze Investo code changes for correctness, security, quality, and test coverage.
+---
+
 # Code Review Skill - Investo
 
 Automatically analyze code for quality issues, security vulnerabilities, and best-practices compliance for the Investo project (Python data pipeline + GitHub Actions runner).

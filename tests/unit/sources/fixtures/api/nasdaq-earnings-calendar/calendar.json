@@ -1,0 +1,46 @@
+{
+  "data": {
+    "asOf": "Mon, May 4, 2026",
+    "headers": {
+      "time": "Time",
+      "symbol": "Symbol",
+      "name": "Company Name",
+      "marketCap": "Market Cap",
+      "fiscalQuarterEnding": "Fiscal Quarter Ending",
+      "epsForecast": "Consensus EPS* Forecast",
+      "noOfEsts": "# of Ests",
+      "lastYearRptDt": "Last Year's Report Date",
+      "lastYearEPS": "Last year's EPS*"
+    },
+    "rows": [
+      {
+        "lastYearRptDt": "5/05/2025",
+        "lastYearEPS": "$0.04",
+        "time": "time-after-hours",
+        "symbol": "PLTR",
+        "name": "Palantir Technologies Inc.",
+        "marketCap": "$333,468,525,433",
+        "fiscalQuarterEnding": "Mar/2026",
+        "epsForecast": "$0.22",
+        "noOfEsts": "8"
+      },
+      {
+        "lastYearRptDt": "N/A",
+        "lastYearEPS": "$1.74",
+        "time": "time-pre-market",
+        "symbol": "L",
+        "name": "Loews Corporation",
+        "marketCap": "$23,171,500,472",
+        "fiscalQuarterEnding": "Mar/2026",
+        "epsForecast": "",
+        "noOfEsts": "1"
+      }
+    ]
+  },
+  "message": null,
+  "status": {
+    "rCode": 200,
+    "bCodeMessage": null,
+    "developerMessage": null
+  }
+}

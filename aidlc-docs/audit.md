@@ -1,5 +1,57 @@
 # AI-DLC Audit Log
 
+## Construction — u1 sources — Extension #5 CLOSED (Nasdaq Earnings Calendar)
+**Timestamp**: 2026-05-03T00:30:00Z
+**Trigger**: User requested "earnings 카테고리를 처리하게 team lead에 전달해줘".
+**Decision**: Add one `earnings` category adapter, `nasdaq-earnings-calendar`, consuming Nasdaq's public date-scoped earnings calendar JSON endpoint (`https://api.nasdaq.com/api/calendar/earnings?date=YYYY-MM-DD`). This closes the final `Category` gap without a new secret or paid API.
+**Deliverables**:
+- New source adapter: `src/investo/sources/nasdaq_earnings_calendar.py`
+- New tests: `tests/unit/sources/test_nasdaq_earnings_calendar.py` (+18 tests)
+- New fixture: `tests/unit/sources/fixtures/api/nasdaq-earnings-calendar/{calendar.json,meta.json}`
+- Plugin discovery and contract updated from 10 to 11 adapters
+- FD / application-design / u1 code summary / state tracker updated for Extension #5
+**Design notes**:
+- Endpoint is date-scoped by `window.target_date.isoformat()`.
+- Nasdaq supplies report buckets, not exact timestamps; `published_at` is anchored to UTC midnight on the event date and `raw_metadata["report_time"]` stores `pre-market`, `after-hours`, or `not-supplied`.
+- No secret, no paid API, no GitHub Actions change.
+- Browser-compatible User-Agent / Origin / Referer headers are adapter-local public access headers, following the Nasdaq Stocks RSS precedent.
+**Quality gate**:
+- `ruff check src/investo/sources tests/unit/sources` ✅
+- `ruff format <changed source/test files>` ✅
+- `mypy --strict src/investo/sources` ✅ (20 source files)
+- `pytest tests/unit/sources` ✅ 324/324
+**QA verdict**: PASS — no Critical/High/Medium findings and no TECH-DEBT. One Low test-helper coverage warning was addressed by adding a terminal HTTP 404 status test.
+**Status**: Extension #5 closed. Adapter count 10→11; category coverage 4/5→5/5.
+**Context**: Uses the Codex `investo-team` skill. Lead selected the no-secret Nasdaq endpoint, developer implemented, and QA sub-agent review was requested for independent verification.
+
+---
+
+## Construction — u1 sources — Extension #4 CLOSED (Nasdaq Stocks RSS)
+**Timestamp**: 2026-05-03T00:00:00Z
+**Trigger**: User requested additional news sources useful for the daily market briefing via `$investo-team`.
+**Decision**: Add one official exchange-side news adapter, `nasdaq-stocks-news`, consuming Nasdaq's official `Stocks` category RSS feed (`https://www.nasdaq.com/feed/rssoutbound?category=Stocks`). Candidate review considered Nasdaq and Investing.com RSS. Nasdaq was selected because Nasdaq documents category RSS feeds directly, requires no API key or paid account, and provides US market commentary complementary to Yahoo/CNBC/Yonhap/TheBlock/SEC. Investing.com was deferred because its site terms include broader data redistribution restrictions.
+**Deliverables**:
+- New source adapter: `src/investo/sources/nasdaq_stocks_news.py`
+- New tests: `tests/unit/sources/test_nasdaq_stocks_news.py` (+15 tests)
+- New fixture: `tests/unit/sources/fixtures/api/nasdaq-stocks-news/{feed.xml,meta.json}`
+- Plugin discovery and contract updated from 9 to 10 adapters
+- FD / application-design / u1 code summary / state tracker updated for Extension #4
+**Design notes**:
+- Strict R7 applies; no cadence relaxation.
+- No secret, no paid API, no GitHub Actions change.
+- Adapter sends a fixed non-secret browser-compatible User-Agent because fixture recording showed the Nasdaq RSS endpoint can hang/fail without a UA. Production uses the same UA shape used for fixture recording. This is adapter-local access hygiene, not R14 SEC fair-access compliance.
+- `raw_metadata` stays flat `dict[str, str]`: optional `guid`, `creator`, `category`, and comma-normalized `tickers`; empty optional keys are omitted.
+**Quality gate**:
+- `ruff check src/investo/sources tests/unit/sources` ✅
+- `ruff format <changed source/test files>` ✅
+- `mypy --strict src/investo/sources` ✅ (19 source files)
+- `pytest tests/unit/sources` ✅ 309/309
+**QA verdict**: APPROVE_AFTER_FIXES — initial High finding (production UA differed from fixture-recording UA) fixed by aligning production/test/docs to the browser-compatible fixture UA; initial Medium finding (fixture metadata missing status/headers) fixed in `meta.json`. No TECH-DEBT added.
+**Status**: Extension #4 closed. Adapter count 9→10; news adapter count 5→6; category coverage unchanged at 4/5 (earnings still TBD).
+**Context**: Uses the new Codex `investo-team` skill. Lead selected scope, explorer summarized existing adapter/test patterns, developer implemented, and QA sub-agent review was requested for independent verification.
+
+---
+
 ## Construction — u1 sources — DEBT-031 + DEBT-032 RESOLVED (constant dedup cleanup)
 **Timestamp**: 2026-05-01T08:00:00Z
 **Trigger**: User requested "DEBT-031 + DEBT-032 처리" (one consolidated cleanup pass) after Extension #3 closeout (commit `6cf04d0`).

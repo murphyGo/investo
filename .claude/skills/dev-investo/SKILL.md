@@ -1,3 +1,8 @@
+---
+name: dev-investo
+description: Execute Investo AIDLC construction stages from design through build and test.
+---
+
 # Investo Development Skill
 
 AIDLC Construction executor — the daily driver for developing the Investo service.

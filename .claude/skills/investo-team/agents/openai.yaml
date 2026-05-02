@@ -1,0 +1,4 @@
+interface:
+  display_name: "Investo Team"
+  short_description: "Coordinate Investo roles in Codex"
+  default_prompt: "Use $investo-team to coordinate Investo planning, development, QA, and operations work."

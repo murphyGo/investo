@@ -1,3 +1,8 @@
+---
+name: cross-check
+description: Verify Investo implementation against requirements and generate compliance reports.
+---
+
 # Cross-Check Skill
 
 Verify implementation against requirements and generate compliance report.

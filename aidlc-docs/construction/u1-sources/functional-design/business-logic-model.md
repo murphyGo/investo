@@ -173,6 +173,10 @@ The orchestrator owns INFO-level lifecycle logs ("collect started",
 >
 > **Extension #3 note (2026-05-01)**: L6.7 (Yonhap 마켓+ RSS / news), L6.8 (The Block RSS / news), and L6.9 (CNBC US Top News RSS / news) added per the 2026-05-01T06:00:00Z audit-log entry. All three adapters use `category="news"`, all three apply strict R7 (no relaxation), all three carry no secrets and no compliance headers (R14 does NOT apply). All three use UTF-8 encoding and RFC 822 `<pubDate>` (which `email.utils.parsedate_to_datetime` handles natively on Python 3.11 — no L6.5-style ISO 8601 surprise). L6.8 (The Block) introduces adapter-local URL canonicalization to strip `?utm_source=rss&utm_medium=rss` tracking parameters from `<link>` items before storing — this is per-adapter logic, not a cross-cutting rule (no R-rule added). L6.9 (CNBC) explicitly ignores `<metadata:*>` namespace elements (no signal for the briefing layer). After this extension, news adapter count rises from 2 → 5; `Category` enum coverage stays at 4/5 (only earnings TBD).
 
+> **Extension #4 note (2026-05-03)**: L6.10 (Nasdaq Stocks RSS / news) added per the 2026-05-03 audit-log entry. The adapter uses `category="news"`, strict R7, no secret, and a non-secret adapter-local browser-compatible User-Agent because live fixture recording showed the official Nasdaq feed hangs/fails without a UA; the production UA is the same shape used for fixture recording. This is not R14 fair-access compliance (SEC-only); it is a pragmatic source-access header pinned by tests. News adapter count rises from 5 → 6; total adapter count rises from 9 → 10; `Category` enum coverage stays 4/5 (only earnings TBD).
+
+> **Extension #5 note (2026-05-03)**: L6.11 (Nasdaq Earnings Calendar JSON / earnings) added to close the final `Category` gap. The adapter uses `category="earnings"`, no secret, no paid API, and the same non-secret browser-compatible Nasdaq access headers as L6.10. Because Nasdaq supplies report buckets (pre-market / after-hours / not-supplied) rather than exact timestamps, `published_at` is anchored to UTC midnight on `window.target_date` and the bucket is preserved in `raw_metadata["report_time"]`. Category coverage rises from 4/5 → 5/5.
+
 ### L6.1 FOMC RSS PoC (Q5=A)
 
 > **Format correction (2026-04-27, Step 8):** the live feed is **RSS 2.0**, not Atom 1.0 as originally predicted. Field names and date format below have been updated to match the real feed; the audit log Step 8 entry records the divergence.
@@ -347,6 +351,38 @@ The Block adapter is the only one in u1 (as of Extension #3) that performs URL c
 | Edge cases | items missing any of `<title>`/`<link>`/`<pubDate>` dropped; non-http(s) URLs dropped; naive datetime dropped (defense — `GMT` parses tz-aware via `parsedate_to_datetime`); empty feed → `[]`; XML parse error → terminal `SourceFetchError`; **namespace-extension robustness**: a synthetic feed with an unexpected `<media:content>` or `<cn:newField>` element MUST NOT crash the parser and MUST NOT appear in `raw_metadata` — the test suite includes a synthetic-fixture case asserting this. |
 
 The CNBC adapter completes the general-news trio. The `<metadata:*>`-ignore decision keeps `raw_metadata` minimal and uniform with sibling adapters. No secret, no compliance header, no env-var override, no per-item cap.
+
+### L6.10 Nasdaq Stocks RSS adapter (extension #4 2026-05-03)
+
+| Aspect | Design |
+|--------|--------|
+| Source | `https://www.nasdaq.com/feed/rssoutbound?category=Stocks` (single HTTP per fetch; official Nasdaq category RSS endpoint listed from `https://www.nasdaq.com/nasdaq-RSS-Feeds`) |
+| Auth | none (no API key, no paid account, no GitHub Secret). The adapter sends a fixed, non-secret browser-compatible User-Agent because local recording showed Nasdaq's RSS endpoint can hang/fail without one. The production UA matches the fixture-recording UA shape. This is adapter-local access hygiene, not R14 SEC fair-access compliance. |
+| Format | RSS 2.0 (`<rss version="2.0">` → `<channel>` → repeated `<item>`); UTF-8 XML declaration; `dc:creator` and `nasdaq:tickers` namespace fields are optional. Required fields use unprefixed RSS names: `<title>`, `<link>`, `<pubDate>`. Namespace values are looked up by fully-qualified Clark names via `_xml_namespaces.py`; no string namespace stripping. |
+| Volume | feed returns the latest Nasdaq `Stocks` topic stories (observed fixture: 15 entries). R7 KST window narrows by authoritative per-item `pubDate`. |
+| Per-item cap | none — R7 strict is the natural cut. |
+| Window filter | **strict R7 — no relaxation**. Each `<item>` carries an authoritative RFC 822 `<pubDate>` with explicit `+0000` offset; parsed via `email.utils.parsedate_to_datetime` and converted to UTC. |
+| `NormalizedItem` mapping | `source_name="nasdaq-stocks-news"`; `category="news"`; `title=<title>` (HTML/entity stripped via `_sanitize.strip_html`); `summary=<description>` (HTML stripped, truncated to 280 chars); `url=<link>` (validated AC-7.3 http/https-only); `published_at=<pubDate>` parsed to tz-aware UTC; `raw_metadata={"guid": str, "creator": str, "category": str, "tickers": comma-joined str}` with optional keys omitted when absent/empty. |
+| Edge cases | missing any of `<title>`/`<link>`/`<pubDate>` dropped; non-http(s) URLs dropped; naive or unparseable dates dropped; empty `<channel>` returns `[]`; malformed XML raises terminal `SourceFetchError`; empty `<nasdaq:tickers>` omits the `tickers` key rather than storing an empty string. |
+
+The Nasdaq adapter adds official exchange-side US market commentary to the news cohort. It introduces no secrets and no numeric `raw_metadata` values, so DEBT-028 remains scoped to the yfinance / CoinGecko / FRED numeric adapters.
+
+### L6.11 Nasdaq Earnings Calendar JSON adapter (extension #5 2026-05-03)
+
+| Aspect | Design |
+|--------|--------|
+| Source | `https://api.nasdaq.com/api/calendar/earnings?date={YYYY-MM-DD}` (single HTTP per fetch; target date from `FetchWindow.target_date`) |
+| Auth | none (no API key, no paid account, no GitHub Secret). Sends browser-compatible `User-Agent`, `Origin`, and `Referer` headers because the public Nasdaq API expects browser-shaped access. |
+| Format | JSON object with `data.rows[]`; each row includes `time`, `symbol`, `name`, `marketCap`, `fiscalQuarterEnding`, `epsForecast`, `noOfEsts`, `lastYearRptDt`, and `lastYearEPS`. |
+| Volume | daily calendar; observed May 4, 2026 fixture has many rows. Adapter emits one item per valid row. |
+| `name` | `"nasdaq-earnings-calendar"` |
+| `category` | `"earnings"` |
+| Per-item cap | none — date-scoped endpoint is the natural cut. |
+| Window filter | The endpoint is date-scoped rather than timestamp-scoped. Nasdaq provides report buckets, not exact report datetimes. The adapter sets `published_at` to UTC midnight on the target date so the item is anchored inside the target KST window; `raw_metadata["report_time"]` carries `pre-market`, `after-hours`, or `not-supplied`. |
+| `NormalizedItem` mapping | `title=f"{symbol} earnings — {report_time} — EPS forecast {epsForecast}"` with missing optional pieces omitted; `summary` combines company name, fiscal quarter, market cap, estimate count, and last-year EPS (truncated to 280 chars); `url=https://www.nasdaq.com/market-activity/stocks/{symbol}/earnings`; `raw_metadata` includes non-empty string fields: `symbol`, `company_name`, `report_time`, `fiscal_quarter_ending`, `eps_forecast`, `no_of_ests`, `market_cap`, `last_year_eps`, `last_year_report_date`. |
+| Edge cases | malformed JSON raises terminal `SourceFetchError`; non-object payload / missing `data` / non-list `rows` raise terminal `SourceFetchError`; `rows: null` returns `[]`; rows missing required `symbol` or `name` are dropped; `"N/A"` and empty optional strings are omitted from `raw_metadata`; HTML in text fields is stripped. |
+
+The earnings adapter closes the final category gap without adding a new secret or paid API. It intentionally does not model after-hours events as next-day UTC timestamps because doing so would drop valid target-date earnings events from the KST window.
 
 ---
 

@@ -1,0 +1,11 @@
+{
+  "source": "nasdaq-stocks-news",
+  "url": "https://www.nasdaq.com/feed/rssoutbound?category=Stocks",
+  "recorded_at": "2026-05-03T00:00:00Z",
+  "status": 200,
+  "headers": {
+    "content-type": "application/rss+xml; charset=utf-8"
+  },
+  "method": "curl --http1.1 --compressed -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36'",
+  "notes": "Reduced fixture from the official Nasdaq Stocks RSS feed. The full live feed was inspected during adapter implementation; this fixture keeps representative RSS 2.0, dc:creator, category, and nasdaq:tickers fields."
+}

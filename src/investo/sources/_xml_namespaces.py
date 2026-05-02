@@ -8,3 +8,4 @@ from __future__ import annotations
 from typing import Final
 
 DC_CREATOR: Final[str] = "{http://purl.org/dc/elements/1.1/}creator"
+NASDAQ_TICKERS: Final[str] = "{http://nasdaq.com/reference/feeds/1.0}tickers"
