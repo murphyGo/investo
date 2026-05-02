@@ -7,12 +7,14 @@ Pins FR-004 + the kwargs-only construction (CLAUDE.md #5 anti-swap)
 from __future__ import annotations
 
 from datetime import date
+from unittest.mock import MagicMock
 
 import httpx
 import pytest
 
 from investo.models import BriefingNotification
 from investo.notifier.briefing_publisher import BriefingPublisher
+from tests.unit.notifier.conftest import mock_client
 
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
 _CHANNEL_ID = "@example_channel"
@@ -26,11 +28,6 @@ def _build_notification(text: str = "오늘의 시황 요약") -> BriefingNotifi
         summary_text=text,
         site_url=_SITE_URL,  # type: ignore[arg-type]
     )
-
-
-def _mock_client(handler: object) -> httpx.AsyncClient:
-    transport = httpx.MockTransport(handler)  # type: ignore[arg-type]
-    return httpx.AsyncClient(transport=transport)
 
 
 # ---------------------------------------------------------------------------
@@ -65,7 +62,7 @@ async def test_briefing_publisher_send_returns_ok_on_success() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 99}})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
         result = await publisher.send(_build_notification())
 
@@ -87,7 +84,7 @@ async def test_briefing_publisher_send_dispatches_to_channel_id() -> None:
         captured.append(str(body["chat_id"]))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
         await publisher.send(_build_notification())
 
@@ -105,7 +102,7 @@ async def test_briefing_publisher_sends_summary_text_as_body() -> None:
         captured.append(str(body["text"]))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
         await publisher.send(_build_notification(text="bespoke summary"))
 
@@ -122,7 +119,7 @@ async def test_briefing_publisher_handles_http_failure() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("synthetic connect failure")
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
         result = await publisher.send(_build_notification())
 
@@ -135,7 +132,7 @@ async def test_briefing_publisher_handles_telegram_api_error() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": False, "description": "channel not found"})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
         result = await publisher.send(_build_notification())
 
@@ -159,27 +156,18 @@ async def test_briefing_publisher_creates_default_client_when_http_none(
     """
     from investo.notifier import briefing_publisher as bp_module
 
-    construction_calls: list[dict[str, object]] = []
-    real_client = httpx.AsyncClient
-
-    class _TrackingClient(httpx.AsyncClient):
-        def __init__(self, **kwargs: object) -> None:
-            construction_calls.append(kwargs)
-            # Inject a mock transport so the call doesn't hit the network.
-            kwargs["transport"] = httpx.MockTransport(
-                lambda req: httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
-            )
-            super().__init__(**kwargs)  # type: ignore[arg-type]
-
-    monkeypatch.setattr(bp_module.httpx, "AsyncClient", _TrackingClient)
+    client = httpx.AsyncClient(
+        transport=httpx.MockTransport(
+            lambda req: httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+        )
+    )
+    async_client_factory = MagicMock(return_value=client)
+    monkeypatch.setattr(bp_module.httpx, "AsyncClient", async_client_factory)
 
     publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=None)
     result = await publisher.send(_build_notification())
 
     assert result.ok is True
-    assert len(construction_calls) == 1
+    async_client_factory.assert_called_once()
     # Production default has a 30s timeout.
-    assert construction_calls[0].get("timeout") == 30.0
-
-    # Cleanup the monkeypatch reference.
-    _ = real_client
+    assert async_client_factory.call_args.kwargs["timeout"] == 30.0

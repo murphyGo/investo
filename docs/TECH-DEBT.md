@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 13 | 2026-04-27 |
+| Low | 11 | 2026-04-27 |
 
 ---
 
@@ -100,26 +100,6 @@ _No medium priority items._
 - **Effort**: Option 2 ~1 hour including tests; option 1 trivial; option 3 ~3 hours.
 - **Priority Reasoning**: Low — graceful-degradation already covers the failure (operator alert fires when the publish step's `SendResult.ok=False` lands). No silent data loss. Re-evaluate when the first real Markdown-parse failure occurs in production.
 
-#### DEBT-015: `_TrackingClient` test pattern fragile to httpx version changes
-
-- **Created**: 2026-04-30
-- **Source**: Step 7 sub-agent code review of u4 notifier (L1 / TD-N03)
-- **Reference**: NFR-006 (test-suite maintainability)
-- **Description**: `tests/unit/notifier/test_briefing_publisher.py::test_briefing_publisher_creates_default_client_when_http_none` subclasses `httpx.AsyncClient` and overrides `__init__(self, **kwargs)` then forwards via `super().__init__(**kwargs)`. This assumes httpx's signature stays compatible — if a future httpx adds a positional-only param or renames a kwarg, the test silently breaks (or worse, masks a real production breakage on httpx upgrade).
-- **Suggested Fix**: Replace with a factory-mock pattern. Patch `httpx.AsyncClient` in the briefing_publisher module to a `MagicMock` that returns a pre-configured `MockTransport`-backed client. Capture construction args via the mock's `call_args`. Less coupled to httpx internals.
-- **Effort**: ~30 min including verifying the new test still pins the timeout=30.0 contract.
-- **Priority Reasoning**: Low — works today; only matters at httpx upgrade time.
-
-#### DEBT-016: `_mock_client` test helper duplicated across 3 u4 test files
-
-- **Created**: 2026-04-30
-- **Source**: Step 7 sub-agent code review of u4 notifier (L5 / TD-N04)
-- **Reference**: NFR-006 (test-suite maintainability)
-- **Description**: Three near-identical `_mock_client(handler)` helpers in `test_telegram.py`, `test_briefing_publisher.py`, `test_operator_alerter.py`. `tests/unit/notifier/conftest.py` exists as a placeholder explicitly waiting for shared fixtures. Sibling-shape with DEBT-010 (u2 test helper duplication) and DEBT-013 (u3 test helper duplication).
-- **Suggested Fix**: Move `_mock_client` to `tests/unit/notifier/conftest.py` as a fixture or module-level helper, then import from each test file. Could be folded into the existing DEBT-010 / DEBT-013 cleanup pass.
-- **Effort**: ~10 min.
-- **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk.
-
 #### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
 
 - **Created**: 2026-05-01
@@ -165,6 +145,28 @@ _No medium priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-016: `_mock_client` test helper duplicated across 3 u4 test files
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Replaced the three u4 notifier-local `_mock_client(handler)` helpers with shared `tests/unit/notifier/conftest.py::mock_client()`, then updated telegram, briefing publisher, and operator alerter tests to import the helper.
+- **Source**: Step 7 sub-agent code review of u4 notifier (L5 / TD-N04)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: Three near-identical `_mock_client(handler)` helpers lived in `test_telegram.py`, `test_briefing_publisher.py`, and `test_operator_alerter.py`.
+- **Suggested Fix**: Move `_mock_client` to `tests/unit/notifier/conftest.py` as a module-level helper, then import from each test file.
+- **Effort**: ~10 min.
+- **Priority Reasoning**: Low — defensive duplication; all tests already passed.
+
+#### DEBT-015: `_TrackingClient` test pattern fragile to httpx version changes
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Replaced the `httpx.AsyncClient` subclass-based tracking test with a `MagicMock` factory that returns a MockTransport-backed client and asserts `timeout=30.0` from `call_args`.
+- **Source**: Step 7 sub-agent code review of u4 notifier (L1 / TD-N03)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: `test_briefing_publisher_creates_default_client_when_http_none` subclassed `httpx.AsyncClient`, coupling the test to httpx constructor internals.
+- **Suggested Fix**: Replace with a factory-mock pattern.
+- **Effort**: ~30 min including verifying the new test still pins the timeout contract.
+- **Priority Reasoning**: Low — only mattered at httpx upgrade time, but was cheap to harden.
 
 #### DEBT-030: SEC accession-number extraction uses regex on summary instead of canonical `<id>`
 

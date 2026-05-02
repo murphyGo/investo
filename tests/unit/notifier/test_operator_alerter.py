@@ -14,6 +14,7 @@ import pytest
 
 from investo.models import FailureContext
 from investo.notifier.operator_alerter import OperatorAlerter
+from tests.unit.notifier.conftest import mock_client
 
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
 _OPERATOR_CHAT_ID = "123456789"
@@ -33,11 +34,6 @@ def _build_failure(
         traceback_excerpt=traceback_excerpt,
         occurred_at=datetime(2026, 4, 25, 7, 0, tzinfo=UTC),
     )
-
-
-def _mock_client(handler: object) -> httpx.AsyncClient:
-    transport = httpx.MockTransport(handler)  # type: ignore[arg-type]
-    return httpx.AsyncClient(transport=transport)
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +68,7 @@ async def test_operator_alerter_sends_formatted_failure_text() -> None:
         captured.append(str(body["text"]))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )
@@ -98,7 +94,7 @@ async def test_operator_alerter_dispatches_to_operator_chat_id() -> None:
         captured.append(str(body["chat_id"]))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )
@@ -124,7 +120,7 @@ async def test_operator_alerter_includes_traceback_in_code_fence() -> None:
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
     tb = "Traceback (most recent call last):\n  File ..."
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )
@@ -149,7 +145,7 @@ async def test_operator_alerter_omits_traceback_when_none() -> None:
         captured.append(str(body["text"]))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )
@@ -168,7 +164,7 @@ async def test_operator_alerter_handles_http_failure() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("synthetic connect failure")
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )
@@ -199,7 +195,7 @@ async def test_operator_alerter_redacts_bot_token_from_error_message() -> None:
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
     leaky_message = f"failed to call https://api.telegram.org/bot{_BOT_TOKEN}/sendMessage"
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )
@@ -232,7 +228,7 @@ async def test_operator_alerter_truncates_long_alert_under_4096_units() -> None:
     huge_message = "X" * 5000  # 5000 UTF-16 units of pure body
     huge_tb = "Y" * 1500  # leaves room over the 4096 cap
 
-    async with _mock_client(handler) as http:
+    async with mock_client(handler) as http:
         alerter = OperatorAlerter(
             bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
         )

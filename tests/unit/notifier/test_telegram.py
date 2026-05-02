@@ -6,9 +6,6 @@ HTTP is mocked via ``httpx.MockTransport``; no real network access.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-
 import httpx
 import pytest
 
@@ -17,18 +14,11 @@ from investo.notifier._telegram import (
     send_message,
     telegram_api_url,
 )
+from tests.unit.notifier.conftest import mock_client
 
 # A realistic-looking bot token for redaction tests.
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
 _CHAT_ID = "@example_channel"
-
-
-@asynccontextmanager
-async def _mock_client(handler: object) -> AsyncIterator[httpx.AsyncClient]:
-    transport = httpx.MockTransport(handler)  # type: ignore[arg-type]
-    async with httpx.AsyncClient(transport=transport) as client:
-        yield client
-
 
 # ---------------------------------------------------------------------------
 # URL builder
@@ -55,7 +45,7 @@ async def test_send_message_returns_ok_on_telegram_success() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 42}})
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(
             client,
             bot_token=_BOT_TOKEN,
@@ -78,7 +68,7 @@ async def test_send_message_request_body_has_expected_fields() -> None:
         captured.update(_json.loads(request.content.decode("utf-8")))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         await send_message(
             client,
             bot_token=_BOT_TOKEN,
@@ -102,7 +92,7 @@ async def test_send_message_request_url_targets_bot_token_endpoint() -> None:
         captured_url.append(str(request.url))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     # The token IS in the URL (this is correct — that's how Telegram
@@ -124,7 +114,7 @@ async def test_send_message_handles_telegram_api_error() -> None:
             json={"ok": False, "description": "chat not found"},
         )
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id="bad", text="x")
 
     assert result.ok is False
@@ -138,7 +128,7 @@ async def test_send_message_handles_non_200_status() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(429, text="Too Many Requests")
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     assert result.ok is False
@@ -156,7 +146,7 @@ async def test_send_message_handles_timeout() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.TimeoutException("synthetic timeout")
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     assert result.ok is False
@@ -169,7 +159,7 @@ async def test_send_message_handles_http_error() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("synthetic connect failure")
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     assert result.ok is False
@@ -182,7 +172,7 @@ async def test_send_message_handles_invalid_json_response() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, text="<html>500 internal</html>")
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     assert result.ok is False
@@ -255,7 +245,7 @@ async def test_send_message_redacts_token_in_timeout_error() -> None:
             f"timeout reaching https://api.telegram.org/bot{_BOT_TOKEN}/sendMessage"
         )
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     assert result.ok is False
@@ -271,7 +261,7 @@ async def test_send_message_redacts_token_in_http_error() -> None:
             f"connection refused to https://api.telegram.org/bot{_BOT_TOKEN}/sendMessage"
         )
 
-    async with _mock_client(handler) as client:
+    async with mock_client(handler) as client:
         result = await send_message(client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x")
 
     assert result.ok is False
