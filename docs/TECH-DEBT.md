@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 8 | 2026-04-27 |
+| Low | 7 | 2026-04-27 |
 
 ---
 
@@ -90,16 +90,6 @@ _No medium priority items._
 - **Effort**: ~15 min including Dependabot setup.
 - **Priority Reasoning**: Low — see "1-person tool" above. Re-evaluate if the project ever onboards external contributors or stores higher-value secrets.
 
-#### DEBT-027: Windows checkout symlink limitation undocumented
-
-- **Created**: 2026-05-01
-- **Source**: Step 6 sub-agent code review of u6 infra/CI (Q9)
-- **Reference**: NFR-005 (cross-platform clarity)
-- **Description**: `site_docs/archive` is a git symlink (mode 120000) → `../archive`. Linux runners (GHA `ubuntu-latest`) and macOS dev environments handle it natively. Windows checkouts require `core.symlinks=true` AND either developer mode enabled OR admin privileges. Investo runs on Linux only (GHA + macOS-dev), so this is fine in practice; if a Windows contributor ever appears they'll see the symlink as a regular file containing the literal text `../archive`.
-- **Suggested Fix**: Add a "Cross-platform notes" section to CONTRIBUTING.md documenting the symlink limitation, OR migrate to a non-symlink solution (e.g., mkdocs-monorepo-plugin or post-build copy). Re-evaluate when a Windows contributor surfaces.
-- **Effort**: ~10 min docs edit; ~1 hour for full migration.
-- **Priority Reasoning**: Low — Investo is a 1-person Linux/macOS tool; Windows is hypothetical.
-
 #### DEBT-005: Aggregator log line is printf-style, not structured
 
 - **Created**: 2026-04-27
@@ -113,6 +103,17 @@ _No medium priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-027: Windows checkout symlink limitation undocumented
+
+- **Created**: 2026-05-01
+- **Resolved**: 2026-05-04 — Added a `CONTRIBUTING.md` cross-platform note documenting the `site_docs/archive` symlink, the Windows `core.symlinks=true` plus Developer Mode/admin requirement, and the expected local MkDocs symptom when symlinks are checked out as plain text files.
+- **Source**: Step 6 sub-agent code review of u6 infra/CI (Q9)
+- **Reference**: NFR-005 (cross-platform clarity)
+- **Description**: `site_docs/archive` is a git symlink (mode 120000) → `../archive`. Linux runners (GHA `ubuntu-latest`) and macOS dev environments handle it natively. Windows checkouts require `core.symlinks=true` AND either developer mode enabled OR admin privileges. Investo runs on Linux only (GHA + macOS-dev), so this is fine in practice; if a Windows contributor ever appears they'll see the symlink as a regular file containing the literal text `../archive`.
+- **Suggested Fix**: Add a "Cross-platform notes" section to CONTRIBUTING.md documenting the symlink limitation, OR migrate to a non-symlink solution (e.g., mkdocs-monorepo-plugin or post-build copy). Re-evaluate when a Windows contributor surfaces.
+- **Effort**: ~10 min docs edit; ~1 hour for full migration.
+- **Priority Reasoning**: Low — Investo is a 1-person Linux/macOS tool; Windows is hypothetical.
 
 #### DEBT-034: `_mock_client` test helper duplicated across 5 news-adapter test files
 

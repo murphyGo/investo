@@ -221,6 +221,31 @@ manually; there is no automatic GC.
 
 ---
 
+## Cross-platform notes
+
+Investo is developed on macOS and runs in Linux GitHub Actions, but
+the repository contains one git symlink: `site_docs/archive` points to
+`../archive` so MkDocs can include the generated briefing archive.
+
+On Windows, git only checks out symlinks as real symlinks when
+`core.symlinks=true` and the shell has permission to create them
+(Developer Mode or administrator privileges). Without that setup,
+`site_docs/archive` may appear as a small text file containing
+`../archive`; local MkDocs archive navigation can fail even though the
+Linux CI build is fine.
+
+Windows contributors should enable Developer Mode before cloning, or
+run:
+
+```bash
+git config --global core.symlinks true
+```
+
+Then clone the repository again so the symlink is materialized
+correctly.
+
+---
+
 ## PR description checklist
 
 ### Source adapters
