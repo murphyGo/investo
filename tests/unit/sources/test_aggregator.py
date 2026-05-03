@@ -181,9 +181,11 @@ async def test_fetch_all_does_not_raise_on_source_fetch_error(
     assert result == []
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert len(warnings) == 1
-    rendered = warnings[0].getMessage()
-    assert "failing" in rendered
-    assert "transient=True" in rendered
+    assert warnings[0].getMessage() == "source failed"
+    assert warnings[0].source_name == "failing"
+    assert warnings[0].category == "news"
+    assert warnings[0].error == "source 'failing' failed: synthetic"
+    assert warnings[0].transient is True
 
 
 async def test_fetch_all_logs_terminal_failure_with_transient_false(
@@ -204,7 +206,36 @@ async def test_fetch_all_logs_terminal_failure_with_transient_false(
 
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert len(warnings) == 1
-    assert "transient=False" in warnings[0].getMessage()
+    assert warnings[0].getMessage() == "source failed"
+    assert warnings[0].source_name == "terminal"
+    assert warnings[0].category == "news"
+    assert warnings[0].error == "source 'terminal' failed: schema mismatch"
+    assert warnings[0].transient is False
+
+
+async def test_fetch_all_structured_log_uses_exception_source_name_and_adapter_category(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    @register
+    class LyingStub:
+        name: ClassVar[str] = "registered-name"
+        category: ClassVar[Category] = "macro"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            raise SourceFetchError("self-reported-name", "boom", transient=False)
+
+    with caplog.at_level(logging.WARNING, logger="investo.sources.aggregator"):
+        await fetch_all(_TARGET_DATE)
+
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) == 1
+    assert warnings[0].getMessage() == "source failed"
+    assert warnings[0].source_name == "self-reported-name"
+    assert warnings[0].category == "macro"
+    assert warnings[0].error == "source 'self-reported-name' failed: boom"
+    assert warnings[0].transient is False
 
 
 # ---------------------------------------------------------------------------

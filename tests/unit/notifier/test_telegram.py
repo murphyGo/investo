@@ -85,6 +85,28 @@ async def test_send_message_request_body_has_expected_fields() -> None:
 
 
 @pytest.mark.asyncio
+async def test_send_message_omits_parse_mode_when_none() -> None:
+    captured: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        captured.update(_json.loads(request.content.decode("utf-8")))
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    async with mock_client(handler) as client:
+        await send_message(
+            client,
+            bot_token=_BOT_TOKEN,
+            chat_id=_CHAT_ID,
+            text="plain text",
+            parse_mode=None,
+        )
+
+    assert "parse_mode" not in captured
+
+
+@pytest.mark.asyncio
 async def test_send_message_request_url_targets_bot_token_endpoint() -> None:
     captured_url: list[str] = []
 

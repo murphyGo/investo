@@ -26,6 +26,12 @@ from investo.models import BriefingNotification, SendResult
 from investo.notifier._telegram import send_message
 
 
+def _is_markdown_parse_error(result: SendResult) -> bool:
+    if result.ok or result.error is None:
+        return False
+    return "can't parse entities" in result.error.lower()
+
+
 class BriefingPublisher:
     """Public Telegram channel/group dispatcher (FR-004).
 
@@ -68,12 +74,23 @@ class BriefingPublisher:
         client: httpx.AsyncClient,
         payload: BriefingNotification,
     ) -> SendResult:
-        return await send_message(
+        result = await send_message(
             client,
             bot_token=self._bot_token,
             chat_id=self._channel_id,
             text=payload.summary_text,
             parse_mode="Markdown",
+            disable_web_page_preview=False,
+        )
+        if not _is_markdown_parse_error(result):
+            return result
+
+        return await send_message(
+            client,
+            bot_token=self._bot_token,
+            chat_id=self._channel_id,
+            text=payload.summary_text,
+            parse_mode=None,
             disable_web_page_preview=False,
         )
 

@@ -141,6 +141,53 @@ async def test_briefing_publisher_handles_telegram_api_error() -> None:
     assert "channel not found" in result.error
 
 
+@pytest.mark.asyncio
+async def test_briefing_publisher_retries_markdown_parse_error_as_plain_text() -> None:
+    captured_parse_modes: list[object] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        body = _json.loads(request.content.decode("utf-8"))
+        captured_parse_modes.append(body.get("parse_mode"))
+        if len(captured_parse_modes) == 1:
+            return httpx.Response(
+                200,
+                json={
+                    "ok": False,
+                    "description": "Bad Request: can't parse entities: unmatched marker",
+                },
+            )
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 77}})
+
+    async with mock_client(handler) as http:
+        publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
+        result = await publisher.send(_build_notification(text="bad *markdown"))
+
+    assert result.ok is True
+    assert result.message_id == 77
+    assert captured_parse_modes == ["Markdown", None]
+
+
+@pytest.mark.asyncio
+async def test_briefing_publisher_does_not_retry_non_markdown_api_error() -> None:
+    request_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal request_count
+        request_count += 1
+        return httpx.Response(200, json={"ok": False, "description": "channel not found"})
+
+    async with mock_client(handler) as http:
+        publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, http=http)
+        result = await publisher.send(_build_notification())
+
+    assert result.ok is False
+    assert result.error is not None
+    assert "channel not found" in result.error
+    assert request_count == 1
+
+
 # ---------------------------------------------------------------------------
 # Default httpx client created when http=None
 # ---------------------------------------------------------------------------

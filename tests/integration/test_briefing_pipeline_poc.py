@@ -2,10 +2,11 @@
 
 End-to-end test that exercises the real flow:
 
-1. u1's ``FomcRssAdapter`` parses the recorded FOMC RSS fixture
-   (``tests/unit/sources/fixtures/api/fomc-rss/feed.xml``) into
-   ``list[NormalizedItem]``. HTTP is mocked via ``httpx.MockTransport``;
-   no network access required.
+1. u1's public ``aggregator.fetch_all`` entry point runs two
+   controlled adapters: one wraps ``FomcRssAdapter`` against the
+   recorded FOMC RSS fixture, while the other raises
+   ``SourceFetchError``. This pins registry-driven fan-out and
+   failure isolation without network access.
 2. ``pipeline.generate_briefing(target_date, items)`` runs with a
    stubbed ``call_claude_code`` that returns canned valid Stage 1 +
    Stage 2 outputs. The stub bypasses the ``FakeClaudeRunner`` SHA-256
@@ -35,30 +36,16 @@ recording the fixtures via ``INVESTO_LIVE_LLM=1`` against a real
 ``claude`` CLI. Documented in ``aidlc-docs/construction/u2-briefing/code/summary.md``
 when it lands; current CI does not need it.
 
-## Bypass of ``aggregator.fetch_all``
-
-This test calls u1's ``FomcRssAdapter().fetch(client, window)`` directly
-rather than ``investo.sources.fetch_all(target_date)``. Consequences:
-
-* The aggregator's failure-isolation contract (R6 / L5 — adapters
-  raising ``SourceFetchError`` contribute ``[]``; other exceptions
-  re-raise) is NOT exercised here. It is covered by u1's own unit
-  tests under ``tests/unit/sources/``.
-* Registry-driven adapter discovery is bypassed. Today FOMC-RSS is
-  the only registered adapter, so ``fetch_all`` would yield the same
-  result; this assumption breaks once a second adapter lands.
-
-Tracked as DEBT-011 — upgrade to ``fetch_all`` once a second u1
-adapter exists, so the cross-unit failure-isolation contract gets
-end-to-end coverage.
+The test patches ``aggregator.list_sources`` instead of touching the
+global registry so it stays isolated from unit-level registry tests.
 """
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+import logging
 from datetime import date
 from pathlib import Path
+from typing import ClassVar
 
 import httpx
 import pytest
@@ -66,9 +53,11 @@ import pytest
 from investo.briefing import pipeline
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.errors import SubprocessOutcome
-from investo.models import Briefing
+from investo.models import Briefing, Category, NormalizedItem
+from investo.sources import aggregator
 from investo.sources._window import FetchWindow
 from investo.sources.fomc_rss import FomcRssAdapter
+from investo.sources.protocol import SourceFetchError
 from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
 
 # ---------------------------------------------------------------------------
@@ -81,13 +70,38 @@ _FOMC_FIXTURE = (
 _TARGET_DATE = date(2026, 4, 25)
 
 
-@asynccontextmanager
-async def _mock_fomc_client(body: bytes) -> AsyncIterator[httpx.AsyncClient]:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, content=body, headers={"content-type": "text/xml"})
+class _FomcFixtureAdapter:
+    name: ClassVar[str] = "fomc-rss-fixture"
+    category: ClassVar[Category] = "calendar"
 
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        yield client
+    async def fetch(
+        self,
+        client: httpx.AsyncClient,
+        window: FetchWindow,
+    ) -> list[NormalizedItem]:
+        body = _FOMC_FIXTURE.read_bytes()
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, content=body, headers={"content-type": "text/xml"})
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as fixture_client:
+            return await FomcRssAdapter().fetch(fixture_client, window)
+
+
+class _FailingFixtureAdapter:
+    name: ClassVar[str] = "synthetic-failing-source"
+    category: ClassVar[Category] = "news"
+
+    async def fetch(
+        self,
+        client: httpx.AsyncClient,
+        window: FetchWindow,
+    ) -> list[NormalizedItem]:
+        raise SourceFetchError(
+            self.name,
+            "synthetic integration failure",
+            transient=False,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -98,23 +112,31 @@ async def _mock_fomc_client(body: bytes) -> AsyncIterator[httpx.AsyncClient]:
 @pytest.mark.asyncio
 async def test_full_pipeline_poc_against_recorded_fomc_fixture(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """FD L9 PoC — u1's FOMC fixture flows through u2 to a valid
     ``Briefing``. Pins AC-4.4 (DISCLAIMER in rendered markdown) and
     AC-7.5 (no ``<script>``).
     """
     monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
+    monkeypatch.setattr(
+        aggregator,
+        "list_sources",
+        lambda: [_FomcFixtureAdapter(), _FailingFixtureAdapter()],
+    )
 
-    # Step 1: drive u1's FomcRssAdapter against the recorded fixture.
-    body = _FOMC_FIXTURE.read_bytes()
-    adapter = FomcRssAdapter()
-    window = FetchWindow.from_kst_date(_TARGET_DATE)
-
-    async with _mock_fomc_client(body) as client:
-        items = await adapter.fetch(client, window)
+    # Step 1: drive u1's public aggregator entry point. One adapter
+    # yields the recorded FOMC fixture; one fails and must be isolated.
+    with caplog.at_level(logging.WARNING, logger="investo.sources.aggregator"):
+        items = await aggregator.fetch_all(_TARGET_DATE)
 
     assert len(items) == 2, "FOMC fixture should yield 2 items in window"
     assert all(item.source_name == "fomc-rss" for item in items)
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) == 1
+    assert warnings[0].source_name == "synthetic-failing-source"
+    assert warnings[0].category == "news"
+    assert warnings[0].transient is False
 
     # Step 2: stub Claude calls with canned valid Stage 1 + Stage 2 outputs.
     stdouts = [

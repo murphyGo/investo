@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import AsyncIterator
 
 import httpx
 import pytest
@@ -34,6 +35,17 @@ from investo.sources._retry import (
 
 _PBT_SETTINGS = settings(max_examples=100, deadline=None)
 _NO_SLEEP = RetryConfig(backoffs=(0.0, 0.0))  # Same defaults but skip real sleeps.
+
+
+class _TrackingStream(httpx.AsyncByteStream):
+    def __init__(self, chunks: list[bytes]) -> None:
+        self._chunks = chunks
+        self.was_read = False
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        self.was_read = True
+        for chunk in self._chunks:
+            yield chunk
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +399,42 @@ async def test_retry_get_oversized_body_is_terminal() -> None:
             await retry_get(client, "http://x", source_name="test", config=config)
     assert exc_info.value.transient is False
     assert "exceeds" in str(exc_info.value)
+
+
+async def test_retry_get_rejects_oversized_content_length_before_reading_body() -> None:
+    stream = _TrackingStream([b"x" * 10_000])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"Content-Length": "10000"},
+            stream=stream,
+        )
+
+    config = RetryConfig(backoffs=(0.0, 0.0), max_response_bytes=1_000)
+    async with _mock_client(handler) as client:
+        with pytest.raises(SourceFetchError) as exc_info:
+            await retry_get(client, "http://x", source_name="test", config=config)
+
+    assert exc_info.value.transient is False
+    assert "Content-Length" in str(exc_info.value)
+    assert stream.was_read is False
+
+
+async def test_retry_get_aborts_stream_when_body_exceeds_cap_without_length() -> None:
+    stream = _TrackingStream([b"x" * 600, b"y" * 600])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=stream)
+
+    config = RetryConfig(backoffs=(0.0, 0.0), max_response_bytes=1_000)
+    async with _mock_client(handler) as client:
+        with pytest.raises(SourceFetchError) as exc_info:
+            await retry_get(client, "http://x", source_name="test", config=config)
+
+    assert exc_info.value.transient is False
+    assert "streaming" in str(exc_info.value)
+    assert stream.was_read is True
 
 
 async def test_retry_get_unsupported_scheme_is_terminal() -> None:

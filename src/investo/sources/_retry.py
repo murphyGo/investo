@@ -7,7 +7,7 @@ R4 (timeout/retry), R5 (Retry-After), R6 (failure-isolation contract via
 
 * AC-1.2 — 60-s outer wall-clock cap
 * AC-6.3 — pure :func:`compute_sleep` schedule, bounded ``0 <= sleep <= 30``
-* AC-7.1 — 5 MB response body cap (post-hoc check; v1 does not stream)
+* AC-7.1 — 5 MB response body cap with streaming enforcement
 
 This module is internal — adapters consume it via the package, not
 directly. :class:`SourceFetchError` is re-exported here for backward
@@ -155,6 +155,37 @@ _RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
 )
 
 
+def _content_length_exceeds(headers: httpx.Headers, cap: int) -> bool:
+    value = headers.get("Content-Length")
+    if value is None:
+        return False
+    try:
+        length = int(value)
+    except ValueError:
+        return False
+    return length > cap
+
+
+async def _buffer_response_body(
+    response: httpx.Response,
+    *,
+    source_name: str,
+    config: RetryConfig,
+) -> bytes:
+    chunks: list[bytes] = []
+    total = 0
+    async for chunk in response.aiter_bytes():
+        total += len(chunk)
+        if total > config.max_response_bytes:
+            raise SourceFetchError(
+                source_name=source_name,
+                message=f"response body exceeded {config.max_response_bytes} cap while streaming",
+                transient=False,
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
 async def retry_get(
     client: httpx.AsyncClient,
     url: str,
@@ -214,12 +245,41 @@ async def _retry_get_inner(
     for attempt_idx in range(config.retries + 1):
         # attempt_idx 0 = first try; 1, 2 = retries
         try:
-            response = await client.get(
+            async with client.stream(
+                "GET",
                 url,
                 headers=headers,
                 params=params,
                 timeout=config.timeout_s,
-            )
+            ) as response:
+                status = response.status_code
+                response_headers = response.headers
+                request = response.request
+                extensions = response.extensions
+
+                if status < 400:
+                    if _content_length_exceeds(response_headers, config.max_response_bytes):
+                        raise SourceFetchError(
+                            source_name=source_name,
+                            message=(
+                                "response Content-Length "
+                                f"{response_headers['Content-Length']} bytes exceeds "
+                                f"{config.max_response_bytes} cap"
+                            ),
+                            transient=False,
+                        )
+                    content = await _buffer_response_body(
+                        response,
+                        source_name=source_name,
+                        config=config,
+                    )
+                    return httpx.Response(
+                        status,
+                        headers=response_headers,
+                        content=content,
+                        request=request,
+                        extensions=extensions,
+                    )
         except _RETRYABLE_EXCEPTIONS as exc:
             if attempt_idx == config.retries:
                 raise SourceFetchError(
@@ -239,18 +299,6 @@ async def _retry_get_inner(
                 cause=exc,
             ) from exc
 
-        status = response.status_code
-        if status < 400:
-            if len(response.content) > config.max_response_bytes:
-                raise SourceFetchError(
-                    source_name=source_name,
-                    message=(
-                        f"response body {len(response.content)} bytes exceeds "
-                        f"{config.max_response_bytes} cap"
-                    ),
-                    transient=False,
-                )
-            return response
         if _is_retryable_status(status):
             if attempt_idx == config.retries:
                 raise SourceFetchError(

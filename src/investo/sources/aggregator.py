@@ -54,7 +54,7 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
         )
 
     items: list[NormalizedItem] = []
-    for result in results:
+    for adapter, result in zip(adapters, results, strict=True):
         if isinstance(result, SourceFetchError):
             # L5: one WARNING per failed adapter. We log the
             # *exception's* self-reported source_name (not the
@@ -63,10 +63,13 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             # registered as "fomc-rss" will surface its lie in the
             # log, which is the desired debugging signal.
             _logger.warning(
-                "source %s failed: %s (transient=%s)",
-                result.source_name,
-                result,
-                result.transient,
+                "source failed",
+                extra={
+                    "source_name": result.source_name,
+                    "category": adapter.category,
+                    "error": str(result),
+                    "transient": result.transient,
+                },
             )
             continue
         if isinstance(result, BaseException):

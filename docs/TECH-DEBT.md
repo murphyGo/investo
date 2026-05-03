@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 7 | 2026-04-27 |
+| Low | 3 | 2026-04-27 |
 
 ---
 
@@ -26,16 +26,6 @@ _No high priority items._
 _No medium priority items._
 
 ### Low Priority
-
-#### DEBT-003: `retry_get` 5 MB body cap is post-hoc, not streaming
-
-- **Created**: 2026-04-27
-- **Source**: Code review of `src/investo/sources/_retry.py` (Step 3)
-- **Reference**: NFR-007 AC-7.1 (5 MB response body cap)
-- **Description**: `retry_get` checks `len(response.content) > max_response_bytes` after `httpx.AsyncClient.get()` has already buffered the full body into memory. A hostile server returning a 100 MB payload would briefly hold 100 MB resident before the cap fires. Acceptable for v1 because the only adapter (FOMC RSS, Step 8) returns < 200 KB; would matter if a future adapter pulled larger feeds or hit a hostile endpoint.
-- **Suggested Fix**: Switch to `client.stream("GET", url)` and (a) reject up-front if `Content-Length` header exceeds the cap, (b) accumulate via `aiter_bytes()` and abort once the running total exceeds the cap. Trade-off: streaming requires constructing a synthetic `httpx.Response` to return, since downstream callers expect a fully-buffered response.
-- **Effort**: ~1 hour including test updates (need a streaming MockTransport response).
-- **Priority Reasoning**: Low — the threat is "hostile server returning huge body", which is unlikely against the curated free-tier endpoints `u1` consumes. Re-evaluate when a non-RSS adapter (e.g. JSON market data) lands.
 
 #### DEBT-004: `_sanitize.py` depends on `bleach` (maintenance-mode)
 
@@ -57,29 +47,6 @@ _No medium priority items._
 - **Effort**: ~2 hours including FakeClaudeRunner refactor + test migration.
 - **Priority Reasoning**: Low — orchestrator does not currently wrap `call_claude_code` in `wait_for` (the per-call timeout is enforced by `subprocess.run` itself, not asyncio). When u5 lands and the wrapping pattern is concrete, re-evaluate; if u5 takes the simpler "no outer wait_for, trust the inner timeout" path, this can be closed without action.
 
-#### DEBT-011: Integration PoC bypasses `aggregator.fetch_all`
-
-- **Created**: 2026-04-30
-- **Source**: Step 9.5 sub-agent code review (M2 / Q4)
-- **Reference**: u1 R6 (failure isolation), u1 L5 (warning-log contract), FD L9 (PoC integration scope)
-- **Description**: `tests/integration/test_briefing_pipeline_poc.py` calls `FomcRssAdapter().fetch(client, window)` directly via `httpx.MockTransport`, bypassing `investo.sources.fetch_all`. Consequences: (a) the aggregator's `gather(return_exceptions=True)` failure-isolation contract is not exercised end-to-end — covered only by u1's unit tests; (b) registry-driven adapter discovery is bypassed; (c) the warning-log behavior on adapter failures is not cross-unit-pinned. Today FomcRss is the only registered adapter so the impact is minimal, but this is a brittle assumption that widens silently as u1 grows.
-- **Suggested Fix**: Once a second u1 adapter exists (e.g., a price feed or earnings calendar), upgrade the integration test to call `fetch_all(target_date)` and use `monkeypatch` to control adapter responses (one returns FOMC fixture data, one raises `SourceFetchError`). Verify the failed adapter contributes `[]` and the briefing still generates from the remaining items.
-- **Effort**: ~45 min including the second-adapter mock setup. Cannot land before u1 has a second adapter.
-- **Priority Reasoning**: Low — the contract being uncovered is u1's, which has its own unit tests. The integration test still exercises u1→u2 wiring for the only adapter that currently exists. Re-evaluate when a second adapter is added.
-
-#### DEBT-014: u4 BriefingPublisher uses `parse_mode="Markdown"` without escape fallback
-
-- **Created**: 2026-04-30
-- **Source**: Step 7 sub-agent code review of u4 notifier (L3 / TD-N01)
-- **Reference**: FR-004 (Telegram channel), NFR-003 (graceful degradation)
-- **Description**: `BriefingPublisher.send` and `OperatorAlerter.alert` both pass `parse_mode="Markdown"` to the Telegram API. If the LLM-generated `briefing.market_summary` (or formatted alert text) contains an unbalanced `*` or `_`, or unescaped `[`, Telegram returns 400 with `"can't parse entities..."` which we encode as `SendResult(ok=False)`. The pipeline degrades gracefully — but the public-channel publish silently fails until an operator notices. The current prompt template doesn't specifically instruct the LLM to avoid Markdown footguns.
-- **Suggested Fix**: One of (in order of effort):
-  1. Document the failure mode in the prompt template (cheapest).
-  2. Add a `parse_mode=None` retry in `BriefingPublisher.send` when the API returns "can't parse entities" — the briefing publishes as plain text instead of failing.
-  3. Switch to `parse_mode="MarkdownV2"` and escape the body with a vetted helper (heaviest; loses some readability).
-- **Effort**: Option 2 ~1 hour including tests; option 1 trivial; option 3 ~3 hours.
-- **Priority Reasoning**: Low — graceful-degradation already covers the failure (operator alert fires when the publish step's `SendResult.ok=False` lands). No silent data loss. Re-evaluate when the first real Markdown-parse failure occurs in production.
-
 #### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
 
 - **Created**: 2026-05-01
@@ -90,9 +57,25 @@ _No medium priority items._
 - **Effort**: ~15 min including Dependabot setup.
 - **Priority Reasoning**: Low — see "1-person tool" above. Re-evaluate if the project ever onboards external contributors or stores higher-value secrets.
 
+---
+
+## Resolved Items
+
+#### DEBT-003: `retry_get` 5 MB body cap is post-hoc, not streaming
+
+- **Created**: 2026-04-27
+- **Resolved**: 2026-05-04 — Switched `retry_get` from `client.get()` to `client.stream("GET", ...)` for successful responses. The helper now rejects oversized `Content-Length` before reading the body, enforces the cap while accumulating `aiter_bytes()`, and returns a fully buffered synthetic `httpx.Response` so adapter callers keep the same surface. Added tests that prove the body is not read when `Content-Length` already exceeds the cap and that no-length streams abort once the running total crosses the cap.
+- **Source**: Code review of `src/investo/sources/_retry.py` (Step 3)
+- **Reference**: NFR-007 AC-7.1 (5 MB response body cap)
+- **Description**: `retry_get` checks `len(response.content) > max_response_bytes` after `httpx.AsyncClient.get()` has already buffered the full body into memory. A hostile server returning a 100 MB payload would briefly hold 100 MB resident before the cap fires. Acceptable for v1 because the only adapter (FOMC RSS, Step 8) returns < 200 KB; would matter if a future adapter pulled larger feeds or hit a hostile endpoint.
+- **Suggested Fix**: Switch to `client.stream("GET", url)` and (a) reject up-front if `Content-Length` header exceeds the cap, (b) accumulate via `aiter_bytes()` and abort once the running total exceeds the cap. Trade-off: streaming requires constructing a synthetic `httpx.Response` to return, since downstream callers expect a fully-buffered response.
+- **Effort**: ~1 hour including test updates (need a streaming MockTransport response).
+- **Priority Reasoning**: Low — the threat is "hostile server returning huge body", which is unlikely against the curated free-tier endpoints `u1` consumes. Re-evaluate when a non-RSS adapter (e.g. JSON market data) lands.
+
 #### DEBT-005: Aggregator log line is printf-style, not structured
 
 - **Created**: 2026-04-27
+- **Resolved**: 2026-05-04 — Changed `fetch_all` source-failure logging to `_logger.warning("source failed", extra={...})` with `source_name`, `category`, `error`, and `transient` fields. The structured log keeps the existing debugging contract by using the `SourceFetchError` self-reported `source_name` while taking `category` from the registered adapter. Updated unit and integration assertions to inspect `LogRecord` fields instead of rendered printf text.
 - **Source**: Code review of `src/investo/sources/aggregator.py` (Step 7)
 - **Reference**: FD `business-logic-model.md` L5 (logging contract — "structured fields"), NFR-007 baseline
 - **Description**: `_logger.warning("source %s failed: %s (transient=%s)", ...)` is a printf approximation of L5's structured-fields requirement (`source_name`, `category`, `error`, `transient`). It's grep-friendly but not JSON-parseable. The rest of the codebase has no structured-logging convention yet (NFR AC-D.4 explicitly defers metrics + structured logs to v2 / future ADR).
@@ -100,9 +83,30 @@ _No medium priority items._
 - **Effort**: ~30 min including test updates and verifying the chosen logging adapter (stdlib logging + JSON formatter, structlog, etc.).
 - **Priority Reasoning**: Low — printf logs are fine for a 1-person operator using `journalctl` / `gh actions logs`. Re-evaluate when remote log aggregation enters the picture.
 
----
+#### DEBT-011: Integration PoC bypasses `aggregator.fetch_all`
 
-## Resolved Items
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-04 — Updated `tests/integration/test_briefing_pipeline_poc.py` to call `aggregator.fetch_all(_TARGET_DATE)` with `aggregator.list_sources` patched to two controlled adapters: one wraps the recorded FOMC fixture through `FomcRssAdapter`, and one raises `SourceFetchError`. The test now pins registry-driven fan-out, failure isolation, warning-log behavior, and u1→u2 briefing generation in the same PoC.
+- **Source**: Step 9.5 sub-agent code review (M2 / Q4)
+- **Reference**: u1 R6 (failure isolation), u1 L5 (warning-log contract), FD L9 (PoC integration scope)
+- **Description**: `tests/integration/test_briefing_pipeline_poc.py` calls `FomcRssAdapter().fetch(client, window)` directly via `httpx.MockTransport`, bypassing `investo.sources.fetch_all`. Consequences: (a) the aggregator's `gather(return_exceptions=True)` failure-isolation contract is not exercised end-to-end — covered only by u1's unit tests; (b) registry-driven adapter discovery is bypassed; (c) the warning-log behavior on adapter failures is not cross-unit-pinned. Today FomcRss is the only registered adapter so the impact is minimal, but this is a brittle assumption that widens silently as u1 grows.
+- **Suggested Fix**: Once a second u1 adapter exists (e.g., a price feed or earnings calendar), upgrade the integration test to call `fetch_all(target_date)` and use `monkeypatch` to control adapter responses (one returns FOMC fixture data, one raises `SourceFetchError`). Verify the failed adapter contributes `[]` and the briefing still generates from the remaining items.
+- **Effort**: ~45 min including the second-adapter mock setup. Cannot land before u1 has a second adapter.
+- **Priority Reasoning**: Low — the contract being uncovered is u1's, which has its own unit tests. The integration test still exercises u1→u2 wiring for the only adapter that currently exists. Re-evaluate when a second adapter is added.
+
+#### DEBT-014: u4 BriefingPublisher uses `parse_mode="Markdown"` without escape fallback
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-04 — `BriefingPublisher.send` now retries Telegram `"can't parse entities"` failures once with `parse_mode=None`, allowing malformed LLM Markdown to publish as plain text instead of failing the public-channel send. `_telegram.send_message` omits `parse_mode` when callers pass `None`, and unit tests pin both the retry and the no-retry behavior for unrelated API errors.
+- **Source**: Step 7 sub-agent code review of u4 notifier (L3 / TD-N01)
+- **Reference**: FR-004 (Telegram channel), NFR-003 (graceful degradation)
+- **Description**: `BriefingPublisher.send` and `OperatorAlerter.alert` both pass `parse_mode="Markdown"` to the Telegram API. If the LLM-generated `briefing.market_summary` (or formatted alert text) contains an unbalanced `*` or `_`, or unescaped `[`, Telegram returns 400 with `"can't parse entities..."` which we encode as `SendResult(ok=False)`. The pipeline degrades gracefully — but the public-channel publish silently fails until an operator notices. The current prompt template doesn't specifically instruct the LLM to avoid Markdown footguns.
+- **Suggested Fix**: One of (in order of effort):
+  1. Document the failure mode in the prompt template (cheapest).
+  2. Add a `parse_mode=None` retry in `BriefingPublisher.send` when the API returns "can't parse entities" — the briefing publishes as plain text instead of failing.
+  3. Switch to `parse_mode="MarkdownV2"` and escape the body with a vetted helper (heaviest; loses some readability).
+- **Effort**: Option 2 ~1 hour including tests; option 1 trivial; option 3 ~3 hours.
+- **Priority Reasoning**: Low — graceful-degradation already covers the failure (operator alert fires when the publish step's `SendResult.ok=False` lands). No silent data loss. Re-evaluate when the first real Markdown-parse failure occurs in production.
 
 #### DEBT-027: Windows checkout symlink limitation undocumented
 

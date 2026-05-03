@@ -65,7 +65,7 @@ async def send_message(
     bot_token: str,
     chat_id: str,
     text: str,
-    parse_mode: str = "Markdown",
+    parse_mode: str | None = "Markdown",
     disable_web_page_preview: bool = False,
 ) -> SendResult:
     """POST a single ``sendMessage`` call. Non-raising.
@@ -86,9 +86,10 @@ async def send_message(
     payload = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": parse_mode,
         "disable_web_page_preview": disable_web_page_preview,
     }
+    if parse_mode is not None:
+        payload["parse_mode"] = parse_mode
 
     try:
         response = await client.post(url, json=payload)
