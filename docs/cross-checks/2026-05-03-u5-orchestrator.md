@@ -132,26 +132,26 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 
 **Impact**: Low for u5 stage gate. This is an intentional unit boundary.
 
-**Proposed Action**: Verify schedule, workflow_dispatch input, `timeout-minutes: 12`, secrets wiring, and GHA default notification in the u6 infra/CI cross-check.
+**Action Taken**: Schedule, workflow_dispatch input, `timeout-minutes: 12`, secrets wiring, and GHA default notification were verified in the u6 infra/CI cross-check.
 
 ---
 
-## Open TECH-DEBT in u5 Scope
+## TECH-DEBT in u5 Scope
 
 | ID | Priority | Description | Cross-check status |
 |----|----------|-------------|--------------------|
-| DEBT-017 | Low | `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py` | Accepted; not blocking |
-| DEBT-018 | Low | AST-grep deny tests use substring matching instead of callable identity | Accepted test-maintainability item |
-| DEBT-019 | Low | `resolve_target_date` PBT covers only 2026 | Accepted coverage breadth item |
-| DEBT-020 | Low | `_safe_alert` and `_attempt_boot_alert` exception lists are not aligned | Accepted; related to boot alert robustness |
-| DEBT-021 | Low | Unused `PublisherError` re-export in `pipeline.__all__` | Accepted dead-code cleanup |
+| DEBT-017 | Low | `_TRACEBACK_EXCERPT_MAX_CHARS` duplicated between `pipeline.py` and `models/results.py` | Resolved 2026-05-03 |
+| DEBT-018 | Low | AST-grep deny tests use substring matching instead of callable identity | Resolved 2026-05-03 |
+| DEBT-019 | Low | `resolve_target_date` PBT covers only 2026 | Resolved 2026-05-03 |
+| DEBT-020 | Low | `_safe_alert` and `_attempt_boot_alert` exception lists are not aligned | Resolved 2026-05-03 |
+| DEBT-021 | Low | Unused `PublisherError` re-export in `pipeline.__all__` | Resolved 2026-05-03 |
 
-No new TECH-DEBT items were added by this cross-check. GAP-001 was resolved on 2026-05-04 as a narrow operator-alert delivery retry code change.
+No u5-scoped TECH-DEBT items remain active after the 2026-05-03 cleanup pass. No new TECH-DEBT items were added by this cross-check. GAP-001 was resolved on 2026-05-04 as a narrow operator-alert delivery retry code change.
 
 ---
 
 ## Sign-Off
 
-⚠️ **u5 orchestrator cross-check PASSED WITH GAP.**
+✅ **u5 orchestrator cross-check PASSED with expected cross-unit Partials.**
 
-The runtime orchestration contract is complete: stage composition, target-date resolution, env validation, chat-ID disjointness, failure routing, status taxonomy, exit-code mapping, alert-delivery retry, and timing telemetry are all implemented and tested. The remaining product-level work is u6 infra/CI closure.
+The runtime orchestration contract is complete: stage composition, target-date resolution, env validation, chat-ID disjointness, failure routing, status taxonomy, exit-code mapping, alert-delivery retry, and timing telemetry are all implemented and tested. The u6 infra/CI cross-check closes the product-level workflow side; only real hosted runtime verification remains outside local code review.
