@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 3 | 2026-04-27 |
+| Low | 1 | 2026-04-27 |
 
 ---
 
@@ -37,19 +37,14 @@ _No medium priority items._
 - **Effort**: ~30 min including test updates and verifying nh3 entity-decoding behavior.
 - **Priority Reasoning**: Low — the project's only sanitization need is plain-text output; bleach 6 is fine for v1. Watch for EOL announcements or CI deprecation warnings.
 
-#### DEBT-006: `call_claude_code` cancellation does not stop the worker thread
+---
 
-- **Created**: 2026-04-29
-- **Source**: Code review of `src/investo/briefing/claude_code.py` (Step 6 sub-agent M1)
-- **Reference**: NFR-001 (≤10 min), NFR-003 (graceful degradation); FD R3 (per-call timeout)
-- **Description**: `call_claude_code` uses `asyncio.to_thread(subprocess.run, ...)`. If the awaiting coroutine is cancelled (e.g. an upstream `asyncio.wait_for` enforces a stricter deadline than the per-call timeout), the `CancelledError` propagates to the awaiter but the inner thread continues running until `subprocess.run`'s own `timeout=` fires. During that window, the spawned `claude` child process is still alive. For u2's bounded use (per-call ≤120 s), this is acceptable — the kernel reaps the child when `subprocess.run` raises `TimeoutExpired` inside the orphaned thread — but it could matter when u5 orchestrator wraps `generate_briefing` in its own `wait_for`.
-- **Suggested Fix**: Switch to `asyncio.create_subprocess_exec("claude", "-p", prompt, stdout=PIPE, stderr=PIPE)` for true async cancellation (sends SIGTERM/SIGKILL to the child on cancellation). Trade-off: changes the runner-seam Protocol shape (no more `subprocess.run` signature compatibility); `FakeClaudeRunner` would need a parallel async-mode entry point. Defer until u5 orchestrator's `wait_for` wrapping is finalized.
-- **Effort**: ~2 hours including FakeClaudeRunner refactor + test migration.
-- **Priority Reasoning**: Low — orchestrator does not currently wrap `call_claude_code` in `wait_for` (the per-call timeout is enforced by `subprocess.run` itself, not asyncio). When u5 lands and the wrapping pattern is concrete, re-evaluate; if u5 takes the simpler "no outer wait_for, trust the inner timeout" path, this can be closed without action.
+## Resolved Items
 
 #### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
 
 - **Created**: 2026-05-01
+- **Resolved**: 2026-05-04 — Replaced both `astral-sh/setup-uv@v3` workflow references with the peeled `v3` commit SHA `caf0cab7a618c569241d31dcd442f54681755d39` and kept a `# v3` trailing comment for reviewability. Added `.github/dependabot.yml` with weekly `github-actions` updates so action pins stay visible and maintainable.
 - **Source**: Step 6 sub-agent code review of u6 infra/CI (L4)
 - **Reference**: NFR-007 baseline (supply-chain hygiene)
 - **Description**: Both `.github/workflows/daily-briefing.yml:95` and `pages.yml:72` use `astral-sh/setup-uv@v3` — major-version pin. A compromised v3 release could exfiltrate the 5 GitHub Secrets injected via `env:`. For a 1-person tool with no untrusted contributors the supply-chain risk is minimal, but pinning to a SHA per the canonical GitHub-recommended pattern would tighten the boundary.
@@ -57,9 +52,16 @@ _No medium priority items._
 - **Effort**: ~15 min including Dependabot setup.
 - **Priority Reasoning**: Low — see "1-person tool" above. Re-evaluate if the project ever onboards external contributors or stores higher-value secrets.
 
----
+#### DEBT-006: `call_claude_code` cancellation does not stop the worker thread
 
-## Resolved Items
+- **Created**: 2026-04-29
+- **Resolved**: 2026-05-04 — Closed after u5 orchestrator re-evaluation. `_stage_generate` awaits u2's async `generate_briefing` directly, `run_pipeline` does not wrap stage calls in `asyncio.wait_for`, and `tests/unit/orchestrator/test_run_pipeline.py::test_pipeline_source_has_no_asyncio_wait_for_on_stages` statically pins that contract. With no stricter outer cancellation wrapper around `call_claude_code`, the remaining `asyncio.to_thread(subprocess.run, timeout=...)` behavior is bounded by the existing per-call timeout and does not need the larger async-subprocess refactor.
+- **Source**: Code review of `src/investo/briefing/claude_code.py` (Step 6 sub-agent M1)
+- **Reference**: NFR-001 (≤10 min), NFR-003 (graceful degradation); FD R3 (per-call timeout)
+- **Description**: `call_claude_code` uses `asyncio.to_thread(subprocess.run, ...)`. If the awaiting coroutine is cancelled (e.g. an upstream `asyncio.wait_for` enforces a stricter deadline than the per-call timeout), the `CancelledError` propagates to the awaiter but the inner thread continues running until `subprocess.run`'s own `timeout=` fires. During that window, the spawned `claude` child process is still alive. For u2's bounded use (per-call ≤120 s), this is acceptable — the kernel reaps the child when `subprocess.run` raises `TimeoutExpired` inside the orphaned thread — but it could matter when u5 orchestrator wraps `generate_briefing` in its own `wait_for`.
+- **Suggested Fix**: Switch to `asyncio.create_subprocess_exec("claude", "-p", prompt, stdout=PIPE, stderr=PIPE)` for true async cancellation (sends SIGTERM/SIGKILL to the child on cancellation). Trade-off: changes the runner-seam Protocol shape (no more `subprocess.run` signature compatibility); `FakeClaudeRunner` would need a parallel async-mode entry point. Defer until u5 orchestrator's `wait_for` wrapping is finalized.
+- **Effort**: ~2 hours including FakeClaudeRunner refactor + test migration.
+- **Priority Reasoning**: Low — orchestrator does not currently wrap `call_claude_code` in `wait_for` (the per-call timeout is enforced by `subprocess.run` itself, not asyncio). When u5 lands and the wrapping pattern is concrete, re-evaluate; if u5 takes the simpler "no outer wait_for, trust the inner timeout" path, this can be closed without action.
 
 #### DEBT-003: `retry_get` 5 MB body cap is post-hoc, not streaming
 

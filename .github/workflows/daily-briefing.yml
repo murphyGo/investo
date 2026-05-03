@@ -100,7 +100,7 @@ jobs:
           # leaves the token in the local clone for the push step.
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3
         with:
           # Pinned floor for the cache-key behavior we rely on; bump
           # alongside local dev environment.
