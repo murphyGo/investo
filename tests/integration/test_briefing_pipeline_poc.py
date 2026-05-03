@@ -69,6 +69,7 @@ from investo.briefing.errors import SubprocessOutcome
 from investo.models import Briefing
 from investo.sources._window import FetchWindow
 from investo.sources.fomc_rss import FomcRssAdapter
+from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -87,30 +88,6 @@ async def _mock_fomc_client(body: bytes) -> AsyncIterator[httpx.AsyncClient]:
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         yield client
-
-
-def _valid_classification_stdout_json(item_count: int) -> str:
-    """Stage 1 stdout that assigns every item to section 4 (calendar)."""
-    import json as _json
-
-    assignments = {str(i): 4 for i in range(1, item_count + 1)}
-    return _json.dumps({"assignments": assignments, "unassigned": []})
-
-
-def _valid_stage2_markdown() -> str:
-    """Stage 2 stdout exceeding the 200-char sanity floor with FOMC-flavored
-    Korean prose. Carefully NFC-normalized; no ``<script>`` substrings; no
-    leak-guard patterns.
-    """
-    parts = [
-        "## ① 요약\n오늘은 FOMC 일정이 시장 관심사입니다. 금리 결정과 SEP 발표를 주목하세요.",
-        "## ② 전일 핵심 이슈\n전일에는 FOMC 관련 이슈가 핵심이었습니다. 발표 대기 중입니다.",
-        "## ③ 섹터/수급 동향\n금융 섹터와 채권 시장에 자금 흐름이 집중되었습니다.",
-        "## ④ 지표·이벤트\nFOMC Statement 와 Press Conference 가 예정되어 있습니다.",
-        "## ⑤ 주요 종목\n금리 민감 종목 흐름 — JPM, BAC, GS 등에 주목합니다.",
-        "## ⑥ 오늘의 관전 포인트\nFed 의 점도표 변화와 의장의 발언 톤을 확인하세요.",
-    ]
-    return "\n\n".join(parts) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -141,8 +118,8 @@ async def test_full_pipeline_poc_against_recorded_fomc_fixture(
 
     # Step 2: stub Claude calls with canned valid Stage 1 + Stage 2 outputs.
     stdouts = [
-        _valid_classification_stdout_json(item_count=len(items)),
-        _valid_stage2_markdown(),
+        valid_classification_stdout(item_count=len(items)),
+        valid_stage2_markdown(),
     ]
     call_index = 0
 

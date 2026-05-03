@@ -18,13 +18,11 @@ Pure stub-based (no real git, no real filesystem outside ``tmp_path``).
 from __future__ import annotations
 
 import subprocess
-from datetime import date
 from pathlib import Path
 
 import pytest
 
 from investo.briefing.disclaimer import DISCLAIMER
-from investo.models import Briefing
 from investo.publisher import (
     ARCHIVE_ROOT,
     PublisherDisclaimerError,
@@ -37,31 +35,9 @@ from investo.publisher import (
     write_briefing,
 )
 from investo.publisher import paths as paths_module
+from tests._helpers.briefings import DEFAULT_TARGET_DATE, build_briefing
 
-_TARGET_DATE = date(2026, 4, 25)
-
-
-def _build_briefing() -> Briefing:
-    body = (
-        "## ① 요약\n오늘 시장 요약\n\n"
-        "## ② 전일 핵심 이슈\n핵심 이슈\n\n"
-        "## ③ 섹터/수급 동향\n섹터 동향\n\n"
-        "## ④ 지표·이벤트\n지표 이벤트\n\n"
-        "## ⑤ 주요 종목\n종목 본문\n\n"
-        "## ⑥ 오늘의 관전 포인트\n관전 포인트\n\n"
-    )
-    rendered = body + DISCLAIMER
-    return Briefing(
-        target_date=_TARGET_DATE,
-        market_summary="요약",
-        key_issues="이슈",
-        sector_flow="섹터",
-        indicators_events="지표",
-        notable_tickers="종목",
-        today_watch="관전",
-        disclaimer=DISCLAIMER,
-        rendered_markdown=rendered,
-    )
+_TARGET_DATE = DEFAULT_TARGET_DATE
 
 
 def test_publisher_end_to_end_write_then_commit_and_push(
@@ -75,7 +51,7 @@ def test_publisher_end_to_end_write_then_commit_and_push(
     """
     monkeypatch.setattr(paths_module, "ARCHIVE_ROOT", tmp_path / "archive")
 
-    briefing = _build_briefing()
+    briefing = build_briefing()
 
     # Step 1 — write briefing.
     path = write_briefing(briefing, _TARGET_DATE)

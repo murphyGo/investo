@@ -15,7 +15,6 @@ Happy-path counterpart lives in ``test_budget_happy_path.py``.
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, date, datetime
 
 import pytest
@@ -24,6 +23,7 @@ from investo.briefing import pipeline
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.models import NormalizedItem
+from tests._helpers.briefing_pipeline import valid_classification_stdout
 
 _TARGET_DATE = date(2026, 4, 25)
 
@@ -39,17 +39,6 @@ def _item(idx: int) -> NormalizedItem:
 
 def _items(n: int = 2) -> list[NormalizedItem]:
     return [_item(i) for i in range(1, n + 1)]
-
-
-def _valid_classification_stdout(item_count: int) -> str:
-    assignments = {str(i): 4 for i in range(1, item_count + 1)}
-    return json.dumps({"assignments": assignments, "unassigned": []})
-
-
-@pytest.fixture(autouse=True)
-def _zero_backoff(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Skip FD R3 backoff sleeps so failure-mode tests run instantly."""
-    monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +59,7 @@ async def test_budget_gate_fires_before_stage_2_dispatches(
     (Stage 1 only). FD R3: "If the next attempt would exceed budget,
     raise immediately."
     """
-    stdouts = [_valid_classification_stdout(item_count=2)]
+    stdouts = [valid_classification_stdout(item_count=2)]
     elapsed_per_call = [200.0]
     call_index = 0
 
@@ -122,7 +111,7 @@ async def test_budget_is_shared_between_classify_and_synthesize(
     budget were re-instantiated between stages, Stage 2 would see a
     fresh 300 s and dispatch successfully.
     """
-    stdouts = [_valid_classification_stdout(item_count=2)]
+    stdouts = [valid_classification_stdout(item_count=2)]
     call_index = 0
 
     async def fake_call(

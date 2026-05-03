@@ -21,7 +21,6 @@ from __future__ import annotations
 from datetime import date, timedelta
 from pathlib import Path
 
-import httpx
 import pytest
 
 from investo.sources._window import FetchWindow
@@ -30,20 +29,10 @@ from investo.sources.theblock_crypto import (
     TheBlockCryptoAdapter,
     _strip_tracking_params,
 )
+from tests.unit.sources._mock_transport import mock_client as _mock_client
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "theblock-crypto"
 _REAL_FIXTURE = _FIXTURE_DIR / "feed.xml"
-
-
-def _mock_client(body: bytes, status: int = 200) -> httpx.AsyncClient:
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            status,
-            content=body,
-            headers={"content-type": "text/xml; charset=UTF-8"},
-        )
-
-    return httpx.AsyncClient(transport=httpx.MockTransport(handler))
 
 
 # ---------------------------------------------------------------------------

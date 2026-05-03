@@ -20,7 +20,6 @@ Budget-exhaustion (the failure-mode counterpart) lives in
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, date, datetime
 
 import pytest
@@ -29,6 +28,7 @@ from investo.briefing import pipeline
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.errors import SubprocessOutcome
 from investo.models import Briefing, NormalizedItem
+from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -48,23 +48,6 @@ def _item(idx: int) -> NormalizedItem:
 
 def _items(n: int = 2) -> list[NormalizedItem]:
     return [_item(i) for i in range(1, n + 1)]
-
-
-def _valid_classification_stdout(item_count: int) -> str:
-    assignments = {str(i): 4 for i in range(1, item_count + 1)}
-    return json.dumps({"assignments": assignments, "unassigned": []})
-
-
-def _valid_stage2_markdown() -> str:
-    """A Stage 2 stdout that parses cleanly + clears the 200-char floor."""
-    return (
-        "## ① 요약\n오늘 시장의 한 줄 요약 본문입니다 추가 패딩 텍스트도 함께\n\n"
-        "## ② 전일 핵심 이슈\n전일의 핵심 이슈를 상세히 설명하는 본문 텍스트입니다\n\n"
-        "## ③ 섹터/수급 동향\n섹터별 수급 동향을 정리한 본문 텍스트입니다\n\n"
-        "## ④ 지표·이벤트\n주요 거시 지표와 일정 이벤트를 정리한 본문입니다\n\n"
-        "## ⑤ 주요 종목\n관심 종목 흐름을 정리한 본문 텍스트입니다\n\n"
-        "## ⑥ 오늘의 관전 포인트\n오늘 살펴볼 포인트를 정리한 본문 텍스트입니다\n"
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -87,11 +70,9 @@ async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
     The pin protects against accidentally moving the gate to a position
     where it would mis-fire on the happy path.
     """
-    monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
-
     stdouts = [
-        _valid_classification_stdout(item_count=2),
-        _valid_stage2_markdown(),
+        valid_classification_stdout(item_count=2),
+        valid_stage2_markdown(),
     ]
     call_index = 0
 

@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 11 | 2026-04-27 |
+| Low | 8 | 2026-04-27 |
 
 ---
 
@@ -57,16 +57,6 @@ _No medium priority items._
 - **Effort**: ~2 hours including FakeClaudeRunner refactor + test migration.
 - **Priority Reasoning**: Low — orchestrator does not currently wrap `call_claude_code` in `wait_for` (the per-call timeout is enforced by `subprocess.run` itself, not asyncio). When u5 lands and the wrapping pattern is concrete, re-evaluate; if u5 takes the simpler "no outer wait_for, trust the inner timeout" path, this can be closed without action.
 
-#### DEBT-010: u2 briefing test helpers duplicated across 4 files
-
-- **Created**: 2026-04-30
-- **Source**: Step 9.5 sub-agent code review (L1 / Q8)
-- **Reference**: NFR-006 (test-suite maintainability)
-- **Description**: `_valid_classification_stdout(item_count)` is copied across `tests/unit/briefing/test_failure_contract.py`, `test_budget_happy_path.py`, `test_budget_guard.py`, and `tests/integration/test_briefing_pipeline_poc.py` (4 files). `_valid_stage2_markdown()` is duplicated in 2 of those files with subtle Korean-prose variation that's irrelevant to the assertions. The autouse `_zero_backoff` fixture appears in `test_failure_contract.py` and `test_budget_guard.py`. `tests/unit/briefing/conftest.py` is already a placeholder for shared fixtures. Risk: divergence over time as one site updates a helper for a new test concern and the others lag.
-- **Suggested Fix**: Consolidate into `tests/unit/briefing/conftest.py` (already declared as the home for shared fixtures). Move `_valid_classification_stdout`, `_valid_stage2_markdown`, and the `_zero_backoff` autouse fixture there. Integration test under `tests/integration/` would either re-import via `from tests.unit.briefing.conftest import ...` or have its own thin shim.
-- **Effort**: ~30 min including import updates and verifying no new fixture-name collisions.
-- **Priority Reasoning**: Low — defensive duplication, all 11 Step 9 tests pass, no functional risk. Best addressed in a post-Step-10 cleanup pass to avoid merge churn against ongoing work.
-
 #### DEBT-011: Integration PoC bypasses `aggregator.fetch_all`
 
 - **Created**: 2026-04-30
@@ -76,16 +66,6 @@ _No medium priority items._
 - **Suggested Fix**: Once a second u1 adapter exists (e.g., a price feed or earnings calendar), upgrade the integration test to call `fetch_all(target_date)` and use `monkeypatch` to control adapter responses (one returns FOMC fixture data, one raises `SourceFetchError`). Verify the failed adapter contributes `[]` and the briefing still generates from the remaining items.
 - **Effort**: ~45 min including the second-adapter mock setup. Cannot land before u1 has a second adapter.
 - **Priority Reasoning**: Low — the contract being uncovered is u1's, which has its own unit tests. The integration test still exercises u1→u2 wiring for the only adapter that currently exists. Re-evaluate when a second adapter is added.
-
-#### DEBT-013: u3 publisher test `_build_briefing` fixture duplicated
-
-- **Created**: 2026-04-30
-- **Source**: Step 8 sub-agent code review of u3 publisher (M3 finding)
-- **Reference**: NFR-006 (test-suite maintainability)
-- **Description**: `_build_briefing()` helper lives in both `tests/unit/publisher/test_writer.py` and `tests/integration/test_publisher_smoke.py`. Sibling-shape with DEBT-010 (u2 test helper duplication). Will recur when u4 notifier + u5 orchestrator need a `Briefing` fixture.
-- **Suggested Fix**: Lift to a shared `tests/_fixtures/briefings.py` (or extend `tests/_helpers/`) so both unit + integration tests can import. Bundling with DEBT-010's resolution is reasonable since both target test-helper consolidation.
-- **Effort**: ~20 min. Could be folded into DEBT-010's resolution PR.
-- **Priority Reasoning**: Low — defensive duplication, all tests pass, no functional risk. Address alongside DEBT-010 in a post-u3 cleanup pass.
 
 #### DEBT-014: u4 BriefingPublisher uses `parse_mode="Markdown"` without escape fallback
 
@@ -132,9 +112,12 @@ _No medium priority items._
 
 ---
 
+## Resolved Items
+
 #### DEBT-034: `_mock_client` test helper duplicated across 5 news-adapter test files
 
 - **Created**: 2026-05-01
+- **Resolved**: 2026-05-04 — Added shared `tests/unit/sources/_mock_transport.py::mock_client()` for source adapter tests, including optional request capture for the SEC User-Agent pin. Updated Yahoo Finance, SEC EDGAR 8-K, Yonhap Market, The Block Crypto, and CNBC Top News tests to import the shared helper instead of carrying local `httpx.MockTransport` wrappers.
 - **Source**: Phase 4 cross-cutting qa review of u1 sources Extension #3 (L4)
 - **Reference**: NFR-006 (test-suite/source maintainability)
 - **Description**: A `_mock_client(body, status=200)` test helper appears in 5 news-adapter test files: `test_yahoo_finance_news.py`, `test_sec_edgar_8k.py`, `test_yonhap_market.py`, `test_theblock_crypto.py`, `test_cnbc_top_news.py`. The bodies differ only by content-type header value (`application/rss+xml` vs `application/atom+xml` vs `text/xml`); the SEC variant additionally captures the outgoing request to assert the User-Agent header (R14 test). Five copies of a small but non-trivial httpx `MockTransport`-wrapping helper — a clear consolidation target.
@@ -142,9 +125,27 @@ _No medium priority items._
 - **Effort**: ~25 min including the new helper + 5 test-file import updates + verification all 5 test files still green. Test-code only — no production-code touch.
 - **Priority Reasoning**: Low — test code only, not production; works correctly today; cleanup pays off when the 6th news adapter lands or when the underlying httpx test API ever changes (single update site vs five). Pairs naturally with DEBT-016 (`_mock_client` duplicated across 3 u4 test files) — both could be resolved together via a shared `tests/_helpers/mock_transport.py` if the lead chooses to widen scope.
 
----
+#### DEBT-010: u2 briefing test helpers duplicated across 4 files
 
-## Resolved Items
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Added shared `tests/_helpers/briefing_pipeline.py` for valid Stage 1 classification stdout and Stage 2 markdown payloads. Moved the unit briefing zero-backoff autouse fixture into `tests/unit/briefing/conftest.py`. Updated the three u2 unit files and the integration PoC to consume the shared helpers.
+- **Source**: Step 9.5 sub-agent code review (L1 / Q8)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: `_valid_classification_stdout(item_count)` was copied across 4 files, `_valid_stage2_markdown()` was duplicated in 2 files, and `_zero_backoff` appeared in 2 unit files.
+- **Suggested Fix**: Consolidate shared helpers and the zero-backoff fixture so future prompt/output shape changes have one update site.
+- **Effort**: ~30 min including import updates and verifying no fixture-name collisions.
+- **Priority Reasoning**: Low — defensive duplication; all tests already passed.
+
+#### DEBT-013: u3 publisher test `_build_briefing` fixture duplicated
+
+- **Created**: 2026-04-30
+- **Resolved**: 2026-05-03 — Added shared `tests/_helpers/briefings.py::build_briefing()` plus `DEFAULT_TARGET_DATE`, then updated publisher unit and integration smoke tests to use the shared builder. The helper keeps the explicit `model_construct` path for malformed disclaimer fixtures.
+- **Source**: Step 8 sub-agent code review of u3 publisher (M3 finding)
+- **Reference**: NFR-006 (test-suite maintainability)
+- **Description**: `_build_briefing()` helper lived in both `tests/unit/publisher/test_writer.py` and `tests/integration/test_publisher_smoke.py`.
+- **Suggested Fix**: Lift to a shared test helper so both unit and integration tests can import it.
+- **Effort**: ~20 min.
+- **Priority Reasoning**: Low — defensive duplication; all tests already passed.
 
 #### DEBT-016: `_mock_client` test helper duplicated across 3 u4 test files
 

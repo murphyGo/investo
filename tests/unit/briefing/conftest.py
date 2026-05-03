@@ -1,7 +1,13 @@
-"""Shared fixtures for u2 briefing tests.
+"""Shared fixtures for u2 briefing tests."""
 
-This module is the bootstrap placeholder. Concrete shared fixtures
-(``FakeClaudeRunner`` autouse wiring, recorded-fixture isolation,
-``RetryBudget`` factories, etc.) are introduced as later Code
-Generation steps land them.
-"""
+from __future__ import annotations
+
+import pytest
+
+from investo.briefing import pipeline
+
+
+@pytest.fixture(autouse=True)
+def zero_backoff(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Skip FD R3 backoff sleeps in unit tests."""
+    monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))

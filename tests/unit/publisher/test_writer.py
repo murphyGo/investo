@@ -15,52 +15,20 @@ Covered behaviors:
 
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 
 import pytest
 
-from investo.briefing.disclaimer import DISCLAIMER
-from investo.models import Briefing
 from investo.publisher import paths as paths_module
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
 from investo.publisher.writer import write_briefing
+from tests._helpers.briefings import DEFAULT_TARGET_DATE, build_briefing
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
-_TARGET_DATE = date(2026, 4, 25)
-
-
-def _build_briefing(*, with_disclaimer: bool = True) -> Briefing:
-    """Construct a `Briefing` whose rendered_markdown does or does not
-    contain DISCLAIMER. All other fields are placeholder text that
-    satisfies the model's ``min_length=1`` validators.
-    """
-    body = (
-        "## ① 요약\n오늘 시장 요약\n\n"
-        "## ② 전일 핵심 이슈\n핵심 이슈\n\n"
-        "## ③ 섹터/수급 동향\n섹터 동향\n\n"
-        "## ④ 지표·이벤트\n지표 이벤트\n\n"
-        "## ⑤ 주요 종목\n종목 본문\n\n"
-        "## ⑥ 오늘의 관전 포인트\n관전 포인트\n\n"
-    )
-    rendered = body + (DISCLAIMER if with_disclaimer else "no disclaimer here")
-    kwargs = {
-        "target_date": _TARGET_DATE,
-        "market_summary": "요약",
-        "key_issues": "이슈",
-        "sector_flow": "섹터",
-        "indicators_events": "지표",
-        "notable_tickers": "종목",
-        "today_watch": "관전",
-        "disclaimer": DISCLAIMER,
-        "rendered_markdown": rendered,
-    }
-    if not with_disclaimer:
-        return Briefing.model_construct(**kwargs)
-    return Briefing(**kwargs)
+_TARGET_DATE = DEFAULT_TARGET_DATE
 
 
 @pytest.fixture
@@ -82,7 +50,7 @@ def test_write_briefing_writes_markdown_to_archive_path(archive_root: Path) -> N
     """Markdown lands at ``archive_root/2026/04/2026-04-25.md`` with
     byte-exact content.
     """
-    briefing = _build_briefing()
+    briefing = build_briefing()
 
     written_path = write_briefing(briefing, _TARGET_DATE)
 
@@ -101,7 +69,7 @@ def test_write_briefing_creates_nested_year_month_dirs(
     """
     assert not (archive_root / "2026").exists()
 
-    briefing = _build_briefing()
+    briefing = build_briefing()
     written_path = write_briefing(briefing, _TARGET_DATE)
 
     assert written_path.exists()
@@ -114,7 +82,7 @@ def test_write_briefing_returns_path_for_orchestrator_to_stage(
     """The returned ``Path`` is what u5 orchestrator hands to
     ``commit_and_push`` as the file-to-stage. Pin the type contract.
     """
-    briefing = _build_briefing()
+    briefing = build_briefing()
     written_path = write_briefing(briefing, _TARGET_DATE)
 
     assert isinstance(written_path, Path)
@@ -137,7 +105,7 @@ def test_write_briefing_blocks_when_disclaimer_missing(
     doesn't enforce the cross-field invariant (DEBT-001), so the
     runtime check is the safety net.
     """
-    briefing = _build_briefing(with_disclaimer=False)
+    briefing = build_briefing(with_disclaimer=False)
 
     with pytest.raises(PublisherDisclaimerError) as exc:
         write_briefing(briefing, _TARGET_DATE)
@@ -162,7 +130,7 @@ def test_write_briefing_same_day_overwrites_previous(archive_root: Path) -> None
     first. Git history retains both versions; in-place backup is NOT
     a publisher concern.
     """
-    first = _build_briefing()
+    first = build_briefing()
     second_md = first.rendered_markdown.replace("오늘 시장 요약", "수정된 요약")
     second = first.model_copy(update={"rendered_markdown": second_md})
 
@@ -188,7 +156,7 @@ def test_write_briefing_atomicity_when_replace_fails(
     cleaned up; ``PublisherIOError`` is raised with the original
     cause attached.
     """
-    briefing = _build_briefing()
+    briefing = build_briefing()
 
     def boom(src: object, dst: object) -> None:
         raise OSError("synthetic replace failure")
@@ -216,7 +184,7 @@ def test_write_briefing_atomicity_does_not_leave_destination_corrupted(
     mid-replace, the destination keeps its prior content (atomic
     guarantee).
     """
-    first = _build_briefing()
+    first = build_briefing()
     write_briefing(first, _TARGET_DATE)
 
     # Now fail the second write.
@@ -253,7 +221,7 @@ def test_write_briefing_uses_archive_root_at_call_time(archive_root: Path) -> No
     effect. Confirms the Step 5.3 (a) testability claim works
     end-to-end through the writer too.
     """
-    briefing = _build_briefing()
+    briefing = build_briefing()
     written_path = write_briefing(briefing, _TARGET_DATE)
 
     # Path is under the redirected archive_root, NOT the production
@@ -276,7 +244,7 @@ def test_write_briefing_verify_runs_before_mkdir(
     """
     fresh = tmp_path / "totally-fresh"
     monkeypatch.setattr(paths_module, "ARCHIVE_ROOT", fresh)
-    briefing = _build_briefing(with_disclaimer=False)
+    briefing = build_briefing(with_disclaimer=False)
 
     with pytest.raises(PublisherDisclaimerError):
         write_briefing(briefing, _TARGET_DATE)
@@ -302,7 +270,7 @@ def test_write_briefing_succeeds_when_stale_tmp_exists(
     stale_tmp = expected.with_suffix(expected.suffix + ".tmp")
     stale_tmp.write_text("STALE CRASH RESIDUE", encoding="utf-8")
 
-    briefing = _build_briefing()
+    briefing = build_briefing()
     write_briefing(briefing, _TARGET_DATE)
 
     assert expected.read_text(encoding="utf-8") == briefing.rendered_markdown

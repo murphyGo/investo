@@ -29,22 +29,13 @@ from pydantic import ValidationError
 from investo.briefing import pipeline
 from investo.briefing.errors import BriefingGenerationError
 from investo.models import NormalizedItem
+from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 _TARGET_DATE = date(2026, 4, 25)
-
-
-@pytest.fixture(autouse=True)
-def _zero_backoff(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Skip the FD R3 backoff (0/2/8s) so failure-contract tests run
-    fast. Behavioral pinning of the schedule itself belongs in a
-    dedicated test, not in failure-contract tests where the timing is
-    incidental.
-    """
-    monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
 
 
 def _item(idx: int) -> NormalizedItem:
@@ -86,29 +77,6 @@ def _runner_returning(
             raise AssertionError("runner ran out of canned outcomes — test setup mismatch") from exc
 
     return runner
-
-
-def _valid_classification_stdout(item_count: int) -> str:
-    """A Stage 1 stdout that parses cleanly and assigns every item to §4."""
-    assignments = {str(i): 4 for i in range(1, item_count + 1)}
-    return json.dumps({"assignments": assignments, "unassigned": []})
-
-
-def _valid_stage2_markdown() -> str:
-    """A Stage 2 stdout that parses + clears the 200-char sanity floor.
-
-    Bodies are padded so total length comfortably exceeds
-    ``_STAGE2_SANITY_FLOOR = 200``. None of the patterns trips
-    leak_guard (no email, no PAT, no long base64 outside URL).
-    """
-    return (
-        "## ① 요약\n오늘 시장의 한 줄 요약 본문입니다 추가 패딩 텍스트도 함께\n\n"
-        "## ② 전일 핵심 이슈\n전일의 핵심 이슈를 상세히 설명하는 본문 텍스트입니다\n\n"
-        "## ③ 섹터/수급 동향\n섹터별 수급 동향을 정리한 본문 텍스트입니다\n\n"
-        "## ④ 지표·이벤트\n주요 거시 지표와 일정 이벤트를 정리한 본문입니다\n\n"
-        "## ⑤ 주요 종목\n관심 종목 흐름을 정리한 본문 텍스트입니다\n\n"
-        "## ⑥ 오늘의 관전 포인트\n오늘 살펴볼 포인트를 정리한 본문 텍스트입니다\n"
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +122,7 @@ async def test_synthesis_bge_after_three_blank_attempts() -> None:
     """
     runner = _runner_returning(
         [
-            _outcome(stdout=_valid_classification_stdout(item_count=2)),
+            _outcome(stdout=valid_classification_stdout(item_count=2)),
             _outcome(stdout=""),
             _outcome(stdout=""),
             _outcome(stdout=""),
@@ -181,13 +149,13 @@ async def test_post_validation_bge_when_synthesis_leaks_github_pat() -> None:
     ``stage="post_validation"``, ``attempt_count=1`` (no retry per R6),
     ``cause`` is a ``ValueError`` naming the matched pattern.
     """
-    leaky_markdown = _valid_stage2_markdown().replace(
+    leaky_markdown = valid_stage2_markdown().replace(
         "오늘 시장의 한 줄 요약 본문입니다",
         "오늘 시장의 요약 (debug token: ghp_" + "A" * 36 + ")",
     )
     runner = _runner_returning(
         [
-            _outcome(stdout=_valid_classification_stdout(item_count=2)),
+            _outcome(stdout=valid_classification_stdout(item_count=2)),
             _outcome(stdout=leaky_markdown),
         ]
     )
@@ -225,7 +193,7 @@ async def test_programmer_keyerror_propagates_unwrapped(
 
     monkeypatch.setattr(pipeline, "build_section_plan", boom)
 
-    runner = _runner_returning([_outcome(stdout=_valid_classification_stdout(item_count=2))])
+    runner = _runner_returning([_outcome(stdout=valid_classification_stdout(item_count=2))])
 
     with pytest.raises(KeyError, match="synthetic programmer error"):
         await pipeline.generate_briefing(_TARGET_DATE, _items(2), runner=runner)
@@ -256,8 +224,8 @@ async def test_briefing_validation_error_propagates_unwrapped(
 
     runner = _runner_returning(
         [
-            _outcome(stdout=_valid_classification_stdout(item_count=2)),
-            _outcome(stdout=_valid_stage2_markdown()),
+            _outcome(stdout=valid_classification_stdout(item_count=2)),
+            _outcome(stdout=valid_stage2_markdown()),
         ]
     )
 

@@ -23,26 +23,10 @@ import pytest
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
+from tests.unit.sources._mock_transport import mock_client as _mock_client
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "sec-edgar-8k"
 _REAL_FIXTURE = _FIXTURE_DIR / "feed.xml"
-
-
-def _mock_client(
-    body: bytes,
-    status: int = 200,
-    captured: list[httpx.Request] | None = None,
-) -> httpx.AsyncClient:
-    def handler(request: httpx.Request) -> httpx.Response:
-        if captured is not None:
-            captured.append(request)
-        return httpx.Response(
-            status,
-            content=body,
-            headers={"content-type": "application/atom+xml"},
-        )
-
-    return httpx.AsyncClient(transport=httpx.MockTransport(handler))
 
 
 # ---------------------------------------------------------------------------
