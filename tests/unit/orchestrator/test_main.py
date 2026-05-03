@@ -224,6 +224,31 @@ def test_main_attempts_boot_alert_on_config_error_when_alert_prereqs_present(
     assert alerts[0].error_type == "ConfigError"
 
 
+def test_main_retries_boot_alert_delivery_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Boot/top-level alerts follow FR-007's retry slice too."""
+    _set_env(monkeypatch, CLAUDE_CODE_OAUTH_TOKEN=None, SITE_URL_BASE=None)
+    alerts: list[FailureContext] = []
+
+    class _FlakyAlerter:
+        def __init__(self, **kwargs: Any) -> None:
+            pass
+
+        async def alert(self, ctx: FailureContext) -> SendResult:
+            alerts.append(ctx)
+            if len(alerts) == 1:
+                return SendResult(ok=False, error="temporary telegram failure")
+            return SendResult(ok=True, message_id=2)
+
+    monkeypatch.setattr(main_mod, "OperatorAlerter", _FlakyAlerter)
+    with _stub_pipeline(monkeypatch):
+        assert main_mod.main() == 1
+
+    assert len(alerts) == 2
+    assert alerts[0].stage == "orchestrator"
+
+
 def test_main_skips_boot_alert_when_bot_token_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

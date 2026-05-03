@@ -42,7 +42,9 @@ This module is built up incrementally across plan Steps 5-9:
   propagate to ``main()`` per AC-003-7. **No** stage-level
   ``asyncio.wait_for`` (Q1=A — trust unit-level timeouts; AC-001-3),
   **no** ``asyncio.gather`` overlapping stages (Q5 — sequential;
-  AC-001-5), **no** orchestrator-level retry (Q4=A; AC-003-11).
+  AC-001-5), **no** orchestrator-level retry around stage calls
+  (Q4=A; AC-003-11). Operator-alert delivery itself gets a narrow
+  retry in ``_safe_alert`` per product-level FR-007.
 
 Each stage runner takes its callable dependency as a keyword-only
 parameter so unit tests can inject a fake without monkeypatching
@@ -102,6 +104,7 @@ from investo.sources import fetch_all as _default_fetch_all
 _HTTP_URL_ADAPTER = TypeAdapter(HttpUrl)
 
 _logger = logging.getLogger("investo.orchestrator.pipeline")
+_ALERT_DELIVERY_ATTEMPTS = 2
 
 # Type alias for the callable shape of u1's ``fetch_all``. Captures the
 # surface ``run_pipeline`` and ``_stage_collect`` depend on without
@@ -635,31 +638,38 @@ async def _safe_alert(
     change the pipeline status (already FAILED). The alert failure
     is logged at WARNING but the pipeline still returns FAILED.
     """
-    try:
-        ctx = _build_failure_context(stage=stage, exc=exc)
-        result = await alerter.alert(ctx)
-        if not result.ok:
+    ctx = _build_failure_context(stage=stage, exc=exc)
+    for attempt in range(1, _ALERT_DELIVERY_ATTEMPTS + 1):
+        try:
+            result = await alerter.alert(ctx)
+        except Exception as alert_exc:
+            # Alerter contract is non-raising for transport errors, but a
+            # broken alerter (test stub bug, programmer error,
+            # ``httpx.HTTPError`` leaked from a future u4 change,
+            # ``asyncio.TimeoutError`` from a misconfigured client, pydantic
+            # ``ValidationError`` constructing the response) should not
+            # mask the underlying stage failure. Catch ``Exception`` to
+            # honor the documented intent — KeyboardInterrupt /
+            # SystemExit / asyncio.CancelledError (BaseException) still
+            # propagate so an operator's Ctrl-C is not swallowed.
+            if attempt == _ALERT_DELIVERY_ATTEMPTS:
+                _logger.warning(
+                    "[pipeline] alert raised unexpected %s during %s failure after %s attempts: %s",
+                    type(alert_exc).__name__,
+                    stage,
+                    attempt,
+                    alert_exc,
+                )
+            continue
+        if result.ok:
+            return
+        if attempt == _ALERT_DELIVERY_ATTEMPTS:
             _logger.warning(
-                "[pipeline] alert delivery failed during %s failure: %s",
+                "[pipeline] alert delivery failed during %s failure after %s attempts: %s",
                 stage,
+                attempt,
                 result.error,
             )
-    except Exception as alert_exc:
-        # Alerter contract is non-raising for transport errors, but a
-        # broken alerter (test stub bug, programmer error,
-        # ``httpx.HTTPError`` leaked from a future u4 change,
-        # ``asyncio.TimeoutError`` from a misconfigured client, pydantic
-        # ``ValidationError`` constructing the response) should not
-        # mask the underlying stage failure. Catch ``Exception`` to
-        # honor the documented intent — KeyboardInterrupt /
-        # SystemExit / asyncio.CancelledError (BaseException) still
-        # propagate so an operator's Ctrl-C is not swallowed.
-        _logger.warning(
-            "[pipeline] alert raised unexpected %s during %s failure: %s",
-            type(alert_exc).__name__,
-            stage,
-            alert_exc,
-        )
 
 
 def _build_result(

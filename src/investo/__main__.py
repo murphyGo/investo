@@ -80,6 +80,7 @@ _TARGET_DATE_OVERRIDE_VAR: Final[str] = "INVESTO_TARGET_DATE"
 # operator informed; if Telegram is also down, GHA's email default
 # is the fallback.
 _BOOT_ALERT_TIMEOUT_S: Final[float] = 5.0
+_BOOT_ALERT_ATTEMPTS: Final[int] = 2
 
 
 def _missing_env_vars() -> tuple[str, ...]:
@@ -187,7 +188,10 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
                 operator_chat_id=os.environ["TELEGRAM_OPERATOR_CHAT_ID"],
                 http=client,
             )
-            await alerter.alert(ctx)
+            for _ in range(_BOOT_ALERT_ATTEMPTS):
+                result = await alerter.alert(ctx)
+                if result.ok:
+                    break
     except Exception:
         # Best-effort — never let alerter exceptions mask the
         # underlying failure exit code.

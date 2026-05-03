@@ -38,14 +38,14 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 
 | Status | Count | Percentage |
 |--------|------:|-----------:|
-| ✅ Complete | 8 | 67% |
+| ✅ Complete | 9 | 75% |
 | ⚠️ Partial | 3 | 25% |
-| ❌ Gap | 1 | 8% |
+| ❌ Gap | 0 | 0% |
 | 🔄 Deferred | 0 | 0% |
 | ⏳ In Progress | 0 | 0% |
 | **Total** | **12** | **100%** |
 
-**Overall compliance for u5 orchestrator**: u5's runtime orchestration contract is implemented and verified. The Partials are expected cross-unit closures with u6. The Gap is a requirements mismatch: FR-007 asks for retry when operator-alert delivery itself fails; u5 logs the failure at WARNING and preserves FAILED status, but does not retry.
+**Overall compliance for u5 orchestrator**: u5's runtime orchestration contract is implemented and verified. The Partials are expected cross-unit closures with u6. Follow-up work on 2026-05-04 closed the original FR-007 retry gap by adding narrow operator-alert delivery retry while preserving the no-stage-retry contract.
 
 ---
 
@@ -54,7 +54,7 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 | ID | Description | Status | Evidence | Notes |
 |----|-------------|--------|----------|-------|
 | FR-005 | GitHub Actions cron scheduled execution | ⚠️ Partial | `resolve_target_date`, `main`, `run_pipeline`, `.github/workflows/daily-briefing.yml` | u5 implements the runtime entrypoint and date resolution. Actual cron / workflow_dispatch / timeout YAML is u6 scope. |
-| FR-007 | Operator failure alert routing | ❌ Gap | `_safe_alert`, `_attempt_boot_alert`, `FailureContext`, tests | u5 routes collect/generate/publish/top-level failures to operator chat and prevents public-channel failure alerts, but alert-send failure is not retried as FR-007 states. |
+| FR-007 | Operator failure alert routing | ✅ Complete | `_safe_alert`, `_attempt_boot_alert`, `FailureContext`, tests | u5 routes collect/generate/publish/top-level failures to operator chat, prevents public-channel failure alerts, and retries operator-alert delivery failures without retrying pipeline stages. |
 
 ### FR-005 Acceptance-Criterion Detail
 
@@ -75,7 +75,7 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 | GitHub Actions 기본 실패 알림도 함께 활성 | ⚠️ | u5 maps FAILED to exit code 1; u6 owns GHA behavior |
 | 실패 단계 + 에러 메시지 / stack trace 요약 포함 | ✅ | `_build_failure_context`; `FailureContext`; run_pipeline/main tests |
 | 공개 시황 채널에는 실패 메시지 발송 금지 | ✅ | `BriefingPublisher` and `OperatorAlerter` constructed from disjoint env vars; integration chat isolation test |
-| 알림 자체 실패 시 재시도 후 GHA 로그에 명시적 마킹 | ❌ | `_safe_alert` logs WARNING and keeps FAILED; no retry loop exists by design AC-003-11 |
+| 알림 자체 실패 시 재시도 후 GHA 로그에 명시적 마킹 | ✅ | `_safe_alert` / `_attempt_boot_alert` retry alert delivery; final delivery failure logs WARNING and keeps FAILED |
 
 ---
 
@@ -84,7 +84,7 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 | ID | Title | Status | Evidence | Notes |
 |----|-------|--------|----------|-------|
 | US-005 | GitHub Actions cron으로 자동 실행된다 | ⚠️ Partial | `python -m investo`, `resolve_target_date`, workflow YAML | Runtime side is complete; full story closes after u6 infra/CI cross-check. |
-| US-007 | 파이프라인 실패 시 운영자 1:1 chat으로 알림 받는다 | ⚠️ Partial | `_safe_alert`, `_attempt_boot_alert`, integration alert tests | Failure routing and chat isolation are complete. Alert-send retry is missing; GHA default notification is u6 scope. |
+| US-007 | 파이프라인 실패 시 운영자 1:1 chat으로 알림 받는다 | ⚠️ Partial | `_safe_alert`, `_attempt_boot_alert`, integration alert tests | Failure routing, chat isolation, and alert-send retry are complete. GHA default notification is u6 scope. |
 
 ---
 
@@ -118,11 +118,11 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 
 **Requirement**: FR-007 says if the operator alert itself fails, retry and at least explicitly mark it in GitHub Actions logs.
 
-**Status**: ❌ Gap. In `run_pipeline`, `_safe_alert` attempts one alert. If `OperatorAlerter.alert` returns `SendResult(ok=False)` or raises `Exception`, u5 logs a WARNING and preserves the original FAILED pipeline status. There is no retry. This is also deliberate in u5 NFR AC-003-11, which forbids orchestrator-level retry loops around stage calls, but that local design choice conflicts with the product-level FR-007 wording.
+**Status**: ✅ Resolved on 2026-05-04. `_safe_alert` and `_attempt_boot_alert` now retry operator-alert delivery narrowly. If all alert attempts fail, the original FAILED pipeline status is preserved and a WARNING is logged. The retry loop is scoped to alert delivery only, so AC-003-11's no-stage-retry contract remains intact.
 
 **Impact**: Medium-low. The primary pipeline failure still exits 1, so GitHub Actions default failure signaling remains available after u6. The missing part is improved Telegram alert delivery resilience.
 
-**Proposed Action**: Either add a narrow retry inside `_safe_alert` / `_attempt_boot_alert` specifically for operator-alert delivery, or update FR-007 to remove "retry" and require only explicit warning logs plus GHA default notification. If implementing, keep it scoped to alert delivery so stage calls remain non-retried.
+**Action Taken**: Added the narrow retry inside `_safe_alert` / `_attempt_boot_alert` specifically for operator-alert delivery.
 
 ### GAP-002: FR-005 / US-005 full cron behavior is split with u6
 
@@ -146,7 +146,7 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 | DEBT-020 | Low | `_safe_alert` and `_attempt_boot_alert` exception lists are not aligned | Accepted; related to boot alert robustness |
 | DEBT-021 | Low | Unused `PublisherError` re-export in `pipeline.__all__` | Accepted dead-code cleanup |
 
-No new TECH-DEBT items were added by this cross-check. GAP-001 should be resolved as either a code change or a requirements clarification.
+No new TECH-DEBT items were added by this cross-check. GAP-001 was resolved on 2026-05-04 as a narrow operator-alert delivery retry code change.
 
 ---
 
@@ -154,4 +154,4 @@ No new TECH-DEBT items were added by this cross-check. GAP-001 should be resolve
 
 ⚠️ **u5 orchestrator cross-check PASSED WITH GAP.**
 
-The runtime orchestration contract is complete: stage composition, target-date resolution, env validation, chat-ID disjointness, failure routing, status taxonomy, exit-code mapping, and timing telemetry are all implemented and tested. The remaining product-level work is u6 infra/CI closure plus one FR-007 mismatch around retrying failed operator-alert delivery.
+The runtime orchestration contract is complete: stage composition, target-date resolution, env validation, chat-ID disjointness, failure routing, status taxonomy, exit-code mapping, alert-delivery retry, and timing telemetry are all implemented and tested. The remaining product-level work is u6 infra/CI closure.

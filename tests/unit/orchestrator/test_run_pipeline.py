@@ -114,9 +114,11 @@ class _FakeAlerter:
         self,
         *,
         result: SendResult | None = None,
+        results: list[SendResult] | None = None,
         raise_exc: BaseException | None = None,
     ) -> None:
         self._result = result if result is not None else SendResult(ok=True, message_id=2)
+        self._results = list(results) if results is not None else None
         self._raise = raise_exc
         self.calls: list[FailureContext] = []
 
@@ -124,6 +126,8 @@ class _FakeAlerter:
         self.calls.append(ctx)
         if self._raise is not None:
             raise self._raise
+        if self._results is not None:
+            return self._results.pop(0)
         return self._result
 
 
@@ -567,8 +571,8 @@ async def test_run_pipeline_alert_failure_during_failed_run_keeps_failed(
         )
 
     assert result.status == PipelineStatus.FAILED
-    # Alert was attempted (even though it failed).
-    assert len(alerter.calls) == 1
+    # Alert was retried but still failed.
+    assert len(alerter.calls) == 2
     # WARNING log records the alert delivery failure.
     warnings = [
         r.getMessage()
@@ -576,6 +580,43 @@ async def test_run_pipeline_alert_failure_during_failed_run_keeps_failed(
         if r.name == "investo.orchestrator.pipeline" and r.levelno == logging.WARNING
     ]
     assert any("alert delivery failed" in m for m in warnings)
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_alert_delivery_retries_then_succeeds(
+    archive_root: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """FR-007 retry slice: transient operator-alert send failure is
+    retried without changing the underlying FAILED pipeline status.
+    """
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter(
+        results=[
+            SendResult(ok=False, error="temporary telegram failure"),
+            SendResult(ok=True, message_id=99),
+        ]
+    )
+
+    with caplog.at_level(logging.WARNING, logger="investo.orchestrator.pipeline"):
+        result = await run_pipeline(
+            _TARGET,
+            publisher=publisher,
+            alerter=alerter,
+            site_url_base=_SITE_BASE,
+            fetch=_success_fetch([]),
+            git_runner=_SuccessfulGitRunner(),
+            generate=_success_generate(),
+        )
+
+    assert result.status == PipelineStatus.FAILED
+    assert len(alerter.calls) == 2
+    warnings = [
+        r.getMessage()
+        for r in caplog.records
+        if r.name == "investo.orchestrator.pipeline" and r.levelno == logging.WARNING
+    ]
+    assert not any("alert delivery failed" in m for m in warnings)
 
 
 @pytest.mark.asyncio
