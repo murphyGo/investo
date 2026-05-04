@@ -1,7 +1,7 @@
 # Integration Test Instructions
 
 **Project**: Investo
-**Date**: 2026-05-01
+**Date**: 2026-05-04
 **Test scope**: cross-unit interactions; complete pipeline end-to-end with all external dependencies mocked.
 
 ---

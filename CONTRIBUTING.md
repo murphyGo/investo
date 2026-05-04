@@ -291,10 +291,10 @@ Two CI guards back this up at the source level:
 Every PR must pass all four:
 
 ```bash
-ruff check .
-ruff format --check .
-mypy --strict src/
-pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy --strict src/
+uv run pytest -q
 ```
 
 Test failures and lint errors block the merge — no `--no-verify`

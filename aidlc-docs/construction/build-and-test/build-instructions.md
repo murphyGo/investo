@@ -2,16 +2,16 @@
 
 **Project**: Investo — Daily market briefing automation
 **Build tool**: `uv` (the project's package manager; `uv.lock` is the lockfile)
-**Date**: 2026-05-01
+**Date**: 2026-05-04
 
 ---
 
 ## Prerequisites
 
 - **OS**: Linux or macOS (tested on Ubuntu 24.04 / macOS 14.5+).
-  - Windows is not supported in v1 (the `site_docs/archive` symlink + the `claude` CLI's POSIX assumptions; tracked as DEBT-027).
+  - Windows is not a v1 target. The `site_docs/archive` symlink requires `core.symlinks=true` plus Windows Developer Mode/admin privileges if a Windows checkout is ever needed; this is documented in `CONTRIBUTING.md`.
 - **Python**: 3.11 (per `pyproject.toml requires-python = ">=3.11"`; CI pins 3.11 via `uv python install 3.11`).
-- **`uv`**: ≥ 0.4 (any version with `uv sync --extra ...` support; `astral-sh/setup-uv@v3` in CI).
+- **`uv`**: ≥ 0.4 (any version with `uv sync --extra ...` support; CI uses a SHA-pinned `astral-sh/setup-uv` action).
 - **`claude` CLI**: required only for live runs of `python -m investo`. Not needed for `pytest` or `mkdocs build` because all tests use either record/replay fixtures (`FakeClaudeRunner` for u2 → CI) or mocked `MockTransport` for HTTP calls.
 - **`git`**: required because `commit_and_push` (u3) shells out to `git`. Tests use a fake `GitRunner` Protocol implementation; production CI uses the real binary.
 - **System resources**: < 1 GB RAM during tests; < 100 MB disk for the venv + dependencies.

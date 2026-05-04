@@ -29,7 +29,7 @@ Per `unit-of-work-story-map.md`, **u3 publisher** is responsible for:
 - **FRs**: FR-003 u3 slice, FR-006
 - **NFRs covered whole or share**: NFR-003 git retry / publish failure surfacing, NFR-004 disclaimer hard block, NFR-007 subprocess hygiene / bounded stderr excerpt
 
-Out of scope: MkDocs build, GitHub Pages deployment, latest-home/index/search navigation, and mobile rendering. Those are u6 infra/CI responsibilities.
+Out of scope: MkDocs build, GitHub Pages deployment, latest-home/index/search navigation, and mobile rendering. Those are u6 infra/CI responsibilities and are verified in the u6 cross-check.
 
 ---
 
@@ -52,7 +52,7 @@ Out of scope: MkDocs build, GitHub Pages deployment, latest-home/index/search na
 
 | ID | Description | Status | Evidence | Notes |
 |----|-------------|--------|----------|-------|
-| FR-003 | 정적 웹 게시 | ⚠️ Partial | `write_briefing`, `archive_path`, `commit_and_push`, integration smoke | u3 writes and commits markdown to the Git repo. Static site build, Pages deployment, latest/index/search are u6 scope. |
+| FR-003 | 정적 웹 게시 | ⚠️ Partial | `write_briefing`, `archive_path`, `commit_and_push`, integration smoke | u3 writes and commits markdown to the Git repo. Static site build, Pages deployment, latest/index/search are verified in u6 scope. |
 | FR-006 | 영구 이력 보관 | ✅ Complete | `archive_path`, `write_briefing`, `commit_and_push`, writer/git tests | Archive path and git commit/push lifecycle are implemented and tested. |
 
 ### FR-003 Acceptance-Criterion Detail
@@ -60,9 +60,9 @@ Out of scope: MkDocs build, GitHub Pages deployment, latest-home/index/search na
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
 | 시황은 markdown 파일로 git repo에 저장 | ✅ | `writer.py::write_briefing`; `test_writer.py`; integration smoke |
-| 정적 사이트 생성기로 빌드 → GitHub Pages 배포 | ⚠️ | Out of u3 scope; u6 owns MkDocs/Pages workflows |
-| 날짜별 인덱스, 최신 시황 홈 노출 | ⚠️ | Out of u3 scope; u6 owns site navigation/index |
-| 검색 또는 날짜/연도별 탐색 | ⚠️ | Out of u3 scope; u6 owns site navigation/search |
+| 정적 사이트 생성기로 빌드 → GitHub Pages 배포 | ⚠️ | Out of u3 scope; verified in u6 MkDocs/Pages workflows |
+| 날짜별 인덱스, 최신 시황 홈 노출 | ⚠️ | Out of u3 scope; verified in u6 site navigation/index |
+| 검색 또는 날짜/연도별 탐색 | ⚠️ | Out of u3 scope; verified in u6 site navigation/search |
 
 ### FR-006 Acceptance-Criterion Detail
 
@@ -78,7 +78,7 @@ Out of scope: MkDocs build, GitHub Pages deployment, latest-home/index/search na
 
 | ID | Title | Status | Evidence | Notes |
 |----|-------|--------|----------|-------|
-| US-003 | GitHub Pages에 시황을 정적 게시한다 | ⚠️ Partial | u3 writes/commits markdown; u6 owns Pages build/deploy/index | u3 slice is complete, full story closes only with u6. |
+| US-003 | GitHub Pages에 시황을 정적 게시한다 | ⚠️ Partial | u3 writes/commits markdown; u6 owns Pages build/deploy/index | u3 slice is complete; full story is verified across u3 + u6. |
 | US-006 | 모든 시황을 영구 보관한다 | ✅ Complete | `archive_path`, `write_briefing`, `commit_and_push` | Same-day overwrite policy is pinned: overwrite file, prior versions remain in git history. |
 
 ---
@@ -115,18 +115,18 @@ Out of scope: MkDocs build, GitHub Pages deployment, latest-home/index/search na
 
 **Impact**: Low for u3 stage gate. This is an intentional unit boundary, not an implementation miss inside u3.
 
-**Proposed Action**: Verify the remaining FR-003 acceptance criteria in the u6 infra/CI cross-check. Do not add a u3 TECH-DEBT item.
+**Action Taken**: The remaining FR-003 acceptance criteria were verified in the u6 infra/CI cross-check. Do not add a u3 TECH-DEBT item.
 
 ---
 
-## Open TECH-DEBT in u3 Scope
+## TECH-DEBT in u3 Scope
 
 | ID | Priority | Description | Cross-check status |
 |----|----------|-------------|--------------------|
-| DEBT-012 | Medium | `_truncate_stderr` helper duplicated across u2 + u3 errors modules | Accepted; not blocking u3 correctness |
-| DEBT-013 | Low | u3 publisher test `_build_briefing` fixture duplicated | Accepted maintainability item |
+| DEBT-012 | Medium | `_truncate_stderr` helper duplicated across u2 + u3 errors modules | Resolved 2026-05-03 |
+| DEBT-013 | Low | u3 publisher test `_build_briefing` fixture duplicated | Resolved 2026-05-03 |
 
-No new TECH-DEBT items were added by this cross-check.
+No u3-scoped TECH-DEBT items remain active after the 2026-05-03 cleanup pass. No new TECH-DEBT items were added by this cross-check.
 
 ---
 
@@ -134,4 +134,4 @@ No new TECH-DEBT items were added by this cross-check.
 
 ✅ **u3 publisher cross-check PASSED with one expected cross-unit Partial for FR-003 / US-003.**
 
-The unit is complete for its contract: archive markdown write, disclaimer hard block, atomic write, git commit/push retry, and public publisher surface. Recommended next health-check target is the next completed unit without a cross-check report: `u4 notifier`.
+The unit is complete for its contract: archive markdown write, disclaimer hard block, atomic write, git commit/push retry, and public publisher surface.

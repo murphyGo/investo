@@ -1,8 +1,8 @@
 # Build and Test Summary
 
 **Project**: Investo — Daily market briefing automation
-**Date**: 2026-05-01
-**Scope**: Final integrated quality gate after all 6 units' Code Generation closed.
+**Date**: 2026-05-04
+**Scope**: Final integrated quality gate after all 6 units' Code Generation closed, plus cross-check and TECH-DEBT follow-up fixes through 2026-05-04.
 
 ---
 
@@ -26,25 +26,21 @@
 
 | Field | Value |
 |-------|-------|
-| Total tests | **720** |
-| Passed | **720** |
+| Total tests | **922** |
+| Passed | **922** |
 | Failed | **0** |
 | Skipped | 0 |
 | Status | ✅ **Pass** |
-| Wall-clock | ~5.5s |
+| Wall-clock | ~6.0s |
 | Coverage | Not measured (pytest-cov not in dev deps); per-AC pinning verified per-unit summary |
 
-Test breakdown by unit:
+Test breakdown by suite:
 
-| Unit | Tests | Stage status |
-|------|------:|--------------|
-| models (foundation) | 101 | ✅ Complete |
-| u1 sources | 252 | ✅ Complete |
-| u2 briefing | 178 | ✅ Complete |
-| u3 publisher | 70 | ✅ Complete |
-| u4 notifier | 56 | ✅ Complete |
-| u5 orchestrator | 149 (incl. 6 PipelineResult model extension tests) | ✅ Complete |
-| u6 infra/CI | +15 INVESTO_TARGET_DATE override tests (in u5 file) | ✅ Complete |
+| Suite | Tests | Stage status |
+|-------|------:|--------------|
+| Unit tests (`tests/unit`) | 907 | ✅ Complete |
+| Integration tests (`tests/integration`) | 15 | ✅ Complete |
+| **Total** | **922** | ✅ Complete |
 
 ### Integration tests
 
@@ -98,12 +94,12 @@ No load / stress / scalability tests apply — this is a single-tenant 1-person 
 | Tool | Result |
 |------|--------|
 | `ruff check .` | ✅ All checks passed |
-| `ruff format --check .` | ✅ 106 files already formatted |
-| `mypy --strict src/` | ✅ Success: no issues found in 37 source files |
-| `pytest` | ✅ **720 passed in 5.61s** |
-| `mkdocs build --strict` | ✅ Documentation built in 0.27 seconds |
+| `ruff format --check .` | ✅ 136 files already formatted |
+| `mypy --strict src/` | ✅ Success: no issues found in 51 source files |
+| `pytest` | ✅ **922 passed in ~6s** |
+| `mkdocs build --strict` | ✅ Documentation built successfully; Material-for-MkDocs emits its upstream MkDocs 2.0 advisory |
 
-**All four standard gates + the docs-build gate pass with zero warnings.**
+**All four standard gates + the docs-build gate pass.**
 
 ---
 
@@ -154,10 +150,9 @@ No load / stress / scalability tests apply — this is a single-tenant 1-person 
 
 ## Open TECH-DEBT (carry-forward to operations phase)
 
-27 items registered across all units; **all are Low priority** unless noted otherwise:
+Only one active item remains:
 
-- **Medium** (4): DEBT-001, DEBT-002, DEBT-007, DEBT-012 — model invariants, briefing edge cases, stderr truncation duplication.
-- **Low** (23): the remainder — test-helper duplication, log-format polish, docstring nits, AST-grep brittleness, etc.
+- **Low**: DEBT-004 — `_sanitize.py` depends on `bleach` while bleach is in maintenance mode. This is a watch item, not a current blocker; migrate to `nh3` if bleach reaches EOL or starts producing relevant deprecation pressure.
 
 None block the project's first cron fire. See `docs/TECH-DEBT.md` for full per-item triage.
 
@@ -181,8 +176,8 @@ Performance / Contract / Security / E2E test instruction files are NOT generated
 | Field | Value |
 |-------|-------|
 | Build | ✅ Success |
-| All tests | ✅ Pass (720 unit + 15 integration) |
-| Site build | ✅ Pass (`mkdocs build --strict`, 0.27s) |
+| All tests | ✅ Pass (907 unit + 15 integration = 922 total) |
+| Site build | ✅ Pass (`mkdocs build --strict`, ~0.28s) |
 | Quality gate | ✅ ruff / format / mypy --strict / pytest / mkdocs all green |
 | Ready for operations | ✅ **Yes** |
 

@@ -72,8 +72,9 @@ templating, performance bound).
 - AC-2.5 — `briefing/claude_code.py` does NOT read or log
   `CLAUDE_CODE_OAUTH_TOKEN`. The token is consumed by the `claude`
   CLI itself, not by our Python code. Pinned by a test that asserts
-  `"CLAUDE_CODE_OAUTH_TOKEN"` is not a literal anywhere in
-  `src/investo/briefing/`.
+  `"CLAUDE_CODE_OAUTH_TOKEN"` is not a literal in executable code
+  under `src/investo/briefing/`; explanatory docstrings may mention
+  the env var in negative context.
 
 ---
 

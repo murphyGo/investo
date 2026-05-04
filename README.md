@@ -44,6 +44,7 @@
 | `TELEGRAM_BOT_TOKEN` | 텔레그램 봇 인증 |
 | `TELEGRAM_BRIEFING_CHANNEL_ID` | 공개 시황 채널 (모든 구독자) |
 | `TELEGRAM_OPERATOR_CHAT_ID` | 운영자 1:1 실패 알림 |
+| `SITE_URL_BASE` | GitHub Pages 시황 URL base |
 
 ### Local Development
 
@@ -51,20 +52,21 @@
 git clone git@github.com:murphyGo/investo.git
 cd investo
 
-# Python venv
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+# Python venv + dependencies
+uv sync --extra dev --extra docs
 
 # Lint / Type / Test
-ruff check .
-mypy src/
-pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy --strict src/
+uv run pytest -q
+uv run mkdocs build --strict
 
 # Manual run (with env set)
-python -m investo
+uv run python -m investo
 ```
 
-(설치 명령은 `pyproject.toml` 작성 후 정확해짐)
+로컬 live run에는 위 GitHub Actions secrets와 동일한 환경 변수가 필요하다.
 
 ## Development
 

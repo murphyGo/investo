@@ -2,8 +2,8 @@
 
 **Project**: Investo
 **Test runner**: `pytest` (with `pytest-asyncio` for async coroutines + `hypothesis` for PBT)
-**Date**: 2026-05-01
-**Total tests**: **705 unit + 15 integration = 720 tests** across 6 units
+**Date**: 2026-05-04
+**Total tests**: **907 unit + 15 integration = 922 tests** across 6 units and follow-up regression coverage
 
 ---
 
@@ -18,7 +18,7 @@ uv run pytest
 Expected output (clean repo, `uv sync --extra dev`):
 
 ```
-========================= 720 passed in ~5.5s =========================
+========================= 922 passed in ~6s =========================
 ```
 
 The runtime is dominated by:
@@ -67,19 +67,13 @@ uv run pytest -v
 
 ---
 
-## Test inventory by unit
+## Test inventory
 
-| Unit | Test files | Tests | Test types |
-|------|-----------|------:|------------|
-| **models** | 5 (`test_briefing.py` / `test_init.py` / `test_items.py` / `test_results.py` / `test_roundtrip.py`) | **101** | Validators, frozen-pydantic, cross-field invariants, hypothesis round-trip |
-| **u1 sources** | 8 | **252** | Per-adapter (FOMC RSS), aggregator failure isolation, FetchWindow PBT, retry backoff, sanitization, plugin registry |
-| **u2 briefing** | 8 | **178** | Two-stage prompt + parsing PBTs, RetryBudget, leak guard, FakeClaudeRunner record/replay, append_disclaimer idempotence, NFC normalization, no-prompt-strings AST grep |
-| **u3 publisher** | 5 | **70** | Atomic write, verify-disclaimer hard block (NFR-004), commit_and_push retry exhaustion, idempotent-noop detector, paths boundary |
-| **u4 notifier** | 4 + 1 smoke | **56** | UTF-16 truncation, bot-token redaction (URL + shape regex), kwargs-only ctors, MockTransport happy/failure, chat-ID-separation invariant |
-| **u5 orchestrator** | 7 + 1 integration | **149** | 4 stage runners, run_pipeline Q9=B router (11 ACs), 3 AST-grep deny tests (no asyncio.wait_for / no stage-level gather / no orchestrator retry), main entrypoint env validation, INVESTO_TARGET_DATE override |
-| **u6 infra/CI** | (extension to test_main.py) | **+15** (in u5 count) | INVESTO_TARGET_DATE override side-quest tests |
-| **Integration** | 4 (`test_briefing_pipeline_poc.py` / `test_publisher_smoke.py` / `test_notifier_smoke.py` / `test_pipeline.py`) | **15** (subset of above) | Cross-unit smoke; u5's `test_pipeline.py` wires all 4 mock patterns simultaneously |
-| **Total** | 35+ files | **720** | |
+| Suite | Test files | Tests collected | Test types |
+|-------|-----------:|---------------:|------------|
+| `tests/unit` | 79 | **907** | Model validators, source adapters/registry/retry/sanitization, briefing generation, publisher, notifier, orchestrator, static contract tests, PBT |
+| `tests/integration` | 4 | **15** | Cross-unit smoke; u5's `test_pipeline.py` wires all 4 mock patterns simultaneously |
+| **Total** | **83** | **922** | Current repo-wide collection |
 
 ---
 
