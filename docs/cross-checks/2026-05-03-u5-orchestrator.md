@@ -114,7 +114,7 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 
 ## Gaps Analysis
 
-### GAP-001: FR-007 requires retry for operator-alert delivery failure, but u5 logs only
+### GAP-001: FR-007 operator-alert delivery retry resolved
 
 **Requirement**: FR-007 says if the operator alert itself fails, retry and at least explicitly mark it in GitHub Actions logs.
 
@@ -124,7 +124,7 @@ Out of scope: GitHub Actions schedule declaration, workflow `timeout-minutes`, P
 
 **Action Taken**: Added the narrow retry inside `_safe_alert` / `_attempt_boot_alert` specifically for operator-alert delivery.
 
-### GAP-002: FR-005 / US-005 full cron behavior is split with u6
+### GAP-002: FR-005 / US-005 workflow closure verified in u6
 
 **Requirement**: FR-005 includes the actual GitHub Actions cron schedule, workflow_dispatch, and job timeout.
 
