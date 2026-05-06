@@ -119,6 +119,29 @@ jobs:
           git config user.name 'Investo Bot'
           git config user.email '${{ github.actor_id }}+investo-bot@users.noreply.github.com'
 
+      - name: Preflight required secrets
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BRIEFING_CHANNEL_ID: ${{ secrets.TELEGRAM_BRIEFING_CHANNEL_ID }}
+          TELEGRAM_OPERATOR_CHAT_ID: ${{ secrets.TELEGRAM_OPERATOR_CHAT_ID }}
+          SITE_URL_BASE: ${{ secrets.SITE_URL_BASE }}
+        run: |
+          missing=0
+          for name in \
+            CLAUDE_CODE_OAUTH_TOKEN \
+            TELEGRAM_BOT_TOKEN \
+            TELEGRAM_BRIEFING_CHANNEL_ID \
+            TELEGRAM_OPERATOR_CHAT_ID \
+            SITE_URL_BASE
+          do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required GitHub Secret: ${name}"
+              missing=1
+            fi
+          done
+          exit "${missing}"
+
       - name: Run pipeline (python -m investo)
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
