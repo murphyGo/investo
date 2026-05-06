@@ -363,6 +363,52 @@ async def test_run_pipeline_generate_failure_fails_with_alert(
     assert publisher.calls == []
 
 
+@pytest.mark.asyncio
+async def test_run_pipeline_generate_failure_logs_failure_details(
+    archive_root: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Actions logs should expose the real u2 stage/cause/stderr."""
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+
+    async def _failing_generate(
+        target_date: date,
+        items: object,
+        runner: object,
+    ) -> Briefing:
+        raise BriefingGenerationError(
+            stage="classification",
+            attempt_count=2,
+            last_stderr="claude stderr",
+            cause=ValueError("bad claude output"),
+        )
+
+    with caplog.at_level(logging.ERROR, logger="investo.orchestrator.pipeline"):
+        result = await run_pipeline(
+            _TARGET,
+            publisher=publisher,
+            alerter=alerter,
+            site_url_base=_SITE_BASE,
+            fetch=_success_fetch([_item()]),
+            git_runner=_SuccessfulGitRunner(),
+            generate=_failing_generate,
+        )
+
+    assert result.status == PipelineStatus.FAILED
+    record = next(
+        record for record in caplog.records if record.getMessage().startswith("[generate] failed")
+    )
+    assert "stage=classification" in record.getMessage()
+    assert "attempts=2" in record.getMessage()
+    assert "cause_type=ValueError" in record.getMessage()
+    assert "last_stderr=claude stderr" in record.getMessage()
+    assert record.briefing_stage == "classification"
+    assert record.attempt_count == 2
+    assert record.cause_type == "ValueError"
+    assert record.last_stderr == "claude stderr"
+
+
 # ---------------------------------------------------------------------------
 # AC-003-4 — disclaimer fail → FAILED + alert (no notify)
 # ---------------------------------------------------------------------------

@@ -240,6 +240,24 @@ async def _stage_generate(
     return briefing
 
 
+def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
+    """Log u2 failure details that are otherwise only visible in alerts."""
+    cause_type = type(exc.cause).__name__ if exc.cause is not None else None
+    _logger.error(
+        "[generate] failed stage=%s attempts=%s cause_type=%s last_stderr=%s",
+        exc.stage,
+        exc.attempt_count,
+        cause_type,
+        exc.last_stderr,
+        extra={
+            "briefing_stage": exc.stage,
+            "attempt_count": exc.attempt_count,
+            "cause_type": cause_type,
+            "last_stderr": exc.last_stderr,
+        },
+    )
+
+
 async def _stage_publish(
     briefing: Briefing,
     target_date: date,
@@ -565,6 +583,7 @@ async def run_pipeline(
         stage_timings["generate"] = time.monotonic() - stage_start
         stages["generate"] = f"failed: {exc.stage}"
         stages.update({"publish": "skipped", "notify_briefing": "skipped"})
+        _log_briefing_generation_error(exc)
         await _safe_alert(alerter, "generate", exc)
         return _build_result(
             target_date=target_date,
