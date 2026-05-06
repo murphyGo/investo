@@ -359,9 +359,10 @@ names the missing var(s); when `TELEGRAM_BOT_TOKEN` and
 `TELEGRAM_OPERATOR_CHAT_ID` are present the pipeline still attempts a
 single best-effort operator alert before exiting (AC-007-3).
 The workflow also runs a `Preflight required secrets` step immediately
-before `python -m investo`; missing or empty required secrets fail that
-step with one `::error::Missing required GitHub Secret: ...` annotation
-per variable, without echoing secret values.
+before `python -m investo`; missing or empty required secrets, equal
+Telegram briefing/operator chat IDs, and malformed `SITE_URL_BASE`
+fail that step with GitHub Actions `::error::` annotations that name
+the variable or invariant without echoing secret values.
 
 ### GitHub Secrets (optional — per-adapter)
 
