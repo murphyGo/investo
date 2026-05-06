@@ -74,9 +74,13 @@ Implement FR-008: one daily run creates separate domestic-equity, us-equity, and
 
 ### Step 5 — Telegram Segmented Summary
 
-- [ ] Build one message with domestic/us/crypto labels, one-line summaries, and three links.
-- [ ] Preserve all three URLs under truncation.
-- [ ] Add notifier/unit and integration tests.
+- [x] Build one message with domestic/us/crypto labels, one-line summaries, and three links.
+- [x] Preserve all three URLs under truncation.
+- [x] Add notifier/unit and integration tests.
+
+**Implemented**: `build_segmented_summary` composes one UTF-16-aware Telegram message with domestic/us/crypto labels, one-line summaries, and all three archive links. Segmented `run_pipeline` now sends this multi-link message while preserving the domestic URL as the model-level `site_url` field.
+
+**Verification**: `pytest tests/unit/notifier/test_summary.py tests/unit/orchestrator/test_run_pipeline.py tests/integration/test_pipeline.py -q` ✅.
 
 ### Step 6 — Docs, State, and Verification
 

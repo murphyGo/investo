@@ -280,6 +280,8 @@ async def test_pipeline_end_to_end_success(
     assert len(public_sends) == 1
     assert "2026-04-27" in str(public_sends[0]["text"])
     assert str(result.briefing_url) in str(public_sends[0]["text"])
+    assert "/archive/us-equity/2026/04/2026-04-27/" in str(public_sends[0]["text"])
+    assert "/archive/crypto/2026/04/2026-04-27/" in str(public_sends[0]["text"])
     # NO operator alert on the happy path (CLAUDE.md #5 isolation pin).
     assert operator_alerts == []
 

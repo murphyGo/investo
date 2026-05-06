@@ -8,8 +8,8 @@ Public surface for u5 orchestrator:
   (FR-004). Constructed with the public ``channel_id``.
 * :class:`OperatorAlerter` — operator 1:1 chat sender (FR-007).
   Constructed with the disjoint ``operator_chat_id``.
-* :func:`build_summary` — helper that composes the public-channel
-  preview text from a :class:`Briefing` + site URL with UTF-16-aware
+* :func:`build_summary` and :func:`build_segmented_summary` — helpers
+  that compose the public-channel preview text with UTF-16-aware
   truncation.
 
 Both dispatcher classes use **kwargs-only** construction so callers
@@ -42,10 +42,11 @@ Reference:
 
 from investo.notifier.briefing_publisher import BriefingPublisher
 from investo.notifier.operator_alerter import OperatorAlerter
-from investo.notifier.summary import build_summary
+from investo.notifier.summary import build_segmented_summary, build_summary
 
 __all__ = [
     "BriefingPublisher",
     "OperatorAlerter",
+    "build_segmented_summary",
     "build_summary",
 ]

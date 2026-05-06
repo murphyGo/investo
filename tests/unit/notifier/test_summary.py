@@ -10,16 +10,23 @@ from __future__ import annotations
 from datetime import date
 
 from investo.briefing.disclaimer import DISCLAIMER
+from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.models import Briefing, BriefingNotification
 from investo.notifier.summary import (
     DEFAULT_MAX_UNITS,
     _utf16_truncate,
     _utf16_units,
+    build_segmented_summary,
     build_summary,
 )
 
 _TARGET_DATE = date(2026, 4, 25)
 _SITE_URL = "https://example.github.io/investo/2026/04/2026-04-25/"
+_SEGMENT_URLS = {
+    DOMESTIC_EQUITY: "https://example.github.io/investo/archive/domestic-equity/2026/04/2026-04-25/",
+    US_EQUITY: "https://example.github.io/investo/archive/us-equity/2026/04/2026-04-25/",
+    CRYPTO: "https://example.github.io/investo/archive/crypto/2026/04/2026-04-25/",
+}
 
 
 def _build_briefing(*, market_summary: str = "오늘 시장 요약") -> Briefing:
@@ -163,6 +170,37 @@ def test_build_summary_footer_url_always_preserved_at_truncation() -> None:
 
     assert summary.endswith(f"\n\n상세보기: {_SITE_URL}")
     assert _SITE_URL in summary
+
+
+def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert "국내 증시: 코스피 요약" in summary
+    assert "미국 증시: S&P 500 요약" in summary
+    assert "크립토: Bitcoin 요약" in summary
+    for url in _SEGMENT_URLS.values():
+        assert url in summary
+
+
+def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 " + ("가" * 5000)),
+        US_EQUITY: _build_briefing(market_summary="미국 " + ("나" * 5000)),
+        CRYPTO: _build_briefing(market_summary="크립토 " + ("다" * 5000)),
+    }
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert _utf16_units(summary) <= DEFAULT_MAX_UNITS
+    assert "…" in summary
+    for url in _SEGMENT_URLS.values():
+        assert url in summary
 
 
 def test_build_summary_truncation_suffix_at_body_end() -> None:

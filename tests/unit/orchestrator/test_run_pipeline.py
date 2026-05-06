@@ -321,6 +321,10 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
     assert result.briefing_url is not None
     assert "/archive/domestic-equity/2026/04/2026-04-27/" in str(result.briefing_url)
     assert str(publisher.calls[0].site_url) == str(result.briefing_url)
+    summary_text = publisher.calls[0].summary_text
+    assert "/archive/domestic-equity/2026/04/2026-04-27/" in summary_text
+    assert "/archive/us-equity/2026/04/2026-04-27/" in summary_text
+    assert "/archive/crypto/2026/04/2026-04-27/" in summary_text
 
 
 @pytest.mark.asyncio

@@ -92,7 +92,12 @@ from investo.models import (
     SendResult,
 )
 from investo.models.results import TRACEBACK_EXCERPT_MAX
-from investo.notifier import BriefingPublisher, OperatorAlerter, build_summary
+from investo.notifier import (
+    BriefingPublisher,
+    OperatorAlerter,
+    build_segmented_summary,
+    build_summary,
+)
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
 from investo.publisher import (
@@ -536,6 +541,43 @@ async def _stage_notify_briefing(
     return result
 
 
+async def _stage_notify_segmented_briefing(
+    briefings: dict[MarketSegment, Briefing],
+    *,
+    publisher: BriefingPublisher,
+    site_urls: dict[MarketSegment, HttpUrl],
+) -> SendResult:
+    """Compose + dispatch one public-channel message for all segments."""
+    target_date = briefings[DOMESTIC_EQUITY].target_date
+    _logger.info("[notify_briefing] starting segmented target_date=%s", target_date)
+
+    summary_text = build_segmented_summary(
+        briefings,
+        site_urls={segment: str(url) for segment, url in site_urls.items()},
+    )
+    payload = BriefingNotification(
+        target_date=target_date,
+        summary_text=summary_text,
+        site_url=site_urls[DOMESTIC_EQUITY],
+    )
+    result = await publisher.send(payload)
+
+    if result.ok:
+        _logger.info(
+            "[notify_briefing] ok segmented target_date=%s message_id=%s",
+            target_date,
+            result.message_id,
+        )
+    else:
+        _logger.warning(
+            "[notify_briefing] failed segmented target_date=%s error=%s",
+            target_date,
+            result.error,
+        )
+
+    return result
+
+
 # ---------------------------------------------------------------------------
 # run_pipeline composer
 # ---------------------------------------------------------------------------
@@ -758,14 +800,31 @@ async def run_pipeline(
         site_url_base,
         segment=DOMESTIC_EQUITY if segmented_mode else None,
     )
+    segment_urls = (
+        {
+            segment: _briefing_url_for(target_date, site_url_base, segment=segment)
+            for segment in SEGMENT_ORDER
+        }
+        if segmented_mode
+        else None
+    )
 
     # ------------------------------------------------------------------
     # NOTIFY (AC-003-6 + AC-003-8 — no operator alert; PARTIAL is the signal)
     # ------------------------------------------------------------------
     stage_start = time.monotonic()
-    notify_result = await _stage_notify_briefing(
-        briefing, publisher=publisher, site_url=briefing_url
-    )
+    if segmented_mode:
+        assert segment_briefings is not None
+        assert segment_urls is not None
+        notify_result = await _stage_notify_segmented_briefing(
+            segment_briefings,
+            publisher=publisher,
+            site_urls=segment_urls,
+        )
+    else:
+        notify_result = await _stage_notify_briefing(
+            briefing, publisher=publisher, site_url=briefing_url
+        )
     stage_timings["notify_briefing"] = time.monotonic() - stage_start
 
     if notify_result.ok:

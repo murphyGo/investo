@@ -33,8 +33,16 @@ Reference:
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Final
 
+from investo.briefing.segments import (
+    CRYPTO,
+    DOMESTIC_EQUITY,
+    SEGMENT_LABELS,
+    US_EQUITY,
+    MarketSegment,
+)
 from investo.models import Briefing
 
 # Telegram's hard cap. Mirrors the constant in
@@ -106,4 +114,43 @@ def build_summary(
     return header + truncated + _TRUNCATION_SUFFIX + footer
 
 
-__all__ = ["DEFAULT_MAX_UNITS", "build_summary"]
+def build_segmented_summary(
+    briefings: Mapping[MarketSegment, Briefing],
+    *,
+    site_urls: Mapping[MarketSegment, str],
+    max_units: int = DEFAULT_MAX_UNITS,
+) -> str:
+    """Build one Telegram message with all segment summaries and links.
+
+    The three URLs are part of the fixed footer and are always
+    preserved; segment summary lines are truncated first if needed.
+    """
+    target_date = briefings[DOMESTIC_EQUITY].target_date
+    ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    header = f"📈 {target_date.isoformat()} 시황 요약\n\n"
+    footer = "\n\n상세보기:\n" + "\n".join(
+        f"{SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in ordered_segments
+    )
+    body = "\n".join(
+        f"{SEGMENT_LABELS[segment]}: {_one_line_summary(briefings[segment])}"
+        for segment in ordered_segments
+    )
+
+    fixed_units = _utf16_units(header) + _utf16_units(footer)
+    body_budget = max_units - fixed_units
+    if _utf16_units(body) <= body_budget:
+        return header + body + footer
+
+    truncated = _utf16_truncate(body, body_budget - _utf16_units(_TRUNCATION_SUFFIX))
+    return header + truncated + _TRUNCATION_SUFFIX + footer
+
+
+def _one_line_summary(briefing: Briefing) -> str:
+    for line in briefing.market_summary.splitlines():
+        line = line.strip()
+        if line:
+            return line
+    return "데이터 부족"
+
+
+__all__ = ["DEFAULT_MAX_UNITS", "build_segmented_summary", "build_summary"]
