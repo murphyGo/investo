@@ -63,10 +63,14 @@ Implement FR-008: one daily run creates separate domestic-equity, us-equity, and
 
 ### Step 4 — Orchestrator Multi-Segment Flow
 
-- [ ] Generate all three segment briefings in fixed order.
-- [ ] Publish all three files in one commit.
-- [ ] Fail the whole run if any segment generation fails.
-- [ ] Preserve existing collect/publish/notify alert behavior.
+- [x] Generate all three segment briefings in fixed order.
+- [x] Publish all three files in one commit.
+- [x] Fail the whole run if any segment generation fails.
+- [x] Preserve existing collect/publish/notify alert behavior.
+
+**Implemented**: production `run_pipeline` now uses segmented generation by default, routing items once and generating `domestic-equity`, `us-equity`, and `crypto` in fixed order. It writes all three segment archives and commits/pushes them together; injected legacy `generate=` keeps existing orchestrator tests and one-off seams available.
+
+**Verification**: `pytest tests/unit/orchestrator/test_run_pipeline.py -q` ✅; `ruff check .` ✅; `ruff format --check .` ✅; `mypy --strict src/` ✅.
 
 ### Step 5 — Telegram Segmented Summary
 

@@ -75,7 +75,13 @@ from pydantic import HttpUrl, TypeAdapter
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
-from investo.briefing.segments import MarketSegment
+from investo.briefing.segments import (
+    CRYPTO,
+    DOMESTIC_EQUITY,
+    US_EQUITY,
+    MarketSegment,
+    segment_items,
+)
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -124,6 +130,15 @@ GenerateCallable = Callable[
     [date, Sequence[NormalizedItem], ClaudeRunner | None],
     Awaitable[Briefing],
 ]
+SegmentGenerateCallable = Callable[
+    [date, Sequence[NormalizedItem], ClaudeRunner | None, MarketSegment, bool],
+    Awaitable[Briefing],
+]
+SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
+    DOMESTIC_EQUITY,
+    US_EQUITY,
+    CRYPTO,
+)
 
 
 async def _default_generate_briefing(
@@ -142,6 +157,23 @@ async def _default_generate_briefing(
     default ``RetryBudget()`` is the right one.
     """
     return await _u2_generate_briefing(target_date, items, runner=runner)
+
+
+async def _default_generate_segment_briefing(
+    target_date: date,
+    items: Sequence[NormalizedItem],
+    runner: ClaudeRunner | None,
+    segment: MarketSegment,
+    data_limited: bool,
+) -> Briefing:
+    """Adapter for u7 segmented generation."""
+    return await _u2_generate_briefing(
+        target_date,
+        items,
+        runner=runner,
+        segment=segment,
+        data_limited=data_limited,
+    )
 
 
 async def _stage_collect(
@@ -239,6 +271,46 @@ async def _stage_generate(
     briefing = await runner_callable(target_date, items, runner)
     _logger.info("[generate] briefing built target_date=%s", target_date)
     return briefing
+
+
+async def _stage_generate_segments(
+    target_date: date,
+    items: Sequence[NormalizedItem],
+    *,
+    runner: ClaudeRunner | None = None,
+    generate_segment: SegmentGenerateCallable | None = None,
+) -> dict[MarketSegment, Briefing]:
+    """Generate all u7 market segments in fixed order.
+
+    Any segment-level :class:`BriefingGenerationError` fails the whole
+    generate stage so publish never commits a partial set.
+    """
+    runner_callable = (
+        generate_segment if generate_segment is not None else _default_generate_segment_briefing
+    )
+    routed = segment_items(items)
+    briefings: dict[MarketSegment, Briefing] = {}
+
+    _logger.info("[generate] starting segmented target_date=%s items=%d", target_date, len(items))
+    for segment in SEGMENT_ORDER:
+        segment_source_items = routed.for_segment(segment)
+        data_limited = routed.is_data_limited(segment)
+        _logger.info(
+            "[generate] segment=%s items=%d data_limited=%s",
+            segment,
+            len(segment_source_items),
+            data_limited,
+        )
+        briefings[segment] = await runner_callable(
+            target_date,
+            segment_source_items,
+            runner,
+            segment,
+            data_limited,
+        )
+
+    _logger.info("[generate] segmented briefings built target_date=%s", target_date)
+    return briefings
 
 
 def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
@@ -342,6 +414,37 @@ async def _stage_publish(
     )
     _logger.info("[publish] committed + pushed %s", target_date)
     return archive_path
+
+
+async def _stage_publish_segments(
+    briefings: dict[MarketSegment, Briefing],
+    target_date: date,
+    *,
+    git_runner: GitRunner | None = None,
+) -> dict[MarketSegment, Path]:
+    """Write all segment archive files, then commit/push them together."""
+    _logger.info("[publish] starting segmented target_date=%s", target_date)
+
+    archive_paths: dict[MarketSegment, Path] = {}
+    for segment in SEGMENT_ORDER:
+        archive_path = await asyncio.to_thread(
+            write_briefing,
+            briefings[segment],
+            target_date,
+            segment=segment,
+        )
+        archive_paths[segment] = archive_path
+        _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
+
+    commit_message = f"briefing: {target_date} segmented"
+    await asyncio.to_thread(
+        commit_and_push,
+        commit_message,
+        list(archive_paths.values()),
+        runner=git_runner,
+    )
+    _logger.info("[publish] committed + pushed segmented %s", target_date)
+    return archive_paths
 
 
 async def _stage_notify_briefing(
@@ -506,6 +609,7 @@ async def run_pipeline(
     runner: ClaudeRunner | None = None,
     git_runner: GitRunner | None = None,
     generate: GenerateCallable | None = None,
+    generate_segment: SegmentGenerateCallable | None = None,
 ) -> PipelineResult:
     """Run the four-stage pipeline under Q9=B Error Policy routing.
 
@@ -589,8 +693,19 @@ async def run_pipeline(
     # GENERATE (AC-003-3)
     # ------------------------------------------------------------------
     stage_start = time.monotonic()
+    segmented_mode = generate is None
     try:
-        briefing = await _stage_generate(target_date, items, runner=runner, generate=generate)
+        if segmented_mode:
+            segment_briefings = await _stage_generate_segments(
+                target_date,
+                items,
+                runner=runner,
+                generate_segment=generate_segment,
+            )
+            briefing = segment_briefings[DOMESTIC_EQUITY]
+        else:
+            segment_briefings = None
+            briefing = await _stage_generate(target_date, items, runner=runner, generate=generate)
     except BriefingGenerationError as exc:
         stage_timings["generate"] = time.monotonic() - stage_start
         stages["generate"] = f"failed: {exc.stage}"
@@ -613,7 +728,15 @@ async def run_pipeline(
     # ------------------------------------------------------------------
     stage_start = time.monotonic()
     try:
-        await _stage_publish(briefing, target_date, git_runner=git_runner)
+        if segmented_mode:
+            assert segment_briefings is not None
+            await _stage_publish_segments(
+                segment_briefings,
+                target_date,
+                git_runner=git_runner,
+            )
+        else:
+            await _stage_publish(briefing, target_date, git_runner=git_runner)
     except (PublisherDisclaimerError, PublisherIOError, PublisherGitError) as exc:
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"
@@ -630,7 +753,11 @@ async def run_pipeline(
     stage_timings["publish"] = time.monotonic() - stage_start
     stages["publish"] = "ok"
 
-    briefing_url = _briefing_url_for(target_date, site_url_base)
+    briefing_url = _briefing_url_for(
+        target_date,
+        site_url_base,
+        segment=DOMESTIC_EQUITY if segmented_mode else None,
+    )
 
     # ------------------------------------------------------------------
     # NOTIFY (AC-003-6 + AC-003-8 — no operator alert; PARTIAL is the signal)

@@ -40,6 +40,7 @@ from pydantic import HttpUrl, TypeAdapter
 
 from investo.briefing import pipeline as briefing_pipeline
 from investo.briefing.errors import SubprocessOutcome
+from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.models import NormalizedItem, PipelineResult, PipelineStatus
 from investo.notifier import BriefingPublisher, OperatorAlerter
 from investo.orchestrator import (
@@ -112,13 +113,23 @@ def _stage2_markdown() -> str:
 
 @pytest.fixture
 def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
-    """Replace u2's ``call_claude_code`` with a canned Stage1 + Stage2 stub.
+    """Replace u2's ``call_claude_code`` with canned segmented stubs.
 
     Yields the list of prompts u2 receives — assertions can check that
     the orchestrator triggered exactly the expected number of LLM calls.
     """
     captured_prompts: list[str] = []
-    stdouts = [_stage1_classification_json(2), _stage2_markdown()]
+    # Production run_pipeline now generates three market segments in fixed
+    # order. The default fake FOMC items route only to us-equity, so
+    # domestic-equity and crypto receive empty item sets.
+    stdouts = [
+        _stage1_classification_json(0),
+        _stage2_markdown(),
+        _stage1_classification_json(2),
+        _stage2_markdown(),
+        _stage1_classification_json(0),
+        _stage2_markdown(),
+    ]
     call_index = 0
 
     async def _fake_call(
@@ -235,7 +246,7 @@ async def test_pipeline_end_to_end_success(
     assert result.status == PipelineStatus.SUCCESS
     assert result.target_date == _TARGET
     assert result.briefing_url is not None
-    assert "archive/2026/04/2026-04-27" in str(result.briefing_url)
+    assert "archive/domestic-equity/2026/04/2026-04-27" in str(result.briefing_url)
     # All 4 stages recorded as ok.
     assert result.stages == {
         "collect": "ok",
@@ -250,12 +261,13 @@ async def test_pipeline_end_to_end_success(
         "publish",
         "notify_briefing",
     }
-    # u2 was called exactly twice (Stage 1 + Stage 2), no retries.
-    assert len(stub_u2_claude) == 2
+    # u2 was called exactly six times: three segments x Stage 1 + Stage 2, no retries.
+    assert len(stub_u2_claude) == 6
 
-    # u3: file on disk at the canonical archive path.
-    expected_path = archive_path(_TARGET)
-    assert expected_path.exists()
+    # u3: all three segment files land under the segmented archive paths.
+    expected_path = archive_path(_TARGET, segment=DOMESTIC_EQUITY)
+    for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
+        assert archive_path(_TARGET, segment=segment).exists()
     rendered = expected_path.read_text(encoding="utf-8")
     # Disclaimer landed in the rendered markdown (NFR-004).
     assert "투자 자문" in rendered or "면책" in rendered
@@ -383,8 +395,10 @@ async def test_pipeline_end_to_end_notify_failure_yields_partial(
     assert operator_alerts == []
     # Public-channel attempt was made (and failed).
     assert len(public_sends) == 1
-    # u3 committed the briefing.
-    assert archive_path(_TARGET).exists()
+    # u3 committed the segmented briefings.
+    assert archive_path(_TARGET, segment=DOMESTIC_EQUITY).exists()
+    assert archive_path(_TARGET, segment=US_EQUITY).exists()
+    assert archive_path(_TARGET, segment=CRYPTO).exists()
     assert "push" in [c[1] for c in git.calls]
 
 

@@ -29,7 +29,7 @@ from pydantic import HttpUrl, TypeAdapter
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.errors import BriefingGenerationError
-from investo.briefing.segments import CRYPTO, US_EQUITY
+from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -182,6 +182,40 @@ def _success_generate() -> object:
     return _fake
 
 
+def _success_segment_generate(calls: list[tuple[MarketSegment, int, bool]]) -> object:
+    async def _fake(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+    ) -> Briefing:
+        calls.append((segment, len(items), data_limited))
+        return _briefing(target_date)
+
+    return _fake
+
+
+def _failing_segment_generate(fail_segment: MarketSegment) -> object:
+    async def _fake(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+    ) -> Briefing:
+        if segment == fail_segment:
+            raise BriefingGenerationError(
+                stage="synthesis",
+                attempt_count=3,
+                last_stderr=f"{segment} failed",
+                cause=None,
+            )
+        return _briefing(target_date)
+
+    return _fake
+
+
 @pytest.fixture
 def archive_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Isolate ARCHIVE_ROOT to per-test tmp dir so writes don't pollute repo."""
@@ -237,6 +271,82 @@ async def test_run_pipeline_happy_path_success(archive_root: Path) -> None:
     # Publisher was called exactly once with the per-day URL.
     assert len(publisher.calls) == 1
     assert str(publisher.calls[0].site_url) == str(result.briefing_url)
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_default_generates_and_publishes_three_segments(
+    archive_root: Path,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    segment_calls: list[tuple[MarketSegment, int, bool]] = []
+    items = [
+        NormalizedItem(
+            source_name="yonhap-market",
+            category="news",
+            title="코스피 상승 [005930]",
+            published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+        ),
+        NormalizedItem(
+            source_name="yfinance-price",
+            category="price",
+            title="AAPL closes higher",
+            published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+        ),
+        NormalizedItem(
+            source_name="coingecko-price",
+            category="price",
+            title="Bitcoin rises",
+            published_at=datetime(2026, 4, 27, 12, 2, tzinfo=UTC),
+        ),
+    ]
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch(items),
+        git_runner=git,
+        generate_segment=_success_segment_generate(segment_calls),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert [call[0] for call in segment_calls] == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert [call[1] for call in segment_calls] == [1, 1, 1]
+    assert [call[2] for call in segment_calls] == [True, True, True]
+    for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
+        assert (archive_root / segment / "2026" / "04" / "2026-04-27.md").exists()
+    assert result.briefing_url is not None
+    assert "/archive/domestic-equity/2026/04/2026-04-27/" in str(result.briefing_url)
+    assert str(publisher.calls[0].site_url) == str(result.briefing_url)
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_segment_generation_failure_skips_all_publish(
+    archive_root: Path,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("Bitcoin"), _item("AAPL")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_failing_segment_generate(CRYPTO),
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["generate"] == "failed: synthesis"
+    assert result.stages["publish"] == "skipped"
+    assert result.stages["notify_briefing"] == "skipped"
+    assert publisher.calls == []
+    assert len(alerter.calls) == 1
+    assert not archive_root.exists()
 
 
 @pytest.mark.asyncio
