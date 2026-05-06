@@ -319,6 +319,27 @@ during writing: `uv run mkdocs serve` (no `--strict`).
 
 For day-to-day operation of the cron pipeline + manual interventions.
 
+### First production cutover checklist
+
+Run this once before treating the cron as live:
+
+1. Set the five required GitHub Secrets in **Settings -> Secrets and
+   variables -> Actions**.
+2. Enable Pages in **Settings -> Pages -> Build and deployment ->
+   Source: GitHub Actions**.
+3. Trigger **Actions -> daily-briefing -> Run workflow** with
+   `target_date` blank for the cron default, or an ISO date for a
+   backfill.
+4. Verify the resulting runs:
+
+```bash
+gh run list --repo github.com/murphyGo/investo --workflow daily-briefing.yml --limit 5
+gh run list --repo github.com/murphyGo/investo --workflow pages.yml --limit 5
+```
+
+5. Confirm the public Telegram channel received the briefing and the
+   Pages URL renders the same archive entry.
+
 ### GitHub Secrets (required)
 
 The five required secrets `daily-briefing.yml` injects into `python -m investo`
@@ -410,6 +431,12 @@ the daily-briefing bot's git pushes). The two-job split is:
 2. **`deploy`** — `actions/deploy-pages@v4` swaps the published site
    atomically. **A failed build preserves the previously deployed
    site** (no rollback action needed).
+
+Before the first deploy, enable Pages in **Settings -> Pages -> Build
+and deployment -> Source: GitHub Actions**. If the `Configure Pages`
+step fails with `Get Pages site failed` / `HttpError: Not Found`, the
+repo's Pages site is not enabled or is still configured for branch
+deployment instead of GitHub Actions.
 
 To preview the site locally during a `mkdocs.yml` or `site_docs/`
 edit:
