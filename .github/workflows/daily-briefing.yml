@@ -126,46 +126,7 @@ jobs:
           TELEGRAM_BRIEFING_CHANNEL_ID: ${{ secrets.TELEGRAM_BRIEFING_CHANNEL_ID }}
           TELEGRAM_OPERATOR_CHAT_ID: ${{ secrets.TELEGRAM_OPERATOR_CHAT_ID }}
           SITE_URL_BASE: ${{ secrets.SITE_URL_BASE }}
-        run: |
-          python - <<'PY'
-          import os
-          import sys
-          from urllib.parse import urlparse
-
-          required = (
-              "CLAUDE_CODE_OAUTH_TOKEN",
-              "TELEGRAM_BOT_TOKEN",
-              "TELEGRAM_BRIEFING_CHANNEL_ID",
-              "TELEGRAM_OPERATOR_CHAT_ID",
-              "SITE_URL_BASE",
-          )
-          errors = []
-          values = {name: os.environ.get(name, "").strip() for name in required}
-
-          for name in required:
-              if not values[name]:
-                  errors.append(f"Missing required GitHub Secret: {name}")
-
-          if (
-              values["TELEGRAM_BRIEFING_CHANNEL_ID"]
-              and values["TELEGRAM_OPERATOR_CHAT_ID"]
-              and values["TELEGRAM_BRIEFING_CHANNEL_ID"]
-              == values["TELEGRAM_OPERATOR_CHAT_ID"]
-          ):
-              errors.append(
-                  "TELEGRAM_BRIEFING_CHANNEL_ID and TELEGRAM_OPERATOR_CHAT_ID "
-                  "must be disjoint"
-              )
-
-          if values["SITE_URL_BASE"]:
-              parsed = urlparse(values["SITE_URL_BASE"])
-              if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-                  errors.append("SITE_URL_BASE must be an HTTP(S) URL")
-
-          for message in errors:
-              print(f"::error::{message}")
-          sys.exit(1 if errors else 0)
-          PY
+        run: python scripts/check_daily_briefing_env.py
 
       - name: Run pipeline (python -m investo)
         env:
