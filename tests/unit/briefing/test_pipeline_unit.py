@@ -213,6 +213,15 @@ def test_parse_classification_accepts_json_with_surrounding_text() -> None:
     assert result.unassigned == []
 
 
+def test_parse_classification_accepts_python_literal_integer_keys() -> None:
+    """Recover when Claude emits a Python-dict-like object."""
+    stdout = '{"assignments":{1:5,2:2,3:4},"unassigned":[4]}'
+    result = _parse_classification(stdout, item_count=4)
+
+    assert result.assignments == {1: 5, 2: 2, 3: 4}
+    assert result.unassigned == [4]
+
+
 def test_parse_classification_empty_assignments_is_valid() -> None:
     """Empty assignments + empty unassigned is a valid (degenerate) result."""
     stdout = json.dumps({"assignments": {}, "unassigned": []})

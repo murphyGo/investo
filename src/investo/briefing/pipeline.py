@@ -23,6 +23,7 @@ References:
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import json
 import unicodedata
@@ -138,13 +139,47 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
     return json.dumps(payload, ensure_ascii=False)
 
 
+def _extract_braced_object(text: str, start: int) -> str | None:
+    """Return the balanced ``{...}`` slice starting at ``start``."""
+    depth = 0
+    in_string = False
+    quote = ""
+    escaped = False
+
+    for idx in range(start, len(text)):
+        char = text[idx]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                in_string = False
+            continue
+
+        if char in {'"', "'"}:
+            in_string = True
+            quote = char
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : idx + 1]
+
+    return None
+
+
 def _load_classification_payload(stdout: str) -> object:
     """Load the first JSON value from Claude's Stage 1 stdout.
 
     The prompt asks for JSON only, but production LLMs sometimes wrap
     the object in prose or a Markdown code fence. Recover a single JSON
-    value when it is still unambiguous; malformed output still raises
-    ``JSONDecodeError`` and remains retryable.
+    value when it is still unambiguous. Claude may also emit a Python-
+    dict-like object with integer keys (``{1: 5}``) even after being
+    asked for JSON; accept that literal shape and let pydantic validate
+    it. Malformed output still raises ``JSONDecodeError`` and remains
+    retryable.
     """
     stripped = stdout.strip()
     try:
@@ -157,7 +192,13 @@ def _load_classification_payload(stdout: str) -> object:
             try:
                 payload, _end = decoder.raw_decode(stripped[start:])
             except json.JSONDecodeError:
-                continue
+                braced = _extract_braced_object(stripped, start)
+                if braced is None:
+                    continue
+                try:
+                    return ast.literal_eval(braced)
+                except (SyntaxError, ValueError):
+                    continue
             return payload
         raise original
 
