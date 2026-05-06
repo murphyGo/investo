@@ -97,8 +97,39 @@ If an item has low signal or doesn't fit cleanly, place its id in
 summary and watch-points sections only.
 """
 
-# Placeholders: ``items_json`` (str — JSON array per FD R7).
+# Segment context is intentionally a prompt-side fragment owned by this
+# module. ``pipeline.py`` selects the values, but does not inline
+# prompt body text.
+DEFAULT_SEGMENT_CONTEXT: Final[str] = """\
+Market scope: overall daily market briefing.
+Use all supplied items normally.
+"""
+
+# Placeholders:
+#   ``segment_label`` (str — user-facing Korean segment label)
+#   ``segment_slug`` (str — stable segment id)
+#   ``data_limited_note`` (str — one of the note constants below)
+SEGMENT_CONTEXT_TEMPLATE: Final[str] = """\
+Market scope: {segment_label} ({segment_slug}).
+Use only evidence relevant to this market segment.
+Do not fill gaps with news from another segment.
+{data_limited_note}
+"""
+
+SEGMENT_DATA_READY_NOTE: Final[str] = (
+    "The routed item set has enough signal for a normal segment briefing."
+)
+SEGMENT_DATA_LIMITED_NOTE: Final[str] = (
+    'The routed item set is data-limited; explicitly say "데이터 부족" '
+    "where evidence is insufficient."
+)
+
+# Placeholders:
+#   ``segment_context`` (str — rendered segment scope instructions)
+#   ``items_json`` (str — JSON array per FD R7).
 STAGE1_USER_TEMPLATE: Final[str] = """\
+{segment_context}
+
 Items:
 {items_json}
 
@@ -154,12 +185,15 @@ Rules:
 """
 
 # Placeholders:
+#   ``segment_context`` (str — rendered segment scope instructions)
 #   ``grouped_sections`` (str — pre-grouped item bullets per Stage 1
 #       output; built by ``pipeline.build_section_plan`` rendering)
 #   ``unassigned`` (str — bullet list of unassigned items for context;
 #       may be the literal "(none)" when the unassigned list is empty)
 #   ``target_date`` (str — YYYY-MM-DD)
 STAGE2_USER_TEMPLATE: Final[str] = """\
+{segment_context}
+
 Pre-grouped items (Stage 1 output):
 
 {grouped_sections}
@@ -174,6 +208,10 @@ Return only the markdown.
 
 
 __all__ = [
+    "DEFAULT_SEGMENT_CONTEXT",
+    "SEGMENT_CONTEXT_TEMPLATE",
+    "SEGMENT_DATA_LIMITED_NOTE",
+    "SEGMENT_DATA_READY_NOTE",
     "STAGE1_SYSTEM",
     "STAGE1_USER_TEMPLATE",
     "STAGE2_SECTION_HEADERS",

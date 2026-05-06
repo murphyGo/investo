@@ -42,9 +42,13 @@ Implement FR-008: one daily run creates separate domestic-equity, us-equity, and
 
 ### Step 2 — Segment-Aware Briefing Generation
 
-- [ ] Add a segment context parameter to the u2 generation path without weakening existing contracts.
-- [ ] Add data-limited instruction when routed item count is below threshold.
-- [ ] Test prompt/context behavior without live Claude.
+- [x] Add a segment context parameter to the u2 generation path without weakening existing contracts.
+- [x] Add data-limited instruction when routed item count is below threshold.
+- [x] Test prompt/context behavior without live Claude.
+
+**Implemented**: `generate_briefing(..., segment=..., data_limited=...)` now renders one shared segment context for Stage 1 and Stage 2. Prompt text remains centralized in `src/investo/briefing/prompts.py`, and the unsegmented default path remains available for existing callers.
+
+**Verification**: `pytest tests/unit/briefing/test_prompts.py tests/unit/briefing/test_budget_happy_path.py tests/unit/briefing/test_pipeline_no_prompt_strings.py -q` ✅.
 
 ### Step 3 — Segment Archive Paths and URLs
 

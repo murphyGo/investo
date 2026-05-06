@@ -27,6 +27,7 @@ import pytest
 from investo.briefing import pipeline
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.errors import SubprocessOutcome
+from investo.briefing.segments import US_EQUITY
 from investo.models import Briefing, NormalizedItem
 from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
 
@@ -104,6 +105,49 @@ async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
     assert budget.elapsed_s < budget.total_budget_s
     # Confirm exactly two LLM calls were dispatched (no retries).
     assert call_index == 2
+
+
+@pytest.mark.asyncio
+async def test_generate_briefing_passes_segment_context_to_both_stages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """u7 Step 2 — segment scope is visible to classification and synthesis
+    without calling live Claude.
+    """
+    stdouts = [
+        valid_classification_stdout(item_count=2),
+        valid_stage2_markdown(),
+    ]
+    captured_prompts: list[str] = []
+
+    async def fake_call_claude_code(
+        prompt: str,
+        *,
+        timeout_s: float = 120.0,
+        runner: object | None = None,
+    ) -> SubprocessOutcome:
+        captured_prompts.append(prompt)
+        return SubprocessOutcome(
+            stdout=stdouts[len(captured_prompts) - 1],
+            stderr="",
+            returncode=0,
+            elapsed_s=1.0,
+        )
+
+    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+
+    await pipeline.generate_briefing(
+        _TARGET_DATE,
+        _items(2),
+        segment=US_EQUITY,
+        data_limited=True,
+    )
+
+    assert len(captured_prompts) == 2
+    for prompt in captured_prompts:
+        assert "미국 증시" in prompt
+        assert "us-equity" in prompt
+        assert "데이터 부족" in prompt
 
 
 @pytest.mark.asyncio

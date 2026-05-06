@@ -44,12 +44,17 @@ from investo.briefing.disclaimer import DISCLAIMER, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.briefing.leak_guard import scan as leak_guard_scan
 from investo.briefing.prompts import (
+    DEFAULT_SEGMENT_CONTEXT,
+    SEGMENT_CONTEXT_TEMPLATE,
+    SEGMENT_DATA_LIMITED_NOTE,
+    SEGMENT_DATA_READY_NOTE,
     STAGE1_SYSTEM,
     STAGE1_USER_TEMPLATE,
     STAGE2_SECTION_HEADERS,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
 )
+from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
 from investo.models import Briefing, NormalizedItem
 
 # Retry constants per FD R3.
@@ -349,6 +354,24 @@ def _render_unassigned(unassigned: tuple[NormalizedItem, ...]) -> str:
     return "\n".join(f"  - [{item.source_name}] {item.title}" for item in unassigned)
 
 
+def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool) -> str:
+    """Render prompt-side segment scope instructions for u7.
+
+    ``segment=None`` keeps the original u2 unsegmented behavior. When a
+    segment is supplied, both Stage 1 and Stage 2 see the same scope so
+    classification and synthesis cannot silently drift apart.
+    """
+    if segment is None:
+        return DEFAULT_SEGMENT_CONTEXT
+
+    data_limited_note = SEGMENT_DATA_LIMITED_NOTE if data_limited else SEGMENT_DATA_READY_NOTE
+    return SEGMENT_CONTEXT_TEMPLATE.format(
+        segment_label=SEGMENT_LABELS[segment],
+        segment_slug=segment,
+        data_limited_note=data_limited_note,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Async stage helpers
 # ---------------------------------------------------------------------------
@@ -359,6 +382,7 @@ async def _classify(
     *,
     runner: ClaudeRunner | None,
     budget: RetryBudget,
+    segment_context: str,
 ) -> ClassificationResult:
     """Run Stage 1 with the FD R3 retry loop.
 
@@ -367,7 +391,10 @@ async def _classify(
     if the cumulative budget is hit before a retry can dispatch.
     """
     serialized = serialize_items_for_prompt(items)
-    user_prompt = STAGE1_USER_TEMPLATE.format(items_json=serialized)
+    user_prompt = STAGE1_USER_TEMPLATE.format(
+        segment_context=segment_context,
+        items_json=serialized,
+    )
     full_prompt = f"{STAGE1_SYSTEM}\n\n{user_prompt}"
 
     last_outcome: SubprocessOutcome | None = None
@@ -424,6 +451,7 @@ async def _synthesize(
     *,
     runner: ClaudeRunner | None,
     budget: RetryBudget,
+    segment_context: str,
 ) -> str:
     """Run Stage 2 with the FD R3 retry loop. Returns body markdown.
 
@@ -436,6 +464,7 @@ async def _synthesize(
     grouped = _render_grouped_sections(plan.items_by_section)
     unassigned = _render_unassigned(plan.unassigned)
     user_prompt = STAGE2_USER_TEMPLATE.format(
+        segment_context=segment_context,
         grouped_sections=grouped,
         unassigned=unassigned,
         target_date=plan.target_date.isoformat(),
@@ -499,6 +528,8 @@ async def generate_briefing(
     *,
     runner: ClaudeRunner | None = None,
     budget: RetryBudget | None = None,
+    segment: MarketSegment | None = None,
+    data_limited: bool = False,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -517,9 +548,20 @@ async def generate_briefing(
     if budget is None:
         budget = RetryBudget()
 
-    classification = await _classify(items, runner=runner, budget=budget)
+    segment_context = _render_segment_context(segment, data_limited=data_limited)
+    classification = await _classify(
+        items,
+        runner=runner,
+        budget=budget,
+        segment_context=segment_context,
+    )
     plan = build_section_plan(items, classification, target_date)
-    body_markdown = await _synthesize(plan, runner=runner, budget=budget)
+    body_markdown = await _synthesize(
+        plan,
+        runner=runner,
+        budget=budget,
+        segment_context=segment_context,
+    )
 
     # Body markdown is verified to have all 6 sections (by _synthesize's
     # internal parse_six_sections check). Re-parse here to extract the

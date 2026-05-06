@@ -7,6 +7,9 @@ from pathlib import Path
 import pytest
 
 from investo.briefing.prompts import (
+    DEFAULT_SEGMENT_CONTEXT,
+    SEGMENT_CONTEXT_TEMPLATE,
+    SEGMENT_DATA_LIMITED_NOTE,
     STAGE1_SYSTEM,
     STAGE1_USER_TEMPLATE,
     STAGE2_SYSTEM,
@@ -59,10 +62,26 @@ def test_stage1_system_does_not_mention_sections_1_or_6_or_7() -> None:
 
 
 def test_stage1_user_template_has_items_json_placeholder() -> None:
-    rendered = STAGE1_USER_TEMPLATE.format(items_json="[]")
+    rendered = STAGE1_USER_TEMPLATE.format(
+        segment_context=DEFAULT_SEGMENT_CONTEXT,
+        items_json="[]",
+    )
     assert "[]" in rendered
     # Original template contained the placeholder
     assert "{items_json}" in STAGE1_USER_TEMPLATE
+    assert "{segment_context}" in STAGE1_USER_TEMPLATE
+
+
+def test_segment_context_template_supports_data_limited_note() -> None:
+    rendered = SEGMENT_CONTEXT_TEMPLATE.format(
+        segment_label="미국 증시",
+        segment_slug="us-equity",
+        data_limited_note=SEGMENT_DATA_LIMITED_NOTE,
+    )
+
+    assert "미국 증시" in rendered
+    assert "us-equity" in rendered
+    assert "데이터 부족" in rendered
 
 
 # --- Stage 2 prompt anchors -------------------------------------------------
@@ -108,6 +127,7 @@ def test_stage2_system_forbids_pii_emission() -> None:
 
 def test_stage2_user_template_has_three_placeholders() -> None:
     rendered = STAGE2_USER_TEMPLATE.format(
+        segment_context=DEFAULT_SEGMENT_CONTEXT,
         grouped_sections="(grouped content)",
         unassigned="(unassigned content)",
         target_date="2026-04-28",
@@ -118,6 +138,7 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     assert "{grouped_sections}" in STAGE2_USER_TEMPLATE
     assert "{unassigned}" in STAGE2_USER_TEMPLATE
     assert "{target_date}" in STAGE2_USER_TEMPLATE
+    assert "{segment_context}" in STAGE2_USER_TEMPLATE
 
 
 def test_stage1_system_format_call_raises_key_error() -> None:
@@ -151,7 +172,10 @@ def test_stage2_user_template_format_is_idempotent_under_repeat() -> None:
     placeholders.
     """
     rendered = STAGE2_USER_TEMPLATE.format(
-        grouped_sections="x", unassigned="y", target_date="2026-04-28"
+        segment_context=DEFAULT_SEGMENT_CONTEXT,
+        grouped_sections="x",
+        unassigned="y",
+        target_date="2026-04-28",
     )
     # No placeholders remain — re-formatting an empty dict yields same
     # string (no KeyError).
