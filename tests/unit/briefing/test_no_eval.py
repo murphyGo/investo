@@ -18,6 +18,7 @@ _BRIEFING_MODULES = (
     "investo.briefing.leak_guard",
     "investo.briefing.pipeline",
     "investo.briefing.prompts",
+    "investo.briefing.segments",
 )
 
 

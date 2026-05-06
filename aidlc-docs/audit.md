@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — u7 segmented briefing — Unit Created and Planned
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Trigger**: User observed that a successful daily briefing over-focused on domestic equity coverage and requested separate briefings for domestic equities, US equities, and crypto.
+**Decision**: Add post-MVP unit `u7 segmented briefing` implementing FR-008. The unit splits one daily run into three independent market segments: `domestic-equity`, `us-equity`, and `crypto`. Segmentation happens before LLM generation using deterministic source/category/title/ticker provenance so a strong or high-volume source group cannot dominate unrelated markets.
+**Deliverables**:
+- Requirements updated with FR-008.
+- Unit registry/state updated with `u7 segmented briefing`.
+- Functional Design artifacts created under `aidlc-docs/construction/u7-segmented-briefing/functional-design/`.
+- Code Generation plan created at `aidlc-docs/construction/plans/u7-segmented-briefing-code-generation-plan.md`.
+**Key design decisions**:
+- New runs will publish `archive/{segment}/YYYY/MM/YYYY-MM-DD.md`.
+- Public URLs will be `{SITE_URL_BASE}/archive/{segment}/YYYY/MM/YYYY-MM-DD/`.
+- One Telegram channel message will contain three summaries and three links.
+- If a segment lacks direct source coverage, it must say "데이터 부족" rather than filling with another market's news.
+- Existing u2 safety contracts remain mandatory: Claude Code CLI only, retry/budget, disclaimer, leak guard, no Anthropic SDK.
+**Status**: Functional Design complete; Code Generation planned and ready to execute.
+
+---
+
 ## Construction — u1 sources — Extension #5 CLOSED (Nasdaq Earnings Calendar)
 **Timestamp**: 2026-05-03T00:30:00Z
 **Trigger**: User requested "earnings 카테고리를 처리하게 team lead에 전달해줘".

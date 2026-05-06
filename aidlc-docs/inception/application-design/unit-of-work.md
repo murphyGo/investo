@@ -178,6 +178,32 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 - [ ] cron이 평일 KST 07:00 (UTC 22:00 전일) + 토 09:00에 실행
 - [ ] `python -m investo`가 GitHub Secrets로 인증되어 동작
 - [ ] commit 후 자동으로 Pages 빌드/배포
+
+---
+
+## u7: `segmented-briefing` — Domestic / US / Crypto Briefing Split
+
+**Purpose**: 기존 단일 통합 시황을 국내 증시, 미국 증시, 크립토 세그먼트로 분리한다. 수집 소스의 편향이나 특정 시장의 강한 이슈가 전체 시황을 지배하지 않도록 세그먼트별 입력 필터링, 생성, 게시 URL, 텔레그램 요약을 명확히 한다.
+
+**Stories**: FR-008 (세그먼트별 시황 생성), FR-002/003/004 extension
+
+**Module path**:
+- `src/investo/briefing/` — 세그먼트별 입력 분리와 LLM prompt 계약 확장
+- `src/investo/orchestrator/` — 세그먼트별 generate/publish/notify orchestration
+- `src/investo/publisher/` — archive path 확장 또는 세그먼트 path helper
+- `src/investo/notifier/` — 세그먼트 링크/요약 포함 메시지
+
+**Tests**:
+- `tests/unit/briefing/` — 세그먼트 분류/필터링과 prompt shape
+- `tests/unit/orchestrator/` — 세그먼트별 실패/부분 성공 routing
+- `tests/integration/test_pipeline.py` — 세 브리핑 archive + Telegram 링크 검증
+
+**Definition of Done**:
+- [ ] 한 번의 daily run에서 국내 증시, 미국 증시, 크립토 세그먼트를 생성한다.
+- [ ] 각 세그먼트가 독립 markdown과 URL을 가진다.
+- [ ] 세그먼트별 핵심 데이터가 부족하면 다른 시장 뉴스로 대체하지 않고 데이터 부족을 명시한다.
+- [ ] 텔레그램 메시지에 세 세그먼트 요약과 상세 링크가 포함된다.
+- [ ] 기존 disclaimer, leak guard, Claude Code CLI only, retry/budget 계약을 유지한다.
 - [ ] 빌드 실패 시 기존 사이트 유지
 
 ---
