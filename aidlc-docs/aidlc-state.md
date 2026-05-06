@@ -30,8 +30,8 @@
 | NFR Requirements | ✅ Complete | 2026-04-30 |
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
-| Code Generation | 🔄 Reopened for u7 segmented briefing — original 6 units complete; u7 plans/design created 2026-05-07 for domestic / US / crypto split | 2026-05-07 |
-| Build and Test | ✅ Complete — re-verified after all cross-check/debt follow-ups on 2026-05-04: ruff ✅, ruff format ✅ (136 files), mypy --strict ✅ (51 source files), pytest ✅ 922/922, mkdocs build --strict ✅ | 2026-05-04 |
+| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07 for domestic / US / crypto split | 2026-05-07 |
+| Build and Test | ✅ Complete — re-verified after u7 segmented briefing closeout on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 954/954, mkdocs build --strict ✅ | 2026-05-07 |
 
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
@@ -43,7 +43,7 @@
 | u4 notifier | ⏭️ SKIP | ⏭️ SKIP | ✅ Complete (8/8 — CG fully closed 2026-04-30) | FD/NFR both SKIP per execution-plan; cross-check complete; US-004 + US-007 dispatcher slice closed; DEBT-014/015/016 resolved |
 | u5 orchestrator | ⏭️ SKIP | ✅ Complete (2026-04-30) | ✅ Complete (13/13 — CG fully closed 2026-04-30) | FD = SKIP; NFR Requirements ✅ closed (39 AC); cross-check complete; alert-delivery retry follow-up resolved 2026-05-04; US-005 runtime slice closed; DEBT-017/018/019/020/021 resolved |
 | u6 infra/CI | N/A | N/A | ✅ Complete (7/7 — CG fully closed 2026-05-01) | FD/NFR both N/A per execution-plan; cross-check complete; scheduled workflow, Pages, runbook, and GHA fallback closed; DEBT-022/023/024/025/026/027 resolved |
-| u7 segmented briefing | ✅ Complete (2026-05-07) | ⏭️ SKIP (u2/u5 NFRs reused; no new external deps) | 🔄 In Progress (Step 5/6 complete) | New post-MVP unit for FR-008: generate separate domestic-equity, us-equity, and crypto briefings so one market's source volume cannot dominate the whole daily output. Step 1 delivered deterministic segment routing helper + tests; Step 2 added segment-aware u2 prompt context with data-limited instructions; Step 3 added segmented archive path/URL helpers while preserving historical unsegmented archive URLs; Step 4 made production run segmented generation/publish by default with all-three-or-fail semantics; Step 5 sends one Telegram summary containing all three segment links. |
+| u7 segmented briefing | ✅ Complete (2026-05-07) | ⏭️ SKIP (u2/u5 NFRs reused; no new external deps) | ✅ Complete (6/6) | New post-MVP unit for FR-008: generate separate domestic-equity, us-equity, and crypto briefings so one market's source volume cannot dominate the whole daily output. Delivered deterministic segment routing, segment-aware u2 prompt context, segmented archive paths/URLs, production all-three-or-fail generate/publish, and one Telegram summary containing all three segment links. |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |

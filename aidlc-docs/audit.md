@@ -1,5 +1,26 @@
 # AI-DLC Audit Log
 
+## Construction — u7 segmented briefing — Code Generation CLOSED
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Trigger**: Completion of the FR-008 segmented briefing implementation loop.
+**Decision**: Close `u7 segmented briefing` Code Generation after implementing the full domestic-equity / us-equity / crypto split from routing through Telegram notification.
+**Deliverables**:
+- Deterministic segment routing helper and tests.
+- Segment-aware u2 prompt context with data-limited instructions.
+- Segmented archive path and GitHub Pages URL helpers.
+- Production orchestrator flow that generates all three segments, writes all three archive files, and commits/pushes them together.
+- One Telegram channel message with all three segment summaries and links.
+- Documentation/state closeout and code summary.
+**Quality gate**:
+- `ruff check .` ✅
+- `ruff format --check .` ✅
+- `mypy --strict src/` ✅
+- `pytest -q` ✅ 954/954
+- `mkdocs build --strict` ✅
+**Status**: CLOSED. Historical unsegmented archive pages remain readable; new production runs publish `archive/{segment}/YYYY/MM/YYYY-MM-DD.md`.
+
+---
+
 ## Construction — u7 segmented briefing — Unit Created and Planned
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Trigger**: User observed that a successful daily briefing over-focused on domestic equity coverage and requested separate briefings for domestic equities, US equities, and crypto.

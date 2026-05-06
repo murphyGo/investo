@@ -14,7 +14,7 @@
 ### Data Layer
 - **httpx** — async HTTP 클라이언트 (timeout/retry 친화적)
 - **pydantic v2** — 외부 API 응답 모델링·검증
-- 영속화: **Git repo 내 markdown 파일** (`archive/YYYY/MM/YYYY-MM-DD.md`)
+- 영속화: **Git repo 내 markdown 파일** (`archive/{segment}/YYYY/MM/YYYY-MM-DD.md`; 과거 단일 시황은 `archive/YYYY/MM/YYYY-MM-DD.md`)
 
 ### Web Publication
 - **MkDocs Material** — 정적 사이트 생성기 (markdown 친화)
@@ -47,11 +47,12 @@
 - **Primary**: GitHub Actions (cron 자동 실행)
 - **Output channels**:
   - GitHub Pages 정적 사이트 (영구 보관)
-  - Telegram 단일 chat (실시간 알림)
+  - Telegram 공개 채널/그룹 (한 메시지에 국내 증시, 미국 증시, 크립토 링크 포함)
 - **Secrets**: 모두 GitHub Secrets에 저장
   - `CLAUDE_CODE_OAUTH_TOKEN` (Claude Code 인증)
   - `TELEGRAM_BOT_TOKEN` (Bot API)
-  - `TELEGRAM_CHAT_ID` (발송 대상)
+  - `TELEGRAM_BRIEFING_CHANNEL_ID` (공개 시황 채널/그룹)
+  - `TELEGRAM_OPERATOR_CHAT_ID` (운영자 1:1 실패 알림)
   - 데이터 소스 API key (사용 시)
 
 ## Existing Systems

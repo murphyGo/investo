@@ -92,7 +92,8 @@ Expected output: `OK`.
 | Artifact | Location | Produced by |
 |----------|----------|-------------|
 | Locked venv | `.venv/` | `uv sync` |
-| `archive/YYYY/MM/YYYY-MM-DD.md` | `archive/` | `python -m investo` (production) |
+| `archive/{segment}/YYYY/MM/YYYY-MM-DD.md` | `archive/` | `python -m investo` (production segmented run) |
+| `archive/YYYY/MM/YYYY-MM-DD.md` | `archive/` | Historical unsegmented briefings |
 | Public site | `site/` | `uv run mkdocs build --strict` |
 | Python wheel | `dist/*.whl` | `uv build` (optional) |
 

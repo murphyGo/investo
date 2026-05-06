@@ -14,12 +14,12 @@ Implement FR-008: one daily run creates separate domestic-equity, us-equity, and
 
 ## Definition of Done
 
-- [ ] Segment routing is deterministic and unit-tested.
-- [ ] Archive paths become `archive/{segment}/YYYY/MM/YYYY-MM-DD.md` for new runs.
-- [ ] Public URLs become `{SITE_URL_BASE}/archive/{segment}/YYYY/MM/YYYY-MM-DD/`.
-- [ ] Existing disclaimer, leak guard, retry, and Claude Code CLI-only checks remain green.
-- [ ] Integration test writes three archive files and sends one Telegram message with three links.
-- [ ] `ruff check .`, `ruff format --check .`, `mypy --strict src/`, `pytest -q`, and `mkdocs build --strict` pass.
+- [x] Segment routing is deterministic and unit-tested.
+- [x] Archive paths become `archive/{segment}/YYYY/MM/YYYY-MM-DD.md` for new runs.
+- [x] Public URLs become `{SITE_URL_BASE}/archive/{segment}/YYYY/MM/YYYY-MM-DD/`.
+- [x] Existing disclaimer, leak guard, retry, and Claude Code CLI-only checks remain green.
+- [x] Integration test writes three archive files and sends one Telegram message with three links.
+- [x] `ruff check .`, `ruff format --check .`, `mypy --strict src/`, `pytest -q`, and `mkdocs build --strict` pass.
 
 ---
 
@@ -84,10 +84,14 @@ Implement FR-008: one daily run creates separate domestic-equity, us-equity, and
 
 ### Step 6 — Docs, State, and Verification
 
-- [ ] Update archive/site docs for segmented paths.
-- [ ] Update `aidlc-state.md` u7 row and global Build/Test row.
-- [ ] Write `aidlc-docs/construction/u7-segmented-briefing/code/summary.md`.
-- [ ] Run full quality gate.
+- [x] Update archive/site docs for segmented paths.
+- [x] Update `aidlc-state.md` u7 row and global Build/Test row.
+- [x] Write `aidlc-docs/construction/u7-segmented-briefing/code/summary.md`.
+- [x] Run full quality gate.
+
+**Implemented**: README, requirements, design, technical environment, build instructions, state tracker, and u7 code summary now document segmented archive paths, public URLs, and one-message/three-link Telegram behavior.
+
+**Verification**: `ruff check .` ✅; `ruff format --check .` ✅; `mypy --strict src/` ✅; `pytest -q` ✅; `mkdocs build --strict` ✅.
 
 ---
 

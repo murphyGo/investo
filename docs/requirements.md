@@ -56,7 +56,7 @@
 - **Description**: 생성된 시황을 GitHub Pages 정적 사이트에 게시한다. 모든 과거 시황은 이력으로 보관·열람 가능.
 - **User Story**: As a 열람자, I want 오늘 시황과 과거 시황을 웹에서 볼 수 있기를, so that 시점별 시장 흐름을 추적할 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] 시황은 markdown 파일로 git repo에 저장 (예: `archive/2026/04/2026-04-25.md`)
+  - [ ] 시황은 markdown 파일로 git repo에 저장 (신규 세그먼트 실행 예: `archive/us-equity/2026/04/2026-04-25.md`; 과거 단일 시황은 `archive/2026/04/2026-04-25.md` 유지)
   - [ ] 정적 사이트 생성기로 빌드 → GitHub Pages 배포
   - [ ] 날짜별 인덱스, 최신 시황 홈 노출
   - [ ] 검색 또는 최소한 날짜/연도별 탐색 가능
@@ -68,7 +68,7 @@
 - **Acceptance Criteria**:
   - [ ] Telegram Bot API 사용 (Bot 토큰은 GitHub Secrets — `TELEGRAM_BOT_TOKEN`)
   - [ ] 발송 대상: **공개 Telegram 채널 또는 그룹** (`TELEGRAM_BRIEFING_CHANNEL_ID` 시크릿). 누구나 채널 링크로 join 가능.
-  - [ ] 메시지에 웹 URL 링크 포함 (전체 시황 열람용)
+  - [ ] 메시지에 국내 증시, 미국 증시, 크립토 상세 URL 링크를 모두 포함
   - [ ] 텔레그램 메시지 길이 제한(4096자) 준수 — 초과 시 요약 + 링크
   - [ ] 텔레그램 발송 실패는 시황 게시 자체를 막지 않음 (게시는 성공, 알림만 실패)
   - [ ] 공개 채널이므로 시크릿/PII가 메시지에 포함되지 않도록 검증
@@ -91,7 +91,7 @@
 - **User Story**: As a 본인, I want 과거 시황을 모두 보관하기를, so that 시점별 시장 분석을 회고할 수 있도록.
 - **Acceptance Criteria**:
   - [ ] 시황은 git commit으로 영구 저장
-  - [ ] 폴더 구조: `archive/YYYY/MM/YYYY-MM-DD.md`
+  - [ ] 폴더 구조: 신규 세그먼트 시황은 `archive/{segment}/YYYY/MM/YYYY-MM-DD.md`; 과거 단일 시황은 `archive/YYYY/MM/YYYY-MM-DD.md` 읽기 가능
   - [ ] 저장 용량 문제 발생 시 (수년 후) 별도 archival 정책 검토 — 현재는 Out of Scope
 - **Priority**: Must-have
 

@@ -12,9 +12,9 @@
 Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions cron이 매일 `python -m investo`를 실행해 다음 단계를 순차로 수행한다:
 
 1. **수집** (sources): 무료 공개 API/RSS에서 전일 시장 데이터 수집
-2. **시황 작성** (briefing): Claude Code CLI를 two-stage prompt로 호출, 한국어 7섹션 시황 생성, 면책조항 자동 삽입
-3. **게시** (publisher): markdown을 `archive/YYYY/MM/`에 저장 + git commit + push
-4. **알림** (notifier): 공개 Telegram 채널에 요약 푸시 (실패 시 운영자 1:1 chat에 별도 알림)
+2. **시황 작성** (briefing): Claude Code CLI를 two-stage prompt로 호출, 국내 증시·미국 증시·크립토 세그먼트별 한국어 시황 생성, 면책조항 자동 삽입
+3. **게시** (publisher): markdown을 `archive/{segment}/YYYY/MM/`에 저장 + git commit + push
+4. **알림** (notifier): 공개 Telegram 채널에 세 세그먼트 요약과 링크를 한 메시지로 푸시 (실패 시 운영자 1:1 chat에 별도 알림)
 
 `mkdocs build`와 GitHub Pages 배포는 별도 GitHub Actions step의 책임이며, Python 코드의 책임이 아니다.
 
