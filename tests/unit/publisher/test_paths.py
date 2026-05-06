@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from investo.briefing.segments import CRYPTO, US_EQUITY
 from investo.publisher.paths import ARCHIVE_ROOT, archive_path
 
 # ---------------------------------------------------------------------------
@@ -44,6 +45,30 @@ def test_archive_path_pads_single_digit_month() -> None:
 def test_archive_path_pads_single_digit_day_in_filename() -> None:
     """``date.isoformat()`` already pads the day; pin the round-trip."""
     assert archive_path(date(2026, 3, 9)) == Path("archive/2026/03/2026-03-09.md")
+
+
+def test_archive_path_supports_segment_prefix_for_new_runs() -> None:
+    """u7 segmented runs add ``archive/{segment}`` before year/month."""
+    assert archive_path(date(2026, 4, 25), segment=US_EQUITY) == Path(
+        "archive/us-equity/2026/04/2026-04-25.md"
+    )
+
+
+def test_archive_path_keeps_unsegmented_history_readable() -> None:
+    """Default path remains the historical FR-006 layout."""
+    assert archive_path(date(2026, 4, 25), segment=None) == Path("archive/2026/04/2026-04-25.md")
+
+
+def test_archive_path_segment_uses_archive_root_constant(monkeypatch: object) -> None:
+    from investo.publisher import paths as paths_module
+
+    custom_root = Path("/tmp/custom-archive")
+    assert hasattr(monkeypatch, "setattr")
+    monkeypatch.setattr(paths_module, "ARCHIVE_ROOT", custom_root)  # type: ignore[attr-defined]
+
+    assert paths_module.archive_path(date(2026, 4, 25), segment=CRYPTO) == (
+        custom_root / "crypto" / "2026" / "04" / "2026-04-25.md"
+    )
 
 
 # ---------------------------------------------------------------------------

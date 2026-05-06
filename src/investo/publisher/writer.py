@@ -33,13 +33,19 @@ import os
 from datetime import date
 from pathlib import Path
 
+from investo.briefing.segments import MarketSegment
 from investo.models import Briefing
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
 from investo.publisher.paths import archive_path
 from investo.publisher.verifier import verify_disclaimer
 
 
-def write_briefing(briefing: Briefing, target_date: date) -> Path:
+def write_briefing(
+    briefing: Briefing,
+    target_date: date,
+    *,
+    segment: MarketSegment | None = None,
+) -> Path:
     """Verify disclaimer, then atomically write the briefing markdown
     to ``archive_path(target_date)``. Return the written path.
 
@@ -57,7 +63,7 @@ def write_briefing(briefing: Briefing, target_date: date) -> Path:
     if not verify_disclaimer(briefing.rendered_markdown):
         raise PublisherDisclaimerError(target_date=target_date)
 
-    path = archive_path(target_date)
+    path = archive_path(target_date, segment=segment)
     tmp_path = path.with_suffix(path.suffix + ".tmp")
 
     try:

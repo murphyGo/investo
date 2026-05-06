@@ -4,6 +4,7 @@ Public surface for u5 orchestrator and u3-internal callers:
 
 * :func:`write_briefing` — verify disclaimer (NFR-004), then write
   ``rendered_markdown`` atomically to ``archive/YYYY/MM/YYYY-MM-DD.md``
+  or, for u7 segmented runs, ``archive/{segment}/YYYY/MM/YYYY-MM-DD.md``
   (FR-006). Returns the written path.
 * :func:`commit_and_push` — ``git add → git commit → git push origin
   HEAD`` with whole-pipeline retry. Default ``retries=2`` allows up

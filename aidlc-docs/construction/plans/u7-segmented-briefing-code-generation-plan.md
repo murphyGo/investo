@@ -52,10 +52,14 @@ Implement FR-008: one daily run creates separate domestic-equity, us-equity, and
 
 ### Step 3 — Segment Archive Paths and URLs
 
-- [ ] Add segment archive path helper.
-- [ ] Add segment URL helper.
-- [ ] Keep historical unsegmented archive files readable.
-- [ ] Update tests that currently assume unsegmented URLs for new pipeline output.
+- [x] Add segment archive path helper.
+- [x] Add segment URL helper.
+- [x] Keep historical unsegmented archive files readable.
+- [x] Update tests that currently assume unsegmented URLs for new pipeline output.
+
+**Implemented**: `archive_path(..., segment=...)`, `write_briefing(..., segment=...)`, and `_briefing_url_for(..., segment=...)` now support `archive/{segment}/YYYY/MM/YYYY-MM-DD.md` and matching GitHub Pages URLs while keeping the default unsegmented path/URL unchanged.
+
+**Verification**: `pytest tests/unit/publisher/test_paths.py tests/unit/publisher/test_writer.py tests/unit/orchestrator/test_run_pipeline.py -q` ✅.
 
 ### Step 4 — Orchestrator Multi-Segment Flow
 

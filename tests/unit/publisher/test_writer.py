@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 
+from investo.briefing.segments import DOMESTIC_EQUITY
 from investo.publisher import paths as paths_module
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
 from investo.publisher.writer import write_briefing
@@ -55,6 +56,17 @@ def test_write_briefing_writes_markdown_to_archive_path(archive_root: Path) -> N
     written_path = write_briefing(briefing, _TARGET_DATE)
 
     expected = archive_root / "2026" / "04" / "2026-04-25.md"
+    assert written_path == expected
+    assert written_path.exists()
+    assert written_path.read_text(encoding="utf-8") == briefing.rendered_markdown
+
+
+def test_write_briefing_writes_segmented_archive_path(archive_root: Path) -> None:
+    briefing = build_briefing()
+
+    written_path = write_briefing(briefing, _TARGET_DATE, segment=DOMESTIC_EQUITY)
+
+    expected = archive_root / "domestic-equity" / "2026" / "04" / "2026-04-25.md"
     assert written_path == expected
     assert written_path.exists()
     assert written_path.read_text(encoding="utf-8") == briefing.rendered_markdown

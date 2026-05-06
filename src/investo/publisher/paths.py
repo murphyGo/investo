@@ -18,6 +18,8 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo.briefing.segments import MarketSegment
+
 # Repo-root-relative archive directory. Tests redirect this via
 # ``monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)`` per the
 # Step 5.3 design decision (option a). u5 orchestrator is responsible
@@ -26,18 +28,21 @@ from typing import Final
 ARCHIVE_ROOT: Final[Path] = Path("archive")
 
 
-def archive_path(target_date: date) -> Path:
+def archive_path(target_date: date, *, segment: MarketSegment | None = None) -> Path:
     """Return the archive markdown path for ``target_date`` (FR-006).
 
-    The format is ``ARCHIVE_ROOT / YYYY / MM / YYYY-MM-DD.md`` — year
-    and month directories are zero-padded. The ``.md`` extension is
-    fixed (mkdocs consumes it as Markdown).
+    The historical unsegmented format is ``ARCHIVE_ROOT / YYYY / MM /
+    YYYY-MM-DD.md``. New u7 segmented runs pass ``segment`` and land at
+    ``ARCHIVE_ROOT / segment / YYYY / MM / YYYY-MM-DD.md``. Year and
+    month directories are zero-padded. The ``.md`` extension is fixed
+    (mkdocs consumes it as Markdown).
 
     Pure: no filesystem I/O. The caller (``write_briefing`` in Step 5)
     is responsible for ensuring ``path.parent`` exists before writing.
     """
+    root = ARCHIVE_ROOT if segment is None else ARCHIVE_ROOT / segment
     return (
-        ARCHIVE_ROOT
+        root
         / f"{target_date.year:04d}"
         / f"{target_date.month:02d}"
         / f"{target_date.isoformat()}.md"

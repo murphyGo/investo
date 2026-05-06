@@ -75,6 +75,7 @@ from pydantic import HttpUrl, TypeAdapter
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
+from investo.briefing.segments import MarketSegment
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -470,19 +471,28 @@ def _build_failure_context(
     )
 
 
-def _briefing_url_for(target_date: date, site_url_base: HttpUrl) -> HttpUrl:
+def _briefing_url_for(
+    target_date: date,
+    site_url_base: HttpUrl,
+    *,
+    segment: MarketSegment | None = None,
+) -> HttpUrl:
     """Compose the per-day archive URL from the configured base.
 
     ``site_url_base`` is something like
     ``https://example.github.io/investo`` (with or without a trailing
     slash). The mkdocs site exposes repo-root ``archive/`` through the
     ``site_docs/archive`` symlink, so each archived briefing renders
-    under ``{base}/archive/{YYYY}/{MM}/{YYYY-MM-DD}/``.
+    under ``{base}/archive/{YYYY}/{MM}/{YYYY-MM-DD}/``. New u7
+    segmented runs pass ``segment`` and render under
+    ``{base}/archive/{segment}/{YYYY}/{MM}/{YYYY-MM-DD}/``. The
+    default keeps historical unsegmented archive pages readable.
     """
     base = str(site_url_base).rstrip("/")
     iso = target_date.isoformat()
+    segment_prefix = "" if segment is None else f"{segment}/"
     return _HTTP_URL_ADAPTER.validate_python(
-        f"{base}/archive/{target_date.year}/{target_date.month:02d}/{iso}/"
+        f"{base}/archive/{segment_prefix}{target_date.year}/{target_date.month:02d}/{iso}/"
     )
 
 

@@ -29,6 +29,7 @@ from pydantic import HttpUrl, TypeAdapter
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.segments import CRYPTO, US_EQUITY
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -877,6 +878,25 @@ def test_briefing_url_for_strips_trailing_slash_in_base() -> None:
 def test_briefing_url_for_pads_month_to_2_digits() -> None:
     url = _briefing_url_for(date(2026, 1, 5), _SITE_BASE)
     assert "/archive/2026/01/2026-01-05/" in str(url)
+
+
+def test_briefing_url_for_supports_segment_prefix_for_new_runs() -> None:
+    url = _briefing_url_for(date(2026, 1, 5), _SITE_BASE, segment=US_EQUITY)
+    assert "/archive/us-equity/2026/01/2026-01-05/" in str(url)
+
+
+def test_briefing_url_for_keeps_unsegmented_history_readable() -> None:
+    url = _briefing_url_for(date(2026, 1, 5), _SITE_BASE, segment=None)
+    assert "/archive/2026/01/2026-01-05/" in str(url)
+    assert "/archive/crypto/" not in str(url)
+
+
+def test_briefing_url_for_segment_strips_trailing_slash_in_base() -> None:
+    base_with_slash = TypeAdapter(HttpUrl).validate_python("https://example.github.io/investo/")
+    url = _briefing_url_for(date(2026, 4, 25), base_with_slash, segment=CRYPTO)
+    s = str(url)
+    assert "investo/archive/crypto/2026/04/2026-04-25/" in s
+    assert "//" not in s.replace("https://", "")
 
 
 # ---------------------------------------------------------------------------
