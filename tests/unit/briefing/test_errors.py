@@ -41,6 +41,7 @@ def test_bge_constructs_for_all_stages(stage: BriefingStage) -> None:
     assert err.stage == stage
     assert err.attempt_count == 1
     assert err.last_stderr is None
+    assert err.last_stdout is None
     assert err.cause is None
 
 
@@ -164,6 +165,20 @@ def test_stderr_none_remains_none() -> None:
         cause=None,
     )
     assert err.last_stderr is None
+
+
+def test_stdout_excerpt_is_truncated_like_stderr() -> None:
+    text = "z" * 10_000
+    err = BriefingGenerationError(
+        stage="classification",
+        attempt_count=1,
+        last_stderr="",
+        last_stdout=text,
+        cause=None,
+    )
+
+    assert err.last_stdout is not None
+    assert len(err.last_stdout.encode("utf-8")) <= _STDERR_BYTE_CAP
 
 
 # --- SubprocessOutcome ------------------------------------------------------

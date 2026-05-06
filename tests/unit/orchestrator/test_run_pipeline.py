@@ -381,6 +381,7 @@ async def test_run_pipeline_generate_failure_logs_failure_details(
             stage="classification",
             attempt_count=2,
             last_stderr="claude stderr",
+            last_stdout="not json",
             cause=ValueError("bad claude output"),
         )
 
@@ -403,10 +404,12 @@ async def test_run_pipeline_generate_failure_logs_failure_details(
     assert "attempts=2" in record.getMessage()
     assert "cause_type=ValueError" in record.getMessage()
     assert "last_stderr=claude stderr" in record.getMessage()
+    assert "last_stdout=not json" in record.getMessage()
     assert record.briefing_stage == "classification"
     assert record.attempt_count == 2
     assert record.cause_type == "ValueError"
     assert record.last_stderr == "claude stderr"
+    assert record.last_stdout == "not json"
 
 
 # ---------------------------------------------------------------------------

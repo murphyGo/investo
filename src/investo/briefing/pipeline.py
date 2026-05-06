@@ -138,6 +138,30 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
     return json.dumps(payload, ensure_ascii=False)
 
 
+def _load_classification_payload(stdout: str) -> object:
+    """Load the first JSON value from Claude's Stage 1 stdout.
+
+    The prompt asks for JSON only, but production LLMs sometimes wrap
+    the object in prose or a Markdown code fence. Recover a single JSON
+    value when it is still unambiguous; malformed output still raises
+    ``JSONDecodeError`` and remains retryable.
+    """
+    stripped = stdout.strip()
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError as original:
+        decoder = json.JSONDecoder()
+        for start, char in enumerate(stripped):
+            if char != "{":
+                continue
+            try:
+                payload, _end = decoder.raw_decode(stripped[start:])
+            except json.JSONDecodeError:
+                continue
+            return payload
+        raise original
+
+
 def _parse_classification(stdout: str, item_count: int) -> ClassificationResult:
     """Parse Stage 1 stdout as JSON → ``ClassificationResult``.
 
@@ -153,7 +177,7 @@ def _parse_classification(stdout: str, item_count: int) -> ClassificationResult:
     if stdout_size > _STAGE1_STDOUT_MAX_BYTES:
         raise ValueError(f"Stage 1 stdout exceeds {_STAGE1_STDOUT_MAX_BYTES} bytes: {stdout_size}")
 
-    data = json.loads(stdout)
+    data = _load_classification_payload(stdout)
     result = ClassificationResult.model_validate(data)
     valid_ids = set(range(1, item_count + 1))
     seen_ids = set(result.assignments.keys()) | set(result.unassigned)
@@ -322,6 +346,7 @@ async def _classify(
                 stage="budget",
                 attempt_count=attempt,
                 last_stderr=last_outcome.stderr if last_outcome is not None else None,
+                last_stdout=last_outcome.stdout if last_outcome is not None else None,
                 cause=last_cause,
             )
         if attempt > 0:
@@ -348,6 +373,7 @@ async def _classify(
         stage="classification",
         attempt_count=MAX_ATTEMPTS,
         last_stderr=last_outcome.stderr if last_outcome is not None else None,
+        last_stdout=last_outcome.stdout if last_outcome is not None else None,
         cause=last_cause,
     )
 
@@ -387,6 +413,7 @@ async def _synthesize(
                 stage="budget",
                 attempt_count=attempt,
                 last_stderr=last_outcome.stderr if last_outcome is not None else None,
+                last_stdout=last_outcome.stdout if last_outcome is not None else None,
                 cause=last_cause,
             )
         if attempt > 0:
@@ -415,6 +442,7 @@ async def _synthesize(
         stage="synthesis",
         attempt_count=MAX_ATTEMPTS,
         last_stderr=last_outcome.stderr if last_outcome is not None else None,
+        last_stdout=last_outcome.stdout if last_outcome is not None else None,
         cause=last_cause,
     )
 

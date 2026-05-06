@@ -191,6 +191,28 @@ def test_parse_classification_happy_path() -> None:
     assert result.unassigned == [3]
 
 
+def test_parse_classification_accepts_json_inside_markdown_fence() -> None:
+    """Production LLM stdout may wrap the JSON object in a code fence."""
+    stdout = """\
+```json
+{"assignments": {"1": 4}, "unassigned": [2]}
+```
+"""
+    result = _parse_classification(stdout, item_count=2)
+
+    assert result.assignments == {1: 4}
+    assert result.unassigned == [2]
+
+
+def test_parse_classification_accepts_json_with_surrounding_text() -> None:
+    """Recover when the model adds prose around an otherwise valid object."""
+    stdout = 'Here is the JSON:\n{"assignments": {"1": 2}, "unassigned": []}\nDone.'
+    result = _parse_classification(stdout, item_count=1)
+
+    assert result.assignments == {1: 2}
+    assert result.unassigned == []
+
+
 def test_parse_classification_empty_assignments_is_valid() -> None:
     """Empty assignments + empty unassigned is a valid (degenerate) result."""
     stdout = json.dumps({"assignments": {}, "unassigned": []})

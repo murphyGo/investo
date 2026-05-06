@@ -244,16 +244,18 @@ def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
     """Log u2 failure details that are otherwise only visible in alerts."""
     cause_type = type(exc.cause).__name__ if exc.cause is not None else None
     _logger.error(
-        "[generate] failed stage=%s attempts=%s cause_type=%s last_stderr=%s",
+        "[generate] failed stage=%s attempts=%s cause_type=%s last_stderr=%s last_stdout=%s",
         exc.stage,
         exc.attempt_count,
         cause_type,
         exc.last_stderr,
+        exc.last_stdout,
         extra={
             "briefing_stage": exc.stage,
             "attempt_count": exc.attempt_count,
             "cause_type": cause_type,
             "last_stderr": exc.last_stderr,
+            "last_stdout": exc.last_stdout,
         },
     )
 

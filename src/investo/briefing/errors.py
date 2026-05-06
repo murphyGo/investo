@@ -69,6 +69,9 @@ class BriefingGenerationError(Exception):
         Last subprocess stderr (truncated to ``STDERR_BYTE_CAP`` UTF-8
         bytes). ``None`` for ``post_validation`` and ``budget`` stages
         where no subprocess returned an error stream.
+    last_stdout:
+        Last subprocess stdout excerpt (same 1024-byte cap). Used when
+        stderr is empty but the LLM returned malformed content.
     cause:
         Original exception when wrapping (e.g. ``json.JSONDecodeError``,
         ``subprocess.TimeoutExpired``). May be ``None``.
@@ -77,6 +80,7 @@ class BriefingGenerationError(Exception):
     stage: BriefingStage
     attempt_count: int
     last_stderr: str | None
+    last_stdout: str | None
     cause: BaseException | None
 
     def __init__(
@@ -85,6 +89,7 @@ class BriefingGenerationError(Exception):
         stage: BriefingStage,
         attempt_count: int,
         last_stderr: str | None,
+        last_stdout: str | None = None,
         cause: BaseException | None,
     ) -> None:
         message = f"briefing failed at stage={stage} after {attempt_count} attempts"
@@ -92,6 +97,7 @@ class BriefingGenerationError(Exception):
         self.stage = stage
         self.attempt_count = attempt_count
         self.last_stderr = truncate_stderr(last_stderr)
+        self.last_stdout = truncate_stderr(last_stdout)
         self.cause = cause
 
 
