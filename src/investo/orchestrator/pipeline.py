@@ -475,14 +475,14 @@ def _briefing_url_for(target_date: date, site_url_base: HttpUrl) -> HttpUrl:
 
     ``site_url_base`` is something like
     ``https://example.github.io/investo`` (with or without a trailing
-    slash). The mkdocs site renders each archived briefing under
-    ``{base}/{YYYY}/{MM}/{YYYY-MM-DD}/`` (matches the FR-006 archive
-    path layout, mapped to mkdocs' directory-URL convention).
+    slash). The mkdocs site exposes repo-root ``archive/`` through the
+    ``site_docs/archive`` symlink, so each archived briefing renders
+    under ``{base}/archive/{YYYY}/{MM}/{YYYY-MM-DD}/``.
     """
     base = str(site_url_base).rstrip("/")
     iso = target_date.isoformat()
     return _HTTP_URL_ADAPTER.validate_python(
-        f"{base}/{target_date.year}/{target_date.month:02d}/{iso}/"
+        f"{base}/archive/{target_date.year}/{target_date.month:02d}/{iso}/"
     )
 
 

@@ -230,7 +230,7 @@ async def test_run_pipeline_happy_path_success(archive_root: Path) -> None:
     assert all(t >= 0 for t in result.stage_timings.values())
     # Per-day URL is what flows to publisher AND PipelineResult.
     assert result.briefing_url is not None
-    assert "2026/04/2026-04-27" in str(result.briefing_url)
+    assert "archive/2026/04/2026-04-27" in str(result.briefing_url)
     # No operator alert on the happy path.
     assert alerter.calls == []
     # Publisher was called exactly once with the per-day URL.
@@ -869,14 +869,14 @@ def test_briefing_url_for_strips_trailing_slash_in_base() -> None:
     base_with_slash = TypeAdapter(HttpUrl).validate_python("https://example.github.io/investo/")
     url = _briefing_url_for(date(2026, 4, 25), base_with_slash)
     s = str(url)
-    assert "investo/2026/04/2026-04-25/" in s
+    assert "investo/archive/2026/04/2026-04-25/" in s
     # No double slash.
     assert "//" not in s.replace("https://", "")
 
 
 def test_briefing_url_for_pads_month_to_2_digits() -> None:
     url = _briefing_url_for(date(2026, 1, 5), _SITE_BASE)
-    assert "/2026/01/2026-01-05/" in str(url)
+    assert "/archive/2026/01/2026-01-05/" in str(url)
 
 
 # ---------------------------------------------------------------------------

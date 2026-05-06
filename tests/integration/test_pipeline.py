@@ -235,7 +235,7 @@ async def test_pipeline_end_to_end_success(
     assert result.status == PipelineStatus.SUCCESS
     assert result.target_date == _TARGET
     assert result.briefing_url is not None
-    assert "2026/04/2026-04-27" in str(result.briefing_url)
+    assert "archive/2026/04/2026-04-27" in str(result.briefing_url)
     # All 4 stages recorded as ok.
     assert result.stages == {
         "collect": "ok",
