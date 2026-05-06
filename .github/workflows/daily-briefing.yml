@@ -114,6 +114,17 @@ jobs:
         # docs tooling run in separate jobs.
         run: uv sync --no-dev
 
+      - name: Install Claude Code CLI
+        # Claude Code is distributed as an npm package and requires
+        # Node.js 18+. GitHub-hosted ubuntu runners already provide a
+        # compatible Node/npm toolchain, so this keeps the job's action
+        # surface small while making the runtime dependency explicit.
+        run: |
+          node --version
+          npm --version
+          npm install -g @anthropic-ai/claude-code
+          claude --version
+
       - name: Configure git author for the bot commit
         run: |
           git config user.name 'Investo Bot'

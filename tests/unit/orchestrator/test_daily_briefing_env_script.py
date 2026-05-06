@@ -98,3 +98,16 @@ def test_daily_briefing_workflow_calls_script() -> None:
     )
 
     assert "python scripts/check_daily_briefing_env.py" in workflow
+
+
+def test_daily_briefing_workflow_installs_claude_cli() -> None:
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "name: Install Claude Code CLI" in workflow
+    assert "npm install -g @anthropic-ai/claude-code" in workflow
+    assert "claude --version" in workflow
+    assert workflow.index("name: Install Claude Code CLI") < workflow.index(
+        "run: python scripts/check_daily_briefing_env.py"
+    )

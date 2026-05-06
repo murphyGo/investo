@@ -363,6 +363,10 @@ before `python -m investo`; missing or empty required secrets, equal
 Telegram briefing/operator chat IDs, and malformed `SITE_URL_BASE`
 fail that step with GitHub Actions `::error::` annotations that name
 the variable or invariant without echoing secret values.
+The job installs the Claude Code CLI with
+`npm install -g @anthropic-ai/claude-code` before the preflight step and
+runs `claude --version`; a missing CLI binary is therefore caught before
+the market-data collection/generation pipeline starts.
 
 ### GitHub Secrets (optional — per-adapter)
 
