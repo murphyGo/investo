@@ -1,5 +1,192 @@
 # AI-DLC Audit Log
 
+## Cross-Check — u29 site-discovery-v2 — COMPLETE
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: u29 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with H1 (`mkdocs.yml` `site_url` set so OG meta emits an absolute URL), H2 (`og_card.py` module docstring corrected — SVG-only is metadata / GH Pages preview only; social-card unfurl on Telegram / Slack / Twitter / LinkedIn requires the PNG twin tracked under DEBT-058), M1 (`_stage_publish_segments` validate / verify loop wrapped in try/except that invokes `_rollback_paths(snapshots)` before re-raising `(SummaryQualityError, PublisherDisclaimerError, PublisherIOError)`), M2 (`publish_weekly_digest` now invokes `verify_disclaimer` before atomic write), and M3 (4 weekly-digest opt-in regression tests — invoke / unset skip / `"0"` skip / failure rollback — plus `_patch_publish_segments_relative_paths` test helper) applied pre-merge. Health check after fixes landed.
+**Scope**: u29 site-discovery-v2 mapped to FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 7/7 Definition-of-Done items complete; no Critical/High findings outstanding after pre-merge fixes; 9 new TECH-DEBT items registered (DEBT-058, DEBT-059, DEBT-060, DEBT-061, DEBT-062, DEBT-063, DEBT-064, DEBT-065, DEBT-066).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-08-u29-site-discovery-v2.md`
+- Unit summary: `aidlc-docs/construction/u29-site-discovery-v2/code/summary.md`
+- New source files: `src/investo/visuals/calendar_heatmap.py`, `src/investo/visuals/og_card.py`, `src/investo/publisher/weekly_digest.py`
+- Modified source files: `src/investo/publisher/site_index.py` (rewrite — hero auto-refresh, segment index pages, OG meta), `src/investo/publisher/__init__.py`, `src/investo/visuals/__init__.py`, `src/investo/orchestrator/pipeline.py` (M1 rollback fix + weekly opt-in branch + visual-asset coverage thread)
+- Modified site / infra: `mkdocs.yml` (H1 `site_url: https://murphygo.github.io/investo/` + segment-prefixed nav), `site_docs/index.md` (hero-only), `site_docs/about.md` (new), `site_docs/assets/og-card.svg` (placeholder), `site_docs/assets/u29.css` (new), `archive/index.md`, `archive/{domestic-equity,us-equity,crypto,weekly}/index.md`, `overrides/main.html` (OG meta emission), `.github/workflows/daily-briefing.yml` (KST Sat 09:00 cron sets `INVESTO_PUBLISH_WEEKLY=1`)
+- New test files: `tests/unit/visuals/test_calendar_heatmap.py`, `tests/unit/visuals/test_og_card.py`, `tests/unit/publisher/test_weekly_digest.py`
+- Modified test files: `tests/unit/publisher/test_site_index.py` (rewrite — hero refresh + segment index + OG meta regression), `tests/unit/orchestrator/test_run_pipeline.py` (M1 rollback assertion + M3 weekly opt-in 4 tests)
+- Tests: +30 (1210 → 1240); covers hero auto-refresh, deterministic SVG calendar heatmap, OG meta absolute URL, weekly digest Saturday-only opt-in (env unset / `"0"` / failure rollback), segment-index empty-archive branch.
+- Verification: `uv run ruff check .`, `uv run ruff format --check .` (181 files), `uv run mypy --strict src/` (69 source files), `uv run pytest -q` (1240 passed), `uv run mkdocs build --strict` (passed; OG meta emits absolute URL `https://murphygo.github.io/investo/assets/og-card.svg`).
+- New TECH-DEBT: DEBT-058 (P1 — OG PNG twin), DEBT-059 (Medium — `INVESTO_PUBLISH_WEEKLY` env-var fragility), DEBT-060 (Medium — conclusion prefix / extraction helper duplication x4), DEBT-061 (Low — heatmap dark-mode cross-reference DEBT-049), DEBT-062 (Low — `_stage_publish_segments` absolute / relative path branching), DEBT-063 (Low — `_render_segment_index` `entry.parents[2]` fragile slice), DEBT-064 (Low — markdown blockquote injection guarantee not hard), DEBT-065 (Low — `og_card._wrap` Korean word segmentation), DEBT-066 (Medium — `*.svg.json` manifest sidecars not snapshotted / rolled back).
+**Status**: u29 construction and cross-check complete. Persona #2 P0 + P1 + wish-list items closed.
+
+---
+
+## Construction — u29 site-discovery-v2 — Code Generation Complete
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Action**: Reframed the public site so the first screen surfaces today's briefing content (not site-meta copy), and gave weekend retrospect readers a time-axis traversal layer. Added three deterministic SVG / publisher surfaces: `src/investo/visuals/calendar_heatmap.py` (publish-date × segment coverage color heatmap embedded in `archive/index.md`), `src/investo/visuals/og_card.py` (OG image renderer; SVG-only — PNG twin tracked under DEBT-058 — wired through `overrides/main.html` with absolute URL via the new `mkdocs.yml::site_url`), and `src/investo/publisher/weekly_digest.py` (`archive/weekly/YYYY-WNN.md` with per-segment 5-day conclusion lists). Rewrote `src/investo/publisher/site_index.py` so `_render_hero_block` regenerates the `site_docs/index.md` hero from the latest segmented archive entries on every publish (no hardcoded "최신 묶음 YYYY-MM-DD"), `_render_segment_index` lists per-segment archive entries on `archive/{domestic-equity,us-equity,crypto,weekly}/index.md`, and per-publish OG meta emission flows through `overrides/main.html`. Split `site_docs/about.md` out of the home page so `site_docs/index.md` carries only the hero; added segment-prefixed nav (`Archive › 미국 증시 / 크립토 / 국내 증시`). `.github/workflows/daily-briefing.yml` adds a Saturday 09:00 KST cron arm that sets `INVESTO_PUBLISH_WEEKLY=1` so `_stage_publish_segments` invokes `publish_weekly_digest` exactly once per week. Applied H1 (`mkdocs.yml` `site_url: https://murphygo.github.io/investo/` set so OG meta emits an absolute URL), H2 (`og_card.py` module docstring corrected — SVG OG is metadata / GH Pages preview only; social unfurl needs the DEBT-058 PNG twin), M1 (`_stage_publish_segments` validate / verify loop wrapped in try/except invoking `_rollback_paths(snapshots)` before re-raising `(SummaryQualityError, PublisherDisclaimerError, PublisherIOError)`), M2 (`publish_weekly_digest` now invokes `verify_disclaimer` before atomic write), and M3 (4 weekly-digest opt-in regression tests + `_patch_publish_segments_relative_paths` helper) pre-merge. M4 / M5 / TECH-DEBT P2 / TECH-DEBT P3 / L1-L4 / developer-self-discovered manifest-sidecar rollback gap deferred to DEBT-058 through DEBT-066.
+**Status**: Code Generation complete; full quality gate passed (`ruff check`, `ruff format --check` 181 files, `mypy --strict src/` 69 source files, `pytest -q` 1240 passed, `mkdocs build --strict` passed; OG meta absolute URL verified at `https://murphygo.github.io/investo/assets/og-card.svg`).
+**Affected docs**:
+- `aidlc-docs/construction/plans/u29-site-discovery-v2-code-generation-plan.md`
+- `aidlc-docs/construction/u29-site-discovery-v2/code/summary.md`
+- `docs/cross-checks/2026-05-08-u29-site-discovery-v2.md`
+- `docs/TECH-DEBT.md` (DEBT-058 / DEBT-059 / DEBT-060 / DEBT-061 / DEBT-062 / DEBT-063 / DEBT-064 / DEBT-065 / DEBT-066 added)
+- `aidlc-docs/audit.md`
+- `aidlc-docs/aidlc-state.md`
+**Context**: Wave 1 P0 follow-up from the 2026-05-07 persona evaluation (persona #2). u29 closes the persona #2 P0 + P1 + wish-list items in one unit by separating the site discovery problem into four concerns: (a) hero auto-refresh + About split (so the first viewport carries today's segment conclusions, not meta copy), (b) calendar heatmap + segment-prefixed nav (so retrospect readers can traverse the time axis), (c) weekly retrospective publish on the Saturday cron (so the weekend read has a 5-day digest), and (d) OG image meta (so external link previews carry the brand surface). The pre-merge fixes lift the unit from "ships but with disclaimer / rollback gaps" to "publish-grade": M1 hardens publish atomicity, M2 closes the disclaimer-gate gap on the new weekly publish path, H1 makes the OG meta crawl-correct on GH Pages. PNG twin (H2 / M5) is the most consequential deferral and is pinned at P1 priority (DEBT-058) for the next operations sweep.
+
+---
+
+## Cross-Check — u28 watchlist-usability-foundation — COMPLETE
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: u28 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with M3 (`_matches_term` signature gained `kind` parameter — short ≤ 2 ASCII ticker / asset terms match case-sensitive raw token, keyword / sector terms continue to use the casefold word-boundary regex) and M5 (`_matches_korean_term` defensive `if not term_cf: return False` entry guard) applied pre-merge. Health check after fixes landed.
+**Scope**: u28 watchlist-usability-foundation mapped to FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 6/6 Definition-of-Done items complete; no Critical/High findings; 7 new TECH-DEBT items registered (DEBT-051, DEBT-052, DEBT-053, DEBT-054, DEBT-055, DEBT-056, DEBT-057).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-08-u28-watchlist-usability-foundation.md`
+- Unit summary: `aidlc-docs/construction/u28-watchlist-usability-foundation/code/summary.md`
+- Implementation: `src/investo/briefing/watchlist.py` full refactor (`DEFAULT_CORE_ALIASES`, `WatchlistImpactStatus`, `WatchlistChannel`, `is_empty()`, `effective_aliases()`, `_matches_korean_term`, `_matches_short_ticker`, `_match_term_with_aliases`, `kind` parameter dispatch, `_SITE_MAX_RENDERED_MATCHES = 5`); `src/investo/briefing/pipeline.py` (channel + coverage_status thread); `src/investo/notifier/summary.py` (coverage_hold prefix strip + unconfigured skip); `src/investo/visuals/cards.py` (`WatchlistRelevanceCardInput.rows max_length=5` + slice); `src/investo/orchestrator/pipeline.py` (visual-asset coverage_status thread).
+- Default alias bundle: BTC / ETH / SOL + NVDA / TSLA / AAPL / MSFT / GOOGL / META / AMZN, each with English + Korean aliases. User-supplied `aliases` merged over defaults via `effective_aliases()`.
+- Coverage hold branch: `insufficient` coverage flips watchlist status to `coverage_hold`; site renders the `데이터 수집 부족으로 매칭 판단 보류` callout, LLM Stage 2 prompt context carries the same status, visual card carries the same status, Telegram suffix is suppressed.
+- Tests: +28 (1182 → 1210); new file `tests/unit/briefing/test_watchlist_pipeline_u28.py` (2 tests); `tests/unit/briefing/test_watchlist.py` extended +25 (alias resolution / Hangul boundary / short ticker case-sensitive / coverage_hold copy / site cap 5 / defensive empty-term guard); `tests/unit/visuals/test_cards.py` and `tests/unit/notifier/test_summary.py` updated for cap and coverage_hold branches.
+- Verification: `ruff check .`, `ruff format --check .`, `mypy --strict src/` (66 source files), `pytest -q` (1210 passed); `mkdocs build --strict` to be re-verified at the u25-u33 wave close.
+- New TECH-DEBT: DEBT-051 (Low — alias value cross-key collision validation absent), DEBT-052 (Low — `match_watchlist_items` `partial`/`normal` docstring absent), DEBT-053 (Low — site cap 5 hard-coded in 4 places), DEBT-054 (Low — `WatchlistImpact` invariant for coverage_hold / unconfigured not enforced), DEBT-055 (Low — `WatchlistChannel` branching distributed across 3 modules), DEBT-056 (Low — short ASCII ticker registration produces no config-load warning), DEBT-057 (Low — `WatchlistMatch.matched_alias` exposure semantics not documented).
+**Status**: u28 construction and cross-check complete. Persona #4 P0 + P1 closed.
+
+---
+
+## Construction — u28 watchlist-usability-foundation — Code Generation Complete
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Action**: Made the watchlist surface legible to first-time users (onboarding nudge), forgiving across Korean / English aliases, and disciplined under partial coverage. `briefing/watchlist.py` introduces `DEFAULT_CORE_ALIASES` (BTC / ETH / SOL + NVDA / TSLA / AAPL / MSFT / GOOGL / META / AMZN with English + Korean aliases), `WatchlistImpactStatus` (NORMAL / PARTIAL / COVERAGE_HOLD / UNCONFIGURED), `WatchlistChannel` (SITE / TELEGRAM), `WatchlistConfig.aliases` field, `is_empty()` + `effective_aliases()` resolvers, `_matches_korean_term` (Hangul particle / whitespace / punctuation word-boundary heuristic so `비트` no longer matches inside `비트맵`), `_matches_short_ticker` (≤ 2 ASCII ticker / asset = case-sensitive raw token; ≥ 3 ASCII = casefold word-boundary regex), `_match_term_with_aliases(..., kind)`, and `_SITE_MAX_RENDERED_MATCHES = 5`. `briefing/pipeline.py` threads `WatchlistChannel` and `coverage_status` into the watchlist call site so the coverage_hold branch flows through the segment markdown callout (`데이터 수집 부족으로 매칭 판단 보류`), the Stage 2 LLM prompt context, and the visual relevance card consistently. `notifier/summary.py` strips the coverage_hold prefix from the Telegram impact suffix and skips the suffix entirely when unconfigured. `visuals/cards.py` raises `WatchlistRelevanceCardInput.rows` `max_length` to 5 and updates the slice in `build_watchlist_relevance_card`. `orchestrator/pipeline.py` threads the coverage_status into the visual-asset builder. Applied M3 (`_matches_term` `kind` parameter — short ≤ 2 ASCII ticker / asset case-sensitive raw matching; keyword / sector casefold word-boundary regex consistent with longer terms) and M5 (`_matches_korean_term` defensive `if not term_cf: return False` entry guard) pre-merge. M1 / M2 / M4 / M6 / L1-L3 deferred to DEBT-051 through DEBT-057.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/` 66 source files, `pytest -q` 1210 passed; 1182 → 1210, +28 new tests). `mkdocs build --strict` to be re-verified at the u25-u33 wave close.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u28-watchlist-usability-foundation-code-generation-plan.md`
+- `aidlc-docs/construction/u28-watchlist-usability-foundation/code/summary.md`
+- `docs/cross-checks/2026-05-08-u28-watchlist-usability-foundation.md`
+- `docs/TECH-DEBT.md` (DEBT-051 / DEBT-052 / DEBT-053 / DEBT-054 / DEBT-055 / DEBT-056 / DEBT-057 added)
+- `aidlc-docs/audit.md`
+- `aidlc-docs/aidlc-state.md`
+**Context**: Wave 1 P0 follow-up from the 2026-05-07 persona evaluation (persona #4). u28 closes the watchlist-usability-foundation P0 + P1 items in one unit. QA verdict APPROVE_AFTER_FIXES; M3 + M5 applied pre-merge; M1 (alias value cross-key collision validation), M2 (`partial` / `normal` docstring), M4 (site cap 5 hard-coded in 4 places), M6 (`WatchlistImpact` invariant), L1 (`WatchlistChannel` distributed across 3 modules), L2 (`matched_alias` exposure semantics), and L3 (short ASCII ticker config-load warning) deferred to DEBT-051 through DEBT-057.
+
+---
+
+## Cross-Check — u26 visual-delivery-integrity — COMPLETE
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: u26 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with M2 (`_investo_version` SHA branch tightened with `^[0-9a-f]{7,40}$` regex) and M3 (docstring example chain corrected to match implementation order `__version__` → 7-hex SHA → `"dev"`) applied pre-merge. Health check after fixes landed.
+**Scope**: u26 visual-delivery-integrity mapped to FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 6/6 Definition-of-Done items complete; no Critical/High findings; 2 new TECH-DEBT items registered (DEBT-049, DEBT-050).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-08-u26-visual-delivery-integrity.md`
+- Unit summary: `aidlc-docs/construction/u26-visual-delivery-integrity/code/summary.md`
+- Regression diagnosis: the five 2026-05-06 missing-SVG archive entries are **not** a code defect. Visuals integration commit `e695bfb` (2026-05-08) landed *after* the four 2026-05-06 publish commits (`605744a`, `879cddf`, `9215b97`, `e3cc413`); at publish time the segmented path simply did not include `assets.insert_visual_links` yet. Diagnosed as a publish-time scheduling artefact, not a code regression.
+- Implementation: `src/investo/visuals/render.py` (`_FONT_FAMILY` Noto Sans KR + Arial fallback; `_CARD_STYLE` `<style>` block + `@media (prefers-color-scheme: dark)`; class hooks card-bg / card-frame / card-title / card-subtitle / card-label / card-emphasis / card-text / card-disclaimer), `src/investo/visuals/provenance.py` (`_investo_version` 3-tier fallback chain `__version__` → git short SHA → `"dev"` with M2 regex tightening + M3 docstring fix)
+- Regression pin: `tests/unit/orchestrator/test_run_pipeline.py::test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_svgs` (segmented publish runs `assets.insert_visual_links`; staged SVGs land in `<segment>/<YYYY>/<MM>/<YYYY-MM-DD>.assets/` next to the archive markdown; markdown carries `![](...)` references)
+- New scripts: `scripts/backfill_2026_05_06_visuals.py` (one-shot curated patch — repairs truncated quote-block lines, renders 3 SVG cards × 3 segments with manifests, invokes production `insert_visual_links`)
+- Backfill output: 3 archive markdown rewrites + 9 SVGs + 9 manifests across `archive/{domestic-equity,us-equity,crypto}/2026/05/2026-05-06.assets/`. All gates passed (`verify_disclaimer`, `summary_quality`, `briefing.leak_guard.scan`, `validate_visual_asset` dimensions in `[100, 2000]`).
+- Tests: +10 (1172 → 1182); new tests in `tests/unit/visuals/test_render.py` (font-family + dark-mode `<style>` block + class hooks) and `tests/unit/visuals/test_provenance.py` (3-tier version fallback chain — 5 cases + auto-extended SHA test for `^[0-9a-f]{7,40}$` regex).
+- Verification: `ruff check .`, `ruff format --check .` (174 files), `mypy --strict src/` (66 source files), `pytest -q` (1182 passed), `mkdocs build --strict` (passed).
+- New TECH-DEBT: DEBT-049 (Medium — SVG `<img>`-embedded `@media (prefers-color-scheme: dark)` only sees OS-level scheme; mkdocs Material's `data-md-color-scheme="slate"` site toggle invisible to embedded SVG), DEBT-050 (Low — `scripts/backfill_2026_05_06_visuals.py` is single-use; retire or generalise around 2026-08).
+**Status**: u26 construction and cross-check complete. Persona #2 P0 + P1 items closed.
+
+---
+
+## Construction — u26 visual-delivery-integrity — Code Generation Complete
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Action**: Diagnosed and closed the post-u24 visual-delivery regression. Confirmed via commit-history analysis that the five 2026-05-06 segmented archive entries lacking embedded SVG cards are **not** a code defect — visuals integration commit `e695bfb` (2026-05-08) landed *after* the four 2026-05-06 publish commits (`605744a`, `879cddf`, `9215b97`, `e3cc413`), so at publish time the orchestrator's segmented publish path simply did not include `assets.insert_visual_links` yet. Added regression pin `tests/unit/orchestrator/test_run_pipeline.py::test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_svgs` to guarantee future segmented runs always emit `![](...)` references and stage SVGs beside the markdown. Backfilled 2026-05-06 via one-shot curated `scripts/backfill_2026_05_06_visuals.py` (repairs truncated quote-block lines, renders 3 SVG cards × 3 segments with manifests, invokes production `insert_visual_links`); produced 3 archive markdown rewrites + 9 SVGs + 9 manifests, all gates passed. Standardised visual trust signals: `src/investo/visuals/render.py` now declares `font-family: "Noto Sans KR", Arial, sans-serif` via `_FONT_FAMILY` and a single `_CARD_STYLE` `<style>` block carrying class hooks (`card-bg / card-frame / card-title / card-subtitle / card-label / card-emphasis / card-text / card-disclaimer`) drives light + dark variants for both `DataConfidenceCard` and `WatchlistCard`. `src/investo/visuals/provenance.py::_investo_version` replaced the `"0"` sentinel with a 3-tier fallback chain `investo.__version__` → `git rev-parse --short=7 HEAD` (validated against `^[0-9a-f]{7,40}$`) → `"dev"`. Dark-mode option (a) chosen — single SVG with embedded `<style>` + `@media (prefers-color-scheme: dark)`. Applied M2 (SHA branch regex tightening) + M3 (docstring example chain correction) pre-merge; M1 → DEBT-049, M4 → DEBT-050.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check` 174 files, `mypy --strict src/` 66 source files, `pytest -q` 1182 passed, `mkdocs build --strict` passed).
+**Affected docs**:
+- `aidlc-docs/construction/plans/u26-visual-delivery-integrity-code-generation-plan.md`
+- `aidlc-docs/construction/u26-visual-delivery-integrity/code/summary.md`
+- `docs/cross-checks/2026-05-08-u26-visual-delivery-integrity.md`
+- `docs/TECH-DEBT.md` (DEBT-049 / DEBT-050 added)
+- `aidlc-docs/audit.md`
+- `aidlc-docs/aidlc-state.md`
+**Context**: Wave 1 P0 follow-up from the 2026-05-07 persona evaluation (persona #2). u26 closes the missing-SVG-on-public-site P0 item by separating the "regression diagnosis" from the "trust-signal standardisation" work: the diagnosis showed no code defect, so the engineering value lands in (a) a regression pin that prevents recurrence, (b) a curated 2026-05-06 backfill that does not disturb already-public Stage 2 narrative content, and (c) the font / version / dark-mode polish persona #2 P1 also requested. QA verdict APPROVE_AFTER_FIXES; M2 (SHA regex tightening) + M3 (docstring example chain correction) applied pre-merge; M1 (mkdocs Material site-toggle vs OS-level dark-mode mismatch) deferred to DEBT-049; M4 (backfill script retirement) deferred to DEBT-050.
+
+---
+
+## Cross-Check — u25 summary-fidelity-and-content-trust — COMPLETE
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: u25 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with M3 (`_render_timestamp_watermark` docstring example values corrected from KST 16:00Z / 13:00Z to the actual 15:00Z / 15:00Z) applied pre-merge. Health check after fix landed.
+**Scope**: u25 summary-fidelity-and-content-trust mapped to FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 6/6 Definition-of-Done items complete; no Critical/High findings; 3 new TECH-DEBT items registered (DEBT-046, DEBT-047, DEBT-048).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-08-u25-summary-fidelity-and-content-trust.md`
+- Unit summary: `aidlc-docs/construction/u25-summary-fidelity-and-content-trust/code/summary.md`
+- Implementation: `src/investo/briefing/pipeline.py` (`_summary_sentence` rewrite, `_clean_summary_line` post-check, `_is_unsafe_summary_candidate`, `_split_into_sentences`, `_SEGMENT_MARKET_TZ` / `_SEGMENT_MARKET_TZ_LABEL`, `_render_timestamp_watermark`, watermark insertion in `_enhance_reader_experience`), `src/investo/briefing/summary_quality.py` (extended reject set + module docstring contract), `src/investo/briefing/prompts.py` (numeric integrity clause + ⑤ neutral grouping labels)
+- Tests: +25 (1147 → 1172); new file `tests/unit/briefing/test_summary_fidelity.py` (23 regression tests — producer / gate / watermark / 2026-05-06 archive regression for us/crypto/domestic); modified `tests/unit/briefing/test_prompts.py` (+2 assertions)
+- Gate path: `summary_quality` invocation already wired at `src/investo/orchestrator/pipeline.py:497`; pinned by `tests/unit/orchestrator/test_run_pipeline.py::test_run_pipeline_segment_summary_quality_failure_writes_nothing`. u25 only widened the gate's reject set.
+- Verification: `ruff check .`, `ruff format --check .`, `mypy --strict src/` (66 source files), `pytest -q` (1172 passed); `mkdocs build --strict` to be re-verified at the u25-u33 follow-up wave close.
+- New TECH-DEBT: DEBT-046 (Medium — `_SEGMENT_MARKET_TZ` single source-of-truth across briefing and sources), DEBT-047 (Medium — extract `is_unsafe_summary_value(str) -> bool` so producer ↔ gate share one helper), DEBT-048 (Low — `_NUMBER_DOT_ONLY_RE` proper subset of `_LIST_MARKER_ONLY_RE`).
+**Status**: u25 construction and cross-check complete. Stage 3 numeric self-check explicitly deferred to u32 per plan.
+
+---
+
+## Construction — u25 summary-fidelity-and-content-trust — Code Generation Complete
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Action**: Hardened first-viewport summary fidelity and added a deterministic timestamp watermark. `briefing/pipeline.py::_summary_sentence`, `_clean_summary_line`, and `_split_into_sentences` rewritten so producer rejects marker-only (`^\d+\.$`), list-marker-only, conjunction-tail (e.g. `^.*\bvs\.$`), and empty/whitespace candidates and falls back to the data-limited path. `briefing/summary_quality.py::_validate_summary_value` widened with the same 4-pattern reject set; producer ↔ gate contract documented in the module docstring. `_render_timestamp_watermark` produces a `**기준 시각**: YYYY-MM-DD KST [start_utc, end_utc)` line inserted by `_enhance_reader_experience` directly under each segment H1; `_SEGMENT_MARKET_TZ` / `_SEGMENT_MARKET_TZ_LABEL` mirror `sources/aggregator._window_for_adapter` (KST/America-NY/UTC) so the visible window matches the actual data-collection window. `briefing/prompts.py` Stage 2 system prompt forbids arithmetic over input figures and rewrites ⑤ section grouping labels neutrally (no "주도주" / "부진" / "주의" verbatim wording). Gate invocation path was already wired at `orchestrator/pipeline.py:497`; u25 only widened the reject set. Applied M3 (docstring example values 15:00Z/15:00Z) pre-merge. M1 → DEBT-046, M2 → DEBT-047, M4 → DEBT-048.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/` 66 source files, `pytest -q` 1172 passed). `mkdocs build --strict` to be re-verified at the u25-u33 wave close.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u25-summary-fidelity-and-content-trust-code-generation-plan.md`
+- `aidlc-docs/construction/u25-summary-fidelity-and-content-trust/code/summary.md`
+- `docs/cross-checks/2026-05-08-u25-summary-fidelity-and-content-trust.md`
+- `docs/TECH-DEBT.md` (DEBT-046 / DEBT-047 / DEBT-048 added)
+- `aidlc-docs/aidlc-state.md`
+**Context**: Wave 1 P0 follow-up from the 2026-05-07 persona evaluation (personas #1, #2, #3). u25 closes the truncated-summary, arithmetic-hallucination, and missing-watermark P0 items in one unit. QA verdict APPROVE_AFTER_FIXES; M3 docstring example correction applied pre-merge; M1 (cross-module `_SEGMENT_MARKET_TZ` SOT — module boundary forbids `briefing → sources` import), M2 (producer ↔ gate `is_unsafe_summary_value` helper extraction), and M4 (`_NUMBER_DOT_ONLY_RE` redundancy) deferred to DEBT-046 / DEBT-047 / DEBT-048. Stage 3 numeric self-check is explicitly carried into u32 per plan.
+
+---
+
+## Cross-Check — u27 secret-hygiene-unification-and-cost-guard — COMPLETE
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: u27 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with M1 (`notifier/_telegram._redact_bot_token` rewritten as thin shim above the chokepoint with marker `[REDACTED_BOT_TOKEN]`) and M2 (5-surface parametrize anti-regression test) applied pre-merge. Health check after fixes landed.
+**Scope**: u27 secret-hygiene-unification-and-cost-guard mapped to FR-001, FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007 (R8 / R13).
+**Result**: PASS — 6/6 Definition-of-Done items complete; no Critical/High findings; 3 previously open TECH-DEBT items resolved (DEBT-035, DEBT-036, DEBT-042) and 2 new low-priority items registered (DEBT-044, DEBT-045).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-08-u27-secret-hygiene-unification-and-cost-guard.md`
+- Unit summary: `aidlc-docs/construction/u27-secret-hygiene-unification-and-cost-guard/code/summary.md`
+- Implementation: `src/investo/_internal/__init__.py` (new), `src/investo/_internal/redaction.py` (new — single chokepoint), `src/investo/__main__.py`, `src/investo/models/coverage.py`, `src/investo/visuals/provenance.py`, `src/investo/briefing/leak_guard.py`, `src/investo/notifier/_telegram.py` (M1 shim)
+- Tests: +71 (1076 → 1147); new files `tests/unit/_internal/__init__.py`, `tests/unit/_internal/test_redaction.py` (chokepoint + 5-surface parametrize anti-regression)
+- Infra: `.github/workflows/daily-briefing.yml` (`INVESTO_OPENAI_VISUALS: '0'` x2 + `OPENAI_API_KEY` injection slot), `.github/dependabot.yml` (pip ecosystem), `scripts/check_daily_briefing_env.py` (opt-in branch), `CONTRIBUTING.md` (runbook OpenAI 3중 fail-safe contract)
+- Verification: `ruff check .`, `ruff format --check .` (172 files), `mypy --strict src/` (66 source files), `pytest -q` (1147 passed); `mkdocs build --strict` to be re-verified at the u25-u33 follow-up wave close.
+- Resolved TECH-DEBT: DEBT-035 (regex duplication), DEBT-036 (`_SECRET_ENV_VARS` width mismatch), DEBT-042 (sanitizer policy unification across coverage / provenance / leak-guard).
+- New TECH-DEBT: DEBT-044 (Low — `_QUERY_REDACT_RE` over-redacts in URL_AWARE callers; latent today), DEBT-045 (Low — `_LONG_BASE64_RE` missing URL-safe base64 characters).
+**Status**: u27 construction and cross-check complete.
+
+---
+
+## Construction — u27 secret-hygiene-unification-and-cost-guard — Code Generation Complete
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Action**: Implemented secret-redaction chokepoint and OpenAI cost guard. Added `src/investo/_internal/redaction.py` carrying `SECRET_PATTERNS`, `SECRET_ENV_VARS` (6 names including `OPENAI_API_KEY` and `FRED_API_KEY`), and a `RedactionPolicy` enum (`STRICT` for diagnostic / coverage / provenance / telegram surfaces, `URL_AWARE` for the leak-guard markdown-excerpt scan). Migrated five surfaces onto the chokepoint: `__main__._redact_diagnostic_text`, `models.coverage.sanitize_source_error_message`, `visuals.provenance.sanitize_provenance_text`, `briefing.leak_guard.scan`, and (via M1 fix) `notifier/_telegram._redact_bot_token`. Wired the OpenAI cost guard as a triple fail-safe: GHA workflow forces `INVESTO_OPENAI_VISUALS=0` on both daily-briefing entry points, `scripts/check_daily_briefing_env.py` branches on the opt-in flag, and `__main__._validate_env` rejects any runtime opt-in lacking `OPENAI_API_KEY`. Added `pip` ecosystem to `.github/dependabot.yml`. Documented the OpenAI default-off + 3중 fail-safe contract in the `CONTRIBUTING.md` runbook section. Applied M1 (telegram chokepoint shim with marker `[REDACTED_BOT_TOKEN]`) and M2 (5-surface parametrize anti-regression test) pre-merge.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check` 172 files, `mypy --strict src/` 66 source files, `pytest -q` 1147 passed). `mkdocs build --strict` to be re-verified at the u25-u33 wave close.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u27-secret-hygiene-unification-and-cost-guard-code-generation-plan.md`
+- `aidlc-docs/construction/u27-secret-hygiene-unification-and-cost-guard/code/summary.md`
+- `docs/cross-checks/2026-05-08-u27-secret-hygiene-unification-and-cost-guard.md`
+- `docs/TECH-DEBT.md` (DEBT-035 / DEBT-036 / DEBT-042 → Resolved Items; DEBT-044 / DEBT-045 added)
+- `aidlc-docs/aidlc-state.md`
+**Context**: Wave 1 P0 follow-up from the 2026-05-07 persona evaluation (persona #5). u27 consolidates the four divergent sanitize policies into one chokepoint (resolves DEBT-035 / DEBT-036 / DEBT-042) and adds a code-level OpenAI cost guard so the "0원 운영비" KPI is enforced at runtime rather than by convention. QA verdict APPROVE_AFTER_FIXES; M1 (`_telegram._redact_bot_token` chokepoint shim) and M2 (5-surface parametrize anti-regression test) applied pre-merge; M3 (URL_AWARE `_QUERY_REDACT_RE` over-redaction) deferred to DEBT-044; M4 (URL-safe base64 gap in `_LONG_BASE64_RE`) deferred to DEBT-045.
+
+---
+
+## Construction — u25-u33 Plans REGISTERED (2026-05-08)
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: Five-persona user evaluation (2026-05-07) identified P0 / P1 / wish-list follow-up items spanning summary fidelity, visual delivery, secret hygiene, watchlist usability, site discovery, Telegram first-impression, operations resilience, traceability, and watchlist depth. Items decomposed into nine units to keep each plan tightly scoped and reviewable.
+**Decision**: Register nine ⏳ Planned units (u25-u33) under three waves: Wave 1 P0 (u25 summary-fidelity-and-content-trust, u26 visual-delivery-integrity, u27 secret-hygiene-unification-and-cost-guard, u28 watchlist-usability-foundation, u29 site-discovery-v2), Wave 2 P1 (u30 telegram-first-impression, u31 operations-resilience), Wave 3 wish-list (u32 trust-traceability-deep-dive, u33 watchlist-depth). All units start with FD ⏭️ SKIP and NFR ⏭️ SKIP; FD/NFR will be promoted only if a step uncovers a new external dependency or NFR-surface change.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u25-summary-fidelity-and-content-trust-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u26-visual-delivery-integrity-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u27-secret-hygiene-unification-and-cost-guard-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u28-watchlist-usability-foundation-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u29-site-discovery-v2-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u30-telegram-first-impression-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u31-operations-resilience-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u32-trust-traceability-deep-dive-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u33-watchlist-depth-code-generation-plan.md`
+- `aidlc-docs/aidlc-state.md` (Per-Unit Construction Progress: u25-u33 rows added; Code Generation row Notes appended)
+- `aidlc-docs/audit.md` (this entry)
+**Status**: Nine plans REGISTERED, awaiting developer dispatch. Suggested execution order matches priority (Wave 1 → Wave 2 → Wave 3); within Wave 1 u27 (DEBT-035/036/042 recovery) is the highest-leverage starting point because it consolidates redaction surfaces other waves rely on.
+**Context**: Persona sourcing — u25 (#1, #2, #3 P0); u26 (#2 P0+P1); u27 (#5 P0, recovers DEBT-035 / DEBT-036 / DEBT-042); u28 (#4 P0+P1); u29 (#2 P0+P1+wish-list); u30 (#1 P1); u31 (#5 P1+wish-list); u32 (#3 wish-list); u33 (#4 wish-list). Each plan keeps Steps to 3-5 sub-items so developer can scope per-step PRs cleanly.
+
+---
+
 ## Build and Test — Re-verification COMPLETE
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Trigger**: u22 source-coverage-transparency and u24 visual-provenance-and-layout closeouts landed; u20-u24 quality follow-up wave fully closed. Full quality gate re-run requested.

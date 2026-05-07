@@ -92,6 +92,48 @@ def test_subprocess_invocation_redacts_secret_values() -> None:
     assert "not-a-url" not in result.stdout
 
 
+def test_validate_env_treats_openai_key_as_optional_by_default() -> None:
+    """When ``INVESTO_OPENAI_VISUALS`` is unset / not '1', the OpenAI
+    key is optional — preflight passes even without it."""
+    script = _load_script_module()
+    env_no_flag = _VALID_ENV.copy()
+    assert script.validate_env(env_no_flag) == []
+
+    env_flag_zero = _VALID_ENV | {"INVESTO_OPENAI_VISUALS": "0"}
+    assert script.validate_env(env_flag_zero) == []
+
+
+def test_validate_env_requires_openai_key_when_flag_enabled() -> None:
+    """``INVESTO_OPENAI_VISUALS=1`` without ``OPENAI_API_KEY`` → error.
+    u27 cost guard at the preflight layer (defense-in-depth on top of
+    ``__main__._validate_env``).
+    """
+    script = _load_script_module()
+    env = _VALID_ENV | {"INVESTO_OPENAI_VISUALS": "1"}
+    errors = script.validate_env(env)
+    assert errors == ["OPENAI_API_KEY is required when INVESTO_OPENAI_VISUALS=1"]
+
+
+def test_validate_env_accepts_openai_opt_in_with_key() -> None:
+    script = _load_script_module()
+    env = _VALID_ENV | {"INVESTO_OPENAI_VISUALS": "1", "OPENAI_API_KEY": "sk-test"}
+    assert script.validate_env(env) == []
+
+
+def test_daily_briefing_workflow_pins_openai_visuals_disabled() -> None:
+    """The cron workflow MUST pin ``INVESTO_OPENAI_VISUALS=0`` in both
+    the preflight and run-pipeline steps. CLAUDE.md #4 cost guard at
+    the workflow layer — flipping the secret on its own should never
+    be enough to incur OpenAI cost.
+    """
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
+        encoding="utf-8"
+    )
+    # Both steps reference the flag (preflight + run-pipeline) — pin
+    # the literal so a future edit that drops one is loud.
+    assert workflow.count("INVESTO_OPENAI_VISUALS: '0'") == 2
+
+
 def test_daily_briefing_workflow_calls_script() -> None:
     workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
         encoding="utf-8"

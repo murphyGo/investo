@@ -31,7 +31,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import re
 import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -40,6 +39,7 @@ from typing import Final
 import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
+from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.models import FailureContext, PipelineResult, PipelineStatus
 from investo.notifier import BriefingPublisher, OperatorAlerter
 from investo.orchestrator.date_resolution import validate_target_date_sanity
@@ -48,6 +48,13 @@ from investo.orchestrator.pipeline import run_pipeline
 
 # The 5 required env vars per AC-007-1 + ``component-methods.md`` C5.
 # Order pinned: governs the order ``ConfigError.for_missing`` reports.
+#
+# u27 note: ``OPENAI_API_KEY`` is intentionally NOT in this tuple. It is
+# tracked by :data:`investo._internal.redaction.SECRET_ENV_VARS` (so its
+# value is redacted from any operator-facing surface when present), but
+# it is *required* only when ``INVESTO_OPENAI_VISUALS=1`` opts in to
+# the cost-bearing surface. See :func:`_validate_optional_env` for the
+# opt-in branch.
 _REQUIRED_ENV_VARS: Final[tuple[str, ...]] = (
     "CLAUDE_CODE_OAUTH_TOKEN",
     "TELEGRAM_BOT_TOKEN",
@@ -55,6 +62,14 @@ _REQUIRED_ENV_VARS: Final[tuple[str, ...]] = (
     "TELEGRAM_OPERATOR_CHAT_ID",
     "SITE_URL_BASE",
 )
+
+# u27: when this env var is ``"1"`` the OpenAI visual surface is enabled
+# and ``OPENAI_API_KEY`` becomes required. Default (any other value or
+# absent) keeps the surface disabled so the project's "free APIs only"
+# rule (CLAUDE.md #4) holds at the code level — a missing key with the
+# flag enabled is a hard ``ConfigError``, not a silent fallback.
+_OPENAI_VISUALS_FLAG_VAR: Final[str] = "INVESTO_OPENAI_VISUALS"
+_OPENAI_API_KEY_VAR: Final[str] = "OPENAI_API_KEY"
 
 # Best-effort alert on ConfigError can only run when these two vars
 # specifically are present (regardless of which others are missing).
@@ -84,8 +99,6 @@ _TARGET_DATE_OVERRIDE_VAR: Final[str] = "INVESTO_TARGET_DATE"
 _BOOT_ALERT_TIMEOUT_S: Final[float] = 5.0
 _BOOT_ALERT_ATTEMPTS: Final[int] = 2
 _GITHUB_STEP_SUMMARY_VAR: Final[str] = "GITHUB_STEP_SUMMARY"
-_BOT_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"\b\d{6,}:[A-Za-z0-9_-]{20,}\b")
-_CHAT_ID_RE: Final[re.Pattern[str]] = re.compile(r"(?<![\w-])-?\d{7,}(?![\w-])")
 
 
 def _missing_env_vars() -> tuple[str, ...]:
@@ -147,6 +160,20 @@ def _validate_env() -> tuple[str, str, str, str, HttpUrl]:
             "SITE_URL_BASE",
             f"SITE_URL_BASE is not a valid HTTP URL: {site_url_raw!r}",
         ) from exc
+
+    # u27 cost guard: if the OpenAI visual surface is opted-in via
+    # ``INVESTO_OPENAI_VISUALS=1`` we MUST have an API key. Failing
+    # closed here means an operator who flips the flag without
+    # configuring the key gets a hard ``ConfigError`` at boot, not a
+    # silent fallback to deterministic SVG cards (which would mask the
+    # misconfiguration). When the flag is absent / any value other
+    # than ``"1"``, the key is treated as optional (and OpenAI is
+    # never called by the visual layer per ``visuals.openai_image``).
+    if (
+        os.environ.get(_OPENAI_VISUALS_FLAG_VAR, "").strip() == "1"
+        and not os.environ.get(_OPENAI_API_KEY_VAR, "").strip()
+    ):
+        raise ConfigError.for_missing((_OPENAI_API_KEY_VAR,))
 
     return claude_oauth, bot_token, channel_id, operator_id, site_url_base
 
@@ -236,19 +263,15 @@ def _resolve_target_date_override() -> date | None:
 
 
 def _redact_diagnostic_text(text: str) -> str:
-    """Redact token/chat-id-like values before operator-visible diagnostics."""
-    redacted = text
-    for name in (
-        "TELEGRAM_BOT_TOKEN",
-        "TELEGRAM_BRIEFING_CHANNEL_ID",
-        "TELEGRAM_OPERATOR_CHAT_ID",
-        "CLAUDE_CODE_OAUTH_TOKEN",
-    ):
-        value = os.environ.get(name, "").strip()
-        if value:
-            redacted = redacted.replace(value, "[REDACTED]")
-    redacted = _BOT_TOKEN_RE.sub("[REDACTED_BOT_TOKEN]", redacted)
-    return _CHAT_ID_RE.sub("[REDACTED_CHAT_ID]", redacted)
+    """Redact token/chat-id-like values before operator-visible diagnostics.
+
+    Thin shim over :func:`investo._internal.redaction.redact_text` (u27
+    chokepoint). The full secret env-var list lives in
+    :data:`investo._internal.redaction.SECRET_ENV_VARS` so this site
+    cannot drift behind a newly-added secret (resolves DEBT-036). The
+    bot-token / chat-id regexes live there too (resolves DEBT-035).
+    """
+    return redact_text(text, policy=RedactionPolicy.STRICT)
 
 
 def _write_github_step_summary(result: PipelineResult) -> None:

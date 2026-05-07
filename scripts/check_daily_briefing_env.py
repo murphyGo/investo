@@ -7,7 +7,10 @@ secret-safe boundary checks before the heavier pipeline starts:
 
 - all five required variables are present and non-empty after strip,
 - public Telegram channel and operator chat IDs are disjoint,
-- ``SITE_URL_BASE`` is an HTTP(S) URL.
+- ``SITE_URL_BASE`` is an HTTP(S) URL,
+- ``OPENAI_API_KEY`` is required only when ``INVESTO_OPENAI_VISUALS=1``
+  (u27 cost guard — CLAUDE.md #4 "free APIs only" enforced at the code
+  level so an opt-in surface cannot run without the matching secret).
 
 Failures are emitted as GitHub Actions ``::error::`` annotations that
 name only the missing variable or failed invariant. Secret values are
@@ -27,6 +30,13 @@ REQUIRED_ENV_VARS: tuple[str, ...] = (
     "TELEGRAM_OPERATOR_CHAT_ID",
     "SITE_URL_BASE",
 )
+
+# u27: opt-in flag for the OpenAI visual surface. When equal to ``"1"``
+# the API key becomes required; otherwise it is optional (the surface
+# is disabled inside ``visuals.openai_image.load_openai_visual_config``
+# regardless of whether the key is set).
+OPENAI_VISUALS_FLAG_VAR = "INVESTO_OPENAI_VISUALS"
+OPENAI_API_KEY_VAR = "OPENAI_API_KEY"
 
 
 def validate_env(env: Mapping[str, str]) -> list[str]:
@@ -49,6 +59,16 @@ def validate_env(env: Mapping[str, str]) -> list[str]:
         parsed = urlparse(values["SITE_URL_BASE"])
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             errors.append("SITE_URL_BASE must be an HTTP(S) URL")
+
+    # u27 OpenAI opt-in branch: only require the key when the operator
+    # has explicitly enabled the cost-bearing surface. Default workflow
+    # behaviour pins the flag to ``"0"`` so this branch never fires;
+    # an experiment must flip both the flag and the secret together.
+    if (
+        env.get(OPENAI_VISUALS_FLAG_VAR, "").strip() == "1"
+        and not env.get(OPENAI_API_KEY_VAR, "").strip()
+    ):
+        errors.append(f"{OPENAI_API_KEY_VAR} is required when {OPENAI_VISUALS_FLAG_VAR}=1")
 
     return errors
 

@@ -1,5 +1,12 @@
 """Provenance manifests for briefing visual assets (u24).
 
+u26 hardens :func:`_investo_version` so the provenance caption never
+reads ``investo 0`` (a beta-looking artefact when the package version
+import fails). The fallback chain is now ``investo.__version__`` →
+``git rev-parse --short=7 HEAD`` → ``"dev"``. The caption ends up as
+``investo 0.1.0`` / ``investo a1b2c3d`` / ``investo dev`` accordingly.
+
+
 Every visual asset published in the public archive must declare *where it
 came from* and *who generated it*. This module owns:
 
@@ -19,20 +26,24 @@ came from* and *who generated it*. This module owns:
 Secret hygiene (R8/R13)
 -----------------------
 ``source_attribution`` and every ``additional_metadata`` value pass
-through :func:`sanitize_provenance_text`, which delegates to
-:func:`investo.models.sanitize_source_error_message`. The sanitizer
-already redacts:
+through :func:`sanitize_provenance_text`, which delegates to the
+project-wide redaction chokepoint
+(:func:`investo._internal.redaction.redact_text`, u27). The chokepoint
+redacts:
 
-* current values of the secret env vars (``OPENAI_API_KEY``,
-  ``TELEGRAM_BOT_TOKEN``, etc.)
+* current values of the secret env vars listed in
+  :data:`investo._internal.redaction.SECRET_ENV_VARS`
+  (``OPENAI_API_KEY``, ``TELEGRAM_BOT_TOKEN``, ``FRED_API_KEY``,
+  ``CLAUDE_CODE_OAUTH_TOKEN``, etc.)
 * Telegram bot-token / chat-id shapes
-* JWT / OAuth / PAT base64 runs
+* GitHub PAT / AWS access key / JWT / email / Korean phone shapes
+* JWT / OAuth / PAT generic base64 runs
 * ``?key=value&...`` query strings (which can carry API keys)
 
 The manifest never carries the raw OpenAI prompt, the raw image URL
-query string, or any environment value. The single sanitizer chokepoint
-is the only allowed write path — direct ``model.copy(update={...})``
-around the sanitizer is not allowed.
+query string, or any environment value. The single sanitizer
+chokepoint is the only allowed write path — direct
+``model.copy(update={...})`` around the sanitizer is not allowed.
 
 Free-API rule
 -------------
@@ -46,13 +57,15 @@ free-tier only.
 from __future__ import annotations
 
 import json
+import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from investo.models import sanitize_source_error_message
+from investo._internal.redaction import RedactionPolicy, redact_text
 
 VisualSourceType = Literal["generated_svg", "ai_generated", "external"]
 
@@ -79,14 +92,20 @@ _SOURCE_TYPE_KOREAN: Final[dict[VisualSourceType, str]] = {
 def sanitize_provenance_text(text: str) -> str:
     """Redact secret-shaped substrings from any reader-facing manifest text.
 
-    Single chokepoint for ``source_attribution`` and
+    Single sanitizer for ``source_attribution`` and
     ``additional_metadata`` writes. Delegates to
-    :func:`sanitize_source_error_message` (R13 — same policy as the
-    coverage failure_reason sanitizer) so manifests never carry env
-    values, bot tokens, chat ids, JWT-shaped strings, or query string
-    secrets.
+    :func:`investo._internal.redaction.redact_text` under
+    :data:`RedactionPolicy.STRICT` (u27 chokepoint — same policy as
+    the coverage ``failure_reason`` sanitizer + the GHA Step Summary
+    writer) so manifests never carry env values, bot tokens, chat ids,
+    JWT-shaped strings, or query string secrets.
+
+    Manifests are persistent reader-facing artefacts, so the STRICT
+    policy is correct: there is no need to preserve a URL substring
+    (the surface only describes *what generated* the asset, not the
+    asset's source URL).
     """
-    return sanitize_source_error_message(text)
+    return redact_text(text, policy=RedactionPolicy.STRICT)
 
 
 class VisualProvenanceManifest(BaseModel):
@@ -273,13 +292,75 @@ def provenance_caption(manifest: VisualProvenanceManifest) -> str:
     )
 
 
+# Plain validation pattern (7-40 hex chars). Not a secret-shaped pattern;
+# the redaction-surface chokepoint guard forbids any compiled local
+# pattern in this module, so we keep the literal as a plain string and
+# call :func:`re.fullmatch` directly.
+#
+# The lower bound matches ``git rev-parse --short=7`` minimum output;
+# the upper bound covers git's auto-extension when 7 chars would be
+# ambiguous in the local repository (git extends to 8/9/.. up to the
+# full 40-char SHA-1). Without this widening the caption silently
+# falls back to ``investo dev`` on busy histories.
+_GIT_SHORT_SHA_PATTERN: Final[str] = r"^[0-9a-f]{7,40}$"
+
+
 def _investo_version() -> str:
-    """Return the running ``investo`` package version, with a safe fallback."""
+    """Return the running ``investo`` package version, with a safe fallback.
+
+    Fallback chain (u26 — replaces the prior ``"0"`` literal that made
+    the public caption read like ``investo 0``):
+
+    1. ``investo.__version__`` — the canonical PEP 396 version string.
+    2. ``git rev-parse --short=7 HEAD`` — when the package version is
+       unavailable (e.g., development checkouts using
+       ``importlib.metadata`` against an uninstalled tree) we surface
+       the running SHA so the caption stays useful.
+    3. ``"dev"`` — terminal fallback when neither the version nor a
+       git checkout is reachable. Pinned by the unit test under
+       ``tests/unit/visuals/test_provenance.py``.
+
+    The git lookup is bounded (``timeout=2``) and never raises:
+    subprocess errors, missing ``git``, or a non-repository working
+    tree all fall through to ``"dev"`` so manifest writes stay
+    deterministic.
+    """
     try:
         from investo import __version__ as version
-    except ImportError:  # pragma: no cover - defensive only
-        return "0"
-    return str(version)
+    except ImportError:
+        version = ""
+    if version:
+        return str(version)
+    sha = _git_short_sha()
+    if sha is not None:
+        return sha
+    return "dev"
+
+
+def _git_short_sha() -> str | None:
+    """Return the short ``HEAD`` SHA, or ``None`` if git is unreachable.
+
+    ``git rev-parse --short=7`` returns 7 hex chars by default but
+    auto-extends (8/9/...) when 7 would be ambiguous in the repository.
+    Validated against ``_GIT_SHORT_SHA_PATTERN`` so a broken ``git``
+    wrapper cannot inject arbitrary text into the caption.
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "--short=7", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError, OSError):
+        return None
+    if completed.returncode != 0:
+        return None
+    sha = completed.stdout.strip()
+    if re.fullmatch(_GIT_SHORT_SHA_PATTERN, sha) is None:
+        return None
+    return sha
 
 
 __all__ = [

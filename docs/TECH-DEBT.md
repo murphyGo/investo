@@ -5,9 +5,9 @@
 | Priority | Count | Oldest |
 |----------|-------|--------|
 | Critical | 0 | - |
-| High | 0 | - |
-| Medium | 4 | 2026-05-07 |
-| Low | 6 | 2026-04-27 |
+| High | 1 | 2026-05-08 |
+| Medium | 9 | 2026-05-07 |
+| Low | 20 | 2026-04-27 |
 
 ---
 
@@ -19,9 +19,77 @@ _No critical items._
 
 ### High Priority
 
-_No high priority items._
+#### DEBT-058: OG image PNG twin generation for social-card unfurl
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (H2 / M5)
+- **Reference**: FR-003 (static web publishing), NFR-005 (consistency / reader-trust contract)
+- **Description**: u29 emits an OG image meta tag pointing at `https://murphygo.github.io/investo/assets/og-card.svg`. mkdocs build --strict verifies the absolute URL is correctly rendered, so the meta channel is structurally complete. However, the major OG consumers — Telegram (link previews on the public channel), Slack, Twitter / X, and LinkedIn — do **not** honour SVG `og:image` payloads in practice; they require a PNG (or JPEG) twin. The current shape correctly serves browsers fetching the GH Pages preview surface (which renders SVG), but social-card unfurl on the dominant share targets falls back to no preview or to a generic GH Pages favicon. The first-impression surface persona #2 cared about (the share-link card) is therefore not actually delivered until a PNG twin lands beside the SVG.
+- **Suggested Fix**: Two paths. (a) Add `cairosvg` as a dev / runtime dependency and render `assets/og-card.png` from the same SVG output in `src/investo/visuals/og_card.py`. Requires the `libcairo` system dependency on the CI runner — `.github/workflows/daily-briefing.yml` should add an `apt-get install libcairo2` step (or equivalent) and validate the install in a preflight check. (b) Alternative: a GHA post-process step that runs an SVG → PNG converter (e.g., `librsvg2-bin`'s `rsvg-convert`) against the rendered SVG immediately before the Pages deploy step. Option (b) keeps the Python dependency surface unchanged but couples the conversion to GHA infra. Either way, update `overrides/main.html` to emit a PNG `og:image` (or both PNG and SVG twins via `og:image:secure_url` / `og:image:type`).
+- **Effort**: ~1.5-2 h for option (a) including dependency add, preflight install, render path, and a regression test pinning the PNG output dimensions and the meta-tag PNG URL on the rendered HTML. Option (b) ~1 h but requires a GHA workflow change instead of a Python change.
+- **Priority Reasoning**: P1 (High) — the OG meta channel without a PNG twin does not deliver the persona #2 share-link first impression on Telegram / Slack / Twitter / LinkedIn, which are the dominant share surfaces. Until the twin lands, the rendered share-card is invisible to most readers. The metadata path is correct and the SVG is reusable, so the fix is bounded; the priority reflects the user-visible gap, not implementation difficulty.
 
 ### Medium Priority
+
+#### DEBT-066: `*.svg.json` provenance manifest sidecars not enumerated in `asset_paths` (rollback orphan)
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 developer self-review
+- **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / contract integrity), NFR-007 (R13 — secret hygiene)
+- **Description**: `prepare_segment_visual_assets` in `src/investo/visuals/assets.py` returns a list of staged `*.svg` paths used by the orchestrator's snapshot / rollback set. The corresponding `*.svg.json` provenance manifest sidecars (introduced by u24) are written atomically next to the SVGs but are **not** enumerated in the returned `asset_paths`. As a result, when `_stage_publish_segments` rolls back on `SummaryQualityError` / `PublisherDisclaimerError` / `PublisherIOError` (M1 fix from u29), the SVG files are restored / removed correctly but the JSON manifest sidecars are left orphan in `archive/<segment>/<YYYY>/<MM>/<YYYY-MM-DD>.assets/`. The orphans do not break disclaimer / leak-guard contracts, but they do leave an inconsistent state where a manifest references an SVG that no longer exists or carries pre-rollback metadata.
+- **Suggested Fix**: Have `prepare_segment_visual_assets` return both SVG and manifest paths (e.g., a `StagedAssetPair` named tuple or a flat `tuple[Path, ...]` of all asset paths). Update the orchestrator's snapshot / rollback set to include both. Pin with a regression test that triggers a mid-loop rollback and asserts both the SVG **and** the manifest sidecar are restored / removed atomically.
+- **Effort**: ~30 min including the return-shape change, orchestrator update, and rollback regression test.
+- **Priority Reasoning**: Medium — the orphan manifests do not break any publish-time gate today, but a rollback that leaves stale `.svg.json` referencing pre-rollback content creates a debugging surface where reviewers reading the manifest get the wrong picture of what was published. Carrying it forward through every future rollback path multiplies the surface area. Cheap to harden once.
+
+#### DEBT-060: Conclusion prefix / extraction helper duplicated 4x across publisher and visuals
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (M4)
+- **Reference**: NFR-005 (consistency / DRY), FR-003 (static web publishing)
+- **Description**: u29 added three new conclusion-extraction call sites — `src/investo/publisher/site_index.py` (`_render_hero_block`), `src/investo/publisher/weekly_digest.py` (per-segment 5-day list), `src/investo/visuals/og_card.py` (OG card body) — each of which duplicates the conclusion-prefix matching logic already present in `src/investo/visuals/assets.py` (which uses it for visual-card body content). Today the four sites agree by inspection, but a future change to the conclusion-prefix marker (say, the existing `**결론**:` shape evolves to `**결론 (yyyy-mm-dd)**:`) lands in only one site by default and the rendered hero / weekly digest / OG card / visual card silently disagree.
+- **Suggested Fix**: Promote the canonical conclusion prefix to a public export `briefing.summary_quality.CONCLUSION_PREFIX` (or a dedicated `briefing/extract.py` module) plus a `briefing.extract.conclusion_line(rendered_markdown: str) -> str | None` helper. Have all four call sites import the helper. Pin with a parametrize test covering present / missing / multiple-conclusion-line shapes against every call site simultaneously.
+- **Effort**: ~45 min including the helper extraction, 4-site import switch, and parametrize regression test.
+- **Priority Reasoning**: Medium — works correctly today on the agreed-by-inspection prefix, but the duplication is multiplicative (every new conclusion-consuming surface adds another agreement point). Promote to High when a fifth consumer lands or when the conclusion prefix is requested to evolve.
+
+#### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P2)
+- **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / explicit policy semantics), FR-003 (static web publishing)
+- **Description**: `.github/workflows/daily-briefing.yml` opts the weekly digest publish step in via the byte-identical match `github.event.schedule == '0 0 * * 6'`. The cron string is the literal Saturday 09:00 KST schedule (UTC `0 0 * * 6`). If the cron is ever adjusted — e.g., shifted by 5 minutes for runner contention, retargeted to a different timezone for DST treatment, or split into two arms (KST + JST testing) — the byte-identical match silently breaks and the weekly digest stops publishing without raising any error. The `INVESTO_PUBLISH_WEEKLY` flag itself is fine; the fragility lives in how the workflow decides when to set it.
+- **Suggested Fix**: Two alternatives. (a) Replace the byte-identical match with a weekday + KST-09:00 timezone comparison computed at job start (e.g., `if [[ "$(TZ=Asia/Seoul date +%u)" == "6" ]]`), so the opt-in survives cron edits as long as the *intent* (Saturday morning KST) is preserved. (b) Move the weekly publish to a dedicated workflow file (`.github/workflows/weekly-digest.yml`) with its own cron schedule, so daily-briefing.yml stays single-purpose and the weekly opt-in is its own first-class artefact. Option (a) keeps the daily / weekly publish coupled in one workflow (cheaper); option (b) decouples them (clearer ownership, easier to re-target weekly schedule independently).
+- **Effort**: ~30 min for option (a) including a bash unit test that exercises the timezone check on Sat / non-Sat fixtures. Option (b) ~1.5 h including a fresh workflow file, secrets injection, and a regression that asserts both arms run on their target days.
+- **Priority Reasoning**: Medium — works correctly today on the registered schedule, but is the kind of regression that escapes review when a cron edit lands. Promote to High the moment the cron schedule is touched.
+
+#### DEBT-049: SVG `@media (prefers-color-scheme)` disagrees with mkdocs Material site toggle
+
+- **Created**: 2026-05-08
+- **Source**: u26 visual-delivery-integrity QA review (M1)
+- **Reference**: NFR-005 (consistency / theme parity), FR-002 (Korean briefing comprehension), FR-003 (static web publishing)
+- **Description**: u26 introduced dark-mode support for `DataConfidenceCard` and `WatchlistCard` via option (a) — single SVG with embedded `<style>` block carrying `@media (prefers-color-scheme: dark)` rules driving classed `<rect>` / `<text>` elements. The SVGs are referenced from markdown via `<img src="...svg">`, so the `prefers-color-scheme` query is evaluated at the SVG document level, which only sees the **OS-level** scheme. mkdocs Material's site-level theme toggle (`data-md-color-scheme="slate"`) lives on the parent HTML and is invisible to the embedded SVG. As a result, an OS-light + site-dark reader (or OS-dark + site-light) sees a card rendered against the wrong scheme — the surrounding mkdocs page is dark, but the embedded card stays light, or vice versa. Reader-trust degrades visibly for any user who toggled the site theme away from their OS default.
+- **Suggested Fix**: Either (b) inline `<svg>` embed in markdown + parent class selector that picks up the site `data-md-color-scheme` attribute on `<html>` (the SVG `<style>` block then targets `[data-md-color-scheme="slate"] .card-bg` etc.), or (c) render both light and dark variant SVG files and emit a `<picture>` element (`<source media="(prefers-color-scheme: dark)" srcset="...-dark.svg"> <img src="...-light.svg">`). Option (b) keeps the single-asset shape and the existing class hooks; option (c) doubles asset volume but works without inline `<svg>`. Either way, retain the chokepoint shape (one `_CARD_STYLE` block / one render path) so future card types inherit the fix automatically.
+- **Effort**: ~1.5 h for option (b) including the markdown render path switch (`<img>` → inline `<svg>`), parent-attribute selector tests, and a regression test that pins both site-toggle states against a synthesized HTML wrapper. Option (c) ~45 min but requires a second variant render pass.
+- **Priority Reasoning**: Medium — works correctly today for the OS-default theme, but the site toggle is a first-class mkdocs Material affordance and any reader exercising it sees a mismatched card. Reader-trust contract is the highest-leverage signal in the segmented-briefing UX, so the disagreement is worth closing once cleanly rather than carrying forward through every future card type.
+
+#### DEBT-046: `_SEGMENT_MARKET_TZ` single source-of-truth across briefing and sources
+
+- **Created**: 2026-05-08
+- **Source**: u25 summary-fidelity-and-content-trust QA review (M1)
+- **Reference**: NFR-005 (consistency / DRY across module boundaries), FR-008 (segmented briefing), FR-003 (static web publishing)
+- **Description**: u25 introduced `_SEGMENT_MARKET_TZ` and `_SEGMENT_MARKET_TZ_LABEL` in `src/investo/briefing/pipeline.py` to render the per-segment timestamp watermark `**기준 시각**: YYYY-MM-DD KST [start_utc, end_utc)`. The same timezone routing already lives in `src/investo/sources/aggregator.py::_window_for_adapter` and the underlying `src/investo/sources/_window.py::_KST` constant. The two declarations exist independently because the module boundary forbids `briefing → sources` imports. Today they agree by inspection, but a future change to (say) the crypto window — UTC → America/Chicago for testing, KST adjustment for DST treatment — would land in only one site by default and the watermark would silently misrepresent the actual data-collection window.
+- **Suggested Fix**: Move `_SEGMENT_MARKET_TZ` and `_SEGMENT_MARKET_TZ_LABEL` to a new `src/investo/models/segments.py` (or extend the existing `models` surface) so both `briefing/pipeline.py` and `sources/aggregator.py` import from one place. The shared module sits under the foundation `models` layer and does not violate the unit-to-unit import ban. Add a regression test that asserts the briefing watermark window equals the aggregator window for each of the three segments on a fixed `target_date`.
+- **Effort**: ~30 min including the move + import updates + cross-module regression test.
+- **Priority Reasoning**: Medium — works correctly today on the published shape, but the watermark is a reader-trust signal: if it ever drifts from the real collection window, the trust contract added by u25 inverts. Cheap to harden once and structurally prevents the drift.
+
+#### DEBT-047: Producer ↔ gate reject set unification (`is_unsafe_summary_value` helper extraction)
+
+- **Created**: 2026-05-08
+- **Source**: u25 summary-fidelity-and-content-trust QA review (M2)
+- **Reference**: NFR-005 (consistency / DRY), NFR-006 (test robustness), FR-002 (Korean briefing comprehension)
+- **Description**: u25 widened both `src/investo/briefing/pipeline.py::_is_unsafe_summary_candidate` (producer side) and `src/investo/briefing/summary_quality.py::_validate_summary_value` (gate side) with the same 4-pattern reject set: marker-only (`^\d+\.$`), list-marker-only (`^[-*]\s*$`), conjunction-tail (e.g., `^.*\bvs\.$`), and empty/whitespace. The contract that producer rejection mirrors gate rejection is currently documented in the `summary_quality` module docstring, but the regexes themselves are duplicated. A future widening (say, "trailing colon" patterns) lands in only one site by default; the gate-side reject set is the publish blocker, but the producer site is what generates user-visible fallbacks, so divergence either leaks bad summaries (if only gate widened and producer keeps emitting them) or unnecessarily forces fallbacks (if only producer widened).
+- **Suggested Fix**: Extract a public `is_unsafe_summary_value(value: str) -> bool` from `src/investo/briefing/summary_quality.py` carrying the canonical reject set. Have `briefing/pipeline.py` import and call it from `_is_unsafe_summary_candidate`. Pin the contract with a parametrize test that walks every reject pattern through both call paths simultaneously, so adding a new pattern requires exactly one regex edit.
+- **Effort**: ~25 min including the helper extraction, producer-side import switch, and the parametrize regression test.
+- **Priority Reasoning**: Medium — gate-side rejection is the actual publish blocker today, so reader-trust is preserved even on producer drift. Promote to High the moment a sixth reject pattern lands and reviewers ask "did this go in both sites?".
 
 #### DEBT-040: Layout reposition ordering when multiple non-hero cards share the same anchor
 
@@ -43,16 +111,6 @@ _No high priority items._
 - **Effort**: ~25 min including a test that pins the corrupt-sidecar rejection path.
 - **Priority Reasoning**: Medium — not reachable through today's supported call path, but the silent fall-through is a degradation in observability and could mask malformed sidecars produced by future tooling.
 
-#### DEBT-042: Sanitizer policy unification across coverage / provenance / leak-guard
-
-- **Created**: 2026-05-07
-- **Source**: u24 visual-provenance-and-layout QA review (L2)
-- **Reference**: NFR-005 (consistency across symmetric components), NFR-007 (R8 / R13 — secret hygiene)
-- **Description**: `sanitize_source_error_message` (from u22) now has 3 call-site locations — the coverage badge, the new visual provenance sanitizer, and `__main__._redact_diagnostic_text` (per DEBT-035). On top of those, `briefing.leak_guard` carries its own pattern set with a different policy. As more reader-/operator-facing surfaces are added (e.g., a future "operator step summary" card or a watchlist export), the patterns can drift across these four sites and a future redaction site could land copy #5. Extends DEBT-035 / DEBT-036 — those address `__main__` ↔ `coverage` drift; this one widens the scope to include `provenance` and `leak_guard`.
-- **Suggested Fix**: Define a single named policy object (e.g., `RedactionPolicy.PUBLIC_OUTPUT` and `RedactionPolicy.LLM_OUTPUT`) in a shared `src/investo/_internal/redaction.py` module that exposes `redact(text: str, policy: RedactionPolicy) -> str`. Each existing call site passes the appropriate policy. Pin via a regression test that imports the module and asserts every redaction site uses one of the named policies.
-- **Effort**: ~1 hour including the shared module + 4 call-site updates + tests. Larger scope than DEBT-035 alone.
-- **Priority Reasoning**: Medium — the threat is policy drift across 4 surfaces with overlapping but non-identical pattern sets. Cheap to consolidate before a 5th site lands.
-
 #### DEBT-038: `source_outcomes` segment-filtering contract is not enforced at the type level
 
 - **Created**: 2026-05-07
@@ -65,6 +123,166 @@ _No high priority items._
 
 ### Low Priority
 
+#### DEBT-065: `og_card._wrap` word segmentation is inappropriate for Korean text
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (L4)
+- **Reference**: FR-002 (Korean briefing comprehension), FR-003 (static web publishing)
+- **Description**: `src/investo/visuals/og_card.py::_wrap` segments the conclusion line into wrapped chunks by ASCII whitespace. Korean prose typically has many fewer space boundaries per character than English, so a sparse-whitespace sentence (e.g., a long Korean clause with one space break) gets either no wrap (overflowing the OG card body) or a wrap point that lands inside a Korean phrase, plus the trailing `…` ellipsis is positioned by character count rather than by graphical width. The OG card still renders correctly for English-heavy lines but the Korean cases — which dominate the briefing surface — visibly degrade.
+- **Suggested Fix**: Either (a) port a CJK-aware wrap (split on each Hangul syllable as a soft break, fall back to ASCII whitespace; account for Hangul syllable width vs ASCII char width when computing `max_chars`), or (b) replace the wrap with a `textLength` + `lengthAdjust="spacingAndGlyphs"` SVG attribute on the `<text>` element so the SVG renderer handles glyph-level spacing and overflow naturally. Option (a) gives finer control but increases code complexity; option (b) is one-line but depends on the SVG renderer respecting `lengthAdjust`. Pin with a regression test on a long Korean conclusion line.
+- **Effort**: ~45 min for option (a) including the CJK soft-break logic + width estimator. Option (b) ~15 min including the SVG attribute switch + a visual regression test.
+- **Priority Reasoning**: Low — the OG card still renders without crashing, but the visible truncation is imprecise on the dominant content shape. Promote to Medium once the PNG twin lands (DEBT-058), since the social-card unfurl will then surface the truncation to a much larger reader cohort.
+
+#### DEBT-064: `_render_hero_block` markdown blockquote injection guarantee is not hard
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (L3)
+- **Reference**: NFR-005 (consistency / contract integrity), FR-003 (static web publishing)
+- **Description**: `src/investo/publisher/site_index.py::_render_hero_block` embeds the per-segment conclusion line into the `site_docs/index.md` hero quote card by wrapping it in a markdown blockquote with a trailing link (`> {conclusion}` followed by `[자세히 보기]({archive_url})`). If the archived briefing's conclusion body contains literal `]` or `)` characters — say, a parenthetical citation or a date in brackets — the surrounding markdown link parser can interpret them as link delimiters and emit malformed HTML. Today the LLM-generated conclusion bodies are unlikely to be hostile (Stage 2 prompt does not encourage parenthetical citations), but the guarantee is not hard: a future prompt edit, a future LLM regression, or an externally-edited archive entry could surface the fragility.
+- **Suggested Fix**: Either (a) escape `[`, `]`, `(`, `)` inside the conclusion body before embedding (markdown backslash escapes), with a regression test exercising each character, or (b) replace the trailing link with a separate sibling line so the conclusion body is never inside a link parser scope. Option (b) is the clean structural fix; option (a) preserves the current single-line layout. Either way, pin with a parametrize regression that walks the conclusion body through each adversarial character.
+- **Effort**: ~30 min for option (b) including the layout adjustment and the regression test.
+- **Priority Reasoning**: Low — adversarial input is unlikely from the current LLM Stage 2 prompt path. Promote to Medium if the prompt is revised to encourage parenthetical citations or if any external archive editor is introduced.
+
+#### DEBT-063: `_render_segment_index` `entry.parents[2]` slicing is fragile to archive restructuring
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (L2)
+- **Reference**: NFR-005 (consistency / readability), NFR-006 (test robustness)
+- **Description**: `src/investo/publisher/site_index.py::_render_segment_index` derives the relative archive path for each entry via `entry.parents[2]` slicing (effectively walking up `archive/<segment>/<YYYY>/<MM>/<YYYY-MM-DD>.md` to extract the segment / year / month). The slice depth `2` is a hard-coded structural assumption: if the archive directory layout ever changes (e.g., flatten to `archive/<segment>/<YYYY-MM-DD>.md`, or deepen with `archive/<segment>/<YYYY>/<MM>/<DD>/...`), the slice silently lands on the wrong directory and the rendered index pages emit broken links. `entry.relative_to(archive_dir)` would compute the relative path explicitly and break loudly if the structure changes.
+- **Suggested Fix**: Replace `entry.parents[2]` with `entry.relative_to(archive_dir)` (where `archive_dir` is the resolved archive root). The relative path then carries the segment / year / month components without requiring knowledge of the depth, and any structural change either still works or raises `ValueError` at first call. Pin with a regression test that asserts the relative-path derivation under the current layout and one fixture-only deepened layout.
+- **Effort**: ~20 min including the switch + regression test.
+- **Priority Reasoning**: Low — works correctly today on the supported archive layout. Promote to Medium when an archive layout change is requested (none in flight).
+
+#### DEBT-062: `_stage_publish_segments` archive-paths absolute / relative branching couples production code to test shape
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (L1)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness)
+- **Description**: `src/investo/orchestrator/pipeline.py::_stage_publish_segments` branches on whether the archive paths supplied by the publisher are absolute or relative. Test fixtures that monkeypatch the publisher to return absolute paths cause the index-page / heatmap / OG-meta / weekly-digest stages to be skipped entirely — the index / heatmap / og / weekly steps only run on the relative-path branch. The branching exists today because the production publisher emits relative paths and the test helper `_patch_publish_segments_relative_paths` exists to coerce monkeypatched returns into the production shape. The fact that production code shape depends on test shape (rather than the test shape adapting to production) is a smell.
+- **Suggested Fix**: Either (a) make `_stage_publish_segments` always normalise archive paths to relative-to-archive-root before the index / heatmap / og / weekly steps, so the branch becomes a single normalisation point and tests no longer need the helper; or (b) push the absolute-path branch into a dedicated path resolver (`archive_paths_for_publish(...) -> Sequence[Path]`) that the orchestrator and tests both call, so the production / test shape collapses to one. Option (a) is the cleaner refactor; option (b) preserves the existing helper but documents it as an officially supported test surface.
+- **Effort**: ~45 min for option (a) including the normalisation step, removal of the test helper, and a regression test that pins the new normalised shape.
+- **Priority Reasoning**: Low — works correctly today on the production path. The test helper exists exactly to bridge the shape difference, so the divergence is visible and bounded. Promote to Medium when the second test surface (or a third stage that also reads archive paths) needs the same helper.
+
+#### DEBT-061: Calendar heatmap dark-mode toggle accuracy mirrors DEBT-049
+
+- **Created**: 2026-05-08
+- **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P3)
+- **Reference**: NFR-005 (consistency / theme parity), FR-003 (static web publishing)
+- **Description**: u29's `src/investo/visuals/calendar_heatmap.py` renders a deterministic SVG that ships with the same dark-mode policy as the u26 visual cards — single SVG with embedded `<style>` carrying `@media (prefers-color-scheme: dark)`. As with DEBT-049, the SVG is referenced from markdown via `<img src="...svg">`, so the `prefers-color-scheme` query sees only the OS-level scheme and the mkdocs Material site-toggle (`data-md-color-scheme="slate"`) is invisible to the embedded heatmap. An OS-light + site-dark reader sees a heatmap rendered against the wrong scheme on `archive/index.md`. This is a cross-reference to DEBT-049, not a separate fix path — closing DEBT-049 by switching to inline `<svg>` + parent-attribute selectors (option (b) in DEBT-049) closes this item simultaneously.
+- **Suggested Fix**: Resolve as part of DEBT-049 — when the visual-card render path moves to inline `<svg>` + `[data-md-color-scheme="slate"]` selectors, apply the same change to `calendar_heatmap.py`. No independent fix path; cross-reference only.
+- **Effort**: ~5 min once DEBT-049 lands, to mirror the change in `calendar_heatmap.py` and add a regression test that pins the heatmap dark-mode shape under a synthesized site-toggle wrapper.
+- **Priority Reasoning**: Low — same trust-degradation surface as DEBT-049 but on a less first-impression page (`archive/index.md`, not the segment briefing page). Resolves automatically when DEBT-049 is fixed.
+
+#### DEBT-051: `WatchlistConfig` does not validate alias value cross-key collisions
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (M1)
+- **Reference**: NFR-005 (consistency / contract integrity), FR-002 (Korean briefing comprehension)
+- **Description**: `WatchlistConfig.aliases` accepts an arbitrary `dict[str, list[str]]` from user config. Today there is no validator that catches the case where an alias *value* collides with a different canonical *key* — e.g., a user who declares `aliases={"BTC": ("ETH",)}` is silently accepted, and any input mentioning `ETH` will be matched and labelled under both the `BTC` and `ETH` canonical entries. Reader-trust degrades because the same input string maps to two unrelated canonical assets in the same callout.
+- **Suggested Fix**: Add a `model_validator(mode="after")` to `WatchlistConfig` that walks every `(canonical, alias_value)` pair and warns (or raises `ValueError` for strict mode) when `alias_value` already appears as a different canonical key in the merged `effective_aliases()` map. Pin with a parametrize test covering (a) clean config, (b) alias matches a different canonical key (rejected), and (c) alias matches the same canonical key (accepted — self-alias is harmless).
+- **Effort**: ~25 min including the validator + parametrize regression test.
+- **Priority Reasoning**: Low — exists today only when a user authors a colliding config by hand; the default core bundle is collision-free by construction. Promote to Medium when watchlist config grows beyond the core bundle (multiple users sharing configs, persona #4 wish-list).
+
+#### DEBT-052: `match_watchlist_items` docstring lacks `partial` / `normal` semantics
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (M2)
+- **Reference**: NFR-005 (consistency / readability), NFR-006 (test robustness)
+- **Description**: `match_watchlist_items` (in `src/investo/briefing/watchlist.py`) explicitly documents the `insufficient` → coverage_hold branch but does not document the `partial` and `normal` branches. A future contributor changing `partial` semantics (e.g., to also suppress the LLM prompt context, mirroring coverage_hold) has no docstring contract to update — the contract lives only in the test fixtures and the call-site behaviour. The asymmetry will become a confusion vector once a fourth status is added.
+- **Suggested Fix**: Extend the `match_watchlist_items` docstring with a "Coverage status semantics" subsection that documents what each `WatchlistImpactStatus` value means for site / LLM / Telegram surfaces. Mirror the structure already used by `summary_quality.py`'s module docstring (producer ↔ gate contract).
+- **Effort**: ~10 min docs-only.
+- **Priority Reasoning**: Low — works correctly today on the observed call paths; this is contract clarification for future edits.
+
+#### DEBT-053: site cap 5 hard-coded in 4 declarations across `watchlist.py` and `cards.py`
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (M4)
+- **Reference**: NFR-005 (consistency / DRY)
+- **Description**: u28 raised the site watchlist match cap to 5 entries, but the value `5` is currently hard-coded in 4 places: `briefing/watchlist.py::_SITE_MAX_RENDERED_MATCHES`, `visuals/cards.py::WatchlistRelevanceCardInput.rows max_length=5`, the slice in `visuals/cards.py::build_watchlist_relevance_card`, and `briefing/watchlist.py::render_watchlist_prompt_context`. The constant exists in `briefing/watchlist.py` but `cards.py` does not import it, so a future cap change (e.g., 5 → 7 once the visual layout is widened) will land cleanly in three call sites and silently drift in the fourth.
+- **Suggested Fix**: Have `cards.py` import `_SITE_MAX_RENDERED_MATCHES` from `briefing/watchlist.py` (or promote the constant to a shared `models/watchlist.py` so both `briefing` and `visuals` import from a foundation layer without crossing unit-to-unit boundaries). Replace the 3 hard-coded `5`s with the imported constant. Pin with a regression test that asserts every cap-using call path resolves to the same constant.
+- **Effort**: ~25 min including the import + regression test.
+- **Priority Reasoning**: Low — works correctly today at cap=5 on every surface; this is structural hardening for future cap edits.
+
+#### DEBT-054: `WatchlistImpact` invariant `matches=()` for coverage_hold / unconfigured not enforced
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (M6)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness)
+- **Description**: `WatchlistImpact` carries `status` and `matches` together. By construction in u28, `status="coverage_hold"` and `status="unconfigured"` always emit `matches=()` — but this is convention only; nothing in `WatchlistImpact.__post_init__` (or pydantic model validator) enforces it. A future call site that constructs a `WatchlistImpact` with `status="coverage_hold"` and a non-empty `matches` tuple would render a misleading "보류" callout that nonetheless lists matches.
+- **Suggested Fix**: Add a `__post_init__` (or `model_validator(mode="after")` if migrating to pydantic) that asserts `matches == ()` when `status in {COVERAGE_HOLD, UNCONFIGURED}`. Raise `ValueError` for explicit construction violations; pin with a parametrize regression test covering each `status` value.
+- **Effort**: ~20 min including the validator + parametrize test.
+- **Priority Reasoning**: Low — every existing call site honours the invariant; this is structural hardening to prevent future contributors from emitting an inconsistent state.
+
+#### DEBT-055: `WatchlistChannel` branching distributed across `watchlist`, `cards`, and `summary`
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (L1)
+- **Reference**: NFR-005 (consistency / DRY), FR-003 (static web publishing), FR-004 (Telegram channel)
+- **Description**: u28 introduced `WatchlistChannel` (SITE / TELEGRAM) but the site/telegram divergence heuristics still live in three modules: `briefing/watchlist.py` (`render_watchlist_prompt_context` + `_SITE_MAX_RENDERED_MATCHES`), `visuals/cards.py` (cap 5 + coverage_hold rendering), and `notifier/summary.py` (cap 3 + coverage_hold prefix strip + unconfigured skip). The channel parameter is the right *shape*, but each module re-derives "what does SITE mean here vs what does TELEGRAM mean here" instead of importing a shared adapter. Adding a fourth surface (e.g., a future RSS / atom feed) would require touching all three modules.
+- **Suggested Fix**: Introduce a `WatchlistChannelAdapter` (in `briefing/watchlist.py` or a new `briefing/watchlist_channels.py`) carrying per-channel config: `max_matches`, `coverage_hold_copy`, `unconfigured_copy`, `suffix_renderer`. Each surface imports the adapter and calls into it rather than re-deriving channel semantics. Pin with a parametrize test that walks every channel through every status value.
+- **Effort**: ~1 h including the adapter + 3-module migration + regression test.
+- **Priority Reasoning**: Low — works correctly today on the two observed channels (SITE, TELEGRAM). Promote to Medium when a third channel is requested or when persona #4 wish-list (multi-watchlist + multi-channel under u33) lands.
+
+#### DEBT-056: short ASCII ticker registration produces no config-load warning
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (L3)
+- **Reference**: NFR-005 (consistency / readability), FR-002 (Korean briefing comprehension)
+- **Description**: u28's `_matches_short_ticker` correctly handles 1-2 character ASCII tickers (case-sensitive raw token matching to avoid false positives like `AI` matching `ai` inside arbitrary words), but `WatchlistConfig` does not surface this to the user at config-load time. A user registering `tickers=["AI", "TS", "GO"]` gets the (correct) restrictive matching behaviour silently — a config-load advisory log line ("⚠️ short ticker 'AI' uses case-sensitive raw matching; consider adding `aliases={'AI': ['Artificial Intelligence']}` for keyword coverage") would help first-time authors understand the trade-off.
+- **Suggested Fix**: Add a `model_validator(mode="after")` to `WatchlistConfig` that iterates `tickers` (and `assets`) and emits an advisory `_logger.warning` for each ≤ 2 ASCII entry. Do not raise — the matching is correct, just narrow. Pin with a regression test that asserts the warning fires for short ticker registration.
+- **Effort**: ~20 min including the validator + log-capture test.
+- **Priority Reasoning**: Low — UX hint only; matching behaviour is correct today. Promote to Medium when a user reports surprise about short-ticker matching in the field.
+
+#### DEBT-057: `WatchlistMatch.matched_alias` exposure semantics not documented
+
+- **Created**: 2026-05-08
+- **Source**: u28 watchlist-usability-foundation QA review (L2)
+- **Reference**: NFR-005 (consistency / readability), NFR-006 (test robustness)
+- **Description**: `WatchlistMatch.matched_alias` carries the alias string that triggered the match (e.g., `엔비디아` for an NVDA ticker registered with the Korean alias). This metadata is used today for audit / log surfaces but is **not** displayed in the user-facing site callout, visual card, or Telegram suffix. The exposure boundary is convention; nothing in the docstring or in `WatchlistMatch` field metadata documents that `matched_alias` should not surface in reader-facing render paths. A future contributor reading `WatchlistMatch` may reasonably surface the alias in markdown as a "matched via 엔비디아" hint, which would shift the reader-facing copy semantics.
+- **Suggested Fix**: Add a docstring note on `WatchlistMatch.matched_alias` documenting the audit/log-only exposure semantics, with a brief rationale ("user-facing callout names the canonical entry, not the alias path"). Pair with a regression test that asserts the rendered site / visual / Telegram surfaces never include a `matched_alias` value verbatim.
+- **Effort**: ~15 min including docstring + regression test.
+- **Priority Reasoning**: Low — convention is honoured today; this is contract clarification for future edits.
+
+#### DEBT-050: `scripts/backfill_2026_05_06_visuals.py` retirement / generalisation path
+
+- **Created**: 2026-05-08
+- **Source**: u26 visual-delivery-integrity QA review (M4)
+- **Reference**: NFR-005 (consistency / DRY), NFR-006 (test robustness)
+- **Description**: u26 added `scripts/backfill_2026_05_06_visuals.py` as a one-shot curated backfill specific to the 2026-05-06 segmented archive entries. The script hard-codes the `2026-05-06` target date, the three card types active at that date (data-confidence / market-snapshot / watchlist-relevance), and the specific truncated quote-block lines that needed repair (`> **주의할 점**: 1.` and `> **핵심 동인**: **입법 가속화 vs.`). Reusing the script for any other date or any other truncation pattern would require code changes. Carrying it forward indefinitely creates a stale-script footprint and obscures the fact that the supported call path is `assets.insert_visual_links` on a fresh segmented publish.
+- **Suggested Fix**: Either (a) delete the script around 2026-08, after the 2026-05-06 archive has aged out of the "latest" view and any reader returning to it has had several months to do so — keep the rendered assets in `archive/`, drop the script from `scripts/` — or (b) generalise into a reusable `backfill_visuals(target_date: date, segments: Sequence[str], quote_repairs: Mapping[str, str] = {}) -> BackfillReport` helper if a second backfill request appears, with parametrize tests covering at least two target dates. Option (a) is the default; option (b) is a contingency.
+- **Effort**: ~5 min for option (a) (single-file delete + plan note). Option (b) ~1 h including the parametrize fixture for a second target date.
+- **Priority Reasoning**: Low — the script is correct, idempotent against its target, and produced the intended 2026-05-06 artefacts. The cost of leaving it in place is purely cognitive (a future contributor reading `scripts/` may mistake it for a supported tool). Promote to Medium only if a second backfill request appears, since at that point option (b) becomes the right shape and the one-shot script becomes anti-pattern.
+
+#### DEBT-048: `summary_quality._NUMBER_DOT_ONLY_RE` is a proper subset of `_LIST_MARKER_ONLY_RE`
+
+- **Created**: 2026-05-08
+- **Source**: u25 summary-fidelity-and-content-trust QA review (M4)
+- **Reference**: NFR-005 (consistency / readability), NFR-006 (test robustness)
+- **Description**: `src/investo/briefing/summary_quality.py::_NUMBER_DOT_ONLY_RE` matches the marker-only `^\d+\.$` shape, while `_LIST_MARKER_ONLY_RE` matches `^([-*]|\d+\.)\s*$` — the marker-only number is already covered by the list-marker constant. The redundant `_NUMBER_DOT_ONLY_RE` was retained intentionally for grep-ability ("which regex blocks `1.`?") at the cost of a dead constant in the reject pipeline. Tests still pass because `_LIST_MARKER_ONLY_RE` always fires first. This is dead code in the strict sense and a small readability vs. discoverability trade-off.
+- **Suggested Fix**: Either (a) drop `_NUMBER_DOT_ONLY_RE` and add a `# covers ^\d+\.$ for marker-only summaries` comment to the `_LIST_MARKER_ONLY_RE` declaration so a future grep for "marker-only number" still lands on the right line, or (b) keep both but document the redundancy in the module docstring contract section so reviewers understand the duplication is intentional.
+- **Effort**: ~10 min for option (a) including a parametrize test that pins `1.` rejection through `_LIST_MARKER_ONLY_RE`.
+- **Priority Reasoning**: Low — purely a readability/maintainability issue with no behavioural impact today and no risk of regression (both constants reject the same shape).
+
+#### DEBT-044: `_QUERY_REDACT_RE` over-redacts URL query strings under URL_AWARE callers
+
+- **Created**: 2026-05-08
+- **Source**: u27 secret-hygiene-unification-and-cost-guard QA review (M3)
+- **Reference**: NFR-005 (consistency / explicit policy semantics), NFR-007 (R8 / R13 — secret hygiene), FR-002 (Korean briefing comprehension)
+- **Description**: `src/investo/_internal/redaction.py::_QUERY_REDACT_RE` aggressively redacts URL query strings inside the `redact_text` chokepoint regardless of policy. Today the only `URL_AWARE` caller is `briefing.leak_guard.scan` via `scan_for_leak`, which does not invoke `redact_text`, so the over-redaction is **latent**. The risk surfaces the moment a future caller adopts `redact_text(..., policy=URL_AWARE)` for a markdown-excerpt rendering — every `https://example.com/path?utm_source=x` would lose its query string even though the query carried no secret. Reader-facing trust degrades silently when the rendered URL becomes lossy.
+- **Suggested Fix**: Either (a) gate `_QUERY_REDACT_RE` on `policy == STRICT` so URL_AWARE callers only run the canonical secret patterns, or (b) keep the current behavior and document the caveat in the URL_AWARE docstring with a `# query-redact applies to URL_AWARE callers — pick STRICT only if your surface needs to preserve URL query strings` comment, plus a regression test pinning the URL_AWARE behavior so a future contributor explicitly sees the policy difference.
+- **Effort**: ~25 min for option (a) including a parametrize test that pins STRICT vs URL_AWARE query-handling. Option (b) ~10 min docs-only.
+- **Priority Reasoning**: Low — latent today (no `redact_text(URL_AWARE)` caller exists). Promote to Medium when the first markdown-excerpt URL_AWARE consumer lands, since the over-redaction degrades reader trust without raising any test failure.
+
+#### DEBT-045: `_LONG_BASE64_RE` does not include URL-safe base64 characters
+
+- **Created**: 2026-05-08
+- **Source**: u27 secret-hygiene-unification-and-cost-guard QA review (M4)
+- **Reference**: NFR-007 (R13 — no secret values in logs / errors / raw_metadata / fixtures)
+- **Description**: `src/investo/_internal/redaction.py::_LONG_BASE64_RE` matches `[A-Za-z0-9+/]{40,}={0,2}` — the standard base64 alphabet only. Slack `xoxb-...` bot tokens, some shapes of GitHub fine-grained PATs, and other URL-safe oauth tokens use the URL-safe base64 alphabet (`-` and `_` instead of `+` and `/`) and slip the generic high-entropy catch-all. The shape-specific patterns earlier in `SECRET_PATTERNS` (JWT, GitHub `ghp_` / `github_pat_`, OpenAI `sk-...`) cover the most common cases, but a Slack incoming-webhook `xoxb-1234-...-...` payload can still reach a redacted-by-shape-only surface unredacted by the catch-all. The single-chokepoint architecture means the gap exists at exactly one place; recalibrating one regex closes it everywhere.
+- **Suggested Fix**: Extend `_LONG_BASE64_RE` to `[A-Za-z0-9+/_-]{40,}={0,2}` and re-run the URL_AWARE false-positive surface (segment markdown excerpt) — adding `-` and `_` to the alphabet may match more legitimate URL fragments, so the regression test must validate that the existing URL_AWARE leak-guard scan still passes on the canonical positive/negative samples (existing `tests/unit/_internal/test_redaction.py` cases). If the false-positive surface widens unacceptably, narrow the catch-all by raising the length floor (e.g., 48 chars) or by requiring at least one `-` or `_` to bias toward URL-safe payloads only.
+- **Effort**: ~20 min including the regex change + URL_AWARE false-positive recalibration tests.
+- **Priority Reasoning**: Low — the JWT / GitHub PAT / OpenAI shape-specific patterns already cover the highest-likelihood operator-key shapes Investo touches (Telegram, FRED, OpenAI). Slack-shaped tokens are not part of Investo's secret surface today. Promote to Medium when a Slack-shaped or other URL-safe-base64 secret enters the project's env-var set.
+
 #### DEBT-043: External image fetch builder bypass risk in `VisualProvenanceManifest`
 
 - **Created**: 2026-05-07
@@ -74,29 +292,6 @@ _No high priority items._
 - **Suggested Fix**: Either (a) add a `model_validator(mode="after")` that asserts every string-typed user-/operator-derived field went through `sanitize_provenance_text` (e.g., by re-running it and comparing), or (b) document the rule in a docstring on `VisualProvenanceManifest` and add a test that walks all string-typed fields via `model_fields` and pins each one through `sanitize_provenance_text`. Option (b) is cheaper and equally robust.
 - **Effort**: ~20 min for option (b).
 - **Priority Reasoning**: Low — `model_validate` bypass is contract-only today (no caller exists), and the existing tuple-form `field_validator` covers every current field. The threat is field-set growth, not current behaviour.
-
-#### DEBT-035: Bot-token / chat-id redaction regex duplicated across `__main__` and `models/coverage`
-
-- **Created**: 2026-05-07
-- **Source**: u22 source-coverage-transparency QA review (L1)
-- **Reference**: NFR-007 (R13 — no secret values in logs / errors / raw_metadata / fixtures), NFR-005 (DRY constants across module boundaries)
-- **Description**: Two redaction regexes for the bot-token / chat-id shape live in two places with **non-identical** patterns:
-  - `src/investo/__main__.py::_redact_diagnostic_text` uses `\b\d{6,}:[A-Za-z0-9_-]{20,}\b`.
-  - `src/investo/models/coverage.py::sanitize_source_error_message` uses `(?<![\d:])\d{6,}:[A-Za-z0-9_-]{20,}(?![\w-])`.
-  The patterns differ on word-boundary handling (lookaround vs `\b`), so a borderline payload could be redacted by one site and not the other. Both layers exist in the public output path (Step Summary diagnostics + reader-facing source coverage), so silent drift on the redaction shape directly threatens R13.
-- **Suggested Fix**: Extract a shared helper module (e.g. `src/investo/_internal/redaction.py`) exporting `BOT_TOKEN_PATTERN`, `CHAT_ID_PATTERN`, and a `redact_secret_shapes(text: str) -> str` function. Both `__main__._redact_diagnostic_text` and `sanitize_source_error_message` call it. Pin the patterns in one place with regression tests for both call sites.
-- **Effort**: ~30 min including the shared module + 2 call-site updates + tests.
-- **Priority Reasoning**: Low — both patterns work correctly today on the observed shapes; the threat is pattern drift across future edits. Cheap to consolidate before another redaction site lands.
-
-#### DEBT-036: `_SECRET_ENV_VARS` set is wider than the `__main__._redact_diagnostic_text` literal list
-
-- **Created**: 2026-05-07
-- **Source**: u22 source-coverage-transparency QA review (L2)
-- **Reference**: NFR-007 (R13 — secret hygiene), NFR-005 (consistency)
-- **Description**: `_SECRET_ENV_VARS` covers 6 env vars (the canonical secret list), but `__main__._redact_diagnostic_text`'s in-line redacted-name set covers only 4. When a future contributor adds a new secret env var (e.g. an additional Telegram channel token, a new GH PAT), they may register it in `_SECRET_ENV_VARS` and forget to add it to `_redact_diagnostic_text`'s literal list, leaving Step Summary output exposed.
-- **Suggested Fix**: Make `_redact_diagnostic_text` iterate over `_SECRET_ENV_VARS` (or a curated subset) at runtime instead of a hard-coded literal list. Single source of truth for "names whose values must be scrubbed."
-- **Effort**: ~15 min including a regression test that adds a synthetic env var to `_SECRET_ENV_VARS` and asserts redaction.
-- **Priority Reasoning**: Low — current 6-vs-4 set is intentional today, but the duplication is a foot-gun for new-secret onboarding.
 
 #### DEBT-037: `_render_source_rows` silently truncates after 4 rows in SVG only
 
@@ -131,6 +326,33 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-035: Bot-token / chat-id redaction regex duplicated across `__main__` and `models/coverage`
+
+- **Created**: 2026-05-07
+- **Resolved**: 2026-05-08 — Extracted into `src/investo/_internal/redaction.py` (u27). Both `__main__._redact_diagnostic_text` and `models.coverage.sanitize_source_error_message` now delegate to `redact_text(..., policy=RedactionPolicy.STRICT)`; the bot-token / chat-id regexes live in a single `SECRET_PATTERNS` tuple and cannot drift. Pinned by `tests/unit/_internal/test_redaction.py::TestSingleSourceOfTruth::test_main_redaction_does_not_carry_local_regex_module` (scans `__main__.py` for any reintroduced `re.compile` with a bot-token-shaped literal).
+- **Source**: u22 source-coverage-transparency QA review (L1)
+- **Reference**: NFR-007 (R13 — no secret values in logs / errors / raw_metadata / fixtures), NFR-005 (DRY constants across module boundaries)
+- **Description**: Two redaction regexes for the bot-token / chat-id shape lived in two places with **non-identical** patterns:
+  - `src/investo/__main__.py::_redact_diagnostic_text` used `\b\d{6,}:[A-Za-z0-9_-]{20,}\b`.
+  - `src/investo/models/coverage.py::sanitize_source_error_message` used `(?<![\d:])\d{6,}:[A-Za-z0-9_-]{20,}(?![\w-])`.
+  The patterns differed on word-boundary handling (lookaround vs `\b`), so a borderline payload could be redacted by one site and not the other.
+
+#### DEBT-036: `_SECRET_ENV_VARS` set is wider than the `__main__._redact_diagnostic_text` literal list
+
+- **Created**: 2026-05-07
+- **Resolved**: 2026-05-08 — Replaced `__main__`'s 4-name literal list with `redact_text` (u27 chokepoint), which iterates the project-wide `SECRET_ENV_VARS` tuple (6 names including `OPENAI_API_KEY` and `FRED_API_KEY`). New env vars onboarded via the chokepoint propagate to every redaction surface automatically. Pinned by `tests/unit/_internal/test_redaction.py::TestSingleSourceOfTruth::test_secret_env_vars_covers_known_secrets`.
+- **Source**: u22 source-coverage-transparency QA review (L2)
+- **Reference**: NFR-007 (R13 — secret hygiene), NFR-005 (consistency)
+- **Description**: `_SECRET_ENV_VARS` (in `models/coverage.py`) covered 6 env vars, but `__main__._redact_diagnostic_text`'s in-line redacted-name set covered only 4. New secrets risked landing in `_SECRET_ENV_VARS` without the matching update to `_redact_diagnostic_text`, leaving Step Summary output exposed.
+
+#### DEBT-042: Sanitizer policy unification across coverage / provenance / leak-guard
+
+- **Created**: 2026-05-07
+- **Resolved**: 2026-05-08 — `src/investo/_internal/redaction.py` (u27) is the single sanitizer chokepoint. The four call sites (`__main__._redact_diagnostic_text`, `models.coverage.sanitize_source_error_message`, `visuals.provenance.sanitize_provenance_text`, `briefing.leak_guard.scan`) all delegate to `redact_text` (STRICT) or `scan_for_leak` (URL_AWARE precedence) — a single named-policy enum (`RedactionPolicy.STRICT` vs `URL_AWARE`) makes the (small, intentional) policy difference explicit. Adding a fifth surface picks one of the two entry points and inherits the full pattern set automatically. Pinned by `tests/unit/_internal/test_redaction.py::TestSurfacesShareChokepoint` which cross-tests every canonical secret shape against every surface.
+- **Source**: u24 visual-provenance-and-layout QA review (L2)
+- **Reference**: NFR-005 (consistency across symmetric components), NFR-007 (R8 / R13 — secret hygiene)
+- **Description**: `sanitize_source_error_message` (from u22) had 3 call-site locations — coverage badge, visual provenance sanitizer, and `__main__._redact_diagnostic_text`. On top of those, `briefing.leak_guard` carried its own pattern set. Pattern drift across these 4 sites threatened R13 secret hygiene as new surfaces and patterns landed.
 
 #### DEBT-024: `astral-sh/setup-uv@v3` not pinned to a SHA in either workflow
 

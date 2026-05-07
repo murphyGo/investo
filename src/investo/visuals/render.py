@@ -21,6 +21,36 @@ _DISCLAIMER = "정보 제공용 시황 카드"
 _MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE = re.compile(r"[*_`>#]")
 _LEADING_LIST_RE = re.compile(r"^\s*(?:[-*]|\d+[.)])\s+")
+# u26: align SVG card typography with the public mkdocs site (Noto Sans
+# KR). Arial / sans-serif fallbacks keep CI / offline rendering legible
+# when the web font is unavailable.
+_FONT_FAMILY: Final[str] = "&quot;Noto Sans KR&quot;, Arial, sans-serif"
+# Embedded ``<style>`` block — drives the dark-mode variant via
+# ``prefers-color-scheme`` so the same SVG is legible on both the light
+# and dark mkdocs themes (u26 Step 3, persona #2). Element classes are
+# applied below in :func:`_svg_document`.
+_CARD_STYLE: Final[str] = (
+    "<style>"
+    ".card-bg{fill:#f7f5ef;}"
+    ".card-frame{fill:#ffffff;stroke:#253238;}"
+    ".card-title{fill:#1d2b2f;}"
+    ".card-subtitle{fill:#617176;}"
+    ".card-label{fill:#476169;}"
+    ".card-emphasis{fill:#14555f;}"
+    ".card-text{fill:#1d2b2f;}"
+    ".card-disclaimer{fill:#7b5e2a;}"
+    "@media (prefers-color-scheme: dark){"
+    ".card-bg{fill:#0f1417;}"
+    ".card-frame{fill:#1a2026;stroke:#9fb1ba;}"
+    ".card-title{fill:#f4f6f8;}"
+    ".card-subtitle{fill:#bfcdd4;}"
+    ".card-label{fill:#a8c0c8;}"
+    ".card-emphasis{fill:#7adfe8;}"
+    ".card-text{fill:#e8eef1;}"
+    ".card-disclaimer{fill:#e2c489;}"
+    "}"
+    "</style>"
+)
 
 
 def render_card_svg(
@@ -111,8 +141,8 @@ def _render_source_rows(rows: tuple[DataConfidenceSourceRow, ...]) -> str:
     visible = rows[:4]
     rendered: list[str] = []
     rendered.append(
-        '<text x="620" y="200" font-family="Arial, sans-serif" font-size="22" '
-        'font-weight="700" fill="#476169">소스별 상태</text>'
+        f'<text class="card-label" x="620" y="200" font-family="{_FONT_FAMILY}" '
+        f'font-size="22" font-weight="700">소스별 상태</text>'
     )
     for index, row in enumerate(visible):
         label = _escape(_clean_visual_text(row.source_name))
@@ -122,12 +152,12 @@ def _render_source_rows(rows: tuple[DataConfidenceSourceRow, ...]) -> str:
         value_lines = wrap_visual_text(value, max_chars=44, max_lines=1)
         y = 240 + index * 60
         rendered.append(
-            f'<text x="620" y="{y}" font-family="Arial, sans-serif" font-size="20" '
-            f'font-weight="700" fill="#14555f">{label}</text>'
+            f'<text class="card-emphasis" x="620" y="{y}" font-family="{_FONT_FAMILY}" '
+            f'font-size="20" font-weight="700">{label}</text>'
         )
         rendered.append(
-            f'<text x="620" y="{y + 26}" font-family="Arial, sans-serif" font-size="18" '
-            f'fill="#1d2b2f">{_escape(value_lines[0])}</text>'
+            f'<text class="card-text" x="620" y="{y + 26}" font-family="{_FONT_FAMILY}" '
+            f'font-size="18">{_escape(value_lines[0])}</text>'
         )
     return "\n".join(rendered)
 
@@ -191,16 +221,17 @@ def _svg_document(*, title: str, subtitle: str, body: str) -> str:
         [
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{SVG_WIDTH}" height="{SVG_HEIGHT}" '
             f'viewBox="0 0 {SVG_WIDTH} {SVG_HEIGHT}" role="img" aria-label="{safe_title}">',
-            '<rect width="1200" height="630" fill="#f7f5ef"/>',
-            '<rect x="40" y="40" width="1120" height="550" rx="8" fill="#ffffff" '
-            'stroke="#253238" stroke-width="3"/>',
-            f'<text x="80" y="118" font-family="Arial, sans-serif" font-size="48" '
-            f'font-weight="700" fill="#1d2b2f">{safe_title}</text>',
-            f'<text x="80" y="158" font-family="Arial, sans-serif" font-size="24" '
-            f'fill="#617176">{safe_subtitle}</text>',
+            _CARD_STYLE,
+            '<rect class="card-bg" width="1200" height="630"/>',
+            '<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" '
+            'stroke-width="3"/>',
+            f'<text class="card-title" x="80" y="118" font-family="{_FONT_FAMILY}" '
+            f'font-size="48" font-weight="700">{safe_title}</text>',
+            f'<text class="card-subtitle" x="80" y="158" font-family="{_FONT_FAMILY}" '
+            f'font-size="24">{safe_subtitle}</text>',
             body,
-            f'<text x="80" y="555" font-family="Arial, sans-serif" font-size="22" '
-            f'fill="#7b5e2a">{_DISCLAIMER}</text>',
+            f'<text class="card-disclaimer" x="80" y="555" font-family="{_FONT_FAMILY}" '
+            f'font-size="22">{_DISCLAIMER}</text>',
             "</svg>",
         ]
     )
@@ -218,14 +249,14 @@ def _metric_rows(rows: list[tuple[str, str]]) -> str:
 def _text_block(label: str, text: str, *, y: int) -> str:
     lines = wrap_visual_text(text, max_chars=58, max_lines=2)
     rendered = [
-        f'<text x="80" y="{y}" font-family="Arial, sans-serif" font-size="24" '
-        f'font-weight="700" fill="#476169">{_escape(label)}</text>'
+        f'<text class="card-label" x="80" y="{y}" font-family="{_FONT_FAMILY}" '
+        f'font-size="24" font-weight="700">{_escape(label)}</text>'
     ]
     text_y = y + 40
     for line in lines:
         rendered.append(
-            f'<text x="80" y="{text_y}" font-family="Arial, sans-serif" '
-            f'font-size="32" fill="#1d2b2f">{_escape(line)}</text>'
+            f'<text class="card-text" x="80" y="{text_y}" font-family="{_FONT_FAMILY}" '
+            f'font-size="32">{_escape(line)}</text>'
         )
         text_y += 38
     return "\n".join(rendered)
@@ -236,10 +267,10 @@ def _row_line(label: str, value: str, *, y: int) -> str:
     value_lines = wrap_visual_text(value, max_chars=64, max_lines=1)
     return "\n".join(
         [
-            f'<text x="90" y="{y}" font-family="Arial, sans-serif" font-size="30" '
-            f'font-weight="700" fill="#14555f">{label_text}</text>',
-            f'<text x="310" y="{y}" font-family="Arial, sans-serif" font-size="30" '
-            f'fill="#1d2b2f">{_escape(value_lines[0])}</text>',
+            f'<text class="card-emphasis" x="90" y="{y}" font-family="{_FONT_FAMILY}" '
+            f'font-size="30" font-weight="700">{label_text}</text>',
+            f'<text class="card-text" x="310" y="{y}" font-family="{_FONT_FAMILY}" '
+            f'font-size="30">{_escape(value_lines[0])}</text>',
         ]
     )
 

@@ -341,6 +341,89 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
 
 
 @pytest.mark.asyncio
+async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_svgs(
+    archive_root: Path,
+) -> None:
+    """u26 Step 1 — pin the segmented publish path's visual delivery contract.
+
+    Persona #2 (2026-05-07): u24 closed but the 2026-05-06 archive carried
+    no SVGs and no ``![](...)`` references. This test exercises the real
+    segmented pipeline (no monkeypatched visuals) and pins:
+
+    1. ``insert_visual_links`` ran — every segment markdown contains at
+       least one ``![label](2026-MM-DD.assets/...)`` reference.
+    2. SVG cards landed beside the markdown — ``data-confidence.svg`` /
+       ``market-snapshot.svg`` / ``watchlist-relevance.svg`` exist with
+       their JSON manifests.
+    3. The publish stage forwarded the staged asset paths to git so the
+       commit picks them up alongside the markdown.
+
+    A regression that drops any of (1)/(2)/(3) — e.g., an early-return in
+    ``_stage_prepare_segment_visual_assets`` or a refactor that keeps the
+    files but forgets ``insert_visual_links`` — fails this test.
+    """
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    items = [
+        NormalizedItem(
+            source_name="yonhap-market",
+            category="news",
+            title="코스피 상승 [005930]",
+            published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+        ),
+        NormalizedItem(
+            source_name="yfinance-price",
+            category="price",
+            title="AAPL closes higher",
+            published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+        ),
+        NormalizedItem(
+            source_name="coingecko-price",
+            category="price",
+            title="Bitcoin rises",
+            published_at=datetime(2026, 4, 27, 12, 2, tzinfo=UTC),
+        ),
+    ]
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch(items),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert result.stages.get("visual_assets", "").startswith("ok:")
+    iso = _TARGET.isoformat()
+    rel_prefix = f"{iso}.assets/"
+    for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
+        markdown_path = archive_root / segment / "2026" / "04" / f"{iso}.md"
+        assert markdown_path.exists()
+        body = markdown_path.read_text(encoding="utf-8")
+        # (1) Markdown image references for every staged SVG card.
+        assert f"![데이터 신뢰도]({rel_prefix}data-confidence.svg)" in body
+        assert f"![시장 스냅샷]({rel_prefix}market-snapshot.svg)" in body
+        assert f"![관심 자산 관련성]({rel_prefix}watchlist-relevance.svg)" in body
+        # (2) SVG assets + manifests land beside the markdown.
+        assets_dir = markdown_path.with_suffix(".assets")
+        for kind in ("data-confidence", "market-snapshot", "watchlist-relevance"):
+            asset = assets_dir / f"{kind}.svg"
+            manifest = assets_dir / f"{kind}.svg.json"
+            assert asset.exists(), f"missing asset: {asset}"
+            assert manifest.exists(), f"missing manifest: {manifest}"
+    # (3) git ``add`` picks up at least one ``.svg`` so the commit
+    # publishes the cards alongside the markdown.
+    add_call = next(call for call in git.calls if call[1] == "add")
+    assert any(arg.endswith(".svg") for arg in add_call), (
+        f"expected at least one SVG in git add; got {add_call!r}"
+    )
+
+
+@pytest.mark.asyncio
 async def test_run_pipeline_visual_asset_failure_publishes_text_only_partial(
     archive_root: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -494,6 +577,13 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
     assert publisher.calls == []
     assert git.calls == []
     assert not list(archive_root.rglob("*.md"))
+    # u29 QA M1 regression — visual asset SVGs staged via ``asset_paths``
+    # before the validate gate must be rolled back when SummaryQualityError
+    # fires. Pre-fix the rollback only ran for PublisherDisclaimerError,
+    # leaving orphan SVGs under ``archive_root/{segment}/.../*.assets/``.
+    # The corresponding ``*.svg.json`` manifests live alongside but are
+    # not enumerated in ``asset_paths`` (separate TECH-DEBT, not M1 scope).
+    assert not list(archive_root.rglob("*.svg"))
 
 
 @pytest.mark.asyncio
@@ -564,9 +654,33 @@ async def test_stage_publish_segments_stages_latest_index_pages(
         assert segment is not None
         return fake_archive_path(target_date, segment=segment)
 
-    def fake_update_latest_index_pages(target_date: date) -> tuple[Path, ...]:
+    def fake_update_latest_index_pages(
+        target_date: date,
+        *,
+        segment_briefings: dict[MarketSegment, Briefing] | None = None,
+        heatmap_svg: str | None = None,
+    ) -> tuple[Path, ...]:
         assert target_date == _TARGET
+        # u29 site-discovery-v2 — orchestrator now threads the segmented
+        # briefings AND a precomputed heatmap SVG into the index update so
+        # the hero block + Archive heatmap both refresh atomically with
+        # the segmented archive write.
+        assert segment_briefings is not None
+        assert set(segment_briefings.keys()) == {DOMESTIC_EQUITY, US_EQUITY, CRYPTO}
+        assert heatmap_svg is not None and heatmap_svg.startswith("<svg")
         return index_paths
+
+    def fake_build_heatmap(target_date: date) -> str:
+        assert target_date == _TARGET
+        return "<svg/>"
+
+    def fake_write_og_card(
+        target_date: date,
+        briefings: dict[MarketSegment, Briefing],
+    ) -> Path:
+        assert target_date == _TARGET
+        assert set(briefings.keys()) == {DOMESTIC_EQUITY, US_EQUITY, CRYPTO}
+        return Path("site_docs/assets/og-card.svg")
 
     monkeypatch.setattr(pipeline_module, "compute_archive_path", fake_archive_path)
     monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
@@ -575,6 +689,8 @@ async def test_stage_publish_segments_stages_latest_index_pages(
         "update_latest_index_pages",
         fake_update_latest_index_pages,
     )
+    monkeypatch.setattr(pipeline_module, "_build_publish_heatmap_svg", fake_build_heatmap)
+    monkeypatch.setattr(pipeline_module, "write_og_card", fake_write_og_card)
     monkeypatch.setattr(pipeline_module, "_read_existing_bytes", lambda path: b"previous")
 
     await pipeline_module._stage_publish_segments(
@@ -589,6 +705,8 @@ async def test_stage_publish_segments_stages_latest_index_pages(
 
     assert any("site_docs/index.md" in call for call in git.calls)
     assert any("archive/index.md" in call for call in git.calls)
+    # u29 OG card path is staged with the same commit.
+    assert any("site_docs/assets/og-card.svg" in call for call in git.calls)
 
 
 @pytest.mark.asyncio
@@ -1444,3 +1562,211 @@ async def test_run_pipeline_duration_seconds_set_on_success(archive_root: Path) 
     # Duration is at least the sum of per-stage timings (loose bound;
     # bookkeeping overhead may add a tiny gap).
     assert result.duration_seconds >= sum(result.stage_timings.values()) - 0.1
+
+
+# ---------------------------------------------------------------------------
+# u29 QA M3 — weekly digest opt-in is the only switch that flips the
+# orchestrator into Saturday-cron mode. These tests pin the contract so a
+# refactor that changes the env-var name or drops the gate is caught.
+# ---------------------------------------------------------------------------
+
+
+def _segment_briefings_dict() -> dict[MarketSegment, Briefing]:
+    return {
+        DOMESTIC_EQUITY: _briefing(),
+        US_EQUITY: _briefing(),
+        CRYPTO: _briefing(),
+    }
+
+
+def _patch_publish_segments_relative_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    tmp_path: Path,
+    weekly_calls: list[date] | None = None,
+    weekly_index_calls: list[None] | None = None,
+    weekly_raises: BaseException | None = None,
+) -> None:
+    """Patch the absolute-path branch off so weekly publish runs in tests.
+
+    ``_stage_publish_segments`` only runs the index/heatmap/og/weekly
+    code path when every archive path is *relative* (cwd-relative — the
+    production cwd is the repo root). The unit-test fixture's
+    ``ARCHIVE_ROOT`` monkeypatch produces absolute paths under
+    ``tmp_path``, so this helper substitutes ``write_briefing`` /
+    ``compute_archive_path`` with relative-path returns to enter the
+    branch and stubs all the side-effect helpers.
+
+    ``tmp_path`` is required because ``_rollback_paths`` calls
+    ``Path.unlink(missing_ok=True)`` on every snapshot path. With
+    ``_read_existing_bytes`` stubbed to ``None``, those unlinks resolve
+    against the test process cwd — historically the repo root, where
+    they would silently delete the real ``site_docs/index.md`` and
+    ``archive/**/index.md`` files. Chdir-ing into ``tmp_path`` keeps
+    the rollback's filesystem effects scoped to the per-test scratch
+    directory.
+    """
+    monkeypatch.chdir(tmp_path)
+    rel_dir = Path("archive")
+
+    def fake_archive_path(target_date: date, *, segment: MarketSegment | None = None) -> Path:
+        assert segment is not None
+        return rel_dir / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
+
+    def fake_write_briefing(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert segment is not None
+        return fake_archive_path(target_date, segment=segment)
+
+    monkeypatch.setattr(pipeline_module, "compute_archive_path", fake_archive_path)
+    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+    monkeypatch.setattr(
+        pipeline_module,
+        "update_latest_index_pages",
+        lambda *args, **kwargs: (Path("site_docs/index.md"),),
+    )
+    monkeypatch.setattr(pipeline_module, "_build_publish_heatmap_svg", lambda _date: "<svg/>")
+    monkeypatch.setattr(
+        pipeline_module,
+        "write_og_card",
+        lambda *args, **kwargs: Path("site_docs/assets/og-card.svg"),
+    )
+    monkeypatch.setattr(pipeline_module, "_read_existing_bytes", lambda path: None)
+
+    def fake_publish_weekly_digest(target_date: date) -> Path:
+        if weekly_raises is not None:
+            raise weekly_raises
+        if weekly_calls is not None:
+            weekly_calls.append(target_date)
+        return Path("archive/weekly/fake.md")
+
+    def fake_update_weekly_index() -> Path:
+        if weekly_index_calls is not None:
+            weekly_index_calls.append(None)
+        return Path("archive/weekly/index.md")
+
+    monkeypatch.setattr(pipeline_module, "publish_weekly_digest", fake_publish_weekly_digest)
+    monkeypatch.setattr(pipeline_module, "update_weekly_index", fake_update_weekly_index)
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_invokes_weekly_digest_when_opt_in_set(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """``INVESTO_PUBLISH_WEEKLY=1`` → ``publish_weekly_digest`` invoked
+    once + ``update_weekly_index`` invoked once for the segmented run.
+
+    Pins the Saturday cron contract: the orchestrator only calls the
+    weekly retrospective publisher when the GHA workflow has set the
+    opt-in flag (mirrors ``aidlc-docs/.../u29`` design).
+    """
+    monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
+    weekly_calls: list[date] = []
+    weekly_index_calls: list[None] = []
+    _patch_publish_segments_relative_paths(
+        monkeypatch,
+        tmp_path=tmp_path,
+        weekly_calls=weekly_calls,
+        weekly_index_calls=weekly_index_calls,
+    )
+
+    git = _SuccessfulGitRunner()
+    await pipeline_module._stage_publish_segments(
+        _segment_briefings_dict(),
+        _TARGET,
+        git_runner=git,
+    )
+
+    assert weekly_calls == [_TARGET]
+    assert len(weekly_index_calls) == 1
+    # The weekly markdown + index path should be staged in the same
+    # ``git add`` call as the segmented archive.
+    add_call = next(call for call in git.calls if len(call) > 1 and call[1] == "add")
+    assert any("weekly/fake.md" in arg for arg in add_call)
+    assert any("weekly/index.md" in arg for arg in add_call)
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_skips_weekly_digest_when_opt_in_unset(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """No ``INVESTO_PUBLISH_WEEKLY`` env-var → weekly digest NOT invoked
+    on a Mon-Fri cron path. Confirms the segmented happy-path does not
+    accidentally double-publish when the opt-in is absent.
+    """
+    monkeypatch.delenv("INVESTO_PUBLISH_WEEKLY", raising=False)
+    weekly_calls: list[date] = []
+    _patch_publish_segments_relative_paths(
+        monkeypatch, tmp_path=tmp_path, weekly_calls=weekly_calls
+    )
+
+    await pipeline_module._stage_publish_segments(
+        _segment_briefings_dict(),
+        _TARGET,
+        git_runner=_SuccessfulGitRunner(),
+    )
+
+    assert weekly_calls == []
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_skips_weekly_digest_when_opt_in_zero(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """``INVESTO_PUBLISH_WEEKLY=0`` is treated as opt-out (only ``1`` opts in)."""
+    monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "0")
+    weekly_calls: list[date] = []
+    _patch_publish_segments_relative_paths(
+        monkeypatch, tmp_path=tmp_path, weekly_calls=weekly_calls
+    )
+
+    await pipeline_module._stage_publish_segments(
+        _segment_briefings_dict(),
+        _TARGET,
+        git_runner=_SuccessfulGitRunner(),
+    )
+
+    assert weekly_calls == []
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_weekly_digest_failure_rolls_back_and_fails(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """When ``INVESTO_PUBLISH_WEEKLY=1`` and the weekly publisher raises
+    a ``PublisherDisclaimerError`` (NFR-004), the orchestrator's
+    publish-stage catch routes to FAILED + alert. The publish-stage
+    try-block already covers the weekly call, so the segmented publish
+    that succeeded is NOT promoted — confirms failure isolation per the
+    M3 brief. Routes the failure through ``_stage_publish_segments``
+    directly so the weekly call's relative-path branch executes.
+    """
+    from investo.publisher.errors import PublisherDisclaimerError
+
+    monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
+    _patch_publish_segments_relative_paths(
+        monkeypatch,
+        tmp_path=tmp_path,
+        weekly_raises=PublisherDisclaimerError(target_date=_TARGET),
+    )
+
+    git = _SuccessfulGitRunner()
+    with pytest.raises(PublisherDisclaimerError):
+        await pipeline_module._stage_publish_segments(
+            _segment_briefings_dict(),
+            _TARGET,
+            git_runner=git,
+        )
+
+    # No git commit happened — the failure short-circuited before
+    # ``commit_and_push`` was reached.
+    assert git.calls == []

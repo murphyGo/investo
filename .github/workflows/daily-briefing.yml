@@ -140,6 +140,13 @@ jobs:
           TELEGRAM_BRIEFING_CHANNEL_ID: ${{ secrets.TELEGRAM_BRIEFING_CHANNEL_ID }}
           TELEGRAM_OPERATOR_CHAT_ID: ${{ secrets.TELEGRAM_OPERATOR_CHAT_ID }}
           SITE_URL_BASE: ${{ secrets.SITE_URL_BASE }}
+          # u27 cost guard: the preflight script accepts an optional
+          # ``OPENAI_API_KEY`` and only requires it when
+          # ``INVESTO_OPENAI_VISUALS=1``. The workflow forces the flag
+          # to ``"0"`` below, so the key is treated as optional during
+          # preflight even if the secret happens to be present.
+          INVESTO_OPENAI_VISUALS: '0'
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/check_daily_briefing_env.py
 
       - name: Run pipeline (python -m investo)
@@ -170,6 +177,30 @@ jobs:
           # manifest. Missing/invalid manifests still fall back to AI
           # image generation or deterministic SVG cards.
           INVESTO_EXTERNAL_IMAGE_ASSETS: '1'
+          # u27 cost guard (CLAUDE.md #4 — "free APIs only" enforced at
+          # the code level): force the OpenAI visual surface
+          # **disabled** by default, regardless of whether
+          # ``OPENAI_API_KEY`` happens to be set as a repository
+          # secret. ``visuals.openai_image.load_openai_visual_config``
+          # only enables the surface when this flag is exactly
+          # ``"1"``; ``__main__._validate_env`` requires the API key
+          # only under that opt-in. To experiment with the cost-bearing
+          # surface manually, change this to ``'1'`` AND set the
+          # ``OPENAI_API_KEY`` secret — both must be present or the
+          # pipeline fails closed at boot.
+          INVESTO_OPENAI_VISUALS: '0'
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # u29 site-discovery-v2: opt-in to the Saturday-only weekly
+          # retrospective publish. Both crons resolve ``target_date`` to
+          # the prior Friday, so ``target_date`` alone cannot
+          # disambiguate them. Setting this flag to ``"1"`` only on the
+          # Saturday cron makes ``publisher.weekly_digest_opt_in()``
+          # return True and triggers the
+          # ``archive/weekly/YYYY-WNN.md`` write inside the same
+          # commit as the Friday segmented publish. ``workflow_dispatch``
+          # runs default to ``"0"`` (no weekly publish); pass ``"1"``
+          # via a manual environment override if you need to backfill.
+          INVESTO_PUBLISH_WEEKLY: ${{ github.event.schedule == '0 0 * * 6' && '1' || '0' }}
         run: uv run python -m investo
 
       - name: Trigger Pages deploy

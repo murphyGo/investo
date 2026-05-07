@@ -120,13 +120,14 @@ def test_watchlist_relevance_card_does_not_have_impact_claim_fields() -> None:
 
     assert card.kind == "watchlist-relevance"
     assert "impact" not in card.model_dump()
+    # u28 — site card cap raised to 5; 6+ rows must still fail validation.
     with pytest.raises(ValidationError):
         WatchlistRelevanceCardInput(
             target_date=date(2026, 5, 7),
             segment="us-equity",
             configured=True,
             total_matches=1,
-            rows=(row, row, row, row),
+            rows=(row, row, row, row, row, row),
         )
 
 
@@ -257,19 +258,26 @@ def test_build_price_snapshot_card_omits_unknown_or_incomplete_metadata() -> Non
 
 
 def test_build_watchlist_relevance_card_limits_rows_and_avoids_impact_claims() -> None:
+    # u28 — site card cap raised to 5. The 6th match should be elided.
     items = [
         _item("yahoo-finance-news", "news", "NVDA rallies after earnings"),
         _item("yahoo-finance-news", "news", "AAPL unveils new device"),
         _item("coingecko-price", "price", "BTC $76,105.00"),
         _item("fomc-rss", "calendar", "FOMC minutes published"),
+        _item("yahoo-finance-news", "news", "TSLA delivery beat"),
+        _item("yahoo-finance-news", "news", "MSFT cloud growth steady"),
     ]
     impact = match_watchlist_items(
         items,
-        WatchlistConfig(tickers=("NVDA", "AAPL"), assets=("BTC",), keywords=("FOMC",)),
+        WatchlistConfig(
+            tickers=("NVDA", "AAPL", "TSLA", "MSFT"),
+            assets=("BTC",),
+            keywords=("FOMC",),
+        ),
     )
 
     card = build_watchlist_relevance_card(date(2026, 5, 7), "us-equity", impact)
 
-    assert card.total_matches == 4
-    assert len(card.rows) == 3
+    assert card.total_matches == 6
+    assert len(card.rows) == 5
     assert "impact" not in card.model_dump()

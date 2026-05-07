@@ -373,10 +373,50 @@ the market-data collection/generation pipeline starts.
 | Secret | Source | Effect when absent |
 |--------|--------|---------------------|
 | `FRED_API_KEY` | Free key from <https://fred.stlouisfed.org/docs/api/api_key.html> | The `fred-macro` adapter raises `SourceFetchError(transient=False)` on its first invocation; the aggregator catches per FD R6 and `fred-macro` contributes `[]` for the run. All other adapters (FOMC RSS, yfinance, CoinGecko) run normally. The pipeline still ships a briefing — just without macro-indicator content. |
+| `OPENAI_API_KEY` | OpenAI dashboard key | **Disabled by default** — the `daily-briefing.yml` workflow forces `INVESTO_OPENAI_VISUALS=0` so the OpenAI visual surface never runs in CI even when this secret is configured. See "OpenAI visual surface (cost-bearing)" below for the override contract. |
 
 Adapter-level optional secrets follow FD R13 — failure mode is graceful
 degradation, never pipeline-fatal. Set `FRED_API_KEY` only if you want
 macro coverage in the briefing.
+
+### OpenAI visual surface (cost-bearing — opt-in only)
+
+The `visuals/openai_image.py` surface (introduced in u23) generates
+hero PNGs via the OpenAI Responses + image-generation API. This is the
+**only** cost-bearing surface in the project. Because CLAUDE.md project
+rule #4 is "free APIs only", the surface is disabled by default at
+three layers:
+
+1. **Workflow override**: `.github/workflows/daily-briefing.yml` pins
+   `INVESTO_OPENAI_VISUALS=0` in the run-pipeline step's `env:` block,
+   so the cron and `workflow_dispatch` runs never enable the surface
+   regardless of repository-secret state.
+2. **Runtime fail-safe**: `visuals.openai_image.load_openai_visual_config`
+   only sets `enabled=True` when `INVESTO_OPENAI_VISUALS == "1"` AND
+   `OPENAI_API_KEY` is non-empty. Either condition unmet → no OpenAI
+   HTTP call (deterministic SVG cards remain).
+3. **Boot-time fail-closed**: `__main__._validate_env` raises
+   `ConfigError(missing=("OPENAI_API_KEY",))` when the flag is `"1"`
+   but the key is unset, so the operator cannot accidentally enable
+   the surface without the matching secret.
+
+To **experiment** with the surface (locally or on a manual
+`workflow_dispatch`):
+
+1. Set `OPENAI_API_KEY` as a GitHub Secret (or local env var).
+2. Edit `daily-briefing.yml` to flip `INVESTO_OPENAI_VISUALS: '0'` →
+   `'1'` in **both** the preflight step and the run-pipeline step.
+   Both must be flipped together — the preflight step's `0` → `1`
+   makes the key required at preflight time so a misconfig fails
+   before any cost is incurred.
+3. Revert the workflow change before merging. The surface is for
+   ad-hoc experiments, not steady-state operation.
+
+The `_redact_diagnostic_text` / `sanitize_source_error_message` /
+`sanitize_provenance_text` chokepoints (u27) all redact
+`OPENAI_API_KEY` values from any operator-facing surface even when the
+flag is `0`, so a leaked key in a fixture or stderr never reaches a
+public artefact.
 
 ### Cron schedule
 

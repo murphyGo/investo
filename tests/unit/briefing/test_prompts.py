@@ -129,7 +129,31 @@ def test_stage2_system_carries_reader_experience_rules() -> None:
     assert "market newsletter" in STAGE2_SYSTEM
     assert "source URL" in STAGE2_SYSTEM
     assert "Avoid exaggerated promotional language" in STAGE2_SYSTEM
-    assert "group notable tickers/assets by role" in STAGE2_SYSTEM
+    assert "group notable tickers/assets by neutral observation" in STAGE2_SYSTEM
+
+
+def test_stage2_system_uses_neutral_section5_grouping_labels() -> None:
+    """u25 — Korean capital-markets law treats 주도주 / 부진 / 주의 as
+    implicit recommendation language. The prompt must instruct the LLM
+    to use neutral observation labels instead.
+    """
+    assert "관전 분류" in STAGE2_SYSTEM
+    assert "확인 항목" in STAGE2_SYSTEM
+    assert "체크리스트" in STAGE2_SYSTEM
+    assert "NEVER use" in STAGE2_SYSTEM
+    assert "주도주" in STAGE2_SYSTEM  # only as forbidden example
+    assert "부진" in STAGE2_SYSTEM  # only as forbidden example
+    assert "주의" in STAGE2_SYSTEM  # only as forbidden example
+
+
+def test_stage2_system_forbids_arithmetic_hallucination() -> None:
+    """u25 — block the ``시총 합산 약 $X조`` style fabrication that
+    appeared in ``archive/us-equity/2026/05/2026-05-06.md`` (persona #3).
+    """
+    assert "Numeric integrity" in STAGE2_SYSTEM
+    assert "DO NOT compute sums" in STAGE2_SYSTEM
+    assert "시총 합산" in STAGE2_SYSTEM
+    assert "DO NOT round, approximate" in STAGE2_SYSTEM
 
 
 def test_stage2_user_template_has_three_placeholders() -> None:

@@ -203,7 +203,9 @@ async def test_operator_alerter_redacts_bot_token_from_error_message() -> None:
 
     text = captured[0]
     assert _BOT_TOKEN not in text
-    assert "[REDACTED]" in text
+    # u27 M1: redaction now flows through the project chokepoint, which
+    # emits the named marker ``[REDACTED_BOT_TOKEN]`` for telegram tokens.
+    assert "[REDACTED_BOT_TOKEN]" in text
 
 
 # ---------------------------------------------------------------------------
@@ -225,8 +227,14 @@ async def test_operator_alerter_truncates_long_alert_under_4096_units() -> None:
         captured.append(str(body["text"]))
         return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
 
-    huge_message = "X" * 5000  # 5000 UTF-16 units of pure body
-    huge_tb = "Y" * 1500  # leaves room over the 4096 cap
+    # u27 M1: redaction now flows through the project chokepoint, which
+    # treats any ≥ 40-char run of base64 alphabet as a generic OAuth /
+    # PAT shape and rewrites it to ``[REDACTED]``. Use a payload with
+    # frequent spaces so it does not collapse to a single redaction
+    # marker — the truncation contract under test is independent of
+    # redaction behaviour.
+    huge_message = ("err " * 1250)[:5000]  # 5000 UTF-16 units, spaced
+    huge_tb = ("yyy " * 375)[:1500]  # 1500 UTF-16 units, spaced
 
     async with mock_client(handler) as http:
         alerter = OperatorAlerter(

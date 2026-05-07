@@ -14,6 +14,16 @@ which appears in the URL path of every Telegram API call — never
 leaks into logs or operator alerts when httpx surfaces the URL in
 its error message.
 
+Per the u27 single-chokepoint contract, redaction here delegates to
+:func:`investo._internal.redaction.redact_text` under the
+:data:`RedactionPolicy.STRICT` policy. The chokepoint's ``bot_token``
+pattern matches both the URL form
+(``https://api.telegram.org/bot<token>/<method>``) — the lookbehind
+``(?<![\\d:])`` admits the ``t`` of ``/bot`` — and the bare shape
+(``<digits>:<≥20-tail>``) used by hand-crafted log lines. No local
+regex is maintained here; the marker emitted is
+``[REDACTED_BOT_TOKEN]`` (the chokepoint's named replacement).
+
 The module is internal (leading underscore) and is NOT re-exported
 from ``investo.notifier``. It is consumed by ``BriefingPublisher``
 (Step 4) and ``OperatorAlerter`` (Step 5).
@@ -22,36 +32,32 @@ Reference:
     aidlc-docs/inception/application-design/component-methods.md (C4)
     aidlc-docs/construction/plans/u4-notifier-code-generation-plan.md
         (Step 2)
+    u27 QA M1 — single chokepoint enforcement (this module formerly
+        carried two local regex literals; folded into the chokepoint).
 """
 
 from __future__ import annotations
 
-import re
-
 import httpx
 
+from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.models import SendResult
-
-# Two-layer redaction:
-#
-# 1. URL form: ``/bot{token}/...`` in any URL embedded in error
-#    messages (the most common httpx leakage path). Replaced with
-#    ``/bot[REDACTED]`` — keeps URL shape recognizable for debugging.
-# 2. Shape-based form: a bare ``bot<numeric_id>:<token_tail>`` (no
-#    leading ``/``) — catches operator-supplied log lines that don't
-#    embed the URL. Telegram tokens have a deterministic shape:
-#    ``<digits>:<at-least-20-alphanumeric-with-underscore-dash>``;
-#    requiring ≥20 chars in the tail avoids false-positives like
-#    ``botany123:foo``. Sub-agent Step 7 review M1 fix.
-_BOT_TOKEN_URL_RE = re.compile(r"/bot[^/\s'\"]+")
-_BOT_TOKEN_SHAPE_RE = re.compile(r"\bbot\d+:[A-Za-z0-9_-]{20,}")
 
 
 def _redact_bot_token(text: str) -> str:
-    """Replace bot tokens (URL form + bare shape form) with `[REDACTED]`."""
-    text = _BOT_TOKEN_URL_RE.sub("/bot[REDACTED]", text)
-    text = _BOT_TOKEN_SHAPE_RE.sub("bot[REDACTED]", text)
-    return text
+    """Redact bot tokens (URL form + bare shape) via the project chokepoint.
+
+    Thin shim over :func:`investo._internal.redaction.redact_text` under
+    the :data:`RedactionPolicy.STRICT` policy. Kept as a named function
+    (rather than inlined at the two call sites in this module and one
+    in :mod:`operator_alerter`) so the surface stays auditable: every
+    call site routes through one shim into the chokepoint.
+
+    The chokepoint's ``bot_token`` pattern replaces matches with
+    ``[REDACTED_BOT_TOKEN]``; in URL form the surrounding ``/bot`` /
+    ``/sendMessage`` path segments are preserved for debuggability.
+    """
+    return redact_text(text, policy=RedactionPolicy.STRICT)
 
 
 def telegram_api_url(bot_token: str, method: str = "sendMessage") -> str:

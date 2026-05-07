@@ -7,6 +7,13 @@ from investo.visuals.assets import (
     prepare_segment_visual_assets,
     validate_visual_asset,
 )
+from investo.visuals.calendar_heatmap import (
+    PROJECT_START,
+    CalendarCell,
+    PublishStatus,
+    render_publish_heatmap,
+    scan_publish_coverage,
+)
 from investo.visuals.cards import (
     CardKind,
     DataConfidenceCardInput,
@@ -20,6 +27,15 @@ from investo.visuals.cards import (
     build_watchlist_relevance_card,
 )
 from investo.visuals.external_image import ExternalImageAsset, fetch_contextual_external_image
+from investo.visuals.og_card import (
+    OG_CARD_HEIGHT,
+    OG_CARD_RELATIVE_PATH,
+    OG_CARD_WIDTH,
+    OGCardInput,
+    build_og_card_input,
+    render_og_card_svg,
+    write_og_card,
+)
 from investo.visuals.openai_image import (
     OpenAIVisualConfig,
     generate_openai_visual,
@@ -54,19 +70,26 @@ from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, render_card_svg
 __all__ = [
     "EXTERNAL_IMAGE_SCRAPING_ENABLED",
     "GENERATOR_NAME",
+    "OG_CARD_HEIGHT",
+    "OG_CARD_RELATIVE_PATH",
+    "OG_CARD_WIDTH",
+    "PROJECT_START",
     "SCHEMA_VERSION",
     "SVG_HEIGHT",
     "SVG_WIDTH",
+    "CalendarCell",
     "CardKind",
     "DataConfidenceCardInput",
     "ExternalAssetManifest",
     "ExternalAssetPolicyError",
     "ExternalImageAsset",
     "MarketSnapshotCardInput",
+    "OGCardInput",
     "OpenAIVisualConfig",
     "PreparedVisualAssets",
     "PriceSnapshotCardInput",
     "PriceSnapshotRow",
+    "PublishStatus",
     "VisualAssetError",
     "VisualProvenanceManifest",
     "VisualSourceType",
@@ -79,6 +102,7 @@ __all__ = [
     "build_data_confidence_card",
     "build_external_provenance",
     "build_generated_svg_provenance",
+    "build_og_card_input",
     "build_price_snapshot_card",
     "build_watchlist_relevance_card",
     "external_image_scraping_enabled",
@@ -91,10 +115,14 @@ __all__ = [
     "provenance_caption",
     "read_manifest",
     "render_card_svg",
+    "render_og_card_svg",
+    "render_publish_heatmap",
     "sanitize_provenance_text",
+    "scan_publish_coverage",
     "validate_visual_asset",
     "visual_asset_dir",
     "visual_asset_path",
     "visual_asset_relative_path",
     "write_manifest",
+    "write_og_card",
 ]

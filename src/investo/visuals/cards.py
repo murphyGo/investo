@@ -123,7 +123,9 @@ class WatchlistRelevanceCardInput(_CardInput):
     kind: Literal["watchlist-relevance"] = "watchlist-relevance"
     configured: bool
     total_matches: int = Field(ge=0)
-    rows: tuple[WatchlistRelevanceRow, ...] = Field(default_factory=tuple, max_length=3)
+    # u28 — the public site card now shows up to 5 matches (Telegram suffix
+    # remains capped at 3 in :func:`render_watchlist_impact`).
+    rows: tuple[WatchlistRelevanceRow, ...] = Field(default_factory=tuple, max_length=5)
 
 
 def build_data_confidence_card(
@@ -220,7 +222,8 @@ def build_watchlist_relevance_card(
             title=match.item.title,
             url=match.item.url,
         )
-        for match in impact.matches[:3]
+        # u28 — site card cap raised to 5 (Telegram suffix stays at 3).
+        for match in impact.matches[:5]
     )
     return WatchlistRelevanceCardInput(
         target_date=target_date,

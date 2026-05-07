@@ -212,7 +212,11 @@ def test_redact_bot_token_replaces_url_segment() -> None:
     )
     redacted = _redact_bot_token(leaked)
     assert _BOT_TOKEN not in redacted
-    assert "/bot[REDACTED]" in redacted
+    # u27 M1: redaction now delegates to the project chokepoint, which
+    # replaces the token shape with the named marker
+    # ``[REDACTED_BOT_TOKEN]``. The surrounding ``/bot`` / ``/sendMessage``
+    # path segments are preserved (only the token portion is rewritten).
+    assert "/bot[REDACTED_BOT_TOKEN]/sendMessage" in redacted
 
 
 def test_redact_bot_token_handles_multiple_occurrences() -> None:
@@ -222,7 +226,8 @@ def test_redact_bot_token_handles_multiple_occurrences() -> None:
     )
     redacted = _redact_bot_token(leaked)
     assert _BOT_TOKEN not in redacted
-    assert redacted.count("/bot[REDACTED]") == 2
+    # Both occurrences rewritten by the chokepoint.
+    assert redacted.count("[REDACTED_BOT_TOKEN]") == 2
 
 
 def test_redact_bot_token_passthrough_when_no_token() -> None:
@@ -233,19 +238,20 @@ def test_redact_bot_token_passthrough_when_no_token() -> None:
 def test_redact_bot_token_catches_bare_shape_without_leading_slash() -> None:
     """Step 7 sub-agent review M1 — a hand-crafted log line like
     ``"used token bot{TOKEN}"`` (no ``/`` prefix) MUST also be
-    redacted via the shape-based regex. Token shape:
-    ``bot<digits>:<≥20 alphanumeric/underscore/dash>``.
+    redacted via the shape pattern. Token shape:
+    ``<digits>:<≥20 alphanumeric/underscore/dash>``. u27 M1: the
+    chokepoint emits the named marker ``[REDACTED_BOT_TOKEN]``.
     """
     leaked = f"used token bot{_BOT_TOKEN}"
     redacted = _redact_bot_token(leaked)
     assert _BOT_TOKEN not in redacted
-    assert "bot[REDACTED]" in redacted
+    assert "[REDACTED_BOT_TOKEN]" in redacted
 
 
 def test_redact_bot_token_does_not_false_positive_on_botany() -> None:
-    """The shape regex requires ``\\d+:`` after ``bot`` plus a tail
-    of ≥20 alphanumeric/underscore/dash chars — words starting with
-    ``bot`` like ``botany`` or ``robot:foo`` are NOT matched.
+    """The chokepoint's bot-token regex requires ``\\d{6,}:`` plus a
+    tail of ≥20 alphanumeric/underscore/dash chars — words starting
+    with ``bot`` like ``botany`` or ``robot:foo`` are NOT matched.
     """
     plain = "botany analyzed at robot.local"
     assert _redact_bot_token(plain) == plain
@@ -273,7 +279,8 @@ async def test_send_message_redacts_token_in_timeout_error() -> None:
     assert result.ok is False
     assert result.error is not None
     assert _BOT_TOKEN not in result.error
-    assert "[REDACTED]" in result.error
+    # u27 M1: chokepoint marker is ``[REDACTED_BOT_TOKEN]``.
+    assert "[REDACTED_BOT_TOKEN]" in result.error
 
 
 @pytest.mark.asyncio

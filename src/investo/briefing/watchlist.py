@@ -1,10 +1,32 @@
-"""Lightweight watchlist relevance helpers for u18."""
+"""Lightweight watchlist relevance helpers (u18 + u28 usability foundation).
+
+u28 introduces four behaviour deltas on top of the u18 baseline so first-time
+users still see the feature exists and so noisy partial matches do not produce
+false-confidence callouts:
+
+1. Onboarding nudge — when ``WatchlistConfig`` is empty (``is_empty``), the
+   site callout still renders an explicit "관심 목록 미설정" nudge while the
+   Telegram surface stays clean (``render_watchlist_impact(channel="telegram")``
+   returns an empty string for that branch).
+2. Alias mapping — ``aliases`` (user-provided) is merged with a built-in
+   ``DEFAULT_CORE_ALIASES`` bundle (BTC↔Bitcoin↔비트코인, ETH↔Ethereum↔이더리움,
+   NVDA↔엔비디아 etc.) so a Korean user registering "BTC" also catches
+   "Bitcoin" / "비트코인" mentions.
+3. Korean word boundary — Hangul terms only match if the surrounding
+   characters are NOT Hangul (so "삼성" no longer mis-fires on "삼성전자").
+   Per-term ``exact_match_terms`` opts a term into strict equality matching.
+4. Coverage branch — ``match_watchlist_items`` accepts ``coverage_status``;
+   in ``insufficient`` segments the caller renders "데이터 수집 부족으로 매칭
+   판단 보류" instead of asserting absence.
+
+Pure helpers — no I/O beyond the ``load_watchlist`` JSON read.
+"""
 
 from __future__ import annotations
 
 import json
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal
@@ -14,9 +36,49 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validat
 from investo.models import NormalizedItem
 
 WatchlistTermKind = Literal["ticker", "asset", "sector", "keyword"]
+WatchlistImpactStatus = Literal[
+    "unconfigured",
+    "matched",
+    "no_match",
+    "coverage_hold",
+]
+WatchlistChannel = Literal["site", "telegram"]
+CoverageStatusInput = Literal["normal", "partial", "insufficient"]
 
 DEFAULT_WATCHLIST_PATH: Final[Path] = Path("config/watchlist.json")
-_MAX_RENDERED_MATCHES: Final[int] = 3
+_SITE_MAX_RENDERED_MATCHES: Final[int] = 5
+_TELEGRAM_MAX_RENDERED_MATCHES: Final[int] = 3
+
+# Default alias bundle — keys are the canonical (display) term, values are
+# additional surface forms scanned by the matcher when the user's config does
+# not override the entry. Korean / English / common-name pairs the persona
+# bundle calls out explicitly. Keys must match the casefold form the matcher
+# normalises to (`BTC` → `btc`); values are matched verbatim post-casefold.
+DEFAULT_CORE_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
+    # crypto
+    "BTC": ("Bitcoin", "비트코인"),
+    "ETH": ("Ethereum", "이더리움"),
+    "SOL": ("Solana", "솔라나"),
+    # US mega-cap equity
+    "NVDA": ("NVIDIA", "엔비디아"),
+    "TSLA": ("Tesla", "테슬라"),
+    "AAPL": ("Apple", "애플"),
+    "MSFT": ("Microsoft", "마이크로소프트"),
+    "GOOGL": ("Alphabet", "Google", "구글", "알파벳"),
+    "META": ("Meta", "메타", "Facebook"),
+    "AMZN": ("Amazon", "아마존"),
+}
+
+# Strict ASCII alphanumeric ticker / asset patterns (length ≥ 3) preserve the
+# u18 word-boundary regex; length ≤ 2 inputs are routed through a stricter
+# capitalize-only check (see ``_match_short_ticker``) to avoid false positives
+# like "F" matching every word starting with F.
+_SHORT_TICKER_THRESHOLD: Final[int] = 2
+
+# Hangul ranges - Hangul Syllables (AC00-D7A3), Hangul Jamo (1100-11FF),
+# Hangul Compatibility Jamo (3130-318F). Used to enforce a syllable-boundary
+# heuristic so "삼성" does not match inside "삼성전자".
+_HANGUL_CHAR_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣ᄀ-ᇿ㄰-㆏]")
 
 
 class WatchlistConfig(BaseModel):
@@ -28,6 +90,13 @@ class WatchlistConfig(BaseModel):
     assets: tuple[str, ...] = Field(default_factory=tuple)
     sectors: tuple[str, ...] = Field(default_factory=tuple)
     keywords: tuple[str, ...] = Field(default_factory=tuple)
+    # u28 — alias map. Keys are canonical surface terms; values are alternate
+    # surface forms scanned alongside. User-provided aliases override the
+    # default bundle entry by canonical key.
+    aliases: dict[str, tuple[str, ...]] = Field(default_factory=dict)
+    # u28 — explicit per-term opt-in for strict equality (suppresses any
+    # substring or boundary match). Stored casefolded.
+    exact_match_terms: tuple[str, ...] = Field(default_factory=tuple)
 
     @field_validator("tickers", "assets", "sectors", "keywords")
     @classmethod
@@ -47,9 +116,67 @@ class WatchlistConfig(BaseModel):
             normalized.append(term)
         return tuple(normalized)
 
+    @field_validator("aliases")
+    @classmethod
+    def _normalize_aliases(
+        cls, value: dict[str, tuple[str, ...]] | dict[str, list[str]]
+    ) -> dict[str, tuple[str, ...]]:
+        normalized: dict[str, tuple[str, ...]] = {}
+        for raw_key, raw_values in value.items():
+            key = raw_key.strip()
+            if not key:
+                continue
+            if key.isascii():
+                key = key.upper()
+            seen: set[str] = set()
+            cleaned: list[str] = []
+            for entry in raw_values:
+                stripped = entry.strip()
+                if not stripped:
+                    continue
+                fold = stripped.casefold()
+                if fold in seen or fold == key.casefold():
+                    continue
+                seen.add(fold)
+                cleaned.append(stripped)
+            if cleaned:
+                normalized[key] = tuple(cleaned)
+        return normalized
+
+    @field_validator("exact_match_terms")
+    @classmethod
+    def _normalize_exact_match(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        out: list[str] = []
+        seen: set[str] = set()
+        for raw in value:
+            stripped = raw.strip()
+            if not stripped:
+                continue
+            fold = stripped.casefold()
+            if fold in seen:
+                continue
+            seen.add(fold)
+            out.append(fold)
+        return tuple(out)
+
     @property
     def is_configured(self) -> bool:
         return bool(self.tickers or self.assets or self.sectors or self.keywords)
+
+    def is_empty(self) -> bool:
+        """True iff the user has not registered any term (alias-only is empty)."""
+        return not self.is_configured
+
+    def effective_aliases(self) -> dict[str, tuple[str, ...]]:
+        """Merge built-in :data:`DEFAULT_CORE_ALIASES` with user overrides.
+
+        User-provided ``aliases`` take precedence per canonical key. Returns a
+        fresh dict so callers cannot mutate the cached defaults.
+        """
+        merged: dict[str, tuple[str, ...]] = dict(DEFAULT_CORE_ALIASES)
+        for key, value in self.aliases.items():
+            merged[key] = value
+        return merged
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +186,7 @@ class WatchlistMatch:
     term: str
     kind: WatchlistTermKind
     item: NormalizedItem
+    matched_alias: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +195,7 @@ class WatchlistImpact:
 
     configured: bool
     matches: tuple[WatchlistMatch, ...]
+    status: WatchlistImpactStatus = "matched"
 
     @property
     def has_matches(self) -> bool:
@@ -85,9 +214,25 @@ def load_watchlist(path: Path = DEFAULT_WATCHLIST_PATH) -> WatchlistConfig:
 def match_watchlist_items(
     items: Sequence[NormalizedItem],
     config: WatchlistConfig,
+    *,
+    coverage_status: CoverageStatusInput | None = None,
 ) -> WatchlistImpact:
-    if not config.is_configured:
-        return WatchlistImpact(configured=False, matches=())
+    """Match collected items against the user's watchlist config.
+
+    ``coverage_status='insufficient'`` — the caller has signalled this segment
+    has too little data to answer the "is my watchlist relevant?" question.
+    The matcher returns a ``coverage_hold`` impact so renderers can switch to
+    the "데이터 수집 부족으로 매칭 판단 보류" branch instead of asserting
+    absence (u28 step 4).
+    """
+    if config.is_empty():
+        return WatchlistImpact(configured=False, matches=(), status="unconfigured")
+
+    if coverage_status == "insufficient":
+        return WatchlistImpact(configured=True, matches=(), status="coverage_hold")
+
+    aliases = config.effective_aliases()
+    exact_match_set = set(config.exact_match_terms)
 
     matches: list[WatchlistMatch] = []
     seen: set[tuple[str, str, str, str]] = set()
@@ -98,66 +243,216 @@ def match_watchlist_items(
         ("keyword", config.keywords),
     )
     for item in items:
-        text = _item_text(item)
+        text_cf = _item_text_casefold(item)
+        text_raw = _item_text_raw(item)
         for kind, terms in term_groups:
             for term in terms:
-                if not _matches_term(term, text):
+                exact_only = term.casefold() in exact_match_set
+                hit_term, hit_alias = _match_term_with_aliases(
+                    term=term,
+                    kind=kind,
+                    aliases=aliases,
+                    text_cf=text_cf,
+                    text_raw=text_raw,
+                    exact_only=exact_only,
+                )
+                if hit_term is None:
                     continue
                 dedupe_key = (kind, term.casefold(), item.source_name, item.title)
                 if dedupe_key in seen:
                     continue
                 seen.add(dedupe_key)
-                matches.append(WatchlistMatch(term=term, kind=kind, item=item))
+                matches.append(
+                    WatchlistMatch(
+                        term=term,
+                        kind=kind,
+                        item=item,
+                        matched_alias=hit_alias,
+                    )
+                )
 
-    return WatchlistImpact(configured=True, matches=tuple(matches))
+    status: WatchlistImpactStatus = "matched" if matches else "no_match"
+    return WatchlistImpact(configured=True, matches=tuple(matches), status=status)
 
 
-def render_watchlist_impact(impact: WatchlistImpact) -> str:
-    """Render a concise reader-facing watchlist impact line."""
-    if not impact.configured:
-        return "관심 목록 미설정 — `config/watchlist.json`을 추가하면 관련 항목을 표시합니다."
+def render_watchlist_impact(
+    impact: WatchlistImpact,
+    *,
+    channel: WatchlistChannel = "site",
+) -> str:
+    """Render a concise reader-facing watchlist impact line.
+
+    ``channel='site'`` (default) — first-viewport site callout. Caps rendering
+    to 5 matches and emits the onboarding nudge when ``unconfigured``.
+    ``channel='telegram'`` — Telegram suffix. Caps to 3 matches and returns
+    an empty string for the unconfigured branch (u28: Telegram surface stays
+    clean for first-time readers).
+    """
+    cap = _SITE_MAX_RENDERED_MATCHES if channel == "site" else _TELEGRAM_MAX_RENDERED_MATCHES
+
+    if impact.status == "unconfigured":
+        if channel == "telegram":
+            return ""
+        return "관심 목록 미설정 — `config/watchlist.json`을 추가하면 보유 종목 영향이 표시됩니다."
+    if impact.status == "coverage_hold":
+        return "데이터 수집 부족으로 매칭 판단 보류 — 추가 수집 후 재평가됩니다."
     if not impact.matches:
         return "관심 목록과 직접 연결된 수집 항목 없음 — 영향은 별도로 단정하지 않습니다."
 
     rendered = []
-    for match in impact.matches[:_MAX_RENDERED_MATCHES]:
+    for match in impact.matches[:cap]:
         rendered.append(f"{match.term}: {match.item.title}")
-    suffix = "" if len(impact.matches) <= _MAX_RENDERED_MATCHES else " 외"
+    suffix = "" if len(impact.matches) <= cap else " 외"
     return f"{len(impact.matches)}건 확인 — " + "; ".join(rendered) + suffix
 
 
 def render_watchlist_prompt_context(impact: WatchlistImpact) -> str:
     if not impact.configured:
         return ""
+    if impact.status == "coverage_hold":
+        return (
+            "Watchlist relevance: this segment has insufficient collected data; "
+            "do not infer personal impact for the user's watchlist."
+        )
     if not impact.matches:
         return (
             "Watchlist relevance: no collected item directly matched the configured "
             "watchlist. Do not invent personal impact."
         )
     lines = ["Watchlist relevance: highlight these matched collected items first."]
-    for match in impact.matches[:_MAX_RENDERED_MATCHES]:
+    for match in impact.matches[:_SITE_MAX_RENDERED_MATCHES]:
         lines.append(
             f"- {match.term} ({match.kind}) matched [{match.item.source_name}] {match.item.title}"
         )
     return "\n".join(lines)
 
 
-def _item_text(item: NormalizedItem) -> str:
+def _item_text_casefold(item: NormalizedItem) -> str:
     return f"{item.source_name} {item.category} {item.title} {item.summary or ''}".casefold()
 
 
-def _matches_term(term: str, text: str) -> bool:
+def _item_text_raw(item: NormalizedItem) -> str:
+    """Original-case version used for short-ticker capitalize checks."""
+    return f"{item.source_name} {item.category} {item.title} {item.summary or ''}"
+
+
+def _match_term_with_aliases(
+    *,
+    term: str,
+    kind: WatchlistTermKind,
+    aliases: Mapping[str, tuple[str, ...]],
+    text_cf: str,
+    text_raw: str,
+    exact_only: bool,
+) -> tuple[str | None, str | None]:
+    """Return ``(term, alias)`` if matched. ``alias`` is non-None only for
+    alias hits. Canonical term hits short-circuit the alias scan (term wins).
+
+    ``kind`` propagates to :func:`_matches_term` so short (≤2 ASCII) inputs
+    branch correctly: ticker/asset stay case-sensitive (raw text) to avoid
+    "F"→"for" false positives, while keyword/sector use casefolded
+    word-boundary matching so "EV" matches lowercase "ev" in summaries.
+    Aliases inherit the canonical term's ``kind``.
+    """
+    if _matches_term(term, kind=kind, text_cf=text_cf, text_raw=text_raw, exact_only=exact_only):
+        return term, None
+    if exact_only:
+        return None, None
+    canonical_key = term.upper() if term.isascii() else term
+    alt_forms = aliases.get(canonical_key, ())
+    for alt in alt_forms:
+        if _matches_term(alt, kind=kind, text_cf=text_cf, text_raw=text_raw, exact_only=False):
+            return term, alt
+    return None, None
+
+
+def _matches_term(
+    term: str,
+    *,
+    kind: WatchlistTermKind,
+    text_cf: str,
+    text_raw: str,
+    exact_only: bool,
+) -> bool:
+    """Check ``term`` against an item's text with u28 boundary heuristics.
+
+    Branches:
+
+    - exact_only — strict casefold equality on any whitespace-separated token.
+    - ASCII alphanumeric, length > 2 — u18 word-boundary regex (no neighbour
+      letters / digits).
+    - ASCII alphanumeric, length ≤ 2, ticker/asset — capitalize guard: the
+      original-case ticker must appear with non-alphanumeric boundaries in
+      the raw text (suppresses "F" matching every "for"/"From" but preserves
+      "F " or "(F)").
+    - ASCII alphanumeric, length ≤ 2, keyword/sector — u28 fix: short
+      keywords/sectors are semantic concepts, not exchange tickers, so they
+      use the same casefolded word-boundary regex as longer terms (so "EV"
+      matches "new ev launch").
+    - Hangul / non-ASCII — substring match wrapped in a Hangul-syllable
+      boundary check (no Hangul char immediately before or after).
+    """
+    if not term:
+        return False
     normalized = term.casefold()
+
+    if exact_only:
+        # Match if any whitespace-separated token equals the term casefolded.
+        return any(token.strip(".,!?;:()[]{}") == normalized for token in text_cf.split())
+
     if term.isascii() and term.replace("-", "").isalnum():
+        if len(term) <= _SHORT_TICKER_THRESHOLD and kind in {"ticker", "asset"}:
+            return _matches_short_ticker(term, text_raw)
         pattern = rf"(?<![A-Za-z0-9]){re.escape(normalized)}(?![A-Za-z0-9])"
-        return re.search(pattern, text) is not None
-    return normalized in text
+        return re.search(pattern, text_cf) is not None
+
+    return _matches_korean_term(normalized, text_cf)
+
+
+def _matches_short_ticker(term: str, text_raw: str) -> bool:
+    """Strict capitalize / boundary match for 1-2 character ASCII tickers.
+
+    The token must appear with the original case (e.g. ``F``, ``T``, ``BA``)
+    surrounded by non-alphanumeric characters in the raw text. This blocks
+    common false positives like ``F`` matching ``For`` / ``From``.
+    """
+    pattern = rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])"
+    return re.search(pattern, text_raw) is not None
+
+
+def _matches_korean_term(term_cf: str, text_cf: str) -> bool:
+    """Substring match with Hangul-syllable word-boundary heuristic.
+
+    Defensive guard: empty ``term_cf`` returns False directly. Callers
+    (``_matches_term``) already filter empty terms, but ``str.find("")``
+    returns ``0`` for any text — the boundary check would then incorrectly
+    succeed on an empty input. Pinning False here keeps the helper safe in
+    isolation.
+    """
+    if not term_cf:
+        return False
+    start = 0
+    term_len = len(term_cf)
+    while True:
+        idx = text_cf.find(term_cf, start)
+        if idx < 0:
+            return False
+        before_ok = idx == 0 or not _HANGUL_CHAR_RE.match(text_cf[idx - 1])
+        after_idx = idx + term_len
+        after_ok = after_idx >= len(text_cf) or not _HANGUL_CHAR_RE.match(text_cf[after_idx])
+        if before_ok and after_ok:
+            return True
+        start = idx + 1
 
 
 __all__ = [
+    "DEFAULT_CORE_ALIASES",
     "DEFAULT_WATCHLIST_PATH",
+    "CoverageStatusInput",
+    "WatchlistChannel",
     "WatchlistConfig",
     "WatchlistImpact",
+    "WatchlistImpactStatus",
     "WatchlistMatch",
     "WatchlistTermKind",
     "load_watchlist",

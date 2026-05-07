@@ -30,8 +30,9 @@ import re
 import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import UTC, date
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Final
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -98,12 +99,46 @@ _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "us-equity": "미국 증시",
     "crypto": "크립토",
 }
+# Segment → market clock used to express the day window. Mirrors the
+# adapter routing in ``investo.sources.aggregator._window_for_adapter``
+# so the reader-facing watermark matches the data collection window.
+# Re-binding the ZoneInfo at import time avoids hot-path lookups.
+_SEGMENT_MARKET_TZ: Final[dict[MarketSegment, ZoneInfo]] = {
+    "domestic-equity": ZoneInfo("Asia/Seoul"),
+    "us-equity": ZoneInfo("America/New_York"),
+    "crypto": ZoneInfo("UTC"),
+}
+_SEGMENT_MARKET_TZ_LABEL: Final[dict[MarketSegment, str]] = {
+    "domestic-equity": "KST",
+    "us-equity": "NY",
+    "crypto": "UTC",
+}
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
 _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
+    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)]|[①-⑳])\s*"
 )
 _MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
+# Reject patterns the summary sentence picker uses to skip a candidate
+# (matches mirror summary_quality gate-side rejects so the producer
+# never emits what the gate would block).
+_MARKER_ONLY_RE: Final[re.Pattern[str]] = re.compile(r"^(?:[-*+]|\d+[.)]|[①-⑳])$")
+_EN_CONJUNCTION_TAIL_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:vs|and|or|but|that|where|which|because|with|of|to|for|on|in|by)\.\s*$",
+    re.IGNORECASE,
+)
+_KO_PARTICLE_TAIL_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:과|와|및|또는|에서|의|을|를|이|가|은|는)\.\s*$"
+)
+# Sentence terminator markers, longest-first so ``니다.`` matches before
+# the shorter ``다.`` substring inside it.
+_SENTENCE_TERMINATORS: Final[tuple[str, ...]] = (
+    "니다.",
+    "다.",
+    "요.",
+    "?",
+    "!",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -474,6 +509,11 @@ def _segment_nav(target_date: date, segment: MarketSegment) -> str:
 
 
 def _clean_summary_line(line: str) -> str:
+    """Strip markdown punctuation off a single line and return its prose.
+
+    Returns ``""`` if the line is empty after stripping, or if all that
+    remains is a list marker / punctuation with no meaningful text.
+    """
     cleaned = line.strip()
     if not cleaned:
         return ""
@@ -483,20 +523,105 @@ def _clean_summary_line(line: str) -> str:
     cleaned = " ".join(cleaned.split())
     if not _MEANINGFUL_TEXT_RE.search(cleaned):
         return ""
+    if _MARKER_ONLY_RE.fullmatch(cleaned):
+        return ""
     return cleaned
 
 
+def _is_unsafe_summary_candidate(candidate: str) -> bool:
+    """Reject candidate strings that would later trip the publish gate.
+
+    Mirrors the rejects in ``summary_quality.validate_first_viewport_summary``
+    so the producer never emits a string the gate would block. Keeping
+    the two lists aligned is the contract; a regression here surfaces
+    as a publish-time ``SummaryQualityError``.
+    """
+    if not candidate:
+        return True
+    if _MARKER_ONLY_RE.fullmatch(candidate):
+        return True
+    if not _MEANINGFUL_TEXT_RE.search(candidate):
+        return True
+    if candidate.count("**") % 2 != 0:
+        return True
+    if candidate.count("[") != candidate.count("]"):
+        return True
+    if candidate.count("(") != candidate.count(")"):
+        return True
+    if _EN_CONJUNCTION_TAIL_RE.search(candidate):
+        return True
+    return bool(_KO_PARTICLE_TAIL_RE.search(candidate))
+
+
+def _split_into_sentences(normalized: str) -> list[str]:
+    """Split a single normalized prose line into sentence-shaped chunks.
+
+    Splits on the closed set of Korean sentence terminators
+    (``다.``, ``니다.``, ``요.``, ``?``, ``!``) so each candidate ends
+    on a complete clause. The terminator stays attached to its
+    preceding chunk so the caller can decide whether to keep it. If no
+    terminator is found the whole string is returned as a single chunk.
+    """
+    chunks: list[str] = []
+    remaining = normalized
+    while remaining:
+        best_idx = -1
+        best_marker = ""
+        for marker in _SENTENCE_TERMINATORS:
+            idx = remaining.find(marker)
+            if idx < 0:
+                continue
+            if best_idx < 0 or idx < best_idx:
+                best_idx = idx
+                best_marker = marker
+        if best_idx < 0:
+            chunks.append(remaining.strip())
+            break
+        chunk = remaining[: best_idx + len(best_marker)].strip()
+        if chunk:
+            chunks.append(chunk)
+        remaining = remaining[best_idx + len(best_marker) :].lstrip()
+    return [c for c in chunks if c]
+
+
 def _summary_sentence(text: str, *, fallback: str) -> str:
-    normalized = " ".join(
+    """Extract the first publish-safe sentence from a section body.
+
+    Iterates sentence-shaped chunks (terminator-anchored) and returns
+    the first one that passes :func:`_is_unsafe_summary_candidate`.
+    Falls back to ``fallback`` when no chunk survives — this keeps the
+    first-viewport summary well-formed even when the LLM's section
+    body opens with a marker fragment, an unfinished bold pair, or a
+    conjunction tail (the three persona-cited 2026-05-06 failures).
+    """
+    cleaned_lines = [
         cleaned for line in text.splitlines() if (cleaned := _clean_summary_line(line))
-    )
+    ]
+    normalized = " ".join(cleaned_lines)
     if not normalized:
         return fallback
-    for marker in ("다. ", "다.", "요. ", "요.", "니다. ", "니다.", "? ", "?"):
-        idx = normalized.find(marker)
-        if idx >= 0:
-            return normalized[: idx + len(marker.strip())].strip()
-    return normalized[:140].strip()
+
+    sentences = _split_into_sentences(normalized)
+
+    # Per-sentence scan first: pick the first complete, safe sentence.
+    for candidate in sentences:
+        if not _is_unsafe_summary_candidate(candidate):
+            return candidate[:280].strip()
+
+    # No complete sentence survived. Try each cleaned line as a
+    # standalone candidate (truncated to 140 chars) — line-shaped
+    # phrases without a terminator can still be valid summaries.
+    for line in cleaned_lines:
+        candidate = line[:140].strip()
+        if not _is_unsafe_summary_candidate(candidate):
+            return candidate
+
+    # Last resort: the truncated normalized blob. If even that is
+    # unsafe, hand back the explicit data-limited fallback string.
+    candidate = normalized[:140].strip()
+    if not _is_unsafe_summary_candidate(candidate):
+        return candidate
+    return fallback
 
 
 def _build_summary_header(sections: tuple[str, str, str, str, str, str]) -> SummaryHeader:
@@ -561,7 +686,40 @@ def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
 
 
 def _render_watchlist_callout(impact: WatchlistImpact) -> str:
-    return f"> **내 관심 자산 영향**: {render_watchlist_impact(impact)}\n"
+    """Render the site-channel watchlist callout (u28).
+
+    Always emits a callout for the public site, including the ``unconfigured``
+    onboarding nudge and the ``coverage_hold`` branch. The Telegram surface
+    is rendered separately via :func:`render_watchlist_impact` with
+    ``channel='telegram'`` and is allowed to skip these branches.
+    """
+    return f"> **내 관심 자산 영향**: {render_watchlist_impact(impact, channel='site')}\n"
+
+
+def _render_timestamp_watermark(target_date: date, segment: MarketSegment) -> str:
+    """Render the per-segment data-window watermark line.
+
+    Format::
+
+        **기준 시각**: 2026-05-06 KST · [2026-05-05T15:00Z, 2026-05-06T15:00Z)
+
+    The local-clock label (KST / NY / UTC) is the segment's market
+    clock — domestic-equity uses KST, us-equity uses America/New_York,
+    crypto uses UTC. The bracketed window is the half-open UTC range
+    used by the adapters that fed this segment, so the line reads
+    "this is what trading day this is, and what slice of UTC it
+    covered". Pure: no I/O, no clock reads — the value is a function
+    of ``(target_date, segment)`` only.
+    """
+    market_tz = _SEGMENT_MARKET_TZ[segment]
+    tz_label = _SEGMENT_MARKET_TZ_LABEL[segment]
+    start_local = datetime.combine(target_date, time.min, tzinfo=market_tz)
+    end_local = start_local + timedelta(days=1)
+    start_utc = start_local.astimezone(UTC)
+    end_utc = end_local.astimezone(UTC)
+    start_str = start_utc.strftime("%Y-%m-%dT%H:%MZ")
+    end_str = end_utc.strftime("%Y-%m-%dT%H:%MZ")
+    return f"**기준 시각**: {target_date.isoformat()} {tz_label} · [{start_str}, {end_str})"
 
 
 def _enhance_reader_experience(
@@ -579,8 +737,10 @@ def _enhance_reader_experience(
 
     label = SEGMENT_LABELS[segment]
     summary_header = _build_summary_header(sections)
+    watermark = _render_timestamp_watermark(target_date, segment)
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
+        f"{watermark}\n\n"
         f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
         f"{_render_coverage_badge(coverage) if coverage is not None else ''}"
         f"{_render_watchlist_callout(watchlist_impact) if watchlist_impact is not None else ''}"
@@ -778,7 +938,11 @@ async def generate_briefing(
     else:
         coverage = None
     watchlist = load_watchlist() if watchlist_config is None else watchlist_config
-    watchlist_impact = match_watchlist_items(items, watchlist)
+    watchlist_impact = match_watchlist_items(
+        items,
+        watchlist,
+        coverage_status=coverage.status if coverage is not None else None,
+    )
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
 
     if segment is not None and effective_data_limited and not items:

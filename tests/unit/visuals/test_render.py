@@ -220,3 +220,60 @@ def test_wrap_visual_text_truncates_long_words_deterministically() -> None:
     assert len(lines) == 2
     assert all(len(line) <= 16 for line in lines)
     assert lines[0].endswith("…")
+
+
+def test_render_card_uses_noto_sans_kr_font_with_arial_fallback() -> None:
+    """u26 — every ``<text>`` declares Noto Sans KR with Arial fallback.
+
+    Pins persona #2: the public site uses Noto Sans KR but the SVG
+    cards previously hard-coded Arial only, breaking the visual
+    rhythm. The font stack is escaped (``&quot;``) inside the
+    attribute value so the SVG remains XML-well-formed.
+    """
+    card = MarketSnapshotCardInput(
+        target_date=date(2026, 5, 7),
+        segment="us-equity",
+        coverage_status="normal",
+        conclusion="결론",
+        main_driver="동인",
+        caution="주의",
+    )
+
+    svg = render_card_svg(card)
+
+    assert "&quot;Noto Sans KR&quot;, Arial, sans-serif" in svg
+    # Arial-only text declarations must not survive the migration.
+    assert 'font-family="Arial, sans-serif"' not in svg
+
+
+def test_render_card_includes_dark_mode_style_block() -> None:
+    """u26 Step 3 — dark-mode legibility via prefers-color-scheme.
+
+    Persona #2: the white card became visually awkward when the
+    public mkdocs theme switched to dark mode. The SVG now embeds a
+    ``<style>`` block whose ``@media (prefers-color-scheme: dark)``
+    rules swap the card background and foreground colors so the
+    same asset is legible on either theme.
+    """
+    card = DataConfidenceCardInput(
+        target_date=date(2026, 5, 7),
+        segment="domestic-equity",
+        coverage_status="partial",
+        item_count=3,
+        source_count=2,
+        missing_categories=("뉴스",),
+    )
+
+    svg = render_card_svg(card)
+
+    assert "<style>" in svg
+    assert "@media (prefers-color-scheme: dark)" in svg
+    # Both card-bg and card-text must declare dark variants.
+    dark_section = svg.split("@media (prefers-color-scheme: dark)", 1)[1]
+    assert ".card-bg{fill:" in dark_section
+    assert ".card-text{fill:" in dark_section
+    # Class hooks present on the actual elements (not just the style).
+    assert 'class="card-bg"' in svg
+    assert 'class="card-frame"' in svg
+    assert 'class="card-text"' in svg
+    assert 'class="card-disclaimer"' in svg

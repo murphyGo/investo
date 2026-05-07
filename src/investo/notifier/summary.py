@@ -215,7 +215,16 @@ def _one_line_summary(briefing: Briefing) -> str:
             watchlist_match = _WATCHLIST_LINE_RE.search(briefing.rendered_markdown)
             if watchlist_match is not None:
                 watchlist = _clean_summary_text(watchlist_match.group(1))
-                if watchlist and not watchlist.startswith("관심 목록 미설정"):
+                if (
+                    watchlist
+                    # u28 — onboarding nudge stays site-only.
+                    and not watchlist.startswith("관심 목록 미설정")
+                    # u28 — coverage-hold branch is reader-side only; the
+                    # Telegram suffix omits it so first-viewport one-liners
+                    # do not say "관심: 데이터 수집 부족" alongside the segment
+                    # coverage badge that already says the same thing.
+                    and not watchlist.startswith("데이터 수집 부족으로 매칭 판단 보류")
+                ):
                     return f"{conclusion} / 관심: {watchlist}"
             return conclusion
 

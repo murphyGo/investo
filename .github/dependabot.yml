@@ -8,3 +8,19 @@ updates:
       github-actions:
         patterns:
           - "*"
+  # u27 supply-chain hygiene: surface upgrades to the runtime / dev /
+  # docs Python dependencies declared in ``pyproject.toml``. Dependabot
+  # reads the PEP 621 metadata block directly under
+  # ``package-ecosystem: pip`` (the ecosystem name covers all PEP 517
+  # build backends including ``hatchling`` which we use, regardless of
+  # whether the project pins via ``pip``, ``uv``, or ``poetry``). Group
+  # all entries into one PR per week so the review cadence stays low
+  # while keeping individual library bumps visible.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"

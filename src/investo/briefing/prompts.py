@@ -185,15 +185,36 @@ Rules:
   such as "상승", "하락", "순매수", "사상 최고치" over hype terms.
 - When a source URL is provided in the grouped items, attach source
   links to important claims using normal markdown links.
-- In section ⑤, group notable tickers/assets by role when there are
-  many items (for example: 주도주, 실적, 부진/주의) instead of listing
-  every item as an equal-priority bullet.
+- In section ⑤, group notable tickers/assets by neutral observation
+  category when there are many items (for example: 관전 분류, 실적
+  발표, 확인 항목, 체크리스트) instead of recommendation-flavored
+  labels (NEVER use "주도주", "부진", "주의" verbatim — Korean
+  capital-markets law treats those as implicit investment
+  recommendation language).
 - DO NOT include section ⑦ — the disclaimer is appended by the
   caller (R5).
 - DO NOT include any private tokens, keys, email addresses, or
   phone numbers in your output.
 - DO NOT translate ticker symbols or canonical English fund/index
   names into Korean.
+
+Numeric integrity rules (R8 trust contract):
+- Cite ONLY numbers (price, percentage, market cap, EPS, share count,
+  ratio, count) that appear verbatim in the supplied input items.
+  If the input does not contain a number, the briefing must not
+  introduce one.
+- DO NOT compute sums, averages, ratios, or unit conversions across
+  input items. Examples of forbidden output: "시총 합산 약 $1.7조",
+  "평균 수익률 약 12%", "총 거래대금 ~5조원" when the constituent
+  numbers are not themselves provided as a sum / average / ratio in
+  the input.
+- DO NOT round, approximate, or estimate ("약", "~", "대략", "approx")
+  numeric values that are not present in the input. Approximation
+  language is reserved for figures that are themselves approximate in
+  the source data.
+- When a number is essential to the narrative but not present in the
+  input, write a qualitative phrase ("실적 집중일", "대형주 다수")
+  instead of inventing a figure.
 """
 
 # Placeholders:

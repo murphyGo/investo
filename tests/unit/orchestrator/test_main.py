@@ -320,6 +320,64 @@ def test_main_accepts_https_site_url_base(
 
 
 # ---------------------------------------------------------------------------
+# u27 — OpenAI opt-in cost guard
+# ---------------------------------------------------------------------------
+
+
+def test_validate_env_accepts_openai_visuals_disabled_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Default (flag absent) keeps OPENAI_API_KEY optional."""
+    _set_env(monkeypatch)
+    monkeypatch.delenv("INVESTO_OPENAI_VISUALS", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    # Does not raise — OpenAI surface stays disabled by default.
+    main_mod._validate_env()
+
+
+def test_validate_env_accepts_openai_visuals_explicit_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Explicit ``INVESTO_OPENAI_VISUALS=0`` (workflow default) is fine
+    even without the API key — the surface stays disabled.
+    """
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_OPENAI_VISUALS", "0")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    main_mod._validate_env()
+
+
+def test_validate_env_rejects_openai_opt_in_without_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``INVESTO_OPENAI_VISUALS=1`` without ``OPENAI_API_KEY`` →
+    ConfigError. Fails closed at boot per CLAUDE.md #4 (free APIs only)
+    so the operator cannot accidentally enable a cost-bearing surface
+    without configuring the matching secret.
+    """
+    from investo.orchestrator.errors import ConfigError as _ConfigError
+
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_OPENAI_VISUALS", "1")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    with pytest.raises(_ConfigError) as exc_info:
+        main_mod._validate_env()
+    assert exc_info.value.missing_vars == ("OPENAI_API_KEY",)
+
+
+def test_validate_env_accepts_openai_opt_in_with_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Both flag and key set → passes. (Behaviour beyond
+    ``_validate_env`` — the visuals layer reads the key directly — is
+    not exercised here; this only pins the boot-time check.)"""
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_OPENAI_VISUALS", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-1234")
+    main_mod._validate_env()
+
+
+# ---------------------------------------------------------------------------
 # Exit-code mapping (PipelineStatus → int)
 # ---------------------------------------------------------------------------
 

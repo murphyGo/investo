@@ -275,6 +275,34 @@ def test_build_segmented_summary_includes_watchlist_impact_when_present() -> Non
     assert "반도체 실적을 확인합니다. / 관심: 1건 확인 — NVDA" in summary
 
 
+def test_build_segmented_summary_omits_coverage_hold_watchlist_suffix() -> None:
+    """u28 — when the watchlist callout is the coverage-hold branch, the
+    Telegram one-liner must NOT add a "/ 관심: 데이터 수집 부족" suffix
+    (the segment coverage badge already conveys insufficient data)."""
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+    briefings[US_EQUITY] = briefings[US_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 미국 증시 시황\n\n"
+                "> **오늘의 결론**: 반도체 실적을 확인합니다.\n"
+                "> **내 관심 자산 영향**: 데이터 수집 부족으로 매칭 판단 보류 — "
+                "추가 수집 후 재평가됩니다.\n\n" + briefings[US_EQUITY].rendered_markdown
+            )
+        }
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    # Conclusion still surfaces, but the coverage-hold prefix does not bleed
+    # into the Telegram suffix.
+    assert "반도체 실적을 확인합니다." in summary
+    assert "관심: 데이터 수집 부족" not in summary
+
+
 def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="국내 " + ("가" * 5000)),

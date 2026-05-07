@@ -111,7 +111,10 @@ from investo.publisher import (
     PublisherGitError,
     PublisherIOError,
     commit_and_push,
+    publish_weekly_digest,
+    update_weekly_index,
     verify_disclaimer,
+    weekly_digest_opt_in,
     write_briefing,
 )
 from investo.publisher import (
@@ -119,11 +122,20 @@ from investo.publisher import (
 )
 from investo.publisher.site_index import (
     ARCHIVE_INDEX_PATH,
+    SEGMENT_ARCHIVE_INDEX_PATHS,
     SITE_INDEX_PATH,
     update_latest_index_pages,
 )
+from investo.publisher.weekly_digest import (
+    WEEKLY_INDEX_PATH,
+)
+from investo.publisher.weekly_digest import (
+    weekly_path as compute_weekly_path,
+)
 from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
+from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
+from investo.visuals.og_card import OG_CARD_RELATIVE_PATH, write_og_card
 
 # Single ``HttpUrl`` adapter — pydantic v2 doesn't expose ``HttpUrl``
 # as directly callable; the TypeAdapter avoids constructing a fresh
@@ -493,14 +505,21 @@ async def _stage_publish_segments(
     }
     snapshots.update({path: None for path in asset_paths})
 
-    for segment in SEGMENT_ORDER:
-        validate_first_viewport_summary(briefings[segment].rendered_markdown)
-        if not verify_disclaimer(briefings[segment].rendered_markdown):
-            _rollback_paths(snapshots)
-            raise PublisherDisclaimerError(target_date=target_date)
+    try:
+        for segment in SEGMENT_ORDER:
+            validate_first_viewport_summary(briefings[segment].rendered_markdown)
+            if not verify_disclaimer(briefings[segment].rendered_markdown):
+                raise PublisherDisclaimerError(target_date=target_date)
+    except (SummaryQualityError, PublisherDisclaimerError, PublisherIOError):
+        # Visual asset files (snapshotted with previous_bytes=None) must be
+        # rolled back — otherwise a SummaryQualityError leaves orphan
+        # ``*.assets/`` SVGs on disk that the next run picks up as stale.
+        _rollback_paths(snapshots)
+        raise
 
     try:
         index_paths: tuple[Path, ...] = ()
+        weekly_paths: tuple[Path, ...] = ()
         for segment in SEGMENT_ORDER:
             archive_path = await asyncio.to_thread(
                 write_briefing,
@@ -511,13 +530,53 @@ async def _stage_publish_segments(
             archive_paths[segment] = archive_path
             _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
         if all(not path.is_absolute() for path in archive_paths.values()):
+            # Snapshot every page the index/heatmap update may rewrite so a
+            # subsequent ``write_briefing`` failure rolls them back too.
             snapshots.update(
                 {
                     SITE_INDEX_PATH: _read_existing_bytes(SITE_INDEX_PATH),
                     ARCHIVE_INDEX_PATH: _read_existing_bytes(ARCHIVE_INDEX_PATH),
+                    OG_CARD_RELATIVE_PATH: _read_existing_bytes(OG_CARD_RELATIVE_PATH),
                 }
             )
-            index_paths = await asyncio.to_thread(update_latest_index_pages, target_date)
+            for segment_index_path in SEGMENT_ARCHIVE_INDEX_PATHS.values():
+                snapshots[segment_index_path] = _read_existing_bytes(segment_index_path)
+
+            heatmap_svg = await asyncio.to_thread(
+                _build_publish_heatmap_svg,
+                target_date,
+            )
+            index_paths = await asyncio.to_thread(
+                update_latest_index_pages,
+                target_date,
+                segment_briefings=briefings,
+                heatmap_svg=heatmap_svg,
+            )
+            og_card_path = await asyncio.to_thread(
+                write_og_card,
+                target_date,
+                briefings,
+            )
+            index_paths = (*index_paths, og_card_path)
+            # u29 weekly retrospective — opt-in via INVESTO_PUBLISH_WEEKLY=1
+            # set by the GHA Saturday cron path. Failing here would block
+            # the segmented publish (which is already on disk), so we
+            # treat weekly publish as part of the same atomic try block.
+            if weekly_digest_opt_in():
+                weekly_md_path = compute_weekly_path(target_date)
+                snapshots[weekly_md_path] = _read_existing_bytes(weekly_md_path)
+                snapshots[WEEKLY_INDEX_PATH] = _read_existing_bytes(WEEKLY_INDEX_PATH)
+                written_weekly = await asyncio.to_thread(
+                    publish_weekly_digest,
+                    target_date,
+                )
+                weekly_index_path = await asyncio.to_thread(update_weekly_index)
+                weekly_paths = (written_weekly, weekly_index_path)
+                _logger.info(
+                    "[publish] weekly digest written %s + index %s",
+                    written_weekly,
+                    weekly_index_path,
+                )
     except (PublisherDisclaimerError, PublisherIOError):
         _rollback_paths(snapshots)
         raise
@@ -526,11 +585,26 @@ async def _stage_publish_segments(
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
-        [*archive_paths.values(), *asset_paths, *index_paths],
+        [*archive_paths.values(), *asset_paths, *index_paths, *weekly_paths],
         runner=git_runner,
     )
     _logger.info("[publish] committed + pushed segmented %s", target_date)
     return archive_paths
+
+
+def _build_publish_heatmap_svg(target_date: date) -> str:
+    """Scan the archive root and render the publish-calendar heatmap.
+
+    Lives at module scope so the orchestrator can run it via
+    ``asyncio.to_thread``. The function reads from the repo-root-relative
+    archive directory and is therefore cwd-sensitive in the same way as
+    :func:`investo.publisher.writer.write_briefing` — production runs
+    invoke the pipeline from the repo root.
+    """
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    cells = scan_publish_coverage(ARCHIVE_ROOT, today=target_date)
+    return render_publish_heatmap(cells, today=target_date)
 
 
 async def _stage_prepare_segment_visual_assets(
@@ -547,17 +621,22 @@ async def _stage_prepare_segment_visual_assets(
     asset_paths: list[Path] = []
     for segment in SEGMENT_ORDER:
         segment_source_items = routed.for_segment(segment)
+        segment_coverage = routed.coverage_for_segment(
+            segment,
+            source_outcomes=source_outcomes,
+        )
         prepared = await asyncio.to_thread(
             prepare_segment_visual_assets,
             briefings[segment],
             target_date=target_date,
             segment=segment,
             items=segment_source_items,
-            coverage=routed.coverage_for_segment(
-                segment,
-                source_outcomes=source_outcomes,
+            coverage=segment_coverage,
+            watchlist_impact=match_watchlist_items(
+                segment_source_items,
+                watchlist_config,
+                coverage_status=segment_coverage.status,
             ),
-            watchlist_impact=match_watchlist_items(segment_source_items, watchlist_config),
         )
         prepared_briefings[segment] = prepared.briefing
         asset_paths.extend(prepared.asset_paths)

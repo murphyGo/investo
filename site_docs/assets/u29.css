@@ -1,0 +1,20 @@
+/* u29 site-discovery-v2 stylesheet — minor cosmetics for the publish
+   calendar heatmap and hero block. Loaded via ``extra_css`` in
+   ``mkdocs.yml``. */
+
+.u29-heatmap {
+  margin: 1rem 0 1.5rem 0;
+  overflow-x: auto;
+}
+
+.u29-heatmap svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.u29-heatmap figcaption {
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.25rem;
+}
