@@ -125,6 +125,13 @@ def test_stage2_system_forbids_pii_emission() -> None:
     assert "DO NOT include any private tokens" in STAGE2_SYSTEM
 
 
+def test_stage2_system_carries_reader_experience_rules() -> None:
+    assert "market newsletter" in STAGE2_SYSTEM
+    assert "source URL" in STAGE2_SYSTEM
+    assert "Avoid exaggerated promotional language" in STAGE2_SYSTEM
+    assert "group notable tickers/assets by role" in STAGE2_SYSTEM
+
+
 def test_stage2_user_template_has_three_placeholders() -> None:
     rendered = STAGE2_USER_TEMPLATE.format(
         segment_context=DEFAULT_SEGMENT_CONTEXT,

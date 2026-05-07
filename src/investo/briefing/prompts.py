@@ -175,7 +175,19 @@ Rules:
   in English: AAPL, MSFT, BTC-USD, SPY, Federal Reserve, S&P 500,
   Bitcoin, $, ¥, €, 1,234.56.
 - Each section non-blank. If the grouped items are empty for a
-  given section, write "특이사항 없음" rather than leaving it blank.
+  given section, write one concise sentence about the missing evidence
+  instead of repeating generic "데이터 부족" paragraphs.
+- Write like a market newsletter, not a raw bullet dump: section ①
+  should establish the day's narrative, sections ②-⑤ should explain
+  cause/effect and prioritise only the most important items, and
+  section ⑥ should translate the story into concrete watch points.
+- Avoid exaggerated promotional language. Prefer verifiable wording
+  such as "상승", "하락", "순매수", "사상 최고치" over hype terms.
+- When a source URL is provided in the grouped items, attach source
+  links to important claims using normal markdown links.
+- In section ⑤, group notable tickers/assets by role when there are
+  many items (for example: 주도주, 실적, 부진/주의) instead of listing
+  every item as an equal-priority bullet.
 - DO NOT include section ⑦ — the disclaimer is appended by the
   caller (R5).
 - DO NOT include any private tokens, keys, email addresses, or

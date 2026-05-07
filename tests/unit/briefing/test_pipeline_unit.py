@@ -24,6 +24,7 @@ from investo.briefing.pipeline import (
     ClassificationResult,
     SectionPlan,
     _parse_classification,
+    _render_grouped_sections,
     build_section_plan,
     parse_six_sections,
     serialize_items_for_prompt,
@@ -334,6 +335,21 @@ def test_build_section_plan_returns_frozen_dataclass() -> None:
     )
     with pytest.raises(FrozenInstanceError):
         plan.target_date = date(2026, 4, 26)  # type: ignore[misc]
+
+
+def test_render_grouped_sections_includes_source_urls_for_citations() -> None:
+    item = _item(
+        source_name="nasdaq-stocks-news",
+        title="S&P 500 sets record",
+        summary="Major indexes advanced.",
+        url="https://example.com/story",
+    )
+
+    rendered = _render_grouped_sections({2: (item,), 3: (), 4: (), 5: ()})
+
+    assert "[nasdaq-stocks-news] S&P 500 sets record" in rendered
+    assert "(https://example.com/story)" in rendered
+    assert "Major indexes advanced." in rendered
 
 
 # ---------------------------------------------------------------------------

@@ -119,9 +119,10 @@ def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
     the orchestrator triggered exactly the expected number of LLM calls.
     """
     captured_prompts: list[str] = []
-    # Production run_pipeline now generates three market segments in fixed
-    # order. The default fake FOMC items route only to us-equity, so
-    # domestic-equity and crypto receive empty item sets.
+    # Production run_pipeline generates three market segments in fixed
+    # order. Empty data-limited segments now use a local fallback without
+    # LLM calls, so only the us-equity segment consumes the canned Claude
+    # outputs for this fixture.
     stdouts = [
         _stage1_classification_json(0),
         _stage2_markdown(),
@@ -261,8 +262,8 @@ async def test_pipeline_end_to_end_success(
         "publish",
         "notify_briefing",
     }
-    # u2 was called exactly six times: three segments x Stage 1 + Stage 2, no retries.
-    assert len(stub_u2_claude) == 6
+    # u2 was called exactly twice: us-equity Stage 1 + Stage 2, no retries.
+    assert len(stub_u2_claude) == 2
 
     # u3: all three segment files land under the segmented archive paths.
     expected_path = archive_path(_TARGET, segment=DOMESTIC_EQUITY)
@@ -271,6 +272,7 @@ async def test_pipeline_end_to_end_success(
     rendered = expected_path.read_text(encoding="utf-8")
     # Disclaimer landed in the rendered markdown (NFR-004).
     assert "투자 자문" in rendered or "면책" in rendered
+    assert "정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다" in rendered
 
     # u3: git lifecycle (add, commit, push) ran exactly once.
     git_steps = [c[1] for c in git.calls]

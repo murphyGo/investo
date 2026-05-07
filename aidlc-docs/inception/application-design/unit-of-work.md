@@ -231,6 +231,29 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 
 ---
 
+## u9: `briefing-reader-experience` — Reader-Facing Briefing Quality
+
+**Purpose**: 생성된 시황을 사용자가 실제로 읽을 수 있는 뉴스레터형 산출물로 개선한다. 세그먼트 문서 상단에 제목/세그먼트 이동/3줄 브리핑을 추가하고, 데이터가 전혀 없는 세그먼트는 반복적인 "데이터 부족" 6섹션 대신 짧은 수집 상태 문서로 발행한다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-003 (정적 웹 게시), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `src/investo/briefing/prompts.py` — 서사형 작성, 출처 링크, 과장 표현 억제, 종목 그룹화 규칙
+- `src/investo/briefing/pipeline.py` — 세그먼트 상단 UX, 데이터 공백 fallback, source URL 전달
+
+**Tests**:
+- `tests/unit/briefing/test_prompts.py` — reader-experience prompt rules
+- `tests/unit/briefing/test_budget_happy_path.py` — 세그먼트 H1/3줄 브리핑과 zero-item fallback
+- `tests/unit/briefing/test_pipeline_unit.py` — source URL이 Stage 2 prompt에 전달되는지 검증
+
+**Definition of Done**:
+- [x] 세그먼트 문서가 H1, 세그먼트 이동 링크, 오늘의 결론/핵심 동인/주의할 점을 가진다.
+- [x] zero-item 세그먼트는 Claude 호출 없이 짧고 정직한 수집 상태 문서를 생성한다.
+- [x] Stage 2 prompt에 source URL을 전달해 주요 주장에 출처 링크를 붙일 수 있게 한다.
+- [x] Prompt는 나열형 bullet dump 대신 서사형 뉴스레터 톤, 과장 표현 억제, 주요 종목 그룹화를 요구한다.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

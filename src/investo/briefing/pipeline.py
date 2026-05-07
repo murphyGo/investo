@@ -76,6 +76,11 @@ _STAGE1_STDOUT_MAX_BYTES: Final[int] = 64 * 1024
 
 # Closed set of section IDs that Stage 1 may assign to (FD R10).
 _VALID_SECTION_IDS: Final[frozenset[int]] = frozenset({2, 3, 4, 5})
+_SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
+    "domestic-equity": "국내 증시",
+    "us-equity": "미국 증시",
+    "crypto": "크립토",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -339,10 +344,11 @@ def _render_grouped_sections(
         else:
             for item in items:
                 summary = (item.summary or "").strip()
+                url = f" ({item.url})" if item.url is not None else ""
                 if summary:
-                    parts.append(f"  - [{item.source_name}] {item.title} — {summary}")
+                    parts.append(f"  - [{item.source_name}] {item.title}{url} — {summary}")
                 else:
-                    parts.append(f"  - [{item.source_name}] {item.title}")
+                    parts.append(f"  - [{item.source_name}] {item.title}{url}")
         parts.append("")
     return "\n".join(parts).rstrip()
 
@@ -351,7 +357,11 @@ def _render_unassigned(unassigned: tuple[NormalizedItem, ...]) -> str:
     """Render the unassigned items as bullet text. Empty → ``(none)``."""
     if not unassigned:
         return "(none)"
-    return "\n".join(f"  - [{item.source_name}] {item.title}" for item in unassigned)
+    lines: list[str] = []
+    for item in unassigned:
+        url = f" ({item.url})" if item.url is not None else ""
+        lines.append(f"  - [{item.source_name}] {item.title}{url}")
+    return "\n".join(lines)
 
 
 def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool) -> str:
@@ -370,6 +380,78 @@ def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool
         segment_slug=segment,
         data_limited_note=data_limited_note,
     )
+
+
+def _build_data_limited_body(target_date: date, segment: MarketSegment) -> str:
+    """Return a concise six-section body for a segment with zero routed items."""
+    label = SEGMENT_LABELS[segment]
+    h1, h2, h3, h4, h5, h6 = STAGE2_SECTION_HEADERS
+    return (
+        f"{h1}\n{target_date.isoformat()} {label} 세그먼트는 정식 시황을 만들 만큼 "
+        "검증된 입력 데이터가 수집되지 않았습니다. 오늘 문서는 시장 방향을 단정하지 않고, "
+        "수집 공백과 확인할 항목만 짧게 남깁니다.\n\n"
+        f"{h2}\n확인된 핵심 이슈 없음 — 해당 세그먼트의 뉴스/공시 입력이 충분하지 않아 "
+        "주요 이벤트를 선별하지 않았습니다.\n\n"
+        f"{h3}\n가격·수급 데이터 미확인 — 섹터, 자금 흐름, 상대강도 판단은 다음 정상 "
+        "수집 이후로 보류합니다.\n\n"
+        f"{h4}\n일정·거시 이벤트 미확인 — 세그먼트에 직접 연결되는 지표와 이벤트 근거가 "
+        "부족합니다.\n\n"
+        f"{h5}\n개별 종목·자산 선별 보류 — 충분한 가격/뉴스 근거 없이 티커를 나열하지 "
+        "않습니다.\n\n"
+        f"{h6}\n"
+        "1. 데이터 수집 로그에서 실패한 소스와 성공했지만 0건을 반환한 소스를 구분합니다.\n"
+        "2. 해당 시장의 대표 가격 지표와 주요 뉴스 소스가 회복됐는지 확인합니다.\n"
+        "3. 다음 발행 전까지는 공신력 있는 원천 데이터로 가격과 이벤트를 별도 확인합니다.\n"
+    )
+
+
+def _segment_nav(target_date: date, segment: MarketSegment) -> str:
+    filename = f"{target_date.isoformat()}.md"
+    links: list[str] = []
+    for target_segment, label in _SEGMENT_NAV_LABELS.items():
+        href = (
+            filename
+            if target_segment == segment
+            else f"../../../{target_segment}/{target_date.year}/{target_date.month:02d}/{filename}"
+        )
+        links.append(f"[{label}]({href})")
+    return " | ".join(links)
+
+
+def _first_sentence(text: str, *, fallback: str) -> str:
+    normalized = " ".join(line.strip() for line in text.splitlines() if line.strip())
+    if not normalized:
+        return fallback
+    for marker in (". ", "다. ", "요. "):
+        idx = normalized.find(marker)
+        if idx >= 0:
+            return normalized[: idx + len(marker.strip())].strip()
+    return normalized[:140].strip()
+
+
+def _enhance_reader_experience(
+    body_markdown: str,
+    *,
+    target_date: date,
+    segment: MarketSegment | None,
+    sections: tuple[str, str, str, str, str, str],
+) -> str:
+    """Prepend the reader-facing title, segment nav, and 3-line brief."""
+    if segment is None:
+        return body_markdown
+
+    label = SEGMENT_LABELS[segment]
+    conclusion = _first_sentence(sections[0], fallback="확인된 요약이 부족합니다.")
+    driver = _first_sentence(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다.")
+    caution = _first_sentence(sections[5], fallback="관전 포인트는 데이터 회복 후 보강합니다.")
+    header = (
+        f"# {target_date.isoformat()} {label} 시황\n\n"
+        f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
+        f"> **오늘의 결론**: {conclusion}\n"
+        f"> **핵심 동인**: {driver}\n"
+        f"> **주의할 점**: {caution}\n\n"
+    )
+    return f"{header}{body_markdown}"
 
 
 # ---------------------------------------------------------------------------
@@ -548,6 +630,36 @@ async def generate_briefing(
     if budget is None:
         budget = RetryBudget()
 
+    if segment is not None and data_limited and not items:
+        body_markdown = _build_data_limited_body(target_date, segment)
+        sections = parse_six_sections(body_markdown)
+        enhanced_markdown = _enhance_reader_experience(
+            body_markdown,
+            target_date=target_date,
+            segment=segment,
+            sections=sections,
+        )
+        full_markdown = append_disclaimer(enhanced_markdown)
+        hit = leak_guard_scan(full_markdown)
+        if hit is not None:
+            raise BriefingGenerationError(
+                stage="post_validation",
+                attempt_count=1,
+                last_stderr=None,
+                cause=ValueError(f"leak guard matched pattern: {hit.pattern_name}"),
+            )
+        return Briefing(
+            target_date=target_date,
+            market_summary=sections[0],
+            key_issues=sections[1],
+            sector_flow=sections[2],
+            indicators_events=sections[3],
+            notable_tickers=sections[4],
+            today_watch=sections[5],
+            disclaimer=DISCLAIMER,
+            rendered_markdown=full_markdown,
+        )
+
     segment_context = _render_segment_context(segment, data_limited=data_limited)
     classification = await _classify(
         items,
@@ -568,7 +680,13 @@ async def generate_briefing(
     # section bodies for the Briefing fields.
     sections = parse_six_sections(body_markdown)
 
-    full_markdown = append_disclaimer(body_markdown)
+    enhanced_markdown = _enhance_reader_experience(
+        body_markdown,
+        target_date=target_date,
+        segment=segment,
+        sections=sections,
+    )
+    full_markdown = append_disclaimer(enhanced_markdown)
 
     hit = leak_guard_scan(full_markdown)
     if hit is not None:

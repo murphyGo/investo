@@ -136,7 +136,7 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
 
     monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
 
-    await pipeline.generate_briefing(
+    result = await pipeline.generate_briefing(
         _TARGET_DATE,
         _items(2),
         segment=US_EQUITY,
@@ -148,6 +148,35 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
         assert "미국 증시" in prompt
         assert "us-equity" in prompt
         assert "데이터 부족" in prompt
+    assert result.rendered_markdown.startswith("# 2026-04-25 미국 증시 시황")
+    assert "**세그먼트**:" in result.rendered_markdown
+    assert "> **오늘의 결론**:" in result.rendered_markdown
+
+
+@pytest.mark.asyncio
+async def test_generate_briefing_zero_item_segment_uses_concise_local_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """u9 — empty segment output should be useful and should not burn LLM calls."""
+
+    async def fail_if_called(*args: object, **kwargs: object) -> SubprocessOutcome:
+        raise AssertionError("Claude should not be called for a zero-item segment fallback")
+
+    monkeypatch.setattr(pipeline, "call_claude_code", fail_if_called)
+
+    result = await pipeline.generate_briefing(
+        _TARGET_DATE,
+        (),
+        segment=US_EQUITY,
+        data_limited=True,
+    )
+
+    assert result.rendered_markdown.startswith("# 2026-04-25 미국 증시 시황")
+    assert "정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다" in (
+        result.rendered_markdown
+    )
+    assert "충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다" in result.rendered_markdown
+    assert result.rendered_markdown.count("데이터 부족") == 0
 
 
 @pytest.mark.asyncio
