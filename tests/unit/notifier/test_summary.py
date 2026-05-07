@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from datetime import date
 
+import pytest
+
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.models import Briefing, BriefingNotification
@@ -203,6 +205,17 @@ def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:
         assert url in summary
 
 
+def test_build_segmented_summary_rejects_footer_that_cannot_fit() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내"),
+        US_EQUITY: _build_briefing(market_summary="미국"),
+        CRYPTO: _build_briefing(market_summary="크립토"),
+    }
+
+    with pytest.raises(ValueError, match="fixed content exceeds"):
+        build_segmented_summary(briefings, site_urls=_SEGMENT_URLS, max_units=80)
+
+
 def test_build_summary_truncation_suffix_at_body_end() -> None:
     """The "…" lands between the truncated body and the footer."""
     long_text = "Y" * 10000
@@ -237,6 +250,23 @@ def test_build_summary_round_trip_through_briefing_notification() -> None:
         site_url=_SITE_URL,  # type: ignore[arg-type]
     )
     # If construction succeeded, the validator passed — round-trip OK.
+    assert notification.target_date == _TARGET_DATE
+
+
+def test_build_segmented_summary_round_trip_through_briefing_notification() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 " + ("가" * 5000)),
+        US_EQUITY: _build_briefing(market_summary="미국 " + ("나" * 5000)),
+        CRYPTO: _build_briefing(market_summary="크립토 " + ("다" * 5000)),
+    }
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    notification = BriefingNotification(
+        target_date=_TARGET_DATE,
+        summary_text=summary,
+        site_url=_SEGMENT_URLS[DOMESTIC_EQUITY],  # type: ignore[arg-type]
+    )
+
     assert notification.target_date == _TARGET_DATE
 
 

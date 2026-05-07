@@ -70,7 +70,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-from pydantic import HttpUrl, TypeAdapter
+from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.errors import BriefingGenerationError
@@ -106,7 +106,11 @@ from investo.publisher import (
     PublisherGitError,
     PublisherIOError,
     commit_and_push,
+    verify_disclaimer,
     write_briefing,
+)
+from investo.publisher import (
+    archive_path as compute_archive_path,
 )
 from investo.sources import fetch_all as _default_fetch_all
 
@@ -427,19 +431,38 @@ async def _stage_publish_segments(
     *,
     git_runner: GitRunner | None = None,
 ) -> dict[MarketSegment, Path]:
-    """Write all segment archive files, then commit/push them together."""
+    """Write all segment archive files, then commit/push them together.
+
+    The set is best-effort atomic before git commit: all disclaimers are
+    validated up front, and any write failure rolls back files already
+    written in this stage to their prior bytes or absence.
+    """
     _logger.info("[publish] starting segmented target_date=%s", target_date)
 
-    archive_paths: dict[MarketSegment, Path] = {}
     for segment in SEGMENT_ORDER:
-        archive_path = await asyncio.to_thread(
-            write_briefing,
-            briefings[segment],
-            target_date,
-            segment=segment,
+        if not verify_disclaimer(briefings[segment].rendered_markdown):
+            raise PublisherDisclaimerError(target_date=target_date)
+
+    archive_paths: dict[MarketSegment, Path] = {}
+    snapshots: dict[Path, bytes | None] = {
+        compute_archive_path(target_date, segment=segment): _read_existing_bytes(
+            compute_archive_path(target_date, segment=segment)
         )
-        archive_paths[segment] = archive_path
-        _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
+        for segment in SEGMENT_ORDER
+    }
+    try:
+        for segment in SEGMENT_ORDER:
+            archive_path = await asyncio.to_thread(
+                write_briefing,
+                briefings[segment],
+                target_date,
+                segment=segment,
+            )
+            archive_paths[segment] = archive_path
+            _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
+    except (PublisherDisclaimerError, PublisherIOError):
+        _rollback_paths(snapshots)
+        raise
 
     commit_message = f"briefing: {target_date} segmented"
     await asyncio.to_thread(
@@ -450,6 +473,21 @@ async def _stage_publish_segments(
     )
     _logger.info("[publish] committed + pushed segmented %s", target_date)
     return archive_paths
+
+
+def _read_existing_bytes(path: Path) -> bytes | None:
+    if not path.exists():
+        return None
+    return path.read_bytes()
+
+
+def _rollback_paths(snapshots: dict[Path, bytes | None]) -> None:
+    for path, previous_bytes in snapshots.items():
+        if previous_bytes is None:
+            path.unlink(missing_ok=True)
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(previous_bytes)
 
 
 async def _stage_notify_briefing(
@@ -551,15 +589,22 @@ async def _stage_notify_segmented_briefing(
     target_date = briefings[DOMESTIC_EQUITY].target_date
     _logger.info("[notify_briefing] starting segmented target_date=%s", target_date)
 
-    summary_text = build_segmented_summary(
-        briefings,
-        site_urls={segment: str(url) for segment, url in site_urls.items()},
-    )
-    payload = BriefingNotification(
-        target_date=target_date,
-        summary_text=summary_text,
-        site_url=site_urls[DOMESTIC_EQUITY],
-    )
+    try:
+        summary_text = build_segmented_summary(
+            briefings,
+            site_urls={segment: str(url) for segment, url in site_urls.items()},
+        )
+        payload = BriefingNotification(
+            target_date=target_date,
+            summary_text=summary_text,
+            site_url=site_urls[DOMESTIC_EQUITY],
+        )
+    except (ValueError, ValidationError) as exc:
+        error = f"segmented summary build failed: {type(exc).__name__}: {exc}"
+        _logger.warning(
+            "[notify_briefing] failed segmented target_date=%s error=%s", target_date, error
+        )
+        return SendResult(ok=False, error=error)
     result = await publisher.send(payload)
 
     if result.ok:

@@ -53,6 +53,7 @@
   - `TELEGRAM_BOT_TOKEN` (Bot API)
   - `TELEGRAM_BRIEFING_CHANNEL_ID` (공개 시황 채널/그룹)
   - `TELEGRAM_OPERATOR_CHAT_ID` (운영자 1:1 실패 알림)
+  - `SITE_URL_BASE` (GitHub Pages base URL; 예: `https://murphygo.github.io/investo`)
   - 데이터 소스 API key (사용 시)
 
 ## Existing Systems

@@ -137,9 +137,17 @@ def build_segmented_summary(
     )
 
     fixed_units = _utf16_units(header) + _utf16_units(footer)
+    if fixed_units > max_units:
+        raise ValueError(
+            f"segmented summary fixed content exceeds {max_units} UTF-16 units: {fixed_units}"
+        )
+
     body_budget = max_units - fixed_units
     if _utf16_units(body) <= body_budget:
         return header + body + footer
+
+    if body_budget <= _utf16_units(_TRUNCATION_SUFFIX):
+        return header + footer
 
     truncated = _utf16_truncate(body, body_budget - _utf16_units(_TRUNCATION_SUFFIX))
     return header + truncated + _TRUNCATION_SUFFIX + footer

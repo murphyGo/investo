@@ -39,11 +39,13 @@ from investo.models import (
     SendResult,
 )
 from investo.models.results import TRACEBACK_EXCERPT_MAX
+from investo.orchestrator import pipeline as pipeline_module
 from investo.orchestrator.pipeline import (
     _briefing_url_for,
     _build_failure_context,
     run_pipeline,
 )
+from investo.publisher.errors import PublisherIOError
 
 _TARGET = date(2026, 4, 27)  # Mon
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
@@ -351,6 +353,121 @@ async def test_run_pipeline_segment_generation_failure_skips_all_publish(
     assert publisher.calls == []
     assert len(alerter.calls) == 1
     assert not archive_root.exists()
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    calls = 0
+
+    def fake_verify_disclaimer(markdown: str) -> bool:
+        nonlocal calls
+        calls += 1
+        return calls != 2
+
+    monkeypatch.setattr(pipeline_module, "verify_disclaimer", fake_verify_disclaimer)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: PublisherDisclaimerError"
+    assert result.stages["notify_briefing"] == "skipped"
+    assert publisher.calls == []
+    assert git.calls == []
+    assert not archive_root.exists()
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    domestic_path = archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md"
+    domestic_path.parent.mkdir(parents=True)
+    domestic_path.write_text("previous domestic", encoding="utf-8")
+
+    def fake_write_briefing(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert segment is not None
+        path = archive_root / segment / "2026" / "04" / "2026-04-27.md"
+        if segment == US_EQUITY:
+            raise PublisherIOError(target_date=target_date, path=path, cause=OSError("boom"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"new {segment}", encoding="utf-8")
+        return path
+
+    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: PublisherIOError"
+    assert result.stages["notify_briefing"] == "skipped"
+    assert domestic_path.read_text(encoding="utf-8") == "previous domestic"
+    assert not (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
+    assert publisher.calls == []
+    assert git.calls == []
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_segmented_summary_build_failure_yields_partial(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+
+    def broken_summary(*args: object, **kwargs: object) -> str:
+        raise ValueError("footer too long")
+
+    monkeypatch.setattr(pipeline_module, "build_segmented_summary", broken_summary)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"].startswith("failed: segmented summary build failed")
+    assert publisher.calls == []
+    assert alerter.calls == []
+    assert "push" in [call[1] for call in git.calls]
 
 
 @pytest.mark.asyncio
