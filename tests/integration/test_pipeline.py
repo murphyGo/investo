@@ -252,13 +252,15 @@ async def test_pipeline_end_to_end_success(
     assert result.stages == {
         "collect": "ok",
         "generate": "ok",
+        "visual_assets": "ok: 9 files",
         "publish": "ok",
         "notify_briefing": "ok",
     }
-    # All 4 stage timings present and non-negative.
+    # All 5 stage timings present and non-negative.
     assert set(result.stage_timings) == {
         "collect",
         "generate",
+        "visual_assets",
         "publish",
         "notify_briefing",
     }

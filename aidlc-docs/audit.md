@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u19 briefing-visual-assets — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Action**: Completed u19 briefing visual assets. Added deterministic SVG data cards, visual asset preparation, segmented markdown links, same-commit asset staging, broken-link validation, `visual_assets` diagnostics, and text-only fallback on visual generation failure.
+**Status**: Code Generation complete; full gate passed (`ruff check .`, `ruff format --check .`, `mypy --strict src/`, `pytest -q` 1011 passed, `mkdocs build --strict`).
+**Context**: Post-MVP visual UX follow-up — u19 briefing-visual-assets, Code Generation Steps 1-4.
+
+---
+
 ## Construction — u19 briefing-visual-assets — Step 3 Complete
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Action**: Connected u19 visual assets to the segmented publish flow. Generated segment/date SVG assets after briefing generation, inserted relative markdown image links, validated generated assets, and staged markdown plus assets in the same commit.

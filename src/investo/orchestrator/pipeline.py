@@ -63,6 +63,7 @@ Reference:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 import traceback
@@ -442,17 +443,20 @@ async def _stage_publish_segments(
     """
     _logger.info("[publish] starting segmented target_date=%s", target_date)
 
+    archive_paths: dict[MarketSegment, Path] = {}
+    snapshot_paths = [
+        *(compute_archive_path(target_date, segment=segment) for segment in SEGMENT_ORDER),
+    ]
+    snapshots: dict[Path, bytes | None] = {
+        path: _read_existing_bytes(path) for path in snapshot_paths
+    }
+    snapshots.update({path: None for path in asset_paths})
+
     for segment in SEGMENT_ORDER:
         if not verify_disclaimer(briefings[segment].rendered_markdown):
+            _rollback_paths(snapshots)
             raise PublisherDisclaimerError(target_date=target_date)
 
-    archive_paths: dict[MarketSegment, Path] = {}
-    snapshots: dict[Path, bytes | None] = {
-        compute_archive_path(target_date, segment=segment): _read_existing_bytes(
-            compute_archive_path(target_date, segment=segment)
-        )
-        for segment in SEGMENT_ORDER
-    }
     try:
         for segment in SEGMENT_ORDER:
             archive_path = await asyncio.to_thread(
@@ -513,10 +517,23 @@ def _read_existing_bytes(path: Path) -> bytes | None:
 def _rollback_paths(snapshots: dict[Path, bytes | None]) -> None:
     for path, previous_bytes in snapshots.items():
         if previous_bytes is None:
-            path.unlink(missing_ok=True)
+            with contextlib.suppress(OSError):
+                path.unlink(missing_ok=True)
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(previous_bytes)
+    _prune_empty_parent_dirs(snapshots)
+
+
+def _prune_empty_parent_dirs(snapshots: dict[Path, bytes | None]) -> None:
+    for path in sorted(snapshots, key=lambda item: len(item.parts), reverse=True):
+        current = path.parent
+        while current != current.parent:
+            try:
+                current.rmdir()
+            except OSError:
+                break
+            current = current.parent
 
 
 async def _stage_notify_briefing(
@@ -838,6 +855,31 @@ async def run_pipeline(
         )
     stage_timings["generate"] = time.monotonic() - stage_start
     stages["generate"] = "ok"
+    visual_assets_failed = False
+    visual_asset_paths: tuple[Path, ...] = ()
+
+    if segmented_mode:
+        assert segment_briefings is not None
+        stage_start = time.monotonic()
+        try:
+            segment_briefings, visual_asset_paths = await _stage_prepare_segment_visual_assets(
+                segment_briefings,
+                items,
+                target_date,
+            )
+        except VisualAssetError as exc:
+            visual_assets_failed = True
+            visual_asset_paths = ()
+            stage_timings["visual_assets"] = time.monotonic() - stage_start
+            stages["visual_assets"] = f"failed: {type(exc).__name__}"
+            _logger.warning(
+                "[visual_assets] failed target_date=%s error=%s; publishing text-only",
+                target_date,
+                exc,
+            )
+        else:
+            stage_timings["visual_assets"] = time.monotonic() - stage_start
+            stages["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
 
     # ------------------------------------------------------------------
     # PUBLISH (AC-003-4, AC-003-5)
@@ -846,11 +888,6 @@ async def run_pipeline(
     try:
         if segmented_mode:
             assert segment_briefings is not None
-            segment_briefings, visual_asset_paths = await _stage_prepare_segment_visual_assets(
-                segment_briefings,
-                items,
-                target_date,
-            )
             await _stage_publish_segments(
                 segment_briefings,
                 target_date,
@@ -859,7 +896,7 @@ async def run_pipeline(
             )
         else:
             await _stage_publish(briefing, target_date, git_runner=git_runner)
-    except (PublisherDisclaimerError, PublisherIOError, PublisherGitError, VisualAssetError) as exc:
+    except (PublisherDisclaimerError, PublisherIOError, PublisherGitError) as exc:
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"
         stages["notify_briefing"] = "skipped"
@@ -909,7 +946,7 @@ async def run_pipeline(
 
     if notify_result.ok:
         stages["notify_briefing"] = "ok"
-        status = PipelineStatus.SUCCESS
+        status = PipelineStatus.PARTIAL if visual_assets_failed else PipelineStatus.SUCCESS
     else:
         stages["notify_briefing"] = f"failed: {notify_result.error}"
         status = PipelineStatus.PARTIAL

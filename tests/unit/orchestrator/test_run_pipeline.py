@@ -46,6 +46,7 @@ from investo.orchestrator.pipeline import (
     run_pipeline,
 )
 from investo.publisher.errors import PublisherIOError
+from investo.visuals.assets import VisualAssetError
 
 _TARGET = date(2026, 4, 27)  # Mon
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
@@ -330,6 +331,50 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
 
 
 @pytest.mark.asyncio
+async def test_run_pipeline_visual_asset_failure_publishes_text_only_partial(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    items = [
+        NormalizedItem(
+            source_name="yfinance-price",
+            category="price",
+            title="AAPL closes higher",
+            published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+        )
+    ]
+
+    def _fail_visual_assets(*args: object, **kwargs: object) -> object:
+        raise VisualAssetError("renderer unavailable")
+
+    monkeypatch.setattr(pipeline_module, "prepare_segment_visual_assets", _fail_visual_assets)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch(items),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.stages["visual_assets"] == "failed: VisualAssetError"
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"] == "ok"
+    assert len(publisher.calls) == 1
+    assert alerter.calls == []
+    for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
+        markdown = archive_root / segment / "2026" / "04" / "2026-04-27.md"
+        assert markdown.exists()
+        assert ".assets/" not in markdown.read_text(encoding="utf-8")
+
+
+@pytest.mark.asyncio
 async def test_run_pipeline_segment_generation_failure_skips_all_publish(
     archive_root: Path,
 ) -> None:
@@ -387,7 +432,8 @@ async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
     assert result.stages["notify_briefing"] == "skipped"
     assert publisher.calls == []
     assert git.calls == []
-    assert not archive_root.exists()
+    assert not list(archive_root.rglob("*.md"))
+    assert not list(archive_root.rglob("*.svg"))
 
 
 @pytest.mark.asyncio

@@ -62,17 +62,17 @@ References:
 
 ## Definition of Done
 
-- [ ] Visual assets are generated deterministically without network access.
-- [ ] Segmented briefings can include visual assets for domestic-equity, us-equity, and crypto.
-- [ ] At least one data confidence card is generated from `SegmentCoverage`.
-- [ ] At least one market snapshot card is generated from the cleaned summary header.
-- [ ] US equity and crypto price cards are generated when source metadata is available, and omitted gracefully when unavailable.
-- [ ] Watchlist relevance cards show matched item counts/titles only; they do not infer investment impact.
-- [ ] External image scraping is disabled by default and guarded by an explicit policy test.
-- [ ] Generated images are non-empty, non-blank, bounded in dimensions, and below a size cap.
-- [ ] Markdown image links are relative, MkDocs-safe, and do not create broken public pages.
-- [ ] Telegram summary behavior remains within the existing 4096 UTF-16 unit limit.
-- [ ] Image generation failure policy is explicit and visible in run diagnostics.
+- [x] Visual assets are generated deterministically without network access.
+- [x] Segmented briefings can include visual assets for domestic-equity, us-equity, and crypto.
+- [x] At least one data confidence card is generated from `SegmentCoverage`.
+- [x] At least one market snapshot card is generated from the cleaned summary header.
+- [x] US equity and crypto price cards are generated when source metadata is available, and omitted gracefully when unavailable.
+- [x] Watchlist relevance cards show matched item counts/titles only; they do not infer investment impact.
+- [x] External image scraping is disabled by default and guarded by an explicit policy test.
+- [x] Generated images are non-empty, non-blank, bounded in dimensions, and below a size cap.
+- [x] Markdown image links are relative, MkDocs-safe, and do not create broken public pages.
+- [x] Telegram summary behavior remains within the existing 4096 UTF-16 unit limit.
+- [x] Image generation failure policy is explicit and visible in run diagnostics.
 
 ---
 
@@ -301,6 +301,6 @@ uv run mkdocs build --strict
 
 ### Step 4 — Diagnostics and Full Gate
 
-- [ ] Report visual asset status in GitHub Step Summary.
-- [ ] Preserve text-only publish fallback when visual generation fails before links are inserted.
-- [ ] Run targeted tests, full pytest, mypy, ruff, and `mkdocs build --strict`.
+- [x] Report visual asset status in GitHub Step Summary.
+- [x] Preserve text-only publish fallback when visual generation fails before links are inserted.
+- [x] Run targeted tests, full pytest, mypy, ruff, and `mkdocs build --strict`.

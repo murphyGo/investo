@@ -355,11 +355,12 @@ def test_main_writes_redacted_github_step_summary_for_partial_result(
         PipelineStatus.PARTIAL,
         stages={
             "collect": "ok",
+            "visual_assets": "failed: Telegram 1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ",
             "notify_briefing": (
                 "failed: Telegram 1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ chat 12345678"
             ),
         },
-        stage_timings={"collect": 0.12, "notify_briefing": 0.34},
+        stage_timings={"collect": 0.12, "visual_assets": 0.23, "notify_briefing": 0.34},
         briefing_url="https://example.github.io/investo/archive/domestic-equity/2026/04/2026-04-27/",
     )
 
@@ -369,6 +370,7 @@ def test_main_writes_redacted_github_step_summary_for_partial_result(
     summary = summary_path.read_text(encoding="utf-8")
     assert "Status: `partial`" in summary
     assert "/archive/domestic-equity/2026/04/2026-04-27/" in summary
+    assert "visual_assets" in summary
     assert "notify_briefing" in summary
     assert "[REDACTED]" in summary
     assert "AAFakeBotToken" not in summary
