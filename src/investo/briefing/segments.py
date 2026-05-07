@@ -7,9 +7,10 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final, Literal
 
-from investo.models import NormalizedItem
+from investo.models import Category, NormalizedItem
 
 MarketSegment = Literal["domestic-equity", "us-equity", "crypto"]
+CoverageStatus = Literal["normal", "partial", "insufficient"]
 
 DOMESTIC_EQUITY: Final[MarketSegment] = "domestic-equity"
 US_EQUITY: Final[MarketSegment] = "us-equity"
@@ -25,6 +26,23 @@ SEGMENT_THRESHOLDS: Final[dict[MarketSegment, int]] = {
     DOMESTIC_EQUITY: 3,
     US_EQUITY: 3,
     CRYPTO: 2,
+}
+SEGMENT_REQUIRED_CATEGORIES: Final[dict[MarketSegment, tuple[Category, ...]]] = {
+    DOMESTIC_EQUITY: ("news", "price"),
+    US_EQUITY: ("news", "price"),
+    CRYPTO: ("news", "price"),
+}
+COVERAGE_STATUS_LABELS: Final[dict[CoverageStatus, str]] = {
+    "normal": "정상",
+    "partial": "부분",
+    "insufficient": "부족",
+}
+CATEGORY_LABELS: Final[dict[Category, str]] = {
+    "news": "뉴스",
+    "price": "가격",
+    "macro": "거시",
+    "calendar": "일정",
+    "earnings": "실적",
 }
 
 _DOMESTIC_SOURCES: Final[frozenset[str]] = frozenset({"yonhap-market"})
@@ -90,7 +108,32 @@ class SegmentedItems:
         return self.crypto
 
     def is_data_limited(self, segment: MarketSegment) -> bool:
-        return len(self.for_segment(segment)) < SEGMENT_THRESHOLDS[segment]
+        return self.coverage_for_segment(segment).status != "normal"
+
+    def coverage_for_segment(self, segment: MarketSegment) -> SegmentCoverage:
+        return build_segment_coverage(segment, self.for_segment(segment))
+
+
+@dataclass(frozen=True, slots=True)
+class SegmentCoverage:
+    """Reader-facing coverage summary for a routed market segment."""
+
+    segment: MarketSegment
+    status: CoverageStatus
+    item_count: int
+    source_count: int
+    categories: tuple[Category, ...]
+    missing_categories: tuple[Category, ...]
+
+    @property
+    def status_label(self) -> str:
+        return COVERAGE_STATUS_LABELS[self.status]
+
+    @property
+    def missing_category_label(self) -> str:
+        if not self.missing_categories:
+            return "없음"
+        return ", ".join(CATEGORY_LABELS[category] for category in self.missing_categories)
 
 
 def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
@@ -112,6 +155,32 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
         domestic_equity=tuple(domestic),
         us_equity=tuple(us),
         crypto=tuple(crypto),
+    )
+
+
+def build_segment_coverage(
+    segment: MarketSegment,
+    items: Sequence[NormalizedItem],
+) -> SegmentCoverage:
+    categories = tuple(sorted({item.category for item in items}))
+    source_count = len({item.source_name for item in items})
+    required_categories = SEGMENT_REQUIRED_CATEGORIES[segment]
+    missing_categories = tuple(
+        category for category in required_categories if category not in categories
+    )
+    if not items:
+        status: CoverageStatus = "insufficient"
+    elif len(items) < SEGMENT_THRESHOLDS[segment] or missing_categories:
+        status = "partial"
+    else:
+        status = "normal"
+    return SegmentCoverage(
+        segment=segment,
+        status=status,
+        item_count=len(items),
+        source_count=source_count,
+        categories=categories,
+        missing_categories=missing_categories,
     )
 
 
@@ -144,12 +213,18 @@ def _is_crypto(item: NormalizedItem, text: str) -> bool:
 
 
 __all__ = [
+    "CATEGORY_LABELS",
+    "COVERAGE_STATUS_LABELS",
     "CRYPTO",
     "DOMESTIC_EQUITY",
     "SEGMENT_LABELS",
+    "SEGMENT_REQUIRED_CATEGORIES",
     "SEGMENT_THRESHOLDS",
     "US_EQUITY",
+    "CoverageStatus",
     "MarketSegment",
+    "SegmentCoverage",
     "SegmentedItems",
+    "build_segment_coverage",
     "segment_items",
 ]

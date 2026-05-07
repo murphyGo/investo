@@ -150,6 +150,8 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
         assert "데이터 부족" in prompt
     assert result.rendered_markdown.startswith("# 2026-04-25 미국 증시 시황")
     assert "**세그먼트**:" in result.rendered_markdown
+    assert "> **데이터 상태**: 부분" in result.rendered_markdown
+    assert "누락: 가격" in result.rendered_markdown
     assert "> **오늘의 결론**:" in result.rendered_markdown
 
 
@@ -198,6 +200,7 @@ async def test_segment_header_sanitizes_markdown_and_numbered_watchpoints(
     )
 
     header = result.rendered_markdown.split("## ① 요약", maxsplit=1)[0]
+    assert "> **데이터 상태**: 부분" in header
     assert "> **오늘의 결론**: 미국 증시는 실적 일정을 앞두고 방향성 확인이 필요합니다." in header
     assert "> **핵심 동인**: 입법 가속화 vs. 정치적 마찰" in header
     assert "> **주의할 점**: ARM 가이던스" in header
@@ -233,6 +236,8 @@ async def test_generate_briefing_zero_item_segment_uses_concise_local_fallback(
     assert "충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다" in result.rendered_markdown
     assert result.rendered_markdown.count("데이터 부족") == 0
     header = result.rendered_markdown.split("## ① 요약", maxsplit=1)[0]
+    assert "> **데이터 상태**: 부족" in header
+    assert "누락: 뉴스, 가격" in header
     assert "주의할 점**: 1." not in header
     assert "> **주의할 점**: 데이터 수집 로그에서 실패한 소스" in header
 

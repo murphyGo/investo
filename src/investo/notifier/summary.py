@@ -58,6 +58,10 @@ _CONCLUSION_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*오늘의 결론\*\*:\s*(.+)$",
     re.MULTILINE,
 )
+_COVERAGE_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^>\s*\*\*데이터 상태\*\*:\s*(.+)$",
+    re.MULTILINE,
+)
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
 _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
@@ -169,6 +173,13 @@ def _one_line_summary(briefing: Briefing) -> str:
     if conclusion_match is not None:
         conclusion = _clean_summary_text(conclusion_match.group(1))
         if conclusion:
+            coverage_match = _COVERAGE_LINE_RE.search(briefing.rendered_markdown)
+            if coverage_match is not None:
+                coverage_label = (
+                    _clean_summary_text(coverage_match.group(1)).split("—", maxsplit=1)[0].strip()
+                )
+                if coverage_label:
+                    return f"{coverage_label} — {conclusion}"
             return conclusion
 
     for line in briefing.market_summary.splitlines():

@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, segment_items
+from investo.briefing.segments import (
+    CRYPTO,
+    DOMESTIC_EQUITY,
+    US_EQUITY,
+    build_segment_coverage,
+    segment_items,
+)
 from investo.models import NormalizedItem
 
 
@@ -97,3 +103,28 @@ def test_data_limited_thresholds_are_segment_specific() -> None:
     assert segmented.is_data_limited(DOMESTIC_EQUITY)
     assert segmented.is_data_limited(US_EQUITY)
     assert segmented.is_data_limited(CRYPTO)
+
+
+def test_segment_coverage_statuses_are_normal_partial_or_insufficient() -> None:
+    normal = build_segment_coverage(
+        US_EQUITY,
+        [
+            _item("yfinance-price", "S&P 500", category="price"),
+            _item("yahoo-finance-news", "AAPL news", category="news"),
+            _item("fomc-rss", "Fed calendar", category="calendar"),
+        ],
+    )
+    partial = build_segment_coverage(
+        CRYPTO,
+        [_item("coingecko-price", "Bitcoin price", category="price")],
+    )
+    insufficient = build_segment_coverage(DOMESTIC_EQUITY, [])
+
+    assert normal.status == "normal"
+    assert normal.status_label == "정상"
+    assert normal.missing_category_label == "없음"
+    assert partial.status == "partial"
+    assert partial.missing_categories == ("news",)
+    assert partial.missing_category_label == "뉴스"
+    assert insufficient.status == "insufficient"
+    assert insufficient.missing_categories == ("news", "price")

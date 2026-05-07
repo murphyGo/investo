@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u15 coverage-confidence-badges — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00Z
+**Action**: Implemented reader-visible segment coverage confidence. Added coverage status computation, required category checks, first-viewport `데이터 상태` rendering, data-limited prompt propagation for partial/insufficient coverage, and compact Telegram coverage labels.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/`, targeted pytest 35 passed, full pytest 981 passed).
+**Context**: Post-MVP quality review follow-up — u15 coverage-confidence-badges, Code Generation Steps 1-3.
+
+---
+
 ## Construction — u14 summary-quality-contract — Code Generation Complete
 **Timestamp**: 2026-05-07T00:00:00Z
 **Action**: Implemented stable segmented briefing summary headers. Replaced brittle first-sentence header extraction with markdown/list-aware summary cleaning, added a validated `SummaryHeader` contract, and made segmented Telegram summaries prefer the rendered `오늘의 결론` line when available.

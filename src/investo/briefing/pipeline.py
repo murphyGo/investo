@@ -55,7 +55,12 @@ from investo.briefing.prompts import (
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
 )
-from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
+from investo.briefing.segments import (
+    SEGMENT_LABELS,
+    MarketSegment,
+    SegmentCoverage,
+    build_segment_coverage,
+)
 from investo.models import Briefing, NormalizedItem
 
 # Retry constants per FD R3.
@@ -493,12 +498,21 @@ def _build_summary_header(sections: tuple[str, str, str, str, str, str]) -> Summ
     )
 
 
+def _render_coverage_badge(coverage: SegmentCoverage) -> str:
+    return (
+        f"> **데이터 상태**: {coverage.status_label} — "
+        f"수집 {coverage.item_count}건 / 소스 {coverage.source_count}개 / "
+        f"누락: {coverage.missing_category_label}\n"
+    )
+
+
 def _enhance_reader_experience(
     body_markdown: str,
     *,
     target_date: date,
     segment: MarketSegment | None,
     sections: tuple[str, str, str, str, str, str],
+    coverage: SegmentCoverage | None = None,
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
@@ -509,6 +523,7 @@ def _enhance_reader_experience(
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
         f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
+        f"{_render_coverage_badge(coverage) if coverage is not None else ''}"
         f"> **오늘의 결론**: {summary_header.conclusion}\n"
         f"> **핵심 동인**: {summary_header.driver}\n"
         f"> **주의할 점**: {summary_header.caution}\n\n"
@@ -692,7 +707,10 @@ async def generate_briefing(
     if budget is None:
         budget = RetryBudget()
 
-    if segment is not None and data_limited and not items:
+    coverage = build_segment_coverage(segment, items) if segment is not None else None
+    effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
+
+    if segment is not None and effective_data_limited and not items:
         body_markdown = _build_data_limited_body(target_date, segment)
         sections = parse_six_sections(body_markdown)
         enhanced_markdown = _enhance_reader_experience(
@@ -700,6 +718,7 @@ async def generate_briefing(
             target_date=target_date,
             segment=segment,
             sections=sections,
+            coverage=coverage,
         )
         full_markdown = append_disclaimer(enhanced_markdown)
         hit = leak_guard_scan(full_markdown)
@@ -722,7 +741,7 @@ async def generate_briefing(
             rendered_markdown=full_markdown,
         )
 
-    segment_context = _render_segment_context(segment, data_limited=data_limited)
+    segment_context = _render_segment_context(segment, data_limited=effective_data_limited)
     llm_items = _select_llm_candidate_items(items)
     classification = await _classify(
         llm_items,
@@ -748,6 +767,7 @@ async def generate_briefing(
         target_date=target_date,
         segment=segment,
         sections=sections,
+        coverage=coverage,
     )
     full_markdown = append_disclaimer(enhanced_markdown)
 

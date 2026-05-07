@@ -214,6 +214,29 @@ def test_build_segmented_summary_prefers_clean_rendered_conclusion() -> None:
     assert "**데이터 부족**" not in summary
 
 
+def test_build_segmented_summary_includes_clean_coverage_label_when_present() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+    briefings[CRYPTO] = briefings[CRYPTO].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 크립토 시황\n\n"
+                "> **데이터 상태**: 부분 — 수집 1건 / 소스 1개 / 누락: 뉴스\n"
+                "> **오늘의 결론**: Bitcoin 가격 근거만 확인됐습니다.\n\n"
+                + briefings[CRYPTO].rendered_markdown
+            )
+        }
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert "크립토: 부분 — Bitcoin 가격 근거만 확인됐습니다." in summary
+    assert "수집 1건" not in summary
+
+
 def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="국내 " + ("가" * 5000)),
