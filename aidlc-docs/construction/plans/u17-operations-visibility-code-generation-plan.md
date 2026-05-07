@@ -14,10 +14,10 @@ Make partial-success and run diagnostics visible to the operator without requiri
 
 ## Definition of Done
 
-- [ ] Public Telegram notification failure is surfaced even when archive publishing succeeds.
-- [ ] Pipeline result includes actionable partial-failure context.
-- [ ] GitHub Actions can show briefing URLs, stage timings, and notify errors in a concise summary.
-- [ ] Diagnostics redact secrets and chat IDs.
+- [x] Public Telegram notification failure is surfaced even when archive publishing succeeds.
+- [x] Pipeline result includes actionable partial-failure context.
+- [x] GitHub Actions can show briefing URLs, stage timings, and notify errors in a concise summary.
+- [x] Diagnostics redact secrets and chat IDs.
 
 ---
 
@@ -25,17 +25,17 @@ Make partial-success and run diagnostics visible to the operator without requiri
 
 ### Step 1 — Partial Result Metadata
 
-- [ ] Extend pipeline result metadata for partial notify failures.
-- [ ] Preserve current success/failed/partial semantics.
-- [ ] Add tests for partial public-channel failure.
+- [x] Extend pipeline result metadata for partial notify failures.
+- [x] Preserve current success/failed/partial semantics.
+- [x] Add tests for partial public-channel failure.
 
 ### Step 2 — Operator Surface
 
-- [ ] Add GitHub Step Summary output or operator alert for partial failures.
-- [ ] Include stage timings, segment URLs, and short error context.
-- [ ] Redact token-like and chat-id-like values.
+- [x] Add GitHub Step Summary output or operator alert for partial failures.
+- [x] Include stage timings, segment URLs, and short error context.
+- [x] Redact token-like and chat-id-like values.
 
 ### Step 3 — Optional Doctor Command
 
-- [ ] Evaluate whether a small diagnostics script is useful now.
-- [ ] If added, test env preflight and latest archive checks.
+- [x] Evaluate whether a small diagnostics script is useful now.
+- [x] If added, test env preflight and latest archive checks.

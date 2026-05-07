@@ -31,14 +31,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 import sys
 from datetime import UTC, date, datetime
+from pathlib import Path
 from typing import Final
 
 import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
-from investo.models import FailureContext, PipelineStatus
+from investo.models import FailureContext, PipelineResult, PipelineStatus
 from investo.notifier import BriefingPublisher, OperatorAlerter
 from investo.orchestrator.date_resolution import validate_target_date_sanity
 from investo.orchestrator.errors import ConfigError
@@ -81,6 +83,9 @@ _TARGET_DATE_OVERRIDE_VAR: Final[str] = "INVESTO_TARGET_DATE"
 # is the fallback.
 _BOOT_ALERT_TIMEOUT_S: Final[float] = 5.0
 _BOOT_ALERT_ATTEMPTS: Final[int] = 2
+_GITHUB_STEP_SUMMARY_VAR: Final[str] = "GITHUB_STEP_SUMMARY"
+_BOT_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"\b\d{6,}:[A-Za-z0-9_-]{20,}\b")
+_CHAT_ID_RE: Final[re.Pattern[str]] = re.compile(r"(?<![\w-])-?\d{7,}(?![\w-])")
 
 
 def _missing_env_vars() -> tuple[str, ...]:
@@ -230,6 +235,70 @@ def _resolve_target_date_override() -> date | None:
         ) from exc
 
 
+def _redact_diagnostic_text(text: str) -> str:
+    """Redact token/chat-id-like values before operator-visible diagnostics."""
+    redacted = text
+    for name in (
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_BRIEFING_CHANNEL_ID",
+        "TELEGRAM_OPERATOR_CHAT_ID",
+        "CLAUDE_CODE_OAUTH_TOKEN",
+    ):
+        value = os.environ.get(name, "").strip()
+        if value:
+            redacted = redacted.replace(value, "[REDACTED]")
+    redacted = _BOT_TOKEN_RE.sub("[REDACTED_BOT_TOKEN]", redacted)
+    return _CHAT_ID_RE.sub("[REDACTED_CHAT_ID]", redacted)
+
+
+def _write_github_step_summary(result: PipelineResult) -> None:
+    """Write a concise GitHub Actions run summary when available.
+
+    The file path is provided by GitHub Actions via ``GITHUB_STEP_SUMMARY``.
+    Local runs simply skip this surface. Any write failure is swallowed so
+    diagnostics never change the pipeline's exit-code contract.
+    """
+    summary_path = os.environ.get(_GITHUB_STEP_SUMMARY_VAR, "").strip()
+    if not summary_path:
+        return
+
+    lines = [
+        "## Investo Daily Briefing",
+        "",
+        f"- Status: `{result.status}`",
+        f"- Target date: `{result.target_date.isoformat()}`",
+        f"- Briefing URL: {result.briefing_url if result.briefing_url is not None else 'n/a'}",
+        f"- Duration: `{result.duration_seconds:.2f}s`",
+        "",
+        "### Stages",
+        "",
+        "| Stage | Status | Seconds |",
+        "|-------|--------|---------|",
+    ]
+    for stage, status in result.stages.items():
+        seconds = result.stage_timings.get(stage)
+        seconds_text = "" if seconds is None else f"{seconds:.2f}"
+        lines.append(
+            "| "
+            + " | ".join(
+                (
+                    _redact_diagnostic_text(stage),
+                    _redact_diagnostic_text(status),
+                    seconds_text,
+                )
+            )
+            + " |"
+        )
+    lines.append("")
+
+    try:
+        Path(summary_path).parent.mkdir(parents=True, exist_ok=True)
+        with Path(summary_path).open("a", encoding="utf-8") as fp:
+            fp.write("\n".join(lines))
+    except OSError:
+        _logger.warning("failed to write GitHub step summary", exc_info=True)
+
+
 async def _async_main() -> int:
     """Async core of :func:`main` — separated so ``main`` can synchronously
     drive ``asyncio.run`` and translate the final integer to the
@@ -277,6 +346,7 @@ async def _async_main() -> int:
                 site_url_base=site_url_base,
             )
 
+        _write_github_step_summary(result)
         if result.status == PipelineStatus.FAILED:
             return 1
         return 0  # SUCCESS or PARTIAL.

@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u17 operations-visibility — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00Z
+**Action**: Added GitHub Step Summary diagnostics for pipeline results. The summary includes status, target date, briefing URL, duration, stage status, and timings, with output-boundary redaction for configured secrets, bot-token-like values, and chat-id-like values.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/`, targeted pytest 52 passed, full pytest 982 passed).
+**Context**: Post-MVP quality review follow-up — u17 operations-visibility, Code Generation Steps 1-3.
+
+---
+
 ## Construction — u16 public-site-discovery — Code Generation Complete
 **Timestamp**: 2026-05-07T00:00:00Z
 **Action**: Updated public Home, About, and Archive pages for the segmented briefing product. Added latest domestic/US/crypto links, current source coverage notes, segmented archive path documentation, and legacy single-briefing archive discovery.

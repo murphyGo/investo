@@ -53,11 +53,18 @@ def _set_env(monkeypatch: pytest.MonkeyPatch, **overrides: str | None) -> None:
 
 def _make_pipeline_result(
     status: PipelineStatus = PipelineStatus.SUCCESS,
+    *,
+    stages: dict[str, str] | None = None,
+    stage_timings: dict[str, float] | None = None,
+    briefing_url: str | None = None,
 ) -> PipelineResult:
     return PipelineResult(
         target_date=date(2026, 4, 27),
         status=status,
+        stages=stages or {},
+        stage_timings=stage_timings or {},
         duration_seconds=1.0,
+        briefing_url=briefing_url,  # type: ignore[arg-type]
     )
 
 
@@ -335,6 +342,37 @@ def test_main_exit_code_maps_pipeline_status(
     result = _make_pipeline_result(status)
     with _stub_pipeline(monkeypatch, result=result), _capture_alerts(monkeypatch):
         assert main_mod.main() == expected_rc
+
+
+def test_main_writes_redacted_github_step_summary_for_partial_result(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+) -> None:
+    _set_env(monkeypatch)
+    summary_path = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+    result = _make_pipeline_result(
+        PipelineStatus.PARTIAL,
+        stages={
+            "collect": "ok",
+            "notify_briefing": (
+                "failed: Telegram 1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ chat 12345678"
+            ),
+        },
+        stage_timings={"collect": 0.12, "notify_briefing": 0.34},
+        briefing_url="https://example.github.io/investo/archive/domestic-equity/2026/04/2026-04-27/",
+    )
+
+    with _stub_pipeline(monkeypatch, result=result), _capture_alerts(monkeypatch):
+        assert main_mod.main() == 0
+
+    summary = summary_path.read_text(encoding="utf-8")
+    assert "Status: `partial`" in summary
+    assert "/archive/domestic-equity/2026/04/2026-04-27/" in summary
+    assert "notify_briefing" in summary
+    assert "[REDACTED]" in summary
+    assert "AAFakeBotToken" not in summary
+    assert "12345678" not in summary
 
 
 # ---------------------------------------------------------------------------
