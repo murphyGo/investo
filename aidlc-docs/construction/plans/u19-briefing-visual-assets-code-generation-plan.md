@@ -286,11 +286,11 @@ uv run mkdocs build --strict
 
 ### Step 2 — Data Cards
 
-- [ ] Render data confidence card.
-- [ ] Render market snapshot card.
-- [ ] Render price snapshot card for known US equity and crypto metadata.
-- [ ] Render watchlist relevance card.
-- [ ] Add tests for long text, missing data, and no-match behavior.
+- [x] Render data confidence card.
+- [x] Render market snapshot card.
+- [x] Render price snapshot card for known US equity and crypto metadata.
+- [x] Render watchlist relevance card.
+- [x] Add tests for long text, missing data, and no-match behavior.
 
 ### Step 3 — Pipeline and Publish
 

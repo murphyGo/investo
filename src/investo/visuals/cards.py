@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
-from investo.briefing.segments import CoverageStatus, MarketSegment
+from investo.briefing.segments import (
+    CATEGORY_LABELS,
+    CoverageStatus,
+    MarketSegment,
+    SegmentCoverage,
+)
+from investo.briefing.watchlist import WatchlistImpact
+from investo.models import NormalizedItem
 
 CardKind = Literal[
     "data-confidence",
@@ -60,6 +68,14 @@ class PriceSnapshotRow(BaseModel):
     low: str | None = Field(default=None, max_length=40)
     source_name: str = Field(min_length=1, max_length=100)
 
+    @field_validator("symbol", "price", "percent_change", "source_name")
+    @classmethod
+    def _reject_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("field must not be blank")
+        return stripped
+
 
 class PriceSnapshotCardInput(_CardInput):
     """Known-schema price rows for US equity and crypto visuals."""
@@ -79,6 +95,14 @@ class WatchlistRelevanceRow(BaseModel):
     title: str = Field(min_length=1, max_length=240)
     url: HttpUrl | None = None
 
+    @field_validator("term", "kind", "source_name", "title")
+    @classmethod
+    def _reject_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("field must not be blank")
+        return stripped
+
 
 class WatchlistRelevanceCardInput(_CardInput):
     """Watchlist match summary without inferred investment impact."""
@@ -89,6 +113,155 @@ class WatchlistRelevanceCardInput(_CardInput):
     rows: tuple[WatchlistRelevanceRow, ...] = Field(default_factory=tuple, max_length=3)
 
 
+def build_data_confidence_card(
+    target_date: date,
+    coverage: SegmentCoverage,
+) -> DataConfidenceCardInput:
+    """Build a data confidence card from deterministic segment coverage."""
+    return DataConfidenceCardInput(
+        target_date=target_date,
+        segment=coverage.segment,
+        coverage_status=coverage.status,
+        item_count=coverage.item_count,
+        source_count=coverage.source_count,
+        missing_categories=tuple(
+            CATEGORY_LABELS[category] for category in coverage.missing_categories
+        ),
+    )
+
+
+def build_price_snapshot_card(
+    target_date: date,
+    segment: MarketSegment,
+    items: Sequence[NormalizedItem],
+) -> PriceSnapshotCardInput | None:
+    """Build a price snapshot card from known source metadata, or return None."""
+    rows: list[PriceSnapshotRow] = []
+    for item in items:
+        row = _price_row_from_item(item)
+        if row is not None:
+            rows.append(row)
+        if len(rows) >= 12:
+            break
+    if not rows:
+        return None
+    return PriceSnapshotCardInput(target_date=target_date, segment=segment, rows=tuple(rows))
+
+
+def build_watchlist_relevance_card(
+    target_date: date,
+    segment: MarketSegment,
+    impact: WatchlistImpact,
+) -> WatchlistRelevanceCardInput:
+    """Build a watchlist card that reports matches without inferring impact."""
+    rows = tuple(
+        WatchlistRelevanceRow(
+            term=match.term,
+            kind=match.kind,
+            source_name=match.item.source_name,
+            title=match.item.title,
+            url=match.item.url,
+        )
+        for match in impact.matches[:3]
+    )
+    return WatchlistRelevanceCardInput(
+        target_date=target_date,
+        segment=segment,
+        configured=impact.configured,
+        total_matches=len(impact.matches),
+        rows=rows,
+    )
+
+
+def _price_row_from_item(item: NormalizedItem) -> PriceSnapshotRow | None:
+    if item.source_name == "yfinance-price":
+        return _yfinance_price_row(item)
+    if item.source_name == "coingecko-price":
+        return _coingecko_price_row(item)
+    return None
+
+
+def _yfinance_price_row(item: NormalizedItem) -> PriceSnapshotRow | None:
+    metadata = item.raw_metadata
+    ticker = metadata.get("ticker")
+    close = metadata.get("close")
+    prev_close = metadata.get("prev_close")
+    high = metadata.get("high")
+    low = metadata.get("low")
+    volume = metadata.get("volume")
+    if not isinstance(ticker, str) or not isinstance(close, str):
+        return None
+    pct = _format_percent_change(close, prev_close if isinstance(prev_close, str) else None)
+    return PriceSnapshotRow(
+        symbol=ticker,
+        price=_format_number_text(close),
+        percent_change=pct,
+        volume=_format_number_text(volume) if isinstance(volume, str) else None,
+        high=_format_number_text(high) if isinstance(high, str) else None,
+        low=_format_number_text(low) if isinstance(low, str) else None,
+        source_name=item.source_name,
+    )
+
+
+def _coingecko_price_row(item: NormalizedItem) -> PriceSnapshotRow | None:
+    metadata = item.raw_metadata
+    symbol = metadata.get("symbol")
+    price = metadata.get("price_usd")
+    pct = metadata.get("pct_24h")
+    high = metadata.get("high_24h")
+    low = metadata.get("low_24h")
+    volume = metadata.get("volume_24h")
+    if not isinstance(symbol, str) or not isinstance(price, str) or not isinstance(pct, str):
+        return None
+    return PriceSnapshotRow(
+        symbol=symbol.upper(),
+        price=f"${_format_number_text(price)}",
+        percent_change=_format_percent_text(pct),
+        volume=f"${_format_number_text(volume)}" if isinstance(volume, str) else None,
+        high=f"${_format_number_text(high)}" if isinstance(high, str) else None,
+        low=f"${_format_number_text(low)}" if isinstance(low, str) else None,
+        source_name=item.source_name,
+    )
+
+
+def _format_percent_change(current: str, previous: str | None) -> str:
+    current_float = _parse_float(current)
+    previous_float = _parse_float(previous) if previous is not None else None
+    if current_float is None or previous_float is None or previous_float == 0.0:
+        return "n/a"
+    pct = (current_float - previous_float) / previous_float * 100.0
+    return f"{pct:+.2f}%"
+
+
+def _format_percent_text(value: str) -> str:
+    parsed = _parse_float(value)
+    if parsed is None:
+        return "n/a"
+    return f"{parsed:+.2f}%"
+
+
+def _format_number_text(value: str | None) -> str:
+    parsed = _parse_float(value)
+    if parsed is None:
+        return "n/a"
+    if abs(parsed) >= 1_000_000_000:
+        return f"{parsed / 1_000_000_000:,.2f}B"
+    if abs(parsed) >= 1_000_000:
+        return f"{parsed / 1_000_000:,.2f}M"
+    if abs(parsed) >= 1_000:
+        return f"{parsed:,.2f}"
+    return f"{parsed:,.2f}"
+
+
+def _parse_float(value: str | None) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
 __all__ = [
     "CardKind",
     "DataConfidenceCardInput",
@@ -97,4 +270,7 @@ __all__ = [
     "PriceSnapshotRow",
     "WatchlistRelevanceCardInput",
     "WatchlistRelevanceRow",
+    "build_data_confidence_card",
+    "build_price_snapshot_card",
+    "build_watchlist_relevance_card",
 ]

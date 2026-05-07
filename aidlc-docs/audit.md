@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u19 briefing-visual-assets — Step 2 Complete
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Action**: Implemented u19 data cards. Added builders for segment coverage, known US equity/crypto price metadata, and watchlist relevance, plus deterministic SVG rendering for data confidence, market snapshot, price snapshot, and watchlist cards.
+**Status**: Step 2 complete; targeted gate passed (`pytest tests/unit/visuals -q` 20 passed, `ruff check src/investo/visuals tests/unit/visuals`, `mypy --strict src/investo/visuals`).
+**Context**: Post-MVP visual UX follow-up — u19 briefing-visual-assets, Code Generation Step 2 of 4.
+
+---
+
 ## Construction — u19 briefing-visual-assets — Step 1 Complete
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Action**: Added the u19 visual asset contract layer: `investo.visuals` package, markdown-adjacent visual path helpers, strict card input models, external image policy, and unit tests.
