@@ -279,10 +279,10 @@ uv run mkdocs build --strict
 
 ### Step 1 — Visual Asset Contract
 
-- [ ] Add visual path helpers.
-- [ ] Add card input data classes.
-- [ ] Add external image policy constants.
-- [ ] Add tests for path and policy invariants.
+- [x] Add visual path helpers.
+- [x] Add card input data classes.
+- [x] Add external image policy constants.
+- [x] Add tests for path and policy invariants.
 
 ### Step 2 — Data Cards
 
@@ -304,4 +304,3 @@ uv run mkdocs build --strict
 - [ ] Report visual asset status in GitHub Step Summary.
 - [ ] Preserve text-only publish fallback when visual generation fails before links are inserted.
 - [ ] Run targeted tests, full pytest, mypy, ruff, and `mkdocs build --strict`.
-

@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u19 briefing-visual-assets — Step 1 Complete
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Action**: Added the u19 visual asset contract layer: `investo.visuals` package, markdown-adjacent visual path helpers, strict card input models, external image policy, and unit tests.
+**Status**: Step 1 complete; targeted gate passed (`pytest tests/unit/visuals -q` 11 passed, `ruff check src/investo/visuals tests/unit/visuals`, `mypy --strict src/investo/visuals`).
+**Context**: Post-MVP visual UX follow-up — u19 briefing-visual-assets, Code Generation Step 1 of 4.
+
+---
+
 ## Construction — u18 watchlist-relevance — Code Generation Complete
 **Timestamp**: 2026-05-07T00:00:00Z
 **Action**: Implemented non-secret watchlist relevance. Added JSON config validation, deterministic item matching, first-viewport watchlist callouts, LLM prompt context, and Telegram summary impact suffixes.
