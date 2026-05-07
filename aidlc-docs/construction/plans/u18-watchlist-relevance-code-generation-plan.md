@@ -14,11 +14,11 @@ Add a lightweight personal relevance layer so the daily briefing highlights item
 
 ## Definition of Done
 
-- [ ] A non-secret watchlist config supports tickers, crypto assets, sectors, and keywords.
-- [ ] Relevant collected items are highlighted before generic market narrative.
-- [ ] No-match days are explicit and do not invent impact.
-- [ ] Telegram summary can include one watchlist-impact line within message limits.
-- [ ] No accounts, paid sources, automatic trading, or portfolio accounting are introduced.
+- [x] A non-secret watchlist config supports tickers, crypto assets, sectors, and keywords.
+- [x] Relevant collected items are highlighted before generic market narrative.
+- [x] No-match days are explicit and do not invent impact.
+- [x] Telegram summary can include one watchlist-impact line within message limits.
+- [x] No accounts, paid sources, automatic trading, or portfolio accounting are introduced.
 
 ---
 
@@ -26,18 +26,18 @@ Add a lightweight personal relevance layer so the daily briefing highlights item
 
 ### Step 1 — Config and Matching
 
-- [ ] Define the watchlist config location and validation rules.
-- [ ] Match collected items by ticker, asset, sector, and keyword.
-- [ ] Add no-match behavior.
+- [x] Define the watchlist config location and validation rules.
+- [x] Match collected items by ticker, asset, sector, and keyword.
+- [x] Add no-match behavior.
 
 ### Step 2 — Briefing and Telegram UX
 
-- [ ] Add watchlist context to the briefing generation flow.
-- [ ] Render a concise "내 관심 자산 영향" section or callout.
-- [ ] Add Telegram impact line when relevant.
+- [x] Add watchlist context to the briefing generation flow.
+- [x] Render a concise "내 관심 자산 영향" section or callout.
+- [x] Add Telegram impact line when relevant.
 
 ### Step 3 — Tests
 
-- [ ] Test config validation.
-- [ ] Test matching and no-match fallback.
-- [ ] Test prompt/context shape and Telegram length behavior.
+- [x] Test config validation.
+- [x] Test matching and no-match fallback.
+- [x] Test prompt/context shape and Telegram length behavior.

@@ -237,6 +237,28 @@ def test_build_segmented_summary_includes_clean_coverage_label_when_present() ->
     assert "수집 1건" not in summary
 
 
+def test_build_segmented_summary_includes_watchlist_impact_when_present() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+    briefings[US_EQUITY] = briefings[US_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 미국 증시 시황\n\n"
+                "> **오늘의 결론**: 반도체 실적을 확인합니다.\n"
+                "> **내 관심 자산 영향**: 1건 확인 — NVDA: NVDA rallies after earnings\n\n"
+                + briefings[US_EQUITY].rendered_markdown
+            )
+        }
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert "미국 증시: 반도체 실적을 확인합니다. / 관심: 1건 확인 — NVDA" in summary
+
+
 def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="국내 " + ("가" * 5000)),

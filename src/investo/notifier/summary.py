@@ -62,6 +62,10 @@ _COVERAGE_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*데이터 상태\*\*:\s*(.+)$",
     re.MULTILINE,
 )
+_WATCHLIST_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^>\s*\*\*내 관심 자산 영향\*\*:\s*(.+)$",
+    re.MULTILINE,
+)
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
 _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
@@ -179,7 +183,12 @@ def _one_line_summary(briefing: Briefing) -> str:
                     _clean_summary_text(coverage_match.group(1)).split("—", maxsplit=1)[0].strip()
                 )
                 if coverage_label:
-                    return f"{coverage_label} — {conclusion}"
+                    conclusion = f"{coverage_label} — {conclusion}"
+            watchlist_match = _WATCHLIST_LINE_RE.search(briefing.rendered_markdown)
+            if watchlist_match is not None:
+                watchlist = _clean_summary_text(watchlist_match.group(1))
+                if watchlist and not watchlist.startswith("관심 목록 미설정"):
+                    return f"{conclusion} / 관심: {watchlist}"
             return conclusion
 
     for line in briefing.market_summary.splitlines():

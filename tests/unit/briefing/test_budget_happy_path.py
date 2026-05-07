@@ -28,6 +28,7 @@ from investo.briefing import pipeline
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.errors import SubprocessOutcome
 from investo.briefing.segments import US_EQUITY
+from investo.briefing.watchlist import WatchlistConfig
 from investo.models import Briefing, NormalizedItem
 from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
 
@@ -197,10 +198,12 @@ async def test_segment_header_sanitizes_markdown_and_numbered_watchpoints(
         _TARGET_DATE,
         _items(2),
         segment=US_EQUITY,
+        watchlist_config=WatchlistConfig(tickers=("ITEM-1",), keywords=("item-2",)),
     )
 
     header = result.rendered_markdown.split("## ① 요약", maxsplit=1)[0]
     assert "> **데이터 상태**: 부분" in header
+    assert "> **내 관심 자산 영향**: 2건 확인" in header
     assert "> **오늘의 결론**: 미국 증시는 실적 일정을 앞두고 방향성 확인이 필요합니다." in header
     assert "> **핵심 동인**: 입법 가속화 vs. 정치적 마찰" in header
     assert "> **주의할 점**: ARM 가이던스" in header
@@ -209,6 +212,8 @@ async def test_segment_header_sanitizes_markdown_and_numbered_watchpoints(
     assert "[미국 증시]" not in summary_lines
     assert "**실적 일정**" not in summary_lines
     assert "**입법 가속화" not in summary_lines
+    assert "Watchlist relevance" in captured_prompts[0]
+    assert "ITEM-1" in captured_prompts[1]
 
 
 @pytest.mark.asyncio

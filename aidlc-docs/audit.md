@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u18 watchlist-relevance — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00Z
+**Action**: Implemented non-secret watchlist relevance. Added JSON config validation, deterministic item matching, first-viewport watchlist callouts, LLM prompt context, and Telegram summary impact suffixes.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/`, targeted pytest 33 passed, full pytest 987 passed).
+**Context**: Post-MVP quality review follow-up — u18 watchlist-relevance, Code Generation Steps 1-3. u14-u18 follow-up queue complete.
+
+---
+
 ## Construction — u17 operations-visibility — Code Generation Complete
 **Timestamp**: 2026-05-07T00:00:00Z
 **Action**: Added GitHub Step Summary diagnostics for pipeline results. The summary includes status, target date, briefing URL, duration, stage status, and timings, with output-boundary redaction for configured secrets, bot-token-like values, and chat-id-like values.

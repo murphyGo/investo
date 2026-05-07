@@ -1,0 +1,6 @@
+{
+  "tickers": ["NVDA", "AAPL", "TSLA"],
+  "assets": ["BTC", "ETH", "SOL"],
+  "sectors": ["semiconductor", "AI", "bank"],
+  "keywords": ["FOMC", "inflation", "ETF"]
+}

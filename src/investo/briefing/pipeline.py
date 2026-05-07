@@ -61,6 +61,14 @@ from investo.briefing.segments import (
     SegmentCoverage,
     build_segment_coverage,
 )
+from investo.briefing.watchlist import (
+    WatchlistConfig,
+    WatchlistImpact,
+    load_watchlist,
+    match_watchlist_items,
+    render_watchlist_impact,
+    render_watchlist_prompt_context,
+)
 from investo.models import Briefing, NormalizedItem
 
 # Retry constants per FD R3.
@@ -506,6 +514,10 @@ def _render_coverage_badge(coverage: SegmentCoverage) -> str:
     )
 
 
+def _render_watchlist_callout(impact: WatchlistImpact) -> str:
+    return f"> **내 관심 자산 영향**: {render_watchlist_impact(impact)}\n"
+
+
 def _enhance_reader_experience(
     body_markdown: str,
     *,
@@ -513,6 +525,7 @@ def _enhance_reader_experience(
     segment: MarketSegment | None,
     sections: tuple[str, str, str, str, str, str],
     coverage: SegmentCoverage | None = None,
+    watchlist_impact: WatchlistImpact | None = None,
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
@@ -524,6 +537,7 @@ def _enhance_reader_experience(
         f"# {target_date.isoformat()} {label} 시황\n\n"
         f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
         f"{_render_coverage_badge(coverage) if coverage is not None else ''}"
+        f"{_render_watchlist_callout(watchlist_impact) if watchlist_impact is not None else ''}"
         f"> **오늘의 결론**: {summary_header.conclusion}\n"
         f"> **핵심 동인**: {summary_header.driver}\n"
         f"> **주의할 점**: {summary_header.caution}\n\n"
@@ -689,6 +703,7 @@ async def generate_briefing(
     budget: RetryBudget | None = None,
     segment: MarketSegment | None = None,
     data_limited: bool = False,
+    watchlist_config: WatchlistConfig | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -708,6 +723,8 @@ async def generate_briefing(
         budget = RetryBudget()
 
     coverage = build_segment_coverage(segment, items) if segment is not None else None
+    watchlist = load_watchlist() if watchlist_config is None else watchlist_config
+    watchlist_impact = match_watchlist_items(items, watchlist)
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
 
     if segment is not None and effective_data_limited and not items:
@@ -719,6 +736,7 @@ async def generate_briefing(
             segment=segment,
             sections=sections,
             coverage=coverage,
+            watchlist_impact=watchlist_impact,
         )
         full_markdown = append_disclaimer(enhanced_markdown)
         hit = leak_guard_scan(full_markdown)
@@ -742,6 +760,9 @@ async def generate_briefing(
         )
 
     segment_context = _render_segment_context(segment, data_limited=effective_data_limited)
+    watchlist_context = render_watchlist_prompt_context(watchlist_impact)
+    if watchlist_context:
+        segment_context = f"{segment_context}\n\n{watchlist_context}"
     llm_items = _select_llm_candidate_items(items)
     classification = await _classify(
         llm_items,
@@ -768,6 +789,7 @@ async def generate_briefing(
         segment=segment,
         sections=sections,
         coverage=coverage,
+        watchlist_impact=watchlist_impact,
     )
     full_markdown = append_disclaimer(enhanced_markdown)
 
