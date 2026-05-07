@@ -38,10 +38,22 @@ from __future__ import annotations
 import re
 from typing import Final
 
+# Public canonical prefix literals — DEBT-060 chokepoint. Five surfaces
+# (publisher.site_index, publisher.weekly_digest, visuals.og_card,
+# visuals.assets, briefing.context) used to declare these locally; they
+# now import these constants so a future shape change (e.g.
+# ``**결론**:`` → ``**결론 (yyyy-mm-dd)**:``) lands in one place. The
+# briefing pipeline's ``_enhance_reader_experience`` is the canonical
+# emitter — every consumer is a parser of that emitter's output.
+CONCLUSION_PREFIX: Final[str] = "> **오늘의 결론**:"
+DRIVER_PREFIX: Final[str] = "> **핵심 동인**:"
+CAUTION_PREFIX: Final[str] = "> **주의할 점**:"
+WATERMARK_PREFIX: Final[str] = "**기준 시각**:"
+
 _SUMMARY_PREFIXES: Final[tuple[str, ...]] = (
-    "> **오늘의 결론**:",
-    "> **핵심 동인**:",
-    "> **주의할 점**:",
+    CONCLUSION_PREFIX,
+    DRIVER_PREFIX,
+    CAUTION_PREFIX,
 )
 # Reject ``"1."``, ``"-"``, ``"*"``, ``"1)"`` … and the circled-digit
 # Korean numbers occasionally emitted by the LLM. Fullmatch only —
@@ -118,4 +130,11 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         )
 
 
-__all__ = ["SummaryQualityError", "validate_first_viewport_summary"]
+__all__ = [
+    "CAUTION_PREFIX",
+    "CONCLUSION_PREFIX",
+    "DRIVER_PREFIX",
+    "WATERMARK_PREFIX",
+    "SummaryQualityError",
+    "validate_first_viewport_summary",
+]

@@ -42,6 +42,7 @@ from investo.briefing.claude_code import (
     RetryBudget,
     call_claude_code,
 )
+from investo.briefing.context import RecentBriefingEntry, RecentBriefingsContext
 from investo.briefing.disclaimer import DISCLAIMER, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.briefing.leak_guard import scan as leak_guard_scan
@@ -55,6 +56,8 @@ from investo.briefing.prompts import (
     STAGE2_SECTION_HEADERS,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
+    format_lookahead_section,
+    format_recent_context_section,
 )
 from investo.briefing.segments import (
     SEGMENT_LABELS,
@@ -94,6 +97,13 @@ _STAGE1_STDOUT_MAX_BYTES: Final[int] = 64 * 1024
 _VALID_SECTION_IDS: Final[frozenset[int]] = frozenset({2, 3, 4, 5})
 _MAX_LLM_ITEMS: Final[int] = 96
 _MAX_LLM_ITEMS_PER_SOURCE: Final[int] = 24
+# u35 event-lookahead sub-cap: at most 12 forward-scheduled items per
+# segment land in the LLM input (or downstream "주요 일정" block) so a
+# busy earnings calendar cannot starve the backward-evidence budget.
+# Lives inside the existing 96-total / 24-per-source cap — selection
+# walks lookahead items first, then backward, but each path counts
+# against the same per-source slot.
+_MAX_LLM_LOOKAHEAD_ITEMS: Final[int] = 12
 _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "domestic-equity": "국내 증시",
     "us-equity": "미국 증시",
@@ -223,16 +233,29 @@ def _select_llm_candidate_items(items: Sequence[NormalizedItem]) -> tuple[Normal
     from one adapter, especially earnings calendars. The briefing only
     needs representative evidence; uncapped inputs can exhaust the LLM
     timeout/budget before any user-facing market note is produced.
+
+    u35 event-lookahead extension: forward-scheduled items
+    (``scheduled_at is not None``) are subject to an additional sub-cap
+    (:data:`_MAX_LLM_LOOKAHEAD_ITEMS`) that prevents a busy lookahead
+    bucket from starving backward evidence. The sub-cap lives inside
+    the same 96-total / 24-per-source cap so the overall LLM input
+    budget is preserved (NFR-002 token cost guard).
     """
     selected: list[NormalizedItem] = []
     per_source_counts: dict[str, int] = {}
+    lookahead_count = 0
 
     for item in items:
+        is_lookahead = item.scheduled_at is not None
+        if is_lookahead and lookahead_count >= _MAX_LLM_LOOKAHEAD_ITEMS:
+            continue
         source_count = per_source_counts.get(item.source_name, 0)
         if source_count >= _MAX_LLM_ITEMS_PER_SOURCE:
             continue
         selected.append(item)
         per_source_counts[item.source_name] = source_count + 1
+        if is_lookahead:
+            lookahead_count += 1
         if len(selected) >= _MAX_LLM_ITEMS:
             break
 
@@ -452,6 +475,84 @@ def _render_unassigned(unassigned: tuple[NormalizedItem, ...]) -> str:
         url = f" ({item.url})" if item.url is not None else ""
         lines.append(f"  - [{item.source_name}] {item.title}{url}")
     return "\n".join(lines)
+
+
+def _render_recent_context_block(
+    segment: MarketSegment | None,
+    recent_context: RecentBriefingsContext | None,
+) -> str:
+    """Render the u34 "최근 N일 컨텍스트" block for Stage 2.
+
+    Returns the empty string for the unsegmented legacy path or when
+    ``recent_context`` is ``None`` — the Stage 2 user template absorbs
+    an empty placeholder cleanly because the surrounding template
+    already provides whitespace structure.
+
+    When ``recent_context.is_empty()`` (or the per-segment list is
+    empty) the rendered block carries the "no recent context" note so
+    the LLM still sees an explicit acknowledgement that the context is
+    intentionally absent (vs. silently missing).
+
+    Each entry collapses to a single line: the loader has already
+    truncated the conclusion / drivers fields to the per-day budget;
+    this renderer only stitches labels.
+    """
+    if segment is None or recent_context is None:
+        return ""
+    entries = recent_context.for_segment(segment)
+    if not entries:
+        return format_recent_context_section("")
+    lines = [_render_recent_entry(entry) for entry in entries]
+    return format_recent_context_section("\n".join(lines))
+
+
+def _render_recent_entry(entry: RecentBriefingEntry) -> str:
+    """Render one :class:`RecentBriefingEntry` as a single bullet line.
+
+    Format::
+
+        - YYYY-MM-DD: 결론="..." | 핵심 동인="..."
+
+    The fields are already truncated + redacted by the loader (per the
+    u34 trust contract); this function adds no additional sanitization.
+    Empty fields collapse to ``(없음)`` so the LLM can see the gap
+    rather than guess.
+    """
+    conclusion = entry.conclusion or "(없음)"
+    drivers = entry.key_drivers or "(없음)"
+    return f'- {entry.publish_date.isoformat()}: 결론="{conclusion}" | 핵심 동인="{drivers}"'
+
+
+def _render_lookahead_context_block(items: Sequence[NormalizedItem]) -> str:
+    """Render the u35 "주요 일정" block from forward-scheduled items.
+
+    Walks ``items`` (already capped by :func:`_select_llm_candidate_items`)
+    pulling out rows whose ``scheduled_at`` is set and emitting one
+    bullet line per row. Empty input falls through to the
+    "no lookahead" note so the LLM sees an explicit acknowledgement
+    rather than silently dropping the rule.
+
+    Each row is intentionally compact (date + source + title) — the
+    block must stay under the ~300-char-per-segment budget the plan
+    locks. The selection cap (:data:`_MAX_LLM_LOOKAHEAD_ITEMS` = 12)
+    plus an inline character ceiling per line keeps the total bounded
+    even when an upstream adapter floods.
+    """
+    lookahead = tuple(item for item in items if item.scheduled_at is not None)
+    if not lookahead:
+        return format_lookahead_section("")
+
+    lines: list[str] = []
+    for item in lookahead:
+        scheduled_at = item.scheduled_at
+        # Defensive — ``scheduled_at is not None`` was already checked
+        # in the comprehension; this assert is for the type checker.
+        assert scheduled_at is not None
+        scheduled_date = scheduled_at.astimezone(UTC).date().isoformat()
+        # Trim extra-long titles so a single row cannot blow the budget.
+        title = item.title if len(item.title) <= 80 else item.title[:79] + "…"
+        lines.append(f"- {scheduled_date}: [{item.source_name}] {title}")
+    return format_lookahead_section("\n".join(lines))
 
 
 def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool) -> str:
@@ -831,6 +932,8 @@ async def _synthesize(
     runner: ClaudeRunner | None,
     budget: RetryBudget,
     segment_context: str,
+    recent_context_block: str = "",
+    lookahead_context_block: str = "",
 ) -> str:
     """Run Stage 2 with the FD R3 retry loop. Returns body markdown.
 
@@ -839,6 +942,17 @@ async def _synthesize(
     Raises ``BriefingGenerationError(stage="synthesis")`` after
     exhausting attempts, or ``BriefingGenerationError(stage="budget")``
     if the cumulative budget hits.
+
+    ``recent_context_block`` is the optional u34 "최근 N일 컨텍스트"
+    block — pre-rendered by :func:`_render_recent_context_block` so
+    this function stays a thin retry wrapper. Empty string means the
+    Stage 2 prompt omits the block entirely (first publish path).
+
+    ``lookahead_context_block`` is the optional u35 "주요 일정" block —
+    pre-rendered by :func:`_render_lookahead_context_block`. Empty
+    string means no opt-in adapter contributed forward items, in which
+    case the Stage 2 prompt omits the block (the system rule still
+    forbids invented forward forecasts).
     """
     grouped = _render_grouped_sections(plan.items_by_section)
     unassigned = _render_unassigned(plan.unassigned)
@@ -847,6 +961,8 @@ async def _synthesize(
         grouped_sections=grouped,
         unassigned=unassigned,
         target_date=plan.target_date.isoformat(),
+        recent_context=recent_context_block,
+        lookahead_context=lookahead_context_block,
     )
     full_prompt = f"{STAGE2_SYSTEM}\n\n{user_prompt}"
 
@@ -911,6 +1027,7 @@ async def generate_briefing(
     data_limited: bool = False,
     watchlist_config: WatchlistConfig | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    recent_context: RecentBriefingsContext | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -981,7 +1098,9 @@ async def generate_briefing(
     watchlist_context = render_watchlist_prompt_context(watchlist_impact)
     if watchlist_context:
         segment_context = f"{segment_context}\n\n{watchlist_context}"
+    recent_context_block = _render_recent_context_block(segment, recent_context)
     llm_items = _select_llm_candidate_items(items)
+    lookahead_context_block = _render_lookahead_context_block(llm_items)
     classification = await _classify(
         llm_items,
         runner=runner,
@@ -994,6 +1113,8 @@ async def generate_briefing(
         runner=runner,
         budget=budget,
         segment_context=segment_context,
+        recent_context_block=recent_context_block,
+        lookahead_context_block=lookahead_context_block,
     )
 
     # Body markdown is verified to have all 6 sections (by _synthesize's

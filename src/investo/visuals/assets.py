@@ -11,7 +11,13 @@ from typing import Final, Literal
 
 from defusedxml.ElementTree import ParseError, fromstring
 
+from investo.briefing.extract import (
+    extract_caution,
+    extract_conclusion,
+    extract_key_drivers,
+)
 from investo.briefing.segments import MarketSegment, SegmentCoverage
+from investo.briefing.summary_quality import CONCLUSION_PREFIX
 from investo.briefing.watchlist import WatchlistImpact
 from investo.models import Briefing, NormalizedItem
 from investo.publisher.paths import archive_path
@@ -52,11 +58,6 @@ _MAX_DIMENSION: Final[int] = 2000
 _PNG_IHDR_OFFSET: Final[int] = 8
 _PNG_IHDR_LENGTH: Final[int] = 25
 _DIMENSION_NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"\d+")
-_SUMMARY_PREFIXES: Final[dict[str, str]] = {
-    "conclusion": "> **오늘의 결론**:",
-    "driver": "> **핵심 동인**:",
-    "caution": "> **주의할 점**:",
-}
 _CARD_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
     "data-confidence": "데이터 신뢰도",
@@ -231,7 +232,7 @@ def insert_visual_links(
                 for index, line in enumerate(lines)
                 if line.startswith("> **데이터 상태**")
                 or line.startswith("> **내 관심 자산 영향**")
-                or line.startswith("> **오늘의 결론**")
+                or line.startswith(CONCLUSION_PREFIX)
             ),
             1 if lines and lines[0].startswith("# ") else 0,
         )
@@ -318,12 +319,18 @@ def _build_market_snapshot_card(
 
 
 def _extract_summary_lines(markdown: str) -> dict[str, str]:
-    result = {"conclusion": "", "driver": "", "caution": ""}
-    for line in markdown.splitlines():
-        for key, prefix in _SUMMARY_PREFIXES.items():
-            if line.startswith(prefix):
-                result[key] = line.removeprefix(prefix).strip()
-    return result
+    """Pull conclusion / driver / caution anchors via the DEBT-060 chokepoint.
+
+    Returns a dict whose missing entries collapse to ``""`` so the
+    caller (:func:`_build_market_snapshot_card`) can fall back to the
+    briefing's own ``market_summary`` / ``key_issues`` / ``today_watch``
+    fields without distinguishing "absent" from "blank".
+    """
+    return {
+        "conclusion": extract_conclusion(markdown) or "",
+        "driver": extract_key_drivers(markdown) or "",
+        "caution": extract_caution(markdown) or "",
+    }
 
 
 def _prepare_openai_market_image(

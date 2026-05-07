@@ -7,7 +7,7 @@ defense-in-depth round-trip through ``BriefingNotification``'s
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date
 
 import pytest
 
@@ -409,3 +409,153 @@ def test_summary_module_exports_expected_names() -> None:
     assert hasattr(summary_module, "build_summary")
     assert hasattr(summary_module, "DEFAULT_MAX_UNITS")
     assert summary_module.DEFAULT_MAX_UNITS == 4096
+
+
+# ---------------------------------------------------------------------------
+# u35 — deterministic imminent-event tag
+# ---------------------------------------------------------------------------
+
+
+def _imminent_briefings() -> dict:
+    """Three briefings with a single rendered conclusion line each."""
+    return {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약").model_copy(
+            update={
+                "rendered_markdown": (
+                    "# 2026-04-25 국내 증시 시황\n\n> **오늘의 결론**: 국내 한 줄.\n\n"
+                )
+            }
+        ),
+        US_EQUITY: _build_briefing(market_summary="미국 요약").model_copy(
+            update={
+                "rendered_markdown": (
+                    "# 2026-04-25 미국 증시 시황\n\n> **오늘의 결론**: 미국 한 줄.\n\n"
+                )
+            }
+        ),
+        CRYPTO: _build_briefing(market_summary="크립토 요약").model_copy(
+            update={
+                "rendered_markdown": (
+                    "# 2026-04-25 크립토 시황\n\n> **오늘의 결론**: 크립토 한 줄.\n\n"
+                )
+            }
+        ),
+    }
+
+
+def _earnings_item(*, symbol: str, scheduled_at_iso: str) -> object:
+    from datetime import datetime
+
+    from investo.models import NormalizedItem
+
+    return NormalizedItem(
+        source_name="nasdaq-earnings-calendar",
+        category="earnings",
+        title=f"{symbol} earnings — after-hours",
+        published_at=datetime(2026, 4, 25, tzinfo=__import__("datetime").timezone.utc),
+        scheduled_at=datetime.fromisoformat(scheduled_at_iso),
+        raw_metadata={"symbol": symbol, "company_name": f"{symbol} Inc."},
+    )
+
+
+def _fomc_item(*, scheduled_at_iso: str) -> object:
+    from datetime import datetime
+
+    from investo.models import NormalizedItem
+
+    return NormalizedItem(
+        source_name="fomc-rss",
+        category="calendar",
+        title="FOMC press release — Federal Open Market Committee",
+        published_at=datetime(2026, 4, 25, tzinfo=__import__("datetime").timezone.utc),
+        scheduled_at=datetime.fromisoformat(scheduled_at_iso),
+        raw_metadata={"event": "FOMC"},
+    )
+
+
+def test_imminent_tag_prepended_for_event_within_72h() -> None:
+    """An event 2 days out emits ``📊 NVDA 실적 D-2 ·`` prefix on the line."""
+    from datetime import datetime
+
+    briefings = _imminent_briefings()
+    now_utc = datetime(2026, 4, 25, 12, 0, tzinfo=UTC)
+    nvda = _earnings_item(symbol="NVDA", scheduled_at_iso="2026-04-27T20:00:00+00:00")
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        lookahead_items_by_segment={US_EQUITY: (nvda,)},
+        now_utc=now_utc,
+    )
+    assert "📊 NVDA 실적 D-2" in summary
+    # Other segments untouched.
+    assert "📊" not in summary.split("🇰🇷")[0] if "🇰🇷" in summary else True
+
+
+def test_imminent_tag_absent_when_event_outside_horizon() -> None:
+    """Event 5 days out > 72h horizon → no tag."""
+    from datetime import datetime
+
+    briefings = _imminent_briefings()
+    now_utc = datetime(2026, 4, 25, 12, 0, tzinfo=UTC)
+    nvda = _earnings_item(symbol="NVDA", scheduled_at_iso="2026-04-30T20:00:00+00:00")
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        lookahead_items_by_segment={US_EQUITY: (nvda,)},
+        now_utc=now_utc,
+    )
+    assert "NVDA 실적 D-" not in summary
+
+
+def test_imminent_tag_picks_earliest_when_multiple_qualify() -> None:
+    """Ties broken by ``scheduled_at`` ascending — deterministic ordering."""
+    from datetime import datetime
+
+    briefings = _imminent_briefings()
+    now_utc = datetime(2026, 4, 25, 12, 0, tzinfo=UTC)
+    earlier = _earnings_item(symbol="AAA", scheduled_at_iso="2026-04-26T08:00:00+00:00")
+    later = _earnings_item(symbol="ZZZ", scheduled_at_iso="2026-04-27T08:00:00+00:00")
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        lookahead_items_by_segment={US_EQUITY: (later, earlier)},
+        now_utc=now_utc,
+    )
+    assert "AAA 실적 D-0" in summary
+    assert "ZZZ 실적" not in summary
+
+
+def test_imminent_tag_uses_fomc_label_for_calendar_source() -> None:
+    """FOMC RSS rows get the 📅 icon and the title-derived label.
+
+    Pin the exact truncated label substring so silent drift in
+    ``_imminent_event_label`` (e.g. tweaking the ``title[:23] + "…"``
+    budget or the leading-character handling) breaks this test instead
+    of shipping a malformed Telegram preview.
+    """
+    from datetime import datetime
+
+    briefings = _imminent_briefings()
+    now_utc = datetime(2026, 4, 25, 12, 0, tzinfo=UTC)
+    fomc = _fomc_item(scheduled_at_iso="2026-04-27T18:00:00+00:00")
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        lookahead_items_by_segment={US_EQUITY: (fomc,)},
+        now_utc=now_utc,
+    )
+    assert "📅" in summary
+    assert "D-2" in summary
+    # The fixture title "FOMC press release — Federal Open Market Committee"
+    # is longer than 24 chars, so the label is truncated to the first 23
+    # characters with a trailing ellipsis. Pin both the leading title
+    # substring and the exact truncated form to catch silent label drift.
+    assert "FOMC press release" in summary
+    assert "📅 FOMC press release — Fe… D-2" in summary
+
+
+def test_no_lookahead_argument_means_no_tag() -> None:
+    """Backward-compat: omitting the kwarg yields the historic line shape."""
+    briefings = _imminent_briefings()
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+    assert "D-" not in summary

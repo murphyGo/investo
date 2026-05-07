@@ -215,6 +215,38 @@ Numeric integrity rules (R8 trust contract):
 - When a number is essential to the narrative but not present in the
   input, write a qualitative phrase ("실적 집중일", "대형주 다수")
   instead of inventing a figure.
+
+Forward-looking "주요 일정" rules (u35 event-lookahead):
+- The user prompt may include a "주요 일정" section listing scheduled
+  events that fall AFTER the publish date (FOMC meetings, big-tech
+  earnings, macro releases, token unlocks). When present, integrate
+  the most relevant items into section ⑥ 오늘의 관전 포인트 as a
+  forward-looking watch list, framed as "이번 주" (오늘 ~ +7일) or
+  "이번 달" (오늘 ~ 월말).
+- Cite ONLY the events present in the supplied 주요 일정 list. DO NOT
+  invent, forecast, or estimate the impact of an event that is not
+  itself in the input (extension of the numeric integrity rule above —
+  no arbitrary forecast / impact prediction language).
+- If the 주요 일정 list is empty or absent, omit the forward-looking
+  watch list and keep section ⑥ focused on today's input items.
+
+Recent-briefings continuity rules (u34):
+- The user prompt may include a "최근 N일 컨텍스트" section listing the
+  conclusion / key-driver lines from the same segment's recent
+  archived briefings. Use it to surface continuity and divergence:
+  - When today's input data tells a different story from yesterday's
+    archived conclusion, name the change explicitly ("어제 대비 ...
+    전환", "지난 주 흐름에서 이탈").
+  - When today's input data does not introduce a new market signal
+    versus the archived context, say so explicitly ("큰 변화 없음",
+    "어제 흐름 연장") rather than re-stating the same conclusion in
+    new words.
+  - Treat the recent context as background only — today's conclusion
+    must still be derived from today's input items. Do NOT extrapolate
+    or invent figures, prices, or events that appear only in the
+    archived context (extension of the numeric integrity rule above).
+  - If the recent context is empty or absent, ignore this rule and
+    write the briefing from today's input alone.
 """
 
 # Placeholders:
@@ -224,6 +256,11 @@ Numeric integrity rules (R8 trust contract):
 #   ``unassigned`` (str — bullet list of unassigned items for context;
 #       may be the literal "(none)" when the unassigned list is empty)
 #   ``target_date`` (str — YYYY-MM-DD)
+#   ``recent_context`` (str — rendered recent-briefings block; may be
+#       the literal empty string when no archived context applies)
+#   ``lookahead_context`` (str — rendered "주요 일정" block listing
+#       forward-scheduled events; may be the literal empty string when
+#       no lookahead items survived the pipeline cap, u35)
 STAGE2_USER_TEMPLATE: Final[str] = """\
 {segment_context}
 
@@ -235,13 +272,88 @@ Unassigned (context for sections ① and ⑥):
 {unassigned}
 
 Target date: {target_date}
-
+{recent_context}{lookahead_context}
 Return only the markdown.
 """
+
+# u34 — Stage 2 user-prompt extension that surfaces the most recent N
+# publish days for the segment. Owned by ``prompts.py`` so the AC-5.2
+# / AC-5.3 sentinel-grep keeps prompt-body strings out of pipeline.py.
+# Consumers render the block via the ``format_recent_context_section``
+# helper below (located here so the literal Korean header lives next
+# to its users).
+RECENT_CONTEXT_HEADER: Final[str] = "## 최근 N일 컨텍스트"
+RECENT_CONTEXT_INTRO: Final[str] = (
+    "아래는 같은 세그먼트의 직전 영업일 결론·핵심 동인 요약입니다. "
+    "오늘과의 연속성/이탈을 자연스럽게 반영하되, 이 컨텍스트만으로 "
+    "오늘의 결론을 도출하거나 새로운 수치를 만들어내지 마세요."
+)
+RECENT_CONTEXT_EMPTY_NOTE: Final[str] = (
+    "직전 영업일 시황 컨텍스트가 없습니다 (첫 발행 또는 archive 부재). "
+    "오늘 입력 데이터로만 시황을 작성하세요."
+)
+
+
+# u35 — Stage 2 user-prompt extension that lists forward-scheduled
+# events ("주요 일정") drawn from items where ``scheduled_at`` is set.
+# Owned by ``prompts.py`` for the same reason as the recent-context
+# block: AC-5.2 / AC-5.3 sentinel-grep keeps the literal Korean header
+# strings out of pipeline.py.
+LOOKAHEAD_HEADER: Final[str] = "## 주요 일정"
+LOOKAHEAD_INTRO: Final[str] = (
+    "아래는 발행일 이후 예정된 주요 이벤트입니다 (FOMC, 빅테크 실적, "
+    "매크로 발표, 토큰 언락 등). 이번 주(오늘~+7일) 또는 이번 달의 "
+    "관전 포인트로만 활용하고, 입력에 없는 영향 예측이나 임의 수치를 "
+    "생성하지 마세요."
+)
+LOOKAHEAD_EMPTY_NOTE: Final[str] = (
+    "예정된 주요 이벤트 데이터가 없습니다. 본문 ⑥에서 forward-looking watch list 를 생략하세요."
+)
+
+
+def format_lookahead_section(rendered_lines: str) -> str:
+    """Wrap a pre-rendered list of forward-scheduled events into the prompt block.
+
+    ``rendered_lines`` is the caller-built body — typically a sequence
+    of ``- YYYY-MM-DD: <symbol/event>`` rows produced from items whose
+    ``scheduled_at`` is set. The caller is responsible for the per-
+    segment sub-cap (12 items max, u35 budget). Pass an empty string
+    to emit the "no lookahead" note instead — that branch fires when
+    no opt-in adapter contributed forward items.
+    """
+    body = rendered_lines.strip()
+    if not body:
+        body = LOOKAHEAD_EMPTY_NOTE
+    return f"\n{LOOKAHEAD_HEADER}\n\n{LOOKAHEAD_INTRO}\n\n{body}\n"
+
+
+def format_recent_context_section(rendered_lines: str) -> str:
+    """Wrap a pre-rendered per-day list into the Stage 2 prompt block.
+
+    ``rendered_lines`` is the caller-built body — typically a sequence
+    of ``- YYYY-MM-DD: 결론 ... | 동인 ...`` rows produced from a
+    :class:`RecentBriefingsContext`. The caller is responsible for
+    truncation; this helper only stitches the standard header / intro
+    around the body.
+
+    Pass an empty string to emit the "no recent context" note instead;
+    that branch is what ``_stage_generate_segments`` triggers on a
+    fresh repo / first publish.
+    """
+    body = rendered_lines.strip()
+    if not body:
+        body = RECENT_CONTEXT_EMPTY_NOTE
+    return f"\n{RECENT_CONTEXT_HEADER}\n\n{RECENT_CONTEXT_INTRO}\n\n{body}\n"
 
 
 __all__ = [
     "DEFAULT_SEGMENT_CONTEXT",
+    "LOOKAHEAD_EMPTY_NOTE",
+    "LOOKAHEAD_HEADER",
+    "LOOKAHEAD_INTRO",
+    "RECENT_CONTEXT_EMPTY_NOTE",
+    "RECENT_CONTEXT_HEADER",
+    "RECENT_CONTEXT_INTRO",
     "SEGMENT_CONTEXT_TEMPLATE",
     "SEGMENT_DATA_LIMITED_NOTE",
     "SEGMENT_DATA_READY_NOTE",
@@ -250,4 +362,6 @@ __all__ = [
     "STAGE2_SECTION_HEADERS",
     "STAGE2_SYSTEM",
     "STAGE2_USER_TEMPLATE",
+    "format_lookahead_section",
+    "format_recent_context_section",
 ]

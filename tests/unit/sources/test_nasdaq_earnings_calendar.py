@@ -230,3 +230,119 @@ def test_adapter_class_attributes() -> None:
     assert NasdaqEarningsCalendarAdapter.name == "nasdaq-earnings-calendar"
     assert NasdaqEarningsCalendarAdapter.category == "earnings"
     assert NasdaqEarningsCalendarAdapter._ENDPOINT == "https://api.nasdaq.com/api/calendar/earnings"
+
+
+# ---------------------------------------------------------------------------
+# u35 event-lookahead opt-in
+# ---------------------------------------------------------------------------
+
+
+async def test_lookahead_disabled_by_default_keeps_target_date_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No env var → exactly one HTTP call against the target date."""
+    monkeypatch.delenv("INVESTO_EARNINGS_LOOKAHEAD_DAYS", raising=False)
+    adapter = NasdaqEarningsCalendarAdapter()
+    client, captured = _capturing_client(_CALENDAR_FIXTURE.read_bytes())
+    async with client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert len(captured) == 1
+    assert captured[0].url.params["date"] == "2026-05-04"
+    # Existing items still emit ``scheduled_at = None`` (backward-compat).
+    assert all(item.scheduled_at is None for item in items)
+
+
+async def test_lookahead_emits_one_request_per_day(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``INVESTO_EARNINGS_LOOKAHEAD_DAYS=3`` → 1 + 3 = 4 calendar dates queried."""
+    monkeypatch.setenv("INVESTO_EARNINGS_LOOKAHEAD_DAYS", "3")
+    adapter = NasdaqEarningsCalendarAdapter()
+    client, captured = _capturing_client(_CALENDAR_FIXTURE.read_bytes())
+    async with client:
+        await adapter.fetch(client, _WINDOW)
+
+    assert [request.url.params["date"] for request in captured] == [
+        "2026-05-04",
+        "2026-05-05",
+        "2026-05-06",
+        "2026-05-07",
+    ]
+
+
+async def test_lookahead_tags_scheduled_at_on_forward_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Day-N rows carry ``scheduled_at`` and ``raw_metadata['scheduled_date']``."""
+    monkeypatch.setenv("INVESTO_EARNINGS_LOOKAHEAD_DAYS", "1")
+    adapter = NasdaqEarningsCalendarAdapter()
+    async with _mock_client(_CALENDAR_FIXTURE.read_bytes()) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    # Same fixture replayed twice (target + 1 day): 4 items.
+    assert len(items) == 4
+    target_items = [item for item in items if item.scheduled_at is None]
+    lookahead_items = [item for item in items if item.scheduled_at is not None]
+    assert len(target_items) == 2
+    assert len(lookahead_items) == 2
+    expected_scheduled = datetime(2026, 5, 5, tzinfo=UTC)
+    for item in lookahead_items:
+        assert item.scheduled_at == expected_scheduled
+        assert item.raw_metadata["scheduled_date"] == "2026-05-05"
+        # Title carries the forward calendar date so the LLM/audit log
+        # can distinguish it from a same-day release.
+        assert "2026-05-05" in item.title
+        # ``published_at`` stays anchored to the target date.
+        assert item.published_at == datetime(2026, 5, 4, tzinfo=UTC)
+
+
+async def test_lookahead_clamps_above_max(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Values above ``_LOOKAHEAD_MAX_DAYS`` (14) are clamped, not rejected."""
+    monkeypatch.setenv("INVESTO_EARNINGS_LOOKAHEAD_DAYS", "100")
+    adapter = NasdaqEarningsCalendarAdapter()
+    client, captured = _capturing_client(_CALENDAR_FIXTURE.read_bytes())
+    async with client:
+        await adapter.fetch(client, _WINDOW)
+
+    # 1 (day-0) + 14 (clamp) = 15 requests total.
+    assert len(captured) == 15
+
+
+async def test_lookahead_invalid_env_falls_back_to_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Non-numeric / negative / blank → fallback to historic single-date behavior."""
+    for raw in ("not-a-number", "-3", " "):
+        monkeypatch.setenv("INVESTO_EARNINGS_LOOKAHEAD_DAYS", raw)
+        adapter = NasdaqEarningsCalendarAdapter()
+        client, captured = _capturing_client(_CALENDAR_FIXTURE.read_bytes())
+        async with client:
+            await adapter.fetch(client, _WINDOW)
+        assert len(captured) == 1, f"raw={raw!r}"
+
+
+async def test_lookahead_day_failure_does_not_crash_target_pass(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A 5xx on a forward date is logged + skipped; target-date items survive."""
+    monkeypatch.setenv("INVESTO_EARNINGS_LOOKAHEAD_DAYS", "2")
+    adapter = NasdaqEarningsCalendarAdapter()
+    target_payload = _CALENDAR_FIXTURE.read_bytes()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.params["date"] == "2026-05-04":
+            return httpx.Response(
+                200, content=target_payload, headers={"content-type": "application/json"}
+            )
+        # Both forward dates fail terminally — adapter must isolate.
+        return httpx.Response(
+            404,
+            content=b'{"data":{"rows":[]}}',
+            headers={"content-type": "application/json"},
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    # Target-date pass yields 2 items; both forward dates contribute 0.
+    assert len(items) == 2
+    assert all(item.scheduled_at is None for item in items)

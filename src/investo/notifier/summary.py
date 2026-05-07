@@ -34,7 +34,8 @@ Reference:
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime, timedelta
 from typing import Final
 
 from investo.briefing.segments import (
@@ -44,7 +45,7 @@ from investo.briefing.segments import (
     US_EQUITY,
     MarketSegment,
 )
-from investo.models import Briefing
+from investo.models import Briefing, NormalizedItem
 
 # Telegram's hard cap. Mirrors the constant in
 # ``investo.models.briefing`` (``TELEGRAM_MESSAGE_LIMIT``); kept local
@@ -78,6 +79,23 @@ _SEGMENT_ICONS: Final[dict[MarketSegment, str]] = {
     US_EQUITY: "🇺🇸",
     CRYPTO: "₿",
 }
+
+# u35 — imminent-event horizon for the deterministic Telegram tag.
+# Events scheduled within 72 hours of the run instant qualify; the tag
+# is computed by D-distance arithmetic, not by the LLM (no hallucination
+# surface). Capped at top-1 by deterministic ordering (earliest first).
+_IMMINENT_HORIZON: Final[timedelta] = timedelta(hours=72)
+# Source-name → emoji mapping for the imminent tag prefix. New
+# adapters that emit ``scheduled_at`` should register an entry here so
+# the deterministic tag stays terse and source-attributable. Sources
+# not in this map fall back to a generic 📅 calendar icon.
+_IMMINENT_TAG_ICON: Final[dict[str, str]] = {
+    "fomc-rss": "📅",
+    "nasdaq-earnings-calendar": "📊",
+    "fred-macro": "📈",
+    "coingecko-events": "🪙",
+}
+_IMMINENT_TAG_FALLBACK_ICON: Final[str] = "📅"
 
 
 def _utf16_units(text: str) -> int:
@@ -144,12 +162,23 @@ def build_segmented_summary(
     *,
     site_urls: Mapping[MarketSegment, str],
     max_units: int = DEFAULT_MAX_UNITS,
+    lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+    now_utc: datetime | None = None,
 ) -> str:
     """Build one Telegram message with all segment summaries and links.
 
     The three URLs are repeated in the segment blocks and the fixed
     footer. The footer is always preserved; segment summary lines are
     truncated first if needed.
+
+    u35 — when ``lookahead_items_by_segment`` is supplied, each
+    segment's one-line summary is prepended with a deterministic
+    imminent-event tag (e.g. ``📅 FOMC D-2``) computed from the
+    forward-scheduled items in that segment. The tag is **not**
+    LLM-generated; it is derived entirely from
+    ``NormalizedItem.scheduled_at`` and ``now_utc`` (defaulting to the
+    current time when ``None``). Absence of imminent items leaves the
+    line unchanged.
     """
     target_date = briefings[DOMESTIC_EQUITY].target_date
     ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
@@ -157,8 +186,19 @@ def build_segmented_summary(
     footer = "\n\n링크 모음:\n" + "\n".join(
         f"• {SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in ordered_segments
     )
+    resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
     body = "\n\n".join(
-        _segment_summary_block(segment, briefings[segment], site_urls[segment])
+        _segment_summary_block(
+            segment,
+            briefings[segment],
+            site_urls[segment],
+            lookahead_items=(
+                lookahead_items_by_segment.get(segment, ())
+                if lookahead_items_by_segment is not None
+                else ()
+            ),
+            now_utc=resolved_now,
+        )
         for segment in ordered_segments
     )
 
@@ -186,12 +226,23 @@ def plain_text_summary(markdown_summary: str) -> str:
     return "\n".join(line.rstrip() for line in text.splitlines()).strip()
 
 
-def _segment_summary_block(segment: MarketSegment, briefing: Briefing, site_url: str) -> str:
+def _segment_summary_block(
+    segment: MarketSegment,
+    briefing: Briefing,
+    site_url: str,
+    *,
+    lookahead_items: Sequence[NormalizedItem] = (),
+    now_utc: datetime | None = None,
+) -> str:
     label = SEGMENT_LABELS[segment]
     icon = _SEGMENT_ICONS[segment]
     status = _coverage_label(briefing)
     status_tag = f" [{status}]" if status else ""
-    return f"{icon} *{label}*{status_tag}\n상세보기: {site_url}\n{_one_line_summary(briefing)}"
+    one_line = _one_line_summary(briefing)
+    imminent = _imminent_event_tag(lookahead_items, now_utc=now_utc)
+    if imminent:
+        one_line = f"{imminent} · {one_line}"
+    return f"{icon} *{label}*{status_tag}\n상세보기: {site_url}\n{one_line}"
 
 
 def _coverage_label(briefing: Briefing) -> str | None:
@@ -233,6 +284,70 @@ def _one_line_summary(briefing: Briefing) -> str:
         if summary:
             return summary
     return "데이터 부족"
+
+
+def _imminent_event_tag(
+    lookahead_items: Sequence[NormalizedItem],
+    *,
+    now_utc: datetime | None,
+) -> str:
+    """Compute a deterministic imminent-event tag from forward items.
+
+    Selects the earliest item whose ``scheduled_at`` falls within
+    :data:`_IMMINENT_HORIZON` of ``now_utc`` and emits a tag of the
+    shape ``"📅 <label> D-<n>"`` (where ``n`` is the number of full
+    UTC days between ``now_utc`` and ``scheduled_at``, rounded down,
+    minimum 0). When nothing qualifies, returns an empty string and
+    the caller leaves the line unchanged.
+
+    Determinism: the function consults ``scheduled_at`` and
+    ``source_name`` only — no LLM call, no network, no clock read
+    when ``now_utc`` is supplied. The orchestrator passes a single
+    ``now_utc`` for all segments so a multi-segment publish emits a
+    consistent set of tags.
+    """
+    if not lookahead_items or now_utc is None:
+        return ""
+    horizon_end = now_utc + _IMMINENT_HORIZON
+    candidates = [
+        item
+        for item in lookahead_items
+        if item.scheduled_at is not None and now_utc <= item.scheduled_at < horizon_end
+    ]
+    if not candidates:
+        return ""
+    # Earliest first; ties broken by source then title for determinism.
+    best = min(
+        candidates,
+        key=lambda item: (
+            item.scheduled_at,
+            item.source_name,
+            item.title,
+        ),
+    )
+    assert best.scheduled_at is not None
+    delta = best.scheduled_at - now_utc
+    days_to_event = max(int(delta.total_seconds() // 86400), 0)
+    icon = _IMMINENT_TAG_ICON.get(best.source_name, _IMMINENT_TAG_FALLBACK_ICON)
+    label = _imminent_event_label(best)
+    return f"{icon} {label} D-{days_to_event}"
+
+
+def _imminent_event_label(item: NormalizedItem) -> str:
+    """Resolve a terse Korean/English label for the imminent tag.
+
+    For earnings calendar rows we surface the ticker symbol so the
+    Telegram preview reads ``📊 NVDA 실적 D-1`` instead of repeating
+    the long company-name title. For other sources we fall back to
+    the first 24 characters of the title — short enough that the
+    surrounding "상세보기" footer still fits inside the UTF-16 budget.
+    """
+    if item.source_name == "nasdaq-earnings-calendar":
+        symbol = item.raw_metadata.get("symbol")
+        if isinstance(symbol, str) and symbol:
+            return f"{symbol} 실적"
+    title = item.title.strip()
+    return title if len(title) <= 24 else title[:23] + "…"
 
 
 def _clean_summary_text(text: str) -> str:

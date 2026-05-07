@@ -35,6 +35,7 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo.briefing.extract import extract_conclusion
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -48,8 +49,9 @@ OG_CARD_RELATIVE_PATH: Final[Path] = Path("site_docs/assets/og-card.svg")
 OG_CARD_WIDTH: Final[int] = 1200
 OG_CARD_HEIGHT: Final[int] = 630
 _SEGMENTS: Final[tuple[MarketSegment, ...]] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
-_CONCLUSION_PREFIX: Final[str] = "> **오늘의 결론**:"
 _FONT: Final[str] = "&quot;Noto Sans KR&quot;, Arial, sans-serif"
+# Surface-specific fallback when the chokepoint extractor returns
+# ``None`` — DEBT-060 consolidation 2026-05-08.
 _OG_FALLBACK_TEXT: Final[str] = "결론 인용을 추출하지 못했습니다."
 
 
@@ -155,12 +157,16 @@ _OG_STYLE: Final[str] = (
 
 
 def _extract_conclusion(rendered_markdown: str) -> str:
-    for line in rendered_markdown.splitlines():
-        if line.startswith(_CONCLUSION_PREFIX):
-            value = line.removeprefix(_CONCLUSION_PREFIX).strip()
-            if value:
-                return value
-    return _OG_FALLBACK_TEXT
+    """Resolve the conclusion line with OG-card fallback wording.
+
+    Thin wrapper over :func:`investo.briefing.extract.extract_conclusion`
+    so the OG card owns only its surface-specific fallback string;
+    DEBT-060 consolidation 2026-05-08.
+    """
+    value = extract_conclusion(rendered_markdown)
+    if value is None:
+        return _OG_FALLBACK_TEXT
+    return value
 
 
 def _wrap(text: str, *, max_chars: int, max_lines: int) -> tuple[str, ...]:

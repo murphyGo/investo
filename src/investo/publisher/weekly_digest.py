@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Final
 
 from investo.briefing.disclaimer import DISCLAIMER
+from investo.briefing.extract import extract_conclusion
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -45,8 +46,10 @@ from investo.publisher.verifier import verify_disclaimer
 WEEKLY_ARCHIVE_ROOT: Final[Path] = ARCHIVE_ROOT / "weekly"
 WEEKLY_INDEX_PATH: Final[Path] = WEEKLY_ARCHIVE_ROOT / "index.md"
 _SEGMENTS: Final[tuple[MarketSegment, ...]] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
-_CONCLUSION_PREFIX: Final[str] = "> **오늘의 결론**:"
 _FALLBACK_NOT_PUBLISHED: Final[str] = "(미발행)"
+# Surface-specific fallback wording when the chokepoint extractor
+# returns ``None`` for an archived day — DEBT-060 consolidation 2026-05-08.
+_FALLBACK_EXTRACTION_FAILED: Final[str] = "(결론 인용을 추출하지 못함)"
 
 
 _WEEKLY_OPT_IN_VAR: Final[str] = "INVESTO_PUBLISH_WEEKLY"
@@ -214,12 +217,16 @@ def _render_day_block(day: date, *, archive_root: Path) -> list[str]:
 
 
 def _extract_conclusion(rendered_markdown: str) -> str:
-    for line in rendered_markdown.splitlines():
-        if line.startswith(_CONCLUSION_PREFIX):
-            value = line.removeprefix(_CONCLUSION_PREFIX).strip()
-            if value:
-                return value
-    return "(결론 인용을 추출하지 못함)"
+    """Resolve the conclusion line with weekly-digest fallback wording.
+
+    Thin wrapper over :func:`investo.briefing.extract.extract_conclusion`
+    so this surface owns only its surface-specific fallback string;
+    DEBT-060 consolidation 2026-05-08.
+    """
+    value = extract_conclusion(rendered_markdown)
+    if value is None:
+        return _FALLBACK_EXTRACTION_FAILED
+    return value
 
 
 def _write_text_atomic(path: Path, content: str) -> None:

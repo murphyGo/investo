@@ -50,6 +50,12 @@ class NormalizedItem(BaseModel):
     summary: str | None = None
     url: HttpUrl | None = None
     published_at: datetime
+    # u35 event-lookahead: forward-looking events (FOMC meetings, Big
+    # Tech earnings, token unlocks) carry the scheduled occurrence time
+    # distinct from publish time. ``None`` is the backward-compat default
+    # — every existing adapter and existing fixture round-trips
+    # unchanged. When set, both timestamps must be tz-aware UTC.
+    scheduled_at: datetime | None = None
     raw_metadata: dict[str, _MetadataValue] = Field(default_factory=dict)
 
     @field_validator("source_name", "title")
@@ -76,4 +82,15 @@ class NormalizedItem(BaseModel):
     def _ensure_tz_aware(cls, value: datetime) -> datetime:
         # Naive datetimes lead to silent KST/UTC drift in cron-driven date
         # math (US-005 resolves target_date from now_utc). Shared helper.
+        return ensure_tz_aware(value)
+
+    @field_validator("scheduled_at")
+    @classmethod
+    def _ensure_scheduled_at_tz_aware(cls, value: datetime | None) -> datetime | None:
+        # u35: same R8 contract as ``published_at`` — naive datetimes
+        # propagate KST/UTC drift into the LLM lookahead bucket and the
+        # Telegram imminent-tag D-distance arithmetic. ``None`` skips
+        # the check (backward-compat default).
+        if value is None:
+            return None
         return ensure_tz_aware(value)

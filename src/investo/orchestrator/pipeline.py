@@ -74,6 +74,11 @@ from pathlib import Path
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo.briefing.claude_code import ClaudeRunner
+from investo.briefing.context import (
+    RecentBriefingsContext,
+    load_recent_briefings,
+    resolve_recent_days,
+)
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
 from investo.briefing.segments import (
@@ -175,6 +180,7 @@ SegmentGenerateCallable = Callable[
         MarketSegment,
         bool,
         Sequence[SourceOutcome],
+        RecentBriefingsContext | None,
     ],
     Awaitable[Briefing],
 ]
@@ -210,6 +216,7 @@ async def _default_generate_segment_briefing(
     segment: MarketSegment,
     data_limited: bool,
     source_outcomes: Sequence[SourceOutcome],
+    recent_context: RecentBriefingsContext | None,
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
     return await _u2_generate_briefing(
@@ -219,6 +226,7 @@ async def _default_generate_segment_briefing(
         segment=segment,
         data_limited=data_limited,
         source_outcomes=source_outcomes,
+        recent_context=recent_context,
     )
 
 
@@ -337,6 +345,7 @@ async def _stage_generate_segments(
     runner: ClaudeRunner | None = None,
     generate_segment: SegmentGenerateCallable | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    recent_context: RecentBriefingsContext | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Generate all u7 market segments in fixed order.
 
@@ -346,6 +355,12 @@ async def _stage_generate_segments(
     ``source_outcomes`` (u22) is forwarded so each segment briefing can
     annotate its coverage badge with reason codes / per-source verdicts.
     Default ``()`` keeps legacy injected-fake call sites working.
+
+    ``recent_context`` (u34) is the trailing-N-day archive context;
+    threaded into each segment's Stage 2 prompt so the LLM can reflect
+    continuity / divergence vs the recent publish history. ``None``
+    disables the feature (matches the env-var ``=0`` setting and the
+    pre-u34 behaviour).
     """
     runner_callable = (
         generate_segment if generate_segment is not None else _default_generate_segment_briefing
@@ -372,6 +387,7 @@ async def _stage_generate_segments(
             segment,
             data_limited,
             segment_outcomes,
+            recent_context,
         )
 
     _logger.info("[generate] segmented briefings built target_date=%s", target_date)
@@ -590,6 +606,37 @@ async def _stage_publish_segments(
     )
     _logger.info("[publish] committed + pushed segmented %s", target_date)
     return archive_paths
+
+
+def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | None:
+    """Resolve the env-var window and load the trailing recent-briefings context.
+
+    Returns ``None`` when the user explicitly disabled the feature
+    (``INVESTO_RECENT_CONTEXT_DAYS=0``); the orchestrator threads
+    ``None`` straight through and the briefing prompt omits the
+    "최근 N일 컨텍스트" block entirely. Otherwise returns the loaded
+    :class:`RecentBriefingsContext`, which itself may be empty (first
+    publish path) — the prompt builder handles both cases.
+
+    The :data:`ARCHIVE_ROOT` lookup is deferred to call time (not at
+    import) so unit tests that monkeypatch
+    ``investo.publisher.paths.ARCHIVE_ROOT`` see the redirected path.
+    """
+    days = resolve_recent_days()
+    if days <= 0:
+        _logger.info("[recent_context] disabled (days=0)")
+        return None
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    context = load_recent_briefings(ARCHIVE_ROOT, target_date, days=days)
+    total = sum(len(entries) for entries in context.entries_by_segment.values())
+    _logger.info(
+        "[recent_context] loaded target_date=%s days=%d entries=%d",
+        target_date,
+        days,
+        total,
+    )
+    return context
 
 
 def _build_publish_heatmap_svg(target_date: date) -> str:
@@ -964,12 +1011,14 @@ async def run_pipeline(
     segmented_mode = generate is None
     try:
         if segmented_mode:
+            recent_context = _load_recent_context_for_run(target_date)
             segment_briefings = await _stage_generate_segments(
                 target_date,
                 items,
                 runner=runner,
                 generate_segment=generate_segment,
                 source_outcomes=source_outcomes,
+                recent_context=recent_context,
             )
             briefing = segment_briefings[DOMESTIC_EQUITY]
         else:

@@ -5,8 +5,8 @@
 | Priority | Count | Oldest |
 |----------|-------|--------|
 | Critical | 0 | - |
-| High | 1 | 2026-05-08 |
-| Medium | 9 | 2026-05-07 |
+| High | 2 | 2026-05-08 |
+| Medium | 8 | 2026-05-07 |
 | Low | 20 | 2026-04-27 |
 
 ---
@@ -29,6 +29,21 @@ _No critical items._
 - **Effort**: ~1.5-2 h for option (a) including dependency add, preflight install, render path, and a regression test pinning the PNG output dimensions and the meta-tag PNG URL on the rendered HTML. Option (b) ~1 h but requires a GHA workflow change instead of a Python change.
 - **Priority Reasoning**: P1 (High) — the OG meta channel without a PNG twin does not deliver the persona #2 share-link first impression on Telegram / Slack / Twitter / LinkedIn, which are the dominant share surfaces. Until the twin lands, the rendered share-card is invisible to most readers. The metadata path is correct and the SVG is reusable, so the fix is bounded; the priority reflects the user-visible gap, not implementation difficulty.
 
+#### DEBT-067: u35 event-lookahead 이월 — 4 lookahead 어댑터 + orchestrator wire-through + LOOKAHEAD_DATA_MISSING reason code
+
+- **Created**: 2026-05-08
+- **Source**: u35 event-lookahead QA review (H1 + M1 + M3)
+- **Reference**: FR-002 (Korean briefing comprehension), FR-008 (segmented briefing), NFR-002 (cost / no paid APIs), NFR-003 (graceful degradation), NFR-006 (testing), NFR-007 (R10 — record/replay fixtures, no fabrication)
+- **Description**: u35 Phase 1 lands the entire downstream pipe (model field `scheduled_at`, `FetchWindow.lookahead`, Stage 2 "주요 일정" prompt rules, `_render_lookahead_context_block` renderer, 12-row sub-cap, deterministic 72h Telegram imminent tag) end-to-end except for the four lookahead-specific source adapters that populate it: `fomc-calendar` (Federal Reserve `press_monetary` RSS), `fred-economic-calendar` (FRED / Treasury / BLS public release-schedule feed), `coingecko-events` (CoinGecko events public endpoint — gauge availability; deprecated upstream is possible), and KRX option-expiry public feed. R10 (record/replay fixtures, no fabrication) forbids landing the adapters with synthesized payloads — every fixture must be the byte output of a live API recording — and the offline session that delivered Phase 0 + Phase 1 partial does not have live API access for those four endpoints. The orchestrator wire-through (`_stage_notify_segmented_briefing` per-segment lookahead bucket → `build_segmented_summary`) and the `SegmentCoverage.reason_codes.LOOKAHEAD_DATA_MISSING` reason code are bundled here because (a) the wire-through is dead code on the production critical path until at least one populating adapter lands, and (b) shipping the reason code without any populating adapter would cause it to fire on every segment indefinitely, eroding the u22 coverage-trust contract that readers rely on. Sub-bullets register two contracts that the wire-through must honour:
+  - **M1 (sub) — orchestrator wire-through clock-explicit contract**: `_stage_notify_segmented_briefing` must pass `now_utc` **explicitly** alongside `lookahead_items_by_segment` to `build_segmented_summary`; the notifier must raise `ValueError` if `lookahead_items_by_segment` is supplied while `now_utc=None`. Reason: the notifier stays clock-free (testability + determinism) — relying on `datetime.now(UTC)` inside `notifier/summary.py` would couple regression tests to wall-clock time and make the deterministic D-1 / D-2 selector non-reproducible. Source: u35 QA M1.
+  - **M3 (sub) — single-filter reuse contract**: the orchestrator must reuse the lookahead filter result computed by `briefing/pipeline.py::_render_lookahead_context_block` so the markdown context block (Stage 2 segment narrative) and the Telegram tag selector (`build_segmented_summary` → `_imminent_event_tag`) see exactly **one** filtered list. Filtering twice — once for the prompt and once for the tag — risks the two surfaces silently disagreeing (e.g., the prompt shows 5 events but the Telegram tag picks an event not in the prompt). Source: u35 QA M3.
+- **Suggested Fix**:
+  - Land the four adapters one at a time as live-credential sessions allow; each adapter reuses the existing `@register` plugin pattern, `retry_get` + `strip_html` + `defusedxml` per R8, and adapter-local browser-compatible UA per R14 where the upstream demands one. Pin each adapter's record/replay fixture set (HTTP body + headers) per R10 with the live recording hash captured in the test fixture path.
+  - Once at least one adapter lands, wire `_stage_notify_segmented_briefing` to (a) compute `now_utc = datetime.now(UTC)` at orchestrator entry, (b) populate `lookahead_items_by_segment` from the new adapters' output filtered through `_render_lookahead_context_block`'s **single** filter call, and (c) pass both kwargs explicitly into `build_segmented_summary`. Pin the clock-explicit contract with a unit test that supplies `lookahead_items_by_segment` while leaving `now_utc=None` and asserts `ValueError`.
+  - Once at least one adapter lands, add `SegmentCoverage.reason_codes.LOOKAHEAD_DATA_MISSING` to the u22 reason-code enum and emit it from the aggregator only when the lookahead pass for a given segment returns zero items **and** at least one lookahead-aware adapter was attempted (i.e., the reason code never fires on a segment that has no lookahead-aware adapter registered). Pin with a regression test that exercises the empty-adapter and zero-item branches.
+- **Effort**: ~6-10 h for the four adapters (live-credential dependent — driven by live API access more than implementation); ~30 min for the orchestrator wire-through; ~30 min for the reason-code addition + test.
+- **Priority Reasoning**: **P1 (High)** — u35's user-visible payoff (Telegram imminent tag + segment "주요 일정" block) is dormant in production until at least one of the four adapters lands. Phase 1 already lit up every layer u35 itself owns, so the marginal cost of finishing the pipe is bounded; the priority reflects the user-visible gap (no forward-looking signal in production today), not implementation difficulty. Re-evaluate when a live-credential session schedules so the adapters can land in batch.
+
 ### Medium Priority
 
 #### DEBT-066: `*.svg.json` provenance manifest sidecars not enumerated in `asset_paths` (rollback orphan)
@@ -40,16 +55,6 @@ _No critical items._
 - **Suggested Fix**: Have `prepare_segment_visual_assets` return both SVG and manifest paths (e.g., a `StagedAssetPair` named tuple or a flat `tuple[Path, ...]` of all asset paths). Update the orchestrator's snapshot / rollback set to include both. Pin with a regression test that triggers a mid-loop rollback and asserts both the SVG **and** the manifest sidecar are restored / removed atomically.
 - **Effort**: ~30 min including the return-shape change, orchestrator update, and rollback regression test.
 - **Priority Reasoning**: Medium — the orphan manifests do not break any publish-time gate today, but a rollback that leaves stale `.svg.json` referencing pre-rollback content creates a debugging surface where reviewers reading the manifest get the wrong picture of what was published. Carrying it forward through every future rollback path multiplies the surface area. Cheap to harden once.
-
-#### DEBT-060: Conclusion prefix / extraction helper duplicated 4x across publisher and visuals
-
-- **Created**: 2026-05-08
-- **Source**: u29 site-discovery-v2 QA review (M4)
-- **Reference**: NFR-005 (consistency / DRY), FR-003 (static web publishing)
-- **Description**: u29 added three new conclusion-extraction call sites — `src/investo/publisher/site_index.py` (`_render_hero_block`), `src/investo/publisher/weekly_digest.py` (per-segment 5-day list), `src/investo/visuals/og_card.py` (OG card body) — each of which duplicates the conclusion-prefix matching logic already present in `src/investo/visuals/assets.py` (which uses it for visual-card body content). Today the four sites agree by inspection, but a future change to the conclusion-prefix marker (say, the existing `**결론**:` shape evolves to `**결론 (yyyy-mm-dd)**:`) lands in only one site by default and the rendered hero / weekly digest / OG card / visual card silently disagree.
-- **Suggested Fix**: Promote the canonical conclusion prefix to a public export `briefing.summary_quality.CONCLUSION_PREFIX` (or a dedicated `briefing/extract.py` module) plus a `briefing.extract.conclusion_line(rendered_markdown: str) -> str | None` helper. Have all four call sites import the helper. Pin with a parametrize test covering present / missing / multiple-conclusion-line shapes against every call site simultaneously.
-- **Effort**: ~45 min including the helper extraction, 4-site import switch, and parametrize regression test.
-- **Priority Reasoning**: Medium — works correctly today on the agreed-by-inspection prefix, but the duplication is multiplicative (every new conclusion-consuming surface adds another agreement point). Promote to High when a fifth consumer lands or when the conclusion prefix is requested to evolve.
 
 #### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
 
@@ -326,6 +331,15 @@ _No critical items._
 ---
 
 ## Resolved Items
+
+#### DEBT-060: Conclusion prefix / extraction helper duplicated 5x across publisher, visuals, and briefing
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-05-08 — 5 surface (`publisher/site_index.py`, `publisher/weekly_digest.py`, `visuals/og_card.py`, `visuals/assets.py`, `briefing/context.py`) 가 모두 새 chokepoint `briefing/extract.py` 위로 통합. 6번째 consumer 등장 시 `tests/unit/briefing/test_extract.py::test_no_surface_redeclares_prefix_literal` grep guard 가 즉시 fail. Phase 0 of u35 event-lookahead landed `briefing/extract.py` (`extract_conclusion`, `extract_key_drivers`, `extract_caution`, `extract_watermark`) plus public `CONCLUSION_PREFIX` / `DRIVER_PREFIX` / `CAUTION_PREFIX` / `WATERMARK_PREFIX` exports on `briefing/summary_quality.py`; all 5 sites switched to chokepoint imports and the local prefix literals were removed.
+- **Source**: u29 site-discovery-v2 QA review (M4)
+- **Promoted**: 2026-05-08 — Medium → **High** by u34 recent-briefings-context cross-check (DEBT-060 priority reasoning explicitly identified "fifth consumer lands" as the promotion trigger; that condition was met when `briefing/context.py` landed as the fifth consumer). Resolved by u35 Phase 0 the same day before any sixth consumer could land.
+- **Reference**: NFR-005 (consistency / DRY), FR-003 (static web publishing), FR-002 (Korean briefing comprehension)
+- **Description**: u29 added three new conclusion-extraction call sites — `src/investo/publisher/site_index.py` (`_render_hero_block`), `src/investo/publisher/weekly_digest.py` (per-segment 5-day list), `src/investo/visuals/og_card.py` (OG card body) — each of which duplicated the conclusion-prefix matching logic already present in `src/investo/visuals/assets.py`. u34 then introduced a fifth call site at `src/investo/briefing/context.py` (recent-briefings-context loader's `_CONCLUSION_PREFIX` / `_DRIVER_PREFIX` / `_WATERMARK_PREFIX` local literals). The five sites agreed by inspection but a future change to any of the prefix markers would have landed in only one site by default and the rendered hero / weekly digest / OG card / visual card / Stage 2 recent-context block would have silently disagreed — directly inverting the reader-trust contract.
 
 #### DEBT-035: Bot-token / chat-id redaction regex duplicated across `__main__` and `models/coverage`
 

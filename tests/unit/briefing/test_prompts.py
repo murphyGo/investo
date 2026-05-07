@@ -8,12 +8,18 @@ import pytest
 
 from investo.briefing.prompts import (
     DEFAULT_SEGMENT_CONTEXT,
+    LOOKAHEAD_EMPTY_NOTE,
+    LOOKAHEAD_HEADER,
+    RECENT_CONTEXT_EMPTY_NOTE,
+    RECENT_CONTEXT_HEADER,
     SEGMENT_CONTEXT_TEMPLATE,
     SEGMENT_DATA_LIMITED_NOTE,
     STAGE1_SYSTEM,
     STAGE1_USER_TEMPLATE,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
+    format_lookahead_section,
+    format_recent_context_section,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -146,6 +152,64 @@ def test_stage2_system_uses_neutral_section5_grouping_labels() -> None:
     assert "주의" in STAGE2_SYSTEM  # only as forbidden example
 
 
+def test_stage2_system_carries_recent_context_continuity_rules() -> None:
+    """u34 — Stage 2 system prompt instructs the LLM how to use the
+    "최근 N일 컨텍스트" block (continuity / divergence / no-change /
+    no-extrapolation).
+    """
+    assert "Recent-briefings continuity" in STAGE2_SYSTEM
+    assert "최근 N일 컨텍스트" in STAGE2_SYSTEM
+    assert "큰 변화 없음" in STAGE2_SYSTEM
+    # No-extrapolation guard ties to the existing numeric integrity
+    # clause; this sentinel pins the link.
+    assert "extrapolate" in STAGE2_SYSTEM
+    # Empty-context branch must be acknowledged so the LLM doesn't
+    # fabricate prior-day data when the archive is silent.
+    assert "empty or absent" in STAGE2_SYSTEM
+
+
+def test_format_recent_context_section_renders_body_with_header_and_intro() -> None:
+    body = '- 2026-05-07: 결론="x" | 핵심 동인="y"'
+    rendered = format_recent_context_section(body)
+    assert RECENT_CONTEXT_HEADER in rendered
+    assert body in rendered
+    # Empty-note branch must NOT fire when a real body is supplied.
+    assert RECENT_CONTEXT_EMPTY_NOTE not in rendered
+
+
+def test_stage2_system_carries_lookahead_no_forecast_rule() -> None:
+    """u35 — Stage 2 prompt forbids inventing forward forecasts."""
+    assert "주요 일정" in STAGE2_SYSTEM
+    assert "이번 주" in STAGE2_SYSTEM
+    assert "이번 달" in STAGE2_SYSTEM
+    # Must explicitly forbid arbitrary forward forecasts.
+    assert (
+        "DO NOT invent" in STAGE2_SYSTEM
+        or "임의" in STAGE2_SYSTEM
+        or "no arbitrary" in STAGE2_SYSTEM
+    )
+
+
+def test_format_lookahead_section_renders_body_with_header_and_intro() -> None:
+    body = "- 2026-05-10: [fomc-rss] FOMC meeting"
+    rendered = format_lookahead_section(body)
+    assert rendered.startswith(f"\n{LOOKAHEAD_HEADER}\n\n")
+    assert body in rendered
+    assert LOOKAHEAD_EMPTY_NOTE not in rendered
+
+
+def test_format_lookahead_section_uses_empty_note_for_blank_body() -> None:
+    rendered = format_lookahead_section("")
+    assert LOOKAHEAD_HEADER in rendered
+    assert LOOKAHEAD_EMPTY_NOTE in rendered
+
+
+def test_format_recent_context_section_uses_empty_note_for_blank_body() -> None:
+    rendered = format_recent_context_section("")
+    assert RECENT_CONTEXT_EMPTY_NOTE in rendered
+    assert RECENT_CONTEXT_HEADER in rendered
+
+
 def test_stage2_system_forbids_arithmetic_hallucination() -> None:
     """u25 — block the ``시총 합산 약 $X조`` style fabrication that
     appeared in ``archive/us-equity/2026/05/2026-05-06.md`` (persona #3).
@@ -162,6 +226,8 @@ def test_stage2_user_template_has_three_placeholders() -> None:
         grouped_sections="(grouped content)",
         unassigned="(unassigned content)",
         target_date="2026-04-28",
+        recent_context="",
+        lookahead_context="",
     )
     assert "(grouped content)" in rendered
     assert "(unassigned content)" in rendered
@@ -170,6 +236,13 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     assert "{unassigned}" in STAGE2_USER_TEMPLATE
     assert "{target_date}" in STAGE2_USER_TEMPLATE
     assert "{segment_context}" in STAGE2_USER_TEMPLATE
+    # u34 — the recent-briefings context placeholder was added without
+    # changing the rest of the template surface.
+    assert "{recent_context}" in STAGE2_USER_TEMPLATE
+    # u35 — the lookahead context placeholder was added with the same
+    # contract as recent_context: empty string omits the block, a
+    # rendered block carries the "주요 일정" header literal.
+    assert "{lookahead_context}" in STAGE2_USER_TEMPLATE
 
 
 def test_stage1_system_format_call_raises_key_error() -> None:
@@ -207,6 +280,8 @@ def test_stage2_user_template_format_is_idempotent_under_repeat() -> None:
         grouped_sections="x",
         unassigned="y",
         target_date="2026-04-28",
+        recent_context="",
+        lookahead_context="",
     )
     # No placeholders remain — re-formatting an empty dict yields same
     # string (no KeyError).

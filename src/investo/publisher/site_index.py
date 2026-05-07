@@ -31,6 +31,7 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo.briefing.extract import extract_conclusion as _extract_conclusion_chokepoint
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -54,12 +55,10 @@ HERO_END: Final[str] = "<!-- u29 hero end -->"
 HEATMAP_BEGIN: Final[str] = "<!-- u29 heatmap begin -->"
 HEATMAP_END: Final[str] = "<!-- u29 heatmap end -->"
 
-# Korean blockquote prefix used by u2 briefing pipeline. Mirrored from
-# ``investo.briefing.summary_quality._SUMMARY_PREFIXES[0]`` — kept as a
-# local literal so this module does not couple itself to the LLM-side
-# parser. If the prefix ever changes, both modules have to update; the
-# project rule is to keep the literal in sync via grep.
-_CONCLUSION_PREFIX: Final[str] = "> **오늘의 결론**:"
+# Surface-specific fallback text — the chokepoint helper
+# (:func:`investo.briefing.extract.extract_conclusion`) returns ``None``
+# on miss and each surface owns its own fallback wording (DEBT-060
+# consolidation 2026-05-08).
 _HERO_FALLBACK_TEXT: Final[str] = "결론 인용을 추출하지 못했습니다."
 
 # Match a markdown header line that *immediately* starts a top-level
@@ -212,18 +211,16 @@ def update_segment_archive_index(
 def extract_conclusion(rendered_markdown: str) -> str:
     """Pull the first ``> **오늘의 결론**:`` line from a rendered briefing.
 
-    Returns the trimmed sentence that follows the prefix. Falls back to
-    a stable Korean placeholder when no line is found — that keeps the
-    hero block legible even if a future briefing variant drops the
-    prefix (the archived markdown is still linked, so readers can still
-    click through).
+    Thin wrapper over :func:`investo.briefing.extract.extract_conclusion`
+    that substitutes the surface's hero-fallback text on miss. Kept as
+    a public entry point because the orchestrator and tests historically
+    imported this function name from this module; the behavior is
+    unchanged after the DEBT-060 consolidation 2026-05-08.
     """
-    for line in rendered_markdown.splitlines():
-        if line.startswith(_CONCLUSION_PREFIX):
-            value = line.removeprefix(_CONCLUSION_PREFIX).strip()
-            if value:
-                return value
-    return _HERO_FALLBACK_TEXT
+    value = _extract_conclusion_chokepoint(rendered_markdown)
+    if value is None:
+        return _HERO_FALLBACK_TEXT
+    return value
 
 
 def _render_hero_block(

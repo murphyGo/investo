@@ -111,6 +111,29 @@ class FetchWindow:
 
         return cls.from_local_date(target_date, _KST)
 
+    def lookahead(self, days: int) -> FetchWindow:
+        """Return a forward-looking window of length ``days`` aligned to ``end_utc``.
+
+        u35 event-lookahead: callers (aggregator + opt-in adapters) use
+        this to query forward-scheduled events (FOMC meetings,
+        earnings calendar entries, token unlocks) that fall in the
+        ``[end_utc, end_utc + days)`` window. Same KST / NY / UTC clock
+        as the original window — the local-clock label propagates
+        through ``target_date`` (kept anchored to the underlying
+        trading date so the watermark and the lookahead are visually
+        attached to the same publish day).
+
+        ``days`` must be positive — a zero or negative window is a
+        programmer error and raises :class:`ValueError`.
+        """
+        if days <= 0:
+            raise ValueError(f"lookahead window length must be positive, got {days}")
+        return FetchWindow(
+            start_utc=self.end_utc,
+            end_utc=self.end_utc + timedelta(days=days),
+            target_date=self.target_date,
+        )
+
     def contains(self, dt: datetime) -> bool:
         """Return whether ``dt`` falls in the window (half-open ``[start, end)``).
 

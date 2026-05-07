@@ -199,8 +199,10 @@ def _success_segment_generate(calls: list[tuple[MarketSegment, int, bool]]) -> o
         segment: MarketSegment,
         data_limited: bool,
         source_outcomes: object = (),
+        recent_context: object = None,
     ) -> Briefing:
         del source_outcomes  # u22 transparency hook — not asserted by these tests
+        del recent_context  # u34 — asserted in dedicated test below
         calls.append((segment, len(items), data_limited))
         return _briefing(target_date)
 
@@ -215,8 +217,10 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
         segment: MarketSegment,
         data_limited: bool,
         source_outcomes: object = (),
+        recent_context: object = None,
     ) -> Briefing:
         del source_outcomes
+        del recent_context
         if segment == fail_segment:
             raise BriefingGenerationError(
                 stage="synthesis",
@@ -338,6 +342,135 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
     assert "/archive/domestic-equity/2026/04/2026-04-27/" in summary_text
     assert "/archive/us-equity/2026/04/2026-04-27/" in summary_text
     assert "/archive/crypto/2026/04/2026-04-27/" in summary_text
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_threads_recent_context_to_segment_generate(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """u34 — orchestrator loads trailing-N-day archive context and threads
+    it into the segment generate callable. Pin: when an archived briefing
+    exists for ``target_date - 1`` (a weekday), the loader populates the
+    ``RecentBriefingsContext`` and the fake generator observes it.
+    """
+    from investo.briefing.context import RecentBriefingsContext
+
+    # Seed an archive entry one weekday before the target so the loader
+    # has something to pick up.
+    yesterday = date(2026, 4, 24)  # Fri (target Mon 4/27 → look back to Fri)
+    seed_dir = archive_root / US_EQUITY / "2026" / "04"
+    seed_dir.mkdir(parents=True, exist_ok=True)
+    (seed_dir / "2026-04-24.md").write_text(
+        "# 2026-04-24 미국 증시 시황\n\n"
+        "**기준 시각**: 2026-04-24 NY · [...]\n\n"
+        "> **오늘의 결론**: 어제는 반도체 주도\n"
+        "> **핵심 동인**: AI 투자 사이클\n"
+        "> **주의할 점**: 변동성\n\n"
+        "## ① 요약\n\n본문\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("INVESTO_RECENT_CONTEXT_DAYS", "5")
+
+    seen: list[RecentBriefingsContext | None] = []
+
+    async def _capturing_segment_generate(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: RecentBriefingsContext | None = None,
+    ) -> Briefing:
+        del items, runner, source_outcomes, data_limited
+        if segment == US_EQUITY:
+            seen.append(recent_context)
+        return _briefing(target_date)
+
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    items = [
+        NormalizedItem(
+            source_name="yfinance-price",
+            category="price",
+            title="AAPL closes higher",
+            published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+        ),
+    ]
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch(items),
+        git_runner=git,
+        generate_segment=_capturing_segment_generate,
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert len(seen) == 1
+    captured = seen[0]
+    assert captured is not None
+    us_entries = captured.for_segment(US_EQUITY)
+    assert len(us_entries) == 1
+    assert us_entries[0].publish_date == yesterday
+    assert "반도체" in us_entries[0].conclusion
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_recent_context_disabled_when_env_zero(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """u34 — ``INVESTO_RECENT_CONTEXT_DAYS=0`` disables the feature
+    cleanly: the orchestrator threads ``None`` to the segment generator
+    and the recent-briefings loader is never invoked.
+    """
+    monkeypatch.setenv("INVESTO_RECENT_CONTEXT_DAYS", "0")
+
+    seen_recent: list[object] = []
+
+    async def _capturing_segment_generate(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+    ) -> Briefing:
+        del items, runner, source_outcomes, data_limited
+        if segment == US_EQUITY:
+            seen_recent.append(recent_context)
+        return _briefing(target_date)
+
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    items = [
+        NormalizedItem(
+            source_name="yfinance-price",
+            category="price",
+            title="AAPL closes higher",
+            published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+        ),
+    ]
+
+    await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch(items),
+        git_runner=git,
+        generate_segment=_capturing_segment_generate,
+    )
+
+    assert seen_recent == [None]
 
 
 @pytest.mark.asyncio
@@ -544,8 +677,10 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
         segment: MarketSegment,
         data_limited: bool,
         source_outcomes: object = (),
+        recent_context: object = None,
     ) -> Briefing:
         del source_outcomes
+        del recent_context
         briefing = _briefing(target_date)
         if segment == US_EQUITY:
             return briefing.model_copy(

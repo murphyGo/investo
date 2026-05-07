@@ -96,6 +96,39 @@ def test_zero_length_window_rejected() -> None:
 
 
 # ---------------------------------------------------------------------------
+# u35 lookahead window
+# ---------------------------------------------------------------------------
+
+
+def test_lookahead_starts_at_end_utc_and_extends_n_days() -> None:
+    """A 7-day lookahead off a KST window covers exactly 7 forward days."""
+    base = FetchWindow.from_kst_date(date(2026, 5, 4))
+    forward = base.lookahead(7)
+    assert forward.start_utc == base.end_utc
+    assert forward.end_utc == base.end_utc + timedelta(days=7)
+    # ``target_date`` stays anchored to the original publish date so
+    # the watermark / aggregator coverage report still says "this is
+    # what trading day this lookahead is attached to".
+    assert forward.target_date == base.target_date
+
+
+def test_lookahead_zero_or_negative_rejected() -> None:
+    base = FetchWindow.from_kst_date(date(2026, 5, 4))
+    for invalid in (0, -1, -7):
+        with pytest.raises(ValueError, match="lookahead window length must be positive"):
+            base.lookahead(invalid)
+
+
+def test_lookahead_window_remains_half_open_and_contiguous() -> None:
+    """The lookahead is a half-open extension; its start equals the base end."""
+    base = FetchWindow.from_kst_date(date(2026, 5, 4))
+    forward = base.lookahead(3)
+    assert base.contains(forward.start_utc) is False
+    assert forward.contains(forward.start_utc) is True
+    assert forward.contains(forward.end_utc) is False
+
+
+# ---------------------------------------------------------------------------
 # contains() — half-open membership (AC-6.2 anchor cases)
 # ---------------------------------------------------------------------------
 
