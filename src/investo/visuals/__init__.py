@@ -1,5 +1,12 @@
 """Deterministic visual asset contracts for briefing cards."""
 
+from investo.visuals.assets import (
+    PreparedVisualAssets,
+    VisualAssetError,
+    insert_visual_links,
+    prepare_segment_visual_assets,
+    validate_visual_asset,
+)
 from investo.visuals.cards import (
     CardKind,
     DataConfidenceCardInput,
@@ -30,15 +37,20 @@ __all__ = [
     "ExternalAssetManifest",
     "ExternalAssetPolicyError",
     "MarketSnapshotCardInput",
+    "PreparedVisualAssets",
     "PriceSnapshotCardInput",
     "PriceSnapshotRow",
+    "VisualAssetError",
     "WatchlistRelevanceCardInput",
     "WatchlistRelevanceRow",
     "assert_external_asset_allowed",
     "build_data_confidence_card",
     "build_price_snapshot_card",
     "build_watchlist_relevance_card",
+    "insert_visual_links",
+    "prepare_segment_visual_assets",
     "render_card_svg",
+    "validate_visual_asset",
     "visual_asset_dir",
     "visual_asset_path",
     "visual_asset_relative_path",

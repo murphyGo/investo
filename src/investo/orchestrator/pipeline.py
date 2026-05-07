@@ -82,6 +82,7 @@ from investo.briefing.segments import (
     MarketSegment,
     segment_items,
 )
+from investo.briefing.watchlist import load_watchlist, match_watchlist_items
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -113,6 +114,7 @@ from investo.publisher import (
     archive_path as compute_archive_path,
 )
 from investo.sources import fetch_all as _default_fetch_all
+from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 
 # Single ``HttpUrl`` adapter — pydantic v2 doesn't expose ``HttpUrl``
 # as directly callable; the TypeAdapter avoids constructing a fresh
@@ -429,6 +431,7 @@ async def _stage_publish_segments(
     briefings: dict[MarketSegment, Briefing],
     target_date: date,
     *,
+    asset_paths: Sequence[Path] = (),
     git_runner: GitRunner | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
@@ -468,11 +471,37 @@ async def _stage_publish_segments(
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
-        list(archive_paths.values()),
+        [*archive_paths.values(), *asset_paths],
         runner=git_runner,
     )
     _logger.info("[publish] committed + pushed segmented %s", target_date)
     return archive_paths
+
+
+async def _stage_prepare_segment_visual_assets(
+    briefings: dict[MarketSegment, Briefing],
+    items: Sequence[NormalizedItem],
+    target_date: date,
+) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
+    """Generate visual assets and return briefings with relative image links."""
+    routed = segment_items(items)
+    watchlist_config = load_watchlist()
+    prepared_briefings: dict[MarketSegment, Briefing] = {}
+    asset_paths: list[Path] = []
+    for segment in SEGMENT_ORDER:
+        segment_source_items = routed.for_segment(segment)
+        prepared = await asyncio.to_thread(
+            prepare_segment_visual_assets,
+            briefings[segment],
+            target_date=target_date,
+            segment=segment,
+            items=segment_source_items,
+            coverage=routed.coverage_for_segment(segment),
+            watchlist_impact=match_watchlist_items(segment_source_items, watchlist_config),
+        )
+        prepared_briefings[segment] = prepared.briefing
+        asset_paths.extend(prepared.asset_paths)
+    return prepared_briefings, tuple(asset_paths)
 
 
 def _read_existing_bytes(path: Path) -> bytes | None:
@@ -817,14 +846,20 @@ async def run_pipeline(
     try:
         if segmented_mode:
             assert segment_briefings is not None
+            segment_briefings, visual_asset_paths = await _stage_prepare_segment_visual_assets(
+                segment_briefings,
+                items,
+                target_date,
+            )
             await _stage_publish_segments(
                 segment_briefings,
                 target_date,
+                asset_paths=visual_asset_paths,
                 git_runner=git_runner,
             )
         else:
             await _stage_publish(briefing, target_date, git_runner=git_runner)
-    except (PublisherDisclaimerError, PublisherIOError, PublisherGitError) as exc:
+    except (PublisherDisclaimerError, PublisherIOError, PublisherGitError, VisualAssetError) as exc:
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"
         stages["notify_briefing"] = "skipped"

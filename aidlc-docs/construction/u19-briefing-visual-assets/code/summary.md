@@ -12,6 +12,9 @@
 - Added card builders for `SegmentCoverage`, known `yfinance-price` / `coingecko-price` metadata, and `WatchlistImpact`.
 - Added a deterministic SVG renderer for data confidence, market snapshot, price snapshot, and watchlist relevance cards.
 - Added markdown cleanup, text wrapping, fixed SVG dimensions, and long-text/no-data render tests.
+- Added visual asset preparation that writes segment/date SVG files and inserts relative markdown image links.
+- Connected segmented pipeline publish flow so generated markdown and `.assets` files are staged in the same commit.
+- Added visual asset validation to prevent missing, tiny, or malformed SVG links from reaching public archive pages.
 
 ## Files Changed
 
@@ -20,15 +23,20 @@
 - `src/investo/visuals/paths.py`
 - `src/investo/visuals/policy.py`
 - `src/investo/visuals/render.py`
+- `src/investo/visuals/assets.py`
+- `src/investo/orchestrator/pipeline.py`
 - `tests/unit/visuals/__init__.py`
+- `tests/unit/visuals/test_assets.py`
 - `tests/unit/visuals/test_cards.py`
 - `tests/unit/visuals/test_paths.py`
 - `tests/unit/visuals/test_policy.py`
 - `tests/unit/visuals/test_render.py`
+- `tests/integration/test_pipeline.py`
 - `aidlc-docs/construction/plans/u19-briefing-visual-assets-code-generation-plan.md`
 
 ## Verification
 
-- `uv run pytest tests/unit/visuals -q` (20 passed)
+- `uv run pytest tests/unit/visuals -q` (23 passed)
+- `uv run pytest tests/unit/visuals tests/integration/test_pipeline.py -q` (30 passed)
 - `uv run ruff check src/investo/visuals tests/unit/visuals`
 - `uv run mypy --strict src/investo/visuals`

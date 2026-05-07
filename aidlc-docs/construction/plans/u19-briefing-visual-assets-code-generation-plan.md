@@ -294,10 +294,10 @@ uv run mkdocs build --strict
 
 ### Step 3 — Pipeline and Publish
 
-- [ ] Add publish-preparation stage after segmented briefing generation.
-- [ ] Insert relative image links into segment markdown.
-- [ ] Extend publish staging to include generated assets.
-- [ ] Add broken-link guard before publish.
+- [x] Add publish-preparation stage after segmented briefing generation.
+- [x] Insert relative image links into segment markdown.
+- [x] Extend publish staging to include generated assets.
+- [x] Add broken-link guard before publish.
 
 ### Step 4 — Diagnostics and Full Gate
 

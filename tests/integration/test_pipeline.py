@@ -269,14 +269,27 @@ async def test_pipeline_end_to_end_success(
     expected_path = archive_path(_TARGET, segment=DOMESTIC_EQUITY)
     for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
         assert archive_path(_TARGET, segment=segment).exists()
+        assert (
+            archive_path(_TARGET, segment=segment).with_suffix(".assets") / "data-confidence.svg"
+        ).exists()
+        assert (
+            archive_path(_TARGET, segment=segment).with_suffix(".assets") / "market-snapshot.svg"
+        ).exists()
+        assert (
+            archive_path(_TARGET, segment=segment).with_suffix(".assets")
+            / "watchlist-relevance.svg"
+        ).exists()
     rendered = expected_path.read_text(encoding="utf-8")
     # Disclaimer landed in the rendered markdown (NFR-004).
     assert "투자 자문" in rendered or "면책" in rendered
+    assert "2026-04-27.assets/data-confidence.svg" in rendered
     assert "정식 시황을 만들 만큼 검증된 입력 데이터가 수집되지 않았습니다" in rendered
 
     # u3: git lifecycle (add, commit, push) ran exactly once.
     git_steps = [c[1] for c in git.calls]
     assert git_steps == ["add", "commit", "push"]
+    add_call = next(c for c in git.calls if c[1] == "add")
+    assert any("data-confidence.svg" in arg for arg in add_call)
 
     # u4 public channel: dispatched once with the per-day URL footer.
     assert len(public_sends) == 1

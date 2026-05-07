@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u19 briefing-visual-assets — Step 3 Complete
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Action**: Connected u19 visual assets to the segmented publish flow. Generated segment/date SVG assets after briefing generation, inserted relative markdown image links, validated generated assets, and staged markdown plus assets in the same commit.
+**Status**: Step 3 complete; targeted gate passed (`pytest tests/unit/visuals tests/integration/test_pipeline.py -q` 30 passed, targeted `ruff check`, targeted `mypy --strict`).
+**Context**: Post-MVP visual UX follow-up — u19 briefing-visual-assets, Code Generation Step 3 of 4.
+
+---
+
 ## Construction — u19 briefing-visual-assets — Step 2 Complete
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Action**: Implemented u19 data cards. Added builders for segment coverage, known US equity/crypto price metadata, and watchlist relevance, plus deterministic SVG rendering for data confidence, market snapshot, price snapshot, and watchlist cards.
