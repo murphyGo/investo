@@ -1,5 +1,18 @@
 # AI-DLC Audit Log
 
+## Cross-Check — u7 segmented briefing — COMPLETE
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Trigger**: `$dev-investo` health check found `u7 segmented briefing` construction complete with no cross-check report.
+**Scope**: FR-008 segmented briefing.
+**Result**: PASS — all FR-008 acceptance criteria verified complete.
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-07-u7-segmented-briefing.md`
+- Implementation: segment routing, segment-aware generation, segmented archive paths/URLs, all-three-or-fail orchestrator flow, one Telegram message with three links.
+- Verification: `ruff check .`, `ruff format --check .`, `mypy --strict src/`, `pytest -q` (959 passed), `mkdocs build --strict`.
+**Status**: u7 construction and cross-check complete. No new TECH-DEBT.
+
+---
+
 ## Construction — u7 segmented briefing — Code Generation CLOSED
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Trigger**: Completion of the FR-008 segmented briefing implementation loop.
