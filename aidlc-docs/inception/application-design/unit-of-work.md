@@ -254,6 +254,26 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 
 ---
 
+## u10: `source-coverage-diagnostics` — Per-Source Collection Observability
+
+**Purpose**: GitHub Actions 로그에서 소스별 성공/실패뿐 아니라 실제 반환 item 수와 적용된 market window를 확인할 수 있게 한다. 미국/크립토 세그먼트 품질 개선 과정에서 "HTTP 200인데 0건"과 "소스 실패"를 구분하기 위한 운영 진단 단위다.
+
+**Stories**: FR-001 (데이터 수집), FR-008 (세그먼트별 시황 생성), FR-007 (운영자 실패 진단)
+
+**Module path**:
+- `src/investo/sources/aggregator.py` — source별 success count/window structured log
+
+**Tests**:
+- `tests/unit/sources/test_aggregator.py` — success count, zero-item success, window fields
+
+**Definition of Done**:
+- [x] 성공한 adapter마다 `source returned` INFO 로그를 남긴다.
+- [x] 로그에 `source_name`, `category`, `item_count`, `window_start_utc`, `window_end_utc`가 포함된다.
+- [x] 0건 성공도 실패와 구분되어 로그에 남는다.
+- [x] 기존 failure isolation과 structured warning contract를 유지한다.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

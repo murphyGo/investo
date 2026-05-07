@@ -101,8 +101,18 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             # orchestrator's stage-level guard, which is the right
             # behavior — adapters never silence non-source errors.
             raise result
+        window = windows[adapter.name]
+        _logger.info(
+            "source returned",
+            extra={
+                "source_name": adapter.name,
+                "category": adapter.category,
+                "item_count": len(result),
+                "window_start_utc": window.start_utc.isoformat(),
+                "window_end_utc": window.end_utc.isoformat(),
+            },
+        )
         for item in result:
-            window = windows[adapter.name]
             if item.published_at > window.end_utc + _MAX_FUTURE_PUBLISHED_AT:
                 _logger.warning(
                     "source %s emitted future-dated item: published_at=%s target_date=%s",

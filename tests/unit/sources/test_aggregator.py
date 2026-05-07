@@ -82,6 +82,63 @@ async def test_fetch_all_single_adapter_returns_items() -> None:
     assert all(item.source_name == "stub-a" for item in result)
 
 
+async def test_fetch_all_logs_source_success_count_and_window(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    @register
+    class StubA:
+        name: ClassVar[str] = "stub-a"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            return [_item("stub-a"), _item("stub-a", "second")]
+
+    with caplog.at_level(logging.INFO, logger="investo.sources.aggregator"):
+        await fetch_all(_TARGET_DATE)
+
+    info_records = [
+        record
+        for record in caplog.records
+        if record.levelno == logging.INFO and record.getMessage() == "source returned"
+    ]
+    assert len(info_records) == 1
+    record = info_records[0]
+    assert record.source_name == "stub-a"
+    assert record.category == "news"
+    assert record.item_count == 2
+    assert record.window_start_utc == "2026-04-26T15:00:00+00:00"
+    assert record.window_end_utc == "2026-04-27T15:00:00+00:00"
+
+
+async def test_fetch_all_logs_zero_item_success(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    @register
+    class EmptyStub:
+        name: ClassVar[str] = "empty-source"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            return []
+
+    with caplog.at_level(logging.INFO, logger="investo.sources.aggregator"):
+        result = await fetch_all(_TARGET_DATE)
+
+    assert result == []
+    info_records = [
+        record
+        for record in caplog.records
+        if record.levelno == logging.INFO and record.getMessage() == "source returned"
+    ]
+    assert len(info_records) == 1
+    assert info_records[0].source_name == "empty-source"
+    assert info_records[0].item_count == 0
+
+
 async def test_fetch_all_multiple_adapters_concatenates_results() -> None:
     @register
     class StubA:
