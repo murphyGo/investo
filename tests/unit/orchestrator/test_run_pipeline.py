@@ -87,7 +87,13 @@ def _briefing(target_date: date = _TARGET) -> Briefing:
         notable_tickers="종목",
         today_watch="관전",
         disclaimer=DISCLAIMER,
-        rendered_markdown="## ① 요약\n" + body,
+        rendered_markdown=(
+            "# 2026-04-27 테스트 시황\n\n"
+            "> **오늘의 결론**: 오늘 시장 요약\n"
+            "> **핵심 동인**: 핵심 이슈\n"
+            "> **주의할 점**: 관전\n\n"
+            "## ① 요약\n" + body
+        ),
     )
 
 
@@ -434,6 +440,54 @@ async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
     assert git.calls == []
     assert not list(archive_root.rglob("*.md"))
     assert not list(archive_root.rglob("*.svg"))
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
+    archive_root: Path,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+
+    async def broken_segment_generate(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+    ) -> Briefing:
+        briefing = _briefing(target_date)
+        if segment == US_EQUITY:
+            return briefing.model_copy(
+                update={
+                    "rendered_markdown": briefing.rendered_markdown.replace(
+                        "> **주의할 점**: 관전",
+                        "> **주의할 점**: 1.",
+                    )
+                }
+            )
+        return briefing
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=broken_segment_generate,
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: SummaryQualityError"
+    assert result.stages["notify_briefing"] == "skipped"
+    assert len(alerter.calls) == 1
+    assert alerter.calls[0].stage == "publish"
+    assert alerter.calls[0].error_type == "SummaryQualityError"
+    assert publisher.calls == []
+    assert git.calls == []
+    assert not list(archive_root.rglob("*.md"))
 
 
 @pytest.mark.asyncio

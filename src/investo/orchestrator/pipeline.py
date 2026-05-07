@@ -83,6 +83,7 @@ from investo.briefing.segments import (
     MarketSegment,
     segment_items,
 )
+from investo.briefing.summary_quality import SummaryQualityError, validate_first_viewport_summary
 from investo.briefing.watchlist import load_watchlist, match_watchlist_items
 from investo.models import (
     Briefing,
@@ -458,6 +459,7 @@ async def _stage_publish_segments(
     snapshots.update({path: None for path in asset_paths})
 
     for segment in SEGMENT_ORDER:
+        validate_first_viewport_summary(briefings[segment].rendered_markdown)
         if not verify_disclaimer(briefings[segment].rendered_markdown):
             _rollback_paths(snapshots)
             raise PublisherDisclaimerError(target_date=target_date)
@@ -901,7 +903,12 @@ async def run_pipeline(
             )
         else:
             await _stage_publish(briefing, target_date, git_runner=git_runner)
-    except (PublisherDisclaimerError, PublisherIOError, PublisherGitError) as exc:
+    except (
+        SummaryQualityError,
+        PublisherDisclaimerError,
+        PublisherIOError,
+        PublisherGitError,
+    ) as exc:
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"
         stages["notify_briefing"] = "skipped"
