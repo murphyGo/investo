@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 from urllib.parse import quote
@@ -52,6 +53,11 @@ from investo.sources.protocol import SourceFetchError
 
 _NY = ZoneInfo("America/New_York")
 _ENV_TICKERS = "INVESTO_YFINANCE_TICKERS"
+_ENV_CONCURRENCY = "INVESTO_YFINANCE_CONCURRENCY"
+_DEFAULT_CONCURRENCY = 2
+_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36"
+)
 
 
 @register
@@ -83,8 +89,10 @@ class YFinancePriceAdapter:
         window: FetchWindow,  # window unused — yfinance applies R7-relaxation per FD L6.2
     ) -> list[NormalizedItem]:
         tickers = parse_symbol_list(_ENV_TICKERS, self._DEFAULT_TICKERS)
+        concurrency = _parse_concurrency()
+        semaphore = asyncio.Semaphore(concurrency)
         results = await asyncio.gather(
-            *(self._fetch_one(client, ticker) for ticker in tickers),
+            *(self._fetch_one_limited(client, ticker, semaphore) for ticker in tickers),
             return_exceptions=True,
         )
         items: list[NormalizedItem] = []
@@ -104,6 +112,15 @@ class YFinancePriceAdapter:
                 raise result
         return items
 
+    async def _fetch_one_limited(
+        self,
+        client: httpx.AsyncClient,
+        ticker: str,
+        semaphore: asyncio.Semaphore,
+    ) -> NormalizedItem | None:
+        async with semaphore:
+            return await self._fetch_one(client, ticker)
+
     async def _fetch_one(self, client: httpx.AsyncClient, ticker: str) -> NormalizedItem | None:
         url = f"{self._BASE_URL}/{quote(ticker, safe='')}"
         response = await retry_get(
@@ -111,6 +128,7 @@ class YFinancePriceAdapter:
             url,
             source_name=self.name,
             params={"interval": "1d", "range": "5d"},
+            headers={"User-Agent": _USER_AGENT},
         )
         try:
             payload = response.json()
@@ -278,3 +296,16 @@ class YFinancePriceAdapter:
         ny_local = datetime.fromtimestamp(epoch_seconds, tz=_NY)
         close_local = ny_local.replace(hour=16, minute=0, second=0, microsecond=0)
         return close_local.astimezone(UTC)
+
+
+def _parse_concurrency() -> int:
+    raw = os.environ.get(_ENV_CONCURRENCY, "").strip()
+    if not raw:
+        return _DEFAULT_CONCURRENCY
+    try:
+        parsed = int(raw)
+    except ValueError:
+        return _DEFAULT_CONCURRENCY
+    if parsed < 1:
+        return _DEFAULT_CONCURRENCY
+    return parsed

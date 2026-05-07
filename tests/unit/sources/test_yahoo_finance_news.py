@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from pathlib import Path
 
+import httpx
 import pytest
 
 from investo.sources._window import FetchWindow
@@ -117,6 +118,29 @@ async def test_fetch_raw_metadata_keys_are_strings() -> None:
         assert set(item.raw_metadata.keys()) == {"guid", "rss_source"}
         for value in item.raw_metadata.values():
             assert isinstance(value, str)
+
+
+async def test_fetch_sends_browser_user_agent() -> None:
+    seen_headers: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_headers.append(request.headers["user-agent"])
+        return httpx.Response(
+            200,
+            content=_REAL_FIXTURE.read_bytes(),
+            headers={"content-type": "application/xml"},
+        )
+
+    adapter = YahooFinanceNewsAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        await adapter.fetch(client, window)
+
+    assert seen_headers == [
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 Chrome/124 Safari/537.36"
+    ]
 
 
 # ---------------------------------------------------------------------------

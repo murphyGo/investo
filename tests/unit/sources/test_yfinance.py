@@ -11,6 +11,7 @@ Pins the algorithm from FD L6.2 (extension 2026-05-01):
 
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -400,6 +401,80 @@ async def test_env_unset_uses_default_tickers(
         "META",
         "TSLA",
     }
+
+
+async def test_fetch_sends_browser_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:
+    _override_tickers(monkeypatch, "AAPL")
+    adapter = YFinancePriceAdapter()
+    seen_headers: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_headers.append(request.headers["user-agent"])
+        return httpx.Response(
+            200,
+            content=_AAPL_FIXTURE.read_bytes(),
+            headers={"content-type": "application/json"},
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        await adapter.fetch(client, _WINDOW)
+
+    assert seen_headers == [
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 Chrome/124 Safari/537.36"
+    ]
+
+
+async def test_fetch_limits_default_concurrency(monkeypatch: pytest.MonkeyPatch) -> None:
+    _override_tickers(monkeypatch, "AAPL,MSFT,GOOGL,AMZN")
+    monkeypatch.delenv("INVESTO_YFINANCE_CONCURRENCY", raising=False)
+    adapter = YFinancePriceAdapter()
+    active = 0
+    max_active = 0
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return httpx.Response(
+            200,
+            content=_AAPL_FIXTURE.read_bytes(),
+            headers={"content-type": "application/json"},
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert len(items) == 4
+    assert max_active == 2
+
+
+async def test_fetch_allows_concurrency_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    _override_tickers(monkeypatch, "AAPL,MSFT,GOOGL")
+    monkeypatch.setenv("INVESTO_YFINANCE_CONCURRENCY", "1")
+    adapter = YFinancePriceAdapter()
+    active = 0
+    max_active = 0
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return httpx.Response(
+            200,
+            content=_AAPL_FIXTURE.read_bytes(),
+            headers={"content-type": "application/json"},
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert len(items) == 3
+    assert max_active == 1
 
 
 # ---------------------------------------------------------------------------

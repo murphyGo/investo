@@ -52,6 +52,9 @@ from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _ALLOWED_SCHEMES = ("http", "https")
+_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36"
+)
 
 
 @register
@@ -72,7 +75,12 @@ class YahooFinanceNewsAdapter:
         client: httpx.AsyncClient,
         window: FetchWindow,
     ) -> list[NormalizedItem]:
-        response = await retry_get(client, self._FEED_URL, source_name=self.name)
+        response = await retry_get(
+            client,
+            self._FEED_URL,
+            source_name=self.name,
+            headers={"User-Agent": _USER_AGENT},
+        )
         try:
             root = fromstring(response.content)
         except ParseError as exc:
