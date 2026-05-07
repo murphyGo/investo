@@ -1,5 +1,18 @@
 # AI-DLC Audit Log
 
+## Construction — u34 recent-briefings-context — Plan REGISTERED
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Trigger**: User direct request (2026-05-08 session): "시황 생성 시 어느 정도의 맥락을 위해 최근 N일의 시황을 컨텍스트에서 알고 있는 상태로 작성하면 좋을 듯". Wave 4 (사용자 직접 요청 — 페르소나 평가 wave 와 분리). Implementation begins immediately after plan registration.
+**Decision**: Open u34 as a new follow-up unit. Stage 2 will receive a frozen `RecentBriefingsContext` carrying the most recent N publish days (default 5 = 1 trading week) of segment archive entries — per-segment per-day publish date, conclusion line, key driver line, coverage status. Stage 1 classification is unchanged. Recent-context block lives on a separate ~500-char-per-segment-per-day budget so it cannot starve the u13 LLM input candidate cap (96 total / 24 per source). Loader reads only archive markdown already gated through `verify_disclaimer` + `briefing.leak_guard.scan` + `summary_quality`, so R8 / R13 are preserved without a re-scan of raw sources. Telegram summary, hero callout, and visual cards stay untouched — continuity / divergence is expressed inside the segment narrative only. Stage 2 prompt rules: (a) reference yesterday's continuity / divergence, (b) avoid repeating prior-day conclusions verbatim, (c) explicitly say "큰 변화 없음" when there is no new signal, (d) no extrapolation beyond the input data candidates (extension of u25 numeric integrity rule). Configurable via `INVESTO_RECENT_CONTEXT_DAYS` (default 5, valid `[0, 10]`, `0` disables the feature for a clean A/B); first publish / gap days return an empty context and the pipeline proceeds without raising.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u34-recent-briefings-context-code-generation-plan.md` (created)
+- `aidlc-docs/aidlc-state.md` (Per-Unit row added; Code Generation Notes appended)
+- `aidlc-docs/audit.md` (this entry)
+**Status**: Planned (⏳); Code Generation begins next.
+**Context**: Expected effect — brief narrative depth lifts from "one-shot daily report" to "today inside the weekly arc". Partially overlaps persona #2 (site explorer) and persona #3 (analyst) wish-list signals around continuity / consistency, but is registered as Wave 4 (사용자 직접 요청) rather than slotted under an existing persona wave so the provenance stays clean. No new external dependency, no paid API, no module-boundary change (loader sits inside `briefing/`, only orchestrator imports it). Numeric self-check (Stage 3) remains carried by u32 — u34 does not subsume that work.
+
+---
+
 ## Cross-Check — u29 site-discovery-v2 — COMPLETE
 **Timestamp**: 2026-05-08T00:00:00+09:00
 **Trigger**: u29 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with H1 (`mkdocs.yml` `site_url` set so OG meta emits an absolute URL), H2 (`og_card.py` module docstring corrected — SVG-only is metadata / GH Pages preview only; social-card unfurl on Telegram / Slack / Twitter / LinkedIn requires the PNG twin tracked under DEBT-058), M1 (`_stage_publish_segments` validate / verify loop wrapped in try/except that invokes `_rollback_paths(snapshots)` before re-raising `(SummaryQualityError, PublisherDisclaimerError, PublisherIOError)`), M2 (`publish_weekly_digest` now invokes `verify_disclaimer` before atomic write), and M3 (4 weekly-digest opt-in regression tests — invoke / unset skip / `"0"` skip / failure rollback — plus `_patch_publish_segments_relative_paths` test helper) applied pre-merge. Health check after fixes landed.
