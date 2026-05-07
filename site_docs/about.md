@@ -1,8 +1,8 @@
 # About Investo
 
 **Investo**는 1인용 자동화 도구로, 무료 공개 데이터를 수집해 Claude
-Code CLI로 한국어 7섹션 시황을 만들고, GitHub Pages 정적 사이트에
-영구 보관 + 공개 Telegram 채널로 푸시합니다.
+Code CLI로 국내 증시·미국 증시·크립토 한국어 7섹션 시황을 만들고,
+GitHub Pages 정적 사이트에 영구 보관 + 공개 Telegram 채널로 푸시합니다.
 
 ## 운영 원칙
 
@@ -19,10 +19,18 @@ Code CLI로 한국어 7섹션 시황을 만들고, GitHub Pages 정적 사이트
 
 현재 통합된 무료 데이터 소스:
 
-- **FOMC RSS** — 연준 발표문 + 의장 발언 일정
+- **가격**: yfinance 가격 데이터, CoinGecko 크립토 가격
+- **거시/연준**: FRED 거시 지표, FOMC RSS
+- **미국 뉴스/공시**: Yahoo Finance News, CNBC Top News, SEC EDGAR 8-K,
+  Nasdaq Stocks News
+- **일정/실적**: Nasdaq Earnings Calendar
+- **국내/크립토 뉴스**: Yonhap Market, The Block Crypto
 
-(추후 추가 예정: 주가/지수, 크립토 시세, 거시 지표 (FRED 등),
-주요 기업 뉴스, 실적 캘린더)
+### 현재 한계
+
+- 국내 증시는 현재 뉴스 중심 커버리지라 가격·수급 데이터가 부족할 수 있습니다.
+- 무료 공개 소스만 사용하므로 특정 소스가 0건을 반환하거나 지연될 수 있습니다.
+- 각 시황 상단의 데이터 상태가 `정상`, `부분`, `부족`으로 표시됩니다.
 
 ## 기술 스택
 

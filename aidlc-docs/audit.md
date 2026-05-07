@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u16 public-site-discovery — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00Z
+**Action**: Updated public Home, About, and Archive pages for the segmented briefing product. Added latest domestic/US/crypto links, current source coverage notes, segmented archive path documentation, and legacy single-briefing archive discovery.
+**Status**: Code Generation complete; `uv run mkdocs build --strict` passed.
+**Context**: Post-MVP quality review follow-up — u16 public-site-discovery, Code Generation Steps 1-3.
+
+---
+
 ## Construction — u15 coverage-confidence-badges — Code Generation Complete
 **Timestamp**: 2026-05-07T00:00:00Z
 **Action**: Implemented reader-visible segment coverage confidence. Added coverage status computation, required category checks, first-viewport `데이터 상태` rendering, data-limited prompt propagation for partial/insufficient coverage, and compact Telegram coverage labels.
