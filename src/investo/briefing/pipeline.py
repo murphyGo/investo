@@ -26,6 +26,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import json
+import re
 import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -83,6 +84,12 @@ _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "us-equity": "미국 증시",
     "crypto": "크립토",
 }
+_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
+_MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
+_LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
+)
+_MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +127,15 @@ class SectionPlan:
     target_date: date
     items_by_section: dict[int, tuple[NormalizedItem, ...]]
     unassigned: tuple[NormalizedItem, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SummaryHeader:
+    """Validated first-viewport summary lines for segmented briefings."""
+
+    conclusion: str
+    driver: str
+    caution: str
 
 
 # ---------------------------------------------------------------------------
@@ -443,15 +459,38 @@ def _segment_nav(target_date: date, segment: MarketSegment) -> str:
     return " | ".join(links)
 
 
-def _first_sentence(text: str, *, fallback: str) -> str:
-    normalized = " ".join(line.strip() for line in text.splitlines() if line.strip())
+def _clean_summary_line(line: str) -> str:
+    cleaned = line.strip()
+    if not cleaned:
+        return ""
+    cleaned = _LEADING_MARKDOWN_RE.sub("", cleaned).strip()
+    cleaned = _MARKDOWN_LINK_RE.sub(r"\1", cleaned)
+    cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
+    cleaned = " ".join(cleaned.split())
+    if not _MEANINGFUL_TEXT_RE.search(cleaned):
+        return ""
+    return cleaned
+
+
+def _summary_sentence(text: str, *, fallback: str) -> str:
+    normalized = " ".join(
+        cleaned for line in text.splitlines() if (cleaned := _clean_summary_line(line))
+    )
     if not normalized:
         return fallback
-    for marker in (". ", "다. ", "요. "):
+    for marker in ("다. ", "다.", "요. ", "요.", "니다. ", "니다.", "? ", "?"):
         idx = normalized.find(marker)
         if idx >= 0:
             return normalized[: idx + len(marker.strip())].strip()
     return normalized[:140].strip()
+
+
+def _build_summary_header(sections: tuple[str, str, str, str, str, str]) -> SummaryHeader:
+    return SummaryHeader(
+        conclusion=_summary_sentence(sections[0], fallback="확인된 요약이 부족합니다."),
+        driver=_summary_sentence(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다."),
+        caution=_summary_sentence(sections[5], fallback="관전 포인트는 데이터 회복 후 보강합니다."),
+    )
 
 
 def _enhance_reader_experience(
@@ -466,15 +505,13 @@ def _enhance_reader_experience(
         return body_markdown
 
     label = SEGMENT_LABELS[segment]
-    conclusion = _first_sentence(sections[0], fallback="확인된 요약이 부족합니다.")
-    driver = _first_sentence(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다.")
-    caution = _first_sentence(sections[5], fallback="관전 포인트는 데이터 회복 후 보강합니다.")
+    summary_header = _build_summary_header(sections)
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
         f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
-        f"> **오늘의 결론**: {conclusion}\n"
-        f"> **핵심 동인**: {driver}\n"
-        f"> **주의할 점**: {caution}\n\n"
+        f"> **오늘의 결론**: {summary_header.conclusion}\n"
+        f"> **핵심 동인**: {summary_header.driver}\n"
+        f"> **주의할 점**: {summary_header.caution}\n\n"
     )
     return f"{header}{body_markdown}"
 

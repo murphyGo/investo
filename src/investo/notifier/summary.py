@@ -33,6 +33,7 @@ Reference:
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from typing import Final
 
@@ -53,6 +54,16 @@ DEFAULT_MAX_UNITS: Final[int] = 4096
 
 # Truncation suffix. 1 UTF-16 unit (BMP character).
 _TRUNCATION_SUFFIX: Final[str] = "…"
+_CONCLUSION_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^>\s*\*\*오늘의 결론\*\*:\s*(.+)$",
+    re.MULTILINE,
+)
+_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
+_MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
+_LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
+)
+_MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 
 
 def _utf16_units(text: str) -> int:
@@ -154,11 +165,30 @@ def build_segmented_summary(
 
 
 def _one_line_summary(briefing: Briefing) -> str:
+    conclusion_match = _CONCLUSION_LINE_RE.search(briefing.rendered_markdown)
+    if conclusion_match is not None:
+        conclusion = _clean_summary_text(conclusion_match.group(1))
+        if conclusion:
+            return conclusion
+
     for line in briefing.market_summary.splitlines():
-        line = line.strip()
-        if line:
-            return line
+        summary = _clean_summary_text(line)
+        if summary:
+            return summary
     return "데이터 부족"
+
+
+def _clean_summary_text(text: str) -> str:
+    cleaned = text.strip()
+    if not cleaned:
+        return ""
+    cleaned = _LEADING_MARKDOWN_RE.sub("", cleaned).strip()
+    cleaned = _MARKDOWN_LINK_RE.sub(r"\1", cleaned)
+    cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
+    cleaned = " ".join(cleaned.split())
+    if not _MEANINGFUL_TEXT_RE.search(cleaned):
+        return ""
+    return cleaned
 
 
 __all__ = ["DEFAULT_MAX_UNITS", "build_segmented_summary", "build_summary"]

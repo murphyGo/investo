@@ -190,6 +190,30 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
         assert url in summary
 
 
+def test_build_segmented_summary_prefers_clean_rendered_conclusion() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="1. **깨진 요약**"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+    briefings[DOMESTIC_EQUITY] = briefings[DOMESTIC_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 국내 증시 시황\n\n"
+                "> **오늘의 결론**: [국내 증시](https://example.com)는 **데이터 부족**입니다.\n\n"
+                + briefings[DOMESTIC_EQUITY].rendered_markdown
+            )
+        }
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert "국내 증시: 국내 증시는 데이터 부족입니다." in summary
+    assert "국내 증시: 1." not in summary
+    assert "[국내 증시]" not in summary
+    assert "**데이터 부족**" not in summary
+
+
 def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="국내 " + ("가" * 5000)),

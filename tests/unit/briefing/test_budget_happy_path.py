@@ -154,6 +154,61 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
 
 
 @pytest.mark.asyncio
+async def test_segment_header_sanitizes_markdown_and_numbered_watchpoints(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """u14 — first-viewport header fields must not expose raw markdown fragments."""
+    stage2_markdown = (
+        "## ① 요약\n[미국 증시](https://example.com)는 **실적 일정**을 앞두고 "
+        "방향성 확인이 필요합니다. 추가 패딩 텍스트입니다.\n\n"
+        "## ② 전일 핵심 이슈\n**입법 가속화 vs. 정치적 마찰**\n"
+        "[White House](https://example.com)가 세부 일정을 제시했습니다.\n\n"
+        "## ③ 섹터/수급 동향\n섹터별 수급 근거는 제한적입니다.\n\n"
+        "## ④ 지표·이벤트\n지표 일정은 추가 확인이 필요합니다.\n\n"
+        "## ⑤ 주요 종목\n주요 종목 근거는 제한적입니다.\n\n"
+        "## ⑥ 오늘의 관전 포인트\n"
+        "1. **ARM 가이던스** — 실제 EPS보다 차기 분기 전망이 중요합니다.\n"
+    )
+    stdouts = [
+        valid_classification_stdout(item_count=2),
+        stage2_markdown,
+    ]
+    captured_prompts: list[str] = []
+
+    async def fake_call_claude_code(
+        prompt: str,
+        *,
+        timeout_s: float = 120.0,
+        runner: object | None = None,
+    ) -> SubprocessOutcome:
+        captured_prompts.append(prompt)
+        return SubprocessOutcome(
+            stdout=stdouts[len(captured_prompts) - 1],
+            stderr="",
+            returncode=0,
+            elapsed_s=1.0,
+        )
+
+    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+
+    result = await pipeline.generate_briefing(
+        _TARGET_DATE,
+        _items(2),
+        segment=US_EQUITY,
+    )
+
+    header = result.rendered_markdown.split("## ① 요약", maxsplit=1)[0]
+    assert "> **오늘의 결론**: 미국 증시는 실적 일정을 앞두고 방향성 확인이 필요합니다." in header
+    assert "> **핵심 동인**: 입법 가속화 vs. 정치적 마찰" in header
+    assert "> **주의할 점**: ARM 가이던스" in header
+    assert "주의할 점**: 1." not in header
+    summary_lines = "\n".join(line for line in header.splitlines() if line.startswith("> "))
+    assert "[미국 증시]" not in summary_lines
+    assert "**실적 일정**" not in summary_lines
+    assert "**입법 가속화" not in summary_lines
+
+
+@pytest.mark.asyncio
 async def test_generate_briefing_zero_item_segment_uses_concise_local_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -177,6 +232,9 @@ async def test_generate_briefing_zero_item_segment_uses_concise_local_fallback(
     )
     assert "충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다" in result.rendered_markdown
     assert result.rendered_markdown.count("데이터 부족") == 0
+    header = result.rendered_markdown.split("## ① 요약", maxsplit=1)[0]
+    assert "주의할 점**: 1." not in header
+    assert "> **주의할 점**: 데이터 수집 로그에서 실패한 소스" in header
 
 
 @pytest.mark.asyncio

@@ -14,10 +14,10 @@ Make the reader-facing summary header deterministic, clean, and trustworthy.
 
 ## Definition of Done
 
-- [ ] Header fields are generated through a validated summary contract rather than brittle markdown sentence extraction.
-- [ ] Markdown syntax, links, and numbered-list markers cannot leak into `conclusion`, `driver`, or `caution`.
-- [ ] Data-limited segments produce conservative header text.
-- [ ] Telegram segmented summary can reuse the same stable summary fields.
+- [x] Header fields are generated through a validated summary contract rather than brittle markdown sentence extraction.
+- [x] Markdown syntax, links, and numbered-list markers cannot leak into `conclusion`, `driver`, or `caution`.
+- [x] Data-limited segments produce conservative header text.
+- [x] Telegram segmented summary can reuse the same stable summary fields.
 
 ---
 
@@ -25,13 +25,13 @@ Make the reader-facing summary header deterministic, clean, and trustworthy.
 
 ### Step 1 — Contract and Extraction
 
-- [ ] Define the summary header contract and its fallback behavior.
-- [ ] Replace or harden `_first_sentence` usage for header fields.
-- [ ] Keep existing 7-section markdown parsing and disclaimer behavior unchanged.
+- [x] Define the summary header contract and its fallback behavior.
+- [x] Replace or harden `_first_sentence` usage for header fields.
+- [x] Keep existing 7-section markdown parsing and disclaimer behavior unchanged.
 
 ### Step 2 — Tests
 
-- [ ] Add regression tests for `주의할 점: 1.`-style list-marker leakage.
-- [ ] Add regression tests for cut markdown emphasis/link syntax.
-- [ ] Add data-limited summary tests.
-- [ ] Add Telegram summary reuse tests if notifier output changes.
+- [x] Add regression tests for `주의할 점: 1.`-style list-marker leakage.
+- [x] Add regression tests for cut markdown emphasis/link syntax.
+- [x] Add data-limited summary tests.
+- [x] Add Telegram summary reuse tests if notifier output changes.

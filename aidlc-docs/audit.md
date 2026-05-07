@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Construction — u14 summary-quality-contract — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00Z
+**Action**: Implemented stable segmented briefing summary headers. Replaced brittle first-sentence header extraction with markdown/list-aware summary cleaning, added a validated `SummaryHeader` contract, and made segmented Telegram summaries prefer the rendered `오늘의 결론` line when available.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/`, targeted pytest 27 passed, full pytest 979 passed).
+**Context**: Post-MVP quality review follow-up — u14 summary-quality-contract, Code Generation Steps 1-2.
+
+---
+
 ## Cross-Check — u7 segmented briefing — COMPLETE
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Trigger**: `$dev-investo` health check found `u7 segmented briefing` construction complete with no cross-check report.
