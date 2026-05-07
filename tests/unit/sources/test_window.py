@@ -35,6 +35,22 @@ def test_from_kst_date_known_case() -> None:
     assert window.end_utc == datetime(2026, 4, 27, 15, 0, tzinfo=UTC)
 
 
+def test_from_local_date_supports_new_york_market_day() -> None:
+    window = FetchWindow.from_local_date(date(2026, 5, 6), ZoneInfo("America/New_York"))
+
+    assert window.target_date == date(2026, 5, 6)
+    assert window.start_utc == datetime(2026, 5, 6, 4, 0, tzinfo=UTC)
+    assert window.end_utc == datetime(2026, 5, 7, 4, 0, tzinfo=UTC)
+
+
+def test_from_local_date_supports_utc_market_day() -> None:
+    window = FetchWindow.from_local_date(date(2026, 5, 6), ZoneInfo("UTC"))
+
+    assert window.target_date == date(2026, 5, 6)
+    assert window.start_utc == datetime(2026, 5, 6, 0, 0, tzinfo=UTC)
+    assert window.end_utc == datetime(2026, 5, 7, 0, 0, tzinfo=UTC)
+
+
 def test_window_span_is_24h() -> None:
     window = FetchWindow.from_kst_date(date(2026, 1, 15))
     assert window.end_utc - window.start_utc == timedelta(days=1)

@@ -75,6 +75,29 @@ class FetchWindow:
             raise ValueError("end_utc must be strictly after start_utc")
 
     @classmethod
+    def from_local_date(cls, target_date: date, tz: ZoneInfo) -> FetchWindow:
+        """Build a 24-hour UTC window covering ``target_date`` in ``tz``.
+
+        Market data sources define a "day" in different local frames:
+        Korean exchange feeds use KST, US-market feeds use New York, and
+        crypto snapshots use UTC. This constructor keeps the same
+        half-open window invariant while letting the aggregator select
+        the appropriate market clock per adapter.
+        """
+        try:
+            start_local = datetime.combine(target_date, time.min, tzinfo=tz)
+            end_local = start_local + timedelta(days=1)
+            return cls(
+                start_utc=start_local.astimezone(UTC),
+                end_utc=end_local.astimezone(UTC),
+                target_date=target_date,
+            )
+        except OverflowError as exc:
+            raise ValueError(
+                f"target_date out of supported range for local window: {target_date}"
+            ) from exc
+
+    @classmethod
     def from_kst_date(cls, target_date: date) -> FetchWindow:
         """Build a 24-hour window covering ``target_date`` in KST.
 
@@ -86,18 +109,7 @@ class FetchWindow:
         ``+1 day`` arithmetic overflows.
         """
 
-        try:
-            start_kst = datetime.combine(target_date, time.min, tzinfo=_KST)
-            end_kst = start_kst + timedelta(days=1)
-            return cls(
-                start_utc=start_kst.astimezone(UTC),
-                end_utc=end_kst.astimezone(UTC),
-                target_date=target_date,
-            )
-        except OverflowError as exc:
-            raise ValueError(
-                f"target_date out of supported range for KST window: {target_date}"
-            ) from exc
+        return cls.from_local_date(target_date, _KST)
 
     def contains(self, dt: datetime) -> bool:
         """Return whether ``dt`` falls in the window (half-open ``[start, end)``).

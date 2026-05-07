@@ -16,6 +16,8 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import date, timedelta
+from typing import Final
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -26,6 +28,26 @@ from investo.sources.protocol import SourceFetchError
 
 _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
+_US_MARKET_TZ = ZoneInfo("America/New_York")
+_CRYPTO_MARKET_TZ = ZoneInfo("UTC")
+_US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
+    {
+        "cnbc-top-news",
+        "fomc-rss",
+        "fred-macro",
+        "nasdaq-earnings-calendar",
+        "nasdaq-stocks-news",
+        "sec-edgar-8k",
+        "yahoo-finance-news",
+        "yfinance-price",
+    }
+)
+_CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
+    {
+        "coingecko-price",
+        "theblock-crypto",
+    }
+)
 
 
 async def fetch_all(target_date: date) -> list[NormalizedItem]:
@@ -45,11 +67,11 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
     if not adapters:
         return []
 
-    window = FetchWindow.from_kst_date(target_date)
+    windows = {adapter.name: _window_for_adapter(target_date, adapter.name) for adapter in adapters}
 
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
-            *(adapter.fetch(client, window) for adapter in adapters),
+            *(adapter.fetch(client, windows[adapter.name]) for adapter in adapters),
             return_exceptions=True,
         )
 
@@ -80,6 +102,7 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             # behavior — adapters never silence non-source errors.
             raise result
         for item in result:
+            window = windows[adapter.name]
             if item.published_at > window.end_utc + _MAX_FUTURE_PUBLISHED_AT:
                 _logger.warning(
                     "source %s emitted future-dated item: published_at=%s target_date=%s",
@@ -90,3 +113,11 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
                 continue
             items.append(item)
     return items
+
+
+def _window_for_adapter(target_date: date, source_name: str) -> FetchWindow:
+    if source_name in _US_MARKET_SOURCES:
+        return FetchWindow.from_local_date(target_date, _US_MARKET_TZ)
+    if source_name in _CRYPTO_MARKET_SOURCES:
+        return FetchWindow.from_local_date(target_date, _CRYPTO_MARKET_TZ)
+    return FetchWindow.from_kst_date(target_date)

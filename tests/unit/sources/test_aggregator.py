@@ -157,6 +157,89 @@ async def test_fetch_all_passes_window_to_adapter() -> None:
     assert captured["window"].target_date == _TARGET_DATE
 
 
+async def test_fetch_all_passes_new_york_window_to_us_market_adapter() -> None:
+    captured: dict[str, FetchWindow | None] = {"window": None}
+
+    @register
+    class NasdaqStocksStub:
+        name: ClassVar[str] = "nasdaq-stocks-news"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            captured["window"] = window
+            return []
+
+    await fetch_all(date(2026, 5, 6))
+
+    assert captured["window"] is not None
+    assert captured["window"].start_utc == datetime(2026, 5, 6, 4, 0, tzinfo=UTC)
+    assert captured["window"].end_utc == datetime(2026, 5, 7, 4, 0, tzinfo=UTC)
+
+
+async def test_fetch_all_passes_utc_window_to_crypto_adapter() -> None:
+    captured: dict[str, FetchWindow | None] = {"window": None}
+
+    @register
+    class CoinGeckoStub:
+        name: ClassVar[str] = "coingecko-price"
+        category: ClassVar[Category] = "price"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            captured["window"] = window
+            return []
+
+    await fetch_all(date(2026, 5, 6))
+
+    assert captured["window"] is not None
+    assert captured["window"].start_utc == datetime(2026, 5, 6, 0, 0, tzinfo=UTC)
+    assert captured["window"].end_utc == datetime(2026, 5, 7, 0, 0, tzinfo=UTC)
+
+
+async def test_fetch_all_keeps_same_day_us_and_crypto_items_after_kst_cutoff() -> None:
+    us_item = NormalizedItem(
+        source_name="nasdaq-stocks-news",
+        category="news",
+        title="Nasdaq afternoon update",
+        published_at=datetime(2026, 5, 6, 18, 0, tzinfo=UTC),
+    )
+    crypto_item = NormalizedItem(
+        source_name="coingecko-price",
+        category="price",
+        title="BTC $100,000.00 (+1.00%)",
+        published_at=datetime(2026, 5, 6, 18, 0, tzinfo=UTC),
+    )
+
+    @register
+    class NasdaqStocksStub:
+        name: ClassVar[str] = "nasdaq-stocks-news"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            assert window.contains(us_item.published_at)
+            return [us_item]
+
+    @register
+    class CoinGeckoStub:
+        name: ClassVar[str] = "coingecko-price"
+        category: ClassVar[Category] = "price"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            assert window.contains(crypto_item.published_at)
+            return [crypto_item]
+
+    result = await fetch_all(date(2026, 5, 6))
+
+    assert result == [us_item, crypto_item]
+
+
 # ---------------------------------------------------------------------------
 # AC-3.1, 3.2: SourceFetchError is caught and logged, not raised
 # ---------------------------------------------------------------------------

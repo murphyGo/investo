@@ -208,6 +208,29 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 
 ---
 
+## u8: `market-aware-source-window` — Segment Source Coverage Correction
+
+**Purpose**: u7 세그먼트 생성 후속 보정. 같은 `target_date`라도 국내/미국/크립토 소스의 "당일" 기준이 다르므로, 소스 수집 window를 시장별 시간대로 분리해 미국 증시와 크립토 세그먼트가 KST cutoff 이후 데이터 때문에 비지 않도록 한다.
+
+**Stories**: FR-001 (데이터 수집), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `src/investo/sources/_window.py` — 시장별 local-date window 생성 지원
+- `src/investo/sources/aggregator.py` — adapter source name 기반 window 선택
+
+**Tests**:
+- `tests/unit/sources/test_window.py` — New York / UTC local-date window anchor cases
+- `tests/unit/sources/test_aggregator.py` — US/crypto adapters receive market-appropriate windows and keep same-day post-KST-cutoff items
+
+**Definition of Done**:
+- [x] 국내 소스는 기존 KST window를 유지한다.
+- [x] 미국 증시/매크로/SEC/Nasdaq/FOMC/Yahoo/CNBC 소스는 America/New_York 기준 target date window를 받는다.
+- [x] 크립토 소스는 UTC 기준 target date window를 받는다.
+- [x] 2026-05-06 18:00 UTC처럼 KST window 밖이지만 미국/UTC 시장 당일인 데이터가 수집 결과에서 빠지지 않는다.
+- [x] 기존 u7 routing/generation 테스트가 green이다.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

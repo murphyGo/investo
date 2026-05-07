@@ -30,8 +30,8 @@
 | NFR Requirements | ✅ Complete | 2026-04-30 |
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
-| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07 for domestic / US / crypto split | 2026-05-07 |
-| Build and Test | ✅ Complete — re-verified after u7 segmented briefing closeout on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 954/954, mkdocs build --strict ✅ | 2026-05-07 |
+| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07; u8 market-aware source window correction closed 2026-05-07 | 2026-05-07 |
+| Build and Test | ✅ Complete — re-verified after u8 source-window correction on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 964/964, mkdocs build --strict ✅ | 2026-05-07 |
 
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
@@ -44,6 +44,7 @@
 | u5 orchestrator | ⏭️ SKIP | ✅ Complete (2026-04-30) | ✅ Complete (13/13 — CG fully closed 2026-04-30) | FD = SKIP; NFR Requirements ✅ closed (39 AC); cross-check complete; alert-delivery retry follow-up resolved 2026-05-04; US-005 runtime slice closed; DEBT-017/018/019/020/021 resolved |
 | u6 infra/CI | N/A | N/A | ✅ Complete (7/7 — CG fully closed 2026-05-01) | FD/NFR both N/A per execution-plan; cross-check complete; scheduled workflow, Pages, runbook, and GHA fallback closed; DEBT-022/023/024/025/026/027 resolved |
 | u7 segmented briefing | ✅ Complete (2026-05-07) | ⏭️ SKIP (u2/u5 NFRs reused; no new external deps) | ✅ Complete (6/6) | New post-MVP unit for FR-008: generate separate domestic-equity, us-equity, and crypto briefings so one market's source volume cannot dominate the whole daily output. Delivered deterministic segment routing, segment-aware u2 prompt context, segmented archive paths/URLs, production all-three-or-fail generate/publish, and one Telegram summary containing all three segment links. Cross-check complete 2026-05-07 (`docs/cross-checks/2026-05-07-u7-segmented-briefing.md`). |
+| u8 market-aware source window | ⏭️ SKIP (source-level correction) | ⏭️ SKIP (no new external deps or NFR surface) | ✅ Complete (4/4) | Follow-up quality correction for FR-001/FR-008: aggregator now passes KST windows to domestic sources, America/New_York windows to US-market sources, and UTC windows to crypto sources so US/crypto items after the KST cutoff are not dropped. Cross-check complete 2026-05-07 (`docs/cross-checks/2026-05-07-u8-market-aware-source-window.md`). |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |

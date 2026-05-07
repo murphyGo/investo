@@ -28,6 +28,7 @@
   - [ ] 소스 카테고리: 주가/지수, 크립토 시세, 거시 지표(FRED 등), 연준 캘린더, 주요 기업 뉴스, 실적 캘린더
   - [ ] 신규 소스 추가/제거가 코드 변경 1곳으로 가능 (plugin/registry 구조)
   - [ ] 단일 소스 실패 시 다른 소스 수집은 계속 진행 (graceful degradation)
+  - [ ] 시장별 거래일 기준을 적용한다: 국내 증시는 KST, 미국 증시는 America/New_York, 크립토는 UTC 기준으로 `target_date` 데이터를 필터링한다.
 - **Priority**: Must-have
 
 ### FR-008: 세그먼트별 시황 생성
