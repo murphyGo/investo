@@ -30,10 +30,16 @@ def test_visual_asset_path_uses_safe_name_and_allowed_extension() -> None:
         "data-confidence",
         extension=".png",
     ) == Path("archive/us-equity/2026/05/2026-05-07.assets/data-confidence.png")
+    assert visual_asset_path(
+        target_date,
+        "us-equity",
+        "external-context-image",
+        extension=".jpg",
+    ) == Path("archive/us-equity/2026/05/2026-05-07.assets/external-context-image.jpg")
     with pytest.raises(ValueError):
         visual_asset_path(target_date, "us-equity", "../data-confidence")
     with pytest.raises(ValueError):
-        visual_asset_path(target_date, "us-equity", "data-confidence", extension=".jpg")
+        visual_asset_path(target_date, "us-equity", "data-confidence", extension=".webp")
 
 
 def test_visual_asset_relative_path_is_posix_markdown_safe() -> None:

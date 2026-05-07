@@ -19,6 +19,7 @@ from investo.visuals.cards import (
     build_price_snapshot_card,
     build_watchlist_relevance_card,
 )
+from investo.visuals.external_image import ExternalImageAsset, fetch_contextual_external_image
 from investo.visuals.openai_image import (
     OpenAIVisualConfig,
     generate_openai_visual,
@@ -29,7 +30,10 @@ from investo.visuals.policy import (
     EXTERNAL_IMAGE_SCRAPING_ENABLED,
     ExternalAssetManifest,
     ExternalAssetPolicyError,
+    allowed_external_image_hosts,
     assert_external_asset_allowed,
+    assert_external_image_host_allowed,
+    external_image_scraping_enabled,
 )
 from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, render_card_svg
 
@@ -41,6 +45,7 @@ __all__ = [
     "DataConfidenceCardInput",
     "ExternalAssetManifest",
     "ExternalAssetPolicyError",
+    "ExternalImageAsset",
     "MarketSnapshotCardInput",
     "OpenAIVisualConfig",
     "PreparedVisualAssets",
@@ -49,10 +54,14 @@ __all__ = [
     "VisualAssetError",
     "WatchlistRelevanceCardInput",
     "WatchlistRelevanceRow",
+    "allowed_external_image_hosts",
     "assert_external_asset_allowed",
+    "assert_external_image_host_allowed",
     "build_data_confidence_card",
     "build_price_snapshot_card",
     "build_watchlist_relevance_card",
+    "external_image_scraping_enabled",
+    "fetch_contextual_external_image",
     "generate_openai_visual",
     "insert_visual_links",
     "load_openai_visual_config",

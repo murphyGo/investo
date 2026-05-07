@@ -21,6 +21,7 @@ from investo.visuals.assets import (
 
 _TARGET = date(2026, 5, 7)
 _PNG_BYTES = b"\x89PNG\r\n\x1a\n" + (b"\0" * 128)
+_JPEG_BYTES = b"\xff\xd8\xff" + (b"\0" * 128)
 
 
 def _briefing() -> Briefing:
@@ -162,6 +163,43 @@ def test_prepare_segment_visual_assets_can_prepend_openai_png(
     )
     assert prepared.briefing.rendered_markdown.index("ai-market-hero.png") < (
         prepared.briefing.rendered_markdown.index("data-confidence.svg")
+    )
+
+
+def test_prepare_segment_visual_assets_prefers_external_image_before_ai(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
+    monkeypatch.setattr(
+        "investo.visuals.assets.fetch_contextual_external_image",
+        lambda *_args, **_kwargs: type(
+            "ExternalImage",
+            (),
+            {"content": _JPEG_BYTES, "extension": ".jpg"},
+        )(),
+    )
+    monkeypatch.setattr(
+        "investo.visuals.assets.generate_openai_visual",
+        lambda *_args, **_kwargs: _PNG_BYTES,
+    )
+    items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
+    coverage = build_segment_coverage("us-equity", items)
+    impact = match_watchlist_items(items, WatchlistConfig(tickers=("NVDA",)))
+
+    prepared = prepare_segment_visual_assets(
+        _briefing(),
+        target_date=_TARGET,
+        segment="us-equity",
+        items=items,
+        coverage=coverage,
+        watchlist_impact=impact,
+    )
+
+    assert prepared.asset_paths[0].name == "external-context-image.jpg"
+    assert prepared.asset_paths[1].name == "ai-market-hero.png"
+    assert "![실제 시황 이미지](2026-05-07.assets/external-context-image.jpg)" in (
+        prepared.briefing.rendered_markdown
     )
 
 

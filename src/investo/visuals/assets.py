@@ -22,6 +22,7 @@ from investo.visuals.cards import (
     build_price_snapshot_card,
     build_watchlist_relevance_card,
 )
+from investo.visuals.external_image import fetch_contextual_external_image
 from investo.visuals.openai_image import generate_openai_visual, load_openai_visual_config
 from investo.visuals.paths import visual_asset_path, visual_asset_relative_path
 from investo.visuals.render import render_card_svg
@@ -29,6 +30,7 @@ from investo.visuals.render import render_card_svg
 _MIN_SVG_BYTES: Final[int] = 500
 _MIN_PNG_BYTES: Final[int] = 100
 _PNG_SIGNATURE: Final[bytes] = b"\x89PNG\r\n\x1a\n"
+_JPEG_SIGNATURE: Final[bytes] = b"\xff\xd8\xff"
 _SUMMARY_PREFIXES: Final[dict[str, str]] = {
     "conclusion": "> **오늘의 결론**:",
     "driver": "> **핵심 동인**:",
@@ -37,6 +39,7 @@ _SUMMARY_PREFIXES: Final[dict[str, str]] = {
 _CARD_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
     "data-confidence": "데이터 신뢰도",
+    "external-context-image": "실제 시황 이미지",
     "market-snapshot": "시장 스냅샷",
     "price-snapshot": "가격 스냅샷",
     "watchlist-relevance": "관심 자산 관련성",
@@ -87,6 +90,14 @@ def prepare_segment_visual_assets(
         cards.insert(2, price_card)
 
     asset_paths: list[Path] = []
+    external_asset_path = _prepare_external_context_image(
+        target_date=target_date,
+        segment=segment,
+        items=items,
+    )
+    if external_asset_path is not None:
+        asset_paths.append(external_asset_path)
+
     ai_asset_path = _prepare_openai_market_image(
         target_date=target_date,
         segment=segment,
@@ -151,6 +162,9 @@ def validate_visual_asset(path: Path) -> None:
         raise VisualAssetError(f"visual asset missing: {path}")
     if path.suffix == ".png":
         _validate_png_asset(path)
+        return
+    if path.suffix in {".jpg", ".jpeg"}:
+        _validate_jpeg_asset(path)
         return
     if path.suffix != ".svg":
         raise VisualAssetError(f"unsupported visual asset type: {path}")
@@ -218,6 +232,26 @@ def _prepare_openai_market_image(
     return path
 
 
+def _prepare_external_context_image(
+    *,
+    target_date: date,
+    segment: MarketSegment,
+    items: tuple[NormalizedItem, ...],
+) -> Path | None:
+    external_image = fetch_contextual_external_image(items, target_date=target_date)
+    if external_image is None:
+        return None
+    path = visual_asset_path(
+        target_date,
+        segment,
+        "external-context-image",
+        extension=external_image.extension,
+    )
+    _write_binary(path, external_image.content)
+    validate_visual_asset(path)
+    return path
+
+
 def _build_openai_market_prompt(
     *,
     market_card: MarketSnapshotCardInput,
@@ -259,10 +293,22 @@ def _validate_png_asset(path: Path) -> None:
         raise VisualAssetError(f"visual asset is not a PNG: {path}")
 
 
+def _validate_jpeg_asset(path: Path) -> None:
+    content = path.read_bytes()
+    if not _is_jpeg_bytes(content):
+        raise VisualAssetError(f"visual asset is not a JPEG: {path}")
+
+
 def _is_png_bytes(content: bytes) -> bool:
     if len(content) < _MIN_PNG_BYTES:
         return False
     return content.startswith(_PNG_SIGNATURE)
+
+
+def _is_jpeg_bytes(content: bytes) -> bool:
+    if len(content) < _MIN_PNG_BYTES:
+        return False
+    return content.startswith(_JPEG_SIGNATURE)
 
 
 def _write_svg(path: Path, content: str) -> None:
@@ -276,6 +322,10 @@ def _write_svg(path: Path, content: str) -> None:
 
 
 def _write_png(path: Path, content: bytes) -> None:
+    _write_binary(path, content)
+
+
+def _write_binary(path: Path, content: bytes) -> None:
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     try:
         path.parent.mkdir(parents=True, exist_ok=True)

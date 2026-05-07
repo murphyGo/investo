@@ -11,7 +11,7 @@ from investo.briefing.segments import MarketSegment
 from investo.publisher.paths import archive_path
 
 _SAFE_ASSET_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
-_ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".svg", ".png"})
+_ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".svg", ".png", ".jpg", ".jpeg"})
 
 
 def visual_asset_dir(target_date: date, segment: MarketSegment) -> Path:

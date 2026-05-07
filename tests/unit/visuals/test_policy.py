@@ -11,7 +11,10 @@ from investo.visuals.policy import (
     EXTERNAL_IMAGE_SCRAPING_ENABLED,
     ExternalAssetManifest,
     ExternalAssetPolicyError,
+    allowed_external_image_hosts,
     assert_external_asset_allowed,
+    assert_external_image_host_allowed,
+    external_image_scraping_enabled,
 )
 
 
@@ -50,4 +53,33 @@ def test_external_asset_manifest_rejects_missing_license_terms() -> None:
             author="Example Author",
             fetched_on=date(2026, 5, 7),
             allowed_use="Public redistribution with attribution",
+        )
+
+
+def test_external_image_scraping_env_is_strict_opt_in(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INVESTO_EXTERNAL_IMAGE_ASSETS", "true")
+    assert external_image_scraping_enabled() is False
+
+    monkeypatch.setenv("INVESTO_EXTERNAL_IMAGE_ASSETS", "1")
+    assert external_image_scraping_enabled() is True
+
+
+def test_external_image_host_policy_blocks_private_hosts() -> None:
+    with pytest.raises(ExternalAssetPolicyError, match="private"):
+        assert_external_image_host_allowed("https://127.0.0.1/image.jpg")
+
+
+def test_external_image_host_policy_can_enforce_allow_list(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS", "images.example.com")
+    assert allowed_external_image_hosts() == ("images.example.com",)
+    assert_external_image_host_allowed(
+        "https://cdn.images.example.com/image.jpg",
+        allowed_hosts=allowed_external_image_hosts(),
+    )
+    with pytest.raises(ExternalAssetPolicyError, match="not allowed"):
+        assert_external_image_host_allowed(
+            "https://other.example.com/image.jpg",
+            allowed_hosts=allowed_external_image_hosts(),
         )

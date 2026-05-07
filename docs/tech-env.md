@@ -16,6 +16,7 @@
 - 기본 mainline model은 `INVESTO_OPENAI_VISUAL_MODEL=gpt-5.5`, 이미지 tool model은 `INVESTO_OPENAI_IMAGE_TOOL_MODEL=gpt-image-1.5`로 두되 환경변수로 교체 가능하게 유지한다.
 - OpenAI 키가 없거나 API가 실패하면 기존 deterministic SVG 카드만 게시한다.
 - 실제 뉴스/회사 이미지를 긁어오지 않는다. 생성 프롬프트는 로고, 뉴스 사진, 저작권성 기사 이미지, 투자 조언 문구를 금지한다.
+- **Licensed external image fetch** — 선택 기능. `INVESTO_EXTERNAL_IMAGE_ASSETS=1`일 때만 `NormalizedItem.raw_metadata`에 이미지 URL, 라이선스, 저작자, attribution, 재게시 허용 문구가 모두 있는 이미지를 다운로드한다. `INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS`로 허용 host를 좁힐 수 있다.
 
 ### Data Layer
 - **httpx** — async HTTP 클라이언트 (timeout/retry 친화적)
@@ -61,6 +62,8 @@
   - `TELEGRAM_OPERATOR_CHAT_ID` (운영자 1:1 실패 알림)
   - `SITE_URL_BASE` (GitHub Pages base URL; 예: `https://murphygo.github.io/investo`)
   - `OPENAI_API_KEY` (선택: AI 시황 이미지 생성)
+  - `INVESTO_EXTERNAL_IMAGE_ASSETS` (선택: 라이선스 명시 외부 이미지 다운로드)
+  - `INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS` (선택: 외부 이미지 host allow-list)
   - 데이터 소스 API key (사용 시)
 
 ## Existing Systems
@@ -71,6 +74,7 @@
 
 - LLM 호출은 Claude Code CLI로만 (Anthropic SDK 직접 호출 금지)
 - OpenAI 이미지 생성은 선택 기능이며, 실패 시 deterministic SVG fallback을 유지해야 함
+- 외부 이미지는 라이선스 manifest가 없는 경우 절대 재게시하지 않음
 - 일 1회 배치 (실시간 아님)
 - GitHub Actions 단일 job 실행 시간 한도 (≤ 10분 NFR-001)
 - 무료 데이터 소스의 rate limit 및 안정성 한계
