@@ -101,10 +101,15 @@ async def test_fetch_all_logs_source_success_count_and_window(
     info_records = [
         record
         for record in caplog.records
-        if record.levelno == logging.INFO and record.getMessage() == "source returned"
+        if record.levelno == logging.INFO and record.getMessage().startswith("source returned")
     ]
     assert len(info_records) == 1
     record = info_records[0]
+    assert record.getMessage() == (
+        "source returned source_name=stub-a category=news item_count=2 "
+        "window_start_utc=2026-04-26T15:00:00+00:00 "
+        "window_end_utc=2026-04-27T15:00:00+00:00"
+    )
     assert record.source_name == "stub-a"
     assert record.category == "news"
     assert record.item_count == 2
@@ -132,9 +137,14 @@ async def test_fetch_all_logs_zero_item_success(
     info_records = [
         record
         for record in caplog.records
-        if record.levelno == logging.INFO and record.getMessage() == "source returned"
+        if record.levelno == logging.INFO and record.getMessage().startswith("source returned")
     ]
     assert len(info_records) == 1
+    assert info_records[0].getMessage() == (
+        "source returned source_name=empty-source category=news item_count=0 "
+        "window_start_utc=2026-04-26T15:00:00+00:00 "
+        "window_end_utc=2026-04-27T15:00:00+00:00"
+    )
     assert info_records[0].source_name == "empty-source"
     assert info_records[0].item_count == 0
 
@@ -321,7 +331,10 @@ async def test_fetch_all_does_not_raise_on_source_fetch_error(
     assert result == []
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert len(warnings) == 1
-    assert warnings[0].getMessage() == "source failed"
+    assert warnings[0].getMessage() == (
+        "source failed source_name=failing category=news transient=True "
+        "error=source 'failing' failed: synthetic"
+    )
     assert warnings[0].source_name == "failing"
     assert warnings[0].category == "news"
     assert warnings[0].error == "source 'failing' failed: synthetic"
@@ -346,7 +359,10 @@ async def test_fetch_all_logs_terminal_failure_with_transient_false(
 
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert len(warnings) == 1
-    assert warnings[0].getMessage() == "source failed"
+    assert warnings[0].getMessage() == (
+        "source failed source_name=terminal category=news transient=False "
+        "error=source 'terminal' failed: schema mismatch"
+    )
     assert warnings[0].source_name == "terminal"
     assert warnings[0].category == "news"
     assert warnings[0].error == "source 'terminal' failed: schema mismatch"
@@ -371,7 +387,10 @@ async def test_fetch_all_structured_log_uses_exception_source_name_and_adapter_c
 
     warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
     assert len(warnings) == 1
-    assert warnings[0].getMessage() == "source failed"
+    assert warnings[0].getMessage() == (
+        "source failed source_name=self-reported-name category=macro "
+        "transient=False error=source 'self-reported-name' failed: boom"
+    )
     assert warnings[0].source_name == "self-reported-name"
     assert warnings[0].category == "macro"
     assert warnings[0].error == "source 'self-reported-name' failed: boom"

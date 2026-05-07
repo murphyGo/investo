@@ -31,7 +31,7 @@
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
 | Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07; u8 source-window correction closed 2026-05-07; u9 reader-experience slice closed 2026-05-07; u10 source diagnostics slice closed 2026-05-07 | 2026-05-07 |
-| Build and Test | ✅ Complete — re-verified after u10 source diagnostics slice on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 973/973, mkdocs build --strict ✅ | 2026-05-07 |
+| Build and Test | ✅ Complete — re-verified after u10 plain-text log readability follow-up on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 973/973, mkdocs build --strict ✅ | 2026-05-07 |
 
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
@@ -46,7 +46,7 @@
 | u7 segmented briefing | ✅ Complete (2026-05-07) | ⏭️ SKIP (u2/u5 NFRs reused; no new external deps) | ✅ Complete (6/6) | New post-MVP unit for FR-008: generate separate domestic-equity, us-equity, and crypto briefings so one market's source volume cannot dominate the whole daily output. Delivered deterministic segment routing, segment-aware u2 prompt context, segmented archive paths/URLs, production all-three-or-fail generate/publish, and one Telegram summary containing all three segment links. Cross-check complete 2026-05-07 (`docs/cross-checks/2026-05-07-u7-segmented-briefing.md`). |
 | u8 market-aware source window | ⏭️ SKIP (source-level correction) | ⏭️ SKIP (no new external deps or NFR surface) | ✅ Complete (4/4) | Follow-up quality correction for FR-001/FR-008: aggregator now passes KST windows to domestic sources, America/New_York windows to US-market sources, and UTC windows to crypto sources so US/crypto items after the KST cutoff are not dropped. Cross-check complete 2026-05-07 (`docs/cross-checks/2026-05-07-u8-market-aware-source-window.md`). |
 | u9 briefing reader experience | ⏭️ SKIP (u2/u7 UX correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up quality correction from five-reader review: segment markdown now includes H1, segment navigation, and a 3-line brief; zero-item segments generate concise collection-status fallbacks without Claude; Stage 2 prompt receives source URLs and asks for newsletter-style narrative, source links, conservative wording, and grouped tickers. |
-| u10 source coverage diagnostics | ⏭️ SKIP (observability correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up operations slice for FR-001/FR-008: aggregator logs per-source `source returned` INFO records with source name, category, item count, and applied UTC window so GHA can distinguish HTTP-success-zero-items from source failures. |
+| u10 source coverage diagnostics | ⏭️ SKIP (observability correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (5/5) | Follow-up operations slice for FR-001/FR-008: aggregator logs per-source `source returned` INFO records with source name, category, item count, and applied UTC window so GHA can distinguish HTTP-success-zero-items from source failures. GHA plain-text logs now render those fields directly, while structured `extra` fields remain available for future log processors. |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |

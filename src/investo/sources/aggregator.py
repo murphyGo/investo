@@ -85,7 +85,11 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             # registered as "fomc-rss" will surface its lie in the
             # log, which is the desired debugging signal.
             _logger.warning(
-                "source failed",
+                "source failed source_name=%s category=%s transient=%s error=%s",
+                result.source_name,
+                adapter.category,
+                result.transient,
+                str(result),
                 extra={
                     "source_name": result.source_name,
                     "category": adapter.category,
@@ -103,7 +107,13 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             raise result
         window = windows[adapter.name]
         _logger.info(
-            "source returned",
+            "source returned source_name=%s category=%s item_count=%d "
+            "window_start_utc=%s window_end_utc=%s",
+            adapter.name,
+            adapter.category,
+            len(result),
+            window.start_utc.isoformat(),
+            window.end_utc.isoformat(),
             extra={
                 "source_name": adapter.name,
                 "category": adapter.category,
