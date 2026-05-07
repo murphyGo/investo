@@ -183,9 +183,13 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "국내 증시: 코스피 요약" in summary
-    assert "미국 증시: S&P 500 요약" in summary
-    assert "크립토: Bitcoin 요약" in summary
+    assert "📈 2026-04-25 데일리 시황" in summary
+    assert "🇰🇷 *국내 증시*\n코스피 요약" in summary
+    assert "🇺🇸 *미국 증시*\nS&P 500 요약" in summary
+    assert "₿ *크립토*\nBitcoin 요약" in summary
+    assert "• 국내 증시:" in summary
+    assert "• 미국 증시:" in summary
+    assert "• 크립토:" in summary
     for url in _SEGMENT_URLS.values():
         assert url in summary
 
@@ -208,8 +212,8 @@ def test_build_segmented_summary_prefers_clean_rendered_conclusion() -> None:
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "국내 증시: 국내 증시는 데이터 부족입니다." in summary
-    assert "국내 증시: 1." not in summary
+    assert "🇰🇷 *국내 증시*\n국내 증시는 데이터 부족입니다." in summary
+    assert "🇰🇷 *국내 증시*\n1." not in summary
     assert "[국내 증시]" not in summary
     assert "**데이터 부족**" not in summary
 
@@ -233,7 +237,7 @@ def test_build_segmented_summary_includes_clean_coverage_label_when_present() ->
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "크립토: 부분 — Bitcoin 가격 근거만 확인됐습니다." in summary
+    assert "₿ *크립토*\n부분 — Bitcoin 가격 근거만 확인됐습니다." in summary
     assert "수집 1건" not in summary
 
 
@@ -256,7 +260,7 @@ def test_build_segmented_summary_includes_watchlist_impact_when_present() -> Non
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "미국 증시: 반도체 실적을 확인합니다. / 관심: 1건 확인 — NVDA" in summary
+    assert "🇺🇸 *미국 증시*\n반도체 실적을 확인합니다. / 관심: 1건 확인 — NVDA" in summary
 
 
 def test_build_segmented_summary_preserves_all_urls_under_truncation() -> None:

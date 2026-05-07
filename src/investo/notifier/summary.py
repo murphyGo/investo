@@ -72,6 +72,11 @@ _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
 )
 _MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
+_SEGMENT_ICONS: Final[dict[MarketSegment, str]] = {
+    DOMESTIC_EQUITY: "🇰🇷",
+    US_EQUITY: "🇺🇸",
+    CRYPTO: "₿",
+}
 
 
 def _utf16_units(text: str) -> int:
@@ -146,13 +151,12 @@ def build_segmented_summary(
     """
     target_date = briefings[DOMESTIC_EQUITY].target_date
     ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
-    header = f"📈 {target_date.isoformat()} 시황 요약\n\n"
+    header = f"📈 {target_date.isoformat()} 데일리 시황\n\n"
     footer = "\n\n상세보기:\n" + "\n".join(
-        f"{SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in ordered_segments
+        f"• {SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in ordered_segments
     )
-    body = "\n".join(
-        f"{SEGMENT_LABELS[segment]}: {_one_line_summary(briefings[segment])}"
-        for segment in ordered_segments
+    body = "\n\n".join(
+        _segment_summary_block(segment, briefings[segment]) for segment in ordered_segments
     )
 
     fixed_units = _utf16_units(header) + _utf16_units(footer)
@@ -170,6 +174,12 @@ def build_segmented_summary(
 
     truncated = _utf16_truncate(body, body_budget - _utf16_units(_TRUNCATION_SUFFIX))
     return header + truncated + _TRUNCATION_SUFFIX + footer
+
+
+def _segment_summary_block(segment: MarketSegment, briefing: Briefing) -> str:
+    label = SEGMENT_LABELS[segment]
+    icon = _SEGMENT_ICONS[segment]
+    return f"{icon} *{label}*\n{_one_line_summary(briefing)}"
 
 
 def _one_line_summary(briefing: Briefing) -> str:
