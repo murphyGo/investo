@@ -4,13 +4,45 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final, Literal
 
-from investo.models import Category, NormalizedItem
+from investo.models import Category, NormalizedItem, SourceOutcome
 
 MarketSegment = Literal["domestic-equity", "us-equity", "crypto"]
 CoverageStatus = Literal["normal", "partial", "insufficient"]
+# u22 — closed set of reason codes describing *why* a segment landed in
+# its current coverage status. Multiple codes can apply at once
+# (e.g. price source failed AND news returned zero items).
+CoverageReasonCode = Literal[
+    "ZERO_ITEMS",
+    "BELOW_THRESHOLD",
+    "MISSING_NEWS",
+    "MISSING_PRICE",
+    "MISSING_MACRO",
+    "MISSING_CALENDAR",
+    "MISSING_EARNINGS",
+    "SOURCE_FAILED",
+    "SOURCE_ZERO",
+]
+COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
+    "ZERO_ITEMS": "수집 항목 0건",
+    "BELOW_THRESHOLD": "최소 수집 기준 미달",
+    "MISSING_NEWS": "뉴스 카테고리 누락",
+    "MISSING_PRICE": "가격 카테고리 누락",
+    "MISSING_MACRO": "거시 카테고리 누락",
+    "MISSING_CALENDAR": "일정 카테고리 누락",
+    "MISSING_EARNINGS": "실적 카테고리 누락",
+    "SOURCE_FAILED": "일부 소스 수집 실패",
+    "SOURCE_ZERO": "일부 소스 0건 반환",
+}
+_MISSING_CATEGORY_TO_REASON: Final[dict[Category, CoverageReasonCode]] = {
+    "news": "MISSING_NEWS",
+    "price": "MISSING_PRICE",
+    "macro": "MISSING_MACRO",
+    "calendar": "MISSING_CALENDAR",
+    "earnings": "MISSING_EARNINGS",
+}
 
 DOMESTIC_EQUITY: Final[MarketSegment] = "domestic-equity"
 US_EQUITY: Final[MarketSegment] = "us-equity"
@@ -59,6 +91,11 @@ _US_SOURCES: Final[frozenset[str]] = frozenset(
     }
 )
 _CRYPTO_SOURCES: Final[frozenset[str]] = frozenset({"coingecko-price", "theblock-crypto"})
+_SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
+    "domestic-equity": _DOMESTIC_SOURCES,
+    "us-equity": _US_SOURCES,
+    "crypto": _CRYPTO_SOURCES,
+}
 
 _KOREAN_EXCHANGE_TICKER = re.compile(r"\[(?:\d{6}|[A-Z]{3}\d{3})\]")
 _US_TICKER = re.compile(r"\b(?:AAPL|AMZN|GOOGL|META|MSFT|NVDA|SPY|QQQ|TSLA|DIS|CPNG)\b")
@@ -108,15 +145,43 @@ class SegmentedItems:
         return self.crypto
 
     def is_data_limited(self, segment: MarketSegment) -> bool:
+        """Return True when the routed segment is below the ``normal`` bar.
+
+        Structural-only judgement — decided purely from the routed item
+        count and missing required categories. Source-level outcomes
+        (``SOURCE_FAILED`` / ``SOURCE_ZERO``) surface in
+        :attr:`SegmentCoverage.reason_codes` for transparency but do
+        **not** influence this routing decision; a segment with all
+        required items can still carry a ``SOURCE_FAILED`` reason and
+        will still report ``is_data_limited == False``.
+        """
         return self.coverage_for_segment(segment).status != "normal"
 
-    def coverage_for_segment(self, segment: MarketSegment) -> SegmentCoverage:
-        return build_segment_coverage(segment, self.for_segment(segment))
+    def coverage_for_segment(
+        self,
+        segment: MarketSegment,
+        *,
+        source_outcomes: Sequence[SourceOutcome] = (),
+    ) -> SegmentCoverage:
+        return build_segment_coverage(
+            segment,
+            self.for_segment(segment),
+            source_outcomes=segment_source_outcomes(segment, source_outcomes),
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class SegmentCoverage:
-    """Reader-facing coverage summary for a routed market segment."""
+    """Reader-facing coverage summary for a routed market segment.
+
+    The u22 fields ``reason_codes`` and ``source_outcomes`` are populated
+    when the orchestrator threads a :class:`investo.models.SourceCollectionReport`
+    through to the briefing layer. When ``source_outcomes`` is empty
+    (e.g. legacy unsegmented runs that still call
+    :func:`build_segment_coverage` with items only) the coverage still
+    reports the structural reasons (zero items, below threshold,
+    missing categories) inferred from the routed item set.
+    """
 
     segment: MarketSegment
     status: CoverageStatus
@@ -124,6 +189,8 @@ class SegmentCoverage:
     source_count: int
     categories: tuple[Category, ...]
     missing_categories: tuple[Category, ...]
+    reason_codes: tuple[CoverageReasonCode, ...] = field(default_factory=tuple)
+    source_outcomes: tuple[SourceOutcome, ...] = field(default_factory=tuple)
 
     @property
     def status_label(self) -> str:
@@ -134,6 +201,23 @@ class SegmentCoverage:
         if not self.missing_categories:
             return "없음"
         return ", ".join(CATEGORY_LABELS[category] for category in self.missing_categories)
+
+    @property
+    def reason_labels(self) -> tuple[str, ...]:
+        """Human-readable Korean labels for each present reason code."""
+        return tuple(COVERAGE_REASON_LABELS[code] for code in self.reason_codes)
+
+    @property
+    def failed_source_outcomes(self) -> tuple[SourceOutcome, ...]:
+        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "failed")
+
+    @property
+    def zero_source_outcomes(self) -> tuple[SourceOutcome, ...]:
+        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "zero")
+
+    @property
+    def ok_source_outcomes(self) -> tuple[SourceOutcome, ...]:
+        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "ok")
 
 
 def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
@@ -161,7 +245,31 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
 def build_segment_coverage(
     segment: MarketSegment,
     items: Sequence[NormalizedItem],
+    *,
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> SegmentCoverage:
+    """Build coverage for a routed segment.
+
+    ``source_outcomes`` is the optional u22 hook: when supplied, it must
+    already be filtered down to outcomes relevant to ``segment`` (use
+    :func:`segment_source_outcomes` to derive the subset from a full
+    :class:`investo.models.SourceCollectionReport`). Reason codes are
+    derived from both the routed item set (structural deficiencies) and
+    the per-source outcomes (operational deficiencies); the resulting
+    ``reason_codes`` tuple is deterministic and order-stable.
+
+    ``status`` vs ``reason_codes`` relationship:
+
+    * ``status`` is a *hard* judgement based solely on the routed item
+      set (``normal`` / ``partial`` / ``insufficient``): zero items →
+      ``insufficient``; below threshold or missing required categories
+      → ``partial``; otherwise → ``normal``.
+    * ``reason_codes`` is an *additional transparency signal*. It can
+      carry ``SOURCE_FAILED`` / ``SOURCE_ZERO`` even when the routed
+      items are sufficient and ``status == "normal"``. In other words a
+      ``normal`` segment may still display "일부 소스 실패" alongside —
+      this is intended behaviour, not an inconsistency.
+    """
     categories = tuple(sorted({item.category for item in items}))
     source_count = len({item.source_name for item in items})
     required_categories = SEGMENT_REQUIRED_CATEGORIES[segment]
@@ -181,7 +289,51 @@ def build_segment_coverage(
         source_count=source_count,
         categories=categories,
         missing_categories=missing_categories,
+        reason_codes=_derive_reason_codes(
+            segment=segment,
+            items=items,
+            missing_categories=missing_categories,
+            source_outcomes=source_outcomes,
+        ),
+        source_outcomes=tuple(source_outcomes),
     )
+
+
+def segment_source_outcomes(
+    segment: MarketSegment,
+    outcomes: Sequence[SourceOutcome],
+) -> tuple[SourceOutcome, ...]:
+    """Filter aggregator outcomes to those mapped to ``segment``.
+
+    The mapping mirrors the segment-routing source allow-lists already
+    used by :func:`segment_items`. Adapters not assigned to any segment
+    (none today) are intentionally dropped — the segment-level coverage
+    surface only annotates sources whose verdicts are reader-relevant
+    for *that* segment.
+    """
+    allow_list = _SEGMENT_SOURCES[segment]
+    return tuple(outcome for outcome in outcomes if outcome.source_name in allow_list)
+
+
+def _derive_reason_codes(
+    *,
+    segment: MarketSegment,
+    items: Sequence[NormalizedItem],
+    missing_categories: tuple[Category, ...],
+    source_outcomes: Sequence[SourceOutcome],
+) -> tuple[CoverageReasonCode, ...]:
+    codes: list[CoverageReasonCode] = []
+    if not items:
+        codes.append("ZERO_ITEMS")
+    elif len(items) < SEGMENT_THRESHOLDS[segment]:
+        codes.append("BELOW_THRESHOLD")
+    for category in missing_categories:
+        codes.append(_MISSING_CATEGORY_TO_REASON[category])
+    if any(outcome.status == "failed" for outcome in source_outcomes):
+        codes.append("SOURCE_FAILED")
+    if any(outcome.status == "zero" for outcome in source_outcomes):
+        codes.append("SOURCE_ZERO")
+    return tuple(codes)
 
 
 def _item_text(item: NormalizedItem) -> str:
@@ -214,6 +366,7 @@ def _is_crypto(item: NormalizedItem, text: str) -> bool:
 
 __all__ = [
     "CATEGORY_LABELS",
+    "COVERAGE_REASON_LABELS",
     "COVERAGE_STATUS_LABELS",
     "CRYPTO",
     "DOMESTIC_EQUITY",
@@ -221,10 +374,12 @@ __all__ = [
     "SEGMENT_REQUIRED_CATEGORIES",
     "SEGMENT_THRESHOLDS",
     "US_EQUITY",
+    "CoverageReasonCode",
     "CoverageStatus",
     "MarketSegment",
     "SegmentCoverage",
     "SegmentedItems",
     "build_segment_coverage",
     "segment_items",
+    "segment_source_outcomes",
 ]

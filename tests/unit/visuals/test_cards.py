@@ -143,6 +143,67 @@ def test_build_data_confidence_card_from_segment_coverage() -> None:
     assert card.item_count == 1
     assert card.source_count == 1
     assert card.missing_categories == ("뉴스",)
+    # u22 — reasons + source rows surface on the card.
+    assert "뉴스 카테고리 누락" in card.reason_labels
+    assert "최소 수집 기준 미달" in card.reason_labels
+
+
+def test_build_data_confidence_card_includes_failed_and_zero_source_rows() -> None:
+    from investo.models import SourceOutcome
+
+    items = [
+        _item("yfinance-price", "price", "AAPL"),
+        _item("yahoo-finance-news", "news", "AAPL news"),
+        _item("fomc-rss", "calendar", "FOMC"),
+    ]
+    outcomes = [
+        SourceOutcome.from_failure(
+            "fred-macro",
+            "macro",
+            message="connection reset",
+            transient=True,
+        ),
+        SourceOutcome.zero("nasdaq-earnings-calendar", "earnings"),
+        SourceOutcome.ok("yfinance-price", "price", item_count=1),
+        SourceOutcome.ok("yahoo-finance-news", "news", item_count=1),
+        SourceOutcome.ok("fomc-rss", "calendar", item_count=1),
+    ]
+    coverage = build_segment_coverage("us-equity", items, source_outcomes=outcomes)
+
+    card = build_data_confidence_card(date(2026, 5, 7), coverage)
+
+    statuses = [row.status for row in card.source_rows]
+    assert statuses[0] == "failed"
+    assert "zero" in statuses
+    assert any(row.status == "ok" for row in card.source_rows)
+    failed_row = card.source_rows[0]
+    assert failed_row.source_name == "fred-macro"
+    assert "connection reset" in failed_row.detail
+
+
+def test_build_data_confidence_card_does_not_leak_secret_via_failure_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.models import SourceOutcome
+
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "supersecret-token-value-xyz")
+    items = [_item("coingecko-price", "price", "BTC", raw_metadata={"symbol": "btc"})]
+    outcomes = [
+        SourceOutcome.from_failure(
+            "theblock-crypto",
+            "news",
+            message="boom supersecret-token-value-xyz on chat 1234567890",
+            transient=True,
+        ),
+    ]
+    coverage = build_segment_coverage("crypto", items, source_outcomes=outcomes)
+
+    card = build_data_confidence_card(date(2026, 5, 7), coverage)
+
+    detail = card.source_rows[0].detail
+    assert "supersecret-token-value-xyz" not in detail
+    assert "1234567890" not in detail
+    assert "[REDACTED" in detail
 
 
 def test_build_price_snapshot_card_maps_known_yfinance_and_coingecko_metadata() -> None:

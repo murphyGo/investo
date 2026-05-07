@@ -21,7 +21,7 @@ intentionally NOT re-exported.
 
 from investo.sources._registry import list_sources
 from investo.sources._window import FetchWindow
-from investo.sources.aggregator import fetch_all
+from investo.sources.aggregator import collect_sources, fetch_all
 from investo.sources.protocol import SourceAdapter, SourceFetchError
 
 # Adapter discovery — each import below runs the module's
@@ -44,6 +44,7 @@ __all__ = [
     "FetchWindow",
     "SourceAdapter",
     "SourceFetchError",
+    "collect_sources",
     "fetch_all",
     "list_sources",
 ]

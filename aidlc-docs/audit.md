@@ -1,5 +1,77 @@
 # AI-DLC Audit Log
 
+## Build and Test — Re-verification COMPLETE
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Trigger**: u22 source-coverage-transparency and u24 visual-provenance-and-layout closeouts landed; u20-u24 quality follow-up wave fully closed. Full quality gate re-run requested.
+**Decision**: Build and Test stage marked re-verified at 1091 passing tests; no further wave-close gate work outstanding.
+**Affected docs**:
+- `aidlc-docs/aidlc-state.md` (Build and Test row Notes appended)
+- `aidlc-docs/audit.md` (this entry)
+**Status**: Build and Test green; u20-u24 wave closed.
+**Context**: Re-verification results — `uv run ruff check .` All checks passed; `uv run ruff format --check .` 169 files already formatted; `uv run mypy --strict src` Success: no issues found in 65 source files; `uv run pytest -q` 1091 passed (baseline 1037 → +54 across u22/u24); `uv run mkdocs build --strict` built in 0.33s (archive-page-not-in-nav INFO is expected/intended).
+
+---
+
+## Cross-Check — u24 visual-provenance-and-layout — COMPLETE
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Trigger**: u24 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with M1 (`build_generated_svg_provenance` unused parameter) and M2 (single sanitize chokepoint via tuple-form `field_validator`) applied pre-merge. Health check after fixes landed.
+**Scope**: u24 visual-provenance-and-layout mapped to FR-002, FR-003, FR-004, FR-008, NFR-002, NFR-003, NFR-004, NFR-006, NFR-007 (R8 / R13).
+**Result**: PASS — 4/4 Definition-of-Done items complete; no Critical/High findings; 4 new low/medium TECH-DEBT items registered (DEBT-040..DEBT-043).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-07-u24-visual-provenance-and-layout.md`
+- Unit summary: `aidlc-docs/construction/u24-visual-provenance-and-layout/code/summary.md`
+- Implementation: `src/investo/visuals/provenance.py` (new), `src/investo/visuals/assets.py`, `src/investo/visuals/__init__.py`
+- Tests: +16 (1075 → 1091); new files `tests/unit/visuals/test_provenance.py` (10 tests), `tests/unit/visuals/_image_bytes.py` (helper); modified `tests/unit/visuals/test_assets.py` (+6 tests)
+- Verification: `ruff check .`, `ruff format --check .` (169 files), `mypy --strict src/` (65 source files), `pytest -q` (1091 passed); `mkdocs build --strict` to be re-verified at the u20-u24 follow-up wave close.
+- New TECH-DEBT: DEBT-040 (layout reposition ordering at shared anchors), DEBT-041 (corrupt-sidecar `ValueError` swallowed by caption rendering), DEBT-042 (sanitizer policy unification across coverage / provenance / leak-guard), DEBT-043 (external image fetch builder bypass risk).
+**Status**: u24 construction and cross-check complete.
+
+---
+
+## Construction — u24 visual-provenance-and-layout — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Action**: Implemented visual provenance and first-viewport layout. Added `VisualProvenanceManifest` (frozen + slots, `extra="forbid"`, `source_type: Literal["generated_svg","external_image","ai_generated"]`) plus builders and atomic `<asset>.json` sidecar writes; centralised user-/operator-derived sanitization through `sanitize_provenance_text` (delegates to u22's `sanitize_source_error_message`); rendered concise Korean captions for generated/AI/external assets; implemented hero/non-hero layout with `external_image > ai_generated > data-confidence` priority and per-anchor non-hero reposition (`① 요약`, `⑤ 주요 종목`, `⑥ 오늘의 관전 포인트`); added SVG/PNG/JPEG dimension validation in `[100, 2000]`. Wired `external_image` schema as contract-only under `EXTERNAL_IMAGE_SCRAPING_ENABLED=False`. Applied M1 (unused parameter) and M2 (tuple-form `field_validator("source_attribution", "generator", "version")`) pre-merge.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check` 169 files, `mypy --strict src/` 65 source files, `pytest -q` 1091 passed). `mkdocs build --strict` to be re-verified at the u20-u24 wave close.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u24-visual-provenance-and-layout-code-generation-plan.md`
+- `aidlc-docs/construction/u24-visual-provenance-and-layout/code/summary.md`
+- `docs/cross-checks/2026-05-07-u24-visual-provenance-and-layout.md`
+- `docs/TECH-DEBT.md` (DEBT-040..DEBT-043 added)
+- `aidlc-docs/aidlc-state.md`
+**Context**: Second reader/operator review follow-up — u24 visual-provenance-and-layout, Code Generation Steps 1-3. QA verdict APPROVE_AFTER_FIXES; M1 (unused `asset_path` parameter) and M2 (single sanitize chokepoint over `source_attribution` / `generator` / `version`) applied pre-merge; M3 (layout reposition ordering at shared anchors) deferred to DEBT-040; M4 (corrupt-sidecar `ValueError` swallowed by caption rendering) deferred to DEBT-041; cross-cutting policy unification deferred to DEBT-042; external builder bypass risk deferred to DEBT-043.
+
+---
+
+## Cross-Check — u22 source-coverage-transparency — COMPLETE
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Trigger**: u22 Code Generation closed; QA verdict APPROVE_AFTER_FIXES with M1-M3 docstring fixes applied. Health check after fixes landed.
+**Scope**: u22 source-coverage-transparency mapped to FR-001, FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-004, NFR-006, NFR-007 (R8 / R13).
+**Result**: PASS — 4/4 Definition-of-Done items complete; no Critical/High findings; 5 new low/medium TECH-DEBT items registered (DEBT-035..DEBT-039).
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-07-u22-source-coverage-transparency.md`
+- Unit summary: `aidlc-docs/construction/u22-source-coverage-transparency/code/summary.md`
+- Implementation: `src/investo/models/coverage.py` (new), `src/investo/sources/aggregator.py`, `src/investo/briefing/segments.py`, `src/investo/briefing/pipeline.py`, `src/investo/visuals/cards.py`, `src/investo/visuals/render.py`, `src/investo/orchestrator/pipeline.py`
+- Tests: +37 (1037 → 1074); new files `tests/unit/models/test_coverage.py`, `tests/unit/sources/test_collect_sources.py`, `tests/unit/briefing/test_coverage_badge.py`
+- Verification: `ruff check .`, `ruff format --check .`, `mypy --strict src/`, `pytest -q` (1074 passed); `mkdocs build --strict` to be re-verified at the u20-u24 follow-up wave close.
+- New TECH-DEBT: DEBT-035 (regex duplication), DEBT-036 (`_SECRET_ENV_VARS` width mismatch), DEBT-037 (visual source-row truncation), DEBT-038 (segment-filter type-system gap), DEBT-039 (`CoverageReasonCode` ↔ label dict sync).
+**Status**: u22 construction and cross-check complete.
+
+---
+
+## Construction — u22 source-coverage-transparency — Code Generation Complete
+**Timestamp**: 2026-05-07T00:00:00+09:00
+**Action**: Implemented source coverage transparency. Added shared `SourceOutcome` / `SourceCollectionReport` / `SourceStatus` and `sanitize_source_error_message`; extended `SegmentCoverage` with `reason_codes` and `source_outcomes`; rendered Korean reason callouts plus per-source status block in segmented markdown; extended `DataConfidenceCard` with reason rows and source-status rows; threaded segment-filtered outcomes through the orchestrator; applied M1-M3 pre-merge docstring clarifications.
+**Status**: Code Generation complete; quality gate passed (`ruff check`, `ruff format --check`, `mypy --strict src/`, `pytest -q` 1074 passed). `mkdocs build --strict` to be re-verified at the u20-u24 wave close.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u22-source-coverage-transparency-code-generation-plan.md`
+- `aidlc-docs/construction/u22-source-coverage-transparency/code/summary.md`
+- `docs/cross-checks/2026-05-07-u22-source-coverage-transparency.md`
+- `docs/TECH-DEBT.md` (DEBT-035..DEBT-039 added)
+- `aidlc-docs/aidlc-state.md`
+**Context**: Second reader/operator review follow-up — u22 source-coverage-transparency, Code Generation Steps 1-3. QA verdict APPROVE_AFTER_FIXES; M1 (`is_data_limited`), M2 (`build_segment_coverage`), and M3 (`sanitize_source_error_message`) docstring clarifications landed pre-merge.
+
+---
+
 ## Cross-Check — u19 briefing-visual-assets — COMPLETE
 **Timestamp**: 2026-05-07T00:00:00+09:00
 **Trigger**: `$dev-investo` health check after u19 Code Generation completion.

@@ -13,6 +13,12 @@ from investo.models.briefing import (
     Briefing,
     BriefingNotification,
 )
+from investo.models.coverage import (
+    SourceCollectionReport,
+    SourceOutcome,
+    SourceStatus,
+    sanitize_source_error_message,
+)
 from investo.models.items import Category, NormalizedItem
 from investo.models.results import (
     FailureContext,
@@ -33,4 +39,8 @@ __all__ = [
     "PipelineResult",
     "PipelineStatus",
     "SendResult",
+    "SourceCollectionReport",
+    "SourceOutcome",
+    "SourceStatus",
+    "sanitize_source_error_message",
 ]

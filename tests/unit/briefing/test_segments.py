@@ -10,8 +10,9 @@ from investo.briefing.segments import (
     US_EQUITY,
     build_segment_coverage,
     segment_items,
+    segment_source_outcomes,
 )
-from investo.models import NormalizedItem
+from investo.models import NormalizedItem, SourceOutcome
 
 
 def _item(
@@ -128,3 +129,104 @@ def test_segment_coverage_statuses_are_normal_partial_or_insufficient() -> None:
     assert partial.missing_category_label == "뉴스"
     assert insufficient.status == "insufficient"
     assert insufficient.missing_categories == ("news", "price")
+
+
+# ---------------------------------------------------------------------------
+# u22 — coverage reason codes + per-source outcome wiring
+# ---------------------------------------------------------------------------
+
+
+def test_zero_items_segment_emits_zero_items_reason() -> None:
+    coverage = build_segment_coverage(CRYPTO, [])
+    assert "ZERO_ITEMS" in coverage.reason_codes
+    assert "수집 항목 0건" in coverage.reason_labels
+
+
+def test_below_threshold_segment_emits_below_threshold_reason() -> None:
+    # CRYPTO threshold is 2 — one item triggers BELOW_THRESHOLD plus
+    # MISSING_NEWS (price-only sample below).
+    coverage = build_segment_coverage(
+        CRYPTO,
+        [_item("coingecko-price", "BTC price", category="price")],
+    )
+    assert "BELOW_THRESHOLD" in coverage.reason_codes
+    assert "MISSING_NEWS" in coverage.reason_codes
+
+
+def test_missing_category_reason_codes_match_missing_set() -> None:
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [_item("yfinance-price", "AAPL", category="price")],
+    )
+    # US_EQUITY requires news + price; missing news.
+    assert "MISSING_NEWS" in coverage.reason_codes
+    assert "MISSING_PRICE" not in coverage.reason_codes
+
+
+def test_source_failed_outcome_threads_into_reason_codes() -> None:
+    outcome = SourceOutcome.from_failure(
+        "fred-macro",
+        "macro",
+        message="connection reset",
+        transient=True,
+    )
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [
+            _item("yfinance-price", "AAPL", category="price"),
+            _item("yahoo-finance-news", "AAPL news", category="news"),
+            _item("fomc-rss", "Fed calendar", category="calendar"),
+        ],
+        source_outcomes=[outcome],
+    )
+    assert "SOURCE_FAILED" in coverage.reason_codes
+    assert coverage.failed_source_outcomes == (outcome,)
+    # Status is still "normal" because items are present and required
+    # categories are covered — the failure is *informational* for the
+    # reader, not a status downgrade.
+    assert coverage.status == "normal"
+
+
+def test_source_zero_outcome_threads_into_reason_codes() -> None:
+    coverage = build_segment_coverage(
+        CRYPTO,
+        [
+            _item("coingecko-price", "BTC", category="price"),
+            _item("theblock-crypto", "ETH news", category="news"),
+        ],
+        source_outcomes=[SourceOutcome.zero("theblock-crypto", "news")],
+    )
+    assert "SOURCE_ZERO" in coverage.reason_codes
+
+
+def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
+    outcomes = (
+        SourceOutcome.ok("yfinance-price", "price", item_count=3),
+        SourceOutcome.ok("coingecko-price", "price", item_count=2),
+        SourceOutcome.zero("yonhap-market", "news"),
+    )
+    crypto_only = segment_source_outcomes(CRYPTO, outcomes)
+    domestic_only = segment_source_outcomes(DOMESTIC_EQUITY, outcomes)
+
+    assert {outcome.source_name for outcome in crypto_only} == {"coingecko-price"}
+    assert {outcome.source_name for outcome in domestic_only} == {"yonhap-market"}
+
+
+def test_coverage_failure_reason_does_not_carry_secret_after_filter() -> None:
+    """The failure reason field on a SegmentCoverage outcome is the
+    sanitized one — never the raw exception message.
+    """
+    outcome = SourceOutcome.from_failure(
+        "yfinance-price",
+        "price",
+        message="GET https://example.com?api_key=ABCDEFG&fmt=json failed",
+        transient=True,
+    )
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [_item("yfinance-price", "S&P 500", category="price")],
+        source_outcomes=[outcome],
+    )
+    failed = coverage.failed_source_outcomes[0]
+    assert failed.failure_reason is not None
+    assert "api_key=ABCDEFG" not in failed.failure_reason

@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 0 | - |
-| Low | 1 | 2026-04-27 |
+| Medium | 4 | 2026-05-07 |
+| Low | 6 | 2026-04-27 |
 
 ---
 
@@ -23,9 +23,100 @@ _No high priority items._
 
 ### Medium Priority
 
-_No medium priority items._
+#### DEBT-040: Layout reposition ordering when multiple non-hero cards share the same anchor
+
+- **Created**: 2026-05-07
+- **Source**: u24 visual-provenance-and-layout QA review (M3)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness), FR-003 (static web publishing)
+- **Description**: `_reposition_visual_links` in `src/investo/visuals/assets.py` reinserts non-hero cards via `lines[insert_at:insert_at] = […]`. When two or more non-hero asset paths anchor to the same H2 (e.g., two cards both flagged for `① 요약`), the inserts happen in `asset_paths` reverse order, so the rendered layout sees the cards in the opposite order from the iteration order. The ordering intent (intentional reverse vs. accidental) is not documented and no test pins it. A future contributor adding a third non-hero card to the same anchor will land an unintended layout reshuffle.
+- **Suggested Fix**: Either (a) introduce a stable secondary sort key when collecting per-anchor inserts, e.g. `(anchor_line, -original_index)` to make the inversion explicit, or (b) keep the current `lines[insert_at:insert_at]` shape but document the inversion in a docstring on `_reposition_visual_links` plus add a test that pins layout order for ≥ 2 non-hero cards at the same anchor.
+- **Effort**: ~30 min including the chosen fix + test.
+- **Priority Reasoning**: Medium — works correctly today on the observed segment shapes (≤ 1 non-hero card per anchor), but is the kind of regression that escapes review when a fourth card type lands.
+
+#### DEBT-041: `_provenance_caption_for` swallows the pydantic `ValueError` from corrupt sidecars
+
+- **Created**: 2026-05-07
+- **Source**: u24 visual-provenance-and-layout QA review (M4)
+- **Reference**: NFR-003 (graceful degradation), NFR-007 (R13 — secret hygiene), FR-002 (Korean briefing comprehension)
+- **Description**: `_provenance_caption_for` in `src/investo/visuals/assets.py` reads the `<asset>.json` sidecar and constructs a `VisualProvenanceManifest` to choose a Korean caption. If the sidecar JSON is corrupt or schema-violating, the pydantic `ValidationError` (a `ValueError` subclass) is swallowed and the function returns `None`, which renders an image without a caption. Today, `prepare_segment_visual_assets` writes manifests atomically and validates them at write time, so the corrupt-sidecar case is not reachable through the supported call path. However, any future call site that bypasses `prepare_segment_visual_assets` (e.g., a one-off backfill script that copies pre-existing assets) can produce captionless images while looking syntactically correct.
+- **Suggested Fix**: Either (a) move sidecar validation **before** caption rendering inside `_provenance_caption_for` so corrupt sidecars raise `VisualAssetError` (re-using the existing publish-side fallback), or (b) re-raise as `VisualAssetError` from inside `_provenance_caption_for`, or (c) add an explicit `validate_sidecar_or_raise(asset_path)` helper and require every caller (including future ones) to invoke it before captioning.
+- **Effort**: ~25 min including a test that pins the corrupt-sidecar rejection path.
+- **Priority Reasoning**: Medium — not reachable through today's supported call path, but the silent fall-through is a degradation in observability and could mask malformed sidecars produced by future tooling.
+
+#### DEBT-042: Sanitizer policy unification across coverage / provenance / leak-guard
+
+- **Created**: 2026-05-07
+- **Source**: u24 visual-provenance-and-layout QA review (L2)
+- **Reference**: NFR-005 (consistency across symmetric components), NFR-007 (R8 / R13 — secret hygiene)
+- **Description**: `sanitize_source_error_message` (from u22) now has 3 call-site locations — the coverage badge, the new visual provenance sanitizer, and `__main__._redact_diagnostic_text` (per DEBT-035). On top of those, `briefing.leak_guard` carries its own pattern set with a different policy. As more reader-/operator-facing surfaces are added (e.g., a future "operator step summary" card or a watchlist export), the patterns can drift across these four sites and a future redaction site could land copy #5. Extends DEBT-035 / DEBT-036 — those address `__main__` ↔ `coverage` drift; this one widens the scope to include `provenance` and `leak_guard`.
+- **Suggested Fix**: Define a single named policy object (e.g., `RedactionPolicy.PUBLIC_OUTPUT` and `RedactionPolicy.LLM_OUTPUT`) in a shared `src/investo/_internal/redaction.py` module that exposes `redact(text: str, policy: RedactionPolicy) -> str`. Each existing call site passes the appropriate policy. Pin via a regression test that imports the module and asserts every redaction site uses one of the named policies.
+- **Effort**: ~1 hour including the shared module + 4 call-site updates + tests. Larger scope than DEBT-035 alone.
+- **Priority Reasoning**: Medium — the threat is policy drift across 4 surfaces with overlapping but non-identical pattern sets. Cheap to consolidate before a 5th site lands.
+
+#### DEBT-038: `source_outcomes` segment-filtering contract is not enforced at the type level
+
+- **Created**: 2026-05-07
+- **Source**: u22 source-coverage-transparency QA review (L4)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness), FR-008 (segmented briefing)
+- **Description**: `build_segment_coverage(...)` in `src/investo/briefing/segments.py` accepts `Sequence[SourceOutcome]` for the segment's source results. The function trusts the caller to have already filtered outcomes to the current segment (orchestrator does this today), but the type signature is identical to a "global outcomes list", so a future refactor could silently feed cross-segment outcomes — leaking another segment's source statuses into a segment's data-confidence card or markdown reason callout.
+- **Suggested Fix**: Introduce a `SegmentScopedOutcomes = NewType("SegmentScopedOutcomes", tuple[SourceOutcome, ...])` and have the orchestrator construct it via a small validating builder that asserts every outcome's category belongs to the segment's allowed categories. Alternatively, add a runtime guard inside `build_segment_coverage` that raises if any outcome category is not in the segment's allow-list.
+- **Effort**: ~45 min including builder + orchestrator/test updates.
+- **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-043: External image fetch builder bypass risk in `VisualProvenanceManifest`
+
+- **Created**: 2026-05-07
+- **Source**: u24 visual-provenance-and-layout QA review (L3)
+- **Reference**: NFR-007 (R8 / R13 — secret hygiene), NFR-002 (no paid APIs / contract-only external image schema)
+- **Description**: `build_external_provenance` in `src/investo/visuals/provenance.py` is the single sanitize hook for the `external_image` source type today. The model's `field_validator("source_attribution", "generator", "version")` does run `sanitize_provenance_text` on construction, so direct `VisualProvenanceManifest.model_validate({...source_type: "external_image"...})` calls are still sanitized. The risk is that as the field set grows (a new `crawl_target_url`, `image_alt_text`, etc.), a future contributor may add a field that needs sanitization but only update `build_external_provenance`, leaving `model_validate` callers with the unsanitized field. Today the model fields are exhaustively listed in the validator tuple, but the convention is brittle.
+- **Suggested Fix**: Either (a) add a `model_validator(mode="after")` that asserts every string-typed user-/operator-derived field went through `sanitize_provenance_text` (e.g., by re-running it and comparing), or (b) document the rule in a docstring on `VisualProvenanceManifest` and add a test that walks all string-typed fields via `model_fields` and pins each one through `sanitize_provenance_text`. Option (b) is cheaper and equally robust.
+- **Effort**: ~20 min for option (b).
+- **Priority Reasoning**: Low — `model_validate` bypass is contract-only today (no caller exists), and the existing tuple-form `field_validator` covers every current field. The threat is field-set growth, not current behaviour.
+
+#### DEBT-035: Bot-token / chat-id redaction regex duplicated across `__main__` and `models/coverage`
+
+- **Created**: 2026-05-07
+- **Source**: u22 source-coverage-transparency QA review (L1)
+- **Reference**: NFR-007 (R13 — no secret values in logs / errors / raw_metadata / fixtures), NFR-005 (DRY constants across module boundaries)
+- **Description**: Two redaction regexes for the bot-token / chat-id shape live in two places with **non-identical** patterns:
+  - `src/investo/__main__.py::_redact_diagnostic_text` uses `\b\d{6,}:[A-Za-z0-9_-]{20,}\b`.
+  - `src/investo/models/coverage.py::sanitize_source_error_message` uses `(?<![\d:])\d{6,}:[A-Za-z0-9_-]{20,}(?![\w-])`.
+  The patterns differ on word-boundary handling (lookaround vs `\b`), so a borderline payload could be redacted by one site and not the other. Both layers exist in the public output path (Step Summary diagnostics + reader-facing source coverage), so silent drift on the redaction shape directly threatens R13.
+- **Suggested Fix**: Extract a shared helper module (e.g. `src/investo/_internal/redaction.py`) exporting `BOT_TOKEN_PATTERN`, `CHAT_ID_PATTERN`, and a `redact_secret_shapes(text: str) -> str` function. Both `__main__._redact_diagnostic_text` and `sanitize_source_error_message` call it. Pin the patterns in one place with regression tests for both call sites.
+- **Effort**: ~30 min including the shared module + 2 call-site updates + tests.
+- **Priority Reasoning**: Low — both patterns work correctly today on the observed shapes; the threat is pattern drift across future edits. Cheap to consolidate before another redaction site lands.
+
+#### DEBT-036: `_SECRET_ENV_VARS` set is wider than the `__main__._redact_diagnostic_text` literal list
+
+- **Created**: 2026-05-07
+- **Source**: u22 source-coverage-transparency QA review (L2)
+- **Reference**: NFR-007 (R13 — secret hygiene), NFR-005 (consistency)
+- **Description**: `_SECRET_ENV_VARS` covers 6 env vars (the canonical secret list), but `__main__._redact_diagnostic_text`'s in-line redacted-name set covers only 4. When a future contributor adds a new secret env var (e.g. an additional Telegram channel token, a new GH PAT), they may register it in `_SECRET_ENV_VARS` and forget to add it to `_redact_diagnostic_text`'s literal list, leaving Step Summary output exposed.
+- **Suggested Fix**: Make `_redact_diagnostic_text` iterate over `_SECRET_ENV_VARS` (or a curated subset) at runtime instead of a hard-coded literal list. Single source of truth for "names whose values must be scrubbed."
+- **Effort**: ~15 min including a regression test that adds a synthetic env var to `_SECRET_ENV_VARS` and asserts redaction.
+- **Priority Reasoning**: Low — current 6-vs-4 set is intentional today, but the duplication is a foot-gun for new-secret onboarding.
+
+#### DEBT-037: `_render_source_rows` silently truncates after 4 rows in SVG only
+
+- **Created**: 2026-05-07
+- **Source**: u22 source-coverage-transparency QA review (L3)
+- **Reference**: NFR-005 (UX consistency between markdown and visual artefacts)
+- **Description**: `src/investo/visuals/render.py::_render_source_rows` caps SVG source-row rendering at 4 entries and silently drops the rest. The corresponding markdown callout (in `src/investo/briefing/pipeline.py`) lists every source. When 5+ adapters fail in a segment, the SVG quietly hides the tail while markdown shows the full picture. Cosmetic today (the most-failed segment in tests has ≤4 sources), but a reader using only the SVG (e.g. on a device where the markdown is collapsed) misses information.
+- **Suggested Fix**: Either (a) widen the SVG to render up to 8 rows with a smaller font, (b) render the first N and append a `+M more` row when truncated, or (c) accept the cap and document it in `_render_source_rows`'s docstring with a `# truncated to keep first-viewport height` comment.
+- **Effort**: ~25 min for option (b) including a test that pins the `+M more` row.
+- **Priority Reasoning**: Low — markdown already carries the full information; this is a visual completeness improvement, not a correctness bug.
+
+#### DEBT-039: `CoverageReasonCode` Literal and `COVERAGE_REASON_LABELS` keys not pinned in sync by mypy
+
+- **Created**: 2026-05-07
+- **Source**: u22 source-coverage-transparency QA review (L7)
+- **Reference**: NFR-005 (consistency), NFR-006 (test robustness)
+- **Description**: `CoverageReasonCode` is a `Literal[...]` of allowed reason-code strings, and `COVERAGE_REASON_LABELS: dict[CoverageReasonCode, str]` carries the Korean label for each. Adding a new reason code to the Literal without adding its label to the dict raises only at runtime (when the missing key is first looked up), not at type-check time. Conversely, dropping a code from the Literal while leaving the dict entry behind passes mypy.
+- **Suggested Fix**: Either (a) add an `assert_never` branch in the labelling helper so an unhandled code raises at typecheck time, (b) add a runtime assertion at module import that `set(COVERAGE_REASON_LABELS.keys()) == set(get_args(CoverageReasonCode))`, or (c) replace the Literal + dict pair with a `StrEnum` whose members carry their Korean label as a class attribute.
+- **Effort**: ~20 min for option (b); ~45 min for option (c) including downstream call-site updates.
+- **Priority Reasoning**: Low — the pair is in sync today and the test suite indirectly covers every label via existing reason-callout assertions; this is contract hardening for future edits.
 
 #### DEBT-004: `_sanitize.py` depends on `bleach` (maintenance-mode)
 

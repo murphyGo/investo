@@ -6,6 +6,7 @@ from datetime import date
 
 from investo.visuals.cards import (
     DataConfidenceCardInput,
+    DataConfidenceSourceRow,
     MarketSnapshotCardInput,
     PriceSnapshotCardInput,
     PriceSnapshotRow,
@@ -32,6 +33,107 @@ def test_render_data_confidence_card_svg_has_fixed_dimensions_and_content() -> N
     assert f'height="{SVG_HEIGHT}"' in svg
     assert "국내 증시 데이터 신뢰도" in svg
     assert "정보 제공용 시황 카드" in svg
+
+
+def test_render_data_confidence_card_includes_reasons_and_source_rows() -> None:
+    card = DataConfidenceCardInput(
+        target_date=date(2026, 5, 7),
+        segment="us-equity",
+        coverage_status="partial",
+        item_count=2,
+        source_count=2,
+        missing_categories=("뉴스",),
+        reason_labels=("뉴스 카테고리 누락", "일부 소스 수집 실패"),
+        source_rows=(
+            DataConfidenceSourceRow(
+                source_name="fred-macro",
+                status="failed",
+                detail="connection reset",
+            ),
+            DataConfidenceSourceRow(
+                source_name="nasdaq-earnings-calendar",
+                status="zero",
+                detail="0건 반환",
+            ),
+            DataConfidenceSourceRow(
+                source_name="정상 2개",
+                status="ok",
+                detail="yfinance-price, yahoo-finance-news",
+            ),
+        ),
+    )
+
+    svg = render_card_svg(card)
+
+    assert "사유" in svg
+    assert "뉴스 카테고리 누락" in svg
+    assert "소스별 상태" in svg
+    assert "fred-macro" in svg
+    assert "connection reset" in svg
+    assert "nasdaq-earnings-calendar" in svg
+    assert "정상 2개" in svg
+
+
+def test_render_data_confidence_card_truncates_to_four_source_rows() -> None:
+    rows = tuple(
+        DataConfidenceSourceRow(
+            source_name=f"src-{i}",
+            status="failed",
+            detail=f"reason-{i}",
+        )
+        for i in range(6)
+    )
+    card = DataConfidenceCardInput(
+        target_date=date(2026, 5, 7),
+        segment="us-equity",
+        coverage_status="partial",
+        item_count=0,
+        source_count=0,
+        missing_categories=(),
+        reason_labels=(),
+        source_rows=rows[:6],
+    )
+
+    svg = render_card_svg(card)
+
+    # First four labels render; fifth onwards do not.
+    assert "src-0" in svg
+    assert "src-3" in svg
+    assert "src-4" not in svg
+    assert "src-5" not in svg
+
+
+def test_render_data_confidence_card_escapes_failure_reason() -> None:
+    """Defense-in-depth — even though sanitize_source_error_message
+    runs upstream, the renderer still HTML-escapes the detail field
+    so a future regression that lets a ``<`` through cannot break the
+    SVG document. Note: ``>`` (and other markdown tokens) are stripped
+    by ``_clean_visual_text`` before escaping, so we only assert ``<``
+    is escaped — that alone defeats element injection.
+    """
+    card = DataConfidenceCardInput(
+        target_date=date(2026, 5, 7),
+        segment="crypto",
+        coverage_status="insufficient",
+        item_count=0,
+        source_count=0,
+        missing_categories=(),
+        reason_labels=(),
+        source_rows=(
+            DataConfidenceSourceRow(
+                source_name="<script",
+                status="failed",
+                detail="boom <bad",
+            ),
+        ),
+    )
+
+    svg = render_card_svg(card)
+
+    assert "<script" not in svg.replace("</text>", "").replace("</svg>", "")
+    assert "&lt;script" in svg
+    assert "<bad" not in svg.replace("</text>", "").replace("</svg>", "")
+    assert "&lt;bad" in svg
 
 
 def test_render_market_snapshot_card_cleans_markdown_and_wraps_long_text() -> None:

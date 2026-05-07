@@ -198,7 +198,9 @@ def _success_segment_generate(calls: list[tuple[MarketSegment, int, bool]]) -> o
         runner: object,
         segment: MarketSegment,
         data_limited: bool,
+        source_outcomes: object = (),
     ) -> Briefing:
+        del source_outcomes  # u22 transparency hook — not asserted by these tests
         calls.append((segment, len(items), data_limited))
         return _briefing(target_date)
 
@@ -212,7 +214,9 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
         runner: object,
         segment: MarketSegment,
         data_limited: bool,
+        source_outcomes: object = (),
     ) -> Briefing:
+        del source_outcomes
         if segment == fail_segment:
             raise BriefingGenerationError(
                 stage="synthesis",
@@ -456,7 +460,9 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
         runner: object,
         segment: MarketSegment,
         data_limited: bool,
+        source_outcomes: object = (),
     ) -> Briefing:
+        del source_outcomes
         briefing = _briefing(target_date)
         if segment == US_EQUITY:
             return briefing.model_copy(

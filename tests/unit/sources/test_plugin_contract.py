@@ -154,6 +154,7 @@ def test_all_lists_exactly_the_public_surface() -> None:
         "FetchWindow",
         "SourceAdapter",
         "SourceFetchError",
+        "collect_sources",
         "fetch_all",
         "list_sources",
     }

@@ -60,6 +60,7 @@ from investo.briefing.segments import (
     MarketSegment,
     SegmentCoverage,
     build_segment_coverage,
+    segment_source_outcomes,
 )
 from investo.briefing.watchlist import (
     WatchlistConfig,
@@ -69,7 +70,7 @@ from investo.briefing.watchlist import (
     render_watchlist_impact,
     render_watchlist_prompt_context,
 )
-from investo.models import Briefing, NormalizedItem
+from investo.models import Briefing, NormalizedItem, SourceOutcome
 
 # Retry constants per FD R3.
 MAX_ATTEMPTS: Final[int] = 3
@@ -507,11 +508,56 @@ def _build_summary_header(sections: tuple[str, str, str, str, str, str]) -> Summ
 
 
 def _render_coverage_badge(coverage: SegmentCoverage) -> str:
-    return (
+    """Render the reader-facing coverage badge.
+
+    The badge is one or three blockquote lines:
+
+    * line 1 — status, item / source counts, missing categories
+    * line 2 (only when reason codes are present) — Korean labels for
+      every reason code in deterministic order
+    * line 3 (only when source outcomes are present) — sanitized
+      per-source breakdown (failed first, then zero) so readers can
+      see *which* source caused the partial / insufficient verdict.
+      Failure reasons go through
+      :func:`investo.models.sanitize_source_error_message` upstream and
+      are guaranteed not to leak secret-shaped tokens.
+    """
+    lines = [
         f"> **데이터 상태**: {coverage.status_label} — "
         f"수집 {coverage.item_count}건 / 소스 {coverage.source_count}개 / "
-        f"누락: {coverage.missing_category_label}\n"
-    )
+        f"누락: {coverage.missing_category_label}",
+    ]
+    if coverage.reason_codes:
+        lines.append(f"> **상세 사유**: {', '.join(coverage.reason_labels)}")
+    source_line = _render_source_outcome_line(coverage)
+    if source_line:
+        lines.append(f"> **소스별 상태**: {source_line}")
+    return "\n".join(lines) + "\n"
+
+
+def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
+    """Compose the per-source sanitized status line.
+
+    The composition is deterministic: failed sources first (with their
+    sanitized reason), then zero-item sources, then a concise count of
+    healthy sources. We omit individual healthy source names to keep
+    the line short — the reader-relevant signal is *what went wrong*,
+    not the full healthy adapter list.
+    """
+    failed = coverage.failed_source_outcomes
+    zero = coverage.zero_source_outcomes
+    ok = coverage.ok_source_outcomes
+    if not failed and not zero and not ok:
+        return ""
+    parts: list[str] = []
+    for outcome in failed:
+        reason = outcome.failure_reason or "사유 미확인"
+        parts.append(f"{outcome.source_name} 실패 ({reason})")
+    for outcome in zero:
+        parts.append(f"{outcome.source_name} 0건")
+    if ok:
+        parts.append(f"정상 {len(ok)}개")
+    return ", ".join(parts)
 
 
 def _render_watchlist_callout(impact: WatchlistImpact) -> str:
@@ -704,6 +750,7 @@ async def generate_briefing(
     segment: MarketSegment | None = None,
     data_limited: bool = False,
     watchlist_config: WatchlistConfig | None = None,
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -722,7 +769,14 @@ async def generate_briefing(
     if budget is None:
         budget = RetryBudget()
 
-    coverage = build_segment_coverage(segment, items) if segment is not None else None
+    if segment is not None:
+        # source_outcomes coming from the orchestrator span every
+        # registered adapter; the reader-facing coverage card only
+        # cares about adapters mapped to *this* segment.
+        relevant_outcomes = segment_source_outcomes(segment, source_outcomes)
+        coverage = build_segment_coverage(segment, items, source_outcomes=relevant_outcomes)
+    else:
+        coverage = None
     watchlist = load_watchlist() if watchlist_config is None else watchlist_config
     watchlist_impact = match_watchlist_items(items, watchlist)
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")

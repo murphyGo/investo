@@ -82,6 +82,7 @@ from investo.briefing.segments import (
     US_EQUITY,
     MarketSegment,
     segment_items,
+    segment_source_outcomes,
 )
 from investo.briefing.summary_quality import SummaryQualityError, validate_first_viewport_summary
 from investo.briefing.watchlist import load_watchlist, match_watchlist_items
@@ -93,6 +94,7 @@ from investo.models import (
     PipelineResult,
     PipelineStatus,
     SendResult,
+    SourceOutcome,
 )
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.notifier import (
@@ -120,7 +122,7 @@ from investo.publisher.site_index import (
     SITE_INDEX_PATH,
     update_latest_index_pages,
 )
-from investo.sources import fetch_all as _default_fetch_all
+from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 
 # Single ``HttpUrl`` adapter — pydantic v2 doesn't expose ``HttpUrl``
@@ -154,7 +156,14 @@ GenerateCallable = Callable[
     Awaitable[Briefing],
 ]
 SegmentGenerateCallable = Callable[
-    [date, Sequence[NormalizedItem], ClaudeRunner | None, MarketSegment, bool],
+    [
+        date,
+        Sequence[NormalizedItem],
+        ClaudeRunner | None,
+        MarketSegment,
+        bool,
+        Sequence[SourceOutcome],
+    ],
     Awaitable[Briefing],
 ]
 SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
@@ -188,6 +197,7 @@ async def _default_generate_segment_briefing(
     runner: ClaudeRunner | None,
     segment: MarketSegment,
     data_limited: bool,
+    source_outcomes: Sequence[SourceOutcome],
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
     return await _u2_generate_briefing(
@@ -196,6 +206,7 @@ async def _default_generate_segment_briefing(
         runner=runner,
         segment=segment,
         data_limited=data_limited,
+        source_outcomes=source_outcomes,
     )
 
 
@@ -203,7 +214,7 @@ async def _stage_collect(
     target_date: date,
     *,
     fetch: CollectCallable | None = None,
-) -> list[NormalizedItem]:
+) -> tuple[list[NormalizedItem], tuple[SourceOutcome, ...]]:
     """Run u1's source aggregator and gate on a non-empty result.
 
     Parameters
@@ -213,16 +224,23 @@ async def _stage_collect(
         .resolve_target_date`. Passed through to the aggregator.
     fetch:
         Override hook for tests. When ``None`` (production), wires to
-        :func:`investo.sources.fetch_all`. Tests inject a fake to avoid
-        spinning the real httpx client.
+        :func:`investo.sources.collect_sources` so the pipeline gets
+        per-adapter outcomes for u22 source-coverage transparency.
+        Tests may inject either:
+
+        * an items-only callable (legacy ``fetch_all`` shape) — outcomes
+          will be empty for that run, which is the correct backward-
+          compatible behavior;
+        * a ``collect_sources`` shape callable (returning a
+          :class:`investo.models.SourceCollectionReport`).
 
     Returns
     -------
-    list[NormalizedItem]
-        Non-empty union of items from all successful sources. Per-
-        source failures inside the aggregator are already swallowed
-        with a WARNING — see ``aggregator.fetch_all`` docstring + FD
-        L4 / NFR AC-3.5.
+    tuple[list[NormalizedItem], tuple[SourceOutcome, ...]]
+        Non-empty union of items, plus one outcome per registered
+        adapter (or ``()`` when the test seam returns items only).
+        Per-source failures inside the aggregator are already swallowed
+        with a WARNING — see ``aggregator.collect_sources`` docstring.
 
     Raises
     ------
@@ -231,11 +249,15 @@ async def _stage_collect(
         registered). ``run_pipeline`` catches this and routes to
         ``OperatorAlerter.alert(stage="collect")`` per AC-003-2.
     """
-    runner = fetch if fetch is not None else _default_fetch_all
-
     _logger.info("[collect] starting target_date=%s", target_date)
-    items = await runner(target_date)
-    _logger.info("[collect] returned %d items", len(items))
+    if fetch is not None:
+        items = await fetch(target_date)
+        outcomes: tuple[SourceOutcome, ...] = ()
+    else:
+        report = await _default_collect_sources(target_date)
+        items = list(report.items)
+        outcomes = report.outcomes
+    _logger.info("[collect] returned %d items outcomes=%d", len(items), len(outcomes))
 
     if not items:
         # Empty result is a hard failure — the briefing has nothing
@@ -244,7 +266,7 @@ async def _stage_collect(
         # ``target_date`` at the catch site.
         raise EmptyCollectError(f"aggregator returned 0 items for target_date={target_date}")
 
-    return items
+    return items, outcomes
 
 
 async def _stage_generate(
@@ -302,11 +324,16 @@ async def _stage_generate_segments(
     *,
     runner: ClaudeRunner | None = None,
     generate_segment: SegmentGenerateCallable | None = None,
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> dict[MarketSegment, Briefing]:
     """Generate all u7 market segments in fixed order.
 
     Any segment-level :class:`BriefingGenerationError` fails the whole
     generate stage so publish never commits a partial set.
+
+    ``source_outcomes`` (u22) is forwarded so each segment briefing can
+    annotate its coverage badge with reason codes / per-source verdicts.
+    Default ``()`` keeps legacy injected-fake call sites working.
     """
     runner_callable = (
         generate_segment if generate_segment is not None else _default_generate_segment_briefing
@@ -318,11 +345,13 @@ async def _stage_generate_segments(
     for segment in SEGMENT_ORDER:
         segment_source_items = routed.for_segment(segment)
         data_limited = routed.is_data_limited(segment)
+        segment_outcomes = segment_source_outcomes(segment, source_outcomes)
         _logger.info(
-            "[generate] segment=%s items=%d data_limited=%s",
+            "[generate] segment=%s items=%d data_limited=%s outcomes=%d",
             segment,
             len(segment_source_items),
             data_limited,
+            len(segment_outcomes),
         )
         briefings[segment] = await runner_callable(
             target_date,
@@ -330,6 +359,7 @@ async def _stage_generate_segments(
             runner,
             segment,
             data_limited,
+            segment_outcomes,
         )
 
     _logger.info("[generate] segmented briefings built target_date=%s", target_date)
@@ -507,6 +537,8 @@ async def _stage_prepare_segment_visual_assets(
     briefings: dict[MarketSegment, Briefing],
     items: Sequence[NormalizedItem],
     target_date: date,
+    *,
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
     """Generate visual assets and return briefings with relative image links."""
     routed = segment_items(items)
@@ -521,7 +553,10 @@ async def _stage_prepare_segment_visual_assets(
             target_date=target_date,
             segment=segment,
             items=segment_source_items,
-            coverage=routed.coverage_for_segment(segment),
+            coverage=routed.coverage_for_segment(
+                segment,
+                source_outcomes=source_outcomes,
+            ),
             watchlist_impact=match_watchlist_items(segment_source_items, watchlist_config),
         )
         prepared_briefings[segment] = prepared.briefing
@@ -826,7 +861,7 @@ async def run_pipeline(
     # ------------------------------------------------------------------
     stage_start = time.monotonic()
     try:
-        items = await _stage_collect(target_date, fetch=fetch)
+        items, source_outcomes = await _stage_collect(target_date, fetch=fetch)
     except EmptyCollectError as exc:
         stage_timings["collect"] = time.monotonic() - stage_start
         stages["collect"] = "failed: empty"
@@ -855,6 +890,7 @@ async def run_pipeline(
                 items,
                 runner=runner,
                 generate_segment=generate_segment,
+                source_outcomes=source_outcomes,
             )
             briefing = segment_briefings[DOMESTIC_EQUITY]
         else:
@@ -887,6 +923,7 @@ async def run_pipeline(
                 segment_briefings,
                 items,
                 target_date,
+                source_outcomes=source_outcomes,
             )
         except VisualAssetError as exc:
             visual_assets_failed = True

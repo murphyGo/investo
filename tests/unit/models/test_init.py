@@ -18,6 +18,11 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "TELEGRAM_MESSAGE_LIMIT",
         "Briefing",
         "BriefingNotification",
+        # coverage.py (u22)
+        "SourceCollectionReport",
+        "SourceOutcome",
+        "SourceStatus",
+        "sanitize_source_error_message",
         # results.py
         "FailureContext",
         "FailureStage",

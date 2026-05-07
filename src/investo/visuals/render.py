@@ -9,6 +9,7 @@ from typing import Final
 from investo.briefing.segments import SEGMENT_LABELS
 from investo.visuals.cards import (
     DataConfidenceCardInput,
+    DataConfidenceSourceRow,
     MarketSnapshotCardInput,
     PriceSnapshotCardInput,
     WatchlistRelevanceCardInput,
@@ -67,19 +68,68 @@ def wrap_visual_text(text: str, *, max_chars: int, max_lines: int) -> tuple[str,
     return tuple(lines)
 
 
+_SOURCE_STATUS_LABELS: Final[dict[str, str]] = {
+    "ok": "정상",
+    "zero": "0건",
+    "failed": "실패",
+}
+
+
 def _render_data_confidence(card: DataConfidenceCardInput) -> str:
     missing = ", ".join(card.missing_categories) if card.missing_categories else "없음"
+    reasons = ", ".join(card.reason_labels) if card.reason_labels else "없음"
     rows = [
         ("상태", card.coverage_status),
         ("수집", f"{card.item_count}건"),
         ("소스", f"{card.source_count}개"),
         ("누락", missing),
+        ("사유", reasons),
     ]
+    body_parts = [_metric_rows(rows)]
+    source_block = _render_source_rows(card.source_rows)
+    if source_block:
+        body_parts.append(source_block)
     return _svg_document(
         title=f"{SEGMENT_LABELS[card.segment]} 데이터 신뢰도",
         subtitle=card.target_date.isoformat(),
-        body=_metric_rows(rows),
+        body="\n".join(body_parts),
     )
+
+
+def _render_source_rows(rows: tuple[DataConfidenceSourceRow, ...]) -> str:
+    """Render the per-source verdict block in a right-side column.
+
+    The metric grid runs down the left half (x=90..520). The source
+    block lives in the right half (x=620..1140) so both can fit
+    comfortably above the disclaimer line at ``y=555``. Up to four
+    rows are visible; ``_build_data_confidence_source_rows`` orders
+    failed first, then zero, then a healthy summary, so the highest-
+    signal entries always survive truncation.
+    """
+    if not rows:
+        return ""
+    visible = rows[:4]
+    rendered: list[str] = []
+    rendered.append(
+        '<text x="620" y="200" font-family="Arial, sans-serif" font-size="22" '
+        'font-weight="700" fill="#476169">소스별 상태</text>'
+    )
+    for index, row in enumerate(visible):
+        label = _escape(_clean_visual_text(row.source_name))
+        status_label = _SOURCE_STATUS_LABELS.get(row.status, row.status)
+        detail = _clean_visual_text(row.detail) if row.detail else ""
+        value = f"{status_label} · {detail}" if detail else status_label
+        value_lines = wrap_visual_text(value, max_chars=44, max_lines=1)
+        y = 240 + index * 60
+        rendered.append(
+            f'<text x="620" y="{y}" font-family="Arial, sans-serif" font-size="20" '
+            f'font-weight="700" fill="#14555f">{label}</text>'
+        )
+        rendered.append(
+            f'<text x="620" y="{y + 26}" font-family="Arial, sans-serif" font-size="18" '
+            f'fill="#1d2b2f">{_escape(value_lines[0])}</text>'
+        )
+    return "\n".join(rendered)
 
 
 def _render_market_snapshot(card: MarketSnapshotCardInput) -> str:

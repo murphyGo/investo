@@ -50,12 +50,15 @@ def _make_fetch(
 @pytest.mark.asyncio
 async def test_stage_collect_returns_items_from_aggregator() -> None:
     """Happy path — fake aggregator returns 3 items; ``_stage_collect``
-    forwards them.
+    forwards them. The legacy items-only ``fetch=`` test seam yields
+    empty per-source outcomes (the u22 transparency surface only
+    populates when the production ``collect_sources`` path runs).
     """
     items = [_item("a"), _item("b"), _item("c")]
-    result = await _stage_collect(_TARGET, fetch=_make_fetch(items))
-    assert result == items
-    assert len(result) == 3
+    result_items, outcomes = await _stage_collect(_TARGET, fetch=_make_fetch(items))
+    assert result_items == items
+    assert len(result_items) == 3
+    assert outcomes == ()
 
 
 @pytest.mark.asyncio
@@ -83,8 +86,8 @@ async def test_stage_collect_partial_aggregator_result_returns_remaining() -> No
     # Simulate "3 sources registered, 2 succeeded, 1 failed and got
     # swallowed" by returning only 2 items.
     items = [_item("survivor-1"), _item("survivor-2")]
-    result = await _stage_collect(_TARGET, fetch=_make_fetch(items))
-    assert len(result) == 2
+    result_items, _outcomes = await _stage_collect(_TARGET, fetch=_make_fetch(items))
+    assert len(result_items) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -168,19 +171,28 @@ async def test_stage_collect_default_fetch_is_real_aggregator(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """When ``fetch=None`` (production path), ``_stage_collect`` calls
-    ``investo.sources.fetch_all``. Verify by monkeypatching that
+    ``investo.sources.collect_sources``. Verify by monkeypatching that
     binding inside the pipeline module and confirming it's invoked.
+    The u22 collect_sources contract returns a SourceCollectionReport
+    so the spy mirrors that shape.
     """
+    from investo.models import SourceCollectionReport, SourceOutcome
+
     called_with: list[date] = []
+    fake_outcome = SourceOutcome.ok("fake-src", "news", item_count=1)
 
-    async def _spy(target_date: date) -> list[NormalizedItem]:
+    async def _spy(target_date: date) -> SourceCollectionReport:
         called_with.append(target_date)
-        return [_item()]
+        return SourceCollectionReport(items=(_item(),), outcomes=(fake_outcome,))
 
-    monkeypatch.setattr("investo.orchestrator.pipeline._default_fetch_all", _spy, raising=True)
+    monkeypatch.setattr(
+        "investo.orchestrator.pipeline._default_collect_sources", _spy, raising=True
+    )
 
-    await _stage_collect(_TARGET)  # No fetch= override.
+    items, outcomes = await _stage_collect(_TARGET)  # No fetch= override.
     assert called_with == [_TARGET]
+    assert outcomes == (fake_outcome,)
+    assert len(items) == 1
 
 
 # ---------------------------------------------------------------------------

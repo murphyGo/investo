@@ -14,10 +14,10 @@ Preserve visual asset provenance and reduce first-viewport visual crowding in pu
 
 ## Definition of Done
 
-- [ ] External/AI images write provenance metadata without secrets.
-- [ ] Public markdown shows concise image provenance captions.
-- [ ] First viewport prefers one hero visual and moves secondary cards closer to relevant sections.
-- [ ] Corrupt or dimension-invalid images are rejected before publish.
+- [x] External/AI images write provenance metadata without secrets.
+- [x] Public markdown shows concise image provenance captions.
+- [x] First viewport prefers one hero visual and moves secondary cards closer to relevant sections.
+- [x] Corrupt or dimension-invalid images are rejected before publish.
 
 ---
 
@@ -25,16 +25,15 @@ Preserve visual asset provenance and reduce first-viewport visual crowding in pu
 
 ### Step 1 — Provenance Manifest
 
-- [ ] Define a visual manifest schema for AI, external, and generated SVG assets.
-- [ ] Write provenance files beside generated assets without secrets.
+- [x] Define a visual manifest schema for AI, external, and generated SVG assets.
+- [x] Write provenance files beside generated assets without secrets.
 
 ### Step 2 — Public Captions and Layout
 
-- [ ] Add concise captions for AI/external images.
-- [ ] Limit first-viewport images to a hero visual and reposition secondary cards.
+- [x] Add concise captions for AI/external images.
+- [x] Limit first-viewport images to a hero visual and reposition secondary cards.
 
 ### Step 3 — Verification
 
-- [ ] Add visual asset validation and layout tests.
-- [ ] Run targeted and full quality gates.
-
+- [x] Add visual asset validation and layout tests.
+- [x] Run targeted and full quality gates.

@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
-from investo.models import NormalizedItem
+from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
 from investo.sources._registry import list_sources
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
@@ -61,11 +61,33 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
     Returns a flat ``list[NormalizedItem]``. An empty list is a valid
     outcome — the orchestrator (not this unit) decides whether zero
     items means a pipeline failure (FD §E5 / NFR AC-3.5).
+
+    This is a thin wrapper over :func:`collect_sources` that drops the
+    per-adapter outcome report. Callers that need adapter-level success
+    / zero / failure detail (u22 source-coverage transparency) should
+    consume :func:`collect_sources` directly.
+    """
+    report = await collect_sources(target_date)
+    return list(report.items)
+
+
+async def collect_sources(target_date: date) -> SourceCollectionReport:
+    """Run every registered adapter concurrently and return a full report.
+
+    Same execution model as :func:`fetch_all` — concurrent fan-out, FD
+    R6 failure isolation, programmer-error propagation. The difference
+    is the return shape: callers get the union of items **plus** one
+    :class:`SourceOutcome` per registered adapter so downstream layers
+    (segment coverage, visual cards, public markdown) can reason about
+    which sources succeeded, returned zero, or failed.
+
+    Outcome ordering matches the registry order (deterministic) so the
+    same set of adapters always produces the same outcome sequence.
     """
 
     adapters = list_sources()
     if not adapters:
-        return []
+        return SourceCollectionReport(items=(), outcomes=())
 
     windows = {adapter.name: _window_for_adapter(target_date, adapter.name) for adapter in adapters}
 
@@ -76,6 +98,7 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
         )
 
     items: list[NormalizedItem] = []
+    outcomes: list[SourceOutcome] = []
     for adapter, result in zip(adapters, results, strict=True):
         if isinstance(result, SourceFetchError):
             # L5: one WARNING per failed adapter. We log the
@@ -97,6 +120,14 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
                     "transient": result.transient,
                 },
             )
+            outcomes.append(
+                SourceOutcome.from_failure(
+                    adapter.name,
+                    adapter.category,
+                    message=str(result),
+                    transient=result.transient,
+                )
+            )
             continue
         if isinstance(result, BaseException):
             # gather(return_exceptions=True) catches every BaseException
@@ -106,6 +137,17 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
             # behavior — adapters never silence non-source errors.
             raise result
         window = windows[adapter.name]
+        kept: list[NormalizedItem] = []
+        for item in result:
+            if item.published_at > window.end_utc + _MAX_FUTURE_PUBLISHED_AT:
+                _logger.warning(
+                    "source %s emitted future-dated item: published_at=%s target_date=%s",
+                    item.source_name,
+                    item.published_at.isoformat(),
+                    target_date,
+                )
+                continue
+            kept.append(item)
         _logger.info(
             "source returned source_name=%s category=%s item_count=%d "
             "window_start_utc=%s window_end_utc=%s",
@@ -122,17 +164,12 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
                 "window_end_utc": window.end_utc.isoformat(),
             },
         )
-        for item in result:
-            if item.published_at > window.end_utc + _MAX_FUTURE_PUBLISHED_AT:
-                _logger.warning(
-                    "source %s emitted future-dated item: published_at=%s target_date=%s",
-                    item.source_name,
-                    item.published_at.isoformat(),
-                    target_date,
-                )
-                continue
-            items.append(item)
-    return items
+        items.extend(kept)
+        if kept:
+            outcomes.append(SourceOutcome.ok(adapter.name, adapter.category, len(kept)))
+        else:
+            outcomes.append(SourceOutcome.zero(adapter.name, adapter.category))
+    return SourceCollectionReport(items=tuple(items), outcomes=tuple(outcomes))
 
 
 def _window_for_adapter(target_date: date, source_name: str) -> FetchWindow:
