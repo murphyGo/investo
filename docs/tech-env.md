@@ -11,6 +11,12 @@
 - **Anthropic API key 직접 사용 금지** (별도 요금 회피 — NFR-002)
 - 토큰은 GitHub Secrets로 주입
 
+### Visual AI Integration
+- **OpenAI Responses API image generation** — 선택 기능. `INVESTO_OPENAI_VISUALS=1` 및 `OPENAI_API_KEY`가 있을 때만 시황용 AI PNG를 생성한다.
+- 기본 mainline model은 `INVESTO_OPENAI_VISUAL_MODEL=gpt-5.5`, 이미지 tool model은 `INVESTO_OPENAI_IMAGE_TOOL_MODEL=gpt-image-1.5`로 두되 환경변수로 교체 가능하게 유지한다.
+- OpenAI 키가 없거나 API가 실패하면 기존 deterministic SVG 카드만 게시한다.
+- 실제 뉴스/회사 이미지를 긁어오지 않는다. 생성 프롬프트는 로고, 뉴스 사진, 저작권성 기사 이미지, 투자 조언 문구를 금지한다.
+
 ### Data Layer
 - **httpx** — async HTTP 클라이언트 (timeout/retry 친화적)
 - **pydantic v2** — 외부 API 응답 모델링·검증
@@ -54,6 +60,7 @@
   - `TELEGRAM_BRIEFING_CHANNEL_ID` (공개 시황 채널/그룹)
   - `TELEGRAM_OPERATOR_CHAT_ID` (운영자 1:1 실패 알림)
   - `SITE_URL_BASE` (GitHub Pages base URL; 예: `https://murphygo.github.io/investo`)
+  - `OPENAI_API_KEY` (선택: AI 시황 이미지 생성)
   - 데이터 소스 API key (사용 시)
 
 ## Existing Systems
@@ -63,6 +70,7 @@
 ## Technical Constraints
 
 - LLM 호출은 Claude Code CLI로만 (Anthropic SDK 직접 호출 금지)
+- OpenAI 이미지 생성은 선택 기능이며, 실패 시 deterministic SVG fallback을 유지해야 함
 - 일 1회 배치 (실시간 아님)
 - GitHub Actions 단일 job 실행 시간 한도 (≤ 10분 NFR-001)
 - 무료 데이터 소스의 rate limit 및 안정성 한계

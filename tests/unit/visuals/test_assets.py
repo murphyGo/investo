@@ -20,6 +20,7 @@ from investo.visuals.assets import (
 )
 
 _TARGET = date(2026, 5, 7)
+_PNG_BYTES = b"\x89PNG\r\n\x1a\n" + (b"\0" * 128)
 
 
 def _briefing() -> Briefing:
@@ -130,6 +131,64 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
     assert archive_path(_TARGET, segment="us-equity").parent == (
         tmp_path / "archive/us-equity/2026/05"
     )
+
+
+def test_prepare_segment_visual_assets_can_prepend_openai_png(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
+    monkeypatch.setattr(
+        "investo.visuals.assets.generate_openai_visual",
+        lambda *_args, **_kwargs: _PNG_BYTES,
+    )
+    items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
+    coverage = build_segment_coverage("us-equity", items)
+    impact = match_watchlist_items(items, WatchlistConfig(tickers=("NVDA",)))
+
+    prepared = prepare_segment_visual_assets(
+        _briefing(),
+        target_date=_TARGET,
+        segment="us-equity",
+        items=items,
+        coverage=coverage,
+        watchlist_impact=impact,
+    )
+
+    assert prepared.asset_paths[0].name == "ai-market-hero.png"
+    assert prepared.asset_paths[0].read_bytes() == _PNG_BYTES
+    assert "![AI 시황 이미지](2026-05-07.assets/ai-market-hero.png)" in (
+        prepared.briefing.rendered_markdown
+    )
+    assert prepared.briefing.rendered_markdown.index("ai-market-hero.png") < (
+        prepared.briefing.rendered_markdown.index("data-confidence.svg")
+    )
+
+
+def test_prepare_segment_visual_assets_falls_back_when_openai_png_is_invalid(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
+    monkeypatch.setattr(
+        "investo.visuals.assets.generate_openai_visual",
+        lambda *_args, **_kwargs: b"not-png",
+    )
+    items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
+    coverage = build_segment_coverage("us-equity", items)
+    impact = match_watchlist_items(items, WatchlistConfig(tickers=("NVDA",)))
+
+    prepared = prepare_segment_visual_assets(
+        _briefing(),
+        target_date=_TARGET,
+        segment="us-equity",
+        items=items,
+        coverage=coverage,
+        watchlist_impact=impact,
+    )
+
+    assert all(path.suffix == ".svg" for path in prepared.asset_paths)
+    assert "ai-market-hero.png" not in prepared.briefing.rendered_markdown
 
 
 def test_validate_visual_asset_rejects_missing_or_blank_svg(tmp_path: Path) -> None:

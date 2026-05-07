@@ -19,6 +19,11 @@ from investo.visuals.cards import (
     build_price_snapshot_card,
     build_watchlist_relevance_card,
 )
+from investo.visuals.openai_image import (
+    OpenAIVisualConfig,
+    generate_openai_visual,
+    load_openai_visual_config,
+)
 from investo.visuals.paths import visual_asset_dir, visual_asset_path, visual_asset_relative_path
 from investo.visuals.policy import (
     EXTERNAL_IMAGE_SCRAPING_ENABLED,
@@ -37,6 +42,7 @@ __all__ = [
     "ExternalAssetManifest",
     "ExternalAssetPolicyError",
     "MarketSnapshotCardInput",
+    "OpenAIVisualConfig",
     "PreparedVisualAssets",
     "PriceSnapshotCardInput",
     "PriceSnapshotRow",
@@ -47,7 +53,9 @@ __all__ = [
     "build_data_confidence_card",
     "build_price_snapshot_card",
     "build_watchlist_relevance_card",
+    "generate_openai_visual",
     "insert_visual_links",
+    "load_openai_visual_config",
     "prepare_segment_visual_assets",
     "render_card_svg",
     "validate_visual_asset",
