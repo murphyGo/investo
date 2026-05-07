@@ -76,6 +76,8 @@ _STAGE1_STDOUT_MAX_BYTES: Final[int] = 64 * 1024
 
 # Closed set of section IDs that Stage 1 may assign to (FD R10).
 _VALID_SECTION_IDS: Final[frozenset[int]] = frozenset({2, 3, 4, 5})
+_MAX_LLM_ITEMS: Final[int] = 96
+_MAX_LLM_ITEMS_PER_SOURCE: Final[int] = 24
 _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "domestic-equity": "국내 증시",
     "us-equity": "미국 증시",
@@ -147,6 +149,29 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
         for idx, item in enumerate(items, start=1)
     ]
     return json.dumps(payload, ensure_ascii=False)
+
+
+def _select_llm_candidate_items(items: Sequence[NormalizedItem]) -> tuple[NormalizedItem, ...]:
+    """Bound the item set sent to Claude while preserving source diversity.
+
+    Public feeds can occasionally return hundreds of low-signal rows
+    from one adapter, especially earnings calendars. The briefing only
+    needs representative evidence; uncapped inputs can exhaust the LLM
+    timeout/budget before any user-facing market note is produced.
+    """
+    selected: list[NormalizedItem] = []
+    per_source_counts: dict[str, int] = {}
+
+    for item in items:
+        source_count = per_source_counts.get(item.source_name, 0)
+        if source_count >= _MAX_LLM_ITEMS_PER_SOURCE:
+            continue
+        selected.append(item)
+        per_source_counts[item.source_name] = source_count + 1
+        if len(selected) >= _MAX_LLM_ITEMS:
+            break
+
+    return tuple(selected)
 
 
 def _extract_braced_object(text: str, start: int) -> str | None:
@@ -661,13 +686,14 @@ async def generate_briefing(
         )
 
     segment_context = _render_segment_context(segment, data_limited=data_limited)
+    llm_items = _select_llm_candidate_items(items)
     classification = await _classify(
-        items,
+        llm_items,
         runner=runner,
         budget=budget,
         segment_context=segment_context,
     )
-    plan = build_section_plan(items, classification, target_date)
+    plan = build_section_plan(llm_items, classification, target_date)
     body_markdown = await _synthesize(
         plan,
         runner=runner,

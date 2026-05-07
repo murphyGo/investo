@@ -25,6 +25,7 @@ from investo.briefing.pipeline import (
     SectionPlan,
     _parse_classification,
     _render_grouped_sections,
+    _select_llm_candidate_items,
     build_section_plan,
     parse_six_sections,
     serialize_items_for_prompt,
@@ -129,6 +130,32 @@ def test_serialize_renders_published_at_as_utc_isoformat() -> None:
     payload = json.loads(serialize_items_for_prompt([item]))
 
     assert payload[0]["ts"] == "2026-04-25T15:00:00+00:00"
+
+
+def test_select_llm_candidate_items_caps_one_noisy_source() -> None:
+    items = [
+        _item(source_name="nasdaq-earnings-calendar", title=f"earnings-{idx}") for idx in range(30)
+    ]
+    items.append(_item(source_name="yahoo-finance-news", title="market news"))
+
+    selected = _select_llm_candidate_items(items)
+
+    assert len(selected) == 25
+    assert [item.title for item in selected[:24]] == [f"earnings-{idx}" for idx in range(24)]
+    assert selected[-1].source_name == "yahoo-finance-news"
+
+
+def test_select_llm_candidate_items_caps_total_size() -> None:
+    items = [
+        _item(source_name=f"source-{source_idx}", title=f"{source_idx}-{item_idx}")
+        for source_idx in range(10)
+        for item_idx in range(24)
+    ]
+
+    selected = _select_llm_candidate_items(items)
+
+    assert len(selected) == 96
+    assert selected[-1].title == "3-23"
 
 
 def test_serialize_byte_exact_snapshot_for_fixture_hash_stability() -> None:

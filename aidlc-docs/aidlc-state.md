@@ -30,8 +30,8 @@
 | NFR Requirements | ✅ Complete | 2026-04-30 |
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
-| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07; u8 source-window correction closed 2026-05-07; u9 reader-experience slice closed 2026-05-07; u10 source diagnostics slice closed 2026-05-07; u11 HTTP identity-encoding slice closed 2026-05-07; u12 Claude stdin-prompt slice closed 2026-05-07 | 2026-05-07 |
-| Build and Test | ✅ Complete — re-verified after u12 Claude stdin-prompt follow-up on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 975/975, mkdocs build --strict ✅ | 2026-05-07 |
+| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07; u8 source-window correction closed 2026-05-07; u9 reader-experience slice closed 2026-05-07; u10 source diagnostics slice closed 2026-05-07; u11 HTTP identity-encoding slice closed 2026-05-07; u12 Claude stdin-prompt slice closed 2026-05-07; u13 LLM input candidate cap slice closed 2026-05-07 | 2026-05-07 |
+| Build and Test | ✅ Complete — re-verified after u13 LLM input candidate cap follow-up on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 977/977, mkdocs build --strict ✅ | 2026-05-07 |
 
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
@@ -49,6 +49,7 @@
 | u10 source coverage diagnostics | ⏭️ SKIP (observability correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (5/5) | Follow-up operations slice for FR-001/FR-008: aggregator logs per-source `source returned` INFO records with source name, category, item count, and applied UTC window so GHA can distinguish HTTP-success-zero-items from source failures. GHA plain-text logs now render those fields directly, while structured `extra` fields remain available for future log processors. |
 | u11 HTTP identity encoding | ⏭️ SKIP (transport hardening correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up operations slice from GHA source diagnostics: `retry_get` now requests `Accept-Encoding: identity` by default so public JSON/RSS endpoints avoid broken compression negotiation in GitHub Actions, while preserving adapter-provided headers and explicit encoding overrides. |
 | u12 Claude stdin prompt | ⏭️ SKIP (LLM runner hardening correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up operations slice from recovered source volume: `call_claude_code` now invokes `claude -p` with the prompt on stdin instead of argv, avoiding OS argument-length failures when a segment has hundreds of collected items. |
+| u13 LLM input candidate cap | ⏭️ SKIP (LLM input hardening correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up operations slice from recovered source volume: briefing generation now caps LLM candidates to 96 total and 24 per source before classification, preventing one high-volume source such as the earnings calendar from exhausting Claude's timeout budget while preserving cross-source evidence. |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |
