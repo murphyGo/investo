@@ -86,6 +86,28 @@
 
 ---
 
+## Post-MVP Quality Review Follow-Up Units
+
+Five-reader quality review on 2026-05-07 generated the following follow-up units. These are not new base stories; they refine existing FR/US/NFR coverage based on actual reader/operator experience.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u14 summary-quality-contract | First-viewport summary trust | FR-002, FR-003, FR-008 | u4 notifier summary reuse |
+| u15 coverage-confidence-badges | Reader-visible source coverage and confidence | FR-001, FR-002, FR-008, NFR-003 | u10 diagnostics |
+| u16 public-site-discovery | Latest segmented briefing discovery and docs drift | FR-003, FR-006, FR-008 | u3 publisher, u6 MkDocs |
+| u17 operations-visibility | Partial-success operator awareness | FR-004, FR-005, FR-007, NFR-003 | u5 orchestrator |
+| u18 watchlist-relevance | Personal relevance for the primary user | FR-002, FR-004, FR-008 | future portfolio/company-analysis extension |
+
+### Follow-Up Priority
+
+1. **u14 summary-quality-contract** — fixes visible broken text in the briefing header.
+2. **u15 coverage-confidence-badges** — makes data limitations explicit before users trust the narrative.
+3. **u16 public-site-discovery** — aligns the public site with the segmented product and latest archive flow.
+4. **u17 operations-visibility** — makes partial failures visible to the one-person operator.
+5. **u18 watchlist-relevance** — adds product relevance after the reliability and trust surface is stable.
+
+---
+
 ## Definition of Done — Inception Phase Output
 
 이 매핑이 다음 단계(Construction)의 입력입니다:

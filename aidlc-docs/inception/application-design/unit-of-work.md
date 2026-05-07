@@ -274,6 +274,132 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 
 ---
 
+## u14: `summary-quality-contract` — Stable Reader Summary Header
+
+**Purpose**: 세그먼트 문서 상단의 "오늘의 결론 / 핵심 동인 / 주의할 점"을 본문 markdown에서 거칠게 추출하지 않고, 독립적으로 검증 가능한 요약 계약으로 만든다. 현재 샘플에서 `주의할 점: 1.` 또는 markdown 강조가 잘린 문장이 노출되는 문제를 제거한다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-003 (정적 웹 게시), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `src/investo/briefing/pipeline.py` — summary header generation and validation
+- `src/investo/briefing/prompts.py` — optional structured summary prompt contract
+- `src/investo/notifier/summary.py` — Telegram one-line summary source reuse, if applicable
+
+**Tests**:
+- `tests/unit/briefing/` — markdown stripping, numbered-list handling, malformed-summary fallback
+- `tests/unit/notifier/` — segmented summary uses stable per-segment summary text
+
+**Definition of Done**:
+- [ ] Header summary no longer emits bare list markers such as `1.` as caution text.
+- [ ] Markdown emphasis/link syntax is stripped or rendered cleanly in header fields.
+- [ ] `conclusion`, `driver`, and `risk/caution` are bounded, non-empty, and independently testable.
+- [ ] Data-limited segments produce conservative summary fields without directional overstatement.
+- [ ] Existing 7-section markdown and disclaimer contracts remain unchanged.
+
+---
+
+## u15: `coverage-confidence-badges` — Data Coverage and Confidence UX
+
+**Purpose**: 독자가 각 세그먼트의 신뢰도를 즉시 판단할 수 있도록, 수집 커버리지와 결측 카테고리를 briefing 산출물에 노출한다. "데이터 부족"과 "강한 시장 해석"이 한 문서 안에서 충돌하지 않도록 생성 전/후 품질 게이트를 강화한다.
+
+**Stories**: FR-001 (데이터 수집), FR-002 (AI 시황 작성), FR-008 (세그먼트별 시황 생성), NFR-003 (Reliability)
+
+**Module path**:
+- `src/investo/sources/aggregator.py` or new diagnostics model — source/category item counts
+- `src/investo/briefing/segments.py` — segment coverage thresholds and required categories
+- `src/investo/briefing/pipeline.py` — render coverage badge/table and enforce data-limited wording
+
+**Tests**:
+- `tests/unit/sources/` — source success vs zero-result coverage summary
+- `tests/unit/briefing/` — normal/partial/insufficient coverage rendering and prompt constraints
+- `tests/integration/test_pipeline.py` — archived briefing includes coverage status per segment
+
+**Definition of Done**:
+- [ ] Each segment exposes `normal`, `partial`, or `insufficient` coverage status.
+- [ ] Briefing top matter lists successful sources and missing core categories.
+- [ ] `partial` and `insufficient` segments use conservative wording and do not imply full-market coverage.
+- [ ] Coverage status is available to Telegram summary generation.
+- [ ] Source failure and HTTP-success-zero-items remain distinguishable.
+
+---
+
+## u16: `public-site-discovery` — Latest Briefing and Archive Navigation
+
+**Purpose**: GitHub Pages 독자와 공유받은 사용자가 최신 세그먼트 시황을 바로 찾을 수 있게 홈/About/Archive를 현재 세그먼트 구조와 동기화한다. 오래된 단일 archive 경로 설명과 FOMC-only source 설명의 드리프트를 제거한다.
+
+**Stories**: FR-003 (정적 웹 게시), FR-006 (영구 이력 보관), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `site_docs/index.md` — latest briefing entry point
+- `site_docs/about.md` — current source coverage and limitations
+- `archive/index.md` or publisher helper — latest date and segment links
+- `src/investo/publisher/` — optional archive index update during publish
+
+**Tests**:
+- `tests/unit/publisher/` — archive index/latest-link generation if automated
+- `uv run mkdocs build --strict` — site nav and links validate
+
+**Definition of Done**:
+- [ ] Archive landing page reflects `archive/{segment}/YYYY/MM/YYYY-MM-DD.md`.
+- [ ] Latest domestic/us/crypto briefing links are visible without relying on sidebar discovery.
+- [ ] Home and About describe all three segments and current data-source coverage accurately.
+- [ ] Legacy single-briefing archive remains discoverable.
+- [ ] MkDocs strict build passes with the updated navigation/content.
+
+---
+
+## u17: `operations-visibility` — Partial Success and Run Diagnostics
+
+**Purpose**: 운영자 관점에서 "게시 성공, 공개 Telegram 알림 실패" 같은 partial 상태가 조용히 묻히지 않게 한다. GitHub Actions 초록색 run에서도 운영자가 필요한 실패/진단 정보를 확인할 수 있도록 summary 또는 artifact를 남긴다.
+
+**Stories**: FR-004 (텔레그램 시황 채널 알림), FR-007 (운영자 실패 알림), FR-005 (스케줄 실행), NFR-003 (Reliability)
+
+**Module path**:
+- `src/investo/orchestrator/pipeline.py` — partial status metadata
+- `src/investo/__main__.py` — GitHub Step Summary or diagnostics output
+- `src/investo/notifier/operator_alerter.py` — optional partial alert path
+- `scripts/` — optional `investo doctor` or diagnostic helper
+
+**Tests**:
+- `tests/unit/orchestrator/` — partial notify failure carries actionable metadata
+- `tests/unit/notifier/` — operator partial alert formatting, if implemented
+- `tests/unit/orchestrator/` or script tests — diagnostics summary output
+
+**Definition of Done**:
+- [ ] Public-channel notification failure is visible to the operator even when publishing succeeds.
+- [ ] Pipeline result exposes stage timings, briefing URLs, and notify error context.
+- [ ] GitHub Actions can surface a concise run summary without scraping logs.
+- [ ] Existing successful and failed pipeline exit-code contracts remain intentional and documented.
+- [ ] Sensitive tokens and chat IDs are redacted in operator-facing diagnostics.
+
+---
+
+## u18: `watchlist-relevance` — Personal Relevance Layer
+
+**Purpose**: Investo를 일반 시장 요약에서 1인 투자자의 실제 아침 루틴으로 끌어올린다. 관심 티커/코인/섹터/키워드 설정을 받아 "내 관심 자산에 미치는 영향"을 우선 표시한다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-004 (텔레그램 시황 채널 알림), FR-008 (세그먼트별 시황 생성), future extension from IDEA.md (포트폴리오/기업 분석 토대)
+
+**Module path**:
+- `src/investo/briefing/` — watchlist context injection and relevance summary
+- `src/investo/models/` — optional watchlist config model
+- `src/investo/notifier/summary.py` — watchlist-impact line in Telegram summary
+- `config/` or repository-root config file — non-secret watchlist settings
+
+**Tests**:
+- `tests/unit/briefing/` — watchlist matching, prompt context, no-match fallback
+- `tests/unit/notifier/` — Telegram summary includes watchlist impact without exceeding limits
+- `tests/unit/models/` — watchlist config validation if a model is introduced
+
+**Definition of Done**:
+- [ ] A simple non-secret watchlist config can define tickers, crypto assets, sectors, and keywords.
+- [ ] Briefing generation highlights relevant collected items before generic market narrative.
+- [ ] No-match days are handled cleanly without inventing impact.
+- [ ] Telegram summary can surface the most important watchlist impact or state that none was found.
+- [ ] The feature does not introduce accounts, paid data sources, automatic trading, or portfolio accounting.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
