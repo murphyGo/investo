@@ -115,6 +115,11 @@ from investo.publisher import (
 from investo.publisher import (
     archive_path as compute_archive_path,
 )
+from investo.publisher.site_index import (
+    ARCHIVE_INDEX_PATH,
+    SITE_INDEX_PATH,
+    update_latest_index_pages,
+)
 from investo.sources import fetch_all as _default_fetch_all
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 
@@ -465,6 +470,7 @@ async def _stage_publish_segments(
             raise PublisherDisclaimerError(target_date=target_date)
 
     try:
+        index_paths: tuple[Path, ...] = ()
         for segment in SEGMENT_ORDER:
             archive_path = await asyncio.to_thread(
                 write_briefing,
@@ -474,6 +480,14 @@ async def _stage_publish_segments(
             )
             archive_paths[segment] = archive_path
             _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
+        if all(not path.is_absolute() for path in archive_paths.values()):
+            snapshots.update(
+                {
+                    SITE_INDEX_PATH: _read_existing_bytes(SITE_INDEX_PATH),
+                    ARCHIVE_INDEX_PATH: _read_existing_bytes(ARCHIVE_INDEX_PATH),
+                }
+            )
+            index_paths = await asyncio.to_thread(update_latest_index_pages, target_date)
     except (PublisherDisclaimerError, PublisherIOError):
         _rollback_paths(snapshots)
         raise
@@ -482,7 +496,7 @@ async def _stage_publish_segments(
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
-        [*archive_paths.values(), *asset_paths],
+        [*archive_paths.values(), *asset_paths, *index_paths],
         runner=git_runner,
     )
     _logger.info("[publish] committed + pushed segmented %s", target_date)

@@ -14,10 +14,10 @@ Make the public site and archive index reliably point to the latest segmented br
 
 ## Definition of Done
 
-- [ ] Latest domestic/us/crypto links are generated or updated automatically.
-- [ ] Legacy single briefing archive entries are clearly labeled as legacy or moved out of the primary path.
-- [ ] Stale hard-coded latest dates are prevented by tests.
-- [ ] MkDocs strict build remains green.
+- [x] Latest domestic/us/crypto links are generated or updated automatically.
+- [x] Legacy single briefing archive entries are clearly labeled as legacy or moved out of the primary path.
+- [x] Stale hard-coded latest dates are prevented by tests.
+- [x] MkDocs strict build remains green.
 
 ---
 
@@ -25,18 +25,17 @@ Make the public site and archive index reliably point to the latest segmented br
 
 ### Step 1 — Discovery Contract
 
-- [ ] Identify the canonical latest segmented archive source.
-- [ ] Define how Home and Archive pages should represent latest vs legacy content.
-- [ ] Add tests for latest-link rendering.
+- [x] Identify the canonical latest segmented archive source.
+- [x] Define how Home and Archive pages should represent latest vs legacy content.
+- [x] Add tests for latest-link rendering.
 
 ### Step 2 — Publish Integration
 
-- [ ] Update publish flow or a helper script to refresh latest index content.
-- [ ] Ensure generated site/index changes are staged with briefing archive commits.
-- [ ] Keep legacy links visible but clearly labeled.
+- [x] Update publish flow or a helper script to refresh latest index content.
+- [x] Ensure generated site/index changes are staged with briefing archive commits.
+- [x] Keep legacy links visible but clearly labeled.
 
 ### Step 3 — Verification
 
-- [ ] Run targeted site/publisher tests.
-- [ ] Run full quality gate and `mkdocs build --strict`.
-
+- [x] Run targeted site/publisher tests.
+- [x] Run full quality gate and `mkdocs build --strict`.

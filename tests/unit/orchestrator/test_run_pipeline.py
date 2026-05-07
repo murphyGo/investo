@@ -539,6 +539,53 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
 
 
 @pytest.mark.asyncio
+async def test_stage_publish_segments_stages_latest_index_pages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    git = _SuccessfulGitRunner()
+    index_paths = (Path("site_docs/index.md"), Path("archive/index.md"))
+
+    def fake_archive_path(target_date: date, *, segment: MarketSegment | None = None) -> Path:
+        assert segment is not None
+        return Path("archive") / segment / "2026" / "04" / "2026-04-27.md"
+
+    def fake_write_briefing(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert segment is not None
+        return fake_archive_path(target_date, segment=segment)
+
+    def fake_update_latest_index_pages(target_date: date) -> tuple[Path, ...]:
+        assert target_date == _TARGET
+        return index_paths
+
+    monkeypatch.setattr(pipeline_module, "compute_archive_path", fake_archive_path)
+    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+    monkeypatch.setattr(
+        pipeline_module,
+        "update_latest_index_pages",
+        fake_update_latest_index_pages,
+    )
+    monkeypatch.setattr(pipeline_module, "_read_existing_bytes", lambda path: b"previous")
+
+    await pipeline_module._stage_publish_segments(
+        {
+            DOMESTIC_EQUITY: _briefing(),
+            US_EQUITY: _briefing(),
+            CRYPTO: _briefing(),
+        },
+        _TARGET,
+        git_runner=git,
+    )
+
+    assert any("site_docs/index.md" in call for call in git.calls)
+    assert any("archive/index.md" in call for call in git.calls)
+
+
+@pytest.mark.asyncio
 async def test_run_pipeline_segmented_summary_build_failure_yields_partial(
     archive_root: Path,
     monkeypatch: pytest.MonkeyPatch,
