@@ -125,6 +125,11 @@ _HTTP_URL_ADAPTER = TypeAdapter(HttpUrl)
 _logger = logging.getLogger("investo.orchestrator.pipeline")
 _ALERT_DELIVERY_ATTEMPTS = 2
 
+
+class NotifyDeliveryError(RuntimeError):
+    """Public briefing notification failed after publish succeeded."""
+
+
 # Type alias for the callable shape of u1's ``fetch_all``. Captures the
 # surface ``run_pipeline`` and ``_stage_collect`` depend on without
 # importing a class — u1's aggregator is module-level (not a class)
@@ -927,7 +932,8 @@ async def run_pipeline(
     )
 
     # ------------------------------------------------------------------
-    # NOTIFY (AC-003-6 + AC-003-8 — no operator alert; PARTIAL is the signal)
+    # NOTIFY (AC-003-6 + AC-003-8 — notify failure remains PARTIAL, but is
+    # operator-visible because the public channel did not receive the briefing.)
     # ------------------------------------------------------------------
     stage_start = time.monotonic()
     if segmented_mode:
@@ -950,6 +956,11 @@ async def run_pipeline(
     else:
         stages["notify_briefing"] = f"failed: {notify_result.error}"
         status = PipelineStatus.PARTIAL
+        await _safe_alert(
+            alerter,
+            "notify_briefing",
+            NotifyDeliveryError(notify_result.error or "public briefing notification failed"),
+        )
 
     return _build_result(
         target_date=target_date,
@@ -1034,5 +1045,6 @@ def _build_result(
 
 
 __all__ = [
+    "NotifyDeliveryError",
     "run_pipeline",
 ]

@@ -512,7 +512,9 @@ async def test_run_pipeline_segmented_summary_build_failure_yields_partial(
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"].startswith("failed: segmented summary build failed")
     assert publisher.calls == []
-    assert alerter.calls == []
+    assert len(alerter.calls) == 1
+    assert alerter.calls[0].stage == "notify_briefing"
+    assert alerter.calls[0].error_type == "NotifyDeliveryError"
     assert "push" in [call[1] for call in git.calls]
 
 
@@ -806,17 +808,18 @@ async def test_run_pipeline_git_push_failure_fails_with_alert(
 
 
 # ---------------------------------------------------------------------------
-# AC-003-6 + AC-003-8 — notify fail → PARTIAL with NO operator alert
+# AC-003-6 + AC-003-8 — notify fail → PARTIAL with operator visibility
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_notify_failure_yields_partial_no_alert(
+async def test_run_pipeline_notify_failure_yields_partial_and_alerts_operator(
     archive_root: Path,
 ) -> None:
-    """Publish succeeds, notify_briefing fails → PARTIAL.
-    NO operator alert (per AC-003-6 — PARTIAL is the visibility signal).
-    briefing_url IS set (publish succeeded).
+    """Publish succeeds, notify_briefing fails → PARTIAL and operator alert.
+
+    The exit-code contract still treats PARTIAL as non-fatal, but the
+    operator must see that the public channel did not receive the briefing.
     """
     publisher = _FakePublisher(result=SendResult(ok=False, error="rate limited"))
     alerter = _FakeAlerter()
@@ -835,8 +838,10 @@ async def test_run_pipeline_notify_failure_yields_partial_no_alert(
     assert result.briefing_url is not None
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"].startswith("failed: rate limited")
-    # NO operator alert on PARTIAL.
-    assert alerter.calls == []
+    assert len(alerter.calls) == 1
+    assert alerter.calls[0].stage == "notify_briefing"
+    assert alerter.calls[0].error_type == "NotifyDeliveryError"
+    assert "rate limited" in alerter.calls[0].error_message
 
 
 # ---------------------------------------------------------------------------

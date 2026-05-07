@@ -67,6 +67,7 @@ _WATCHLIST_LINE_RE: Final[re.Pattern[str]] = re.compile(
     re.MULTILINE,
 )
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
+_MARKDOWN_LINK_WITH_URL_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\(([^)]+)\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
 _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
@@ -146,17 +147,19 @@ def build_segmented_summary(
 ) -> str:
     """Build one Telegram message with all segment summaries and links.
 
-    The three URLs are part of the fixed footer and are always
-    preserved; segment summary lines are truncated first if needed.
+    The three URLs are repeated in the segment blocks and the fixed
+    footer. The footer is always preserved; segment summary lines are
+    truncated first if needed.
     """
     target_date = briefings[DOMESTIC_EQUITY].target_date
     ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
     header = f"📈 {target_date.isoformat()} 데일리 시황\n\n"
-    footer = "\n\n상세보기:\n" + "\n".join(
+    footer = "\n\n링크 모음:\n" + "\n".join(
         f"• {SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in ordered_segments
     )
     body = "\n\n".join(
-        _segment_summary_block(segment, briefings[segment]) for segment in ordered_segments
+        _segment_summary_block(segment, briefings[segment], site_urls[segment])
+        for segment in ordered_segments
     )
 
     fixed_units = _utf16_units(header) + _utf16_units(footer)
@@ -176,10 +179,27 @@ def build_segmented_summary(
     return header + truncated + _TRUNCATION_SUFFIX + footer
 
 
-def _segment_summary_block(segment: MarketSegment, briefing: Briefing) -> str:
+def plain_text_summary(markdown_summary: str) -> str:
+    """Return a readable plain-text fallback for a Markdown-formatted summary."""
+    text = _MARKDOWN_LINK_WITH_URL_RE.sub(r"\1: \2", markdown_summary)
+    text = _MARKDOWN_TOKEN_RE.sub("", text)
+    return "\n".join(line.rstrip() for line in text.splitlines()).strip()
+
+
+def _segment_summary_block(segment: MarketSegment, briefing: Briefing, site_url: str) -> str:
     label = SEGMENT_LABELS[segment]
     icon = _SEGMENT_ICONS[segment]
-    return f"{icon} *{label}*\n{_one_line_summary(briefing)}"
+    status = _coverage_label(briefing)
+    status_tag = f" [{status}]" if status else ""
+    return f"{icon} *{label}*{status_tag}\n상세보기: {site_url}\n{_one_line_summary(briefing)}"
+
+
+def _coverage_label(briefing: Briefing) -> str | None:
+    coverage_match = _COVERAGE_LINE_RE.search(briefing.rendered_markdown)
+    if coverage_match is None:
+        return None
+    coverage_label = _clean_summary_text(coverage_match.group(1)).split("—", maxsplit=1)[0].strip()
+    return coverage_label or None
 
 
 def _one_line_summary(briefing: Briefing) -> str:
@@ -189,9 +209,7 @@ def _one_line_summary(briefing: Briefing) -> str:
         if conclusion:
             coverage_match = _COVERAGE_LINE_RE.search(briefing.rendered_markdown)
             if coverage_match is not None:
-                coverage_label = (
-                    _clean_summary_text(coverage_match.group(1)).split("—", maxsplit=1)[0].strip()
-                )
+                coverage_label = _coverage_label(briefing)
                 if coverage_label:
                     conclusion = f"{coverage_label} — {conclusion}"
             watchlist_match = _WATCHLIST_LINE_RE.search(briefing.rendered_markdown)
@@ -221,4 +239,4 @@ def _clean_summary_text(text: str) -> str:
     return cleaned
 
 
-__all__ = ["DEFAULT_MAX_UNITS", "build_segmented_summary", "build_summary"]
+__all__ = ["DEFAULT_MAX_UNITS", "build_segmented_summary", "build_summary", "plain_text_summary"]

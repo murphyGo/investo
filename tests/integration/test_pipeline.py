@@ -371,8 +371,8 @@ async def test_pipeline_end_to_end_notify_failure_yields_partial(
     stub_u2_claude: list[str],
 ) -> None:
     """Telegram public-channel ``sendMessage`` returns ``ok: false`` →
-    PARTIAL with NO operator alert (PARTIAL is the visibility signal).
-    File still written + committed (publish succeeded).
+    PARTIAL with an operator alert. File still written + committed
+    (publish succeeded).
     """
     items = _fake_items(2)
     git = _SuccessfulGitRunner()
@@ -410,8 +410,9 @@ async def test_pipeline_end_to_end_notify_failure_yields_partial(
 
     assert result.status == PipelineStatus.PARTIAL
     assert result.briefing_url is not None
-    # NO operator alert.
-    assert operator_alerts == []
+    assert len(operator_alerts) == 1
+    assert "notify_briefing" in str(operator_alerts[0]["text"])
+    assert "rate limited" in str(operator_alerts[0]["text"])
     # Public-channel attempt was made (and failed).
     assert len(public_sends) == 1
     # u3 committed the segmented briefings.

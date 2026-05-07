@@ -144,12 +144,14 @@ async def test_briefing_publisher_handles_telegram_api_error() -> None:
 @pytest.mark.asyncio
 async def test_briefing_publisher_retries_markdown_parse_error_as_plain_text() -> None:
     captured_parse_modes: list[object] = []
+    captured_texts: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         import json as _json
 
         body = _json.loads(request.content.decode("utf-8"))
         captured_parse_modes.append(body.get("parse_mode"))
+        captured_texts.append(str(body["text"]))
         if len(captured_parse_modes) == 1:
             return httpx.Response(
                 200,
@@ -167,6 +169,7 @@ async def test_briefing_publisher_retries_markdown_parse_error_as_plain_text() -
     assert result.ok is True
     assert result.message_id == 77
     assert captured_parse_modes == ["Markdown", None]
+    assert captured_texts == ["bad *markdown", "bad markdown"]
 
 
 @pytest.mark.asyncio

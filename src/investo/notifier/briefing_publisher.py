@@ -24,6 +24,7 @@ import httpx
 
 from investo.models import BriefingNotification, SendResult
 from investo.notifier._telegram import send_message
+from investo.notifier.summary import plain_text_summary
 
 
 def _is_markdown_parse_error(result: SendResult) -> bool:
@@ -89,7 +90,7 @@ class BriefingPublisher:
             client,
             bot_token=self._bot_token,
             chat_id=self._channel_id,
-            text=payload.summary_text,
+            text=plain_text_summary(payload.summary_text),
             parse_mode=None,
             disable_web_page_preview=False,
         )
