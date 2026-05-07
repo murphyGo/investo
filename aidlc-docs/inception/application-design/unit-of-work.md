@@ -400,6 +400,152 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 
 ---
 
+## u19: `briefing-visual-assets` — Data-Derived Briefing Visuals
+
+**Purpose**: 세그먼트별 시황에 데이터 신뢰도, 시장 스냅샷, 가격 스냅샷, 관심목록 관련성 이미지를 붙여 공개 아카이브의 첫 화면 이해도를 높인다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-003 (정적 웹 게시), FR-004 (시황 채널 알림), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `src/investo/visuals/` — visual card contracts, SVG renderer, optional OpenAI/external image handlers
+- `src/investo/orchestrator/pipeline.py` — visual asset preparation and publish staging
+- `archive/{segment}/YYYY/MM/*.assets/` — generated markdown-adjacent visual assets
+
+**Tests**:
+- `tests/unit/visuals/` — path, card, renderer, asset, OpenAI, external image policy contracts
+- `tests/integration/test_pipeline.py` — segmented publish stages markdown plus generated assets
+
+**Definition of Done**:
+- [x] Data-derived SVG cards can be generated for each segment.
+- [x] Visual assets are stored beside each segment markdown and linked with relative paths.
+- [x] Visual generation failure falls back to text-only publish without blocking notification.
+- [x] External images require explicit license metadata and safe host policy.
+
+---
+
+## u20: `archive-trust-and-latest-index` — Archive Trust and Latest Discovery
+
+**Purpose**: 사용자가 public site 첫 화면과 archive index에서 최신 segmented briefing을 신뢰하고 빠르게 찾을 수 있게 한다. 레거시 단일 시황은 최신 탐색 경로와 분리하거나 저신뢰/구버전 맥락을 명시한다.
+
+**Stories**: FR-003 (정적 웹 게시), FR-006 (영구 보관), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `src/investo/publisher/` or `src/investo/site/` — latest index update helper if introduced
+- `site_docs/index.md` — latest segmented briefing discovery surface
+- `archive/index.md` — archive landing page and legacy briefing treatment
+- `src/investo/orchestrator/pipeline.py` — optional publish-stage hook
+
+**Tests**:
+- `tests/unit/publisher/` or `tests/unit/site/` — latest archive index update behavior
+- `tests/integration/test_pipeline.py` — publish flow updates discoverability files when applicable
+- `uv run mkdocs build --strict`
+
+**Definition of Done**:
+- [ ] Latest domestic/us/crypto links are generated or updated automatically.
+- [ ] Legacy single briefing archive entries are clearly labeled as legacy or moved out of the primary path.
+- [ ] Stale hard-coded latest dates are prevented by tests.
+- [ ] MkDocs strict build remains green.
+
+---
+
+## u21: `summary-quality-gate` — Publish-Time Summary Quality Gate
+
+**Purpose**: 시황 첫 화면의 `오늘의 결론`, `핵심 동인`, `주의할 점`이 깨진 markdown/list artifact나 빈 문구로 게시되지 않도록 publish 전 검증한다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-003 (정적 웹 게시), FR-008 (세그먼트별 시황 생성), NFR-003 (graceful degradation)
+
+**Module path**:
+- `src/investo/briefing/` — summary quality validation helpers
+- `src/investo/orchestrator/pipeline.py` — validation hook before publish
+- `src/investo/notifier/summary.py` — clean summary reuse if needed
+
+**Tests**:
+- `tests/unit/briefing/` — broken first-viewport summary cases
+- `tests/unit/orchestrator/` — publish blocked or partial behavior for invalid summaries
+- `tests/integration/test_pipeline.py` — valid segmented briefings remain publishable
+
+**Definition of Done**:
+- [ ] Broken summary lines such as `주의할 점: 1.` are rejected before publish.
+- [ ] Truncated markdown/bold/link artifacts in first-viewport summary are rejected or cleaned.
+- [ ] Data-limited fallback summaries remain allowed when intentionally conservative.
+- [ ] Validation failure produces an operator-visible stage error without publishing broken markdown.
+
+---
+
+## u22: `source-coverage-transparency` — Source Coverage Transparency
+
+**Purpose**: 사용자가 `정상/부분/부족` 상태의 이유를 이해할 수 있도록 세그먼트별 source 수집 상태, 0건, 실패, 누락 category를 본문과 카드에 더 투명하게 표시한다.
+
+**Stories**: FR-001 (데이터 수집), FR-002 (AI 시황 작성), FR-008 (세그먼트별 시황 생성), NFR-003 (graceful degradation)
+
+**Module path**:
+- `src/investo/sources/aggregator.py` — source collection diagnostics surface if persisted
+- `src/investo/briefing/segments.py` — coverage reason codes
+- `src/investo/briefing/pipeline.py` — reader-facing coverage table/callout
+- `src/investo/visuals/` — data-confidence card expansion
+
+**Tests**:
+- `tests/unit/sources/` — source status aggregation
+- `tests/unit/briefing/` — coverage reason rendering
+- `tests/unit/visuals/` — source names/reasons in confidence card
+
+**Definition of Done**:
+- [ ] Segment coverage exposes reason codes such as missing price/news, source failed, and zero items.
+- [ ] Reader-facing markdown explains why a segment is partial or insufficient.
+- [ ] Data confidence visual card includes source names or reason categories.
+- [ ] Sensitive source errors are redacted before public rendering.
+
+---
+
+## u23: `notification-actionability` — Actionable Segmented Alerts
+
+**Purpose**: 공개 알림에서 국내증시, 미국증시, 크립토가 더 빠르게 구분되고, 각 세그먼트 요약 바로 옆에서 상세 링크와 데이터 상태를 확인할 수 있게 한다. 알림 실패가 부분 성공으로 묻히지 않도록 운영자 가시성도 강화한다.
+
+**Stories**: FR-004 (시황 채널 알림), FR-007 (운영자 알림), FR-008 (세그먼트별 시황 생성), NFR-003 (graceful degradation)
+
+**Module path**:
+- `src/investo/notifier/summary.py` — segmented summary layout
+- `src/investo/notifier/briefing_publisher.py` — markdown/plain fallback behavior if needed
+- `src/investo/orchestrator/pipeline.py` — partial notification failure visibility
+- `tests/unit/notifier/`, `tests/unit/orchestrator/`
+
+**Tests**:
+- `tests/unit/notifier/test_summary.py` — segment block, inline link, status tag, length budget
+- `tests/unit/notifier/test_briefing_publisher.py` — markdown/plain fallback preserves readability
+- `tests/unit/orchestrator/test_run_pipeline.py` or `test_stage_notify_briefing.py` — notification failure diagnostics
+
+**Definition of Done**:
+- [ ] Each segment alert block includes a compact status tag and inline detail link.
+- [ ] The footer/link structure remains readable within Telegram limits.
+- [ ] Markdown parse fallback does not expose raw formatting artifacts.
+- [ ] Notification failure in an otherwise successful publish is operator-visible.
+
+---
+
+## u24: `visual-provenance-and-layout` — Visual Provenance and Reader Layout
+
+**Purpose**: AI/external/SVG visual assets의 출처와 생성 방식을 보존하고, 첫 화면에서는 핵심 hero visual만 보여 사용자가 본문에 빠르게 접근할 수 있게 한다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-003 (정적 웹 게시), FR-008 (세그먼트별 시황 생성), NFR-007 (secret/provenance safety)
+
+**Module path**:
+- `src/investo/visuals/` — manifest generation, image validation, layout placement rules
+- `archive/{segment}/YYYY/MM/*.assets/` — visual provenance manifest storage
+- `src/investo/briefing/` or `src/investo/visuals/assets.py` — caption/link placement
+
+**Tests**:
+- `tests/unit/visuals/` — manifest, caption, image dimension/signature validation
+- `tests/integration/test_pipeline.py` — generated manifests staged with assets
+- `uv run mkdocs build --strict`
+
+**Definition of Done**:
+- [ ] External/AI images write provenance metadata without secrets.
+- [ ] Public markdown shows concise image provenance captions.
+- [ ] First viewport prefers one hero visual and moves secondary cards closer to relevant sections.
+- [ ] Corrupt or dimension-invalid images are rejected before publish.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

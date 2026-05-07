@@ -98,6 +98,11 @@ Five-reader quality review on 2026-05-07 generated the following follow-up units
 | u17 operations-visibility | Partial-success operator awareness | FR-004, FR-005, FR-007, NFR-003 | u5 orchestrator |
 | u18 watchlist-relevance | Personal relevance for the primary user | FR-002, FR-004, FR-008 | future portfolio/company-analysis extension |
 | u19 briefing-visual-assets | Data-derived visual cards for market state and confidence | FR-002, FR-003, FR-004, FR-008 | u7 segmented briefing, u15 coverage, u18 watchlist |
+| u20 archive-trust-and-latest-index | Trustworthy latest archive discovery and legacy separation | FR-003, FR-006, FR-008 | u3 publisher, u6 MkDocs |
+| u21 summary-quality-gate | Publish-time first-viewport summary validation | FR-002, FR-003, FR-008, NFR-003 | u14 summary contract |
+| u22 source-coverage-transparency | Reader-visible source status and coverage reasons | FR-001, FR-002, FR-008, NFR-003 | u10 diagnostics, u15 coverage |
+| u23 notification-actionability | Segment-distinct actionable alerts and partial notify visibility | FR-004, FR-007, FR-008, NFR-003 | u17 operations visibility |
+| u24 visual-provenance-and-layout | Visual provenance, captions, and first-viewport layout | FR-002, FR-003, FR-008, NFR-007 | u19 visual assets |
 
 ### Follow-Up Priority
 
@@ -107,10 +112,19 @@ Five-reader quality review on 2026-05-07 generated the following follow-up units
 4. **u17 operations-visibility** — makes partial failures visible to the one-person operator.
 5. **u18 watchlist-relevance** — adds product relevance after the reliability and trust surface is stable.
 6. **u19 briefing-visual-assets** — adds generated visual cards after the text, confidence, discovery, and relevance surfaces are stable.
+7. **u23 notification-actionability** — smallest high-impact user-facing alert improvement.
+8. **u21 summary-quality-gate** — prevents broken first-viewport summaries from reaching public archive pages.
+9. **u20 archive-trust-and-latest-index** — removes stale/legacy discovery risk after summary quality is guarded.
+10. **u22 source-coverage-transparency** — deeper coverage diagnostics for reader trust.
+11. **u24 visual-provenance-and-layout** — provenance and layout polish after alert and text trust surfaces.
 
 ### u19 Planning Notes
 
 u19 must favor Investo-generated data visuals over scraped third-party images. The safe v1 scope is data confidence, market snapshot, price snapshot, and watchlist relevance cards derived from `NormalizedItem`, `SegmentCoverage`, and `WatchlistImpact`. News thumbnails, chart screenshots, unverified logos, and long time-series charts remain out of scope until licensing, data retention, and manifest policies are designed.
+
+### u20-u24 Planning Notes
+
+The second five-reader quality review on 2026-05-07 prioritized user trust and operator actionability. The requested implementation order is `u23 -> u21 -> u20`, with `u22` and `u24` kept as planned follow-up units.
 
 ---
 
