@@ -165,6 +165,11 @@ jobs:
           # this secret only when you want macro coverage in the
           # briefing.
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          # u19 visual assets: opt in to fetching externally hosted
+          # images only when each item carries a complete license
+          # manifest. Missing/invalid manifests still fall back to AI
+          # image generation or deterministic SVG cards.
+          INVESTO_EXTERNAL_IMAGE_ASSETS: '1'
         run: uv run python -m investo
 
       - name: Trigger Pages deploy
