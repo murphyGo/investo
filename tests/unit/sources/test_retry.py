@@ -265,6 +265,7 @@ async def test_retry_get_passes_headers_and_params() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         seen["url"] = str(request.url)
         seen["agent"] = request.headers.get("User-Agent", "")
+        seen["accept_encoding"] = request.headers.get("Accept-Encoding", "")
         return httpx.Response(200, content=b"ok")
 
     async with _mock_client(handler) as client:
@@ -278,6 +279,25 @@ async def test_retry_get_passes_headers_and_params() -> None:
         )
     assert seen["url"] == "http://x/path?q=v"
     assert seen["agent"] == "investo/1.0"
+    assert seen["accept_encoding"] == "identity"
+
+
+async def test_retry_get_preserves_explicit_accept_encoding() -> None:
+    seen: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["accept_encoding"] = request.headers.get("Accept-Encoding", "")
+        return httpx.Response(200, content=b"ok")
+
+    async with _mock_client(handler) as client:
+        await retry_get(
+            client,
+            "http://x/path",
+            source_name="test",
+            headers={"accept-encoding": "gzip"},
+            config=_NO_SLEEP,
+        )
+    assert seen["accept_encoding"] == "gzip"
 
 
 # ---------------------------------------------------------------------------

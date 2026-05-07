@@ -153,6 +153,7 @@ _RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
     httpx.NetworkError,
     httpx.RemoteProtocolError,
 )
+_DEFAULT_REQUEST_HEADERS: dict[str, str] = {"Accept-Encoding": "identity"}
 
 
 def _content_length_exceeds(headers: httpx.Headers, cap: int) -> bool:
@@ -164,6 +165,15 @@ def _content_length_exceeds(headers: httpx.Headers, cap: int) -> bool:
     except ValueError:
         return False
     return length > cap
+
+
+def _merge_request_headers(headers: dict[str, str] | None) -> dict[str, str]:
+    if headers is None:
+        return dict(_DEFAULT_REQUEST_HEADERS)
+    merged = dict(headers)
+    if not any(name.lower() == "accept-encoding" for name in merged):
+        merged.update(_DEFAULT_REQUEST_HEADERS)
+    return merged
 
 
 async def _buffer_response_body(
@@ -248,7 +258,7 @@ async def _retry_get_inner(
             async with client.stream(
                 "GET",
                 url,
-                headers=headers,
+                headers=_merge_request_headers(headers),
                 params=params,
                 timeout=config.timeout_s,
             ) as response:

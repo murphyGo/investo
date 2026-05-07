@@ -30,8 +30,8 @@
 | NFR Requirements | ✅ Complete | 2026-04-30 |
 | NFR Design | ⏭️ SKIP (NFR Requirements 수준에서 흡수) | |
 | Infrastructure Design | ⏭️ SKIP (GitHub Actions YAML이 design 자체) | |
-| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07; u8 source-window correction closed 2026-05-07; u9 reader-experience slice closed 2026-05-07; u10 source diagnostics slice closed 2026-05-07 | 2026-05-07 |
-| Build and Test | ✅ Complete — re-verified after u10 plain-text log readability follow-up on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 973/973, mkdocs build --strict ✅ | 2026-05-07 |
+| Code Generation | ✅ Complete — original 6 units complete; u7 segmented briefing closed 2026-05-07; u8 source-window correction closed 2026-05-07; u9 reader-experience slice closed 2026-05-07; u10 source diagnostics slice closed 2026-05-07; u11 HTTP identity-encoding slice closed 2026-05-07 | 2026-05-07 |
+| Build and Test | ✅ Complete — re-verified after u11 HTTP identity-encoding follow-up on 2026-05-07: ruff ✅, ruff format ✅ (140 files), mypy --strict ✅ (52 source files), pytest ✅ 974/974, mkdocs build --strict ✅ | 2026-05-07 |
 
 ### Per-Unit Construction Progress
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
@@ -47,6 +47,7 @@
 | u8 market-aware source window | ⏭️ SKIP (source-level correction) | ⏭️ SKIP (no new external deps or NFR surface) | ✅ Complete (4/4) | Follow-up quality correction for FR-001/FR-008: aggregator now passes KST windows to domestic sources, America/New_York windows to US-market sources, and UTC windows to crypto sources so US/crypto items after the KST cutoff are not dropped. Cross-check complete 2026-05-07 (`docs/cross-checks/2026-05-07-u8-market-aware-source-window.md`). |
 | u9 briefing reader experience | ⏭️ SKIP (u2/u7 UX correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up quality correction from five-reader review: segment markdown now includes H1, segment navigation, and a 3-line brief; zero-item segments generate concise collection-status fallbacks without Claude; Stage 2 prompt receives source URLs and asks for newsletter-style narrative, source links, conservative wording, and grouped tickers. |
 | u10 source coverage diagnostics | ⏭️ SKIP (observability correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (5/5) | Follow-up operations slice for FR-001/FR-008: aggregator logs per-source `source returned` INFO records with source name, category, item count, and applied UTC window so GHA can distinguish HTTP-success-zero-items from source failures. GHA plain-text logs now render those fields directly, while structured `extra` fields remain available for future log processors. |
+| u11 HTTP identity encoding | ⏭️ SKIP (transport hardening correction) | ⏭️ SKIP (no new external deps) | ✅ Complete (4/4) | Follow-up operations slice from GHA source diagnostics: `retry_get` now requests `Accept-Encoding: identity` by default so public JSON/RSS endpoints avoid broken compression negotiation in GitHub Actions, while preserving adapter-provided headers and explicit encoding overrides. |
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |
