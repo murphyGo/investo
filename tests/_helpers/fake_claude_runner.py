@@ -129,19 +129,22 @@ class FakeClaudeRunner:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        # The wrapper always invokes us with ``args = ["claude", "-p", prompt]``.
-        # If a future caller breaks the contract (no ``-p``, or ``-p``
-        # at the tail), ``args.index`` would raise a confusing
+        # The wrapper invokes us with ``args = ["claude", "-p"]`` and
+        # sends the prompt via stdin. Direct tests may still pass the
+        # legacy ``["claude", "-p", prompt]`` shape. If a future caller
+        # breaks the contract, ``args.index`` would raise a confusing
         # ValueError / IndexError — surface a clearer message instead.
         try:
             p_idx = args.index("-p")
-            prompt = args[p_idx + 1]
+            prompt = input if input is not None else args[p_idx + 1]
         except (ValueError, IndexError) as exc:
             raise ValueError(
                 "FakeClaudeRunner expects args of shape "
+                "['claude', '-p'] with input=<prompt> or "
                 "['claude', '-p', <prompt>, ...]; got: "
-                f"{args!r}"
+                f"args={args!r}, input={input!r}"
             ) from exc
         key = _compute_key(prompt)
         fixture_path = self._fixture_dir / f"{key}.json"
@@ -155,6 +158,7 @@ class FakeClaudeRunner:
                 capture_output=capture_output,
                 text=text,
                 timeout=timeout,
+                input=input,
             )
         return self._replay(args, prompt, key, fixture_path)
 
@@ -194,6 +198,7 @@ class FakeClaudeRunner:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None,
     ) -> subprocess.CompletedProcess[str]:
         start = time.monotonic()
         completed = self._subprocess_runner(
@@ -201,6 +206,7 @@ class FakeClaudeRunner:
             capture_output=capture_output,
             text=text,
             timeout=timeout,
+            input=input,
             check=False,
         )
         elapsed = time.monotonic() - start

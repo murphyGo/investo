@@ -94,10 +94,12 @@ def _fake_runner_returning(
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         # Verify the wrapper passes through the expected args shape.
         assert args[0] == "claude"
         assert args[1] == "-p"
+        assert input is not None
         assert capture_output is True
         assert text is True
         assert timeout > 0
@@ -133,8 +135,9 @@ async def test_call_claude_code_does_not_raise_on_nonzero_returncode() -> None:
 
 @pytest.mark.asyncio
 async def test_call_claude_code_passes_prompt_through() -> None:
-    """The exact prompt string lands as the second positional CLI arg."""
+    """The exact prompt string is passed via stdin, not argv."""
     captured: list[str] = []
+    captured_input: list[str | None] = []
 
     def capturing_runner(
         args: list[str],
@@ -142,12 +145,15 @@ async def test_call_claude_code_passes_prompt_through() -> None:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         captured.extend(args)
+        captured_input.append(input)
         return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
 
     await call_claude_code("PROMPT-BODY-CONTENT", runner=capturing_runner)
-    assert captured == ["claude", "-p", "PROMPT-BODY-CONTENT"]
+    assert captured == ["claude", "-p"]
+    assert captured_input == ["PROMPT-BODY-CONTENT"]
 
 
 @pytest.mark.asyncio
@@ -161,6 +167,7 @@ async def test_call_claude_code_uses_default_timeout() -> None:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         captured_timeout.append(timeout)
         return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
@@ -179,6 +186,7 @@ async def test_call_claude_code_propagates_custom_timeout() -> None:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         captured_timeout.append(timeout)
         return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
@@ -201,6 +209,7 @@ async def test_call_claude_code_wraps_timeout_expired() -> None:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         raise subprocess.TimeoutExpired(cmd=args, timeout=timeout)
 
@@ -231,6 +240,7 @@ async def test_call_claude_code_does_not_block_event_loop() -> None:
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         time.sleep(0.1)  # blocks the thread, NOT the event loop
         return subprocess.CompletedProcess(args=args, returncode=0, stdout="ok", stderr="")

@@ -184,6 +184,37 @@ def test_live_mode_records_fixture(
     assert data["elapsed_s"] >= 0.0
 
 
+def test_live_mode_records_stdin_prompt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The production wrapper passes the prompt through stdin to avoid
+    OS argv length limits.
+    """
+    monkeypatch.setenv("INVESTO_LIVE_LLM", "1")
+    captured_input: list[object] = []
+
+    def stub_subprocess(
+        args: list[str],
+        **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        captured_input.append(kwargs.get("input"))
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="x", stderr="")
+
+    runner = FakeClaudeRunner(fixture_dir=tmp_path, subprocess_runner=stub_subprocess)
+    prompt = "stdin-prompt"
+    runner(
+        ["claude", "-p"],
+        capture_output=True,
+        text=True,
+        timeout=120.0,
+        input=prompt,
+    )
+
+    assert captured_input == [prompt]
+    assert (tmp_path / f"{_key_for(prompt)}.json").exists()
+
+
 def test_live_mode_then_replay_round_trip(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

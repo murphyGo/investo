@@ -20,7 +20,7 @@ across the whole repo.
 Subprocess hygiene
 ------------------
 
-* List form only: ``subprocess.run(["claude", "-p", prompt], ...)``.
+* List form only: ``subprocess.run(["claude", "-p"], input=prompt, ...)``.
 * Never ``shell=True``.
 * Never the string-form first arg.
 * Async dispatch via ``asyncio.to_thread`` so the event loop is not
@@ -72,6 +72,7 @@ class ClaudeRunner(Protocol):
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]: ...
 
 
@@ -126,6 +127,7 @@ def _default_runner(
     capture_output: bool,
     text: bool,
     timeout: float,
+    input: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Default runner — invokes the real ``claude`` CLI via subprocess.
 
@@ -138,6 +140,7 @@ def _default_runner(
         capture_output=capture_output,
         text=text,
         timeout=timeout,
+        input=input,
         check=False,
     )
 
@@ -164,7 +167,7 @@ async def call_claude_code(
     event loop is not blocked.
     """
     actual_runner: ClaudeRunner = runner if runner is not None else _default_runner
-    args = ["claude", "-p", prompt]
+    args = ["claude", "-p"]
 
     start = time.monotonic()
     try:
@@ -174,6 +177,7 @@ async def call_claude_code(
             capture_output=True,
             text=True,
             timeout=timeout_s,
+            input=prompt,
         )
     except subprocess.TimeoutExpired:
         elapsed = time.monotonic() - start

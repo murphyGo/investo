@@ -120,6 +120,7 @@ async def test_stage_generate_forwards_runner_seam_to_u2() -> None:
             capture_output: bool,
             text: bool,
             timeout: float,
+            input: str | None = None,
         ) -> object:  # CompletedProcess in real use
             raise NotImplementedError
 

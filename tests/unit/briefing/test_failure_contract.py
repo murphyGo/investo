@@ -70,6 +70,7 @@ def _runner_returning(
         capture_output: bool,
         text: bool,
         timeout: float,
+        input: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         try:
             return next(iterator)
