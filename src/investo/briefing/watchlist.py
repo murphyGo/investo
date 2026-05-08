@@ -25,6 +25,8 @@ Pure helpers — no I/O beyond the ``load_watchlist`` JSON read.
 from __future__ import annotations
 
 import json
+import logging
+import os
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -36,9 +38,12 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validat
 
 from investo.models import NormalizedItem
 
+_logger = logging.getLogger(__name__)
+
 WatchlistTermKind = Literal["ticker", "asset", "sector", "keyword"]
 WatchlistImpactStatus = Literal[
     "unconfigured",
+    "default_bundle",
     "matched",
     "no_match",
     "coverage_hold",
@@ -47,6 +52,8 @@ WatchlistChannel = Literal["site", "telegram"]
 CoverageStatusInput = Literal["normal", "partial", "insufficient"]
 
 DEFAULT_WATCHLIST_PATH: Final[Path] = Path("config/watchlist.json")
+WATCHLIST_CONFIG_ENV: Final[str] = "INVESTO_WATCHLIST_CONFIG"
+DEFAULT_BUNDLE_BADGE_LABEL: Final[str] = "기본 바스켓"
 _SITE_MAX_RENDERED_MATCHES: Final[int] = 5
 _TELEGRAM_MAX_RENDERED_MATCHES: Final[int] = 3
 
@@ -135,6 +142,7 @@ class WatchlistConfig(BaseModel):
     # ``segments`` filters scope-level matches to a subset of
     # market segments — empty / unset means "all segments".
     scopes: dict[str, WatchlistScope] = Field(default_factory=dict)
+    is_default_bundle: bool = Field(default=False, exclude=True, repr=False)
 
     @field_validator("tickers", "assets", "sectors", "keywords")
     @classmethod
@@ -223,6 +231,11 @@ class WatchlistConfig(BaseModel):
     def is_empty(self) -> bool:
         """True iff the user has not registered any term (alias-only is empty)."""
         return not self.is_configured
+
+    @classmethod
+    def from_default_bundle(cls) -> WatchlistConfig:
+        """Return the Day-1 default bundle without writing config to disk."""
+        return cls(tickers=tuple(DEFAULT_CORE_ALIASES), is_default_bundle=True)
 
     def for_segment_scope(self, segment: str | None) -> WatchlistConfig:
         """u33 Step 4 — merge applicable scopes into a flat config.
@@ -314,13 +327,25 @@ class WatchlistImpact:
         return bool(self.matches)
 
 
-def load_watchlist(path: Path = DEFAULT_WATCHLIST_PATH) -> WatchlistConfig:
-    """Load watchlist config from JSON. Missing file means empty config."""
+def load_watchlist(path: Path | None = None) -> WatchlistConfig:
+    """Load watchlist config from JSON.
+
+    Missing / blank / unreadable / empty config activates the built-in
+    default bundle so first-time users get useful ⑤ matches without creating a
+    ``watchlist.json`` file.
+    """
+    path = _resolve_watchlist_path(path)
     if not path.exists():
-        return WatchlistConfig()
-    with path.open(encoding="utf-8") as fp:
-        payload = json.load(fp)
-    return WatchlistConfig.model_validate(payload)
+        return _default_bundle_with_log("watchlist config not found")
+    try:
+        with path.open(encoding="utf-8") as fp:
+            payload = json.load(fp)
+    except (OSError, json.JSONDecodeError):
+        return _default_bundle_with_log("watchlist config unreadable")
+    config = WatchlistConfig.model_validate(payload or {})
+    if config.is_empty():
+        return _default_bundle_with_log("watchlist config empty")
+    return config
 
 
 def match_watchlist_items(
@@ -391,6 +416,11 @@ def match_watchlist_items(
     # walks items in collection order.
     matches.sort(key=lambda m: (-m.weight, m.term.casefold(), m.item.source_name, m.item.title))
 
+    if config.is_default_bundle:
+        if not matches:
+            return WatchlistImpact(configured=False, matches=(), status="unconfigured")
+        return WatchlistImpact(configured=True, matches=tuple(matches), status="default_bundle")
+
     status: WatchlistImpactStatus = "matched" if matches else "no_match"
     return WatchlistImpact(configured=True, matches=tuple(matches), status=status)
 
@@ -430,7 +460,20 @@ def render_watchlist_impact(
         d_suffix = _watchlist_d_suffix(match, now_utc=now_utc)
         rendered.append(f"{match.term}{d_suffix}: {match.item.title}")
     suffix = "" if len(impact.matches) <= cap else " 외"
-    return f"{len(impact.matches)}건 확인 — " + "; ".join(rendered) + suffix
+    badge = f" ({DEFAULT_BUNDLE_BADGE_LABEL})" if impact.status == "default_bundle" else ""
+    return f"{len(impact.matches)}건 확인{badge} — " + "; ".join(rendered) + suffix
+
+
+def _resolve_watchlist_path(path: Path | None) -> Path:
+    if path is not None:
+        return path
+    raw_env = os.environ.get(WATCHLIST_CONFIG_ENV, "").strip()
+    return Path(raw_env) if raw_env else DEFAULT_WATCHLIST_PATH
+
+
+def _default_bundle_with_log(reason: str) -> WatchlistConfig:
+    _logger.info("%s, using DEFAULT_CORE_ALIASES (%d terms)", reason, len(DEFAULT_CORE_ALIASES))
+    return WatchlistConfig.from_default_bundle()
 
 
 def _watchlist_d_suffix(match: WatchlistMatch, *, now_utc: datetime | None) -> str:
@@ -589,8 +632,10 @@ def _matches_korean_term(term_cf: str, text_cf: str) -> bool:
 
 
 __all__ = [
+    "DEFAULT_BUNDLE_BADGE_LABEL",
     "DEFAULT_CORE_ALIASES",
     "DEFAULT_WATCHLIST_PATH",
+    "WATCHLIST_CONFIG_ENV",
     "CoverageStatusInput",
     "WatchlistChannel",
     "WatchlistConfig",

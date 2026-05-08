@@ -220,6 +220,35 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
         assert url in summary
 
 
+def test_segmented_summary_preserves_default_bundle_badge() -> None:
+    rendered = (
+        "## ① 요약\n"
+        "> **오늘의 결론**: 반도체 강세\n"
+        "반도체 강세\n\n"
+        "## ② 전일 핵심 이슈\n이슈\n\n"
+        "## ③ 섹터/수급 동향\n섹터\n\n"
+        "## ④ 지표·이벤트\n지표\n\n"
+        "## ⑤ 주요 종목\n"
+        "> **내 관심 자산 영향**: 1건 확인 (기본 바스켓) — NVDA: NVIDIA rallies\n\n"
+        "## ⑥ 오늘의 관전 포인트\n관전\n\n" + DISCLAIMER
+    )
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="반도체 강세",
+        key_issues="이슈",
+        sector_flow="섹터",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer=DISCLAIMER,
+        rendered_markdown=rendered,
+    )
+
+    summary = build_segmented_summary({US_EQUITY: briefing}, site_urls=_SEGMENT_URLS)
+
+    assert "관심: 1건 확인 (기본 바스켓)" in summary
+
+
 def test_build_segmented_summary_adds_market_snapshot_from_price_items() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),

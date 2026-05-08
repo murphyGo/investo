@@ -122,6 +122,7 @@ class WatchlistRelevanceCardInput(_CardInput):
 
     kind: Literal["watchlist-relevance"] = "watchlist-relevance"
     configured: bool
+    is_default_bundle: bool = False
     total_matches: int = Field(ge=0)
     # u28 — the public site card now shows up to 5 matches (Telegram suffix
     # remains capped at 3 in :func:`render_watchlist_impact`).
@@ -229,6 +230,7 @@ def build_watchlist_relevance_card(
         target_date=target_date,
         segment=segment,
         configured=impact.configured,
+        is_default_bundle=impact.status == "default_bundle",
         total_matches=len(impact.matches),
         rows=rows,
     )

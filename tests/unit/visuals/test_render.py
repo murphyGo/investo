@@ -210,6 +210,28 @@ def test_render_watchlist_card_handles_no_match_and_rows() -> None:
     assert "NVDA rallies after earnings" in render_card_svg(matched)
 
 
+def test_render_watchlist_card_shows_default_bundle_badge() -> None:
+    card = WatchlistRelevanceCardInput(
+        target_date=date(2026, 5, 7),
+        segment="us-equity",
+        configured=True,
+        is_default_bundle=True,
+        total_matches=1,
+        rows=(
+            WatchlistRelevanceRow(
+                term="NVDA",
+                kind="ticker",
+                source_name="yahoo-finance-news",
+                title="NVIDIA rallies after earnings",
+            ),
+        ),
+    )
+
+    svg = render_card_svg(card)
+
+    assert "기본 바스켓" in svg
+
+
 def test_wrap_visual_text_truncates_long_words_deterministically() -> None:
     lines = wrap_visual_text(
         "SuperLongTickerNameThatWouldOverflowAVisualCardWithoutTruncation 한국어 설명",

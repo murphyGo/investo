@@ -3,10 +3,16 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
+
+import pytest
 
 from investo.briefing.watchlist import (
+    DEFAULT_BUNDLE_BADGE_LABEL,
     DEFAULT_CORE_ALIASES,
+    WATCHLIST_CONFIG_ENV,
     WatchlistConfig,
+    load_watchlist,
     match_watchlist_items,
     render_watchlist_impact,
     render_watchlist_prompt_context,
@@ -114,6 +120,64 @@ def test_unconfigured_telegram_channel_returns_empty_string() -> None:
 def test_is_empty_method_matches_unconfigured_impact() -> None:
     assert WatchlistConfig().is_empty()
     assert not WatchlistConfig(tickers=("AAPL",)).is_empty()
+
+
+def test_load_watchlist_missing_path_activates_default_bundle(tmp_path: Path) -> None:
+    config = load_watchlist(tmp_path / "missing-watchlist.json")
+
+    assert config.is_default_bundle
+    assert set(config.tickers) == set(DEFAULT_CORE_ALIASES)
+
+
+def test_load_watchlist_empty_json_activates_default_bundle(tmp_path: Path) -> None:
+    path = tmp_path / "watchlist.json"
+    path.write_text("{}", encoding="utf-8")
+
+    assert load_watchlist(path).is_default_bundle
+
+
+def test_load_watchlist_env_blank_uses_default_bundle(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(WATCHLIST_CONFIG_ENV, "   ")
+
+    assert load_watchlist().is_default_bundle
+
+
+def test_load_watchlist_existing_config_does_not_layer_default_bundle(tmp_path: Path) -> None:
+    path = tmp_path / "watchlist.json"
+    path.write_text('{"tickers": ["KRW=X"]}', encoding="utf-8")
+
+    config = load_watchlist(path)
+
+    assert not config.is_default_bundle
+    assert config.tickers == ("KRW=X",)
+    assert "NVDA" not in config.tickers
+
+
+def test_default_bundle_status_and_badge_label_are_pinned() -> None:
+    impact = match_watchlist_items(
+        [_item("NVIDIA and Bitcoin both rally")],
+        WatchlistConfig.from_default_bundle(),
+    )
+
+    assert impact.status == "default_bundle"
+    assert DEFAULT_BUNDLE_BADGE_LABEL == "기본 바스켓"
+    rendered = render_watchlist_impact(impact)
+    assert "(기본 바스켓)" in rendered
+
+
+def test_default_bundle_without_matches_uses_unconfigured_branch() -> None:
+    impact = match_watchlist_items(
+        [_item("Local weather")],
+        WatchlistConfig.from_default_bundle(),
+    )
+
+    assert not impact.configured
+    assert impact.status == "unconfigured"
+    assert impact.matches == ()
 
 
 # ---------------------------------------------------------------------------

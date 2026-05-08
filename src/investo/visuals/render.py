@@ -7,6 +7,7 @@ import re
 from typing import Final
 
 from investo.briefing.segments import SEGMENT_LABELS
+from investo.briefing.watchlist import DEFAULT_BUNDLE_BADGE_LABEL
 from investo.visuals.cards import (
     DataConfidenceCardInput,
     DataConfidenceSourceRow,
@@ -207,9 +208,10 @@ def _render_watchlist(card: WatchlistRelevanceCardInput) -> str:
             lines.append(_row_line(row.term, row.title, y=y))
             y += 76
         body = "\n".join(lines)
+    badge = f" · {DEFAULT_BUNDLE_BADGE_LABEL}" if card.is_default_bundle else ""
     return _svg_document(
         title=f"{SEGMENT_LABELS[card.segment]} 관심 자산 관련성",
-        subtitle=f"{card.target_date.isoformat()} · 매칭 {card.total_matches}건",
+        subtitle=f"{card.target_date.isoformat()} · 매칭 {card.total_matches}건{badge}",
         body=body,
     )
 

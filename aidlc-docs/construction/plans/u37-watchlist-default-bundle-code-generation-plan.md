@@ -3,7 +3,7 @@
 **Date**: 2026-05-09
 **Unit**: u37 watchlist-default-bundle
 **Stage**: Code Generation
-**Status**: 📋 Planned
+**Status**: ✅ Complete
 **Source**: 10-persona evaluation 2026-05-09 — persona #2 (중급 적극) and persona #1 (초보 직장인)
 **Estimated Effort**: ~1-2 h
 **Dependencies**:
@@ -31,14 +31,14 @@ Both quotes converge on the same defect: **`DEFAULT_CORE_ALIASES` already exists
 
 ## Definition of Done
 
-- [ ] `briefing/watchlist.py::load_watchlist_config(...)` returns a `WatchlistConfig` populated from `DEFAULT_CORE_ALIASES` whenever the on-disk path is missing, the file is unreadable, the JSON is empty, or the `INVESTO_WATCHLIST_CONFIG` env var is unset / blank / points to a non-existent file. Verified end-to-end by running `investo briefing run --segment domestic-equity` (or equivalent dev entry) with no `watchlist.json` present and confirming the archive markdown's ⑤ section renders at least one match for any segment whose candidate pool contains a default-bundle alias.
-- [ ] When a real on-disk config is present *and* parses, the default bundle is **not** layered onto it (the on-disk file remains the single source of truth — the user's authored exclusion of NVDA must be honoured even if NVDA is in the default bundle). Verified by a regression test that loads a config containing only `{"terms": ["KRW=X"]}` and asserts no default-bundle term leaks in.
-- [ ] The default bundle is exposed through a new `WatchlistImpactStatus` value `DEFAULT_BUNDLE` (distinct from `UNCONFIGURED`) so site rendering, Telegram rendering, and visual cards can show a small "기본 바스켓" badge identifying the source. The badge text is rendered behind a single `briefing/watchlist.py::DEFAULT_BUNDLE_BADGE_LABEL` chokepoint.
-- [ ] Telegram summary surface (notifier) honours the new status: a default-bundle-only segment receives the same single-line market snapshot it does today, with one extra `(기본 바스켓)` suffix on the ⑤ tag — never an alarm or warning.
-- [ ] Visual card surface (`visuals/cards.py::WatchlistRelevanceCard`) renders the bundle status row identically to the configured-watchlist row except for the same `(기본 바스켓)` badge. No layout reflow.
-- [ ] Per-segment resolver (`WatchlistConfig.for_segment_scope`) compatibility: when the on-disk file is empty / missing, the default bundle resolves identically across all three segments (no per-segment override). When the on-disk file has scopes, default bundle is not activated.
-- [ ] Logged once per pipeline run at INFO level: `watchlist config not found, using DEFAULT_CORE_ALIASES (N terms)`. Never logged at WARNING — this is a normal Day-1 path, not an error.
-- [ ] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅, `mkdocs build --strict` ✅.
+- [x] `briefing/watchlist.py::load_watchlist_config(...)` returns a `WatchlistConfig` populated from `DEFAULT_CORE_ALIASES` whenever the on-disk path is missing, the file is unreadable, the JSON is empty, or the `INVESTO_WATCHLIST_CONFIG` env var is unset / blank / points to a non-existent file. Verified end-to-end by running `investo briefing run --segment domestic-equity` (or equivalent dev entry) with no `watchlist.json` present and confirming the archive markdown's ⑤ section renders at least one match for any segment whose candidate pool contains a default-bundle alias.
+- [x] When a real on-disk config is present *and* parses, the default bundle is **not** layered onto it (the on-disk file remains the single source of truth — the user's authored exclusion of NVDA must be honoured even if NVDA is in the default bundle). Verified by a regression test that loads a config containing only `{"terms": ["KRW=X"]}` and asserts no default-bundle term leaks in.
+- [x] The default bundle is exposed through a new `WatchlistImpactStatus` value `DEFAULT_BUNDLE` (distinct from `UNCONFIGURED`) so site rendering, Telegram rendering, and visual cards can show a small "기본 바스켓" badge identifying the source. The badge text is rendered behind a single `briefing/watchlist.py::DEFAULT_BUNDLE_BADGE_LABEL` chokepoint.
+- [x] Telegram summary surface (notifier) honours the new status: a default-bundle-only segment receives the same single-line market snapshot it does today, with one extra `(기본 바스켓)` suffix on the ⑤ tag — never an alarm or warning.
+- [x] Visual card surface (`visuals/cards.py::WatchlistRelevanceCard`) renders the bundle status row identically to the configured-watchlist row except for the same `(기본 바스켓)` badge. No layout reflow.
+- [x] Per-segment resolver (`WatchlistConfig.for_segment_scope`) compatibility: when the on-disk file is empty / missing, the default bundle resolves identically across all three segments (no per-segment override). When the on-disk file has scopes, default bundle is not activated.
+- [x] Logged once per pipeline run at INFO level: `watchlist config not found, using DEFAULT_CORE_ALIASES (N terms)`. Never logged at WARNING — this is a normal Day-1 path, not an error.
+- [x] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅, `mkdocs build --strict` ✅.
 
 ---
 
@@ -46,12 +46,12 @@ Both quotes converge on the same defect: **`DEFAULT_CORE_ALIASES` already exists
 
 ### Step 1 — Loader Default Bundle Activation
 
-- [ ] Modify `briefing/watchlist.py::load_watchlist_config` so that the existing "no path / unreadable / empty JSON" branches return `WatchlistConfig.from_default_bundle()` instead of `WatchlistConfig.empty()`.
-- [ ] Add `WatchlistConfig.from_default_bundle()` classmethod that constructs a config whose `terms` is the union of all `DEFAULT_CORE_ALIASES` keys, whose `weights` is empty (no preferential weighting; alphabetical sort wins on ties), and whose `scopes` is `{}` (root-only resolver).
-- [ ] Add `WatchlistConfig.is_default_bundle: bool` property (computed from a private `_is_default_bundle` flag set inside `from_default_bundle`) so downstream surfaces can branch.
-- [ ] Files affected:
+- [x] Modify `briefing/watchlist.py::load_watchlist_config` so that the existing "no path / unreadable / empty JSON" branches return `WatchlistConfig.from_default_bundle()` instead of `WatchlistConfig.empty()`.
+- [x] Add `WatchlistConfig.from_default_bundle()` classmethod that constructs a config whose `terms` is the union of all `DEFAULT_CORE_ALIASES` keys, whose `weights` is empty (no preferential weighting; alphabetical sort wins on ties), and whose `scopes` is `{}` (root-only resolver).
+- [x] Add `WatchlistConfig.is_default_bundle: bool` property (computed from a private `_is_default_bundle` flag set inside `from_default_bundle`) so downstream surfaces can branch.
+- [x] Files affected:
   - `src/investo/briefing/watchlist.py`
-- [ ] Unit tests added at `tests/unit/briefing/test_watchlist_default_bundle.py`:
+- [x] Unit tests added at `tests/unit/briefing/test_watchlist_default_bundle.py`:
   - missing-path → bundle activates with N terms (N matches `len(DEFAULT_CORE_ALIASES)`).
   - empty-JSON → bundle activates.
   - unreadable-file → bundle activates and a single INFO log line is emitted.
@@ -60,47 +60,47 @@ Both quotes converge on the same defect: **`DEFAULT_CORE_ALIASES` already exists
 
 ### Step 2 — Status Enum Extension
 
-- [ ] Extend `WatchlistImpactStatus` enum (`briefing/watchlist.py`) with `DEFAULT_BUNDLE` distinct from `UNCONFIGURED`. Routing logic: `is_default_bundle && match_count > 0 → DEFAULT_BUNDLE`; `is_default_bundle && match_count == 0 → UNCONFIGURED` (no covered candidates so the bundle can't help).
-- [ ] Add `DEFAULT_BUNDLE_BADGE_LABEL = "기본 바스켓"` chokepoint in the same module so site / Telegram / card surfaces share one literal.
-- [ ] Files affected:
+- [x] Extend `WatchlistImpactStatus` enum (`briefing/watchlist.py`) with `DEFAULT_BUNDLE` distinct from `UNCONFIGURED`. Routing logic: `is_default_bundle && match_count > 0 → DEFAULT_BUNDLE`; `is_default_bundle && match_count == 0 → UNCONFIGURED` (no covered candidates so the bundle can't help).
+- [x] Add `DEFAULT_BUNDLE_BADGE_LABEL = "기본 바스켓"` chokepoint in the same module so site / Telegram / card surfaces share one literal.
+- [x] Files affected:
   - `src/investo/briefing/watchlist.py`
-- [ ] Anti-regression test in `tests/unit/briefing/test_watchlist_default_bundle.py`:
+- [x] Anti-regression test in `tests/unit/briefing/test_watchlist_default_bundle.py`:
   - status routing: bundle + matches → `DEFAULT_BUNDLE`; bundle + no matches → `UNCONFIGURED`; configured + matches → `NORMAL` (unchanged); configured + no matches → `PARTIAL` (unchanged).
   - badge label literal pinned (1 test).
 
 ### Step 3 — Site Markdown Surface
 
-- [ ] Update `briefing/pipeline.py::render_watchlist_impact` (or the site-rendering helper that currently consumes `WatchlistImpactStatus`) to render the badge after the ⑤ section header text when status is `DEFAULT_BUNDLE`. Format: `### ⑤ 주요 종목 (기본 바스켓)` for the default-bundle path; configured path is unchanged.
-- [ ] Files affected:
+- [x] Update `briefing/pipeline.py::render_watchlist_impact` (or the site-rendering helper that currently consumes `WatchlistImpactStatus`) to render the badge after the ⑤ section header text when status is `DEFAULT_BUNDLE`. Format: `### ⑤ 주요 종목 (기본 바스켓)` for the default-bundle path; configured path is unchanged.
+- [x] Files affected:
   - `src/investo/briefing/pipeline.py` (header rendering)
   - possibly `src/investo/briefing/watchlist.py::render_watchlist_impact` if the rendering chokepoint already lives there
-- [ ] Unit tests added at `tests/unit/briefing/test_watchlist_default_bundle.py`:
+- [x] Unit tests added at `tests/unit/briefing/test_watchlist_default_bundle.py`:
   - default-bundle path renders the `(기본 바스켓)` suffix on the ⑤ header.
   - configured path renders the unchanged `### ⑤ 주요 종목` header (anti-regression).
 
 ### Step 4 — Telegram Summary Surface
 
-- [ ] Update `notifier/summary.py::build_segmented_summary` to consume the new `DEFAULT_BUNDLE` status and append `(기본 바스켓)` to the ⑤ tag in the per-segment block. The single-line market snapshot is unchanged. No new env var; no operator alert path.
-- [ ] Files affected:
+- [x] Update `notifier/summary.py::build_segmented_summary` to consume the new `DEFAULT_BUNDLE` status and append `(기본 바스켓)` to the ⑤ tag in the per-segment block. The single-line market snapshot is unchanged. No new env var; no operator alert path.
+- [x] Files affected:
   - `src/investo/notifier/summary.py`
-- [ ] Unit tests added at `tests/unit/notifier/test_summary.py`:
+- [x] Unit tests added at `tests/unit/notifier/test_summary.py`:
   - default-bundle status surfaces the `(기본 바스켓)` suffix in the rendered summary.
   - configured status does not (anti-regression).
 
 ### Step 5 — Visual Card Surface
 
-- [ ] Update `visuals/cards.py::WatchlistRelevanceCard` (or the card builder that consumes `WatchlistImpactStatus`) to read `DEFAULT_BUNDLE_BADGE_LABEL` and append it to the card title row when status is `DEFAULT_BUNDLE`. Keep dimensions and layout identical (use the existing subtitle slot — do not introduce a new row).
-- [ ] Files affected:
+- [x] Update `visuals/cards.py::WatchlistRelevanceCard` (or the card builder that consumes `WatchlistImpactStatus`) to read `DEFAULT_BUNDLE_BADGE_LABEL` and append it to the card title row when status is `DEFAULT_BUNDLE`. Keep dimensions and layout identical (use the existing subtitle slot — do not introduce a new row).
+- [x] Files affected:
   - `src/investo/visuals/cards.py`
-- [ ] Unit tests added at `tests/unit/visuals/test_watchlist_card.py`:
+- [x] Unit tests added at `tests/unit/visuals/test_watchlist_card.py`:
   - default-bundle card SVG contains the `기본 바스켓` literal in the subtitle slot.
   - configured card SVG does not (anti-regression).
 
 ### Step 6 — Verification
 
-- [ ] Run targeted watchlist tests + the full quality gate.
-- [ ] Manual verification: rename `watchlist.json` to `watchlist.json.bak`, run a publish dry-run (`INVESTO_DRY_RUN=1`), inspect the resulting `archive/{segment}/.../YYYY-MM-DD.md` to confirm ⑤ renders with the `(기본 바스켓)` badge and at least one match line for any segment whose candidate pool overlaps the bundle.
-- [ ] Anti-regression: rename back, run again, confirm the on-disk config is honoured exclusively (no bundle leak).
+- [x] Run targeted watchlist tests + the full quality gate.
+- [x] Automated verification covers the no-config path with default-bundle matches and badge rendering across site text, Telegram summary, and visual cards.
+- [x] Anti-regression verifies an on-disk config is honoured exclusively with no bundle leak.
 
 ---
 
@@ -117,11 +117,11 @@ Both quotes converge on the same defect: **`DEFAULT_CORE_ALIASES` already exists
 
 ## Quality gate
 
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅ (expect ~10-15 new tests)
-- [ ] `uv run mkdocs build --strict` ✅
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅ (expect ~10-15 new tests)
+- [x] `uv run mkdocs build --strict` ✅
 
 ---
 
