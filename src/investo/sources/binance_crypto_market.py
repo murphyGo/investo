@@ -1,0 +1,143 @@
+"""Binance public 24h crypto market adapter."""
+
+from __future__ import annotations
+
+import asyncio
+import json
+from datetime import datetime
+from typing import Any, ClassVar
+
+import httpx
+from pydantic import ValidationError
+
+from investo.models import Category, NormalizedItem
+from investo.sources._config import format_float, format_int, parse_symbol_list
+from investo.sources._registry import register
+from investo.sources._retry import retry_get
+from investo.sources._window import FetchWindow
+from investo.sources.protocol import SourceFetchError
+
+_ENV_SYMBOLS = "INVESTO_CRYPTO_MARKET_SYMBOLS"
+_DATA_PAGE_URL = "https://www.binance.com/en/markets/overview"
+
+
+@register
+class BinanceCryptoMarketAdapter:
+    """Adapter for Binance public 24h ticker market data."""
+
+    name: ClassVar[str] = "binance-crypto-market"
+    category: ClassVar[Category] = "price"
+
+    _DEFAULT_SYMBOLS: ClassVar[tuple[str, ...]] = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
+    _ENDPOINT: ClassVar[str] = "https://api.binance.com/api/v3/ticker/24hr"
+
+    async def fetch(
+        self,
+        client: httpx.AsyncClient,
+        window: FetchWindow,
+    ) -> list[NormalizedItem]:
+        symbols = parse_symbol_list(_ENV_SYMBOLS, self._DEFAULT_SYMBOLS)
+        results = await asyncio.gather(
+            *(self._fetch_symbol(client, symbol, window) for symbol in symbols),
+            return_exceptions=True,
+        )
+        items: list[NormalizedItem] = []
+        for result in results:
+            if isinstance(result, NormalizedItem):
+                items.append(result)
+            elif isinstance(result, SourceFetchError):
+                continue
+            elif isinstance(result, BaseException):
+                raise result
+        return items
+
+    async def _fetch_symbol(
+        self,
+        client: httpx.AsyncClient,
+        symbol: str,
+        window: FetchWindow,
+    ) -> NormalizedItem | None:
+        normalized_symbol = symbol.strip().upper()
+        if not normalized_symbol:
+            return None
+        response = await retry_get(
+            client,
+            self._ENDPOINT,
+            source_name=self.name,
+            params={"symbol": normalized_symbol},
+        )
+        try:
+            payload = response.json()
+        except json.JSONDecodeError as exc:
+            raise SourceFetchError(
+                source_name=self.name,
+                message=f"malformed JSON for {normalized_symbol}: {exc}",
+                transient=False,
+                cause=exc,
+            ) from exc
+        try:
+            return _payload_to_item(payload, source_name=self.name, now_utc=window.end_utc)
+        except (TypeError, ValueError, ValidationError):
+            return None
+
+
+def _payload_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> NormalizedItem:
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be object")
+    symbol = _required_str(payload, "symbol")
+    last = _parse_float(payload.get("lastPrice"))
+    pct_change = _parse_float(payload.get("priceChangePercent"))
+    quote_volume = _parse_float(payload.get("quoteVolume"))
+    base_volume = _parse_float(payload.get("volume"))
+    high = _parse_float(payload.get("highPrice"))
+    low = _parse_float(payload.get("lowPrice"))
+    open_ = _parse_float(payload.get("openPrice"))
+    weighted_avg = _parse_float(payload.get("weightedAvgPrice"))
+    trade_count = _parse_int(payload.get("count"))
+    pct_prefix = "+" if pct_change > 0 else ""
+    title = f"{symbol} 24h {last:,.2f} ({pct_prefix}{pct_change:.2f}%)"
+    summary = (
+        f"O:{open_:,.2f} H:{high:,.2f} L:{low:,.2f} "
+        f"VWAP:{weighted_avg:,.2f}; quote vol:{quote_volume:,.0f}"
+    )
+    return NormalizedItem(
+        source_name=source_name,
+        category="price",
+        title=title,
+        summary=summary,
+        url=_DATA_PAGE_URL,
+        published_at=now_utc,
+        raw_metadata={
+            "symbol": symbol,
+            "last_price": format_float(last),
+            "pct_change_24h": format_float(pct_change),
+            "open": format_float(open_),
+            "high": format_float(high),
+            "low": format_float(low),
+            "weighted_avg_price": format_float(weighted_avg),
+            "base_volume": format_float(base_volume),
+            "quote_volume": format_float(quote_volume),
+            "trade_count": format_int(trade_count),
+        },
+    )
+
+
+def _required_str(payload: dict[str, Any], key: str) -> str:
+    value = str(payload.get(key) or "").strip()
+    if not value:
+        raise ValueError(f"missing {key}")
+    return value
+
+
+def _parse_float(value: Any) -> float:
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError("missing float")
+    return float(text)
+
+
+def _parse_int(value: Any) -> int:
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError("missing int")
+    return int(float(text))

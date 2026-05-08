@@ -26,6 +26,7 @@ import investo.sources
 from investo.models import Category, NormalizedItem
 from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_all, list_sources
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
+from investo.sources.binance_crypto_market import BinanceCryptoMarketAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
@@ -39,14 +40,16 @@ from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.treasury_rates import TreasuryRatesAdapter
+from investo.sources.us_economic_calendar import UsEconomicCalendarAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
 from investo.sources.yfinance import YFinancePriceAdapter
 from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 16
+EXPECTED_ADAPTER_COUNT = 18
 EXPECTED_ADAPTER_NAMES = {
+    "binance-crypto-market",
     "defillama-market-structure",
     "fsc-krx-index-price",
     "fsc-krx-stock-price",
@@ -62,6 +65,7 @@ EXPECTED_ADAPTER_NAMES = {
     "yonhap-market",
     "theblock-crypto",
     "treasury-rates",
+    "us-economic-calendar",
     "cnbc-top-news",
 }
 
@@ -80,6 +84,7 @@ def _isolate_registry() -> Iterator[None]:
 
     snapshot = dict(_ADAPTERS)
     _clear_for_test()
+    register(BinanceCryptoMarketAdapter)
     register(DefiLlamaMarketStructureAdapter)
     register(FomcRssAdapter)
     register(FscKrxIndexPriceAdapter)
@@ -95,6 +100,7 @@ def _isolate_registry() -> Iterator[None]:
     register(YonhapMarketAdapter)
     register(TheBlockCryptoAdapter)
     register(TreasuryRatesAdapter)
+    register(UsEconomicCalendarAdapter)
     register(CnbcTopNewsAdapter)
     try:
         yield
@@ -195,6 +201,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "DEFAULT_CONFIG",
         "strip_html",
         "parse_symbol_list",
+        "binance_crypto_market",
+        "BinanceCryptoMarketAdapter",
         "defillama_market_structure",
         "DefiLlamaMarketStructureAdapter",
         "fomc_rss",
@@ -225,6 +233,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "TheBlockCryptoAdapter",
         "treasury_rates",
         "TreasuryRatesAdapter",
+        "us_economic_calendar",
+        "UsEconomicCalendarAdapter",
         "cnbc_top_news",
         "CnbcTopNewsAdapter",
     }

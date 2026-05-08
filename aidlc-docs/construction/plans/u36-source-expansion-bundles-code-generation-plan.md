@@ -20,25 +20,25 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ## Definition of Done
 
-- [ ] All new sources are free/public and compatible with NFR-002 monthly `$0` operations. Any source requiring paid access, unofficial Investing.com scraping, CME FedWatch paid API, or unstable browser scraping is explicitly excluded.
-- [ ] New adapters use the existing `@register` plugin pattern, `SourceAdapter` protocol, shared `retry_get`, `SourceFetchError`, `FetchWindow`, `strip_html`, `defusedxml` for XML/RSS, and recorded fixture tests.
-- [ ] Domestic-equity gains official price/index coverage:
+- [x] All new sources are free/public and compatible with NFR-002 monthly `$0` operations. Any source requiring paid access, unofficial Investing.com scraping, CME FedWatch paid API, or unstable browser scraping is explicitly excluded.
+- [x] New adapters use the existing `@register` plugin pattern, `SourceAdapter` protocol, shared `retry_get`, `SourceFetchError`, `FetchWindow`, `strip_html`, `defusedxml` for XML/RSS, and recorded fixture tests.
+- [x] Domestic-equity gains official price/index coverage:
   - [x] FSC/data.go.kr KRX index daily price adapter.
   - [x] FSC/data.go.kr KRX stock daily price adapter or a bounded watchlist/index proxy if full stock coverage is too broad for the first slice.
   - FSC/data.go.kr listed-issues/reference adapter only if required to map stock codes; otherwise deferred behind the price adapter.
 - [x] Domestic-equity gains policy/event RSS coverage from official public feeds (MOEF/FSC/MOTIE/MSS or equivalent `korea.kr` feeds) without using Naver Finance or web-scraped KRX/KIND pages. (Slice 3: official FSC RSS service)
 - [x] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
-- [ ] US-equity gains official macro-calendar/release context from BLS/BEA/Census public feeds or machine-readable schedules. This is calendar/event context, not forecast generation.
-- [ ] Crypto gains market-structure context:
+- [x] US-equity gains official macro-calendar/release context from BLS/BEA/Census public feeds or machine-readable schedules. This is calendar/event context, not forecast generation.
+- [x] Crypto gains market-structure context:
   - [x] DeFiLlama public API for TVL / stablecoin supply / DEX or protocol activity.
-  - Binance public market endpoints for a small symbol set (`BTCUSDT`, `ETHUSDT`, optionally `SOLUSDT`) covering 24h ticker / daily klines / funding or open-interest if endpoint access is stable.
-- [x] Segment routing updates include the new source slugs in `src/investo/briefing/segments.py`, with domestic price coverage resolving the current `domestic-equity` `MISSING_PRICE` gap when data is available. (Slice 1: `fsc-krx-index-price`)
-- [x] `tests/unit/sources/test_plugin_contract.py` adapter count/name imports stay in lockstep with `src/investo/sources/__init__.py`. (Slice 1: 11 -> 12 adapters)
-- [ ] Fixture metadata records endpoint URL, captured timestamp, status, headers relevant to fair access / user-agent policy, and any required API-key placeholder behavior. (Slice 1 has deterministic JSON fixtures; metadata manifest still pending)
+  - [x] Binance public market endpoints for a small symbol set (`BTCUSDT`, `ETHUSDT`, optionally `SOLUSDT`) covering 24h ticker / daily klines / funding or open-interest if endpoint access is stable.
+- [x] Segment routing updates include the new source slugs in `src/investo/briefing/segments.py`, with domestic price coverage resolving the current `domestic-equity` `MISSING_PRICE` gap when data is available.
+- [x] `tests/unit/sources/test_plugin_contract.py` adapter count/name imports stay in lockstep with `src/investo/sources/__init__.py`.
+- [x] Fixture metadata records endpoint URL, captured timestamp, status, headers relevant to fair access / user-agent policy, and any required API-key placeholder behavior.
 - [x] Secret hygiene follows the u27 redaction chokepoint; optional keys such as data.go.kr / ECOS-like keys, if used, are read through shared config and missing-key paths degrade only the relevant adapter. (Slice 1: missing `INVESTO_KRX_SERVICE_KEY` / `INVESTO_DATA_GO_KR_SERVICE_KEY` raises source-local `SourceFetchError` without key leakage)
-- [ ] Coverage transparency from u22 remains honest: source failure / zero items / missing category reason codes render for all three segments without leaking raw endpoint errors.
-- [ ] LLM candidate cap from u13 remains effective; high-volume adapters include deterministic per-source caps before Stage 1/2 prompt construction.
-- [ ] Full quality gate passes: `ruff check`, `ruff format --check`, `mypy --strict src/`, `pytest -q`, `mkdocs build --strict`.
+- [x] Coverage transparency from u22 remains honest: source failure / zero items / missing category reason codes render for all three segments without leaking raw endpoint errors.
+- [x] LLM candidate cap from u13 remains effective; high-volume adapters include deterministic per-source caps before Stage 1/2 prompt construction.
+- [x] Full quality gate passes: `ruff check`, `ruff format --check`, `mypy --strict src/`, `pytest -q`, `mkdocs build --strict`.
 
 ---
 
@@ -65,11 +65,11 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
   - `us-economic-calendar` (`calendar` or `macro`, us-equity)
   - `defillama-market-structure` (`macro` or `price`-adjacent metadata, crypto)
   - `binance-crypto-market-structure` (`price`, crypto; optional if rate-limit/geofence fixture is stable)
-- [ ] Add or extend shared config helpers for optional source keys and symbol lists:
+- [x] Add or extend shared config helpers for optional source keys and symbol lists:
   - [x] `INVESTO_KRX_SERVICE_KEY` or compatible data.go.kr service-key env var.
   - [x] `INVESTO_KRX_STOCK_TICKERS` bounded default/watchlist fallback.
   - `INVESTO_CRYPTO_MARKET_SYMBOLS` defaulting to `BTCUSDT,ETHUSDT,SOLUSDT`.
-- [ ] Decide whether to ship all seven slugs in one unit or split Step 7's Binance adapter to a follow-up if live fixture access is unstable.
+- [x] Decide whether to ship all seven slugs in one unit or split Step 7's Binance adapter to a follow-up if live fixture access is unstable.
 
 ### Step 2 — Domestic Base Layer
 
@@ -81,16 +81,16 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 ### Step 3 — Rates and Macro Layer
 
 - [x] Implement `treasury_rates.py` against U.S. Treasury public daily rates endpoint, no key required; parse latest available row and derive spread metadata.
-- [ ] Implement `us_economic_calendar.py` from official BLS/BEA/Census machine-readable schedule/RSS feeds; classify scheduled releases without inventing forecasts or expected impact.
-- [ ] Add fixtures and tests covering no-key happy path, lagged latest date, numeric string conversion, missing rate terms, RSS/calendar date parsing, and source errors. (Treasury slice covers no-key happy path, lagged latest date, numeric conversion, and malformed/missing rates)
+- [x] Implement `us_economic_calendar.py` from official BLS/BEA/Census machine-readable schedule/RSS feeds; classify scheduled releases without inventing forecasts or expected impact.
+- [x] Add fixtures and tests covering no-key happy path, lagged latest date, numeric string conversion, missing rate terms, RSS/calendar date parsing, and source errors.
 - [x] Route `treasury-rates` to both `us-equity` and crypto relevance where the existing segment router permits cross-market macro context; otherwise document the routing decision in the adapter test.
 
 ### Step 4 — Crypto Market-Structure Layer
 
 - [x] Implement `defillama_market_structure.py` using public JSON endpoints for selected chain/protocol/stablecoin metrics; cap output to a small deterministic set useful for daily briefing.
-- [ ] Implement `binance_crypto_market_structure.py` using public market endpoints for `BTCUSDT` / `ETHUSDT` / optional `SOLUSDT`; handle 429, unavailable symbols, string decimals, and rolling-24h semantics.
-- [ ] Add fixtures and tests covering stablecoin/TVL parse, schema drift resilience, symbol filtering, rate-limit/failure degradation, and deterministic ordering. (DeFiLlama slice covers TVL/stablecoin parse, malformed payload, partial endpoint failure, all-endpoint failure, and deterministic ordering)
-- [ ] Keep raw numeric metrics in `raw_metadata` and produce concise `title`/`summary` text so the Stage 1 candidate cap is not overwhelmed.
+- [x] Implement `binance_crypto_market.py` using public market endpoints for `BTCUSDT` / `ETHUSDT` / optional `SOLUSDT`; handle 429, unavailable symbols, string decimals, and rolling-24h semantics.
+- [x] Add fixtures and tests covering stablecoin/TVL parse, schema drift resilience, symbol filtering, rate-limit/failure degradation, and deterministic ordering.
+- [x] Keep raw numeric metrics in `raw_metadata` and produce concise `title`/`summary` text so the Stage 1 candidate cap is not overwhelmed.
 
 ### Step 5 — Registration, Routing, and Coverage Transparency
 
@@ -102,25 +102,25 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ### Step 6 — Prompt and Candidate Budget Guard
 
-- [ ] Add prompt wording only if needed to teach Stage 1/2 how to read new `raw_metadata` fields:
+- [x] Add prompt wording only if needed to teach Stage 1/2 how to read new `raw_metadata` fields:
   - Treasury spread and latest-date lag are factual input, not a forecast.
   - Macro calendars are scheduled facts, not expected outcomes.
   - DeFiLlama/Binance metrics are market-structure context, not investment advice.
-- [ ] Add deterministic per-source caps for noisy RSS/calendar sources before they reach the u13 total-96 / per-source-24 cap.
-- [ ] Add prompt regression tests if any prompt text changes; otherwise record that no prompt change was needed.
+- [x] Add deterministic per-source caps for noisy RSS/calendar sources before they reach the u13 total-96 / per-source-24 cap.
+- [x] Add prompt regression tests if any prompt text changes; otherwise record that no prompt change was needed.
 
 ### Step 7 — Documentation and Source Policy Sync
 
-- [ ] Update source adapter documentation / contributing notes with the new official-source preference and rejected-source list.
-- [ ] Register any deferred findings as TECH-DEBT only when implementation cannot complete a source due to access instability, not as a substitute for tests.
-- [ ] Add session log and code summary under `docs/sessions/` and `aidlc-docs/construction/u36-source-expansion-bundles/code/summary.md`.
+- [x] Update source adapter documentation / contributing notes with the new official-source preference and rejected-source list.
+- [x] Register any deferred findings as TECH-DEBT only when implementation cannot complete a source due to access instability, not as a substitute for tests.
+- [x] Add session log and code summary under `docs/sessions/` and `aidlc-docs/construction/u36-source-expansion-bundles/code/summary.md`.
 
 ### Step 8 — Verification
 
 - [x] Run adapter-targeted tests after each source slice.
 - [x] Run source plugin-contract tests after registration.
 - [x] Run segment routing / coverage transparency tests after Step 5.
-- [ ] Run full quality gate: `ruff check`, `ruff format --check`, `mypy --strict src/`, `pytest -q`, `mkdocs build --strict`.
+- [x] Run full quality gate: `ruff check`, `ruff format --check`, `mypy --strict src/`, `pytest -q`, `mkdocs build --strict`.
 
 ---
 
