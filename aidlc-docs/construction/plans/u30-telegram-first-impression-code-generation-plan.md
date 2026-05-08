@@ -27,8 +27,8 @@ Raise the information density of the morning Telegram alert (the surface most re
 
 ### Step 1 — URL Masking and Price Snapshot
 
-- [ ] Implement Markdown URL masking in the Telegram renderer.
-- [ ] Add the one-line market snapshot using already-collected price candidates.
+- [x] Implement Markdown URL masking in the Telegram renderer.
+- [x] Add the one-line market snapshot using already-collected price candidates.
 
 ### Step 2 — Segment Collapse / Toggle
 

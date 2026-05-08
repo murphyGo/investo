@@ -142,7 +142,7 @@ def build_summary(
     suffix when it would overflow.
     """
     header = f"📈 {briefing.target_date.isoformat()} 시황 요약\n\n"
-    footer = f"\n\n상세보기: {site_url}"
+    footer = f"\n\n{_detail_link(site_url)}"
 
     fixed_units = _utf16_units(header) + _utf16_units(footer)
     body_budget = max_units - fixed_units
@@ -164,6 +164,7 @@ def build_segmented_summary(
     max_units: int = DEFAULT_MAX_UNITS,
     lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     now_utc: datetime | None = None,
+    price_items: Sequence[NormalizedItem] = (),
 ) -> str:
     """Build one Telegram message with all segment summaries and links.
 
@@ -185,9 +186,15 @@ def build_segmented_summary(
     if not published_segments:
         raise ValueError("segmented summary requires at least one briefing")
     target_date = briefings[published_segments[0]].target_date
-    header = f"📈 {target_date.isoformat()} 데일리 시황\n\n"
+    snapshot = _market_snapshot_line(price_items)
+    header = f"📈 {target_date.isoformat()} 데일리 시황\n"
+    if snapshot:
+        header += f"{snapshot}\n\n"
+    else:
+        header += "\n"
     footer = "\n\n링크 모음:\n" + "\n".join(
-        f"• {SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in published_segments
+        f"• {SEGMENT_LABELS[segment]}: {_detail_link(site_urls[segment])}"
+        for segment in published_segments
     )
     resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
     body = "\n\n".join(
@@ -245,7 +252,129 @@ def _segment_summary_block(
     imminent = _imminent_event_tag(lookahead_items, now_utc=now_utc)
     if imminent:
         one_line = f"{imminent} · {one_line}"
-    return f"{icon} *{label}*{status_tag}\n상세보기: {site_url}\n{one_line}"
+    return f"{icon} *{label}*{status_tag}\n{_detail_link(site_url)}\n{one_line}"
+
+
+def _detail_link(site_url: str) -> str:
+    return f"[상세보기]({site_url})"
+
+
+def _market_snapshot_line(price_items: Sequence[NormalizedItem]) -> str:
+    parts = [
+        part
+        for part in (
+            _snapshot_part_for_tickers("SPX", price_items, ("^GSPC",)),
+            _snapshot_part_for_tickers("NDX", price_items, ("^IXIC",)),
+            _snapshot_part_for_index("KOSPI", price_items, ("코스피",)),
+            _snapshot_part_for_crypto("BTC", price_items, ("BTCUSDT", "btc", "BTC")),
+        )
+        if part
+    ]
+    return "시장: " + " / ".join(parts) if parts else ""
+
+
+def _snapshot_part_for_tickers(
+    label: str,
+    items: Sequence[NormalizedItem],
+    tickers: tuple[str, ...],
+) -> str:
+    wanted = {ticker.casefold() for ticker in tickers}
+    for item in items:
+        if item.category != "price":
+            continue
+        ticker = _metadata_text(item, "ticker").casefold()
+        if ticker in wanted:
+            pct = _pct_change(item)
+            return f"{label} {_format_pct(pct)}" if pct is not None else label
+    return ""
+
+
+def _snapshot_part_for_index(
+    label: str,
+    items: Sequence[NormalizedItem],
+    index_names: tuple[str, ...],
+) -> str:
+    wanted = {name.casefold() for name in index_names}
+    for item in items:
+        if item.category != "price":
+            continue
+        index_name = _metadata_text(item, "index_name").casefold()
+        if index_name in wanted:
+            pct = _pct_change(item)
+            return f"{label} {_format_pct(pct)}" if pct is not None else label
+    return ""
+
+
+def _snapshot_part_for_crypto(
+    label: str,
+    items: Sequence[NormalizedItem],
+    symbols: tuple[str, ...],
+) -> str:
+    wanted = {symbol.casefold() for symbol in symbols}
+    for item in items:
+        if item.category != "price":
+            continue
+        symbol = (
+            _metadata_text(item, "symbol")
+            or _metadata_text(item, "coin_id")
+            or _metadata_text(item, "ticker")
+        ).casefold()
+        if symbol in wanted:
+            price = _price_value(item)
+            pct = _pct_change(item)
+            if price is not None and pct is not None:
+                return f"{label} {_format_compact_price(price)}({_format_pct(pct)})"
+            if pct is not None:
+                return f"{label} {_format_pct(pct)}"
+            if price is not None:
+                return f"{label} {_format_compact_price(price)}"
+            return label
+    return ""
+
+
+def _metadata_text(item: NormalizedItem, key: str) -> str:
+    value = item.raw_metadata.get(key)
+    return value if isinstance(value, str) else ""
+
+
+def _metadata_float(item: NormalizedItem, *keys: str) -> float | None:
+    for key in keys:
+        value = item.raw_metadata.get(key)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str) and value:
+            try:
+                return float(value)
+            except ValueError:
+                continue
+    return None
+
+
+def _price_value(item: NormalizedItem) -> float | None:
+    return _metadata_float(item, "last_price", "price_usd", "close")
+
+
+def _pct_change(item: NormalizedItem) -> float | None:
+    explicit = _metadata_float(item, "pct_change", "pct_24h", "pct_change_24h")
+    if explicit is not None:
+        return explicit
+    close = _metadata_float(item, "close")
+    prev_close = _metadata_float(item, "prev_close")
+    if close is None or prev_close is None or prev_close == 0.0:
+        return None
+    return (close - prev_close) / prev_close * 100.0
+
+
+def _format_pct(value: float) -> str:
+    return f"{value:+.1f}%"
+
+
+def _format_compact_price(value: float) -> str:
+    if abs(value) >= 1000:
+        return f"{value / 1000:.1f}k"
+    if abs(value) >= 100:
+        return f"{value:.0f}"
+    return f"{value:.2f}"
 
 
 def _coverage_label(briefing: Briefing) -> str | None:

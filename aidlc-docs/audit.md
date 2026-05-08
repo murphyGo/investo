@@ -1,5 +1,18 @@
 # AI-DLC Audit Log
 
+## Construction — u30 telegram-first-impression — Step 1 Complete
+**Timestamp**: 2026-05-08T00:00:00+09:00
+**Action**: Completed Step 1 of u30 Code Generation. Telegram public-channel URLs now render as Markdown `[상세보기](url)` links in both single-briefing and segmented summaries, with the existing plain-text fallback still converting links back to readable `상세보기: url` text on Telegram Markdown parse errors. Segmented notification now accepts the already-collected price `NormalizedItem` rows from the orchestrator and renders a compact market snapshot line before segment blocks when representative data exists: `SPX`, `NDX`, `KOSPI`, and `BTC`; missing inputs are omitted rather than shown as placeholders.
+**Status**: Step 1 complete; u30 plan checkboxes updated; `aidlc-state.md` moved u30 from Planned to In Progress (Step 1/5).
+**Verification**: `uv run ruff check src/investo/notifier/summary.py src/investo/orchestrator/pipeline.py tests/unit/notifier/test_summary.py` passed; `uv run mypy --strict src/` passed (78 source files); `uv run pytest tests/unit/notifier/test_summary.py tests/unit/orchestrator/test_run_pipeline.py -q` passed (85 tests); `uv run mkdocs build --strict` passed.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u30-telegram-first-impression-code-generation-plan.md`
+- `docs/sessions/2026-05-08-u30-telegram-first-impression-code-generation-step1.md`
+- `aidlc-docs/aidlc-state.md`
+**Context**: Wave 2 P1 persona #1 first-impression work. Remaining u30 steps: segment collapse/toggle, action tag contract, KST header + watchlist price, verification.
+
+---
+
 ## Cross-Check — u35 event-lookahead — COMPLETE
 **Timestamp**: 2026-05-08T00:00:00+09:00
 **Trigger**: u35 Code Generation closed (Phase 0 DEBT-060 통합 + Phase 1 partial); QA verdict APPROVE_AFTER_FIXES with M2 (`tests/unit/notifier/test_summary.py::test_imminent_tag_uses_fomc_label_for_calendar_source` strengthened with explicit substring pin `assert "📅 FOMC press release — Fe… D-2" in summary` so a future label-format edit fails fast at unit level rather than silently shifting the Telegram surface) applied pre-merge. Health check after fix landed. H1 + M1 + M3 deferred to **DEBT-067** (P1) under R10 (fabricated fixture 금지) — see Partial-Implementation Justification in the cross-check report. **DEBT-060 Resolved** by Phase 0.

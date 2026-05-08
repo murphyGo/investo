@@ -848,6 +848,7 @@ async def _stage_notify_segmented_briefing(
     *,
     publisher: BriefingPublisher,
     site_urls: dict[MarketSegment, HttpUrl],
+    items: Sequence[NormalizedItem] = (),
 ) -> SendResult:
     """Compose + dispatch one public-channel message for all segments."""
     published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
@@ -861,6 +862,7 @@ async def _stage_notify_segmented_briefing(
         summary_text = build_segmented_summary(
             briefings,
             site_urls={segment: str(url) for segment, url in site_urls.items()},
+            price_items=items,
         )
         payload = BriefingNotification(
             target_date=target_date,
@@ -1190,6 +1192,7 @@ async def run_pipeline(
             segment_briefings,
             publisher=publisher,
             site_urls=segment_urls,
+            items=items,
         )
     else:
         notify_result = await _stage_notify_briefing(

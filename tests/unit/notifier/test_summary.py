@@ -7,13 +7,13 @@ defense-in-depth round-trip through ``BriefingNotification``'s
 
 from __future__ import annotations
 
-from datetime import UTC, date
+from datetime import UTC, date, datetime
 
 import pytest
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
-from investo.models import Briefing, BriefingNotification
+from investo.models import Briefing, BriefingNotification, NormalizedItem
 from investo.notifier.summary import (
     DEFAULT_MAX_UNITS,
     _utf16_truncate,
@@ -54,6 +54,21 @@ def _build_briefing(*, market_summary: str = "오늘 시장 요약") -> Briefing
         today_watch="관전",
         disclaimer=DISCLAIMER,
         rendered_markdown=rendered,
+    )
+
+
+def _price_item(
+    *,
+    source_name: str,
+    title: str,
+    raw_metadata: dict[str, str],
+) -> NormalizedItem:
+    return NormalizedItem(
+        source_name=source_name,
+        category="price",
+        title=title,
+        published_at=datetime(2026, 4, 25, tzinfo=UTC),
+        raw_metadata=raw_metadata,
     )
 
 
@@ -122,6 +137,8 @@ def test_build_summary_includes_target_date_and_url() -> None:
     assert "2026-04-25" in summary
     assert "짧은 요약" in summary
     assert _SITE_URL in summary
+    assert f"[상세보기]({_SITE_URL})" in summary
+    assert f"상세보기: {_SITE_URL}" not in summary
     assert "📈" in summary  # the emoji header anchor
 
 
@@ -148,7 +165,7 @@ def test_build_summary_truncates_long_korean_market_summary() -> None:
     summary = build_summary(briefing, site_url=_SITE_URL)
 
     assert _utf16_units(summary) <= DEFAULT_MAX_UNITS
-    assert summary.endswith(f"\n\n상세보기: {_SITE_URL}")
+    assert summary.endswith(f"\n\n[상세보기]({_SITE_URL})")
     assert "…" in summary  # truncation suffix present
 
 
@@ -171,7 +188,7 @@ def test_build_summary_footer_url_always_preserved_at_truncation() -> None:
     briefing = _build_briefing(market_summary=long_text)
     summary = build_summary(briefing, site_url=_SITE_URL)
 
-    assert summary.endswith(f"\n\n상세보기: {_SITE_URL}")
+    assert summary.endswith(f"\n\n[상세보기]({_SITE_URL})")
     assert _SITE_URL in summary
 
 
@@ -193,14 +210,82 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
     assert "📈 2026-04-25 데일리 시황" in summary
-    assert f"🇰🇷 *국내 증시*\n상세보기: {_SEGMENT_URLS[DOMESTIC_EQUITY]}\n코스피 요약" in summary
-    assert f"🇺🇸 *미국 증시*\n상세보기: {_SEGMENT_URLS[US_EQUITY]}\nS&P 500 요약" in summary
-    assert f"₿ *크립토*\n상세보기: {_SEGMENT_URLS[CRYPTO]}\nBitcoin 요약" in summary
-    assert "• 국내 증시:" in summary
-    assert "• 미국 증시:" in summary
-    assert "• 크립토:" in summary
+    assert (
+        f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n코스피 요약"
+        in summary
+    )
+    assert (
+        f"🇺🇸 *미국 증시*\n[상세보기]({_SEGMENT_URLS[US_EQUITY]})\nS&P 500 요약"
+        in summary
+    )
+    assert f"₿ *크립토*\n[상세보기]({_SEGMENT_URLS[CRYPTO]})\nBitcoin 요약" in summary
+    assert "• 국내 증시: [상세보기](" in summary
+    assert "• 미국 증시: [상세보기](" in summary
+    assert "• 크립토: [상세보기](" in summary
     for url in _SEGMENT_URLS.values():
         assert url in summary
+
+
+def test_build_segmented_summary_adds_market_snapshot_from_price_items() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+    price_items = (
+        _price_item(
+            source_name="yfinance-price",
+            title="^GSPC 5,200.00 (+0.42%)",
+            raw_metadata={"ticker": "^GSPC", "close": "5200.000000", "prev_close": "5178.249353"},
+        ),
+        _price_item(
+            source_name="yfinance-price",
+            title="^IXIC 16,700.00 (+0.69%)",
+            raw_metadata={"ticker": "^IXIC", "close": "16700.000000", "prev_close": "16585.015889"},
+        ),
+        _price_item(
+            source_name="fsc-krx-index-price",
+            title="코스피 2,650.00 (-0.20%)",
+            raw_metadata={
+                "index_name": "코스피",
+                "close": "2650.000000",
+                "pct_change": "-0.200000",
+            },
+        ),
+        _price_item(
+            source_name="binance-crypto-market",
+            title="BTCUSDT 24h 108,200.00 (-1.23%)",
+            raw_metadata={
+                "symbol": "BTCUSDT",
+                "last_price": "108200.000000",
+                "pct_change_24h": "-1.230000",
+            },
+        ),
+    )
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        price_items=price_items,
+    )
+
+    assert "📈 2026-04-25 데일리 시황\n시장: " in summary
+    assert "SPX +0.4%" in summary
+    assert "NDX +0.7%" in summary
+    assert "KOSPI -0.2%" in summary
+    assert "BTC 108.2k(-1.2%)" in summary
+
+
+def test_build_segmented_summary_omits_market_snapshot_when_price_items_missing() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+        CRYPTO: _build_briefing(market_summary="Bitcoin 요약"),
+    }
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert "\n시장: " not in summary
 
 
 def test_build_segmented_summary_prefers_clean_rendered_conclusion() -> None:
@@ -221,7 +306,7 @@ def test_build_segmented_summary_prefers_clean_rendered_conclusion() -> None:
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "🇰🇷 *국내 증시*\n상세보기:" in summary
+    assert "🇰🇷 *국내 증시*\n[상세보기](" in summary
     assert "국내 증시는 데이터 부족입니다." in summary
     assert "🇰🇷 *국내 증시*\n1." not in summary
     assert "[국내 증시]" not in summary
@@ -271,7 +356,7 @@ def test_build_segmented_summary_includes_watchlist_impact_when_present() -> Non
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "🇺🇸 *미국 증시*\n상세보기:" in summary
+    assert "🇺🇸 *미국 증시*\n[상세보기](" in summary
     assert "반도체 실적을 확인합니다. / 관심: 1건 확인 — NVDA" in summary
 
 
@@ -336,7 +421,7 @@ def test_build_summary_truncation_suffix_at_body_end() -> None:
     summary = build_summary(briefing, site_url=_SITE_URL)
 
     # The pattern: ...truncated body...…\n\n상세보기: {url}
-    assert f"…\n\n상세보기: {_SITE_URL}" in summary
+    assert f"…\n\n[상세보기]({_SITE_URL})" in summary
 
 
 # ---------------------------------------------------------------------------
