@@ -71,7 +71,7 @@ import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
@@ -557,6 +557,7 @@ async def _stage_publish_segments(
     *,
     asset_paths: Sequence[Path] = (),
     git_runner: GitRunner | None = None,
+    items: Sequence[NormalizedItem] = (),
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -643,6 +644,33 @@ async def _stage_publish_segments(
                 quality_page_path=quality_path_resolved,
             )
             index_paths = (*index_paths, quality_path)
+            # u33 Step 3 — per-ticker accumulation pages. Recompute the
+            # full match set across all segments (cheap pure function);
+            # the writer is idempotent so re-running for the same
+            # target_date replaces only that day's section.
+            from investo.briefing.watchlist import (
+                load_watchlist,
+                match_watchlist_items,
+            )
+            from investo.publisher.watchlist_pages import update_watchlist_pages
+
+            watchlist_cfg = load_watchlist()
+            all_matches: list[Any] = []
+            if watchlist_cfg.is_configured:
+                for segment_for_match in SEGMENT_ORDER:
+                    if segment_for_match not in briefings:
+                        continue
+                    segment_items_for_match = segment_items(items).for_segment(segment_for_match)
+                    impact_for_match = match_watchlist_items(segment_items_for_match, watchlist_cfg)
+                    all_matches.extend(impact_for_match.matches)
+            watchlist_paths = await asyncio.to_thread(
+                update_watchlist_pages,
+                target_date,
+                all_matches,
+            )
+            for path in watchlist_paths:
+                snapshots.setdefault(path, _read_existing_bytes(path))
+            index_paths = (*index_paths, *watchlist_paths)
             # u29 weekly retrospective — opt-in via INVESTO_PUBLISH_WEEKLY=1
             # set by the GHA Saturday cron path. Failing here would block
             # the segmented publish (which is already on disk), so we
@@ -1183,6 +1211,7 @@ async def run_pipeline(
                 target_date,
                 asset_paths=visual_asset_paths,
                 git_runner=git_runner,
+                items=items,
             )
         else:
             await _stage_publish(briefing, target_date, git_runner=git_runner)

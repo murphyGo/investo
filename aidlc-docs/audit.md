@@ -1,5 +1,37 @@
 # AI-DLC Audit Log
 
+## Cross-Check — u33 watchlist-depth — COMPLETE
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Trigger**: u33 Code Generation closed (Steps 1–6 all closed in this session). All six DoD items verified complete; two DoD sub-clauses (average-cost portfolio metadata, email channel) intentionally omitted per scope rules.
+**Scope**: u33 watchlist-depth mapped to FR-003, FR-004, FR-007, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 6/6 DoD items complete; +36 targeted tests (1450 → 1486); no new TECH-DEBT items; no DEBT-* resolved.
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-09-u33-watchlist-depth.md`
+- Unit summary: `aidlc-docs/construction/u33-watchlist-depth/code/summary.md`
+- New source files: `src/investo/notifier/webhooks.py`, `src/investo/publisher/watchlist_pages.py`, `src/investo/visuals/watchlist_chart.py`.
+- Modified source files: `src/investo/briefing/watchlist.py` (`WatchlistScope` model + `WatchlistConfig.weights` + `WatchlistConfig.scopes` + `WatchlistMatch.weight` + sort comparator + `for_segment_scope` + `render_watchlist_impact(now_utc=)` + `_watchlist_d_suffix`), `src/investo/orchestrator/pipeline.py` (`_stage_publish_segments(items=)` + watchlist page snapshot/rollback hook), `src/investo/__main__.py` (webhook fan-out post-publish).
+- New test files: `tests/unit/briefing/test_watchlist_u33.py` (12), `tests/unit/notifier/test_webhooks.py` (10), `tests/unit/publisher/test_watchlist_pages.py` (7), `tests/unit/visuals/test_watchlist_chart.py` (7).
+- Tests: +36 (1450 → 1486); covers weight sort (asc/desc/tie-break/negative-rejection), lookahead D-N suffix (4 branches: present/missing-now_utc/past/far-future), per-ticker accumulation page (first-write/idempotent-replace/multi-day-preservation/index-listing/weight-render-on/off/Korean-term), multi-watchlist scopes (no-scopes-pass-through/segment-binding/cross-segment-skip/unbound-applies-all/scope-weight-override), webhook routing (env-parser unset/invalid-json/known-channels/unknown-dropped/missing-url-dropped + Slack/Discord shapes + 4xx swallow + empty-text skip), cumulative chart (empty/sort/tie/cap/determinism/escape/self-contained).
+- Verification: `uv run ruff check .` ✅, `uv run ruff format --check .` ✅ (226 files), `uv run mypy --strict src/` ✅ (90 source files), `uv run pytest -q` ✅ (1486 passed), `uv run mkdocs build --strict` ✅.
+- TECH-DEBT delta: none.
+**Status**: u33 construction and cross-check complete. Wave 3 wish-list (persona #4) surface fully landed.
+
+---
+
+## Construction — u33 watchlist-depth — Steps 1-6 Complete
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Action**: Closed all six u33 steps in one session. **Step 1** — `WatchlistConfig.weights` (canonical-uppercase ASCII keys; rejects negatives at validation; defaults to 0.0); `WatchlistMatch.weight` carried through; `match_watchlist_items` sorts by `(-weight, term, source, title)` so high-conviction positions surface first. Average-cost field intentionally omitted (out of scope: project does not carry portfolio / accounting state). **Step 2** — `render_watchlist_impact(now_utc=)` + `_watchlist_d_suffix` append " D-N" when the match item carries a `scheduled_at` within 7 days; reuses u35's `NormalizedItem.scheduled_at` plumbing — no new adapters. **Step 3** — `publisher/watchlist_pages.py::update_watchlist_pages` writes one `site_docs/watchlist/{slug}.md` per term with per-day `<!-- u33 entry YYYY-MM-DD begin/end -->` markers (idempotent on re-run); slug rule preserves ASCII upper / Korean syllables / bracketed numeric tickers; each page also gets a per-day section heading and bulleted source/kind/title lines (with optional weight). The regenerated `site_docs/watchlist/index.md` lists every term page (with cumulative match count) and embeds the Step 5 SVG chart at the top. Orchestrator `_stage_publish_segments` accepts `items=` and threads them through to `update_watchlist_pages` after the per-segment archive write; snapshots the rewritten files for atomic rollback. **Step 4** — `WatchlistScope` model carries its own term lists / `weights` overrides / `segments` binding; `WatchlistConfig.scopes: dict[str, WatchlistScope]` + `for_segment_scope(segment)` returns a flattened config merging the root + every applicable scope (scope-level weights override root weights for the same term). `notifier/webhooks.py::WebhookEndpoint(channel='slack' | 'discord', url)`; `load_webhook_endpoints(raw=None)` parses `INVESTO_WATCHLIST_WEBHOOKS` (JSON list); `dispatch_watchlist_alert(text, *, http, endpoints)` fans out best-effort (Slack `{"text": ...}`, Discord `{"content": ...}`; 4xx / 5xx / connection error logged at WARNING + swallowed). `__main__` broadcasts a one-line `Investo daily briefing — YYYY-MM-DD published\n{briefing_url}` to every configured webhook after a non-FAILED, non-dry-run pipeline returns. Email channel intentionally skipped (no free, account-less SMTP relay). **Step 5** — `visuals/watchlist_chart.render_cumulative_match_chart(counts_by_term)` deterministic SVG (sort by count desc → term alphabetical; cap 8 visible bars; remainder collapses into `기타 N건`; empty mapping → friendly placeholder). Pure: same input → byte-identical SVG. **Step 6** — full quality gate.
+**Status**: Code Generation complete (6/6 steps); full quality gate green: `ruff check` ✅, `ruff format --check` ✅ (226 files), `mypy --strict src/` ✅ (90 source files), `pytest -q` ✅ 1486 passed (1450 → 1486, +36 new tests), `mkdocs build --strict` ✅.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u33-watchlist-depth-code-generation-plan.md`
+- `aidlc-docs/construction/u33-watchlist-depth/code/summary.md` (new)
+- `docs/cross-checks/2026-05-09-u33-watchlist-depth.md` (new)
+- `aidlc-docs/audit.md` (this entry + cross-check entry above)
+- `aidlc-docs/aidlc-state.md` (per-unit row u33 Planned → Complete; Code Generation Notes appended)
+**Context**: Wave 3 wish-list (persona #4) surface — long-horizon trackers. Six orthogonal watchlist signals layered on top of u28's onboarding-friendly baseline: weight-sorted callouts, forward-event D-N suffix, per-term accumulation page, multi-segment scoping, free-tier multi-channel routing, cumulative SVG chart. The orchestrator now writes 5 reader surfaces per publish (segment archive markdown + visual SVGs + index pages + quality dashboard + watchlist accumulation pages) under one atomic snapshot/rollback envelope.
+
+---
+
 ## Cross-Check — u32 trust-traceability-deep-dive — COMPLETE
 **Timestamp**: 2026-05-09T00:00:00+09:00
 **Trigger**: u32 Code Generation closed (Steps 1–5 all closed in this session). All five DoD items verified complete; one DoD sub-clause (operator-alert escalation on numeric mismatch) intentionally landed at the brief-header callout level rather than a separate operator alert path — the brief header is the read surface readers and operators already consume.

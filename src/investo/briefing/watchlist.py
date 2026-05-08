@@ -28,6 +28,7 @@ import json
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Final, Literal
 
@@ -81,6 +82,26 @@ _SHORT_TICKER_THRESHOLD: Final[int] = 2
 _HANGUL_CHAR_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣ᄀ-ᇿ㄰-㆏]")
 
 
+class WatchlistScope(BaseModel):
+    """u33 Step 4 — a named sub-watchlist for sector / account scoping.
+
+    Augments the root :class:`WatchlistConfig` term lists with a
+    secondary set scoped to a subset of market segments. The matcher
+    applies scope-level terms only when ``segments`` is empty (all
+    segments) or contains the segment under consideration. Scope-level
+    weights override the root weights for the same term.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    tickers: tuple[str, ...] = Field(default_factory=tuple)
+    assets: tuple[str, ...] = Field(default_factory=tuple)
+    sectors: tuple[str, ...] = Field(default_factory=tuple)
+    keywords: tuple[str, ...] = Field(default_factory=tuple)
+    weights: dict[str, float] = Field(default_factory=dict)
+    segments: tuple[str, ...] = Field(default_factory=tuple)
+
+
 class WatchlistConfig(BaseModel):
     """Non-secret personal relevance config."""
 
@@ -97,6 +118,23 @@ class WatchlistConfig(BaseModel):
     # u28 — explicit per-term opt-in for strict equality (suppresses any
     # substring or boundary match). Stored casefolded.
     exact_match_terms: tuple[str, ...] = Field(default_factory=tuple)
+    # u33 Step 1 — optional position weight per term. Maps the canonical
+    # surface form (uppercased for ASCII tickers, raw for Korean / mixed
+    # case keywords) to a non-negative float. Higher weight → higher
+    # priority in rendered match callouts. Terms not present in this map
+    # default to 0 (and sort *after* explicitly weighted terms; tie-
+    # broken by alphabetical order). Pure metadata — no portfolio /
+    # accounting / cost-basis logic, just a "what should I see first?"
+    # hint that reuses already-collected items.
+    weights: dict[str, float] = Field(default_factory=dict)
+    # u33 Step 4 — named sub-watchlists for sector / account scoping.
+    # Keys are arbitrary scope names (``"core"``, ``"semis"``, ``"long"``)
+    # and values carry their own term lists + an optional segment
+    # binding. The default (root) lists still apply across all
+    # segments; scoped lists augment the root, never override.
+    # ``segments`` filters scope-level matches to a subset of
+    # market segments — empty / unset means "all segments".
+    scopes: dict[str, WatchlistScope] = Field(default_factory=dict)
 
     @field_validator("tickers", "assets", "sectors", "keywords")
     @classmethod
@@ -143,6 +181,25 @@ class WatchlistConfig(BaseModel):
                 normalized[key] = tuple(cleaned)
         return normalized
 
+    @field_validator("weights")
+    @classmethod
+    def _normalize_weights(cls, value: dict[str, float]) -> dict[str, float]:
+        normalized: dict[str, float] = {}
+        for raw_key, raw_weight in value.items():
+            key = raw_key.strip()
+            if not key:
+                continue
+            if key.isascii():
+                key = key.upper()
+            try:
+                weight = float(raw_weight)
+            except (TypeError, ValueError):
+                continue
+            if weight < 0:
+                continue
+            normalized[key] = weight
+        return normalized
+
     @field_validator("exact_match_terms")
     @classmethod
     def _normalize_exact_match(cls, value: tuple[str, ...]) -> tuple[str, ...]:
@@ -167,6 +224,56 @@ class WatchlistConfig(BaseModel):
         """True iff the user has not registered any term (alias-only is empty)."""
         return not self.is_configured
 
+    def for_segment_scope(self, segment: str | None) -> WatchlistConfig:
+        """u33 Step 4 — merge applicable scopes into a flat config.
+
+        Returns a new :class:`WatchlistConfig` containing the root
+        terms + every scope whose ``segments`` is empty or contains
+        ``segment``. Scope-level weights override the root weights
+        for the same term. Aliases / exact_match_terms / scopes carry
+        over from the root unchanged.
+        """
+        if not self.scopes:
+            return self
+        applicable: list[WatchlistScope] = []
+        for scope in self.scopes.values():
+            if not scope.segments or (segment is not None and segment in scope.segments):
+                applicable.append(scope)
+        if not applicable:
+            return self
+        merged_tickers = list(self.tickers)
+        merged_assets = list(self.assets)
+        merged_sectors = list(self.sectors)
+        merged_keywords = list(self.keywords)
+        merged_weights = dict(self.weights)
+        for scope in applicable:
+            for term in scope.tickers:
+                if term not in merged_tickers:
+                    merged_tickers.append(term)
+            for term in scope.assets:
+                if term not in merged_assets:
+                    merged_assets.append(term)
+            for term in scope.sectors:
+                if term not in merged_sectors:
+                    merged_sectors.append(term)
+            for term in scope.keywords:
+                if term not in merged_keywords:
+                    merged_keywords.append(term)
+            merged_weights.update(scope.weights)
+        return WatchlistConfig.model_validate(
+            {
+                "tickers": tuple(merged_tickers),
+                "assets": tuple(merged_assets),
+                "sectors": tuple(merged_sectors),
+                "keywords": tuple(merged_keywords),
+                "aliases": dict(self.aliases),
+                "exact_match_terms": tuple(self.exact_match_terms),
+                "weights": merged_weights,
+                # Don't pass `scopes` recursively — the merged config is
+                # already flattened.
+            }
+        )
+
     def effective_aliases(self) -> dict[str, tuple[str, ...]]:
         """Merge built-in :data:`DEFAULT_CORE_ALIASES` with user overrides.
 
@@ -187,6 +294,11 @@ class WatchlistMatch:
     kind: WatchlistTermKind
     item: NormalizedItem
     matched_alias: str | None = None
+    # u33 Step 1 — copied from ``WatchlistConfig.weights[term]`` at
+    # match time. Defaults to 0.0 (term not weighted by user). Render
+    # paths use this to sort match callouts so high-conviction
+    # positions surface first.
+    weight: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -262,14 +374,22 @@ def match_watchlist_items(
                 if dedupe_key in seen:
                     continue
                 seen.add(dedupe_key)
+                weight = config.weights.get(term.upper() if term.isascii() else term, 0.0)
                 matches.append(
                     WatchlistMatch(
                         term=term,
                         kind=kind,
                         item=item,
                         matched_alias=hit_alias,
+                        weight=weight,
                     )
                 )
+
+    # u33 Step 1 — high-weight matches surface first. Tie-break is
+    # deterministic: alphabetical term casefold, then source name, then
+    # title. We sort *after* matching so the dedup logic above still
+    # walks items in collection order.
+    matches.sort(key=lambda m: (-m.weight, m.term.casefold(), m.item.source_name, m.item.title))
 
     status: WatchlistImpactStatus = "matched" if matches else "no_match"
     return WatchlistImpact(configured=True, matches=tuple(matches), status=status)
@@ -279,6 +399,7 @@ def render_watchlist_impact(
     impact: WatchlistImpact,
     *,
     channel: WatchlistChannel = "site",
+    now_utc: datetime | None = None,
 ) -> str:
     """Render a concise reader-facing watchlist impact line.
 
@@ -287,6 +408,11 @@ def render_watchlist_impact(
     ``channel='telegram'`` — Telegram suffix. Caps to 3 matches and returns
     an empty string for the unconfigured branch (u28: Telegram surface stays
     clean for first-time readers).
+
+    u33 Step 2 — when ``now_utc`` is supplied, matches whose item has a
+    ``scheduled_at`` within 7 days of ``now_utc`` get a ``D-N`` suffix
+    appended to the term (e.g. ``NVDA D-3: NVDA earnings``). Past
+    items remain unchanged (no negative D values).
     """
     cap = _SITE_MAX_RENDERED_MATCHES if channel == "site" else _TELEGRAM_MAX_RENDERED_MATCHES
 
@@ -301,9 +427,26 @@ def render_watchlist_impact(
 
     rendered = []
     for match in impact.matches[:cap]:
-        rendered.append(f"{match.term}: {match.item.title}")
+        d_suffix = _watchlist_d_suffix(match, now_utc=now_utc)
+        rendered.append(f"{match.term}{d_suffix}: {match.item.title}")
     suffix = "" if len(impact.matches) <= cap else " 외"
     return f"{len(impact.matches)}건 확인 — " + "; ".join(rendered) + suffix
+
+
+def _watchlist_d_suffix(match: WatchlistMatch, *, now_utc: datetime | None) -> str:
+    """u33 Step 2 — render ``" D-N"`` for a forward-scheduled match item."""
+    if now_utc is None:
+        return ""
+    scheduled = match.item.scheduled_at
+    if scheduled is None:
+        return ""
+    delta = scheduled - now_utc
+    if delta.total_seconds() < 0:
+        return ""
+    days = int(delta.total_seconds() // 86400)
+    if days > 7:
+        return ""
+    return f" D-{days}"
 
 
 def render_watchlist_prompt_context(impact: WatchlistImpact) -> str:

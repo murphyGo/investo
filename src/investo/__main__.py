@@ -447,6 +447,25 @@ async def _async_main() -> int:
                 site_url_base=site_url_base,
             )
 
+            # u33 Step 4 — multi-channel watchlist webhook fan-out.
+            # Best-effort: failure here never changes the run's exit
+            # code. Skip on FAILED runs so a malformed publish doesn't
+            # ping every webhook with a half-finished briefing.
+            from investo.notifier.webhooks import (
+                dispatch_watchlist_alert,
+                load_webhook_endpoints,
+            )
+
+            endpoints = load_webhook_endpoints()
+            if endpoints and result.status != PipelineStatus.FAILED and not dry_run:
+                fan_text = f"Investo daily briefing — {result.target_date.isoformat()} published"
+                if result.briefing_url is not None:
+                    fan_text += f"\n{result.briefing_url}"
+                try:
+                    await dispatch_watchlist_alert(fan_text, http=http_client, endpoints=endpoints)
+                except Exception:
+                    _logger.warning("[webhooks] watchlist dispatch failed", exc_info=True)
+
             # u31 Step 4 — operator weekly digest. Opt-in via
             # ``INVESTO_WEEKLY_OPS_DIGEST=1`` (the workflow sets it on
             # the Saturday cron). Best-effort: a digest dispatch
