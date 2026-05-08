@@ -148,7 +148,12 @@ from investo.publisher.weekly_digest import (
 from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
-from investo.visuals.og_card import OG_CARD_RELATIVE_PATH, write_og_card
+from investo.visuals.og_card import (
+    OG_CARD_PNG_RELATIVE_PATH,
+    OG_CARD_RELATIVE_PATH,
+    write_og_card,
+)
+from investo.visuals.provenance import manifest_path_for
 
 # Single ``HttpUrl`` adapter — pydantic v2 doesn't expose ``HttpUrl``
 # as directly callable; the TypeAdapter avoids constructing a fresh
@@ -609,6 +614,13 @@ async def _stage_publish_segments(
                     SITE_INDEX_PATH: _read_existing_bytes(SITE_INDEX_PATH),
                     ARCHIVE_INDEX_PATH: _read_existing_bytes(ARCHIVE_INDEX_PATH),
                     OG_CARD_RELATIVE_PATH: _read_existing_bytes(OG_CARD_RELATIVE_PATH),
+                    OG_CARD_PNG_RELATIVE_PATH: _read_existing_bytes(OG_CARD_PNG_RELATIVE_PATH),
+                    manifest_path_for(OG_CARD_RELATIVE_PATH): _read_existing_bytes(
+                        manifest_path_for(OG_CARD_RELATIVE_PATH)
+                    ),
+                    manifest_path_for(OG_CARD_PNG_RELATIVE_PATH): _read_existing_bytes(
+                        manifest_path_for(OG_CARD_PNG_RELATIVE_PATH)
+                    ),
                 }
             )
             for segment_index_path in SEGMENT_ARCHIVE_INDEX_PATHS.values():
@@ -624,12 +636,14 @@ async def _stage_publish_segments(
                 segment_briefings=briefings,
                 heatmap_svg=heatmap_svg,
             )
-            og_card_path = await asyncio.to_thread(
+            og_card_paths = await asyncio.to_thread(
                 write_og_card,
                 target_date,
                 briefings,
             )
-            index_paths = (*index_paths, og_card_path)
+            if isinstance(og_card_paths, Path):
+                og_card_paths = (og_card_paths,)
+            index_paths = (*index_paths, *og_card_paths)
             # u32 Step 4 — public quality dashboard. Snapshot first so a
             # later atomic-rollback also reverses the dashboard write.
             from investo.publisher.paths import ARCHIVE_ROOT

@@ -5,7 +5,7 @@
 | Priority | Count | Oldest |
 |----------|-------|--------|
 | Critical | 0 | - |
-| High | 2 | 2026-05-08 |
+| High | 1 | 2026-05-08 |
 | Medium | 8 | 2026-05-07 |
 | Low | 20 | 2026-04-27 |
 
@@ -18,16 +18,6 @@
 _No critical items._
 
 ### High Priority
-
-#### DEBT-058: OG image PNG twin generation for social-card unfurl
-
-- **Created**: 2026-05-08
-- **Source**: u29 site-discovery-v2 QA review (H2 / M5)
-- **Reference**: FR-003 (static web publishing), NFR-005 (consistency / reader-trust contract)
-- **Description**: u29 emits an OG image meta tag pointing at `https://murphygo.github.io/investo/assets/og-card.svg`. mkdocs build --strict verifies the absolute URL is correctly rendered, so the meta channel is structurally complete. However, the major OG consumers — Telegram (link previews on the public channel), Slack, Twitter / X, and LinkedIn — do **not** honour SVG `og:image` payloads in practice; they require a PNG (or JPEG) twin. The current shape correctly serves browsers fetching the GH Pages preview surface (which renders SVG), but social-card unfurl on the dominant share targets falls back to no preview or to a generic GH Pages favicon. The first-impression surface persona #2 cared about (the share-link card) is therefore not actually delivered until a PNG twin lands beside the SVG.
-- **Suggested Fix**: Two paths. (a) Add `cairosvg` as a dev / runtime dependency and render `assets/og-card.png` from the same SVG output in `src/investo/visuals/og_card.py`. Requires the `libcairo` system dependency on the CI runner — `.github/workflows/daily-briefing.yml` should add an `apt-get install libcairo2` step (or equivalent) and validate the install in a preflight check. (b) Alternative: a GHA post-process step that runs an SVG → PNG converter (e.g., `librsvg2-bin`'s `rsvg-convert`) against the rendered SVG immediately before the Pages deploy step. Option (b) keeps the Python dependency surface unchanged but couples the conversion to GHA infra. Either way, update `overrides/main.html` to emit a PNG `og:image` (or both PNG and SVG twins via `og:image:secure_url` / `og:image:type`).
-- **Effort**: ~1.5-2 h for option (a) including dependency add, preflight install, render path, and a regression test pinning the PNG output dimensions and the meta-tag PNG URL on the rendered HTML. Option (b) ~1 h but requires a GHA workflow change instead of a Python change.
-- **Priority Reasoning**: P1 (High) — the OG meta channel without a PNG twin does not deliver the persona #2 share-link first impression on Telegram / Slack / Twitter / LinkedIn, which are the dominant share surfaces. Until the twin lands, the rendered share-card is invisible to most readers. The metadata path is correct and the SVG is reusable, so the fix is bounded; the priority reflects the user-visible gap, not implementation difficulty.
 
 #### DEBT-067: u35 event-lookahead 이월 — 4 lookahead 어댑터 + orchestrator wire-through + LOOKAHEAD_DATA_MISSING reason code
 
@@ -331,6 +321,14 @@ _No critical items._
 ---
 
 ## Resolved Items
+
+#### DEBT-058: OG image PNG twin generation for social-card unfurl
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-05-09 — u38 landed the cairosvg path: `visuals/og_card.py` writes `assets/og-card.png` beside the SVG, both assets receive provenance sidecars, `overrides/main.html` advertises PNG as primary `og:image` with SVG retained as secondary `og:image:secure_url`, and `.github/workflows/daily-briefing.yml` installs/preflights libcairo/cairosvg before the runtime publish. Unit summary: `aidlc-docs/construction/u38-og-card-png-twin/code/summary.md`.
+- **Source**: u29 site-discovery-v2 QA review (H2 / M5)
+- **Reference**: FR-003 (static web publishing), NFR-005 (consistency / reader-trust contract)
+- **Description**: u29 emitted an OG image meta tag pointing at `https://murphygo.github.io/investo/assets/og-card.svg`. The major OG consumers — Telegram, Slack, Twitter / X, and LinkedIn — do not reliably honour SVG `og:image` payloads, so social-card unfurl needed a PNG twin.
 
 #### DEBT-060: Conclusion prefix / extraction helper duplicated 5x across publisher, visuals, and briefing
 

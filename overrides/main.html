@@ -1,18 +1,24 @@
 {% extends "base.html" %}
 
 {#
-  u29 site-discovery-v2: extend mkdocs-material's base template with an
-  OG image meta tag that points to the SVG card written by the publisher
-  each run. The path is configured under ``extra.og_image_path`` in
-  ``mkdocs.yml`` so the meta source of truth lives in the site config,
-  not in this template.
+  u38 og-card-png-twin: extend mkdocs-material's base template with OG
+  image meta tags that point to the PNG primary and SVG secondary cards
+  written by the publisher each run. Paths are configured under
+  ``extra.og_image_path`` / ``extra.og_image_svg_path`` in ``mkdocs.yml``
+  so the meta source of truth lives in the site config, not in this template.
 #}
 
 {% block extrahead %}
   {{ super() }}
   {% if config.extra.og_image_path %}
     <meta property="og:image" content="{{ config.site_url|default('', true) }}{{ config.extra.og_image_path }}">
-    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    {% if config.extra.og_image_svg_path %}
+      <meta property="og:image:secure_url" content="{{ config.site_url|default('', true) }}{{ config.extra.og_image_svg_path }}">
+      <meta property="og:image:secure_url:type" content="image/svg+xml">
+    {% endif %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="{{ config.site_url|default('', true) }}{{ config.extra.og_image_path }}">
   {% endif %}

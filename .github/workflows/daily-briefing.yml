@@ -112,10 +112,20 @@ jobs:
       - name: Set up Python 3.11
         run: uv python install 3.11
 
+      - name: Install OG card raster dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2 libcairo2-dev
+
       - name: Install project (runtime only)
         # Runtime deps are enough for ``python -m investo``. Test and
         # docs tooling run in separate jobs.
         run: uv sync --no-dev
+
+      - name: Preflight OG card PNG conversion
+        run: >
+          uv run python -c "import cairosvg;
+          cairosvg.svg2png(bytestring=b'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"/>')"
 
       - name: Install Claude Code CLI
         # Claude Code is distributed as an npm package and requires

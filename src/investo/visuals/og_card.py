@@ -1,19 +1,14 @@
 """OG image card renderer for the public site (u29 site-discovery-v2).
 
-Each segmented publish writes ``site_docs/assets/og-card.svg`` so the
+Each segmented publish writes ``site_docs/assets/og-card.svg`` and its
+PNG twin ``site_docs/assets/og-card.png`` so the
 mkdocs site can advertise an up-to-date hero card via the
 ``<meta property="og:image">`` tag in the rendered HTML.
 
 The OG card is a 1200x630 SVG (Open Graph's recommended ratio) listing
-the publish date and the three-segment 오늘의 결론 quote lines. PNG
-conversion is intentionally skipped — adding ``cairosvg`` would pull in
-``libcairo`` system bindings that complicate local dev environments.
-
-주의: 주요 OG 컨슈머 (Telegram / Slack / Twitter / LinkedIn) 다수가
-``og:image`` 의 SVG 를 표준적으로 미지원함 (Discord 일부만 지원). 본
-SVG-only 단계는 (a) GitHub Pages 자체 link preview 와 (b) 발행 보존용
-메타데이터 목적이며, 실제 social-card unfurl 정상 동작은 PNG twin 추가
-(TECH-DEBT) 후에만 보장됨.
+the publish date and the three-segment 오늘의 결론 quote lines. u38 adds
+the PNG twin because major OG consumers (Telegram / Slack / Twitter /
+LinkedIn) do not reliably unfurl SVG ``og:image`` payloads.
 
 Determinism: same target_date + segment_briefings dict → byte-identical
 SVG. The renderer takes pre-extracted conclusion strings rather than
@@ -31,7 +26,7 @@ from __future__ import annotations
 import html
 import os
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Final
 
@@ -44,8 +39,15 @@ from investo.briefing.segments import (
     MarketSegment,
 )
 from investo.models import Briefing
+from investo.visuals.provenance import (
+    VisualProvenanceManifest,
+    build_generated_svg_provenance,
+    manifest_path_for,
+    write_manifest,
+)
 
 OG_CARD_RELATIVE_PATH: Final[Path] = Path("site_docs/assets/og-card.svg")
+OG_CARD_PNG_RELATIVE_PATH: Final[Path] = Path("site_docs/assets/og-card.png")
 OG_CARD_WIDTH: Final[int] = 1200
 OG_CARD_HEIGHT: Final[int] = 630
 _SEGMENTS: Final[tuple[MarketSegment, ...]] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
@@ -125,13 +127,36 @@ def write_og_card(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
     out_path: Path | None = None,
-) -> Path:
-    """Compose and atomically write the OG card SVG."""
+) -> tuple[Path, ...]:
+    """Compose and atomically write the OG card SVG, PNG, and manifests."""
     target = out_path if out_path is not None else OG_CARD_RELATIVE_PATH
+    png_target = target.with_suffix(".png")
     card = build_og_card_input(target_date, segment_briefings)
     svg = render_og_card_svg(card)
-    _write_text_atomic(target, svg)
-    return target
+    svg_bytes = svg.encode("utf-8")
+    png_tmp = png_target.with_suffix(png_target.suffix + ".tmp")
+    svg_tmp = target.with_suffix(target.suffix + ".tmp")
+    render_og_card_png(svg_bytes, output_path=png_tmp)
+    _write_text_atomic(svg_tmp, svg)
+    os.replace(svg_tmp, target)
+    os.replace(png_tmp, png_target)
+    written = (target, png_target)
+    _write_og_card_manifests(svg_path=target, png_path=png_target)
+    return (*written, manifest_path_for(target), manifest_path_for(png_target))
+
+
+def render_og_card_png(svg_bytes: bytes, *, output_path: Path) -> Path:
+    """Render an OG-card SVG byte string to a 1200x630 PNG file."""
+    from cairosvg import svg2png  # type: ignore[import-untyped]
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    svg2png(
+        bytestring=svg_bytes,
+        write_to=str(output_path),
+        output_width=OG_CARD_WIDTH,
+        output_height=OG_CARD_HEIGHT,
+    )
+    return output_path
 
 
 _OG_STYLE: Final[str] = (
@@ -195,18 +220,44 @@ def _wrap(text: str, *, max_chars: int, max_lines: int) -> tuple[str, ...]:
 
 
 def _write_text_atomic(path: Path, content: str) -> None:
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path.write_text(content, encoding="utf-8")
-    os.replace(tmp_path, path)
+    path.write_text(content, encoding="utf-8")
+
+
+def _write_og_card_manifests(*, svg_path: Path, png_path: Path) -> None:
+    generated_at = datetime.now(tz=UTC)
+    svg_manifest = build_generated_svg_provenance(
+        asset_relative_path=svg_path.name,
+        card_kind="og-card",
+        generated_at=generated_at,
+        width=OG_CARD_WIDTH,
+        height=OG_CARD_HEIGHT,
+        source_attribution="investo 자체 데이터로 결정적 OG 카드 생성",
+    )
+    write_manifest(svg_manifest, svg_path)
+    png_manifest = VisualProvenanceManifest(
+        asset_path=png_path.name,
+        source_type="generated_svg",
+        source_attribution=svg_manifest.source_attribution,
+        generated_at=generated_at,
+        generator=svg_manifest.generator,
+        version=svg_manifest.version,
+        content_type="image/png",
+        dimensions=(OG_CARD_WIDTH, OG_CARD_HEIGHT),
+        additional_metadata={"source_svg": svg_path.name},
+        card_kind="og-card",
+    )
+    write_manifest(png_manifest, png_path)
 
 
 __all__ = [
     "OG_CARD_HEIGHT",
+    "OG_CARD_PNG_RELATIVE_PATH",
     "OG_CARD_RELATIVE_PATH",
     "OG_CARD_WIDTH",
     "OGCardInput",
     "build_og_card_input",
+    "render_og_card_png",
     "render_og_card_svg",
     "write_og_card",
 ]

@@ -29,10 +29,12 @@ from investo.visuals.cards import (
 from investo.visuals.external_image import ExternalImageAsset, fetch_contextual_external_image
 from investo.visuals.og_card import (
     OG_CARD_HEIGHT,
+    OG_CARD_PNG_RELATIVE_PATH,
     OG_CARD_RELATIVE_PATH,
     OG_CARD_WIDTH,
     OGCardInput,
     build_og_card_input,
+    render_og_card_png,
     render_og_card_svg,
     write_og_card,
 )
@@ -71,6 +73,7 @@ __all__ = [
     "EXTERNAL_IMAGE_SCRAPING_ENABLED",
     "GENERATOR_NAME",
     "OG_CARD_HEIGHT",
+    "OG_CARD_PNG_RELATIVE_PATH",
     "OG_CARD_RELATIVE_PATH",
     "OG_CARD_WIDTH",
     "PROJECT_START",
@@ -115,6 +118,7 @@ __all__ = [
     "provenance_caption",
     "read_manifest",
     "render_card_svg",
+    "render_og_card_png",
     "render_og_card_svg",
     "render_publish_heatmap",
     "sanitize_provenance_text",

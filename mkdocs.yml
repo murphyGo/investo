@@ -123,12 +123,14 @@ plugins:
         - en
 
 extra:
-  # u29 site-discovery-v2: OG image meta. The SVG twin is rewritten
+  # u38 og-card-png-twin: OG image meta. The PNG primary and SVG
+  # secure-url twin are rewritten
   # by the publisher each segmented run (see
   # ``investo.visuals.og_card.write_og_card``) so social link previews
   # always pick up today's hero card. Path is site-relative — mkdocs
   # rewrites it to the deployed URL via the ``main.html`` override.
-  og_image_path: assets/og-card.svg
+  og_image_path: assets/og-card.png
+  og_image_svg_path: assets/og-card.svg
 
 extra_css:
   - assets/u29.css
