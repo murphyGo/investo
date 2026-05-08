@@ -12,6 +12,7 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Iterator
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -26,6 +27,20 @@ _VALID_ENV: dict[str, str] = {
     "TELEGRAM_OPERATOR_CHAT_ID": "12345678",
     "SITE_URL_BASE": "https://example.github.io/investo",
 }
+
+
+@pytest.fixture(autouse=True)
+def _isolate_boot_alert_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[None]:
+    """Each test gets its own boot-alert dedup ledger so ordering is irrelevant.
+
+    Without this fixture the first test exercising ``_attempt_boot_alert``
+    persists a ConfigError fingerprint into ``archive/_meta/operator_state/``
+    (cwd-relative) and the next test sees the dedup window block its
+    alert. u31 Step 2 introduced the dedup; this autouse fixture pins
+    the ledger to a per-test temp dir.
+    """
+    monkeypatch.setenv("INVESTO_OPERATOR_STATE_DIR", str(tmp_path))
+    yield
 
 
 @pytest.fixture

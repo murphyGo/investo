@@ -66,10 +66,12 @@ class OperatorAlerter:
         bot_token: str,
         operator_chat_id: str,
         http: httpx.AsyncClient | None = None,
+        dry_run: bool = False,
     ) -> None:
         self._bot_token = bot_token
         self._operator_chat_id = operator_chat_id
         self._http = http
+        self._dry_run = dry_run
 
     async def alert(self, failure: FailureContext) -> SendResult:
         """Post the formatted failure alert to the operator chat.
@@ -80,7 +82,15 @@ class OperatorAlerter:
         Telegram cap (the ``traceback_excerpt`` model already caps
         at 2000 chars but the surrounding error_message + error_type
         are unbounded).
+
+        Dry-run (u31 Step 2) — when constructed with ``dry_run=True``,
+        returns ``SendResult(ok=True, ...)`` immediately without I/O.
+        Operator boot alerts during dry-run are silenced so the
+        dry-run does not page the operator on every config-error
+        rehearsal.
         """
+        if self._dry_run:
+            return SendResult(ok=True, message_id=None, error=None)
         text = _format_alert_text(failure)
         text = _redact_bot_token(text)
         if _utf16_units(text) > DEFAULT_MAX_UNITS:

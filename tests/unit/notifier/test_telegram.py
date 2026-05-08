@@ -296,3 +296,173 @@ async def test_send_message_redacts_token_in_http_error() -> None:
     assert result.ok is False
     assert result.error is not None
     assert _BOT_TOKEN not in result.error
+
+
+# ---------------------------------------------------------------------------
+# u31 Step 1 — bounded retry policy
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_send_message_retries_on_429_and_honors_retry_after_header() -> None:
+    """HTTP 429 with ``Retry-After`` header → wait then retry; recover on 2nd attempt."""
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    attempts = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            return httpx.Response(429, headers={"Retry-After": "5"}, text="too many requests")
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 7}})
+
+    async with mock_client(handler) as client:
+        result = await send_message(
+            client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x", sleep=fake_sleep
+        )
+
+    assert result.ok is True
+    assert result.message_id == 7
+    # Backoff for 2nd attempt is at least the Retry-After header value.
+    assert sleeps and sleeps[0] >= 5.0
+
+
+@pytest.mark.asyncio
+async def test_send_message_retries_on_429_and_honors_retry_after_json_body() -> None:
+    """``parameters.retry_after`` JSON field is honored too."""
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    attempts = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            return httpx.Response(
+                429,
+                json={
+                    "ok": False,
+                    "error_code": 429,
+                    "description": "Too Many Requests",
+                    "parameters": {"retry_after": 3},
+                },
+            )
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 9}})
+
+    async with mock_client(handler) as client:
+        result = await send_message(
+            client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x", sleep=fake_sleep
+        )
+
+    assert result.ok is True
+    assert sleeps and sleeps[0] >= 3.0
+
+
+@pytest.mark.asyncio
+async def test_send_message_retries_on_5xx() -> None:
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    attempts = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts["count"] += 1
+        if attempts["count"] < 3:
+            return httpx.Response(503, text="service unavailable")
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    async with mock_client(handler) as client:
+        result = await send_message(
+            client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x", sleep=fake_sleep
+        )
+
+    assert result.ok is True
+    assert len(sleeps) == 2  # two backoffs before the 3rd successful attempt
+
+
+@pytest.mark.asyncio
+async def test_send_message_does_not_retry_on_non_transient_4xx() -> None:
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    attempts = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts["count"] += 1
+        return httpx.Response(400, text="bad request")
+
+    async with mock_client(handler) as client:
+        result = await send_message(
+            client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x", sleep=fake_sleep
+        )
+
+    assert result.ok is False
+    assert attempts["count"] == 1  # no retry
+    assert sleeps == []
+
+
+@pytest.mark.asyncio
+async def test_send_message_retry_after_is_capped() -> None:
+    """A hostile server sending Retry-After: 999999 must not hang the cron."""
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    attempts = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            return httpx.Response(429, headers={"Retry-After": "999999"}, text="x")
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    async with mock_client(handler) as client:
+        result = await send_message(
+            client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x", sleep=fake_sleep
+        )
+
+    assert result.ok is True
+    # Cap at 30 seconds — the module's _RETRY_AFTER_CEILING_S.
+    assert sleeps and sleeps[0] <= 30.0
+
+
+@pytest.mark.asyncio
+async def test_send_message_respects_global_retry_budget(monkeypatch) -> None:
+    """When the process-wide retry budget is exhausted, the Telegram retry
+    loop stops even if its own local quota still has slack.
+    """
+    from investo._internal import retry_budget
+
+    retry_budget.reset_budget()
+    monkeypatch.setenv("INVESTO_RETRY_BUDGET", "0")
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    attempts = {"count": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts["count"] += 1
+        return httpx.Response(503, text="service unavailable")
+
+    async with mock_client(handler) as client:
+        result = await send_message(
+            client, bot_token=_BOT_TOKEN, chat_id=_CHAT_ID, text="x", sleep=fake_sleep
+        )
+
+    assert result.ok is False
+    # Budget=0 means the loop runs once and skips every retry.
+    assert attempts["count"] == 1
+    assert sleeps == []
+    retry_budget.reset_budget()

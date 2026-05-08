@@ -40,6 +40,7 @@ from investo.models._validators import (
     reject_blank_preserve,
     reject_blank_strict,
 )
+from investo.models.coverage import SourceOutcome
 
 FailureStage = Literal[
     "collect",
@@ -195,6 +196,12 @@ class PipelineResult(BaseModel):
     stage_timings: dict[str, float] = Field(default_factory=dict)
     duration_seconds: float = Field(ge=0, le=_DURATION_CEILING_SECONDS)
     briefing_url: HttpUrl | None = None
+    # u31 Step 1 — per-source outcomes carried through the result so the
+    # GHA Step Summary writer can render a one-glance source table even
+    # when the collect stage was the only thing that ran (early-return
+    # branches still populate this). Default ``()`` keeps existing
+    # constructions backward-compatible.
+    source_outcomes: tuple[SourceOutcome, ...] = Field(default_factory=tuple)
 
     @field_validator("stage_timings")
     @classmethod

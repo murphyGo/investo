@@ -1,5 +1,40 @@
 # AI-DLC Audit Log
 
+## Cross-Check — u31 operations-resilience — COMPLETE
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Trigger**: u31 Code Generation closed (Steps 1–5 all closed in this session). All eight DoD items verified complete; no Critical / High findings introduced.
+**Scope**: u31 operations-resilience mapped to FR-007, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 8/8 DoD items complete; +36 targeted tests (1383 → 1419); no new TECH-DEBT items; no DEBT-* resolved.
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-09-u31-operations-resilience.md`
+- Unit summary: `aidlc-docs/construction/u31-operations-resilience/code/summary.md`
+- New source files: `src/investo/_internal/retry_budget.py`, `src/investo/orchestrator/boot_alert_dedup.py`, `src/investo/orchestrator/source_health.py`, `src/investo/orchestrator/weekly_ops_digest.py`.
+- Modified source files: `src/investo/__main__.py`, `src/investo/models/results.py`, `src/investo/notifier/_telegram.py`, `src/investo/notifier/briefing_publisher.py`, `src/investo/notifier/operator_alerter.py`, `src/investo/orchestrator/pipeline.py`, `src/investo/publisher/git_ops.py`.
+- New test files: `tests/unit/_internal/test_retry_budget.py` (8), `tests/unit/orchestrator/test_boot_alert_dedup.py` (8), `tests/unit/orchestrator/test_source_health.py` (8), `tests/unit/orchestrator/test_weekly_ops_digest.py` (5).
+- Modified test files: `tests/unit/notifier/test_telegram.py` (+6 retry tests including budget gate), `tests/unit/notifier/test_briefing_publisher.py` (+1 dry-run test), `tests/unit/orchestrator/test_main.py` (autouse boot-alert ledger isolation), `tests/unit/orchestrator/test_stage_publish.py` (spy accepts `dry_run` kwarg), `tests/unit/orchestrator/conftest.py` (autouse operator-state isolation).
+- Modified workflow: `.github/workflows/daily-briefing.yml` (Saturday 09:00 KST cron arm now also sets `INVESTO_WEEKLY_OPS_DIGEST=1` and pins `INVESTO_OPERATOR_STATE_DIR=archive/_meta/operator_state`).
+- Tests: +36 (1383 → 1419); covers retry budget (default / exhaustion / env override / negative-fallback / non-numeric-fallback / reset), boot-alert dedup (no ledger / record then suppress / window expiry / different message / replace-on-record / corrupt ledger / env override / fingerprint stability), source health (append / multi-day / no-log / 3-day failed / reset on ok / missing-day / intersection / env override), weekly digest (no-data / success-rate-and-top-failed / minutes / 7-day window / opt-in), Telegram retry (header Retry-After / JSON Retry-After / 5xx / non-transient / cap / budget gate), dry-run shortcut.
+- Verification: `uv run ruff check .` ✅, `uv run ruff format --check .` ✅ (211 files), `uv run mypy --strict src/` ✅ (83 source files), `uv run pytest -q` ✅ (1419 passed), `uv run mkdocs build --strict` ✅.
+- TECH-DEBT delta: none.
+**Status**: u31 construction and cross-check complete. Wave 2 P1 persona #5 surface fully landed.
+
+---
+
+## Construction — u31 operations-resilience — Steps 1-5 Complete
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Action**: Closed all five u31 steps in one session. **Step 1** — `PipelineResult.source_outcomes` carries per-adapter outcomes through the result; `__main__._write_github_step_summary` renders a sorted Markdown source table (failed → zero → ok) so a failed adapter is visible at a glance during morning triage. `notifier/_telegram.send_message` adopts a bounded retry loop (1s → 2s exponential backoff, max 3 attempts) honouring HTTP `Retry-After` and JSON `parameters.retry_after` with a 30s ceiling; non-transient 4xx and `ok: false` API responses do not retry. **Step 2** — `orchestrator/boot_alert_dedup.py` JSON ledger persists `(error_type, sha256(message[:1024]))` fingerprints with a 14-day window; auto-prunes on read; corrupt ledger does not block alerting. `__main__._attempt_boot_alert` consults the ledger before constructing the alert and records on successful delivery. `BriefingPublisher(dry_run=)`, `OperatorAlerter(dry_run=)`, `commit_and_push(dry_run=)` short-circuit network/git I/O while leaving the working tree dirty for inspection. `__main__` reads `INVESTO_DRY_RUN` once at boot; orchestrator's `_is_dry_run()` re-reads per publish-stage entry so a caller flipping the flag mid-run is honoured. **Step 3** — `orchestrator/source_health.py` appends one JSON line per run to `archive/_meta/coverage.jsonl`; `detect_consecutive_failed(today, threshold=3)` walks the trailing N days with intersection semantics (gaps and ok/zero days reset). The orchestrator hook in `run_pipeline` writes the line and emits a soft `_safe_alert(stage="orchestrator", ...)` listing N-day-failed adapters; wrapped in best-effort try/except. **Step 4** — `orchestrator/weekly_ops_digest.py` renders a Korean Markdown block over the trailing 7 days (observed runs / failure-runs / success rate / top-5 failed / optional GHA minutes). `INVESTO_WEEKLY_OPS_DIGEST=1` opt-in arm on the Saturday 09:00 KST cron triggers dispatch via `notifier/_telegram.send_message` directly to the operator chat. Dry-run skips the dispatch with a log line. **Step 5** — `_internal/retry_budget.py` process-singleton counter (default 30; env override `INVESTO_RETRY_BUDGET`); the Telegram retry loop respects the global budget. Module-boundary intact: `_internal/` placement lets the notifier consume it without violating the orchestrator-only-imports rule.
+**Status**: Code Generation complete (5/5 steps); full quality gate green: `ruff check` ✅, `ruff format --check` ✅ (211 files), `mypy --strict src/` ✅ (83 source files), `pytest -q` ✅ 1419 passed (1383 → 1419, +36 new tests), `mkdocs build --strict` ✅.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u31-operations-resilience-code-generation-plan.md`
+- `aidlc-docs/construction/u31-operations-resilience/code/summary.md` (new)
+- `docs/cross-checks/2026-05-09-u31-operations-resilience.md` (new)
+- `aidlc-docs/audit.md` (this entry + cross-check entry above)
+- `aidlc-docs/aidlc-state.md` (per-unit row u31 Planned → Complete; Code Generation Notes appended)
+- `.github/workflows/daily-briefing.yml` (Saturday cron arm extended with two env-var lines)
+**Context**: Wave 2 P1 persona #5 surface — operator triage and noise reduction. The five new env vars (`INVESTO_DRY_RUN`, `INVESTO_OPERATOR_STATE_DIR`, `INVESTO_COVERAGE_LOG_PATH`, `INVESTO_WEEKLY_OPS_DIGEST`, `INVESTO_RETRY_BUDGET`) all follow the project's `INVESTO_<SCOPE>_<NOUN>` convention and carry safe defaults. `_internal/retry_budget.py` placement preserves the notifier↔orchestrator module-boundary invariant.
+
+---
+
 ## Cross-Check — u30 telegram-first-impression — COMPLETE
 **Timestamp**: 2026-05-09T00:00:00+09:00
 **Trigger**: u30 Code Generation closed (Steps 2 / 3 / 4 / 5 all closed in this session; Step 1 was closed 2026-05-08). All six DoD items verified complete; no Critical / High findings introduced.

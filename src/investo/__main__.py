@@ -42,6 +42,8 @@ from pydantic import HttpUrl, TypeAdapter, ValidationError
 from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.models import FailureContext, PipelineResult, PipelineStatus
 from investo.notifier import BriefingPublisher, OperatorAlerter
+from investo.notifier._telegram import send_message as _telegram_send
+from investo.orchestrator import boot_alert_dedup, weekly_ops_digest
 from investo.orchestrator.date_resolution import validate_target_date_sanity
 from investo.orchestrator.errors import ConfigError
 from investo.orchestrator.pipeline import run_pipeline
@@ -202,17 +204,35 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
     # of the orchestrator's helpers (which import the four stage
     # runners and pull in u1-u4 even on a config-only failure path).
     error_message = str(exc) or type(exc).__name__
+    error_type = type(exc).__name__
+
+    # u31 Step 2 — bounded dedup. A stuck misconfiguration would
+    # otherwise page the operator on every cron firing. The ledger is
+    # off-by-default until the operator wires GHA caching for
+    # ``archive/_meta/operator_state/`` (see runbook).
+    now_utc = datetime.now(UTC)
+    if not boot_alert_dedup.should_alert(
+        error_type=error_type,
+        error_message=error_message,
+        now_utc=now_utc,
+    ):
+        _logger.info(
+            "[boot_alert] suppressed duplicate (within dedup window): %s",
+            error_type,
+        )
+        return
 
     try:
         ctx = FailureContext(
             stage="orchestrator",
-            error_type=type(exc).__name__,
+            error_type=error_type,
             error_message=error_message,
-            occurred_at=datetime.now(UTC),
+            occurred_at=now_utc,
         )
     except (ValidationError, ValueError):
         return  # Construction failure ⇒ skip alert silently.
 
+    delivered = False
     try:
         async with httpx.AsyncClient(timeout=_BOOT_ALERT_TIMEOUT_S) as client:
             alerter = OperatorAlerter(
@@ -223,11 +243,18 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
             for _ in range(_BOOT_ALERT_ATTEMPTS):
                 result = await alerter.alert(ctx)
                 if result.ok:
+                    delivered = True
                     break
     except Exception:
         # Best-effort — never let alerter exceptions mask the
         # underlying failure exit code.
         pass
+    if delivered:
+        boot_alert_dedup.record_alert(
+            error_type=error_type,
+            error_message=error_message,
+            now_utc=now_utc,
+        )
 
 
 def _resolve_target_date_override() -> date | None:
@@ -314,6 +341,45 @@ def _write_github_step_summary(result: PipelineResult) -> None:
         )
     lines.append("")
 
+    # u31 Step 1 — per-source outcome table so a failed adapter is
+    # visible at a glance during morning triage. Sorted: failed first,
+    # then zero-item, then ok (counts of healthy adapters can be skimmed
+    # last). Failure reasons are already sanitized at construction time
+    # via ``SourceOutcome.from_failure``; we re-route through the
+    # diagnostic redactor as a defensive belt-and-braces step.
+    if result.source_outcomes:
+        ranked = sorted(
+            result.source_outcomes,
+            key=lambda outcome: (
+                {"failed": 0, "zero": 1, "ok": 2}.get(outcome.status, 3),
+                outcome.source_name,
+            ),
+        )
+        lines.extend(
+            [
+                "### Sources",
+                "",
+                "| Source | Category | Status | Items | Reason |",
+                "|--------|----------|--------|-------|--------|",
+            ]
+        )
+        for outcome in ranked:
+            reason = outcome.failure_reason or ""
+            lines.append(
+                "| "
+                + " | ".join(
+                    (
+                        _redact_diagnostic_text(outcome.source_name),
+                        _redact_diagnostic_text(outcome.category),
+                        outcome.status,
+                        str(outcome.item_count),
+                        _redact_diagnostic_text(reason),
+                    )
+                )
+                + " |"
+            )
+        lines.append("")
+
     try:
         Path(summary_path).parent.mkdir(parents=True, exist_ok=True)
         with Path(summary_path).open("a", encoding="utf-8") as fp:
@@ -350,16 +416,27 @@ async def _async_main() -> int:
         # both BriefingPublisher.send and any OperatorAlerter.alert
         # the pipeline issues internally. Production tip from u4
         # docstring (Step 7 L4 doc).
+        # u31 Step 2 — operator-rehearsal mode reads the env once at boot
+        # and threads the flag into both Telegram dispatchers. The
+        # orchestrator's publish stage reads the same env per call so a
+        # caller flipping the flag mid-run is honoured at every layer.
+        dry_run = os.environ.get("INVESTO_DRY_RUN", "").strip() == "1"
+        if dry_run:
+            _logger.warning(
+                "[boot] INVESTO_DRY_RUN=1 — git push and Telegram dispatch will be skipped"
+            )
         async with httpx.AsyncClient(timeout=30.0) as http_client:
             publisher = BriefingPublisher(
                 bot_token=bot_token,
                 channel_id=channel_id,
                 http=http_client,
+                dry_run=dry_run,
             )
             alerter = OperatorAlerter(
                 bot_token=bot_token,
                 operator_chat_id=operator_id,
                 http=http_client,
+                dry_run=dry_run,
             )
 
             result = await run_pipeline(
@@ -368,6 +445,32 @@ async def _async_main() -> int:
                 alerter=alerter,
                 site_url_base=site_url_base,
             )
+
+            # u31 Step 4 — operator weekly digest. Opt-in via
+            # ``INVESTO_WEEKLY_OPS_DIGEST=1`` (the workflow sets it on
+            # the Saturday cron). Best-effort: a digest dispatch
+            # failure must not change the run's exit code or mask the
+            # primary briefing's status. Dry-run mode still skips the
+            # network dispatch — operator rehearsals should not page
+            # the operator with a synthetic digest.
+            if weekly_ops_digest.is_opt_in():
+                try:
+                    digest_text = weekly_ops_digest.build_weekly_digest_text(result.target_date)
+                    if dry_run:
+                        _logger.info(
+                            "[weekly_ops_digest] dry-run — would have sent: %s",
+                            digest_text.splitlines()[0],
+                        )
+                    else:
+                        await _telegram_send(
+                            http_client,
+                            bot_token=bot_token,
+                            chat_id=operator_id,
+                            text=digest_text,
+                            parse_mode=None,
+                        )
+                except Exception:
+                    _logger.warning("[weekly_ops_digest] dispatch failed", exc_info=True)
 
         _write_github_step_summary(result)
         if result.status == PipelineStatus.FAILED:

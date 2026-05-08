@@ -47,10 +47,12 @@ class BriefingPublisher:
         bot_token: str,
         channel_id: str,
         http: httpx.AsyncClient | None = None,
+        dry_run: bool = False,
     ) -> None:
         self._bot_token = bot_token
         self._channel_id = channel_id
         self._http = http
+        self._dry_run = dry_run
 
     async def send(self, payload: BriefingNotification) -> SendResult:
         """Post the briefing summary to the configured channel.
@@ -64,7 +66,17 @@ class BriefingPublisher:
         ``httpx.AsyncClient(timeout=30.0)`` for the duration of the
         call. Tests inject a pre-built client (typically with
         ``MockTransport``) to avoid network I/O.
+
+        When ``dry_run`` was passed at construction (u31 Step 2),
+        returns ``SendResult(ok=True, error=None, message_id=None)``
+        immediately without any network I/O. The caller treats this as
+        a successful publish so the rest of the pipeline (status
+        recording, exit codes) flows as if the message had been
+        delivered. Operator triage learns the run was a dry-run from
+        the orchestrator-side log line, not from this layer.
         """
+        if self._dry_run:
+            return SendResult(ok=True, message_id=None, error=None)
         if self._http is None:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 return await self._dispatch(client, payload)

@@ -221,3 +221,24 @@ async def test_briefing_publisher_creates_default_client_when_http_none(
     async_client_factory.assert_called_once()
     # Production default has a 30s timeout.
     assert async_client_factory.call_args.kwargs["timeout"] == 30.0
+
+
+# ---------------------------------------------------------------------------
+# u31 Step 2 — dry-run mode
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_briefing_publisher_dry_run_returns_ok_without_dispatch() -> None:
+    """dry_run=True returns ok=True without ever calling send_message.
+
+    Constructed with ``http=None`` so any non-dry-run code path would
+    instantiate a real httpx client; if dry-run leaked through, the
+    request would either raise or trip the test's lack of monkeypatch.
+    """
+    publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_CHANNEL_ID, dry_run=True)
+    result = await publisher.send(_build_notification())
+
+    assert result.ok is True
+    assert result.message_id is None
+    assert result.error is None

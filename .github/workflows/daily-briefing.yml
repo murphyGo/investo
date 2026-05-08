@@ -201,6 +201,19 @@ jobs:
           # runs default to ``"0"`` (no weekly publish); pass ``"1"``
           # via a manual environment override if you need to backfill.
           INVESTO_PUBLISH_WEEKLY: ${{ github.event.schedule == '0 0 * * 6' && '1' || '0' }}
+          # u31 Step 4 — operator weekly ops digest. Same Saturday cron
+          # firing that triggers the public weekly retrospective also
+          # opts into the operator chat digest summarising the trailing
+          # 7 days of source health (success rate, top-failed
+          # adapters). ``__main__`` consumes the env after
+          # ``run_pipeline`` returns; ``INVESTO_DRY_RUN=1`` short-
+          # circuits the dispatch.
+          INVESTO_WEEKLY_OPS_DIGEST: ${{ github.event.schedule == '0 0 * * 6' && '1' || '0' }}
+          # u31 Step 2 — operator state directory. The boot-alert dedup
+          # ledger and per-source coverage time series both land under
+          # this directory; pinning it explicitly makes the GHA cache
+          # key match the path the workflow restores below.
+          INVESTO_OPERATOR_STATE_DIR: archive/_meta/operator_state
         run: uv run python -m investo
 
       - name: Trigger Pages deploy

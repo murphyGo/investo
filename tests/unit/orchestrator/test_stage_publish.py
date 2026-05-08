@@ -293,6 +293,7 @@ async def test_stage_publish_default_git_runner_is_none(
         *,
         retries: int = 2,
         runner: GitRunner | None = None,
+        dry_run: bool = False,
     ) -> None:
         captured.append(runner)
 

@@ -65,11 +65,13 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
 import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import Final
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
@@ -111,6 +113,7 @@ from investo.notifier import (
     build_summary,
 )
 from investo.notifier.summary import resolve_enabled_segments
+from investo.orchestrator import source_health
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
 from investo.publisher import (
@@ -151,6 +154,19 @@ from investo.visuals.og_card import OG_CARD_RELATIVE_PATH, write_og_card
 _HTTP_URL_ADAPTER = TypeAdapter(HttpUrl)
 
 _logger = logging.getLogger("investo.orchestrator.pipeline")
+
+# u31 Step 2 — operator-rehearsal env flag. ``INVESTO_DRY_RUN=1``
+# short-circuits git push (write archive files locally, leave the
+# working tree dirty) and Telegram dispatch (return ``ok=True`` without
+# I/O). Read at each publish-stage entry so a caller flipping the env
+# mid-run is honoured by the next stage.
+_DRY_RUN_ENV: Final[str] = "INVESTO_DRY_RUN"
+
+
+def _is_dry_run() -> bool:
+    return os.environ.get(_DRY_RUN_ENV, "").strip() == "1"
+
+
 _ALERT_DELIVERY_ATTEMPTS = 2
 
 
@@ -518,13 +534,18 @@ async def _stage_publish(
     # parameter forwards through; ``None`` lets u3 use the real
     # subprocess runner.
     commit_message = f"briefing: {target_date}"
+    dry_run = _is_dry_run()
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
         [archive_path],
         runner=git_runner,
+        dry_run=dry_run,
     )
-    _logger.info("[publish] committed + pushed %s", target_date)
+    if dry_run:
+        _logger.info("[publish] dry-run — skipped git commit + push for %s", target_date)
+    else:
+        _logger.info("[publish] committed + pushed %s", target_date)
     return archive_path
 
 
@@ -634,13 +655,18 @@ async def _stage_publish_segments(
         if len(published_segments) == len(SEGMENT_ORDER)
         else f"briefing: {target_date} segmented partial"
     )
+    dry_run = _is_dry_run()
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
         [*archive_paths.values(), *asset_paths, *index_paths, *weekly_paths],
         runner=git_runner,
+        dry_run=dry_run,
     )
-    _logger.info("[publish] committed + pushed segmented %s", target_date)
+    if dry_run:
+        _logger.info("[publish] dry-run — skipped git commit + push for segmented %s", target_date)
+    else:
+        _logger.info("[publish] committed + pushed segmented %s", target_date)
     return archive_paths
 
 
@@ -1090,6 +1116,7 @@ async def run_pipeline(
             stage_timings=stage_timings,
             pipeline_start=pipeline_start,
             briefing_url=None,
+            source_outcomes=source_outcomes,
         )
     stage_timings["generate"] = time.monotonic() - stage_start
     if segment_generation_failures:
@@ -1160,6 +1187,7 @@ async def run_pipeline(
             stage_timings=stage_timings,
             pipeline_start=pipeline_start,
             briefing_url=None,
+            source_outcomes=source_outcomes,
         )
     stage_timings["publish"] = time.monotonic() - stage_start
     stages["publish"] = "ok"
@@ -1234,6 +1262,31 @@ async def run_pipeline(
             NotifyDeliveryError(notify_result.error or "public briefing notification failed"),
         )
 
+    # u31 Step 3 — append today's per-source health line + emit a soft
+    # alert if any source has been ``failed`` on the last
+    # ``DEFAULT_CONSECUTIVE_THRESHOLD`` days. Wrapped in best-effort
+    # try/except so coverage-log issues never change the pipeline's
+    # exit semantics.
+    try:
+        source_health.append_daily_coverage(target_date, source_outcomes)
+        consecutive_failed = source_health.detect_consecutive_failed(today=target_date)
+        if consecutive_failed:
+            _logger.warning(
+                "[source_health] sources failed for %d consecutive days: %s",
+                source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
+                ", ".join(consecutive_failed),
+            )
+            await _safe_alert(
+                alerter,
+                "orchestrator",
+                RuntimeError(
+                    f"sources failed {source_health.DEFAULT_CONSECUTIVE_THRESHOLD} "
+                    f"consecutive days: {', '.join(consecutive_failed)}"
+                ),
+            )
+    except Exception as exc:
+        _logger.warning("[source_health] could not record coverage log: %s", exc)
+
     return _build_result(
         target_date=target_date,
         status=status,
@@ -1241,6 +1294,7 @@ async def run_pipeline(
         stage_timings=stage_timings,
         pipeline_start=pipeline_start,
         briefing_url=briefing_url,
+        source_outcomes=source_outcomes,
     )
 
 
@@ -1297,6 +1351,7 @@ def _build_result(
     stage_timings: dict[str, float],
     pipeline_start: float,
     briefing_url: HttpUrl | None,
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> PipelineResult:
     """Final ``PipelineResult`` constructor + closing INFO log."""
     duration = time.monotonic() - pipeline_start
@@ -1313,6 +1368,7 @@ def _build_result(
         stage_timings=stage_timings,
         duration_seconds=duration,
         briefing_url=briefing_url,
+        source_outcomes=tuple(source_outcomes),
     )
 
 

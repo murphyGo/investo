@@ -132,6 +132,7 @@ def commit_and_push(
     *,
     retries: int = 2,
     runner: GitRunner | None = None,
+    dry_run: bool = False,
 ) -> None:
     """Run ``git add → git commit → git push origin HEAD`` with
     whole-pipeline retry.
@@ -162,6 +163,15 @@ def commit_and_push(
         exception when one is raised, or ``None`` for non-zero-rc
         failures.
     """
+    if dry_run:
+        # u31 Step 2 — operator-rehearsal mode. The archive files have
+        # already been written to disk by ``write_briefing`` /
+        # ``_stage_publish_segments``; skipping the git commit + push
+        # leaves the working tree dirty so the operator can inspect
+        # what *would* have been committed without polluting origin
+        # history.
+        return
+
     actual_runner = runner if runner is not None else _default_runner
 
     last_stderr: str | None = None
