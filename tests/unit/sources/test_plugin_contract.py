@@ -31,6 +31,7 @@ from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
 from investo.sources.fsc_krx_index_price import FscKrxIndexPriceAdapter
+from investo.sources.fsc_krx_stock_price import FscKrxStockPriceAdapter
 from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapter
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
@@ -41,9 +42,10 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 12
+EXPECTED_ADAPTER_COUNT = 13
 EXPECTED_ADAPTER_NAMES = {
     "fsc-krx-index-price",
+    "fsc-krx-stock-price",
     "fomc-rss",
     "yfinance-price",
     "coingecko-price",
@@ -74,6 +76,7 @@ def _isolate_registry() -> Iterator[None]:
     _clear_for_test()
     register(FomcRssAdapter)
     register(FscKrxIndexPriceAdapter)
+    register(FscKrxStockPriceAdapter)
     register(YFinancePriceAdapter)
     register(CoinGeckoPriceAdapter)
     register(FredMacroAdapter)
@@ -187,6 +190,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "FomcRssAdapter",
         "fsc_krx_index_price",
         "FscKrxIndexPriceAdapter",
+        "fsc_krx_stock_price",
+        "FscKrxStockPriceAdapter",
         "yfinance",
         "YFinancePriceAdapter",
         "coingecko",

@@ -24,7 +24,7 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 - [ ] New adapters use the existing `@register` plugin pattern, `SourceAdapter` protocol, shared `retry_get`, `SourceFetchError`, `FetchWindow`, `strip_html`, `defusedxml` for XML/RSS, and recorded fixture tests.
 - [ ] Domestic-equity gains official price/index coverage:
   - [x] FSC/data.go.kr KRX index daily price adapter.
-  - FSC/data.go.kr KRX stock daily price adapter or a bounded watchlist/index proxy if full stock coverage is too broad for the first slice.
+  - [x] FSC/data.go.kr KRX stock daily price adapter or a bounded watchlist/index proxy if full stock coverage is too broad for the first slice.
   - FSC/data.go.kr listed-issues/reference adapter only if required to map stock codes; otherwise deferred behind the price adapter.
 - [ ] Domestic-equity gains policy/event RSS coverage from official public feeds (MOEF/FSC/MOTIE/MSS or equivalent `korea.kr` feeds) without using Naver Finance or web-scraped KRX/KIND pages.
 - [ ] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
@@ -67,16 +67,16 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
   - `binance-crypto-market-structure` (`price`, crypto; optional if rate-limit/geofence fixture is stable)
 - [ ] Add or extend shared config helpers for optional source keys and symbol lists:
   - [x] `INVESTO_KRX_SERVICE_KEY` or compatible data.go.kr service-key env var.
-  - `INVESTO_KRX_STOCK_TICKERS` bounded default/watchlist fallback.
+  - [x] `INVESTO_KRX_STOCK_TICKERS` bounded default/watchlist fallback.
   - `INVESTO_CRYPTO_MARKET_SYMBOLS` defaulting to `BTCUSDT,ETHUSDT,SOLUSDT`.
 - [ ] Decide whether to ship all seven slugs in one unit or split Step 7's Binance adapter to a follow-up if live fixture access is unstable.
 
 ### Step 2 — Domestic Base Layer
 
 - [x] Implement `fsc_krx_index_price.py` using official FSC/data.go.kr JSON/XML endpoint, strict target-date filtering, holiday fallback, numeric-string parsing, and KST-aware timestamps.
-- [ ] Implement `fsc_krx_stock_price.py` for a bounded stock/watchlist set rather than all listings; normalize OHLCV, market, code, and display name into `raw_metadata`.
+- [x] Implement `fsc_krx_stock_price.py` for a bounded stock/watchlist set rather than all listings; normalize OHLCV, market, code, and display name into `raw_metadata`.
 - [ ] Implement `korea_policy_rss.py` using official RSS feeds only; strip HTML, normalize publication timestamps to KST, dedupe duplicate policy releases, and cap noisy feeds.
-- [ ] Add fixtures and tests covering successful parse, missing service key (if applicable), holiday/no-row fallback, malformed numeric fields, RSS HTML stripping, and strict source-window behavior. (Slice 1 covers index parse, missing key, holiday fallback, malformed numeric fields, and data.go.kr error shape)
+- [ ] Add fixtures and tests covering successful parse, missing service key (if applicable), holiday/no-row fallback, malformed numeric fields, RSS HTML stripping, and strict source-window behavior. (Slices 1-2 cover index/stock parse, missing key, holiday fallback, malformed numeric fields, data.go.kr error shape, and per-ticker stock isolation)
 
 ### Step 3 — Rates and Macro Layer
 

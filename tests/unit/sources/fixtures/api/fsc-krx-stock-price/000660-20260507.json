@@ -1,0 +1,32 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE."
+    },
+    "body": {
+      "pageNo": 1,
+      "numOfRows": 10,
+      "totalCount": 1,
+      "items": {
+        "item": {
+          "basDt": "20260507",
+          "srtnCd": "000660",
+          "isinCd": "KR7000660001",
+          "itmsNm": "SK하이닉스",
+          "mrktCtg": "KOSPI",
+          "clpr": "188,500",
+          "vs": "-1,500",
+          "fltRt": "-0.79",
+          "mkp": "190,000",
+          "hipr": "191,000",
+          "lopr": "187,500",
+          "trqu": "3290000",
+          "trPrc": "621000000000",
+          "lstgStCnt": "728002365",
+          "mrktTotAmt": "137228445802500"
+        }
+      }
+    }
+  }
+}

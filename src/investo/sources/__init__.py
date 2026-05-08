@@ -32,6 +32,7 @@ from . import (
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
     fsc_krx_index_price,  # noqa: F401
+    fsc_krx_stock_price,  # noqa: F401
     nasdaq_earnings_calendar,  # noqa: F401
     nasdaq_stocks_news,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
