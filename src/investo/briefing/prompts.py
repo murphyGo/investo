@@ -242,6 +242,14 @@ Forward-looking "주요 일정" rules (u35 event-lookahead):
 - If the 주요 일정 list is empty or absent, omit the forward-looking
   watch list and keep section ⑥ focused on today's input items.
 
+약자 풀어쓰기 룰 (u40):
+- On first appearance per segment, every financial acronym, futures
+  code, and market jargon term must carry a 1-3-word Korean gloss in
+  parentheses. Examples: EIA(에너지정보청) 주간 재고, DXY(달러지수),
+  ESM26(미니S&P선물), 프로그램매매(기관자동주문), 숏커버링(공매도상환).
+- Subsequent appearances in the same segment do not need a repeated
+  gloss. A glossary from another segment does not satisfy this segment.
+
 Recent-briefings continuity rules (u34):
 - The user prompt may include a "최근 N일 컨텍스트" section listing the
   conclusion / key-driver lines from the same segment's recent

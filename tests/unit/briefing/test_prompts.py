@@ -190,6 +190,13 @@ def test_stage2_system_carries_lookahead_no_forecast_rule() -> None:
     )
 
 
+def test_stage2_system_mentions_glossary_rules() -> None:
+    assert "약자 풀어쓰기 룰" in STAGE2_SYSTEM
+    assert "EIA(에너지정보청)" in STAGE2_SYSTEM
+    assert "프로그램매매(기관자동주문)" in STAGE2_SYSTEM
+    assert STAGE2_SYSTEM.index("Forward-looking") < STAGE2_SYSTEM.index("약자 풀어쓰기 룰")
+
+
 def test_format_lookahead_section_renders_body_with_header_and_intro() -> None:
     body = "- 2026-05-10: [fomc-rss] FOMC meeting"
     rendered = format_lookahead_section(body)

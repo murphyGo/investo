@@ -48,6 +48,7 @@ from investo.briefing.claude_code import (
 from investo.briefing.context import RecentBriefingEntry, RecentBriefingsContext
 from investo.briefing.disclaimer import DISCLAIMER, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
+from investo.briefing.glossary import audit_glossary_compliance, render_glossary_callout
 from investo.briefing.leak_guard import scan as leak_guard_scan
 from investo.briefing.prompts import (
     DEFAULT_SEGMENT_CONTEXT,
@@ -883,6 +884,9 @@ def _enhance_reader_experience(
     if candidates is not None:
         unverified = numeric_self_check.find_unverified(body_markdown, candidates)
         numeric_warning_line = numeric_self_check.render_warning_line(unverified)
+    glossary_line = render_glossary_callout(
+        audit_glossary_compliance(body_markdown, segment=segment)
+    )
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
         f"{watermark}\n\n"
@@ -890,6 +894,7 @@ def _enhance_reader_experience(
         f"{_render_coverage_badge(coverage) if coverage is not None else ''}"
         f"{_render_watchlist_callout(watchlist_impact) if watchlist_impact is not None else ''}"
         f"{numeric_warning_line}"
+        f"{glossary_line}"
         f"> **오늘의 결론**: {summary_header.conclusion}\n"
         f"> **핵심 동인**: {summary_header.driver}\n"
         f"> **주의할 점**: {summary_header.caution}\n\n"

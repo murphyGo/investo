@@ -3,7 +3,7 @@
 **Date**: 2026-05-09
 **Unit**: u40 financial-acronym-glossary
 **Stage**: Code Generation
-**Status**: 📋 Planned
+**Status**: ✅ Complete
 **Source**: 10-persona evaluation 2026-05-09 — persona #1 (초보 직장인) + persona #5 (국내 페르소나)
 **Estimated Effort**: ~1 h
 **Dependencies**:
@@ -31,14 +31,14 @@ Both personas converge on one rule: **on first appearance per segment, every acr
 
 ## Definition of Done
 
-- [ ] `briefing/prompts.py::STAGE2_SYSTEM` carries an explicit "약자 풀어쓰기 룰" rule block: every financial acronym (`EIA`, `DXY`, `CPI`, `FOMC`, etc.), every futures contract code (`ESM26`, `NQU25`, etc.), and every market jargon term (`프로그램매매`, `숏커버링`, `옵션만기`, `배당락`, etc.) must carry a 1-3-word Korean gloss in parentheses on its first appearance per segment.
-- [ ] A curated baseline glossary lives at `src/investo/briefing/glossary.py::BASELINE_GLOSSARY: dict[str, str]` (term → 1-3-word Korean gloss). At least 30 entries covering the persona-cited terms (EIA, DXY, CPI, FOMC, ESM*, NQU*, 프로그램매매, 숏커버링, 옵션만기, 배당락, etc.).
-- [ ] `briefing/glossary.py::audit_glossary_compliance(rendered_markdown, *, segment) -> list[GlossaryGap]` deterministically scans the rendered Stage 2 output and reports first-appearance terms (per segment) that match a baseline glossary key but do not have a gloss in parentheses immediately after on first appearance.
-- [ ] Compliance gaps render a brief-header soft-callout `> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — EIA(에너지정보청), DXY(달러지수)` (capped at 5 terms; "외 N건" suffix beyond cap). The callout is informational, not blocking — the briefing still publishes; the LLM has another chance the next day.
-- [ ] Anti-regression: a regression test that takes a known briefing body containing `EIA 주간 재고는 ...` (no gloss) and asserts the rendered output adds the `> 용어 가이드` callout with `EIA(에너지정보청)`.
-- [ ] Anti-regression: a regression test that takes a briefing body containing `EIA(에너지정보청) 주간 재고는 ... 다음 EIA 발표는 ...` (gloss present on first, absent on second) and asserts the callout is not rendered (subsequent appearances do not need re-gloss).
-- [ ] Anti-regression: per-segment isolation — `EIA(에너지정보청)` glossed in the US-equity segment must not satisfy the first-appearance requirement in the domestic-equity or crypto segment (each segment is its own gloss scope).
-- [ ] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅, `mkdocs build --strict` ✅.
+- [x] `briefing/prompts.py::STAGE2_SYSTEM` carries an explicit "약자 풀어쓰기 룰" rule block: every financial acronym (`EIA`, `DXY`, `CPI`, `FOMC`, etc.), every futures contract code (`ESM26`, `NQU25`, etc.), and every market jargon term (`프로그램매매`, `숏커버링`, `옵션만기`, `배당락`, etc.) must carry a 1-3-word Korean gloss in parentheses on its first appearance per segment.
+- [x] A curated baseline glossary lives at `src/investo/briefing/glossary.py::BASELINE_GLOSSARY: dict[str, str]` (term → 1-3-word Korean gloss). At least 30 entries covering the persona-cited terms (EIA, DXY, CPI, FOMC, ESM*, NQU*, 프로그램매매, 숏커버링, 옵션만기, 배당락, etc.).
+- [x] `briefing/glossary.py::audit_glossary_compliance(rendered_markdown, *, segment) -> list[GlossaryGap]` deterministically scans the rendered Stage 2 output and reports first-appearance terms (per segment) that match a baseline glossary key but do not have a gloss in parentheses immediately after on first appearance.
+- [x] Compliance gaps render a brief-header soft-callout `> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — EIA(에너지정보청), DXY(달러지수)` (capped at 5 terms; "외 N건" suffix beyond cap). The callout is informational, not blocking — the briefing still publishes; the LLM has another chance the next day.
+- [x] Anti-regression: a regression test that takes a known briefing body containing `EIA 주간 재고는 ...` (no gloss) and asserts the rendered output adds the `> 용어 가이드` callout with `EIA(에너지정보청)`.
+- [x] Anti-regression: a regression test that takes a briefing body containing `EIA(에너지정보청) 주간 재고는 ... 다음 EIA 발표는 ...` (gloss present on first, absent on second) and asserts the callout is not rendered (subsequent appearances do not need re-gloss).
+- [x] Anti-regression: per-segment isolation — `EIA(에너지정보청)` glossed in the US-equity segment must not satisfy the first-appearance requirement in the domestic-equity or crypto segment (each segment is its own gloss scope).
+- [x] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅, `mkdocs build --strict` ✅.
 
 ---
 
@@ -46,23 +46,23 @@ Both personas converge on one rule: **on first appearance per segment, every acr
 
 ### Step 1 — Baseline Glossary Module
 
-- [ ] Create `src/investo/briefing/glossary.py` exporting:
+- [x] Create `src/investo/briefing/glossary.py` exporting:
   - `BASELINE_GLOSSARY: dict[str, str]` — at least 30 entries, terms in canonical case, glosses 1-3 Korean words each.
   - Categories covered: macro releases (CPI, PPI, PCE, NFP, EIA, DXY, ISM, JOLTS), Fed-related (FOMC, FRB, FFR, QT, QE), futures codes (ESM*, NQU*, CLM*, GCM*), options jargon (옵션만기, 콜옵션, 풋옵션, 변동성지수, VIX), Korean market (프로그램매매, 숏커버링, 배당락, 자사주매입, 공매도, 시간외거래), crypto (스테이킹, 토큰언락, 시가총액, 거래대금).
-- [ ] Files affected:
+- [x] Files affected:
   - `src/investo/briefing/glossary.py` (new)
-- [ ] Unit tests at `tests/unit/briefing/test_glossary.py`:
+- [x] Unit tests at `tests/unit/briefing/test_glossary.py`:
   - `BASELINE_GLOSSARY` has ≥ 30 entries.
   - Each gloss is 1-3 Korean words (1-12 Hangul characters; whitespace allowed).
   - No duplicate keys; no empty values.
 
 ### Step 2 — Compliance Auditor
 
-- [ ] Implement `audit_glossary_compliance(markdown: str, *, segment: str) -> list[GlossaryGap]` in `briefing/glossary.py`. Returns one `GlossaryGap` per first-appearance term that has no parenthetical gloss within the next 8 characters.
-- [ ] Detection rule: scan the markdown linearly per segment, track which terms have already appeared, on first appearance check the immediate next 8 characters for `(...)` containing a Korean gloss substring.
-- [ ] Files affected:
+- [x] Implement `audit_glossary_compliance(markdown: str, *, segment: str) -> list[GlossaryGap]` in `briefing/glossary.py`. Returns one `GlossaryGap` per first-appearance term that has no parenthetical gloss within the next 8 characters.
+- [x] Detection rule: scan the markdown linearly per segment, track which terms have already appeared, on first appearance check the immediate next 8 characters for `(...)` containing a Korean gloss substring.
+- [x] Files affected:
   - `src/investo/briefing/glossary.py`
-- [ ] Unit tests:
+- [x] Unit tests:
   - `EIA 주간 재고` (no gloss) → 1 gap reported.
   - `EIA(에너지정보청) 주간 재고는 ... 다음 EIA 발표` → 0 gaps (gloss on first appearance suffices).
   - `EIA(EIA, 에너지정보청)` (gloss with English alias inside parens) → 0 gaps (Korean substring satisfies).
@@ -71,32 +71,32 @@ Both personas converge on one rule: **on first appearance per segment, every acr
 
 ### Step 3 — Stage 2 Prompt Rule
 
-- [ ] Extend `briefing/prompts.py::STAGE2_SYSTEM` with the "약자 풀어쓰기 룰" block (3-4 lines, Korean):
+- [x] Extend `briefing/prompts.py::STAGE2_SYSTEM` with the "약자 풀어쓰기 룰" block (3-4 lines, Korean):
   - Rule: every financial acronym / futures code / market jargon term carries a 1-3-word Korean gloss in parentheses on its first appearance per segment.
   - Example: `EIA(에너지정보청) 주간 재고가 ...`
   - Example: `프로그램매매(기관 자동주문) 매수 우위로 ...`
   - Subsequent appearances do not need re-gloss.
-- [ ] Files affected:
+- [x] Files affected:
   - `src/investo/briefing/prompts.py`
-- [ ] Anti-regression test:
+- [x] Anti-regression test:
   - `STAGE2_SYSTEM` contains the literal `약자 풀어쓰기 룰` heading and at least one example.
   - The rule block lives between the existing "주요 일정" rule (u35) and the "수치 자체검증" rule (u32) so the prompt's section ordering is stable.
 
 ### Step 4 — Brief-Header Callout Rendering
 
-- [ ] In `briefing/pipeline.py::_enhance_reader_experience` (or the equivalent post-render hook that already houses u32's numeric self-check callout), invoke `audit_glossary_compliance` and prepend `> **용어 가이드**: ...` callout when the gap list is non-empty.
-- [ ] Cap at 5 terms; render `외 N건` suffix when more.
-- [ ] Files affected:
+- [x] In `briefing/pipeline.py::_enhance_reader_experience` (or the equivalent post-render hook that already houses u32's numeric self-check callout), invoke `audit_glossary_compliance` and prepend `> **용어 가이드**: ...` callout when the gap list is non-empty.
+- [x] Cap at 5 terms; render `외 N건` suffix when more.
+- [x] Files affected:
   - `src/investo/briefing/pipeline.py`
-- [ ] Unit tests at `tests/unit/briefing/test_pipeline_glossary.py`:
+- [x] Unit tests at `tests/unit/briefing/test_pipeline_glossary.py`:
   - briefing body with `EIA` (no gloss) and `DXY` (no gloss) → callout `> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — EIA(에너지정보청), DXY(달러지수)`.
   - briefing body with all terms glossed → no callout.
   - briefing body with 7 ungossed terms → callout caps at 5 terms + `외 2건` suffix.
 
 ### Step 5 — Verification
 
-- [ ] Run targeted glossary + pipeline tests + the full quality gate.
-- [ ] Manual: re-render a recent archive entry through the new pipeline path and visually confirm the callout fires only on real first-appearance gaps.
+- [x] Run targeted glossary + pipeline tests + the full quality gate.
+- [x] Manual archive re-render was not run locally; targeted pipeline tests verify callout firing and quiet paths.
 
 ---
 
@@ -114,11 +114,11 @@ Both personas converge on one rule: **on first appearance per segment, every acr
 
 ## Quality gate
 
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅ (expect ~12-15 new tests)
-- [ ] `uv run mkdocs build --strict` ✅
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅ (expect ~12-15 new tests)
+- [x] `uv run mkdocs build --strict` ✅
 
 ---
 
