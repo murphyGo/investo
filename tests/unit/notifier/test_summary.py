@@ -210,14 +210,8 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
     assert "📈 2026-04-25 데일리 시황" in summary
-    assert (
-        f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n코스피 요약"
-        in summary
-    )
-    assert (
-        f"🇺🇸 *미국 증시*\n[상세보기]({_SEGMENT_URLS[US_EQUITY]})\nS&P 500 요약"
-        in summary
-    )
+    assert f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n코스피 요약" in summary
+    assert f"🇺🇸 *미국 증시*\n[상세보기]({_SEGMENT_URLS[US_EQUITY]})\nS&P 500 요약" in summary
     assert f"₿ *크립토*\n[상세보기]({_SEGMENT_URLS[CRYPTO]})\nBitcoin 요약" in summary
     assert "• 국내 증시: [상세보기](" in summary
     assert "• 미국 증시: [상세보기](" in summary
@@ -269,7 +263,10 @@ def test_build_segmented_summary_adds_market_snapshot_from_price_items() -> None
         price_items=price_items,
     )
 
-    assert "📈 2026-04-25 데일리 시황\n시장: " in summary
+    assert "📈 2026-04-25 데일리 시황\n" in summary
+    assert "🕐 KST " in summary  # publish-time label inserted before snapshot
+    assert "전 거래일: 2026-04-25" in summary
+    assert "시장: " in summary
     assert "SPX +0.4%" in summary
     assert "NDX +0.7%" in summary
     assert "KOSPI -0.2%" in summary
@@ -644,3 +641,307 @@ def test_no_lookahead_argument_means_no_tag() -> None:
     briefings = _imminent_briefings()
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
     assert "D-" not in summary
+
+
+# ---------------------------------------------------------------------------
+# u30 Step 2 — segment collapse + enabled_segments toggle
+# ---------------------------------------------------------------------------
+
+
+def _build_coverage(segment, status, *, item_count=0):  # type: ignore[no-untyped-def]
+    from investo.briefing.segments import SegmentCoverage
+
+    return SegmentCoverage(
+        segment=segment,
+        status=status,
+        item_count=item_count,
+        source_count=0 if not item_count else 1,
+        categories=(),
+        missing_categories=(),
+    )
+
+
+def test_insufficient_segment_collapses_to_single_line_when_coverage_supplied() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    coverage = {
+        DOMESTIC_EQUITY: _build_coverage(DOMESTIC_EQUITY, "insufficient"),
+        US_EQUITY: _build_coverage(US_EQUITY, "normal", item_count=10),
+        CRYPTO: _build_coverage(CRYPTO, "normal", item_count=10),
+    }
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        coverage_by_segment=coverage,
+    )
+
+    # Domestic-equity collapses: single line with status badge + link, no
+    # body/conclusion line below.
+    expected_collapse = f"🇰🇷 *국내 증시* [부족] · [상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})"
+    assert expected_collapse in summary
+    assert f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n" not in summary
+
+    # Other segments keep the legacy 3-line block.
+    assert f"🇺🇸 *미국 증시*\n[상세보기]({_SEGMENT_URLS[US_EQUITY]})\n미국 요약" in summary
+    assert f"₿ *크립토*\n[상세보기]({_SEGMENT_URLS[CRYPTO]})\n크립토 요약" in summary
+
+
+def test_partial_or_normal_segment_keeps_three_line_block() -> None:
+    """``status != 'insufficient'`` must NOT trigger the collapse."""
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    coverage = {
+        DOMESTIC_EQUITY: _build_coverage(DOMESTIC_EQUITY, "partial", item_count=2),
+        US_EQUITY: _build_coverage(US_EQUITY, "normal", item_count=10),
+        CRYPTO: _build_coverage(CRYPTO, "normal", item_count=10),
+    }
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        coverage_by_segment=coverage,
+    )
+
+    # No collapsed line for the partial segment.
+    assert "🇰🇷 *국내 증시* [부족] · [상세보기]" not in summary
+    assert f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n" in summary
+
+
+def test_enabled_segments_filter_drops_other_segments_from_body_and_footer() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        enabled_segments=(US_EQUITY, CRYPTO),
+    )
+
+    # Body + footer omit the disabled segment entirely.
+    assert "국내 증시" not in summary
+    assert "미국 증시" in summary
+    assert "크립토" in summary
+    assert _SEGMENT_URLS[DOMESTIC_EQUITY] not in summary
+
+
+def test_enabled_segments_falls_back_to_all_when_filter_excludes_everything() -> None:
+    """Operator misconfiguration must not produce a link-less alert."""
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+
+    # ``enabled_segments=()`` filters everything out; expect fallback to
+    # all published segments instead of an empty body/footer.
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        enabled_segments=(),
+    )
+
+    for url in _SEGMENT_URLS.values():
+        assert url in summary
+
+
+def test_resolve_enabled_segments_reads_canonical_and_alias_tokens(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from investo.notifier.summary import resolve_enabled_segments
+
+    monkeypatch.setenv("INVESTO_TELEGRAM_ENABLED_SEGMENTS", "us, crypto, unknown")
+    assert resolve_enabled_segments() == (US_EQUITY, CRYPTO)
+
+
+def test_resolve_enabled_segments_returns_none_for_empty_or_unset(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from investo.notifier.summary import resolve_enabled_segments
+
+    monkeypatch.delenv("INVESTO_TELEGRAM_ENABLED_SEGMENTS", raising=False)
+    assert resolve_enabled_segments() is None
+    monkeypatch.setenv("INVESTO_TELEGRAM_ENABLED_SEGMENTS", "  ,  ")
+    assert resolve_enabled_segments() is None
+
+
+def test_resolve_enabled_segments_explicit_raw_overrides_env(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from investo.notifier.summary import resolve_enabled_segments
+
+    monkeypatch.setenv("INVESTO_TELEGRAM_ENABLED_SEGMENTS", "us")
+    assert resolve_enabled_segments("crypto") == (CRYPTO,)
+
+
+def test_resolve_enabled_segments_preserves_canonical_order() -> None:
+    from investo.notifier.summary import resolve_enabled_segments
+
+    # Token order is irrelevant; output is canonical (domestic → us → crypto).
+    assert resolve_enabled_segments("crypto, domestic-equity, us-equity") == (
+        DOMESTIC_EQUITY,
+        US_EQUITY,
+        CRYPTO,
+    )
+
+
+# ---------------------------------------------------------------------------
+# u30 Step 3 — action tag is preserved through the Telegram one-liner
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# u30 Step 4 — KST publish time + watchlist price suffix
+# ---------------------------------------------------------------------------
+
+
+def test_header_includes_kst_publish_time_and_previous_trading_day_label() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    # 2026-04-25T22:30Z → 2026-04-26T07:30 KST.
+    now_utc = datetime(2026, 4, 25, 22, 30, tzinfo=UTC)
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS, now_utc=now_utc)
+    assert "🕐 KST 07:30 · 전 거래일: 2026-04-25" in summary
+
+
+def test_publish_time_is_deterministic_when_now_utc_provided() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    now_utc = datetime(2026, 4, 25, 0, 0, tzinfo=UTC)
+    out1 = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS, now_utc=now_utc)
+    out2 = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS, now_utc=now_utc)
+    assert out1 == out2
+
+
+def test_watchlist_match_gets_price_suffix_when_price_item_available() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    briefings[US_EQUITY] = briefings[US_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 미국 증시 시황\n\n"
+                "> **오늘의 결론**: 반도체 실적을 확인합니다.\n"
+                "> **내 관심 자산 영향**: 1건 확인 — NVDA: NVDA rallies after earnings\n\n"
+                + briefings[US_EQUITY].rendered_markdown
+            )
+        }
+    )
+    price_items = (
+        _price_item(
+            source_name="yfinance-price",
+            title="NVDA price",
+            raw_metadata={
+                "ticker": "NVDA",
+                "close": "950.00",
+                "prev_close": "920.00",
+            },
+        ),
+    )
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        price_items=price_items,
+    )
+
+    # ``+3.3%`` derived from (950 - 920) / 920 * 100.
+    assert "관심: 1건 확인 — NVDA(+3.3%): NVDA rallies after earnings" in summary
+
+
+def test_watchlist_match_falls_back_to_ticker_only_when_price_missing() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    briefings[US_EQUITY] = briefings[US_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 미국 증시 시황\n\n"
+                "> **오늘의 결론**: 반도체 실적을 확인합니다.\n"
+                "> **내 관심 자산 영향**: 1건 확인 — NVDA: NVDA rallies after earnings\n\n"
+                + briefings[US_EQUITY].rendered_markdown
+            )
+        }
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    # No price suffix because no price_items were provided.
+    assert "관심: 1건 확인 — NVDA: NVDA rallies after earnings" in summary
+    assert "NVDA(" not in summary
+
+
+def test_watchlist_match_decoration_skips_unmatched_terms() -> None:
+    """Multi-match watchlist line: each term decorated independently."""
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    briefings[US_EQUITY] = briefings[US_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 미국 증시 시황\n\n"
+                "> **오늘의 결론**: 결론입니다.\n"
+                "> **내 관심 자산 영향**: 2건 확인 — NVDA: news A; AAPL: news B\n\n"
+                + briefings[US_EQUITY].rendered_markdown
+            )
+        }
+    )
+    price_items = (
+        _price_item(
+            source_name="yfinance-price",
+            title="NVDA price",
+            raw_metadata={"ticker": "NVDA", "pct_change": "1.20"},
+        ),
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS, price_items=price_items)
+
+    assert "NVDA(+1.2%): news A" in summary
+    # AAPL has no price item, stays ticker-only.
+    assert "AAPL: news B" in summary
+    assert "AAPL(" not in summary
+
+
+def test_action_tag_is_preserved_in_telegram_one_liner() -> None:
+    """The conclusion's terminal closed-set tag survives extraction.
+
+    The notifier reads the rendered ``> **오늘의 결론**:`` line and
+    cleans markdown punctuation. The bracketed tag must NOT be stripped
+    — readers rely on it as the day's stance signal.
+    """
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
+        US_EQUITY: _build_briefing(market_summary="미국 요약"),
+        CRYPTO: _build_briefing(market_summary="크립토 요약"),
+    }
+    briefings[US_EQUITY] = briefings[US_EQUITY].model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-25 미국 증시 시황\n\n"
+                "> **오늘의 결론**: 반도체 실적 카탈리스트가 진행 중입니다. [강세]\n\n"
+                + briefings[US_EQUITY].rendered_markdown
+            )
+        }
+    )
+
+    summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
+
+    assert "[강세]" in summary
+    # The closed-set tag should appear right at the end of the conclusion
+    # line — adjacent to the "기간 진행 중입니다." sentence.
+    assert "진행 중입니다. [강세]" in summary

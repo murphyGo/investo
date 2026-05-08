@@ -33,6 +33,7 @@ Reference:
 
 from __future__ import annotations
 
+import os
 import re
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime, timedelta
@@ -44,6 +45,7 @@ from investo.briefing.segments import (
     SEGMENT_LABELS,
     US_EQUITY,
     MarketSegment,
+    SegmentCoverage,
 )
 from investo.models import Briefing, NormalizedItem
 
@@ -96,6 +98,23 @@ _IMMINENT_TAG_ICON: Final[dict[str, str]] = {
     "coingecko-events": "🪙",
 }
 _IMMINENT_TAG_FALLBACK_ICON: Final[str] = "📅"
+
+# u30 Step 2 — segment toggle env var. Comma-separated list of segment
+# names (``domestic-equity`` / ``us-equity`` / ``crypto``); empty / unset
+# means all segments emit. Unknown tokens are dropped silently. The
+# parser accepts both the canonical segment ids (matching
+# :data:`investo.briefing.segments.MarketSegment`) and the legacy short
+# aliases (``domestic`` / ``us`` / ``crypto``) so the operator can write
+# either style without surprise.
+_ENABLED_SEGMENTS_ENV: Final[str] = "INVESTO_TELEGRAM_ENABLED_SEGMENTS"
+_SEGMENT_ALIASES: Final[dict[str, MarketSegment]] = {
+    "domestic-equity": DOMESTIC_EQUITY,
+    "domestic": DOMESTIC_EQUITY,
+    "kr": DOMESTIC_EQUITY,
+    "us-equity": US_EQUITY,
+    "us": US_EQUITY,
+    "crypto": CRYPTO,
+}
 
 
 def _utf16_units(text: str) -> int:
@@ -165,6 +184,8 @@ def build_segmented_summary(
     lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     now_utc: datetime | None = None,
     price_items: Sequence[NormalizedItem] = (),
+    coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
+    enabled_segments: Sequence[MarketSegment] | None = None,
 ) -> str:
     """Build one Telegram message with all segment summaries and links.
 
@@ -180,14 +201,40 @@ def build_segmented_summary(
     ``NormalizedItem.scheduled_at`` and ``now_utc`` (defaulting to the
     current time when ``None``). Absence of imminent items leaves the
     line unchanged.
+
+    u30 Step 2 — when ``coverage_by_segment`` is supplied and the entry
+    for a given segment reports ``status == "insufficient"``, that
+    segment's block collapses to a single line that combines the icon,
+    label, ``[부족]`` tag, and the detail link. The conclusion line is
+    omitted because the segment markdown itself is the data-limited
+    fallback (``데이터 부족`` boilerplate). When omitted or when the
+    segment is not present in the mapping, the legacy 3-line block
+    rendering is preserved.
+
+    u30 Step 2 — when ``enabled_segments`` is supplied (resolved
+    upstream from ``INVESTO_TELEGRAM_ENABLED_SEGMENTS`` via
+    :func:`resolve_enabled_segments`), only the listed segments emit
+    bodies and footer entries. If the resolved list filters out every
+    published segment, the function falls back to rendering all
+    published segments — operator misconfiguration must not produce a
+    completely link-less alert.
     """
     ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
-    published_segments = tuple(segment for segment in ordered_segments if segment in briefings)
-    if not published_segments:
+    all_published = tuple(segment for segment in ordered_segments if segment in briefings)
+    if not all_published:
         raise ValueError("segmented summary requires at least one briefing")
+    if enabled_segments is not None:
+        allowed = set(enabled_segments)
+        filtered = tuple(segment for segment in all_published if segment in allowed)
+        published_segments = filtered if filtered else all_published
+    else:
+        published_segments = all_published
     target_date = briefings[published_segments[0]].target_date
     snapshot = _market_snapshot_line(price_items)
+    resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
+    publish_label = _publish_time_label(resolved_now, target_date=target_date)
     header = f"📈 {target_date.isoformat()} 데일리 시황\n"
+    header += f"{publish_label}\n"
     if snapshot:
         header += f"{snapshot}\n\n"
     else:
@@ -196,7 +243,7 @@ def build_segmented_summary(
         f"• {SEGMENT_LABELS[segment]}: {_detail_link(site_urls[segment])}"
         for segment in published_segments
     )
-    resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
+    price_index = _build_watchlist_price_index(price_items)
     body = "\n\n".join(
         _segment_summary_block(
             segment,
@@ -208,6 +255,10 @@ def build_segmented_summary(
                 else ()
             ),
             now_utc=resolved_now,
+            coverage=(
+                coverage_by_segment.get(segment) if coverage_by_segment is not None else None
+            ),
+            watchlist_prices=price_index,
         )
         for segment in published_segments
     )
@@ -236,6 +287,36 @@ def plain_text_summary(markdown_summary: str) -> str:
     return "\n".join(line.rstrip() for line in text.splitlines()).strip()
 
 
+def resolve_enabled_segments(
+    raw: str | None = None,
+) -> tuple[MarketSegment, ...] | None:
+    """Resolve the per-channel ``enabled_segments`` toggle.
+
+    Reads :data:`_ENABLED_SEGMENTS_ENV` when ``raw`` is ``None``. Empty
+    / unset / all-tokens-unknown → returns ``None`` (caller emits every
+    published segment, the historic behaviour). Otherwise the function
+    returns a deterministic tuple in the canonical segment order
+    (domestic-equity → us-equity → crypto). Tokens are case-insensitive
+    and accept both canonical ids and short aliases (see
+    :data:`_SEGMENT_ALIASES`).
+    """
+    text = raw if raw is not None else os.environ.get(_ENABLED_SEGMENTS_ENV, "")
+    if not text:
+        return None
+    seen: set[MarketSegment] = set()
+    for token in text.split(","):
+        candidate = token.strip().lower()
+        if not candidate:
+            continue
+        resolved = _SEGMENT_ALIASES.get(candidate)
+        if resolved is not None:
+            seen.add(resolved)
+    if not seen:
+        return None
+    canonical_order = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    return tuple(segment for segment in canonical_order if segment in seen)
+
+
 def _segment_summary_block(
     segment: MarketSegment,
     briefing: Briefing,
@@ -243,12 +324,20 @@ def _segment_summary_block(
     *,
     lookahead_items: Sequence[NormalizedItem] = (),
     now_utc: datetime | None = None,
+    coverage: SegmentCoverage | None = None,
+    watchlist_prices: Mapping[str, str] | None = None,
 ) -> str:
     label = SEGMENT_LABELS[segment]
     icon = _SEGMENT_ICONS[segment]
+    if coverage is not None and coverage.status == "insufficient":
+        # u30 Step 2 collapsed shape — single line with status badge and
+        # the detail link only. Skipping the conclusion line keeps the
+        # alert dense when the segment markdown itself is the data-
+        # limited fallback ("데이터 부족" boilerplate).
+        return f"{icon} *{label}* [부족] · {_detail_link(site_url)}"
     status = _coverage_label(briefing)
     status_tag = f" [{status}]" if status else ""
-    one_line = _one_line_summary(briefing)
+    one_line = _one_line_summary(briefing, watchlist_prices=watchlist_prices)
     imminent = _imminent_event_tag(lookahead_items, now_utc=now_utc)
     if imminent:
         one_line = f"{imminent} · {one_line}"
@@ -385,7 +474,11 @@ def _coverage_label(briefing: Briefing) -> str | None:
     return coverage_label or None
 
 
-def _one_line_summary(briefing: Briefing) -> str:
+def _one_line_summary(
+    briefing: Briefing,
+    *,
+    watchlist_prices: Mapping[str, str] | None = None,
+) -> str:
     conclusion_match = _CONCLUSION_LINE_RE.search(briefing.rendered_markdown)
     if conclusion_match is not None:
         conclusion = _clean_summary_text(conclusion_match.group(1))
@@ -408,7 +501,8 @@ def _one_line_summary(briefing: Briefing) -> str:
                     # coverage badge that already says the same thing.
                     and not watchlist.startswith("데이터 수집 부족으로 매칭 판단 보류")
                 ):
-                    return f"{conclusion} / 관심: {watchlist}"
+                    decorated = _decorate_watchlist_with_prices(watchlist, watchlist_prices)
+                    return f"{conclusion} / 관심: {decorated}"
             return conclusion
 
     for line in briefing.market_summary.splitlines():
@@ -416,6 +510,136 @@ def _one_line_summary(briefing: Briefing) -> str:
         if summary:
             return summary
     return "데이터 부족"
+
+
+def _publish_time_label(now_utc: datetime, *, target_date: object) -> str:
+    """Render the publish-time / 전 거래일 header line (u30 Step 4).
+
+    Format::
+
+        🕐 KST HH:MM · 전 거래일: YYYY-MM-DD
+
+    The KST clock comes from converting ``now_utc`` to Asia/Seoul; the
+    "전 거래일" label echoes ``target_date`` (the briefing's data-window
+    anchor) so the reader sees both *when* the alert was sent and
+    *which* trading day the briefing reflects. Pure: no clock read when
+    ``now_utc`` is supplied.
+    """
+    from datetime import datetime as _dt
+    from zoneinfo import ZoneInfo
+
+    kst = ZoneInfo("Asia/Seoul")
+    if not isinstance(now_utc, _dt) or now_utc.tzinfo is None:
+        # Defensive — every callsite passes a tz-aware datetime, but the
+        # public API leaves ``None`` as a fallback. Fail soft by
+        # treating the missing value as UTC.
+        now_kst_str = "--:--"
+    else:
+        now_kst = now_utc.astimezone(kst)
+        now_kst_str = now_kst.strftime("%H:%M")
+    return f"🕐 KST {now_kst_str} · 전 거래일: {target_date}"
+
+
+def _build_watchlist_price_index(
+    price_items: Sequence[NormalizedItem],
+) -> dict[str, str]:
+    """Index price items by ticker / symbol / asset name → ``"+1.2%"`` style suffix.
+
+    Multiple alias keys map to the same item so the watchlist match-line
+    decorator can find prices by the term the user wrote (``NVDA``,
+    ``엔비디아``, ``BTC``, ``Bitcoin``). Keys are stored case-folded.
+    The value is a price suffix in the shape ``"(+1.2%)"`` /
+    ``"(-0.5%)"`` / ``"(108.2k, +0.4%)"`` for crypto rows that carry an
+    absolute price too. Empty when no price candidate yields a percent
+    change.
+    """
+    index: dict[str, str] = {}
+    for item in price_items:
+        if item.category != "price":
+            continue
+        pct = _pct_change(item)
+        price = _price_value(item)
+        if pct is None and price is None:
+            continue
+        suffix = _format_watchlist_suffix(pct=pct, price=price)
+        if not suffix:
+            continue
+        for key in _watchlist_index_keys(item):
+            if key:
+                index.setdefault(key, suffix)
+    return index
+
+
+def _watchlist_index_keys(item: NormalizedItem) -> tuple[str, ...]:
+    """Return the case-folded keys a watchlist match could use."""
+    candidates: list[str] = []
+    for field in ("ticker", "symbol", "coin_id", "index_name", "asset_name"):
+        value = _metadata_text(item, field)
+        if value:
+            candidates.append(value)
+    # ``BTCUSDT`` → also expose the leading ticker portion (``BTC``) so
+    # users who registered ``BTC`` instead of the full pair still hit.
+    for candidate in tuple(candidates):
+        if candidate.endswith("USDT") and len(candidate) > 4:
+            candidates.append(candidate[:-4])
+    return tuple(value.casefold() for value in candidates)
+
+
+def _format_watchlist_suffix(*, pct: float | None, price: float | None) -> str:
+    """Format the per-match price suffix.
+
+    Prefers percent change alone (``"(+1.2%)"``) — for tickers the pct
+    move is the reader-actionable signal. Falls back to a compact
+    absolute price (``"(108.2k)"``) only when no pct is available.
+    """
+    if pct is not None:
+        return f"({_format_pct(pct)})"
+    if price is not None:
+        return f"({_format_compact_price(price)})"
+    return ""
+
+
+_WATCHLIST_MATCH_TERM_RE: Final[re.Pattern[str]] = re.compile(r"([^;,]+?):\s*([^;]+)")
+
+
+def _decorate_watchlist_with_prices(
+    watchlist_text: str,
+    prices: Mapping[str, str] | None,
+) -> str:
+    """Append a price suffix to each ``TERM:`` match in the watchlist line.
+
+    ``watchlist_text`` is the cleaned watchlist body extracted from
+    ``> **내 관심 자산 영향**:`` — typically of the form
+    ``"1건 확인 — NVDA: NVDA rallies after earnings"`` (single match)
+    or with ``"; "`` separators between matches. We append the price
+    suffix to the term portion (``NVDA`` → ``NVDA(+1.2%)``) when a
+    matching price exists in ``prices``; otherwise the term stays
+    ticker-only (the safe fallback).
+    """
+    if not prices:
+        return watchlist_text
+    # Split at the "건 확인 — " boundary so we only decorate the body,
+    # not the count prefix.
+    sep = "건 확인 — "
+    if sep in watchlist_text:
+        prefix, _, body = watchlist_text.partition(sep)
+        prefix = f"{prefix}{sep}"
+    else:
+        prefix, body = "", watchlist_text
+
+    def _decorate_one(match_segment: str) -> str:
+        match = _WATCHLIST_MATCH_TERM_RE.match(match_segment.strip())
+        if match is None:
+            return match_segment
+        term = match.group(1).strip()
+        rest = match.group(2).strip()
+        suffix = prices.get(term.casefold()) if prices else None
+        if suffix is None:
+            return f"{term}: {rest}"
+        return f"{term}{suffix}: {rest}"
+
+    decorated_segments = [_decorate_one(segment) for segment in body.split(";") if segment.strip()]
+    return f"{prefix}{'; '.join(decorated_segments)}" if decorated_segments else watchlist_text
 
 
 def _imminent_event_tag(
@@ -495,4 +719,10 @@ def _clean_summary_text(text: str) -> str:
     return cleaned
 
 
-__all__ = ["DEFAULT_MAX_UNITS", "build_segmented_summary", "build_summary", "plain_text_summary"]
+__all__ = [
+    "DEFAULT_MAX_UNITS",
+    "build_segmented_summary",
+    "build_summary",
+    "plain_text_summary",
+    "resolve_enabled_segments",
+]

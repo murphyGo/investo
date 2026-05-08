@@ -36,6 +36,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from investo.briefing.action_tag import apply_action_tag
 from investo.briefing.claude_code import (
     DEFAULT_TIMEOUT_S,
     DEFAULT_TOTAL_BUDGET_S,
@@ -735,9 +736,28 @@ def _summary_sentence(text: str, *, fallback: str) -> str:
     return fallback
 
 
-def _build_summary_header(sections: tuple[str, str, str, str, str, str]) -> SummaryHeader:
+def _build_summary_header(
+    sections: tuple[str, str, str, str, str, str],
+    *,
+    data_limited: bool = False,
+) -> SummaryHeader:
+    """Build the three first-viewport summary lines.
+
+    u30 Step 3 — the conclusion line is post-processed to carry exactly
+    one closed-set action tag (``[관망]`` / ``[변동성↑]`` / ``[강세]`` /
+    ``[약세]`` / ``[혼조]`` / ``[데이터부족]``). When ``data_limited`` is
+    true the tag is forced to ``[데이터부족]`` regardless of what (if
+    anything) the LLM emitted; otherwise an off-set or missing tag is
+    rewritten to the deterministic default ``[관망]``. See
+    :mod:`investo.briefing.action_tag`.
+    """
+    raw_conclusion = _summary_sentence(sections[0], fallback="확인된 요약이 부족합니다.")
     return SummaryHeader(
-        conclusion=_summary_sentence(sections[0], fallback="확인된 요약이 부족합니다."),
+        conclusion=apply_action_tag(
+            raw_conclusion,
+            data_limited=data_limited,
+            section_text=sections[0],
+        ),
         driver=_summary_sentence(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다."),
         caution=_summary_sentence(sections[5], fallback="관전 포인트는 데이터 회복 후 보강합니다."),
     )
@@ -841,13 +861,15 @@ def _enhance_reader_experience(
     sections: tuple[str, str, str, str, str, str],
     coverage: SegmentCoverage | None = None,
     watchlist_impact: WatchlistImpact | None = None,
+    data_limited: bool = False,
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
         return body_markdown
 
     label = SEGMENT_LABELS[segment]
-    summary_header = _build_summary_header(sections)
+    effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
+    summary_header = _build_summary_header(sections, data_limited=effective_data_limited)
     watermark = _render_timestamp_watermark(target_date, segment)
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
@@ -1086,6 +1108,7 @@ async def generate_briefing(
             sections=sections,
             coverage=coverage,
             watchlist_impact=watchlist_impact,
+            data_limited=True,
         )
         full_markdown = append_disclaimer(enhanced_markdown)
         hit = leak_guard_scan(full_markdown)
@@ -1145,6 +1168,7 @@ async def generate_briefing(
         sections=sections,
         coverage=coverage,
         watchlist_impact=watchlist_impact,
+        data_limited=effective_data_limited,
     )
     full_markdown = append_disclaimer(enhanced_markdown)
 

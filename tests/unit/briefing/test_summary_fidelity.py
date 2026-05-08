@@ -261,6 +261,68 @@ def test_watermark_appears_in_segmented_brief_header() -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# u30 Step 3 — action tag contract integration
+# ---------------------------------------------------------------------------
+
+
+def test_summary_header_appends_default_action_tag_when_missing() -> None:
+    sections = (
+        "2026년 5월 6일 미국 증시는 대형주 어닝 집중일이다.",
+        "어닝 카탈리스트가 시장을 주도한다.",
+        "",
+        "",
+        "",
+        "ARM 가이던스를 확인합니다.",
+    )
+    header = _build_summary_header(sections)
+    assert header.conclusion.endswith(" [관망]")
+
+
+def test_summary_header_preserves_in_set_action_tag() -> None:
+    sections = (
+        "오늘은 변동성이 커집니다. [변동성↑]",
+        "동인 본문.",
+        "",
+        "",
+        "",
+        "관전 포인트.",
+    )
+    header = _build_summary_header(sections)
+    assert header.conclusion.endswith(" [변동성↑]")
+    # No double-tagging.
+    assert header.conclusion.count("[변동성↑]") == 1
+    assert "[관망]" not in header.conclusion
+
+
+def test_summary_header_strips_off_set_tag_and_replaces_with_default() -> None:
+    sections = (
+        "Bullish day ahead. [BUY]",
+        "Driver line.",
+        "",
+        "",
+        "",
+        "Caution line.",
+    )
+    header = _build_summary_header(sections)
+    assert "[BUY]" not in header.conclusion
+    assert header.conclusion.endswith(" [관망]")
+
+
+def test_summary_header_forces_data_limited_tag_when_data_limited_true() -> None:
+    sections = (
+        "오늘은 데이터 부족합니다. [강세]",
+        "Driver line.",
+        "",
+        "",
+        "",
+        "Caution line.",
+    )
+    header = _build_summary_header(sections, data_limited=True)
+    assert header.conclusion.endswith(" [데이터부족]")
+    assert "[강세]" not in header.conclusion
+
+
 def test_summary_header_from_archive_section_bodies_passes_gate() -> None:
     """Build the header from realistic archive section bodies and
     verify it survives the publish-time gate. This pins the contract

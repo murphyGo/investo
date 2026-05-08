@@ -67,7 +67,7 @@ import contextlib
 import logging
 import time
 import traceback
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -87,6 +87,7 @@ from investo.briefing.segments import (
     DOMESTIC_EQUITY,
     US_EQUITY,
     MarketSegment,
+    SegmentCoverage,
     segment_items,
     segment_source_outcomes,
 )
@@ -109,6 +110,7 @@ from investo.notifier import (
     build_segmented_summary,
     build_summary,
 )
+from investo.notifier.summary import resolve_enabled_segments
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
 from investo.publisher import (
@@ -849,6 +851,7 @@ async def _stage_notify_segmented_briefing(
     publisher: BriefingPublisher,
     site_urls: dict[MarketSegment, HttpUrl],
     items: Sequence[NormalizedItem] = (),
+    coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
 ) -> SendResult:
     """Compose + dispatch one public-channel message for all segments."""
     published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
@@ -863,6 +866,8 @@ async def _stage_notify_segmented_briefing(
             briefings,
             site_urls={segment: str(url) for segment, url in site_urls.items()},
             price_items=items,
+            coverage_by_segment=coverage_by_segment,
+            enabled_segments=resolve_enabled_segments(),
         )
         payload = BriefingNotification(
             target_date=target_date,
@@ -1188,11 +1193,24 @@ async def run_pipeline(
     if segmented_mode:
         assert segment_briefings is not None
         assert segment_urls is not None
+        # u30 Step 2 — compute per-segment coverage so the notifier can
+        # collapse insufficient segments to a single line. Mirrors the
+        # routing already done by ``_stage_prepare_segment_visual_assets``;
+        # filter ``source_outcomes`` per segment with the same helper.
+        routed_items_for_alert = segment_items(items)
+        coverage_by_segment = {
+            segment: routed_items_for_alert.coverage_for_segment(
+                segment,
+                source_outcomes=source_outcomes,
+            )
+            for segment in segment_briefings
+        }
         notify_result = await _stage_notify_segmented_briefing(
             segment_briefings,
             publisher=publisher,
             site_urls=segment_urls,
             items=items,
+            coverage_by_segment=coverage_by_segment,
         )
     else:
         notify_result = await _stage_notify_briefing(

@@ -191,6 +191,18 @@ Rules:
   labels (NEVER use "주도주", "부진", "주의" verbatim — Korean
   capital-markets law treats those as implicit investment
   recommendation language).
+- Section ① (요약) MUST end with EXACTLY one closed-set action tag
+  drawn verbatim from this list, separated from the preceding sentence
+  by a single space:
+  ``[관망]`` (neutral / wait-and-see), ``[변동성↑]`` (high volatility
+  expected), ``[강세]`` (bullish bias), ``[약세]`` (bearish bias),
+  ``[혼조]`` (mixed signals).
+  Pick the tag that best matches the day's input items. DO NOT invent
+  new tags or use English equivalents (``[BUY]``, ``[bullish]``);
+  off-set tags are stripped by the post-processor and replaced with
+  ``[관망]``. The publisher additionally forces ``[데이터부족]`` on
+  segments with insufficient coverage regardless of what you emit, so
+  do not emit ``[데이터부족]`` yourself.
 - DO NOT include section ⑦ — the disclaimer is appended by the
   caller (R5).
 - DO NOT include any private tokens, keys, email addresses, or
