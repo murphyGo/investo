@@ -33,5 +33,6 @@ def _isolate_operator_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> 
 
     monkeypatch.setenv("INVESTO_OPERATOR_STATE_DIR", str(tmp_path / "operator_state"))
     monkeypatch.setenv("INVESTO_COVERAGE_LOG_PATH", str(tmp_path / "coverage.jsonl"))
+    monkeypatch.setenv("INVESTO_QUALITY_HISTORY_PATH", str(tmp_path / "quality_history.jsonl"))
     monkeypatch.setattr(site_index_mod, "QUALITY_PAGE_PATH", tmp_path / "quality.md")
     yield

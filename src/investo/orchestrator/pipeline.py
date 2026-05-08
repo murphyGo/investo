@@ -82,8 +82,15 @@ from investo.briefing.context import (
     resolve_recent_days,
 )
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.numeric_self_check import extract_flaggable_numbers
 from investo.briefing.pipeline import GenerationPolicy
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
+from investo.briefing.quality_history import (
+    QualityHistoryError,
+    QualitySnapshot,
+    append_quality_snapshot,
+    resolve_quality_history_path,
+)
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -563,6 +570,7 @@ async def _stage_publish_segments(
     asset_paths: Sequence[Path] = (),
     git_runner: GitRunner | None = None,
     items: Sequence[NormalizedItem] = (),
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -648,6 +656,22 @@ async def _stage_publish_segments(
             # later atomic-rollback also reverses the dashboard write.
             from investo.publisher.paths import ARCHIVE_ROOT
 
+            quality_history_path = resolve_quality_history_path()
+            quality_history_paths: tuple[Path, ...] = ()
+            if not _is_dry_run():
+                snapshots[quality_history_path] = _read_existing_bytes(quality_history_path)
+                written_quality_history = await asyncio.to_thread(
+                    append_quality_snapshot,
+                    target_date,
+                    snapshot=_build_quality_snapshot(
+                        briefings=briefings,
+                        published_segments=published_segments,
+                        items=items,
+                        source_outcomes=source_outcomes,
+                    ),
+                    history_path=quality_history_path,
+                )
+                quality_history_paths = (written_quality_history,)
             quality_path_resolved = _site_index_mod.QUALITY_PAGE_PATH
             snapshots[quality_path_resolved] = _read_existing_bytes(quality_path_resolved)
             quality_path = await asyncio.to_thread(
@@ -655,9 +679,10 @@ async def _stage_publish_segments(
                 target_date,
                 coverage_path=source_health.resolve_coverage_path(),
                 archive_root=ARCHIVE_ROOT,
+                quality_history_path=quality_history_path,
                 quality_page_path=quality_path_resolved,
             )
-            index_paths = (*index_paths, quality_path)
+            index_paths = (*index_paths, *quality_history_paths, quality_path)
             # u33 Step 3 — per-ticker accumulation pages. Recompute the
             # full match set across all segments (cheap pure function);
             # the writer is idempotent so re-running for the same
@@ -704,7 +729,7 @@ async def _stage_publish_segments(
                     written_weekly,
                     weekly_index_path,
                 )
-    except (PublisherDisclaimerError, PublisherIOError):
+    except (PublisherDisclaimerError, PublisherIOError, QualityHistoryError):
         _rollback_paths(snapshots)
         raise
 
@@ -757,6 +782,31 @@ def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | 
         total,
     )
     return context
+
+
+def _build_quality_snapshot(
+    *,
+    briefings: dict[MarketSegment, Briefing],
+    published_segments: Sequence[MarketSegment],
+    items: Sequence[NormalizedItem],
+    source_outcomes: Sequence[SourceOutcome],
+) -> QualitySnapshot:
+    failed_sources = sum(1 for outcome in source_outcomes if outcome.status == "failed")
+    source_liveness = 1.0 if source_outcomes and failed_sources == 0 else 0.0
+    bodies = [briefings[segment].rendered_markdown for segment in published_segments]
+    data_limited_count = sum(1 for body in bodies if "데이터 부족 안내" in body)
+    non_limited = max(len(bodies) - data_limited_count, 0)
+    figures_count = sum(
+        1 for body in bodies if "데이터 부족 안내" not in body and extract_flaggable_numbers(body)
+    )
+    return QualitySnapshot(
+        source_liveness=source_liveness,
+        figures_presence=(figures_count / non_limited) if non_limited > 0 else 0.0,
+        fallback_ratio=(data_limited_count / len(bodies)) if bodies else 0.0,
+        published_segments=len(published_segments),
+        total_items=len(items),
+        total_failed_sources=failed_sources,
+    )
 
 
 def _build_publish_heatmap_svg(target_date: date) -> str:
@@ -1226,6 +1276,7 @@ async def run_pipeline(
                 asset_paths=visual_asset_paths,
                 git_runner=git_runner,
                 items=items,
+                source_outcomes=source_outcomes,
             )
         else:
             await _stage_publish(briefing, target_date, git_runner=git_runner)
@@ -1234,6 +1285,7 @@ async def run_pipeline(
         PublisherDisclaimerError,
         PublisherIOError,
         PublisherGitError,
+        QualityHistoryError,
     ) as exc:
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"

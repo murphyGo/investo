@@ -75,6 +75,31 @@ class QualityKPIs:
         return self.briefings_data_limited / self.briefings_observed
 
 
+@dataclass(frozen=True, slots=True)
+class QualityHistoryRow:
+    """One slot in the rolling quality-history window.
+
+    ``has_data=False`` preserves missing-day gaps so visual renderers do
+    not turn absent publishes into synthetic zero-valued KPI points.
+    """
+
+    day: date
+    source_liveness: float | None = None
+    figures_presence: float | None = None
+    fallback_ratio: float | None = None
+    published_segments: int | None = None
+    total_items: int | None = None
+    total_failed_sources: int | None = None
+
+    @property
+    def has_data(self) -> bool:
+        return (
+            self.source_liveness is not None
+            and self.figures_presence is not None
+            and self.fallback_ratio is not None
+        )
+
+
 def compute_quality_kpis(
     today: date,
     *,
@@ -109,6 +134,27 @@ def compute_quality_kpis(
         briefings_data_limited=briefings_data_limited,
         briefings_with_figures=briefings_with_figures,
     )
+
+
+def compute_quality_history(
+    days: int = 30,
+    *,
+    history_path: Path,
+    today: date | None = None,
+) -> list[QualityHistoryRow]:
+    """Read the rolling quality-history JSONL with missing-day gaps preserved."""
+    if days <= 0 or not history_path.exists():
+        return []
+    parsed_rows = _load_quality_history_rows(history_path)
+    if not parsed_rows:
+        return []
+    end_day = today if today is not None else max(parsed_rows)
+    start_day = end_day - timedelta(days=days - 1)
+    rows: list[QualityHistoryRow] = []
+    for offset in range(days):
+        day = start_day + timedelta(days=offset)
+        rows.append(parsed_rows.get(day, QualityHistoryRow(day=day)))
+    return rows
 
 
 def render_quality_page(kpis: QualityKPIs) -> str:
@@ -227,8 +273,73 @@ def _carries_numeric_figure(path: Path) -> bool:
     return bool(extract_flaggable_numbers(text))
 
 
+def _load_quality_history_rows(path: Path) -> dict[date, QualityHistoryRow]:
+    rows: dict[date, QualityHistoryRow] = {}
+    try:
+        with path.open("r", encoding="utf-8") as fp:
+            for raw_line in fp:
+                stripped = raw_line.strip()
+                if not stripped:
+                    continue
+                try:
+                    parsed = json.loads(stripped)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(parsed, dict):
+                    continue
+                row = _parse_quality_history_row(parsed)
+                if row is not None:
+                    rows[row.day] = row
+    except OSError:
+        return {}
+    return rows
+
+
+def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow | None:
+    raw_day = payload.get("date")
+    if not isinstance(raw_day, str):
+        return None
+    try:
+        parsed_day = date.fromisoformat(raw_day)
+    except ValueError:
+        return None
+    source_liveness = _optional_rate(payload.get("source_liveness"))
+    figures_presence = _optional_rate(payload.get("figures_presence"))
+    fallback_ratio = _optional_rate(payload.get("fallback_ratio"))
+    if source_liveness is None or figures_presence is None or fallback_ratio is None:
+        return None
+    return QualityHistoryRow(
+        day=parsed_day,
+        source_liveness=source_liveness,
+        figures_presence=figures_presence,
+        fallback_ratio=fallback_ratio,
+        published_segments=_optional_int(payload.get("published_segments")),
+        total_items=_optional_int(payload.get("total_items")),
+        total_failed_sources=_optional_int(payload.get("total_failed_sources")),
+    )
+
+
+def _optional_rate(value: object) -> float | None:
+    if not isinstance(value, int | float):
+        return None
+    parsed = float(value)
+    if parsed < 0.0 or parsed > 1.0:
+        return None
+    return parsed
+
+
+def _optional_int(value: object) -> int | None:
+    if not isinstance(value, int) or isinstance(value, bool):
+        return None
+    if value < 0:
+        return None
+    return value
+
+
 __all__ = [
+    "QualityHistoryRow",
     "QualityKPIs",
+    "compute_quality_history",
     "compute_quality_kpis",
     "render_quality_page",
 ]

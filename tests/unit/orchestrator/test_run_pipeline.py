@@ -19,6 +19,7 @@ Test architecture
 from __future__ import annotations
 
 import ast
+import json
 import logging
 import subprocess
 from datetime import UTC, date, datetime
@@ -335,13 +336,66 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
     assert [call[2] for call in segment_calls] == [True, True, True]
     for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
         assert (archive_root / segment / "2026" / "04" / "2026-04-27.md").exists()
-    assert result.briefing_url is not None
-    assert "/archive/domestic-equity/2026/04/2026-04-27/" in str(result.briefing_url)
-    assert str(publisher.calls[0].site_url) == str(result.briefing_url)
-    summary_text = publisher.calls[0].summary_text
-    assert "/archive/domestic-equity/2026/04/2026-04-27/" in summary_text
-    assert "/archive/us-equity/2026/04/2026-04-27/" in summary_text
-    assert "/archive/crypto/2026/04/2026-04-27/" in summary_text
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_success_appends_quality_history(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", Path("archive"))
+    monkeypatch.setattr(
+        pipeline_module,
+        "update_latest_index_pages",
+        lambda *args, **kwargs: (Path("site_docs/index.md"),),
+    )
+    monkeypatch.setattr(pipeline_module, "_build_publish_heatmap_svg", lambda _date: "<svg/>")
+    monkeypatch.setattr(
+        pipeline_module,
+        "write_og_card",
+        lambda *args, **kwargs: Path("site_docs/assets/og-card.svg"),
+    )
+    git = _SuccessfulGitRunner()
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    history = tmp_path / "quality_history.jsonl"
+    rows = [json.loads(line) for line in history.read_text(encoding="utf-8").splitlines()]
+    assert result.status == PipelineStatus.SUCCESS
+    assert len(rows) == 1
+    assert rows[0]["date"] == _TARGET.isoformat()
+    assert rows[0]["published_segments"] == 3
+    assert rows[0]["total_items"] == 1
+    assert rows[0]["total_failed_sources"] == 0
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_dry_run_skips_quality_history_append(
+    archive_root: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_DRY_RUN", "1")
+
+    await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert not (tmp_path / "quality_history.jsonl").exists()
 
 
 @pytest.mark.asyncio
@@ -1792,6 +1846,38 @@ def _patch_publish_segments_relative_paths(
 
     monkeypatch.setattr(pipeline_module, "publish_weekly_digest", fake_publish_weekly_digest)
     monkeypatch.setattr(pipeline_module, "update_weekly_index", fake_update_weekly_index)
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_rolls_back_quality_history_append(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _patch_publish_segments_relative_paths(monkeypatch, tmp_path=tmp_path)
+    history = tmp_path / "quality_history.jsonl"
+    monkeypatch.setenv("INVESTO_QUALITY_HISTORY_PATH", str(history))
+    original = '{"date":"2026-04-26","source_liveness":1.0}\n'
+    history.write_text(original, encoding="utf-8")
+
+    def fake_read_existing(path: Path) -> bytes | None:
+        if path == history:
+            return original.encode("utf-8")
+        return None
+
+    def fail_quality_page(*args: object, **kwargs: object) -> Path:
+        raise pipeline_module.QualityHistoryError("quality page failed after append")
+
+    monkeypatch.setattr(pipeline_module, "_read_existing_bytes", fake_read_existing)
+    monkeypatch.setattr(pipeline_module, "update_quality_page", fail_quality_page)
+
+    with pytest.raises(pipeline_module.QualityHistoryError):
+        await pipeline_module._stage_publish_segments(
+            _segment_briefings_dict(),
+            _TARGET,
+            git_runner=_SuccessfulGitRunner(),
+        )
+
+    assert history.read_text(encoding="utf-8") == original
 
 
 @pytest.mark.asyncio

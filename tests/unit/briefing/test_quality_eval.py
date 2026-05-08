@@ -8,6 +8,7 @@ from pathlib import Path
 
 from investo.briefing.quality_eval import (
     QualityKPIs,
+    compute_quality_history,
     compute_quality_kpis,
     render_quality_page,
 )
@@ -23,6 +24,21 @@ def _write_archive(root: Path, segment: str, day: str, body: str) -> None:
     file_path = root / segment / day[:4] / day[5:7] / f"{day}.md"
     file_path.parent.mkdir(parents=True, exist_ok=True)
     file_path.write_text(body, encoding="utf-8")
+
+
+def _write_history(path: Path, day: str, *, source_liveness: float = 1.0) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "date": day,
+        "source_liveness": source_liveness,
+        "figures_presence": 0.5,
+        "fallback_ratio": 0.25,
+        "published_segments": 3,
+        "total_items": 10,
+        "total_failed_sources": 0,
+    }
+    with path.open("a", encoding="utf-8") as fp:
+        fp.write(json.dumps(payload) + "\n")
 
 
 def test_no_data_returns_zero_kpis(tmp_path: Path) -> None:
@@ -135,3 +151,49 @@ def test_render_quality_page_full() -> None:
     assert "85.7%" in body
     # fallback 1/8 = 12.5%
     assert "12.5%" in body
+
+
+def test_compute_quality_history_returns_rolling_window(tmp_path: Path) -> None:
+    history = tmp_path / "quality_history.jsonl"
+    for day in range(1, 31):
+        _write_history(history, f"2026-05-{day:02d}", source_liveness=day / 30)
+
+    rows = compute_quality_history(30, history_path=history, today=date(2026, 5, 30))
+
+    assert len(rows) == 30
+    assert rows[0].day == date(2026, 5, 1)
+    assert rows[-1].day == date(2026, 5, 30)
+    assert rows[-1].source_liveness == 1.0
+
+
+def test_compute_quality_history_preserves_missing_day_gaps(tmp_path: Path) -> None:
+    history = tmp_path / "quality_history.jsonl"
+    for day in range(1, 31):
+        if day in {3, 9, 14, 20, 27}:
+            continue
+        _write_history(history, f"2026-05-{day:02d}")
+
+    rows = compute_quality_history(30, history_path=history, today=date(2026, 5, 30))
+
+    assert len(rows) == 30
+    assert sum(1 for row in rows if not row.has_data) == 5
+    assert rows[2].day == date(2026, 5, 3)
+    assert rows[2].source_liveness is None
+
+
+def test_compute_quality_history_empty_file_returns_empty(tmp_path: Path) -> None:
+    history = tmp_path / "quality_history.jsonl"
+    history.write_text("", encoding="utf-8")
+
+    assert compute_quality_history(history_path=history) == []
+
+
+def test_compute_quality_history_days_parameter_limits_window(tmp_path: Path) -> None:
+    history = tmp_path / "quality_history.jsonl"
+    for day in range(1, 31):
+        _write_history(history, f"2026-05-{day:02d}")
+
+    rows = compute_quality_history(7, history_path=history, today=date(2026, 5, 30))
+
+    assert len(rows) == 7
+    assert rows[0].day == date(2026, 5, 24)

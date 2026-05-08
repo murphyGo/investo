@@ -20,4 +20,17 @@ Reference:
     aidlc-docs/construction/u2-briefing/nfr-requirements/
 """
 
-__all__: list[str] = []
+from investo.briefing.quality_eval import QualityHistoryRow, compute_quality_history
+from investo.briefing.quality_history import (
+    QualitySnapshot,
+    append_quality_snapshot,
+    resolve_quality_history_path,
+)
+
+__all__ = [
+    "QualityHistoryRow",
+    "QualitySnapshot",
+    "append_quality_snapshot",
+    "compute_quality_history",
+    "resolve_quality_history_path",
+]
