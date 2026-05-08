@@ -1,0 +1,16 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE."
+    },
+    "body": {
+      "pageNo": 1,
+      "numOfRows": 100,
+      "totalCount": 0,
+      "items": {
+        "item": []
+      }
+    }
+  }
+}

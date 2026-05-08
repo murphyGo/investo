@@ -34,6 +34,7 @@ def _item(
 def test_yonhap_and_korean_ticker_route_to_domestic_equity() -> None:
     items = [
         _item("yonhap-market", "코스피 7,000 돌파"),
+        _item("fsc-krx-index-price", "코스피 2,730.34", category="price"),
         _item("other-news", "삼성전자[005930] 외국인 순매수"),
     ]
 
@@ -203,13 +204,17 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
     outcomes = (
         SourceOutcome.ok("yfinance-price", "price", item_count=3),
         SourceOutcome.ok("coingecko-price", "price", item_count=2),
+        SourceOutcome.ok("fsc-krx-index-price", "price", item_count=3),
         SourceOutcome.zero("yonhap-market", "news"),
     )
     crypto_only = segment_source_outcomes(CRYPTO, outcomes)
     domestic_only = segment_source_outcomes(DOMESTIC_EQUITY, outcomes)
 
     assert {outcome.source_name for outcome in crypto_only} == {"coingecko-price"}
-    assert {outcome.source_name for outcome in domestic_only} == {"yonhap-market"}
+    assert {outcome.source_name for outcome in domestic_only} == {
+        "fsc-krx-index-price",
+        "yonhap-market",
+    }
 
 
 def test_coverage_failure_reason_does_not_carry_secret_after_filter() -> None:

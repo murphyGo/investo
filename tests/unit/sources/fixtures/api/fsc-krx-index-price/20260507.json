@@ -1,0 +1,62 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE."
+    },
+    "body": {
+      "pageNo": 1,
+      "numOfRows": 100,
+      "totalCount": 3,
+      "items": {
+        "item": [
+          {
+            "basDt": "20260507",
+            "idxNm": "코스피",
+            "idxCsf": "KOSPI",
+            "epyItmsCnt": "953",
+            "clpr": "2,730.34",
+            "vs": "21.44",
+            "fltRt": "0.79",
+            "mkp": "2,704.80",
+            "hipr": "2,734.10",
+            "lopr": "2,701.20",
+            "trqu": "483251000",
+            "trPrc": "11628200000000",
+            "lstgMrktTotAmt": "2231184000000000"
+          },
+          {
+            "basDt": "20260507",
+            "idxNm": "코스닥",
+            "idxCsf": "KOSDAQ",
+            "epyItmsCnt": "1802",
+            "clpr": "812.45",
+            "vs": "-3.12",
+            "fltRt": "-0.38",
+            "mkp": "817.20",
+            "hipr": "819.11",
+            "lopr": "810.09",
+            "trqu": "912345000",
+            "trPrc": "8222000000000",
+            "lstgMrktTotAmt": "421000000000000"
+          },
+          {
+            "basDt": "20260507",
+            "idxNm": "코스피 200",
+            "idxCsf": "KOSPI200",
+            "epyItmsCnt": "200",
+            "clpr": "371.52",
+            "vs": "2.01",
+            "fltRt": "0.54",
+            "mkp": "369.30",
+            "hipr": "372.10",
+            "lopr": "368.94",
+            "trqu": "142200000",
+            "trPrc": "6921000000000",
+            "lstgMrktTotAmt": "1884000000000000"
+          }
+        ]
+      }
+    }
+  }
+}

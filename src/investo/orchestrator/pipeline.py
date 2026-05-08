@@ -1088,10 +1088,10 @@ async def run_pipeline(
     if segment_generation_failures:
         failed_segments = ", ".join(segment_generation_failures)
         stages["generate"] = f"partial: failed {failed_segments}"
-        for segment, exc in segment_generation_failures.items():
-            _log_briefing_generation_error(exc)
-            await _safe_alert(alerter, "generate", exc)
-            stages[f"generate:{segment}"] = f"failed: {exc.stage}"
+        for segment, generation_error in segment_generation_failures.items():
+            _log_briefing_generation_error(generation_error)
+            await _safe_alert(alerter, "generate", generation_error)
+            stages[f"generate:{segment}"] = f"failed: {generation_error.stage}"
     else:
         stages["generate"] = "ok"
     visual_assets_failed = False
