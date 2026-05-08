@@ -43,6 +43,11 @@ from investo.models import Briefing
 
 SITE_INDEX_PATH: Final[Path] = Path("site_docs/index.md")
 ARCHIVE_INDEX_PATH: Final[Path] = Path("archive/index.md")
+# u32 Step 4 — public quality dashboard. Lives under ``site_docs/`` so
+# mkdocs picks it up alongside the other top-nav pages. The page is
+# regenerated on every successful publish; an absent file (first
+# publish on a fresh checkout) gets created lazily.
+QUALITY_PAGE_PATH: Final[Path] = Path("site_docs/quality.md")
 SEGMENT_ARCHIVE_INDEX_PATHS: Final[dict[MarketSegment, Path]] = {
     DOMESTIC_EQUITY: Path("archive/domestic-equity/index.md"),
     US_EQUITY: Path("archive/us-equity/index.md"),
@@ -148,6 +153,42 @@ def update_latest_index_pages(
 # ---------------------------------------------------------------------------
 # Hero block (Home page)
 # ---------------------------------------------------------------------------
+
+
+def update_quality_page(
+    target_date: date,
+    *,
+    coverage_path: Path,
+    archive_root: Path,
+    quality_page_path: Path | None = None,
+    window_days: int = 7,
+) -> Path:
+    """Regenerate ``site_docs/quality.md`` from the trailing-window KPIs.
+
+    Pure I/O: reads ``coverage_path`` + scans ``archive_root``; writes
+    a fresh page at ``quality_page_path``. Returns the written path.
+    The file is overwritten in place — no marker-bracketed merge — so
+    running the function twice with the same inputs leaves the file
+    byte-identical.
+
+    ``quality_page_path`` defaults to the module-level
+    :data:`QUALITY_PAGE_PATH` resolved at *call time* (not at function
+    definition time) so test-side ``monkeypatch.setattr`` redirection
+    reaches this writer.
+    """
+    from investo.briefing.quality_eval import compute_quality_kpis, render_quality_page
+
+    target = quality_page_path if quality_page_path is not None else QUALITY_PAGE_PATH
+    kpis = compute_quality_kpis(
+        target_date,
+        coverage_path=coverage_path,
+        archive_root=archive_root,
+        window_days=window_days,
+    )
+    body = render_quality_page(kpis)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+    return target
 
 
 def update_index_hero(
@@ -438,11 +479,13 @@ __all__ = [
     "HEATMAP_END",
     "HERO_BEGIN",
     "HERO_END",
+    "QUALITY_PAGE_PATH",
     "SEGMENT_ARCHIVE_INDEX_PATHS",
     "SITE_INDEX_PATH",
     "extract_conclusion",
     "update_archive_heatmap_section",
     "update_index_hero",
     "update_latest_index_pages",
+    "update_quality_page",
     "update_segment_archive_index",
 ]

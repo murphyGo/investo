@@ -80,6 +80,7 @@ theme:
 nav:
   - Home: index.md
   - About: about.md
+  - 데이터 품질: quality.md
   - Archive:
       # Point at the index file directly; mkdocs picks up additional
       # files under the same directory (the daily-briefing bot's

@@ -1,5 +1,41 @@
 # AI-DLC Audit Log
 
+## Cross-Check — u32 trust-traceability-deep-dive — COMPLETE
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Trigger**: u32 Code Generation closed (Steps 1–5 all closed in this session). All five DoD items verified complete; one DoD sub-clause (operator-alert escalation on numeric mismatch) intentionally landed at the brief-header callout level rather than a separate operator alert path — the brief header is the read surface readers and operators already consume.
+**Scope**: u32 trust-traceability-deep-dive mapped to FR-001, FR-003, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006, NFR-007.
+**Result**: PASS — 5/5 DoD items complete; +31 targeted tests (1419 → 1450); no new TECH-DEBT items; no DEBT-* resolved.
+**Evidence**:
+- Cross-check report: `docs/cross-checks/2026-05-09-u32-trust-traceability-deep-dive.md`
+- Unit summary: `aidlc-docs/construction/u32-trust-traceability-deep-dive/code/summary.md`
+- New source files: `src/investo/sources/tiers.py`, `src/investo/briefing/numeric_self_check.py`, `src/investo/briefing/trace_footer.py`, `src/investo/briefing/quality_eval.py`.
+- Modified source files: `src/investo/models/coverage.py` (`SourceTier` Literal + `SourceOutcome.tier` field; tier-aware factory kwargs), `src/investo/models/__init__.py` (re-export), `src/investo/sources/aggregator.py` (stamp tier on each outcome), `src/investo/briefing/segments.py` (`SegmentCoverage.tier_mix_label`), `src/investo/briefing/pipeline.py` (`_enhance_reader_experience(candidates=)` + traceability footer append), `src/investo/__main__.py` (Step Summary Tier column), `src/investo/publisher/site_index.py` (`update_quality_page` + `QUALITY_PAGE_PATH`), `src/investo/orchestrator/pipeline.py` (quality page snapshot + write at publish time), `mkdocs.yml` (nav entry).
+- New test files: `tests/unit/sources/test_tiers.py` (7), `tests/unit/briefing/test_numeric_self_check.py` (9), `tests/unit/briefing/test_trace_footer.py` (8), `tests/unit/briefing/test_quality_eval.py` (7).
+- Modified test files: `tests/unit/models/test_init.py` (adds `SourceTier`), `tests/unit/orchestrator/conftest.py` (autouse fixture redirects `QUALITY_PAGE_PATH` to `tmp_path`).
+- New site assets: `site_docs/quality.md` (bootstrap stub).
+- Tests: +31 (1419 → 1450); covers tier registry (default / unknown fallback / canonical-order mix / S-tier coverage / A-tier coverage), numeric extraction (decimal / pct / Korean unit / short-integer skip / haystack match / unverified flag / thousands-separator match / empty haystack), warning-line rendering (cap + suffix + empty), trace footer (hash determinism / hash collision-resistance / classification table / unassigned / title truncation), quality KPIs (no data / liveness / figures presence / fallback ratio / data-limited denominator).
+- Verification: `uv run ruff check .` ✅, `uv run ruff format --check .` ✅ (218 files), `uv run mypy --strict src/` ✅ (87 source files), `uv run pytest -q` ✅ (1450 passed), `uv run mkdocs build --strict` ✅.
+- TECH-DEBT delta: none.
+**Status**: u32 construction and cross-check complete. Wave 3 wish-list (persona #3) surface fully landed.
+
+---
+
+## Construction — u32 trust-traceability-deep-dive — Steps 1-5 Complete
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Action**: Closed all five u32 steps in one session. **Step 1** — `SourceTier = Literal["S","A","B","C"]` lives in `models/coverage.py` and is carried by `SourceOutcome.tier`. New `sources/tiers.py` registry maps every adapter to a tier (S = SEC EDGAR / FOMC RSS / KRX / Treasury / FSC / Korea policy RSS; A = yfinance / Binance / FRED / nasdaq earnings / yahoo finance news / nasdaq stocks news / US economic calendar; B = CNBC / Yonhap / The Block / CoinGecko / DefiLlama). Aggregator stamps tier at collection time; `SegmentCoverage.tier_mix_label` renders deterministic `S=2 / A=1 / B=4`-style label. `_render_coverage_badge` adds a "소스 등급 분포" line when non-empty. GHA Step Summary table grows a Tier column. Unknown adapters log INFO + fall back to `"B"` so registry gaps stay visible without flooding operator triage. **Step 2** — `briefing/numeric_self_check.py` extracts flaggable numeric tokens (decimal / thousands-separator / unit-bearing / ≥4-digit) from Stage 2 output and cross-checks against a haystack of numeric substrings present in any Stage 1 candidate's title / summary / raw_metadata. Mismatches render a brief-header callout `> **수치 검증 경고**: 입력에서 확인되지 않은 수치 — ... 외` (capped at 5 tokens). `_enhance_reader_experience(candidates=)` threads through both the data-limited and the LLM-output paths. Operator-alert escalation deferred (the brief-header callout is the read surface). **Step 3** — `briefing/trace_footer.py` computes three sha256 12-char prefixes — `input_hash` (Stage 1 candidate JSON), `stage1_hash` (parsed `ClassificationResult.model_dump()`), `stage2_hash` (raw Stage 2 body) — and renders a `<details>`-collapsed footer with the three hashes plus a per-item table (id / source / category / section / 60-char-truncated title). The footer is appended to `enhanced_markdown` immediately before the disclaimer is added so it lands inside every published archive entry. **Step 4** — `briefing/quality_eval.py` computes three trailing-7-day KPIs (source liveness, figures presence, fallback ratio) over the u31 `coverage.jsonl` time series and the archive directory; `render_quality_page` produces a Korean Markdown body for `site_docs/quality.md`. `publisher/site_index.update_quality_page` writes the page atomically; orchestrator `_stage_publish_segments` snapshots the quality page first, regenerates it via `update_quality_page`, and appends the path to `index_paths` so it is committed alongside the briefing. mkdocs nav adds "데이터 품질" entry; bootstrap stub `site_docs/quality.md` ships so the first `mkdocs build --strict` passes. **Step 5** — full quality gate.
+**Status**: Code Generation complete (5/5 steps); full quality gate green: `ruff check` ✅, `ruff format --check` ✅ (218 files), `mypy --strict src/` ✅ (87 source files), `pytest -q` ✅ 1450 passed (1419 → 1450, +31 new tests), `mkdocs build --strict` ✅.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u32-trust-traceability-deep-dive-code-generation-plan.md`
+- `aidlc-docs/construction/u32-trust-traceability-deep-dive/code/summary.md` (new)
+- `docs/cross-checks/2026-05-09-u32-trust-traceability-deep-dive.md` (new)
+- `aidlc-docs/audit.md` (this entry + cross-check entry above)
+- `aidlc-docs/aidlc-state.md` (per-unit row u32 Planned → Complete; Code Generation Notes appended)
+- `mkdocs.yml` (nav entry)
+- `site_docs/quality.md` (bootstrap stub)
+**Context**: Wave 3 wish-list (persona #3) surface — critical-analyst day-by-day verification. The new tier registry, numeric self-check, traceability footer, hashed signatures, and public quality dashboard layer five orthogonal trust signals on top of the existing producer-side gates without modifying any of u22's coverage transparency, u25's summary fidelity, or u26's visual delivery contracts.
+
+---
+
 ## Cross-Check — u31 operations-resilience — COMPLETE
 **Timestamp**: 2026-05-09T00:00:00+09:00
 **Trigger**: u31 Code Generation closed (Steps 1–5 all closed in this session). All eight DoD items verified complete; no Critical / High findings introduced.

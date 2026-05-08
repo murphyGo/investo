@@ -36,6 +36,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from investo.briefing import numeric_self_check, trace_footer
 from investo.briefing.action_tag import apply_action_tag
 from investo.briefing.claude_code import (
     DEFAULT_TIMEOUT_S,
@@ -783,6 +784,9 @@ def _render_coverage_badge(coverage: SegmentCoverage) -> str:
         f"수집 {coverage.item_count}건 / 소스 {coverage.source_count}개 / "
         f"누락: {coverage.missing_category_label}",
     ]
+    tier_label = coverage.tier_mix_label
+    if tier_label:
+        lines.append(f"> **소스 등급 분포**: {tier_label}")
     if coverage.reason_codes:
         lines.append(f"> **상세 사유**: {', '.join(coverage.reason_labels)}")
     source_line = _render_source_outcome_line(coverage)
@@ -862,6 +866,7 @@ def _enhance_reader_experience(
     coverage: SegmentCoverage | None = None,
     watchlist_impact: WatchlistImpact | None = None,
     data_limited: bool = False,
+    candidates: Sequence[NormalizedItem] | None = None,
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
@@ -871,12 +876,20 @@ def _enhance_reader_experience(
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
     summary_header = _build_summary_header(sections, data_limited=effective_data_limited)
     watermark = _render_timestamp_watermark(target_date, segment)
+    # u32 Step 2 — Stage 3 numeric self-check. Compare flaggable numeric
+    # tokens in the body against the Stage 1 candidate haystack and
+    # render a single-line warning callout when mismatches are found.
+    numeric_warning_line = ""
+    if candidates is not None:
+        unverified = numeric_self_check.find_unverified(body_markdown, candidates)
+        numeric_warning_line = numeric_self_check.render_warning_line(unverified)
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
         f"{watermark}\n\n"
         f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
         f"{_render_coverage_badge(coverage) if coverage is not None else ''}"
         f"{_render_watchlist_callout(watchlist_impact) if watchlist_impact is not None else ''}"
+        f"{numeric_warning_line}"
         f"> **오늘의 결론**: {summary_header.conclusion}\n"
         f"> **핵심 동인**: {summary_header.driver}\n"
         f"> **주의할 점**: {summary_header.caution}\n\n"
@@ -1109,6 +1122,7 @@ async def generate_briefing(
             coverage=coverage,
             watchlist_impact=watchlist_impact,
             data_limited=True,
+            candidates=items,
         )
         full_markdown = append_disclaimer(enhanced_markdown)
         hit = leak_guard_scan(full_markdown)
@@ -1169,6 +1183,16 @@ async def generate_briefing(
         coverage=coverage,
         watchlist_impact=watchlist_impact,
         data_limited=effective_data_limited,
+        candidates=llm_items,
+    )
+    # u32 Step 3 — append the traceability + signature footer just
+    # before the disclaimer. The footer is `<details>`-collapsed so it
+    # does not crowd the first viewport but stays one click away for
+    # readers who want to verify the signature chain.
+    enhanced_markdown += "\n" + trace_footer.render_traceability_footer(
+        llm_items,
+        classification.model_dump(),
+        body_markdown,
     )
     full_markdown = append_disclaimer(enhanced_markdown)
 

@@ -22,14 +22,16 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolate_operator_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[None]:
-    """Redirect u31 operator-state paths to a per-test temp dir.
+    """Redirect u31/u32 operator-state and quality-page paths to a per-test temp dir.
 
-    Without this, ``run_pipeline`` writes ``archive/_meta/coverage.jsonl``
-    and ``archive/_meta/operator_state/boot_alerts.json`` relative to
-    the test's cwd (typically the repo root), polluting the working
-    tree across test runs. This autouse fixture pins both paths to
-    ``tmp_path`` for every test in this directory.
+    Without this, ``run_pipeline`` writes ``archive/_meta/coverage.jsonl``,
+    ``archive/_meta/operator_state/boot_alerts.json``, and
+    ``site_docs/quality.md`` relative to the test's cwd (typically the
+    repo root), polluting the working tree across test runs.
     """
+    from investo.publisher import site_index as site_index_mod
+
     monkeypatch.setenv("INVESTO_OPERATOR_STATE_DIR", str(tmp_path / "operator_state"))
     monkeypatch.setenv("INVESTO_COVERAGE_LOG_PATH", str(tmp_path / "coverage.jsonl"))
+    monkeypatch.setattr(site_index_mod, "QUALITY_PAGE_PATH", tmp_path / "quality.md")
     yield

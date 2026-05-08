@@ -359,8 +359,8 @@ def _write_github_step_summary(result: PipelineResult) -> None:
             [
                 "### Sources",
                 "",
-                "| Source | Category | Status | Items | Reason |",
-                "|--------|----------|--------|-------|--------|",
+                "| Source | Tier | Category | Status | Items | Reason |",
+                "|--------|------|----------|--------|-------|--------|",
             ]
         )
         for outcome in ranked:
@@ -370,6 +370,7 @@ def _write_github_step_summary(result: PipelineResult) -> None:
                 + " | ".join(
                     (
                         _redact_diagnostic_text(outcome.source_name),
+                        outcome.tier,
                         _redact_diagnostic_text(outcome.category),
                         outcome.status,
                         str(outcome.item_count),

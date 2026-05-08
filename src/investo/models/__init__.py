@@ -17,6 +17,7 @@ from investo.models.coverage import (
     SourceCollectionReport,
     SourceOutcome,
     SourceStatus,
+    SourceTier,
     sanitize_source_error_message,
 )
 from investo.models.items import Category, NormalizedItem
@@ -42,5 +43,6 @@ __all__ = [
     "SourceCollectionReport",
     "SourceOutcome",
     "SourceStatus",
+    "SourceTier",
     "sanitize_source_error_message",
 ]

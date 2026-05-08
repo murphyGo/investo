@@ -231,6 +231,24 @@ class SegmentCoverage:
     def ok_source_outcomes(self) -> tuple[SourceOutcome, ...]:
         return tuple(outcome for outcome in self.source_outcomes if outcome.status == "ok")
 
+    @property
+    def tier_mix_label(self) -> str:
+        """u32 Step 1 — Render a deterministic S/A/B tier-mix string.
+
+        Counts are read from each ``ok`` outcome's ``tier`` field, which
+        the aggregator stamped at collection time from the source-tier
+        registry. Empty when the segment carries no tagged items
+        (legacy fixtures and pre-u32 runs); reader surfaces gracefully
+        omit the badge in that case.
+        """
+        if not self.ok_source_outcomes:
+            return ""
+        counts: dict[str, int] = {label: 0 for label in ("S", "A", "B", "C")}
+        for outcome in self.ok_source_outcomes:
+            counts[outcome.tier] += 1
+        parts = [f"{label}={count}" for label, count in counts.items() if count]
+        return " / ".join(parts)
+
 
 def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
     """Route source items into deterministic market segments."""

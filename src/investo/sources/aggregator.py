@@ -25,6 +25,7 @@ from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
 from investo.sources._registry import list_sources
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
+from investo.sources.tiers import adapter_tier
 
 _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
@@ -130,6 +131,7 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
                     adapter.category,
                     message=str(result),
                     transient=result.transient,
+                    tier=adapter_tier(adapter.name),
                 )
             )
             continue
@@ -169,10 +171,11 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
             },
         )
         items.extend(kept)
+        tier = adapter_tier(adapter.name)
         if kept:
-            outcomes.append(SourceOutcome.ok(adapter.name, adapter.category, len(kept)))
+            outcomes.append(SourceOutcome.ok(adapter.name, adapter.category, len(kept), tier=tier))
         else:
-            outcomes.append(SourceOutcome.zero(adapter.name, adapter.category))
+            outcomes.append(SourceOutcome.zero(adapter.name, adapter.category, tier=tier))
     return SourceCollectionReport(items=tuple(items), outcomes=tuple(outcomes))
 
 

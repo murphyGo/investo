@@ -30,6 +30,14 @@ from investo.models.items import Category, NormalizedItem
 
 SourceStatus = Literal["ok", "zero", "failed"]
 
+# u32 Step 1 — editorial source-tier classification. Carried on every
+# :class:`SourceOutcome` so downstream surfaces (coverage badge, GHA
+# Step Summary, briefing footer) can render a tier-mix without
+# re-reading a registry. The default tier ``"B"`` matches the most
+# common adapter (aggregator/news); the source aggregator stamps the
+# editorial value from :mod:`investo.sources.tiers` at collection time.
+SourceTier = Literal["S", "A", "B", "C"]
+
 # Maximum length of the public-facing failure reason string. Anything
 # longer is truncated with an ellipsis. Keeps SVG rendering predictable
 # and prevents an unexpectedly large stderr from blowing up a markdown
@@ -45,6 +53,15 @@ class SourceOutcome:
     only when ``status == "failed"`` and is always pre-sanitized via
     :func:`sanitize_source_error_message` (see
     :meth:`SourceOutcome.from_failure`).
+
+    ``tier`` (u32 Step 1) is the editorial classification of the
+    source: ``"S"`` for primary regulatory / exchange feeds,
+    ``"A"`` for first-party / official feeds, ``"B"`` for reputable
+    aggregator / news sources, ``"C"`` for miscellaneous. The
+    aggregator stamps the value from
+    :mod:`investo.sources.tiers` at collection time; legacy callers
+    can omit the field and receive the default ``"B"`` (matches the
+    common-case fallback in the registry).
     """
 
     source_name: str
@@ -53,18 +70,38 @@ class SourceOutcome:
     item_count: int = 0
     failure_reason: str | None = None
     transient: bool | None = None
+    tier: SourceTier = "B"
 
     @classmethod
-    def ok(cls, source_name: str, category: Category, item_count: int) -> SourceOutcome:
+    def ok(
+        cls,
+        source_name: str,
+        category: Category,
+        item_count: int,
+        *,
+        tier: SourceTier = "B",
+    ) -> SourceOutcome:
         """Build an ``ok`` outcome from a non-zero item count."""
         if item_count <= 0:
             raise ValueError("ok outcome requires item_count > 0")
-        return cls(source_name=source_name, category=category, status="ok", item_count=item_count)
+        return cls(
+            source_name=source_name,
+            category=category,
+            status="ok",
+            item_count=item_count,
+            tier=tier,
+        )
 
     @classmethod
-    def zero(cls, source_name: str, category: Category) -> SourceOutcome:
+    def zero(
+        cls,
+        source_name: str,
+        category: Category,
+        *,
+        tier: SourceTier = "B",
+    ) -> SourceOutcome:
         """Build a ``zero`` outcome — adapter ran successfully but emitted no items."""
-        return cls(source_name=source_name, category=category, status="zero")
+        return cls(source_name=source_name, category=category, status="zero", tier=tier)
 
     @classmethod
     def from_failure(
@@ -74,6 +111,7 @@ class SourceOutcome:
         *,
         message: str,
         transient: bool,
+        tier: SourceTier = "B",
     ) -> SourceOutcome:
         """Build a ``failed`` outcome with the message pre-sanitized."""
         return cls(
@@ -82,6 +120,7 @@ class SourceOutcome:
             status="failed",
             failure_reason=sanitize_source_error_message(message),
             transient=transient,
+            tier=tier,
         )
 
 
@@ -151,5 +190,6 @@ __all__ = [
     "SourceCollectionReport",
     "SourceOutcome",
     "SourceStatus",
+    "SourceTier",
     "sanitize_source_error_message",
 ]

@@ -131,11 +131,13 @@ from investo.publisher import (
 from investo.publisher import (
     archive_path as compute_archive_path,
 )
+from investo.publisher import site_index as _site_index_mod
 from investo.publisher.site_index import (
     ARCHIVE_INDEX_PATH,
     SEGMENT_ARCHIVE_INDEX_PATHS,
     SITE_INDEX_PATH,
     update_latest_index_pages,
+    update_quality_page,
 )
 from investo.publisher.weekly_digest import (
     WEEKLY_INDEX_PATH,
@@ -627,6 +629,20 @@ async def _stage_publish_segments(
                 briefings,
             )
             index_paths = (*index_paths, og_card_path)
+            # u32 Step 4 — public quality dashboard. Snapshot first so a
+            # later atomic-rollback also reverses the dashboard write.
+            from investo.publisher.paths import ARCHIVE_ROOT
+
+            quality_path_resolved = _site_index_mod.QUALITY_PAGE_PATH
+            snapshots[quality_path_resolved] = _read_existing_bytes(quality_path_resolved)
+            quality_path = await asyncio.to_thread(
+                update_quality_page,
+                target_date,
+                coverage_path=source_health.resolve_coverage_path(),
+                archive_root=ARCHIVE_ROOT,
+                quality_page_path=quality_path_resolved,
+            )
+            index_paths = (*index_paths, quality_path)
             # u29 weekly retrospective — opt-in via INVESTO_PUBLISH_WEEKLY=1
             # set by the GHA Saturday cron path. Failing here would block
             # the segmented publish (which is already on disk), so we
