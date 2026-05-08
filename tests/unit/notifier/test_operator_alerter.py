@@ -83,6 +83,37 @@ async def test_operator_alerter_sends_formatted_failure_text() -> None:
 
 
 @pytest.mark.asyncio
+async def test_operator_alerter_formats_config_error_as_korean_boot_alert() -> None:
+    captured: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        body = _json.loads(request.content.decode("utf-8"))
+        captured.append(str(body["text"]))
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    failure = _build_failure(
+        stage="orchestrator",
+        error_type="ConfigError",
+        error_message="Missing required env vars: SITE_URL_BASE",
+    )
+    async with mock_client(handler) as http:
+        alerter = OperatorAlerter(
+            bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
+        )
+        result = await alerter.alert(failure)
+
+    assert result.ok is True
+    text = captured[0]
+    assert "🚨 Investo 부팅 실패" in text
+    assert "- 오류 유형: ConfigError" in text
+    assert "- 메시지: Missing required env vars: SITE_URL_BASE" in text
+    assert "- 권장 조치:" in text
+    assert "- 발생 시각: 2026-04-25 16:00 KST" in text
+
+
+@pytest.mark.asyncio
 async def test_operator_alerter_dispatches_to_operator_chat_id() -> None:
     """Chat_id matches operator_chat_id (CLAUDE.md #5 isolation)."""
     captured: list[str] = []

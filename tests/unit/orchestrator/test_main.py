@@ -748,6 +748,45 @@ def test_main_target_date_override_malformed_attempts_boot_alert(
     assert alerts[0].error_type == "ConfigError"
 
 
+def test_boot_alert_redacts_config_error_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    token = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", token)
+
+    with _stub_pipeline(monkeypatch), _capture_alerts(monkeypatch) as alerts:
+        assert main_mod.main() == 1
+
+    assert len(alerts) == 1
+    assert token not in alerts[0].error_message
+    assert "[REDACTED" in alerts[0].error_message
+
+
+def test_boot_alert_dispatch_exception_logs_warning_and_does_not_record_ledger(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_TARGET_DATE", "bad-date")
+
+    class _RaisingAlerter:
+        def __init__(self, **kwargs: Any) -> None:
+            pass
+
+        async def alert(self, ctx: FailureContext) -> SendResult:
+            raise RuntimeError("telegram unavailable")
+
+    monkeypatch.setattr(main_mod, "OperatorAlerter", _RaisingAlerter)
+
+    with _stub_pipeline(monkeypatch), caplog.at_level("WARNING", logger="investo"):
+        assert main_mod.main() == 1
+
+    assert "[boot_alert] dispatch failed" in caplog.text
+    assert not (tmp_path / "boot_alerts.json").exists()
+
+
 def test_resolve_target_date_override_helper_returns_none_when_absent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

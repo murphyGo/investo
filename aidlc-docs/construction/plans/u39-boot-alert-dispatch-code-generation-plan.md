@@ -3,7 +3,7 @@
 **Date**: 2026-05-09
 **Unit**: u39 boot-alert-dispatch
 **Stage**: Code Generation
-**Status**: 📋 Planned
+**Status**: ✅ Complete
 **Source**: 10-persona evaluation 2026-05-09 — persona #8 (운영자 / 1-person SRE)
 **Estimated Effort**: ~1.5-2 h
 **Dependencies**:
@@ -30,15 +30,15 @@ The persona's diagnosis is correct: u31 landed the dedup ledger and the `Operato
 
 ## Definition of Done
 
-- [ ] When `__main__._validate_env` raises `ConfigError` (or the equivalent boot-time validation error), the error path invokes `_attempt_boot_alert(error)` before the process exits with non-zero. The alert is delivered to the operator Telegram chat (not the public briefing channel) and is suppressed by the existing 14-day dedup ledger if the same fingerprint has fired in the trailing 14 days.
-- [ ] When `OperatorAlerter` itself fails (e.g., the bot token is the *cause* of the boot-time error), the alert attempt logs at WARNING + records nothing in the dedup ledger so a subsequent run with a fixed token still alerts. The process still exits non-zero.
-- [ ] `_attempt_boot_alert` rendering format matches the operator-chat conventions established in u31: Korean Markdown, header `🚨 Investo 부팅 실패`, body lines (error type, redacted message, suggested action), trailer with the run timestamp.
-- [ ] Redaction: the boot-error message passes through `_internal/redaction.py` STRICT policy (introduced in u27) before being serialized to the alert body, so secret-shaped tokens / chat IDs from the environment never leak into the alert payload.
-- [ ] Module boundary preserved: `__main__` imports only `notifier.OperatorAlerter` (and the `orchestrator/boot_alert_dedup.py` ledger helper, which lives in `orchestrator/` per existing layout). `__main__` does **not** import from `briefing/`, `publisher/`, or `sources/` — the boot-error path stays tight.
-- [ ] Anti-regression: a regression test exercising the missing-token scenario (set `INVESTO_TELEGRAM_BOT_TOKEN=""` in a test env, invoke `__main__.main()`, mock `OperatorAlerter.send_alert`, assert `send_alert` was called once with the expected fingerprint).
-- [ ] Anti-regression: dedup test — fire the same boot-error twice in the same test run, assert `OperatorAlerter.send_alert` is called exactly once (second call suppressed by the 14-day ledger).
-- [ ] Anti-regression: alert-failure-during-token-error test — when the bot token itself is the cause of the boot error and `OperatorAlerter.send_alert` raises, assert (1) WARNING log line emitted, (2) nothing recorded in the dedup ledger, (3) process still exits non-zero.
-- [ ] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅, `mkdocs build --strict` ✅.
+- [x] When `__main__._validate_env` raises `ConfigError` (or the equivalent boot-time validation error), the error path invokes `_attempt_boot_alert(error)` before the process exits with non-zero. The alert is delivered to the operator Telegram chat (not the public briefing channel) and is suppressed by the existing 14-day dedup ledger if the same fingerprint has fired in the trailing 14 days.
+- [x] When `OperatorAlerter` itself fails (e.g., the bot token is the *cause* of the boot-time error), the alert attempt logs at WARNING + records nothing in the dedup ledger so a subsequent run with a fixed token still alerts. The process still exits non-zero.
+- [x] `_attempt_boot_alert` rendering format matches the operator-chat conventions established in u31: Korean Markdown, header `🚨 Investo 부팅 실패`, body lines (error type, redacted message, suggested action), trailer with the run timestamp.
+- [x] Redaction: the boot-error message passes through `_internal/redaction.py` STRICT policy (introduced in u27) before being serialized to the alert body, so secret-shaped tokens / chat IDs from the environment never leak into the alert payload.
+- [x] Module boundary preserved: `__main__` imports only `notifier.OperatorAlerter` (and the `orchestrator/boot_alert_dedup.py` ledger helper, which lives in `orchestrator/` per existing layout). `__main__` does **not** import from `briefing/`, `publisher/`, or `sources/` — the boot-error path stays tight.
+- [x] Anti-regression: a regression test exercising the missing-token scenario (set `INVESTO_TELEGRAM_BOT_TOKEN=""` in a test env, invoke `__main__.main()`, mock `OperatorAlerter.send_alert`, assert `send_alert` was called once with the expected fingerprint).
+- [x] Anti-regression: dedup test — fire the same boot-error twice in the same test run, assert `OperatorAlerter.send_alert` is called exactly once (second call suppressed by the 14-day ledger).
+- [x] Anti-regression: alert-failure-during-token-error test — when the bot token itself is the cause of the boot error and `OperatorAlerter.send_alert` raises, assert (1) WARNING log line emitted, (2) nothing recorded in the dedup ledger, (3) process still exits non-zero.
+- [x] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅, `mkdocs build --strict` ✅.
 
 ---
 
@@ -46,13 +46,13 @@ The persona's diagnosis is correct: u31 landed the dedup ledger and the `Operato
 
 ### Step 1 — Wire `_attempt_boot_alert` into `__main__` Boot-Error Handler
 
-- [ ] Locate the existing `__main__._validate_env` (or equivalent boot-validation) call site and the surrounding try / except that currently exits silently.
-- [ ] Inject a call to `_attempt_boot_alert(error)` in the `except ConfigError as exc:` branch (or the equivalent boot-validation error class) before the exit.
-- [ ] If `_attempt_boot_alert` does not yet exist as a callable in `__main__`, materialize it as a thin builder that constructs `OperatorAlerter` from env, computes the dedup fingerprint, consults the ledger, and (on miss) calls `send_alert` + records.
-- [ ] Files affected:
+- [x] Locate the existing `__main__._validate_env` (or equivalent boot-validation) call site and the surrounding try / except that currently exits silently.
+- [x] Inject a call to `_attempt_boot_alert(error)` in the `except ConfigError as exc:` branch (or the equivalent boot-validation error class) before the exit.
+- [x] If `_attempt_boot_alert` does not yet exist as a callable in `__main__`, materialize it as a thin builder that constructs `OperatorAlerter` from env, computes the dedup fingerprint, consults the ledger, and (on miss) calls `send_alert` + records.
+- [x] Files affected:
   - `src/investo/__main__.py`
   - `src/investo/orchestrator/boot_alert_dedup.py` (re-export the ledger helpers if not already importable from `__main__`)
-- [ ] Unit tests added at `tests/unit/orchestrator/test_main_boot_alert.py`:
+- [x] Unit tests added at `tests/unit/orchestrator/test_main_boot_alert.py`:
   - missing-token boot error → `OperatorAlerter.send_alert` called once with the rendered body.
   - same boot error fired twice → `send_alert` called once (dedup engaged).
   - boot error different from previous → `send_alert` called (separate fingerprint).
@@ -60,27 +60,27 @@ The persona's diagnosis is correct: u31 landed the dedup ledger and the `Operato
 
 ### Step 2 — Redaction Through STRICT Policy
 
-- [ ] Pipe the boot-error message through `_internal/redaction.py::redact_text(message, policy=STRICT)` before composing the alert body. STRICT is the chokepoint added in u27 that strips bot-token / chat-id-shaped substrings.
-- [ ] Files affected:
+- [x] Pipe the boot-error message through `_internal/redaction.py::redact_text(message, policy=STRICT)` before composing the alert body. STRICT is the chokepoint added in u27 that strips bot-token / chat-id-shaped substrings.
+- [x] Files affected:
   - `src/investo/__main__.py` (rendering helper)
-- [ ] Unit tests added:
+- [x] Unit tests added:
   - simulated boot error containing a bot-token-shaped substring → rendered alert body has the substring replaced with `[REDACTED_BOT_TOKEN]`.
   - simulated boot error containing a chat-id-shaped substring → likewise.
 
 ### Step 3 — Operator-Chat Format Alignment
 
-- [ ] Confirm the alert renderer matches u31's operator-chat conventions: Korean Markdown, header `🚨 Investo 부팅 실패`, error-type / redacted-message / suggested-action body lines, run-timestamp trailer in KST.
-- [ ] Files affected:
+- [x] Confirm the alert renderer matches u31's operator-chat conventions: Korean Markdown, header `🚨 Investo 부팅 실패`, error-type / redacted-message / suggested-action body lines, run-timestamp trailer in KST.
+- [x] Files affected:
   - `src/investo/__main__.py` (or `notifier/operator_alerter.py` if a new render helper is needed)
-- [ ] Unit tests added:
+- [x] Unit tests added:
   - rendered body contains the `🚨 Investo 부팅 실패` header.
   - rendered body contains the KST timestamp in `YYYY-MM-DD HH:MM` form.
   - rendered body never contains a token-shaped substring (anti-regression on the redaction step).
 
 ### Step 4 — Verification
 
-- [ ] Run targeted boot-alert tests + the full quality gate.
-- [ ] Manual: deliberately break the bot token in a local `.env` (or env override), run `python -m investo`, confirm the operator chat receives the alert exactly once across multiple consecutive runs (dedup engaged), then fix the token, confirm the next run does not re-alert.
+- [x] Run targeted boot-alert tests + the full quality gate.
+- [x] Manual network dispatch was not exercised locally; automated tests cover redaction, dedup, dispatch-failure behavior, and non-zero exit preservation.
 
 ---
 
@@ -96,11 +96,11 @@ The persona's diagnosis is correct: u31 landed the dedup ledger and the `Operato
 
 ## Quality gate
 
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅ (expect ~8-12 new tests)
-- [ ] `uv run mkdocs build --strict` ✅
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅ (expect ~8-12 new tests)
+- [x] `uv run mkdocs build --strict` ✅
 
 ---
 

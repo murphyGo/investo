@@ -203,7 +203,10 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
     # ``_build_failure_context`` to keep the boot path independent
     # of the orchestrator's helpers (which import the four stage
     # runners and pull in u1-u4 even on a config-only failure path).
-    error_message = str(exc) or type(exc).__name__
+    error_message = redact_text(
+        str(exc) or type(exc).__name__,
+        policy=RedactionPolicy.STRICT,
+    )
     error_type = type(exc).__name__
 
     # u31 Step 2 — bounded dedup. A stuck misconfiguration would
@@ -248,7 +251,7 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
     except Exception:
         # Best-effort — never let alerter exceptions mask the
         # underlying failure exit code.
-        pass
+        _logger.warning("[boot_alert] dispatch failed", exc_info=True)
     if delivered:
         boot_alert_dedup.record_alert(
             error_type=error_type,

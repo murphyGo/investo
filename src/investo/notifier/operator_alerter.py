@@ -19,6 +19,8 @@ Reference:
 
 from __future__ import annotations
 
+from zoneinfo import ZoneInfo
+
 import httpx
 
 from investo.models import FailureContext, SendResult
@@ -31,14 +33,29 @@ def _format_alert_text(failure: FailureContext) -> str:
 
     Layout::
 
-        ⚠️ Pipeline failure: {stage}
+        🚨 Investo 부팅 실패
 
-        {error_type}: {error_message}
-
-        Occurred: {occurred_at.isoformat()}
+        - 오류 유형: {error_type}
+        - 메시지: {error_message}
+        - 권장 조치: GitHub Actions 로그와 환경 변수 설정을 확인하세요.
+        - 발생 시각: YYYY-MM-DD HH:MM KST
 
         ```{traceback_excerpt}```   (only when traceback_excerpt is set)
     """
+    if failure.stage == "orchestrator" and failure.error_type == "ConfigError":
+        occurred_kst = failure.occurred_at.astimezone(ZoneInfo("Asia/Seoul"))
+        lines = [
+            "🚨 Investo 부팅 실패",
+            "",
+            f"- 오류 유형: {failure.error_type}",
+            f"- 메시지: {failure.error_message}",
+            "- 권장 조치: GitHub Actions 로그와 환경 변수 설정을 확인하세요.",
+            f"- 발생 시각: {occurred_kst:%Y-%m-%d %H:%M} KST",
+        ]
+        if failure.traceback_excerpt is not None:
+            lines.extend(["", "```", failure.traceback_excerpt, "```"])
+        return "\n".join(lines)
+
     header = f"⚠️ Pipeline failure: {failure.stage}\n\n"
     err_line = f"{failure.error_type}: {failure.error_message}\n\n"
     occurred = f"Occurred: {failure.occurred_at.isoformat()}"
