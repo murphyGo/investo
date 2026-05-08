@@ -29,6 +29,7 @@ from investo.sources.protocol import SourceAdapter, SourceFetchError
 from . import (
     cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401
+    defillama_market_structure,  # noqa: F401
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
     fsc_krx_index_price,  # noqa: F401

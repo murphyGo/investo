@@ -1,0 +1,10 @@
+{
+  "peggedAssets": [
+    {"symbol": "USDT", "circulating": {"peggedUSD": 114000000000}},
+    {"symbol": "USDC", "circulating": {"peggedUSD": 36000000000}},
+    {"symbol": "DAI", "circulating": {"peggedUSD": 5200000000}},
+    {"symbol": "USDe", "circulating": {"peggedUSD": 3100000000}},
+    {"symbol": "FDUSD", "circulating": {"peggedUSD": 2800000000}},
+    {"symbol": "BROKEN", "circulating": {}}
+  ]
+}

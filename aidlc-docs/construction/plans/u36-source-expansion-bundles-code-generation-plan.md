@@ -30,7 +30,7 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 - [x] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
 - [ ] US-equity gains official macro-calendar/release context from BLS/BEA/Census public feeds or machine-readable schedules. This is calendar/event context, not forecast generation.
 - [ ] Crypto gains market-structure context:
-  - DeFiLlama public API for TVL / stablecoin supply / DEX or protocol activity.
+  - [x] DeFiLlama public API for TVL / stablecoin supply / DEX or protocol activity.
   - Binance public market endpoints for a small symbol set (`BTCUSDT`, `ETHUSDT`, optionally `SOLUSDT`) covering 24h ticker / daily klines / funding or open-interest if endpoint access is stable.
 - [x] Segment routing updates include the new source slugs in `src/investo/briefing/segments.py`, with domestic price coverage resolving the current `domestic-equity` `MISSING_PRICE` gap when data is available. (Slice 1: `fsc-krx-index-price`)
 - [x] `tests/unit/sources/test_plugin_contract.py` adapter count/name imports stay in lockstep with `src/investo/sources/__init__.py`. (Slice 1: 11 -> 12 adapters)
@@ -87,9 +87,9 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ### Step 4 — Crypto Market-Structure Layer
 
-- [ ] Implement `defillama_market_structure.py` using public JSON endpoints for selected chain/protocol/stablecoin metrics; cap output to a small deterministic set useful for daily briefing.
+- [x] Implement `defillama_market_structure.py` using public JSON endpoints for selected chain/protocol/stablecoin metrics; cap output to a small deterministic set useful for daily briefing.
 - [ ] Implement `binance_crypto_market_structure.py` using public market endpoints for `BTCUSDT` / `ETHUSDT` / optional `SOLUSDT`; handle 429, unavailable symbols, string decimals, and rolling-24h semantics.
-- [ ] Add fixtures and tests covering stablecoin/TVL parse, schema drift resilience, symbol filtering, rate-limit/failure degradation, and deterministic ordering.
+- [ ] Add fixtures and tests covering stablecoin/TVL parse, schema drift resilience, symbol filtering, rate-limit/failure degradation, and deterministic ordering. (DeFiLlama slice covers TVL/stablecoin parse, malformed payload, partial endpoint failure, all-endpoint failure, and deterministic ordering)
 - [ ] Keep raw numeric metrics in `raw_metadata` and produce concise `title`/`summary` text so the Stage 1 candidate cap is not overwhelmed.
 
 ### Step 5 — Registration, Routing, and Coverage Transparency

@@ -1,0 +1,8 @@
+[
+  {"name": "Ethereum", "tvl": 56000000000},
+  {"name": "Solana", "tvl": 9800000000},
+  {"name": "Arbitrum", "tvl": 3200000000},
+  {"name": "Base", "tvl": 2900000000},
+  {"name": "Bitcoin", "tvl": 2100000000},
+  {"name": "Invalid", "tvl": null}
+]

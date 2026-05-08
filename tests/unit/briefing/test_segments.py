@@ -65,6 +65,7 @@ def test_us_sources_and_us_tickers_route_to_us_equity() -> None:
 def test_crypto_sources_and_crypto_terms_route_to_crypto() -> None:
     items = [
         _item("coingecko-price", "Bitcoin price snapshot", category="price"),
+        _item("defillama-market-structure", "DeFi TVL $74.0B", category="macro"),
         _item("theblock-crypto", "Ethereum ETF inflows"),
         _item("treasury-rates", "UST curve affects crypto liquidity", category="macro"),
         _item("other-news", "Stablecoin bill advances"),
@@ -74,7 +75,7 @@ def test_crypto_sources_and_crypto_terms_route_to_crypto() -> None:
 
     assert segmented.crypto == tuple(items)
     assert segmented.domestic_equity == ()
-    assert segmented.us_equity == (items[2],)
+    assert segmented.us_equity == (items[3],)
 
 
 def test_fed_liquidity_item_can_route_to_us_and_crypto() -> None:
@@ -209,6 +210,7 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         SourceOutcome.ok("yfinance-price", "price", item_count=3),
         SourceOutcome.ok("treasury-rates", "macro", item_count=1),
         SourceOutcome.ok("coingecko-price", "price", item_count=2),
+        SourceOutcome.ok("defillama-market-structure", "macro", item_count=2),
         SourceOutcome.ok("fsc-krx-index-price", "price", item_count=3),
         SourceOutcome.ok("fsc-krx-stock-price", "price", item_count=5),
         SourceOutcome.ok("korea-policy-rss", "news", item_count=2),
@@ -219,6 +221,7 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
 
     assert {outcome.source_name for outcome in crypto_only} == {
         "coingecko-price",
+        "defillama-market-structure",
         "treasury-rates",
     }
     assert {outcome.source_name for outcome in domestic_only} == {

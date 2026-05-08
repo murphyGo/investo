@@ -28,6 +28,7 @@ from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
+from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
 from investo.sources.fsc_krx_index_price import FscKrxIndexPriceAdapter
@@ -44,8 +45,9 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 15
+EXPECTED_ADAPTER_COUNT = 16
 EXPECTED_ADAPTER_NAMES = {
+    "defillama-market-structure",
     "fsc-krx-index-price",
     "fsc-krx-stock-price",
     "fomc-rss",
@@ -78,6 +80,7 @@ def _isolate_registry() -> Iterator[None]:
 
     snapshot = dict(_ADAPTERS)
     _clear_for_test()
+    register(DefiLlamaMarketStructureAdapter)
     register(FomcRssAdapter)
     register(FscKrxIndexPriceAdapter)
     register(FscKrxStockPriceAdapter)
@@ -192,6 +195,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "DEFAULT_CONFIG",
         "strip_html",
         "parse_symbol_list",
+        "defillama_market_structure",
+        "DefiLlamaMarketStructureAdapter",
         "fomc_rss",
         "FomcRssAdapter",
         "fsc_krx_index_price",

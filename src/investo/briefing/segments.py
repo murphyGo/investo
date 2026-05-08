@@ -94,7 +94,7 @@ _US_SOURCES: Final[frozenset[str]] = frozenset(
     }
 )
 _CRYPTO_SOURCES: Final[frozenset[str]] = frozenset(
-    {"coingecko-price", "theblock-crypto", "treasury-rates"}
+    {"coingecko-price", "defillama-market-structure", "theblock-crypto", "treasury-rates"}
 )
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": _DOMESTIC_SOURCES,
