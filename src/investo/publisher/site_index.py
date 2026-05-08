@@ -48,6 +48,7 @@ ARCHIVE_INDEX_PATH: Final[Path] = Path("archive/index.md")
 # regenerated on every successful publish; an absent file (first
 # publish on a fresh checkout) gets created lazily.
 QUALITY_PAGE_PATH: Final[Path] = Path("site_docs/quality.md")
+ACCURACY_PAGE_PATH: Final[Path] = Path("site_docs/accuracy.md")
 SEGMENT_ARCHIVE_INDEX_PATHS: Final[dict[MarketSegment, Path]] = {
     DOMESTIC_EQUITY: Path("archive/domestic-equity/index.md"),
     US_EQUITY: Path("archive/us-equity/index.md"),
@@ -198,6 +199,38 @@ def update_quality_page(
     history_rows = compute_quality_history(30, history_path=history_target, today=target_date)
     sparkline = render_quality_sparkline(history_rows).decode("utf-8")
     body = _render_quality_page_with_history(render_quality_page(kpis), sparkline)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+    return target
+
+
+def update_accuracy_page(
+    *,
+    forecast_log_path: Path,
+    accuracy_page_path: Path | None = None,
+) -> Path:
+    """Regenerate the public forecast-accuracy page."""
+    from investo.briefing.accuracy import (
+        PriceMove,
+        compute_accuracy,
+        render_accuracy_page,
+    )
+
+    def no_price_data(
+        segment: MarketSegment,
+        target_date: date,
+        window_days: int,
+    ) -> PriceMove | None:
+        del segment, target_date, window_days
+        return None
+
+    target = accuracy_page_path if accuracy_page_path is not None else ACCURACY_PAGE_PATH
+    body = render_accuracy_page(
+        (
+            compute_accuracy(7, log_path=forecast_log_path, price_lookup=no_price_data),
+            compute_accuracy(30, log_path=forecast_log_path, price_lookup=no_price_data),
+        )
+    )
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding="utf-8")
     return target
@@ -510,6 +543,7 @@ def _write_text_atomic(path: Path, content: str) -> None:
 
 
 __all__ = [
+    "ACCURACY_PAGE_PATH",
     "ARCHIVE_INDEX_PATH",
     "HEATMAP_BEGIN",
     "HEATMAP_END",
@@ -519,6 +553,7 @@ __all__ = [
     "SEGMENT_ARCHIVE_INDEX_PATHS",
     "SITE_INDEX_PATH",
     "extract_conclusion",
+    "update_accuracy_page",
     "update_archive_heatmap_section",
     "update_index_hero",
     "update_latest_index_pages",

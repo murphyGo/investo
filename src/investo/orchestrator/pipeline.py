@@ -82,6 +82,15 @@ from investo.briefing.context import (
     resolve_recent_days,
 )
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.forecast_log import (
+    ForecastLogError,
+    append_forecast_entries,
+    resolve_forecast_log_path,
+)
+from investo.briefing.monthly_retrospective import (
+    month_has_archive_days,
+    render_monthly_retrospective,
+)
 from investo.briefing.numeric_self_check import extract_flaggable_numbers
 from investo.briefing.pipeline import GenerationPolicy
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
@@ -139,10 +148,13 @@ from investo.publisher import (
     archive_path as compute_archive_path,
 )
 from investo.publisher import site_index as _site_index_mod
+from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.site_index import (
+    ACCURACY_PAGE_PATH,
     ARCHIVE_INDEX_PATH,
     SEGMENT_ARCHIVE_INDEX_PATHS,
     SITE_INDEX_PATH,
+    update_accuracy_page,
     update_latest_index_pages,
     update_quality_page,
 )
@@ -683,6 +695,36 @@ async def _stage_publish_segments(
                 quality_page_path=quality_path_resolved,
             )
             index_paths = (*index_paths, *quality_history_paths, quality_path)
+
+            forecast_paths: tuple[Path, ...] = ()
+            if not _is_dry_run():
+                forecast_log_path = resolve_forecast_log_path()
+                snapshots[forecast_log_path] = _read_existing_bytes(forecast_log_path)
+                snapshots[ACCURACY_PAGE_PATH] = _read_existing_bytes(ACCURACY_PAGE_PATH)
+                forecast_log_written = await asyncio.to_thread(
+                    append_forecast_entries,
+                    target_date,
+                    segment_briefings=briefings,
+                    published_at=datetime.now(UTC),
+                    briefing_urls=_forecast_briefing_urls(target_date, published_segments),
+                    log_path=forecast_log_path,
+                )
+                accuracy_page = await asyncio.to_thread(
+                    update_accuracy_page,
+                    forecast_log_path=forecast_log_path,
+                    accuracy_page_path=ACCURACY_PAGE_PATH,
+                )
+                forecast_paths = (forecast_log_written, accuracy_page)
+            index_paths = (*index_paths, *forecast_paths)
+
+            monthly_paths: tuple[Path, ...] = ()
+            if not _is_dry_run():
+                monthly_paths = await asyncio.to_thread(
+                    _maybe_publish_monthly_retrospective,
+                    target_date,
+                    snapshots,
+                )
+            index_paths = (*index_paths, *monthly_paths)
             # u33 Step 3 — per-ticker accumulation pages. Recompute the
             # full match set across all segments (cheap pure function);
             # the writer is idempotent so re-running for the same
@@ -729,7 +771,7 @@ async def _stage_publish_segments(
                     written_weekly,
                     weekly_index_path,
                 )
-    except (PublisherDisclaimerError, PublisherIOError, QualityHistoryError):
+    except (PublisherDisclaimerError, PublisherIOError, QualityHistoryError, ForecastLogError):
         _rollback_paths(snapshots)
         raise
 
@@ -807,6 +849,44 @@ def _build_quality_snapshot(
         total_items=len(items),
         total_failed_sources=failed_sources,
     )
+
+
+def _forecast_briefing_urls(
+    target_date: date,
+    published_segments: Sequence[MarketSegment],
+) -> dict[MarketSegment, str]:
+    return {
+        segment: f"archive/{segment}/{target_date:%Y}/{target_date:%m}/{target_date.isoformat()}.md"
+        for segment in published_segments
+    }
+
+
+def _maybe_publish_monthly_retrospective(
+    target_date: date,
+    snapshots: dict[Path, bytes | None],
+) -> tuple[Path, ...]:
+    if target_date.day != 1:
+        return ()
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    previous_year = target_date.year if target_date.month > 1 else target_date.year - 1
+    previous_month = target_date.month - 1 if target_date.month > 1 else 12
+    if not month_has_archive_days(previous_year, previous_month, archive_root=ARCHIVE_ROOT):
+        return ()
+    monthly_root = ARCHIVE_ROOT / "monthly"
+    monthly_path = monthly_root / f"{previous_year:04d}-{previous_month:02d}.md"
+    monthly_index_path = monthly_root / "index.md"
+    snapshots[monthly_path] = _read_existing_bytes(monthly_path)
+    snapshots[monthly_index_path] = _read_existing_bytes(monthly_index_path)
+    monthly_path.parent.mkdir(parents=True, exist_ok=True)
+    body = render_monthly_retrospective(
+        previous_year,
+        previous_month,
+        archive_root=ARCHIVE_ROOT,
+    )
+    monthly_path.write_text(body, encoding="utf-8")
+    index_path = update_monthly_index(monthly_root=monthly_root)
+    return (monthly_path, index_path)
 
 
 def _build_publish_heatmap_svg(target_date: date) -> str:
@@ -1286,6 +1366,7 @@ async def run_pipeline(
         PublisherIOError,
         PublisherGitError,
         QualityHistoryError,
+        ForecastLogError,
     ) as exc:
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"

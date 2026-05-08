@@ -369,12 +369,18 @@ async def test_run_pipeline_success_appends_quality_history(
 
     history = tmp_path / "quality_history.jsonl"
     rows = [json.loads(line) for line in history.read_text(encoding="utf-8").splitlines()]
+    forecast_rows = [
+        json.loads(line)
+        for line in (tmp_path / "forecast_log.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
     assert result.status == PipelineStatus.SUCCESS
     assert len(rows) == 1
     assert rows[0]["date"] == _TARGET.isoformat()
     assert rows[0]["published_segments"] == 3
     assert rows[0]["total_items"] == 1
     assert rows[0]["total_failed_sources"] == 0
+    assert len(forecast_rows) == 3
+    assert (tmp_path / "site_docs" / "accuracy.md").exists()
 
 
 @pytest.mark.asyncio
@@ -396,6 +402,8 @@ async def test_run_pipeline_dry_run_skips_quality_history_append(
     )
 
     assert not (tmp_path / "quality_history.jsonl").exists()
+    assert not (tmp_path / "forecast_log.jsonl").exists()
+    assert not (tmp_path / "accuracy.md").exists()
 
 
 @pytest.mark.asyncio
@@ -1878,6 +1886,34 @@ async def test_stage_publish_segments_rolls_back_quality_history_append(
         )
 
     assert history.read_text(encoding="utf-8") == original
+
+
+def test_maybe_publish_monthly_retrospective_on_month_boundary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    archive = tmp_path / "archive"
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", archive)
+    for day in range(1, 8):
+        path = archive / US_EQUITY / "2026" / "04" / f"2026-04-{day:02d}.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"# t\n\n> **오늘의 결론**: AAPL 강세 {day} [강세]\n", encoding="utf-8")
+
+    snapshots: dict[Path, bytes | None] = {}
+    paths = pipeline_module._maybe_publish_monthly_retrospective(date(2026, 5, 1), snapshots)
+
+    assert archive / "monthly" / "2026-04.md" in paths
+    assert (archive / "monthly" / "index.md") in paths
+    assert "2026년 04월 회고" in (archive / "monthly" / "2026-04.md").read_text(encoding="utf-8")
+
+
+def test_maybe_publish_monthly_retrospective_skips_non_boundary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
+
+    assert pipeline_module._maybe_publish_monthly_retrospective(date(2026, 5, 2), {}) == ()
 
 
 @pytest.mark.asyncio

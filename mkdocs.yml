@@ -80,7 +80,9 @@ theme:
 nav:
   - Home: index.md
   - About: about.md
-  - 데이터 품질: quality.md
+  - 데이터 품질:
+      - 품질 대시보드: quality.md
+      - 예측 정확도: accuracy.md
   - Archive:
       # Point at the index file directly; mkdocs picks up additional
       # files under the same directory (the daily-briefing bot's
@@ -99,6 +101,7 @@ nav:
       - 미국 증시: archive/us-equity/index.md
       - 크립토: archive/crypto/index.md
       - 주차별 회고: archive/weekly/index.md
+      - 월간 회고: archive/monthly/index.md
 
 markdown_extensions:
   # Better tables, footnotes, fenced code, attr_list — pinned for
