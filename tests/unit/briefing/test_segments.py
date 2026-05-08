@@ -50,6 +50,7 @@ def test_yonhap_and_korean_ticker_route_to_domestic_equity() -> None:
 def test_us_sources_and_us_tickers_route_to_us_equity() -> None:
     items = [
         _item("yfinance-price", "S&P 500 close", category="price"),
+        _item("treasury-rates", "UST curve: 10Y 4.31%", category="macro"),
         _item("sec-edgar-8k", "Apple files 8-K"),
         _item("other-news", "NVDA rallies after earnings"),
     ]
@@ -58,13 +59,14 @@ def test_us_sources_and_us_tickers_route_to_us_equity() -> None:
 
     assert segmented.us_equity == tuple(items)
     assert segmented.domestic_equity == ()
-    assert segmented.crypto == ()
+    assert segmented.crypto == (items[1],)
 
 
 def test_crypto_sources_and_crypto_terms_route_to_crypto() -> None:
     items = [
         _item("coingecko-price", "Bitcoin price snapshot", category="price"),
         _item("theblock-crypto", "Ethereum ETF inflows"),
+        _item("treasury-rates", "UST curve affects crypto liquidity", category="macro"),
         _item("other-news", "Stablecoin bill advances"),
     ]
 
@@ -72,7 +74,7 @@ def test_crypto_sources_and_crypto_terms_route_to_crypto() -> None:
 
     assert segmented.crypto == tuple(items)
     assert segmented.domestic_equity == ()
-    assert segmented.us_equity == ()
+    assert segmented.us_equity == (items[2],)
 
 
 def test_fed_liquidity_item_can_route_to_us_and_crypto() -> None:
@@ -205,6 +207,7 @@ def test_source_zero_outcome_threads_into_reason_codes() -> None:
 def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
     outcomes = (
         SourceOutcome.ok("yfinance-price", "price", item_count=3),
+        SourceOutcome.ok("treasury-rates", "macro", item_count=1),
         SourceOutcome.ok("coingecko-price", "price", item_count=2),
         SourceOutcome.ok("fsc-krx-index-price", "price", item_count=3),
         SourceOutcome.ok("fsc-krx-stock-price", "price", item_count=5),
@@ -214,7 +217,10 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
     crypto_only = segment_source_outcomes(CRYPTO, outcomes)
     domestic_only = segment_source_outcomes(DOMESTIC_EQUITY, outcomes)
 
-    assert {outcome.source_name for outcome in crypto_only} == {"coingecko-price"}
+    assert {outcome.source_name for outcome in crypto_only} == {
+        "coingecko-price",
+        "treasury-rates",
+    }
     assert {outcome.source_name for outcome in domestic_only} == {
         "fsc-krx-index-price",
         "fsc-krx-stock-price",

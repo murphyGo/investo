@@ -37,13 +37,14 @@ from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapt
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
+from investo.sources.treasury_rates import TreasuryRatesAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
 from investo.sources.yfinance import YFinancePriceAdapter
 from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 14
+EXPECTED_ADAPTER_COUNT = 15
 EXPECTED_ADAPTER_NAMES = {
     "fsc-krx-index-price",
     "fsc-krx-stock-price",
@@ -58,6 +59,7 @@ EXPECTED_ADAPTER_NAMES = {
     "sec-edgar-8k",
     "yonhap-market",
     "theblock-crypto",
+    "treasury-rates",
     "cnbc-top-news",
 }
 
@@ -89,6 +91,7 @@ def _isolate_registry() -> Iterator[None]:
     register(SecEdgar8kAdapter)
     register(YonhapMarketAdapter)
     register(TheBlockCryptoAdapter)
+    register(TreasuryRatesAdapter)
     register(CnbcTopNewsAdapter)
     try:
         yield
@@ -215,6 +218,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "YonhapMarketAdapter",
         "theblock_crypto",
         "TheBlockCryptoAdapter",
+        "treasury_rates",
+        "TreasuryRatesAdapter",
         "cnbc_top_news",
         "CnbcTopNewsAdapter",
     }

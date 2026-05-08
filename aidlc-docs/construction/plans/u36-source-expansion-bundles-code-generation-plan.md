@@ -27,7 +27,7 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
   - [x] FSC/data.go.kr KRX stock daily price adapter or a bounded watchlist/index proxy if full stock coverage is too broad for the first slice.
   - FSC/data.go.kr listed-issues/reference adapter only if required to map stock codes; otherwise deferred behind the price adapter.
 - [x] Domestic-equity gains policy/event RSS coverage from official public feeds (MOEF/FSC/MOTIE/MSS or equivalent `korea.kr` feeds) without using Naver Finance or web-scraped KRX/KIND pages. (Slice 3: official FSC RSS service)
-- [ ] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
+- [x] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
 - [ ] US-equity gains official macro-calendar/release context from BLS/BEA/Census public feeds or machine-readable schedules. This is calendar/event context, not forecast generation.
 - [ ] Crypto gains market-structure context:
   - DeFiLlama public API for TVL / stablecoin supply / DEX or protocol activity.
@@ -80,10 +80,10 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ### Step 3 — Rates and Macro Layer
 
-- [ ] Implement `treasury_rates.py` against U.S. Treasury Fiscal Data / daily rates endpoint, no key required; parse latest available row and derive spread metadata.
+- [x] Implement `treasury_rates.py` against U.S. Treasury public daily rates endpoint, no key required; parse latest available row and derive spread metadata.
 - [ ] Implement `us_economic_calendar.py` from official BLS/BEA/Census machine-readable schedule/RSS feeds; classify scheduled releases without inventing forecasts or expected impact.
-- [ ] Add fixtures and tests covering no-key happy path, lagged latest date, numeric string conversion, missing rate terms, RSS/calendar date parsing, and source errors.
-- [ ] Route `treasury-rates` to both `us-equity` and crypto relevance where the existing segment router permits cross-market macro context; otherwise document the routing decision in the adapter test.
+- [ ] Add fixtures and tests covering no-key happy path, lagged latest date, numeric string conversion, missing rate terms, RSS/calendar date parsing, and source errors. (Treasury slice covers no-key happy path, lagged latest date, numeric conversion, and malformed/missing rates)
+- [x] Route `treasury-rates` to both `us-equity` and crypto relevance where the existing segment router permits cross-market macro context; otherwise document the routing decision in the adapter test.
 
 ### Step 4 — Crypto Market-Structure Layer
 

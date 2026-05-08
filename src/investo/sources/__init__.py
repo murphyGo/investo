@@ -38,6 +38,7 @@ from . import (
     nasdaq_stocks_news,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
     theblock_crypto,  # noqa: F401
+    treasury_rates,  # noqa: F401
     yahoo_finance_news,  # noqa: F401
     yfinance,  # noqa: F401
     yonhap_market,  # noqa: F401

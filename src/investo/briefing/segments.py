@@ -88,11 +88,14 @@ _US_SOURCES: Final[frozenset[str]] = frozenset(
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",
         "sec-edgar-8k",
+        "treasury-rates",
         "yahoo-finance-news",
         "yfinance-price",
     }
 )
-_CRYPTO_SOURCES: Final[frozenset[str]] = frozenset({"coingecko-price", "theblock-crypto"})
+_CRYPTO_SOURCES: Final[frozenset[str]] = frozenset(
+    {"coingecko-price", "theblock-crypto", "treasury-rates"}
+)
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": _DOMESTIC_SOURCES,
     "us-equity": _US_SOURCES,
