@@ -81,6 +81,11 @@ async def test_budget_gate_fires_before_stage_2_dispatches(
 
     monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
 
+    async def fake_sleep(seconds: float) -> None:
+        del seconds
+
+    monkeypatch.setattr(pipeline.asyncio, "sleep", fake_sleep)
+
     budget = RetryBudget()
     with pytest.raises(BriefingGenerationError) as exc:
         await pipeline.generate_briefing(_TARGET_DATE, _items(2), budget=budget)
@@ -132,6 +137,11 @@ async def test_budget_is_shared_between_classify_and_synthesize(
 
     monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
 
+    async def fake_sleep(seconds: float) -> None:
+        del seconds
+
+    monkeypatch.setattr(pipeline.asyncio, "sleep", fake_sleep)
+
     # Caller-supplied budget — pipeline must use THIS instance, not
     # construct its own per-stage replacement.
     shared_budget = RetryBudget()
@@ -144,6 +154,47 @@ async def test_budget_is_shared_between_classify_and_synthesize(
     # Stage 2 was never dispatched — proves the SHARED budget gate
     # caught the over-cap projection before re-entry.
     assert call_index == 1
+
+
+@pytest.mark.asyncio
+async def test_generation_policy_controls_timeout_attempts_and_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Segment callers can widen timeout while keeping retries bounded."""
+    seen_timeouts: list[float] = []
+
+    async def fake_call(
+        prompt: str,
+        *,
+        timeout_s: float = 120.0,
+        runner: object | None = None,
+    ) -> SubprocessOutcome:
+        del prompt, runner
+        seen_timeouts.append(timeout_s)
+        return SubprocessOutcome(
+            stdout="",
+            stderr="<timeout>",
+            returncode=124,
+            elapsed_s=timeout_s,
+        )
+
+    monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
+
+    async def fake_sleep(seconds: float) -> None:
+        del seconds
+
+    monkeypatch.setattr(pipeline.asyncio, "sleep", fake_sleep)
+
+    policy = pipeline.GenerationPolicy(timeout_s=180.0, max_attempts=2, total_budget_s=390.0)
+    with pytest.raises(BriefingGenerationError) as exc:
+        await pipeline.generate_briefing(
+            _TARGET_DATE,
+            _items(2),
+            generation_policy=policy,
+        )
+
+    assert exc.value.stage == "classification"
+    assert seen_timeouts == [180.0, 180.0]
 
 
 # ---------------------------------------------------------------------------

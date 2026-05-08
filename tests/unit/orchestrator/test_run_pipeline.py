@@ -601,11 +601,12 @@ async def test_run_pipeline_visual_asset_failure_publishes_text_only_partial(
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_segment_generation_failure_skips_all_publish(
+async def test_run_pipeline_segment_generation_failure_publishes_remaining_segments_partial(
     archive_root: Path,
 ) -> None:
     publisher = _FakePublisher()
     alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
 
     result = await run_pipeline(
         _TARGET,
@@ -613,17 +614,22 @@ async def test_run_pipeline_segment_generation_failure_skips_all_publish(
         alerter=alerter,
         site_url_base=_SITE_BASE,
         fetch=_success_fetch([_item("Bitcoin"), _item("AAPL")]),
-        git_runner=_SuccessfulGitRunner(),
+        git_runner=git,
         generate_segment=_failing_segment_generate(CRYPTO),
     )
 
-    assert result.status == PipelineStatus.FAILED
-    assert result.stages["generate"] == "failed: synthesis"
-    assert result.stages["publish"] == "skipped"
-    assert result.stages["notify_briefing"] == "skipped"
-    assert publisher.calls == []
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.stages["generate"] == "partial: failed crypto"
+    assert result.stages["generate:crypto"] == "failed: synthesis"
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"] == "ok"
+    assert len(publisher.calls) == 1
     assert len(alerter.calls) == 1
-    assert not archive_root.exists()
+    assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
+    assert "/archive/crypto/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
+    assert "push" in [call[1] for call in git.calls]
 
 
 @pytest.mark.asyncio

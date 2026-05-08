@@ -80,6 +80,7 @@ from investo.briefing.context import (
     resolve_recent_days,
 )
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.pipeline import GenerationPolicy
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
 from investo.briefing.segments import (
     CRYPTO,
@@ -189,6 +190,11 @@ SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
     US_EQUITY,
     CRYPTO,
 )
+SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
+    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=150.0, max_attempts=2, total_budget_s=330.0),
+    US_EQUITY: GenerationPolicy(timeout_s=150.0, max_attempts=2, total_budget_s=330.0),
+    CRYPTO: GenerationPolicy(timeout_s=180.0, max_attempts=2, total_budget_s=390.0),
+}
 
 
 async def _default_generate_briefing(
@@ -227,6 +233,7 @@ async def _default_generate_segment_briefing(
         data_limited=data_limited,
         source_outcomes=source_outcomes,
         recent_context=recent_context,
+        generation_policy=SEGMENT_GENERATION_POLICIES[segment],
     )
 
 
@@ -346,11 +353,13 @@ async def _stage_generate_segments(
     generate_segment: SegmentGenerateCallable | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
     recent_context: RecentBriefingsContext | None = None,
-) -> dict[MarketSegment, Briefing]:
+) -> tuple[dict[MarketSegment, Briefing], dict[MarketSegment, BriefingGenerationError]]:
     """Generate all u7 market segments in fixed order.
 
-    Any segment-level :class:`BriefingGenerationError` fails the whole
-    generate stage so publish never commits a partial set.
+    Segment-level :class:`BriefingGenerationError` is isolated to that
+    segment. At least one successful segment is enough to continue to
+    publish; an all-segment failure is re-raised so the pipeline can
+    fail normally.
 
     ``source_outcomes`` (u22) is forwarded so each segment briefing can
     annotate its coverage badge with reason codes / per-source verdicts.
@@ -367,6 +376,7 @@ async def _stage_generate_segments(
     )
     routed = segment_items(items)
     briefings: dict[MarketSegment, Briefing] = {}
+    failures: dict[MarketSegment, BriefingGenerationError] = {}
 
     _logger.info("[generate] starting segmented target_date=%s items=%d", target_date, len(items))
     for segment in SEGMENT_ORDER:
@@ -380,18 +390,37 @@ async def _stage_generate_segments(
             data_limited,
             len(segment_outcomes),
         )
-        briefings[segment] = await runner_callable(
-            target_date,
-            segment_source_items,
-            runner,
-            segment,
-            data_limited,
-            segment_outcomes,
-            recent_context,
-        )
+        try:
+            briefings[segment] = await runner_callable(
+                target_date,
+                segment_source_items,
+                runner,
+                segment,
+                data_limited,
+                segment_outcomes,
+                recent_context,
+            )
+        except BriefingGenerationError as exc:
+            failures[segment] = exc
+            _logger.warning(
+                "[generate] segment failed segment=%s stage=%s attempts=%s; continuing",
+                segment,
+                exc.stage,
+                exc.attempt_count,
+            )
 
-    _logger.info("[generate] segmented briefings built target_date=%s", target_date)
-    return briefings
+    if not briefings:
+        # Preserve the original BGE routing when the run produced no
+        # publishable segment at all.
+        raise next(iter(failures.values()))
+
+    _logger.info(
+        "[generate] segmented briefings built target_date=%s ok=%d failed=%d",
+        target_date,
+        len(briefings),
+        len(failures),
+    )
+    return briefings, failures
 
 
 def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
@@ -513,8 +542,9 @@ async def _stage_publish_segments(
     _logger.info("[publish] starting segmented target_date=%s", target_date)
 
     archive_paths: dict[MarketSegment, Path] = {}
+    published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
     snapshot_paths = [
-        *(compute_archive_path(target_date, segment=segment) for segment in SEGMENT_ORDER),
+        *(compute_archive_path(target_date, segment=segment) for segment in published_segments),
     ]
     snapshots: dict[Path, bytes | None] = {
         path: _read_existing_bytes(path) for path in snapshot_paths
@@ -522,7 +552,7 @@ async def _stage_publish_segments(
     snapshots.update({path: None for path in asset_paths})
 
     try:
-        for segment in SEGMENT_ORDER:
+        for segment in published_segments:
             validate_first_viewport_summary(briefings[segment].rendered_markdown)
             if not verify_disclaimer(briefings[segment].rendered_markdown):
                 raise PublisherDisclaimerError(target_date=target_date)
@@ -536,7 +566,7 @@ async def _stage_publish_segments(
     try:
         index_paths: tuple[Path, ...] = ()
         weekly_paths: tuple[Path, ...] = ()
-        for segment in SEGMENT_ORDER:
+        for segment in published_segments:
             archive_path = await asyncio.to_thread(
                 write_briefing,
                 briefings[segment],
@@ -578,7 +608,7 @@ async def _stage_publish_segments(
             # set by the GHA Saturday cron path. Failing here would block
             # the segmented publish (which is already on disk), so we
             # treat weekly publish as part of the same atomic try block.
-            if weekly_digest_opt_in():
+            if weekly_digest_opt_in() and len(published_segments) == len(SEGMENT_ORDER):
                 weekly_md_path = compute_weekly_path(target_date)
                 snapshots[weekly_md_path] = _read_existing_bytes(weekly_md_path)
                 snapshots[WEEKLY_INDEX_PATH] = _read_existing_bytes(WEEKLY_INDEX_PATH)
@@ -597,7 +627,11 @@ async def _stage_publish_segments(
         _rollback_paths(snapshots)
         raise
 
-    commit_message = f"briefing: {target_date} segmented"
+    commit_message = (
+        f"briefing: {target_date} segmented"
+        if len(published_segments) == len(SEGMENT_ORDER)
+        else f"briefing: {target_date} segmented partial"
+    )
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
@@ -667,6 +701,8 @@ async def _stage_prepare_segment_visual_assets(
     prepared_briefings: dict[MarketSegment, Briefing] = {}
     asset_paths: list[Path] = []
     for segment in SEGMENT_ORDER:
+        if segment not in briefings:
+            continue
         segment_source_items = routed.for_segment(segment)
         segment_coverage = routed.coverage_for_segment(
             segment,
@@ -814,7 +850,11 @@ async def _stage_notify_segmented_briefing(
     site_urls: dict[MarketSegment, HttpUrl],
 ) -> SendResult:
     """Compose + dispatch one public-channel message for all segments."""
-    target_date = briefings[DOMESTIC_EQUITY].target_date
+    published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
+    if not published_segments:
+        return SendResult(ok=False, error="segmented notification requires at least one briefing")
+    primary_segment = DOMESTIC_EQUITY if DOMESTIC_EQUITY in briefings else published_segments[0]
+    target_date = briefings[primary_segment].target_date
     _logger.info("[notify_briefing] starting segmented target_date=%s", target_date)
 
     try:
@@ -825,7 +865,7 @@ async def _stage_notify_segmented_briefing(
         payload = BriefingNotification(
             target_date=target_date,
             summary_text=summary_text,
-            site_url=site_urls[DOMESTIC_EQUITY],
+            site_url=site_urls[primary_segment],
         )
     except (ValueError, ValidationError) as exc:
         error = f"segmented summary build failed: {type(exc).__name__}: {exc}"
@@ -1009,10 +1049,11 @@ async def run_pipeline(
     # ------------------------------------------------------------------
     stage_start = time.monotonic()
     segmented_mode = generate is None
+    segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
     try:
         if segmented_mode:
             recent_context = _load_recent_context_for_run(target_date)
-            segment_briefings = await _stage_generate_segments(
+            segment_briefings, segment_generation_failures = await _stage_generate_segments(
                 target_date,
                 items,
                 runner=runner,
@@ -1020,7 +1061,12 @@ async def run_pipeline(
                 source_outcomes=source_outcomes,
                 recent_context=recent_context,
             )
-            briefing = segment_briefings[DOMESTIC_EQUITY]
+            primary_generated_segment = (
+                DOMESTIC_EQUITY
+                if DOMESTIC_EQUITY in segment_briefings
+                else next(iter(segment_briefings))
+            )
+            briefing = segment_briefings[primary_generated_segment]
         else:
             segment_briefings = None
             briefing = await _stage_generate(target_date, items, runner=runner, generate=generate)
@@ -1039,7 +1085,15 @@ async def run_pipeline(
             briefing_url=None,
         )
     stage_timings["generate"] = time.monotonic() - stage_start
-    stages["generate"] = "ok"
+    if segment_generation_failures:
+        failed_segments = ", ".join(segment_generation_failures)
+        stages["generate"] = f"partial: failed {failed_segments}"
+        for segment, exc in segment_generation_failures.items():
+            _log_briefing_generation_error(exc)
+            await _safe_alert(alerter, "generate", exc)
+            stages[f"generate:{segment}"] = f"failed: {exc.stage}"
+    else:
+        stages["generate"] = "ok"
     visual_assets_failed = False
     visual_asset_paths: tuple[Path, ...] = ()
 
@@ -1103,10 +1157,17 @@ async def run_pipeline(
     stage_timings["publish"] = time.monotonic() - stage_start
     stages["publish"] = "ok"
 
+    primary_segment = (
+        DOMESTIC_EQUITY
+        if segmented_mode and segment_briefings is not None and DOMESTIC_EQUITY in segment_briefings
+        else next(iter(segment_briefings), None)
+        if segmented_mode and segment_briefings is not None
+        else None
+    )
     briefing_url = _briefing_url_for(
         target_date,
         site_url_base,
-        segment=DOMESTIC_EQUITY if segmented_mode else None,
+        segment=primary_segment if segmented_mode else None,
     )
     segment_urls = (
         {
@@ -1138,7 +1199,11 @@ async def run_pipeline(
 
     if notify_result.ok:
         stages["notify_briefing"] = "ok"
-        status = PipelineStatus.PARTIAL if visual_assets_failed else PipelineStatus.SUCCESS
+        status = (
+            PipelineStatus.PARTIAL
+            if visual_assets_failed or bool(segment_generation_failures)
+            else PipelineStatus.SUCCESS
+        )
     else:
         stages["notify_briefing"] = f"failed: {notify_result.error}"
         status = PipelineStatus.PARTIAL

@@ -38,6 +38,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 from investo.briefing.claude_code import (
     DEFAULT_TIMEOUT_S,
+    DEFAULT_TOTAL_BUDGET_S,
     ClaudeRunner,
     RetryBudget,
     call_claude_code,
@@ -195,6 +196,15 @@ class SummaryHeader:
     conclusion: str
     driver: str
     caution: str
+
+
+@dataclass(frozen=True, slots=True)
+class GenerationPolicy:
+    """Per-run LLM timeout/retry policy for briefing generation."""
+
+    timeout_s: float = DEFAULT_TIMEOUT_S
+    max_attempts: int = MAX_ATTEMPTS
+    total_budget_s: float = DEFAULT_TOTAL_BUDGET_S
 
 
 # ---------------------------------------------------------------------------
@@ -862,6 +872,7 @@ async def _classify(
     *,
     runner: ClaudeRunner | None,
     budget: RetryBudget,
+    policy: GenerationPolicy,
     segment_context: str,
 ) -> ClassificationResult:
     """Run Stage 1 with the FD R3 retry loop.
@@ -880,7 +891,7 @@ async def _classify(
     last_outcome: SubprocessOutcome | None = None
     last_cause: BaseException | None = None
 
-    for attempt in range(MAX_ATTEMPTS):
+    for attempt in range(policy.max_attempts):
         # FD R3: pre-dispatch budget gate. If the next attempt would
         # push cumulative elapsed at or past ``total_budget_s``, raise
         # immediately rather than dispatching a call we cannot afford.
@@ -889,7 +900,7 @@ async def _classify(
         # conservative choice — a fast call may still be allowed when
         # remaining budget < timeout, but we cannot prove that ahead
         # of time.
-        if budget.would_exceed(DEFAULT_TIMEOUT_S):
+        if budget.would_exceed(policy.timeout_s):
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
@@ -900,7 +911,7 @@ async def _classify(
         if attempt > 0:
             await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
 
-        outcome = await call_claude_code(full_prompt, runner=runner)
+        outcome = await call_claude_code(full_prompt, timeout_s=policy.timeout_s, runner=runner)
         budget.record(outcome.elapsed_s)
         last_outcome = outcome
 
@@ -919,7 +930,7 @@ async def _classify(
 
     raise BriefingGenerationError(
         stage="classification",
-        attempt_count=MAX_ATTEMPTS,
+        attempt_count=policy.max_attempts,
         last_stderr=last_outcome.stderr if last_outcome is not None else None,
         last_stdout=last_outcome.stdout if last_outcome is not None else None,
         cause=last_cause,
@@ -931,6 +942,7 @@ async def _synthesize(
     *,
     runner: ClaudeRunner | None,
     budget: RetryBudget,
+    policy: GenerationPolicy,
     segment_context: str,
     recent_context_block: str = "",
     lookahead_context_block: str = "",
@@ -969,11 +981,11 @@ async def _synthesize(
     last_outcome: SubprocessOutcome | None = None
     last_cause: BaseException | None = None
 
-    for attempt in range(MAX_ATTEMPTS):
+    for attempt in range(policy.max_attempts):
         # FD R3: pre-dispatch budget gate. See ``_classify`` for the
         # rationale — same shape, shared budget across both stages
         # (AC-1.5).
-        if budget.would_exceed(DEFAULT_TIMEOUT_S):
+        if budget.would_exceed(policy.timeout_s):
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
@@ -984,7 +996,7 @@ async def _synthesize(
         if attempt > 0:
             await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
 
-        outcome = await call_claude_code(full_prompt, runner=runner)
+        outcome = await call_claude_code(full_prompt, timeout_s=policy.timeout_s, runner=runner)
         budget.record(outcome.elapsed_s)
         last_outcome = outcome
 
@@ -1005,7 +1017,7 @@ async def _synthesize(
 
     raise BriefingGenerationError(
         stage="synthesis",
-        attempt_count=MAX_ATTEMPTS,
+        attempt_count=policy.max_attempts,
         last_stderr=last_outcome.stderr if last_outcome is not None else None,
         last_stdout=last_outcome.stdout if last_outcome is not None else None,
         cause=last_cause,
@@ -1028,6 +1040,7 @@ async def generate_briefing(
     watchlist_config: WatchlistConfig | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
     recent_context: RecentBriefingsContext | None = None,
+    generation_policy: GenerationPolicy | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -1043,8 +1056,9 @@ async def generate_briefing(
     ``budget`` is the shared retry budget; constructed fresh if not
     provided.
     """
+    policy = generation_policy if generation_policy is not None else GenerationPolicy()
     if budget is None:
-        budget = RetryBudget()
+        budget = RetryBudget(total_budget_s=policy.total_budget_s)
 
     if segment is not None:
         # source_outcomes coming from the orchestrator span every
@@ -1105,6 +1119,7 @@ async def generate_briefing(
         llm_items,
         runner=runner,
         budget=budget,
+        policy=policy,
         segment_context=segment_context,
     )
     plan = build_section_plan(llm_items, classification, target_date)
@@ -1112,6 +1127,7 @@ async def generate_briefing(
         plan,
         runner=runner,
         budget=budget,
+        policy=policy,
         segment_context=segment_context,
         recent_context_block=recent_context_block,
         lookahead_context_block=lookahead_context_block,

@@ -180,11 +180,14 @@ def build_segmented_summary(
     current time when ``None``). Absence of imminent items leaves the
     line unchanged.
     """
-    target_date = briefings[DOMESTIC_EQUITY].target_date
     ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    published_segments = tuple(segment for segment in ordered_segments if segment in briefings)
+    if not published_segments:
+        raise ValueError("segmented summary requires at least one briefing")
+    target_date = briefings[published_segments[0]].target_date
     header = f"📈 {target_date.isoformat()} 데일리 시황\n\n"
     footer = "\n\n링크 모음:\n" + "\n".join(
-        f"• {SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in ordered_segments
+        f"• {SEGMENT_LABELS[segment]}: {site_urls[segment]}" for segment in published_segments
     )
     resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
     body = "\n\n".join(
@@ -199,7 +202,7 @@ def build_segmented_summary(
             ),
             now_utc=resolved_now,
         )
-        for segment in ordered_segments
+        for segment in published_segments
     )
 
     fixed_units = _utf16_units(header) + _utf16_units(footer)
