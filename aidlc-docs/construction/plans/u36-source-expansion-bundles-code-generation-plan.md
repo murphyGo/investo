@@ -14,21 +14,21 @@ Turn the 2026-05-08 five-subagent data-source research into a shippable source e
 2. **Rates and macro layer**: U.S. Treasury daily rates plus official U.S. macro-calendar feeds.
 3. **Crypto market-structure layer**: DeFiLlama market structure plus Binance public crypto market data.
 
-The unit is scoped to free/public data only, existing async `httpx` source-adapter architecture, recorded fixtures, plugin-contract updates, and segment routing/coverage transparency.
+The unit is scoped to free/public data only, existing async `httpx` source-adapter architecture, fixture-based adapter tests, plugin-contract updates, and segment routing/coverage transparency.
 
 ---
 
 ## Definition of Done
 
 - [x] All new sources are free/public and compatible with NFR-002 monthly `$0` operations. Any source requiring paid access, unofficial Investing.com scraping, CME FedWatch paid API, or unstable browser scraping is explicitly excluded.
-- [x] New adapters use the existing `@register` plugin pattern, `SourceAdapter` protocol, shared `retry_get`, `SourceFetchError`, `FetchWindow`, `strip_html`, `defusedxml` for XML/RSS, and recorded fixture tests.
+- [x] New adapters use the existing `@register` plugin pattern, `SourceAdapter` protocol, shared `retry_get`, `SourceFetchError`, `FetchWindow`, `strip_html`, `defusedxml` for XML/RSS, and fixture-based tests with metadata recording whether the fixture is live-captured or synthetic recorded-shape.
 - [x] Domestic-equity gains official price/index coverage:
   - [x] FSC/data.go.kr KRX index daily price adapter.
   - [x] FSC/data.go.kr KRX stock daily price adapter or a bounded watchlist/index proxy if full stock coverage is too broad for the first slice.
   - FSC/data.go.kr listed-issues/reference adapter only if required to map stock codes; otherwise deferred behind the price adapter.
 - [x] Domestic-equity gains policy/event RSS coverage from official public feeds (MOEF/FSC/MOTIE/MSS or equivalent `korea.kr` feeds) without using Naver Finance or web-scraped KRX/KIND pages. (Slice 3: official FSC RSS service)
 - [x] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
-- [x] US-equity gains official macro-calendar/release context from BLS/BEA/Census public feeds or machine-readable schedules. This is calendar/event context, not forecast generation.
+- [x] US-equity gains official macro-calendar/release context from the BEA public release schedule. This is calendar/event context, not forecast generation; BLS/Census remain follow-up candidates, not completed u36 scope.
 - [x] Crypto gains market-structure context:
   - [x] DeFiLlama public API for TVL / stablecoin supply / DEX or protocol activity.
   - [x] Binance public market endpoints for a small symbol set (`BTCUSDT`, `ETHUSDT`, optionally `SOLUSDT`) covering 24h ticker / daily klines / funding or open-interest if endpoint access is stable.
@@ -57,18 +57,18 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ### Step 1 — Shared Source-Expansion Scaffolding
 
-- [x] Define new source slugs, module names, categories, and segment ownership for the six planned adapters:
+- [x] Define new source slugs, module names, categories, and segment ownership for the seven planned adapters:
   - `fsc-krx-index-price` (`price`, domestic-equity)
   - `fsc-krx-stock-price` (`price`, domestic-equity; bounded watchlist/index scope)
   - `korea-policy-rss` (`news` or `calendar`, domestic-equity)
   - `treasury-rates` (`macro`, us-equity + crypto cross-market context)
   - `us-economic-calendar` (`calendar` or `macro`, us-equity)
   - `defillama-market-structure` (`macro` or `price`-adjacent metadata, crypto)
-  - `binance-crypto-market-structure` (`price`, crypto; optional if rate-limit/geofence fixture is stable)
+  - `binance-crypto-market` (`price`, crypto)
 - [x] Add or extend shared config helpers for optional source keys and symbol lists:
   - [x] `INVESTO_KRX_SERVICE_KEY` or compatible data.go.kr service-key env var.
   - [x] `INVESTO_KRX_STOCK_TICKERS` bounded default/watchlist fallback.
-  - `INVESTO_CRYPTO_MARKET_SYMBOLS` defaulting to `BTCUSDT,ETHUSDT,SOLUSDT`.
+  - [x] `INVESTO_CRYPTO_MARKET_SYMBOLS` defaulting to `BTCUSDT,ETHUSDT,SOLUSDT`.
 - [x] Decide whether to ship all seven slugs in one unit or split Step 7's Binance adapter to a follow-up if live fixture access is unstable.
 
 ### Step 2 — Domestic Base Layer
@@ -81,7 +81,7 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 ### Step 3 — Rates and Macro Layer
 
 - [x] Implement `treasury_rates.py` against U.S. Treasury public daily rates endpoint, no key required; parse latest available row and derive spread metadata.
-- [x] Implement `us_economic_calendar.py` from official BLS/BEA/Census machine-readable schedule/RSS feeds; classify scheduled releases without inventing forecasts or expected impact.
+- [x] Implement `us_economic_calendar.py` from the official BEA release schedule; classify scheduled releases without inventing forecasts or expected impact.
 - [x] Add fixtures and tests covering no-key happy path, lagged latest date, numeric string conversion, missing rate terms, RSS/calendar date parsing, and source errors.
 - [x] Route `treasury-rates` to both `us-equity` and crypto relevance where the existing segment router permits cross-market macro context; otherwise document the routing decision in the adapter test.
 
@@ -102,7 +102,7 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ### Step 6 — Prompt and Candidate Budget Guard
 
-- [x] Add prompt wording only if needed to teach Stage 1/2 how to read new `raw_metadata` fields:
+- [x] No prompt wording change required; new summaries and `raw_metadata` field names are self-contained:
   - Treasury spread and latest-date lag are factual input, not a forecast.
   - Macro calendars are scheduled facts, not expected outcomes.
   - DeFiLlama/Binance metrics are market-structure context, not investment advice.
@@ -111,8 +111,8 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 ### Step 7 — Documentation and Source Policy Sync
 
-- [x] Update source adapter documentation / contributing notes with the new official-source preference and rejected-source list.
-- [x] Register any deferred findings as TECH-DEBT only when implementation cannot complete a source due to access instability, not as a substitute for tests.
+- [x] Update u36 source policy documentation with the official-source preference and rejected-source list.
+- [x] No blocked source required TECH-DEBT in u36; follow-up candidates remain outside this unit unless a later unit accepts them.
 - [x] Add session log and code summary under `docs/sessions/` and `aidlc-docs/construction/u36-source-expansion-bundles/code/summary.md`.
 
 ### Step 8 — Verification
@@ -131,7 +131,7 @@ This unit comes from the 2026-05-08 user-directed five-subagent research request
 Consolidated implementation bundles selected by the lead:
 
 1. **Domestic base layer**: FSC public-data KRX price/index/listing + official Korea policy RSS.
-2. **Rates/macro layer**: U.S. Treasury daily rates + BLS/BEA/Census official macro-calendar/release feeds.
+2. **Rates/macro layer**: U.S. Treasury daily rates + BEA official macro-calendar/release schedule.
 3. **Crypto market-structure layer**: DeFiLlama public market-structure APIs + Binance public market data.
 
 Rejected or deferred by policy: CME FedWatch official API is paid, Investing.com has no public API, Truflation free access/license needs explicit acceptance, and unofficial scraping sources do not match the repo's unattended daily-run and fixture-test discipline.

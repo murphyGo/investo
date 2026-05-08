@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, ClassVar
 
 import httpx
@@ -42,13 +42,16 @@ class BinanceCryptoMarketAdapter:
             return_exceptions=True,
         )
         items: list[NormalizedItem] = []
+        failures: list[SourceFetchError] = []
         for result in results:
             if isinstance(result, NormalizedItem):
                 items.append(result)
             elif isinstance(result, SourceFetchError):
-                continue
+                failures.append(result)
             elif isinstance(result, BaseException):
                 raise result
+        if not items and failures:
+            raise failures[0]
         return items
 
     async def _fetch_symbol(
@@ -76,12 +79,12 @@ class BinanceCryptoMarketAdapter:
                 cause=exc,
             ) from exc
         try:
-            return _payload_to_item(payload, source_name=self.name, now_utc=window.end_utc)
+            return _payload_to_item(payload, source_name=self.name, fallback_utc=window.end_utc)
         except (TypeError, ValueError, ValidationError):
             return None
 
 
-def _payload_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> NormalizedItem:
+def _payload_to_item(payload: Any, *, source_name: str, fallback_utc: datetime) -> NormalizedItem:
     if not isinstance(payload, dict):
         raise ValueError("payload must be object")
     symbol = _required_str(payload, "symbol")
@@ -94,6 +97,9 @@ def _payload_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> No
     open_ = _parse_float(payload.get("openPrice"))
     weighted_avg = _parse_float(payload.get("weightedAvgPrice"))
     trade_count = _parse_int(payload.get("count"))
+    open_time = _parse_epoch_ms(payload.get("openTime"))
+    close_time = _parse_epoch_ms(payload.get("closeTime"))
+    published_at = close_time or fallback_utc
     pct_prefix = "+" if pct_change > 0 else ""
     title = f"{symbol} 24h {last:,.2f} ({pct_prefix}{pct_change:.2f}%)"
     summary = (
@@ -106,7 +112,7 @@ def _payload_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> No
         title=title,
         summary=summary,
         url=_DATA_PAGE_URL,
-        published_at=now_utc,
+        published_at=published_at,
         raw_metadata={
             "symbol": symbol,
             "last_price": format_float(last),
@@ -118,6 +124,8 @@ def _payload_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> No
             "base_volume": format_float(base_volume),
             "quote_volume": format_float(quote_volume),
             "trade_count": format_int(trade_count),
+            "open_time": open_time.isoformat() if open_time else "",
+            "close_time": close_time.isoformat() if close_time else "",
         },
     )
 
@@ -141,3 +149,13 @@ def _parse_int(value: Any) -> int:
     if not text:
         raise ValueError("missing int")
     return int(float(text))
+
+
+def _parse_epoch_ms(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    try:
+        milliseconds = int(value)
+    except (TypeError, ValueError):
+        return None
+    return datetime.fromtimestamp(milliseconds / 1000, tz=UTC)

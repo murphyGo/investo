@@ -22,3 +22,11 @@ uv run mypy --strict src/
 uv run pytest -q
 uv run mkdocs build --strict
 ```
+
+Result:
+
+- `uv run ruff check .` — passed.
+- `uv run ruff format --check .` — passed; 201 files already formatted.
+- `uv run mypy --strict src/` — passed; no issues in 78 source files.
+- `uv run pytest -q` — passed; 1344 tests.
+- `uv run mkdocs build --strict` — passed.

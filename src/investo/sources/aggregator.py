@@ -38,6 +38,8 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",
         "sec-edgar-8k",
+        "treasury-rates",
+        "us-economic-calendar",
         "yahoo-finance-news",
         "yfinance-price",
     }
@@ -45,6 +47,8 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
 _CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "coingecko-price",
+        "binance-crypto-market",
+        "defillama-market-structure",
         "theblock-crypto",
     }
 )

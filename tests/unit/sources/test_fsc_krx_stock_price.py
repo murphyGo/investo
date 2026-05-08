@@ -101,6 +101,8 @@ async def test_data_go_kr_error_shape_raises_terminal_source_error(
     """
     adapter = FscKrxStockPriceAdapter()
     async with _mock_client({("005930", "20260507"): error_body}) as client:
-        items = await adapter.fetch(client, _WINDOW)
+        with pytest.raises(SourceFetchError) as exc_info:
+            await adapter.fetch(client, _WINDOW)
 
-    assert items == []
+    assert exc_info.value.transient is False
+    assert "test-service-key" not in str(exc_info.value)

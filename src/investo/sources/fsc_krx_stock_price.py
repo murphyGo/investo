@@ -72,13 +72,16 @@ class FscKrxStockPriceAdapter:
             return_exceptions=True,
         )
         items: list[NormalizedItem] = []
+        failures: list[SourceFetchError] = []
         for result in results:
             if isinstance(result, NormalizedItem):
                 items.append(result)
             elif isinstance(result, SourceFetchError):
-                continue
+                failures.append(result)
             elif isinstance(result, BaseException):
                 raise result
+        if not items and failures:
+            raise failures[0]
         return items
 
     async def _fetch_ticker(

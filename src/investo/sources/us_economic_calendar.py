@@ -15,6 +15,7 @@ from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
+from investo.sources.protocol import SourceFetchError
 
 _NY = ZoneInfo("America/New_York")
 _SCHEDULE_URL = "https://www.bea.gov/news/schedule"
@@ -51,17 +52,28 @@ class UsEconomicCalendarAdapter:
         response = await retry_get(client, _SCHEDULE_URL, source_name=self.name)
         parser = _ScheduleTableParser()
         parser.feed(response.text)
+        if "<table" in response.text.lower() and not parser.rows:
+            raise SourceFetchError(
+                source_name=self.name,
+                message="unexpected BEA schedule table shape",
+                transient=False,
+            )
         start_date = window.target_date
         end_date = start_date + timedelta(days=_LOOKAHEAD_DAYS)
         items: list[NormalizedItem] = []
+        seen: set[tuple[datetime, str, str]] = set()
         for row in parser.rows:
-            event = _row_to_event(row, year=start_date.year)
+            event = _row_to_event(row, start_date=start_date)
             if event is None:
                 continue
             scheduled_at, release_type, title = event
             scheduled_date = scheduled_at.astimezone(_NY).date()
             if not (start_date <= scheduled_date <= end_date):
                 continue
+            key = (scheduled_at, release_type, title)
+            if key in seen:
+                continue
+            seen.add(key)
             try:
                 items.append(
                     NormalizedItem(
@@ -119,7 +131,7 @@ class _ScheduleTableParser(HTMLParser):
 def _row_to_event(
     row: list[str],
     *,
-    year: int,
+    start_date: date,
 ) -> tuple[datetime, str, str] | None:
     date_text, release_type, title = row[0], row[1], row[2]
     parts = date_text.split()
@@ -131,7 +143,12 @@ def _row_to_event(
     try:
         day = int(parts[1])
         hour, minute = _parse_time(parts[2], parts[3])
-        scheduled = datetime.combine(date(year, month, day), time(hour, minute), tzinfo=_NY)
+        scheduled_date = date(start_date.year, month, day)
+        if scheduled_date < start_date:
+            next_year_date = date(start_date.year + 1, month, day)
+            if next_year_date <= start_date + timedelta(days=_LOOKAHEAD_DAYS):
+                scheduled_date = next_year_date
+        scheduled = datetime.combine(scheduled_date, time(hour, minute), tzinfo=_NY)
     except ValueError:
         return None
     clean_title = strip_html(title)

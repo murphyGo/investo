@@ -245,12 +245,61 @@ async def test_fetch_all_passes_new_york_window_to_us_market_adapter() -> None:
     assert captured["window"].end_utc == datetime(2026, 5, 7, 4, 0, tzinfo=UTC)
 
 
+@pytest.mark.parametrize("source_name", ["treasury-rates", "us-economic-calendar"])
+async def test_fetch_all_passes_new_york_window_to_new_us_market_adapters(
+    source_name: str,
+) -> None:
+    captured: dict[str, FetchWindow | None] = {"window": None}
+
+    @register
+    class NewUsMarketStub:
+        name: ClassVar[str] = source_name
+        category: ClassVar[Category] = "macro"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            captured["window"] = window
+            return []
+
+    await fetch_all(date(2026, 5, 6))
+
+    assert captured["window"] is not None
+    assert captured["window"].start_utc == datetime(2026, 5, 6, 4, 0, tzinfo=UTC)
+    assert captured["window"].end_utc == datetime(2026, 5, 7, 4, 0, tzinfo=UTC)
+
+
 async def test_fetch_all_passes_utc_window_to_crypto_adapter() -> None:
     captured: dict[str, FetchWindow | None] = {"window": None}
 
     @register
     class CoinGeckoStub:
         name: ClassVar[str] = "coingecko-price"
+        category: ClassVar[Category] = "price"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            captured["window"] = window
+            return []
+
+    await fetch_all(date(2026, 5, 6))
+
+    assert captured["window"] is not None
+    assert captured["window"].start_utc == datetime(2026, 5, 6, 0, 0, tzinfo=UTC)
+    assert captured["window"].end_utc == datetime(2026, 5, 7, 0, 0, tzinfo=UTC)
+
+
+@pytest.mark.parametrize(
+    "source_name",
+    ["binance-crypto-market", "defillama-market-structure"],
+)
+async def test_fetch_all_passes_utc_window_to_new_crypto_adapters(source_name: str) -> None:
+    captured: dict[str, FetchWindow | None] = {"window": None}
+
+    @register
+    class NewCryptoStub:
+        name: ClassVar[str] = source_name
         category: ClassVar[Category] = "price"
 
         async def fetch(

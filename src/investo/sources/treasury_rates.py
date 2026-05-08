@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime, time
 from typing import ClassVar
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import httpx
 from defusedxml.ElementTree import ParseError, fromstring
@@ -21,7 +22,8 @@ _DATA_PAGE_URL = "https://home.treasury.gov/resource-center/data-chart-center/in
 _ATOM_NS = "{http://www.w3.org/2005/Atom}"
 _M_NS = "{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}"
 _D_NS = "{http://schemas.microsoft.com/ado/2007/08/dataservices}"
-_NY_CLOSE_UTC = time(21, 0, tzinfo=UTC)
+_NY = ZoneInfo("America/New_York")
+_NY_CLOSE = time(16, 0)
 
 
 @register
@@ -41,9 +43,10 @@ class TreasuryRatesAdapter:
         window: FetchWindow,
     ) -> list[NormalizedItem]:
         rows = await self._fetch_year(client, window.target_date.year)
-        if not rows and window.target_date.month == 1:
-            rows = await self._fetch_year(client, window.target_date.year - 1)
         selected = _select_latest_row(rows, target_date=window.target_date)
+        if selected is None and window.target_date.month == 1:
+            previous_rows = await self._fetch_year(client, window.target_date.year - 1)
+            selected = _select_latest_row(previous_rows, target_date=window.target_date)
         if selected is None:
             return []
         try:
@@ -100,7 +103,7 @@ def _row_to_item(row: dict[str, str], *, source_name: str, target_date: date) ->
     thirty_year = _parse_rate(row.get("BC_30YEAR"))
     spread_2y10y = ten_year - two_year
     spread_3m10y = ten_year - three_month
-    published_at = datetime.combine(row_date, _NY_CLOSE_UTC)
+    published_at = datetime.combine(row_date, _NY_CLOSE, tzinfo=_NY).astimezone(UTC)
     title = f"UST curve {row_date.isoformat()}: 10Y {ten_year:.2f}%, 2Y10Y {spread_2y10y:+.2f}pp"
     summary = (
         f"3M:{three_month:.2f}% 2Y:{two_year:.2f}% 10Y:{ten_year:.2f}% "

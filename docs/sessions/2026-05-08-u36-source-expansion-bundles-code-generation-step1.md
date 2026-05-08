@@ -2,7 +2,7 @@
 
 ## Context
 
-User requested that the 5-subagent domestic-source research be turned into an AIDLC unit first, then development proceed.
+User requested that the 5-subagent source-expansion research be turned into an AIDLC unit first, then development proceed.
 
 ## Decision
 

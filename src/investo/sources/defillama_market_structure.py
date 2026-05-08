@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 
@@ -44,11 +45,20 @@ class DefiLlamaMarketStructureAdapter:
         items: list[NormalizedItem] = []
         now_utc = window.end_utc.astimezone(UTC)
         chains_payload, stablecoins_payload = results
-        if not isinstance(chains_payload, BaseException):
+        invalid_schema_count = 0
+        if isinstance(chains_payload, BaseException):
+            if not isinstance(chains_payload, SourceFetchError):
+                raise chains_payload
+        else:
             chain_item = _chains_to_item(chains_payload, source_name=self.name, now_utc=now_utc)
             if chain_item is not None:
                 items.append(chain_item)
-        if not isinstance(stablecoins_payload, BaseException):
+            elif not isinstance(chains_payload, list):
+                invalid_schema_count += 1
+        if isinstance(stablecoins_payload, BaseException):
+            if not isinstance(stablecoins_payload, SourceFetchError):
+                raise stablecoins_payload
+        else:
             stablecoin_item = _stablecoins_to_item(
                 stablecoins_payload,
                 source_name=self.name,
@@ -56,6 +66,20 @@ class DefiLlamaMarketStructureAdapter:
             )
             if stablecoin_item is not None:
                 items.append(stablecoin_item)
+            else:
+                pegged_assets = (
+                    stablecoins_payload.get("peggedAssets")
+                    if isinstance(stablecoins_payload, dict)
+                    else None
+                )
+                if not isinstance(pegged_assets, list):
+                    invalid_schema_count += 1
+        if not items and invalid_schema_count:
+            raise SourceFetchError(
+                source_name=self.name,
+                message="unexpected DeFiLlama schema",
+                transient=False,
+            )
         return items
 
     async def _fetch_json(
@@ -167,6 +191,9 @@ def _parse_float(value: Any) -> float | None:
     if isinstance(value, bool) or value is None:
         return None
     try:
-        return float(value)
+        parsed = float(value)
     except (TypeError, ValueError):
         return None
+    if not math.isfinite(parsed):
+        return None
+    return parsed

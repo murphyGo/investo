@@ -75,11 +75,30 @@ async def test_all_failed_endpoints_raise_source_error() -> None:
             await adapter.fetch(client, _WINDOW)
 
 
-async def test_malformed_payload_returns_no_items() -> None:
+async def test_malformed_payload_raises_source_error() -> None:
     fixtures = {
         _CHAINS_URL: b"{}",
         _STABLECOINS_URL: b"[]",
     }
     adapter = DefiLlamaMarketStructureAdapter()
     async with _mock_client(fixtures) as client:
-        assert await adapter.fetch(client, _WINDOW) == []
+        with pytest.raises(SourceFetchError, match="unexpected DeFiLlama schema"):
+            await adapter.fetch(client, _WINDOW)
+
+
+async def test_non_finite_numeric_rows_are_dropped() -> None:
+    fixtures = {
+        _CHAINS_URL: b'[{"name":"Bad","tvl":"NaN"},{"name":"Ethereum","tvl":56000000000}]',
+        _STABLECOINS_URL: (
+            b'{"peggedAssets":['
+            b'{"symbol":"BAD","circulating":{"peggedUSD":"Infinity"}},'
+            b'{"symbol":"USDT","circulating":{"peggedUSD":114000000000}}'
+            b"]}"
+        ),
+    }
+    adapter = DefiLlamaMarketStructureAdapter()
+    async with _mock_client(fixtures) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert items[0].raw_metadata["leader"] == "Ethereum"
+    assert items[1].raw_metadata["leader"] == "USDT"
