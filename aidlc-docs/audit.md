@@ -1,5 +1,46 @@
 # AI-DLC Audit Log
 
+## Construction — u37..u44 — 8 New Units Planned (Wave 5, 10-Persona Evaluation)
+**Timestamp**: 2026-05-09T00:00:00+09:00
+**Trigger**: 10-persona end-user evaluation completed in main session 2026-05-09. Eight backlog candidates surfaced; user explicitly excluded the 9th candidate (persona #3 / 크립토 트레이더 24/7 발행 주기 분리) from this wave.
+**Decision**: Author 8 new code-generation plan files (u37..u44), corresponding `aidlc-state.md` per-unit progress rows, and this audit entry. **No code written** — planning-only delivery.
+
+**Options compared**:
+- **(a) Land 9 units including the persona #3 (크립토 트레이더) 24/7 발행 주기 분리 follow-up.** Rejected — user explicitly opted to defer item #3 (cited reason: 운영비 / GHA minutes 영향 평가 후 추후 별도 검토). Including it now would force an early commitment on segment-publish frequency that no other persona requires.
+- **(b) Land 8 units (u37..u44) as enumerated.** Accepted — covers personas #1, #2, #4, #5, #7, #8, #9, #10 (8 of 10 personas) plus DEBT-058 + DEBT-067 backlog closures. Persona #3 follow-up remains a pending evaluation item, not yet a unit.
+
+**Design Q/A**:
+- Q: Should u41 (DART) and u43 (lookahead adapters) ship together since both are blocked on live-API fixture sessions? A: No — they remain separate units with distinct provenance (DART = persona #5 국내 surface; lookahead = personas #4 + #8 + DEBT-067). Bundling would obscure the persona attribution and force a single fixture-recording session to cover endpoints with different upstream stability profiles.
+- Q: u44 retrospective + accuracy tracker as one unit or two? A: One unit, 6-step plan with explicit Step 1-3 (retrospective) / Step 4-6 (accuracy) split so the surfaces can land in independent PRs if scope pressure emerges. Both share the `archive/_meta/` time-series infrastructure (forecast_log.jsonl + quality_history.jsonl reuse the same atomic-write convention from u31), so combining at the planning level avoids duplicate "JSONL append" infrastructure decisions. Per the user's note "단, 6 step plan 으로 명시 분리 권장."
+- Q: u38 (PNG twin) — cairosvg vs rsvg-convert path? A: Plan recommends cairosvg (option a) so the conversion is testable locally via `mkdocs serve` and not coupled to GHA infra; option b kept as fallback if cairosvg install proves brittle on the runner.
+- Q: u39 (boot-alert dispatch) module-boundary scope? A: `__main__` may import only `notifier.OperatorAlerter` and `orchestrator/boot_alert_dedup` (the existing u31 ledger). No new imports from `briefing/`, `publisher/`, or `sources/`. This invariant is plan-pinned + must be enforced by the developer agent at code-review time.
+- Q: u41 + u43 R10 fixture posture? A: Both units are explicitly **blocked** on live-API fixture sessions per R10 (no fabricated payloads). The plan's "Open questions" section documents the credential / session prerequisites: `OPENDART_API_KEY` (u41), `FRED_API_KEY` + 4-endpoint live access (u43). The `aidlc-state.md` row for each carries an explicit "블로킹: ... 대기" note.
+
+**DEBT cross-references**:
+- u38 plan DoD includes "Move DEBT-058 to Resolved Items" + 결과 적용 시점 표기.
+- u43 plan DoD includes "Move DEBT-067 to Resolved Items" (with possible sub-bullet retention if `krx-option-expiry` defers).
+- u41 plan adds `DOMESTIC_DISCLOSURE_QUIET` to u22 reason-code enum; u43 plan adds `LOOKAHEAD_DATA_MISSING` per DEBT-067 sub-bullets M1 + M3.
+
+**Source**: 10-persona evaluation conducted in main session 2026-05-09. User direct decision to land 8 units (excluding item #3). No external evidence; this entry codifies the user-confirmed scope.
+
+**Affected docs**:
+- `aidlc-docs/construction/plans/u37-watchlist-default-bundle-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u38-og-card-png-twin-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u39-boot-alert-dispatch-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u40-financial-acronym-glossary-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u41-dart-disclosure-adapter-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u42-quality-kpi-history-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u43-lookahead-adapters-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u44-retrospective-and-prediction-tracker-code-generation-plan.md` (new)
+- `aidlc-docs/aidlc-state.md` (8 new rows in `### Per-Unit Construction Progress` table; Stage Progress / Build and Test rows untouched per planning-only scope)
+- `aidlc-docs/audit.md` (this entry, prepended at top per newest-first convention)
+
+**Status**: Planning complete; implementation deferred. u41 and u43 specifically blocked on live-API credential / fixture sessions per R10. Other 6 units (u37, u38, u39, u40, u42, u44) have no external blockers and may be picked up by `investo-developer` in any order driven by ROI prioritization.
+
+**Context**: Wave 5 closes the 10-persona evaluation surface backlog into actionable code-generation plans. Provenance is intact: every unit's "Persona evidence" section carries direct quotes from the persona evaluation, every plan declares its DoD / Steps / quality gate / out-of-scope / open-questions consistently with the existing u30..u36 plan format. Plans are sized 250-450 lines each per user request; per-unit progress rows include explicit dependency + persona attribution + estimated effort metadata for downstream prioritization.
+
+---
+
 ## Cross-Check — u33 watchlist-depth — COMPLETE
 **Timestamp**: 2026-05-09T00:00:00+09:00
 **Trigger**: u33 Code Generation closed (Steps 1–6 all closed in this session). All six DoD items verified complete; two DoD sub-clauses (average-cost portfolio metadata, email channel) intentionally omitted per scope rules.
