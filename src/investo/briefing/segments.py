@@ -78,7 +78,7 @@ CATEGORY_LABELS: Final[dict[Category, str]] = {
 }
 
 _DOMESTIC_SOURCES: Final[frozenset[str]] = frozenset(
-    {"fsc-krx-index-price", "fsc-krx-stock-price", "yonhap-market"}
+    {"fsc-krx-index-price", "fsc-krx-stock-price", "korea-policy-rss", "yonhap-market"}
 )
 _US_SOURCES: Final[frozenset[str]] = frozenset(
     {

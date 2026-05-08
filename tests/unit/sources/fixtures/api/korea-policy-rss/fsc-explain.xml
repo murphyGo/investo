@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>금융위원회 보도설명</title>
+    <item>
+      <title>시장 안정 관련 보도 설명</title>
+      <link>https://www.fsc.go.kr/no010102/91001</link>
+      <description>시장 안정 관련 보도 설명입니다.</description>
+      <pubDate>Thu, 07 May 2026 13:10:00 +0900</pubDate>
+      <guid>fsc-91001</guid>
+    </item>
+    <item>
+      <title>시장 안정 관련 보도 설명 중복</title>
+      <link>https://www.fsc.go.kr/no010102/91001</link>
+      <description>중복 URL은 제거됩니다.</description>
+      <pubDate>Thu, 07 May 2026 13:20:00 +0900</pubDate>
+      <guid>fsc-91001-dup</guid>
+    </item>
+  </channel>
+</rss>

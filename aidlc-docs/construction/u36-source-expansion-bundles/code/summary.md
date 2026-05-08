@@ -11,15 +11,18 @@
 - Registered the adapter in the plugin surface and updated domestic segment routing so `domestic-equity` can satisfy its required `price` category when the official index source returns data.
 - Added `fsc-krx-stock-price`, a bounded official FSC/data.go.kr stock daily price adapter for configured Korean tickers via `INVESTO_KRX_STOCK_TICKERS`.
 - The stock adapter isolates ticker-level failures, applies the same missing-key degradation contract, and emits OHLCV, market, ISIN, listed-share, market-cap, and source-date-lag metadata.
+- Added `korea-policy-rss`, an official FSC RSS adapter using the Financial Services Commission RSS service. It strips HTML, parses RFC-822/KST timestamps to UTC, dedupes duplicate URLs, caps noisy policy feeds, and isolates per-feed failures.
 
 ## Files Changed
 
 - `src/investo/sources/fsc_krx_index_price.py` — new FSC/data.go.kr KRX index price adapter.
 - `src/investo/sources/fsc_krx_stock_price.py` — new bounded FSC/data.go.kr KRX stock price adapter.
+- `src/investo/sources/korea_policy_rss.py` — new official Korean financial-policy RSS adapter.
 - `src/investo/sources/__init__.py` — imports the new adapter for registry discovery.
 - `src/investo/briefing/segments.py` — adds `fsc-krx-index-price` to the domestic-equity source allowlist.
 - `tests/unit/sources/test_fsc_krx_index_price.py` — fixture-based tests for parsing, missing key, holiday fallback, malformed numeric rows, and upstream error shape.
 - `tests/unit/sources/test_fsc_krx_stock_price.py` — fixture-based tests for parsing, missing key, holiday fallback, invalid ticker isolation, and upstream error shape.
+- `tests/unit/sources/test_korea_policy_rss.py` — fixture-based tests for FSC RSS parsing, HTML stripping, date-window filtering, dedupe/sort, partial feed failure, all-feed failure, and unsupported schemes.
 - `tests/unit/sources/fixtures/api/fsc-krx-index-price/` — deterministic JSON fixtures.
 - `tests/unit/sources/test_plugin_contract.py` — adapter contract count/name/import updates.
 - `tests/unit/briefing/test_segments.py` — domestic routing and source-outcome allowlist coverage.
@@ -29,10 +32,10 @@
 
 - `uv run pytest tests/unit/sources/test_fsc_krx_index_price.py tests/unit/sources/test_plugin_contract.py tests/unit/briefing/test_segments.py -q`
 - `uv run pytest tests/unit/sources/test_fsc_krx_stock_price.py tests/unit/sources/test_plugin_contract.py tests/unit/briefing/test_segments.py -q`
+- `uv run pytest tests/unit/sources/test_korea_policy_rss.py tests/unit/sources/test_plugin_contract.py tests/unit/briefing/test_segments.py -q`
 
 ## Remaining Scope
 
-- Official Korea policy/financial RSS adapter.
 - U.S. Treasury rates and official macro-calendar adapters.
 - DeFiLlama and Binance public market-structure adapters.
 - Full quality gate after the next broader slice.

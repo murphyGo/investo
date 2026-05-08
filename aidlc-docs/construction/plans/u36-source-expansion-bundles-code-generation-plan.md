@@ -26,7 +26,7 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
   - [x] FSC/data.go.kr KRX index daily price adapter.
   - [x] FSC/data.go.kr KRX stock daily price adapter or a bounded watchlist/index proxy if full stock coverage is too broad for the first slice.
   - FSC/data.go.kr listed-issues/reference adapter only if required to map stock codes; otherwise deferred behind the price adapter.
-- [ ] Domestic-equity gains policy/event RSS coverage from official public feeds (MOEF/FSC/MOTIE/MSS or equivalent `korea.kr` feeds) without using Naver Finance or web-scraped KRX/KIND pages.
+- [x] Domestic-equity gains policy/event RSS coverage from official public feeds (MOEF/FSC/MOTIE/MSS or equivalent `korea.kr` feeds) without using Naver Finance or web-scraped KRX/KIND pages. (Slice 3: official FSC RSS service)
 - [ ] US-equity and crypto gain daily rates context via U.S. Treasury public data: latest available nominal curve fields plus derived spread metadata (`2y10y`, `3m10y` when available); holiday/date lag is visible in `raw_metadata`.
 - [ ] US-equity gains official macro-calendar/release context from BLS/BEA/Census public feeds or machine-readable schedules. This is calendar/event context, not forecast generation.
 - [ ] Crypto gains market-structure context:
@@ -75,8 +75,8 @@ The unit is scoped to free/public data only, existing async `httpx` source-adapt
 
 - [x] Implement `fsc_krx_index_price.py` using official FSC/data.go.kr JSON/XML endpoint, strict target-date filtering, holiday fallback, numeric-string parsing, and KST-aware timestamps.
 - [x] Implement `fsc_krx_stock_price.py` for a bounded stock/watchlist set rather than all listings; normalize OHLCV, market, code, and display name into `raw_metadata`.
-- [ ] Implement `korea_policy_rss.py` using official RSS feeds only; strip HTML, normalize publication timestamps to KST, dedupe duplicate policy releases, and cap noisy feeds.
-- [ ] Add fixtures and tests covering successful parse, missing service key (if applicable), holiday/no-row fallback, malformed numeric fields, RSS HTML stripping, and strict source-window behavior. (Slices 1-2 cover index/stock parse, missing key, holiday fallback, malformed numeric fields, data.go.kr error shape, and per-ticker stock isolation)
+- [x] Implement `korea_policy_rss.py` using official RSS feeds only; strip HTML, normalize publication timestamps to KST, dedupe duplicate policy releases, and cap noisy feeds.
+- [x] Add fixtures and tests covering successful parse, missing service key (if applicable), holiday/no-row fallback, malformed numeric fields, RSS HTML stripping, and strict source-window behavior. (Domestic base complete: index/stock parse, missing key, holiday fallback, malformed numeric fields, data.go.kr error shape, per-ticker stock isolation, RSS HTML stripping, dedupe, strict window, partial feed failure, and unsupported URL scheme)
 
 ### Step 3 — Rates and Macro Layer
 
