@@ -94,6 +94,19 @@ SECRET_ENV_VARS: Final[tuple[str, ...]] = (
     "CLAUDE_CODE_OAUTH_TOKEN",
     "OPENAI_API_KEY",
     "FRED_API_KEY",
+    # data.go.kr / KRX adapters (fsc-krx-index-price, fsc-krx-stock-price).
+    # The canonical name is ``INVESTO_KRX_SERVICE_KEY``; the legacy
+    # ``INVESTO_DATA_GO_KR_SERVICE_KEY`` is consulted as fallback in the
+    # adapter modules and must redact identically. Service keys arrive
+    # URL-encoded (``abc%2Bdef%2F``-style) and would otherwise survive
+    # the regex catalogue intact.
+    "INVESTO_KRX_SERVICE_KEY",
+    "INVESTO_DATA_GO_KR_SERVICE_KEY",
+    # u41 OpenDART disclosure adapter — enrolled ahead of the adapter
+    # implementation so any future surface that boots with the GHA
+    # secret already injected (cron probes, dry-run scripts) cannot leak
+    # the value before the adapter ships.
+    "OPENDART_API_KEY",
 )
 
 

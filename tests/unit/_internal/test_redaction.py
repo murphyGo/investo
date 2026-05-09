@@ -287,7 +287,57 @@ class TestSingleSourceOfTruth:
             "CLAUDE_CODE_OAUTH_TOKEN",
             "OPENAI_API_KEY",
             "FRED_API_KEY",
+            "INVESTO_KRX_SERVICE_KEY",
+            "INVESTO_DATA_GO_KR_SERVICE_KEY",
+            "OPENDART_API_KEY",
         }
+
+    def test_secret_env_vars_includes_krx_service_key(self) -> None:
+        # FSC KRX adapters (index-price, stock-price) read this env var
+        # at fetch time; its value must be redacted from any operator-/
+        # reader-facing surface.
+        assert "INVESTO_KRX_SERVICE_KEY" in SECRET_ENV_VARS
+
+    def test_secret_env_vars_includes_data_go_kr_fallback(self) -> None:
+        # Legacy fallback name consulted by both FSC KRX adapters when
+        # ``INVESTO_KRX_SERVICE_KEY`` is unset; redaction must apply
+        # identically.
+        assert "INVESTO_DATA_GO_KR_SERVICE_KEY" in SECRET_ENV_VARS
+
+    def test_secret_env_vars_includes_opendart(self) -> None:
+        # u41 OpenDART disclosure adapter — enrolled ahead of the
+        # adapter shipping so the GHA secret cannot leak from a
+        # pre-adapter cron probe.
+        assert "OPENDART_API_KEY" in SECRET_ENV_VARS
+
+    def test_redact_text_scrubs_krx_service_key_value(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # KRX service keys arrive URL-encoded (``%2B`` / ``%2F`` /
+        # ``%3D``). Verify the env-var-value scrub fires regardless of
+        # encoding shape — this is the substring path, not a regex.
+        secret_value = "abc%2BdEf%2Fghi%3D"
+        monkeypatch.setenv("INVESTO_KRX_SERVICE_KEY", secret_value)
+        diagnostic = (
+            f"GET https://apis.data.go.kr/1160100/service?serviceKey={secret_value} -> HTTP 401"
+        )
+        scrubbed = redact_text(diagnostic)
+        assert secret_value not in scrubbed
+        assert "[REDACTED]" in scrubbed
+
+    def test_redact_text_scrubs_opendart_api_key_value(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # OpenDART keys are 40-char hex; verify env-var scrub fires
+        # before the adapter exists (the regex catalogue would also
+        # match the long-base64 shape, but the env-var path is the
+        # primary guarantee).
+        secret_value = "0123456789abcdef0123456789abcdef01234567"
+        monkeypatch.setenv("OPENDART_API_KEY", secret_value)
+        scrubbed = redact_text(f"crc_key={secret_value}&corp_code=00126380")
+        assert secret_value not in scrubbed
 
     def test_secret_patterns_include_all_canonical_shapes(self) -> None:
         names = {defn.name for defn in SECRET_PATTERNS}

@@ -23,11 +23,12 @@
 # empty-collect → operator alert; the operator re-triggers manually
 # with ``target_date=last-trading-day``).
 #
-# **Timeout** (AC-001-4): ``timeout-minutes: 12``. Total design budget
-# is 10 min (collect ≤ 4 / generate ≤ 4 / publish ≤ 1 / notify ≤ 30s
-# / GHA overhead ≤ 30s); +2 min safety margin lets a slow upstream
-# resolve gracefully via the orchestrator's stage-level handling
-# rather than a hard kill from outside.
+# **Timeout** (AC-001-4): ``timeout-minutes: 20``. Total design budget
+# is 16 min (collect ≤ 4 / generate ≤ 10 / publish ≤ 1 / notify ≤ 30s
+# / GHA overhead ≤ 30s); +4 min safety margin. Bumped from 12 → 20 on
+# 2026-05-09 alongside the briefing per-segment timeout raise (dom/us
+# 150→210s, crypto 180→240s, max_attempts=2) — three sequential
+# segments × two LLM stages each can now legitimately use 12-15 min.
 #
 # **Permissions**: ``contents: write`` for the inner
 # ``commit_and_push`` to ``archive/YYYY/MM/YYYY-MM-DD.md`` and
@@ -36,7 +37,7 @@
 # made with ``GITHUB_TOKEN``, so the pages build is chained explicitly
 # via ``workflow_dispatch``.
 #
-# **Secrets** (AC-007-1; 5 required + 1 optional, all GitHub Secrets):
+# **Secrets** (AC-007-1; 5 required + 4 optional, all GitHub Secrets):
 #
 #   CLAUDE_CODE_OAUTH_TOKEN     -- consumed by the ``claude`` CLI
 #                                 subprocess; not read by Python
@@ -87,7 +88,7 @@ jobs:
   briefing:
     name: Generate + publish + notify
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     permissions:
       actions: write
       contents: write
@@ -182,6 +183,23 @@ jobs:
           # this secret only when you want macro coverage in the
           # briefing.
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          # u36 source-expansion-bundles 2026-05-08: data.go.kr public
+          # API service key for the ``fsc-krx-index-price`` and
+          # ``fsc-krx-stock-price`` adapters (FSC OpenAPI proxied via
+          # apis.data.go.kr). Either name works (the adapter checks
+          # ``INVESTO_KRX_SERVICE_KEY`` first, then
+          # ``INVESTO_DATA_GO_KR_SERVICE_KEY`` as fallback). Absent
+          # secret → adapters raise SourceFetchError(transient=False)
+          # and aggregator R6 catches it; KRX-segment coverage drops to
+          # ``insufficient`` cleanly.
+          INVESTO_KRX_SERVICE_KEY: ${{ secrets.INVESTO_KRX_SERVICE_KEY }}
+          INVESTO_DATA_GO_KR_SERVICE_KEY: ${{ secrets.INVESTO_DATA_GO_KR_SERVICE_KEY }}
+          # u41 dart-disclosure-adapter (planned, awaiting fixture
+          # session): OpenDART REST API key for Korean equity disclosure
+          # ingestion. Wired through the env now so the adapter lights
+          # up the moment u41 lands. Absent secret → adapter not yet
+          # registered, no effect.
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
           # u19 visual assets: opt in to fetching externally hosted
           # images only when each item carries a complete license
           # manifest. Missing/invalid manifests still fall back to AI
