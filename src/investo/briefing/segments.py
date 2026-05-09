@@ -88,7 +88,13 @@ CATEGORY_LABELS: Final[dict[Category, str]] = {
 # new shared source means: (a) register it explicitly here and (b) bump
 # the regression test in ``test_segments_exclusivity.py``.
 _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
-    {"fsc-krx-index-price", "fsc-krx-stock-price", "korea-policy-rss", "yonhap-market"}
+    {
+        "dart-disclosure",
+        "fsc-krx-index-price",
+        "fsc-krx-stock-price",
+        "korea-policy-rss",
+        "yonhap-market",
+    }
 )
 _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {

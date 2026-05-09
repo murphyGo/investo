@@ -208,6 +208,39 @@ def test_domestic_only_source_with_korean_news_stays_domestic() -> None:
     assert segmented.crypto == ()
 
 
+def test_dart_disclosure_routes_to_domestic_only() -> None:
+    """u41 — DART 공시는 국내 전용; us-equity / crypto 누설 금지."""
+    item = _item(
+        "dart-disclosure",
+        "[DART] 삼성전자 - 주요사항보고서(자기주식취득결정)",
+        summary="자기주식취득결정 (접수번호 20260508900123)",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.domestic_equity == (item,)
+    assert segmented.us_equity == ()
+    assert segmented.crypto == ()
+
+
+def test_dart_disclosure_with_btc_in_corp_name_stays_domestic() -> None:
+    """Source-anchored routing — even if the corp name contained ``BTC``
+    the dart-disclosure source slot keeps the item in domestic-equity.
+    Strong-crypto-signal override applies only to *us-only* sources.
+    """
+    item = _item(
+        "dart-disclosure",
+        "[DART] BTC홀딩스 - 주식등의대량보유상황보고서",
+        summary="주식등의대량보유상황보고서 (접수번호 20260508900456)",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.domestic_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.us_equity == ()
+
+
 def test_us_only_source_with_btc_ticker_in_summary_moves_to_crypto() -> None:
     """Strong crypto signal triggered by ``BTC`` ticker in summary."""
     item = _item(

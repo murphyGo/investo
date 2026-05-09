@@ -1,0 +1,36 @@
+{
+  "recorded_at": "2026-05-10T07:21Z",
+  "source_url_template": "https://opendart.fss.or.kr/api/list.json?crtfc_key=***&bgn_de={YYYYMMDD}&end_de={YYYYMMDD}&page_no=1&page_count={N}",
+  "fixtures_are_synthetic": false,
+  "rationale": "Live OpenDART list.json responses recorded with the operator's OPENDART_API_KEY (redacted). Per R10 the JSON bodies are byte-equal to the live responses; OpenDART does not echo the crtfc_key parameter inside the JSON body (it lives in the URL query only), so no in-body key redaction was required. URL templates above carry *** in place of the live key.",
+  "responses": {
+    "recent_all.json": {
+      "url_query": "bgn_de=20260501&end_de=20260508&page_no=1&page_count=100",
+      "note": "1-week mixed-category snapshot. Contains 임원ㆍ주요주주특정증권등소유상황보고서, 주식등의대량보유상황보고서, 주요사항보고서(자기주식처분결정), [기재정정]주요사항보고서(유상증자결정), 등 — all four target categories represented for routing tests."
+    },
+    "treasury_stock.json": {
+      "url_query": "bgn_de=20260301&end_de=20260508&page_no=1&page_count=100&pblntf_detail_ty=B001",
+      "note": "주요사항보고서(자기주식취득결정), 주요사항보고서(자기주식처분결정), 주요사항보고서(자기주식취득신탁계약체결결정) entries present. Note: pblntf_detail_ty filter is permissive on the live API — response is broader than the literal code."
+    },
+    "dividend.json": {
+      "url_query": "bgn_de=20260301&end_de=20260315&page_no=1&page_count=100",
+      "note": "Early March covers the post-결산 dividend declaration period. Contains 현금ㆍ현물배당결정 entries."
+    },
+    "capital.json": {
+      "url_query": "bgn_de=20260401&end_de=20260508&pblntf_ty=B&page_no=1&page_count=100",
+      "note": "주요사항보고서 family — 유상증자결정 / 전환사채권발행결정 / 감자결정 entries (capital_change category)."
+    },
+    "major_holder.json": {
+      "url_query": "bgn_de=20260501&end_de=20260508&pblntf_ty=D&page_no=1&page_count=20",
+      "note": "지분공시 (D type) — 주식등의대량보유상황보고서 / 임원ㆍ주요주주특정증권등소유상황보고서 entries (ownership_change category)."
+    },
+    "empty.json": {
+      "url_query": "bgn_de=20990101&end_de=20990101&page_no=1&page_count=10",
+      "note": "Far-future date with no disclosures. status=013 / message=조회된 데이타가 없습니다."
+    },
+    "invalid_key.json": {
+      "url_query": "crtfc_key=invalid&bgn_de=20260501&end_de=20260508&page_no=1&page_count=10",
+      "note": "Bad API key — status=010 / message=등록되지 않은 인증키입니다. Adapter must surface this as SourceFetchError(transient=False)."
+    }
+  }
+}

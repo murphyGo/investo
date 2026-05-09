@@ -29,6 +29,7 @@ from investo.sources._registry import _ADAPTERS, _clear_for_test, register
 from investo.sources.binance_crypto_market import BinanceCryptoMarketAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
+from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
@@ -48,9 +49,10 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 19
+EXPECTED_ADAPTER_COUNT = 20
 EXPECTED_ADAPTER_NAMES = {
     "binance-crypto-market",
+    "dart-disclosure",
     "defillama-market-structure",
     "fsc-krx-index-price",
     "fsc-krx-stock-price",
@@ -87,6 +89,7 @@ def _isolate_registry() -> Iterator[None]:
     snapshot = dict(_ADAPTERS)
     _clear_for_test()
     register(BinanceCryptoMarketAdapter)
+    register(DartDisclosureAdapter)
     register(DefiLlamaMarketStructureAdapter)
     register(FomcRssAdapter)
     register(FscKrxIndexPriceAdapter)
@@ -242,6 +245,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "UsEconomicCalendarAdapter",
         "cnbc_top_news",
         "CnbcTopNewsAdapter",
+        "dart_disclosure",
+        "DartDisclosureAdapter",
     }
     assert not (leaked & set(investo.sources.__all__))
 

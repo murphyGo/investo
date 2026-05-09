@@ -47,6 +47,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "fsc-krx-index-price": "S",
     "fsc-krx-stock-price": "S",
     "korea-policy-rss": "S",
+    "dart-disclosure": "S",
     "treasury-rates": "S",
     # A — first-party / official feeds
     "yfinance-price": "A",
