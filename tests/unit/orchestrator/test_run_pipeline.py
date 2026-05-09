@@ -2033,3 +2033,32 @@ async def test_run_pipeline_weekly_digest_failure_rolls_back_and_fails(
     # No git commit happened — the failure short-circuited before
     # ``commit_and_push`` was reached.
     assert git.calls == []
+
+
+# ---------------------------------------------------------------------------
+# 2026-05-09 GHA postmortem — segment generation timeout policy regression
+# ---------------------------------------------------------------------------
+
+
+def test_segment_generation_policy_carries_postmortem_timeouts() -> None:
+    """2026-05-09 GHA — Crypto Stage 2 hit the 180s per-call timeout
+    when external price sources were degraded. The fix bumps each
+    segment's timeout +60s and rebalances the total budget. Pin the
+    new values so a future "let's tune this" PR has to update the
+    test alongside the code.
+    """
+    domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
+    us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
+    crypto = pipeline_module.SEGMENT_GENERATION_POLICIES[CRYPTO]
+
+    assert domestic.timeout_s == 210.0
+    assert us.timeout_s == 210.0
+    assert crypto.timeout_s == 240.0
+
+    # Total budget covers ``timeout_s x max_attempts`` worst-case for
+    # one stage plus headroom (~30s) for retry backoff and the second
+    # stage's typical (faster than worst-case) execution. The shared
+    # ``RetryBudget`` tracks elapsed across both Stage 1 + Stage 2;
+    # the budget gate then short-circuits when remaining < timeout.
+    for policy in (domestic, us, crypto):
+        assert policy.total_budget_s >= policy.timeout_s * policy.max_attempts

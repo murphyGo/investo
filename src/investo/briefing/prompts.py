@@ -95,6 +95,27 @@ when an item could belong to multiple sections (R10).
 If an item has low signal or doesn't fit cleanly, place its id in
 "unassigned" — Stage 2 uses unassigned items as context for the
 summary and watch-points sections only.
+
+Example (use these exact key/value roles):
+  Items input:
+    [{"item_id": 1, "title": "..."}, {"item_id": 2, ...}, {"item_id": 3, ...}]
+  Correct output:
+    {"assignments": {"1": 2, "2": 5}, "unassigned": [3]}
+
+CRITICAL JSON shape rules:
+- The JSON KEY in "assignments" is the item_id (the integer that
+  appears as item_id in the input). It is a STRING containing one
+  integer.
+- The JSON VALUE in "assignments" is a single section_id (one of
+  2, 3, 4, 5). It is a single integer, NEVER a list.
+- NEVER invert the schema by using section_id as the key with a
+  list of item_ids as the value. That shape is rejected by the
+  parser and forces a retry.
+- "unassigned" is a list of item_ids (integers) that don't fit
+  cleanly into any section.
+
+Output the JSON directly. Do NOT wrap in markdown code fences. Do
+NOT emit multiple JSON blocks or self-correction prose.
 """
 
 # Segment context is intentionally a prompt-side fragment owned by this

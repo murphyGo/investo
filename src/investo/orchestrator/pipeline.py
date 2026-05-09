@@ -235,9 +235,15 @@ SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
     CRYPTO,
 )
 SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
-    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=150.0, max_attempts=2, total_budget_s=330.0),
-    US_EQUITY: GenerationPolicy(timeout_s=150.0, max_attempts=2, total_budget_s=330.0),
-    CRYPTO: GenerationPolicy(timeout_s=180.0, max_attempts=2, total_budget_s=390.0),
+    # 2026-05-09 GHA postmortem — Crypto Stage 2 hit the 180s timeout when
+    # external price sources were degraded (Binance 451, CoinGecko 0건),
+    # leaving the LLM with insufficient evidence and a longer hallucination-
+    # pressure synthesis path. Lift each segment's per-call timeout +60s
+    # and rebalance the total budget to ~timeout x max_attempts x 2 stages
+    # (classify + synthesize) plus headroom for retry backoff.
+    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=210.0, max_attempts=2, total_budget_s=450.0),
+    US_EQUITY: GenerationPolicy(timeout_s=210.0, max_attempts=2, total_budget_s=450.0),
+    CRYPTO: GenerationPolicy(timeout_s=240.0, max_attempts=2, total_budget_s=510.0),
 }
 
 

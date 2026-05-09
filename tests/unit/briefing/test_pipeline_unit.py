@@ -309,6 +309,58 @@ def test_parse_classification_rejects_extra_keys() -> None:
 
 
 # ---------------------------------------------------------------------------
+# 2026-05-09 GHA postmortem — inverted-schema auto-recovery
+# ---------------------------------------------------------------------------
+
+
+def test_parse_classification_recovers_from_inverted_schema_str_keys() -> None:
+    """LLM emits ``{<section_id_str>: [<item_ids>, ...]}`` instead of the
+    spec'd ``{<item_id>: <section_id>}``. The auto-flip should rewrite
+    the payload and let pydantic accept it.
+    """
+    stdout = json.dumps({"assignments": {"3": [9, 10, 11], "5": [2, 7]}, "unassigned": [1]})
+    result = _parse_classification(stdout, item_count=11)
+
+    assert isinstance(result, ClassificationResult)
+    assert result.assignments == {9: 3, 10: 3, 11: 3, 2: 5, 7: 5}
+    assert result.unassigned == [1]
+
+
+def test_parse_classification_recovers_from_inverted_schema_int_keys() -> None:
+    """Same inverted shape but emitted via Python-literal int keys
+    (the ``ast.literal_eval`` recovery path).
+    """
+    stdout = "{'assignments': {3: [9, 10], 5: [2]}, 'unassigned': []}"
+    result = _parse_classification(stdout, item_count=10)
+
+    assert result.assignments == {9: 3, 10: 3, 2: 5}
+    assert result.unassigned == []
+
+
+def test_parse_classification_does_not_flip_when_item_id_appears_in_multiple_sections() -> None:
+    """Ambiguous inversion (item 9 appears under both section 3 and
+    section 5) must NOT be silently resolved. The original
+    ValidationError surfaces so the caller's retry loop sees the real
+    schema mismatch.
+    """
+    stdout = json.dumps({"assignments": {"3": [9, 10], "5": [9]}, "unassigned": []})
+    with pytest.raises(ValidationError):
+        _parse_classification(stdout, item_count=10)
+
+
+def test_parse_classification_does_not_flip_when_keys_outside_2_5() -> None:
+    """Auto-flip only kicks in when every key is a valid Stage 1
+    section-id (``{2, 3, 4, 5}``). A payload with key=1 is treated as a
+    regular (item-id-keyed) payload and the original validation error
+    surfaces — list-shaped values for an item-id key are not the
+    spec'd schema.
+    """
+    stdout = json.dumps({"assignments": {"1": [9]}, "unassigned": []})
+    with pytest.raises(ValidationError):
+        _parse_classification(stdout, item_count=9)
+
+
+# ---------------------------------------------------------------------------
 # build_section_plan (FD E3, L1.5)
 # ---------------------------------------------------------------------------
 

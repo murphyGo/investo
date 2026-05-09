@@ -18,13 +18,22 @@ Reference:
 
 from __future__ import annotations
 
+import logging
 import subprocess
 import time
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final, Protocol
 
+from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.publisher.errors import PublisherGitError
+
+_logger = logging.getLogger("investo.publisher.git_ops")
+
+# Cap the operator-log excerpt of the final git stderr. 500 chars is
+# enough for the first 3-4 git error lines (the diagnostic anchor) while
+# bounding log noise on multi-MB stderr from a misconfigured remote.
+_FINAL_STDERR_LOG_LIMIT: Final[int] = 500
 
 # Backoff seconds before each attempt (attempt index 0 = no sleep).
 # Mirrors u2's FD R3 schedule so retry behavior is uniform across
@@ -195,6 +204,19 @@ def commit_and_push(
         # Failed step — record stderr + try again (or exhaust).
         last_stderr = result.stderr if result is not None else None
         last_cause = None
+
+    # 2026-05-09 GHA postmortem — surface the final git stderr at ERROR
+    # level so operator log triage doesn't have to dig into the alert
+    # payload to see why publish exhausted retries. STRICT redaction
+    # scrubs any token / URL-embedded credential the remote may echo
+    # back (R13). The first 500 chars hold git's diagnostic anchor.
+    if last_stderr:
+        excerpt = redact_text(last_stderr, policy=RedactionPolicy.STRICT)[:_FINAL_STDERR_LOG_LIMIT]
+        _logger.error(
+            "[git_ops] commit_and_push exhausted %d attempts; final stderr (redacted): %s",
+            max_attempts,
+            excerpt,
+        )
 
     raise PublisherGitError(
         attempt_count=max_attempts,

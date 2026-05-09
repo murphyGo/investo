@@ -407,3 +407,57 @@ def test_commit_and_push_respects_backoff_schedule(
 def test_git_ops_module_exports_expected_names() -> None:
     assert hasattr(git_ops, "commit_and_push")
     assert hasattr(git_ops, "GitRunner")
+
+
+# ---------------------------------------------------------------------------
+# 2026-05-09 GHA postmortem — final stderr logging on exhaustion
+# ---------------------------------------------------------------------------
+
+
+def test_commit_and_push_logs_redacted_final_stderr_on_exhaustion(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """When all 3 attempts fail, the final git stderr is logged at
+    ERROR with STRICT redaction applied (R13). Operator log triage no
+    longer has to dig into the alert payload to see why publish failed.
+
+    A bot-token-shaped substring in stderr must be redacted; a plain
+    diagnostic string must pass through (truncated to 500 chars).
+    """
+    secret = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
+    fail_stderr = f"fatal: could not push to https://x@y/{secret}/repo.git\n" + "x" * 600
+    fail = _ok(returncode=1, stderr=fail_stderr)
+    _, _, runner = _runner_returning([_ok(), _ok(), fail] * 3)
+
+    caplog.set_level("ERROR", logger="investo.publisher.git_ops")
+    with pytest.raises(PublisherGitError):
+        commit_and_push("msg", [Path("f.md")], runner=runner)
+
+    matching = [rec for rec in caplog.records if rec.name == "investo.publisher.git_ops"]
+    assert matching, "expected an ERROR record from git_ops logger"
+    final = matching[-1]
+    assert final.levelname == "ERROR"
+    # Bot-token shape is scrubbed by RedactionPolicy.STRICT.
+    assert secret not in final.getMessage()
+    assert "[REDACTED" in final.getMessage()
+    # Excerpt is bounded to 500 chars after redaction (the message also
+    # carries a leading prefix; check that the excerpt portion does
+    # not include the full 600-char tail).
+    assert "x" * 600 not in final.getMessage()
+
+
+def test_commit_and_push_does_not_log_when_all_attempts_succeed(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Happy path emits no ERROR record from the git_ops logger."""
+    _, _, runner = _runner_returning([_ok(), _ok(), _ok()])
+    caplog.set_level("ERROR", logger="investo.publisher.git_ops")
+
+    commit_and_push("msg", [Path("f.md")], runner=runner)
+
+    error_records = [
+        rec
+        for rec in caplog.records
+        if rec.name == "investo.publisher.git_ops" and rec.levelname == "ERROR"
+    ]
+    assert error_records == []

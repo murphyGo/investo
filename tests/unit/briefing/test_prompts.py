@@ -67,6 +67,18 @@ def test_stage1_system_does_not_mention_sections_1_or_6_or_7() -> None:
     assert "⑦" not in STAGE1_SYSTEM
 
 
+def test_stage1_system_carries_worked_example_for_assignments_shape() -> None:
+    """2026-05-09 GHA postmortem — Stage 1 LLM repeatedly inverted the
+    schema (``{<section_id>: [<item_ids>, ...]}``) under retry. The
+    prompt must carry a literal worked example anchoring the canonical
+    ``{<item_id>: <section_id>}`` orientation, plus a ``NEVER invert``
+    rule so the next prompt drift surfaces in this regression test
+    rather than a production retry-burn.
+    """
+    assert '"assignments": {"1": 2' in STAGE1_SYSTEM
+    assert "NEVER invert" in STAGE1_SYSTEM
+
+
 def test_stage1_user_template_has_items_json_placeholder() -> None:
     rendered = STAGE1_USER_TEMPLATE.format(
         segment_context=DEFAULT_SEGMENT_CONTEXT,
