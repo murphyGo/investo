@@ -26,6 +26,17 @@ Design choices (audit log 2026-05-01T04:00:00Z):
   internally-authored stories without a syndication source). Adapter
   defaults ``rss_source=""`` rather than dropping the entry.
 
+u47 (added 2026-05-10 — content filter): the rssindex feed mixes
+generic personal-finance product-comparison headlines (CD rates / HELOC
+/ mortgage / savings / insurance / retirement) into the same channel as
+market-signal news. The 2026-05-09 cron US-equity quality retro found
+~10/24 in-window items were such noise. Filtering at the adapter layer
+(*before* a :class:`NormalizedItem` is yielded, *after* the strict
+window filter) is the cheapest cut: Stage 1 LLM never sees them, so
+neither token budget nor Stage 2's candidate pool is contaminated.
+A single batch-level INFO log emits the blocked count + matched
+patterns as the canary; a 100%-block batch escalates to WARNING.
+
 Pins NFR-007 ACs:
 
 * AC-7.2 — title HTML stripped via :mod:`_sanitize`
@@ -36,6 +47,7 @@ Pins NFR-007 ACs:
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 from urllib.parse import urlparse
@@ -51,10 +63,66 @@ from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
+_logger = logging.getLogger(__name__)
+
 _ALLOWED_SCHEMES = ("http", "https")
 _USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36"
 )
+
+# u47 — personal-finance noise deny patterns (case-insensitive substring).
+# Matched against the lowercased ``title`` first; for the "personal finance"
+# fallback the haystack is widened to include the article URL path and the
+# ``<source>`` text because Yahoo flags its product-comparison stories with
+# the ``finance.yahoo.com/personal-finance/...`` URL prefix and a
+# ``Yahoo Personal Finance`` source attribution rather than putting the
+# phrase in the headline.
+_PERSONAL_FINANCE_DENY_PATTERNS: tuple[str, ...] = (
+    "cd rates",
+    "heloc",
+    "home equity loan rates",
+    "mortgage and refinance",
+    "mortgage and refi rates",
+    "high-yield savings",
+    "money market account rates",
+    "long-term care insurance",
+    "retirement costs",
+    "personal finance",
+)
+
+# Patterns that should match against the broader haystack (title + URL +
+# source text) rather than the title alone. Yahoo's personal-finance
+# category prefix never appears in headline text, so a title-only match
+# would miss every real instance.
+_PERSONAL_FINANCE_BROAD_HAYSTACK_PATTERNS: frozenset[str] = frozenset({"personal finance"})
+
+
+def _personal_finance_patterns_hit(
+    title: str,
+    url: str,
+    rss_source: str,
+) -> tuple[str, ...]:
+    """Return the deny patterns matched by this entry, deduped + sorted.
+
+    Empty tuple = entry is not personal-finance noise. The sort makes the
+    canary log line stable for the same input, simplifying CI grep.
+    """
+    title_lower = title.lower()
+    # In the URL+source haystack we normalise kebab-case path separators
+    # to spaces so the deny pattern ``"personal finance"`` matches the
+    # canonical Yahoo URL prefix ``finance.yahoo.com/personal-finance/...``
+    # without requiring a parallel hyphenated pattern.
+    broad_lower = f"{title_lower} {url.lower()} {rss_source.lower()}".replace("-", " ").replace(
+        "/", " "
+    )
+    hits: set[str] = set()
+    for pattern in _PERSONAL_FINANCE_DENY_PATTERNS:
+        haystack = (
+            broad_lower if pattern in _PERSONAL_FINANCE_BROAD_HAYSTACK_PATTERNS else title_lower
+        )
+        if pattern in haystack:
+            hits.add(pattern)
+    return tuple(sorted(hits))
 
 
 @register
@@ -92,13 +160,68 @@ class YahooFinanceNewsAdapter:
             ) from exc
 
         items: list[NormalizedItem] = []
+        in_window_total = 0
+        filtered_count = 0
+        all_pattern_hits: set[str] = set()
         for entry in root.iter("item"):
             normalized = self._normalize_entry(entry)
             if normalized is None:
                 continue
-            if window.contains(normalized.published_at):
-                items.append(normalized)
+            if not window.contains(normalized.published_at):
+                continue
+            in_window_total += 1
+            # u47: personal-finance noise filter. URL is reconstructed
+            # from str(HttpUrl) — pydantic preserves scheme/host/path
+            # verbatim, which is what the broad-haystack patterns need.
+            # ``raw_metadata`` is a heterogeneous str|int|float bag per
+            # the model contract, but this adapter always stores
+            # ``rss_source`` as a string (defaulting to ``""``). ``str(...)``
+            # both narrows for mypy and is a defensive coerce.
+            rss_source_raw = normalized.raw_metadata.get("rss_source", "")
+            patterns = _personal_finance_patterns_hit(
+                normalized.title,
+                str(normalized.url) if normalized.url is not None else "",
+                str(rss_source_raw),
+            )
+            if patterns:
+                filtered_count += 1
+                all_pattern_hits.update(patterns)
+                continue
+            items.append(normalized)
+        self._emit_filter_canary(filtered_count, in_window_total, all_pattern_hits)
         return items
+
+    def _emit_filter_canary(
+        self,
+        filtered: int,
+        total: int,
+        patterns_hit: set[str],
+    ) -> None:
+        # No items entered the in-window pool → nothing to report; the
+        # aggregator already logs zero-item collection separately.
+        if total == 0:
+            return
+        # No noise blocked → quiet. The canary exists for tuning the deny
+        # list; an all-clean batch is the desired steady state.
+        if filtered == 0:
+            return
+        sorted_patterns = sorted(patterns_hit)
+        message = (
+            f"yahoo-finance-news: filtered {filtered}/{total} items as personal-finance "
+            f"noise (patterns: {', '.join(sorted_patterns)})"
+        )
+        extra: dict[str, object] = {
+            "source_name": self.name,
+            "filtered": filtered,
+            "total": total,
+            "patterns_hit": sorted_patterns,
+        }
+        if filtered == total:
+            # 100% block → either the deny list is too broad or the feed
+            # is having a bad day. Operators should look.
+            _logger.warning(message, extra=extra)
+        else:
+            _logger.info(message, extra=extra)
 
     def _normalize_entry(self, entry: Any) -> NormalizedItem | None:
         # ``entry`` is an :class:`xml.etree.ElementTree.Element` returned
