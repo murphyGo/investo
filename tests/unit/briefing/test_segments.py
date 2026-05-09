@@ -80,8 +80,32 @@ def test_crypto_sources_and_crypto_terms_route_to_crypto() -> None:
     assert segmented.us_equity == (items[4],)
 
 
-def test_fed_liquidity_item_can_route_to_us_and_crypto() -> None:
+def test_us_only_source_with_fed_keywords_does_not_dual_route_to_crypto() -> None:
+    """u45 — ``fomc-rss`` is anchored single-segment (us-equity).
+
+    Pre-u45 the ``_CRYPTO_CROSS_MARKET_TERMS + Fed`` combo in
+    ``_is_crypto`` allowed a us-only-source item to leak into crypto
+    purely on its body keywords. After u45 the source allow-list wins:
+    a fomc-rss item carrying "liquidity" + "Federal Reserve" stays in
+    us-equity only.
+    """
     item = _item("fomc-rss", "Federal Reserve liquidity update hits risk assets")
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_shared_treasury_rates_source_fans_out_to_us_and_crypto() -> None:
+    """u45 — explicit shared-source fan-out is preserved.
+
+    ``treasury-rates`` is the one source in ``_SHARED_SOURCES_BY_SEGMENT``
+    today; its UST curve narrative is reader-relevant for both
+    us-equity and crypto liquidity discussion.
+    """
+    item = _item("treasury-rates", "UST curve: 10Y 4.31%", category="macro")
 
     segmented = segment_items([item])
 

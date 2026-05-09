@@ -77,10 +77,20 @@ CATEGORY_LABELS: Final[dict[Category, str]] = {
     "earnings": "실적",
 }
 
-_DOMESTIC_SOURCES: Final[frozenset[str]] = frozenset(
+# u45 — Source allow-lists are split into single-segment vs shared.
+#
+# A source listed in exactly one ``_*_ONLY_SOURCES`` set is *anchored* to
+# that segment; ``segment_items()`` will route its items to that segment
+# only (never duplicate). A source listed in
+# ``_SHARED_SOURCES_BY_SEGMENT`` is intentionally fan-out across the
+# named segments — today only ``treasury-rates`` (UST curve narrative
+# matters for both us-equity and crypto liquidity discussion). Adding a
+# new shared source means: (a) register it explicitly here and (b) bump
+# the regression test in ``test_segments_exclusivity.py``.
+_DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {"fsc-krx-index-price", "fsc-krx-stock-price", "korea-policy-rss", "yonhap-market"}
 )
-_US_SOURCES: Final[frozenset[str]] = frozenset(
+_US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "cnbc-top-news",
         "fomc-rss",
@@ -88,21 +98,33 @@ _US_SOURCES: Final[frozenset[str]] = frozenset(
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",
         "sec-edgar-8k",
-        "treasury-rates",
         "us-economic-calendar",
         "yahoo-finance-news",
         "yfinance-price",
     }
 )
-_CRYPTO_SOURCES: Final[frozenset[str]] = frozenset(
+_CRYPTO_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "binance-crypto-market",
         "coingecko-price",
         "defillama-market-structure",
         "theblock-crypto",
-        "treasury-rates",
     }
 )
+_SHARED_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
+    "domestic-equity": frozenset(),
+    "us-equity": frozenset({"treasury-rates"}),
+    "crypto": frozenset({"treasury-rates"}),
+}
+
+# Backward-compatible aggregate views — the union of single + shared
+# membership for each segment. Consumers (e.g.
+# :func:`segment_source_outcomes`, watchlist routing) keep using these.
+_DOMESTIC_SOURCES: Final[frozenset[str]] = (
+    _DOMESTIC_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["domestic-equity"]
+)
+_US_SOURCES: Final[frozenset[str]] = _US_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["us-equity"]
+_CRYPTO_SOURCES: Final[frozenset[str]] = _CRYPTO_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["crypto"]
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": _DOMESTIC_SOURCES,
     "us-equity": _US_SOURCES,
@@ -138,6 +160,35 @@ _CRYPTO_CROSS_MARKET_TERMS: Final[tuple[str, ...]] = (
     "rate",
     "risk asset",
     "treasury",
+)
+
+# u45 — strong crypto signal (used to *move* a us-only-source item to
+# crypto when the body is unambiguously crypto-narrative). Three
+# independent triggers, all checked case-insensitively against title /
+# body:
+#
+#  1. Title starts with one of the canonical crypto tokens (English).
+#  2. ``BTC`` or ``ETH`` ticker present as ASCII word boundary anywhere
+#     in title or summary.
+#  3. Title carries an explicit price-phrase substring (handles cases
+#     such as "Bitcoin and ethereum prices today" where (1) still
+#     matches but the ETH part would not).
+#
+# The prefix regex assumes English titles. Korean-language crypto news
+# sources do not exist in the registry today; if one is added (e.g.
+# 한경코인) the prefix list needs Korean tokens too — see DEBT note in
+# ``aidlc-docs/construction/u45-segment-routing-exclusivity/code/summary.md``.
+_CRYPTO_TITLE_PREFIX_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\s*(bitcoin|ethereum|btc|eth|crypto|stablecoin|defi)\b",
+    re.IGNORECASE,
+)
+_CRYPTO_TICKER_RE: Final[re.Pattern[str]] = re.compile(r"\b(BTC|ETH)\b")
+_CRYPTO_PRICE_PHRASES: Final[tuple[str, ...]] = (
+    "bitcoin price",
+    "ethereum price",
+    "btc price",
+    "eth price",
+    "bitcoin and ethereum",
 )
 
 
@@ -251,25 +302,100 @@ class SegmentCoverage:
 
 
 def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
-    """Route source items into deterministic market segments."""
+    """Route source items into deterministic market segments.
+
+    u45 — Routing is *priority-based and source-anchored*. A single item
+    lands in at most one segment **unless** its source is registered in
+    :data:`_SHARED_SOURCES_BY_SEGMENT` (today: ``treasury-rates``), in
+    which case it fans out to every named shared segment.
+
+    Decision order (first match wins):
+
+    1. **Shared sources fan-out** — items from a shared source appear in
+       every segment that registers it.
+    2. **Single-segment crypto source** — anchored to crypto.
+    3. **Single-segment domestic source** — anchored to domestic-equity.
+    4. **Single-segment us-equity source** — anchored to us-equity, *but
+       moved to crypto* if the title/body carries a strong crypto
+       signal (closes Item #54 / #76 / #82 leak from 2026-05-08).
+    5. **Keyword fallback** — for items whose source is in none of the
+       allow-lists. Domestic ticker → domestic; strong crypto signal →
+       crypto; us-equity ticker / market term → us-equity. Remaining
+       orphans are dropped (preserves the existing "low-signal item is
+       not surfaced" contract).
+
+    The keyword-fallback path is the *only* place where
+    ``_US_MARKET_TERMS`` (``federal reserve`` / ``fomc`` / ``treasury`` /
+    ``sec ``) is allowed to anchor a us-equity entry — and only after a
+    strong crypto signal has been ruled out. This is the structural fix
+    for the dual-routing bug: a ``theblock-crypto`` item mentioning
+    "SEC" never reaches the keyword path, so it cannot leak into
+    us-equity.
+    """
     domestic: list[NormalizedItem] = []
     us: list[NormalizedItem] = []
     crypto: list[NormalizedItem] = []
+    buckets: dict[MarketSegment, list[NormalizedItem]] = {
+        "domestic-equity": domestic,
+        "us-equity": us,
+        "crypto": crypto,
+    }
 
     for item in items:
         text = _item_text(item)
-        if _is_domestic_equity(item, text):
-            domestic.append(item)
-        if _is_us_equity(item, text):
-            us.append(item)
-        if _is_crypto(item, text):
+
+        # 1) Shared sources fan-out (intentional cross-routing).
+        matched_shared = _matched_shared_segments(item.source_name)
+        if matched_shared:
+            for segment in matched_shared:
+                buckets[segment].append(item)
+            continue
+
+        # 2-4) Source-anchored single-segment routing.
+        if item.source_name in _CRYPTO_ONLY_SOURCES:
             crypto.append(item)
+            continue
+        if item.source_name in _DOMESTIC_ONLY_SOURCES:
+            domestic.append(item)
+            continue
+        if item.source_name in _US_ONLY_SOURCES:
+            if _has_strong_crypto_signal(item):
+                crypto.append(item)
+            else:
+                us.append(item)
+            continue
+
+        # 5) Keyword fallback for items whose source is in no allow-list.
+        if _matches_domestic_keyword(item):
+            domestic.append(item)
+        elif _has_strong_crypto_signal(item):
+            crypto.append(item)
+        elif _matches_us_equity_keyword(item, text):
+            us.append(item)
+        elif _matches_crypto_keyword(text):
+            crypto.append(item)
+        # else: orphan — intentionally dropped.
 
     return SegmentedItems(
         domestic_equity=tuple(domestic),
         us_equity=tuple(us),
         crypto=tuple(crypto),
     )
+
+
+def _matched_shared_segments(source_name: str) -> tuple[MarketSegment, ...]:
+    """Return the deterministic segment tuple a shared source fans out to.
+
+    Empty tuple when the source is not shared (callers fall through to
+    single-segment / keyword routing). Order matches the natural
+    segment ordering ``(domestic-equity, us-equity, crypto)`` to keep
+    routing deterministic regardless of dict iteration order.
+    """
+    matched: list[MarketSegment] = []
+    for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
+        if source_name in _SHARED_SOURCES_BY_SEGMENT[segment]:
+            matched.append(segment)
+    return tuple(matched)
 
 
 def build_segment_coverage(
@@ -370,23 +496,57 @@ def _item_text(item: NormalizedItem) -> str:
     return f"{item.source_name} {item.title} {item.summary or ''}".lower()
 
 
-def _is_domestic_equity(item: NormalizedItem, text: str) -> bool:
-    return item.source_name in _DOMESTIC_SOURCES or bool(
-        _KOREAN_EXCHANGE_TICKER.search(f"{item.title} {item.summary or ''}")
-    )
+def _has_strong_crypto_signal(item: NormalizedItem) -> bool:
+    """Return True when title/summary unambiguously talk about crypto.
 
-
-def _is_us_equity(item: NormalizedItem, text: str) -> bool:
-    return (
-        item.source_name in _US_SOURCES
-        or bool(_US_TICKER.search(f"{item.title} {item.summary or ''}"))
-        or any(term in text for term in _US_MARKET_TERMS)
-    )
-
-
-def _is_crypto(item: NormalizedItem, text: str) -> bool:
-    if item.source_name in _CRYPTO_SOURCES:
+    Used by ``segment_items`` both as the override for us-only-source
+    items and as the keyword-fallback crypto check. Three independent
+    triggers (any one match → True): canonical token at the start of
+    the title; ``BTC`` or ``ETH`` ticker as ASCII word-boundary; or one
+    of the canonical price-phrase substrings in the lower-cased title.
+    Body / summary participates only via the ticker check — narrative
+    mentions of "bitcoin" deep in a us-equity recap should not flip the
+    routing.
+    """
+    title = item.title or ""
+    if _CRYPTO_TITLE_PREFIX_RE.match(title):
         return True
+    title_lower = title.lower()
+    if any(phrase in title_lower for phrase in _CRYPTO_PRICE_PHRASES):
+        return True
+    haystack = f"{title} {item.summary or ''}"
+    return bool(_CRYPTO_TICKER_RE.search(haystack))
+
+
+def _matches_domestic_keyword(item: NormalizedItem) -> bool:
+    """Keyword-fallback domestic routing — Korean exchange ticker only."""
+    return bool(_KOREAN_EXCHANGE_TICKER.search(f"{item.title} {item.summary or ''}"))
+
+
+def _matches_us_equity_keyword(item: NormalizedItem, text: str) -> bool:
+    """Keyword-fallback us-equity routing.
+
+    Honours both the curated US ticker list and ``_US_MARKET_TERMS``.
+    This path is reached only when the source is in no allow-list and
+    the strong-crypto-signal check has already failed — so the
+    ``federal reserve`` / ``fomc`` / ``sec `` / ``treasury`` keywords
+    can no longer drag a crypto-source item into us-equity.
+    """
+    if _US_TICKER.search(f"{item.title} {item.summary or ''}"):
+        return True
+    return any(term in text for term in _US_MARKET_TERMS)
+
+
+def _matches_crypto_keyword(text: str) -> bool:
+    """Keyword-fallback crypto routing.
+
+    Backstop for items missed by the strong-signal check (e.g. a body
+    mention of ``stablecoin`` without a leading title token, or the
+    ``_CRYPTO_CROSS_MARKET_TERMS + Fed`` combo). Reached only after the
+    domestic / strong-crypto / us-equity branches have all declined,
+    which means an item routed here cannot also land in us-equity in
+    the same pass — closing the dual-routing path.
+    """
     if any(term in text for term in _CRYPTO_TERMS):
         return True
     return any(term in text for term in _CRYPTO_CROSS_MARKET_TERMS) and (
