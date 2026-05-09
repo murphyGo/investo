@@ -1,5 +1,52 @@
 # AI-DLC Audit Log
 
+## Construction — u45..u50 — 5 New Units Planned (Wave 6, 2026-05-09 Cron US-Equity Quality Retrospective)
+**Timestamp**: 2026-05-10T00:00:00+09:00
+**Trigger**: 2026-05-09 cron 미국 시황 (`archive/us-equity/2026/05/2026-05-08.md`) 발행 후 사용자 quality 회고. 3 가지 결함 적시 — (1) BTC/ETH 얘기가 너무 많음 (us-equity 시황인데 ②/③/⑤/⑥ 4개 섹션이 크립토 narrative 로 지배), (2) 어제 미국 지수가 사상 최고가 경신했는데 시황에 안 나옴, (3) 전반적으로 "중심 없는" 느낌. 메인 세션 진단으로 (A) `briefing/segments.py` dual-routing 버그 (P0, `if/if/if` NOT `elif`), (B) yfinance HTTP 429 IP-level block (P0, GHA shared runner), (C) yahoo-finance-news 개인금융 노이즈 (P1), (D) ATH 같은 결정론적 narrative 부재 (사용자 통찰: 가격/차트 데이터만으로 도출 가능), (E) TradingView Lightweight Charts 자원 활용 가능 (사용자 자원) 으로 세분화.
+**Decision**: Wave 6 로 5 신규 code-generation plan 작성 (u45..u50; u48 번호 의도적 skip — Wave 5 의 u48 자리는 reserved 였으나 사용 안 됨, 번호 재사용 회피로 u49/u50 부여). `aidlc-state.md` per-unit progress rows + 본 audit 항목 추가. **No code written** — planning-only delivery.
+
+**Options compared**:
+- **(a) yfinance 429 fix 만 단일 unit 으로 처리.** 거부됨 — IP-level rate-limit 은 코드 fix 로 우회 불가. 소스 교체가 정답이며, 그 자체로 별 unit 가치.
+- **(b) 5 unit 분할 (u45 routing / u46 stooq / u47 noise / u49 anchor / u50 chart).** 채택. 각 unit 의 의존 그래프가 깔끔히 layered (u45 → u46 → u49 → u50; u47 독립); 단일 mega-unit 으로 묶으면 R10 fixture 작업 (u46 live recording) + 결정론 anchor 의 history source 결정 (u49 Open Question) 이 한 PR 안에 섞여 review 어려움.
+- **(c) Stage 2 prompt 룰 만으로 노이즈/anchor 처리.** 거부됨 — 사용자 회고가 명시한 "결정론" 통찰의 핵심은 LLM 환각 risk 제거. prompt-only 접근은 환각 risk 가 남음 (예: ATH 가 아닌데 ATH 라고 인용). 결정론 모듈 (`market_anchor.py`) + prompt 룰 결합이 정답.
+- **(d) BTC/ETH narrative 균형을 Stage 2 prompt 룰 (per-segment dominance cap) 로 강제.** 거부됨 (잠정) — 진단상 dominance 의 root cause 는 입력 라우팅 (us-equity 에 크립토 item 이 흘러들어옴) 이지 LLM 의 narrative 선택 편향이 아님. u45 routing fix 만으로 입력 dominance 가 사라지면 prompt 변경 불필요. 그래도 재발 시 별 unit 으로 격상 가능 — 본 plan 의 Out of scope 에 명시.
+
+**Design Q/A**:
+- Q: u45 의 "강한 crypto signal" 정의 — 어디까지 좁힐 것인가? A: title prefix regex (`^(bitcoin|ethereum|btc|eth|crypto|stablecoin|defi)\b`) + `\bBTC\b`/`\bETH\b` ASCII word-boundary ticker + 명시적 phrase (`bitcoin price`, `ethereum price`) 3가지 조건. 하나라도 매치 시 us-equity 단독 source item 을 *crypto 로 이동* (복제 아님). 본문에 "BTC dropped" 한 줄 있다고 us-equity 에서 빠지지 않게 — title 신호 우선.
+- Q: u46 yfinance 어댑터 제거할 것인가? A: 제거하지 않고 보존. 가끔 working day 가 있으므로 union (Stooq + yfinance 둘 다 등록) 으로 두면 source coverage confidence 가 더 높음. 일정 기간 (예: 3개월) 0건이 지속되면 별 cleanup unit 에서 제거 검토 — DEBT 후보.
+- Q: u47 deny 패턴의 false-positive risk? A: `personal finance` 단독 패턴이 가장 광범위; "Personal Finance Q1 earnings" 같은 시장 헤드라인 매치 가능성. fixture 5 정상 케이스로 검증 + false-positive 발견 시 패턴 좁힘 (`personal finance tip`, `personal finance advice`).
+- Q: u49 의 가격 history source — Option A (`archive/_meta/price_history.jsonl` 누적) vs Option B (Stooq multi-row fetch)? A: 권장 = Option B (Stooq multi-row 즉시 calculable). Option A 는 fallback (Stooq fail 시); Hybrid (B primary + A fallback) 가능. Step 1 첫 결정 사항으로 plan 의 Open Question 에 명시.
+- Q: u49 의 anchor 라인 위치 — u25 watermark 바로 아래 vs 시황 ① 요약 안? A: 권장 = watermark 바로 아래 (헤더 영역에 모두 모임). UI 확정은 implementation 시점 mkdocs serve 비교.
+- Q: u50 의 라이브러리 선택 — Lightweight Charts vs Charting Library full version? A: MVP = Lightweight Charts (MIT, ~60KB UMD bundle, 자가 호스팅). Charting Library full version 은 non-commercial 등록 필요 + 더 무거움. 사용자가 full version 을 원하면 별 unit 격상.
+- Q: u50 의 데이터 source — TradingView UDF/REST 유료 API? A: 안 씀. 데이터는 Stooq (u46) 에서 우리 측이 fetch → `data-history` HTML attribute 주입. 무료 only 룰 보존.
+- Q: u48 번호는 왜 비어있는가? A: Wave 5 (u37..u44) 종료 후 Wave 6 가 새 번호 할당. u48 자리는 의도적 skip — 향후 별도 단일 unit 이 등장하면 재사용 가능 (현 시점 reserved).
+
+**DEBT cross-references**:
+- 본 wave 는 새로운 DEBT 항목 등록 없음. 단 Open Questions 에 향후 DEBT 후보 명시:
+  - u45: 한국어 크립토 prefix 룰 확장 (한경코인 등 한국어 크립토 source 추가 시).
+  - u46: yfinance 어댑터 일정 기간 0건 지속 시 cleanup.
+  - u47: deny 패턴 stale 화 — quarterly review 룰 또는 자동 카나리.
+  - u49: history JSONL 압축 (1년 누적 시 ~600KB).
+  - u50: 차트 init JS 의 `MutationObserver` cleanup / page-change 시 차트 re-init 룰.
+- u32 `numeric_self_check`: u49 anchor 가 자동으로 verified haystack 에 포함됨 (anchor 수치는 입력 candidate 의 `raw_metadata` 에서 도출되므로 자연스럽게 매치). Anti-regression test pinned in u49 plan.
+
+**Source**: 2026-05-09 cron 미국 시황 quality 회고 (사용자 직접). 진단은 메인 세션이 trace footer (`archive/us-equity/2026/05/2026-05-08.md` 의 ⑦ 섹션) + GHA log 분석 + `src/investo/briefing/segments.py:259-394` 코드 리뷰로 codify. 사용자 통찰 ("꼭 헤드라인 없어도 가격/차트 데이터만으로 ATH 경신 같은 건 결정론적으로 도출 가능") 이 u49 의 핵심 디자인 결정에 직접 인용됨.
+
+**Affected docs**:
+- `aidlc-docs/construction/plans/u45-segment-routing-exclusivity-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u46-stooq-price-primary-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u47-yahoo-finance-news-content-filter-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u49-deterministic-market-anchor-code-generation-plan.md` (new)
+- `aidlc-docs/construction/plans/u50-lightweight-charts-embed-code-generation-plan.md` (new)
+- `aidlc-docs/aidlc-state.md` (5 new rows in `### Per-Unit Construction Progress` table; Stage Progress / Build and Test rows untouched per planning-only scope)
+- `aidlc-docs/audit.md` (this entry, prepended at top per newest-first convention)
+
+**Status**: Planning complete; implementation deferred. u46 의 R10 fixture 녹화는 unauth public CSV 라 즉시 가능 (credential 블로커 없음); 나머지 4 unit 은 외부 의존 없음. 의존 그래프: u45 → u46 → u49 → u50; u47 독립.
+
+**Context**: Wave 6 closes the 2026-05-09 cron US-equity quality 회고 surface. 사용자가 적시한 3 결함 (BTC/ETH dominance / ATH 누락 / 중심 없음) 은 (a) 라우팅 버그 (u45) + (b) 가격 source 가용성 (u46) + (c) 노이즈 (u47) + (d) 결정론적 anchor 부재 (u49) + (e) visual 보강 (u50) 의 layered cause 로 분해됨. 모든 plan 의 "Persona evidence" 섹션이 사용자 회고 직접 인용 + trace footer 의 leak item ID 인용 (Item #54 / #76 / #82). Plans 250-450 줄 범위 (u47 ~145 / u45 ~210 / u46 ~210 / u49 ~250 / u50 ~270) — u47 은 가장 작은 변경 surface 라 짧음. 모든 plan 이 R10 / R13 / 모듈 경계 / 무료 API only / Anthropic SDK ban 룰을 명시적으로 enforce.
+
+---
+
 ## Construction — u37..u44 — 8 New Units Planned (Wave 5, 10-Persona Evaluation)
 **Timestamp**: 2026-05-09T00:00:00+09:00
 **Trigger**: 10-persona end-user evaluation completed in main session 2026-05-09. Eight backlog candidates surfaced; user explicitly excluded the 9th candidate (persona #3 / 크립토 트레이더 24/7 발행 주기 분리) from this wave.
