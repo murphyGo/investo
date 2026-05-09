@@ -38,6 +38,7 @@ from investo.sources.korea_policy_rss import KoreaPolicyRssAdapter
 from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapter
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
+from investo.sources.stooq_price import StooqPriceAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.treasury_rates import TreasuryRatesAdapter
 from investo.sources.us_economic_calendar import UsEconomicCalendarAdapter
@@ -47,7 +48,7 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 18
+EXPECTED_ADAPTER_COUNT = 19
 EXPECTED_ADAPTER_NAMES = {
     "binance-crypto-market",
     "defillama-market-structure",
@@ -55,6 +56,7 @@ EXPECTED_ADAPTER_NAMES = {
     "fsc-krx-stock-price",
     "fomc-rss",
     "yfinance-price",
+    "stooq-price",
     "coingecko-price",
     "fred-macro",
     "korea-policy-rss",
@@ -91,6 +93,7 @@ def _isolate_registry() -> Iterator[None]:
     register(FscKrxStockPriceAdapter)
     register(KoreaPolicyRssAdapter)
     register(YFinancePriceAdapter)
+    register(StooqPriceAdapter)
     register(CoinGeckoPriceAdapter)
     register(FredMacroAdapter)
     register(NasdaqEarningsCalendarAdapter)
@@ -227,6 +230,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "YahooFinanceNewsAdapter",
         "sec_edgar_8k",
         "SecEdgar8kAdapter",
+        "stooq_price",
+        "StooqPriceAdapter",
         "yonhap_market",
         "YonhapMarketAdapter",
         "theblock_crypto",

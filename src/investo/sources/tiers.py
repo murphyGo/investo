@@ -50,6 +50,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "treasury-rates": "S",
     # A — first-party / official feeds
     "yfinance-price": "A",
+    "stooq-price": "A",
     "yahoo-finance-news": "A",
     "binance-crypto-market": "A",
     "nasdaq-earnings-calendar": "A",

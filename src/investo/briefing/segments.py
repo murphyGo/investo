@@ -98,6 +98,7 @@ _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",
         "sec-edgar-8k",
+        "stooq-price",
         "us-economic-calendar",
         "yahoo-finance-news",
         "yfinance-price",

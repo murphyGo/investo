@@ -1,0 +1,36 @@
+{
+  "recorded_at": "2026-05-10T00:00Z",
+  "source": "https://stooq.com/q/l/",
+  "url_template": "https://stooq.com/q/l/?s={stooq_symbol}&i=d&h=1&f=sd2t2ohlcv",
+  "ticker_map": {
+    "^GSPC": "^spx",
+    "^IXIC": "^ndq",
+    "^DJI": "^dji",
+    "^VIX": "^vix",
+    "AAPL": "aapl.us",
+    "MSFT": "msft.us",
+    "GOOGL": "googl.us",
+    "AMZN": "amzn.us",
+    "NVDA": "nvda.us",
+    "META": "meta.us",
+    "TSLA": "tsla.us",
+    "BTC-USD": "btc.v",
+    "ETH-USD": "eth.v"
+  },
+  "responses": {
+    "GSPC.csv": {"status": 200, "stooq_symbol": "^spx", "size_bytes": 106, "note": "S&P 500 index — happy-path daily snapshot"},
+    "IXIC.csv": {"status": 200, "stooq_symbol": "^ndq", "size_bytes": 118, "note": "NASDAQ Composite — happy-path"},
+    "DJI.csv": {"status": 200, "stooq_symbol": "^dji", "size_bytes": 111, "note": "Dow Jones Industrial Average — happy-path"},
+    "VIX.csv": {"status": 200, "stooq_symbol": "^vix", "size_bytes": 79, "note": "Stooq does NOT carry ^VIX directly — returns N/D placeholder row; adapter must skip gracefully"},
+    "AAPL.csv": {"status": 200, "stooq_symbol": "aapl.us", "size_bytes": 108, "note": "Apple — happy-path"},
+    "MSFT.csv": {"status": 200, "stooq_symbol": "msft.us", "size_bytes": 109, "note": "Microsoft — happy-path"},
+    "GOOGL.csv": {"status": 200, "stooq_symbol": "googl.us", "size_bytes": 105, "note": "Alphabet — happy-path"},
+    "AMZN.csv": {"status": 200, "stooq_symbol": "amzn.us", "size_bytes": 108, "note": "Amazon — happy-path"},
+    "NVDA.csv": {"status": 200, "stooq_symbol": "nvda.us", "size_bytes": 110, "note": "Nvidia — happy-path"},
+    "META.csv": {"status": 200, "stooq_symbol": "meta.us", "size_bytes": 112, "note": "Meta — happy-path"},
+    "TSLA.csv": {"status": 200, "stooq_symbol": "tsla.us", "size_bytes": 111, "note": "Tesla — happy-path"},
+    "BTC-USD.csv": {"status": 200, "stooq_symbol": "btc.v", "size_bytes": 127, "note": "Bitcoin — Stooq btc.v ticker; volume is fractional float"},
+    "ETH-USD.csv": {"status": 200, "stooq_symbol": "eth.v", "size_bytes": 119, "note": "Ethereum — Stooq eth.v ticker; volume is fractional float"},
+    "NOTFOUND.csv": {"status": 200, "stooq_symbol": "zzzznonexistent", "size_bytes": 90, "note": "Unknown ticker — Stooq returns 200 with N/D placeholder row; adapter must skip gracefully"}
+  }
+}

@@ -255,6 +255,70 @@ def test_keyword_fallback_korean_ticker_routes_to_domestic() -> None:
 
 
 # ---------------------------------------------------------------------------
+# u46 — stooq-price routing (us-only source, BTC/ETH titles override)
+# ---------------------------------------------------------------------------
+
+
+def test_stooq_price_us_index_routes_to_us_equity_only() -> None:
+    """``^GSPC`` from stooq-price stays us-equity; no crypto leak."""
+    item = _item(
+        "stooq-price",
+        "^GSPC 7,398.90",
+        category="price",
+        summary="O:7363.00 H:7401.50 L:7363.00 C:7398.90 V:3349607690",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_stooq_price_btc_title_moves_to_crypto() -> None:
+    """``BTC-USD`` title from stooq-price triggers strong-crypto override."""
+    item = _item(
+        "stooq-price",
+        "BTC-USD 80,142.30",
+        category="price",
+        summary="O:79735.20 H:80482.80 L:79230.50 C:80142.30 V:14237",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.crypto == (item,)
+    assert segmented.us_equity == ()
+
+
+def test_stooq_price_eth_title_moves_to_crypto() -> None:
+    item = _item(
+        "stooq-price",
+        "ETH-USD 2,331.00",
+        category="price",
+        summary="O:2314.40 H:2338.14 L:2300.00 C:2331.00 V:282698",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.crypto == (item,)
+    assert segmented.us_equity == ()
+
+
+def test_stooq_price_aapl_stays_us_equity() -> None:
+    item = _item(
+        "stooq-price",
+        "AAPL 293.32",
+        category="price",
+        summary="O:290.01 H:294.76 L:290.00 C:293.32 V:52692761",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+
+
+# ---------------------------------------------------------------------------
 # Invariant — a non-shared item lands in at most one segment
 # ---------------------------------------------------------------------------
 
