@@ -60,6 +60,11 @@ credentials/
 # part of the published archive (read by site rendering + KPI
 # pages), not raw data dumps.
 !archive/**/*.jsonl
+# Test fixtures recorded under R10 (live API responses captured
+# byte-equal). Whitelisted past the global *.csv / *.parquet rules
+# so adapter recordings (e.g. stooq-price CSV) commit cleanly.
+!tests/**/*.csv
+!tests/**/*.parquet
 
 # Logs
 logs/
