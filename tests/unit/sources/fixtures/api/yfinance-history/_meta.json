@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-05-10T06:30Z",
+  "source": "https://query2.finance.yahoo.com/v8/finance/chart",
+  "url_template": "https://query2.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y",
+  "filename_note": "Sidecar is named '_meta.json' (not 'meta.json') because META.json (Meta Platforms ticker fixture) collides with meta.json on case-insensitive filesystems (macOS HFS+/APFS default). Underscore prefix sorts ahead of capital letters so the metadata is visually first in directory listings.",
+  "rationale": "u49 deterministic-market-anchor needs ~1 year of daily OHLCV per ticker to compute ATH / 52-week distance / MTD / YTD / volume z-score. Stooq's bulk q/d/l/ endpoint requires an apikey; Stooq's q/l/ endpoint always returns the most recent day regardless of d1/d2 query params (verified 2026-05-10 — Stooq now displays the apikey gate page). Yahoo Finance v8 chart endpoint with interval=1d&range=1y returns ~250-365 daily rows per ticker without auth. yfinance-price snapshot adapter (u46) already uses query1.finance.yahoo.com; query2.finance.yahoo.com is the same backend with friendlier rate limits for dev IPs. Live runtime on GHA may hit 429 (per u46 note); when the history fetch fails the anchor module gracefully degrades to an empty MarketAnchor tuple and the briefing header line is omitted (DoD A4/A5 + Open Question fallback).",
+  "ticker_url_map": {
+    "^GSPC": "%5EGSPC",
+    "^IXIC": "%5EIXIC",
+    "^DJI": "%5EDJI",
+    "^VIX": "%5EVIX",
+    "AAPL": "AAPL",
+    "MSFT": "MSFT",
+    "GOOGL": "GOOGL",
+    "AMZN": "AMZN",
+    "NVDA": "NVDA",
+    "META": "META",
+    "TSLA": "TSLA",
+    "BTC-USD": "BTC-USD",
+    "ETH-USD": "ETH-USD"
+  },
+  "responses": {
+    "GSPC.json": {"status": 200, "rows": 251, "note": "S&P 500 — last_close == max_close on this recording (ATH scenario for unit tests)"},
+    "IXIC.json": {"status": 200, "rows": 251, "note": "NASDAQ Composite — happy-path"},
+    "DJI.json": {"status": 200, "rows": 251, "note": "Dow Jones — happy-path"},
+    "VIX.json": {"status": 200, "rows": 262, "note": "VIX index — volumes are all zero (or None); z-score must resolve to None"},
+    "AAPL.json": {"status": 200, "rows": 251, "note": "Apple — last_close == max_close on this recording (ATH scenario)"},
+    "MSFT.json": {"status": 200, "rows": 251, "note": "Microsoft — happy-path"},
+    "GOOGL.json": {"status": 200, "rows": 251, "note": "Alphabet — happy-path"},
+    "AMZN.json": {"status": 200, "rows": 251, "note": "Amazon — happy-path"},
+    "NVDA.json": {"status": 200, "rows": 251, "note": "Nvidia — happy-path"},
+    "META.json": {"status": 200, "rows": 251, "note": "Meta — happy-path"},
+    "TSLA.json": {"status": 200, "rows": 251, "note": "Tesla — happy-path"},
+    "BTC-USD.json": {"status": 200, "rows": 366, "note": "Bitcoin — 366 rows because crypto trades 365 days/yr"},
+    "ETH-USD.json": {"status": 200, "rows": 366, "note": "Ethereum — 366 rows because crypto trades 365 days/yr"}
+  }
+}

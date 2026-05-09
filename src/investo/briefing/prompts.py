@@ -271,6 +271,18 @@ Forward-looking "주요 일정" rules (u35 event-lookahead):
 - Subsequent appearances in the same segment do not need a repeated
   gloss. A glossary from another segment does not satisfy this segment.
 
+시장 anchor 인용 룰 (u49 deterministic-market-anchor):
+- 시황 헤더의 ``> **시장 anchor**: ...`` 라인에 명시된 결정론적 사실 (ATH 경신,
+  52주 고가/저가 대비 N%, MTD/YTD 변화, 주요 지수/빅테크/크립토 종가) 은
+  ① 요약과 ② 전일 핵심 이슈에서 그대로 인용해야 한다 — 헤더에 ATH 경신 표시가
+  있으면 본문 ① 또는 ② 에서 한 번 이상 "사상 최고치" / "ATH 경신" 표현으로
+  명시한다.
+- anchor 헤더에 *없는* 가격·% 수치를 발명하지 말 것 — anchor 라인의 % 와 가격
+  값만 그대로 사용 가능하며, 그 외 수치는 입력 candidate 의 ``summary`` /
+  ``raw_metadata`` 에서 인용해야 한다 (위 numeric integrity rule 의 자연스러운
+  연장). anchor 라인 자체가 비어있는 경우 (헤더에 라인 부재) 본 룰은 적용되지
+  않는다.
+
 Recent-briefings continuity rules (u34):
 - The user prompt may include a "최근 N일 컨텍스트" section listing the
   conclusion / key-driver lines from the same segment's recent

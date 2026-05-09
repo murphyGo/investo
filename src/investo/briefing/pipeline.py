@@ -51,6 +51,7 @@ from investo.briefing.disclaimer import DISCLAIMER, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.briefing.glossary import audit_glossary_compliance, render_glossary_callout
 from investo.briefing.leak_guard import scan as leak_guard_scan
+from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_line
 from investo.briefing.prompts import (
     DEFAULT_SEGMENT_CONTEXT,
     SEGMENT_CONTEXT_TEMPLATE,
@@ -951,6 +952,7 @@ def _enhance_reader_experience(
     watchlist_impact: WatchlistImpact | None = None,
     data_limited: bool = False,
     candidates: Sequence[NormalizedItem] | None = None,
+    market_anchors: Sequence[MarketAnchor] = (),
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
@@ -960,6 +962,10 @@ def _enhance_reader_experience(
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
     summary_header = _build_summary_header(sections, data_limited=effective_data_limited)
     watermark = _render_timestamp_watermark(target_date, segment)
+    # u49 — deterministic market anchor line (ATH / 52w / MTD / YTD).
+    # Empty when no anchors landed (history fetch failed or empty
+    # input); the helper returns "" so the f-string collapses cleanly.
+    anchor_line = render_market_anchor_line(market_anchors)
     # u32 Step 2 — Stage 3 numeric self-check. Compare flaggable numeric
     # tokens in the body against the Stage 1 candidate haystack and
     # render a single-line warning callout when mismatches are found.
@@ -973,6 +979,7 @@ def _enhance_reader_experience(
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
         f"{watermark}\n\n"
+        f"{anchor_line}"
         f"**세그먼트**: {_segment_nav(target_date, segment)}\n\n"
         f"{_render_coverage_badge(coverage) if coverage is not None else ''}"
         f"{_render_watchlist_callout(watchlist_impact) if watchlist_impact is not None else ''}"
@@ -1163,6 +1170,7 @@ async def generate_briefing(
     watchlist_config: WatchlistConfig | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
     recent_context: RecentBriefingsContext | None = None,
+    market_anchors: Sequence[MarketAnchor] = (),
     generation_policy: GenerationPolicy | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
@@ -1211,6 +1219,7 @@ async def generate_briefing(
             watchlist_impact=watchlist_impact,
             data_limited=True,
             candidates=items,
+            market_anchors=market_anchors,
         )
         full_markdown = append_disclaimer(enhanced_markdown)
         hit = leak_guard_scan(full_markdown)
@@ -1272,6 +1281,7 @@ async def generate_briefing(
         watchlist_impact=watchlist_impact,
         data_limited=effective_data_limited,
         candidates=llm_items,
+        market_anchors=market_anchors,
     )
     # u32 Step 3 — append the traceability + signature footer just
     # before the disclaimer. The footer is `<details>`-collapsed so it

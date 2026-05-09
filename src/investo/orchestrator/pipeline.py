@@ -87,6 +87,11 @@ from investo.briefing.forecast_log import (
     append_forecast_entries,
     resolve_forecast_log_path,
 )
+from investo.briefing.market_anchor import (
+    DEFAULT_HISTORY_WINDOW_DAYS,
+    MarketAnchor,
+    compute_market_anchors,
+)
 from investo.briefing.monthly_retrospective import (
     month_has_archive_days,
     render_monthly_retrospective,
@@ -226,6 +231,7 @@ SegmentGenerateCallable = Callable[
         bool,
         Sequence[SourceOutcome],
         RecentBriefingsContext | None,
+        Sequence[MarketAnchor],
     ],
     Awaitable[Briefing],
 ]
@@ -273,6 +279,7 @@ async def _default_generate_segment_briefing(
     data_limited: bool,
     source_outcomes: Sequence[SourceOutcome],
     recent_context: RecentBriefingsContext | None,
+    market_anchors: Sequence[MarketAnchor],
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
     return await _u2_generate_briefing(
@@ -283,6 +290,7 @@ async def _default_generate_segment_briefing(
         data_limited=data_limited,
         source_outcomes=source_outcomes,
         recent_context=recent_context,
+        market_anchors=market_anchors,
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
     )
 
@@ -403,6 +411,7 @@ async def _stage_generate_segments(
     generate_segment: SegmentGenerateCallable | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
     recent_context: RecentBriefingsContext | None = None,
+    market_anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]] | None = None,
 ) -> tuple[dict[MarketSegment, Briefing], dict[MarketSegment, BriefingGenerationError]]:
     """Generate all u7 market segments in fixed order.
 
@@ -440,6 +449,9 @@ async def _stage_generate_segments(
             data_limited,
             len(segment_outcomes),
         )
+        segment_anchors: tuple[MarketAnchor, ...] = ()
+        if market_anchors_by_segment is not None:
+            segment_anchors = tuple(market_anchors_by_segment.get(segment, ()))
         try:
             briefings[segment] = await runner_callable(
                 target_date,
@@ -449,6 +461,7 @@ async def _stage_generate_segments(
                 data_limited,
                 segment_outcomes,
                 recent_context,
+                segment_anchors,
             )
         except BriefingGenerationError as exc:
             failures[segment] = exc
@@ -799,6 +812,75 @@ async def _stage_publish_segments(
     else:
         _logger.info("[publish] committed + pushed segmented %s", target_date)
     return archive_paths
+
+
+# u49 deterministic-market-anchor segment routing. Mirrors the price-
+# adapter coverage: us-equity owns the S&P 500 / NASDAQ / DJIA indices
+# plus the seven big-tech bellwethers; crypto owns BTC-USD / ETH-USD;
+# domestic-equity has no Yahoo-coverable basket today (KOSPI / KOSDAQ
+# are not part of the snapshot adapters' default basket and would
+# need a separate fetcher — out of scope for u49 per the plan).
+_ANCHOR_SEGMENT_ROUTING: dict[str, MarketSegment] = {
+    "^GSPC": US_EQUITY,
+    "^IXIC": US_EQUITY,
+    "^DJI": US_EQUITY,
+    "AAPL": US_EQUITY,
+    "MSFT": US_EQUITY,
+    "GOOGL": US_EQUITY,
+    "AMZN": US_EQUITY,
+    "NVDA": US_EQUITY,
+    "META": US_EQUITY,
+    "TSLA": US_EQUITY,
+    "BTC-USD": CRYPTO,
+    "ETH-USD": CRYPTO,
+}
+
+
+async def _load_market_anchors_for_run(
+    target_date: date,
+) -> dict[MarketSegment, tuple[MarketAnchor, ...]]:
+    """Fetch trailing price history and compute per-segment market anchors (u49).
+
+    Best-effort: any failure (network, 429, malformed JSON) is logged
+    and swallowed; the orchestrator continues with empty anchors and
+    the briefing header simply omits the ``> **시장 anchor**`` line.
+    The function is async because the underlying HTTP fetch is async;
+    the actual computation is pure and synchronous.
+    """
+    import httpx
+
+    from investo.sources.yfinance_history import fetch_price_history
+
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            history = await fetch_price_history(client)
+    except Exception as exc:  # pragma: no cover - best-effort guard
+        _logger.warning(
+            "[market_anchor] history fetch failed (%s); briefing header anchor omitted",
+            exc,
+        )
+        return {segment: () for segment in SEGMENT_ORDER}
+
+    anchors = compute_market_anchors(
+        history,
+        today=target_date,
+        history_window_days=DEFAULT_HISTORY_WINDOW_DAYS,
+    )
+    by_segment: dict[MarketSegment, list[MarketAnchor]] = {segment: [] for segment in SEGMENT_ORDER}
+    for anchor in anchors:
+        segment = _ANCHOR_SEGMENT_ROUTING.get(anchor.ticker)
+        if segment is None:
+            continue
+        by_segment[segment].append(anchor)
+    _logger.info(
+        "[market_anchor] target_date=%s tickers=%d us=%d crypto=%d domestic=%d",
+        target_date,
+        len(anchors),
+        len(by_segment[US_EQUITY]),
+        len(by_segment[CRYPTO]),
+        len(by_segment[DOMESTIC_EQUITY]),
+    )
+    return {segment: tuple(values) for segment, values in by_segment.items()}
 
 
 def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | None:
@@ -1280,6 +1362,7 @@ async def run_pipeline(
     try:
         if segmented_mode:
             recent_context = _load_recent_context_for_run(target_date)
+            market_anchors_by_segment = await _load_market_anchors_for_run(target_date)
             segment_briefings, segment_generation_failures = await _stage_generate_segments(
                 target_date,
                 items,
@@ -1287,6 +1370,7 @@ async def run_pipeline(
                 generate_segment=generate_segment,
                 source_outcomes=source_outcomes,
                 recent_context=recent_context,
+                market_anchors_by_segment=market_anchors_by_segment,
             )
             primary_generated_segment = (
                 DOMESTIC_EQUITY
