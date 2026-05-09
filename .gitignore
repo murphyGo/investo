@@ -55,6 +55,11 @@ credentials/
 *.parquet
 *.jsonl
 !aidlc-docs/**/*.jsonl
+# u31 source health, u42 quality history, u44 forecast log all
+# persist append-only JSONL meta under archive/_meta/. These are
+# part of the published archive (read by site rendering + KPI
+# pages), not raw data dumps.
+!archive/**/*.jsonl
 
 # Logs
 logs/
