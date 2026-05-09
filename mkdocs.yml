@@ -138,6 +138,20 @@ extra:
 extra_css:
   - assets/u29.css
 
+# u50 lightweight-charts-embed: self-hosted TradingView Lightweight
+# Charts (Apache-2.0) plus the project's progressive-enhancement init
+# script. ``investo-chart-init.js`` scans for
+# ``<div class="investo-chart" ...>`` placeholders that the publisher
+# (``investo.publisher.charts``) injects into segment markdown and
+# turns them into interactive candlestick charts. The static SVG
+# cards (u24 / u26) remain in place as the no-JS fallback. The
+# bundle is committed verbatim under ``site_docs/assets/`` (the
+# unit tests pin its sha256 + LICENSE so an accidental swap fails
+# loudly).
+extra_javascript:
+  - assets/lightweight-charts.standalone.production.js
+  - assets/investo-chart-init.js
+
 # Strict mode is enabled at the CLI level (``mkdocs build --strict``)
 # in ``pages.yml``. We do NOT set ``strict: true`` here so that local
 # preview (``uv run mkdocs serve``) tolerates work-in-progress drafts.

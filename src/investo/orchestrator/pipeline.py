@@ -90,6 +90,7 @@ from investo.briefing.forecast_log import (
 from investo.briefing.market_anchor import (
     DEFAULT_HISTORY_WINDOW_DAYS,
     MarketAnchor,
+    OHLCRow,
     compute_market_anchors,
 )
 from investo.briefing.monthly_retrospective import (
@@ -153,6 +154,7 @@ from investo.publisher import (
     archive_path as compute_archive_path,
 )
 from investo.publisher import site_index as _site_index_mod
+from investo.publisher.charts import build_chart_block, inject_chart_block
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
@@ -838,19 +840,34 @@ _ANCHOR_SEGMENT_ROUTING: dict[str, MarketSegment] = {
 
 async def _load_market_anchors_for_run(
     target_date: date,
-) -> dict[MarketSegment, tuple[MarketAnchor, ...]]:
+) -> tuple[
+    dict[MarketSegment, tuple[MarketAnchor, ...]],
+    dict[str, tuple[OHLCRow, ...]],
+]:
     """Fetch trailing price history and compute per-segment market anchors (u49).
 
+    Returns both:
+
+    * ``anchors_by_segment`` — the per-segment :class:`MarketAnchor`
+      tuples consumed by the briefing header line.
+    * ``history_by_ticker`` — the raw ``OHLCRow`` history keyed by
+      ticker; the publisher (u50) feeds this into Lightweight Charts
+      placeholders so the same fetch underpins both surfaces.
+
     Best-effort: any failure (network, 429, malformed JSON) is logged
-    and swallowed; the orchestrator continues with empty anchors and
-    the briefing header simply omits the ``> **시장 anchor**`` line.
-    The function is async because the underlying HTTP fetch is async;
-    the actual computation is pure and synchronous.
+    and swallowed; the orchestrator continues with empty anchors AND
+    empty history, the briefing header omits the
+    ``> **시장 anchor**`` line, and the chart-block injection skips
+    silently. The function is async because the underlying HTTP
+    fetch is async; the post-fetch computation is pure synchronous.
     """
     import httpx
 
     from investo.sources.yfinance_history import fetch_price_history
 
+    empty_anchors: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
+        segment: () for segment in SEGMENT_ORDER
+    }
     try:
         async with httpx.AsyncClient(timeout=20.0) as client:
             history = await fetch_price_history(client)
@@ -859,7 +876,7 @@ async def _load_market_anchors_for_run(
             "[market_anchor] history fetch failed (%s); briefing header anchor omitted",
             exc,
         )
-        return {segment: () for segment in SEGMENT_ORDER}
+        return empty_anchors, {}
 
     anchors = compute_market_anchors(
         history,
@@ -880,7 +897,49 @@ async def _load_market_anchors_for_run(
         len(by_segment[CRYPTO]),
         len(by_segment[DOMESTIC_EQUITY]),
     )
-    return {segment: tuple(values) for segment, values in by_segment.items()}
+    history_by_ticker = {ticker: tuple(rows) for ticker, rows in history.items()}
+    return (
+        {segment: tuple(values) for segment, values in by_segment.items()},
+        history_by_ticker,
+    )
+
+
+def _inject_chart_blocks_into_segments(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    history_by_ticker: Mapping[str, Sequence[OHLCRow]],
+) -> dict[MarketSegment, Briefing]:
+    """Insert a Lightweight Charts placeholder block into each briefing.
+
+    Pure-ish: relies only on the supplied anchors / history dicts; no
+    network, no clock. The injection is idempotent — re-running with
+    the same inputs yields byte-equal markdown so same-day re-runs
+    (FR-006) do not duplicate the block.
+
+    Returns a fresh dict with replacement :class:`Briefing` instances
+    for any segment whose markdown was rewritten. Segments without
+    matching history (or with the section-five header missing) are
+    passed through unchanged.
+    """
+    if not history_by_ticker:
+        return segment_briefings
+    rewritten: dict[MarketSegment, Briefing] = {}
+    for segment, briefing in segment_briefings.items():
+        anchors = anchors_by_segment.get(segment, ())
+        if not anchors:
+            rewritten[segment] = briefing
+            continue
+        block = build_chart_block(anchors, history_by_ticker)
+        if not block:
+            rewritten[segment] = briefing
+            continue
+        new_md = inject_chart_block(briefing.rendered_markdown, block)
+        if new_md == briefing.rendered_markdown:
+            rewritten[segment] = briefing
+            continue
+        rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_md})
+    return rewritten
 
 
 def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | None:
@@ -1359,10 +1418,17 @@ async def run_pipeline(
     stage_start = time.monotonic()
     segmented_mode = generate is None
     segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
+    market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
+    market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
+        segment: () for segment in SEGMENT_ORDER
+    }
     try:
         if segmented_mode:
             recent_context = _load_recent_context_for_run(target_date)
-            market_anchors_by_segment = await _load_market_anchors_for_run(target_date)
+            (
+                market_anchors_by_segment,
+                market_history_by_ticker,
+            ) = await _load_market_anchors_for_run(target_date)
             segment_briefings, segment_generation_failures = await _stage_generate_segments(
                 target_date,
                 items,
@@ -1432,6 +1498,16 @@ async def run_pipeline(
         else:
             stage_timings["visual_assets"] = time.monotonic() - stage_start
             stages["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
+
+        # u50 lightweight-charts-embed — inject the per-segment chart
+        # placeholder block on top of the SVG visual cards. Best-effort:
+        # missing history (e.g. Yahoo 429 on the cron) yields an empty
+        # block and the briefing markdown is left untouched.
+        segment_briefings = _inject_chart_blocks_into_segments(
+            segment_briefings,
+            anchors_by_segment=market_anchors_by_segment,
+            history_by_ticker=market_history_by_ticker,
+        )
 
     # ------------------------------------------------------------------
     # PUBLISH (AC-003-4, AC-003-5)
