@@ -974,3 +974,46 @@ def test_action_tag_is_preserved_in_telegram_one_liner() -> None:
     # The closed-set tag should appear right at the end of the conclusion
     # line — adjacent to the "기간 진행 중입니다." sentence.
     assert "진행 중입니다. [강세]" in summary
+
+
+# ---------------------------------------------------------------------------
+# u43 / DEBT-067 M1 — clock-explicit contract
+# ---------------------------------------------------------------------------
+
+
+def test_lookahead_items_supplied_without_now_utc_raises_value_error() -> None:
+    """When the caller supplies ``lookahead_items_by_segment`` it must
+    also pass ``now_utc`` explicitly. The notifier never reads
+    ``datetime.now(UTC)`` for the imminent-tag selector — the
+    orchestrator owns the clock so test fixtures see deterministic
+    output. Regression: a refactor that re-introduces the implicit
+    fallback on the imminent-tag path silently breaks every D-N
+    fixture in this file.
+    """
+    briefings = _imminent_briefings()
+    nvda = _earnings_item(symbol="NVDA", scheduled_at_iso="2026-04-27T20:00:00+00:00")
+
+    with pytest.raises(ValueError, match="now_utc required"):
+        build_segmented_summary(
+            briefings,
+            site_urls=_SEGMENT_URLS,
+            lookahead_items_by_segment={US_EQUITY: (nvda,)},
+            now_utc=None,
+        )
+
+
+def test_now_utc_supplied_without_lookahead_items_is_legal() -> None:
+    """The inverse direction is **not** an error: callers may pass
+    ``now_utc`` for header-publish-time rendering even without a
+    lookahead bucket. The contract only fires on the asymmetric
+    ``lookahead_items=set, now_utc=None`` shape.
+    """
+    briefings = _imminent_briefings()
+    now_utc = datetime(2026, 4, 25, 12, 0, tzinfo=UTC)
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        now_utc=now_utc,
+    )
+    assert summary  # rendered without raising

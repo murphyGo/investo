@@ -24,6 +24,11 @@ CoverageReasonCode = Literal[
     "MISSING_EARNINGS",
     "SOURCE_FAILED",
     "SOURCE_ZERO",
+    # u43 — emitted only when the segment had ≥ 1 lookahead-aware
+    # adapter attempted *and* the lookahead pass for that segment
+    # returned zero forward-scheduled items. Never fires on a segment
+    # with no lookahead-aware adapter registered (anti-regression).
+    "LOOKAHEAD_DATA_MISSING",
 ]
 COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "ZERO_ITEMS": "수집 항목 0건",
@@ -35,7 +40,22 @@ COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "MISSING_EARNINGS": "실적 카테고리 누락",
     "SOURCE_FAILED": "일부 소스 수집 실패",
     "SOURCE_ZERO": "일부 소스 0건 반환",
+    "LOOKAHEAD_DATA_MISSING": "예정 일정 데이터 미확보",
 }
+
+# u43 — registry of lookahead-aware adapters. Only adapters listed here
+# have the ability to emit forward-scheduled items
+# (``NormalizedItem.scheduled_at is not None``); the
+# ``LOOKAHEAD_DATA_MISSING`` reason fires only when at least one of
+# these adapters is mapped to the segment via the source allow-list.
+# Adding a new lookahead adapter requires adding it here so the reason
+# code starts firing on its segment(s).
+LOOKAHEAD_AWARE_SOURCES: Final[frozenset[str]] = frozenset(
+    {
+        "fomc-calendar",
+        "nasdaq-earnings-calendar",
+    }
+)
 _MISSING_CATEGORY_TO_REASON: Final[dict[Category, CoverageReasonCode]] = {
     "news": "MISSING_NEWS",
     "price": "MISSING_PRICE",
@@ -99,6 +119,7 @@ _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
 _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "cnbc-top-news",
+        "fomc-calendar",
         "fomc-rss",
         "fred-macro",
         "nasdaq-earnings-calendar",
@@ -462,6 +483,24 @@ def build_segment_coverage(
     )
 
 
+def filter_lookahead_items(
+    items: Sequence[NormalizedItem],
+) -> tuple[NormalizedItem, ...]:
+    """u43 / DEBT-067 M3 — single-filter chokepoint for forward-scheduled items.
+
+    Returns the subset of ``items`` whose ``scheduled_at`` is set
+    (forward-looking events: FOMC meetings, earnings calendar entries,
+    token unlocks). Both the briefing-side ``_render_lookahead_context_block``
+    (Stage 2 prompt narrative) and the notifier-side
+    ``_imminent_event_tag`` (Telegram D-N tag selector) consume the
+    filter result derived from this single call so the two surfaces can
+    never silently disagree about which forward items count as
+    "lookahead". Adding a new criterion to "what counts as lookahead"
+    happens here; both surfaces inherit the change automatically.
+    """
+    return tuple(item for item in items if item.scheduled_at is not None)
+
+
 def segment_source_outcomes(
     segment: MarketSegment,
     outcomes: Sequence[SourceOutcome],
@@ -496,7 +535,50 @@ def _derive_reason_codes(
         codes.append("SOURCE_FAILED")
     if any(outcome.status == "zero" for outcome in source_outcomes):
         codes.append("SOURCE_ZERO")
+    if _lookahead_data_missing(segment, items, source_outcomes):
+        codes.append("LOOKAHEAD_DATA_MISSING")
     return tuple(codes)
+
+
+def _lookahead_data_missing(
+    segment: MarketSegment,
+    items: Sequence[NormalizedItem],
+    source_outcomes: Sequence[SourceOutcome],
+) -> bool:
+    """u43 — emit ``LOOKAHEAD_DATA_MISSING`` only under both conditions.
+
+    Trigger conditions (both required):
+
+    * **At least one lookahead-aware adapter was attempted for this
+      segment.** Determined from ``source_outcomes``: any outcome whose
+      ``source_name`` is in :data:`LOOKAHEAD_AWARE_SOURCES` and whose
+      ``status`` is not absent (the aggregator records every registered
+      adapter, so any present outcome counts as "attempted"). This
+      anti-regression guard prevents the reason code from firing on a
+      segment that simply has no lookahead-aware adapter registered.
+    * **The segment routed zero forward-scheduled items.** A forward
+      item is one with ``scheduled_at is not None``. The check looks
+      at the items already routed to ``segment``, so the reason
+      reflects what *this* segment will surface.
+
+    Note: the ``segment`` argument is part of the helper's signature so
+    callers cannot forget to scope the check; the actual filtering of
+    ``source_outcomes`` and ``items`` to the segment must happen at the
+    caller (mirroring how the enclosing :func:`_derive_reason_codes`
+    receives pre-filtered inputs).
+    """
+    # ``segment`` is currently used only for the docstring contract; the
+    # caller has pre-filtered both arguments to the segment scope. Keep
+    # the parameter present so a future refactor can re-validate the
+    # scope inside this helper without changing callers.
+    del segment
+    has_lookahead_aware_adapter = any(
+        outcome.source_name in LOOKAHEAD_AWARE_SOURCES for outcome in source_outcomes
+    )
+    if not has_lookahead_aware_adapter:
+        return False
+    has_forward_item = any(item.scheduled_at is not None for item in items)
+    return not has_forward_item
 
 
 def _item_text(item: NormalizedItem) -> str:
@@ -567,6 +649,7 @@ __all__ = [
     "COVERAGE_STATUS_LABELS",
     "CRYPTO",
     "DOMESTIC_EQUITY",
+    "LOOKAHEAD_AWARE_SOURCES",
     "SEGMENT_LABELS",
     "SEGMENT_REQUIRED_CATEGORIES",
     "SEGMENT_THRESHOLDS",
@@ -577,6 +660,7 @@ __all__ = [
     "SegmentCoverage",
     "SegmentedItems",
     "build_segment_coverage",
+    "filter_lookahead_items",
     "segment_items",
     "segment_source_outcomes",
 ]

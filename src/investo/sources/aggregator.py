@@ -34,6 +34,7 @@ _CRYPTO_MARKET_TZ = ZoneInfo("UTC")
 _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "cnbc-top-news",
+        "fomc-calendar",
         "fomc-rss",
         "fred-macro",
         "nasdaq-earnings-calendar",

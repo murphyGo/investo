@@ -112,6 +112,7 @@ from investo.briefing.segments import (
     US_EQUITY,
     MarketSegment,
     SegmentCoverage,
+    filter_lookahead_items,
     segment_items,
     segment_source_outcomes,
 )
@@ -1213,8 +1214,20 @@ async def _stage_notify_segmented_briefing(
     site_urls: dict[MarketSegment, HttpUrl],
     items: Sequence[NormalizedItem] = (),
     coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
+    lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+    now_utc: datetime | None = None,
 ) -> SendResult:
-    """Compose + dispatch one public-channel message for all segments."""
+    """Compose + dispatch one public-channel message for all segments.
+
+    u43 / DEBT-067 M1 — clock-explicit contract. When the caller wants
+    forward-looking imminent-event tags rendered into the Telegram
+    summary, both ``lookahead_items_by_segment`` and ``now_utc`` must
+    be supplied. The notifier never reads ``datetime.now(UTC)`` for
+    the imminent-event tag; the orchestrator owns the clock so test
+    fixtures can pin the rendered output deterministically. The
+    notifier itself enforces the symmetric invariant
+    (``ValueError`` when one is supplied without the other).
+    """
     published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
     if not published_segments:
         return SendResult(ok=False, error="segmented notification requires at least one briefing")
@@ -1229,6 +1242,8 @@ async def _stage_notify_segmented_briefing(
             price_items=items,
             coverage_by_segment=coverage_by_segment,
             enabled_segments=resolve_enabled_segments(),
+            lookahead_items_by_segment=lookahead_items_by_segment,
+            now_utc=now_utc,
         )
         payload = BriefingNotification(
             target_date=target_date,
@@ -1591,12 +1606,27 @@ async def run_pipeline(
             )
             for segment in segment_briefings
         }
+        # u43 / DEBT-067 M1 + M3 — clock-explicit + single-filter
+        # contract. ``filter_lookahead_items`` is the single chokepoint
+        # that decides what counts as forward-scheduled (M3); we
+        # compute it once on the routed-per-segment items, then hand
+        # both the filtered map and the orchestrator-owned ``now_utc``
+        # to the notifier (M1). The notifier raises if either is
+        # supplied while the other is missing — keeps the imminent-tag
+        # selector deterministic against test fixtures.
+        notify_now_utc = datetime.now(UTC)
+        lookahead_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
+            segment: filter_lookahead_items(routed_items_for_alert.for_segment(segment))
+            for segment in segment_briefings
+        }
         notify_result = await _stage_notify_segmented_briefing(
             segment_briefings,
             publisher=publisher,
             site_urls=segment_urls,
             items=items,
             coverage_by_segment=coverage_by_segment,
+            lookahead_items_by_segment=lookahead_items_by_segment,
+            now_utc=notify_now_utc,
         )
     else:
         notify_result = await _stage_notify_briefing(

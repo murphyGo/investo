@@ -1,0 +1,11 @@
+{
+  "_recorded_at": "2026-05-10T07:50:00Z",
+  "_recorded_url": "https://www.federalreserve.gov/json/calendar.json",
+  "_note": "Forward FOMC schedule (events: meetings, speeches, testimony, statistical releases). Recorded once per the u43 fixture procedure; tests replay this body via httpx.MockTransport (R10). Re-record only when the live shape changes; document the change in aidlc-docs/audit.md. The endpoint is unauthenticated, so no API key appears in the URL or body. The byte-equal contract is enforced by sha256 below.",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json; charset=utf-8"
+  },
+  "sha256": "8d7995f3417d839497a62c30b8da992f9e4498561d193c08a72ae9e63b51de1f",
+  "byte_size": 528613
+}

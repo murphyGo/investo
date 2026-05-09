@@ -43,6 +43,7 @@ _logger = logging.getLogger(__name__)
 ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     # S — regulatory / exchange / sovereign data
     "sec-edgar-8k": "S",
+    "fomc-calendar": "S",
     "fomc-rss": "S",
     "fsc-krx-index-price": "S",
     "fsc-krx-stock-price": "S",

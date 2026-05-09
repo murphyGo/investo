@@ -223,6 +223,15 @@ def build_segmented_summary(
     all_published = tuple(segment for segment in ordered_segments if segment in briefings)
     if not all_published:
         raise ValueError("segmented summary requires at least one briefing")
+    # u43 / DEBT-067 M1 — clock-explicit contract: when the caller
+    # supplies ``lookahead_items_by_segment`` it must also pass
+    # ``now_utc`` explicitly. Falling back to ``datetime.now(UTC)``
+    # would couple the notifier to wall-clock time and make the
+    # deterministic D-N selector non-reproducible. The invariant fires
+    # before any rendering so tests see a clean ``ValueError`` rather
+    # than a partially-built summary.
+    if lookahead_items_by_segment is not None and now_utc is None:
+        raise ValueError("now_utc required when lookahead_items_by_segment is supplied")
     if enabled_segments is not None:
         allowed = set(enabled_segments)
         filtered = tuple(segment for segment in all_published if segment in allowed)

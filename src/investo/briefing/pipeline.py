@@ -70,6 +70,7 @@ from investo.briefing.segments import (
     MarketSegment,
     SegmentCoverage,
     build_segment_coverage,
+    filter_lookahead_items,
     segment_source_outcomes,
 )
 from investo.briefing.watchlist import (
@@ -635,7 +636,7 @@ def _render_lookahead_context_block(items: Sequence[NormalizedItem]) -> str:
     plus an inline character ceiling per line keeps the total bounded
     even when an upstream adapter floods.
     """
-    lookahead = tuple(item for item in items if item.scheduled_at is not None)
+    lookahead = filter_lookahead_items(items)
     if not lookahead:
         return format_lookahead_section("")
 
