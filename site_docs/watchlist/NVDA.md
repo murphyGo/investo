@@ -7,6 +7,8 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-05-08
 
 - [yonhap-market] **ticker**: 엔비디아 "코닝 공장건설에 수십억달러 투자…지분확보 별개"
+- [stooq-price] **ticker**: NVDA 215.20
 - [theblock-crypto] **ticker**: Bernstein sets $100 IREN target after $3.4 billion NVIDIA AI deal
 
 <!-- u33 entry 2026-05-08 end -->
+

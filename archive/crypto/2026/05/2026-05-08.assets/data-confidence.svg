@@ -5,15 +5,15 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 데이터 신뢰도</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-08</text>
 <text class="card-emphasis" x="90" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">상태</text>
-<text class="card-text" x="310" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">partial</text>
+<text class="card-text" x="310" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">normal</text>
 <text class="card-emphasis" x="90" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">수집</text>
-<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">34건</text>
+<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">20건</text>
 <text class="card-emphasis" x="90" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">소스</text>
-<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">5개</text>
+<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">4개</text>
 <text class="card-emphasis" x="90" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">누락</text>
-<text class="card-text" x="310" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">가격</text>
+<text class="card-text" x="310" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">없음</text>
 <text class="card-emphasis" x="90" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">사유</text>
-<text class="card-text" x="310" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">가격 카테고리 누락, 일부 소스 수집 실패, 일부 소스 0건 반환</text>
+<text class="card-text" x="310" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">일부 소스 수집 실패, 일부 소스 0건 반환</text>
 <text class="card-label" x="620" y="200" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22" font-weight="700">소스별 상태</text>
 <text class="card-emphasis" x="620" y="240" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">binance-crypto-market</text>
 <text class="card-text" x="620" y="266" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">실패 · source &#x27;binance-crypto-market&#x27; failed:</text>

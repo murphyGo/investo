@@ -1,3 +1,3 @@
-{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/05/2026-05-08.md", "published_at": "2026-05-09T10:18:36.201409+00:00", "segment": "crypto", "target_date": "2026-05-08", "tickers": []}
-{"action_tag": "[강세]", "briefing_url": "archive/domestic-equity/2026/05/2026-05-08.md", "published_at": "2026-05-09T10:18:36.201409+00:00", "segment": "domestic-equity", "target_date": "2026-05-08", "tickers": ["AI"]}
-{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/05/2026-05-08.md", "published_at": "2026-05-09T10:18:36.201409+00:00", "segment": "us-equity", "target_date": "2026-05-08", "tickers": ["BTC", "DGS10", "ETH"]}
+{"action_tag": "[혼조]", "briefing_url": "archive/crypto/2026/05/2026-05-08.md", "published_at": "2026-05-10T23:14:27.724667+00:00", "segment": "crypto", "target_date": "2026-05-08", "tickers": ["BTC", "USD"]}
+{"action_tag": "[혼조]", "briefing_url": "archive/domestic-equity/2026/05/2026-05-08.md", "published_at": "2026-05-10T23:14:27.724667+00:00", "segment": "domestic-equity", "target_date": "2026-05-08", "tickers": []}
+{"action_tag": "[강세]", "briefing_url": "archive/us-equity/2026/05/2026-05-08.md", "published_at": "2026-05-10T23:14:27.724667+00:00", "segment": "us-equity", "target_date": "2026-05-08", "tickers": []}
