@@ -35,6 +35,7 @@ from . import (
     fomc_calendar,  # noqa: F401
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
+    fred_economic_calendar,  # noqa: F401
     fsc_krx_index_price,  # noqa: F401
     fsc_krx_stock_price,  # noqa: F401
     korea_policy_rss,  # noqa: F401

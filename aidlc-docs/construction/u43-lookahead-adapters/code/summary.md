@@ -1,9 +1,9 @@
 # u43 lookahead-adapters — Code stage summary
 
-**Closed**: 2026-05-10 (partial — 1 adapter of 4 landed; 3 deferred under DEBT-067 sub-bullets)
-**Status**: ✅ Complete (partial — 3 adapters DEBT-067 deferred)
+**Closed**: 2026-05-10 (partial — 2 adapters of 4 landed; 2 deferred under DEBT-067 sub-bullets)
+**Status**: ✅ Complete (partial — 2 adapters DEBT-067 deferred)
 **Persona**: #4 미국 (P1) + #8 운영자 (P1)
-**Resolves**: DEBT-067 partial — orchestrator wire-through + reason code complete; 3 adapter sub-bullets retained
+**Resolves**: DEBT-067 partial — orchestrator wire-through + reason code complete; `fomc-calendar` (main session) + `fred-economic-calendar` (follow-up session) landed; 2 adapter sub-bullets retained
 
 ## What landed
 
@@ -99,3 +99,93 @@ Planner-action note inline recommending **P1 → P2 demotion** since the user-vi
 ## Out of scope (per plan)
 
 Stage 2 prompt 본문 변경 (u35 가 이미 처리), 새 lookahead 카테고리 추가, 다른 어댑터 변경, KRX OTP scraping (R10 violation).
+
+---
+
+## u43 follow-up (2026-05-10) — `fred-economic-calendar` landed
+
+### Why a follow-up
+
+Main u43 session deferred `fred-economic-calendar` because `api.stlouisfed.org` was unreachable (TLS handshake timeout across IPv4/IPv6/HTTP1.1/HTTP2). Main session post-mortem verification on the same day showed FRED reachable from the operator shell (HTTP 400 with `api_key=invalidkey` = TLS healthy, control surface responding), so the outage was transient. Follow-up session re-records the live fixtures and lands the adapter against the unchanged u43 wire-through.
+
+### Adapter — `fred-economic-calendar` ✅
+
+- New module `src/investo/sources/fred_economic_calendar.py` (~330 lines).
+- Endpoint: `https://api.stlouisfed.org/fred/release/dates` (per-release, parallel fan-out via `asyncio.gather`).
+- Default release set (10 ids — market-moving FRED releases the persona explicitly mentioned):
+  - `10` Consumer Price Index (CPI)
+  - `46` Producer Price Index (PPI)
+  - `50` Employment Situation (NFP / Unemployment)
+  - `53` Gross Domestic Product (GDP)
+  - `54` Personal Income and Outlays (PCE)
+  - `13` Industrial Production
+  - `9` Advance Monthly Retail Sales
+  - `192` JOLTS
+  - `27` New Residential Construction (Housing Starts)
+  - `291` Existing Home Sales
+  - `101` (FOMC Press Release) **excluded** — `fomc-calendar` already surfaces every Federal Reserve event from the source-of-record.
+- Tier `A` (FRED is a first-party publishing endpoint — Federal Reserve Bank of St. Louis aggregator of regulator-of-record releases). Single-segment `us-equity`.
+- Env overrides:
+  - `INVESTO_FRED_CALENDAR_RELEASES` — comma-separated release ids (R12 standard parsing).
+  - `INVESTO_FRED_CALENDAR_LOOKAHEAD_DAYS` — default 30, clamp `[1, 180]` (mirrors fomc-calendar).
+- R13 secret hygiene: `FRED_API_KEY` read at fetch time; missing → `SourceFetchError(transient=False)` with env-var name in message (key value never logged). Already enrolled in `SECRET_ENV_VARS` from u35.
+- Forward-only window: `[target_date, target_date + N)` — strict, mirrors fomc-calendar / nasdaq-earnings-calendar.
+- `scheduled_at`: UTC midnight on the release date (FRED `date` field is local-only; per-release ET wall-clock would require a brittle offset table that drifts when BLS shifts release timing).
+- `published_at`: UTC midnight on the target date — keeps forward rows attached to the publish slice (compatible with aggregator's `_MAX_FUTURE_PUBLISHED_AT = 30 days` guard).
+- Per-release isolation: `asyncio.gather(return_exceptions=True)` mirrors the `fred-macro` pattern — bad release id (typo / 4xx) only fails that release.
+
+### R10 fixture recording session — verified network reachable
+
+| fixture | bytes | sha256 prefix | api_key plaintext hits |
+|---------|-------|---------------|------------------------|
+| `release_10_cpi.json` | 727 | `afc30709…` | 0 |
+| `release_46_ppi.json` | 727 | `a087db85…` | 0 |
+| `release_50_nfp.json` | 727 | `d6456634…` | 0 |
+| `release_53_gdp.json` | 727 | `0ba6423a…` | 0 |
+| `empty_far_future.json` | 156 | `e77c09c5…` | 0 |
+| `invalid_key.json` (HTTP 400) | 219 | `1080bed3…` | 0 (FRED's prose mentions "api_key" — that is upstream message text, not a leaked credential; pinned by the regex `api_key=[a-z0-9]{32}` not matching anywhere) |
+| `meta.json` | (small) | n/a | 0 (template uses `api_key=***`) |
+
+R13 verification: `grep -r "api_key=<live key>"` → 0 hits in fixture directory. Live key value (`.env.local`) never appears in any committed file.
+
+### Files changed (follow-up only)
+
+#### Source
+- `src/investo/sources/fred_economic_calendar.py` (new, ~350 lines)
+- `src/investo/sources/__init__.py` (+1 import row)
+- `src/investo/sources/tiers.py` (+`"fred-economic-calendar": "A"` row)
+- `src/investo/sources/aggregator.py` (`_US_MARKET_SOURCES` adds `"fred-economic-calendar"`)
+- `src/investo/briefing/segments.py` (`_US_ONLY_SOURCES` + `LOOKAHEAD_AWARE_SOURCES` add `"fred-economic-calendar"`)
+
+#### Tests
+- `tests/unit/sources/test_fred_economic_calendar.py` (new, 24 cases)
+- `tests/unit/sources/test_plugin_contract.py` (count 21 → 22, name set + import row + leak set)
+- `tests/unit/sources/fixtures/api/fred-economic-calendar/` (new — 6 byte-equal live recordings + meta.json sidecar)
+
+#### Docs
+- `docs/TECH-DEBT.md` (DEBT-067 — second "Partial resolution (2026-05-10, u43 follow-up)" block + fred sub-bullet struck through as Resolved; effort line dropped fred from remaining work)
+- `aidlc-docs/construction/plans/u43-lookahead-adapters-code-generation-plan.md` (Status `Partial 2/4`, Step 3 + Step 6 + Step 11 + DoD bullets updated to reflect FRED landing)
+
+### Quality gate (follow-up close)
+
+| Gate | Result |
+|------|--------|
+| `ruff check src tests` | passed |
+| `ruff format src tests` | 1 file reformatted (test fixture-routing helper auto-wrap) |
+| `mypy --strict src` | 104 source files, no issues |
+| `pytest -q` | **1787 passed** (1763 → 1787, +24 tests) |
+| `mkdocs build --strict` | built in 0.44s |
+
+### DEBT-067 status (post follow-up)
+
+- `fomc-calendar` ✅ resolved (u43 main 2026-05-10)
+- `fred-economic-calendar` ✅ resolved (u43 follow-up 2026-05-10) — sub-bullet struck through, second partial-resolution block added.
+- `coingecko-events` deferred — endpoint deprecated upstream; CoinMarketCal fallback needs operator key registration.
+- `krx-option-expiry` deferred — no public non-scraping path identified.
+
+Planner action recommendation (already in TECH-DEBT.md): **P1 → P2 demotion** is now stronger — both regulator-of-record macro surfaces (Federal Reserve calendar + FRED release schedule) cover persona #4's first-line concern. The 2 remaining adapters are upside coverage rather than core gap.
+
+### Unintended discoveries / TECH-DEBT candidates
+
+- **No new TECH-DEBT** surfaced. The FRED endpoint behavior is straightforward; the test split (24 cases) cleanly covers happy path + all error branches + R13 + segment routing + tier registration + lookahead-aware-sources contract.
+- One minor naming observation: `category="calendar"` chosen over the original plan's `category="macro"` — calendar matches the lookahead-row contract used by `fomc-calendar` + `nasdaq-earnings-calendar` and is what the u35 D-N selector groups around. The `fred-macro` adapter (backward-looking observations) keeps `category="macro"`; the two FRED adapters now have a clean split: `fred-macro` = "what was the last value", `fred-economic-calendar` = "when does the next print land".

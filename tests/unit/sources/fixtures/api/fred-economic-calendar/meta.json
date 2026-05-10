@@ -1,0 +1,47 @@
+{
+  "_recorded_at": "2026-05-10T15:21:00Z",
+  "_recorded_url_template": "https://api.stlouisfed.org/fred/release/dates?api_key=***&file_type=json&release_id={rid}&include_release_dates_with_no_data=true&sort_order=desc&limit=15",
+  "_note": "FRED forward release-date schedule — recorded once via the u43 follow-up fixture procedure. The ``release/dates?release_id=N&include_release_dates_with_no_data=true&sort_order=desc`` shape returns future scheduled release dates first (FRED publishes the announcement schedule even before data lands; ``date`` rows beyond the most-recent observation date are forward-looking). Tests replay these bodies via httpx.MockTransport (R10). Re-record only when the live shape changes; document the change in aidlc-docs/audit.md. The api_key was masked to ``***`` in the URL template above; bodies are byte-equal to the live response and contain no key. The byte-equal contract is enforced by the sha256 hashes below.",
+  "fixtures": {
+    "release_10_cpi.json": {
+      "status": 200,
+      "release_id": 10,
+      "release_name": "Consumer Price Index",
+      "sha256": "afc30709668f1042e8c06bc63a1facd40ade9d49b7ae8bd7f684e151e648792d",
+      "byte_size": 727
+    },
+    "release_46_ppi.json": {
+      "status": 200,
+      "release_id": 46,
+      "release_name": "Producer Price Index",
+      "sha256": "a087db85621f8619ce501d7b052c8f744382501edcf38f61043b4a66ddfcd329",
+      "byte_size": 727
+    },
+    "release_50_nfp.json": {
+      "status": 200,
+      "release_id": 50,
+      "release_name": "Employment Situation",
+      "sha256": "d6456634432d8e299e10ab32b9560e7b58bc87bc7447df2c0c99ff7b124a9012",
+      "byte_size": 727
+    },
+    "release_53_gdp.json": {
+      "status": 200,
+      "release_id": 53,
+      "release_name": "Gross Domestic Product",
+      "sha256": "0ba6423a901e780eedcf2e21c6ad4784f21c1c4f076d29dcbfd2b6a0aafa921c",
+      "byte_size": 727
+    },
+    "empty_far_future.json": {
+      "status": 200,
+      "_note": "Recorded with realtime_start=2099-01-01 — FRED returns count=0 / empty release_dates array. Used to assert the adapter returns an empty list rather than raising.",
+      "sha256": "e77c09c5d7ac5d2ae6b206c6ef90c7f50fbc6d9862b6154e6aa9a24e644a5094",
+      "byte_size": 156
+    },
+    "invalid_key.json": {
+      "status": 400,
+      "_note": "Recorded with api_key=invalidkey. FRED returns HTTP 400 with an error_code/error_message body describing the required api_key shape. The literal string ``api_key`` appears in FRED's error message text; this is upstream prose, not a leaked credential.",
+      "sha256": "1080bed3d7185b91d4caa133e6549f3ec22c8aae12231550be82c1f266a9fb5b",
+      "byte_size": 219
+    }
+  }
+}

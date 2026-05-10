@@ -34,6 +34,7 @@ from investo.sources.defillama_market_structure import DefiLlamaMarketStructureA
 from investo.sources.fomc_calendar import FomcCalendarAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
+from investo.sources.fred_economic_calendar import FredEconomicCalendarAdapter
 from investo.sources.fsc_krx_index_price import FscKrxIndexPriceAdapter
 from investo.sources.fsc_krx_stock_price import FscKrxStockPriceAdapter
 from investo.sources.korea_policy_rss import KoreaPolicyRssAdapter
@@ -50,7 +51,7 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 21
+EXPECTED_ADAPTER_COUNT = 22
 EXPECTED_ADAPTER_NAMES = {
     "binance-crypto-market",
     "dart-disclosure",
@@ -62,6 +63,7 @@ EXPECTED_ADAPTER_NAMES = {
     "yfinance-price",
     "stooq-price",
     "coingecko-price",
+    "fred-economic-calendar",
     "fred-macro",
     "korea-policy-rss",
     "nasdaq-earnings-calendar",
@@ -101,6 +103,7 @@ def _isolate_registry() -> Iterator[None]:
     register(YFinancePriceAdapter)
     register(StooqPriceAdapter)
     register(CoinGeckoPriceAdapter)
+    register(FredEconomicCalendarAdapter)
     register(FredMacroAdapter)
     register(NasdaqEarningsCalendarAdapter)
     register(NasdaqStocksNewsAdapter)
@@ -230,6 +233,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "CoinGeckoPriceAdapter",
         "fred",
         "FredMacroAdapter",
+        "fred_economic_calendar",
+        "FredEconomicCalendarAdapter",
         "nasdaq_earnings_calendar",
         "NasdaqEarningsCalendarAdapter",
         "nasdaq_stocks_news",

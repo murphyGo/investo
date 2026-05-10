@@ -57,6 +57,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "binance-crypto-market": "A",
     "nasdaq-earnings-calendar": "A",
     "fred-macro": "A",
+    "fred-economic-calendar": "A",
     "us-economic-calendar": "A",
     "nasdaq-stocks-news": "A",
     # B — aggregator / news

@@ -53,6 +53,7 @@ COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
 LOOKAHEAD_AWARE_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "fomc-calendar",
+        "fred-economic-calendar",
         "nasdaq-earnings-calendar",
     }
 )
@@ -121,6 +122,7 @@ _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
         "cnbc-top-news",
         "fomc-calendar",
         "fomc-rss",
+        "fred-economic-calendar",
         "fred-macro",
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",

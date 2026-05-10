@@ -3,7 +3,7 @@
 **Date**: 2026-05-09
 **Unit**: u43 lookahead-adapters
 **Stage**: Code Generation
-**Status**: 🟨 Partial (2026-05-10 — `fomc-calendar` + orchestrator wire-through M1/M3 + `LOOKAHEAD_DATA_MISSING` reason code landed; `fred-economic-calendar` + `coingecko-events` + `krx-option-expiry` deferred under DEBT-067 sub-bullets per R10 — see TECH-DEBT.md DEBT-067 partial-resolution note)
+**Status**: 🟨 Partial 2/4 (2026-05-10 — `fomc-calendar` + `fred-economic-calendar` + orchestrator wire-through M1/M3 + `LOOKAHEAD_DATA_MISSING` reason code landed; `coingecko-events` + `krx-option-expiry` deferred under DEBT-067 sub-bullets per R10 — see TECH-DEBT.md DEBT-067 partial-resolution notes)
 **Source**: 10-persona evaluation 2026-05-09 — persona #4 (미국 적극) + persona #8 (운영자) + DEBT-067
 **Estimated Effort**: ~6-10 h (after live API access secured for all 4 endpoints)
 **Dependencies**:
@@ -33,12 +33,12 @@ Land the four lookahead-specific source adapters that u35 deferred to DEBT-067, 
 ## Definition of Done
 
 - [x] **(a) `fomc-calendar`** — Federal Reserve `calendar.json` forward-schedule endpoint (preferred over `press_monetary` RSS because the latter is backward-looking press-release announcements; `calendar.json` carries forward FOMC meetings + speeches + statistical releases); segment routing: `us-equity` (single-segment, per `_US_ONLY_SOURCES`); tier `S`. R10-compliant fixture: `tests/unit/sources/fixtures/api/fomc-calendar/upcoming.json` (528 KB live recording 2026-05-10, sha256 `8d7995f3417d839497a62c30b8da992f9e4498561d193c08a72ae9e63b51de1f`).
-- [ ] **(b) `fred-economic-calendar`** — DEFERRED under DEBT-067 sub-bullet. FRED `api.stlouisfed.org` was unreachable from the u43 implementation network (TLS handshake timed out across IPv4/IPv6/HTTP1.1/HTTP2 + via curl + via httpx; verified the existing `fred-macro` `series/observations` path was equally unreachable, so this is a transient FRED-side or network-side outage rather than a credential issue). Per R10, the adapter cannot land without a live recording.
+- [x] **(b) `fred-economic-calendar`** — Federal Reserve Bank of St. Louis `release/dates?release_id=N&include_release_dates_with_no_data=true&sort_order=desc` per-release forward schedule for 10 curated market-moving releases (CPI, PPI, NFP/Unemployment, GDP, PCE, Industrial Production, Retail Sales, JOLTS, Housing Starts, Existing Home Sales — 101 FOMC Press Release excluded to avoid double-counting with `fomc-calendar`). Tier `A`. Single-segment routing `us-equity` (`_US_ONLY_SOURCES`). R13 secret hygiene: `FRED_API_KEY` read at fetch time, missing → `SourceFetchError(transient=False)`; key value never in logs / errors / `raw_metadata`. Per-release isolation via `asyncio.gather(return_exceptions=True)` mirrors `fred-macro`. R10-compliant fixtures: 4 happy-path bodies (CPI/PPI/NFP/GDP, 727 B each), empty far-future, invalid-key 400 — all byte-equal live recordings 2026-05-10. Env overrides: `INVESTO_FRED_CALENDAR_RELEASES`, `INVESTO_FRED_CALENDAR_LOOKAHEAD_DAYS`. 24 unit tests landed.
 - [ ] **(c) `coingecko-events`** — DEFERRED under DEBT-067 sub-bullet. Endpoint deprecated upstream (`https://api.coingecko.com/api/v3/events` returns 404 with `{"error":"Incorrect path. Please check https://docs.coingecko.com/"}` — verified live 2026-05-10). Fallback aggregator (CoinMarketCal) requires a free-tier key the user has not yet registered.
 - [ ] **(d) `krx-option-expiry`** — DEFERRED under DEBT-067 sub-bullet. No public KRX market-data path that exposes the option-expiry calendar without OTP / scraping is currently identified; consistent with u36's "no Naver / KRX scraping" out-of-scope rule.
 - [x] `fomc-calendar` stamps `NormalizedItem.scheduled_at` (UTC midnight on the event's first day); `published_at` anchored to the publish-window target date midnight (mirrors the `nasdaq-earnings-calendar` lookahead pattern).
 - [x] Orchestrator wire-through: `_stage_notify_segmented_briefing` accepts `lookahead_items_by_segment` + `now_utc` kwargs, computes `notify_now_utc = datetime.now(UTC)` at orchestrator entry, populates the per-segment lookahead bucket via `briefing.segments.filter_lookahead_items` (M3 single chokepoint, also reused by `briefing/pipeline.py::_render_lookahead_context_block`), and passes both kwargs explicitly to `build_segmented_summary`. The notifier raises `ValueError("now_utc required when lookahead_items_by_segment is supplied")` when the kwarg is supplied while `now_utc=None` (M1 clock-explicit contract).
-- [x] `SegmentCoverage.reason_codes` carries the new `LOOKAHEAD_DATA_MISSING` value with Korean label "예정 일정 데이터 미확보". Emission path: `_lookahead_data_missing` in `briefing/segments.py`. Anti-regression: never fires on a segment with no lookahead-aware adapter (`LOOKAHEAD_AWARE_SOURCES` registry is the single decision point — at u43 landing the registry contains `fomc-calendar` + `nasdaq-earnings-calendar`; both anchor to `us-equity`, so `domestic-equity` / `crypto` cannot trip the reason code today).
+- [x] `SegmentCoverage.reason_codes` carries the new `LOOKAHEAD_DATA_MISSING` value with Korean label "예정 일정 데이터 미확보". Emission path: `_lookahead_data_missing` in `briefing/segments.py`. Anti-regression: never fires on a segment with no lookahead-aware adapter (`LOOKAHEAD_AWARE_SOURCES` registry is the single decision point — at u43 follow-up close the registry contains `fomc-calendar` + `fred-economic-calendar` + `nasdaq-earnings-calendar`; all three anchor to `us-equity`, so `domestic-equity` / `crypto` cannot trip the reason code today).
 - [x] `FRED_API_KEY` already enrolled in `_internal/redaction.py::SECRET_ENV_VARS` (verified — was already present from the u35 / fred-macro work). `fomc-calendar` uses no API key.
 - [x] `fomc-calendar` graceful-degradation contract pinned by `test_terminal_4xx_raises_source_fetch_error`, `test_malformed_json_raises_terminal_source_fetch_error`, `test_non_object_response_raises_terminal_source_fetch_error`. Aggregator R6 isolation handles each via the existing `SourceFetchError` path.
 - [x] Stage 2 / Telegram round-trip pinned by `tests/unit/orchestrator/test_stage_notify_segmented_lookahead.py::test_stage_passes_lookahead_and_now_utc_to_summary_builder` — a 2-day-out FOMC item from the lookahead bucket lands as `D-2 📅` in the request body the publisher dispatches.
@@ -82,20 +82,34 @@ Land the four lookahead-specific source adapters that u35 deferred to DEBT-067, 
   - env-var typo / above-max clamps to default / max with WARNING.
   - R13: no api_key in endpoint URL; module does not import Anthropic SDK.
 
-### Step 3 — `fred-economic-calendar` Adapter (DEFERRED — DEBT-067 sub-bullet)
+### Step 3 — `fred-economic-calendar` Adapter ✅ (u43 follow-up 2026-05-10)
 
-- [ ] Create `src/investo/sources/fred_economic_calendar.py` registered via `@register("fred-economic-calendar", segments=("us-equity","crypto"))`.
-- [ ] Use `retry_get` with `FRED_API_KEY` query parameter. JSON path; no `defusedxml` needed.
-- [ ] Stamp `NormalizedItem.scheduled_at` from the FRED release date. `category="macro"`.
-- [ ] Missing `FRED_API_KEY` → empty list + INFO log (graceful degradation).
-- [ ] Files affected:
-  - `src/investo/sources/fred_economic_calendar.py` (new)
-- [ ] Unit tests at `tests/unit/sources/test_fred_economic_calendar.py`:
-  - happy-path fixture → 1+ items with `scheduled_at`.
-  - empty-window fixture → empty list.
-  - missing key → empty list + INFO.
-  - HTTP 401 → empty list + source health failed.
-  - HTTP 5xx → empty list + source health failed.
+- [x] Created `src/investo/sources/fred_economic_calendar.py` registered via the `@register` class decorator. Segment routing lives in `briefing/segments.py::_US_ONLY_SOURCES` (single-segment us-equity, mirroring fomc-calendar) — the registry's signature is class-decorator only, not the `@register("name", segments=…)` form the plan originally sketched.
+- [x] Uses `retry_get` with `FRED_API_KEY` query parameter (R13 — read at fetch time; missing → `SourceFetchError(transient=False)`; key value never logged). JSON path; no `defusedxml` needed.
+- [x] Stamps `NormalizedItem.scheduled_at` from the FRED release date (UTC midnight on the scheduled day; `category="calendar"`, not `"macro"` — calendar matches the lookahead-row contract used by `fomc-calendar` + `nasdaq-earnings-calendar` and the u35 D-N selector). `published_at` anchored to target_date midnight UTC (mirrors the `fomc-calendar` / `nasdaq-earnings-calendar` lookahead pattern so the aggregator's `_MAX_FUTURE_PUBLISHED_AT` 30-day guard does not drop forward rows).
+- [x] Missing `FRED_API_KEY` → `SourceFetchError(transient=False)` (per task spec — surfaces misconfiguration once via aggregator R6 isolation rather than silently empty).
+- [x] Files affected:
+  - `src/investo/sources/fred_economic_calendar.py` (new, ~350 LOC including module docstring + adapter + helpers)
+  - `src/investo/sources/__init__.py` (import row added)
+  - `src/investo/sources/tiers.py` (`"fred-economic-calendar": "A"`)
+  - `src/investo/sources/aggregator.py` (`_US_MARKET_SOURCES` enrolment)
+  - `src/investo/briefing/segments.py` (`_US_ONLY_SOURCES` + `LOOKAHEAD_AWARE_SOURCES` enrolment)
+  - `tests/unit/sources/test_plugin_contract.py` (count 21 → 22, name set + import + leak set)
+- [x] Unit tests at `tests/unit/sources/test_fred_economic_calendar.py` (24 cases):
+  - happy-path real-fixture replay with 4 release ids → 1+ items with `scheduled_at`, all forward-only, `published_at = target_date midnight UTC`.
+  - includes-known-event regression → CPI 2026-05-12 appears in the captured fixture's 30-day window with `release_id="10"` + `release_name="Consumer Price Index"` + URL `https://fred.stlouisfed.org/release?rid=10`.
+  - excludes historical events; respects env-var overrides; far-future target → empty list.
+  - empty `release_dates` array → empty list (graceful, no error).
+  - missing `FRED_API_KEY` → `SourceFetchError(transient=False)` with env-var name in message; api_key value absent.
+  - HTTP 400 invalid-key isolated per-release → empty list (siblings drop without aborting).
+  - partial failure (one release 200, one release 400) → only successful release surfaces.
+  - malformed JSON / non-object response per release → drops via isolation.
+  - unknown release id (operator-supplied via env) → falls back to generic `FRED Release {id}` name.
+  - tier "A" registration round-trips through `adapter_tier`.
+  - `LOOKAHEAD_AWARE_SOURCES` registry contract.
+  - segment routing pin: us-equity only; domestic + crypto must not see items.
+  - module imports no Anthropic SDK; no raw stdlib XML.
+  - fixture directory grep-style invariant: no `api_key=<32 alphanumerics>` shape (FRED's prose mentioning "api_key" in its 400 error body is allowed and pinned by the regex).
 
 ### Step 4 — `coingecko-events` Adapter (DEFERRED — DEBT-067 sub-bullet)
 
@@ -123,12 +137,12 @@ Land the four lookahead-specific source adapters that u35 deferred to DEBT-067, 
   - empty-window fixture → empty list.
   - HTTP 5xx → empty list + source health failed.
 
-### Step 6 — Tier Registry Enrollment ✅ (partial)
+### Step 6 — Tier Registry Enrollment ✅ (partial — 2/3 added)
 
-- [x] In `sources/tiers.py`, added `"fomc-calendar": "S"`. (`coingecko-events: B` was already present from a previous unit and remains, since the deferred adapter inherits it whenever it lands. `fred-economic-calendar` + `krx-option-expiry` will be added when those adapters land.)
+- [x] In `sources/tiers.py`, added `"fomc-calendar": "S"` (u43 main 2026-05-10) and `"fred-economic-calendar": "A"` (u43 follow-up 2026-05-10). `coingecko-events: B` was already present from a previous unit and remains, since the deferred adapter inherits it whenever it lands. `krx-option-expiry` will be added when that adapter lands.
 - [x] Files affected:
   - `src/investo/sources/tiers.py`
-- [x] Anti-regression: covered indirectly via the existing `tests/unit/sources/test_plugin_contract.py` drift guard (expanded count + name set) — every registered adapter must round-trip through `adapter_tier` without falling back to the default `"B"`.
+- [x] Anti-regression: covered indirectly via the existing `tests/unit/sources/test_plugin_contract.py` drift guard (expanded count 21 → 22 + name set) — every registered adapter must round-trip through `adapter_tier` without falling back to the default `"B"`. `test_adapter_registered_at_tier_a` in `test_fred_economic_calendar.py` pins the FRED tier explicitly.
 
 ### Step 7 — R13 Secret Enrollment ✅ (already complete from u35)
 
@@ -179,6 +193,7 @@ Land the four lookahead-specific source adapters that u35 deferred to DEBT-067, 
 
 - [x] Targeted lookahead tests pass (40 new cases, all green): `pytest tests/unit/sources/test_fomc_calendar.py tests/unit/sources/test_plugin_contract.py tests/unit/briefing/test_lookahead_data_missing_reason.py tests/unit/orchestrator/test_stage_notify_segmented_lookahead.py -v` → 40 passed.
 - [x] Full quality gate green: `ruff check .` ✅, `ruff format --check .` ✅ (259 files unchanged), `mypy --strict src/` ✅ (103 files), `pytest -q` ✅ (1763 passed, +40 vs pre-u43), `mkdocs build --strict` ✅.
+- [x] u43 follow-up 2026-05-10 — `fred-economic-calendar` quality gate: `ruff check src tests` ✅, `ruff format src tests` ✅ (1 file reformatted), `mypy --strict src` ✅ (104 files), `pytest -q` ✅ (1787 passed, +24 vs u43 main close), `mkdocs build --strict` ✅.
 - [ ] Manual dry-run with a known FOMC date — deferred to operator validation (the operator runs production cron with `INVESTO_DRY_RUN=1` to confirm the imminent tag fires). The unit-level integration test (`tests/unit/orchestrator/test_stage_notify_segmented_lookahead.py::test_stage_passes_lookahead_and_now_utc_to_summary_builder`) already pins the same wire end-to-end against an in-memory `MockTransport` publisher, so the production behavior is mechanically reproducible.
 
 ---

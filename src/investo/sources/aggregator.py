@@ -36,6 +36,7 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "cnbc-top-news",
         "fomc-calendar",
         "fomc-rss",
+        "fred-economic-calendar",
         "fred-macro",
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",
