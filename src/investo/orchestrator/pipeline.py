@@ -715,6 +715,15 @@ async def _stage_publish_segments(
 
             quality_history_path = resolve_quality_history_path()
             quality_history_paths: tuple[Path, ...] = ()
+            # u54 — derive per-segment severity once so both the quality
+            # snapshot and the coverage.jsonl line carry the same view.
+            quality_segmented_items = segment_items(items)
+            severities_by_segment_for_quality: dict[MarketSegment, str] = {
+                segment: quality_segmented_items.coverage_for_segment(
+                    segment, source_outcomes=source_outcomes
+                ).status
+                for segment in published_segments
+            }
             if not _is_dry_run():
                 snapshots[quality_history_path] = _read_existing_bytes(quality_history_path)
                 written_quality_history = await asyncio.to_thread(
@@ -725,6 +734,7 @@ async def _stage_publish_segments(
                         published_segments=published_segments,
                         items=items,
                         source_outcomes=source_outcomes,
+                        severities_by_segment=severities_by_segment_for_quality,
                     ),
                     history_path=quality_history_path,
                 )
@@ -1161,15 +1171,31 @@ def _build_quality_snapshot(
     published_segments: Sequence[MarketSegment],
     items: Sequence[NormalizedItem],
     source_outcomes: Sequence[SourceOutcome],
+    severities_by_segment: dict[MarketSegment, str] | None = None,
 ) -> QualitySnapshot:
     failed_sources = sum(1 for outcome in source_outcomes if outcome.status == "failed")
-    source_liveness = 1.0 if source_outcomes and failed_sources == 0 else 0.0
+    # u54 — Liveness denominator counts only segments with ≥ 1 registered
+    # core source so a future segment without core registration cannot
+    # silently dilute the rate. Today every segment has core sources
+    # registered, but the guard future-proofs the denominator.
+    from investo.briefing.segments import SEGMENT_CORE_SOURCES
+
+    core_eligible_segments = sum(
+        1 for segment in published_segments if SEGMENT_CORE_SOURCES.get(segment)
+    )
+    source_liveness = (
+        1.0 if source_outcomes and failed_sources == 0 and core_eligible_segments > 0 else 0.0
+    )
     bodies = [briefings[segment].rendered_markdown for segment in published_segments]
     data_limited_count = sum(1 for body in bodies if "데이터 부족 안내" in body)
     non_limited = max(len(bodies) - data_limited_count, 0)
     figures_count = sum(
         1 for body in bodies if "데이터 부족 안내" not in body and extract_flaggable_numbers(body)
     )
+    worst_severity: str | None = None
+    if severities_by_segment:
+        rank = {"normal": 0, "partial": 1, "limited": 2, "failed": 3}
+        worst_severity = max(severities_by_segment.values(), key=lambda s: rank.get(s, -1))
     return QualitySnapshot(
         source_liveness=source_liveness,
         figures_presence=(figures_count / non_limited) if non_limited > 0 else 0.0,
@@ -1177,6 +1203,7 @@ def _build_quality_snapshot(
         published_segments=len(published_segments),
         total_items=len(items),
         total_failed_sources=failed_sources,
+        worst_severity=worst_severity,
     )
 
 
@@ -1850,8 +1877,9 @@ async def run_pipeline(
         assert segment_briefings is not None
         assert segment_urls is not None
         # u30 Step 2 — compute per-segment coverage so the notifier can
-        # collapse insufficient segments to a single line. Mirrors the
-        # routing already done by ``_stage_prepare_segment_visual_assets``;
+        # collapse failed segments to a single line (u54 enum migration:
+        # legacy "insufficient" → "failed"). Mirrors the routing
+        # already done by ``_stage_prepare_segment_visual_assets``;
         # filter ``source_outcomes`` per segment with the same helper.
         routed_items_for_alert = segment_items(items)
         coverage_by_segment = {
@@ -1911,7 +1939,23 @@ async def run_pipeline(
     # try/except so coverage-log issues never change the pipeline's
     # exit semantics.
     try:
-        source_health.append_daily_coverage(target_date, source_outcomes)
+        # u54 — derive per-segment severity at write time so the
+        # JSONL row carries the augmented schema. Independent of the
+        # earlier ``severities_by_segment_for_quality`` derivation
+        # because that branch only runs in segmented mode + non-dry
+        # publish; this writer fires on every run.
+        severities_for_coverage: dict[str, str] = {}
+        if segmented_mode and segment_briefings is not None:
+            severity_segmented = segment_items(items)
+            for segment in segment_briefings:
+                severities_for_coverage[segment] = severity_segmented.coverage_for_segment(
+                    segment, source_outcomes=source_outcomes
+                ).status
+        source_health.append_daily_coverage(
+            target_date,
+            source_outcomes,
+            severities=severities_for_coverage or None,
+        )
         consecutive_failed = source_health.detect_consecutive_failed(today=target_date)
         if consecutive_failed:
             _logger.warning(

@@ -351,7 +351,7 @@ def test_coverage_hold_branch_returns_pending_render() -> None:
     config = WatchlistConfig(tickers=("NVDA",))
     items = [_item("NVDA rallies after earnings")]
 
-    impact = match_watchlist_items(items, config, coverage_status="insufficient")
+    impact = match_watchlist_items(items, config, coverage_status="failed")
 
     assert impact.status == "coverage_hold"
     # Even though the items would have matched, the matcher does not surface
@@ -364,7 +364,7 @@ def test_coverage_hold_branch_returns_pending_render() -> None:
 
 def test_coverage_hold_telegram_channel_uses_same_hold_text() -> None:
     config = WatchlistConfig(tickers=("NVDA",))
-    impact = match_watchlist_items([], config, coverage_status="insufficient")
+    impact = match_watchlist_items([], config, coverage_status="failed")
 
     rendered = render_watchlist_impact(impact, channel="telegram")
     # Same body text — the per-channel filtering happens in notifier/summary
@@ -374,7 +374,7 @@ def test_coverage_hold_telegram_channel_uses_same_hold_text() -> None:
 
 def test_coverage_hold_prompt_context_warns_llm() -> None:
     config = WatchlistConfig(tickers=("NVDA",))
-    impact = match_watchlist_items([], config, coverage_status="insufficient")
+    impact = match_watchlist_items([], config, coverage_status="failed")
 
     context = render_watchlist_prompt_context(impact)
     assert "insufficient" in context

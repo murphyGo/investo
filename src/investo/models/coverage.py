@@ -2,7 +2,7 @@
 
 These types travel from the source aggregator through the orchestrator
 into briefing / visuals so reader-facing surfaces can explain *why* a
-market segment is normal / partial / insufficient. Defining them here
+market segment is normal / partial / limited / failed. Defining them here
 keeps the project's module-boundary rule intact: only models is the
 shared foundation; ``sources``, ``briefing`` and ``visuals`` cannot
 import from each other.
@@ -23,6 +23,7 @@ Sanitization rules:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Final, Literal
 
 from investo._internal.redaction import RedactionPolicy, redact_text
@@ -71,6 +72,12 @@ class SourceOutcome:
     failure_reason: str | None = None
     transient: bool | None = None
     tier: SourceTier = "B"
+    # u54 — Optional UTC timestamp of the latest emitted
+    # ``NormalizedItem.published_at``/``scheduled_at``/``occurred_at``.
+    # Core price adapters populate this so :func:`build_segment_coverage`
+    # can apply the staleness override. ``None`` skips the check
+    # (legacy / non-core adapters).
+    latest_item_at: datetime | None = None
 
     @classmethod
     def ok(
@@ -80,6 +87,7 @@ class SourceOutcome:
         item_count: int,
         *,
         tier: SourceTier = "B",
+        latest_item_at: datetime | None = None,
     ) -> SourceOutcome:
         """Build an ``ok`` outcome from a non-zero item count."""
         if item_count <= 0:
@@ -90,6 +98,7 @@ class SourceOutcome:
             status="ok",
             item_count=item_count,
             tier=tier,
+            latest_item_at=latest_item_at,
         )
 
     @classmethod
@@ -99,9 +108,16 @@ class SourceOutcome:
         category: Category,
         *,
         tier: SourceTier = "B",
+        latest_item_at: datetime | None = None,
     ) -> SourceOutcome:
         """Build a ``zero`` outcome — adapter ran successfully but emitted no items."""
-        return cls(source_name=source_name, category=category, status="zero", tier=tier)
+        return cls(
+            source_name=source_name,
+            category=category,
+            status="zero",
+            tier=tier,
+            latest_item_at=latest_item_at,
+        )
 
     @classmethod
     def from_failure(
@@ -112,6 +128,7 @@ class SourceOutcome:
         message: str,
         transient: bool,
         tier: SourceTier = "B",
+        latest_item_at: datetime | None = None,
     ) -> SourceOutcome:
         """Build a ``failed`` outcome with the message pre-sanitized."""
         return cls(
@@ -121,6 +138,7 @@ class SourceOutcome:
             failure_reason=sanitize_source_error_message(message),
             transient=transient,
             tier=tier,
+            latest_item_at=latest_item_at,
         )
 
 

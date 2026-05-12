@@ -41,7 +41,10 @@ def _write_history(path: Path, day: str, *, source_liveness: float = 1.0) -> Non
         fp.write(json.dumps(payload) + "\n")
 
 
-def test_no_data_returns_zero_kpis(tmp_path: Path) -> None:
+def test_no_data_returns_n_a_kpis(tmp_path: Path) -> None:
+    """u54 — Denominator-zero rates surface as ``None`` (rendered ``n/a``)
+    rather than ``0.0`` so the reader does not confuse "we have no
+    samples" with "we observed zero liveness"."""
     kpis = compute_quality_kpis(
         date(2026, 5, 9),
         coverage_path=tmp_path / "missing.jsonl",
@@ -49,9 +52,9 @@ def test_no_data_returns_zero_kpis(tmp_path: Path) -> None:
     )
     assert kpis.runs_observed == 0
     assert kpis.briefings_observed == 0
-    assert kpis.source_liveness_rate == 0.0
-    assert kpis.figures_presence_rate == 0.0
-    assert kpis.fallback_ratio == 0.0
+    assert kpis.source_liveness_rate is None
+    assert kpis.figures_presence_rate is None
+    assert kpis.fallback_ratio is None
 
 
 def test_source_liveness_counts_runs_without_failed_outcome(tmp_path: Path) -> None:
@@ -110,9 +113,9 @@ def test_data_limited_briefing_not_counted_in_figures_denominator(tmp_path: Path
         coverage_path=tmp_path / "missing.jsonl",
         archive_root=archive,
     )
-    # 1 archived briefing, all data-limited → non-limited denominator is 0 → rate 0.0.
+    # 1 archived briefing, all data-limited → non-limited denominator is 0 → rate None (n/a).
     assert kpis.briefings_with_figures == 0
-    assert kpis.figures_presence_rate == 0.0
+    assert kpis.figures_presence_rate is None
 
 
 def test_render_quality_page_no_data() -> None:

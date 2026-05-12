@@ -68,6 +68,7 @@ from investo.briefing.prompts import (
 )
 from investo.briefing.segments import (
     SEGMENT_LABELS,
+    SEVERITY_READER_EXPLANATIONS,
     MarketSegment,
     SegmentCoverage,
     build_segment_coverage,
@@ -910,23 +911,41 @@ def _build_summary_header(
 def _render_coverage_badge(coverage: SegmentCoverage) -> str:
     """Render the reader-facing coverage badge.
 
-    The badge is one or three blockquote lines:
+    The badge is one or four blockquote lines:
 
-    * line 1 — status, item / source counts, missing categories
-    * line 2 (only when reason codes are present) — Korean labels for
-      every reason code in deterministic order
-    * line 3 (only when source outcomes are present) — sanitized
+    * line 1 — severity label + one-line reader explanation, item /
+      source counts, missing categories. u54 — explanation is sourced
+      from :data:`investo.briefing.segments.SEVERITY_READER_EXPLANATIONS`
+      so the reader sees both the tier and "what it means".
+    * line 2 (only when source outcomes are wired) — 5-tuple count
+      split ``수집 대상 / 성공 / 0건 / 실패 / 본문 사용``.
+    * line 3 (only when reason codes are present) — Korean labels for
+      every reason code in deterministic order.
+    * line 4 (only when source outcomes are present) — sanitized
       per-source breakdown (failed first, then zero) so readers can
-      see *which* source caused the partial / insufficient verdict.
+      see *which* source caused the partial / limited / failed verdict.
       Failure reasons go through
       :func:`investo.models.sanitize_source_error_message` upstream and
       are guaranteed not to leak secret-shaped tokens.
     """
-    lines = [
+    explanation = SEVERITY_READER_EXPLANATIONS.get(coverage.status, "")
+    head = (
         f"> **데이터 상태**: {coverage.status_label} — "
         f"수집 {coverage.item_count}건 / 소스 {coverage.source_count}개 / "
-        f"누락: {coverage.missing_category_label}",
-    ]
+        f"누락: {coverage.missing_category_label}"
+    )
+    lines = [head]
+    if explanation:
+        # Surface short explanation on the same line so the reader does
+        # not have to scan two lines for severity context.
+        lines[0] = head + f" · {explanation}"
+    if coverage.targeted_count > 0:
+        lines.append(
+            "> **소스 카운트**: "
+            f"수집 대상 {coverage.targeted_count} / 성공 {coverage.succeeded_count} / "
+            f"0건 {coverage.zero_count} / 실패 {coverage.failed_count} / "
+            f"본문 사용 {coverage.body_used_count}"
+        )
     tier_label = coverage.tier_mix_label
     if tier_label:
         lines.append(f"> **소스 등급 분포**: {tier_label}")

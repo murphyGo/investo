@@ -241,7 +241,7 @@ async def test_generate_briefing_zero_item_segment_uses_concise_local_fallback(
     assert "충분한 가격/뉴스 근거 없이 티커를 나열하지 않습니다" in result.rendered_markdown
     assert result.rendered_markdown.count("데이터 부족") == 0
     header = result.rendered_markdown.split("## ① 요약", maxsplit=1)[0]
-    assert "> **데이터 상태**: 부족" in header
+    assert "> **데이터 상태**: 실패" in header
     assert "누락: 뉴스, 가격" in header
     assert "주의할 점**: 1." not in header
     assert "> **주의할 점**: 데이터 수집 로그에서 실패한 소스" in header

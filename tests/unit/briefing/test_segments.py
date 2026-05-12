@@ -138,7 +138,7 @@ def test_data_limited_thresholds_are_segment_specific() -> None:
     assert segmented.is_data_limited(CRYPTO)
 
 
-def test_segment_coverage_statuses_are_normal_partial_or_insufficient() -> None:
+def test_segment_coverage_statuses_are_normal_partial_or_failed() -> None:
     normal = build_segment_coverage(
         US_EQUITY,
         [
@@ -151,7 +151,9 @@ def test_segment_coverage_statuses_are_normal_partial_or_insufficient() -> None:
         CRYPTO,
         [_item("coingecko-price", "Bitcoin price", category="price")],
     )
-    insufficient = build_segment_coverage(DOMESTIC_EQUITY, [])
+    # u54 — legacy "insufficient" enum migrated to "failed"; zero items
+    # routed to the segment still yields the strictest tier.
+    failed_coverage = build_segment_coverage(DOMESTIC_EQUITY, [])
 
     assert normal.status == "normal"
     assert normal.status_label == "정상"
@@ -159,8 +161,9 @@ def test_segment_coverage_statuses_are_normal_partial_or_insufficient() -> None:
     assert partial.status == "partial"
     assert partial.missing_categories == ("news",)
     assert partial.missing_category_label == "뉴스"
-    assert insufficient.status == "insufficient"
-    assert insufficient.missing_categories == ("news", "price")
+    assert failed_coverage.status == "failed"
+    assert failed_coverage.status_label == "실패"
+    assert failed_coverage.missing_categories == ("news", "price")
 
 
 # ---------------------------------------------------------------------------

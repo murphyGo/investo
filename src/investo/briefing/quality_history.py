@@ -7,7 +7,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Final
 
@@ -23,7 +23,14 @@ class QualityHistoryError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class QualitySnapshot:
-    """One daily quality snapshot persisted to ``quality_history.jsonl``."""
+    """One daily quality snapshot persisted to ``quality_history.jsonl``.
+
+    u54 — optional ``worst_severity`` field carries the worst per-segment
+    severity observed during the run. ``append_quality_snapshot`` reads
+    it during same-day re-publish to enforce keep-worst-wins so an
+    operator re-run after a transient fix cannot upgrade an earlier
+    ``limited`` row to ``normal`` silently.
+    """
 
     source_liveness: float
     figures_presence: float
@@ -31,6 +38,15 @@ class QualitySnapshot:
     published_segments: int
     total_items: int
     total_failed_sources: int
+    worst_severity: str | None = None
+
+
+_SEVERITY_RANK: Final[dict[str, int]] = {
+    "normal": 0,
+    "partial": 1,
+    "limited": 2,
+    "failed": 3,
+}
 
 
 def resolve_quality_history_path() -> Path:
@@ -44,16 +60,25 @@ def append_quality_snapshot(
     *,
     snapshot: QualitySnapshot,
     history_path: Path | None = None,
+    keep_worst: bool = True,
 ) -> Path:
     """Upsert one daily quality snapshot using temp-file + rename.
 
     Same-day re-publish replaces that day's line instead of appending a
     duplicate, so consumers can treat the file as one row per KST date.
     Corrupt historical JSONL lines are skipped with a warning.
+
+    u54 — ``keep_worst=True`` (default) enforces worst-wins for the
+    severity column: an incoming ``snapshot.worst_severity`` that is
+    *better* than the existing same-day row is dropped (the existing
+    severity is preserved). This prevents an operator re-run from
+    silently improving the historical record after a transient fix.
+    Set ``keep_worst=False`` to bypass (e.g. integration tests that
+    explicitly want last-write semantics).
     """
     target = history_path if history_path is not None else resolve_quality_history_path()
     rows = _load_rows(target)
-    row = {
+    row: dict[str, object] = {
         "date": target_date.isoformat(),
         "source_liveness": _clamp_rate(snapshot.source_liveness),
         "figures_presence": _clamp_rate(snapshot.figures_presence),
@@ -62,11 +87,15 @@ def append_quality_snapshot(
         "total_items": max(snapshot.total_items, 0),
         "total_failed_sources": max(snapshot.total_failed_sources, 0),
     }
+    if snapshot.worst_severity is not None:
+        row["worst_severity"] = snapshot.worst_severity
     upserted: list[dict[str, object]] = []
     replaced = False
     for existing in rows:
         if existing.get("date") == row["date"]:
             if not replaced:
+                if keep_worst:
+                    row = _merge_keep_worst(existing=existing, incoming=row)
                 upserted.append(row)
                 replaced = True
             continue
@@ -76,6 +105,39 @@ def append_quality_snapshot(
     upserted.sort(key=lambda item: str(item.get("date", "")))
     _write_rows_atomic(target, upserted)
     return target
+
+
+def _merge_keep_worst(
+    *,
+    existing: dict[str, object],
+    incoming: dict[str, object],
+) -> dict[str, object]:
+    """u54 — Preserve the worst severity across a same-day re-publish.
+
+    Compares ``existing.worst_severity`` vs ``incoming.worst_severity``
+    using :data:`_SEVERITY_RANK`. If the existing row carries a worse
+    severity, that field is copied into the incoming row before the
+    upsert; otherwise the incoming row wins. A debug log is emitted
+    when a dropped upgrade is detected so operators have visibility
+    into the silent merge.
+    """
+    existing_sev = existing.get("worst_severity")
+    incoming_sev = incoming.get("worst_severity")
+    if not isinstance(existing_sev, str) or not isinstance(incoming_sev, str):
+        return incoming
+    existing_rank = _SEVERITY_RANK.get(existing_sev, -1)
+    incoming_rank = _SEVERITY_RANK.get(incoming_sev, -1)
+    if existing_rank > incoming_rank:
+        _logger.info(
+            "[quality_history] keep_worst: existing=%s incoming=%s -> keeping %s",
+            existing_sev,
+            incoming_sev,
+            existing_sev,
+        )
+        merged = dict(incoming)
+        merged["worst_severity"] = existing_sev
+        return merged
+    return incoming
 
 
 def _load_rows(path: Path) -> list[dict[str, object]]:
@@ -126,11 +188,74 @@ def _clamp_rate(value: float) -> float:
     return round(value, 6)
 
 
+def recent_segment_severities(
+    segment: str,
+    *,
+    today: date,
+    coverage_path: Path,
+    lookback_runs: int = 2,
+) -> tuple[str, ...]:
+    """u54 — Read trailing per-segment severities from ``coverage.jsonl``.
+
+    The :class:`investo.notifier.operator_alerter.OperatorAlerter`
+    severity gate uses this helper to debounce single-run spikes
+    (AC-7): only when the segment is at severity ≥ ``limited`` for
+    ``lookback_runs`` consecutive runs does an alert fire. Returns
+    severities in *chronological* order (oldest first). Missing rows
+    (no line for that calendar day, or no severities map on the line)
+    are omitted — the caller treats a short tuple as "not enough
+    history yet" and skips the alert.
+
+    Pure read; the helper does not write to ``coverage.jsonl`` and is
+    safe to call before / after / during pipeline stages.
+    """
+    if lookback_runs <= 0 or not coverage_path.exists():
+        return ()
+    rows = _load_severities_by_date(coverage_path)
+    out: list[str] = []
+    for offset in range(lookback_runs):
+        day = (today - timedelta(days=lookback_runs - 1 - offset)).isoformat()
+        severities = rows.get(day)
+        if severities is None:
+            return ()
+        severity = severities.get(segment)
+        if severity is None:
+            return ()
+        out.append(severity)
+    return tuple(out)
+
+
+def _load_severities_by_date(path: Path) -> dict[str, dict[str, str]]:
+    by_date: dict[str, dict[str, str]] = {}
+    try:
+        with path.open("r", encoding="utf-8") as fp:
+            for raw_line in fp:
+                stripped = raw_line.strip()
+                if not stripped:
+                    continue
+                try:
+                    parsed = json.loads(stripped)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(parsed, dict):
+                    continue
+                td = parsed.get("target_date")
+                severities = parsed.get("severities")
+                if not isinstance(td, str) or not isinstance(severities, dict):
+                    continue
+                cleaned = {str(k): str(v) for k, v in severities.items() if isinstance(v, str)}
+                by_date[td] = cleaned
+    except OSError:
+        return {}
+    return by_date
+
+
 __all__ = [
     "DEFAULT_QUALITY_HISTORY_PATH",
     "QUALITY_HISTORY_PATH_ENV",
     "QualityHistoryError",
     "QualitySnapshot",
     "append_quality_snapshot",
+    "recent_segment_severities",
     "resolve_quality_history_path",
 ]

@@ -56,6 +56,7 @@ def append_daily_coverage(
     source_outcomes: Sequence[SourceOutcome],
     *,
     path: Path | None = None,
+    severities: dict[str, str] | None = None,
 ) -> None:
     """Append one JSON line summarising today's per-source outcomes.
 
@@ -64,9 +65,16 @@ def append_daily_coverage(
     interpret duplicates as multiple runs for the same date (manual
     re-trigger / partial cron retry); the latest line wins for any
     consumer that walks back-to-front.
+
+    u54 — ``severities`` is an optional ``MarketSegment → severity``
+    mapping written verbatim under the ``severities`` key. The KPI
+    counter in :mod:`investo.briefing.quality_eval` reads it to
+    compute ``core_missing_segments`` / ``segments_limited_or_worse``.
+    Legacy callers omit it; pre-u54 rows simply contribute 0 to those
+    counters.
     """
     target_path = path if path is not None else resolve_coverage_path()
-    line = {
+    line: dict[str, object] = {
         "target_date": target_date.isoformat(),
         "outcomes": [
             {
@@ -78,6 +86,8 @@ def append_daily_coverage(
             for outcome in source_outcomes
         ],
     }
+    if severities:
+        line["severities"] = dict(severities)
     try:
         target_path.parent.mkdir(parents=True, exist_ok=True)
         with target_path.open("a", encoding="utf-8") as fp:

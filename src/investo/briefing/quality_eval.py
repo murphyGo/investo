@@ -42,9 +42,25 @@ _DATA_LIMITED_MARKER: Final[str] = "데이터 부족 안내"
 class QualityKPIs:
     """Summary of the trailing-window quality KPIs.
 
-    Each ``*_rate`` is in ``[0.0, 1.0]``; ``runs_observed`` and
-    ``briefings_observed`` are non-negative integers used in the
-    rendered denominators.
+    Each ``*_rate`` property returns ``None`` when the denominator is
+    zero so the renderer can surface ``n/a`` (u54 AC-4) rather than
+    a misleading ``0.0%``. ``runs_observed`` and ``briefings_observed``
+    are non-negative integers used in the rendered denominators.
+
+    u54 — new counter fields:
+
+    * ``failed_sources`` — sum of failed-source counts across the
+      window (one count per run; not deduped across runs because each
+      run is its own observation).
+    * ``zero_item_sources`` — sum of zero-item-source counts (same
+      shape).
+    * ``core_missing_segments`` — count of (run, segment) pairs where
+      every core source registered for that segment was bad
+      (failed / zero); raises the "core data missing" signal even when
+      a segment still published.
+    * ``segments_limited_or_worse`` — count of (run, segment) pairs at
+      severity ≥ ``limited``; complements ``runs_with_failed_source``
+      by surfacing per-segment severity rather than per-run.
     """
 
     today: date
@@ -54,24 +70,34 @@ class QualityKPIs:
     briefings_observed: int
     briefings_data_limited: int
     briefings_with_figures: int
+    failed_sources: int = 0
+    zero_item_sources: int = 0
+    core_missing_segments: int = 0
+    segments_limited_or_worse: int = 0
 
     @property
-    def source_liveness_rate(self) -> float:
+    def source_liveness_rate(self) -> float | None:
+        """u54 — Returns ``None`` when no runs were observed.
+
+        Renderers translate ``None`` to ``n/a`` rather than ``0.0%``,
+        which would falsely imply "we observed zero liveness" instead
+        of "we have no observations".
+        """
         if self.runs_observed == 0:
-            return 0.0
+            return None
         return (self.runs_observed - self.runs_with_failed_source) / self.runs_observed
 
     @property
-    def figures_presence_rate(self) -> float:
+    def figures_presence_rate(self) -> float | None:
         non_limited = self.briefings_observed - self.briefings_data_limited
         if non_limited <= 0:
-            return 0.0
+            return None
         return self.briefings_with_figures / non_limited
 
     @property
-    def fallback_ratio(self) -> float:
+    def fallback_ratio(self) -> float | None:
         if self.briefings_observed == 0:
-            return 0.0
+            return None
         return self.briefings_data_limited / self.briefings_observed
 
 
@@ -81,6 +107,10 @@ class QualityHistoryRow:
 
     ``has_data=False`` preserves missing-day gaps so visual renderers do
     not turn absent publishes into synthetic zero-valued KPI points.
+
+    u54 — ``worst_severity`` carries the worst per-segment severity
+    observed on that day, ``None`` for legacy rows that pre-date the
+    field.
     """
 
     day: date
@@ -90,6 +120,7 @@ class QualityHistoryRow:
     published_segments: int | None = None
     total_items: int | None = None
     total_failed_sources: int | None = None
+    worst_severity: str | None = None
 
     @property
     def has_data(self) -> bool:
@@ -111,13 +142,21 @@ def compute_quality_kpis(
 
     Both inputs may be missing — a freshly-deployed runtime has no
     ``coverage.jsonl`` and no archive yet. In that case the returned
-    KPIs report ``0.0`` rates with zero counters.
+    KPIs report ``None`` rates (rendered as ``n/a``) with zero
+    counters (u54 AC-4).
     """
     runs = _load_recent_runs(coverage_path, today=today, window_days=window_days)
     runs_with_failed = sum(
         1
         for outcomes in runs.values()
         if any(entry.get("status") == "failed" for entry in outcomes)
+    )
+    failed_sources = sum(
+        sum(1 for entry in outcomes if entry.get("status") == "failed")
+        for outcomes in runs.values()
+    )
+    zero_item_sources = sum(
+        sum(1 for entry in outcomes if entry.get("status") == "zero") for outcomes in runs.values()
     )
     archive_files = list(_iter_archive_files(archive_root, today=today, window_days=window_days))
     briefings_observed = len(archive_files)
@@ -133,7 +172,64 @@ def compute_quality_kpis(
         briefings_observed=briefings_observed,
         briefings_data_limited=briefings_data_limited,
         briefings_with_figures=briefings_with_figures,
+        failed_sources=failed_sources,
+        zero_item_sources=zero_item_sources,
+        # ``core_missing_segments`` / ``segments_limited_or_worse``
+        # require per-segment severity which the legacy
+        # ``coverage.jsonl`` schema does not record. The orchestrator
+        # writes the augmented severity field starting in u54 (see
+        # ``source_health.append_daily_coverage``); back-fill is
+        # impossible for historic days, so we count only what the file
+        # exposes today.
+        core_missing_segments=_count_core_missing_segments(runs),
+        segments_limited_or_worse=_count_segments_limited_or_worse(runs),
     )
+
+
+def _count_core_missing_segments(runs: dict[str, list[dict[str, object]]]) -> int:
+    """u54 — read per-segment severity stamps written by source_health.
+
+    The augmented ``coverage.jsonl`` schema carries a ``severities``
+    dict mapping ``MarketSegment`` → severity string. Lines without
+    the field (legacy rows) contribute 0. The "core missing" signal
+    is severity ``in {"limited", "failed"}``.
+    """
+    total = 0
+    for outcomes in runs.values():
+        # ``outcomes`` is the raw list of per-source dicts. The
+        # severities live on a sibling key reified by the loader.
+        # We piggyback on the ``__severities__`` synthetic key the
+        # loader injects so both inputs flow through the same code
+        # path.
+        severities = _extract_severities(outcomes)
+        for sev in severities.values():
+            if sev in ("limited", "failed"):
+                total += 1
+    return total
+
+
+def _count_segments_limited_or_worse(runs: dict[str, list[dict[str, object]]]) -> int:
+    """u54 — every (run, segment) pair at severity ≥ ``limited``.
+
+    Mirrors :func:`_count_core_missing_segments` today; kept as a
+    separate KPI so a future weighting (e.g. failed-counts-2x) can
+    diverge without breaking the existing counter.
+    """
+    return _count_core_missing_segments(runs)
+
+
+def _extract_severities(outcomes: list[dict[str, object]]) -> dict[str, str]:
+    """Pull the synthetic ``__severities__`` slot injected by the loader.
+
+    Returns ``{}`` when the slot is absent (legacy rows) — those rows
+    cannot contribute to the per-segment severity KPIs.
+    """
+    for entry in outcomes:
+        if entry.get("__synthetic__") == "severities":
+            payload = entry.get("payload")
+            if isinstance(payload, dict):
+                return {str(k): str(v) for k, v in payload.items() if isinstance(v, str)}
+    return {}
 
 
 def compute_quality_history(
@@ -182,16 +278,32 @@ def render_quality_page(kpis: QualityKPIs) -> str:
     lines.append(
         f"| 데이터 부족 폴백 | {_format_pct(kpis.fallback_ratio)} | {kpis.briefings_observed} 건 |"
     )
+    # u54 — Additional reader-facing counters for source-status truth.
+    lines.append(f"| 실패한 소스 누적 | {kpis.failed_sources} 회 | {kpis.runs_observed} 회 |")
+    lines.append(f"| 0건 반환 소스 누적 | {kpis.zero_item_sources} 회 | {kpis.runs_observed} 회 |")
+    lines.append(
+        f"| 핵심 소스 결손 세그먼트 | {kpis.core_missing_segments} 건 | {kpis.runs_observed} 회 |"
+    )
+    lines.append(
+        f"| 제한/실패 세그먼트 | {kpis.segments_limited_or_worse} 건 | {kpis.runs_observed} 회 |"
+    )
     lines.append("")
     lines.append(
-        "> 이 지표는 매 게시 직후 자동 갱신됩니다. 0% / 100% 같은 극단값은 "
-        "관측 데이터가 부족한 초기 운영 상황일 수 있으니 표본 크기를 함께 확인하세요."
+        "> 이 지표는 매 게시 직후 자동 갱신됩니다. ``n/a`` 는 측정 가능한 "
+        "표본이 없다는 뜻이며 0% 가 아닙니다. 표본 크기를 함께 확인하세요."
     )
     lines.append("")
     return "\n".join(lines)
 
 
-def _format_pct(value: float) -> str:
+def _format_pct(value: float | None) -> str:
+    """u54 — Render ``None`` as ``n/a`` rather than ``0.0%`` (AC-4).
+
+    Renderers must surface "we have no observations" explicitly so the
+    reader does not confuse undefined with worst-case zero liveness.
+    """
+    if value is None:
+        return "n/a"
     return f"{value * 100:.1f}%"
 
 
@@ -232,7 +344,19 @@ def _load_recent_runs(
                     continue
                 if parsed_date < horizon or parsed_date > today:
                     continue
-                out[td] = [item for item in outcomes if isinstance(item, dict)]
+                entries: list[dict[str, object]] = [
+                    item for item in outcomes if isinstance(item, dict)
+                ]
+                # u54 — fold the optional ``severities`` map into the
+                # outcome list as a synthetic entry so downstream
+                # KPI counters can read it through one code path
+                # without changing the function signature. Legacy
+                # lines (no severities field) get an empty payload —
+                # they contribute 0 to severity-based KPIs.
+                severities = parsed.get("severities")
+                if isinstance(severities, dict):
+                    entries.append({"__synthetic__": "severities", "payload": severities})
+                out[td] = entries
     except OSError:
         return {}
     return out
@@ -308,6 +432,8 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
     fallback_ratio = _optional_rate(payload.get("fallback_ratio"))
     if source_liveness is None or figures_presence is None or fallback_ratio is None:
         return None
+    raw_severity = payload.get("worst_severity")
+    worst_severity = raw_severity if isinstance(raw_severity, str) else None
     return QualityHistoryRow(
         day=parsed_day,
         source_liveness=source_liveness,
@@ -316,6 +442,7 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
         published_segments=_optional_int(payload.get("published_segments")),
         total_items=_optional_int(payload.get("total_items")),
         total_failed_sources=_optional_int(payload.get("total_failed_sources")),
+        worst_severity=worst_severity,
     )
 
 

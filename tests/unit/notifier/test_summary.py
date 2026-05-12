@@ -690,14 +690,15 @@ def _build_coverage(segment, status, *, item_count=0):  # type: ignore[no-untype
     )
 
 
-def test_insufficient_segment_collapses_to_single_line_when_coverage_supplied() -> None:
+def test_failed_segment_collapses_to_single_line_when_coverage_supplied() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
         US_EQUITY: _build_briefing(market_summary="미국 요약"),
         CRYPTO: _build_briefing(market_summary="크립토 요약"),
     }
+    # u54 — legacy "insufficient" migrated to "failed".
     coverage = {
-        DOMESTIC_EQUITY: _build_coverage(DOMESTIC_EQUITY, "insufficient"),
+        DOMESTIC_EQUITY: _build_coverage(DOMESTIC_EQUITY, "failed"),
         US_EQUITY: _build_coverage(US_EQUITY, "normal", item_count=10),
         CRYPTO: _build_coverage(CRYPTO, "normal", item_count=10),
     }
@@ -710,7 +711,7 @@ def test_insufficient_segment_collapses_to_single_line_when_coverage_supplied() 
 
     # Domestic-equity collapses: single line with status badge + link, no
     # body/conclusion line below.
-    expected_collapse = f"🇰🇷 *국내 증시* [부족] · [상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})"
+    expected_collapse = f"🇰🇷 *국내 증시* [실패] · [상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})"
     assert expected_collapse in summary
     assert f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n" not in summary
 
@@ -720,7 +721,7 @@ def test_insufficient_segment_collapses_to_single_line_when_coverage_supplied() 
 
 
 def test_partial_or_normal_segment_keeps_three_line_block() -> None:
-    """``status != 'insufficient'`` must NOT trigger the collapse."""
+    """``status != 'failed'`` must NOT trigger the collapse."""
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="국내 요약"),
         US_EQUITY: _build_briefing(market_summary="미국 요약"),

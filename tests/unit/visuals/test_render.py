@@ -114,7 +114,7 @@ def test_render_data_confidence_card_escapes_failure_reason() -> None:
     card = DataConfidenceCardInput(
         target_date=date(2026, 5, 7),
         segment="crypto",
-        coverage_status="insufficient",
+        coverage_status="failed",
         item_count=0,
         source_count=0,
         missing_categories=(),

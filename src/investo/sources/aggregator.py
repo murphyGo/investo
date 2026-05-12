@@ -175,7 +175,22 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
         items.extend(kept)
         tier = adapter_tier(adapter.name)
         if kept:
-            outcomes.append(SourceOutcome.ok(adapter.name, adapter.category, len(kept), tier=tier))
+            # u54 — populate ``latest_item_at`` for the staleness override
+            # in :func:`investo.briefing.segments.build_segment_coverage`.
+            # Computed at the aggregator chokepoint so every adapter
+            # (core or otherwise) gets the timestamp without per-adapter
+            # boilerplate; non-core sources still emit it but the
+            # staleness check ignores them.
+            latest_item_at = max(item.published_at for item in kept)
+            outcomes.append(
+                SourceOutcome.ok(
+                    adapter.name,
+                    adapter.category,
+                    len(kept),
+                    tier=tier,
+                    latest_item_at=latest_item_at,
+                )
+            )
         else:
             outcomes.append(SourceOutcome.zero(adapter.name, adapter.category, tier=tier))
     return SourceCollectionReport(items=tuple(items), outcomes=tuple(outcomes))

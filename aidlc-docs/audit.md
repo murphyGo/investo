@@ -1,5 +1,187 @@
 # AI-DLC Audit Log
 
+## Construction — u54 — Source-Status Severity & Quality KPI Implementation Complete (Wave 8, 2026-05-13)
+**Timestamp**: 2026-05-13T21:00:00+09:00
+**Trigger**: Refined u54 plan (9 steps, 44 checkboxes) executed end-to-end.
+**Outcome**: All 9 steps `[x]`, all 8 ACs `[x]`. Quality gate green — ruff/format clean (287 files), mypy --strict clean (112 files), pytest 1977 passed (1910 → +67; plan est. +34-42), mkdocs --strict OK.
+**Delivered**: 4-tier `CoverageStatus` migration (insufficient → failed) / `SEGMENT_CORE_SOURCES` frozen / 8-row severity decision tree in `models/coverage.py` / `SourceOutcome.latest_item_at` staleness + `core_staleness_window` 30h/30h/6h / 5-tuple count split (`targeted/succeeded/zero/failed/body_used`) / `briefing/citation_cardinality.py` (Finding #4, N=3 sha1[:12] R13-safe) / `notifier/severity_debounce.py` 2-run debounce / `append_quality_snapshot(keep_worst=True)` / KPI rewrite (`failed_sources`, `zero_item_sources`, `core_missing_segments`, `segments_limited_or_worse`).
+**Files**: 11 new (1 source + 9 tests + 1 notifier) + 13 modified. FR-010 registered in `docs/requirements.md`.
+**TECH-DEBT candidates**: D54-A (KRX index latest_item_at source) / D54-B (entity dict drift via u53 watchlist) / D54-C (2→3-run debounce promotion) / D54-D (cross-segment severity escalation).
+**Plan**: `aidlc-docs/construction/plans/u54-source-status-severity-and-quality-kpi-code-generation-plan.md` (44/44).
+**Summary**: `aidlc-docs/construction/u54-source-status-severity-and-quality-kpi/code/summary.md`.
+
+---
+
+## Construction — u57 — Segment Narrative Scope + Time-State Reconciliation Plan Re-Hardened to u51 Precision (Wave 8, 2026-05-13)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 10-agent evaluation of the initial u57 plan flagged 12 precision gaps relative to the u51 gold standard — (1) AC↔Step traceability + Open Questions 섹션 부재, (2) **3 untestable AC** ("downgraded to background unless link is explicit" / "native facts ranked above cross-market" / "domestic watchlist no unrelated global tickers") — quality gate 통과 불가, measurable proxy 필요, (3) `SEGMENT_ORDER = (DOMESTIC, US, CRYPTO)` 가 도메스틱 prompt 시점에 US close-state 미존재 — 05-11 bug 의 root cause; pre-computation 필요, (4) time-state detection mechanism (regex vs LLM) 미정, (5) "linkage" 결정 mechanism 미정, (6) cross-market 매크로 over-demotion 회귀 risk (Iran/oil 같은 material macro 소실), (7) shared macro dedupe 위치 (메타 stage vs in-context) 미정, (8) 통합 fixture 전략 (live cassette 녹화 vs synthetic) 미정, (9) pipeline ordering 변경 결정 미명시, (10) 영향 파일 + 예상 test count 미기재, (11) NFR + rule-compliance 섹션 부재, (12) FR id 할당 미실행.
+**Decision**: u57 plan 을 in-place 재작성 (5 step → 8 step, ~20 checkbox → ~45 checkbox). **3개 untestable AC 모두 measurable proxy 채택**:
+- AC1 (cross-market demotion) → 도메스틱 segment 본문에서 외국 ticker 매치 단락 안에 도메스틱 ticker `\d{6}` 또는 linkage 키워드 `{국내 영향, 환율 경로, 코스피 연관, 수급 영향, 외국인 매매, 환율, 원/달러}` ≥ 1 강제 (publish-gate regex lint).
+- AC2 (native fact priority) → 각 segment §② 의 첫 H3 primary noun 이 segment-native entity allowlist (domestic: `\d{6}` ∪ KOSPI/KOSDAQ; us-equity: SPX/NDX/주요 ticker; crypto: BTC/ETH) 매치 강제 (WARN-tier diagnostic).
+- AC3 (domestic watchlist global ticker) → AC1 의 linkage lint 와 동일 mechanism 으로 통합 + §watchlist subsection 한정 strict mode (linkage 키워드 ≥ 1 강제, REJECT-tier).
+
+**BundleContext pre-computation Step 추가 (Step 1.5, Critical)**: 신규 `src/investo/models/bundle_context.py` (`MarketStateSummary` + `BundleContext`) + `src/investo/orchestrator/bundle_context.py` (`compute_bundle_context`); Stage 2 *전* raw routed items 만으로 3 segment 의 close-state 결정; 자기 segment 자신은 `pending` 으로 inject (회귀 안전 — 도메스틱 prompt 시점에 도메스틱 자신을 "이미 close" 라고 단정하지 않음); `SEGMENT_ORDER` 는 무수정 (Option B 채택; ordering 의존성을 pre-comp 로 제거).
+
+**Cross-market core-tier allow-list 채택**: `CROSS_MARKET_CORE_ALLOWED: frozenset = {"geopolitical_oil_macro", "fed_policy_event", "global_systemic_risk"}` — over-demotion regression 방지; allow-list 매크로는 core 유지 가능하되 segment-specific 1-sentence 재해석 강제. 신규 항목 추가 (예: `currency_crisis_macro`, `commodity_shock`) 는 후속 unit out-of-scope.
+
+**Time-state detection 결정**: source title regex catalogue (Yonhap 헤드라인 formulaic 해서 false-positive 낮음) + Stage-2 prompt 내 LLM in-context disambiguation (ambiguous 만); pattern catalogue `pre-market|open|intraday|close|post-close|scheduled` 모두 정규식 표 명시.
+
+**Linkage lint mechanism**: post-Stage-2 deterministic regex (LLM 보조 없음); strict mode default = `demote` (paragraph 강등), `INVESTO_LINT_STRICT=reject` flag 로 전체 reject 모드 선택.
+
+**Shared macro dedupe**: BundleContext.`shared_macro_block` 1회만 렌더, `## ⓪ 오늘의 매크로` H2 surface (TL;DR → § ⓪ → § ① 순서; u51 호환); 본문 재서술은 WARN-only (자동 strip false-positive 우려).
+
+**Fixtures 전략**: synthetic unit-first; 3 segment 각각 독립 cassette (live Claude call 3개) 는 1회만 녹화; 통합 테스트는 frozen input + deterministic BundleContext replay.
+
+**FR id 할당**: u51 = FR-009, u55 = FR-010 점유 확인. u57 = **FR-011** ("세그먼트 narrative scope + time-state 일관성").
+
+**Options compared**:
+- **(a) 기존 5-step plan 유지 + AC wording 손질만.** 거부됨 — 3 untestable AC 가 fundamental quality-gate blocker; pipeline ordering 결함이 measurable proxy 없이 단순 prompt 룰만으로 잡히지 않음.
+- **(b) `SEGMENT_ORDER = (US, CRYPTO, DOMESTIC)` 으로 변경 + ordering 의존.** 거부됨 — KST 월요일 아침 cron 시점에 US 가 아직 close 가 아닌 케이스에서 여전히 깨짐; ordering coupling 강화로 단위 테스트 복잡도 증가.
+- **(c) BundleContext pre-computation 채택 (Option B).** 채택 — ordering 무관화; pure function `compute_bundle_context` 가 재현성 (NFR-003) + mypy strict (NFR-004) 모두 만족; 신규 LLM call 0 (NFR-002).
+- **(d) Cross-market allow-list 미채택 (모든 매크로 demote).** 거부됨 — us-equity 가 Iran/oil/Fed 같은 material macro 를 잃음 (subagent #8 회귀 우려); 3개 핀 allow-list 가 trade-off 균형.
+- **(e) Linkage lint 를 LLM-assisted classification 으로.** 거부됨 — 비결정 (NFR-003 위반) + 비용 (NFR-002); regex linkage 가 결정론 + 무료.
+
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u57-segment-narrative-scope-and-time-reconciliation-code-generation-plan.md` (in-place rewrite, ~45 checkbox).
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/audit.md` (this entry, top).
+- `/Users/user/Desktop/Projects/investo/docs/requirements.md` (FR-011 추가는 Step 8 에서 — 아직 미실행).
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u57 행은 `📋 Planned` 유지 — 개발 착수 시 전이).
+
+**Status**: Planned (개발 미착수). Step 1 ~ Step 8 진행 전 사용자 승인 대기 (2-option completion).
+
+**Context**: u55 / u57 모두 같은 2026-05-13 10-subagent 평가 wave 에서 도출. u55 는 numeric truth gate (publish-time fact verification), u57 은 cross-segment narrative coherence — 책임 명확히 분리. u52 의 prior-day carryover 와도 분리 (BundleContext 는 same-run only). u51 reader-format 과 layout 충돌 회피 (TL;DR → § ⓪ → § ① 순서).
+
+---
+
+## Construction — u56 — Compliance Language + Observational Tags Plan Re-Hardened (Findings #5 Crypto Disclaimer + #12 Retail Tone Absorbed)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 2026-05-13 10-subagent quality 리뷰의 u56-routed findings 가 초기 u56 plan (5 step / ~19 checkbox) 의 정밀도를 초과 — 특히 (a) Finding #5 "크립토 면책조항이 주식과 동일 — 가상자산이용자보호법 누락" 이 별 unit 으로 라우팅되지 않음, (b) Finding #12 "한국 retail 톤 — `-다` 종결 일색, `여부/전망/우려` 가족 어구 반복" 이 u51 §⑥ 한정 처리 외 잔여 surface 무owner, (c) P0 banned phrase 가 단방향 (`매수 검토` 만, `매도 검토` 부재) 비대칭, (d) `verify_disclaimer` 불변 invariant + first-viewport 신규 gate 의 직교성 (replace vs additive) 미명시, (e) ActionTag 5종→4종 마이그레이션 + alias map 정책 부재, (f) Context-aware false-positive (`목표가` quotative vs bare, `진입` 분야 진입, `청산` 회사 청산) 미고려, (g) AC↔Step traceability 표 + Open Questions 섹션 부재 (u51 gold-standard 격차). 사용자 직접 요청으로 본 unit 의 plan 을 u51 정밀도로 재보강.
+**Decision**: u56 plan in-place 재작성 — 5 step → 9 step (Context filter / DISCLAIMER_CRYPTO / ActionTag migration / segment-aware verify_disclaimer / retail tone caps 각각 별 step), ~19 checkbox → ~70+ checkbox, AC↔Step traceability 표 신설, Open Questions 섹션 신설, P0 phrase 카탈로그 3 카테고리 구조화 (action symmetry / quantified outcome regex / Korean retail-coded + crypto-only subset), Finding #5 (가상자산이용자보호법 §10/§19 reference `DISCLAIMER_CRYPTO` 상수 + segment-aware `append_disclaimer` / `verify_disclaimer`) + Finding #12 (종결 어미 다양성 ≤ 60% + filler phrase family per-1000-chars cap, WARN-only) 통합. FR-010 할당.
+
+**Options compared**:
+- **(a) Finding #5 (crypto disclaimer) 와 Finding #12 (retail tone) 을 별 unit 으로 분리** (u58 / u59). 거부됨 — 두 finding 모두 publisher publish-time gate surface 동일 + compliance/wording owner 일치 (u56) — 분리 시 review/test cycle 중복 + orchestrator wire-through 중복.
+- **(b) P0 phrase soften 자동 변환** (LLM 호출 또는 deterministic rewrite). 거부됨 — LLM 영역 침범 + 환각 risk; deterministic rewrite 는 wording 의 의미 변형 risk. 본 unit 은 WARN/block 만, 자동 rewrite 는 별 unit 후보 (regenerate path).
+- **(c) `verify_disclaimer` 시그니처 변경 — segment 필수 인자**. 거부됨 — 기존 caller (weekly_digest / orchestrator / archive read path) 가 1-arg 호출. byte-compat 위해 `segment="us-equity"` default + `legacy=False` default 추가; 기존 caller 무파괴 + segment-aware 분기 활성화.
+- **(d) `[관망]` tag 보존** (5종→4종 대신 5종 유지하되 wording만 변경). 거부됨 — `[관망]` 의 의미가 `[데이터부족]` 과 거의 중복 (둘 다 "관측 불가/판단 보류"). 4종으로 축소가 user-facing 명료성 ↑.
+
+**Design Q/A**:
+- Q: P0 vs P1 의 경계? A: P0 = compliance-critical (자본시장법 / 가상자산이용자보호법 referent — 차단). P1 = stylistic overconfidence (예: `직접 반영된다`, 인과 템플릿 — WARN only).
+- Q: First-viewport short disclaimer 의 정확한 위치? A: `## 한눈에 보기` H2 직전 1줄 blockquote (u51 의 TL;DR 블록과 자연 stack). fallback path: anchor table 직전 → 본문 첫 줄.
+- Q: Crypto-only P0 (`세력 / 김프 진입 / 상폐 임박 / 에어드랍 확정 / 펌핑`) 가 us-equity segment 에서 hit 시? A: segment="us-equity" 일 때 BANNED_P0_CRYPTO_ONLY 는 inactive — false-positive risk (`세력` 이 us-equity 본문에서 다른 의미로 사용될 가능성). crypto segment 에서만 active.
+- Q: Archive backward-compat cutoff? A: 2026-05-13 (본 unit 시행일). 이전 archive 는 `legacy=True` flag 로 기존 `DISCLAIMER` substring 만 검사. 법 소급 무 — 재작성 안 함.
+- Q: ActionTag 마이그레이션 시 과거 archive 재렌더? A: **재렌더 안 함**. legacy `[강세] / [약세]` 유지. pin-test 만 업데이트. 신규 생성물부터 신 tag 적용. notifier substring grep 은 union (구 5종 + 신 4종) — 단, 신규 prompt 에서는 신 tag 만 emit.
+- Q: 종결 어미 60% / filler 8.0/1000 chars 임계 근거? A: u51 §⑥ "여부" 40% 와 동일한 evidence-driven 기준. archive 다일 sample 측정 후 implementation 시점 confirm — Open Question.
+- Q: Filler phrase family 가 u51 §⑥ 액션 비율 metric 과 중복? A: 별 surface — u51 은 §⑥ 한정 bullet 종결, 본 unit 은 *본문 전체* prose 의 filler 빈도. 별 log signature (`reader_format.action_ratio_high` vs `tone.filler_density`).
+- Q: Phrase list 위치 (`models/` vs `publisher/`)? A: `models/compliance_phrases.py` — briefing prompt + publisher gate 가 동일 import 가능. orchestrator-only cross-import 룰 위반 없음 (phrase list 는 *데이터*, foundation layer).
+- Q: FR id? A: FR-009 (u51) 가 최고. **FR-010 = u56**.
+
+**Affected docs**:
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u56-compliance-language-and-observational-tags-code-generation-plan.md` (5 step → 9 step, ~19 → ~70+ checkbox 재작성)
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/audit.md` (본 entry, 최상단)
+- 향후 갱신 (developer Step 9): `/Users/user/Desktop/Projects/investo/docs/requirements.md` (FR-010 추가)
+- 향후 신규 (developer Step 2): `/Users/user/Desktop/Projects/investo/src/investo/publisher/compliance_language.py`
+- 향후 신규 (developer Step 2): `/Users/user/Desktop/Projects/investo/src/investo/models/compliance_phrases.py`
+- 향후 갱신 (developer Step 5): `/Users/user/Desktop/Projects/investo/src/investo/briefing/disclaimer.py` (`DISCLAIMER_CRYPTO` 추가 + `append_disclaimer` 시그니처 확장)
+- 향후 갱신 (developer Step 5): `/Users/user/Desktop/Projects/investo/src/investo/publisher/verifier.py` (`verify_disclaimer` segment + legacy 인자 확장 + `verify_short_disclaimer_first_viewport` 신규)
+- 향후 갱신 (developer Step 4, Step 6): `/Users/user/Desktop/Projects/investo/src/investo/publisher/reader_format.py` (first-viewport disclaimer emit + tone caps)
+- 향후 갱신 (developer Step 1): `/Users/user/Desktop/Projects/investo/src/investo/briefing/prompts.py` (P0 forbid 명시 + ActionTag 5종→4종)
+- 향후 갱신 (developer Step 7): `/Users/user/Desktop/Projects/investo/src/investo/notifier/summary.py` (신규 ActionTag substring 추출)
+
+**Status**: 📋 Planned (re-hardened) — developer 가 Step 1 부터 시작 대기. 2-option approval 미실행 (사용자 승인 대기). **No code written.**
+
+**Context**: 10-subagent 평가의 12개 findings 중 finding 라우팅 (u51-u57) 1차 분배 후 u56 plan 의 정밀도 격차가 사후 발견 — 특히 Finding #5 (crypto disclaimer) 와 Finding #12 (retail tone) 가 u56 owner 임에도 초기 plan 에 미흡 반영. 본 재보강은 *plan-only delivery* (코드 변경 없음). Rule 2 (Disclaimer enforcement) 의 surface 가 footer 단일 → footer + first-viewport + crypto-variant 의 3-surface gate 로 hardened.
+
+**DEBT cross-references** (Open Questions 에 명시):
+- D56-A: `DISCLAIMER_CRYPTO` wording 정식 법률 검토 (변호사 자문).
+- D56-B: 종결 어미 분류기 형태소 분석 (regex → KoNLPy 등) — 정확도 ↑, 의존 무게 trade-off.
+- D56-C: P0 phrase list 정기 갱신 cadence (자본시장법 / 가상자산법 개정 추적).
+- D56-D: Quantified outcome regex 다국어 case (영문 혼용).
+
+---
+
+## Construction — u54 — Plan Refined to u51-Level Precision + Finding #4 (Citation Cardinality) Inception (Wave 8 Second-Pass Evaluation, 2026-05-13)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 10-agent second-pass evaluation of the initial u54 plan against u51 (gold-standard precision baseline) flagged 11 refinement items — (1) AC↔Step traceability 표 부재, (2) Open Questions / Risks 섹션 부재, (3) 영향 파일 분기 ("Extend or wrap `SegmentCoverage`") — 단일 결정 미pinned, (4) 4-tier 신규 enum vs 기존 3-tier `CoverageStatus = Literal["normal","partial","insufficient"]` (`src/investo/briefing/segments.py:13`) 마이그레이션 정책 부재, (5) Core source set 추상 ("price/index, primary market news") — frozen constant 미정의, (6) Severity 결정 트리 비결정적 (4-tuple → severity 표 부재), (7) Staleness signal 미포함 (주말/공휴일 yfinance 가 stale close 반환 시 `정상` 라벨 risk), (8) Alert debouncing + same-day re-publish 정책 부재, (9) **Finding #4 (citation cardinality)** — 평가에서 1 연합뉴스 URL 이 5 distinct 종목 claim 에 묶인 over-attribution 발견했으나 u54 plan 에 미인입, (10) NFR + project-rule compliance 섹션 부재, (11) 영향 파일 + 예상 test count 부재.
+
+**Decision**: u54 plan in-place 재작성 (planning-only delivery; **No code written**). 5 step → **9 step** 으로 분해, 22 → **44 checkbox** (DoD 9 + Step 1 9 + Step 2 4 + Step 3 5 + Step 4 5 + Step 5 6 + Step 6 5 + Step 7 4 + Step 8 4 + Step 9 6). 신규 섹션: AC↔Step traceability 표 (8 AC × 9 step), Frozen constants 표 (`SEGMENT_CORE_SOURCES` + 8-row severity decision tree + 3-tier→4-tier 마이그레이션 표), Step Dependency Graph, NFR AC coverage map, Project rule compliance (R13 명시), Affected files (concrete 12 modify + 10 new test), Open questions / risks (7건 + DEBT 후보 4건). Finding #4 → Step 6 의 sub-step 으로 인입 (신규 `briefing/citation_cardinality.py` pure 헬퍼, `reader.citation_cardinality_exceeded` WARN, url_hash sha1[:12] R13 보호, *non-blocking*). FR-010 `docs/requirements.md` 할당.
+
+**Options compared**:
+- **(a) plan 보강 없이 implementation 진입.** 거부 — 5 step 의 추상도가 implementation 분기를 야기 (4-tier enum 도입 방식 / core source 결정 / staleness 정책 미pinned).
+- **(b) AC↔Step 표 + Open Questions 만 추가.** 거부 — Finding #4 미인입, severity 결정 트리 미pinned, 마이그레이션 정책 부재 → u51-level 정밀도 미달.
+- **(c) 전면 재작성 + Finding #4 인입 + 9 step.** 채택. u51 의 38 checkbox / 7 step 정밀도와 동등 (44 / 9 — citation cardinality + alert debounce + staleness 추가로 step 수 ↑).
+- **(d) Finding #4 를 별 unit (u58+) 으로 분리.** 거부 — citation cardinality 는 source-status 신뢰도의 일부 (1 source 가 N claim 에 묶이는 것은 attribution risk = trace transparency 영역). u54 의 Step 6 (trace transparency) 의 자연 확장.
+
+**Design Q/A**:
+- Q: 4-tier enum 도입 시 기존 3-tier `CoverageStatus` 와 병행? A: 병행 없음. 단일 enum 으로 통합 — `insufficient` → `failed` 마이그레이션, `limited` 를 `partial` 과 `failed` 사이에 신규 삽입. 모든 다운스트림 (briefing/pipeline.py, visuals/cards.py, visuals/assets.py, notifier/summary.py, orchestrator/pipeline.py) 단일-PR 마이그레이션.
+- Q: Severity 결정 트리의 핵심 input? A: `(failed_core_count, zero_core_count, required_category_zero, all_items_zero, core_staleness_violated)` 5-tuple. 8-row 결정 표가 deterministic 매핑.
+- Q: `SEGMENT_CORE_SOURCES` 정확 구성? A: domestic `{fsc-krx-index-price}` (1 required) / us-equity `{yfinance-price, stooq-price}` (at-least-one — u46 dual price fallback 활용) / crypto `{coingecko-price, binance-crypto-market}` (at-least-one). domestic 의 `krx-foreign-flows` 는 narrative-critical 이지만 core 아님 — `partial` 만 야기.
+- Q: Staleness window 의 segment 별 길이? A: us-equity 30h (KST Mon cron 가 Sun 22:00 ET 에 Fri 16:00 ET close 를 ~24h 후 읽어야 정상 — Mon-after-weekend 케이스 tolerant), domestic 30h (KST overnight + weekend tolerant), crypto 6h (24/7 시장 — fresh 기대).
+- Q: Citation cardinality 임계 N? A: N=3. 평가의 5/1 케이스는 명백 위반; N=2 는 false-positive risk (같은 회사 2개 ticker 정상 케이스).
+- Q: Citation WARN extra 의 R13 보호? A: `url_hash = sha1(url)[:12]` — 원본 URL 미노출. structured extra 는 `{url_hash, claim_count, segment}` 만. 카나리 테스트 `test_warn_extra_no_raw_url`.
+- Q: Alert debounce window? A: 2-run consecutive (≥ `limited`). 1-run debounce 가 KST 일 1회 cron 환경에서 ~24h detection lag — 수용. FR-007 hard-failure 경로 (pipeline 자체 실패) 는 debounce 미적용.
+- Q: Same-day re-publish 의 worst-wins 강제? A: `append_quality_snapshot(keep_worst=True)` default. 운영자 manual override 필요 시 `coverage.jsonl` 직접 편집 — 본 unit 의 코드 path 미제공 (DEBT 후보 if 재발).
+- Q: FR id 할당? A: FR-010 (FR-009 = u51 다음 free id).
+
+**Affected docs**:
+- 갱신 (재작성): `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u54-source-status-severity-and-quality-kpi-code-generation-plan.md` (44 checkbox / 9 step / AC↔Step 표 + Frozen constants + decision tree + NFR map + Open Questions)
+- 갱신: `/Users/user/Desktop/Projects/investo/docs/requirements.md` (FR-010 신규 — AC-1..AC-8)
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u54 행: `(0/5)` → `(0/9)`, refinement 요약 인입)
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/audit.md` (본 entry, 최상단)
+
+**Status**: 📋 Planned — developer 가 Step 1 (4-tier enum migration) 부터 시작 대기. 2-option approval (Request Changes / Continue to Next Stage) 미실행 (사용자 승인 대기). **No code written**.
+
+**Context**: Wave 8 (2026-05-13 multi-segment briefing quality review) 의 5 unit (u54-u57+) 중 u54 가 source-status 신뢰도 layer. Finding #4 (citation cardinality) 가 trace transparency surface 의 자연 확장으로 같은 unit 에 인입 — 별 unit 분리 시 reviewer overhead 증가. u51/u52/u53 (Wave 7) 와 surface 분리 (reader-format / carryover / data acquisition 각각), 동시 머지 가능. u55 (numeric-freshness) 와는 staleness 정의가 다른 surface — u54 는 source 의 latest-item-at, u55 는 briefing prose 안의 number freshness.
+
+**DEBT cross-references**:
+- 후보 D54-A: KRX index adapter timestamp source — `fsc-krx-index-price` 응답에 명시적 `latest_at` 부재 시 last-trading-day 캘린더 derivation 필요.
+- 후보 D54-B: claim entity dictionary 유지보수 — ticker + watchlist 종목명 list 가 u53 watchlist 와 동기화 필요 (drift risk).
+- 후보 D54-C: 2-run debounce 가 spam 흡수 불충분 시 3-run 으로 promotion.
+- 후보 D54-D: cross-segment severity 가중치 — 오늘 segment 별 독립, 3 segment 모두 `limited` 시 page-level red banner 격상 미제공.
+
+---
+
+## Construction — u55 — Numeric / Freshness / Market-Fact Gates Plan Re-Tightened to u51 Precision (Wave 8, 2026-05-13)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 10-agent evaluation of the initial u55 plan flagged 10 precision gaps relative to the u51 gold standard — (1) AC↔Step traceability + Open Questions 부재, (2) "claim extraction patterns" framing 이 자유 한국어 prose 에서 regex 로 추출은 비현실 — typed lookup 으로 전환 필요, (3) tolerance 상수 미명시, (4) market calendar source 미정 (무료/유료 룰 불명확), (5) conflict action enum 미정 (`block` vs `downgrade` vs `warn` 매핑), (6) date corruption gate 가 u51 reader_format 과 겹치는 이유 미설명, (7) per-segment freshness 의 publisher contract 변경 부재, (8) 영향 파일 경로 + 예상 test count 미기재, (9) NFR + rule-compliance 섹션 부재, (10) FR id 할당 미실행.
+**Decision**: u55 plan 을 in-place 재작성 (5 step → 7 step, ~20 checkbox → ~50 checkbox). **Core framing 전환**: 자유 prose claim extraction 폐기 → `CoreFact: Literal[10개]` typed lookup. Source adapter 가 `Item.raw_metadata["core_facts"]: dict[CoreFact, Decimal-as-string]` 방출; verification 은 keyword scoped window (anchor 토큰 ± 40 chars) 내 첫 매치를 tolerance 비교. u32 `numeric_self_check.find_unverified` (substring presence gate) 는 무수정 — 신규 `briefing/numeric_verify.py` 가 sibling 으로 tolerance-based core-fact verifier 책임. `figures_presence` (u32) 와 `figures_verified` (u55) 가 quality 페이지 + `quality_history` 양쪽에 append-only 두 column. **Calendar source 결정**: hand-rolled 정적 `src/investo/models/market_calendar.py` (KRX 2026 + NYSE 2026 휴장일 list; URL 코멘트로 박음); 크립토 24/7; 유료 API (tradingeconomics, pandas-market-calendars) **금지** 명시 (NFR-002 + R10). **Conflict action enum**: `NumericGateAction = Literal["pass","warn","downgrade","block"]` — anchor 충돌 (ATH 거짓) `block`, unverified core fact `downgrade` (본문 상단 `> ⚠️ 확인 필요` callout), non-core unverified `warn` (operator alert). **Per-segment freshness contract**: 신규 `SegmentResult(segment, status: Literal["fresh","stale","failed"], briefing, stale_reason)` orchestrator 출력 — publisher 는 `fresh` 만 archive/Telegram 발행, `stale`/`failed` 은 quality 라인 + operator alert (공개 채널 무발송, FR-007). **FR id 할당**: u51 이 FR-009 → u55 는 **FR-010**.
+
+**Options compared**:
+- **(a) 기존 5-step plan 유지 + minor edits.** 거부됨 — 10-agent 평가에서 도출된 framing 결함 (특히 prose claim extraction) 이 fundamental, surface-level fix 로 안 잡힘.
+- **(b) Free-form prose claim extraction (모든 숫자 추출 시도) + LLM-assisted classification.** 거부됨 — LLM 호출 추가 비용 (NFR-002), 비결정 (NFR-003), 잡음 폭주 risk. typed lookup 이 결정론적 + 무료.
+- **(c) `figures_presence` 를 `figures_verified` 로 in-place 교체.** 거부됨 — backward-compat 깨짐 (history JSONL), u32 substring gate 는 별도 가치 (전체 숫자 presence 감지). append-only 가 정답.
+- **(d) Calendar 를 외부 라이브러리 (pandas-market-calendars / exchange-calendars).** 거부됨 — 무료 룰 위반 위험 (pandas-market-calendars 자체는 무료지만 transitive deps + 의존 무게), 본 unit 의 필요는 2026 휴장일 list 만 — hand-rolled 정적 데이터로 충분. 2027 갱신은 annual maintenance (DEBT-D55-B).
+- **(e) Anchor 충돌 시 `downgrade` 만 (block 안 함).** 거부됨 — 사실 무결성 우선; ATH 거짓 같은 정면 충돌은 block 이 맞음. false-positive 잦으면 사용자 회고로 완화 가능 (Open Question).
+
+**Design Q/A**:
+- Q: 10개 CoreFact 선정 기준? A: 본문에 가장 자주 등장 + source adapter 가 안정적으로 emit + segment 별 1차 anchor. kospi_close / kosdaq_close / spx_close / ndx_close / dji_close / btc_usd / eth_usd / usd_krw / us10y_yield / vix. usd_krw + us10y_yield 는 MVP 에서 source 부재 → `warn` 만 (Phase-2 DEBT-D55-A 활성화).
+- Q: Keyword scoped window 크기? A: 40 chars 시작. 한국어 prose 의 키워드↔숫자 거리 분포 측정 후 조정 — Open Question.
+- Q: Tolerance 상수 절대 vs 상대? A: 모두 절대. 종가 ±0.01 Decimal, percent move ±0.05pp, yield ±1bp, BTC ±$1, ETH ±$0.5, FX ±0.10 원.
+- Q: u32 와 u55 의 KPI 관계? A: 두 column 공존 (append-only). figures_presence = u32 substring gate (모든 본문 숫자 대비 source 매치 비율), figures_verified = u55 core-fact tolerance gate (등장한 CoreFact 대비 verified 비율). 분모 다름 — 의도된 차이.
+- Q: figures_verified 의 분모? A: 본문에 등장한 CoreFact 만 분모. 안 쓴 CoreFact 를 penalty 로 잡으면 segment 마다 자연스러운 0 점 발생.
+- Q: SegmentResult 마이그레이션이 publisher path 깨뜨리는가? A: 기존 `dict[Segment, SegmentBriefing | None]` lookup 자리에 `result.briefing if result.status == "fresh" else None` 패턴으로 1줄 변환. backward-compat 보장 — `failed` 케이스 동일 처리.
+- Q: Date corruption regex 가 표 셀 / 코드 블록 내부 매치 risk? A: u51 의 `wrap_numbers_bold` 와 동일 negative-context (코드 블록 fence 감지) 적용. 한국어 "5월 11일" 류 토큰은 슬래시 부재로 무영향.
+- Q: Operator alert R13 검증? A: 모든 structured extra 가 secret-shaped substring 미포함 (input 은 LLM output + Decimal 만; redaction layer 가 상위에서 이미 적용). Step 5 canary 로 핀.
+- Q: u54 (source-status severity) 와 KPI 충돌? A: u54 가 `정상` 의 진실성 (source liveness) 책임, u55 가 `정상` 안에서의 숫자 진실성 (fact verification). 양 surface 공존, quality 페이지 column 분리.
+
+**Affected docs**:
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u55-numeric-freshness-and-market-fact-gates-code-generation-plan.md` (재작성, 5 step → 7 step, ~20 → ~50 checkbox)
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u55 행 step 개수 + framing 업데이트)
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/audit.md` (본 entry, 최상단)
+- 향후 갱신 (developer Step 7): `/Users/user/Desktop/Projects/investo/docs/requirements.md` (**FR-010** 추가)
+- 향후 갱신 (developer Step 7): `/Users/user/Desktop/Projects/investo/docs/DESIGN.md` (briefing pipeline 다이어그램 `numeric_verify` + `freshness` 노드 추가)
+
+**Status**: 📋 Planned (re-tightened) — developer 가 Step 1 부터 시작 대기. 2-option approval 미실행 (사용자 승인 대기).
+
+**Context**: u55 의 첫 plan 은 9개 다른 Wave 8 unit 과 함께 일괄 작성되어 step 수 / checkbox 수 / framing 정밀도가 u51 gold standard 대비 부족. 10-agent 평가로 도출된 결함 10종을 in-place 재보강. CoreFact typed lookup 으로의 framing 전환이 가장 중요한 결정 — 자유 prose claim extraction 의 비결정성을 제거하고 source adapter 의 명시 contract 로 verifier 의 분모를 닫음. market_calendar 의 hand-rolled 결정은 NFR-002 무료 룰의 명시적 strengthening (외부 라이브러리 거부의 audit trail). per-segment SegmentResult contract 는 u54 / u57 의 future hooks 와도 정합 (status enum 이 segment 별 graceful degradation 의 표준 surface). **No code written** — planning-only delivery.
+
+**DEBT cross-references**:
+- **D55-A**: USD/KRW + 10Y yield CoreFact 활성화 (FRED 무료 endpoint 후보 검증 필요).
+- **D55-B**: market_calendar 2027 갱신 (annual maintenance).
+- **D55-C**: keyword scoped window 의 한국어 형태소 분석 (KoNLPy) 정확도 향상 — 무료 룰 무위반, 의존 무게 trade-off (u51 의 동일 DEBT 후보와 평행).
+- **D55-D**: regenerate path — `block` 시 LLM 재시도 (현재는 segment 발행만 거부 + operator alert).
+
+---
+
 ## Construction — u51 — Reader-Facing Output Format Unit Planned (Wave 7, 2026-05-13 10-Subagent Quality Review)
 **Timestamp**: 2026-05-13T00:00:00+09:00
 **Trigger**: 10-subagent quality 리뷰 (2026-05-13 session) 가 `archive/us-equity/2026/05/2026-05-11.md` 를 대상으로 6종 reader-facing 결함을 도출 — (1) 자급식 TL;DR 부재 ("3대 지수 상승 마감" 류 일반론, 매그니튜드 미표시), (2) 앵커 prose wall (250자 한 줄에 5개 지수+티커 mixed pct/abs), (3) `**Title** — body` 패턴이 §②/③/④/⑥ 전부 — H3 nav 부재, Telegram wall, (4) bold 반전 (섹션 타이틀 굵게, `+11.51%` / `$81,154.06` / `4.42%` 핵심 숫자 plain), (5) §⑥ 관전 포인트 5건 중 4건이 `~여부 / ~필요가 있다` 종결 — 액션성 zero, (6) `S&P 500(스탠더드앤드푸어스 500 지수)` 글로싱 같은 파일 내 3회 반복.

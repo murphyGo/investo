@@ -5,12 +5,18 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from typing import Final, Literal
 
 from investo.models import Category, NormalizedItem, SourceOutcome
 
 MarketSegment = Literal["domestic-equity", "us-equity", "crypto"]
-CoverageStatus = Literal["normal", "partial", "insufficient"]
+# u54 — 4-tier severity enum. ``limited`` is inserted between
+# ``partial`` and ``failed`` to surface "core data missing but segment
+# can still attempt narrative"; legacy ``insufficient`` migrated to the
+# strictest ``failed`` tier. Single enum — no parallel definition, no
+# conversion shim.
+CoverageStatus = Literal["normal", "partial", "limited", "failed"]
 # u22 — closed set of reason codes describing *why* a segment landed in
 # its current coverage status. Multiple codes can apply at once
 # (e.g. price source failed AND news returned zero items).
@@ -29,6 +35,17 @@ CoverageReasonCode = Literal[
     # returned zero forward-scheduled items. Never fires on a segment
     # with no lookahead-aware adapter registered (anti-regression).
     "LOOKAHEAD_DATA_MISSING",
+    # u54 — core-source / staleness reason codes that feed severity
+    # downgrades. ``CORE_FAILED``: at least one core source failed.
+    # ``CORE_ZERO``: at least one core source emitted zero items.
+    # ``CORE_STALE``: at least one core source's latest item is older
+    # than the segment staleness window. ``ALL_FAILED``: every routed
+    # source failed (or every core source failed simultaneously) —
+    # forces ``failed`` severity.
+    "CORE_FAILED",
+    "CORE_ZERO",
+    "CORE_STALE",
+    "ALL_FAILED",
 ]
 COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "ZERO_ITEMS": "수집 항목 0건",
@@ -41,6 +58,10 @@ COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "SOURCE_FAILED": "일부 소스 수집 실패",
     "SOURCE_ZERO": "일부 소스 0건 반환",
     "LOOKAHEAD_DATA_MISSING": "예정 일정 데이터 미확보",
+    "CORE_FAILED": "핵심 가격 소스 실패",
+    "CORE_ZERO": "핵심 가격 소스 0건",
+    "CORE_STALE": "핵심 가격 소스 데이터가 stale",
+    "ALL_FAILED": "모든 소스 실패",
 }
 
 # u43 — registry of lookahead-aware adapters. Only adapters listed here
@@ -85,10 +106,49 @@ SEGMENT_REQUIRED_CATEGORIES: Final[dict[MarketSegment, tuple[Category, ...]]] = 
     US_EQUITY: ("news", "price"),
     CRYPTO: ("news", "price"),
 }
+# u54 — Frozen "core" sources whose health drives severity downgrades.
+# Membership policy:
+#   - domestic-equity: 1 required source. ``fsc-krx-index-price``
+#     failed/zero ⇒ no ``normal`` possible (single canonical KRX index
+#     feed today; ``krx-foreign-flows`` is narrative-critical but not
+#     core, so it drives ``partial`` not ``limited``).
+#   - us-equity: 2 listed sources, **at-least-one** must be ``ok`` for
+#     ``normal``. Both failed/zero ⇒ ``limited``. Both ``failed`` and
+#     summed item_count = 0 ⇒ ``failed``.
+#   - crypto: 2 listed sources, **at-least-one** must be ``ok``.
+SEGMENT_CORE_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
+    DOMESTIC_EQUITY: frozenset({"fsc-krx-index-price"}),
+    US_EQUITY: frozenset({"yfinance-price", "stooq-price"}),
+    CRYPTO: frozenset({"coingecko-price", "binance-crypto-market"}),
+}
+
+# u54 — Per-segment staleness window for core price sources. If a core
+# source's ``latest_item_at`` is older than ``now - window``, severity
+# is forced ≥ ``limited``. Windows are intentionally generous to absorb
+# weekend / overnight gaps in market data.
+#   - us-equity: 30h (covers KST Mon-after-weekend gap).
+#   - domestic-equity: 30h (KST overnight + weekend tolerance).
+#   - crypto: 6h (24/7 market, expect fresh).
+SEGMENT_CORE_STALENESS_WINDOW: Final[dict[MarketSegment, timedelta]] = {
+    DOMESTIC_EQUITY: timedelta(hours=30),
+    US_EQUITY: timedelta(hours=30),
+    CRYPTO: timedelta(hours=6),
+}
+
 COVERAGE_STATUS_LABELS: Final[dict[CoverageStatus, str]] = {
     "normal": "정상",
     "partial": "부분",
-    "insufficient": "부족",
+    "limited": "제한",
+    "failed": "실패",
+}
+# u54 — One-line Korean reader explanation per severity, surfaced
+# alongside the badge so the reader sees both label and "why it
+# matters".
+SEVERITY_READER_EXPLANATIONS: Final[dict[CoverageStatus, str]] = {
+    "normal": "정상 — 핵심 소스 수집 완료, 본문 결론 신뢰도 양호",
+    "partial": "부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요",
+    "limited": "제한 — 핵심 가격 소스 0건/실패/stale, 본문 결론 신뢰도 낮음",
+    "failed": "실패 — 핵심 소스 전부 실패 또는 수집 항목 0건",
 }
 CATEGORY_LABELS: Final[dict[Category, str]] = {
     "news": "뉴스",
@@ -257,11 +317,15 @@ class SegmentedItems:
         segment: MarketSegment,
         *,
         source_outcomes: Sequence[SourceOutcome] = (),
+        body_used_count: int = 0,
+        now_utc: datetime | None = None,
     ) -> SegmentCoverage:
         return build_segment_coverage(
             segment,
             self.for_segment(segment),
             source_outcomes=segment_source_outcomes(segment, source_outcomes),
+            body_used_count=body_used_count,
+            now_utc=now_utc,
         )
 
 
@@ -276,6 +340,15 @@ class SegmentCoverage:
     :func:`build_segment_coverage` with items only) the coverage still
     reports the structural reasons (zero items, below threshold,
     missing categories) inferred from the routed item set.
+
+    u54 — counts split (5-tuple): ``targeted_count`` is the number of
+    source outcomes attempted for this segment, ``succeeded_count``
+    those with ``status == "ok"``, ``zero_count`` those with
+    ``status == "zero"``, ``failed_count`` those with ``status ==
+    "failed"``. ``body_used_count`` is wired from the orchestrator's
+    post-LLM body parser (cited URLs); legacy callers can omit it and
+    receive ``0``. Defaults preserve backward-compat for direct
+    constructor users.
     """
 
     segment: MarketSegment
@@ -286,6 +359,11 @@ class SegmentCoverage:
     missing_categories: tuple[Category, ...]
     reason_codes: tuple[CoverageReasonCode, ...] = field(default_factory=tuple)
     source_outcomes: tuple[SourceOutcome, ...] = field(default_factory=tuple)
+    targeted_count: int = 0
+    succeeded_count: int = 0
+    zero_count: int = 0
+    failed_count: int = 0
+    body_used_count: int = 0
 
     @property
     def status_label(self) -> str:
@@ -435,6 +513,8 @@ def build_segment_coverage(
     items: Sequence[NormalizedItem],
     *,
     source_outcomes: Sequence[SourceOutcome] = (),
+    body_used_count: int = 0,
+    now_utc: datetime | None = None,
 ) -> SegmentCoverage:
     """Build coverage for a routed segment.
 
@@ -446,30 +526,69 @@ def build_segment_coverage(
     the per-source outcomes (operational deficiencies); the resulting
     ``reason_codes`` tuple is deterministic and order-stable.
 
-    ``status`` vs ``reason_codes`` relationship:
+    u54 — ``status`` is the 4-tier severity (``normal`` / ``partial`` /
+    ``limited`` / ``failed``). The decision is driven by *core source
+    health* + structural deficiency + (optional) staleness, not by raw
+    item count alone:
 
-    * ``status`` is a *hard* judgement based solely on the routed item
-      set (``normal`` / ``partial`` / ``insufficient``): zero items →
-      ``insufficient``; below threshold or missing required categories
-      → ``partial``; otherwise → ``normal``.
-    * ``reason_codes`` is an *additional transparency signal*. It can
-      carry ``SOURCE_FAILED`` / ``SOURCE_ZERO`` even when the routed
-      items are sufficient and ``status == "normal"``. In other words a
-      ``normal`` segment may still display "일부 소스 실패" alongside —
-      this is intended behaviour, not an inconsistency.
+    * **failed** — all core sources in ``failed`` state, *or* zero
+      items routed.
+    * **limited** — at least one core source ``failed``, *or* all core
+      sources are zero-item, *or* a core source's ``latest_item_at`` is
+      older than the per-segment staleness window.
+    * **partial** — core sources healthy but a required category is
+      missing / routed items below threshold / a non-core source
+      failed or returned zero.
+    * **normal** — all of the above pass.
+
+    ``now_utc`` (optional) enables the staleness check; legacy callers
+    omit it and the staleness path is skipped.
+
+    ``reason_codes`` is an *additional transparency signal*. It can
+    carry ``SOURCE_FAILED`` / ``SOURCE_ZERO`` even when ``status ==
+    "normal"`` (a non-core source flaked) — intended behaviour, not an
+    inconsistency.
     """
+    outcomes_tuple = tuple(source_outcomes)
     categories = tuple(sorted({item.category for item in items}))
     source_count = len({item.source_name for item in items})
     required_categories = SEGMENT_REQUIRED_CATEGORIES[segment]
     missing_categories = tuple(
         category for category in required_categories if category not in categories
     )
-    if not items:
-        status: CoverageStatus = "insufficient"
-    elif len(items) < SEGMENT_THRESHOLDS[segment] or missing_categories:
-        status = "partial"
-    else:
-        status = "normal"
+
+    # Count split (AC-1).
+    targeted_count = len(outcomes_tuple)
+    succeeded_count = sum(1 for o in outcomes_tuple if o.status == "ok")
+    zero_count = sum(1 for o in outcomes_tuple if o.status == "zero")
+    failed_count = sum(1 for o in outcomes_tuple if o.status == "failed")
+
+    # u54 — core source health + staleness inputs to the severity tree.
+    core_set = SEGMENT_CORE_SOURCES.get(segment, frozenset())
+    core_outcomes = tuple(o for o in outcomes_tuple if o.source_name in core_set)
+    has_core_registered = bool(core_outcomes)
+    failed_core_count = sum(1 for o in core_outcomes if o.status == "failed")
+    zero_core_count = sum(1 for o in core_outcomes if o.status == "zero")
+    ok_core_count = sum(1 for o in core_outcomes if o.status == "ok")
+    all_core_failed = has_core_registered and failed_core_count == len(core_outcomes)
+    all_core_bad = has_core_registered and ok_core_count == 0  # failed or zero or stale
+    core_stale = _core_staleness_violated(segment, core_outcomes, now_utc=now_utc)
+    news_zero_or_missing = "news" in missing_categories or zero_count > 0
+
+    status = _resolve_severity(
+        segment=segment,
+        items=items,
+        has_core_registered=has_core_registered,
+        all_core_failed=all_core_failed,
+        failed_core_count=failed_core_count,
+        all_core_bad=all_core_bad,
+        zero_core_count=zero_core_count,
+        core_stale=core_stale,
+        missing_categories=missing_categories,
+        news_zero_or_missing=news_zero_or_missing,
+        outcomes=outcomes_tuple,
+    )
+
     return SegmentCoverage(
         segment=segment,
         status=status,
@@ -481,10 +600,125 @@ def build_segment_coverage(
             segment=segment,
             items=items,
             missing_categories=missing_categories,
-            source_outcomes=source_outcomes,
+            source_outcomes=outcomes_tuple,
+            core_outcomes=core_outcomes,
+            all_core_failed=all_core_failed,
+            failed_core_count=failed_core_count,
+            zero_core_count=zero_core_count,
+            core_stale=core_stale,
         ),
-        source_outcomes=tuple(source_outcomes),
+        source_outcomes=outcomes_tuple,
+        targeted_count=targeted_count,
+        succeeded_count=succeeded_count,
+        zero_count=zero_count,
+        failed_count=failed_count,
+        body_used_count=max(body_used_count, 0),
     )
+
+
+def _resolve_severity(
+    *,
+    segment: MarketSegment,
+    items: Sequence[NormalizedItem],
+    has_core_registered: bool,
+    all_core_failed: bool,
+    failed_core_count: int,
+    all_core_bad: bool,
+    zero_core_count: int,
+    core_stale: bool,
+    missing_categories: tuple[Category, ...],
+    news_zero_or_missing: bool,
+    outcomes: tuple[SourceOutcome, ...],
+) -> CoverageStatus:
+    """u54 — Deterministic severity decision tree (AC-2 / AC-3).
+
+    Order of evaluation matters: the first matching condition wins, so
+    the strictest case ("all core failed") fires before more permissive
+    ones. Inputs are pre-computed booleans/counts to keep the body of
+    this function readable as a truth table.
+
+    Legacy compat: when *no* core sources are registered for the
+    segment (e.g. unit-test segments with empty outcome tuples), the
+    function falls back to the legacy item-count-driven tree so
+    existing tests that build ``SegmentCoverage`` from items alone
+    continue to compute the expected ``normal/partial/failed`` verdict.
+    """
+    # Item-count fallback (no outcomes wired) — preserves legacy
+    # behaviour: zero items → failed (was ``insufficient``); below
+    # threshold or missing required categories → partial; otherwise
+    # → normal.
+    if not has_core_registered:
+        if not items:
+            return "failed"
+        if len(items) < SEGMENT_THRESHOLDS[segment] or missing_categories:
+            return "partial"
+        return "normal"
+
+    # Outcomes wired — full severity tree.
+    # Row 1: every core source failed → failed (regardless of items).
+    if all_core_failed:
+        return "failed"
+    # Row 1b: all routed outcomes failed and zero items → failed.
+    if outcomes and all(o.status == "failed" for o in outcomes) and not items:
+        return "failed"
+    # Row 6 (item-zero terminal): no items routed → failed.
+    if not items:
+        return "failed"
+    # Row 2: any core failed (but not all) → limited.
+    if failed_core_count >= 1:
+        return "limited"
+    # Row 3: all core zero (none failed, none ok) → limited.
+    if all_core_bad and zero_core_count == len(
+        [o for o in outcomes if o.source_name in SEGMENT_CORE_SOURCES.get(segment, frozenset())]
+    ):
+        return "limited"
+    # Staleness override: any core stale → ≥ limited.
+    if core_stale:
+        return "limited"
+    # Row 4 / Row 5: news category missing or some source flaked, but
+    # core healthy → partial.
+    if missing_categories or news_zero_or_missing:
+        return "partial"
+    # Below structural threshold → partial.
+    if len(items) < SEGMENT_THRESHOLDS[segment]:
+        return "partial"
+    return "normal"
+
+
+def _core_staleness_violated(
+    segment: MarketSegment,
+    core_outcomes: tuple[SourceOutcome, ...],
+    *,
+    now_utc: datetime | None,
+) -> bool:
+    """u54 — Return True when any core source's latest item is stale.
+
+    ``now_utc=None`` disables the check (legacy callers). Sources with
+    ``latest_item_at=None`` are skipped (no signal). When at least one
+    core source has a fresh ``latest_item_at`` within the window, the
+    segment is considered fresh even if a sibling is stale — staleness
+    fires only when *every* core source with a populated timestamp is
+    out of window.
+    """
+    if now_utc is None:
+        return False
+    window = SEGMENT_CORE_STALENESS_WINDOW.get(segment)
+    if window is None:
+        return False
+    timed = [o for o in core_outcomes if o.latest_item_at is not None]
+    if not timed:
+        return False
+    floor = now_utc - window
+    stale = [o for o in timed if (o.latest_item_at is not None and o.latest_item_at < floor)]
+    if not stale:
+        return False
+    fresh = [o for o in timed if (o.latest_item_at is not None and o.latest_item_at >= floor)]
+    return not fresh
+
+
+def core_staleness_window(segment: MarketSegment) -> timedelta:
+    """Public accessor for the per-segment core staleness window."""
+    return SEGMENT_CORE_STALENESS_WINDOW[segment]
 
 
 def filter_lookahead_items(
@@ -527,6 +761,11 @@ def _derive_reason_codes(
     items: Sequence[NormalizedItem],
     missing_categories: tuple[Category, ...],
     source_outcomes: Sequence[SourceOutcome],
+    core_outcomes: tuple[SourceOutcome, ...] = (),
+    all_core_failed: bool = False,
+    failed_core_count: int = 0,
+    zero_core_count: int = 0,
+    core_stale: bool = False,
 ) -> tuple[CoverageReasonCode, ...]:
     codes: list[CoverageReasonCode] = []
     if not items:
@@ -539,6 +778,15 @@ def _derive_reason_codes(
         codes.append("SOURCE_FAILED")
     if any(outcome.status == "zero" for outcome in source_outcomes):
         codes.append("SOURCE_ZERO")
+    # u54 — core / staleness reasons, deterministic order.
+    if all_core_failed:
+        codes.append("ALL_FAILED")
+    if failed_core_count >= 1:
+        codes.append("CORE_FAILED")
+    if core_outcomes and zero_core_count == len(core_outcomes):
+        codes.append("CORE_ZERO")
+    if core_stale:
+        codes.append("CORE_STALE")
     if _lookahead_data_missing(segment, items, source_outcomes):
         codes.append("LOOKAHEAD_DATA_MISSING")
     return tuple(codes)
@@ -654,9 +902,12 @@ __all__ = [
     "CRYPTO",
     "DOMESTIC_EQUITY",
     "LOOKAHEAD_AWARE_SOURCES",
+    "SEGMENT_CORE_SOURCES",
+    "SEGMENT_CORE_STALENESS_WINDOW",
     "SEGMENT_LABELS",
     "SEGMENT_REQUIRED_CATEGORIES",
     "SEGMENT_THRESHOLDS",
+    "SEVERITY_READER_EXPLANATIONS",
     "US_EQUITY",
     "CoverageReasonCode",
     "CoverageStatus",
@@ -664,6 +915,7 @@ __all__ = [
     "SegmentCoverage",
     "SegmentedItems",
     "build_segment_coverage",
+    "core_staleness_window",
     "filter_lookahead_items",
     "segment_items",
     "segment_source_outcomes",

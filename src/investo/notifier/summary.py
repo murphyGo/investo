@@ -203,13 +203,14 @@ def build_segmented_summary(
     line unchanged.
 
     u30 Step 2 — when ``coverage_by_segment`` is supplied and the entry
-    for a given segment reports ``status == "insufficient"``, that
-    segment's block collapses to a single line that combines the icon,
-    label, ``[부족]`` tag, and the detail link. The conclusion line is
-    omitted because the segment markdown itself is the data-limited
-    fallback (``데이터 부족`` boilerplate). When omitted or when the
-    segment is not present in the mapping, the legacy 3-line block
-    rendering is preserved.
+    for a given segment reports ``status == "failed"`` (legacy
+    ``insufficient`` mapped to ``failed`` per u54 enum migration),
+    that segment's block collapses to a single line that combines the
+    icon, label, ``[실패]`` tag, and the detail link. The conclusion
+    line is omitted because the segment markdown itself is the data-
+    limited fallback (``데이터 부족`` boilerplate). When omitted or
+    when the segment is not present in the mapping, the legacy 3-line
+    block rendering is preserved.
 
     u30 Step 2 — when ``enabled_segments`` is supplied (resolved
     upstream from ``INVESTO_TELEGRAM_ENABLED_SEGMENTS`` via
@@ -338,12 +339,14 @@ def _segment_summary_block(
 ) -> str:
     label = SEGMENT_LABELS[segment]
     icon = _SEGMENT_ICONS[segment]
-    if coverage is not None and coverage.status == "insufficient":
+    if coverage is not None and coverage.status == "failed":
         # u30 Step 2 collapsed shape — single line with status badge and
         # the detail link only. Skipping the conclusion line keeps the
         # alert dense when the segment markdown itself is the data-
-        # limited fallback ("데이터 부족" boilerplate).
-        return f"{icon} *{label}* [부족] · {_detail_link(site_url)}"
+        # limited fallback ("데이터 부족" boilerplate). u54 — legacy
+        # ``insufficient`` enum migrated to ``failed``; label is now
+        # ``[실패]``.
+        return f"{icon} *{label}* [실패] · {_detail_link(site_url)}"
     status = _coverage_label(briefing)
     status_tag = f" [{status}]" if status else ""
     one_line = _one_line_summary(briefing, watchlist_prices=watchlist_prices)

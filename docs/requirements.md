@@ -109,6 +109,20 @@
   - [ ] 면책조항 (NFR-004 R5) 은 reader-format chain 후에도 verbatim 보존; `publisher.verify_disclaimer` 가 chain 다음 단계에서 정상 통과
 - **Priority**: Should-have (reader UX KPI — NFR-001 reliability/quality 보강)
 
+### FR-010: Source-Status Severity & Quality KPI Truthfulness (u54 source-status-severity-and-quality-kpi)
+- **Description**: 시황의 데이터 상태 라벨과 quality KPI 가 실제 수집 신뢰도를 반영하도록 강제한다. (1) `CoverageStatus` 를 4-tier (`정상 / 부분 / 제한 / 실패`) 로 격상하고, (2) segment 별 core source set 을 frozen constant 로 박아 결정 트리를 기반으로 deterministic 하게 severity 를 산출하며, (3) 핵심 가격 소스의 `latest_item_at` 이 segment market-close window 보다 오래되면 severity 를 강제로 `limited` 이상으로 다운그레이드하고, (4) source count 를 `targeted / succeeded / zero / failed / body-used` 5-tuple 로 분리해 first-viewport 에 surface 하며, (5) `site_docs/quality.md` 가 분모-zero KPI 를 `0.0%` 대신 `n/a` 로 표기하고 신규 KPI (`failed_sources`, `zero_item_sources`, `core_missing_segments`, `segments_limited_or_worse`) 를 노출하며, (6) 같은 URL 이 한 segment 내 ≥ 3 distinct ticker/entity claim 에 attribute 되면 WARN flag (non-blocking) 를 발화하고, (7) `OperatorAlerter` 가 동일 segment 의 severity ≥ `limited` 가 ≥ 2 연속 run 일 때만 발화하며, (8) 같은 (date, segment) 의 `append_quality_snapshot` 은 worst severity 를 keep (last-write-wins 금지).
+- **User Story**: As a 시황 reader / 운영자, I want 데이터 상태 라벨이 핵심 가격 소스 실패·0건·stale 을 숨기지 않고, quality 페이지가 실제 수집 위험을 설명하기를, so that 데이터 신뢰도 오판 없이 본문을 읽고, 플레이키 소스로 인한 알림 spam 없이 진짜 regression 만 받을 수 있도록.
+- **Acceptance Criteria**:
+  - [x] Source count 가 `targeted / succeeded / zero / failed / body-used` 5-tuple 로 분리되어 first-viewport coverage 라인에 렌더
+  - [x] Reader-facing status 라벨이 4-tier (`정상 / 부분 / 제한 / 실패`); legacy `insufficient` → `failed` 단일 마이그레이션, 병행 enum 없음
+  - [x] Segment 별 core source frozen constant (`SEGMENT_CORE_SOURCES`) 기반 결정 트리로 severity 산출; 핵심 소스 failed/zero/stale 시 `정상` 불가
+  - [x] `site_docs/quality.md` 가 분모-zero 시 `n/a` 표기 + 신규 KPI (`failed_sources`, `zero_item_sources`, `core_missing_segments`, `segments_limited_or_worse`) 노출
+  - [x] Trace/collapsed diagnostics 가 failed / zero / excluded 소스를 sanitized 메시지 (R13 chokepoint) 로 노출
+  - [x] 동일 URL 이 한 segment briefing 안에서 ≥ N=3 distinct ticker/entity claim 에 attribute 되면 `reader.citation_cardinality_exceeded` WARN 발화 (structured extra: url_hash sha1[:12] + claim_count + segment); *non-blocking*
+  - [x] `OperatorAlerter` 는 동일 segment 의 severity ≥ `limited` 가 ≥ 2 연속 run 일 때만 발화 (1st bad run = INFO log only); 회복 시 카운터 reset; FR-007 hard-failure 경로는 영향 없음
+  - [x] `append_quality_snapshot` 이 같은 (date, segment) 에 대해 worst severity 를 keep — 후속 upgrade 시도는 dropped + 명시적 로그
+- **Priority**: Should-have (NFR-001 reliability/quality + NFR-003 graceful-degradation 보강)
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

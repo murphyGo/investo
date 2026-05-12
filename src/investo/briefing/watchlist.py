@@ -16,7 +16,7 @@ false-confidence callouts:
    characters are NOT Hangul (so "삼성" no longer mis-fires on "삼성전자").
    Per-term ``exact_match_terms`` opts a term into strict equality matching.
 4. Coverage branch — ``match_watchlist_items`` accepts ``coverage_status``;
-   in ``insufficient`` segments the caller renders "데이터 수집 부족으로 매칭
+   in ``limited`` / ``failed`` segments the caller renders "데이터 수집 부족으로 매칭
    판단 보류" instead of asserting absence.
 
 Pure helpers — no I/O beyond the ``load_watchlist`` JSON read.
@@ -49,7 +49,7 @@ WatchlistImpactStatus = Literal[
     "coverage_hold",
 ]
 WatchlistChannel = Literal["site", "telegram"]
-CoverageStatusInput = Literal["normal", "partial", "insufficient"]
+CoverageStatusInput = Literal["normal", "partial", "limited", "failed"]
 
 DEFAULT_WATCHLIST_PATH: Final[Path] = Path("config/watchlist.json")
 WATCHLIST_CONFIG_ENV: Final[str] = "INVESTO_WATCHLIST_CONFIG"
@@ -356,16 +356,20 @@ def match_watchlist_items(
 ) -> WatchlistImpact:
     """Match collected items against the user's watchlist config.
 
-    ``coverage_status='insufficient'`` — the caller has signalled this segment
-    has too little data to answer the "is my watchlist relevant?" question.
-    The matcher returns a ``coverage_hold`` impact so renderers can switch to
-    the "데이터 수집 부족으로 매칭 판단 보류" branch instead of asserting
-    absence (u28 step 4).
+    ``coverage_status in {'limited', 'failed'}`` — the caller has signalled
+    this segment has too little / unreliable core data to answer the "is my
+    watchlist relevant?" question. The matcher returns a ``coverage_hold``
+    impact so renderers can switch to the "데이터 수집 부족으로 매칭 판단
+    보류" branch instead of asserting absence. u54 — legacy single-tier
+    ``'insufficient'`` migrated to ``'failed'``; the new ``'limited'``
+    tier (core source missing/stale) is *also* treated as hold because
+    a watchlist judgement made on stale/missing core prices would
+    mislead the reader.
     """
     if config.is_empty():
         return WatchlistImpact(configured=False, matches=(), status="unconfigured")
 
-    if coverage_status == "insufficient":
+    if coverage_status in ("limited", "failed"):
         return WatchlistImpact(configured=True, matches=(), status="coverage_hold")
 
     aliases = config.effective_aliases()
