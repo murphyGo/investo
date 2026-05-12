@@ -2048,12 +2048,14 @@ async def test_run_pipeline_weekly_digest_failure_rolls_back_and_fails(
 # ---------------------------------------------------------------------------
 
 
-def test_segment_generation_policy_carries_postmortem_timeouts() -> None:
-    """2026-05-09 GHA — Crypto Stage 2 hit the 180s per-call timeout
-    when external price sources were degraded. The fix bumps each
-    segment's timeout +60s and rebalances the total budget. Pin the
-    new values so a future "let's tune this" PR has to update the
-    test alongside the code.
+def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget() -> None:
+    """Pin the live GHA timeout policy.
+
+    2026-05-09 bumped the per-call timeout after Crypto Stage 2 hit the
+    180s ceiling. 2026-05-12 then showed that two attempts per segment
+    can burn the old 20-minute workflow before publish/notify. The
+    workflow now has a 60-minute ceiling, but one long attempt per
+    segment keeps partial publish/notify responsive.
     """
     domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
     us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
@@ -2063,10 +2065,17 @@ def test_segment_generation_policy_carries_postmortem_timeouts() -> None:
     assert us.timeout_s == 210.0
     assert crypto.timeout_s == 240.0
 
-    # Total budget covers ``timeout_s x max_attempts`` worst-case for
-    # one stage plus headroom (~30s) for retry backoff and the second
-    # stage's typical (faster than worst-case) execution. The shared
-    # ``RetryBudget`` tracks elapsed across both Stage 1 + Stage 2;
-    # the budget gate then short-circuits when remaining < timeout.
+    assert domestic.max_attempts == 1
+    assert us.max_attempts == 1
+    assert crypto.max_attempts == 1
+
+    # The slow-synthesis path stays bounded well below
+    # ``daily-briefing.yml``'s 60-minute job timeout; the remaining
+    # margin belongs to collect, visual assets, publish, notify, and
+    # GitHub runner overhead.
+    assert sum(policy.timeout_s for policy in (domestic, us, crypto)) <= 12 * 60
+
+    # Total budget still covers one full attempt plus headroom for the
+    # fast classification stage and output validation.
     for policy in (domestic, us, crypto):
-        assert policy.total_budget_s >= policy.timeout_s * policy.max_attempts
+        assert policy.total_budget_s > policy.timeout_s * policy.max_attempts

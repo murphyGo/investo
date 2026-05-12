@@ -23,12 +23,12 @@
 # empty-collect → operator alert; the operator re-triggers manually
 # with ``target_date=last-trading-day``).
 #
-# **Timeout** (AC-001-4): ``timeout-minutes: 20``. Total design budget
-# is 16 min (collect ≤ 4 / generate ≤ 10 / publish ≤ 1 / notify ≤ 30s
-# / GHA overhead ≤ 30s); +4 min safety margin. Bumped from 12 → 20 on
-# 2026-05-09 alongside the briefing per-segment timeout raise (dom/us
-# 150→210s, crypto 180→240s, max_attempts=2) — three sequential
-# segments × two LLM stages each can now legitimately use 12-15 min.
+# **Timeout** (AC-001-4): ``timeout-minutes: 60``. Total design budget
+# remains much lower under normal conditions, but the job-level ceiling
+# is intentionally generous after the 2026-05-12 cron run was cancelled
+# at 20 minutes before publish/notify. Segment generation still owns
+# tighter per-segment timeouts/retry policy so a slow segment can degrade
+# to PARTIAL instead of blocking Telegram delivery.
 #
 # **Permissions**: ``contents: write`` for the inner
 # ``commit_and_push`` to ``archive/YYYY/MM/YYYY-MM-DD.md`` and
@@ -88,7 +88,7 @@ jobs:
   briefing:
     name: Generate + publish + notify
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     permissions:
       actions: write
       contents: write
