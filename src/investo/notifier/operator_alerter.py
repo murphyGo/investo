@@ -19,6 +19,7 @@ Reference:
 
 from __future__ import annotations
 
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -26,6 +27,9 @@ import httpx
 from investo.models import FailureContext, SendResult
 from investo.notifier._telegram import _redact_bot_token, send_message
 from investo.notifier.summary import DEFAULT_MAX_UNITS, _utf16_truncate, _utf16_units
+
+# u55 — alert categories surfaced by the numeric / freshness gate.
+NumericAlertKind = Literal["numeric_block", "numeric_downgrade", "segment_stale"]
 
 
 def _format_alert_text(failure: FailureContext) -> str:
@@ -128,5 +132,57 @@ class OperatorAlerter:
             disable_web_page_preview=True,
         )
 
+    async def numeric_alert(
+        self,
+        kind: NumericAlertKind,
+        *,
+        segment: str,
+        detail: str,
+    ) -> SendResult:
+        """u55 — Post a numeric / freshness gate alert.
 
-__all__ = ["OperatorAlerter"]
+        Same non-raising contract and same redaction discipline as
+        :meth:`alert`. The ``detail`` field MUST be operator-facing
+        prose (Korean), never a raw exception traceback — the gate
+        owns the message construction so secret-shaped substrings
+        (R13) never reach this surface.
+
+        Examples
+        --------
+        * ``numeric_block`` — segment publish refused due to ``5/65/7``
+          date corruption or anchor-contradicting ATH claim.
+        * ``numeric_downgrade`` — segment published with the
+          ``> ⚠️ 확인 필요`` callout because ≥1 core fact failed to
+          verify.
+        * ``segment_stale`` — segment skipped because latest archive
+          is older than the calendar expects.
+        """
+        if self._dry_run:
+            return SendResult(ok=True, message_id=None, error=None)
+        text = _format_numeric_alert_text(kind, segment=segment, detail=detail)
+        text = _redact_bot_token(text)
+        if _utf16_units(text) > DEFAULT_MAX_UNITS:
+            text = _utf16_truncate(text, DEFAULT_MAX_UNITS - 1) + "…"
+        if self._http is None:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                return await self._dispatch(client, text)
+        return await self._dispatch(self._http, text)
+
+
+def _format_numeric_alert_text(kind: NumericAlertKind, *, segment: str, detail: str) -> str:
+    """Format the operator alert body for a u55 gate event.
+
+    R13 reminder: callers MUST not pass raw secrets through ``detail``.
+    The fixed-form template ensures no field shorter than the literal
+    label leaks through; the bot-token redactor is still applied
+    upstream (in :meth:`OperatorAlerter.numeric_alert`).
+    """
+    heading = {
+        "numeric_block": "🚫 수치/날짜 게이트 차단",
+        "numeric_downgrade": "⚠️ 수치 검증 다운그레이드",
+        "segment_stale": "⏰ 세그먼트 stale",
+    }[kind]
+    return f"{heading}\n\n- 세그먼트: {segment}\n- 상세: {detail}\n"
+
+
+__all__ = ["NumericAlertKind", "OperatorAlerter"]

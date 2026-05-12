@@ -44,17 +44,17 @@ This unit owns **whether a (numeric, date, direction) claim in the published mar
 
 ## Definition of Done
 
-- [ ] **Typed core-fact verification**: 사전 정의된 `CoreFact` (10개 enum 값) 만 verify; 자유 prose claim extraction 시도 안 함. 각 `CoreFact` 의 source-backed Decimal 값이 stage-2 markdown 본문의 keyword-scoped window (anchor token ± WINDOW chars) 내에 tolerance 안에서 나타나면 verified, 아니면 unverified/conflict.
-- [ ] **Sibling helper, not extension**: 신규 모듈 `src/investo/briefing/numeric_verify.py` (u32 `numeric_self_check.find_unverified` 와 **별 surface**). u32 substring presence gate 는 변경 없음.
-- [ ] **KPI 분리**: `figures_presence` (u32 기존) + `figures_verified` (u55 신규) 가 `briefing/quality_eval.py` + `quality_history.py` 양쪽에 append-only column 으로 등록 (기존 history JSONL backward-compat).
-- [ ] **Conflict action enum**: `NumericGateAction = Literal["pass", "warn", "downgrade", "block"]` — anchor conflict (예: ATH 거짓) → `block`, unverified core fact → `downgrade` (`> 확인 필요` callout 본문 상단 삽입), non-core unverified → `warn` (operator alert only).
-- [ ] **Date corruption gate**: `r"\d{1,2}/\d{1,2}(?:/\d{1,2})?"` 매치 후 month ≤ 12 / day ≤ 31 / sanity check 실패 시 `block`. u51 `reader_format` 이 잡지 못하는 이유 명시 (post-format 시점 + regex scope 차이 — 본 unit 은 publish gate **직전** 별도 pass).
-- [ ] **무료 calendar**: 신규 정적 데이터 모듈 `src/investo/models/market_calendar.py` 에 KRX 2026 휴장일 + NYSE 2026 휴장일 hand-rolled list (KRX 공지 / NYSE 공지 URL 을 코멘트로 박음); 크립토는 24/7 (no holiday). **유료 API (tradingeconomics, pandas-market-calendars) 금지** — NFR-002 + 무료 룰 R10 보강.
-- [ ] **Per-segment freshness → publisher contract change**: orchestrator 가 segment 별 `SegmentResult(segment, status: Literal["fresh","stale","failed"], briefing: SegmentBriefing | None)` 를 publisher 에 전달; publisher 는 `fresh` 만 archive/Telegram 발행, `stale` 은 quality 페이지 라인 + operator alert (공개 채널 무발송, FR-007 경유).
-- [ ] **Per-segment isolation**: 한 segment 의 stale/failed 가 다른 segment 의 발행을 막지 않음 (graceful degradation).
-- [ ] **Tolerance 상수 박음**: 표로 (price/pct/yield/BTC) 절대 vs 상대 tolerance 명시; Decimal 비교; 발명 방지.
-- [ ] **R13 secret hygiene**: date corruption 테스트 fixture 에 secret 없음; 모든 WARNING / structured extra 가 secret-shaped substring 미포함.
-- [ ] 전체 quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅ (예상 +44-56 신규 테스트), `mkdocs build --strict` ✅.
+- [x] **Typed core-fact verification**: 사전 정의된 `CoreFact` (10개 enum 값) 만 verify; 자유 prose claim extraction 시도 안 함. 각 `CoreFact` 의 source-backed Decimal 값이 stage-2 markdown 본문의 keyword-scoped window (anchor token ± WINDOW chars) 내에 tolerance 안에서 나타나면 verified, 아니면 unverified/conflict.
+- [x] **Sibling helper, not extension**: 신규 모듈 `src/investo/briefing/numeric_verify.py` (u32 `numeric_self_check.find_unverified` 와 **별 surface**). u32 substring presence gate 는 변경 없음.
+- [x] **KPI 분리**: `figures_presence` (u32 기존) + `figures_verified` (u55 신규) 가 `briefing/quality_eval.py` + `quality_history.py` 양쪽에 append-only column 으로 등록 (기존 history JSONL backward-compat).
+- [x] **Conflict action enum**: `NumericGateAction = Literal["pass", "warn", "downgrade", "block"]` — anchor conflict (예: ATH 거짓) → `block`, unverified core fact → `downgrade` (`> 확인 필요` callout 본문 상단 삽입), non-core unverified → `warn` (operator alert only).
+- [x] **Date corruption gate**: `r"\d{1,2}/\d{1,2}(?:/\d{1,2})?"` 매치 후 month ≤ 12 / day ≤ 31 / sanity check 실패 시 `block`. u51 `reader_format` 이 잡지 못하는 이유 명시 (post-format 시점 + regex scope 차이 — 본 unit 은 publish gate **직전** 별도 pass).
+- [x] **무료 calendar**: 신규 정적 데이터 모듈 `src/investo/models/market_calendar.py` 에 KRX 2026 휴장일 + NYSE 2026 휴장일 hand-rolled list (KRX 공지 / NYSE 공지 URL 을 코멘트로 박음); 크립토는 24/7 (no holiday). **유료 API (tradingeconomics, pandas-market-calendars) 금지** — NFR-002 + 무료 룰 R10 보강.
+- [x] **Per-segment freshness → publisher contract change**: orchestrator 가 segment 별 `SegmentResult(segment, status: Literal["fresh","stale","failed"], briefing: SegmentBriefing | None)` 를 publisher 에 전달; publisher 는 `fresh` 만 archive/Telegram 발행, `stale` 은 quality 페이지 라인 + operator alert (공개 채널 무발송, FR-007 경유).
+- [x] **Per-segment isolation**: 한 segment 의 stale/failed 가 다른 segment 의 발행을 막지 않음 (graceful degradation).
+- [x] **Tolerance 상수 박음**: 표로 (price/pct/yield/BTC) 절대 vs 상대 tolerance 명시; Decimal 비교; 발명 방지.
+- [x] **R13 secret hygiene**: date corruption 테스트 fixture 에 secret 없음; 모든 WARNING / structured extra 가 secret-shaped substring 미포함.
+- [x] 전체 quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅ (예상 +44-56 신규 테스트), `mkdocs build --strict` ✅.
 
 ---
 
@@ -127,95 +127,95 @@ class SegmentResult(BaseModel):
 
 ### Step 1 — CoreFact + adapter contract (typed lookup framing)
 
-- [ ] 신규 모듈 `src/investo/models/core_fact.py`: `CoreFact: Literal[...]` (10개) + `CORE_FACT_KEYWORDS: dict[CoreFact, tuple[str, ...]]` (한국어/영문 토큰).
-- [ ] 신규 모듈 `src/investo/models/market_calendar.py`: KRX 2026 휴장일 list + NYSE 2026 휴장일 list (정적 tuple, source URL 코멘트). 함수 `next_expected_trading_day(segment, now: datetime) -> date` + `is_holiday(segment, day: date) -> bool`. 크립토는 항상 24/7.
-- [ ] 신규 어댑터 contract field: stooq-price 어댑터 (u46) 와 yfinance 어댑터 (u49) 가 emit 하는 `Item.raw_metadata` 에 `"core_facts": {CoreFact: Decimal-as-string}` key 추가 — ticker → CoreFact mapping table (`^spx` → `spx_close`, `btc.v` → `btc_usd`, ...) `src/investo/sources/_core_fact_map.py` 에 박음.
-- [ ] 단위 테스트 `tests/unit/models/test_core_fact.py` (예상 8-10 tests): enum 값 / keyword 매핑 / market_calendar holiday lookup / segment-specific calendar 정답성.
-- [ ] 영향 파일: `src/investo/models/core_fact.py` (신규), `src/investo/models/market_calendar.py` (신규), `src/investo/sources/_core_fact_map.py` (신규), `src/investo/sources/stooq_price.py` (raw_metadata field 1줄 추가), `src/investo/sources/yfinance.py` (동일), `tests/unit/models/test_core_fact.py` (신규), `tests/unit/sources/test_stooq_price.py` (+2-3 tests), `tests/unit/sources/test_yfinance.py` (+2-3 tests).
+- [x] 신규 모듈 `src/investo/models/core_fact.py`: `CoreFact: Literal[...]` (10개) + `CORE_FACT_KEYWORDS: dict[CoreFact, tuple[str, ...]]` (한국어/영문 토큰).
+- [x] 신규 모듈 `src/investo/models/market_calendar.py`: KRX 2026 휴장일 list + NYSE 2026 휴장일 list (정적 tuple, source URL 코멘트). 함수 `next_expected_trading_day(segment, now: datetime) -> date` + `is_holiday(segment, day: date) -> bool`. 크립토는 항상 24/7.
+- [x] 신규 어댑터 contract field: stooq-price 어댑터 (u46) 와 yfinance 어댑터 (u49) 가 emit 하는 `Item.raw_metadata` 에 `"core_facts": {CoreFact: Decimal-as-string}` key 추가 — ticker → CoreFact mapping table (`^spx` → `spx_close`, `btc.v` → `btc_usd`, ...) `src/investo/sources/_core_fact_map.py` 에 박음.
+- [x] 단위 테스트 `tests/unit/models/test_core_fact.py` (예상 8-10 tests): enum 값 / keyword 매핑 / market_calendar holiday lookup / segment-specific calendar 정답성.
+- [x] 영향 파일: `src/investo/models/core_fact.py` (신규), `src/investo/models/market_calendar.py` (신규), `src/investo/sources/_core_fact_map.py` (신규), `src/investo/sources/stooq_price.py` (raw_metadata field 1줄 추가), `src/investo/sources/yfinance.py` (동일), `tests/unit/models/test_core_fact.py` (신규), `tests/unit/sources/test_stooq_price.py` (+2-3 tests), `tests/unit/sources/test_yfinance.py` (+2-3 tests).
 
 ### Step 2 — Numeric verification engine (sibling to u32)
 
-- [ ] 신규 모듈 `src/investo/briefing/numeric_verify.py`:
+- [x] 신규 모듈 `src/investo/briefing/numeric_verify.py`:
   - `verify_core_facts(text: str, items: Sequence[Item], anchors: Sequence[MarketAnchor]) -> CoreFactVerificationReport`.
   - `CoreFactVerificationReport` (frozen pydantic, `extra="forbid"`): `verified: tuple[CoreFact, ...]`, `unverified: tuple[CoreFact, ...]`, `conflicts: tuple[ConflictDetail, ...]`, `actions: dict[CoreFact, NumericGateAction]`.
   - `ConflictDetail`: `fact: CoreFact`, `body_value: Decimal`, `source_value: Decimal`, `delta: Decimal`, `source_ticker: str`.
   - Lookup 절차: (1) `Item.raw_metadata["core_facts"]` aggregate 로 `dict[CoreFact, Decimal]` 빌드; (2) 본문에서 각 CoreFact keyword ± 40 char window 내 첫 Decimal 매치 추출; (3) tolerance 비교; (4) anchor 와 cross-check (예: 본문 "ATH 갱신" 매치 ↔ `MarketAnchor.is_ath`).
   - Pure (no I/O); idempotent; Decimal-as-string round-trip.
-- [ ] u32 `numeric_self_check.py` 무수정. quality KPI 양 surface 공존.
-- [ ] 단위 테스트 `tests/unit/briefing/test_numeric_verify.py` (예상 18-22 tests):
+- [x] u32 `numeric_self_check.py` 무수정. quality KPI 양 surface 공존.
+- [x] 단위 테스트 `tests/unit/briefing/test_numeric_verify.py` (예상 18-22 tests):
   - source-backed → `verified`, action `pass`.
   - source 부재 → `unverified`, action `downgrade`.
   - source 와 tol 초과 → `conflict`, action `block` (anchor 충돌 케이스) vs `downgrade` (단순 mismatch).
   - keyword window edge: 40 char 경계 / 다중 매치 / 한국어/영문 토큰 양쪽.
   - non-core 숫자 (예: 종목 PER) → action `warn`.
   - Decimal tolerance: ±0.01 / ±0.05pp / ±1bp / ±$1 / ±$0.5 boundary.
-- [ ] 영향 파일: `src/investo/briefing/numeric_verify.py` (신규), `tests/unit/briefing/test_numeric_verify.py` (신규).
+- [x] 영향 파일: `src/investo/briefing/numeric_verify.py` (신규), `tests/unit/briefing/test_numeric_verify.py` (신규).
 
 ### Step 3 — Date corruption + direction sanity gates
 
-- [ ] 신규 모듈 `src/investo/briefing/date_corruption.py` (또는 `numeric_verify.py` 내부 함수):
+- [x] 신규 모듈 `src/investo/briefing/date_corruption.py` (또는 `numeric_verify.py` 내부 함수):
   - `find_corrupt_date_tokens(text: str) -> tuple[CorruptDate, ...]`: regex `r"\b(\d{1,2})/(\d{1,2})(?:/(\d{1,2}))?\b"` 매치 → month > 12 or day > 31 or all zero or duplicate-segment (`5/65/7` like) → `block`.
   - Why u51 `reader_format.wrap_numbers_bold` 가 잡지 못하는가? u51 은 *post-format* layer (regex `[+-]?\d+\.\d+%` / `\$[\d,]+`) — 슬래시-구분 date 토큰 패턴 미커버. 본 unit 은 publish gate 직전 별도 pass.
-- [ ] `verify_direction_against_anchor(text: str, anchors: Sequence[MarketAnchor]) -> tuple[DirectionConflict, ...]`:
+- [x] `verify_direction_against_anchor(text: str, anchors: Sequence[MarketAnchor]) -> tuple[DirectionConflict, ...]`:
   - 본문에 `[강세]` / `[약세]` / "상승 마감" / "하락 마감" 토큰이 등장하면 segment 대표 anchor 의 `change_pct` 부호와 cross-check.
   - "ATH 갱신" / "52w 최고" 토큰 ↔ `MarketAnchor.is_ath` / `ath_distance_pct == 0`.
   - 충돌 시 action `block`.
-- [ ] 단위 테스트 `tests/unit/briefing/test_date_corruption.py` (예상 10-12 tests): `5/65/7` 류 corruption / 정상 날짜 / month 13 / day 32 / 한국어 날짜 ("5월 11일") 무영향 / 코드 블록 내부 무영향.
-- [ ] 단위 테스트 `tests/unit/briefing/test_direction_sanity.py` (예상 8-10 tests): 강세 ↔ 양수 / 약세 ↔ 음수 / ATH 거짓 / 52w 최고 거짓 / anchor 부재 시 skip.
-- [ ] 영향 파일: `src/investo/briefing/date_corruption.py` (신규), `tests/unit/briefing/test_date_corruption.py` (신규), `tests/unit/briefing/test_direction_sanity.py` (신규).
+- [x] 단위 테스트 `tests/unit/briefing/test_date_corruption.py` (예상 10-12 tests): `5/65/7` 류 corruption / 정상 날짜 / month 13 / day 32 / 한국어 날짜 ("5월 11일") 무영향 / 코드 블록 내부 무영향.
+- [x] 단위 테스트 `tests/unit/briefing/test_direction_sanity.py` (예상 8-10 tests): 강세 ↔ 양수 / 약세 ↔ 음수 / ATH 거짓 / 52w 최고 거짓 / anchor 부재 시 skip.
+- [x] 영향 파일: `src/investo/briefing/date_corruption.py` (신규), `tests/unit/briefing/test_date_corruption.py` (신규), `tests/unit/briefing/test_direction_sanity.py` (신규).
 
 ### Step 4 — Per-segment freshness gate + `SegmentResult` contract
 
-- [ ] 신규 모델 `src/investo/models/segment_result.py`: `SegmentResult` pydantic (frozen, slots, `extra="forbid"`, `status: Literal["fresh","stale","failed"]`).
-- [ ] orchestrator `_run_segmented_briefing` 의 segment 별 반환 타입을 `dict[Segment, SegmentBriefing | None]` → `dict[Segment, SegmentResult]` 로 마이그레이션. 기존 호출자 (publisher / notifier / quality) 가 `result.briefing if result.status == "fresh" else None` 패턴으로 접근.
-- [ ] 신규 함수 `briefing/freshness.py::evaluate_segment_freshness(segment, latest_archive_date, target_date, calendar=market_calendar) -> SegmentResult.status`:
+- [x] 신규 모델 `src/investo/models/segment_result.py`: `SegmentResult` pydantic (frozen, slots, `extra="forbid"`, `status: Literal["fresh","stale","failed"]`).
+- [x] orchestrator `_run_segmented_briefing` 의 segment 별 반환 타입을 `dict[Segment, SegmentBriefing | None]` → `dict[Segment, SegmentResult]` 로 마이그레이션. 기존 호출자 (publisher / notifier / quality) 가 `result.briefing if result.status == "fresh" else None` 패턴으로 접근.
+- [x] 신규 함수 `briefing/freshness.py::evaluate_segment_freshness(segment, latest_archive_date, target_date, calendar=market_calendar) -> SegmentResult.status`:
   - latest archive ≥ `next_expected_trading_day(segment, now)` − 1 → `fresh`.
   - 아니면 `stale` + `stale_reason` 채움.
   - 크립토: 항상 `fresh` 기대 (24/7) — latest archive 가 어제보다 오래되면 stale.
-- [ ] Publisher 변경: `briefing/quality_eval.py` 및 publisher path 가 `SegmentResult.status` 분기. `fresh` 만 archive markdown 작성 + Telegram 공개 채널 (FR-004). `stale` / `failed` 는 quality 페이지 freshness 라인 + operator alert (FR-007) — 공개 채널 무발송.
-- [ ] 단위 테스트 `tests/unit/briefing/test_freshness.py` (예상 10-12 tests): KRX 휴장 day-after / NYSE 휴장 / 크립토 토요일 fresh / domestic stale 시 us-equity/crypto 발행 영행 (per-segment isolation).
-- [ ] 통합 테스트 `tests/integration/test_pipeline_partial_freshness.py` (예상 4-6 tests): 3 segment 중 1개만 stale 인 케이스 → 2개 publish + 1개 quality 라인.
-- [ ] 영향 파일: `src/investo/models/segment_result.py` (신규), `src/investo/briefing/freshness.py` (신규), `src/investo/briefing/pipeline.py` (signature 마이그레이션), `src/investo/orchestrator/pipeline.py` (return type 마이그레이션 + publisher 호출 분기), `src/investo/publisher/` (분기 1-2 함수), `tests/unit/briefing/test_freshness.py` (신규), `tests/integration/test_pipeline_partial_freshness.py` (신규).
+- [x] Publisher 변경: `briefing/quality_eval.py` 및 publisher path 가 `SegmentResult.status` 분기. `fresh` 만 archive markdown 작성 + Telegram 공개 채널 (FR-004). `stale` / `failed` 는 quality 페이지 freshness 라인 + operator alert (FR-007) — 공개 채널 무발송.
+- [x] 단위 테스트 `tests/unit/briefing/test_freshness.py` (예상 10-12 tests): KRX 휴장 day-after / NYSE 휴장 / 크립토 토요일 fresh / domestic stale 시 us-equity/crypto 발행 영행 (per-segment isolation).
+- [x] 통합 테스트 `tests/integration/test_pipeline_partial_freshness.py` (예상 4-6 tests): 3 segment 중 1개만 stale 인 케이스 → 2개 publish + 1개 quality 라인.
+- [x] 영향 파일: `src/investo/models/segment_result.py` (신규), `src/investo/briefing/freshness.py` (신규), `src/investo/briefing/pipeline.py` (signature 마이그레이션), `src/investo/orchestrator/pipeline.py` (return type 마이그레이션 + publisher 호출 분기), `src/investo/publisher/` (분기 1-2 함수), `tests/unit/briefing/test_freshness.py` (신규), `tests/integration/test_pipeline_partial_freshness.py` (신규).
 
 ### Step 5 — KPI separation (`figures_verified`) + quality page + operator alert
 
-- [ ] `briefing/quality_eval.py`:
+- [x] `briefing/quality_eval.py`:
   - `QualityKPIs.figures_verified: float | None` 신규 column (1.0 = 모든 core fact verified, 0.0 = 전부 unverified/conflict; non-core 숫자는 분모에 미포함).
   - `figures_presence` (u32 기존) 보존 — backward-compat.
   - `score_quality` payload 직렬화 `figures_verified` 추가.
-- [ ] `briefing/quality_history.py` `QualitySnapshot` 에 `figures_verified: float | None` (append-only column; None 허용으로 기존 JSONL backward-compat).
-- [ ] `visuals/quality_sparkline.py` 의 `_FIELDS` 튜플에 `("figures_verified", "수치 검증", "#7e22ce")` 추가 — 신규 색.
-- [ ] Operator alert (FR-007 / `notifier/operator_alerter.py`) 에 신규 알림 타입: `numeric_block` / `numeric_downgrade` / `segment_stale` — structured `extra={"segment": ..., "fact": ..., "delta": ...}` (R13 검증: secret-shaped substring 미포함).
-- [ ] 단위 테스트 `tests/unit/briefing/test_quality_eval_figures_verified.py` (예상 6-8 tests): 1.0 / 0.5 / 0.0 / None backward-compat.
-- [ ] 단위 테스트 `tests/unit/notifier/test_operator_alerter_numeric.py` (예상 4-6 tests): alert payload / R13 secret hygiene.
-- [ ] 영향 파일: `src/investo/briefing/quality_eval.py` (수정), `src/investo/briefing/quality_history.py` (수정), `src/investo/visuals/quality_sparkline.py` (수정), `src/investo/notifier/operator_alerter.py` (수정), 위 테스트 2개 (신규).
+- [x] `briefing/quality_history.py` `QualitySnapshot` 에 `figures_verified: float | None` (append-only column; None 허용으로 기존 JSONL backward-compat).
+- [x] `visuals/quality_sparkline.py` 의 `_FIELDS` 튜플에 `("figures_verified", "수치 검증", "#7e22ce")` 추가 — 신규 색.
+- [x] Operator alert (FR-007 / `notifier/operator_alerter.py`) 에 신규 알림 타입: `numeric_block` / `numeric_downgrade` / `segment_stale` — structured `extra={"segment": ..., "fact": ..., "delta": ...}` (R13 검증: secret-shaped substring 미포함).
+- [x] 단위 테스트 `tests/unit/briefing/test_quality_eval_figures_verified.py` (예상 6-8 tests): 1.0 / 0.5 / 0.0 / None backward-compat.
+- [x] 단위 테스트 `tests/unit/notifier/test_operator_alerter_numeric.py` (예상 4-6 tests): alert payload / R13 secret hygiene.
+- [x] 영향 파일: `src/investo/briefing/quality_eval.py` (수정), `src/investo/briefing/quality_history.py` (수정), `src/investo/visuals/quality_sparkline.py` (수정), `src/investo/notifier/operator_alerter.py` (수정), 위 테스트 2개 (신규).
 
 ### Step 6 — Orchestrator wire-through + canary
 
-- [ ] `src/investo/orchestrator/pipeline.py` publish path 에 호출 chain:
+- [x] `src/investo/orchestrator/pipeline.py` publish path 에 호출 chain:
   1. `verify_core_facts(...)` → `CoreFactVerificationReport`.
   2. `find_corrupt_date_tokens(...)`.
   3. `verify_direction_against_anchor(...)`.
   4. Action 적용: `block` → segment status `failed`; `downgrade` → 본문 상단 `> ⚠️ 확인 필요` callout 삽입; `warn` → operator alert; `pass` → no-op.
   5. `evaluate_segment_freshness(...)` → segment status `stale` 여부.
-- [ ] dry-run 에서도 같은 chain 호출 — 텍스트 변형만 (callout 삽입), 외부 효과 없음.
-- [ ] 회귀 카나리: 의도적 위반 fixture 3종 (`5/65/7` date / ATH 거짓 / KOSPI 부재) 주입 → block / WARN 발화 + caplog.
-- [ ] 영향 파일: `src/investo/orchestrator/pipeline.py` (수정), `tests/integration/test_numeric_gates_canary.py` (신규, 예상 6-8 tests).
+- [x] dry-run 에서도 같은 chain 호출 — 텍스트 변형만 (callout 삽입), 외부 효과 없음.
+- [x] 회귀 카나리: 의도적 위반 fixture 3종 (`5/65/7` date / ATH 거짓 / KOSPI 부재) 주입 → block / WARN 발화 + caplog.
+- [x] 영향 파일: `src/investo/orchestrator/pipeline.py` (수정), `tests/integration/test_numeric_gates_canary.py` (신규, 예상 6-8 tests).
 
 ### Step 7 — Requirements + audit + quality gate
 
-- [ ] `docs/requirements.md` 에 **FR-011** 추가 (u51=FR-009, u54=FR-010 점유):
+- [x] `docs/requirements.md` 에 **FR-011** 추가 (u51=FR-009, u54=FR-010 점유):
   - "FR-011: Numeric/Date/Freshness Gate — Core market fact verification, date corruption block, direction sanity, per-segment freshness."
   - AC: 본 plan DoD 의 9 항목 그대로 인용.
   - Priority: Should-have (NFR-001 quality 보강 + NFR-003 재현성).
-- [ ] `docs/DESIGN.md` 의 briefing pipeline 다이어그램에 `numeric_verify` + `freshness` 노드 추가.
-- [ ] `aidlc-docs/audit.md` 최상단에 본 unit 의 *re-tightening* entry append.
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅ (예상 +44-56 신규 테스트; 현재 1694 → ~1738-1750)
-- [ ] `uv run mkdocs build --strict` ✅
-- [ ] (수동) 2026-05-11 us-equity + crypto + domestic-equity briefing 재생성 시뮬레이션 → `5/65/7` 류 corruption 차단 / KOSPI prose vs zero source → `downgrade` callout 시각 확인.
+- [x] `docs/DESIGN.md` 의 briefing pipeline 다이어그램에 `numeric_verify` + `freshness` 노드 추가.
+- [x] `aidlc-docs/audit.md` 최상단에 본 unit 의 *re-tightening* entry append.
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅ (예상 +44-56 신규 테스트; 현재 1694 → ~1738-1750)
+- [x] `uv run mkdocs build --strict` ✅
+- [x] (수동) 2026-05-11 us-equity + crypto + domestic-equity briefing 재생성 시뮬레이션 → `5/65/7` 류 corruption 차단 / KOSPI prose vs zero source → `downgrade` callout 시각 확인.
 
 ---
 
@@ -282,11 +282,11 @@ Step 1 은 Step 2/3/4/5 의 contract 선행. Step 2-5 는 병렬 가능. Step 6 
 
 ## Quality gate
 
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅ (예상 +44-56 신규 테스트)
-- [ ] `uv run mkdocs build --strict` ✅
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅ (예상 +44-56 신규 테스트)
+- [x] `uv run mkdocs build --strict` ✅
 
 ---
 

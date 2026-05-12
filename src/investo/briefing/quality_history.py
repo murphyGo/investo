@@ -39,6 +39,10 @@ class QualitySnapshot:
     total_items: int
     total_failed_sources: int
     worst_severity: str | None = None
+    # u55 — append-only sibling KPI; ``None`` skips persisting the
+    # column (legacy back-compat). Existing JSONL rows without this
+    # field are read with ``figures_verified=None``.
+    figures_verified: float | None = None
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -89,6 +93,8 @@ def append_quality_snapshot(
     }
     if snapshot.worst_severity is not None:
         row["worst_severity"] = snapshot.worst_severity
+    if snapshot.figures_verified is not None:
+        row["figures_verified"] = _clamp_rate(snapshot.figures_verified)
     upserted: list[dict[str, object]] = []
     replaced = False
     for existing in rows:

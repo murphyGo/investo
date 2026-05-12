@@ -516,3 +516,48 @@ async def test_concurrency_default_caps_at_three(monkeypatch: pytest.MonkeyPatch
         items = await adapter.fetch(client, _WINDOW)
     assert len(items) == 6
     assert max_active == 3
+
+
+# ---------------------------------------------------------------------------
+# u55 Step 1 — CoreFact stamp in raw_metadata
+# ---------------------------------------------------------------------------
+
+
+async def test_core_fact_stamp_for_index_ticker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``^GSPC`` maps to ``spx_close`` — close value is mirrored under the flat key."""
+    _override_tickers(monkeypatch, "^GSPC")
+    bodies = {"^spx": _fixture_bytes("GSPC")}
+    transport = _stooq_handler(bodies=bodies)
+    adapter = StooqPriceAdapter()
+    async with httpx.AsyncClient(transport=transport) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert "core_fact:spx_close" in item.raw_metadata
+    # The stamped value equals the adapter ``close`` field, byte-for-byte.
+    assert item.raw_metadata["core_fact:spx_close"] == item.raw_metadata["close"]
+
+
+async def test_core_fact_stamp_absent_for_non_core_ticker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """AAPL is an equity, not a core market fact — no ``core_fact:*`` stamp."""
+    _override_tickers(monkeypatch, "AAPL")
+    bodies = {"aapl.us": _fixture_bytes("AAPL")}
+    transport = _stooq_handler(bodies=bodies)
+    adapter = StooqPriceAdapter()
+    async with httpx.AsyncClient(transport=transport) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert not any(k.startswith("core_fact:") for k in item.raw_metadata)
+
+
+async def test_core_fact_stamp_for_btc(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``BTC-USD`` maps to ``btc_usd`` core fact."""
+    _override_tickers(monkeypatch, "BTC-USD")
+    bodies = {"btc.v": _fixture_bytes("BTC-USD")}
+    transport = _stooq_handler(bodies=bodies)
+    adapter = StooqPriceAdapter()
+    async with httpx.AsyncClient(transport=transport) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    assert "core_fact:btc_usd" in items[0].raw_metadata

@@ -123,6 +123,22 @@
   - [x] `append_quality_snapshot` 이 같은 (date, segment) 에 대해 worst severity 를 keep — 후속 upgrade 시도는 dropped + 명시적 로그
 - **Priority**: Should-have (NFR-001 reliability/quality + NFR-003 graceful-degradation 보강)
 
+### FR-011: Numeric / Date / Freshness Gate (u55 numeric-freshness-and-market-fact-gates)
+- **Description**: 시황 publish 직전 (1) 사전 정의된 10-element `CoreFact` enum 에 한해 source-backed Decimal 값과 본문 prose 의 keyword-scoped window (anchor token ± 40 chars) 내 Decimal 매치를 tolerance 안에서 비교하여 verified/unverified/conflict 로 분류하고 (`pass / warn / downgrade / block` 4-tier `NumericGateAction` 에 매핑), (2) `r"\d{1,2}/\d{1,2}(?:/\d{1,2})?"` 슬래시-date 토큰의 month ≤ 12 / day ≤ 31 sanity 를 검증해 `5/65/7` 류 corruption 을 `block` 처리하고, (3) 본문 "강세 / 약세 / ATH 갱신 / 52w 최고" claim 을 `MarketAnchor.pct` / `is_ath` / `pct_from_52w_high` 와 cross-check 하며, (4) 각 segment 마다 `next_expected_trading_day` 와 `latest_archive_date` 를 비교해 stale segment 는 공개 채널 무발송 + quality 페이지 라인 + operator alert (FR-007) 만 발화한다. (5) `figures_presence` (u32 substring presence) 와 distinct 한 `figures_verified` (u55 source-backed core-fact 검증) KPI 를 quality 페이지 + sparkline 에 append-only column 으로 노출.
+- **User Story**: As a 시황 reader / 운영자, I want 본문의 핵심 수치 / 날짜 / 방향 claim 이 source-backed Decimal / static calendar / deterministic anchor 와 충돌하면 publish 가 막히거나 명시적 callout 이 붙기를, so that hallucinated 가격 · 잘못된 날짜 토큰 · 방향 정반대 prose 가 reader-facing 채널로 새지 않도록.
+- **Acceptance Criteria**:
+  - [x] Typed core-fact verification: 사전 정의된 `CoreFact` (10개 enum 값) 만 verify; 자유 prose claim extraction 시도 안 함.
+  - [x] Sibling helper, not extension: 신규 모듈 `src/investo/briefing/numeric_verify.py` (u32 `numeric_self_check.find_unverified` 와 별 surface, u32 무수정).
+  - [x] KPI 분리: `figures_presence` (u32 기존) + `figures_verified` (u55 신규) 가 `briefing/quality_eval.py` + `quality_history.py` 양쪽에 append-only column.
+  - [x] `NumericGateAction = Literal["pass", "warn", "downgrade", "block"]` enum.
+  - [x] Date corruption gate: month > 12 / day > 31 / all-zero → `block`; 코드 블록 내부 무영향.
+  - [x] 무료 calendar: `src/investo/models/market_calendar.py` hand-rolled KRX 2026 + NYSE 2026 휴장일 (유료 API 금지, NFR-002).
+  - [x] Per-segment freshness → publisher 호출 시 `SegmentResult(status: Literal["fresh","stale","failed"])` 분기. `fresh` 만 archive + Telegram 공개; `stale` / `failed` 는 quality 라인 + operator alert.
+  - [x] Per-segment isolation: 한 segment 의 stale/failed 가 다른 segment 발행을 막지 않음.
+  - [x] Tolerance 상수 박음: price/pct/yield/BTC/ETH 절대 Decimal tolerance 명시; idempotent.
+  - [x] R13 secret hygiene: date corruption fixture / WARNING / operator alert payload 가 secret-shaped substring 미포함.
+- **Priority**: Should-have (NFR-001 quality 보강 + NFR-003 재현성).
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

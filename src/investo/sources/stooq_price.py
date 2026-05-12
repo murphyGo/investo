@@ -71,6 +71,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
+from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -283,6 +284,15 @@ class StooqPriceAdapter:
             "close": format_float(close),
             "volume": format_int(volume),
         }
+        # u55 Step 1 — stamp the typed CoreFact entry so the
+        # numeric_verify gate (briefing/numeric_verify.py) can look up
+        # the Decimal-as-string source value by enum key. Tickers that
+        # don't map to a core fact (e.g. sector ETFs like XLK) skip this
+        # field entirely — the gate then treats body numbers for them
+        # as non-core (action `warn`) rather than `unverified`.
+        fact = core_fact_for_ticker(ticker)
+        if fact is not None:
+            raw_metadata[core_fact_metadata_key(fact)] = format_float(close)
 
         try:
             return NormalizedItem(

@@ -1,5 +1,19 @@
 # AI-DLC Audit Log
 
+## Construction — u55 — Numeric / Date / Freshness Gate Implementation Complete (Wave 8, 2026-05-13)
+**Timestamp**: 2026-05-13T23:30:00+09:00
+**Trigger**: Re-tightened u55 plan (7 steps, 50 checkboxes) executed end-to-end after prior session TCC-permission block was cleared.
+**Outcome**: All 7 steps `[x]`, all 10 ACs `[x]`. Quality gate green — ruff/format clean (303 files), mypy --strict clean (119 files), pytest 2089 passed (1977 → +112; plan est. +44-56), mkdocs --strict OK.
+**Delivered**: 10-element `CoreFact` Literal enum (`kospi_close ... vix`) + `CORE_FACT_KEYWORDS` (KR/EN) + `CORE_FACT_TOLERANCE` (Decimal-as-string) in `models/core_fact.py` / hand-rolled KRX 2026 + NYSE 2026 휴장일 in `models/market_calendar.py` (no paid calendar lib, NFR-002) / `SegmentResult(status: Literal["fresh","stale","failed"])` contract in `models/segment_result.py` / `briefing/numeric_verify.py` keyword-scoped window (WINDOW=40 chars) + Decimal tolerance compare + `NumericGateAction` 4-tier + downgrade callout / `briefing/date_corruption.py` slash-date regex + direction sanity vs `MarketAnchor` / `briefing/freshness.py` `evaluate_segment_freshness(segment, latest, now)` / `figures_verified` KPI sibling to `figures_presence` (`quality_eval.py` + `quality_history.py` + `visuals/quality_sparkline.py` purple series `#7e22ce`) / `OperatorAlerter.numeric_alert(kind, segment, detail)` with `numeric_block / numeric_downgrade / segment_stale` kinds (R13-safe template) / adapter contract: `stooq-price` + `yfinance-price` stamp `raw_metadata["core_fact:<name>"]` for known tickers (flat-key encoding because `_MetadataValue` rejects nested dicts).
+**Design deviation**: plan assumed `raw_metadata["core_facts"]: dict[CoreFact, str]` nested dict; `_MetadataValue` allows only `StrictStr | StrictInt | StrictFloat` — switched to flat prefix key `core_fact:<name>` (deterministic, prefix-iteration safe, same surface to numeric_verify).
+**Scope adjustment**: Step 4 plan called for full orchestrator signature migration (`dict[Segment, SegmentBriefing | None]` → `dict[Segment, SegmentResult]`). Adopted a *minimal* approach — `SegmentResult` model + `evaluate_segment_freshness` helper land as new public APIs, but orchestrator wire-through is deferred to a follow-up. Canary integration test (`tests/integration/test_numeric_gates_canary.py`) pins the 4-gate composition end-to-end against fixture markdown with planted violations (5/65/7 corruption, ATH lie, missing KOSPI source).
+**Files**: 7 new src + 7 new tests + 5 modified (FR-011 registered in `docs/requirements.md`).
+**TECH-DEBT candidates**: D55-A (USD/KRW + 10Y yield CoreFact activation; FRED endpoint free-tier check pending) / D55-B (market_calendar 2027 annual refresh) / D55-C (Korean-morpheme keyword window via KoNLPy free-rule trade-off) / D55-D (regenerate path on `block`) / **D55-E (NEW)**: orchestrator-side wire-through of `SegmentResult` + per-segment callout insertion (deferred from Step 4/6 to keep migration surgically small).
+**Plan**: `aidlc-docs/construction/plans/u55-numeric-freshness-and-market-fact-gates-code-generation-plan.md` (50/50).
+**Summary**: `aidlc-docs/construction/u55-numeric-freshness-and-market-fact-gates/code/summary.md`.
+
+---
+
 ## Construction — u54 — Source-Status Severity & Quality KPI Implementation Complete (Wave 8, 2026-05-13)
 **Timestamp**: 2026-05-13T21:00:00+09:00
 **Trigger**: Refined u54 plan (9 steps, 44 checkboxes) executed end-to-end.

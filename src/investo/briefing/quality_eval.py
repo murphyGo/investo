@@ -37,6 +37,12 @@ from investo.briefing.numeric_self_check import extract_flaggable_numbers
 # the fallback-ratio KPI — keep them aligned.
 _DATA_LIMITED_MARKER: Final[str] = "데이터 부족 안내"
 
+# u55 — marker the numeric_verify gate inserts at the top of a briefing
+# whose core-fact verification produced ``downgrade`` actions. Presence
+# means the briefing went out but at least one core fact was either
+# unverified or in conflict — counts AGAINST ``figures_verified``.
+_VERIFY_DOWNGRADE_MARKER: Final[str] = "⚠️ 확인 필요: 수치 검증 실패"
+
 
 @dataclass(frozen=True, slots=True)
 class QualityKPIs:
@@ -74,6 +80,12 @@ class QualityKPIs:
     zero_item_sources: int = 0
     core_missing_segments: int = 0
     segments_limited_or_worse: int = 0
+    # u55 — distinct precision-first KPI sibling to ``figures_presence``.
+    # Numerator = briefings whose Stage 2 body had ≥1 *typed* core market
+    # fact verified within tolerance against a source-emitted Decimal.
+    # Denominator = same as ``figures_presence`` (non-data-limited
+    # briefings observed). ``None`` = no observations.
+    briefings_with_verified_figures: int = 0
 
     @property
     def source_liveness_rate(self) -> float | None:
@@ -93,6 +105,19 @@ class QualityKPIs:
         if non_limited <= 0:
             return None
         return self.briefings_with_figures / non_limited
+
+    @property
+    def figures_verified_rate(self) -> float | None:
+        """u55 — fraction of non-limited briefings carrying ≥1 verified core fact.
+
+        ``None`` when the denominator is zero (rendered as ``n/a``).
+        Sibling to :meth:`figures_presence_rate`; both columns coexist on
+        the quality page.
+        """
+        non_limited = self.briefings_observed - self.briefings_data_limited
+        if non_limited <= 0:
+            return None
+        return self.briefings_with_verified_figures / non_limited
 
     @property
     def fallback_ratio(self) -> float | None:
@@ -121,6 +146,12 @@ class QualityHistoryRow:
     total_items: int | None = None
     total_failed_sources: int | None = None
     worst_severity: str | None = None
+    # u55 — append-only sibling KPI column. Legacy JSONL rows leave this
+    # as ``None`` (backward-compat); rows written from u55 onward carry
+    # the verified-fraction. Surfaced by the sparkline as a distinct
+    # series so a downward trend on ``figures_presence`` vs upward on
+    # ``figures_verified`` (or vice versa) reads as a meaningful signal.
+    figures_verified: float | None = None
 
     @property
     def has_data(self) -> bool:
@@ -164,6 +195,18 @@ def compute_quality_kpis(
     briefings_with_figures = sum(
         1 for path in archive_files if not _is_data_limited(path) and _carries_numeric_figure(path)
     )
+    # u55 — count briefings that carry at least one figure AND do *not*
+    # carry the u55 numeric_verify downgrade callout. The callout
+    # marker is only inserted when the gate flagged unverified /
+    # conflict actions, so its absence is the signal that every core
+    # fact in the body verified against a source-emitted Decimal.
+    briefings_with_verified = sum(
+        1
+        for path in archive_files
+        if not _is_data_limited(path)
+        and _carries_numeric_figure(path)
+        and not _has_verify_downgrade(path)
+    )
     return QualityKPIs(
         today=today,
         window_days=window_days,
@@ -174,6 +217,7 @@ def compute_quality_kpis(
         briefings_with_figures=briefings_with_figures,
         failed_sources=failed_sources,
         zero_item_sources=zero_item_sources,
+        briefings_with_verified_figures=briefings_with_verified,
         # ``core_missing_segments`` / ``segments_limited_or_worse``
         # require per-segment severity which the legacy
         # ``coverage.jsonl`` schema does not record. The orchestrator
@@ -273,6 +317,12 @@ def render_quality_page(kpis: QualityKPIs) -> str:
     lines.append(
         "| 수치 인용 비율 | "
         f"{_format_pct(kpis.figures_presence_rate)} | "
+        f"{max(kpis.briefings_observed - kpis.briefings_data_limited, 0)} 건 |"
+    )
+    # u55 — distinct precision KPI: typed core-fact verification.
+    lines.append(
+        "| 수치 검증 비율 | "
+        f"{_format_pct(kpis.figures_verified_rate)} | "
         f"{max(kpis.briefings_observed - kpis.briefings_data_limited, 0)} 건 |"
     )
     lines.append(
@@ -397,6 +447,14 @@ def _carries_numeric_figure(path: Path) -> bool:
     return bool(extract_flaggable_numbers(text))
 
 
+def _has_verify_downgrade(path: Path) -> bool:
+    """u55 — ``True`` iff the briefing carries the verify-downgrade callout."""
+    try:
+        return _VERIFY_DOWNGRADE_MARKER in path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+
+
 def _load_quality_history_rows(path: Path) -> dict[date, QualityHistoryRow]:
     rows: dict[date, QualityHistoryRow] = {}
     try:
@@ -443,6 +501,7 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
         total_items=_optional_int(payload.get("total_items")),
         total_failed_sources=_optional_int(payload.get("total_failed_sources")),
         worst_severity=worst_severity,
+        figures_verified=_optional_rate(payload.get("figures_verified")),
     )
 
 

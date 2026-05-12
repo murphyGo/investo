@@ -46,6 +46,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
+from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -243,6 +244,13 @@ class YFinancePriceAdapter:
             "volume": format_int(volume),
             "prev_close": format_float(prev_close) if prev_close else "",
         }
+        # u55 Step 1 — typed CoreFact stamp (see stooq-price for the
+        # rationale). yfinance and stooq-price both emit the same fact
+        # key for the same ticker; numeric_verify aggregates across the
+        # whole candidate stream so duplicate stamps are idempotent.
+        fact = core_fact_for_ticker(ticker)
+        if fact is not None:
+            raw_metadata[core_fact_metadata_key(fact)] = format_float(close)
 
         try:
             return NormalizedItem(

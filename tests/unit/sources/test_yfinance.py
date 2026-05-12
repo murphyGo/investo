@@ -529,3 +529,32 @@ async def test_fetch_allows_concurrency_override(monkeypatch: pytest.MonkeyPatch
 def test_class_attributes() -> None:
     assert YFinancePriceAdapter.name == "yfinance-price"
     assert YFinancePriceAdapter.category == "price"
+
+
+# ---------------------------------------------------------------------------
+# u55 Step 1 — CoreFact stamp in raw_metadata
+# ---------------------------------------------------------------------------
+
+
+async def test_core_fact_stamp_for_index_ticker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``^GSPC`` lands a ``core_fact:spx_close`` flat key."""
+    _override_tickers(monkeypatch, "^GSPC")
+    fixtures = {"^GSPC": _GSPC_FIXTURE.read_bytes()}
+    adapter = YFinancePriceAdapter()
+    async with _mock_client(fixtures) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert "core_fact:spx_close" in item.raw_metadata
+    assert item.raw_metadata["core_fact:spx_close"] == item.raw_metadata["close"]
+
+
+async def test_core_fact_stamp_absent_for_non_core_ticker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """AAPL is an equity — no ``core_fact:*`` stamp registered."""
+    _override_tickers(monkeypatch, "AAPL")
+    fixtures = {"AAPL": _AAPL_FIXTURE.read_bytes()}
+    adapter = YFinancePriceAdapter()
+    async with _mock_client(fixtures) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    assert not any(k.startswith("core_fact:") for k in items[0].raw_metadata)

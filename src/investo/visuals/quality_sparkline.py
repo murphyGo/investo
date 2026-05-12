@@ -18,6 +18,7 @@ _LINE_WIDTH: Final[int] = SVG_WIDTH - (_PADDING_X * 2)
 _METRICS: Final[tuple[tuple[str, str, str], ...]] = (
     ("source_liveness", "소스 라이브니스", "#167a6f"),
     ("figures_presence", "수치 인용", "#2457a6"),
+    ("figures_verified", "수치 검증", "#7e22ce"),  # u55 — sibling to figures_presence
     ("fallback_ratio", "폴백 비율", "#b65f18"),
 )
 
