@@ -158,6 +158,20 @@
   - [x] R13 secret hygiene: scan WARN extra 가 LLM output text 만 carry (segment / phrase / line_no); raw_metadata 미포함.
 - **Priority**: Must-have (Rule 2 disclaimer enforcement 강화 — 기존 footer + 신규 first-viewport + segment 분기).
 
+### FR-013: 세그먼트 narrative scope + time-state 일관성 (u57 segment-narrative-scope-and-time-reconciliation)
+- **Description**: 같은 run 으로 생성된 3 segment briefing 의 narrative 결함 4종 (same-page time-state 모순, cross-market promotion 과잉, native-link 없는 글로벌 ticker, shared macro 중복) 을 종결한다. (1) `src/investo/models/bundle_context.py` 의 `BundleContext` + `MarketStateSummary` 가 Stage 2 *전*에 계산되어 3 segment prompt 에 same-object 로 inject 됨. (2) `src/investo/orchestrator/bundle_context.py::compute_bundle_context` 가 routed items 만으로 segment 의 close-state 를 결정 (자기 segment 는 `pending` 으로 force, anti-self-assert). (3) `src/investo/briefing/time_state.py::detect_time_state` 가 6 label catalogue regex 로 source title 의 time-state 를 결정론적으로 부여; ambiguous → LLM in-context disambiguation. (4) `src/investo/publisher/cross_segment_lint.py` 의 `lint_domestic_foreign_linkage` / `lint_native_fact_priority` / `lint_time_state_consistency` 가 post-Stage-2 publish-gate 에서 violation 을 WARN / REJECT 로 발화. (5) `cross_market_core_allowed` frozenset (`geopolitical_oil_macro`, `fed_policy_event`, `global_systemic_risk`) 가 prompt + lint 공통 single source of truth. (6) `src/investo/publisher/shared_macro.py::inject_shared_macro_block` 가 `## ⓪ 오늘의 매크로` H2 를 TL;DR 직후 / §① 직전 site 에 idempotent 하게 inject; 본문 재서술은 WARN-only.
+- **User Story**: As a 시황 reader, I want 같은 페이지의 3 segment 가 서로 모순 없이 시간 상태를 정렬하고 (US 가 같은 날 +0.5% 마감했는데 도메스틱이 "US 하락 출발" 인용 금지), 외국 ticker 가 도메스틱 segment 에 등장할 때 환율/외인/연관종목 같은 도메스틱 hook 을 반드시 동반하며, 같은 매크로 fact 가 segment 마다 raw 재서술 없이 1회만 `## ⓪` 블록에 등장하기를, so that 같은 페이지의 narrative 일관성이 자동 검증되고 reader 신뢰가 회귀하지 않도록.
+- **Acceptance Criteria**:
+  - [x] BundleContext (same-run, per-segment market-state summary) 가 Stage 2 *전*에 계산되어 3 segment prompt 모두에 동일 객체로 inject 됨. 자기 segment 자신은 `pending` 으로 표시.
+  - [x] Time-state label 6 종 (`pre-market / open / intraday / close / post-close / scheduled`) 이 source title regex catalogue 로 결정론적으로 부여; ambiguous → LLM in-context.
+  - [x] 도메스틱 segment 본문의 모든 외국 ticker 출현은 같은 `\n\n` 단락 안에 도메스틱 ticker `\d{6}` 또는 linkage 키워드 ≥ 1 동반. 위반 시 publish-gate WARNING (워치리스트 subsection 안에서는 REJECT).
+  - [x] 각 segment §② 의 첫 H3 primary noun 은 segment-native entity allowlist 매치 (domestic: KRX 6-digit / KOSPI / KOSDAQ / 외국인; us-equity: SPX/NDX/주요 ticker; crypto: BTC/ETH). 위반 시 WARN-tier diagnostic.
+  - [x] Same-bundle time-state 모순 detect — us-equity `close_state = close` 인데 본문이 "하락 출발 / 상승 출발" wording 인용 시 REJECT-tier 발화.
+  - [x] BundleContext `shared_macro_block` 이 non-null 이면 `## ⓪ 오늘의 매크로` H2 + 단일 paragraph 가 TL;DR 직후 1회만 inject (idempotent).
+  - [x] Cross-market core-tier allow-list (`CROSS_MARKET_CORE_ALLOWED`) 가 module constant 로 노출, 단위 테스트로 핀; 신규 테마 추가는 후속 unit.
+  - [x] R13 secret hygiene — lint WARNING extra 가 segment / kind / severity / numeric lengths 만 carry; raw_metadata / secret-shaped substring 미포함.
+- **Priority**: Must-have (NFR-001 readability 회귀 방지 — same-page narrative 모순 / over-promotion / orphan global ticker / macro 중복 4종 시그니처 종결).
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

@@ -207,11 +207,13 @@ def _success_segment_generate(calls: list[tuple[MarketSegment, int, bool]]) -> o
         recent_context: object = None,
         market_anchors: object = (),
         carryover: object = None,
+        bundle_context: object = None,
     ) -> Briefing:
         del source_outcomes  # u22 transparency hook — not asserted by these tests
         del recent_context  # u34 — asserted in dedicated test below
         del market_anchors  # u49 — asserted in dedicated test below
         del carryover  # u52 — asserted in dedicated test below
+        del bundle_context  # u57 — asserted in dedicated test below
         calls.append((segment, len(items), data_limited))
         return _briefing(target_date, segment=segment)
 
@@ -229,11 +231,13 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
         recent_context: object = None,
         market_anchors: object = (),
         carryover: object = None,
+        bundle_context: object = None,
     ) -> Briefing:
         del source_outcomes
         del recent_context
         del market_anchors
         del carryover
+        del bundle_context
         if segment == fail_segment:
             raise BriefingGenerationError(
                 stage="synthesis",
@@ -459,8 +463,17 @@ async def test_run_pipeline_threads_recent_context_to_segment_generate(
         recent_context: RecentBriefingsContext | None = None,
         market_anchors: object = (),
         carryover: object = None,
+        bundle_context: object = None,
     ) -> Briefing:
-        del items, runner, source_outcomes, data_limited, market_anchors, carryover
+        del (
+            items,
+            runner,
+            source_outcomes,
+            data_limited,
+            market_anchors,
+            carryover,
+            bundle_context,
+        )
         if segment == US_EQUITY:
             seen.append(recent_context)
         return _briefing(target_date, segment=segment)
@@ -520,8 +533,17 @@ async def test_run_pipeline_recent_context_disabled_when_env_zero(
         recent_context: object = None,
         market_anchors: object = (),
         carryover: object = None,
+        bundle_context: object = None,
     ) -> Briefing:
-        del items, runner, source_outcomes, data_limited, market_anchors, carryover
+        del (
+            items,
+            runner,
+            source_outcomes,
+            data_limited,
+            market_anchors,
+            carryover,
+            bundle_context,
+        )
         if segment == US_EQUITY:
             seen_recent.append(recent_context)
         return _briefing(target_date)
@@ -795,11 +817,13 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
         recent_context: object = None,
         market_anchors: object = (),
         carryover: object = None,
+        bundle_context: object = None,
     ) -> Briefing:
         del source_outcomes
         del recent_context
         del market_anchors
         del carryover
+        del bundle_context
         briefing = _briefing(target_date, segment=segment)
         if segment == US_EQUITY:
             return briefing.model_copy(

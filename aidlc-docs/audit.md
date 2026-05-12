@@ -1,5 +1,43 @@
 # AI-DLC Audit Log
 
+## Construction — u57 — Segment Narrative Scope + Time Reconciliation Implementation Complete (Wave 8, 2026-05-13)
+**Timestamp**: 2026-05-13T18:00:00+09:00
+**Trigger**: Refined u57 plan (8 steps, 45 checkboxes) executed end-to-end after planner re-hardened the plan to u51-level precision (BundleContext pre-computation, 3 untestable AC → measurable proxy rewrite, time-state regex catalogue, cross-market allow-list, shared macro dedupe).
+**Outcome**: All 8 steps `[x]`, all DoD ACs `[x]`. Quality gate green — ruff clean (322 files), ruff format clean (322 files), mypy --strict clean (126 source files), pytest 2297 passed (2206 → +91; plan est. +52-70), mkdocs --strict OK.
+**Delivered**:
+- `briefing/time_state.py` — 6-label regex catalogue + `detect_time_state` deterministic priority resolver. `close` outranks `open` so "상승 출발 후 하락 마감" → `close`.
+- `models/bundle_context.py` — `BundleContext` + `MarketStateSummary` foundation pydantic model + `CROSS_MARKET_CORE_ALLOWED` frozenset (`geopolitical_oil_macro` / `fed_policy_event` / `global_systemic_risk`). `with_self_pending(segment)` anti-self-assert helper.
+- `orchestrator/bundle_context.py::compute_bundle_context` — pure pre-Stage-2 reducer. Latest time-stated routed item drives close-state; shared macro detected when ≥ 2 segments overlap.
+- `publisher/cross_segment_lint.py` — `lint_domestic_foreign_linkage` / `lint_native_fact_priority` / `lint_time_state_consistency` / `run_all_cross_segment_lints` aggregator. Korean-boundary safe (`(?<![A-Za-z])` instead of `\b` because `\b` treats Hangul as word char).
+- `publisher/shared_macro.py::inject_shared_macro_block` — idempotent `## ⓪ 오늘의 매크로` H2 inject after TL;DR / before §①.
+- Stage-2 prompt — BC-1~BC-4 rule block + `{bundle_context}` placeholder + `format_bundle_context_section` helper.
+- Orchestrator wire — `_stage_generate_segments` computes BundleContext once, threads through new `SegmentGenerateCallable` Protocol slot; `_apply_reader_format_to_segments` runs shared-macro inject + lint chain after u51 format.
+- FR-013 registered in `docs/requirements.md` (FR-009=u51, FR-010=u54, FR-011=u55, FR-012=u56 점유; FR-013=u57).
+**Decisions**:
+- Pipeline ordering: Option B (BundleContext pre-comp) over Option A (reorder `SEGMENT_ORDER`). Pre-comp removes ordering coupling — domestic prompt no longer depends on US generation finishing first.
+- Strict-mode default: `demote` (log-only; auto-strip deferred to D57-C). Lint emits WARN/REJECT records but the orchestrator does not yet rewrite paragraph contents — keeps NFR-001 risk low while still producing the audit surface.
+- Foreign ticker pattern: static allowlist (well-known mega-caps + select Asian names). D57-A tracks the sources/ ticker registry auto-sync.
+- R3 module boundary: `BundleContext` lives in `models/` (foundation) so orchestrator + briefing + publisher all import without violating the "no sibling imports" rule.
+- R13 secret hygiene: lint extras carry segment / kind / severity / numeric lengths only. Test `tests/unit/orchestrator/test_cross_segment_lint_logging.py` pins the no-`raw_metadata` / no-secret-shaped-substring contract.
+- Disclaimer enforcement (Rule 2): lint chain runs *before* `verify_disclaimer`; existing tests `test_apply_reader_format_preserves_disclaimer` continue to pin disclaimer survival.
+**Quality gate**: ruff clean / format clean (322 files) / mypy --strict (126 src) / pytest 2297 / mkdocs build --strict.
+**Test deltas**:
+- `tests/unit/briefing/test_time_state.py` (25)
+- `tests/unit/orchestrator/test_bundle_context.py` (17)
+- `tests/unit/publisher/test_cross_segment_lint.py` (29)
+- `tests/unit/publisher/test_shared_macro_block.py` (8)
+- `tests/unit/models/test_bundle_context_allowlist.py` (6)
+- `tests/unit/orchestrator/test_cross_segment_lint_logging.py` (2)
+- `tests/integration/test_bundle_reconciliation.py` (6)
+**DEBT 후보**:
+- D57-A — `FOREIGN_TICKER_PATTERN` static allowlist; manual maintenance vs auto-sync against `sources/` ticker registry.
+- D57-B — `lint_native_fact_priority` regex-only primary-noun extraction; Korean morphology (KoNLPy) would reduce false-negatives on subject-trailing constructions.
+- D57-C — Strict-mode auto-demote path (rewrite offending paragraphs to background) currently log-only; `INVESTO_LINT_STRICT` env-var hook reserved.
+- D57-D — Shared-macro auto-strip vs WARN-only: segment-specific 재해석을 false-positive 로 strip할 위험 때문에 현재 WARN-only.
+**Context**: AIDLC Construction Wave 8 land. Next: u58 (TBD) or follow-up to address D57 series.
+
+---
+
 ## Construction — u55 — Numeric / Date / Freshness Gate Implementation Complete (Wave 8, 2026-05-13)
 **Timestamp**: 2026-05-13T23:30:00+09:00
 **Trigger**: Re-tightened u55 plan (7 steps, 50 checkboxes) executed end-to-end after prior session TCC-permission block was cleared.

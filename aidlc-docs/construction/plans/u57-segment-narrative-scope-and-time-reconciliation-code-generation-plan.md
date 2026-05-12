@@ -60,14 +60,14 @@ Solution =
 
 ## Definition of Done
 
-- [ ] BundleContext (same-run, per-segment market-state summary) 가 Stage 2 *전*에 계산되어 3 segment prompt 모두에 동일 객체로 inject 됨. 자기 segment 자신은 "pending" 으로 표시 (회귀 방지).
-- [ ] Time-state label `pre-market / open / intraday / close / post-close / scheduled` 가 source title regex catalogue 로 결정론적으로 부여; ambiguous 케이스만 LLM 보조 (Stage-2 prompt 내 in-context disambiguation).
-- [ ] 도메스틱 segment 의 §② core 가 native KRX 사실 (KOSPI 종가/외국인/업종/종목코드 `[\d{6}]`) 로 시작; cross-market 매크로는 background 로 격하 — 단 `CROSS_MARKET_CORE_ALLOWED` allow-list 항목 (`geopolitical_oil_macro` / `fed_policy_event` / `global_systemic_risk`) 은 core 유지 가능하되 segment-specific 1-sentence 재해석 강제.
-- [ ] 도메스틱 segment 본문의 모든 외국 ticker (`AAPL|TSMC|NVDA|MSFT|GOOG|AMZN|META|TSLA|...` 또는 일반 패턴 `[A-Z]{2,5}` allow-list) 출현은 같은 `\n\n` 단락 안에 도메스틱 ticker `\d{6}` 또는 linkage 키워드 `{국내 영향, 환율 경로, 코스피 연관, 수급 영향, 외국인 매매, 환율, 원/달러}` ≥ 1 동반. 위반 시 publish-gate WARNING + 해당 단락 background 강등 또는 reject (config flag 로 선택).
-- [ ] BundleContext.`shared_macro_block: str | None` 이 1회만 렌더 — `## ⓪ 오늘의 매크로` H2 surface (segment §① 보다 위) 로 inject; 3 segment 본문은 같은 fact 를 다시 쓰지 않고 자기 관점 1-sentence 재해석만 추가.
-- [ ] Same-bundle time-state 모순 detect: us-equity 의 close-state 가 `close` 인데 도메스틱 / crypto 본문이 "US 하락 출발 / 약세 출발" wording 을 core 로 인용한 경우 publish-gate WARNING + 해당 문장 reject 또는 background 강등.
-- [ ] Cross-market core-tier allow-list (`CROSS_MARKET_CORE_ALLOWED`) 는 module constant 로 노출, 단위 테스트로 핀; 신규 테마 추가는 후속 unit.
-- [ ] 전체 quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅ (예상 +30-40 신규 테스트), `mkdocs build --strict` ✅.
+- [x] BundleContext (same-run, per-segment market-state summary) 가 Stage 2 *전*에 계산되어 3 segment prompt 모두에 동일 객체로 inject 됨. 자기 segment 자신은 "pending" 으로 표시 (회귀 방지).
+- [x] Time-state label `pre-market / open / intraday / close / post-close / scheduled` 가 source title regex catalogue 로 결정론적으로 부여; ambiguous 케이스만 LLM 보조 (Stage-2 prompt 내 in-context disambiguation).
+- [x] 도메스틱 segment 의 §② core 가 native KRX 사실 (KOSPI 종가/외국인/업종/종목코드 `[\d{6}]`) 로 시작; cross-market 매크로는 background 로 격하 — 단 `CROSS_MARKET_CORE_ALLOWED` allow-list 항목 (`geopolitical_oil_macro` / `fed_policy_event` / `global_systemic_risk`) 은 core 유지 가능하되 segment-specific 1-sentence 재해석 강제.
+- [x] 도메스틱 segment 본문의 모든 외국 ticker (`AAPL|TSMC|NVDA|MSFT|GOOG|AMZN|META|TSLA|...` 또는 일반 패턴 `[A-Z]{2,5}` allow-list) 출현은 같은 `\n\n` 단락 안에 도메스틱 ticker `\d{6}` 또는 linkage 키워드 `{국내 영향, 환율 경로, 코스피 연관, 수급 영향, 외국인 매매, 환율, 원/달러}` ≥ 1 동반. 위반 시 publish-gate WARNING + 해당 단락 background 강등 또는 reject (config flag 로 선택).
+- [x] BundleContext.`shared_macro_block: str | None` 이 1회만 렌더 — `## ⓪ 오늘의 매크로` H2 surface (segment §① 보다 위) 로 inject; 3 segment 본문은 같은 fact 를 다시 쓰지 않고 자기 관점 1-sentence 재해석만 추가.
+- [x] Same-bundle time-state 모순 detect: us-equity 의 close-state 가 `close` 인데 도메스틱 / crypto 본문이 "US 하락 출발 / 약세 출발" wording 을 core 로 인용한 경우 publish-gate WARNING + 해당 문장 reject 또는 background 강등.
+- [x] Cross-market core-tier allow-list (`CROSS_MARKET_CORE_ALLOWED`) 는 module constant 로 노출, 단위 테스트로 핀; 신규 테마 추가는 후속 unit.
+- [x] 전체 quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` ✅ (예상 +30-40 신규 테스트), `mkdocs build --strict` ✅.
 
 ---
 
@@ -98,7 +98,7 @@ Solution =
 
 ### Step 1 — Time-state vocabulary and regex catalogue
 
-- [ ] 신규 모듈 `src/investo/briefing/time_state.py`:
+- [x] 신규 모듈 `src/investo/briefing/time_state.py`:
   - `TimeState = Literal["pre-market", "open", "intraday", "close", "post-close", "scheduled"]`
   - `TIME_STATE_PATTERNS: dict[TimeState, list[re.Pattern]]`:
     - `pre-market`: `(개장\s?전|장\s?전|프리마켓)`
@@ -107,8 +107,8 @@ Solution =
     - `post-close`: `(시간\s?외|애프터마켓|장\s?후)`
     - `scheduled`: `(예정|전망|발표\s?예정)`
   - `detect_time_state(title: str) -> TimeState | None`: 첫 매치 우선; `open` ∩ `close` 충돌 시 `close` 우선 (factual final state).
-- [ ] LLM 보조는 ambiguous (= 매치 없음 + 본문에 시간 표현 다수) 케이스만 — Stage-2 prompt 내 in-context resolution 룰로 명시.
-- [ ] 단위 테스트 `tests/unit/briefing/test_time_state.py` (예상 12-16 tests):
+- [x] LLM 보조는 ambiguous (= 매치 없음 + 본문에 시간 표현 다수) 케이스만 — Stage-2 prompt 내 in-context resolution 룰로 명시.
+- [x] 단위 테스트 `tests/unit/briefing/test_time_state.py` (예상 12-16 tests):
   - 각 state 별 positive / negative 케이스.
   - `상승 출발 후 하락 마감` → `close` 우선.
   - 한국어 yonhap-style 헤드라인 5+ 실제 sample.
@@ -116,7 +116,7 @@ Solution =
 
 ### Step 1.5 — BundleContext pre-computation (Critical)
 
-- [ ] 신규 모듈 `src/investo/models/bundle_context.py` (모듈 경계: `models/` 에 위치 — orchestrator + briefing + publisher 모두 소비; R3 무위반):
+- [x] 신규 모듈 `src/investo/models/bundle_context.py` (모듈 경계: `models/` 에 위치 — orchestrator + briefing + publisher 모두 소비; R3 무위반):
   - `MarketStateSummary`:
     - `segment: SegmentId`
     - `target_date: date`
@@ -129,12 +129,12 @@ Solution =
     - `segments: dict[SegmentId, MarketStateSummary]`
     - `shared_macro_block: str | None`  # § ⓪ 렌더용 1 paragraph (UST / oil / Fed schedule) — 3 segment 가 공유, 본문에서 dedupe
     - `cross_market_core_allowed: frozenset[str]`  # `{"geopolitical_oil_macro", "fed_policy_event", "global_systemic_risk"}`
-- [ ] 신규 함수 `compute_bundle_context(routed: SegmentedRoutedItems, *, now_kst: datetime) -> BundleContext` (위치: `src/investo/orchestrator/bundle_context.py` — 라우팅 직후 호출):
+- [x] 신규 함수 `compute_bundle_context(routed: SegmentedRoutedItems, *, now_kst: datetime) -> BundleContext` (위치: `src/investo/orchestrator/bundle_context.py` — 라우팅 직후 호출):
   - 각 segment 의 raw items → time_state.detect → 가장 freshness 가 높은 native item 으로 `close_state` 결정.
   - 자기 segment 자신은 *생성 시점에는* `pending` 으로 inject (회귀 안전: 도메스틱 prompt 시점에 도메스틱 자신을 "이미 close" 라고 단정하지 않음).
   - shared macro 후보 detect (UST yield / WTI Brent / Fed FOMC schedule) — 같은 source title 패턴 ≥ 2 segment 출현 시 shared 로 격리.
-- [ ] `compute_bundle_context` 는 pure (input → output); 부수효과 없음; logger 만 외부.
-- [ ] 단위 테스트 `tests/unit/orchestrator/test_bundle_context.py` (예상 10-14 tests):
+- [x] `compute_bundle_context` 는 pure (input → output); 부수효과 없음; logger 만 외부.
+- [x] 단위 테스트 `tests/unit/orchestrator/test_bundle_context.py` (예상 10-14 tests):
   - 빈 input → `segments = {}`, `shared_macro_block = None`.
   - 도메스틱 only → us / crypto `close_state = "pending"`.
   - US `마감` 헤드라인 ≥ 2건 + 도메스틱 본문 → us `close`, 도메스틱 자신은 `pending`.
@@ -143,26 +143,26 @@ Solution =
 
 ### Step 2 — Stage-2 prompt 룰 (per-segment, BundleContext-aware)
 
-- [ ] `src/investo/briefing/prompts/{domestic_equity,us_equity,crypto}.py` 각각에 룰 추가 (룰 텍스트는 공통, 예시는 segment-specific):
+- [x] `src/investo/briefing/prompts/{domestic_equity,us_equity,crypto}.py` 각각에 룰 추가 (룰 텍스트는 공통, 예시는 segment-specific):
   - "BundleContext 사용 룰": prompt 헤더에 `BundleContext` JSON dump 가 inject 됨. 자기 segment 의 `close_state = "pending"` 인 경우 자기 close 를 단정하지 말 것. 타 segment 의 `close_state = "close"` 인 경우 "출발 / 하락 출발 / 상승 출발" wording 을 core 로 인용하지 말 것 (background 로만).
   - "Native fact 우선 룰": §② 의 첫 H3 (또는 첫 bullet) 의 primary noun 은 segment-native entity allowlist 매치. 도메스틱: KRX 종목코드 또는 KOSPI/KOSDAQ/외국인 등. US: SPX/NDX/DJI 또는 주요 US ticker. Crypto: BTC/ETH 또는 주요 chain.
   - "Cross-market allow-list 룰": `BundleContext.cross_market_core_allowed` 항목 (`geopolitical_oil_macro` / `fed_policy_event` / `global_systemic_risk`) 만 cross-market 매크로를 core 로 promote 가능. 단 segment-specific 1-sentence 재해석 (`{이 사실이 우리 segment 에 무엇을 의미}`) 강제.
   - "Linkage 강제 룰" (domestic only): 외국 ticker 인용 시 같은 단락에 도메스틱 linkage (도메스틱 ticker `\d{6}` 또는 키워드 `{국내 영향, 환율 경로, 코스피 연관, 수급 영향, 외국인 매매, 환율}`) ≥ 1 동반.
   - "Shared macro dedupe 룰": `BundleContext.shared_macro_block` 이 non-null 이면 본문에서 같은 fact 의 raw 재서술 금지; 자기 관점 1-sentence 재해석만 허용.
-- [ ] **단위 테스트 없음** — prompt 변경은 generation 변동성 흡수; 검증은 Step 3 의 deterministic lint 가 담당 (u51 패턴과 동일).
+- [x] **단위 테스트 없음** — prompt 변경은 generation 변동성 흡수; 검증은 Step 3 의 deterministic lint 가 담당 (u51 패턴과 동일).
 
 ### Step 3 — Cross-segment linkage lint (deterministic, post-Stage-2)
 
-- [ ] 신규 모듈 `src/investo/publisher/cross_segment_lint.py`:
+- [x] 신규 모듈 `src/investo/publisher/cross_segment_lint.py`:
   - `FOREIGN_TICKER_PATTERN = re.compile(r"\b(AAPL|MSFT|NVDA|GOOG|GOOGL|AMZN|META|TSLA|TSMC|AMD|INTC|NFLX|...)\b")` (확장 가능 allowlist).
   - `DOMESTIC_LINKAGE_KEYWORDS = frozenset({"국내 영향", "환율 경로", "코스피 연관", "수급 영향", "외국인 매매", "환율", "원/달러", "원달러"})`
   - `DOMESTIC_TICKER_PATTERN = re.compile(r"\b\d{6}\b")`
   - `lint_domestic_foreign_linkage(text: str) -> list[LintViolation]`: 도메스틱 segment 본문을 `\n\n` 단락 단위로 split → 외국 ticker 매치 단락 → 같은 단락 안에 `DOMESTIC_TICKER_PATTERN` 매치 또는 `DOMESTIC_LINKAGE_KEYWORDS` 매치 ≥ 1 없으면 violation.
   - `lint_native_fact_priority(text: str, segment: SegmentId) -> list[LintViolation]`: §② 의 첫 H3 (또는 첫 bullet) primary noun 이 segment-native entity allowlist 매치하지 않으면 WARN-tier violation.
   - `lint_time_state_consistency(text: str, ctx: BundleContext) -> list[LintViolation]`: 본문에 "하락 출발 / 상승 출발" wording 매치 → 인용 대상 segment 의 `close_state == "close"` 이면 violation.
-- [ ] `LintViolation`: `severity: Literal["WARN", "REJECT"]`, `kind: str`, `paragraph: str`, `evidence: str`.
-- [ ] orchestrator publish path 에서 호출 순서: Stage-2 출력 → `cross_segment_lint` → severity=REJECT 면 paragraph 강등 또는 paragraph 제거 (config flag `INVESTO_LINT_STRICT` 로 reject vs demote 선택; default `demote`) → publish.
-- [ ] 단위 테스트 `tests/unit/publisher/test_cross_segment_lint.py` (예상 16-20 tests):
+- [x] `LintViolation`: `severity: Literal["WARN", "REJECT"]`, `kind: str`, `paragraph: str`, `evidence: str`.
+- [x] orchestrator publish path 에서 호출 순서: Stage-2 출력 → `cross_segment_lint` → severity=REJECT 면 paragraph 강등 또는 paragraph 제거 (config flag `INVESTO_LINT_STRICT` 로 reject vs demote 선택; default `demote`) → publish.
+- [x] 단위 테스트 `tests/unit/publisher/test_cross_segment_lint.py` (예상 16-20 tests):
   - 외국 ticker + 도메스틱 ticker 같은 단락 → pass.
   - 외국 ticker + linkage 키워드 같은 단락 → pass.
   - 외국 ticker 단독 → violation.
@@ -174,31 +174,31 @@ Solution =
 
 ### Step 4 — Cross-market allow-list 핀
 
-- [ ] `src/investo/models/bundle_context.py` 의 `CROSS_MARKET_CORE_ALLOWED` constant 노출:
+- [x] `src/investo/models/bundle_context.py` 의 `CROSS_MARKET_CORE_ALLOWED` constant 노출:
   - `frozenset({"geopolitical_oil_macro", "fed_policy_event", "global_systemic_risk"})`
-- [ ] BundleContext 가 이 constant 를 그대로 carry; prompt + lint 양쪽에서 동일 객체 참조 (single source of truth).
-- [ ] 단위 테스트 `tests/unit/models/test_bundle_context_allowlist.py` (예상 4-6 tests):
+- [x] BundleContext 가 이 constant 를 그대로 carry; prompt + lint 양쪽에서 동일 객체 참조 (single source of truth).
+- [x] 단위 테스트 `tests/unit/models/test_bundle_context_allowlist.py` (예상 4-6 tests):
   - constant 값 핀.
   - 신규 항목 추가는 별 unit 임을 docstring 으로 명시.
   - lint 가 allow-list 항목 매크로에 대해 WARN-only 로 downgrade 하는지 확인.
 
 ### Step 5 — Shared macro dedupe block
 
-- [ ] BundleContext.`shared_macro_block` 값이 non-null 이면 publish path 가 segment §① 위 (또는 워터마크 직후, TL;DR 직후 — u51 의 layout 과 호환) 에 `## ⓪ 오늘의 매크로` H2 + 단일 paragraph 로 inject.
-- [ ] 같은 fact 가 segment 본문에 다시 등장하면 lint 가 dedupe candidate 로 flag (WARN-only; 자동 strip 은 false-positive 우려로 미적용 — implementation 시 결정).
-- [ ] 단위 테스트 `tests/unit/publisher/test_shared_macro_block.py` (예상 6-8 tests):
+- [x] BundleContext.`shared_macro_block` 값이 non-null 이면 publish path 가 segment §① 위 (또는 워터마크 직후, TL;DR 직후 — u51 의 layout 과 호환) 에 `## ⓪ 오늘의 매크로` H2 + 단일 paragraph 로 inject.
+- [x] 같은 fact 가 segment 본문에 다시 등장하면 lint 가 dedupe candidate 로 flag (WARN-only; 자동 strip 은 false-positive 우려로 미적용 — implementation 시 결정).
+- [x] 단위 테스트 `tests/unit/publisher/test_shared_macro_block.py` (예상 6-8 tests):
   - `shared_macro_block = None` → § ⓪ 미렌더.
   - non-null → § ⓪ 1회만 렌더, 위치 검증.
   - segment 본문에 동일 fact 재등장 시 WARN.
 
 ### Step 6 — orchestrator wire-through + integration fixture
 
-- [ ] `src/investo/orchestrator/pipeline.py` 의 segmented publish path:
+- [x] `src/investo/orchestrator/pipeline.py` 의 segmented publish path:
   - 라우팅 직후 `compute_bundle_context` 호출.
   - BundleContext 를 Stage-2 prompt 에 inject (각 segment prompt builder 가 BundleContext 를 받도록 signature 확장).
   - Stage-2 출력 → `cross_segment_lint` chain → shared macro inject → u51 `_enhance_reader_experience` → watermark/anchor-table → `verify_disclaimer`.
-- [ ] dry-run 에서도 동일 chain (텍스트 변형만; 부수효과 없으므로 안전).
-- [ ] 통합 fixture 전략:
+- [x] dry-run 에서도 동일 chain (텍스트 변형만; 부수효과 없으므로 안전).
+- [x] 통합 fixture 전략:
   - 합성 (synthetic) fixture 로 unit 우선; live LLM cassette 는 1회만 녹화.
   - 3 segment 각각 독립 cassette (live Claude call 3개) → frozen input bundle + deterministic `BundleContext` 로 replay.
   - 통합 테스트 `tests/integration/test_bundle_reconciliation.py` (예상 4-6 tests):
@@ -210,25 +210,25 @@ Solution =
 
 ### Step 7 — 회귀 카나리 + 로깅 + R13
 
-- [ ] WARNING / REJECT 로그 시그니처 표준화: `cross_segment_lint.foreign_ticker_no_linkage` / `cross_segment_lint.native_priority_violated` / `cross_segment_lint.time_state_contradiction` / `cross_segment_lint.shared_macro_duplicate` — structured `extra={"segment": ..., "kind": ..., "evidence_len": ..., "paragraph_index": ...}`.
-- [ ] R13 검증: 모든 extra 가 secret-shaped substring 미포함 (input 은 LLM output text + routed item title 만; raw_metadata 미경유).
-- [ ] 카나리 단위 테스트: 의도적 위반 input 주입 → 정확한 시그니처로 발화 (caplog).
-- [ ] NFR-002 영향: 별도 LLM call 없음. Stage-2 prompt 길이 ~500 토큰 증가 (BundleContext JSON dump 포함). 비용 영향 미미.
+- [x] WARNING / REJECT 로그 시그니처 표준화: `cross_segment_lint.foreign_ticker_no_linkage` / `cross_segment_lint.native_priority_violated` / `cross_segment_lint.time_state_contradiction` / `cross_segment_lint.shared_macro_duplicate` — structured `extra={"segment": ..., "kind": ..., "evidence_len": ..., "paragraph_index": ...}`.
+- [x] R13 검증: 모든 extra 가 secret-shaped substring 미포함 (input 은 LLM output text + routed item title 만; raw_metadata 미경유).
+- [x] 카나리 단위 테스트: 의도적 위반 input 주입 → 정확한 시그니처로 발화 (caplog).
+- [x] NFR-002 영향: 별도 LLM call 없음. Stage-2 prompt 길이 ~500 토큰 증가 (BundleContext JSON dump 포함). 비용 영향 미미.
 
 ### Step 8 — Requirements 문서 + quality gate
 
-- [ ] `docs/requirements.md` 에 **FR-013** 추가 (FR-009=u51, FR-010=u54, FR-011=u55, FR-012=u56 점유):
+- [x] `docs/requirements.md` 에 **FR-013** 추가 (FR-009=u51, FR-010=u54, FR-011=u55, FR-012=u56 점유):
   - "FR-013: 세그먼트 narrative scope + time-state 일관성 — same-bundle BundleContext / cross-segment linkage lint / cross-market allow-list / shared macro dedupe."
   - AC: 본 plan 의 DoD 8 항목 + 측정 proxy 3개.
-- [ ] inception bridge (`aidlc-docs/inception/requirements/`) 동기화 (해당 파일 존재 시).
-- [ ] `aidlc-docs/aidlc-state.md` u57 행: `📋 Planned` 유지 (개발 착수 시 `⚙️ In Progress` 로 전이).
-- [ ] Quality gate:
-  - [ ] `uv run ruff check .` ✅
-  - [ ] `uv run ruff format --check .` ✅
-  - [ ] `uv run mypy --strict src/` ✅
-  - [ ] `uv run pytest -q` ✅ (예상 +30-40 신규 테스트)
-  - [ ] `uv run mkdocs build --strict` ✅
-  - [ ] (수동) `mkdocs serve` → 2026-05-11 3-segment bundle 재생성 시뮬레이션 → 8 AC 시각 확인.
+- [x] inception bridge (`aidlc-docs/inception/requirements/`) 동기화 (해당 파일 존재 시).
+- [x] `aidlc-docs/aidlc-state.md` u57 행: `📋 Planned` 유지 (개발 착수 시 `⚙️ In Progress` 로 전이).
+- [x] Quality gate:
+  - [x] `uv run ruff check .` ✅
+  - [x] `uv run ruff format --check .` ✅
+  - [x] `uv run mypy --strict src/` ✅
+  - [x] `uv run pytest -q` ✅ (예상 +30-40 신규 테스트)
+  - [x] `uv run mkdocs build --strict` ✅
+  - [x] (수동) `mkdocs serve` → 2026-05-11 3-segment bundle 재생성 시뮬레이션 → 8 AC 시각 확인.
 
 ---
 

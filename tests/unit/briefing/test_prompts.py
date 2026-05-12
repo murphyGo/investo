@@ -249,6 +249,7 @@ def test_stage2_user_template_has_three_placeholders() -> None:
         recent_context="",
         lookahead_context="",
         carryover_context="",
+        bundle_context="",
     )
     assert "(grouped content)" in rendered
     assert "(unassigned content)" in rendered
@@ -268,6 +269,8 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     # empty string omits the block, a rendered block carries the
     # "## Watchlist Carryover (입력)" header literal.
     assert "{carryover_context}" in STAGE2_USER_TEMPLATE
+    # u57 — BundleContext same-run market-state block.
+    assert "{bundle_context}" in STAGE2_USER_TEMPLATE
 
 
 def test_stage1_system_format_call_raises_key_error() -> None:
@@ -308,6 +311,7 @@ def test_stage2_user_template_format_is_idempotent_under_repeat() -> None:
         recent_context="",
         lookahead_context="",
         carryover_context="",
+        bundle_context="",
     )
     # No placeholders remain — re-formatting an empty dict yields same
     # string (no KeyError).

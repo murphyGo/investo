@@ -135,6 +135,7 @@ from investo.models import (
     SendResult,
     SourceOutcome,
 )
+from investo.models.bundle_context import BundleContext
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.notifier import (
     BriefingPublisher,
@@ -144,6 +145,7 @@ from investo.notifier import (
 )
 from investo.notifier.summary import resolve_enabled_segments
 from investo.orchestrator import source_health
+from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
 from investo.publisher import (
@@ -169,6 +171,7 @@ from investo.publisher.compliance_language import (
     ComplianceLanguageError,
     scan_compliance,
 )
+from investo.publisher.cross_segment_lint import run_all_cross_segment_lints
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.reader_format import (
     apply_reader_format,
@@ -176,6 +179,7 @@ from investo.publisher.reader_format import (
     check_sentence_ending_diversity,
     emit_first_viewport_disclaimer,
 )
+from investo.publisher.shared_macro import inject_shared_macro_block
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
     ARCHIVE_INDEX_PATH,
@@ -257,6 +261,7 @@ SegmentGenerateCallable = Callable[
         RecentBriefingsContext | None,
         Sequence[MarketAnchor],
         BriefingCarryover | None,
+        BundleContext | None,
     ],
     Awaitable[Briefing],
 ]
@@ -305,6 +310,7 @@ async def _default_generate_segment_briefing(
     recent_context: RecentBriefingsContext | None,
     market_anchors: Sequence[MarketAnchor],
     carryover: BriefingCarryover | None,
+    bundle_context: BundleContext | None,
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
     return await _u2_generate_briefing(
@@ -318,6 +324,7 @@ async def _default_generate_segment_briefing(
         carryover=carryover,
         market_anchors=market_anchors,
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
+        bundle_context=bundle_context,
     )
 
 
@@ -439,7 +446,11 @@ async def _stage_generate_segments(
     recent_context: RecentBriefingsContext | None = None,
     market_anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]] | None = None,
     carryover_by_segment: Mapping[MarketSegment, BriefingCarryover] | None = None,
-) -> tuple[dict[MarketSegment, Briefing], dict[MarketSegment, BriefingGenerationError]]:
+) -> tuple[
+    dict[MarketSegment, Briefing],
+    dict[MarketSegment, BriefingGenerationError],
+    BundleContext | None,
+]:
     """Generate all u7 market segments in fixed order.
 
     Segment-level :class:`BriefingGenerationError` is isolated to that
@@ -463,6 +474,23 @@ async def _stage_generate_segments(
     routed = segment_items(items)
     briefings: dict[MarketSegment, Briefing] = {}
     failures: dict[MarketSegment, BriefingGenerationError] = {}
+
+    # u57 — compute BundleContext once per run (pre-Stage-2), shared by
+    # all three segments. ``now_kst`` is derived from the target_date so
+    # replay tests stay deterministic. The orchestrator's ``run_pipeline``
+    # already uses the same convention for target_date resolution.
+    routed_by_segment: dict[MarketSegment, Sequence[NormalizedItem]] = {
+        seg: routed.for_segment(seg) for seg in SEGMENT_ORDER
+    }
+    bundle_context: BundleContext | None
+    try:
+        bundle_context = compute_bundle_context(
+            routed_by_segment,
+            now_kst=datetime.combine(target_date, datetime.min.time(), tzinfo=UTC),
+        )
+    except Exception as exc:
+        _logger.warning("[generate] bundle_context build failed err=%s; proceeding without", exc)
+        bundle_context = None
 
     _logger.info("[generate] starting segmented target_date=%s items=%d", target_date, len(items))
     for segment in SEGMENT_ORDER:
@@ -493,6 +521,7 @@ async def _stage_generate_segments(
                 recent_context,
                 segment_anchors,
                 segment_carryover,
+                bundle_context,
             )
         except BriefingGenerationError as exc:
             failures[segment] = exc
@@ -514,7 +543,7 @@ async def _stage_generate_segments(
         len(briefings),
         len(failures),
     )
-    return briefings, failures
+    return briefings, failures, bundle_context
 
 
 def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
@@ -1075,11 +1104,22 @@ def _apply_reader_format_to_segments(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    bundle_context: BundleContext | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
     Returns a fresh dict where every segment's :class:`Briefing` has the
     rewritten ``rendered_markdown``. Empty input → input returned as-is.
+
+    u57 additions (when ``bundle_context`` is non-null):
+      * ``## ⓪ 오늘의 매크로`` injection (idempotent) via
+        :func:`inject_shared_macro_block`.
+      * Cross-segment lint chain — violations are logged at WARN /
+        REJECT; the orchestrator does not (yet) auto-demote
+        paragraphs (config flag ``INVESTO_LINT_STRICT`` default
+        ``demote`` — but the demote rewrite itself is left for a
+        follow-up; logging is the audit surface for now per u57
+        open-question default).
     """
     if not segment_briefings:
         return segment_briefings
@@ -1112,6 +1152,34 @@ def _apply_reader_format_to_segments(
                             markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
         # Step 3 — pure str → str post-format chain.
         markdown = apply_reader_format(markdown, segment=segment)
+        # u57 — inject shared macro block + run cross-segment lint.
+        if bundle_context is not None:
+            markdown = inject_shared_macro_block(
+                markdown,
+                bundle_context.shared_macro_block,
+                segment=segment,
+            )
+            violations = run_all_cross_segment_lints(
+                markdown,
+                segment=segment,
+                ctx=bundle_context,
+            )
+            for v in violations:
+                log_level = logging.WARNING if v.severity == "WARN" else logging.ERROR
+                _logger.log(
+                    log_level,
+                    "%s segment=%s severity=%s",
+                    v.kind,
+                    segment,
+                    v.severity,
+                    extra={
+                        "segment": segment,
+                        "kind": v.kind,
+                        "severity": v.severity,
+                        "evidence_len": len(v.evidence),
+                        "paragraph_len": len(v.paragraph),
+                    },
+                )
         # u56 — compliance-language gate + first-viewport short disclaimer
         # + retail tone caps. Order: scan first (cheap reject of P0 hits
         # before any post-format I/O), then prepend the short disclaimer
@@ -1732,6 +1800,7 @@ async def run_pipeline(
     market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
         segment: () for segment in SEGMENT_ORDER
     }
+    run_bundle_context: BundleContext | None = None
     try:
         if segmented_mode:
             recent_context = _load_recent_context_for_run(target_date)
@@ -1748,7 +1817,11 @@ async def run_pipeline(
                 segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
             }
             carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
-            segment_briefings, segment_generation_failures = await _stage_generate_segments(
+            (
+                segment_briefings,
+                segment_generation_failures,
+                run_bundle_context,
+            ) = await _stage_generate_segments(
                 target_date,
                 items,
                 runner=runner,
@@ -1766,6 +1839,7 @@ async def run_pipeline(
             briefing = segment_briefings[primary_generated_segment]
         else:
             segment_briefings = None
+            run_bundle_context = None
             briefing = await _stage_generate(target_date, items, runner=runner, generate=generate)
     except BriefingGenerationError as exc:
         stage_timings["generate"] = time.monotonic() - stage_start
@@ -1854,6 +1928,7 @@ async def run_pipeline(
             segment_briefings = _apply_reader_format_to_segments(
                 segment_briefings,
                 anchors_by_segment=market_anchors_by_segment,
+                bundle_context=run_bundle_context,
             )
         except ComplianceLanguageError as exc:
             stage_timings["publish"] = 0.0

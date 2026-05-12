@@ -63,6 +63,7 @@ from investo.briefing.prompts import (
     STAGE2_SECTION_HEADERS,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
+    format_bundle_context_section,
     format_carryover_section,
     format_lookahead_section,
     format_recent_context_section,
@@ -92,6 +93,7 @@ from investo.models import (
     SourceOutcome,
     status_label_kr,
 )
+from investo.models.bundle_context import BundleContext
 
 _logger = logging.getLogger("investo.briefing.pipeline")
 
@@ -660,6 +662,42 @@ def _render_carryover_context_block(
     return format_carryover_section("\n".join(lines))
 
 
+def _render_bundle_context_block(
+    bundle_context: BundleContext | None,
+    *,
+    segment: MarketSegment | None,
+) -> str:
+    """Render the u57 BundleContext block for Stage 2.
+
+    Returns the empty string when ``bundle_context`` is ``None`` (legacy
+    / test paths). When the segment is non-null we force *its own* slot
+    to ``pending`` so the LLM cannot self-assert a close-state — see
+    :class:`BundleContext.with_self_pending` for the anti-regression
+    rationale.
+
+    The rendered JSON is intentionally minimal — only the fields the
+    LLM needs to obey BC-1~BC-4 — to keep the prompt token cost ≤ 500.
+    """
+    if bundle_context is None:
+        return ""
+    ctx = bundle_context.with_self_pending(segment) if segment is not None else bundle_context
+    payload = {
+        "bundle_id": ctx.bundle_id,
+        "target_kst_date": ctx.target_kst_date.isoformat(),
+        "segments": {
+            seg: {
+                "close_state": summ.close_state,
+                "headline_native_fact": summ.headline_native_fact,
+            }
+            for seg, summ in ctx.segments.items()
+        },
+        "shared_macro_present": ctx.shared_macro_block is not None,
+        "cross_market_core_allowed": sorted(ctx.cross_market_core_allowed),
+    }
+    body = json.dumps(payload, ensure_ascii=False, indent=2)
+    return format_bundle_context_section(body)
+
+
 def _render_carryover_prompt_row(item: CarryoverItem) -> str:
     """Render one :class:`CarryoverItem` as a deterministic bullet line.
 
@@ -1161,6 +1199,7 @@ async def _synthesize(
     recent_context_block: str = "",
     lookahead_context_block: str = "",
     carryover_context_block: str = "",
+    bundle_context_block: str = "",
 ) -> str:
     """Run Stage 2 with the FD R3 retry loop. Returns body markdown.
 
@@ -1197,6 +1236,7 @@ async def _synthesize(
         recent_context=recent_context_block,
         lookahead_context=lookahead_context_block,
         carryover_context=carryover_context_block,
+        bundle_context=bundle_context_block,
     )
     full_prompt = f"{STAGE2_SYSTEM}\n\n{user_prompt}"
 
@@ -1265,6 +1305,7 @@ async def generate_briefing(
     carryover: BriefingCarryover | None = None,
     market_anchors: Sequence[MarketAnchor] = (),
     generation_policy: GenerationPolicy | None = None,
+    bundle_context: BundleContext | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -1341,6 +1382,7 @@ async def generate_briefing(
         segment_context = f"{segment_context}\n\n{watchlist_context}"
     recent_context_block = _render_recent_context_block(segment, recent_context)
     carryover_context_block = _render_carryover_context_block(carryover)
+    bundle_context_block = _render_bundle_context_block(bundle_context, segment=segment)
     llm_items = _select_llm_candidate_items(items)
     lookahead_context_block = _render_lookahead_context_block(llm_items)
     classification = await _classify(
@@ -1360,6 +1402,7 @@ async def generate_briefing(
         recent_context_block=recent_context_block,
         lookahead_context_block=lookahead_context_block,
         carryover_context_block=carryover_context_block,
+        bundle_context_block=bundle_context_block,
     )
 
     # Body markdown is verified to have all 6 sections (by _synthesize's

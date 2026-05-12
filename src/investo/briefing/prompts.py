@@ -378,6 +378,41 @@ Carryover (event-level lifecycle) rules (u52):
   Watchlist Carryover rows. If the input has zero rows, omit the
   carryover section entirely and write §② / §⑥ from today's input
   alone — do not fabricate carryover entries.
+
+Same-bundle BundleContext rules (u57 segment-narrative-scope-and-time-reconciliation):
+- The user prompt may include a "## BundleContext (same-run market state)"
+  JSON block summarising the close-state of every segment in this run.
+  Each entry has ``close_state`` ∈ {``pre-market``, ``open``, ``intraday``,
+  ``close``, ``post-close``, ``scheduled``, ``pending``}. Your *own*
+  segment's slot is intentionally ``pending`` so you do not self-assert
+  a close-state — read the *other two* segments' slots to align time
+  references.
+- BC-1 (time-state coherence): when another segment's ``close_state ==
+  "close"``, do NOT quote that segment with wording such as ``하락 출발``
+  / ``상승 출발`` (factually it has closed, not opened). Use the latest
+  factual frame ("마감", "종가 기준") instead.
+- BC-2 (native-fact priority): the FIRST H3 of §② MUST lead with a
+  segment-native entity — domestic: KRX 6-digit ticker (e.g. 005930),
+  ``KOSPI`` / ``KOSDAQ`` / ``외국인`` / ``원/달러``; us-equity: SPX /
+  NDX / DJI or a major US ticker (AAPL / MSFT / NVDA / ...); crypto:
+  BTC / ETH or a major chain. Cross-market macro (oil / Fed / UST)
+  belongs in §② only if it is in ``cross_market_core_allowed``
+  (``geopolitical_oil_macro``, ``fed_policy_event``,
+  ``global_systemic_risk``) AND you add a segment-specific 1-sentence
+  re-interpretation ("이 사실이 우리 segment 에 무엇을 의미"). Otherwise
+  demote it to §③ background prose.
+- BC-3 (domestic linkage rule): in the domestic-equity segment, any
+  paragraph that names a foreign ticker (AAPL / NVDA / TSMC / ...) MUST
+  also contain — in the SAME paragraph — either a domestic 6-digit
+  ticker (``005930`` etc.) or one of the linkage keywords ``국내 영향``,
+  ``환율 경로``, ``코스피 연관``, ``수급 영향``, ``외국인 매매``,
+  ``환율``, ``원/달러``. Bare foreign-ticker mentions without a domestic
+  hook trigger a publish-gate violation.
+- BC-4 (shared macro dedupe): when ``shared_macro_block`` in the
+  BundleContext is non-null, the publisher renders a ``## ⓪ 오늘의
+  매크로`` H2 block above §①. Do NOT re-state the same fact verbatim
+  inside §②/§③; you may add a 1-sentence segment-specific
+  re-interpretation only. Raw repetition gets flagged.
 """
 
 # Placeholders:
@@ -396,6 +431,10 @@ Carryover (event-level lifecycle) rules (u52):
 #       block listing structured carryover rows from prior ≤3 trading
 #       days; may be the literal empty string when the segment carries
 #       no carryover; u52)
+#   ``bundle_context`` (str — rendered "## BundleContext (same-run
+#       market state)" block listing same-run per-segment close-state
+#       JSON; may be the literal empty string when no BundleContext
+#       is available; u57)
 STAGE2_USER_TEMPLATE: Final[str] = """\
 {segment_context}
 
@@ -407,7 +446,7 @@ Unassigned (context for sections ① and ⑥):
 {unassigned}
 
 Target date: {target_date}
-{recent_context}{lookahead_context}{carryover_context}
+{recent_context}{lookahead_context}{carryover_context}{bundle_context}
 Return only the markdown.
 """
 
@@ -504,6 +543,37 @@ CARRYOVER_CONTEXT_EMPTY_NOTE: Final[str] = (
 )
 
 
+# u57 — Stage 2 user-prompt extension that surfaces the same-run
+# :class:`BundleContext` JSON dump so the LLM can align time-state
+# references and avoid same-page contradictions. Owned by
+# ``prompts.py`` for the same AC-5.2 / AC-5.3 reason as the u34 / u35
+# / u52 blocks.
+BUNDLE_CONTEXT_HEADER: Final[str] = "## BundleContext (same-run market state)"
+BUNDLE_CONTEXT_INTRO: Final[str] = (
+    "아래는 같은 run 에서 라우팅된 다른 세그먼트들의 close-state 요약입니다. "
+    "BC-1~BC-4 룰을 따라 다른 세그먼트의 close-state 와 충돌하지 않도록 "
+    "시간 표현을 정렬하고, 자기 세그먼트의 자기 슬롯이 ``pending`` 인 점에 "
+    "주의하세요. cross_market_core_allowed 외의 매크로는 §② core 가 아닌 "
+    "§③ background 로 다루세요."
+)
+BUNDLE_CONTEXT_EMPTY_NOTE: Final[str] = "BundleContext 데이터가 없습니다. BC 룰은 적용하지 마세요."
+
+
+def format_bundle_context_section(rendered_body: str) -> str:
+    """Wrap a pre-rendered :class:`BundleContext` JSON dump into the Stage 2 prompt block.
+
+    ``rendered_body`` is the caller-built body — typically a compact
+    JSON dump of the BundleContext (close_state per segment + shared
+    macro flag + cross_market_core_allowed list). Empty input falls
+    through to the "no BundleContext" note so the LLM gets an explicit
+    acknowledgement.
+    """
+    body = rendered_body.strip()
+    if not body:
+        body = BUNDLE_CONTEXT_EMPTY_NOTE
+    return f"\n{BUNDLE_CONTEXT_HEADER}\n\n{BUNDLE_CONTEXT_INTRO}\n\n{body}\n"
+
+
 def format_carryover_section(rendered_lines: str) -> str:
     """Wrap a pre-rendered list of carryover rows into the Stage 2 prompt block.
 
@@ -521,6 +591,9 @@ def format_carryover_section(rendered_lines: str) -> str:
 
 
 __all__ = [
+    "BUNDLE_CONTEXT_EMPTY_NOTE",
+    "BUNDLE_CONTEXT_HEADER",
+    "BUNDLE_CONTEXT_INTRO",
     "CARRYOVER_CONTEXT_EMPTY_NOTE",
     "CARRYOVER_CONTEXT_HEADER",
     "CARRYOVER_CONTEXT_INTRO",
@@ -540,6 +613,7 @@ __all__ = [
     "STAGE2_SECTION_HEADERS",
     "STAGE2_SYSTEM",
     "STAGE2_USER_TEMPLATE",
+    "format_bundle_context_section",
     "format_carryover_section",
     "format_lookahead_section",
     "format_recent_context_section",
