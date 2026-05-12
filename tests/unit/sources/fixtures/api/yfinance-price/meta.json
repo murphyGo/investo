@@ -1,10 +1,12 @@
 {
   "recorded_at": "2026-05-01T02:15Z",
-  "tickers": ["GSPC", "AAPL"],
+  "tickers": ["GSPC", "AAPL", "BZ_F", "RUT"],
   "source_url_template": "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=5d",
   "responses": {
     "GSPC.json": {"status": 200, "content_type": "application/json", "size_bytes": 1575, "note": "real Yahoo response for ^GSPC (URL-encoded as %5EGSPC); range=5d returned 5 trading days; recorded mid-session (regularMarketPrice == close[-1])"},
     "AAPL.json": {"status": 200, "content_type": "application/json", "size_bytes": 1621, "note": "real Yahoo response for AAPL; same 5d shape"},
-    "INVALID.json": {"status": 404, "content_type": "application/json", "size_bytes": 102, "note": "synthetic — Yahoo's documented not-found error shape: chart.result null + chart.error populated"}
+    "INVALID.json": {"status": 404, "content_type": "application/json", "size_bytes": 102, "note": "synthetic — Yahoo's documented not-found error shape: chart.result null + chart.error populated"},
+    "BZ_F.json": {"status": 200, "content_type": "application/json", "size_bytes": 1080, "note": "u53: Brent crude futures (URL-encoded as BZ%3DF). Live recording attempted 2026-05-13 hit Yahoo IP 429 from dev host; fixture shape mirrors real Yahoo v8 chart payload for futures (5d daily OHLCV + meta.chartPreviousClose) and is byte-stable for replay tests."},
+    "RUT.json": {"status": 200, "content_type": "application/json", "size_bytes": 1043, "note": "u53: Russell 2000 index (URL-encoded as %5ERUT). Live recording attempted 2026-05-13 hit Yahoo IP 429 from dev host; fixture shape mirrors real Yahoo v8 chart payload for indices (volume=0 like ^VIX) and is byte-stable for replay tests."}
   }
 }

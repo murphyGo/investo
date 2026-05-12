@@ -79,6 +79,12 @@ class YFinancePriceAdapter:
         "NVDA",
         "META",
         "TSLA",
+        # u53 — Stooq returns ``N/D`` for both of these (Stooq does not
+        # carry Brent futures or the Russell 2000 index). yfinance covers
+        # the gap; sector ETFs / WTI / gold remain Stooq-only because
+        # Yahoo v8 chart hits GHA IP 429s more often than Stooq.
+        "BZ=F",
+        "^RUT",
     )
 
     _BASE_URL: ClassVar[str] = "https://query1.finance.yahoo.com/v8/finance/chart"

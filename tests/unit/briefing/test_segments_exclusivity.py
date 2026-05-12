@@ -396,3 +396,94 @@ def test_shared_source_fans_out_to_all_registered_segments() -> None:
     assert segmented.us_equity == tuple(items)
     assert segmented.crypto == tuple(items)
     assert segmented.domestic_equity == ()
+
+
+# ---------------------------------------------------------------------------
+# u53 — krx-foreign-flows (domestic-only) + new us-equity sector / macro tickers
+# ---------------------------------------------------------------------------
+
+
+def test_krx_foreign_flows_routes_to_domestic_only() -> None:
+    """``krx-foreign-flows`` is a domestic-only allow-list entry (u53).
+
+    No leak into us-equity or crypto regardless of body content (the
+    Korean labels '외국인' / '기관' do not match any us-equity or crypto
+    keyword anyway, but the source-anchor rule pre-empts the keyword
+    fallback).
+    """
+    item = _item(
+        "krx-foreign-flows",
+        "KOSPI 외국인 순매도 -28,147억원 (2026-05-11)",
+        category="price",
+        summary="KOSPI 2026-05-11 외국인 순매수 -28,147억원",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.domestic_equity == (item,)
+    assert segmented.us_equity == ()
+    assert segmented.crypto == ()
+
+
+def test_stooq_price_sector_etf_routes_to_us_equity_only() -> None:
+    """u53 — ``XLK`` (Stooq sector SPDR) is us-equity-only; no crypto leak."""
+    item = _item(
+        "stooq-price",
+        "XLK 173.96",
+        category="price",
+        summary="O:176.15 H:176.99 L:171.20 C:173.96 V:6687269",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_stooq_price_gold_etf_routes_to_us_equity_only() -> None:
+    """u53 commodity-proxy policy — ``GLD`` rides us-equity only (MVP)."""
+    item = _item(
+        "stooq-price",
+        "GLD 431.60",
+        category="price",
+        summary="O:430.73 H:431.74 L:425.85 C:431.60 V:3165479",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_stooq_price_oil_futures_routes_to_us_equity_only() -> None:
+    """u53 — ``CL=F`` (WTI futures) lands in us-equity only (commodity proxy MVP)."""
+    item = _item(
+        "stooq-price",
+        "CL=F 102.31",
+        category="price",
+        summary="O:98.28 H:102.72 L:98.02 C:102.31 V:0",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_yfinance_russell_2000_routes_to_us_equity_only() -> None:
+    """u53 — ``^RUT`` (Russell 2000 index from yfinance) is us-equity-only."""
+    item = _item(
+        "yfinance-price",
+        "^RUT 2,412.85 (+0.66%)",
+        category="price",
+        summary="O:2398.65 H:2418.90 L:2389.40 C:2412.85 V:0",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()

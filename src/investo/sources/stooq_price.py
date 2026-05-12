@@ -112,6 +112,26 @@ _TICKER_MAP: Final[dict[str, str]] = {
     "TSLA": "tsla.us",
     "BTC-USD": "btc.v",
     "ETH-USD": "eth.v",
+    # u53 — sector / macro ETF coverage. SPDR sector ETFs and the
+    # semiconductor / small-cap / long-bond / gold / oil / USD-index
+    # proxies; commodity-futures notation maps to Stooq's ``.f`` suffix.
+    # ``BZ=F`` (Brent) and ``^RUT`` (Russell 2000 index) are
+    # intentionally NOT mapped here — Stooq returns N/D for both, so we
+    # route them via yfinance instead (see ``yfinance._DEFAULT_TICKERS``).
+    "XLK": "xlk.us",
+    "XLE": "xle.us",
+    "XLF": "xlf.us",
+    "XLV": "xlv.us",
+    "XLY": "xly.us",
+    "XLI": "xli.us",
+    "SMH": "smh.us",
+    "IWM": "iwm.us",
+    "TLT": "tlt.us",
+    "GLD": "gld.us",
+    "USO": "uso.us",
+    "UUP": "uup.us",
+    "CL=F": "cl.f",
+    "GC=F": "gc.f",
 }
 
 
@@ -136,6 +156,21 @@ class StooqPriceAdapter:
         "TSLA",
         "BTC-USD",
         "ETH-USD",
+        # u53 sector / macro ETF coverage extension (14 new entries).
+        "XLK",
+        "XLE",
+        "XLF",
+        "XLV",
+        "XLY",
+        "XLI",
+        "SMH",
+        "IWM",
+        "TLT",
+        "GLD",
+        "USO",
+        "UUP",
+        "CL=F",
+        "GC=F",
     )
 
     _BASE_URL: ClassVar[str] = "https://stooq.com/q/l/"

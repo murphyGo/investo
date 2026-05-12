@@ -30,6 +30,12 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "PipelineResult",
         "PipelineStatus",
         "SendResult",
+        # carryover.py (u52)
+        "BriefingCarryover",
+        "CarryoverEventType",
+        "CarryoverItem",
+        "CarryoverStatus",
+        "status_label_kr",
     }
 )
 

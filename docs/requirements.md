@@ -96,6 +96,19 @@
   - [ ] 저장 용량 문제 발생 시 (수년 후) 별도 archival 정책 검토 — 현재는 Out of Scope
 - **Priority**: Must-have
 
+### FR-009: Reader-facing 출력 포맷 (u51 tldr-block-and-number-bold-inversion)
+- **Description**: 시황의 가독성·액션성을 강제한다. (1) 본문 § 시작 전에 `## 한눈에 보기` TL;DR 3-bullet 블록을 emit 하고, (2) 시장 anchor 정보를 prose blockquote 가 아닌 markdown 표로 렌더하며, (3) §②/③/④/⑥ sub-heading 은 `### Title` (H3) 로 작성하고, (4) 본문 prose 안의 숫자 토큰 (`+11.51%`, `$81,154.06`, `4.42%`) 은 `**...**` 로 강조하며, (5) §⑥ "관전 포인트" bullet 의 관찰형 종결 어미 (`~여부 / ~필요가 있다 / ~관건이다 / ~주목할 필요`) 비율을 40% 이하로 유지하고 (위반 시 WARNING flag, blocking 아님), (6) 같은 segment 내 같은 용어의 풀어쓰기 글로싱은 첫 1회만 표기하고 2번째 이후는 base 용어만 남긴다.
+- **User Story**: As a 시황 reader, I want 페이지를 열자마자 매그니튜드·방향성·액션을 한눈에 보기를, so that 본문을 전부 읽지 않고도 그날의 핵심을 빠르게 잡을 수 있도록.
+- **Acceptance Criteria**:
+  - [ ] 모든 segmented 시황 상단에 `## 한눈에 보기` H2 + 정확히 3 bullet 블록이 워터마크/세그먼트-네비/anchor 다음, ① 요약 헤더 직전에 배치
+  - [ ] 시장 anchor 라인이 4-컬럼 markdown 표 (`| 종목 | 종가 | 변동 | 비고 |`) 로 렌더 — 우선순위 ranking 은 u49 와 동일, 최대 5행
+  - [ ] §②/③/④/⑥ 의 sub-heading 이 `### Title` (H3) 로 작성됨; 기존 `**Title** — body` 패턴 부재
+  - [ ] 본문 prose 의 숫자 토큰 (`[+-]?\d+\.\d+%`, `\$[\d,]+(?:\.\d+)?`, `\d+\.\d+%`) 이 `**...**` 로 wrap; 표 cell / 코드 블록 / 링크 URL 내부 미적용; 이미 wrap 된 토큰 idempotent
+  - [ ] §⑥ bullet 의 관찰형 종결 어미 비율 ≤ 40% 검증 (위반 시 publisher WARN 로그 + segment / ratio / count 구조화 extra; *blocking 아님* — generation 변동성 흡수)
+  - [ ] 같은 segment 내 같은 base 용어의 글로싱 (`base(풀어쓰기)`) 은 첫 1회만 풀어쓰기 표기; 2번째 이후 출현은 `base` 만 남김 (u40 의 `> **용어 가이드**` callout 은 그대로 유지)
+  - [ ] 면책조항 (NFR-004 R5) 은 reader-format chain 후에도 verbatim 보존; `publisher.verify_disclaimer` 가 chain 다음 단계에서 정상 통과
+- **Priority**: Should-have (reader UX KPI — NFR-001 reliability/quality 보강)
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

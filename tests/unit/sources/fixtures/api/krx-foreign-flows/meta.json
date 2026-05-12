@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-05-13T04:25Z",
+  "source": "https://finance.naver.com/sise/investorDealTrendDay.naver",
+  "url_template": "https://finance.naver.com/sise/investorDealTrendDay.naver?bizdate=YYYYMMDD&sosok={01|02}",
+  "note": "Naver finance hosts a per-day KOSPI / KOSDAQ investor net-buy table. Public, no auth. EUC-KR HTML. Unit: 억원 (100M KRW). Chosen as fallback for KRX 12025 endpoint (HTTP 400 LOGOUT — browser-JS token required, free-public rule violated).",
+  "sosok": {
+    "01": "KOSPI",
+    "02": "KOSDAQ"
+  },
+  "columns": [
+    "date (YY.MM.DD)",
+    "개인 (individual)",
+    "외국인 (foreign)",
+    "기관계 (institution_total)",
+    "금융투자",
+    "보험",
+    "투신",
+    "은행",
+    "기타금융기관",
+    "연기금등",
+    "기타법인 (other)"
+  ],
+  "responses": {
+    "20260508-01.html": {
+      "status": 200,
+      "size_bytes": 7996,
+      "sha256": "269533432f15426947068de3253f2889712bbeb0433c38819c0c05b946201be4",
+      "market": "KOSPI",
+      "bizdate": "2026-05-08"
+    },
+    "20260508-02.html": {
+      "status": 200,
+      "size_bytes": 7942,
+      "sha256": "9f2d545ddf2ad600892bc4575c3637ae89f3166263ff9f1c06a74f4932bf3282",
+      "market": "KOSDAQ",
+      "bizdate": "2026-05-08"
+    },
+    "20260511-01.html": {
+      "status": 200,
+      "size_bytes": 8004,
+      "sha256": "8d4cef44941924882b01ac23c98dbaabeee953972c10546e14f65e2c48e5060e",
+      "market": "KOSPI",
+      "bizdate": "2026-05-11"
+    },
+    "20260511-02.html": {
+      "status": 200,
+      "size_bytes": 7937,
+      "sha256": "bbf5ce60fc472e1b65c7ccb54684ef797ddd178f0e9b3a3cb4d19b491d77544c",
+      "market": "KOSDAQ",
+      "bizdate": "2026-05-11"
+    }
+  }
+}

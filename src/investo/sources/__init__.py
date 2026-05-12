@@ -39,6 +39,7 @@ from . import (
     fsc_krx_index_price,  # noqa: F401
     fsc_krx_stock_price,  # noqa: F401
     korea_policy_rss,  # noqa: F401
+    krx_foreign_flows,  # noqa: F401
     nasdaq_earnings_calendar,  # noqa: F401
     nasdaq_stocks_news,  # noqa: F401
     sec_edgar_8k,  # noqa: F401

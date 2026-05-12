@@ -76,6 +76,10 @@ from typing import Any, Final
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
+from investo.briefing.carryover_parser import (
+    load_carryover,
+    resolve_lookback_days,
+)
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
@@ -122,6 +126,7 @@ from investo.briefing.summary_quality import SummaryQualityError, validate_first
 from investo.briefing.watchlist import load_watchlist, match_watchlist_items
 from investo.models import (
     Briefing,
+    BriefingCarryover,
     BriefingNotification,
     FailureContext,
     NormalizedItem,
@@ -157,8 +162,11 @@ from investo.publisher import (
     archive_path as compute_archive_path,
 )
 from investo.publisher import site_index as _site_index_mod
+from investo.publisher.anchor_table import render_anchor_table
+from investo.publisher.carryover import inject_carryover_block, render_carryover_block
 from investo.publisher.charts import build_chart_block, inject_chart_block
 from investo.publisher.monthly_index import update_monthly_index
+from investo.publisher.reader_format import apply_reader_format
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
     ARCHIVE_INDEX_PATH,
@@ -238,6 +246,7 @@ SegmentGenerateCallable = Callable[
         Sequence[SourceOutcome],
         RecentBriefingsContext | None,
         Sequence[MarketAnchor],
+        BriefingCarryover | None,
     ],
     Awaitable[Briefing],
 ]
@@ -285,6 +294,7 @@ async def _default_generate_segment_briefing(
     source_outcomes: Sequence[SourceOutcome],
     recent_context: RecentBriefingsContext | None,
     market_anchors: Sequence[MarketAnchor],
+    carryover: BriefingCarryover | None,
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
     return await _u2_generate_briefing(
@@ -295,6 +305,7 @@ async def _default_generate_segment_briefing(
         data_limited=data_limited,
         source_outcomes=source_outcomes,
         recent_context=recent_context,
+        carryover=carryover,
         market_anchors=market_anchors,
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
     )
@@ -417,6 +428,7 @@ async def _stage_generate_segments(
     source_outcomes: Sequence[SourceOutcome] = (),
     recent_context: RecentBriefingsContext | None = None,
     market_anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]] | None = None,
+    carryover_by_segment: Mapping[MarketSegment, BriefingCarryover] | None = None,
 ) -> tuple[dict[MarketSegment, Briefing], dict[MarketSegment, BriefingGenerationError]]:
     """Generate all u7 market segments in fixed order.
 
@@ -457,6 +469,9 @@ async def _stage_generate_segments(
         segment_anchors: tuple[MarketAnchor, ...] = ()
         if market_anchors_by_segment is not None:
             segment_anchors = tuple(market_anchors_by_segment.get(segment, ()))
+        segment_carryover = (
+            carryover_by_segment.get(segment) if carryover_by_segment is not None else None
+        )
         try:
             briefings[segment] = await runner_callable(
                 target_date,
@@ -467,6 +482,7 @@ async def _stage_generate_segments(
                 segment_outcomes,
                 recent_context,
                 segment_anchors,
+                segment_carryover,
             )
         except BriefingGenerationError as exc:
             failures[segment] = exc
@@ -948,6 +964,164 @@ def _inject_chart_blocks_into_segments(
             continue
         rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_md})
     return rewritten
+
+
+# u51 — pre-publish reader-format pass.
+#
+# Two rewrites:
+#   1. Replace the deprecated ``> **시장 anchor**: ...`` blockquote line
+#      (u49) with a 4-column markdown table (Plan Step 2).
+#   2. Run the pure ``apply_reader_format`` chain (Plan Step 3): TL;DR
+#      block insert / H3 promotion / number bold / glossing dedupe /
+#      action-ratio diagnostic.
+#
+# Position: invoked AFTER ``_inject_chart_blocks_into_segments`` and
+# BEFORE ``_stage_publish_segments``. The chain is a string transform
+# only — no I/O, no clock, no env reads — so a same-day re-publish
+# (FR-006) yields byte-equal output.
+#
+# Disclaimer enforcement: the chain does NOT touch the disclaimer string
+# (regexes anchor on header / sub-heading / number patterns that never
+# coincide with ``briefing.disclaimer.DISCLAIMER``). Pinned by
+# ``tests/integration/test_briefing_reader_format.py`` and
+# ``tests/unit/publisher/test_reader_format.py::test_apply_reader_format_preserves_disclaimer``.
+_ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
+
+
+def _inject_carryover_into_segments(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    carryover_by_segment: Mapping[MarketSegment, BriefingCarryover],
+) -> dict[MarketSegment, Briefing]:
+    """Post-process per-segment markdown with the u52 carryover block.
+
+    Returns a fresh dict where every segment's :class:`Briefing` has
+    the Watchlist Carryover block injected (or replaced) at the §② →
+    §③ boundary. Empty :class:`BriefingCarryover` for a segment leaves
+    that segment's markdown untouched (modulo stale-block strip on
+    same-day re-runs — see :func:`inject_carryover_block`).
+
+    Pure string transform — no I/O, no clock, no env reads — so a
+    same-day re-publish (FR-006) yields byte-equal output.
+    Disclaimer enforcement: the block lands above §⑦ (disclaimer is
+    appended by ``append_disclaimer`` after segment generation). The
+    publisher's ``verify_disclaimer`` gate runs on the final markdown.
+    """
+    if not segment_briefings:
+        return segment_briefings
+    rewritten: dict[MarketSegment, Briefing] = {}
+    for segment, briefing in segment_briefings.items():
+        carryover = carryover_by_segment.get(segment)
+        if carryover is None:
+            rewritten[segment] = briefing
+            continue
+        block = render_carryover_block(carryover)
+        new_markdown = inject_carryover_block(briefing.rendered_markdown, block)
+        if new_markdown == briefing.rendered_markdown:
+            rewritten[segment] = briefing
+        else:
+            rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_markdown})
+    return rewritten
+
+
+def _apply_reader_format_to_segments(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+) -> dict[MarketSegment, Briefing]:
+    """Replace the u49 anchor line with a table + apply the u51 format chain.
+
+    Returns a fresh dict where every segment's :class:`Briefing` has the
+    rewritten ``rendered_markdown``. Empty input → input returned as-is.
+    """
+    if not segment_briefings:
+        return segment_briefings
+    rewritten: dict[MarketSegment, Briefing] = {}
+    for segment, briefing in segment_briefings.items():
+        markdown = briefing.rendered_markdown
+        # Step 2 — anchor table swap. Only fires when the segment has at
+        # least one anchor; otherwise the deprecated line (or its absence)
+        # is left untouched and reader_format handles the rest.
+        anchors = anchors_by_segment.get(segment, ())
+        if anchors:
+            table = render_anchor_table(anchors)
+            if table:
+                # Idempotent: if the briefing already contains the table
+                # (same-day re-run), skip the swap so we don't duplicate.
+                if "| 종목 | 종가 | 변동 | 비고 |" in markdown:
+                    pass
+                else:
+                    new_markdown, count = _ANCHOR_LINE_RE.subn(f"\n{table}\n", markdown, count=1)
+                    if count > 0:
+                        markdown = new_markdown
+                    else:
+                        # Anchor line is missing from the markdown (e.g.
+                        # data-limited segment with no header line). Inject
+                        # the table immediately before ``## ① 요약`` so the
+                        # reader still gets the quantitative grid.
+                        marker = "## ①"
+                        idx = markdown.find(marker)
+                        if idx != -1:
+                            markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
+        # Step 3 — pure str → str post-format chain.
+        markdown = apply_reader_format(markdown, segment=segment)
+        if markdown == briefing.rendered_markdown:
+            rewritten[segment] = briefing
+        else:
+            rewritten[segment] = briefing.model_copy(update={"rendered_markdown": markdown})
+    return rewritten
+
+
+def _load_carryover_for_run(
+    target_date: date,
+    candidates_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]],
+) -> dict[MarketSegment, BriefingCarryover]:
+    """Build a per-segment :class:`BriefingCarryover` map for u52.
+
+    Walks each segment's prior ≤``INVESTO_CARRYOVER_LOOKBACK_DAYS``
+    archive markdown files via :func:`load_carryover`. Per-segment
+    isolation: a parser failure for one segment (file I/O error,
+    malformed markdown) is swallowed and the segment receives an
+    empty :class:`BriefingCarryover` — the orchestrator continues to
+    publish the rest.
+
+    The :data:`ARCHIVE_ROOT` lookup is deferred to call time (not at
+    import) so unit tests that monkeypatch
+    ``investo.publisher.paths.ARCHIVE_ROOT`` see the redirected path.
+    """
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    lookback = resolve_lookback_days()
+    result: dict[MarketSegment, BriefingCarryover] = {}
+    for segment in SEGMENT_ORDER:
+        candidates = candidates_by_segment.get(segment, ())
+        try:
+            result[segment] = load_carryover(
+                ARCHIVE_ROOT,
+                segment,
+                target_date,
+                candidates=candidates,
+                lookback=lookback,
+            )
+        except Exception as exc:
+            _logger.warning(
+                "[carryover] segment=%s parser failed; using empty bundle err=%s",
+                segment,
+                exc,
+            )
+            result[segment] = BriefingCarryover(
+                prior_resolved=(),
+                prior_unresolved=(),
+                lookback_days=0,
+            )
+    total = sum(len(b.prior_resolved) + len(b.prior_unresolved) for b in result.values())
+    _logger.info(
+        "[carryover] loaded target_date=%s lookback=%d total_items=%d",
+        target_date,
+        lookback,
+        total,
+    )
+    return result
 
 
 def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | None:
@@ -1492,6 +1666,15 @@ async def run_pipeline(
                 market_anchors_by_segment,
                 market_history_by_ticker,
             ) = await _load_market_anchors_for_run(target_date)
+            # u52 — build per-segment carryover bundles from prior ≤3
+            # trading-day archives. Each segment receives only its own
+            # routed candidates so resolution matching stays
+            # source-scoped.
+            routed_candidates = segment_items(items)
+            candidates_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
+                segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
+            }
+            carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
             segment_briefings, segment_generation_failures = await _stage_generate_segments(
                 target_date,
                 items,
@@ -1500,6 +1683,7 @@ async def run_pipeline(
                 source_outcomes=source_outcomes,
                 recent_context=recent_context,
                 market_anchors_by_segment=market_anchors_by_segment,
+                carryover_by_segment=carryover_by_segment,
             )
             primary_generated_segment = (
                 DOMESTIC_EQUITY
@@ -1562,6 +1746,18 @@ async def run_pipeline(
             stage_timings["visual_assets"] = time.monotonic() - stage_start
             stages["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
 
+        # u52 — inject the deterministic Watchlist Carryover block
+        # between §② and §③ for every segment that produced one. The
+        # block is the single source of truth: even if the LLM emitted
+        # its own table from the prompt input, this post-process pass
+        # overrides it. Empty carryover → markdown left untouched (any
+        # stale block from a prior same-day run is stripped to keep
+        # idempotency).
+        segment_briefings = _inject_carryover_into_segments(
+            segment_briefings,
+            carryover_by_segment=carryover_by_segment,
+        )
+
         # u50 lightweight-charts-embed — inject the per-segment chart
         # placeholder block on top of the SVG visual cards. Best-effort:
         # missing history (e.g. Yahoo 429 on the cron) yields an empty
@@ -1570,6 +1766,17 @@ async def run_pipeline(
             segment_briefings,
             anchors_by_segment=market_anchors_by_segment,
             history_by_ticker=market_history_by_ticker,
+        )
+
+        # u51 tldr-block-and-number-bold-inversion — replace the deprecated
+        # u49 prose anchor line with a markdown table, insert a ``## 한눈에
+        # 보기`` TL;DR block when the LLM forgot, promote ``**Title**``
+        # sub-headings to ``### Title``, wrap plain numeric tokens in
+        # bold, and dedupe repeated glossings. Pure string transform; no
+        # I/O. Disclaimer is untouched (pinned by test).
+        segment_briefings = _apply_reader_format_to_segments(
+            segment_briefings,
+            anchors_by_segment=market_anchors_by_segment,
         )
 
     # ------------------------------------------------------------------

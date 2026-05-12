@@ -15,7 +15,21 @@
     "META": "meta.us",
     "TSLA": "tsla.us",
     "BTC-USD": "btc.v",
-    "ETH-USD": "eth.v"
+    "ETH-USD": "eth.v",
+    "XLK": "xlk.us",
+    "XLE": "xle.us",
+    "XLF": "xlf.us",
+    "XLV": "xlv.us",
+    "XLY": "xly.us",
+    "XLI": "xli.us",
+    "SMH": "smh.us",
+    "IWM": "iwm.us",
+    "TLT": "tlt.us",
+    "GLD": "gld.us",
+    "USO": "uso.us",
+    "UUP": "uup.us",
+    "CL=F": "cl.f",
+    "GC=F": "gc.f"
   },
   "responses": {
     "GSPC.csv": {"status": 200, "stooq_symbol": "^spx", "size_bytes": 106, "note": "S&P 500 index — happy-path daily snapshot"},
@@ -31,6 +45,22 @@
     "TSLA.csv": {"status": 200, "stooq_symbol": "tsla.us", "size_bytes": 111, "note": "Tesla — happy-path"},
     "BTC-USD.csv": {"status": 200, "stooq_symbol": "btc.v", "size_bytes": 127, "note": "Bitcoin — Stooq btc.v ticker; volume is fractional float"},
     "ETH-USD.csv": {"status": 200, "stooq_symbol": "eth.v", "size_bytes": 119, "note": "Ethereum — Stooq eth.v ticker; volume is fractional float"},
-    "NOTFOUND.csv": {"status": 200, "stooq_symbol": "zzzznonexistent", "size_bytes": 90, "note": "Unknown ticker — Stooq returns 200 with N/D placeholder row; adapter must skip gracefully"}
+    "NOTFOUND.csv": {"status": 200, "stooq_symbol": "zzzznonexistent", "size_bytes": 90, "note": "Unknown ticker — Stooq returns 200 with N/D placeholder row; adapter must skip gracefully"},
+    "XLK.csv": {"status": 200, "stooq_symbol": "xlk.us", "size_bytes": 110, "note": "u53: SPDR Technology Select Sector — happy-path"},
+    "XLE.csv": {"status": 200, "stooq_symbol": "xle.us", "size_bytes": 106, "note": "u53: SPDR Energy Select Sector — happy-path"},
+    "XLF.csv": {"status": 200, "stooq_symbol": "xlf.us", "size_bytes": 106, "note": "u53: SPDR Financial Select Sector — happy-path"},
+    "XLV.csv": {"status": 200, "stooq_symbol": "xlv.us", "size_bytes": 110, "note": "u53: SPDR Health Care Select Sector — happy-path"},
+    "XLY.csv": {"status": 200, "stooq_symbol": "xly.us", "size_bytes": 112, "note": "u53: SPDR Consumer Discretionary Select Sector — happy-path"},
+    "XLI.csv": {"status": 200, "stooq_symbol": "xli.us", "size_bytes": 110, "note": "u53: SPDR Industrials Select Sector — happy-path"},
+    "SMH.csv": {"status": 200, "stooq_symbol": "smh.us", "size_bytes": 110, "note": "u53: VanEck Semiconductor ETF — happy-path"},
+    "IWM.csv": {"status": 200, "stooq_symbol": "iwm.us", "size_bytes": 110, "note": "u53: iShares Russell 2000 ETF — happy-path (small-cap proxy)"},
+    "TLT.csv": {"status": 200, "stooq_symbol": "tlt.us", "size_bytes": 105, "note": "u53: iShares 20+ Year Treasury Bond ETF — happy-path"},
+    "GLD.csv": {"status": 200, "stooq_symbol": "gld.us", "size_bytes": 110, "note": "u53: SPDR Gold Shares — happy-path"},
+    "USO.csv": {"status": 200, "stooq_symbol": "uso.us", "size_bytes": 108, "note": "u53: US Oil Fund — happy-path"},
+    "UUP.csv": {"status": 200, "stooq_symbol": "uup.us", "size_bytes": 106, "note": "u53: Invesco DB USD Index Bullish — happy-path"},
+    "CL_F.csv": {"status": 200, "stooq_symbol": "cl.f", "size_bytes": 95, "note": "u53: WTI crude futures — happy-path; volume column may be empty"},
+    "GC_F.csv": {"status": 200, "stooq_symbol": "gc.f", "size_bytes": 95, "note": "u53: Gold futures — happy-path; volume column may be empty"},
+    "BZ_F.csv": {"status": 200, "stooq_symbol": "bz.f", "size_bytes": 79, "note": "u53: Brent futures — Stooq returns N/D (regression-pin: yfinance covers this gap)"},
+    "RUT.csv": {"status": 200, "stooq_symbol": "^rut", "size_bytes": 79, "note": "u53: Russell 2000 index — Stooq returns N/D (regression-pin: yfinance covers this gap)"}
   }
 }

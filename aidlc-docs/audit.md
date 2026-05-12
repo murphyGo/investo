@@ -1,5 +1,119 @@
 # AI-DLC Audit Log
 
+## Construction — u51 — Reader-Facing Output Format Unit Planned (Wave 7, 2026-05-13 10-Subagent Quality Review)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 10-subagent quality 리뷰 (2026-05-13 session) 가 `archive/us-equity/2026/05/2026-05-11.md` 를 대상으로 6종 reader-facing 결함을 도출 — (1) 자급식 TL;DR 부재 ("3대 지수 상승 마감" 류 일반론, 매그니튜드 미표시), (2) 앵커 prose wall (250자 한 줄에 5개 지수+티커 mixed pct/abs), (3) `**Title** — body` 패턴이 §②/③/④/⑥ 전부 — H3 nav 부재, Telegram wall, (4) bold 반전 (섹션 타이틀 굵게, `+11.51%` / `$81,154.06` / `4.42%` 핵심 숫자 plain), (5) §⑥ 관전 포인트 5건 중 4건이 `~여부 / ~필요가 있다` 종결 — 액션성 zero, (6) `S&P 500(스탠더드앤드푸어스 500 지수)` 글로싱 같은 파일 내 3회 반복.
+**Decision**: Wave 7 의 u51 tldr-block-and-number-bold-inversion code-generation plan 작성 (planning-only delivery; **No code written**). Stage-2 prompt 룰 추가 + publisher post-format 헬퍼 신규 (`publisher/reader_format.py`) + 앵커 표 승격 + orchestrator wire-through 의 4축 분해, 7 step. `aidlc-state.md` 에 u51 행 추가.
+
+**Options compared**:
+- **(a) Stage-2 prompt 룰만 추가, post-format 헬퍼 없음.** 거부됨 — generation 변동성 흡수 어렵고, "여부" 비율 / 글로싱 dedupe 같은 deterministic 검증을 LLM 에 위임하면 환각 risk + 비결정.
+- **(b) post-format 헬퍼만 (prompt 무변경).** 거부됨 — TL;DR 블록 본문 생성은 LLM 영역; heuristic placeholder 는 fallback 일 뿐 일차 source 가 아님. prompt 룰이 일차, post-format 이 이차.
+- **(c) prompt + post-format 결합, blocking on 위반.** 거부됨 — "여부" 비율 같은 stylistic 룰을 blocking 하면 generation 실패 risk; *flag only* (WARNING + 카나리) 가 정답. 사용자 회고에서 엄격 block 요구 시 별 unit 격상.
+- **(d) 6 결함을 6 mini-unit 으로 분해.** 거부됨 — 모두 reader-facing 출력 surface 의 동일 chokepoint (`_enhance_reader_experience` 직후 publish path) 에 얹히므로 단일 unit 이 review 효율 ↑.
+
+**Design Q/A**:
+- Q: TL;DR 블록의 정확한 위치? A: 워터마크/segment-nav/anchor 라인 다음, 본문 § 시작 *전*. `## 한눈에 보기` H2 + 정확히 3 bullet.
+- Q: 앵커 표 vs 기존 anchor 라인 — backward-compat? A: 표가 라인을 *대체* (deprecate). anchor 가 비면 둘 다 생략 — backward-compat 자연 보존.
+- Q: 핵심 숫자 wrap 시 표 cell 내부 / 코드 블록 내부 처리? A: 둘 다 제외. regex 의 negative-context 처리 (코드 블록 fence 감지 + `|...|` 행 감지).
+- Q: "여부" 비율 임계? A: ≤ 40% (5건 중 2건 이하). 사용자 회고가 5건 중 4건 (80%) 을 "폭주" 로 표현 — 절반 + 여유 margin.
+- Q: glossing dedupe 의 첫 출현 보존 기준? A: 같은 base 용어 (괄호 앞 부분) 의 첫 출현만 `(풀어쓰기)` 보존, 2회차 이상은 괄호 부분만 strip. u40 의 `> **용어 가이드**` callout 은 별 surface 라 무영향.
+- Q: regenerate path 가 필요한가? A: 본 unit 은 *flag only* (WARNING + canary). regenerate 는 별 unit 격상 가능 — 본 plan 의 Out of scope 에 명시.
+- Q: FR id 할당? A: Step 6 진입 전 `docs/requirements.md` 의 현재 free id 확인 — Open Question 으로 남김.
+- Q: u52 (병렬) 와의 충돌 risk? A: u52 의 § 텍스트 anchor 의존 (markdown 정규식) 이 본 unit 의 H3 sub-heading 승격 (§②/③/④/⑥) 과 *부분 겹침*. § 자체 H2 텍스트 ("⑥ 관전 포인트 / 변동성 트리거") 는 본 unit 미변경 — sub-heading 만 H3 로 승격. u52 의 markdown-anchor 가 § H2 만 의존하면 충돌 zero. implementation 시점에 cross-verify.
+
+**Affected docs**:
+- 신규: `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u51-tldr-block-and-number-bold-inversion-code-generation-plan.md`
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u51 행 추가)
+- 갱신: `/Users/user/Desktop/Projects/investo/aidlc-docs/audit.md` (본 entry, 최상단)
+- 향후 갱신 (developer Step 6): `/Users/user/Desktop/Projects/investo/docs/requirements.md` (FR-XXX 추가)
+
+**Status**: 📋 Planned — developer 가 Step 1 부터 시작 대기. 2-option approval (Request Changes / Continue to Next Stage) 미실행 (사용자 승인 대기).
+
+**Context**: u49 (deterministic-market-anchor) + u50 (lightweight-charts-embed) 의 visual surface 가 안정화된 이후 reader-facing 출력 *layout* 의 다음 layer. 앵커 표는 u49 의 anchor 모듈 재사용, prompt 룰은 u7 segmented-briefing 의 Stage-2 prompt 에 얹힘, glossing dedupe 는 u40 callout 과 별 surface — dependency graph 가 깔끔히 layered. u52 (carryover) / u53 (coverage gap) 와는 별 surface (reader-facing layout), 동시 머지 가능. **No code written.**
+
+**DEBT cross-references**:
+- 후보 (Open Questions 에 명시): 한국어 종결 어미 stemmer 정확도 향상 (regex → KoNLPy 등 — 무료 룰 무위반, 의존 무게 trade-off) / 숫자 wrap regex false-negative (`5%` 단일 digit edge) / 글로싱 dedupe false-positive (의도적 재정의 케이스).
+
+---
+
+## Construction — u53 — KRX Foreign Flows + Sector/Macro ETF Coverage Planned (Wave 7, 2026-05-11 Coverage Gap Retrospective)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 2026-05-11 segmented briefing 데이터 커버리지 회고. (1) domestic 시황이 본문에서 "이번 주 외국인 수급 확인이 요점" 으로 자백 — 본문이 외국인 수급에 블라인드. (2) us-equity 2026-05-11 ②에서 "이번 집계에 섹터별 ETF 수급 데이터가 포함되지 않아 세부 섹터 흐름을 직접 확인할 수 없다" 명시. 두 결함 모두 Stage 2 prompt 룰이 아니라 **입력 자체에 데이터가 없는** root cause. u51/u52 는 별도 병렬 작성 중 (다른 gap).
+**Decision**: Wave 7 단일 unit `u53 krx-foreign-flows-and-sector-etf` 로 두 gap 을 한 unit 에 묶음 — 둘 다 *어댑터 layer 만* 건드리고 (`sources/` + `tiers.py` + `segments.py` 1줄 + ticker constant 확장), UI 변경 없음. Plan only — no code written.
+
+**Endpoint accessibility 검증 (planning-time probe, 2026-05-13)**:
+- **KRX 12025 (`getJsonData.cmd` bld=`MDCSTAT02501`)**: HTTP 400 `LOGOUT` 반환 — UA/Referer 헤더 갖춰도 동일, `GenerateOTP/generate.cmd` 도 `LOGOUT` 6 byte. 세션 쿠키만으로 부족; 브라우저 JS 가 만드는 추가 토큰 필요. **차단 확인** → 무료/공개 룰 (NFR Critical Rule) 불충족.
+- **Naver finance `investorDealTrendDay.naver?bizdate=YYYYMMDD&sosok={01|02}`**: HTTP 200, ~8 KB, 일자별 외국인/기관/개인 순매수 금액 테이블, EUC-KR, UA 만으로 충분. **채택 = primary**.
+- **Stooq 14 신규 ticker** (xlk.us, xle.us, xlf.us, xlv.us, xly.us, xli.us, smh.us, iwm.us, tlt.us, gld.us, uso.us, uup.us, cl.f, gc.f): 14/14 HTTP 200 정상 OHLCV. **채택 = primary**.
+- **Stooq `bz.f` (Brent), `^rut`**: HTTP 200 이지만 `N/D` 응답. **거부 → yfinance v8 chart fallback** (u49 가 이미 사용 중).
+
+**Options compared**:
+- (a) KRX 12025 reverse-engineering 으로 직접 endpoint 사용. **거부** — 토큰 메커니즘이 비공식 (HTML JS 파싱 의존, 변경 시 silent break), 무료/공개 정신에 어긋남.
+- (b) 외국인 수급 / 섹터 ETF 두 별 unit 분할. **거부** — 둘 다 어댑터 layer 작업이고 quality gate / fixture 녹화 / segment 라우팅 테스트 의존성을 공유 (test_segments_exclusivity.py 가 양쪽 routing 을 함께 검증). 한 unit 에 묶으면 review/test cycle 1회로 종결.
+- (c) 채택 — Naver fallback for KR + Stooq `_TICKER_MAP` 확장 for US + yfinance Brent/^RUT fallback. 코드 변경 최소화 (신규 어댑터 1개 + 기존 어댑터의 constant 확장).
+
+**Design Q/A**:
+- Q: KRX 12025 가 차단되었는데 Naver mirror 사용은 source-of-truth 정합성에서 문제 없나? A: Naver finance 가 KRX raw 데이터를 mirror — 같은 수치이지만 layer 가 추가됨. Tier `"A"` 등록 (regulator-of-record 가 아니므로 S 아님). KRX 12025 토큰 reverse-engineering 은 DEBT-D53-A 로 등록 (long-term).
+- Q: 한 unit 에 KR adapter (Naver) + US ticker 확장 (Stooq/yfinance) 을 묶는 이유? A: 두 결함 모두 *입력 데이터 부재* 라는 동일 root cause + 어댑터 layer 만 건드림 + segments_exclusivity test 공유. Wave 6 의 u45 가 routing 만 / u46 이 source 만 분리했던 것과 달리, 본 unit 은 source 추가만 (routing 은 1줄 + 기존 테스트 확장).
+- Q: Commodity proxy (GLD/USO/UUP/CL=F/GC=F) segment 분류? A: MVP us-equity 단독. "유가 급등 → 코스피 정유주" 같은 cross-segment narrative 가 자주 발견되면 별 unit 으로 격상. u45 의 `_has_strong_crypto_signal` ticker regex 에 매치 안 되므로 자연 us-equity 만 routing.
+- Q: HTML parser 선택? A: Step 2 시작 시 `pyproject.toml` 의존성 확인 후 final. lxml.html (빠름) vs BeautifulSoup4 (forgiving). R8 (no raw stdlib XML) 만 강제.
+- Q: 외국인 종목별 Top N (Naver `sise_deal_rank.naver`) 도 포함? A: MVP 미포함, 시장 합산만. 별 unit 후보 (DEBT-D53-B).
+
+**DEBT cross-references** (Open Questions 에 명시):
+- D53-A: KRX 12025 직접 endpoint 토큰 reverse-engineering (Naver fallback 의존성 제거).
+- D53-B: 외국인 종목별 Top N 어댑터 (sector breakdown gap).
+- D53-C: Stooq `^rut` / `bz.f` N/D 영구성 — `_TICKER_MAP` 에서 제거 정책.
+
+**Source**: 2026-05-11 segmented briefing (`archive/domestic-equity/2026/05/2026-05-11.md` ⑥ + `archive/us-equity/2026/05/2026-05-11.md` ②) 본문 직접 인용 + planning-time endpoint accessibility curl 검증 (2026-05-13).
+
+**Affected docs**:
+- `aidlc-docs/construction/plans/u53-krx-foreign-flows-and-sector-etf-code-generation-plan.md` (new)
+- `aidlc-docs/aidlc-state.md` (u53 row 추가)
+- `aidlc-docs/audit.md` (본 entry)
+
+**Status**: Planned — Construction Code Generation 0/6 steps.
+
+---
+
+## Construction — u52 — Prior Briefing Context and Carryover Planned (Day-Over-Day Continuity Gap)
+**Timestamp**: 2026-05-13T00:00:00+09:00
+**Trigger**: 사용자 직접 (2026-05-13 evaluation) — 2026-05-06 → 05-07 → 05-08 시황 연쇄 평가에서 day-over-day 연속성 부재 결함 적시. (1) 05-06 이 05-05 참조 zero (standalone preview), (2) 05-06 의 ARM/APP/UBER/DIS/NVO/WBD 어닝 예고가 05-07/05-08 follow-up zero, (3) 05-07 highlighted LNG/VST/TRGP/COIN 을 05-08 reporting 안 함, (4) 05-07 베어리시 → 05-08 [강세] ATH 경신 사이 brief bridge 1줄 + flow-of-funds 설명 zero, (5) DGS10/UST/FRED/Regulation FD 용어 매일 재정의. 결함 (1)-(4) 는 carryover discipline 부재; (5) 는 별 surface (u40 glossary 확장).
+**Decision**: Wave 7 u52 신규 code-generation plan 작성. `aidlc-state.md` per-unit progress row + 본 audit entry 추가. **No code written** — planning-only delivery.
+
+**Options compared**:
+- **(a) u34 recent-briefings-context 확장만으로 처리.** 거부됨 — u34 는 narrative continuity (어제 결론 1줄 인용) surface 이고, 본 결함은 *event-level lifecycle tracking* (originated → expected → resolved/unresolved/이월). free-form 결론 인용은 LLM 이 1-2 문장으로 휘발시키는 패턴 (05-08 시황이 정확히 그렇게 작동). 구조화된 표가 필요.
+- **(b) Stage 2 prompt 룰만으로 강제 (carryover discipline 룰 추가).** 거부됨 — prompt-only 는 LLM 환각 risk (예: 존재하지 않는 어제 항목을 발명). 결정론적 파서 + LLM override 가 정답 (u49 anchor 와 동일 패턴 — 결정론적 fact + prompt rule 결합).
+- **(c) 신규 unit u52 (모델 + 파서 + prompt + renderer + wire-through).** 채택. 의존 그래프 깔끔 (u34 narrative + u52 structured 공존, u35 lookahead 표를 carryover unresolved source 로 재사용, DEBT-060 chokepoint 6번째 consumer 등장).
+
+**Design Q/A**:
+- Q: u52 와 u34 의 surface 분리? A: u34 = narrative continuity (free-form 1줄 인용, `{recent_context}` prompt placeholder). u52 = event-level lifecycle (구조화 표, `{carryover_context}` placeholder, deterministic markdown post-process). prompt 룰 ordering 으로 surface 충돌 회피.
+- Q: 신규 섹션 위치? A: § ② 뒤 / § ⑥ 앞 범위 안에서 § ② 종료 직후 (§ ③ 시작 직전). reader 가 어제 carryover 를 본 후 sector/지표/종목을 읽도록 reading order 유지. AC#4 만족.
+- Q: event_type 닫힌 셋 크기? A: 6 (earnings/fed/geopolitics/macro/disclosure/other). 7번째 등장 시 별 unit 격상. terminology carryover (DGS10/UST/FRED) 는 본 unit 아닌 u40 확장.
+- Q: walk-back 일수? A: default N=3 영업일 (env `INVESTO_CARRYOVER_LOOKBACK_DAYS` clamp `[1, 7]`). u34 의 N=5 와 별 surface (u34 = narrative 5일, u52 = structured event 3일). 사용자 회고가 "어제→오늘" 연쇄가 핵심이라 3일이 적정.
+- Q: substring 매치 정밀도? A: ASCII ticker 는 `\b` word-boundary + uppercase preservation; 한국어 토픽 은 substring + ≥4 char. DEBT-D52-A 후보 (precision 부족 시).
+- Q: 파서 견고성 (정규식 vs markdown-tree)? A: MVP = 정규식 + § heading 텍스트 anchor (신규 dep 회피). u51 (병렬 작성 중) 의 segmented-format 변경이 § ⑥ heading 텍스트를 바꾸면 본 unit Step 2 re-plan 필요. DEBT-D52-C 후보 (markdown-tree 전환).
+- Q: u51 충돌 risk 어떻게 mitigate? A: u51 plan 확정 시점에 본 unit Step 2 영향 분석 1회 (planner 가 알람). 충돌 시 implementation 직전 re-plan.
+
+**DEBT cross-references**:
+- 본 plan 은 신규 DEBT 등록 없음. Open Questions 에 향후 DEBT 후보 명시:
+  - D52-A: substring 매치 정밀도 (ticker false-positive).
+  - D52-B: event_type 셋 확장 (ESG / regulation).
+  - D52-C: markdown-tree 파서 전환 (u51 충돌 시).
+- DEBT-060 (resolved by u35): chokepoint 6번째 consumer 등장 — `briefing/extract.py` 의 4 함수 재사용 강제. 신규 파일에 prefix literal 재선언 0건이 `tests/unit/briefing/test_extract_no_redeclare.py` grep guard 로 enforce.
+
+**Source**: 2026-05-13 사용자 evaluation 직접. 진단의 5 결함은 사용자가 archive 4 파일 (05-06/05-07/05-08/05-11) 을 직접 비교 후 작성한 task brief 인용. 사용자 통찰 ("standalone preview 처럼 읽힘") 이 본 unit 의 핵심 디자인 결정 (구조화 표 + deterministic post-process) 에 직접 매핑.
+
+**Affected docs**:
+- `aidlc-docs/construction/plans/u52-prior-briefing-context-and-carryover-code-generation-plan.md` (new)
+- `aidlc-docs/aidlc-state.md` (1 new row in `### Per-Unit Construction Progress` table)
+- `aidlc-docs/audit.md` (this entry, prepended at top per newest-first convention)
+
+**Status**: Planning complete; implementation deferred. 외부 의존 없음 (archive markdown 만 source — 신규 API 호출 없음). 의존 그래프: u34 + u35 + u29(DEBT-060) 모두 이미 landed → 본 unit 즉시 실행 가능. u51 (병렬 작성 중) 충돌 risk 는 Open Questions 에 명시 — u51 plan 확정 시 Step 2 영향 분석 필수.
+
+**Context**: 본 unit 은 Wave 7 의 첫 단위 (Wave 6 u45..u50 종료 후 u51 + u52 가 새 wave 첫 두 unit). u51 은 별 surface (이름 미확정, 병렬 작성). u52 는 사용자 evaluation 의 5 결함 중 4 개 (carryover discipline) 를 cover; 5번째 (용어 메모리) 는 u40 확장 대상.
+
+---
+
 ## Construction — u45..u50 — 5 New Units Planned (Wave 6, 2026-05-09 Cron US-Equity Quality Retrospective)
 **Timestamp**: 2026-05-10T00:00:00+09:00
 **Trigger**: 2026-05-09 cron 미국 시황 (`archive/us-equity/2026/05/2026-05-08.md`) 발행 후 사용자 quality 회고. 3 가지 결함 적시 — (1) BTC/ETH 얘기가 너무 많음 (us-equity 시황인데 ②/③/⑤/⑥ 4개 섹션이 크립토 narrative 로 지배), (2) 어제 미국 지수가 사상 최고가 경신했는데 시황에 안 나옴, (3) 전반적으로 "중심 없는" 느낌. 메인 세션 진단으로 (A) `briefing/segments.py` dual-routing 버그 (P0, `if/if/if` NOT `elif`), (B) yfinance HTTP 429 IP-level block (P0, GHA shared runner), (C) yahoo-finance-news 개인금융 노이즈 (P1), (D) ATH 같은 결정론적 narrative 부재 (사용자 통찰: 가격/차트 데이터만으로 도출 가능), (E) TradingView Lightweight Charts 자원 활용 가능 (사용자 자원) 으로 세분화.

@@ -400,7 +400,51 @@ async def test_env_unset_uses_default_tickers(
         "NVDA",
         "META",
         "TSLA",
+        # u53 — Stooq returns N/D for these; yfinance covers the gap.
+        "BZ=F",
+        "^RUT",
     }
+
+
+# ---------------------------------------------------------------------------
+# u53 — Brent (BZ=F) and Russell 2000 (^RUT) coverage gap
+# ---------------------------------------------------------------------------
+
+
+_BZ_F_FIXTURE = _FIXTURE_DIR / "BZ_F.json"
+_RUT_FIXTURE = _FIXTURE_DIR / "RUT.json"
+
+
+async def test_brent_futures_round_trips_through_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _override_tickers(monkeypatch, "BZ=F")
+    adapter = YFinancePriceAdapter()
+    fixtures = {"BZ=F": _BZ_F_FIXTURE.read_bytes()}
+    async with _mock_client(fixtures) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert item.raw_metadata["ticker"] == "BZ=F"
+    assert item.source_name == "yfinance-price"
+    assert item.category == "price"
+    assert item.published_at.tzinfo is UTC
+
+
+async def test_russell_2000_round_trips_through_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _override_tickers(monkeypatch, "^RUT")
+    adapter = YFinancePriceAdapter()
+    fixtures = {"^RUT": _RUT_FIXTURE.read_bytes()}
+    async with _mock_client(fixtures) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert item.raw_metadata["ticker"] == "^RUT"
+    # ^RUT volumes are 0 (index, like ^VIX); the adapter requires
+    # volume to be non-null but allows 0 — fixture pins this.
+    assert item.raw_metadata["volume"] == "0"
 
 
 async def test_fetch_sends_browser_user_agent(monkeypatch: pytest.MonkeyPatch) -> None:

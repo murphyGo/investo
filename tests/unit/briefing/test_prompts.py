@@ -247,6 +247,7 @@ def test_stage2_user_template_has_three_placeholders() -> None:
         target_date="2026-04-28",
         recent_context="",
         lookahead_context="",
+        carryover_context="",
     )
     assert "(grouped content)" in rendered
     assert "(unassigned content)" in rendered
@@ -262,6 +263,10 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     # contract as recent_context: empty string omits the block, a
     # rendered block carries the "주요 일정" header literal.
     assert "{lookahead_context}" in STAGE2_USER_TEMPLATE
+    # u52 — the carryover context placeholder shares the same contract:
+    # empty string omits the block, a rendered block carries the
+    # "## Watchlist Carryover (입력)" header literal.
+    assert "{carryover_context}" in STAGE2_USER_TEMPLATE
 
 
 def test_stage1_system_format_call_raises_key_error() -> None:
@@ -301,6 +306,7 @@ def test_stage2_user_template_format_is_idempotent_under_repeat() -> None:
         target_date="2026-04-28",
         recent_context="",
         lookahead_context="",
+        carryover_context="",
     )
     # No placeholders remain — re-formatting an empty dict yields same
     # string (no KeyError).

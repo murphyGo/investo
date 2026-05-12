@@ -202,10 +202,12 @@ def _success_segment_generate(calls: list[tuple[MarketSegment, int, bool]]) -> o
         source_outcomes: object = (),
         recent_context: object = None,
         market_anchors: object = (),
+        carryover: object = None,
     ) -> Briefing:
         del source_outcomes  # u22 transparency hook — not asserted by these tests
         del recent_context  # u34 — asserted in dedicated test below
         del market_anchors  # u49 — asserted in dedicated test below
+        del carryover  # u52 — asserted in dedicated test below
         calls.append((segment, len(items), data_limited))
         return _briefing(target_date)
 
@@ -222,10 +224,12 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
         source_outcomes: object = (),
         recent_context: object = None,
         market_anchors: object = (),
+        carryover: object = None,
     ) -> Briefing:
         del source_outcomes
         del recent_context
         del market_anchors
+        del carryover
         if segment == fail_segment:
             raise BriefingGenerationError(
                 stage="synthesis",
@@ -450,8 +454,9 @@ async def test_run_pipeline_threads_recent_context_to_segment_generate(
         source_outcomes: object = (),
         recent_context: RecentBriefingsContext | None = None,
         market_anchors: object = (),
+        carryover: object = None,
     ) -> Briefing:
-        del items, runner, source_outcomes, data_limited, market_anchors
+        del items, runner, source_outcomes, data_limited, market_anchors, carryover
         if segment == US_EQUITY:
             seen.append(recent_context)
         return _briefing(target_date)
@@ -510,8 +515,9 @@ async def test_run_pipeline_recent_context_disabled_when_env_zero(
         source_outcomes: object = (),
         recent_context: object = None,
         market_anchors: object = (),
+        carryover: object = None,
     ) -> Briefing:
-        del items, runner, source_outcomes, data_limited, market_anchors
+        del items, runner, source_outcomes, data_limited, market_anchors, carryover
         if segment == US_EQUITY:
             seen_recent.append(recent_context)
         return _briefing(target_date)
@@ -779,10 +785,12 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
         source_outcomes: object = (),
         recent_context: object = None,
         market_anchors: object = (),
+        carryover: object = None,
     ) -> Briefing:
         del source_outcomes
         del recent_context
         del market_anchors
+        del carryover
         briefing = _briefing(target_date)
         if segment == US_EQUITY:
             return briefing.model_copy(
@@ -2098,9 +2106,9 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     # Worst-case repeated synthesis time remains below the 60-minute job
     # timeout, leaving headroom for collect, visual assets, publish,
     # notify, and GitHub runner overhead.
-    assert sum(
-        policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)
-    ) <= 45 * 60
+    assert (
+        sum(policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)) <= 45 * 60
+    )
 
     # Total budget covers the retry attempts plus headroom for the fast
     # classification stage and output validation.

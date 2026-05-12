@@ -114,6 +114,8 @@ _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
         "fsc-krx-index-price",
         "fsc-krx-stock-price",
         "korea-policy-rss",
+        # u53 — KRX investor-flow mirror, domestic-equity narrative only.
+        "krx-foreign-flows",
         "yonhap-market",
     }
 )

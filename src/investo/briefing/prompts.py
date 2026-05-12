@@ -271,6 +271,35 @@ Forward-looking "주요 일정" rules (u35 event-lookahead):
 - Subsequent appearances in the same segment do not need a repeated
   gloss. A glossary from another segment does not satisfy this segment.
 
+Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
+- 본문 § 시작 *전에* (워터마크 / 세그먼트 nav / 시장 anchor 표 다음, ① 요약
+  헤더 직전) ``## 한눈에 보기`` H2 블록을 정확히 한 번 작성하고, 그 아래에
+  정확히 3개의 bullet 을 emit. 각 bullet 형식:
+  - bullet 1: 핵심 방향성 + 매그니튜드 (예: "미국 3대 지수 0.7~1.1% 상승,
+    S&P 500 사상 최고 갱신"). 방향성만 쓰면 부적합 — 반드시 수치 1개 이상.
+  - bullet 2: 그날의 가장 의미 있는 단일 사실 (예: "**BTC**가 한 주
+    +11.51%로 $81,154 회복").
+  - bullet 3: 본문에서 확인할 액션 가능한 변수 (예: "**4.42%** 10Y 금리가
+    위협 임계 — 본문 §② 참조").
+- §②/③/④/⑥ 의 sub-headings 는 ``### {Title}`` (H3) 형식으로 작성한다.
+  종전 ``**Title** — body`` (bold-prefix prose) 패턴 금지 — sub-section
+  은 H3 라인 다음 빈 줄 + 본문 paragraph 로 분리한다.
+- 핵심 숫자 강조: 본문 prose 안에서 ``[+-]\\d+\\.\\d+%`` (예: +3.89%),
+  ``\\$[\\d,]+(?:\\.\\d+)?`` (예: $81,154.06), ``\\d+\\.\\d+%`` (예: 4.42%
+  10Y yield) 형태의 숫자는 ``**숫자**`` 로 wrap 한다. 표 cell / 코드 블록
+  / URL 내부의 숫자는 wrap 하지 않는다 — Publisher 의 post-format 헬퍼가
+  누락된 wrap 을 보강하지만 LLM 단계에서 강조하는 것이 reader UX 의
+  primary path 다.
+- §⑥ 오늘의 관전 포인트 의 bullet 종결 어미 비율 룰: 5개 중 ``~여부 /
+  ~필요가 있다 / ~관건이다 / ~주목할 필요`` 로 끝나는 bullet 은 *40% 이하* 로
+  제한한다 (즉, 최소 60% 는 액션 동사 종결 — ``매수 검토 / 비중 축소 /
+  추세 확인 / 헤지 확대 / 손절 라인 설정`` 등). 관찰형 종결은 reader 에게
+  "무엇을 할지" 가 전달되지 않으므로 publisher 단계에서 WARN 으로 표시된다.
+- 글로싱 1회 룰: 같은 segment 내 같은 용어의 풀어쓰기 (예: ``S&P
+  500(스탠더드앤드푸어스 500 지수)``) 는 *첫 1회만* 풀어쓰고, 2번째 이후
+  출현은 base 용어만 (``S&P 500``) 표기한다. 별도 ``> **용어 가이드**``
+  callout 의 룰은 그대로 유지 (u40).
+
 시장 anchor 인용 룰 (u49 deterministic-market-anchor):
 - 시황 헤더의 ``> **시장 anchor**: ...`` 라인에 명시된 결정론적 사실 (ATH 경신,
   52주 고가/저가 대비 N%, MTD/YTD 변화, 주요 지수/빅테크/크립토 종가) 은
@@ -300,6 +329,30 @@ Recent-briefings continuity rules (u34):
     archived context (extension of the numeric integrity rule above).
   - If the recent context is empty or absent, ignore this rule and
     write the briefing from today's input alone.
+
+Carryover (event-level lifecycle) rules (u52):
+- The user prompt may include a "## Watchlist Carryover (입력)" section
+  listing structured carryover rows extracted from the same segment's
+  prior ≤3 trading-day briefings. The block is ORDERED AFTER the
+  recent-context block so the LLM treats carryover as the
+  event-citation discipline and recent-context as the narrative-bridge
+  discipline. Surfaces stay separate: recent-context drives §② prose,
+  carryover drives explicit event lifecycle citations.
+- CARRY-1: For every row whose status is "확인됨" (resolved), cite the
+  resolution in §② within the first 2 lines of the section body
+  (template: "어제(YYYY-MM-DD) 예고한 X 가 오늘 ...로 확인되었다").
+- CARRY-2: For every row whose status is "미확인" (unresolved), keep
+  the row visible in the "## Watchlist Carryover" markdown block that
+  the publisher inserts between §② and §③. Do not silently drop a row.
+- CARRY-3: When yesterday's [강세] flips to today's [약세] (or vice
+  versa) — visible in the recent-context conclusion lines — the §②
+  first paragraph MUST carry a 1-2 sentence bridge that names the
+  reversal driver and includes one flow-of-funds clause.
+- CARRY-4: ticker_or_topic / originated_date / expected_date values
+  are not LLM-inventable. Quote ONLY the values present in the input
+  Watchlist Carryover rows. If the input has zero rows, omit the
+  carryover section entirely and write §② / §⑥ from today's input
+  alone — do not fabricate carryover entries.
 """
 
 # Placeholders:
@@ -314,6 +367,10 @@ Recent-briefings continuity rules (u34):
 #   ``lookahead_context`` (str — rendered "주요 일정" block listing
 #       forward-scheduled events; may be the literal empty string when
 #       no lookahead items survived the pipeline cap, u35)
+#   ``carryover_context`` (str — rendered "## Watchlist Carryover (입력)"
+#       block listing structured carryover rows from prior ≤3 trading
+#       days; may be the literal empty string when the segment carries
+#       no carryover; u52)
 STAGE2_USER_TEMPLATE: Final[str] = """\
 {segment_context}
 
@@ -325,7 +382,7 @@ Unassigned (context for sections ① and ⑥):
 {unassigned}
 
 Target date: {target_date}
-{recent_context}{lookahead_context}
+{recent_context}{lookahead_context}{carryover_context}
 Return only the markdown.
 """
 
@@ -399,7 +456,49 @@ def format_recent_context_section(rendered_lines: str) -> str:
     return f"\n{RECENT_CONTEXT_HEADER}\n\n{RECENT_CONTEXT_INTRO}\n\n{body}\n"
 
 
+# u52 — Stage 2 user-prompt extension that surfaces structured
+# carryover rows extracted from the same segment's prior ≤3 trading-
+# day briefings. Owned by ``prompts.py`` for the same AC-5.2 / AC-5.3
+# reason as the u34 / u35 blocks — literal Korean header strings stay
+# out of pipeline.py. The "(입력)" parenthetical distinguishes the
+# prompt input block from the publisher-rendered "## Watchlist
+# Carryover" body block that the orchestrator injects between §② and
+# §③ (single source of truth, deterministic).
+CARRYOVER_CONTEXT_HEADER: Final[str] = "## Watchlist Carryover (입력)"
+CARRYOVER_CONTEXT_INTRO: Final[str] = (
+    "아래는 같은 세그먼트의 직전 ≤3 영업일 시황에서 추출된 carryover 이벤트 "
+    "입니다. CARRY-1~CARRY-4 룰을 따라 §②에서 확인됨 row 를 인용하고, "
+    "미확인 row 는 published markdown 의 ## Watchlist Carryover 블록에 "
+    "그대로 유지하세요. ticker_or_topic / 발원일 / 기대일 은 발명 금지 — "
+    "아래 row 값만 사용하세요."
+)
+CARRYOVER_CONTEXT_EMPTY_NOTE: Final[str] = (
+    "이번 세그먼트에는 직전 시황에서 이월된 carryover 이벤트가 없습니다. "
+    "오늘 입력 데이터로만 §② / §⑥ 을 작성하고 carryover 표를 발명하지 "
+    "마세요."
+)
+
+
+def format_carryover_section(rendered_lines: str) -> str:
+    """Wrap a pre-rendered list of carryover rows into the Stage 2 prompt block.
+
+    ``rendered_lines`` is the caller-built body — typically a sequence
+    of ``- [event_type] ticker_or_topic | 발원=YYYY-MM-DD | 기대=YYYY-
+    MM-DD | 상태=...`` rows produced from a :class:`BriefingCarryover`.
+    Empty input falls through to the "no carryover" note so the LLM
+    sees an explicit acknowledgement (CARRY-4 enforces "no row =>
+    skip table").
+    """
+    body = rendered_lines.strip()
+    if not body:
+        body = CARRYOVER_CONTEXT_EMPTY_NOTE
+    return f"\n{CARRYOVER_CONTEXT_HEADER}\n\n{CARRYOVER_CONTEXT_INTRO}\n\n{body}\n"
+
+
 __all__ = [
+    "CARRYOVER_CONTEXT_EMPTY_NOTE",
+    "CARRYOVER_CONTEXT_HEADER",
+    "CARRYOVER_CONTEXT_INTRO",
     "DEFAULT_SEGMENT_CONTEXT",
     "LOOKAHEAD_EMPTY_NOTE",
     "LOOKAHEAD_HEADER",
@@ -415,6 +514,7 @@ __all__ = [
     "STAGE2_SECTION_HEADERS",
     "STAGE2_SYSTEM",
     "STAGE2_USER_TEMPLATE",
+    "format_carryover_section",
     "format_lookahead_section",
     "format_recent_context_section",
 ]

@@ -316,7 +316,7 @@ async def test_env_override_uses_only_specified_tickers(
     assert {item.raw_metadata["ticker"] for item in items} == {"META", "GOOGL"}
 
 
-async def test_env_unset_uses_default_thirteen_tickers(
+async def test_env_unset_uses_default_twentyseven_tickers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("INVESTO_STOOQ_TICKERS", raising=False)
@@ -335,8 +335,8 @@ async def test_env_unset_uses_default_thirteen_tickers(
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         items = await adapter.fetch(client, _WINDOW)
     assert items == []
-    # 13 default tickers — the union of the 11 yfinance equity/index
-    # set plus BTC-USD / ETH-USD.
+    # u53 — 27 default tickers: original 13 + 14 sector/macro ETFs &
+    # commodity futures (XLK/XLE/XLF/XLV/XLY/XLI/SMH/IWM/TLT/GLD/USO/UUP/CL=F/GC=F).
     assert set(requested) == {
         "^spx",
         "^ndq",
@@ -351,7 +351,109 @@ async def test_env_unset_uses_default_thirteen_tickers(
         "tsla.us",
         "btc.v",
         "eth.v",
+        # u53 sector / macro ETF extension
+        "xlk.us",
+        "xle.us",
+        "xlf.us",
+        "xlv.us",
+        "xly.us",
+        "xli.us",
+        "smh.us",
+        "iwm.us",
+        "tlt.us",
+        "gld.us",
+        "uso.us",
+        "uup.us",
+        "cl.f",
+        "gc.f",
     }
+
+
+# ---------------------------------------------------------------------------
+# u53 — sector / macro ETF + commodity-futures coverage
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("ticker", "stooq_symbol", "fixture"),
+    [
+        ("XLK", "xlk.us", "XLK"),
+        ("XLE", "xle.us", "XLE"),
+        ("XLF", "xlf.us", "XLF"),
+        ("XLV", "xlv.us", "XLV"),
+        ("XLY", "xly.us", "XLY"),
+        ("XLI", "xli.us", "XLI"),
+        ("SMH", "smh.us", "SMH"),
+        ("IWM", "iwm.us", "IWM"),
+        ("TLT", "tlt.us", "TLT"),
+        ("GLD", "gld.us", "GLD"),
+        ("USO", "uso.us", "USO"),
+        ("UUP", "uup.us", "UUP"),
+        ("CL=F", "cl.f", "CL_F"),
+        ("GC=F", "gc.f", "GC_F"),
+    ],
+)
+async def test_new_sector_macro_ticker_round_trips_through_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+    ticker: str,
+    stooq_symbol: str,
+    fixture: str,
+) -> None:
+    """Each new u53 ticker maps to its Stooq symbol and parses into a NormalizedItem."""
+    _override_tickers(monkeypatch, ticker)
+    bodies = {stooq_symbol: _fixture_bytes(fixture)}
+    transport = _stooq_handler(bodies=bodies)
+    adapter = StooqPriceAdapter()
+    async with httpx.AsyncClient(transport=transport) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert item.raw_metadata["ticker"] == ticker
+    assert item.raw_metadata["stooq_symbol"] == stooq_symbol
+    assert item.source_name == "stooq-price"
+    assert item.category == "price"
+    assert item.published_at.tzinfo is UTC
+
+
+async def test_commodity_future_with_empty_volume_does_not_drop_item(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``CL=F`` / ``GC=F`` rows ship empty volume cells; adapter coerces to 0."""
+    _override_tickers(monkeypatch, "CL=F")
+    bodies = {"cl.f": _fixture_bytes("CL_F")}
+    transport = _stooq_handler(bodies=bodies)
+    adapter = StooqPriceAdapter()
+    async with httpx.AsyncClient(transport=transport) as client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert item.raw_metadata["ticker"] == "CL=F"
+    # CL.F fixture: Symbol,CL.F,2026-05-12,21:26:45,98.28,102.72,98.02,102.31,
+    # → empty volume → 0
+    assert item.raw_metadata["volume"] == "0"
+
+
+async def test_stooq_nd_for_brent_and_rut_skipped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Stooq returns N/D for Brent (``bz.f``) and Russell 2000 (``^rut``);
+    these are NOT in the production map (yfinance covers the gap) but the
+    fixtures are pinned to document the gap and protect a future
+    operator who env-var-overrides ``BZ.F`` / ``RUT`` into Stooq from a
+    silent surprise — the row should be skipped, not raise.
+    """
+    bodies = {
+        "stooq_brent": _fixture_bytes("BZ_F"),
+        "stooq_rut": _fixture_bytes("RUT"),
+    }
+    # Both fixture bodies are valid N/D placeholder responses — the
+    # adapter's _is_not_available check must classify them as skip.
+    from investo.sources.stooq_price import _is_not_available, _parse_csv_row
+
+    for body in bodies.values():
+        row = _parse_csv_row(body.decode())
+        assert row is not None
+        assert _is_not_available(row)
 
 
 async def test_user_agent_is_investo_branded(monkeypatch: pytest.MonkeyPatch) -> None:

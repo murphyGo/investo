@@ -50,6 +50,10 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "korea-policy-rss": "S",
     "dart-disclosure": "S",
     "treasury-rates": "S",
+    # u53 — Naver finance mirrors a KRX investor-flow aggregation. KRX
+    # is the system of record but the proximate endpoint is an
+    # aggregator surface, so this lands in A rather than S.
+    "krx-foreign-flows": "A",
     # A — first-party / official feeds
     "yfinance-price": "A",
     "stooq-price": "A",

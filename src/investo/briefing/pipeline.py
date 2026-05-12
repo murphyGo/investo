@@ -62,6 +62,7 @@ from investo.briefing.prompts import (
     STAGE2_SECTION_HEADERS,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
+    format_carryover_section,
     format_lookahead_section,
     format_recent_context_section,
 )
@@ -81,7 +82,14 @@ from investo.briefing.watchlist import (
     render_watchlist_impact,
     render_watchlist_prompt_context,
 )
-from investo.models import Briefing, NormalizedItem, SourceOutcome
+from investo.models import (
+    Briefing,
+    BriefingCarryover,
+    CarryoverItem,
+    NormalizedItem,
+    SourceOutcome,
+    status_label_kr,
+)
 
 _logger = logging.getLogger("investo.briefing.pipeline")
 
@@ -621,6 +629,55 @@ def _render_recent_entry(entry: RecentBriefingEntry) -> str:
     return f'- {entry.publish_date.isoformat()}: 결론="{conclusion}" | 핵심 동인="{drivers}"'
 
 
+def _render_carryover_context_block(
+    carryover: BriefingCarryover | None,
+) -> str:
+    """Render the u52 "## Watchlist Carryover (입력)" block for Stage 2.
+
+    Returns the empty string when ``carryover`` is ``None`` (legacy /
+    unsegmented path; the prompt template absorbs the placeholder
+    cleanly). When ``carryover.is_empty`` the block carries the "no
+    carryover" note so the LLM sees an explicit acknowledgement.
+
+    Otherwise emits one deterministic row per item in the order:
+    resolved first, then unresolved (carried_over rows are mixed into
+    the unresolved list per the model's split rule). The renderer is
+    *separate* from the publisher-side ``render_carryover_block``: the
+    prompt block is plain text (LLM-readable rows); the publisher
+    block is a Markdown table (reader-facing).
+    """
+    if carryover is None:
+        return ""
+    if carryover.is_empty:
+        return format_carryover_section("")
+    lines: list[str] = []
+    for item in carryover.prior_resolved:
+        lines.append(_render_carryover_prompt_row(item))
+    for item in carryover.prior_unresolved:
+        lines.append(_render_carryover_prompt_row(item))
+    return format_carryover_section("\n".join(lines))
+
+
+def _render_carryover_prompt_row(item: CarryoverItem) -> str:
+    """Render one :class:`CarryoverItem` as a deterministic bullet line.
+
+    Format::
+
+        - [event_type] ticker_or_topic | 발원=YYYY-MM-DD | 기대=YYYY-MM-DD | 상태=확인됨
+
+    The Korean status label is sourced via
+    :func:`investo.models.status_label_kr`. ``expected_date`` is
+    rendered as ``미정`` when the carryover has no expected date.
+    """
+    expected = item.expected_date.isoformat() if item.expected_date is not None else "미정"
+    status_label = status_label_kr(item.status)
+    return (
+        f"- [{item.event_type}] {item.ticker_or_topic} | "
+        f"발원={item.originated_date.isoformat()} | "
+        f"기대={expected} | 상태={status_label}"
+    )
+
+
 def _render_lookahead_context_block(items: Sequence[NormalizedItem]) -> str:
     """Render the u35 "주요 일정" block from forward-scheduled items.
 
@@ -1077,6 +1134,7 @@ async def _synthesize(
     segment_context: str,
     recent_context_block: str = "",
     lookahead_context_block: str = "",
+    carryover_context_block: str = "",
 ) -> str:
     """Run Stage 2 with the FD R3 retry loop. Returns body markdown.
 
@@ -1096,6 +1154,12 @@ async def _synthesize(
     string means no opt-in adapter contributed forward items, in which
     case the Stage 2 prompt omits the block (the system rule still
     forbids invented forward forecasts).
+
+    ``carryover_context_block`` is the optional u52 "## Watchlist
+    Carryover (입력)" block — pre-rendered by
+    :func:`_render_carryover_context_block`. Empty string means the
+    segment has no carryover from prior briefings (matching CARRY-4:
+    omit the table rather than fabricate rows).
     """
     grouped = _render_grouped_sections(plan.items_by_section)
     unassigned = _render_unassigned(plan.unassigned)
@@ -1106,6 +1170,7 @@ async def _synthesize(
         target_date=plan.target_date.isoformat(),
         recent_context=recent_context_block,
         lookahead_context=lookahead_context_block,
+        carryover_context=carryover_context_block,
     )
     full_prompt = f"{STAGE2_SYSTEM}\n\n{user_prompt}"
 
@@ -1171,6 +1236,7 @@ async def generate_briefing(
     watchlist_config: WatchlistConfig | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
     recent_context: RecentBriefingsContext | None = None,
+    carryover: BriefingCarryover | None = None,
     market_anchors: Sequence[MarketAnchor] = (),
     generation_policy: GenerationPolicy | None = None,
 ) -> Briefing:
@@ -1248,6 +1314,7 @@ async def generate_briefing(
     if watchlist_context:
         segment_context = f"{segment_context}\n\n{watchlist_context}"
     recent_context_block = _render_recent_context_block(segment, recent_context)
+    carryover_context_block = _render_carryover_context_block(carryover)
     llm_items = _select_llm_candidate_items(items)
     lookahead_context_block = _render_lookahead_context_block(llm_items)
     classification = await _classify(
@@ -1266,6 +1333,7 @@ async def generate_briefing(
         segment_context=segment_context,
         recent_context_block=recent_context_block,
         lookahead_context_block=lookahead_context_block,
+        carryover_context_block=carryover_context_block,
     )
 
     # Body markdown is verified to have all 6 sections (by _synthesize's
