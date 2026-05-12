@@ -2078,18 +2078,18 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     """Pin the live GHA timeout policy.
 
     2026-05-09 bumped the per-call timeout after Crypto Stage 2 hit the
-    180s ceiling. 2026-05-12 then showed that two attempts per segment
-    can burn the old 20-minute workflow before publish/notify, but the
-    workflow now has a 60-minute ceiling. Keep two attempts so transient
-    synthesis stalls do not erase domestic/us coverage.
+    180s ceiling. 2026-05-12 then showed that the old 20-minute workflow
+    ceiling was too tight for repeated segment synthesis. The workflow
+    now has a 60-minute ceiling, so keep two attempts with larger
+    per-call limits to avoid erasing domestic/us coverage on slow days.
     """
     domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
     us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
     crypto = pipeline_module.SEGMENT_GENERATION_POLICIES[CRYPTO]
 
-    assert domestic.timeout_s == 210.0
-    assert us.timeout_s == 210.0
-    assert crypto.timeout_s == 240.0
+    assert domestic.timeout_s == 420.0
+    assert us.timeout_s == 420.0
+    assert crypto.timeout_s == 480.0
 
     assert domestic.max_attempts == 2
     assert us.max_attempts == 2
@@ -2100,7 +2100,7 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     # notify, and GitHub runner overhead.
     assert sum(
         policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)
-    ) <= 24 * 60
+    ) <= 45 * 60
 
     # Total budget covers the retry attempts plus headroom for the fast
     # classification stage and output validation.
