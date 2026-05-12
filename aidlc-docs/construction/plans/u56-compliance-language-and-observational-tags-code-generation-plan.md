@@ -61,15 +61,15 @@ The disclaimer footer remains untouched as the *publish gate*; new surfaces (fir
 
 ## Definition of Done
 
-- [ ] Stage-2 segment-aware prompt forbids direct trading-action instructions and uses observation/check language; ActionTag 5종 (`[관망] [변동성↑] [강세] [약세] [혼조]`) 가 4종 observation 라벨 (`[상승 관찰] [하락 관찰] [혼재] [변동성 확대]`) 로 마이그레이션됨. 구→신 alias map 으로 backward-compat parser 지원.
-- [ ] `publisher/compliance_language.py` 신규 gate: P0 phrase 발견 시 `ComplianceLanguageError` raise (block publish); P1 phrase 발견 시 WARN + structured extra (segment / phrase / count / line_no); context-aware 2-pass classifier 가 false-positive 를 INFO 로 demote.
-- [ ] P0 banned phrase 리스트가 **세 카테고리** 로 구조화: (a) Action instruction (대칭 buy/sell), (b) Quantified outcome promise (regex), (c) Korean retail-coded (crypto-only subset 별도).
-- [ ] First-viewport short disclaimer (segment-aware) 가 `## 한눈에 보기` H2 *직전* 에 1줄 blockquote 로 emit; verify gate (`verify_short_disclaimer_first_viewport`) 가 *추가* — 기존 `verify_disclaimer` 와 직교, byte-equal 보존.
-- [ ] `briefing/disclaimer.py` 에 `DISCLAIMER_CRYPTO` 신규 상수 (가상자산이용자보호법 §10/§19 reference); `append_disclaimer(markdown, segment)` 시그니처 확장 + segment 별 변형 emit; `verify_disclaimer(briefing_md, segment)` 시그니처 확장; archive backward-compat (2026-05-13 cutoff 전 파일은 legacy=True flag 로 통과).
-- [ ] 종결 어미 다양성 cap: 단일 종결 어미 (`~했다 / ~된다 / ~이다 / 전망이다` 등 분류 후 dominant 종결) 비율 ≤ 60% — 위반 시 WARN (non-blocking).
-- [ ] Filler phrase family (`여부 / 전망 / 우려 / 가능성 / 작용`) per-1000-chars 빈도 ≤ 임계 (TBD per-implementation; 기본값 8.0/1000 chars 제안) — 위반 시 WARN (non-blocking).
-- [ ] 회귀 핀: 면책 footer 누락 → `verify_disclaimer` fail (existing); first-viewport short disclaimer 누락 → 신규 gate fail; crypto segment 에서 us-equity 면책 emit → `verify_disclaimer(segment="crypto")` fail; 셋 모두 충족시에만 publish 통과.
-- [ ] 전체 quality gate green: `uv run ruff check .` ✅, `uv run ruff format --check .` ✅, `uv run mypy --strict src/` ✅, `uv run pytest -q` ✅ (예상 +52-68 신규 테스트), `uv run mkdocs build --strict` ✅.
+- [x] Stage-2 segment-aware prompt forbids direct trading-action instructions and uses observation/check language; ActionTag 5종 (`[관망] [변동성↑] [강세] [약세] [혼조]`) 가 4종 observation 라벨 (`[상승 관찰] [하락 관찰] [혼재] [변동성 확대]`) 로 마이그레이션됨. 구→신 alias map 으로 backward-compat parser 지원.
+- [x] `publisher/compliance_language.py` 신규 gate: P0 phrase 발견 시 `ComplianceLanguageError` raise (block publish); P1 phrase 발견 시 WARN + structured extra (segment / phrase / count / line_no); context-aware 2-pass classifier 가 false-positive 를 INFO 로 demote.
+- [x] P0 banned phrase 리스트가 **세 카테고리** 로 구조화: (a) Action instruction (대칭 buy/sell), (b) Quantified outcome promise (regex), (c) Korean retail-coded (crypto-only subset 별도).
+- [x] First-viewport short disclaimer (segment-aware) 가 `## 한눈에 보기` H2 *직전* 에 1줄 blockquote 로 emit; verify gate (`verify_short_disclaimer_first_viewport`) 가 *추가* — 기존 `verify_disclaimer` 와 직교, byte-equal 보존.
+- [x] `briefing/disclaimer.py` 에 `DISCLAIMER_CRYPTO` 신규 상수 (가상자산이용자보호법 §10/§19 reference); `append_disclaimer(markdown, segment)` 시그니처 확장 + segment 별 변형 emit; `verify_disclaimer(briefing_md, segment)` 시그니처 확장; archive backward-compat (2026-05-13 cutoff 전 파일은 legacy=True flag 로 통과).
+- [x] 종결 어미 다양성 cap: 단일 종결 어미 (`~했다 / ~된다 / ~이다 / 전망이다` 등 분류 후 dominant 종결) 비율 ≤ 60% — 위반 시 WARN (non-blocking).
+- [x] Filler phrase family (`여부 / 전망 / 우려 / 가능성 / 작용`) per-1000-chars 빈도 ≤ 임계 (TBD per-implementation; 기본값 8.0/1000 chars 제안) — 위반 시 WARN (non-blocking).
+- [x] 회귀 핀: 면책 footer 누락 → `verify_disclaimer` fail (existing); first-viewport short disclaimer 누락 → 신규 gate fail; crypto segment 에서 us-equity 면책 emit → `verify_disclaimer(segment="crypto")` fail; 셋 모두 충족시에만 publish 통과.
+- [x] 전체 quality gate green: `uv run ruff check .` ✅, `uv run ruff format --check .` ✅, `uv run mypy --strict src/` ✅, `uv run pytest -q` ✅ (예상 +52-68 신규 테스트), `uv run mkdocs build --strict` ✅.
 
 ---
 
@@ -102,22 +102,22 @@ The disclaimer footer remains untouched as the *publish gate*; new surfaces (fir
 
 ### Step 1 — Stage-2 prompt 룰 + ActionTag 마이그레이션 (5종 → 4종)
 
-- [ ] `src/investo/briefing/prompts.py` L218-226 의 closed-set ActionTag 5종 + publisher-forced `[데이터부족]` 모두 명시 변경:
+- [x] `src/investo/briefing/prompts.py` L218-226 의 closed-set ActionTag 5종 + publisher-forced `[데이터부족]` 모두 명시 변경:
   - **before**: `[관망] [변동성↑] [강세] [약세] [혼조]` + `[데이터부족]`
   - **after**: `[상승 관찰] [하락 관찰] [혼재] [변동성 확대]` + `[데이터부족]`
   - `[관망]` deprecate (data 부족과 의미 중복; `[데이터부족]` 로 흡수).
-- [ ] `src/investo/briefing/action_tag.py` (기존) 에 신규 enum + 구→신 alias map (`{"[강세]": "[상승 관찰]", "[약세]": "[하락 관찰]", "[혼조]": "[혼재]", "[변동성↑]": "[변동성 확대]", "[관망]": "[데이터부족]"}`). 과거 archive (2026-05-13 이전) 의 markdown 은 legacy 유지 — 법은 소급 안 됨; pin-test 업데이트만.
-- [ ] `prompts.py` 의 시황 작성 룰에 P0 forbid 명시:
+- [x] `src/investo/briefing/action_tag.py` (기존) 에 신규 enum + 구→신 alias map (`{"[강세]": "[상승 관찰]", "[약세]": "[하락 관찰]", "[혼조]": "[혼재]", "[변동성↑]": "[변동성 확대]", "[관망]": "[데이터부족]"}`). 과거 archive (2026-05-13 이전) 의 markdown 은 legacy 유지 — 법은 소급 안 됨; pin-test 업데이트만.
+- [x] `prompts.py` 의 시황 작성 룰에 P0 forbid 명시:
   - "다음 어구를 사용하지 말 것: `매수 검토, 매도 검토, 비중 축소, 비중 확대, 편입, 차익실현, 익절, 손절, 손절매, 진입, 청산, 목표가, 리밸런싱, 평단가, 추격매수, 물타기, 반드시, 확실, 보장`"
   - "관찰 동사로 종결: `관찰 / 확인 / 점검 / 비교 / 추세 살피기`"
   - "수치 + 수익/상승 보장 표현 금지 (예: `30% 이상 수익 예상`, `2배 상승`)"
   - CARRY-3 (L347) 의 `[강세] → [약세]` 인용을 `[상승 관찰] → [하락 관찰]` 로 갱신.
-- [ ] segment 별 prompt 가 분리되어 있다면 (`prompts/us_equity.py`, `prompts/crypto.py`, `prompts/domestic_equity.py`) 동일 룰 사본; crypto prompt 에는 추가 P0 (`세력, 김프 진입, 상폐 임박, 에어드랍 확정, 펌핑`) 명시.
-- [ ] 단위 테스트 `tests/unit/briefing/test_prompts_p0_forbid.py` (예상 6-8 tests): prompt text 가 P0 phrase 를 *포함하지 않음* (negative grep) / ActionTag 4종이 prompt 에 등장 / 구 tag 가 등장하지 않음.
+- [x] segment 별 prompt 가 분리되어 있다면 (`prompts/us_equity.py`, `prompts/crypto.py`, `prompts/domestic_equity.py`) 동일 룰 사본; crypto prompt 에는 추가 P0 (`세력, 김프 진입, 상폐 임박, 에어드랍 확정, 펌핑`) 명시.
+- [x] 단위 테스트 `tests/unit/briefing/test_prompts_p0_forbid.py` (예상 6-8 tests): prompt text 가 P0 phrase 를 *포함하지 않음* (negative grep) / ActionTag 4종이 prompt 에 등장 / 구 tag 가 등장하지 않음.
 
 ### Step 2 — Compliance phrase gate (publisher P0 + P1)
 
-- [ ] 신규 모듈 `src/investo/publisher/compliance_language.py`:
+- [x] 신규 모듈 `src/investo/publisher/compliance_language.py`:
   - `BANNED_P0_ACTION: tuple[str, ...]` — 대칭 buy/sell action: `매수 검토, 매도 검토, 비중 축소, 비중 확대, 편입, 차익실현, 익절, 손절, 손절매, 리밸런싱, 진입, 청산, 목표가, 반드시, 확실, 보장, 평단가, 추격매수, 물타기`.
   - `BANNED_P0_CERTAINTY: tuple[str, ...]` — `급등 예상, 급락 임박, 불가피, 필연`.
   - `BANNED_P0_QUANTIFIED_OUTCOME: tuple[re.Pattern, ...]` — `r"\d+%\s*(이상|이상의)?\s*(수익|상승|하락|손실)\s*(예상|가능|기대|보장)"`, `r"\d+\s*배\s*(수익|상승)"`.
@@ -125,60 +125,60 @@ The disclaimer footer remains untouched as the *publish gate*; new surfaces (fir
   - `WARN_P1: tuple[str, ...]` — `직접 반영된다, 작용할 전망` + 폐쇄 인과 regex 카탈로그: `r"(주가|지수|가격)[가-힣\s]{0,4}(때문에|로 인해)[가-힣\s]{0,8}(했다|한다)"`. WARN 만 — soften 자동 변환 *안 함* (LLM 영역 침범 방지).
   - `class ComplianceLanguageError(PublisherError)` — P0 hit 시 raise. publish 차단.
   - `def scan_compliance(markdown: str, segment: SegmentSlug) -> ComplianceReport` — pure 함수 (str + segment → frozen pydantic report). orchestrator 가 호출.
-- [ ] `compliance_language.py` 의 모든 phrase / regex 는 `src/investo/models/compliance_phrases.py` (신규 또는 기존 models 확장) 에 상수로 export — briefing prompt 와 publisher gate 가 동일 source 참조 (drift 방지). 모듈 경계 룰 (orchestrator 만 cross-import) 위반 없음: phrase list 는 모두가 의존하는 *데이터* 이므로 `models/` 에 위치.
-- [ ] 단위 테스트 `tests/unit/publisher/test_compliance_language.py` (예상 14-18 tests): 각 P0 카테고리 hit → `ComplianceLanguageError`; crypto-only phrase 가 us-equity segment 에서는 detect 안 됨 / crypto segment 에서만 detect; quantified outcome regex 의 false-positive 검사 (예: `12% 상승했다` 사실 보고는 통과, `12% 상승 예상` 은 P0); P1 phrase → WARN only.
+- [x] `compliance_language.py` 의 모든 phrase / regex 는 `src/investo/models/compliance_phrases.py` (신규 또는 기존 models 확장) 에 상수로 export — briefing prompt 와 publisher gate 가 동일 source 참조 (drift 방지). 모듈 경계 룰 (orchestrator 만 cross-import) 위반 없음: phrase list 는 모두가 의존하는 *데이터* 이므로 `models/` 에 위치.
+- [x] 단위 테스트 `tests/unit/publisher/test_compliance_language.py` (예상 14-18 tests): 각 P0 카테고리 hit → `ComplianceLanguageError`; crypto-only phrase 가 us-equity segment 에서는 detect 안 됨 / crypto segment 에서만 detect; quantified outcome regex 의 false-positive 검사 (예: `12% 상승했다` 사실 보고는 통과, `12% 상승 예상` 은 P0); P1 phrase → WARN only.
 
 ### Step 3 — Context-aware false-positive filter (2-pass classifier)
 
-- [ ] `compliance_language.py` 에 `_demote_if_quotative(phrase: str, line: str, position: int) -> Severity` 추가. 6-token window (좌 3 / 우 3) 검사:
+- [x] `compliance_language.py` 에 `_demote_if_quotative(phrase: str, line: str, position: int) -> Severity` 추가. 6-token window (좌 3 / 우 3) 검사:
   - `진입` 좌우에 `분야 / 시장 / 사업` → INFO (예: "AI 분야 진입").
   - `청산` 좌우에 `회사 / 기업 / 법인 / 파산 / 합병` → INFO (예: "회사 청산").
   - `목표가` 좌측에 `증권사 / 애널리스트 / 보고서 / IR / [A-Z]{2,5}` (증권사 약어 패턴) → INFO (예: "삼성증권 목표가 70,000원" — quotative pattern).
   - `목표가` bare (좌측 quotative marker 없음) → P0 유지 (예: "목표가 7만원").
   - `손절` 좌측에 `손절매 알고리즘 / 손절 라인 / 시스템 손절` → INFO 안 함 (자기 손절 권유 의미 유지 시 P0).
-- [ ] 단위 테스트 `tests/unit/publisher/test_compliance_language_context.py` (예상 10-14 tests): 각 demote rule 의 positive/negative; `목표가` quotative vs bare; window 경계 (좌 3 / 우 3 tokens exactly).
-- [ ] **No code blocks / tables**: 코드 블록 (``` `) / 표 cell (`|...|`) 내부의 P0 hit 는 scan 대상 제외 (LLM 이 발생시킬 가능성 거의 zero 이지만 idempotent 보장).
+- [x] 단위 테스트 `tests/unit/publisher/test_compliance_language_context.py` (예상 10-14 tests): 각 demote rule 의 positive/negative; `목표가` quotative vs bare; window 경계 (좌 3 / 우 3 tokens exactly).
+- [x] **No code blocks / tables**: 코드 블록 (``` `) / 표 cell (`|...|`) 내부의 P0 hit 는 scan 대상 제외 (LLM 이 발생시킬 가능성 거의 zero 이지만 idempotent 보장).
 
 ### Step 4 — First-viewport short disclaimer (segment-aware)
 
-- [ ] `src/investo/publisher/reader_format.py` 확장 (u51 inflated):
+- [x] `src/investo/publisher/reader_format.py` 확장 (u51 inflated):
   - `def emit_first_viewport_disclaimer(text: str, segment: SegmentSlug) -> str` — `## 한눈에 보기` H2 *직전* 에 1줄 blockquote 삽입:
     - us-equity / domestic-equity: `> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.`
     - crypto: `> 정보 제공용 자동 시황이며 가상자산 매매 권유가 아닙니다. 가상자산은 가격 변동성이 매우 큽니다.`
   - `## 한눈에 보기` 부재 시: anchor table 직전 (fallback) 또는 본문 첫 줄 (fallback²).
   - idempotent: 이미 short disclaimer 가 있으면 noop.
-- [ ] `src/investo/publisher/verifier.py` 에 신규 함수 `def verify_short_disclaimer_first_viewport(briefing_md: str, segment: SegmentSlug) -> bool`. 첫 30 rendered lines 안에 segment-appropriate short disclaimer substring 이 있는지 검사.
-- [ ] **Invariant**: 신규 gate 는 *추가*. 기존 `verify_disclaimer` 시그니처 byte-equal 유지 (단, segment 인자 추가 — 다음 step). orchestrator 가 *둘 다* 호출.
-- [ ] 단위 테스트 `tests/unit/publisher/test_first_viewport_disclaimer.py` (예상 10-12 tests): segment 별 emit 텍스트 정확성 / 위치 (`## 한눈에 보기` 직전) / idempotent / fallback paths / 첫 30 라인 안에 위치 / verify 정확성.
+- [x] `src/investo/publisher/verifier.py` 에 신규 함수 `def verify_short_disclaimer_first_viewport(briefing_md: str, segment: SegmentSlug) -> bool`. 첫 30 rendered lines 안에 segment-appropriate short disclaimer substring 이 있는지 검사.
+- [x] **Invariant**: 신규 gate 는 *추가*. 기존 `verify_disclaimer` 시그니처 byte-equal 유지 (단, segment 인자 추가 — 다음 step). orchestrator 가 *둘 다* 호출.
+- [x] 단위 테스트 `tests/unit/publisher/test_first_viewport_disclaimer.py` (예상 10-12 tests): segment 별 emit 텍스트 정확성 / 위치 (`## 한눈에 보기` 직전) / idempotent / fallback paths / 첫 30 라인 안에 위치 / verify 정확성.
 
 ### Step 5 — `DISCLAIMER_CRYPTO` + segment-aware `append_disclaimer` / `verify_disclaimer`
 
-- [ ] `src/investo/briefing/disclaimer.py`:
+- [x] `src/investo/briefing/disclaimer.py`:
   - 신규 상수 `DISCLAIMER_CRYPTO: Final[str]` — 가상자산이용자보호법 (2024.07.19 시행) §10 (불공정거래) / §19 (이용자 자산 보호) reference + "24시간 거래 / 비제도권 자산 / 가격 변동성 매우 큼 / 원금 전액 손실 가능" 명시.
   - `def append_disclaimer(markdown: str, segment: SegmentSlug = "us-equity") -> str` — segment 별 footer 변형 emit:
     - `crypto` → `DISCLAIMER_CRYPTO`
     - `us-equity` / `domestic-equity` → 기존 `DISCLAIMER` (byte-equal)
   - 기존 `DISCLAIMER` 상수는 *그대로 보존* — 자본시장법 면책 wording 변경 금지 (R5 Rule).
-- [ ] `src/investo/publisher/verifier.py`:
+- [x] `src/investo/publisher/verifier.py`:
   - `def verify_disclaimer(briefing_md: str, segment: SegmentSlug = "us-equity", legacy: bool = False) -> bool` — segment 별 expected constant substring 검사:
     - `legacy=True` 이고 archive cutoff (2026-05-13) 전 파일 → 기존 `DISCLAIMER` substring 만 검사 (backward-compat).
     - `legacy=False` 인 신규 출력 → segment-appropriate constant substring 검사 (`crypto` → `DISCLAIMER_CRYPTO`).
   - Default 인자 (`segment="us-equity", legacy=False`) 가 기존 1-arg call site 와 byte-compat — 기존 caller 무파괴.
-- [ ] 회귀 테스트 `tests/unit/publisher/test_verifier_segment_aware.py` (예상 8-10 tests):
+- [x] 회귀 테스트 `tests/unit/publisher/test_verifier_segment_aware.py` (예상 8-10 tests):
   - `verify_disclaimer(md_with_us_disclaimer, segment="us-equity") == True`
   - `verify_disclaimer(md_with_crypto_disclaimer, segment="crypto") == True`
   - `verify_disclaimer(md_with_us_disclaimer, segment="crypto") == False` (crypto segment 에 us-equity footer = fail)
   - `verify_disclaimer(md_legacy, segment="crypto", legacy=True) == True` (cutoff 전 파일)
   - footer 제거 시 fail (existing pin 유지)
-- [ ] Archive backward-compat: weekly-digest / monthly-index / site-index 가 archive markdown 재읽기 path 에서 `verify_disclaimer(text, segment=..., legacy=True)` 호출. cutoff 날짜 (2026-05-13) 비교는 archive path (`archive/{segment}/YYYY/MM/YYYY-MM-DD.md`) 의 date 파싱.
+- [x] Archive backward-compat: weekly-digest / monthly-index / site-index 가 archive markdown 재읽기 path 에서 `verify_disclaimer(text, segment=..., legacy=True)` 호출. cutoff 날짜 (2026-05-13) 비교는 archive path (`archive/{segment}/YYYY/MM/YYYY-MM-DD.md`) 의 date 파싱.
 
 ### Step 6 — Retail tone caps (Finding #12)
 
-- [ ] `src/investo/publisher/reader_format.py` 에 신규 함수:
+- [x] `src/investo/publisher/reader_format.py` 에 신규 함수:
   - `def check_sentence_ending_diversity(text: str) -> SentenceEndingReport` — 본문 (yaml frontmatter / 표 / 코드 블록 제외) 의 종결 어미 분포 계산. 분류: `~했다 / ~된다 / ~이다 / 전망이다 / 보인다 / 가능성 / etc`. dominant 종결 비율 > 60% → WARN.
   - `def check_filler_phrase_density(text: str) -> FillerDensityReport` — `여부 / 전망 / 우려 / 가능성 / 작용` 빈도 per 1000 chars. 임계 (기본 8.0) 초과 → WARN.
-- [ ] u51 의 `check_action_bullet_ratio(text, section_marker="⑥")` 는 *§⑥ 한정* — 본 unit 은 *본문 전체* surface. 별 metric, 별 log signature (`tone.sentence_ending_dominance` / `tone.filler_density`). 동일 surface 두 번 측정 안 함.
-- [ ] 단위 테스트 `tests/unit/publisher/test_retail_tone.py` (예상 8-12 tests):
+- [x] u51 의 `check_action_bullet_ratio(text, section_marker="⑥")` 는 *§⑥ 한정* — 본 unit 은 *본문 전체* surface. 별 metric, 별 log signature (`tone.sentence_ending_dominance` / `tone.filler_density`). 동일 surface 두 번 측정 안 함.
+- [x] 단위 테스트 `tests/unit/publisher/test_retail_tone.py` (예상 8-12 tests):
   - 균질 input (`~했다` 100%) → dominant ratio 1.0 / WARN 발화
   - 분산 input (`~했다` 40%, `~된다` 30%, `~이다` 30%) → no WARN
   - filler 빈도: synthetic 12.0/1000 chars input → WARN; 5.0/1000 chars → no WARN
@@ -187,14 +187,14 @@ The disclaimer footer remains untouched as the *publish gate*; new surfaces (fir
 
 ### Step 7 — Notifier Telegram tag rendering + summary builder
 
-- [ ] `src/investo/notifier/summary.py` (Telegram briefing summary builder):
+- [x] `src/investo/notifier/summary.py` (Telegram briefing summary builder):
   - ActionTag substring 추출 grep 을 신규 4종 (`[상승 관찰] [하락 관찰] [혼재] [변동성 확대]`) + `[데이터부족]` 대응으로 갱신.
   - 구→신 alias map 통과: 과거 archive 의 legacy `[강세]` 가 Telegram digest 에 inline 인용될 경우 — 본 unit cutoff 이후엔 발생 안 함 (신규 생성물만 신 tag). digest path 가 archive 재읽기 한다면 legacy tag 그대로 surface (법 소급 안 됨).
-- [ ] 단위 테스트 `tests/unit/notifier/test_summary_action_tag.py` (예상 6-8 tests): 신규 4종 tag 추출 / 구 tag 가 Stage-2 출력에 나오면 fail (negative pin) / alias map round-trip.
+- [x] 단위 테스트 `tests/unit/notifier/test_summary_action_tag.py` (예상 6-8 tests): 신규 4종 tag 추출 / 구 tag 가 Stage-2 출력에 나오면 fail (negative pin) / alias map round-trip.
 
 ### Step 8 — Orchestrator wire-through + integration
 
-- [ ] `src/investo/orchestrator/pipeline.py` 의 segmented publish path:
+- [x] `src/investo/orchestrator/pipeline.py` 의 segmented publish path:
   - `_enhance_reader_experience` 직후, `verify_disclaimer` 직전 chain 에 신규 step 삽입:
     1. `scan_compliance(text, segment)` — P0 raise / P1 WARN
     2. `emit_first_viewport_disclaimer(text, segment)` — short disclaimer prepend
@@ -203,7 +203,7 @@ The disclaimer footer remains untouched as the *publish gate*; new surfaces (fir
     5. `verify_short_disclaimer_first_viewport(text, segment)` — gate
     6. `verify_disclaimer(text, segment, legacy=False)` — 기존 gate (segment 인자 확장됨)
   - 순서 핵심: short disclaimer prepend 가 verify 전. compliance scan 이 가장 처음 (P0 hit 시 publish 차단, 자원 낭비 방지).
-- [ ] 통합 테스트 `tests/integration/test_compliance_pipeline.py` (예상 6-8 tests):
+- [x] 통합 테스트 `tests/integration/test_compliance_pipeline.py` (예상 6-8 tests):
   - synthetic Stage-2 output (clean) → 모든 gate 통과
   - P0 phrase injection → `ComplianceLanguageError`
   - first-viewport disclaimer 제거 → `verify_short_disclaimer_first_viewport` fail
@@ -213,18 +213,18 @@ The disclaimer footer remains untouched as the *publish gate*; new surfaces (fir
 
 ### Step 9 — Requirements 문서 갱신 + Quality gate
 
-- [ ] `docs/requirements.md` 에 신규 FR 추가:
+- [x] `docs/requirements.md` 에 신규 FR 추가:
   - **FR-012: Compliance language enforcement + segment-aware disclaimer (u56)**
   - Description: 시황의 advisory wording / quantified outcome / Korean retail-coded language 를 publish 게이트에서 차단; first-viewport short disclaimer (segment-aware) 추가; crypto segment 에 가상자산이용자보호법 reference 면책 footer (`DISCLAIMER_CRYPTO`) 분리; 종결 어미 다양성 / filler phrase family WARN cap; ActionTag 5종→4종 마이그레이션 (alias map backward-compat).
   - AC: 본 plan 의 DoD 9 항목 그대로 인용.
   - Priority: Must-have (Rule 2 disclaimer enforcement 강화 — 기존 footer + 신규 first-viewport + segment 분기).
-- [ ] inception bridge (`aidlc-docs/inception/requirements/`) 가 FR id 를 등록한다면 동기화.
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅ (예상 +52-68 신규 테스트)
-- [ ] `uv run mkdocs build --strict` ✅
-- [ ] (수동) `mkdocs serve` → 임의 segment briefing 페이지 → first-viewport short disclaimer + canonical footer + ActionTag observation 라벨 시각 확인.
+- [x] inception bridge (`aidlc-docs/inception/requirements/`) 가 FR id 를 등록한다면 동기화.
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅ (예상 +52-68 신규 테스트)
+- [x] `uv run mkdocs build --strict` ✅
+- [x] (수동) `mkdocs serve` → 임의 segment briefing 페이지 → first-viewport short disclaimer + canonical footer + ActionTag observation 라벨 시각 확인.
 
 ---
 
@@ -271,11 +271,11 @@ Step 1-7 모두 병렬 가능 (각자 별 surface). Step 8 은 1-7 머지 후. S
 
 ## Quality gate
 
-- [ ] `uv run ruff check .` ✅
-- [ ] `uv run ruff format --check .` ✅
-- [ ] `uv run mypy --strict src/` ✅
-- [ ] `uv run pytest -q` ✅
-- [ ] `uv run mkdocs build --strict` ✅
+- [x] `uv run ruff check .` ✅
+- [x] `uv run ruff format --check .` ✅
+- [x] `uv run mypy --strict src/` ✅
+- [x] `uv run pytest -q` ✅
+- [x] `uv run mkdocs build --strict` ✅
 
 ---
 

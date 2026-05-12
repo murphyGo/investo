@@ -60,7 +60,7 @@ def write_briefing(
         The destination archive file is unchanged from its prior
         state (atomic guarantee).
     """
-    if not verify_disclaimer(briefing.rendered_markdown):
+    if not verify_disclaimer(briefing.rendered_markdown, segment):
         raise PublisherDisclaimerError(target_date=target_date)
 
     path = archive_path(target_date, segment=segment)

@@ -47,12 +47,13 @@ from investo.briefing.claude_code import (
     call_claude_code,
 )
 from investo.briefing.context import RecentBriefingEntry, RecentBriefingsContext
-from investo.briefing.disclaimer import DISCLAIMER, append_disclaimer
+from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.briefing.glossary import audit_glossary_compliance, render_glossary_callout
 from investo.briefing.leak_guard import scan as leak_guard_scan
 from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_line
 from investo.briefing.prompts import (
+    CRYPTO_FORBIDDEN_TERMS_NOTE,
     DEFAULT_SEGMENT_CONTEXT,
     SEGMENT_CONTEXT_TEMPLATE,
     SEGMENT_DATA_LIMITED_NOTE,
@@ -722,10 +723,16 @@ def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool
         return DEFAULT_SEGMENT_CONTEXT
 
     data_limited_note = SEGMENT_DATA_LIMITED_NOTE if data_limited else SEGMENT_DATA_READY_NOTE
+    # u56 — append crypto-only forbidden-term clause so the Stage-2 LLM
+    # sees the §10 retail-coded ban at the same surface as the segment
+    # scope. The publisher gate enforces this same list regardless of
+    # whether the LLM honored the prompt.
+    segment_extra_note = f"{CRYPTO_FORBIDDEN_TERMS_NOTE}\n" if segment == "crypto" else ""
     return SEGMENT_CONTEXT_TEMPLATE.format(
         segment_label=SEGMENT_LABELS[segment],
         segment_slug=segment,
         data_limited_note=data_limited_note,
+        segment_extra_note=segment_extra_note,
     )
 
 
@@ -1307,7 +1314,7 @@ async def generate_briefing(
             candidates=items,
             market_anchors=market_anchors,
         )
-        full_markdown = append_disclaimer(enhanced_markdown)
+        full_markdown = append_disclaimer(enhanced_markdown, segment)
         hit = leak_guard_scan(full_markdown)
         if hit is not None:
             raise BriefingGenerationError(
@@ -1324,7 +1331,7 @@ async def generate_briefing(
             indicators_events=sections[3],
             notable_tickers=sections[4],
             today_watch=sections[5],
-            disclaimer=DISCLAIMER,
+            disclaimer=DISCLAIMER_CRYPTO if segment == "crypto" else DISCLAIMER,
             rendered_markdown=full_markdown,
         )
 
@@ -1399,7 +1406,7 @@ async def generate_briefing(
         indicators_events=sections[3],
         notable_tickers=sections[4],
         today_watch=sections[5],
-        disclaimer=DISCLAIMER,
+        disclaimer=DISCLAIMER_CRYPTO if segment == "crypto" else DISCLAIMER,
         rendered_markdown=full_markdown,
     )
 

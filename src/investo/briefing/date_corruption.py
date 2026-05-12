@@ -133,12 +133,14 @@ def find_corrupt_date_tokens(text: str) -> tuple[CorruptDate, ...]:
 # expected input; mixed-language is also covered.
 _BULLISH_TOKENS: Final[tuple[str, ...]] = (
     "[강세]",
+    "[상승 관찰]",
     "상승 마감",
     "상승마감",
     "강세 마감",
 )
 _BEARISH_TOKENS: Final[tuple[str, ...]] = (
     "[약세]",
+    "[하락 관찰]",
     "하락 마감",
     "하락마감",
     "약세 마감",

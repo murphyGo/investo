@@ -106,7 +106,10 @@ def publish_weekly_digest(
     # same publisher disclaimer gate as ``write_briefing``; relying on the
     # underlying segmented archives' disclaimer status is insufficient
     # because the rendered weekly page exists in isolation.
-    if not verify_disclaimer(body):
+    # u56 — weekly digest body is composed from archive markdown that
+    # may pre-date the 2026-05-13 crypto-disclaimer cutover; accept
+    # either the equity or crypto footer via ``legacy=True``.
+    if not verify_disclaimer(body, legacy=True):
         raise PublisherDisclaimerError(target_date=week_end_date)
     _write_text_atomic(week_path, body)
     return week_path

@@ -276,12 +276,13 @@ def test_summary_header_appends_default_action_tag_when_missing() -> None:
         "ARM 가이던스를 확인합니다.",
     )
     header = _build_summary_header(sections)
-    assert header.conclusion.endswith(" [관망]")
+    # u56 — DEFAULT_ACTION_TAG migrated [관망] → [데이터부족]
+    assert header.conclusion.endswith(" [데이터부족]")
 
 
 def test_summary_header_preserves_in_set_action_tag() -> None:
     sections = (
-        "오늘은 변동성이 커집니다. [변동성↑]",
+        "오늘은 변동성이 커집니다. [변동성 확대]",
         "동인 본문.",
         "",
         "",
@@ -289,10 +290,10 @@ def test_summary_header_preserves_in_set_action_tag() -> None:
         "관전 포인트.",
     )
     header = _build_summary_header(sections)
-    assert header.conclusion.endswith(" [변동성↑]")
+    assert header.conclusion.endswith(" [변동성 확대]")
     # No double-tagging.
-    assert header.conclusion.count("[변동성↑]") == 1
-    assert "[관망]" not in header.conclusion
+    assert header.conclusion.count("[변동성 확대]") == 1
+    assert "[데이터부족]" not in header.conclusion
 
 
 def test_summary_header_strips_off_set_tag_and_replaces_with_default() -> None:
@@ -306,7 +307,8 @@ def test_summary_header_strips_off_set_tag_and_replaces_with_default() -> None:
     )
     header = _build_summary_header(sections)
     assert "[BUY]" not in header.conclusion
-    assert header.conclusion.endswith(" [관망]")
+    # u56 — default migrated [관망] → [데이터부족]
+    assert header.conclusion.endswith(" [데이터부족]")
 
 
 def test_summary_header_forces_data_limited_tag_when_data_limited_true() -> None:

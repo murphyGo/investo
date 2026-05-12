@@ -27,7 +27,7 @@ def _briefing(conclusion: str) -> Briefing:
     )
 
 
-def _append(path: Path, target: date, conclusion: str = "NVDA 강세 [강세]") -> None:
+def _append(path: Path, target: date, conclusion: str = "NVDA 상승 관찰 [상승 관찰]") -> None:
     append_forecast_entries(
         target,
         segment_briefings={"us-equity": _briefing(conclusion)},
@@ -47,20 +47,21 @@ def test_first_publish_creates_forecast_log(tmp_path: Path) -> None:
 
     rows = _rows(path)
     assert len(rows) == 1
-    assert rows[0]["action_tag"] == "[강세]"
+    # u56 — observation set replaces legacy stance tags.
+    assert rows[0]["action_tag"] == "[상승 관찰]"
     assert rows[0]["tickers"] == ["NVDA"]
 
 
 def test_second_day_appends_and_same_day_replaces(tmp_path: Path) -> None:
     path = tmp_path / "forecast_log.jsonl"
-    _append(path, date(2026, 5, 1), "NVDA 강세 [강세]")
-    _append(path, date(2026, 5, 2), "AAPL 약세 [약세]")
-    _append(path, date(2026, 5, 2), "MSFT 혼조 [혼조]")
+    _append(path, date(2026, 5, 1), "NVDA 상승 관찰 [상승 관찰]")
+    _append(path, date(2026, 5, 2), "AAPL 하락 관찰 [하락 관찰]")
+    _append(path, date(2026, 5, 2), "MSFT 혼재 [혼재]")
 
     rows = _rows(path)
     assert len(rows) == 2
     assert rows[-1]["target_date"] == "2026-05-02"
-    assert rows[-1]["action_tag"] == "[혼조]"
+    assert rows[-1]["action_tag"] == "[혼재]"
     assert rows[-1]["tickers"] == ["MSFT"]
 
 

@@ -963,7 +963,7 @@ def test_action_tag_is_preserved_in_telegram_one_liner() -> None:
         update={
             "rendered_markdown": (
                 "# 2026-04-25 미국 증시 시황\n\n"
-                "> **오늘의 결론**: 반도체 실적 카탈리스트가 진행 중입니다. [강세]\n\n"
+                "> **오늘의 결론**: 반도체 실적 카탈리스트가 진행 중입니다. [상승 관찰]\n\n"
                 + briefings[US_EQUITY].rendered_markdown
             )
         }
@@ -971,10 +971,9 @@ def test_action_tag_is_preserved_in_telegram_one_liner() -> None:
 
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
-    assert "[강세]" in summary
-    # The closed-set tag should appear right at the end of the conclusion
-    # line — adjacent to the "기간 진행 중입니다." sentence.
-    assert "진행 중입니다. [강세]" in summary
+    # u56 — closed-set observation tag replaces legacy [강세].
+    assert "[상승 관찰]" in summary
+    assert "진행 중입니다. [상승 관찰]" in summary
 
 
 # ---------------------------------------------------------------------------

@@ -28,7 +28,7 @@ from pathlib import Path
 import pytest
 from pydantic import HttpUrl, TypeAdapter
 
-from investo.briefing.disclaimer import DISCLAIMER
+from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.models import (
@@ -70,14 +70,18 @@ def _item(title: str = "x") -> NormalizedItem:
     )
 
 
-def _briefing(target_date: date = _TARGET) -> Briefing:
+def _briefing(target_date: date = _TARGET, segment: MarketSegment | None = None) -> Briefing:
+    # u56 — crypto segment carries DISCLAIMER_CRYPTO so the publish
+    # gate's segment-aware verify_disclaimer(..., segment="crypto")
+    # passes.
+    footer = DISCLAIMER_CRYPTO if segment == "crypto" else DISCLAIMER
     body = (
         "오늘 시장 요약\n\n"
         "## ② 전일 핵심 이슈\n핵심 이슈\n\n"
         "## ③ 섹터/수급 동향\n섹터\n\n"
         "## ④ 지표·이벤트\n지표\n\n"
         "## ⑤ 주요 종목\n종목\n\n"
-        "## ⑥ 오늘의 관전 포인트\n관전\n\n" + DISCLAIMER
+        "## ⑥ 오늘의 관전 포인트\n관전\n\n" + footer
     )
     return Briefing(
         target_date=target_date,
@@ -87,7 +91,7 @@ def _briefing(target_date: date = _TARGET) -> Briefing:
         indicators_events="지표",
         notable_tickers="종목",
         today_watch="관전",
-        disclaimer=DISCLAIMER,
+        disclaimer=footer,
         rendered_markdown=(
             "# 2026-04-27 테스트 시황\n\n"
             "> **오늘의 결론**: 오늘 시장 요약\n"
@@ -209,7 +213,7 @@ def _success_segment_generate(calls: list[tuple[MarketSegment, int, bool]]) -> o
         del market_anchors  # u49 — asserted in dedicated test below
         del carryover  # u52 — asserted in dedicated test below
         calls.append((segment, len(items), data_limited))
-        return _briefing(target_date)
+        return _briefing(target_date, segment=segment)
 
     return _fake
 
@@ -459,7 +463,7 @@ async def test_run_pipeline_threads_recent_context_to_segment_generate(
         del items, runner, source_outcomes, data_limited, market_anchors, carryover
         if segment == US_EQUITY:
             seen.append(recent_context)
-        return _briefing(target_date)
+        return _briefing(target_date, segment=segment)
 
     publisher = _FakePublisher()
     alerter = _FakeAlerter()
@@ -742,7 +746,12 @@ async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
     git = _SuccessfulGitRunner()
     calls = 0
 
-    def fake_verify_disclaimer(markdown: str) -> bool:
+    def fake_verify_disclaimer(
+        markdown: str,
+        segment: MarketSegment | None = None,
+        *,
+        legacy: bool = False,
+    ) -> bool:
         nonlocal calls
         calls += 1
         return calls != 2
@@ -791,7 +800,7 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
         del recent_context
         del market_anchors
         del carryover
-        briefing = _briefing(target_date)
+        briefing = _briefing(target_date, segment=segment)
         if segment == US_EQUITY:
             return briefing.model_copy(
                 update={
@@ -940,9 +949,9 @@ async def test_stage_publish_segments_stages_latest_index_pages(
 
     await pipeline_module._stage_publish_segments(
         {
-            DOMESTIC_EQUITY: _briefing(),
-            US_EQUITY: _briefing(),
-            CRYPTO: _briefing(),
+            DOMESTIC_EQUITY: _briefing(segment=DOMESTIC_EQUITY),
+            US_EQUITY: _briefing(segment=US_EQUITY),
+            CRYPTO: _briefing(segment=CRYPTO),
         },
         _TARGET,
         git_runner=git,
@@ -1818,9 +1827,9 @@ async def test_run_pipeline_duration_seconds_set_on_success(archive_root: Path) 
 
 def _segment_briefings_dict() -> dict[MarketSegment, Briefing]:
     return {
-        DOMESTIC_EQUITY: _briefing(),
-        US_EQUITY: _briefing(),
-        CRYPTO: _briefing(),
+        DOMESTIC_EQUITY: _briefing(segment=DOMESTIC_EQUITY),
+        US_EQUITY: _briefing(segment=US_EQUITY),
+        CRYPTO: _briefing(segment=CRYPTO),
     }
 
 

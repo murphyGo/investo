@@ -165,8 +165,17 @@ from investo.publisher import site_index as _site_index_mod
 from investo.publisher.anchor_table import render_anchor_table
 from investo.publisher.carryover import inject_carryover_block, render_carryover_block
 from investo.publisher.charts import build_chart_block, inject_chart_block
+from investo.publisher.compliance_language import (
+    ComplianceLanguageError,
+    scan_compliance,
+)
 from investo.publisher.monthly_index import update_monthly_index
-from investo.publisher.reader_format import apply_reader_format
+from investo.publisher.reader_format import (
+    apply_reader_format,
+    check_filler_phrase_density,
+    check_sentence_ending_diversity,
+    emit_first_viewport_disclaimer,
+)
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
     ARCHIVE_INDEX_PATH,
@@ -176,6 +185,7 @@ from investo.publisher.site_index import (
     update_latest_index_pages,
     update_quality_page,
 )
+from investo.publisher.verifier import verify_short_disclaimer_first_viewport
 from investo.publisher.weekly_digest import (
     WEEKLY_INDEX_PATH,
 )
@@ -647,10 +657,37 @@ async def _stage_publish_segments(
         published_segments=published_segments,
     )
 
+    # u56 — ensure the segment-aware first-viewport short disclaimer is
+    # present BEFORE the gate checks it. The reader-format chain inserts
+    # it for full run_pipeline paths; this defensive pass covers callers
+    # that bypass _apply_reader_format_to_segments (e.g. unit tests
+    # exercising _stage_publish_segments directly). Idempotent — a
+    # second insertion is a noop.
+    briefings = {
+        segment: briefing.model_copy(
+            update={
+                "rendered_markdown": emit_first_viewport_disclaimer(
+                    briefing.rendered_markdown, segment
+                )
+            }
+        )
+        if emit_first_viewport_disclaimer(briefing.rendered_markdown, segment)
+        != briefing.rendered_markdown
+        else briefing
+        for segment, briefing in briefings.items()
+    }
+
     try:
         for segment in published_segments:
             validate_first_viewport_summary(briefings[segment].rendered_markdown)
-            if not verify_disclaimer(briefings[segment].rendered_markdown):
+            if not verify_disclaimer(briefings[segment].rendered_markdown, segment):
+                raise PublisherDisclaimerError(target_date=target_date)
+            # u56 — additive gate: short disclaimer must be present in
+            # the first viewport. Runs *alongside* the canonical footer
+            # check so removing either surface blocks publish.
+            if not verify_short_disclaimer_first_viewport(
+                briefings[segment].rendered_markdown, segment
+            ):
                 raise PublisherDisclaimerError(target_date=target_date)
     except (SummaryQualityError, PublisherDisclaimerError, PublisherIOError):
         # Visual asset files (snapshotted with previous_bytes=None) must be
@@ -1075,6 +1112,15 @@ def _apply_reader_format_to_segments(
                             markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
         # Step 3 — pure str → str post-format chain.
         markdown = apply_reader_format(markdown, segment=segment)
+        # u56 — compliance-language gate + first-viewport short disclaimer
+        # + retail tone caps. Order: scan first (cheap reject of P0 hits
+        # before any post-format I/O), then prepend the short disclaimer
+        # so it lands above ``## 한눈에 보기``, then non-blocking tone
+        # diagnostics.
+        scan_compliance(markdown, segment)
+        markdown = emit_first_viewport_disclaimer(markdown, segment)
+        check_sentence_ending_diversity(markdown, segment=segment)
+        check_filler_phrase_density(markdown, segment=segment)
         if markdown == briefing.rendered_markdown:
             rewritten[segment] = briefing
         else:
@@ -1801,10 +1847,28 @@ async def run_pipeline(
         # sub-headings to ``### Title``, wrap plain numeric tokens in
         # bold, and dedupe repeated glossings. Pure string transform; no
         # I/O. Disclaimer is untouched (pinned by test).
-        segment_briefings = _apply_reader_format_to_segments(
-            segment_briefings,
-            anchors_by_segment=market_anchors_by_segment,
-        )
+        # The reader-format chain includes the u56 compliance gate; a
+        # P0 hit raises ``ComplianceLanguageError`` here, which the
+        # publish-stage handler below catches via the shared tuple.
+        try:
+            segment_briefings = _apply_reader_format_to_segments(
+                segment_briefings,
+                anchors_by_segment=market_anchors_by_segment,
+            )
+        except ComplianceLanguageError as exc:
+            stage_timings["publish"] = 0.0
+            stages["publish"] = f"failed: {type(exc).__name__}"
+            stages["notify_briefing"] = "skipped"
+            await _safe_alert(alerter, "publish", exc)
+            return _build_result(
+                target_date=target_date,
+                status=PipelineStatus.FAILED,
+                stages=stages,
+                stage_timings=stage_timings,
+                pipeline_start=pipeline_start,
+                briefing_url=None,
+                source_outcomes=source_outcomes,
+            )
 
     # ------------------------------------------------------------------
     # PUBLISH (AC-003-4, AC-003-5)
@@ -1825,6 +1889,7 @@ async def run_pipeline(
             await _stage_publish(briefing, target_date, git_runner=git_runner)
     except (
         SummaryQualityError,
+        ComplianceLanguageError,
         PublisherDisclaimerError,
         PublisherIOError,
         PublisherGitError,

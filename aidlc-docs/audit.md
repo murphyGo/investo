@@ -3358,3 +3358,20 @@ B) Partial"
 **Context**: Stage 1 Step 11 — Workflow Planning artifact complete; awaiting user approval
 
 ---
+
+## u56 Land — compliance-language-and-observational-tags
+**Timestamp**: 2026-05-13T00:00:00Z
+**Action**: Wave 8 land. All 9 plan steps `[x]`, FR-012 registered, 2089 → 2206 tests passed (+117; plan est. +52-68).
+**Decisions**:
+- ActionTag migrated 5→4 observation labels + `LEGACY_TAG_ALIASES` map; archive 재렌더 안 함 (법 소급 무).
+- `DISCLAIMER_CRYPTO` 신규 (가상자산이용자보호법 §10·§19 reference); `append_disclaimer` / `verify_disclaimer` 시그니처 확장 — default 인자로 1-arg call site byte-compat (NFR-004 invariant 보존).
+- P0 phrase catalogue + crypto-only subset (5 phrases) gated by `segment == "crypto"`.
+- Context-aware demote: `진입/청산/편입` symmetric, `목표가` left-only quotative. 6-token window.
+- First-viewport short disclaimer = additive gate (not substitute). Triple gate at publish: scan → first-viewport → canonical footer.
+- Tone caps WARN-only (non-blocking) per NFR-003.
+- Module boundary: phrase list in `models/compliance_phrases.py` (data layer — all units may import); gate in `publisher/compliance_language.py`; orchestrator only call site.
+**Quality gate**: ruff clean / format clean (312 files) / mypy --strict (121 src) / pytest 2206 / mkdocs build --strict.
+**DEBT 후보**: D56-A (`DISCLAIMER_CRYPTO` 변호사 검토), D56-B (KoNLPy 형태소 분석으로 종결 어미 정밀도 보강), D56-C (P0 phrase quarterly 갱신 cadence), D56-D (영문 quantified outcome regex 확장).
+**Context**: AIDLC Construction Wave 8 Step land.
+
+---

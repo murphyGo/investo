@@ -95,6 +95,7 @@ def test_segment_context_template_supports_data_limited_note() -> None:
         segment_label="미국 증시",
         segment_slug="us-equity",
         data_limited_note=SEGMENT_DATA_LIMITED_NOTE,
+        segment_extra_note="",  # u56 — new placeholder for crypto-only ban
     )
 
     assert "미국 증시" in rendered

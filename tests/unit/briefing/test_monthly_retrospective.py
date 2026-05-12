@@ -23,7 +23,8 @@ def test_monthly_retrospective_renders_rows_distribution_and_top_tickers(tmp_pat
 
     assert body.count("2026-04-") == 30
     assert "## 결론 톤 분포" in body
-    assert "[강세]" in body
+    # u56 — legacy stance tag normalises to observation label.
+    assert "[상승 관찰]" in body
     assert "NVDA: 30회" in body
     assert "AAPL: 30회" in body
 

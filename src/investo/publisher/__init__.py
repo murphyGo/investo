@@ -51,6 +51,11 @@ Reference:
     aidlc-docs/construction/plans/u3-publisher-code-generation-plan.md
 """
 
+from investo.publisher.compliance_language import (
+    ComplianceLanguageError,
+    ComplianceReport,
+    scan_compliance,
+)
 from investo.publisher.errors import (
     PublisherDisclaimerError,
     PublisherError,
@@ -59,7 +64,10 @@ from investo.publisher.errors import (
 )
 from investo.publisher.git_ops import GitRunner, commit_and_push
 from investo.publisher.paths import ARCHIVE_ROOT, archive_path
-from investo.publisher.verifier import verify_disclaimer
+from investo.publisher.verifier import (
+    verify_disclaimer,
+    verify_short_disclaimer_first_viewport,
+)
 from investo.publisher.weekly_digest import (
     WEEKLY_ARCHIVE_ROOT,
     WEEKLY_INDEX_PATH,
@@ -74,6 +82,8 @@ __all__ = [
     "ARCHIVE_ROOT",
     "WEEKLY_ARCHIVE_ROOT",
     "WEEKLY_INDEX_PATH",
+    "ComplianceLanguageError",
+    "ComplianceReport",
     "GitRunner",
     "PublisherDisclaimerError",
     "PublisherError",
@@ -82,8 +92,10 @@ __all__ = [
     "archive_path",
     "commit_and_push",
     "publish_weekly_digest",
+    "scan_compliance",
     "update_weekly_index",
     "verify_disclaimer",
+    "verify_short_disclaimer_first_viewport",
     "weekly_digest_opt_in",
     "weekly_path",
     "write_briefing",

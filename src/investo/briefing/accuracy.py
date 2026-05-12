@@ -12,7 +12,21 @@ from typing import Final
 
 from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
 
-_DIRECTIONAL_TAGS: Final[set[str]] = {"[강세]", "[약세]", "[혼조]", "[변동성↑]"}
+# u56 — both legacy stance tags and the new observation tags resolve to
+# the same directional buckets so historical forecast-log entries from
+# pre-2026-05-13 archives still aggregate cleanly.
+_DIRECTIONAL_TAGS: Final[set[str]] = {
+    # legacy stance set (pre-u56 archive entries)
+    "[강세]",
+    "[약세]",
+    "[혼조]",
+    "[변동성↑]",
+    # new observation set (u56 onwards)
+    "[상승 관찰]",
+    "[하락 관찰]",
+    "[혼재]",
+    "[변동성 확대]",
+}
 _NA_TAGS: Final[set[str]] = {"[관망]", "[데이터부족]"}
 
 
@@ -170,13 +184,15 @@ def _parse_entry(payload: object) -> ForecastEntry | None:
 
 
 def _is_hit(tag: str, move: PriceMove) -> bool:
-    if tag == "[강세]":
+    # u56 — observation set + legacy stance set both map to the same
+    # quantitative hit predicate (directional buckets unchanged).
+    if tag in ("[강세]", "[상승 관찰]"):
         return move.pct_change >= 0.0
-    if tag == "[약세]":
+    if tag in ("[약세]", "[하락 관찰]"):
         return move.pct_change <= 0.0
-    if tag == "[혼조]":
+    if tag in ("[혼조]", "[혼재]"):
         return abs(move.pct_change) <= 1.0
-    if tag == "[변동성↑]":
+    if tag in ("[변동성↑]", "[변동성 확대]"):
         return (move.volatility_percentile or 0.0) >= 0.8
     return False
 

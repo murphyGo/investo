@@ -139,6 +139,25 @@
   - [x] R13 secret hygiene: date corruption fixture / WARNING / operator alert payload 가 secret-shaped substring 미포함.
 - **Priority**: Should-have (NFR-001 quality 보강 + NFR-003 재현성).
 
+### FR-012: Compliance language enforcement + segment-aware disclaimer (u56 compliance-language-and-observational-tags)
+- **Description**: 시황의 advisory wording / quantified outcome / Korean retail-coded language 를 publish 게이트에서 차단한다. (1) `src/investo/models/compliance_phrases.py` 의 단일 source 가 briefing prompt + publisher gate 양쪽 import 대상. (2) `publisher/compliance_language.py` 의 `scan_compliance(markdown, segment) -> ComplianceReport` 가 P0 phrase 발견 시 `ComplianceLanguageError` raise (orchestrator 가 publish 차단); P1 hit 은 WARN + structured extra; 6-token-window context-aware classifier 가 `진입/청산/목표가/편입` 의 quotative / fact-pattern 사용을 INFO 로 demote. (3) `briefing/disclaimer.py` 에 `DISCLAIMER_CRYPTO` (가상자산이용자보호법 2024-07-19 시행 §10·§19 reference) 분리; `append_disclaimer(markdown, segment)` + `verify_disclaimer(briefing_md, segment, *, legacy)` 시그니처 확장; 기존 1-arg call 은 default 인자로 byte-compat. (4) `publisher/reader_format.py::emit_first_viewport_disclaimer` 가 `## 한눈에 보기` 직전에 segment-aware short disclaimer blockquote 를 1줄 emit; `verify_short_disclaimer_first_viewport` 가 *additive* gate. (5) ActionTag 5종 (`[관망] [변동성↑] [강세] [약세] [혼조]`) → 4종 observation 라벨 (`[상승 관찰] [하락 관찰] [혼재] [변동성 확대]`) + `[데이터부족]` 마이그레이션. `LEGACY_TAG_ALIASES` 가 LLM cutover 동안 legacy 입력을 normalise. (6) `check_sentence_ending_diversity` + `check_filler_phrase_density` — 본문 surface 종결 어미 dominance > 60% / filler 빈도 > 8.0/1000 chars → WARN-only.
+- **User Story**: As a 시황 reader, I want 자동 생성된 시황이 advisory wording / quantified outcome / retail 토착어 / 단방향 stance 라벨 / 단일 종결 어미 일색의 자동 생성물 시그니처를 피하기를, so that 한국 자본시장법 §17 / 가상자산이용자보호법 §10·§19 와 거리상 안전하고 reader UX 가 retail 자동물처럼 보이지 않도록.
+- **Acceptance Criteria**:
+  - [x] Stage-2 segment-aware prompt forbids direct trading-action instructions and uses observation/check language.
+  - [x] ActionTag 5종 → 4종 마이그레이션 + alias map backward-compat parser (legacy tag 정상 normalise; archive 재렌더 안 함).
+  - [x] `publisher/compliance_language.py` 신규 gate: P0 phrase 발견 시 `ComplianceLanguageError` (orchestrator publish 차단); P1 phrase 발견 시 WARN + structured extra (segment / phrase / count / line_no).
+  - [x] P0 banned phrase 세 카테고리: (a) Action instruction (대칭 buy/sell, 16 phrases), (b) Quantified outcome promise (regex), (c) Korean retail-coded crypto-only (5 phrases, segment="crypto" 만 active).
+  - [x] Context-aware 6-token-window classifier 가 `진입 / 청산 / 편입` symmetric, `목표가` left-only (quotative) demote.
+  - [x] First-viewport short disclaimer (segment-aware) 가 `## 한눈에 보기` H2 직전에 1줄 blockquote 로 emit; `verify_short_disclaimer_first_viewport` 가 *추가* gate.
+  - [x] `briefing/disclaimer.py` 에 `DISCLAIMER_CRYPTO` 신규 상수 (가상자산이용자보호법 §10·§19 reference + 24h 거래 / 비제도권 / 변동성 / 원금 전액 손실 명시).
+  - [x] `append_disclaimer(markdown, segment)` + `verify_disclaimer(briefing_md, segment, *, legacy)` 시그니처 확장; default 인자로 기존 1-arg call site 무파괴.
+  - [x] Archive backward-compat (legacy=True flag) — weekly digest 가 pre-cutoff archive 의 equity-only footer 도 통과.
+  - [x] 종결 어미 다양성 cap ≤ 60% (`check_sentence_ending_diversity` → `tone.sentence_ending_dominance` WARN).
+  - [x] Filler phrase family (`여부 / 전망 / 우려 / 가능성 / 작용`) per-1000-chars 빈도 ≤ 8.0 (`check_filler_phrase_density` → `tone.filler_density` WARN).
+  - [x] 회귀 핀: 면책 footer 누락 → `verify_disclaimer` fail; first-viewport 누락 → 신규 gate fail; crypto + us-equity 면책 mismatch → `verify_disclaimer(segment="crypto")` fail.
+  - [x] R13 secret hygiene: scan WARN extra 가 LLM output text 만 carry (segment / phrase / line_no); raw_metadata 미포함.
+- **Priority**: Must-have (Rule 2 disclaimer enforcement 강화 — 기존 footer + 신규 first-viewport + segment 분기).
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

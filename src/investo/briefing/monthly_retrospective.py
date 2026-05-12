@@ -9,11 +9,20 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
-from investo.briefing.action_tag import ACTION_TAGS, DEFAULT_ACTION_TAG, ActionTag
+from investo.briefing.action_tag import (
+    ACTION_TAGS,
+    DEFAULT_ACTION_TAG,
+    LEGACY_TAG_ALIASES,
+    ActionTag,
+)
 from investo.briefing.extract import extract_conclusion
 from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
 
-_TAG_RE: Final[re.Pattern[str]] = re.compile(r"\[(?:관망|변동성↑|강세|약세|혼조|데이터부족)\]$")
+_TAG_RE: Final[re.Pattern[str]] = re.compile(
+    r"\[(?:관망|변동성↑|강세|약세|혼조"
+    r"|상승 관찰|하락 관찰|혼재|변동성 확대"
+    r"|데이터부족)\]$"
+)
 _TICKER_RE: Final[re.Pattern[str]] = re.compile(
     r"(?<![A-Z0-9.])[A-Z][A-Z0-9.]{1,9}(?![A-Z0-9.])|(?<!\d)\d{6}(?!\d)"
 )
@@ -110,11 +119,18 @@ def _load_month_entries(year: int, month: int, *, archive_root: Path) -> list[Mo
 
 
 def _extract_action_tag(conclusion: str) -> ActionTag:
+    # u56 — legacy stance tags in pre-cutover archive files are
+    # normalised to the observation set via ``LEGACY_TAG_ALIASES``.
     match = _TAG_RE.search(conclusion.strip())
     if match is None:
         return DEFAULT_ACTION_TAG
     tag = match.group(0)
-    return tag if tag in ACTION_TAGS else DEFAULT_ACTION_TAG
+    if tag in ACTION_TAGS:
+        return tag
+    aliased = LEGACY_TAG_ALIASES.get(tag)
+    if aliased is not None:
+        return aliased
+    return DEFAULT_ACTION_TAG
 
 
 def _strip_action_tag(conclusion: str) -> str:

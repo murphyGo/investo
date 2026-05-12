@@ -135,7 +135,7 @@ Market scope: {segment_label} ({segment_slug}).
 Use only evidence relevant to this market segment.
 Do not fill gaps with news from another segment.
 {data_limited_note}
-"""
+{segment_extra_note}"""
 
 SEGMENT_DATA_READY_NOTE: Final[str] = (
     "The routed item set has enough signal for a normal segment briefing."
@@ -143,6 +143,15 @@ SEGMENT_DATA_READY_NOTE: Final[str] = (
 SEGMENT_DATA_LIMITED_NOTE: Final[str] = (
     'The routed item set is data-limited; explicitly say "데이터 부족" '
     "where evidence is insufficient."
+)
+# u56 — crypto-only forbidden retail-coded terms (가상자산이용자보호법
+# §10 disorderly-market reference). Emitted only when ``segment == "crypto"``;
+# the publish-time ``scan_compliance`` gate also enforces this list.
+CRYPTO_FORBIDDEN_TERMS_NOTE: Final[str] = (
+    "가상자산 세그먼트 한정 금지 어휘 (가상자산이용자보호법 §10 reference): "
+    "세력, 김프 진입, 상폐 임박, 에어드랍 확정, 펌핑. 이 어휘는 publish "
+    "게이트에서 차단되니 사용하지 말 것. 사실 보고에는 "
+    "'가격 변동 / 거래량 급증 / 거래소 상장 폐지 공지' 같은 중립 표현을 사용한다."
 )
 
 # Placeholders:
@@ -212,18 +221,32 @@ Rules:
   labels (NEVER use "주도주", "부진", "주의" verbatim — Korean
   capital-markets law treats those as implicit investment
   recommendation language).
-- Section ① (요약) MUST end with EXACTLY one closed-set action tag
-  drawn verbatim from this list, separated from the preceding sentence
-  by a single space:
-  ``[관망]`` (neutral / wait-and-see), ``[변동성↑]`` (high volatility
-  expected), ``[강세]`` (bullish bias), ``[약세]`` (bearish bias),
-  ``[혼조]`` (mixed signals).
-  Pick the tag that best matches the day's input items. DO NOT invent
-  new tags or use English equivalents (``[BUY]``, ``[bullish]``);
-  off-set tags are stripped by the post-processor and replaced with
-  ``[관망]``. The publisher additionally forces ``[데이터부족]`` on
-  segments with insufficient coverage regardless of what you emit, so
-  do not emit ``[데이터부족]`` yourself.
+- Section ① (요약) MUST end with EXACTLY one closed-set observation
+  tag drawn verbatim from this list, separated from the preceding
+  sentence by a single space:
+  ``[상승 관찰]`` (날 데이터가 상승 쪽으로 기울었을 때),
+  ``[하락 관찰]`` (날 데이터가 하락 쪽으로 기울었을 때),
+  ``[혼재]`` (mixed signals),
+  ``[변동성 확대]`` (high volatility expected).
+  Pick the tag that best matches the day's input items. Tags are
+  **observational** — they describe the data shape, NOT a buy/sell
+  stance. DO NOT invent new tags, use English equivalents
+  (``[BUY]``, ``[bullish]``), or use the legacy stance tags
+  (``[강세]``, ``[약세]``, ``[혼조]``, ``[변동성↑]``, ``[관망]``);
+  the publisher's post-processor will rewrite legacy tags to the
+  observation set, but emitting them directly is a contract drift.
+  The publisher additionally forces ``[데이터부족]`` on segments
+  with insufficient coverage regardless of what you emit, so do not
+  emit ``[데이터부족]`` yourself.
+- 행동·권유성 어구 금지 (u56 compliance gate): 다음 어휘는 자본시장법
+  §17 / 가상자산이용자보호법 §10 reference 로 publish 게이트에서 차단된다 —
+  ``매수 검토, 매도 검토, 비중 축소, 비중 확대, 편입, 차익실현, 익절,
+  손절, 손절매, 리밸런싱, 진입, 청산, 목표가, 평단가, 추격매수, 물타기,
+  반드시, 확실, 보장, 급등 예상, 급락 임박, 불가피, 필연``. 관찰 동사로
+  종결하라 — ``관찰 / 확인 / 점검 / 비교 / 추세 살피기``.
+- 수치 + 수익 / 상승 보장 표현 금지: ``30% 이상 수익 예상``,
+  ``2배 상승`` 같은 quantified outcome 어구는 publish 게이트에서 차단된다.
+  관찰형 수치 (``+1.2% 상승``, ``-3.4% 하락``) 만 허용.
 - DO NOT include section ⑦ — the disclaimer is appended by the
   caller (R5).
 - DO NOT include any private tokens, keys, email addresses, or
@@ -292,9 +315,11 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   primary path 다.
 - §⑥ 오늘의 관전 포인트 의 bullet 종결 어미 비율 룰: 5개 중 ``~여부 /
   ~필요가 있다 / ~관건이다 / ~주목할 필요`` 로 끝나는 bullet 은 *40% 이하* 로
-  제한한다 (즉, 최소 60% 는 액션 동사 종결 — ``매수 검토 / 비중 축소 /
-  추세 확인 / 헤지 확대 / 손절 라인 설정`` 등). 관찰형 종결은 reader 에게
-  "무엇을 할지" 가 전달되지 않으므로 publisher 단계에서 WARN 으로 표시된다.
+  제한한다 (즉, 최소 60% 는 *관찰* 동사 종결 — ``추세 확인 / 흐름 점검 /
+  데이터 비교 / 변동 관찰 / 일정 체크`` 등). 직접적인 행동 지시 어휘
+  (``매수 검토 / 비중 축소 / 손절 라인``) 는 u56 publish 게이트에서
+  차단되므로 사용하지 말 것. 관찰형 종결은 reader 에게 "무엇을 할지" 가
+  전달되지 않으므로 publisher 단계에서 WARN 으로 표시된다.
 - 글로싱 1회 룰: 같은 segment 내 같은 용어의 풀어쓰기 (예: ``S&P
   500(스탠더드앤드푸어스 500 지수)``) 는 *첫 1회만* 풀어쓰고, 2번째 이후
   출현은 base 용어만 (``S&P 500``) 표기한다. 별도 ``> **용어 가이드**``
@@ -344,8 +369,8 @@ Carryover (event-level lifecycle) rules (u52):
 - CARRY-2: For every row whose status is "미확인" (unresolved), keep
   the row visible in the "## Watchlist Carryover" markdown block that
   the publisher inserts between §② and §③. Do not silently drop a row.
-- CARRY-3: When yesterday's [강세] flips to today's [약세] (or vice
-  versa) — visible in the recent-context conclusion lines — the §②
+- CARRY-3: When yesterday's [상승 관찰] flips to today's [하락 관찰] (or
+  vice versa) — visible in the recent-context conclusion lines — the §②
   first paragraph MUST carry a 1-2 sentence bridge that names the
   reversal driver and includes one flow-of-funds clause.
 - CARRY-4: ticker_or_topic / originated_date / expected_date values
@@ -499,6 +524,7 @@ __all__ = [
     "CARRYOVER_CONTEXT_EMPTY_NOTE",
     "CARRYOVER_CONTEXT_HEADER",
     "CARRYOVER_CONTEXT_INTRO",
+    "CRYPTO_FORBIDDEN_TERMS_NOTE",
     "DEFAULT_SEGMENT_CONTEXT",
     "LOOKAHEAD_EMPTY_NOTE",
     "LOOKAHEAD_HEADER",
