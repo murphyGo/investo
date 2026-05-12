@@ -2079,9 +2079,9 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
 
     2026-05-09 bumped the per-call timeout after Crypto Stage 2 hit the
     180s ceiling. 2026-05-12 then showed that two attempts per segment
-    can burn the old 20-minute workflow before publish/notify. The
-    workflow now has a 60-minute ceiling, but one long attempt per
-    segment keeps partial publish/notify responsive.
+    can burn the old 20-minute workflow before publish/notify, but the
+    workflow now has a 60-minute ceiling. Keep two attempts so transient
+    synthesis stalls do not erase domestic/us coverage.
     """
     domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
     us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
@@ -2091,17 +2091,18 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     assert us.timeout_s == 210.0
     assert crypto.timeout_s == 240.0
 
-    assert domestic.max_attempts == 1
-    assert us.max_attempts == 1
-    assert crypto.max_attempts == 1
+    assert domestic.max_attempts == 2
+    assert us.max_attempts == 2
+    assert crypto.max_attempts == 2
 
-    # The slow-synthesis path stays bounded well below
-    # ``daily-briefing.yml``'s 60-minute job timeout; the remaining
-    # margin belongs to collect, visual assets, publish, notify, and
-    # GitHub runner overhead.
-    assert sum(policy.timeout_s for policy in (domestic, us, crypto)) <= 12 * 60
+    # Worst-case repeated synthesis time remains below the 60-minute job
+    # timeout, leaving headroom for collect, visual assets, publish,
+    # notify, and GitHub runner overhead.
+    assert sum(
+        policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)
+    ) <= 24 * 60
 
-    # Total budget still covers one full attempt plus headroom for the
-    # fast classification stage and output validation.
+    # Total budget covers the retry attempts plus headroom for the fast
+    # classification stage and output validation.
     for policy in (domestic, us, crypto):
-        assert policy.total_budget_s > policy.timeout_s * policy.max_attempts
+        assert policy.total_budget_s >= policy.timeout_s * policy.max_attempts

@@ -247,15 +247,14 @@ SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
     CRYPTO,
 )
 SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
-    # 2026-05-12 GHA postmortem — with max_attempts=2, two slow
-    # synthesis segments consumed ~14m before crypto began and the
-    # 20-minute workflow timeout cancelled the run before publish/notify.
-    # Keep the longer single-call ceilings from the 2026-05-09 incident,
-    # but fail a slow segment after one long attempt so remaining
-    # segments can still publish and Telegram can receive a partial run.
-    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=210.0, max_attempts=1, total_budget_s=300.0),
-    US_EQUITY: GenerationPolicy(timeout_s=210.0, max_attempts=1, total_budget_s=300.0),
-    CRYPTO: GenerationPolicy(timeout_s=240.0, max_attempts=1, total_budget_s=330.0),
+    # 2026-05-12 GHA postmortem — the workflow job timeout is now 60
+    # minutes, so the per-segment retry policy can keep two LLM attempts
+    # without reintroducing the old 20-minute cancellation failure. This
+    # favors complete domestic/us/crypto coverage while still keeping each
+    # segment isolated: exhausted retries degrade that segment to PARTIAL.
+    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=210.0, max_attempts=2, total_budget_s=450.0),
+    US_EQUITY: GenerationPolicy(timeout_s=210.0, max_attempts=2, total_budget_s=450.0),
+    CRYPTO: GenerationPolicy(timeout_s=240.0, max_attempts=2, total_budget_s=510.0),
 }
 
 
