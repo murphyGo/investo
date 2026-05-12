@@ -126,6 +126,22 @@ u19 must favor Investo-generated data visuals over scraped third-party images. T
 
 The second five-reader quality review on 2026-05-07 prioritized user trust and operator actionability. The requested implementation order is `u23 -> u21 -> u20`, with `u22` and `u24` kept as planned follow-up units.
 
+### u54-u57 Planning Notes
+
+The 2026-05-13 ten-agent review of generated briefings was deduplicated against u51, u52, and u53 before adding new units.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u54 source-status-severity-and-quality-kpi | Source failures/zero-item sources are labeled as `정상`, and quality KPIs do not explain coverage risk | FR-001, FR-002, FR-003, FR-008, NFR-003 | u22 coverage transparency, u42 quality KPI history |
+| u55 numeric-freshness-and-market-fact-gates | Core numeric claims, date tokens, market direction, and stale archive status need source-backed gates | FR-001, FR-002, FR-003, FR-006, FR-008, NFR-003 | u25 summary fidelity, u32 numeric self-check, u49 market anchor |
+| u56 compliance-language-and-observational-tags | Prompt/gate language can drift into investment-advice wording despite footer disclaimer | FR-002, FR-003, FR-004, FR-008, NFR-004 | u21 summary gate, u23 notification actionability |
+| u57 segment-narrative-scope-and-time-reconciliation | Segment-native scope and `장중/출발/마감` states need reconciliation across the same bundle | FR-002, FR-008, NFR-003 | u45 routing exclusivity, u52 carryover |
+
+Deduplicated out:
+- u51 already owns reader layout, TL;DR, anchor table, H3 conversion, number bolding, glossary dedupe, and action-ratio diagnostics.
+- u52 already owns prior-briefing carryover and event lifecycle tracking.
+- u53 already owns domestic flow and US sector/macro ETF input coverage.
+
 ---
 
 ## Definition of Done — Inception Phase Output

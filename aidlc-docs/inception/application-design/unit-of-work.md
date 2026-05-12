@@ -546,6 +546,114 @@ Not a unit (no stories assigned), but a prerequisite for all units.
 
 ---
 
+## Wave 8 Quality Follow-Up Units
+
+The 2026-05-13 ten-agent review of generated market briefings produced additional quality units after removing work already covered by u51, u52, and u53:
+
+- Excluded as u51 scope: TL;DR block, anchor table, H3 conversion, bold-number scanability, glossary dedupe, and non-blocking action-ratio diagnostics.
+- Excluded as u52 scope: day-over-day carryover, prior event lifecycle, resolved/unresolved table, and prior briefing bridge.
+- Excluded as u53 scope: domestic foreign/institutional flow data and US sector/macro ETF source expansion.
+
+### u54: `source-status-severity-and-quality-kpi` — Reader-Truthful Source Status
+
+**Purpose**: `데이터 상태: 정상`이 실패/0건 소스를 덮어쓰지 않게 하고, quality dashboard가 실제 source coverage risk를 설명하도록 한다.
+
+**Stories**: FR-001 (데이터 수집), FR-002 (AI 시황 작성), FR-003 (정적 웹 게시), FR-008 (세그먼트별 시황 생성), NFR-003 (graceful degradation)
+
+**Module path**:
+- `src/investo/briefing/segments.py` — coverage severity model and reason mapping
+- `src/investo/briefing/pipeline.py` — first-viewport status rendering
+- `src/investo/briefing/quality_eval.py` — KPI computation
+- `src/investo/publisher/site_index.py` — quality page rendering
+- `src/investo/visuals/render.py` — data-confidence card text, if needed
+
+**Tests**:
+- `tests/unit/briefing/` — normal/partial/limited severity and source count breakdown
+- `tests/unit/publisher/` — quality page denominator and failure summary rendering
+- `tests/unit/visuals/` — card status text remains concise and source-safe
+
+**Definition of Done**:
+- [ ] Source status distinguishes target/succeeded/zero/failed/body-used counts.
+- [ ] Segment status labels use `정상/부분/제한/실패` semantics rather than hiding failures under `정상`.
+- [ ] Core source failures downgrade reader-visible status when they affect a segment's conclusion.
+- [ ] Quality page shows observed runs, failed sources, zero-item sources, and core-missing counts.
+- [ ] Trace/collapsed source diagnostics can explain excluded or failed sources without leaking secrets.
+
+### u55: `numeric-freshness-and-market-fact-gates` — Numeric Verification and Staleness Gates
+
+**Purpose**: 핵심 지수/가격/날짜/방향성 수치가 source-backed인지 검증하고, stale briefing을 형식상 성공으로 보여주지 않게 한다.
+
+**Stories**: FR-001, FR-002, FR-003, FR-006, FR-008, NFR-003
+
+**Module path**:
+- `src/investo/briefing/numeric_self_check.py` — claim/source numeric comparison
+- `src/investo/briefing/market_anchor.py` — canonical market fact inputs
+- `src/investo/orchestrator/pipeline.py` — publish/dry-run warning and failure policy
+- `src/investo/publisher/site_index.py` — freshness/staleness marker
+
+**Tests**:
+- `tests/unit/briefing/` — source-backed numeric claims, tolerance, and date-token anomaly cases
+- `tests/unit/orchestrator/` — stale archive/quality page detection
+- `tests/unit/publisher/` — freshness marker rendering
+
+**Definition of Done**:
+- [ ] Core market claims require a source-backed numeric anchor or explicit `확인 필요` downgrade.
+- [ ] Numeric quality separates `number present` from `number verified`.
+- [ ] Date-token corruption such as `5/65/7` is detected before publish.
+- [ ] Archive/quality freshness is measured against segment market calendars and operator policy.
+- [ ] Stale or unverifiable facts are visible in status/KPI output without blocking unrelated segments unnecessarily.
+
+### u56: `compliance-language-and-observational-tags` — Compliance Language Gate
+
+**Purpose**: 시황이 투자 자문처럼 읽히지 않도록 행동 지시형 문구, 보장형 표현, 과도한 방향성 태그를 관찰형 언어로 제한한다.
+
+**Stories**: FR-002, FR-003, FR-004, FR-008, NFR-004
+
+**Module path**:
+- `src/investo/briefing/prompts.py` — Stage 2 language rules
+- `src/investo/briefing/action_tag.py` — observational tag vocabulary
+- `src/investo/briefing/summary_quality.py` or new `compliance_language.py` — language gate
+- `src/investo/publisher/verifier.py` — first-viewport compliance checks
+- `src/investo/notifier/summary.py` — notification-safe wording
+
+**Tests**:
+- `tests/unit/briefing/` — blocked and softened phrases
+- `tests/unit/publisher/` — first-viewport short disclaimer and compliance gate
+- `tests/unit/notifier/` — Telegram summary does not surface high-risk action language
+
+**Definition of Done**:
+- [ ] Prompt no longer encourages `매수 검토/비중 축소/손절/헤지 확대/목표가` style action instructions.
+- [ ] Publish gate blocks or warns on high-risk advisory phrases.
+- [ ] `[강세]/[약세]` first-viewport tags are replaced or softened into observation labels.
+- [ ] A short information-only disclaimer appears within the first viewport.
+- [ ] Existing canonical disclaimer remains enforced at the document end.
+
+### u57: `segment-narrative-scope-and-time-reconciliation` — Segment Scope and Time-State Reconciliation
+
+**Purpose**: 국내/미국/크립토 세그먼트가 서로 다른 장중/마감 시점을 섞어 상충되는 내러티브를 만들지 않게 하고, 세그먼트별 핵심 소재 범위를 유지한다.
+
+**Stories**: FR-002, FR-008, NFR-003
+
+**Module path**:
+- `src/investo/briefing/segments.py` — segment scope rules and shared macro classification
+- `src/investo/briefing/prompts.py` — source/time-state wording rules
+- `src/investo/briefing/pipeline.py` — cross-segment reconciliation context
+- `src/investo/orchestrator/pipeline.py` — same-run segment context wiring
+
+**Tests**:
+- `tests/unit/briefing/` — domestic segment does not promote unrelated overseas open-state news as a core issue
+- `tests/unit/briefing/` — `장중/출발/마감` wording reconciliation
+- `tests/integration/` — same-date segmented bundle remains internally consistent
+
+**Definition of Done**:
+- [ ] Segment prompts rank native market facts above cross-market background.
+- [ ] Shared macro facts are summarized once and reinterpreted per segment without duplicative overreach.
+- [ ] Open/close/intraday states are labeled and reconciled when another segment has the final close.
+- [ ] Domestic watchlist impact does not surface unrelated global tickers unless a domestic linkage is explicit.
+- [ ] Cross-segment links are added only when they reduce duplication or clarify scope.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
