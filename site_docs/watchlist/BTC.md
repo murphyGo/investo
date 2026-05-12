@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-11 begin -->
+
+## 2026-05-11
+
+- [defillama-market-structure] **ticker**: DeFi TVL $86.1B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 80,983.36
+- [theblock-crypto] **ticker**: Bitcoin miner CleanSpark’s Q2 losses swell after losing $224 million on BTC holdings
+- [theblock-crypto] **ticker**: MARA Q1 revenue drops 18%, says bitcoin mining remains ‘operational foundation’
+- [theblock-crypto] **ticker**: ‘Back to work’: Michael Saylor’s Strategy buys 535 bitcoin for $43 million after brief pause as total holdings hit 81…
+- [theblock-crypto] **ticker**: ‘Crypto at the crossroads’: Analysts say Iran tensions and whale selling cloud outlook as bitcoin holds above $81K
+
+<!-- u33 entry 2026-05-11 end -->
 <!-- u33 entry 2026-05-08 begin -->
 
 ## 2026-05-08
