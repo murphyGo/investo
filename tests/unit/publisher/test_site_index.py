@@ -111,6 +111,31 @@ def test_update_index_hero_inlines_segment_conclusions(tmp_path: Path) -> None:
     assert "archive/domestic-equity/2026/05/2026-05-07.md" in body
 
 
+def test_update_latest_index_pages_omits_missing_partial_segments(tmp_path: Path) -> None:
+    site_index, archive_index = _seed_index_pages(tmp_path)
+    target = date(2026, 5, 7)
+    briefings = {
+        CRYPTO: _briefing(target, "BTC 횡보."),
+    }
+
+    update_latest_index_pages(
+        target,
+        site_index_path=site_index,
+        archive_index_path=archive_index,
+        segment_briefings=briefings,
+    )
+
+    site = site_index.read_text(encoding="utf-8")
+    assert "archive/crypto/2026/05/2026-05-07.md" in site
+    assert "archive/domestic-equity/2026/05/2026-05-07.md" not in site
+    assert "archive/us-equity/2026/05/2026-05-07.md" not in site
+
+    archive = archive_index.read_text(encoding="utf-8")
+    assert "crypto/2026/05/2026-05-07.md" in archive
+    assert "domestic-equity/2026/05/2026-05-07.md" not in archive
+    assert "us-equity/2026/05/2026-05-07.md" not in archive
+
+
 def test_update_index_hero_is_idempotent(tmp_path: Path) -> None:
     site_index, _ = _seed_index_pages(tmp_path)
     target = date(2026, 5, 7)

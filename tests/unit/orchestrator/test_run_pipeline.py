@@ -700,6 +700,32 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert "push" in [call[1] for call in git.calls]
 
 
+def test_rewrite_segment_nav_for_partial_publish_omits_missing_segments() -> None:
+    briefing = _briefing().model_copy(
+        update={
+            "rendered_markdown": (
+                "# 2026-04-27 크립토 시황\n\n"
+                "**세그먼트**: [국내 증시](../../../domestic-equity/2026/04/2026-04-27.md) "
+                "| [미국 증시](../../../us-equity/2026/04/2026-04-27.md) "
+                "| [크립토](2026-04-27.md)\n\n"
+                "## ① 요약\n본문\n\n"
+                f"{DISCLAIMER}"
+            )
+        }
+    )
+
+    rewritten = pipeline_module._rewrite_segment_nav_for_published_segments(
+        {CRYPTO: briefing},
+        target_date=_TARGET,
+        published_segments=(CRYPTO,),
+    )
+
+    markdown = rewritten[CRYPTO].rendered_markdown
+    assert "**세그먼트**: [크립토](2026-04-27.md)" in markdown
+    assert "domestic-equity/2026/04/2026-04-27.md" not in markdown
+    assert "us-equity/2026/04/2026-04-27.md" not in markdown
+
+
 @pytest.mark.asyncio
 async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
     archive_root: Path,

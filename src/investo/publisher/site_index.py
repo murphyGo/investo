@@ -116,16 +116,21 @@ def update_latest_index_pages(
             segment_briefings,
             site_index_path=site_index_path,
         )
+    published_segments = (
+        tuple(segment for segment in _SEGMENTS if segment in segment_briefings)
+        if segment_briefings is not None
+        else _SEGMENTS
+    )
 
     _replace_section(
         site_index_path,
         "## 최신 시황",
-        _site_latest_section(target_date),
+        _site_latest_section(target_date, published_segments),
     )
     _replace_section(
         archive_index_path,
         "## 최신 시황",
-        _archive_latest_section(target_date),
+        _archive_latest_section(target_date, published_segments),
     )
     _replace_section(
         archive_index_path,
@@ -340,14 +345,12 @@ def _render_hero_block(
     iso = target_date.isoformat()
     cards: list[str] = []
     for segment in _SEGMENTS:
+        briefing = segment_briefings.get(segment)
+        if briefing is None:
+            continue
         label = SEGMENT_LABELS[segment]
         href = _site_segment_href(target_date, segment)
-        briefing = segment_briefings.get(segment)
-        conclusion = (
-            extract_conclusion(briefing.rendered_markdown)
-            if briefing is not None
-            else _HERO_FALLBACK_TEXT
-        )
+        conclusion = extract_conclusion(briefing.rendered_markdown)
         # Markdown blockquote cards keep the hero readable both when
         # mkdocs renders the page AND when GitHub displays the raw .md
         # — important for index reviewers using the GitHub web UI.
@@ -355,7 +358,7 @@ def _render_hero_block(
     body_cards = "\n".join(cards)
     return (
         f"# 오늘의 시황 ({iso})\n\n"
-        "오늘 자동 발행된 세 개 세그먼트의 결론을 요약합니다. "
+        "오늘 자동 발행된 세그먼트의 결론을 요약합니다. "
         "각 카드를 눌러 전체 시황으로 이동할 수 있습니다.\n\n"
         f"{body_cards}\n"
         "[전체 Archive 보기](archive/index.md) · "
@@ -425,25 +428,31 @@ def _segment_entries(archive_dir: Path) -> list[Path]:
 # ---------------------------------------------------------------------------
 
 
-def _site_latest_section(target_date: date) -> str:
+def _site_latest_section(
+    target_date: date,
+    segments: tuple[MarketSegment, ...] = _SEGMENTS,
+) -> str:
     return (
         "## 최신 시황\n\n"
         f"현재 보관된 최신 묶음은 **{target_date.isoformat()}**입니다.\n\n"
         + "\n".join(
             f"- [{SEGMENT_LABELS[segment]}]({_site_segment_href(target_date, segment)})"
-            for segment in _SEGMENTS
+            for segment in segments
         )
         + "\n\n[전체 Archive 보기](archive/index.md)"
     )
 
 
-def _archive_latest_section(target_date: date) -> str:
+def _archive_latest_section(
+    target_date: date,
+    segments: tuple[MarketSegment, ...] = _SEGMENTS,
+) -> str:
     return (
         "## 최신 시황\n\n"
         f"현재 보관된 최신 묶음은 **{target_date.isoformat()}**입니다.\n\n"
         + "\n".join(
             f"- [{SEGMENT_LABELS[segment]}]({_archive_segment_href(target_date, segment)})"
-            for segment in _SEGMENTS
+            for segment in segments
         )
     )
 

@@ -66,6 +66,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import re
 import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
@@ -109,6 +110,7 @@ from investo.briefing.quality_history import (
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
+    SEGMENT_LABELS,
     US_EQUITY,
     MarketSegment,
     SegmentCoverage,
@@ -195,6 +197,7 @@ _logger = logging.getLogger("investo.orchestrator.pipeline")
 # I/O). Read at each publish-stage entry so a caller flipping the env
 # mid-run is honoured by the next stage.
 _DRY_RUN_ENV: Final[str] = "INVESTO_DRY_RUN"
+_SEGMENT_NAV_LINE_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*세그먼트\*\*: .*$", re.MULTILINE)
 
 
 def _is_dry_run() -> bool:
@@ -623,6 +626,11 @@ async def _stage_publish_segments(
         path: _read_existing_bytes(path) for path in snapshot_paths
     }
     snapshots.update({path: None for path in asset_paths})
+    briefings = _rewrite_segment_nav_for_published_segments(
+        briefings,
+        target_date=target_date,
+        published_segments=published_segments,
+    )
 
     try:
         for segment in published_segments:
@@ -1007,6 +1015,47 @@ def _forecast_briefing_urls(
         segment: f"archive/{segment}/{target_date:%Y}/{target_date:%m}/{target_date.isoformat()}.md"
         for segment in published_segments
     }
+
+
+def _rewrite_segment_nav_for_published_segments(
+    briefings: dict[MarketSegment, Briefing],
+    *,
+    target_date: date,
+    published_segments: Sequence[MarketSegment],
+) -> dict[MarketSegment, Briefing]:
+    """Remove nav links to segments that failed generation in a partial publish."""
+    published_set = set(published_segments)
+    rewritten: dict[MarketSegment, Briefing] = {}
+    for segment, briefing in briefings.items():
+        nav_line = _segment_nav_line(
+            target_date,
+            current_segment=segment,
+            published_segments=published_set,
+        )
+        markdown = _SEGMENT_NAV_LINE_RE.sub(nav_line, briefing.rendered_markdown, count=1)
+        rewritten[segment] = briefing.model_copy(update={"rendered_markdown": markdown})
+    return rewritten
+
+
+def _segment_nav_line(
+    target_date: date,
+    *,
+    current_segment: MarketSegment,
+    published_segments: set[MarketSegment],
+) -> str:
+    parts: list[str] = []
+    filename = f"{target_date.isoformat()}.md"
+    for segment in SEGMENT_ORDER:
+        if segment not in published_segments:
+            continue
+        label = SEGMENT_LABELS[segment]
+        href = (
+            filename
+            if segment == current_segment
+            else f"../../../{segment}/{target_date.year}/{target_date.month:02d}/{filename}"
+        )
+        parts.append(f"[{label}]({href})")
+    return f"**세그먼트**: {' | '.join(parts)}"
 
 
 def _maybe_publish_monthly_retrospective(
