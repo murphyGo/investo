@@ -58,6 +58,7 @@ _MAX_DIMENSION: Final[int] = 2000
 _PNG_IHDR_OFFSET: Final[int] = 8
 _PNG_IHDR_LENGTH: Final[int] = 25
 _DIMENSION_NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"\d+")
+_MARKET_SNAPSHOT_TEXT_MAX_CHARS: Final[int] = 240
 _CARD_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
     "data-confidence": "데이터 신뢰도",
@@ -311,11 +312,20 @@ def _build_market_snapshot_card(
     return MarketSnapshotCardInput(
         target_date=target_date,
         segment=segment,
-        conclusion=extracted["conclusion"] or briefing.market_summary,
-        main_driver=extracted["driver"] or briefing.key_issues,
-        caution=extracted["caution"] or briefing.today_watch,
+        conclusion=_card_summary_text(extracted["conclusion"], briefing.market_summary),
+        main_driver=_card_summary_text(extracted["driver"], briefing.key_issues),
+        caution=_card_summary_text(extracted["caution"], briefing.today_watch),
         coverage_status=coverage.status,
     )
+
+
+def _card_summary_text(primary: str, fallback: str) -> str:
+    text = " ".join((primary or fallback).split())
+    if not text:
+        return "데이터 보강 후 확인이 필요합니다."
+    if len(text) <= _MARKET_SNAPSHOT_TEXT_MAX_CHARS:
+        return text
+    return text[: _MARKET_SNAPSHOT_TEXT_MAX_CHARS - 1].rstrip() + "…"
 
 
 def _extract_summary_lines(markdown: str) -> dict[str, str]:

@@ -12,6 +12,7 @@ from investo.briefing.segments import build_segment_coverage
 from investo.briefing.watchlist import WatchlistConfig, match_watchlist_items
 from investo.models import Briefing, NormalizedItem
 from investo.publisher.paths import archive_path
+from investo.visuals import assets as assets_module
 from investo.visuals.assets import (
     VisualAssetError,
     insert_visual_links,
@@ -140,6 +141,43 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
     assert archive_path(_TARGET, segment="us-equity").parent == (
         tmp_path / "archive/us-equity/2026/05"
     )
+
+
+def test_prepare_segment_visual_assets_truncates_long_market_snapshot_text(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
+    long_caution = (
+        "CSCO 포스트마켓 어닝 리스크와 CPI 발표, 금리 경로, 반도체 수급, "
+        "달러 움직임을 함께 확인해야 합니다. "
+        * 5
+    )
+    briefing = _briefing().model_copy(
+        update={
+            "rendered_markdown": _briefing().rendered_markdown.replace(
+                "> **주의할 점**: 금리 경로와 실적 발표를 함께 확인해야 합니다.",
+                f"> **주의할 점**: {long_caution}",
+            )
+        }
+    )
+    items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
+    coverage = build_segment_coverage("us-equity", items)
+    impact = match_watchlist_items(items, WatchlistConfig(tickers=("NVDA",)))
+
+    prepared = prepare_segment_visual_assets(
+        briefing,
+        target_date=_TARGET,
+        segment="us-equity",
+        items=items,
+        coverage=coverage,
+        watchlist_impact=impact,
+    )
+
+    assert any(path.name == "market-snapshot.svg" for path in prepared.asset_paths)
+    card_text = assets_module._card_summary_text(long_caution, "")
+    assert len(card_text) <= 240
+    assert card_text.endswith("…")
 
 
 def test_prepare_segment_visual_assets_can_prepend_openai_png(
