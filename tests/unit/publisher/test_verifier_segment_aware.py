@@ -9,6 +9,7 @@ from investo.briefing.disclaimer import (
     DISCLAIMER,
     DISCLAIMER_CRYPTO,
     append_disclaimer,
+    ensure_canonical_disclaimer,
 )
 from investo.publisher.verifier import verify_disclaimer
 
@@ -73,6 +74,22 @@ def test_append_disclaimer_default_is_equity() -> None:
     """1-arg call retains historic equity-only behaviour."""
     out = append_disclaimer("# header")
     assert DISCLAIMER in out
+
+
+def test_ensure_canonical_disclaimer_repairs_anchor_present_footer() -> None:
+    out = ensure_canonical_disclaimer(
+        "# header\n\n## ⑦ 면책조항\n잘못된 본문",
+        segment="crypto",
+    )
+    assert DISCLAIMER_CRYPTO in out
+    assert "잘못된 본문" not in out
+    assert verify_disclaimer(out, segment="crypto") is True
+
+
+def test_ensure_canonical_disclaimer_keeps_missing_anchor_blockable() -> None:
+    out = ensure_canonical_disclaimer("# header\n본문", segment="us-equity")
+    assert out == "# header\n본문"
+    assert verify_disclaimer(out, segment="us-equity") is False
 
 
 def test_compliance_cutoff_date_constant() -> None:

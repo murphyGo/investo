@@ -86,6 +86,7 @@ from investo.briefing.context import (
     load_recent_briefings,
     resolve_recent_days,
 )
+from investo.briefing.disclaimer import ensure_canonical_disclaimer
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.forecast_log import (
     ForecastLogError,
@@ -714,6 +715,18 @@ async def _stage_publish_segments(
 
     try:
         for segment in published_segments:
+            canonical_markdown = ensure_canonical_disclaimer(
+                briefings[segment].rendered_markdown,
+                segment,
+            )
+            if canonical_markdown != briefings[segment].rendered_markdown:
+                _logger.warning(
+                    "[publish] repaired canonical disclaimer segment=%s",
+                    segment,
+                )
+                briefings[segment] = briefings[segment].model_copy(
+                    update={"rendered_markdown": canonical_markdown}
+                )
             repaired_markdown = repair_first_viewport_summary(
                 briefings[segment].rendered_markdown
             )
@@ -727,6 +740,10 @@ async def _stage_publish_segments(
                 )
             validate_first_viewport_summary(briefings[segment].rendered_markdown)
             if not verify_disclaimer(briefings[segment].rendered_markdown, segment):
+                _logger.error(
+                    "[publish] disclaimer verification failed segment=%s",
+                    segment,
+                )
                 raise PublisherDisclaimerError(target_date=target_date)
             # u56 — additive gate: short disclaimer must be present in
             # the first viewport. Runs *alongside* the canonical footer
@@ -734,6 +751,10 @@ async def _stage_publish_segments(
             if not verify_short_disclaimer_first_viewport(
                 briefings[segment].rendered_markdown, segment
             ):
+                _logger.error(
+                    "[publish] first-viewport disclaimer verification failed segment=%s",
+                    segment,
+                )
                 raise PublisherDisclaimerError(target_date=target_date)
     except (SummaryQualityError, PublisherDisclaimerError, PublisherIOError):
         # Visual asset files (snapshotted with previous_bytes=None) must be

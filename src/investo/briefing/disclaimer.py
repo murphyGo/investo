@@ -106,9 +106,35 @@ def append_disclaimer(markdown: str, segment: MarketSegment | None = None) -> st
     return markdown + "\n\n" + _disclaimer_for(segment)
 
 
+def ensure_canonical_disclaimer(markdown: str, segment: MarketSegment | None = None) -> str:
+    """Return ``markdown`` with an anchor-present footer made canonical.
+
+    ``append_disclaimer`` is deliberately anchor-idempotent: if a body
+    already contains ``## ⑦ 면책조항`` it leaves the text untouched so
+    publisher verification can catch footer drift. The live publish
+    path has an additional need: after reader-format transforms, an
+    anchor-present footer should be repairable immediately before the
+    hard publish gate. This helper replaces the anchored tail with the
+    segment-appropriate canonical footer while preserving the historic
+    "missing anchor still fails" behaviour.
+    """
+    anchor_idx = markdown.find(_ANCHOR)
+    if anchor_idx == -1:
+        return markdown
+
+    footer = _disclaimer_for(segment)
+    if footer in markdown[anchor_idx:]:
+        return markdown
+
+    prefix = markdown[:anchor_idx].rstrip()
+    suffix = "\n" if markdown.endswith("\n") else ""
+    return f"{prefix}\n\n{footer}{suffix}"
+
+
 __all__ = [
     "COMPLIANCE_CUTOFF_DATE",
     "DISCLAIMER",
     "DISCLAIMER_CRYPTO",
     "append_disclaimer",
+    "ensure_canonical_disclaimer",
 ]
