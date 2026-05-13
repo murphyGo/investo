@@ -715,12 +715,23 @@ def apply_reader_format(
       5. ``check_action_bullet_ratio`` — pure diagnostic; runs last so it
          observes the final shape.
     """
-    out = ensure_tldr_block(text, segment=segment)
+    # Keep the canonical footer byte-identical for publish verification.
+    body, footer = _split_disclaimer_footer(text)
+    out = ensure_tldr_block(body, segment=segment)
     out = enforce_h3_subheadings(out)
     out = wrap_numbers_bold(out)
     out = dedupe_glossings(out)
-    check_action_bullet_ratio(out, segment=segment)
-    return out
+    combined = out + footer
+    check_action_bullet_ratio(combined, segment=segment)
+    return combined
+
+
+def _split_disclaimer_footer(text: str) -> tuple[str, str]:
+    anchor = "## ⑦ 면책조항"
+    anchor_idx = text.find(anchor)
+    if anchor_idx == -1:
+        return text, ""
+    return text[:anchor_idx], text[anchor_idx:]
 
 
 __all__ = [

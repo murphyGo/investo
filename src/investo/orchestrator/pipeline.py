@@ -1990,6 +1990,12 @@ async def run_pipeline(
         stage_timings["publish"] = time.monotonic() - stage_start
         stages["publish"] = f"failed: {type(exc).__name__}"
         stages["notify_briefing"] = "skipped"
+        _logger.error(
+            "[publish] failed target_date=%s error_type=%s error=%s",
+            target_date,
+            type(exc).__name__,
+            exc,
+        )
         await _safe_alert(alerter, "publish", exc)
         return _build_result(
             target_date=target_date,

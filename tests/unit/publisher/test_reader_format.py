@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 
-from investo.briefing.disclaimer import DISCLAIMER
+from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.publisher.reader_format import (
     ACTION_RATIO_THRESHOLD,
     TLDR_HEADER,
@@ -303,6 +303,22 @@ def test_apply_reader_format_preserves_disclaimer() -> None:
     assert DISCLAIMER in out
     # The format chain ran (TL;DR inserted, number wrapped).
     assert TLDR_HEADER in out
+    assert "**+3.89%**" in out
+
+
+def test_apply_reader_format_preserves_crypto_disclaimer_with_duplicate_glossing() -> None:
+    text = (
+        "# Title\n\n"
+        "> **오늘의 결론**: foo\n"
+        "> **핵심 동인**: bar\n"
+        "> **주의할 점**: baz\n\n"
+        "## ① 요약\n"
+        "가상자산이용자보호법(2024-07-19 시행) 관련 이슈가 재부각됐다. "
+        "BTC는 +3.89% 상승했다.\n\n"
+        f"{DISCLAIMER_CRYPTO}\n"
+    )
+    out = apply_reader_format(text, segment="crypto")
+    assert DISCLAIMER_CRYPTO in out
     assert "**+3.89%**" in out
 
 
