@@ -1471,7 +1471,7 @@ async def generate_briefing(
         classification.model_dump(),
         body_markdown,
     )
-    full_markdown = append_disclaimer(enhanced_markdown)
+    full_markdown = append_disclaimer(enhanced_markdown, segment)
 
     hit = leak_guard_scan(full_markdown)
     if hit is not None:

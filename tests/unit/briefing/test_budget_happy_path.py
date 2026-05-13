@@ -26,8 +26,9 @@ import pytest
 
 from investo.briefing import pipeline
 from investo.briefing.claude_code import RetryBudget
+from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import SubprocessOutcome
-from investo.briefing.segments import US_EQUITY
+from investo.briefing.segments import CRYPTO, US_EQUITY
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models import Briefing, NormalizedItem
 from tests._helpers.briefing_pipeline import valid_classification_stdout, valid_stage2_markdown
@@ -154,6 +155,46 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
     assert "> **데이터 상태**: 부분" in result.rendered_markdown
     assert "누락: 가격" in result.rendered_markdown
     assert "> **오늘의 결론**:" in result.rendered_markdown
+
+
+@pytest.mark.asyncio
+async def test_generate_briefing_crypto_segment_uses_crypto_disclaimer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """u56 regression — non-fallback crypto path must append crypto footer."""
+    stdouts = [
+        valid_classification_stdout(item_count=2),
+        valid_stage2_markdown(),
+    ]
+    call_index = 0
+
+    async def fake_call_claude_code(
+        prompt: str,
+        *,
+        timeout_s: float = 120.0,
+        runner: object | None = None,
+    ) -> SubprocessOutcome:
+        nonlocal call_index
+        outcome = SubprocessOutcome(
+            stdout=stdouts[call_index],
+            stderr="",
+            returncode=0,
+            elapsed_s=1.0,
+        )
+        call_index += 1
+        return outcome
+
+    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+
+    result = await pipeline.generate_briefing(
+        _TARGET_DATE,
+        _items(2),
+        segment=CRYPTO,
+    )
+
+    assert result.disclaimer == DISCLAIMER_CRYPTO
+    assert DISCLAIMER_CRYPTO in result.rendered_markdown
+    assert DISCLAIMER not in result.rendered_markdown
 
 
 @pytest.mark.asyncio
