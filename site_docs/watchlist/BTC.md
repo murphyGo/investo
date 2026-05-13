@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-13 begin -->
+
+## 2026-05-13
+
+- [coingecko-price] **ticker**: BTC $80,582.00 (+0.03%)
+- [defillama-market-structure] **ticker**: DeFi TVL $87.1B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 80,561.33
+- [theblock-crypto] **ticker**: Charles Schwab launches spot BTC, ETH trading to select retail clients
+
+<!-- u33 entry 2026-05-13 end -->
 <!-- u33 entry 2026-05-11 begin -->
 
 ## 2026-05-11
