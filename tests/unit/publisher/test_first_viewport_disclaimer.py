@@ -92,3 +92,14 @@ def test_verify_first_viewport_only_considers_first_30_lines() -> None:
     filler = "\n".join(f"line {i}" for i in range(50))
     md = filler + "\n" + SHORT_DISCLAIMER_EQUITY + "\n"
     assert verify_short_disclaimer_first_viewport(md, "us-equity") is False
+
+
+def test_emit_moves_buried_short_disclaimer_back_to_first_viewport() -> None:
+    filler = "\n".join(f"line {i}" for i in range(50))
+    md = f"{filler}\n{SHORT_DISCLAIMER_EQUITY}\n\n## 한눈에 보기\n\n## ① 요약\n"
+
+    out = emit_first_viewport_disclaimer(md, "us-equity")
+
+    assert out.count(SHORT_DISCLAIMER_EQUITY) == 1
+    assert verify_short_disclaimer_first_viewport(out, "us-equity") is True
+    assert out.index(SHORT_DISCLAIMER_EQUITY) < out.index("## 한눈에 보기")
