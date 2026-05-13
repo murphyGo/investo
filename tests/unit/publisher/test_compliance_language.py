@@ -8,6 +8,7 @@ import pytest
 
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
+    repair_compliance_language,
     scan_compliance,
 )
 
@@ -212,3 +213,37 @@ def test_segment_field_propagated_to_report() -> None:
     md = _wrap("정상 문장입니다.")
     report = scan_compliance(md, "crypto")
     assert report.segment == "crypto"
+
+
+# ---------------------------------------------------------------------------
+# Repair pass
+# ---------------------------------------------------------------------------
+
+
+def test_repair_compliance_language_neutralizes_p0_phrases() -> None:
+    md = _wrap("BTC는 30% 이상 수익 예상이 아니라 변동성 확인이 필요하고 펌핑 표현은 피한다.")
+    repaired = repair_compliance_language(md, "crypto")
+    report = scan_compliance(repaired, "crypto")
+    assert not report.p0_hits
+    assert "수익률 변동 가능성" in repaired
+    assert "단기 급등" in repaired
+
+
+def test_repair_compliance_language_preserves_masked_regions() -> None:
+    md = (
+        "## ① 요약\n"
+        "| 종목 | 비고 |\n"
+        "| --- | --- |\n"
+        "| AAPL | 매수 검토 |\n\n"
+        "```\n"
+        "익절\n"
+        "```\n\n"
+        "본문에는 손절 문구가 있다.\n\n"
+        "## ⑦ 면책조항\n"
+        "매수 검토 손절\n"
+    )
+    repaired = repair_compliance_language(md, SEG)
+    assert "| AAPL | 매수 검토 |" in repaired
+    assert "```\n익절\n```" in repaired
+    assert "## ⑦ 면책조항\n매수 검토 손절" in repaired
+    assert "본문에는 거래 리스크 관리 문구가 있다." in repaired

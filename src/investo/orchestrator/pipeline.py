@@ -173,6 +173,7 @@ from investo.publisher.carryover import inject_carryover_block, render_carryover
 from investo.publisher.charts import build_chart_block, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
+    repair_compliance_language,
     scan_compliance,
 )
 from investo.publisher.cross_segment_lint import run_all_cross_segment_lints
@@ -1201,6 +1202,13 @@ def _apply_reader_format_to_segments(
         # before any post-format I/O), then prepend the short disclaimer
         # so it lands above ``## 한눈에 보기``, then non-blocking tone
         # diagnostics.
+        repaired_markdown = repair_compliance_language(markdown, segment)
+        if repaired_markdown != markdown:
+            _logger.warning(
+                "[publish] repaired compliance language segment=%s",
+                segment,
+            )
+            markdown = repaired_markdown
         scan_compliance(markdown, segment)
         markdown = emit_first_viewport_disclaimer(markdown, segment)
         check_sentence_ending_diversity(markdown, segment=segment)
@@ -1950,6 +1958,12 @@ async def run_pipeline(
             stage_timings["publish"] = 0.0
             stages["publish"] = f"failed: {type(exc).__name__}"
             stages["notify_briefing"] = "skipped"
+            _logger.error(
+                "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
+                target_date,
+                type(exc).__name__,
+                exc,
+            )
             await _safe_alert(alerter, "publish", exc)
             return _build_result(
                 target_date=target_date,

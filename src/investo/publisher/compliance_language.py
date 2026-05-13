@@ -103,6 +103,46 @@ _CODE_FENCE_RE: Final[re.Pattern[str]] = re.compile(r"```.*?```", re.DOTALL)
 _INLINE_CODE_RE: Final[re.Pattern[str]] = re.compile(r"`[^`\n]+`")
 _TABLE_LINE_RE: Final[re.Pattern[str]] = re.compile(r"^\s*\|.*\|\s*$")
 _DISCLAIMER_ANCHOR: Final[str] = "## ⑦ 면책조항"
+_REPAIR_REPLACEMENTS: Final[dict[str, str]] = {
+    "매수 검토": "거래 판단 점검",
+    "매도 검토": "거래 판단 점검",
+    "비중 축소": "노출 변화 점검",
+    "비중 확대": "노출 변화 점검",
+    "편입": "포함",
+    "차익실현": "거래 리스크 관리",
+    "익절": "거래 리스크 관리",
+    "손절매": "거래 리스크 관리",
+    "손절": "거래 리스크 관리",
+    "리밸런싱": "구성 변화",
+    "진입": "접근",
+    "청산": "정리",
+    "목표가": "전망치",
+    "평단가": "평균 단가",
+    "추격매수": "추가 거래",
+    "물타기": "추가 거래",
+    "반드시": "가능성이 있어",
+    "확실": "강한",
+    "보장": "확인 필요",
+    "급등 예상": "상승 가능성",
+    "급락 임박": "하락 압력",
+    "불가피": "가능성이 커",
+    "필연": "개연성",
+    "세력": "대형 참여자",
+    "김프 진입": "김프 확대",
+    "상폐 임박": "상장폐지 리스크",
+    "에어드랍 확정": "에어드랍 관련 기대",
+    "펌핑": "단기 급등",
+}
+_REPAIR_QUANTIFIED_OUTCOME_REPLACEMENTS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
+    (
+        re.compile(
+            r"\d+\s*%\s*(이상\s*)?\s*(수익|상승|하락|손실)\s*"
+            r"(예상|가능|기대|보장|확실|불가피)"
+        ),
+        "수익률 변동 가능성",
+    ),
+    (re.compile(r"\d+\s*배\s*(수익|상승)"), "큰 변동 가능성"),
+)
 
 
 def _mask_non_scan_regions(markdown: str) -> str:
@@ -134,6 +174,39 @@ def _mask_non_scan_regions(markdown: str) -> str:
             stripped = line.rstrip("\n")
             newline = line[len(stripped) :]
             lines[idx] = " " * len(stripped) + newline
+    return "".join(lines)
+
+
+def repair_compliance_language(markdown: str, segment: MarketSegment) -> str:
+    """Rewrite P0 compliance phrases into neutral reader-facing wording.
+
+    The repair pass is deliberately conservative about scope: it skips
+    code blocks, table rows, and the canonical disclaimer footer, then
+    the publish gate still calls :func:`scan_compliance` as the hard
+    verifier.
+    """
+    lines = markdown.splitlines(keepends=True)
+    in_code = False
+    changed = False
+    for index, line in enumerate(lines):
+        if _DISCLAIMER_ANCHOR in line:
+            break
+        if line.lstrip().startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code or _TABLE_LINE_RE.match(line):
+            continue
+        repaired = line
+        for pattern, replacement in _REPAIR_QUANTIFIED_OUTCOME_REPLACEMENTS:
+            repaired = pattern.sub(replacement, repaired)
+        for phrase, replacement in _REPAIR_REPLACEMENTS.items():
+            if phrase in repaired:
+                repaired = repaired.replace(phrase, replacement)
+        if repaired != line:
+            lines[index] = repaired
+            changed = True
+    if not changed:
+        return markdown
     return "".join(lines)
 
 
@@ -330,5 +403,6 @@ __all__ = [
     "ComplianceHit",
     "ComplianceLanguageError",
     "ComplianceReport",
+    "repair_compliance_language",
     "scan_compliance",
 ]
