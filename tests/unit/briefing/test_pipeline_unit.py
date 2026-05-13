@@ -25,6 +25,7 @@ from investo.briefing.pipeline import (
     SectionPlan,
     _parse_classification,
     _render_grouped_sections,
+    _render_unassigned,
     _select_llm_candidate_items,
     build_section_plan,
     parse_six_sections,
@@ -429,6 +430,44 @@ def test_render_grouped_sections_includes_source_urls_for_citations() -> None:
     assert "[nasdaq-stocks-news] S&P 500 sets record" in rendered
     assert "(https://example.com/story)" in rendered
     assert "Major indexes advanced." in rendered
+
+
+def test_render_grouped_sections_caps_stage2_evidence_budget() -> None:
+    items_by_section = {
+        section: tuple(
+            _item(
+                source_name=f"src-{section}",
+                title=f"section-{section}-item-{idx}",
+                summary="x" * 400,
+                url="https://example.com/" + ("a" * 220),
+            )
+            for idx in range(20)
+        )
+        for section in (2, 3, 4, 5)
+    }
+
+    rendered = _render_grouped_sections(items_by_section)
+
+    assert rendered.count("  - [src-") == 48
+    assert "section-2-item-13" in rendered
+    assert "section-2-item-14" not in rendered
+    assert "section-5-item-5" in rendered
+    assert "section-5-item-6" not in rendered
+    assert "(6 additional classified items omitted for prompt budget)" in rendered
+    assert "(14 additional classified items omitted for prompt budget)" in rendered
+    assert "x" * 300 not in rendered
+    assert "a" * 200 not in rendered
+
+
+def test_render_unassigned_caps_stage2_context_budget() -> None:
+    items = tuple(_item(title=f"unassigned-{idx}") for idx in range(12))
+
+    rendered = _render_unassigned(items)
+
+    assert rendered.count("  - [test-source]") == 8
+    assert "unassigned-7" in rendered
+    assert "unassigned-8" not in rendered
+    assert "(4 additional unassigned items omitted for prompt budget)" in rendered
 
 
 # ---------------------------------------------------------------------------

@@ -271,14 +271,15 @@ SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
     CRYPTO,
 )
 SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
-    # 2026-05-12 GHA postmortem — the workflow job timeout is now 60
-    # minutes, so each segment gets a materially larger per-call LLM
-    # ceiling while retaining two attempts. Worst-case repeated
-    # synthesis across all three segments still stays under the job
-    # ceiling with room for collect/publish/notify overhead.
-    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=420.0, max_attempts=2, total_budget_s=900.0),
-    US_EQUITY: GenerationPolicy(timeout_s=420.0, max_attempts=2, total_budget_s=900.0),
-    CRYPTO: GenerationPolicy(timeout_s=480.0, max_attempts=2, total_budget_s=1020.0),
+    # 2026-05-13 GHA postmortem — all three segments exhausted the old
+    # 420/480s synthesis ceilings on a 503-item day. The workflow job
+    # timeout is now 120 minutes, so each segment gets a 15-minute
+    # per-call ceiling while retaining two attempts. Worst-case repeated
+    # synthesis across all three segments still leaves room for collect,
+    # visual assets, publish, notify, and GitHub runner overhead.
+    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=900.0, max_attempts=2, total_budget_s=1920.0),
+    US_EQUITY: GenerationPolicy(timeout_s=900.0, max_attempts=2, total_budget_s=1920.0),
+    CRYPTO: GenerationPolicy(timeout_s=900.0, max_attempts=2, total_budget_s=1920.0),
 }
 
 

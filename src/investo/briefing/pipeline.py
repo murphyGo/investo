@@ -118,6 +118,16 @@ _STAGE1_STDOUT_MAX_BYTES: Final[int] = 64 * 1024
 _VALID_SECTION_IDS: Final[frozenset[int]] = frozenset({2, 3, 4, 5})
 _MAX_LLM_ITEMS: Final[int] = 96
 _MAX_LLM_ITEMS_PER_SOURCE: Final[int] = 24
+# Stage 2 receives the richer prompt: segment rules, recent context,
+# carryover, bundle context, and the classified evidence rows. Keep the
+# evidence block materially smaller than Stage 1 so high-volume days do
+# not spend the whole cron window synthesizing a single segment.
+_MAX_STAGE2_ITEMS_TOTAL: Final[int] = 48
+_MAX_STAGE2_ITEMS_PER_SECTION: Final[int] = 14
+_MAX_STAGE2_UNASSIGNED_ITEMS: Final[int] = 8
+_STAGE2_TITLE_MAX_CHARS: Final[int] = 180
+_STAGE2_SUMMARY_MAX_CHARS: Final[int] = 260
+_STAGE2_URL_MAX_CHARS: Final[int] = 160
 # u35 event-lookahead sub-cap: at most 12 forward-scheduled items per
 # segment land in the LLM input (or downstream "주요 일정" block) so a
 # busy earnings calendar cannot starve the backward-evidence budget.
@@ -559,19 +569,32 @@ def _render_grouped_sections(
     sections.
     """
     parts: list[str] = []
+    remaining_total = _MAX_STAGE2_ITEMS_TOTAL
     for section_id in (2, 3, 4, 5):
         items = items_by_section.get(section_id, ())
         parts.append(f"Section {section_id}:")
         if not items:
             parts.append("  (no items)")
         else:
-            for item in items:
-                summary = (item.summary or "").strip()
-                url = f" ({item.url})" if item.url is not None else ""
+            section_limit = min(_MAX_STAGE2_ITEMS_PER_SECTION, remaining_total)
+            rendered_items = items[:section_limit]
+            for item in rendered_items:
+                title = _truncate_prompt_field(item.title, _STAGE2_TITLE_MAX_CHARS)
+                summary = _truncate_prompt_field(
+                    (item.summary or "").strip(),
+                    _STAGE2_SUMMARY_MAX_CHARS,
+                )
+                url = _render_prompt_url(item.url)
                 if summary:
-                    parts.append(f"  - [{item.source_name}] {item.title}{url} — {summary}")
+                    parts.append(f"  - [{item.source_name}] {title}{url} — {summary}")
                 else:
-                    parts.append(f"  - [{item.source_name}] {item.title}{url}")
+                    parts.append(f"  - [{item.source_name}] {title}{url}")
+            omitted = len(items) - len(rendered_items)
+            if omitted > 0:
+                parts.append(
+                    f"  - ({omitted} additional classified items omitted for prompt budget)"
+                )
+            remaining_total -= len(rendered_items)
         parts.append("")
     return "\n".join(parts).rstrip()
 
@@ -581,10 +604,28 @@ def _render_unassigned(unassigned: tuple[NormalizedItem, ...]) -> str:
     if not unassigned:
         return "(none)"
     lines: list[str] = []
-    for item in unassigned:
-        url = f" ({item.url})" if item.url is not None else ""
-        lines.append(f"  - [{item.source_name}] {item.title}{url}")
+    rendered_items = unassigned[:_MAX_STAGE2_UNASSIGNED_ITEMS]
+    for item in rendered_items:
+        title = _truncate_prompt_field(item.title, _STAGE2_TITLE_MAX_CHARS)
+        lines.append(f"  - [{item.source_name}] {title}{_render_prompt_url(item.url)}")
+    omitted = len(unassigned) - len(rendered_items)
+    if omitted > 0:
+        lines.append(f"  - ({omitted} additional unassigned items omitted for prompt budget)")
     return "\n".join(lines)
+
+
+def _truncate_prompt_field(value: str, limit: int) -> str:
+    """Bound a prompt field while preserving a clear ellipsis marker."""
+    if len(value) <= limit:
+        return value
+    return value[: max(limit - 1, 0)] + "…"
+
+
+def _render_prompt_url(url: object | None) -> str:
+    if url is None:
+        return ""
+    rendered = _truncate_prompt_field(str(url), _STAGE2_URL_MAX_CHARS)
+    return f" ({rendered})"
 
 
 def _render_recent_context_block(
