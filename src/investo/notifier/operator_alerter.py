@@ -32,6 +32,12 @@ from investo.notifier.summary import DEFAULT_MAX_UNITS, _utf16_truncate, _utf16_
 NumericAlertKind = Literal["numeric_block", "numeric_downgrade", "segment_stale"]
 
 
+def _is_markdown_parse_error(result: SendResult) -> bool:
+    if result.ok or result.error is None:
+        return False
+    return "can't parse entities" in result.error.lower()
+
+
 def _format_alert_text(failure: FailureContext) -> str:
     """Format the operator alert text from the failure context.
 
@@ -123,12 +129,22 @@ class OperatorAlerter:
         return await self._dispatch(self._http, text)
 
     async def _dispatch(self, client: httpx.AsyncClient, text: str) -> SendResult:
-        return await send_message(
+        result = await send_message(
             client,
             bot_token=self._bot_token,
             chat_id=self._operator_chat_id,
             text=text,
             parse_mode="Markdown",
+            disable_web_page_preview=True,
+        )
+        if not _is_markdown_parse_error(result):
+            return result
+        return await send_message(
+            client,
+            bot_token=self._bot_token,
+            chat_id=self._operator_chat_id,
+            text=text,
+            parse_mode=None,
             disable_web_page_preview=True,
         )
 

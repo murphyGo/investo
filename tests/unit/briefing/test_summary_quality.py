@@ -6,6 +6,7 @@ import pytest
 
 from investo.briefing.summary_quality import (
     SummaryQualityError,
+    repair_first_viewport_summary,
     validate_first_viewport_summary,
 )
 
@@ -52,3 +53,18 @@ def test_validate_first_viewport_summary_rejects_missing_required_line() -> None
 
     with pytest.raises(SummaryQualityError, match="missing"):
         validate_first_viewport_summary(markdown)
+
+
+def test_repair_first_viewport_summary_cleans_markdown_artifacts() -> None:
+    markdown = _markdown(
+        conclusion="[미국 증시(https://example.com)",
+        driver="**입법 가속화 vs.",
+        caution="1.",
+    )
+
+    repaired = repair_first_viewport_summary(markdown)
+
+    validate_first_viewport_summary(repaired)
+    assert "[미국 증시" not in repaired
+    assert "**입법" not in repaired
+    assert "> **주의할 점**: 관전 포인트는 데이터 회복 후 보강합니다." in repaired

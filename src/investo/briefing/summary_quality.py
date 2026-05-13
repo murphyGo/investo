@@ -79,6 +79,14 @@ _EN_CONJUNCTION_TAIL_RE: Final[re.Pattern[str]] = re.compile(
 _KO_PARTICLE_TAIL_RE: Final[re.Pattern[str]] = re.compile(
     r"(?:과|와|및|또는|에서|의|을|를|이|가|은|는)\.\s*$"
 )
+_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\([^)]+\)")
+_MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
+_URL_RE: Final[re.Pattern[str]] = re.compile(r"https?://\S+")
+_FALLBACK_BY_PREFIX: Final[dict[str, str]] = {
+    CONCLUSION_PREFIX: "확인된 요약이 부족합니다.",
+    DRIVER_PREFIX: "핵심 동인은 추가 확인이 필요합니다.",
+    CAUTION_PREFIX: "관전 포인트는 데이터 회복 후 보강합니다.",
+}
 
 
 class SummaryQualityError(ValueError):
@@ -100,6 +108,35 @@ def validate_first_viewport_summary(markdown: str) -> None:
         if value is None:
             raise SummaryQualityError(f"missing first-viewport summary line: {prefix}")
         _validate_summary_value(prefix, value)
+
+
+def repair_first_viewport_summary(markdown: str) -> str:
+    """Repair malformed first-viewport summary values in-place.
+
+    This is a narrow safety pass for live LLM output: it only rewrites
+    the three blockquote summary values when the publish gate would
+    reject them for markdown residue or truncation artifacts.
+    """
+    lines = markdown.splitlines()
+    changed = False
+    for index, line in enumerate(lines):
+        prefix = next(
+            (candidate for candidate in _SUMMARY_PREFIXES if line.startswith(candidate)),
+            None,
+        )
+        if prefix is None:
+            continue
+        value = line.removeprefix(prefix).strip()
+        try:
+            _validate_summary_value(prefix, value)
+        except SummaryQualityError:
+            repaired = _repair_summary_value(prefix, value)
+            lines[index] = f"{prefix} {repaired}"
+            changed = True
+    if not changed:
+        return markdown
+    suffix = "\n" if markdown.endswith("\n") else ""
+    return "\n".join(lines) + suffix
 
 
 def _summary_value(lines: list[str], prefix: str) -> str | None:
@@ -130,11 +167,32 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         )
 
 
+def _repair_summary_value(prefix: str, value: str) -> str:
+    cleaned = _MARKDOWN_LINK_RE.sub(r"\1", value)
+    cleaned = _URL_RE.sub("", cleaned)
+    cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
+    cleaned = cleaned.replace("[", "").replace("]", "")
+    cleaned = cleaned.replace("(", "").replace(")", "")
+    cleaned = " ".join(cleaned.split()).strip(" -.,;:")
+    cleaned = _EN_CONJUNCTION_TAIL_RE.sub("", cleaned).strip(" -.,;:")
+    cleaned = _KO_PARTICLE_TAIL_RE.sub("", cleaned).strip(" -.,;:")
+    if not cleaned or cleaned.isdigit() or _LIST_MARKER_ONLY_RE.fullmatch(cleaned):
+        cleaned = _FALLBACK_BY_PREFIX[prefix]
+    if not _MEANINGFUL_TEXT_RE.search(cleaned):
+        cleaned = _FALLBACK_BY_PREFIX[prefix]
+    try:
+        _validate_summary_value(prefix, cleaned)
+    except SummaryQualityError:
+        return _FALLBACK_BY_PREFIX[prefix]
+    return cleaned
+
+
 __all__ = [
     "CAUTION_PREFIX",
     "CONCLUSION_PREFIX",
     "DRIVER_PREFIX",
     "WATERMARK_PREFIX",
     "SummaryQualityError",
+    "repair_first_viewport_summary",
     "validate_first_viewport_summary",
 ]

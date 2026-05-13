@@ -205,6 +205,36 @@ async def test_operator_alerter_handles_http_failure() -> None:
     assert result.error is not None
 
 
+@pytest.mark.asyncio
+async def test_operator_alerter_retries_plain_text_on_markdown_parse_error() -> None:
+    parse_modes: list[object] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        body = _json.loads(request.content.decode("utf-8"))
+        parse_modes.append(body.get("parse_mode"))
+        if len(parse_modes) == 1:
+            return httpx.Response(
+                400,
+                json={
+                    "ok": False,
+                    "description": "Bad Request: can't parse entities: unmatched marker",
+                },
+            )
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 7}})
+
+    async with mock_client(handler) as http:
+        alerter = OperatorAlerter(
+            bot_token=_BOT_TOKEN, operator_chat_id=_OPERATOR_CHAT_ID, http=http
+        )
+        result = await alerter.alert(_build_failure(error_message="bad _ markdown"))
+
+    assert result.ok is True
+    assert result.message_id == 7
+    assert parse_modes == ["Markdown", None]
+
+
 # ---------------------------------------------------------------------------
 # Bot-token redaction in alert text
 # ---------------------------------------------------------------------------

@@ -829,8 +829,8 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
             return briefing.model_copy(
                 update={
                     "rendered_markdown": briefing.rendered_markdown.replace(
-                        "> **주의할 점**: 관전",
-                        "> **주의할 점**: 1.",
+                        "> **주의할 점**: 관전\n",
+                        "",
                     )
                 }
             )

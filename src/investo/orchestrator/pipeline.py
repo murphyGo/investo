@@ -122,7 +122,11 @@ from investo.briefing.segments import (
     segment_items,
     segment_source_outcomes,
 )
-from investo.briefing.summary_quality import SummaryQualityError, validate_first_viewport_summary
+from investo.briefing.summary_quality import (
+    SummaryQualityError,
+    repair_first_viewport_summary,
+    validate_first_viewport_summary,
+)
 from investo.briefing.watchlist import load_watchlist, match_watchlist_items
 from investo.models import (
     Briefing,
@@ -709,6 +713,17 @@ async def _stage_publish_segments(
 
     try:
         for segment in published_segments:
+            repaired_markdown = repair_first_viewport_summary(
+                briefings[segment].rendered_markdown
+            )
+            if repaired_markdown != briefings[segment].rendered_markdown:
+                _logger.warning(
+                    "[publish] repaired first-viewport summary segment=%s",
+                    segment,
+                )
+                briefings[segment] = briefings[segment].model_copy(
+                    update={"rendered_markdown": repaired_markdown}
+                )
             validate_first_viewport_summary(briefings[segment].rendered_markdown)
             if not verify_disclaimer(briefings[segment].rendered_markdown, segment):
                 raise PublisherDisclaimerError(target_date=target_date)
