@@ -42,16 +42,6 @@ _No critical items._
 
 ### Medium Priority
 
-#### DEBT-066: `*.svg.json` provenance manifest sidecars not enumerated in `asset_paths` (rollback orphan)
-
-- **Created**: 2026-05-08
-- **Source**: u29 site-discovery-v2 developer self-review
-- **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / contract integrity), NFR-007 (R13 — secret hygiene)
-- **Description**: `prepare_segment_visual_assets` in `src/investo/visuals/assets.py` returns a list of staged `*.svg` paths used by the orchestrator's snapshot / rollback set. The corresponding `*.svg.json` provenance manifest sidecars (introduced by u24) are written atomically next to the SVGs but are **not** enumerated in the returned `asset_paths`. As a result, when `_stage_publish_segments` rolls back on `SummaryQualityError` / `PublisherDisclaimerError` / `PublisherIOError` (M1 fix from u29), the SVG files are restored / removed correctly but the JSON manifest sidecars are left orphan in `archive/<segment>/<YYYY>/<MM>/<YYYY-MM-DD>.assets/`. The orphans do not break disclaimer / leak-guard contracts, but they do leave an inconsistent state where a manifest references an SVG that no longer exists or carries pre-rollback metadata.
-- **Suggested Fix**: Have `prepare_segment_visual_assets` return both SVG and manifest paths (e.g., a `StagedAssetPair` named tuple or a flat `tuple[Path, ...]` of all asset paths). Update the orchestrator's snapshot / rollback set to include both. Pin with a regression test that triggers a mid-loop rollback and asserts both the SVG **and** the manifest sidecar are restored / removed atomically.
-- **Effort**: ~30 min including the return-shape change, orchestrator update, and rollback regression test.
-- **Priority Reasoning**: Medium — the orphan manifests do not break any publish-time gate today, but a rollback that leaves stale `.svg.json` referencing pre-rollback content creates a debugging surface where reviewers reading the manifest get the wrong picture of what was published. Carrying it forward through every future rollback path multiplies the surface area. Cheap to harden once.
-
 #### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
 
 - **Created**: 2026-05-08
@@ -327,6 +317,13 @@ _No critical items._
 ---
 
 ## Resolved Items
+
+#### DEBT-066: `*.svg.json` provenance manifest sidecars not enumerated in `asset_paths`
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-05-14 — The segmented visual asset stage now adds each generated asset's provenance manifest sidecar to the publish/rollback path set after `prepare_segment_visual_assets` writes the SVG/PNG/JPG. Regression coverage pins both `git add` inclusion for `*.svg.json` and rollback removal for summary-quality failures. The same recovery slice also hardened `commit_and_push` so stdout-only git diagnostics are logged and duplicate target-date publishes with only untracked files are treated as successful no-ops.
+- **Source**: u29 site-discovery-v2 developer self-review
+- **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / contract integrity), NFR-007 (R13 — secret hygiene)
 
 #### DEBT-058: OG image PNG twin generation for social-card unfurl
 

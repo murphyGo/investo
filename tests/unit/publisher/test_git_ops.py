@@ -35,8 +35,12 @@ from investo.publisher.git_ops import commit_and_push
 # ---------------------------------------------------------------------------
 
 
-def _ok(returncode: int = 0, stderr: str = "") -> subprocess.CompletedProcess[str]:
-    return subprocess.CompletedProcess(args=[], returncode=returncode, stdout="", stderr=stderr)
+def _ok(
+    returncode: int = 0,
+    stderr: str = "",
+    stdout: str = "",
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.CompletedProcess(args=[], returncode=returncode, stdout=stdout, stderr=stderr)
 
 
 def _runner_returning(
@@ -275,6 +279,27 @@ def test_commit_and_push_treats_nothing_to_commit_stdout_as_noop() -> None:
     assert len(captured) == 3
 
 
+def test_commit_and_push_treats_untracked_only_stdout_as_noop() -> None:
+    """A duplicate publish can leave only unrelated/untracked files in
+    git's stdout diagnostic. The publisher should still proceed to
+    ``git push`` so an already-published target date is a successful no-op.
+    """
+    untracked_only = _ok(
+        returncode=1,
+        stdout=(
+            "On branch main\n"
+            "Untracked files:\n"
+            "  archive/us-equity/2026/05/2026-05-13.assets/data-confidence.svg.json\n\n"
+            "nothing added to commit but untracked files present\n"
+        ),
+    )
+    captured, _, runner = _runner_returning([_ok(), untracked_only, _ok()])
+
+    commit_and_push("msg", [Path("f.md")], runner=runner)
+
+    assert len(captured) == 3
+
+
 def test_commit_and_push_does_not_silently_pass_real_commit_failures() -> None:
     """A `git commit` rc=1 with stderr that does NOT contain "nothing
     to commit" remains a real failure (e.g., hook rejected, disk full).
@@ -444,6 +469,23 @@ def test_commit_and_push_logs_redacted_final_stderr_on_exhaustion(
     # carries a leading prefix; check that the excerpt portion does
     # not include the full 600-char tail).
     assert "x" * 600 not in final.getMessage()
+
+
+def test_commit_and_push_logs_stdout_only_failure_on_exhaustion(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Git commit diagnostics can be stdout-only. Preserve that output
+    when the retry budget exhausts so Actions logs show the real cause.
+    """
+    fail = _ok(returncode=1, stdout="fatal-ish stdout only diagnostic")
+    _, _, runner = _runner_returning([fail] * 3)
+
+    caplog.set_level("ERROR", logger="investo.publisher.git_ops")
+    with pytest.raises(PublisherGitError) as exc:
+        commit_and_push("msg", [Path("f.md")], runner=runner)
+
+    assert exc.value.last_stderr == "fatal-ish stdout only diagnostic"
+    assert "fatal-ish stdout only diagnostic" in caplog.records[-1].getMessage()
 
 
 def test_commit_and_push_does_not_log_when_all_attempts_succeed(

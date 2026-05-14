@@ -96,7 +96,29 @@ def _is_idempotent_commit_noop(result: subprocess.CompletedProcess[str]) -> bool
     if result.returncode == 0:
         return False
     haystack = (result.stderr + "\n" + result.stdout).lower()
-    return "nothing to commit" in haystack
+    return any(
+        marker in haystack
+        for marker in (
+            "nothing to commit",
+            "nothing added to commit",
+            "no changes added to commit",
+        )
+    )
+
+
+def _git_diagnostic_output(result: subprocess.CompletedProcess[str]) -> str | None:
+    """Return the subprocess diagnostic text worth surfacing to operators.
+
+    Git is inconsistent about whether commit diagnostics land on stderr
+    or stdout. Preserve both streams when present so Actions logs and
+    operator alerts explain stdout-only failures such as untracked-file
+    no-op commits.
+    """
+    stderr = result.stderr.strip()
+    stdout = result.stdout.strip()
+    if stderr and stdout:
+        return f"{stderr}\n{stdout}"
+    return stderr or stdout or None
 
 
 def _try_attempt(
@@ -201,8 +223,8 @@ def commit_and_push(
         if result is not None and result.returncode == 0:
             return
 
-        # Failed step — record stderr + try again (or exhaust).
-        last_stderr = result.stderr if result is not None else None
+        # Failed step — record git's diagnostic output + try again (or exhaust).
+        last_stderr = _git_diagnostic_output(result) if result is not None else None
         last_cause = None
 
     # 2026-05-09 GHA postmortem — surface the final git stderr at ERROR

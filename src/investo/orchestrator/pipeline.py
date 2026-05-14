@@ -1495,6 +1495,10 @@ async def _stage_prepare_segment_visual_assets(
         )
         prepared_briefings[segment] = prepared.briefing
         asset_paths.extend(prepared.asset_paths)
+        for path in prepared.asset_paths:
+            manifest_path = manifest_path_for(path)
+            if manifest_path.exists():
+                asset_paths.append(manifest_path)
     return prepared_briefings, tuple(asset_paths)
 
 

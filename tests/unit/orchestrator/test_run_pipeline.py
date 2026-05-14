@@ -648,11 +648,14 @@ async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_sv
             manifest = assets_dir / f"{kind}.svg.json"
             assert asset.exists(), f"missing asset: {asset}"
             assert manifest.exists(), f"missing manifest: {manifest}"
-    # (3) git ``add`` picks up at least one ``.svg`` so the commit
-    # publishes the cards alongside the markdown.
+    # (3) git ``add`` picks up SVGs and their provenance manifests so
+    # the commit publishes the cards alongside the markdown.
     add_call = next(call for call in git.calls if call[1] == "add")
     assert any(arg.endswith(".svg") for arg in add_call), (
         f"expected at least one SVG in git add; got {add_call!r}"
+    )
+    assert any(arg.endswith(".svg.json") for arg in add_call), (
+        f"expected at least one SVG manifest in git add; got {add_call!r}"
     )
 
 
@@ -859,9 +862,8 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
     # before the validate gate must be rolled back when SummaryQualityError
     # fires. Pre-fix the rollback only ran for PublisherDisclaimerError,
     # leaving orphan SVGs under ``archive_root/{segment}/.../*.assets/``.
-    # The corresponding ``*.svg.json`` manifests live alongside but are
-    # not enumerated in ``asset_paths`` (separate TECH-DEBT, not M1 scope).
     assert not list(archive_root.rglob("*.svg"))
+    assert not list(archive_root.rglob("*.svg.json"))
 
 
 @pytest.mark.asyncio
