@@ -6,9 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-13
 
-- [stooq-price] **ticker**: META 603.00
+- [stooq-price] **ticker**: META 616.54
 
 <!-- u33 entry 2026-05-13 end -->
+
 <!-- u33 entry 2026-05-11 begin -->
 
 ## 2026-05-11

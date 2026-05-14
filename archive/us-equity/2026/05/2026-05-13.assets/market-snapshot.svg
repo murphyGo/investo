@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-13 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 13일(수), 미국 증시는 기술주 중심의 매도세와 인플레이션 압박이 겹치며 지수별 방향이</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">엇갈렸다. [데이터부족]</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 13일(수), 미국 증시는 S&amp;P 500(스탠더드앤드푸어스 500 지수)과 Nasdaq</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">100(나스닥 100 지수)이 나란히 사상 최고치를 경신하는 상승 마감을 기록했다. [데이터부족]</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500 혼조와 Nasdaq 100 약세 전일(2026-05-11) [상승 관찰] 결론에서 오늘</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">[혼재]로 전환된 핵심 요인은 기술주 밸류에이션 부담과 장기금리 상승이다.</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·Nasdaq 100 ATH 경신 — 반도체 강세 주도 S&amp;P 500과 Nasdaq 100이</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">동반 ATH(사상 최고치)를 경신했다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">CSCO 장 마감 후 실적(EPS 예상 $0.86 vs. 전년 동기 $0.78) 결과 및</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">클라우드·네트워크 부문 가이던스 흐름 확인 DGS10 4.42% 수준의 추가 등락이 Nasdaq</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·Nasdaq 100 ATH 경신 이후 E-mini S&amp;P 선물(ESM26) 동향을 통해</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">상승 모멘텀 연속성 추세 확인 오늘(5/14) 장 후 CSCO 실적(EPS 예상 $0.86, 전년</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

@@ -6,13 +6,14 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-13
 
-- [coingecko-price] **ticker**: ETH $2,299.31 (+0.74%)
-- [defillama-market-structure] **ticker**: DeFi TVL $87.1B; leader Ethereum
-- [stooq-price] **ticker**: ETH-USD 2,299.71
+- [defillama-market-structure] **ticker**: DeFi TVL $85.7B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,263.66
 - [theblock-crypto] **ticker**: Charles Schwab launches spot BTC, ETH trading to select retail clients
+- [theblock-crypto] **ticker**: Ethereum closes gap with Solana as DEX volumes converge near $45 billion
 - [theblock-crypto] **ticker**: Japan’s enterprise-led blockchain to issue yen stablecoin for B2B settlements
 
 <!-- u33 entry 2026-05-13 end -->
+
 <!-- u33 entry 2026-05-11 begin -->
 
 ## 2026-05-11

@@ -6,12 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-13
 
-- [yonhap-market] **ticker**: 엔비디아 매출 65% 급증에도…젠슨황 보수, 27% 줄어든 540억원
-- [stooq-price] **ticker**: NVDA 220.78
-- [yahoo-finance-news] **ticker**: Dow Jones Futures: Nvidia's Huang Joins Trump's China Trip; Sandisk, Micron, Intel Rebound
-- [yahoo-finance-news] **ticker**: Why NVIDIA (NVDA) Is Pushing Deeper Into AI Data Center Connectivity
+- [stooq-price] **ticker**: NVDA 225.83
 
 <!-- u33 entry 2026-05-13 end -->
+
 <!-- u33 entry 2026-05-11 begin -->
 
 ## 2026-05-11

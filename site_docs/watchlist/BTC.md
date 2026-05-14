@@ -6,12 +6,15 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-13
 
-- [coingecko-price] **ticker**: BTC $80,582.00 (+0.03%)
-- [defillama-market-structure] **ticker**: DeFi TVL $87.1B; leader Ethereum
-- [stooq-price] **ticker**: BTC-USD 80,561.33
+- [defillama-market-structure] **ticker**: DeFi TVL $85.7B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 79,607.01
+- [theblock-crypto] **ticker**: Bitcoin pinned near critical support as hot PPI spike compounds rate hike fears: analysts
 - [theblock-crypto] **ticker**: Charles Schwab launches spot BTC, ETH trading to select retail clients
+- [theblock-crypto] **ticker**: Metaplanet posts $725 million Q1 net loss as bitcoin markdowns outweigh operating gains
+- [theblock-crypto] **ticker**: Strategy’s STRC may be fueling recurring mid-month bitcoin rallies, K33 says
 
 <!-- u33 entry 2026-05-13 end -->
+
 <!-- u33 entry 2026-05-11 begin -->
 
 ## 2026-05-11
