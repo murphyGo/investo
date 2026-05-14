@@ -1,5 +1,18 @@
 # AI-DLC Audit Log
 
+## Construction — u51/u52/u53 Evidence Reconciliation Complete
+**Timestamp**: 2026-05-14T00:00:00+09:00
+**Trigger**: `/dev-investo` continuation preflight found commit `224a422` had already landed u51/u52/u53 code and tests, while `aidlc-state.md`, code summaries, and cross-check reports still showed planning-only state.
+**Action**:
+- Added code-generation summaries for u51, u52, and u53 under `aidlc-docs/construction/<unit>/code/summary.md`.
+- Added cross-check reports for u51, u52, and u53 under `docs/cross-checks/2026-05-14-*.md`.
+- Updated `aidlc-docs/aidlc-state.md` per-unit rows from `📋 Planned` to `✅ Complete`.
+- Closed u52's optional FR-registration step as deferred by design: existing FR-002/FR-006/FR-008 coverage is sufficient for this continuity correction.
+**Verification**: Documentation-only reconciliation. The referenced implementation gate is the combined u51/u52/u53 gate from commit `224a422`: ruff, format, mypy strict, pytest 1910, mkdocs strict.
+**Status**: u51/u52/u53 no longer appear as executable planned work; next planned implementation target remains u58 crypto-regulation-policy-sources.
+
+---
+
 ## Construction — u57 — Segment Narrative Scope + Time Reconciliation Implementation Complete (Wave 8, 2026-05-13)
 **Timestamp**: 2026-05-13T18:00:00+09:00
 **Trigger**: Refined u57 plan (8 steps, 45 checkboxes) executed end-to-end after planner re-hardened the plan to u51-level precision (BundleContext pre-computation, 3 untestable AC → measurable proxy rewrite, time-state regex catalogue, cross-market allow-list, shared macro dedupe).

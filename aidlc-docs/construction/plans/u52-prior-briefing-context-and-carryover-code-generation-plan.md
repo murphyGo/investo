@@ -3,7 +3,7 @@
 **Date**: 2026-05-13
 **Unit**: u52 prior-briefing-context-and-carryover
 **Stage**: Code Generation
-**Status**: 📋 Planned
+**Status**: ✅ Complete (implementation 6/6; optional FR registration deferred by cross-check decision)
 **Source**: 사용자 직접 (2026-05-13 evaluation). 2026-05-06 → 05-08 시황 연쇄 평가에서 day-over-day 연속성 부재가 시황을 standalone preview 로 만들고 있다는 결함 적시.
 **Estimated Effort**: ~4-5 h
 **Dependencies**:
@@ -171,8 +171,8 @@ u34 가 narrative 결론을 인용시키는 데 비해, u52 는 **event-level li
 
 ### Step 7 — (선택) FR 등록
 
-- [ ] `aidlc-docs/inception/requirements/` bridge 에 신규 FR-XXX "day-over-day carryover" 추가 검토 — 현 cross-check 흐름상 FR 등록 필수는 아님 (사용자 회고 → unit 으로 직접 매핑). 본 step 은 implementation 후 cross-check 시점에 다시 결정. (DEFERRED — planner 가 cross-check 단계에서 처리)
-- [ ] **영향 파일**: (조건부) `docs/requirements.md`, `aidlc-docs/inception/requirements/bridge.md`. (DEFERRED)
+- [x] `aidlc-docs/inception/requirements/` bridge 에 신규 FR-XXX "day-over-day carryover" 추가 검토 — cross-check decision: 신규 FR 등록 없이 기존 FR-002/FR-006/FR-008 보강으로 처리. (DEFERRED BY DESIGN)
+- [x] **영향 파일**: 없음. 조건부 FR 등록은 본 code-generation closeout 에서 필요하지 않은 것으로 판정. (DEFERRED BY DESIGN)
 
 ---
 
