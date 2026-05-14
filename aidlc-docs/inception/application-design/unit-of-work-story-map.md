@@ -142,6 +142,14 @@ Deduplicated out:
 - u52 already owns prior-briefing carryover and event lifecycle tracking.
 - u53 already owns domestic flow and US sector/macro ETF input coverage.
 
+### u58 Planning Notes
+
+The 2026-05-14 CLARITY Act Senate Banking markup miss was source-coverage and candidate-priority debt: the event existed on official congressional/committee surfaces but was not guaranteed to enter the crypto briefing candidate set. u58 keeps the implementation scope to official, public U.S. policy sources and avoids brittle third-party scraping.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u58 crypto-regulation-policy-sources | CLARITY/market-structure/stablecoin legislative events need official source coverage and crypto priority handling | FR-001, FR-002, FR-008, NFR-003, R10, R13 | u36 source expansion bundles, u45 routing exclusivity, u53 signal recall |
+
 ---
 
 ## Definition of Done — Inception Phase Output

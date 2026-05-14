@@ -654,6 +654,44 @@ The 2026-05-13 ten-agent review of generated market briefings produced additiona
 
 ---
 
+## Wave 9 Official Source Coverage Units
+
+The 2026-05-14 CLARITY Act markup miss showed that crypto market briefings need official U.S. legislative and committee sources, not only generic market/news feeds. Feasibility was checked against official sources before creating this unit:
+
+- Congress.gov API: official v3 API is available for machine-readable bill data, but requires an API key.
+- Senate Banking Committee: official hearing/markup/news pages expose the CLARITY markup notice and related bill-text release; RSS was not confirmed as a stable path, so the safe scope is fixture-backed official HTML parsing only.
+- House Financial Services Committee: official news listing and `news/rss.aspx` endpoint are reachable; emit only crypto policy items after keyword filtering.
+
+### u58: `crypto-regulation-policy-sources` — Official U.S. Crypto Policy Source Coverage
+
+**Purpose**: CLARITY Act markup 같은 시장 구조/스테이블코인/디지털자산 입법 이벤트가 크립토 시황 후보에서 누락되지 않도록 공식 U.S. policy source 어댑터와 crypto regulation priority signal을 추가한다.
+
+**Stories**: FR-001 (데이터 수집), FR-002 (AI 시황 작성), FR-008 (세그먼트별 시황 생성), NFR-003 (graceful degradation), R10 (external fixture), R13 (secret hygiene)
+
+**Module path**:
+- `src/investo/sources/official_policy.py` or source-specific modules under `src/investo/sources/` — Congress.gov, Senate Banking, House Financial Services adapters
+- `src/investo/sources/aggregator.py` — optional-key graceful degradation and source outcome reporting
+- `src/investo/briefing/segments.py` — crypto policy routing/priority terms
+- `src/investo/briefing/prompts.py` — Stage 1/2 policy-event importance guidance
+- `src/investo/orchestrator/pipeline.py` — candidate cap preservation for official policy items, if needed
+
+**Tests**:
+- `tests/unit/sources/` — Congress.gov API fixture, Senate Banking HTML fixtures, House Financial Services RSS fixture, missing-key/403 graceful degradation
+- `tests/unit/briefing/` — CLARITY/markup/digital asset policy items route to crypto and survive candidate caps
+- `tests/integration/` — official policy item can become crypto §② core issue without BTC/ETH price-token dependence
+
+**Definition of Done**:
+- [ ] Congress.gov adapter supports configured bills such as `119/hr/3633` and degrades cleanly when `CONGRESS_API_KEY` is absent or rejected.
+- [ ] Senate Banking adapter uses only official static HTML pages/listings with recorded fixtures; no unofficial endpoints or JS reverse-engineering.
+- [ ] House Financial Services adapter consumes official RSS/news output and filters to crypto/digital-asset policy terms before emission.
+- [ ] Official policy items emit sanitized metadata for bill id, committee, event type, and policy priority without leaking API keys.
+- [ ] Segment routing treats `CLARITY Act`, `digital asset market structure`, `stablecoin`, `committee markup`, `CFTC/SEC crypto jurisdiction`, and equivalent terms as strong crypto policy signals.
+- [ ] Candidate selection preserves official crypto-regulation items ahead of generic low-signal news caps.
+- [ ] Stage prompts allow a regulation/legislation event to become a core issue when it is market-structure relevant even without same-day price movement.
+- [ ] R10 fixtures cover success, empty, malformed, and auth/error paths for every new official source.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
