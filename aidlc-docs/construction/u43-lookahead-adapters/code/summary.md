@@ -65,7 +65,7 @@ Other adapters: deferred → no fixtures recorded (per R10 — fabricated payloa
 - `tests/unit/orchestrator/test_stage_notify_segmented_lookahead.py` (new, 5 cases — including grep test pinning zero inline `scheduled_at is not None` predicates in orchestrator module)
 
 ### Docs
-- `docs/TECH-DEBT.md` (DEBT-067 retained in High Priority with new "Partial resolution (2026-05-10, u43)" block + 3 deferred sub-bullets + planner-action note recommending P1 → P2 demotion)
+- `docs/TECH-DEBT.md` (DEBT-067 retained with partial-resolution notes; formally demoted to Medium on 2026-05-14 after FOMC + FRED + wire-through + reason code were verified landed)
 - `aidlc-docs/construction/plans/u43-lookahead-adapters-code-generation-plan.md` (Status changed to "🟨 Partial"; DoD checkboxes + per-step landing notes)
 
 ## Project rule compliance
@@ -94,7 +94,7 @@ Retained in High Priority with a "Partial resolution (2026-05-10, u43)" block su
 - `LOOKAHEAD_DATA_MISSING` reason code complete
 - 3 sub-bullets recording each deferred adapter's exact retry condition
 
-Planner-action note inline recommending **P1 → P2 demotion** since the user-visible payoff (Telegram imminent tag + "주요 일정" block) now fires from `fomc-calendar` data, partially resolving the dormancy that drove the original P1.
+Planner-action note was closed on 2026-05-14: DEBT-067 is now **P2 / Medium** because the user-visible payoff (Telegram imminent tag + "주요 일정" block) fires from FOMC + FRED data.
 
 ## Out of scope (per plan)
 
@@ -183,7 +183,7 @@ R13 verification: `grep -r "api_key=<live key>"` → 0 hits in fixture directory
 - `coingecko-events` deferred — endpoint deprecated upstream; CoinMarketCal fallback needs operator key registration.
 - `krx-option-expiry` deferred — no public non-scraping path identified.
 
-Planner action recommendation (already in TECH-DEBT.md): **P1 → P2 demotion** is now stronger — both regulator-of-record macro surfaces (Federal Reserve calendar + FRED release schedule) cover persona #4's first-line concern. The 2 remaining adapters are upside coverage rather than core gap.
+Planner action closed 2026-05-14: **P1 → P2 demotion applied**. Both regulator-of-record macro surfaces (Federal Reserve calendar + FRED release schedule) cover persona #4's first-line concern. The 2 remaining adapters are upside coverage rather than a core gap.
 
 ### Unintended discoveries / TECH-DEBT candidates
 

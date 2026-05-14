@@ -42,7 +42,7 @@ Land the four lookahead-specific source adapters that u35 deferred to DEBT-067, 
 - [x] `FRED_API_KEY` already enrolled in `_internal/redaction.py::SECRET_ENV_VARS` (verified — was already present from the u35 / fred-macro work). `fomc-calendar` uses no API key.
 - [x] `fomc-calendar` graceful-degradation contract pinned by `test_terminal_4xx_raises_source_fetch_error`, `test_malformed_json_raises_terminal_source_fetch_error`, `test_non_object_response_raises_terminal_source_fetch_error`. Aggregator R6 isolation handles each via the existing `SourceFetchError` path.
 - [x] Stage 2 / Telegram round-trip pinned by `tests/unit/orchestrator/test_stage_notify_segmented_lookahead.py::test_stage_passes_lookahead_and_now_utc_to_summary_builder` — a 2-day-out FOMC item from the lookahead bucket lands as `D-2 📅` in the request body the publisher dispatches.
-- [ ] DEBT-067 partially resolved (see `docs/TECH-DEBT.md` — kept in High Priority section with a "Partial resolution" block noting `fomc-calendar` + wire-through + reason code landed; FRED + CoinGecko + KRX retained as sub-bullets pending future live-API access). Planner action required to formally demote P1 → P2 if appropriate.
+- [x] DEBT-067 partially resolved and formally demoted to Medium on 2026-05-14 (see `docs/TECH-DEBT.md` — FOMC + FRED + wire-through + reason code landed; CoinGecko fallback decision + KRX public-path search retained as Medium sub-bullets).
 - [x] Full quality gate green: `ruff check` ✅, `ruff format --check` ✅, `mypy --strict src/` ✅, `pytest -q` (1763 passed, +40 vs pre-u43) ✅, `mkdocs build --strict` ✅.
 
 ---
@@ -185,7 +185,7 @@ Land the four lookahead-specific source adapters that u35 deferred to DEBT-067, 
 
 ### Step 10 — DEBT-067 Resolution ✅ (partial — kept open with scoped sub-bullets)
 
-- [x] DEBT-067 retained in `## High Priority` with a "Partial resolution (2026-05-10, u43)" block summarising the wire-through + reason code + `fomc-calendar` landing. Three remaining sub-bullets (FRED + CoinGecko + KRX) document the deferral cause for each: live FRED unreachable from the implementation network (transient), CoinGecko events deprecated upstream + CoinMarketCal needs a free-tier key, KRX has no public non-scraping path. Planner-action note added recommending P1 → P2 demotion.
+- [x] DEBT-067 retained after u43 partial resolution, then formally demoted to Medium on 2026-05-14 after FRED also landed. Remaining sub-bullets document the deferral cause for each: CoinGecko events deprecated upstream + CoinMarketCal needs a free-tier key; KRX has no public non-scraping path. Planner-action note closed.
 - [x] Files affected:
   - `docs/TECH-DEBT.md`
 

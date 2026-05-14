@@ -1,5 +1,17 @@
 # AI-DLC Audit Log
 
+## TECH-DEBT — DEBT-067 Priority Decision
+**Timestamp**: 2026-05-14T00:00:00+09:00
+**Trigger**: User-directed continuation order after u58; next planned item was the DEBT-067 status decision.
+**Evidence**:
+- u43 already landed the production-critical pieces that made DEBT-067 High: FOMC calendar, FRED economic calendar, orchestrator lookahead wire-through, single-filter reuse, and `LOOKAHEAD_DATA_MISSING`.
+- Remaining DEBT-067 work is limited to CoinGecko/CoinMarketCal fallback selection and KRX option-expiry public-path discovery.
+**Decision**: Demote DEBT-067 from High to Medium. Keep it active; do not resolve it until the remaining adapter decisions are closed or explicitly rejected.
+**Action**: Updated `docs/TECH-DEBT.md` summary counts and moved DEBT-067 into Medium Priority with a 2026-05-14 status-decision note. Updated u43 plan/summary references so the planner-action note is no longer open.
+**Verification**: Documentation-only decision; `git diff --check` and `uv run mkdocs build --strict` run as closeout gates.
+
+---
+
 ## Construction — u58 Crypto-Regulation Policy Sources Complete
 **Timestamp**: 2026-05-14T00:00:00+09:00
 **Trigger**: User-directed continuation after u51/u52/u53 evidence reconciliation; u58 was the next planned implementation target after the CLARITY Act markup omission.

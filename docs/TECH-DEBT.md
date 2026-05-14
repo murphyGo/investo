@@ -5,8 +5,8 @@
 | Priority | Count | Oldest |
 |----------|-------|--------|
 | Critical | 0 | - |
-| High | 1 | 2026-05-08 |
-| Medium | 8 | 2026-05-07 |
+| High | 0 | - |
+| Medium | 9 | 2026-05-07 |
 | Low | 20 | 2026-04-27 |
 
 ---
@@ -19,7 +19,11 @@ _No critical items._
 
 ### High Priority
 
-#### DEBT-067: u35 event-lookahead 이월 — 4 lookahead 어댑터 + orchestrator wire-through + LOOKAHEAD_DATA_MISSING reason code
+_No high priority items._
+
+### Medium Priority
+
+#### DEBT-067: event-lookahead remaining adapters — CoinGecko fallback decision + KRX option-expiry public path
 
 - **Created**: 2026-05-08
 - **Source**: u35 event-lookahead QA review (H1 + M1 + M3)
@@ -33,14 +37,13 @@ _No critical items._
   - Once at least one adapter lands, add `SegmentCoverage.reason_codes.LOOKAHEAD_DATA_MISSING` to the u22 reason-code enum and emit it from the aggregator only when the lookahead pass for a given segment returns zero items **and** at least one lookahead-aware adapter was attempted (i.e., the reason code never fires on a segment that has no lookahead-aware adapter registered). Pin with a regression test that exercises the empty-adapter and zero-item branches.
 - **Partial resolution (2026-05-10, u43)**: The orchestrator wire-through (M1 — clock-explicit `now_utc` in `_stage_notify_segmented_briefing` + `ValueError` invariant in `build_segmented_summary`), the single-filter chokepoint (M3 — `briefing.segments.filter_lookahead_items` reused by both the briefing pipeline's `_render_lookahead_context_block` and the orchestrator's notify stage), the `LOOKAHEAD_DATA_MISSING` reason code (with the anti-regression guard that it only fires on segments carrying ≥ 1 lookahead-aware adapter from `LOOKAHEAD_AWARE_SOURCES`), and **one of the four adapters** — `fomc-calendar` (Federal Reserve `calendar.json` forward schedule, Tier S, segment routing `us-equity`, R10-compliant fixture: 528 KB byte-equal recording from 2026-05-10) — landed. The us-equity Telegram imminent tag now fires from production data; the segment "주요 일정" prompt block now sees real forward FOMC events.
 - **Partial resolution (2026-05-10, u43 follow-up)**: A second adapter — `fred-economic-calendar` (FRED `release/dates` forward schedule for 10 curated market-moving releases: CPI, PPI, NFP/Unemployment, GDP, PCE, Industrial Production, Retail Sales, JOLTS, Housing Starts, Existing Home Sales; Tier A, segment routing `us-equity`, R10-compliant fixtures: 4 byte-equal recordings + empty + invalid-key fixtures from 2026-05-10) — landed after the u43 main session's TLS handshake outage cleared. Network reachability verified: `api.stlouisfed.org` HTTP 200 on valid params, HTTP 400 on invalid api_key (TLS layer healthy). Adapter enrolled in `LOOKAHEAD_AWARE_SOURCES` + `_US_ONLY_SOURCES` + `_US_MARKET_SOURCES` + `ADAPTER_TIERS["fred-economic-calendar"] = "A"`. The us-equity "주요 일정" block now surfaces FOMC + macro release prints together; persona #4's "FOMC 이번 주 / NFP 이번 주말" first-line concern is now closed for the FRED-tracked surface. Two of four adapters remain deferred (CoinGecko events upstream-deprecated; KRX option-expiry has no public non-scraping path).
+- **Status decision (2026-05-14)**: Demoted **High → Medium**. The original High trigger was user-visible dormancy after u35; u43 resolved that by landing FOMC + FRED, orchestrator wire-through, single-filter reuse, and `LOOKAHEAD_DATA_MISSING`. Remaining work is now bounded upside coverage: crypto event fallback selection and a domestic option-expiry public-path decision.
 - **Remaining (sub-bullets — re-evaluate when live API access for the deferred surfaces is restored)**:
   - ~~**`fred-economic-calendar`**~~ — **Resolved 2026-05-10 (u43 follow-up).** FRED endpoint reachable; adapter landed with R10 fixtures + 24 unit tests + `INVESTO_FRED_CALENDAR_RELEASES` + `INVESTO_FRED_CALENDAR_LOOKAHEAD_DAYS` env overrides + R13 secret hygiene via existing `SECRET_ENV_VARS` enrollment.
   - **`coingecko-events`** — the public `https://api.coingecko.com/api/v3/events` endpoint returns 404 with `{"error":"Incorrect path. Please check https://docs.coingecko.com/"}` (verified live 2026-05-10). The endpoint is deprecated upstream. Fallback options: (a) CoinMarketCal (`https://developers.coinmarketcal.com/v1/events`) requires a free-tier key (returns HTTP 403 without one); user must register and add the key to `.env.local` + GHA secrets before the adapter can land. (b) Token-unlock-only aggregator (would not cover hard forks / mainnet launches). Decision needed on which path to take before the adapter can be implemented.
   - **`krx-option-expiry`** — no public KRX market-data path that exposes the option-expiry calendar without OTP / scraping is currently identified (consistent with u36's "no Naver / KRX scraping" out-of-scope rule). The closest public surface (`open.krx.co.kr` 200 OK with full HTML) is a search portal, not a JSON / CSV calendar feed. Domestic-equity readers continue to receive forward corporate events via `dart-disclosure` (u41). Defer until either KRX publishes a JSON path or a workaround is approved by the operator. Effect on `LOOKAHEAD_DATA_MISSING`: the reason code does not fire on `domestic-equity` today because no lookahead-aware adapter is mapped to that segment (anti-regression guard).
 - **Effort (remaining)**: ~3 h for `coingecko-events` once a fallback aggregator + key is chosen; ~unknown for `krx-option-expiry` (depends on whether a public path is ever confirmed).
-- **Priority Reasoning**: **P1 (High) at landing** — kept under High Priority pending a planner decision on whether to demote. The user-visible payoff (Telegram imminent tag + "주요 일정" block) now fires in production from `fomc-calendar` data, so the dormancy that originally drove the P1 classification is partially resolved. Recommendation for the planner: demote to P2 (Medium) since the remaining adapters (FRED economic-release schedule, crypto event signal, KRX expiries) are upside coverage rather than the missing core; promote back to P1 only if a persona signal or an FOMC-blackout regression surfaces a gap that one of the deferred adapters would have closed.
-
-### Medium Priority
+- **Priority Reasoning**: **P2 (Medium) as of 2026-05-14** — FOMC + FRED cover the core U.S. macro lookahead payoff and the production Telegram / briefing surfaces are no longer dormant. Keep active because CoinGecko/CoinMarketCal could improve crypto event recall and KRX option expiry could improve domestic derivatives context. Promote back to High only if a user-visible gap appears that one of the remaining adapters would have closed, or if the operator registers a CoinMarketCal key and explicitly wants the crypto-event adapter shipped next.
 
 #### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
 
