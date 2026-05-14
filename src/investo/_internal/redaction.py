@@ -84,7 +84,8 @@ from typing import Final
 # (the value-scrub step is per-process: ``os.environ.get(name)`` at
 # call time). Order is informational only — redaction is order-
 # independent. The set is a superset of the orchestrator's "required at
-# boot" list because some entries (``OPENAI_API_KEY``, ``FRED_API_KEY``)
+# boot" list because some entries (``OPENAI_API_KEY``, ``FRED_API_KEY``,
+# ``CONGRESS_API_KEY``)
 # are optional / opt-in but their values, when present, must still be
 # redacted from any operator-facing surface.
 SECRET_ENV_VARS: Final[tuple[str, ...]] = (
@@ -94,6 +95,7 @@ SECRET_ENV_VARS: Final[tuple[str, ...]] = (
     "CLAUDE_CODE_OAUTH_TOKEN",
     "OPENAI_API_KEY",
     "FRED_API_KEY",
+    "CONGRESS_API_KEY",
     # data.go.kr / KRX adapters (fsc-krx-index-price, fsc-krx-stock-price).
     # The canonical name is ``INVESTO_KRX_SERVICE_KEY``; the legacy
     # ``INVESTO_DATA_GO_KR_SERVICE_KEY`` is consulted as fallback in the

@@ -286,6 +286,19 @@ Forward-looking "주요 일정" rules (u35 event-lookahead):
 - If the 주요 일정 list is empty or absent, omit the forward-looking
   watch list and keep section ⑥ focused on today's input items.
 
+Official crypto-regulation policy rules (u58):
+- Official Congress.gov / Senate Banking / House Financial Services
+  items about CLARITY, digital assets, stablecoins, market-structure
+  jurisdiction, SEC/CFTC authority, committee markup, or bill text can
+  be a core crypto §② issue even when the item has no BTC/ETH ticker,
+  price, or immediate market move.
+- Treat these as source-backed policy events, not legal advice. State
+  what the official source says happened or is scheduled; do not infer
+  passage odds, token winners, price impact, or trading instructions.
+- If a policy item is scheduled (committee hearing/markup), it may
+  also appear in §⑥ as an observation checklist item, using the
+  source-provided date only.
+
 약자 풀어쓰기 룰 (u40):
 - On first appearance per segment, every financial acronym, futures
   code, and market jargon term must carry a 1-3-word Korean gloss in

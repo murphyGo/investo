@@ -252,7 +252,7 @@ async def test_pipeline_end_to_end_success(
     assert result.stages == {
         "collect": "ok",
         "generate": "ok",
-        "visual_assets": "ok: 9 files",
+        "visual_assets": "ok: 18 files",
         "publish": "ok",
         "notify_briefing": "ok",
     }

@@ -199,7 +199,10 @@ _CRYPTO_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "binance-crypto-market",
         "coingecko-price",
+        "congress-gov-bill-actions",
         "defillama-market-structure",
+        "house-financial-services-policy",
+        "senate-banking-policy",
         "theblock-crypto",
     }
 )
@@ -461,6 +464,14 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
                 buckets[segment].append(item)
             continue
 
+        # u58 — official crypto-policy metadata is a crypto-routing
+        # override. Legislative items often say "market structure" or
+        # "Digital Asset" without BTC/ETH/price tokens, so source/title
+        # keyword routing alone would under-recall them.
+        if _has_crypto_policy_priority(item):
+            crypto.append(item)
+            continue
+
         # 2-4) Source-anchored single-segment routing.
         if item.source_name in _CRYPTO_ONLY_SOURCES:
             crypto.append(item)
@@ -506,6 +517,13 @@ def _matched_shared_segments(source_name: str) -> tuple[MarketSegment, ...]:
         if source_name in _SHARED_SOURCES_BY_SEGMENT[segment]:
             matched.append(segment)
     return tuple(matched)
+
+
+def _has_crypto_policy_priority(item: NormalizedItem) -> bool:
+    return (
+        item.raw_metadata.get("policy_priority") == "crypto_regulation"
+        and item.raw_metadata.get("official_source") == "true"
+    )
 
 
 def build_segment_coverage(

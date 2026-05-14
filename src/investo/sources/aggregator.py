@@ -52,6 +52,9 @@ _CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "coingecko-price",
         "binance-crypto-market",
         "defillama-market-structure",
+        "congress-gov-bill-actions",
+        "house-financial-services-policy",
+        "senate-banking-policy",
         "theblock-crypto",
     }
 )

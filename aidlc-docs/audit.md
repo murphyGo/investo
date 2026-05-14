@@ -1,5 +1,20 @@
 # AI-DLC Audit Log
 
+## Construction — u58 Crypto-Regulation Policy Sources Complete
+**Timestamp**: 2026-05-14T00:00:00+09:00
+**Trigger**: User-directed continuation after u51/u52/u53 evidence reconciliation; u58 was the next planned implementation target after the CLARITY Act markup omission.
+**Action**:
+- Added official U.S. crypto-policy adapters in `src/investo/sources/official_policy.py` for Congress.gov bill actions, Senate Banking official HTML watch URLs, and House Financial Services official RSS.
+- Registered the adapters for discovery/tier handling and crypto market collection windows.
+- Added `policy_priority=crypto_regulation` and `official_source=true` metadata routing so official policy events can enter the crypto segment without BTC/ETH/price tokens.
+- Preserved official crypto-policy candidates ahead of generic LLM candidate caps.
+- Added observational prompt rules for official regulation/legislation events and documented optional configuration in `docs/tech-env.md`.
+- Added fixture-backed unit tests, routing tests, candidate-preservation tests, secret-redaction tests, and updated a stale integration assertion from `ok: 9 files` to the current SVG+manifest `ok: 18 files` visual-asset contract.
+**Verification**: `uv run ruff check .` clean; changed-file `ruff format --check` clean; `uv run mypy --strict src/` clean (127 source files); targeted u58+integration tests 154 passed; `uv run pytest -q` 2326 passed; `uv run mkdocs build --strict` OK. Full-repo `ruff format --check .` still reports four pre-existing out-of-scope files.
+**Status**: u58 construction, summary, and cross-check complete.
+
+---
+
 ## Construction — u51/u52/u53 Evidence Reconciliation Complete
 **Timestamp**: 2026-05-14T00:00:00+09:00
 **Trigger**: `/dev-investo` continuation preflight found commit `224a422` had already landed u51/u52/u53 code and tests, while `aidlc-state.md`, code summaries, and cross-check reports still showed planning-only state.

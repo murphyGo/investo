@@ -64,6 +64,10 @@
   - `OPENAI_API_KEY` (선택: AI 시황 이미지 생성)
   - `INVESTO_EXTERNAL_IMAGE_ASSETS` (선택: 라이선스 명시 외부 이미지 다운로드)
   - `INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS` (선택: 외부 이미지 host allow-list)
+  - `CONGRESS_API_KEY` (선택: Congress.gov 공식 법안 action 수집; 미설정 시 해당 adapter만 graceful degradation)
+  - `INVESTO_CONGRESS_BILLS` (선택: Congress.gov 감시 bill id 목록, 예: `119/hr/3633`)
+  - `INVESTO_SENATE_BANKING_WATCH_URLS` (선택: Senate Banking 공식 crypto-policy watch URL 목록)
+  - `INVESTO_HOUSE_FINANCIAL_SERVICES_RSS_URLS` (선택: House Financial Services 공식 RSS URL 목록)
   - 데이터 소스 API key (사용 시)
 
 ## Existing Systems

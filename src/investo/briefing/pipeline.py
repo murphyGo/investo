@@ -284,22 +284,49 @@ def _select_llm_candidate_items(items: Sequence[NormalizedItem]) -> tuple[Normal
     selected: list[NormalizedItem] = []
     per_source_counts: dict[str, int] = {}
     lookahead_count = 0
+    selected_indexes: set[int] = set()
 
-    for item in items:
+    def add_item(index: int, item: NormalizedItem) -> None:
+        nonlocal lookahead_count
+        if len(selected) >= _MAX_LLM_ITEMS:
+            return
+        if index in selected_indexes:
+            return
         is_lookahead = item.scheduled_at is not None
         if is_lookahead and lookahead_count >= _MAX_LLM_LOOKAHEAD_ITEMS:
-            continue
+            return
         source_count = per_source_counts.get(item.source_name, 0)
         if source_count >= _MAX_LLM_ITEMS_PER_SOURCE:
-            continue
+            return
         selected.append(item)
+        selected_indexes.add(index)
         per_source_counts[item.source_name] = source_count + 1
         if is_lookahead:
             lookahead_count += 1
+
+    # u58 — official crypto-regulation items are high-recall signals.
+    # They often lack price/BTC/ETH tokens, so preserve a bounded number
+    # before the generic source-diversity pass can spend the budget on
+    # high-volume news or earnings feeds.
+    for index, item in enumerate(items):
+        if _is_official_crypto_policy_item(item):
+            add_item(index, item)
+        if len(selected) >= _MAX_LLM_ITEMS:
+            break
+
+    for index, item in enumerate(items):
+        add_item(index, item)
         if len(selected) >= _MAX_LLM_ITEMS:
             break
 
     return tuple(selected)
+
+
+def _is_official_crypto_policy_item(item: NormalizedItem) -> bool:
+    return (
+        item.raw_metadata.get("policy_priority") == "crypto_regulation"
+        and item.raw_metadata.get("official_source") == "true"
+    )
 
 
 def _extract_braced_object(text: str, start: int) -> str | None:

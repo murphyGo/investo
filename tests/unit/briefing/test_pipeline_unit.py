@@ -159,6 +159,28 @@ def test_select_llm_candidate_items_caps_total_size() -> None:
     assert selected[-1].title == "3-23"
 
 
+def test_select_llm_candidate_items_preserves_official_crypto_policy_before_cap() -> None:
+    noisy_items = [
+        _item(source_name=f"source-{source_idx}", title=f"{source_idx}-{item_idx}")
+        for source_idx in range(10)
+        for item_idx in range(24)
+    ]
+    policy_item = NormalizedItem(
+        source_name="senate-banking-policy",
+        category="calendar",
+        title="Executive session to consider H.R. 3633, the Digital Asset Market Clarity Act",
+        summary="Committee markup on digital asset market structure.",
+        published_at=datetime(2026, 5, 14, 0, 0, tzinfo=UTC),
+        raw_metadata={"policy_priority": "crypto_regulation", "official_source": "true"},
+    )
+
+    selected = _select_llm_candidate_items([*noisy_items, policy_item])
+
+    assert len(selected) == 96
+    assert selected[0] == policy_item
+    assert policy_item in selected
+
+
 def test_serialize_byte_exact_snapshot_for_fixture_hash_stability() -> None:
     """Pin JSON bytes that feed FakeClaudeRunner prompt hashing."""
     plus_nine = timezone(timedelta(hours=9))

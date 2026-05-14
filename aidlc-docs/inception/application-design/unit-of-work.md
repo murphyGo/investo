@@ -681,14 +681,14 @@ The 2026-05-14 CLARITY Act markup miss showed that crypto market briefings need 
 - `tests/integration/` — official policy item can become crypto §② core issue without BTC/ETH price-token dependence
 
 **Definition of Done**:
-- [ ] Congress.gov adapter supports configured bills such as `119/hr/3633` and degrades cleanly when `CONGRESS_API_KEY` is absent or rejected.
-- [ ] Senate Banking adapter uses only official static HTML pages/listings with recorded fixtures; no unofficial endpoints or JS reverse-engineering.
-- [ ] House Financial Services adapter consumes official RSS/news output and filters to crypto/digital-asset policy terms before emission.
-- [ ] Official policy items emit sanitized metadata for bill id, committee, event type, and policy priority without leaking API keys.
-- [ ] Segment routing treats `CLARITY Act`, `digital asset market structure`, `stablecoin`, `committee markup`, `CFTC/SEC crypto jurisdiction`, and equivalent terms as strong crypto policy signals.
-- [ ] Candidate selection preserves official crypto-regulation items ahead of generic low-signal news caps.
-- [ ] Stage prompts allow a regulation/legislation event to become a core issue when it is market-structure relevant even without same-day price movement.
-- [ ] R10 fixtures cover success, empty, malformed, and auth/error paths for every new official source.
+- [x] Congress.gov adapter supports configured bills such as `119/hr/3633` and degrades cleanly when `CONGRESS_API_KEY` is absent or rejected.
+- [x] Senate Banking adapter uses only official static HTML pages/listings with recorded fixtures; no unofficial endpoints or JS reverse-engineering.
+- [x] House Financial Services adapter consumes official RSS/news output and filters to crypto/digital-asset policy terms before emission.
+- [x] Official policy items emit sanitized metadata for bill id, committee, event type, and policy priority without leaking API keys.
+- [x] Segment routing treats `CLARITY Act`, `digital asset market structure`, `stablecoin`, `committee markup`, `CFTC/SEC crypto jurisdiction`, and equivalent terms as strong crypto policy signals.
+- [x] Candidate selection preserves official crypto-regulation items ahead of generic low-signal news caps.
+- [x] Stage prompts allow a regulation/legislation event to become a core issue when it is market-structure relevant even without same-day price movement.
+- [x] R10 fixtures cover success, empty, malformed, and auth/error paths for every new official source.
 
 ---
 

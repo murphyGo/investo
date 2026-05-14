@@ -287,6 +287,7 @@ class TestSingleSourceOfTruth:
             "CLAUDE_CODE_OAUTH_TOKEN",
             "OPENAI_API_KEY",
             "FRED_API_KEY",
+            "CONGRESS_API_KEY",
             "INVESTO_KRX_SERVICE_KEY",
             "INVESTO_DATA_GO_KR_SERVICE_KEY",
             "OPENDART_API_KEY",
@@ -309,6 +310,11 @@ class TestSingleSourceOfTruth:
         # adapter shipping so the GHA secret cannot leak from a
         # pre-adapter cron probe.
         assert "OPENDART_API_KEY" in SECRET_ENV_VARS
+
+    def test_secret_env_vars_includes_congress_api_key(self) -> None:
+        # u58 Congress.gov adapter — optional key, but any configured
+        # value must be redacted from diagnostics.
+        assert "CONGRESS_API_KEY" in SECRET_ENV_VARS
 
     def test_redact_text_scrubs_krx_service_key_value(
         self,

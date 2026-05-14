@@ -198,6 +198,38 @@ def test_crypto_only_source_with_general_news_stays_crypto_only() -> None:
     assert segmented.us_equity == ()
 
 
+def test_official_crypto_policy_source_routes_to_crypto_without_ticker() -> None:
+    """u58 — official policy source should not need BTC/ETH tokens."""
+    item = _item(
+        "senate-banking-policy",
+        "Executive session to consider H.R. 3633, the Digital Asset Market Clarity Act",
+        category="calendar",
+        summary="Committee markup on digital asset market structure.",
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.crypto == (item,)
+    assert segmented.us_equity == ()
+
+
+def test_policy_priority_metadata_routes_unknown_official_item_to_crypto() -> None:
+    """u58 — policy metadata is a routing override for future official sources."""
+    item = NormalizedItem(
+        source_name="future-official-policy",
+        category="news",
+        title="Committee markup on digital asset market structure",
+        summary="No BTC or ETH price tokens in this policy item.",
+        published_at=datetime(2026, 5, 14, 12, 0, tzinfo=UTC),
+        raw_metadata={"policy_priority": "crypto_regulation", "official_source": "true"},
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.crypto == (item,)
+    assert segmented.us_equity == ()
+
+
 def test_domestic_only_source_with_korean_news_stays_domestic() -> None:
     item = _item("yonhap-market", "코스피 7,000 돌파")
 
