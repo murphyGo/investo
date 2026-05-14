@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 9 | 2026-05-07 |
+| Medium | 8 | 2026-05-07 |
 | Low | 20 | 2026-04-27 |
 
 ---
@@ -44,16 +44,6 @@ _No high priority items._
   - **`krx-option-expiry`** — no public KRX market-data path that exposes the option-expiry calendar without OTP / scraping is currently identified (consistent with u36's "no Naver / KRX scraping" out-of-scope rule). The closest public surface (`open.krx.co.kr` 200 OK with full HTML) is a search portal, not a JSON / CSV calendar feed. Domestic-equity readers continue to receive forward corporate events via `dart-disclosure` (u41). Defer until either KRX publishes a JSON path or a workaround is approved by the operator. Effect on `LOOKAHEAD_DATA_MISSING`: the reason code does not fire on `domestic-equity` today because no lookahead-aware adapter is mapped to that segment (anti-regression guard).
 - **Effort (remaining)**: ~3 h for `coingecko-events` once a fallback aggregator + key is chosen; ~unknown for `krx-option-expiry` (depends on whether a public path is ever confirmed).
 - **Priority Reasoning**: **P2 (Medium) as of 2026-05-14** — FOMC + FRED cover the core U.S. macro lookahead payoff and the production Telegram / briefing surfaces are no longer dormant. Keep active because CoinGecko/CoinMarketCal could improve crypto event recall and KRX option expiry could improve domestic derivatives context. Promote back to High only if a user-visible gap appears that one of the remaining adapters would have closed, or if the operator registers a CoinMarketCal key and explicitly wants the crypto-event adapter shipped next.
-
-#### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
-
-- **Created**: 2026-05-08
-- **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P2)
-- **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / explicit policy semantics), FR-003 (static web publishing)
-- **Description**: `.github/workflows/daily-briefing.yml` opts the weekly digest publish step in via the byte-identical match `github.event.schedule == '0 0 * * 6'`. The cron string is the literal Saturday 09:00 KST schedule (UTC `0 0 * * 6`). If the cron is ever adjusted — e.g., shifted by 5 minutes for runner contention, retargeted to a different timezone for DST treatment, or split into two arms (KST + JST testing) — the byte-identical match silently breaks and the weekly digest stops publishing without raising any error. The `INVESTO_PUBLISH_WEEKLY` flag itself is fine; the fragility lives in how the workflow decides when to set it.
-- **Suggested Fix**: Two alternatives. (a) Replace the byte-identical match with a weekday + KST-09:00 timezone comparison computed at job start (e.g., `if [[ "$(TZ=Asia/Seoul date +%u)" == "6" ]]`), so the opt-in survives cron edits as long as the *intent* (Saturday morning KST) is preserved. (b) Move the weekly publish to a dedicated workflow file (`.github/workflows/weekly-digest.yml`) with its own cron schedule, so daily-briefing.yml stays single-purpose and the weekly opt-in is its own first-class artefact. Option (a) keeps the daily / weekly publish coupled in one workflow (cheaper); option (b) decouples them (clearer ownership, easier to re-target weekly schedule independently).
-- **Effort**: ~30 min for option (a) including a bash unit test that exercises the timezone check on Sat / non-Sat fixtures. Option (b) ~1.5 h including a fresh workflow file, secrets injection, and a regression that asserts both arms run on their target days.
-- **Priority Reasoning**: Medium — works correctly today on the registered schedule, but is the kind of regression that escapes review when a cron edit lands. Promote to High the moment the cron schedule is touched.
 
 #### DEBT-049: SVG `@media (prefers-color-scheme)` disagrees with mkdocs Material site toggle
 
@@ -320,6 +310,13 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-05-14 — Added `scripts/resolve_weekly_flags.py` so the daily-briefing workflow derives `INVESTO_PUBLISH_WEEKLY` and `INVESTO_WEEKLY_OPS_DIGEST` from scheduled-run KST wall-clock intent (`schedule` event during Asia/Seoul Saturday 09:00) instead of comparing the exact cron string. `workflow_dispatch` remains opt-out by default. Regression tests pin Saturday/non-Saturday/manual-dispatch behavior, `GITHUB_ENV` output, and the absence of the old `github.event.schedule == '0 0 * * 6'` expression in `.github/workflows/daily-briefing.yml`.
+- **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P2)
+- **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / explicit policy semantics), FR-003 (static web publishing)
 
 #### DEBT-066: `*.svg.json` provenance manifest sidecars not enumerated in `asset_paths`
 

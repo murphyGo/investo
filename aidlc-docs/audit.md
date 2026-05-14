@@ -1,5 +1,17 @@
 # AI-DLC Audit Log
 
+## TECH-DEBT — DEBT-059 Weekly Flag Resolution Complete
+**Timestamp**: 2026-05-14T00:00:00+09:00
+**Trigger**: User-directed continuation into Medium TECH-DEBT after DEBT-067 priority decision.
+**Action**:
+- Added `scripts/resolve_weekly_flags.py` to derive `INVESTO_PUBLISH_WEEKLY` and `INVESTO_WEEKLY_OPS_DIGEST` from scheduled-run KST wall-clock intent: GitHub `schedule` event during Asia/Seoul Saturday 09:00.
+- Updated `.github/workflows/daily-briefing.yml` to run the resolver before `python -m investo` and removed the exact cron-string expression `github.event.schedule == '0 0 * * 6'`.
+- Added regression tests for scheduled Saturday 09:00, scheduled non-Saturday/non-09:00, manual dispatch default-off, `GITHUB_ENV` output, and workflow expression removal.
+- Moved DEBT-059 from Medium Priority to Resolved Items in `docs/TECH-DEBT.md`.
+**Verification**: Targeted ruff/format checks and targeted tests passed; full closeout gate recorded in the commit workflow.
+
+---
+
 ## TECH-DEBT — DEBT-067 Priority Decision
 **Timestamp**: 2026-05-14T00:00:00+09:00
 **Trigger**: User-directed continuation order after u58; next planned item was the DEBT-067 status decision.

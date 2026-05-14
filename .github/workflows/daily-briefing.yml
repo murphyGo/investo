@@ -161,6 +161,12 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python scripts/check_daily_briefing_env.py
 
+      - name: Resolve weekly publish flags
+        # DEBT-059: derive the weekly opt-in from the scheduled run's
+        # KST wall-clock intent instead of comparing the exact cron
+        # string. Manual workflow_dispatch remains opt-out by default.
+        run: python scripts/resolve_weekly_flags.py
+
       - name: Run pipeline (python -m investo)
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -219,25 +225,6 @@ jobs:
           # pipeline fails closed at boot.
           INVESTO_OPENAI_VISUALS: '0'
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # u29 site-discovery-v2: opt-in to the Saturday-only weekly
-          # retrospective publish. Both crons resolve ``target_date`` to
-          # the prior Friday, so ``target_date`` alone cannot
-          # disambiguate them. Setting this flag to ``"1"`` only on the
-          # Saturday cron makes ``publisher.weekly_digest_opt_in()``
-          # return True and triggers the
-          # ``archive/weekly/YYYY-WNN.md`` write inside the same
-          # commit as the Friday segmented publish. ``workflow_dispatch``
-          # runs default to ``"0"`` (no weekly publish); pass ``"1"``
-          # via a manual environment override if you need to backfill.
-          INVESTO_PUBLISH_WEEKLY: ${{ github.event.schedule == '0 0 * * 6' && '1' || '0' }}
-          # u31 Step 4 — operator weekly ops digest. Same Saturday cron
-          # firing that triggers the public weekly retrospective also
-          # opts into the operator chat digest summarising the trailing
-          # 7 days of source health (success rate, top-failed
-          # adapters). ``__main__`` consumes the env after
-          # ``run_pipeline`` returns; ``INVESTO_DRY_RUN=1`` short-
-          # circuits the dispatch.
-          INVESTO_WEEKLY_OPS_DIGEST: ${{ github.event.schedule == '0 0 * * 6' && '1' || '0' }}
           # u31 Step 2 — operator state directory. The boot-alert dedup
           # ledger and per-source coverage time series both land under
           # this directory; pinning it explicitly makes the GHA cache
