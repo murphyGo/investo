@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-14 begin -->
+
+## 2026-05-14
+
+- [coingecko-price] **ticker**: BTC $81,407.00 (+2.56%)
+- [defillama-market-structure] **ticker**: DeFi TVL $86.9B; leader Ethereum
+- [theblock-crypto] **ticker**: CME sets June 8 for Nasdaq-backed crypto index futures covering seven assets in first weighted contract
+- [theblock-crypto] **ticker**: Chainlink CCIP gains over $2.5 billion in TVL from protocols migrating from LayerZero, with Kraken Bitcoin the latest…
+- [theblock-crypto] **ticker**: JPMorgan says ether and altcoins could keep underperforming bitcoin without stronger activity
+- [theblock-crypto] **ticker**: Strive shares jump on ‘daily dividend company’ strategy as firm goes debt free
+
+<!-- u33 entry 2026-05-14 end -->
 <!-- u33 entry 2026-05-13 begin -->
 
 ## 2026-05-13

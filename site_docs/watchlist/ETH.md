@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-14 begin -->
+
+## 2026-05-14
+
+- [coingecko-price] **ticker**: ETH $2,296.79 (+1.72%)
+- [defillama-market-structure] **ticker**: DeFi TVL $86.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Sharplink CEO says ETH treasury firms are diverging from Strategy model as Ethereum’s tokenization role expands
+
+<!-- u33 entry 2026-05-14 end -->
 <!-- u33 entry 2026-05-13 begin -->
 
 ## 2026-05-13

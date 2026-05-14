@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-14 begin -->
+
+## 2026-05-14
+
+- [yonhap-market] **ticker**: 신한운용 AI반도체TOP2플러스, 순자산 2조원 넘어
+- [coingecko-price] **ticker**: SOL $92.59 (+1.57%)
+- [defillama-market-structure] **ticker**: DeFi TVL $86.9B; leader Ethereum
+
+<!-- u33 entry 2026-05-14 end -->
 <!-- u33 entry 2026-05-13 begin -->
 
 ## 2026-05-13
