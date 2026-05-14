@@ -35,8 +35,15 @@ from investo.models.results import (
     PipelineStatus,
     SendResult,
 )
+from investo.models.segments import (
+    SEGMENT_MARKET_TZ,
+    SEGMENT_MARKET_TZ_LABEL,
+    MarketSegment,
+)
 
 __all__ = [
+    "SEGMENT_MARKET_TZ",
+    "SEGMENT_MARKET_TZ_LABEL",
     "TELEGRAM_MESSAGE_LIMIT",
     "Briefing",
     "BriefingCarryover",
@@ -47,6 +54,7 @@ __all__ = [
     "Category",
     "FailureContext",
     "FailureStage",
+    "MarketSegment",
     "NormalizedItem",
     "PipelineResult",
     "PipelineStatus",

@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from typing import Final, Literal
 
 from investo.models import Category, NormalizedItem, SourceOutcome
+from investo.models.segments import MarketSegment
 
-MarketSegment = Literal["domestic-equity", "us-equity", "crypto"]
 # u54 — 4-tier severity enum. ``limited`` is inserted between
 # ``partial`` and ``failed`` to surface "core data missing but segment
 # can still attempt narrative"; legacy ``insufficient`` migrated to the

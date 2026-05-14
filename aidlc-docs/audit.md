@@ -1,5 +1,17 @@
 # AI-DLC Audit Log
 
+## TECH-DEBT — DEBT-046 Segment Market Clock Unification Complete
+**Timestamp**: 2026-05-14T00:00:00+09:00
+**Trigger**: Medium TECH-DEBT continuation after DEBT-059.
+**Action**:
+- Added `src/investo/models/segments.py` as the foundation-layer catalog for `MarketSegment`, `SEGMENT_MARKET_TZ`, and `SEGMENT_MARKET_TZ_LABEL`.
+- Updated `briefing/pipeline.py`, `sources/aggregator.py`, `models/market_calendar.py`, and `briefing/segments.py` to import the shared segment catalog.
+- Added `tests/unit/models/test_segment_market_clock.py` to assert that `_render_timestamp_watermark` and `_window_for_adapter` produce the same UTC window for representative domestic-equity, us-equity, and crypto sources.
+- Moved DEBT-046 from Medium Priority to Resolved Items in `docs/TECH-DEBT.md`.
+**Verification**: Targeted ruff/format, mypy strict, and 53 targeted tests passed; full closeout gate recorded in the commit workflow.
+
+---
+
 ## TECH-DEBT — DEBT-059 Weekly Flag Resolution Complete
 **Timestamp**: 2026-05-14T00:00:00+09:00
 **Trigger**: User-directed continuation into Medium TECH-DEBT after DEBT-067 priority decision.

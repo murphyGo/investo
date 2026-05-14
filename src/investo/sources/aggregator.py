@@ -17,11 +17,11 @@ import asyncio
 import logging
 from datetime import date, timedelta
 from typing import Final
-from zoneinfo import ZoneInfo
 
 import httpx
 
 from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
+from investo.models.segments import SEGMENT_MARKET_TZ
 from investo.sources._registry import list_sources
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
@@ -29,8 +29,6 @@ from investo.sources.tiers import adapter_tier
 
 _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
-_US_MARKET_TZ = ZoneInfo("America/New_York")
-_CRYPTO_MARKET_TZ = ZoneInfo("UTC")
 _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "cnbc-top-news",
@@ -201,7 +199,7 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
 
 def _window_for_adapter(target_date: date, source_name: str) -> FetchWindow:
     if source_name in _US_MARKET_SOURCES:
-        return FetchWindow.from_local_date(target_date, _US_MARKET_TZ)
+        return FetchWindow.from_local_date(target_date, SEGMENT_MARKET_TZ["us-equity"])
     if source_name in _CRYPTO_MARKET_SOURCES:
-        return FetchWindow.from_local_date(target_date, _CRYPTO_MARKET_TZ)
-    return FetchWindow.from_kst_date(target_date)
+        return FetchWindow.from_local_date(target_date, SEGMENT_MARKET_TZ["crypto"])
+    return FetchWindow.from_local_date(target_date, SEGMENT_MARKET_TZ["domestic-equity"])

@@ -29,14 +29,9 @@ Module boundary (project rule 2): foundation only — no imports from
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-from typing import Final, Literal
-from zoneinfo import ZoneInfo
+from typing import Final
 
-# Segment identifier matching ``briefing.segments.MarketSegment``.
-# Re-declared as a Literal here (not imported) to preserve the
-# foundation-layer rule — ``models/`` does not depend on ``briefing/``.
-MarketSegment = Literal["domestic-equity", "us-equity", "crypto"]
-
+from investo.models.segments import SEGMENT_MARKET_TZ, MarketSegment
 
 # KRX 2026 휴장일 — Korea Exchange.
 #
@@ -94,16 +89,6 @@ _HOLIDAYS_BY_SEGMENT: Final[dict[MarketSegment, frozenset[date]]] = {
 }
 
 
-_KST: Final[ZoneInfo] = ZoneInfo("Asia/Seoul")
-_NY: Final[ZoneInfo] = ZoneInfo("America/New_York")
-_UTC: Final[ZoneInfo] = ZoneInfo("UTC")
-_SEGMENT_TZ: Final[dict[MarketSegment, ZoneInfo]] = {
-    "domestic-equity": _KST,
-    "us-equity": _NY,
-    "crypto": _UTC,
-}
-
-
 def is_holiday(segment: MarketSegment, day: date) -> bool:
     """Return ``True`` iff ``day`` is a non-trading day for ``segment``.
 
@@ -150,7 +135,7 @@ def next_expected_trading_day(segment: MarketSegment, now: datetime) -> date:
     Used by freshness gate: ``latest_archive_date >=
     next_expected_trading_day(...) - 1`` ⇒ ``fresh``.
     """
-    tz = _SEGMENT_TZ[segment]
+    tz = SEGMENT_MARKET_TZ[segment]
     local_now = now.astimezone(tz)
     today = local_now.date()
     if segment == "crypto":

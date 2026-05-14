@@ -33,7 +33,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Final
-from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -94,6 +93,7 @@ from investo.models import (
     status_label_kr,
 )
 from investo.models.bundle_context import BundleContext
+from investo.models.segments import SEGMENT_MARKET_TZ, SEGMENT_MARKET_TZ_LABEL
 
 _logger = logging.getLogger("investo.briefing.pipeline")
 
@@ -139,20 +139,6 @@ _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "domestic-equity": "국내 증시",
     "us-equity": "미국 증시",
     "crypto": "크립토",
-}
-# Segment → market clock used to express the day window. Mirrors the
-# adapter routing in ``investo.sources.aggregator._window_for_adapter``
-# so the reader-facing watermark matches the data collection window.
-# Re-binding the ZoneInfo at import time avoids hot-path lookups.
-_SEGMENT_MARKET_TZ: Final[dict[MarketSegment, ZoneInfo]] = {
-    "domestic-equity": ZoneInfo("Asia/Seoul"),
-    "us-equity": ZoneInfo("America/New_York"),
-    "crypto": ZoneInfo("UTC"),
-}
-_SEGMENT_MARKET_TZ_LABEL: Final[dict[MarketSegment, str]] = {
-    "domestic-equity": "KST",
-    "us-equity": "NY",
-    "crypto": "UTC",
 }
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
@@ -1121,8 +1107,8 @@ def _render_timestamp_watermark(target_date: date, segment: MarketSegment) -> st
     covered". Pure: no I/O, no clock reads — the value is a function
     of ``(target_date, segment)`` only.
     """
-    market_tz = _SEGMENT_MARKET_TZ[segment]
-    tz_label = _SEGMENT_MARKET_TZ_LABEL[segment]
+    market_tz = SEGMENT_MARKET_TZ[segment]
+    tz_label = SEGMENT_MARKET_TZ_LABEL[segment]
     start_local = datetime.combine(target_date, time.min, tzinfo=market_tz)
     end_local = start_local + timedelta(days=1)
     start_utc = start_local.astimezone(UTC)

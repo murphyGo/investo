@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 8 | 2026-05-07 |
+| Medium | 7 | 2026-05-07 |
 | Low | 20 | 2026-04-27 |
 
 ---
@@ -54,16 +54,6 @@ _No high priority items._
 - **Suggested Fix**: Either (b) inline `<svg>` embed in markdown + parent class selector that picks up the site `data-md-color-scheme` attribute on `<html>` (the SVG `<style>` block then targets `[data-md-color-scheme="slate"] .card-bg` etc.), or (c) render both light and dark variant SVG files and emit a `<picture>` element (`<source media="(prefers-color-scheme: dark)" srcset="...-dark.svg"> <img src="...-light.svg">`). Option (b) keeps the single-asset shape and the existing class hooks; option (c) doubles asset volume but works without inline `<svg>`. Either way, retain the chokepoint shape (one `_CARD_STYLE` block / one render path) so future card types inherit the fix automatically.
 - **Effort**: ~1.5 h for option (b) including the markdown render path switch (`<img>` → inline `<svg>`), parent-attribute selector tests, and a regression test that pins both site-toggle states against a synthesized HTML wrapper. Option (c) ~45 min but requires a second variant render pass.
 - **Priority Reasoning**: Medium — works correctly today for the OS-default theme, but the site toggle is a first-class mkdocs Material affordance and any reader exercising it sees a mismatched card. Reader-trust contract is the highest-leverage signal in the segmented-briefing UX, so the disagreement is worth closing once cleanly rather than carrying forward through every future card type.
-
-#### DEBT-046: `_SEGMENT_MARKET_TZ` single source-of-truth across briefing and sources
-
-- **Created**: 2026-05-08
-- **Source**: u25 summary-fidelity-and-content-trust QA review (M1)
-- **Reference**: NFR-005 (consistency / DRY across module boundaries), FR-008 (segmented briefing), FR-003 (static web publishing)
-- **Description**: u25 introduced `_SEGMENT_MARKET_TZ` and `_SEGMENT_MARKET_TZ_LABEL` in `src/investo/briefing/pipeline.py` to render the per-segment timestamp watermark `**기준 시각**: YYYY-MM-DD KST [start_utc, end_utc)`. The same timezone routing already lives in `src/investo/sources/aggregator.py::_window_for_adapter` and the underlying `src/investo/sources/_window.py::_KST` constant. The two declarations exist independently because the module boundary forbids `briefing → sources` imports. Today they agree by inspection, but a future change to (say) the crypto window — UTC → America/Chicago for testing, KST adjustment for DST treatment — would land in only one site by default and the watermark would silently misrepresent the actual data-collection window.
-- **Suggested Fix**: Move `_SEGMENT_MARKET_TZ` and `_SEGMENT_MARKET_TZ_LABEL` to a new `src/investo/models/segments.py` (or extend the existing `models` surface) so both `briefing/pipeline.py` and `sources/aggregator.py` import from one place. The shared module sits under the foundation `models` layer and does not violate the unit-to-unit import ban. Add a regression test that asserts the briefing watermark window equals the aggregator window for each of the three segments on a fixed `target_date`.
-- **Effort**: ~30 min including the move + import updates + cross-module regression test.
-- **Priority Reasoning**: Medium — works correctly today on the published shape, but the watermark is a reader-trust signal: if it ever drifts from the real collection window, the trust contract added by u25 inverts. Cheap to harden once and structurally prevents the drift.
 
 #### DEBT-047: Producer ↔ gate reject set unification (`is_unsafe_summary_value` helper extraction)
 
@@ -317,6 +307,13 @@ _No high priority items._
 - **Resolved**: 2026-05-14 — Added `scripts/resolve_weekly_flags.py` so the daily-briefing workflow derives `INVESTO_PUBLISH_WEEKLY` and `INVESTO_WEEKLY_OPS_DIGEST` from scheduled-run KST wall-clock intent (`schedule` event during Asia/Seoul Saturday 09:00) instead of comparing the exact cron string. `workflow_dispatch` remains opt-out by default. Regression tests pin Saturday/non-Saturday/manual-dispatch behavior, `GITHUB_ENV` output, and the absence of the old `github.event.schedule == '0 0 * * 6'` expression in `.github/workflows/daily-briefing.yml`.
 - **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P2)
 - **Reference**: NFR-003 (graceful degradation), NFR-005 (consistency / explicit policy semantics), FR-003 (static web publishing)
+
+#### DEBT-046: `_SEGMENT_MARKET_TZ` single source-of-truth across briefing and sources
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-05-14 — Added `src/investo/models/segments.py` as the foundation-layer source of truth for `MarketSegment`, `SEGMENT_MARKET_TZ`, and `SEGMENT_MARKET_TZ_LABEL`. `briefing/pipeline.py`, `sources/aggregator.py`, `models/market_calendar.py`, and `briefing/segments.py` now import the shared catalog instead of redeclaring market-clock mappings. Regression coverage asserts that the reader-facing timestamp watermark uses the same UTC window as `_window_for_adapter` for representative domestic-equity, us-equity, and crypto sources.
+- **Source**: u25 summary-fidelity-and-content-trust QA review (M1)
+- **Reference**: NFR-005 (consistency / DRY across module boundaries), FR-008 (segmented briefing), FR-003 (static web publishing)
 
 #### DEBT-066: `*.svg.json` provenance manifest sidecars not enumerated in `asset_paths`
 
