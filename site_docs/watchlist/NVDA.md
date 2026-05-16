@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-15 begin -->
+
+## 2026-05-15
+
+- [yonhap-market] **ticker**: SK하이닉스, 1분기 엔비디아 매출 7.7조…매출 6조 빅테크 추가
+- [stooq-price] **ticker**: NVDA 225.32
+- [theblock-crypto] **ticker**: IREN closes $3 billion convertible notes offering as Bitcoin miner’s AI infrastructure push accelerates
+
+<!-- u33 entry 2026-05-15 end -->
 <!-- u33 entry 2026-05-13 begin -->
 
 ## 2026-05-13

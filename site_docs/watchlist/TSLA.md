@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-15 begin -->
+
+## 2026-05-15
+
+- [stooq-price] **ticker**: TSLA 422.24
+- [yahoo-finance-news] **ticker**: Tesla, Toyota expose surprising auto industry truth
+
+<!-- u33 entry 2026-05-15 end -->
 <!-- u33 entry 2026-05-13 begin -->
 
 ## 2026-05-13

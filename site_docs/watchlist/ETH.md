@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-15 begin -->
+
+## 2026-05-15
+
+- [defillama-market-structure] **ticker**: DeFi TVL $85.2B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,229.72
+- [theblock-crypto] **ticker**: Bit Digital reports 14% revenue drop in Q1, driven by lower ETH staking rewards
+- [theblock-crypto] **ticker**: THORChain pauses trading as security researchers flag suspected $10M multi-chain exploit
+
+<!-- u33 entry 2026-05-15 end -->
 <!-- u33 entry 2026-05-14 begin -->
 
 ## 2026-05-14
