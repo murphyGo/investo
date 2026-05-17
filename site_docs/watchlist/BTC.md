@@ -6,13 +6,14 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-15
 
-- [defillama-market-structure] **ticker**: DeFi TVL $85.2B; leader Ethereum
-- [stooq-price] **ticker**: BTC-USD 79,165.46
+- [defillama-market-structure] **ticker**: DeFi TVL $84.7B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 77,944.75
 - [theblock-crypto] **ticker**: IREN closes $3 billion convertible notes offering as Bitcoin miner’s AI infrastructure push accelerates
 - [theblock-crypto] **ticker**: Strategy to retire $1.5 billion in convertible notes at a discount, may sell bitcoin to fund buyback
 - [theblock-crypto] **ticker**: THORChain pauses trading as security researchers flag suspected $10M multi-chain exploit
 
 <!-- u33 entry 2026-05-15 end -->
+
 <!-- u33 entry 2026-05-14 begin -->
 
 ## 2026-05-14

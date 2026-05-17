@@ -3,15 +3,15 @@
 <rect class="card-bg" width="1200" height="630"/>
 <rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
-<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-15 · 데이터 normal</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-15 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 15일(금), 미국 증시는 S&amp;P 500(스탠더드앤드푸어스 500 지수) -1.24%</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">(7,408.50), Nasdaq 100(나스닥 100 지수) -1.54% (26,225.14), Dow</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 15일(금), 미국 증시는 5월 1314일에 걸쳐 이어진 S&amp;P 500 ATH 경신</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">랠리에서 이탈하며 3대 지수 모두 시가 대비 하락 마감했다. [데이터부족]</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·Nasdaq 100 — 연속 ATH 흐름에서 전면 하락 반전 전일(5월 14일)까지 복수</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">일간 ATH를 경신하며 [상승 관찰] 기조를 이어가던 미국 증시는 이날 DGS10 상승이라는 단일 변수에</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">3대 지수 시가 대비 반락 — ATH 흐름 이탈 S&amp;P 500이 7,408.50으로 마감하며 5월</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">1314일 연속 ATH 경신 행진이 중단됐다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">DGS10 4.47% 수준의 지속성 및 추가 방향 — 이번 주 발표되는 인플레이션 관련 지표와의 연동</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">추세 확인 5월 20일(수) 오후 2시 FOMC 의사록(4월 2829일 회의)에서 금리 경로 관련 위원</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500 7,408.50 마감을 기점으로 직전 ATH 흐름에서의 이탈이 단기 조정인지 추이 확인</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026-05-20 FOMC Minutes 공개 시 연준 위원들의 인플레이션 및 금리 경로 관련 발언</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

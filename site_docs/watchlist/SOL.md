@@ -7,10 +7,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-05-15
 
 - [nasdaq-earnings-calendar] **ticker**: HSDT earnings — after-hours — EPS forecast ($0.12)
-- [defillama-market-structure] **ticker**: DeFi TVL $85.2B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $84.7B; leader Ethereum
 - [theblock-crypto] **ticker**: Forward Industries posts over 300% revenue growth but wider quarterly net loss amid SOL markdowns
 
 <!-- u33 entry 2026-05-15 end -->
+
 <!-- u33 entry 2026-05-14 begin -->
 
 ## 2026-05-14
