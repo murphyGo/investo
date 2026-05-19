@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="크립토 가격 스냅샷">
+<style>.card-bg{fill:#f7f5ef;}.card-frame{fill:#ffffff;stroke:#253238;}.card-title{fill:#1d2b2f;}.card-subtitle{fill:#617176;}.card-label{fill:#476169;}.card-emphasis{fill:#14555f;}.card-text{fill:#1d2b2f;}.card-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 가격 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-19</text>
+<text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">$76,679.00 · -0.51% · V $28.97B</text>
+<text class="card-emphasis" x="90" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">ETH</text>
+<text class="card-text" x="310" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">$2,105.74 · -1.40% · V $11.16B</text>
+<text class="card-emphasis" x="90" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">SOL</text>
+<text class="card-text" x="310" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">$84.08 · -1.57% · V $1.95B</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

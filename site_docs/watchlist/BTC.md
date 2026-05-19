@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-19 begin -->
+
+## 2026-05-19
+
+- [yonhap-market] **ticker**: [게시판] 코빗, 오는 25일까지 비트코인 피자데이 이벤트
+- [coingecko-price] **ticker**: BTC $76,679.00 (-0.51%)
+- [defillama-market-structure] **ticker**: DeFi TVL $82.8B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 76,719.82
+- [theblock-crypto] **ticker**: Bitcoin slide extends as record ETF outflows and 60% rate-hike probability signal structural cracks beneath the rally…
+- [theblock-crypto] **ticker**: Lolli launches automatic bitcoin cashback on linked debit and credit card purchases
+- [theblock-crypto] **ticker**: Strive buys 382 BTC for roughly $30 million, holding spot as ninth-largest bitcoin treasury
+- [theblock-crypto] **ticker**: TD Cowen raises Strategy price target to $400, citing faster bitcoin accumulation and accretive deleveraging
+- [theblock-crypto] **ticker**: ‘Follow the gigawatts’: Bernstein sees upside in several bitcoin miners amid $90 billion in AI data center deals
+
+<!-- u33 entry 2026-05-19 end -->
 <!-- u33 entry 2026-05-15 begin -->
 
 ## 2026-05-15

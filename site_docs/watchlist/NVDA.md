@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-19 begin -->
+
+## 2026-05-19
+
+- [yonhap-market] **ticker**: TSMC, 젠슨 황 'AI 5단 케이크' 개념에 '3단 케이크' 비전 화답
+- [stooq-price] **ticker**: NVDA 220.63
+
+<!-- u33 entry 2026-05-19 end -->
 <!-- u33 entry 2026-05-18 begin -->
 
 ## 2026-05-18

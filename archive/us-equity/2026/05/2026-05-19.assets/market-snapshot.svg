@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="미국 증시 시장 스냅샷">
+<style>.card-bg{fill:#f7f5ef;}.card-frame{fill:#ffffff;stroke:#253238;}.card-title{fill:#1d2b2f;}.card-subtitle{fill:#617176;}.card-label{fill:#476169;}.card-emphasis{fill:#14555f;}.card-text{fill:#1d2b2f;}.card-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-19 · 데이터 partial</text>
+<text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 19일(화), 미국 증시는 국채금리 급등과 달러 강세가 맞물리며 3대 지수 일제 하락</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">마감했다. [데이터부족]</text>
+<text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500 · Dow Jones · Nasdaq 100 — 채권금리발 동반 하락 마감 S&amp;P 500은</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">7,353.61로 마감했고, Nasdaq 100은 25,870.71, Dow Jones는</text>
+<text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">DGS10 4.61% 수준이 추가 상승세를 이어가는지 추세 확인 오늘 Waller 정책 패널 토론에서</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">나온 발언의 금리 경로 관련 논조 점검 5월 20일 오후 2시 FOMC 4월 28-29일 회의록 —</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

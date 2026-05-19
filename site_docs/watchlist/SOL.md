@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-19 begin -->
+
+## 2026-05-19
+
+- [yonhap-market] **ticker**: 신한운용, 코스닥 대표기업 10종목 집중투자 ETF 상장
+- [coingecko-price] **ticker**: SOL $84.08 (-1.57%)
+- [defillama-market-structure] **ticker**: DeFi TVL $82.8B; leader Ethereum
+
+<!-- u33 entry 2026-05-19 end -->
 <!-- u33 entry 2026-05-18 begin -->
 
 ## 2026-05-18

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-19 begin -->
+
+## 2026-05-19
+
+- [coingecko-price] **ticker**: ETH $2,105.74 (-1.40%)
+- [defillama-market-structure] **ticker**: DeFi TVL $82.8B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,106.98
+- [theblock-crypto] **ticker**: Ethereum leads $65 billion RWA race as blockchains compete for institutional tokenization flows
+
+<!-- u33 entry 2026-05-19 end -->
 <!-- u33 entry 2026-05-15 begin -->
 
 ## 2026-05-15
