@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-20 begin -->
+
+## 2026-05-20
+
+- [coingecko-price] **ticker**: BTC $77,362.00 (+0.75%)
+- [defillama-market-structure] **ticker**: DeFi TVL $83.3B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 77,346.64
+- [theblock-crypto] **ticker**: CAB, Europol secure another 500 BTC likely tied to Irish drug trafficking case
+- [theblock-crypto] **ticker**: CryptoQuant says bitcoin mirrors 2022 bear market pattern as sentiment turns ‘extremely bearish’
+- [theblock-crypto] **ticker**: David Bailey’s Nakamoto bitcoin treasury announces 1-for-40 reverse split as shares hit new lows
+- [theblock-crypto] **ticker**: Elon Musk’s SpaceX holds $1.45 billion worth of bitcoin as firm looks to go public
+- [theblock-crypto] **ticker**: Hyperliquid ETFs draw $22.3 million in early inflows, analysts point to ‘good sign of organic interest’
+- [theblock-crypto] **ticker**: ‘Not all 200-day moving averages are equal’: K33 argues February’s $60K low still marks cycle’s maximum drawdown
+
+<!-- u33 entry 2026-05-20 end -->
 <!-- u33 entry 2026-05-19 begin -->
 
 ## 2026-05-19

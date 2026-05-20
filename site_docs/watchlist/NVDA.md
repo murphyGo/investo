@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-20 begin -->
+
+## 2026-05-20
+
+- [yonhap-market] **ticker**: 뉴욕증시, 엔비디아 실적발표 앞두고 상승 출발
+- [nasdaq-earnings-calendar] **ticker**: NVDA earnings — after-hours — EPS forecast $1.70
+- [stooq-price] **ticker**: NVDA 223.33
+
+<!-- u33 entry 2026-05-20 end -->
 <!-- u33 entry 2026-05-19 begin -->
 
 ## 2026-05-19

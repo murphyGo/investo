@@ -34,6 +34,7 @@
 <rect class="u29-cell-absent" x="53" y="124" width="14" height="14" rx="2" ry="2"><title>2026-05-17 · 미발행</title></rect>
 <rect class="u29-cell-partial" x="70" y="22" width="14" height="14" rx="2" ry="2"><title>2026-05-18 · 부분</title></rect>
 <rect class="u29-cell-normal" x="70" y="39" width="14" height="14" rx="2" ry="2"><title>2026-05-19 · 정상</title></rect>
+<rect class="u29-cell-normal" x="70" y="56" width="14" height="14" rx="2" ry="2"><title>2026-05-20 · 정상</title></rect>
 <rect class="u29-cell-normal" x="36" y="148" width="11" height="11" rx="2" ry="2"/>
 <text class="u29-legend" x="52" y="158" font-size="11">정상</text>
 <rect class="u29-cell-partial" x="106" y="148" width="11" height="11" rx="2" ry="2"/>
@@ -49,11 +50,11 @@
 
 ## 최신 시황
 
-현재 보관된 최신 묶음은 **2026-05-19**입니다.
+현재 보관된 최신 묶음은 **2026-05-20**입니다.
 
-- [국내 증시](domestic-equity/2026/05/2026-05-19.md)
-- [미국 증시](us-equity/2026/05/2026-05-19.md)
-- [크립토](crypto/2026/05/2026-05-19.md)
+- [국내 증시](domestic-equity/2026/05/2026-05-20.md)
+- [미국 증시](us-equity/2026/05/2026-05-20.md)
+- [크립토](crypto/2026/05/2026-05-20.md)
 ## 과거 단일 시황
 
 과거 단일 시황은 세그먼트 분리 이전 형식입니다. 최신 탐색은 위의 국내 증시·미국 증시·크립토 링크를 우선 사용하세요.

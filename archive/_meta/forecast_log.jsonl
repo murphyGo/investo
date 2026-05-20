@@ -18,3 +18,6 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/05/2026-05-19.md", "published_at": "2026-05-19T23:33:27.397340+00:00", "segment": "crypto", "target_date": "2026-05-19", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/05/2026-05-19.md", "published_at": "2026-05-19T23:33:27.397340+00:00", "segment": "domestic-equity", "target_date": "2026-05-19", "tickers": ["KOSPI"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/05/2026-05-19.md", "published_at": "2026-05-19T23:33:27.397340+00:00", "segment": "us-equity", "target_date": "2026-05-19", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/05/2026-05-20.md", "published_at": "2026-05-20T23:37:35.283464+00:00", "segment": "crypto", "target_date": "2026-05-20", "tickers": ["BTC", "ETH", "SOL", "USD"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/05/2026-05-20.md", "published_at": "2026-05-20T23:37:35.283464+00:00", "segment": "domestic-equity", "target_date": "2026-05-20", "tickers": ["005930"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/05/2026-05-20.md", "published_at": "2026-05-20T23:37:35.283464+00:00", "segment": "us-equity", "target_date": "2026-05-20", "tickers": []}
