@@ -6,6 +6,7 @@
   "responses": {
     "CPIAUCSL.json": {"note": "monthly CPI series — happy path; 2 observations, values present, delta computable"},
     "UNRATE.json": {"note": "monthly unemployment — latest observation has '.' placeholder (real FRED behavior for revisions in progress); adapter MUST fall through to the prior observation"},
-    "DFF.json": {"note": "daily Federal Funds Rate — 2 most recent business days; happy path with 0.00 delta"}
+    "DFF.json": {"note": "daily Federal Funds Rate — 2 most recent business days; happy path with 0.00 delta"},
+    "PPIFID.json": {"note": "monthly Producer Price Index by Commodity: Final Demand series [PPIFID] — u59 PPI actual path fixture; source identity and Apr/Mar 2026 values verified against the official FRED series page on 2026-05-23"}
   }
 }

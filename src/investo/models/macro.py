@@ -38,6 +38,7 @@ _HIGH_IMPORTANCE_FRED_SERIES_IDS: Final[frozenset[str]] = frozenset(
         "CPIAUCSL",
         "UNRATE",
         "DFF",
+        "PPIFID",
     }
 )
 

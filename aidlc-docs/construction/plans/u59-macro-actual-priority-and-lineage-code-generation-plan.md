@@ -356,16 +356,17 @@ Result:
 ### Step 2 - PPI schedule and actual source fixture
 
 - [x] Add a dedicated PPI schedule identity test around `fred-economic-calendar` release id `46`.
-- [ ] Verify and add the selected public PPI actual series to `fred-macro` or a source-of-record adapter.
-- [ ] Add fixture metadata sidecars for replay.
-- [ ] Tests: success, no-key behavior where applicable, stale/empty payload.
+- [x] Verify and add the selected public PPI actual series to `fred-macro` or a source-of-record adapter.
+- [x] Add fixture metadata sidecars for replay.
+- [x] Tests: success, no-key behavior where applicable, stale/empty payload.
 Implementation notes:
 - Extend `tests/unit/sources/test_fred_economic_calendar.py` near the existing CPI identity test; assert `release_id == "46"`, release name/title includes Producer Price Index/PPI, `scheduled_at` is NY release-day normalized as the adapter currently defines it, and `segment_items(...).us_equity` contains the item.
 - For actuals, add the PPI series only after verifying the exact series id. Do not guess in code. Record the choice in fixture metadata and this plan/audit.
 - If using `fred-macro`, update `_DEFAULT_SERIES` in `src/investo/sources/fred.py`, fixture bytes under `tests/unit/sources/fixtures/api/fred-macro/`, and `tests/unit/sources/test_fred.py`.
 Result:
 - Added a dedicated `release_id=46` PPI schedule identity test in `tests/unit/sources/test_fred_economic_calendar.py`, including inferred P1 macro identity and `us-equity` routing.
-- PPI actual source path remains open; do not choose a FRED series id without official verification.
+- Added FRED `PPIFID` (`Producer Price Index by Commodity: Final Demand`) to `fred-macro` defaults after verifying the official FRED series page.
+- Added `PPIFID.json` fixture and a source test proving it emits a P0 required macro actual with stable event key, prior value, release date, and FRED URL.
 
 ### Step 3 - Priority-aware candidate selection
 

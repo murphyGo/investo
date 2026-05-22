@@ -29,6 +29,7 @@ _FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "fred-macro"
 _CPI_FIXTURE = _FIXTURE_DIR / "CPIAUCSL.json"
 _UNRATE_FIXTURE = _FIXTURE_DIR / "UNRATE.json"
 _DFF_FIXTURE = _FIXTURE_DIR / "DFF.json"
+_PPI_FIXTURE = _FIXTURE_DIR / "PPIFID.json"
 
 # Sentinel api_key value used in tests. Tests assert this string never
 # appears in any captured output (errors, raw_metadata, etc.).
@@ -284,6 +285,31 @@ async def test_dff_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "+0.0000" in items[0].title
 
 
+async def test_ppifid_happy_path_adds_required_macro_actual(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.models.macro import is_required_macro_actual, macro_event_key, macro_priority
+
+    _set_key(monkeypatch)
+    _override_series(monkeypatch, "PPIFID")
+    fixtures = {"PPIFID": _PPI_FIXTURE.read_bytes()}
+    adapter = FredMacroAdapter()
+    client, _ = _series_router(fixtures)
+    async with client:
+        items = await adapter.fetch(client, _WINDOW)
+    assert len(items) == 1
+    item = items[0]
+    assert item.raw_metadata["series_id"] == "PPIFID"
+    assert item.raw_metadata["value"] == "156.878000"
+    assert item.raw_metadata["release_date"] == "2026-04-01"
+    assert item.raw_metadata["previous_value"] == "154.656000"
+    assert item.raw_metadata["previous_release_date"] == "2026-03-01"
+    assert str(item.url) == "https://fred.stlouisfed.org/series/PPIFID"
+    assert macro_event_key(item) == "fred-macro:series_id=PPIFID:release_date=2026-04-01"
+    assert macro_priority(item) == "P0"
+    assert is_required_macro_actual(item) is True
+
+
 async def test_three_series_concurrent(monkeypatch: pytest.MonkeyPatch) -> None:
     _set_key(monkeypatch)
     _override_series(monkeypatch, "CPIAUCSL,UNRATE,DFF")
@@ -441,6 +467,7 @@ async def test_env_unset_uses_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
         "DFF",
         "DGS10",
         "DEXKOUS",
+        "PPIFID",
     }
 
 

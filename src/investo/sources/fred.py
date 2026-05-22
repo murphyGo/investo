@@ -74,6 +74,7 @@ class FredMacroAdapter:
         "DFF",
         "DGS10",
         "DEXKOUS",
+        "PPIFID",
     )
 
     _ENDPOINT: ClassVar[str] = "https://api.stlouisfed.org/fred/series/observations"
