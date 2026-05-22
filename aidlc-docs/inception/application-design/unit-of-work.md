@@ -692,6 +692,42 @@ The 2026-05-14 CLARITY Act markup miss showed that crypto market briefings need 
 
 ---
 
+## Wave 10 Macro Quality Correction Units
+
+The 2026-05-13 shared macro block exposed a deterministic evidence-selection defect: `customers` matched the bare case-insensitive `UST` regex and was rendered as `미 국채 수익률` evidence. This unit is intentionally narrower than u59. u59 owns first-class macro actual collection and lineage; u60 owns shared macro matcher correctness and representative evidence selection.
+
+### u60: `shared-macro-evidence-hardening` — Source-Backed Shared Macro Evidence
+
+**Purpose**: `## ⓪ 오늘의 매크로`가 임의 뉴스 제목의 부분 문자열을 UST/oil/FOMC evidence 로 오인하지 않도록, shared macro detection 을 source/category-aware deterministic matcher 로 강화한다.
+
+**Stories**: FR-002 (AI 시황 작성), FR-008 (세그먼트별 시황 생성), FR-015 (shared macro evidence hardening), NFR-003 (deterministic graceful degradation), R13 (secret hygiene)
+
+**Module path**:
+- `src/investo/orchestrator/bundle_context.py` — `_detect_shared_macros`, UST/oil/FOMC matcher, representative evidence scoring
+- `src/investo/publisher/shared_macro.py` — injection behavior should remain unchanged unless tests expose a direct issue
+- `src/investo/briefing/segments.py` — routing reference only; do not edit in this unit. `treasury-rates` fan-out is preserved and `fred-macro` remains US-only.
+
+**Tests**:
+- `tests/unit/orchestrator/test_bundle_context.py` — `customers`/`trust`/`custody`/`dust` false positives rejected; `UST curve`, `DGS10`, `10Y Treasury yield`, and `미 국채 10년물 수익률` accepted
+- `tests/unit/orchestrator/test_bundle_context.py` — `UST stablecoin collapse` / `UST depeg` false positives rejected; canonical `treasury-rates` / `fred-macro` evidence wins over earlier generic news
+- `tests/integration/test_bundle_reconciliation.py` — `NormalizedItem` fixtures flow through `compute_bundle_context()` and reader-format injection; final markdown contains corrected macro evidence once and never contains the Immunefi/Code4rena title in the UST slot
+- `tests/unit/publisher/test_shared_macro_block.py` — idempotent injection shape remains stable
+
+**Definition of Done**:
+- [x] `customers`, `trust`, `custody`, and `dust` do not match `ust_yield`.
+- [x] `UST stablecoin collapse`, `UST depeg`, and `UST custody product` do not match `ust_yield` without rate/yield/curve/tenor context.
+- [x] Real UST evidence from `treasury-rates` / `fred-macro` still matches.
+- [x] `ust_yield` shared macro requires valid UST candidates in at least two routed segments and at least one canonical source candidate (`treasury-rates` or `fred-macro`).
+- [x] `fred-macro` alone never creates a shared macro block or crypto fan-out.
+- [x] Shared macro representative evidence is chosen by deterministic source/category/title specificity, not by first item order.
+- [x] If only false-positive titles appear across segments, `shared_macro_block` is `None`.
+- [x] If false-positive news appears before real UST evidence, the rendered `미 국채 수익률` line uses the real UST evidence.
+- [x] Existing oil/FOMC shared macro happy paths remain green and boundary false positives are rejected.
+- [x] No LLM call, network call, new paid source, or archive backfill is introduced.
+- [x] R13-safe diagnostics for accepted/rejected/suppressed/selected candidates avoid raw metadata and secret-shaped values.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

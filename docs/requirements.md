@@ -172,6 +172,41 @@
   - [x] R13 secret hygiene — lint WARNING extra 가 segment / kind / severity / numeric lengths 만 carry; raw_metadata / secret-shaped substring 미포함.
 - **Priority**: Must-have (NFR-001 readability 회귀 방지 — same-page narrative 모순 / over-promotion / orphan global ticker / macro 중복 4종 시그니처 종결).
 
+### FR-014: Macro actual priority + lineage (u59 macro-actual-priority-and-lineage)
+- **Description**: 고중요도 매크로 이벤트를 일정 row 가 아니라 source-backed event object 로 승격한다. (1) CPI/PPI/NFP/PCE/GDP/FOMC 등 핵심 매크로 이벤트는 `macro_event_key`, `macro_event_status`, `macro_priority`, `release_period`, actual/prior/forecast/surprise 필드를 primitive-safe metadata 또는 typed `MacroPrint` 로 보유한다. (2) Stage 1 후보 선별 전 결정론적 priority scoring 을 수행해 P0/P1 macro 이벤트를 generic news/lookahead cap 보다 먼저 bounded reserve 한다. (3) P0 actual 은 `required_macro_actuals` 계약으로 Stage 1 `unassigned` 및 Stage 2 prompt cap 에서 보호되고, post-generation validator 가 최종 markdown 언급/출처를 확인한다. (4) macro actual source health 는 price/news core 와 분리된 severity 축으로 계산되며, macro claim 이 있는데 actual source 가 missing/zero/failed/stale 이면 `limited` 이상으로 downgrade 한다. (5) operator-only lineage artifact 가 source collection → segment routing → Stage 1 candidate → classification → Stage 2 prompt → final body 의 drop 지점을 진단한다. (6) release-day unresolved macro 이벤트는 `scheduled / unresolved / confirmed / stale` lifecycle 로 carryover 된다.
+- **User Story**: As a 시황 reader / 운영자, I want PPI 같은 핵심 매크로 발표가 일정에만 잡히고 실제 발표치/우선순위/최종 본문에서 누락되는 일이 없기를, so that 시장을 움직인 공식 macro actual 이 시황의 중심 사건으로 반영되고 누락 시 원인을 즉시 추적할 수 있도록.
+- **Acceptance Criteria**:
+  - [ ] Macro metadata contract: schedule/actual items carry event key, label, status, priority, release period, and source identity with primitive-safe values.
+  - [ ] PPI schedule identity: `fred-economic-calendar` release id `46` fixture/test pins scheduled date, label, source, and `us-equity` routing.
+  - [ ] PPI actual source path: `fred-macro` or approved official actual adapter emits PPI actual/prior/observation date/source URL without secret leakage.
+  - [ ] Forecast discipline: "예상치 상회/하회" wording is forbidden unless an approved forecast/consensus field is present.
+  - [ ] Priority-aware selection: `_select_llm_candidate_items(items, target_date=...)` reserves bounded P0/P1 macro events before generic caps while preserving existing crypto-policy priority behavior.
+  - [ ] Required macro Stage 1/Stage 2 contract: P0 actuals cannot be omitted, classified `unassigned`, or dropped by Stage 2 caps without retry/fail/downgrade.
+  - [ ] Post-generation validation: final markdown is checked for required macro label/event/source mention; omission emits `MACRO_REQUIRED_OMITTED`.
+  - [ ] Macro severity: `MACRO_ACTUAL_MISSING`, `MACRO_ACTUAL_ZERO`, `MACRO_ACTUAL_FAILED`, `MACRO_ACTUAL_STALE`, `MACRO_FORECAST_UNVERIFIED` reason codes feed coverage and quality diagnostics.
+  - [ ] Lineage: `archive/_meta/run_traces/{target_date}/{segment}.json` diagnoses `missing_at_source`, `dropped_by_segment_routing`, `dropped_by_stage1_candidate_cap`, `dropped_by_stage1_classification`, `dropped_by_stage2_prompt_cap`, `llm_omitted`, or `published`.
+  - [ ] Carryover lifecycle: macro events persist as `scheduled / unresolved / confirmed / stale` and can carry release-day unresolved events into the next run.
+	  - [ ] Quality KPI: `macro_actual_missing_segments` and `required_macro_omitted` are available to operator diagnostics or quality history.
+	  - [ ] R10 fixtures and R13 secret hygiene cover new macro schedule/actual/lineage surfaces.
+	- **Priority**: Must-have (FR-001/FR-002/FR-008 신뢰성 보강 — official macro actual 과 priority 를 놓치지 않는 시황 중심성 회복).
+
+### FR-015: Shared macro evidence hardening (u60 shared-macro-evidence-hardening)
+- **Description**: `## ⓪ 오늘의 매크로` shared macro block 의 evidence selection 을 source-backed deterministic contract 로 강화한다. (1) UST/oil/FOMC shared macro matcher 는 title substring 만으로 evidence 를 확정하지 않고 key-specific predicate 로 검증한다. (2) `UST` 는 ASCII word-boundary + rate/yield/curve/tenor context 가 있어야 하며, `customers` / `trust` / `custody` / `dust` 같은 substring false positive 는 거부한다. (3) representative evidence 는 first-match order 가 아니라 source/category/title specificity rank 로 선택한다. (4) `ust_yield` reader-facing shared macro 는 valid UST candidate 가 2개 이상 routed segment 에 있고, 그중 최소 1개가 canonical U.S. rates source (`treasury-rates` 또는 `fred-macro`) 일 때만 생성된다. (5) `fred-macro` 는 ranking positive evidence 일 뿐 crypto fan-out 이나 routing 변경을 만들지 않는다. (6) false-positive 후보 또는 non-canonical-only UST 후보만 두 segment 이상에 있어도 `shared_macro_block` 은 생성되지 않는다. (7) reader-facing layout 과 injection idempotency 는 u57 behavior 를 유지한다.
+- **User Story**: As a 시황 reader, I want `미 국채 수익률` 행이 실제 국채금리/UST/FRED/Treasury evidence 만 보여주기를, so that 보안/버그바운티 같은 unrelated headline 이 매크로 fact 로 표시되어 전체 시황 신뢰를 훼손하지 않도록.
+- **Acceptance Criteria**:
+  - [x] `customers`, `trust`, `custody`, `dust` 는 `ust_yield` 로 매칭되지 않는다.
+  - [x] `UST stablecoin collapse`, `UST depeg`, `UST custody product` 는 rate/yield/curve/tenor context 없이 `ust_yield` 로 매칭되지 않는다.
+  - [x] `UST curve 2026-05-13: 10Y 4.46%, 2Y10Y +0.48pp`, `DGS10 4.46`, `10Y Treasury yield`, `미 국채 10년물 수익률` 은 `ust_yield` 로 매칭된다.
+  - [x] `한국 국채 10년물 금리` 는 `미 국채 수익률` 로 렌더되지 않는다.
+  - [x] false-positive news 와 real UST macro item 이 같은 segment 에 함께 있을 때 real macro item 이 representative evidence 로 선택된다.
+  - [x] `ust_yield` shared macro 는 valid UST candidate 가 2개 이상 routed segment 에 있고, 그중 최소 1개가 `treasury-rates` 또는 `fred-macro` 일 때만 생성된다.
+  - [x] `fred-macro` 단독으로는 shared macro block 또는 crypto fan-out 을 만들지 않는다.
+  - [x] false-positive title 만 여러 segment 에 존재하면 `## ⓪ 오늘의 매크로` 에 `미 국채 수익률` 행이 생성되지 않는다.
+  - [x] `treasury-rates` fan-out 으로 us-equity + crypto 에 real UST evidence 가 있을 때 shared macro block 은 기존처럼 생성된다.
+  - [x] oil/FOMC shared macro happy path 와 `inject_shared_macro_block()` idempotency 는 회귀하지 않으며, oil/FOMC boundary false positive 는 거부된다.
+  - [x] R13 secret hygiene — matcher/ranking diagnostics (`candidate_accepted`, `candidate_rejected`, `key_suppressed`, `representative_selected`) 는 raw_metadata 를 로깅하지 않고 title preview 도 bounded length 로 제한한다.
+- **Priority**: Must-have (FR-008/u57 회귀 방지 — deterministic shared macro evidence 가 독자 신뢰의 첫 화면 표면에 직접 노출됨).
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

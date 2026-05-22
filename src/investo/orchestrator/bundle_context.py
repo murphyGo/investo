@@ -28,10 +28,13 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import date, datetime
+from hashlib import sha1
 from typing import Final
 
+from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -39,7 +42,7 @@ from investo.briefing.segments import (
     MarketSegment,
 )
 from investo.briefing.time_state import TimeState, detect_time_state
-from investo.models import NormalizedItem
+from investo.models import Category, NormalizedItem
 from investo.models.bundle_context import (
     CROSS_MARKET_CORE_ALLOWED,
     BundleContext,
@@ -57,18 +60,200 @@ _SEGMENT_TZ: Final[dict[MarketSegment, str]] = {
 }
 
 
-# Shared-macro detector patterns. When ≥ 2 segments have a routed item
-# whose title matches the same key, we surface it as a candidate for
-# the ``## ⓪`` block. Patterns are intentionally narrow to minimise
-# false positives.
-_SHARED_MACRO_PATTERNS: Final[dict[str, re.Pattern[str]]] = {
-    "ust_yield": re.compile(
-        r"(미\s?국채|UST|10\s?-?\s?년물?\s?수익률|treasury\s+yield)",
-        re.IGNORECASE,
-    ),
-    "oil": re.compile(r"(WTI|Brent|브렌트|국제\s?유가|원유)", re.IGNORECASE),
-    "fomc": re.compile(r"(FOMC|연준|Fed\s+meeting|기준금리)", re.IGNORECASE),
+_CANONICAL_UST_SOURCES: Final[frozenset[str]] = frozenset({"treasury-rates", "fred-macro"})
+_CANONICAL_FOMC_SOURCES: Final[frozenset[str]] = frozenset(
+    {"fomc-calendar", "fomc-rss", "fred-economic-calendar"}
+)
+_SOURCE_RANKS: Final[dict[str, dict[str, int]]] = {
+    "ust_yield": {"treasury-rates": 0, "fred-macro": 1},
+    "fomc": {"fomc-calendar": 0, "fomc-rss": 1, "fred-economic-calendar": 2},
 }
+_CATEGORY_RANKS: Final[dict[Category, int]] = {"macro": 0, "calendar": 1, "news": 2}
+
+_DGS_RATE_RE: Final[re.Pattern[str]] = re.compile(r"\bDGS(?:10|2|30|3MO)\b", re.IGNORECASE)
+_UST_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"(?<![A-Za-z])UST(?![A-Za-z])", re.IGNORECASE)
+_UST_CONTEXT_RE: Final[re.Pattern[str]] = re.compile(
+    r"(\b(?:yield|curve|rate|10Y|2Y|30Y|3M|2Y10Y|3M10Y)\b|Treasur(?:y|ies)|금리|수익률)",
+    re.IGNORECASE,
+)
+_US_TREASURY_KR_RE: Final[re.Pattern[str]] = re.compile(r"(미\s*국채|미국\s*국채|미국채)")
+_BARE_TREASURY_KR_RE: Final[re.Pattern[str]] = re.compile(r"국채")
+_TREASURY_WORD_RE: Final[re.Pattern[str]] = re.compile(r"\bTreasur(?:y|ies)\b", re.IGNORECASE)
+_OIL_RE: Final[re.Pattern[str]] = re.compile(
+    r"(\bWTI\b|\bBrent\b|브렌트|국제\s?유가|원유)", re.IGNORECASE
+)
+_FOMC_RE: Final[re.Pattern[str]] = re.compile(r"\bFOMC\b|연준|기준금리", re.IGNORECASE)
+_FED_WORD_RE: Final[re.Pattern[str]] = re.compile(r"(\bFed\b|Federal Reserve)", re.IGNORECASE)
+_FED_CONTEXT_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b(meeting|rate|decision|minutes|statement)\b|기준금리",
+    re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True, slots=True)
+class _SharedMacroCandidate:
+    key: str
+    segment: MarketSegment
+    title: str
+    source_name: str
+    category: Category
+    source_rank: int
+    category_rank: int
+    title_rank: int
+
+    def sort_key(self) -> tuple[int, int, int, str, str, MarketSegment]:
+        return (
+            self.source_rank,
+            self.category_rank,
+            self.title_rank,
+            self.source_name,
+            self.title,
+            self.segment,
+        )
+
+
+def _title_hash(title: str) -> str:
+    return sha1(title.encode("utf-8")).hexdigest()[:12]
+
+
+def _safe_title_preview(title: str) -> str:
+    preview = title if len(title) <= 120 else title[:117] + "..."
+    return redact_text(preview, policy=RedactionPolicy.STRICT)
+
+
+def _log_candidate(
+    event: str,
+    *,
+    key: str,
+    segment: MarketSegment,
+    item: NormalizedItem,
+    reason: str,
+) -> None:
+    _logger.info(
+        event,
+        extra={
+            "key": key,
+            "segment": segment,
+            "source_name": item.source_name,
+            "category": item.category,
+            "reason": reason,
+            "title_preview": _safe_title_preview(item.title),
+            "title_hash": _title_hash(item.title),
+        },
+    )
+
+
+def _has_near(
+    text: str,
+    anchor_re: re.Pattern[str],
+    context_re: re.Pattern[str],
+    *,
+    max_gap: int = 40,
+) -> bool:
+    anchors = tuple(anchor_re.finditer(text))
+    contexts = tuple(context_re.finditer(text))
+    for anchor in anchors:
+        for context in contexts:
+            if anchor.end() <= context.start():
+                gap = context.start() - anchor.end()
+            elif context.end() <= anchor.start():
+                gap = anchor.start() - context.end()
+            else:
+                gap = 0
+            if gap <= max_gap:
+                return True
+    return False
+
+
+def _matches_ust_yield(item: NormalizedItem) -> bool:
+    title = item.title
+    if _DGS_RATE_RE.search(title):
+        return True
+    if _has_near(title, _US_TREASURY_KR_RE, _UST_CONTEXT_RE):
+        return True
+    if item.source_name in _CANONICAL_UST_SOURCES and _has_near(
+        title, _BARE_TREASURY_KR_RE, _UST_CONTEXT_RE
+    ):
+        return True
+    if _has_near(title, _UST_TOKEN_RE, _UST_CONTEXT_RE):
+        return True
+    return _has_near(title, _TREASURY_WORD_RE, _UST_CONTEXT_RE)
+
+
+def _matches_oil(item: NormalizedItem) -> bool:
+    return _OIL_RE.search(item.title) is not None
+
+
+def _matches_fomc(item: NormalizedItem) -> bool:
+    title = item.title
+    return _FOMC_RE.search(title) is not None or _has_near(title, _FED_WORD_RE, _FED_CONTEXT_RE)
+
+
+_SHARED_MACRO_MATCHERS: Final[dict[str, Callable[[NormalizedItem], bool]]] = {
+    "ust_yield": _matches_ust_yield,
+    "oil": _matches_oil,
+    "fomc": _matches_fomc,
+}
+
+
+def _source_rank(key: str, source_name: str) -> int:
+    return _SOURCE_RANKS.get(key, {}).get(source_name, 9)
+
+
+def _category_rank(category: Category) -> int:
+    return _CATEGORY_RANKS.get(category, 9)
+
+
+def _title_rank(key: str, title: str) -> int:
+    if key == "ust_yield":
+        if _DGS_RATE_RE.search(title):
+            return 0
+        if re.search(r"\b(?:10Y|2Y|30Y|2Y10Y|3M10Y)\b|수익률|금리", title, re.IGNORECASE):
+            return 1
+        if _UST_TOKEN_RE.search(title):
+            return 2
+        return 3
+    if key == "fomc":
+        if re.search(r"\bFOMC\b", title, re.IGNORECASE):
+            return 0
+        if _has_near(title, _FED_WORD_RE, _FED_CONTEXT_RE):
+            return 1
+        return 2
+    if key == "oil":
+        if re.search(r"\bWTI\b|\bBrent\b|브렌트", title, re.IGNORECASE):
+            return 0
+        return 1
+    return 9
+
+
+def _rejection_reason(key: str, item: NormalizedItem) -> str | None:
+    title = item.title
+    if key == "ust_yield":
+        lowered = title.lower()
+        if any(term in lowered for term in ("ust", "treasury", "treasuries")) or "국채" in title:
+            return "missing_ust_rate_context"
+    if key == "oil" and re.search(r"WTI|Brent", title, re.IGNORECASE):
+        return "missing_oil_boundary_or_context"
+    if key == "fomc" and re.search(r"FOMC|Federal Reserve|\bFed\b|연준", title, re.IGNORECASE):
+        return "missing_fomc_boundary_or_context"
+    return None
+
+
+def _candidate_for(
+    key: str,
+    segment: MarketSegment,
+    item: NormalizedItem,
+) -> _SharedMacroCandidate:
+    return _SharedMacroCandidate(
+        key=key,
+        segment=segment,
+        title=item.title,
+        source_name=item.source_name,
+        category=item.category,
+        source_rank=_source_rank(key, item.source_name),
+        category_rank=_category_rank(item.category),
+        title_rank=_title_rank(key, item.title),
+    )
 
 
 def _select_close_state_for_segment(
@@ -102,20 +287,66 @@ def _detect_shared_macros(
     routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
 ) -> list[tuple[str, str]]:
     """Return list of (macro_key, evidence_title) for keys hit by ≥ 2 segments."""
-    hits_by_key: dict[str, dict[MarketSegment, str]] = {}
+    candidates_by_key: dict[str, list[_SharedMacroCandidate]] = {}
     for segment, items in routed.items():
         for item in items:
-            for key, pattern in _SHARED_MACRO_PATTERNS.items():
-                if pattern.search(item.title):
-                    hits_by_key.setdefault(key, {})
-                    hits_by_key[key].setdefault(segment, item.title)
+            for key, matcher in _SHARED_MACRO_MATCHERS.items():
+                if matcher(item):
+                    candidate = _candidate_for(key, segment, item)
+                    candidates_by_key.setdefault(key, []).append(candidate)
+                    _log_candidate(
+                        "shared_macro.candidate_accepted",
+                        key=key,
+                        segment=segment,
+                        item=item,
+                        reason="matched",
+                    )
+                    continue
+                reason = _rejection_reason(key, item)
+                if reason is not None:
+                    _log_candidate(
+                        "shared_macro.candidate_rejected",
+                        key=key,
+                        segment=segment,
+                        item=item,
+                        reason=reason,
+                    )
     shared: list[tuple[str, str]] = []
-    for key, by_segment in hits_by_key.items():
-        if len(by_segment) >= 2:
-            # Use the alphabetically-first segment's evidence title as
-            # representative — deterministic across runs.
-            first_segment = sorted(by_segment.keys())[0]
-            shared.append((key, by_segment[first_segment]))
+    for key, candidates in candidates_by_key.items():
+        segments = {candidate.segment for candidate in candidates}
+        if len(segments) < 2:
+            continue
+        if key == "ust_yield" and not any(
+            candidate.source_name in _CANONICAL_UST_SOURCES for candidate in candidates
+        ):
+            representative = min(candidates, key=lambda candidate: candidate.sort_key())
+            _logger.info(
+                "shared_macro.key_suppressed",
+                extra={
+                    "key": key,
+                    "segment": representative.segment,
+                    "source_name": representative.source_name,
+                    "category": representative.category,
+                    "reason": "missing_canonical_ust_source",
+                    "title_preview": _safe_title_preview(representative.title),
+                    "title_hash": _title_hash(representative.title),
+                },
+            )
+            continue
+        representative = min(candidates, key=lambda candidate: candidate.sort_key())
+        _logger.info(
+            "shared_macro.representative_selected",
+            extra={
+                "key": key,
+                "segment": representative.segment,
+                "source_name": representative.source_name,
+                "category": representative.category,
+                "reason": "selected",
+                "title_preview": _safe_title_preview(representative.title),
+                "title_hash": _title_hash(representative.title),
+            },
+        )
+        shared.append((key, representative.title))
     # Sort by macro key for deterministic ordering.
     shared.sort(key=lambda pair: pair[0])
     return shared

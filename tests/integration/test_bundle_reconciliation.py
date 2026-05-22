@@ -8,15 +8,18 @@ deterministic :class:`BundleContext`. No live LLM calls (R10).
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pytest
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
-from investo.models import Briefing
+from investo.models import Briefing, NormalizedItem
 from investo.models.bundle_context import BundleContext, MarketStateSummary
+from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.pipeline import _apply_reader_format_to_segments
+
+IMMUNEFI_TITLE = "Immunefi to absorb Code4rena bug bounty customers after shutdown decision"
 
 
 def _make_briefing(segment: str, markdown: str) -> Briefing:
@@ -31,6 +34,22 @@ def _make_briefing(segment: str, markdown: str) -> Briefing:
         today_watch="관전",
         disclaimer=DISCLAIMER,
         rendered_markdown=full_markdown,
+    )
+
+
+def _item(
+    *,
+    source: str,
+    title: str,
+    category: str = "news",
+) -> NormalizedItem:
+    return NormalizedItem(
+        source_name=source,
+        category=category,  # type: ignore[arg-type]
+        title=title,
+        url="https://example.com/item",
+        published_at=datetime(2026, 5, 11, 9, 0, tzinfo=UTC),
+        raw_metadata={},
     )
 
 
@@ -83,6 +102,48 @@ class TestSharedMacroInjection:
             bundle_context=ctx,
         )
         assert "## ⓪" not in out[DOMESTIC_EQUITY].rendered_markdown
+
+    def test_computed_ust_macro_uses_canonical_evidence_and_stays_idempotent(self) -> None:
+        ctx = compute_bundle_context(
+            {
+                US_EQUITY: [
+                    _item(
+                        source="fred-macro",
+                        category="macro",
+                        title="DGS10 4.46 (+0.0400 from prior)",
+                    ),
+                ],
+                CRYPTO: [
+                    _item(
+                        source="theblock-crypto",
+                        title=IMMUNEFI_TITLE,
+                    ),
+                    _item(
+                        source="treasury-rates",
+                        category="macro",
+                        title="UST curve 2026-05-13: 10Y 4.46%, 2Y10Y +0.48pp",
+                    ),
+                ],
+            },
+            now_kst=datetime(2026, 5, 11, 9, 0, tzinfo=UTC),
+        )
+        assert ctx.shared_macro_block is not None
+        briefings = {US_EQUITY: _make_briefing(US_EQUITY, MINIMAL_BODY)}
+        once = _apply_reader_format_to_segments(
+            briefings,
+            anchors_by_segment={},
+            bundle_context=ctx,
+        )
+        twice = _apply_reader_format_to_segments(
+            once,
+            anchors_by_segment={},
+            bundle_context=ctx,
+        )
+        rendered = twice[US_EQUITY].rendered_markdown
+        assert rendered.count("## ⓪ 오늘의 매크로") == 1
+        assert "미 국채 수익률" in rendered
+        assert "UST curve 2026-05-13" in rendered
+        assert "Immunefi to absorb Code4rena" not in rendered
 
 
 class TestTimeStateContradictionLogged:

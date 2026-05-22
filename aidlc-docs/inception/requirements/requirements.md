@@ -23,7 +23,7 @@ Tech environment: `docs/tech-env.md`
 
 ## Traceability Summary
 
-- **Functional Requirements**: FR-001 through FR-007 (defined in docs/requirements.md §2)
+- **Functional Requirements**: base FR-001 through FR-007 plus post-MVP FR-008 through FR-015 (defined in docs/requirements.md §2)
   - FR-001 데이터 수집
   - FR-002 AI 시황 작성
   - FR-003 정적 웹 게시
@@ -31,6 +31,7 @@ Tech environment: `docs/tech-env.md`
   - FR-005 스케줄 실행
   - FR-006 영구 이력 보관
   - FR-007 실행 실패 알림
+  - FR-015 shared macro evidence hardening (u60)
 - **Non-Functional Requirements**: NFR-001 through NFR-007 (defined in docs/requirements.md §3)
   - NFR-001 Performance, NFR-002 Cost, NFR-003 Reliability, NFR-004 Compliance/Disclaimer, NFR-005 Maintainability, NFR-006 Testing, NFR-007 Security
 - All requirement IDs are defined in `docs/requirements.md`.

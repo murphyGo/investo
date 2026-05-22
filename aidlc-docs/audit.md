@@ -1,5 +1,37 @@
 # AI-DLC Audit Log
 
+## Construction — u60 Shared Macro Evidence Hardening Complete
+**Timestamp**: 2026-05-23T00:00:00+09:00
+**Trigger**: User asked to develop the u60 unit after the five-subagent review hardened the plan.
+**Action**:
+- Replaced shared macro bare-regex matching in `src/investo/orchestrator/bundle_context.py` with key-specific matcher predicates.
+- Added source/category/title ranking so canonical macro evidence wins over earlier generic news.
+- Added `ust_yield` canonical-source gate: at least two routed valid segments plus at least one `treasury-rates` or `fred-macro` candidate.
+- Preserved u45 routing: `treasury-rates` fan-out remains valid; `fred-macro` remains US-only; `segments.py` was not changed.
+- Added R13-safe shared macro diagnostics for accepted, rejected, suppressed, and selected candidates.
+- Added unit/integration regressions covering `customers`, `trust`, `custody`, `dust`, `UST stablecoin`, `UST depeg`, `한국 국채`, real UST/FOMC/oil positives, boundary false positives, canonical evidence priority, and computed-context injection idempotency.
+- Added code summary and cross-check report with known affected 2026-05-13 archives and no automatic backfill.
+**Verification**: 48 targeted tests passed; targeted ruff passed; targeted mypy strict passed; mkdocs build strict passed.
+**Status**: u60 construction, summary, and cross-check complete.
+
+---
+
+## Construction — u60 Shared Macro Evidence Hardening Planned
+**Timestamp**: 2026-05-23T00:00:00+09:00
+**Trigger**: User reported that the shared macro block kept rendering `미 국채 수익률 — Immunefi to absorb Code4rena bug bounty customers after shutdown decision`.
+**Evidence**:
+- `archive/domestic-equity/2026/05/2026-05-13.md`, `archive/us-equity/2026/05/2026-05-13.md`, and `archive/crypto/2026/05/2026-05-13.md` all contained the same wrong `미 국채 수익률` line.
+- `src/investo/orchestrator/bundle_context.py::_SHARED_MACRO_PATTERNS["ust_yield"]` used bare `UST` with `re.IGNORECASE`, so `customers` matched as `ust`.
+- Real UST data was present separately (`fred-macro` `DGS10 4.46` and `treasury-rates` `UST curve 2026-05-13: 10Y 4.46%`), proving this was representative-evidence selection drift rather than source absence.
+**Decision**: Create a narrow follow-up unit, u60 `shared-macro-evidence-hardening`, instead of folding the work into u59. u59 owns macro actual collection and end-to-end lineage; u60 owns shared macro matcher correctness and canonical evidence priority.
+**Action**:
+- Added `aidlc-docs/construction/plans/u60-shared-macro-evidence-hardening-code-generation-plan.md` with reproduction notes, matcher rules, evidence-ranking design, step checklist, acceptance criteria, tests, and closeout scope.
+- Registered FR-015 in `docs/requirements.md`.
+- Added u60 to `aidlc-docs/aidlc-state.md`, `unit-of-work.md`, and `unit-of-work-story-map.md`.
+**Status**: Planning only; implementation not started.
+
+---
+
 ## TECH-DEBT — DEBT-046 Segment Market Clock Unification Complete
 **Timestamp**: 2026-05-14T00:00:00+09:00
 **Trigger**: Medium TECH-DEBT continuation after DEBT-059.
@@ -3475,5 +3507,18 @@ B) Partial"
 **Quality gate**: ruff clean / format clean (312 files) / mypy --strict (121 src) / pytest 2206 / mkdocs build --strict.
 **DEBT 후보**: D56-A (`DISCLAIMER_CRYPTO` 변호사 검토), D56-B (KoNLPy 형태소 분석으로 종결 어미 정밀도 보강), D56-C (P0 phrase quarterly 갱신 cadence), D56-D (영문 quantified outcome regex 확장).
 **Context**: AIDLC Construction Wave 8 Step land.
+
+---
+
+## u59 Step 1/3 Slice — macro metadata bridge and priority candidate preservation
+**Timestamp**: 2026-05-23T00:00:00Z
+**Action**: Implemented the first u59 construction slice. Added `src/investo/models/macro.py` as a flat-`raw_metadata` compatibility bridge for macro event key/status/priority, required macro actual detection, required section parsing, event date proximity, and compact prompt payload rendering. Updated `src/investo/briefing/pipeline.py` so Stage 1 prompt serialization includes a `macro` object only for macro-recognized items and `_select_llm_candidate_items(items, *, target_date=None)` reserves bounded P0/P1 macro items before generic candidate caps while preserving u58 official crypto-policy priority behavior.
+**Decisions**:
+- Kept `NormalizedItem` unchanged to avoid a broad model migration; no nested `raw_metadata` values introduced.
+- Inferred P1 identity for existing official schedule sources (`fred-economic-calendar` release ids 10/46/50/53 and `fomc-calendar` FOMC rows) and P0 identity for existing `fred-macro` actual series (`CPIAUCSL`, `UNRATE`, `DFF`).
+- Added `_MAX_LLM_MACRO_PRIORITY_ITEMS = 12` so macro preservation is bounded inside the existing 96-total / 24-per-source / 12-lookahead budget discipline.
+- Pinned PPI schedule identity from existing FRED fixture (`release_id=46`, `Producer Price Index`, `2026-05-13`, `us-equity` routing). PPI actual source selection remains open; no FRED PPI series id was guessed.
+**Quality gate**: `uv run pytest tests/unit/models/test_macro.py tests/unit/briefing/test_pipeline_unit.py tests/unit/briefing/test_pipeline_lookahead_render.py tests/unit/sources/test_fred_economic_calendar.py -q` → 82 passed. `uv run ruff check src/investo/models/macro.py src/investo/briefing/pipeline.py tests/unit/models/test_macro.py tests/unit/briefing/test_pipeline_unit.py tests/unit/sources/test_fred_economic_calendar.py` → clean. `uv run mypy --strict src/investo/models/macro.py src/investo/briefing/pipeline.py src/investo/sources/fred_economic_calendar.py` → clean.
+**Context**: u59 macro-actual-priority-and-lineage Code Generation, Step 1 complete, Step 3 complete, Step 2 schedule-identity sub-step complete.
 
 ---

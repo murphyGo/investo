@@ -150,6 +150,22 @@ The 2026-05-14 CLARITY Act Senate Banking markup miss was source-coverage and ca
 |------|--------------|------------------|-----------------|
 | u58 crypto-regulation-policy-sources | CLARITY/market-structure/stablecoin legislative events need official source coverage and crypto priority handling | FR-001, FR-002, FR-008, NFR-003, R10, R13 | u36 source expansion bundles, u45 routing exclusivity, u53 signal recall |
 
+### u59 Planning Notes
+
+The 2026-05-13 U.S. PPI miss showed that macro schedule collection is not enough: the pipeline also needs structured official actuals, deterministic priority before candidate caps, required macro preservation through both LLM stages, and operator lineage that explains exactly where a macro event disappeared.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u59 macro-actual-priority-and-lineage | High-importance macro events such as CPI/PPI/NFP/PCE/GDP/FOMC need official actual data, priority scoring, required output validation, and end-to-end drop diagnostics | FR-001, FR-002, FR-003, FR-008, NFR-003, R10, R13 | u13 candidate caps, u22 coverage transparency, u43 lookahead adapters, u52 carryover, u54 severity/KPI, u55 numeric gates, u57 shared macro, u58 priority preservation |
+
+### u60 Planning Notes
+
+The 2026-05-13 shared macro block rendered `미 국채 수익률 — Immunefi to absorb Code4rena bug bounty customers after shutdown decision` because the u57 UST detector matched the `ust` substring inside `customers`. u60 keeps the scope narrow: harden shared macro evidence matching and representative-title selection without changing source collection, LLM prompts, or archive backfill.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u60 shared-macro-evidence-hardening | Shared macro evidence must be source-backed and must not classify substring accidents like `customers` as UST yield | FR-002, FR-008, FR-015, NFR-003, R13 | u45 routing exclusivity, u55 numeric fact discipline, u57 BundleContext/shared macro, u59 macro lineage boundary |
+
 ---
 
 ## Definition of Done — Inception Phase Output
