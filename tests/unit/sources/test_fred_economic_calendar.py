@@ -156,6 +156,46 @@ async def test_fetch_includes_known_cpi_release_in_window(
     assert str(target.url) == "https://fred.stlouisfed.org/release?rid=10"
 
 
+async def test_fetch_includes_known_ppi_release_with_macro_priority_identity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # u59 — PPI is a high-importance macro schedule item. Pin the
+    # recorded release id/name/date so candidate-priority code can
+    # recognize it deterministically before Stage 1 caps.
+    from investo.briefing.segments import segment_items
+    from investo.models.macro import macro_event_key, macro_event_status, macro_priority
+
+    monkeypatch.setenv("FRED_API_KEY", _SENTINEL_KEY)
+    monkeypatch.setenv("INVESTO_FRED_CALENDAR_RELEASES", "46")
+    routes = {"46": ((_FIXTURE_DIR / "release_46_ppi.json").read_bytes(), 200)}
+    adapter = FredEconomicCalendarAdapter()
+    window = FetchWindow.from_local_date(date(2026, 5, 10), tz=UTC)
+
+    async with _mock_client(_routed_handler(routes)) as client:
+        items = await adapter.fetch(client, window)
+
+    ppi_rows = [item for item in items if item.raw_metadata.get("release_id") == "46"]
+    assert ppi_rows, "expected at least one PPI row from the recorded fixture"
+    target = next(
+        (item for item in ppi_rows if item.scheduled_at == datetime(2026, 5, 13, 0, 0, tzinfo=UTC)),
+        None,
+    )
+    assert target is not None, "expected PPI 2026-05-13 from the fixture"
+    assert target.raw_metadata.get("release_name") == "Producer Price Index"
+    assert target.raw_metadata.get("scheduled_date") == "2026-05-13"
+    assert target.title.startswith("2026-05-13 — Producer Price Index")
+    assert str(target.url) == "https://fred.stlouisfed.org/release?rid=46"
+    assert macro_event_key(target) == (
+        "fred-economic-calendar:release_id=46:scheduled_date=2026-05-13"
+    )
+    assert macro_event_status(target) == "scheduled"
+    assert macro_priority(target) == "P1"
+    routed = segment_items([target])
+    assert routed.us_equity == (target,)
+    assert routed.crypto == ()
+    assert routed.domestic_equity == ()
+
+
 async def test_fetch_excludes_historical_release_dates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -98,6 +98,32 @@ def test_serialize_single_item_has_expected_key_set() -> None:
     assert "raw_metadata" not in payload[0]
 
 
+def test_serialize_macro_item_includes_compact_macro_contract() -> None:
+    item = NormalizedItem(
+        source_name="fred-economic-calendar",
+        category="calendar",
+        title="2026-05-13 — Producer Price Index",
+        summary="FRED release_id=46 (Producer Price Index) scheduled for 2026-05-13",
+        published_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        scheduled_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        raw_metadata={
+            "release_id": "46",
+            "release_name": "Producer Price Index",
+            "scheduled_date": "2026-05-13",
+        },
+    )
+
+    payload = json.loads(serialize_items_for_prompt([item]))
+
+    assert payload[0]["macro"] == {
+        "event_key": "fred-economic-calendar:release_id=46:scheduled_date=2026-05-13",
+        "priority": "P1",
+        "status": "scheduled",
+        "label": "Producer Price Index",
+        "release_period": "2026-05-13",
+    }
+
+
 def test_serialize_assigns_synthetic_ids_starting_at_one() -> None:
     """Synthetic ``id`` is ``enumerate(items, start=1)`` and not from input."""
     items = [
@@ -179,6 +205,79 @@ def test_select_llm_candidate_items_preserves_official_crypto_policy_before_cap(
     assert len(selected) == 96
     assert selected[0] == policy_item
     assert policy_item in selected
+
+
+def test_select_llm_candidate_items_preserves_high_priority_macro_before_cap() -> None:
+    noisy_items = [
+        _item(source_name=f"source-{source_idx}", title=f"{source_idx}-{item_idx}")
+        for source_idx in range(10)
+        for item_idx in range(24)
+    ]
+    ppi_item = NormalizedItem(
+        source_name="fred-economic-calendar",
+        category="calendar",
+        title="2026-05-13 — Producer Price Index",
+        summary="FRED release_id=46 (Producer Price Index) scheduled for 2026-05-13",
+        published_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        scheduled_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        raw_metadata={
+            "release_id": "46",
+            "release_name": "Producer Price Index",
+            "scheduled_date": "2026-05-13",
+        },
+    )
+
+    selected = _select_llm_candidate_items(
+        [*noisy_items, ppi_item], target_date=date(2026, 5, 13)
+    )
+
+    assert len(selected) == 96
+    assert selected[0] == ppi_item
+    assert ppi_item in selected
+
+
+def test_select_llm_candidate_items_sorts_macro_priority_by_importance_and_proximity() -> None:
+    p1_far = NormalizedItem(
+        source_name="fred-economic-calendar",
+        category="calendar",
+        title="2026-06-11 — Producer Price Index",
+        published_at=datetime(2026, 5, 13, tzinfo=UTC),
+        scheduled_at=datetime(2026, 6, 11, tzinfo=UTC),
+        raw_metadata={
+            "release_id": "46",
+            "release_name": "Producer Price Index",
+            "scheduled_date": "2026-06-11",
+        },
+    )
+    p0_actual = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        published_at=datetime(2026, 5, 12, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "CPIAUCSL",
+            "value": "314.12",
+            "release_date": "2026-05-12",
+        },
+    )
+    p1_near = NormalizedItem(
+        source_name="fred-economic-calendar",
+        category="calendar",
+        title="2026-05-13 — Producer Price Index",
+        published_at=datetime(2026, 5, 13, tzinfo=UTC),
+        scheduled_at=datetime(2026, 5, 13, tzinfo=UTC),
+        raw_metadata={
+            "release_id": "46",
+            "release_name": "Producer Price Index",
+            "scheduled_date": "2026-05-13",
+        },
+    )
+
+    selected = _select_llm_candidate_items(
+        [p1_far, p1_near, p0_actual], target_date=date(2026, 5, 13)
+    )
+
+    assert selected[:3] == (p0_actual, p1_near, p1_far)
 
 
 def test_serialize_byte_exact_snapshot_for_fixture_hash_stability() -> None:

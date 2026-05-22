@@ -93,6 +93,12 @@ from investo.models import (
     status_label_kr,
 )
 from investo.models.bundle_context import BundleContext
+from investo.models.macro import (
+    macro_event_date,
+    macro_priority,
+    macro_priority_rank,
+    macro_prompt_payload,
+)
 from investo.models.segments import SEGMENT_MARKET_TZ, SEGMENT_MARKET_TZ_LABEL
 
 _logger = logging.getLogger("investo.briefing.pipeline")
@@ -118,6 +124,7 @@ _STAGE1_STDOUT_MAX_BYTES: Final[int] = 64 * 1024
 _VALID_SECTION_IDS: Final[frozenset[int]] = frozenset({2, 3, 4, 5})
 _MAX_LLM_ITEMS: Final[int] = 96
 _MAX_LLM_ITEMS_PER_SOURCE: Final[int] = 24
+_MAX_LLM_MACRO_PRIORITY_ITEMS: Final[int] = 12
 # Stage 2 receives the richer prompt: segment rules, recent context,
 # carryover, bundle context, and the classified evidence rows. Keep the
 # evidence block materially smaller than Stage 1 so high-volume days do
@@ -237,8 +244,9 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
     for the LLM). ``summary`` and ``url`` collapse ``None`` → ``""``
     for prompt stability. ``ts`` is RFC 3339 UTC.
     """
-    payload = [
-        {
+    payload: list[dict[str, object]] = []
+    for idx, item in enumerate(items, start=1):
+        entry: dict[str, object] = {
             "id": idx,
             "category": item.category,
             "source": item.source_name,
@@ -247,12 +255,16 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
             "url": str(item.url) if item.url is not None else "",
             "ts": item.published_at.astimezone(UTC).isoformat(),
         }
-        for idx, item in enumerate(items, start=1)
-    ]
+        macro_payload = macro_prompt_payload(item)
+        if macro_payload is not None:
+            entry["macro"] = macro_payload
+        payload.append(entry)
     return json.dumps(payload, ensure_ascii=False)
 
 
-def _select_llm_candidate_items(items: Sequence[NormalizedItem]) -> tuple[NormalizedItem, ...]:
+def _select_llm_candidate_items(
+    items: Sequence[NormalizedItem], *, target_date: date | None = None
+) -> tuple[NormalizedItem, ...]:
     """Bound the item set sent to Claude while preserving source diversity.
 
     Public feeds can occasionally return hundreds of low-signal rows
@@ -289,6 +301,28 @@ def _select_llm_candidate_items(items: Sequence[NormalizedItem]) -> tuple[Normal
         per_source_counts[item.source_name] = source_count + 1
         if is_lookahead:
             lookahead_count += 1
+
+    # u59 — official macro events such as CPI/PPI/NFP/FOMC are
+    # high-recall signals. Preserve a bounded number before generic
+    # lookahead/news rows spend the candidate budget.
+    macro_candidates = [
+        (index, item)
+        for index, item in enumerate(items)
+        if macro_priority(item) in {"P0", "P1"}
+    ]
+    if target_date is not None:
+        macro_candidates.sort(
+            key=lambda candidate: (
+                macro_priority_rank(macro_priority(candidate[1])),
+                abs((macro_event_date(candidate[1]) - target_date).days),
+                candidate[1].source_name,
+                candidate[0],
+            )
+        )
+    for index, item in macro_candidates[:_MAX_LLM_MACRO_PRIORITY_ITEMS]:
+        add_item(index, item)
+        if len(selected) >= _MAX_LLM_ITEMS:
+            break
 
     # u58 — official crypto-regulation items are high-recall signals.
     # They often lack price/BTC/ETH tokens, so preserve a bounded number
@@ -1437,7 +1471,7 @@ async def generate_briefing(
     recent_context_block = _render_recent_context_block(segment, recent_context)
     carryover_context_block = _render_carryover_context_block(carryover)
     bundle_context_block = _render_bundle_context_block(bundle_context, segment=segment)
-    llm_items = _select_llm_candidate_items(items)
+    llm_items = _select_llm_candidate_items(items, target_date=target_date)
     lookahead_context_block = _render_lookahead_context_block(llm_items)
     classification = await _classify(
         llm_items,
