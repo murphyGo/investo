@@ -20,13 +20,19 @@ from investo.briefing.watchlist import (
 from investo.models import NormalizedItem
 
 
-def _item(title: str, summary: str | None = None) -> NormalizedItem:
+def _item(
+    title: str,
+    summary: str | None = None,
+    *,
+    raw_metadata: dict[str, str] | None = None,
+) -> NormalizedItem:
     return NormalizedItem(
         source_name="yahoo-finance-news",
         category="news",
         title=title,
         summary=summary,
         published_at=datetime(2026, 5, 7, 12, 0, tzinfo=UTC),
+        raw_metadata=raw_metadata or {},
     )
 
 
@@ -340,6 +346,32 @@ def test_exact_match_terms_disable_alias_and_substring() -> None:
     # Exact "BTC" still matches when standalone.
     impact_exact = match_watchlist_items([_item("BTC up 3% today")], config)
     assert impact_exact.status == "matched"
+
+
+def test_btc_does_not_match_btm_or_longer_uppercase_substrings() -> None:
+    config = WatchlistConfig(tickers=("BTC",))
+    items = [
+        _item("BTM earnings beat expectations"),
+        _item("BTCS balance sheet update"),
+        _item("ABCBTC Holdings lawsuit"),
+    ]
+
+    impact = match_watchlist_items(items, config)
+
+    assert impact.status == "no_match"
+
+
+def test_btc_matches_structured_symbol_and_aliases() -> None:
+    config = WatchlistConfig(tickers=("BTC",))
+    items = [
+        _item("Market price snapshot", raw_metadata={"symbol": "BTC-USD"}),
+        _item("비트코인 ETF 자금 유입"),
+    ]
+
+    impact = match_watchlist_items(items, config)
+
+    assert impact.status == "matched"
+    assert {match.reason for match in impact.matches} == {"structured-symbol", "alias:비트코인"}
 
 
 # ---------------------------------------------------------------------------

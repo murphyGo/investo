@@ -59,6 +59,7 @@ def test_quality_sparkline_dimensions_are_fixed() -> None:
     svg = render_quality_sparkline(_rows()).decode("utf-8")
 
     assert f'viewBox="0 0 {SVG_WIDTH} {SVG_HEIGHT}"' in svg
+    assert SVG_HEIGHT >= 244
 
 
 def test_quality_sparkline_manifest_fields() -> None:

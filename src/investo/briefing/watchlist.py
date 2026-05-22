@@ -307,6 +307,8 @@ class WatchlistMatch:
     kind: WatchlistTermKind
     item: NormalizedItem
     matched_alias: str | None = None
+    confidence: Literal["structured", "strict", "alias", "text"] = "text"
+    reason: str = "text"
     # u33 Step 1 — copied from ``WatchlistConfig.weights[term]`` at
     # match time. Defaults to 0.0 (term not weighted by user). Render
     # paths use this to sort match callouts so high-conviction
@@ -389,10 +391,11 @@ def match_watchlist_items(
         for kind, terms in term_groups:
             for term in terms:
                 exact_only = term.casefold() in exact_match_set
-                hit_term, hit_alias = _match_term_with_aliases(
+                hit_term, hit_alias, confidence, reason = _match_term_with_aliases(
                     term=term,
                     kind=kind,
                     aliases=aliases,
+                    item=item,
                     text_cf=text_cf,
                     text_raw=text_raw,
                     exact_only=exact_only,
@@ -410,6 +413,8 @@ def match_watchlist_items(
                         kind=kind,
                         item=item,
                         matched_alias=hit_alias,
+                        confidence=confidence,
+                        reason=reason,
                         weight=weight,
                     )
                 )
@@ -462,7 +467,7 @@ def render_watchlist_impact(
     rendered = []
     for match in impact.matches[:cap]:
         d_suffix = _watchlist_d_suffix(match, now_utc=now_utc)
-        rendered.append(f"{match.term}{d_suffix}: {match.item.title}")
+        rendered.append(f"{match.term}{d_suffix}: [{match.reason}] {match.item.title}")
     suffix = "" if len(impact.matches) <= cap else " 외"
     badge = f" ({DEFAULT_BUNDLE_BADGE_LABEL})" if impact.status == "default_bundle" else ""
     return f"{len(impact.matches)}건 확인{badge} — " + "; ".join(rendered) + suffix
@@ -518,12 +523,12 @@ def render_watchlist_prompt_context(impact: WatchlistImpact) -> str:
 
 
 def _item_text_casefold(item: NormalizedItem) -> str:
-    return f"{item.source_name} {item.category} {item.title} {item.summary or ''}".casefold()
+    return f"{item.title} {item.summary or ''}".casefold()
 
 
 def _item_text_raw(item: NormalizedItem) -> str:
     """Original-case version used for short-ticker capitalize checks."""
-    return f"{item.source_name} {item.category} {item.title} {item.summary or ''}"
+    return f"{item.title} {item.summary or ''}"
 
 
 def _match_term_with_aliases(
@@ -531,10 +536,11 @@ def _match_term_with_aliases(
     term: str,
     kind: WatchlistTermKind,
     aliases: Mapping[str, tuple[str, ...]],
+    item: NormalizedItem,
     text_cf: str,
     text_raw: str,
     exact_only: bool,
-) -> tuple[str | None, str | None]:
+) -> tuple[str | None, str | None, Literal["structured", "strict", "alias", "text"], str]:
     """Return ``(term, alias)`` if matched. ``alias`` is non-None only for
     alias hits. Canonical term hits short-circuit the alias scan (term wins).
 
@@ -544,16 +550,41 @@ def _match_term_with_aliases(
     word-boundary matching so "EV" matches lowercase "ev" in summaries.
     Aliases inherit the canonical term's ``kind``.
     """
+    if _matches_structured_term(term, item):
+        return term, None, "structured", "structured-symbol"
     if _matches_term(term, kind=kind, text_cf=text_cf, text_raw=text_raw, exact_only=exact_only):
-        return term, None
+        confidence: Literal["structured", "strict", "alias", "text"] = (
+            "strict" if kind in {"ticker", "asset"} and term.isascii() else "text"
+        )
+        return term, None, confidence, "boundary-term"
     if exact_only:
-        return None, None
+        return None, None, "text", "no-match"
     canonical_key = term.upper() if term.isascii() else term
     alt_forms = aliases.get(canonical_key, ())
     for alt in alt_forms:
         if _matches_term(alt, kind=kind, text_cf=text_cf, text_raw=text_raw, exact_only=False):
-            return term, alt
-    return None, None
+            return term, alt, "alias", f"alias:{alt}"
+    return None, None, "text", "no-match"
+
+
+def _matches_structured_term(term: str, item: NormalizedItem) -> bool:
+    """Match against structured symbol metadata before free text."""
+    if not term:
+        return False
+    wanted = term.casefold()
+    keys = ("ticker", "symbol", "asset", "base_asset", "coin", "slug")
+    for key in keys:
+        raw = item.raw_metadata.get(key)
+        if not isinstance(raw, str):
+            continue
+        candidates = {raw.casefold()}
+        if raw.endswith("-USD"):
+            candidates.add(raw.removesuffix("-USD").casefold())
+        if raw.endswith("USDT"):
+            candidates.add(raw.removesuffix("USDT").casefold())
+        if wanted in candidates:
+            return True
+    return False
 
 
 def _matches_term(

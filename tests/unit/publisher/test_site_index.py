@@ -111,9 +111,12 @@ def test_update_index_hero_inlines_segment_conclusions(tmp_path: Path) -> None:
     assert "archive/domestic-equity/2026/05/2026-05-07.md" in body
 
 
-def test_update_latest_index_pages_omits_missing_partial_segments(tmp_path: Path) -> None:
+def test_update_latest_index_pages_labels_missing_partial_segments(tmp_path: Path) -> None:
     site_index, archive_index = _seed_index_pages(tmp_path)
     target = date(2026, 5, 7)
+    fallback = tmp_path / "archive/domestic-equity/2026/05/2026-05-06.md"
+    fallback.parent.mkdir(parents=True)
+    fallback.write_text("# domestic fallback", encoding="utf-8")
     briefings = {
         CRYPTO: _briefing(target, "BTC 횡보."),
     }
@@ -127,13 +130,15 @@ def test_update_latest_index_pages_omits_missing_partial_segments(tmp_path: Path
 
     site = site_index.read_text(encoding="utf-8")
     assert "archive/crypto/2026/05/2026-05-07.md" in site
-    assert "archive/domestic-equity/2026/05/2026-05-07.md" not in site
-    assert "archive/us-equity/2026/05/2026-05-07.md" not in site
+    assert "국내 증시: 2026-05-07 미발행" in site
+    assert "archive/domestic-equity/2026/05/2026-05-06.md" in site
+    assert "미국 증시: 2026-05-07 미발행 · 이전 발행 없음" in site
 
     archive = archive_index.read_text(encoding="utf-8")
     assert "crypto/2026/05/2026-05-07.md" in archive
-    assert "domestic-equity/2026/05/2026-05-07.md" not in archive
-    assert "us-equity/2026/05/2026-05-07.md" not in archive
+    assert "국내 증시: 2026-05-07 미발행" in archive
+    assert "domestic-equity/2026/05/2026-05-06.md" in archive
+    assert "미국 증시: 2026-05-07 미발행 · 이전 발행 없음" in archive
 
 
 def test_update_index_hero_is_idempotent(tmp_path: Path) -> None:

@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import re
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import Final
@@ -74,6 +75,22 @@ _HERO_FALLBACK_TEXT: Final[str] = "결론 인용을 추출하지 못했습니다
 _NEXT_HEADING_RE: Final[re.Pattern[str]] = re.compile(r"^## ", re.MULTILINE)
 
 
+@dataclass(frozen=True, slots=True)
+class SegmentBundleState:
+    """Reader-facing state for one segment in a dated bundle."""
+
+    segment: MarketSegment
+    target_date: date
+    generated: bool
+    href: str
+    fallback_date: date | None = None
+    fallback_href: str | None = None
+
+    @property
+    def label(self) -> str:
+        return SEGMENT_LABELS[self.segment]
+
+
 def update_latest_index_pages(
     target_date: date,
     *,
@@ -116,21 +133,21 @@ def update_latest_index_pages(
             segment_briefings,
             site_index_path=site_index_path,
         )
-    published_segments = (
-        tuple(segment for segment in _SEGMENTS if segment in segment_briefings)
-        if segment_briefings is not None
-        else _SEGMENTS
+    bundle_states = _build_bundle_states(
+        target_date,
+        archive_root=archive_index_path.parent,
+        segment_briefings=segment_briefings,
     )
 
     _replace_section(
         site_index_path,
         "## 최신 시황",
-        _site_latest_section(target_date, published_segments),
+        _site_latest_section(target_date, bundle_states),
     )
     _replace_section(
         archive_index_path,
         "## 최신 시황",
-        _archive_latest_section(target_date, published_segments),
+        _archive_latest_section(target_date, bundle_states),
     )
     _replace_section(
         archive_index_path,
@@ -428,33 +445,95 @@ def _segment_entries(archive_dir: Path) -> list[Path]:
 # ---------------------------------------------------------------------------
 
 
+def _build_bundle_states(
+    target_date: date,
+    *,
+    archive_root: Path,
+    segment_briefings: dict[MarketSegment, Briefing] | None,
+) -> tuple[SegmentBundleState, ...]:
+    generated = (
+        frozenset(segment_briefings)
+        if segment_briefings is not None
+        else frozenset(_SEGMENTS)
+    )
+    states: list[SegmentBundleState] = []
+    for segment in _SEGMENTS:
+        if segment in generated:
+            states.append(
+                SegmentBundleState(
+                    segment=segment,
+                    target_date=target_date,
+                    generated=True,
+                    href=_archive_segment_href(target_date, segment),
+                )
+            )
+            continue
+        fallback = _latest_segment_entry_before(
+            archive_root / segment,
+            before=target_date,
+        )
+        fallback_date = date.fromisoformat(fallback.stem) if fallback is not None else None
+        states.append(
+            SegmentBundleState(
+                segment=segment,
+                target_date=target_date,
+                generated=False,
+                href=_archive_segment_href(target_date, segment),
+                fallback_date=fallback_date,
+                fallback_href=(
+                    f"{segment}/{fallback.parent.parent.name}/{fallback.parent.name}/{fallback.name}"
+                    if fallback is not None
+                    else None
+                ),
+            )
+        )
+    return tuple(states)
+
+
 def _site_latest_section(
     target_date: date,
-    segments: tuple[MarketSegment, ...] = _SEGMENTS,
+    states: tuple[SegmentBundleState, ...] | None = None,
 ) -> str:
+    bundle_states = states if states is not None else _build_bundle_states(
+        target_date,
+        archive_root=ARCHIVE_INDEX_PATH.parent,
+        segment_briefings=None,
+    )
     return (
         "## 최신 시황\n\n"
         f"현재 보관된 최신 묶음은 **{target_date.isoformat()}**입니다.\n\n"
-        + "\n".join(
-            f"- [{SEGMENT_LABELS[segment]}]({_site_segment_href(target_date, segment)})"
-            for segment in segments
-        )
+        + "\n".join(_render_bundle_state_line(state, site=True) for state in bundle_states)
         + "\n\n[전체 Archive 보기](archive/index.md)"
     )
 
 
 def _archive_latest_section(
     target_date: date,
-    segments: tuple[MarketSegment, ...] = _SEGMENTS,
+    states: tuple[SegmentBundleState, ...] | None = None,
 ) -> str:
+    bundle_states = states if states is not None else _build_bundle_states(
+        target_date,
+        archive_root=ARCHIVE_INDEX_PATH.parent,
+        segment_briefings=None,
+    )
     return (
         "## 최신 시황\n\n"
         f"현재 보관된 최신 묶음은 **{target_date.isoformat()}**입니다.\n\n"
-        + "\n".join(
-            f"- [{SEGMENT_LABELS[segment]}]({_archive_segment_href(target_date, segment)})"
-            for segment in segments
-        )
+        + "\n".join(_render_bundle_state_line(state, site=False) for state in bundle_states)
     )
+
+
+def _render_bundle_state_line(state: SegmentBundleState, *, site: bool) -> str:
+    if state.generated:
+        href = f"archive/{state.href}" if site else state.href
+        return f"- [{state.label}]({href})"
+    if state.fallback_date is not None and state.fallback_href is not None:
+        href = f"archive/{state.fallback_href}" if site else state.fallback_href
+        return (
+            f"- {state.label}: {state.target_date.isoformat()} 미발행 · "
+            f"[최근 {state.fallback_date.isoformat()}]({href})"
+        )
+    return f"- {state.label}: {state.target_date.isoformat()} 미발행 · 이전 발행 없음"
 
 
 def _legacy_section(archive_root: Path) -> str:
@@ -480,6 +559,17 @@ def _site_segment_href(target_date: date, segment: str) -> str:
 
 def _archive_segment_href(target_date: date, segment: str) -> str:
     return f"{segment}/{target_date.year:04d}/{target_date.month:02d}/{target_date.isoformat()}.md"
+
+
+def _latest_segment_entry_before(archive_dir: Path, *, before: date) -> Path | None:
+    for entry in _segment_entries(archive_dir):
+        try:
+            entry_date = date.fromisoformat(entry.stem)
+        except ValueError:
+            continue
+        if entry_date < before:
+            return entry
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -561,6 +651,7 @@ __all__ = [
     "QUALITY_PAGE_PATH",
     "SEGMENT_ARCHIVE_INDEX_PATHS",
     "SITE_INDEX_PATH",
+    "SegmentBundleState",
     "extract_conclusion",
     "update_accuracy_page",
     "update_archive_heatmap_section",

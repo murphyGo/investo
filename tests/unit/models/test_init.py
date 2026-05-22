@@ -14,6 +14,10 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         # items.py
         "Category",
         "NormalizedItem",
+        # segments.py
+        "MarketSegment",
+        "SEGMENT_MARKET_TZ",
+        "SEGMENT_MARKET_TZ_LABEL",
         # briefing.py
         "TELEGRAM_MESSAGE_LIMIT",
         "Briefing",

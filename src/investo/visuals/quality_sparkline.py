@@ -11,8 +11,9 @@ from investo.visuals.provenance import VisualProvenanceManifest, _investo_versio
 from investo.visuals.render import _CARD_STYLE
 
 SVG_WIDTH: Final[int] = 600
-SVG_HEIGHT: Final[int] = 180
+SVG_HEIGHT: Final[int] = 260
 _PANEL_HEIGHT: Final[int] = 60
+_PANEL_GAP: Final[int] = 4
 _PADDING_X: Final[int] = 56
 _LINE_WIDTH: Final[int] = SVG_WIDTH - (_PADDING_X * 2)
 _METRICS: Final[tuple[tuple[str, str, str], ...]] = (
@@ -38,7 +39,7 @@ def render_quality_sparkline(rows: list[QualityHistoryRow]) -> bytes:
         f'height="{SVG_HEIGHT - 16}" rx="6"/>',
     ]
     for idx, (field, label, color) in enumerate(_METRICS):
-        top = idx * _PANEL_HEIGHT
+        top = idx * (_PANEL_HEIGHT + _PANEL_GAP)
         parts.append(
             f'<text class="card-label" x="20" y="{top + 35}" '
             'font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" '

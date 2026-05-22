@@ -79,6 +79,15 @@ _EN_CONJUNCTION_TAIL_RE: Final[re.Pattern[str]] = re.compile(
 _KO_PARTICLE_TAIL_RE: Final[re.Pattern[str]] = re.compile(
     r"(?:과|와|및|또는|에서|의|을|를|이|가|은|는)\.\s*$"
 )
+_HEADING_RESIDUE_RE: Final[re.Pattern[str]] = re.compile(r"(^|\s)#{1,6}\s+\S")
+_BROKEN_NUMERIC_BOLD_RE: Final[re.Pattern[str]] = re.compile(
+    r"\*\*[+-]\*\*\s*\d|\d+(?:\.\d+)?%?\s*\*\*p\*\*",
+    re.IGNORECASE,
+)
+_GENERATOR_RESIDUE_TAIL_RE: Final[re.Pattern[str]] = re.compile(r"\b(?:ROS)\s*$")
+_DANGLING_LONG_TAIL_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:기관|정책|입법|시장|수급|이슈|흐름|요인|변수|데이터)\s*$"
+)
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 _URL_RE: Final[re.Pattern[str]] = re.compile(r"https?://\S+")
@@ -161,6 +170,22 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         raise SummaryQualityError(
             f"unbalanced markdown link in first-viewport summary line: {prefix}"
         )
+    if _HEADING_RESIDUE_RE.search(value):
+        raise SummaryQualityError(f"heading residue in first-viewport summary line: {prefix}")
+    if _BROKEN_NUMERIC_BOLD_RE.search(value):
+        raise SummaryQualityError(
+            f"broken numeric emphasis in first-viewport summary line: {prefix}"
+        )
+    if _GENERATOR_RESIDUE_TAIL_RE.search(value):
+        raise SummaryQualityError(
+            f"generator residue in first-viewport summary line: {prefix}"
+        )
+    if (
+        len(value) >= 60
+        and not value.rstrip().endswith(("다.", "니다.", "요.", ".", "!", "?", "…"))
+        and _DANGLING_LONG_TAIL_RE.search(value)
+    ):
+        raise SummaryQualityError(f"dangling truncation in first-viewport summary line: {prefix}")
     if _EN_CONJUNCTION_TAIL_RE.search(value) or _KO_PARTICLE_TAIL_RE.search(value):
         raise SummaryQualityError(
             f"conjunction-tail truncation in first-viewport summary line: {prefix}"
@@ -170,6 +195,8 @@ def _validate_summary_value(prefix: str, value: str) -> None:
 def _repair_summary_value(prefix: str, value: str) -> str:
     cleaned = _MARKDOWN_LINK_RE.sub(r"\1", value)
     cleaned = _URL_RE.sub("", cleaned)
+    cleaned = re.sub(r"^(?:>\s*)?#{1,6}\s+", "", cleaned).strip()
+    cleaned = _GENERATOR_RESIDUE_TAIL_RE.sub("", cleaned).strip()
     cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
     cleaned = cleaned.replace("[", "").replace("]", "")
     cleaned = cleaned.replace("(", "").replace(")", "")

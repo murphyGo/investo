@@ -138,6 +138,15 @@ def test_summary_sentence_marker_only_candidate_rejected() -> None:
     assert _summary_sentence("①", fallback="FB") == "FB"
 
 
+def test_summary_sentence_strips_plain_heading_before_candidate_scan() -> None:
+    body = "### KOSPI 가격 흐름\n삼성전자 강보합과 외국인 수급이 지수 하단을 지지했다."
+
+    result = _summary_sentence(body, fallback="FB")
+
+    assert not result.startswith("###")
+    assert result == "KOSPI 가격 흐름 삼성전자 강보합과 외국인 수급이 지수 하단을 지지했다."
+
+
 def test_is_unsafe_summary_candidate_covers_persona_patterns() -> None:
     # Marker-only.
     assert _is_unsafe_summary_candidate("1.")
@@ -149,6 +158,9 @@ def test_is_unsafe_summary_candidate_covers_persona_patterns() -> None:
     assert _is_unsafe_summary_candidate("**입법 가속화")
     # Unbalanced bracket.
     assert _is_unsafe_summary_candidate("[미국 증시")
+    assert _is_unsafe_summary_candidate("### KOSPI 가격 흐름")
+    assert _is_unsafe_summary_candidate("금리 **-**0.10%**p** 변동")
+    assert _is_unsafe_summary_candidate("미국 증시 변동성 ROS")
     # Korean particle tail.
     assert _is_unsafe_summary_candidate("정책과.")
     # Safe sentence — must NOT trip the gate.

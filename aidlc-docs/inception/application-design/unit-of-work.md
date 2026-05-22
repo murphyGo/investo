@@ -728,6 +728,96 @@ The 2026-05-13 shared macro block exposed a deterministic evidence-selection def
 
 ---
 
+## Wave 11 Generated Briefing Quality Follow-up Units
+
+The 2026-05-23 10-subagent review of the latest generated segmented briefings found that the remaining quality risk is no longer one isolated source bug. It is the combination of first-viewport formatting defects, contradictory quality/status surfaces, silent partial-bundle navigation, weak watchlist/entity matching, and the lack of a fast offline artifact replay loop.
+
+These units intentionally avoid duplicating closed u54/u57/u60 implementation scope. They focus on publish-time regression gates, reader-facing status reconciliation, partial-bundle UX, watchlist actionability, and a repeatable replay harness.
+
+### u61: `first-viewport-summary-gate-v2` — Summary Malformation Regression Gate
+
+**Purpose**: Block or deterministically repair malformed first-viewport summaries such as heading leakage, truncated sentences, stray generation residue, and broken emphasis before archive or Telegram publication.
+
+**Stories**: FR-002 (AI 시황 작성), FR-008 (세그먼트별 시황 생성), FR-009 (reader-facing format), NFR-003 (graceful degradation)
+
+**Module path**:
+- `src/investo/briefing/pipeline.py` — summary extraction/cleanup
+- `src/investo/briefing/summary_quality.py` — validation contract
+- `src/investo/publisher/reader_format.py` — post-format gate
+- `src/investo/notifier/summary.py` — reuse cleaned summaries
+
+**Definition of Done**:
+- [x] `###` heading leakage, stray terminal tokens, malformed bold, and non-terminal truncation are pinned by tests.
+- [x] Archive and Telegram first-viewport summaries share one clean contract.
+- [x] Invalid summaries fail publish or use a deterministic compliance-safe fallback.
+
+### u62: `quality-status-publish-reconciliation` — Canonical Quality Snapshot
+
+**Purpose**: Make segment markdown, `quality_history.jsonl`, `site_docs/quality.md`, and `archive/index.md` derive from one canonical run snapshot so `본문 사용`, failed source counts, and worst status cannot contradict each other.
+
+**Stories**: FR-001 (데이터 수집), FR-003 (정적 게시), FR-006 (보관), FR-010 (source-status severity/KPI)
+
+**Module path**:
+- `src/investo/briefing/segments.py` / `coverage.py` — segment coverage counts
+- `src/investo/publisher/quality_history.py` — same-day worst-wins
+- `src/investo/publisher/site_index.py` — quality/index rendering
+- `src/investo/visuals/` — quality chart bounds if needed
+
+**Definition of Done**:
+- [x] Public status surfaces agree for normal/partial/limited/failed cases.
+- [x] `본문 사용 0` is not rendered when the count is unknown or body evidence exists.
+- [x] Date-level status uses worst segment status and quality SVG labels are not clipped.
+
+### u63: `partial-bundle-navigation-and-absence-state` — Explicit Missing Segment UX
+
+**Purpose**: When a date has only some generated segments, latest-bundle surfaces should show generated segments, missing segments, and the latest fallback date instead of silently omitting the absent segment.
+
+**Stories**: FR-003 (정적 게시), FR-006 (보관), FR-008 (세그먼트별 시황 생성)
+
+**Module path**:
+- `src/investo/publisher/site_index.py` — archive/latest bundle blocks
+- `src/investo/publisher/reader_format.py` or segment nav helper — per-segment navigation
+- `src/investo/orchestrator/pipeline.py` — publish metadata handoff if required
+
+**Definition of Done**:
+- [x] Partial bundle nav explicitly labels missing segments.
+- [x] Missing segments link to the latest previous artifact when available.
+- [x] Home/archive/per-segment nav agree on the bundle state.
+
+### u64: `watchlist-entity-matching-and-actionability` — Exact Entity Matching and Useful Watchpoints
+
+**Purpose**: Prevent false matches such as `BTC` mapping to `BTM earnings`, and upgrade watchpoints from generic `확인/점검` phrasing into source-backed trigger/threshold/implication observations.
+
+**Stories**: FR-002 (AI 시황 작성), FR-004 (텔레그램 알림), FR-009 (reader-facing format), FR-012 (compliance language)
+
+**Module path**:
+- `src/investo/briefing/watchlist.py` — entity matching, aliases, confidence/reason
+- `src/investo/publisher/reader_format.py` — watchpoint/actionability validation
+- `src/investo/notifier/summary.py` — concise high-confidence watchlist reason
+
+**Definition of Done**:
+- [x] Short tickers require strict boundaries and `BTC` never matches `BTM`.
+- [x] Watchlist callouts include source-backed evidence or are omitted.
+- [x] Watchpoints contain source/trigger/threshold/implication unless data-limited.
+
+### u65: `generated-briefing-quality-replay-harness` — Offline Artifact Review Harness
+
+**Purpose**: Add a deterministic offline replay harness that reviews generated archive markdown and metadata for the defect classes found by the 10-subagent review, without network calls, LLM calls, or archive mutation.
+
+**Stories**: FR-003 (정적 게시), FR-006 (보관), FR-010/FR-011/FR-012/FR-013 quality controls
+
+**Module path**:
+- `scripts/` or `tests/` helper — date/segment replay entrypoint
+- `src/investo/publisher/` and `src/investo/briefing/` validators — reuse existing gates
+- `tests/fixtures/` — compact passing/failing archive bundles
+
+**Definition of Done**:
+- [x] A local offline command or pytest helper can review one generated bundle.
+- [x] First-viewport, status consistency, navigation, watchlist, and compliance findings are reported deterministically.
+- [x] The harness is documented as the first validation step after future briefing-quality reviews.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

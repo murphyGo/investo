@@ -27,6 +27,7 @@ from investo.publisher.reader_format import (
     TLDR_HEADER,
     apply_reader_format,
     check_action_bullet_ratio,
+    check_watchpoint_actionability,
     dedupe_glossings,
     enforce_h3_subheadings,
     ensure_tldr_block,
@@ -224,6 +225,22 @@ def test_action_ratio_missing_section() -> None:
     ratio, violations = check_action_bullet_ratio(text)
     assert ratio == 0.0
     assert violations == ()
+
+
+def test_watchpoint_actionability_warns_without_source_trigger_implication() -> None:
+    text = _section_six(["FOMC 발언 톤 확인 필요"])
+
+    violations = check_watchpoint_actionability(text, segment="us-equity")
+
+    assert violations == ("FOMC 발언 톤 확인 필요",)
+
+
+def test_watchpoint_actionability_accepts_source_trigger_implication() -> None:
+    text = _section_six(
+        ["확인 소스: FRED · 10Y 금리 4.5% 상회 시 성장주 변동성 부담 여부를 확인합니다."]
+    )
+
+    assert check_watchpoint_actionability(text, segment="us-equity") == ()
 
 
 def test_action_ratio_warns_above_threshold(caplog: object) -> None:

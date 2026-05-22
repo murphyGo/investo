@@ -70,6 +70,22 @@ def test_badge_carries_five_tuple_count_split() -> None:
     assert "본문 사용 2" in badge
 
 
+def test_badge_renders_body_used_untracked_when_success_exists_but_zero_count() -> None:
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [_item("yfinance-price"), _item("yahoo-finance-news", "news")],
+        source_outcomes=(
+            SourceOutcome.ok("yfinance-price", "price", 1),
+            SourceOutcome.ok("yahoo-finance-news", "news", 1),
+        ),
+    )
+
+    badge = _render_coverage_badge(coverage)
+
+    assert "본문 사용 미집계" in badge
+    assert "본문 사용 0" not in badge
+
+
 def test_badge_omits_count_line_for_legacy_caller() -> None:
     """Legacy callers (no outcomes) → no count-split line; only the
     head line is rendered (backward-compat)."""

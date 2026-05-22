@@ -150,8 +150,9 @@ _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
 }
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
+_LEADING_HEADING_RE: Final[re.Pattern[str]] = re.compile(r"^(?:>\s*)?#{1,6}\s+")
 _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)]|[①-⑳])\s*"
+    r"^(?:>\s*)?(?:(?:[-*+])|\d+[.)]|[①-⑳])\s*"
 )
 _MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 # Reject patterns the summary sentence picker uses to skip a candidate
@@ -164,6 +165,15 @@ _EN_CONJUNCTION_TAIL_RE: Final[re.Pattern[str]] = re.compile(
 )
 _KO_PARTICLE_TAIL_RE: Final[re.Pattern[str]] = re.compile(
     r"(?:과|와|및|또는|에서|의|을|를|이|가|은|는)\.\s*$"
+)
+_HEADING_RESIDUE_RE: Final[re.Pattern[str]] = re.compile(r"(^|\s)#{1,6}\s+\S")
+_BROKEN_NUMERIC_BOLD_RE: Final[re.Pattern[str]] = re.compile(
+    r"\*\*[+-]\*\*\s*\d|\d+(?:\.\d+)?%?\s*\*\*p\*\*",
+    re.IGNORECASE,
+)
+_GENERATOR_RESIDUE_TAIL_RE: Final[re.Pattern[str]] = re.compile(r"\b(?:ROS)\s*$")
+_DANGLING_LONG_TAIL_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:기관|정책|입법|시장|수급|이슈|흐름|요인|변수|데이터)\s*$"
 )
 # Sentence terminator markers, longest-first so ``니다.`` matches before
 # the shorter ``다.`` substring inside it.
@@ -971,6 +981,7 @@ def _clean_summary_line(line: str) -> str:
     cleaned = line.strip()
     if not cleaned:
         return ""
+    cleaned = _LEADING_HEADING_RE.sub("", cleaned).strip()
     cleaned = _LEADING_MARKDOWN_RE.sub("", cleaned).strip()
     cleaned = _MARKDOWN_LINK_RE.sub(r"\1", cleaned)
     cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
@@ -1001,6 +1012,18 @@ def _is_unsafe_summary_candidate(candidate: str) -> bool:
     if candidate.count("[") != candidate.count("]"):
         return True
     if candidate.count("(") != candidate.count(")"):
+        return True
+    if _HEADING_RESIDUE_RE.search(candidate):
+        return True
+    if _BROKEN_NUMERIC_BOLD_RE.search(candidate):
+        return True
+    if _GENERATOR_RESIDUE_TAIL_RE.search(candidate):
+        return True
+    if (
+        len(candidate) >= 60
+        and not candidate.rstrip().endswith(("다.", "니다.", "요.", ".", "!", "?", "…"))
+        and _DANGLING_LONG_TAIL_RE.search(candidate)
+    ):
         return True
     if _EN_CONJUNCTION_TAIL_RE.search(candidate):
         return True
@@ -1137,11 +1160,16 @@ def _render_coverage_badge(coverage: SegmentCoverage) -> str:
         # not have to scan two lines for severity context.
         lines[0] = head + f" · {explanation}"
     if coverage.targeted_count > 0:
+        body_used = (
+            str(coverage.body_used_count)
+            if coverage.body_used_count > 0 or coverage.succeeded_count == 0
+            else "미집계"
+        )
         lines.append(
             "> **소스 카운트**: "
             f"수집 대상 {coverage.targeted_count} / 성공 {coverage.succeeded_count} / "
             f"0건 {coverage.zero_count} / 실패 {coverage.failed_count} / "
-            f"본문 사용 {coverage.body_used_count}"
+            f"본문 사용 {body_used}"
         )
     tier_label = coverage.tier_mix_label
     if tier_label:

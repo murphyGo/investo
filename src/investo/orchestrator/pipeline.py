@@ -1382,7 +1382,7 @@ def _rewrite_segment_nav_for_published_segments(
     target_date: date,
     published_segments: Sequence[MarketSegment],
 ) -> dict[MarketSegment, Briefing]:
-    """Remove nav links to segments that failed generation in a partial publish."""
+    """Rewrite nav so partial publishes label missing segments explicitly."""
     published_set = set(published_segments)
     rewritten: dict[MarketSegment, Briefing] = {}
     for segment, briefing in briefings.items():
@@ -1405,9 +1405,10 @@ def _segment_nav_line(
     parts: list[str] = []
     filename = f"{target_date.isoformat()}.md"
     for segment in SEGMENT_ORDER:
-        if segment not in published_segments:
-            continue
         label = SEGMENT_LABELS[segment]
+        if segment not in published_segments:
+            parts.append(f"{label}(미발행)")
+            continue
         href = (
             filename
             if segment == current_segment

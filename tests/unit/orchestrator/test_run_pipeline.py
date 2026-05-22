@@ -735,7 +735,7 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert "push" in [call[1] for call in git.calls]
 
 
-def test_rewrite_segment_nav_for_partial_publish_omits_missing_segments() -> None:
+def test_rewrite_segment_nav_for_partial_publish_labels_missing_segments() -> None:
     briefing = _briefing().model_copy(
         update={
             "rendered_markdown": (
@@ -756,7 +756,10 @@ def test_rewrite_segment_nav_for_partial_publish_omits_missing_segments() -> Non
     )
 
     markdown = rewritten[CRYPTO].rendered_markdown
-    assert "**세그먼트**: [크립토](2026-04-27.md)" in markdown
+    assert (
+        "**세그먼트**: 국내 증시(미발행) | 미국 증시(미발행) | "
+        "[크립토](2026-04-27.md)"
+    ) in markdown
     assert "domestic-equity/2026/04/2026-04-27.md" not in markdown
     assert "us-equity/2026/04/2026-04-27.md" not in markdown
 

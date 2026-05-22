@@ -308,6 +308,16 @@ ACTION_RATIO_THRESHOLD: Final[float] = 0.40
 
 _SECTION_HEADER_RE: Final[re.Pattern[str]] = re.compile(r"^##\s+(?P<header>.+?)$", re.MULTILINE)
 _BULLET_RE: Final[re.Pattern[str]] = re.compile(r"^\s*[-*]\s+(.+?)$", re.MULTILINE)
+_WATCHPOINT_SOURCE_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:소스|출처|확인\s?소스|근거|source|FRED|Yahoo|Stooq|KRX|DART|CoinGecko|Binance)",
+    re.IGNORECASE,
+)
+_WATCHPOINT_TRIGGER_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:임계|기준|상회|하회|돌파|이탈|확대|축소|발표|공개|마감|수익률|금리|거래량|%|\$|\d)"
+)
+_WATCHPOINT_IMPLICATION_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:시사|의미|영향|압력|부담|완화|확인|재평가|변동성|리스크)"
+)
 
 
 def check_action_bullet_ratio(
@@ -344,6 +354,41 @@ def check_action_bullet_ratio(
             },
         )
     return ratio, violations
+
+
+def check_watchpoint_actionability(
+    text: str,
+    *,
+    section_marker: str = "⑥",
+    segment: str | None = None,
+) -> tuple[str, ...]:
+    """Return §⑥ bullets that lack source/trigger/implication structure."""
+    section_body = _extract_section_body(text, section_marker)
+    if section_body is None:
+        return ()
+    bullets = [match.group(1).strip() for match in _BULLET_RE.finditer(section_body)]
+    if not bullets:
+        return ()
+    violations = tuple(
+        bullet
+        for bullet in bullets
+        if "데이터 부족" not in bullet
+        and not (
+            _WATCHPOINT_SOURCE_RE.search(bullet)
+            and _WATCHPOINT_TRIGGER_RE.search(bullet)
+            and _WATCHPOINT_IMPLICATION_RE.search(bullet)
+        )
+    )
+    if violations:
+        _logger.warning(
+            "reader_format.watchpoint_actionability_low",
+            extra={
+                "segment": segment,
+                "count": len(violations),
+                "total": len(bullets),
+            },
+        )
+    return violations
 
 
 def _extract_section_body(text: str, marker: str) -> str | None:
@@ -732,6 +777,7 @@ def apply_reader_format(
     out = dedupe_glossings(out)
     combined = out + footer
     check_action_bullet_ratio(combined, segment=segment)
+    check_watchpoint_actionability(combined, segment=segment)
     return combined
 
 
@@ -756,6 +802,7 @@ __all__ = [
     "check_action_bullet_ratio",
     "check_filler_phrase_density",
     "check_sentence_ending_diversity",
+    "check_watchpoint_actionability",
     "dedupe_glossings",
     "emit_first_viewport_disclaimer",
     "enforce_h3_subheadings",
