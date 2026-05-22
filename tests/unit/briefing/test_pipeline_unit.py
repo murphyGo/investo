@@ -25,9 +25,11 @@ from investo.briefing.pipeline import (
     SectionPlan,
     _parse_classification,
     _render_grouped_sections,
+    _render_required_macro_actuals,
     _render_unassigned,
     _required_macro_item_ids,
     _select_llm_candidate_items,
+    _validate_required_macro_mentions,
     build_section_plan,
     parse_six_sections,
     serialize_items_for_prompt,
@@ -373,6 +375,25 @@ def test_required_macro_item_ids_uses_stage1_synthetic_ids() -> None:
     assert _required_macro_item_ids([normal, required]) == frozenset({2})
 
 
+def test_build_section_plan_carries_required_macro_items() -> None:
+    required = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        published_at=datetime(2026, 5, 12, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "CPIAUCSL",
+            "value": "314.12",
+            "release_date": "2026-05-12",
+        },
+    )
+    classification = ClassificationResult(assignments={1: 4}, unassigned=[])
+
+    plan = build_section_plan([required], classification, target_date=date(2026, 5, 13))
+
+    assert plan.required_macro_items == (required,)
+
+
 def test_parse_classification_accepts_json_inside_markdown_fence() -> None:
     """Production LLM stdout may wrap the JSON object in a code fence."""
     stdout = """\
@@ -610,6 +631,67 @@ def test_render_grouped_sections_caps_stage2_evidence_budget() -> None:
     assert "(14 additional classified items omitted for prompt budget)" in rendered
     assert "x" * 300 not in rendered
     assert "a" * 200 not in rendered
+
+
+def test_render_required_macro_actuals_uses_dedicated_uncapped_block() -> None:
+    item = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        url="https://fred.stlouisfed.org/series/CPIAUCSL",
+        published_at=datetime(2026, 5, 12, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "CPIAUCSL",
+            "value": "314.12",
+            "previous_value": "313.55",
+            "release_date": "2026-05-12",
+        },
+    )
+
+    rendered = _render_required_macro_actuals((item,))
+
+    assert "[fred-macro] CPIAUCSL latest observation" in rendered
+    assert "actual=314.12" in rendered
+    assert "prior=313.55" in rendered
+    assert "url=https://fred.stlouisfed.org/series/CPIAUCSL" in rendered
+
+
+def test_validate_required_macro_mentions_accepts_title_or_url() -> None:
+    item = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        url="https://fred.stlouisfed.org/series/CPIAUCSL",
+        published_at=datetime(2026, 5, 12, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "CPIAUCSL",
+            "value": "314.12",
+            "release_date": "2026-05-12",
+        },
+    )
+
+    _validate_required_macro_mentions(
+        "## ② 전일 핵심 이슈\n"
+        "[CPIAUCSL latest observation](https://fred.stlouisfed.org/series/CPIAUCSL)",
+        (item,),
+    )
+
+
+def test_validate_required_macro_mentions_rejects_omission() -> None:
+    item = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        published_at=datetime(2026, 5, 12, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "CPIAUCSL",
+            "value": "314.12",
+            "release_date": "2026-05-12",
+        },
+    )
+
+    with pytest.raises(ValueError, match="omitted required macro actual"):
+        _validate_required_macro_mentions("## ② 전일 핵심 이슈\nNo macro mention.", (item,))
 
 
 def test_render_unassigned_caps_stage2_context_budget() -> None:

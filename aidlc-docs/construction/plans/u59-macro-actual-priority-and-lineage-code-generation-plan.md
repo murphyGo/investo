@@ -3,7 +3,7 @@
 **Date**: 2026-05-23
 **Unit**: u59 macro-actual-priority-and-lineage
 **Stage**: Code Generation
-**Status**: In progress (3/9 full steps complete; Step 4 parser/prompt contract complete; PPI schedule identity sub-step complete)
+**Status**: In progress (4/9 full steps complete; PPI schedule identity sub-step complete)
 **Source**: 2026-05-23 user request after the 2026-05-13 U.S. PPI miss analysis and 10-subagent macro design review.
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -402,15 +402,20 @@ Result:
 
 ### Step 5 - Stage 2 preservation and post-generation validator
 
-- [ ] Ensure required macro actuals are rendered outside generic grouped-section caps.
-- [ ] Add final markdown validation for required macro label/source/event key.
-- [ ] Decide retry vs segment downgrade/fail behavior.
-- [ ] Tests: final body includes required event, omitted event fails/downgrades deterministically.
+- [x] Ensure required macro actuals are rendered outside generic grouped-section caps.
+- [x] Add final markdown validation for required macro label/source/event key.
+- [x] Decide retry vs segment downgrade/fail behavior.
+- [x] Tests: final body includes required event, omitted event fails/downgrades deterministically.
 Implementation notes:
 - `_render_grouped_sections` caps classified items to 48 total / 14 per section.
 - `_render_unassigned` caps unassigned to 8.
 - Add a dedicated `_render_required_macro_actuals(...)` and thread it into `STAGE2_USER_TEMPLATE` so required macro actuals do not compete with generic section caps.
 - The validator should not require exact prose. Match stable event key/label/source URL/token with conservative aliases such as PPI / Producer Price Index / 생산자물가 only for known event types.
+Result:
+- Extended `SectionPlan` with `required_macro_items` populated from required P0 actuals.
+- Added `_render_required_macro_actuals(...)` and a `required_macro_actuals` Stage 2 prompt block outside generic grouped/unassigned caps.
+- Added `_validate_required_macro_mentions(...)`; omissions are treated as Stage 2 synthesis validation failures and therefore use the existing retry/exhaustion path.
+- Added Stage 2 prompt rules that required macro actuals must appear in §② or §④ with source link/title/label.
 
 ### Step 6 - Macro severity and quality KPI
 

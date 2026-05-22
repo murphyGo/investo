@@ -225,6 +225,10 @@ Rules:
   such as "상승", "하락", "순매수", "사상 최고치" over hype terms.
 - When a source URL is provided in the grouped items, attach source
   links to important claims using normal markdown links.
+- Required macro actuals are listed in a separate input block when
+  present. Every required macro actual MUST be mentioned in section ②
+  or section ④ with its source link or exact title/label. Do not move
+  required macro actuals only to section ⑥.
 - In section ⑤, group notable tickers/assets by neutral observation
   category when there are many items (for example: 관전 분류, 실적
   발표, 확인 항목, 체크리스트) instead of recommendation-flavored
@@ -458,12 +462,18 @@ Same-bundle BundleContext rules (u57 segment-narrative-scope-and-time-reconcilia
 #       market state)" block listing same-run per-segment close-state
 #       JSON; may be the literal empty string when no BundleContext
 #       is available; u57)
+#   ``required_macro_actuals`` (str — compact required macro actual
+#       block; may be the literal "(none)" when no P0 actual survived
+#       candidate selection; u59)
 STAGE2_USER_TEMPLATE: Final[str] = """\
 {segment_context}
 
 Pre-grouped items (Stage 1 output):
 
 {grouped_sections}
+
+Required macro actuals:
+{required_macro_actuals}
 
 Unassigned (context for sections ① and ⑥):
 {unassigned}

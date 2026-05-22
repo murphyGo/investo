@@ -244,6 +244,7 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     rendered = STAGE2_USER_TEMPLATE.format(
         segment_context=DEFAULT_SEGMENT_CONTEXT,
         grouped_sections="(grouped content)",
+        required_macro_actuals="(required macro content)",
         unassigned="(unassigned content)",
         target_date="2026-04-28",
         recent_context="",
@@ -252,9 +253,11 @@ def test_stage2_user_template_has_three_placeholders() -> None:
         bundle_context="",
     )
     assert "(grouped content)" in rendered
+    assert "(required macro content)" in rendered
     assert "(unassigned content)" in rendered
     assert "2026-04-28" in rendered
     assert "{grouped_sections}" in STAGE2_USER_TEMPLATE
+    assert "{required_macro_actuals}" in STAGE2_USER_TEMPLATE
     assert "{unassigned}" in STAGE2_USER_TEMPLATE
     assert "{target_date}" in STAGE2_USER_TEMPLATE
     assert "{segment_context}" in STAGE2_USER_TEMPLATE
@@ -313,6 +316,7 @@ def test_stage2_user_template_format_is_idempotent_under_repeat() -> None:
     rendered = STAGE2_USER_TEMPLATE.format(
         segment_context=DEFAULT_SEGMENT_CONTEXT,
         grouped_sections="x",
+        required_macro_actuals="m",
         unassigned="y",
         target_date="2026-04-28",
         recent_context="",

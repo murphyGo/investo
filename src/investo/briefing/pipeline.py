@@ -211,6 +211,7 @@ class SectionPlan:
     target_date: date
     items_by_section: dict[int, tuple[NormalizedItem, ...]]
     unassigned: tuple[NormalizedItem, ...]
+    required_macro_items: tuple[NormalizedItem, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -562,6 +563,7 @@ def build_section_plan(
         target_date=target_date,
         items_by_section={k: tuple(v) for k, v in buckets.items()},
         unassigned=unassigned_items,
+        required_macro_items=tuple(item for item in items if is_required_macro_actual(item)),
     )
 
 
@@ -681,6 +683,46 @@ def _render_unassigned(unassigned: tuple[NormalizedItem, ...]) -> str:
     if omitted > 0:
         lines.append(f"  - ({omitted} additional unassigned items omitted for prompt budget)")
     return "\n".join(lines)
+
+
+def _render_required_macro_actuals(items: tuple[NormalizedItem, ...]) -> str:
+    """Render required macro actuals outside generic Stage 2 caps."""
+
+    if not items:
+        return "(none)"
+
+    lines: list[str] = []
+    for item in items:
+        payload = macro_prompt_payload(item) or {}
+        parts = [f"- [{item.source_name}] {item.title}"]
+        for key in ("event_key", "label", "actual", "prior", "forecast", "consensus", "surprise"):
+            value = payload.get(key)
+            if value:
+                parts.append(f"{key}={value}")
+        if item.url is not None:
+            parts.append(f"url={_truncate_prompt_field(str(item.url), _STAGE2_URL_MAX_CHARS)}")
+        lines.append(" | ".join(parts))
+    return "\n".join(lines)
+
+
+def _validate_required_macro_mentions(
+    markdown: str, required_macro_items: tuple[NormalizedItem, ...]
+) -> None:
+    """Ensure required macro actuals survived Stage 2 generation."""
+
+    if not required_macro_items:
+        return
+
+    for item in required_macro_items:
+        payload = macro_prompt_payload(item) or {}
+        candidates = [
+            item.title,
+            payload.get("label", ""),
+            str(item.url) if item.url is not None else "",
+        ]
+        if not any(candidate and candidate in markdown for candidate in candidates):
+            event_key = payload.get("event_key", item.title)
+            raise ValueError(f"Stage 2 omitted required macro actual: {event_key}")
 
 
 def _truncate_prompt_field(value: str, limit: int) -> str:
@@ -1342,10 +1384,12 @@ async def _synthesize(
     omit the table rather than fabricate rows).
     """
     grouped = _render_grouped_sections(plan.items_by_section)
+    required_macro_actuals = _render_required_macro_actuals(plan.required_macro_items)
     unassigned = _render_unassigned(plan.unassigned)
     user_prompt = STAGE2_USER_TEMPLATE.format(
         segment_context=segment_context,
         grouped_sections=grouped,
+        required_macro_actuals=required_macro_actuals,
         unassigned=unassigned,
         target_date=plan.target_date.isoformat(),
         recent_context=recent_context_block,
@@ -1386,6 +1430,7 @@ async def _synthesize(
 
         try:
             parse_six_sections(outcome.stdout)
+            _validate_required_macro_mentions(outcome.stdout, plan.required_macro_items)
         except ValueError as exc:
             last_cause = exc
             continue
