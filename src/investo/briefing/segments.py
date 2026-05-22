@@ -115,11 +115,13 @@ SEGMENT_REQUIRED_CATEGORIES: Final[dict[MarketSegment, tuple[Category, ...]]] = 
 #   - us-equity: 2 listed sources, **at-least-one** must be ``ok`` for
 #     ``normal``. Both failed/zero ⇒ ``limited``. Both ``failed`` and
 #     summed item_count = 0 ⇒ ``failed``.
-#   - crypto: 2 listed sources, **at-least-one** must be ``ok``.
+#   - crypto: CoinGecko + Stooq are core. Binance remains collected when
+#     reachable, but GitHub Actions runners regularly receive HTTP 451, so it
+#     must not be the source that downgrades otherwise usable crypto coverage.
 SEGMENT_CORE_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     DOMESTIC_EQUITY: frozenset({"fsc-krx-index-price"}),
     US_EQUITY: frozenset({"yfinance-price", "stooq-price"}),
-    CRYPTO: frozenset({"coingecko-price", "binance-crypto-market"}),
+    CRYPTO: frozenset({"coingecko-price", "stooq-price"}),
 }
 
 # u54 — Per-segment staleness window for core price sources. If a core
@@ -223,7 +225,11 @@ _CRYPTO_SOURCES: Final[frozenset[str]] = _CRYPTO_ONLY_SOURCES | _SHARED_SOURCES_
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": _DOMESTIC_SOURCES,
     "us-equity": _US_SOURCES,
-    "crypto": _CRYPTO_SOURCES,
+    # ``stooq-price`` is a mixed US/crypto snapshot adapter. Routing remains
+    # title-driven in ``segment_items()`` so US tickers do not leak into
+    # crypto, but the aggregate source outcome is relevant to crypto coverage
+    # because the adapter also emits BTC-USD / ETH-USD rows.
+    "crypto": _CRYPTO_SOURCES | frozenset({"stooq-price"}),
 }
 
 _KOREAN_EXCHANGE_TICKER = re.compile(r"\[(?:\d{6}|[A-Z]{3}\d{3})\]")

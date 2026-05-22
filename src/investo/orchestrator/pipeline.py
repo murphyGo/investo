@@ -277,15 +277,15 @@ SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
     CRYPTO,
 )
 SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
-    # 2026-05-13 GHA postmortem — all three segments exhausted the old
-    # 420/480s synthesis ceilings on a 503-item day. The workflow job
-    # timeout is now 120 minutes, so each segment gets a 15-minute
+    # 2026-05-21 GHA postmortem — crypto Stage 2 exhausted the 15-minute
+    # per-call synthesis ceiling on otherwise publishable runs. The workflow
+    # job timeout is now 240 minutes, so each segment gets a 30-minute
     # per-call ceiling while retaining two attempts. Worst-case repeated
     # synthesis across all three segments still leaves room for collect,
     # visual assets, publish, notify, and GitHub runner overhead.
-    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=900.0, max_attempts=2, total_budget_s=1920.0),
-    US_EQUITY: GenerationPolicy(timeout_s=900.0, max_attempts=2, total_budget_s=1920.0),
-    CRYPTO: GenerationPolicy(timeout_s=900.0, max_attempts=2, total_budget_s=1920.0),
+    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
+    US_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
+    CRYPTO: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
 }
 
 
@@ -1629,6 +1629,7 @@ async def _stage_notify_segmented_briefing(
     coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
     lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     now_utc: datetime | None = None,
+    missing_segments: Sequence[MarketSegment] = (),
 ) -> SendResult:
     """Compose + dispatch one public-channel message for all segments.
 
@@ -1657,6 +1658,7 @@ async def _stage_notify_segmented_briefing(
             enabled_segments=resolve_enabled_segments(),
             lookahead_items_by_segment=lookahead_items_by_segment,
             now_utc=now_utc,
+            missing_segments=missing_segments,
         )
         payload = BriefingNotification(
             target_date=target_date,
@@ -2112,6 +2114,7 @@ async def run_pipeline(
             coverage_by_segment=coverage_by_segment,
             lookahead_items_by_segment=lookahead_items_by_segment,
             now_utc=notify_now_utc,
+            missing_segments=tuple(segment_generation_failures),
         )
     else:
         notify_result = await _stage_notify_briefing(

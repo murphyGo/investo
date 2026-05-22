@@ -23,11 +23,11 @@
 # empty-collect → operator alert; the operator re-triggers manually
 # with ``target_date=last-trading-day``).
 #
-# **Timeout** (AC-001-4): ``timeout-minutes: 120``. Total design budget
+# **Timeout** (AC-001-4): ``timeout-minutes: 240``. Total design budget
 # remains much lower under normal conditions, but the job-level ceiling
-# is intentionally generous after 2026-05-12/13 cron runs showed slow
-# Stage 2 synthesis can consume the old 60-minute ceiling before
-# publish/notify. Segment generation still owns tighter per-segment
+# is intentionally generous after 2026-05-18/21 cron runs showed slow
+# crypto Stage 2 synthesis can consume the old 15-minute per-call ceiling
+# before publish/notify. Segment generation still owns tighter per-segment
 # timeouts/retry policy so a slow segment can degrade to PARTIAL instead
 # of blocking Telegram delivery.
 #
@@ -89,7 +89,7 @@ jobs:
   briefing:
     name: Generate + publish + notify
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 240
     permissions:
       actions: write
       contents: write

@@ -731,6 +731,7 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
+    assert "⚠️ 부분 발행: 크립토 생성 실패" in publisher.calls[0].summary_text
     assert "/archive/crypto/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
     assert "push" in [call[1] for call in git.calls]
 
@@ -2126,27 +2127,27 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     2026-05-09 bumped the per-call timeout after Crypto Stage 2 hit the
     180s ceiling. 2026-05-12/13 then showed that slow repeated segment
     synthesis can burn through the old 60-minute workflow ceiling. The
-    workflow now has a 120-minute ceiling, so keep two attempts with
+    workflow now has a 240-minute ceiling, so keep two attempts with
     larger per-call limits to avoid erasing all coverage on slow days.
     """
     domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
     us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
     crypto = pipeline_module.SEGMENT_GENERATION_POLICIES[CRYPTO]
 
-    assert domestic.timeout_s == 900.0
-    assert us.timeout_s == 900.0
-    assert crypto.timeout_s == 900.0
+    assert domestic.timeout_s == 1800.0
+    assert us.timeout_s == 1800.0
+    assert crypto.timeout_s == 1800.0
 
     assert domestic.max_attempts == 2
     assert us.max_attempts == 2
     assert crypto.max_attempts == 2
 
-    # Worst-case repeated synthesis time remains below the 120-minute job
+    # Worst-case repeated synthesis time remains below the 240-minute job
     # timeout, leaving headroom for collect, visual assets, publish,
     # notify, and GitHub runner overhead.
     assert (
         sum(policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto))
-        <= 105 * 60
+        <= 210 * 60
     )
 
     # Total budget covers the retry attempts plus headroom for the fast

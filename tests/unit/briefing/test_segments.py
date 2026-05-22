@@ -239,6 +239,7 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         SourceOutcome.ok("yfinance-price", "price", item_count=3),
         SourceOutcome.ok("treasury-rates", "macro", item_count=1),
         SourceOutcome.ok("us-economic-calendar", "calendar", item_count=2),
+        SourceOutcome.ok("stooq-price", "price", item_count=2),
         SourceOutcome.ok("binance-crypto-market", "price", item_count=3),
         SourceOutcome.ok("coingecko-price", "price", item_count=2),
         SourceOutcome.ok("defillama-market-structure", "macro", item_count=2),
@@ -254,6 +255,7 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         "binance-crypto-market",
         "coingecko-price",
         "defillama-market-structure",
+        "stooq-price",
         "treasury-rates",
     }
     assert {outcome.source_name for outcome in domestic_only} == {

@@ -34,6 +34,7 @@ from investo.briefing.pipeline import (
     parse_six_sections,
     serialize_items_for_prompt,
 )
+from investo.briefing.segments import CRYPTO
 from investo.models import NormalizedItem
 
 # ---------------------------------------------------------------------------
@@ -633,6 +634,25 @@ def test_render_grouped_sections_caps_stage2_evidence_budget() -> None:
     assert "a" * 200 not in rendered
 
 
+def test_render_grouped_sections_uses_tighter_crypto_stage2_budget() -> None:
+    items_by_section = {
+        section: tuple(
+            _item(source_name=f"src-{section}", title=f"section-{section}-item-{idx}")
+            for idx in range(20)
+        )
+        for section in (2, 3, 4, 5)
+    }
+
+    rendered = _render_grouped_sections(items_by_section, segment=CRYPTO)
+
+    assert rendered.count("  - [src-") == 32
+    assert "section-2-item-7" in rendered
+    assert "section-2-item-8" not in rendered
+    assert "section-5-item-7" in rendered
+    assert "section-5-item-8" not in rendered
+    assert "(12 additional classified items omitted for prompt budget)" in rendered
+
+
 def test_render_required_macro_actuals_uses_dedicated_uncapped_block() -> None:
     item = NormalizedItem(
         source_name="fred-macro",
@@ -703,6 +723,17 @@ def test_render_unassigned_caps_stage2_context_budget() -> None:
     assert "unassigned-7" in rendered
     assert "unassigned-8" not in rendered
     assert "(4 additional unassigned items omitted for prompt budget)" in rendered
+
+
+def test_render_unassigned_uses_tighter_crypto_stage2_budget() -> None:
+    items = tuple(_item(title=f"unassigned-{idx}") for idx in range(12))
+
+    rendered = _render_unassigned(items, segment=CRYPTO)
+
+    assert rendered.count("  - [test-source]") == 4
+    assert "unassigned-3" in rendered
+    assert "unassigned-4" not in rendered
+    assert "(8 additional unassigned items omitted for prompt budget)" in rendered
 
 
 # ---------------------------------------------------------------------------

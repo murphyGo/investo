@@ -283,7 +283,7 @@ def test_segment_core_sources_membership_pinned() -> None:
     """Plan-frozen constants — change here is a deliberate policy shift."""
     assert SEGMENT_CORE_SOURCES[DOMESTIC_EQUITY] == frozenset({"fsc-krx-index-price"})
     assert SEGMENT_CORE_SOURCES[US_EQUITY] == frozenset({"yfinance-price", "stooq-price"})
-    assert SEGMENT_CORE_SOURCES[CRYPTO] == frozenset({"coingecko-price", "binance-crypto-market"})
+    assert SEGMENT_CORE_SOURCES[CRYPTO] == frozenset({"coingecko-price", "stooq-price"})
 
 
 def test_segment_core_staleness_windows_pinned() -> None:

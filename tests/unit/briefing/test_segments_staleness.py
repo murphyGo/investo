@@ -91,7 +91,7 @@ def test_crypto_short_window_six_hours_strict() -> None:
         [_item("coingecko-price"), _item("theblock-crypto", "news")],
         source_outcomes=(
             _ok("coingecko-price", stale),
-            _ok("binance-crypto-market", stale),
+            _ok("stooq-price", stale),
             _ok("theblock-crypto", None),
         ),
         now_utc=_NOW,

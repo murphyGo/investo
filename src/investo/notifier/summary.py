@@ -186,6 +186,7 @@ def build_segmented_summary(
     price_items: Sequence[NormalizedItem] = (),
     coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
     enabled_segments: Sequence[MarketSegment] | None = None,
+    missing_segments: Sequence[MarketSegment] = (),
 ) -> str:
     """Build one Telegram message with all segment summaries and links.
 
@@ -245,6 +246,9 @@ def build_segmented_summary(
     publish_label = _publish_time_label(resolved_now, target_date=target_date)
     header = f"📈 {target_date.isoformat()} 데일리 시황\n"
     header += f"{publish_label}\n"
+    partial_line = _partial_publish_line(missing_segments)
+    if partial_line:
+        header += f"{partial_line}\n"
     if snapshot:
         header += f"{snapshot}\n\n"
     else:
@@ -354,6 +358,13 @@ def _segment_summary_block(
     if imminent:
         one_line = f"{imminent} · {one_line}"
     return f"{icon} *{label}*{status_tag}\n{_detail_link(site_url)}\n{one_line}"
+
+
+def _partial_publish_line(missing_segments: Sequence[MarketSegment]) -> str:
+    if not missing_segments:
+        return ""
+    labels = ", ".join(SEGMENT_LABELS[segment] for segment in missing_segments)
+    return f"⚠️ 부분 발행: {labels} 생성 실패"
 
 
 def _detail_link(site_url: str) -> str:

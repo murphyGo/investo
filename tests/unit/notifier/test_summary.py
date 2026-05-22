@@ -220,6 +220,23 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
         assert url in summary
 
 
+def test_build_segmented_summary_marks_missing_segments_on_partial_publish() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),
+        US_EQUITY: _build_briefing(market_summary="S&P 500 요약"),
+    }
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        missing_segments=(CRYPTO,),
+    )
+
+    assert "⚠️ 부분 발행: 크립토 생성 실패" in summary
+    assert "₿ *크립토*" not in summary
+    assert f"• 크립토: [상세보기]({_SEGMENT_URLS[CRYPTO]})" not in summary
+
+
 def test_segmented_summary_preserves_default_bundle_badge() -> None:
     rendered = (
         "## ① 요약\n"

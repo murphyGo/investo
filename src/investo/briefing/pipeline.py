@@ -133,6 +133,9 @@ _MAX_LLM_MACRO_PRIORITY_ITEMS: Final[int] = 12
 _MAX_STAGE2_ITEMS_TOTAL: Final[int] = 48
 _MAX_STAGE2_ITEMS_PER_SECTION: Final[int] = 14
 _MAX_STAGE2_UNASSIGNED_ITEMS: Final[int] = 8
+_CRYPTO_MAX_STAGE2_ITEMS_TOTAL: Final[int] = 32
+_CRYPTO_MAX_STAGE2_ITEMS_PER_SECTION: Final[int] = 8
+_CRYPTO_MAX_STAGE2_UNASSIGNED_ITEMS: Final[int] = 4
 _STAGE2_TITLE_MAX_CHARS: Final[int] = 180
 _STAGE2_SUMMARY_MAX_CHARS: Final[int] = 260
 _STAGE2_URL_MAX_CHARS: Final[int] = 160
@@ -641,6 +644,8 @@ def parse_six_sections(markdown: str) -> tuple[str, str, str, str, str, str]:
 
 def _render_grouped_sections(
     items_by_section: dict[int, tuple[NormalizedItem, ...]],
+    *,
+    segment: MarketSegment | None = None,
 ) -> str:
     """Render the per-section items as bullet text for Stage 2 prompt.
 
@@ -650,14 +655,20 @@ def _render_grouped_sections(
     sections.
     """
     parts: list[str] = []
-    remaining_total = _MAX_STAGE2_ITEMS_TOTAL
+    max_total = _CRYPTO_MAX_STAGE2_ITEMS_TOTAL if segment == "crypto" else _MAX_STAGE2_ITEMS_TOTAL
+    max_per_section = (
+        _CRYPTO_MAX_STAGE2_ITEMS_PER_SECTION
+        if segment == "crypto"
+        else _MAX_STAGE2_ITEMS_PER_SECTION
+    )
+    remaining_total = max_total
     for section_id in (2, 3, 4, 5):
         items = items_by_section.get(section_id, ())
         parts.append(f"Section {section_id}:")
         if not items:
             parts.append("  (no items)")
         else:
-            section_limit = min(_MAX_STAGE2_ITEMS_PER_SECTION, remaining_total)
+            section_limit = min(max_per_section, remaining_total)
             rendered_items = items[:section_limit]
             for item in rendered_items:
                 title = _truncate_prompt_field(item.title, _STAGE2_TITLE_MAX_CHARS)
@@ -680,12 +691,21 @@ def _render_grouped_sections(
     return "\n".join(parts).rstrip()
 
 
-def _render_unassigned(unassigned: tuple[NormalizedItem, ...]) -> str:
+def _render_unassigned(
+    unassigned: tuple[NormalizedItem, ...],
+    *,
+    segment: MarketSegment | None = None,
+) -> str:
     """Render the unassigned items as bullet text. Empty → ``(none)``."""
     if not unassigned:
         return "(none)"
     lines: list[str] = []
-    rendered_items = unassigned[:_MAX_STAGE2_UNASSIGNED_ITEMS]
+    max_items = (
+        _CRYPTO_MAX_STAGE2_UNASSIGNED_ITEMS
+        if segment == "crypto"
+        else _MAX_STAGE2_UNASSIGNED_ITEMS
+    )
+    rendered_items = unassigned[:max_items]
     for item in rendered_items:
         title = _truncate_prompt_field(item.title, _STAGE2_TITLE_MAX_CHARS)
         lines.append(f"  - [{item.source_name}] {title}{_render_prompt_url(item.url)}")
@@ -1385,6 +1405,7 @@ async def _synthesize(
     lookahead_context_block: str = "",
     carryover_context_block: str = "",
     bundle_context_block: str = "",
+    segment: MarketSegment | None = None,
 ) -> str:
     """Run Stage 2 with the FD R3 retry loop. Returns body markdown.
 
@@ -1411,9 +1432,9 @@ async def _synthesize(
     segment has no carryover from prior briefings (matching CARRY-4:
     omit the table rather than fabricate rows).
     """
-    grouped = _render_grouped_sections(plan.items_by_section)
+    grouped = _render_grouped_sections(plan.items_by_section, segment=segment)
     required_macro_actuals = _render_required_macro_actuals(plan.required_macro_items)
-    unassigned = _render_unassigned(plan.unassigned)
+    unassigned = _render_unassigned(plan.unassigned, segment=segment)
     user_prompt = STAGE2_USER_TEMPLATE.format(
         segment_context=segment_context,
         grouped_sections=grouped,
@@ -1591,6 +1612,7 @@ async def generate_briefing(
         lookahead_context_block=lookahead_context_block,
         carryover_context_block=carryover_context_block,
         bundle_context_block=bundle_context_block,
+        segment=segment,
     )
 
     # Body markdown is verified to have all 6 sections (by _synthesize's
