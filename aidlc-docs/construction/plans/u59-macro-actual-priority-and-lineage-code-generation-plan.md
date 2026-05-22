@@ -3,7 +3,7 @@
 **Date**: 2026-05-23
 **Unit**: u59 macro-actual-priority-and-lineage
 **Stage**: Code Generation
-**Status**: In progress (2/9 full steps complete; PPI schedule identity sub-step complete)
+**Status**: In progress (3/9 full steps complete; Step 4 parser/prompt contract complete; PPI schedule identity sub-step complete)
 **Source**: 2026-05-23 user request after the 2026-05-13 U.S. PPI miss analysis and 10-subagent macro design review.
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -386,14 +386,19 @@ Result:
 
 ### Step 4 - Required macro prompt and parser contract
 
-- [ ] Add `required_macro_actuals` render block.
-- [ ] Update Stage 1 prompt rules so required macro actuals must be assigned.
-- [ ] Update Stage 1 parser validation for missing/`unassigned` required macro ids.
-- [ ] Tests: valid assignment, missing required id, required id in `unassigned`.
+- [x] Add Stage 1 required macro prompt contract.
+- [x] Update Stage 1 prompt rules so required macro actuals must be assigned.
+- [x] Update Stage 1 parser validation for missing/`unassigned` required macro ids.
+- [x] Tests: valid assignment, missing required id, required id in `unassigned`.
 Implementation notes:
 - Stage 1 prompt builder lives around the `STAGE1_USER_TEMPLATE` path in `src/investo/briefing/prompts.py`.
 - `_parse_classification` currently validates ids are known. Add an optional `required_item_ids` argument rather than relying on global state.
 - `build_section_plan` currently forwards assigned + unassigned items. Required macro actuals should never depend on `unassigned` forwarding.
+Result:
+- Added Stage 1 macro contract wording to `STAGE1_SYSTEM`.
+- Added `_required_macro_item_ids(items)` and passed it through `_classify` to `_parse_classification`.
+- `_parse_classification(..., required_item_ids=...)` now rejects required macro ids in `unassigned` and required macro ids omitted from assignments.
+- No Stage 2 dedicated render block yet; that remains Step 5.
 
 ### Step 5 - Stage 2 preservation and post-generation validator
 

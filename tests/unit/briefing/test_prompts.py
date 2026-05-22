@@ -273,6 +273,13 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     assert "{bundle_context}" in STAGE2_USER_TEMPLATE
 
 
+def test_stage1_system_contains_required_macro_contract() -> None:
+    assert "Macro contract:" in STAGE1_SYSTEM
+    assert '"priority": "P0"' in STAGE1_SYSTEM
+    assert '"status": "actual"' in STAGE1_SYSTEM
+    assert "NEVER place required macro actual ids in \"unassigned\"" in STAGE1_SYSTEM
+
+
 def test_stage1_system_format_call_raises_key_error() -> None:
     """Locks the "SYSTEM never formatted" convention in CI.
 

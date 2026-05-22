@@ -96,6 +96,16 @@ If an item has low signal or doesn't fit cleanly, place its id in
 "unassigned" — Stage 2 uses unassigned items as context for the
 summary and watch-points sections only.
 
+Macro contract:
+- If an item contains a "macro" object with "priority": "P0" and
+  "status": "actual", it is a required macro actual.
+- Required macro actual ids MUST be assigned to one of sections
+  2, 3, 4, or 5. Prefer section 4 unless the item is clearly the
+  day's main market issue, in which case section 2 is also valid.
+- NEVER place required macro actual ids in "unassigned".
+- NEVER omit required macro actual ids from both "assignments" and
+  "unassigned".
+
 Example (use these exact key/value roles):
   Items input:
     [{"item_id": 1, "title": "..."}, {"item_id": 2, ...}, {"item_id": 3, ...}]

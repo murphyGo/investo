@@ -26,6 +26,7 @@ from investo.briefing.pipeline import (
     _parse_classification,
     _render_grouped_sections,
     _render_unassigned,
+    _required_macro_item_ids,
     _select_llm_candidate_items,
     build_section_plan,
     parse_six_sections,
@@ -339,6 +340,37 @@ def test_parse_classification_happy_path() -> None:
     assert isinstance(result, ClassificationResult)
     assert result.assignments == {1: 4, 2: 4}
     assert result.unassigned == [3]
+
+
+def test_parse_classification_rejects_required_macro_in_unassigned() -> None:
+    stdout = json.dumps({"assignments": {"1": 4}, "unassigned": [2]})
+
+    with pytest.raises(ValueError, match=r"required macro.*unassigned"):
+        _parse_classification(stdout, item_count=2, required_item_ids=frozenset({2}))
+
+
+def test_parse_classification_rejects_missing_required_macro() -> None:
+    stdout = json.dumps({"assignments": {"1": 4}, "unassigned": []})
+
+    with pytest.raises(ValueError, match="omitted required macro"):
+        _parse_classification(stdout, item_count=2, required_item_ids=frozenset({2}))
+
+
+def test_required_macro_item_ids_uses_stage1_synthetic_ids() -> None:
+    normal = _item(source_name="yahoo-finance-news", title="ordinary")
+    required = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        published_at=datetime(2026, 5, 12, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "CPIAUCSL",
+            "value": "314.12",
+            "release_date": "2026-05-12",
+        },
+    )
+
+    assert _required_macro_item_ids([normal, required]) == frozenset({2})
 
 
 def test_parse_classification_accepts_json_inside_markdown_fence() -> None:

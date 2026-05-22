@@ -94,6 +94,7 @@ from investo.models import (
 )
 from investo.models.bundle_context import BundleContext
 from investo.models.macro import (
+    is_required_macro_actual,
     macro_event_date,
     macro_priority,
     macro_priority_rank,
@@ -469,7 +470,9 @@ def _maybe_flip_inverted_assignments(data: object) -> object | None:
     return rebuilt
 
 
-def _parse_classification(stdout: str, item_count: int) -> ClassificationResult:
+def _parse_classification(
+    stdout: str, item_count: int, *, required_item_ids: frozenset[int] = frozenset()
+) -> ClassificationResult:
     """Parse Stage 1 stdout as JSON → ``ClassificationResult``.
 
     Performs both structural validation (via pydantic) and id-set
@@ -517,6 +520,17 @@ def _parse_classification(stdout: str, item_count: int) -> ClassificationResult:
         raise ValueError(
             f"Stage 1 referenced item id(s) outside 1..{item_count}: {sorted(invalid)}"
         )
+    unassigned_required = required_item_ids & set(result.unassigned)
+    if unassigned_required:
+        raise ValueError(
+            "Stage 1 placed required macro item id(s) in unassigned: "
+            f"{sorted(unassigned_required)}"
+        )
+    missing_required = required_item_ids - set(result.assignments.keys())
+    if missing_required:
+        raise ValueError(
+            "Stage 1 omitted required macro item id(s): " f"{sorted(missing_required)}"
+        )
     return result
 
 
@@ -548,6 +562,14 @@ def build_section_plan(
         target_date=target_date,
         items_by_section={k: tuple(v) for k, v in buckets.items()},
         unassigned=unassigned_items,
+    )
+
+
+def _required_macro_item_ids(items: Sequence[NormalizedItem]) -> frozenset[int]:
+    """Return Stage 1 synthetic ids for required macro actuals."""
+
+    return frozenset(
+        idx for idx, item in enumerate(items, start=1) if is_required_macro_actual(item)
     )
 
 
@@ -1222,6 +1244,7 @@ async def _classify(
     if the cumulative budget is hit before a retry can dispatch.
     """
     serialized = serialize_items_for_prompt(items)
+    required_item_ids = _required_macro_item_ids(items)
     user_prompt = STAGE1_USER_TEMPLATE.format(
         segment_context=segment_context,
         items_json=serialized,
@@ -1263,7 +1286,11 @@ async def _classify(
             continue
 
         try:
-            return _parse_classification(outcome.stdout, item_count=len(items))
+            return _parse_classification(
+                outcome.stdout,
+                item_count=len(items),
+                required_item_ids=required_item_ids,
+            )
         except (json.JSONDecodeError, ValidationError, ValueError) as exc:
             last_cause = exc
             continue
