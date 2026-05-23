@@ -1,5 +1,27 @@
 # AI-DLC Audit Log
 
+## Construction — Reader-Facing Feature Gaps (Review P2/P3) Decomposed into u66–u68
+**Timestamp**: 2026-05-24T00:00:00+09:00
+**Trigger**: The 2026-05-24 ten-subagent reader-facing review surfaced P2/P3 *feature* gaps (not bugs) across four areas: A) crypto channel depth, B) domestic channel depth, C) checklist actionability, D) glossary position + carryover follow-up. The planner was asked to decompose into AIDLC units (next free number u66), score a priority backlog, and formally plan the highest-ROI unit only.
+**Duplication audit (Gaps C/D)**:
+- **C (watchpoint actionability)** — ALREADY DONE by **u64** (Steps 5/6): the watchpoint template (`무엇을 볼지` / `확인 소스` / `임계값/범위` / `시사점`) and the actionability validator already exist. No new unit; C is closed.
+- **D — glossary position** — ALREADY DONE: `render_glossary_callout` is inserted in the **document header** (`pipeline.py` `_prepend_*`, above `오늘의 결론`), not the document end. The spec's "상단 이동" is satisfied; only an optional *inline* gloss variant is residual.
+- **D — carryover follow-up** — ALREADY DONE by **u52**: `carryover_parser.load_carryover` walks §⑥ + lookahead table and tags `resolved`/`unresolved`/`carried_over`; `publisher/carryover.inject_carryover_block` renders the day-over-day table at the §②→§③ boundary. Only verification/strengthening is residual.
+- Net residual of C/D is small → folded into a single low-priority unit **u68** rather than its own large unit.
+**Decision**:
+- Registered **u66 crypto-channel-depth** (largest net-new source cluster; per-indicator free reachability is the main risk → must be confirmed in-plan).
+- Registered **u67 domestic-channel-depth** and authored its formal Code Generation plan as the **highest-ROI** unit (FX `usd_krw` mapping already half-built in `_core_fact_map.py`; index fallback + FX both reachable via existing yfinance/Stooq/yonhap adapters → lowest reachability risk, high reader value, several personas).
+- Registered **u68 reader-aids-residual** (lowest priority; confirm-then-extend only).
+**Stage Decision (u67)**: FD REQUIRED (lightweight — new index-close precedence algorithm + new domestic business rules; reuses `NormalizedItem`/`MarketAnchor`, no new entities). NFR SKIPPED (no new latency/cost/availability envelope; all free-tier reused; no new library; `defusedxml` already governs RSS).
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u67-domestic-channel-depth-code-generation-plan.md` (new, formal)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/inception/application-design/unit-of-work.md` (u66/u67/u68 registered)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u66/u67/u68 rows)
+**Status**: u67 plan awaiting approval (Request Changes / Continue to Next Stage). u66 and u68 are backlog entries with scope + outline only.
+**Context**: Project rules carried into all three plans — 무료 API only, Anthropic SDK 금지 (claude_code.py only), 모듈 경계 (orchestrator-only cross-unit import), 면책조항, 채널 분리, defusedxml, R13.
+
+---
+
 ## Construction — u60 Shared Macro Evidence Hardening Complete
 **Timestamp**: 2026-05-23T00:00:00+09:00
 **Trigger**: User asked to develop the u60 unit after the five-subagent review hardened the plan.

@@ -816,6 +816,53 @@ These units intentionally avoid duplicating closed u54/u57/u60 implementation sc
 - [x] First-viewport, status consistency, navigation, watchlist, and compliance findings are reported deterministically.
 - [x] The harness is documented as the first validation step after future briefing-quality reviews.
 
+### u66: `crypto-channel-depth` — Crypto-Native Indicators and 24h Framing
+
+**Purpose**: Add crypto-native reader signals (펀딩비, 미결제약정, 24h 청산, BTC 도미넌스, 공포·탐욕 지수, exchange netflow where free) and replace the unsuitable "전일 종가" frame with a UTC 24h snapshot frame for the crypto channel. Reader-facing feature gap raised independently by the 크립토 투자자 + 신뢰성 personas in the 2026-05-24 review.
+
+**Stories**: FR-001 (수집), FR-002 (AI 시황 작성), FR-008 (소스 확장성), FR-009 (reader-facing format)
+
+**Module path**:
+- `src/investo/sources/` — new free crypto-indicator adapters (Alternative.me Fear&Greed, CoinGecko dominance, Coinglass public funding/OI/liquidation where free-reachable)
+- `src/investo/briefing/prompts.py` — crypto 24h-snapshot framing scope
+- `src/investo/publisher/anchor_table.py` — crypto snapshot columns (UTC, 24h)
+
+**Definition of Done**:
+- [ ] At least Fear&Greed + BTC 도미넌스 land from confirmed free sources (per-indicator reachability verified in the plan).
+- [ ] Crypto channel uses a UTC 24h snapshot frame, not "전일 종가".
+- [ ] No paid key; per-source isolation; `defusedxml` for any XML; channel separation and disclaimer untouched.
+
+### u67: `domestic-channel-depth` — KOSPI Close Fallback, FX, and Sector Depth
+
+**Purpose**: Surface KOSPI/KOSDAQ 종가·등락률 with a deterministic fallback when `fsc-krx-index-price` is empty, populate 원/달러 환율 from a free source, narrate 반도체/2차전지 sector depth, and add an overnight-US → KR-open framing. Reader-facing feature gap raised independently by the 국내 투자자 + 한국어 personas in the 2026-05-24 review.
+
+**Stories**: FR-001 (수집), FR-002 (AI 시황 작성), FR-009 (reader-facing format)
+
+**Module path**:
+- `src/investo/sources/yfinance.py` / `stooq_price.py` — FX (`KRW=X` / `usdkrw`) + index fallback symbols
+- `src/investo/sources/yonhap_market.py` — terminal index-close numeric parse fallback
+- `src/investo/publisher/anchor_table.py` — domestic index + FX rows
+- `src/investo/briefing/prompts.py` — sector grouping + overnight bridge scope
+
+**Definition of Done**:
+- [ ] KOSPI/KOSDAQ close + 등락률 appears in the body even when `fsc-krx-index-price` returns 0 rows.
+- [ ] `usd_krw` populated from a free source and 원/달러 anchor line present.
+- [ ] 반도체/2차전지 narrated in §③ when prices are collected; overnight-US → KR-open bridge present without cross-segment leakage.
+
+### u68: `reader-aids-residual` — Inline Glossary and Carryover Follow-up Strengthening
+
+**Purpose**: Close only the *residual* of review Gaps C/D after confirming u52 (carryover) and the header glossary callout already exist. Scope is limited to (a) optional inline first-use glossing beyond the existing top-of-document callout, and (b) verifying/strengthening that prior §⑥ previews are echoed as resolved/unresolved in the next day's §② via the existing carryover surface. u64 already delivered watchpoint actionability — no overlap.
+
+**Stories**: FR-002 (AI 시황 작성), FR-009 (reader-facing format)
+
+**Module path**:
+- `src/investo/briefing/glossary.py` — optional inline gloss variant
+- `src/investo/publisher/carryover.py` / `src/investo/briefing/carryover_parser.py` — follow-up echo verification/strengthening
+
+**Definition of Done**:
+- [ ] Confirm-then-extend audit: document which parts of C/D are already done (u52 + header glossary + u64 watchpoints) before any code.
+- [ ] Net-new work limited to inline glossing and/or carryover follow-up gaps not covered by u52.
+
 ---
 
 ## Code Organization Strategy
