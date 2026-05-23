@@ -32,6 +32,7 @@ import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
+from pathlib import Path
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
@@ -48,7 +49,11 @@ from investo.briefing.claude_code import (
 from investo.briefing.context import RecentBriefingEntry, RecentBriefingsContext
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
-from investo.briefing.glossary import audit_glossary_compliance, render_glossary_callout
+from investo.briefing.glossary import (
+    audit_glossary_compliance,
+    collect_recently_glossed,
+    render_glossary_callout,
+)
 from investo.briefing.leak_guard import scan as leak_guard_scan
 from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_line
 from investo.briefing.prompts import (
@@ -1327,6 +1332,7 @@ def _enhance_reader_experience(
     data_limited: bool = False,
     candidates: Sequence[NormalizedItem] | None = None,
     market_anchors: Sequence[MarketAnchor] = (),
+    archive_root: Path | None = None,
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
@@ -1347,8 +1353,22 @@ def _enhance_reader_experience(
     if candidates is not None:
         unverified = numeric_self_check.find_unverified(body_markdown, candidates)
         numeric_warning_line = numeric_self_check.render_warning_line(unverified)
+    # u68 — cross-day suppression. Terms already glossed in this
+    # segment's recent archives are dropped so the "처음 등장한 용어"
+    # callout stays truthful within the recent window. A missing
+    # archive_root (fresh repo / data-limited) yields an empty set →
+    # today-only behavior (no regression).
+    already_glossed = (
+        collect_recently_glossed(archive_root, segment, target_date)
+        if archive_root is not None
+        else set()
+    )
     glossary_line = render_glossary_callout(
-        audit_glossary_compliance(body_markdown, segment=segment)
+        audit_glossary_compliance(
+            body_markdown,
+            segment=segment,
+            already_glossed=already_glossed,
+        )
     )
     header = (
         f"# {target_date.isoformat()} {label} 시황\n\n"
@@ -1567,6 +1587,7 @@ async def generate_briefing(
     market_anchors: Sequence[MarketAnchor] = (),
     generation_policy: GenerationPolicy | None = None,
     bundle_context: BundleContext | None = None,
+    archive_root: Path | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -1615,6 +1636,7 @@ async def generate_briefing(
             data_limited=True,
             candidates=items,
             market_anchors=market_anchors,
+            archive_root=archive_root,
         )
         full_markdown = append_disclaimer(enhanced_markdown, segment)
         hit = leak_guard_scan(full_markdown)
@@ -1682,6 +1704,7 @@ async def generate_briefing(
         data_limited=effective_data_limited,
         candidates=llm_items,
         market_anchors=market_anchors,
+        archive_root=archive_root,
     )
     # u32 Step 3 — append the traceability + signature footer just
     # before the disclaimer. The footer is `<details>`-collapsed so it

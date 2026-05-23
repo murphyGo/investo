@@ -1,5 +1,28 @@
 # AI-DLC Audit Log
 
+## Construction — u68 reader-aids-residual Complete
+**Timestamp**: 2026-05-24T18:00:00+09:00
+**Trigger**: u68 (reader-aids-residual) Code Generation landed — code/tests/gate all green (developer). FD edit + `code/summary.md` + TECH-DEBT + state/audit deferred to planner per module-boundary rule.
+**Decision**: Ratify the implementation and close the unit (3/3 steps). Confirm-then-extend audit (DoD #1) confirmed Gaps C/D are ~95% already delivered — C by u64 (watchpoint actionability), D glossary-position by u40 (header callout), D carryover echo by u52 — so u68 fixes only the **one genuine residual**: the glossary callout re-announced the same terms (ETF/EPS/VIX/CPI) every day because `audit_glossary_compliance` had no cross-day memory, making its "처음 등장한" claim false on day 2+.
+**Confirm-then-extend basis (C/D already implemented)**:
+- C watchpoint actionability — u64 (template + actionability validator); out of scope, no work.
+- D header glossary callout — u40 `render_glossary_callout` wired above 오늘의 결론; fully wired.
+- D carryover §⑥→§② echo — u52 `load_carryover` + `inject_carryover_block` + CARRY-1/CARRY-2; fully implemented.
+- D inline first-use glossing — optional, not implemented; deferred to DEBT-070.
+**Implementation**: `collect_recently_glossed(archive_root, segment, today, *, lookback=3)` reuses the u52 carryover archive-walk (weekend-skip, ≤3 loaded trading days / ≤21 calendar-day cap) to suppress terms already glossed (immediate Korean paren gloss OR prior `> **용어 가이드**` line) in the same segment's recent archives. `audit_glossary_compliance` gained `already_glossed: set[str] | None = None` (default → byte-equal prior output). `briefing/pipeline.py` takes optional `archive_root`; `orchestrator/pipeline.py` injects `archive_root=ARCHIVE_ROOT` via the deferred-import seam (preserves `monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp)`). `glossary.py` does NOT import `publisher.paths` — module boundary intact.
+**FD divergence ratified**: u40 had no formal `functional-design/` directory; glossary logic lived only in the u40 plan + summary. To host this extension the planner authored `u40-financial-acronym-glossary/functional-design/business-logic-model.md` (L-glossary.1 baseline + L-glossary.2 cross-day suppression) and `business-rules.md` (R-glossary.1..3 baseline + R-glossary.4 recent-window scope), tagged `(extension 2026-05-24)`. Also ratified: lookback counts LOADED trading days (not calendar position), so a sparse archive can reach >3 calendar days back, capped by `_MAX_CALENDAR_DAYS=21` — consistent with u52 carryover semantics, documented in the helper docstring.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u68-reader-aids-residual/code/summary.md` (new — Confirm-Then-Extend audit, AC-68.1..AC-68.5 traceability, FD divergences, gate)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u40-financial-acronym-glossary/functional-design/business-logic-model.md` (new — L-glossary.1 baseline + L-glossary.2 cross-day suppression)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u40-financial-acronym-glossary/functional-design/business-rules.md` (new — R-glossary.1..3 baseline + R-glossary.4 recent-window scope)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-070 inline-glossing deferred, Low; Low count 22→23)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u68-reader-aids-residual-code-generation-plan.md` (Step 3 FD/closeout `[x]`, Status Complete)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u68 row → Complete; Code Generation / Build-and-Test lines)
+**Status**: u68 complete. AC-68.1..AC-68.5 MET (+ segment-scoping / weekend-skip / bounded-lookback / malformed-degrade / zero-lookback / unglossed-not-suppressed cases). Gate: ruff clean / ruff format (changed) clean / mypy --strict 131 files clean / pytest 2443 passed (+25 new) / mkdocs --strict pass.
+**Context**: Project rules upheld — no Anthropic SDK / paid API / new library (pure markdown + `re`/`pathlib`), module boundary intact (`glossary.py` does not import `publisher.paths`; orchestrator injects `archive_root`; briefing↔publisher boundary preserved), 면책조항/채널 분리 gates untouched, R13 no secret in the archive walk or callout. Fresh-repo / data-limited (`archive_root=None`) degrades to today-only with no regression (AC-68.4); missing/malformed/`OSError` archives contribute nothing and never raise.
+
+---
+
 ## Construction — u67 domestic-channel-depth Complete
 **Timestamp**: 2026-05-24T12:00:00+09:00
 **Trigger**: u67 (domestic-channel-depth) Code Generation landed — code/tests/fixtures/docs/tech-env/gate all green (developer). FD edit + `code/summary.md` deferred to planner per module-boundary rule.

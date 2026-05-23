@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 22 | 2026-04-27 |
+| Low | 23 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,16 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-070: Inline first-use glossing variant (in-body parenthetical auto-gloss) deferred
+
+- **Created**: 2026-05-24
+- **Source**: u68 reader-aids-residual closeout (review Gap D — optional variant)
+- **Reference**: FR-002 (Korean briefing comprehension), R-glossary.4 (callout recent-window scope), `unit-of-work.md` u68 ("(a) optional inline first-use glossing")
+- **Description**: The glossary reader-aid surfaces unglossed first-use terms only through the header `> **용어 가이드**` callout (u40), now scoped to a recent trading-day window so terms are not re-announced daily (u68, R-glossary.4). The optional **inline** variant — auto-inserting an in-body parenthetical gloss at a term's first appearance (e.g., rewriting `EIA 주간 재고` to `EIA(에너지정보청) 주간 재고` inside the LLM prose) — is not implemented. unit-of-work.md marks this variant explicitly optional for u68.
+- **Suggested Fix**: If ever warranted, add a deterministic post-render in-body glosser that inserts the `BASELINE_GLOSSARY` paren gloss at a term's first per-segment appearance only when the immediate-paren gloss is absent, reusing `_has_immediate_korean_gloss` to avoid double-glossing. Must not run arithmetic over or otherwise mutate numeric content (u25 guarantee) and must stay idempotent (FR-006). Pin with a regression test that the rewrite fires exactly once per term per segment and never alters numbers.
+- **Effort**: ~2-3 h including the safe in-prose insertion logic + idempotency/no-number-mutation regression tests.
+- **Priority Reasoning**: Low — the header callout plus cross-day suppression (u68) covers the reader-aid need for a 1-person tool; in-body auto-gloss risks distorting LLM prose and clashing with the u25 "no edits to numeric content" guarantee, and its ROI is unproven. Promote to Medium only if reader feedback shows the header callout is insufficient and in-body glossing is specifically requested.
 
 #### DEBT-068: Yonhap numeric-index parse is best-effort terminal fallback for KOSPI/KOSDAQ close
 

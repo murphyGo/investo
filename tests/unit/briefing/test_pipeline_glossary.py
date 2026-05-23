@@ -3,8 +3,16 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 from investo.briefing.pipeline import _enhance_reader_experience
+
+
+def _write_archive(root: Path, segment: str, day: date, body: str) -> None:
+    path = root / segment / f"{day.year:04d}" / f"{day.month:02d}" / f"{day.isoformat()}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8")
+
 
 _SECTIONS = (
     "요약 문장입니다. [관망]",
@@ -63,3 +71,97 @@ def test_enhance_reader_experience_caps_glossary_callout() -> None:
     header = enhanced.split("## ① 요약", maxsplit=1)[0]
     assert "EIA(에너지정보청)" in header
     assert "외 2건" in header
+
+
+# ---------------------------------------------------------------------------
+# u68 — cross-day suppression wired through the header build
+# ---------------------------------------------------------------------------
+
+
+def test_callout_suppresses_term_glossed_in_prior_day(tmp_path: Path) -> None:
+    # AC-68.3 — day-1 glossed EIA must not reappear in day-2's callout.
+    _write_archive(
+        tmp_path,
+        "us-equity",
+        date(2026, 5, 8),
+        "> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — EIA(에너지정보청)\n"
+        "> **오늘의 결론**: 요약.\n",
+    )
+
+    enhanced = _enhance_reader_experience(
+        _body("EIA 주간 재고와 DXY 흐름이 핵심입니다."),
+        target_date=date(2026, 5, 9),
+        segment="us-equity",
+        sections=_SECTIONS,
+        archive_root=tmp_path,
+    )
+
+    callout = next(line for line in enhanced.splitlines() if line.startswith("> **용어 가이드**"))
+    assert "DXY(달러지수)" in callout
+    assert "EIA" not in callout
+
+
+def test_callout_omitted_when_all_terms_recently_glossed(tmp_path: Path) -> None:
+    # Suppression empties the gap list → no empty callout line.
+    _write_archive(
+        tmp_path,
+        "us-equity",
+        date(2026, 5, 8),
+        "> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — EIA(에너지정보청), DXY(달러지수)\n"
+        "> **오늘의 결론**: 요약.\n",
+    )
+
+    enhanced = _enhance_reader_experience(
+        _body("EIA 주간 재고와 DXY 흐름이 핵심입니다."),
+        target_date=date(2026, 5, 9),
+        segment="us-equity",
+        sections=_SECTIONS,
+        archive_root=tmp_path,
+    )
+
+    header = enhanced.split("## ① 요약", maxsplit=1)[0]
+    assert "용어 가이드" not in header
+
+
+def test_callout_fresh_repo_no_regression(tmp_path: Path) -> None:
+    # AC-68.4 — empty archive_root renders exactly as the today-only path.
+    body = _body("EIA 주간 재고와 DXY 흐름이 핵심입니다.")
+    with_root = _enhance_reader_experience(
+        body,
+        target_date=date(2026, 5, 9),
+        segment="us-equity",
+        sections=_SECTIONS,
+        archive_root=tmp_path,
+    )
+    without_root = _enhance_reader_experience(
+        body,
+        target_date=date(2026, 5, 9),
+        segment="us-equity",
+        sections=_SECTIONS,
+    )
+
+    assert with_root == without_root
+    assert "EIA(에너지정보청), DXY(달러지수)" in with_root
+
+
+def test_callout_idempotent_for_same_inputs(tmp_path: Path) -> None:
+    # AC-68.5 — same (segment, date, archive) → byte-equal callout.
+    _write_archive(
+        tmp_path,
+        "us-equity",
+        date(2026, 5, 8),
+        "> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — EIA(에너지정보청)\n"
+        "> **오늘의 결론**: 요약.\n",
+    )
+    body = _body("EIA 주간 재고와 DXY 흐름이 핵심입니다.")
+    kwargs = {
+        "target_date": date(2026, 5, 9),
+        "segment": "us-equity",
+        "sections": _SECTIONS,
+        "archive_root": tmp_path,
+    }
+
+    first = _enhance_reader_experience(body, **kwargs)  # type: ignore[arg-type]
+    second = _enhance_reader_experience(body, **kwargs)  # type: ignore[arg-type]
+
+    assert first == second

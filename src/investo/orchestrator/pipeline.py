@@ -321,6 +321,13 @@ async def _default_generate_segment_briefing(
     bundle_context: BundleContext | None,
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
+    # u68 — pass the archive root so the glossary callout can suppress
+    # terms already glossed in this segment's recent archives. Deferred
+    # import + call-time read keeps the ``monkeypatch.setattr(paths,
+    # "ARCHIVE_ROOT", tmp)`` test seam working (same pattern as the u52
+    # carryover loader below).
+    from investo.publisher.paths import ARCHIVE_ROOT
+
     return await _u2_generate_briefing(
         target_date,
         items,
@@ -333,6 +340,7 @@ async def _default_generate_segment_briefing(
         market_anchors=market_anchors,
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
         bundle_context=bundle_context,
+        archive_root=ARCHIVE_ROOT,
     )
 
 
