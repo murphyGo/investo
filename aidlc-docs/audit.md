@@ -1,5 +1,30 @@
 # AI-DLC Audit Log
 
+## Construction — u72 watchpoint-action-matrix Complete
+**Timestamp**: 2026-05-24T25:00:00+09:00
+**Trigger**: u72 (watchpoint-action-matrix) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only, other lines preserved.
+**Decision**: Ratify the implementation and close the unit (6/6 steps). §⑥ "오늘의 관전 포인트" now renders as a bounded observational monitoring matrix. Confirmed u72 is a **u64 extension, not a replacement**: it reuses u64's `check_watchpoint_actionability` + the three structure regexes (`_WATCHPOINT_SOURCE_RE`/`_TRIGGER_RE`/`_IMPLICATION_RE`) via `_is_structured` as the **single** validation contract — no second source/trigger/threshold/implication validator created (AC-72.2/plan dedup). The watchlist matcher (`briefing/watchlist.py`) is unchanged.
+**Delivered**:
+- **`src/investo/publisher/watchpoint_matrix.py`** (new): matrix schema + deterministic renderer/validator `render_watchpoint_matrix`; `_clauses` + keyword-bucket clause-slotting populates trigger columns where feasible; `_is_structured` reuses the u64 contract.
+- **`src/investo/orchestrator/pipeline.py`** (changed): `render_watchpoint_matrix` wired into the per-segment publish chain — runs **after** the first `scan_compliance`, then a **second** `scan_compliance` runs over the rendered matrix.
+- **`src/investo/briefing/prompts.py`** (changed): §⑥ matrix contract as a Stage-2 rule (observational templates + banned advice vocabulary `매수/매도/비중 확대/목표가/손절/진입/청산` + source-backed-threshold requirement).
+- **Tests**: new `tests/unit/publisher/test_watchpoint_matrix.py` (17) + `tests/unit/notifier/test_summary.py` (+1). Net delta +18.
+**Matrix schema (stable, idempotent)**: 6 columns `관찰 신호 | 현재 | 상방 확인 조건 | 하방 확인 조건 | 신뢰도 | 섹션 내 관심 영향`; `MAX_VISIBLE_ROWS=6` + overflow note. 신뢰도 closed set `{높음, 보통, 낮음, 데이터부족}` (verified numeric→높음 / source-backed no-numeric→보통 / carryover-only→낮음 / coverage-limited·non-structured→데이터부족). Compact MD table, in-cell pipe escape, idempotent (header-presence guard), §⑥-body-local (other sections + disclaimer byte-preserved). Evidence precedence: u55 anchor → 현재/numeric trigger; u64 reason → 관찰 신호/rationale; u52 carryover → prior context only (cannot mint a trigger); otherwise one `데이터부족` row.
+**Double compliance scan (u56 invariant)**: matrix conversion runs **after** the first `scan_compliance` so raw bullets are scanned as prose before a table cell can mask the P0 gate; a second `scan_compliance` runs over the rendered matrix. Cells copy LLM bullet text only — observational-only, no buy/sell/목표가 introduced. `verify_disclaimer` and the numeric verifier unchanged.
+**Module boundary**: `watchpoint_matrix` is publisher-internal over prepared markdown; orchestrator wires it. §⑥ prompt rule is briefing-internal. No briefing/notifier import added — orchestrator-only cross-unit import rule upheld.
+**FD divergences ratified**: none — FD = SKIP (presentation/validation contract over existing u55/u52/u64 models; no new entity).
+**Scope-out -> TECH-DEBT**: **DEBT-074** (clause-slotting heuristic is regex/keyword-bucket based and can under-populate trigger columns on non-standard bullets; degrades gracefully to a `데이터부족` row, not a misfire; suggested additive fix = plumb typed evidence u55 CoreFact / u52 carryover / u64 WatchlistImpact directly into the matrix builder, Low).
+**Risk recorded**: clause-slotting under-population is a graceful-degrade (`데이터부족`), never an invented trigger or compliance misfire — reader-trust and observational-only contract preserved. Tracked as DEBT-074.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u72-watchpoint-action-matrix/code/summary.md` (new — Scope/Stage Decision(FD+NFR SKIP)/u64 non-overlap relationship/matrix schema/double compliance scan design/AC-72.1-5 traceability/FD divergences/TECH-DEBT/risk/gate)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-074 added; Low count 26->27)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u72-watchpoint-action-matrix-code-generation-plan.md` (Status -> Complete; all Steps `[x]`)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u72 row Backlog->Complete; Code Generation / Build-and-Test lines; backlog range u72-u76 -> u73-u76; FD+NFR SKIP confirmed)
+**Status**: u72 complete (6/6). AC-72.1..AC-72.5 MET. Gate: ruff clean / ruff-format clean / mypy --strict 140 files clean / pytest 2561 passed (+18) / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout.
+**Context**: Project rules upheld — 무료 API only (no external call; deterministic markdown render/validation), Anthropic SDK 금지 (untouched), 모듈 경계 (matrix publisher-internal; prompt rule briefing-internal; orchestrator-only cross-unit import preserved), 면책조항 (footer byte-preserved) + 채널 분리 (Telegram gets compact cue only, AC-72.5) gates untouched, R13 no secret (no secret surface touched), `defusedxml` not invoked. No new data source / numeric-verification rule / dependency.
+
+---
+
 ## Construction — u71 reader-first-viewport-reflow Complete
 **Timestamp**: 2026-05-24T24:30:00+09:00
 **Trigger**: u71 (reader-first-viewport-reflow) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + DESIGN.md + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only.

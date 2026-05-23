@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 26 | 2026-04-27 |
+| Low | 27 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,16 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-074: §⑥ watchpoint-matrix clause-slotting heuristic can under-populate trigger columns — plumb typed evidence
+
+- **Created**: 2026-05-24
+- **Source**: u72 watchpoint-action-matrix closeout (clause-slotting risk)
+- **Reference**: AC-72.1 (bounded matrix fields), AC-72.3 (rows consume verified anchors/carryover/watchlist evidence without inventing facts), NFR-005 (consistency), NFR-007 (R10 — no fabrication)
+- **Description**: `src/investo/publisher/watchpoint_matrix.py::render_watchpoint_matrix` populates the `상방 확인 조건` / `하방 확인 조건` columns by slotting clauses from each §⑥ bullet via a regex-based `_clauses` split plus a keyword-bucket classifier. On a well-formed observational bullet the slotting works, but on an unconventionally phrased bullet (e.g., a single clause carrying both directions, or trigger language the keyword buckets do not recognize) one or both trigger columns can be left thin. This is a **graceful degradation**, not a misfire: u72 reuses u64's `check_watchpoint_actionability` / `_is_structured` contract, so a bullet whose structure cannot be confidently slotted falls to a `데이터부족` row rather than producing an invented trigger — reader-trust and the observational-only / no-fabrication contract are preserved. The cost is reduced matrix richness (more `데이터부족` rows than the underlying evidence could justify), not a correctness or compliance defect.
+- **Suggested Fix**: Plumb the **typed** evidence the orchestrator already holds directly into the matrix builder instead of re-parsing the rendered bullet text: u55 `CoreFact` / verified anchor (→ `현재` + numeric trigger), u52 `BriefingCarryover` rows from `models/carryover.py` (→ prior-signal context), and u64 `WatchlistImpact` / evidence-reason strings from `briefing/watchlist.py` (→ section-local `섹션 내 관심 영향`). With structured inputs the trigger columns are populated from the evidence's own fields rather than from a clause-split heuristic, so high-evidence rows stop degrading to `데이터부족`. This is a strictly additive enrichment over the current text-based path; keep the heuristic as the fallback for bullets without a typed-evidence backing, and keep the single u64 validation contract.
+- **Effort**: ~2-3 h — thread the per-segment typed evidence (anchor / carryover / watchlist-impact) into `render_watchpoint_matrix`, add a typed-input row-builder branch ahead of the clause-slotting fallback, and pin per-evidence-type column population with regression tests (no cross-segment leakage).
+- **Priority Reasoning**: Low — the current heuristic degrades safely (`데이터부족`, never an invented trigger), so AC-72.2/72.3/72.4 hold and no reader-facing claim is fabricated. The residual is matrix richness, not correctness. Promote to Medium only if a user-quality review flags that frequently-evidenced watchpoints are surfacing as `데이터부족` when typed evidence was in fact available.
 
 #### DEBT-073: Backfill stale public quality surfaces that pre-date the u69 render-path fix
 

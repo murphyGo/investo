@@ -206,6 +206,7 @@ from investo.publisher.site_index import (
     update_quality_page,
 )
 from investo.publisher.verifier import verify_short_disclaimer_first_viewport
+from investo.publisher.watchpoint_matrix import render_watchpoint_matrix
 from investo.publisher.weekly_digest import (
     WEEKLY_INDEX_PATH,
 )
@@ -1441,6 +1442,13 @@ def _apply_reader_format_to_segments(
                 segment,
             )
             markdown = repaired_markdown
+        scan_compliance(markdown, segment)
+        # u72 — convert §⑥ bullets into the observational watchpoint matrix.
+        # Runs AFTER scan_compliance so the raw bullets are scanned as prose
+        # (a table-cell mask would otherwise hide advice wording from the
+        # P0 gate); the resulting matrix is observational only and rescanned
+        # by the second scan_compliance below.
+        markdown = render_watchpoint_matrix(markdown, segment=segment)
         scan_compliance(markdown, segment)
         markdown = emit_first_viewport_disclaimer(markdown, segment)
         # u71 — reader-first viewport reflow. Runs last in the header

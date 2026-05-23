@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u72 watchpoint-action-matrix
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (6/6 steps — closed 2026-05-24)
 **Source**: 2026-05-24 ten-subagent user-quality review of generated segmented briefings
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -88,10 +88,10 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Define matrix schema and allowed degradation `[ ]`
-- [ ] Define required columns/fields and max visible rows.
-- [ ] Define allowed confidence labels using the table below.
-- [ ] Define when `데이터부족` may replace triggers.
+### Step 1 — Define matrix schema and allowed degradation `[x]`
+- [x] Define required columns/fields and max visible rows.
+- [x] Define allowed confidence labels using the table below.
+- [x] Define when `데이터부족` may replace triggers.
 - **Acceptance**: schema and degradation rules are pinned in tests.
 
 Confidence labels:
@@ -109,38 +109,38 @@ Evidence precedence for row population:
 3. u52 carryover item → prior context only; cannot create a new trigger by itself.
 4. Otherwise render one `데이터부족` row and omit invented triggers.
 
-### Step 2 — Update prompt contract `[ ]`
-- [ ] Add Stage 2 instruction for §⑥ to produce matrix-compatible content.
-- [ ] Include examples that are observational, not advisory.
-- [ ] Require source-backed thresholds when present; prohibit invented thresholds.
-- [ ] Allowed templates: `{지표}가 {조건}을 확인하면 상방 압력 관찰`, `{지표}가 {조건}을 이탈하면 방어적 해석`, `관심 영향: 변동성 확대 여부를 점검`.
-- [ ] Banned examples: `매수`, `매도`, `비중 확대`, `목표가`, `손절`, `진입`, `청산`, and any guaranteed outcome wording.
+### Step 2 — Update prompt contract `[x]`
+- [x] Add Stage 2 instruction for §⑥ to produce matrix-compatible content.
+- [x] Include examples that are observational, not advisory.
+- [x] Require source-backed thresholds when present; prohibit invented thresholds.
+- [x] Allowed templates: `{지표}가 {조건}을 확인하면 상방 압력 관찰`, `{지표}가 {조건}을 이탈하면 방어적 해석`, `관심 영향: 변동성 확대 여부를 점검`.
+- [x] Banned examples: `매수`, `매도`, `비중 확대`, `목표가`, `손절`, `진입`, `청산`, and any guaranteed outcome wording.
 - **Acceptance**: prompt tests assert matrix fields and compliance wording are present.
 
-### Step 3 — Add deterministic renderer/validator `[ ]`
-- [ ] Parse or normalize generated watchpoints into the matrix shape where feasible.
-- [ ] Delegate generic-watchpoint rejection/repair to u64's existing watchpoint actionability validator; u72 only formats successful output into a matrix.
-- [ ] Keep table compact and Markdown-safe.
+### Step 3 — Add deterministic renderer/validator `[x]`
+- [x] Parse or normalize generated watchpoints into the matrix shape where feasible.
+- [x] Delegate generic-watchpoint rejection/repair to u64's existing watchpoint actionability validator; u72 only formats successful output into a matrix.
+- [x] Keep table compact and Markdown-safe.
 - **Acceptance**: generic `확인/점검` fixture becomes data-limited or fails validation deterministically.
 
-### Step 4 — Connect evidence inputs `[ ]`
-- [ ] Integration points: consume u55 `CoreFact`/verified anchor results already passed through orchestrator, u52 `BriefingCarryover` rows from `models/carryover.py`, and u64 `WatchlistImpact` / evidence reason strings from `briefing/watchlist.py`.
-- [ ] Allow verified anchors from u55 to populate `Current` or trigger references.
-- [ ] Allow u52 carryover items to populate prior-signal context.
-- [ ] Allow u64 watchlist evidence to populate only section-local `관심 영향`; no Direct/Related/Uncertain/Rejected grouping.
-- [ ] If no evidence exists, produce an explicit data-limited note instead of a fake matrix row.
+### Step 4 — Connect evidence inputs `[x]`
+- [x] Integration points: consume u55 `CoreFact`/verified anchor results already passed through orchestrator, u52 `BriefingCarryover` rows from `models/carryover.py`, and u64 `WatchlistImpact` / evidence reason strings from `briefing/watchlist.py`.
+- [x] Allow verified anchors from u55 to populate `Current` or trigger references.
+- [x] Allow u52 carryover items to populate prior-signal context.
+- [x] Allow u64 watchlist evidence to populate only section-local `관심 영향`; no Direct/Related/Uncertain/Rejected grouping.
+- [x] If no evidence exists, produce an explicit data-limited note instead of a fake matrix row.
 - **Acceptance**: at least one test row uses each evidence type without cross-segment leakage.
 
-### Step 5 — Notification behavior `[ ]`
-- [ ] Telegram summary includes at most one compact watchpoint line or link cue.
-- [ ] Full matrix stays on the static site/markdown briefing.
-- [ ] Compliance scanner runs on both full and compact text.
+### Step 5 — Notification behavior `[x]`
+- [x] Telegram summary includes at most one compact watchpoint line or link cue.
+- [x] Full matrix stays on the static site/markdown briefing.
+- [x] Compliance scanner runs on both full and compact text.
 - **Acceptance**: notifier tests show no large table in Telegram payload.
 
-### Step 6 — Tests and gate `[ ]`
-- [ ] Unit tests for schema, validation, degradation, compliance, and notification compactness.
-- [ ] Replay fixture for generic watchpoints found in the review.
-- [ ] Run targeted publisher/briefing/notifier tests, ruff, and mypy if source signatures change.
+### Step 6 — Tests and gate `[x]`
+- [x] Unit tests for schema, validation, degradation, compliance, and notification compactness.
+- [x] Replay fixture for generic watchpoints found in the review.
+- [x] Run targeted publisher/briefing/notifier tests, ruff, and mypy if source signatures change.
 
 ---
 

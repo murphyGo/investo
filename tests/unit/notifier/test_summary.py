@@ -142,6 +142,35 @@ def test_build_summary_includes_target_date_and_url() -> None:
     assert "📈" in summary  # the emoji header anchor
 
 
+def test_build_summary_excludes_watchpoint_matrix_table() -> None:
+    """u72 AC-72.5 — the full §⑥ matrix table stays on the site, not Telegram."""
+    matrix = (
+        "## ⑥ 오늘의 관전 포인트\n\n"
+        "| 관찰 신호 | 현재 | 상방 확인 조건 | 하방 확인 조건 | 신뢰도 | 섹션 내 관심 영향 |\n"
+        "| --- | --- | --- | --- | --- | --- |\n"
+        "| 10Y 금리 | 4.4% | 4.5% 상회 시 압력 관찰 | 4.3% 이탈 시 완화 | 높음 | 변동성 점검 |\n"
+    )
+    body = (
+        "짧은 요약\n\n## ② 전일 핵심 이슈\n이슈\n\n## ③ 섹터/수급 동향\n섹터\n\n"
+        "## ④ 지표·이벤트\n지표\n\n## ⑤ 주요 종목\n종목\n\n" + matrix + "\n" + DISCLAIMER
+    )
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="짧은 요약",
+        key_issues="이슈",
+        sector_flow="섹터",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer=DISCLAIMER,
+        rendered_markdown="## ① 요약\n" + body,
+    )
+    summary = build_summary(briefing, site_url=_SITE_URL)
+    # The matrix header / alignment grid must not be embedded in the alert.
+    assert "| 관찰 신호 |" not in summary
+    assert "| --- | --- |" not in summary
+
+
 def test_build_summary_short_briefing_no_truncation() -> None:
     briefing = _build_briefing(market_summary="요약")
     summary = build_summary(briefing, site_url=_SITE_URL)
