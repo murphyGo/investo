@@ -179,6 +179,10 @@ from investo.publisher.compliance_language import (
     scan_compliance,
 )
 from investo.publisher.cross_segment_lint import run_all_cross_segment_lints
+from investo.publisher.crypto_indicators import (
+    inject_crypto_indicator_block,
+    render_crypto_indicator_block,
+)
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.reader_format import (
     apply_reader_format,
@@ -1296,6 +1300,7 @@ def _apply_reader_format_to_segments(
     *,
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     bundle_context: BundleContext | None = None,
+    items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
@@ -1322,11 +1327,16 @@ def _apply_reader_format_to_segments(
         # is left untouched and reader_format handles the rest.
         anchors = anchors_by_segment.get(segment, ())
         if anchors:
-            table = render_anchor_table(anchors)
+            table = render_anchor_table(anchors, segment=segment)
             if table:
                 # Idempotent: if the briefing already contains the table
                 # (same-day re-run), skip the swap so we don't duplicate.
-                if "| 종목 | 종가 | 변동 | 비고 |" in markdown:
+                # u66 — crypto uses a UTC 24h snapshot header, so check
+                # both the legacy equity header and the crypto header.
+                if (
+                    "| 종목 | 종가 | 변동 | 비고 |" in markdown
+                    or "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |" in markdown
+                ):
                     pass
                 else:
                     new_markdown, count = _ANCHOR_LINE_RE.subn(f"\n{table}\n", markdown, count=1)
@@ -1370,6 +1380,16 @@ def _apply_reader_format_to_segments(
                         "evidence_len": len(v.evidence),
                         "paragraph_len": len(v.paragraph),
                     },
+                )
+        # u66 — crypto-native indicator block (Fear & Greed, dominance,
+        # funding/OI, DeFi, scope-out rows). Crypto segment only; placed
+        # after the shared-macro block and before §①. Idempotent.
+        if segment == "crypto" and items_by_segment is not None:
+            crypto_items = items_by_segment.get("crypto", ())
+            if crypto_items:
+                markdown = inject_crypto_indicator_block(
+                    markdown,
+                    render_crypto_indicator_block(crypto_items),
                 )
         # u56 — compliance-language gate + first-viewport short disclaimer
         # + retail tone caps. Order: scan first (cheap reject of P0 hits
@@ -2151,10 +2171,14 @@ async def run_pipeline(
         # P0 hit raises ``ComplianceLanguageError`` here, which the
         # publish-stage handler below catches via the shared tuple.
         try:
+            _routed_for_indicators = segment_items(items)
             segment_briefings = _apply_reader_format_to_segments(
                 segment_briefings,
                 anchors_by_segment=anchor_table_input,
                 bundle_context=run_bundle_context,
+                items_by_segment={
+                    seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
+                },
             )
         except ComplianceLanguageError as exc:
             stage_timings["publish"] = 0.0

@@ -185,9 +185,14 @@ def _render_price_snapshot(card: PriceSnapshotCardInput) -> str:
             details = f"{details} · V {row.volume}"
         rows.append(_row_line(row.symbol, details, y=y))
         y += 62
+    # u66 — crypto trades 24/7; label the snapshot as a UTC 24h frame
+    # rather than an equity close. Other segments keep the plain date.
+    subtitle = card.target_date.isoformat()
+    if card.segment == "crypto":
+        subtitle = f"{subtitle} · UTC 24h 스냅샷"
     return _svg_document(
         title=f"{SEGMENT_LABELS[card.segment]} 가격 스냅샷",
-        subtitle=card.target_date.isoformat(),
+        subtitle=subtitle,
         body="\n".join(rows),
     )
 

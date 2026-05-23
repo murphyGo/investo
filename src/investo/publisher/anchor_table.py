@@ -31,9 +31,19 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Final
+from typing import Final, Literal
 
 from investo.briefing.market_anchor import MarketAnchor
+
+# u66 — crypto trades 24/7; the close-recap column header ("종가") is
+# misleading for the crypto segment. The crypto anchor table labels the
+# value column as a UTC 24h snapshot instead. Equity/domestic tables keep
+# the "종가" (close) framing. ``None`` (default) preserves the legacy
+# equity header for backward compatibility.
+_EQUITY_PRICE_HEADER: Final[str] = "종가"
+_CRYPTO_PRICE_HEADER: Final[str] = "스냅샷(UTC 24h)"
+_EQUITY_HEADER: Final[str] = "| 종목 | 종가 | 변동 | 비고 |"
+_CRYPTO_HEADER: Final[str] = "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |"
 
 # Same priority order as ``market_anchor._HEADER_PRIORITY`` — reused
 # verbatim so the table and the deprecated blockquote stay byte-faithful
@@ -66,10 +76,18 @@ _PRICE_QUANTUM: Final[Decimal] = Decimal("0.01")
 _MTD_YTD_DISPLAY_THRESHOLD: Final[Decimal] = Decimal("5.00")
 
 
-def render_anchor_table(anchors: Sequence[MarketAnchor]) -> str:
+def render_anchor_table(
+    anchors: Sequence[MarketAnchor],
+    *,
+    segment: Literal["domestic-equity", "us-equity", "crypto"] | None = None,
+) -> str:
     """Render the anchor block as a markdown table.
 
     Empty input ⇒ empty string (caller omits the whole block).
+
+    ``segment`` selects the column header framing (u66): ``"crypto"``
+    uses UTC 24h snapshot wording; all other values (and ``None``) keep
+    the equity close ("종가") framing for byte-compatibility.
     """
     if not anchors:
         return ""
@@ -77,7 +95,7 @@ def render_anchor_table(anchors: Sequence[MarketAnchor]) -> str:
     if not selected:
         return ""
     rows = [_render_row(anchor) for anchor in selected]
-    header = "| 종목 | 종가 | 변동 | 비고 |"
+    header = _CRYPTO_HEADER if segment == "crypto" else _EQUITY_HEADER
     divider = "|------|------|------|------|"
     return "\n".join([header, divider, *rows]) + "\n"
 

@@ -47,6 +47,7 @@ from investo.briefing.claude_code import (
     call_claude_code,
 )
 from investo.briefing.context import RecentBriefingEntry, RecentBriefingsContext
+from investo.briefing.crypto_indicators import render_crypto_indicator_block
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.briefing.glossary import (
@@ -58,6 +59,7 @@ from investo.briefing.leak_guard import scan as leak_guard_scan
 from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_line
 from investo.briefing.prompts import (
     CRYPTO_FORBIDDEN_TERMS_NOTE,
+    CRYPTO_UTC_FRAME_NOTE,
     DEFAULT_SEGMENT_CONTEXT,
     DOMESTIC_DEPTH_NOTE,
     SEGMENT_CONTEXT_TEMPLATE,
@@ -70,6 +72,7 @@ from investo.briefing.prompts import (
     STAGE2_USER_TEMPLATE,
     format_bundle_context_section,
     format_carryover_section,
+    format_crypto_indicator_context,
     format_lookahead_section,
     format_recent_context_section,
 )
@@ -948,7 +951,7 @@ def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool
     # whether the LLM honored the prompt.
     # u56 crypto ban / u67 domestic depth — at most one applies per segment.
     if segment == "crypto":
-        segment_extra_note = f"{CRYPTO_FORBIDDEN_TERMS_NOTE}\n"
+        segment_extra_note = f"{CRYPTO_FORBIDDEN_TERMS_NOTE}\n{CRYPTO_UTC_FRAME_NOTE}\n"
     elif segment == "domestic-equity":
         segment_extra_note = f"{DOMESTIC_DEPTH_NOTE}\n"
     else:
@@ -1663,6 +1666,16 @@ async def generate_briefing(
     watchlist_context = render_watchlist_prompt_context(watchlist_impact)
     if watchlist_context:
         segment_context = f"{segment_context}\n\n{watchlist_context}"
+    # u66 — crypto-only deterministic indicator grounding context. The
+    # same ``## ⓪-A`` table the publisher renders is injected so Stage 2
+    # observes the indicator values (and explicit unavailable rows)
+    # without re-deriving or inventing them. Crypto segment only.
+    if segment == "crypto":
+        crypto_indicator_context = format_crypto_indicator_context(
+            render_crypto_indicator_block(items)
+        )
+        if crypto_indicator_context:
+            segment_context = f"{segment_context}\n\n{crypto_indicator_context}"
     recent_context_block = _render_recent_context_block(segment, recent_context)
     carryover_context_block = _render_carryover_context_block(carryover)
     bundle_context_block = _render_bundle_context_block(bundle_context, segment=segment)

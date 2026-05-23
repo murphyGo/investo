@@ -77,6 +77,13 @@
 - **국내 지수 종가 precedence**: `fsc-krx-index-price`(공식 KRX) → Stooq `^kospi` → 연합뉴스 숫자 파싱. KOSDAQ는 공식 KRX → 연합뉴스 숫자 파싱(스투크 미보유).
 - **원/달러 precedence**: Stooq `usdkrw`(no-key) — `usd_krw` core fact를 채운다.
 
+### Free data sources (no-key) — crypto channel depth (u66)
+- **`alternative-fng` 어댑터** — Crypto Fear & Greed 지수를 Alternative.me 무인증 JSON(`https://api.alternative.me/fng/?limit=1`)에서 수집한다. `indicator=fear_greed` 태그, `value`(0-100)·`classification`.
+- **`coingecko-global-market` 어댑터** — BTC 도미넌스 + 전체 시총을 CoinGecko 무인증 `/api/v3/global`에서 수집한다. `indicator=global_market` 태그, `btc_dominance_pct`·`total_market_cap_usd`·`market_cap_change_24h_pct`.
+- **`bybit-derivatives` 어댑터 (+ `okx-derivatives` fallback)** — BTC 펀딩비 + 미결제약정(OI)을 수집한다. **precedence: Bybit v5 `tickers`(primary, 무키·geo-safe) → OKX public funding-rate/open-interest(fallback)**. `indicator=btc_funding`/`btc_oi` 태그, `funding_source`/`oi_source` ∈ {bybit, okx}. **Binance fapi는 primary로 쓰지 않는다** — GitHub Actions IP에서 HTTP 451 geo-block.
+- **DeFi TVL / 스테이블코인 공급**: 기존 `defillama-market-structure` 어댑터 재사용(무키).
+- **scope-out (무키 free 소스 미확정)**: 24h 청산(Coinglass — API key 필요), 거래소 순유출입(CryptoQuant/Glassnode — 유료/키 필요). 값 날조 금지 — 크립토 지표 블록에서 `무료 검증 소스 미확정` 행으로만 표기. TECH-DEBT(DEBT-071/072 예상)로 closeout에서 등록.
+
 ## Existing Systems
 
 - **없음** (greenfield 프로젝트)

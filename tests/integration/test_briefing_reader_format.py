@@ -13,12 +13,12 @@ Stage-2 output and verifies the six u51 DoD bullets are met:
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
-from investo.briefing.disclaimer import DISCLAIMER
+from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.market_anchor import MarketAnchor
-from investo.models import Briefing
+from investo.models import Briefing, NormalizedItem
 from investo.orchestrator.pipeline import _apply_reader_format_to_segments
 
 
@@ -174,6 +174,127 @@ def test_apply_reader_format_to_segments_skips_segments_without_anchors() -> Non
     assert "## 한눈에 보기" in md  # TL;DR still injected from callouts
     # Disclaimer untouched.
     assert DISCLAIMER in md
+
+
+# ---------------------------------------------------------------------------
+# u66 — crypto channel depth: indicator block + UTC 24h framing
+# (offline replay of the 2026-05-22 crypto defect class)
+# ---------------------------------------------------------------------------
+
+_CRYPTO_BRIEFING = (
+    "# 2026-05-22 크립토 시황\n\n"
+    "## 한눈에 보기\n\n"
+    "- **BTC**가 UTC 24h 기준 +1.2% 상승\n"
+    "- 도미넌스 소폭 상승\n"
+    "- 본문 §② 참조\n\n"
+    "## ① 요약\n\n"
+    "BTC가 구간 내 상승했다.\n\n"
+    "## ② 전일 핵심 이슈\n\n"
+    "### BTC 흐름\n\nBTC 상승.\n\n"
+    "## ③ 섹터/수급\n\n섹터.\n\n"
+    "## ④ 지표·이벤트\n\n지표.\n\n"
+    "## ⑤ 주목 종목\n\n종목.\n\n"
+    "## ⑥ 오늘의 관전 포인트\n\n- 추세 확인\n\n" + DISCLAIMER_CRYPTO + "\n"
+)
+
+
+def _crypto_briefing() -> Briefing:
+    return Briefing(
+        target_date=date(2026, 5, 22),
+        market_summary="요약.",
+        key_issues="이슈.",
+        sector_flow="섹터.",
+        indicators_events="지표.",
+        notable_tickers="종목.",
+        today_watch="관전.",
+        disclaimer=DISCLAIMER_CRYPTO,
+        rendered_markdown=_CRYPTO_BRIEFING,
+    )
+
+
+def _crypto_indicator_items() -> tuple[NormalizedItem, ...]:
+    pub = datetime(2026, 5, 22, tzinfo=UTC)
+
+    def mk(meta: dict[str, str], source: str) -> NormalizedItem:
+        return NormalizedItem(
+            source_name=source,
+            category="macro",
+            title="indicator",
+            published_at=pub,
+            raw_metadata=meta,
+        )
+
+    return (
+        mk(
+            {"indicator": "fear_greed", "value": "28", "classification": "Fear"},
+            "alternative-fng",
+        ),
+        mk(
+            {
+                "indicator": "global_market",
+                "btc_dominance_pct": "58.07",
+                "total_market_cap_usd": "2623499078661",
+                "market_cap_change_24h_pct": "0.25",
+            },
+            "coingecko-global-market",
+        ),
+        mk(
+            {
+                "indicator": "btc_funding",
+                "btc_funding_rate": "0.00003545",
+                "funding_source": "bybit",
+            },
+            "bybit-derivatives",
+        ),
+        mk(
+            {"indicator": "btc_oi", "btc_oi_usd": "4103494620", "oi_source": "bybit"},
+            "bybit-derivatives",
+        ),
+    )
+
+
+def test_u66_crypto_replay_injects_indicator_block_and_utc_framing() -> None:
+    out = _apply_reader_format_to_segments(
+        {"crypto": _crypto_briefing()},  # type: ignore[dict-item]
+        anchors_by_segment={},
+        items_by_segment={"crypto": _crypto_indicator_items()},  # type: ignore[dict-item]
+    )
+    md = out["crypto"].rendered_markdown  # type: ignore[index]
+
+    # Indicator block injected with real (non-fabricated) values.
+    assert "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)" in md
+    assert "공포·탐욕" in md and "28 (Fear)" in md
+    assert "58.07%" in md
+    assert "$2.62T" in md
+    assert "(bybit)" in md
+    # Scope-out rows are explicit, never fabricated.
+    assert "무료 검증 소스 미확정" in md
+    # UTC 24h framing in body; no equity close phrase in generated prose.
+    assert "UTC 24h" in md
+    assert "전일 종가" not in md
+    # Block lands before §①.
+    assert md.index("## ⓪-A 크립토 지표") < md.index("## ① 요약")
+    # Crypto disclaimer preserved verbatim at tail.
+    assert DISCLAIMER_CRYPTO in md
+
+
+def test_u66_crypto_replay_idempotent() -> None:
+    args = {
+        "anchors_by_segment": {},
+        "items_by_segment": {"crypto": _crypto_indicator_items()},
+    }
+    first = _apply_reader_format_to_segments(
+        {"crypto": _crypto_briefing()},  # type: ignore[dict-item]
+        **args,  # type: ignore[arg-type]
+    )
+    second = _apply_reader_format_to_segments(
+        first,  # type: ignore[arg-type]
+        **args,  # type: ignore[arg-type]
+    )
+    assert (
+        first["crypto"].rendered_markdown  # type: ignore[index]
+        == second["crypto"].rendered_markdown  # type: ignore[index]
+    )
 
 
 def test_apply_reader_format_idempotent_on_second_pass() -> None:

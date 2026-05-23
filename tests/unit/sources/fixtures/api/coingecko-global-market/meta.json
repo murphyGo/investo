@@ -1,0 +1,12 @@
+{
+  "_recorded_at": "2026-05-24T05:22Z",
+  "_recorded_url": "https://api.coingecko.com/api/v3/global",
+  "_note": "u66 crypto-channel-depth (FD L6.14). No-key CoinGecko global endpoint. data.market_cap_percentage.btc/.eth, data.total_market_cap.usd, data.total_volume.usd, data.market_cap_change_percentage_24h_usd, data.updated_at (Unix seconds). Tests replay this body via httpx.MockTransport.",
+  "status": 200,
+  "format": "JSON",
+  "encoding": "utf-8",
+  "no_key": true,
+  "headers": {
+    "content-type": "application/json"
+  }
+}

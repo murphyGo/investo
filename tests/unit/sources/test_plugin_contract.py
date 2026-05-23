@@ -26,9 +26,12 @@ import investo.sources
 from investo.models import Category, NormalizedItem
 from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_all, list_sources
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
+from investo.sources.alternative_fng import AlternativeFearGreedAdapter
 from investo.sources.binance_crypto_market import BinanceCryptoMarketAdapter
+from investo.sources.bybit_derivatives import BybitDerivativesAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
+from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
 from investo.sources.fomc_calendar import FomcCalendarAdapter
@@ -46,6 +49,7 @@ from investo.sources.official_policy import (
     HouseFinancialServicesPolicyAdapter,
     SenateBankingPolicyAdapter,
 )
+from investo.sources.okx_derivatives import OkxDerivativesAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 from investo.sources.stooq_kr_market import StooqKrMarketAdapter
 from investo.sources.stooq_price import StooqPriceAdapter
@@ -58,8 +62,12 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 27
+EXPECTED_ADAPTER_COUNT = 31
 EXPECTED_ADAPTER_NAMES = {
+    "alternative-fng",
+    "bybit-derivatives",
+    "coingecko-global-market",
+    "okx-derivatives",
     "binance-crypto-market",
     "congress-gov-bill-actions",
     "dart-disclosure",
@@ -104,6 +112,10 @@ def _isolate_registry() -> Iterator[None]:
 
     snapshot = dict(_ADAPTERS)
     _clear_for_test()
+    register(AlternativeFearGreedAdapter)
+    register(BybitDerivativesAdapter)
+    register(CoinGeckoGlobalMarketAdapter)
+    register(OkxDerivativesAdapter)
     register(BinanceCryptoMarketAdapter)
     register(DartDisclosureAdapter)
     register(DefiLlamaMarketStructureAdapter)
@@ -276,6 +288,14 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "CnbcTopNewsAdapter",
         "dart_disclosure",
         "DartDisclosureAdapter",
+        "alternative_fng",
+        "AlternativeFearGreedAdapter",
+        "bybit_derivatives",
+        "BybitDerivativesAdapter",
+        "coingecko_global_market",
+        "CoinGeckoGlobalMarketAdapter",
+        "okx_derivatives",
+        "OkxDerivativesAdapter",
     }
     assert not (leaked & set(investo.sources.__all__))
 

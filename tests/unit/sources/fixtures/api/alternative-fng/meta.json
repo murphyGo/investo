@@ -1,0 +1,12 @@
+{
+  "_recorded_at": "2026-05-24T05:22Z",
+  "_recorded_url": "https://api.alternative.me/fng/?limit=1",
+  "_note": "u66 crypto-channel-depth (FD L6.13). No-key Alternative.me Fear & Greed endpoint. data[0] carries value (int-as-string 0-100), value_classification, timestamp (Unix seconds string), time_until_update (seconds string). Tests replay this body via httpx.MockTransport; re-record only when upstream schema changes.",
+  "status": 200,
+  "format": "JSON",
+  "encoding": "utf-8",
+  "no_key": true,
+  "headers": {
+    "content-type": "application/json"
+  }
+}

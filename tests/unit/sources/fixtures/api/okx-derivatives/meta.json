@@ -1,0 +1,13 @@
+{
+  "_recorded_at": "2026-05-24T05:22Z",
+  "_recorded_url_funding": "https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USD-SWAP",
+  "_recorded_url_oi": "https://www.okx.com/api/v5/public/open-interest?instType=SWAP&instId=BTC-USD-SWAP",
+  "_note": "u66 crypto-channel-depth (FD L6.15 fallback). No-key OKX public funding-rate + open-interest (Bybit fallback path). funding-rate.json data[0].fundingRate / .nextFundingTime; open-interest.json data[0].oiUsd (USD notional). Tests replay these bodies via httpx.MockTransport.",
+  "status": 200,
+  "format": "JSON",
+  "encoding": "utf-8",
+  "no_key": true,
+  "headers": {
+    "content-type": "application/json"
+  }
+}

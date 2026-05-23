@@ -464,6 +464,41 @@ Same-bundle BundleContext rules (u57 segment-narrative-scope-and-time-reconcilia
   re-interpretation only. Raw repetition gets flagged.
 """
 
+# u66 — crypto-only UTC 24h framing + indicator grounding note. Emitted
+# only when ``segment == "crypto"`` (appended after the §10 ban note). The
+# crypto market is 24/7, so the segment frames movement as a UTC 24h
+# snapshot, NOT an equity close. The indicator context is grounded: the
+# LLM may explain available indicator direction observationally (u56 gate
+# unchanged) but MUST state unavailable rows as unavailable — never infer
+# or invent a value for them.
+CRYPTO_UTC_FRAME_NOTE: Final[str] = (
+    "크립토 세그먼트 UTC 24h 프레임 가이드:\n"
+    "1) 크립토 시장은 24시간 거래된다. '전일 종가' / '마감' 같은 주식장 마감 "
+    "표현을 쓰지 말고, 'UTC 24h 기준', '스냅샷', '구간 내 변동' 으로 표현하라.\n"
+    "2) 문서 상단 ``## ⓪-A 크립토 지표`` 표의 값(공포·탐욕, BTC 도미넌스, "
+    "전체 시총, BTC 펀딩비·미결제약정, DeFi TVL, 스테이블코인 공급)만 인용하고 "
+    "새 수치를 지어내지 말 것. 표에 있는 값의 방향성은 관찰적으로 해설 가능하다 "
+    "(매수/매도 지시 금지 — u56 게이트 유지).\n"
+    "3) '수집 안 됨' 또는 '무료 검증 소스 미확정'으로 표기된 지표(24h 청산, "
+    "거래소 순유출입 포함)는 값을 추정하거나 생략하지 말고 '데이터 미수집'으로 "
+    "명시하라."
+)
+
+
+def format_crypto_indicator_context(rendered_block: str) -> str:
+    """Wrap the rendered crypto indicator table for Stage 2 grounding.
+
+    ``rendered_block`` is the same deterministic ``## ⓪-A`` table the
+    publisher renders. Empty input → empty string (no injection).
+    """
+    if not rendered_block.strip():
+        return ""
+    return (
+        "## 크립토 지표 컨텍스트 (입력 — UTC 24h 스냅샷, 값 발명 금지)\n\n"
+        f"{rendered_block.strip()}\n"
+    )
+
+
 # Placeholders:
 #   ``segment_context`` (str — rendered segment scope instructions)
 #   ``grouped_sections`` (str — pre-grouped item bullets per Stage 1

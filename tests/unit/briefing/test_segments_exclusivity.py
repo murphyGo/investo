@@ -58,6 +58,43 @@ def _item(
 
 
 # ---------------------------------------------------------------------------
+# u66 — crypto-native indicators route to crypto only
+# ---------------------------------------------------------------------------
+
+
+def test_u66_native_indicators_route_crypto_only() -> None:
+    for source in (
+        "alternative-fng",
+        "coingecko-global-market",
+        "bybit-derivatives",
+        "okx-derivatives",
+    ):
+        item = _item(source, f"{source} indicator", category="macro")
+        segmented = segment_items([item])
+        assert segmented.crypto == (item,), source
+        assert segmented.us_equity == ()
+        assert segmented.domestic_equity == ()
+
+
+def test_u66_native_indicators_not_in_core_sources() -> None:
+    """Absence of native indicators must not downgrade crypto coverage.
+
+    They are NOT core sources, so their absence cannot force a severity
+    downgrade (mirrors the binance-crypto-market note).
+    """
+    from investo.briefing.segments import SEGMENT_CORE_SOURCES
+
+    core = SEGMENT_CORE_SOURCES["crypto"]
+    for source in (
+        "alternative-fng",
+        "coingecko-global-market",
+        "bybit-derivatives",
+        "okx-derivatives",
+    ):
+        assert source not in core
+
+
+# ---------------------------------------------------------------------------
 # Anti-regression — leaks observed in 2026-05-08 us-equity trace footer
 # ---------------------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u66 crypto-channel-depth
 **Stage**: Code Generation
-**Status**: Planned (awaiting approval)
+**Status**: Complete (9/9 — closed 2026-05-24)
 **Source**: 2026-05-24 ten-subagent reader-facing review — Gap A (크립토 채널 깊이), independently raised by the 크립토 투자자 + 신뢰성 personas; latest local crypto briefing `archive/crypto/2026/05/2026-05-22.md`
 **Estimated Effort**: ~7-10 h
 **Dependencies**:
@@ -127,51 +127,51 @@ NFR Requirements are **SKIPPED**. The implementation adds no secrets, no paid ve
 
 ### Step 1 - Register source contracts and fixtures
 
-- [ ] Add recorded HTTP fixtures under `tests/unit/sources/fixtures/api/alternative-fng/`, `tests/unit/sources/fixtures/api/coingecko-global-market/`, `tests/unit/sources/fixtures/api/bybit-derivatives/`, and `tests/unit/sources/fixtures/api/okx-derivatives/` (pin the lead 2026-05-24 live payload shapes; if a live re-probe is blocked in sandbox/GHA, fall back to those captured shapes and note the divergence).
-- [ ] Record success + empty + malformed + auth/error fixtures per source (R10 four-path coverage).
-- [ ] Add FD entries L6.13/L6.14/L6.15 and R16 in the u1 source functional-design docs.
-- [ ] Document env-var policy: all adapters have no default symbol list and no required secret; pin the Bybit→OKX precedence (Binance NOT primary; 451 risk recorded).
-- [ ] Acceptance: fixture files contain the exact fields listed in Free-Source Reachability; docs state the no-key contract and precedence; no paid key introduced.
+- [x] Add recorded HTTP fixtures under `tests/unit/sources/fixtures/api/alternative-fng/`, `tests/unit/sources/fixtures/api/coingecko-global-market/`, `tests/unit/sources/fixtures/api/bybit-derivatives/`, and `tests/unit/sources/fixtures/api/okx-derivatives/` (pin the lead 2026-05-24 live payload shapes; if a live re-probe is blocked in sandbox/GHA, fall back to those captured shapes and note the divergence).
+- [x] Record success + empty + malformed + auth/error fixtures per source (R10 four-path coverage).
+- [x] Add FD entries L6.13/L6.14/L6.15 and R16 in the u1 source functional-design docs.
+- [x] Document env-var policy: all adapters have no default symbol list and no required secret; pin the Bybit→OKX precedence (Binance NOT primary; 451 risk recorded).
+- [x] Acceptance: fixture files contain the exact fields listed in Free-Source Reachability; docs state the no-key contract and precedence; no paid key introduced.
 
 ### Step 2 - Implement `alternative-fng` adapter
 
-- [ ] Add `src/investo/sources/alternative_fng.py` with `AlternativeFearGreedAdapter.name = "alternative-fng"` and `category = "macro"`.
-- [ ] Parse `value` as float-compatible string, preserve `value_classification`, and derive `published_at` from the Unix `timestamp` in UTC.
-- [ ] Emit one `NormalizedItem` titled `Crypto Fear & Greed {value} ({classification})`.
-- [ ] Store flat `raw_metadata`: `indicator=fear_greed`, `value`, `classification`, `timestamp`, `time_until_update`, `window=utc_24h`.
-- [ ] Register the module in `src/investo/sources/__init__.py`.
-- [ ] Acceptance: malformed payload raises `SourceFetchError` only for source-level schema failure; missing optional `time_until_update` becomes an empty string; R13 no secret.
+- [x] Add `src/investo/sources/alternative_fng.py` with `AlternativeFearGreedAdapter.name = "alternative-fng"` and `category = "macro"`.
+- [x] Parse `value` as float-compatible string, preserve `value_classification`, and derive `published_at` from the Unix `timestamp` in UTC.
+- [x] Emit one `NormalizedItem` titled `Crypto Fear & Greed {value} ({classification})`.
+- [x] Store flat `raw_metadata`: `indicator=fear_greed`, `value`, `classification`, `timestamp`, `time_until_update`, `window=utc_24h`.
+- [x] Register the module in `src/investo/sources/__init__.py`.
+- [x] Acceptance: malformed payload raises `SourceFetchError` only for source-level schema failure; missing optional `time_until_update` becomes an empty string; R13 no secret.
 
 ### Step 3 - Implement `coingecko-global-market` adapter
 
-- [ ] Add `src/investo/sources/coingecko_global_market.py` with `CoinGeckoGlobalMarketAdapter.name = "coingecko-global-market"` and `category = "macro"`.
-- [ ] Fetch `https://api.coingecko.com/api/v3/global` through the shared `retry_get` path.
-- [ ] Emit one `NormalizedItem` titled `Global crypto market cap ${total_market_cap_usd}; BTC dominance {btc_pct}%`.
-- [ ] Store flat `raw_metadata`: `indicator=global_market`, `btc_dominance_pct`, `eth_dominance_pct`, `total_market_cap_usd`, `total_volume_usd`, `market_cap_change_24h_pct`, `updated_at`.
-- [ ] Register the module in `src/investo/sources/__init__.py`.
-- [ ] Acceptance: missing BTC dominance or total market cap drops the item with source-level schema failure; no nested metadata is written.
+- [x] Add `src/investo/sources/coingecko_global_market.py` with `CoinGeckoGlobalMarketAdapter.name = "coingecko-global-market"` and `category = "macro"`.
+- [x] Fetch `https://api.coingecko.com/api/v3/global` through the shared `retry_get` path.
+- [x] Emit one `NormalizedItem` titled `Global crypto market cap ${total_market_cap_usd}; BTC dominance {btc_pct}%`.
+- [x] Store flat `raw_metadata`: `indicator=global_market`, `btc_dominance_pct`, `eth_dominance_pct`, `total_market_cap_usd`, `total_volume_usd`, `market_cap_change_24h_pct`, `updated_at`.
+- [x] Register the module in `src/investo/sources/__init__.py`.
+- [x] Acceptance: missing BTC dominance or total market cap drops the item with source-level schema failure; no nested metadata is written.
 
 ### Step 3b - Implement `bybit-derivatives` adapter (+ OKX fallback)
 
-- [ ] Add `src/investo/sources/bybit_derivatives.py` with `BybitDerivativesAdapter.name = "bybit-derivatives"` and `category = "macro"`.
-- [ ] One Bybit v5 `tickers` call yields two items: `indicator=btc_funding` (`btc_funding_rate`, `funding_source=bybit`) and `indicator=btc_oi` (`btc_oi_usd`, `oi_source=bybit`).
-- [ ] Add the OKX fallback path on Bybit terminal failure (`okx-derivatives`): fetch OKX funding-rate + open-interest, emit the same contract keys with `funding_source=okx` / `oi_source=okx`.
-- [ ] Do NOT wire Binance fapi as primary; if added at all it is optional last resort with the GHA 451 risk noted (prefer NOT adding it). Per-source isolation: a funding/OI failure must not drop other crypto items.
-- [ ] Register the module(s) in `src/investo/sources/__init__.py`.
-- [ ] Acceptance: Bybit-success fixture yields funding + OI items; Bybit-failure → OKX fixture yields the same contract keys with `*_source=okx`; no nested metadata; R13 no secret.
+- [x] Add `src/investo/sources/bybit_derivatives.py` with `BybitDerivativesAdapter.name = "bybit-derivatives"` and `category = "macro"`.
+- [x] One Bybit v5 `tickers` call yields two items: `indicator=btc_funding` (`btc_funding_rate`, `funding_source=bybit`) and `indicator=btc_oi` (`btc_oi_usd`, `oi_source=bybit`).
+- [x] Add the OKX fallback path on Bybit terminal failure (`okx-derivatives`): fetch OKX funding-rate + open-interest, emit the same contract keys with `funding_source=okx` / `oi_source=okx`.
+- [x] Do NOT wire Binance fapi as primary; if added at all it is optional last resort with the GHA 451 risk noted (prefer NOT adding it). Per-source isolation: a funding/OI failure must not drop other crypto items.
+- [x] Register the module(s) in `src/investo/sources/__init__.py`.
+- [x] Acceptance: Bybit-success fixture yields funding + OI items; Bybit-failure → OKX fixture yields the same contract keys with `*_source=okx`; no nested metadata; R13 no secret.
 
 ### Step 4 - Route and prioritize crypto-native indicators
 
-- [ ] Add `alternative-fng`, `coingecko-global-market`, `bybit-derivatives`, and `okx-derivatives` to `_CRYPTO_ONLY_SOURCES` in `src/investo/briefing/segments.py`.
-- [ ] Add candidate-preservation priority so these native indicators survive crypto candidate caps before generic news, while preserving u58 official policy priority above them.
-- [ ] Keep the indicators crypto-only; no fan-out to domestic-equity, us-equity, or shared macro. Absence must not flip crypto coverage status (mirror the existing `binance-crypto-market` "must not downgrade otherwise usable coverage" note).
-- [ ] Acceptance: `segment_items()` routes the adapters only to `crypto`; cap tests show u58 policy items remain ahead of native indicators; absence does not downgrade crypto status.
+- [x] Add `alternative-fng`, `coingecko-global-market`, `bybit-derivatives`, and `okx-derivatives` to `_CRYPTO_ONLY_SOURCES` in `src/investo/briefing/segments.py`.
+- [x] Add candidate-preservation priority so these native indicators survive crypto candidate caps before generic news, while preserving u58 official policy priority above them.
+- [x] Keep the indicators crypto-only; no fan-out to domestic-equity, us-equity, or shared macro. Absence must not flip crypto coverage status (mirror the existing `binance-crypto-market` "must not downgrade otherwise usable coverage" note).
+- [x] Acceptance: `segment_items()` routes the adapters only to `crypto`; cap tests show u58 policy items remain ahead of native indicators; absence does not downgrade crypto status.
 
 ### Step 5 - Define the crypto indicator block
 
-- [ ] Add a pure helper, `src/investo/publisher/crypto_indicators.py`, that extracts indicator rows from crypto `NormalizedItem` inputs keyed off the `indicator` raw_metadata tag.
-- [ ] Render a deterministic markdown table before crypto §①, after `## 한눈에 보기` and the shared macro block insertion point.
-- [ ] Fixed rows and labels:
+- [x] Add a pure helper, `src/investo/publisher/crypto_indicators.py`, that extracts indicator rows from crypto `NormalizedItem` inputs keyed off the `indicator` raw_metadata tag.
+- [x] Render a deterministic markdown table before crypto §①, after `## 한눈에 보기` and the shared macro block insertion point.
+- [x] Fixed rows and labels:
   - `공포·탐욕`: value + classification from `alternative-fng`, else `수집 안 됨`.
   - `BTC 도미넌스`: percent from `coingecko-global-market`, else `수집 안 됨`.
   - `전체 시총`: USD compact number + 24h change from `coingecko-global-market`, else `수집 안 됨`.
@@ -180,40 +180,40 @@ NFR Requirements are **SKIPPED**. The implementation adds no secrets, no paid ve
   - `DeFi TVL`: current existing DeFiLlama item value, else `수집 안 됨`.
   - `스테이블코인 공급`: existing DeFiLlama stablecoin value, else `수집 안 됨`.
   - `24h 청산 / 거래소 순유출입`: `무료 검증 소스 미확정`.
-- [ ] Acceptance: the renderer never invents unavailable values and is idempotent on repeated formatting passes; values are deterministic (LLM may not invent numbers).
+- [x] Acceptance: the renderer never invents unavailable values and is idempotent on repeated formatting passes; values are deterministic (LLM may not invent numbers).
 
 ### Step 6 - Replace equity close wording with UTC 24h framing
 
-- [ ] Update `src/investo/publisher/anchor_table.py` so crypto tables label the first column as UTC 24h snapshot language, while domestic/us tables keep current wording.
-- [ ] Update `src/investo/briefing/prompts.py` crypto instructions: use "UTC 24h 기준", "스냅샷", and "구간 내 변동"; avoid "전일 종가" and equity-market close framing for crypto.
-- [ ] Update `src/investo/visuals/cards.py` crypto card captions to match UTC 24h framing.
-- [ ] Acceptance: rendered crypto markdown for a fixture window contains `UTC 24h` wording and no `전일 종가` phrase outside quoted source titles; equity segments unchanged.
+- [x] Update `src/investo/publisher/anchor_table.py` so crypto tables label the first column as UTC 24h snapshot language, while domestic/us tables keep current wording.
+- [x] Update `src/investo/briefing/prompts.py` crypto instructions: use "UTC 24h 기준", "스냅샷", and "구간 내 변동"; avoid "전일 종가" and equity-market close framing for crypto.
+- [x] Update `src/investo/visuals/cards.py` crypto card captions to match UTC 24h framing.
+- [x] Acceptance: rendered crypto markdown for a fixture window contains `UTC 24h` wording and no `전일 종가` phrase outside quoted source titles; equity segments unchanged.
 
 ### Step 7 - Stage 2 prompt grounding
 
-- [ ] Add a compact `{crypto_indicator_context}` payload for crypto Stage 2 only.
-- [ ] Include the confirmed indicators (Fear & Greed, dominance, funding, OI) plus explicit unavailable row states (24h 청산 / netflow).
-- [ ] Prompt rule: the LLM may explain available indicator direction observationally (u56 gate unchanged), and must state unavailable rows as unavailable rather than omit or infer them; no cross-segment leakage (u57 / `cross_segment_lint`).
-- [ ] Acceptance: prompt snapshot tests show crypto-only context injection; domestic/us prompts are byte-compatible apart from shared template version comments already present.
+- [x] Add a compact `{crypto_indicator_context}` payload for crypto Stage 2 only.
+- [x] Include the confirmed indicators (Fear & Greed, dominance, funding, OI) plus explicit unavailable row states (24h 청산 / netflow).
+- [x] Prompt rule: the LLM may explain available indicator direction observationally (u56 gate unchanged), and must state unavailable rows as unavailable rather than omit or infer them; no cross-segment leakage (u57 / `cross_segment_lint`).
+- [x] Acceptance: prompt snapshot tests show crypto-only context injection; domestic/us prompts are byte-compatible apart from shared template version comments already present.
 
 ### Step 8 - Tests and replay validation
 
-- [ ] Add unit tests for the new adapters with recorded fixtures and malformed payload fixtures (R10 four-path); funding/OI Bybit→OKX precedence tests.
-- [ ] Add routing tests in `tests/unit/briefing/test_segments_exclusivity.py` (crypto-only; absence does not downgrade status).
-- [ ] Add renderer tests for full/partial/missing indicator rows.
-- [ ] Add a raw_metadata contract test asserting the exact `indicator` / key names / units u74 consumes (contract pin).
-- [ ] Add crypto anchor wording tests in `tests/unit/publisher/test_anchor_table.py` and card-caption tests in `tests/unit/visuals/test_cards.py`.
-- [ ] Add one offline replay fixture derived from `archive/crypto/2026/05/2026-05-22.md` showing the new indicator block and UTC 24h wording.
-- [ ] Acceptance: targeted source/briefing/publisher/visual tests pass; ruff + mypy strict clean on changed scope.
+- [x] Add unit tests for the new adapters with recorded fixtures and malformed payload fixtures (R10 four-path); funding/OI Bybit→OKX precedence tests.
+- [x] Add routing tests in `tests/unit/briefing/test_segments_exclusivity.py` (crypto-only; absence does not downgrade status).
+- [x] Add renderer tests for full/partial/missing indicator rows.
+- [x] Add a raw_metadata contract test asserting the exact `indicator` / key names / units u74 consumes (contract pin).
+- [x] Add crypto anchor wording tests in `tests/unit/publisher/test_anchor_table.py` and card-caption tests in `tests/unit/visuals/test_cards.py`.
+- [x] Add one offline replay fixture derived from `archive/crypto/2026/05/2026-05-22.md` showing the new indicator block and UTC 24h wording.
+- [x] Acceptance: targeted source/briefing/publisher/visual tests pass; ruff + mypy strict clean on changed scope.
 
 ### Step 9 - Documentation and closeout
 
-- [ ] Update `docs/tech-env.md` with the no-key public crypto indicator sources (Alternative.me, CoinGecko global, Bybit, OKX).
-- [ ] Update `aidlc-docs/aidlc-state.md` from Backlog to In Progress/Complete during implementation, preserving the plan link.
-- [ ] Register the two scope-out TECH-DEBT items (next free ids, expected DEBT-071 liquidation / DEBT-072 netflow) at closeout.
-- [ ] Write `aidlc-docs/construction/u66-crypto-channel-depth/code/summary.md` with AC traceability, FD divergences, and the scope-out debt.
-- [ ] Run `git diff --check` and `mkdocs build --strict`.
-- [ ] Acceptance: code summary exists, docs build strict passes, scope-out debt registered.
+- [x] Update `docs/tech-env.md` with the no-key public crypto indicator sources (Alternative.me, CoinGecko global, Bybit, OKX).
+- [x] Update `aidlc-docs/aidlc-state.md` from Backlog to In Progress/Complete during implementation, preserving the plan link.
+- [x] Register the two scope-out TECH-DEBT items (DEBT-071 liquidation / DEBT-072 netflow) at closeout.
+- [x] Write `aidlc-docs/construction/u66-crypto-channel-depth/code/summary.md` with AC traceability, FD divergences, and the scope-out debt.
+- [x] Run `git diff --check` and `mkdocs build --strict`.
+- [x] Acceptance: code summary exists, docs build strict passes, scope-out debt registered.
 
 ## Step Dependency Graph
 

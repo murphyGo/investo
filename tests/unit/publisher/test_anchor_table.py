@@ -45,6 +45,23 @@ def test_render_anchor_table_single_anchor() -> None:
     assert out.count("\n") == 3
 
 
+def test_u66_crypto_segment_uses_utc_24h_header() -> None:
+    out = render_anchor_table([_anchor("BTC-USD", "76021.90", pct="0.14")], segment="crypto")
+    assert "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |" in out
+    assert "종가" not in out
+    assert "| BTC-USD | 76,021.90 | +0.14% | —" in out
+
+
+def test_u66_equity_segment_keeps_close_header() -> None:
+    out = render_anchor_table([_anchor("^GSPC", "7412.84", pct="0.37")], segment="us-equity")
+    assert "| 종목 | 종가 | 변동 | 비고 |" in out
+
+
+def test_u66_default_segment_keeps_close_header() -> None:
+    out = render_anchor_table([_anchor("^GSPC", "7412.84", pct="0.37")])
+    assert "| 종목 | 종가 | 변동 | 비고 |" in out
+
+
 def test_render_anchor_table_priority_ordering() -> None:
     out = render_anchor_table(
         [

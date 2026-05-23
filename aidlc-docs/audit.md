@@ -1,5 +1,29 @@
 # AI-DLC Audit Log
 
+## Construction — u66 crypto-channel-depth Complete
+**Timestamp**: 2026-05-24T22:00:00+09:00
+**Trigger**: u66 (crypto-channel-depth) Code Generation landed — code/tests/fixtures/gate all green (developer). FD edit + `code/summary.md` + TECH-DEBT + state/audit deferred to planner per module-boundary rule.
+**Decision**: Ratify the implementation and close the unit (9/9 steps; Step 9 FD/closeout the last to land). Four no-key crypto indicator adapters delivered, the u74 raw_metadata contract pinned, and the crypto UTC-24h render frame replaces equity close language — all crypto-scoped.
+**Delivered**:
+- **4 new no-key adapters** (all `category="macro"` + `indicator` raw_metadata tag, crypto-routed via `_CRYPTO_ONLY_SOURCES`; **no new `Category` enum value**): `alternative-fng` (공포·탐욕, Alternative.me `/fng`), `coingecko-global-market` (BTC 도미넌스 + 전체 시총, CoinGecko `/global`), `bybit-derivatives` (BTC 펀딩비 + OI, primary), `okx-derivatives` (fallback).
+- **Funding/OI precedence**: Bybit primary → OKX fallback (both no-key, geo-safe). Binance fapi NOT primary (GHA IP 451 geo-block; crypto archive shows `binance-crypto-market` 451). 공포탐욕 = Alternative.me single; 도미넌스 = CoinGecko `/global` single.
+- **Render**: `briefing/crypto_indicators.py` (pure renderer) + `publisher/crypto_indicators.py` (injection). 8-row crypto indicator block (공포탐욕/도미넌스/시총/24h변동/펀딩/OI/DeFi TVL/스테이블); 청산·netflow render as explicit `무료 검증 소스 미확정` unavailable rows. Crypto anchor table/card/prompt moved from `종가` → UTC 24h frame (crypto segment only; equity segments unchanged).
+- **u74 interface contract (as implemented)**: `fear_greed` (`value` 0-100, `classification`), `global_market` (`btc_dominance_pct` %, `total_market_cap_usd`, `market_cap_change_24h_pct`), `btc_funding` (`btc_funding_rate`, `funding_source` ∈ {bybit,okx}), `btc_oi` (`btc_oi_usd`, `oi_source`); liquidation leg absent. No `core_fact:*` mapping (non-core context, `warn` per u55). `coingecko-price` (BTC/ETH 24h price) unchanged.
+**FD divergences ratified**: none material — the lead live probe scope was implemented as planned. Bybit confirmed no-key/geo-safe as primary (the concurrent-draft "defer all derivatives" path was correctly rejected at plan time). The two scope-outs (청산/netflow) are designed, not divergences.
+**Scope-out → TECH-DEBT**: **DEBT-071** (24h 청산 — Coinglass key-required, no no-key aggregate source, Low) and **DEBT-072** (거래소 netflow — CryptoQuant/Glassnode paid, Low). Both render explicit unavailable rows; never fabricated (R10 / R16d).
+**Risk recorded**: Bybit/OKX as funding/OI primary confirmed in sandbox but **not yet observed on the live GHA IP** — if both geo-block on the GHA path the indicator rows degrade to `수집 안 됨` (crypto coverage NOT downgraded — by design). First-run GHA observation recommended.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u66-crypto-channel-depth/code/summary.md` (new — Scope/Delivered/per-step results/reachability table/AC-1..8 traceability/FD divergences/TECH-DEBT/verification gate)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md` (new L6.13 `alternative-fng` / L6.14 `coingecko-global-market` / L6.15 `bybit-derivatives` (+OKX) + Extension #7 note)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u1-sources/functional-design/business-rules.md` (new R16: R16a u74 contract / R16b Bybit→OKX precedence / R16c UTC-24h frame / R16d 청산·netflow scope-out)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-071 24h 청산, DEBT-072 거래소 netflow; Low count 23→25)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u66-crypto-channel-depth-code-generation-plan.md` (Step 9 FD-edit + state + TECH-DEBT + summary `[x]`, Status Complete)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u66 row → Complete; Code Generation / Build-and-Test lines)
+**Status**: u66 complete (9/9). AC-1..AC-8 MET. Gate: ruff clean / ruff-format clean / mypy --strict 137 files clean / pytest 2488 passed / mkdocs --strict pass / `check_no_paid_apis` exit 0. R10 four-path fixtures (success/empty/malformed) recorded live 2026-05-24 for all 4 sources. **u74 market-channel-depth-v2 is now unblocked** — its crypto indicator interface is the R16a contract.
+**Context**: Project rules upheld — 무료 API only (no-key Alternative.me/CoinGecko/Bybit/OKX; no paid 청산/netflow), Anthropic SDK 금지 (untouched), 모듈 경계 (adapters import only models; orchestrator-only cross-unit import; `crypto_indicators` renderer pure), 면책조항 + 채널 분리 gates untouched, R13 no secret (all no-key sources), `defusedxml` not invoked (all JSON, no XML). New `Category` enum value avoided — `indicator` raw_metadata tagging is the lower-blast-radius routing choice.
+
+---
+
 ## Construction — u66 crypto-channel-depth Plan Authored + Reachability Probe Recorded
 **Timestamp**: 2026-05-24T20:00:00+09:00
 **Trigger**: Planner asked to author the formal u66 (crypto-channel-depth) Code Generation plan from the backlog entry, narrowing scope to the lead's confirmed live reachability probe. u74 market-channel-depth-v2 is implementation-blocked on u66 defining the crypto indicator output interface.

@@ -179,6 +179,8 @@ The orchestrator owns INFO-level lifecycle logs ("collect started",
 
 > **Extension #6 note (2026-05-24)**: L6.12 (`stooq-kr-market` / domestic index + FX) added per the 2026-05-24 u67 (domestic-channel-depth) audit-log entry. The adapter is the **deterministic domestic index-close + 원/달러 fallback** for the domestic-equity segment: Stooq CSV (`usdkrw` for FX, `^kospi` for the index) primary, with a Yonhap `market.xml` RSS numeric-close parse as the terminal index fallback. It carries `category="price"` (R11 KST market-close `published_at` semantics), no secret, no paid key, and no compliance header (R14 does NOT apply). The Yonhap parse path uses `defusedxml` (NFR-007 AC-7.6). New domestic business rule **R15** (index-close precedence + FX-presence + overnight bridge) governs how its values combine with the existing `fsc-krx-index-price` source. No new domain entity — `NormalizedItem` + `MarketAnchor` reused.
 
+> **Extension #7 note (2026-05-24)**: L6.13 (`alternative-fng` / 공포·탐욕), L6.14 (`coingecko-global-market` / BTC 도미넌스 + 전체 시총), and L6.15 (`bybit-derivatives` / BTC 펀딩비 + OI, with `okx-derivatives` fallback) added per the 2026-05-24 u66 (crypto-channel-depth) audit-log entry. All four adapters are **no-key**, carry `category="macro"` with an `indicator` raw_metadata disambiguator tag, and are routed **crypto-only** via `_CRYPTO_ONLY_SOURCES`. **No new `Category` enum value** is added — the lower-blast-radius choice over a crypto enum value that would ripple through routing/prompts/coverage/fixtures. None carries a secret (R13), none requires a compliance header (R14 does NOT apply), and none parses XML (`defusedxml` not invoked — all JSON). New crypto business rule **R16** (crypto indicator contract + Bybit→OKX precedence + UTC-24h frame + 청산/netflow scope-out) governs how their output renders. The funding/OI precedence is **Bybit primary → OKX fallback** (both no-key, geo-safe); Binance fapi is NOT primary (GHA IP 451 geo-block). `coingecko-price` (BTC/ETH 24h price) is unchanged. No new domain entity — `NormalizedItem` reused; the u74 crypto-indicator interface is the raw_metadata contract pinned in R16.
+
 ### L6.1 FOMC RSS PoC (Q5=A)
 
 > **Format correction (2026-04-27, Step 8):** the live feed is **RSS 2.0**, not Atom 1.0 as originally predicted. Field names and date format below have been updated to match the real feed; the audit log Step 8 entry records the divergence.
@@ -403,6 +405,53 @@ The earnings adapter closes the final category gap without adding a new secret o
 | Edge cases | Stooq CSV `N/D` close → symbol dropped, fall through to the next precedence tier; Yonhap parse finds no numeric index headline → that index close is **omitted** (surfaced via coverage badge, not a hard fail — R15a / NFR-003); Stooq 429 → handled by shared `retry_get` (R5); XML parse error on Yonhap → terminal `SourceFetchError` (`defusedxml`); naive datetime → dropped per R8. |
 
 The adapter is the first domestic deterministic index/FX fallback and the only u1 adapter combining a CSV primary with an RSS terminal fallback. It introduces no secret, no paid key, and no compliance header. Domestic business rule **R15** governs how its output combines with `fsc-krx-index-price` (KRX) and the §③ 수급 / §①–§② overnight-bridge narrative. Two close-out TECH-DEBT items recorded: DEBT-068 (Yonhap parse is best-effort — a dedicated free KRX index RSS would harden the terminal tier) and DEBT-069 (domestic anchors are close-only — Yahoo KR history 429 leaves the note column `—`).
+
+### L6.13 Alternative.me Fear & Greed adapter (extension #7 2026-05-24)
+
+| Aspect | Design |
+|--------|--------|
+| Source | `https://api.alternative.me/fng/?limit=1` (single HTTP per fetch — latest reading only) |
+| Auth | none — no API key, no paid tier (R1), no compliance header (R14 does NOT apply). Live 2026-05-24: HTTP 200 no-key. |
+| Format | JSON: `{"data": [{"value": "...", "value_classification": "...", "timestamp": "<unix>", "time_until_update": "..."}]}` |
+| `name` | `"alternative-fng"` |
+| `category` | `"macro"` (crypto-routed via `_CRYPTO_ONLY_SOURCES`; **no new `Category` enum value**) |
+| Window filter | crypto is 24/7 — no market close. `published_at` derives from the Unix `data[0].timestamp` parsed to tz-aware UTC. The reading refreshes ~daily; R11 cadence-gap relaxation applies (emit the single latest valid reading regardless of strict R7 membership). |
+| `NormalizedItem` mapping | `source_name="alternative-fng"`; `category="macro"`; one item titled `f"Crypto Fear & Greed {value} ({classification})"`; `summary` describes the index + classification; `published_at` = `timestamp` → tz-aware UTC; `raw_metadata` (flat, R8 string-cast) `{"indicator": "fear_greed", "value": str (0-100), "classification": str, "timestamp": str, "time_until_update": str, "window": "utc_24h"}`. Missing optional `time_until_update` → empty string (not dropped). |
+| Edge cases | malformed payload / missing `data[0].value` → terminal `SourceFetchError` (source-level schema failure); naive/invalid `timestamp` → dropped per R8; no nested metadata written. |
+
+This is the first crypto sentiment indicator in u1. It maps to the u74 `fear_greed` row (R16). No `CoreFact` mapping (non-core context, `warn` per u55) — no `core_fact:*` key.
+
+### L6.14 CoinGecko global market adapter (extension #7 2026-05-24)
+
+| Aspect | Design |
+|--------|--------|
+| Source | `https://api.coingecko.com/api/v3/global` (single HTTP per fetch — global totals + dominance) |
+| Auth | none — no API key, no paid tier (R1). Free public tier; rate ~5-15/min, far above our 1 call per cron fire. Live 2026-05-24: HTTP 200 no-key. |
+| Format | JSON: `data.market_cap_percentage.{btc,eth}`, `data.total_market_cap.usd`, `data.total_volume.usd`, `data.market_cap_change_percentage_24h_usd`, `data.updated_at` |
+| `name` | `"coingecko-global-market"` |
+| `category` | `"macro"` (crypto-routed; **no new `Category` enum value**) |
+| Window filter | 24/7 market — `published_at` from `data.updated_at` (Unix) → tz-aware UTC. R11 cadence-gap relaxation applies (latest valid snapshot). Distinct adapter from the existing `coingecko-price` (per-coin OHLC), which is unchanged. |
+| `NormalizedItem` mapping | `source_name="coingecko-global-market"`; `category="macro"`; one item titled `f"Global crypto market cap ${total_market_cap_usd}; BTC dominance {btc_pct}%"`; `raw_metadata` (flat, R8 string-cast) `{"indicator": "global_market", "btc_dominance_pct": str, "eth_dominance_pct": str, "total_market_cap_usd": str, "total_volume_usd": str, "market_cap_change_24h_pct": str, "updated_at": str}`. |
+| Edge cases | missing BTC dominance OR total market cap → drop item (source-level schema failure); no nested metadata written; rate-limit 429 → handled by shared `retry_get` (R5). |
+
+Maps to the u74 `btc_dominance` + total-market-cap rows (R16). No `core_fact:*` key.
+
+### L6.15 Bybit derivatives adapter + OKX fallback (extension #7 2026-05-24)
+
+| Aspect | Design |
+|--------|--------|
+| Source (primary) | Bybit v5 `https://api.bybit.com/v5/market/tickers?category=linear&symbol=BTCUSDT` (single call yields both funding rate + OI). Live 2026-05-24: HTTP 200, **no-key, no geo-block** on the GHA path. |
+| Source (fallback) | OKX `https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USD-SWAP` (funding) + `https://www.okx.com/api/v5/public/open-interest?instType=SWAP&instId=BTC-USD-SWAP` (OI). Live 2026-05-24: HTTP 200 no-key. |
+| Auth | none — no API key, **no signed/authenticated endpoint** (public market-data only), no paid tier (R1). |
+| `name` | `"bybit-derivatives"` (primary); `"okx-derivatives"` (fallback) |
+| `category` | `"macro"` (crypto-routed; **no new `Category` enum value**) |
+| **Funding/OI precedence** | **Bybit primary → OKX fallback** on Bybit terminal failure. Binance fapi is **NOT primary** — sandbox 200 but **GHA IP 451 geo-block** (the crypto archive already shows `binance-crypto-market` status 451); optional last resort only, the 451 risk recorded (prefer NOT adding it). Per-source isolation: a funding/OI failure must not drop other crypto items (mirrors L6.2 yfinance sibling isolation). |
+| Items emitted | one Bybit/OKX fetch yields **two** `NormalizedItem`s: `indicator="btc_funding"` (`btc_funding_rate`, `funding_source` ∈ {`bybit`,`okx`}) and `indicator="btc_oi"` (`btc_oi_usd`, `oi_source` ∈ {`bybit`,`okx`}). |
+| Window filter | 24/7 market — `published_at` from the source's reading timestamp → tz-aware UTC; R11 cadence-gap relaxation applies (latest valid reading). |
+| `NormalizedItem` mapping | `source_name="bybit-derivatives"` / `"okx-derivatives"`; `category="macro"`; funding item titled with the rate, OI item titled with the USD notional; `raw_metadata` (flat, R8 string-cast) funding `{"indicator": "btc_funding", "btc_funding_rate": str, "funding_source": str}`, OI `{"indicator": "btc_oi", "btc_oi_usd": str, "oi_source": str}`. |
+| Edge cases | Bybit-success fixture → funding + OI items; Bybit terminal failure → OKX fixture yields the same contract keys with `*_source=okx`; malformed payload → terminal `SourceFetchError` (source-level schema failure); no nested metadata; R13 no secret. |
+
+This is the first derivatives-positioning indicator in u1 and the only u1 adapter pair with a cross-vendor primary→fallback precedence within a single logical indicator. Maps to the u74 `funding_oi_liquidation` row's funding + OI legs (R16); the **liquidation leg is absent** (scope-out — no no-key source; DEBT-071). No `core_fact:*` key.
 
 ---
 

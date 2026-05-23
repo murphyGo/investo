@@ -182,6 +182,26 @@ def test_render_price_snapshot_card_escapes_text() -> None:
     assert "크립토 가격 스냅샷" in svg
     assert "BTC" in svg
     assert "$76,105.00" in svg
+    # u66 — crypto card caption uses UTC 24h framing, not equity close.
+    assert "UTC 24h 스냅샷" in svg
+    assert "종가" not in svg
+
+
+def test_u66_us_equity_price_card_keeps_plain_date_subtitle() -> None:
+    card = PriceSnapshotCardInput(
+        target_date=date(2026, 5, 7),
+        segment="us-equity",
+        rows=(
+            PriceSnapshotRow(
+                symbol="AAPL",
+                price="$292.68",
+                percent_change="-0.22%",
+                source_name="yfinance-price",
+            ),
+        ),
+    )
+    svg = render_card_svg(card)
+    assert "UTC 24h" not in svg
 
 
 def test_render_watchlist_card_handles_no_match_and_rows() -> None:

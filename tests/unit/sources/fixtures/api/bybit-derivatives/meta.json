@@ -1,0 +1,12 @@
+{
+  "_recorded_at": "2026-05-24T05:22Z",
+  "_recorded_url": "https://api.bybit.com/v5/market/tickers?category=linear&symbol=BTCUSDT",
+  "_note": "u66 crypto-channel-depth (FD L6.15). No-key, geo-safe Bybit v5 tickers (primary funding/OI source). result.list[0].fundingRate, .openInterest (BTC notional), .openInterestValue (USD notional), .nextFundingTime, .fundingIntervalHour. Binance is NOT primary (GHA IP 451). Tests replay this body via httpx.MockTransport.",
+  "status": 200,
+  "format": "JSON",
+  "encoding": "utf-8",
+  "no_key": true,
+  "headers": {
+    "content-type": "application/json"
+  }
+}

@@ -201,6 +201,14 @@ _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
 )
 _CRYPTO_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
+        # u66 crypto-native indicators (no-key, geo-safe): Fear & Greed,
+        # global market/dominance, BTC funding+OI (Bybit primary → OKX
+        # fallback). Crypto-only; their absence must NOT downgrade
+        # otherwise-usable crypto coverage (they are not core sources).
+        "alternative-fng",
+        "bybit-derivatives",
+        "coingecko-global-market",
+        "okx-derivatives",
         "binance-crypto-market",
         "coingecko-price",
         "congress-gov-bill-actions",

@@ -27,9 +27,12 @@ from investo.sources.protocol import SourceAdapter, SourceFetchError
 # Adapter discovery — each import below runs the module's
 # ``@register`` decorator at first load.
 from . import (
+    alternative_fng,  # noqa: F401
     binance_crypto_market,  # noqa: F401
+    bybit_derivatives,  # noqa: F401
     cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401
+    coingecko_global_market,  # noqa: F401
     dart_disclosure,  # noqa: F401
     defillama_market_structure,  # noqa: F401
     fomc_calendar,  # noqa: F401
@@ -43,6 +46,7 @@ from . import (
     nasdaq_earnings_calendar,  # noqa: F401
     nasdaq_stocks_news,  # noqa: F401
     official_policy,  # noqa: F401
+    okx_derivatives,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
     stooq_kr_market,  # noqa: F401
     stooq_price,  # noqa: F401

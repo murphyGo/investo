@@ -369,3 +369,78 @@ consulted only when the higher tier returns 0 rows for that index:
   enforces this — no lint change was required (u67 AC-4).
 - Wording stays observational and compliance-safe (the u56 compliance
   gate is unchanged — no buy/sell verbs, no price targets).
+
+---
+
+## R16. Crypto indicator contract + Bybit→OKX precedence + UTC-24h frame + 청산/netflow scope-out (extension 2026-05-24)
+
+Added by u66 (crypto-channel-depth). Applies to the crypto segment's
+native indicator block (공포·탐욕, BTC 도미넌스, 전체 시총, BTC 펀딩비,
+BTC OI) supplied by the new no-key adapters `alternative-fng` (L6.13),
+`coingecko-global-market` (L6.14), and `bybit-derivatives` / `okx-derivatives`
+(L6.15), plus the crypto UTC-24h render frame. All four adapters use
+`category="macro"` + an `indicator` raw_metadata disambiguator tag and are
+routed crypto-only via `_CRYPTO_ONLY_SOURCES` — **no new `Category` enum
+value** (lower-blast-radius choice over a crypto enum value that would
+ripple through routing/prompts/coverage/fixtures).
+
+### R16a — u74 raw_metadata indicator contract (load-bearing)
+
+The crypto indicator adapters emit exactly these flat, string-typed
+(`_MetadataValue` forbids nested dicts; all values R8 string-cast)
+raw_metadata keys. `indicator` is the single disambiguator u74 switches
+on. None maps to a `CoreFact`, so none registers `core_fact:*` keys
+(non-core context, `warn` not `unverified`, per u55):
+
+| u74 row key | Indicator | raw_metadata keys | Unit | Producer |
+|-------------|-----------|-------------------|------|----------|
+| `fear_greed` | 공포·탐욕 | `indicator="fear_greed"`; `value` (0-100); `classification`; `window="utc_24h"` | index | `alternative-fng` |
+| `btc_dominance` | BTC 도미넌스 | `indicator="global_market"`; `btc_dominance_pct` | % | `coingecko-global-market` |
+| (total cap) | 전체 시총 | `indicator="global_market"`; `total_market_cap_usd`; `market_cap_change_24h_pct` | USD / % | `coingecko-global-market` |
+| `funding_oi_liquidation` (funding) | BTC 펀딩비 | `indicator="btc_funding"`; `btc_funding_rate`; `funding_source` ∈ {bybit,okx} | rate | `bybit-derivatives` / `okx-derivatives` |
+| `funding_oi_liquidation` (OI) | BTC OI | `indicator="btc_oi"`; `btc_oi_usd`; `oi_source` ∈ {bybit,okx} | USD | `bybit-derivatives` / `okx-derivatives` |
+| `funding_oi_liquidation` (liquidation) | 24h 청산 | — | — | **absent** (R16d scope-out) |
+
+- u74 consumes these keys; it MUST NOT invent or re-derive them.
+- `btc_price_24h` / `eth_price_24h` (u74 crypto rows 1-2) stay on the
+  existing `coingecko-price` adapter — u66 does NOT change those.
+
+### R16b — Funding/OI source precedence (Bybit → OKX)
+
+- BTC 펀딩비 + 미결제약정(OI) are resolved **Bybit primary → OKX fallback**
+  on Bybit terminal failure (both no-key, geo-safe). The supplying tier
+  is tagged in `funding_source` / `oi_source` so the render/trace can
+  attribute the reading.
+- Binance fapi is **NOT primary** — sandbox 200 but GHA IP 451 geo-block
+  (the crypto archive already shows `binance-crypto-market` status 451);
+  optional last resort only, with the 451 risk recorded (prefer NOT
+  adding it).
+- Per-source isolation (R6) holds: a funding/OI failure must not drop
+  other crypto items, and absence MUST NOT downgrade otherwise-usable
+  crypto coverage status (mirrors the existing `binance-crypto-market`
+  note).
+
+### R16c — Crypto UTC-24h render frame (crypto segment only)
+
+- The crypto anchor table / card / Stage 2 prompt frame the snapshot as
+  **UTC 24h** (`UTC 24h 기준`, `스냅샷`, `구간 내 변동`) instead of the
+  equity `전일 종가` / `마감` close language. The generation window is the
+  UTC `[target_date 00:00Z, (target_date+1) 00:00Z)` 24h frame.
+- This is **crypto-scoped only** — domestic-equity and us-equity anchor
+  wording is unchanged (they retain close framing). The §indicator block
+  renders deterministically before crypto §①; the LLM may explain
+  available indicator direction observationally (u56 gate unchanged) but
+  may NOT invent numbers (values are pinned by the renderer).
+
+### R16d — 청산 / netflow scope-out (no no-key source)
+
+- **24h 청산 (롱/숏 liquidations)** has no no-key aggregate source
+  (Coinglass returns `{"code":"30001","msg":"API key missing"}`) and
+  **거래소 netflow** is paid/key-required (CryptoQuant / Glassnode).
+  Both render as explicit `무료 검증 소스 미확정` unavailable rows and are
+  **never fabricated** (u74 renders the liquidation leg as
+  `not_yet_available`).
+- Both are registered as close-out TECH-DEBT: **DEBT-071** (24h 청산) and
+  **DEBT-072** (거래소 netflow). A future unit may promote a row only after
+  a no-key JSON endpoint has a recorded R10 fixture, replay coverage, and
+  a stable upstream-terms check.

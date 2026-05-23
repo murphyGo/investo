@@ -10,7 +10,12 @@ Pins that ``_render_segment_context`` injects:
 from __future__ import annotations
 
 from investo.briefing.pipeline import _render_segment_context
-from investo.briefing.prompts import CRYPTO_FORBIDDEN_TERMS_NOTE, DOMESTIC_DEPTH_NOTE
+from investo.briefing.prompts import (
+    CRYPTO_FORBIDDEN_TERMS_NOTE,
+    CRYPTO_UTC_FRAME_NOTE,
+    DOMESTIC_DEPTH_NOTE,
+    format_crypto_indicator_context,
+)
 
 
 def test_domestic_segment_carries_depth_note() -> None:
@@ -30,7 +35,29 @@ def test_crypto_segment_keeps_forbidden_term_note() -> None:
     assert DOMESTIC_DEPTH_NOTE not in rendered
 
 
+def test_u66_crypto_segment_carries_utc_frame_note() -> None:
+    rendered = _render_segment_context("crypto", data_limited=False)
+    assert CRYPTO_UTC_FRAME_NOTE in rendered
+    assert "UTC 24h 기준" in rendered
+    assert "전일 종가" in rendered  # appears in the "do not use" instruction
+
+
+def test_u66_utc_frame_note_crypto_only() -> None:
+    for seg in ("us-equity", "domestic-equity"):
+        rendered = _render_segment_context(seg, data_limited=False)  # type: ignore[arg-type]
+        assert CRYPTO_UTC_FRAME_NOTE not in rendered
+
+
+def test_u66_indicator_context_formats_only_when_block_present() -> None:
+    assert format_crypto_indicator_context("") == ""
+    assert format_crypto_indicator_context("   \n  ") == ""
+    out = format_crypto_indicator_context("## ⓪-A 크립토 지표\n| 지표 | 값 |\n")
+    assert "값 발명 금지" in out
+    assert "## ⓪-A 크립토 지표" in out
+
+
 def test_us_segment_has_no_extra_note() -> None:
     rendered = _render_segment_context("us-equity", data_limited=False)
     assert DOMESTIC_DEPTH_NOTE not in rendered
     assert CRYPTO_FORBIDDEN_TERMS_NOTE not in rendered
+    assert CRYPTO_UTC_FRAME_NOTE not in rendered

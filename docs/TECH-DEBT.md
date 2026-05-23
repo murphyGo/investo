@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 23 | 2026-04-27 |
+| Low | 25 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,26 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-071: 24h 청산 (롱/숏 liquidations) has no no-key aggregate source
+
+- **Created**: 2026-05-24
+- **Source**: u66 crypto-channel-depth closeout (Gap A scope-out)
+- **Reference**: R16d (crypto indicator scope-out), NFR-002 (free APIs / no paid keys), NFR-003 (graceful degradation), R10 (record/replay fixtures, no fabrication)
+- **Description**: The crypto native indicator block (R16) renders Fear & Greed, BTC dominance, total market cap, BTC 펀딩비, and BTC OI from no-key sources, but **24h 청산 (롱/숏 liquidations)** has no no-key aggregate source. Coinglass — the canonical aggregate-liquidation endpoint — returns `{"code":"30001","msg":"API key missing"}` without a registered key (verified live 2026-05-24 by the lead reachability probe), and its key tiers are metered/paid. Per R16d and R10 (no fabrication), the liquidation row renders as an explicit `무료 검증 소스 미확정` unavailable row and u74 renders the `funding_oi_liquidation` liquidation leg as `not_yet_available` — values are never synthesized. The crypto coverage status is NOT downgraded by this absence (it is a designed scope-out, not a degradation).
+- **Suggested Fix**: Promote a liquidation row only after a no-key JSON endpoint that aggregates exchange liquidations is identified, with (a) a recorded R10 live fixture (success/empty/malformed paths), (b) replay coverage, and (c) a stable upstream-terms check confirming no metered billing. If a free-tier Coinglass key is ever registered by the operator (and the cost-guard `INVESTO_OPENAI_VISUALS`-style env policy extended to gate it), an `coinglass-liquidations` adapter (`indicator="btc_liquidation"`, crypto-routed `category="macro"`) could land and populate the u74 liquidation leg.
+- **Effort**: ~3-4 h once a no-key aggregate-liquidation endpoint is confirmed (adapter + R10 four-path fixtures + u74 render wire-through + contract test); unknown if no no-key path ever exists.
+- **Priority Reasoning**: Low — the confirmed crypto indicators (sentiment / dominance / market cap / funding / OI) already give the reader the crypto-native state the 2026-05-22 review flagged as missing; liquidation is an enrichment leg, and the absence is visible (explicit unavailable row), not silent. Promote to Medium only if a no-key aggregate-liquidation source is confirmed or the operator registers a Coinglass key and explicitly requests the row.
+
+#### DEBT-072: 거래소 netflow has no no-key source (CryptoQuant / Glassnode are paid)
+
+- **Created**: 2026-05-24
+- **Source**: u66 crypto-channel-depth closeout (Gap A scope-out)
+- **Reference**: R16d (crypto indicator scope-out), NFR-002 (free APIs / no paid keys), NFR-003 (graceful degradation), R10 (record/replay fixtures, no fabrication)
+- **Description**: **거래소 netflow** (exchange inflow/outflow — a positioning signal a crypto reader values) has no no-key source. The canonical providers — CryptoQuant and Glassnode — are paid / key-required (verified by the lead reachability probe 2026-05-24). Per R16d and R10, the netflow row renders as an explicit `무료 검증 소스 미확정` unavailable row and is never fabricated. The crypto coverage status is NOT downgraded by this absence (designed scope-out).
+- **Suggested Fix**: Promote a netflow row only after a no-key JSON endpoint exposing exchange netflow is identified, with (a) a recorded R10 live fixture (success/empty/malformed), (b) replay coverage, and (c) a stable upstream-terms check confirming no metered billing. If no free-tier path is ever confirmed, keep the explicit unavailable row and accept the enrichment gap.
+- **Effort**: ~3-4 h once a no-key netflow endpoint is confirmed (adapter + R10 four-path fixtures + u74 render wire-through + contract test); unknown if no no-key path ever exists (likely none — netflow requires on-chain + exchange-label data that the free providers gate behind paid tiers).
+- **Priority Reasoning**: Low — same reasoning as DEBT-071; netflow is an enrichment leg and the absence is visible, not silent. The free-tier prospect is weaker than DEBT-071 (liquidation aggregators occasionally expose limited no-key reads; netflow uniformly requires paid on-chain labeling). Promote to Medium only if a no-key netflow source is confirmed.
 
 #### DEBT-070: Inline first-use glossing variant (in-body parenthetical auto-gloss) deferred
 
