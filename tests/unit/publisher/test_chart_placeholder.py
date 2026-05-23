@@ -3,8 +3,9 @@
 Pins:
 
 * Placeholder div carries the expected attribute set (``data-ticker``,
-  ``data-history``, ``data-ath`` only when ATH, ``data-52w-high`` /
-  ``data-52w-low`` derived from the supplied history).
+  ``data-close``, optional ``data-pct``, ``data-history``,
+  ``data-ath`` only when ATH, ``data-52w-high`` / ``data-52w-low``
+  derived from the supplied history).
 * ``data-history`` JSON shape — list of dicts with ``t/o/h/l/c[/v]``.
 * HTML id slug strips non-ASCII-alnum characters so ``^GSPC`` lands as
   ``chart-GSPC`` (a leading ``^`` would parse but breaks `getElementById`
@@ -49,10 +50,17 @@ def _history(*closes: float) -> tuple[OHLCRow, ...]:
     return tuple(_row(idx + 1, value) for idx, value in enumerate(closes))
 
 
-def _anchor(ticker: str, *, close: float, is_ath: bool) -> MarketAnchor:
+def _anchor(
+    ticker: str,
+    *,
+    close: float,
+    is_ath: bool,
+    pct: float | None = None,
+) -> MarketAnchor:
     return MarketAnchor(
         ticker=ticker,
         close=Decimal(str(close)),
+        pct=Decimal(str(pct)) if pct is not None else None,
         is_ath=is_ath,
     )
 
@@ -64,11 +72,13 @@ def _anchor(ticker: str, *, close: float, is_ath: bool) -> MarketAnchor:
 
 def test_render_emits_expected_attribute_set_for_ath() -> None:
     history = _history(100.0, 102.0, 105.0, 108.0)
-    anchor = _anchor("AAPL", close=108.0, is_ath=True)
+    anchor = _anchor("AAPL", close=108.0, is_ath=True, pct=1.23)
     rendered = render_chart_placeholder(anchor, history)
     assert rendered.startswith('<div class="investo-chart"')
     assert ' id="chart-AAPL"' in rendered
     assert ' data-ticker="AAPL"' in rendered
+    assert ' data-close="108.0"' in rendered
+    assert ' data-pct="1.23"' in rendered
     assert ' data-ath="108.0"' in rendered
     # data-52w-high reflects the max(history.high), not anchor.close
     assert ' data-52w-high="109.0"' in rendered
@@ -81,6 +91,7 @@ def test_render_omits_ath_attribute_when_not_at_ath() -> None:
     anchor = _anchor("MSFT", close=90.0, is_ath=False)
     rendered = render_chart_placeholder(anchor, history)
     assert "data-ath=" not in rendered
+    assert "data-pct=" not in rendered
     assert " data-52w-high=" in rendered
     assert " data-52w-low=" in rendered
 

@@ -107,8 +107,12 @@ def test_mkdocs_yml_registers_both_extra_javascript_paths() -> None:
 @pytest.mark.parametrize(
     "needle",
     [
+        "addCandlestickSeries",
+        "addLineSeries",
         "data-history",
+        "data-close",
         "data-ticker",
+        "investo-chart-card",
         "investo-chart",
     ],
 )

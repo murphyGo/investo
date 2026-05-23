@@ -161,6 +161,8 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
     resulting div carries:
 
     * ``data-ticker`` — raw ticker (display value, attribute-escaped).
+    * ``data-close`` / ``data-pct`` — compact summary values used in the
+      collapsed card before the full chart is opened.
     * ``data-history`` — minified JSON of the OHLCV bars.
     * ``data-ath`` — anchor close when ``is_ath`` else nothing (the JS
       side already redraws if absent).
@@ -176,6 +178,10 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
         return ""
     slug = _slug_for_id(anchor.ticker)
     ticker_attr = _attr_escape(anchor.ticker)
+    close_attr = _attr_escape(_decimal_to_float_str(anchor.close))
+    pct_attr = ""
+    if anchor.pct is not None:
+        pct_attr = f' data-pct="{_attr_escape(_decimal_to_float_str(anchor.pct))}"'
 
     window_high = max(row.high for row in history)
     window_low = min(row.low for row in history if row.low > 0) if history else None
@@ -191,7 +197,7 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
     history_attr = _data_history_attr(history)
     return (
         f'<div class="investo-chart" id="chart-{slug}" data-ticker="{ticker_attr}"'
-        f"{ath_attr}{high_attr}{low_attr}"
+        f' data-close="{close_attr}"{pct_attr}{ath_attr}{high_attr}{low_attr}'
         f" data-history='{history_attr}'></div>\n"
     )
 
