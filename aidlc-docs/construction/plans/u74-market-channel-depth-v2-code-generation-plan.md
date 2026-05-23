@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u74 market-channel-depth-v2
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (2026-05-24)
 **Source**: 2026-05-24 ten-subagent user-quality review of channel-specific briefing usefulness
 **Estimated Effort**: ~6-9 h
 **Dependencies**:
@@ -97,28 +97,28 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Define channel anchor schema `[ ]`
-- [ ] Implement the minimal schema table above, not a newly invented row set.
-- [ ] Use only the missing reason enum values listed above unless implementation discovers an existing narrower enum to reuse.
-- [ ] Map each row to its existing producer: u67 domestic, u66 crypto, u49/u55 generic anchors, u57 BundleContext.
+### Step 1 — Define channel anchor schema `[x]`
+- [x] Implement the minimal schema table above, not a newly invented row set.
+- [x] Use only the missing reason enum values listed above unless implementation discovers an existing narrower enum to reuse.
+- [x] Map each row to its existing producer: u67 domestic, u66 crypto, u49/u55 generic anchors, u57 BundleContext.
 - **Acceptance**: schema table exists in code comments/docs/tests and avoids source duplication.
 
-### Step 2 — Implement explicit missing-data rendering `[ ]`
-- [ ] Update anchor renderer so unavailable native rows render as explicit `데이터 없음/미수집/지연` rows when relevant.
-- [ ] Ensure missing rows do not count as successful numeric facts.
-- [ ] Keep output concise and not alarmist.
+### Step 2 — Implement explicit missing-data rendering `[x]`
+- [x] Update anchor renderer so unavailable native rows render as explicit `데이터 없음/미수집/지연` rows when relevant.
+- [x] Ensure missing rows do not count as successful numeric facts.
+- [x] Keep output concise and not alarmist.
 - **Acceptance**: partial-channel fixture shows explicit missing rows without invented values.
 
-### Step 3 — Consume crypto and domestic outputs `[ ]`
-- [ ] For crypto, consume u66 indicators when present and label unavailable indicators if u66 marks them missing.
-- [ ] For domestic, reuse u67 KOSPI/KOSDAQ/FX/sector outputs without changing precedence.
-- [ ] For US equity, preserve existing index/macro/sector anchors and add missing rows only where schema requires them.
+### Step 3 — Consume crypto and domestic outputs `[x]`
+- [x] For crypto, consume u66 indicators when present and label unavailable indicators if u66 marks them missing.
+- [x] For domestic, reuse u67 KOSPI/KOSDAQ/FX/sector outputs without changing precedence.
+- [x] For US equity, preserve existing index/macro/sector anchors and add missing rows only where schema requires them.
 - **Acceptance**: each channel fixture renders native anchors through the same renderer contract.
 
-### Step 4 — Add cross-market cause-map guard `[ ]`
-- [ ] Render a compact cause-map line only when u57 BundleContext permits the linkage.
-- [ ] Forbid unapproved cross-segment ticker leakage.
-- [ ] Keep wording observational: "연결 고리" / "관찰" rather than prediction.
+### Step 4 — Add cross-market cause-map guard `[x]`
+- [x] Render a compact cause-map line only when u57 BundleContext permits the linkage.
+- [x] Forbid unapproved cross-segment ticker leakage.
+- [x] Keep wording observational: "연결 고리" / "관찰" rather than prediction.
 - **Acceptance**: allowed macro/systemic link fixture passes; forbidden ticker-only linkage fixture fails or omits the cause map.
 
 Allowed cause-map rules:
@@ -131,14 +131,14 @@ Allowed cause-map rules:
 
 Forbidden links are omitted and logged/replay-reported; they are not demoted into public prose.
 
-### Step 5 — Tests and gate `[ ]`
-- [ ] Complete-channel fixture.
-- [ ] Partially missing-channel fixture.
-- [ ] Forbidden cross-segment leakage fixture.
-- [ ] u66-not-yet-present fixture where crypto indicator rows render `not_yet_available`.
-- [ ] Missing rows do not increase numeric-success counts.
-- [ ] When u70 is present, anchor values remain single-source across table/body/trace-visible/chart surfaces.
-- [ ] Run targeted anchor/publisher/briefing tests, plus ruff/mypy and mkdocs if site output changes.
+### Step 5 — Tests and gate `[x]`
+- [x] Complete-channel fixture.
+- [x] Partially missing-channel fixture.
+- [x] Forbidden cross-segment leakage fixture.
+- [x] u66-not-yet-present fixture where crypto indicator rows render `not_yet_available`.
+- [x] Missing rows do not increase numeric-success counts.
+- [x] When u70 is present, anchor values remain single-source across table/body/trace-visible/chart surfaces.
+- [x] Run targeted anchor/publisher/briefing tests, plus ruff/mypy and mkdocs if site output changes.
 
 ---
 

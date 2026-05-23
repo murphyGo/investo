@@ -176,11 +176,19 @@ from investo.publisher.anchor_assertion_gate import (
 )
 from investo.publisher.anchor_table import render_anchor_table
 from investo.publisher.carryover import inject_carryover_block, render_carryover_block
+from investo.publisher.channel_anchor_block import (
+    inject_channel_anchor_block,
+    render_channel_anchor_block,
+)
 from investo.publisher.charts import build_chart_block, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
     repair_compliance_language,
     scan_compliance,
+)
+from investo.publisher.cross_market_cause_map import (
+    evaluate_cause_map,
+    inject_cause_map_line,
 )
 from investo.publisher.cross_segment_lint import run_all_cross_segment_lints
 from investo.publisher.crypto_indicators import (
@@ -1459,6 +1467,35 @@ def _apply_reader_format_to_segments(
                     markdown,
                     render_crypto_indicator_block(crypto_items),
                 )
+        # u74 — channel-depth v2 native-anchor block. Standardises every
+        # segment's reader-facing anchor block so missing native anchors
+        # render explicit reason rows instead of silent omissions. Consumes
+        # the same reconciled ``anchors`` (u49/u55/u67) the table swap used
+        # and, for crypto, the u66 indicator raw_metadata contract. Does NOT
+        # re-collect or re-rank either — pure presentation. Idempotent.
+        crypto_block_items = (
+            items_by_segment.get("crypto", ())
+            if (segment == "crypto" and items_by_segment is not None)
+            else ()
+        )
+        channel_block = render_channel_anchor_block(
+            segment,
+            anchors=anchors,
+            crypto_items=crypto_block_items,
+        )
+        markdown = inject_channel_anchor_block(markdown, channel_block)
+        # u74 Step 4 — cross-market cause-map line, gated by the u57
+        # BundleContext shared-macro evidence + cross_market_core_allowed
+        # allow-list. Forbidden linkages are omitted (logged), never demoted
+        # into prose. Observational wording only.
+        if bundle_context is not None:
+            cause_map = evaluate_cause_map(bundle_context)
+            for suppressed in cause_map.suppressed:
+                _logger.info(
+                    "cross_market_cause_map.suppressed",
+                    extra={"segment": segment, "cause_type": suppressed},
+                )
+            markdown = inject_cause_map_line(markdown, cause_map)
         # u56 — compliance-language gate + first-viewport short disclaimer
         # + retail tone caps. Order: scan first (cheap reject of P0 hits
         # before any post-format I/O), then prepend the short disclaimer

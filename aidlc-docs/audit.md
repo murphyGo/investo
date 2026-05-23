@@ -1,5 +1,30 @@
 # AI-DLC Audit Log
 
+## Construction — u74 market-channel-depth-v2 Complete
+**Timestamp**: 2026-05-24T26:00:00+09:00
+**Trigger**: u74 (market-channel-depth-v2) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only, other lines preserved.
+**Decision**: Ratify the implementation and close the unit (5/5 steps). Every segment now exposes a deterministic native anchor block; unavailable native rows render explicit reason rows (no silent omission, no invented values); cross-market explanation is double-gated through u57. Confirmed u74 **consumes u66/u67, it does not re-implement them**: the channel anchor block reads the reconciled `MarketAnchor` set already passed into each segment (same `anchors` the top table swap uses) for domestic (u67) — no precedence change, no new domestic adapter — and reads the existing u66 `indicator` raw_metadata contract (`global_market`/`fear_greed`/`btc_funding`/`btc_oi`) for crypto — no new crypto source; u66-unlanded indicators (liquidation leg) render `아직 미제공`. The fear/greed cell is value-only — the `(분류)` gloss stays owned by u66 `## ⓪-A` (dedupe-collision avoidance).
+**Delivered**:
+- **`src/investo/publisher/channel_anchor_block.py`** (new): channel anchor schema + deterministic renderer; `MissingReason` enum (`source_empty`/`market_closed`/`not_collected`/`insufficient_items`/`stale`/`not_yet_available`). All-missing → empty result (caller omits — no noise grid); missing rows render a reason label only (no number, no numeric-success increment).
+- **`src/investo/publisher/cross_market_cause_map.py`** (new): compact observational cause-map line.
+- **`src/investo/orchestrator/pipeline.py`** (changed): imports both modules; injection inside `_apply_reader_format_to_segments`.
+- **Tests**: new `tests/unit/publisher/test_channel_anchor_block.py` + `tests/unit/publisher/test_cross_market_cause_map.py`.
+**Schema**: domestic `kospi`/`kosdaq`/`usd_krw`/`sector` ← u67; us `sp500`/`nasdaq`/`dow` (+macro/yield optional) ← u49/u55; crypto `btc`/`eth` price 24h + `dominance`/`fear_greed`/`funding_oi` ← u66/u49 (liquidation → `not_yet_available`). Index/FX labels resolve through the u70 `anchor_label` registry.
+**Cause-map scope safety**: double gate — u57 `BundleContext.shared_macro_block` (only keys hit by ≥2 segments) AND `cross_market_core_allowed`. Does not read tickers. Allowed types `geopolitical_oil_macro`/`fed_policy_event`/`global_systemic_risk` (last is dormant — no detector emits it today, plan-aware). Forbidden types are suppressed + logged/replay-reported, never demoted into public prose. `cross_segment_lint` byte-unchanged (29/29 pass). Observational wording only ("연결 고리"/"관찰", no prediction).
+**Idempotency**: renders only when ≥1 native value present (avoids all-missing macro assertion); fear/greed value-only avoids gloss-dedupe collision with u66 `## ⓪-A`.
+**FD divergences ratified**: none — FD = SKIP (presentation/renderer over existing u66/u67/u49/u55/u57 models; no new entity).
+**Scope-out -> TECH-DEBT**: **DEBT-076** (Low) — `BundleContext` exposes only the *rendered* shared-macro string, so `cross_market_cause_map` re-derives the cause-map type by matching Korean macro labels (`국제 유가`/`FOMC 일정`/`미 국채 수익률`) — label-coupling. Additive fix = add a structured `detected_macro_keys` field to `BundleContext` (model change — planner/scope-gated) and key the cause-map off it.
+**Risk recorded**: label-coupling (DEBT-076) is maintenance brittleness, not a public misfire — forbidden links are still suppressed by the double gate. `global_systemic_risk` cause-map type is dormant (no emitting detector; plan-aware). 2 integration tests regressed during wiring, root-caused, then passing.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u74-market-channel-depth-v2/code/summary.md` (new — Scope/Stage Decision(FD+NFR SKIP)/u66+u67 consumption(no re-implementation)/channel anchor schema/cause-map scope safety/idempotency/AC-74.1-5 traceability/FD divergences/TECH-DEBT/risk/gate)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-076 added; Low count 28->29)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u74-market-channel-depth-v2-code-generation-plan.md` (Status -> Complete; all Steps `[x]`)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u74 row Backlog->Complete; Code Generation / Build-and-Test lines; backlog range u74-u76 -> u75-u76; u66 dependency resolved; FD+NFR SKIP confirmed)
+**Status**: u74 complete (5/5). AC-74.1..AC-74.5 MET. Gate: ruff clean / ruff-format clean / mypy --strict 143 files clean / pytest 2613 passed (2 integration regressions root-caused then passing) / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout.
+**Context**: Project rules upheld — 무료 API only (no external call; deterministic render over existing u66/u67/u49/u55 anchors + u57 BundleContext), Anthropic SDK 금지 (untouched), 모듈 경계 (channel_anchor_block + cross_market_cause_map publisher-internal; orchestrator-only cross-unit import preserved), 면책조항 + 채널 분리 gates untouched, R13 no secret (no secret surface touched; cause-map reads no tickers), `defusedxml` not invoked. No new data source / numeric-verification rule / dependency.
+
+---
+
 ## Construction — u73 watchlist-impact-center-v2 Complete
 **Timestamp**: 2026-05-24T25:30:00+09:00
 **Trigger**: u73 (watchlist-impact-center-v2) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only, other lines preserved.
