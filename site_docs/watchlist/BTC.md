@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-22 begin -->
+
+## 2026-05-22
+
+- [defillama-market-structure] **ticker**: DeFi TVL $80.9B; leader Ethereum
+- [stooq-price] **ticker**: BTC-USD 75,580.19
+- [theblock-crypto] **ticker**: New strategic bitcoin reserve bill drops 1 million BTC purchase target, adds 20-year lockup period
+
+<!-- u33 entry 2026-05-22 end -->
 <!-- u33 entry 2026-05-21 begin -->
 
 ## 2026-05-21

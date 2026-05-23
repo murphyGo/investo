@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-22 begin -->
+
+## 2026-05-22
+
+- [stooq-price] **ticker**: AMZN 266.32
+- [yahoo-finance-news] **ticker**: Amazon allegedly made millions from this now illegal policy
+
+<!-- u33 entry 2026-05-22 end -->
 <!-- u33 entry 2026-05-21 begin -->
 
 ## 2026-05-21
