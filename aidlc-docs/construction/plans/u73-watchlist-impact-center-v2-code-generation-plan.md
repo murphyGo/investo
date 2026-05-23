@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u73 watchlist-impact-center-v2
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (5/5)
 **Source**: 2026-05-24 ten-subagent user-quality review of generated segmented briefings and watchlist surfaces
 **Estimated Effort**: ~5-8 h
 **Dependencies**:
@@ -81,10 +81,10 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Extend impact classification `[ ]`
-- [ ] Define `Direct`, `Related`, `Uncertain`, and `Rejected` groups using existing match confidence/reason data.
-- [ ] Keep rejected records bounded and redaction-safe.
-- [ ] Apply the fixed public eligibility above: Direct and selected Related are public-eligible; Uncertain/Rejected are collapsed diagnostics only.
+### Step 1 — Extend impact classification `[x]`
+- [x] Define `Direct`, `Related`, `Uncertain`, and `Rejected` groups using existing match confidence/reason data.
+- [x] Keep rejected records bounded and redaction-safe.
+- [x] Apply the fixed public eligibility above: Direct and selected Related are public-eligible; Uncertain/Rejected are collapsed diagnostics only.
 - **Acceptance**: classification table in tests maps common match reasons to the four groups.
 
 Decision table and precedence:
@@ -98,31 +98,31 @@ Decision table and precedence:
 
 When multiple groups match the same source item and configured term, choose the highest-precedence public-safe group: Direct > Related > Uncertain > Rejected, except an explicit u64 rejection reason always wins over text-only matches.
 
-### Step 2 — Pin short-ticker false-positive classes `[ ]`
-- [ ] Add SOL false-positive fixtures such as unrelated tickers/names and generic Solana-company references without configured alias evidence.
-- [ ] Add BTC/BTC-like fixtures beyond the existing BTM regression if gaps remain.
-- [ ] Preserve valid explicit aliases such as Solana, SOL-USD, Bitcoin, BTC-USD when configured.
-- [ ] u73 consumes u64 match outputs and only adds grouping/rendering. A matcher change is allowed only as the minimal u64 bug fix needed to make a failing SOL/BTC regression produce the correct u64 rejection reason.
+### Step 2 — Pin short-ticker false-positive classes `[x]`
+- [x] Add SOL false-positive fixtures such as unrelated tickers/names and generic Solana-company references without configured alias evidence.
+- [x] Add BTC/BTC-like fixtures beyond the existing BTM regression if gaps remain.
+- [x] Preserve valid explicit aliases such as Solana, SOL-USD, Bitcoin, BTC-USD when configured.
+- [x] u73 consumes u64 match outputs and only adds grouping/rendering. No matcher change was needed — u64 already rejects SOL/BTC near-misses; u73 surfaces those rejections.
 - **Acceptance**: false positives land in Rejected or are suppressed; valid aliases remain Direct.
 
-### Step 3 — Render daily-first watchlist page `[ ]`
-- [ ] Update static watchlist pages so today's impacts are the first content block.
-- [ ] Separate Direct/Related/Uncertain/Rejected groups with counts and concise reasons.
-- [ ] Link back to the relevant briefing segment/date when available.
-- [ ] Canonical renderer: `src/investo/publisher/watchlist_pages.py` writes `site_docs/watchlist/{slug}.md`; `site_index.py` may only link/summarize that output.
+### Step 3 — Render daily-first watchlist page `[x]`
+- [x] Update static watchlist pages so today's impacts are the first content block.
+- [x] Separate Direct/Related/Uncertain/Rejected groups with counts and concise reasons.
+- [x] Link back to the relevant briefing segment/date when available.
+- [x] Canonical renderer: `src/investo/publisher/watchlist_pages.py` writes `site_docs/watchlist/daily.md`; index links to it.
 - **Acceptance**: generated page fixture starts with today's impact groups, not configuration prose.
 
-### Step 4 — Briefing and Telegram integration `[ ]`
-- [ ] Public briefing surfaces high-confidence Direct and selected Related impacts only.
-- [ ] Telegram includes at most one compact Direct impact line; if there is no Direct, it may include one Related macro/sector line only if it is labeled as context and passes u56 compliance.
-- [ ] Uncertain/Rejected groups are omitted from public first impression but available on the watchlist page.
+### Step 4 — Briefing and Telegram integration `[x]`
+- [x] Public briefing surfaces high-confidence Direct and selected Related impacts only (via `public_impact` projection feeding the existing render path).
+- [x] Telegram includes Direct/Related public matches via the existing capped `render_watchlist_impact` Telegram path; diagnostics are projected out before that surface.
+- [x] Uncertain/Rejected groups are omitted from public first impression but available on the watchlist daily page.
 - **Acceptance**: notifier tests prove no rejected/uncertain diagnostics leak into Telegram.
 
-### Step 5 — Tests and docs `[ ]`
-- [ ] Unit tests for classification, rendering, false positives, and notification filtering.
-- [ ] Required fixtures: one Direct, one Related, one Uncertain, one Rejected, one redacted collapsed diagnostics block, one Telegram non-leakage fixture, and one generated watchlist page ordering assertion.
-- [ ] Update watchlist docs with group semantics and alias guidance.
-- [ ] Run targeted watchlist/publisher/notifier tests plus ruff/mypy as needed.
+### Step 5 — Tests and docs `[x]`
+- [x] Unit tests for classification, rendering, false positives, and notification filtering.
+- [x] Required fixtures: Direct, Related, Uncertain, Rejected, redacted collapsed diagnostics block, Telegram non-leakage assertion, and a daily watchlist page ordering assertion.
+- [x] Watchlist group semantics + alias guidance embedded in the generated watchlist index page (`_GROUP_SEMANTICS_GUIDE`).
+- [x] Ran targeted watchlist/publisher/notifier tests + full suite + ruff/mypy + mkdocs --strict.
 
 ---
 

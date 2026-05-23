@@ -93,6 +93,7 @@ from investo.briefing.watchlist import (
     render_watchlist_impact,
     render_watchlist_prompt_context,
 )
+from investo.briefing.watchlist_impact import build_impact_center, public_impact
 from investo.models import (
     Briefing,
     BriefingCarryover,
@@ -1619,11 +1620,16 @@ async def generate_briefing(
     else:
         coverage = None
     watchlist = load_watchlist() if watchlist_config is None else watchlist_config
-    watchlist_impact = match_watchlist_items(
+    raw_watchlist_impact = match_watchlist_items(
         items,
         watchlist,
         coverage_status=coverage.status if coverage is not None else None,
     )
+    # u73 — the briefing/Telegram first impression surfaces only
+    # public-eligible (Direct/Related) impacts. Uncertain/Rejected groups
+    # stay on the watchlist diagnostics block and never reach this body.
+    watchlist_center = build_impact_center(raw_watchlist_impact, items=items, config=watchlist)
+    watchlist_impact = public_impact(watchlist_center)
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
 
     if segment is not None and effective_data_limited and not items:

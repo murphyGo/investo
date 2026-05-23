@@ -924,15 +924,21 @@ async def _stage_publish_segments(
                 load_watchlist,
                 match_watchlist_items,
             )
-            from investo.publisher.watchlist_pages import update_watchlist_pages
+            from investo.briefing.watchlist_impact import build_impact_center
+            from investo.publisher.watchlist_pages import (
+                update_watchlist_pages,
+                write_daily_impact_page,
+            )
 
             watchlist_cfg = load_watchlist()
             all_matches: list[Any] = []
+            all_items_for_match: list[Any] = []
             if watchlist_cfg.is_configured:
                 for segment_for_match in SEGMENT_ORDER:
                     if segment_for_match not in briefings:
                         continue
                     segment_items_for_match = segment_items(items).for_segment(segment_for_match)
+                    all_items_for_match.extend(segment_items_for_match)
                     impact_for_match = match_watchlist_items(segment_items_for_match, watchlist_cfg)
                     all_matches.extend(impact_for_match.matches)
             watchlist_paths = await asyncio.to_thread(
@@ -940,6 +946,29 @@ async def _stage_publish_segments(
                 target_date,
                 all_matches,
             )
+            # u73 — daily-first impact center page. Recompute the grouped
+            # center across all segments (Direct/Related/Uncertain/Rejected)
+            # and write today's impacts as the first content block. The
+            # writer fully regenerates the page so re-runs are idempotent.
+            combined_impact = match_watchlist_items(all_items_for_match, watchlist_cfg)
+            impact_center = build_impact_center(
+                combined_impact,
+                items=all_items_for_match,
+                config=watchlist_cfg,
+            )
+            _briefing_urls = _forecast_briefing_urls(target_date, published_segments)
+            daily_segment_links = [
+                (SEGMENT_LABELS[segment_for_link], _briefing_urls[segment_for_link])
+                for segment_for_link in SEGMENT_ORDER
+                if segment_for_link in briefings
+            ]
+            daily_path = await asyncio.to_thread(
+                write_daily_impact_page,
+                target_date,
+                impact_center,
+                segment_links=daily_segment_links,
+            )
+            watchlist_paths = (*watchlist_paths, daily_path)
             for path in watchlist_paths:
                 snapshots.setdefault(path, _read_existing_bytes(path))
             index_paths = (*index_paths, *watchlist_paths)

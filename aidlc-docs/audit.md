@@ -1,5 +1,31 @@
 # AI-DLC Audit Log
 
+## Construction — u73 watchlist-impact-center-v2 Complete
+**Timestamp**: 2026-05-24T25:30:00+09:00
+**Trigger**: u73 (watchlist-impact-center-v2) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only, other lines preserved.
+**Decision**: Ratify the implementation and close the unit (5/5 steps). Watchlist hits now group into Direct / Related / Uncertain / Rejected; only high-confidence Direct/Related surface in the briefing body and Telegram, and Uncertain/Rejected appear only inside a collapsed R13-redacted diagnostics block on the static watchlist daily page. Confirmed u73 is a **u64 extension, not a replacement**: it consumes u64 `WatchlistMatch.confidence`/`reason`/`matched_alias` as-is, only routes accepted matches into buckets, and runs a **separate** near-miss scan for Rejected (accepted keys excluded first) — the matcher `briefing/watchlist.py` is unchanged (u64 already rejects SOL/BTC near-misses; u73 visualizes those rejections).
+**Delivered**:
+- **`src/investo/briefing/watchlist_impact.py`** (new): `build_impact_center` (group routing over u64 matches) + `public_impact` (Direct/Related projection); `_detect_rejected` near-miss scan; deterministic ordering; Rejected 25-item cap.
+- **`src/investo/publisher/watchlist_pages.py`** (changed): `render_daily_impact_page` / `write_daily_impact_page` -> `site_docs/watchlist/daily.md`; index gains a group-semantics guide and links to daily; per-term table excludes `daily.md`.
+- **`src/investo/briefing/pipeline.py`** (changed): body consumes `public_impact(build_impact_center(...))` — only Direct/Related reach the body.
+- **`src/investo/orchestrator/pipeline.py`** (changed): on publish writes `site_docs/watchlist/daily.md` + per-segment backlink.
+- **Tests**: new `tests/unit/briefing/test_watchlist_impact.py` (22) + `tests/unit/publisher/test_watchlist_daily_page.py` (8). Net delta +30.
+**Group schema (stable, deterministic)**: priority Direct > Related > Uncertain > Rejected (explicit u64 rejection always wins over text-only). Direct = u64 `structured`, or ticker/asset `strict`/`alias`. Related = `text` with long/non-ASCII sector/keyword evidence. Uncertain = short `text`, or `text` against a ticker/asset term. Rejected = configured short ASCII ticker (<=4 chars) + near-miss token (shared-prefix family or uppercase ticker-shaped lookalike, +-2 length, same first letter) that u64 did NOT accept. BTC<->BTM/BTCS, SOL<->SLGL, "Solana Inc" (no alias) all land Rejected/non-Direct; Bitcoin/BTC-USD/Solana/SOL-USD aliases stay Direct.
+**Public / diagnostic boundary (R13 redaction)**: Direct/Related only -> daily page (with titles) + briefing body + Telegram. Uncertain/Rejected only inside a collapsed `<details><summary>진단: 보류/제외된 후보</summary>` block on the daily page with titles redacted to source name + reason code + offending token + 6-char title hash — title/summary/URL never exposed. Telegram non-leakage pinned by test: `public_impact` projects diagnostics out before the Telegram surface.
+**Module boundary**: `watchlist_impact` briefing-internal over u64 matches; `watchlist_pages` publisher-internal over prepared impact data; orchestrator wires daily-page write + backlink. No briefing<->publisher<->notifier cross-import — orchestrator-only cross-unit import rule upheld. u56 observational-only contract untouched (AC-73.5).
+**FD divergences ratified**: none — FD = SKIP (classification/presentation over existing u64 match models; no new entity).
+**Scope-out -> TECH-DEBT**: **DEBT-075** (Low) — the Rejected uppercase ticker-shaped lookalike heuristic is intentionally broad and can list an unrelated uppercase ticker that shares a configured short ticker's first letter; diagnostics-only / non-public (R13-redacted), so operator-trust noise rather than a reader error. Additive fix = tighten with a known-symbol allowlist / edit-distance bound.
+**Risk recorded**: near-miss heuristic breadth (partly filtered by +-2 length window) can add operator-trust noise to the collapsed diagnostics block; never reader-facing. Tracked as DEBT-075.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u73-watchlist-impact-center-v2/code/summary.md` (new — Scope/Stage Decision(FD+NFR SKIP)/u64 non-overlap/group schema/public-diagnostic boundary(R13 redaction)/AC-73.1-5 traceability/FD divergences/TECH-DEBT/risk/gate)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-075 added; Low count 27->28)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u73-watchlist-impact-center-v2-code-generation-plan.md` (Status -> Complete; all Steps `[x]`)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u73 row Backlog->Complete; Code Generation / Build-and-Test lines; backlog range u73-u76 -> u74-u76; FD+NFR SKIP confirmed)
+**Status**: u73 complete (5/5). AC-73.1..AC-73.5 MET. Gate: ruff clean / ruff-format clean / mypy --strict 141 files clean / pytest 2592 passed (+30) / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout.
+**Context**: Project rules upheld — 무료 API only (no external call; deterministic grouping/render over existing u64 matches), Anthropic SDK 금지 (untouched), 모듈 경계 (watchlist_impact briefing-internal; watchlist_pages publisher-internal; orchestrator-only cross-unit import preserved), 면책조항 + 채널 분리 gates untouched, R13 no secret (diagnostics titles redacted; Telegram non-leakage test pinned), `defusedxml` not invoked. No new data source / numeric-verification rule / dependency.
+
+---
+
 ## Construction — u72 watchpoint-action-matrix Complete
 **Timestamp**: 2026-05-24T25:00:00+09:00
 **Trigger**: u72 (watchpoint-action-matrix) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only, other lines preserved.

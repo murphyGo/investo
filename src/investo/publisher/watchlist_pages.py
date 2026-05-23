@@ -27,9 +27,47 @@ from pathlib import Path
 from typing import Final
 
 from investo.briefing.watchlist import WatchlistMatch
+from investo.briefing.watchlist_impact import RejectedCandidate, WatchlistImpactCenter
 from investo.models import NormalizedItem
 
 WATCHLIST_PAGES_ROOT: Final[Path] = Path("site_docs/watchlist")
+# u73 — the daily-first impact center page. Today's grouped impacts are
+# the first content block; per-term accumulation pages remain the
+# history surface.
+DAILY_IMPACT_PAGE: Final[str] = "daily.md"
+_DIAGNOSTICS_SUMMARY: Final[str] = "진단: 보류/제외된 후보"
+
+# u73 — reader-facing group semantics + alias guidance embedded at the top
+# of the watchlist index page. Documents the four impact groups and how to
+# turn a noisy short ticker into a reliable match via the alias config.
+_GROUP_SEMANTICS_GUIDE: Final[tuple[str, ...]] = (
+    "## 영향 그룹 안내",
+    "",
+    (
+        "- **직접 (Direct)**: 티커/심볼 구조화 매칭 또는 정확한 별칭 일치. "
+        "본문·텔레그램에 노출됩니다."
+    ),
+    (
+        "- **관련 (Related)**: 섹터·키워드·매크로 맥락 매칭(직접 자산 일치는 아님). "
+        "본문에 맥락으로 노출됩니다."
+    ),
+    (
+        "- **보류 (Uncertain)**: 저신뢰 텍스트 매칭. "
+        "진단 블록에만 표시되며 공개 첫인상에는 노출되지 않습니다."
+    ),
+    (
+        "- **제외 (Rejected)**: 짧은 티커 오탐(예: `BTC`↔`BTM`/`BTCS`, `SOL`↔`SLGL`) "
+        "억제 기록. 진단 블록에만 표시됩니다."
+    ),
+    "",
+    (
+        "> 짧은 티커(`BTC`, `SOL` 등)가 오탐을 일으키면 `config/watchlist.json`의 "
+        "`aliases`에 정확한 표기(`Bitcoin`, `BTC-USD`, `Solana`, `SOL-USD`)를 "
+        "등록하면 직접 매칭 신뢰도가 올라갑니다."
+    ),
+    "",
+    "_관심 자산 영향은 관찰형 정보이며 매매 권유가 아닙니다._",
+)
 # Per-day section marker — bracket-style anchored on the target date.
 _BEGIN_MARKER_TEMPLATE: Final[str] = "<!-- u33 entry {date} begin -->"
 _END_MARKER_TEMPLATE: Final[str] = "<!-- u33 entry {date} end -->"
@@ -150,13 +188,22 @@ def _maybe_write_index(pages_root: Path) -> Path | None:
 
     if not pages_root.exists():
         return None
-    pages = sorted(p for p in pages_root.glob("*.md") if p.name != "index.md")
+    # u73 — ``daily.md`` is the impact-center page, not a per-term
+    # accumulation page; exclude it from the term table / chart.
+    pages = sorted(
+        p for p in pages_root.glob("*.md") if p.name not in ("index.md", DAILY_IMPACT_PAGE)
+    )
     if not pages:
         return None
     counts = {page.stem: _count_per_page(page) for page in pages}
     chart_svg = render_cumulative_match_chart({k: v for k, v in counts.items() if v > 0})
     index_path = pages_root / "index.md"
     lines = ["# 관심 자산 누적", ""]
+    if (pages_root / DAILY_IMPACT_PAGE).exists():
+        lines.append(f"➡️ [오늘의 관심 자산 영향]({DAILY_IMPACT_PAGE})")
+        lines.append("")
+    lines.extend(_GROUP_SEMANTICS_GUIDE)
+    lines.append("")
     lines.append(chart_svg)
     lines.append("")
     lines.append("| 종목 / 자산 | 매칭 수 | 누적 페이지 |")
@@ -178,7 +225,135 @@ def _count_per_page(page: Path) -> int:
     return sum(1 for line in text.splitlines() if line.startswith("## 20"))
 
 
+def render_daily_impact_page(
+    target_date: date,
+    center: WatchlistImpactCenter,
+    *,
+    segment_links: Sequence[tuple[str, str]] = (),
+) -> str:
+    """Render the u73 daily-first watchlist impact center page body.
+
+    Today's grouped impacts are the first content block (not config
+    prose). Public-eligible groups (Direct / Related) render in full with
+    source titles. Diagnostics-only groups (Uncertain / Rejected) render
+    *only* inside a collapsed ``<details>`` block with titles redacted to
+    source-name + short reason — never the full title.
+
+    ``segment_links`` is a sequence of ``(label, url)`` backlinks to the
+    relevant briefing segment/date. Deterministic: same inputs → identical
+    bytes.
+    """
+    iso = target_date.isoformat()
+    lines = [f"# 오늘의 관심 자산 영향 — {iso}", ""]
+
+    if not center.configured:
+        lines.append(
+            "_관심 목록 미설정 — `config/watchlist.json`을 추가하면 "
+            "보유 종목 영향이 여기에 그룹별로 표시됩니다._"
+        )
+        lines.append("")
+        return "\n".join(lines) + "\n"
+    if center.status == "coverage_hold":
+        lines.append("_데이터 수집 부족으로 매칭 판단 보류 — 추가 수집 후 재평가됩니다._")
+        lines.append("")
+        return "\n".join(lines) + "\n"
+
+    lines.append(
+        f"직접 {len(center.direct)} · 관련 {len(center.related)} · "
+        f"보류 {len(center.uncertain)} · 제외 {len(center.rejected)}"
+    )
+    lines.append("")
+
+    lines.extend(_public_group_section("직접 영향 (Direct)", center.direct))
+    lines.extend(_public_group_section("관련·매크로 맥락 (Related)", center.related))
+
+    if segment_links:
+        lines.append("## 관련 시황")
+        lines.append("")
+        for label, url in segment_links:
+            lines.append(f"- [{label}]({url})")
+        lines.append("")
+
+    if center.has_diagnostics:
+        lines.extend(_diagnostics_block(center.uncertain, center.rejected))
+
+    return "\n".join(lines).rstrip("\n") + "\n"
+
+
+def _public_group_section(heading: str, matches: Sequence[WatchlistMatch]) -> list[str]:
+    out = [f"## {heading}", ""]
+    if not matches:
+        out.append("_해당 항목 없음._")
+        out.append("")
+        return out
+    for match in matches:
+        out.append(_impact_bullet(match))
+    out.append("")
+    return out
+
+
+def _impact_bullet(match: WatchlistMatch) -> str:
+    item: NormalizedItem = match.item
+    title = item.title.strip()
+    if len(title) > 120:
+        title = title[:117].rstrip() + "…"
+    alias_part = f" (별칭 {match.matched_alias})" if match.matched_alias else ""
+    return f"- **{match.term}**{alias_part} · [{item.source_name}] {title}"
+
+
+def _diagnostics_block(
+    uncertain: Sequence[WatchlistMatch],
+    rejected: Sequence[RejectedCandidate],
+) -> list[str]:
+    """Collapsed, redacted diagnostics for uncertain + rejected candidates.
+
+    Source titles are redacted: uncertain rows show only term + source +
+    reason code; rejected rows show the user's term, the offending token,
+    a reason code, the source name, and a short title hash. No full
+    titles, summaries, or URLs leak into this public block.
+    """
+    out = ["<details>", f"<summary>{_DIAGNOSTICS_SUMMARY}</summary>", ""]
+    if uncertain:
+        out.append("보류 (Uncertain) — 저신뢰 텍스트 매칭, 추가 근거 필요:")
+        out.append("")
+        for match in uncertain:
+            out.append(f"- {match.term} · {match.item.source_name} [{match.reason}]")
+        out.append("")
+    if rejected:
+        out.append("제외 (Rejected) — 짧은 티커 오탐 억제 확인:")
+        out.append("")
+        for candidate in rejected:
+            out.append(f"- {candidate.redacted_line()}")
+        out.append("")
+    out.append("</details>")
+    out.append("")
+    return out
+
+
+def write_daily_impact_page(
+    target_date: date,
+    center: WatchlistImpactCenter,
+    *,
+    pages_root: Path = WATCHLIST_PAGES_ROOT,
+    segment_links: Sequence[tuple[str, str]] = (),
+) -> Path:
+    """Write the daily impact center page and return its path.
+
+    Idempotent: the page is fully regenerated each run (it reflects only
+    today's impacts), so re-running for the same ``target_date`` yields
+    byte-identical output.
+    """
+    pages_root.mkdir(parents=True, exist_ok=True)
+    path = pages_root / DAILY_IMPACT_PAGE
+    body = render_daily_impact_page(target_date, center, segment_links=segment_links)
+    path.write_text(body, encoding="utf-8")
+    return path
+
+
 __all__ = [
+    "DAILY_IMPACT_PAGE",
     "WATCHLIST_PAGES_ROOT",
+    "render_daily_impact_page",
     "update_watchlist_pages",
+    "write_daily_impact_page",
 ]

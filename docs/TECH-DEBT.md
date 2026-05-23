@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 27 | 2026-04-27 |
+| Low | 28 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,16 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-075: watchlist Rejected near-miss heuristic (uppercase ticker-shaped lookalike) is intentionally broad
+
+- **Created**: 2026-05-24
+- **Source**: u73 watchlist-impact-center-v2 closeout (near-miss diagnostics noise risk)
+- **Reference**: AC-73.1 (Direct/Related/Uncertain/Rejected grouping), AC-73.2 (short-ticker false-positive handling), R13 (no secret / redaction), NFR-005 (consistency / reader-trust)
+- **Description**: `src/investo/briefing/watchlist_impact.py::_detect_rejected` flags Rejected near-misses for configured short ASCII tickers (≤4 chars) using two heuristics: a shared-prefix family check and an uppercase ticker-shaped lookalike check (±2 length, same first letter). The lookalike check is intentionally broad to catch SOL↔SLGL / BTC↔BTM-style false positives, so an **unrelated** uppercase ticker that merely shares a configured short ticker's first letter (and lands in the ±2 length window) can also appear in the Rejected diagnostics block. This is **not** a reader-facing or correctness defect: Rejected records are diagnostics-only, non-public, and reach the static watchlist daily page only inside a collapsed `<details>진단: 보류/제외된 후보</details>` block with titles R13-redacted to source name + reason code + offending token + 6-char title hash. The residual is operator-trust noise (the diagnostics block can list candidates that were never plausible matches), not a public misclassification — u64-accepted matches are excluded before the scan, so no valid Direct/Related hit is affected.
+- **Suggested Fix**: Tighten the lookalike rule with a known-symbol allowlist (only flag tokens that resemble a *configured* term, or a recognized ticker shape from a small curated set) and/or an explicit edit-distance bound rather than the first-letter + ±2-length window. Keep the shared-prefix family check and the u64-accepted exclusion as-is; the change is a strictly additive precision tightening of the near-miss scan with regression fixtures for both the kept SOL/BTC rejections and the newly suppressed unrelated tickers.
+- **Effort**: ~1-1.5 h — add the allowlist / edit-distance guard to `_detect_rejected`, pin kept-vs-suppressed near-miss fixtures.
+- **Priority Reasoning**: Low — the noise is confined to a collapsed, R13-redacted, diagnostics-only block that never reaches the briefing body or Telegram (AC-73.4 holds) and never affects an accepted match. It is operator-trust polish, not a reader-facing error. Promote to Medium only if a user-quality / operator review flags the diagnostics block as materially noisy in practice.
 
 #### DEBT-074: §⑥ watchpoint-matrix clause-slotting heuristic can under-populate trigger columns — plumb typed evidence
 
