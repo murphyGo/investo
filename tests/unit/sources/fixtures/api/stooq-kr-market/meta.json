@@ -1,0 +1,26 @@
+{
+  "recorded_at": "2026-05-24T00:00Z",
+  "sources": {
+    "stooq": "https://stooq.com/q/l/?s={stooq_symbol}&i=d&h=1&f=sd2t2ohlcv",
+    "yonhap": "https://www.yna.co.kr/rss/market.xml"
+  },
+  "recorder_user_agent": "Investo/1.0 (https://murphygo.github.io/investo)",
+  "step1_reachability": {
+    "yfinance KRW=X": "HTTP 429 from recorder/GHA IP — NOT used (yfinance KR FX blocked, same failure mode as US yfinance adapter)",
+    "stooq usdkrw": "HTTP 200, usable close — PRIMARY 원/달러 source",
+    "stooq ^kospi": "HTTP 200, usable close — Stooq KOSPI tier",
+    "stooq ^kosdaq": "N/D placeholder for every symbol variant probed — Stooq does NOT carry KOSDAQ; Yonhap parse is the only non-KRX KOSDAQ tier",
+    "yonhap market.xml": "HTTP 200 with a browser/Investo UA; numeric index-close headline is best-effort (not always present)"
+  },
+  "precedence": {
+    "usd_krw": ["stooq usdkrw"],
+    "kospi_close": ["fsc-krx-index-price (official)", "stooq ^kospi", "yonhap-rss numeric parse"],
+    "kosdaq_close": ["fsc-krx-index-price (official)", "yonhap-rss numeric parse"]
+  },
+  "responses": {
+    "usdkrw.csv": {"status": 200, "stooq_symbol": "usdkrw", "note": "원/달러 happy-path daily snapshot (Volume empty)"},
+    "kospi.csv": {"status": 200, "stooq_symbol": "^kospi", "note": "KOSPI happy-path daily snapshot"},
+    "kosdaq.csv": {"status": 200, "stooq_symbol": "^kosdaq", "note": "Stooq N/D placeholder — adapter must skip and defer KOSDAQ to the Yonhap tier"},
+    "yonhap_index.xml": {"status": 200, "note": "Synthetic Yonhap RSS carrying KOSPI + KOSDAQ numeric close headlines for the numeric-parse fallback test; shape mirrors the live yna.co.kr/rss/market.xml feed"}
+  }
+}

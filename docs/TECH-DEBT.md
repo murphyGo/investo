@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 20 | 2026-04-27 |
+| Low | 22 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,26 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-068: Yonhap numeric-index parse is best-effort terminal fallback for KOSPI/KOSDAQ close
+
+- **Created**: 2026-05-24
+- **Source**: u67 domestic-channel-depth closeout
+- **Reference**: R15a (index-close precedence), NFR-002 (free APIs), NFR-003 (graceful degradation), R10 (record/replay fixtures)
+- **Description**: The `stooq-kr-market` adapter's terminal index-close tier parses numeric KOSPI/KOSDAQ values out of the Yonhap `market.xml` RSS headlines/descriptions (`defusedxml`). When KRX (`fsc-krx-index-price`) AND Stooq are both empty for an index AND no numeric index headline is present in the feed, the index close is omitted from the body (surfaced via the coverage badge, not a hard fail). The parse is genuinely best-effort — Yonhap headlines are prose, not a structured feed, so coverage depends on whether a numeric headline happens to be published in the window. KOSDAQ is the most exposed because it has no Stooq tier (live 2026-05-24: Stooq carries no `^kosdaq` symbol), so its only fallback below KRX is this parse.
+- **Suggested Fix**: Identify a dedicated free KRX index feed (a JSON/CSV/RSS path that publishes KOSPI/KOSDAQ close + 등락률 without OTP/scraping — none confirmed at u67 time, consistent with DEBT-067's `krx-option-expiry` finding) and insert it as a structured tier between Stooq and the Yonhap parse. Pin with an R10 live recording. If no structured free path is ever confirmed, keep the Yonhap parse as terminal and accept the coverage-badge degradation.
+- **Effort**: ~2-3 h once a structured free KRX index path is confirmed (adapter tier + R10 fixture + precedence test); unknown if no public path exists.
+- **Priority Reasoning**: Low — KRX + Stooq cover KOSPI on the hot path, and the degradation is visible (coverage badge), not silent. Promote to Medium if operations show the Yonhap terminal tier firing frequently (i.e., KRX + Stooq routinely empty on the KST-morning cron) such that KOSPI/KOSDAQ close is regularly missing for readers.
+
+#### DEBT-069: Domestic anchor rows are close-only (no note column) — Yahoo KR history 429
+
+- **Created**: 2026-05-24
+- **Source**: u67 domestic-channel-depth closeout
+- **Reference**: R15b (FX presence), FR-002 (Korean briefing comprehension), u49 (deterministic market anchor), NFR-002 (free APIs)
+- **Description**: The domestic anchor table (`_build_kr_anchors_from_items` → `publisher/anchor_table.py`) renders KOSPI/KOSDAQ close + 등락률 + 원/달러 but the note column is `—` because no free intraday/history surface for KR symbols is available — Yahoo Finance KR history returned HTTP 429 on the GHA path during u67 Step 1 probing. US-equity and crypto anchors carry richer note context (52w / ATH proximity from the u49/u50 history fetch); the domestic anchor is close-only by comparison.
+- **Suggested Fix**: Identify a free KR price-history source (daily OHLC lookback for KOSPI/KOSDAQ + 삼성전자/SK하이닉스 et al.) and backfill the note column with the same 52w/ATH-proximity treatment used for US/crypto. Reuse the u49/u50 anchor-history shape so the note column populates uniformly across segments. Pin with an R10 fixture for the chosen source.
+- **Effort**: ~3-4 h including a reachability probe for a free KR history source, the adapter/history wire-through, and anchor-render tests.
+- **Priority Reasoning**: Low — the domestic anchor already carries the most reader-relevant numbers (close + 등락률 + FX) from u67; the missing note column is an enrichment gap, not a correctness gap. Promote to Medium if a free KR history source is confirmed and the asymmetry vs US/crypto anchors becomes a reader-trust complaint.
 
 #### DEBT-065: `og_card._wrap` word segmentation is inappropriate for Korean text
 

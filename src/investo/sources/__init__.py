@@ -44,6 +44,7 @@ from . import (
     nasdaq_stocks_news,  # noqa: F401
     official_policy,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
+    stooq_kr_market,  # noqa: F401
     stooq_price,  # noqa: F401
     theblock_crypto,  # noqa: F401
     treasury_rates,  # noqa: F401

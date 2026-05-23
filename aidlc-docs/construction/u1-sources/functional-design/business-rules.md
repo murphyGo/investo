@@ -307,3 +307,65 @@ varying secrets):
 - Header values MUST NOT carry secret material. If a source mandates
   a header that contains a credential (e.g. `X-Api-Key`), that header
   is governed by R13, not R14 — the value lives in env, not in code.
+
+---
+
+## R15. Domestic index-close precedence + FX-presence + overnight bridge (extension 2026-05-24)
+
+Added by u67 (domestic-channel-depth). Applies to the domestic-equity
+segment's KOSPI/KOSDAQ index close, 원/달러 환율, and the §①/§② narrative
+framing. The new no-key adapter `stooq-kr-market` (L6.12) supplies the
+fallback values.
+
+### R15a — Index-close source precedence
+
+The domestic-equity index close (+등락률) is resolved by source
+precedence — a higher-precedence source's value wins; lower tiers are
+consulted only when the higher tier returns 0 rows for that index:
+
+| Index | Precedence (highest → lowest) |
+|-------|-------------------------------|
+| KOSPI | `fsc-krx-index-price` (KRX) → Stooq `^kospi` → Yonhap `market.xml` numeric parse |
+| KOSDAQ | `fsc-krx-index-price` (KRX) → Yonhap `market.xml` numeric parse |
+
+- KOSDAQ has **no Stooq tier** — live probing (2026-05-24) confirmed
+  Stooq carries no `^kosdaq` symbol (all 5 variants returned N/D), so
+  the KOSDAQ chain is two-tier (KRX → Yonhap-parse). This is a ratified
+  divergence from the plan's uniform "KRX → Stooq → yonhap-parse"
+  precedence (see audit 2026-05-24 + L6.12).
+- The Yonhap numeric parse is the **terminal best-effort** tier: when
+  KRX + Stooq are both empty AND no numeric index headline is present
+  in the feed, the index close is **omitted** from the body and the
+  omission is surfaced via the coverage badge — it is NOT a hard
+  failure (consistent with R6 isolation / NFR-003 graceful degradation).
+- The supplying source is tagged in the trace footer so the reader can
+  see whether the close came from KRX, Stooq, or the Yonhap parse.
+
+### R15b — FX (원/달러) presence rule
+
+- 원/달러 환율 feeds `usd_krw` (the existing `_core_fact_map.py`
+  mapping) from a free source. The primary source is Stooq `usdkrw`
+  (live 200 / close 1518.21 on 2026-05-24). yfinance `KRW=X` is NOT
+  used — it returned HTTP 429 on the GHA path (ratified divergence from
+  the plan's reachability table, which listed yfinance first; see
+  L6.12).
+- When `usd_krw` is present, the domestic anchor table renders a
+  원/달러 anchor row and the body may reference it in the §③ 수급
+  narrative.
+- When `usd_krw` is absent (FX fetch failed / source empty), the body
+  MUST state "환율 데이터 미수집" explicitly rather than silently
+  omitting FX — FX is the primary driver of 외국인 수급 framing, so its
+  absence is reader-relevant and must be visible, not silent.
+
+### R15c — Overnight-US → KR-open bridge
+
+- The domestic-equity §①/§② narrative SHOULD carry an explicit
+  prior-US-session → KR-open causality sentence (the single most useful
+  framing for a KST-morning reader). The instruction lives in
+  `briefing/prompts.py` `DOMESTIC_DEPTH_NOTE`.
+- The bridge is **domestic-scoped**: it references the overnight US
+  session only as context for the KR open and MUST NOT leak US-segment
+  detail into the domestic body. The existing `cross_segment_lint` BC-3
+  enforces this — no lint change was required (u67 AC-4).
+- Wording stays observational and compliance-safe (the u56 compliance
+  gate is unchanged — no buy/sell verbs, no price targets).

@@ -68,7 +68,14 @@
   - `INVESTO_CONGRESS_BILLS` (선택: Congress.gov 감시 bill id 목록, 예: `119/hr/3633`)
   - `INVESTO_SENATE_BANKING_WATCH_URLS` (선택: Senate Banking 공식 crypto-policy watch URL 목록)
   - `INVESTO_HOUSE_FINANCIAL_SERVICES_RSS_URLS` (선택: House Financial Services 공식 RSS URL 목록)
+  - `INVESTO_STOOQ_KR_SYMBOLS` (선택: 국내 지수/환율 fallback 심볼 목록, 기본 `^KOSPI,^KOSDAQ,KRW=X`)
+  - `INVESTO_STOOQ_KR_CONCURRENCY` (선택: 위 어댑터 동시 fetch 수, 기본 2)
   - 데이터 소스 API key (사용 시)
+
+### Free data sources (no-key) — domestic depth (u67)
+- **`stooq-kr-market` 어댑터** — KOSPI 종가·원/달러 환율은 Stooq 무인증 CSV(`^kospi`, `usdkrw`)에서, KOSDAQ는 Stooq가 `N/D`를 반환하므로 연합뉴스 마켓+ RSS 헤드라인 숫자 파싱(`defusedxml`)에서 수집한다. yfinance `KRW=X`는 GitHub Actions IP에서 HTTP 429를 받아 사용하지 않는다.
+- **국내 지수 종가 precedence**: `fsc-krx-index-price`(공식 KRX) → Stooq `^kospi` → 연합뉴스 숫자 파싱. KOSDAQ는 공식 KRX → 연합뉴스 숫자 파싱(스투크 미보유).
+- **원/달러 precedence**: Stooq `usdkrw`(no-key) — `usd_krw` core fact를 채운다.
 
 ## Existing Systems
 

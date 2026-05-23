@@ -164,6 +164,28 @@ CRYPTO_FORBIDDEN_TERMS_NOTE: Final[str] = (
     "'가격 변동 / 거래량 급증 / 거래소 상장 폐지 공지' 같은 중립 표현을 사용한다."
 )
 
+# u67 — domestic-equity-only depth guidance. Emitted only when
+# ``segment == "domestic-equity"``. Three reader-facing asks:
+#   1. Surface KOSPI / KOSDAQ 종가·등락률 + 원/달러 환율 in §① when the
+#      routed price items carry them (the deterministic anchor table also
+#      renders these — cite, do not invent the numbers).
+#   2. Narrate 반도체(삼성전자/SK하이닉스) + 2차전지 sector moves in §③
+#      when those prices appear, instead of dropping them to the trace.
+#   3. In §①/§②, draw an explicit 전일 미국장 → 금일 국내 개장 bridge —
+#      observational only, scoped to domestic (no US-segment conclusions).
+DOMESTIC_DEPTH_NOTE: Final[str] = (
+    "국내 증시 세그먼트 심화 가이드:\n"
+    "1) §① 요약에 코스피·코스닥 종가와 등락률, 원/달러 환율을 포함하라 "
+    "(가격 항목/시장 anchor 표에 있는 수치만 인용하고, 새 숫자를 지어내지 말 것). "
+    "환율 수치가 입력에 없으면 '환율 데이터 미수집'이라고 명시한다.\n"
+    "2) §③ 섹터/수급 동향에서 반도체(삼성전자·SK하이닉스)와 2차전지 종목의 "
+    "가격이 입력에 있으면 trace로만 남기지 말고 본문에서 섹터 흐름으로 서술하라.\n"
+    "3) §①/§②에서 전일 미국장(다우·S&P500·나스닥) 흐름이 금일 국내 개장에 "
+    "주는 영향을 한 문장 이상으로 명시적으로 연결하라(인과 framing). 단, 관찰적 "
+    "표현에 한하고 미국 세그먼트의 결론을 대신 내리지 말 것 — 국내 영향으로만 "
+    "한정한다."
+)
+
 # Placeholders:
 #   ``segment_context`` (str — rendered segment scope instructions)
 #   ``items_json`` (str — JSON array per FD R7).
@@ -632,6 +654,7 @@ __all__ = [
     "CARRYOVER_CONTEXT_INTRO",
     "CRYPTO_FORBIDDEN_TERMS_NOTE",
     "DEFAULT_SEGMENT_CONTEXT",
+    "DOMESTIC_DEPTH_NOTE",
     "LOOKAHEAD_EMPTY_NOTE",
     "LOOKAHEAD_HEADER",
     "LOOKAHEAD_INTRO",

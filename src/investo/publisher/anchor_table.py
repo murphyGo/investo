@@ -51,6 +51,10 @@ _TABLE_PRIORITY: Final[tuple[str, ...]] = (
     "AMZN",
     "BTC-USD",
     "ETH-USD",
+    # u67 — domestic index close + 원/달러 (close-only anchors).
+    "^KOSPI",
+    "^KOSDAQ",
+    "KRW=X",
 )
 # Cap: 4 rows for US-equity (3 indices + 1 ticker), 2 for crypto, 2 for
 # domestic — but the rendering helper itself doesn't know the segment,

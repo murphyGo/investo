@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u67 domestic-channel-depth
 **Stage**: Code Generation
-**Status**: Planned (0/7)
+**Status**: Complete (7/7)
 **Source**: 2026-05-24 ten-subagent reader-facing review — Gap B (국내 채널 깊이), independently raised by the 국내 투자자 + 한국어 personas
 **Estimated Effort**: ~6-8 h
 **Dependencies**:
@@ -76,52 +76,52 @@ Per CLAUDE.md / `/dev-investo`, Functional Design and NFR Requirements are **sel
 
 ### Step 1 — Confirm free-source reachability and pick precedence
 
-- [ ] Confirm yfinance `KRW=X` and Stooq `usdkrw` return a usable close on the GHA path (record a fixture for each).
-- [ ] Confirm Stooq `^kospi` / `^kosdaq` reachability; if unreliable, pin the yonhap-RSS numeric parse as the index fallback.
-- [ ] Document the index-close precedence (KRX → Stooq → yonhap-parse) and the FX precedence (KRW=X → Stooq usdkrw) in the FD.
-- [ ] Acceptance: a written precedence table + recorded fixtures for each chosen source; no paid key introduced.
+- [x] Confirm yfinance `KRW=X` and Stooq `usdkrw` return a usable close on the GHA path (record a fixture for each).
+- [x] Confirm Stooq `^kospi` / `^kosdaq` reachability; if unreliable, pin the yonhap-RSS numeric parse as the index fallback.
+- [x] Document the index-close precedence (KRX → Stooq → yonhap-parse) and the FX precedence (KRW=X → Stooq usdkrw) in the FD.
+- [x] Acceptance: a written precedence table + recorded fixtures for each chosen source; no paid key introduced.
 
 ### Step 2 — 원/달러 source wiring
 
-- [ ] Add `KRW=X` (and/or Stooq `usdkrw`) to the domestic default fetch set so `usd_krw` is populated.
-- [ ] Ensure the value flows through `_core_fact_map.py` `usd_krw` mapping with no double-counting.
-- [ ] Keep per-source isolation: an FX fetch failure must not drop other domestic items.
-- [ ] Acceptance: a domestic run with KRX empty still yields a populated `usd_krw` core fact.
+- [x] Add `KRW=X` (and/or Stooq `usdkrw`) to the domestic default fetch set so `usd_krw` is populated.
+- [x] Ensure the value flows through `_core_fact_map.py` `usd_krw` mapping with no double-counting.
+- [x] Keep per-source isolation: an FX fetch failure must not drop other domestic items.
+- [x] Acceptance: a domestic run with KRX empty still yields a populated `usd_krw` core fact.
 
 ### Step 3 — KOSPI/KOSDAQ index-close fallback
 
-- [ ] Implement the index-close fallback chain so a non-empty KOSPI/KOSDAQ close + 등락률 is available when `fsc-krx-index-price` returns 0 rows.
-- [ ] Add the yonhap-RSS numeric close parser as the terminal fallback (`defusedxml` only; no raw stdlib XML).
-- [ ] Tag the fallback provenance so the trace footer shows which source supplied the close.
-- [ ] Acceptance: with `fsc-krx-index-price` mocked to 0 rows, the body still carries a KOSPI close line with provenance.
+- [x] Implement the index-close fallback chain so a non-empty KOSPI/KOSDAQ close + 등락률 is available when `fsc-krx-index-price` returns 0 rows.
+- [x] Add the yonhap-RSS numeric close parser as the terminal fallback (`defusedxml` only; no raw stdlib XML).
+- [x] Tag the fallback provenance so the trace footer shows which source supplied the close.
+- [x] Acceptance: with `fsc-krx-index-price` mocked to 0 rows, the body still carries a KOSPI close line with provenance.
 
 ### Step 4 — Domestic anchor / sector grouping
 
-- [ ] Extend the deterministic anchor render (u49 pattern) so the domestic table carries KOSPI/KOSDAQ close, 등락률, and 원/달러.
-- [ ] Add a 반도체 (삼성전자/SK하이닉스) + 2차전지 grouping hint into the domestic prompt scope so the LLM narrates the sector instead of dropping prices to the trace only.
-- [ ] Keep the anchor table deterministic (LLM may not invent the numbers).
-- [ ] Acceptance: domestic anchor table renders index close + FX; sector names appear in the §③ body when their prices are present.
+- [x] Extend the deterministic anchor render (u49 pattern) so the domestic table carries KOSPI/KOSDAQ close, 등락률, and 원/달러.
+- [x] Add a 반도체 (삼성전자/SK하이닉스) + 2차전지 grouping hint into the domestic prompt scope so the LLM narrates the sector instead of dropping prices to the trace only.
+- [x] Keep the anchor table deterministic (LLM may not invent the numbers).
+- [x] Acceptance: domestic anchor table renders index close + FX; sector names appear in the §③ body when their prices are present.
 
 ### Step 5 — Overnight-US → KR-open framing rule
 
-- [ ] Add a domestic-prompt rule (`prompts.py`) instructing an explicit prior-US-session → KR-open bridge in §① / §②, scoped to domestic only (no cross-segment leakage — reuse u57 / `cross_segment_lint.py`).
-- [ ] Keep wording observational and compliance-safe (u56 gate unchanged).
-- [ ] Acceptance: domestic body contains a US-overnight causality sentence; `cross_segment_lint` does not flag scope leakage.
+- [x] Add a domestic-prompt rule (`prompts.py`) instructing an explicit prior-US-session → KR-open bridge in §① / §②, scoped to domestic only (no cross-segment leakage — reuse u57 / `cross_segment_lint.py`).
+- [x] Keep wording observational and compliance-safe (u56 gate unchanged).
+- [x] Acceptance: domestic body contains a US-overnight causality sentence; `cross_segment_lint` does not flag scope leakage.
 
 ### Step 6 — Tests
 
-- [ ] Source fixtures: FX (KRW=X / Stooq), Stooq index, yonhap numeric parse.
-- [ ] Fallback-precedence unit tests (KRX empty → Stooq → yonhap).
-- [ ] Anchor-render tests for index close + FX rows.
-- [ ] Prompt-scope tests for the overnight bridge rule + cross-segment lint clean.
-- [ ] Acceptance: targeted sources / briefing / publisher tests pass; ruff + mypy strict clean on changed scope.
+- [x] Source fixtures: FX (KRW=X / Stooq), Stooq index, yonhap numeric parse.
+- [x] Fallback-precedence unit tests (KRX empty → Stooq → yonhap).
+- [x] Anchor-render tests for index close + FX rows.
+- [x] Prompt-scope tests for the overnight bridge rule + cross-segment lint clean.
+- [x] Acceptance: targeted sources / briefing / publisher tests pass; ruff + mypy strict clean on changed scope.
 
 ### Step 7 — Documentation and gate
 
-- [ ] Update `docs/tech-env.md` source list and the domestic env-var docs for the new FX / index tickers.
-- [ ] Update the u1-sources FD with the FX adapter entry and the new domestic business rules.
-- [ ] Write the unit `code/summary.md` (AC traceability, FD divergences, TECH-DEBT, final gate).
-- [ ] Acceptance: mkdocs build strict passes; summary present.
+- [x] Update `docs/tech-env.md` source list and the domestic env-var docs for the new FX / index tickers.
+- [x] Update the u1-sources FD with the FX adapter entry (planner 2026-05-24: L6.12 `stooq-kr-market` + Extension #6 note in business-logic-model.md) and the new domestic business rules (R15a precedence / R15b FX-presence / R15c overnight bridge in business-rules.md).
+- [x] Write the unit `code/summary.md` (AC traceability, FD divergences, TECH-DEBT, final gate).
+- [x] Acceptance: mkdocs build strict passes; summary present.
 
 ---
 

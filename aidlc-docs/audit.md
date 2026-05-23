@@ -1,5 +1,25 @@
 # AI-DLC Audit Log
 
+## Construction — u67 domestic-channel-depth Complete
+**Timestamp**: 2026-05-24T12:00:00+09:00
+**Trigger**: u67 (domestic-channel-depth) Code Generation landed — code/tests/fixtures/docs/tech-env/gate all green (developer). FD edit + `code/summary.md` deferred to planner per module-boundary rule.
+**Decision**: Ratify the implementation and close the unit (7/7 steps). Two FD-vs-plan divergences ratified:
+- **KOSDAQ has no Stooq tier** — live 2026-05-24 probing showed Stooq carries no `^kosdaq` symbol (all 5 variants `N/D`). KOSDAQ index-close precedence is two-tier (KRX → Yonhap-parse), not the plan's uniform "KRX → Stooq → yonhap-parse".
+- **FX primary is Stooq `usdkrw`, not yfinance `KRW=X`** — yfinance returned HTTP 429 on the GHA path (live). The plan's reachability table listed yfinance first; Stooq `usdkrw` is the confirmed primary (200 / close 1518.21).
+**Step 1 reachability (live 2026-05-24)**: Stooq `usdkrw` 200/1518.21 (FX primary); Stooq `^kospi` 200/7847.71; Stooq `^kosdaq` (+4 variants) all N/D; Yonhap `market.xml` 200 (UA required, best-effort numeric parse); 반도체/2차전지 already collected by `fsc-krx-stock-price` (grouping gap → prompt-only).
+**Confirmed precedence**: 원/달러 = Stooq `usdkrw`. KOSPI close = KRX → Stooq `^kospi` → Yonhap parse. KOSDAQ close = KRX → Yonhap parse.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u67-domestic-channel-depth/code/summary.md` (new — AC-1..AC-5 traceability, FD divergences, gate)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u1-sources/functional-design/business-logic-model.md` (new L6.12 `stooq-kr-market` adapter + Extension #6 note)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u1-sources/functional-design/business-rules.md` (new R15: index-close precedence R15a / FX-presence R15b / overnight bridge R15c)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-068 Yonhap-parse terminal tier, DEBT-069 close-only domestic anchors; Low count 20→22)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u67-domestic-channel-depth-code-generation-plan.md` (Step 7 FD-edit `[x]`, Status 7/7)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u67 row → Complete; Code Generation / Build-and-Test lines)
+**Status**: u67 complete. AC-1..AC-5 MET. Gate: ruff clean / ruff format (changed) clean / mypy --strict 131 files clean / pytest 2428 passed (+16 net, +19 new) / mkdocs --strict pass.
+**Context**: Project rules upheld — 무료 API only (no-key Stooq + Yonhap), no Anthropic SDK touched, module boundary intact (no new cross-unit import), 면책조항/채널 분리 gates untouched, `defusedxml` only for the Yonhap RSS parse, R13 no secret introduced. New adapter `stooq-kr-market` registered (plugin-contract test 26→27). AC-4 needed no lint change — existing `cross_segment_lint` BC-3 already enforces domestic scope on the overnight bridge.
+
+---
+
 ## Construction — Reader-Facing Feature Gaps (Review P2/P3) Decomposed into u66–u68
 **Timestamp**: 2026-05-24T00:00:00+09:00
 **Trigger**: The 2026-05-24 ten-subagent reader-facing review surfaced P2/P3 *feature* gaps (not bugs) across four areas: A) crypto channel depth, B) domestic channel depth, C) checklist actionability, D) glossary position + carryover follow-up. The planner was asked to decompose into AIDLC units (next free number u66), score a priority backlog, and formally plan the highest-ROI unit only.

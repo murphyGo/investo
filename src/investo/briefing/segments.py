@@ -178,6 +178,8 @@ _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
         "korea-policy-rss",
         # u53 — KRX investor-flow mirror, domestic-equity narrative only.
         "krx-foreign-flows",
+        # u67 — no-key KOSPI/KOSDAQ close + 원/달러 fallback, domestic only.
+        "stooq-kr-market",
         "yonhap-market",
     }
 )

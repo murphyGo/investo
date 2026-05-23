@@ -47,6 +47,7 @@ from investo.sources.official_policy import (
     SenateBankingPolicyAdapter,
 )
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
+from investo.sources.stooq_kr_market import StooqKrMarketAdapter
 from investo.sources.stooq_price import StooqPriceAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.treasury_rates import TreasuryRatesAdapter
@@ -57,7 +58,7 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 26
+EXPECTED_ADAPTER_COUNT = 27
 EXPECTED_ADAPTER_NAMES = {
     "binance-crypto-market",
     "congress-gov-bill-actions",
@@ -69,6 +70,7 @@ EXPECTED_ADAPTER_NAMES = {
     "fomc-rss",
     "yfinance-price",
     "stooq-price",
+    "stooq-kr-market",
     "coingecko-price",
     "fred-economic-calendar",
     "fred-macro",
@@ -113,6 +115,7 @@ def _isolate_registry() -> Iterator[None]:
     register(KrxForeignFlowsAdapter)
     register(YFinancePriceAdapter)
     register(StooqPriceAdapter)
+    register(StooqKrMarketAdapter)
     register(CoinGeckoPriceAdapter)
     register(FredEconomicCalendarAdapter)
     register(FredMacroAdapter)

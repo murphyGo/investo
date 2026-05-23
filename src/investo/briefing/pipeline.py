@@ -54,6 +54,7 @@ from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_li
 from investo.briefing.prompts import (
     CRYPTO_FORBIDDEN_TERMS_NOTE,
     DEFAULT_SEGMENT_CONTEXT,
+    DOMESTIC_DEPTH_NOTE,
     SEGMENT_CONTEXT_TEMPLATE,
     SEGMENT_DATA_LIMITED_NOTE,
     SEGMENT_DATA_READY_NOTE,
@@ -940,7 +941,13 @@ def _render_segment_context(segment: MarketSegment | None, *, data_limited: bool
     # sees the §10 retail-coded ban at the same surface as the segment
     # scope. The publisher gate enforces this same list regardless of
     # whether the LLM honored the prompt.
-    segment_extra_note = f"{CRYPTO_FORBIDDEN_TERMS_NOTE}\n" if segment == "crypto" else ""
+    # u56 crypto ban / u67 domestic depth — at most one applies per segment.
+    if segment == "crypto":
+        segment_extra_note = f"{CRYPTO_FORBIDDEN_TERMS_NOTE}\n"
+    elif segment == "domestic-equity":
+        segment_extra_note = f"{DOMESTIC_DEPTH_NOTE}\n"
+    else:
+        segment_extra_note = ""
     return SEGMENT_CONTEXT_TEMPLATE.format(
         segment_label=SEGMENT_LABELS[segment],
         segment_slug=segment,

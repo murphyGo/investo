@@ -972,6 +972,13 @@ _ANCHOR_SEGMENT_ROUTING: dict[str, MarketSegment] = {
     "TSLA": US_EQUITY,
     "BTC-USD": CRYPTO,
     "ETH-USD": CRYPTO,
+    # u67 — domestic index close + 원/달러 (from stooq-kr-market). These
+    # are not Yahoo-history-backed (yfinance KRW=X / ^kospi are 429 on the
+    # GHA IP); the anchors are synthesized close-only from the domestic
+    # price snapshot items via ``_build_kr_anchors_from_items``.
+    "^KOSPI": DOMESTIC_EQUITY,
+    "^KOSDAQ": DOMESTIC_EQUITY,
+    "KRW=X": DOMESTIC_EQUITY,
 }
 
 
@@ -1039,6 +1046,39 @@ async def _load_market_anchors_for_run(
         {segment: tuple(values) for segment, values in by_segment.items()},
         history_by_ticker,
     )
+
+
+# u67 — canonical KR anchor tickers and their display priority. KOSPI /
+# KOSDAQ / 원/달러 are sourced from the stooq-kr-market snapshot items
+# (NOT Yahoo history), so they have no ATH / 52w / MTD / YTD derivation —
+# they render as a close-only anchor row (note column "—").
+_KR_ANCHOR_TICKERS: Final[tuple[str, ...]] = ("^KOSPI", "^KOSDAQ", "KRW=X")
+
+
+def _build_kr_anchors_from_items(
+    items: Sequence[NormalizedItem],
+) -> tuple[MarketAnchor, ...]:
+    """Synthesize close-only domestic :class:`MarketAnchor` rows (u67).
+
+    The Yahoo-history anchor path cannot supply KOSPI / KOSDAQ / 원/달러
+    (the v8 chart endpoint returns HTTP 429 for ``^kospi`` / ``KRW=X``
+    from the GitHub Actions IP space). Instead the domestic anchor table
+    is built from the deterministic ``stooq-kr-market`` price snapshot
+    items: one anchor per KR ticker, close-only (derived range / period
+    fields stay ``None`` → the table renders a "—" note). The body / trace
+    cite the same ``close`` value, so all three surfaces agree.
+
+    Empty / missing KR items ⇒ empty tuple (the domestic table omits the
+    KR rows entirely, matching the existing graceful-degrade contract).
+    """
+    snapshot = _snapshot_close_by_ticker(items)
+    anchors: list[MarketAnchor] = []
+    for ticker in _KR_ANCHOR_TICKERS:
+        close = snapshot.get(ticker)
+        if close is None:
+            continue
+        anchors.append(MarketAnchor(ticker=ticker, close=close, is_ath=False))
+    return tuple(anchors)
 
 
 def _inject_chart_blocks_into_segments(
@@ -1965,6 +2005,16 @@ async def run_pipeline(
                 market_anchors_by_segment,
                 market_history_by_ticker,
             ) = await _load_market_anchors_for_run(target_date)
+            # u67 — fold deterministic KR index-close + 원/달러 anchors
+            # (from the stooq-kr-market snapshot items) into the domestic
+            # segment. Yahoo history cannot supply these (429 on GHA), so
+            # they are synthesized close-only from the collected items.
+            kr_anchors = _build_kr_anchors_from_items(items)
+            if kr_anchors:
+                existing = market_anchors_by_segment.get(DOMESTIC_EQUITY, ())
+                seen = {a.ticker for a in existing}
+                merged = (*existing, *(a for a in kr_anchors if a.ticker not in seen))
+                market_anchors_by_segment[DOMESTIC_EQUITY] = merged
             # u52 — build per-segment carryover bundles from prior ≤3
             # trading-day archives. Each segment receives only its own
             # routed candidates so resolution matching stays

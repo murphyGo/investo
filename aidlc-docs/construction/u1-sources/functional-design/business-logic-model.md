@@ -177,6 +177,8 @@ The orchestrator owns INFO-level lifecycle logs ("collect started",
 
 > **Extension #5 note (2026-05-03)**: L6.11 (Nasdaq Earnings Calendar JSON / earnings) added to close the final `Category` gap. The adapter uses `category="earnings"`, no secret, no paid API, and the same non-secret browser-compatible Nasdaq access headers as L6.10. Because Nasdaq supplies report buckets (pre-market / after-hours / not-supplied) rather than exact timestamps, `published_at` is anchored to UTC midnight on `window.target_date` and the bucket is preserved in `raw_metadata["report_time"]`. Category coverage rises from 4/5 → 5/5.
 
+> **Extension #6 note (2026-05-24)**: L6.12 (`stooq-kr-market` / domestic index + FX) added per the 2026-05-24 u67 (domestic-channel-depth) audit-log entry. The adapter is the **deterministic domestic index-close + 원/달러 fallback** for the domestic-equity segment: Stooq CSV (`usdkrw` for FX, `^kospi` for the index) primary, with a Yonhap `market.xml` RSS numeric-close parse as the terminal index fallback. It carries `category="price"` (R11 KST market-close `published_at` semantics), no secret, no paid key, and no compliance header (R14 does NOT apply). The Yonhap parse path uses `defusedxml` (NFR-007 AC-7.6). New domestic business rule **R15** (index-close precedence + FX-presence + overnight bridge) governs how its values combine with the existing `fsc-krx-index-price` source. No new domain entity — `NormalizedItem` + `MarketAnchor` reused.
+
 ### L6.1 FOMC RSS PoC (Q5=A)
 
 > **Format correction (2026-04-27, Step 8):** the live feed is **RSS 2.0**, not Atom 1.0 as originally predicted. Field names and date format below have been updated to match the real feed; the audit log Step 8 entry records the divergence.
@@ -383,6 +385,24 @@ The Nasdaq adapter adds official exchange-side US market commentary to the news 
 | Edge cases | malformed JSON raises terminal `SourceFetchError`; non-object payload / missing `data` / non-list `rows` raise terminal `SourceFetchError`; `rows: null` returns `[]`; rows missing required `symbol` or `name` are dropped; `"N/A"` and empty optional strings are omitted from `raw_metadata`; HTML in text fields is stripped. |
 
 The earnings adapter closes the final category gap without adding a new secret or paid API. It intentionally does not model after-hours events as next-day UTC timestamps because doing so would drop valid target-date earnings events from the KST window.
+
+### L6.12 Stooq KR market + Yonhap index-fallback adapter (extension #6 2026-05-24)
+
+| Aspect | Design |
+|--------|--------|
+| Source (FX) | `https://stooq.com/q/l/?s=usdkrw&f=sd2t2ohlcv&h&e=csv` (Stooq CSV quote line; one HTTP per symbol). Live 2026-05-24: 200 / close 1518.21. |
+| Source (index) | `https://stooq.com/q/l/?s=^kospi&...&e=csv` for KOSPI (live 200 / close 7847.71). KOSDAQ has **no Stooq symbol** — `^kosdaq` + 4 variants all returned `N/D` live, so KOSDAQ is sourced only via the Yonhap fallback. |
+| Source (index fallback) | `https://www.yna.co.kr/rss/market.xml` (Yonhap 마켓+ RSS; UA required — same feed as L6.7 `yonhap-market`). Best-effort numeric-close parse of index headlines, used only when KRX + Stooq are both empty for that index. |
+| Auth | none — no API key, no paid tier (R1). FX `KRW=X` via yfinance is NOT used (live HTTP 429 on the GHA path; ratified divergence from the u67 plan reachability table). |
+| Format | Stooq: CSV (header + one quote row per symbol). Yonhap: RSS 2.0 parsed via `defusedxml.ElementTree.fromstring` (NFR-007 AC-7.6); numeric index values are pattern-extracted from CDATA-unwrapped headline/description text. |
+| `name` | `"stooq-kr-market"` |
+| `category` | `"price"` |
+| Per-symbol isolation | each symbol (FX, KOSPI, KOSDAQ-via-Yonhap) is fetched/parsed independently — a single symbol failure yields a logged drop, not a whole-adapter failure. The aggregator's R6 semantics still apply between adapters; this is per-symbol isolation within the adapter (same shape as L6.2 yfinance). |
+| Window filter | R11 KST market-close semantics. Stooq emits the latest valid close (R11 cadence-gap relaxation applies — KST-morning cron may fire before KRX settlement). `published_at` is the KR market close resolved via `zoneinfo("Asia/Seoul")`, never an offset literal. |
+| `NormalizedItem` mapping | `source_name="stooq-kr-market"`; `category="price"`; FX `title=f"원/달러 {close:,.2f}"`, index `title=f"{label} {close:,.2f} ({pct:+.2f}%)"`; `summary` carries OHLC where Stooq supplies it (Yonhap-parsed index rows summarise the headline source); `published_at` = KR close → UTC; `raw_metadata` string-cast per R8 with a `provenance` key recording which tier supplied the value (`"stooq"` / `"yonhap-parse"`) so the trace footer can attribute the close (R15a). |
+| Edge cases | Stooq CSV `N/D` close → symbol dropped, fall through to the next precedence tier; Yonhap parse finds no numeric index headline → that index close is **omitted** (surfaced via coverage badge, not a hard fail — R15a / NFR-003); Stooq 429 → handled by shared `retry_get` (R5); XML parse error on Yonhap → terminal `SourceFetchError` (`defusedxml`); naive datetime → dropped per R8. |
+
+The adapter is the first domestic deterministic index/FX fallback and the only u1 adapter combining a CSV primary with an RSS terminal fallback. It introduces no secret, no paid key, and no compliance header. Domestic business rule **R15** governs how its output combines with `fsc-krx-index-price` (KRX) and the §③ 수급 / §①–§② overnight-bridge narrative. Two close-out TECH-DEBT items recorded: DEBT-068 (Yonhap parse is best-effort — a dedicated free KRX index RSS would harden the terminal tier) and DEBT-069 (domestic anchors are close-only — Yahoo KR history 429 leaves the note column `—`).
 
 ---
 
