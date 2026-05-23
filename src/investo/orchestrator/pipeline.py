@@ -170,6 +170,10 @@ from investo.publisher import (
     archive_path as compute_archive_path,
 )
 from investo.publisher import site_index as _site_index_mod
+from investo.publisher.anchor_assertion_gate import (
+    NumericAnchorReconciliationError,
+    enforce_anchor_assertions,
+)
 from investo.publisher.anchor_table import render_anchor_table
 from investo.publisher.carryover import inject_carryover_block, render_carryover_block
 from investo.publisher.charts import build_chart_block, inject_chart_block
@@ -1372,6 +1376,18 @@ def _apply_reader_format_to_segments(
                         idx = markdown.find(marker)
                         if idx != -1:
                             markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
+        # u70 — gate precise body claims on canonical anchor availability.
+        # ``anchors`` is the reconciled single-payload set for this segment;
+        # its tickers are the only core symbols the body may assert a precise
+        # move about. A missing/stale core anchor with an isolated offending
+        # sentence is rewritten to a data-limited callout; an un-rewritable
+        # contradiction raises ``NumericAnchorReconciliationError`` (caught by
+        # the publish-stage handler below alongside the other reader gates).
+        markdown = enforce_anchor_assertions(
+            markdown,
+            segment=segment,
+            available_symbols=tuple(a.ticker for a in anchors),
+        )
         # Step 3 — pure str → str post-format chain.
         markdown = apply_reader_format(markdown, segment=segment)
         # u57 — inject shared macro block + run cross-segment lint.
@@ -2207,25 +2223,33 @@ async def run_pipeline(
             carryover_by_segment=carryover_by_segment,
         )
 
-        # u50 lightweight-charts-embed — inject the per-segment chart
-        # placeholder block on top of the SVG visual cards. Best-effort:
-        # missing history (e.g. Yahoo 429 on the cron) yields an empty
-        # block and the briefing markdown is left untouched.
-        segment_briefings = _inject_chart_blocks_into_segments(
-            segment_briefings,
-            anchors_by_segment=market_anchors_by_segment,
-            history_by_ticker=market_history_by_ticker,
-        )
-
-        # P1-2 — reconcile the anchor header-table display close with the
-        # price-snapshot value the body prose + trace footer cite. Applied
-        # AFTER chart injection (charts keep the history close for the
-        # ATH marker, tied to the history-derived ``is_ath``) and BEFORE the
-        # anchor-table render below, so the table / body / trace agree on the
-        # same close per ticker. Derived fields stay history-based.
+        # u70 cross-surface-numeric-anchor-reconciliation — derive the
+        # SINGLE canonical anchor payload BEFORE any reader surface renders.
+        # P1-2's ``_reconcile_anchor_closes`` (extended, not replaced) aligns
+        # the display ``close`` with the price-snapshot value the body prose
+        # + trace footer cite; derived fields (ATH / 52w / MTD / YTD / pct /
+        # volume_z) stay history-based. This one ``anchor_table_input`` map
+        # now feeds the compact chart card, the expanded chart metadata, AND
+        # the top table below, so the same symbol shows the same value on
+        # every surface (AC-70.1 / AC-70.4).
         anchor_table_input = _reconcile_anchor_closes(
             market_anchors_by_segment,
             _snapshot_close_by_ticker(items),
+        )
+
+        # u50 lightweight-charts-embed — inject the per-segment chart
+        # placeholder block on top of the SVG visual cards. Best-effort:
+        # missing history (e.g. Yahoo 429 on the cron) yields an empty
+        # block and the briefing markdown is left untouched. u70 — feed the
+        # reconciled payload (not the raw history anchors) so the compact
+        # card ``data-close`` / ``data-pct`` match the top table exactly.
+        # The ``data-52w-high`` / ``data-52w-low`` labels are still derived
+        # from the OHLC history rows inside the renderer, so the candlestick
+        # axis stays history-faithful.
+        segment_briefings = _inject_chart_blocks_into_segments(
+            segment_briefings,
+            anchors_by_segment=anchor_table_input,
+            history_by_ticker=market_history_by_ticker,
         )
 
         # u51 tldr-block-and-number-bold-inversion — replace the deprecated
@@ -2247,7 +2271,7 @@ async def run_pipeline(
                     seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
                 },
             )
-        except ComplianceLanguageError as exc:
+        except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
             stage_timings["publish"] = 0.0
             stages["publish"] = f"failed: {type(exc).__name__}"
             stages["notify_briefing"] = "skipped"

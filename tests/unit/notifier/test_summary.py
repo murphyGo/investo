@@ -313,8 +313,12 @@ def test_build_segmented_summary_adds_market_snapshot_from_price_items() -> None
     assert "🕐 KST " in summary  # publish-time label inserted before snapshot
     assert "전 거래일: 2026-04-25" in summary
     assert "시장: " in summary
-    assert "SPX +0.4%" in summary
-    assert "NDX +0.7%" in summary
+    assert "S&P500 +0.4%" in summary
+    # u70 — ``^IXIC`` is the Nasdaq Composite ("Nasdaq"), not the Nasdaq 100
+    # ("NDX"). The canonical label registry now supplies the correct short
+    # label so the dense snapshot line stops emitting the mislabel.
+    assert "Nasdaq +0.7%" in summary
+    assert "NDX" not in summary
     assert "KOSPI -0.2%" in summary
     assert "BTC 108.2k(-1.2%)" in summary
 

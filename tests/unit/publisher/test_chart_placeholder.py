@@ -77,6 +77,9 @@ def test_render_emits_expected_attribute_set_for_ath() -> None:
     assert rendered.startswith('<div class="investo-chart"')
     assert ' id="chart-AAPL"' in rendered
     assert ' data-ticker="AAPL"' in rendered
+    # u70 — compact card carries the canonical Korean label from the
+    # shared registry (same source the Telegram snapshot line uses).
+    assert ' data-label="애플"' in rendered
     assert ' data-close="108.0"' in rendered
     assert ' data-pct="1.23"' in rendered
     assert ' data-ath="108.0"' in rendered
@@ -108,6 +111,14 @@ def test_id_slug_strips_caret() -> None:
     assert ' id="chart-GSPC"' in rendered
     # data-ticker preserves the original ticker (HTML-escaped).
     assert ' data-ticker="^GSPC"' in rendered
+    # u70 — ^IXIC is the Nasdaq Composite, never Nasdaq 100. The compact
+    # card label routes through the same registry, so this surface cannot
+    # carry the reviewed mislabel.
+    ixic = render_chart_placeholder(
+        _anchor("^IXIC", close=26_274.13, is_ath=True), _history(25_000.0, 26_274.13)
+    )
+    assert ' data-label="나스닥 종합"' in ixic
+    assert "나스닥 100" not in ixic
 
 
 def test_id_slug_preserves_hyphenated_btc() -> None:

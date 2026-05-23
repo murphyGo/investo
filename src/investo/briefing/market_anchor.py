@@ -292,6 +292,88 @@ def _is_same_year_as(reference: date) -> _DatePredicate:
 
 
 # ---------------------------------------------------------------------------
+# u70 — canonical symbol / display-label registry
+# ---------------------------------------------------------------------------
+#
+# A single source of truth for how each core anchor ticker is named for the
+# reader. Before u70 each surface (anchor table, chart card, Telegram
+# snapshot line) inlined its own label string; the Telegram line in
+# particular mislabelled ``^IXIC`` (Nasdaq Composite) as ``NDX`` — the
+# Nasdaq 100 ticker, a *different* index. Centralising the mapping here
+# means every consumer renders the same label for the same symbol.
+#
+# Pins
+# ~~~~
+# * ``^IXIC`` is the **Nasdaq Composite**. The Nasdaq 100 is a separate
+#   index (``^NDX``); the pipeline does not currently fetch it, so it has
+#   no registry entry until that anchor exists (Plan Step 3). Adding a
+#   ``^IXIC -> "Nasdaq 100"`` entry would re-introduce the reviewed bug.
+# * Korean labels mirror the reader-facing prose vocabulary; the short
+#   alias (e.g. ``"S&P500"``) is what compact surfaces (Telegram) prefer.
+
+
+class AnchorLabel(BaseModel):
+    """Canonical display naming for one anchor symbol (u70).
+
+    ``short`` is the compact alias used by dense surfaces (Telegram
+    snapshot line); ``ko`` is the Korean reader-facing name; ``display``
+    defaults to the raw symbol so the anchor table keeps its existing
+    ticker-first rendering while still routing through one registry.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    symbol: str = Field(min_length=1, max_length=32)
+    short: str = Field(min_length=1)
+    ko: str = Field(min_length=1)
+    display: str = Field(min_length=1)
+
+
+_ANCHOR_LABELS: Final[dict[str, AnchorLabel]] = {}
+
+
+def _register_label(symbol: str, *, short: str, ko: str, display: str | None = None) -> None:
+    _ANCHOR_LABELS[symbol] = AnchorLabel(
+        symbol=symbol,
+        short=short,
+        ko=ko,
+        display=display if display is not None else symbol,
+    )
+
+
+# Order is documentation only; lookup is by symbol key.
+_register_label("^GSPC", short="S&P500", ko="S&P 500")
+_register_label("^IXIC", short="Nasdaq", ko="나스닥 종합")  # NOT Nasdaq 100 (^NDX)
+_register_label("^DJI", short="Dow", ko="다우존스")
+_register_label("^NDX", short="NDX", ko="나스닥 100")
+_register_label("AAPL", short="AAPL", ko="애플")
+_register_label("MSFT", short="MSFT", ko="마이크로소프트")
+_register_label("NVDA", short="NVDA", ko="엔비디아")
+_register_label("TSLA", short="TSLA", ko="테슬라")
+_register_label("GOOGL", short="GOOGL", ko="알파벳")
+_register_label("META", short="META", ko="메타")
+_register_label("AMZN", short="AMZN", ko="아마존")
+_register_label("BTC-USD", short="BTC", ko="비트코인")
+_register_label("ETH-USD", short="ETH", ko="이더리움")
+_register_label("^KOSPI", short="KOSPI", ko="코스피")
+_register_label("^KOSDAQ", short="KOSDAQ", ko="코스닥")
+_register_label("KRW=X", short="USD/KRW", ko="원/달러")
+
+
+def anchor_label(symbol: str) -> AnchorLabel:
+    """Return the canonical :class:`AnchorLabel` for ``symbol`` (u70).
+
+    Unknown symbols (e.g. an ad-hoc ticker not in the core basket) fall
+    back to a label whose every field is the raw symbol, so callers can
+    always render *something* deterministic without a missing-key guard.
+    """
+    existing = _ANCHOR_LABELS.get(symbol)
+    if existing is not None:
+        return existing
+    return AnchorLabel(symbol=symbol, short=symbol, ko=symbol, display=symbol)
+
+
+# ---------------------------------------------------------------------------
 # Header rendering
 # ---------------------------------------------------------------------------
 
@@ -416,8 +498,10 @@ def _format_signed(value: Decimal) -> str:
 
 __all__ = [
     "DEFAULT_HISTORY_WINDOW_DAYS",
+    "AnchorLabel",
     "MarketAnchor",
     "OHLCRow",
+    "anchor_label",
     "compute_market_anchors",
     "render_market_anchor_line",
 ]

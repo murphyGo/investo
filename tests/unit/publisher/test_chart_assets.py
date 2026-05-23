@@ -112,6 +112,7 @@ def test_mkdocs_yml_registers_both_extra_javascript_paths() -> None:
         "data-history",
         "data-close",
         "data-ticker",
+        "data-label",
         "investo-chart-card",
         "investo-chart",
     ],

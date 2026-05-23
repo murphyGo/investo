@@ -286,6 +286,10 @@
     }
 
     var ticker = div.getAttribute("data-ticker");
+    // u70 — canonical reader label from the shared anchor-label registry
+    // (e.g. ^IXIC -> "나스닥 종합", never "Nasdaq 100"). Falls back to the
+    // raw ticker when the attribute is absent (older archives).
+    var label = div.getAttribute("data-label");
     var latestClose = readNumberAttr(div, "data-close");
     if (latestClose === null) latestClose = bars[bars.length - 1].close;
     var pct = readFiniteNumberAttr(div, "data-pct");
@@ -297,7 +301,7 @@
 
     var summary = document.createElement("summary");
     summary.className = "investo-chart-summary";
-    summary.setAttribute("aria-label", (ticker || "Ticker") + " chart details");
+    summary.setAttribute("aria-label", (label || ticker || "Ticker") + " chart details");
 
     var quote = document.createElement("span");
     quote.className = "investo-chart-quote";
@@ -305,7 +309,15 @@
     var tickerEl = document.createElement("strong");
     tickerEl.className = "investo-chart-ticker";
     tickerEl.textContent = ticker || "Ticker";
+    if (label && label !== ticker) tickerEl.title = label;
     quote.appendChild(tickerEl);
+
+    if (label && label !== ticker) {
+      var labelEl = document.createElement("span");
+      labelEl.className = "investo-chart-label";
+      labelEl.textContent = label;
+      quote.appendChild(labelEl);
+    }
 
     var priceEl = document.createElement("span");
     priceEl.className = "investo-chart-price";

@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u70 cross-surface-numeric-anchor-reconciliation
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (6/6 — closed 2026-05-24; FD + NFR SKIP confirmed; gate green)
 **Source**: 2026-05-24 ten-subagent user-quality review of generated segmented briefings
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -81,43 +81,52 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Map current anchor producers and consumers `[ ]`
-- [ ] Trace current flow from source-collected market anchors to top table, body, trace/footer, and chart placeholders.
-- [ ] Identify every place that independently formats symbol labels or price/change values.
-- [ ] Record which surfaces can currently render when an anchor is missing/stale.
+### Step 1 — Map current anchor producers and consumers `[x]`
+- [x] Trace current flow from source-collected market anchors to top table, body, trace/footer, and chart placeholders.
+- [x] Identify every place that independently formats symbol labels or price/change values.
+- [x] Record which surfaces can currently render when an anchor is missing/stale.
 - **Acceptance**: implementation notes list each consumer and its canonical input after the change.
 
-### Step 2 — Define single anchor payload contract `[ ]`
-- [ ] Reuse existing `MarketAnchor` / orchestrator-prepared anchor data. If an additional display contract is unavoidable, place `MarketAnchorDisplay` in `src/investo/briefing/market_anchor.py`; do not place it in `publisher`.
-- [ ] Include symbol, display label, close/current value, change, pct change, timestamp, provenance/source, freshness status, and data-limited reason.
-- [ ] Preserve Decimal/string formatting stability required by chart placeholder tests.
-- **Acceptance**: one payload can render table row and compact chart card without recomputing labels or values.
+  Findings: producer is `orchestrator.pipeline._load_market_anchors_for_run` (+ `_build_kr_anchors_from_items`). Consumers and their canonical input *after* this change:
+  - top anchor table — `render_anchor_table(anchor_table_input)` (reconciled payload).
+  - compact + expanded chart card — `_inject_chart_blocks_into_segments(anchors_by_segment=anchor_table_input)` (was the un-reconciled `market_anchors_by_segment` — the divergence root cause; now the same reconciled payload).
+  - body prose availability — gated by `enforce_anchor_assertions(available_symbols=anchors)` against the same payload's tickers.
+  - trace footer — item titles/metadata (cites the price-snapshot close `_snapshot_close_by_ticker` feeds into reconciliation; unchanged schema).
+  - Telegram snapshot line — `notifier.summary._market_snapshot_line` now labels via the shared `anchor_label` registry (was the hard-coded `NDX` mislabel for `^IXIC`).
+  Independent label formatters removed: the Telegram line's inline `"NDX"`/`"SPX"` strings now route through the registry; the chart card gained `data-label`.
+  Missing/stale rendering: previously the body could assert a precise move for a symbol absent from the payload (domestic missing-core KOSPI case). Now gated.
 
-### Step 3 — Reconcile label and symbol registry `[ ]`
-- [ ] Fix `^IXIC` label to Nasdaq Composite.
-- [ ] Ensure Nasdaq 100 uses an explicit correct symbol/label only if the pipeline has that anchor.
-- [ ] Add tests for common US index labels (`^GSPC`, `^IXIC`, `^DJI`, and Nasdaq 100 symbol if configured).
-- **Acceptance**: no test or fixture can label `^IXIC` as Nasdaq 100.
+### Step 2 — Define single anchor payload contract `[x]`
+- [x] Reuse existing `MarketAnchor` / orchestrator-prepared anchor data. The single reconciled `anchor_table_input` map (per-segment `MarketAnchor` tuples from `_reconcile_anchor_closes`) is the canonical payload; no separate `MarketAnchorDisplay` was needed. The label dimension is added as a side registry (`AnchorLabel` in `market_anchor.py`) keyed by symbol so existing `MarketAnchor` consumers stay unchanged.
+- [x] Symbol/value/change/pct live on `MarketAnchor`; display label resolves via `anchor_label(symbol)`; freshness/data-limited is expressed by *presence in the payload* (absent ⇒ data-limited, enforced by the body gate). Provenance/timestamp remain on the source items the trace footer surfaces.
+- [x] Decimal/string formatting stability preserved — chart placeholder tests still pass (`data-close` formatting unchanged; only `data-label` added).
+- **Acceptance**: one payload renders table row + compact chart card without recomputing labels or values (table render and chart injection both consume `anchor_table_input`).
 
-### Step 4 — Gate body assertions on anchor availability `[ ]`
-- [ ] Integration point: `_reconcile_anchor_closes` / anchor preparation marks missing/stale anchors before Stage 2 reader-format output is accepted; post-generation reader-format validation blocks precise unsupported claims.
-- [ ] A blocked precise direction/move claim is any sentence containing a core index/asset label plus signed percent/point/price movement or verbs equivalent to 급등/급락/상승/하락 when the matching anchor is missing/stale.
-- [ ] Failure behavior: deterministic data-limited callout replaces the unsupported sentence when the sentence is isolated; otherwise publish fails with a numeric-anchor reconciliation finding.
-- [ ] Keep domestic u67 fallback precedence unchanged; consume its output when available.
-- **Acceptance**: domestic missing-core fixture cannot produce an unqualified KOSPI move assertion.
+### Step 3 — Reconcile label and symbol registry `[x]`
+- [x] `^IXIC` → 나스닥 종합 / "Nasdaq" (Nasdaq Composite) in the `_ANCHOR_LABELS` registry; the Telegram `NDX` mislabel fixed.
+- [x] Nasdaq 100 uses the distinct `^NDX` symbol/label (registered but the pipeline does not fetch it today, so it never appears unless added).
+- [x] Tests added: `test_anchor_label.py` (`^GSPC`/`^IXIC`/`^DJI`/`^NDX`), chart-card `^IXIC` label test, replay `anchor-ixic-mislabel` finding.
+- **Acceptance**: no test/fixture labels `^IXIC` as Nasdaq 100; replay flags it as an error if it ever appears.
 
-### Step 5 — Wire chart placeholders to the same payload `[ ]`
-- [ ] Compact chart `data-close` / `data-pct` values come from the canonical anchor payload, not a separate formatter.
-- [ ] Expanded chart metadata agrees with the compact card summary.
-- [ ] If chart history is present but anchor freshness fails, the card labels the limitation rather than displaying a conflicting value.
-- **Acceptance**: crypto fixture values match across top table, trace, compact card, and expanded metadata.
+### Step 4 — Gate body assertions on anchor availability `[x]`
+- [x] Integration point: `enforce_anchor_assertions` runs inside `_apply_reader_format_to_segments` (reader-format pass), consuming the reconciled payload's tickers as `available_symbols`.
+- [x] A blocked precise claim = core label + movement verb (급등/급락/상승/하락/반등/폭락/폭등/강세/약세) + explicit magnitude (%/포인트/원/달러/$) when the matching anchor is absent.
+- [x] Failure behavior: isolated sentence → deterministic data-limited callout (idempotent); interleaved/structural → `NumericAnchorReconciliationError` (caught by the publish-stage reader-format handler → FAILED + alert).
+- [x] u67 domestic fallback precedence unchanged — `_build_kr_anchors_from_items` still runs first; the gate only fires when no KR anchor was produced.
+- **Acceptance**: domestic missing-core (`available_symbols=()`) cannot produce an unqualified KOSPI move assertion (test_anchor_assertion_gate).
 
-### Step 6 — Replay / regression tests `[ ]`
-- [ ] Add fixture or unit test for domestic missing-core assertion block.
-- [ ] Add fixture or unit test for US index label drift.
-- [ ] Add fixture or unit test for BTC/ETH/SOL value divergence across surfaces.
-- [ ] Add a u65 `briefing_replay` rendered-artifact regression that checks table/body/trace-visible/chart agreement on one generated markdown fixture.
-- [ ] Run targeted tests plus ruff/mypy on changed source.
+### Step 5 — Wire chart placeholders to the same payload `[x]`
+- [x] Chart injection reordered to run *after* `_reconcile_anchor_closes` and now consumes `anchor_table_input` — `data-close` / `data-pct` come from the same canonical anchor the table uses.
+- [x] Compact card and expanded metadata read the same div attributes; both now also carry `data-label` (canonical registry label).
+- [x] `data-52w-high`/`data-52w-low` stay history-derived inside the renderer (candlestick axis fidelity), but the summary close matches the table. A missing anchor → no chart for that ticker (history-keyed), so no conflicting value is shown.
+- **Acceptance**: replay `anchor-close-divergence` test confirms table close == chart card close for the same symbol.
+
+### Step 6 — Replay / regression tests `[x]`
+- [x] Domestic missing-core assertion block — `test_anchor_assertion_gate.py::test_isolated_kospi_claim_without_anchor_is_rewritten` + `test_enforce_raises_on_blocking_finding`.
+- [x] US index label drift — `test_anchor_label.py` + `test_chart_placeholder.py` (`^IXIC` label) + replay `test_replay_flags_ixic_nasdaq_100_mislabel`.
+- [x] Crypto/value divergence across surfaces — `test_replay_flags_anchor_close_divergence` (generalised parity check covers BTC/ETH too) + gate crypto test.
+- [x] `briefing_replay` rendered-artifact regression — `test_replay_anchor_surfaces_agree` checks table/chart agreement on a generated markdown fixture.
+- [x] Targeted tests + ruff + mypy on changed source — all green; full suite 2528 passed; `mkdocs build --strict` ok.
 
 ---
 

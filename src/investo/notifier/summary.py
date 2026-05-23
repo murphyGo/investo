@@ -39,6 +39,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Final
 
+from investo.briefing.market_anchor import anchor_label
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -375,8 +376,11 @@ def _market_snapshot_line(price_items: Sequence[NormalizedItem]) -> str:
     parts = [
         part
         for part in (
-            _snapshot_part_for_tickers("SPX", price_items, ("^GSPC",)),
-            _snapshot_part_for_tickers("NDX", price_items, ("^IXIC",)),
+            _snapshot_part_for_tickers(anchor_label("^GSPC").short, price_items, ("^GSPC",)),
+            # u70 — ``^IXIC`` is the Nasdaq Composite, not the Nasdaq 100
+            # (``^NDX``); the canonical registry supplies the correct short
+            # label so this dense surface stops emitting the "NDX" mislabel.
+            _snapshot_part_for_tickers(anchor_label("^IXIC").short, price_items, ("^IXIC",)),
             _snapshot_part_for_index("KOSPI", price_items, ("코스피",)),
             _snapshot_part_for_crypto("BTC", price_items, ("BTCUSDT", "btc", "BTC")),
         )

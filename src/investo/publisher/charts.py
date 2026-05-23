@@ -46,7 +46,7 @@ from collections.abc import Mapping, Sequence
 from decimal import Decimal
 from typing import Final
 
-from investo.briefing.market_anchor import MarketAnchor, OHLCRow
+from investo.briefing.market_anchor import MarketAnchor, OHLCRow, anchor_label
 
 # Maximum chart placeholders embedded per segmented briefing. Keeps the
 # rendered HTML payload bounded (each placeholder ~7-15 KB of inline
@@ -161,8 +161,15 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
     resulting div carries:
 
     * ``data-ticker`` — raw ticker (display value, attribute-escaped).
+    * ``data-label`` — canonical Korean reader label for the symbol (u70).
+      Sourced from the same :func:`anchor_label` registry the Telegram
+      snapshot line uses, so the compact card never re-labels ``^IXIC``
+      as Nasdaq 100.
     * ``data-close`` / ``data-pct`` — compact summary values used in the
-      collapsed card before the full chart is opened.
+      collapsed card before the full chart is opened. These come straight
+      off the reconciled :class:`MarketAnchor` the orchestrator also feeds
+      to the top table (u70 single-payload contract), so the card and the
+      table never diverge on the same symbol's price/change.
     * ``data-history`` — minified JSON of the OHLCV bars.
     * ``data-ath`` — anchor close when ``is_ath`` else nothing (the JS
       side already redraws if absent).
@@ -178,6 +185,7 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
         return ""
     slug = _slug_for_id(anchor.ticker)
     ticker_attr = _attr_escape(anchor.ticker)
+    label_attr = _attr_escape(anchor_label(anchor.ticker).ko)
     close_attr = _attr_escape(_decimal_to_float_str(anchor.close))
     pct_attr = ""
     if anchor.pct is not None:
@@ -197,6 +205,7 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
     history_attr = _data_history_attr(history)
     return (
         f'<div class="investo-chart" id="chart-{slug}" data-ticker="{ticker_attr}"'
+        f' data-label="{label_attr}"'
         f' data-close="{close_attr}"{pct_attr}{ath_attr}{high_attr}{low_attr}'
         f" data-history='{history_attr}'></div>\n"
     )

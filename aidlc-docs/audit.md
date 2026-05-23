@@ -1,5 +1,29 @@
 # AI-DLC Audit Log
 
+## Construction — u70 cross-surface-numeric-anchor-reconciliation Complete
+**Timestamp**: 2026-05-24T23:59:00+09:00
+**Trigger**: u70 (cross-surface-numeric-anchor-reconciliation) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only.
+**Decision**: Ratify the implementation and close the unit (6/6 steps). One reconciled anchor payload now feeds every reader surface; precise body move-claims are gated on anchor availability. Confirmed P1-2 extension (not replacement): the existing `_reconcile_anchor_closes` single-close reconciler is retained — no second reconciler created. No new data provider or numeric-verification rule (AC-70.5).
+**Delivered**:
+- **`src/investo/publisher/anchor_assertion_gate.py`** (new): `gate_body_assertions` / `enforce_anchor_assertions` / `NumericAnchorReconciliationError`. Blocked claim = core label + movement verb (급등/급락/상승/하락/반등/폭락/폭등/강세/약세) + explicit magnitude (%/포인트/원/달러/$) when the matching anchor is absent. Isolated sentence -> idempotent data-limited callout; interleaved/structural -> `NumericAnchorReconciliationError` (-> FAILED + alert).
+- **P1-2 extension (root-cause fix)**: chart injection moved from the **un-reconciled** `market_anchors_by_segment` onto the **same reconciled** `anchor_table_input` the table consumes (was the chart-vs-table divergence root cause). `orchestrator/pipeline.py` computes the reconciled per-segment `MarketAnchor` tuples once and supplies table + compact card + expanded metadata + body gate.
+- **Label registry**: `briefing/market_anchor.py` canonical `AnchorLabel` registry + `anchor_label()`; `^IXIC` -> 나스닥 종합 / "Nasdaq" (Nasdaq Composite); `^NDX` -> 나스닥 100 as a distinct symbol/label. `notifier/summary.py` Telegram snapshot label routed through the registry (fixes the hard-coded `^IXIC`->"NDX" mislabel). `publisher/charts.py` compact card + `site_docs/assets/investo-chart-init.js` render `data-label`.
+- **Replay parity**: `publisher/briefing_replay.py` adds `anchor-close-divergence` and `anchor-ixic-mislabel` cross-surface findings.
+- **Tests**: `test_anchor_assertion_gate.py`, `test_anchor_label.py`, `test_chart_placeholder.py` (`^IXIC` label), `test_briefing_replay.py` (close-divergence / ixic-mislabel / surfaces-agree).
+**Single anchor payload contract**: reconciled per-segment `MarketAnchor` tuple (`anchor_table_input`) is the canonical source for table + compact card + expanded metadata + body gate. Label = `anchor_label(symbol)`. Missing/stale = absence from the payload (gate-enforced). `data-close` formatting unchanged; only `data-label` added.
+**Module boundary**: `anchor_assertion_gate.py` is publisher-internal and consumes prepared display anchors only (no `briefing.numeric_verify` / `briefing.freshness` import). Orchestrator assembles the prepared anchors; publisher surfaces consume prepared data only — orchestrator-only cross-unit import rule upheld.
+**FD divergences ratified**: none — FD = SKIP (producer-consumer wiring over existing `MarketAnchor` / core-fact models; no new entity).
+**Scope-out -> TECH-DEBT**: none — no new debt candidate surfaced.
+**Risk recorded**: the body-assertion gate's move-verb/magnitude heuristic is conservative — it requires an explicit signed percent/point/price, so ambiguous claims with no numeric magnitude (e.g. "코스피 큰 폭 급락" with no figure) are not gated. Matches the plan's Step 4 definition ("precise signed percent/point/price"); broader rhetorical-claim detection is intentionally out of scope.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u70-cross-surface-numeric-anchor-reconciliation/code/summary.md` (new — Scope/Stage Decision(FD+NFR SKIP)/P1-2 relationship/single payload contract/AC-70.1-5 traceability/FD divergences/TECH-DEBT(none)/gate)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u70-cross-surface-numeric-anchor-reconciliation-code-generation-plan.md` (Step 6 + residual `[ ]`->`[x]`; Status -> Complete)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u70 row Backlog->Complete; Code Generation / Build-and-Test lines; backlog range u70-u76 -> u71-u76; FD+NFR SKIP confirmed)
+**Status**: u70 complete (6/6). AC-70.1..AC-70.5 MET. Gate: ruff clean / mypy --strict 139 files clean / pytest 2528 passed (integration 42) / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout.
+**Context**: Project rules upheld — 무료 API only (no external call; deterministic data plumbing/validation), Anthropic SDK 금지 (untouched), 모듈 경계 (gate publisher-internal; orchestrator-only cross-unit import preserved), 면책조항 + 채널 분리 gates untouched, R13 no secret (no secret surface touched), `defusedxml` not invoked. No new data provider / numeric-verification rule / dependency (AC-70.5).
+
+---
+
 ## Construction — u69 quality-public-consistency-gate Complete
 **Timestamp**: 2026-05-24T23:30:00+09:00
 **Trigger**: u69 (quality-public-consistency-gate) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step 5 close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only.

@@ -40,6 +40,25 @@ _NAV_LABELS: Final[dict[MarketSegment, str]] = {
 }
 _BTC_BTM_RE: Final[re.Pattern[str]] = re.compile(r"\bBTC\b[^;\n]*\bBTM\b|\bBTM\b[^;\n]*\bBTC\b")
 
+# u70 — cross-surface anchor parity. The anchor table renders one row per
+# core symbol as ``| <ticker> | <price> | <pct> | <note> |``; the compact
+# chart card carries ``data-ticker="<ticker>" ... data-close="<price>"``.
+# These two surfaces consume the same reconciled payload, so for any
+# symbol present in both the numeric close must match. A mismatch means a
+# surface re-formatted or re-derived the value independently — exactly the
+# drift u70 forbids.
+_ANCHOR_ROW_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\|\s*(?P<ticker>[\^A-Za-z][\w\-^=]*)\s*\|\s*(?P<price>[\d,]+(?:\.\d+)?)\s*\|",
+    re.MULTILINE,
+)
+_CHART_DIV_RE: Final[re.Pattern[str]] = re.compile(
+    r'data-ticker="(?P<ticker>[^"]+)"[^>]*?data-close="(?P<close>[^"]+)"',
+)
+# Nasdaq Composite (^IXIC) must never be labelled Nasdaq 100.
+_IXIC_MISLABEL_RE: Final[re.Pattern[str]] = re.compile(
+    r"\^IXIC[^\n]{0,80}(?:Nasdaq\s*100|나스닥\s*100)"
+)
+
 
 @dataclass(frozen=True, slots=True)
 class ReplayFinding:
@@ -172,6 +191,51 @@ def _check_markdown(segment: MarketSegment, text: str) -> tuple[ReplayFinding, .
             )
         )
         break
+    findings.extend(_check_anchor_cross_surface(segment, text))
+    return tuple(findings)
+
+
+def _normalise_price(raw: str) -> str:
+    """Canonicalise a displayed price for cross-surface comparison.
+
+    Strips thousands separators and a trailing ``.0`` / ``.00`` so the
+    table's ``26,274.13`` and the chart card's ``26274.13`` compare equal
+    without depending on either surface's formatting choices.
+    """
+    cleaned = raw.replace(",", "").strip()
+    if "." in cleaned:
+        cleaned = cleaned.rstrip("0").rstrip(".")
+    return cleaned or "0"
+
+
+def _check_anchor_cross_surface(segment: MarketSegment, text: str) -> tuple[ReplayFinding, ...]:
+    """u70 — table close, chart-card close, and ^IXIC label must agree."""
+    findings: list[ReplayFinding] = []
+    if _IXIC_MISLABEL_RE.search(text):
+        findings.append(
+            ReplayFinding(
+                "error",
+                segment,
+                "anchor-ixic-mislabel",
+                "^IXIC labelled as Nasdaq 100 (it is the Nasdaq Composite)",
+            )
+        )
+    table_close = {
+        m.group("ticker"): _normalise_price(m.group("price")) for m in _ANCHOR_ROW_RE.finditer(text)
+    }
+    for m in _CHART_DIV_RE.finditer(text):
+        ticker = m.group("ticker")
+        chart_close = _normalise_price(m.group("close"))
+        table_value = table_close.get(ticker)
+        if table_value is not None and table_value != chart_close:
+            findings.append(
+                ReplayFinding(
+                    "error",
+                    segment,
+                    "anchor-close-divergence",
+                    f"{ticker} close differs: table={table_value} chart={chart_close}",
+                )
+            )
     return tuple(findings)
 
 
