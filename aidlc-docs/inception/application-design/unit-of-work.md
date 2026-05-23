@@ -818,19 +818,38 @@ These units intentionally avoid duplicating closed u54/u57/u60 implementation sc
 
 ### u66: `crypto-channel-depth` — Crypto-Native Indicators and 24h Framing
 
-**Purpose**: Add crypto-native reader signals (펀딩비, 미결제약정, 24h 청산, BTC 도미넌스, 공포·탐욕 지수, exchange netflow where free) and replace the unsuitable "전일 종가" frame with a UTC 24h snapshot frame for the crypto channel. Reader-facing feature gap raised independently by the 크립토 투자자 + 신뢰성 personas in the 2026-05-24 review.
+**Purpose**: Add crypto-native reader signals and replace the unsuitable "전일 종가" frame with a UTC 24h snapshot frame for the crypto channel. Reader-facing feature gap raised independently by the 크립토 투자자 + 신뢰성 personas in the 2026-05-24 review. Plan: `aidlc-docs/construction/plans/u66-crypto-channel-depth-code-generation-plan.md`.
+
+**Scope (confirmed via lead live reachability probe 2026-05-24)**:
+- In scope (no-key free): 공포·탐욕 지수 (Alternative.me), BTC 도미넌스 + 전체 시총 (CoinGecko `/global`), BTC 펀딩비 + 미결제약정(OI) (Bybit primary → OKX fallback; both geo-safe, **not** Binance — GHA 451), existing DeFiLlama TVL/stablecoin, and a crypto UTC-24h render/prompt frame.
+- Out of scope (no no-key free source): **24h 청산** (Coinglass requires API key) and **거래소 netflow** (CryptoQuant/Glassnode paid) — scope-out, TECH-DEBT to be registered at closeout (next free ids, expected DEBT-071 / DEBT-072).
+- u66 **defines the crypto indicator raw_metadata contract** (`indicator` tag + per-key units) that **u74 market-channel-depth-v2 consumes** (u74 is implementation-blocked on this) — see the plan's "u74 Interface Contract".
 
 **Stories**: FR-001 (수집), FR-002 (AI 시황 작성), FR-008 (소스 확장성), FR-009 (reader-facing format)
 
+**Existing Coverage / Deduplication**:
+- Improves u54/u62/u65 quality surfaces by adding crypto-native input rows; does not redefine source severity, quality history, or replay harness ownership.
+- Improves u55 numeric fact discipline by adding fixed metadata fields; does not build a second generic numeric validator.
+- Preserves u56 crypto disclaimer/compliance wording and u58 official crypto-policy priority.
+- Defines the crypto-side indicator contract that u74 consumes; u74 remains the cross-channel presentation wrapper.
+
 **Module path**:
-- `src/investo/sources/` — new free crypto-indicator adapters (Alternative.me Fear&Greed, CoinGecko dominance, Coinglass public funding/OI/liquidation where free-reachable)
+- `src/investo/sources/alternative_fng.py` — no-key Fear & Greed adapter
+- `src/investo/sources/coingecko_global_market.py` — no-key BTC dominance / global market totals adapter
+- `src/investo/sources/bybit_derivatives.py` (+ OKX fallback) — no-key BTC 펀딩비 / OI adapter (`category="macro"` + `indicator` raw_metadata tag; no new `Category` enum value)
+- `src/investo/sources/defillama_market_structure.py` — reuse existing DeFi TVL / stablecoin structure adapter
+- `src/investo/briefing/segments.py` — register new sources in `_CRYPTO_ONLY_SOURCES` (crypto-only routing)
 - `src/investo/briefing/prompts.py` — crypto 24h-snapshot framing scope
+- `src/investo/publisher/crypto_indicators.py` — deterministic crypto-native indicator block
 - `src/investo/publisher/anchor_table.py` — crypto snapshot columns (UTC, 24h)
 
 **Definition of Done**:
-- [ ] At least Fear&Greed + BTC 도미넌스 land from confirmed free sources (per-indicator reachability verified in the plan).
-- [ ] Crypto channel uses a UTC 24h snapshot frame, not "전일 종가".
-- [ ] No paid key; per-source isolation; `defusedxml` for any XML; channel separation and disclaimer untouched.
+- [ ] `alternative-fng`, `coingecko-global-market`, and `bybit-derivatives` (+ `okx-derivatives` fallback) land from confirmed no-key HTTP 200 sources with recorded fixtures; funding/OI follow Bybit→OKX precedence.
+- [ ] Indicators exposed through the u74 raw_metadata contract (exact `indicator`/key names/units), routed crypto-only.
+- [ ] Crypto channel renders Fear & Greed, BTC dominance, total crypto market cap, BTC 펀딩비, BTC OI, DeFi TVL, stablecoin supply, and explicit unavailable rows for 24h 청산 / netflow.
+- [ ] Crypto channel uses a UTC 24h snapshot frame, not equity close / "전일 종가" prose.
+- [ ] 24h 청산 + netflow scoped out (no no-key source) and registered as TECH-DEBT; no fabricated values.
+- [ ] No paid key; per-source isolation; channel separation and disclaimer untouched; Anthropic SDK untouched; module boundary intact; R13 no secret.
 
 ### u67: `domestic-channel-depth` — KOSPI Close Fallback, FX, and Sector Depth
 

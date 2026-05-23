@@ -1,5 +1,30 @@
 # AI-DLC Audit Log
 
+## Construction — u66 crypto-channel-depth Plan Authored + Reachability Probe Recorded
+**Timestamp**: 2026-05-24T20:00:00+09:00
+**Trigger**: Planner asked to author the formal u66 (crypto-channel-depth) Code Generation plan from the backlog entry, narrowing scope to the lead's confirmed live reachability probe. u74 market-channel-depth-v2 is implementation-blocked on u66 defining the crypto indicator output interface.
+**Lead live reachability probe (2026-05-24, confirmed) — pinned into the plan**:
+- 공포·탐욕 지수: Alternative.me `/fng/?limit=1` — ✅ 200, no-key (`value` / `value_classification`).
+- BTC 도미넌스 / 전체 시총: CoinGecko `/api/v3/global` — ✅ 200, no-key (`data.market_cap_percentage.btc`).
+- BTC 펀딩비 + OI: Bybit v5 `/v5/market/tickers?category=linear&symbol=BTCUSDT` — ✅ 200, no-key, **no geo-block** (primary); OKX `/api/v5/public/funding-rate` + `/open-interest` — ✅ 200, no-key (fallback).
+- Binance fapi: sandbox 200 but **GHA IP 451 geo-block** (crypto archive shows `binance-crypto-market` status 451) → NOT primary; optional last resort only.
+- 24h 청산 (Coinglass): ❌ `{"code":"30001","msg":"API key missing"}` — no no-key source. 거래소 netflow (CryptoQuant/Glassnode): ❌ paid/key. → both scope-out → TECH-DEBT.
+**Decision**:
+- In scope (no-key free confirmed): (a) 공포·탐욕, (b) BTC 도미넌스, (c) BTC 펀딩비, (d) BTC OI, (e) crypto UTC-24h render/prompt frame (replaces `종가` column + `② 전일 핵심 이슈` wording, crypto segment only).
+- Source precedence: 펀딩비/OI = Bybit primary → OKX fallback (both no-key, geo-safe); Binance not primary. 공포탐욕 = Alternative.me single; 도미넌스 = CoinGecko `/global` single.
+- **No new `Category` enum value** — indicators use `category="macro"` + `indicator` raw_metadata disambiguator tag, routed crypto-only via `_CRYPTO_ONLY_SOURCES`. Adding a crypto enum value would ripple through routing/prompts/coverage/fixtures; raw_metadata tagging is the lower-blast-radius choice.
+- Out of scope: 24h 청산 + 거래소 netflow (no no-key source) — registered as TECH-DEBT at closeout (next free ids, expected DEBT-071 liquidation / DEBT-072 netflow). u74 renders the absent liquidation as `not_yet_available`; values are never fabricated.
+**u74 interface contract fixed**: `fear_greed` (`value`/`classification`), `btc_dominance` (`btc_dominance_pct`, %), `funding_oi_liquidation` funding (`btc_funding_rate` + `funding_source` ∈ bybit/okx) + OI (`btc_oi_usd` + `oi_source`) + liquidation (absent). `btc_price_24h`/`eth_price_24h` stay on the existing `coingecko-price` adapter (unchanged). None map to a `CoreFact`, so no `core_fact:*` keys (non-core context, `warn` per u55).
+**Concurrent-draft reconciliation**: a concurrent session drafted a conservative u66 plan that deferred ALL derivatives (funding/OI/청산/netflow) as "무료 검증 소스 미확정". That contradicts the lead live probe (funding/OI confirmed no-key/geo-safe). The planner consolidated to the lead-authoritative scope: funding/OI IN scope (Bybit→OKX, new Step 3b + adapter), only 청산/netflow scoped out. Stage Decision and DoD kept from the concurrent draft where consistent.
+**Stage Decision**: FD REQUIRED (lightweight — new adapters incl. Bybit→OKX precedence algorithm + new crypto business rules; reuses `NormalizedItem`, no new entities, `Category` enum unchanged): u1-sources FD L6.13 `alternative-fng` / L6.14 `coingecko-global-market` / L6.15 `bybit-derivatives` (+OKX) and R16 crypto indicator contract + UTC-24h frame. NFR SKIPPED (all no-key free-tier reused under existing UTC window/retry budget; no new library; no XML so `defusedxml` not invoked; cost 0) — consistent with u67 precedent.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u66-crypto-channel-depth-code-generation-plan.md` (authored/consolidated — full formal plan: problem, u74 contract table, reachability, Stage Decision, Steps 1-9 incl. 3b, AC-1..8, dependency graph, How to Approve)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/inception/application-design/unit-of-work.md` (u66 entry updated: funding/OI in-scope, 청산/netflow scope-out, u74 contract dependency)
+**Status**: u66 plan awaiting approval (Request Changes / Continue to Next Stage). No code written. TECH-DEBT for 청산/netflow registered at unit closeout, not now. u74 remains blocked until u66 lands (its interface is now defined here).
+**Context**: Project rules carried into the plan — 무료 API only (no-key Alternative.me/CoinGecko/Bybit/OKX; no paid 청산/netflow), Anthropic SDK 금지 (claude_code.py only), 모듈 경계 (orchestrator-only cross-unit import; adapters import only models), 면책조항 + 채널 분리 untouched, R13 no secret (all no-key sources), R10 four-path fixtures per new source.
+
+---
+
 ## Construction — u68 reader-aids-residual Complete
 **Timestamp**: 2026-05-24T18:00:00+09:00
 **Trigger**: u68 (reader-aids-residual) Code Generation landed — code/tests/gate all green (developer). FD edit + `code/summary.md` + TECH-DEBT + state/audit deferred to planner per module-boundary rule.

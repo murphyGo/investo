@@ -166,6 +166,16 @@ The 2026-05-13 shared macro block rendered `미 국채 수익률 — Immunefi to
 |------|--------------|------------------|-----------------|
 | u60 shared-macro-evidence-hardening | Shared macro evidence must be source-backed and must not classify substring accidents like `customers` as UST yield | FR-002, FR-008, FR-015, NFR-003, R13 | u45 routing exclusivity, u55 numeric fact discipline, u57 BundleContext/shared macro, u59 macro lineage boundary |
 
+### u66-u68 Planning Notes
+
+The 2026-05-24 reader-facing feature-gap review split P2/P3 findings into crypto depth, domestic depth, and reader-aid residuals. u67 and u68 are closed. u66 remains the crypto-depth backlog owner and now has a formal plan that fixes the no-key v1 contract: Alternative.me Fear & Greed, CoinGecko global dominance/totals, Bybit→OKX BTC 펀딩비/OI (no-key, geo-safe), existing DeFiLlama structure, UTC 24h framing — with explicit unavailable rows only for 24h 청산/netflow (no no-key source → scope-out, TECH-DEBT), per the lead's 2026-05-24 live reachability probe.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u66 crypto-channel-depth | Crypto briefings need native sentiment/dominance/global-market rows and UTC 24h framing, without brittle paid or scraped derivatives feeds | FR-001, FR-002, FR-008, FR-009, R10, R13 | u45 routing exclusivity, u55 numeric facts, u56 compliance, u58 policy priority, u74 channel wrapper |
+| u67 domestic-channel-depth | Domestic briefings need KOSPI/KOSDAQ close fallback, 원/달러, sector depth, and overnight-US framing | FR-001, FR-002, FR-009 | u49 anchors, u53 sector/macro depth, u57 cross-segment wording |
+| u68 reader-aids-residual | Remaining reader-aid work after u52/u64/u40 is limited to glossary/carryover residual verification and suppression | FR-002, FR-006, FR-009 | u40 glossary, u52 carryover, u64 watchpoints |
+
 ### u69-u76 Planning Notes
 
 The 2026-05-24 user-quality review follow-up is scoped as improvements to already-delivered briefing quality surfaces. These units were generated only after excluding duplicate implementations: u54/u62/u65 already own source quality and replay foundations, u55 owns numeric fact gates, u51/u61 own summary formatting gates, u64 owns watchlist matching/actionability, u66/u67 own crypto/domestic depth, u50 owns lightweight chart embedding, and u68 owns glossary/carryover residuals.
