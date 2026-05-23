@@ -1,5 +1,28 @@
 # AI-DLC Audit Log
 
+## Construction — u76 plain-language-reader-aids Complete (Wave 13 backlog cleared)
+**Timestamp**: 2026-05-24T27:00:00+09:00
+**Trigger**: u76 (plain-language-reader-aids) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + state/audit + Step close deferred to planner per module-boundary rule. **This is the last unit of the Wave 13 backlog (u69–u76)** — backlog now empty. Concurrent session active — aidlc-docs additive only, other lines preserved.
+**Decision**: Ratify the implementation and close the unit (5/5 steps). Sections §②-§⑤ now carry one short plain-Korean meaning line answering "그래서 의미는?" — a market-implication prose layer, **not** a glossary. Confirmed u76 is a **hybrid**: content is produced by the Stage-2 LLM prompt; the deterministic pass enforces placement / length / dedup / compliance only and **never invents a meaning line** (the data-limited fallback is a prompt-contract obligation, not a deterministic backfill). Confirmed u40/u68 invariant (AC-76.4): the meaning marker `> **그래서 의미는?** ` is lexically disjoint from the u40 `> **용어 가이드**` callout and u68 carryover vocabulary; `normalize_meaning_lines` regex-matches **only** the meaning marker, so glossary/carryover lines are never captured.
+**Delivered**:
+- **`src/investo/publisher/reader_format.py`** (changed): u76 meaning-line section — constants `MEANING_MARKER` / `MEANING_FALLBACK` / `MEANING_MAX_CHARS`; helpers `_bound_meaning_body` / `normalize_meaning_lines` / `_repair_section_meaning`; `apply_reader_format` chain step 4.5 (after `dedupe_glossings`, immediately before footer rejoin); `__all__` updated.
+- **`src/investo/briefing/prompts.py`** (changed): `STAGE2_SYSTEM` gains a meaning-line rule block (plain-Korean relevance, banned 매매권유/목표가/결과예측, observational-only, ticker-name clarity).
+- **Tests**: new `tests/unit/publisher/test_reader_format_meaning_u76.py` (14) + `tests/unit/briefing/test_prompts.py` (+1). Net delta +15.
+**Contract (stable, idempotent)**: marker `> **그래서 의미는?** `; §②-§⑤ only; after the first paragraph/table block, before the next H3/H2; one line per section (dedup); marker-trailing body truncated at 80 Korean-visible chars on a word boundary; rerun replaces the existing line in the same section; data-limited fallback (LLM-owned) `> **그래서 의미는?** 현재 수집 근거가 부족해 방향보다 확인 필요 항목으로만 봅니다.`.
+**Header-preservation bug found and fixed**: the initial span reassembly dropped non-§②-§⑤ `##` header text (e.g. `## Watchlist Carryover`); fixed by re-inserting the `text[cursor:start]` header slice ahead of each section span during reassembly. Glossary/carryover tests pin the invariant (lead re-confirmed glossary/carryover/prompts 71 passed).
+**Compliance precedence (AC-76.5)**: the meaning pass does not paraphrase u56 P0 advice vocabulary; after `apply_reader_format` the orchestrator's existing `scan_compliance` scans the whole markdown and rejects publish via `ComplianceLanguageError` if P0 language survives in a meaning line. Pinned by `test_advice_meaning_line_rejected_by_compliance` ("매수 검토" rejected). The Stage-2 prompt also forbids 매매권유/목표가/결과예측, observational only.
+**FD divergences ratified**: none — FD = SKIP (reader-format / prompt contract refinement over existing rendered markdown; no new entity).
+**Scope-out -> TECH-DEBT**: none (developer determination — no new dependency, no signature change, pure `str → str` plus prompt text). Not registered.
+**Risk recorded**: meaning-line *content* quality is LLM-dependent — the deterministic pass enforces placement/length/dedup/compliance only. A future deterministic evidence-threshold enforcement of line content would be a separate unit.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u76-plain-language-reader-aids/code/summary.md` (new — Scope/Stage Decision(FD+NFR SKIP)/hybrid generation+validation/u40+u68 invariant(AC-76.4)/meaning-line contract/header-preservation bug fix/compliance precedence(AC-76.5)/AC-76.1-5 traceability/FD divergences/TECH-DEBT(none)/risk/gate)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u76-plain-language-reader-aids-code-generation-plan.md` (Status -> Complete; all Steps `[x]`)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u76 row Backlog->Complete; Code Generation / Build-and-Test lines; **Wave 13 backlog u69–u76 fully Complete — backlog empty**; FD+NFR SKIP confirmed)
+**Status**: u76 complete (5/5). AC-76.1..AC-76.5 MET. Gate: ruff clean / ruff-format clean / mypy --strict 144 files clean / pytest 2641 passed / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout. **Wave 13 backlog (u69–u76) fully cleared.**
+**Context**: Project rules upheld — 무료 API only (no external call; deterministic `str → str` + prompt text), Anthropic SDK 금지 (untouched — content via Stage-2 Claude Code CLI prompt), 모듈 경계 (`reader_format` publisher-internal; prompt rule briefing-internal; orchestrator-only cross-unit import preserved), 면책조항 (footer untouched — meaning pass runs before footer rejoin) + 채널 분리 gates untouched, R13 no secret (no secret surface touched), `defusedxml` not invoked. No new data source / numeric-verification rule / dependency.
+
+---
+
 ## Construction — u75 chart-data-externalization-and-mobile-performance Complete
 **Timestamp**: 2026-05-24T26:30:00+09:00
 **Trigger**: u75 (chart-data-externalization-and-mobile-performance) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (asset-packaging refactor, no entity); `code/summary.md` + TECH-DEBT + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only, other lines preserved.

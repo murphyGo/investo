@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u76 plain-language-reader-aids
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (5/5 steps — closed 2026-05-24)
 **Source**: 2026-05-24 beginner/non-expert Korean reader review of generated segmented briefings
 **Estimated Effort**: ~3-5 h
 **Dependencies**:
@@ -82,37 +82,37 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Define meaning-line contract `[ ]`
-- [ ] Implement the exact marker `> **그래서 의미는?** `.
-- [ ] Limit one meaning line per section §②-§⑤.
-- [ ] Set maximum length to 80 Korean-visible chars after the marker.
-- [ ] Use the data-limited fallback text above.
-- [ ] Preserve idempotency by replacing existing meaning lines in the same section.
+### Step 1 — Define meaning-line contract `[x]`
+- [x] Implement the exact marker `> **그래서 의미는?** `.
+- [x] Limit one meaning line per section §②-§⑤.
+- [x] Set maximum length to 80 Korean-visible chars after the marker.
+- [x] Use the data-limited fallback text above.
+- [x] Preserve idempotency by replacing existing meaning lines in the same section.
 - **Acceptance**: contract tests pin marker, placement, and length.
 
-### Step 2 — Update Stage 2 prompt `[ ]`
-- [ ] Add instruction that meaning lines explain relevance in plain Korean.
-- [ ] Forbid buy/sell/target-price language and quantified outcome predictions.
-- [ ] Require ticker-heavy lines to include a company/asset name if available.
+### Step 2 — Update Stage 2 prompt `[x]`
+- [x] Add instruction that meaning lines explain relevance in plain Korean.
+- [x] Forbid buy/sell/target-price language and quantified outcome predictions.
+- [x] Require ticker-heavy lines to include a company/asset name if available.
 - **Acceptance**: prompt tests assert the instruction and compliance guard are present.
 
-### Step 3 — Add reader-format validation/repair `[ ]`
-- [ ] Detect missing/overlong meaning lines.
-- [ ] Compliance precedence: scan whole markdown after meaning-line insertion; use deterministic repair only for length/duplication; if u56 P0 advice language remains, reject publish rather than silently paraphrasing.
-- [ ] Avoid duplicating the TL;DR or glossary callout.
+### Step 3 — Add reader-format validation/repair `[x]`
+- [x] Detect missing/overlong meaning lines.
+- [x] Compliance precedence: scan whole markdown after meaning-line insertion; use deterministic repair only for length/duplication; if u56 P0 advice language remains, reject publish rather than silently paraphrasing.
+- [x] Avoid duplicating the TL;DR or glossary callout.
 - **Acceptance**: malformed meaning-line fixtures are repaired or rejected deterministically.
 
-### Step 4 — Ticker-name clarity `[ ]`
-- [ ] Narrow source of known names to existing static aliases in `WatchlistConfig`/default aliases, configured watchlist terms, and existing anchor display labels. Do not add a new symbol-name registry in this unit.
-- [ ] If `reader_format.py` remains string-only, implement ticker-name clarity as prompt guidance plus validation against known static aliases only; signature changes are optional and must be justified by tests.
-- [ ] If a name is unavailable, avoid forcing a guessed name.
-- [ ] Keep output concise; do not create a long mapping table.
+### Step 4 — Ticker-name clarity `[x]`
+- [x] Narrow source of known names to existing static aliases in `WatchlistConfig`/default aliases, configured watchlist terms, and existing anchor display labels. Do not add a new symbol-name registry in this unit.
+- [x] If `reader_format.py` remains string-only, implement ticker-name clarity as prompt guidance plus validation against known static aliases only; signature changes are optional and must be justified by tests.
+- [x] If a name is unavailable, avoid forcing a guessed name.
+- [x] Keep output concise; do not create a long mapping table.
 - **Acceptance**: ticker-heavy fixture includes clear names for known tickers and does not hallucinate unknown names.
 
-### Step 5 — Tests and gate `[ ]`
-- [ ] Tests for jargon-heavy, ticker-heavy, and data-limited sections.
-- [ ] Compliance tests for forbidden recommendation language.
-- [ ] Run targeted briefing/publisher tests, ruff, and mypy if source signatures change.
+### Step 5 — Tests and gate `[x]`
+- [x] Tests for jargon-heavy, ticker-heavy, and data-limited sections.
+- [x] Compliance tests for forbidden recommendation language.
+- [x] Run targeted briefing/publisher tests, ruff, and mypy if source signatures change.
 
 ---
 

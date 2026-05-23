@@ -210,6 +210,28 @@ def test_stage2_system_mentions_glossary_rules() -> None:
     assert STAGE2_SYSTEM.index("Forward-looking") < STAGE2_SYSTEM.index("약자 풀어쓰기 룰")
 
 
+def test_stage2_system_carries_meaning_line_rules_u76() -> None:
+    """u76 — §②-§⑤ meaning-line instruction is present.
+
+    Asserts the fixed marker, the observational/compliance guard, the
+    ticker-name clarity guidance, and the data-limited fallback.
+    """
+    # Exact marker the deterministic pass keys on.
+    assert "> **그래서 의미는?**" in STAGE2_SYSTEM
+    assert "그래서 의미는?" in STAGE2_SYSTEM
+    # Eligible sections named.
+    assert "§②/③/④/⑤" in STAGE2_SYSTEM
+    # Compliance guard — forbidden recommendation language called out.
+    assert "매매 권유" in STAGE2_SYSTEM
+    assert "목표가" in STAGE2_SYSTEM
+    # Ticker-name clarity guidance.
+    assert "AAPL(애플)" in STAGE2_SYSTEM
+    # Data-limited fallback text matches the deterministic constant.
+    assert "현재 수집 근거가 부족해 방향보다 확인 필요" in STAGE2_SYSTEM
+    # It is explicitly NOT a glossary (u40 boundary).
+    assert "glossary, u40" in STAGE2_SYSTEM
+
+
 def test_format_lookahead_section_renders_body_with_header_and_intro() -> None:
     body = "- 2026-05-10: [fomc-rss] FOMC meeting"
     rendered = format_lookahead_section(body)
@@ -280,7 +302,7 @@ def test_stage1_system_contains_required_macro_contract() -> None:
     assert "Macro contract:" in STAGE1_SYSTEM
     assert '"priority": "P0"' in STAGE1_SYSTEM
     assert '"status": "actual"' in STAGE1_SYSTEM
-    assert "NEVER place required macro actual ids in \"unassigned\"" in STAGE1_SYSTEM
+    assert 'NEVER place required macro actual ids in "unassigned"' in STAGE1_SYSTEM
 
 
 def test_stage1_system_format_call_raises_key_error() -> None:
