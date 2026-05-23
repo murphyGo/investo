@@ -166,6 +166,29 @@ The 2026-05-13 shared macro block rendered `미 국채 수익률 — Immunefi to
 |------|--------------|------------------|-----------------|
 | u60 shared-macro-evidence-hardening | Shared macro evidence must be source-backed and must not classify substring accidents like `customers` as UST yield | FR-002, FR-008, FR-015, NFR-003, R13 | u45 routing exclusivity, u55 numeric fact discipline, u57 BundleContext/shared macro, u59 macro lineage boundary |
 
+### u69-u76 Planning Notes
+
+The 2026-05-24 user-quality review follow-up is scoped as improvements to already-delivered briefing quality surfaces. These units were generated only after excluding duplicate implementations: u54/u62/u65 already own source quality and replay foundations, u55 owns numeric fact gates, u51/u61 own summary formatting gates, u64 owns watchlist matching/actionability, u66/u67 own crypto/domestic depth, u50 owns lightweight chart embedding, and u68 owns glossary/carryover residuals.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u69 quality-public-consistency-gate | Public quality surfaces contradict each other across `quality.md`, `quality_history.jsonl`, markdown status, and replay output | FR-001, FR-003, FR-006, FR-010, NFR-003 | u54 severity/KPI, u62 snapshot reconciliation, u65 replay harness |
+| u70 cross-surface-numeric-anchor-reconciliation | The same anchor value/label diverges across table, prose, trace, and chart card surfaces | FR-001, FR-002, FR-003, FR-011, NFR-003 | u55 numeric gates, u49 market anchors, u50 chart placeholders, u67 fallbacks |
+| u71 reader-first-viewport-reflow | Reader sees diagnostics and raw errors before useful summary/action context | FR-002, FR-003, FR-004, FR-009, FR-012 | u51 layout, u61 summary gate, u54/u62 status inputs, u56 compliance |
+| u72 watchpoint-action-matrix | Watchpoints need trigger/current/confidence/implication structure without investment advice | FR-002, FR-004, FR-009, FR-012 | u64 watchpoint actionability, u52 carryover, u55 numeric facts, u56 compliance |
+| u73 watchlist-impact-center-v2 | Watchlist should behave like a daily impact workflow, including rejected/uncertain matches | FR-002, FR-003, FR-004, FR-009 | u18/u28/u33 watchlist foundations, u64 strict matching, site watchlist pages |
+| u74 market-channel-depth-v2 | Remaining channel-depth gaps need one presentation contract after u66/u67 | FR-001, FR-002, FR-008, FR-009, FR-013 | u66 crypto indicators, u67 domestic depth, u57 BundleContext, u53 sector/macro depth |
+| u75 chart-data-externalization-and-mobile-performance | Compact charts still embed large inline OHLC payloads; payload should lazy-load | FR-003, FR-006, FR-009, NFR-001, NFR-002 | u50 lightweight charts, compact chart card change, publisher asset staging |
+| u76 plain-language-reader-aids | Each major section needs a short plain-Korean meaning line for non-expert readers | FR-002, FR-009, FR-012 | u40 glossary, u51 layout, u56 compliance, u68 reader-aid residuals |
+
+Deduplicated out:
+- No generic quality KPI unit: u69 is limited to cross-public-surface contradiction detection and canonical rendering.
+- No generic numeric validator: u70 only makes existing verified anchors single-source across surfaces.
+- No generic first-viewport gate: u71 only reorders/collapses reader surfaces after u61 validation.
+- No generic watchlist matcher: u73 consumes u64 match confidence and adds workflow grouping.
+- No generic chart redesign: u75 changes payload ownership/lazy loading, not chart semantics.
+- No generic glossary/carryover work: u76 excludes u68 mechanics and focuses on section-level meaning prose.
+
 ---
 
 ## Definition of Done — Inception Phase Output

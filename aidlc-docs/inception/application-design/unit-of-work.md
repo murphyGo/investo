@@ -863,6 +863,218 @@ These units intentionally avoid duplicating closed u54/u57/u60 implementation sc
 - [ ] Confirm-then-extend audit: document which parts of C/D are already done (u52 + header glossary + u64 watchpoints) before any code.
 - [ ] Net-new work limited to inline glossing and/or carryover follow-up gaps not covered by u52.
 
+## Wave 13 2026-05-24 User-Quality Review Follow-up Units
+
+The 2026-05-24 ten-subagent review of the latest generated segmented briefings found that the remaining reader-facing issues are mostly **consistency, prioritization, and workflow gaps** on top of already-delivered reliability work. These units are therefore written as improvements to existing surfaces, not duplicate base features.
+
+Explicitly deduplicated out:
+- Generic quality KPI work is already owned by u54/u62/u65. u69 only closes contradictions between public quality surfaces.
+- Generic numeric fact checking is already owned by u55. u70 only reconciles the same numeric anchor across top table, body, trace, and chart surfaces.
+- Generic first-viewport formatting is already owned by u51/u61. u71 only reorders reader priority and collapses diagnostics after the summary.
+- Generic watchlist matching/actionability is already owned by u64. u72/u73 only add structured trigger matrices and daily portfolio-style impact workflows.
+- Generic domestic depth is already closed by u67; generic crypto depth is already u66 backlog. u74 is a channel-depth v2 wrapper that coordinates remaining cross-channel gaps without reopening u67.
+- Generic chart compactness is already delivered by the compact market chart cards change and u50. u75 only externalizes large inline chart data and lazy-loads the heavy payload.
+- u68 owns reader-aid residuals around glossary/carryover. u76 excludes those mechanics and focuses on plain-language meaning lines inside generated sections.
+
+### u69: `quality-public-consistency-gate` — Public Quality Surface Consistency
+
+**Purpose**: Ensure `site_docs/quality.md`, `archive/_meta/quality_history.jsonl`, per-segment markdown status blocks, latest/archive index pages, and offline replay output all derive from the same canonical quality snapshot for a run/date. The defect class is reader trust: public dashboards can claim failed/zero/limited counts are 0 or `n/a` while the same day's briefing body says source failures, data shortages, or partial publication happened.
+
+**Stories**: FR-001 (data collection), FR-003 (static publishing), FR-006 (archive), FR-010 (source-status severity/KPI), NFR-003 (graceful degradation)
+
+**Existing coverage / deduplication**:
+- Improves u54 source-status severity and KPI denominator rules; does not redefine severity semantics.
+- Improves u62 canonical quality snapshot; does not reimplement `SegmentCoverage` or quality-history append.
+- Improves u65 replay harness by adding this contradiction class as a replay check; does not build a second harness.
+
+**Module path**:
+- `src/investo/briefing/quality_history.py` — canonical quality-history owner and same-day reconciliation
+- `archive/_meta/coverage.jsonl` / `SegmentCoverage` — per-segment source/body-used counts when quality history is aggregate-only
+- `src/investo/publisher/site_index.py` — quality/index rendering from canonical snapshot
+- `src/investo/publisher/briefing_replay.py` or replay validator module — contradiction checks
+- `archive/_meta/quality_history.jsonl` / `site_docs/quality.md` — generated artifacts used by tests/fixtures only
+
+**Definition of Done**:
+- [ ] For the same date/segment, public quality surfaces cannot disagree on status tier, failed-source count, zero-item-source count, body-used count, or limited/failed segment count.
+- [ ] Denominator-zero states render as `n/a` only when genuinely unknown, never when the archive body or quality history contains evidence.
+- [ ] Offline replay reports a deterministic error when `quality.md` contradicts `quality_history.jsonl` or segment markdown.
+- [ ] A regression fixture models the 2026-05-22 contradiction pattern found by the review.
+- [ ] No new severity enum, source outcome schema, or KPI family is introduced.
+
+### u70: `cross-surface-numeric-anchor-reconciliation` — One Numeric Anchor Across Body/Table/Trace/Chart
+
+**Purpose**: Make the same market anchor resolve consistently across first-viewport tables, prose body, trace metadata, and chart placeholders. Review examples include a domestic body asserting a KOSPI move while the status block says core price data was missing, a US table labeling `^IXIC` as Nasdaq 100, and crypto top prices differing from body/trace figures.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-003 (publishing), FR-011 (numeric freshness/fact gates), NFR-003 (graceful degradation)
+
+**Existing coverage / deduplication**:
+- Improves u55 numeric freshness and market fact gates; does not create a second numeric validator.
+- Improves u49 deterministic market anchors and u50 chart placeholders by forcing one shared anchor object through all reader surfaces.
+- Relies on u67 domestic fallbacks and u66 crypto-depth planning rather than adding new market data sources here.
+
+**Module path**:
+- `src/investo/briefing/numeric_verify.py` / `freshness.py` — existing fact gate inputs
+- `src/investo/orchestrator/pipeline.py::_reconcile_anchor_closes` — extend existing close-reconciliation path; do not create a parallel reconciler
+- `src/investo/briefing/market_anchor.py` or shared model layer — anchor/display contract if a typed DTO is required
+- `src/investo/publisher/anchor_table.py` — first-viewport and section anchor rendering
+- `src/investo/publisher/charts.py` — chart placeholder close/change metadata
+- `src/investo/orchestrator/pipeline.py` — run-level anchor handoff
+- `tests/unit/publisher/` and `tests/unit/briefing/` — cross-surface fixtures
+
+**Definition of Done**:
+- [ ] A single typed anchor payload feeds table rows, body-available facts, trace rows, and chart placeholder price/change values.
+- [ ] `^IXIC` is never labeled Nasdaq 100; Nasdaq 100 uses the correct symbol/label if present, otherwise the label is explicit about Nasdaq Composite.
+- [ ] If a core anchor is missing or stale, the body cannot assert a precise move without a data-limited marker.
+- [ ] Crypto `BTC/ETH/SOL` anchor values do not diverge between top table, §⑤ body, trace, and chart card.
+- [ ] Replay/fixture tests cover domestic missing-core, US index-label, and crypto price-divergence cases.
+
+### u71: `reader-first-viewport-reflow` — Summary-First Briefing Layout
+
+**Purpose**: Put the reader's first useful answer before diagnostics. The review repeatedly found that the first viewport is dominated by status warnings, raw source counts, and long malformed `주의할 점` lines before the user sees "what happened" and "what matters." u71 reflows the first screen so `한눈에 보기`, confidence/status chips, and the top watchpoints are concise and ordered.
+
+**Stories**: FR-002 (AI briefing), FR-003 (static publishing), FR-004 (Telegram summary alignment), FR-009 (reader-facing format), FR-012 (compliance language)
+
+**Existing coverage / deduplication**:
+- Improves u51 TL;DR/layout and u61 summary gate; does not add a new summary-quality validator.
+- Reuses u54/u62 status values; only changes placement, length, and collapse behavior.
+- Keeps u56 compliance language and disclaimer gates unchanged.
+
+**Module path**:
+- `src/investo/publisher/reader_format.py` — first-viewport assembly and diagnostics placement
+- `src/investo/briefing/pipeline.py` — summary line inputs and header assembly
+- `src/investo/notifier/summary.py` — concise public alert alignment
+- `src/investo/publisher/charts.py` / u50 chart block output — placement-only coordination; no chart semantic change
+- `site_docs/assets/u29.css` — collapsed diagnostics styling if needed
+
+**Definition of Done**:
+- [ ] First viewport order is H1/date, `## 한눈에 보기`, one compact status chip, at most three bounded watch/caution lines, then `<details>` diagnostics.
+- [ ] Raw source errors/API details never appear before the summary unless the segment is fully failed.
+- [ ] `주의할 점`/caution lines are length-bounded (max 90 Korean-visible chars), not truncated mid-token, and use u61-cleaned text only.
+- [ ] Mobile rendering keeps the first useful summary visible without chart/diagnostic displacement.
+- [ ] Existing summary malformation gates from u61 remain the single validation contract.
+
+### u72: `watchpoint-action-matrix` — Trigger/Confidence/Implication Watchpoints
+
+**Purpose**: Convert §⑥ watchpoints from generic `관찰/확인/점검` text into a structured observational matrix: Signal, Current, Bullish trigger, Bearish trigger, Confidence, and Portfolio implication. This gives the user actionable monitoring context without producing buy/sell advice.
+
+**Stories**: FR-002 (AI briefing), FR-004 (notification summary), FR-009 (reader-facing format), FR-012 (compliance language)
+
+**Existing coverage / deduplication**:
+- Improves u64 watchpoint actionability; does not reimplement entity matching.
+- Builds on u52 carryover and u55 numeric gates when a prior watchpoint or verified numeric threshold exists.
+- Keeps u56 observational wording and forbidden-phrase scanner as the compliance boundary.
+
+**Module path**:
+- `src/investo/publisher/reader_format.py` — deterministic matrix renderer/validator
+- `src/investo/briefing/prompts.py` — Stage 2 watchpoint contract
+- `src/investo/notifier/summary.py` — compact matrix summary if appropriate
+- `src/investo/briefing/watchlist.py` — consume u64 evidence/match results only; no new matcher workflow grouping
+- `tests/unit/publisher/test_watchpoints*.py` — matrix shape and compliance fixtures
+
+**Definition of Done**:
+- [ ] §⑥ can render a bounded Markdown table/list with Signal / Current / Bullish trigger / Bearish trigger / Confidence / Section-local implication.
+- [ ] Missing thresholds are allowed only with an explicit `데이터부족` reason from coverage/numeric gates.
+- [ ] At least one watchpoint can cite a verified anchor, carryover item, or source title; otherwise the section degrades to a data-limited note.
+- [ ] Compliance tests prove no buy/sell/target-price wording is introduced.
+- [ ] Telegram remains concise and does not embed a large table.
+
+### u73: `watchlist-impact-center-v2` — Daily Watchlist Impact Workflow
+
+**Purpose**: Turn watchlist hits into a daily impact center: direct matches, related/macro context, uncertain matches, and rejected false positives. The review found that watchlist pages still feel like keyword matches rather than a portfolio workflow, and short tickers can still attract noisy related entities such as SOL/SLGL/Solana-company or BTC/BTM-like cases.
+
+**Stories**: FR-002 (AI briefing), FR-003 (static publishing), FR-004 (notifications), FR-009 (reader-facing format)
+
+**Existing coverage / deduplication**:
+- Improves u18/u28/u33/u64 watchlist layers; does not add accounts, brokerage sync, or portfolio accounting.
+- Reuses u64 strict matching and confidence reasons; this unit adds workflow grouping and rejected-match visibility.
+- Uses existing static `site_docs/watchlist/` pages rather than inventing a new app surface.
+
+**Module path**:
+- `src/investo/briefing/watchlist.py` — match type/rejection reason model extension
+- `src/investo/publisher/watchlist_pages.py` — canonical `site_docs/watchlist/{slug}.md` renderer and daily impact center output
+- `src/investo/publisher/site_index.py` — only if home/archive link summaries need updated counts
+- `src/investo/notifier/summary.py` — top direct impact only
+- `site_docs/watchlist/` — generated static pages/fixtures
+
+**Definition of Done**:
+- [ ] Watchlist impacts are grouped as Direct, Related macro/sector, Uncertain, and Rejected.
+- [ ] Short ticker suppression covers false-positive classes found in the review while preserving explicit alias matches.
+- [ ] Daily watchlist page prioritizes today's impacts before historical/configuration text, with Uncertain/Rejected collapsed and redacted.
+- [ ] Public briefing only surfaces high-confidence direct/related impacts; uncertain/rejected stays diagnostic.
+- [ ] Tests cover SOL/BTC false positives and at least one valid direct alias per asset class.
+
+### u74: `market-channel-depth-v2` — Remaining Channel Depth Coordination
+
+**Purpose**: Coordinate remaining channel-depth gaps after u67 domestic depth and u66 crypto backlog: consistent channel-specific anchor blocks, explicit missing-data rows, and a cross-market cause map that explains why a domestic/US/crypto move matters to the other channels without violating segment scope.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segment-specific briefings), FR-009 (reader-facing format), FR-013 (segment narrative scope)
+
+**Existing coverage / deduplication**:
+- Does not reopen u67 domestic-channel-depth; any domestic regression remains u67 maintenance.
+- Does not duplicate u66 crypto-native indicators; u74 consumes whatever u66 lands and standardizes the cross-channel presentation.
+- Improves u57 BundleContext/shared macro handling and u53 sector/macro coverage by turning remaining gaps into a common presentation contract.
+
+**Module path**:
+- `src/investo/models/bundle_context.py` — cross-market cause-map inputs if needed
+- `src/investo/publisher/anchor_table.py` — channel-specific anchor block contract
+- `src/investo/briefing/prompts.py` — channel-depth instructions
+- `src/investo/publisher/cross_segment_lint.py` — scope guard
+
+**Definition of Done**:
+- [ ] Each channel has a deterministic anchor block schema with explicit missing-data rows instead of silent omissions.
+- [ ] u74 is implementation-blocked until u66 defines or lands the crypto indicator interface; if executed earlier, it may only render "not yet available" missing rows for u66-owned indicators.
+- [ ] Crypto consumes u66 native indicators when available and labels unavailable indicators without inventing values.
+- [ ] Domestic reuses u67 outputs without changing source precedence.
+- [ ] Cross-market cause-map language is allowed only for u57-approved macro/systemic links and remains observational.
+- [ ] Tests cover one complete channel, one partially missing channel, and one forbidden cross-segment leakage case.
+
+### u75: `chart-data-externalization-and-mobile-performance` — Lazy Chart Payloads
+
+**Purpose**: Keep compact chart cards visually small and also make the HTML payload small. The compact chart UI now hides the large candlestick chart until click, but each placeholder still embeds large `data-history` JSON inline. u75 moves historical OHLC payloads to deterministic sidecar JSON files and lazy-loads them on expand/viewport.
+
+**Stories**: FR-003 (static publishing), FR-006 (archive), FR-009 (reader-facing format), NFR-001 (performance), NFR-002 (cost)
+
+**Existing coverage / deduplication**:
+- Improves u50 lightweight charts and the compact chart-card change; does not redesign chart visual treatment.
+- Reuses existing bundled `lightweight-charts` asset and chart placeholder schema.
+- Does not add a CDN, paid chart API, or server endpoint.
+
+**Module path**:
+- `src/investo/publisher/charts.py` — placeholder schema and sidecar manifest
+- `src/investo/orchestrator/pipeline.py` — asset staging alongside segment markdown
+- `site_docs/assets/investo-chart-init.js` — lazy fetch/expand behavior
+- `tests/unit/publisher/test_chart_*.py` — HTML/sidecar invariants
+
+**Definition of Done**:
+- [ ] Segment HTML/markdown no longer embeds full OHLC history inline: no `data-history`, no OHLC row arrays; it carries only compact summary data and a sidecar URL/path.
+- [ ] Sidecar JSON is deterministic, archive-local, staged with the markdown, and safe for GitHub Pages.
+- [ ] Compact card still renders ticker/price/change without fetching the heavy payload.
+- [ ] Full candlestick chart fetches sidecar data only on explicit click/keyboard expand, not on viewport entry, and degrades with a small error state.
+- [ ] Tests assert payload-size reduction and no `</script>`/HTML injection regression.
+
+### u76: `plain-language-reader-aids` — Section-Level Meaning Lines
+
+**Purpose**: Add concise "그래서 의미는?" explanations inside each major section so non-expert Korean readers can understand why a data point matters. This is not a glossary/carryover unit; it is a prose usefulness layer for sections that currently list facts, tickers, or jargon without interpretation.
+
+**Stories**: FR-002 (AI briefing), FR-009 (reader-facing format), FR-012 (compliance language)
+
+**Existing coverage / deduplication**:
+- Improves u40/u51/u68 reader aids but excludes u68 glossary/carryover mechanics.
+- Reuses u56 compliance scanner; meaning lines must stay observational.
+- Does not add new data sources, personas, or account state.
+
+**Module path**:
+- `src/investo/briefing/prompts.py` — Stage 2 instruction for section-level meaning lines
+- `src/investo/publisher/reader_format.py` — deterministic validation/repair for line length and placement
+- `tests/unit/briefing/test_prompts.py` and `tests/unit/publisher/` — format and compliance fixtures
+
+**Definition of Done**:
+- [ ] Sections §②-§⑤ can include one short line with exact marker `> **그래서 의미는?** `, max 80 Korean-visible chars after the marker, and idempotent replacement on rerun.
+- [ ] Meaning lines are length-bounded, observational, and cannot contain buy/sell/target-price language.
+- [ ] Ticker-heavy lines use known names only from existing static aliases/watchlist config/anchor labels; unknown tickers are not guessed.
+- [ ] Existing glossary callout and u68 cross-day glossary/carryover work are untouched.
+- [ ] Tests cover jargon-heavy, ticker-heavy, and data-limited sections.
+
 ---
 
 ## Code Organization Strategy
