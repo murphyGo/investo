@@ -114,6 +114,14 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Rationale**: 무료 API의 불안정성 + 시황 품질 보장 + 외부 노출 안전.
 **Alternatives Considered**: Fail-fast (단일 장애로 시황 누락).
 
+### TD-008: First-Viewport 표현 계약 (reader-first reflow, u71)
+
+**Choice**: `publisher.reader_format.reflow_first_viewport`가 세그먼트 헤더 영역을 고정·idempotent 순서로 재배치 — (1) 제목+기준 시각 watermark+nav → (2) `## 한눈에 보기` TL;DR → (3) 요약 callout `오늘의 결론`/`핵심 동인`/`주의할 점`(caution <=90자 단어경계 절단) → (4) compact 1줄 status chip `> **데이터 상태**: {label} · 본문 사용 {n|미집계} · 실패 {n} · 0건 {n}` → (5) collapsed `<details><summary>수집/품질 진단</summary>...</details>`(원본 badge body: 소스 카운트/등급분포/상세사유/소스별 상태) → (6) `## ①` 본문. status가 `실패`이거나 u61이 유효 요약을 만들지 못한 경우에만 `<details open>`. orchestrator가 per-segment post-format 체인의 `emit_first_viewport_disclaimer` 직후 1회 와이어.
+**Rationale**: 첫 화면이 운영 로그가 아니라 독자 요약(무엇이/얼마나 신뢰/무엇을 관전)을 먼저 답하도록 우선순위 재배치. 진단은 숨기지 않고 구조적으로 후순위로만 이동.
+**Contract invariants**: idempotency guard = `수집/품질 진단` summary 존재 여부(2차 호출 no-op); 면책조항 footer는 고정(reflow는 header만 변경); compact status chip은 raw diagnostics로 취급하지 않음. CSS 추가 없음 — single-column document-order + Material 네이티브 `<details>`라 차트/요약 overlap 구조적 불가.
+**Deduplication**: 새 요약 validator 없음. u51(TL;DR/H3/number-bold), u61(malformed-summary 검증/repair), u54/u62(status 값) 체인 **이후** 실행돼 재배치/절단만 수행 — malformed 값은 u61 fallback에 위임.
+**Alternatives Considered**: 별도 first-viewport 페이지/위젯(static-site 비호환, 신규 의존성); 진단 완전 숨김(투명성 위배).
+
 ---
 
 ## Data Model

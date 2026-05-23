@@ -193,6 +193,7 @@ from investo.publisher.reader_format import (
     check_filler_phrase_density,
     check_sentence_ending_diversity,
     emit_first_viewport_disclaimer,
+    reflow_first_viewport,
 )
 from investo.publisher.shared_macro import inject_shared_macro_block
 from investo.publisher.site_index import (
@@ -1442,6 +1443,13 @@ def _apply_reader_format_to_segments(
             markdown = repaired_markdown
         scan_compliance(markdown, segment)
         markdown = emit_first_viewport_disclaimer(markdown, segment)
+        # u71 — reader-first viewport reflow. Runs last in the header
+        # chain (after the short disclaimer is positioned) so it sees the
+        # final first-viewport shape: it bounds the caution snippet, builds
+        # a compact status chip, and collapses the raw coverage-badge
+        # diagnostics into a <details> block placed AFTER the summary
+        # callouts. Pure str -> str, idempotent, disclaimer-preserving.
+        markdown = reflow_first_viewport(markdown, segment=segment)
         check_sentence_ending_diversity(markdown, segment=segment)
         check_filler_phrase_density(markdown, segment=segment)
         if markdown == briefing.rendered_markdown:

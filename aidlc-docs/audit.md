@@ -1,5 +1,29 @@
 # AI-DLC Audit Log
 
+## Construction — u71 reader-first-viewport-reflow Complete
+**Timestamp**: 2026-05-24T24:30:00+09:00
+**Trigger**: u71 (reader-first-viewport-reflow) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + DESIGN.md + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only.
+**Decision**: Ratify the implementation and close the unit (5/5 steps). The segment first viewport now reflows into a fixed reader-first order (summary before diagnostics) with a compact status chip and collapsed `수집/품질 진단` block. Confirmed u71 is **not** a new summary-quality gate — it runs after the u51/u61/u54/u62 chain and only reorders/truncates already-validated values (AC-71.5).
+**Delivered**:
+- **`src/investo/publisher/reader_format.py`** (changed): new `reflow_first_viewport` + helpers `bound_summary_snippet` / `_compact_status_chip` / `_extract_badge_lines` / `_bound_caution_line` / `_insert_after_summary_callouts`; constants `DIAGNOSTICS_SUMMARY_LABEL` / `SNIPPET_MAX_CHARS`; `__all__` export.
+- **`src/investo/orchestrator/pipeline.py`** (changed): `reflow_first_viewport` wired into the per-segment post-format chain immediately after `emit_first_viewport_disclaimer`.
+- **Tests**: new `tests/unit/publisher/test_reader_format_reflow_u71.py` (15 tests — ordering, long-diagnostics collapse, malformed/long caution fallback, status chip fields, idempotency, disclaimer preservation).
+**First-viewport reflow contract (stable, idempotent)**: 1 title+watermark+nav -> 2 `## 한눈에 보기` TL;DR -> 3 summary callouts (`오늘의 결론`/`핵심 동인`/`주의할 점`, caution <=90 chars word-boundary truncation) -> 4 compact 1-line status chip `> **데이터 상태**: {label} · 본문 사용 {n|미집계} · 실패 {n} · 0건 {n}` -> 5 collapsed `<details><summary>수집/품질 진단</summary>...raw badge body...</details>` -> 6 `## ①` body. `<details open>` only when status `실패` or u61 produced no usable summary. Idempotency guard = `수집/품질 진단` summary presence. Disclaimer footer fixed (reflow touches header only). Compact chip is NOT raw diagnostics.
+**Non-overlap (deduplication)**: u51 (TL;DR/H3/number-bold/dedupe), u61 (malformed-summary validation/repair), u54/u62 (status values) all retained and consumed as-is; u71 adds no parallel validator and delegates malformed values back to the u61 fallback.
+**Module boundary**: `reflow_first_viewport` is publisher-internal over prepared markdown; orchestrator wires it. No briefing/notifier import added — orchestrator-only cross-unit import rule upheld.
+**FD divergences ratified**: none — FD = SKIP (presentation contract over existing summary/status values; no new entity).
+**Scope-out -> TECH-DEBT**: none. The mobile manual-render gap is anticipated by plan Step 4 and is structurally non-overlapping with no CSS change — tracked as a summary risk, not a debt item.
+**Risk recorded**: plan Step 4 390x844 / 1280x720 visual render check not executed (no Browser/Playwright). Mitigation: no CSS added; single-column document-order + Material-native `<details>` makes overlap structurally impossible. Manual mobile spot-check on the next generated briefing recommended. Smart-quote boundary glyphs (RUF001) excluded from the truncation boundary set.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u71-reader-first-viewport-reflow/code/summary.md` (new — Scope/Stage Decision(FD+NFR SKIP)/dedup/reflow order contract/snippet bounding/AC-71.1-5 traceability/FD divergences/TECH-DEBT(none)/risk/gate)
+- `/Users/user/Desktop/Projects/investo/docs/DESIGN.md` (new TD-008 first-viewport 표현 계약 — order + compact chip format + `수집/품질 진단` collapse + idempotency/dedup invariants)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u71-reader-first-viewport-reflow-code-generation-plan.md` (Status -> Complete; all Steps already `[x]`)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u71 row Backlog->Complete; Code Generation / Build-and-Test lines; backlog range u71-u76 -> u72-u76; FD+NFR SKIP confirmed)
+**Status**: u71 complete (5/5). AC-71.1..AC-71.5 MET. Gate: ruff clean / ruff-format clean / mypy --strict clean / pytest 2544 passed / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout.
+**Context**: Project rules upheld — 무료 API only (no external call; deterministic markdown reflow/truncation), Anthropic SDK 금지 (untouched), 모듈 경계 (reflow publisher-internal; orchestrator-only cross-unit import preserved), 면책조항 (footer fixed; `test_disclaimer_preserved` pin) + 채널 분리 gates untouched, R13 no secret (no secret surface touched), `defusedxml` not invoked.
+
+---
+
 ## Construction — u70 cross-surface-numeric-anchor-reconciliation Complete
 **Timestamp**: 2026-05-24T23:59:00+09:00
 **Trigger**: u70 (cross-surface-numeric-anchor-reconciliation) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + state/audit + Step close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only.

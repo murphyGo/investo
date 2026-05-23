@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u71 reader-first-viewport-reflow
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (5/5, 2026-05-24)
 **Source**: 2026-05-24 ten-subagent user-quality review of generated segmented briefings
 **Estimated Effort**: ~3-5 h
 **Dependencies**:
@@ -88,39 +88,39 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Define first-viewport contract `[ ]`
-- [ ] Write the exact order and maximum line counts for header, summary, status chip, watchpoints, and diagnostics.
-- [ ] Use the fixed compact chip fields from the table above: status tier, body-used count, failed-source count, and zero-item-source count.
-- [ ] Define when diagnostics must be expanded by default (only fully failed segment or no summary).
+### Step 1 — Define first-viewport contract `[x]`
+- [x] Write the exact order and maximum line counts for header, summary, status chip, watchpoints, and diagnostics.
+- [x] Use the fixed compact chip fields from the table above: status tier, body-used count, failed-source count, and zero-item-source count.
+- [x] Define when diagnostics must be expanded by default (only fully failed segment or no summary).
 - **Acceptance**: contract is represented in tests and comments/docs near the renderer.
 
-### Step 2 — Reorder reader-format output `[ ]`
-- [ ] Move useful summary before raw source diagnostics.
-- [ ] Render diagnostics below the summary in `<details><summary>수집/품질 진단</summary>...</details>`.
-- [ ] Raw diagnostics are source outcome tables, API error details, zero-item per-source rows, trace/debug blocks, and quality KPI explanations; compact status chip is not considered raw diagnostics.
-- [ ] Preserve existing u61 summary validation path.
-- [ ] Preserve segment navigation and disclaimer placement.
+### Step 2 — Reorder reader-format output `[x]`
+- [x] Move useful summary before raw source diagnostics.
+- [x] Render diagnostics below the summary in `<details><summary>수집/품질 진단</summary>...</details>`.
+- [x] Raw diagnostics are source outcome tables, API error details, zero-item per-source rows, trace/debug blocks, and quality KPI explanations; compact status chip is not considered raw diagnostics.
+- [x] Preserve existing u61 summary validation path.
+- [x] Preserve segment navigation and disclaimer placement.
 - **Acceptance**: generated markdown fixture starts with title/date, summary, compact status, then diagnostics.
 
-### Step 3 — Bound caution and watchpoint snippets `[ ]`
-- [ ] Limit first-viewport caution/watchpoint lines to a small number and maximum character length.
-- [ ] u71 may only reflow/truncate u61-cleaned values. If a summary/caution value is malformed, delegate to the existing u61 API/fallback; do not add a parallel malformed-summary validator.
-- [ ] Too-long but valid snippets use fallback suffix `...` only after a word boundary; if no boundary exists before 90 chars, omit the snippet.
-- [ ] Prevent mid-token truncation and malformed date concatenation.
+### Step 3 — Bound caution and watchpoint snippets `[x]`
+- [x] Limit first-viewport caution/watchpoint lines to a small number and maximum character length.
+- [x] u71 may only reflow/truncate u61-cleaned values. If a summary/caution value is malformed, delegate to the existing u61 API/fallback; do not add a parallel malformed-summary validator.
+- [x] Too-long but valid snippets use fallback suffix `...` only after a word boundary; if no boundary exists before 90 chars, omit the snippet.
+- [x] Prevent mid-token truncation and malformed date concatenation.
 - **Acceptance**: fixtures with long/broken caution text render clean, bounded fallback lines.
 
-### Step 4 — Mobile/static presentation `[ ]`
-- [ ] Add or adjust CSS so collapsed diagnostics and compact status do not overlap charts or summary text.
-- [ ] Ensure compact market chart cards remain below the first useful text unless section placement explicitly calls for charts.
-- [ ] Avoid JavaScript-only access to critical summary/status text.
-- [ ] Required validation when CSS changes: render one fixture at 390x844 and 1280x720; verify summary/status text is visible above diagnostics/charts and no element overlaps. If Browser/Playwright is unavailable, record static CSS/HTML checks and a manual verification gap.
+### Step 4 — Mobile/static presentation `[x]`
+- [x] Add or adjust CSS so collapsed diagnostics and compact status do not overlap charts or summary text.
+- [x] Ensure compact market chart cards remain below the first useful text unless section placement explicitly calls for charts.
+- [x] Avoid JavaScript-only access to critical summary/status text.
+- [x] Required validation when CSS changes: render one fixture at 390x844 and 1280x720; verify summary/status text is visible above diagnostics/charts and no element overlaps. If Browser/Playwright is unavailable, record static CSS/HTML checks and a manual verification gap.
 - **Acceptance**: static HTML/Markdown still carries all critical first-viewport content.
 
-### Step 5 — Tests and gate `[ ]`
-- [ ] Add unit tests for ordering.
-- [ ] Add unit tests for long diagnostics and malformed caution fallback.
-- [ ] Add CSS/asset regression checks if CSS changes.
-- [ ] Run targeted publisher/briefing/notifier tests and mkdocs strict if site assets change.
+### Step 5 — Tests and gate `[x]`
+- [x] Add unit tests for ordering.
+- [x] Add unit tests for long diagnostics and malformed caution fallback.
+- [x] Add CSS/asset regression checks if CSS changes.
+- [x] Run targeted publisher/briefing/notifier tests and mkdocs strict if site assets change.
 
 ---
 
