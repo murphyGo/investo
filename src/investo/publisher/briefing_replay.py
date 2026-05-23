@@ -54,6 +54,10 @@ _ANCHOR_ROW_RE: Final[re.Pattern[str]] = re.compile(
 _CHART_DIV_RE: Final[re.Pattern[str]] = re.compile(
     r'data-ticker="(?P<ticker>[^"]+)"[^>]*?data-close="(?P<close>[^"]+)"',
 )
+# u75 — the externalised chart-history sidecar reference. The compact card
+# still renders from the inline summary attributes even when the sidecar
+# file is absent, so a missing sidecar is a payload *warning*, not an error.
+_CHART_SIDECAR_RE: Final[re.Pattern[str]] = re.compile(r'data-history-src="(?P<src>[^"]+)"')
 # Nasdaq Composite (^IXIC) must never be labelled Nasdaq 100.
 _IXIC_MISLABEL_RE: Final[re.Pattern[str]] = re.compile(
     r"\^IXIC[^\n]{0,80}(?:Nasdaq\s*100|나스닥\s*100)"
@@ -101,7 +105,7 @@ def replay_generated_briefing_quality(
             continue
         text = path.read_text(encoding="utf-8")
         present[segment] = text
-        findings.extend(_check_markdown(segment, text))
+        findings.extend(_check_markdown(segment, text, markdown_path=path))
 
     findings.extend(_check_navigation(target_date, present))
     resolved_history_path = (
@@ -157,7 +161,12 @@ def _check_quality_consistency(
     return tuple(findings)
 
 
-def _check_markdown(segment: MarketSegment, text: str) -> tuple[ReplayFinding, ...]:
+def _check_markdown(
+    segment: MarketSegment,
+    text: str,
+    *,
+    markdown_path: Path,
+) -> tuple[ReplayFinding, ...]:
     findings: list[ReplayFinding] = []
     try:
         validate_first_viewport_summary(text)
@@ -192,6 +201,38 @@ def _check_markdown(segment: MarketSegment, text: str) -> tuple[ReplayFinding, .
         )
         break
     findings.extend(_check_anchor_cross_surface(segment, text))
+    findings.extend(_check_chart_sidecars(segment, text, markdown_path=markdown_path))
+    return tuple(findings)
+
+
+def _check_chart_sidecars(
+    segment: MarketSegment,
+    text: str,
+    *,
+    markdown_path: Path,
+) -> tuple[ReplayFinding, ...]:
+    """u75 — every ``data-history-src`` must resolve to a staged sidecar file.
+
+    A missing sidecar is a *warning* (``chart-sidecar-missing``): the
+    compact card still renders ticker/price/change from the inline summary
+    attributes, so the page degrades gracefully rather than failing the
+    publish gate. Reachability is checked by resolving the relative URL
+    against the markdown file's directory — exactly how the browser
+    resolves ``data-history-src`` on GitHub Pages.
+    """
+    findings: list[ReplayFinding] = []
+    for match in _CHART_SIDECAR_RE.finditer(text):
+        src = match.group("src")
+        sidecar_path = (markdown_path.parent / src).resolve()
+        if not sidecar_path.is_file():
+            findings.append(
+                ReplayFinding(
+                    "warning",
+                    segment,
+                    "chart-sidecar-missing",
+                    f"chart sidecar {src} is not staged next to the briefing",
+                )
+            )
     return tuple(findings)
 
 

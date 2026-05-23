@@ -108,8 +108,10 @@ def test_mkdocs_yml_registers_both_extra_javascript_paths() -> None:
     "needle",
     [
         "addCandlestickSeries",
-        "addLineSeries",
-        "data-history",
+        # u75 — the heavy history is fetched from the sidecar referenced by
+        # data-history-src, not embedded inline. The compact card reads only
+        # the small summary attributes.
+        "data-history-src",
         "data-close",
         "data-ticker",
         "data-label",
@@ -121,3 +123,21 @@ def test_init_script_consumes_publisher_emitted_attributes(needle: str) -> None:
     """Pin: the JS init layer reads the same attributes the publisher writes."""
     text = INIT_PATH.read_text(encoding="utf-8")
     assert needle in text
+
+
+def test_init_script_lazy_loads_sidecar_only_on_expand() -> None:
+    """u75 — the sidecar fetch is gated behind the expand toggle.
+
+    The script must (a) reference ``fetch`` for the sidecar, (b) not embed
+    the old inline ``data-history`` attribute, and (c) issue the fetch from
+    inside the ``toggle`` handler rather than at init time (no viewport
+    prefetch in v1).
+    """
+    text = INIT_PATH.read_text(encoding="utf-8")
+    assert "loadSidecarBars" in text
+    assert "fetch(" in text
+    # The old inline attribute must be gone (only the -src variant remains).
+    assert 'getAttribute("data-history")' not in text
+    # The fetch entry point is invoked from the toggle handler.
+    toggle_idx = text.index('addEventListener("toggle"')
+    assert text.index("loadSidecarBars(historySrc)") > toggle_idx

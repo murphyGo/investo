@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u75 chart-data-externalization-and-mobile-performance
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (5/5 steps) — closed 2026-05-24
 **Source**: 2026-05-24 mobile/user-quality review after compact chart-card implementation
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -76,10 +76,10 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Define sidecar file contract `[ ]`
-- [ ] Use deterministic path: `{segment_archive_stem}.assets/charts/{chart_id}.json`, relative to the markdown file. Example: `2026-05-24.assets/charts/us-equity-aapl.json`.
-- [ ] Derive `chart_id` as `{segment}-{normalized_ticker}` lowercased, replacing non `[a-z0-9]+` runs with `-`; if duplicate, append `-{ordinal}` in source order.
-- [ ] Sidecar JSON schema:
+### Step 1 — Define sidecar file contract `[x]`
+- [x] Use deterministic path: `{segment_archive_stem}.assets/charts/{chart_id}.json`, relative to the markdown file. Example: `2026-05-24.assets/charts/us-equity-aapl.json`.
+- [x] Derive `chart_id` as `{segment}-{normalized_ticker}` lowercased, replacing non `[a-z0-9]+` runs with `-`; if duplicate, append `-{ordinal}` in source order.
+- [x] Sidecar JSON schema:
   - `schema_version`: integer, fixed `1`.
   - `chart_id`: string.
   - `ticker`: original ticker string.
@@ -87,35 +87,35 @@ Out of scope:
   - `summary`: object with string fields `close`, optional `pct`, optional `ath`, optional `high_52w`, optional `low_52w`.
   - `history`: array sorted ascending by date, rows `{t:"YYYY-MM-DD", o:string, h:string, l:string, c:string, v:string|null}`.
   - `provenance`: object with deterministic `source` and `run_date`; no wall-clock timestamp.
-- [ ] Numeric values are serialized as strings using the same Decimal formatting as existing chart placeholders; JSON uses compact separators and stable key order.
+- [x] Numeric values are serialized as strings using the same Decimal formatting as existing chart placeholders; JSON uses compact separators and stable key order.
 - **Acceptance**: contract test serializes a chart sidecar with deterministic path/content.
 
-### Step 2 — Change publisher placeholder generation `[ ]`
-- [ ] Replace full inline history with compact summary data plus `data-history-src` containing the relative sidecar JSON path.
-- [ ] Preserve existing `data-close` / `data-pct` compact rendering.
-- [ ] Ensure no HTML/script injection vector is introduced through the path or JSON.
+### Step 2 — Change publisher placeholder generation `[x]`
+- [x] Replace full inline history with compact summary data plus `data-history-src` containing the relative sidecar JSON path.
+- [x] Preserve existing `data-close` / `data-pct` compact rendering.
+- [x] Ensure no HTML/script injection vector is introduced through the path or JSON.
 - **Acceptance**: placeholder HTML contains no full OHLC history and contains the sidecar reference.
 
-### Step 3 — Stage sidecar assets with archive output `[ ]`
-- [ ] Update orchestrator/publisher staging so sidecar JSON files are written and staged with the segment markdown/assets.
-- [ ] Preserve idempotent rerun behavior.
-- [ ] Ensure missing sidecar fails gracefully in UI and replay validation.
+### Step 3 — Stage sidecar assets with archive output `[x]`
+- [x] Update orchestrator/publisher staging so sidecar JSON files are written and staged with the segment markdown/assets.
+- [x] Preserve idempotent rerun behavior.
+- [x] Ensure missing sidecar fails gracefully in UI and replay validation.
 - **Acceptance**: integration/fixture test shows markdown plus sidecar paths staged together.
 
-### Step 4 — Lazy-load expanded chart data `[ ]`
-- [ ] Update `investo-chart-init.js` to render compact card without fetching sidecar.
-- [ ] Fetch sidecar only on explicit click or keyboard activation of the expand control. Viewport entry must not fetch the sidecar in v1.
-- [ ] Show loading/error state if fetch fails; do not break other chart cards.
-- [ ] Keep dark/light theme behavior and existing MutationObserver semantics.
+### Step 4 — Lazy-load expanded chart data `[x]`
+- [x] Update `investo-chart-init.js` to render compact card without fetching sidecar.
+- [x] Fetch sidecar only on explicit click or keyboard activation of the expand control. Viewport entry must not fetch the sidecar in v1.
+- [x] Show loading/error state if fetch fails; do not break other chart cards.
+- [x] Keep dark/light theme behavior and existing MutationObserver semantics.
 - **Acceptance**: JS unit/static checks prove no fetch is required before expansion and failed fetch degrades per-card only.
 
-### Step 5 — Payload and regression tests `[ ]`
-- [ ] Add test asserting generated markdown/HTML payload does not include full history JSON: no `data-history`, no serialized OHLC row arrays, and max inline chart attributes under 1 KB per card in the multi-card fixture.
-- [ ] Add sidecar JSON escaping/path tests.
-- [ ] Add staging/static validation that sidecar JSON appears under the archive asset directory and is reachable by the relative `data-history-src` path.
-- [ ] Add replay validation that a missing sidecar is reported as a chart payload finding while the compact card still renders.
-- [ ] Add `node --check` for JS changes.
-- [ ] Run targeted chart publisher tests, ruff/mypy on changed source, mkdocs strict if assets/site config changes.
+### Step 5 — Payload and regression tests `[x]`
+- [x] Add test asserting generated markdown/HTML payload does not include full history JSON: no `data-history`, no serialized OHLC row arrays, and max inline chart attributes under 1 KB per card in the multi-card fixture.
+- [x] Add sidecar JSON escaping/path tests.
+- [x] Add staging/static validation that sidecar JSON appears under the archive asset directory and is reachable by the relative `data-history-src` path.
+- [x] Add replay validation that a missing sidecar is reported as a chart payload finding while the compact card still renders.
+- [x] Add `node --check` for JS changes.
+- [x] Run targeted chart publisher tests, ruff/mypy on changed source, mkdocs strict if assets/site config changes.
 
 ---
 

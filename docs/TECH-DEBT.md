@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 29 | 2026-04-27 |
+| Low | 31 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,26 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-078: re-introduce a compact-card pre-fetch sparkline without inline history (product decision)
+
+- **Created**: 2026-05-24
+- **Source**: u75 chart-data-externalization-and-mobile-performance closeout (compact-card sparkline removed)
+- **Reference**: AC-75.3 (compact cards render without fetching the sidecar), AC-75.1 (no full OHLC history inline), u50 lightweight-charts-embed, NFR-005 (consistency / reader UX)
+- **Description**: The previous compact card rendered a small line sparkline by default, but that sparkline read the inline `data-history` JSON that u75 externalized to a lazy sidecar to satisfy AC-75.1 (no full OHLC history inline) and AC-75.3 (no fetch before expand). With the inline history gone, the compact card now shows ticker / price / change only — the at-a-glance trend sparkline is no longer present. This is **not** a defect: AC-75.3 explicitly requires the compact card to render without fetching the sidecar, and a sparkline that requires history would either re-inline the payload (violating AC-75.1) or force a fetch on render (violating AC-75.3). Whether the compact card *should* carry a tiny trend cue is a product decision that was intentionally left unimplemented.
+- **Suggested Fix**: If a compact trend cue is wanted, emit a small, downsampled `data-spark` polyline attribute (e.g. ~12–20 closing points, not the full OHLC history) on the placeholder at publish time and render it inline in `investo-chart-init.js` without any fetch. The downsampled series stays well under the per-card inline budget (the AC-75.1 test asserts no full history / no serialized OHLC row arrays), so it does not re-introduce the heavy payload. Keep the lazy sidecar as the sole source for the expanded candlestick. Pin a payload-budget test for the `data-spark` attribute and a JS render check.
+- **Effort**: ~1.5-2 h — add the downsampled `data-spark` builder in `charts.py`, render it in the JS compact path, and pin the inline-budget + JS render regressions.
+- **Priority Reasoning**: Low — the compact card is fully functional (ticker / price / change render, expand still works) and the removal is a deliberate consequence of meeting AC-75.1 / AC-75.3, not a regression. Promote to Medium only if a user-quality / mobile review confirms the missing at-a-glance trend cue is a material UX loss.
+
+#### DEBT-077: backfill chart sidecars for pre-existing committed archive briefings (legacy inline charts non-expandable)
+
+- **Created**: 2026-05-24
+- **Source**: u75 chart-data-externalization-and-mobile-performance closeout (legacy archive non-expandable risk)
+- **Reference**: AC-75.1 (no full OHLC history inline), AC-75.2 (archive-local sidecar JSON staged with the briefing), AC-75.4 (lazy-load on expand), FR-003 (static web publishing / permanent archive)
+- **Description**: u75 changed the chart placeholder schema from inline `data-history` to a `data-history-src` relative sidecar path, and `investo-chart-init.js` now hides the expand control for any `details` whose `data-history-src` is absent. Briefings already committed to `archive/` before u75 were rendered with the **old** inline `data-history` schema and have no sidecar file, so on the live site their chart cards render the compact summary but are **not expandable** (the JS treats a missing `data-history-src` as non-expandable rather than parsing the legacy inline JSON). This is **not** a reader-facing failure for new briefings (every briefing generated after u75 writes its sidecars and stages them per AC-75.2) and the compact summary still renders for legacy cards; the residual is that the permanent archive's older chart cards lost their expand-to-candlestick affordance. Backfilling historical archive payloads was explicitly out of scope for u75 (a Non-Goal in the plan).
+- **Suggested Fix**: Add a one-shot migration / regeneration pass that walks `archive/**/*.md`, parses each legacy inline `data-history` (or re-derives history from the recorded source data where available), emits the deterministic sidecar JSON via `chart_sidecar.write_chart_sidecar()` into the matching `{stem}.assets/charts/` directory, and rewrites the placeholder to `data-history-src`. Run it once as an operator-driven backfill (not on the per-day critical path). Alternatively, teach `investo-chart-init.js` to fall back to a still-present legacy inline `data-history` when no `data-history-src` is found — a smaller change that re-enables legacy expand without rewriting archives, at the cost of keeping the old parse path alive.
+- **Effort**: ~2-3 h — write the archive-walk backfill (reuse the `chart_sidecar` contract + `charts.py` placeholder rewrite), or ~1 h for the JS legacy-fallback alternative; pin a fixture for a legacy-schema archive file in either case.
+- **Priority Reasoning**: Low — only the historical archive is affected and only the expand affordance is lost (compact summary still renders); all briefings generated after u75 are fully expandable per AC-75.4. It is archive-completeness polish, not a live-pipeline or reader-facing correctness issue. Promote to Medium only if archive expandability is deemed important for reader-trust or if a user review flags legacy charts as broken.
 
 #### DEBT-076: cross-market cause-map re-derives type from rendered macro label strings — plumb structured `detected_macro_keys`
 

@@ -180,7 +180,8 @@ from investo.publisher.channel_anchor_block import (
     inject_channel_anchor_block,
     render_channel_anchor_block,
 )
-from investo.publisher.charts import build_chart_block, inject_chart_block
+from investo.publisher.chart_sidecar import write_chart_sidecar
+from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
     repair_compliance_language,
@@ -1160,39 +1161,58 @@ def _build_kr_anchors_from_items(
 def _inject_chart_blocks_into_segments(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
+    target_date: date,
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
-) -> dict[MarketSegment, Briefing]:
-    """Insert a Lightweight Charts placeholder block into each briefing.
+) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
+    """Insert a Lightweight Charts placeholder block into each briefing (u75).
 
-    Pure-ish: relies only on the supplied anchors / history dicts; no
-    network, no clock. The injection is idempotent — re-running with
-    the same inputs yields byte-equal markdown so same-day re-runs
-    (FR-006) do not duplicate the block.
+    The heavy OHLC history no longer rides inline: each placeholder
+    carries only a small ``data-history-src`` relative URL and the per-
+    chart history is written to a deterministic sidecar JSON file next
+    to the segment markdown / visual assets. The JS layer lazy-fetches
+    the sidecar on expand.
 
-    Returns a fresh dict with replacement :class:`Briefing` instances
-    for any segment whose markdown was rewritten. Segments without
-    matching history (or with the section-five header missing) are
-    passed through unchanged.
+    Relies only on the supplied anchors / history dicts plus the target
+    date; no network, no clock (the sidecar provenance uses
+    ``target_date``). Idempotent — re-running with the same inputs
+    yields byte-equal markdown AND byte-equal sidecar files so same-day
+    re-runs (FR-006) do not duplicate or churn the block.
+
+    Returns ``(rewritten_briefings, sidecar_paths)``. ``sidecar_paths``
+    are the absolute on-disk paths the publish stage must stage / commit
+    alongside the markdown. Segments without matching history (or with
+    the section-five header missing) are passed through unchanged and
+    contribute no sidecar.
     """
     if not history_by_ticker:
-        return segment_briefings
+        return segment_briefings, ()
     rewritten: dict[MarketSegment, Briefing] = {}
+    sidecar_paths: list[Path] = []
     for segment, briefing in segment_briefings.items():
         anchors = anchors_by_segment.get(segment, ())
         if not anchors:
             rewritten[segment] = briefing
             continue
-        block = build_chart_block(anchors, history_by_ticker)
-        if not block:
+        artifacts = build_chart_artifacts(
+            anchors,
+            history_by_ticker,
+            segment=segment,
+            markdown_stem=target_date.isoformat(),
+            run_date=target_date,
+        )
+        if not artifacts.block:
             rewritten[segment] = briefing
             continue
-        new_md = inject_chart_block(briefing.rendered_markdown, block)
+        new_md = inject_chart_block(briefing.rendered_markdown, artifacts.block)
         if new_md == briefing.rendered_markdown:
             rewritten[segment] = briefing
             continue
+        markdown_path = compute_archive_path(target_date, segment=segment)
+        for sidecar in artifacts.sidecars:
+            sidecar_paths.append(write_chart_sidecar(sidecar, markdown_path))
         rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_md})
-    return rewritten
+    return rewritten, tuple(sidecar_paths)
 
 
 # u51 — pre-publish reader-format pass.
@@ -2328,11 +2348,17 @@ async def run_pipeline(
         # The ``data-52w-high`` / ``data-52w-low`` labels are still derived
         # from the OHLC history rows inside the renderer, so the candlestick
         # axis stays history-faithful.
-        segment_briefings = _inject_chart_blocks_into_segments(
+        segment_briefings, chart_sidecar_paths = _inject_chart_blocks_into_segments(
             segment_briefings,
+            target_date=target_date,
             anchors_by_segment=anchor_table_input,
             history_by_ticker=market_history_by_ticker,
         )
+        if chart_sidecar_paths:
+            # u75 — stage the externalised chart-history sidecars with the
+            # segment markdown / SVG visual assets so GitHub Pages serves
+            # them at the relative ``data-history-src`` URL.
+            visual_asset_paths = (*visual_asset_paths, *chart_sidecar_paths)
 
         # u51 tldr-block-and-number-bold-inversion — replace the deprecated
         # u49 prose anchor line with a markdown table, insert a ``## 한눈에

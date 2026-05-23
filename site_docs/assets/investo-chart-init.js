@@ -17,8 +17,14 @@
  *     ``assets/lightweight-charts.standalone.production.js`` from the
  *     repo (see ``mkdocs.yml`` ``extra_javascript``).
  *   - No secrets / tokens inline.
- *   - All chart data arrives via ``data-*`` attributes the publisher
- *     already redacts; this script does no fetching of its own.
+ *   - u75: heavy OHLC history is no longer embedded inline. The compact
+ *     card renders from the small summary ``data-*`` attributes alone;
+ *     the full candlestick history is fetched from the archive-local
+ *     sidecar JSON referenced by ``data-history-src`` only when the
+ *     reader expands the card (no viewport prefetch in v1). A failed
+ *     fetch degrades that one card without breaking the others. The
+ *     fetch is a same-origin static file on GitHub Pages — no CDN, no
+ *     server endpoint, no secret.
  */
 
 (function () {
@@ -28,19 +34,6 @@
   // placeholders cannot blow the browser memory budget. Aligned with
   // u50 plan §Open questions (page-bundle size budget).
   var MAX_CHARTS_PER_PAGE = 5;
-
-  function safeParse(json) {
-    if (!json) return null;
-    try {
-      return JSON.parse(json);
-    } catch (err) {
-      // Quiet warn — the SVG fallback already covers the visual surface.
-      if (typeof console !== "undefined" && console.warn) {
-        console.warn("[investo-chart] data-history JSON parse failed:", err);
-      }
-      return null;
-    }
-  }
 
   function isPositiveNumber(value) {
     return typeof value === "number" && isFinite(value) && value > 0;
@@ -134,11 +127,6 @@
     });
   }
 
-  function trendColor(bars) {
-    if (bars.length < 2) return "#607d8b";
-    return bars[bars.length - 1].close >= bars[0].close ? "#26a69a" : "#ef5350";
-  }
-
   function formatPrice(value) {
     if (!isPositiveNumber(value)) return "n/a";
     var abs = Math.abs(value);
@@ -153,56 +141,6 @@
     if (!isFiniteNumber(value)) return "";
     var sign = value > 0 ? "+" : "";
     return sign + value.toFixed(2) + "%";
-  }
-
-  function lineDataFromBars(bars) {
-    var out = [];
-    for (var i = 0; i < bars.length; i++) {
-      out.push({ time: bars[i].time, value: bars[i].close });
-    }
-    return out;
-  }
-
-  function applySparklineTheme(chart, series, scheme, bars) {
-    var theme = chartTheme(scheme);
-    chart.applyOptions({
-      layout: theme.layout,
-      grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false },
-      },
-    });
-    series.applyOptions({ color: trendColor(bars) });
-  }
-
-  function renderSparkline(container, bars) {
-    var scheme = currentColorScheme();
-    var chart = window.LightweightCharts.createChart(container, {
-      autoSize: true,
-      height: 64,
-      layout: chartTheme(scheme).layout,
-      grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false },
-      },
-      rightPriceScale: { visible: false },
-      timeScale: { visible: false },
-      crosshair: {
-        vertLine: { visible: false, labelVisible: false },
-        horzLine: { visible: false, labelVisible: false },
-      },
-      handleScroll: false,
-      handleScale: false,
-    });
-    var series = chart.addLineSeries({
-      color: trendColor(bars),
-      lineWidth: 2,
-      lastValueVisible: false,
-      priceLineVisible: false,
-    });
-    series.setData(lineDataFromBars(bars));
-    chart.timeScale().fitContent();
-    return { chart: chart, series: series };
   }
 
   function renderCandlestick(container, sourceDiv, bars) {
@@ -268,19 +206,46 @@
     return { chart: chart, series: series };
   }
 
-  function renderOne(div) {
-    var history = safeParse(div.getAttribute("data-history"));
-    if (!Array.isArray(history) || history.length === 0) {
-      div.style.display = "none";
-      return false;
-    }
-
+  function barsFromHistory(history) {
+    if (!Array.isArray(history) || history.length === 0) return [];
     var bars = [];
     for (var i = 0; i < history.length; i++) {
       var bar = rowToBar(history[i]);
       if (bar !== null) bars.push(bar);
     }
-    if (bars.length === 0) {
+    return bars;
+  }
+
+  // u75 — fetch the externalised sidecar JSON and hand back the parsed
+  // bar list. Resolves to [] on any failure so the caller can show a
+  // per-card error state without touching sibling cards. The sidecar is
+  // a same-origin static file; ``fetch`` is feature-detected so older
+  // browsers fall back to "no chart" rather than throwing.
+  function loadSidecarBars(src) {
+    if (!src || typeof fetch !== "function") {
+      return Promise.resolve([]);
+    }
+    return fetch(src, { credentials: "same-origin" })
+      .then(function (resp) {
+        if (!resp || !resp.ok) return null;
+        return resp.json();
+      })
+      .then(function (payload) {
+        if (!payload || typeof payload !== "object") return [];
+        return barsFromHistory(payload.history);
+      })
+      .catch(function (err) {
+        if (typeof console !== "undefined" && console.warn) {
+          console.warn("[investo-chart] sidecar fetch failed:", src, err);
+        }
+        return [];
+      });
+  }
+
+  function renderOne(div) {
+    var historySrc = div.getAttribute("data-history-src");
+    if (!historySrc) {
+      // No externalised history reference — nothing to expand into.
       div.style.display = "none";
       return false;
     }
@@ -291,7 +256,6 @@
     // raw ticker when the attribute is absent (older archives).
     var label = div.getAttribute("data-label");
     var latestClose = readNumberAttr(div, "data-close");
-    if (latestClose === null) latestClose = bars[bars.length - 1].close;
     var pct = readFiniteNumberAttr(div, "data-pct");
     var pctText = formatPct(pct);
 
@@ -332,11 +296,9 @@
     }
     summary.appendChild(quote);
 
-    var sparkline = document.createElement("span");
-    sparkline.className = "investo-chart-sparkline";
-    sparkline.setAttribute("aria-hidden", "true");
-    summary.appendChild(sparkline);
-
+    // u75 — the expand area starts empty. The sparkline + candlestick
+    // are rendered lazily from the sidecar JSON the first time the card
+    // is opened, so the compact card costs zero history bytes up front.
     var expanded = document.createElement("div");
     expanded.className = "investo-chart-expanded";
     expanded.setAttribute("role", "img");
@@ -346,40 +308,69 @@
     details.appendChild(expanded);
     div.replaceWith(details);
 
-    var spark = null;
+    // Per-card lazy-load state. ``loadState`` advances idle -> loading
+    // -> (ready | error); only one fetch is ever issued per card.
+    var loadState = "idle";
+    var bars = [];
     var full = null;
-    if (window.LightweightCharts) {
-      spark = renderSparkline(sparkline, bars);
-    } else {
-      sparkline.style.display = "none";
+
+    function setMessage(text) {
+      expanded.textContent = "";
+      var msg = document.createElement("p");
+      msg.className = "investo-chart-message";
+      msg.textContent = text;
+      expanded.appendChild(msg);
     }
 
-    details.addEventListener("toggle", function () {
-      if (!details.open || !window.LightweightCharts) return;
-      if (full === null) {
-        full = renderCandlestick(expanded, div, bars);
+    function renderExpanded() {
+      if (!window.LightweightCharts || bars.length === 0) {
+        setMessage("차트 데이터를 불러오지 못했습니다.");
+        return;
       }
+      expanded.textContent = "";
+      full = renderCandlestick(expanded, div, bars);
       window.requestAnimationFrame(function () {
         full.chart.timeScale().fitContent();
       });
-    });
+    }
 
     // Live theme switching — observe mkdocs-material's light/dark
     // scheme attribute on <html> and re-apply layout colors. The
     // observer is disconnected when the div leaves the DOM (single-
     // page nav not used here, so the page reload covers cleanup).
     var observer = new MutationObserver(function () {
-      var scheme = currentColorScheme();
-      if (spark !== null) {
-        applySparklineTheme(spark.chart, spark.series, scheme, bars);
-      }
       if (full !== null) {
-        applyCandlestickTheme(full.chart, full.series, scheme);
+        applyCandlestickTheme(full.chart, full.series, currentColorScheme());
       }
     });
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-md-color-scheme"],
+    });
+
+    details.addEventListener("toggle", function () {
+      if (!details.open) return;
+      if (loadState === "ready") {
+        if (full === null) renderExpanded();
+        else {
+          window.requestAnimationFrame(function () {
+            full.chart.timeScale().fitContent();
+          });
+        }
+        return;
+      }
+      if (loadState !== "idle") return;
+      loadState = "loading";
+      setMessage("차트를 불러오는 중…");
+      loadSidecarBars(historySrc).then(function (loadedBars) {
+        bars = loadedBars;
+        loadState = loadedBars.length > 0 ? "ready" : "error";
+        if (loadState === "error") {
+          setMessage("차트 데이터를 불러오지 못했습니다.");
+          return;
+        }
+        renderExpanded();
+      });
     });
 
     return true;

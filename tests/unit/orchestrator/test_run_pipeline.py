@@ -700,7 +700,17 @@ async def test_run_pipeline_visual_asset_failure_publishes_text_only_partial(
     for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
         markdown = archive_root / segment / "2026" / "04" / "2026-04-27.md"
         assert markdown.exists()
-        assert ".assets/" not in markdown.read_text(encoding="utf-8")
+        text = markdown.read_text(encoding="utf-8")
+        # Text-only publishing emits no visual SVG/image asset links. (u75
+        # chart-history sidecars referenced by ``data-history-src`` are a
+        # separate, history-driven artifact and may still appear.) Assert no
+        # markdown image link points at an asset dir, and every residual
+        # ``.assets/`` reference is a chart sidecar attribute.
+        for line in text.splitlines():
+            if line.lstrip().startswith("!["):
+                assert ".assets/" not in line
+            elif ".assets/" in line:
+                assert "data-history-src=" in line
 
 
 @pytest.mark.asyncio
@@ -758,8 +768,7 @@ def test_rewrite_segment_nav_for_partial_publish_labels_missing_segments() -> No
 
     markdown = rewritten[CRYPTO].rendered_markdown
     assert (
-        "**세그먼트**: 국내 증시(미발행) | 미국 증시(미발행) | "
-        "[크립토](2026-04-27.md)"
+        "**세그먼트**: 국내 증시(미발행) | 미국 증시(미발행) | [크립토](2026-04-27.md)"
     ) in markdown
     assert "domestic-equity/2026/04/2026-04-27.md" not in markdown
     assert "us-equity/2026/04/2026-04-27.md" not in markdown
@@ -2146,8 +2155,7 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     # timeout, leaving headroom for collect, visual assets, publish,
     # notify, and GitHub runner overhead.
     assert (
-        sum(policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto))
-        <= 210 * 60
+        sum(policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)) <= 210 * 60
     )
 
     # Total budget covers the retry attempts plus headroom for the fast

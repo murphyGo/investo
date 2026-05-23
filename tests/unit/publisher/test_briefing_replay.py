@@ -118,6 +118,7 @@ def _write_segment_with_anchor_surfaces(
     table_close: str,
     chart_close: str,
     ixic_mislabel: bool = False,
+    write_sidecar: bool = True,
 ) -> None:
     """Write a us-equity segment carrying both an anchor table and a chart card."""
     path = (
@@ -125,6 +126,7 @@ def _write_segment_with_anchor_surfaces(
     )
     path.parent.mkdir(parents=True)
     ixic_note = "ATH 경신 · Nasdaq 100" if ixic_mislabel else "ATH 경신"
+    sidecar_rel = f"{target.isoformat()}.assets/charts/{segment}-ixic.json"
     md = (
         "# title\n\n"
         "> **오늘의 결론**: 정상 결론입니다.\n"
@@ -139,12 +141,16 @@ def _write_segment_with_anchor_surfaces(
         "## ⑤ 주요 종목\n\n"
         '<div class="investo-chart" id="chart-IXIC" data-ticker="^IXIC"'
         ' data-label="나스닥 종합"'
-        f' data-close="{chart_close}" data-pct="0.53" data-history=\'[]\'></div>\n\n'
+        f' data-close="{chart_close}" data-pct="0.53" data-history-src="{sidecar_rel}"></div>\n\n'
         "## ⑥ 오늘의 관전 포인트\n\n"
         "- 확인 소스: FRED · 10Y 금리 4.5% 상회 시 변동성 부담 여부를 확인합니다.\n\n"
         f"{DISCLAIMER}"
     )
     path.write_text(md, encoding="utf-8")
+    if write_sidecar:
+        sidecar_path = path.parent / sidecar_rel
+        sidecar_path.parent.mkdir(parents=True, exist_ok=True)
+        sidecar_path.write_text('{"schema_version":1,"history":[]}', encoding="utf-8")
 
 
 def test_replay_anchor_surfaces_agree(tmp_path: Path) -> None:
@@ -173,6 +179,40 @@ def test_replay_flags_anchor_close_divergence(tmp_path: Path) -> None:
     )
     codes = {f.code for f in findings if f.severity == "error"}
     assert "anchor-close-divergence" in codes
+
+
+def test_replay_warns_on_missing_chart_sidecar(tmp_path: Path) -> None:
+    """u75 — a missing sidecar is a warning; the compact card still renders."""
+    target = date(2026, 5, 24)
+    archive = tmp_path / "archive"
+    _write_segment_with_anchor_surfaces(
+        archive,
+        US_EQUITY,
+        target,
+        table_close="26,274.13",
+        chart_close="26274.13",
+        write_sidecar=False,
+    )
+    findings = replay_generated_briefing_quality(
+        target, archive_root=archive, segments=(US_EQUITY,)
+    )
+    sidecar_findings = [f for f in findings if f.code == "chart-sidecar-missing"]
+    assert len(sidecar_findings) == 1
+    assert sidecar_findings[0].severity == "warning"
+    # The compact card surfaces (anchor parity) are unaffected.
+    assert not any(f.severity == "error" and f.code.startswith("anchor-") for f in findings)
+
+
+def test_replay_passes_when_chart_sidecar_present(tmp_path: Path) -> None:
+    target = date(2026, 5, 24)
+    archive = tmp_path / "archive"
+    _write_segment_with_anchor_surfaces(
+        archive, US_EQUITY, target, table_close="26,274.13", chart_close="26274.13"
+    )
+    findings = replay_generated_briefing_quality(
+        target, archive_root=archive, segments=(US_EQUITY,)
+    )
+    assert not any(f.code == "chart-sidecar-missing" for f in findings)
 
 
 def test_replay_flags_ixic_nasdaq_100_mislabel(tmp_path: Path) -> None:

@@ -16,10 +16,10 @@ Pins
   → identical bytes (FD R9 / NFR-006 PBT contract).
 * **HTML-attribute safe** — every value flowing into a ``data-*``
   attribute passes through :func:`html.escape` with ``quote=True``.
-  The history JSON additionally escapes apostrophes (``'``) and
-  forward-slashes inside ``</`` so the ``data-history='...'`` value
-  cannot terminate the attribute or close the surrounding tag, even
-  though the JSON is already double-quoted.
+  Since u75 the heavy OHLC history no longer rides inline; the
+  placeholder carries only a small ``data-history-src`` relative URL
+  (also attribute-escaped) pointing at a sidecar JSON file the JS layer
+  lazy-fetches on expand.
 * **Module boundary** — imports only :mod:`investo.briefing.market_anchor`
   (which is itself a pure / dependency-free module). Does NOT import
   from ``orchestrator/`` / ``notifier/`` / ``sources/`` (project rule 2).
@@ -30,28 +30,38 @@ Pins
 
 Usage from the orchestrator publish stage::
 
-    from investo.publisher.charts import build_chart_block, inject_chart_block
+    from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 
-    block = build_chart_block(anchors, history_by_ticker)
-    if block:
-        new_md = inject_chart_block(briefing.rendered_markdown, block)
+    artifacts = build_chart_artifacts(
+        anchors, history_by_ticker, segment=segment,
+        markdown_stem=target_date.isoformat(), run_date=target_date,
+    )
+    if artifacts.block:
+        new_md = inject_chart_block(briefing.rendered_markdown, artifacts.block)
         briefing = briefing.model_copy(update={"rendered_markdown": new_md})
+        # write artifacts.sidecars next to the segment markdown / assets
 """
 
 from __future__ import annotations
 
 import html
-import json
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from typing import Final
 
 from investo.briefing.market_anchor import MarketAnchor, OHLCRow, anchor_label
+from investo.publisher.chart_sidecar import (
+    ChartSidecar,
+    build_chart_sidecar,
+    normalize_chart_id,
+)
 
-# Maximum chart placeholders embedded per segmented briefing. Keeps the
-# rendered HTML payload bounded (each placeholder ~7-15 KB of inline
-# JSON for ~252 daily rows). The JS init layer also caps per-page
-# render at the same number.
+# Maximum chart placeholders embedded per segmented briefing. Since u75
+# the heavy history lives in sidecar JSON, so each placeholder is now a
+# sub-1 KB summary div; this cap still bounds the number of sidecar
+# fetches the JS init layer can trigger on a single page.
 MAX_CHARTS_PER_BRIEFING: Final[int] = 5
 
 # Section header (NFC) to anchor injection on. Mirrors
@@ -106,55 +116,17 @@ def _decimal_to_float_str(value: Decimal) -> str:
     return format(value, "f")
 
 
-def _serialize_history(history: Sequence[OHLCRow]) -> str:
-    """Encode the trailing daily-bar history as a minified JSON list.
-
-    The shape is ``[{"t": "YYYY-MM-DD", "o": "...", "h": "...", "l":
-    "...", "c": "...", "v": "..."}, ...]`` — strings rather than
-    numbers so :class:`Decimal` precision survives the round-trip.
-    The JS layer coerces back to ``Number`` via ``parseFloat`` before
-    handing the bars to Lightweight Charts.
-
-    Keeping the list compact (no ``volume`` when the source omits it)
-    cuts the payload size by ~15 % for ``^VIX`` and similar volume-
-    less series.
-    """
-    rows: list[dict[str, str]] = []
-    for row in history:
-        entry: dict[str, str] = {
-            "t": row.trading_date.isoformat(),
-            "o": _decimal_to_float_str(row.open),
-            "h": _decimal_to_float_str(row.high),
-            "l": _decimal_to_float_str(row.low),
-            "c": _decimal_to_float_str(row.close),
-        }
-        if row.volume is not None:
-            entry["v"] = _decimal_to_float_str(row.volume)
-        rows.append(entry)
-    return json.dumps(rows, separators=(",", ":"), ensure_ascii=True)
-
-
 def _attr_escape(value: str) -> str:
     """Return ``value`` safe for embedding inside a double-quoted HTML attribute."""
     return html.escape(value, quote=True)
 
 
-def _data_history_attr(history: Sequence[OHLCRow]) -> str:
-    """Render the ``data-history='...'`` attribute value.
-
-    The JSON payload is wrapped in single quotes so the embedded
-    double-quotes inside the JSON survive untouched. Apostrophes
-    (impossible in pure-numeric / ISO-date JSON, but defended for
-    free) are escaped to ``&#39;``; ``</`` sequences are split with a
-    zero-width escape so the attribute cannot terminate the parent
-    tag prematurely.
-    """
-    payload = _serialize_history(history)
-    payload = payload.replace("'", "&#39;").replace("</", "<\\/")
-    return payload
-
-
-def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -> str:
+def render_chart_placeholder(
+    anchor: MarketAnchor,
+    history: Sequence[OHLCRow],
+    *,
+    sidecar: ChartSidecar,
+) -> str:
     """Render a single ``<div class="investo-chart" ...>`` placeholder.
 
     Empty ``history`` → empty string (caller skips the ticker). The
@@ -170,7 +142,10 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
       off the reconciled :class:`MarketAnchor` the orchestrator also feeds
       to the top table (u70 single-payload contract), so the card and the
       table never diverge on the same symbol's price/change.
-    * ``data-history`` — minified JSON of the OHLCV bars.
+    * ``data-history-src`` — u75: relative URL of the sidecar JSON file
+      that holds the OHLCV bars. The JS layer lazy-fetches it only when
+      the reader expands the chart, so the heavy payload never rides
+      inline. (Replaces the old ``data-history`` attribute.)
     * ``data-ath`` — anchor close when ``is_ath`` else nothing (the JS
       side already redraws if absent).
     * ``data-52w-high`` / ``data-52w-low`` — derived from the trailing
@@ -202,45 +177,78 @@ def render_chart_placeholder(anchor: MarketAnchor, history: Sequence[OHLCRow]) -
     if window_low is not None:
         low_attr = f' data-52w-low="{_attr_escape(_decimal_to_float_str(window_low))}"'
 
-    history_attr = _data_history_attr(history)
+    src_attr = _attr_escape(sidecar.relative_path)
     return (
         f'<div class="investo-chart" id="chart-{slug}" data-ticker="{ticker_attr}"'
         f' data-label="{label_attr}"'
         f' data-close="{close_attr}"{pct_attr}{ath_attr}{high_attr}{low_attr}'
-        f" data-history='{history_attr}'></div>\n"
+        f' data-history-src="{src_attr}"></div>\n'
     )
 
 
-def build_chart_block(
+@dataclass(frozen=True, slots=True)
+class ChartArtifacts:
+    """Result of :func:`build_chart_artifacts`.
+
+    ``block`` is the markdown-embeddable HTML (empty when nothing to
+    render). ``sidecars`` is the parallel list of externalised history
+    payloads the caller must write next to the segment markdown.
+    """
+
+    block: str
+    sidecars: tuple[ChartSidecar, ...]
+
+
+def build_chart_artifacts(
     anchors: Sequence[MarketAnchor],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
     *,
+    segment: str,
+    markdown_stem: str,
+    run_date: date,
     max_charts: int = MAX_CHARTS_PER_BRIEFING,
-) -> str:
-    """Render the full chart block (open + placeholders + noscript fallback).
+) -> ChartArtifacts:
+    """Render the chart block plus the externalised sidecar payloads (u75).
 
-    Returns the empty string when no anchor has matching history rows,
-    so the caller can simply skip injection (no orphan ``<div>`` opens
-    in the published markdown).
+    Returns empty artifacts when no anchor has matching history rows, so
+    the caller can simply skip injection (no orphan ``<div>`` opens, no
+    sidecar files written).
 
-    ``max_charts`` caps the number of placeholders. The selection
-    follows the input order of ``anchors``; the orchestrator already
-    routes per-segment (us-equity vs crypto), so the first 5 are the
-    natural priority.
+    ``max_charts`` caps the number of placeholders / sidecars. Selection
+    follows the input order of ``anchors``; the orchestrator routes
+    per-segment, so the first 5 are the natural priority. ``chart_id`` is
+    ``{segment}-{normalized_ticker}``; a duplicate slug in the same
+    segment gets a ``-{ordinal}`` suffix in source order so two tickers
+    that normalise to the same slug never collide on one sidecar file.
     """
     chunks: list[str] = []
+    sidecars: list[ChartSidecar] = []
+    seen_ids: dict[str, int] = {}
     for anchor in anchors:
         if len(chunks) >= max_charts:
             break
         history = history_by_ticker.get(anchor.ticker, ())
         if not history:
             continue
-        rendered = render_chart_placeholder(anchor, history)
+        base_id = normalize_chart_id(segment, anchor.ticker)
+        ordinal = seen_ids.get(base_id, 0)
+        seen_ids[base_id] = ordinal + 1
+        chart_id = base_id if ordinal == 0 else f"{base_id}-{ordinal}"
+        sidecar = build_chart_sidecar(
+            anchor,
+            history,
+            markdown_stem=markdown_stem,
+            chart_id=chart_id,
+            run_date=run_date,
+        )
+        rendered = render_chart_placeholder(anchor, history, sidecar=sidecar)
         if rendered:
             chunks.append(rendered)
+            sidecars.append(sidecar)
     if not chunks:
-        return ""
-    return f"{_CHART_BLOCK_OPEN}{''.join(chunks)}{_CHART_BLOCK_CLOSE}"
+        return ChartArtifacts(block="", sidecars=())
+    block = f"{_CHART_BLOCK_OPEN}{''.join(chunks)}{_CHART_BLOCK_CLOSE}"
+    return ChartArtifacts(block=block, sidecars=tuple(sidecars))
 
 
 def inject_chart_block(markdown: str, block: str) -> str:
@@ -284,7 +292,8 @@ def inject_chart_block(markdown: str, block: str) -> str:
 __all__ = [
     "MAX_CHARTS_PER_BRIEFING",
     "SECTION_FIVE_HEADER",
-    "build_chart_block",
+    "ChartArtifacts",
+    "build_chart_artifacts",
     "inject_chart_block",
     "render_chart_placeholder",
 ]
