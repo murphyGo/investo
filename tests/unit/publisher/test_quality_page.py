@@ -77,6 +77,44 @@ def test_update_quality_page_empty_history_keeps_no_data_message(tmp_path: Path)
     assert "측정 가능한 게시가 없습니다" in body
 
 
+def test_update_quality_page_reconciles_failed_floor_from_history(tmp_path: Path) -> None:
+    """u69 — empty coverage must not render 실패한 소스 누적=0 when history records failures."""
+    history = tmp_path / "quality_history.jsonl"
+    coverage = tmp_path / "coverage.jsonl"
+    quality_page = tmp_path / "quality.md"
+    # History records 3 failed sources for the day; coverage is empty.
+    history.parent.mkdir(parents=True, exist_ok=True)
+    with history.open("w", encoding="utf-8") as fp:
+        fp.write(
+            json.dumps(
+                {
+                    "date": "2026-05-30",
+                    "source_liveness": 0.0,
+                    "figures_presence": 1.0,
+                    "fallback_ratio": 0.0,
+                    "published_segments": 3,
+                    "total_items": 100,
+                    "total_failed_sources": 3,
+                    "worst_severity": "limited",
+                }
+            )
+            + "\n"
+        )
+    coverage.parent.mkdir(parents=True, exist_ok=True)
+    coverage.write_text(json.dumps({"target_date": "2026-05-30", "outcomes": []}) + "\n")
+
+    update_quality_page(
+        date(2026, 5, 30),
+        coverage_path=coverage,
+        archive_root=tmp_path / "archive",
+        quality_history_path=history,
+        quality_page_path=quality_page,
+    )
+
+    body = quality_page.read_text(encoding="utf-8")
+    assert "| 실패한 소스 누적 | 3 회 |" in body
+
+
 def test_update_quality_page_is_idempotent(tmp_path: Path) -> None:
     history = tmp_path / "quality_history.jsonl"
     coverage = tmp_path / "coverage.jsonl"

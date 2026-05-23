@@ -18,6 +18,11 @@ from investo.briefing.summary_quality import (
     SummaryQualityError,
     validate_first_viewport_summary,
 )
+from investo.publisher.quality_consistency import (
+    build_canonical_snapshot,
+    check_quality_consistency,
+    load_quality_history_row,
+)
 from investo.publisher.reader_format import check_watchpoint_actionability
 
 ReplaySeverity = Literal["error", "warning"]
@@ -50,7 +55,17 @@ def replay_generated_briefing_quality(
     archive_root: Path = Path("archive"),
     segments: tuple[MarketSegment, ...] = _SEGMENTS,
     quality_history_path: Path | None = None,
+    quality_page_path: Path | None = None,
 ) -> tuple[ReplayFinding, ...]:
+    """Replay offline quality checks for a generated bundle.
+
+    u69 — when ``quality_page_path`` points at a generated
+    ``site_docs/quality.md`` the canonical cross-surface consistency
+    validator runs too; if the artifact is absent the consistency
+    subset still compares segment status blocks against the
+    quality-history row and records ``quality.quality_page_missing`` as
+    *skipped* (not a failure). Pure read; never mutates archive files.
+    """
     findings: list[ReplayFinding] = []
     present: dict[MarketSegment, str] = {}
     for segment in segments:
@@ -70,14 +85,56 @@ def replay_generated_briefing_quality(
         findings.extend(_check_markdown(segment, text))
 
     findings.extend(_check_navigation(target_date, present))
+    resolved_history_path = (
+        quality_history_path
+        if quality_history_path is not None
+        else archive_root / "_meta" / "quality_history.jsonl"
+    )
     findings.extend(
         _check_quality_history(
             target_date,
-            quality_history_path=quality_history_path
-            if quality_history_path is not None
-            else archive_root / "_meta" / "quality_history.jsonl",
+            quality_history_path=resolved_history_path,
         )
     )
+    findings.extend(
+        _check_quality_consistency(
+            target_date,
+            segment_texts=present,
+            quality_history_path=resolved_history_path,
+            quality_page_path=quality_page_path,
+        )
+    )
+    return tuple(findings)
+
+
+def _check_quality_consistency(
+    target_date: date,
+    *,
+    segment_texts: dict[MarketSegment, str],
+    quality_history_path: Path,
+    quality_page_path: Path | None,
+) -> tuple[ReplayFinding, ...]:
+    """u69 — run the canonical cross-surface consistency validator."""
+    if not segment_texts:
+        return ()
+    history_row = load_quality_history_row(target_date, quality_history_path)
+    snapshot = build_canonical_snapshot(
+        target_date,
+        segment_texts=segment_texts,
+        history_row=history_row,
+    )
+    quality_page_text: str | None = None
+    if quality_page_path is not None and quality_page_path.exists():
+        quality_page_text = quality_page_path.read_text(encoding="utf-8")
+    consistency = check_quality_consistency(snapshot, quality_page_text=quality_page_text)
+    findings: list[ReplayFinding] = []
+    for finding in consistency:
+        if finding.skipped:
+            findings.append(
+                ReplayFinding("warning", finding.segment, finding.code, finding.message)
+            )
+            continue
+        findings.append(ReplayFinding("error", finding.segment, finding.code, finding.message))
     return tuple(findings)
 
 

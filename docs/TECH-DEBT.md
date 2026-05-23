@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 25 | 2026-04-27 |
+| Low | 26 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,16 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-073: Backfill stale public quality surfaces that pre-date the u69 render-path fix
+
+- **Created**: 2026-05-24
+- **Source**: u69 quality-public-consistency-gate closeout (2026-05-22 live replay finding)
+- **Reference**: AC-69.3 (denominator/unknown rendered only with evidence), FR-003 (static web publishing), NFR-005 (consistency / reader-trust), NFR-007 (R10 — record/replay, no fabrication)
+- **Description**: u69 added a canonical cross-surface quality validator (`src/investo/publisher/quality_consistency.py`) and fixed the render path (`update_quality_page` -> `reconcile_kpis_with_history`) so an empty/lagging `archive/_meta/coverage.jsonl` (`outcomes:[]`) can no longer render `실패한 소스 누적 = 0` when `quality_history.jsonl` holds failure evidence. The fix corrects **future** publishes only. Running the new replay against the live archive flags **2026-05-22** with `quality.denominator_unknown_but_evidence_present`: the already-committed `site_docs/quality.md` renders the failed count as `0` / `n/a` while the bundle holds real failure evidence. Historical archive repair was a plan Non-Goal, so the stale committed page and any pre-fix `coverage.jsonl` rows are left as-is; the contradiction is reader-visible only on the historical 2026-05-22 dashboard view.
+- **Suggested Fix**: A bounded one-shot repair pass (mirroring the u26 `scripts/backfill_2026_05_06_visuals.py` precedent) that (a) walks affected dates whose committed `site_docs/quality.md` fails `check_quality_consistency` against `quality_history.jsonl`, (b) re-renders the dashboard via the post-u69 `update_quality_page` / `reconcile_kpis_with_history` path, and (c) repairs or backfills empty `archive/_meta/coverage.jsonl` rows from the per-segment markdown status evidence where recoverable (never fabricating counts — leave `미집계` where evidence is genuinely absent). Optionally add a short operator runbook section explaining how to read the quality dashboard and what `QualityConsistencyError` / a skipped `quality_page_missing` finding means (ops handoff; can be split out as a separate Low item if preferred).
+- **Effort**: ~1.5-2 h for the one-shot repair pass + per-date verification via the u69 validator; ~30 min for the optional runbook section.
+- **Priority Reasoning**: Low — the going-forward render path is fixed and the publish-boundary gate now blocks new contradictions, so reader-trust is preserved for all future runs. The residual is one historical dashboard view (2026-05-22) that overstates run health; it does not affect the generated briefing artifacts themselves. Promote to Medium only if additional pre-fix dates are found to materially understate failures on the public dashboard.
 
 #### DEBT-071: 24h 청산 (롱/숏 liquidations) has no no-key aggregate source
 

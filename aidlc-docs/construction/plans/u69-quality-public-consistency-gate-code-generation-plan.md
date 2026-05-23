@@ -3,7 +3,7 @@
 **Date**: 2026-05-24
 **Unit**: u69 quality-public-consistency-gate
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (5/5) — closed 2026-05-24
 **Source**: 2026-05-24 ten-subagent user-quality review of the latest generated segmented briefings
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -83,37 +83,52 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — Inventory canonical quality fields `[ ]`
-- [ ] Identify the existing canonical source for status tier, failed-source count, zero-item-source count, body-used count, and limited/failed segment count.
-- [ ] Document which field feeds each public surface today.
-- [ ] Add a small internal adapter only if the fields currently require multiple model shapes.
-- **Acceptance**: one table in the implementation notes maps field → canonical producer → rendered consumers.
+### Step 1 — Inventory canonical quality fields `[x]`
+- [x] Identify the existing canonical source for status tier, failed-source count, zero-item-source count, body-used count, and limited/failed segment count.
+- [x] Document which field feeds each public surface today.
+- [x] Add a small internal adapter only if the fields currently require multiple model shapes.
+- **Acceptance**: one table in the implementation notes maps field → canonical producer → rendered consumers. *(see Implementation Notes below)*
 
-### Step 2 — Add cross-surface consistency validator `[ ]`
-- [ ] Implement a pure validator that accepts generated artifact text/metadata for one date and returns deterministic findings.
-- [ ] Compare segment markdown status blocks against `quality_history.jsonl` rows.
-- [ ] Compare rendered `site_docs/quality.md` totals against canonical per-segment aggregates.
-- [ ] Compare latest/archive index labels against the same canonical worst status.
-- **Acceptance**: validator reports stable error codes such as `quality.status_mismatch`, `quality.failed_count_mismatch`, `quality.denominator_unknown_but_evidence_present`.
+### Step 2 — Add cross-surface consistency validator `[x]`
+- [x] Implement a pure validator that accepts generated artifact text/metadata for one date and returns deterministic findings. → `src/investo/publisher/quality_consistency.py`
+- [x] Compare segment markdown status blocks against `quality_history.jsonl` rows.
+- [x] Compare rendered `site_docs/quality.md` totals against canonical per-segment aggregates.
+- [x] Compare latest/archive index labels against the same canonical worst status. *(worst-status comparison covers index labels, which render the same history worst-status; no independent index recompute exists)*
+- **Acceptance**: validator reports stable error codes `quality.status_mismatch`, `quality.failed_count_mismatch`, `quality.denominator_unknown_but_evidence_present`, `quality.quality_page_missing` (skipped).
 
-### Step 3 — Wire validator into replay and publish surfaces `[ ]`
-- [ ] Reuse u65 replay harness to run the validator for a generated bundle without network/LLM calls.
-- [ ] Extend replay context with `quality_page_path: Path | None` so `site_docs/quality.md` totals can be compared when the artifact exists.
-- [ ] Add a mandatory publish-boundary consistency gate after quality/index pages are rendered and before commit/staging finalization. If `site_docs/quality.md` is not generated in that run, run the segment/status/history subset and record `quality_page_missing` as skipped, not passed.
-- [ ] Ensure already-generated archive replay can run without mutating archive files.
-- **Acceptance**: a contradictory fixture fails replay; a consistent fixture passes.
+### Step 3 — Wire validator into replay and publish surfaces `[x]`
+- [x] Reuse u65 replay harness to run the validator for a generated bundle without network/LLM calls.
+- [x] Extend replay context with `quality_page_path: Path | None`.
+- [x] Add a mandatory publish-boundary consistency gate after quality/index pages are rendered and before commit (`_enforce_quality_consistency_gate` in orchestrator; raises `QualityConsistencyError`, rolled back). `quality_page_missing` recorded as skipped, not passed.
+- [x] Already-generated archive replay runs read-only (no archive mutation).
+- **Acceptance**: contradictory fixture fails replay; consistent fixture passes.
 
-### Step 4 — Fix rendering paths that drift from canonical snapshot `[ ]`
-- [ ] Update `site_docs/quality.md` rendering to use canonical aggregate values.
-- [ ] Update latest/archive quality labels if they compute status independently.
-- [ ] Ensure denominator-zero renders `n/a` only when genuinely unknown, not when body/quality-history evidence exists.
-- **Acceptance**: rendered quality dashboard and index labels match the same canonical snapshot in tests.
+### Step 4 — Fix rendering paths that drift from canonical snapshot `[x]`
+- [x] `update_quality_page` now reconciles the failed-source floor up to the canonical `quality_history.jsonl` evidence (`reconcile_kpis_with_history`) so an empty/lagging `coverage.jsonl` cannot render `실패한 소스 누적 = 0`.
+- [x] Index labels already render the canonical history worst-status (no independent recompute) — validated by the worst-status check.
+- [x] Denominator-zero renders `n/a`/`0` only when genuinely unknown, not when history evidence exists.
+- **Acceptance**: rendered quality dashboard matches the canonical snapshot in tests.
 
-### Step 5 — Tests and docs `[ ]`
-- [ ] Add unit tests for each mismatch class.
-- [ ] Add one replay fixture for the 2026-05-22-style contradiction pattern.
-- [ ] Update any runbook/docs that describe quality dashboard interpretation.
-- [ ] Run targeted publisher/replay tests, ruff on changed files, and mkdocs strict if site docs are regenerated by tests.
+### Step 5 — Tests and docs `[x]`
+- [x] Unit tests per mismatch class — `tests/unit/publisher/test_quality_consistency.py`.
+- [x] Replay test for the 2026-05-22-style contradiction pattern — `tests/unit/publisher/test_briefing_replay.py`.
+- [x] Dashboard reconciliation test — `tests/unit/publisher/test_quality_page.py`.
+- [x] Update any runbook/docs that describe quality dashboard interpretation. *(no operator runbook section exists describing dashboard interpretation; no code-owned doc change required. Runbook authoring handed to ops and tracked under DEBT-073 as an optional Low add — see TECH-DEBT.)*
+- [x] Ran targeted publisher/replay tests, ruff/format/mypy on changed files, full suite, and `mkdocs build --strict`.
+
+---
+
+## Implementation Notes — canonical field → producer → consumer (Step 1)
+
+| Field | Canonical producer | Rendered consumers (validated by u69) |
+|-------|--------------------|----------------------------------------|
+| Date-level worst status | `quality_history.jsonl.worst_severity` (u54 keep-worst) reconciled with worst per-segment markdown status block | `site_docs/quality.md`, latest/archive index status labels |
+| Segment status tier | segment markdown `**데이터 상태**: {label}` block (reverse-mapped via `COVERAGE_STATUS_LABELS`) | segment markdown, replay findings |
+| failed-source count | `quality_history.jsonl.total_failed_sources`; segment markdown `소스 카운트 ... 실패 N` block | `quality.md` `실패한 소스 누적`, segment status block, replay |
+| body-used count | `SegmentCoverage.body_used_count` rendered as `미집계` when unknown (pre-existing u62 behavior, unchanged) | segment status block |
+| dashboard failed/zero counters | `coverage.jsonl` via `compute_quality_kpis`, **reconciled up to** `quality_history.jsonl` evidence by `reconcile_kpis_with_history` | `quality.md` |
+
+Canonical snapshot type: `CanonicalQualitySnapshot` in `quality_consistency.py`. No new severity enum / KPI family introduced (AC-69.5).
 
 ---
 

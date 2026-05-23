@@ -866,6 +866,21 @@ async def _stage_publish_segments(
             )
             index_paths = (*index_paths, *quality_history_paths, quality_path)
 
+            # u69 — publish-boundary canonical quality-consistency gate.
+            # Runs after the quality / history / index pages are rendered
+            # and before commit. Compares the per-segment markdown status
+            # blocks against the quality-history row and the rendered
+            # dashboard so a healthier-looking public surface cannot ship
+            # alongside a failed / limited archive body. A genuine
+            # contradiction rolls back this run's writes and raises.
+            await asyncio.to_thread(
+                _enforce_quality_consistency_gate,
+                target_date,
+                briefings=briefings,
+                history_path=quality_history_path,
+                quality_page_path=quality_path_resolved,
+            )
+
             forecast_paths: tuple[Path, ...] = ()
             if not _is_dry_run():
                 forecast_log_path = resolve_forecast_log_path()
@@ -941,7 +956,13 @@ async def _stage_publish_segments(
                     written_weekly,
                     weekly_index_path,
                 )
-    except (PublisherDisclaimerError, PublisherIOError, QualityHistoryError, ForecastLogError):
+    except (
+        PublisherDisclaimerError,
+        PublisherIOError,
+        QualityHistoryError,
+        ForecastLogError,
+        QualityConsistencyError,
+    ):
         _rollback_paths(snapshots)
         raise
 
@@ -1537,6 +1558,52 @@ def _build_quality_snapshot(
         total_failed_sources=failed_sources,
         worst_severity=worst_severity,
     )
+
+
+class QualityConsistencyError(RuntimeError):
+    """u69 — raised when public quality surfaces contradict the archive.
+
+    Aborts the publish so a healthier-looking dashboard / index / history
+    row cannot ship alongside a failed / limited / data-limited segment
+    body. Carries the deterministic finding codes for operator triage.
+    """
+
+
+def _enforce_quality_consistency_gate(
+    target_date: date,
+    *,
+    briefings: dict[MarketSegment, Briefing],
+    history_path: Path,
+    quality_page_path: Path,
+) -> None:
+    """u69 — publish-boundary canonical quality-consistency gate.
+
+    Skipped (``quality_page_missing``) surfaces never fail. A genuine
+    contradiction raises :class:`QualityConsistencyError` so the caller's
+    rollback reverses this run's writes.
+    """
+    from investo.publisher.quality_consistency import validate_date_quality_consistency
+
+    segment_texts = {segment: briefing.rendered_markdown for segment, briefing in briefings.items()}
+    page_text = (
+        quality_page_path.read_text(encoding="utf-8") if quality_page_path.exists() else None
+    )
+    findings = validate_date_quality_consistency(
+        target_date,
+        segment_texts=segment_texts,
+        history_path=history_path,
+        quality_page_text=page_text,
+    )
+    failures = [finding for finding in findings if finding.is_failure]
+    for finding in findings:
+        if finding.skipped:
+            _logger.info("[publish] quality-consistency skipped: %s", finding.code)
+    if failures:
+        codes = ", ".join(sorted({finding.code for finding in failures}))
+        details = "; ".join(finding.message for finding in failures)
+        raise QualityConsistencyError(
+            f"quality-consistency gate failed for {target_date.isoformat()} [{codes}]: {details}"
+        )
 
 
 def _forecast_briefing_urls(

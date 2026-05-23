@@ -206,6 +206,7 @@ def update_quality_page(
         render_quality_page,
     )
     from investo.briefing.quality_history import resolve_quality_history_path
+    from investo.publisher.quality_consistency import reconcile_kpis_with_history
     from investo.visuals.quality_sparkline import render_quality_sparkline
 
     target = quality_page_path if quality_page_path is not None else QUALITY_PAGE_PATH
@@ -217,6 +218,18 @@ def update_quality_page(
         coverage_path=coverage_path,
         archive_root=archive_root,
         window_days=window_days,
+    )
+    # u69 — the trailing-window KPIs are computed from ``coverage.jsonl``.
+    # When that file is empty / lagging but the canonical quality-history
+    # row for the date already records failed sources, the dashboard must
+    # not render ``실패한 소스 누적 = 0`` (a healthier-looking surface than
+    # the archive). Reconcile the failed-source floor up to the canonical
+    # history evidence so the dashboard agrees with the same snapshot the
+    # publish-boundary gate validates against.
+    kpis = reconcile_kpis_with_history(
+        kpis,
+        target_date=target_date,
+        history_path=history_target,
     )
     history_rows = compute_quality_history(30, history_path=history_target, today=target_date)
     sparkline = render_quality_sparkline(history_rows).decode("utf-8")
@@ -452,9 +465,7 @@ def _build_bundle_states(
     segment_briefings: dict[MarketSegment, Briefing] | None,
 ) -> tuple[SegmentBundleState, ...]:
     generated = (
-        frozenset(segment_briefings)
-        if segment_briefings is not None
-        else frozenset(_SEGMENTS)
+        frozenset(segment_briefings) if segment_briefings is not None else frozenset(_SEGMENTS)
     )
     states: list[SegmentBundleState] = []
     for segment in _SEGMENTS:
@@ -494,10 +505,14 @@ def _site_latest_section(
     target_date: date,
     states: tuple[SegmentBundleState, ...] | None = None,
 ) -> str:
-    bundle_states = states if states is not None else _build_bundle_states(
-        target_date,
-        archive_root=ARCHIVE_INDEX_PATH.parent,
-        segment_briefings=None,
+    bundle_states = (
+        states
+        if states is not None
+        else _build_bundle_states(
+            target_date,
+            archive_root=ARCHIVE_INDEX_PATH.parent,
+            segment_briefings=None,
+        )
     )
     return (
         "## 최신 시황\n\n"
@@ -511,10 +526,14 @@ def _archive_latest_section(
     target_date: date,
     states: tuple[SegmentBundleState, ...] | None = None,
 ) -> str:
-    bundle_states = states if states is not None else _build_bundle_states(
-        target_date,
-        archive_root=ARCHIVE_INDEX_PATH.parent,
-        segment_briefings=None,
+    bundle_states = (
+        states
+        if states is not None
+        else _build_bundle_states(
+            target_date,
+            archive_root=ARCHIVE_INDEX_PATH.parent,
+            segment_briefings=None,
+        )
     )
     return (
         "## 최신 시황\n\n"

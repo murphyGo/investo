@@ -1,5 +1,29 @@
 # AI-DLC Audit Log
 
+## Construction — u69 quality-public-consistency-gate Complete
+**Timestamp**: 2026-05-24T23:30:00+09:00
+**Trigger**: u69 (quality-public-consistency-gate) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + TECH-DEBT + state/audit + Step 5 close deferred to planner per module-boundary rule. Concurrent session active — aidlc-docs additive only.
+**Decision**: Ratify the implementation and close the unit (5/5 steps). One canonical quality snapshot per date now drives every public surface; contradictions fail deterministically at the publish boundary (blocking) and at u65 replay (read-only). No new severity enum / KPI family / external source introduced — u69 wraps u54/u62/u65 (AC-69.5).
+**Delivered**:
+- **`src/investo/publisher/quality_consistency.py`** (new canonical validator): `build_canonical_snapshot` / `check_quality_consistency` / `validate_date_quality_consistency` / `reconcile_kpis_with_history`. Stable codes `quality.status_mismatch`, `quality.failed_count_mismatch`, `quality.denominator_unknown_but_evidence_present`, `quality.quality_page_missing` (recorded as **skip**, never pass/fail).
+- **Canonical snapshot = 1 per date**: worst-status = segment markdown `**데이터 상태**` combined with `quality_history.jsonl.worst_severity` (u54 worst-wins; no severity re-definition); has-failed-evidence = segment markdown `실패 N>0` OR history `total_failed_sources>0`. All public surfaces (quality.md / history row / segment block / index label / replay) validated against this single snapshot.
+- **Wiring** (read/validate only): `briefing_replay.py` (u65 harness gets the validator + `quality_page_path: Path | None`; skip->warn, contradiction->error; archive read-only); `site_index.py` (`update_quality_page` calls `reconcile_kpis_with_history` so empty/lagging `coverage.jsonl` cannot render `실패 누적=0`); `orchestrator/pipeline.py` (`_enforce_quality_consistency_gate` + `QualityConsistencyError` at the publish boundary after quality/index render, before commit; added to the rollback `except`).
+- **Tests**: `tests/unit/publisher/test_quality_consistency.py`, `test_briefing_replay.py`, `test_quality_page.py`.
+**Module boundary**: `quality_consistency.py` imports only `briefing.segments` (`MarketSegment`/`CoverageStatus`/labels) — same precedent as `site_index`/`briefing_replay`; `QualityKPIs` under `TYPE_CHECKING`. Not a violation (publisher-internal; orchestrator-only cross-unit rule upheld).
+**FD divergences ratified**: none — FD = SKIP (rendering/validation contract over existing models; no new entity).
+**Measured 2026-05-22 finding (unmodified — out of scope)**: new replay against the live archive flags 2026-05-22 with `quality.denominator_unknown_but_evidence_present` — committed `site_docs/quality.md` renders failed count `0`/`n-a` while the bundle holds failure evidence. Render-path fix corrects future publishes; the already-committed stale page is **not** backfilled (historical archive repair is a plan Non-Goal) -> **DEBT-073**.
+**Scope-out -> TECH-DEBT**: **DEBT-073** (backfill stale `site_docs/quality.md` + empty `coverage.jsonl` pre-fix rows + optional operator dashboard-interpretation runbook, Low).
+**Risk recorded**: the publish-boundary gate is now **blocking** — a genuine contradiction aborts publish before commit (intended). Operators must watch for `QualityConsistencyError`; false-aborts avoided because missing `quality.md` is recorded as skip.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u69-quality-public-consistency-gate/code/summary.md` (new — Scope/Stage Decision/Delivered/canonical snapshot contract/AC-69.1-5 traceability/2026-05-22 finding/FD divergences/TECH-DEBT/gate)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-073 added; Low count 25->26)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u69-quality-public-consistency-gate-code-generation-plan.md` (Step 5 runbook `[ ]`->`[x]` ops handoff; Status -> Complete)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u69 row Backlog->Complete; Code Generation / Build-and-Test lines; FD SKIP confirmed)
+**Status**: u69 complete (5/5). AC-69.1..AC-69.5 MET. Gate: ruff clean / ruff-format clean / mypy --strict 138 files clean / pytest 2504 passed / mkdocs build --strict pass. FD SKIP and NFR SKIP confirmed at closeout.
+**Context**: Project rules upheld — 무료 API only (no external call; local file/metadata validation), Anthropic SDK 금지 (untouched), 모듈 경계 (validator publisher-internal, imports only `briefing.segments`; orchestrator-only cross-unit import preserved), 면책조항 + 채널 분리 gates untouched, R13 no secret (existing redaction unchanged), `defusedxml` not invoked. No new severity enum / KPI family / dependency / paid service (AC-69.5).
+
+---
+
 ## Construction — u66 crypto-channel-depth Complete
 **Timestamp**: 2026-05-24T22:00:00+09:00
 **Trigger**: u66 (crypto-channel-depth) Code Generation landed — code/tests/fixtures/gate all green (developer). FD edit + `code/summary.md` + TECH-DEBT + state/audit deferred to planner per module-boundary rule.
