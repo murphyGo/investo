@@ -71,6 +71,7 @@ import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import UTC, date, datetime
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Final
 
@@ -727,9 +728,7 @@ async def _stage_publish_segments(
                 briefings[segment] = briefings[segment].model_copy(
                     update={"rendered_markdown": canonical_markdown}
                 )
-            repaired_markdown = repair_first_viewport_summary(
-                briefings[segment].rendered_markdown
-            )
+            repaired_markdown = repair_first_viewport_summary(briefings[segment].rendered_markdown)
             if repaired_markdown != briefings[segment].rendered_markdown:
                 _logger.warning(
                     "[publish] repaired first-viewport summary segment=%s",
@@ -1100,6 +1099,112 @@ def _inject_chart_blocks_into_segments(
 # ``tests/integration/test_briefing_reader_format.py`` and
 # ``tests/unit/publisher/test_reader_format.py::test_apply_reader_format_preserves_disclaimer``.
 _ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
+
+
+# ---------------------------------------------------------------------------
+# P1-2 — header-table / body / trace close reconciliation (option B).
+#
+# Root cause: the anchor header table renders ``MarketAnchor.close`` (the
+# last OHLCV bar from ``yfinance_history``), while the body prose and the
+# trace footer cite the price-snapshot ``NormalizedItem`` close (stooq-price
+# / yfinance). The two feeds differ by provider / timestamp / resolution, so
+# the same ticker can show e.g. AAPL 304.99 (header) vs 305.10 (trace).
+#
+# Fix: reconcile the *display* close only. We extract the per-ticker snapshot
+# close from the collected price items — exactly the value the body + trace
+# derive from — and override ``MarketAnchor.close`` when it disagrees beyond
+# tolerance. ATH / 52w / MTD / YTD / pct stay history-derived (NOT
+# recomputed): only the displayed close is swapped so all three surfaces
+# agree. Tickers without a snapshot keep the history close (safe fallback).
+#
+# Mapping: both stooq-price and yfinance stamp ``raw_metadata["ticker"]`` in
+# the same yfinance vocabulary the anchors use (``^GSPC`` / ``AAPL`` /
+# ``BTC-USD``) plus ``raw_metadata["close"]``. That ticker key is the
+# universal snapshot (covers indices AND individual stocks); the
+# ``core_fact:`` keys are a redundant overlay for the 12 mapped tickers
+# derived from the *same* ``close`` value, so matching on the raw ticker is
+# both broader and equivalent.
+
+# Override fires when the absolute difference exceeds $0.01 OR the relative
+# difference exceeds 0.05 % — below that the feeds are effectively equal and
+# a swap would only churn the bytes.
+_ANCHOR_CLOSE_ABS_TOLERANCE: Final[Decimal] = Decimal("0.01")
+_ANCHOR_CLOSE_REL_TOLERANCE: Final[Decimal] = Decimal("0.0005")  # 0.05 %
+
+
+def _snapshot_close_by_ticker(items: Sequence[NormalizedItem]) -> dict[str, Decimal]:
+    """Build ``ticker -> Decimal(close)`` from price-snapshot items.
+
+    Reads ``raw_metadata["ticker"]`` + ``raw_metadata["close"]`` off every
+    ``category == "price"`` item. This is the exact close value the body
+    prose and the trace footer surface (the snapshot adapters derive the
+    item title and the ``core_fact:`` overlay from the same field), so an
+    anchor overridden to this value agrees with both other surfaces.
+
+    Last-writer-wins on duplicate tickers (matches the numeric_verify
+    aggregation contract). Rows with a missing / unparseable close are
+    skipped — the anchor then falls back to its history close.
+    """
+    out: dict[str, Decimal] = {}
+    for item in items:
+        if item.category != "price":
+            continue
+        ticker = str(item.raw_metadata.get("ticker", "")).strip()
+        close_raw = str(item.raw_metadata.get("close", "")).strip()
+        if not ticker or not close_raw:
+            continue
+        try:
+            out[ticker] = Decimal(close_raw)
+        except (InvalidOperation, ValueError):
+            continue
+    return out
+
+
+def _reconcile_anchor_closes(
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    snapshot_close: Mapping[str, Decimal],
+) -> dict[MarketSegment, tuple[MarketAnchor, ...]]:
+    """Override each anchor's display close with the snapshot value (option B).
+
+    Returns a fresh per-segment map. For every anchor whose ticker has a
+    snapshot close differing beyond tolerance, the displayed ``close`` is
+    replaced (via ``model_copy``) with the snapshot value; derived fields
+    (ATH / 52w / MTD / YTD / pct / volume_z_score) are preserved unchanged
+    because they remain history-correct. Anchors without a snapshot, or
+    within tolerance, pass through untouched.
+    """
+    reconciled: dict[MarketSegment, tuple[MarketAnchor, ...]] = {}
+    for segment, anchors in anchors_by_segment.items():
+        out: list[MarketAnchor] = []
+        for anchor in anchors:
+            snapshot = snapshot_close.get(anchor.ticker)
+            if snapshot is None or not _close_differs(anchor.close, snapshot):
+                out.append(anchor)
+                continue
+            _logger.info(
+                "[market_anchor] reconciled display close ticker=%s history=%s snapshot=%s",
+                anchor.ticker,
+                anchor.close,
+                snapshot,
+            )
+            out.append(anchor.model_copy(update={"close": snapshot}))
+        reconciled[segment] = tuple(out)
+    return reconciled
+
+
+def _close_differs(history: Decimal, snapshot: Decimal) -> bool:
+    """True when ``snapshot`` exceeds the abs OR rel tolerance vs ``history``.
+
+    The dual tolerance is a no-churn floor (avoid swapping bytes when the
+    two feeds agree modulo Decimal-quantization). Either threshold being
+    exceeded counts as "different" → the goal is identical closes across
+    surfaces, so the bar for triggering an override is deliberately low
+    (the real bug was AAPL 304.99 vs 305.10 — a $0.11 / 0.036 % gap).
+    """
+    abs_diff = abs(history - snapshot)
+    if abs_diff > _ANCHOR_CLOSE_ABS_TOLERANCE:
+        return True
+    return history != 0 and abs_diff / abs(history) > _ANCHOR_CLOSE_REL_TOLERANCE
 
 
 def _inject_carryover_into_segments(
@@ -1967,6 +2072,17 @@ async def run_pipeline(
             history_by_ticker=market_history_by_ticker,
         )
 
+        # P1-2 — reconcile the anchor header-table display close with the
+        # price-snapshot value the body prose + trace footer cite. Applied
+        # AFTER chart injection (charts keep the history close for the
+        # ATH marker, tied to the history-derived ``is_ath``) and BEFORE the
+        # anchor-table render below, so the table / body / trace agree on the
+        # same close per ticker. Derived fields stay history-based.
+        anchor_table_input = _reconcile_anchor_closes(
+            market_anchors_by_segment,
+            _snapshot_close_by_ticker(items),
+        )
+
         # u51 tldr-block-and-number-bold-inversion — replace the deprecated
         # u49 prose anchor line with a markdown table, insert a ``## 한눈에
         # 보기`` TL;DR block when the LLM forgot, promote ``**Title**``
@@ -1979,7 +2095,7 @@ async def run_pipeline(
         try:
             segment_briefings = _apply_reader_format_to_segments(
                 segment_briefings,
-                anchors_by_segment=market_anchors_by_segment,
+                anchors_by_segment=anchor_table_input,
                 bundle_context=run_bundle_context,
             )
         except ComplianceLanguageError as exc:

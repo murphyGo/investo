@@ -135,7 +135,11 @@ def test_coverage_badge_renders_per_source_status_with_failed_first() -> None:
     zero_idx = badge.index("nasdaq-earnings-calendar 0건")
     ok_idx = badge.index("정상 3개")
     assert failed_idx < zero_idx < ok_idx
-    assert "connection reset" in badge
+    # P1-3 — the reader surface carries a Korean classification label, not
+    # the raw English plumbing string. "connection reset" classifies to the
+    # transient bucket.
+    assert "fred-macro 실패 (일시적 수집 오류)" in badge
+    assert "connection reset" not in badge
 
 
 def test_coverage_badge_does_not_leak_secret_in_failure_reason(
@@ -171,7 +175,11 @@ def test_coverage_badge_does_not_leak_secret_in_failure_reason(
     assert "supersecret-bot-token-xyz" not in badge
     assert "api_key=ABCDEFG" not in badge
     assert "1234567890" not in badge
-    assert "[REDACTED" in badge
+    # P1-3 — the reader line shows a classification label, not the
+    # sanitized reason text (which still routes through the R13 chokepoint
+    # at ``from_failure`` and is preserved on the outcome). This reason has
+    # no status / not-set / transient keyword, so it falls back.
+    assert "yfinance-price 실패 (수집 불가)" in badge
 
 
 @pytest.mark.asyncio
@@ -238,8 +246,9 @@ async def test_generate_briefing_threads_source_outcomes_into_badge(
         source_outcomes=outcomes,
     )
 
-    assert "> **소스별 상태**: fred-macro 실패" in briefing.rendered_markdown
-    assert "schema mismatch" in briefing.rendered_markdown
+    assert "> **소스별 상태**: fred-macro 실패 (수집 불가)" in briefing.rendered_markdown
+    # P1-3 — raw English plumbing string never reaches the reader.
+    assert "schema mismatch" not in briefing.rendered_markdown
     assert "coingecko-price" not in briefing.rendered_markdown
 
 
@@ -313,4 +322,8 @@ async def test_generate_briefing_passes_leak_guard_with_secret_shaped_failure(
 
     assert "1111111111:" not in briefing.rendered_markdown
     assert "api_key=secretkey" not in briefing.rendered_markdown
-    assert "[REDACTED" in briefing.rendered_markdown
+    # P1-3 — the reader line carries a classification label (no status /
+    # not-set / transient keyword survives the redaction → fallback). The
+    # secret-shaped substrings are gone (sanitize at ``from_failure``), and
+    # the leak guard passed (no exception raised above).
+    assert "yfinance-price 실패 (수집 불가)" in briefing.rendered_markdown

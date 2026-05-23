@@ -321,9 +321,7 @@ def _select_llm_candidate_items(
     # high-recall signals. Preserve a bounded number before generic
     # lookahead/news rows spend the candidate budget.
     macro_candidates = [
-        (index, item)
-        for index, item in enumerate(items)
-        if macro_priority(item) in {"P0", "P1"}
+        (index, item) for index, item in enumerate(items) if macro_priority(item) in {"P0", "P1"}
     ]
     if target_date is not None:
         macro_candidates.sort(
@@ -537,14 +535,11 @@ def _parse_classification(
     unassigned_required = required_item_ids & set(result.unassigned)
     if unassigned_required:
         raise ValueError(
-            "Stage 1 placed required macro item id(s) in unassigned: "
-            f"{sorted(unassigned_required)}"
+            f"Stage 1 placed required macro item id(s) in unassigned: {sorted(unassigned_required)}"
         )
     missing_required = required_item_ids - set(result.assignments.keys())
     if missing_required:
-        raise ValueError(
-            "Stage 1 omitted required macro item id(s): " f"{sorted(missing_required)}"
-        )
+        raise ValueError(f"Stage 1 omitted required macro item id(s): {sorted(missing_required)}")
     return result
 
 
@@ -701,9 +696,7 @@ def _render_unassigned(
         return "(none)"
     lines: list[str] = []
     max_items = (
-        _CRYPTO_MAX_STAGE2_UNASSIGNED_ITEMS
-        if segment == "crypto"
-        else _MAX_STAGE2_UNASSIGNED_ITEMS
+        _CRYPTO_MAX_STAGE2_UNASSIGNED_ITEMS if segment == "crypto" else _MAX_STAGE2_UNASSIGNED_ITEMS
     )
     rendered_items = unassigned[:max_items]
     for item in rendered_items:
@@ -1202,14 +1195,66 @@ def _render_coverage_badge(coverage: SegmentCoverage) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
-    """Compose the per-source sanitized status line.
+# P1-3 — reader-facing failure classification.
+#
+# ``failure_reason`` on a ``SourceOutcome`` is the *sanitized* adapter
+# error message (R13-scrubbed via ``sanitize_source_error_message``), but
+# its surface form is raw English plumbing text such as
+# ``source 'cnbc-top-news' failed: status 403 (terminal)`` or
+# ``CONGRESS_API_KEY not set; ... adapter will not run``. Exposing that to
+# readers is the bug. We classify the sanitized reason into a small set of
+# Korean labels for the reader surface; the original sanitized reason is
+# preserved upstream (it still lives on ``outcome.failure_reason`` and any
+# trace/diagnostics consumer that reads the field directly).
+_FAILURE_LABEL_ACCESS_DENIED: Final = "접근 제한"
+_FAILURE_LABEL_TRANSIENT: Final = "일시적 수집 오류"
+_FAILURE_LABEL_UNCONFIGURED: Final = "설정 미완료(미수집)"
+_FAILURE_LABEL_FALLBACK: Final = "수집 불가"
 
-    The composition is deterministic: failed sources first (with their
-    sanitized reason), then zero-item sources, then a concise count of
-    healthy sources. We omit individual healthy source names to keep
-    the line short — the reader-relevant signal is *what went wrong*,
-    not the full healthy adapter list.
+# 4xx that read as access/permission denials (403/401/451/429-as-terminal,
+# 404, 4xx-terminal). 5xx and network/timeout phrases read as transient.
+_RE_HTTP_STATUS: Final = re.compile(r"status\s+(\d{3})")
+_RE_NOT_SET: Final = re.compile(r"\bnot set\b", re.IGNORECASE)
+_RE_TRANSIENT: Final = re.compile(
+    r"\b(timeout|timed out|budget|network error|connection|connect|temporarily)\b",
+    re.IGNORECASE,
+)
+
+
+def _classify_failure_reason(reason: str | None) -> str:
+    """Map a sanitized adapter failure reason to a reader-facing label.
+
+    Deterministic pure function. Order matters: an unconfigured-secret
+    message (``... not set``) is classified before HTTP-status parsing so
+    a stray ``status`` substring cannot mislabel a config gap.
+    """
+    if not reason:
+        return _FAILURE_LABEL_FALLBACK
+    if _RE_NOT_SET.search(reason):
+        return _FAILURE_LABEL_UNCONFIGURED
+    status_match = _RE_HTTP_STATUS.search(reason)
+    if status_match is not None:
+        status = int(status_match.group(1))
+        if 400 <= status < 500:
+            return _FAILURE_LABEL_ACCESS_DENIED
+        if 500 <= status < 600:
+            return _FAILURE_LABEL_TRANSIENT
+    if _RE_TRANSIENT.search(reason):
+        return _FAILURE_LABEL_TRANSIENT
+    return _FAILURE_LABEL_FALLBACK
+
+
+def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
+    """Compose the per-source status line for the reader surface.
+
+    The composition is deterministic: failed sources first (with a
+    Korean failure *category* label, never the raw plumbing string),
+    then zero-item sources, then a concise count of healthy sources. We
+    omit individual healthy source names to keep the line short — the
+    reader-relevant signal is *what went wrong*, not the full healthy
+    adapter list. The raw sanitized reason is preserved on the outcome
+    for any trace/diagnostics consumer; only the reader line is
+    re-labelled (P1-3).
     """
     failed = coverage.failed_source_outcomes
     zero = coverage.zero_source_outcomes
@@ -1218,8 +1263,8 @@ def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
         return ""
     parts: list[str] = []
     for outcome in failed:
-        reason = outcome.failure_reason or "사유 미확인"
-        parts.append(f"{outcome.source_name} 실패 ({reason})")
+        label = _classify_failure_reason(outcome.failure_reason)
+        parts.append(f"{outcome.source_name} 실패 ({label})")
     for outcome in zero:
         parts.append(f"{outcome.source_name} 0건")
     if ok:
