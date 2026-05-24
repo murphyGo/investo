@@ -23,6 +23,7 @@ from pydantic import ValidationError
 from investo.briefing.pipeline import (
     ClassificationResult,
     SectionPlan,
+    _macro_lineage_signals_for_segment,
     _parse_classification,
     _render_grouped_sections,
     _render_required_macro_actuals,
@@ -34,7 +35,7 @@ from investo.briefing.pipeline import (
     parse_six_sections,
     serialize_items_for_prompt,
 )
-from investo.briefing.segments import CRYPTO
+from investo.briefing.segments import CRYPTO, US_EQUITY
 from investo.models import NormalizedItem
 
 # ---------------------------------------------------------------------------
@@ -231,13 +232,65 @@ def test_select_llm_candidate_items_preserves_high_priority_macro_before_cap() -
         },
     )
 
-    selected = _select_llm_candidate_items(
-        [*noisy_items, ppi_item], target_date=date(2026, 5, 13)
-    )
+    selected = _select_llm_candidate_items([*noisy_items, ppi_item], target_date=date(2026, 5, 13))
 
     assert len(selected) == 96
     assert selected[0] == ppi_item
     assert ppi_item in selected
+
+
+def test_macro_lineage_signals_capture_stage_transitions() -> None:
+    ppi_item = NormalizedItem(
+        source_name="fred-economic-calendar",
+        category="calendar",
+        title="2026-05-13 — Producer Price Index",
+        summary="FRED release_id=46 scheduled for 2026-05-13",
+        published_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        scheduled_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        raw_metadata={
+            "release_id": "46",
+            "release_name": "Producer Price Index",
+            "scheduled_date": "2026-05-13",
+        },
+    )
+    crypto_macro = NormalizedItem(
+        source_name="defillama-market-structure",
+        category="macro",
+        title="DeFi TVL rises",
+        summary="Crypto liquidity context",
+        published_at=datetime(2026, 5, 13, 1, 0, tzinfo=UTC),
+        raw_metadata={
+            "macro_event_key": "crypto:defi-tvl:2026-05-13",
+            "macro_event_status": "actual",
+            "macro_priority": "P1",
+        },
+    )
+    classification = ClassificationResult(assignments={1: 4}, unassigned=[])
+    plan = build_section_plan(
+        [ppi_item],
+        classification,
+        date(2026, 5, 13),
+    )
+
+    signals = _macro_lineage_signals_for_segment(
+        all_items=[ppi_item, crypto_macro],
+        llm_items=[ppi_item],
+        classification=classification,
+        plan=plan,
+        segment=US_EQUITY,
+        final_markdown="Producer Price Index — fred-economic-calendar",
+    )
+
+    assert len(signals) == 2
+    assert signals[0].routed_segment == US_EQUITY
+    assert signals[0].selected_stage1_id == 1
+    assert signals[0].stage1_assignment == 4
+    assert signals[0].rendered_in_stage2_grouped_sections is True
+    assert signals[0].rendered_in_lookahead_block is True
+    assert signals[0].final_body_mentions is True
+    assert signals[0].final_body_has_source_link is True
+    assert signals[1].routed_segment == CRYPTO
+    assert signals[1].selected_stage1_id is None
 
 
 def test_select_llm_candidate_items_sorts_macro_priority_by_importance_and_proximity() -> None:

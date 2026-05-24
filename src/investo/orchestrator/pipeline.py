@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import logging
 import os
 import re
@@ -94,6 +95,7 @@ from investo.briefing.forecast_log import (
     append_forecast_entries,
     resolve_forecast_log_path,
 )
+from investo.briefing.lineage import MacroLineageTrace
 from investo.briefing.market_anchor import (
     DEFAULT_HISTORY_WINDOW_DAYS,
     MarketAnchor,
@@ -338,6 +340,9 @@ async def _default_generate_segment_briefing(
     market_anchors: Sequence[MarketAnchor],
     carryover: BriefingCarryover | None,
     bundle_context: BundleContext | None,
+    *,
+    macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
+    macro_lineage_out: list[MacroLineageTrace] | None = None,
 ) -> Briefing:
     """Adapter for u7 segmented generation."""
     # u68 — pass the archive root so the glossary callout can suppress
@@ -360,6 +365,8 @@ async def _default_generate_segment_briefing(
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
         bundle_context=bundle_context,
         archive_root=ARCHIVE_ROOT,
+        macro_lineage_all_items=macro_lineage_all_items,
+        macro_lineage_out=macro_lineage_out,
     )
 
 
@@ -485,6 +492,7 @@ async def _stage_generate_segments(
     dict[MarketSegment, Briefing],
     dict[MarketSegment, BriefingGenerationError],
     BundleContext | None,
+    dict[MarketSegment, tuple[MacroLineageTrace, ...]],
 ]:
     """Generate all u7 market segments in fixed order.
 
@@ -509,6 +517,7 @@ async def _stage_generate_segments(
     routed = segment_items(items)
     briefings: dict[MarketSegment, Briefing] = {}
     failures: dict[MarketSegment, BriefingGenerationError] = {}
+    macro_lineage_by_segment: dict[MarketSegment, tuple[MacroLineageTrace, ...]] = {}
 
     # u57 — compute BundleContext once per run (pre-Stage-2), shared by
     # all three segments. ``now_kst`` is derived from the target_date so
@@ -546,18 +555,37 @@ async def _stage_generate_segments(
             carryover_by_segment.get(segment) if carryover_by_segment is not None else None
         )
         try:
-            briefings[segment] = await runner_callable(
-                target_date,
-                segment_source_items,
-                runner,
-                segment,
-                data_limited,
-                segment_outcomes,
-                recent_context,
-                segment_anchors,
-                segment_carryover,
-                bundle_context,
-            )
+            if generate_segment is None:
+                macro_lineage_out: list[MacroLineageTrace] = []
+                briefings[segment] = await _default_generate_segment_briefing(
+                    target_date,
+                    segment_source_items,
+                    runner,
+                    segment,
+                    data_limited,
+                    segment_outcomes,
+                    recent_context,
+                    segment_anchors,
+                    segment_carryover,
+                    bundle_context,
+                    macro_lineage_all_items=items,
+                    macro_lineage_out=macro_lineage_out,
+                )
+                if macro_lineage_out:
+                    macro_lineage_by_segment[segment] = tuple(macro_lineage_out)
+            else:
+                briefings[segment] = await runner_callable(
+                    target_date,
+                    segment_source_items,
+                    runner,
+                    segment,
+                    data_limited,
+                    segment_outcomes,
+                    recent_context,
+                    segment_anchors,
+                    segment_carryover,
+                    bundle_context,
+                )
         except BriefingGenerationError as exc:
             failures[segment] = exc
             _logger.warning(
@@ -578,7 +606,7 @@ async def _stage_generate_segments(
         len(briefings),
         len(failures),
     )
-    return briefings, failures, bundle_context
+    return briefings, failures, bundle_context, macro_lineage_by_segment
 
 
 def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
@@ -597,6 +625,57 @@ def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
             "cause_type": cause_type,
             "last_stderr": exc.last_stderr,
             "last_stdout": exc.last_stdout,
+        },
+    )
+
+
+def _macro_lineage_trace_path(target_date: date, segment: MarketSegment) -> Path:
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    return ARCHIVE_ROOT / "_meta" / "run_traces" / target_date.isoformat() / f"{segment}.json"
+
+
+def _write_macro_lineage_traces(
+    target_date: date,
+    *,
+    segment: MarketSegment,
+    traces: Sequence[MacroLineageTrace],
+) -> Path:
+    path = _macro_lineage_trace_path(target_date, segment)
+    payload = {
+        "target_date": target_date.isoformat(),
+        "segment": segment,
+        "watched_events": [trace.to_json_dict() for trace in traces],
+    }
+    tmp = path.with_name(f".{path.name}.tmp")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with tmp.open("w", encoding="utf-8") as fp:
+            fp.write(json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n")
+        tmp.replace(path)
+    except OSError as exc:
+        with contextlib.suppress(OSError):
+            tmp.unlink(missing_ok=True)
+        raise PublisherIOError(target_date=target_date, path=path, cause=exc) from exc
+    return path
+
+
+def _log_macro_lineage_trace(segment: MarketSegment, trace: MacroLineageTrace) -> None:
+    _logger.info(
+        "[diagnostics] segment=%s event=%s collected=%s routed=%s stage1=%s stage2=%s "
+        "final=%s diagnosis=%s",
+        segment,
+        trace.event_key,
+        trace.collected,
+        trace.routed_segment == segment,
+        trace.selected_for_stage1 and trace.stage1_state == "assigned",
+        trace.rendered_in_stage2_grouped_sections or trace.rendered_in_lookahead_block,
+        trace.final_body_mentions and trace.final_body_has_source_link,
+        trace.diagnosis,
+        extra={
+            "macro_lineage_segment": segment,
+            "macro_lineage_event_key": trace.event_key,
+            "macro_lineage_diagnosis": trace.diagnosis,
         },
     )
 
@@ -697,6 +776,7 @@ async def _stage_publish_segments(
     git_runner: GitRunner | None = None,
     items: Sequence[NormalizedItem] = (),
     source_outcomes: Sequence[SourceOutcome] = (),
+    macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -792,6 +872,7 @@ async def _stage_publish_segments(
     try:
         index_paths: tuple[Path, ...] = ()
         weekly_paths: tuple[Path, ...] = ()
+        macro_lineage_paths: tuple[Path, ...] = ()
         for segment in published_segments:
             archive_path = await asyncio.to_thread(
                 write_briefing,
@@ -801,6 +882,20 @@ async def _stage_publish_segments(
             )
             archive_paths[segment] = archive_path
             _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
+            if macro_lineage_by_segment is not None:
+                traces = tuple(macro_lineage_by_segment.get(segment, ()))
+                if traces:
+                    lineage_path = _macro_lineage_trace_path(target_date, segment)
+                    snapshots[lineage_path] = _read_existing_bytes(lineage_path)
+                    written_lineage_path = await asyncio.to_thread(
+                        _write_macro_lineage_traces,
+                        target_date,
+                        segment=segment,
+                        traces=traces,
+                    )
+                    macro_lineage_paths = (*macro_lineage_paths, written_lineage_path)
+                    for trace in traces:
+                        _log_macro_lineage_trace(segment, trace)
         if all(not path.is_absolute() for path in archive_paths.values()):
             # Snapshot every page the index/heatmap update may rewrite so a
             # subsequent ``write_briefing`` failure rolls them back too.
@@ -1019,7 +1114,13 @@ async def _stage_publish_segments(
     await asyncio.to_thread(
         commit_and_push,
         commit_message,
-        [*archive_paths.values(), *asset_paths, *index_paths, *weekly_paths],
+        [
+            *archive_paths.values(),
+            *asset_paths,
+            *macro_lineage_paths,
+            *index_paths,
+            *weekly_paths,
+        ],
         runner=git_runner,
         dry_run=dry_run,
     )
@@ -2241,6 +2342,7 @@ async def run_pipeline(
                 segment_briefings,
                 segment_generation_failures,
                 run_bundle_context,
+                macro_lineage_by_segment,
             ) = await _stage_generate_segments(
                 target_date,
                 items,
@@ -2260,6 +2362,7 @@ async def run_pipeline(
         else:
             segment_briefings = None
             run_bundle_context = None
+            macro_lineage_by_segment = {}
             briefing = await _stage_generate(target_date, items, runner=runner, generate=generate)
     except BriefingGenerationError as exc:
         stage_timings["generate"] = time.monotonic() - stage_start
@@ -2414,6 +2517,7 @@ async def run_pipeline(
                 git_runner=git_runner,
                 items=items,
                 source_outcomes=source_outcomes,
+                macro_lineage_by_segment=macro_lineage_by_segment,
             )
         else:
             await _stage_publish(briefing, target_date, git_runner=git_runner)

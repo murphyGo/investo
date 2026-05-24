@@ -3,7 +3,7 @@
 **Date**: 2026-05-23
 **Unit**: u59 macro-actual-priority-and-lineage
 **Stage**: Code Generation
-**Status**: In progress (5/9 full steps complete; PPI schedule identity sub-step complete)
+**Status**: In progress (7/9 full steps complete; PPI schedule identity sub-step complete)
 **Source**: 2026-05-23 user request after the 2026-05-13 U.S. PPI miss analysis and 10-subagent macro design review.
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -437,17 +437,18 @@ Completed slice:
 ### Step 7 - Operator lineage artifact
 
 - [x] Add pure lineage builder under `src/investo/briefing/lineage.py` or adjacent diagnostics module.
-- [ ] Persist per-segment JSON traces from orchestrator/publisher space.
-- [ ] Add compact structured log line for watched events.
+- [x] Persist per-segment JSON traces from orchestrator/publisher space.
+- [x] Add compact structured log line for watched events.
 - [x] Tests: diagnosis enum for source missing, routing drop, candidate cap drop, Stage 2 cap drop, LLM omission, published.
 Implementation notes:
 - The lineage builder should be pure and testable with synthetic `NormalizedItem`, `SourceOutcome`, `ClassificationResult`, rendered prompt metadata, and final markdown.
 - Persistence belongs in orchestrator/publisher space, likely near segmented archive staging, not inside low-level source adapters.
 - Include cap values in the artifact so future cap changes remain diagnosable.
-Partial slice:
+Completed slice:
 - Added `src/investo/briefing/lineage.py` with `MacroLineageSignal`, `MacroLineageTrace`, `build_macro_lineage_traces(...)`, and the seven-diagnosis enum.
 - Added `tests/unit/briefing/test_macro_lineage.py` for diagnosis precedence and primitive-safe trace metadata.
-- Orchestrator persistence and structured logging remain open for the next Step 7 slice.
+- Wired `generate_briefing(..., macro_lineage_out=...)` through default segmented generation and persisted per-segment JSON traces under `archive/_meta/run_traces/{target_date}/{segment}.json`.
+- Added compact `[diagnostics]` structured log lines for watched events and tests for persistence/logging.
 
 ### Step 8 - Macro carryover lifecycle
 

@@ -56,6 +56,11 @@ from investo.briefing.glossary import (
     render_glossary_callout,
 )
 from investo.briefing.leak_guard import scan as leak_guard_scan
+from investo.briefing.lineage import (
+    MacroLineageSignal,
+    MacroLineageTrace,
+    build_macro_lineage_traces,
+)
 from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_line
 from investo.briefing.prompts import (
     CRYPTO_FORBIDDEN_TERMS_NOTE,
@@ -81,8 +86,10 @@ from investo.briefing.segments import (
     SEVERITY_READER_EXPLANATIONS,
     MarketSegment,
     SegmentCoverage,
+    SegmentedItems,
     build_segment_coverage,
     filter_lookahead_items,
+    segment_items,
     segment_source_outcomes,
 )
 from investo.briefing.watchlist import (
@@ -106,6 +113,7 @@ from investo.models.bundle_context import BundleContext
 from investo.models.macro import (
     is_required_macro_actual,
     macro_event_date,
+    macro_event_key,
     macro_priority,
     macro_priority_rank,
     macro_prompt_payload,
@@ -736,6 +744,116 @@ def _render_required_macro_actuals(items: tuple[NormalizedItem, ...]) -> str:
             parts.append(f"url={_truncate_prompt_field(str(item.url), _STAGE2_URL_MAX_CHARS)}")
         lines.append(" | ".join(parts))
     return "\n".join(lines)
+
+
+def _grouped_stage2_rendered_items(
+    plan: SectionPlan,
+    *,
+    segment: MarketSegment | None = None,
+) -> tuple[NormalizedItem, ...]:
+    """Return items that survive the generic Stage 2 grouped-section caps."""
+    rendered: list[NormalizedItem] = []
+    max_total = _CRYPTO_MAX_STAGE2_ITEMS_TOTAL if segment == "crypto" else _MAX_STAGE2_ITEMS_TOTAL
+    max_per_section = (
+        _CRYPTO_MAX_STAGE2_ITEMS_PER_SECTION
+        if segment == "crypto"
+        else _MAX_STAGE2_ITEMS_PER_SECTION
+    )
+    remaining_total = max_total
+    for section_id in (2, 3, 4, 5):
+        items = plan.items_by_section.get(section_id, ())
+        section_limit = min(max_per_section, remaining_total)
+        rendered.extend(items[:section_limit])
+        remaining_total -= min(len(items), section_limit)
+    return tuple(rendered)
+
+
+def _macro_lineage_signals_for_segment(
+    *,
+    all_items: Sequence[NormalizedItem],
+    llm_items: Sequence[NormalizedItem],
+    classification: ClassificationResult,
+    plan: SectionPlan,
+    segment: MarketSegment,
+    final_markdown: str,
+) -> tuple[MacroLineageSignal, ...]:
+    routed = segment_items(all_items)
+    grouped_rendered = _grouped_stage2_rendered_items(plan, segment=segment)
+    lookahead_rendered = filter_lookahead_items(llm_items)
+    signals: list[MacroLineageSignal] = []
+    for item in all_items:
+        if macro_event_key(item) is None:
+            continue
+        routed_segment = _lineage_routed_segment(item, routed, preferred_segment=segment)
+        selected_id = _lineage_item_id(item, llm_items)
+        stage1_assignment = (
+            classification.assignments.get(selected_id) if selected_id is not None else None
+        )
+        signals.append(
+            MacroLineageSignal(
+                item=item,
+                collected=True,
+                routed_segment=routed_segment,
+                selected_stage1_id=selected_id,
+                stage1_assignment=stage1_assignment,
+                rendered_in_stage2_grouped_sections=_lineage_contains_item(item, grouped_rendered)
+                or _lineage_contains_item(item, plan.required_macro_items),
+                rendered_in_lookahead_block=_lineage_contains_item(item, lookahead_rendered),
+                final_body_mentions=_lineage_body_mentions(item, final_markdown),
+                final_body_has_source_link=_lineage_body_has_source_link(item, final_markdown),
+            )
+        )
+    return tuple(signals)
+
+
+def _lineage_routed_segment(
+    item: NormalizedItem,
+    routed: SegmentedItems,
+    *,
+    preferred_segment: MarketSegment,
+) -> MarketSegment | None:
+    all_segments: tuple[MarketSegment, ...] = ("domestic-equity", "us-equity", "crypto")
+    ordered_segments = (
+        preferred_segment,
+        *(segment for segment in all_segments if segment != preferred_segment),
+    )
+    for segment in ordered_segments:
+        if _lineage_contains_item(item, routed.for_segment(segment)):
+            return segment
+    return None
+
+
+def _lineage_item_id(
+    item: NormalizedItem,
+    items: Sequence[NormalizedItem],
+) -> int | None:
+    for idx, candidate in enumerate(items, start=1):
+        if candidate is item or candidate == item:
+            return idx
+    return None
+
+
+def _lineage_contains_item(
+    item: NormalizedItem,
+    items: Sequence[NormalizedItem],
+) -> bool:
+    return _lineage_item_id(item, items) is not None
+
+
+def _lineage_body_mentions(item: NormalizedItem, markdown: str) -> bool:
+    candidates = [
+        macro_event_key(item),
+        item.raw_metadata.get("macro_event_label"),
+        item.raw_metadata.get("release_name"),
+        item.title,
+    ]
+    return any(isinstance(candidate, str) and candidate in markdown for candidate in candidates)
+
+
+def _lineage_body_has_source_link(item: NormalizedItem, markdown: str) -> bool:
+    if item.url is not None and str(item.url) in markdown:
+        return True
+    return item.source_name in markdown
 
 
 def _validate_required_macro_mentions(
@@ -1592,6 +1710,8 @@ async def generate_briefing(
     generation_policy: GenerationPolicy | None = None,
     bundle_context: BundleContext | None = None,
     archive_root: Path | None = None,
+    macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
+    macro_lineage_out: list[MacroLineageTrace] | None = None,
 ) -> Briefing:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
@@ -1725,6 +1845,23 @@ async def generate_briefing(
         market_anchors=market_anchors,
         archive_root=archive_root,
     )
+    if segment is not None and macro_lineage_out is not None:
+        all_lineage_items = (
+            macro_lineage_all_items if macro_lineage_all_items is not None else items
+        )
+        macro_lineage_out.extend(
+            build_macro_lineage_traces(
+                _macro_lineage_signals_for_segment(
+                    all_items=all_lineage_items,
+                    llm_items=llm_items,
+                    classification=classification,
+                    plan=plan,
+                    segment=segment,
+                    final_markdown=enhanced_markdown,
+                ),
+                target_segment=segment,
+            )
+        )
     # u32 Step 3 — append the traceability + signature footer just
     # before the disclaimer. The footer is `<details>`-collapsed so it
     # does not crowd the first viewport but stays one click away for
