@@ -452,7 +452,7 @@ Completed slice:
 
 ### Step 8 - Macro carryover lifecycle
 
-- [ ] Add macro lifecycle model and JSONL persistence.
+- [x] Add macro lifecycle model and JSONL persistence.
 - [ ] Ingest scheduled macro events after collect/routing and before generation.
 - [ ] Confirm actual releases by event key, not substring matching.
 - [ ] Tests: scheduled -> unresolved -> confirmed -> dropped-after-follow-up.
@@ -460,6 +460,10 @@ Implementation notes:
 - Do not reuse ticker watchlist pages for macro lifecycle.
 - Use event ids shaped like `{segment}:{source_name}:{normalized_event_name}:{expected_date}`.
 - Existing carryover parser has macro keywords, but this unit should use structured metadata confirmation instead of substring matching.
+Partial slice:
+- Added `models/macro_lifecycle.py` with `MacroLifecycleEvent` and `MacroLifecycleStatus`.
+- Added `briefing/macro_carryover.py` JSONL load/upsert helpers for `archive/_meta/macro_event_carryover.jsonl`.
+- Added model and persistence tests; orchestrator ingest/transition wire remains open.
 
 ### Step 9 - Documentation and gate
 

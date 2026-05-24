@@ -28,6 +28,7 @@ from investo.models.coverage import (
     sanitize_source_error_message,
 )
 from investo.models.items import Category, NormalizedItem
+from investo.models.macro_lifecycle import MacroLifecycleEvent, MacroLifecycleStatus
 from investo.models.results import (
     FailureContext,
     FailureStage,
@@ -54,6 +55,8 @@ __all__ = [
     "Category",
     "FailureContext",
     "FailureStage",
+    "MacroLifecycleEvent",
+    "MacroLifecycleStatus",
     "MarketSegment",
     "NormalizedItem",
     "PipelineResult",

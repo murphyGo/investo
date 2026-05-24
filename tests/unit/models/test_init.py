@@ -40,6 +40,9 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "CarryoverItem",
         "CarryoverStatus",
         "status_label_kr",
+        # macro_lifecycle.py (u59)
+        "MacroLifecycleEvent",
+        "MacroLifecycleStatus",
     }
 )
 
