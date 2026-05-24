@@ -3,7 +3,7 @@
 **Date**: 2026-05-23
 **Unit**: u59 macro-actual-priority-and-lineage
 **Stage**: Code Generation
-**Status**: In progress (4/9 full steps complete; PPI schedule identity sub-step complete)
+**Status**: In progress (5/9 full steps complete; PPI schedule identity sub-step complete)
 **Source**: 2026-05-23 user request after the 2026-05-13 U.S. PPI miss analysis and 10-subagent macro design review.
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -420,25 +420,34 @@ Result:
 
 ### Step 6 - Macro severity and quality KPI
 
-- [ ] Add macro actual health resolver.
-- [ ] Add reason codes and quality history/operator diagnostic fields.
-- [ ] Ensure no macro claim + missing macro source does not over-penalize a segment.
-- [ ] Tests: macro claim without actual downgrades; no macro claim remains normal.
+- [x] Add macro actual health resolver.
+- [x] Add reason codes and quality history/operator diagnostic fields.
+- [x] Ensure no macro claim + missing macro source does not over-penalize a segment.
+- [x] Tests: macro claim without actual downgrades; no macro claim remains normal.
 Implementation notes:
 - Extend `src/investo/briefing/segments.py` near `SEGMENT_CORE_SOURCES`, `_derive_reason_codes`, and `_resolve_severity`.
 - Keep macro actual sources separate from `SEGMENT_REQUIRED_CATEGORIES`; otherwise all normal days become degraded.
 - Add quality fields append-only in `quality_eval.py` / `quality_history.py`; never rename existing columns.
+Completed slice:
+- Added `SEGMENT_MACRO_ACTUAL_SOURCES`, `MacroActualHealth`, and `resolve_macro_actual_health(...)`.
+- Added macro actual reason codes without adding macro to `SEGMENT_REQUIRED_CATEGORIES`.
+- Added append-only quality-history fields `macro_actual_missing_segments` and `required_macro_omitted`.
+- Verified targeted coverage in `tests/unit/briefing/test_segments.py`, `test_quality_history.py`, and `test_quality_eval.py`.
 
 ### Step 7 - Operator lineage artifact
 
-- [ ] Add pure lineage builder under `src/investo/briefing/lineage.py` or adjacent diagnostics module.
+- [x] Add pure lineage builder under `src/investo/briefing/lineage.py` or adjacent diagnostics module.
 - [ ] Persist per-segment JSON traces from orchestrator/publisher space.
 - [ ] Add compact structured log line for watched events.
-- [ ] Tests: diagnosis enum for source missing, routing drop, candidate cap drop, Stage 2 cap drop, LLM omission, published.
+- [x] Tests: diagnosis enum for source missing, routing drop, candidate cap drop, Stage 2 cap drop, LLM omission, published.
 Implementation notes:
 - The lineage builder should be pure and testable with synthetic `NormalizedItem`, `SourceOutcome`, `ClassificationResult`, rendered prompt metadata, and final markdown.
 - Persistence belongs in orchestrator/publisher space, likely near segmented archive staging, not inside low-level source adapters.
 - Include cap values in the artifact so future cap changes remain diagnosable.
+Partial slice:
+- Added `src/investo/briefing/lineage.py` with `MacroLineageSignal`, `MacroLineageTrace`, `build_macro_lineage_traces(...)`, and the seven-diagnosis enum.
+- Added `tests/unit/briefing/test_macro_lineage.py` for diagnosis precedence and primitive-safe trace metadata.
+- Orchestrator persistence and structured logging remain open for the next Step 7 slice.
 
 ### Step 8 - Macro carryover lifecycle
 

@@ -200,3 +200,24 @@ def test_compute_quality_history_days_parameter_limits_window(tmp_path: Path) ->
 
     assert len(rows) == 7
     assert rows[0].day == date(2026, 5, 24)
+
+
+def test_compute_quality_history_reads_macro_diagnostics(tmp_path: Path) -> None:
+    history = tmp_path / "quality_history.jsonl"
+    payload = {
+        "date": "2026-05-30",
+        "source_liveness": 1.0,
+        "figures_presence": 0.5,
+        "fallback_ratio": 0.25,
+        "published_segments": 3,
+        "total_items": 10,
+        "total_failed_sources": 0,
+        "macro_actual_missing_segments": 1,
+        "required_macro_omitted": 2,
+    }
+    history.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+
+    rows = compute_quality_history(1, history_path=history, today=date(2026, 5, 30))
+
+    assert rows[0].macro_actual_missing_segments == 1
+    assert rows[0].required_macro_omitted == 2

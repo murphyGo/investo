@@ -45,6 +45,28 @@ def test_second_day_appends(tmp_path: Path) -> None:
     assert [row["date"] for row in rows] == ["2026-05-08", "2026-05-09"]
 
 
+def test_macro_diagnostics_persist_as_append_only_fields(tmp_path: Path) -> None:
+    path = tmp_path / "quality_history.jsonl"
+    append_quality_snapshot(
+        date(2026, 5, 9),
+        snapshot=QualitySnapshot(
+            source_liveness=1.0,
+            figures_presence=0.75,
+            fallback_ratio=0.25,
+            published_segments=3,
+            total_items=12,
+            total_failed_sources=0,
+            macro_actual_missing_segments=1,
+            required_macro_omitted=2,
+        ),
+        history_path=path,
+    )
+
+    rows = _read_rows(path)
+    assert rows[0]["macro_actual_missing_segments"] == 1
+    assert rows[0]["required_macro_omitted"] == 2
+
+
 def test_same_day_republish_replaces_existing_row(tmp_path: Path) -> None:
     path = tmp_path / "quality_history.jsonl"
     append_quality_snapshot(date(2026, 5, 8), snapshot=_snapshot(), history_path=path)

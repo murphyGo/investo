@@ -43,6 +43,11 @@ class QualitySnapshot:
     # column (legacy back-compat). Existing JSONL rows without this
     # field are read with ``figures_verified=None``.
     figures_verified: float | None = None
+    # u59 — append-only macro coverage diagnostics. Defaults keep
+    # legacy call sites backward-compatible while making new rows
+    # queryable by operators and future quality dashboards.
+    macro_actual_missing_segments: int = 0
+    required_macro_omitted: int = 0
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -90,6 +95,8 @@ def append_quality_snapshot(
         "published_segments": max(snapshot.published_segments, 0),
         "total_items": max(snapshot.total_items, 0),
         "total_failed_sources": max(snapshot.total_failed_sources, 0),
+        "macro_actual_missing_segments": max(snapshot.macro_actual_missing_segments, 0),
+        "required_macro_omitted": max(snapshot.required_macro_omitted, 0),
     }
     if snapshot.worst_severity is not None:
         row["worst_severity"] = snapshot.worst_severity

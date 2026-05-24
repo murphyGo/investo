@@ -9,6 +9,7 @@ from investo.briefing.segments import (
     DOMESTIC_EQUITY,
     US_EQUITY,
     build_segment_coverage,
+    resolve_macro_actual_health,
     segment_items,
     segment_source_outcomes,
 )
@@ -284,3 +285,53 @@ def test_coverage_failure_reason_does_not_carry_secret_after_filter() -> None:
     failed = coverage.failed_source_outcomes[0]
     assert failed.failure_reason is not None
     assert "api_key=ABCDEFG" not in failed.failure_reason
+
+
+def test_macro_actual_zero_without_macro_claim_stays_informational() -> None:
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [
+            _item("yfinance-price", "S&P 500", category="price"),
+            _item("yahoo-finance-news", "AAPL news", category="news"),
+            _item("fomc-rss", "Fed calendar", category="calendar"),
+        ],
+        source_outcomes=[
+            SourceOutcome.ok("yfinance-price", "price", item_count=1),
+            SourceOutcome.zero("fred-macro", "macro"),
+        ],
+    )
+
+    assert coverage.status == "normal"
+    assert "SOURCE_ZERO" in coverage.reason_codes
+    assert "MACRO_ACTUAL_ZERO" not in coverage.reason_codes
+
+
+def test_macro_actual_zero_with_macro_claim_downgrades_to_limited() -> None:
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [
+            _item("yfinance-price", "S&P 500", category="price"),
+            _item("yahoo-finance-news", "AAPL news", category="news"),
+            _item("fomc-rss", "Fed calendar", category="calendar"),
+        ],
+        source_outcomes=[
+            SourceOutcome.ok("yfinance-price", "price", item_count=1),
+            SourceOutcome.zero("fred-macro", "macro"),
+        ],
+        macro_sensitive_claim_made=True,
+    )
+
+    assert coverage.status == "limited"
+    assert "MACRO_ACTUAL_ZERO" in coverage.reason_codes
+
+
+def test_macro_actual_health_missing_when_claim_has_no_actual_source() -> None:
+    health = resolve_macro_actual_health(
+        US_EQUITY,
+        [],
+        [],
+        macro_sensitive_claim_made=True,
+    )
+
+    assert health.status == "missing"
+    assert health.reason_code == "MACRO_ACTUAL_MISSING"

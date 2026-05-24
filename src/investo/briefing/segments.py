@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Final, Literal
 
 from investo.models import Category, NormalizedItem, SourceOutcome
+from investo.models.macro import is_required_macro_actual, macro_event_status
 from investo.models.segments import MarketSegment
 
 # u54 — 4-tier severity enum. ``limited`` is inserted between
@@ -46,6 +47,12 @@ CoverageReasonCode = Literal[
     "CORE_ZERO",
     "CORE_STALE",
     "ALL_FAILED",
+    "MACRO_ACTUAL_MISSING",
+    "MACRO_ACTUAL_ZERO",
+    "MACRO_ACTUAL_FAILED",
+    "MACRO_ACTUAL_STALE",
+    "MACRO_REQUIRED_OMITTED",
+    "MACRO_FORECAST_UNVERIFIED",
 ]
 COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "ZERO_ITEMS": "수집 항목 0건",
@@ -62,6 +69,12 @@ COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "CORE_ZERO": "핵심 가격 소스 0건",
     "CORE_STALE": "핵심 가격 소스 데이터가 stale",
     "ALL_FAILED": "모든 소스 실패",
+    "MACRO_ACTUAL_MISSING": "거시 실제치 미확보",
+    "MACRO_ACTUAL_ZERO": "거시 실제치 소스 0건",
+    "MACRO_ACTUAL_FAILED": "거시 실제치 소스 실패",
+    "MACRO_ACTUAL_STALE": "거시 실제치 stale",
+    "MACRO_REQUIRED_OMITTED": "필수 거시 지표 본문 누락",
+    "MACRO_FORECAST_UNVERIFIED": "거시 예상치 미검증",
 }
 
 # u43 — registry of lookahead-aware adapters. Only adapters listed here
@@ -122,6 +135,11 @@ SEGMENT_CORE_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     DOMESTIC_EQUITY: frozenset({"fsc-krx-index-price"}),
     US_EQUITY: frozenset({"yfinance-price", "stooq-price"}),
     CRYPTO: frozenset({"coingecko-price", "stooq-price"}),
+}
+SEGMENT_MACRO_ACTUAL_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
+    DOMESTIC_EQUITY: frozenset({"krx-foreign-flows"}),
+    US_EQUITY: frozenset({"fred-macro", "treasury-rates"}),
+    CRYPTO: frozenset({"defillama-market-structure", "treasury-rates"}),
 }
 
 # u54 — Per-segment staleness window for core price sources. If a core
@@ -338,6 +356,7 @@ class SegmentedItems:
         source_outcomes: Sequence[SourceOutcome] = (),
         body_used_count: int = 0,
         now_utc: datetime | None = None,
+        macro_sensitive_claim_made: bool = False,
     ) -> SegmentCoverage:
         return build_segment_coverage(
             segment,
@@ -345,6 +364,7 @@ class SegmentedItems:
             source_outcomes=segment_source_outcomes(segment, source_outcomes),
             body_used_count=body_used_count,
             now_utc=now_utc,
+            macro_sensitive_claim_made=macro_sensitive_claim_made,
         )
 
 
@@ -428,6 +448,32 @@ class SegmentCoverage:
             counts[outcome.tier] += 1
         parts = [f"{label}={count}" for label, count in counts.items() if count]
         return " / ".join(parts)
+
+
+MacroActualHealthStatus = Literal["not_required", "ok", "missing", "zero", "failed", "stale"]
+
+
+@dataclass(frozen=True, slots=True)
+class MacroActualHealth:
+    """Segment-scoped macro actual health.
+
+    The resolver is intentionally separate from core price/news
+    coverage: missing macro actuals become severity input only when the
+    segment made a macro-sensitive claim or carried an explicit
+    required macro actual.
+    """
+
+    status: MacroActualHealthStatus
+    reason_code: CoverageReasonCode | None = None
+
+    @property
+    def affects_severity(self) -> bool:
+        return self.reason_code in {
+            "MACRO_ACTUAL_MISSING",
+            "MACRO_ACTUAL_ZERO",
+            "MACRO_ACTUAL_FAILED",
+            "MACRO_ACTUAL_STALE",
+        }
 
 
 def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
@@ -549,6 +595,7 @@ def build_segment_coverage(
     source_outcomes: Sequence[SourceOutcome] = (),
     body_used_count: int = 0,
     now_utc: datetime | None = None,
+    macro_sensitive_claim_made: bool = False,
 ) -> SegmentCoverage:
     """Build coverage for a routed segment.
 
@@ -607,7 +654,19 @@ def build_segment_coverage(
     all_core_failed = has_core_registered and failed_core_count == len(core_outcomes)
     all_core_bad = has_core_registered and ok_core_count == 0  # failed or zero or stale
     core_stale = _core_staleness_violated(segment, core_outcomes, now_utc=now_utc)
-    news_zero_or_missing = "news" in missing_categories or zero_count > 0
+    macro_actual_health = resolve_macro_actual_health(
+        segment,
+        items,
+        outcomes_tuple,
+        macro_sensitive_claim_made=macro_sensitive_claim_made,
+    )
+    macro_actual_sources = SEGMENT_MACRO_ACTUAL_SOURCES.get(segment, frozenset())
+    non_macro_zero_count = sum(
+        1
+        for outcome in outcomes_tuple
+        if outcome.status == "zero" and outcome.source_name not in macro_actual_sources
+    )
+    news_zero_or_missing = "news" in missing_categories or non_macro_zero_count > 0
 
     status = _resolve_severity(
         segment=segment,
@@ -618,6 +677,7 @@ def build_segment_coverage(
         all_core_bad=all_core_bad,
         zero_core_count=zero_core_count,
         core_stale=core_stale,
+        macro_actual_health=macro_actual_health,
         missing_categories=missing_categories,
         news_zero_or_missing=news_zero_or_missing,
         outcomes=outcomes_tuple,
@@ -640,6 +700,7 @@ def build_segment_coverage(
             failed_core_count=failed_core_count,
             zero_core_count=zero_core_count,
             core_stale=core_stale,
+            macro_actual_health=macro_actual_health,
         ),
         source_outcomes=outcomes_tuple,
         targeted_count=targeted_count,
@@ -660,6 +721,7 @@ def _resolve_severity(
     all_core_bad: bool,
     zero_core_count: int,
     core_stale: bool,
+    macro_actual_health: MacroActualHealth,
     missing_categories: tuple[Category, ...],
     news_zero_or_missing: bool,
     outcomes: tuple[SourceOutcome, ...],
@@ -709,6 +771,11 @@ def _resolve_severity(
     # Staleness override: any core stale → ≥ limited.
     if core_stale:
         return "limited"
+    # Macro actuals are a separate coverage axis from price/news core
+    # data. They downgrade only after the resolver has established that
+    # this segment actually needed macro actual support.
+    if macro_actual_health.affects_severity:
+        return "limited"
     # Row 4 / Row 5: news category missing or some source flaked, but
     # core healthy → partial.
     if missing_categories or news_zero_or_missing:
@@ -753,6 +820,43 @@ def _core_staleness_violated(
 def core_staleness_window(segment: MarketSegment) -> timedelta:
     """Public accessor for the per-segment core staleness window."""
     return SEGMENT_CORE_STALENESS_WINDOW[segment]
+
+
+def resolve_macro_actual_health(
+    segment: MarketSegment,
+    items: Sequence[NormalizedItem],
+    source_outcomes: Sequence[SourceOutcome],
+    *,
+    macro_sensitive_claim_made: bool = False,
+) -> MacroActualHealth:
+    """Resolve macro actual health without making macro a core category.
+
+    Missing/zero/failed macro actual sources are informational on normal
+    days. They affect severity only when a required macro actual is
+    present/stale or downstream analysis explicitly says the body made
+    a macro-sensitive claim.
+    """
+    required_items = tuple(item for item in items if is_required_macro_actual(item))
+    stale_required = any(macro_event_status(item) == "stale" for item in required_items)
+    needs_macro_actual = macro_sensitive_claim_made or bool(required_items)
+    if not needs_macro_actual:
+        return MacroActualHealth("not_required")
+    if stale_required:
+        return MacroActualHealth("stale", "MACRO_ACTUAL_STALE")
+    if any(macro_event_status(item) == "actual" for item in required_items):
+        return MacroActualHealth("ok")
+
+    macro_sources = SEGMENT_MACRO_ACTUAL_SOURCES.get(segment, frozenset())
+    macro_outcomes = tuple(
+        outcome for outcome in source_outcomes if outcome.source_name in macro_sources
+    )
+    if any(outcome.status == "failed" for outcome in macro_outcomes):
+        return MacroActualHealth("failed", "MACRO_ACTUAL_FAILED")
+    if macro_outcomes and all(outcome.status == "zero" for outcome in macro_outcomes):
+        return MacroActualHealth("zero", "MACRO_ACTUAL_ZERO")
+    if any(outcome.status == "ok" for outcome in macro_outcomes):
+        return MacroActualHealth("ok")
+    return MacroActualHealth("missing", "MACRO_ACTUAL_MISSING")
 
 
 def filter_lookahead_items(
@@ -800,7 +904,9 @@ def _derive_reason_codes(
     failed_core_count: int = 0,
     zero_core_count: int = 0,
     core_stale: bool = False,
+    macro_actual_health: MacroActualHealth | None = None,
 ) -> tuple[CoverageReasonCode, ...]:
+    macro_health = macro_actual_health or MacroActualHealth("not_required")
     codes: list[CoverageReasonCode] = []
     if not items:
         codes.append("ZERO_ITEMS")
@@ -821,6 +927,8 @@ def _derive_reason_codes(
         codes.append("CORE_ZERO")
     if core_stale:
         codes.append("CORE_STALE")
+    if macro_health.reason_code is not None:
+        codes.append(macro_health.reason_code)
     if _lookahead_data_missing(segment, items, source_outcomes):
         codes.append("LOOKAHEAD_DATA_MISSING")
     return tuple(codes)
@@ -939,18 +1047,22 @@ __all__ = [
     "SEGMENT_CORE_SOURCES",
     "SEGMENT_CORE_STALENESS_WINDOW",
     "SEGMENT_LABELS",
+    "SEGMENT_MACRO_ACTUAL_SOURCES",
     "SEGMENT_REQUIRED_CATEGORIES",
     "SEGMENT_THRESHOLDS",
     "SEVERITY_READER_EXPLANATIONS",
     "US_EQUITY",
     "CoverageReasonCode",
     "CoverageStatus",
+    "MacroActualHealth",
+    "MacroActualHealthStatus",
     "MarketSegment",
     "SegmentCoverage",
     "SegmentedItems",
     "build_segment_coverage",
     "core_staleness_window",
     "filter_lookahead_items",
+    "resolve_macro_actual_health",
     "segment_items",
     "segment_source_outcomes",
 ]

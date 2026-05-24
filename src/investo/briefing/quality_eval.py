@@ -152,6 +152,11 @@ class QualityHistoryRow:
     # series so a downward trend on ``figures_presence`` vs upward on
     # ``figures_verified`` (or vice versa) reads as a meaningful signal.
     figures_verified: float | None = None
+    # u59 — optional macro coverage diagnostics. Legacy rows leave
+    # these unset; new quality-history rows can expose macro actual
+    # availability without changing the public KPI meanings.
+    macro_actual_missing_segments: int | None = None
+    required_macro_omitted: int | None = None
 
     @property
     def has_data(self) -> bool:
@@ -502,6 +507,8 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
         total_failed_sources=_optional_int(payload.get("total_failed_sources")),
         worst_severity=worst_severity,
         figures_verified=_optional_rate(payload.get("figures_verified")),
+        macro_actual_missing_segments=_optional_int(payload.get("macro_actual_missing_segments")),
+        required_macro_omitted=_optional_int(payload.get("required_macro_omitted")),
     )
 
 
