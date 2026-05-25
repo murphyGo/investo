@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-25 begin -->
+
+## 2026-05-25
+
+- [coingecko-price] **ticker**: ETH $2,106.32 (+0.68%)
+- [defillama-market-structure] **ticker**: DeFi TVL $82.5B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,106.97
+- [theblock-crypto] **ticker**: Facet co-founder pitches EIP-8182 private transfers for inclusion in Ethereum’s Hegota upgrade
+
+<!-- u33 entry 2026-05-25 end -->
 <!-- u33 entry 2026-05-22 begin -->
 
 ## 2026-05-22

@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-25 begin -->
+
+## 2026-05-25
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,651,102,922,769; BTC dominance 58.25%
+- [coingecko-price] **ticker**: BTC $77,189.00 (+0.44%)
+- [defillama-market-structure] **ticker**: DeFi TVL $82.5B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $449,878,900 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000806742224219 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 77,221.03
+- [theblock-crypto] **ticker**: Satoshi-era bitcoin whale moves over $200 million in BTC to FalconX, Cumberland: Onchain Lens
+- [theblock-crypto] **ticker**: ‘Institutional bid hasn’t disappeared’: Analysts say bitcoin cooldown, spot ETF outflows signal rotation, not exit
+
+<!-- u33 entry 2026-05-25 end -->
 <!-- u33 entry 2026-05-22 begin -->
 
 ## 2026-05-22
