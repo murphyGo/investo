@@ -6,11 +6,15 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-22
 
-- [defillama-market-structure] **ticker**: DeFi TVL $80.9B; leader Ethereum
-- [stooq-price] **ticker**: BTC-USD 75,580.19
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,639,110,589,908; BTC dominance 58.23%
+- [defillama-market-structure] **ticker**: DeFi TVL $82.0B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $449,211,180 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000426715278565 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 76,843.08
 - [theblock-crypto] **ticker**: New strategic bitcoin reserve bill drops 1 million BTC purchase target, adds 20-year lockup period
 
 <!-- u33 entry 2026-05-22 end -->
+
 <!-- u33 entry 2026-05-21 begin -->
 
 ## 2026-05-21

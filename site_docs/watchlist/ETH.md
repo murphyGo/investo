@@ -6,12 +6,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-22
 
-- [defillama-market-structure] **ticker**: DeFi TVL $80.9B; leader Ethereum
-- [stooq-price] **ticker**: ETH-USD 2,069.30
-- [theblock-crypto] **ticker**: Ethereum Layer 2 Zero Network to wind down, joining string of protocols shuttering operations
+- [defillama-market-structure] **ticker**: DeFi TVL $82.0B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,092.72
 - [theblock-crypto] **ticker**: Verus bridge exploiter returns 4,052 ETH, retains $2.8 million bounty: onchain analyst
 
 <!-- u33 entry 2026-05-22 end -->
+
 <!-- u33 entry 2026-05-20 begin -->
 
 ## 2026-05-20
