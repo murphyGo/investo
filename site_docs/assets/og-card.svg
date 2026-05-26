@@ -1,17 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-05-25 시황 OG 카드">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-05-26 시황 OG 카드">
 <style>.og-bg{fill:#f7f5ef;}.og-frame{fill:#ffffff;stroke:#253238;}.og-title{fill:#1d2b2f;}.og-subtitle{fill:#617176;}.og-label{fill:#476169;}.og-text{fill:#1d2b2f;}.og-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.og-bg{fill:#0f1417;}.og-frame{fill:#1a2026;stroke:#9fb1ba;}.og-title{fill:#f4f6f8;}.og-subtitle{fill:#bfcdd4;}.og-label{fill:#a8c0c8;}.og-text{fill:#e8eef1;}.og-disclaimer{fill:#e2c489;}}</style>
 <rect class="og-bg" width="1200" height="630"/>
 <rect class="og-frame" x="40" y="40" width="1120" height="550" rx="12" stroke-width="3"/>
 <text class="og-title" x="80" y="138" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="56" font-weight="700">Investo · 오늘의 시황</text>
-<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-05-25</text>
+<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-05-26</text>
 <text class="og-label" x="80" y="230" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">국내 증시</text>
-<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 5월 22일(금) 코스피(KOSPI)는 7,847.71로 마감했다.</text>
-<text class="og-text" x="80" y="308" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">[데이터부족]</text>
+<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">결론 인용을 추출하지 못했습니다.</text>
 <text class="og-label" x="80" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">미국 증시</text>
-<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 5월 22일(금) 미국 증시는 이란 평화 협상 기대감과 빅테크 기술주</text>
-<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">강세에 힘입어 3대 지수 모두 상승 마감했다. [데이터부족]</text>
+<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 5월 26일(화), 미국 증시는 미-이란 평화 협상 진전 기대감에</text>
+<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">S&amp;P 500이 **+0.61%** 상승하며 사상 최고치를 경신했고,</text>
 <text class="og-label" x="80" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">크립토</text>
-<text class="og-text" x="80" y="532" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 5월 25일 UTC 24h 스냅샷 기준, BTC는 **+0.44%**</text>
-<text class="og-text" x="80" y="568" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">반등해 **$77,189** 수준을 유지했으며 ETH도 **+0.68%**</text>
+<text class="og-text" x="80" y="532" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">UTC 24h 기준(2026-05-26 스냅샷) BTC는 **-1.84%**</text>
+<text class="og-text" x="80" y="568" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">하락한 **$75,772.00**, ETH(이더리움)는 **-1.69%**</text>
 <text class="og-disclaimer" x="80" y="570" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">투자 자문이 아닙니다 · investo (MIT)</text>
 </svg>
