@@ -25,13 +25,13 @@ half-rewritten index page on disk.
 
 from __future__ import annotations
 
-import os
 import re
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal._io import write_atomic
 from investo.briefing.extract import extract_conclusion as _extract_conclusion_chokepoint
 from investo.briefing.segments import (
     CRYPTO,
@@ -654,10 +654,7 @@ def _escape_inline(text: str) -> str:
 
 
 def _write_text_atomic(path: Path, content: str) -> None:
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path.write_text(content, encoding="utf-8")
-    os.replace(tmp_path, path)
+    write_atomic(path, content)
 
 
 __all__ = [

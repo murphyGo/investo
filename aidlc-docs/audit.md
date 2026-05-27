@@ -1,5 +1,16 @@
 # AI-DLC Audit Log
 
+## Construction — u78 filesystem-write-and-archive-layout-primitives Complete (Wave 14, Phase 1)
+**Timestamp**: 2026-05-28T13:40:00+09:00
+**Trigger**: u78 Code Generation landed (developer) — behavior-preserving IO/path primitive extraction; full gate green.
+**Decision**: Ratify and close u78 (4/4). New `_internal/_io.py` (split API `write_atomic(text)`/`write_atomic_bytes(data)` — NOT a `str|bytes` union, per review §9.4/ISP; docstring states same-filesystem-only + no-fsync leak boundaries) consumed by all 8 atomic-write sites incl. the originally-omitted `visuals/og_card.py:141`+`:142`. New `_internal/archive_layout.py::ArchiveLayout` (shape derivation, root injected) — both `publisher/paths.py` and `visuals/paths.py` delegate; this **dissolved the top-level `visuals → publisher` import edge**. New enforced module-boundary test (`tests/unit/_internal/test_module_boundary.py`) asserts zero top-level sibling edges across publisher⇄visuals.
+**Pragmatic seam decision (ratified)**: the *mutable* `ARCHIVE_ROOT` binding stays in `publisher.paths` (the orchestrator reads it call-time + ~30 tests monkeypatch `investo.publisher.paths.ARCHIVE_ROOT`); visuals reads the live root via a lazy in-function import (not a top-level edge). Full seam relocation to `_internal` deferred → **TECH-DEBT (depends on u84)**.
+**Behavior preservation**: all pre-existing publisher/visuals tests pass unchanged except ONE mechanical edit (`test_writer.py` `os.replace` patch target moved to `investo._internal._io` since the symbol moved — allowed by contract). Gate: ruff clean, mypy --strict 151 files, pytest **2720 passed** (+24), mkdocs --strict ok.
+**TECH-DEBT candidates surfaced (not yet registered)**: (1) ARCHIVE_ROOT seam relocation (post-u84); (2) pervasive `→ briefing` adapter edges (publisher/notifier/sources/visuals import briefing for shared vocabulary — full zero-sibling-edge invariant needs that vocabulary moved to models/_internal); (3) pre-existing `ruff format` drift in `briefing/summary_quality.py` + `tests/unit/visuals/test_assets.py` (present at HEAD, unrelated).
+**Status**: u78 complete (4/4). FD+NFR SKIP confirmed. Next: u79 (shared text primitives, Phase 1).
+
+---
+
 ## Construction — u77 source-adapter-shared-helpers Complete (Wave 14, Phase 1)
 **Timestamp**: 2026-05-28T13:00:00+09:00
 **Trigger**: u77 Code Generation landed (developer) — behavior-preserving `sources/`-internal helper extraction; full gate green.

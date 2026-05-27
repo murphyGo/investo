@@ -7,17 +7,26 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal.archive_layout import ArchiveLayout
 from investo.briefing.segments import MarketSegment
-from investo.publisher.paths import archive_path
 
 _SAFE_ASSET_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 _ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".svg", ".png", ".jpg", ".jpeg"})
 
 
 def visual_asset_dir(target_date: date, segment: MarketSegment) -> Path:
-    """Return the markdown-adjacent asset directory for a segmented briefing."""
-    markdown_path = archive_path(target_date, segment=segment)
-    return markdown_path.with_suffix(".assets")
+    """Return the markdown-adjacent asset directory for a segmented briefing.
+
+    The path *shape* is single-homed in :class:`ArchiveLayout`; the root
+    binding is read from ``publisher.paths.ARCHIVE_ROOT`` at call time so
+    a monkeypatched root flows through (the orchestrator/visuals test
+    contract). Relocating that seam to ``_internal`` to fully dissolve
+    the ``visuals → publisher`` edge requires the orchestrator-side
+    ARCHIVE_ROOT rework owned by u84 — tracked as deferred TECH-DEBT.
+    """
+    import investo.publisher.paths as _pp
+
+    return ArchiveLayout(_pp.ARCHIVE_ROOT).asset_dir(target_date, segment)
 
 
 def visual_asset_path(

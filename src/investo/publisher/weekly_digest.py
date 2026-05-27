@@ -30,6 +30,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Final
 
+from investo._internal._io import write_atomic
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.extract import extract_conclusion
 from investo.briefing.segments import (
@@ -233,10 +234,7 @@ def _extract_conclusion(rendered_markdown: str) -> str:
 
 
 def _write_text_atomic(path: Path, content: str) -> None:
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path.write_text(content, encoding="utf-8")
-    os.replace(tmp_path, path)
+    write_atomic(path, content)
 
 
 __all__ = [

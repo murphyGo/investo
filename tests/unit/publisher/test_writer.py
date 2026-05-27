@@ -173,7 +173,7 @@ def test_write_briefing_atomicity_when_replace_fails(
     def boom(src: object, dst: object) -> None:
         raise OSError("synthetic replace failure")
 
-    monkeypatch.setattr("investo.publisher.writer.os.replace", boom)
+    monkeypatch.setattr("investo._internal._io.os.replace", boom)
 
     with pytest.raises(PublisherIOError) as exc:
         write_briefing(briefing, _TARGET_DATE)
@@ -206,7 +206,7 @@ def test_write_briefing_atomicity_does_not_leave_destination_corrupted(
     def boom(src: object, dst: object) -> None:
         raise OSError("synthetic replace failure")
 
-    monkeypatch.setattr("investo.publisher.writer.os.replace", boom)
+    monkeypatch.setattr("investo._internal._io.os.replace", boom)
 
     with pytest.raises(PublisherIOError):
         write_briefing(second, _TARGET_DATE)

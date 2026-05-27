@@ -37,7 +37,6 @@ Pins
 from __future__ import annotations
 
 import json
-import os
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -46,6 +45,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Final
 
+from investo._internal._io import write_atomic_bytes
 from investo.briefing.market_anchor import MarketAnchor, OHLCRow, anchor_label
 
 # Fixed sidecar schema version. Bump only on a breaking shape change; the
@@ -215,10 +215,7 @@ def write_chart_sidecar(sidecar: ChartSidecar, markdown_path: Path) -> Path:
     inputs, so a same-day re-run overwrites with byte-equal content.
     """
     target = markdown_path.parent / sidecar.relative_path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = target.with_suffix(target.suffix + ".tmp")
-    tmp_path.write_bytes(sidecar.to_json_bytes())
-    os.replace(tmp_path, target)
+    write_atomic_bytes(target, sidecar.to_json_bytes())
     return target
 
 

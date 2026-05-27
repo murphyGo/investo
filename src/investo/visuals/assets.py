@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import re
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -11,6 +10,8 @@ from typing import Final, Literal
 
 from defusedxml.ElementTree import ParseError, fromstring
 
+from investo._internal._io import write_atomic, write_atomic_bytes
+from investo._internal.archive_layout import ArchiveLayout
 from investo.briefing.extract import (
     extract_caution,
     extract_conclusion,
@@ -20,7 +21,6 @@ from investo.briefing.segments import MarketSegment, SegmentCoverage
 from investo.briefing.summary_quality import CONCLUSION_PREFIX
 from investo.briefing.watchlist import WatchlistImpact
 from investo.models import Briefing, NormalizedItem
-from investo.publisher.paths import archive_path
 from investo.visuals.cards import (
     DataConfidenceCardInput,
     MarketSnapshotCardInput,
@@ -122,7 +122,9 @@ def prepare_segment_visual_assets(
     watchlist_impact: WatchlistImpact,
 ) -> PreparedVisualAssets:
     """Generate SVG cards, write provenance manifests, and lay out markdown."""
-    markdown_path = archive_path(target_date, segment=segment)
+    import investo.publisher.paths as _pp
+
+    markdown_path = ArchiveLayout(_pp.ARCHIVE_ROOT).briefing_path(target_date, segment)
     cards: list[_RenderableCard] = [
         build_data_confidence_card(target_date, coverage),
         _build_market_snapshot_card(
@@ -644,11 +646,8 @@ def _is_jpeg_bytes(content: bytes) -> bool:
 
 
 def _write_svg(path: Path, content: str) -> None:
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path.write_text(content, encoding="utf-8")
-        os.replace(tmp_path, path)
+        write_atomic(path, content)
     except OSError as exc:
         raise VisualAssetError(f"failed to write visual asset: {path}") from exc
 
@@ -658,11 +657,8 @@ def _write_png(path: Path, content: bytes) -> None:
 
 
 def _write_binary(path: Path, content: bytes) -> None:
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path.write_bytes(content)
-        os.replace(tmp_path, path)
+        write_atomic_bytes(path, content)
     except OSError as exc:
         raise VisualAssetError(f"failed to write visual asset: {path}") from exc
 

@@ -24,12 +24,12 @@ Project rules:
 from __future__ import annotations
 
 import html
-import os
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Final
 
+from investo._internal._io import write_atomic, write_atomic_bytes
 from investo.briefing.extract import extract_conclusion
 from investo.briefing.segments import (
     CRYPTO,
@@ -134,12 +134,15 @@ def write_og_card(
     card = build_og_card_input(target_date, segment_briefings)
     svg = render_og_card_svg(card)
     svg_bytes = svg.encode("utf-8")
-    png_tmp = png_target.with_suffix(png_target.suffix + ".tmp")
-    svg_tmp = target.with_suffix(target.suffix + ".tmp")
+    # cairosvg renders to a real path, so emit the PNG to a tmp sibling
+    # first, then publish both assets atomically via the shared helper —
+    # no bare ``os.replace`` write pattern remains in this module.
+    png_tmp = png_target.with_suffix(png_target.suffix + ".render.tmp")
     render_og_card_png(svg_bytes, output_path=png_tmp)
-    _write_text_atomic(svg_tmp, svg)
-    os.replace(svg_tmp, target)
-    os.replace(png_tmp, png_target)
+    png_bytes = png_tmp.read_bytes()
+    png_tmp.unlink(missing_ok=True)
+    write_atomic(target, svg)
+    write_atomic_bytes(png_target, png_bytes)
     written = (target, png_target)
     _write_og_card_manifests(svg_path=target, png_path=png_target)
     return (*written, manifest_path_for(target), manifest_path_for(png_target))
@@ -217,11 +220,6 @@ def _wrap(text: str, *, max_chars: int, max_lines: int) -> tuple[str, ...]:
     if len(lines) > max_lines:
         lines = lines[:max_lines]
     return tuple(lines)
-
-
-def _write_text_atomic(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
 
 
 def _write_og_card_manifests(*, svg_path: Path, png_path: Path) -> None:

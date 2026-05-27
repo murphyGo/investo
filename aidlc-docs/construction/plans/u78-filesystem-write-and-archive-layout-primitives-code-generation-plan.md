@@ -64,25 +64,26 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — `write_atomic` helper `[ ]`
+### Step 1 — `write_atomic` helper `[x]`
 > **Use a SPLIT API, not a `str | bytes` union (review 2026-05-28, guide §9.4 minimize-leak-surface / §3 ISP).** A single `write_atomic(path, str | bytes)` leaks encoding ambiguity (caller must hold the unstated "str ⇒ utf-8, bytes ⇒ verbatim" contract) and widens the union at every call site under mypy --strict. Provide two honest signatures instead.
-- [ ] Create `write_atomic(path, text: str)` (utf-8) and `write_atomic_bytes(path, data: bytes)`. Home per the module-boundary note (default `_internal/_io.py` — see corrected note below). Behavior: `path.parent.mkdir(parents=True, exist_ok=True)`, write to `path` + `.tmp` sibling, `os.replace(tmp, path)`. Docstring MUST state the leak boundaries it cannot hide: atomic only within a single filesystem (cross-device `os.replace` raises `OSError`); no `fsync` durability guarantee.
-- [ ] Migrate all 8 sites: `writer.py`, `site_index.py::_write_text_atomic`, `weekly_digest.py`, `chart_sidecar.py` (bytes), `visuals/assets.py:651`+`:665`, and `visuals/og_card.py:141`+`:142`. Where a module had a named wrapper (`_write_text_atomic`), keep the name as a thin delegate if other code/tests reference it.
-- **Acceptance**: existing publisher/visuals tests pass unchanged; a new test pins atomicity (tmp removed, final file present) for both the str and bytes APIs; AC-78.1 requires zero remaining local `os.replace` write patterns in the 6 files.
+- [x] Create `write_atomic(path, text: str)` (utf-8) and `write_atomic_bytes(path, data: bytes)`. **Home: `_internal/_io.py`** (cross-cutting IO primitive, no publisher-domain content). Behavior: `path.parent.mkdir(parents=True, exist_ok=True)`, write to `path` + `.tmp` sibling, `os.replace(tmp, path)`. Docstring states the leak boundaries: atomic only within a single filesystem (cross-device `os.replace` raises `OSError`); no `fsync` durability guarantee.
+- [x] Migrated all 8 sites: `writer.py`, `site_index.py::_write_text_atomic`, `weekly_digest.py`, `chart_sidecar.py` (bytes), `visuals/assets.py:651`+`:665`, and `visuals/og_card.py:141`+`:142`. `_write_text_atomic` kept as thin delegates in site_index/weekly_digest; og_card's misnamed direct-write helper removed (now uses `write_atomic` + `write_atomic_bytes`; PNG rendered to a `.render.tmp` then published via `write_atomic_bytes`). The one mechanical test edit: `test_writer.py` `os.replace` patch target moved `investo.publisher.writer.os.replace` → `investo._internal._io.os.replace` (symbol moved).
+- **Acceptance**: existing publisher/visuals tests pass unchanged; new `tests/unit/_internal/test_io.py` pins atomicity (tmp removed, final present, failed-replace keeps prior) for both str and bytes; zero executable `os.replace` write patterns remain in the 6 files (only docstring mentions).
 
-### Step 2 — `ArchiveLayout` source of truth `[ ]`
-- [ ] Extract the `archive/{segment}/YYYY/MM/YYYY-MM-DD.md` derivation into `ArchiveLayout` (`briefing_path(target_date, segment)`, `asset_dir(target_date, segment)`).
-- [ ] `publisher/paths.py::archive_path` and `visuals/paths.py::visual_asset_dir` delegate to it; segment=None (combined) and per-segment cases both covered.
-- **Acceptance**: existing path tests pass unchanged; new tests assert identical paths to the pre-refactor outputs for segment=None and each segment.
+### Step 2 — `ArchiveLayout` source of truth `[x]`
+- [x] Extracted the `archive/{segment}/YYYY/MM/YYYY-MM-DD.md` derivation into `ArchiveLayout` (`briefing_path(target_date, segment)`, `asset_dir(target_date, segment)`) in `_internal/archive_layout.py`. Root is **injected** (the class owns the *shape*, not the mutable seam).
+- [x] `publisher/paths.py::archive_path` delegates via `ArchiveLayout(ARCHIVE_ROOT)`; `visuals/paths.py::visual_asset_dir` and `visuals/assets.py` delegate to `ArchiveLayout(...)`. segment=None (combined) and per-segment cases covered.
+- **Home decision (recorded):** `ArchiveLayout` is homed in `_internal/` per the corrected default — this dissolved the **top-level `visuals → publisher` import edge** (visuals no longer `from investo.publisher.paths import archive_path`). The *mutable* `ARCHIVE_ROOT` root binding **stays in `publisher.paths`** because the orchestrator god-module reads it via call-time `from investo.publisher.paths import ARCHIVE_ROOT` and ~30 tests monkeypatch `investo.publisher.paths.ARCHIVE_ROOT`. Relocating that seam to `_internal` would force a rewrite of every orchestrator call-time read (u84's domain) and change those tests' patch targets en masse — out of u78's low-risk envelope. visuals therefore reads the live root via a lazy in-function `import investo.publisher.paths` (NOT a top-level edge), preserving the monkeypatch contract. Fully relocating the seam is recorded as deferred Wave-14 TECH-DEBT (depends on u84).
+- **Acceptance**: existing path tests pass unchanged; new `tests/unit/_internal/test_archive_layout.py` asserts byte-identical paths to pre-refactor for segment=None and each segment, plus publisher/visuals delegation parity and monkeypatch flow-through.
 
-### Step 3 — boundary test + idempotency verification `[ ]`
-- [ ] **Add an enforced module-boundary test** (review 2026-05-28): assert no `from investo.<adapter>` import exists inside another adapter package (sources/briefing/publisher/notifier/visuals importing each other). After homing `ArchiveLayout`/`write_atomic` in `_internal/`, the pre-existing `visuals → publisher` edge should be GONE — assert zero sibling edges. This makes the hexagonal discipline enforceable rather than convention-only (guide §5).
-- [ ] Confirm sidecar/asset writes remain byte-identical (chart_sidecar determinism contract from u75 must hold).
-- **Acceptance**: boundary test present and green with zero sibling adapter→adapter edges; u75 sidecar determinism tests green.
+### Step 3 — boundary test + idempotency verification `[x]`
+- [x] **Added an enforced module-boundary test** `tests/unit/_internal/test_module_boundary.py`: walks each adapter package's AST and asserts the **`publisher ⇄ visuals` pair has zero top-level import edges in either direction** — the `visuals → publisher` edge u78 dissolved stays gone. Honest scope note in the test: a *full* "zero sibling edges" invariant is not yet achievable because `publisher`/`notifier`/`sources`/`visuals` all statically import `briefing` (shared domain vocabulary: segments/market_anchor/extract/watchlist); collapsing those is out of u78's scope (deferred Wave-14 TECH-DEBT). The test enforces what u78 actually guarantees.
+- [x] Confirmed chart_sidecar byte-determinism (u75 contract) holds — `test_chart_sidecar.py` green after migrating to `write_atomic_bytes`.
+- **Acceptance**: boundary test present and green; publisher⇄visuals pair has zero top-level sibling edges; u75 sidecar determinism tests green.
 
-### Step 4 — full gate `[ ]`
-- [ ] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict.
-- **Acceptance**: full gate green.
+### Step 4 — full gate `[x]`
+- [x] ruff (clean) / ruff-format (u78 files clean; 2 pre-existing unrelated violations in `summary_quality.py` + `test_assets.py` present at HEAD, left untouched) / mypy --strict (clean, 151 files) / pytest (2720 passed, +24 vs 2696 baseline) / mkdocs build --strict (ok).
+- **Acceptance**: full gate green for u78 scope.
 
 ---
 

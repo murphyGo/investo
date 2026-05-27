@@ -29,10 +29,10 @@ Reference:
 from __future__ import annotations
 
 import contextlib
-import os
 from datetime import date
 from pathlib import Path
 
+from investo._internal._io import write_atomic
 from investo.briefing.segments import MarketSegment
 from investo.models import Briefing
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
@@ -64,19 +64,15 @@ def write_briefing(
         raise PublisherDisclaimerError(target_date=target_date)
 
     path = archive_path(target_date, segment=segment)
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
 
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with tmp_path.open("w", encoding="utf-8") as fp:
-            fp.write(briefing.rendered_markdown)
-        os.replace(tmp_path, path)
+        write_atomic(path, briefing.rendered_markdown)
     except OSError as exc:
         # Best-effort cleanup of the tmp file. Swallow secondary
         # errors during cleanup so the original cause is what bubbles
         # up to the operator alert.
         with contextlib.suppress(OSError):
-            tmp_path.unlink(missing_ok=True)
+            path.with_suffix(path.suffix + ".tmp").unlink(missing_ok=True)
         raise PublisherIOError(target_date=target_date, path=path, cause=exc) from exc
 
     return path

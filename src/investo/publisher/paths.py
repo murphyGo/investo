@@ -18,13 +18,15 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal.archive_layout import ArchiveLayout
 from investo.briefing.segments import MarketSegment
 
-# Repo-root-relative archive directory. Tests redirect this via
-# ``monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)`` per the
-# Step 5.3 design decision (option a). u5 orchestrator is responsible
-# for invoking the pipeline from the repo root so this path resolves
-# correctly in production.
+# Repo-root-relative archive directory — the live, patchable seam. Tests
+# redirect this via ``monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)``
+# per the Step 5.3 design decision (option a). u5 orchestrator is
+# responsible for invoking the pipeline from the repo root so this path
+# resolves correctly in production. ``archive_path`` reads this at call
+# time and delegates the path *shape* to ``_internal.ArchiveLayout``.
 ARCHIVE_ROOT: Final[Path] = Path("archive")
 
 
@@ -39,14 +41,10 @@ def archive_path(target_date: date, *, segment: MarketSegment | None = None) -> 
 
     Pure: no filesystem I/O. The caller (``write_briefing`` in Step 5)
     is responsible for ensuring ``path.parent`` exists before writing.
+    The path *shape* is single-homed in :class:`ArchiveLayout`; the root
+    binding stays here so the existing monkeypatch seam is preserved.
     """
-    root = ARCHIVE_ROOT if segment is None else ARCHIVE_ROOT / segment
-    return (
-        root
-        / f"{target_date.year:04d}"
-        / f"{target_date.month:02d}"
-        / f"{target_date.isoformat()}.md"
-    )
+    return ArchiveLayout(ARCHIVE_ROOT).briefing_path(target_date, segment)
 
 
 __all__ = ["ARCHIVE_ROOT", "archive_path"]
