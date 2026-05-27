@@ -109,7 +109,6 @@ Pins:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 from datetime import UTC, date, datetime, time, timedelta
@@ -120,6 +119,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -252,16 +252,13 @@ class FredEconomicCalendarAdapter:
                 "limit": "15",
             },
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            # release_id is named in the message; api_key is NOT.
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON for release_id={release_id}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        # release_id is named in the message; api_key is NOT.
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message=f"malformed JSON for release_id={release_id}",
+            append_exc=False,
+        )
 
         if not isinstance(payload, dict):
             raise SourceFetchError(

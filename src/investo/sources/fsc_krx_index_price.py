@@ -9,7 +9,6 @@ as failed while sibling sources continue.
 
 from __future__ import annotations
 
-import json
 import os
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any, ClassVar
@@ -20,6 +19,12 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
+from investo.sources._parse import (
+    parse_float,
+    parse_int,
+    parse_json_response,
+    required_str,
+)
 from investo.sources._registry import register
 from investo.sources._retry import RetryConfig, retry_get
 from investo.sources._window import FetchWindow
@@ -100,15 +105,11 @@ class FscKrxIndexPriceAdapter:
             },
             config=_RETRY_CONFIG,
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON response: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message="malformed JSON response",
+        )
         return _extract_rows(payload, source_name=self.name)
 
     def _rows_to_items(
@@ -174,17 +175,17 @@ def _extract_rows(payload: Any, *, source_name: str) -> list[dict[str, Any]]:
 
 
 def _row_to_item(row: dict[str, Any], *, source_name: str, target_date: date) -> NormalizedItem:
-    index_name = _required_str(row, "idxNm")
-    bas_dt = _parse_bas_dt(_required_str(row, "basDt"))
-    close = _parse_float(row.get("clpr"))
-    change = _parse_float(row.get("vs"))
-    pct_change = _parse_float(row.get("fltRt"))
-    open_ = _parse_float(row.get("mkp"))
-    high = _parse_float(row.get("hipr"))
-    low = _parse_float(row.get("lopr"))
-    volume = _parse_int(row.get("trqu"))
-    trading_value = _parse_int(row.get("trPrc"))
-    market_cap = _parse_int(row.get("lstgMrktTotAmt"))
+    index_name = required_str(row, "idxNm")
+    bas_dt = _parse_bas_dt(required_str(row, "basDt"))
+    close = parse_float(row.get("clpr"), strip_commas=True)
+    change = parse_float(row.get("vs"), strip_commas=True)
+    pct_change = parse_float(row.get("fltRt"), strip_commas=True)
+    open_ = parse_float(row.get("mkp"), strip_commas=True)
+    high = parse_float(row.get("hipr"), strip_commas=True)
+    low = parse_float(row.get("lopr"), strip_commas=True)
+    volume = parse_int(row.get("trqu"), strip_commas=True)
+    trading_value = parse_int(row.get("trPrc"), strip_commas=True)
+    market_cap = parse_int(row.get("lstgMrktTotAmt"), strip_commas=True)
     published_at = datetime.combine(bas_dt, _CLOSE_TIME_KST).astimezone(UTC)
     pct_prefix = "+" if pct_change > 0 else ""
     change_prefix = "+" if change > 0 else ""
@@ -222,26 +223,5 @@ def _row_to_item(row: dict[str, Any], *, source_name: str, target_date: date) ->
     )
 
 
-def _required_str(row: dict[str, Any], key: str) -> str:
-    value = str(row.get(key) or "").strip()
-    if not value:
-        raise ValueError(f"missing {key}")
-    return value
-
-
 def _parse_bas_dt(value: str) -> date:
     return datetime.strptime(value, "%Y%m%d").date()
-
-
-def _parse_float(value: Any) -> float:
-    text = str(value or "").replace(",", "").strip()
-    if not text:
-        raise ValueError("missing float")
-    return float(text)
-
-
-def _parse_int(value: Any) -> int:
-    text = str(value or "").replace(",", "").strip()
-    if not text:
-        raise ValueError("missing int")
-    return int(float(text))

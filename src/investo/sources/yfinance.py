@@ -34,7 +34,6 @@ Pins (extension 2026-05-01):
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 from datetime import UTC, datetime
 from typing import Any, ClassVar
@@ -47,6 +46,8 @@ from pydantic import ValidationError
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
 from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
+from investo.sources._fanout import gather_with_error_isolation
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -98,26 +99,14 @@ class YFinancePriceAdapter:
         tickers = parse_symbol_list(_ENV_TICKERS, self._DEFAULT_TICKERS)
         concurrency = _parse_concurrency()
         semaphore = asyncio.Semaphore(concurrency)
-        results = await asyncio.gather(
-            *(self._fetch_one_limited(client, ticker, semaphore) for ticker in tickers),
-            return_exceptions=True,
+        # Per-ticker isolation: a per-ticker SourceFetchError (404 ticker,
+        # 5xx after retries, malformed body, scheme-issue URL) contributes
+        # nothing; sibling tickers continue. This is *intra*-adapter
+        # isolation, parallel to the aggregator's *inter*-adapter R6.
+        return await gather_with_error_isolation(
+            (self._fetch_one_limited(client, ticker, semaphore) for ticker in tickers),
+            source_name=self.name,
         )
-        items: list[NormalizedItem] = []
-        for result in results:
-            if isinstance(result, NormalizedItem):
-                items.append(result)
-            elif isinstance(result, SourceFetchError):
-                # Per-ticker source-side failure (404 ticker, 5xx after retries,
-                # malformed body, scheme-issue URL). Per-ticker isolation: log
-                # silently and let sibling tickers continue. Aggregator-level
-                # R6 isolation only covers whole-adapter SourceFetchError;
-                # this is *intra*-adapter isolation between tickers.
-                continue
-            elif isinstance(result, BaseException):
-                # Programmer error escapes — re-raise so the orchestrator's
-                # stage-level guard sees it and the run goes FAILED.
-                raise result
-        return items
 
     async def _fetch_one_limited(
         self,
@@ -137,15 +126,11 @@ class YFinancePriceAdapter:
             params={"interval": "1d", "range": "5d"},
             headers={"User-Agent": _USER_AGENT},
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON for {ticker}: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message=f"malformed JSON for {ticker}",
+        )
 
         chart = payload.get("chart") if isinstance(payload, dict) else None
         if not isinstance(chart, dict):

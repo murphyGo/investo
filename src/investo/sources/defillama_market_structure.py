@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import math
 from datetime import UTC, datetime
 from typing import Any, ClassVar
@@ -13,6 +12,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import format_float
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -90,15 +90,7 @@ class DefiLlamaMarketStructureAdapter:
         params: dict[str, str] | None,
     ) -> Any:
         response = await retry_get(client, url, source_name=self.name, params=params)
-        try:
-            return response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        return parse_json_response(response, source_name=self.name)
 
 
 def _chains_to_item(payload: Any, *, source_name: str, now_utc: datetime) -> NormalizedItem | None:

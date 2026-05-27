@@ -26,7 +26,6 @@ Pins:
 
 from __future__ import annotations
 
-import json
 import math
 from datetime import UTC, datetime
 from typing import Any, ClassVar
@@ -36,6 +35,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import format_float
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -129,15 +129,7 @@ async def _fetch_json(
     params: dict[str, str],
 ) -> Any:
     response = await retry_get(client, url, source_name=source_name, params=params)
-    try:
-        return response.json()
-    except json.JSONDecodeError as exc:
-        raise SourceFetchError(
-            source_name=source_name,
-            message=f"malformed JSON: {exc}",
-            transient=False,
-            cause=exc,
-        ) from exc
+    return parse_json_response(response, source_name=source_name)
 
 
 def _first_data_str(payload: Any, key: str) -> str | None:

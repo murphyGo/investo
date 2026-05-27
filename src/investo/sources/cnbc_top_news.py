@@ -50,8 +50,6 @@ Pins NFR-007 ACs:
 
 from __future__ import annotations
 
-from datetime import UTC
-from email.utils import parsedate_to_datetime
 from typing import Any, ClassVar
 from urllib.parse import urlparse
 
@@ -60,7 +58,7 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN
+from investo.sources._config import SUMMARY_MAX_LEN, parse_rfc822_to_utc
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -134,16 +132,13 @@ class CnbcTopNewsAdapter:
             return None
 
         # AC-7.4: <pubDate> is RFC-822 with GMT zone (e.g.
-        # "Fri, 01 May 2026 14:29:59 GMT"). parsedate_to_datetime treats
-        # GMT as +0000 and returns a tz-aware datetime; naive results
-        # indicate malformed input — drop.
+        # "Fri, 01 May 2026 14:29:59 GMT"). parse_rfc822_to_utc treats
+        # GMT as +0000 and returns a tz-aware UTC datetime; naive or
+        # unparseable input raises and is dropped.
         try:
-            published = parsedate_to_datetime(pubdate_raw)
+            published_utc = parse_rfc822_to_utc(pubdate_raw)
         except (TypeError, ValueError):
             return None
-        if published is None or published.tzinfo is None:
-            return None
-        published_utc = published.astimezone(UTC)
 
         # AC-7.2: strip HTML defensively. CDATA wrappers are unwrapped
         # by the XML parser before findtext sees the value; strip_html

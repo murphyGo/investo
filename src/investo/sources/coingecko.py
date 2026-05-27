@@ -26,15 +26,19 @@ Pins (extension 2026-05-01):
 
 from __future__ import annotations
 
-import json
-from datetime import UTC, datetime
 from typing import Any, ClassVar
 
 import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN, format_float, parse_symbol_list
+from investo.sources._config import (
+    SUMMARY_MAX_LEN,
+    format_float,
+    parse_iso8601_to_utc,
+    parse_symbol_list,
+)
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -70,15 +74,7 @@ class CoinGeckoPriceAdapter:
                 "price_change_percentage": "24h",
             },
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(response, source_name=self.name)
 
         if not isinstance(payload, list):
             raise SourceFetchError(
@@ -121,7 +117,7 @@ class CoinGeckoPriceAdapter:
         if not isinstance(last_updated_raw, str):
             return None
         try:
-            last_updated = self._parse_iso8601(last_updated_raw)
+            last_updated = parse_iso8601_to_utc(last_updated_raw)
         except ValueError:
             return None
 
@@ -168,19 +164,3 @@ class CoinGeckoPriceAdapter:
             )
         except ValidationError:
             return None
-
-    @staticmethod
-    def _parse_iso8601(text: str) -> datetime:
-        """Parse a CoinGecko ``last_updated`` string to a tz-aware UTC datetime.
-
-        CoinGecko emits ISO 8601 with millisecond precision and a
-        trailing ``Z`` (e.g. ``"2026-04-30T17:25:01.044Z"``). Python
-        3.11+ ``fromisoformat`` accepts the ``Z`` suffix. Naive results
-        (no timezone) raise — adapters per R8 must reject naive inputs
-        rather than silently assume UTC.
-        """
-
-        parsed = datetime.fromisoformat(text)
-        if parsed.tzinfo is None:
-            raise ValueError(f"naive last_updated: {text!r}")
-        return parsed.astimezone(UTC)

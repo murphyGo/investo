@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-import json
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 
@@ -12,10 +10,16 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import format_float, format_int, parse_symbol_list
+from investo.sources._fanout import gather_with_error_isolation
+from investo.sources._parse import (
+    parse_float,
+    parse_int,
+    parse_json_response,
+    required_str,
+)
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
-from investo.sources.protocol import SourceFetchError
 
 _ENV_SYMBOLS = "INVESTO_CRYPTO_MARKET_SYMBOLS"
 _DATA_PAGE_URL = "https://www.binance.com/en/markets/overview"
@@ -37,22 +41,11 @@ class BinanceCryptoMarketAdapter:
         window: FetchWindow,
     ) -> list[NormalizedItem]:
         symbols = parse_symbol_list(_ENV_SYMBOLS, self._DEFAULT_SYMBOLS)
-        results = await asyncio.gather(
-            *(self._fetch_symbol(client, symbol, window) for symbol in symbols),
-            return_exceptions=True,
+        return await gather_with_error_isolation(
+            (self._fetch_symbol(client, symbol, window) for symbol in symbols),
+            source_name=self.name,
+            raise_if_all_failed=True,
         )
-        items: list[NormalizedItem] = []
-        failures: list[SourceFetchError] = []
-        for result in results:
-            if isinstance(result, NormalizedItem):
-                items.append(result)
-            elif isinstance(result, SourceFetchError):
-                failures.append(result)
-            elif isinstance(result, BaseException):
-                raise result
-        if not items and failures:
-            raise failures[0]
-        return items
 
     async def _fetch_symbol(
         self,
@@ -69,15 +62,11 @@ class BinanceCryptoMarketAdapter:
             source_name=self.name,
             params={"symbol": normalized_symbol},
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON for {normalized_symbol}: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message=f"malformed JSON for {normalized_symbol}",
+        )
         try:
             return _payload_to_item(payload, source_name=self.name, fallback_utc=window.end_utc)
         except (TypeError, ValueError, ValidationError):
@@ -87,16 +76,16 @@ class BinanceCryptoMarketAdapter:
 def _payload_to_item(payload: Any, *, source_name: str, fallback_utc: datetime) -> NormalizedItem:
     if not isinstance(payload, dict):
         raise ValueError("payload must be object")
-    symbol = _required_str(payload, "symbol")
-    last = _parse_float(payload.get("lastPrice"))
-    pct_change = _parse_float(payload.get("priceChangePercent"))
-    quote_volume = _parse_float(payload.get("quoteVolume"))
-    base_volume = _parse_float(payload.get("volume"))
-    high = _parse_float(payload.get("highPrice"))
-    low = _parse_float(payload.get("lowPrice"))
-    open_ = _parse_float(payload.get("openPrice"))
-    weighted_avg = _parse_float(payload.get("weightedAvgPrice"))
-    trade_count = _parse_int(payload.get("count"))
+    symbol = required_str(payload, "symbol")
+    last = parse_float(payload.get("lastPrice"))
+    pct_change = parse_float(payload.get("priceChangePercent"))
+    quote_volume = parse_float(payload.get("quoteVolume"))
+    base_volume = parse_float(payload.get("volume"))
+    high = parse_float(payload.get("highPrice"))
+    low = parse_float(payload.get("lowPrice"))
+    open_ = parse_float(payload.get("openPrice"))
+    weighted_avg = parse_float(payload.get("weightedAvgPrice"))
+    trade_count = parse_int(payload.get("count"))
     open_time = _parse_epoch_ms(payload.get("openTime"))
     close_time = _parse_epoch_ms(payload.get("closeTime"))
     published_at = close_time or fallback_utc
@@ -128,27 +117,6 @@ def _payload_to_item(payload: Any, *, source_name: str, fallback_utc: datetime) 
             "close_time": close_time.isoformat() if close_time else "",
         },
     )
-
-
-def _required_str(payload: dict[str, Any], key: str) -> str:
-    value = str(payload.get(key) or "").strip()
-    if not value:
-        raise ValueError(f"missing {key}")
-    return value
-
-
-def _parse_float(value: Any) -> float:
-    text = str(value or "").strip()
-    if not text:
-        raise ValueError("missing float")
-    return float(text)
-
-
-def _parse_int(value: Any) -> int:
-    text = str(value or "").strip()
-    if not text:
-        raise ValueError("missing int")
-    return int(float(text))
 
 
 def _parse_epoch_ms(value: Any) -> datetime | None:

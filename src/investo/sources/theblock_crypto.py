@@ -65,8 +65,6 @@ Pins NFR-007 ACs:
 
 from __future__ import annotations
 
-from datetime import UTC
-from email.utils import parsedate_to_datetime
 from typing import Any, ClassVar
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
@@ -75,7 +73,7 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN
+from investo.sources._config import SUMMARY_MAX_LEN, parse_rfc822_to_utc
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -196,16 +194,13 @@ class TheBlockCryptoAdapter:
             return None
 
         # AC-7.4: <pubDate> is RFC-822 with -0400 offset
-        # (e.g. "Fri, 01 May 2026 10:35:20 -0400"). parsedate_to_datetime
-        # returns a tz-aware datetime when the input carries an offset;
-        # naive results indicate malformed input — drop.
+        # (e.g. "Fri, 01 May 2026 10:35:20 -0400"). parse_rfc822_to_utc
+        # returns a tz-aware UTC datetime when the input carries an
+        # offset; naive or unparseable input raises and is dropped.
         try:
-            published = parsedate_to_datetime(pubdate_raw)
+            published_utc = parse_rfc822_to_utc(pubdate_raw)
         except (TypeError, ValueError):
             return None
-        if published is None or published.tzinfo is None:
-            return None
-        published_utc = published.astimezone(UTC)
 
         # AC-7.2: strip HTML from feed-derived text fields. <title> on
         # The Block is plain text (no CDATA, no embedded markup) but we

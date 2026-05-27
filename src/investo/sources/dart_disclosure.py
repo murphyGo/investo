@@ -55,7 +55,6 @@ Pins:
 
 from __future__ import annotations
 
-import json
 import os
 from datetime import UTC, datetime, time
 from typing import Any, ClassVar, Final
@@ -66,6 +65,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -149,15 +149,12 @@ class DartDisclosureAdapter:
                 "page_count": str(self._PAGE_COUNT),
             },
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON from {self._ENDPOINT}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message=f"malformed JSON from {self._ENDPOINT}",
+            append_exc=False,
+        )
 
         if not isinstance(payload, dict):
             raise SourceFetchError(

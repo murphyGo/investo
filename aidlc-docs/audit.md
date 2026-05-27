@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u77 source-adapter-shared-helpers Complete (Wave 14, Phase 1)
+**Timestamp**: 2026-05-28T13:00:00+09:00
+**Trigger**: u77 Code Generation landed (developer) — behavior-preserving `sources/`-internal helper extraction; full gate green.
+**Decision**: Ratify and close u77 (5/5). New `sources/_parse.py` (`parse_json_response`, `required_str`, `parse_float(strip_commas=…)`, `parse_int`) + `sources/_fanout.py` (`gather_with_error_isolation(raise_if_all_failed=…)`); extended `_config.py` (`parse_rfc822_to_utc`/`parse_iso8601_to_utc`) and `_xml_namespaces.py` (`ATOM_NS`/`DATASERVICES_M_NS`/`DATASERVICES_D_NS`). **Review-corrected Step 3 honored**: `parse_float`/`parse_int` unify ONLY binance (`strip_commas=False`, byte-identical) + fsc_krx (`strip_commas=True`); `defillama` (`float|None`) and `krx_foreign_flows` (`int|None`) left untouched (distinct contracts) — no wrong-abstraction force-unify.
+**Behavior preservation**: all 652 pre-existing `sources/` tests pass UNCHANGED (AC-77.2 proof); +32 new helper tests. Gate: ruff clean, mypy --strict 149 files clean, pytest **2696 passed**, mkdocs --strict ok, `check_no_paid_apis` exit 0. Module boundary intact (no cross-unit import); defusedxml-only preserved.
+**Scope-out (TECH-DEBT candidates, not yet registered)**: 2 `json.loads(...)` adapters (`fomc_calendar` also catches `UnicodeDecodeError`; `yfinance_history` positional on pre-decoded body) left as-is → candidate `parse_json_text` sibling; `sec_edgar_8k` `<updated>` ISO block byte-identical to coingecko (ns-only here).
+**Status**: u77 complete (5/5). FD+NFR SKIP confirmed. Next: u78 (filesystem write + ArchiveLayout, Phase 1).
+
+---
+
 ## Planning — Wave 14 Internal Abstraction & Clean-Code Refactor (u77–u85) units created
 **Timestamp**: 2026-05-28T12:00:00+09:00
 **Trigger**: User requested a whole-codebase abstraction review and AIDLC units to refactor toward reusability / single-responsibility / extensibility / clean code, written so a context-free agent can pick any unit up and execute it.

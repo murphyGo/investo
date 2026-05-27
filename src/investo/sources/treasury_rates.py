@@ -16,12 +16,14 @@ from investo.sources._config import format_float
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
+from investo.sources._xml_namespaces import (
+    ATOM_NS,
+    DATASERVICES_D_NS,
+    DATASERVICES_M_NS,
+)
 from investo.sources.protocol import SourceFetchError
 
 _DATA_PAGE_URL = "https://home.treasury.gov/resource-center/data-chart-center/interest-rates"
-_ATOM_NS = "{http://www.w3.org/2005/Atom}"
-_M_NS = "{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}"
-_D_NS = "{http://schemas.microsoft.com/ado/2007/08/dataservices}"
 _NY = ZoneInfo("America/New_York")
 _NY_CLOSE = time(16, 0)
 
@@ -68,13 +70,13 @@ class TreasuryRatesAdapter:
                 cause=exc,
             ) from exc
         rows: list[dict[str, str]] = []
-        for entry in root.iter(f"{_ATOM_NS}entry"):
-            properties = entry.find(f"{_ATOM_NS}content/{_M_NS}properties")
+        for entry in root.iter(f"{ATOM_NS}entry"):
+            properties = entry.find(f"{ATOM_NS}content/{DATASERVICES_M_NS}properties")
             if properties is None:
                 continue
             row: dict[str, str] = {}
             for child in list(properties):
-                key = child.tag.removeprefix(_D_NS)
+                key = child.tag.removeprefix(DATASERVICES_D_NS)
                 row[key] = (child.text or "").strip()
             if row:
                 rows.append(row)

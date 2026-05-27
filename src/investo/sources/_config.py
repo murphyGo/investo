@@ -29,6 +29,8 @@ from __future__ import annotations
 
 import math
 import os
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Final
 
 # Per-item summary truncation cap (R8 NormalizedItem field rules — keeps LLM prompt bounded).
@@ -69,3 +71,36 @@ def format_int(value: int) -> str:
     """Format integer raw-metadata values consistently."""
 
     return str(value)
+
+
+def parse_rfc822_to_utc(text: str) -> datetime:
+    """Parse an RFC-822 ``pubDate`` string to a tz-aware UTC datetime.
+
+    Used by the RSS adapters (FOMC RSS, The Block, Yonhap). The input is
+    expected to carry a timezone (``GMT``/``+0900``/``-0400``);
+    :func:`email.utils.parsedate_to_datetime` returns a tz-aware datetime
+    in that case. A ``None`` or naive result indicates a malformed input
+    and raises :class:`ValueError` — callers that prefer to drop the
+    entry catch ``(TypeError, ValueError)`` and skip it (per R8: reject
+    naive timestamps rather than assume UTC).
+    """
+
+    parsed = parsedate_to_datetime(text)
+    if parsed is None or parsed.tzinfo is None:
+        raise ValueError(f"naive or unparseable RFC-822 date: {text!r}")
+    return parsed.astimezone(UTC)
+
+
+def parse_iso8601_to_utc(text: str) -> datetime:
+    """Parse an ISO-8601 string to a tz-aware UTC datetime.
+
+    Used by CoinGecko (``last_updated`` with millisecond precision and a
+    trailing ``Z``, accepted by ``fromisoformat`` on Python 3.11+). A
+    naive result raises :class:`ValueError` (per R8) so callers can drop
+    the entry rather than silently assume UTC.
+    """
+
+    parsed = datetime.fromisoformat(text)
+    if parsed.tzinfo is None:
+        raise ValueError(f"naive ISO-8601 datetime: {text!r}")
+    return parsed.astimezone(UTC)

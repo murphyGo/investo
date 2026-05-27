@@ -29,7 +29,6 @@ Pins:
 
 from __future__ import annotations
 
-import json
 import math
 from datetime import UTC, datetime
 from typing import Any, ClassVar
@@ -39,6 +38,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import format_float
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -64,15 +64,7 @@ class CoinGeckoGlobalMarketAdapter:
             self._ENDPOINT,
             source_name=self.name,
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(response, source_name=self.name)
 
         data = payload.get("data") if isinstance(payload, dict) else None
         if not isinstance(data, dict):

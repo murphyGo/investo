@@ -3,7 +3,7 @@
 **Date**: 2026-05-28
 **Unit**: u77 source-adapter-shared-helpers
 **Stage**: Code Generation (refactor)
-**Status**: Planned — not started (0/5 steps)
+**Status**: Code-complete — all 5 steps done (full gate green; closeout docs pending)
 **Source**: 2026-05-28 abstraction review — `sources/` module
 **Estimated Effort**: ~3-4 h
 **Dependencies**: none
@@ -61,34 +61,34 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — JSON-decode helper `[ ]`
-- [ ] Add `parse_json_response(response, *, source_name, message="malformed JSON") -> Any` to `sources/_retry.py` (or a new `sources/_parse.py` if `_retry.py` should stay HTTP-only — pick one and be consistent; document the choice in the step note).
-- [ ] Migrate all 17 adapters to call it; delete the local `try/except`.
+### Step 1 — JSON-decode helper `[x]`
+- [x] Add `parse_json_response(response, *, source_name, message="malformed JSON", append_exc=True) -> Any` to **new `sources/_parse.py`** (kept `_retry.py` HTTP/backoff-focused per the unit instruction). `append_exc=False` reproduces the adapters that name only the resource (DART / FRED / fred_calendar / official_policy).
+- [x] Migrated the 15 `response.json()` adapters to call it; deleted the local `try/except`. The 2 `json.loads(...)` adapters (`fomc_calendar` catches `UnicodeDecodeError` too; `yfinance_history` uses positional args on pre-decoded `body`) are DIFFERENT contracts and left as-is — TECH-DEBT candidate: a `parse_json_text` sibling.
 - **Acceptance**: existing source tests pass unchanged; the raised `SourceFetchError` keeps `source_name`, `transient=False`, and `cause`. A new test pins malformed-JSON → `SourceFetchError`.
 
-### Step 2 — gather-with-error-isolation helper `[ ]`
-- [ ] Add `gather_with_error_isolation(coros, *, source_name) -> list[NormalizedItem]` that gathers with `return_exceptions=True`, collects `NormalizedItem`, swallows `SourceFetchError`, and re-raises any other `BaseException` (preserving today's escalation semantics).
-- [ ] Migrate the 6 fan-out adapters.
+### Step 2 — gather-with-error-isolation helper `[x]`
+- [x] Added `gather_with_error_isolation(coros, *, source_name, raise_if_all_failed=False) -> list[NormalizedItem]` in **new `sources/_fanout.py`** (its own concern — not parsing, not HTTP). The `raise_if_all_failed` flag preserves the two real escalation modes: default pure-isolation (fred / yfinance / stooq_price) and re-raise-first-on-all-failed (binance / fsc_krx_stock_price).
+- [x] Migrated 5 fan-out adapters. `stooq_kr_market` keeps its bespoke symbol-keyed dict + Yonhap fallback loop (a DIFFERENT contract) and is NOT migrated.
 - **Acceptance**: existing per-adapter tests pass unchanged; a new test pins the three result classes (item kept / SourceFetchError skipped / other exception re-raised).
 
-### Step 3 — numeric/string parse helpers `[ ]`
+### Step 3 — numeric/string parse helpers `[x]`
 > **CORRECTED after review (2026-05-28): the parse helpers are NOT one semantic — do not force-unify them.** Verified against source, the three `_parse_float` implementations encode *different contracts*:
 > - `binance_crypto_market.py:140` → `-> float`, no comma stripping, raises `ValueError` on empty.
 > - `fsc_krx_index_price.py:236` / `fsc_krx_stock_price.py:247` → `-> float`, **strips commas** (`.replace(",", "")`), raises on empty.
 > - `defillama_market_structure.py:190` → `-> float | None`, **never raises** (returns `None`), rejects `bool`, requires `math.isfinite`.
 > One signature cannot be both `float` and `float | None`, nor both comma-stripping and not. A single `parse_float` would either change behavior (violating the prime directive) or accrete flags (the wrong-abstraction trap, guide §9.5). Also note `krx_foreign_flows.py:326` has its own `_parse_int_with_commas(...) -> int | None` — a fourth, distinct contract.
-- [ ] Create `sources/_parse.py` with `required_str(payload, key) -> str` (the one helper that IS identical across `binance`/`fsc_krx_index_price`/`fsc_krx_stock_price`) and migrate those three.
-- [ ] For float/int: unify ONLY the two truly-identical raising variants. `binance` (no strip) and `fsc_krx` (comma strip) differ solely by comma handling — provide `parse_float(value, *, strip_commas: bool = False)` / `parse_int(...)` ONLY if `strip_commas=False` reproduces binance byte-for-byte; otherwise keep them separate. **Leave `defillama` (`float | None`) and `krx_foreign_flows` (`int | None`, comma) as-is — different contracts, different homes.** Do not force a None-returning + raising helper into one.
+- [x] Created `sources/_parse.py` with `required_str(payload, key) -> str` (byte-identical across `binance`/`fsc_krx_index_price`/`fsc_krx_stock_price`) and migrated those three.
+- [x] Unified `parse_float(value, *, strip_commas=False)` / `parse_int(...)`: `strip_commas=False` reproduces binance byte-for-byte; `strip_commas=True` reproduces fsc_krx (strip+replace ordering is result-equivalent for all inputs). **`defillama` (`float | None`, never raises) and `krx_foreign_flows` (`int | None`, comma) left untouched** — distinct None-returning contracts.
 - **Acceptance**: existing tests pass unchanged; new helper tests cover empty / valid / non-numeric for each retained variant; the `defillama`/`krx_foreign_flows` None-returning parsers remain untouched.
 
-### Step 4 — datetime→UTC helpers `[ ]`
-- [ ] Add `parse_rfc822_to_utc(text) -> datetime` and `parse_iso8601_to_utc(text) -> datetime` to `sources/_config.py` (naive/unparseable → `ValueError`, returns tz-aware UTC).
-- [ ] Migrate the 6 timestamp-parsing adapters. Leave bespoke parsers (e.g. DART `YYYYMMDD→KST 09:00`, Treasury `YYYY-MM-DD→NY close`) as-is unless they reduce cleanly — do not force-fit.
+### Step 4 — datetime→UTC helpers `[x]`
+- [x] Added `parse_rfc822_to_utc(text) -> datetime` and `parse_iso8601_to_utc(text) -> datetime` to `sources/_config.py` (None/naive/unparseable → `ValueError`, returns tz-aware UTC). Callers that previously dropped silently wrap in `try/except (TypeError, ValueError): return None`, reproducing all three original drop branches byte-for-byte.
+- [x] Migrated 6 adapters: RFC-822 = `fomc_rss`, `theblock_crypto`, `yonhap_market`, `cnbc_top_news`, `nasdaq_stocks_news` (all share the byte-identical parse+drop+`astimezone(UTC)` block); ISO-8601 = `coingecko`. Left bespoke/divergent parsers as-is: DART (`YYYYMMDD→KST 09:00`), Treasury (`YYYY-MM-DD→NY close`), `korea_policy_rss`/`official_policy` (divergent post-processing), and `sec_edgar_8k`'s `<updated>` ISO (scoped to Step 5 ns-only here; its identical-to-coingecko ISO block is a TECH-DEBT consolidation candidate).
 - **Acceptance**: existing tests pass unchanged; new tests cover RFC-822 and ISO-8601 happy/naive paths.
 
-### Step 5 — XML namespace constants + gate `[ ]`
-- [ ] Add `ATOM_NS` (and Treasury `DATASERVICES_M_NS` / `DATASERVICES_D_NS`) to `sources/_xml_namespaces.py`; update `sec_edgar_8k.py` and `treasury_rates.py` to import instead of define.
-- [ ] Run the full gate (ruff / ruff-format / mypy --strict / pytest / mkdocs --strict) and `check_no_paid_apis`.
+### Step 5 — XML namespace constants + gate `[x]`
+- [x] Added `ATOM_NS`, `DATASERVICES_M_NS`, `DATASERVICES_D_NS` to `sources/_xml_namespaces.py`; `sec_edgar_8k.py` and `treasury_rates.py` now import instead of define.
+- [x] Full gate green (ruff / mypy --strict / pytest 2696 passed / mkdocs --strict) and `check_no_paid_apis` exit 0. (Two pre-existing `ruff format --check` drifts — `briefing/summary_quality.py`, `tests/unit/visuals/test_assets.py` — are unrelated to u77 and out of scope.)
 - **Acceptance**: full gate green; `defusedxml` still the only XML parser.
 
 ---

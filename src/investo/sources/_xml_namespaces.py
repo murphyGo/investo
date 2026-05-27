@@ -9,3 +9,11 @@ from typing import Final
 
 DC_CREATOR: Final[str] = "{http://purl.org/dc/elements/1.1/}creator"
 NASDAQ_TICKERS: Final[str] = "{http://nasdaq.com/reference/feeds/1.0}tickers"
+
+# Atom 1.0 default namespace (Clark notation) — SEC EDGAR 8-K + Treasury feeds.
+ATOM_NS: Final[str] = "{http://www.w3.org/2005/Atom}"
+
+# Microsoft ADO dataservices namespaces used by the Treasury Atom feed's
+# <m:properties> / <d:*> rate fields.
+DATASERVICES_M_NS: Final[str] = "{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}"
+DATASERVICES_D_NS: Final[str] = "{http://schemas.microsoft.com/ado/2007/08/dataservices}"

@@ -37,8 +37,6 @@ Pins (extension 2026-05-01):
 
 from __future__ import annotations
 
-import asyncio
-import json
 import os
 from datetime import UTC, date, datetime, timedelta
 from typing import Any, ClassVar
@@ -49,6 +47,8 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, parse_symbol_list
+from investo.sources._fanout import gather_with_error_isolation
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
@@ -98,22 +98,13 @@ class FredMacroAdapter:
             )
 
         series_list = parse_symbol_list(_ENV_SERIES, self._DEFAULT_SERIES)
-        results = await asyncio.gather(
-            *(self._fetch_one(client, series_id, api_key, window) for series_id in series_list),
-            return_exceptions=True,
+        # Per-series source-side failure (bad series id, "." only
+        # observations, release > 65d old) is isolated and dropped;
+        # sibling series continue.
+        return await gather_with_error_isolation(
+            (self._fetch_one(client, series_id, api_key, window) for series_id in series_list),
+            source_name=self.name,
         )
-        items: list[NormalizedItem] = []
-        for result in results:
-            if isinstance(result, NormalizedItem):
-                items.append(result)
-            elif isinstance(result, SourceFetchError):
-                # Per-series source-side failure (bad series id, "."
-                # only observations, release > 65d old). Per-series
-                # isolation: drop and continue.
-                continue
-            elif isinstance(result, BaseException):
-                raise result
-        return items
 
     async def _fetch_one(
         self,
@@ -134,16 +125,13 @@ class FredMacroAdapter:
                 "limit": "2",
             },
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                # Series id named in the message; api_key is NOT.
-                message=f"malformed JSON for {series_id}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        # Series id named in the message; api_key is NOT.
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message=f"malformed JSON for {series_id}",
+            append_exc=False,
+        )
 
         if not isinstance(payload, dict):
             raise SourceFetchError(

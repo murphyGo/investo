@@ -15,7 +15,6 @@ events even when they do not mention BTC/ETH or prices.
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import re
 from datetime import UTC, date, datetime, time, timedelta
@@ -29,6 +28,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -166,15 +166,12 @@ class CongressGovBillActionsAdapter:
             headers={"User-Agent": _USER_AGENT, "Accept": "application/json"},
             params={"api_key": api_key, "format": "json", "limit": "20"},
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON for bill {bill_id}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message=f"malformed JSON for bill {bill_id}",
+            append_exc=False,
+        )
         actions = payload.get("actions") if isinstance(payload, dict) else None
         if not isinstance(actions, list):
             return []

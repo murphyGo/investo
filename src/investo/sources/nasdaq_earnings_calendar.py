@@ -31,7 +31,6 @@ Design choices:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from datetime import UTC, date, datetime, time, timedelta
@@ -43,6 +42,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN
+from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -148,19 +148,14 @@ class NasdaqEarningsCalendarAdapter:
             )
             return []
         try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
+            payload = parse_json_response(response, source_name=self.name)
+        except SourceFetchError as exc:
             if scheduled_at is None:
-                raise SourceFetchError(
-                    source_name=self.name,
-                    message=f"malformed JSON: {exc}",
-                    transient=False,
-                    cause=exc,
-                ) from exc
+                raise
             _logger.warning(
                 "nasdaq-earnings lookahead day %s malformed JSON; skipping: %s",
                 event_date.isoformat(),
-                exc,
+                exc.cause,
             )
             return []
 

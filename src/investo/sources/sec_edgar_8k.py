@@ -58,9 +58,8 @@ from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
+from investo.sources._xml_namespaces import ATOM_NS
 from investo.sources.protocol import SourceFetchError
-
-_ATOM_NS: Final[str] = "{http://www.w3.org/2005/Atom}"
 
 _TITLE_REGEX: Final[re.Pattern[str]] = re.compile(
     r"^8-K\s*-\s*(?P<name>.+?)\s*\((?P<cik>\d+)\)\s*\(.+?\)\s*$"
@@ -121,7 +120,7 @@ class SecEdgar8kAdapter:
             ) from exc
 
         items: list[NormalizedItem] = []
-        for entry in root.iter(f"{_ATOM_NS}entry"):
+        for entry in root.iter(f"{ATOM_NS}entry"):
             normalized = self._normalize_entry(entry)
             if normalized is None:
                 continue
@@ -134,13 +133,13 @@ class SecEdgar8kAdapter:
         # by the safe ``defusedxml`` parser. Typed ``Any`` to avoid
         # importing the stdlib XML module under ``src/investo/sources``
         # (NFR-007 AC-7.6 grep).
-        title_raw = (entry.findtext(f"{_ATOM_NS}title") or "").strip()
-        updated_raw = (entry.findtext(f"{_ATOM_NS}updated") or "").strip()
-        id_raw = (entry.findtext(f"{_ATOM_NS}id") or "").strip()
+        title_raw = (entry.findtext(f"{ATOM_NS}title") or "").strip()
+        updated_raw = (entry.findtext(f"{ATOM_NS}updated") or "").strip()
+        id_raw = (entry.findtext(f"{ATOM_NS}id") or "").strip()
 
         # `<link rel="alternate" href="...">` — namespace-aware lookup.
         link_href: str | None = None
-        for link_elem in entry.findall(f"{_ATOM_NS}link"):
+        for link_elem in entry.findall(f"{ATOM_NS}link"):
             if link_elem.get("rel") == "alternate":
                 href = link_elem.get("href")
                 if href:
@@ -180,7 +179,7 @@ class SecEdgar8kAdapter:
 
         # Summary body — HTML-strip, then extract Item codes &
         # accession number via regex.
-        summary_raw = entry.findtext(f"{_ATOM_NS}summary") or ""
+        summary_raw = entry.findtext(f"{ATOM_NS}summary") or ""
         summary_text = strip_html(summary_raw)
 
         item_codes = _ITEM_CODE_REGEX.findall(summary_text)

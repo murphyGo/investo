@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-import json
 import os
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any, ClassVar
@@ -14,6 +12,13 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
+from investo.sources._fanout import gather_with_error_isolation
+from investo.sources._parse import (
+    parse_float,
+    parse_int,
+    parse_json_response,
+    required_str,
+)
 from investo.sources._registry import register
 from investo.sources._retry import RetryConfig, retry_get
 from investo.sources._window import FetchWindow
@@ -64,25 +69,14 @@ class FscKrxStockPriceAdapter:
             )
 
         tickers = parse_symbol_list(_ENV_TICKERS, self._DEFAULT_TICKERS)
-        results = await asyncio.gather(
-            *(
+        return await gather_with_error_isolation(
+            (
                 self._fetch_ticker(client, service_key, ticker, window.target_date)
                 for ticker in tickers
             ),
-            return_exceptions=True,
+            source_name=self.name,
+            raise_if_all_failed=True,
         )
-        items: list[NormalizedItem] = []
-        failures: list[SourceFetchError] = []
-        for result in results:
-            if isinstance(result, NormalizedItem):
-                items.append(result)
-            elif isinstance(result, SourceFetchError):
-                failures.append(result)
-            elif isinstance(result, BaseException):
-                raise result
-        if not items and failures:
-            raise failures[0]
-        return items
 
     async def _fetch_ticker(
         self,
@@ -126,15 +120,11 @@ class FscKrxStockPriceAdapter:
             },
             config=_RETRY_CONFIG,
         )
-        try:
-            payload = response.json()
-        except json.JSONDecodeError as exc:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"malformed JSON response: {exc}",
-                transient=False,
-                cause=exc,
-            ) from exc
+        payload = parse_json_response(
+            response,
+            source_name=self.name,
+            message="malformed JSON response",
+        )
         return _extract_rows(payload, source_name=self.name)
 
 
@@ -178,20 +168,20 @@ def _extract_rows(payload: Any, *, source_name: str) -> list[dict[str, Any]]:
 
 
 def _row_to_item(row: dict[str, Any], *, source_name: str, target_date: date) -> NormalizedItem:
-    ticker = _required_str(row, "srtnCd")
-    item_name = _required_str(row, "itmsNm")
-    market = _required_str(row, "mrktCtg")
-    bas_dt = _parse_bas_dt(_required_str(row, "basDt"))
-    close = _parse_float(row.get("clpr"))
-    change = _parse_float(row.get("vs"))
-    pct_change = _parse_float(row.get("fltRt"))
-    open_ = _parse_float(row.get("mkp"))
-    high = _parse_float(row.get("hipr"))
-    low = _parse_float(row.get("lopr"))
-    volume = _parse_int(row.get("trqu"))
-    trading_value = _parse_int(row.get("trPrc"))
-    listed_shares = _parse_int(row.get("lstgStCnt"))
-    market_cap = _parse_int(row.get("mrktTotAmt"))
+    ticker = required_str(row, "srtnCd")
+    item_name = required_str(row, "itmsNm")
+    market = required_str(row, "mrktCtg")
+    bas_dt = _parse_bas_dt(required_str(row, "basDt"))
+    close = parse_float(row.get("clpr"), strip_commas=True)
+    change = parse_float(row.get("vs"), strip_commas=True)
+    pct_change = parse_float(row.get("fltRt"), strip_commas=True)
+    open_ = parse_float(row.get("mkp"), strip_commas=True)
+    high = parse_float(row.get("hipr"), strip_commas=True)
+    low = parse_float(row.get("lopr"), strip_commas=True)
+    volume = parse_int(row.get("trqu"), strip_commas=True)
+    trading_value = parse_int(row.get("trPrc"), strip_commas=True)
+    listed_shares = parse_int(row.get("lstgStCnt"), strip_commas=True)
+    market_cap = parse_int(row.get("mrktTotAmt"), strip_commas=True)
     published_at = datetime.combine(bas_dt, _CLOSE_TIME_KST).astimezone(UTC)
     pct_prefix = "+" if pct_change > 0 else ""
     change_prefix = "+" if change > 0 else ""
@@ -233,26 +223,5 @@ def _row_to_item(row: dict[str, Any], *, source_name: str, target_date: date) ->
     )
 
 
-def _required_str(row: dict[str, Any], key: str) -> str:
-    value = str(row.get(key) or "").strip()
-    if not value:
-        raise ValueError(f"missing {key}")
-    return value
-
-
 def _parse_bas_dt(value: str) -> date:
     return datetime.strptime(value, "%Y%m%d").date()
-
-
-def _parse_float(value: Any) -> float:
-    text = str(value or "").replace(",", "").strip()
-    if not text:
-        raise ValueError("missing float")
-    return float(text)
-
-
-def _parse_int(value: Any) -> int:
-    text = str(value or "").replace(",", "").strip()
-    if not text:
-        raise ValueError("missing int")
-    return int(float(text))
