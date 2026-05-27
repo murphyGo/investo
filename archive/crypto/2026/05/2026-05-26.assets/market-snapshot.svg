@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-26 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">UTC 24h 기준(2026-05-26 스냅샷) BTC는 -1.84% 하락한 $75,772.00,</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">ETH(이더리움)는 -1.69% 하락한 $2,070.56, SOL(솔라나)은 -1.55% 하락한</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 26일 UTC 24h 스냅샷 기준, 크립토 시장 전체 시총은</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$2,614,285,710,490으로 -1.16% 24h 하락을 기록하며 전주 대비 감소세를 이어갔다.</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC-USD, 이란 지정학 긴장 재점화로 전일 반등 이탈 전일(2026-05-25) +0.44% 소폭</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">반등에서 이탈해 이번 UTC 24h 구간 BTC-USD는 -1.84% 하락했다.</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC-USD $75,629.42 — 전체 시총 -1.16% 24h, 5월 하락 흐름 연장 UTC 24h</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">스냅샷 기준, BTC-USD는 고가 $76,020.31, 저가 $75,200.03, 구간 내 종가</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC-USD 24h 저점 $75,607 지지 여부를 가격 추이로 확인 — 이탈 시 추가 하방 심도를</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">관찰. 공포·탐욕지수 34(Fear) 지속 여부와 스테이블코인 $321.4B 대기 자금이 DeFi TVL</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC-USD가 UTC 24h 구간 저가 $75,200.03을 지지선으로 유지하는지 추세 확인; 이탈 시</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">하방 압력 심화 여부를 방어적 시각으로 해석. 관심 영향: 공포·탐욕 지수 추가 하락 관찰. DeFi</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

@@ -6,13 +6,13 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-26
 
-- [coingecko-price] **ticker**: ETH $2,070.56 (-1.69%)
-- [defillama-market-structure] **ticker**: DeFi TVL $81.5B; leader Ethereum
-- [stooq-price] **ticker**: ETH-USD 2,071.41
+- [defillama-market-structure] **ticker**: DeFi TVL $81.3B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,074.99
 - [theblock-crypto] **ticker**: Bitmine capitalizes on Ethereum price drop, buys over 100,000 ETH as 5% supply goal nears
 - [theblock-crypto] **ticker**: Ethereum, Solana treasury firms Sharplink and Forward join Russell indexes
 
 <!-- u33 entry 2026-05-26 end -->
+
 <!-- u33 entry 2026-05-25 begin -->
 
 ## 2026-05-25

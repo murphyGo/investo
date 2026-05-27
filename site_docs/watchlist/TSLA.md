@@ -6,9 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-26
 
-- [stooq-price] **ticker**: TSLA 433.48
+- [stooq-price] **ticker**: TSLA 433.59
 
 <!-- u33 entry 2026-05-26 end -->
+
 <!-- u33 entry 2026-05-25 begin -->
 
 ## 2026-05-25

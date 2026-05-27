@@ -6,17 +6,17 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-26
 
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,617,954,104,632; BTC dominance 57.99%
-- [coingecko-price] **ticker**: BTC $75,772.00 (-1.84%)
-- [defillama-market-structure] **ticker**: DeFi TVL $81.5B; leader Ethereum
-- [okx-derivatives] **ticker**: BTC 미결제약정 $453,438,730 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000580779137873 (OKX, UTC 24h)
-- [stooq-price] **ticker**: BTC-USD 75,826.73
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,614,285,710,490; BTC dominance 57.94%
+- [defillama-market-structure] **ticker**: DeFi TVL $81.3B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $461,628,600 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000831706735890 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 75,629.42
 - [theblock-crypto] **ticker**: Strive leapfrogs Coinbase, Riot with latest $85.4 million bitcoin buy
 - [theblock-crypto] **ticker**: TeraWulf stock jumps over 12% on news of Kentucky data center site acquisition
 - [theblock-crypto] **ticker**: ‘Optimism looks fragile’: Bitcoin wavers as Iran strikes revive geopolitical tensions and analysts warn of range trap
 
 <!-- u33 entry 2026-05-26 end -->
+
 <!-- u33 entry 2026-05-25 begin -->
 
 ## 2026-05-25

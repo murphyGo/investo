@@ -6,9 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-26
 
-- [stooq-price] **ticker**: AMZN 265.31
+- [stooq-price] **ticker**: AMZN 265.29
+- [yfinance-price] **ticker**: AMZN 265.29 (-0.39%)
 
 <!-- u33 entry 2026-05-26 end -->
+
 <!-- u33 entry 2026-05-25 begin -->
 
 ## 2026-05-25

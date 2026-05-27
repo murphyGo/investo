@@ -6,12 +6,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-26
 
-- [coingecko-price] **ticker**: SOL $83.64 (-1.55%)
-- [defillama-market-structure] **ticker**: DeFi TVL $81.5B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $81.3B; leader Ethereum
 - [theblock-crypto] **ticker**: Ethereum, Solana treasury firms Sharplink and Forward join Russell indexes
 - [theblock-crypto] **ticker**: Solana privacy layer Umbra launches confidential vesting with Streamflow targeting $97B token unlock market
 
 <!-- u33 entry 2026-05-26 end -->
+
 <!-- u33 entry 2026-05-25 begin -->
 
 ## 2026-05-25

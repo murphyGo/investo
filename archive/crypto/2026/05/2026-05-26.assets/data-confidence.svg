@@ -7,9 +7,9 @@
 <text class="card-emphasis" x="90" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">상태</text>
 <text class="card-text" x="310" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">partial</text>
 <text class="card-emphasis" x="90" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">수집</text>
-<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">38건</text>
+<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">33건</text>
 <text class="card-emphasis" x="90" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">소스</text>
-<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">9개</text>
+<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">8개</text>
 <text class="card-emphasis" x="90" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">누락</text>
 <text class="card-text" x="310" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">없음</text>
 <text class="card-emphasis" x="90" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">사유</text>
@@ -19,9 +19,9 @@
 <text class="card-text" x="620" y="266" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">실패 · source &#x27;binance-crypto-market&#x27; failed:</text>
 <text class="card-emphasis" x="620" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">congress-gov-bill-actions</text>
 <text class="card-text" x="620" y="326" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">실패 · source &#x27;congress-gov-bill-actions&#x27;</text>
-<text class="card-emphasis" x="620" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">senate-banking-policy</text>
+<text class="card-emphasis" x="620" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">coingecko-price</text>
 <text class="card-text" x="620" y="386" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 0건 반환</text>
-<text class="card-emphasis" x="620" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">정상 10개</text>
-<text class="card-text" x="620" y="446" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">정상 · alternative-fng, okx-derivatives,</text>
+<text class="card-emphasis" x="620" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">senate-banking-policy</text>
+<text class="card-text" x="620" y="446" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 0건 반환</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

@@ -3,16 +3,16 @@
 <rect class="card-bg" width="1200" height="630"/>
 <rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 관심 자산 관련성</text>
-<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-26 · 매칭 18건 · 기본 바스켓</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-26 · 매칭 15건 · 기본 바스켓</text>
 <text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">Global crypto market cap $2,617,954,104,632; BTC dominance</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">Global crypto market cap $2,614,285,710,490; BTC dominance</text>
 <text class="card-emphasis" x="90" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC $75,772.00 (-1.84%)</text>
+<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">DeFi TVL $81.3B; leader Ethereum</text>
 <text class="card-emphasis" x="90" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">DeFi TVL $81.5B; leader Ethereum</text>
+<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 미결제약정 $461,628,600 (OKX, UTC 24h)</text>
 <text class="card-emphasis" x="90" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 미결제약정 $453,438,730 (OKX, UTC 24h)</text>
+<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 펀딩비 0.0000831706735890 (OKX, UTC 24h)</text>
 <text class="card-emphasis" x="90" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">BTC</text>
-<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC 펀딩비 0.0000580779137873 (OKX, UTC 24h)</text>
+<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">BTC-USD 75,629.42</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

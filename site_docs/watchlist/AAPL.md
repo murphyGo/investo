@@ -6,10 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-05-26
 
+- [nasdaq-stocks-news] **ticker**: Apple Stock Hits New Record Highs as AI Doubts Begin to Fade
 - [stooq-price] **ticker**: AAPL 308.33
-- [yfinance-price] **ticker**: AAPL 308.33 (-0.16%)
 
 <!-- u33 entry 2026-05-26 end -->
+
 <!-- u33 entry 2026-05-25 begin -->
 
 ## 2026-05-25

@@ -3,16 +3,16 @@
 <rect class="card-bg" width="1200" height="630"/>
 <rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 관심 자산 관련성</text>
-<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-26 · 매칭 8건 · 기본 바스켓</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-26 · 매칭 9건 · 기본 바스켓</text>
 <text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>
-<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AAPL 308.33</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">Apple Stock Hits New Record Highs as AI Doubts Begin to Fade</text>
 <text class="card-emphasis" x="90" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>
-<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AAPL 308.33 (-0.16%)</text>
+<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AAPL 308.33</text>
 <text class="card-emphasis" x="90" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AMZN</text>
-<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AMZN 265.31</text>
-<text class="card-emphasis" x="90" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">GOOGL</text>
-<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">GOOGL 388.88</text>
-<text class="card-emphasis" x="90" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">META</text>
-<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">META 612.34</text>
+<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AMZN 265.29</text>
+<text class="card-emphasis" x="90" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AMZN</text>
+<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AMZN 265.29 (-0.39%)</text>
+<text class="card-emphasis" x="90" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">GOOGL</text>
+<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">GOOGL 388.88</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
