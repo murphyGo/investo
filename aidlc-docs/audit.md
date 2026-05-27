@@ -1,5 +1,37 @@
 # AI-DLC Audit Log
 
+## Construction — u86 curated-context-asset-library FD + NFR authored
+**Timestamp**: 2026-05-28T16:40:00+09:00
+**Trigger**: u86 plan approved ("Continue to Next Stage"); user confirmed two binding policy refinements — (1) deferred-asset allowance, (2) seed a minimum of real cleared binaries. Planner authors the FD + NFR docs that pin R-numbers / AC-numbers before the developer starts Step 1. (Concurrent session active — aidlc-docs additive only; the u80/u81 Wave-14 entries below are preserved.)
+**Decision**: Authored the three per-unit FD files (**R1-R9**, entities **E1-E5**, invariants **I1-I16**) and the two NFR files (**AC-1.1-AC-1.6**, **TS-1-TS-3**). No application code, no seed binaries authored (developer owns Steps 1-6 in a separate worktree).
+**Design Q/A (user-confirmed policy, binding)**:
+- **Deferred-asset allowance (R8 / I14-I16, AC-1.2)**: a registered key may lack a committed binary **only** when **explicitly** declared `deferred` via a machine-checkable marker (sibling `{asset_id}.deferred` file OR `allowed_use` substring `not-yet-available`). An explicit-deferred key **passes** the strict CI gate (green); a binary-absent key with **no** marker is `(invalid)` and **fails** (red) — no silent empties. Deferred keys are never selectable (I10/I11) and never render. **Auto-verification on fill (I15)**: when the binary is later committed + marker removed, the gate re-classifies the key as `filed` and applies R2/R3/R4 + AC-1.1 with no spec/script edit.
+- **Seed minimum-real-binaries (Step 5)**: ship 2-3 high-confidence seeds as actual cleared binaries (e.g. Powell official PD portrait `person:jerome-powell`, PD Bitcoin logo `asset:bitcoin`, one Unsplash Wall-Street topic) to prove end-to-end; remaining seed candidate keys registered as `deferred`.
+- Runtime scraping stays disabled (`EXTERNAL_IMAGE_SCRAPING_ENABLED=False`); curated path performs zero external fetch (R4 / AC-1.5). License-clean sourcing only (R2); excluded categories hard-rejected (R3). Reuse `ExternalAssetManifest` (`curated-licensed` kind), `provenance.py` caption/manifest, `assets.py` validation gate, u64 watchlist matcher. Hero priority pinned: `external-context-image > curated-context-image > ai-market-hero > data-confidence` (R9).
+**Deferred-asset state machine (E5 summary)**: `deferred` (marker + no binary → green, non-selectable) → `filed` (binary + manifest, clears R2/R3/R4 + budget → green, selectable). `(invalid)` (silent empty / no manifest / disallowed license / over-budget) → gate RED. The marker's presence is the green/red discriminator; the marker's removal is the deferred→filed transition signal.
+**TS- decision**: **TS-1** no new dependency — **pillow NOT introduced**; reuse the existing `visuals/assets.py` PNG/JPEG/SVG signature + dimension parsing. **TS-2** reuse manifest + provenance types (no parallel schema; single-sourced R13 redaction). **TS-3** CI gate `scripts/check_curated_assets.py` stdlib-only, mirrors `check_no_paid_apis.py`. Net dependency delta: none.
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u86-curated-context-asset-library/functional-design/business-logic-model.md` (new)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u86-curated-context-asset-library/functional-design/business-rules.md` (new — R1-R9)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u86-curated-context-asset-library/functional-design/domain-entities.md` (new — E1-E5, I1-I16)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u86-curated-context-asset-library/nfr-requirements/nfr-requirements.md` (new — AC-1.1-AC-1.6)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u86-curated-context-asset-library/nfr-requirements/tech-stack-decisions.md` (new — TS-1-TS-3)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u86-curated-asset-library-code-generation-plan.md` (Stage Decision note + NFR AC coverage map updated; R/AC pinned)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (Per-Unit table: u86 FD ✅ + NFR ✅; CG stays Planned 0/6)
+**Status**: u86 FD + NFR complete; Code Generation Planned (0/6). Developer may start Step 1 (R-numbers / AC-numbers pinned). No application code changed.
+**Context**: Project rules re-stated and enforced in the FD/NFR — module boundary (visuals stays in its layer; only orchestrator imports the 4 product units), no paid APIs, disclaimer gate unchanged (R9), Telegram channel separation untouched, R13 secret hygiene via the u27 chokepoint (R7 / AC-1.6).
+
+---
+
+## Construction — u82 site-index-subpackage Complete (Wave 14, Phase 2 — Phase 2 done)
+**Timestamp**: 2026-05-28T16:35:00+09:00
+**Trigger**: u82 Code Generation landed (developer) — structural module→package split; full gate green. **Closes Wave 14 Phase 2 (u80/u81/u82).** (Concurrent session active — additive only; u86 entries preserved.)
+**Decision**: Ratify and close u82 (4/4). `publisher/site_index.py` (681 lines, 4 independent surfaces) → `publisher/site_index/` package: `_blocks.py` (`_replace_section`/`_replace_marker_block`/`_escape_inline`/`_write_text_atomic`→delegates to u78 `write_atomic`, `_NEXT_HEADING_RE`) + `_constants.py` (paths/markers/`_SEGMENTS`) + one module per surface (`hero`/`archive_sections`/`segment_archives`/`quality_dashboard`). `update_latest_index_pages` driver in `__init__.py` (same call order) + full public re-export + `X as X` private aliases for cross-module refs. Call-time monkeypatch preserved: `update_quality_page`/`update_accuracy_page` resolve default page path via the package namespace so `conftest.py` `monkeypatch.setattr(site_index_mod, …)` still reaches them.
+**Behavior preservation**: move-only; **zero caller import edits** (orchestrator + tests unchanged), **pytest 2767 — delta 0** = byte-identical pages; mkdocs --strict identical. Gate: ruff clean, mypy --strict 172 files. `quality_consistency.py` untouched; no `MarkdownBuilder` introduced; zero `os.replace` write pattern remains in the package.
+**Status**: u82 complete (4/4). FD+NFR SKIP confirmed. **Phase 2 (u80/u81/u82) complete.** Next: Phase 3 — u83 (briefing god-module, high risk) → u84 (orchestrator, highest risk) → u85 (capstone, HARD dep on u84), one at a time gate-green between each.
+
+---
+
 ## Construction — u81 reader-format-subpackage Complete (Wave 14, Phase 2)
 **Timestamp**: 2026-05-28T16:10:00+09:00
 **Trigger**: u81 Code Generation landed (developer) — pure structural module→package split; full gate green. (Concurrent session active — additive only.)
