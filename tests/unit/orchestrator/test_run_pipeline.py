@@ -41,6 +41,7 @@ from investo.models import (
 )
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.orchestrator import pipeline as pipeline_module
+from investo.orchestrator import validators as validators_module
 from investo.orchestrator.pipeline import (
     _briefing_url_for,
     _build_failure_context,
@@ -794,7 +795,9 @@ async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
         calls += 1
         return calls != 2
 
-    monkeypatch.setattr(pipeline_module, "verify_disclaimer", fake_verify_disclaimer)
+    # u85 — verify_disclaimer is now invoked through the publish-boundary
+    # validator registry (orchestrator.validators); patch it there.
+    monkeypatch.setattr(validators_module, "verify_disclaimer", fake_verify_disclaimer)
 
     result = await run_pipeline(
         _TARGET,

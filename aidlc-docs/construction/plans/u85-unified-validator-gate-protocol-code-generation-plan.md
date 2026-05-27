@@ -3,7 +3,7 @@
 **Date**: 2026-05-28
 **Unit**: u85 unified-validator-gate-protocol
 **Stage**: Code Generation (refactor)
-**Status**: Planned — not started (0/5 steps)
+**Status**: In progress — 5/5 steps done; descoped per wrong-abstraction stop (see Step 3/4 notes)
 **Source**: 2026-05-28 abstraction review — briefing checks + publisher gates
 **Estimated Effort**: ~5-6 h
 **Dependencies**: **u84 — HARD** (both rewrite the orchestrator's blocking-gate call sites; if u85 swaps call sites against the old inline cascade and u84 then rewrites that cascade, they conflict — u85 MUST land strictly after u84 closes; review 2026-05-28). **u83 — soft.**
@@ -61,29 +61,29 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — define the contract `[ ]`
+### Step 1 — define the contract `[x]`
 > **Scope `ValidationResult` as a thin GATING ENVELOPE, not a payload-unifier (review 2026-05-28, guide §9.4/§9.5).** The ~16 checks have genuinely divergent inputs (markdown vs `NormalizedItem`s vs `log_path`+`price_lookup` vs `BundleContext`), outputs, and side-effect profiles (`compute_accuracy` does file I/O; `leak_guard.scan` is pure). Unifying their *payloads* would be the wrong abstraction. The protocol unifies ONLY the *gating role* (severity + ordering). Consumers needing structured detail keep calling the underlying check directly — **never reconstruct per-check structured data out of the generic `findings` tuple** (that is the wrong-abstraction trap maturing; if adapters start accreting special-cases, re-inline per guide §9.5).
-- [ ] Add `ValidationResult` (`findings: tuple[...]`, `message: str`, severity) and a `Validator` protocol in the shared layer. Default home `_internal/` (a behavioral contract, not a persisted/domain entity — the plan's own Stage Decision); record the choice.
-- [ ] **Severity = `pass`/`warn`/`block` only.** DROP `downgrade` unless a concrete existing check produces it (review 2026-05-28, guide §1 YAGNI / §9.6 Rule-of-Three — a 4th level with zero real cases is speculative surface). If a real downgrade case exists, define what consumes it and pin it in AC-85.3.
-- [ ] **DROP `is_blocking` from the protocol** (review 2026-05-28, guide §3 ISP / §1 DRY): it duplicates the `block` severity already in `ValidationResult` and forces every warn-only adapter to declare policy it doesn't own. Let the registry derive blocking from severity + ordering. Keep a static flag only if fail-fast-before-running is truly needed, and document why both exist.
+- [x] Add `ValidationResult` (`findings: tuple[...]`, `message: str`, severity) and a `Validator` protocol in the shared layer. Home: `src/investo/_internal/validation.py` (recorded in module docstring — behavioural contract, not domain entity).
+- [x] **Severity = `pass`/`warn`/`block` only.** `downgrade` DROPPED — no existing Investo gate produces a distinct downgrade outcome.
+- [x] **`is_blocking` DROPPED from the protocol.** Registry derives blocking from the `block` severity; no static flag kept (no fail-fast-before-running need exists).
 - **Acceptance**: types compile under mypy --strict; severity is 3-valued unless a real downgrade case is documented; no `is_blocking` on the protocol (or justified); no call site changed yet.
 
-### Step 2 — wrap briefing checks `[ ]`
-- [ ] Add adapters for the briefing checks (citation_cardinality, date_corruption, leak_guard, numeric_verify, summary_quality, accuracy where invoked in-pipeline), each calling the unchanged function and mapping its result to `ValidationResult`.
-- **Acceptance**: adapters' results equal the underlying checks for fixtures; briefing tests green unchanged.
+### Step 2 — wrap briefing checks `[x]`
+- [x] Added `briefing/validators.py` with `LeakGuardValidator` + `build_post_validation_registry`. **DESCOPED to the genuinely in-pipeline gate (leak_guard only):** of the listed briefing checks, ONLY `leak_guard.scan` is actually invoked inside `briefing/pipeline.py` (`_finalize_briefing`). citation_cardinality / date_corruption / numeric_verify / summary_quality / accuracy are NOT called in the briefing pipeline — they run at the orchestrator publish boundary or in publisher site-index rendering, with divergent inputs. Wrapping functions the briefing pipeline does not call would add dead surface (guide §1 YAGNI). `summary_quality` IS wrapped — on the orchestrator side, where it actually fires (Step 3).
+- **Acceptance**: adapter result equals `leak_guard.scan` for clean/leaky fixtures; briefing tests green unchanged.
 
-### Step 3 — wrap publisher gates `[ ]`
-- [ ] Add adapters for compliance_language, cross_segment_lint, anchor_assertion_gate, cross_market_cause_map, quality_consistency. `block`-level adapters preserve the existing raise/`*Error` at the publish boundary.
-- **Acceptance**: blocking gates still raise the same exceptions on the same inputs; publisher tests green unchanged.
+### Step 3 — wrap publisher gates `[x]` (descoped to the genuinely-alike boundary trio)
+- [x] Added `orchestrator/validators.py` with `FirstViewportSummaryValidator` (raise-through `SummaryQualityError`), `DisclaimerFooterValidator`, `ShortDisclaimerValidator` + `build_publish_boundary_registry`. These are the three gates that run as a **flat, ordered, per-segment sequence at the actual orchestrator publish boundary** (`_stage_publish_segments`).
+- [x] **STOPPED on compliance_language / cross_segment_lint / anchor_assertion_gate / cross_market_cause_map (wrong-abstraction signal, plan's descope permission + guide §9.5).** These gates do NOT run as a separable orchestrator-level sequence — they are interleaved BETWEEN the str→str markdown transforms deep inside `publisher/segment_reader_format.py`, with load-bearing ordering (`scan_compliance` runs once before and once after `render_watchpoint_matrix`). Lifting them into a flat registry would require reordering that mutation pipeline = a behaviour change Wave 14 forbids. They stay where they are. `quality_consistency` (`_enforce_quality_consistency_gate`) is a single standalone gate already at its own clean boundary point with bespoke rollback semantics; wrapping a 1-element registry around it adds indirection with no ordering benefit, so it is left as-is.
+- **Acceptance**: blocking gates still raise the same exceptions on the same inputs; publisher + orchestrator tests green unchanged.
 
-### Step 4 — registry + call-site swap `[ ]`
-- [ ] Add a registry that holds validators in the **current execution order** and runs them, aggregating results (and raising on the first `block` exactly where the pipeline raises today).
-- [ ] Swap the orchestrator/briefing ad-hoc sequence to call the registry. Preserve order and the exact point where blocking occurs.
-- **Acceptance**: full pipeline + integration tests green unchanged; the order and blocking behavior are identical.
+### Step 4 — registry + call-site swap `[x]`
+- [x] Registry (`ValidationRegistry` in `_internal/validation.py`) holds validators in the **current execution order**, runs them, short-circuits on the first `block`, and lets a raise-through adapter's exception propagate unchanged.
+- [x] Swapped two call sites: (1) `briefing/pipeline.py::_finalize_briefing` → `build_post_validation_registry` (same `BriefingGenerationError`, same message); (2) `orchestrator/pipeline.py::_stage_publish_segments` per-segment trio → `build_publish_boundary_registry` (same order, same `SummaryQualityError` / `PublisherDisclaimerError`, same log text). One mechanical test fix: `test_run_pipeline.py` now patches `verify_disclaimer` on `orchestrator.validators` (its new resolution site).
+- **Acceptance**: full pipeline + integration tests green unchanged; order and blocking behaviour identical.
 
-### Step 5 — full gate `[ ]`
-- [ ] ruff / ruff-format / mypy --strict / pytest (full) / mkdocs build --strict.
-- **Acceptance**: full gate green.
+### Step 5 — full gate `[x]`
+- [x] ruff check ✓ / ruff format --check ✓ / mypy --strict src ✓ (193 files) / pytest ✓ (2844) / mkdocs build --strict ✓.
 
 ---
 

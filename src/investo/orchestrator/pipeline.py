@@ -121,7 +121,6 @@ from investo.briefing.segments import (
 from investo.briefing.summary_quality import (
     SummaryQualityError,
     repair_first_viewport_summary,
-    validate_first_viewport_summary,
 )
 from investo.briefing.watchlist import load_watchlist, match_watchlist_items
 from investo.models import (
@@ -162,6 +161,7 @@ from investo.orchestrator.stages import (
     StageAction,
     StageResult,
 )
+from investo.orchestrator.validators import build_publish_boundary_registry
 from investo.publisher import (
     GitRunner,
     PublisherDisclaimerError,
@@ -170,7 +170,6 @@ from investo.publisher import (
     commit_and_push,
     publish_weekly_digest,
     update_weekly_index,
-    verify_disclaimer,
     weekly_digest_opt_in,
     write_briefing,
 )
@@ -203,7 +202,6 @@ from investo.publisher.site_index import (
     update_latest_index_pages,
     update_quality_page,
 )
-from investo.publisher.verifier import verify_short_disclaimer_first_viewport
 from investo.publisher.weekly_digest import (
     WEEKLY_INDEX_PATH,
 )
@@ -837,24 +835,20 @@ async def _stage_publish_segments(
                 briefings[segment] = briefings[segment].model_copy(
                     update={"rendered_markdown": repaired_markdown}
                 )
-            validate_first_viewport_summary(briefings[segment].rendered_markdown)
-            if not verify_disclaimer(briefings[segment].rendered_markdown, segment):
-                _logger.error(
-                    "[publish] disclaimer verification failed segment=%s",
-                    segment,
-                )
-                raise PublisherDisclaimerError(target_date=target_date)
-            # u56 — additive gate: short disclaimer must be present in
-            # the first viewport. Runs *alongside* the canonical footer
-            # check so removing either surface blocks publish.
-            if not verify_short_disclaimer_first_viewport(
-                briefings[segment].rendered_markdown, segment
-            ):
-                _logger.error(
-                    "[publish] first-viewport disclaimer verification failed segment=%s",
-                    segment,
-                )
-                raise PublisherDisclaimerError(target_date=target_date)
+            # u85 — the per-segment publish-boundary gate trio is run
+            # through the shared validator registry (first-viewport
+            # summary → canonical disclaimer footer → first-viewport short
+            # disclaimer), preserving order, the raise-at-boundary
+            # ``SummaryQualityError`` (raised inside the summary gate), and
+            # the ``PublisherDisclaimerError`` raised here on the first
+            # blocking disclaimer result with the same log line.
+            for _gate_result in build_publish_boundary_registry(
+                markdown=briefings[segment].rendered_markdown,
+                segment=segment,
+            ).run():
+                if _gate_result.is_block:
+                    _logger.error("[publish] %s", _gate_result.message)
+                    raise PublisherDisclaimerError(target_date=target_date)
     except (SummaryQualityError, PublisherDisclaimerError, PublisherIOError):
         # Visual asset files (snapshotted with previous_bytes=None) must be
         # rolled back — otherwise a SummaryQualityError leaves orphan

@@ -204,7 +204,6 @@ from investo.briefing.context import RecentBriefingsContext
 from investo.briefing.crypto_indicators import render_crypto_indicator_block
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError
-from investo.briefing.leak_guard import scan as leak_guard_scan
 from investo.briefing.lineage import (
     MacroLineageTrace,
     build_macro_lineage_traces,
@@ -217,6 +216,7 @@ from investo.briefing.segments import (
     build_segment_coverage,
     segment_source_outcomes,
 )
+from investo.briefing.validators import build_post_validation_registry
 from investo.briefing.watchlist import (
     WatchlistConfig,
     WatchlistImpact,
@@ -304,14 +304,15 @@ def _finalize_briefing(
     ``BriefingGenerationError(stage="post_validation")`` if the leak
     guard matches (no retry per R6).
     """
-    hit = leak_guard_scan(full_markdown)
-    if hit is not None:
-        raise BriefingGenerationError(
-            stage="post_validation",
-            attempt_count=1,
-            last_stderr=None,
-            cause=ValueError(f"leak guard matched pattern: {hit.pattern_name}"),
-        )
+    registry = build_post_validation_registry(full_markdown)
+    for result in registry.run():
+        if result.is_block:
+            raise BriefingGenerationError(
+                stage="post_validation",
+                attempt_count=1,
+                last_stderr=None,
+                cause=ValueError(result.message),
+            )
     return Briefing(
         target_date=target_date,
         market_summary=sections[0],
