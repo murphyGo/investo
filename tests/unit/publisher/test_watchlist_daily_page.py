@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
+from pathlib import Path
 
 from investo.briefing.watchlist import WatchlistConfig, match_watchlist_items
 from investo.briefing.watchlist_impact import build_impact_center
@@ -97,6 +98,21 @@ def test_daily_page_segment_backlinks() -> None:
     )
     assert "## 관련 시황" in body
     assert "archive/us-equity/2026/05/2026-05-07.md" in body
+
+
+def test_write_daily_page_prefixes_segment_backlinks_for_mkdocs(tmp_path: object) -> None:
+    root = Path(tmp_path) / "site_docs" / "watchlist"  # type: ignore[arg-type]
+    config = WatchlistConfig(tickers=("NVDA",))
+    center = _center(config, [_item("NVDA up")])
+
+    path = write_daily_impact_page(
+        date(2026, 5, 7),
+        center,  # type: ignore[arg-type]
+        pages_root=root,
+        segment_links=[("미국 주식", "archive/us-equity/2026/05/2026-05-07.md")],
+    )
+
+    assert "../archive/us-equity/2026/05/2026-05-07.md" in path.read_text(encoding="utf-8")
 
 
 def test_daily_page_unconfigured_branch() -> None:

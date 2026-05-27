@@ -20,6 +20,7 @@ explicitly so tests are deterministic.
 
 from __future__ import annotations
 
+import posixpath
 import re
 from collections.abc import Iterable, Sequence
 from datetime import date
@@ -230,6 +231,7 @@ def render_daily_impact_page(
     center: WatchlistImpactCenter,
     *,
     segment_links: Sequence[tuple[str, str]] = (),
+    link_prefix: str = "",
 ) -> str:
     """Render the u73 daily-first watchlist impact center page body.
 
@@ -240,8 +242,9 @@ def render_daily_impact_page(
     source-name + short reason — never the full title.
 
     ``segment_links`` is a sequence of ``(label, url)`` backlinks to the
-    relevant briefing segment/date. Deterministic: same inputs → identical
-    bytes.
+    relevant briefing segment/date. ``link_prefix`` is prepended to relative
+    URLs when the daily page lives below the docs root. Deterministic: same
+    inputs → identical bytes.
     """
     iso = target_date.isoformat()
     lines = [f"# 오늘의 관심 자산 영향 — {iso}", ""]
@@ -271,7 +274,7 @@ def render_daily_impact_page(
         lines.append("## 관련 시황")
         lines.append("")
         for label, url in segment_links:
-            lines.append(f"- [{label}]({url})")
+            lines.append(f"- [{label}]({_prefix_relative_url(url, link_prefix)})")
         lines.append("")
 
     if center.has_diagnostics:
@@ -299,6 +302,12 @@ def _impact_bullet(match: WatchlistMatch) -> str:
         title = title[:117].rstrip() + "…"
     alias_part = f" (별칭 {match.matched_alias})" if match.matched_alias else ""
     return f"- **{match.term}**{alias_part} · [{item.source_name}] {title}"
+
+
+def _prefix_relative_url(url: str, prefix: str) -> str:
+    if not prefix or "://" in url or url.startswith(("#", "/", "mailto:")):
+        return url
+    return posixpath.normpath(f"{prefix.rstrip('/')}/{url.lstrip('/')}")
 
 
 def _diagnostics_block(
@@ -345,7 +354,12 @@ def write_daily_impact_page(
     """
     pages_root.mkdir(parents=True, exist_ok=True)
     path = pages_root / DAILY_IMPACT_PAGE
-    body = render_daily_impact_page(target_date, center, segment_links=segment_links)
+    body = render_daily_impact_page(
+        target_date,
+        center,
+        segment_links=segment_links,
+        link_prefix=posixpath.relpath(pages_root.parent.as_posix(), pages_root.as_posix()),
+    )
     path.write_text(body, encoding="utf-8")
     return path
 

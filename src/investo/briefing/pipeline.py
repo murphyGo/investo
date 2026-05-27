@@ -154,6 +154,7 @@ _MAX_STAGE2_UNASSIGNED_ITEMS: Final[int] = 8
 _CRYPTO_MAX_STAGE2_ITEMS_TOTAL: Final[int] = 32
 _CRYPTO_MAX_STAGE2_ITEMS_PER_SECTION: Final[int] = 8
 _CRYPTO_MAX_STAGE2_UNASSIGNED_ITEMS: Final[int] = 4
+_STAGE2_RETRY_FEEDBACK_MAX_CHARS: Final[int] = 360
 _STAGE2_TITLE_MAX_CHARS: Final[int] = 180
 _STAGE2_SUMMARY_MAX_CHARS: Final[int] = 260
 _STAGE2_URL_MAX_CHARS: Final[int] = 160
@@ -888,6 +889,16 @@ def _render_prompt_url(url: object | None) -> str:
         return ""
     rendered = _truncate_prompt_field(str(url), _STAGE2_URL_MAX_CHARS)
     return f" ({rendered})"
+
+
+def _stage2_retry_feedback(cause: BaseException | None) -> str:
+    if cause is None:
+        return ""
+    message = _truncate_prompt_field(str(cause), _STAGE2_RETRY_FEEDBACK_MAX_CHARS)
+    return (
+        "\n\nPrevious Stage 2 output failed validation. Retry from scratch and obey the "
+        f"exact six required H2 headers. Validation error: {message}\n"
+    )
 
 
 def _render_recent_context_block(
@@ -1660,7 +1671,8 @@ async def _synthesize(
         if attempt > 0:
             await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
 
-        outcome = await call_claude_code(full_prompt, timeout_s=policy.timeout_s, runner=runner)
+        attempt_prompt = f"{full_prompt}{_stage2_retry_feedback(last_cause)}"
+        outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)
         budget.record(outcome.elapsed_s)
         last_outcome = outcome
 

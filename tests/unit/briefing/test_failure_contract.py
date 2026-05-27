@@ -137,6 +137,38 @@ async def test_synthesis_bge_after_three_blank_attempts() -> None:
     assert exc.value.attempt_count == 3
 
 
+@pytest.mark.asyncio
+async def test_synthesis_retry_prompt_includes_validation_feedback() -> None:
+    """A malformed Stage 2 body should teach the next retry what failed."""
+    prompts: list[str | None] = []
+    outcomes = iter(
+        [
+            _outcome(stdout=valid_classification_stdout(item_count=2)),
+            _outcome(stdout="### 헤더 없는 본문\n" + ("내용\n" * 80)),
+            _outcome(stdout=valid_stage2_markdown()),
+        ]
+    )
+
+    def runner(
+        args: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        timeout: float,
+        input: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        del args, capture_output, text, timeout
+        prompts.append(input)
+        return next(outcomes)
+
+    await pipeline.generate_briefing(_TARGET_DATE, _items(2), runner=runner)
+
+    assert prompts[2] is not None
+    assert "Previous Stage 2 output failed validation" in prompts[2]
+    assert "missing section header" in prompts[2]
+    assert "exact six required H2 headers" in prompts[2]
+
+
 # ---------------------------------------------------------------------------
 # Post-validation BGE — AC-3.2 (stage="post_validation")
 # ---------------------------------------------------------------------------
