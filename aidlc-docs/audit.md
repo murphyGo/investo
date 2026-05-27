@@ -1,5 +1,32 @@
 # AI-DLC Audit Log
 
+## Planning — Wave 14 Internal Abstraction & Clean-Code Refactor (u77–u85) units created
+**Timestamp**: 2026-05-28T12:00:00+09:00
+**Trigger**: User requested a whole-codebase abstraction review and AIDLC units to refactor toward reusability / single-responsibility / extensibility / clean code, written so a context-free agent can pick any unit up and execute it.
+**Decision**: Author a 9-unit refactor wave (Wave 14, u77–u85) plus a shared overview defining the **Refactor Contract** all units inherit. These are **behavior-preserving** structural refactors — no product/behavior change; the unchanged existing test suite is the prime proof. No code generated yet (all units `Planned`).
+**Review basis**: 4-module fan-out abstraction review of `src/investo/` (~84k LOC incl. tests). Findings: two god-modules — `orchestrator/pipeline.py` (2775 LOC, 41 fns, imports 34 submodules) and `briefing/pipeline.py` (1918 LOC, 88 fns); large single-file modules `publisher/reader_format.py` (1208), `notifier/summary.py` (755), `publisher/site_index.py` (681); cross-module duplication of low-level primitives (atomic-write ×6, JSON-decode ×17 adapters, UTF-16 truncation, datetime→UTC ×6, numeric-parse ×4); no unifying protocol over the ~11 briefing checks + ~5 publisher gates.
+**Stale findings dropped after verification**: the review's "conclusion-prefix duplicated 5×" and "redaction regex duplicated" are **already resolved** (DEBT-060 via `briefing/extract.py` chokepoint; DEBT-035 via `_internal/redaction.py`). Excluded from the wave; units explicitly forbid reopening them.
+**Units created** (all FD = SKIP, NFR = SKIP — internal refactors):
+- **u77** source-adapter-shared-helpers (`sources/`, low risk, no deps) — 5 duplicated patterns → shared private helpers.
+- **u78** filesystem-write-and-archive-layout-primitives (`publisher/`+`visuals/`, low, no deps) — `write_atomic` + `ArchiveLayout`.
+- **u79** shared-text-primitives (`_internal/`+`briefing/`, low, no deps) — UTF-16 → `_internal/text.py`; briefing regex → `briefing/_text/patterns.py`.
+- **u80** notifier-decomposition-and-dispatcher-base (`notifier/`, medium, dep u79) — summary extraction/formatting split + `TelegramDispatcher` base.
+- **u81** reader-format-subpackage (`publisher/`, medium, dep u78 soft) — `reader_format.py` → package, one module per pass.
+- **u82** site-index-subpackage (`publisher/`, medium, dep u78) — `site_index.py` → package, one module per surface.
+- **u83** briefing-pipeline-decomposition (`briefing/`, high, dep u79 soft) — `_core`/`_assembly`/`_reader_enhance`; byte-identical markdown.
+- **u84** orchestrator-stage-abstraction (`orchestrator/`, highest risk, dep u81 soft) — `Stage` protocol + routing loop; reader-format leak relocated to `publisher/`.
+- **u85** unified-validator-gate-protocol (`briefing/`+`publisher/`, capstone, dep u83+u84 soft) — `Validator` protocol + `ValidationResult` + registry; additive wrappers.
+**Sequencing**: Phase 1 (u77/u78/u79 parallelizable foundation) → Phase 2 (u80/u81/u82 module splits) → Phase 3 (u83 → u84 → u85, one at a time, gate-green between each).
+**Open TECH-DEBT to potentially close (verify live IDs first)**: `_stage_publish_segments` absolute-vs-relative path normalization → folded into u84; duplicated summary-reject regexes (`briefing/pipeline.py` vs `summary_quality.py`) → candidate for u79. No new TECH-DEBT registered at planning time.
+**Affected docs**:
+- `aidlc-docs/construction/plans/wave-14-abstraction-refactor-overview.md` (new — Refactor Contract + sequencing + dependency matrix)
+- `aidlc-docs/construction/plans/u77..u85-*-code-generation-plan.md` (9 new plan files, self-contained, with Stage Decision + `[ ]` steps + AC)
+- `aidlc-docs/aidlc-state.md` (Per-Unit table: 9 `Planned` rows u77–u85)
+**Status**: Wave 14 planned (0/9 units started). Code Generation stage remains Active. Next action: a developer/agent picks u77 (or any Phase-1 unit), reads the overview's Refactor Contract, and implements with the existing suite as the behavior-preservation gate.
+**Context**: Project rules re-stated in every plan and enforced as the wave's #1 contract — no Anthropic SDK, module boundary (only `orchestrator` imports the 4 units; `models/`+`_internal/` are the shared layers), free APIs, disclaimer gate, Telegram channel separation, `defusedxml`-only, R13 secret hygiene. No application code changed in this planning step.
+
+---
+
 ## Construction — u76 plain-language-reader-aids Complete (Wave 13 backlog cleared)
 **Timestamp**: 2026-05-24T27:00:00+09:00
 **Trigger**: u76 (plain-language-reader-aids) Code Generation landed — code/tests/wiring/gate all green (developer). FD = SKIP (no entity); `code/summary.md` + state/audit + Step close deferred to planner per module-boundary rule. **This is the last unit of the Wave 13 backlog (u69–u76)** — backlog now empty. Concurrent session active — aidlc-docs additive only, other lines preserved.
