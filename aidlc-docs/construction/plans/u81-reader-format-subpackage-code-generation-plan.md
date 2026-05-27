@@ -64,23 +64,23 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — create the package skeleton `[ ]`
-- [ ] Create `publisher/reader_format/` with `_constants.py` (all shared markers/regex) and one module per pass: `tldr.py`, `headings.py`, `emphasis.py`, `watchpoint_audit.py`, `glossary.py`, `meaning.py`, `disclaimer.py`, `sentence_audit.py`, `reflow.py`.
-- [ ] Move each pass's functions + its private helpers into the matching module, importing shared markers from `_constants.py`.
+### Step 1 — create the package skeleton `[x]`
+- [x] Create `publisher/reader_format/` with `_constants.py` (all shared markers/regex) and one module per pass: `tldr.py`, `headings.py`, `emphasis.py`, `watchpoint_audit.py`, `glossary.py`, `meaning.py`, `disclaimer.py`, `sentence_audit.py`, `reflow.py`.
+- [x] Move each pass's functions + its private helpers into the matching module, importing shared markers from `_constants.py`.
 - **Acceptance**: each pass module imports cleanly; no logic edits (diff is move-only per pass).
 
-### Step 2 — orchestration in `__init__.py` `[ ]`
-- [ ] Put `apply_reader_format` and `reflow_first_viewport` in `reader_format/__init__.py`, calling the passes in the **exact** existing order.
-- [ ] Re-export every name currently importable from `reader_format` (functions + constants + `__all__`) so callers and tests are unchanged.
+### Step 2 — orchestration in `__init__.py` `[x]`
+- [x] Put `apply_reader_format` and `reflow_first_viewport` in `reader_format/__init__.py`, calling the passes in the **exact** existing order.
+- [x] Re-export every name currently importable from `reader_format` (functions + constants + `__all__`) so callers and tests are unchanged.
 - **Acceptance**: `grep -rn "reader_format" src tests` shows no caller needs an import-path edit; `__all__` matches the old module's.
 
-### Step 3 — behavior-preservation verification `[ ]`
-- [ ] Run the full reader-format + pipeline + integration test set unchanged.
-- [ ] Spot-check idempotency tests (u51/u71/u76 reruns must still be byte-stable).
+### Step 3 — behavior-preservation verification `[x]`
+- [x] Run the full reader-format + pipeline + integration test set unchanged.
+- [x] Spot-check idempotency tests (u51/u71/u76 reruns must still be byte-stable).
 - **Acceptance**: `tests/unit/publisher/test_reader_format*.py`, `test_reader_format_meaning_u76.py`, integration pipeline test — all green unchanged.
 
-### Step 4 — full gate `[ ]`
-- [ ] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict.
+### Step 4 — full gate `[x]`
+- [x] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict.
 - **Acceptance**: full gate green.
 
 ---

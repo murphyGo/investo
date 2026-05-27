@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u81 reader-format-subpackage Complete (Wave 14, Phase 2)
+**Timestamp**: 2026-05-28T16:10:00+09:00
+**Trigger**: u81 Code Generation landed (developer) — pure structural module→package split; full gate green. (Concurrent session active — additive only.)
+**Decision**: Ratify and close u81 (4/4). `publisher/reader_format.py` (1208 lines) → `publisher/reader_format/` package: `_constants.py` (shared markers/regex + the package logger, named `investo.publisher.reader_format` to preserve `caplog` logger-name identity) + one module per pass (`tldr`/`headings`/`emphasis`/`watchpoint_audit`/`glossary`/`meaning`/`disclaimer`/`sentence_audit`/`reflow`). `apply_reader_format` + `_split_disclaimer_footer` orchestration in `__init__.py` in the **exact verbatim** pass order (u76 step / u71 position untouched). All 26 public `__all__` names re-exported; additionally 5 PRIVATE names (`_BULLET_RE`, `_SECTION_HEADER_RE`, `_WATCHPOINT_{SOURCE,TRIGGER,IMPLICATION}_RE`) re-exported via explicit `X as X` aliases (NOT in `__all__`) because `watchpoint_matrix.py` imports them directly — preserves that path under mypy `no_implicit_reexport`.
+**Behavior preservation**: every move was move-only (no logic edit); **zero caller import edits** (`git diff` over all callers clean), **zero test edits**, **pytest 2767 — delta 0** vs baseline = byte-for-byte identical output (the unchanged suite is the proof). Gate: ruff clean, mypy --strict 166 files, mkdocs --strict ok.
+**TECH-DEBT candidate**: package `__all__` freezes today's full 26-name surface + 5 private re-exports as API; follow-up should narrow `__all__` and give `watchpoint_matrix` a proper shared home for the structure regexes instead of reaching into a sibling's privates (wave-wide deferred "narrow surface" debt).
+**Status**: u81 complete (4/4). FD+NFR SKIP confirmed. Next: u82 (site_index → package, dep u78 ✓).
+
+---
+
 ## Construction — u80 notifier-decomposition-and-dispatcher-base Complete (Wave 14, Phase 2)
 **Timestamp**: 2026-05-28T15:45:00+09:00
 **Trigger**: u80 Code Generation landed (developer) — behavior-preserving notifier decomposition; full gate green. (Concurrent session active — aidlc-docs additive only; u86 planning entry below preserved.)
