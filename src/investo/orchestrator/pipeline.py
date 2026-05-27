@@ -72,21 +72,15 @@ import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import UTC, date, datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
-from investo.briefing.carryover_parser import (
-    load_carryover,
-    resolve_lookback_days,
-)
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
-    load_recent_briefings,
-    resolve_recent_days,
 )
 from investo.briefing.disclaimer import ensure_canonical_disclaimer
 from investo.briefing.errors import BriefingGenerationError
@@ -97,10 +91,8 @@ from investo.briefing.forecast_log import (
 )
 from investo.briefing.lineage import MacroLineageTrace
 from investo.briefing.market_anchor import (
-    DEFAULT_HISTORY_WINDOW_DAYS,
     MarketAnchor,
     OHLCRow,
-    compute_market_anchors,
 )
 from investo.briefing.monthly_retrospective import (
     month_has_archive_days,
@@ -156,6 +148,20 @@ from investo.orchestrator import source_health
 from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
+from investo.orchestrator.stage_context import (
+    SEGMENT_ORDER,
+    _build_kr_anchors_from_items,
+    _load_carryover_for_run,
+    _load_market_anchors_for_run,
+    _load_recent_context_for_run,
+    _snapshot_close_by_ticker,
+)
+from investo.orchestrator.stages import (
+    PipelineContext,
+    Stage,
+    StageAction,
+    StageResult,
+)
 from investo.publisher import (
     GitRunner,
     PublisherDisclaimerError,
@@ -174,39 +180,20 @@ from investo.publisher import (
 from investo.publisher import site_index as _site_index_mod
 from investo.publisher.anchor_assertion_gate import (
     NumericAnchorReconciliationError,
-    enforce_anchor_assertions,
 )
-from investo.publisher.anchor_table import render_anchor_table
 from investo.publisher.carryover import inject_carryover_block, render_carryover_block
-from investo.publisher.channel_anchor_block import (
-    inject_channel_anchor_block,
-    render_channel_anchor_block,
-)
 from investo.publisher.chart_sidecar import write_chart_sidecar
 from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
-    repair_compliance_language,
-    scan_compliance,
-)
-from investo.publisher.cross_market_cause_map import (
-    evaluate_cause_map,
-    inject_cause_map_line,
-)
-from investo.publisher.cross_segment_lint import run_all_cross_segment_lints
-from investo.publisher.crypto_indicators import (
-    inject_crypto_indicator_block,
-    render_crypto_indicator_block,
 )
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.reader_format import (
-    apply_reader_format,
-    check_filler_phrase_density,
-    check_sentence_ending_diversity,
     emit_first_viewport_disclaimer,
-    reflow_first_viewport,
 )
-from investo.publisher.shared_macro import inject_shared_macro_block
+from investo.publisher.segment_reader_format import (
+    apply_reader_format_to_segments as _apply_reader_format_to_segments,
+)
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
     ARCHIVE_INDEX_PATH,
@@ -217,7 +204,6 @@ from investo.publisher.site_index import (
     update_quality_page,
 )
 from investo.publisher.verifier import verify_short_disclaimer_first_viewport
-from investo.publisher.watchpoint_matrix import render_watchpoint_matrix
 from investo.publisher.weekly_digest import (
     WEEKLY_INDEX_PATH,
 )
@@ -227,6 +213,14 @@ from investo.publisher.weekly_digest import (
 from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
+from investo.visuals.curated import (
+    CuratedAsset,
+    CuratedLibraryError,
+    CuratedSelection,
+    default_registry,
+    load_library,
+    select_curated_asset,
+)
 from investo.visuals.og_card import (
     OG_CARD_PNG_RELATIVE_PATH,
     OG_CARD_RELATIVE_PATH,
@@ -293,11 +287,6 @@ SegmentGenerateCallable = Callable[
     ],
     Awaitable[Briefing],
 ]
-SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
-    DOMESTIC_EQUITY,
-    US_EQUITY,
-    CRYPTO,
-)
 SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
     # 2026-05-21 GHA postmortem — crypto Stage 2 exhausted the 15-minute
     # per-call synthesis ceiling on otherwise publishable runs. The workflow
@@ -1135,134 +1124,6 @@ async def _stage_publish_segments(
     return archive_paths
 
 
-# u49 deterministic-market-anchor segment routing. Mirrors the price-
-# adapter coverage: us-equity owns the S&P 500 / NASDAQ / DJIA indices
-# plus the seven big-tech bellwethers; crypto owns BTC-USD / ETH-USD;
-# domestic-equity has no Yahoo-coverable basket today (KOSPI / KOSDAQ
-# are not part of the snapshot adapters' default basket and would
-# need a separate fetcher — out of scope for u49 per the plan).
-_ANCHOR_SEGMENT_ROUTING: dict[str, MarketSegment] = {
-    "^GSPC": US_EQUITY,
-    "^IXIC": US_EQUITY,
-    "^DJI": US_EQUITY,
-    "AAPL": US_EQUITY,
-    "MSFT": US_EQUITY,
-    "GOOGL": US_EQUITY,
-    "AMZN": US_EQUITY,
-    "NVDA": US_EQUITY,
-    "META": US_EQUITY,
-    "TSLA": US_EQUITY,
-    "BTC-USD": CRYPTO,
-    "ETH-USD": CRYPTO,
-    # u67 — domestic index close + 원/달러 (from stooq-kr-market). These
-    # are not Yahoo-history-backed (yfinance KRW=X / ^kospi are 429 on the
-    # GHA IP); the anchors are synthesized close-only from the domestic
-    # price snapshot items via ``_build_kr_anchors_from_items``.
-    "^KOSPI": DOMESTIC_EQUITY,
-    "^KOSDAQ": DOMESTIC_EQUITY,
-    "KRW=X": DOMESTIC_EQUITY,
-}
-
-
-async def _load_market_anchors_for_run(
-    target_date: date,
-) -> tuple[
-    dict[MarketSegment, tuple[MarketAnchor, ...]],
-    dict[str, tuple[OHLCRow, ...]],
-]:
-    """Fetch trailing price history and compute per-segment market anchors (u49).
-
-    Returns both:
-
-    * ``anchors_by_segment`` — the per-segment :class:`MarketAnchor`
-      tuples consumed by the briefing header line.
-    * ``history_by_ticker`` — the raw ``OHLCRow`` history keyed by
-      ticker; the publisher (u50) feeds this into Lightweight Charts
-      placeholders so the same fetch underpins both surfaces.
-
-    Best-effort: any failure (network, 429, malformed JSON) is logged
-    and swallowed; the orchestrator continues with empty anchors AND
-    empty history, the briefing header omits the
-    ``> **시장 anchor**`` line, and the chart-block injection skips
-    silently. The function is async because the underlying HTTP
-    fetch is async; the post-fetch computation is pure synchronous.
-    """
-    import httpx
-
-    from investo.sources.yfinance_history import fetch_price_history
-
-    empty_anchors: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
-        segment: () for segment in SEGMENT_ORDER
-    }
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            history = await fetch_price_history(client)
-    except Exception as exc:  # pragma: no cover - best-effort guard
-        _logger.warning(
-            "[market_anchor] history fetch failed (%s); briefing header anchor omitted",
-            exc,
-        )
-        return empty_anchors, {}
-
-    anchors = compute_market_anchors(
-        history,
-        today=target_date,
-        history_window_days=DEFAULT_HISTORY_WINDOW_DAYS,
-    )
-    by_segment: dict[MarketSegment, list[MarketAnchor]] = {segment: [] for segment in SEGMENT_ORDER}
-    for anchor in anchors:
-        segment = _ANCHOR_SEGMENT_ROUTING.get(anchor.ticker)
-        if segment is None:
-            continue
-        by_segment[segment].append(anchor)
-    _logger.info(
-        "[market_anchor] target_date=%s tickers=%d us=%d crypto=%d domestic=%d",
-        target_date,
-        len(anchors),
-        len(by_segment[US_EQUITY]),
-        len(by_segment[CRYPTO]),
-        len(by_segment[DOMESTIC_EQUITY]),
-    )
-    history_by_ticker = {ticker: tuple(rows) for ticker, rows in history.items()}
-    return (
-        {segment: tuple(values) for segment, values in by_segment.items()},
-        history_by_ticker,
-    )
-
-
-# u67 — canonical KR anchor tickers and their display priority. KOSPI /
-# KOSDAQ / 원/달러 are sourced from the stooq-kr-market snapshot items
-# (NOT Yahoo history), so they have no ATH / 52w / MTD / YTD derivation —
-# they render as a close-only anchor row (note column "—").
-_KR_ANCHOR_TICKERS: Final[tuple[str, ...]] = ("^KOSPI", "^KOSDAQ", "KRW=X")
-
-
-def _build_kr_anchors_from_items(
-    items: Sequence[NormalizedItem],
-) -> tuple[MarketAnchor, ...]:
-    """Synthesize close-only domestic :class:`MarketAnchor` rows (u67).
-
-    The Yahoo-history anchor path cannot supply KOSPI / KOSDAQ / 원/달러
-    (the v8 chart endpoint returns HTTP 429 for ``^kospi`` / ``KRW=X``
-    from the GitHub Actions IP space). Instead the domestic anchor table
-    is built from the deterministic ``stooq-kr-market`` price snapshot
-    items: one anchor per KR ticker, close-only (derived range / period
-    fields stay ``None`` → the table renders a "—" note). The body / trace
-    cite the same ``close`` value, so all three surfaces agree.
-
-    Empty / missing KR items ⇒ empty tuple (the domestic table omits the
-    KR rows entirely, matching the existing graceful-degrade contract).
-    """
-    snapshot = _snapshot_close_by_ticker(items)
-    anchors: list[MarketAnchor] = []
-    for ticker in _KR_ANCHOR_TICKERS:
-        close = snapshot.get(ticker)
-        if close is None:
-            continue
-        anchors.append(MarketAnchor(ticker=ticker, close=close, is_ath=False))
-    return tuple(anchors)
-
-
 def _inject_chart_blocks_into_segments(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
@@ -1334,14 +1195,6 @@ def _inject_chart_blocks_into_segments(
 # only — no I/O, no clock, no env reads — so a same-day re-publish
 # (FR-006) yields byte-equal output.
 #
-# Disclaimer enforcement: the chain does NOT touch the disclaimer string
-# (regexes anchor on header / sub-heading / number patterns that never
-# coincide with ``briefing.disclaimer.DISCLAIMER``). Pinned by
-# ``tests/integration/test_briefing_reader_format.py`` and
-# ``tests/unit/publisher/test_reader_format.py::test_apply_reader_format_preserves_disclaimer``.
-_ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
-
-
 # ---------------------------------------------------------------------------
 # P1-2 — header-table / body / trace close reconciliation (option B).
 #
@@ -1371,34 +1224,6 @@ _ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULT
 # a swap would only churn the bytes.
 _ANCHOR_CLOSE_ABS_TOLERANCE: Final[Decimal] = Decimal("0.01")
 _ANCHOR_CLOSE_REL_TOLERANCE: Final[Decimal] = Decimal("0.0005")  # 0.05 %
-
-
-def _snapshot_close_by_ticker(items: Sequence[NormalizedItem]) -> dict[str, Decimal]:
-    """Build ``ticker -> Decimal(close)`` from price-snapshot items.
-
-    Reads ``raw_metadata["ticker"]`` + ``raw_metadata["close"]`` off every
-    ``category == "price"`` item. This is the exact close value the body
-    prose and the trace footer surface (the snapshot adapters derive the
-    item title and the ``core_fact:`` overlay from the same field), so an
-    anchor overridden to this value agrees with both other surfaces.
-
-    Last-writer-wins on duplicate tickers (matches the numeric_verify
-    aggregation contract). Rows with a missing / unparseable close are
-    skipped — the anchor then falls back to its history close.
-    """
-    out: dict[str, Decimal] = {}
-    for item in items:
-        if item.category != "price":
-            continue
-        ticker = str(item.raw_metadata.get("ticker", "")).strip()
-        close_raw = str(item.raw_metadata.get("close", "")).strip()
-        if not ticker or not close_raw:
-            continue
-        try:
-            out[ticker] = Decimal(close_raw)
-        except (InvalidOperation, ValueError):
-            continue
-    return out
 
 
 def _reconcile_anchor_closes(
@@ -1482,263 +1307,6 @@ def _inject_carryover_into_segments(
         else:
             rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_markdown})
     return rewritten
-
-
-def _apply_reader_format_to_segments(
-    segment_briefings: dict[MarketSegment, Briefing],
-    *,
-    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
-    bundle_context: BundleContext | None = None,
-    items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
-) -> dict[MarketSegment, Briefing]:
-    """Replace the u49 anchor line with a table + apply the u51 format chain.
-
-    Returns a fresh dict where every segment's :class:`Briefing` has the
-    rewritten ``rendered_markdown``. Empty input → input returned as-is.
-
-    u57 additions (when ``bundle_context`` is non-null):
-      * ``## ⓪ 오늘의 매크로`` injection (idempotent) via
-        :func:`inject_shared_macro_block`.
-      * Cross-segment lint chain — violations are logged at WARN /
-        REJECT; the orchestrator does not (yet) auto-demote
-        paragraphs (config flag ``INVESTO_LINT_STRICT`` default
-        ``demote`` — but the demote rewrite itself is left for a
-        follow-up; logging is the audit surface for now per u57
-        open-question default).
-    """
-    if not segment_briefings:
-        return segment_briefings
-    rewritten: dict[MarketSegment, Briefing] = {}
-    for segment, briefing in segment_briefings.items():
-        markdown = briefing.rendered_markdown
-        # Step 2 — anchor table swap. Only fires when the segment has at
-        # least one anchor; otherwise the deprecated line (or its absence)
-        # is left untouched and reader_format handles the rest.
-        anchors = anchors_by_segment.get(segment, ())
-        if anchors:
-            table = render_anchor_table(anchors, segment=segment)
-            if table:
-                # Idempotent: if the briefing already contains the table
-                # (same-day re-run), skip the swap so we don't duplicate.
-                # u66 — crypto uses a UTC 24h snapshot header, so check
-                # both the legacy equity header and the crypto header.
-                if (
-                    "| 종목 | 종가 | 변동 | 비고 |" in markdown
-                    or "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |" in markdown
-                ):
-                    pass
-                else:
-                    new_markdown, count = _ANCHOR_LINE_RE.subn(f"\n{table}\n", markdown, count=1)
-                    if count > 0:
-                        markdown = new_markdown
-                    else:
-                        # Anchor line is missing from the markdown (e.g.
-                        # data-limited segment with no header line). Inject
-                        # the table immediately before ``## ① 요약`` so the
-                        # reader still gets the quantitative grid.
-                        marker = "## ①"
-                        idx = markdown.find(marker)
-                        if idx != -1:
-                            markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
-        # u70 — gate precise body claims on canonical anchor availability.
-        # ``anchors`` is the reconciled single-payload set for this segment;
-        # its tickers are the only core symbols the body may assert a precise
-        # move about. A missing/stale core anchor with an isolated offending
-        # sentence is rewritten to a data-limited callout; an un-rewritable
-        # contradiction raises ``NumericAnchorReconciliationError`` (caught by
-        # the publish-stage handler below alongside the other reader gates).
-        markdown = enforce_anchor_assertions(
-            markdown,
-            segment=segment,
-            available_symbols=tuple(a.ticker for a in anchors),
-        )
-        # Step 3 — pure str → str post-format chain.
-        markdown = apply_reader_format(markdown, segment=segment)
-        # u57 — inject shared macro block + run cross-segment lint.
-        if bundle_context is not None:
-            markdown = inject_shared_macro_block(
-                markdown,
-                bundle_context.shared_macro_block,
-                segment=segment,
-            )
-            violations = run_all_cross_segment_lints(
-                markdown,
-                segment=segment,
-                ctx=bundle_context,
-            )
-            for v in violations:
-                log_level = logging.WARNING if v.severity == "WARN" else logging.ERROR
-                _logger.log(
-                    log_level,
-                    "%s segment=%s severity=%s",
-                    v.kind,
-                    segment,
-                    v.severity,
-                    extra={
-                        "segment": segment,
-                        "kind": v.kind,
-                        "severity": v.severity,
-                        "evidence_len": len(v.evidence),
-                        "paragraph_len": len(v.paragraph),
-                    },
-                )
-        # u66 — crypto-native indicator block (Fear & Greed, dominance,
-        # funding/OI, DeFi, scope-out rows). Crypto segment only; placed
-        # after the shared-macro block and before §①. Idempotent.
-        if segment == "crypto" and items_by_segment is not None:
-            crypto_items = items_by_segment.get("crypto", ())
-            if crypto_items:
-                markdown = inject_crypto_indicator_block(
-                    markdown,
-                    render_crypto_indicator_block(crypto_items),
-                )
-        # u74 — channel-depth v2 native-anchor block. Standardises every
-        # segment's reader-facing anchor block so missing native anchors
-        # render explicit reason rows instead of silent omissions. Consumes
-        # the same reconciled ``anchors`` (u49/u55/u67) the table swap used
-        # and, for crypto, the u66 indicator raw_metadata contract. Does NOT
-        # re-collect or re-rank either — pure presentation. Idempotent.
-        crypto_block_items = (
-            items_by_segment.get("crypto", ())
-            if (segment == "crypto" and items_by_segment is not None)
-            else ()
-        )
-        channel_block = render_channel_anchor_block(
-            segment,
-            anchors=anchors,
-            crypto_items=crypto_block_items,
-        )
-        markdown = inject_channel_anchor_block(markdown, channel_block)
-        # u74 Step 4 — cross-market cause-map line, gated by the u57
-        # BundleContext shared-macro evidence + cross_market_core_allowed
-        # allow-list. Forbidden linkages are omitted (logged), never demoted
-        # into prose. Observational wording only.
-        if bundle_context is not None:
-            cause_map = evaluate_cause_map(bundle_context)
-            for suppressed in cause_map.suppressed:
-                _logger.info(
-                    "cross_market_cause_map.suppressed",
-                    extra={"segment": segment, "cause_type": suppressed},
-                )
-            markdown = inject_cause_map_line(markdown, cause_map)
-        # u56 — compliance-language gate + first-viewport short disclaimer
-        # + retail tone caps. Order: scan first (cheap reject of P0 hits
-        # before any post-format I/O), then prepend the short disclaimer
-        # so it lands above ``## 한눈에 보기``, then non-blocking tone
-        # diagnostics.
-        repaired_markdown = repair_compliance_language(markdown, segment)
-        if repaired_markdown != markdown:
-            _logger.warning(
-                "[publish] repaired compliance language segment=%s",
-                segment,
-            )
-            markdown = repaired_markdown
-        scan_compliance(markdown, segment)
-        # u72 — convert §⑥ bullets into the observational watchpoint matrix.
-        # Runs AFTER scan_compliance so the raw bullets are scanned as prose
-        # (a table-cell mask would otherwise hide advice wording from the
-        # P0 gate); the resulting matrix is observational only and rescanned
-        # by the second scan_compliance below.
-        markdown = render_watchpoint_matrix(markdown, segment=segment)
-        scan_compliance(markdown, segment)
-        markdown = emit_first_viewport_disclaimer(markdown, segment)
-        # u71 — reader-first viewport reflow. Runs last in the header
-        # chain (after the short disclaimer is positioned) so it sees the
-        # final first-viewport shape: it bounds the caution snippet, builds
-        # a compact status chip, and collapses the raw coverage-badge
-        # diagnostics into a <details> block placed AFTER the summary
-        # callouts. Pure str -> str, idempotent, disclaimer-preserving.
-        markdown = reflow_first_viewport(markdown, segment=segment)
-        check_sentence_ending_diversity(markdown, segment=segment)
-        check_filler_phrase_density(markdown, segment=segment)
-        if markdown == briefing.rendered_markdown:
-            rewritten[segment] = briefing
-        else:
-            rewritten[segment] = briefing.model_copy(update={"rendered_markdown": markdown})
-    return rewritten
-
-
-def _load_carryover_for_run(
-    target_date: date,
-    candidates_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]],
-) -> dict[MarketSegment, BriefingCarryover]:
-    """Build a per-segment :class:`BriefingCarryover` map for u52.
-
-    Walks each segment's prior ≤``INVESTO_CARRYOVER_LOOKBACK_DAYS``
-    archive markdown files via :func:`load_carryover`. Per-segment
-    isolation: a parser failure for one segment (file I/O error,
-    malformed markdown) is swallowed and the segment receives an
-    empty :class:`BriefingCarryover` — the orchestrator continues to
-    publish the rest.
-
-    The :data:`ARCHIVE_ROOT` lookup is deferred to call time (not at
-    import) so unit tests that monkeypatch
-    ``investo.publisher.paths.ARCHIVE_ROOT`` see the redirected path.
-    """
-    from investo.publisher.paths import ARCHIVE_ROOT
-
-    lookback = resolve_lookback_days()
-    result: dict[MarketSegment, BriefingCarryover] = {}
-    for segment in SEGMENT_ORDER:
-        candidates = candidates_by_segment.get(segment, ())
-        try:
-            result[segment] = load_carryover(
-                ARCHIVE_ROOT,
-                segment,
-                target_date,
-                candidates=candidates,
-                lookback=lookback,
-            )
-        except Exception as exc:
-            _logger.warning(
-                "[carryover] segment=%s parser failed; using empty bundle err=%s",
-                segment,
-                exc,
-            )
-            result[segment] = BriefingCarryover(
-                prior_resolved=(),
-                prior_unresolved=(),
-                lookback_days=0,
-            )
-    total = sum(len(b.prior_resolved) + len(b.prior_unresolved) for b in result.values())
-    _logger.info(
-        "[carryover] loaded target_date=%s lookback=%d total_items=%d",
-        target_date,
-        lookback,
-        total,
-    )
-    return result
-
-
-def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | None:
-    """Resolve the env-var window and load the trailing recent-briefings context.
-
-    Returns ``None`` when the user explicitly disabled the feature
-    (``INVESTO_RECENT_CONTEXT_DAYS=0``); the orchestrator threads
-    ``None`` straight through and the briefing prompt omits the
-    "최근 N일 컨텍스트" block entirely. Otherwise returns the loaded
-    :class:`RecentBriefingsContext`, which itself may be empty (first
-    publish path) — the prompt builder handles both cases.
-
-    The :data:`ARCHIVE_ROOT` lookup is deferred to call time (not at
-    import) so unit tests that monkeypatch
-    ``investo.publisher.paths.ARCHIVE_ROOT`` see the redirected path.
-    """
-    days = resolve_recent_days()
-    if days <= 0:
-        _logger.info("[recent_context] disabled (days=0)")
-        return None
-    from investo.publisher.paths import ARCHIVE_ROOT
-
-    context = load_recent_briefings(ARCHIVE_ROOT, target_date, days=days)
-    total = sum(len(entries) for entries in context.entries_by_segment.values())
-    _logger.info(
-        "[recent_context] loaded target_date=%s days=%d entries=%d",
-        target_date,
-        days,
-        total,
-    )
-    return context
 
 
 def _build_quality_snapshot(
@@ -1934,6 +1502,8 @@ async def _stage_prepare_segment_visual_assets(
     """Generate visual assets and return briefings with relative image links."""
     routed = segment_items(items)
     watchlist_config = load_watchlist()
+    curated_library = _load_curated_library_safely()
+    curated_registry = default_registry()
     prepared_briefings: dict[MarketSegment, Briefing] = {}
     asset_paths: list[Path] = []
     for segment in SEGMENT_ORDER:
@@ -1944,6 +1514,14 @@ async def _stage_prepare_segment_visual_assets(
             segment,
             source_outcomes=source_outcomes,
         )
+        curated_selection: CuratedSelection | None = None
+        if curated_library:
+            curated_selection = select_curated_asset(
+                segment,
+                segment_source_items,
+                curated_library,
+                curated_registry,
+            )
         prepared = await asyncio.to_thread(
             prepare_segment_visual_assets,
             briefings[segment],
@@ -1956,6 +1534,7 @@ async def _stage_prepare_segment_visual_assets(
                 watchlist_config,
                 coverage_status=segment_coverage.status,
             ),
+            curated_selection=curated_selection,
         )
         prepared_briefings[segment] = prepared.briefing
         asset_paths.extend(prepared.asset_paths)
@@ -1964,6 +1543,21 @@ async def _stage_prepare_segment_visual_assets(
             if manifest_path.exists():
                 asset_paths.append(manifest_path)
     return prepared_briefings, tuple(asset_paths)
+
+
+def _load_curated_library_safely() -> dict[str, CuratedAsset]:
+    """Load the u86 curated library; on any clearance error, fall through cleanly.
+
+    A broken / invalid library is a *build-time* CI-gate failure
+    (``scripts/check_curated_assets.py``), not a run-time crash. At
+    generation time we degrade to the existing hero chain (R9 fallback)
+    rather than aborting the briefing pipeline.
+    """
+    try:
+        return load_library()
+    except CuratedLibraryError:
+        _logger.warning("curated library failed to load; falling back to existing hero chain")
+        return {}
 
 
 def _read_existing_bytes(path: Path) -> bytes | None:
@@ -2215,6 +1809,553 @@ def _briefing_url_for(
     )
 
 
+# ---------------------------------------------------------------------------
+# u84 — Stage classes (thin wrappers around the existing stage runners +
+# inline transforms) + the declarative exception-routing table + the
+# composition root. ``run_pipeline`` (below) drives these via a sequencing
+# + error-routing loop instead of an inline try/except cascade.
+#
+# Behaviour-preserving discipline: each stage reproduces the exact phase
+# logic that previously lived inline in ``run_pipeline``. Stage outputs
+# flow via ``StageResult.data`` (accumulated by the loop); the frozen
+# ``PipelineContext`` carries inputs only. The five catalogued routable
+# failures are reported by returning ``StageResult(status="failed",
+# error=exc)``; the loop maps the exception type through
+# :data:`EXCEPTION_ROUTING` to the operator-alert ``stage`` label + the
+# resulting :class:`PipelineStatus` (exactly the prior arms).
+# ---------------------------------------------------------------------------
+
+
+class CollectStage:
+    """u1 source aggregation. ``EmptyCollectError`` → routable failure."""
+
+    name = "collect"
+
+    async def execute(
+        self,
+        ctx: PipelineContext,
+        accumulated: dict[str, object],
+    ) -> StageResult[dict[str, object]]:
+        fetch = cast("CollectCallable | None", ctx.fetch)
+        start = time.monotonic()
+        try:
+            items, source_outcomes = await _stage_collect(ctx.target_date, fetch=fetch)
+        except EmptyCollectError as exc:
+            return StageResult(
+                status="failed",
+                error=exc,
+                stage_notes={
+                    "collect": "failed: empty",
+                    "generate": "skipped",
+                    "publish": "skipped",
+                    "notify_briefing": "skipped",
+                },
+                timings={"collect": time.monotonic() - start},
+            )
+        return StageResult(
+            status="ok",
+            data={"items": items, "source_outcomes": source_outcomes},
+            stage_notes={"collect": "ok"},
+            timings={"collect": time.monotonic() - start},
+        )
+
+
+class GenerateStage:
+    """u2 synthesis + (segmented) the pre-publish transform chain.
+
+    Carries the segmented context loaders, the visual-asset preparation,
+    the deterministic carryover / anchor-reconcile / chart-block / reader-
+    format passes that ran inline between generate and publish. Routable
+    failures: ``BriefingGenerationError`` (→ generate label), and the
+    reader-format gate's ``ComplianceLanguageError`` /
+    ``NumericAnchorReconciliationError`` (→ publish label, preserving the
+    prior ``stage_timings["publish"]=0.0`` marker).
+    """
+
+    name = "generate"
+
+    async def execute(
+        self,
+        ctx: PipelineContext,
+        accumulated: dict[str, object],
+    ) -> StageResult[dict[str, object]]:
+        target_date = ctx.target_date
+        runner = cast("ClaudeRunner | None", ctx.runner)
+        generate = cast("GenerateCallable | None", ctx.generate)
+        generate_segment = cast("SegmentGenerateCallable | None", ctx.generate_segment)
+        items = cast("list[NormalizedItem]", accumulated["items"])
+        source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
+
+        start = time.monotonic()
+        segmented_mode = generate is None
+        segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
+        market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
+        market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
+            segment: () for segment in SEGMENT_ORDER
+        }
+        run_bundle_context: BundleContext | None = None
+        carryover_by_segment: dict[MarketSegment, BriefingCarryover] = {}
+        segment_briefings: dict[MarketSegment, Briefing] | None = None
+        macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
+        try:
+            if segmented_mode:
+                recent_context = _load_recent_context_for_run(target_date)
+                (
+                    market_anchors_by_segment,
+                    market_history_by_ticker,
+                ) = await _load_market_anchors_for_run(target_date)
+                # u67 — fold deterministic KR index-close + 원/달러 anchors
+                # (from the stooq-kr-market snapshot items) into the domestic
+                # segment. Yahoo history cannot supply these (429 on GHA), so
+                # they are synthesized close-only from the collected items.
+                kr_anchors = _build_kr_anchors_from_items(items)
+                if kr_anchors:
+                    existing = market_anchors_by_segment.get(DOMESTIC_EQUITY, ())
+                    seen = {a.ticker for a in existing}
+                    merged = (*existing, *(a for a in kr_anchors if a.ticker not in seen))
+                    market_anchors_by_segment[DOMESTIC_EQUITY] = merged
+                # u52 — build per-segment carryover bundles from prior ≤3
+                # trading-day archives. Each segment receives only its own
+                # routed candidates so resolution matching stays
+                # source-scoped.
+                routed_candidates = segment_items(items)
+                candidates_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
+                    segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
+                }
+                carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
+                (
+                    segment_briefings,
+                    segment_generation_failures,
+                    run_bundle_context,
+                    macro_lineage_by_segment,
+                ) = await _stage_generate_segments(
+                    target_date,
+                    items,
+                    runner=runner,
+                    generate_segment=generate_segment,
+                    source_outcomes=source_outcomes,
+                    recent_context=recent_context,
+                    market_anchors_by_segment=market_anchors_by_segment,
+                    carryover_by_segment=carryover_by_segment,
+                )
+                primary_generated_segment = (
+                    DOMESTIC_EQUITY
+                    if DOMESTIC_EQUITY in segment_briefings
+                    else next(iter(segment_briefings))
+                )
+                briefing = segment_briefings[primary_generated_segment]
+            else:
+                segment_briefings = None
+                run_bundle_context = None
+                macro_lineage_by_segment = {}
+                briefing = await _stage_generate(
+                    target_date, items, runner=runner, generate=generate
+                )
+        except BriefingGenerationError as exc:
+            _log_briefing_generation_error(exc)
+            return StageResult(
+                status="failed",
+                error=exc,
+                stage_notes={
+                    "generate": f"failed: {exc.stage}",
+                    "publish": "skipped",
+                    "notify_briefing": "skipped",
+                },
+                timings={"generate": time.monotonic() - start},
+            )
+        generate_elapsed = time.monotonic() - start
+
+        stage_notes: dict[str, str] = {}
+        stage_alerts: list[BriefingGenerationError] = []
+        if segment_generation_failures:
+            failed_segments = ", ".join(segment_generation_failures)
+            stage_notes["generate"] = f"partial: failed {failed_segments}"
+            for segment, generation_error in segment_generation_failures.items():
+                _log_briefing_generation_error(generation_error)
+                stage_alerts.append(generation_error)
+                stage_notes[f"generate:{segment}"] = f"failed: {generation_error.stage}"
+        else:
+            stage_notes["generate"] = "ok"
+
+        visual_assets_failed = False
+        visual_asset_paths: tuple[Path, ...] = ()
+
+        if segmented_mode:
+            assert segment_briefings is not None
+            va_start = time.monotonic()
+            try:
+                segment_briefings, visual_asset_paths = await _stage_prepare_segment_visual_assets(
+                    segment_briefings,
+                    items,
+                    target_date,
+                    source_outcomes=source_outcomes,
+                )
+            except VisualAssetError as exc:
+                visual_assets_failed = True
+                visual_asset_paths = ()
+                stage_notes["visual_assets"] = f"failed: {type(exc).__name__}"
+                _logger.warning(
+                    "[visual_assets] failed target_date=%s error=%s; publishing text-only",
+                    target_date,
+                    exc,
+                )
+                va_elapsed = time.monotonic() - va_start
+            else:
+                stage_notes["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
+                va_elapsed = time.monotonic() - va_start
+
+            # u52 — inject the deterministic Watchlist Carryover block.
+            segment_briefings = _inject_carryover_into_segments(
+                segment_briefings,
+                carryover_by_segment=carryover_by_segment,
+            )
+
+            # u70 — derive the SINGLE canonical anchor payload before any
+            # reader surface renders.
+            anchor_table_input = _reconcile_anchor_closes(
+                market_anchors_by_segment,
+                _snapshot_close_by_ticker(items),
+            )
+
+            # u50 — inject the per-segment chart placeholder block.
+            segment_briefings, chart_sidecar_paths = _inject_chart_blocks_into_segments(
+                segment_briefings,
+                target_date=target_date,
+                anchors_by_segment=anchor_table_input,
+                history_by_ticker=market_history_by_ticker,
+            )
+            if chart_sidecar_paths:
+                visual_asset_paths = (*visual_asset_paths, *chart_sidecar_paths)
+
+            # u51 / u56 — reader-format chain (incl. the compliance gate).
+            # A P0 hit raises ``ComplianceLanguageError`` here and an
+            # un-rewritable anchor contradiction raises
+            # ``NumericAnchorReconciliationError``; both route to the
+            # publish label (preserving ``stage_timings["publish"]=0.0``).
+            try:
+                _routed_for_indicators = segment_items(items)
+                segment_briefings = _apply_reader_format_to_segments(
+                    segment_briefings,
+                    anchors_by_segment=anchor_table_input,
+                    bundle_context=run_bundle_context,
+                    items_by_segment={
+                        seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
+                    },
+                )
+            except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
+                _logger.error(
+                    "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
+                    target_date,
+                    type(exc).__name__,
+                    exc,
+                )
+                stage_notes["publish"] = f"failed: {type(exc).__name__}"
+                stage_notes["notify_briefing"] = "skipped"
+                return StageResult(
+                    status="failed",
+                    error=exc,
+                    stage_notes=stage_notes,
+                    timings={
+                        "generate": generate_elapsed,
+                        "visual_assets": va_elapsed,
+                        "publish": 0.0,
+                    },
+                    data={"_stage_alerts": stage_alerts},
+                )
+
+            timings = {"generate": generate_elapsed, "visual_assets": va_elapsed}
+        else:
+            timings = {"generate": generate_elapsed}
+
+        return StageResult(
+            status="partial" if segment_generation_failures else "ok",
+            data={
+                "segmented_mode": segmented_mode,
+                "briefing": briefing,
+                "segment_briefings": segment_briefings,
+                "segment_generation_failures": segment_generation_failures,
+                "visual_assets_failed": visual_assets_failed,
+                "visual_asset_paths": visual_asset_paths,
+                "macro_lineage_by_segment": macro_lineage_by_segment,
+                "_stage_alerts": stage_alerts,
+            },
+            stage_notes=stage_notes,
+            timings=timings,
+        )
+
+
+class PublishStage:
+    """u3 atomic write + git lifecycle (segmented or unsegmented)."""
+
+    name = "publish"
+
+    async def execute(
+        self,
+        ctx: PipelineContext,
+        accumulated: dict[str, object],
+    ) -> StageResult[dict[str, object]]:
+        target_date = ctx.target_date
+        git_runner = cast("GitRunner | None", ctx.git_runner)
+        segmented_mode = cast("bool", accumulated["segmented_mode"])
+        items = cast("list[NormalizedItem]", accumulated["items"])
+        source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
+        segment_briefings = cast(
+            "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
+        )
+        briefing = cast("Briefing", accumulated["briefing"])
+        macro_lineage_by_segment = cast(
+            "Mapping[MarketSegment, Sequence[MacroLineageTrace]]",
+            accumulated["macro_lineage_by_segment"],
+        )
+        visual_asset_paths = cast("tuple[Path, ...]", accumulated["visual_asset_paths"])
+
+        start = time.monotonic()
+        try:
+            if segmented_mode:
+                assert segment_briefings is not None
+                await _stage_publish_segments(
+                    segment_briefings,
+                    target_date,
+                    asset_paths=visual_asset_paths,
+                    git_runner=git_runner,
+                    items=items,
+                    source_outcomes=source_outcomes,
+                    macro_lineage_by_segment=macro_lineage_by_segment,
+                )
+            else:
+                await _stage_publish(briefing, target_date, git_runner=git_runner)
+        except _PUBLISH_FAILURES as exc:
+            _logger.error(
+                "[publish] failed target_date=%s error_type=%s error=%s",
+                target_date,
+                type(exc).__name__,
+                exc,
+            )
+            return StageResult(
+                status="failed",
+                error=exc,
+                stage_notes={
+                    "publish": f"failed: {type(exc).__name__}",
+                    "notify_briefing": "skipped",
+                },
+                timings={"publish": time.monotonic() - start},
+            )
+        return StageResult(
+            status="ok",
+            stage_notes={"publish": "ok"},
+            timings={"publish": time.monotonic() - start},
+        )
+
+
+class NotifyStage:
+    """u4 public-channel dispatch. Non-raising — encodes failure in data."""
+
+    name = "notify_briefing"
+
+    async def execute(
+        self,
+        ctx: PipelineContext,
+        accumulated: dict[str, object],
+    ) -> StageResult[dict[str, object]]:
+        target_date = ctx.target_date
+        publisher = cast("BriefingPublisher", accumulated["publisher"])
+        segmented_mode = cast("bool", accumulated["segmented_mode"])
+        items = cast("list[NormalizedItem]", accumulated["items"])
+        source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
+        segment_briefings = cast(
+            "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
+        )
+        briefing = cast("Briefing", accumulated["briefing"])
+        segment_generation_failures = cast(
+            "dict[MarketSegment, BriefingGenerationError]",
+            accumulated["segment_generation_failures"],
+        )
+
+        primary_segment = (
+            DOMESTIC_EQUITY
+            if segmented_mode
+            and segment_briefings is not None
+            and DOMESTIC_EQUITY in segment_briefings
+            else next(iter(segment_briefings), None)
+            if segmented_mode and segment_briefings is not None
+            else None
+        )
+        briefing_url = _briefing_url_for(
+            target_date,
+            ctx.site_url_base,
+            segment=primary_segment if segmented_mode else None,
+        )
+        segment_urls = (
+            {
+                segment: _briefing_url_for(target_date, ctx.site_url_base, segment=segment)
+                for segment in SEGMENT_ORDER
+            }
+            if segmented_mode
+            else None
+        )
+
+        start = time.monotonic()
+        if segmented_mode:
+            assert segment_briefings is not None
+            assert segment_urls is not None
+            routed_items_for_alert = segment_items(items)
+            coverage_by_segment = {
+                segment: routed_items_for_alert.coverage_for_segment(
+                    segment,
+                    source_outcomes=source_outcomes,
+                )
+                for segment in segment_briefings
+            }
+            notify_now_utc = datetime.now(UTC)
+            lookahead_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
+                segment: filter_lookahead_items(routed_items_for_alert.for_segment(segment))
+                for segment in segment_briefings
+            }
+            notify_result = await _stage_notify_segmented_briefing(
+                segment_briefings,
+                publisher=publisher,
+                site_urls=segment_urls,
+                items=items,
+                coverage_by_segment=coverage_by_segment,
+                lookahead_items_by_segment=lookahead_items_by_segment,
+                now_utc=notify_now_utc,
+                missing_segments=tuple(segment_generation_failures),
+            )
+        else:
+            notify_result = await _stage_notify_briefing(
+                briefing, publisher=publisher, site_url=briefing_url
+            )
+        return StageResult(
+            status="ok" if notify_result.ok else "partial",
+            data={"notify_result": notify_result, "briefing_url": briefing_url},
+            timings={"notify_briefing": time.monotonic() - start},
+        )
+
+
+class HealthTrackingStage:
+    """u31 per-source coverage append + consecutive-failure soft alert.
+
+    Best-effort: any failure is swallowed (logged) so it never changes the
+    pipeline's exit semantics. Always reports ``ok``; the soft alert is
+    requested via ``data`` (the loop dispatches it through ``_safe_alert``).
+    """
+
+    name = "health"
+
+    async def execute(
+        self,
+        ctx: PipelineContext,
+        accumulated: dict[str, object],
+    ) -> StageResult[dict[str, object]]:
+        target_date = ctx.target_date
+        segmented_mode = cast("bool", accumulated["segmented_mode"])
+        items = cast("list[NormalizedItem]", accumulated["items"])
+        source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
+        segment_briefings = cast(
+            "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
+        )
+        soft_alert: RuntimeError | None = None
+        try:
+            severities_for_coverage: dict[str, str] = {}
+            if segmented_mode and segment_briefings is not None:
+                severity_segmented = segment_items(items)
+                for segment in segment_briefings:
+                    severities_for_coverage[segment] = severity_segmented.coverage_for_segment(
+                        segment, source_outcomes=source_outcomes
+                    ).status
+            source_health.append_daily_coverage(
+                target_date,
+                source_outcomes,
+                severities=severities_for_coverage or None,
+            )
+            consecutive_failed = source_health.detect_consecutive_failed(today=target_date)
+            if consecutive_failed:
+                _logger.warning(
+                    "[source_health] sources failed for %d consecutive days: %s",
+                    source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
+                    ", ".join(consecutive_failed),
+                )
+                soft_alert = RuntimeError(
+                    f"sources failed {source_health.DEFAULT_CONSECUTIVE_THRESHOLD} "
+                    f"consecutive days: {', '.join(consecutive_failed)}"
+                )
+        except Exception as exc:
+            _logger.warning("[source_health] could not record coverage log: %s", exc)
+        return StageResult(status="ok", data={"_soft_alert": soft_alert})
+
+
+# Publish-stage routable failures — the exact prior tuple (the reader-
+# format gate's ``ComplianceLanguageError`` / ``NumericAnchorReconciliation
+# Error`` are caught inside ``GenerateStage`` and routed to the publish
+# label via :data:`EXCEPTION_ROUTING`).
+_PUBLISH_FAILURES: Final = (
+    SummaryQualityError,
+    ComplianceLanguageError,
+    PublisherDisclaimerError,
+    PublisherIOError,
+    PublisherGitError,
+    QualityHistoryError,
+    ForecastLogError,
+)
+
+
+# Declarative exception → (alert / status) routing table. The single
+# change-point for "which failure means what" — new failure types extend
+# this table, not the loop (guide §4). Keyed by exception TYPE.
+EXCEPTION_ROUTING: dict[type[BaseException], StageAction] = {
+    EmptyCollectError: StageAction(stage="collect", alert=True, status=PipelineStatus.FAILED),
+    BriefingGenerationError: StageAction(
+        stage="generate", alert=True, status=PipelineStatus.FAILED
+    ),
+    SummaryQualityError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    ComplianceLanguageError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    NumericAnchorReconciliationError: StageAction(
+        stage="publish", alert=True, status=PipelineStatus.FAILED
+    ),
+    PublisherDisclaimerError: StageAction(
+        stage="publish", alert=True, status=PipelineStatus.FAILED
+    ),
+    PublisherIOError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    PublisherGitError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    QualityHistoryError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    ForecastLogError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+}
+
+
+def _route_failure(exc: Exception) -> StageAction:
+    """Resolve the routing action for a routable stage failure.
+
+    Looks the exception type up in :data:`EXCEPTION_ROUTING` (exact type
+    first, then by MRO so a subclass of a catalogued failure still routes).
+    A miss is a programmer error — the loop never reaches here for an
+    uncatalogued type because stages only set ``error`` for catalogued ones.
+    """
+    action = EXCEPTION_ROUTING.get(type(exc))
+    if action is not None:
+        return action
+    for exc_type, candidate in EXCEPTION_ROUTING.items():
+        if isinstance(exc, exc_type):
+            return candidate
+    raise KeyError(f"no routing for {type(exc).__name__}")
+
+
+def build_default_stages() -> tuple[Stage, ...]:
+    """Composition root — assemble the production stage sequence.
+
+    Returned as a tuple of :class:`Stage` instances and injected into
+    :func:`run_pipeline` so stages are not instantiated inline (DIP). Tests
+    may build their own sequence and pass it via ``stages=``.
+    """
+    sequence: tuple[Stage, ...] = (
+        CollectStage(),
+        GenerateStage(),
+        PublishStage(),
+        NotifyStage(),
+        HealthTrackingStage(),
+    )
+    return sequence
+
+
 async def run_pipeline(
     target_date: date | None = None,
     *,
@@ -2226,6 +2367,7 @@ async def run_pipeline(
     git_runner: GitRunner | None = None,
     generate: GenerateCallable | None = None,
     generate_segment: SegmentGenerateCallable | None = None,
+    stages: tuple[Stage, ...] | None = None,
 ) -> PipelineResult:
     """Run the four-stage pipeline under Q9=B Error Policy routing.
 
@@ -2277,417 +2419,110 @@ async def run_pipeline(
         target_date = resolve_target_date(datetime.now(UTC))
     target_date = validate_target_date_sanity(target_date)
 
+    if stages is None:
+        stages = build_default_stages()
+
     pipeline_start = time.monotonic()
-    stages: dict[str, str] = {}
+    ctx = PipelineContext(
+        target_date=target_date,
+        site_url_base=site_url_base,
+        fetch=fetch,
+        runner=runner,
+        git_runner=git_runner,
+        generate=generate,
+        generate_segment=generate_segment,
+    )
+    stage_status: dict[str, str] = {}
     stage_timings: dict[str, float] = {}
+    # The loop's own accumulator — stage outputs flow here (NOT into the
+    # frozen ``ctx``). ``publisher`` is an input the notify stage needs but
+    # is not a DI seam threaded through ``PipelineContext``; it is placed
+    # here so stages read it uniformly from the accumulator.
+    accumulated: dict[str, object] = {"publisher": publisher}
 
     _logger.info("[pipeline] starting target_date=%s", target_date)
 
-    # ------------------------------------------------------------------
-    # COLLECT (AC-003-1, AC-003-2)
-    # ------------------------------------------------------------------
-    stage_start = time.monotonic()
-    try:
-        items, source_outcomes = await _stage_collect(target_date, fetch=fetch)
-    except EmptyCollectError as exc:
-        stage_timings["collect"] = time.monotonic() - stage_start
-        stages["collect"] = "failed: empty"
-        stages.update({"generate": "skipped", "publish": "skipped", "notify_briefing": "skipped"})
-        await _safe_alert(alerter, "collect", exc)
-        return _build_result(
-            target_date=target_date,
-            status=PipelineStatus.FAILED,
-            stages=stages,
-            stage_timings=stage_timings,
-            pipeline_start=pipeline_start,
-            briefing_url=None,
-        )
-    stage_timings["collect"] = time.monotonic() - stage_start
-    stages["collect"] = "ok"
+    failed_status: PipelineStatus | None = None
+    status: PipelineStatus = PipelineStatus.SUCCESS
+    briefing_url: HttpUrl | None = None
+    for stage in stages:
+        result = await stage.execute(ctx, accumulated)
+        stage_status.update(result.stage_notes)
+        stage_timings.update(result.timings)
 
-    # ------------------------------------------------------------------
-    # GENERATE (AC-003-3)
-    # ------------------------------------------------------------------
-    stage_start = time.monotonic()
-    segmented_mode = generate is None
-    segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
-    market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
-    market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
-        segment: () for segment in SEGMENT_ORDER
-    }
-    run_bundle_context: BundleContext | None = None
-    try:
-        if segmented_mode:
-            recent_context = _load_recent_context_for_run(target_date)
-            (
-                market_anchors_by_segment,
-                market_history_by_ticker,
-            ) = await _load_market_anchors_for_run(target_date)
-            # u67 — fold deterministic KR index-close + 원/달러 anchors
-            # (from the stooq-kr-market snapshot items) into the domestic
-            # segment. Yahoo history cannot supply these (429 on GHA), so
-            # they are synthesized close-only from the collected items.
-            kr_anchors = _build_kr_anchors_from_items(items)
-            if kr_anchors:
-                existing = market_anchors_by_segment.get(DOMESTIC_EQUITY, ())
-                seen = {a.ticker for a in existing}
-                merged = (*existing, *(a for a in kr_anchors if a.ticker not in seen))
-                market_anchors_by_segment[DOMESTIC_EQUITY] = merged
-            # u52 — build per-segment carryover bundles from prior ≤3
-            # trading-day archives. Each segment receives only its own
-            # routed candidates so resolution matching stays
-            # source-scoped.
-            routed_candidates = segment_items(items)
-            candidates_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
-                segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
-            }
-            carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
-            (
-                segment_briefings,
-                segment_generation_failures,
-                run_bundle_context,
-                macro_lineage_by_segment,
-            ) = await _stage_generate_segments(
-                target_date,
-                items,
-                runner=runner,
-                generate_segment=generate_segment,
-                source_outcomes=source_outcomes,
-                recent_context=recent_context,
-                market_anchors_by_segment=market_anchors_by_segment,
-                carryover_by_segment=carryover_by_segment,
+        # Per-segment generate alerts fire as the generate stage reports
+        # them — before any later (publish / notify) alert — preserving the
+        # historical ``alerter.calls`` ordering.
+        if result.data is not None:
+            for generation_error in cast(
+                "list[BriefingGenerationError]", result.data.get("_stage_alerts", [])
+            ):
+                await _safe_alert(alerter, "generate", generation_error)
+            accumulated.update({k: v for k, v in result.data.items() if not k.startswith("_")})
+
+        if result.status == "failed":
+            assert result.error is not None
+            action = _route_failure(result.error)
+            if action.alert:
+                await _safe_alert(alerter, action.stage, result.error)
+            failed_status = action.status
+            break
+
+        # AC-003-6 / AC-003-8 — notify is non-raising: a delivery failure is
+        # PARTIAL + an operator alert; otherwise a visual-asset failure or a
+        # per-segment generate failure is PARTIAL with no extra alert (the
+        # per-segment generate alerts already fired above). The reconciliation
+        # runs inside the loop (before the best-effort health soft alert) so
+        # the ``alerter.calls`` ordering matches the pre-refactor pipeline.
+        if stage.name == "notify_briefing":
+            notify_result = cast("SendResult", accumulated["notify_result"])
+            briefing_url = cast("HttpUrl", accumulated["briefing_url"])
+            visual_assets_failed = cast("bool", accumulated["visual_assets_failed"])
+            segment_generation_failures = cast(
+                "dict[MarketSegment, BriefingGenerationError]",
+                accumulated["segment_generation_failures"],
             )
-            primary_generated_segment = (
-                DOMESTIC_EQUITY
-                if DOMESTIC_EQUITY in segment_briefings
-                else next(iter(segment_briefings))
-            )
-            briefing = segment_briefings[primary_generated_segment]
-        else:
-            segment_briefings = None
-            run_bundle_context = None
-            macro_lineage_by_segment = {}
-            briefing = await _stage_generate(target_date, items, runner=runner, generate=generate)
-    except BriefingGenerationError as exc:
-        stage_timings["generate"] = time.monotonic() - stage_start
-        stages["generate"] = f"failed: {exc.stage}"
-        stages.update({"publish": "skipped", "notify_briefing": "skipped"})
-        _log_briefing_generation_error(exc)
-        await _safe_alert(alerter, "generate", exc)
+            if notify_result.ok:
+                stage_status["notify_briefing"] = "ok"
+                status = (
+                    PipelineStatus.PARTIAL
+                    if visual_assets_failed or bool(segment_generation_failures)
+                    else PipelineStatus.SUCCESS
+                )
+            else:
+                stage_status["notify_briefing"] = f"failed: {notify_result.error}"
+                status = PipelineStatus.PARTIAL
+                await _safe_alert(
+                    alerter,
+                    "notify_briefing",
+                    NotifyDeliveryError(
+                        notify_result.error or "public briefing notification failed"
+                    ),
+                )
+
+        # Soft (best-effort) alert requested by the health stage.
+        if result.data is not None:
+            soft_alert = cast("RuntimeError | None", result.data.get("_soft_alert"))
+            if soft_alert is not None:
+                await _safe_alert(alerter, "orchestrator", soft_alert)
+
+    source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated.get("source_outcomes", ()))
+
+    if failed_status is not None:
         return _build_result(
             target_date=target_date,
-            status=PipelineStatus.FAILED,
-            stages=stages,
+            status=failed_status,
+            stages=stage_status,
             stage_timings=stage_timings,
             pipeline_start=pipeline_start,
             briefing_url=None,
             source_outcomes=source_outcomes,
         )
-    stage_timings["generate"] = time.monotonic() - stage_start
-    if segment_generation_failures:
-        failed_segments = ", ".join(segment_generation_failures)
-        stages["generate"] = f"partial: failed {failed_segments}"
-        for segment, generation_error in segment_generation_failures.items():
-            _log_briefing_generation_error(generation_error)
-            await _safe_alert(alerter, "generate", generation_error)
-            stages[f"generate:{segment}"] = f"failed: {generation_error.stage}"
-    else:
-        stages["generate"] = "ok"
-    visual_assets_failed = False
-    visual_asset_paths: tuple[Path, ...] = ()
-
-    if segmented_mode:
-        assert segment_briefings is not None
-        stage_start = time.monotonic()
-        try:
-            segment_briefings, visual_asset_paths = await _stage_prepare_segment_visual_assets(
-                segment_briefings,
-                items,
-                target_date,
-                source_outcomes=source_outcomes,
-            )
-        except VisualAssetError as exc:
-            visual_assets_failed = True
-            visual_asset_paths = ()
-            stage_timings["visual_assets"] = time.monotonic() - stage_start
-            stages["visual_assets"] = f"failed: {type(exc).__name__}"
-            _logger.warning(
-                "[visual_assets] failed target_date=%s error=%s; publishing text-only",
-                target_date,
-                exc,
-            )
-        else:
-            stage_timings["visual_assets"] = time.monotonic() - stage_start
-            stages["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
-
-        # u52 — inject the deterministic Watchlist Carryover block
-        # between §② and §③ for every segment that produced one. The
-        # block is the single source of truth: even if the LLM emitted
-        # its own table from the prompt input, this post-process pass
-        # overrides it. Empty carryover → markdown left untouched (any
-        # stale block from a prior same-day run is stripped to keep
-        # idempotency).
-        segment_briefings = _inject_carryover_into_segments(
-            segment_briefings,
-            carryover_by_segment=carryover_by_segment,
-        )
-
-        # u70 cross-surface-numeric-anchor-reconciliation — derive the
-        # SINGLE canonical anchor payload BEFORE any reader surface renders.
-        # P1-2's ``_reconcile_anchor_closes`` (extended, not replaced) aligns
-        # the display ``close`` with the price-snapshot value the body prose
-        # + trace footer cite; derived fields (ATH / 52w / MTD / YTD / pct /
-        # volume_z) stay history-based. This one ``anchor_table_input`` map
-        # now feeds the compact chart card, the expanded chart metadata, AND
-        # the top table below, so the same symbol shows the same value on
-        # every surface (AC-70.1 / AC-70.4).
-        anchor_table_input = _reconcile_anchor_closes(
-            market_anchors_by_segment,
-            _snapshot_close_by_ticker(items),
-        )
-
-        # u50 lightweight-charts-embed — inject the per-segment chart
-        # placeholder block on top of the SVG visual cards. Best-effort:
-        # missing history (e.g. Yahoo 429 on the cron) yields an empty
-        # block and the briefing markdown is left untouched. u70 — feed the
-        # reconciled payload (not the raw history anchors) so the compact
-        # card ``data-close`` / ``data-pct`` match the top table exactly.
-        # The ``data-52w-high`` / ``data-52w-low`` labels are still derived
-        # from the OHLC history rows inside the renderer, so the candlestick
-        # axis stays history-faithful.
-        segment_briefings, chart_sidecar_paths = _inject_chart_blocks_into_segments(
-            segment_briefings,
-            target_date=target_date,
-            anchors_by_segment=anchor_table_input,
-            history_by_ticker=market_history_by_ticker,
-        )
-        if chart_sidecar_paths:
-            # u75 — stage the externalised chart-history sidecars with the
-            # segment markdown / SVG visual assets so GitHub Pages serves
-            # them at the relative ``data-history-src`` URL.
-            visual_asset_paths = (*visual_asset_paths, *chart_sidecar_paths)
-
-        # u51 tldr-block-and-number-bold-inversion — replace the deprecated
-        # u49 prose anchor line with a markdown table, insert a ``## 한눈에
-        # 보기`` TL;DR block when the LLM forgot, promote ``**Title**``
-        # sub-headings to ``### Title``, wrap plain numeric tokens in
-        # bold, and dedupe repeated glossings. Pure string transform; no
-        # I/O. Disclaimer is untouched (pinned by test).
-        # The reader-format chain includes the u56 compliance gate; a
-        # P0 hit raises ``ComplianceLanguageError`` here, which the
-        # publish-stage handler below catches via the shared tuple.
-        try:
-            _routed_for_indicators = segment_items(items)
-            segment_briefings = _apply_reader_format_to_segments(
-                segment_briefings,
-                anchors_by_segment=anchor_table_input,
-                bundle_context=run_bundle_context,
-                items_by_segment={
-                    seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
-                },
-            )
-        except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
-            stage_timings["publish"] = 0.0
-            stages["publish"] = f"failed: {type(exc).__name__}"
-            stages["notify_briefing"] = "skipped"
-            _logger.error(
-                "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
-                target_date,
-                type(exc).__name__,
-                exc,
-            )
-            await _safe_alert(alerter, "publish", exc)
-            return _build_result(
-                target_date=target_date,
-                status=PipelineStatus.FAILED,
-                stages=stages,
-                stage_timings=stage_timings,
-                pipeline_start=pipeline_start,
-                briefing_url=None,
-                source_outcomes=source_outcomes,
-            )
-
-    # ------------------------------------------------------------------
-    # PUBLISH (AC-003-4, AC-003-5)
-    # ------------------------------------------------------------------
-    stage_start = time.monotonic()
-    try:
-        if segmented_mode:
-            assert segment_briefings is not None
-            await _stage_publish_segments(
-                segment_briefings,
-                target_date,
-                asset_paths=visual_asset_paths,
-                git_runner=git_runner,
-                items=items,
-                source_outcomes=source_outcomes,
-                macro_lineage_by_segment=macro_lineage_by_segment,
-            )
-        else:
-            await _stage_publish(briefing, target_date, git_runner=git_runner)
-    except (
-        SummaryQualityError,
-        ComplianceLanguageError,
-        PublisherDisclaimerError,
-        PublisherIOError,
-        PublisherGitError,
-        QualityHistoryError,
-        ForecastLogError,
-    ) as exc:
-        stage_timings["publish"] = time.monotonic() - stage_start
-        stages["publish"] = f"failed: {type(exc).__name__}"
-        stages["notify_briefing"] = "skipped"
-        _logger.error(
-            "[publish] failed target_date=%s error_type=%s error=%s",
-            target_date,
-            type(exc).__name__,
-            exc,
-        )
-        await _safe_alert(alerter, "publish", exc)
-        return _build_result(
-            target_date=target_date,
-            status=PipelineStatus.FAILED,
-            stages=stages,
-            stage_timings=stage_timings,
-            pipeline_start=pipeline_start,
-            briefing_url=None,
-            source_outcomes=source_outcomes,
-        )
-    stage_timings["publish"] = time.monotonic() - stage_start
-    stages["publish"] = "ok"
-
-    primary_segment = (
-        DOMESTIC_EQUITY
-        if segmented_mode and segment_briefings is not None and DOMESTIC_EQUITY in segment_briefings
-        else next(iter(segment_briefings), None)
-        if segmented_mode and segment_briefings is not None
-        else None
-    )
-    briefing_url = _briefing_url_for(
-        target_date,
-        site_url_base,
-        segment=primary_segment if segmented_mode else None,
-    )
-    segment_urls = (
-        {
-            segment: _briefing_url_for(target_date, site_url_base, segment=segment)
-            for segment in SEGMENT_ORDER
-        }
-        if segmented_mode
-        else None
-    )
-
-    # ------------------------------------------------------------------
-    # NOTIFY (AC-003-6 + AC-003-8 — notify failure remains PARTIAL, but is
-    # operator-visible because the public channel did not receive the briefing.)
-    # ------------------------------------------------------------------
-    stage_start = time.monotonic()
-    if segmented_mode:
-        assert segment_briefings is not None
-        assert segment_urls is not None
-        # u30 Step 2 — compute per-segment coverage so the notifier can
-        # collapse failed segments to a single line (u54 enum migration:
-        # legacy "insufficient" → "failed"). Mirrors the routing
-        # already done by ``_stage_prepare_segment_visual_assets``;
-        # filter ``source_outcomes`` per segment with the same helper.
-        routed_items_for_alert = segment_items(items)
-        coverage_by_segment = {
-            segment: routed_items_for_alert.coverage_for_segment(
-                segment,
-                source_outcomes=source_outcomes,
-            )
-            for segment in segment_briefings
-        }
-        # u43 / DEBT-067 M1 + M3 — clock-explicit + single-filter
-        # contract. ``filter_lookahead_items`` is the single chokepoint
-        # that decides what counts as forward-scheduled (M3); we
-        # compute it once on the routed-per-segment items, then hand
-        # both the filtered map and the orchestrator-owned ``now_utc``
-        # to the notifier (M1). The notifier raises if either is
-        # supplied while the other is missing — keeps the imminent-tag
-        # selector deterministic against test fixtures.
-        notify_now_utc = datetime.now(UTC)
-        lookahead_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
-            segment: filter_lookahead_items(routed_items_for_alert.for_segment(segment))
-            for segment in segment_briefings
-        }
-        notify_result = await _stage_notify_segmented_briefing(
-            segment_briefings,
-            publisher=publisher,
-            site_urls=segment_urls,
-            items=items,
-            coverage_by_segment=coverage_by_segment,
-            lookahead_items_by_segment=lookahead_items_by_segment,
-            now_utc=notify_now_utc,
-            missing_segments=tuple(segment_generation_failures),
-        )
-    else:
-        notify_result = await _stage_notify_briefing(
-            briefing, publisher=publisher, site_url=briefing_url
-        )
-    stage_timings["notify_briefing"] = time.monotonic() - stage_start
-
-    if notify_result.ok:
-        stages["notify_briefing"] = "ok"
-        status = (
-            PipelineStatus.PARTIAL
-            if visual_assets_failed or bool(segment_generation_failures)
-            else PipelineStatus.SUCCESS
-        )
-    else:
-        stages["notify_briefing"] = f"failed: {notify_result.error}"
-        status = PipelineStatus.PARTIAL
-        await _safe_alert(
-            alerter,
-            "notify_briefing",
-            NotifyDeliveryError(notify_result.error or "public briefing notification failed"),
-        )
-
-    # u31 Step 3 — append today's per-source health line + emit a soft
-    # alert if any source has been ``failed`` on the last
-    # ``DEFAULT_CONSECUTIVE_THRESHOLD`` days. Wrapped in best-effort
-    # try/except so coverage-log issues never change the pipeline's
-    # exit semantics.
-    try:
-        # u54 — derive per-segment severity at write time so the
-        # JSONL row carries the augmented schema. Independent of the
-        # earlier ``severities_by_segment_for_quality`` derivation
-        # because that branch only runs in segmented mode + non-dry
-        # publish; this writer fires on every run.
-        severities_for_coverage: dict[str, str] = {}
-        if segmented_mode and segment_briefings is not None:
-            severity_segmented = segment_items(items)
-            for segment in segment_briefings:
-                severities_for_coverage[segment] = severity_segmented.coverage_for_segment(
-                    segment, source_outcomes=source_outcomes
-                ).status
-        source_health.append_daily_coverage(
-            target_date,
-            source_outcomes,
-            severities=severities_for_coverage or None,
-        )
-        consecutive_failed = source_health.detect_consecutive_failed(today=target_date)
-        if consecutive_failed:
-            _logger.warning(
-                "[source_health] sources failed for %d consecutive days: %s",
-                source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
-                ", ".join(consecutive_failed),
-            )
-            await _safe_alert(
-                alerter,
-                "orchestrator",
-                RuntimeError(
-                    f"sources failed {source_health.DEFAULT_CONSECUTIVE_THRESHOLD} "
-                    f"consecutive days: {', '.join(consecutive_failed)}"
-                ),
-            )
-    except Exception as exc:
-        _logger.warning("[source_health] could not record coverage log: %s", exc)
 
     return _build_result(
         target_date=target_date,
         status=status,
-        stages=stages,
+        stages=stage_status,
         stage_timings=stage_timings,
         pipeline_start=pipeline_start,
         briefing_url=briefing_url,

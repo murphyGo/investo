@@ -1,5 +1,16 @@
 # AI-DLC Audit Log
 
+## Construction — u84 orchestrator-stage-abstraction Complete (Wave 14, Phase 3, HIGHEST RISK)
+**Timestamp**: 2026-05-28T18:40:00+09:00
+**Trigger**: u84 Code Generation landed (developer) — highest-blast-radius god-module restructured into a Stage abstraction; full gate green. (Concurrent session active — additive only; u86 entries preserved.)
+**Decision**: Ratify and close u84 (6/6). `orchestrator/pipeline.py` 2809→2610 lines. New `orchestrator/stages.py` (`Stage` Protocol, frozen generic `StageResult`, `PipelineContext` `@dataclass(frozen=True)` inputs-only, `StageAction`); `CollectStage`/`GenerateStage`/`PublishStage`/`NotifyStage`/`HealthTrackingStage`. `run_pipeline` is now a sequencing+routing loop. **Review corrections all honored**: exception→action map is a declarative `EXCEPTION_ROUTING: dict[type[BaseException], StageAction]` with exact-then-MRO lookup (NOT an isinstance chain); stages injected from a composition root (`build_default_stages()` via `run_pipeline(..., stages=None)`, never instantiated inline → DIP + testable); `PipelineContext` frozen/inputs-only, stage outputs flow via `StageResult.data` accumulated by the loop (CQS — no ctx mutation). `_load_*` context loaders → `orchestrator/stage_context.py`; reader-format leak → `publisher/segment_reader_format.py::apply_reader_format_to_segments` (publisher API, publisher/models vocabulary only, no `PipelineContext` across the boundary; orchestrator→publisher edge allowed).
+**Behavior preservation**: **`test_run_pipeline.py` (2164 lines) UNCHANGED — `git diff` empty** = the behavior-preservation proof. pytest **2828** (+8 from new `test_stage_protocol.py`; the pure-refactor suite + integration green with zero edits). mypy --strict 190 files, ruff clean, mkdocs --strict ok. No files deleted (function clusters moved out, `pipeline.py` modified in place). Module boundary intact.
+**Brittleness audit (Step 5)**: `test_run_pipeline.py` is outcome-based (`result.status`, `result.stages`, `alerter.calls`); the only implementation-coupled assertions are 3 AST-grep deny tests (no `wait_for`/`gather`/retry wrapping a bare `_stage_*` Name-call) — the new loop calls `stage.execute(...)` (attribute call), so they pass. No rewrite needed.
+**DEBT-062 (path normalization) DEFERRED, not folded** — behavior-touching, must land as its own commit per contract clause 8; left out-of-scope, stays open.
+**Status**: u84 complete (6/6). FD+NFR SKIP confirmed. Next: u85 (unified Validator/Gate protocol, capstone — HARD dep on u84 now satisfied).
+
+---
+
 ## Construction — u86 curated-context-asset-library FD + NFR authored
 **Timestamp**: 2026-05-28T16:40:00+09:00
 **Trigger**: u86 plan approved ("Continue to Next Stage"); user confirmed two binding policy refinements — (1) deferred-asset allowance, (2) seed a minimum of real cleared binaries. Planner authors the FD + NFR docs that pin R-numbers / AC-numbers before the developer starts Step 1. (Concurrent session active — aidlc-docs additive only; the u80/u81 Wave-14 entries below are preserved.)

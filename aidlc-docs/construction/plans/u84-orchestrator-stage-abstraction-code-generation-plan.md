@@ -3,7 +3,7 @@
 **Date**: 2026-05-28
 **Unit**: u84 orchestrator-stage-abstraction
 **Stage**: Code Generation (refactor)
-**Status**: Planned — not started (0/6 steps)
+**Status**: Complete — 6/6 steps (gate green; DEBT-062 explicitly deferred)
 **Source**: 2026-05-28 abstraction review — `orchestrator/pipeline.py` (god-module, highest blast radius)
 **Estimated Effort**: ~8-10 h (highest-risk unit in the wave)
 **Dependencies**: **u81** (reader-format leak moves cleaner after the reader_format split — soft)
@@ -78,34 +78,34 @@ Out of scope:
 
 > **Discipline:** this is the riskiest unit. Extract one stage per step, run the FULL pipeline + integration suite after each, and never proceed on a red gate. Keep each diff move-only plus the thin `Stage` wrapper.
 
-### Step 1 — define the abstraction `[ ]`
-- [ ] Add `Stage` protocol/ABC, `StageResult`, and `PipelineContext`.
+### Step 1 — define the abstraction `[x]`
+- [x] Add `Stage` protocol/ABC, `StageResult`, and `PipelineContext`.
 > **Constrain `PipelineContext` (review 2026-05-28, guide §2 parameter-object / §9.2 information-hiding / §9.3 SLAP).** Do NOT make it "a bag of inputs/outputs every stage reads and writes" — that re-introduces hidden shared mutable state and silently re-couples the stages. Make `PipelineContext` `@dataclass(frozen=True)`, **inputs-only**. Stage outputs flow EXCLUSIVELY via `StageResult.data`, accumulated by the loop — a stage MUST NOT both mutate `ctx` and return data (Command/Query separation, guide §2). Where practical, pass each stage only the slice it needs rather than the whole context (ISP, guide §3); if one context is unavoidable for the migration, document which fields each stage reads.
 - **Acceptance**: `PipelineContext` is frozen/inputs-only; no stage mutates it; types compile under mypy --strict; no behavior change; all tests green.
 
-### Step 2 — extract Collect + Generate stages `[ ]`
-- [ ] Wrap `_stage_collect` and `_stage_generate` (+ segmented) as `CollectStage` / `GenerateStage`; `run_pipeline` calls them via the loop for these stages while the rest stays inline.
-- [ ] Move `_load_market_anchors/carryover/recent_for_run` + `compute_bundle_context` to `orchestrator/stage_context.py`.
+### Step 2 — extract Collect + Generate stages `[x]`
+- [x] Wrap `_stage_collect` and `_stage_generate` (+ segmented) as `CollectStage` / `GenerateStage`; `run_pipeline` calls them via the loop for these stages while the rest stays inline.
+- [x] Move `_load_market_anchors/carryover/recent_for_run` to `orchestrator/stage_context.py` (`compute_bundle_context` already lived in `orchestrator/bundle_context.py`).
 - **Acceptance**: full pipeline suite green unchanged; collect-empty and generate-failure routing identical.
 
-### Step 3 — extract Publish stage + path normalization `[ ]`
-- [ ] Wrap `_stage_publish` (+ `_stage_publish_segments`) as `PublishStage`; reproduce every publish-exception arm exactly.
-- [ ] Apply the `_stage_publish_segments` path-normalization DEBT fix (single normalization point / resolver) if behavior-safe — **as its own separate commit with an independent gate** (review 2026-05-28, contract clause 8): it is a behavior-touching change and must not be entangled with the pure-refactor extraction, so a red gate attributes unambiguously.
+### Step 3 — extract Publish stage + path normalization `[x]`
+- [x] Wrap `_stage_publish` (+ `_stage_publish_segments`) as `PublishStage`; reproduce every publish-exception arm exactly (the prior 7-type publish tuple as `_PUBLISH_FAILURES`).
+- [x] DEBT-062 (`_stage_publish_segments` absolute/relative path-normalization) — **DEFERRED, NOT folded.** Per the contract (clause 8) it is a behavior-touching change that must land as its own separate commit-state with an independent gate; folding it into this uncommitted pure-refactor working tree would entangle it. Left out-of-scope; DEBT-062 stays open.
 - **Acceptance**: publish-failure routing (disclaimer/IO/git) identical; segmented all-or-fail preserved; the DEBT fix lands in a distinct commit; the DEBT's test shape simplifies without changing assertions.
 
-### Step 4 — extract Notify + Health stages; move reader-format leak `[ ]`
-- [ ] Wrap `_stage_notify_briefing` / segmented notify as `NotifyStage`; coverage/health logging as `HealthTrackingStage`.
-- [ ] Move `_apply_reader_format_to_segments` into `publisher/` (post-u81 home); orchestrator calls it as a publisher API.
+### Step 4 — extract Notify + Health stages; move reader-format leak `[x]`
+- [x] Wrap `_stage_notify_briefing` / segmented notify as `NotifyStage`; coverage/health logging as `HealthTrackingStage`.
+- [x] Move `_apply_reader_format_to_segments` into `publisher/segment_reader_format.py` as `apply_reader_format_to_segments`; orchestrator calls it as a publisher API (re-imported under the legacy private name to keep callers' import path).
 - **Acceptance**: notify (non-raising) + health-append behavior identical; reader-format output unchanged; module boundary clean (orchestrator → publisher only).
 
-### Step 5 — convert `run_pipeline` to the routing loop `[ ]`
-- [ ] Replace the inline try/except cascade with a loop over the stages using the exception→(alert/status) map. **Implement the map as a declarative `dict` keyed by exception type, NOT an `if isinstance(...)` chain** (review 2026-05-28, guide §4 Replace-Conditional-with-Polymorphism): otherwise the switch-on-type smell is merely relocated. Preserve `_safe_alert` dedup and `_build_failure_context` exactly.
-- [ ] **Assemble the stage sequence at a composition root** (a factory / `__main__` / pipeline-builder) and pass it into the loop — do NOT have `run_pipeline` instantiate concrete stages inline, or DIP is not achieved and stages aren't injectable for isolated tests (review 2026-05-28, guide §3 DIP, §8 mock-at-the-ports).
-- [ ] **Pre-flight test-brittleness audit of `test_run_pipeline.py` (2164 lines)**: classify assertions behavioral vs implementation-coupled; rewrite any implementation-coupled ones to assert outcomes in a SEPARATE prior commit (guide §8) so the "unchanged suite = behavior preserved" net is actually valid.
+### Step 5 — convert `run_pipeline` to the routing loop `[x]`
+- [x] Replaced the inline try/except cascade with a loop over injected stages using the exception→(alert/status) map, implemented as the declarative `EXCEPTION_ROUTING: dict[type[BaseException], StageAction]` (no `isinstance` chain; `_route_failure` does exact-type then MRO lookup). `_safe_alert` dedup + `_build_failure_context` preserved verbatim.
+- [x] Stage sequence assembled at `build_default_stages()` composition root and injected via the new `stages=` parameter (default `None` → `build_default_stages()`); `run_pipeline` does NOT instantiate concrete stages inline.
+- [x] **Pre-flight test-brittleness audit of `test_run_pipeline.py`**: assertions are overwhelmingly outcome-based (`result.status`, `result.stages[...]`, `alerter.calls`, `stage_timings` keyset). The only implementation-coupled checks are the AST-grep deny tests (no `asyncio.wait_for`/`gather`/retry-loop around bare `_stage_*` Name-calls) — satisfied because the loop calls `stage.execute(...)` (an attribute call, not a `_stage_*` Name-call) and no `_stage_*` Name-call sits inside a `for`/`while`. NO assertion rewrite was required; the suite passes unchanged.
 - **Acceptance**: every `test_run_pipeline.py` case green unchanged; failure status + alert dispatch identical for all inputs; the exception→action map is a declarative dict; stages are injected from a composition root.
 
-### Step 6 — full gate `[ ]`
-- [ ] ruff / ruff-format / mypy --strict / pytest (full) / mkdocs build --strict.
+### Step 6 — full gate `[x]`
+- [x] ruff / ruff-format / mypy --strict / pytest (full) / mkdocs build --strict — all green. pytest 2828 passed (+8 = new `test_stage_protocol.py`; baseline 2820 incl. concurrent u86 WIP).
 - **Acceptance**: full gate green.
 
 ---
