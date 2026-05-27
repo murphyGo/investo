@@ -1,5 +1,35 @@
 # AI-DLC Audit Log
 
+## Construction — u80 notifier-decomposition-and-dispatcher-base Complete (Wave 14, Phase 2)
+**Timestamp**: 2026-05-28T15:45:00+09:00
+**Trigger**: u80 Code Generation landed (developer) — behavior-preserving notifier decomposition; full gate green. (Concurrent session active — aidlc-docs additive only; u86 planning entry below preserved.)
+**Decision**: Ratify and close u80 (4/4). `notifier/summary.py` split into extraction (`_summary_extract.py` — pure structured data, no formatting/UTF-16/markdown), formatting (stays in `summary.py`, imports UTF-16 from `_internal/text.py`), and event policy (`_events.py`); `build_segmented_summary` is a thin compose, byte-identical output. **Review correction honored — composition, not an LSP base**: shared `dispatch(...)` free function in `_dispatcher.py` (single `_is_markdown_parse_error`), both clients *call* it; no common supertype, no shared/default chat id (`chat_id` is a required param → R5 structurally preserved); `dispatch` owns `parse_mode` exclusively (injecting it via `**send_kwargs` raises `TypeError`, tested). Event-detection got its own `_events.py` (distinct "what counts as imminent" change-axis), not folded into extraction.
+**Behavior preservation**: all 130 pre-existing notifier tests pass UNCHANGED (no assertion modified; UTF-16 aliases kept for existing imports). Gate: ruff clean, mypy --strict 156 files, pytest **2767 passed** (+24), mkdocs --strict ok. Module boundary intact (only pre-existing `_summary_extract → briefing.market_anchor` edge, no new crossing).
+**TECH-DEBT candidate**: wide internal `__all__` surfaces (`_summary_extract`/`_events`/`_dispatcher`) — migration-tactic-wide; candidate for the wave's deferred "narrow `__all__`" debt.
+**Status**: u80 complete (4/4). FD+NFR SKIP confirmed. Next: u81 (reader_format → package), u82 (site_index → package); both dep u78 ✓.
+
+---
+
+## Planning — u86 curated-context-asset-library unit created
+**Timestamp**: 2026-05-28T15:30:00+09:00
+**Trigger**: User requested a feature to pre-curate and pre-verify license-clean context images into a committed local asset library, mapped by entity/topic metadata, and drawn at briefing-generation time — instead of any runtime fetch.
+**Decision**: Author a new **product** unit **u86** (next free id; Wave 14 occupies u77–u85). Wrote a self-contained Code Generation plan with a Stage Decision (**FD REQUIRED-lightweight + NFR REQUIRED-focused**, the only Wave-14-era unit to require both — justified by a new persisted artifact with license/storage invariants), 6 `[ ]` steps, dependency graph, NFR AC coverage map, a seed candidate list with per-source license basis, and Non-Goals. No code, no FD/NFR docs, no seed binaries authored yet (all `Planned`).
+**Design Q/A (user-confirmed policy, binding)**:
+- Sourcing scope = license-clean only: US-federal-government PD official portraits (Powell/President), PD crypto logos (Bitcoin), and commercially-reusable stock (Unsplash/Pexels). Clearance criterion = **republishability** to public GitHub Pages + public Telegram rebroadcast.
+- Excluded: news-article photos, community memes, corporate trademark logos, unofficial photos of real people.
+- **Runtime scraping stays disabled** (`EXTERNAL_IMAGE_SCRAPING_ENABLED=False`). u86 reads only from the committed, pre-cleared local library; zero external fetch on the curated path.
+- Provenance/attribution caption mandatory on every used asset; disclaimer rules unchanged.
+**Reuse mandate (no rebuild)**: extend `visuals/policy.py` `AllowedExternalAssetKind` with `curated-licensed` (reuse `ExternalAssetManifest`, not a parallel type); reuse `visuals/provenance.py` caption/manifest; flow through `visuals/assets.py` validation gate + `_HERO_PRIORITY`; reuse u64 `briefing/watchlist.py` matcher for entity extraction; do NOT call or re-enable `visuals/external_image.py`.
+**Stage Decision rationale**: FD REQUIRED because a new persisted artifact (library + registry) carries its own invariants (clearance, entity-key mapping, deterministic selection). NFR REQUIRED because two new surfaces appear — repository/Pages **storage budget** (committed binaries) and a blocking **license-compliance CI gate** (mirrors `check_no_paid_apis` style) + R13 manifest secret hygiene. No new dependency expected (TS-: reuse existing signature/dimension parsing, no pillow).
+**Affected docs**:
+- `aidlc-docs/construction/plans/u86-curated-asset-library-code-generation-plan.md` (new)
+- `aidlc-docs/aidlc-state.md` (Per-Unit table: 1 new `Planned` row u86)
+- (pending approval) `aidlc-docs/construction/u86-curated-context-asset-library/functional-design/{business-logic-model,business-rules,domain-entities}.md` + `nfr-requirements/{nfr-requirements,tech-stack-decisions}.md`
+**Status**: u86 planned (0/6). Awaiting "Continue to Next Stage" before authoring FD + NFR docs (pins R-numbers / AC-numbers) and starting Step 1.
+**Context**: Project rules re-stated in the plan and enforced — module boundary (only `orchestrator` imports the 4 units; visuals stays within the publisher/visuals layer per Wave-14 u78 boundary), no paid APIs, disclaimer gate, Telegram channel separation, `defusedxml`-only, R13 secret hygiene. No application code changed.
+
+---
+
 ## Construction — u79 shared-text-primitives Complete (Wave 14, Phase 1 — Phase 1 done)
 **Timestamp**: 2026-05-28T14:10:00+09:00
 **Trigger**: u79 Code Generation landed (developer) — behavior-preserving text-primitive relocation; full gate green. **Closes Wave 14 Phase 1 (u77/u78/u79).**

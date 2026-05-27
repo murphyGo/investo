@@ -23,14 +23,8 @@ from __future__ import annotations
 import httpx
 
 from investo.models import BriefingNotification, SendResult
-from investo.notifier._telegram import send_message
+from investo.notifier._dispatcher import dispatch
 from investo.notifier.summary import plain_text_summary
-
-
-def _is_markdown_parse_error(result: SendResult) -> bool:
-    if result.ok or result.error is None:
-        return False
-    return "can't parse entities" in result.error.lower()
 
 
 class BriefingPublisher:
@@ -87,23 +81,16 @@ class BriefingPublisher:
         client: httpx.AsyncClient,
         payload: BriefingNotification,
     ) -> SendResult:
-        result = await send_message(
+        # Shared dispatch (composition, not inheritance): the public
+        # channel id is passed explicitly here and nowhere shared with
+        # the operator chat (R5). ``parse_mode`` is owned by ``dispatch``
+        # — not passed — so the markdown→plain fallback stays internal.
+        return await dispatch(
             client,
             bot_token=self._bot_token,
             chat_id=self._channel_id,
             text=payload.summary_text,
-            parse_mode="Markdown",
-            disable_web_page_preview=False,
-        )
-        if not _is_markdown_parse_error(result):
-            return result
-
-        return await send_message(
-            client,
-            bot_token=self._bot_token,
-            chat_id=self._channel_id,
-            text=plain_text_summary(payload.summary_text),
-            parse_mode=None,
+            plain_text=plain_text_summary(payload.summary_text),
             disable_web_page_preview=False,
         )
 

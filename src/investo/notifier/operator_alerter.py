@@ -26,17 +26,12 @@ import httpx
 
 from investo._internal.text import truncate_with_suffix, utf16_units
 from investo.models import FailureContext, SendResult
-from investo.notifier._telegram import _redact_bot_token, send_message
+from investo.notifier._dispatcher import dispatch
+from investo.notifier._telegram import _redact_bot_token
 from investo.notifier.summary import DEFAULT_MAX_UNITS
 
 # u55 — alert categories surfaced by the numeric / freshness gate.
 NumericAlertKind = Literal["numeric_block", "numeric_downgrade", "segment_stale"]
-
-
-def _is_markdown_parse_error(result: SendResult) -> bool:
-    if result.ok or result.error is None:
-        return False
-    return "can't parse entities" in result.error.lower()
 
 
 def _format_alert_text(failure: FailureContext) -> str:
@@ -130,22 +125,16 @@ class OperatorAlerter:
         return await self._dispatch(self._http, text)
 
     async def _dispatch(self, client: httpx.AsyncClient, text: str) -> SendResult:
-        result = await send_message(
+        # Shared dispatch (composition, not inheritance): the operator
+        # chat id is passed explicitly here and nowhere shared with the
+        # public channel (R5). No ``plain_text`` variant — the operator
+        # alert resends the same body with Markdown disabled on a parse
+        # error. ``parse_mode`` is owned by ``dispatch``.
+        return await dispatch(
             client,
             bot_token=self._bot_token,
             chat_id=self._operator_chat_id,
             text=text,
-            parse_mode="Markdown",
-            disable_web_page_preview=True,
-        )
-        if not _is_markdown_parse_error(result):
-            return result
-        return await send_message(
-            client,
-            bot_token=self._bot_token,
-            chat_id=self._operator_chat_id,
-            text=text,
-            parse_mode=None,
             disable_web_page_preview=True,
         )
 

@@ -3,7 +3,7 @@
 **Date**: 2026-05-28
 **Unit**: u80 notifier-decomposition-and-dispatcher-base
 **Stage**: Code Generation (refactor)
-**Status**: Planned — not started (0/4 steps)
+**Status**: Complete — 4/4 steps
 **Source**: 2026-05-28 abstraction review — `notifier/`
 **Estimated Effort**: ~3-4 h
 **Dependencies**: **u79** (UTF-16 helpers must already live in `_internal/text.py`)
@@ -59,25 +59,25 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — extract the summary data layer `[ ]`
-- [ ] Create `notifier/_summary_extract.py` with pure functions that take a `Briefing` (+ optional watchlist prices) and return structured data: conclusion line, coverage label, market snapshot values, watchlist terms, imminent-event info. No Telegram formatting, no UTF-16, no markdown in this module.
-- [ ] Keep markdown-cleaning + UTF-16 truncation + price decoration in the formatting layer (`summary.py` or new `_summary_format.py`), importing UTF-16 from `_internal/text.py`.
-- [ ] **Decide where event detection lives (review 2026-05-28):** the problem statement names THREE concerns (extraction / formatting / event detection `_imminent_event_tag`). "Imminent event" is a what-counts-as-imminent policy — arguably its own reason to change. Either give it its own `_events.py`, or add one sentence justifying why it shares the extraction module's change-axis. Do not silently fold it in unexamined.
+### Step 1 — extract the summary data layer `[x]`
+- [x] Create `notifier/_summary_extract.py` with pure functions that take a `Briefing` (+ optional watchlist prices) and return structured data: conclusion line, coverage label, market snapshot values, watchlist terms, imminent-event info. No Telegram formatting, no UTF-16, no markdown in this module.
+- [x] Keep markdown-cleaning + UTF-16 truncation + price decoration in the formatting layer (`summary.py` or new `_summary_format.py`), importing UTF-16 from `_internal/text.py`.
+- [x] **Event-detection home decision:** `_imminent_event_tag` moved to its OWN `notifier/_events.py` (not folded into extraction). Rationale: "what counts as imminent" (the 72h horizon), the deterministic top-1 selector, the source→icon registry, and the terse label rules form a distinct policy change-axis from briefing-text extraction; co-locating them with regex extraction would tangle unrelated reasons to change.
 - **Acceptance**: `build_segmented_summary` produces byte-identical output; `tests/unit/notifier/test_summary.py` passes unchanged; event-detection home is explicitly decided.
 
-### Step 2 — shared dispatch (composition over inheritance) `[ ]`
+### Step 2 — shared dispatch (composition over inheritance) `[x]`
 > **Frame this as a shared helper/mixin, NOT a Liskov base class (review 2026-05-28, guide §3 LSP).** The two clients are NOT substitutable through a common supertype — `BriefingPublisher.send(BriefingNotification)` and `OperatorAlerter.alert(FailureContext)` have distinct public surfaces; nobody holds a `TelegramDispatcher` and calls a polymorphic method. So this is code-reuse, not an is-a hierarchy. Prefer a shared `dispatch(...)` free function (or injected collaborator) both clients call, over a base class — this also structurally prevents a shared/default `chat_id` field on a base (protecting R5). If a class is used, name/document it as a reuse mixin, and claim only the dedup benefit (AC-80.2), not a polymorphism/OCP benefit it doesn't deliver.
-- [ ] Create the shared dispatch in `notifier/_dispatcher.py`: an async `dispatch(*, bot_token, chat_id, http, dry_run, text, **send_kwargs)` that tries `parse_mode="Markdown"`, and on `_is_markdown_parse_error` retries with `parse_mode=None`. Move `_is_markdown_parse_error` here as the single definition. **`dispatch` OWNS `parse_mode` exclusively** — exclude `parse_mode` from the `**send_kwargs` passthrough (assert/document it must not be passed) so a caller cannot re-leak or override the markdown→plain quirk (review 2026-05-28, guide §9.4 minimize-leak-surface).
-- [ ] `BriefingPublisher.send(...)` and `OperatorAlerter.alert(...)` call the shared `dispatch(...)`, each passing its own chat/channel id. No shared/default id anywhere.
-- **Acceptance**: `test_telegram.py` and operator-alerter tests pass unchanged; the markdown-fallback path is pinned in the dispatcher's own test; a test asserts `parse_mode` cannot be injected via `send_kwargs`.
+- [x] Created the shared dispatch in `notifier/_dispatcher.py`: an async free function `dispatch(client, *, bot_token, chat_id, text, plain_text=None, **send_kwargs)` that tries `parse_mode="Markdown"`, and on `_is_markdown_parse_error` retries with `parse_mode=None`. `_is_markdown_parse_error` is the single definition here. **`dispatch` OWNS `parse_mode` exclusively** — passing `parse_mode` via `**send_kwargs` raises `TypeError` (documented + tested). Each client keeps its own transient-client creation (so the existing `bp_module.httpx.AsyncClient` monkeypatch test stays green); dispatch is purely the markdown→plain fallback wrapper over `send_message`.
+- [x] `BriefingPublisher._dispatch(...)` and `OperatorAlerter._dispatch(...)` call the shared `dispatch(...)`, each passing its own chat/channel id. No shared/default id anywhere (composition, not a base class; `dispatch`'s `chat_id` is a required parameter).
+- **Acceptance**: `test_telegram.py` and operator-alerter tests pass unchanged; the markdown-fallback path is pinned in `test_dispatcher.py`; a test asserts `parse_mode` cannot be injected via `send_kwargs`.
 
-### Step 3 — channel-separation + dry-run verification `[ ]`
-- [ ] Confirm the two clients still cannot share a chat id (existing R5 test green; add one to the base if missing).
-- [ ] Confirm dry-run gate and 30s timeout defaults are preserved for both.
+### Step 3 — channel-separation + dry-run verification `[x]`
+- [x] The two clients still cannot share a chat id (existing R5 tests green; `test_dispatcher.py` pins that `dispatch` routes to exactly the caller's id and has no default `chat_id`).
+- [x] Dry-run gate (each client returns immediate `SendResult(ok=True)`) and 30s transient-client timeout defaults preserved for both — existing tests green unchanged.
 - **Acceptance**: channel-separation test green; dry-run test green.
 
-### Step 4 — full gate `[ ]`
-- [ ] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict.
+### Step 4 — full gate `[x]`
+- [x] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict — all green.
 - **Acceptance**: full gate green.
 
 ---

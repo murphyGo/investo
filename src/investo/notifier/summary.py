@@ -1,34 +1,30 @@
-"""Telegram channel summary builder (FR-004).
+"""Telegram channel summary formatter (FR-004).
 
-``build_summary`` composes the public-channel preview text from a
-:class:`Briefing` and a site URL pointing at the archived markdown.
+This is the **formatting** half of the notifier summary split (u80).
+It turns the structured data produced by
+:mod:`investo.notifier._summary_extract` (conclusion / coverage /
+market-snapshot / watchlist) and the imminent-event tag produced by
+:mod:`investo.notifier._events` into Telegram-safe message strings:
+percent / price formatting, markdown-token cleanup for the plain-text
+fallback, watchlist price decoration, segment-block assembly, and the
+UTF-16-bounded truncation.
+
+``build_summary`` composes the single-briefing public-channel preview
+text; ``build_segmented_summary`` composes the multi-segment message.
 
 Telegram's ``sendMessage`` text-field limit is **4096 UTF-16 code
 units**, NOT 4096 characters. Non-BMP characters (emoji like 📈,
 certain CJK ideographs) consume 2 code units per Python codepoint,
-so ``len(s)`` would under-count and risk exceeding the limit.
-The truncation here uses ``len(s.encode("utf-16-le")) // 2`` for
-accurate counting — the same formula the
-:class:`BriefingNotification` model validator enforces (defense in
-depth: this function truncates; the model validator rejects any
-overflow that survives).
-
-Layout::
-
-    📈 {target_date.isoformat()} 시황 요약
-
-    {truncated market_summary}
-
-    상세보기: {site_url}
-
-The footer URL is always preserved (it's the whole point of the
-summary). Body text is truncated with a trailing "…" when it
-overflows the budget.
+so ``len(s)`` would under-count and risk exceeding the limit. The
+truncation here uses the shared :mod:`investo._internal.text` helpers
+(``utf16_units`` / ``utf16_truncate``, delivered in u79) — the same
+formula the :class:`BriefingNotification` model validator enforces.
 
 Reference:
     aidlc-docs/inception/application-design/component-methods.md (C4)
     aidlc-docs/construction/plans/u4-notifier-code-generation-plan.md
         (Step 3)
+    aidlc-docs/construction/plans/u80-notifier-decomposition-and-dispatcher-base-code-generation-plan.md
 """
 
 from __future__ import annotations
@@ -36,12 +32,11 @@ from __future__ import annotations
 import os
 import re
 from collections.abc import Mapping, Sequence
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Final
 
 from investo._internal.text import utf16_truncate as _utf16_truncate
 from investo._internal.text import utf16_units as _utf16_units
-from investo.briefing.market_anchor import anchor_label
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -51,6 +46,9 @@ from investo.briefing.segments import (
     SegmentCoverage,
 )
 from investo.models import Briefing, NormalizedItem
+from investo.notifier import _summary_extract as _extract
+from investo.notifier._events import imminent_event_tag
+from investo.notifier._summary_extract import SnapshotEntry
 
 # Telegram's hard cap. Mirrors the constant in
 # ``investo.models.briefing`` (``TELEGRAM_MESSAGE_LIMIT``); kept local
@@ -60,47 +58,15 @@ DEFAULT_MAX_UNITS: Final[int] = 4096
 
 # Truncation suffix. 1 UTF-16 unit (BMP character).
 _TRUNCATION_SUFFIX: Final[str] = "…"
-_CONCLUSION_LINE_RE: Final[re.Pattern[str]] = re.compile(
-    r"^>\s*\*\*오늘의 결론\*\*:\s*(.+)$",
-    re.MULTILINE,
-)
-_COVERAGE_LINE_RE: Final[re.Pattern[str]] = re.compile(
-    r"^>\s*\*\*데이터 상태\*\*:\s*(.+)$",
-    re.MULTILINE,
-)
-_WATCHLIST_LINE_RE: Final[re.Pattern[str]] = re.compile(
-    r"^>\s*\*\*내 관심 자산 영향\*\*:\s*(.+)$",
-    re.MULTILINE,
-)
-_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
+# Markdown→plain-text fallback regexes (formatting concern: used only by
+# ``plain_text_summary`` when the Markdown parse_mode send is rejected).
 _MARKDOWN_LINK_WITH_URL_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\(([^)]+)\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
-_LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
-)
-_MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 _SEGMENT_ICONS: Final[dict[MarketSegment, str]] = {
     DOMESTIC_EQUITY: "🇰🇷",
     US_EQUITY: "🇺🇸",
     CRYPTO: "₿",
 }
-
-# u35 — imminent-event horizon for the deterministic Telegram tag.
-# Events scheduled within 72 hours of the run instant qualify; the tag
-# is computed by D-distance arithmetic, not by the LLM (no hallucination
-# surface). Capped at top-1 by deterministic ordering (earliest first).
-_IMMINENT_HORIZON: Final[timedelta] = timedelta(hours=72)
-# Source-name → emoji mapping for the imminent tag prefix. New
-# adapters that emit ``scheduled_at`` should register an entry here so
-# the deterministic tag stays terse and source-attributable. Sources
-# not in this map fall back to a generic 📅 calendar icon.
-_IMMINENT_TAG_ICON: Final[dict[str, str]] = {
-    "fomc-rss": "📅",
-    "nasdaq-earnings-calendar": "📊",
-    "fred-macro": "📈",
-    "coingecko-events": "🪙",
-}
-_IMMINENT_TAG_FALLBACK_ICON: Final[str] = "📅"
 
 # u30 Step 2 — segment toggle env var. Comma-separated list of segment
 # names (``domestic-equity`` / ``us-equity`` / ``crypto``); empty / unset
@@ -324,10 +290,10 @@ def _segment_summary_block(
         # ``insufficient`` enum migrated to ``failed``; label is now
         # ``[실패]``.
         return f"{icon} *{label}* [실패] · {_detail_link(site_url)}"
-    status = _coverage_label(briefing)
+    status = _extract.coverage_label(briefing)
     status_tag = f" [{status}]" if status else ""
     one_line = _one_line_summary(briefing, watchlist_prices=watchlist_prices)
-    imminent = _imminent_event_tag(lookahead_items, now_utc=now_utc)
+    imminent = imminent_event_tag(lookahead_items, now_utc=now_utc)
     if imminent:
         one_line = f"{imminent} · {one_line}"
     return f"{icon} *{label}*{status_tag}\n{_detail_link(site_url)}\n{one_line}"
@@ -345,112 +311,21 @@ def _detail_link(site_url: str) -> str:
 
 
 def _market_snapshot_line(price_items: Sequence[NormalizedItem]) -> str:
-    parts = [
-        part
-        for part in (
-            _snapshot_part_for_tickers(anchor_label("^GSPC").short, price_items, ("^GSPC",)),
-            # u70 — ``^IXIC`` is the Nasdaq Composite, not the Nasdaq 100
-            # (``^NDX``); the canonical registry supplies the correct short
-            # label so this dense surface stops emitting the "NDX" mislabel.
-            _snapshot_part_for_tickers(anchor_label("^IXIC").short, price_items, ("^IXIC",)),
-            _snapshot_part_for_index("KOSPI", price_items, ("코스피",)),
-            _snapshot_part_for_crypto("BTC", price_items, ("BTCUSDT", "btc", "BTC")),
-        )
-        if part
-    ]
+    entries = _extract.market_snapshot_entries(price_items)
+    parts = [_format_snapshot_entry(entry) for entry in entries]
     return "시장: " + " / ".join(parts) if parts else ""
 
 
-def _snapshot_part_for_tickers(
-    label: str,
-    items: Sequence[NormalizedItem],
-    tickers: tuple[str, ...],
-) -> str:
-    wanted = {ticker.casefold() for ticker in tickers}
-    for item in items:
-        if item.category != "price":
-            continue
-        ticker = _metadata_text(item, "ticker").casefold()
-        if ticker in wanted:
-            pct = _pct_change(item)
-            return f"{label} {_format_pct(pct)}" if pct is not None else label
-    return ""
-
-
-def _snapshot_part_for_index(
-    label: str,
-    items: Sequence[NormalizedItem],
-    index_names: tuple[str, ...],
-) -> str:
-    wanted = {name.casefold() for name in index_names}
-    for item in items:
-        if item.category != "price":
-            continue
-        index_name = _metadata_text(item, "index_name").casefold()
-        if index_name in wanted:
-            pct = _pct_change(item)
-            return f"{label} {_format_pct(pct)}" if pct is not None else label
-    return ""
-
-
-def _snapshot_part_for_crypto(
-    label: str,
-    items: Sequence[NormalizedItem],
-    symbols: tuple[str, ...],
-) -> str:
-    wanted = {symbol.casefold() for symbol in symbols}
-    for item in items:
-        if item.category != "price":
-            continue
-        symbol = (
-            _metadata_text(item, "symbol")
-            or _metadata_text(item, "coin_id")
-            or _metadata_text(item, "ticker")
-        ).casefold()
-        if symbol in wanted:
-            price = _price_value(item)
-            pct = _pct_change(item)
-            if price is not None and pct is not None:
-                return f"{label} {_format_compact_price(price)}({_format_pct(pct)})"
-            if pct is not None:
-                return f"{label} {_format_pct(pct)}"
-            if price is not None:
-                return f"{label} {_format_compact_price(price)}"
-            return label
-    return ""
-
-
-def _metadata_text(item: NormalizedItem, key: str) -> str:
-    value = item.raw_metadata.get(key)
-    return value if isinstance(value, str) else ""
-
-
-def _metadata_float(item: NormalizedItem, *keys: str) -> float | None:
-    for key in keys:
-        value = item.raw_metadata.get(key)
-        if isinstance(value, (int, float)):
-            return float(value)
-        if isinstance(value, str) and value:
-            try:
-                return float(value)
-            except ValueError:
-                continue
-    return None
-
-
-def _price_value(item: NormalizedItem) -> float | None:
-    return _metadata_float(item, "last_price", "price_usd", "close")
-
-
-def _pct_change(item: NormalizedItem) -> float | None:
-    explicit = _metadata_float(item, "pct_change", "pct_24h", "pct_change_24h")
-    if explicit is not None:
-        return explicit
-    close = _metadata_float(item, "close")
-    prev_close = _metadata_float(item, "prev_close")
-    if close is None or prev_close is None or prev_close == 0.0:
-        return None
-    return (close - prev_close) / prev_close * 100.0
+def _format_snapshot_entry(entry: SnapshotEntry) -> str:
+    if entry.with_price:
+        if entry.price is not None and entry.pct is not None:
+            return f"{entry.label} {_format_compact_price(entry.price)}({_format_pct(entry.pct)})"
+        if entry.pct is not None:
+            return f"{entry.label} {_format_pct(entry.pct)}"
+        if entry.price is not None:
+            return f"{entry.label} {_format_compact_price(entry.price)}"
+        return entry.label
+    return f"{entry.label} {_format_pct(entry.pct)}" if entry.pct is not None else entry.label
 
 
 def _format_pct(value: float) -> str:
@@ -465,50 +340,19 @@ def _format_compact_price(value: float) -> str:
     return f"{value:.2f}"
 
 
-def _coverage_label(briefing: Briefing) -> str | None:
-    coverage_match = _COVERAGE_LINE_RE.search(briefing.rendered_markdown)
-    if coverage_match is None:
-        return None
-    coverage_label = _clean_summary_text(coverage_match.group(1)).split("—", maxsplit=1)[0].strip()
-    return coverage_label or None
-
-
 def _one_line_summary(
     briefing: Briefing,
     *,
     watchlist_prices: Mapping[str, str] | None = None,
 ) -> str:
-    conclusion_match = _CONCLUSION_LINE_RE.search(briefing.rendered_markdown)
-    if conclusion_match is not None:
-        conclusion = _clean_summary_text(conclusion_match.group(1))
-        if conclusion:
-            coverage_match = _COVERAGE_LINE_RE.search(briefing.rendered_markdown)
-            if coverage_match is not None:
-                coverage_label = _coverage_label(briefing)
-                if coverage_label:
-                    conclusion = f"{coverage_label} — {conclusion}"
-            watchlist_match = _WATCHLIST_LINE_RE.search(briefing.rendered_markdown)
-            if watchlist_match is not None:
-                watchlist = _clean_summary_text(watchlist_match.group(1))
-                if (
-                    watchlist
-                    # u28 — onboarding nudge stays site-only.
-                    and not watchlist.startswith("관심 목록 미설정")
-                    # u28 — coverage-hold branch is reader-side only; the
-                    # Telegram suffix omits it so first-viewport one-liners
-                    # do not say "관심: 데이터 수집 부족" alongside the segment
-                    # coverage badge that already says the same thing.
-                    and not watchlist.startswith("데이터 수집 부족으로 매칭 판단 보류")
-                ):
-                    decorated = _decorate_watchlist_with_prices(watchlist, watchlist_prices)
-                    return f"{conclusion} / 관심: {decorated}"
-            return conclusion
-
-    for line in briefing.market_summary.splitlines():
-        summary = _clean_summary_text(line)
-        if summary:
-            return summary
-    return "데이터 부족"
+    data = _extract.conclusion_data(briefing)
+    conclusion = data.conclusion
+    if data.coverage_label:
+        conclusion = f"{data.coverage_label} — {conclusion}"
+    if data.watchlist is not None:
+        decorated = _decorate_watchlist_with_prices(data.watchlist, watchlist_prices)
+        return f"{conclusion} / 관심: {decorated}"
+    return conclusion
 
 
 def _publish_time_label(now_utc: datetime, *, target_date: object) -> str:
@@ -556,32 +400,17 @@ def _build_watchlist_price_index(
     for item in price_items:
         if item.category != "price":
             continue
-        pct = _pct_change(item)
-        price = _price_value(item)
+        pct = _extract.pct_change(item)
+        price = _extract.price_value(item)
         if pct is None and price is None:
             continue
         suffix = _format_watchlist_suffix(pct=pct, price=price)
         if not suffix:
             continue
-        for key in _watchlist_index_keys(item):
+        for key in _extract.watchlist_index_keys(item):
             if key:
                 index.setdefault(key, suffix)
     return index
-
-
-def _watchlist_index_keys(item: NormalizedItem) -> tuple[str, ...]:
-    """Return the case-folded keys a watchlist match could use."""
-    candidates: list[str] = []
-    for field in ("ticker", "symbol", "coin_id", "index_name", "asset_name"):
-        value = _metadata_text(item, field)
-        if value:
-            candidates.append(value)
-    # ``BTCUSDT`` → also expose the leading ticker portion (``BTC``) so
-    # users who registered ``BTC`` instead of the full pair still hit.
-    for candidate in tuple(candidates):
-        if candidate.endswith("USDT") and len(candidate) > 4:
-            candidates.append(candidate[:-4])
-    return tuple(value.casefold() for value in candidates)
 
 
 def _format_watchlist_suffix(*, pct: float | None, price: float | None) -> str:
@@ -596,9 +425,6 @@ def _format_watchlist_suffix(*, pct: float | None, price: float | None) -> str:
     if price is not None:
         return f"({_format_compact_price(price)})"
     return ""
-
-
-_WATCHLIST_MATCH_TERM_RE: Final[re.Pattern[str]] = re.compile(r"([^;,]+?):\s*([^;]+)")
 
 
 def _decorate_watchlist_with_prices(
@@ -626,96 +452,18 @@ def _decorate_watchlist_with_prices(
     else:
         prefix, body = "", watchlist_text
 
-    def _decorate_one(match_segment: str) -> str:
-        match = _WATCHLIST_MATCH_TERM_RE.match(match_segment.strip())
-        if match is None:
-            return match_segment
-        term = match.group(1).strip()
-        rest = match.group(2).strip()
-        suffix = prices.get(term.casefold()) if prices else None
+    decorated_segments: list[str] = []
+    for term, rest in _extract.watchlist_match_terms(body):
+        if not term:
+            # Unmatched segment — pass through unchanged.
+            decorated_segments.append(rest)
+            continue
+        suffix = prices.get(term.casefold())
         if suffix is None:
-            return f"{term}: {rest}"
-        return f"{term}{suffix}: {rest}"
-
-    decorated_segments = [_decorate_one(segment) for segment in body.split(";") if segment.strip()]
+            decorated_segments.append(f"{term}: {rest}")
+        else:
+            decorated_segments.append(f"{term}{suffix}: {rest}")
     return f"{prefix}{'; '.join(decorated_segments)}" if decorated_segments else watchlist_text
-
-
-def _imminent_event_tag(
-    lookahead_items: Sequence[NormalizedItem],
-    *,
-    now_utc: datetime | None,
-) -> str:
-    """Compute a deterministic imminent-event tag from forward items.
-
-    Selects the earliest item whose ``scheduled_at`` falls within
-    :data:`_IMMINENT_HORIZON` of ``now_utc`` and emits a tag of the
-    shape ``"📅 <label> D-<n>"`` (where ``n`` is the number of full
-    UTC days between ``now_utc`` and ``scheduled_at``, rounded down,
-    minimum 0). When nothing qualifies, returns an empty string and
-    the caller leaves the line unchanged.
-
-    Determinism: the function consults ``scheduled_at`` and
-    ``source_name`` only — no LLM call, no network, no clock read
-    when ``now_utc`` is supplied. The orchestrator passes a single
-    ``now_utc`` for all segments so a multi-segment publish emits a
-    consistent set of tags.
-    """
-    if not lookahead_items or now_utc is None:
-        return ""
-    horizon_end = now_utc + _IMMINENT_HORIZON
-    candidates = [
-        item
-        for item in lookahead_items
-        if item.scheduled_at is not None and now_utc <= item.scheduled_at < horizon_end
-    ]
-    if not candidates:
-        return ""
-    # Earliest first; ties broken by source then title for determinism.
-    best = min(
-        candidates,
-        key=lambda item: (
-            item.scheduled_at,
-            item.source_name,
-            item.title,
-        ),
-    )
-    assert best.scheduled_at is not None
-    delta = best.scheduled_at - now_utc
-    days_to_event = max(int(delta.total_seconds() // 86400), 0)
-    icon = _IMMINENT_TAG_ICON.get(best.source_name, _IMMINENT_TAG_FALLBACK_ICON)
-    label = _imminent_event_label(best)
-    return f"{icon} {label} D-{days_to_event}"
-
-
-def _imminent_event_label(item: NormalizedItem) -> str:
-    """Resolve a terse Korean/English label for the imminent tag.
-
-    For earnings calendar rows we surface the ticker symbol so the
-    Telegram preview reads ``📊 NVDA 실적 D-1`` instead of repeating
-    the long company-name title. For other sources we fall back to
-    the first 24 characters of the title — short enough that the
-    surrounding "상세보기" footer still fits inside the UTF-16 budget.
-    """
-    if item.source_name == "nasdaq-earnings-calendar":
-        symbol = item.raw_metadata.get("symbol")
-        if isinstance(symbol, str) and symbol:
-            return f"{symbol} 실적"
-    title = item.title.strip()
-    return title if len(title) <= 24 else title[:23] + "…"
-
-
-def _clean_summary_text(text: str) -> str:
-    cleaned = text.strip()
-    if not cleaned:
-        return ""
-    cleaned = _LEADING_MARKDOWN_RE.sub("", cleaned).strip()
-    cleaned = _MARKDOWN_LINK_RE.sub(r"\1", cleaned)
-    cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
-    cleaned = " ".join(cleaned.split())
-    if not _MEANINGFUL_TEXT_RE.search(cleaned):
-        return ""
-    return cleaned
 
 
 __all__ = [
