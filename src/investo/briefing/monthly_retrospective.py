@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Final
 
@@ -26,6 +26,7 @@ _TAG_RE: Final[re.Pattern[str]] = re.compile(
 _TICKER_RE: Final[re.Pattern[str]] = re.compile(
     r"(?<![A-Z0-9.])[A-Z][A-Z0-9.]{1,9}(?![A-Z0-9.])|(?<!\d)\d{6}(?!\d)"
 )
+_WEEKLY_STEM_RE: Final[re.Pattern[str]] = re.compile(r"^(\d{4})-W(\d{2})$")
 _SEGMENT_ORDER: Final[tuple[MarketSegment, ...]] = (
     "domestic-equity",
     "us-equity",
@@ -149,9 +150,25 @@ def _weekly_links(year: int, month: int, *, archive_root: Path) -> list[str]:
     for path in sorted(weekly_root.glob("*.md")):
         if path.name == "index.md":
             continue
-        if f"{year:04d}-{month:02d}" in path.stem:
+        if _weekly_page_overlaps_month(path.stem, year=year, month=month):
             links.append(f"- [{path.stem}](../weekly/{path.name})")
     return links
+
+
+def _weekly_page_overlaps_month(stem: str, *, year: int, month: int) -> bool:
+    match = _WEEKLY_STEM_RE.fullmatch(stem)
+    if match is None:
+        return False
+    iso_year = int(match.group(1))
+    iso_week = int(match.group(2))
+    try:
+        week_start = date.fromisocalendar(iso_year, iso_week, 1)
+    except ValueError:
+        return False
+    return any(
+        (day.year, day.month) == (year, month)
+        for day in (week_start + timedelta(days=offset) for offset in range(5))
+    )
 
 
 def _escape_cell(text: str) -> str:

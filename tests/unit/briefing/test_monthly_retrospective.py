@@ -44,3 +44,22 @@ def test_monthly_retrospective_is_idempotent(tmp_path: Path) -> None:
     second = render_monthly_retrospective(2026, 4, archive_root=archive)
 
     assert first == second
+
+
+def test_monthly_retrospective_links_iso_weekly_pages_that_overlap_month(
+    tmp_path: Path,
+) -> None:
+    archive = tmp_path / "archive"
+    for day in range(1, 8):
+        _write_day(archive, "us-equity", day, f"NVDA 흐름 {day} [강세]")
+    weekly_root = archive / "weekly"
+    weekly_root.mkdir(parents=True)
+    for name in ("2026-W14.md", "2026-W18.md", "2026-W19.md", "not-a-week.md"):
+        (weekly_root / name).write_text("# weekly\n", encoding="utf-8")
+
+    body = render_monthly_retrospective(2026, 4, archive_root=archive)
+
+    assert "- [2026-W14](../weekly/2026-W14.md)" in body
+    assert "- [2026-W18](../weekly/2026-W18.md)" in body
+    assert "2026-W19" not in body
+    assert "not-a-week" not in body
