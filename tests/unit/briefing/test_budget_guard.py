@@ -20,6 +20,7 @@ from datetime import UTC, date, datetime
 import pytest
 
 from investo.briefing import pipeline
+from investo.briefing._core import orchestration  # u83: call_claude_code seam moved here
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.models import NormalizedItem
@@ -79,12 +80,12 @@ async def test_budget_gate_fires_before_stage_2_dispatches(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call)
 
     async def fake_sleep(seconds: float) -> None:
         del seconds
 
-    monkeypatch.setattr(pipeline.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(orchestration.asyncio, "sleep", fake_sleep)
 
     budget = RetryBudget()
     with pytest.raises(BriefingGenerationError) as exc:
@@ -135,12 +136,12 @@ async def test_budget_is_shared_between_classify_and_synthesize(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call)
 
     async def fake_sleep(seconds: float) -> None:
         del seconds
 
-    monkeypatch.setattr(pipeline.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(orchestration.asyncio, "sleep", fake_sleep)
 
     # Caller-supplied budget — pipeline must use THIS instance, not
     # construct its own per-stage replacement.
@@ -178,12 +179,12 @@ async def test_generation_policy_controls_timeout_attempts_and_budget(
             elapsed_s=timeout_s,
         )
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call)
 
     async def fake_sleep(seconds: float) -> None:
         del seconds
 
-    monkeypatch.setattr(pipeline.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(orchestration.asyncio, "sleep", fake_sleep)
 
     policy = pipeline.GenerationPolicy(timeout_s=180.0, max_attempts=2, total_budget_s=390.0)
     with pytest.raises(BriefingGenerationError) as exc:
@@ -235,7 +236,7 @@ async def test_budget_gate_fires_on_classify_retry_when_first_attempt_overruns(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call)
 
     budget = RetryBudget()
     with pytest.raises(BriefingGenerationError) as exc:

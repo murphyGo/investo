@@ -25,6 +25,7 @@ from datetime import UTC, date, datetime
 import pytest
 
 from investo.briefing import pipeline
+from investo.briefing._core import orchestration  # u83: call_claude_code seam moved here
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import SubprocessOutcome
@@ -95,7 +96,7 @@ async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     budget = RetryBudget()
     result = await pipeline.generate_briefing(_TARGET_DATE, _items(2), budget=budget)
@@ -136,7 +137,7 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
             elapsed_s=1.0,
         )
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     result = await pipeline.generate_briefing(
         _TARGET_DATE,
@@ -184,7 +185,7 @@ async def test_generate_briefing_crypto_segment_uses_crypto_disclaimer(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     result = await pipeline.generate_briefing(
         _TARGET_DATE,
@@ -233,7 +234,7 @@ async def test_segment_header_sanitizes_markdown_and_numbered_watchpoints(
             elapsed_s=1.0,
         )
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     result = await pipeline.generate_briefing(
         _TARGET_DATE,
@@ -266,7 +267,7 @@ async def test_generate_briefing_zero_item_segment_uses_concise_local_fallback(
     async def fail_if_called(*args: object, **kwargs: object) -> SubprocessOutcome:
         raise AssertionError("Claude should not be called for a zero-item segment fallback")
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fail_if_called)
+    monkeypatch.setattr(orchestration, "call_claude_code", fail_if_called)
 
     result = await pipeline.generate_briefing(
         _TARGET_DATE,

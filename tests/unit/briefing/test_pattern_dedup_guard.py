@@ -68,7 +68,13 @@ def test_crypto_patterns_remain_distinct() -> None:
 def test_consumers_share_the_canonical_objects() -> None:
     # The four sites must reference the *same* compiled objects, proving
     # they delegate rather than carry a private copy.
-    from investo.briefing import citation_cardinality, pipeline, segments, summary_quality
+    from investo.briefing import citation_cardinality, segments, summary_quality
+
+    # u83 — the former ``pipeline._MEANINGFUL_TEXT_RE`` consumer split
+    # into the ``_assembly`` text-normalize / summary-extraction modules
+    # in the pipeline decomposition; they still delegate to the single
+    # canonical pattern object (the dedup guarantee this test enforces).
+    from investo.briefing._assembly import summary_extraction, text_normalize
 
     assert segments._KOREAN_EXCHANGE_TICKER is patterns.KOREAN_EXCHANGE_TICKER
     assert segments._US_TICKER is patterns.US_TICKER
@@ -76,7 +82,8 @@ def test_consumers_share_the_canonical_objects() -> None:
     assert citation_cardinality._KOREAN_EXCHANGE_TICKER is patterns.KOREAN_EXCHANGE_TICKER
     assert citation_cardinality._US_TICKER is patterns.US_TICKER
     assert citation_cardinality._CRYPTO_TICKER is patterns.CRYPTO_TICKER
-    assert pipeline._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
+    assert text_normalize._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
+    assert summary_extraction._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
     assert summary_quality._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
 
 

@@ -19,6 +19,7 @@ from datetime import UTC, date, datetime
 import pytest
 
 from investo.briefing import pipeline
+from investo.briefing._core import orchestration  # u83: call_claude_code seam moved here
 from investo.briefing.errors import SubprocessOutcome
 from investo.briefing.segments import US_EQUITY, build_segment_coverage
 from investo.models import NormalizedItem, SourceOutcome
@@ -211,7 +212,7 @@ async def test_generate_briefing_threads_source_outcomes_into_badge(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     items = [
         NormalizedItem(
@@ -285,7 +286,7 @@ async def test_generate_briefing_passes_leak_guard_with_secret_shaped_failure(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call_claude_code)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     items = [
         NormalizedItem(

@@ -23,6 +23,18 @@
 
 ---
 
+## Construction — u83 briefing-pipeline-decomposition Complete (Wave 14, Phase 3, HIGH RISK)
+**Timestamp**: 2026-05-28T17:30:00+09:00
+**Trigger**: u83 Code Generation landed (developer) — god-module decomposition; full gate green. (Concurrent session active — additive only; u86 entries preserved.)
+**Decision**: Ratify and close u83 (7/7). `briefing/pipeline.py` 1924→561 lines → sub-packages: `_core/` (classification, section_planning, orchestration — Claude-CLI loop + timeout/retry budget preserved exactly), `_assembly/` (text_normalize, summary_extraction, markdown_render OUTPUT-only, prompt_fields LLM-input), `_reader_enhance/` (coverage_badge, context_render, enhancement, lineage). **Context-block rendering single-homed in `_reader_enhance/context_render.py`** (the earlier double-listing bug corrected). `pipeline.py` is a thin `generate_briefing` orchestrator + re-export block.
+**Step 4b (SLAP, logic-edit explicitly permitted, review-added)**: extracted `_assemble_prompt_context`/`_append_traceability_footer`/`_finalize_briefing` — the two previously-duplicated `Briefing(...)` constructions (data-limited + main path) collapsed into ONE; `generate_briefing` body now has no raw string concat / no footer `+=` / one `Briefing(...)` call — single altitude. Proven byte-identical by the u65 replay harness.
+**Step 5 (review-added)**: brittleness audit found `test_pipeline_unit.py`/`test_fake_claude_runner.py` are behavioral (assert outcomes, not call sequences) → no pre-rewrite needed; replay failure-path coverage confirmed (leak-guard trigger, budget exhaustion, classification/synthesis BGE, data-limited shortcut).
+**Behavior preservation**: **pytest 2767 net delta 0** (byte-identical; the +53 in the raw run are the concurrent u86 WIP test files, not u83). Zero non-test caller edits (`orchestrator/pipeline.py` resolves `GenerationPolicy`/`generate_briefing` via re-export). 9 MECHANICAL test edits only (monkeypatch seam `call_claude_code`/`_BACKOFF_SCHEDULE` moved pipeline→`_core.orchestration`; pattern-guard pointed at `_assembly`). mypy --strict 187 files, ruff clean, mkdocs --strict ok.
+**TECH-DEBT candidate**: ~230-line full re-export block in `pipeline.py` freezes the private surface as API (migration tactic) — follow-up to narrow once private-name importers (mostly tests) migrate to the new module homes.
+**Status**: u83 complete (7/7). FD+NFR SKIP confirmed. Next: u84 (orchestrator/pipeline.py Stage abstraction, HIGHEST risk).
+
+---
+
 ## Construction — u82 site-index-subpackage Complete (Wave 14, Phase 2 — Phase 2 done)
 **Timestamp**: 2026-05-28T16:35:00+09:00
 **Trigger**: u82 Code Generation landed (developer) — structural module→package split; full gate green. **Closes Wave 14 Phase 2 (u80/u81/u82).** (Concurrent session active — additive only; u86 entries preserved.)

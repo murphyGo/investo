@@ -38,7 +38,7 @@ import httpx
 import pytest
 from pydantic import HttpUrl, TypeAdapter
 
-from investo.briefing import pipeline as briefing_pipeline
+from investo.briefing._core import orchestration as briefing_orchestration  # u83 seam moved
 from investo.briefing.errors import SubprocessOutcome
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.models import NormalizedItem, PipelineResult, PipelineStatus
@@ -150,9 +150,9 @@ def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(briefing_pipeline, "call_claude_code", _fake_call)
+    monkeypatch.setattr(briefing_orchestration, "call_claude_code", _fake_call)
     # Disable u2's retry backoff so the integration test runs in milliseconds.
-    monkeypatch.setattr(briefing_pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
+    monkeypatch.setattr(briefing_orchestration, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
     yield captured_prompts
 
 

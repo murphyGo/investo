@@ -51,6 +51,7 @@ import httpx
 import pytest
 
 from investo.briefing import pipeline
+from investo.briefing._core import orchestration  # u83: call_claude_code + backoff seam moved here
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.errors import SubprocessOutcome
 from investo.models import Briefing, Category, NormalizedItem
@@ -118,7 +119,7 @@ async def test_full_pipeline_poc_against_recorded_fomc_fixture(
     ``Briefing``. Pins AC-4.4 (DISCLAIMER in rendered markdown) and
     AC-7.5 (no ``<script>``).
     """
-    monkeypatch.setattr(pipeline, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
+    monkeypatch.setattr(orchestration, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
     monkeypatch.setattr(
         aggregator,
         "list_sources",
@@ -161,7 +162,7 @@ async def test_full_pipeline_poc_against_recorded_fomc_fixture(
         call_index += 1
         return outcome
 
-    monkeypatch.setattr(pipeline, "call_claude_code", fake_call)
+    monkeypatch.setattr(orchestration, "call_claude_code", fake_call)
 
     # Step 3: run the full pipeline.
     briefing = await pipeline.generate_briefing(_TARGET_DATE, items)
