@@ -3,7 +3,7 @@
 **Date**: 2026-05-28
 **Unit**: u79 shared-text-primitives
 **Stage**: Code Generation (refactor)
-**Status**: Planned — not started (0/3 steps)
+**Status**: Complete — 3/3 steps
 **Source**: 2026-05-28 abstraction review — `notifier/` + `briefing/` + `_internal/`
 **Estimated Effort**: ~2-3 h
 **Dependencies**: none (but **u80 depends on this** — UTF-16 helpers move here first)
@@ -62,19 +62,19 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — UTF-16 helpers to `_internal/text.py` `[ ]`
-- [ ] Add public `utf16_units(text) -> int`, `utf16_truncate(text, max_units) -> str`, and a `truncate_with_suffix(text, max_units, suffix) -> str` if a call site needs the "…"-append pattern. Match `summary.py`'s exact current semantics (boundary handling, suffix behavior).
-- [ ] Update `notifier/summary.py` and `notifier/operator_alerter.py` to import from `_internal/text.py`; remove the local copies.
+### Step 1 — UTF-16 helpers to `_internal/text.py` `[x]`
+- [x] Add public `utf16_units(text) -> int`, `utf16_truncate(text, max_units) -> str`, and a `truncate_with_suffix(text, max_units, suffix) -> str` if a call site needs the "…"-append pattern. Match `summary.py`'s exact current semantics (boundary handling, suffix behavior).
+- [x] Update `notifier/summary.py` and `notifier/operator_alerter.py` to import from `_internal/text.py`; remove the local copies.
 - **Acceptance**: every pre-existing `notifier/` test (`test_summary.py`, `test_telegram.py`, operator-alerter tests) passes unchanged; new `_internal` tests pin code-unit counting for BMP + surrogate-pair (emoji) strings and the truncation boundary.
 
-### Step 2 — briefing regex patterns to `briefing/_text/patterns.py` `[ ]`
-- [ ] Create `briefing/_text/patterns.py` holding the canonical `KOREAN_EXCHANGE_TICKER`, `US_TICKER`, crypto-term patterns (and the markdown-cleaning patterns if they are identical across sites).
-- [ ] Update `briefing/pipeline.py`, `briefing/segments.py`, `briefing/citation_cardinality.py` to import them; delete the local `re.compile` literals.
-- [ ] (Conditional) If safe per the DEBT note, single-source the summary-reject pattern set used by `_is_unsafe_summary_candidate` + `summary_quality.py`.
+### Step 2 — briefing regex patterns to `briefing/_text/patterns.py` `[x]`
+- [x] Create `briefing/_text/patterns.py` holding the canonical `KOREAN_EXCHANGE_TICKER`, `US_TICKER`, crypto-term patterns (and the markdown-cleaning patterns if they are identical across sites).
+- [x] Update `briefing/pipeline.py`, `briefing/segments.py`, `briefing/citation_cardinality.py` to import them; delete the local `re.compile` literals. (Also migrated `summary_quality.py`'s identical `_MEANINGFUL_TEXT_RE`.)
+- [x] (Conditional) Reviewed DEBT-047 — left out-of-scope (see closeout note); it requires restructuring the gate's prefix-specific exception messages, which is gate-behavior-touching, not a clean shared-pattern-set swap.
 - **Acceptance**: existing `briefing/` tests (`test_segments_exclusivity.py`, citation/cardinality tests, `test_pipeline_unit.py`) pass unchanged; a grep guard test asserts no site redeclares the moved patterns.
 
-### Step 3 — full gate `[ ]`
-- [ ] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict.
+### Step 3 — full gate `[x]`
+- [x] ruff / ruff-format / mypy --strict / pytest / mkdocs build --strict.
 - **Acceptance**: full gate green.
 
 ---

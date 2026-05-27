@@ -24,9 +24,10 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
+from investo._internal.text import truncate_with_suffix, utf16_units
 from investo.models import FailureContext, SendResult
 from investo.notifier._telegram import _redact_bot_token, send_message
-from investo.notifier.summary import DEFAULT_MAX_UNITS, _utf16_truncate, _utf16_units
+from investo.notifier.summary import DEFAULT_MAX_UNITS
 
 # u55 — alert categories surfaced by the numeric / freshness gate.
 NumericAlertKind = Literal["numeric_block", "numeric_downgrade", "segment_stale"]
@@ -120,8 +121,8 @@ class OperatorAlerter:
             return SendResult(ok=True, message_id=None, error=None)
         text = _format_alert_text(failure)
         text = _redact_bot_token(text)
-        if _utf16_units(text) > DEFAULT_MAX_UNITS:
-            text = _utf16_truncate(text, DEFAULT_MAX_UNITS - 1) + "…"
+        if utf16_units(text) > DEFAULT_MAX_UNITS:
+            text = truncate_with_suffix(text, DEFAULT_MAX_UNITS)
 
         if self._http is None:
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -177,8 +178,8 @@ class OperatorAlerter:
             return SendResult(ok=True, message_id=None, error=None)
         text = _format_numeric_alert_text(kind, segment=segment, detail=detail)
         text = _redact_bot_token(text)
-        if _utf16_units(text) > DEFAULT_MAX_UNITS:
-            text = _utf16_truncate(text, DEFAULT_MAX_UNITS - 1) + "…"
+        if utf16_units(text) > DEFAULT_MAX_UNITS:
+            text = truncate_with_suffix(text, DEFAULT_MAX_UNITS)
         if self._http is None:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 return await self._dispatch(client, text)

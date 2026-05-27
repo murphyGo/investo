@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u79 shared-text-primitives Complete (Wave 14, Phase 1 — Phase 1 done)
+**Timestamp**: 2026-05-28T14:10:00+09:00
+**Trigger**: u79 Code Generation landed (developer) — behavior-preserving text-primitive relocation; full gate green. **Closes Wave 14 Phase 1 (u77/u78/u79).**
+**Decision**: Ratify and close u79 (3/3). UTF-16 helpers (`utf16_units`/`utf16_truncate`/`truncate_with_suffix`/`UTF16_TRUNCATION_SUFFIX`) moved to `_internal/text.py`; `notifier/summary.py` + `operator_alerter.py` delegate (notifier UTF-16 tests kept green via aliased re-imports — no test edit). New `briefing/_text/patterns.py` centralizes ticker/markdown regexes; `pipeline.py`/`segments.py`/`citation_cardinality.py`/`summary_quality.py` import them; grep-guard test pins no redeclaration.
+**Review-conditional honored**: the summary-reject dedup is **DEBT-047** (live id) — left OUT OF SCOPE because the producer returns a bool while the gate raises prefix-specific `SummaryQualityError` messages with a different reject set; unifying would change gate exception-message granularity (behavior change). Only the byte-identical `_MEANINGFUL_TEXT_RE` literal was single-sourced. Distinct crypto regexes (`\b(?:BTC|ETH|SOL)\b` vs `\b(BTC|ETH)\b`) co-located as DISTINCT named constants (`CRYPTO_TICKER`/`CRYPTO_TICKER_PAIR`), not unified — unifying would be a behavior change. DEBT-035/DEBT-060 untouched.
+**Behavior preservation**: every pre-existing notifier + briefing test passes UNCHANGED. Gate: ruff clean, mypy --strict 153 files, pytest **2743 passed** (+23), mkdocs --strict ok.
+**Status**: u79 complete (3/3). FD+NFR SKIP confirmed. **Phase 1 (u77/u78/u79) complete.** Next: Phase 2 — u80 (notifier split, dep u79 ✓), u81/u82 (publisher splits, dep u78 ✓).
+
+---
+
 ## Construction — u78 filesystem-write-and-archive-layout-primitives Complete (Wave 14, Phase 1)
 **Timestamp**: 2026-05-28T13:40:00+09:00
 **Trigger**: u78 Code Generation landed (developer) — behavior-preserving IO/path primitive extraction; full gate green.

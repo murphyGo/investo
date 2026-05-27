@@ -24,10 +24,19 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Final
+
+from investo.briefing._text.patterns import (
+    CRYPTO_TICKER as _CRYPTO_TICKER,
+)
+from investo.briefing._text.patterns import (
+    KOREAN_EXCHANGE_TICKER as _KOREAN_EXCHANGE_TICKER,
+)
+from investo.briefing._text.patterns import (
+    US_TICKER as _US_TICKER,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -35,13 +44,9 @@ _logger = logging.getLogger(__name__)
 # site. Co-located with the helper to keep the policy auditable.
 CARDINALITY_THRESHOLD: Final[int] = 3
 
-# Ticker regex tokens reused across the codebase (Korean exchange
-# 6-digit / 3-letter+3-digit codes, and the curated US ticker list).
-# Mirrored from :mod:`investo.briefing.segments` to keep this helper
-# import-light (no circular import with the routing module).
-_KOREAN_EXCHANGE_TICKER = re.compile(r"\[(?:\d{6}|[A-Z]{3}\d{3})\]")
-_US_TICKER = re.compile(r"\b(?:AAPL|AMZN|GOOGL|META|MSFT|NVDA|SPY|QQQ|TSLA|DIS|CPNG)\b")
-_CRYPTO_TICKER = re.compile(r"\b(?:BTC|ETH|SOL)\b")
+# u79 — ticker regexes now single-sourced in
+# :mod:`investo.briefing._text.patterns`; imported above under the
+# historic local aliases so the call sites below are unchanged.
 
 
 @dataclass(frozen=True, slots=True)

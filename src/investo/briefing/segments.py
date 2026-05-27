@@ -8,6 +8,15 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Final, Literal
 
+from investo.briefing._text.patterns import (
+    CRYPTO_TICKER_PAIR as _CRYPTO_TICKER_RE,
+)
+from investo.briefing._text.patterns import (
+    KOREAN_EXCHANGE_TICKER as _KOREAN_EXCHANGE_TICKER,
+)
+from investo.briefing._text.patterns import (
+    US_TICKER as _US_TICKER,
+)
 from investo.models import Category, NormalizedItem, SourceOutcome
 from investo.models.macro import is_required_macro_actual, macro_event_status
 from investo.models.segments import MarketSegment
@@ -260,8 +269,10 @@ _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "crypto": _CRYPTO_SOURCES | frozenset({"stooq-price"}),
 }
 
-_KOREAN_EXCHANGE_TICKER = re.compile(r"\[(?:\d{6}|[A-Z]{3}\d{3})\]")
-_US_TICKER = re.compile(r"\b(?:AAPL|AMZN|GOOGL|META|MSFT|NVDA|SPY|QQQ|TSLA|DIS|CPNG)\b")
+# u79 — ``_KOREAN_EXCHANGE_TICKER`` / ``_US_TICKER`` / ``_CRYPTO_TICKER_RE``
+# now single-sourced in :mod:`investo.briefing._text.patterns`; imported at
+# module top under their historic local aliases so the routing logic below
+# is unchanged.
 _US_MARKET_TERMS: Final[tuple[str, ...]] = (
     "dow",
     "federal reserve",
@@ -311,7 +322,6 @@ _CRYPTO_TITLE_PREFIX_RE: Final[re.Pattern[str]] = re.compile(
     r"^\s*(bitcoin|ethereum|btc|eth|crypto|stablecoin|defi)\b",
     re.IGNORECASE,
 )
-_CRYPTO_TICKER_RE: Final[re.Pattern[str]] = re.compile(r"\b(BTC|ETH)\b")
 _CRYPTO_PRICE_PHRASES: Final[tuple[str, ...]] = (
     "bitcoin price",
     "ethereum price",

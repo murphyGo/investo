@@ -38,6 +38,10 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo.briefing._text.patterns import (
+    MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE,
+)
+
 # Public canonical prefix literals — DEBT-060 chokepoint. Five surfaces
 # (publisher.site_index, publisher.weekly_digest, visuals.og_card,
 # visuals.assets, briefing.context) used to declare these locally; they
@@ -63,7 +67,8 @@ _LIST_MARKER_ONLY_RE: Final[re.Pattern[str]] = re.compile(r"^(?:[-*+]|\d+[.)]|[�
 # matched by the list-marker-only regex above; kept as a separate
 # constant so the persona-cited pattern is greppable.
 _NUMBER_DOT_ONLY_RE: Final[re.Pattern[str]] = re.compile(r"^\d+\.$")
-_MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
+# u79 — ``_MEANINGFUL_TEXT_RE`` single-sourced in
+# :mod:`investo.briefing._text.patterns`; imported above.
 # English conjunctions / function words that should never end a
 # user-facing sentence. ``\.$`` (literal trailing dot) so we only flag
 # truncations like ``"... vs."``, not phrases that legitimately use
@@ -177,9 +182,7 @@ def _validate_summary_value(prefix: str, value: str) -> None:
             f"broken numeric emphasis in first-viewport summary line: {prefix}"
         )
     if _GENERATOR_RESIDUE_TAIL_RE.search(value):
-        raise SummaryQualityError(
-            f"generator residue in first-viewport summary line: {prefix}"
-        )
+        raise SummaryQualityError(f"generator residue in first-viewport summary line: {prefix}")
     if (
         len(value) >= 60
         and not value.rstrip().endswith(("다.", "니다.", "요.", ".", "!", "?", "…"))

@@ -38,6 +38,9 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from investo.briefing import numeric_self_check, trace_footer
+from investo.briefing._text.patterns import (
+    MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE,
+)
 from investo.briefing.action_tag import apply_action_tag
 from investo.briefing.claude_code import (
     DEFAULT_TIMEOUT_S,
@@ -176,7 +179,9 @@ _LEADING_HEADING_RE: Final[re.Pattern[str]] = re.compile(r"^(?:>\s*)?#{1,6}\s+")
 _LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?:>\s*)?(?:(?:[-*+])|\d+[.)]|[①-⑳])\s*"
 )
-_MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
+# u79 — ``_MEANINGFUL_TEXT_RE`` now single-sourced in
+# :mod:`investo.briefing._text.patterns` (identical literal previously
+# duplicated here and in ``summary_quality``); imported above.
 # Reject patterns the summary sentence picker uses to skip a candidate
 # (matches mirror summary_quality gate-side rejects so the producer
 # never emits what the gate would block).

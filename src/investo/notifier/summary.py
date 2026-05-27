@@ -39,6 +39,8 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Final
 
+from investo._internal.text import utf16_truncate as _utf16_truncate
+from investo._internal.text import utf16_units as _utf16_units
 from investo.briefing.market_anchor import anchor_label
 from investo.briefing.segments import (
     CRYPTO,
@@ -116,36 +118,6 @@ _SEGMENT_ALIASES: Final[dict[str, MarketSegment]] = {
     "us": US_EQUITY,
     "crypto": CRYPTO,
 }
-
-
-def _utf16_units(text: str) -> int:
-    """Return the count of UTF-16 code units in ``text``.
-
-    Equivalent to ``len(text.encode("utf-16-le")) // 2``. Non-BMP
-    code points (emoji, certain CJK) count as 2 units.
-    """
-    return len(text.encode("utf-16-le")) // 2
-
-
-def _utf16_truncate(text: str, max_units: int) -> str:
-    """Truncate ``text`` to at most ``max_units`` UTF-16 code units.
-
-    Surrogate-pair safe: a truncation that lands between the high
-    and low halves of a non-BMP code point's UTF-16 encoding is
-    rolled back by one unit so the result remains valid UTF-16.
-    """
-    encoded = text.encode("utf-16-le")
-    if len(encoded) // 2 <= max_units:
-        return text
-    if max_units <= 0:
-        return ""
-    truncated_bytes = encoded[: max_units * 2]
-    # If the final unit is a high surrogate (the first half of a
-    # surrogate pair), drop it to avoid emitting half a code point.
-    last_unit = int.from_bytes(truncated_bytes[-2:], "little")
-    if 0xD800 <= last_unit <= 0xDBFF:
-        truncated_bytes = truncated_bytes[:-2]
-    return truncated_bytes.decode("utf-16-le", errors="ignore")
 
 
 def build_summary(
