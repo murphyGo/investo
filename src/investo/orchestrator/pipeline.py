@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import importlib
 import json
 import logging
 import os
@@ -211,14 +212,6 @@ from investo.publisher.weekly_digest import (
 from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
-from investo.visuals.curated import (
-    CuratedAsset,
-    CuratedLibraryError,
-    CuratedSelection,
-    default_registry,
-    load_library,
-    select_curated_asset,
-)
 from investo.visuals.og_card import (
     OG_CARD_PNG_RELATIVE_PATH,
     OG_CARD_RELATIVE_PATH,
@@ -1496,8 +1489,7 @@ async def _stage_prepare_segment_visual_assets(
     """Generate visual assets and return briefings with relative image links."""
     routed = segment_items(items)
     watchlist_config = load_watchlist()
-    curated_library = _load_curated_library_safely()
-    curated_registry = default_registry()
+    curated_runtime = _load_curated_runtime_safely()
     prepared_briefings: dict[MarketSegment, Briefing] = {}
     asset_paths: list[Path] = []
     for segment in SEGMENT_ORDER:
@@ -1508,27 +1500,31 @@ async def _stage_prepare_segment_visual_assets(
             segment,
             source_outcomes=source_outcomes,
         )
-        curated_selection: CuratedSelection | None = None
-        if curated_library:
+        prepared_kwargs: dict[str, Any] = {
+            "target_date": target_date,
+            "segment": segment,
+            "items": segment_source_items,
+            "coverage": segment_coverage,
+            "watchlist_impact": match_watchlist_items(
+                segment_source_items,
+                watchlist_config,
+                coverage_status=segment_coverage.status,
+            ),
+        }
+        if curated_runtime is not None:
+            curated_library, curated_registry, select_curated_asset = curated_runtime
             curated_selection = select_curated_asset(
                 segment,
                 segment_source_items,
                 curated_library,
                 curated_registry,
             )
+            if curated_selection is not None:
+                prepared_kwargs["curated_selection"] = curated_selection
         prepared = await asyncio.to_thread(
             prepare_segment_visual_assets,
             briefings[segment],
-            target_date=target_date,
-            segment=segment,
-            items=segment_source_items,
-            coverage=segment_coverage,
-            watchlist_impact=match_watchlist_items(
-                segment_source_items,
-                watchlist_config,
-                coverage_status=segment_coverage.status,
-            ),
-            curated_selection=curated_selection,
+            **prepared_kwargs,
         )
         prepared_briefings[segment] = prepared.briefing
         asset_paths.extend(prepared.asset_paths)
@@ -1539,19 +1535,43 @@ async def _stage_prepare_segment_visual_assets(
     return prepared_briefings, tuple(asset_paths)
 
 
-def _load_curated_library_safely() -> dict[str, CuratedAsset]:
-    """Load the u86 curated library; on any clearance error, fall through cleanly.
+def _load_curated_runtime_safely() -> (
+    tuple[
+        Mapping[str, Any],
+        Sequence[Any],
+        Callable[[MarketSegment, Sequence[NormalizedItem], Mapping[str, Any], Sequence[Any]], Any],
+    ]
+    | None
+):
+    """Load optional u86 curated-asset hooks; fall through when not installed.
 
     A broken / invalid library is a *build-time* CI-gate failure
     (``scripts/check_curated_assets.py``), not a run-time crash. At
-    generation time we degrade to the existing hero chain (R9 fallback)
-    rather than aborting the briefing pipeline.
+    generation time we degrade to the existing hero chain (R9 fallback).
+    The import stays dynamic so a staged rollout cannot break
+    ``python -m investo`` when the orchestrator lands before the curated
+    module itself.
     """
     try:
-        return load_library()
-    except CuratedLibraryError:
+        curated = importlib.import_module("investo.visuals.curated")
+    except ModuleNotFoundError as exc:
+        if exc.name == "investo.visuals.curated":
+            _logger.info("curated asset module unavailable; falling back to existing hero chain")
+            return None
+        raise
+
+    load_library = curated.load_library
+    default_registry = curated.default_registry
+    select_curated_asset = curated.select_curated_asset
+    curated_library_error = curated.CuratedLibraryError
+    try:
+        curated_library = load_library()
+    except curated_library_error:
         _logger.warning("curated library failed to load; falling back to existing hero chain")
-        return {}
+        return None
+    if not curated_library:
+        return None
+    return (curated_library, default_registry(), select_curated_asset)
 
 
 def _read_existing_bytes(path: Path) -> bytes | None:

@@ -19,6 +19,7 @@ Test architecture
 from __future__ import annotations
 
 import ast
+import importlib
 import json
 import logging
 import subprocess
@@ -184,6 +185,21 @@ def _failing_bge_generate(stage: str = "synthesis") -> object:
         )
 
     return _fake
+
+
+def test_curated_asset_runtime_is_optional(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A staged u86 rollout must not make ``python -m investo`` import-fragile."""
+
+    real_import_module = importlib.import_module
+
+    def fake_import_module(name: str, package: str | None = None) -> object:
+        if name == "investo.visuals.curated":
+            raise ModuleNotFoundError("No module named 'investo.visuals.curated'", name=name)
+        return real_import_module(name, package)
+
+    monkeypatch.setattr(importlib, "import_module", fake_import_module)
+
+    assert pipeline_module._load_curated_runtime_safely() is None
 
 
 def _success_generate() -> object:
