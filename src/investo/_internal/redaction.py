@@ -159,7 +159,9 @@ _JWT_RE: Final[re.Pattern[str]] = re.compile(
 # ``@`` inside each of the three segments eliminates the overlap that
 # drives quadratic backtracking on adversarial input.
 _EMAIL_RE: Final[re.Pattern[str]] = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
-_KOREAN_PHONE_RE: Final[re.Pattern[str]] = re.compile(r"010[- ]?\d{4}[- ]?\d{4}")
+# Korean mobile phone numbers. The leading guard intentionally rejects
+# matches embedded in crypto/FX decimal prices such as ``0.01012345678``.
+_KOREAN_PHONE_RE: Final[re.Pattern[str]] = re.compile(r"(?<![\d.])010[- ]?\d{4}[- ]?\d{4}(?!\d)")
 # Generic long base64-ish run (OAuth / JWT / PAT / API-key shapes). The
 # 40-char floor avoids matching short tokens. URL-context filtering is
 # applied only in URL_AWARE policy.

@@ -150,6 +150,15 @@ def test_korean_010_room_number_not_phone() -> None:
     assert scan(text) is None
 
 
+@pytest.mark.parametrize(
+    "price",
+    ["0.01012345678", "10.01012345678", "101012345678"],
+)
+def test_korean_phone_does_not_match_embedded_price_or_long_number(price: str) -> None:
+    """Crypto decimals can contain 010 + 8 digits without being PII."""
+    assert scan(f"토큰 가격은 {price}달러입니다") is None
+
+
 def test_at_symbol_without_dotted_domain() -> None:
     """A bare ``@username`` without a dotted domain after does NOT
     match the email pattern (``[^\\s@]+@[^\\s@]+\\.[^\\s@]+`` requires

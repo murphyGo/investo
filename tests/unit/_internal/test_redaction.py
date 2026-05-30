@@ -471,3 +471,6 @@ class TestScanForLeak:
         hit = scan_for_leak("연락처: 010-1234-5678")
         assert hit is not None
         assert hit.pattern_name == "korean_phone"
+
+    def test_korean_phone_does_not_match_crypto_decimal(self) -> None:
+        assert scan_for_leak("토큰 가격은 0.01012345678달러입니다") is None
