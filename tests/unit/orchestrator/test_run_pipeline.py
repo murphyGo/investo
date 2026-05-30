@@ -371,6 +371,70 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
         assert (archive_root / segment / "2026" / "04" / "2026-04-27.md").exists()
 
 
+def _ppi_actual_item() -> NormalizedItem:
+    return NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="Producer Price Index by Commodity: Final Demand",
+        published_at=datetime(2026, 4, 27, 13, 0, tzinfo=UTC),
+        raw_metadata={
+            "series_id": "PPIFID",
+            "release_date": "2026-04-27",
+            "macro_event_label": "Producer Price Index",
+            "value": "144.2",
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_persists_macro_carryover_snapshot(
+    archive_root: Path,
+) -> None:
+    items = [_item("AAPL closes higher"), _ppi_actual_item()]
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch(items),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    carryover = archive_root / "_meta" / "macro_event_carryover.jsonl"
+    assert carryover.exists()
+    rows = [line for line in carryover.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert any('"status": "confirmed"' in row and "PPIFID" in row for row in rows)
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_survives_macro_carryover_persist_failure(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.briefing.macro_carryover import MacroCarryoverError
+
+    def _boom(*_args: object, **_kwargs: object) -> object:
+        raise MacroCarryoverError("disk full")
+
+    monkeypatch.setattr(pipeline_module, "upsert_macro_lifecycle_snapshot", _boom)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL"), _ppi_actual_item()]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_success_segment_generate([]),
+    )
+
+    # Carryover persistence failure must not crash or fail the pipeline.
+    assert result.status == PipelineStatus.SUCCESS
+
+
 @pytest.mark.asyncio
 async def test_run_pipeline_success_appends_quality_history(
     tmp_path: Path,

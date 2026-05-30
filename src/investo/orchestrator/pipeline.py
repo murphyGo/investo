@@ -91,6 +91,12 @@ from investo.briefing.forecast_log import (
     resolve_forecast_log_path,
 )
 from investo.briefing.lineage import MacroLineageTrace
+from investo.briefing.macro_carryover import (
+    MacroCarryoverError,
+    advance_macro_lifecycle,
+    load_macro_lifecycle_events,
+    upsert_macro_lifecycle_snapshot,
+)
 from investo.briefing.market_anchor import (
     MarketAnchor,
     OHLCRow,
@@ -115,6 +121,7 @@ from investo.briefing.segments import (
     US_EQUITY,
     MarketSegment,
     SegmentCoverage,
+    SegmentedItems,
     filter_lookahead_items,
     segment_items,
     segment_source_outcomes,
@@ -617,6 +624,50 @@ def _macro_lineage_trace_path(target_date: date, segment: MarketSegment) -> Path
     from investo.publisher.paths import ARCHIVE_ROOT
 
     return ARCHIVE_ROOT / "_meta" / "run_traces" / target_date.isoformat() / f"{segment}.json"
+
+
+def _macro_carryover_path() -> Path:
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    return ARCHIVE_ROOT / "_meta" / "macro_event_carryover.jsonl"
+
+
+def _advance_and_persist_macro_carryover(
+    target_date: date,
+    items: Sequence[NormalizedItem],
+    routed_candidates: SegmentedItems,
+) -> None:
+    """Advance + persist the u59 macro lifecycle carryover snapshot.
+
+    Operator-only state under ``archive/_meta/``. This is a best-effort
+    diagnostic surface: a persistence (or load) failure must never crash
+    the pipeline, so any :class:`MacroCarryoverError` is logged as a
+    WARNING and swallowed (mirrors the Step 7 lineage persistence).
+    """
+    path = _macro_carryover_path()
+    try:
+        prior_events = load_macro_lifecycle_events(path)
+        next_events = advance_macro_lifecycle(
+            prior_events,
+            items,
+            target_date,
+            segment_for=lambda item: _segment_for_item(item, routed_candidates),
+        )
+        upsert_macro_lifecycle_snapshot(target_date, next_events, path=path)
+    except MacroCarryoverError as exc:
+        _logger.warning(
+            "[macro_carryover] failed target_date=%s error=%s; continuing without carryover",
+            target_date,
+            exc,
+        )
+
+
+def _segment_for_item(item: NormalizedItem, routed: SegmentedItems) -> MarketSegment:
+    """Map a collected item to its routed segment (default ``us-equity``)."""
+    for segment in SEGMENT_ORDER:
+        if any(candidate is item for candidate in routed.for_segment(segment)):
+            return segment
+    return US_EQUITY
 
 
 def _write_macro_lineage_traces(
@@ -1937,6 +1988,14 @@ class GenerateStage:
                     segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
                 }
                 carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
+                # u59 — advance + persist the operator-only macro lifecycle
+                # carryover snapshot from the collected/routed items. Pure
+                # transition; persistence failures degrade gracefully.
+                _advance_and_persist_macro_carryover(
+                    target_date,
+                    items,
+                    routed_candidates,
+                )
                 (
                     segment_briefings,
                     segment_generation_failures,

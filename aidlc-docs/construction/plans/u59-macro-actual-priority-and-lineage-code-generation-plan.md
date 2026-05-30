@@ -3,7 +3,7 @@
 **Date**: 2026-05-23
 **Unit**: u59 macro-actual-priority-and-lineage
 **Stage**: Code Generation
-**Status**: In progress (7/9 full steps complete; PPI schedule identity sub-step complete)
+**Status**: Complete (9/9 full steps; `aidlc-state.md`/audit ledger update owned by investo-planner)
 **Source**: 2026-05-23 user request after the 2026-05-13 U.S. PPI miss analysis and 10-subagent macro design review.
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -318,7 +318,7 @@ Lifecycle:
 - [ ] **AC-8 Post-generation validation**: final markdown is checked for required macro event mention/source linkage; missing required macro output triggers retry or severity downgrade/fail.
 - [ ] **AC-9 Macro severity policy**: macro actual missing/zero/failed/stale reason codes affect coverage only when macro actuals are required or macro-sensitive claims are made.
 - [ ] **AC-10 Lineage artifact**: operator-only run trace diagnoses whether each watched macro event was missing at source, dropped by routing/caps, omitted by LLM, or published.
-- [ ] **AC-11 Macro carryover**: scheduled/unresolved/confirmed/stale lifecycle persists across runs and can carry release-day unresolved events forward.
+- [x] **AC-11 Macro carryover**: scheduled/unresolved/confirmed/stale lifecycle persists across runs and can carry release-day unresolved events forward. (Step 8: `advance_macro_lifecycle` transition + `archive/_meta/macro_event_carryover.jsonl` persistence, wired into the orchestrator; full-lifecycle tests pass.)
 - [ ] **AC-12 Quality metrics**: `macro_actual_missing_segments` and `required_macro_omitted` are available in quality history or operator diagnostics.
 - [ ] **AC-13 R10 fixtures**: new/expanded macro source fixtures pin PPI schedule and actual behavior without live network calls.
 - [ ] **AC-14 R13 secret hygiene**: macro diagnostics, lineage, source errors, and quality rows do not expose API keys or secret-shaped substrings.
@@ -453,24 +453,26 @@ Completed slice:
 ### Step 8 - Macro carryover lifecycle
 
 - [x] Add macro lifecycle model and JSONL persistence.
-- [ ] Ingest scheduled macro events after collect/routing and before generation.
-- [ ] Confirm actual releases by event key, not substring matching.
-- [ ] Tests: scheduled -> unresolved -> confirmed -> dropped-after-follow-up.
+- [x] Ingest scheduled macro events after collect/routing and before generation.
+- [x] Confirm actual releases by event key, not substring matching.
+- [x] Tests: scheduled -> unresolved -> confirmed -> dropped-after-follow-up.
 Implementation notes:
 - Do not reuse ticker watchlist pages for macro lifecycle.
 - Use event ids shaped like `{segment}:{source_name}:{normalized_event_name}:{expected_date}`.
 - Existing carryover parser has macro keywords, but this unit should use structured metadata confirmation instead of substring matching.
-Partial slice:
+Completed slice:
 - Added `models/macro_lifecycle.py` with `MacroLifecycleEvent` and `MacroLifecycleStatus`.
 - Added `briefing/macro_carryover.py` JSONL load/upsert helpers for `archive/_meta/macro_event_carryover.jsonl`.
-- Added model and persistence tests; orchestrator ingest/transition wire remains open.
+- Added the pure `advance_macro_lifecycle(prior_events, collected_items, target_date, *, segment_for=None)` transition: joins by `event_key` (never substring), applies scheduled -> unresolved (carry) -> confirmed (one follow-up day) -> dropped, plus stale past the release-day + 1 grace-day confirmation window; output sorted by `event_key`.
+- Wired `_advance_and_persist_macro_carryover(...)` into `orchestrator/pipeline.py` between collect/routing and generation (segmented mode). Operator-only state under `archive/_meta/`; load/persist failures degrade gracefully (WARNING, no crash), mirroring Step 7 lineage persistence.
+- Added 8 transition tests in `tests/unit/briefing/test_macro_carryover.py` (full lifecycle + stale + event-key-not-substring + deterministic sort) and 2 orchestrator wire tests in `tests/unit/orchestrator/test_run_pipeline.py` (snapshot persisted; graceful persist failure).
 
 ### Step 9 - Documentation and gate
 
-- [ ] Update `docs/requirements.md`, `docs/tech-env.md`, and source plugin documentation if new env vars are added.
-- [ ] Add summary under `aidlc-docs/construction/u59-macro-actual-priority-and-lineage/code/summary.md`.
-- [ ] Run targeted tests, ruff, mypy strict, pytest, mkdocs strict as appropriate.
-- [ ] Update `aidlc-state.md` and append audit evidence.
+- [x] Update `docs/requirements.md`, `docs/tech-env.md`, and source plugin documentation if new env vars are added. (No new env vars in v1; nothing to update.)
+- [x] Add summary under `aidlc-docs/construction/u59-macro-actual-priority-and-lineage/code/summary.md`.
+- [x] Run targeted tests, ruff, mypy strict, pytest, mkdocs strict as appropriate. (ruff/format/mypy clean on changed scope; targeted 1136 passed; full suite 2802 passed; mkdocs --strict exit 0.)
+- [ ] Update `aidlc-state.md` and append audit evidence. (Owned by investo-planner — left for the AIDLC ledger update.)
 Implementation notes:
 - If the implementation is split across commits, update `aidlc-state.md` step count after each closed step.
 - Record any chosen PPI series id, source URL, and fixture-recording method in `aidlc-docs/audit.md`.

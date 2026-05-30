@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 31 | 2026-04-27 |
+| Low | 33 | 2026-04-27 |
 
 ---
 
@@ -96,6 +96,22 @@ _No high priority items._
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
 
 ### Low Priority
+
+#### DEBT-079: macro calendar↔actual share no canonical `event_key` (u59 carryover tracks them as two events)
+
+- **Created**: 2026-05-31
+- **Source**: u59 macro-actual-priority-and-lineage Step 8 closeout (developer-flagged)
+- **Reference**: u59 AC-11 (macro carryover lifecycle), FR-001 (source coverage), the `advance_macro_lifecycle` event-key join contract
+- **Description**: The macro carryover lifecycle (`briefing/macro_carryover.py::advance_macro_lifecycle`) joins schedule and actual events **strictly by `event_key`** (no substring matching, by design). But the two source adapters that feed a given release infer *different* event keys: `fred-economic-calendar` (the PPI schedule, `release_id=46`) and `fred-macro` (the PPI actual, `series_id=PPIFID`) produce distinct inferred keys. So a release and its corresponding actual currently track as **two separate lifecycle events** — the calendar row ages to `stale` while the actual row independently lands `confirmed`, instead of the intended scheduled→confirmed flow on one event. Adapters that already stamp an explicit `macro_event_key` get the unified flow today; only the inferred-key path is affected.
+- **Suggested Fix**: Stamp a shared canonical `macro_event_key` (e.g. `us:PPI:{release_period}`) on both the `fred-economic-calendar` schedule item and the `fred-macro` actual item at adapter level, so `advance_macro_lifecycle` joins them as one event. Add a fixture-backed test asserting a PPI schedule on day N and the PPI actual on day N+k collapse to a single `confirmed` lifecycle event.
+
+#### DEBT-080: `_segment_for_item` matches by object identity (won't survive serialization)
+
+- **Created**: 2026-05-31
+- **Source**: u59 macro-actual-priority-and-lineage Step 8 closeout (developer-flagged)
+- **Reference**: u59 Step 8 orchestrator wire (`orchestrator/pipeline.py`)
+- **Description**: The u59 carryover wire's `_segment_for_item(...)` helper resolves a collected item's segment by `is` (object identity) against the in-run routed item set. This is correct for the in-process pipeline (the same `NormalizedItem` objects are routed and then read), but it would silently fail if items were ever serialized/round-tripped (e.g., a future cached-collection or cross-process stage), returning no segment match.
+- **Suggested Fix**: Key the lookup on a stable value (e.g. `(source_name, url)` or a content hash / the macro `event_key`) instead of object identity, before any stage gains a serialization boundary. Low urgency while collection→generation stays single-process.
 
 #### DEBT-078: re-introduce a compact-card pre-fetch sparkline without inline history (product decision)
 
