@@ -3,7 +3,7 @@
 **Date**: 2026-05-28
 **Unit**: u86 curated-context-asset-library
 **Stage**: Code Generation
-**Status**: Planned (0/6)
+**Status**: Implemented (6/6)
 **Source**: 2026-05-28 user feature request — pre-curated, pre-verified local context-image library mapped by entity/topic, drawn from at briefing-generation time.
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -80,47 +80,50 @@ Out of scope:
   - **License-compliance AC** — a blocking AC asserting every library asset carries a republishable manifest, runnable as a CI gate (mirrors `check_no_paid_apis` style). Also: no secret leakage in manifests (R13), provenance-caption presence on every used asset.
   - Author `nfr-requirements.md` (`AC-1.1`..) + `tech-stack-decisions.md` (only if a new lib is needed — likely none; pillow is NOT required since dimension parsing already exists in `assets.py`; record that decision as a `TS-` entry: "no new dependency, reuse existing binary-signature/dimension parsing").
 
-> The planner will author FD + NFR docs in a follow-up step once this plan is approved. The implementation steps below assume those docs exist; the developer should not start Step 3+ before FD R-numbers and NFR AC-numbers are pinned.
+> **FD + NFR authored 2026-05-28** (planner). R-numbers and AC-numbers are now pinned — the developer may start Step 1.
+> - FD: `aidlc-docs/construction/u86-curated-context-asset-library/functional-design/{business-logic-model,business-rules,domain-entities}.md` — rules **R1-R9**, entities **E1-E5** (`CuratedAsset` / `CuratedAssetManifest` alias / `AssetRegistry` / `CuratedSelection` / `CuratedAssetState`), invariants **I1-I16** (incl. the **deferred-asset state machine** I14/I15/I16).
+> - NFR: `aidlc-docs/construction/u86-curated-context-asset-library/nfr-requirements/{nfr-requirements,tech-stack-decisions}.md` — ACs **AC-1.1** (storage budget) / **AC-1.2** (license-compliance CI gate, explicit-deferred recognized green) / **AC-1.3** (republishability + excluded-category) / **AC-1.4** (provenance caption) / **AC-1.5** (no runtime fetch) / **AC-1.6** (R13 secret hygiene); decisions **TS-1** (no pillow / reuse signature parsing) / **TS-2** (reuse manifest+provenance) / **TS-3** (stdlib CI gate mirroring `check_no_paid_apis.py`).
+> - **Confirmed policy folded in**: deferred-asset allowance is explicit-only (R8/I14, AC-1.2) — silent empties fail the gate; seed ships a minimum of real cleared binaries (Step 5) with the rest deferred.
 
 ---
 
 ## Implementation Steps
 
-### Step 1 — Asset library layout + license manifest schema `[ ]`
-- [ ] Choose and document the library root. Recommended: `assets/library/` at repo root (run-time/committed asset domain, parallel to `archive/`), NOT under `docs/` or `aidlc-docs/`. Each asset is `assets/library/{category}/{asset-id}.{ext}` with a sibling `{asset-id}.manifest.json`.
-- [ ] Extend `visuals/policy.py`: add `curated-licensed` to `AllowedExternalAssetKind`. A curated asset's manifest is the existing `ExternalAssetManifest` with `kind="curated-licensed"`. Do NOT introduce a second manifest class.
-- [ ] Define the curated-asset clearance contract: `assert_external_asset_allowed` currently hard-rejects when `scraping_enabled=False`. Add a separate `assert_curated_asset_allowed(manifest)` (or a `kind`-aware branch) that allows `curated-licensed` **without** requiring scraping, while still enforcing the manifest presence + public-URL provenance + allowed `license`/`allowed_use` constraints. Runtime scraping for the `explicit-license` kind stays gated exactly as today.
+### Step 1 — Asset library layout + license manifest schema `[x]`
+- [x] Choose and document the library root. Recommended: `assets/library/` at repo root (run-time/committed asset domain, parallel to `archive/`), NOT under `docs/` or `aidlc-docs/`. Each asset is `assets/library/{category}/{asset-id}.{ext}` with a sibling `{asset-id}.manifest.json`.
+- [x] Extend `visuals/policy.py`: add `curated-licensed` to `AllowedExternalAssetKind`. A curated asset's manifest is the existing `ExternalAssetManifest` with `kind="curated-licensed"`. Do NOT introduce a second manifest class.
+- [x] Define the curated-asset clearance contract: `assert_external_asset_allowed` currently hard-rejects when `scraping_enabled=False`. Add a separate `assert_curated_asset_allowed(manifest)` (or a `kind`-aware branch) that allows `curated-licensed` **without** requiring scraping, while still enforcing the manifest presence + public-URL provenance + allowed `license`/`allowed_use` constraints. Runtime scraping for the `explicit-license` kind stays gated exactly as today.
 - **Acceptance**: a `curated-licensed` manifest loads and passes clearance with scraping disabled; a missing manifest or a disallowed-license manifest is rejected; the existing `explicit-license` scraping path is unchanged (its tests stay green).
 
-### Step 2 — License-clearance gate (load-time + CI) `[ ]`
-- [ ] Implement a library loader that walks `assets/library/`, requires a sibling manifest per asset, validates the manifest against the schema + allowed-license/`allowed_use` constraints, and validates the binary via the existing `assets.py` PNG/JPEG/SVG signature + dimension checks (reuse, do not duplicate).
-- [ ] Expose a CI-runnable check (script entry parallel to the no-paid-apis check) that fails on any asset without a clean manifest, any disallowed license, any byte/dimension budget violation, or any orphan manifest/asset.
-- [ ] Enforce R13: a manifest must contain no secret value; reject anything matching the redaction patterns.
+### Step 2 — License-clearance gate (load-time + CI) `[x]`
+- [x] Implement a library loader that walks `assets/library/`, requires a sibling manifest per asset, validates the manifest against the schema + allowed-license/`allowed_use` constraints, and validates the binary via the existing `assets.py` PNG/JPEG/SVG signature + dimension checks (reuse, do not duplicate).
+- [x] Expose a CI-runnable check (script entry parallel to the no-paid-apis check) that fails on any asset without a clean manifest, any disallowed license, any byte/dimension budget violation, or any orphan manifest/asset.
+- [x] Enforce R13: a manifest must contain no secret value; reject anything matching the redaction patterns.
 - **Acceptance**: the CI gate passes on the seed library and fails (with a clear message) on an injected unmanifested or disallowed-license fixture asset.
 
-### Step 3 — Entity/topic registry + extraction `[ ]`
-- [ ] Define a static registry mapping entity/topic keys → one or more asset ids. Key namespaces: `person:`, `topic:`, `asset:` (extensible). The registry is committed data (JSON or a typed module), not derived at run time.
-- [ ] Implement deterministic entity extraction for a segment: reuse `briefing/watchlist.py` matcher primitives (`_match_term_with_aliases` / boundary matching / `_matches_short_ticker`) to map the day's `NormalizedItem`s + segment to registry keys. No new fuzzy matcher.
-- [ ] Selection must be deterministic given the same inputs (stable ordering by registry priority then asset id; no wall-clock / RNG). Segment-aware: crypto segment prefers `asset:`/crypto topics, US-equity prefers US topics/persons, etc.
+### Step 3 — Entity/topic registry + extraction `[x]`
+- [x] Define a static registry mapping entity/topic keys → one or more asset ids. Key namespaces: `person:`, `topic:`, `asset:` (extensible). The registry is committed data (JSON or a typed module), not derived at run time.
+- [x] Implement deterministic entity extraction for a segment: reuse `briefing/watchlist.py` matcher primitives (`_match_term_with_aliases` / boundary matching / `_matches_short_ticker`) to map the day's `NormalizedItem`s + segment to registry keys. No new fuzzy matcher.
+- [x] Selection must be deterministic given the same inputs (stable ordering by registry priority then asset id; no wall-clock / RNG). Segment-aware: crypto segment prefers `asset:`/crypto topics, US-equity prefers US topics/persons, etc.
 - **Acceptance**: a fixture segment with FOMC/Powell evidence selects `person:jerome-powell`; a crypto-dominant segment selects `asset:bitcoin`; selection is byte-stable across repeated runs; an empty/ambiguous segment selects nothing (no crash, falls through to the existing AI/data-confidence hero).
 
-### Step 4 — Pipeline injection as new clean asset kind `[ ]`
-- [ ] Wire the selected curated asset into `prepare_segment_visual_assets` so it participates in `_HERO_PRIORITY`. Decision: introduce a `curated-context-image` card kind ranked alongside/just below `external-context-image` (curated is the preferred real-photo hero now that scraping is off). Confirm the exact priority position in FD.
-- [ ] The injected asset must pass the existing validation gate (dimensions + manifest) and must write a provenance manifest via `write_manifest`, with the caption produced by `provenance_caption` (source/license/author). Reuse `build_external_provenance` adapted for `curated-licensed`, or add a thin `build_curated_provenance` if the existing builder cannot represent it.
-- [ ] Add a `_CARD_LABELS` entry (Korean) and a `_SECTION_ANCHORS`/hero behavior consistent with how `external-context-image` is placed.
+### Step 4 — Pipeline injection as new clean asset kind `[x]`
+- [x] Wire the selected curated asset into `prepare_segment_visual_assets` so it participates in `_HERO_PRIORITY`. Decision: introduce a `curated-context-image` card kind ranked alongside/just below `external-context-image` (curated is the preferred real-photo hero now that scraping is off). Confirm the exact priority position in FD.
+- [x] The injected asset must pass the existing validation gate (dimensions + manifest) and must write a provenance manifest via `write_manifest`, with the caption produced by `provenance_caption` (source/license/author). Reuse `build_external_provenance` adapted for `curated-licensed`, or add a thin `build_curated_provenance` if the existing builder cannot represent it.
+- [x] Add a `_CARD_LABELS` entry (Korean) and a `_SECTION_ANCHORS`/hero behavior consistent with how `external-context-image` is placed.
 - **Acceptance**: a segment with a matched curated asset renders it as the hero with a provenance caption; the disclaimer is still present; when no curated asset matches, the hero falls back to the existing AI/data-confidence chain with no regression.
 
-### Step 5 — Seed library + registry seed `[ ]`
-- [ ] Add the seed entity/topic registry entries for the candidate list below.
-- [ ] Add seed manifests (and, where the operator can place cleared files, the binaries) for the seed candidates. If binaries are not committed in this unit, the registry entry + manifest stub + a clearance-test allowance for "registered-but-unfiled" must NOT pass the strict CI gate silently — either commit the cleared asset or mark the key as not-yet-available so selection skips it.
-- [ ] Document, in the unit summary, exactly which seed assets were filed vs deferred and the license basis of each.
+### Step 5 — Seed library + registry seed `[x]`
+- [x] Add the seed entity/topic registry entries for the candidate list below.
+- [x] Add seed manifests (and, where the operator can place cleared files, the binaries) for the seed candidates. If binaries are not committed in this unit, the registry entry + manifest stub + a clearance-test allowance for "registered-but-unfiled" must NOT pass the strict CI gate silently — either commit the cleared asset or mark the key as not-yet-available so selection skips it.
+- [x] Document, in the unit summary, exactly which seed assets were filed vs deferred and the license basis of each.
 - **Acceptance**: at least one fully-filed seed asset per segment family (US / crypto / domestic-or-macro) passes the CI clearance gate and is selectable.
 
-### Step 6 — Tests, docs, gate `[ ]`
-- [ ] Unit tests: manifest schema + clearance (allow/reject), library loader (orphan/missing/disallowed), CI gate, entity extraction → selection determinism, segment-awareness, pipeline hero injection + provenance caption presence + disclaimer retention + no-match fallback.
-- [ ] Negative tests pinning policy: a news-photo/meme/trademark/unofficial-portrait fixture is rejected by clearance; `EXTERNAL_IMAGE_SCRAPING_ENABLED` is asserted still `False` and no run-time fetch occurs on the curated path.
-- [ ] Update `docs/DESIGN.md` visuals section to describe the curated library and its no-scraping guarantee.
-- [ ] Minimum gate: targeted pytest (visuals/briefing) + full suite, `ruff check` + `ruff format` on changed scope, `mypy --strict` on changed source, the new license-clearance CI check exit 0, `mkdocs build --strict`.
+### Step 6 — Tests, docs, gate `[x]`
+- [x] Unit tests: manifest schema + clearance (allow/reject), library loader (orphan/missing/disallowed), CI gate, entity extraction → selection determinism, segment-awareness, pipeline hero injection + provenance caption presence + disclaimer retention + no-match fallback.
+- [x] Negative tests pinning policy: a news-photo/meme/trademark/unofficial-portrait fixture is rejected by clearance; `EXTERNAL_IMAGE_SCRAPING_ENABLED` is asserted still `False` and no run-time fetch occurs on the curated path.
+- [x] Update `docs/DESIGN.md` visuals section to describe the curated library and its no-scraping guarantee.
+- [x] Minimum gate: targeted pytest (visuals/briefing) + full suite, `ruff check` + `ruff format` on changed scope, `mypy --strict` on changed source, the new license-clearance CI check exit 0, `mkdocs build --strict`.
 
 ---
 
@@ -151,12 +154,12 @@ Steps 2 and 3 can proceed in parallel after Step 1. Step 4 needs Step 3 (selecti
 
 ## NFR AC Coverage Map
 
-(NFR `AC-1.x` numbers to be pinned by the planner in `u86 .../nfr-requirements.md` before Step 3 starts.)
+NFR `AC-1.x` numbers pinned 2026-05-28 in `u86 .../nfr-requirements/nfr-requirements.md`.
 
-| Concern | NFR AC (to author) | Covered by step |
-|---------|--------------------|-----------------|
+| Concern | NFR AC | Covered by step |
+|---------|--------|-----------------|
 | Repository / Pages storage budget (per-asset + total bytes, dimension bounds) | AC-1.1 | Step 1, Step 2 |
-| License-compliance blocking CI gate | AC-1.2 | Step 2 |
+| License-compliance blocking CI gate (explicit-deferred recognized green) | AC-1.2 | Step 2, Step 5 |
 | Republishability clearance (excluded categories rejected) | AC-1.3 | Step 1, Step 2, Step 6 |
 | Provenance-caption presence on every used asset | AC-1.4 | Step 4 |
 | No runtime fetch / scraping stays disabled | AC-1.5 | Step 4, Step 6 |

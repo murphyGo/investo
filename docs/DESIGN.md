@@ -122,6 +122,14 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Deduplication**: 새 요약 validator 없음. u51(TL;DR/H3/number-bold), u61(malformed-summary 검증/repair), u54/u62(status 값) 체인 **이후** 실행돼 재배치/절단만 수행 — malformed 값은 u61 fallback에 위임.
 **Alternatives Considered**: 별도 first-viewport 페이지/위젯(static-site 비호환, 신규 의존성); 진단 완전 숨김(투명성 위배).
 
+### TD-009: 큐레이션 컨텍스트-자산 라이브러리 (no-scraping hero, u86)
+
+**Choice**: `assets/library/{person,topic,asset}/`에 사전 검수·라이선스 정리된 이미지를 **커밋**하고, 엔티티/토픽 키(`person:`/`topic:`/`asset:`)로 매핑한다(`visuals/curated.py`). 생성 시점에 세그먼트 인지 + 결정적 선택(`select_curated_asset`)으로 1개를 골라 `curated-context-image` hero로 `_HERO_PRIORITY`(`external-context-image > curated-context-image > ai-market-hero > data-confidence`)에 삽입한다. 매니페스트는 기존 `ExternalAssetManifest`(`kind="curated-licensed"`)를 재사용하고, 캡션/매니페스트는 기존 `provenance.py`로 작성한다.
+**No-scraping guarantee**: `EXTERNAL_IMAGE_SCRAPING_ENABLED=False` 유지. 큐레이션 경로는 런타임 fetch 0 — 사전 커밋된 로컬 파일만 읽는다(AC-1.5). `assert_curated_asset_allowed`는 scraping 플래그를 읽지 않는 별도 분기다(R4).
+**Deferred 상태 머신**: 매니페스트만 있고 바이너리가 없는 키는 **명시적 마커**(`allowed_use`의 `not-yet-available` 또는 `{asset_id}.deferred` 파일)일 때만 `deferred`로 허용(CI green, 선택 불가). 마커 없는 빈 항목은 `(invalid)` → CI 게이트 RED. `scripts/check_curated_assets.py`(stdlib, `check_no_paid_apis.py` 미러)가 게이트.
+**Storage/secret**: filed 자산 ≤ 500 KB(raster)/≤ 64 KB(SVG), 라이브러리 총합 ≤ 20 MB, 100–2000 px(기존 게이트 재사용, pillow 미도입). 매니페스트 텍스트는 u27 redaction chokepoint 통과(R7/R13).
+**Excluded**: 뉴스사진/짤방/기업 상표로고/실존인물 비공식 사진은 라이선스 게이트에서 거부.
+
 ---
 
 ## Data Model

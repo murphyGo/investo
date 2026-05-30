@@ -150,8 +150,7 @@ def test_prepare_segment_visual_assets_truncates_long_market_snapshot_text(
     monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     long_caution = (
         "CSCO 포스트마켓 어닝 리스크와 CPI 발표, 금리 경로, 반도체 수급, "
-        "달러 움직임을 함께 확인해야 합니다. "
-        * 5
+        "달러 움직임을 함께 확인해야 합니다. " * 5
     )
     briefing = _briefing().model_copy(
         update={

@@ -75,6 +75,8 @@ Any specialist returning work that violates a rule is rejected by the lead (or b
 | `docs/DESIGN.md` | Architecture summary (developer-facing) |
 | `docs/TECH-DEBT.md` | Technical debt registry |
 
+`/dev-investo` keeps Functional Design and NFR Requirements selective. New code-generation plans must include a `Stage Decision` section explaining whether those stages are required or skipped, and why.
+
 ---
 
 ## Development Workflow

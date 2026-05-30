@@ -75,6 +75,7 @@ _MANIFEST_SUFFIX: Final[str] = ".json"
 
 _CARD_KIND_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
+    "curated-context-image": "큐레이션 시황 이미지",
     "data-confidence": "데이터 신뢰도",
     "external-context-image": "실제 시황 이미지",
     "market-snapshot": "시장 스냅샷",
@@ -254,6 +255,54 @@ def build_external_provenance(
     )
 
 
+def build_curated_provenance(
+    *,
+    asset_relative_path: str,
+    generated_at: datetime,
+    width: int,
+    height: int,
+    content_type: Literal["image/svg+xml", "image/png", "image/jpeg"],
+    license_name: str,
+    attribution: str,
+    author: str,
+    allowed_use: str,
+    source_url: str,
+) -> VisualProvenanceManifest:
+    """Build a provenance manifest for a u86 curated-library hero image.
+
+    Thin wrapper over the ``external`` source-type manifest: the curated
+    library is pre-cleared, license-clean local data (no runtime fetch),
+    but its provenance shape — source / license / author attribution —
+    is identical to an externally licensed image, so it reuses the
+    ``external`` family rather than forking a fourth source type. Every
+    reader-facing field is routed through the u27 redaction chokepoint
+    (R7 / AC-1.6). ``card_kind`` is fixed to ``curated-context-image``.
+    """
+    safe_license = sanitize_provenance_text(license_name)
+    safe_attribution = sanitize_provenance_text(attribution)
+    safe_author = sanitize_provenance_text(author)
+    safe_use = sanitize_provenance_text(allowed_use)
+    safe_source = sanitize_provenance_text(source_url)
+    composed_attribution = f"{safe_attribution} ({safe_author}) — {safe_license}"
+    return VisualProvenanceManifest(
+        asset_path=asset_relative_path,
+        source_type="external",
+        source_attribution=composed_attribution,
+        generated_at=generated_at,
+        generator=GENERATOR_NAME,
+        version=_investo_version(),
+        content_type=content_type,
+        dimensions=(width, height),
+        additional_metadata={
+            "license": safe_license,
+            "author": safe_author,
+            "allowed_use": safe_use,
+            "source_url": safe_source,
+        },
+        card_kind="curated-context-image",
+    )
+
+
 def write_manifest(manifest: VisualProvenanceManifest, asset_path: Path) -> Path:
     """Write a manifest JSON sidecar atomically beside ``asset_path``."""
     sidecar = manifest_path_for(asset_path)
@@ -369,6 +418,7 @@ __all__ = [
     "VisualProvenanceManifest",
     "VisualSourceType",
     "build_ai_generated_provenance",
+    "build_curated_provenance",
     "build_external_provenance",
     "build_generated_svg_provenance",
     "manifest_path_for",

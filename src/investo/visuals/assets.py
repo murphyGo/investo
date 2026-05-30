@@ -31,6 +31,7 @@ from investo.visuals.cards import (
     build_price_snapshot_card,
     build_watchlist_relevance_card,
 )
+from investo.visuals.curated import CuratedSelection
 from investo.visuals.external_image import fetch_contextual_external_image
 from investo.visuals.openai_image import (
     generate_openai_visual,
@@ -40,6 +41,7 @@ from investo.visuals.paths import visual_asset_path, visual_asset_relative_path
 from investo.visuals.provenance import (
     VisualProvenanceManifest,
     build_ai_generated_provenance,
+    build_curated_provenance,
     build_external_provenance,
     build_generated_svg_provenance,
     manifest_path_for,
@@ -61,6 +63,7 @@ _DIMENSION_NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"\d+")
 _MARKET_SNAPSHOT_TEXT_MAX_CHARS: Final[int] = 240
 _CARD_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
+    "curated-context-image": "큐레이션 시황 이미지",
     "data-confidence": "데이터 신뢰도",
     "external-context-image": "실제 시황 이미지",
     "market-snapshot": "시장 스냅샷",
@@ -68,15 +71,19 @@ _CARD_LABELS: Final[dict[str, str]] = {
     "watchlist-relevance": "관심 자산 관련성",
 }
 _HERO_CARD_KINDS: Final[frozenset[str]] = frozenset(
-    {"ai-market-hero", "external-context-image", "data-confidence"}
+    {"ai-market-hero", "curated-context-image", "external-context-image", "data-confidence"}
 )
-# Layout policy (u24): only one hero visual lands above the fold; every
-# other card moves down to the H2 section that names it. The hero
-# preference order is external-context > ai-market-hero > data-confidence;
-# whichever is present first wins. ``data-confidence`` is the guaranteed
-# fallback because every segment renders it.
+# Layout policy (u24 + u86): only one hero visual lands above the fold;
+# every other card moves down to the H2 section that names it. The hero
+# preference order is external-context > curated-context > ai-market-hero
+# > data-confidence; whichever is present first wins. The u86 curated
+# library is the preferred *real-photo* hero now that runtime scraping is
+# off (``external-context-image`` is disabled by policy), ranked just
+# below it and above the AI card (R9). ``data-confidence`` is the
+# guaranteed fallback because every segment renders it.
 _HERO_PRIORITY: Final[tuple[str, ...]] = (
     "external-context-image",
+    "curated-context-image",
     "ai-market-hero",
     "data-confidence",
 )
@@ -91,6 +98,9 @@ _SECTION_ANCHORS: Final[dict[str, tuple[str, ...]]] = {
     # data-confidence is the hero. When data-confidence is *not* the hero
     # (e.g. AI hero present), it is repositioned next to the summary.
     "data-confidence": ("## ① 요약",),
+    # u86 — when a curated image is present but loses the hero slot to a
+    # (re-enabled) external image, it repositions near the summary.
+    "curated-context-image": ("## ① 요약",),
 }
 _RenderableCard = (
     DataConfidenceCardInput
@@ -120,8 +130,19 @@ def prepare_segment_visual_assets(
     items: tuple[NormalizedItem, ...],
     coverage: SegmentCoverage,
     watchlist_impact: WatchlistImpact,
+    curated_selection: CuratedSelection | None = None,
 ) -> PreparedVisualAssets:
-    """Generate SVG cards, write provenance manifests, and lay out markdown."""
+    """Generate SVG cards, write provenance manifests, and lay out markdown.
+
+    ``curated_selection`` (u86): an optional pre-computed deterministic
+    selection from the committed curated context-asset library. When it
+    carries a ``filed`` asset, that asset is copied into the
+    markdown-adjacent asset dir, validated by the existing binary gate,
+    given a provenance manifest, and slotted into ``_HERO_PRIORITY`` as
+    a ``curated-context-image`` (R9). ``None`` / no-match leaves the
+    existing hero chain unchanged — zero external fetch on every path
+    (R4 / AC-1.5).
+    """
     import investo.publisher.paths as _pp
 
     markdown_path = ArchiveLayout(_pp.ARCHIVE_ROOT).briefing_path(target_date, segment)
@@ -147,6 +168,14 @@ def prepare_segment_visual_assets(
     )
     if external_asset_path is not None:
         asset_paths.append(external_asset_path)
+
+    curated_asset_path = _prepare_curated_context_image(
+        target_date=target_date,
+        segment=segment,
+        curated_selection=curated_selection,
+    )
+    if curated_asset_path is not None:
+        asset_paths.append(curated_asset_path)
 
     ai_asset_path = _prepare_openai_market_image(
         target_date=target_date,
@@ -247,6 +276,19 @@ def insert_visual_links(
 
 def validate_visual_asset(path: Path) -> None:
     """Validate a generated visual: existence, integrity, dimensions, manifest."""
+    validate_visual_binary(path)
+    _assert_manifest_exists(path)
+
+
+def validate_visual_binary(path: Path) -> None:
+    """Validate a visual binary's existence, signature, and dimensions only.
+
+    Unlike :func:`validate_visual_asset`, this does **not** require a
+    provenance JSON sidecar — it is the binary-only gate reused by the
+    u86 curated library loader (whose committed assets carry a separate
+    ``{asset_id}.manifest.json`` curated manifest, not a generated
+    provenance sidecar).
+    """
     if not path.exists():
         raise VisualAssetError(f"visual asset missing: {path}")
     if path.suffix == ".png":
@@ -257,7 +299,6 @@ def validate_visual_asset(path: Path) -> None:
         _validate_svg_asset(path)
     else:
         raise VisualAssetError(f"unsupported visual asset type: {path}")
-    _assert_manifest_exists(path)
 
 
 def _select_hero_index(asset_paths: tuple[Path, ...]) -> int:
@@ -417,6 +458,61 @@ def _prepare_external_context_image(
         author=external_image.manifest.author,
         allowed_use=external_image.manifest.allowed_use,
         fetched_from_host=str(external_image.manifest.source_url.host or ""),
+    )
+    write_manifest(manifest, path)
+    validate_visual_asset(path)
+    return path
+
+
+def _prepare_curated_context_image(
+    *,
+    target_date: date,
+    segment: MarketSegment,
+    curated_selection: CuratedSelection | None,
+) -> Path | None:
+    """Copy a selected filed curated asset into the segment dir as a hero (u86 R9).
+
+    No-op when no curated asset is selected — the hero falls through to
+    the existing AI / data-confidence chain (R9 fallback). Performs zero
+    external fetch (R4 / AC-1.5): the source bytes are read from the
+    committed local library.
+    """
+    if curated_selection is None or curated_selection.asset is None:
+        return None
+    asset = curated_selection.asset
+    if asset.state != "filed" or asset.path is None:
+        return None
+    extension = asset.path.suffix
+    path = visual_asset_path(
+        target_date,
+        segment,
+        "curated-context-image",
+        extension=extension,
+    )
+    source_bytes = asset.path.read_bytes()
+    if extension == ".svg":
+        _write_svg(path, source_bytes.decode("utf-8"))
+    else:
+        _write_binary(path, source_bytes)
+    width, height = _read_image_dimensions(path) or (1024, 1024)
+    content_type: Literal["image/svg+xml", "image/png", "image/jpeg"]
+    if extension == ".svg":
+        content_type = "image/svg+xml"
+    elif extension == ".png":
+        content_type = "image/png"
+    else:
+        content_type = "image/jpeg"
+    manifest = build_curated_provenance(
+        asset_relative_path=path.name,
+        generated_at=datetime.now(tz=UTC),
+        width=width,
+        height=height,
+        content_type=content_type,
+        license_name=asset.manifest.license,
+        attribution=asset.manifest.attribution,
+        author=asset.manifest.author,
+        allowed_use=asset.manifest.allowed_use,
+        source_url=str(asset.manifest.source_url),
     )
     write_manifest(manifest, path)
     validate_visual_asset(path)
@@ -669,4 +765,5 @@ __all__ = [
     "insert_visual_links",
     "prepare_segment_visual_assets",
     "validate_visual_asset",
+    "validate_visual_binary",
 ]

@@ -214,6 +214,15 @@ After user approval, behavior depends on the **stage type**:
 2. **Part 1: Planning** (if no plan file):
    - Read all design artifacts for this unit
    - Create `aidlc-docs/construction/plans/{unit-name}-code-generation-plan.md`
+   - Include a `Stage Decision` section before implementation steps:
+     ```markdown
+     ## Stage Decision
+     - Functional Design: Required/Skipped
+     - NFR Requirements: Required/Skipped
+     - Reason: <why the separate stage is needed, or why existing FR/NFR/design coverage is enough>
+     - Source of requirements: `docs/requirements.md` FR/NFR ids, story-map entries, review finding, TECH-DEBT item, or user request
+     ```
+   - If Functional Design or NFR Requirements is `Required`, stop after creating the plan and route the unit to that stage before code generation
    - Document explicit numbered steps with `[ ]` checkboxes
    - Include file paths, implementation approach, test strategy
    - Get explicit user approval of plan
@@ -493,10 +502,37 @@ Provide completion summary:
 
 1. **One step per execution** — Execute one plan step (or enter one new stage) per `/dev-investo` invocation
 2. **Skip N/A stages** — Stages marked N/A in execution-plan.md are skipped automatically
-3. **Follow AIDLC rules exactly** — Each stage has a rule file in `construction/`. Load and follow it
-4. **Sequential stage order** — Stages must be completed in order within each unit
-5. **Unit order** — Process units in the order defined in `aidlc-state.md`
-6. **Build & Test is global** — Runs once after ALL units complete Code Generation
+3. **Record stage decisions** — Every new code-generation plan must state whether Functional Design and NFR Requirements are required or skipped, with a concrete reason
+4. **Follow AIDLC rules exactly** — Each stage has a rule file in `construction/`. Load and follow it
+5. **Sequential stage order** — Stages must be completed in order within each unit
+6. **Unit order** — Process units in the order defined in `aidlc-state.md`
+7. **Build & Test is global** — Runs once after ALL units complete Code Generation
+
+### Stage Decision Guidance
+
+Use separate Functional Design and/or NFR Requirements only when they add real decision value. Do not create boilerplate design documents for small follow-up corrections that are already covered by existing requirements and architecture.
+
+Functional Design is usually **Required** when the unit:
+- introduces a new user-visible capability or new product workflow
+- changes cross-component contracts, data models, routing, prompt contracts, or publish/notify behavior across multiple modules
+- adds a new source-adapter family or external integration contract
+- needs explicit business rules, state transitions, or failure semantics before code can be safely planned
+
+Functional Design is usually **Skipped** when the unit is:
+- a narrow bug fix, wording/layout adjustment, operational hardening slice, or test-only correction
+- a follow-up that refines an existing FR/US/NFR without changing module boundaries
+- already specified concretely enough in the code-generation plan's DoD, AC table, constants, and step traceability
+
+NFR Requirements are usually **Required** when the unit:
+- introduces or changes reliability, timeout, retry, cost, compliance, privacy, security, performance, fixture, or public-data-source policy
+- adds secrets, optional API keys, external network behavior, public rendering of diagnostics, or operator alerting semantics
+- changes the meaning of an existing NFR or creates a new NFR/FR entry in `docs/requirements.md`
+
+NFR Requirements are usually **Skipped** when:
+- the unit only reuses already-defined NFR contracts such as NFR-002 zero-cost, NFR-003 graceful degradation, NFR-004 disclaimer/compliance, or R10/R13 fixture/secret hygiene
+- no new external dependency, public exposure surface, runtime policy, or failure mode is introduced
+
+When skipping a stage, the code-generation plan must still preserve traceability: list the FR/NFR ids or review finding it implements, describe the existing design/NFR coverage being reused, and put any new AC/DoD in the plan itself.
 
 ### Development Standards
 
