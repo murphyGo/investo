@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-29 begin -->
+
+## 2026-05-29
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,584,161,091,835; BTC dominance 57.30%
+- [defillama-market-structure] **ticker**: DeFi TVL $80.5B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $465,912,370 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000660349123262 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 73,934.34
+- [theblock-crypto] **ticker**: Texas appoints CleanSpark exec, bitcoin miner CEO to Strategic Bitcoin Reserve committee
+
+<!-- u33 entry 2026-05-29 end -->
 <!-- u33 entry 2026-05-26 begin -->
 
 ## 2026-05-26

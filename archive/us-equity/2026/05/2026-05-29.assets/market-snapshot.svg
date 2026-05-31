@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-29 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 29일(금), 미국 증시는 미·이란 평화 협상 기대감이 닷새째 시장 기조를 지지하는</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">가운데 AI 인프라 지출 확대 뉴스가 복합 재료로 작용하며 S&amp;P 500(스탠더드앤드푸어스 500 지수)</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 5월 29일(금), 미국 증시는 S&amp;P 500(스탠더드앤드푸어스 500 지수)</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">7,580.10, NASDAQ(나스닥) 종합지수 26,972.62, DJI(다우존스산업평균지수)</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500 · DJI · Nasdaq 100 — 3대 지수 동반 사상 최고치 근방 상승 마감 S&amp;P</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">500은 7,580.10으로 마감하며 전일 대비 +0.22% 상승했고, DJI는</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">MSFT 장중 대폭 상승 — 빅테크 내 수급 차별화 MSFT는 시가 $432.55에서 고점</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$450.33, 종가 $450.24를 기록했으며 거래량 79,654,376주를 동반하며 강한 수급이</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">Powell 발언 (2026-05-31): DFF 3.62% 동결 기조와 관련한 통화정책 신호가 수락</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">발언에 포함되는지 확인 — TLT 85.76 장기채 ETF 및 DGS10 4.45% 금리 흐름 변화 점검</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">MSFT가 종가 $450.24로 마감한 뒤, 다음 거래일 고점 $450.33 돌파 지속 여부와 거래량</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">흐름 점검 SMH 반도체 ETF가 시가 $606.03 대비 $598.93으로 하락한 흐름에서 NVDA 등</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

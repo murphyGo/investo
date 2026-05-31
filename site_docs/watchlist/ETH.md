@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-05-29 begin -->
+
+## 2026-05-29
+
+- [defillama-market-structure] **ticker**: DeFi TVL $80.5B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,015.15
+- [theblock-crypto] **ticker**: Base launches Azul on mainnet, pushing Coinbase’s Ethereum L2 toward full decentralization
+
+<!-- u33 entry 2026-05-29 end -->
 <!-- u33 entry 2026-05-26 begin -->
 
 ## 2026-05-26

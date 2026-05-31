@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="크립토 시장 스냅샷">
+<style>.card-bg{fill:#f7f5ef;}.card-frame{fill:#ffffff;stroke:#253238;}.card-title{fill:#1d2b2f;}.card-subtitle{fill:#617176;}.card-label{fill:#476169;}.card-emphasis{fill:#14555f;}.card-text{fill:#1d2b2f;}.card-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-05-29 · 데이터 partial</text>
+<text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026-05-29 UTC 24h 스냅샷 기준 BTC-USD는 $73,934.34로 확인되며, 직전</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">시황(2026-05-26) $75,629.42 대비 하락 흐름이 연장됐다. [데이터부족]</text>
+<text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC-USD, 5월 26일 대비 하락 흐름 연장 BTC-USD는 UTC 24h 스냅샷 기준</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$73,934.34(고가 $74,094.12, 저가 $73,584.84)로 확인됐다.</text>
+<text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC-USD가 저가 $73,584.84 지지를 유지하는지 추가 구간에서 추세 확인. 이탈 시 전체 시총</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$2.58T 기준선 이탈 여부 연계 관찰. BTC 미결제약정 $465.9M(OKX) 축소 방향 확인 시</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

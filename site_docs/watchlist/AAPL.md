@@ -7,8 +7,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-05-29
 
 - [stooq-price] **ticker**: AAPL 312.06
+- [yfinance-price] **ticker**: AAPL 312.06 (-0.14%)
 
 <!-- u33 entry 2026-05-29 end -->
+
 <!-- u33 entry 2026-05-28 begin -->
 
 ## 2026-05-28
