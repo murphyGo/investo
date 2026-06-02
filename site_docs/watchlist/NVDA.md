@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-01 begin -->
+
+## 2026-06-01
+
+- [yonhap-market] **ticker**: "엔비디아, 한국 업체 등과도 연구용 로봇 개발 협력"
+- [yonhap-market] **ticker**: [특징주] '마법의 손'?…젠슨황 방한 기대에 LG그룹주·네이버 등 폭등(종합)
+- [yonhap-market] **ticker**: [특징주] '젠슨 황 효과'에 LG그룹주 급등세 지속
+- [stooq-price] **ticker**: NVDA 224.36
+
+<!-- u33 entry 2026-06-01 end -->
 <!-- u33 entry 2026-05-29 begin -->
 
 ## 2026-05-29

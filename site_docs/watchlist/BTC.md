@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-01 begin -->
+
+## 2026-06-01
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,522,045,216,803; BTC dominance 56.58%
+- [coingecko-price] **ticker**: BTC $71,298.00 (-2.95%)
+- [defillama-market-structure] **ticker**: DeFi TVL $79.6B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $476,016,620 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 71,481.36
+- [theblock-crypto] **ticker**: Bitcoin weakens near $72K as ETF outflows, stalled whale buying and macro uncertainty weigh on prices: analysts
+- [theblock-crypto] **ticker**: Michael Saylor’s Strategy sells 32 bitcoin for $2.5 million as total holdings drop to 843,706 BTC
+- [theblock-crypto] **ticker**: Strategy bitcoin sale timing throws wrench into $20 million Polymarket pool
+- [theblock-crypto] **ticker**: US-based funds drive $1.7B in global crypto ETP outflows as redemption streak extends to three weeks: CoinShares
+
+<!-- u33 entry 2026-06-01 end -->
 <!-- u33 entry 2026-05-29 begin -->
 
 ## 2026-05-29

@@ -37,3 +37,6 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/05/2026-05-29.md", "published_at": "2026-05-31T23:36:13.070044+00:00", "segment": "crypto", "target_date": "2026-05-29", "tickers": ["BTC", "USD", "UTC"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/05/2026-05-29.md", "published_at": "2026-05-31T23:36:13.070044+00:00", "segment": "domestic-equity", "target_date": "2026-05-29", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/05/2026-05-29.md", "published_at": "2026-05-31T23:36:13.070044+00:00", "segment": "us-equity", "target_date": "2026-05-29", "tickers": ["DJI", "NASDAQ"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/06/2026-06-01.md", "published_at": "2026-06-02T00:16:04.544608+00:00", "segment": "crypto", "target_date": "2026-06-01", "tickers": ["BTC", "UTC"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/06/2026-06-01.md", "published_at": "2026-06-02T00:16:04.544608+00:00", "segment": "domestic-equity", "target_date": "2026-06-01", "tickers": ["KOSPI"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/06/2026-06-01.md", "published_at": "2026-06-02T00:16:04.544608+00:00", "segment": "us-equity", "target_date": "2026-06-01", "tickers": []}

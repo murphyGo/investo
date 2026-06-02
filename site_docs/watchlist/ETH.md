@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-01 begin -->
+
+## 2026-06-01
+
+- [coingecko-price] **ticker**: ETH $2,001.46 (+0.09%)
+- [defillama-market-structure] **ticker**: DeFi TVL $79.6B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 2,004.89
+- [theblock-crypto] **ticker**: Bitmine acquires 26,497 ETH as it targets a slower approach to 5% of Ethereum’s total supply
+
+<!-- u33 entry 2026-06-01 end -->
 <!-- u33 entry 2026-05-29 begin -->
 
 ## 2026-05-29

@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-01 begin -->
+
+## 2026-06-01
+
+- [yonhap-market] **ticker**: 신한운용, '200타켓위클리커버드콜' ETF 월분배금 주당 217원
+- [coingecko-price] **ticker**: SOL $81.14 (-1.17%)
+- [defillama-market-structure] **ticker**: DeFi TVL $79.6B; leader Ethereum
+
+<!-- u33 entry 2026-06-01 end -->
 <!-- u33 entry 2026-05-29 begin -->
 
 ## 2026-05-29
