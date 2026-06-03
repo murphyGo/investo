@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-02 begin -->
+
+## 2026-06-02
+
+- [yonhap-market] **ticker**: MS·구글, AI 코딩 대전 '늦깎이' 등판…"사활 건 과제"
+- [yonhap-market] **ticker**: 알파벳, AI 투자 위해 120조원 유상증자…버크셔에 15조원 배정
+- [stooq-price] **ticker**: GOOGL 361.81
+
+<!-- u33 entry 2026-06-02 end -->
 <!-- u33 entry 2026-06-01 begin -->
 
 ## 2026-06-01

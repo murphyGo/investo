@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-02 begin -->
+
+## 2026-06-02
+
+- [coingecko-price] **ticker**: ETH $1,857.42 (-7.25%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.8B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 1,858.78
+- [theblock-crypto] **ticker**: Standard Chartered says Strategy’s bitcoin sale may mark start of ETH outperformance
+
+<!-- u33 entry 2026-06-02 end -->
 <!-- u33 entry 2026-06-01 begin -->
 
 ## 2026-06-01

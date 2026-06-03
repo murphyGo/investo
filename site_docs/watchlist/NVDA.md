@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-02 begin -->
+
+## 2026-06-02
+
+- [yonhap-market] **ticker**: "중국軍 연계 대학들, 엔비디아 H200 확보 추구 확인"
+- [yonhap-market] **ticker**: [특징주] SKT, '엔비디아 파트너' 부각에 11% 급등 마감(종합)
+- [yonhap-market] **ticker**: [특징주] SKT, '엔비디아 파트너' 부각에 장 초반 10%대 급등
+- [yonhap-market] **ticker**: [특징주] 로봇株, "엔비디아도 기여 희망" 젠슨황 발언에 상승
+- [yonhap-market] **ticker**: [특징주] 로봇株, "엔비디아도 기여 희망" 젠슨황 발언에 상승(종합)
+- [yonhap-market] **ticker**: 뉴욕증시 3대지수, 유가상승에도 최고치 마감…엔비디아 6%↑(종합)
+- [stooq-price] **ticker**: NVDA 222.80
+
+<!-- u33 entry 2026-06-02 end -->
 <!-- u33 entry 2026-06-01 begin -->
 
 ## 2026-06-01

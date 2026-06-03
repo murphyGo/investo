@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-02 begin -->
+
+## 2026-06-02
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,382,879,959,707; BTC dominance 56.04%
+- [coingecko-price] **ticker**: BTC $66,679.00 (-6.56%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.8B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $485,403,710 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000432254377085 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 66,653.13
+- [theblock-crypto] **ticker**: HIVE reports 158% jump in annual revenue to $298 million as bitcoin holdings fall to 150 BTC
+- [theblock-crypto] **ticker**: Standard Chartered says Strategy’s bitcoin sale may mark start of ETH outperformance
+- [theblock-crypto] **ticker**: Strive adds 2,500 BTC to treasury as Saylor’s Strategy sells
+- [theblock-crypto] **ticker**: ‘Materially softer demand’: Bitcoin hits two-month low below $69,000 amid institutional outflow streak, fading onchai…
+
+<!-- u33 entry 2026-06-02 end -->
 <!-- u33 entry 2026-06-01 begin -->
 
 ## 2026-06-01
