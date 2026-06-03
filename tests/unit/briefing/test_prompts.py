@@ -232,6 +232,33 @@ def test_stage2_system_carries_meaning_line_rules_u76() -> None:
     assert "glossary, u40" in STAGE2_SYSTEM
 
 
+def test_stage2_system_carries_watchpoint_structured_bullet_rule_u87() -> None:
+    """u87 — §⑥ Stage-2 rule mandates the source+trigger+implication
+    contract per bullet and bans advice wording.
+
+    The matrix renderer only populates a non-``데이터부족`` row when a
+    bullet carries source + (상방/하방) trigger + implication. The prompt
+    must instruct the LLM to emit that exact shape, give a populatable
+    example, and keep it observational-only (no 매수/매도/목표가/결과예측).
+    """
+    section = STAGE2_SYSTEM
+    # The three structured elements are all named.
+    assert "source" in section
+    assert "상방 확인 조건" in section
+    assert "하방 확인 조건" in section
+    assert "implication" in section or "관심 영향" in section
+    # The combined contract is spelled out.
+    assert "source + trigger" in section
+    # A concrete populatable example is present (so the model has an anchor).
+    assert "확인 소스: FRED · 10Y 금리가 4.5%를 상회하면" in section
+    # Advice wording is explicitly banned (u56 boundary unchanged).
+    for banned in ("매수", "매도", "목표가"):
+        assert banned in section
+    assert "결과예측" in section or "결과를 단정" in section
+    # Diagnostic tokens must be banned from §⑥ bullets (AC-87.1 prompt side).
+    assert "input_hash" in section
+
+
 def test_format_lookahead_section_renders_body_with_header_and_intro() -> None:
     body = "- 2026-05-10: [fomc-rss] FOMC meeting"
     rendered = format_lookahead_section(body)

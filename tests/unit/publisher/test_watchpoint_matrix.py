@@ -20,6 +20,7 @@ from investo.publisher.reader_format import check_watchpoint_actionability
 from investo.publisher.watchpoint_matrix import (
     CONFIDENCE_LABELS,
     DATA_LIMITED_CONFIDENCE,
+    DATA_LIMITED_NOTE,
     MATRIX_COLUMNS,
     MAX_VISIBLE_ROWS,
     WatchpointRow,
@@ -205,3 +206,141 @@ def test_rendered_matrix_passes_compliance_scan() -> None:
     assert report.p0_hits == ()
     for banned in ("매수 검토", "매도 검토", "목표가", "손절", "비중 확대", "비중 축소"):
         assert banned not in out
+
+
+# ===========================================================================
+# u87 — watchpoint-matrix-rehabilitation (AC-87.1..87.7)
+#
+# Fixtures derived from the real 2026-05-26 §⑥ defect shapes (crypto /
+# us-equity / domestic-equity briefings): diagnostic-hash leak, markdown-link
+# fragments, dangling particles, and the universal all-데이터부족 wall.
+# ===========================================================================
+
+_HEADER_LINE = "| " + " | ".join(MATRIX_COLUMNS) + " |"
+
+
+def test_diagnostic_hash_line_is_filtered_before_rows_ac87_1() -> None:
+    """AC-87.1 — a trace-footer ``input_hash`` bullet never becomes a row.
+
+    The crypto §⑥ matrix carried ``- `input_hash`: `1ee42e89b281` ``. The
+    pre-filter must drop it (and ``stage1_hash`` / ``stage2_hash``) before
+    row building so no signal cell contains the diagnostic key or a backtick.
+    """
+    text = _section_six(
+        [
+            "`input_hash`: `1ee42e89b281`",
+            "stage1_hash: abc123",
+            "stage2_hash: def456",
+            _STRUCTURED_NUMERIC,
+        ]
+    )
+    out = render_watchpoint_matrix(text, segment="crypto")
+    assert "input_hash" not in out
+    assert "stage1_hash" not in out
+    assert "stage2_hash" not in out
+    assert "1ee42e89b281" not in out
+    # No backtick survives into the rendered matrix body.
+    assert "`" not in out
+
+
+def test_markdown_link_bullet_never_yields_url_fragment_ac87_2() -> None:
+    """AC-87.2 — a markdown-link bullet's signal uses the link text, never
+    a truncated ``](http`` URL fragment.
+    """
+    bullet = (
+        "확인 소스: Nasdaq · [AAPL](https://www.nasdaq.com/articles/aapl-news) "
+        "주가가 신고점을 상회하면 모멘텀 관찰, 직전 지지선을 이탈하면 약화. "
+        "관심 영향: 대형 기술주 점검."
+    )
+    out = render_watchpoint_matrix(_section_six([bullet]), segment="us-equity")
+    assert "](http" not in out
+    assert "https://" not in out
+    # The link text (AAPL) survives as part of the signal label.
+    assert "AAPL" in out
+
+
+def test_signal_never_ends_on_bare_particle_ac87_3() -> None:
+    """AC-87.3 — a signal label never dangles on a bare Korean 조사.
+
+    Real defect shapes: ``원/달러 환율 1,499.83원이 …``, ``기관 순매수
+    +8,168억원 독주 구도가 …``, ``BTC-USD가 …``.
+    """
+    from investo.publisher.watchpoint_matrix import _short_signal
+
+    for bullet, forbidden in (
+        ("원/달러 환율 1,499.83원이 상단 저항을 시험하는 흐름", "원이"),
+        ("기관 순매수 +8,168억원 독주 구도가 이어지는 양상", "구도가"),
+        ("BTC-USD가 단기 변동성 확대 국면", "BTC-USD가"),
+    ):
+        signal = _short_signal(bullet)
+        assert not signal.rstrip("…").endswith(forbidden), signal
+        for particle in ("이", "가", "은", "는", "을", "를"):
+            assert not signal.rstrip("…").endswith(particle), signal
+
+
+def test_all_unstructured_collapses_to_single_note_ac87_4() -> None:
+    """AC-87.4 — when no bullet is structured, §⑥ renders the single pinned
+    note and NO matrix header (never a ≥2-row 데이터부족 wall).
+    """
+    text = _section_six([_GENERIC, "BTC-USD 흐름 점검", "환율 추세 확인 필요"])
+    out = render_watchpoint_matrix(text, segment="crypto")
+    assert DATA_LIMITED_NOTE in out
+    assert _HEADER_LINE not in out
+    # No multi-row 데이터부족 table — the note replaces the body entirely.
+    assert out.count("데이터부족") == 0
+
+
+def test_structured_bullet_produces_populated_row_ac87_5() -> None:
+    """AC-87.5 — a fully-structured source+trigger+implication bullet yields
+    a populated row: 현재 non-dash, ≥1 trigger non-데이터부족, confidence ∈
+    {높음,보통,낮음}. (Proves the matrix populates — closes DEBT-074.)
+    """
+    text = _section_six([_STRUCTURED_NUMERIC])
+    out = render_watchpoint_matrix(text, segment="us-equity")
+    assert _HEADER_LINE in out
+    assert DATA_LIMITED_NOTE not in out
+
+    rows = build_watchpoint_rows([_STRUCTURED_NUMERIC])
+    row = rows[0]
+    assert row.current != "—"
+    assert (
+        row.bullish_trigger != DATA_LIMITED_CONFIDENCE
+        or row.bearish_trigger != DATA_LIMITED_CONFIDENCE
+    )
+    assert row.confidence in {"높음", "보통", "낮음"}
+
+
+def test_existing_watchpoint_tests_compliance_unchanged_ac87_6() -> None:
+    """AC-87.6 — the rehabilitated renderer introduces no advice wording; a
+    mixed structured+unstructured §⑥ still passes the P0 compliance scan.
+    """
+    text = _section_six([_STRUCTURED_NUMERIC, _GENERIC])
+    out = render_watchpoint_matrix(text, segment="us-equity")
+    report = scan_compliance(out, "us-equity")
+    assert report.p0_hits == ()
+    for banned in ("매수 검토", "매도 검토", "목표가", "손절"):
+        assert banned not in out
+
+
+def test_data_limited_note_render_is_idempotent_ac87_7() -> None:
+    """AC-87.7 — re-running over output containing DATA_LIMITED_NOTE returns
+    it unchanged (idempotent for the collapsed state too).
+    """
+    text = _section_six([_GENERIC, "환율 추세 확인 필요"])
+    once = render_watchpoint_matrix(text, segment="crypto")
+    twice = render_watchpoint_matrix(once, segment="crypto")
+    assert DATA_LIMITED_NOTE in once
+    assert once == twice
+
+
+def test_render_byte_preserves_outside_section_six_ac87_7() -> None:
+    """AC-87.7 — every section outside §⑥ plus the disclaimer footer is
+    byte-preserved by the collapse transform.
+    """
+    head = "## ① 요약\n본문 그대로\n\n## ④ 지표·이벤트\n표 본문\n\n"
+    six = "## ⑥ 오늘의 관전 포인트\n\n- FOMC 발언 톤 확인 필요\n\n"
+    tail = f"## ⑦ 면책조항\n\n{DISCLAIMER}\n"
+    out = render_watchpoint_matrix(head + six + tail, segment="us-equity")
+    assert out.startswith(head)
+    assert out.endswith(tail)
+    assert DATA_LIMITED_NOTE in out

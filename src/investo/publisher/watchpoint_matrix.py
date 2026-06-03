@@ -142,6 +142,52 @@ _BEARISH_KEYWORDS: Final[tuple[str, ...]] = ("하회", "이탈", "하방", "방�
 _PIPE_RE: Final[re.Pattern[str]] = re.compile(r"\|")
 _DASH = "—"
 
+# u87 Step 1 — §⑥ bullet pre-filter (AC-87.1). A trace-footer diagnostic line
+# (``- `input_hash`: `…```, ``stage1_hash: …``, ``stage2_hash: …``,
+# ``input_hash: …``) is a backtick-wrapped lowercase key followed by a colon
+# (the full-width colon variant is included too). Such lines sit in the §⑥ body
+# region at render time and must never reach ``build_watchpoint_rows`` as rows.
+_DIAGNOSTIC_LINE_RE: Final[re.Pattern[str]] = re.compile(r"^`?[a-z][a-z0-9_]*`?\s*[:：]")  # noqa: RUF001 — full-width colon is a valid diagnostic separator
+
+# u87 Step 2 — markdown-link unwrap (AC-87.2). Replace ``[text](url)`` with its
+# link text so a truncation can never cut a URL mid-stream (``](http…``). Kept
+# as a local publisher constant (module boundary: no ``briefing/`` import).
+_MD_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\((?:[^)]*)\)")
+
+# u87 Step 2 — dangling-particle trim (AC-87.3). A signal label must never end
+# on a bare Korean 조사 (e.g. ``…원이`` / ``…구도가`` / ``BTC-USD가``).
+_TRAILING_PARTICLE_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:이|가|은|는|을|를|와|과|도|의|에|로|으로)\s*…?$"
+)
+
+# Any Hangul syllable — used by the pre-filter to drop bare-link / pure-symbol
+# bullets that carry no Korean observation text.
+_HANGUL_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣]")
+
+# u87 Step 3 — single pinned data-limited note (AC-87.4). When no usable
+# observation row survives, §⑥ collapses to this one blockquote line instead of
+# rendering a ≥2-row wall of ``데이터부족``.
+DATA_LIMITED_NOTE: Final[str] = (
+    "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조"
+)
+
+
+def _is_observation_bullet(bullet: str) -> bool:
+    """True when ``bullet`` is a reader-facing §⑥ observation (u87 Step 1).
+
+    Rejects (AC-87.1): trace-footer diagnostic / backtick-key lines
+    (``input_hash`` / ``stage1_hash`` / ``stage2_hash``), bullets that — after
+    stripping markdown links and whitespace — carry no Hangul syllable (a bare
+    link or pure-symbol bullet), and empty/whitespace bullets.
+    """
+    stripped = bullet.strip()
+    if not stripped:
+        return False
+    if _DIAGNOSTIC_LINE_RE.match(stripped):
+        return False
+    unwrapped = _MD_LINK_RE.sub(r"\1", stripped).strip()
+    return _HANGUL_RE.search(unwrapped) is not None
+
 
 @dataclass(frozen=True, slots=True)
 class WatchpointRow:
@@ -217,16 +263,29 @@ def _clause_for(keywords: tuple[str, ...], clauses: list[str]) -> str | None:
 
 
 def _short_signal(bullet: str) -> str:
-    """Derive a terse signal label — the indicator after any source prefix."""
+    """Derive a terse signal label — the indicator after any source prefix.
+
+    u87 Step 2: markdown links are unwrapped to their link text *first* so a
+    truncation can never emit a ``](http…`` fragment (AC-87.2), and a trailing
+    bare Korean particle is trimmed so the label never dangles on a 조사
+    (AC-87.3).
+    """
     stripped = _SOURCE_PREFIX_RE.sub("", bullet).strip()
-    head = stripped or bullet.strip()
+    head = _MD_LINK_RE.sub(r"\1", stripped or bullet.strip())
     # Cut at the first directional verb / clause separator so the label stays
     # terse (e.g. ``10Y 금리가 4.5% 를``).
     for sep in ("가 ", "이 ", "는 ", "은 ", "："):  # noqa: RUF001 — full-width colon is valid Korean punctuation
         idx = head.find(sep)
         if 0 < idx <= 30:
-            return head[: idx + 1].strip()
-    return head[:30] + ("…" if len(head) > 30 else "")
+            return _trim_trailing_particle(head[: idx + 1].strip(), truncated=False)
+    truncated = len(head) > 30
+    return _trim_trailing_particle(head[:30], truncated=truncated)
+
+
+def _trim_trailing_particle(label: str, *, truncated: bool) -> str:
+    """Strip a trailing bare 조사 (AC-87.3); re-append ``…`` iff truncated."""
+    trimmed = _TRAILING_PARTICLE_RE.sub("", label).rstrip()
+    return f"{trimmed}…" if truncated else trimmed
 
 
 def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
@@ -277,7 +336,11 @@ def build_watchpoint_rows(
 
 
 def _escape_cell(text: str) -> str:
-    return _PIPE_RE.sub("/", text).replace("\n", " ").strip() or _DASH
+    # u87 Step 2 / AC-87.2 — unwrap markdown links to their text so no cell
+    # (current / trigger / implication, not just the signal) can carry a
+    # ``](http…`` fragment, and a literal pipe never breaks the table grid.
+    unwrapped = _MD_LINK_RE.sub(r"\1", text)
+    return _PIPE_RE.sub("/", unwrapped).replace("\n", " ").strip() or _DASH
 
 
 def render_matrix_table(rows: list[WatchpointRow]) -> str:
@@ -309,10 +372,11 @@ def render_watchpoint_matrix(
 ) -> str:
     """Rewrite §⑥ body bullets into the observational matrix table (pure).
 
-    Idempotent: if §⑥ already contains the matrix header (same-day re-run),
-    the document is returned unchanged. Missing / empty §⑥ → unchanged.
-    The transform is bounded to the §⑥ body region; every other section and
-    the disclaimer footer are byte-preserved.
+    Idempotent: if §⑥ already contains the matrix header *or* the collapsed
+    :data:`DATA_LIMITED_NOTE` (same-day re-run), the document is returned
+    unchanged. Missing / empty §⑥ → unchanged. The transform is bounded to the
+    §⑥ body region; every other section and the disclaimer footer are
+    byte-preserved.
     """
     headers = list(_SECTION_HEADER_RE.finditer(text))
     for idx, match in enumerate(headers):
@@ -322,12 +386,27 @@ def render_watchpoint_matrix(
         body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
         body = text[body_start:body_end]
         header_line = "| " + " | ".join(MATRIX_COLUMNS) + " |"
-        if header_line in body:
-            return text  # already rendered — idempotent
-        bullets = [m.group(1).strip() for m in _BULLET_RE.finditer(body)]
-        if not bullets and not coverage_limited:
+        # Idempotent (AC-87.7): a same-day re-run that already contains the
+        # matrix header *or* the collapsed DATA_LIMITED_NOTE returns unchanged.
+        if header_line in body or DATA_LIMITED_NOTE in body:
             return text
+        # u87 Step 1 — drop non-observation lines (trace-footer diagnostics,
+        # bare-link/pure-symbol bullets) before row building (AC-87.1).
+        raw_bullets = [m.group(1).strip() for m in _BULLET_RE.finditer(body)]
+        bullets = [b for b in raw_bullets if _is_observation_bullet(b)]
+        if not bullets and not coverage_limited:
+            return text  # also covers "all bullets filtered out"
         rows = build_watchpoint_rows(bullets, coverage_limited=coverage_limited)
+        # u87 Step 3 — collapse an all-데이터부족 (or empty) result to the single
+        # pinned note instead of a ≥2-row wall of 데이터부족 (AC-87.4).
+        all_data_limited = not rows or all(r.confidence == DATA_LIMITED_CONFIDENCE for r in rows)
+        if all_data_limited:
+            _logger.info(
+                "watchpoint_matrix.data_limited_rows",
+                extra={"segment": segment, "count": len(bullets)},
+            )
+            new_body = f"\n\n{DATA_LIMITED_NOTE}\n"
+            return text[:body_start] + new_body + text[body_end:]
         table = render_matrix_table(rows)
         if not table:
             return text
@@ -349,6 +428,7 @@ def render_watchpoint_matrix(
 __all__ = [
     "CONFIDENCE_LABELS",
     "DATA_LIMITED_CONFIDENCE",
+    "DATA_LIMITED_NOTE",
     "MATRIX_COLUMNS",
     "MAX_VISIBLE_ROWS",
     "ConfidenceLabel",

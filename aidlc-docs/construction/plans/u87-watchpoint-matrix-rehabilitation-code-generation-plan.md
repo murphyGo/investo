@@ -3,7 +3,7 @@
 **Date**: 2026-05-31
 **Unit**: u87 watchpoint-matrix-rehabilitation
 **Stage**: Code Generation
-**Status**: Backlog / Planned (ready — no blocked prerequisites)
+**Status**: Done (2026-05-31) — Steps 1-5 implemented; AC-87.1..87.7 each pinned by a dedicated test; DEBT-074 resolved-by-u87. Gate green (ruff/format/mypy strict/2868 pytest passed/mkdocs --strict).
 **Source**: briefing-unit-planner review of the 2026-05-26 generated briefings (all three segments) + escalation of DEBT-074.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -75,52 +75,52 @@ Concrete evidence (`archive/{domestic-equity,us-equity,crypto}/2026/05/2026-05-2
 
 ## Implementation Steps
 
-### Step 1 — §⑥ bullet pre-filter (drop non-observation lines) `[ ]`
-- [ ] In `publisher/watchpoint_matrix.py`, add a pure predicate `_is_observation_bullet(bullet: str) -> bool` and a `_DIAGNOSTIC_LINE_RE`. Reject a bullet when:
+### Step 1 — §⑥ bullet pre-filter (drop non-observation lines) `[x]`
+- [x] In `publisher/watchpoint_matrix.py`, add a pure predicate `_is_observation_bullet(bullet: str) -> bool` and a `_DIAGNOSTIC_LINE_RE`. Reject a bullet when:
   - it matches a backtick-wrapped diagnostic key line — pin `_DIAGNOSTIC_LINE_RE = re.compile(r"^`?[a-z][a-z0-9_]*`?\s*[:：]")` so `` `input_hash`: … ``, `stage1_hash: …`, `stage2_hash: …`, `input_hash: …` are all dropped; (note: full-width colon `：` included);
   - after stripping markdown links and whitespace it contains **no** Hangul syllable (`re.search(r"[가-힣]", stripped)` is None) — i.e. a bare-link or pure-symbol bullet;
   - it is empty/whitespace.
-- [ ] In `render_watchpoint_matrix`, apply the filter to the `_BULLET_RE`-extracted bullets **before** `build_watchpoint_rows`: `bullets = [b for b in raw_bullets if _is_observation_bullet(b)]`. Keep the existing `if not bullets and not coverage_limited: return text` early-out (now also covers "all bullets filtered out").
-- [ ] Pin the exact filter behavior in a comment referencing AC-87.1.
+- [x] In `render_watchpoint_matrix`, apply the filter to the `_BULLET_RE`-extracted bullets **before** `build_watchpoint_rows`: `bullets = [b for b in raw_bullets if _is_observation_bullet(b)]`. Keep the existing `if not bullets and not coverage_limited: return text` early-out (now also covers "all bullets filtered out").
+- [x] Pin the exact filter behavior in a comment referencing AC-87.1.
 
-### Step 2 — `_short_signal` markdown-safety + dangling-particle trim `[ ]`
-- [ ] Add a module-level `_MD_LINK_RE = re.compile(r"\[([^\]]+)\]\((?:[^)]*)\)")` and unwrap links to their text **at the top of `_short_signal`**: `head = _MD_LINK_RE.sub(r"\1", head)`. This guarantees no `](http…` fragment can survive truncation (AC-87.2). (Do not reuse a `briefing/` regex — keep the publisher module boundary; a local constant is correct.)
-- [ ] Add a `_TRAILING_PARTICLE_RE = re.compile(r"(?:이|가|은|는|을|를|와|과|도|의|에|로|으로)\s*…?$")` and, after the existing truncation, strip a trailing bare particle so a signal never ends on a dangling 조사 (AC-87.3). Re-append `…` only if the source was actually truncated.
-- [ ] Keep the existing ≤30-char + separator behavior otherwise (do not regress the populated-row labels).
+### Step 2 — `_short_signal` markdown-safety + dangling-particle trim `[x]`
+- [x] Add a module-level `_MD_LINK_RE = re.compile(r"\[([^\]]+)\]\((?:[^)]*)\)")` and unwrap links to their text **at the top of `_short_signal`**: `head = _MD_LINK_RE.sub(r"\1", head)`. This guarantees no `](http…` fragment can survive truncation (AC-87.2). (Do not reuse a `briefing/` regex — keep the publisher module boundary; a local constant is correct.)
+- [x] Add a `_TRAILING_PARTICLE_RE = re.compile(r"(?:이|가|은|는|을|를|와|과|도|의|에|로|으로)\s*…?$")` and, after the existing truncation, strip a trailing bare particle so a signal never ends on a dangling 조사 (AC-87.3). Re-append `…` only if the source was actually truncated.
+- [x] Keep the existing ≤30-char + separator behavior otherwise (do not regress the populated-row labels).
 
-### Step 3 — all-`데이터부족` collapse `[ ]`
-- [ ] Add `DATA_LIMITED_NOTE: Final[str] = "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조"` (exact string pinned).
-- [ ] In `render_watchpoint_matrix`, after building `rows`, if **every** row has `confidence == DATA_LIMITED_CONFIDENCE` (or `rows` is empty), replace the table body with `DATA_LIMITED_NOTE` (a single blockquote line) instead of `render_matrix_table(rows)`. Preserve the existing idempotency guard (a same-day re-run that already contains either the matrix header **or** `DATA_LIMITED_NOTE` returns `text` unchanged — extend the idempotency check to also detect the note).
-- [ ] Keep the existing `coverage_limited` single-`데이터부족`-row path collapsing to the same note (consistency).
-- [ ] Preserve the existing data-limited WARN log (`watchpoint_matrix.data_limited_rows`), and additionally emit it (count = total bullets) when the collapse fires, so operators still see under-population.
+### Step 3 — all-`데이터부족` collapse `[x]`
+- [x] Add `DATA_LIMITED_NOTE: Final[str] = "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조"` (exact string pinned).
+- [x] In `render_watchpoint_matrix`, after building `rows`, if **every** row has `confidence == DATA_LIMITED_CONFIDENCE` (or `rows` is empty), replace the table body with `DATA_LIMITED_NOTE` (a single blockquote line) instead of `render_matrix_table(rows)`. Preserve the existing idempotency guard (a same-day re-run that already contains either the matrix header **or** `DATA_LIMITED_NOTE` returns `text` unchanged — extend the idempotency check to also detect the note).
+- [x] Keep the existing `coverage_limited` single-`데이터부족`-row path collapsing to the same note (consistency).
+- [x] Preserve the existing data-limited WARN log (`watchpoint_matrix.data_limited_rows`), and additionally emit it (count = total bullets) when the collapse fires, so operators still see under-population.
 
-### Step 4 — Stage-2 §⑥ prompt contract so bullets populate `[ ]`
-- [ ] In `briefing/prompts.py`, strengthen the §⑥ Stage-2 rule (the existing u72 observational/banned-advice block) so **each** §⑥ bullet is written as one self-contained observational sentence carrying: (a) a source/anchor reference, (b) an upside confirm condition **and** a downside confirm condition (the 상방/하방 triggers), and (c) a section-local implication — matching the `source + trigger + implication` shape `_is_structured` requires. Keep it observational only: no 매수/매도/목표가/결과예측 (u56 boundary unchanged).
-- [ ] Add one or two concrete in-prompt examples of a populatable bullet vs a rejected fragment so the model emits the structured shape. Keep the prompt compact (this is the single highest-leverage fix for D1).
+### Step 4 — Stage-2 §⑥ prompt contract so bullets populate `[x]`
+- [x] In `briefing/prompts.py`, strengthen the §⑥ Stage-2 rule (the existing u72 observational/banned-advice block) so **each** §⑥ bullet is written as one self-contained observational sentence carrying: (a) a source/anchor reference, (b) an upside confirm condition **and** a downside confirm condition (the 상방/하방 triggers), and (c) a section-local implication — matching the `source + trigger + implication` shape `_is_structured` requires. Keep it observational only: no 매수/매도/목표가/결과예측 (u56 boundary unchanged).
+- [x] Add one or two concrete in-prompt examples of a populatable bullet vs a rejected fragment so the model emits the structured shape. Keep the prompt compact (this is the single highest-leverage fix for D1).
 
-### Step 5 — Tests + docs + gate `[ ]`
-- [ ] Extend `tests/unit/publisher/test_watchpoint_matrix.py` (create if the file is named differently — confirm with `rg -l watchpoint tests/unit/publisher`) with fixtures built from the real 2026-05-26 defect shapes:
+### Step 5 — Tests + docs + gate `[x]`
+- [x] Extend `tests/unit/publisher/test_watchpoint_matrix.py` (create if the file is named differently — confirm with `rg -l watchpoint tests/unit/publisher`) with fixtures built from the real 2026-05-26 defect shapes:
   - a §⑥ body containing a `- \`input_hash\`: \`1ee42e89b281\`` line → no row's signal contains `input_hash` or a backtick (AC-87.1);
   - a markdown-link bullet `- [AAPL](https://www.nasdaq.com/articles/...) 신고점 …` → signal is `AAPL …`-style text, never contains `](http` (AC-87.2);
   - a `- 원/달러 환율 1,499.83원이 …` bullet → signal does not end on `원이`/a bare particle (AC-87.3);
   - all bullets unstructured → output contains `DATA_LIMITED_NOTE` and **no** matrix header (AC-87.4);
   - one fully-structured source+trigger+implication bullet → a populated row with `현재` set, at least one of 상방/하방 non-`데이터부족`, and confidence ∈ {높음,보통,낮음} (AC-87.5);
   - idempotency: re-running over output containing `DATA_LIMITED_NOTE` returns it unchanged; disclaimer/byte-preservation outside §⑥ (AC-87.7).
-- [ ] Add a `tests/unit/briefing/test_prompts.py` assertion that the §⑥ Stage-2 rule text mentions the source+trigger+implication contract and bans advice wording.
-- [ ] Run `rg` to confirm no production code outside `publisher/watchpoint_matrix.py` + `briefing/prompts.py` changed.
-- [ ] On completion, mark **DEBT-074 resolved-by-u87** in `docs/TECH-DEBT.md` and decrement its priority count.
+- [x] Add a `tests/unit/briefing/test_prompts.py` assertion that the §⑥ Stage-2 rule text mentions the source+trigger+implication contract and bans advice wording.
+- [x] Run `rg` to confirm no production code outside `publisher/watchpoint_matrix.py` + `briefing/prompts.py` changed.
+- [x] On completion, mark **DEBT-074 resolved-by-u87** in `docs/TECH-DEBT.md` and decrement its priority count.
 
 ---
 
 ## Acceptance Criteria
 
-- **AC-87.1** A §⑥ body containing a trace-footer `- \`input_hash\`: \`…\`` line (or `stage1_hash`/`stage2_hash`) produces **no** matrix row whose signal contains `input_hash` or a backtick — the diagnostic line is filtered before row building.
-- **AC-87.2** A §⑥ bullet that is or contains a markdown link never yields a cell containing `](http` or an unbalanced `[`/`(`; the link **text** is used as the signal.
-- **AC-87.3** A signal label never ends on a bare Korean particle from the pinned trim set (e.g. never `…원이`, `…구도가`, `BTC-USD가`).
-- **AC-87.4** When no observation bullet is structured/usable, §⑥ renders the single pinned `DATA_LIMITED_NOTE` blockquote and **no** matrix header — never a ≥2-row table of all `데이터부족`.
-- **AC-87.5** A fully-structured source+trigger+implication bullet produces a populated row: `현재` non-dash, at least one of 상방/하방 trigger non-`데이터부족`, confidence ∈ {높음,보통,낮음}. (Proves the matrix can populate, closing DEBT-074.)
-- **AC-87.6** No buy/sell/target-price wording is introduced; the existing u56 / u72 watchpoint compliance tests stay green unchanged.
-- **AC-87.7** The transform stays idempotent (same-day re-run is a no-op for both the matrix-header and the `DATA_LIMITED_NOTE` states) and byte-preserves every section outside §⑥ plus the disclaimer footer.
+- [x] **AC-87.1** A §⑥ body containing a trace-footer `- \`input_hash\`: \`…\`` line (or `stage1_hash`/`stage2_hash`) produces **no** matrix row whose signal contains `input_hash` or a backtick — the diagnostic line is filtered before row building. _Test: `test_diagnostic_hash_line_is_filtered_before_rows_ac87_1`._
+- [x] **AC-87.2** A §⑥ bullet that is or contains a markdown link never yields a cell containing `](http` or an unbalanced `[`/`(`; the link **text** is used as the signal. _Test: `test_markdown_link_bullet_never_yields_url_fragment_ac87_2`._
+- [x] **AC-87.3** A signal label never ends on a bare Korean particle from the pinned trim set (e.g. never `…원이`, `…구도가`, `BTC-USD가`). _Test: `test_signal_never_ends_on_bare_particle_ac87_3`._
+- [x] **AC-87.4** When no observation bullet is structured/usable, §⑥ renders the single pinned `DATA_LIMITED_NOTE` blockquote and **no** matrix header — never a ≥2-row table of all `데이터부족`. _Test: `test_all_unstructured_collapses_to_single_note_ac87_4`._
+- [x] **AC-87.5** A fully-structured source+trigger+implication bullet produces a populated row: `현재` non-dash, at least one of 상방/하방 trigger non-`데이터부족`, confidence ∈ {높음,보통,낮음}. (Proves the matrix can populate, closing DEBT-074.) _Test: `test_structured_bullet_produces_populated_row_ac87_5`._
+- [x] **AC-87.6** No buy/sell/target-price wording is introduced; the existing u56 / u72 watchpoint compliance tests stay green unchanged. _Test: `test_existing_watchpoint_tests_compliance_unchanged_ac87_6` + full publisher suite (1270 passed)._
+- [x] **AC-87.7** The transform stays idempotent (same-day re-run is a no-op for both the matrix-header and the `DATA_LIMITED_NOTE` states) and byte-preserves every section outside §⑥ plus the disclaimer footer. _Tests: `test_data_limited_note_render_is_idempotent_ac87_7`, `test_render_byte_preserves_outside_section_six_ac87_7`._
 
 ---
 

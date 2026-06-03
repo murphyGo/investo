@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 33 | 2026-04-27 |
+| Low | 32 | 2026-04-27 |
 
 ---
 
@@ -152,16 +152,6 @@ _No high priority items._
 - **Suggested Fix**: Tighten the lookalike rule with a known-symbol allowlist (only flag tokens that resemble a *configured* term, or a recognized ticker shape from a small curated set) and/or an explicit edit-distance bound rather than the first-letter + ±2-length window. Keep the shared-prefix family check and the u64-accepted exclusion as-is; the change is a strictly additive precision tightening of the near-miss scan with regression fixtures for both the kept SOL/BTC rejections and the newly suppressed unrelated tickers.
 - **Effort**: ~1-1.5 h — add the allowlist / edit-distance guard to `_detect_rejected`, pin kept-vs-suppressed near-miss fixtures.
 - **Priority Reasoning**: Low — the noise is confined to a collapsed, R13-redacted, diagnostics-only block that never reaches the briefing body or Telegram (AC-73.4 holds) and never affects an accepted match. It is operator-trust polish, not a reader-facing error. Promote to Medium only if a user-quality / operator review flags the diagnostics block as materially noisy in practice.
-
-#### DEBT-074: §⑥ watchpoint-matrix clause-slotting heuristic can under-populate trigger columns — plumb typed evidence
-
-- **Created**: 2026-05-24
-- **Source**: u72 watchpoint-action-matrix closeout (clause-slotting risk)
-- **Reference**: AC-72.1 (bounded matrix fields), AC-72.3 (rows consume verified anchors/carryover/watchlist evidence without inventing facts), NFR-005 (consistency), NFR-007 (R10 — no fabrication)
-- **Description**: `src/investo/publisher/watchpoint_matrix.py::render_watchpoint_matrix` populates the `상방 확인 조건` / `하방 확인 조건` columns by slotting clauses from each §⑥ bullet via a regex-based `_clauses` split plus a keyword-bucket classifier. On a well-formed observational bullet the slotting works, but on an unconventionally phrased bullet (e.g., a single clause carrying both directions, or trigger language the keyword buckets do not recognize) one or both trigger columns can be left thin. This is a **graceful degradation**, not a misfire: u72 reuses u64's `check_watchpoint_actionability` / `_is_structured` contract, so a bullet whose structure cannot be confidently slotted falls to a `데이터부족` row rather than producing an invented trigger — reader-trust and the observational-only / no-fabrication contract are preserved. The cost is reduced matrix richness (more `데이터부족` rows than the underlying evidence could justify), not a correctness or compliance defect.
-- **Suggested Fix**: Plumb the **typed** evidence the orchestrator already holds directly into the matrix builder instead of re-parsing the rendered bullet text: u55 `CoreFact` / verified anchor (→ `현재` + numeric trigger), u52 `BriefingCarryover` rows from `models/carryover.py` (→ prior-signal context), and u64 `WatchlistImpact` / evidence-reason strings from `briefing/watchlist.py` (→ section-local `섹션 내 관심 영향`). With structured inputs the trigger columns are populated from the evidence's own fields rather than from a clause-split heuristic, so high-evidence rows stop degrading to `데이터부족`. This is a strictly additive enrichment over the current text-based path; keep the heuristic as the fallback for bullets without a typed-evidence backing, and keep the single u64 validation contract.
-- **Effort**: ~2-3 h — thread the per-segment typed evidence (anchor / carryover / watchlist-impact) into `render_watchpoint_matrix`, add a typed-input row-builder branch ahead of the clause-slotting fallback, and pin per-evidence-type column population with regression tests (no cross-segment leakage).
-- **Priority Reasoning**: Low — the current heuristic degrades safely (`데이터부족`, never an invented trigger), so AC-72.2/72.3/72.4 hold and no reader-facing claim is fabricated. The residual is matrix richness, not correctness. Promote to Medium only if a user-quality review flags that frequently-evidenced watchpoints are surfacing as `데이터부족` when typed evidence was in fact available.
 
 #### DEBT-073: Backfill stale public quality surfaces that pre-date the u69 render-path fix
 
@@ -426,6 +416,13 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-074: §⑥ watchpoint-matrix clause-slotting heuristic can under-populate trigger columns — plumb typed evidence
+
+- **Created**: 2026-05-24
+- **Resolved**: 2026-05-31 (u87 watchpoint-matrix-rehabilitation) — Closed by attacking the under-population at its two real causes rather than the typed-evidence plumbing originally suggested. (i) The **Stage-2 §⑥ prompt** (`briefing/prompts.py`) now mandates the `source + (상방/하방) trigger + implication` shape per bullet — the exact shape `_is_structured` requires — with one populatable example and one rejected-fragment example, so real bullets populate non-`데이터부족` rows. (ii) `publisher/watchpoint_matrix.py::render_watchpoint_matrix` now (a) pre-filters non-observation lines (trace-footer `input_hash`/`stage1_hash`/`stage2_hash` diagnostics, bare-link/pure-symbol bullets) via `_is_observation_bullet` + `_DIAGNOSTIC_LINE_RE` before row building (AC-87.1), (b) hardens `_short_signal` to unwrap markdown links (`_MD_LINK_RE`, AC-87.2 — also applied at `_escape_cell` so every cell is URL-fragment-free) and trim a dangling Korean particle (`_TRAILING_PARTICLE_RE`, AC-87.3), and (c) **collapses** an all-`데이터부족` (or empty) result to a single pinned `DATA_LIMITED_NOTE` blockquote instead of rendering a ≥2-row wall of `데이터부족` (AC-87.4). The u64 `_is_structured` contract and the closed `{높음,보통,낮음,데이터부족}` enum are reused unchanged; a structured bullet still populates a row (AC-87.5). The transform stays pure `str -> str`, idempotent for both the matrix-header and `DATA_LIMITED_NOTE` states, and byte-preserves everything outside §⑥ + the disclaimer (AC-87.7). The data-limited WARN log (`watchpoint_matrix.data_limited_rows`) is preserved and additionally fires (count = total bullets) when the collapse triggers, so operators still see under-population. The originally-suggested typed-evidence enrichment remains a valid *future* upside but is no longer required to close the reader-facing defect. Pinned by `tests/unit/publisher/test_watchpoint_matrix.py` (seven AC-87 defect-shape fixtures) + `tests/unit/briefing/test_prompts.py` (§⑥ rule assertion). Unit summary: `aidlc-docs/construction/u87-watchpoint-matrix-rehabilitation/code/summary.md`.
+- **Source**: u72 watchpoint-action-matrix closeout (clause-slotting risk), escalated by the 2026-05-26 briefing review.
+- **Reference**: AC-72.1 (bounded matrix fields), AC-72.3 (rows consume verified anchors/carryover/watchlist evidence without inventing facts), AC-87.1..87.7, NFR-005 (consistency), NFR-007 (R10 — no fabrication)
 
 #### DEBT-059: `INVESTO_PUBLISH_WEEKLY` env-var keyed via byte-identical schedule match is fragile
 
