@@ -190,6 +190,7 @@ The 2026-05-24 user-quality review follow-up is scoped as improvements to alread
 | u74 market-channel-depth-v2 | Remaining channel-depth gaps need one presentation contract after u66/u67 | FR-001, FR-002, FR-008, FR-009, FR-013 | u66 crypto indicators, u67 domestic depth, u57 BundleContext, u53 sector/macro depth |
 | u75 chart-data-externalization-and-mobile-performance | Compact charts still embed large inline OHLC payloads; payload should lazy-load | FR-003, FR-006, FR-009, NFR-001, NFR-002 | u50 lightweight charts, compact chart card change, publisher asset staging |
 | u76 plain-language-reader-aids | Each major section needs a short plain-Korean meaning line for non-expert readers | FR-002, FR-009, FR-012 | u40 glossary, u51 layout, u56 compliance, u68 reader-aid residuals |
+| u87 watchpoint-matrix-rehabilitation | §⑥ matrix is 100% `데이터부족` across segments and leaks broken markdown links + a diagnostic hash into reader cells | FR-002, FR-004, FR-009, FR-012 | u72 matrix renderer, u64 structured-bullet contract, u56 compliance, DEBT-074 escalation |
 
 Deduplicated out:
 - No generic quality KPI unit: u69 is limited to cross-public-surface contradiction detection and canonical rendering.

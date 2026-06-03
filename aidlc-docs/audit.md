@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Planning — u87 watchpoint-matrix-rehabilitation Registered (backlog, READY)
+**Timestamp**: 2026-05-31T01:00:00+09:00
+**Trigger**: briefing-unit-planner review of the 2026-05-26 generated briefings (all three segments) — the §⑥ "오늘의 관전 포인트" matrix is dead/leaky across every segment. User selected u87 (priority 1 of the derived candidate set u87–u91) for formal registration + code-gen plan.
+**Decision**: Register **u87 watchpoint-matrix-rehabilitation** as backlog (READY — no blocked prerequisite). Scope = three reader-facing §⑥ defects with root causes verified in source: (D1) 100% `데이터부족` because `watchpoint_matrix._is_structured` (the u64 source+trigger+implication contract) rejects every short LLM bullet → universal `data_limited` (this is **DEBT-074**); (D1b) `_short_signal` truncates markdown-link bullets mid-URL (`[AAPL](https://www.nasdaq.com/…`) and leaves dangling Korean particles (`…원이`); (D1c) `_BULLET_RE` captures the trace-footer `- \`input_hash\`: \`…\`` diagnostic line as a §⑥ bullet. Fix is bounded to `publisher/watchpoint_matrix.py` (bullet pre-filter + `_short_signal` hardening + all-`데이터부족` collapse note) and `briefing/prompts.py` (§⑥ structured-bullet contract so bullets populate). Reuses u64 regexes/matcher unchanged; no new confidence enum; u56 compliance untouched. **u87 escalates and subsumes DEBT-074** (resolve-by-u87 on completion).
+**Stage Decision**: FD SKIP (presentation-contract refinement over the u72 renderer; no new entity/cross-module contract), NFR SKIP (no new dep/source/secret/cost; pure str→str + prompt text; AC-87.1 strengthens R13 posture). Source = FR-002/FR-004/FR-009/FR-012 + DEBT-074 + the 2026-05-26 review.
+**Artifacts**: plan `aidlc-docs/construction/plans/u87-watchpoint-matrix-rehabilitation-code-generation-plan.md` (Steps 1-5, AC-87.1..87.7); registered in `unit-of-work.md`, `unit-of-work-story-map.md`, `aidlc-state.md`. Docs-only — no production code changed. Candidates u88 (watchlist public-impact-line sanitization), u89 (crypto numeric formatting), u90 (meaning-line completeness), u91 (observational-tag prose leakage) derived but NOT yet registered.
+
+---
+
 ## Construction — u59 macro-actual-priority-and-lineage Complete (Step 8 + Step 9 — UNIT CLOSED 9/9)
 **Timestamp**: 2026-05-31T00:00:00+09:00
 **Trigger**: Final u59 slice landed (developer in isolated worktree, integrated to main by the lead/main session) — Step 8 orchestrator ingest/transition wire + Step 9 docs/gate. Closes the long-running u59 unit (Steps 1-7 already complete; Step 8 was model/persistence-only partial).

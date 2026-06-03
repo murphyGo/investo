@@ -1096,6 +1096,35 @@ Explicitly deduplicated out:
 
 ---
 
+### u87: `watchpoint-matrix-rehabilitation` — Fix §⑥ Universal Data-Limited + Markup/Diagnostic Leaks
+
+**Purpose**: Make the §⑥ "오늘의 관전 포인트" matrix either present at least one genuinely structured observational row or collapse to a single honest data-limited note — never a multi-row wall of `데이터부족`, never a broken markdown-link fragment, never a leaked diagnostic hash. Refines the u72 renderer + Stage-2 prompt; does not replace them.
+
+**Stories**: FR-002 (AI briefing), FR-004 (notification summary surface), FR-009 (reader-facing format), FR-012 (compliance language)
+
+**Existing coverage / deduplication**:
+- Refines u72 watchpoint-action-matrix (`publisher/watchpoint_matrix.py` + `briefing/prompts.py` §⑥ rule); adds no new module/API.
+- Reuses the u64 `source + trigger + implication` contract and regexes unchanged; the fix targets the LLM input and non-observation lines that should never reach the contract gate.
+- **Escalates and subsumes DEBT-074** (clause-slotting under-population → graceful `데이터부족`); mark it resolved-by-u87 on completion.
+- Does NOT touch the watchlist "내 관심 자산 영향" line (u88), funding/numeric formatting (u89), meaning lines (u90), or bracket-tag prose leakage (u91). No new confidence enum; no change to u56 compliance.
+
+**Module path**:
+- `src/investo/publisher/watchpoint_matrix.py` — bullet pre-filter, `_short_signal` markdown/particle hardening, all-`데이터부족` collapse note
+- `src/investo/briefing/prompts.py` — Stage-2 §⑥ structured-bullet contract
+- `tests/unit/publisher/test_watchpoint_matrix.py` + `tests/unit/briefing/test_prompts.py` — defect-shape fixtures
+
+**Definition of Done**:
+- [ ] A trace-footer `- \`input_hash\`: \`…\`` (or `stage1_hash`/`stage2_hash`) line never becomes a matrix row (no diagnostic leak).
+- [ ] A markdown-link bullet never yields a cell containing `](http`; the link text becomes the signal.
+- [ ] A signal label never ends on a bare Korean particle from the pinned trim set.
+- [ ] When no observation bullet is usable, §⑥ renders one pinned data-limited note, not a ≥2-row `데이터부족` table.
+- [ ] A fully-structured source+trigger+implication bullet produces a populated row (proves the matrix can populate; closes DEBT-074).
+- [ ] u56/u72 compliance tests stay green; transform stays idempotent and byte-preserves everything outside §⑥.
+
+Plan: `aidlc-docs/construction/plans/u87-watchpoint-matrix-rehabilitation-code-generation-plan.md`.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
