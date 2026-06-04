@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-03 begin -->
+
+## 2026-06-03
+
+- [coingecko-price] **ticker**: SOL $71.64 (-2.76%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Hyperliquid’s HYPE overtakes Solana in price as SOL falls to lowest levels since 2023
+- [theblock-crypto] **ticker**: Solayer rolls out Solana-native onchain perps trading platform Margin Trade mainnet
+
+<!-- u33 entry 2026-06-03 end -->
 <!-- u33 entry 2026-06-02 begin -->
 
 ## 2026-06-02

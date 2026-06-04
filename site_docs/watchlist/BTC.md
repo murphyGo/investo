@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-03 begin -->
+
+## 2026-06-03
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,325,597,663,092; BTC dominance 55.31%
+- [coingecko-price] **ticker**: BTC $64,211.00 (-3.70%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.5B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $489,587,140 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 64,241.75
+- [theblock-crypto] **ticker**: Bessent backs summer push for Clarity Act, says bitcoin reserve moving at ‘deliberate speed’
+- [yahoo-finance-news] **ticker**: Bitcoin crash triggers billions in liquidations
+
+<!-- u33 entry 2026-06-03 end -->
 <!-- u33 entry 2026-06-02 begin -->
 
 ## 2026-06-02
