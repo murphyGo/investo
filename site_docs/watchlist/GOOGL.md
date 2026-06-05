@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-04 begin -->
+
+## 2026-06-04
+
+- [yonhap-market] **ticker**: 구글, 유증 123조원→130조원 확대…강한 수요 반영
+- [sec-edgar-8k] **ticker**: 8-K: Alphabet Inc. (CIK 0001652044)
+- [stooq-price] **ticker**: GOOGL 372.35
+
+<!-- u33 entry 2026-06-04 end -->
 <!-- u33 entry 2026-06-03 begin -->
 
 ## 2026-06-03

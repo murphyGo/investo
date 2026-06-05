@@ -2,6 +2,25 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-04 begin -->
+
+## 2026-06-04
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,288,983,614,630; BTC dominance 55.81%
+- [coingecko-price] **ticker**: BTC $63,616.00 (-1.52%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.1B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $489,771,400 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000068350766498 (OKX, UTC 24h)
+- [stooq-price] **ticker**: BTC-USD 63,600.39
+- [theblock-crypto] **ticker**: Chainalysis says ‘top-tier’ gray market peptide vendors turn to bitcoin and stablecoins
+- [theblock-crypto] **ticker**: Coinbase and Better fund first bitcoin-backed mortgage, plan nationwide rollout soon
+- [theblock-crypto] **ticker**: Polymarket’s UMA vote upholds ‘No’ outcome on Strategy bitcoin sale market despite backlash
+- [theblock-crypto] **ticker**: ‘The low is almost in’: Standard Chartered says bitcoin bottom near after tough week for crypto
+- [theblock-crypto] **ticker**: ‘The power landlords of AI’: Bernstein initiates coverage on bitcoin miners TeraWulf and Cipher Digital, sees ninefol…
+- [theblock-crypto] **ticker**: ‘The rally that wasn’t’: Bitcoin slides 14% in one week as ETF outflows, Strategy sale and oil prices hit sentiment
+- [theblock-crypto] **ticker**: ‘When the market offers discounts, we lean in’: DDC Enterprise lifts bitcoin holdings to 2,804 BTC
+
+<!-- u33 entry 2026-06-04 end -->
 <!-- u33 entry 2026-06-03 begin -->
 
 ## 2026-06-03

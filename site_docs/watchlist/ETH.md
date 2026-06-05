@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-04 begin -->
+
+## 2026-06-04
+
+- [coingecko-price] **ticker**: ETH $1,770.06 (-2.89%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.1B; leader Ethereum
+- [stooq-price] **ticker**: ETH-USD 1,770.25
+- [theblock-crypto] **ticker**: Bitmine to launch STRC-style preferred stock offering amid $9.2 billion unrealized ETH losses
+
+<!-- u33 entry 2026-06-04 end -->
 <!-- u33 entry 2026-06-03 begin -->
 
 ## 2026-06-03

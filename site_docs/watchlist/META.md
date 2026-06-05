@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-04 begin -->
+
+## 2026-06-04
+
+- [stooq-price] **ticker**: META 627.57
+- [theblock-crypto] **ticker**: Coinbase, SpaceX, Meta join DOJ anti-scam operation that froze $3.8 million in crypto
+
+<!-- u33 entry 2026-06-04 end -->
 <!-- u33 entry 2026-06-03 begin -->
 
 ## 2026-06-03
