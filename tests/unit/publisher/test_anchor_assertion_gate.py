@@ -51,16 +51,16 @@ def test_vague_mention_without_magnitude_is_not_gated() -> None:
     assert result.findings == ()
 
 
-def test_multi_sentence_line_is_blocking() -> None:
+def test_multi_sentence_line_rewrites_only_offending_sentence() -> None:
     md = "코스피는 1.8% 급락했다. 외국인 수급은 안정적이었다.\n"
     result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
-    assert result.has_blocking_finding
-    # Markdown is left unchanged (cannot safely excise one sentence).
-    assert result.markdown == md
+    assert not result.has_blocking_finding
+    assert "코스피 관련 정밀 수치는" in result.markdown
+    assert "외국인 수급은 안정적이었다" in result.markdown
 
 
 def test_enforce_raises_on_blocking_finding() -> None:
-    md = "코스피는 1.8% 급락했다. 외국인 수급은 안정적이었다.\n"
+    md = "| ^KOSPI | 2,500.00 | -1.8% | 급락 |\n"
     with pytest.raises(NumericAnchorReconciliationError):
         enforce_anchor_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
 
@@ -87,6 +87,38 @@ def test_table_row_is_never_rewritten() -> None:
     # Structural ⇒ recorded as a blocking finding, markdown unchanged.
     assert result.markdown == md
     assert result.has_blocking_finding
+
+
+def test_mixed_domestic_paragraph_rewrites_missing_fx_sentence_only() -> None:
+    md = (
+        "KOSPI(코스피)가 전일 대비 **5%대** 급락한 **8,160**대로 마감했다. "
+        "원/달러 환율은 1,600원을 향해 가파르게 치솟았다. "
+        "외국인 순매도도 부담이었다.\n"
+    )
+    out = enforce_anchor_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ"),
+    )
+
+    assert "KOSPI(코스피)가 전일 대비 **5%대** 급락" in out
+    assert "원/달러 환율은 1,600원을 향해" not in out
+    assert "원/달러 관련 정밀 수치는" in out
+    assert "외국인 순매도도 부담이었다" in out
+
+
+def test_other_sentence_magnitude_does_not_make_fx_mention_precise() -> None:
+    md = (
+        "KOSPI(코스피)가 전일 대비 **5%대** 급락한 **8,160**대로 마감했다. "
+        "원/달러 환율 급등과 美 고용 호조발 채권금리 급등이 낙폭을 키웠다.\n"
+    )
+    out = enforce_anchor_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ"),
+    )
+
+    assert out == md
 
 
 def test_us_segment_ixic_claim_gated_when_absent() -> None:

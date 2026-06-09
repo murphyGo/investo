@@ -16,10 +16,9 @@ This module is the cross-surface guard, not a new numeric validator:
 * For an **isolated** offending sentence (its own paragraph / line) the
   gate rewrites it to a deterministic data-limited callout, so a
   same-day re-run is byte-stable.
-* When the offending sentence is interleaved with supported content the
-  gate cannot safely excise it; it returns a finding so the publish path
-  can fail with a numeric-anchor reconciliation error rather than ship a
-  contradiction.
+* When the offending sentence is part of a multi-sentence prose line, the
+  gate rewrites only the offending sentence and preserves the neighboring
+  supported sentences. Structural lines still fail closed.
 
 Module boundary
 ~~~~~~~~~~~~~~~
@@ -63,6 +62,7 @@ _MOVE_VERBS: Final[tuple[str, ...]] = (
     "폭등",
     "강세",
     "약세",
+    "치솟",
 )
 _MOVE_VERB_RE: Final[re.Pattern[str]] = re.compile("|".join(_MOVE_VERBS))
 
@@ -144,11 +144,11 @@ def gate_body_assertions(
 
     Behaviour:
 
-    * An offending sentence that occupies its own line is replaced with a
-      deterministic data-limited callout (idempotent).
-    * An offending sentence interleaved with other content is left in
-      place and surfaced as a *blocking* finding so the publish path can
-      reject the bundle.
+    * An offending prose sentence is replaced with a deterministic
+      data-limited callout (idempotent), even when it shares a line with
+      other sentences.
+    * An offending structural line is left in place and surfaced as a
+      *blocking* finding so the publish path can reject the bundle.
 
     Sentences are split on Korean/Latin sentence terminators while leaving
     markdown structure (headers, list bullets, table rows) intact — those
@@ -212,46 +212,60 @@ def _gate_line(
                 )
             )
             return line, findings
-        # Whole line is a single prose sentence ⇒ isolated ⇒ rewrite.
-        if _is_isolated_sentence(content):
+        rewritten, sentence_findings = _rewrite_sentence_claims(
+            content,
+            segment=segment,
+            gated_symbols=gated_symbols,
+        )
+        findings.extend(sentence_findings)
+        return bullet_prefix + rewritten, findings
+    return line, findings
+
+
+_SENTENCE_UNIT_RE: Final[re.Pattern[str]] = re.compile(r".*?(?:[.!?。](?:\s+|$)|$)", re.DOTALL)
+
+
+def _rewrite_sentence_claims(
+    content: str,
+    *,
+    segment: MarketSegment,
+    gated_symbols: Sequence[str],
+) -> tuple[str, list[AnchorAssertionFinding]]:
+    """Rewrite only unsupported precise-claim sentences in a prose line."""
+    findings: list[AnchorAssertionFinding] = []
+    out: list[str] = []
+    for unit in _sentence_units(content):
+        stripped = unit.strip()
+        if not stripped:
+            out.append(unit)
+            continue
+        replacement: str | None = None
+        for symbol in gated_symbols:
+            if not _sentence_targets_symbol(stripped, symbol):
+                continue
+            if not _is_precise_move_claim(stripped):
+                continue
+            label = anchor_label(symbol).ko
             findings.append(
                 AnchorAssertionFinding(
                     segment=segment,
                     symbol=symbol,
                     label=label,
-                    sentence=content.strip(),
+                    sentence=stripped,
                     isolated=True,
                 )
             )
-            return bullet_prefix + _DATA_LIMITED_TEMPLATE.format(label=label), findings
-        # Multi-sentence line ⇒ cannot safely excise ⇒ blocking finding.
-        findings.append(
-            AnchorAssertionFinding(
-                segment=segment,
-                symbol=symbol,
-                label=label,
-                sentence=content.strip(),
-                isolated=False,
-            )
-        )
-        return line, findings
-    return line, findings
+            suffix = " " if unit.endswith(" ") else ""
+            replacement = _DATA_LIMITED_TEMPLATE.format(label=label) + suffix
+            break
+        out.append(replacement if replacement is not None else unit)
+    return "".join(out), findings
 
 
-_SENTENCE_SPLIT_RE: Final[re.Pattern[str]] = re.compile(r"[.!?。]\s+|[.!?。]$")
-
-
-def _is_isolated_sentence(content: str) -> bool:
-    """True when ``content`` is a single sentence (one terminator at most).
-
-    The data-limited rewrite replaces the *entire* line, so it is only
-    safe when the line carries exactly one sentence. A line with two or
-    more sentences mixing supported and unsupported claims must not be
-    blanket-replaced (it would drop supported content) — that path
-    becomes a blocking finding instead.
-    """
-    pieces = [p for p in _SENTENCE_SPLIT_RE.split(content.strip()) if p.strip()]
-    return len(pieces) <= 1
+def _sentence_units(content: str) -> tuple[str, ...]:
+    """Return sentence-like units while preserving terminators and spaces."""
+    units = tuple(m.group(0) for m in _SENTENCE_UNIT_RE.finditer(content) if m.group(0))
+    return units or (content,)
 
 
 def enforce_anchor_assertions(
