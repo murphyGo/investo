@@ -2,6 +2,13 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-08 begin -->
+
+## 2026-06-08
+
+- [yahoo-finance-news] **ticker**: Tech stocks today: OpenAI joins Anthropic, SpaceX in filing IPO paperwork, Apple stock falls after WWDC
+
+<!-- u33 entry 2026-06-08 end -->
 <!-- u33 entry 2026-06-04 begin -->
 
 ## 2026-06-04

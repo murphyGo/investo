@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-08 begin -->
+
+## 2026-06-08
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,242,746,961,105; BTC dominance 56.00%
+- [defillama-market-structure] **ticker**: DeFi TVL $72.0B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $427,871,410 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $427,889,310 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000377473588502 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bernstein says bitcoin’s ‘boring cycle’ doesn’t undermine store-of-value thesis despite $2.6B ETF outflows in 2026
+- [theblock-crypto] **ticker**: Brazen bitcoin kidnapping and carjacking co-conspirator pleads guilty, faces up to 20 years in prison: DOJ
+- [theblock-crypto] **ticker**: Coinbase strategist says institutions aren’t panicking about bitcoin, ‘love it even more’ at lower prices
+- [theblock-crypto] **ticker**: Michael Saylor’s Strategy buys another 1,550 bitcoin for $101 million after small sale as total holdings rise to 845,…
+
+<!-- u33 entry 2026-06-08 end -->
 <!-- u33 entry 2026-06-04 begin -->
 
 ## 2026-06-04
