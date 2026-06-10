@@ -1,12 +1,13 @@
-"""Unit tests for ``investo.publisher.watchpoint_matrix`` (u72).
+"""Unit tests for ``investo.publisher.watchpoint_matrix`` (u72/u98).
 
 Coverage map (per u72 plan Steps 1/3/4/6 + AC-72.1..72.5):
 
 * Schema / degradation (Step 1): closed confidence label set, max visible
   rows, ``데이터부족`` fallback rules pinned.
-* Renderer (Step 3): structured bullet → 6-column matrix; generic
-  ``확인 / 점검`` bullet → explicit ``데이터부족`` row (delegates to the u64
-  source/trigger/implication contract); idempotent; disclaimer preserved.
+* Renderer (Step 3): structured bullet → compact card; generic ``확인 / 점검``
+  bullet → ``데이터부족`` row internally and collapsed/filtered at render time
+  (delegates to the u64 source/trigger/implication contract); idempotent;
+  disclaimer preserved.
 * Evidence inputs (Step 4): verified numeric anchor → 높음; source-backed
   but no figure → 보통; carryover-only → 낮음; coverage-limited → 데이터부족.
 * Compliance (AC-72.4): rendered matrix carries no buy/sell/target wording.
@@ -84,11 +85,14 @@ def test_max_visible_rows_bounds_table() -> None:
     assert len(rows) == MAX_VISIBLE_ROWS
 
 
-def test_data_limited_row_omits_triggers() -> None:
+def test_data_limited_row_uses_card_defaults() -> None:
     row = WatchpointRow.data_limited("신호")
     assert row.confidence == DATA_LIMITED_CONFIDENCE
-    assert row.bullish_trigger == "데이터부족"
-    assert row.bearish_trigger == "데이터부족"
+    assert row.source == "확인 소스 미상"
+    assert row.current == "현재 신호 부족"
+    assert row.bullish_trigger == "상방 데이터 부족"
+    assert row.bearish_trigger == "하방 데이터 부족"
+    assert row.implication == "관심 영향 데이터 부족"
 
 
 # ---------------------------------------------------------------------------
@@ -127,16 +131,17 @@ def test_generic_bullet_becomes_data_limited_row() -> None:
     assert check_watchpoint_actionability(_section_six([_GENERIC])) == (_GENERIC,)
     rows = build_watchpoint_rows([_GENERIC])
     assert rows[0].confidence == DATA_LIMITED_CONFIDENCE
-    assert rows[0].bullish_trigger == "데이터부족"
+    assert rows[0].bullish_trigger == "상방 데이터 부족"
 
 
 def test_structured_bullet_populates_all_columns() -> None:
     rows = build_watchpoint_rows([_STRUCTURED_NUMERIC])
     row = rows[0]
     assert row.signal
+    assert row.source == "FRED"
     assert "상회" in row.bullish_trigger
     assert "이탈" in row.bearish_trigger
-    assert row.implication != "—"
+    assert row.implication != "관심 영향 데이터 부족"
 
 
 # ---------------------------------------------------------------------------
@@ -144,23 +149,26 @@ def test_structured_bullet_populates_all_columns() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_render_matrix_table_has_header_and_alignment() -> None:
+def test_render_matrix_table_compat_helper_outputs_cards() -> None:
     rows = build_watchpoint_rows([_STRUCTURED_NUMERIC])
-    table = render_matrix_table(rows)
-    lines = table.splitlines()
-    assert lines[0] == "| " + " | ".join(MATRIX_COLUMNS) + " |"
-    assert lines[1] == "| " + " | ".join(["---"] * len(MATRIX_COLUMNS)) + " |"
-    assert len(lines) == 3
+    cards = render_matrix_table(rows)
+    assert "| " + " | ".join(MATRIX_COLUMNS) + " |" not in cards
+    assert cards.startswith("#### 관찰 신호:")
+    assert "\n- 출처: FRED\n" in cards
+    assert "\n- 확인 조건: 상방 " in cards
+    assert "\n- 관심 영향: " in cards
 
 
-def test_render_replaces_section_six_with_matrix() -> None:
+def test_render_replaces_section_six_with_cards() -> None:
     text = _section_six([_STRUCTURED_NUMERIC, _GENERIC])
     out = render_watchpoint_matrix(text, segment="us-equity")
-    assert "| " + " | ".join(MATRIX_COLUMNS) + " |" in out
+    assert "| " + " | ".join(MATRIX_COLUMNS) + " |" not in out
+    assert "#### 관찰 신호:" in out
+    assert "- 출처: FRED" in out
     # § ① untouched.
     assert "## ① 요약\n본문" in out
-    # Generic bullet degraded to a 데이터부족 row in the table.
-    assert "데이터부족" in out
+    # Generic bullet is filtered instead of producing a low-value card.
+    assert "FOMC 발언 톤 확인 필요" not in out
 
 
 def test_render_is_idempotent() -> None:
@@ -184,10 +192,9 @@ def test_render_no_section_six_is_noop() -> None:
 
 def test_render_escapes_pipe_in_cell() -> None:
     bullet = "확인 소스: FRED · A | B 가 4.5% 상회하면 압력 관찰. 관심 영향: 점검."
-    table = render_matrix_table(build_watchpoint_rows([bullet]))
-    # No raw bullet pipe should appear inside a data cell beyond the grid pipes.
-    for line in table.splitlines()[2:]:
-        assert line.count("|") == len(MATRIX_COLUMNS) + 1
+    cards = render_matrix_table(build_watchpoint_rows([bullet]))
+    assert "A | B" not in cards
+    assert "A / B" in cards
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +217,7 @@ def test_rendered_matrix_passes_compliance_scan() -> None:
 
 # ===========================================================================
 # u87 — watchpoint-matrix-rehabilitation (AC-87.1..87.7)
+# u98 — card-list renderer contract
 #
 # Fixtures derived from the real 2026-05-26 §⑥ defect shapes (crypto /
 # us-equity / domestic-equity briefings): diagnostic-hash leak, markdown-link
@@ -286,28 +294,87 @@ def test_all_unstructured_collapses_to_single_note_ac87_4() -> None:
     out = render_watchpoint_matrix(text, segment="crypto")
     assert DATA_LIMITED_NOTE in out
     assert _HEADER_LINE not in out
-    # No multi-row 데이터부족 table — the note replaces the body entirely.
+    assert "#### 관찰 신호:" not in out
+    # No multi-row/card 데이터부족 wall — the note replaces the body entirely.
     assert out.count("데이터부족") == 0
 
 
-def test_structured_bullet_produces_populated_row_ac87_5() -> None:
-    """AC-87.5 — a fully-structured source+trigger+implication bullet yields
-    a populated row: 현재 non-dash, ≥1 trigger non-데이터부족, confidence ∈
-    {높음,보통,낮음}. (Proves the matrix populates — closes DEBT-074.)
+def test_structured_bullet_produces_populated_card_ac87_5_u98() -> None:
+    """AC-87.5/u98 — a fully-structured source+trigger+implication bullet
+    yields a populated card: source/current/triggers/implication present,
+    confidence ∈ {높음,보통,낮음}. (Proves the card populates.)
     """
     text = _section_six([_STRUCTURED_NUMERIC])
     out = render_watchpoint_matrix(text, segment="us-equity")
-    assert _HEADER_LINE in out
+    assert _HEADER_LINE not in out
+    assert "#### 관찰 신호:" in out
+    assert "- 출처: FRED" in out
+    assert "- 현재: 확인 소스: FRED" in out
+    assert "- 확인 조건: 상방 " in out
+    assert "- 신뢰도: 높음" in out
+    assert "- 관심 영향: 관심 영향: 변동성 확대 여부를 점검" in out
     assert DATA_LIMITED_NOTE not in out
 
     rows = build_watchpoint_rows([_STRUCTURED_NUMERIC])
     row = rows[0]
-    assert row.current != "—"
+    assert row.current != "현재 신호 부족"
     assert (
         row.bullish_trigger != DATA_LIMITED_CONFIDENCE
         or row.bearish_trigger != DATA_LIMITED_CONFIDENCE
     )
     assert row.confidence in {"높음", "보통", "낮음"}
+
+
+def test_mixed_valid_and_unusable_rows_render_only_valid_cards_u98() -> None:
+    text = _section_six([_GENERIC, _STRUCTURED_NO_FIGURE, "환율 추세 확인 필요"])
+    out = render_watchpoint_matrix(text, segment="domestic-equity")
+    assert DATA_LIMITED_NOTE not in out
+    assert out.count("#### 관찰 신호:") == 1
+    assert "- 출처: KRX" in out
+    assert _GENERIC not in out
+    assert "환율 추세 확인 필요" not in out
+
+
+def test_card_defaults_for_partially_populated_structured_row_u98() -> None:
+    bullet = (
+        "10Y 금리가 4.5% 를 상회하면 성장주 변동성 부담 압력 관찰; "
+        "4.3% 를 이탈하면 방어적 해석. 관심 영향: 변동성 확대 여부를 점검."
+    )
+    row = WatchpointRow(
+        signal="10Y 금리",
+        source="",
+        current="",
+        bullish_trigger="",
+        bearish_trigger="",
+        confidence="보통",
+        implication="",
+    )
+    cards = render_matrix_table([row])
+    assert "- 출처: 확인 소스 미상" in cards
+    assert "- 현재: 현재 신호 부족" in cards
+    assert "- 확인 조건: 상방 상방 데이터 부족; 하방 하방 데이터 부족" in cards
+    assert "- 관심 영향: 관심 영향 데이터 부족" in cards
+    # A structured row without explicit source is still rejected by the u64
+    # parser contract and collapses at document-render time.
+    out = render_watchpoint_matrix(_section_six([bullet]), segment="us-equity")
+    assert DATA_LIMITED_NOTE in out
+
+
+def test_card_renderer_removes_urls_broken_markdown_and_trace_tokens_u98() -> None:
+    row = WatchpointRow(
+        signal="[AAPL](https://example.com/aapl) input_hash: abcdef123456",
+        source="Nasdaq https://example.com/source",
+        current="[AAPL](https://example.com/aapl) 주가가 신고점을 상회하면 모멘텀 관찰",
+        bullish_trigger="상방 https://example.com/bull",
+        bearish_trigger="하방 ](https://broken.example",
+        confidence="보통",
+        implication="stage1_hash: abcdef123456 관심 영향: 기술주 점검",
+    )
+    cards = render_matrix_table([row])
+    assert "https://" not in cards
+    assert "](http" not in cards
+    assert "input_hash" not in cards
+    assert "stage1_hash" not in cards
 
 
 def test_existing_watchpoint_tests_compliance_unchanged_ac87_6() -> None:

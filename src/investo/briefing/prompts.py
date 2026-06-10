@@ -368,12 +368,12 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   (``매수 검토 / 비중 축소 / 손절 라인``) 는 u56 publish 게이트에서
   차단되므로 사용하지 말 것. 관찰형 종결은 reader 에게 "무엇을 할지" 가
   전달되지 않으므로 publisher 단계에서 WARN 으로 표시된다.
-- §⑥ 관전 매트릭스 구조 룰 (u72 watchpoint-action-matrix · u87 강화):
-  §⑥ 의 각 bullet 은 publisher 가 6열 관찰형 매트릭스
-  (``관찰 신호 | 현재 | 상방 확인 조건 | 하방 확인 조건 | 신뢰도 |
-  섹션 내 관심 영향``) 로 변환할 수 있도록 **하나의 자기완결적 관찰
+- §⑥ 관전 카드 룰 (u72 watchpoint-action-matrix · u87/u98 강화):
+  §⑥ 의 각 bullet 은 publisher 가 관전 카드
+  (``관찰 신호 / 출처 / 현재 / 상방 확인 조건 / 하방 확인 조건 / 신뢰도 /
+  관심 영향``) 로 변환할 수 있도록 **하나의 자기완결적 관찰
   문장** 안에 다음 3요소를 *모두* 담아 작성한다 (셋 중 하나라도 빠지면
-  publisher 가 ``데이터부족`` 으로 떨어뜨려 표가 비게 된다):
+  publisher 가 ``데이터부족`` 으로 떨어뜨려 단일 안내문으로 접는다):
   - **(a) source / anchor** — 인용 지표·출처 (예 ``확인 소스: FRED · 10Y 금리``,
     ``KRX 외국인 순매수``).
   - **(b) 상방 확인 조건 *와* 하방 확인 조건** — 한 bullet 안에 상방 trigger 와
@@ -385,7 +385,7 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   묶는다. populatable bullet 예시 (권장):
   - ``확인 소스: FRED · 10Y 금리가 4.5%를 상회하면 성장주 변동성 부담 압력
     관찰, 4.3%를 이탈하면 방어적 해석. 관심 영향: 대형 기술주 수급 점검.``
-  rejected fragment 예시 (이렇게 쓰지 말 것 — 표가 ``데이터부족`` 으로 접힘):
+  rejected fragment 예시 (이렇게 쓰지 말 것 — 카드가 ``데이터부족`` 으로 접힘):
   - ``FOMC 발언 톤 확인 필요`` (source·trigger·implication 모두 없음)
   - ``[AAPL](https://…) 신고점`` (markdown 링크 단편 — 링크 대신 지표명+조건을
     한국어 문장으로 쓴다)

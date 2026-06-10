@@ -1,4 +1,4 @@
-"""u72 — render §⑥ 오늘의 관전 포인트 as a bounded observational matrix.
+"""u72/u98 — render §⑥ 오늘의 관전 포인트 as bounded observational cards.
 
 Problem (2026-05-24 ten-subagent review): even after u64 added watchpoint
 actionability diagnostics, §⑥ still reads like a list of generic monitoring
@@ -7,11 +7,18 @@ signal matters, what the current observed state is, what would flip it
 bullish or bearish, how confident the system is, or what it implies for the
 section's watchlist context.
 
-u72 converts the *already-generated* §⑥ bullets into a standard six-column
-matrix. It is **not** a watchlist matcher rewrite and **not** a
+u72 originally converted the *already-generated* §⑥ bullets into a standard
+six-column matrix. u98 keeps the same extraction/validation contract but
+renders compact cards. It is **not** a watchlist matcher rewrite and **not** a
 recommendation engine:
 
-  | 관찰 신호 | 현재 | 상방 확인 조건 | 하방 확인 조건 | 신뢰도 | 섹션 내 관심 영향 |
+  #### 관찰 신호: {short_signal}
+
+  - 출처: {source}
+  - 현재: {current}
+  - 확인 조건: 상방 {upside}; 하방 {downside}
+  - 신뢰도: {confidence}
+  - 관심 영향: {watchlist_impact}
 
 Reader-facing Korean labels are observational by design (plan §Goal):
 ``Bullish trigger → 상방 확인 조건``, ``Bearish trigger → 하방 확인 조건``,
@@ -92,6 +99,8 @@ CONFIDENCE_LABELS: Final[frozenset[ConfidenceLabel]] = frozenset(
 DATA_LIMITED_CONFIDENCE: Final[ConfidenceLabel] = "데이터부족"
 
 # Reader-facing column headers — observational labels per plan §Goal.
+# Parser/card field labels retained as a compatibility constant. u98 no longer
+# renders these as a Markdown table header.
 MATRIX_COLUMNS: Final[tuple[str, ...]] = (
     "관찰 신호",
     "현재",
@@ -140,6 +149,11 @@ _BEARISH_KEYWORDS: Final[tuple[str, ...]] = ("하회", "이탈", "하방", "방�
 
 # Markdown table-cell escaping: a literal pipe would break the table grid.
 _PIPE_RE: Final[re.Pattern[str]] = re.compile(r"\|")
+_RAW_URL_RE: Final[re.Pattern[str]] = re.compile(r"https?://\S+|www\.\S+")
+_BROKEN_MD_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\]\([^)]*|\[[^\]]*$")
+_TRACE_TOKEN_RE: Final[re.Pattern[str]] = re.compile(
+    r"`?(?:input_hash|stage1_hash|stage2_hash)`?\s*[:：]?\s*`?[0-9a-fA-F]{6,}`?"  # noqa: RUF001 — full-width colon is a valid diagnostic separator
+)
 _DASH = "—"
 
 # u87 Step 1 — §⑥ bullet pre-filter (AC-87.1). A trace-footer diagnostic line
@@ -200,6 +214,7 @@ class WatchpointRow:
     """
 
     signal: str
+    source: str
     current: str
     bullish_trigger: str
     bearish_trigger: str
@@ -211,11 +226,12 @@ class WatchpointRow:
         """Build an explicit ``데이터부족`` row (plan AC-72.2)."""
         return cls(
             signal=signal or "관전 포인트",
-            current=_DASH,
-            bullish_trigger="데이터부족",
-            bearish_trigger="데이터부족",
+            source="확인 소스 미상",
+            current="현재 신호 부족",
+            bullish_trigger="상방 데이터 부족",
+            bearish_trigger="하방 데이터 부족",
             confidence=DATA_LIMITED_CONFIDENCE,
-            implication=_DASH,
+            implication="관심 영향 데이터 부족",
         )
 
 
@@ -247,6 +263,9 @@ def _classify_confidence(bullet: str, *, coverage_limited: bool) -> ConfidenceLa
 # the indicator (``10Y 금리``), not the citation (``확인 소스: FRED``).
 _SOURCE_PREFIX_RE: Final[re.Pattern[str]] = re.compile(
     r"^\s*(?:확인\s?소스|출처|소스|근거)\s*[:：]\s*[^·.。\n]*[·]\s*",  # noqa: RUF001 — full-width colon is valid Korean punctuation
+)
+_SOURCE_VALUE_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:확인\s?소스|출처|소스|근거)\s*[:：]\s*([^·.;。,\n]+)"  # noqa: RUF001 — full-width colon is valid Korean punctuation
 )
 
 
@@ -288,8 +307,27 @@ def _trim_trailing_particle(label: str, *, truncated: bool) -> str:
     return f"{trimmed}…" if truncated else trimmed
 
 
+def _sanitize_card_text(text: str, *, default: str) -> str:
+    """Return reader-safe card text without URLs, broken links, or trace tokens."""
+    cleaned = _MD_LINK_RE.sub(r"\1", text)
+    cleaned = _TRACE_TOKEN_RE.sub("", cleaned)
+    cleaned = _RAW_URL_RE.sub("", cleaned)
+    cleaned = _BROKEN_MD_LINK_RE.sub("", cleaned)
+    cleaned = _PIPE_RE.sub("/", cleaned)
+    cleaned = cleaned.replace("`", "").replace("\n", " ").strip(" -—·;")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned or default
+
+
+def _source_from_bullet(bullet: str) -> str:
+    match = _SOURCE_VALUE_RE.search(bullet)
+    if not match:
+        return "확인 소스 미상"
+    return _sanitize_card_text(match.group(1), default="확인 소스 미상")
+
+
 def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
-    """Turn a single §⑥ bullet into a matrix row.
+    """Turn a single §⑥ bullet into a card row.
 
     Generic / unstructured bullets (u64 contract fails) become an explicit
     ``데이터부족`` row — never an invented trigger (plan AC-72.2).
@@ -313,11 +351,12 @@ def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
     )
     return WatchpointRow(
         signal=_short_signal(bullet),
-        current=bullet.strip(),
-        bullish_trigger=bullish or "데이터부족",
-        bearish_trigger=bearish or "데이터부족",
+        source=_source_from_bullet(bullet),
+        current=_sanitize_card_text(bullet.strip(), default="현재 신호 부족"),
+        bullish_trigger=_sanitize_card_text(bullish or "", default="상방 데이터 부족"),
+        bearish_trigger=_sanitize_card_text(bearish or "", default="하방 데이터 부족"),
         confidence=confidence,
-        implication=implication or _DASH,
+        implication=_sanitize_card_text(implication or "", default="관심 영향 데이터 부족"),
     )
 
 
@@ -336,31 +375,37 @@ def build_watchpoint_rows(
 
 
 def _escape_cell(text: str) -> str:
-    # u87 Step 2 / AC-87.2 — unwrap markdown links to their text so no cell
-    # (current / trigger / implication, not just the signal) can carry a
-    # ``](http…`` fragment, and a literal pipe never breaks the table grid.
-    unwrapped = _MD_LINK_RE.sub(r"\1", text)
-    return _PIPE_RE.sub("/", unwrapped).replace("\n", " ").strip() or _DASH
+    # Kept for backwards-compatible imports from older tests/extensions.
+    return _sanitize_card_text(text, default=_DASH)
 
 
 def render_matrix_table(rows: list[WatchpointRow]) -> str:
-    """Render rows as a compact Markdown table (header + alignment + body)."""
+    """Render rows as compact cards.
+
+    The historical name is retained for compatibility with the u72 public-ish
+    helper, but u98 intentionally no longer emits a six-column Markdown table.
+    """
     if not rows:
         return ""
-    header = "| " + " | ".join(MATRIX_COLUMNS) + " |"
-    align = "| " + " | ".join(["---"] * len(MATRIX_COLUMNS)) + " |"
-    body_lines = []
+    body_lines: list[str] = []
     for row in rows:
-        cells = (
-            _escape_cell(row.signal),
-            _escape_cell(row.current),
-            _escape_cell(row.bullish_trigger),
-            _escape_cell(row.bearish_trigger),
-            row.confidence,
-            _escape_cell(row.implication),
+        body_lines.append(
+            "\n".join(
+                [
+                    f"#### 관찰 신호: {_sanitize_card_text(row.signal, default='관전 포인트')}",
+                    "",
+                    f"- 출처: {_sanitize_card_text(row.source, default='확인 소스 미상')}",
+                    f"- 현재: {_sanitize_card_text(row.current, default='현재 신호 부족')}",
+                    "- 확인 조건: "
+                    f"상방 {_sanitize_card_text(row.bullish_trigger, default='상방 데이터 부족')}; "
+                    f"하방 {_sanitize_card_text(row.bearish_trigger, default='하방 데이터 부족')}",
+                    f"- 신뢰도: {row.confidence}",
+                    "- 관심 영향: "
+                    f"{_sanitize_card_text(row.implication, default='관심 영향 데이터 부족')}",
+                ]
+            )
         )
-        body_lines.append("| " + " | ".join(cells) + " |")
-    return "\n".join([header, align, *body_lines])
+    return "\n\n".join(body_lines)
 
 
 def render_watchpoint_matrix(
@@ -370,9 +415,9 @@ def render_watchpoint_matrix(
     segment: str | None = None,
     coverage_limited: bool = False,
 ) -> str:
-    """Rewrite §⑥ body bullets into the observational matrix table (pure).
+    """Rewrite §⑥ body bullets into observational cards (pure).
 
-    Idempotent: if §⑥ already contains the matrix header *or* the collapsed
+    Idempotent: if §⑥ already contains card headings *or* the collapsed
     :data:`DATA_LIMITED_NOTE` (same-day re-run), the document is returned
     unchanged. Missing / empty §⑥ → unchanged. The transform is bounded to the
     §⑥ body region; every other section and the disclaimer footer are
@@ -385,10 +430,9 @@ def render_watchpoint_matrix(
         body_start = match.end()
         body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
         body = text[body_start:body_end]
-        header_line = "| " + " | ".join(MATRIX_COLUMNS) + " |"
         # Idempotent (AC-87.7): a same-day re-run that already contains the
-        # matrix header *or* the collapsed DATA_LIMITED_NOTE returns unchanged.
-        if header_line in body or DATA_LIMITED_NOTE in body:
+        # card heading *or* the collapsed DATA_LIMITED_NOTE returns unchanged.
+        if "#### 관찰 신호:" in body or DATA_LIMITED_NOTE in body:
             return text
         # u87 Step 1 — drop non-observation lines (trace-footer diagnostics,
         # bare-link/pure-symbol bullets) before row building (AC-87.1).
@@ -397,30 +441,22 @@ def render_watchpoint_matrix(
         if not bullets and not coverage_limited:
             return text  # also covers "all bullets filtered out"
         rows = build_watchpoint_rows(bullets, coverage_limited=coverage_limited)
+        rows = [r for r in rows if r.confidence != DATA_LIMITED_CONFIDENCE]
         # u87 Step 3 — collapse an all-데이터부족 (or empty) result to the single
         # pinned note instead of a ≥2-row wall of 데이터부족 (AC-87.4).
-        all_data_limited = not rows or all(r.confidence == DATA_LIMITED_CONFIDENCE for r in rows)
-        if all_data_limited:
+        if not rows:
             _logger.info(
                 "watchpoint_matrix.data_limited_rows",
                 extra={"segment": segment, "count": len(bullets)},
             )
             new_body = f"\n\n{DATA_LIMITED_NOTE}\n"
             return text[:body_start] + new_body + text[body_end:]
-        table = render_matrix_table(rows)
-        if not table:
+        cards = render_matrix_table(rows)
+        if not cards:
             return text
         omitted = max(0, len(bullets) - MAX_VISIBLE_ROWS)
         suffix = f"\n\n_관전 신호 {omitted}건 추가 — 본문 참조._" if omitted else ""
-        new_body = f"\n\n{table}{suffix}\n"
-        if any(r.confidence == DATA_LIMITED_CONFIDENCE for r in rows):
-            _logger.info(
-                "watchpoint_matrix.data_limited_rows",
-                extra={
-                    "segment": segment,
-                    "count": sum(1 for r in rows if r.confidence == DATA_LIMITED_CONFIDENCE),
-                },
-            )
+        new_body = f"\n\n{cards}{suffix}\n"
         return text[:body_start] + new_body + text[body_end:]
     return text
 

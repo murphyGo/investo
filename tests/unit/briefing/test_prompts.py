@@ -249,6 +249,7 @@ def test_stage2_system_carries_watchpoint_structured_bullet_rule_u87() -> None:
     example, and keep it observational-only (no 매수/매도/목표가/결과예측).
     """
     section = STAGE2_SYSTEM
+    assert "관전 카드" in section
     # The three structured elements are all named.
     assert "source" in section
     assert "상방 확인 조건" in section

@@ -2,7 +2,7 @@
 
 Date: 2026-06-10
 Last Updated: 2026-06-11
-Status: Backlog
+Status: Complete
 Source: 2026-06-10 ten-subagent reader review and stage-specific design discussion of the 2026-06-09 generated bundle
 
 ## Problem Statement
@@ -163,6 +163,14 @@ uv run --extra dev pytest tests/unit/publisher/test_watchpoint_matrix.py tests/u
 uv run --extra dev ruff check src/investo/publisher/watchpoint_matrix.py src/investo/briefing/prompts.py tests/unit/publisher/test_watchpoint_matrix.py tests/unit/briefing/test_prompts.py
 uv run --extra dev mypy src
 ```
+
+## Completion Notes
+
+- Implemented 2026-06-11.
+- `render_watchpoint_matrix()` keeps its callable signature and now renders canonical card blocks instead of the six-column table.
+- Existing u64/u72/u87 source+trigger+implication parsing, confidence labels, row cap, URL/link/trace sanitation, and all-limited collapse remain in force.
+- Mixed valid/unusable watchpoints render only valid cards; all unusable or coverage-limited sections collapse to `DATA_LIMITED_NOTE`.
+- Stage 2 prompt now asks for card-populatable watchpoint bullets while preserving the parser-compatible structured bullet contract and advice bans.
 
 ## Non-Goals
 
