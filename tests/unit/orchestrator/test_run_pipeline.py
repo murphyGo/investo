@@ -478,6 +478,10 @@ async def test_run_pipeline_success_appends_quality_history(
     assert rows[0]["published_segments"] == 3
     assert rows[0]["total_items"] == 1
     assert rows[0]["total_failed_sources"] == 0
+    assert rows[0]["current_run_briefings_observed"] == 3
+    assert rows[0]["current_run_zero_item_sources"] == 0
+    assert rows[0]["current_run_core_missing_segments"] == 2
+    assert rows[0]["current_run_segments_limited_or_worse"] == 2
     assert len(forecast_rows) == 3
     assert (tmp_path / "site_docs" / "accuracy.md").exists()
 

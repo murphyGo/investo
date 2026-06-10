@@ -76,7 +76,11 @@ _LABEL_TO_STATUS: Final[dict[str, CoverageStatus]] = {
 _STATUS_BLOCK_RE: Final[re.Pattern[str]] = re.compile(r"\*\*데이터 상태\*\*\s*:\s*([^\s—·\n]+)")
 # ``> **소스 카운트**: 수집 대상 5 / 성공 1 / 0건 0 / 실패 3 / 본문 사용 2``
 _FAILED_COUNT_RE: Final[re.Pattern[str]] = re.compile(r"실패\s+(\d+)")
-_DATA_LIMITED_MARKER: Final[str] = "데이터 부족 안내"
+_DATA_LIMITED_MARKERS: Final[tuple[str, ...]] = (
+    "[데이터부족]",
+    "데이터 부족 안내",
+    "실시간 안내",
+)
 
 _SEGMENTS: Final[tuple[MarketSegment, ...]] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
 
@@ -87,6 +91,7 @@ CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE: Final[str] = (
     "quality.denominator_unknown_but_evidence_present"
 )
 CODE_QUALITY_PAGE_MISSING: Final[str] = "quality.quality_page_missing"
+CODE_CURRENT_RUN_UNDERSTATED: Final[str] = "quality.current_run_understated"
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +140,11 @@ class CanonicalQualitySnapshot:
     history_worst_severity: str | None
     history_total_failed_sources: int | None
     segment_blocks: tuple[SegmentStatusBlock, ...]
+    current_run_zero_item_sources: int
+    current_run_core_missing_segments: int
+    current_run_segments_limited_or_worse: int
+    current_run_data_limited_briefings: int
+    current_run_briefings_observed: int
 
 
 def parse_segment_status_block(text: str, segment: MarketSegment) -> SegmentStatusBlock:
@@ -149,7 +159,7 @@ def parse_segment_status_block(text: str, segment: MarketSegment) -> SegmentStat
         segment=segment,
         status=status,
         failed_count=failed_count,
-        data_limited=_DATA_LIMITED_MARKER in text,
+        data_limited=any(marker in text for marker in _DATA_LIMITED_MARKERS),
     )
 
 
@@ -198,6 +208,11 @@ def build_canonical_snapshot(
 
     history_worst: str | None = None
     history_failed: int | None = None
+    current_run_zero_item_sources = 0
+    current_run_core_missing_segments = 0
+    current_run_segments_limited_or_worse = 0
+    current_run_data_limited_briefings = sum(1 for block in blocks if block.data_limited)
+    current_run_briefings_observed = len(blocks)
     if history_row is not None:
         raw_worst = history_row.get("worst_severity")
         if isinstance(raw_worst, str):
@@ -205,6 +220,28 @@ def build_canonical_snapshot(
         raw_failed = history_row.get("total_failed_sources")
         if isinstance(raw_failed, int) and not isinstance(raw_failed, bool):
             history_failed = raw_failed
+        current_run_zero_item_sources = _non_negative_int(
+            history_row.get("current_run_zero_item_sources")
+        )
+        current_run_core_missing_segments = _non_negative_int(
+            history_row.get("current_run_core_missing_segments")
+        )
+        current_run_segments_limited_or_worse = _non_negative_int(
+            history_row.get("current_run_segments_limited_or_worse")
+        )
+        current_run_data_limited_briefings = max(
+            current_run_data_limited_briefings,
+            _non_negative_int(history_row.get("current_run_data_limited_briefings")),
+        )
+        current_run_briefings_observed = max(
+            current_run_briefings_observed,
+            _non_negative_int(history_row.get("current_run_briefings_observed")),
+        )
+
+    current_run_segments_limited_or_worse = max(
+        current_run_segments_limited_or_worse,
+        sum(1 for block in blocks if block.status in ("limited", "failed")),
+    )
 
     # Reconcile worst status with the history severity (worst-wins, u54).
     if history_worst is not None:
@@ -225,6 +262,11 @@ def build_canonical_snapshot(
         history_worst_severity=history_worst,
         history_total_failed_sources=history_failed,
         segment_blocks=tuple(blocks),
+        current_run_zero_item_sources=current_run_zero_item_sources,
+        current_run_core_missing_segments=current_run_core_missing_segments,
+        current_run_segments_limited_or_worse=current_run_segments_limited_or_worse,
+        current_run_data_limited_briefings=current_run_data_limited_briefings,
+        current_run_briefings_observed=current_run_briefings_observed,
     )
 
 
@@ -305,6 +347,52 @@ def _check_quality_page(
                 f"{failed_line!r} but segment/history evidence shows failed sources",
             )
         )
+    metric_floors = (
+        ("0건 반환 소스 누적", snapshot.current_run_zero_item_sources),
+        ("핵심 소스 결손 세그먼트", snapshot.current_run_core_missing_segments),
+        ("제한/실패 세그먼트", snapshot.current_run_segments_limited_or_worse),
+    )
+    for label, floor in metric_floors:
+        rendered = _dashboard_metric_value(quality_page_text, label)
+        if floor > 0 and rendered is not None and _metric_int(rendered) < floor:
+            findings.append(
+                ConsistencyFinding(
+                    CODE_CURRENT_RUN_UNDERSTATED,
+                    None,
+                    f"{snapshot.target_date.isoformat()}: quality.md renders {label}="
+                    f"{rendered!r} below current-run evidence {floor}",
+                )
+            )
+    fallback_line = _dashboard_metric_value(quality_page_text, "데이터 부족 폴백")
+    fallback_denominator = _dashboard_metric_denominator(quality_page_text, "데이터 부족 폴백")
+    if (
+        snapshot.current_run_data_limited_briefings > 0
+        and fallback_line is not None
+        and _metric_pct(fallback_line) <= 0.0
+    ):
+        findings.append(
+            ConsistencyFinding(
+                CODE_CURRENT_RUN_UNDERSTATED,
+                None,
+                f"{snapshot.target_date.isoformat()}: quality.md renders 데이터 부족 폴백="
+                f"{fallback_line!r} below current-run evidence "
+                f"{snapshot.current_run_data_limited_briefings}",
+            )
+        )
+    if (
+        snapshot.current_run_briefings_observed > 0
+        and fallback_denominator is not None
+        and _metric_int(fallback_denominator) < snapshot.current_run_briefings_observed
+    ):
+        findings.append(
+            ConsistencyFinding(
+                CODE_CURRENT_RUN_UNDERSTATED,
+                None,
+                f"{snapshot.target_date.isoformat()}: quality.md renders 데이터 부족 폴백 "
+                f"denominator={fallback_denominator!r} below current-run observed "
+                f"{snapshot.current_run_briefings_observed}",
+            )
+        )
     return tuple(findings)
 
 
@@ -317,6 +405,36 @@ def _dashboard_metric_value(text: str, label: str) -> str | None:
     if match is None:
         return None
     return match.group(1).strip()
+
+
+def _dashboard_metric_denominator(text: str, label: str) -> str | None:
+    pattern = re.compile(
+        rf"\|\s*{re.escape(label)}\s*\|\s*[^|]+?\s*\|\s*([^|]+?)\s*\|",
+    )
+    match = pattern.search(text)
+    if match is None:
+        return None
+    return match.group(1).strip()
+
+
+def _metric_int(value: str) -> int:
+    match = re.search(r"\d+", value)
+    if match is None:
+        return 0
+    return int(match.group(0))
+
+
+def _metric_pct(value: str) -> float:
+    match = re.search(r"\d+(?:\.\d+)?", value)
+    if match is None:
+        return 0.0
+    return float(match.group(0))
+
+
+def _non_negative_int(value: object) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        return 0
+    return value
 
 
 def _is_zero_or_na(value: str) -> bool:
@@ -351,16 +469,54 @@ def reconcile_kpis_with_history(
     row = load_quality_history_row(target_date, history_path)
     if row is None:
         return kpis
-    raw_failed = row.get("total_failed_sources")
-    if not isinstance(raw_failed, int) or isinstance(raw_failed, bool) or raw_failed <= 0:
+    raw_failed = _non_negative_int(row.get("total_failed_sources"))
+    current_run_zero_item_sources = _non_negative_int(row.get("current_run_zero_item_sources"))
+    current_run_core_missing_segments = _non_negative_int(
+        row.get("current_run_core_missing_segments")
+    )
+    current_run_segments_limited_or_worse = _non_negative_int(
+        row.get("current_run_segments_limited_or_worse")
+    )
+    current_run_data_limited_briefings = _non_negative_int(
+        row.get("current_run_data_limited_briefings")
+    )
+    current_run_briefings_observed = _non_negative_int(
+        row.get("current_run_briefings_observed")
+    )
+    if (
+        raw_failed <= 0
+        and current_run_zero_item_sources <= 0
+        and current_run_core_missing_segments <= 0
+        and current_run_segments_limited_or_worse <= 0
+        and current_run_data_limited_briefings <= 0
+        and current_run_briefings_observed <= 0
+    ):
         return kpis
-    if kpis.failed_sources >= raw_failed:
+    if (
+        kpis.failed_sources >= raw_failed
+        and kpis.zero_item_sources >= current_run_zero_item_sources
+        and kpis.core_missing_segments >= current_run_core_missing_segments
+        and kpis.segments_limited_or_worse >= current_run_segments_limited_or_worse
+        and kpis.briefings_data_limited >= current_run_data_limited_briefings
+        and kpis.briefings_observed >= current_run_briefings_observed
+    ):
         return kpis
     runs_observed = max(kpis.runs_observed, 1)
-    runs_with_failed = max(kpis.runs_with_failed_source, 1)
+    runs_with_failed = max(kpis.runs_with_failed_source, 1 if raw_failed > 0 else 0)
     return dataclasses.replace(
         kpis,
-        failed_sources=raw_failed,
+        failed_sources=max(kpis.failed_sources, raw_failed),
+        zero_item_sources=max(kpis.zero_item_sources, current_run_zero_item_sources),
+        core_missing_segments=max(kpis.core_missing_segments, current_run_core_missing_segments),
+        segments_limited_or_worse=max(
+            kpis.segments_limited_or_worse,
+            current_run_segments_limited_or_worse,
+        ),
+        briefings_data_limited=max(
+            kpis.briefings_data_limited,
+            current_run_data_limited_briefings,
+        ),
+        briefings_observed=max(kpis.briefings_observed, current_run_briefings_observed),
         runs_observed=runs_observed,
         runs_with_failed_source=runs_with_failed,
     )
@@ -384,6 +540,7 @@ def validate_date_quality_consistency(
 
 
 __all__ = [
+    "CODE_CURRENT_RUN_UNDERSTATED",
     "CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE",
     "CODE_FAILED_COUNT_MISMATCH",
     "CODE_QUALITY_PAGE_MISSING",

@@ -1497,7 +1497,10 @@ def _build_quality_snapshot(
     source_outcomes: Sequence[SourceOutcome],
     severities_by_segment: dict[MarketSegment, str] | None = None,
 ) -> QualitySnapshot:
+    from investo.publisher.quality_consistency import parse_segment_status_block
+
     failed_sources = sum(1 for outcome in source_outcomes if outcome.status == "failed")
+    zero_item_sources = sum(1 for outcome in source_outcomes if outcome.status == "zero")
     # u54 — Liveness denominator counts only segments with ≥ 1 registered
     # core source so a future segment without core registration cannot
     # silently dilute the rate. Today every segment has core sources
@@ -1511,7 +1514,10 @@ def _build_quality_snapshot(
         1.0 if source_outcomes and failed_sources == 0 and core_eligible_segments > 0 else 0.0
     )
     bodies = [briefings[segment].rendered_markdown for segment in published_segments]
-    data_limited_count = sum(1 for body in bodies if "데이터 부족 안내" in body)
+    data_limited_markers = ("[데이터부족]", "데이터 부족 안내", "실시간 안내")
+    data_limited_count = sum(
+        1 for body in bodies if any(marker in body for marker in data_limited_markers)
+    )
     non_limited = max(len(bodies) - data_limited_count, 0)
     figures_count = sum(
         1 for body in bodies if "데이터 부족 안내" not in body and extract_flaggable_numbers(body)
@@ -1520,6 +1526,21 @@ def _build_quality_snapshot(
     if severities_by_segment:
         rank = {"normal": 0, "partial": 1, "limited": 2, "failed": 3}
         worst_severity = max(severities_by_segment.values(), key=lambda s: rank.get(s, -1))
+    current_run_core_missing_segments = (
+        sum(1 for severity in severities_by_segment.values() if severity in ("limited", "failed"))
+        if severities_by_segment
+        else 0
+    )
+    status_block_limited_or_worse = sum(
+        1
+        for segment in published_segments
+        if parse_segment_status_block(briefings[segment].rendered_markdown, segment).status
+        in ("limited", "failed")
+    )
+    current_run_segments_limited_or_worse = max(
+        current_run_core_missing_segments,
+        status_block_limited_or_worse,
+    )
     return QualitySnapshot(
         source_liveness=source_liveness,
         figures_presence=(figures_count / non_limited) if non_limited > 0 else 0.0,
@@ -1528,6 +1549,11 @@ def _build_quality_snapshot(
         total_items=len(items),
         total_failed_sources=failed_sources,
         worst_severity=worst_severity,
+        current_run_zero_item_sources=zero_item_sources,
+        current_run_core_missing_segments=current_run_core_missing_segments,
+        current_run_segments_limited_or_worse=current_run_segments_limited_or_worse,
+        current_run_data_limited_briefings=data_limited_count,
+        current_run_briefings_observed=len(bodies),
     )
 
 

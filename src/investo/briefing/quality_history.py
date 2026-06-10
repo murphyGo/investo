@@ -48,6 +48,14 @@ class QualitySnapshot:
     # queryable by operators and future quality dashboards.
     macro_actual_missing_segments: int = 0
     required_macro_omitted: int = 0
+    # u96 — current publish snapshot fields. These are floors for the
+    # public dashboard so same-run segment evidence cannot be understated
+    # by stale trailing-window inputs.
+    current_run_zero_item_sources: int = 0
+    current_run_core_missing_segments: int = 0
+    current_run_segments_limited_or_worse: int = 0
+    current_run_data_limited_briefings: int = 0
+    current_run_briefings_observed: int = 0
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -97,6 +105,20 @@ def append_quality_snapshot(
         "total_failed_sources": max(snapshot.total_failed_sources, 0),
         "macro_actual_missing_segments": max(snapshot.macro_actual_missing_segments, 0),
         "required_macro_omitted": max(snapshot.required_macro_omitted, 0),
+        "current_run_zero_item_sources": max(snapshot.current_run_zero_item_sources, 0),
+        "current_run_core_missing_segments": max(
+            snapshot.current_run_core_missing_segments,
+            0,
+        ),
+        "current_run_segments_limited_or_worse": max(
+            snapshot.current_run_segments_limited_or_worse,
+            0,
+        ),
+        "current_run_data_limited_briefings": max(
+            snapshot.current_run_data_limited_briefings,
+            0,
+        ),
+        "current_run_briefings_observed": max(snapshot.current_run_briefings_observed, 0),
     }
     if snapshot.worst_severity is not None:
         row["worst_severity"] = snapshot.worst_severity

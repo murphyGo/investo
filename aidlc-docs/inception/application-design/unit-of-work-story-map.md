@@ -217,6 +217,32 @@ Deduplicated out:
 - No top-level orchestrator overlap unit: u84 keeps stage sequencing explicit; u94 only changes independent segment generation inside the generate stage.
 - No chart redesign or visual product unit: u95 only constrains best-effort enrichment cost and workflow cold-start time.
 
+### u96-u100 Planning Notes
+
+The 2026-06-09 generated bundle was reviewed from a reader perspective by ten specialist agents, then distilled through stage-specific design discussion. The strongest pattern was not lack of raw information; it was a mismatch between facts, public status, hierarchy, and reader-facing narrative. The follow-up work is split into five independently shippable units so a context-free implementer can improve one layer without re-opening unrelated source adapters or the entire briefing prompt.
+
+Implementation priority after the 2026-06-11 five-reviewer-per-unit audit:
+1. u96 first, because public status truth outranks narrative polish.
+2. u97 second, because daily thesis should consume evidence hierarchy rather than amplify flat/weak evidence.
+3. u99 and u100 as one product slice or adjacent slices: u99 inserts the first-viewport thesis, and u100 gates that final first-viewport text.
+4. u98 after the core trust/narrative work, unless a small isolated §⑥ UI cleanup is explicitly selected.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u96 quality-current-run-snapshot-sync | Public quality dashboard looked healthier than segment markdown showing `[데이터부족]`, limited status, and core-source failure | FR-003, FR-007, FR-008, FR-009, NFR-003, NFR-006 | u54/u62/u65 quality metrics, u69 consistency gate, current-run publish snapshot; priority 1 |
+| u97 evidence-weighted-story-hierarchy | Low-signal rows could carry the same story weight as core macro or market-wide evidence | FR-002, FR-008, FR-009, NFR-006 | u13 candidate caps, u57 narrative scope, u59 macro priority, u64/u73 watchlist routing; priority 2 and preferred prerequisite for u99 |
+| u98 watchpoint-card-list-redesign | §⑥ table remained dense, repetitive, and fragile on mobile after u87 rehabilitation | FR-008, FR-009, NFR-003, NFR-006 | u72/u87 watchpoint renderer, u64 actionability contract, u56 compliance scan; priority 4 |
+| u99 daily-thesis-layer | Segment briefings lacked a shared "오늘의 큰 그림" line that explains the cross-market day | FR-002, FR-008, FR-009, NFR-003, NFR-006 | u57 shared narrative, u74 channel depth and cause-map gating, bundle context, u97 evidence tiers; priority 3 paired with u100 |
+| u100 surface-quality-gate | Broken first-viewport language artifacts such as `불강한성`, dangling `...`, and markdown fragments damaged trust | FR-002, FR-008, FR-009, NFR-003, NFR-006 | u56 compliance, u61 first viewport, u71 reflow, u76 meaning lines, u99 thesis line; priority 3 paired with u99 |
+
+Deduplicated out:
+- No new source adapter unit: the review defects were reader-facing synthesis, status, and formatting failures, not absence of a specific upstream feed.
+- No generic prompt rewrite unit: u97 and u99 pass structured signals into the prompt/publisher path, while u98 and u100 keep deterministic rendering and validation ownership.
+- No second watchlist/actionability matcher: u98 consumes the u64/u72/u87 structured watchpoint contract and changes only the reader-facing shape.
+- No broad Korean spellchecker unit: u100 handles known deterministic artifacts and first-viewport breakage only.
+- No quality KPI redesign: u96 synchronizes current-run facts across existing public surfaces and leaves severity/source policy untouched.
+- No independent u99 rollout without a surface gate: u99 can be implemented separately, but product rollout should pair it with u100 or include a u99-local surface check for the inserted line.
+
 ---
 
 ## Definition of Done — Inception Phase Output

@@ -9,6 +9,7 @@ from pathlib import Path
 from investo.briefing.quality_eval import QualityKPIs
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.publisher.quality_consistency import (
+    CODE_CURRENT_RUN_UNDERSTATED,
     CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE,
     CODE_FAILED_COUNT_MISMATCH,
     CODE_QUALITY_PAGE_MISSING,
@@ -44,6 +45,28 @@ def _quality_page(failed_value: str) -> str:
     )
 
 
+def _quality_page_full(
+    *,
+    failed: str = "0 회",
+    zero: str = "0 회",
+    core_missing: str = "0 건",
+    limited: str = "0 건",
+    fallback: str = "0.0%",
+    fallback_denominator: str = "0 건",
+) -> str:
+    return (
+        "# 데이터 품질\n\n"
+        "| 지표 | 값 | 분모 |\n"
+        "|------|------|------|\n"
+        "| 소스 라이브니스 | n/a | 0 회 |\n"
+        f"| 데이터 부족 폴백 | {fallback} | {fallback_denominator} |\n"
+        f"| 실패한 소스 누적 | {failed} | 0 회 |\n"
+        f"| 0건 반환 소스 누적 | {zero} | 0 회 |\n"
+        f"| 핵심 소스 결손 세그먼트 | {core_missing} | 0 회 |\n"
+        f"| 제한/실패 세그먼트 | {limited} | 0 회 |\n"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Parsing
 # ---------------------------------------------------------------------------
@@ -54,6 +77,15 @@ def test_parse_status_block_reads_label_and_failed_count() -> None:
     assert block.status == "failed"
     assert block.failed_count == 3
     assert block.data_limited is False
+
+
+def test_parse_status_block_reads_current_run_data_limited_markers() -> None:
+    for marker in ("[데이터부족]", "데이터 부족 안내", "실시간 안내"):
+        block = parse_segment_status_block(
+            _segment_body(status_label="제한", failed=0) + marker,
+            US_EQUITY,
+        )
+        assert block.data_limited is True
 
 
 def test_parse_status_block_handles_missing_block() -> None:
@@ -149,6 +181,53 @@ def test_dashboard_agrees_when_failed_count_matches() -> None:
     assert [f for f in findings if f.is_failure] == []
 
 
+def test_dashboard_understates_current_run_fields() -> None:
+    snapshot = build_canonical_snapshot(
+        TARGET,
+        segment_texts={US_EQUITY: _segment_body(status_label="제한", failed=0, data_limited=True)},
+        history_row={
+            "date": TARGET.isoformat(),
+            "worst_severity": "limited",
+            "total_failed_sources": 0,
+            "current_run_zero_item_sources": 7,
+            "current_run_core_missing_segments": 3,
+            "current_run_segments_limited_or_worse": 3,
+            "current_run_data_limited_briefings": 3,
+            "current_run_briefings_observed": 12,
+        },
+    )
+    findings = check_quality_consistency(snapshot, quality_page_text=_quality_page_full())
+    assert CODE_CURRENT_RUN_UNDERSTATED in {f.code for f in findings if f.is_failure}
+
+
+def test_dashboard_matches_current_run_fields() -> None:
+    snapshot = build_canonical_snapshot(
+        TARGET,
+        segment_texts={US_EQUITY: _segment_body(status_label="제한", failed=0, data_limited=True)},
+        history_row={
+            "date": TARGET.isoformat(),
+            "worst_severity": "limited",
+            "total_failed_sources": 0,
+            "current_run_zero_item_sources": 7,
+            "current_run_core_missing_segments": 3,
+            "current_run_segments_limited_or_worse": 3,
+            "current_run_data_limited_briefings": 3,
+            "current_run_briefings_observed": 12,
+        },
+    )
+    findings = check_quality_consistency(
+        snapshot,
+        quality_page_text=_quality_page_full(
+            zero="7 회",
+            core_missing="3 건",
+            limited="3 건",
+            fallback="25.0%",
+            fallback_denominator="12 건",
+        ),
+    )
+    assert [f for f in findings if f.is_failure] == []
+
+
 # ---------------------------------------------------------------------------
 # quality_page_missing is skipped, not failed
 # ---------------------------------------------------------------------------
@@ -204,6 +283,35 @@ def test_reconcile_bumps_failed_floor_from_history(tmp_path: Path) -> None:
     assert reconciled.failed_sources == 4
     assert reconciled.runs_observed == 1
     assert reconciled.runs_with_failed_source == 1
+
+
+def test_reconcile_bumps_current_run_floors_from_history(tmp_path: Path) -> None:
+    history = tmp_path / "quality_history.jsonl"
+    history.write_text(
+        json.dumps(
+            {
+                "date": TARGET.isoformat(),
+                "source_liveness": 1.0,
+                "figures_presence": 1.0,
+                "fallback_ratio": 0.25,
+                "total_failed_sources": 0,
+                "current_run_zero_item_sources": 7,
+                "current_run_core_missing_segments": 3,
+                "current_run_segments_limited_or_worse": 3,
+                "current_run_data_limited_briefings": 3,
+                "current_run_briefings_observed": 12,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    reconciled = reconcile_kpis_with_history(_kpis(0), target_date=TARGET, history_path=history)
+    assert reconciled.zero_item_sources == 7
+    assert reconciled.core_missing_segments == 3
+    assert reconciled.segments_limited_or_worse == 3
+    assert reconciled.briefings_data_limited == 3
+    assert reconciled.briefings_observed == 12
+    assert reconciled.fallback_ratio == 0.25
 
 
 def test_reconcile_noop_when_coverage_already_higher(tmp_path: Path) -> None:

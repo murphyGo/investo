@@ -159,3 +159,20 @@ def test_render_quality_page_includes_new_counters(tmp_path: Path) -> None:
     assert "0건 반환 소스 누적" in body
     assert "핵심 소스 결손 세그먼트" in body
     assert "제한/실패 세그먼트" in body
+
+
+def test_data_limited_markers_include_status_tags_and_realtime_notice(tmp_path: Path) -> None:
+    archive = tmp_path / "archive"
+    for segment, marker in enumerate(("[데이터부족]", "데이터 부족 안내", "실시간 안내")):
+        path = archive / f"segment-{segment}" / "2026" / "06" / "2026-06-09.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"# title\n\n{marker}\n", encoding="utf-8")
+
+    kpis = compute_quality_kpis(
+        date(2026, 6, 9),
+        coverage_path=tmp_path / "coverage.jsonl",
+        archive_root=archive,
+    )
+
+    assert kpis.briefings_observed == 3
+    assert kpis.briefings_data_limited == 3

@@ -1237,6 +1237,152 @@ Plan: `aidlc-docs/construction/plans/u95-workflow-and-enrichment-critical-path-b
 
 ---
 
+### u96: `quality-current-run-snapshot-sync` — Align Public Quality Metrics With Segment Reality
+
+**Purpose**: Extend the existing u62/u69 canonical quality snapshot so the public `quality.md` dashboard, `quality_history.jsonl`, segment markdown status, latest/archive index labels, and publish-boundary consistency gate read from the same current-run facts. The 2026-06-09 generated bundle showed segment-level `[데이터부족]`, `데이터 상태: 제한`, and core-source failures while the public quality page still displayed healthier aggregate metrics.
+
+**Stories**: FR-003 (static publishing), FR-007 (operator alerting), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (data integrity)
+
+**Existing coverage / deduplication**:
+- Extends u54/u62/u65 quality surfaces and u69 public consistency gate; it does not add a new quality KPI family.
+- Keeps `CoverageStatus`, source adapter behavior, core-source membership, and `HealthTrackingStage` ordering unchanged.
+- Fixes publish-time snapshot construction so final segment markdown and current coverage artifacts cannot contradict the dashboard.
+
+**Module path**:
+- `src/investo/briefing/quality_eval.py` — recognize segment-level `[데이터부족]`, `데이터 부족 안내`, `실시간 안내`, and limited/failed status-block markers.
+- `src/investo/briefing/quality_history.py` — persist current-run snapshot fields with backward-compatible defaults.
+- `src/investo/orchestrator/pipeline.py` — build the quality snapshot from current publish artifacts before writing public quality surfaces.
+- `src/investo/publisher/quality_consistency.py` — block dashboard/segment contradictions at publish boundary.
+- `src/investo/publisher/site_index/quality_dashboard.py` and `site_index.__init__.py::update_latest_index_pages` — render the new snapshot fields without overstating health.
+- `tests/unit/briefing/`, `tests/unit/orchestrator/`, `tests/unit/publisher/` — fixture-level checks for the 2026-06-09 contradiction shape.
+
+**Definition of Done**:
+- [ ] `[데이터부족]`, `데이터 부족 안내`, `실시간 안내`, `데이터 상태: 제한`, `데이터 상태: 실패`, and current coverage severities are counted by the same current-run snapshot used by `quality.md`.
+- [ ] The snapshot exposes `current_run_zero_item_sources`, `current_run_core_missing_segments`, `current_run_segments_limited_or_worse`, `current_run_data_limited_briefings`, and `current_run_briefings_observed` with backward-compatible loading for older history rows.
+- [ ] The 2026-06-09 fixture shape renders `데이터 부족 폴백 25.0% | 12 건`, `핵심 소스 결손 세그먼트 3`, `제한/실패 세그먼트 3`, and at least seven zero-item source records.
+- [ ] The u69 consistency gate blocks a publish when `quality.md`, `quality_history.jsonl`, or index labels are healthier than the corresponding final segment markdown/current coverage facts.
+- [ ] No source adapter, severity enum, or core-source list changes are included in this unit.
+
+Plan: `aidlc-docs/construction/plans/u96-quality-current-run-snapshot-sync-code-generation-plan.md`.
+
+---
+
+### u97: `evidence-weighted-story-hierarchy` — Rank Evidence Before Narrative Assembly
+
+**Purpose**: Add deterministic story-tier metadata so Stage 2 can distinguish core thesis evidence from supporting, contextual, and watchlist-only items. The reader review found that low-signal rows could receive the same narrative weight as macro or market-wide evidence, weakening the story arc. This unit should run before u99 so the daily thesis does not amplify weak evidence.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-006 (data integrity)
+
+**Existing coverage / deduplication**:
+- Extends u13 candidate caps, u57 narrative scope, u59 macro priority, and u64/u73 watchlist routing without changing source collection.
+- Reuses existing macro priority and required-macro actual detection; it does not replace shared macro blocks or cause-map logic.
+- Keeps lower-tier evidence available for appropriate sections instead of deleting it from the briefing.
+
+**Module path**:
+- `src/investo/briefing/_core/section_planning.py` — add `StoryMetadata`, `story_identity()`, deterministic `story_tier`, and fixed `story_score`.
+- `src/investo/briefing/_assembly/markdown_render.py` — pass story metadata into Stage 2 evidence bullets.
+- `src/investo/briefing/prompts.py` — instruct Stage 2 to lead with core evidence, then supporting and contextual evidence.
+- `tests/unit/briefing/` — tier assignment, cap preservation, and prompt-contract regression fixtures.
+
+**Definition of Done**:
+- [ ] Section planning marks each candidate as `core`, `supporting`, `context`, or `watchlist_only` with a deterministic score.
+- [ ] Core rows survive candidate/section caps ahead of lower-tier rows when both compete for the same narrative slot.
+- [ ] Serialized Stage 2 input presents `core` evidence ahead of `watchlist_only` or purely contextual evidence when core evidence exists.
+- [ ] Stage 2 prompt inputs expose prompt-only tier labels without changing the six-section briefing structure or leaking mechanical labels into published markdown.
+- [ ] Required macro actuals and u59 macro lineage behavior remain unchanged.
+
+Plan: `aidlc-docs/construction/plans/u97-evidence-weighted-story-hierarchy-code-generation-plan.md`.
+
+---
+
+### u98: `watchpoint-card-list-redesign` — Replace the Dense §⑥ Matrix With Reader-First Cards
+
+**Purpose**: Replace the six-column §⑥ watchpoint matrix with the canonical compact card format that preserves actionability while reading cleanly on mobile. The current table repeats source text, exposes `데이터부족` cells, and can leak broken markdown/link fragments.
+
+**Stories**: FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (data integrity)
+
+**Existing coverage / deduplication**:
+- Extends u72/u87 watchpoint rendering; keeps the exact `render_watchpoint_matrix()` callable signature as the public API.
+- Reuses u64 watchlist/actionability structure checks, u56 compliance scanning, and the closed confidence enum.
+- Does not change the watchlist matcher, source adapters, numeric evidence extraction, or Telegram summary semantics.
+
+**Module path**:
+- `src/investo/publisher/watchpoint_matrix.py` — render card/list output from the existing structured rows.
+- `src/investo/briefing/prompts.py` — align Stage 2 §⑥ instructions with the new reader-facing shape.
+- `tests/unit/publisher/test_watchpoint_matrix.py` — card rendering, sanitation, idempotence, and byte-preservation fixtures.
+- `tests/unit/briefing/test_prompts.py` — prompt contract fixture.
+
+**Definition of Done**:
+- [ ] §⑥ no longer renders the six-column table header `관찰 신호 | 현재 | 상방 확인 조건 | 하방 확인 조건 | 신뢰도 | 섹션 내 관심 영향`.
+- [ ] Usable watchpoints render as canonical reader cards with `출처`, current signal, upside/downside confirmation, confidence, and watchlist relevance.
+- [ ] Rows with no usable signal collapse to the existing data-limited note instead of producing multiple all-`데이터부족` cards.
+- [ ] Raw URLs, broken markdown fragments, trace hashes, and dangling link text cannot appear in the rendered §⑥ body.
+- [ ] Rendering remains idempotent and byte-preserving outside §⑥.
+
+Plan: `aidlc-docs/construction/plans/u98-watchpoint-card-list-redesign-code-generation-plan.md`.
+
+---
+
+### u99: `daily-thesis-layer` — Add a Cross-Segment "오늘의 큰 그림" Narrative Line
+
+**Purpose**: Add a deterministic daily thesis layer that states the cross-market story before segment-specific detail. The reader review found that individual segments contained facts and local conclusions, but lacked one clear "why today matters" line across domestic equity, US equity, and crypto. This unit should run after u97 and with u100 so the inserted first-viewport line is both evidence-weighted and surface-gated.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (data integrity)
+
+**Existing coverage / deduplication**:
+- Extends u57 narrative scope and u74 cross-market channel depth; it does not replace shared macro blocks or cause-map gating.
+- Uses `BundleContext`, an orchestrator-owned `DailyThesisDecision`, and deterministic publisher insertion, not a third LLM call.
+- Keeps segment briefings independently publishable under partial-success conditions.
+
+**Module path**:
+- `src/investo/models/bundle_context.py` — add structured daily-thesis fields or reusable macro-signal fields.
+- `src/investo/orchestrator/bundle_context.py` and `src/investo/orchestrator/pipeline.py` — compute and pass thesis signals from successful segments and market anchors.
+- `src/investo/publisher/daily_thesis.py` — render and inject the thesis decision only.
+- `src/investo/publisher/segment_reader_format.py` — inject the thesis line before §① in each successful segment.
+- `src/investo/publisher/cross_market_cause_map.py` and `src/investo/briefing/_reader_enhance/context_render.py` — share structured macro keys without weakening u74 gating.
+- `tests/unit/orchestrator/`, `tests/unit/publisher/`, `tests/unit/briefing/` — deterministic, partial-publish, idempotence, and prompt-context fixtures.
+
+**Definition of Done**:
+- [ ] Successful segments in the same bundle receive the same bounded "오늘의 큰 그림" line before §①.
+- [ ] The thesis follows the fixed decision table: 0-1 successful segments omit, 2+ without shared approved signal render a neutral data-limited note, 2+ with shared approved signal render a strong line.
+- [ ] The rendered line contains no digits, advice, price targets, or outcome predictions.
+- [ ] Re-running reader formatting does not duplicate or drift the thesis line.
+- [ ] u74 cause-map gating remains active and forbidden cause-map types remain suppressed from both cause-map output and the thesis line.
+
+Plan: `aidlc-docs/construction/plans/u99-daily-thesis-layer-code-generation-plan.md`.
+
+---
+
+### u100: `surface-quality-gate` — Repair and Block Broken First-Viewport Language Artifacts
+
+**Purpose**: Add a deterministic surface-quality pass for known bad Korean tokens and broken first-viewport artifacts. The reader review found defects such as `불강한성`, dangling `...`, broken markdown fragments, and repeated template phrases that damage trust even when underlying facts are acceptable. This unit should run with u99 so the new daily thesis line is included in the final first-viewport gate.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (data integrity)
+
+**Existing coverage / deduplication**:
+- Extends u56 compliance, u61 first-viewport validation, u71 reflow, and u76 meaning-line normalization.
+- Repairs only known deterministic artifacts and blocks unrepaired first-viewport defects.
+- Does not add a full Korean spellchecker, semantic LLM rewrite, or global ban on ellipses.
+
+**Module path**:
+- `src/investo/_internal/surface_quality.py` — shared issue codes, first-viewport extraction, repair, and scan logic.
+- `src/investo/briefing/summary_quality.py` — add surface-defect findings for first-viewport text.
+- `src/investo/briefing/_assembly/summary_extraction.py` — prevent broken artifacts from entering summary/conclusion extraction.
+- `src/investo/publisher/reader_format/reflow.py` and `src/investo/publisher/segment_reader_format.py` — place the pass after reflow and before final publish-boundary checks.
+- `src/investo/publisher/errors.py` and `src/investo/orchestrator/pipeline.py` — route blocking `SurfaceQualityError` when unrepaired first-viewport defects remain.
+- `tests/unit/briefing/`, `tests/unit/publisher/`, `tests/unit/orchestrator/` — repair, block, idempotence, and warning-only fixtures.
+
+**Definition of Done**:
+- [ ] Known bad token `불강한성` is repaired to `불확실성` before final markdown is written.
+- [ ] First-viewport dangling `...` is repaired and warned; broken markdown links and trace/link fragments are blocked before publish.
+- [ ] Code blocks, markdown tables, disclaimers, and diagnostic details are not rewritten by the repair pass.
+- [ ] Repeated template phrases generate warnings but do not block publish in this unit.
+- [ ] The pass is idempotent, runs after u71 reflow, and runs before the final compliance/disclaimer/public consistency gates.
+
+Plan: `aidlc-docs/construction/plans/u100-surface-quality-gate-code-generation-plan.md`.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

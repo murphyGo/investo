@@ -35,7 +35,11 @@ from investo.briefing.numeric_self_check import extract_flaggable_numbers
 # Marker the data-limited body emits in the boilerplate text. Updating
 # the boilerplate copy without updating this marker silently invalidates
 # the fallback-ratio KPI — keep them aligned.
-_DATA_LIMITED_MARKER: Final[str] = "데이터 부족 안내"
+_DATA_LIMITED_MARKERS: Final[tuple[str, ...]] = (
+    "[데이터부족]",
+    "데이터 부족 안내",
+    "실시간 안내",
+)
 
 # u55 — marker the numeric_verify gate inserts at the top of a briefing
 # whose core-fact verification produced ``downgrade`` actions. Presence
@@ -157,6 +161,11 @@ class QualityHistoryRow:
     # availability without changing the public KPI meanings.
     macro_actual_missing_segments: int | None = None
     required_macro_omitted: int | None = None
+    current_run_zero_item_sources: int = 0
+    current_run_core_missing_segments: int = 0
+    current_run_segments_limited_or_worse: int = 0
+    current_run_data_limited_briefings: int = 0
+    current_run_briefings_observed: int = 0
 
     @property
     def has_data(self) -> bool:
@@ -439,9 +448,10 @@ def _iter_archive_files(archive_root: Path, *, today: date, window_days: int) ->
 
 def _is_data_limited(path: Path) -> bool:
     try:
-        return _DATA_LIMITED_MARKER in path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8")
     except OSError:
         return False
+    return any(marker in text for marker in _DATA_LIMITED_MARKERS)
 
 
 def _carries_numeric_figure(path: Path) -> bool:
@@ -509,6 +519,26 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
         figures_verified=_optional_rate(payload.get("figures_verified")),
         macro_actual_missing_segments=_optional_int(payload.get("macro_actual_missing_segments")),
         required_macro_omitted=_optional_int(payload.get("required_macro_omitted")),
+        current_run_zero_item_sources=_optional_int(
+            payload.get("current_run_zero_item_sources")
+        )
+        or 0,
+        current_run_core_missing_segments=_optional_int(
+            payload.get("current_run_core_missing_segments")
+        )
+        or 0,
+        current_run_segments_limited_or_worse=_optional_int(
+            payload.get("current_run_segments_limited_or_worse")
+        )
+        or 0,
+        current_run_data_limited_briefings=_optional_int(
+            payload.get("current_run_data_limited_briefings")
+        )
+        or 0,
+        current_run_briefings_observed=_optional_int(
+            payload.get("current_run_briefings_observed")
+        )
+        or 0,
     )
 
 

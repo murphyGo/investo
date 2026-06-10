@@ -67,6 +67,34 @@ def test_macro_diagnostics_persist_as_append_only_fields(tmp_path: Path) -> None
     assert rows[0]["required_macro_omitted"] == 2
 
 
+def test_current_run_fields_persist_as_append_only_fields(tmp_path: Path) -> None:
+    path = tmp_path / "quality_history.jsonl"
+    append_quality_snapshot(
+        date(2026, 6, 9),
+        snapshot=QualitySnapshot(
+            source_liveness=1.0,
+            figures_presence=0.75,
+            fallback_ratio=0.25,
+            published_segments=12,
+            total_items=42,
+            total_failed_sources=0,
+            current_run_zero_item_sources=7,
+            current_run_core_missing_segments=3,
+            current_run_segments_limited_or_worse=3,
+            current_run_data_limited_briefings=3,
+            current_run_briefings_observed=12,
+        ),
+        history_path=path,
+    )
+
+    rows = _read_rows(path)
+    assert rows[0]["current_run_zero_item_sources"] == 7
+    assert rows[0]["current_run_core_missing_segments"] == 3
+    assert rows[0]["current_run_segments_limited_or_worse"] == 3
+    assert rows[0]["current_run_data_limited_briefings"] == 3
+    assert rows[0]["current_run_briefings_observed"] == 12
+
+
 def test_same_day_republish_replaces_existing_row(tmp_path: Path) -> None:
     path = tmp_path / "quality_history.jsonl"
     append_quality_snapshot(date(2026, 5, 8), snapshot=_snapshot(), history_path=path)
