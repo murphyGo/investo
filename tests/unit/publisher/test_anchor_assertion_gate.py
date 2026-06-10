@@ -121,6 +121,22 @@ def test_other_sentence_magnitude_does_not_make_fx_mention_precise() -> None:
     assert out == md
 
 
+def test_unrelated_watchpoint_numbers_do_not_gate_fx_mention() -> None:
+    md = (
+        "> **주의할 점**: 확인 소스: KRX 외국인 수급 · KOSPI 외국인 순매도 규모 "
+        "— 오늘 확인된 -20,064억원 순매도 흐름이 축소되거나 순매수로 전환 시 관찰. "
+        "확인 소스: 연합뉴스 환율·채권 · 국고채 3년물 3.856% — 원/달러 환율 안정이 "
+        "유지될 경우 금리 하락 흐름 연장 관찰 가능, 환율 재급등 시 국고채 금리 반등.\n"
+    )
+    out = enforce_anchor_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ"),
+    )
+
+    assert out == md
+
+
 def test_us_segment_ixic_claim_gated_when_absent() -> None:
     md = "나스닥 종합은 0.5% 상승 마감했다.\n"
     result = gate_body_assertions(md, segment=US_EQUITY, available_symbols=("^GSPC",))

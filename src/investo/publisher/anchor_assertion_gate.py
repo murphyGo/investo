@@ -125,8 +125,24 @@ def _sentence_targets_symbol(sentence: str, symbol: str) -> bool:
     return any(alias in sentence for alias in _label_aliases(symbol))
 
 
-def _is_precise_move_claim(sentence: str) -> bool:
-    return bool(_MOVE_VERB_RE.search(sentence) and _MAGNITUDE_RE.search(sentence))
+_CLAUSE_SPLIT_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?<!\d)[.!?。](?!\d)|(?<!\d),(?!\d)|;|(?:\s+[-—]\s+)"
+)
+
+
+def _is_precise_move_claim_for_symbol(sentence: str, symbol: str) -> bool:
+    """True when a symbol-local clause has both movement and magnitude.
+
+    A long watchpoint line can mention multiple markets and numbers in one
+    markdown block. Keep unrelated numbers, such as KRX flows or bond yields,
+    from turning a vague FX mention into a gated precise FX claim.
+    """
+    for clause in _CLAUSE_SPLIT_RE.split(sentence):
+        if not _sentence_targets_symbol(clause, symbol):
+            continue
+        if _MOVE_VERB_RE.search(clause) and _MAGNITUDE_RE.search(clause):
+            return True
+    return False
 
 
 def gate_body_assertions(
@@ -197,7 +213,7 @@ def _gate_line(
     for symbol in gated_symbols:
         if not _sentence_targets_symbol(content, symbol):
             continue
-        if not _is_precise_move_claim(content):
+        if not _is_precise_move_claim_for_symbol(content, symbol):
             continue
         label = anchor_label(symbol).ko
         if structural:
@@ -243,7 +259,7 @@ def _rewrite_sentence_claims(
         for symbol in gated_symbols:
             if not _sentence_targets_symbol(stripped, symbol):
                 continue
-            if not _is_precise_move_claim(stripped):
+            if not _is_precise_move_claim_for_symbol(stripped, symbol):
                 continue
             label = anchor_label(symbol).ko
             findings.append(
