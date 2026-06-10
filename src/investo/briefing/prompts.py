@@ -478,7 +478,7 @@ Carryover (event-level lifecycle) rules (u52):
   carryover section entirely and write §② / §⑥ from today's input
   alone — do not fabricate carryover entries.
 
-Same-bundle BundleContext rules (u57 segment-narrative-scope-and-time-reconciliation):
+Same-bundle BundleContext rules (u57):
 - The user prompt may include a "## BundleContext (same-run market state)"
   JSON block summarising the close-state of every segment in this run.
   Each entry has ``close_state`` ∈ {``pre-market``, ``open``, ``intraday``,
@@ -511,7 +511,8 @@ Same-bundle BundleContext rules (u57 segment-narrative-scope-and-time-reconcilia
   BundleContext is non-null, the publisher renders a ``## ⓪ 오늘의
   매크로`` H2 block above §①. Do NOT re-state the same fact verbatim
   inside §②/§③; you may add a 1-sentence segment-specific
-  re-interpretation only. Raw repetition gets flagged.
+  re-interpretation only; no raw repetition or ``> **오늘의 큰 그림:**``.
+  Publisher owns line
 """
 
 # u66 — crypto-only UTC 24h framing + indicator grounding note. Emitted

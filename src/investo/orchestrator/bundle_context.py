@@ -47,6 +47,8 @@ from investo.models.bundle_context import (
     CROSS_MARKET_CORE_ALLOWED,
     BundleContext,
     CloseState,
+    DailyThesisDecision,
+    DailyThesisSignal,
     MarketStateSummary,
 )
 
@@ -193,6 +195,27 @@ _SHARED_MACRO_MATCHERS: Final[dict[str, Callable[[NormalizedItem], bool]]] = {
     "ust_yield": _matches_ust_yield,
     "oil": _matches_oil,
     "fomc": _matches_fomc,
+}
+
+_THESIS_CAUSE_TYPE_BY_KEY: Final[dict[str, str]] = {
+    "oil": "geopolitical_oil_macro",
+    "fomc": "fed_policy_event",
+    "ust_yield": "fed_policy_event",
+}
+_THESIS_DRIVER_BY_CAUSE_TYPE: Final[dict[str, str]] = {
+    "geopolitical_oil_macro": "유가와 지정학 변수",
+    "fed_policy_event": "금리와 달러 변수",
+    "global_systemic_risk": "공통 위험 요인",
+}
+_THESIS_IMPLICATION_BY_CAUSE_TYPE: Final[dict[str, str]] = {
+    "geopolitical_oil_macro": "유동성 압력",
+    "fed_policy_event": "금리·달러 민감도",
+    "global_systemic_risk": "위험 선호의 방향",
+}
+_SEGMENT_THESIS_LABEL: Final[dict[str, str]] = {
+    DOMESTIC_EQUITY: "국내",
+    US_EQUITY: "미국",
+    CRYPTO: "가상자산",
 }
 
 
@@ -371,6 +394,93 @@ def _render_shared_macro_block(shared: Sequence[tuple[str, str]]) -> str | None:
     return "\n".join(lines)
 
 
+def _daily_thesis_signals(
+    routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
+    *,
+    shared: Sequence[tuple[str, str]],
+) -> tuple[DailyThesisSignal, ...]:
+    shared_keys = {key for key, _title in shared}
+    signals: list[DailyThesisSignal] = []
+    for segment, items in routed.items():
+        for item in items:
+            for key in shared_keys:
+                matcher = _SHARED_MACRO_MATCHERS.get(key)
+                if matcher is None or not matcher(item):
+                    continue
+                signals.append(
+                    DailyThesisSignal(
+                        segment=segment,
+                        key=key,
+                        tier="core",
+                        evidence_label=_MACRO_KEY_LABELS.get(key, key),
+                        source_ids=(item.source_name,),
+                    )
+                )
+                break
+    return tuple(
+        sorted(
+            signals,
+            key=lambda signal: (
+                signal.key,
+                signal.segment,
+                signal.evidence_label,
+                signal.source_ids,
+            ),
+        )
+    )
+
+
+def _decide_daily_thesis(
+    routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
+    *,
+    shared: Sequence[tuple[str, str]],
+    signals: Sequence[DailyThesisSignal],
+) -> DailyThesisDecision:
+    successful_segments = tuple(segment for segment, items in routed.items() if items)
+    if len(successful_segments) < 2:
+        return DailyThesisDecision(mode="omit", reason="insufficient_successful_segments")
+
+    segments_by_key: dict[str, set[str]] = {}
+    for signal in signals:
+        if signal.tier != "core":
+            continue
+        segments_by_key.setdefault(signal.key, set()).add(signal.segment)
+
+    for key, _title in shared:
+        cause_type = _THESIS_CAUSE_TYPE_BY_KEY.get(key)
+        if cause_type is None or cause_type not in CROSS_MARKET_CORE_ALLOWED:
+            continue
+        supporting = tuple(sorted(segments_by_key.get(key, ())))
+        if len(supporting) < 2:
+            continue
+        driver = _THESIS_DRIVER_BY_CAUSE_TYPE[cause_type]
+        implication = _THESIS_IMPLICATION_BY_CAUSE_TYPE[cause_type]
+        labels = "·".join(
+            _SEGMENT_THESIS_LABEL.get(segment, segment) for segment in supporting
+        )
+        line = (
+            f"> **오늘의 큰 그림:** {driver}가 {labels}에 동시에 걸리며, "
+            f"오늘 독자는 {implication}을 먼저 확인해야 합니다."
+        )
+        return DailyThesisDecision(
+            mode="strong",
+            line=line,
+            macro_keys=(key,),
+            supporting_segments=supporting,
+            reason="shared_core_signal",
+        )
+
+    return DailyThesisDecision(
+        mode="data_limited",
+        line=(
+            "> **오늘의 큰 그림:** 공통 핵심 신호가 제한적이어서, "
+            "오늘은 세그먼트별 데이터 상태를 먼저 확인해야 합니다."
+        ),
+        reason="no_shared_core_signal",
+        supporting_segments=tuple(sorted(successful_segments)),
+    )
+
+
 def compute_bundle_context(
     routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
     *,
@@ -405,6 +515,12 @@ def compute_bundle_context(
 
     shared = _detect_shared_macros(routed)
     shared_block = _render_shared_macro_block(shared)
+    daily_thesis_signals = _daily_thesis_signals(routed, shared=shared)
+    daily_thesis_decision = _decide_daily_thesis(
+        routed,
+        shared=shared,
+        signals=daily_thesis_signals,
+    )
 
     ctx = BundleContext(
         bundle_id=bundle_id,
@@ -412,6 +528,8 @@ def compute_bundle_context(
         segments=summaries,
         shared_macro_block=shared_block,
         cross_market_core_allowed=CROSS_MARKET_CORE_ALLOWED,
+        daily_thesis_signals=daily_thesis_signals,
+        daily_thesis_decision=daily_thesis_decision,
     )
 
     _logger.info(

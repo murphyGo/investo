@@ -347,6 +347,11 @@ def test_stage2_user_template_empty_optional_contexts_do_not_emit_headings() -> 
     assert "BundleContext" not in rendered
 
 
+def test_stage2_system_does_not_author_daily_thesis_marker() -> None:
+    assert "> **오늘의 큰 그림:**" in STAGE2_SYSTEM
+    assert "Publisher owns" in STAGE2_SYSTEM
+
+
 def test_stage1_system_contains_required_macro_contract() -> None:
     assert "Macro contract:" in STAGE1_SYSTEM
     assert '"priority": "P0"' in STAGE1_SYSTEM

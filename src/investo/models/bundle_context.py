@@ -40,6 +40,8 @@ __all__ = [
     "CROSS_MARKET_CORE_ALLOWED",
     "BundleContext",
     "CloseState",
+    "DailyThesisDecision",
+    "DailyThesisSignal",
     "MarketStateSummary",
 ]
 
@@ -49,6 +51,7 @@ __all__ = [
 # slot during its own prompt build (anti-self-assertion) and (b) any
 # segment whose routed items contain zero time-state-bearing titles.
 CloseState = TimeState | Literal["pending"]
+DailyThesisMode = Literal["strong", "data_limited", "omit"]
 
 
 # Cross-market themes allowed to remain at §② core tier even when they
@@ -84,6 +87,30 @@ class MarketStateSummary(BaseModel):
     headline_native_fact: str | None = None
 
 
+class DailyThesisSignal(BaseModel):
+    """One deterministic signal eligible for the same-run thesis layer."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    segment: str = Field(min_length=1, max_length=64)
+    key: str = Field(min_length=1, max_length=64)
+    tier: str = Field(min_length=1, max_length=32)
+    evidence_label: str = Field(min_length=1, max_length=120)
+    source_ids: tuple[str, ...] = ()
+
+
+class DailyThesisDecision(BaseModel):
+    """Final same-run thesis decision rendered by the publisher."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    mode: DailyThesisMode
+    line: str | None = None
+    macro_keys: tuple[str, ...] = ()
+    supporting_segments: tuple[str, ...] = ()
+    reason: str = Field(min_length=1, max_length=120)
+
+
 class BundleContext(BaseModel):
     """Same-run reconciliation snapshot — shared by all three segments.
 
@@ -105,6 +132,10 @@ class BundleContext(BaseModel):
     shared_macro_block: str | None = None
     cross_market_core_allowed: frozenset[str] = Field(
         default=CROSS_MARKET_CORE_ALLOWED,
+    )
+    daily_thesis_signals: tuple[DailyThesisSignal, ...] = ()
+    daily_thesis_decision: DailyThesisDecision = Field(
+        default_factory=lambda: DailyThesisDecision(mode="omit", reason="not_evaluated"),
     )
 
     def for_segment(self, segment: str) -> MarketStateSummary | None:

@@ -54,6 +54,8 @@ class TestEmpty:
     def test_bundle_id_default(self) -> None:
         ctx = compute_bundle_context({}, now_kst=NOW)
         assert "2026-05-11" in ctx.bundle_id
+        assert ctx.daily_thesis_decision.mode == "omit"
+        assert ctx.daily_thesis_decision.reason == "insufficient_successful_segments"
 
 
 class TestPerSegmentCloseState:
@@ -409,6 +411,57 @@ class TestIdempotence:
         a = compute_bundle_context(routed, now_kst=NOW)
         b = compute_bundle_context(routed, now_kst=NOW)
         assert a == b
+
+
+class TestDailyThesis:
+    def test_strong_decision_from_two_segment_fed_signal(self) -> None:
+        routed = {
+            DOMESTIC_EQUITY: [
+                make_item(
+                    source="treasury-rates",
+                    title="UST 10Y yield closes higher",
+                    published_at=NOW,
+                    category="macro",
+                ),
+            ],
+            US_EQUITY: [
+                make_item(
+                    source="fred-macro",
+                    title="DGS10 Treasury yield update",
+                    published_at=NOW,
+                    category="macro",
+                ),
+            ],
+        }
+
+        ctx = compute_bundle_context(routed, now_kst=NOW)
+
+        assert ctx.daily_thesis_decision.mode == "strong"
+        assert ctx.daily_thesis_decision.reason == "shared_core_signal"
+        assert ctx.daily_thesis_decision.macro_keys == ("ust_yield",)
+        assert ctx.daily_thesis_decision.supporting_segments == (
+            DOMESTIC_EQUITY,
+            US_EQUITY,
+        )
+        assert ctx.daily_thesis_decision.line is not None
+        assert "금리와 달러 변수" in ctx.daily_thesis_decision.line
+        assert not any(ch.isdigit() for ch in ctx.daily_thesis_decision.line)
+
+    def test_data_limited_decision_when_two_segments_have_no_shared_signal(self) -> None:
+        routed = {
+            DOMESTIC_EQUITY: [
+                make_item(source="krx", title="코스피 상승 마감", published_at=NOW),
+            ],
+            US_EQUITY: [
+                make_item(source="nasdaq", title="AAPL earnings preview", published_at=NOW),
+            ],
+        }
+
+        ctx = compute_bundle_context(routed, now_kst=NOW)
+
+        assert ctx.daily_thesis_decision.mode == "data_limited"
+        assert ctx.daily_thesis_decision.reason == "no_shared_core_signal"
+        assert "공통 핵심 신호가 제한적" in (ctx.daily_thesis_decision.line or "")
 
 
 @pytest.mark.parametrize(

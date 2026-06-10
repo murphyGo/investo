@@ -52,6 +52,7 @@ from investo.publisher.crypto_indicators import (
     inject_crypto_indicator_block,
     render_crypto_indicator_block,
 )
+from investo.publisher.daily_thesis import inject_daily_thesis_line
 from investo.publisher.reader_format import (
     apply_reader_format,
     check_filler_phrase_density,
@@ -209,6 +210,10 @@ def apply_reader_format_to_segments(
                     extra={"segment": segment, "cause_type": suppressed},
                 )
             markdown = inject_cause_map_line(markdown, cause_map)
+            markdown = inject_daily_thesis_line(
+                markdown,
+                bundle_context.daily_thesis_decision,
+            )
         # u56 — compliance-language gate + first-viewport short disclaimer
         # + retail tone caps. Order: scan first (cheap reject of P0 hits
         # before any post-format I/O), then prepend the short disclaimer
