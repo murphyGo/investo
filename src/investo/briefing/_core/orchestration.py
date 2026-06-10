@@ -28,6 +28,11 @@ from investo.briefing._assembly.markdown_render import (
     _render_unassigned,
     _stage2_retry_feedback,
 )
+from investo.briefing._assembly.prompt_fields import (
+    _render_stage1_prompt_summary,
+    _render_stage1_prompt_title,
+    _render_stage1_prompt_url,
+)
 from investo.briefing._assembly.text_normalize import parse_six_sections
 from investo.briefing._core.classification import ClassificationResult, _parse_classification
 from investo.briefing._core.section_planning import SectionPlan, _required_macro_item_ids
@@ -103,9 +108,9 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
             "id": idx,
             "category": item.category,
             "source": item.source_name,
-            "title": item.title,
-            "summary": item.summary if item.summary is not None else "",
-            "url": str(item.url) if item.url is not None else "",
+            "title": _render_stage1_prompt_title(item.title),
+            "summary": _render_stage1_prompt_summary(item.summary),
+            "url": _render_stage1_prompt_url(item.url),
             "ts": item.published_at.astimezone(UTC).isoformat(),
         }
         macro_payload = macro_prompt_payload(item)

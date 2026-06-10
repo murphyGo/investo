@@ -2,8 +2,8 @@
 
 Pins:
 
-* :func:`format_carryover_section` returns the "no carryover" note
-  for an empty body and a header + intro + rows block otherwise.
+* :func:`format_carryover_section` omits an empty body and returns a
+  header + intro + rows block otherwise.
 * :data:`STAGE2_SYSTEM` carries each ``CARRY-N`` rule ID (1-4).
 * :data:`STAGE2_USER_TEMPLATE` carries the ``{carryover_context}``
   placeholder.
@@ -12,7 +12,6 @@ Pins:
 from __future__ import annotations
 
 from investo.briefing.prompts import (
-    CARRYOVER_CONTEXT_EMPTY_NOTE,
     CARRYOVER_CONTEXT_HEADER,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
@@ -20,10 +19,8 @@ from investo.briefing.prompts import (
 )
 
 
-def test_format_carryover_section_empty_emits_no_carryover_note() -> None:
-    rendered = format_carryover_section("")
-    assert CARRYOVER_CONTEXT_HEADER in rendered
-    assert CARRYOVER_CONTEXT_EMPTY_NOTE in rendered
+def test_format_carryover_section_empty_omits_block() -> None:
+    assert format_carryover_section("") == ""
 
 
 def test_format_carryover_section_with_rows_emits_header_and_body() -> None:
@@ -49,6 +46,5 @@ def test_stage2_user_template_carryover_placeholder_present() -> None:
 
 
 def test_format_carryover_section_strips_whitespace() -> None:
-    """Body with only whitespace collapses to the empty-note branch."""
-    rendered = format_carryover_section("   \n  \n")
-    assert CARRYOVER_CONTEXT_EMPTY_NOTE in rendered
+    """Body with only whitespace collapses to omitted block."""
+    assert format_carryover_section("   \n  \n") == ""

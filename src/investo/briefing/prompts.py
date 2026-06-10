@@ -283,8 +283,7 @@ Rules:
 - 수치 + 수익 / 상승 보장 표현 금지: ``30% 이상 수익 예상``,
   ``2배 상승`` 같은 quantified outcome 어구는 publish 게이트에서 차단된다.
   관찰형 수치 (``+1.2% 상승``, ``-3.4% 하락``) 만 허용.
-- DO NOT include section ⑦ — the disclaimer is appended by the
-  caller (R5).
+- Publisher gates enforce compliance/disclaimer; emit only six sections.
 - DO NOT include any private tokens, keys, email addresses, or
   phone numbers in your output.
 - DO NOT translate ticker symbols or canonical English fund/index
@@ -633,12 +632,12 @@ def format_lookahead_section(rendered_lines: str) -> str:
     of ``- YYYY-MM-DD: <symbol/event>`` rows produced from items whose
     ``scheduled_at`` is set. The caller is responsible for the per-
     segment sub-cap (12 items max, u35 budget). Pass an empty string
-    to emit the "no lookahead" note instead — that branch fires when
-    no opt-in adapter contributed forward items.
+    to omit the block entirely when no opt-in adapter contributed
+    forward items.
     """
     body = rendered_lines.strip()
     if not body:
-        body = LOOKAHEAD_EMPTY_NOTE
+        return ""
     return f"\n{LOOKAHEAD_HEADER}\n\n{LOOKAHEAD_INTRO}\n\n{body}\n"
 
 
@@ -651,13 +650,13 @@ def format_recent_context_section(rendered_lines: str) -> str:
     truncation; this helper only stitches the standard header / intro
     around the body.
 
-    Pass an empty string to emit the "no recent context" note instead;
-    that branch is what ``_stage_generate_segments`` triggers on a
-    fresh repo / first publish.
+    Pass an empty string to omit the block entirely; that branch is
+    what ``_stage_generate_segments`` triggers on a fresh repo / first
+    publish.
     """
     body = rendered_lines.strip()
     if not body:
-        body = RECENT_CONTEXT_EMPTY_NOTE
+        return ""
     return f"\n{RECENT_CONTEXT_HEADER}\n\n{RECENT_CONTEXT_INTRO}\n\n{body}\n"
 
 
@@ -707,11 +706,11 @@ def format_bundle_context_section(rendered_body: str) -> str:
     JSON dump of the BundleContext (close_state per segment + shared
     macro flag + cross_market_core_allowed list). Empty input falls
     through to the "no BundleContext" note so the LLM gets an explicit
-    acknowledgement.
+    acknowledgement when data exists. Empty input omits the block.
     """
     body = rendered_body.strip()
     if not body:
-        body = BUNDLE_CONTEXT_EMPTY_NOTE
+        return ""
     return f"\n{BUNDLE_CONTEXT_HEADER}\n\n{BUNDLE_CONTEXT_INTRO}\n\n{body}\n"
 
 
@@ -721,13 +720,12 @@ def format_carryover_section(rendered_lines: str) -> str:
     ``rendered_lines`` is the caller-built body — typically a sequence
     of ``- [event_type] ticker_or_topic | 발원=YYYY-MM-DD | 기대=YYYY-
     MM-DD | 상태=...`` rows produced from a :class:`BriefingCarryover`.
-    Empty input falls through to the "no carryover" note so the LLM
-    sees an explicit acknowledgement (CARRY-4 enforces "no row =>
-    skip table").
+    Empty input omits the block (CARRY-4 enforces "no row => skip
+    table").
     """
     body = rendered_lines.strip()
     if not body:
-        body = CARRYOVER_CONTEXT_EMPTY_NOTE
+        return ""
     return f"\n{CARRYOVER_CONTEXT_HEADER}\n\n{CARRYOVER_CONTEXT_INTRO}\n\n{body}\n"
 
 

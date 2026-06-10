@@ -39,6 +39,10 @@ def test_constant_is_non_empty_str(constant: str) -> None:
     assert len(constant) > 0
 
 
+def test_stage2_system_prompt_is_smaller_than_pre_u93_baseline() -> None:
+    assert len(STAGE2_SYSTEM.encode("utf-8")) < 19670
+
+
 # --- Stage 1 prompt anchors -------------------------------------------------
 
 
@@ -124,11 +128,14 @@ def test_stage2_system_lists_all_six_section_headers() -> None:
 
 
 def test_stage2_system_excludes_disclaimer_section() -> None:
-    """R5 — Stage 2 must NOT include section ⑦. The system prompt must
-    explicitly forbid the LLM from emitting it.
+    """R5 — Stage 2 emits only the six requested sections.
+
+    u93 no longer spends prompt bytes naming the deterministic footer
+    section; the publisher gate owns the disclaimer/footer contract.
     """
-    assert "DO NOT include section ⑦" in STAGE2_SYSTEM
-    assert "⑦" in STAGE2_SYSTEM  # mention only in the prohibition context
+    assert "Publisher gates enforce compliance/disclaimer" in STAGE2_SYSTEM
+    assert "emit only six sections" in STAGE2_SYSTEM
+    assert "⑦" not in STAGE2_SYSTEM
 
 
 def test_stage2_system_carries_korean_ticker_rule() -> None:
@@ -267,16 +274,12 @@ def test_format_lookahead_section_renders_body_with_header_and_intro() -> None:
     assert LOOKAHEAD_EMPTY_NOTE not in rendered
 
 
-def test_format_lookahead_section_uses_empty_note_for_blank_body() -> None:
-    rendered = format_lookahead_section("")
-    assert LOOKAHEAD_HEADER in rendered
-    assert LOOKAHEAD_EMPTY_NOTE in rendered
+def test_format_lookahead_section_omits_blank_body() -> None:
+    assert format_lookahead_section("") == ""
 
 
-def test_format_recent_context_section_uses_empty_note_for_blank_body() -> None:
-    rendered = format_recent_context_section("")
-    assert RECENT_CONTEXT_EMPTY_NOTE in rendered
-    assert RECENT_CONTEXT_HEADER in rendered
+def test_format_recent_context_section_omits_blank_body() -> None:
+    assert format_recent_context_section("") == ""
 
 
 def test_stage2_system_forbids_arithmetic_hallucination() -> None:
@@ -323,6 +326,25 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     assert "{carryover_context}" in STAGE2_USER_TEMPLATE
     # u57 — BundleContext same-run market-state block.
     assert "{bundle_context}" in STAGE2_USER_TEMPLATE
+
+
+def test_stage2_user_template_empty_optional_contexts_do_not_emit_headings() -> None:
+    rendered = STAGE2_USER_TEMPLATE.format(
+        segment_context=DEFAULT_SEGMENT_CONTEXT,
+        grouped_sections="(grouped content)",
+        required_macro_actuals="(required macro content)",
+        unassigned="(unassigned content)",
+        target_date="2026-04-28",
+        recent_context="",
+        lookahead_context="",
+        carryover_context="",
+        bundle_context="",
+    )
+
+    assert "최근 N일 컨텍스트" not in rendered
+    assert "주요 일정" not in rendered
+    assert "Watchlist Carryover" not in rendered
+    assert "BundleContext" not in rendered
 
 
 def test_stage1_system_contains_required_macro_contract() -> None:

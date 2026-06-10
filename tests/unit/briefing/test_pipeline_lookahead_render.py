@@ -7,9 +7,8 @@ silently change the bytes the LLM sees.
 
 Branches covered:
 
-1. No items with ``scheduled_at`` set → emits the empty-note header
-   (LLM sees an explicit "no lookahead" acknowledgement, never a
-   silent omission).
+1. No items with ``scheduled_at`` set → returns ``""`` so Stage 2
+   prompt bytes are not spent on an empty optional block.
 2. Items with ``scheduled_at`` set → emits the standard header +
    intro + one bullet per item.
 3. Mixed bag (backward + forward items) → only the forward subset is
@@ -26,11 +25,7 @@ from investo.briefing.pipeline import (
     _render_lookahead_context_block,
     _select_llm_candidate_items,
 )
-from investo.briefing.prompts import (
-    LOOKAHEAD_EMPTY_NOTE,
-    LOOKAHEAD_HEADER,
-    LOOKAHEAD_INTRO,
-)
+from investo.briefing.prompts import LOOKAHEAD_HEADER
 from investo.models import NormalizedItem
 
 
@@ -54,17 +49,11 @@ def _lookahead(idx: int, source: str = "nasdaq-earnings-calendar") -> Normalized
 
 
 def test_lookahead_block_empty_when_no_scheduled_items() -> None:
-    """Pure backward bucket → empty-note branch."""
+    """Pure backward bucket → optional block omitted."""
     items = (_backward(1), _backward(2), _backward(3))
     rendered = _render_lookahead_context_block(items)
 
-    assert LOOKAHEAD_HEADER in rendered
-    assert LOOKAHEAD_INTRO in rendered
-    assert LOOKAHEAD_EMPTY_NOTE in rendered
-    # Backward titles must not leak through; the empty note's literal
-    # "forward-looking" English phrase is not the same shape as a
-    # rendered item bullet (``- YYYY-MM-DD: [src] title``).
-    assert "[yfinance-price]" not in rendered
+    assert rendered == ""
 
 
 def test_lookahead_block_renders_only_scheduled_items() -> None:
@@ -77,8 +66,6 @@ def test_lookahead_block_renders_only_scheduled_items() -> None:
     assert "forward-2" in rendered
     # Backward items must not leak into the lookahead block.
     assert "backward-" not in rendered
-    # The empty-note branch must NOT fire when forward items exist.
-    assert LOOKAHEAD_EMPTY_NOTE not in rendered
 
 
 def test_lookahead_block_carries_scheduled_date_per_row() -> None:

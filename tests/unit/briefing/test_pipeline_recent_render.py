@@ -8,8 +8,8 @@ so future template tweaks cannot silently change the bytes the LLM sees:
 1. ``segment is None`` — unsegmented legacy path returns ``""``.
 2. ``recent_context is None`` — segment supplied but loader skipped
    returns ``""``.
-3. ``entries`` empty for the requested segment — emits the standard
-   "no recent context" note (header + intro + empty-body sentinel).
+3. ``entries`` empty for the requested segment — returns ``""`` so
+   Stage 2 prompt bytes are not spent on an empty optional block.
 4. ``entries`` present — emits the standard header + intro + each
    entry rendered via :func:`_render_recent_entry`.
 
@@ -29,7 +29,6 @@ from investo.briefing.pipeline import (
     _render_recent_entry,
 )
 from investo.briefing.prompts import (
-    RECENT_CONTEXT_EMPTY_NOTE,
     RECENT_CONTEXT_HEADER,
     RECENT_CONTEXT_INTRO,
 )
@@ -87,18 +86,13 @@ def test_render_recent_context_block_context_none_returns_empty_string() -> None
     assert rendered == ""
 
 
-def test_render_recent_context_block_empty_entries_emits_no_context_note() -> None:
-    """Branch 3 — requested segment has no entries emits the empty-note block."""
+def test_render_recent_context_block_empty_entries_returns_empty_string() -> None:
+    """Branch 3 — requested segment has no entries yields ``""``."""
     rendered = _render_recent_context_block(
         segment=US_EQUITY,
         recent_context=_context(()),
     )
-    assert RECENT_CONTEXT_HEADER in rendered
-    assert RECENT_CONTEXT_INTRO in rendered
-    assert RECENT_CONTEXT_EMPTY_NOTE in rendered
-    # No entry markers must leak into the empty branch.
-    assert '결론="' not in rendered
-    assert '핵심 동인="' not in rendered
+    assert rendered == ""
 
 
 def test_render_recent_context_block_with_entries_pins_full_shape() -> None:
@@ -125,8 +119,6 @@ def test_render_recent_context_block_with_entries_pins_full_shape() -> None:
     )
     expected = f"\n{RECENT_CONTEXT_HEADER}\n\n{RECENT_CONTEXT_INTRO}\n\n{expected_body}\n"
     assert rendered == expected
-    # Empty-note must not leak into the populated branch.
-    assert RECENT_CONTEXT_EMPTY_NOTE not in rendered
 
 
 # ---------------------------------------------------------------------------

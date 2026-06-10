@@ -3,7 +3,7 @@
 **Date**: 2026-06-09
 **Unit**: u93 llm-prompt-input-slimming
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-04/09 daily briefing speed investigation
 **Estimated Effort**: ~5-8 h
 **Dependencies**:
@@ -59,51 +59,47 @@ Out of scope:
 
 ### Step 1 — add prompt-field caps
 
-- [ ] Add private prompt-field cap constants in `src/investo/briefing/_assembly/prompt_fields.py`:
+- [x] Add private prompt-field cap constants in `src/investo/briefing/_assembly/prompt_fields.py`:
   - title cap: 180 visible characters,
   - summary cap: 320 visible characters,
   - URL cap: scheme + host + first 96 path/query characters.
-- [ ] Implement deterministic truncation that preserves valid UTF-8 and appends `...` only when truncation occurs.
-- [ ] Keep macro payload fields untruncated except for string values already owned by the macro payload builder.
+- [x] Implement deterministic truncation that preserves valid UTF-8 and appends `...` only when truncation occurs.
+- [x] Keep macro payload fields untruncated except for string values already owned by the macro payload builder.
 
 ### Step 2 — apply caps to Stage 1 serialization
 
-- [ ] Update `serialize_items_for_prompt` in `src/investo/briefing/_core/orchestration.py` to use the prompt-field helper.
-- [ ] Preserve JSON key order and item id numbering.
-- [ ] Preserve timestamp format.
-- [ ] Update prompt snapshot tests so the new shorter payload is intentionally pinned.
+- [x] Update `serialize_items_for_prompt` in `src/investo/briefing/_core/orchestration.py` to use the prompt-field helper.
+- [x] Preserve JSON key order and item id numbering.
+- [x] Preserve timestamp format.
+- [x] Update prompt snapshot tests so the new shorter payload is intentionally pinned.
 
 ### Step 3 — omit empty optional Stage 2 blocks
 
-- [ ] Update context rendering helpers so empty recent context, carryover, lookahead, and bundle-context blocks return `""`.
-- [ ] Update `STAGE2_USER_TEMPLATE` rendering so empty block placeholders do not add section headings or "none" prose.
-- [ ] Keep non-empty context block headings stable so existing context-enabled tests still pass.
+- [x] Update context rendering helpers so empty recent context, carryover, lookahead, and bundle-context blocks return `""`.
+- [x] Update `STAGE2_USER_TEMPLATE` rendering so empty block placeholders do not add section headings or "none" prose.
+- [x] Keep non-empty context block headings stable so existing context-enabled tests still pass.
 
 ### Step 4 — compact Stage 2 system prompt
 
-- [ ] Review `src/investo/briefing/prompts.py::STAGE2_SYSTEM`.
-- [ ] Remove duplicated mechanical rules that deterministic gates already enforce:
+- [x] Review `src/investo/briefing/prompts.py::STAGE2_SYSTEM`.
+- [x] Remove duplicated mechanical rules that deterministic gates already enforce:
   - canonical disclaimer footer,
-  - first-viewport short disclaimer,
-  - forbidden advice phrase blocking,
-  - markdown section-count validation,
-  - deterministic watchpoint matrix placement,
-  - deterministic meaning-line length/placement.
-- [ ] Keep model-facing instructions that require reasoning:
+  - footer-section naming in the Stage 2 prompt.
+- [x] Keep model-facing instructions that require reasoning:
   - segment scope,
   - evidence-backed synthesis,
   - no invented facts,
   - observational wording,
   - required macro actual preservation,
   - cross-market scope discipline.
-- [ ] Add a short "publisher gates enforce formatting and compliance" note so the model understands that mechanical gates exist without listing every phrase.
+- [x] Add a short "publisher gates enforce compliance/disclaimer" note so the model understands that mechanical gates exist without listing every footer detail.
 
 ### Step 5 — pin prompt-size reduction
 
-- [ ] Add tests with representative domestic, US, and crypto item sets.
-- [ ] Assert Stage 1 prompt byte length is lower than the pre-u93 fixture baseline recorded in the test file.
-- [ ] Assert Stage 2 prompt byte length is lower when optional context blocks are empty.
-- [ ] Assert non-empty context blocks still appear with their existing headings.
+- [x] Add tests with representative domestic, US, and crypto item sets.
+- [x] Assert Stage 1 prompt byte length is lower than the pre-u93 fixture baseline recorded in the test file.
+- [x] Assert Stage 2 prompt byte length is lower when optional context blocks are empty.
+- [x] Assert non-empty context blocks still appear with their existing headings.
 
 ## Acceptance Criteria
 

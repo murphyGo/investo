@@ -20,6 +20,11 @@ from datetime import UTC, date, datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 
+from investo.briefing._assembly.prompt_fields import (
+    _STAGE1_SUMMARY_MAX_CHARS,
+    _STAGE1_TITLE_MAX_CHARS,
+    _STAGE1_URL_PATH_QUERY_MAX_CHARS,
+)
 from investo.briefing.pipeline import (
     ClassificationResult,
     SectionPlan,
@@ -148,6 +153,67 @@ def test_serialize_collapses_none_summary_and_url_to_empty_string() -> None:
 
     assert payload[0]["summary"] == ""
     assert payload[0]["url"] == ""
+
+
+@pytest.mark.parametrize(
+    ("source_name", "category"),
+    [
+        ("stooq-kr-market", "price"),
+        ("nasdaq-stocks-news", "news"),
+        ("coingecko-price", "price"),
+    ],
+)
+def test_serialize_caps_stage1_prompt_fields_for_representative_segments(
+    source_name: str,
+    category: str,
+) -> None:
+    title = "긴 제목 " * 80
+    summary = "긴 요약 문장 " * 120
+    path_query = "/" + ("very-long-path-segment/" * 12) + "?utm_source=" + ("x" * 120)
+    url = f"https://example.com{path_query}"
+    item = _item(
+        source_name=source_name,
+        category=category,
+        title=title,
+        summary=summary,
+        url=url,
+    )
+    pre_u93_serialized = json.dumps(
+        [
+            {
+                "id": 1,
+                "category": category,
+                "source": source_name,
+                "title": title,
+                "summary": summary,
+                "url": url,
+                "ts": item.published_at.astimezone(UTC).isoformat(),
+            }
+        ],
+        ensure_ascii=False,
+    )
+
+    serialized = serialize_items_for_prompt([item])
+    payload = json.loads(serialized)
+
+    assert len(serialized.encode("utf-8")) < len(pre_u93_serialized.encode("utf-8"))
+    assert payload[0]["id"] == 1
+    assert payload[0]["category"] == category
+    assert payload[0]["source"] == source_name
+    assert payload[0]["ts"] == item.published_at.astimezone(UTC).isoformat()
+    assert payload[0]["title"].endswith("...")
+    assert len(payload[0]["title"]) == _STAGE1_TITLE_MAX_CHARS
+    assert payload[0]["summary"].endswith("...")
+    assert len(payload[0]["summary"]) == _STAGE1_SUMMARY_MAX_CHARS
+    assert payload[0]["url"].startswith("https://example.com/")
+    assert payload[0]["url"].endswith("...")
+    assert (
+        len(payload[0]["url"].removeprefix("https://example.com"))
+        == _STAGE1_URL_PATH_QUERY_MAX_CHARS
+    )
+    payload[0]["title"].encode("utf-8")
+    payload[0]["summary"].encode("utf-8")
+    payload[0]["url"].encode("utf-8")
 
 
 def test_serialize_renders_published_at_as_utc_isoformat() -> None:

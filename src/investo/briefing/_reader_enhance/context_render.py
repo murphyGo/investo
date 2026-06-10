@@ -56,9 +56,8 @@ def _render_recent_context_block(
     already provides whitespace structure.
 
     When ``recent_context.is_empty()`` (or the per-segment list is
-    empty) the rendered block carries the "no recent context" note so
-    the LLM still sees an explicit acknowledgement that the context is
-    intentionally absent (vs. silently missing).
+    empty), u93 omits the optional block to avoid spending prompt
+    bytes on empty context.
 
     Each entry collapses to a single line: the loader has already
     truncated the conclusion / drivers fields to the per-day budget;
@@ -97,8 +96,7 @@ def _render_carryover_context_block(
 
     Returns the empty string when ``carryover`` is ``None`` (legacy /
     unsegmented path; the prompt template absorbs the placeholder
-    cleanly). When ``carryover.is_empty`` the block carries the "no
-    carryover" note so the LLM sees an explicit acknowledgement.
+    cleanly). When ``carryover.is_empty``, u93 omits the optional block.
 
     Otherwise emits one deterministic row per item in the order:
     resolved first, then unresolved (carried_over rows are mixed into
@@ -180,9 +178,8 @@ def _render_lookahead_context_block(items: Sequence[NormalizedItem]) -> str:
 
     Walks ``items`` (already capped by :func:`_select_llm_candidate_items`)
     pulling out rows whose ``scheduled_at`` is set and emitting one
-    bullet line per row. Empty input falls through to the
-    "no lookahead" note so the LLM sees an explicit acknowledgement
-    rather than silently dropping the rule.
+    bullet line per row. Empty input returns ``""`` so quiet days do
+    not spend prompt bytes on an empty optional block.
 
     Each row is intentionally compact (date + source + title) — the
     block must stay under the ~300-char-per-segment budget the plan
