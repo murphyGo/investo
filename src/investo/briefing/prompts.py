@@ -239,10 +239,10 @@ Rules:
 - Each section non-blank. If the grouped items are empty for a
   given section, write one concise sentence about the missing evidence
   instead of repeating generic "데이터 부족" paragraphs.
-- Write like a market newsletter, not a raw bullet dump: section ①
-  should establish the day's narrative, sections ②-⑤ should explain
-  cause/effect and prioritise only the most important items, and
-  section ⑥ should translate the story into concrete watch points.
+- Write like a market newsletter. Use prompt-only
+  ``tier`` metadata to lead ①/early ② with ``core`` evidence, then explain
+  with ②-⑤; never let ``watchlist_only`` define the thesis. Don't copy
+  tier labels. Section ⑥ translates the story into concrete watch points.
 - Avoid exaggerated promotional language. Prefer verifiable wording
   such as "상승", "하락", "순매수", "사상 최고치" over hype terms.
 - When a source URL is provided in the grouped items, attach source

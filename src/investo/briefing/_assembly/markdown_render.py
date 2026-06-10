@@ -18,7 +18,7 @@ from investo.briefing._assembly.prompt_fields import (
     _render_prompt_url,
     _truncate_prompt_field,
 )
-from investo.briefing._core.section_planning import SectionPlan
+from investo.briefing._core.section_planning import SectionPlan, StoryMetadata, story_identity
 from investo.models import NormalizedItem
 from investo.models.macro import macro_prompt_payload
 from investo.models.segments import MarketSegment
@@ -41,6 +41,7 @@ _STAGE2_SUMMARY_MAX_CHARS: Final[int] = 260
 def _render_grouped_sections(
     items_by_section: dict[int, tuple[NormalizedItem, ...]],
     *,
+    story_metadata: dict[str, StoryMetadata] | None = None,
     segment: MarketSegment | None = None,
 ) -> str:
     """Render the per-section items as bullet text for Stage 2 prompt.
@@ -65,7 +66,8 @@ def _render_grouped_sections(
             parts.append("  (no items)")
         else:
             section_limit = min(max_per_section, remaining_total)
-            rendered_items = items[:section_limit]
+            sorted_items = _sort_for_story(items, story_metadata=story_metadata)
+            rendered_items = sorted_items[:section_limit]
             for item in rendered_items:
                 title = _truncate_prompt_field(item.title, _STAGE2_TITLE_MAX_CHARS)
                 summary = _truncate_prompt_field(
@@ -73,10 +75,11 @@ def _render_grouped_sections(
                     _STAGE2_SUMMARY_MAX_CHARS,
                 )
                 url = _render_prompt_url(item.url)
+                story_prefix = _render_story_prefix(item, story_metadata=story_metadata)
                 if summary:
-                    parts.append(f"  - [{item.source_name}] {title}{url} — {summary}")
+                    parts.append(f"  - {story_prefix}[{item.source_name}] {title}{url} — {summary}")
                 else:
-                    parts.append(f"  - [{item.source_name}] {title}{url}")
+                    parts.append(f"  - {story_prefix}[{item.source_name}] {title}{url}")
             omitted = len(items) - len(rendered_items)
             if omitted > 0:
                 parts.append(
@@ -146,9 +149,45 @@ def _grouped_stage2_rendered_items(
     for section_id in (2, 3, 4, 5):
         items = plan.items_by_section.get(section_id, ())
         section_limit = min(max_per_section, remaining_total)
-        rendered.extend(items[:section_limit])
+        sorted_items = _sort_for_story(items, story_metadata=plan.story_metadata)
+        rendered.extend(sorted_items[:section_limit])
         remaining_total -= min(len(items), section_limit)
     return tuple(rendered)
+
+
+def _sort_for_story(
+    items: tuple[NormalizedItem, ...],
+    *,
+    story_metadata: dict[str, StoryMetadata] | None,
+) -> tuple[NormalizedItem, ...]:
+    if not story_metadata:
+        return items
+    return tuple(
+        sorted(
+            items,
+            key=lambda item: (
+                -story_metadata.get(story_identity(item), StoryMetadata("context", 100, ())).score,
+                -item.published_at.timestamp(),
+                item.source_name,
+                item.title,
+                story_identity(item),
+            ),
+        )
+    )
+
+
+def _render_story_prefix(
+    item: NormalizedItem,
+    *,
+    story_metadata: dict[str, StoryMetadata] | None,
+) -> str:
+    if not story_metadata:
+        return ""
+    metadata = story_metadata.get(story_identity(item))
+    if metadata is None:
+        return ""
+    reasons = ",".join(metadata.reasons)
+    return f"[tier={metadata.tier} score={metadata.score} reasons={reasons}] "
 
 
 def _stage2_retry_feedback(cause: BaseException | None) -> str:

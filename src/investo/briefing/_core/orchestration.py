@@ -362,7 +362,11 @@ async def _synthesize(
     segment has no carryover from prior briefings (matching CARRY-4:
     omit the table rather than fabricate rows).
     """
-    grouped = _render_grouped_sections(plan.items_by_section, segment=segment)
+    grouped = _render_grouped_sections(
+        plan.items_by_section,
+        story_metadata=plan.story_metadata,
+        segment=segment,
+    )
     required_macro_actuals = _render_required_macro_actuals(plan.required_macro_items)
     unassigned = _render_unassigned(plan.unassigned, segment=segment)
     user_prompt = STAGE2_USER_TEMPLATE.format(

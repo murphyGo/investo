@@ -125,7 +125,11 @@ from investo.briefing._core.orchestration import (
 )
 from investo.briefing._core.section_planning import (
     SectionPlan,
+    StoryMetadata,
+    StoryTier,
+    assign_story_metadata,
     build_section_plan,
+    story_identity,
 )
 from investo.briefing._core.section_planning import (
     _required_macro_item_ids as _required_macro_item_ids,
@@ -556,8 +560,12 @@ __all__ = [
     "MAX_ATTEMPTS",
     "ClassificationResult",
     "SectionPlan",
+    "StoryMetadata",
+    "StoryTier",
+    "assign_story_metadata",
     "build_section_plan",
     "generate_briefing",
     "parse_six_sections",
     "serialize_items_for_prompt",
+    "story_identity",
 ]
