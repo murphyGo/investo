@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-09 begin -->
+
+## 2026-06-09
+
+- [defillama-market-structure] **ticker**: DeFi TVL $71.0B; leader Ethereum
+- [theblock-crypto] **ticker**: Wallets linked to Humanity Protocol drained for over $32 million, token plunges 89%: onchain analyst
+
+<!-- u33 entry 2026-06-09 end -->
 <!-- u33 entry 2026-06-08 begin -->
 
 ## 2026-06-08

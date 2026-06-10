@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-09 begin -->
+
+## 2026-06-09
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,197,565,097,486; BTC dominance 55.90%
+- [defillama-market-structure] **ticker**: DeFi TVL $71.0B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $455,135,000 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000636981435931 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: US Bitcoin ETFs log further outflows, though analyst sees signs of easing selling pressure
+- [theblock-crypto] **ticker**: ‘Stuck in distribution’: Bitcoin slips below $63,000 as analysts warn rallies are being sold, not bought
+
+<!-- u33 entry 2026-06-09 end -->
 <!-- u33 entry 2026-06-08 begin -->
 
 ## 2026-06-08
