@@ -200,6 +200,23 @@ Deduplicated out:
 - No generic chart redesign: u75 changes payload ownership/lazy loading, not chart semantics.
 - No generic glossary/carryover work: u76 excludes u68 mechanics and focuses on section-level meaning prose.
 
+### u92-u95 Planning Notes
+
+The 2026-06-04/09 daily-briefing speed investigation was deduplicated against existing runtime and briefing units before adding new work. u10 already logs source item counts and windows, u13 already caps candidate count, u75 already externalizes chart payloads for reader-side performance, and u84 already gives the orchestrator a stage abstraction. The remaining speed work is not another generic quality unit: it splits into measurement, prompt-byte reduction, bounded segment concurrency, and non-LLM critical-path budget.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u92 daily-briefing-runtime-observability | Coarse `generate` timing hides source, segment, context, visual, and LLM-attempt bottlenecks | FR-005, FR-007, FR-008, NFR-001, NFR-003 | u10 source diagnostics, u84 stage abstraction, GitHub step summary |
+| u93 llm-prompt-input-slimming | Stage 1 sends uncapped prompt fields and Stage 2 carries large mechanical instructions/empty context blocks | FR-002, FR-008, FR-009, NFR-001, NFR-002 | u13 candidate caps, u55/u56/u61/u72/u76 gates |
+| u94 bounded-segment-generation-concurrency | Domestic, US, and crypto segment LLM work runs sequentially even though failures are isolated per segment | FR-005, FR-008, NFR-001, NFR-003, NFR-007 | u7 segmented briefing, u84 stage abstraction, u92 timing |
+| u95 workflow-and-enrichment-critical-path-budget | GitHub setup, market-anchor history fetch, and visual preparation sit on the critical path after the core pipeline has grown | FR-003, FR-005, FR-008, NFR-001, NFR-002, NFR-003 | u6 infra/CI, u49 anchors, u50/u75 visual/chart assets, u92 timing |
+
+Deduplicated out:
+- No generic source concurrency unit: `sources.aggregator.collect_sources` already runs registered adapters through `asyncio.gather`; u92 measures slow adapters before adapter-specific optimization.
+- No second candidate-cap unit: u13 owns item-count caps; u93 owns prompt-field byte caps and empty optional context omission.
+- No top-level orchestrator overlap unit: u84 keeps stage sequencing explicit; u94 only changes independent segment generation inside the generate stage.
+- No chart redesign or visual product unit: u95 only constrains best-effort enrichment cost and workflow cold-start time.
+
 ---
 
 ## Definition of Done — Inception Phase Output

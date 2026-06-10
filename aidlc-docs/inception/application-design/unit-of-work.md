@@ -1125,6 +1125,118 @@ Plan: `aidlc-docs/construction/plans/u87-watchpoint-matrix-rehabilitation-code-g
 
 ---
 
+### u92: `daily-briefing-runtime-observability` — Source/Segment/LLM Timing Surface
+
+**Purpose**: Make daily briefing speed bottlenecks visible before changing runtime behavior. Today the GitHub summary exposes coarse stage timings, but `generate` hides context loading, market-anchor history fetch, three segment LLM generations, visual preparation, reader-format transforms, and publish-boundary work under one number. This unit adds structured timing for source adapters, segment generation, and each Claude attempt.
+
+**Stories**: FR-005 (scheduled run), FR-007 (operator alerting), FR-008 (segmented briefing), NFR-001 (performance), NFR-003 (graceful degradation)
+
+**Existing coverage / deduplication**:
+- Extends u10 source diagnostics from item-count/window visibility to elapsed-time visibility.
+- Extends u84 stage abstraction without changing the top-level stage order or failure routing.
+- Does not parallelize source collection or segment generation; it only measures and reports.
+
+**Module path**:
+- `src/investo/sources/aggregator.py` and `src/investo/models/coverage.py` — per-source elapsed seconds on `SourceOutcome`
+- `src/investo/briefing/_core/orchestration.py` — LLM attempt timing logs for classification/synthesis
+- `src/investo/orchestrator/pipeline.py` — synthetic sub-stage timings for context, per-segment generation, reader-format, and visual assets
+- `src/investo/__main__.py` — GitHub step summary rendering for the new timings
+- `tests/unit/sources/`, `tests/unit/briefing/`, `tests/unit/orchestrator/` — timing and summary fixtures
+
+**Definition of Done**:
+- [ ] Each source adapter outcome carries elapsed seconds and the GitHub step summary displays the slowest sources without exposing secrets.
+- [ ] Each segment generation records a timing key: `generate:domestic-equity`, `generate:us-equity`, and `generate:crypto`.
+- [ ] Generate-stage context loading and reader-format work have separate timing keys.
+- [ ] Each Claude attempt emits one structured INFO log with segment, LLM stage, attempt index, timeout, elapsed seconds, prompt byte length, stdout length, stderr length, and return code.
+- [ ] Existing `PipelineResult.stage_timings` validation remains backward-compatible for older callers.
+
+Plan: `aidlc-docs/construction/plans/u92-daily-briefing-runtime-observability-code-generation-plan.md`.
+
+---
+
+### u93: `llm-prompt-input-slimming` — Reduce Prompt Bytes Without Dropping Evidence
+
+**Purpose**: Reduce daily briefing generation time by shrinking LLM prompts before concurrency changes. The current segmented path sends up to 96 candidates to Stage 1 with uncapped title/summary/URL fields, then sends a large Stage 2 system prompt plus optional context blocks. u93 keeps the existing candidate set and validation gates but trims prompt-only bytes.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-001 (performance), NFR-002 (cost)
+
+**Existing coverage / deduplication**:
+- Extends u13 candidate caps; u13 limits item count, while u93 limits prompt-field size and empty optional context text.
+- Does not remove u55 numeric gates, u56 compliance gates, u61 first-viewport gate, u72/u87 watchpoint rules, or u76 meaning-line validation.
+- Does not change source collection, segment routing, or publish-boundary validation.
+
+**Module path**:
+- `src/investo/briefing/_core/orchestration.py` — Stage 1 prompt serialization caps and prompt-size logs
+- `src/investo/briefing/_assembly/prompt_fields.py` and `_reader_enhance/context_render.py` — compact prompt fields and empty optional context omission
+- `src/investo/briefing/prompts.py` — compact Stage 2 system prompt text that references deterministic gates by contract name
+- `tests/unit/briefing/` — prompt snapshot and semantic regression fixtures
+
+**Definition of Done**:
+- [ ] Stage 1 serialization caps title, summary, and URL fields with deterministic truncation while preserving macro payloads.
+- [ ] Empty recent-context, carryover, lookahead, and bundle-context blocks are omitted from Stage 2 prompts.
+- [ ] The Stage 2 system prompt removes mechanical rules already enforced by deterministic publisher/validator gates and keeps model-reasoning rules explicit.
+- [ ] Prompt byte counts are lower in pinned tests for representative domestic, US, and crypto segment fixtures.
+- [ ] Generated markdown still passes existing section, disclaimer, compliance, numeric, watchpoint, meaning-line, and quality replay tests.
+
+Plan: `aidlc-docs/construction/plans/u93-llm-prompt-input-slimming-code-generation-plan.md`.
+
+---
+
+### u94: `bounded-segment-generation-concurrency` — Parallelize Independent Segment LLM Work
+
+**Purpose**: Reduce wall-clock generation time by running independent market segment generation concurrently under an explicit concurrency limit. Current `_stage_generate_segments` awaits domestic, US, and crypto in fixed order; each segment performs Stage 1 classification and Stage 2 synthesis before the next segment starts.
+
+**Stories**: FR-005 (scheduled run), FR-008 (segmented briefing), NFR-001 (performance), NFR-003 (graceful degradation), NFR-007 (secret hygiene)
+
+**Existing coverage / deduplication**:
+- Builds on u7 segmented briefing and u84 stage abstraction; it changes only intra-generate segment fanout.
+- Requires u92 observability so before/after behavior is measured in GitHub summary.
+- Does not overlap top-level collect/generate/publish/notify stages and does not change partial-publish semantics.
+
+**Module path**:
+- `src/investo/orchestrator/pipeline.py` — bounded segment task fanout inside `_stage_generate_segments`
+- `src/investo/orchestrator/validators.py` or a small orchestrator config helper — `INVESTO_SEGMENT_GENERATION_CONCURRENCY` parsing
+- `tests/unit/orchestrator/test_stage_generate.py` and `tests/unit/orchestrator/test_run_pipeline.py` — ordering, failures, and partial-publish fixtures
+
+**Definition of Done**:
+- [ ] `INVESTO_SEGMENT_GENERATION_CONCURRENCY` accepts integer values 1 through 3, defaults to 1 for a behavior-preserving rollout, and rejects invalid values with a deterministic fallback to 1 plus a warning log.
+- [ ] With concurrency 2 or 3, segment generation tasks start before earlier sibling segments finish.
+- [ ] Per-segment `BriefingGenerationError` isolation is unchanged: one failed segment still allows remaining successful segments to publish; all failed segments still fail the pipeline.
+- [ ] Macro lineage, bundle context, market anchors, carryover, and source outcomes remain segment-scoped and deterministic.
+- [ ] Existing tests that forbid top-level stage `asyncio.gather` remain valid.
+
+Plan: `aidlc-docs/construction/plans/u94-bounded-segment-generation-concurrency-code-generation-plan.md`.
+
+---
+
+### u95: `workflow-and-enrichment-critical-path-budget` — Shorten Non-LLM Critical Path
+
+**Purpose**: Reduce daily briefing runtime outside the main LLM calls by tightening workflow cold-start setup and best-effort enrichment budgets. The GitHub workflow installs runtime tools on every run, the market-anchor helper performs a separate Yahoo history fetch before segment generation, and visual asset preparation runs per segment in sequence.
+
+**Stories**: FR-003 (static publishing), FR-005 (scheduled run), FR-008 (segmented briefing), NFR-001 (performance), NFR-002 (cost), NFR-003 (graceful degradation)
+
+**Existing coverage / deduplication**:
+- Extends u6 infra/CI but does not change cron semantics, secrets, Pages deploy, or exit-code mapping.
+- Extends u49/u50/u75 enrichment paths by constraining critical-path budget; it does not redesign charts or add new visual sources.
+- Requires u92 observability so workflow and enrichment improvements are measured.
+
+**Module path**:
+- `.github/workflows/daily-briefing.yml` — uv/npm cache, minimized Cairo install, setup-step timing comments
+- `src/investo/orchestrator/stage_context.py` and `src/investo/sources/yfinance_history.py` — faster graceful-degrade market-anchor history fetch
+- `src/investo/orchestrator/pipeline.py` and `src/investo/visuals/assets.py` — bounded concurrent visual preparation and tighter external-image budget
+- `tests/unit/orchestrator/`, `tests/unit/sources/test_yfinance_history.py`, `tests/unit/publisher/test_chart_assets.py` — degraded enrichment and workflow text guards
+
+**Definition of Done**:
+- [ ] Daily briefing workflow uses cacheable uv and npm setup without adding paid services or new secrets.
+- [ ] Cairo install is reduced to the packages required by the runtime OG-card preflight.
+- [ ] Market-anchor history fetch has a bounded total budget and logs graceful omission without delaying all segment generation beyond that budget.
+- [ ] Visual asset preparation can run per published segment under a bounded worker count and remains text-only on visual failure.
+- [ ] GitHub step summary shows workflow/runtime timing changes through u92 surfaces.
+
+Plan: `aidlc-docs/construction/plans/u95-workflow-and-enrichment-critical-path-budget-code-generation-plan.md`.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
