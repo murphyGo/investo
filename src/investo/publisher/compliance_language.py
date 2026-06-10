@@ -306,6 +306,13 @@ def _scan_substring_list(
             line_no, line_text = _line_of(masked, idx)
             line_start = masked.rfind("\n", 0, idx) + 1
             phrase_start_in_line = idx - line_start
+            if (
+                phrase == "확실"
+                and phrase_start_in_line > 0
+                and line_text[phrase_start_in_line - 1] == "불"
+            ):
+                start = idx + len(phrase)
+                continue
             if fixed_severity is not None:
                 severity: Severity = fixed_severity
             else:

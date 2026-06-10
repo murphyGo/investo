@@ -63,6 +63,11 @@ def test_p0_certainty_phrase_blocks_publish() -> None:
         scan_compliance(md, SEG)
 
 
+def test_uncertainty_word_does_not_trigger_certainty_phrase() -> None:
+    report = scan_compliance(_wrap("불확실성 확대가 관찰됩니다."), SEG)
+    assert report.p0_hits == ()
+
+
 @pytest.mark.parametrize(
     "phrase",
     ["30% 이상 수익 예상", "2배 상승", "50% 수익 가능", "10배 수익"],

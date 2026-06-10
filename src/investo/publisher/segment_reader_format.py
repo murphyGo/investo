@@ -29,6 +29,10 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Final
 
+from investo._internal.surface_quality import (
+    find_surface_quality_issues,
+    repair_surface_artifacts,
+)
 from investo.briefing.market_anchor import MarketAnchor
 from investo.briefing.segments import MarketSegment
 from investo.models import Briefing, NormalizedItem
@@ -53,6 +57,7 @@ from investo.publisher.crypto_indicators import (
     render_crypto_indicator_block,
 )
 from investo.publisher.daily_thesis import inject_daily_thesis_line
+from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.reader_format import (
     apply_reader_format,
     check_filler_phrase_density,
@@ -242,6 +247,35 @@ def apply_reader_format_to_segments(
         # diagnostics into a <details> block placed AFTER the summary
         # callouts. Pure str -> str, idempotent, disclaimer-preserving.
         markdown = reflow_first_viewport(markdown, segment=segment)
+        surface_issues_before = find_surface_quality_issues(markdown)
+        repaired_surface = repair_surface_artifacts(markdown)
+        if repaired_surface != markdown:
+            _logger.warning(
+                "surface_quality.repaired segment=%s",
+                segment,
+                extra={"segment": segment},
+            )
+            markdown = repaired_surface
+        surface_issues_after = find_surface_quality_issues(markdown)
+        for issue in (*surface_issues_before, *surface_issues_after):
+            if issue.severity == "warn":
+                _logger.warning(
+                    "surface_quality.%s segment=%s",
+                    issue.code,
+                    segment,
+                    extra={
+                        "segment": segment,
+                        "code": issue.code,
+                        "region": issue.region,
+                        "evidence_len": len(issue.evidence),
+                    },
+                )
+        blocking_issues = tuple(
+            issue for issue in surface_issues_after if issue.severity == "block"
+        )
+        if blocking_issues:
+            raise SurfaceQualityError(segment=segment, issues=blocking_issues)
+        scan_compliance(markdown, segment)
         check_sentence_ending_diversity(markdown, segment=segment)
         check_filler_phrase_density(markdown, segment=segment)
         if markdown == briefing.rendered_markdown:

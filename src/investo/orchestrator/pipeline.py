@@ -176,6 +176,7 @@ from investo.publisher import (
     PublisherDisclaimerError,
     PublisherGitError,
     PublisherIOError,
+    SurfaceQualityError,
     commit_and_push,
     publish_weekly_digest,
     update_weekly_index,
@@ -2313,7 +2314,11 @@ class GenerateStage:
                         seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
                     },
                 )
-            except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
+            except (
+                ComplianceLanguageError,
+                NumericAnchorReconciliationError,
+                SurfaceQualityError,
+            ) as exc:
                 reader_format_elapsed = time.monotonic() - reader_format_start
                 _logger.error(
                     "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
@@ -2574,6 +2579,7 @@ _PUBLISH_FAILURES: Final = (
     PublisherDisclaimerError,
     PublisherIOError,
     PublisherGitError,
+    SurfaceQualityError,
     QualityHistoryError,
     ForecastLogError,
 )
@@ -2597,6 +2603,7 @@ EXCEPTION_ROUTING: dict[type[BaseException], StageAction] = {
     ),
     PublisherIOError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     PublisherGitError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    SurfaceQualityError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     QualityHistoryError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     ForecastLogError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
 }

@@ -38,6 +38,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.surface_quality import has_blocking_surface_issue
 from investo.briefing._text.patterns import (
     MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE,
 )
@@ -175,6 +176,8 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         raise SummaryQualityError(
             f"unbalanced markdown link in first-viewport summary line: {prefix}"
         )
+    if has_blocking_surface_issue(value):
+        raise SummaryQualityError(f"surface-quality issue in first-viewport summary line: {prefix}")
     if _HEADING_RESIDUE_RE.search(value):
         raise SummaryQualityError(f"heading residue in first-viewport summary line: {prefix}")
     if _BROKEN_NUMERIC_BOLD_RE.search(value):

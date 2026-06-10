@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass
 from typing import Final
 
+from investo._internal.surface_quality import has_blocking_surface_issue
 from investo.briefing._assembly.text_normalize import (
     _clean_summary_line,
     _split_into_sentences,
@@ -72,6 +73,8 @@ def _is_unsafe_summary_candidate(candidate: str) -> bool:
     if candidate.count("[") != candidate.count("]"):
         return True
     if candidate.count("(") != candidate.count(")"):
+        return True
+    if has_blocking_surface_issue(candidate):
         return True
     if _HEADING_RESIDUE_RE.search(candidate):
         return True

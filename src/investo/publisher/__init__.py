@@ -61,6 +61,7 @@ from investo.publisher.errors import (
     PublisherError,
     PublisherGitError,
     PublisherIOError,
+    SurfaceQualityError,
 )
 from investo.publisher.git_ops import GitRunner, commit_and_push
 from investo.publisher.paths import ARCHIVE_ROOT, archive_path
@@ -89,6 +90,7 @@ __all__ = [
     "PublisherError",
     "PublisherGitError",
     "PublisherIOError",
+    "SurfaceQualityError",
     "archive_path",
     "commit_and_push",
     "publish_weekly_digest",

@@ -26,6 +26,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from investo._internal.surface_quality import SurfaceQualityIssue
 from investo._internal.text import truncate_stderr
 
 
@@ -118,9 +119,23 @@ class PublisherGitError(PublisherError):
         self.cause = cause
 
 
+class SurfaceQualityError(PublisherError):
+    """Publish-boundary block for unrepaired first-viewport artifacts."""
+
+    segment: str
+    issues: tuple[SurfaceQualityIssue, ...]
+
+    def __init__(self, *, segment: str, issues: tuple[SurfaceQualityIssue, ...]) -> None:
+        codes = ", ".join(issue.code for issue in issues)
+        super().__init__(f"surface quality blocked segment={segment}: {codes}")
+        self.segment = segment
+        self.issues = issues
+
+
 __all__ = [
     "PublisherDisclaimerError",
     "PublisherError",
     "PublisherGitError",
     "PublisherIOError",
+    "SurfaceQualityError",
 ]
