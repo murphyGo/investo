@@ -55,6 +55,8 @@ chain — the pin is a unit test (``test_reader_format_preserves_disclaimer``).
 
 from __future__ import annotations
 
+import re
+
 # Private regexes consumed by ``investo.publisher.watchpoint_matrix`` via the
 # historical ``from investo.publisher.reader_format import _BULLET_RE`` path.
 # Aliased (``X as X``) so mypy --strict treats them as explicit re-exports
@@ -108,6 +110,8 @@ from investo.publisher.reader_format.watchpoint_audit import (
     check_watchpoint_actionability,
 )
 
+_KR_CODE_LINK_RE = re.compile(r"(?<!\\)\[(\d{6})\](?=\()")
+
 
 def apply_reader_format(
     text: str,
@@ -137,10 +141,16 @@ def apply_reader_format(
     out = wrap_numbers_bold(out)
     out = dedupe_glossings(out)
     out = normalize_meaning_lines(out, segment=segment)
+    out = escape_krx_stock_code_link_fragments(out)
     combined = out + footer
     check_action_bullet_ratio(combined, segment=segment)
     check_watchpoint_actionability(combined, segment=segment)
     return combined
+
+
+def escape_krx_stock_code_link_fragments(text: str) -> str:
+    """Prevent ``종목[000000](가격...)`` from becoming a Markdown link."""
+    return _KR_CODE_LINK_RE.sub(r"\\[\1\\]", text)
 
 
 def _split_disclaimer_footer(text: str) -> tuple[str, str]:
@@ -175,6 +185,7 @@ __all__ = [
     "emit_first_viewport_disclaimer",
     "enforce_h3_subheadings",
     "ensure_tldr_block",
+    "escape_krx_stock_code_link_fragments",
     "normalize_meaning_lines",
     "reflow_first_viewport",
     "wrap_numbers_bold",

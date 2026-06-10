@@ -31,6 +31,7 @@ from investo.publisher.reader_format import (
     dedupe_glossings,
     enforce_h3_subheadings,
     ensure_tldr_block,
+    escape_krx_stock_code_link_fragments,
     wrap_numbers_bold,
 )
 
@@ -163,6 +164,20 @@ def test_wrap_numbers_bold_skips_link_urls() -> None:
 def test_wrap_numbers_bold_preserves_trailing_newline() -> None:
     assert wrap_numbers_bold("+1.0%\n").endswith("\n")
     assert not wrap_numbers_bold("+1.0%").endswith("\n")
+
+
+def test_escape_krx_stock_code_link_fragments() -> None:
+    text = "삼성전자[005930](**+8.97%**, 322,000원)와 SK하이닉스[000660](**+15.91%**)"
+    out = escape_krx_stock_code_link_fragments(text)
+
+    assert r"삼성전자\[005930\](**+8.97%**, 322,000원)" in out
+    assert r"SK하이닉스\[000660\](**+15.91%**)" in out
+
+
+def test_escape_krx_stock_code_link_fragments_preserves_real_links() -> None:
+    text = r"[SK오션플랜트\[100090\]](https://example.com) — 삼성전자[005930]는 상승"
+
+    assert escape_krx_stock_code_link_fragments(text) == text
 
 
 # ---------------------------------------------------------------------------
