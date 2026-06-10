@@ -256,14 +256,15 @@ async def test_pipeline_end_to_end_success(
         "publish": "ok",
         "notify_briefing": "ok",
     }
-    # All 5 stage timings present and non-negative.
-    assert set(result.stage_timings) == {
+    # Top-level stage timings present and every recorded timing non-negative.
+    assert {
         "collect",
         "generate",
         "visual_assets",
         "publish",
         "notify_briefing",
-    }
+    }.issubset(result.stage_timings)
+    assert all(seconds >= 0 for seconds in result.stage_timings.values())
     # u2 was called exactly twice: us-equity Stage 1 + Stage 2, no retries.
     assert len(stub_u2_claude) == 2
 

@@ -3,7 +3,7 @@
 **Date**: 2026-06-09
 **Unit**: u94 bounded-segment-generation-concurrency
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-04/09 daily briefing speed investigation
 **Estimated Effort**: ~6-9 h
 **Dependencies**:
@@ -61,46 +61,46 @@ Out of scope:
 
 ### Step 1 — add concurrency config
 
-- [ ] Add a private helper in `src/investo/orchestrator/pipeline.py` or a small orchestrator config module:
+- [x] Add a private helper in `src/investo/orchestrator/pipeline.py`:
   - env var: `INVESTO_SEGMENT_GENERATION_CONCURRENCY`,
   - accepted values: `1`, `2`, `3`,
   - default: `1`,
   - invalid value: log WARNING and return `1`.
-- [ ] Add tests for absent, valid, zero, negative, high, and non-integer values.
+- [x] Add tests for absent, valid, zero, negative, high, and non-integer values.
 
 ### Step 2 — split one-segment generation into a helper
 
-- [ ] Extract the body of the current `for segment in SEGMENT_ORDER` loop into an async helper that accepts all segment-scoped inputs.
-- [ ] The helper returns a small result object with:
+- [x] Extract the body of the current `for segment in SEGMENT_ORDER` loop into an async helper that accepts all segment-scoped inputs.
+- [x] The helper returns a small result object with:
   - `segment`,
   - `briefing`,
   - `failure`,
   - `macro_lineage`,
   - `elapsed_s`.
-- [ ] The helper catches only `BriefingGenerationError`; programmer errors still propagate.
+- [x] The helper catches only `BriefingGenerationError`; programmer errors still propagate.
 
 ### Step 3 — add bounded task fanout
 
-- [ ] Build one task per segment using the helper and an `asyncio.Semaphore`.
-- [ ] Await all segment tasks with `asyncio.gather(..., return_exceptions=True)`.
-- [ ] Re-raise programmer errors exactly as the serial loop did.
-- [ ] Convert `BriefingGenerationError` values into the existing `failures` dict.
-- [ ] Reassemble `briefings` and `macro_lineage_by_segment` in `SEGMENT_ORDER`, not task-completion order.
+- [x] Build one task per segment using the helper and an `asyncio.Semaphore`.
+- [x] Await all segment tasks with `asyncio.gather(..., return_exceptions=True)`.
+- [x] Re-raise programmer errors exactly as the serial loop did.
+- [x] Convert `BriefingGenerationError` values into the existing `failures` dict.
+- [x] Reassemble `briefings` and `macro_lineage_by_segment` in `SEGMENT_ORDER`, not task-completion order.
 
 ### Step 4 — preserve status and alert semantics
 
-- [ ] Keep the current all-failed behavior: `raise next(iter(failures.values()))`.
-- [ ] Keep partial behavior: successful segment briefings continue to publish.
-- [ ] Keep per-segment warning logs with segment, stage, and attempt count.
-- [ ] Add u92 timing keys for every segment, including failed segments.
+- [x] Keep the current all-failed behavior: `raise next(iter(failures.values()))`.
+- [x] Keep partial behavior: successful segment briefings continue to publish.
+- [x] Keep per-segment warning logs with segment, stage, and attempt count.
+- [x] Add u92 timing keys for every segment, including failed segments.
 
 ### Step 5 — tests
 
-- [ ] Add a fake segment generator that blocks on events so tests can prove concurrency 2 starts two segments before the first finishes.
-- [ ] Add a concurrency 1 test that proves behavior remains serial by start order.
-- [ ] Add one-failure and all-fail tests.
-- [ ] Add a programmer-error propagation test.
-- [ ] Keep existing `test_run_pipeline.py` stage-gather deny tests green.
+- [x] Add a fake segment generator that blocks on events so tests can prove concurrency 2 starts two segments before the first finishes.
+- [x] Add a concurrency 1 test that proves behavior remains serial by start order.
+- [x] Add one-failure and all-fail tests.
+- [x] Add a programmer-error propagation test.
+- [x] Keep existing `test_run_pipeline.py` stage-gather deny tests green.
 
 ## Acceptance Criteria
 
@@ -115,8 +115,7 @@ Out of scope:
 
 ## Tests / Validation
 
-- `tests/unit/orchestrator/test_stage_generate.py` for helper behavior and concurrency.
-- `tests/unit/orchestrator/test_run_pipeline.py` for end-to-end partial/fail behavior.
+- `tests/unit/orchestrator/test_run_pipeline.py` for helper behavior, concurrency, and end-to-end partial/fail behavior.
 - `tests/integration/test_pipeline.py` for segmented publish happy path.
 - Local gate: `uv run pytest tests/unit/orchestrator tests/integration/test_pipeline.py -q`, `uv run ruff check src/investo/orchestrator tests/unit/orchestrator`, `uv run mypy --strict src`.
 

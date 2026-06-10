@@ -72,6 +72,7 @@ import re
 import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -239,11 +240,36 @@ _logger = logging.getLogger("investo.orchestrator.pipeline")
 # I/O). Read at each publish-stage entry so a caller flipping the env
 # mid-run is honoured by the next stage.
 _DRY_RUN_ENV: Final[str] = "INVESTO_DRY_RUN"
+_SEGMENT_GENERATION_CONCURRENCY_ENV: Final[str] = "INVESTO_SEGMENT_GENERATION_CONCURRENCY"
 _SEGMENT_NAV_LINE_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*세그먼트\*\*: .*$", re.MULTILINE)
 
 
 def _is_dry_run() -> bool:
     return os.environ.get(_DRY_RUN_ENV, "").strip() == "1"
+
+
+def _segment_generation_concurrency_from_env() -> int:
+    raw = os.environ.get(_SEGMENT_GENERATION_CONCURRENCY_ENV)
+    if raw is None:
+        return 1
+    raw = raw.strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        _logger.warning(
+            "[generate] invalid %s=%r; falling back to 1",
+            _SEGMENT_GENERATION_CONCURRENCY_ENV,
+            raw,
+        )
+        return 1
+    if value in {1, 2, 3}:
+        return value
+    _logger.warning(
+        "[generate] invalid %s=%r; expected 1, 2, or 3; falling back to 1",
+        _SEGMENT_GENERATION_CONCURRENCY_ENV,
+        raw,
+    )
+    return 1
 
 
 _ALERT_DELIVERY_ATTEMPTS = 2
@@ -296,6 +322,15 @@ SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
     US_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
     CRYPTO: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
 }
+
+
+@dataclass(frozen=True, slots=True)
+class _SegmentGenerationResult:
+    segment: MarketSegment
+    briefing: Briefing | None
+    failure: BriefingGenerationError | None
+    macro_lineage: tuple[MacroLineageTrace, ...]
+    elapsed_s: float
 
 
 async def _default_generate_briefing(
@@ -465,6 +500,83 @@ async def _stage_generate(
     return briefing
 
 
+async def _generate_one_segment(
+    *,
+    target_date: date,
+    all_items: Sequence[NormalizedItem],
+    segment: MarketSegment,
+    segment_source_items: Sequence[NormalizedItem],
+    data_limited: bool,
+    segment_outcomes: Sequence[SourceOutcome],
+    runner: ClaudeRunner | None,
+    runner_callable: SegmentGenerateCallable,
+    use_default_generator: bool,
+    recent_context: RecentBriefingsContext | None,
+    segment_anchors: Sequence[MarketAnchor],
+    segment_carryover: BriefingCarryover | None,
+    bundle_context: BundleContext | None,
+) -> _SegmentGenerationResult:
+    start = time.monotonic()
+    _logger.info(
+        "[generate] segment=%s items=%d data_limited=%s outcomes=%d",
+        segment,
+        len(segment_source_items),
+        data_limited,
+        len(segment_outcomes),
+    )
+    try:
+        macro_lineage_out: list[MacroLineageTrace] = []
+        if use_default_generator:
+            briefing = await _default_generate_segment_briefing(
+                target_date,
+                segment_source_items,
+                runner,
+                segment,
+                data_limited,
+                segment_outcomes,
+                recent_context,
+                segment_anchors,
+                segment_carryover,
+                bundle_context,
+                macro_lineage_all_items=all_items,
+                macro_lineage_out=macro_lineage_out,
+            )
+        else:
+            briefing = await runner_callable(
+                target_date,
+                segment_source_items,
+                runner,
+                segment,
+                data_limited,
+                segment_outcomes,
+                recent_context,
+                segment_anchors,
+                segment_carryover,
+                bundle_context,
+            )
+    except BriefingGenerationError as exc:
+        _logger.warning(
+            "[generate] segment failed segment=%s stage=%s attempts=%s; continuing",
+            segment,
+            exc.stage,
+            exc.attempt_count,
+        )
+        return _SegmentGenerationResult(
+            segment=segment,
+            briefing=None,
+            failure=exc,
+            macro_lineage=(),
+            elapsed_s=time.monotonic() - start,
+        )
+    return _SegmentGenerationResult(
+        segment=segment,
+        briefing=briefing,
+        failure=None,
+        macro_lineage=tuple(macro_lineage_out),
+        elapsed_s=time.monotonic() - start,
+    )
+
+
 async def _stage_generate_segments(
     target_date: date,
     items: Sequence[NormalizedItem],
@@ -529,66 +641,56 @@ async def _stage_generate_segments(
         segment_timings["generate:bundle_context"] = time.monotonic() - bundle_start
 
     _logger.info("[generate] starting segmented target_date=%s items=%d", target_date, len(items))
-    for segment in SEGMENT_ORDER:
-        segment_start = time.monotonic()
+    concurrency = _segment_generation_concurrency_from_env()
+    semaphore = asyncio.Semaphore(concurrency)
+
+    async def _bounded_generate(segment: MarketSegment) -> _SegmentGenerationResult:
         segment_source_items = routed.for_segment(segment)
         data_limited = routed.is_data_limited(segment)
         segment_outcomes = segment_source_outcomes(segment, source_outcomes)
-        _logger.info(
-            "[generate] segment=%s items=%d data_limited=%s outcomes=%d",
-            segment,
-            len(segment_source_items),
-            data_limited,
-            len(segment_outcomes),
-        )
         segment_anchors: tuple[MarketAnchor, ...] = ()
         if market_anchors_by_segment is not None:
             segment_anchors = tuple(market_anchors_by_segment.get(segment, ()))
         segment_carryover = (
             carryover_by_segment.get(segment) if carryover_by_segment is not None else None
         )
-        try:
-            if generate_segment is None:
-                macro_lineage_out: list[MacroLineageTrace] = []
-                briefings[segment] = await _default_generate_segment_briefing(
-                    target_date,
-                    segment_source_items,
-                    runner,
-                    segment,
-                    data_limited,
-                    segment_outcomes,
-                    recent_context,
-                    segment_anchors,
-                    segment_carryover,
-                    bundle_context,
-                    macro_lineage_all_items=items,
-                    macro_lineage_out=macro_lineage_out,
-                )
-                if macro_lineage_out:
-                    macro_lineage_by_segment[segment] = tuple(macro_lineage_out)
-            else:
-                briefings[segment] = await runner_callable(
-                    target_date,
-                    segment_source_items,
-                    runner,
-                    segment,
-                    data_limited,
-                    segment_outcomes,
-                    recent_context,
-                    segment_anchors,
-                    segment_carryover,
-                    bundle_context,
-                )
-        except BriefingGenerationError as exc:
-            failures[segment] = exc
-            _logger.warning(
-                "[generate] segment failed segment=%s stage=%s attempts=%s; continuing",
-                segment,
-                exc.stage,
-                exc.attempt_count,
+        async with semaphore:
+            return await _generate_one_segment(
+                target_date=target_date,
+                all_items=items,
+                segment=segment,
+                segment_source_items=segment_source_items,
+                data_limited=data_limited,
+                segment_outcomes=segment_outcomes,
+                runner=runner,
+                runner_callable=runner_callable,
+                use_default_generator=generate_segment is None,
+                recent_context=recent_context,
+                segment_anchors=segment_anchors,
+                segment_carryover=segment_carryover,
+                bundle_context=bundle_context,
             )
-        finally:
-            segment_timings[f"generate:{segment}"] = time.monotonic() - segment_start
+
+    raw_results = await asyncio.gather(
+        *(_bounded_generate(segment) for segment in SEGMENT_ORDER),
+        return_exceptions=True,
+    )
+    results_by_segment: dict[MarketSegment, _SegmentGenerationResult] = {}
+    for segment, raw_result in zip(SEGMENT_ORDER, raw_results, strict=True):
+        if isinstance(raw_result, BaseException):
+            raise raw_result
+        results_by_segment[segment] = raw_result
+
+    for segment in SEGMENT_ORDER:
+        result = results_by_segment[segment]
+        segment_timings[f"generate:{segment}"] = result.elapsed_s
+        if result.failure is not None:
+            failures[segment] = result.failure
+            continue
+        assert result.briefing is not None
+        briefings[segment] = result.briefing
+        if result.macro_lineage:
+            macro_lineage_by_segment[segment] = result.macro_lineage
 
     if not briefings:
         # Preserve the original BGE routing when the run produced no

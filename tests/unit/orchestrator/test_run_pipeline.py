@@ -19,6 +19,7 @@ Test architecture
 from __future__ import annotations
 
 import ast
+import asyncio
 import importlib
 import json
 import logging
@@ -829,6 +830,215 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert "⚠️ 부분 발행: 크립토 생성 실패" in publisher.calls[0].summary_text
     assert "/archive/crypto/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
     assert "push" in [call[1] for call in git.calls]
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (None, 1),
+        ("1", 1),
+        ("2", 2),
+        ("3", 3),
+        ("0", 1),
+        ("-1", 1),
+        ("4", 1),
+        ("abc", 1),
+    ],
+)
+def test_segment_generation_concurrency_env_parser(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    raw: str | None,
+    expected: int,
+) -> None:
+    if raw is None:
+        monkeypatch.delenv("INVESTO_SEGMENT_GENERATION_CONCURRENCY", raising=False)
+    else:
+        monkeypatch.setenv("INVESTO_SEGMENT_GENERATION_CONCURRENCY", raw)
+
+    with caplog.at_level(logging.WARNING, logger="investo.orchestrator.pipeline"):
+        value = pipeline_module._segment_generation_concurrency_from_env()
+
+    assert value == expected
+    if raw not in {None, "1", "2", "3"}:
+        assert "INVESTO_SEGMENT_GENERATION_CONCURRENCY" in caplog.text
+
+
+def _three_segment_items() -> list[NormalizedItem]:
+    return [
+        _item("삼성전자[005930] 상승"),
+        _item("AAPL closes higher"),
+        _item("Bitcoin rises"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_stage_generate_segments_default_concurrency_is_serial(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("INVESTO_SEGMENT_GENERATION_CONCURRENCY", raising=False)
+    active = 0
+    max_active = 0
+    started: list[MarketSegment] = []
+
+    async def _serial_probe(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del items, runner, data_limited, source_outcomes, recent_context, market_anchors
+        del carryover, bundle_context
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        started.append(segment)
+        await asyncio.sleep(0)
+        active -= 1
+        return _briefing(target_date, segment=segment)
+
+    briefings, failures, _, _, timings = await pipeline_module._stage_generate_segments(
+        _TARGET,
+        _three_segment_items(),
+        generate_segment=_serial_probe,
+    )
+
+    assert started == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert max_active == 1
+    assert list(briefings) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert failures == {}
+    assert all(timings[f"generate:{segment}"] >= 0 for segment in pipeline_module.SEGMENT_ORDER)
+
+
+@pytest.mark.asyncio
+async def test_stage_generate_segments_concurrency_two_starts_two_segments(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_SEGMENT_GENERATION_CONCURRENCY", "2")
+    started: list[MarketSegment] = []
+    release = asyncio.Event()
+    second_started = asyncio.Event()
+    active = 0
+    max_active = 0
+
+    async def _blocking_probe(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del items, runner, data_limited, source_outcomes, recent_context, market_anchors
+        del carryover, bundle_context
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        started.append(segment)
+        if len(started) == 2:
+            second_started.set()
+        await release.wait()
+        active -= 1
+        return _briefing(target_date, segment=segment)
+
+    task = asyncio.create_task(
+        pipeline_module._stage_generate_segments(
+            _TARGET,
+            _three_segment_items(),
+            generate_segment=_blocking_probe,
+        )
+    )
+    await asyncio.wait_for(second_started.wait(), timeout=1.0)
+
+    assert started == [DOMESTIC_EQUITY, US_EQUITY]
+    assert max_active == 2
+
+    release.set()
+    briefings, failures, _, _, timings = await task
+
+    assert started == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert list(briefings) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert failures == {}
+    assert all(timings[f"generate:{segment}"] >= 0 for segment in pipeline_module.SEGMENT_ORDER)
+
+
+@pytest.mark.asyncio
+async def test_stage_generate_segments_programmer_error_propagates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_SEGMENT_GENERATION_CONCURRENCY", "3")
+
+    async def _broken(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del target_date, items, runner, data_limited, source_outcomes, recent_context
+        del market_anchors, carryover, bundle_context
+        if segment == US_EQUITY:
+            raise RuntimeError("programmer bug")
+        return _briefing(_TARGET, segment=segment)
+
+    with pytest.raises(RuntimeError, match="programmer bug"):
+        await pipeline_module._stage_generate_segments(
+            _TARGET,
+            _three_segment_items(),
+            generate_segment=_broken,
+        )
+
+
+@pytest.mark.asyncio
+async def test_stage_generate_segments_all_failures_raise_first_segment_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_SEGMENT_GENERATION_CONCURRENCY", "3")
+
+    async def _always_fails(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del target_date, items, runner, data_limited, source_outcomes, recent_context
+        del market_anchors, carryover, bundle_context
+        raise BriefingGenerationError(
+            stage="synthesis",
+            attempt_count=2,
+            last_stderr=f"{segment} failed",
+            cause=None,
+        )
+
+    with pytest.raises(BriefingGenerationError) as exc_info:
+        await pipeline_module._stage_generate_segments(
+            _TARGET,
+            _three_segment_items(),
+            generate_segment=_always_fails,
+        )
+
+    assert exc_info.value.last_stderr == f"{DOMESTIC_EQUITY} failed"
 
 
 def test_rewrite_segment_nav_for_partial_publish_labels_missing_segments() -> None:
