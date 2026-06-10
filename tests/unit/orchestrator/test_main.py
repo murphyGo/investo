@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 
 import investo.__main__ as main_mod
-from investo.models import FailureContext, PipelineResult, PipelineStatus, SendResult
+from investo.models import FailureContext, PipelineResult, PipelineStatus, SendResult, SourceOutcome
 
 _VALID_ENV: dict[str, str] = {
     "CLAUDE_CODE_OAUTH_TOKEN": "fake-claude-token",
@@ -72,6 +72,7 @@ def _make_pipeline_result(
     stages: dict[str, str] | None = None,
     stage_timings: dict[str, float] | None = None,
     briefing_url: str | None = None,
+    source_outcomes: tuple[SourceOutcome, ...] = (),
 ) -> PipelineResult:
     return PipelineResult(
         target_date=date(2026, 4, 27),
@@ -79,7 +80,8 @@ def _make_pipeline_result(
         stages=stages or {},
         stage_timings=stage_timings or {},
         duration_seconds=1.0,
-        briefing_url=briefing_url,  # type: ignore[arg-type]
+        briefing_url=briefing_url,
+        source_outcomes=source_outcomes,
     )
 
 
@@ -433,8 +435,17 @@ def test_main_writes_redacted_github_step_summary_for_partial_result(
                 "failed: Telegram 1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ chat 12345678"
             ),
         },
-        stage_timings={"collect": 0.12, "visual_assets": 0.23, "notify_briefing": 0.34},
+        stage_timings={
+            "collect": 0.12,
+            "visual_assets": 0.23,
+            "generate:crypto": 12.34,
+            "notify_briefing": 0.34,
+        },
         briefing_url="https://example.github.io/investo/archive/domestic-equity/2026/04/2026-04-27/",
+        source_outcomes=(
+            SourceOutcome.ok("fast-source", "news", item_count=2, elapsed_s=0.1),
+            SourceOutcome.zero("slow-source", "macro", elapsed_s=9.87),
+        ),
     )
 
     with _stub_pipeline(monkeypatch, result=result), _capture_alerts(monkeypatch):
@@ -444,6 +455,11 @@ def test_main_writes_redacted_github_step_summary_for_partial_result(
     assert "Status: `partial`" in summary
     assert "/archive/domestic-equity/2026/04/2026-04-27/" in summary
     assert "visual_assets" in summary
+    assert "generate:crypto" in summary
+    assert "timing" in summary
+    assert "### Slowest Sources" in summary
+    assert "slow-source" in summary
+    assert "9.87" in summary
     assert "notify_briefing" in summary
     assert "[REDACTED]" in summary
     assert "AAFakeBotToken" not in summary

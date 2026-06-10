@@ -78,6 +78,13 @@ class SourceOutcome:
     # can apply the staleness override. ``None`` skips the check
     # (legacy / non-core adapters).
     latest_item_at: datetime | None = None
+    # u92 — source-adapter wall-clock elapsed seconds. Optional so
+    # legacy reports and tests constructed before u92 remain valid.
+    elapsed_s: float | None = None
+
+    def __post_init__(self) -> None:
+        if self.elapsed_s is not None and self.elapsed_s < 0:
+            raise ValueError("elapsed_s must be >= 0")
 
     @classmethod
     def ok(
@@ -88,6 +95,7 @@ class SourceOutcome:
         *,
         tier: SourceTier = "B",
         latest_item_at: datetime | None = None,
+        elapsed_s: float | None = None,
     ) -> SourceOutcome:
         """Build an ``ok`` outcome from a non-zero item count."""
         if item_count <= 0:
@@ -99,6 +107,7 @@ class SourceOutcome:
             item_count=item_count,
             tier=tier,
             latest_item_at=latest_item_at,
+            elapsed_s=elapsed_s,
         )
 
     @classmethod
@@ -109,6 +118,7 @@ class SourceOutcome:
         *,
         tier: SourceTier = "B",
         latest_item_at: datetime | None = None,
+        elapsed_s: float | None = None,
     ) -> SourceOutcome:
         """Build a ``zero`` outcome — adapter ran successfully but emitted no items."""
         return cls(
@@ -117,6 +127,7 @@ class SourceOutcome:
             status="zero",
             tier=tier,
             latest_item_at=latest_item_at,
+            elapsed_s=elapsed_s,
         )
 
     @classmethod
@@ -129,6 +140,7 @@ class SourceOutcome:
         transient: bool,
         tier: SourceTier = "B",
         latest_item_at: datetime | None = None,
+        elapsed_s: float | None = None,
     ) -> SourceOutcome:
         """Build a ``failed`` outcome with the message pre-sanitized."""
         return cls(
@@ -139,6 +151,7 @@ class SourceOutcome:
             transient=transient,
             tier=tier,
             latest_item_at=latest_item_at,
+            elapsed_s=elapsed_s,
         )
 
 

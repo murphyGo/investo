@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
+from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Final
 
@@ -24,7 +26,7 @@ from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
 from investo.models.segments import SEGMENT_MARKET_TZ
 from investo.sources._registry import list_sources
 from investo.sources._window import FetchWindow
-from investo.sources.protocol import SourceFetchError
+from investo.sources.protocol import SourceAdapter, SourceFetchError
 from investo.sources.tiers import adapter_tier
 
 _logger = logging.getLogger(__name__)
@@ -56,6 +58,12 @@ _CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "theblock-crypto",
     }
 )
+
+
+@dataclass(frozen=True, slots=True)
+class _TimedAdapterResult:
+    result: list[NormalizedItem] | BaseException
+    elapsed_s: float
 
 
 async def fetch_all(target_date: date) -> list[NormalizedItem]:
@@ -101,13 +109,14 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
 
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
-            *(adapter.fetch(client, windows[adapter.name]) for adapter in adapters),
-            return_exceptions=True,
+            *(_fetch_adapter_timed(adapter, client, windows[adapter.name]) for adapter in adapters),
         )
 
     items: list[NormalizedItem] = []
     outcomes: list[SourceOutcome] = []
-    for adapter, result in zip(adapters, results, strict=True):
+    for adapter, timed in zip(adapters, results, strict=True):
+        result = timed.result
+        elapsed_s = timed.elapsed_s
         if isinstance(result, SourceFetchError):
             # L5: one WARNING per failed adapter. We log the
             # *exception's* self-reported source_name (not the
@@ -116,16 +125,18 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
             # registered as "fomc-rss" will surface its lie in the
             # log, which is the desired debugging signal.
             _logger.warning(
-                "source failed source_name=%s category=%s transient=%s error=%s",
+                "source failed source_name=%s category=%s transient=%s elapsed_s=%.3f error=%s",
                 result.source_name,
                 adapter.category,
                 result.transient,
+                elapsed_s,
                 str(result),
                 extra={
                     "source_name": result.source_name,
                     "category": adapter.category,
                     "error": str(result),
                     "transient": result.transient,
+                    "elapsed_s": elapsed_s,
                 },
             )
             outcomes.append(
@@ -135,15 +146,14 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
                     message=str(result),
                     transient=result.transient,
                     tier=adapter_tier(adapter.name),
+                    elapsed_s=elapsed_s,
                 )
             )
             continue
         if isinstance(result, BaseException):
-            # gather(return_exceptions=True) catches every BaseException
-            # subclass including CancelledError / KeyboardInterrupt /
-            # SystemExit. Re-raising here propagates them up to the
-            # orchestrator's stage-level guard, which is the right
-            # behavior — adapters never silence non-source errors.
+            # _fetch_adapter_timed captures every BaseException subclass
+            # long enough to retain elapsed_s. Re-raising here preserves
+            # the old contract: adapters never silence non-source errors.
             raise result
         window = windows[adapter.name]
         kept: list[NormalizedItem] = []
@@ -159,18 +169,20 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
             kept.append(item)
         _logger.info(
             "source returned source_name=%s category=%s item_count=%d "
-            "window_start_utc=%s window_end_utc=%s",
+            "window_start_utc=%s window_end_utc=%s elapsed_s=%.3f",
             adapter.name,
             adapter.category,
             len(result),
             window.start_utc.isoformat(),
             window.end_utc.isoformat(),
+            elapsed_s,
             extra={
                 "source_name": adapter.name,
                 "category": adapter.category,
                 "item_count": len(result),
                 "window_start_utc": window.start_utc.isoformat(),
                 "window_end_utc": window.end_utc.isoformat(),
+                "elapsed_s": elapsed_s,
             },
         )
         items.extend(kept)
@@ -190,11 +202,32 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
                     len(kept),
                     tier=tier,
                     latest_item_at=latest_item_at,
+                    elapsed_s=elapsed_s,
                 )
             )
         else:
-            outcomes.append(SourceOutcome.zero(adapter.name, adapter.category, tier=tier))
+            outcomes.append(
+                SourceOutcome.zero(
+                    adapter.name,
+                    adapter.category,
+                    tier=tier,
+                    elapsed_s=elapsed_s,
+                )
+            )
     return SourceCollectionReport(items=tuple(items), outcomes=tuple(outcomes))
+
+
+async def _fetch_adapter_timed(
+    adapter: SourceAdapter,
+    client: httpx.AsyncClient,
+    window: FetchWindow,
+) -> _TimedAdapterResult:
+    start = time.monotonic()
+    try:
+        result = await adapter.fetch(client, window)
+    except BaseException as exc:
+        return _TimedAdapterResult(result=exc, elapsed_s=time.monotonic() - start)
+    return _TimedAdapterResult(result=result, elapsed_s=time.monotonic() - start)
 
 
 def _window_for_adapter(target_date: date, source_name: str) -> FetchWindow:

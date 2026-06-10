@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date
@@ -52,6 +53,8 @@ from investo.models.macro import (
     macro_priority_rank,
     macro_prompt_payload,
 )
+
+_logger = logging.getLogger("investo.briefing.pipeline")
 
 # Retry constants per FD R3.
 MAX_ATTEMPTS: Final[int] = 3
@@ -224,6 +227,7 @@ async def _classify(
     budget: RetryBudget,
     policy: GenerationPolicy,
     segment_context: str,
+    segment: MarketSegment | None = None,
 ) -> ClassificationResult:
     """Run Stage 1 with the FD R3 retry loop.
 
@@ -263,6 +267,29 @@ async def _classify(
             await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
 
         outcome = await call_claude_code(full_prompt, timeout_s=policy.timeout_s, runner=runner)
+        _logger.info(
+            "llm attempt segment=%s stage=classification attempt=%d timeout_s=%.1f "
+            "elapsed_s=%.3f prompt_bytes=%d stdout_len=%d stderr_len=%d returncode=%d",
+            segment,
+            attempt + 1,
+            policy.timeout_s,
+            outcome.elapsed_s,
+            len(full_prompt.encode("utf-8")),
+            len(outcome.stdout),
+            len(outcome.stderr),
+            outcome.returncode,
+            extra={
+                "segment": segment,
+                "llm_stage": "classification",
+                "attempt": attempt + 1,
+                "timeout_s": policy.timeout_s,
+                "elapsed_s": outcome.elapsed_s,
+                "prompt_bytes": len(full_prompt.encode("utf-8")),
+                "stdout_len": len(outcome.stdout),
+                "stderr_len": len(outcome.stderr),
+                "returncode": outcome.returncode,
+            },
+        )
         budget.record(outcome.elapsed_s)
         last_outcome = outcome
 
@@ -366,6 +393,29 @@ async def _synthesize(
 
         attempt_prompt = f"{full_prompt}{_stage2_retry_feedback(last_cause)}"
         outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)
+        _logger.info(
+            "llm attempt segment=%s stage=synthesis attempt=%d timeout_s=%.1f "
+            "elapsed_s=%.3f prompt_bytes=%d stdout_len=%d stderr_len=%d returncode=%d",
+            segment,
+            attempt + 1,
+            policy.timeout_s,
+            outcome.elapsed_s,
+            len(attempt_prompt.encode("utf-8")),
+            len(outcome.stdout),
+            len(outcome.stderr),
+            outcome.returncode,
+            extra={
+                "segment": segment,
+                "llm_stage": "synthesis",
+                "attempt": attempt + 1,
+                "timeout_s": policy.timeout_s,
+                "elapsed_s": outcome.elapsed_s,
+                "prompt_bytes": len(attempt_prompt.encode("utf-8")),
+                "stdout_len": len(outcome.stdout),
+                "stderr_len": len(outcome.stderr),
+                "returncode": outcome.returncode,
+            },
+        )
         budget.record(outcome.elapsed_s)
         last_outcome = outcome
 

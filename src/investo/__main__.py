@@ -328,7 +328,10 @@ def _write_github_step_summary(result: PipelineResult) -> None:
         "| Stage | Status | Seconds |",
         "|-------|--------|---------|",
     ]
-    for stage, status in result.stages.items():
+    stage_names = list(result.stages)
+    stage_names.extend(stage for stage in result.stage_timings if stage not in result.stages)
+    for stage in stage_names:
+        status = result.stages.get(stage, "timing")
         seconds = result.stage_timings.get(stage)
         seconds_text = "" if seconds is None else f"{seconds:.2f}"
         lines.append(
@@ -343,6 +346,38 @@ def _write_github_step_summary(result: PipelineResult) -> None:
             + " |"
         )
     lines.append("")
+
+    timed_source_outcomes = [
+        outcome for outcome in result.source_outcomes if outcome.elapsed_s is not None
+    ]
+    if timed_source_outcomes:
+        lines.extend(
+            [
+                "### Slowest Sources",
+                "",
+                "| Source | Status | Seconds | Items |",
+                "|--------|--------|---------|-------|",
+            ]
+        )
+        for outcome in sorted(
+            timed_source_outcomes,
+            key=lambda source_outcome: source_outcome.elapsed_s or 0.0,
+            reverse=True,
+        )[:10]:
+            assert outcome.elapsed_s is not None
+            lines.append(
+                "| "
+                + " | ".join(
+                    (
+                        _redact_diagnostic_text(outcome.source_name),
+                        outcome.status,
+                        f"{outcome.elapsed_s:.2f}",
+                        str(outcome.item_count),
+                    )
+                )
+                + " |"
+            )
+        lines.append("")
 
     # u31 Step 1 — per-source outcome table so a failed adapter is
     # visible at a glance during morning triage. Sorted: failed first,

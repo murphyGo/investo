@@ -28,6 +28,24 @@ def test_source_outcome_zero_carries_no_failure_reason() -> None:
     assert outcome.transient is None
 
 
+def test_source_outcome_carries_elapsed_seconds_when_provided() -> None:
+    assert (
+        SourceOutcome.ok("yfinance-price", "price", item_count=1, elapsed_s=1.25).elapsed_s == 1.25
+    )
+    assert SourceOutcome.zero("yahoo-finance-news", "news", elapsed_s=0.0).elapsed_s == 0.0
+
+
+def test_source_outcome_rejects_negative_elapsed_seconds() -> None:
+    with pytest.raises(ValueError, match="elapsed_s must be >= 0"):
+        SourceOutcome.from_failure(
+            "fred-macro",
+            "macro",
+            message="connection reset",
+            transient=True,
+            elapsed_s=-0.1,
+        )
+
+
 def test_source_outcome_from_failure_sanitizes_message() -> None:
     outcome = SourceOutcome.from_failure(
         "yfinance-price",

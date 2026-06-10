@@ -396,6 +396,7 @@ async def generate_briefing(
         budget=budget,
         policy=policy,
         segment_context=segment_context,
+        segment=segment,
     )
     plan = build_section_plan(llm_items, classification, target_date)
     body_markdown = await _synthesize(

@@ -480,6 +480,7 @@ async def _stage_generate_segments(
     dict[MarketSegment, BriefingGenerationError],
     BundleContext | None,
     dict[MarketSegment, tuple[MacroLineageTrace, ...]],
+    dict[str, float],
 ]:
     """Generate all u7 market segments in fixed order.
 
@@ -505,6 +506,7 @@ async def _stage_generate_segments(
     briefings: dict[MarketSegment, Briefing] = {}
     failures: dict[MarketSegment, BriefingGenerationError] = {}
     macro_lineage_by_segment: dict[MarketSegment, tuple[MacroLineageTrace, ...]] = {}
+    segment_timings: dict[str, float] = {}
 
     # u57 — compute BundleContext once per run (pre-Stage-2), shared by
     # all three segments. ``now_kst`` is derived from the target_date so
@@ -514,6 +516,7 @@ async def _stage_generate_segments(
         seg: routed.for_segment(seg) for seg in SEGMENT_ORDER
     }
     bundle_context: BundleContext | None
+    bundle_start = time.monotonic()
     try:
         bundle_context = compute_bundle_context(
             routed_by_segment,
@@ -522,9 +525,12 @@ async def _stage_generate_segments(
     except Exception as exc:
         _logger.warning("[generate] bundle_context build failed err=%s; proceeding without", exc)
         bundle_context = None
+    finally:
+        segment_timings["generate:bundle_context"] = time.monotonic() - bundle_start
 
     _logger.info("[generate] starting segmented target_date=%s items=%d", target_date, len(items))
     for segment in SEGMENT_ORDER:
+        segment_start = time.monotonic()
         segment_source_items = routed.for_segment(segment)
         data_limited = routed.is_data_limited(segment)
         segment_outcomes = segment_source_outcomes(segment, source_outcomes)
@@ -581,6 +587,8 @@ async def _stage_generate_segments(
                 exc.stage,
                 exc.attempt_count,
             )
+        finally:
+            segment_timings[f"generate:{segment}"] = time.monotonic() - segment_start
 
     if not briefings:
         # Preserve the original BGE routing when the run produced no
@@ -593,7 +601,7 @@ async def _stage_generate_segments(
         len(briefings),
         len(failures),
     )
-    return briefings, failures, bundle_context, macro_lineage_by_segment
+    return briefings, failures, bundle_context, macro_lineage_by_segment, segment_timings
 
 
 def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
@@ -1962,8 +1970,10 @@ class GenerateStage:
         carryover_by_segment: dict[MarketSegment, BriefingCarryover] = {}
         segment_briefings: dict[MarketSegment, Briefing] | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
+        generate_sub_timings: dict[str, float] = {}
         try:
             if segmented_mode:
+                context_start = time.monotonic()
                 recent_context = _load_recent_context_for_run(target_date)
                 (
                     market_anchors_by_segment,
@@ -1996,11 +2006,13 @@ class GenerateStage:
                     items,
                     routed_candidates,
                 )
+                generate_sub_timings["generate:context"] = time.monotonic() - context_start
                 (
                     segment_briefings,
                     segment_generation_failures,
                     run_bundle_context,
                     macro_lineage_by_segment,
+                    segment_timings,
                 ) = await _stage_generate_segments(
                     target_date,
                     items,
@@ -2011,6 +2023,7 @@ class GenerateStage:
                     market_anchors_by_segment=market_anchors_by_segment,
                     carryover_by_segment=carryover_by_segment,
                 )
+                generate_sub_timings.update(segment_timings)
                 primary_generated_segment = (
                     DOMESTIC_EQUITY
                     if DOMESTIC_EQUITY in segment_briefings
@@ -2105,6 +2118,7 @@ class GenerateStage:
             # un-rewritable anchor contradiction raises
             # ``NumericAnchorReconciliationError``; both route to the
             # publish label (preserving ``stage_timings["publish"]=0.0``).
+            reader_format_start = time.monotonic()
             try:
                 _routed_for_indicators = segment_items(items)
                 segment_briefings = _apply_reader_format_to_segments(
@@ -2116,6 +2130,7 @@ class GenerateStage:
                     },
                 )
             except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
+                reader_format_elapsed = time.monotonic() - reader_format_start
                 _logger.error(
                     "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
                     target_date,
@@ -2130,13 +2145,21 @@ class GenerateStage:
                     stage_notes=stage_notes,
                     timings={
                         "generate": generate_elapsed,
+                        **generate_sub_timings,
                         "visual_assets": va_elapsed,
+                        "generate:reader_format": reader_format_elapsed,
                         "publish": 0.0,
                     },
                     data={"_stage_alerts": stage_alerts},
                 )
+            reader_format_elapsed = time.monotonic() - reader_format_start
 
-            timings = {"generate": generate_elapsed, "visual_assets": va_elapsed}
+            timings = {
+                "generate": generate_elapsed,
+                **generate_sub_timings,
+                "visual_assets": va_elapsed,
+                "generate:reader_format": reader_format_elapsed,
+            }
         else:
             timings = {"generate": generate_elapsed}
 

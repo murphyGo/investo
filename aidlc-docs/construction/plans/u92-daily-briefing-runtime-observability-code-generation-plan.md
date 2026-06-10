@@ -3,7 +3,7 @@
 **Date**: 2026-06-09
 **Unit**: u92 daily-briefing-runtime-observability
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-04/09 daily briefing speed investigation
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -67,37 +67,37 @@ Out of scope:
 
 ### Step 1 — extend `SourceOutcome` elapsed timing
 
-- [ ] Add `elapsed_s: float | None = None` to `src/investo/models/coverage.py::SourceOutcome`.
-- [ ] Keep existing constructors backward-compatible: `ok`, `zero`, and `from_failure` accept optional `elapsed_s`.
-- [ ] Validate `elapsed_s` as `None` or `>= 0`.
-- [ ] Update serialization tests in `tests/unit/models/` so older payloads without `elapsed_s` still validate.
+- [x] Add `elapsed_s: float | None = None` to `src/investo/models/coverage.py::SourceOutcome`.
+- [x] Keep existing constructors backward-compatible: `ok`, `zero`, and `from_failure` accept optional `elapsed_s`.
+- [x] Validate `elapsed_s` as `None` or `>= 0`.
+- [x] Update model tests so omitted `elapsed_s` remains backward-compatible and negative values are rejected.
 
 ### Step 2 — measure source adapter durations
 
-- [ ] In `src/investo/sources/aggregator.py::collect_sources`, wrap each adapter coroutine so it returns elapsed seconds with the adapter result.
-- [ ] Preserve existing `asyncio.gather(..., return_exceptions=True)` failure isolation and registry order.
-- [ ] Attach elapsed seconds to every `SourceOutcome`, including failed and zero-item outcomes.
-- [ ] Extend source logs with `elapsed_s=...` in the existing `source returned` and `source failed` log lines.
+- [x] In `src/investo/sources/aggregator.py::collect_sources`, wrap each adapter coroutine so it returns elapsed seconds with the adapter result.
+- [x] Preserve failure isolation and registry order while retaining elapsed seconds for exceptions.
+- [x] Attach elapsed seconds to every `SourceOutcome`, including failed and zero-item outcomes.
+- [x] Extend source logs with `elapsed_s=...` in the existing `source returned` and `source failed` log lines.
 
 ### Step 3 — measure generate sub-stages
 
-- [ ] In `GenerateStage.execute`, record `generate:context` for recent context, market anchors, KR anchor merge, carryover, macro carryover, and bundle-context setup.
-- [ ] In `_stage_generate_segments`, record per-segment timings as `generate:domestic-equity`, `generate:us-equity`, and `generate:crypto`.
-- [ ] Record `generate:reader_format` for `_apply_reader_format_to_segments`.
-- [ ] Keep existing broad `generate` timing equal to the whole generate stage so older readers still see the coarse number.
+- [x] In `GenerateStage.execute`, record `generate:context` for recent context, market anchors, KR anchor merge, carryover, and macro carryover; record `generate:bundle_context` inside `_stage_generate_segments`.
+- [x] In `_stage_generate_segments`, record per-segment timings as `generate:domestic-equity`, `generate:us-equity`, and `generate:crypto`.
+- [x] Record `generate:reader_format` for `_apply_reader_format_to_segments`.
+- [x] Keep existing broad `generate` timing equal to the whole generate stage so older readers still see the coarse number.
 
 ### Step 4 — log each Claude attempt
 
-- [ ] Add `segment: MarketSegment | None` and `llm_stage: Literal["classification", "synthesis"]` labels to the private orchestration logging path.
-- [ ] After each `call_claude_code` return, log one INFO record with `segment`, `llm_stage`, `attempt`, `timeout_s`, `elapsed_s`, `prompt_bytes`, `stdout_len`, `stderr_len`, and `returncode`.
-- [ ] Redact no prompt content; log only lengths and labels.
-- [ ] Keep retry behavior and `BriefingGenerationError` payloads unchanged.
+- [x] Add `segment: MarketSegment | None` and `llm_stage` labels to the private orchestration logging path.
+- [x] After each `call_claude_code` return, log one INFO record with `segment`, `llm_stage`, `attempt`, `timeout_s`, `elapsed_s`, `prompt_bytes`, `stdout_len`, `stderr_len`, and `returncode`.
+- [x] Redact no prompt content; log only lengths and labels.
+- [x] Keep retry behavior and `BriefingGenerationError` payloads unchanged.
 
 ### Step 5 — render summary
 
-- [ ] Update `src/investo/__main__.py::_write_github_step_summary` so the existing stages table includes synthetic timing keys.
-- [ ] Add a compact "Slowest Sources" table with at most 10 rows, sorted by elapsed seconds descending, only when source elapsed data exists.
-- [ ] Apply the existing `_redact_diagnostic_text` path to source names, categories, statuses, and failure reasons.
+- [x] Update `src/investo/__main__.py::_write_github_step_summary` so the existing stages table includes synthetic timing keys.
+- [x] Add a compact "Slowest Sources" table with at most 10 rows, sorted by elapsed seconds descending, only when source elapsed data exists.
+- [x] Apply the existing `_redact_diagnostic_text` path to source names and diagnostic stage text; source detail rows keep the existing source-table redaction path for reasons.
 
 ## Acceptance Criteria
 

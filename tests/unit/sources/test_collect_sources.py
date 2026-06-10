@@ -12,6 +12,7 @@ Pins the per-source outcome reporting contract:
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, date, datetime
 from typing import ClassVar
 
@@ -66,6 +67,8 @@ async def test_collect_sources_emits_ok_outcome_with_kept_count() -> None:
     assert outcome.status == "ok"
     assert outcome.item_count == 2
     assert outcome.failure_reason is None
+    assert outcome.elapsed_s is not None
+    assert outcome.elapsed_s >= 0
 
 
 async def test_collect_sources_emits_zero_outcome_for_empty_adapter() -> None:
@@ -87,6 +90,8 @@ async def test_collect_sources_emits_zero_outcome_for_empty_adapter() -> None:
     assert outcome.item_count == 0
     assert outcome.failure_reason is None
     assert outcome.transient is None
+    assert outcome.elapsed_s is not None
+    assert outcome.elapsed_s >= 0
 
 
 async def test_collect_sources_emits_failed_outcome_with_sanitized_reason() -> None:
@@ -115,6 +120,8 @@ async def test_collect_sources_emits_failed_outcome_with_sanitized_reason() -> N
     assert outcome.failure_reason is not None
     assert "1234567890:" not in outcome.failure_reason
     assert "[REDACTED" in outcome.failure_reason
+    assert outcome.elapsed_s is not None
+    assert outcome.elapsed_s >= 0
 
 
 async def test_collect_sources_outcomes_match_registry_order() -> None:
@@ -152,6 +159,38 @@ async def test_collect_sources_outcomes_match_registry_order() -> None:
 
     assert [outcome.source_name for outcome in report.outcomes] == ["alpha", "bravo", "charlie"]
     assert [outcome.status for outcome in report.outcomes] == ["ok", "zero", "failed"]
+    assert all(outcome.elapsed_s is not None for outcome in report.outcomes)
+
+
+async def test_collect_sources_elapsed_seconds_reflect_adapter_runtime() -> None:
+    @register
+    class SlowStub:
+        name: ClassVar[str] = "slow"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            await asyncio.sleep(0.01)
+            return []
+
+    @register
+    class FastStub:
+        name: ClassVar[str] = "fast"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            return []
+
+    report = await collect_sources(_TARGET_DATE)
+
+    assert [outcome.source_name for outcome in report.outcomes] == ["slow", "fast"]
+    elapsed_by_source = {outcome.source_name: outcome.elapsed_s for outcome in report.outcomes}
+    assert elapsed_by_source["slow"] is not None
+    assert elapsed_by_source["fast"] is not None
+    assert elapsed_by_source["slow"] > elapsed_by_source["fast"]
 
 
 async def test_collect_sources_failure_reason_does_not_carry_secret_env_value(

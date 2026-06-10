@@ -20,6 +20,7 @@ Budget-exhaustion (the failure-mode counterpart) lives in
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, date, datetime
 
 import pytest
@@ -62,6 +63,7 @@ def _items(n: int = 2) -> list[NormalizedItem]:
 @pytest.mark.asyncio
 async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """AC-1.1 — with ``elapsed_s=60.0`` per call (Stage 1 + Stage 2 ⇒
     cumulative 120 s, well under 300 s budget), ``generate_briefing``
@@ -99,7 +101,8 @@ async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
     monkeypatch.setattr(orchestration, "call_claude_code", fake_call_claude_code)
 
     budget = RetryBudget()
-    result = await pipeline.generate_briefing(_TARGET_DATE, _items(2), budget=budget)
+    with caplog.at_level(logging.INFO, logger="investo.briefing.pipeline"):
+        result = await pipeline.generate_briefing(_TARGET_DATE, _items(2), budget=budget)
 
     assert isinstance(result, Briefing)
     assert result.target_date == _TARGET_DATE
@@ -108,6 +111,19 @@ async def test_generate_briefing_succeeds_under_nominal_elapsed_per_call(
     assert budget.elapsed_s < budget.total_budget_s
     # Confirm exactly two LLM calls were dispatched (no retries).
     assert call_index == 2
+    llm_records = [
+        record
+        for record in caplog.records
+        if getattr(record, "llm_stage", None) in {"classification", "synthesis"}
+    ]
+    assert [record.__dict__["llm_stage"] for record in llm_records] == [
+        "classification",
+        "synthesis",
+    ]
+    assert [record.__dict__["attempt"] for record in llm_records] == [1, 1]
+    assert all(record.__dict__["elapsed_s"] == 60.0 for record in llm_records)
+    assert all(record.__dict__["prompt_bytes"] > 0 for record in llm_records)
+    assert all(record.__dict__["stdout_len"] > 0 for record in llm_records)
 
 
 @pytest.mark.asyncio

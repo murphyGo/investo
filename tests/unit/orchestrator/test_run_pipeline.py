@@ -815,6 +815,10 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert result.status == PipelineStatus.PARTIAL
     assert result.stages["generate"] == "partial: failed crypto"
     assert result.stages["generate:crypto"] == "failed: synthesis"
+    assert result.stage_timings["generate:crypto"] >= 0
+    assert result.stage_timings["generate:domestic-equity"] >= 0
+    assert result.stage_timings["generate:us-equity"] >= 0
+    assert result.stage_timings["generate:reader_format"] >= 0
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"] == "ok"
     assert len(publisher.calls) == 1
