@@ -3,7 +3,7 @@
 **Date**: 2026-06-09
 **Unit**: u95 workflow-and-enrichment-critical-path-budget
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-04/09 daily briefing speed investigation
 **Estimated Effort**: ~5-8 h
 **Dependencies**:
@@ -66,39 +66,39 @@ Out of scope:
 
 ### Step 1 — workflow setup cache
 
-- [ ] Update `.github/workflows/daily-briefing.yml` to enable uv cache keyed by `uv.lock`.
-- [ ] Add Node setup with npm cache before installing `@anthropic-ai/claude-code`.
-- [ ] Keep the Claude CLI installation command explicit and keep `claude --version` preflight.
-- [ ] Add a workflow text test or static check that pins no new secrets and no paid services.
+- [x] Update `.github/workflows/daily-briefing.yml` to enable uv cache keyed by `uv.lock`.
+- [x] Add Node setup with npm cache before installing `@anthropic-ai/claude-code`.
+- [x] Keep the Claude CLI installation command explicit and keep `claude --version` preflight.
+- [x] Add workflow text tests that pin no new cache secret and preserve existing required secrets.
 
 ### Step 2 — Cairo install minimization
 
-- [ ] Verify the OG-card PNG preflight only needs runtime Cairo libraries.
-- [ ] Replace broad install packages with the minimal package set that still passes the existing `cairosvg.svg2png` preflight.
-- [ ] Keep `sudo apt-get update` and install in one step.
-- [ ] Document the package rationale in the workflow comment.
+- [x] Verify the OG-card PNG preflight only needs runtime Cairo libraries.
+- [x] Replace broad install packages with the minimal package set that still passes the existing `cairosvg.svg2png` preflight.
+- [x] Keep `sudo apt-get update` and install in one step.
+- [x] Document the package rationale in the workflow comment.
 
 ### Step 3 — market-anchor budget
 
-- [ ] Add a local budget around `_load_market_anchors_for_run` in `src/investo/orchestrator/stage_context.py`.
-- [ ] Keep graceful degrade: on timeout or fetch failure, return empty anchors and empty history.
-- [ ] Expose elapsed and degraded reason through u92 logs.
-- [ ] Preserve `_build_kr_anchors_from_items` domestic fallback behavior from collected items.
+- [x] Add a local budget around `_load_market_anchors_for_run` in `src/investo/orchestrator/stage_context.py`.
+- [x] Keep graceful degrade: on timeout or fetch failure, return empty anchors and empty history.
+- [x] Expose elapsed and degraded reason through u92-compatible logs.
+- [x] Preserve `_build_kr_anchors_from_items` domestic fallback behavior from collected items.
 
 ### Step 4 — visual preparation concurrency
 
-- [ ] Add a bounded helper in `_stage_prepare_segment_visual_assets`.
-- [ ] Default worker count: 1 for behavior-compatible rollout.
-- [ ] Accepted env var: `INVESTO_VISUAL_PREP_CONCURRENCY` values `1`, `2`, `3`; invalid values fall back to 1 with warning.
-- [ ] Preserve existing all-visual failure behavior: visual asset error sets `visual_assets_failed=True` and publishes text-only.
-- [ ] Preserve asset path ordering by `SEGMENT_ORDER`.
+- [x] Add a bounded helper in `_stage_prepare_segment_visual_assets`.
+- [x] Default worker count: 1 for behavior-compatible rollout.
+- [x] Accepted env var: `INVESTO_VISUAL_PREP_CONCURRENCY` values `1`, `2`, `3`; invalid values fall back to 1 with warning.
+- [x] Preserve existing all-visual failure behavior: visual asset error sets `visual_assets_failed=True` and publishes text-only.
+- [x] Preserve asset path ordering by `SEGMENT_ORDER`.
 
 ### Step 5 — verification and summary
 
-- [ ] Add tests for workflow YAML text guards.
-- [ ] Add tests for market-anchor timeout returning empty anchors/history.
-- [ ] Add tests for visual-prep ordering and failure fallback.
-- [ ] Confirm u92 summary surfaces show `generate:context` and `visual_assets` timing changes.
+- [x] Add tests for workflow YAML text guards.
+- [x] Add tests for market-anchor timeout returning empty anchors/history.
+- [x] Add tests for visual-prep ordering and failure fallback.
+- [x] Confirm u92 summary surfaces expose `generate:context` and `visual_assets` timing keys.
 
 ## Acceptance Criteria
 

@@ -153,3 +153,28 @@ def test_daily_briefing_workflow_installs_claude_cli() -> None:
     assert workflow.index("name: Install Claude Code CLI") < workflow.index(
         "run: python scripts/check_daily_briefing_env.py"
     )
+
+
+def test_daily_briefing_workflow_uses_setup_caches_without_new_secrets() -> None:
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "enable-cache: true" in workflow
+    assert "cache-dependency-glob: uv.lock" in workflow
+    assert "uses: actions/setup-node@v6" in workflow
+    assert "cache: npm" in workflow
+    assert "cache-dependency-path: .github/workflows/daily-briefing.yml" in workflow
+    assert "CLAUDE_CODE_OAUTH_TOKEN" in workflow
+    assert "OPENAI_API_KEY" in workflow
+    assert "CACHE_TOKEN" not in workflow
+
+
+def test_daily_briefing_workflow_uses_runtime_cairo_only() -> None:
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "sudo apt-get install -y libcairo2" in workflow
+    assert "libcairo2-dev" not in workflow
+    assert "cairosvg.svg2png" in workflow

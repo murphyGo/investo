@@ -241,6 +241,7 @@ _logger = logging.getLogger("investo.orchestrator.pipeline")
 # mid-run is honoured by the next stage.
 _DRY_RUN_ENV: Final[str] = "INVESTO_DRY_RUN"
 _SEGMENT_GENERATION_CONCURRENCY_ENV: Final[str] = "INVESTO_SEGMENT_GENERATION_CONCURRENCY"
+_VISUAL_PREP_CONCURRENCY_ENV: Final[str] = "INVESTO_VISUAL_PREP_CONCURRENCY"
 _SEGMENT_NAV_LINE_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*세그먼트\*\*: .*$", re.MULTILINE)
 
 
@@ -267,6 +268,30 @@ def _segment_generation_concurrency_from_env() -> int:
     _logger.warning(
         "[generate] invalid %s=%r; expected 1, 2, or 3; falling back to 1",
         _SEGMENT_GENERATION_CONCURRENCY_ENV,
+        raw,
+    )
+    return 1
+
+
+def _visual_prep_concurrency_from_env() -> int:
+    raw = os.environ.get(_VISUAL_PREP_CONCURRENCY_ENV)
+    if raw is None:
+        return 1
+    raw = raw.strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        _logger.warning(
+            "[visual_assets] invalid %s=%r; falling back to 1",
+            _VISUAL_PREP_CONCURRENCY_ENV,
+            raw,
+        )
+        return 1
+    if value in {1, 2, 3}:
+        return value
+    _logger.warning(
+        "[visual_assets] invalid %s=%r; expected 1, 2, or 3; falling back to 1",
+        _VISUAL_PREP_CONCURRENCY_ENV,
         raw,
     )
     return 1
@@ -331,6 +356,13 @@ class _SegmentGenerationResult:
     failure: BriefingGenerationError | None
     macro_lineage: tuple[MacroLineageTrace, ...]
     elapsed_s: float
+
+
+@dataclass(frozen=True, slots=True)
+class _VisualPrepResult:
+    segment: MarketSegment
+    briefing: Briefing
+    asset_paths: tuple[Path, ...]
 
 
 async def _default_generate_briefing(
@@ -1651,11 +1683,10 @@ async def _stage_prepare_segment_visual_assets(
     routed = segment_items(items)
     watchlist_config = load_watchlist()
     curated_runtime = _load_curated_runtime_safely()
-    prepared_briefings: dict[MarketSegment, Briefing] = {}
-    asset_paths: list[Path] = []
-    for segment in SEGMENT_ORDER:
-        if segment not in briefings:
-            continue
+    concurrency = _visual_prep_concurrency_from_env()
+    semaphore = asyncio.Semaphore(concurrency)
+
+    async def _prepare_one(segment: MarketSegment) -> _VisualPrepResult:
         segment_source_items = routed.for_segment(segment)
         segment_coverage = routed.coverage_for_segment(
             segment,
@@ -1682,17 +1713,42 @@ async def _stage_prepare_segment_visual_assets(
             )
             if curated_selection is not None:
                 prepared_kwargs["curated_selection"] = curated_selection
-        prepared = await asyncio.to_thread(
-            prepare_segment_visual_assets,
-            briefings[segment],
-            **prepared_kwargs,
-        )
-        prepared_briefings[segment] = prepared.briefing
-        asset_paths.extend(prepared.asset_paths)
+        async with semaphore:
+            prepared = await asyncio.to_thread(
+                prepare_segment_visual_assets,
+                briefings[segment],
+                **prepared_kwargs,
+            )
+        segment_asset_paths: list[Path] = list(prepared.asset_paths)
         for path in prepared.asset_paths:
             manifest_path = manifest_path_for(path)
             if manifest_path.exists():
-                asset_paths.append(manifest_path)
+                segment_asset_paths.append(manifest_path)
+        return _VisualPrepResult(
+            segment=segment,
+            briefing=prepared.briefing,
+            asset_paths=tuple(segment_asset_paths),
+        )
+
+    segments = [segment for segment in SEGMENT_ORDER if segment in briefings]
+    raw_results = await asyncio.gather(
+        *(_prepare_one(segment) for segment in segments),
+        return_exceptions=True,
+    )
+    results_by_segment: dict[MarketSegment, _VisualPrepResult] = {}
+    for segment, raw_result in zip(segments, raw_results, strict=True):
+        if isinstance(raw_result, BaseException):
+            raise raw_result
+        results_by_segment[segment] = raw_result
+
+    prepared_briefings: dict[MarketSegment, Briefing] = {}
+    asset_paths: list[Path] = []
+    for segment in SEGMENT_ORDER:
+        if segment not in results_by_segment:
+            continue
+        result = results_by_segment[segment]
+        prepared_briefings[segment] = result.briefing
+        asset_paths.extend(result.asset_paths)
     return prepared_briefings, tuple(asset_paths)
 
 

@@ -24,6 +24,7 @@ import importlib
 import json
 import logging
 import subprocess
+import threading
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -50,7 +51,7 @@ from investo.orchestrator.pipeline import (
     run_pipeline,
 )
 from investo.publisher.errors import PublisherIOError
-from investo.visuals.assets import VisualAssetError
+from investo.visuals.assets import PreparedVisualAssets, VisualAssetError
 
 _TARGET = date(2026, 4, 27)  # Mon
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
@@ -793,6 +794,98 @@ async def test_run_pipeline_visual_asset_failure_publishes_text_only_partial(
                 assert ".assets/" not in line
             elif ".assets/" in line:
                 assert "data-history-src=" in line
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (None, 1),
+        ("1", 1),
+        ("2", 2),
+        ("3", 3),
+        ("0", 1),
+        ("4", 1),
+        ("abc", 1),
+    ],
+)
+def test_visual_prep_concurrency_env_parser(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    raw: str | None,
+    expected: int,
+) -> None:
+    if raw is None:
+        monkeypatch.delenv("INVESTO_VISUAL_PREP_CONCURRENCY", raising=False)
+    else:
+        monkeypatch.setenv("INVESTO_VISUAL_PREP_CONCURRENCY", raw)
+
+    with caplog.at_level(logging.WARNING, logger="investo.orchestrator.pipeline"):
+        value = pipeline_module._visual_prep_concurrency_from_env()
+
+    assert value == expected
+    if raw not in {None, "1", "2", "3"}:
+        assert "INVESTO_VISUAL_PREP_CONCURRENCY" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("INVESTO_VISUAL_PREP_CONCURRENCY", "2")
+    monkeypatch.setattr(pipeline_module, "load_watchlist", lambda: object())
+    monkeypatch.setattr(pipeline_module, "match_watchlist_items", lambda *args, **kwargs: None)
+    monkeypatch.setattr(pipeline_module, "_load_curated_runtime_safely", lambda: None)
+    started: list[MarketSegment] = []
+    active = 0
+    max_active = 0
+    lock = threading.Lock()
+    second_started = threading.Event()
+    release = threading.Event()
+
+    def _fake_prepare(briefing: Briefing, **kwargs: object) -> PreparedVisualAssets:
+        nonlocal active, max_active
+        segment = kwargs["segment"]
+        assert segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+        with lock:
+            active += 1
+            max_active = max(max_active, active)
+            started.append(segment)
+            if len(started) == 2:
+                second_started.set()
+        release.wait(timeout=1)
+        with lock:
+            active -= 1
+        path = tmp_path / f"{segment}.svg"
+        return PreparedVisualAssets(briefing=briefing, asset_paths=(path,))
+
+    monkeypatch.setattr(pipeline_module, "prepare_segment_visual_assets", _fake_prepare)
+    briefings = {
+        DOMESTIC_EQUITY: _briefing(segment=DOMESTIC_EQUITY),
+        US_EQUITY: _briefing(segment=US_EQUITY),
+        CRYPTO: _briefing(segment=CRYPTO),
+    }
+    task = asyncio.create_task(
+        pipeline_module._stage_prepare_segment_visual_assets(
+            briefings,
+            _three_segment_items(),
+            _TARGET,
+        )
+    )
+    await asyncio.wait_for(asyncio.to_thread(second_started.wait, 1), timeout=2)
+
+    assert started == [DOMESTIC_EQUITY, US_EQUITY]
+    assert max_active == 2
+
+    release.set()
+    prepared, asset_paths = await task
+
+    assert list(prepared) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert [path.name for path in asset_paths] == [
+        f"{DOMESTIC_EQUITY}.svg",
+        f"{US_EQUITY}.svg",
+        f"{CRYPTO}.svg",
+    ]
 
 
 @pytest.mark.asyncio

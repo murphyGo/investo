@@ -21,7 +21,10 @@ orchestrator.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
+import time
 from collections.abc import Mapping, Sequence
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -48,6 +51,8 @@ from investo.briefing.segments import (
 from investo.models import BriefingCarryover, NormalizedItem
 
 _logger = logging.getLogger("investo.orchestrator.stage_context")
+_MARKET_ANCHOR_HISTORY_BUDGET_ENV = "INVESTO_MARKET_ANCHOR_HISTORY_BUDGET_S"
+_DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S = 8.0
 
 SEGMENT_ORDER: tuple[MarketSegment, MarketSegment, MarketSegment] = (
     DOMESTIC_EQUITY,
@@ -82,6 +87,33 @@ _ANCHOR_SEGMENT_ROUTING: dict[str, MarketSegment] = {
     "^KOSDAQ": DOMESTIC_EQUITY,
     "KRW=X": DOMESTIC_EQUITY,
 }
+
+
+def _market_anchor_history_budget_from_env() -> float:
+    raw = os.environ.get(_MARKET_ANCHOR_HISTORY_BUDGET_ENV)
+    if raw is None:
+        return _DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S
+    raw = raw.strip()
+    try:
+        value = float(raw)
+    except ValueError:
+        _logger.warning(
+            "[market_anchor] invalid %s=%r; falling back to %.1fs",
+            _MARKET_ANCHOR_HISTORY_BUDGET_ENV,
+            raw,
+            _DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S,
+        )
+        return _DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S
+    if value > 0:
+        return value
+    _logger.warning(
+        "[market_anchor] invalid %s=%r; expected positive seconds; falling back to %.1fs",
+        _MARKET_ANCHOR_HISTORY_BUDGET_ENV,
+        raw,
+        _DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S,
+    )
+    return _DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S
+
 
 # u67 — canonical KR anchor tickers and their display priority. KOSPI /
 # KOSDAQ / 원/달러 are sourced from the stooq-kr-market snapshot items
@@ -174,13 +206,37 @@ async def _load_market_anchors_for_run(
     empty_anchors: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
         segment: () for segment in SEGMENT_ORDER
     }
+    budget_s = _market_anchor_history_budget_from_env()
+    start = time.monotonic()
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            history = await fetch_price_history(client)
-    except Exception as exc:  # pragma: no cover - best-effort guard
+        async with httpx.AsyncClient(timeout=min(20.0, budget_s)) as client:
+            history = await asyncio.wait_for(fetch_price_history(client), timeout=budget_s)
+    except TimeoutError:
+        elapsed_s = time.monotonic() - start
         _logger.warning(
-            "[market_anchor] history fetch failed (%s); briefing header anchor omitted",
+            "[market_anchor] history fetch timed out budget_s=%.1f elapsed_s=%.3f; "
+            "briefing header anchor omitted",
+            budget_s,
+            elapsed_s,
+            extra={
+                "elapsed_s": elapsed_s,
+                "budget_s": budget_s,
+                "degraded_reason": "timeout",
+            },
+        )
+        return empty_anchors, {}
+    except Exception as exc:  # pragma: no cover - best-effort guard
+        elapsed_s = time.monotonic() - start
+        _logger.warning(
+            "[market_anchor] history fetch failed elapsed_s=%.3f error=%s; "
+            "briefing header anchor omitted",
+            elapsed_s,
             exc,
+            extra={
+                "elapsed_s": elapsed_s,
+                "budget_s": budget_s,
+                "degraded_reason": type(exc).__name__,
+            },
         )
         return empty_anchors, {}
 
@@ -196,12 +252,13 @@ async def _load_market_anchors_for_run(
             continue
         by_segment[segment].append(anchor)
     _logger.info(
-        "[market_anchor] target_date=%s tickers=%d us=%d crypto=%d domestic=%d",
+        "[market_anchor] target_date=%s tickers=%d us=%d crypto=%d domestic=%d elapsed_s=%.3f",
         target_date,
         len(anchors),
         len(by_segment[US_EQUITY]),
         len(by_segment[CRYPTO]),
         len(by_segment[DOMESTIC_EQUITY]),
+        time.monotonic() - start,
     )
     history_by_ticker = {ticker: tuple(rows) for ticker, rows in history.items()}
     return (
@@ -299,5 +356,6 @@ __all__ = [
     "_load_carryover_for_run",
     "_load_market_anchors_for_run",
     "_load_recent_context_for_run",
+    "_market_anchor_history_budget_from_env",
     "_snapshot_close_by_ticker",
 ]

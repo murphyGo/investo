@@ -110,14 +110,18 @@ jobs:
           # Pinned floor for the cache-key behavior we rely on; bump
           # alongside local dev environment.
           version: '>=0.4'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Set up Python 3.11
         run: uv python install 3.11
 
       - name: Install OG card raster dependencies
+        # CairoSVG's svg2png preflight needs the runtime Cairo shared
+        # library only; build headers are not required in the GHA job.
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcairo2 libcairo2-dev
+          sudo apt-get install -y libcairo2
 
       - name: Install project (runtime only)
         # Runtime deps are enough for ``python -m investo``. Test and
@@ -129,11 +133,17 @@ jobs:
           uv run python -c "import cairosvg;
           cairosvg.svg2png(bytestring=b'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"/>')"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: .github/workflows/daily-briefing.yml
+
       - name: Install Claude Code CLI
         # Claude Code is distributed as an npm package and requires
-        # Node.js 18+. GitHub-hosted ubuntu runners already provide a
-        # compatible Node/npm toolchain, so this keeps the job's action
-        # surface small while making the runtime dependency explicit.
+        # Node.js 18+. setup-node enables npm cache without adding
+        # secrets or paid services.
         run: |
           node --version
           npm --version
