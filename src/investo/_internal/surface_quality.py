@@ -79,6 +79,7 @@ def repair_surface_artifacts(text: str) -> str:
                 offset += len(raw_line)
                 continue
             repaired = _repair_recoverable_link_fragments(repaired)
+            repaired = _repair_unmatched_markdown_markers(repaired)
             stripped = repaired.strip()
             if stripped == "...":
                 offset += len(raw_line)
@@ -156,6 +157,14 @@ def _repair_recoverable_link_fragments(line: str) -> str:
     """Preserve link text when a first-viewport URL was cut before ``)``."""
 
     return _RECOVERABLE_LINK_FRAGMENT_RE.sub(r"\1", line)
+
+
+def _repair_unmatched_markdown_markers(line: str) -> str:
+    """Strip broken markdown delimiters while preserving readable text."""
+
+    if not _looks_like_unmatched_link(line):
+        return line
+    return line.replace("[", "").replace("]", "").replace("](", " ").strip()
 
 
 def _repair_trace_fragments(line: str) -> str:

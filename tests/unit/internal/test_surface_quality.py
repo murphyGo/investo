@@ -27,11 +27,13 @@ def test_repair_bad_token_and_dangling_ellipsis() -> None:
     assert repair_surface_artifacts(repaired) == repaired
 
 
-def test_repairs_trace_fragments_and_still_blocks_unmatched_link() -> None:
+def test_repairs_trace_fragments_and_unmatched_link_markers() -> None:
     text = "# title\n\n[broken link\nstage1_hash=abc\n\n## ① 요약"
 
     repaired = repair_surface_artifacts(text)
     assert "stage1_hash" not in repaired
+    assert "[broken link" not in repaired
+    assert "broken link" in repaired
 
     issues = find_surface_quality_issues(text)
     codes = {issue.code for issue in issues if issue.severity == "block"}
@@ -41,8 +43,7 @@ def test_repairs_trace_fragments_and_still_blocks_unmatched_link() -> None:
     assert has_blocking_surface_issue(text)
 
     repaired_issues = find_surface_quality_issues(repaired)
-    repaired_codes = {issue.code for issue in repaired_issues if issue.severity == "block"}
-    assert repaired_codes == {"markdown.unmatched_link"}
+    assert [issue for issue in repaired_issues if issue.severity == "block"] == []
 
 
 def test_repairs_recoverable_markdown_link_fragment() -> None:
@@ -52,6 +53,16 @@ def test_repairs_recoverable_markdown_link_fragment() -> None:
 
     assert "[broken link](" not in repaired
     assert "broken link" in repaired
+    assert not has_blocking_surface_issue(repaired)
+
+
+def test_repairs_plain_unmatched_bracket_marker() -> None:
+    text = "# title\n\n> **오늘의 결론**: [국내 증시 변동성 확대\n\n## ① 요약"
+
+    repaired = repair_surface_artifacts(text)
+
+    assert "[국내 증시" not in repaired
+    assert "국내 증시 변동성 확대" in repaired
     assert not has_blocking_surface_issue(repaired)
 
 

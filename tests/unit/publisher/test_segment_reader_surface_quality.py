@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from datetime import date
 
-import pytest
-
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import US_EQUITY
 from investo.models import Briefing
-from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 
 
@@ -75,10 +72,13 @@ def test_segment_reader_repairs_first_viewport_trace_fragments() -> None:
     assert "정책 변수 확인 필요" in out
 
 
-def test_segment_reader_blocks_unrecoverable_first_viewport_link_fragment() -> None:
+def test_segment_reader_repairs_unrecoverable_first_viewport_link_marker() -> None:
     briefing = _briefing("# title\n\n> **오늘의 결론**: [broken link\n\n## ① 요약\n본문")
 
-    with pytest.raises(SurfaceQualityError) as excinfo:
-        apply_reader_format_to_segments({US_EQUITY: briefing}, anchors_by_segment={})
-    assert excinfo.value.segment == US_EQUITY
-    assert {issue.code for issue in excinfo.value.issues} == {"markdown.unmatched_link"}
+    out = apply_reader_format_to_segments(
+        {US_EQUITY: briefing},
+        anchors_by_segment={},
+    )[US_EQUITY].rendered_markdown
+
+    assert "[broken link" not in out
+    assert "broken link" in out

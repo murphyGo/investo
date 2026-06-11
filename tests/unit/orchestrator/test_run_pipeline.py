@@ -31,6 +31,7 @@ from pathlib import Path
 import pytest
 from pydantic import HttpUrl, TypeAdapter
 
+from investo._internal.surface_quality import SurfaceQualityIssue
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
@@ -50,7 +51,7 @@ from investo.orchestrator.pipeline import (
     _build_failure_context,
     run_pipeline,
 )
-from investo.publisher.errors import PublisherIOError
+from investo.publisher.errors import PublisherIOError, SurfaceQualityError
 from investo.visuals.assets import PreparedVisualAssets, VisualAssetError
 
 _TARGET = date(2026, 4, 27)  # Mon
@@ -962,10 +963,36 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
 @pytest.mark.asyncio
 async def test_run_pipeline_surface_quality_failure_publishes_remaining_segments_partial(
     archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     publisher = _FakePublisher()
     alerter = _FakeAlerter()
     git = _SuccessfulGitRunner()
+    real_apply_reader_format = pipeline_module._apply_reader_format_to_segments
+
+    def fake_apply_reader_format(
+        segment_briefings: dict[MarketSegment, Briefing],
+        **kwargs: object,
+    ) -> dict[MarketSegment, Briefing]:
+        if CRYPTO in segment_briefings:
+            raise SurfaceQualityError(
+                segment=CRYPTO,
+                issues=(
+                    SurfaceQualityIssue(
+                        code="markdown.unmatched_link",
+                        severity="block",
+                        evidence="[broken link",
+                        region="first_viewport",
+                    ),
+                ),
+            )
+        return real_apply_reader_format(segment_briefings, **kwargs)
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "_apply_reader_format_to_segments",
+        fake_apply_reader_format,
+    )
 
     result = await run_pipeline(
         _TARGET,
@@ -974,7 +1001,7 @@ async def test_run_pipeline_surface_quality_failure_publishes_remaining_segments
         site_url_base=_SITE_BASE,
         fetch=_success_fetch([_item("Bitcoin"), _item("AAPL")]),
         git_runner=git,
-        generate_segment=_surface_blocking_segment_generate(CRYPTO),
+        generate_segment=_success_segment_generate([]),
     )
 
     assert result.status == PipelineStatus.PARTIAL
