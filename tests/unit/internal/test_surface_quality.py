@@ -27,8 +27,11 @@ def test_repair_bad_token_and_dangling_ellipsis() -> None:
     assert repair_surface_artifacts(repaired) == repaired
 
 
-def test_blocks_unmatched_link_and_trace_fragment() -> None:
+def test_repairs_trace_fragments_and_still_blocks_unmatched_link() -> None:
     text = "# title\n\n[broken link\nstage1_hash=abc\n\n## ① 요약"
+
+    repaired = repair_surface_artifacts(text)
+    assert "stage1_hash" not in repaired
 
     issues = find_surface_quality_issues(text)
     codes = {issue.code for issue in issues if issue.severity == "block"}
@@ -36,6 +39,10 @@ def test_blocks_unmatched_link_and_trace_fragment() -> None:
     assert "markdown.unmatched_link" in codes
     assert "trace.fragment" in codes
     assert has_blocking_surface_issue(text)
+
+    repaired_issues = find_surface_quality_issues(repaired)
+    repaired_codes = {issue.code for issue in repaired_issues if issue.severity == "block"}
+    assert repaired_codes == {"markdown.unmatched_link"}
 
 
 def test_repairs_recoverable_markdown_link_fragment() -> None:
@@ -45,6 +52,23 @@ def test_repairs_recoverable_markdown_link_fragment() -> None:
 
     assert "[broken link](" not in repaired
     assert "broken link" in repaired
+    assert not has_blocking_surface_issue(repaired)
+
+
+def test_repairs_first_viewport_trace_assignment_lines() -> None:
+    text = (
+        "# title\n\n"
+        "> **오늘의 결론**: 금리 민감도가 커졌습니다.\n"
+        "- `input_hash`: `1ee42e89b281`\n"
+        "stage2_hash=abcdef123456\n\n"
+        "## ① 요약"
+    )
+
+    repaired = repair_surface_artifacts(text)
+
+    assert "input_hash" not in repaired
+    assert "stage2_hash" not in repaired
+    assert "> **오늘의 결론**: 금리 민감도가 커졌습니다." in repaired
     assert not has_blocking_surface_issue(repaired)
 
 

@@ -2345,8 +2345,16 @@ class GenerateStage:
                         )
                         _logger.error(
                             "[publish] surface quality blocked segment=%s; "
-                            "continuing with %d remaining segment(s)",
+                            "issues=%s continuing with %d remaining segment(s)",
                             failed_segment,
+                            [
+                                {
+                                    "code": issue.code,
+                                    "region": issue.region,
+                                    "evidence_len": len(issue.evidence),
+                                }
+                                for issue in exc.issues
+                            ],
                             len(segment_briefings),
                         )
                         if not segment_briefings:

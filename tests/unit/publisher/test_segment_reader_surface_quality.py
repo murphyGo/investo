@@ -56,6 +56,25 @@ def test_segment_reader_repairs_recoverable_first_viewport_link_fragment() -> No
     assert "broken link" in out
 
 
+def test_segment_reader_repairs_first_viewport_trace_fragments() -> None:
+    briefing = _briefing(
+        "# title\n\n"
+        "> **오늘의 결론**: 정책 변수 확인 필요\n"
+        "- `input_hash`: `1ee42e89b281`\n"
+        "stage1_hash=abcdef123456\n\n"
+        "## ① 요약\n본문"
+    )
+
+    out = apply_reader_format_to_segments(
+        {US_EQUITY: briefing},
+        anchors_by_segment={},
+    )[US_EQUITY].rendered_markdown
+
+    assert "input_hash" not in out
+    assert "stage1_hash" not in out
+    assert "정책 변수 확인 필요" in out
+
+
 def test_segment_reader_blocks_unrecoverable_first_viewport_link_fragment() -> None:
     briefing = _briefing("# title\n\n> **오늘의 결론**: [broken link\n\n## ① 요약\n본문")
 

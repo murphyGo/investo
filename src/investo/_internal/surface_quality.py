@@ -14,6 +14,9 @@ _ANY_H2_RE = re.compile(r"(?m)^## ")
 _BAD_TOKEN = "불강한성"
 _BAD_TOKEN_REPAIR = "불확실성"
 _TRACE_RE = re.compile(r"\b(?:input_hash|stage1_hash|stage2_hash)\b")
+_TRACE_ASSIGNMENT_RE = re.compile(
+    r"`?(?:input_hash|stage1_hash|stage2_hash)`?\s*[:=]\s*`?[\w.-]+`?"
+)
 _RECOVERABLE_LINK_FRAGMENT_RE = re.compile(
     r"\[([^\]\n]+)\]\((?:https?://|www\.)[^\s)\n]*"
 )
@@ -71,6 +74,10 @@ def repair_surface_artifacts(text: str) -> str:
 
         repaired = line.replace(_BAD_TOKEN, _BAD_TOKEN_REPAIR)
         if offset < first_viewport_len:
+            repaired = _repair_trace_fragments(repaired)
+            if not repaired.strip():
+                offset += len(raw_line)
+                continue
             repaired = _repair_recoverable_link_fragments(repaired)
             stripped = repaired.strip()
             if stripped == "...":
@@ -149,6 +156,15 @@ def _repair_recoverable_link_fragments(line: str) -> str:
     """Preserve link text when a first-viewport URL was cut before ``)``."""
 
     return _RECOVERABLE_LINK_FRAGMENT_RE.sub(r"\1", line)
+
+
+def _repair_trace_fragments(line: str) -> str:
+    """Remove model trace hashes from user-facing first-viewport text."""
+
+    without_assignments = _TRACE_ASSIGNMENT_RE.sub("", line).strip()
+    if _TRACE_RE.search(without_assignments):
+        return ""
+    return without_assignments.strip(" -·,;|")
 
 
 def _is_protected_line(line: str, *, in_code: bool, in_details: bool) -> bool:
