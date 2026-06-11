@@ -365,10 +365,15 @@ def _check_quality_page(
             )
     fallback_line = _dashboard_metric_value(quality_page_text, "데이터 부족 폴백")
     fallback_denominator = _dashboard_metric_denominator(quality_page_text, "데이터 부족 폴백")
+    expected_fallback_pct = (
+        snapshot.current_run_data_limited_briefings / snapshot.current_run_briefings_observed * 100
+        if snapshot.current_run_briefings_observed > 0
+        else 0.0
+    )
     if (
         snapshot.current_run_data_limited_briefings > 0
         and fallback_line is not None
-        and _metric_pct(fallback_line) <= 0.0
+        and _metric_pct(fallback_line) + 0.05 < expected_fallback_pct
     ):
         findings.append(
             ConsistencyFinding(

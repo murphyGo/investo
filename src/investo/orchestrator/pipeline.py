@@ -153,7 +153,10 @@ from investo.notifier import (
 )
 from investo.notifier.summary import resolve_enabled_segments
 from investo.orchestrator import source_health
-from investo.orchestrator.bundle_context import compute_bundle_context
+from investo.orchestrator.bundle_context import (
+    compute_bundle_context,
+    redecide_daily_thesis_for_successful_segments,
+)
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.errors import EmptyCollectError
 from investo.orchestrator.stage_context import (
@@ -2147,6 +2150,7 @@ class GenerateStage:
         start = time.monotonic()
         segmented_mode = generate is None
         segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
+        surface_quality_failures: dict[MarketSegment, SurfaceQualityError] = {}
         market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
         market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
             segment: () for segment in SEGMENT_ORDER
@@ -2306,19 +2310,63 @@ class GenerateStage:
             reader_format_start = time.monotonic()
             try:
                 _routed_for_indicators = segment_items(items)
-                segment_briefings = _apply_reader_format_to_segments(
-                    segment_briefings,
-                    anchors_by_segment=anchor_table_input,
-                    bundle_context=run_bundle_context,
-                    items_by_segment={
-                        seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
-                    },
-                )
-            except (
-                ComplianceLanguageError,
-                NumericAnchorReconciliationError,
-                SurfaceQualityError,
-            ) as exc:
+                items_by_segment = {
+                    seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
+                }
+                while True:
+                    reader_bundle_context = (
+                        redecide_daily_thesis_for_successful_segments(
+                            run_bundle_context,
+                            tuple(segment_briefings),
+                        )
+                        if run_bundle_context is not None
+                        else None
+                    )
+                    try:
+                        segment_briefings = _apply_reader_format_to_segments(
+                            segment_briefings,
+                            anchors_by_segment=anchor_table_input,
+                            bundle_context=reader_bundle_context,
+                            items_by_segment=items_by_segment,
+                        )
+                        break
+                    except SurfaceQualityError as exc:
+                        failed_segment = cast(MarketSegment, exc.segment)
+                        if failed_segment not in segment_briefings:
+                            raise
+                        surface_quality_failures[failed_segment] = exc
+                        segment_briefings = {
+                            segment: briefing
+                            for segment, briefing in segment_briefings.items()
+                            if segment != failed_segment
+                        }
+                        stage_notes[f"publish:{failed_segment}"] = (
+                            "failed: SurfaceQualityError"
+                        )
+                        _logger.error(
+                            "[publish] surface quality blocked segment=%s; "
+                            "continuing with %d remaining segment(s)",
+                            failed_segment,
+                            len(segment_briefings),
+                        )
+                        if not segment_briefings:
+                            reader_format_elapsed = time.monotonic() - reader_format_start
+                            stage_notes["publish"] = "failed: SurfaceQualityError"
+                            stage_notes["notify_briefing"] = "skipped"
+                            return StageResult(
+                                status="failed",
+                                error=exc,
+                                stage_notes=stage_notes,
+                                timings={
+                                    "generate": generate_elapsed,
+                                    **generate_sub_timings,
+                                    "visual_assets": va_elapsed,
+                                    "generate:reader_format": reader_format_elapsed,
+                                    "publish": 0.0,
+                                },
+                                data={"_stage_alerts": stage_alerts},
+                            )
+            except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
                 reader_format_elapsed = time.monotonic() - reader_format_start
                 _logger.error(
                     "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
@@ -2353,12 +2401,17 @@ class GenerateStage:
             timings = {"generate": generate_elapsed}
 
         return StageResult(
-            status="partial" if segment_generation_failures else "ok",
+            status=(
+                "partial"
+                if segment_generation_failures or surface_quality_failures
+                else "ok"
+            ),
             data={
                 "segmented_mode": segmented_mode,
                 "briefing": briefing,
                 "segment_briefings": segment_briefings,
                 "segment_generation_failures": segment_generation_failures,
+                "surface_quality_failures": surface_quality_failures,
                 "visual_assets_failed": visual_assets_failed,
                 "visual_asset_paths": visual_asset_paths,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
@@ -2455,6 +2508,10 @@ class NotifyStage:
             "dict[MarketSegment, BriefingGenerationError]",
             accumulated["segment_generation_failures"],
         )
+        surface_quality_failures = cast(
+            "dict[MarketSegment, SurfaceQualityError]",
+            accumulated.get("surface_quality_failures", {}),
+        )
 
         primary_segment = (
             DOMESTIC_EQUITY
@@ -2504,7 +2561,11 @@ class NotifyStage:
                 coverage_by_segment=coverage_by_segment,
                 lookahead_items_by_segment=lookahead_items_by_segment,
                 now_utc=notify_now_utc,
-                missing_segments=tuple(segment_generation_failures),
+                missing_segments=tuple(
+                    segment
+                    for segment in SEGMENT_ORDER
+                    if segment in segment_generation_failures or segment in surface_quality_failures
+                ),
             )
         else:
             notify_result = await _stage_notify_briefing(
@@ -2769,11 +2830,19 @@ async def run_pipeline(
                 "dict[MarketSegment, BriefingGenerationError]",
                 accumulated["segment_generation_failures"],
             )
+            surface_quality_failures = cast(
+                "dict[MarketSegment, SurfaceQualityError]",
+                accumulated.get("surface_quality_failures", {}),
+            )
             if notify_result.ok:
                 stage_status["notify_briefing"] = "ok"
                 status = (
                     PipelineStatus.PARTIAL
-                    if visual_assets_failed or bool(segment_generation_failures)
+                    if (
+                        visual_assets_failed
+                        or bool(segment_generation_failures)
+                        or bool(surface_quality_failures)
+                    )
                     else PipelineStatus.SUCCESS
                 )
             else:

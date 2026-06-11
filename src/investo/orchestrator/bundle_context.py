@@ -437,20 +437,40 @@ def _decide_daily_thesis(
     signals: Sequence[DailyThesisSignal],
 ) -> DailyThesisDecision:
     successful_segments = tuple(segment for segment, items in routed.items() if items)
-    if len(successful_segments) < 2:
+    return _decide_daily_thesis_for_segments(
+        successful_segments,
+        shared_keys=tuple(key for key, _title in shared),
+        signals=signals,
+    )
+
+
+def _decide_daily_thesis_for_segments(
+    successful_segments: Sequence[MarketSegment | str],
+    *,
+    shared_keys: Sequence[str],
+    signals: Sequence[DailyThesisSignal],
+) -> DailyThesisDecision:
+    successful_set = set(successful_segments)
+    ordered_successful = tuple(
+        segment for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO) if segment in successful_set
+    )
+    if len(ordered_successful) < 2:
         return DailyThesisDecision(mode="omit", reason="insufficient_successful_segments")
 
     segments_by_key: dict[str, set[str]] = {}
     for signal in signals:
-        if signal.tier != "core":
+        if signal.tier != "core" or signal.segment not in successful_set:
             continue
         segments_by_key.setdefault(signal.key, set()).add(signal.segment)
 
-    for key, _title in shared:
+    for key in shared_keys:
         cause_type = _THESIS_CAUSE_TYPE_BY_KEY.get(key)
         if cause_type is None or cause_type not in CROSS_MARKET_CORE_ALLOWED:
             continue
-        supporting = tuple(sorted(segments_by_key.get(key, ())))
+        supporting_set = segments_by_key.get(key, set())
+        supporting = tuple(
+            segment for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO) if segment in supporting_set
+        )
         if len(supporting) < 2:
             continue
         driver = _THESIS_DRIVER_BY_CAUSE_TYPE[cause_type]
@@ -477,7 +497,31 @@ def _decide_daily_thesis(
             "오늘은 세그먼트별 데이터 상태를 먼저 확인해야 합니다."
         ),
         reason="no_shared_core_signal",
-        supporting_segments=tuple(sorted(successful_segments)),
+        supporting_segments=ordered_successful,
+    )
+
+
+def redecide_daily_thesis_for_successful_segments(
+    context: BundleContext,
+    successful_segments: Sequence[MarketSegment | str],
+) -> BundleContext:
+    """Return ``context`` with u99 thesis scoped to generated segments only."""
+
+    successful_set = set(successful_segments)
+    filtered_signals = tuple(
+        signal for signal in context.daily_thesis_signals if signal.segment in successful_set
+    )
+    shared_keys = tuple(dict.fromkeys(signal.key for signal in context.daily_thesis_signals))
+    decision = _decide_daily_thesis_for_segments(
+        successful_segments,
+        shared_keys=shared_keys,
+        signals=filtered_signals,
+    )
+    return context.model_copy(
+        update={
+            "daily_thesis_signals": filtered_signals,
+            "daily_thesis_decision": decision,
+        }
     )
 
 
@@ -544,4 +588,4 @@ def compute_bundle_context(
     return ctx
 
 
-__all__ = ["compute_bundle_context"]
+__all__ = ["compute_bundle_context", "redecide_daily_thesis_for_successful_segments"]

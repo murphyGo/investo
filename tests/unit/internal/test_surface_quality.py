@@ -28,7 +28,7 @@ def test_repair_bad_token_and_dangling_ellipsis() -> None:
 
 
 def test_blocks_unmatched_link_and_trace_fragment() -> None:
-    text = "# title\n\n[broken link](https://example.com\nstage1_hash=abc\n\n## ① 요약"
+    text = "# title\n\n[broken link\nstage1_hash=abc\n\n## ① 요약"
 
     issues = find_surface_quality_issues(text)
     codes = {issue.code for issue in issues if issue.severity == "block"}
@@ -36,6 +36,16 @@ def test_blocks_unmatched_link_and_trace_fragment() -> None:
     assert "markdown.unmatched_link" in codes
     assert "trace.fragment" in codes
     assert has_blocking_surface_issue(text)
+
+
+def test_repairs_recoverable_markdown_link_fragment() -> None:
+    text = "# title\n\n> **오늘의 결론**: [broken link](https://example.com\n\n## ① 요약"
+
+    repaired = repair_surface_artifacts(text)
+
+    assert "[broken link](" not in repaired
+    assert "broken link" in repaired
+    assert not has_blocking_surface_issue(repaired)
 
 
 def test_preserves_protected_regions() -> None:

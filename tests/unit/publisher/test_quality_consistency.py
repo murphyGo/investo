@@ -200,6 +200,30 @@ def test_dashboard_understates_current_run_fields() -> None:
     assert CODE_CURRENT_RUN_UNDERSTATED in {f.code for f in findings if f.is_failure}
 
 
+def test_dashboard_understates_nonzero_fallback_ratio() -> None:
+    snapshot = build_canonical_snapshot(
+        TARGET,
+        segment_texts={US_EQUITY: _segment_body(status_label="제한", failed=0, data_limited=True)},
+        history_row={
+            "date": TARGET.isoformat(),
+            "worst_severity": "limited",
+            "total_failed_sources": 0,
+            "current_run_data_limited_briefings": 3,
+            "current_run_briefings_observed": 12,
+        },
+    )
+
+    findings = check_quality_consistency(
+        snapshot,
+        quality_page_text=_quality_page_full(
+            fallback="8.3%",
+            fallback_denominator="12 건",
+        ),
+    )
+
+    assert CODE_CURRENT_RUN_UNDERSTATED in {f.code for f in findings if f.is_failure}
+
+
 def test_dashboard_matches_current_run_fields() -> None:
     snapshot = build_canonical_snapshot(
         TARGET,

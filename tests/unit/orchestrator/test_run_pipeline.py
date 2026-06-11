@@ -269,6 +269,36 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
     return _fake
 
 
+def _surface_blocking_segment_generate(block_segment: MarketSegment) -> object:
+    async def _fake(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del items, runner, data_limited, source_outcomes, recent_context, market_anchors
+        del carryover, bundle_context
+        briefing = _briefing(target_date, segment=segment)
+        if segment != block_segment:
+            return briefing
+        return briefing.model_copy(
+            update={
+                "rendered_markdown": briefing.rendered_markdown.replace(
+                    "> **오늘의 결론**: 오늘 시장 요약",
+                    "> **오늘의 결론**: [broken link",
+                )
+            }
+        )
+
+    return _fake
+
+
 @pytest.fixture
 def archive_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Isolate ARCHIVE_ROOT to per-test tmp dir so writes don't pollute repo."""
@@ -925,6 +955,36 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
     assert "⚠️ 부분 발행: 크립토 생성 실패" in publisher.calls[0].summary_text
+    assert "/archive/crypto/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
+    assert "push" in [call[1] for call in git.calls]
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_surface_quality_failure_publishes_remaining_segments_partial(
+    archive_root: Path,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("Bitcoin"), _item("AAPL")]),
+        git_runner=git,
+        generate_segment=_surface_blocking_segment_generate(CRYPTO),
+    )
+
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.stages["publish"] == "ok"
+    assert result.stages["publish:crypto"] == "failed: SurfaceQualityError"
+    assert result.stages["notify_briefing"] == "ok"
+    assert len(publisher.calls) == 1
+    assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
     assert "/archive/crypto/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
     assert "push" in [call[1] for call in git.calls]
 

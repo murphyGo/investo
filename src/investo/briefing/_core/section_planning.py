@@ -27,10 +27,9 @@ _TIER_BASE: dict[StoryTier, int] = {
     "context": 100,
     "watchlist_only": 50,
 }
-_MARKET_STATE_SOURCES = (
-    "anchor",
-    "price",
-    "market",
+_MARKET_STATE_SOURCE_TERMS = (
+    "market-data",
+    "global-market",
     "stooq",
     "yfinance",
     "fred",
@@ -38,6 +37,13 @@ _MARKET_STATE_SOURCES = (
     "coingecko",
     "derivatives",
     "fng",
+)
+_MARKET_STATE_METADATA_KEYS = (
+    "market_anchor",
+    "segment_native_market_state",
+    "segment_wide_breadth",
+    "breadth_indicator",
+    "primary_price_flow",
 )
 _SUPPORTING_TERMS = (
     "sector",
@@ -208,8 +214,13 @@ def _story_tier(reasons: Sequence[str]) -> StoryTier:
 def _is_segment_native_market_state(item: NormalizedItem) -> bool:
     if item.category in ("macro", "price"):
         return True
-    haystack = _item_haystack(item)
-    return any(term in haystack for term in _MARKET_STATE_SOURCES)
+    source_name = item.source_name.casefold()
+    if any(term in source_name for term in _MARKET_STATE_SOURCE_TERMS):
+        return True
+    return any(
+        _metadata_value(item, key) in ("1", "true", "yes", "primary", "anchor", "breadth")
+        for key in _MARKET_STATE_METADATA_KEYS
+    )
 
 
 def _is_approved_cross_market_core(item: NormalizedItem) -> bool:

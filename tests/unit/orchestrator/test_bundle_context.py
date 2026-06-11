@@ -13,7 +13,10 @@ from investo.models.bundle_context import (
     CROSS_MARKET_CORE_ALLOWED,
     BundleContext,
 )
-from investo.orchestrator.bundle_context import compute_bundle_context
+from investo.orchestrator.bundle_context import (
+    compute_bundle_context,
+    redecide_daily_thesis_for_successful_segments,
+)
 
 NOW = datetime(2026, 5, 11, 9, 0, tzinfo=UTC)
 IMMUNEFI_TITLE = "Immunefi to absorb Code4rena bug bounty customers after shutdown decision"
@@ -462,6 +465,41 @@ class TestDailyThesis:
         assert ctx.daily_thesis_decision.mode == "data_limited"
         assert ctx.daily_thesis_decision.reason == "no_shared_core_signal"
         assert "공통 핵심 신호가 제한적" in (ctx.daily_thesis_decision.line or "")
+
+    def test_daily_thesis_is_redecided_from_generated_segments_only(self) -> None:
+        routed = {
+            DOMESTIC_EQUITY: [
+                make_item(
+                    source="news",
+                    title="UST 수익률 상승에 코스피 약세",
+                    published_at=NOW,
+                ),
+            ],
+            US_EQUITY: [
+                make_item(
+                    source="fred-macro",
+                    title="DGS10 Treasury yield update",
+                    published_at=NOW,
+                    category="macro",
+                ),
+            ],
+            CRYPTO: [
+                make_item(
+                    source="news",
+                    title="UST 수익률 상승에 비트코인 약세",
+                    published_at=NOW,
+                ),
+            ],
+        }
+        ctx = compute_bundle_context(routed, now_kst=NOW)
+        assert ctx.daily_thesis_decision.mode == "strong"
+
+        filtered = redecide_daily_thesis_for_successful_segments(ctx, (US_EQUITY,))
+
+        assert filtered.daily_thesis_decision.mode == "omit"
+        assert filtered.daily_thesis_decision.reason == "insufficient_successful_segments"
+        assert filtered.daily_thesis_decision.supporting_segments == ()
+        assert {signal.segment for signal in filtered.daily_thesis_signals} == {US_EQUITY}
 
 
 @pytest.mark.parametrize(

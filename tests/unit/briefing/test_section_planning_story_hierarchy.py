@@ -81,6 +81,23 @@ def test_story_metadata_classifies_supporting_context_and_watchlist_only() -> No
     assert plan.story_metadata[story_identity(watchlist)].tier == "watchlist_only"
 
 
+def test_general_market_word_does_not_promote_news_to_core() -> None:
+    item = _item(
+        "Company enters market competition",
+        source_name="general-news",
+        category="news",
+    )
+    plan = build_section_plan(
+        [item],
+        ClassificationResult(assignments={1: 2}, unassigned=[]),
+        target_date=TARGET,
+    )
+
+    metadata = plan.story_metadata[story_identity(item)]
+    assert metadata.tier != "core"
+    assert "segment_native_market_state" not in metadata.reasons
+
+
 def test_core_evidence_wins_section_cap_over_lower_tiers() -> None:
     low_tier_items = tuple(_item(f"context-{idx}", days_old=idx + 1) for idx in range(20))
     core = _item("S&P 500 close anchor", source_name="yfinance-history", category="price")
