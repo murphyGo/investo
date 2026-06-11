@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-10 begin -->
+
+## 2026-06-10
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,251,631,162,319; BTC dominance 56.27%
+- [defillama-market-structure] **ticker**: DeFi TVL $71.0B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,977,340 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,982,190 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000557680511197 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin takes back seat to stablecoins and tokenization among financial advisors: Bitwise CIO
+- [theblock-crypto] **ticker**: CryptoQuant sees bitcoin bottom near $53,600 while demand remains ‘deeply unfavorable’
+- [theblock-crypto] **ticker**: Elon Musk’s SpaceX IPO could become bitcoin’s latest headwind
+
+<!-- u33 entry 2026-06-10 end -->
 <!-- u33 entry 2026-06-09 begin -->
 
 ## 2026-06-09

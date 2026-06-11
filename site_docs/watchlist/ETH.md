@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-10 begin -->
+
+## 2026-06-10
+
+- [defillama-market-structure] **ticker**: DeFi TVL $71.0B; leader Ethereum
+- [theblock-crypto] **ticker**: Elon Musk’s SpaceX IPO could become bitcoin’s latest headwind
+
+<!-- u33 entry 2026-06-10 end -->
 <!-- u33 entry 2026-06-09 begin -->
 
 ## 2026-06-09

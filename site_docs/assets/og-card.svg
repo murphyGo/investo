@@ -1,17 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-06-09 시황 OG 카드">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-06-10 시황 OG 카드">
 <style>.og-bg{fill:#f7f5ef;}.og-frame{fill:#ffffff;stroke:#253238;}.og-title{fill:#1d2b2f;}.og-subtitle{fill:#617176;}.og-label{fill:#476169;}.og-text{fill:#1d2b2f;}.og-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.og-bg{fill:#0f1417;}.og-frame{fill:#1a2026;stroke:#9fb1ba;}.og-title{fill:#f4f6f8;}.og-subtitle{fill:#bfcdd4;}.og-label{fill:#a8c0c8;}.og-text{fill:#e8eef1;}.og-disclaimer{fill:#e2c489;}}</style>
 <rect class="og-bg" width="1200" height="630"/>
 <rect class="og-frame" x="40" y="40" width="1120" height="550" rx="12" stroke-width="3"/>
 <text class="og-title" x="80" y="138" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="56" font-weight="700">Investo · 오늘의 시황</text>
-<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-06-09</text>
+<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-06-10</text>
 <text class="og-label" x="80" y="230" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">국내 증시</text>
-<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 6월 9일 국내 증시는 전날 반도체·자동차·바이오 대형주의 동반</text>
-<text class="og-text" x="80" y="308" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">급락을 딛고 역대 최대 단일일 상승폭을 기록했다. [데이터부족]</text>
+<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 6월 10일 KOSPI는 8,000.00으로 마감했다. [데이터부족]</text>
 <text class="og-label" x="80" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">미국 증시</text>
-<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">6월 8일(월) AI 트레이드 재부상으로 선물이 상승 출발했던 흐름이 하루 만에</text>
-<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">이탈됐다. [데이터부족]</text>
+<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 6월 10일(수), 미국 증시는 미국 정부의 이란에 대한 추가 공습</text>
+<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">완료 소식 이후 Dow, S&amp;P 500, Nasdaq이 동반 상승했다.</text>
 <text class="og-label" x="80" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">크립토</text>
-<text class="og-text" x="80" y="532" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026-06-09 UTC 24h 스냅샷 기준, 크립토 시장 전체 시총은</text>
-<text class="og-text" x="80" y="568" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">**$2.20**T로 **-2.03%** 하락했다. [데이터부족]</text>
+<text class="og-text" x="80" y="532" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">UTC(협정세계시) 24h 기준 크립토 전체 시총이 **+1.93%** 반등하며</text>
+<text class="og-text" x="80" y="568" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">**$2.25**T를 회복했다. [데이터부족]</text>
 <text class="og-disclaimer" x="80" y="570" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">투자 자문이 아닙니다 · investo (MIT)</text>
 </svg>
