@@ -75,3 +75,11 @@ def test_repeated_template_phrase_warns_only() -> None:
 
     assert any(issue.code == "template.repeated_phrase" for issue in issues)
     assert [issue for issue in issues if issue.severity == "block"] == []
+
+
+def test_balanced_bracket_status_label_is_not_unmatched_link() -> None:
+    text = "# title\n\n> **데이터 상태**: [데이터부족]\n\n## ① 요약"
+
+    issues = find_surface_quality_issues(text)
+
+    assert [issue for issue in issues if issue.code == "markdown.unmatched_link"] == []

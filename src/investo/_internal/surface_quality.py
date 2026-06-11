@@ -14,7 +14,6 @@ _ANY_H2_RE = re.compile(r"(?m)^## ")
 _BAD_TOKEN = "불강한성"
 _BAD_TOKEN_REPAIR = "불확실성"
 _TRACE_RE = re.compile(r"\b(?:input_hash|stage1_hash|stage2_hash)\b")
-_UNMATCHED_LINK_RE = re.compile(r"\[[^\]\n]*(?:\]\([^\)\n]*)?$|[^\[\n]*\]\([^\)\n]*$")
 _RECOVERABLE_LINK_FRAGMENT_RE = re.compile(
     r"\[([^\]\n]+)\]\((?:https?://|www\.)[^\s)\n]*"
 )
@@ -143,9 +142,7 @@ def _repeated_phrase_warnings(text: str) -> list[SurfaceQualityIssue]:
 def _looks_like_unmatched_link(line: str) -> bool:
     if line.count("[") != line.count("]"):
         return True
-    if line.count("](") > line.count(")"):
-        return True
-    return bool(_UNMATCHED_LINK_RE.search(line.strip()))
+    return line.count("](") > line.count(")")
 
 
 def _repair_recoverable_link_fragments(line: str) -> str:
