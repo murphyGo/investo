@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-11 begin -->
+
+## 2026-06-11
+
+- [coingecko-price] **ticker**: ETH $1,672.44 (+3.12%)
+- [defillama-market-structure] **ticker**: DeFi TVL $71.7B; leader Ethereum
+- [theblock-crypto] **ticker**: Tom Lee’s Bitmine buys $41 million worth of ETH, continuing aggressive treasury expansion: onchain data
+
+<!-- u33 entry 2026-06-11 end -->
 <!-- u33 entry 2026-06-10 begin -->
 
 ## 2026-06-10

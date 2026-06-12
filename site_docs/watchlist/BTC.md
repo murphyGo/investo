@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-11 begin -->
+
+## 2026-06-11
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,255,051,442,046; BTC dominance 56.29%
+- [coingecko-price] **ticker**: BTC $63,457.00 (+3.18%)
+- [defillama-market-structure] **ticker**: DeFi TVL $71.7B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $471,904,350 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $471,926,520 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000115047363973 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: BlackRock files new amendment for yield-generating bitcoin ETF; launch expected soon, Bloomberg analyst says
+- [theblock-crypto] **ticker**: JPMorgan says debasement trade retreat has ‘accelerated’ for bitcoin
+- [theblock-crypto] **ticker**: Man who spent 1,500 BTC on graphics card now helps insure bitcoin holders
+- [theblock-crypto] **ticker**: ‘You sell what you can, not what you want’: Jack Mallers says bitcoin is pricing a global liquidity crisis
+
+<!-- u33 entry 2026-06-11 end -->
 <!-- u33 entry 2026-06-10 begin -->
 
 ## 2026-06-10
