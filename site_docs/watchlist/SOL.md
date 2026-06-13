@@ -2,6 +2,13 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-12 begin -->
+
+## 2026-06-12
+
+- [yahoo-finance-news] **ticker**: Securitize brings tokenized CLO fund to Solana with $250 million backing from Ethena
+
+<!-- u33 entry 2026-06-12 end -->
 <!-- u33 entry 2026-06-11 begin -->
 
 ## 2026-06-11
