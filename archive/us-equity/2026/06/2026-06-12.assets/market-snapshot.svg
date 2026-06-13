@@ -3,15 +3,15 @@
 <rect class="card-bg" width="1200" height="630"/>
 <rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
-<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-06-12 · 데이터 partial</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-06-12 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 6월 12일(금), 미국 증시는 미국·이란 간 근거리 평화 협정 기대 보도에 힘입어 S&amp;P</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">500 +0.50+0.58%, DJI +0.70+0.91%, Nasdaq 100 +0.64%로 3대 지수</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미국과 이란의 임시 평화 협정 기대감이 부상하면서 2026년 6월 12일(금) S&amp;P 500은</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">+0.50%, Dow Jones Industrial Average는 +0.70%, Nasdaq 100은</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미·이란 평화 협상 기대 — 지정학 완화 랠리 미국·이란 근거리 평화 협정 기대 보도에 S&amp;P 500</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">+0.58%, DJI +0.91%, Nasdaq 100 +0.64%로 마감했다.</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미국-이란 임시 평화 협의 기대와 주가 랠리 미국·이란 임시 평화 협정 가능성이 부각되면서 S&amp;P 500</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">+0.50%, Dow Jones Industrial Average +0.70%, Nasdaq 100</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 연방준비제도 FOMC 일정 · DFF 3.62% 동결 기조 속 6월 17일 회의 결과·파월</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">기자회견 발언이 완화적 방향으로 확인되면 S&amp;P 500 상방 흐름 관찰, 예상 외 매파적 톤(물가 우려</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: Federal Reserve · FOMC 회의 일정 — 6월 1617일 회의에서 DFF</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">3.62% 유지 여부를 점검하되, 점도표 상방 이동 신호가 확인되면 성장주 수급 부담 압력 관찰, 금리</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

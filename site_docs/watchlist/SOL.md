@@ -7,8 +7,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-06-12
 
 - [yahoo-finance-news] **ticker**: Securitize brings tokenized CLO fund to Solana with $250 million backing from Ethena
+- [defillama-market-structure] **ticker**: DeFi TVL $72.0B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethena Labs to allocate $250 million to Securitize’s Tokenized AAA CLO Fund as it deploys on Solana
+- [theblock-crypto] **ticker**: Exodus, Ondo launch tokenized markets with 200-plus stocks and ETFs on Solana
 
 <!-- u33 entry 2026-06-12 end -->
+
 <!-- u33 entry 2026-06-11 begin -->
 
 ## 2026-06-11

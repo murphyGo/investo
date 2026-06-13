@@ -2,6 +2,23 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-12 begin -->
+
+## 2026-06-12
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,255,340,896,626; BTC dominance 56.46%
+- [defillama-market-structure] **ticker**: DeFi TVL $72.0B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,577,070 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000376973810110 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: AI buildout weighs on bitcoin demand but future gains could reverse trend, Relai CEO says
+- [theblock-crypto] **ticker**: Bitwise’s Dragosch sees up to 20% further downside for bitcoin, puts ‘max pain’ scenario at $48,000
+- [theblock-crypto] **ticker**: BlackRock files 8-A for yield-bearing bitcoin ETF; analyst expects launch next week
+- [theblock-crypto] **ticker**: Metaplanet to acquire Siiibo Securities for $13 million to develop bitcoin-linked yield products
+- [theblock-crypto] **ticker**: There is a ‘fundamental clash’ between bitcoin and institutionalization, says BTC circular economy project founder
+- [theblock-crypto] **ticker**: US spot Bitcoin ETFs set to hit $2 trillion cumulative trading volume milestone amid mounting outflows
+- [theblock-crypto] **ticker**: ‘Anarchistic neobanks’ are bitcoin’s next frontier, says Blockrise CEO
+
+<!-- u33 entry 2026-06-12 end -->
 <!-- u33 entry 2026-06-11 begin -->
 
 ## 2026-06-11
