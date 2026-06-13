@@ -166,7 +166,8 @@ async def test_synthesis_retry_prompt_includes_validation_feedback() -> None:
     assert prompts[2] is not None
     assert "Previous Stage 2 output failed validation" in prompts[2]
     assert "missing section header" in prompts[2]
-    assert "exact six required H2 headers" in prompts[2]
+    assert "first non-empty line MUST be `## ① 요약`" in prompts[2]
+    assert "do not begin mid-section" in prompts[2]
 
 
 # ---------------------------------------------------------------------------

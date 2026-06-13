@@ -344,12 +344,14 @@ SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
     # 2026-05-21 GHA postmortem — crypto Stage 2 exhausted the 15-minute
     # per-call synthesis ceiling on otherwise publishable runs. The workflow
     # job timeout is now 240 minutes, so each segment gets a 30-minute
-    # per-call ceiling while retaining two attempts. Worst-case repeated
-    # synthesis across all three segments still leaves room for collect,
-    # visual assets, publish, notify, and GitHub runner overhead.
+    # per-call ceiling. 2026-06-13 postmortem — crypto twice returned
+    # mid-section markdown without the required first header, so crypto keeps
+    # the default third attempt while the two equity segments stay capped at
+    # two attempts. Worst-case synthesis across all segments still fits the
+    # cron budget with runner overhead.
     DOMESTIC_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
     US_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
-    CRYPTO: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
+    CRYPTO: GenerationPolicy(timeout_s=1800.0, max_attempts=3, total_budget_s=5700.0),
 }
 
 

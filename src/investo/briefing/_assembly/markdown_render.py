@@ -195,8 +195,11 @@ def _stage2_retry_feedback(cause: BaseException | None) -> str:
         return ""
     message = _truncate_prompt_field(str(cause), _STAGE2_RETRY_FEEDBACK_MAX_CHARS)
     return (
-        "\n\nPrevious Stage 2 output failed validation. Retry from scratch and obey the "
-        f"exact six required H2 headers. Validation error: {message}\n"
+        "\n\nPrevious Stage 2 output failed validation. Retry from scratch as a complete "
+        "document. The first non-empty line MUST be `## ① 요약`; then emit the exact "
+        "six required H2 headers in order through `## ⑥ 오늘의 관전 포인트`. Do not "
+        "continue from the failed output, do not begin mid-section, and do not omit "
+        f"earlier sections. Validation error: {message}\n"
     )
 
 

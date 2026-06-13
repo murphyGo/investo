@@ -2617,8 +2617,8 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     2026-05-09 bumped the per-call timeout after Crypto Stage 2 hit the
     180s ceiling. 2026-05-12/13 then showed that slow repeated segment
     synthesis can burn through the old 60-minute workflow ceiling. The
-    workflow now has a 240-minute ceiling, so keep two attempts with
-    larger per-call limits to avoid erasing all coverage on slow days.
+    workflow now has a 240-minute ceiling. 2026-06-13 kept a third crypto
+    attempt because two long attempts both returned mid-section markdown.
     """
     domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
     us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
@@ -2630,7 +2630,7 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
 
     assert domestic.max_attempts == 2
     assert us.max_attempts == 2
-    assert crypto.max_attempts == 2
+    assert crypto.max_attempts == 3
 
     # Worst-case repeated synthesis time remains below the 240-minute job
     # timeout, leaving headroom for collect, visual assets, publish,
