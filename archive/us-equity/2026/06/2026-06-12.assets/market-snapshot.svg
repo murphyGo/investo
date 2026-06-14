@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-06-12 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미국과 이란의 임시 평화 협정 기대감이 부상하면서 2026년 6월 12일(금) S&amp;P 500은</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">+0.50%, Dow Jones Industrial Average는 +0.70%, Nasdaq 100은</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 6월 12일(금) 미국 증시 마감 데이터는 아직 확인 전이며, 이번 세그먼트 입력 데이터는</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">국채 금리·거시 지표 중심으로 구성돼 있다. [데이터부족]</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미국-이란 임시 평화 협의 기대와 주가 랠리 미국·이란 임시 평화 협정 가능성이 부각되면서 S&amp;P 500</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">+0.50%, Dow Jones Industrial Average +0.70%, Nasdaq 100</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500 밸류에이션 환경 — 10년 국채 소폭 하락, 레벨 고점권 FRED DGS10 기준 6월</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">11일 10년 미국채 수익률은 4.45%로, 전일(6월 10일) 4.55% 대비 -0.10pp 하락했다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: Federal Reserve · FOMC 회의 일정 — 6월 1617일 회의에서 DFF</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">3.62% 유지 여부를 점검하되, 점도표 상방 이동 신호가 확인되면 성장주 수급 부담 압력 관찰, 금리</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이번 주 핵심 변수 체크리스트 확인 소스: FRED DGS10 · UST 수익률 곡선 — 10년 미국채</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">수익률이 현재 4.45%4.48% 구간을 벗어나는지 관찰 — 4.48% 상회 재진입 시 S&amp;P 500</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
