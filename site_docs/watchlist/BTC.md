@@ -2,6 +2,25 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-15 begin -->
+
+## 2026-06-15
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,350,950,783,512; BTC dominance 56.48%
+- [coingecko-price] **ticker**: BTC $66,243.00 (+0.97%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.7B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $455,961,030 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000282677142226 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin Policy UK CEO calls Michael Saylor’s STRC investment promotion ‘dishonest’
+- [theblock-crypto] **ticker**: Bitcoin tops $65,000 as reports of US-Iran peace deal ease geopolitical fears
+- [theblock-crypto] **ticker**: IREN enters Europe with acquisition of Spanish AI data center developer Nostrum
+- [theblock-crypto] **ticker**: Strategy supporters rebut ‘death spiral’ fears as bitcoin price wobbles
+- [theblock-crypto] **ticker**: Strive CIO says prolonged bitcoin weakness could drive treasury firm consolidation
+- [theblock-crypto] **ticker**: The Funding: Is the bitcoin bottom in? Crypto funds weigh in
+- [theblock-crypto] **ticker**: ‘Let’s just put it in an ETF’ is the worst outcome for bitcoin, says Trezor exec
+- [theblock-crypto] **ticker**: ‘Still adding dots’: Michael Saylor’s Strategy buys another 1,587 bitcoin for $100 million as total holdings reach 84…
+
+<!-- u33 entry 2026-06-15 end -->
 <!-- u33 entry 2026-06-12 begin -->
 
 ## 2026-06-12
