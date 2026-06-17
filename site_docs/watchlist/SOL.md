@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-16 begin -->
+
+## 2026-06-16
+
+- [yonhap-market] **ticker**: 국내 우주항공기업 투자 'SOL 우주항공밸류체인' ETF 상장
+- [coingecko-price] **ticker**: SOL $73.56 (-0.14%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.8B; leader Ethereum
+- [theblock-crypto] **ticker**: Forward Solana treasury stock jumps 8% as smaller DATs reject acquisition bids
+- [theblock-crypto] **ticker**: Pump.fun activity craters 80% in three months, dragging Solana fees lower as traders rotate into perps
+
+<!-- u33 entry 2026-06-16 end -->
 <!-- u33 entry 2026-06-15 begin -->
 
 ## 2026-06-15

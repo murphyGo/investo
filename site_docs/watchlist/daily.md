@@ -1,28 +1,27 @@
-# 오늘의 관심 자산 영향 — 2026-06-15
+# 오늘의 관심 자산 영향 — 2026-06-16
 
-직접 19 · 관련 0 · 보류 0 · 제외 25
+직접 18 · 관련 0 · 보류 0 · 제외 25
 
 ## 직접 영향 (Direct)
 
-- **BTC** · [coingecko-global-market] Global crypto market cap $2,350,950,783,512; BTC dominance 56.48%
-- **BTC** · [coingecko-price] BTC $66,243.00 (+0.97%)
-- **BTC** (별칭 Bitcoin) · [defillama-market-structure] DeFi TVL $74.7B; leader Ethereum
-- **BTC** · [okx-derivatives] BTC 미결제약정 $455,961,030 (OKX, UTC 24h)
-- **BTC** · [okx-derivatives] BTC 펀딩비 0.0000282677142226 (OKX, UTC 24h)
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] Bitcoin Policy UK CEO calls Michael Saylor’s STRC investment promotion ‘dishonest’
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] Bitcoin tops $65,000 as reports of US-Iran peace deal ease geopolitical fears
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] IREN enters Europe with acquisition of Spanish AI data center developer Nostrum
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] Strategy supporters rebut ‘death spiral’ fears as bitcoin price wobbles
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] Strive CIO says prolonged bitcoin weakness could drive treasury firm consolidation
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] The Funding: Is the bitcoin bottom in? Crypto funds weigh in
-- **BTC** (별칭 Bitcoin) · [theblock-crypto] ‘Let’s just put it in an ETF’ is the worst outcome for bitcoin, says Trezor exec
-- **BTC** · [theblock-crypto] ‘Still adding dots’: Michael Saylor’s Strategy buys another 1,587 bitcoin for $100 million as total holdings reach 84…
-- **ETH** · [coingecko-price] ETH $1,790.58 (+4.07%)
-- **ETH** (별칭 Ethereum) · [defillama-market-structure] DeFi TVL $74.7B; leader Ethereum
-- **ETH** · [theblock-crypto] Tom Lee sees ‘early stages of crypto spring’ as Bitmine buys another 76,881 ETH
-- **SOL** · [coingecko-price] SOL $73.88 (+4.48%)
-- **SOL** (별칭 Solana) · [defillama-market-structure] DeFi TVL $74.7B; leader Ethereum
-- **SOL** · [theblock-crypto] ‘There’s room for win-win outcomes’: Largest Solana treasury firm Forward looks to acquire smaller SOL DATs
+- **AMZN** (별칭 아마존) · [yonhap-market] 스페이스X, AI코딩업체 커서 90조원에 인수…시총 아마존 제쳐
+- **BTC** · [coingecko-global-market] Global crypto market cap $2,337,875,060,708; BTC dominance 56.28%
+- **BTC** · [coingecko-price] BTC $65,611.00 (-0.89%)
+- **BTC** (별칭 Bitcoin) · [defillama-market-structure] DeFi TVL $74.8B; leader Ethereum
+- **BTC** · [okx-derivatives] BTC 미결제약정 $453,333,680 (OKX, UTC 24h)
+- **BTC** · [okx-derivatives] BTC 펀딩비 0.0000982217286796 (OKX, UTC 24h)
+- **BTC** (별칭 Bitcoin) · [theblock-crypto] Bitcoin DeFi demand concentrated in small-but-deep pockets, Rootstock exec says
+- **BTC** (별칭 Bitcoin) · [theblock-crypto] Bitcoin’s rally and HYPE’s record run mask a market still waiting for real conviction, analysts say
+- **BTC** (별칭 Bitcoin) · [theblock-crypto] BlackRock launches new Bitcoin ETF that generates income using a covered call strategy
+- **BTC** (별칭 Bitcoin) · [theblock-crypto] Ledn says bitcoin-backed lending market could reach $1 trillion as securitization attracts institutional capital
+- **ETH** · [coingecko-price] ETH $1,791.44 (+0.12%)
+- **ETH** (별칭 Ethereum) · [defillama-market-structure] DeFi TVL $74.8B; leader Ethereum
+- **NVDA** (별칭 엔비디아) · [yonhap-market] DB증권 "AI 투자 시 엔비디아 GPU 렌탈 비용 추이 참고 가능"
+- **SOL** · [coingecko-price] SOL $73.56 (-0.14%)
+- **SOL** (별칭 Solana) · [defillama-market-structure] DeFi TVL $74.8B; leader Ethereum
+- **SOL** · [theblock-crypto] Forward Solana treasury stock jumps 8% as smaller DATs reject acquisition bids
+- **SOL** (별칭 Solana) · [theblock-crypto] Pump.fun activity craters 80% in three months, dragging Solana fees lower as traders rotate into perps
+- **SOL** · [yonhap-market] 국내 우주항공기업 투자 'SOL 우주항공밸류체인' ETF 상장
 
 ## 관련·매크로 맥락 (Related)
 
@@ -30,39 +29,39 @@ _해당 항목 없음._
 
 ## 관련 시황
 
-- [국내 증시](../archive/domestic-equity/2026/06/2026-06-15.md)
-- [미국 증시](../archive/us-equity/2026/06/2026-06-15.md)
-- [크립토](../archive/crypto/2026/06/2026-06-15.md)
+- [국내 증시](../archive/domestic-equity/2026/06/2026-06-16.md)
+- [미국 증시](../archive/us-equity/2026/06/2026-06-16.md)
+- [크립토](../archive/crypto/2026/06/2026-06-16.md)
 
 <details>
 <summary>진단: 보류/제외된 후보</summary>
 
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
-- AAPL ⊘ ABF [short-ticker-boundary] · yonhap-market #c6a7fe
-- AAPL ⊘ ADXN [short-ticker-boundary] · nasdaq-earnings-calendar #0b452f
-- AAPL ⊘ AIOT [short-ticker-boundary] · nasdaq-earnings-calendar #534de0
-- AAPL ⊘ ALICO [short-ticker-boundary] · sec-edgar-8k #d22488
-- AMZN ⊘ ABF [short-ticker-boundary] · yonhap-market #c6a7fe
-- AMZN ⊘ ADXN [short-ticker-boundary] · nasdaq-earnings-calendar #0b452f
-- AMZN ⊘ AIOT [short-ticker-boundary] · nasdaq-earnings-calendar #534de0
-- AMZN ⊘ ALICO [short-ticker-boundary] · sec-edgar-8k #d22488
-- AMZN ⊘ amid [short-ticker-boundary] · nasdaq-stocks-news #3f99f3
-- BTC ⊘ BANK [short-ticker-boundary] · sec-edgar-8k #db8f99
+- AAPL ⊘ AAME [short-ticker-boundary] · nasdaq-earnings-calendar #679f64
+- AAPL ⊘ ALPS [short-ticker-boundary] · nasdaq-earnings-calendar #af94a1
+- AAPL ⊘ APD [short-ticker-boundary] · yahoo-finance-news #0b2613
+- AAPL ⊘ ATH [short-ticker-boundary] · theblock-crypto #a9cd0a
+- AAPL ⊘ ATLN [short-ticker-boundary] · nasdaq-earnings-calendar #7837be
+- AAPL ⊘ AVXL [short-ticker-boundary] · nasdaq-earnings-calendar #08e3fa
+- AAPL ⊘ AWS [short-ticker-boundary] · theblock-crypto #af4dac
+- AMZN ⊘ AAME [short-ticker-boundary] · nasdaq-earnings-calendar #679f64
+- AMZN ⊘ ALPS [short-ticker-boundary] · nasdaq-earnings-calendar #af94a1
+- AMZN ⊘ APD [short-ticker-boundary] · yahoo-finance-news #0b2613
+- AMZN ⊘ ATH [short-ticker-boundary] · theblock-crypto #a9cd0a
+- AMZN ⊘ ATLN [short-ticker-boundary] · nasdaq-earnings-calendar #7837be
+- AMZN ⊘ AVXL [short-ticker-boundary] · nasdaq-earnings-calendar #08e3fa
+- AMZN ⊘ AWS [short-ticker-boundary] · theblock-crypto #af4dac
+- BTC ⊘ BBWI [short-ticker-boundary] · yahoo-finance-news #b43802
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #7417a1
-- BTC ⊘ BHYP [short-ticker-boundary] · theblock-crypto #7c8e10
-- BTC ⊘ BSP [short-ticker-boundary] · sec-edgar-8k #499afe
-- BTC ⊘ BTS [short-ticker-boundary] · yonhap-market #0507ca
-- ETH ⊘ ECB [short-ticker-boundary] · yonhap-market #21e44f
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #534de0
-- ETH ⊘ ETF [short-ticker-boundary] · theblock-crypto #744ad4
-- ETH ⊘ ETF [short-ticker-boundary] · yonhap-market #c1749a
-- ETH ⊘ ETFs [short-ticker-boundary] · theblock-crypto #7c8e10
-- META ⊘ MDT [short-ticker-boundary] · yahoo-finance-news #a90549
-- META ⊘ Media [short-ticker-boundary] · nasdaq-earnings-calendar #f31c6d
-- META ⊘ MESA [short-ticker-boundary] · sec-edgar-8k #2320ba
-- META ⊘ MOU [short-ticker-boundary] · yonhap-market #96120e
-- META ⊘ MPLS [short-ticker-boundary] · nasdaq-stocks-news #8db32c
-- MSFT ⊘ MDT [short-ticker-boundary] · yahoo-finance-news #a90549
+- BTC ⊘ BRLS [short-ticker-boundary] · nasdaq-earnings-calendar #5ff07d
+- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #10f214
+- ETH ⊘ ETF [short-ticker-boundary] · theblock-crypto #a9cd0a
+- ETH ⊘ ETF [short-ticker-boundary] · yonhap-market #f3e3bb
+- META ⊘ MANTRA [short-ticker-boundary] · theblock-crypto #669be1
+- META ⊘ MOU [short-ticker-boundary] · yonhap-market #640512
+- META ⊘ MPLS [short-ticker-boundary] · nasdaq-stocks-news #35466e
+- META ⊘ MSC [short-ticker-boundary] · sec-edgar-8k #5b28ee
+- META ⊘ MTS [short-ticker-boundary] · yonhap-market #1b53f8
 
 </details>

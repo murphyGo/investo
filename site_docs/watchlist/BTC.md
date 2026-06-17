@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-16 begin -->
+
+## 2026-06-16
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,337,875,060,708; BTC dominance 56.28%
+- [coingecko-price] **ticker**: BTC $65,611.00 (-0.89%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.8B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $453,333,680 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000982217286796 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin DeFi demand concentrated in small-but-deep pockets, Rootstock exec says
+- [theblock-crypto] **ticker**: Bitcoin’s rally and HYPE’s record run mask a market still waiting for real conviction, analysts say
+- [theblock-crypto] **ticker**: BlackRock launches new Bitcoin ETF that generates income using a covered call strategy
+- [theblock-crypto] **ticker**: Ledn says bitcoin-backed lending market could reach $1 trillion as securitization attracts institutional capital
+
+<!-- u33 entry 2026-06-16 end -->
 <!-- u33 entry 2026-06-15 begin -->
 
 ## 2026-06-15
