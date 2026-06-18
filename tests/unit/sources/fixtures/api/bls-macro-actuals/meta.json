@@ -1,0 +1,6 @@
+{
+  "recorded_at": "2026-06-18",
+  "source": "https://api.bls.gov/publicAPI/v2/timeseries/data/{series_id}?startyear=2026&endyear=2026",
+  "auth": "none",
+  "notes": "Official BLS Public Data API shape; tests replay without network."
+}

@@ -28,7 +28,9 @@ from investo.sources.protocol import SourceAdapter, SourceFetchError
 # ``@register`` decorator at first load.
 from . import (
     alternative_fng,  # noqa: F401
+    bea_macro_actuals,  # noqa: F401
     binance_crypto_market,  # noqa: F401
+    bls_macro_actuals,  # noqa: F401
     bybit_derivatives,  # noqa: F401
     cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401

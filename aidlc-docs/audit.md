@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u105 macro-actual-source-of-record Complete (7/7)
+**Timestamp**: 2026-06-18T18:37:55+09:00
+**Trigger**: Continue source-expansion implementation after u104 was pushed.
+**Decision**: Ratify and close u105 (7/7). Added `bls-macro-actuals` for BLS Public Data API actuals and `bea-macro-actuals` for BEA NIPA actuals. BLS uses the official no-key endpoint; BEA requires `BEA_API_KEY` and degrades with terminal `SourceFetchError` before HTTP when the key is missing.
+**Implementation**: BLS covers CPI, core CPI, nonfarm payrolls, unemployment, average hourly earnings, labor-force participation, PPI, and JOLTS. BEA covers GDP, PCE, and core PCE from bounded NIPA table/line configuration. Official actual rows emit compact `macro` items with source-period `macro_event_key`, `macro_event_status=actual`, `macro_priority=P1`, `actual_value`, optional `prior_value`, `release_period`, `unit`, `source_url`, and `observed_at`; no consensus, forecast, surprise, or forced `required_macro_actual` fields are synthesized. FRED calendar rows now stamp matching source-period keys for CPI/PPI/NFP/GDP/PCE so u59 lifecycle can collapse scheduled + actual rows without inventing release dates from actual endpoints. `BEA_API_KEY` was added to the redaction chokepoint.
+**Verification**: `uv run pytest tests/unit/sources/test_bls_macro_actuals.py tests/unit/sources/test_bea_macro_actuals.py tests/unit/sources/test_fred_economic_calendar.py tests/unit/briefing/test_macro_carryover.py -q` => 48 passed. `uv run pytest tests/unit/sources/test_plugin_contract.py tests/unit/sources/test_aggregator.py -q` => 66 passed. `uv run pytest tests/unit/_internal/test_redaction.py tests/unit/sources/test_no_paid_apis.py -q` => 59 passed. `uv run ruff check src/investo/sources/bls_macro_actuals.py src/investo/sources/bea_macro_actuals.py src/investo/sources/fred_economic_calendar.py tests/unit/sources/test_bls_macro_actuals.py tests/unit/sources/test_bea_macro_actuals.py tests/unit/briefing/test_macro_carryover.py` => clean. `uv run mypy --strict src/investo/sources src/investo/briefing` => clean over 100 source files. `uv run python scripts/check_no_paid_apis.py` => clean. `git diff --check` => clean.
+**Status**: u105 complete. FD+NFR SKIP confirmed. Next unit: u106 money-energy-volatility-source-expansion.
+
+---
+
 ## Construction — u104 sec-company-facts-and-symbol-directory Complete (9/9)
 **Timestamp**: 2026-06-18T18:15:39+09:00
 **Trigger**: Continue source-expansion implementation after u103 was pushed.

@@ -1,0 +1,1 @@
+{"status":"REQUEST_SUCCEEDED","responseTime":102,"message":[],"Results":{"series":[{"seriesID":"CES0000000001","data":[{"year":"2026","period":"M05","periodName":"May","latest":"true","value":"159001","footnotes":[{"code":"P","text":"preliminary"}]},{"year":"2026","period":"M04","periodName":"April","value":"158829","footnotes":[{"code":"P","text":"preliminary"}]}]}]}}

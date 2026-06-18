@@ -35,7 +35,9 @@ from investo.models import Category, NormalizedItem
 from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_all, list_sources
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
 from investo.sources.alternative_fng import AlternativeFearGreedAdapter
+from investo.sources.bea_macro_actuals import BeaMacroActualsAdapter
 from investo.sources.binance_crypto_market import BinanceCryptoMarketAdapter
+from investo.sources.bls_macro_actuals import BlsMacroActualsAdapter
 from investo.sources.bybit_derivatives import BybitDerivativesAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
@@ -76,9 +78,11 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 36
+EXPECTED_ADAPTER_COUNT = 38
 EXPECTED_ADAPTER_NAMES = {
     "alternative-fng",
+    "bea-macro-actuals",
+    "bls-macro-actuals",
     "bybit-derivatives",
     "coingecko-global-market",
     "okx-derivatives",
@@ -132,6 +136,8 @@ def _isolate_registry() -> Iterator[None]:
     snapshot = dict(_ADAPTERS)
     _clear_for_test()
     register(AlternativeFearGreedAdapter)
+    register(BeaMacroActualsAdapter)
+    register(BlsMacroActualsAdapter)
     register(BybitDerivativesAdapter)
     register(CoinGeckoGlobalMarketAdapter)
     register(OkxDerivativesAdapter)
@@ -384,6 +390,10 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "DartDisclosureAdapter",
         "alternative_fng",
         "AlternativeFearGreedAdapter",
+        "bea_macro_actuals",
+        "BeaMacroActualsAdapter",
+        "bls_macro_actuals",
+        "BlsMacroActualsAdapter",
         "bybit_derivatives",
         "BybitDerivativesAdapter",
         "coingecko_global_market",

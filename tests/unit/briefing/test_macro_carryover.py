@@ -142,6 +142,96 @@ def test_actual_confirms_by_event_key_and_sets_follow_up() -> None:
     assert event.follow_up_until == date(2026, 5, 14)
 
 
+def test_bls_actual_confirms_fred_cpi_schedule_by_canonical_key() -> None:
+    key = "us:CPI:period=2026-05"
+    prior = advance_macro_lifecycle(
+        (),
+        [
+            NormalizedItem(
+                source_name="fred-economic-calendar",
+                category="calendar",
+                title="Consumer Price Index",
+                published_at=datetime(2026, 6, 1, tzinfo=UTC),
+                scheduled_at=datetime(2026, 6, 10, tzinfo=UTC),
+                raw_metadata={
+                    "release_id": "10",
+                    "release_name": "Consumer Price Index",
+                    "scheduled_date": "2026-06-10",
+                    "macro_event_key": key,
+                    "macro_event_status": "scheduled",
+                },
+            )
+        ],
+        date(2026, 6, 9),
+    )
+
+    confirmed = advance_macro_lifecycle(
+        prior,
+        [
+            NormalizedItem(
+                source_name="bls-macro-actuals",
+                category="macro",
+                title="Consumer Price Index actual",
+                published_at=datetime(2026, 6, 10, tzinfo=UTC),
+                raw_metadata={
+                    "macro_event_key": key,
+                    "macro_event_status": "actual",
+                    "macro_event_label": "Consumer Price Index",
+                    "actual_value": "333.979",
+                },
+            )
+        ],
+        date(2026, 6, 10),
+    )
+
+    assert [(event.event_key, event.status) for event in confirmed] == [(key, "confirmed")]
+
+
+def test_bea_actual_confirms_fred_gdp_schedule_by_canonical_key() -> None:
+    key = "us:GDP:period=2026Q1"
+    prior = advance_macro_lifecycle(
+        (),
+        [
+            NormalizedItem(
+                source_name="fred-economic-calendar",
+                category="calendar",
+                title="Gross Domestic Product",
+                published_at=datetime(2026, 4, 25, tzinfo=UTC),
+                scheduled_at=datetime(2026, 4, 30, tzinfo=UTC),
+                raw_metadata={
+                    "release_id": "53",
+                    "release_name": "Gross Domestic Product",
+                    "scheduled_date": "2026-04-30",
+                    "macro_event_key": key,
+                    "macro_event_status": "scheduled",
+                },
+            )
+        ],
+        date(2026, 4, 29),
+    )
+
+    confirmed = advance_macro_lifecycle(
+        prior,
+        [
+            NormalizedItem(
+                source_name="bea-macro-actuals",
+                category="macro",
+                title="Gross Domestic Product actual",
+                published_at=datetime(2026, 4, 30, tzinfo=UTC),
+                raw_metadata={
+                    "macro_event_key": key,
+                    "macro_event_status": "actual",
+                    "macro_event_label": "Gross Domestic Product",
+                    "actual_value": "2.8",
+                },
+            )
+        ],
+        date(2026, 4, 30),
+    )
+
+    assert [(event.event_key, event.status) for event in confirmed] == [(key, "confirmed")]
+
+
 def test_confirmed_event_drops_after_follow_up_day() -> None:
     confirmed = advance_macro_lifecycle(
         (), [_actual_item(date(2026, 5, 13), event_key=_SHARED)], date(2026, 5, 13)

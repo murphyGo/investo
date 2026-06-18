@@ -42,6 +42,8 @@ _logger = logging.getLogger(__name__)
 
 ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     # S — regulatory / exchange / sovereign data
+    "bea-macro-actuals": "S",
+    "bls-macro-actuals": "S",
     "sec-edgar-8k": "S",
     "fed-board-leadership": "S",
     "fed-speech-rss": "S",

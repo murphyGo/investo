@@ -3,7 +3,7 @@
 **Date**: 2026-06-18
 **Unit**: u105 macro-actual-source-of-record
 **Stage**: Code Generation
-**Status**: Backlog
+**Status**: Complete (7/7 steps — 2026-06-18)
 **Source**: 2026-06-18 ten-agent data-source expansion review.
 **Estimated Effort**: ~6-9 h
 **Dependencies**:
@@ -51,13 +51,13 @@ NFR Requirements: skip. Free official API and graceful-degradation contracts are
 
 ## Implementation Steps
 
-- [ ] Add `src/investo/sources/bls_macro_actuals.py` with bounded series configuration and `retry_get`.
-- [ ] Add `src/investo/sources/bea_macro_actuals.py` with bounded dataset/table/line configuration and `retry_get`.
-- [ ] Add optional free-key env handling for BLS/BEA only when the endpoint requires it; missing keys produce `SourceFetchError(transient=False)`.
-- [ ] Register adapters in imports, tiers, market-window sets, and segment routing.
-- [ ] Stamp `macro_event_key`, `release_period`, `actual_value`, `prior_value` when official data provides prior values, `unit`, `source_url`, and `observed_at`.
-- [ ] Update macro prompt/context rendering to prioritize official actual rows using existing candidate caps.
-- [ ] Add R10 fixtures for BLS current release, BEA current release, empty payload, malformed payload, missing-key behavior, and source failure.
+- [x] Add `src/investo/sources/bls_macro_actuals.py` with bounded series configuration and `retry_get`.
+- [x] Add `src/investo/sources/bea_macro_actuals.py` with bounded dataset/table/line configuration and `retry_get`.
+- [x] Add optional free-key env handling for BLS/BEA only when the endpoint requires it; missing keys produce `SourceFetchError(transient=False)`.
+- [x] Register adapters in imports, tiers, market-window sets, and segment routing.
+- [x] Stamp `macro_event_key`, `release_period`, `actual_value`, `prior_value` when official data provides prior values, `unit`, `source_url`, and `observed_at`.
+- [x] Update macro prompt/context rendering to prioritize official actual rows using existing candidate caps.
+- [x] Add R10 fixtures for BLS current release, BEA current release, empty payload, malformed payload, missing-key behavior, and source failure.
 
 ## Acceptance Criteria
 

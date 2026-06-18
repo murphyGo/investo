@@ -94,6 +94,7 @@ SECRET_ENV_VARS: Final[tuple[str, ...]] = (
     "TELEGRAM_OPERATOR_CHAT_ID",
     "CLAUDE_CODE_OAUTH_TOKEN",
     "OPENAI_API_KEY",
+    "BEA_API_KEY",
     "FRED_API_KEY",
     "CONGRESS_API_KEY",
     # data.go.kr / KRX adapters (fsc-krx-index-price, fsc-krx-stock-price).

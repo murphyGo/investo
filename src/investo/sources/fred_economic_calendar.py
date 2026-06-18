@@ -169,6 +169,13 @@ _RELEASE_NAMES: Final[dict[str, str]] = {
     "27": "New Residential Construction",
     "291": "Existing Home Sales",
 }
+_CANONICAL_EVENT_CODES: Final[dict[str, tuple[str, str]]] = {
+    "10": ("CPI", "previous_month"),
+    "46": ("PPI", "previous_month"),
+    "50": ("NFP", "previous_month"),
+    "53": ("GDP", "previous_quarter"),
+    "54": ("PCE", "previous_month"),
+}
 
 
 @register
@@ -335,6 +342,13 @@ class FredEconomicCalendarAdapter:
             "release_name": release_name,
             "scheduled_date": scheduled_date.isoformat(),
         }
+        event_code = _CANONICAL_EVENT_CODES.get(release_id)
+        if event_code is not None:
+            code, cadence = event_code
+            period = _canonical_period_for_schedule(scheduled_date, cadence)
+            raw_metadata["macro_event_key"] = f"us:{code}:period={period}"
+            raw_metadata["macro_event_status"] = "scheduled"
+            raw_metadata["macro_event_label"] = release_name
 
         try:
             return NormalizedItem(
@@ -389,3 +403,24 @@ def _resolve_lookahead_days() -> int:
         )
         return _LOOKAHEAD_MAX_DAYS
     return value
+
+
+def _canonical_period_for_schedule(scheduled_date: date, cadence: str) -> str:
+    if cadence == "previous_quarter":
+        return _previous_quarter_period(scheduled_date)
+    shifted = _shift_months(scheduled_date, -1)
+    return f"{shifted.year:04d}-{shifted.month:02d}"
+
+
+def _previous_quarter_period(value: date) -> str:
+    release_quarter = ((value.month - 1) // 3) + 1
+    if release_quarter == 1:
+        return f"{value.year - 1:04d}Q4"
+    return f"{value.year:04d}Q{release_quarter - 1}"
+
+
+def _shift_months(value: date, months: int) -> date:
+    month_index = value.year * 12 + (value.month - 1) + months
+    year = month_index // 12
+    month = (month_index % 12) + 1
+    return date(year, month, 1)

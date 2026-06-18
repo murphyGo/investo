@@ -147,7 +147,9 @@ SEGMENT_CORE_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
 }
 SEGMENT_MACRO_ACTUAL_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     DOMESTIC_EQUITY: frozenset({"krx-foreign-flows"}),
-    US_EQUITY: frozenset({"fred-macro", "treasury-rates"}),
+    US_EQUITY: frozenset(
+        {"bea-macro-actuals", "bls-macro-actuals", "fred-macro", "treasury-rates"}
+    ),
     CRYPTO: frozenset({"defillama-market-structure", "treasury-rates"}),
 }
 
@@ -212,6 +214,8 @@ _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
 )
 _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
+        "bea-macro-actuals",
+        "bls-macro-actuals",
         "cnbc-top-news",
         "fed-board-leadership",
         "fed-speech-rss",

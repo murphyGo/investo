@@ -1,0 +1,6 @@
+{
+  "recorded_at": "2026-06-18",
+  "source": "https://apps.bea.gov/api/data?method=GetData&datasetname=NIPA",
+  "auth": "BEA_API_KEY free key required",
+  "notes": "Official BEA API JSON envelope shape; tests replay without network and never store API keys."
+}

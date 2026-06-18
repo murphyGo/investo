@@ -185,15 +185,40 @@ async def test_fetch_includes_known_ppi_release_with_macro_priority_identity(
     assert target.raw_metadata.get("scheduled_date") == "2026-05-13"
     assert target.title.startswith("2026-05-13 — Producer Price Index")
     assert str(target.url) == "https://fred.stlouisfed.org/release?rid=46"
-    assert macro_event_key(target) == (
-        "fred-economic-calendar:release_id=46:scheduled_date=2026-05-13"
-    )
+    assert macro_event_key(target) == "us:PPI:period=2026-04"
     assert macro_event_status(target) == "scheduled"
     assert macro_priority(target) == "P1"
     routed = segment_items([target])
     assert routed.us_equity == (target,)
     assert routed.crypto == ()
     assert routed.domestic_equity == ()
+
+
+async def test_gdp_revision_releases_share_previous_quarter_event_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.models.macro import macro_event_key
+
+    monkeypatch.setenv("FRED_API_KEY", _SENTINEL_KEY)
+    monkeypatch.setenv("INVESTO_FRED_CALENDAR_RELEASES", "53")
+    monkeypatch.setenv("INVESTO_FRED_CALENDAR_LOOKAHEAD_DAYS", "90")
+    routes = {"53": ((_FIXTURE_DIR / "release_53_gdp.json").read_bytes(), 200)}
+    adapter = FredEconomicCalendarAdapter()
+    window = FetchWindow.from_local_date(date(2026, 4, 1), tz=UTC)
+
+    async with _mock_client(_routed_handler(routes)) as client:
+        items = await adapter.fetch(client, window)
+
+    release_keys = {
+        item.raw_metadata["scheduled_date"]: macro_event_key(item)
+        for item in items
+        if item.raw_metadata.get("scheduled_date") in {"2026-04-30", "2026-05-28", "2026-06-25"}
+    }
+    assert release_keys == {
+        "2026-04-30": "us:GDP:period=2026Q1",
+        "2026-05-28": "us:GDP:period=2026Q1",
+        "2026-06-25": "us:GDP:period=2026Q1",
+    }
 
 
 async def test_fetch_excludes_historical_release_dates(

@@ -33,6 +33,8 @@ _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
 _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
+        "bea-macro-actuals",
+        "bls-macro-actuals",
         "cnbc-top-news",
         "fed-board-leadership",
         "fed-speech-rss",
