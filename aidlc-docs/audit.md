@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u102 source-adapter-registry-completeness Complete (6/6)
+**Timestamp**: 2026-06-18T17:42:44+09:00
+**Trigger**: Source-expansion review follow-up and user approval to continue development with per-unit commit/push. u102 hardens source registry completeness before u103-u107 add new adapters.
+**Decision**: Ratify and close u102 (6/6). Added loud contract tests so every registered production source adapter must have an explicit `ADAPTER_TIERS` entry, no stale production tier entry, explicit segment routing through exactly one single-segment set or the shared-source map, and market-clock registration for US-only / crypto-only source sets. Preserved the non-production fallback path: unknown test stubs still return `DEFAULT_TIER` and emit an INFO diagnostic.
+**Implementation**: Fixed existing registry omissions surfaced by the tests. `tiers.py` now explicitly classifies `alternative-fng`, `coingecko-global-market`, `bybit-derivatives`, `okx-derivatives`, and `stooq-kr-market`, and removed stale `coingecko-events`. `aggregator.py` now assigns UTC crypto windows to the crypto-native indicator adapters and New York windows to `fed-board-leadership` / `stooq-price`. `segments.py` now makes the `stooq-price` crypto outcome exception explicit via `_OUTCOME_EXTRA_SOURCES_BY_SEGMENT`. No new external source, dependency, secret, API key, or reader-facing markdown feature was introduced.
+**Verification**: Code review subagent reported no blocking issues; one Medium and one Low registry-completeness hardening suggestion were both addressed before close. `uv run pytest tests/unit/sources/test_plugin_contract.py tests/unit/sources/test_aggregator.py tests/unit/sources/test_tiers.py tests/unit/briefing/test_segments*.py -q` => 148 passed. `uv run ruff check tests/unit/sources/test_plugin_contract.py tests/unit/sources/test_aggregator.py tests/unit/sources/test_tiers.py src/investo/sources src/investo/briefing/segments.py` => clean.
+**Status**: u102 complete. FD+NFR SKIP confirmed. Next unit: u103 official-policy-speech-rss-sources.
+
+---
+
 ## Construction — u87 watchpoint-matrix-rehabilitation Complete (5/5 — §⑥ matrix rehabilitated)
 **Timestamp**: 2026-06-04T00:00:00+09:00
 **Trigger**: u87 Code Generation landed (developer in isolated worktree, integrated to main by the lead/main session). Closes the unit registered earlier today.

@@ -257,6 +257,34 @@ Deduplicated out:
 - No hard-coded person registry as truth: stored snapshots expire and only official-source refresh can authorize current-role names.
 - No broad fact-checking LLM: first slice uses deterministic source parsing and deterministic entity-role claim scanning.
 
+### u102-u107 Planning Notes
+
+The 2026-06-18 ten-agent source-expansion review found that Investo already has broad price/news/calendar coverage, so the next source work should avoid generic provider accumulation. The priority is official, free, structured, source-of-record data that closes clear briefing gaps without paid APIs, scraping, or fabricated fixtures. The work is split into small units so each slice can register adapters, fixtures, route/tier/window metadata, and reader-facing usage without reopening the full pipeline.
+
+Recommended implementation order:
+1. u102 first, because registry drift would make all later adapters less trustworthy.
+2. u103 second, because Fed/SEC official RSS feeds are no-key, low-risk, and immediately improve source authority.
+3. u104 third, because SEC company facts and Nasdaq symbol metadata provide durable US-equity anchors.
+4. u105 fourth, because macro actuals should join with existing schedule/carryover logic before narrative use expands.
+5. u106 fifth, because funding/energy/volatility context adds explanatory breadth once source mechanics are guarded.
+6. u107 sixth, because CFTC positioning has high value but needs careful contract mapping and delayed-data labeling.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u102 source-adapter-registry-completeness | Source additions can silently miss tier, segment, or market-window registration | FR-001, FR-008, FR-009, NFR-003, NFR-006 | u1 source plugin contract, u8 market-aware windows, u22 source coverage |
+| u103 official-policy-speech-rss-sources | Official Fed/SEC speeches and statements are missing while generic news and press releases already exist | FR-001, FR-002, FR-008, FR-009, NFR-002, NFR-003 | u35/u43 FOMC lookahead, u58 policy sources, u101 entity facts |
+| u104 sec-company-facts-and-symbol-directory | US company/watchlist anchors need official CIK, listing, ETF, and XBRL fact context beyond 8-K Atom news | FR-001, FR-002, FR-008, FR-009, NFR-002, NFR-003 | u18/u73 watchlist impact, u55 numeric gates, u101 fact context |
+| u105 macro-actual-source-of-record | Macro schedules exist but BLS/BEA source-of-record actuals and shared event keys remain incomplete | FR-001, FR-002, FR-008, FR-009, NFR-002, NFR-003 | u43 lookahead, u59 macro lineage, DEBT-079 event-key join |
+| u106 money-energy-volatility-source-expansion | Rates/prices lack official SOFR/EFFR, petroleum inventory, and VVIX/SKEW explanatory context | FR-001, FR-002, FR-008, FR-009, NFR-002, NFR-003 | u49 market anchors, u55 numeric gates, u74 channel depth |
+| u107 cftc-positioning-layer | Briefings lack regulated futures positioning across equity, rates, FX, commodities, VIX, and crypto | FR-001, FR-002, FR-008, FR-009, NFR-002, NFR-003 | u66 crypto indicators, u67 domestic flows, u74 channel depth |
+
+Deduplicated out:
+- No KRX/KIND/SEIBro/KOFIA HTML portal unit: public non-scraping structured endpoints remain unconfirmed.
+- No Coinglass/CryptoQuant/Glassnode unit: paid/key-dependent liquidation and netflow products remain outside the no-paid source contract.
+- No FRED-only credit-spread expansion using restricted ICE BofA OAS series: redistribution language conflicts with public briefing reuse.
+- No generic alternative-data unit: Farside ETF flows, AAII/NAAIM, OCC option files, Deribit, Hyperliquid, and Etherscan require narrower license/rate-limit validation before implementation.
+- No broad source-provider abstraction: existing `SourceAdapter`/registry/coverage contracts already provide the extension mechanism.
+
 ---
 
 ## Definition of Done — Inception Phase Output

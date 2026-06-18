@@ -34,6 +34,7 @@ _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
 _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "cnbc-top-news",
+        "fed-board-leadership",
         "fomc-calendar",
         "fomc-rss",
         "fred-economic-calendar",
@@ -41,6 +42,7 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "nasdaq-earnings-calendar",
         "nasdaq-stocks-news",
         "sec-edgar-8k",
+        "stooq-price",
         "treasury-rates",
         "us-economic-calendar",
         "yahoo-finance-news",
@@ -49,11 +51,15 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
 )
 _CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
+        "alternative-fng",
+        "bybit-derivatives",
         "coingecko-price",
+        "coingecko-global-market",
         "binance-crypto-market",
         "defillama-market-structure",
         "congress-gov-bill-actions",
         "house-financial-services-policy",
+        "okx-derivatives",
         "senate-banking-policy",
         "theblock-crypto",
     }

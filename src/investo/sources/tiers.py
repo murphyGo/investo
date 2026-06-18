@@ -68,12 +68,16 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "fred-economic-calendar": "A",
     "us-economic-calendar": "A",
     "nasdaq-stocks-news": "A",
+    "stooq-kr-market": "A",
+    "bybit-derivatives": "A",
+    "okx-derivatives": "A",
     # B — aggregator / news
     "cnbc-top-news": "B",
     "yonhap-market": "B",
     "theblock-crypto": "B",
     "coingecko-price": "B",
-    "coingecko-events": "B",
+    "coingecko-global-market": "B",
+    "alternative-fng": "B",
     "defillama-market-structure": "B",
 }
 

@@ -23,6 +23,14 @@ import httpx
 import pytest
 
 import investo.sources
+from investo.briefing.segments import (
+    _CRYPTO_ONLY_SOURCES,
+    _DOMESTIC_ONLY_SOURCES,
+    _OUTCOME_EXTRA_SOURCES_BY_SEGMENT,
+    _SEGMENT_SOURCES,
+    _SHARED_SOURCES_BY_SEGMENT,
+    _US_ONLY_SOURCES,
+)
 from investo.models import Category, NormalizedItem
 from investo.sources import FetchWindow, SourceAdapter, SourceFetchError, fetch_all, list_sources
 from investo.sources._registry import _ADAPTERS, _clear_for_test, register
@@ -55,6 +63,7 @@ from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 from investo.sources.stooq_kr_market import StooqKrMarketAdapter
 from investo.sources.stooq_price import StooqPriceAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
+from investo.sources.tiers import ADAPTER_TIERS
 from investo.sources.treasury_rates import TreasuryRatesAdapter
 from investo.sources.us_economic_calendar import UsEconomicCalendarAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
@@ -164,6 +173,68 @@ def test_registered_adapter_count_matches_expected() -> None:
 
 def test_registered_adapter_names_match_expected() -> None:
     assert {a.name for a in list_sources()} == EXPECTED_ADAPTER_NAMES
+
+
+def test_registered_adapters_have_explicit_tiers() -> None:
+    missing_tier_entries = {
+        adapter.name for adapter in list_sources() if adapter.name not in ADAPTER_TIERS
+    }
+
+    assert missing_tier_entries == set()
+
+
+def test_adapter_tiers_do_not_include_unregistered_production_sources() -> None:
+    registered_names = {adapter.name for adapter in list_sources()}
+
+    assert set(ADAPTER_TIERS) == registered_names
+
+
+def test_registered_adapters_have_explicit_segment_routing() -> None:
+    shared_sources = set().union(*_SHARED_SOURCES_BY_SEGMENT.values())
+    segment_only_sources = (
+        _DOMESTIC_ONLY_SOURCES,
+        _US_ONLY_SOURCES,
+        _CRYPTO_ONLY_SOURCES,
+    )
+    missing_segment_routing: set[str] = set()
+    ambiguous_segment_routing: set[str] = set()
+
+    for adapter in list_sources():
+        single_segment_memberships = sum(
+            adapter.name in sources for sources in segment_only_sources
+        )
+        shared_membership = adapter.name in shared_sources
+        if single_segment_memberships == 0 and not shared_membership:
+            missing_segment_routing.add(adapter.name)
+        if single_segment_memberships > 1 or (
+            single_segment_memberships == 1 and shared_membership
+        ):
+            ambiguous_segment_routing.add(adapter.name)
+
+    assert missing_segment_routing == set()
+    assert ambiguous_segment_routing == set()
+
+
+def test_segment_outcome_sources_match_declared_routing_maps() -> None:
+    expected_segment_sources = {
+        "domestic-equity": (
+            _DOMESTIC_ONLY_SOURCES
+            | _SHARED_SOURCES_BY_SEGMENT["domestic-equity"]
+            | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["domestic-equity"]
+        ),
+        "us-equity": (
+            _US_ONLY_SOURCES
+            | _SHARED_SOURCES_BY_SEGMENT["us-equity"]
+            | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["us-equity"]
+        ),
+        "crypto": (
+            _CRYPTO_ONLY_SOURCES
+            | _SHARED_SOURCES_BY_SEGMENT["crypto"]
+            | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["crypto"]
+        ),
+    }
+
+    assert expected_segment_sources == _SEGMENT_SOURCES
 
 
 def test_adding_stub_adapter_increases_count_by_one() -> None:

@@ -1418,6 +1418,172 @@ Plan: `aidlc-docs/construction/plans/u101-verified-fact-cache-and-entity-guard-c
 
 ---
 
+### u102: `source-adapter-registry-completeness` - Prevent Source Routing, Tier, and Window Drift
+
+**Purpose**: Add a deterministic registry completeness gate before further source expansion. The source layer currently registers adapters through several separate maps: package imports, plugin-contract tests, tier labels, market-window routing, and segment allow-lists. New source adapters must not silently fall back to default tier or the wrong market clock.
+
+**Stories**: FR-001 (data collection), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (data integrity)
+
+**Existing coverage / deduplication**:
+- Extends the existing adapter drift guard in `tests/unit/sources/test_plugin_contract.py`.
+- Does not add a data source, change adapter behavior, or revise coverage severity policy.
+- Protects future u103-u107 source units from registry omissions.
+
+**Module path**:
+- `src/investo/sources/tiers.py` - require explicit tier coverage for every registered adapter.
+- `src/investo/sources/aggregator.py` - expose or test the market-window source sets without changing runtime behavior.
+- `src/investo/briefing/segments.py` - validate segment source membership for every registered adapter.
+- `tests/unit/sources/test_plugin_contract.py` and `tests/unit/orchestrator/test_stage_collect.py` - add registry completeness and market-clock regression coverage.
+
+**Definition of Done**:
+- [ ] Every registered adapter has an explicit `ADAPTER_TIERS` entry; no production adapter reaches the default tier path.
+- [ ] Every registered adapter is present in exactly one segment-only source set or in an explicit shared-source map.
+- [ ] Every US-only and crypto-only source receives the correct market-window policy in aggregator tests.
+- [ ] The test suite fails loudly when a new adapter is imported without tier, segment, and market-window registration.
+- [ ] Existing default-tier fallback remains available only for test stubs and emits a diagnostic log.
+
+Plan: `aidlc-docs/construction/plans/u102-source-adapter-registry-completeness-code-generation-plan.md`.
+
+---
+
+### u103: `official-policy-speech-rss-sources` - Add Fed and SEC Official Speech Feeds
+
+**Purpose**: Add official no-key RSS feeds for Federal Reserve speeches/testimony and SEC newsroom speech/press releases. The current policy coverage has FOMC releases, FOMC calendar events, SEC company 8-K filings, and Congress/committee policy sources, but it lacks official speech and testimony text that often moves rates, market structure, and crypto regulation narratives.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-002 (zero-cost operation), NFR-003 (graceful degradation), R10, R13
+
+**Existing coverage / deduplication**:
+- Extends `fomc-rss` and `official_policy` coverage without replacing them.
+- Does not add third-party news, paid APIs, browser automation, or broad web search.
+- Uses no-key official RSS feeds only.
+
+**Module path**:
+- `src/investo/sources/fed_speech_rss.py` - collect Federal Reserve speeches and testimony RSS items.
+- `src/investo/sources/sec_newsroom_rss.py` - collect SEC press releases and speeches/statements RSS items.
+- `src/investo/sources/__init__.py`, `tiers.py`, `aggregator.py`, and `briefing/segments.py` - register sources, tiers, market windows, and segment routing.
+- `tests/unit/sources/test_fed_speech_rss.py`, `tests/unit/sources/test_sec_newsroom_rss.py`, and plugin contract tests - fixture-backed parsing and registration coverage.
+
+**Definition of Done**:
+- [ ] Fed speeches and testimony feeds are collected from official `federalreserve.gov` RSS endpoints with no API key.
+- [ ] SEC press release and speech/statement feeds are collected from official `sec.gov` RSS endpoints with no API key.
+- [ ] Fed speech items route to `us-equity`; SEC newsroom items route to `us-equity` and crypto only when the item text matches existing crypto-policy routing terms.
+- [ ] Each adapter uses `retry_get`, timezone-aware timestamps, text sanitation, R10 recorded fixtures, and R13-safe errors.
+- [ ] Source cost, auth, rate-limit, and no-paid-tier facts are documented in the plan and PR checklist.
+
+Plan: `aidlc-docs/construction/plans/u103-official-policy-speech-rss-sources-code-generation-plan.md`.
+
+---
+
+### u104: `sec-company-facts-and-symbol-directory` - Add Official US Company Fact and Symbol Anchors
+
+**Purpose**: Add official SEC company submissions/companyfacts and Nasdaq Trader symbol directory anchors so US equity briefings can distinguish company filings, watchlist CIKs, exchange listings, ETF flags, and financial statement facts from generic news text.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-002 (zero-cost operation), NFR-003 (graceful degradation), R10, R13
+
+**Existing coverage / deduplication**:
+- Extends `sec-edgar-8k`; it does not duplicate the current 8-K Atom feed.
+- Extends existing Nasdaq news/earnings sources; it does not replace earnings calendar collection.
+- Does not ingest all SEC XBRL concepts. The first slice uses a bounded watchlist CIK map and an allow-list of financial concepts.
+
+**Module path**:
+- `src/investo/sources/sec_company_facts.py` - collect bounded SEC submissions/companyfacts for configured watchlist CIKs.
+- `src/investo/sources/nasdaq_symbol_directory.py` - parse Nasdaq listed and other-listed symbol directory text files.
+- `src/investo/briefing/fact_context.py` or a new source-context helper - render compact company/symbol anchors into Stage 2 context.
+- `tests/unit/sources/test_sec_company_facts.py`, `tests/unit/sources/test_nasdaq_symbol_directory.py`, and routing/tier tests.
+
+**Definition of Done**:
+- [ ] SEC company endpoints use `data.sec.gov`/`sec.gov` JSON with a declared fair-access User-Agent and no API key.
+- [ ] The adapter collects only configured watchlist CIKs and a fixed concept allow-list such as revenue, net income, EPS, assets, liabilities, operating cash flow, and share count.
+- [ ] Nasdaq symbol directory parsing records symbol, listing exchange, ETF flag, test issue flag, and financial status without scraping web pages.
+- [ ] SEC and Nasdaq anchor items are bounded so Stage 1 candidate caps are not exhausted by bulk filing history.
+- [ ] Fixtures cover happy path, missing CIK, missing concept, malformed JSON, and SEC 403/429 graceful degradation.
+
+Plan: `aidlc-docs/construction/plans/u104-sec-company-facts-and-symbol-directory-code-generation-plan.md`.
+
+---
+
+### u105: `macro-actual-source-of-record` - Add BLS and BEA Actual Release Data
+
+**Purpose**: Add source-of-record macro actuals for BLS and BEA releases. Existing FRED/FOMC/BEA schedule coverage tells the pipeline what is coming, but critical releases such as CPI, payrolls, PCE, and GDP need official actual/prior/period values and canonical event keys so schedule and actual evidence join cleanly.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-002 (zero-cost operation), NFR-003 (graceful degradation), R10, R13
+
+**Existing coverage / deduplication**:
+- Extends u59 macro actual/lineage work; it does not replace macro lifecycle logic.
+- Extends `fred-economic-calendar`; it does not add another calendar-only source.
+- Does not create consensus, forecast, or surprise values unless official no-cost source fields provide them directly.
+
+**Module path**:
+- `src/investo/sources/bls_macro_actuals.py` - collect bounded CPI, labor, PPI, JOLTS, and wage series from BLS Public Data API.
+- `src/investo/sources/bea_macro_actuals.py` - collect bounded GDP and PCE/NIPA actuals from BEA API.
+- `src/investo/briefing/macro_carryover.py` and `src/investo/models/macro.py` - reuse canonical macro event key fields without expanding the model surface beyond required metadata.
+- `tests/unit/sources/test_bls_macro_actuals.py`, `tests/unit/sources/test_bea_macro_actuals.py`, and macro lineage tests.
+
+**Definition of Done**:
+- [ ] BLS and BEA adapters emit official actual/prior/period/source metadata for a bounded release allow-list.
+- [ ] CPI, payrolls, PCE, and GDP actuals stamp canonical `macro_event_key` values that match existing schedule events.
+- [ ] Missing API keys or exhausted free endpoints degrade at adapter level and do not stop sibling sources.
+- [ ] Generated prompt context can prioritize official actuals without claiming consensus or surprise when those fields are unavailable.
+- [ ] Fixtures cover current release, prior revision, empty series, malformed payload, missing-key behavior, and no-secret diagnostics.
+
+Plan: `aidlc-docs/construction/plans/u105-macro-actual-source-of-record-code-generation-plan.md`.
+
+---
+
+### u106: `money-energy-volatility-source-expansion` - Add Funding, Energy, and Volatility Context
+
+**Purpose**: Add no-key or free official sources for money-market funding conditions, petroleum supply, and options-volatility sentiment. Existing Treasury/FRED/Stooq/YFinance sources provide rates and market prices, but they do not explain SOFR/EFFR funding stress, petroleum inventories, or option-tail risk through official data.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-002 (zero-cost operation), NFR-003 (graceful degradation), R10, R13
+
+**Existing coverage / deduplication**:
+- Extends `treasury-rates`, `fred-macro`, and `stooq-price`; it does not replace price snapshots or yield curve collection.
+- Uses official NY Fed/EIA/Cboe surfaces only.
+- Excludes FRED ICE BofA credit OAS series with restrictive redistribution language.
+
+**Module path**:
+- `src/investo/sources/nyfed_reference_rates.py` - collect SOFR, EFFR, OBFR, BGCR, TGCR and volume/percentile fields.
+- `src/investo/sources/eia_petroleum_weekly.py` - collect weekly crude, gasoline, distillate, production, import, and refinery utilization facts.
+- `src/investo/sources/cboe_volatility_indices.py` - collect VVIX and SKEW official CSVs; VIX is included only as cross-check metadata because price sources already carry VIX.
+- `tests/unit/sources/test_nyfed_reference_rates.py`, `test_eia_petroleum_weekly.py`, `test_cboe_volatility_indices.py`, and segment routing tests.
+
+**Definition of Done**:
+- [ ] NY Fed reference-rate items publish business-day actual values with official source URL, observed date, and units.
+- [ ] EIA weekly petroleum items publish release-date, inventory, production, imports, and refinery utilization metadata with source lag clearly represented.
+- [ ] Cboe volatility items prioritize VVIX/SKEW so the unit does not duplicate existing VIX price snapshots.
+- [ ] All adapters use bounded retry/body-size behavior and classify stale weekly data as source-lag context, not fresh intraday data.
+- [ ] Fixtures cover current data, holiday/stale release, empty table/CSV, malformed payload, and source failure isolation.
+
+Plan: `aidlc-docs/construction/plans/u106-money-energy-volatility-source-expansion-code-generation-plan.md`.
+
+---
+
+### u107: `cftc-positioning-layer` - Add Regulated Futures Positioning Context
+
+**Purpose**: Add CFTC COT/TFF positioning data for equity index, VIX, Treasury, FX, energy, metals, and crypto futures. The current system has price, rates, domestic investor flows, crypto funding/OI, and sentiment, but lacks regulated futures positioning that explains who is leaning into a move.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-002 (zero-cost operation), NFR-003 (graceful degradation), R10, R13
+
+**Existing coverage / deduplication**:
+- Complements `krx-foreign-flows`, `bybit-derivatives`, `okx-derivatives`, and `alternative-fng`; it does not replace them.
+- Uses official CFTC public reporting data only.
+- Does not implement paid liquidation, exchange netflow, or private positioning products.
+
+**Module path**:
+- `src/investo/sources/cftc_cot_positioning.py` - fetch and parse bounded COT/TFF datasets.
+- `src/investo/briefing/segments.py` - route selected contracts to `us-equity`, `crypto`, or shared macro context.
+- `src/investo/publisher/channel_anchor_block.py` or a new positioning renderer - present delayed weekly positioning as a context row with release lag.
+- `tests/unit/sources/test_cftc_cot_positioning.py`, routing tests, and delayed-data presentation tests.
+
+**Definition of Done**:
+- [ ] CFTC positioning collection uses official public data with no token and a bounded contract allow-list.
+- [ ] The adapter maps selected contract codes to reader labels for S&P 500/Nasdaq/VIX/Treasury/USD/WTI/gold/BTC where official contract data exists.
+- [ ] Published context labels the data as weekly and Tuesday-as-of/Friday-release, avoiding daily freshness claims.
+- [ ] The source emits no result for unmapped contracts rather than inventing labels or approximating from unrelated contracts.
+- [ ] Fixtures cover current report, holiday-delayed report, unmapped contract, malformed row, and source failure isolation.
+
+Plan: `aidlc-docs/construction/plans/u107-cftc-positioning-layer-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

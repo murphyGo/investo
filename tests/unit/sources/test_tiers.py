@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+
+import pytest
+
 from investo.sources.tiers import ADAPTER_TIERS, DEFAULT_TIER, adapter_tier, tier_mix_label
 
 
@@ -11,6 +15,18 @@ def test_default_tier_is_b() -> None:
 
 def test_unknown_adapter_falls_back_to_default() -> None:
     assert adapter_tier("definitely-not-registered-adapter") == "B"
+
+
+def test_unknown_adapter_fallback_emits_diagnostic_log(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    with caplog.at_level(logging.INFO, logger="investo.sources.tiers"):
+        assert adapter_tier("non-production-stub") == DEFAULT_TIER
+
+    assert (
+        "[tiers] non-production-stub missing from ADAPTER_TIERS"
+        in caplog.text
+    )
 
 
 def test_registry_covers_known_s_tier_sources() -> None:

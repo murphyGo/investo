@@ -13,10 +13,16 @@ from typing import ClassVar
 import httpx
 import pytest
 
+from investo.briefing.segments import _CRYPTO_ONLY_SOURCES, _US_ONLY_SOURCES
 from investo.models import Category, NormalizedItem
 from investo.sources._registry import register
 from investo.sources._window import FetchWindow
-from investo.sources.aggregator import fetch_all
+from investo.sources.aggregator import (
+    _CRYPTO_MARKET_SOURCES,
+    _US_MARKET_SOURCES,
+    _window_for_adapter,
+    fetch_all,
+)
 from investo.sources.protocol import SourceFetchError
 
 # The registry-isolation fixture lives in tests/unit/sources/conftest.py.
@@ -275,6 +281,18 @@ async def test_fetch_all_passes_new_york_window_to_new_us_market_adapters(
     assert captured["window"].end_utc == datetime(2026, 5, 7, 4, 0, tzinfo=UTC)
 
 
+def test_all_us_only_sources_have_new_york_market_window_registration() -> None:
+    assert _US_ONLY_SOURCES <= _US_MARKET_SOURCES
+
+
+@pytest.mark.parametrize("source_name", sorted(_US_MARKET_SOURCES))
+def test_us_market_sources_resolve_to_new_york_window(source_name: str) -> None:
+    window = _window_for_adapter(date(2026, 5, 6), source_name)
+
+    assert window.start_utc == datetime(2026, 5, 6, 4, 0, tzinfo=UTC)
+    assert window.end_utc == datetime(2026, 5, 7, 4, 0, tzinfo=UTC)
+
+
 async def test_fetch_all_passes_utc_window_to_crypto_adapter() -> None:
     captured: dict[str, FetchWindow | None] = {"window": None}
 
@@ -319,6 +337,18 @@ async def test_fetch_all_passes_utc_window_to_new_crypto_adapters(source_name: s
     assert captured["window"] is not None
     assert captured["window"].start_utc == datetime(2026, 5, 6, 0, 0, tzinfo=UTC)
     assert captured["window"].end_utc == datetime(2026, 5, 7, 0, 0, tzinfo=UTC)
+
+
+def test_all_crypto_only_sources_have_utc_market_window_registration() -> None:
+    assert _CRYPTO_ONLY_SOURCES <= _CRYPTO_MARKET_SOURCES
+
+
+@pytest.mark.parametrize("source_name", sorted(_CRYPTO_MARKET_SOURCES))
+def test_crypto_market_sources_resolve_to_utc_window(source_name: str) -> None:
+    window = _window_for_adapter(date(2026, 5, 6), source_name)
+
+    assert window.start_utc == datetime(2026, 5, 6, 0, 0, tzinfo=UTC)
+    assert window.end_utc == datetime(2026, 5, 7, 0, 0, tzinfo=UTC)
 
 
 async def test_fetch_all_keeps_same_day_us_and_crypto_items_after_kst_cutoff() -> None:

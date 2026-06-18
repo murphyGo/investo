@@ -260,14 +260,19 @@ _DOMESTIC_SOURCES: Final[frozenset[str]] = (
 )
 _US_SOURCES: Final[frozenset[str]] = _US_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["us-equity"]
 _CRYPTO_SOURCES: Final[frozenset[str]] = _CRYPTO_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["crypto"]
-_SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
-    "domestic-equity": _DOMESTIC_SOURCES,
-    "us-equity": _US_SOURCES,
+_OUTCOME_EXTRA_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
+    "domestic-equity": frozenset(),
+    "us-equity": frozenset(),
     # ``stooq-price`` is a mixed US/crypto snapshot adapter. Routing remains
     # title-driven in ``segment_items()`` so US tickers do not leak into
     # crypto, but the aggregate source outcome is relevant to crypto coverage
     # because the adapter also emits BTC-USD / ETH-USD rows.
-    "crypto": _CRYPTO_SOURCES | frozenset({"stooq-price"}),
+    "crypto": frozenset({"stooq-price"}),
+}
+_SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
+    "domestic-equity": _DOMESTIC_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["domestic-equity"],
+    "us-equity": _US_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["us-equity"],
+    "crypto": _CRYPTO_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["crypto"],
 }
 
 # u79 — ``_KOREAN_EXCHANGE_TICKER`` / ``_US_TICKER`` / ``_CRYPTO_TICKER_RE``
