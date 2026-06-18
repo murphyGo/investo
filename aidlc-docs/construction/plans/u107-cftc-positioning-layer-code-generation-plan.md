@@ -3,7 +3,7 @@
 **Date**: 2026-06-18
 **Unit**: u107 cftc-positioning-layer
 **Stage**: Code Generation
-**Status**: Backlog
+**Status**: Complete
 **Source**: 2026-06-18 ten-agent data-source expansion review.
 **Estimated Effort**: ~5-8 h
 **Dependencies**:
@@ -51,13 +51,13 @@ NFR Requirements: skip. Official no-key data, R10 fixture, and weekly lag constr
 
 ## Implementation Steps
 
-- [ ] Add `src/investo/sources/cftc_cot_positioning.py`.
-- [ ] Define a contract allow-list with reader labels and segment routing for each contract group.
-- [ ] Fetch official CFTC public data using bounded query parameters or yearly compressed files with current-year filtering.
-- [ ] Parse report rows into `NormalizedItem` values with `category="macro"`.
-- [ ] Register adapter import, tier, market-window behavior, and segment routing.
-- [ ] Add a presentation helper or extend channel-depth rendering so weekly delayed positioning appears as context, not current-session data.
-- [ ] Record fixtures for current report, holiday-delayed report, unmapped contract, malformed row, and source failure.
+- [x] Add `src/investo/sources/cftc_cot_positioning.py`.
+- [x] Define a contract allow-list with reader labels and segment routing for each contract group.
+- [x] Fetch official CFTC public data using bounded query parameters or yearly compressed files with current-year filtering.
+- [x] Parse report rows into `NormalizedItem` values with `category="macro"`.
+- [x] Register adapter import, tier, market-window behavior, and segment routing.
+- [x] Add a presentation helper or extend channel-depth rendering so weekly delayed positioning appears as context, not current-session data.
+- [x] Record fixtures for current report, holiday-delayed report, unmapped contract, malformed row, and source failure.
 
 ## Acceptance Criteria
 

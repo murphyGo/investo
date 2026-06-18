@@ -126,7 +126,15 @@ _ROW_LABELS: Final[dict[str, str]] = {
     "btc_dominance": "BTC 도미넌스",
     "fear_greed": "공포·탐욕",
     "funding_oi_liquidation": "펀딩/OI/청산",
+    "cftc_positioning": "CFTC 포지셔닝",
+    "cftc_crypto_positioning": "CFTC 코인 포지셔닝",
 }
+
+_CFTC_SOURCE_NAME: Final[str] = "cftc-cot-positioning"
+_US_CFTC_GROUPS: Final[frozenset[str]] = frozenset(
+    {"equity_index", "rates", "fx", "energy", "metals", "volatility"}
+)
+_CRYPTO_CFTC_GROUPS: Final[frozenset[str]] = frozenset({"crypto"})
 
 
 def _format_price(value: Decimal) -> str:
@@ -202,6 +210,31 @@ def _funding_oi_cell(items: Sequence[NormalizedItem]) -> str | None:
     return " · ".join(parts)
 
 
+def _cftc_positioning_cell(
+    items: Sequence[NormalizedItem],
+    *,
+    groups: frozenset[str],
+) -> str | None:
+    rows: list[str] = []
+    for item in items:
+        if item.source_name != _CFTC_SOURCE_NAME:
+            continue
+        group = _meta(item, "contract_group")
+        if group not in groups:
+            continue
+        label = _meta(item, "contract_label")
+        net = _meta(item, "net_contracts")
+        pct = _meta(item, "net_pct_open_interest")
+        as_of = _meta(item, "as_of_date")
+        release = _meta(item, "release_date")
+        if None in (label, net, pct, as_of, release):
+            continue
+        rows.append(f"{label} 순포지션 {net}계약 ({pct}% OI), {as_of} 기준/{release} 공개")
+    if not rows:
+        return None
+    return " · ".join(rows[:3]) + " · 주간 지연"
+
+
 def _row_line(label: str, value_cell: str) -> str:
     safe = value_cell.replace("|", "\\|")
     return f"| {label} | {safe} |"
@@ -249,6 +282,7 @@ def render_channel_anchor_block(
     *,
     anchors: Sequence[MarketAnchor] = (),
     crypto_items: Sequence[NormalizedItem] = (),
+    source_items: Sequence[NormalizedItem] = (),
 ) -> str:
     """Render the deterministic native-anchor block for ``segment`` (u74).
 
@@ -281,7 +315,17 @@ def render_channel_anchor_block(
         body, any_present = _anchor_rows(_DOMESTIC_ROWS, anchors_by_ticker)
     elif segment == "us-equity":
         body, any_present = _anchor_rows(_US_ROWS, anchors_by_ticker)
+        cftc_cell = _cftc_positioning_cell(source_items, groups=_US_CFTC_GROUPS)
+        if cftc_cell is not None:
+            any_present = True
+        body.append(
+            _row_line(
+                _ROW_LABELS["cftc_positioning"],
+                cftc_cell if cftc_cell is not None else _missing_cell(MissingReason.NOT_COLLECTED),
+            )
+        )
     else:  # crypto
+        crypto_source_items = source_items or crypto_items
         body, any_present = _anchor_rows(_CRYPTO_PRICE_ROWS, anchors_by_ticker)
         # u66 indicator rows — a value u66 has not yet supplied renders the
         # not_yet_available reason rather than an invented figure.
@@ -295,6 +339,15 @@ def render_channel_anchor_block(
                 any_present = True
             value = cell if cell is not None else _missing_cell(nya)
             body.append(_row_line(_ROW_LABELS[row_key], value))
+        cftc_cell = _cftc_positioning_cell(crypto_source_items, groups=_CRYPTO_CFTC_GROUPS)
+        if cftc_cell is not None:
+            any_present = True
+        body.append(
+            _row_line(
+                _ROW_LABELS["cftc_crypto_positioning"],
+                cftc_cell if cftc_cell is not None else _missing_cell(MissingReason.NOT_COLLECTED),
+            )
+        )
 
     if not any_present:
         return ""

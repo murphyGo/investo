@@ -22,6 +22,7 @@ def _item(
     *,
     category: str = "news",
     summary: str | None = None,
+    raw_metadata: dict[str, str] | None = None,
 ) -> NormalizedItem:
     return NormalizedItem(
         source_name=source_name,
@@ -29,6 +30,7 @@ def _item(
         title=title,
         summary=summary,
         published_at=datetime(2026, 5, 6, 12, 0, tzinfo=UTC),
+        raw_metadata=raw_metadata or {},
     )
 
 
@@ -112,6 +114,42 @@ def test_shared_treasury_rates_source_fans_out_to_us_and_crypto() -> None:
 
     assert segmented.us_equity == (item,)
     assert segmented.crypto == (item,)
+    assert segmented.domestic_equity == ()
+
+
+def test_cftc_positioning_routes_by_contract_group_without_cross_pollution() -> None:
+    us_item = _item(
+        "cftc-cot-positioning",
+        "CFTC E-mini S&P 500 leveraged money net -451586 contracts",
+        category="macro",
+        raw_metadata={"contract_group": "equity_index"},
+    )
+    crypto_item = _item(
+        "cftc-cot-positioning",
+        "CFTC Bitcoin CME leveraged money net -2400 contracts",
+        category="macro",
+        raw_metadata={"contract_group": "crypto"},
+    )
+
+    segmented = segment_items([us_item, crypto_item])
+
+    assert segmented.us_equity == (us_item,)
+    assert segmented.crypto == (crypto_item,)
+    assert segmented.domestic_equity == ()
+
+
+def test_cftc_unknown_contract_group_routes_nowhere() -> None:
+    item = _item(
+        "cftc-cot-positioning",
+        "CFTC unknown contract",
+        category="macro",
+        raw_metadata={"contract_group": "unknown"},
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == ()
+    assert segmented.crypto == ()
     assert segmented.domestic_equity == ()
 
 
@@ -279,6 +317,7 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
     outcomes = (
         SourceOutcome.ok("yfinance-price", "price", item_count=3),
         SourceOutcome.ok("treasury-rates", "macro", item_count=1),
+        SourceOutcome.ok("cftc-cot-positioning", "macro", item_count=2),
         SourceOutcome.ok("us-economic-calendar", "calendar", item_count=2),
         SourceOutcome.ok("stooq-price", "price", item_count=2),
         SourceOutcome.ok("binance-crypto-market", "price", item_count=3),
@@ -298,6 +337,7 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         "defillama-market-structure",
         "stooq-price",
         "treasury-rates",
+        "cftc-cot-positioning",
     }
     assert {outcome.source_name for outcome in domestic_only} == {
         "fsc-krx-index-price",

@@ -40,6 +40,7 @@ from investo.sources.binance_crypto_market import BinanceCryptoMarketAdapter
 from investo.sources.bls_macro_actuals import BlsMacroActualsAdapter
 from investo.sources.bybit_derivatives import BybitDerivativesAdapter
 from investo.sources.cboe_volatility_indices import CboeVolatilityIndicesAdapter
+from investo.sources.cftc_cot_positioning import CftcCotPositioningAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
@@ -81,13 +82,14 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 41
+EXPECTED_ADAPTER_COUNT = 42
 EXPECTED_ADAPTER_NAMES = {
     "alternative-fng",
     "bea-macro-actuals",
     "bls-macro-actuals",
     "bybit-derivatives",
     "cboe-volatility-indices",
+    "cftc-cot-positioning",
     "coingecko-global-market",
     "okx-derivatives",
     "binance-crypto-market",
@@ -146,6 +148,7 @@ def _isolate_registry() -> Iterator[None]:
     register(BlsMacroActualsAdapter)
     register(BybitDerivativesAdapter)
     register(CboeVolatilityIndicesAdapter)
+    register(CftcCotPositioningAdapter)
     register(CoinGeckoGlobalMarketAdapter)
     register(OkxDerivativesAdapter)
     register(BinanceCryptoMarketAdapter)
@@ -218,6 +221,7 @@ def test_adapter_tiers_do_not_include_unregistered_production_sources() -> None:
 
 def test_registered_adapters_have_explicit_segment_routing() -> None:
     shared_sources = set().union(*_SHARED_SOURCES_BY_SEGMENT.values())
+    item_level_routed_sources = {"cftc-cot-positioning"}
     segment_only_sources = (
         _DOMESTIC_ONLY_SOURCES,
         _US_ONLY_SOURCES,
@@ -231,7 +235,11 @@ def test_registered_adapters_have_explicit_segment_routing() -> None:
             adapter.name in sources for sources in segment_only_sources
         )
         shared_membership = adapter.name in shared_sources
-        if single_segment_memberships == 0 and not shared_membership:
+        if (
+            single_segment_memberships == 0
+            and not shared_membership
+            and adapter.name not in item_level_routed_sources
+        ):
             missing_segment_routing.add(adapter.name)
         if single_segment_memberships > 1 or (
             single_segment_memberships == 1 and shared_membership
@@ -407,6 +415,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "BybitDerivativesAdapter",
         "cboe_volatility_indices",
         "CboeVolatilityIndicesAdapter",
+        "cftc_cot_positioning",
+        "CftcCotPositioningAdapter",
         "coingecko_global_market",
         "CoinGeckoGlobalMarketAdapter",
         "eia_petroleum_weekly",

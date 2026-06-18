@@ -30,14 +30,22 @@ def _anchor(ticker: str, close: str, pct: str | None = None) -> MarketAnchor:
     )
 
 
-def _crypto_item(raw_metadata: dict[str, str]) -> NormalizedItem:
+def _item(
+    raw_metadata: dict[str, str],
+    *,
+    source_name: str = "alternative-fng",
+) -> NormalizedItem:
     return NormalizedItem(
-        source_name="alternative-fng",
+        source_name=source_name,
         category="macro",
         title="x",
         published_at=datetime(2026, 5, 23, tzinfo=UTC),
         raw_metadata=raw_metadata,
     )
+
+
+def _crypto_item(raw_metadata: dict[str, str]) -> NormalizedItem:
+    return _item(raw_metadata)
 
 
 # ---------------------------------------------------------------------------
@@ -105,6 +113,27 @@ def test_us_equity_rows() -> None:
     assert "| 다우존스 | 미수집 |" in block
 
 
+def test_us_equity_renders_cftc_weekly_positioning_context() -> None:
+    items = [
+        _item(
+            {
+                "contract_group": "equity_index",
+                "contract_label": "E-mini S&P 500",
+                "net_contracts": "-451586",
+                "net_pct_open_interest": "-20.50",
+                "as_of_date": "2026-06-09",
+                "release_date": "2026-06-12",
+            },
+            source_name="cftc-cot-positioning",
+        )
+    ]
+    block = render_channel_anchor_block("us-equity", source_items=items)
+    assert CHANNEL_ANCHOR_HEADER in block
+    assert "| CFTC 포지셔닝 | E-mini S&P 500 순포지션 -451586계약" in block
+    assert "2026-06-09 기준/2026-06-12 공개" in block
+    assert "주간 지연" in block
+
+
 # ---------------------------------------------------------------------------
 # Crypto — consumes u66 indicators (AC-74.3) + not_yet_available
 # ---------------------------------------------------------------------------
@@ -147,6 +176,27 @@ def test_crypto_not_yet_available_when_u66_absent() -> None:
     assert "| BTC 도미넌스 | 아직 미제공 |" in block
     assert "| 공포·탐욕 | 아직 미제공 |" in block
     assert "| 펀딩/OI/청산 | 아직 미제공 |" in block
+
+
+def test_crypto_renders_cftc_weekly_positioning_context() -> None:
+    items = [
+        _item(
+            {
+                "contract_group": "crypto",
+                "contract_label": "Bitcoin CME",
+                "net_contracts": "-2400",
+                "net_pct_open_interest": "-4.20",
+                "as_of_date": "2026-06-09",
+                "release_date": "2026-06-12",
+            },
+            source_name="cftc-cot-positioning",
+        )
+    ]
+    block = render_channel_anchor_block("crypto", source_items=items)
+    assert CHANNEL_ANCHOR_HEADER in block
+    assert "| CFTC 코인 포지셔닝 | Bitcoin CME 순포지션 -2400계약" in block
+    assert "2026-06-09 기준/2026-06-12 공개" in block
+    assert "주간 지연" in block
 
 
 def test_missing_rows_carry_no_numeric_value() -> None:

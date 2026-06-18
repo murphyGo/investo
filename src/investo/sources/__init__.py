@@ -33,6 +33,7 @@ from . import (
     bls_macro_actuals,  # noqa: F401
     bybit_derivatives,  # noqa: F401
     cboe_volatility_indices,  # noqa: F401
+    cftc_cot_positioning,  # noqa: F401
     cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401
     coingecko_global_market,  # noqa: F401

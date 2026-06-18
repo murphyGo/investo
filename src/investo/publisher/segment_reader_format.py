@@ -197,10 +197,14 @@ def apply_reader_format_to_segments(
             if (segment == "crypto" and items_by_segment is not None)
             else ()
         )
+        segment_source_items = (
+            items_by_segment.get(segment, ()) if items_by_segment is not None else ()
+        )
         channel_block = render_channel_anchor_block(
             segment,
             anchors=anchors,
             crypto_items=crypto_block_items,
+            source_items=segment_source_items,
         )
         markdown = inject_channel_anchor_block(markdown, channel_block)
         # u74 Step 4 — cross-market cause-map line, gated by the u57

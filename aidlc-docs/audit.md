@@ -4075,3 +4075,16 @@ B) Partial"
 **Context**: u59 macro-actual-priority-and-lineage Code Generation, Step 1 complete, Step 3 complete, Step 2 schedule-identity sub-step complete.
 
 ---
+## u107 Land — cftc-positioning-layer
+**Timestamp**: 2026-06-18T00:00:00Z
+**Action**: Landed u107 code generation. Added official no-key CFTC COT/TFF positioning source coverage and delayed weekly presentation in the channel anchor block.
+**Decisions**:
+- Used official CFTC public reporting endpoints (`gpe5-46if` TFF futures-only and `72hh-3qpy` disaggregated futures-only) with bounded contract-code allow-lists.
+- Dropped rows before the estimated public release datetime; Tuesday positions are treated as Friday 15:30 ET weekly delayed context with holiday delay handling.
+- Routed `cftc-cot-positioning` items by contract group: equity/rates/FX/energy/metals/volatility to US-equity and crypto futures to crypto. Domestic investor-flow coverage remains owned by existing domestic sources.
+- Extended `publisher.channel_anchor_block` rather than adding a new first-viewport surface.
+**Quality gate**: 32 source/plugin/channel tests, 81 segment/aggregator tests, scoped ruff/format, strict mypy over sources+briefing+publisher, no-paid API check.
+**TECH-DEBT**: None.
+**Context**: u107 cftc-positioning-layer Code Generation complete.
+
+---

@@ -152,6 +152,7 @@ SEGMENT_MACRO_ACTUAL_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
             "bea-macro-actuals",
             "bls-macro-actuals",
             "cboe-volatility-indices",
+            "cftc-cot-positioning",
             "eia-petroleum-weekly",
             "fred-macro",
             "nyfed-reference-rates",
@@ -270,6 +271,11 @@ _SHARED_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
     "us-equity": frozenset({"treasury-rates"}),
     "crypto": frozenset({"treasury-rates"}),
 }
+_CFTC_POSITIONING_SOURCE: Final[str] = "cftc-cot-positioning"
+_CFTC_US_GROUPS: Final[frozenset[str]] = frozenset(
+    {"equity_index", "volatility", "rates", "fx", "energy", "metals"}
+)
+_CFTC_CRYPTO_GROUPS: Final[frozenset[str]] = frozenset({"crypto"})
 
 # Backward-compatible aggregate views — the union of single + shared
 # membership for each segment. Consumers (e.g.
@@ -281,12 +287,12 @@ _US_SOURCES: Final[frozenset[str]] = _US_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGME
 _CRYPTO_SOURCES: Final[frozenset[str]] = _CRYPTO_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["crypto"]
 _OUTCOME_EXTRA_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": frozenset(),
-    "us-equity": frozenset(),
+    "us-equity": frozenset({_CFTC_POSITIONING_SOURCE}),
     # ``stooq-price`` is a mixed US/crypto snapshot adapter. Routing remains
     # title-driven in ``segment_items()`` so US tickers do not leak into
     # crypto, but the aggregate source outcome is relevant to crypto coverage
     # because the adapter also emits BTC-USD / ETH-USD rows.
-    "crypto": frozenset({"stooq-price"}),
+    "crypto": frozenset({_CFTC_POSITIONING_SOURCE, "stooq-price"}),
 }
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": _DOMESTIC_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["domestic-equity"],
@@ -526,18 +532,24 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
     u45 — Routing is *priority-based and source-anchored*. A single item
     lands in at most one segment **unless** its source is registered in
     :data:`_SHARED_SOURCES_BY_SEGMENT` (today: ``treasury-rates``), in
-    which case it fans out to every named shared segment.
+    which case it fans out to every named shared segment. CFTC
+    positioning is the exception: it is a multi-market source, but rows
+    route by ``raw_metadata["contract_group"]`` so crypto futures never
+    pollute US-equity evidence and equity/rates/commodity rows never
+    pollute crypto evidence.
 
     Decision order (first match wins):
 
-    1. **Shared sources fan-out** — items from a shared source appear in
+    1. **CFTC contract-group routing** — official positioning rows route
+       by contract group.
+    2. **Shared sources fan-out** — items from a shared source appear in
        every segment that registers it.
-    2. **Single-segment crypto source** — anchored to crypto.
-    3. **Single-segment domestic source** — anchored to domestic-equity.
-    4. **Single-segment us-equity source** — anchored to us-equity, *but
+    3. **Single-segment crypto source** — anchored to crypto.
+    4. **Single-segment domestic source** — anchored to domestic-equity.
+    5. **Single-segment us-equity source** — anchored to us-equity, *but
        moved to crypto* if the title/body carries a strong crypto
        signal (closes Item #54 / #76 / #82 leak from 2026-05-08).
-    5. **Keyword fallback** — for items whose source is in none of the
+    6. **Keyword fallback** — for items whose source is in none of the
        allow-lists. Domestic ticker → domestic; strong crypto signal →
        crypto; us-equity ticker / market term → us-equity. Remaining
        orphans are dropped (preserves the existing "low-signal item is
@@ -563,7 +575,15 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
     for item in items:
         text = _item_text(item)
 
-        # 1) Shared sources fan-out (intentional cross-routing).
+        # 1) Multi-market CFTC rows route by contract group, not by source
+        # name fan-out. This preserves segment evidence purity while the
+        # source outcome remains visible to both US and crypto coverage.
+        cftc_segment = _cftc_segment_for_item(item)
+        if cftc_segment is not None:
+            buckets[cftc_segment].append(item)
+            continue
+
+        # 2) Shared sources fan-out (intentional cross-routing).
         matched_shared = _matched_shared_segments(item.source_name)
         if matched_shared:
             for segment in matched_shared:
@@ -578,7 +598,7 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
             crypto.append(item)
             continue
 
-        # 2-4) Source-anchored single-segment routing.
+        # 3-5) Source-anchored single-segment routing.
         if item.source_name in _CRYPTO_ONLY_SOURCES:
             crypto.append(item)
             continue
@@ -592,7 +612,7 @@ def segment_items(items: Sequence[NormalizedItem]) -> SegmentedItems:
                 us.append(item)
             continue
 
-        # 5) Keyword fallback for items whose source is in no allow-list.
+        # 6) Keyword fallback for items whose source is in no allow-list.
         if _matches_domestic_keyword(item):
             domestic.append(item)
         elif _has_strong_crypto_signal(item):
@@ -623,6 +643,17 @@ def _matched_shared_segments(source_name: str) -> tuple[MarketSegment, ...]:
         if source_name in _SHARED_SOURCES_BY_SEGMENT[segment]:
             matched.append(segment)
     return tuple(matched)
+
+
+def _cftc_segment_for_item(item: NormalizedItem) -> MarketSegment | None:
+    if item.source_name != _CFTC_POSITIONING_SOURCE:
+        return None
+    group = item.raw_metadata.get("contract_group")
+    if group in _CFTC_CRYPTO_GROUPS:
+        return CRYPTO
+    if group in _CFTC_US_GROUPS:
+        return US_EQUITY
+    return None
 
 
 def _has_crypto_policy_priority(item: NormalizedItem) -> bool:

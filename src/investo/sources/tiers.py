@@ -61,6 +61,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "treasury-rates": "S",
     "eia-petroleum-weekly": "S",
     "nyfed-reference-rates": "S",
+    "cftc-cot-positioning": "S",
     # u53 — Naver finance mirrors a KRX investor-flow aggregation. KRX
     # is the system of record but the proximate endpoint is an
     # aggregator surface, so this lands in A rather than S.

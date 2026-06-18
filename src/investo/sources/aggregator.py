@@ -36,6 +36,7 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "bea-macro-actuals",
         "bls-macro-actuals",
         "cboe-volatility-indices",
+        "cftc-cot-positioning",
         "cnbc-top-news",
         "eia-petroleum-weekly",
         "fed-board-leadership",
