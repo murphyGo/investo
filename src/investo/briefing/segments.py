@@ -40,6 +40,10 @@ CoverageReasonCode = Literal[
     "MISSING_EARNINGS",
     "SOURCE_FAILED",
     "SOURCE_ZERO",
+    # u41 Step 5 — OpenDART may legitimately return zero disclosures on
+    # a domestic publish window. This is a quiet-day disclosure context,
+    # not a source failure or generic coverage deficiency.
+    "DOMESTIC_DISCLOSURE_QUIET",
     # u43 — emitted only when the segment had ≥ 1 lookahead-aware
     # adapter attempted *and* the lookahead pass for that segment
     # returned zero forward-scheduled items. Never fires on a segment
@@ -73,6 +77,7 @@ COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "MISSING_EARNINGS": "실적 카테고리 누락",
     "SOURCE_FAILED": "일부 소스 수집 실패",
     "SOURCE_ZERO": "일부 소스 0건 반환",
+    "DOMESTIC_DISCLOSURE_QUIET": "DART 주요 공시 0건",
     "LOOKAHEAD_DATA_MISSING": "예정 일정 데이터 미확보",
     "CORE_FAILED": "핵심 가격 소스 실패",
     "CORE_ZERO": "핵심 가격 소스 0건",
@@ -107,6 +112,7 @@ _MISSING_CATEGORY_TO_REASON: Final[dict[Category, CoverageReasonCode]] = {
     "calendar": "MISSING_CALENDAR",
     "earnings": "MISSING_EARNINGS",
 }
+_QUIET_ZERO_SOURCES: Final[frozenset[str]] = frozenset({"dart-disclosure"})
 
 DOMESTIC_EQUITY: Final[MarketSegment] = "domestic-equity"
 US_EQUITY: Final[MarketSegment] = "us-equity"
@@ -739,7 +745,11 @@ def build_segment_coverage(
     non_macro_zero_count = sum(
         1
         for outcome in outcomes_tuple
-        if outcome.status == "zero" and outcome.source_name not in macro_actual_sources
+        if (
+            outcome.status == "zero"
+            and outcome.source_name not in macro_actual_sources
+            and outcome.source_name not in _QUIET_ZERO_SOURCES
+        )
     )
     news_zero_or_missing = "news" in missing_categories or non_macro_zero_count > 0
 
@@ -991,8 +1001,13 @@ def _derive_reason_codes(
         codes.append(_MISSING_CATEGORY_TO_REASON[category])
     if any(outcome.status == "failed" for outcome in source_outcomes):
         codes.append("SOURCE_FAILED")
-    if any(outcome.status == "zero" for outcome in source_outcomes):
+    if any(
+        outcome.status == "zero" and outcome.source_name not in _QUIET_ZERO_SOURCES
+        for outcome in source_outcomes
+    ):
         codes.append("SOURCE_ZERO")
+    if _domestic_disclosure_quiet(segment, source_outcomes):
+        codes.append("DOMESTIC_DISCLOSURE_QUIET")
     # u54 — core / staleness reasons, deterministic order.
     if all_core_failed:
         codes.append("ALL_FAILED")
@@ -1011,6 +1026,18 @@ def _derive_reason_codes(
 
 def _threshold_item_count(items: Sequence[NormalizedItem]) -> int:
     return sum(1 for item in items if item.source_name not in _THRESHOLD_EXCLUDED_SOURCES)
+
+
+def _domestic_disclosure_quiet(
+    segment: MarketSegment,
+    source_outcomes: Sequence[SourceOutcome],
+) -> bool:
+    if segment != DOMESTIC_EQUITY:
+        return False
+    return any(
+        outcome.source_name == "dart-disclosure" and outcome.status == "zero"
+        for outcome in source_outcomes
+    )
 
 
 def _lookahead_data_missing(

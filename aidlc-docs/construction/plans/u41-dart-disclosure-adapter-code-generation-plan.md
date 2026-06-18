@@ -98,19 +98,17 @@ The persona's own diagnosis already maps the 4 categories that matter most. Open
 
 ### Step 5 — Coverage Reason Code (Quiet Day vs Failure Day)
 
-> **Deferred** (2026-05-10) — out of scope for this delivery. The prompt's
+> **Completed** (2026-06-18) — landed after the deferred adapter slice. The prompt's
 > "scope 제한" rule limited this session to adapter + segment routing +
 > tier registry + plugin contract + tests + fixture. The
-> `DOMESTIC_DISCLOSURE_QUIET` reason code work touches `models/coverage.py`
-> and `sources/aggregator.py` and is best landed as a follow-up unit so
-> the coverage-machinery change ships with its own dedicated test surface.
+> `DOMESTIC_DISCLOSURE_QUIET` reason code work touches the u22 coverage
+> machinery and now ships with dedicated segment-coverage tests.
 
-- [ ] Extend `u22`'s `SegmentCoverage.reason_codes` with `DOMESTIC_DISCLOSURE_QUIET` (or reuse an existing quiet-day code if one exists). Reason: a publish day with zero new disclosures is normal in Korea (weekends, holidays, low-activity windows); rendering `INSUFFICIENT_COVERAGE` or `SOURCE_FAILED` would be wrong.
-- [ ] Aggregator emits `DOMESTIC_DISCLOSURE_QUIET` only when DART responded successfully but returned zero items. HTTP failure paths emit the existing `SOURCE_FAILED` code.
-- [ ] Files affected:
-  - `src/investo/models/coverage.py` (reason code enum)
-  - `src/investo/sources/aggregator.py` (emit logic)
-- [ ] Anti-regression tests:
+- [x] Extend `u22`'s `SegmentCoverage.reason_codes` with `DOMESTIC_DISCLOSURE_QUIET` (or reuse an existing quiet-day code if one exists). Reason: a publish day with zero new disclosures is normal in Korea (weekends, holidays, low-activity windows); rendering `INSUFFICIENT_COVERAGE` or `SOURCE_FAILED` would be wrong.
+- [x] Segment coverage emits `DOMESTIC_DISCLOSURE_QUIET` only when DART responded successfully but returned zero items. HTTP failure paths emit the existing `SOURCE_FAILED` code.
+- [x] Files affected:
+  - `src/investo/briefing/segments.py` (reason code enum + emit logic)
+- [x] Anti-regression tests:
   - DART HTTP 200 with empty list → `DOMESTIC_DISCLOSURE_QUIET` reason emitted.
   - DART HTTP 401 → `SOURCE_FAILED` reason emitted (not `DOMESTIC_DISCLOSURE_QUIET`).
 

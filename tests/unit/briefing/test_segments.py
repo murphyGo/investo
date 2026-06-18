@@ -313,6 +313,51 @@ def test_source_zero_outcome_threads_into_reason_codes() -> None:
     assert "SOURCE_ZERO" in coverage.reason_codes
 
 
+def test_dart_zero_outcome_emits_disclosure_quiet_without_generic_zero() -> None:
+    coverage = build_segment_coverage(
+        DOMESTIC_EQUITY,
+        [
+            _item("fsc-krx-index-price", "코스피", category="price"),
+            _item("yonhap-market", "국내 뉴스 1", category="news"),
+            _item("korea-policy-rss", "국내 뉴스 2", category="news"),
+        ],
+        source_outcomes=[
+            SourceOutcome.ok("fsc-krx-index-price", "price", item_count=1),
+            SourceOutcome.ok("yonhap-market", "news", item_count=1),
+            SourceOutcome.zero("dart-disclosure", "news"),
+        ],
+    )
+
+    assert coverage.status == "normal"
+    assert "DOMESTIC_DISCLOSURE_QUIET" in coverage.reason_codes
+    assert "SOURCE_ZERO" not in coverage.reason_codes
+    assert "SOURCE_FAILED" not in coverage.reason_codes
+
+
+def test_dart_failure_uses_source_failed_not_disclosure_quiet() -> None:
+    coverage = build_segment_coverage(
+        DOMESTIC_EQUITY,
+        [
+            _item("fsc-krx-index-price", "코스피", category="price"),
+            _item("yonhap-market", "국내 뉴스 1", category="news"),
+            _item("korea-policy-rss", "국내 뉴스 2", category="news"),
+        ],
+        source_outcomes=[
+            SourceOutcome.ok("fsc-krx-index-price", "price", item_count=1),
+            SourceOutcome.ok("yonhap-market", "news", item_count=1),
+            SourceOutcome.from_failure(
+                "dart-disclosure",
+                "news",
+                message="HTTP 401",
+                transient=False,
+            ),
+        ],
+    )
+
+    assert "SOURCE_FAILED" in coverage.reason_codes
+    assert "DOMESTIC_DISCLOSURE_QUIET" not in coverage.reason_codes
+
+
 def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
     outcomes = (
         SourceOutcome.ok("yfinance-price", "price", item_count=3),

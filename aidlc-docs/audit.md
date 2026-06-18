@@ -4075,6 +4075,18 @@ B) Partial"
 **Context**: u59 macro-actual-priority-and-lineage Code Generation, Step 1 complete, Step 3 complete, Step 2 schedule-identity sub-step complete.
 
 ---
+## u41 Step 5 Follow-up — DART disclosure quiet-day reason
+**Timestamp**: 2026-06-18T00:00:00Z
+**Action**: Completed u41 Step 5 coverage reason-code follow-up. `dart-disclosure` zero-item outcomes now emit `DOMESTIC_DISCLOSURE_QUIET` for domestic-equity coverage instead of generic `SOURCE_ZERO` or a severity downgrade.
+**Decisions**:
+- Kept the implementation in `briefing/segments.py`, where `CoverageReasonCode` and segment reason derivation currently live.
+- Treated successful zero-item OpenDART responses as a normal quiet disclosure day; failed DART outcomes continue to emit `SOURCE_FAILED`.
+- Left u41 Step 6 manual dry-run pending because `OPENDART_API_KEY` was not present in the coding environment.
+**Quality gate**: 53 coverage tests, scoped ruff, scoped mypy.
+**Context**: u41 dart-disclosure-adapter Code Generation Step 5 complete; unit remains partial until operator dry-run.
+
+---
+
 ## u107 Land — cftc-positioning-layer
 **Timestamp**: 2026-06-18T00:00:00Z
 **Action**: Landed u107 code generation. Added official no-key CFTC COT/TFF positioning source coverage and delayed weekly presentation in the channel anchor block.

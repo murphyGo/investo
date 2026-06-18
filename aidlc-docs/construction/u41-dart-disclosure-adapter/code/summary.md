@@ -1,7 +1,7 @@
 # u41 dart-disclosure-adapter — Code stage summary
 
 **Closed**: 2026-05-10
-**Status**: Partial (Steps 1-4 + Step 6 quality-gate complete; Step 5 + Step 6 manual deferred)
+**Status**: Partial (Steps 1-5 + Step 6 quality-gate complete; Step 6 manual dry-run deferred)
 **Persona**: #5 국내 (P0)
 
 ## What landed
@@ -15,10 +15,10 @@
 - Segment routing: `_DOMESTIC_ONLY_SOURCES` membership; us-equity / crypto leak guarded by anti-regression test.
 - R13: `OPENDART_API_KEY` fetch-time read; missing → `SourceFetchError(transient=False)` with env-var name (no key value); already enrolled in `_internal/redaction.py::SECRET_ENV_VARS` from a prior session.
 - R10: 7 live fixtures recorded against the live OpenDART endpoint with the operator's API key. Fixtures are byte-equal to live responses; the JSON bodies do not echo the `crtfc_key` parameter (it lives in URL query only). `meta.json` sidecar carries `recorded_at`, masked URL templates, and per-fixture rationale.
+- Step 5 follow-up: domestic coverage now emits `DOMESTIC_DISCLOSURE_QUIET` for successful zero-item DART outcomes, without treating a quiet disclosure day as generic `SOURCE_ZERO` or a coverage downgrade.
 
 ## What was deferred (out of scope for this session)
 
-- Step 5: `DOMESTIC_DISCLOSURE_QUIET` reason code in `models/coverage.py` + aggregator emit logic. Touches u22 coverage machinery and is best landed as a follow-up unit so the coverage change ships with its own dedicated test surface.
 - Step 6 manual: operator-side dry-run with `INVESTO_DRY_RUN=1` is an operator action.
 
 ## 4-Category Subcategory Mapping + Live Fixture Distribution
@@ -61,6 +61,7 @@ R13 grep verification: plaintext OPENDART_API_KEY value present in **0 hits** ac
 
 - **32 new tests** in `tests/unit/sources/test_dart_disclosure.py` — missing-key R13, status code mapping (013/010/020/100/unknown), 4 category fixture replays, window filter, classifier parametrize, class identity, tier registry pin.
 - **2 new anti-regression tests** in `tests/unit/briefing/test_segments_exclusivity.py` — dart-disclosure routes to domestic-equity only; even a fabricated `BTC홀딩스` corp name does not trigger crypto routing (source-anchored wins over keyword fallback).
+- **2 Step 5 coverage tests** in `tests/unit/briefing/test_segments.py` — DART zero outcome emits `DOMESTIC_DISCLOSURE_QUIET` without generic `SOURCE_ZERO`; DART failure emits `SOURCE_FAILED` and not quiet.
 - Plugin-contract bumps: `EXPECTED_ADAPTER_COUNT` 19→20, `EXPECTED_ADAPTER_NAMES` += `"dart-disclosure"`, isolation fixture registers `DartDisclosureAdapter`.
 
 ## Quality gate
@@ -75,13 +76,19 @@ All 5 green:
 | `pytest -q` | **1728 passed** in 84.51s |
 | `mkdocs build --strict` | built in 0.47s |
 
+2026-06-18 Step 5 follow-up gate:
+
+- `uv run pytest tests/unit/briefing/test_segments.py tests/unit/briefing/test_segments_severity.py tests/unit/briefing/test_render_coverage_badge.py tests/unit/briefing/test_coverage_badge.py -q` — 53 passed.
+- `uv run ruff check src/investo/briefing/segments.py tests/unit/briefing/test_segments.py` — passed.
+- `uv run mypy --strict src/investo/briefing src/investo/models` — passed.
+
 ## TECH-DEBT candidates surfaced
 
 1. **`models/items.py::Category` Literal extension** — add `"disclosure"`. Adapter currently uses `"news"` + `raw_metadata["subcategory"]` for traceability. Coverage / segment-required-category logic does not see disclosure as a distinct category today.
 2. **Plan host typo** — `opendart.fsc.go.kr` → `opendart.fss.or.kr` (planner action: update plan body).
 3. **Plan Step 2 spec drift** — Plan said "missing key → empty list, INFO log" but R13 / fred precedent dictates `SourceFetchError(transient=False)`. Plan body needs alignment.
 4. **`pblntf_detail_ty` parameter ineffective** — does not actually filter the live response. Future per-category pagination would need to filter post-fetch via `report_nm` keywords (which is what the adapter already does).
-5. **Step 5 follow-up unit** — `DOMESTIC_DISCLOSURE_QUIET` reason code lands as a separate unit so the coverage machinery change ships with its own dedicated test surface.
+5. **Step 6 manual dry-run** — `OPENDART_API_KEY` was not present in the 2026-06-18 coding environment, so the operator dry-run remains pending.
 
 ## Out of scope (per plan)
 
