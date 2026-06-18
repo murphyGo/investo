@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-17 begin -->
+
+## 2026-06-17
+
+- [coingecko-price] **ticker**: ETH $1,746.58 (-2.55%)
+- [defillama-market-structure] **ticker**: DeFi TVL $73.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Zama, Morpho and Steakhouse launch first ‘confidential DeFi yield’ vault on Ethereum
+
+<!-- u33 entry 2026-06-17 end -->
 <!-- u33 entry 2026-06-16 begin -->
 
 ## 2026-06-16

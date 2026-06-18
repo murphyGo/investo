@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-17 begin -->
+
+## 2026-06-17
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,299,902,179,299; BTC dominance 56.09%
+- [coingecko-price] **ticker**: BTC $64,372.00 (-1.98%)
+- [defillama-market-structure] **ticker**: DeFi TVL $73.4B; leader Ethereum
+- [okx-derivatives] **ticker**: BTC 미결제약정 $453,328,630 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000070162339289 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bhutan sends $34.5 million in bitcoin to Binance, holdings fall below 1,750 BTC: Arkham
+- [theblock-crypto] **ticker**: Bitcoin holds below $65,000 as Warsh faces first FOMC test and Strategy concerns linger
+- [theblock-crypto] **ticker**: Crypto markets wobble after hawkish Fed outlook in Kevin Warsh’s first FOMC meeting
+
+<!-- u33 entry 2026-06-17 end -->
 <!-- u33 entry 2026-06-16 begin -->
 
 ## 2026-06-16
