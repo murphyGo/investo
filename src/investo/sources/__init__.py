@@ -32,11 +32,13 @@ from . import (
     binance_crypto_market,  # noqa: F401
     bls_macro_actuals,  # noqa: F401
     bybit_derivatives,  # noqa: F401
+    cboe_volatility_indices,  # noqa: F401
     cnbc_top_news,  # noqa: F401
     coingecko,  # noqa: F401
     coingecko_global_market,  # noqa: F401
     dart_disclosure,  # noqa: F401
     defillama_market_structure,  # noqa: F401
+    eia_petroleum_weekly,  # noqa: F401
     fed_board_leadership,  # noqa: F401
     fed_speech_rss,  # noqa: F401
     fomc_calendar,  # noqa: F401
@@ -50,6 +52,7 @@ from . import (
     nasdaq_earnings_calendar,  # noqa: F401
     nasdaq_stocks_news,  # noqa: F401
     nasdaq_symbol_directory,  # noqa: F401
+    nyfed_reference_rates,  # noqa: F401
     official_policy,  # noqa: F401
     okx_derivatives,  # noqa: F401
     sec_company_facts,  # noqa: F401

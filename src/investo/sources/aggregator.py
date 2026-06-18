@@ -35,7 +35,9 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "bea-macro-actuals",
         "bls-macro-actuals",
+        "cboe-volatility-indices",
         "cnbc-top-news",
+        "eia-petroleum-weekly",
         "fed-board-leadership",
         "fed-speech-rss",
         "fomc-calendar",
@@ -45,6 +47,7 @@ _US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
         "nasdaq-earnings-calendar",
         "nasdaq-symbol-directory",
         "nasdaq-stocks-news",
+        "nyfed-reference-rates",
         "sec-company-facts",
         "sec-edgar-8k",
         "sec-newsroom-rss",

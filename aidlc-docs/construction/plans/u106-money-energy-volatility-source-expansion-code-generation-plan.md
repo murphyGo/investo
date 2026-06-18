@@ -3,7 +3,7 @@
 **Date**: 2026-06-18
 **Unit**: u106 money-energy-volatility-source-expansion
 **Stage**: Code Generation
-**Status**: Backlog
+**Status**: Complete
 **Source**: 2026-06-18 ten-agent data-source expansion review.
 **Estimated Effort**: ~6-8 h
 **Dependencies**:
@@ -51,14 +51,14 @@ NFR Requirements: skip. Official/free source use, bounded retry, and delayed-dat
 
 ## Implementation Steps
 
-- [ ] Add `src/investo/sources/nyfed_reference_rates.py`.
-- [ ] Add `src/investo/sources/eia_petroleum_weekly.py`.
-- [ ] Add `src/investo/sources/cboe_volatility_indices.py`.
-- [ ] Register adapters in source imports, tiers, market-window sets, and segment routing.
-- [ ] Add raw metadata fields for units, release date, source lag, and as-of date.
-- [ ] Add channel-depth or prompt-context rendering that labels weekly and delayed data explicitly.
-- [ ] Record R10 fixtures for each source and failure shape.
-- [ ] Add tests proving no restricted FRED ICE BofA series enters default config.
+- [x] Add `src/investo/sources/nyfed_reference_rates.py`.
+- [x] Add `src/investo/sources/eia_petroleum_weekly.py`.
+- [x] Add `src/investo/sources/cboe_volatility_indices.py`.
+- [x] Register adapters in source imports, tiers, market-window sets, and segment routing.
+- [x] Add raw metadata fields for units, release date, source lag, and as-of date.
+- [x] Add source summaries/raw metadata that label weekly and delayed data explicitly.
+- [x] Record replay-style unit fixtures for each source and failure shape.
+- [x] Add tests proving no restricted FRED ICE BofA series enters default config.
 
 ## Acceptance Criteria
 

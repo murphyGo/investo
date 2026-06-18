@@ -39,11 +39,13 @@ from investo.sources.bea_macro_actuals import BeaMacroActualsAdapter
 from investo.sources.binance_crypto_market import BinanceCryptoMarketAdapter
 from investo.sources.bls_macro_actuals import BlsMacroActualsAdapter
 from investo.sources.bybit_derivatives import BybitDerivativesAdapter
+from investo.sources.cboe_volatility_indices import CboeVolatilityIndicesAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
+from investo.sources.eia_petroleum_weekly import EiaPetroleumWeeklyAdapter
 from investo.sources.fed_board_leadership import FedBoardLeadershipAdapter
 from investo.sources.fed_speech_rss import FedSpeechRssAdapter
 from investo.sources.fomc_calendar import FomcCalendarAdapter
@@ -57,6 +59,7 @@ from investo.sources.krx_foreign_flows import KrxForeignFlowsAdapter
 from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapter
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
 from investo.sources.nasdaq_symbol_directory import NasdaqSymbolDirectoryAdapter
+from investo.sources.nyfed_reference_rates import NyfedReferenceRatesAdapter
 from investo.sources.official_policy import (
     CongressGovBillActionsAdapter,
     HouseFinancialServicesPolicyAdapter,
@@ -78,18 +81,20 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 38
+EXPECTED_ADAPTER_COUNT = 41
 EXPECTED_ADAPTER_NAMES = {
     "alternative-fng",
     "bea-macro-actuals",
     "bls-macro-actuals",
     "bybit-derivatives",
+    "cboe-volatility-indices",
     "coingecko-global-market",
     "okx-derivatives",
     "binance-crypto-market",
     "congress-gov-bill-actions",
     "dart-disclosure",
     "defillama-market-structure",
+    "eia-petroleum-weekly",
     "fed-board-leadership",
     "fed-speech-rss",
     "fsc-krx-index-price",
@@ -108,6 +113,7 @@ EXPECTED_ADAPTER_NAMES = {
     "nasdaq-earnings-calendar",
     "nasdaq-symbol-directory",
     "nasdaq-stocks-news",
+    "nyfed-reference-rates",
     "senate-banking-policy",
     "yahoo-finance-news",
     "sec-company-facts",
@@ -139,11 +145,13 @@ def _isolate_registry() -> Iterator[None]:
     register(BeaMacroActualsAdapter)
     register(BlsMacroActualsAdapter)
     register(BybitDerivativesAdapter)
+    register(CboeVolatilityIndicesAdapter)
     register(CoinGeckoGlobalMarketAdapter)
     register(OkxDerivativesAdapter)
     register(BinanceCryptoMarketAdapter)
     register(DartDisclosureAdapter)
     register(DefiLlamaMarketStructureAdapter)
+    register(EiaPetroleumWeeklyAdapter)
     register(FedBoardLeadershipAdapter)
     register(FedSpeechRssAdapter)
     register(FomcCalendarAdapter)
@@ -161,6 +169,7 @@ def _isolate_registry() -> Iterator[None]:
     register(NasdaqEarningsCalendarAdapter)
     register(NasdaqSymbolDirectoryAdapter)
     register(NasdaqStocksNewsAdapter)
+    register(NyfedReferenceRatesAdapter)
     register(CongressGovBillActionsAdapter)
     register(SenateBankingPolicyAdapter)
     register(HouseFinancialServicesPolicyAdapter)
@@ -396,8 +405,14 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "BlsMacroActualsAdapter",
         "bybit_derivatives",
         "BybitDerivativesAdapter",
+        "cboe_volatility_indices",
+        "CboeVolatilityIndicesAdapter",
         "coingecko_global_market",
         "CoinGeckoGlobalMarketAdapter",
+        "eia_petroleum_weekly",
+        "EiaPetroleumWeeklyAdapter",
+        "nyfed_reference_rates",
+        "NyfedReferenceRatesAdapter",
         "okx_derivatives",
         "OkxDerivativesAdapter",
     }
