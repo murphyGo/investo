@@ -1383,6 +1383,41 @@ Plan: `aidlc-docs/construction/plans/u100-surface-quality-gate-code-generation-p
 
 ---
 
+### u101: `verified-fact-cache-and-entity-guard` - Auto-Refresh High-Drift Entity Facts
+
+**Purpose**: Add an official-source-backed fact cache for high-drift entity facts, starting with `fed.current_chair`, and block stale or unsupported person/role claims before publish. The 2026-06-16 US-equity briefing called the 2026-06-17 FOMC press conference a Powell press conference even though the current Fed chair was Kevin Warsh. The root cause was that `fomc-calendar` supplied only `FOMC Press Conference`, while Stage 2 filled the chair name from model memory. This unit makes the current officeholder a structured, refreshed input and makes unsupported names fail closed.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (data integrity), NFR-007/R13 (public-surface safety)
+
+**Existing coverage / deduplication**:
+- Extends u35/u43 FOMC lookahead and u59 macro-event lineage by adding the current officeholder context that scheduled-event feeds do not contain.
+- Extends u55/u70 trust gates but does not create another numeric validator; this unit only handles high-drift entity/role facts such as current chairs, presidents, governors, and official committee leaders.
+- Extends u100 surface-quality gating with semantic entity consistency; it does not add an LLM fact-checker or broad web search.
+- Uses official source-of-record adapters only. First scope is Federal Reserve Board Members for `fed.current_chair`; non-Fed facts are registry-ready but not implemented in the first slice.
+
+**Module path**:
+- `src/investo/models/facts.py` - add `FactId`, `FactSnapshot`, `FactStatus`, `FactSourceTier`, and `VerifiedFactBundle` pydantic models with primitive-safe serialization.
+- `src/investo/sources/fed_board_leadership.py` - fetch and parse the Federal Reserve Board Members page, extracting exactly one `*, Chairman` row as `fed.current_chair`.
+- `src/investo/sources/aggregator.py` and `src/investo/sources/tiers.py` - register `fed-board-leadership` as a Tier S source and include it in the US equity collection path.
+- `src/investo/briefing/fact_context.py` and `src/investo/briefing/prompts.py` - render a compact "Verified current facts" prompt block and instruct Stage 2 to use role/person names only from that block or from supplied source items.
+- `src/investo/publisher/entity_fact_guard.py` - scan generated markdown for current-role claims such as `파월 의장`, `Powell chair`, `Chair Powell`, and block claims that conflict with fresh facts or lack evidence when the fact is stale.
+- `src/investo/publisher/segment_reader_format.py` and `src/investo/orchestrator/pipeline.py` - run the guard after reader formatting and before final publish-boundary validators; route failures as a publish-blocking error.
+- `archive/_meta/fact_snapshots.jsonl` - append current-run fact snapshots for operator lineage; stale snapshots remain diagnostic only and must not authorize names.
+- `tests/unit/models/`, `tests/unit/sources/`, `tests/unit/briefing/`, `tests/unit/publisher/`, `tests/unit/orchestrator/` - model round-trip, fixture-backed parsing, prompt rendering, conflict blocking, stale fail-closed, and pipeline wiring fixtures.
+
+**Definition of Done**:
+- [ ] A live-recorded Federal Reserve Board Members fixture parses `Kevin Warsh, Chairman` into a fresh `FactSnapshot` with `fact_id="fed.current_chair"`, `value="Kevin Warsh"`, Korean aliases, source URL, observed timestamp, and expiry timestamp.
+- [ ] Stage 2 receives a compact verified-facts block when `fed.current_chair` is fresh; when the fact is missing or stale, the block explicitly says the current Fed chair is unverified and the prompt forbids naming a Fed chair.
+- [ ] FOMC meeting and press-conference prose may render `Kevin Warsh 의장` only when the fresh fact is present; otherwise it must render role-neutral text such as `FOMC 기자회견`.
+- [ ] Publish is blocked when target-date-current prose says `파월 의장`, `Powell chair`, or `Chair Powell` while `fed.current_chair` is fresh and not Powell.
+- [ ] Historical references remain allowed only when marked as former/prior context, such as `전임 의장 Powell`, `former Chair Powell`, or a dated past event before the fact's effective window.
+- [ ] Fact refresh failure does not reuse an expired value as truth; expired snapshots are diagnostics only and allow role-neutral wording, never a person-name claim.
+- [ ] Fact snapshots and guard diagnostics are R13-safe: no raw HTML, cookies, headers, tokens, or long page excerpts are written to public markdown or logs.
+
+Plan: `aidlc-docs/construction/plans/u101-verified-fact-cache-and-entity-guard-code-generation-plan.md`.
+
+---
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

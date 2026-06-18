@@ -86,6 +86,12 @@ from investo.briefing.context import (
 )
 from investo.briefing.disclaimer import ensure_canonical_disclaimer
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.fact_context import (
+    VerifiedFactConflictError,
+    append_fact_snapshot_jsonl,
+    build_verified_fact_bundle,
+    render_fact_context_block,
+)
 from investo.briefing.forecast_log import (
     ForecastLogError,
     append_forecast_entries,
@@ -144,6 +150,7 @@ from investo.models import (
     SourceOutcome,
 )
 from investo.models.bundle_context import BundleContext
+from investo.models.facts import FactId, VerifiedFactBundle
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.notifier import (
     BriefingPublisher,
@@ -199,6 +206,7 @@ from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
 )
+from investo.publisher.entity_fact_guard import scan_entity_fact_claims
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.reader_format import (
     emit_first_viewport_disclaimer,
@@ -400,6 +408,7 @@ async def _default_generate_segment_briefing(
     market_anchors: Sequence[MarketAnchor],
     carryover: BriefingCarryover | None,
     bundle_context: BundleContext | None,
+    fact_context_block: str = "",
     *,
     macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
     macro_lineage_out: list[MacroLineageTrace] | None = None,
@@ -424,6 +433,7 @@ async def _default_generate_segment_briefing(
         market_anchors=market_anchors,
         generation_policy=SEGMENT_GENERATION_POLICIES[segment],
         bundle_context=bundle_context,
+        fact_context_block=fact_context_block,
         archive_root=ARCHIVE_ROOT,
         macro_lineage_all_items=macro_lineage_all_items,
         macro_lineage_out=macro_lineage_out,
@@ -553,6 +563,7 @@ async def _generate_one_segment(
     segment_anchors: Sequence[MarketAnchor],
     segment_carryover: BriefingCarryover | None,
     bundle_context: BundleContext | None,
+    fact_context_block: str,
 ) -> _SegmentGenerationResult:
     start = time.monotonic()
     _logger.info(
@@ -576,6 +587,7 @@ async def _generate_one_segment(
                 segment_anchors,
                 segment_carryover,
                 bundle_context,
+                fact_context_block,
                 macro_lineage_all_items=all_items,
                 macro_lineage_out=macro_lineage_out,
             )
@@ -629,6 +641,7 @@ async def _stage_generate_segments(
     dict[MarketSegment, Briefing],
     dict[MarketSegment, BriefingGenerationError],
     BundleContext | None,
+    VerifiedFactBundle,
     dict[MarketSegment, tuple[MacroLineageTrace, ...]],
     dict[str, float],
 ]:
@@ -678,6 +691,35 @@ async def _stage_generate_segments(
     finally:
         segment_timings["generate:bundle_context"] = time.monotonic() - bundle_start
 
+    fact_start = time.monotonic()
+    fact_now_utc = datetime.now(UTC)
+    try:
+        fact_bundle = build_verified_fact_bundle(tuple(items), target_date, fact_now_utc)
+        fact_context_block = render_fact_context_block(fact_bundle, fact_now_utc)
+        if generate_segment is None:
+            _persist_fact_snapshot_safely(
+                target_date,
+                fact_bundle=fact_bundle,
+                observed_at=fact_now_utc,
+            )
+    except VerifiedFactConflictError as exc:
+        fact_bundle = VerifiedFactBundle(target_date=target_date)
+        fact_context_block = render_fact_context_block(fact_bundle, fact_now_utc)
+        if generate_segment is None:
+            _persist_fact_snapshot_safely(
+                target_date,
+                fact_bundle=fact_bundle,
+                observed_at=fact_now_utc,
+                conflict_fact_ids=(exc.fact_id,),
+            )
+        _logger.warning(
+            "[facts] conflict fact_id=%s values=%s; proceeding unverified",
+            exc.fact_id,
+            exc.values,
+        )
+    finally:
+        segment_timings["generate:fact_context"] = time.monotonic() - fact_start
+
     _logger.info("[generate] starting segmented target_date=%s items=%d", target_date, len(items))
     concurrency = _segment_generation_concurrency_from_env()
     semaphore = asyncio.Semaphore(concurrency)
@@ -707,6 +749,7 @@ async def _stage_generate_segments(
                 segment_anchors=segment_anchors,
                 segment_carryover=segment_carryover,
                 bundle_context=bundle_context,
+                fact_context_block=fact_context_block,
             )
 
     raw_results = await asyncio.gather(
@@ -741,7 +784,14 @@ async def _stage_generate_segments(
         len(briefings),
         len(failures),
     )
-    return briefings, failures, bundle_context, macro_lineage_by_segment, segment_timings
+    return (
+        briefings,
+        failures,
+        bundle_context,
+        fact_bundle,
+        macro_lineage_by_segment,
+        segment_timings,
+    )
 
 
 def _log_briefing_generation_error(exc: BriefingGenerationError) -> None:
@@ -778,6 +828,35 @@ def _macro_carryover_path() -> Path:
     from investo.publisher.paths import ARCHIVE_ROOT
 
     return ARCHIVE_ROOT / "_meta" / "macro_event_carryover.jsonl"
+
+
+def _fact_snapshot_path() -> Path:
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    return ARCHIVE_ROOT / "_meta" / "fact_snapshots.jsonl"
+
+
+def _persist_fact_snapshot_safely(
+    target_date: date,
+    *,
+    fact_bundle: VerifiedFactBundle,
+    observed_at: datetime,
+    conflict_fact_ids: tuple[FactId, ...] = (),
+) -> None:
+    try:
+        append_fact_snapshot_jsonl(
+            _fact_snapshot_path(),
+            fact_bundle,
+            target_date=target_date,
+            observed_at=observed_at,
+            conflict_fact_ids=conflict_fact_ids,
+        )
+    except OSError as exc:
+        _logger.warning(
+            "[facts] snapshot persistence failed target_date=%s error=%s; continuing",
+            target_date,
+            exc,
+        )
 
 
 def _advance_and_persist_macro_carryover(
@@ -960,6 +1039,7 @@ async def _stage_publish_segments(
     items: Sequence[NormalizedItem] = (),
     source_outcomes: Sequence[SourceOutcome] = (),
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
+    fact_bundle: VerifiedFactBundle | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -970,6 +1050,51 @@ async def _stage_publish_segments(
     _logger.info("[publish] starting segmented target_date=%s", target_date)
 
     archive_paths: dict[MarketSegment, Path] = {}
+    if fact_bundle is None:
+        try:
+            fact_bundle = build_verified_fact_bundle(tuple(items), target_date, datetime.now(UTC))
+        except VerifiedFactConflictError as exc:
+            _logger.warning(
+                "[publish] fact conflict fact_id=%s values=%s; entity guard uses unverified state",
+                exc.fact_id,
+                exc.values,
+            )
+            fact_bundle = VerifiedFactBundle(target_date=target_date)
+    entity_now_utc = datetime.now(UTC)
+    entity_blocked: dict[MarketSegment, object] = {}
+    for segment in SEGMENT_ORDER:
+        briefing = briefings.get(segment)
+        if briefing is None:
+            continue
+        violations = scan_entity_fact_claims(
+            briefing.rendered_markdown,
+            fact_bundle,
+            target_date,
+            entity_now_utc,
+            segment=segment,
+        )
+        if violations:
+            entity_blocked[segment] = violations
+            for violation in violations:
+                _logger.error(
+                    "[publish] entity fact blocked segment=%s fact_id=%s expected=%s "
+                    "term=%s line=%d preview=%s",
+                    violation.segment,
+                    violation.fact_id,
+                    violation.expected_value,
+                    violation.offending_term,
+                    violation.line_number,
+                    violation.preview,
+                )
+    if entity_blocked:
+        briefings = {
+            segment: briefing
+            for segment, briefing in briefings.items()
+            if segment not in entity_blocked
+        }
+        if not briefings:
+            raise PublisherDisclaimerError(target_date=target_date)
+
     published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
     snapshot_paths = [
         *(compute_archive_path(target_date, segment=segment) for segment in published_segments),
@@ -1493,6 +1618,54 @@ def _inject_carryover_into_segments(
         else:
             rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_markdown})
     return rewritten
+
+
+def _filter_entity_fact_violations(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    fact_bundle: VerifiedFactBundle,
+    target_date: date,
+    now_utc: datetime,
+) -> tuple[dict[MarketSegment, Briefing], tuple[MarketSegment, ...]]:
+    """Drop segments whose current-role claims contradict verified facts."""
+
+    blocked: list[MarketSegment] = []
+    for segment in SEGMENT_ORDER:
+        briefing = segment_briefings.get(segment)
+        if briefing is None:
+            continue
+        violations = scan_entity_fact_claims(
+            briefing.rendered_markdown,
+            fact_bundle,
+            target_date,
+            now_utc,
+            segment=segment,
+        )
+        if not violations:
+            continue
+        blocked.append(segment)
+        for violation in violations:
+            _logger.error(
+                "[publish] entity fact blocked segment=%s fact_id=%s expected=%s "
+                "term=%s line=%d preview=%s",
+                violation.segment,
+                violation.fact_id,
+                violation.expected_value,
+                violation.offending_term,
+                violation.line_number,
+                violation.preview,
+            )
+    if not blocked:
+        return segment_briefings, ()
+    blocked_set = set(blocked)
+    return (
+        {
+            segment: briefing
+            for segment, briefing in segment_briefings.items()
+            if segment not in blocked_set
+        },
+        tuple(blocked),
+    )
 
 
 def _build_quality_snapshot(
@@ -2153,6 +2326,7 @@ class GenerateStage:
         segmented_mode = generate is None
         segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
         surface_quality_failures: dict[MarketSegment, SurfaceQualityError] = {}
+        entity_fact_blocked_segments: tuple[MarketSegment, ...] = ()
         market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
         market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
             segment: () for segment in SEGMENT_ORDER
@@ -2160,6 +2334,7 @@ class GenerateStage:
         run_bundle_context: BundleContext | None = None
         carryover_by_segment: dict[MarketSegment, BriefingCarryover] = {}
         segment_briefings: dict[MarketSegment, Briefing] | None = None
+        fact_bundle: VerifiedFactBundle | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
         generate_sub_timings: dict[str, float] = {}
         try:
@@ -2202,6 +2377,7 @@ class GenerateStage:
                     segment_briefings,
                     segment_generation_failures,
                     run_bundle_context,
+                    fact_bundle,
                     macro_lineage_by_segment,
                     segment_timings,
                 ) = await _stage_generate_segments(
@@ -2224,6 +2400,7 @@ class GenerateStage:
             else:
                 segment_briefings = None
                 run_bundle_context = None
+                fact_bundle = None
                 macro_lineage_by_segment = {}
                 briefing = await _stage_generate(
                     target_date, items, runner=runner, generate=generate
@@ -2400,6 +2577,32 @@ class GenerateStage:
                     data={"_stage_alerts": stage_alerts},
                 )
             reader_format_elapsed = time.monotonic() - reader_format_start
+            assert fact_bundle is not None
+            segment_briefings, entity_fact_blocked_segments = _filter_entity_fact_violations(
+                segment_briefings,
+                fact_bundle=fact_bundle,
+                target_date=target_date,
+                now_utc=datetime.now(UTC),
+            )
+            for blocked_segment in entity_fact_blocked_segments:
+                stage_notes[f"publish:{blocked_segment}"] = "failed: EntityFactGuard"
+            if entity_fact_blocked_segments and not segment_briefings:
+                entity_error = PublisherDisclaimerError(target_date=target_date)
+                stage_notes["publish"] = "failed: EntityFactGuard"
+                stage_notes["notify_briefing"] = "skipped"
+                return StageResult(
+                    status="failed",
+                    error=entity_error,
+                    stage_notes=stage_notes,
+                    timings={
+                        "generate": generate_elapsed,
+                        **generate_sub_timings,
+                        "visual_assets": va_elapsed,
+                        "generate:reader_format": reader_format_elapsed,
+                        "publish": 0.0,
+                    },
+                    data={"_stage_alerts": stage_alerts},
+                )
 
             timings = {
                 "generate": generate_elapsed,
@@ -2413,7 +2616,9 @@ class GenerateStage:
         return StageResult(
             status=(
                 "partial"
-                if segment_generation_failures or surface_quality_failures
+                if segment_generation_failures
+                or surface_quality_failures
+                or entity_fact_blocked_segments
                 else "ok"
             ),
             data={
@@ -2422,8 +2627,10 @@ class GenerateStage:
                 "segment_briefings": segment_briefings,
                 "segment_generation_failures": segment_generation_failures,
                 "surface_quality_failures": surface_quality_failures,
+                "entity_fact_blocked_segments": entity_fact_blocked_segments,
                 "visual_assets_failed": visual_assets_failed,
                 "visual_asset_paths": visual_asset_paths,
+                "fact_bundle": fact_bundle,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
                 "_stage_alerts": stage_alerts,
             },
@@ -2455,6 +2662,7 @@ class PublishStage:
             "Mapping[MarketSegment, Sequence[MacroLineageTrace]]",
             accumulated["macro_lineage_by_segment"],
         )
+        fact_bundle = cast("VerifiedFactBundle | None", accumulated.get("fact_bundle"))
         visual_asset_paths = cast("tuple[Path, ...]", accumulated["visual_asset_paths"])
 
         start = time.monotonic()
@@ -2469,6 +2677,7 @@ class PublishStage:
                     items=items,
                     source_outcomes=source_outcomes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
+                    fact_bundle=fact_bundle,
                 )
             else:
                 await _stage_publish(briefing, target_date, git_runner=git_runner)
@@ -2522,6 +2731,10 @@ class NotifyStage:
             "dict[MarketSegment, SurfaceQualityError]",
             accumulated.get("surface_quality_failures", {}),
         )
+        entity_fact_blocked_segments = cast(
+            "tuple[MarketSegment, ...]",
+            accumulated.get("entity_fact_blocked_segments", ()),
+        )
 
         primary_segment = (
             DOMESTIC_EQUITY
@@ -2574,7 +2787,9 @@ class NotifyStage:
                 missing_segments=tuple(
                     segment
                     for segment in SEGMENT_ORDER
-                    if segment in segment_generation_failures or segment in surface_quality_failures
+                    if segment in segment_generation_failures
+                    or segment in surface_quality_failures
+                    or segment in entity_fact_blocked_segments
                 ),
             )
         else:

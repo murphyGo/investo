@@ -27,6 +27,13 @@ from investo.models.coverage import (
     SourceTier,
     sanitize_source_error_message,
 )
+from investo.models.facts import (
+    FactId,
+    FactSnapshot,
+    FactSourceTier,
+    FactStatus,
+    VerifiedFactBundle,
+)
 from investo.models.items import Category, NormalizedItem
 from investo.models.macro_lifecycle import MacroLifecycleEvent, MacroLifecycleStatus
 from investo.models.results import (
@@ -55,6 +62,10 @@ __all__ = [
     "Category",
     "FailureContext",
     "FailureStage",
+    "FactId",
+    "FactSnapshot",
+    "FactSourceTier",
+    "FactStatus",
     "MacroLifecycleEvent",
     "MacroLifecycleStatus",
     "MarketSegment",
@@ -66,6 +77,7 @@ __all__ = [
     "SourceOutcome",
     "SourceStatus",
     "SourceTier",
+    "VerifiedFactBundle",
     "sanitize_source_error_message",
     "status_label_kr",
 ]

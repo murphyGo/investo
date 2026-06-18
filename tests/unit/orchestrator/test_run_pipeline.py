@@ -1056,6 +1056,72 @@ def _three_segment_items() -> list[NormalizedItem]:
     ]
 
 
+def _fed_chair_fact_item() -> NormalizedItem:
+    return NormalizedItem(
+        source_name="fed-board-leadership",
+        category="macro",
+        title="Current Federal Reserve Chair: Kevin Warsh",
+        summary="Kevin Warsh, Chairman",
+        url="https://www.federalreserve.gov/aboutthefed/bios/board/default.htm",
+        published_at=datetime(2026, 4, 27, 0, 0, tzinfo=UTC),
+        raw_metadata={
+            "fact_id": "fed.current_chair",
+            "fact_value": "Kevin Warsh",
+            "fact_label_ko": "케빈 워시",
+            "fact_role": "Chairman",
+            "fact_status": "fresh",
+            "fact_source_tier": "S",
+            "fact_expires_at": "2099-01-01T00:00:00+00:00",
+            "raw_evidence_label": "Kevin Warsh, Chairman",
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_stage_generate_segments_passes_fact_context_to_default_generator(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[tuple[MarketSegment, str]] = []
+
+    async def _fake_default_generate_segment(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object,
+        recent_context: object,
+        market_anchors: object,
+        carryover: object,
+        bundle_context: object,
+        fact_context_block: str = "",
+        **_: object,
+    ) -> Briefing:
+        del items, runner, data_limited, source_outcomes, recent_context
+        del market_anchors, carryover, bundle_context
+        captured.append((segment, fact_context_block))
+        return _briefing(target_date, segment=segment)
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "_default_generate_segment_briefing",
+        _fake_default_generate_segment,
+    )
+
+    briefings, failures, _, fact_bundle, _, _ = await pipeline_module._stage_generate_segments(
+        _TARGET,
+        [*_three_segment_items(), _fed_chair_fact_item()],
+    )
+
+    assert failures == {}
+    assert list(briefings) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert fact_bundle.get("fed.current_chair") is not None
+    assert [segment for segment, _ in captured] == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert all("fed.current_chair: Kevin Warsh" in block for _, block in captured)
+    assert (archive_root / "_meta" / "fact_snapshots.jsonl").exists()
+
+
 @pytest.mark.asyncio
 async def test_stage_generate_segments_default_concurrency_is_serial(
     monkeypatch: pytest.MonkeyPatch,
@@ -1087,7 +1153,7 @@ async def test_stage_generate_segments_default_concurrency_is_serial(
         active -= 1
         return _briefing(target_date, segment=segment)
 
-    briefings, failures, _, _, timings = await pipeline_module._stage_generate_segments(
+    briefings, failures, _, _, _, timings = await pipeline_module._stage_generate_segments(
         _TARGET,
         _three_segment_items(),
         generate_segment=_serial_probe,
@@ -1148,7 +1214,7 @@ async def test_stage_generate_segments_concurrency_two_starts_two_segments(
     assert max_active == 2
 
     release.set()
-    briefings, failures, _, _, timings = await task
+    briefings, failures, _, _, _, timings = await task
 
     assert started == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
     assert list(briefings) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]

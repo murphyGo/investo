@@ -35,6 +35,7 @@ from . import (
     coingecko_global_market,  # noqa: F401
     dart_disclosure,  # noqa: F401
     defillama_market_structure,  # noqa: F401
+    fed_board_leadership,  # noqa: F401
     fomc_calendar,  # noqa: F401
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401

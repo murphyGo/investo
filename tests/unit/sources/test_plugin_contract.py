@@ -34,6 +34,7 @@ from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
+from investo.sources.fed_board_leadership import FedBoardLeadershipAdapter
 from investo.sources.fomc_calendar import FomcCalendarAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
@@ -62,7 +63,7 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 31
+EXPECTED_ADAPTER_COUNT = 32
 EXPECTED_ADAPTER_NAMES = {
     "alternative-fng",
     "bybit-derivatives",
@@ -72,6 +73,7 @@ EXPECTED_ADAPTER_NAMES = {
     "congress-gov-bill-actions",
     "dart-disclosure",
     "defillama-market-structure",
+    "fed-board-leadership",
     "fsc-krx-index-price",
     "fsc-krx-stock-price",
     "fomc-calendar",
@@ -119,6 +121,7 @@ def _isolate_registry() -> Iterator[None]:
     register(BinanceCryptoMarketAdapter)
     register(DartDisclosureAdapter)
     register(DefiLlamaMarketStructureAdapter)
+    register(FedBoardLeadershipAdapter)
     register(FomcCalendarAdapter)
     register(FomcRssAdapter)
     register(FscKrxIndexPriceAdapter)

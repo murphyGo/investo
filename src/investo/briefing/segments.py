@@ -213,6 +213,7 @@ _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
 _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
     {
         "cnbc-top-news",
+        "fed-board-leadership",
         "fomc-calendar",
         "fomc-rss",
         "fred-economic-calendar",

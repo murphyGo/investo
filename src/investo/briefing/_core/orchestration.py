@@ -334,6 +334,7 @@ async def _synthesize(
     recent_context_block: str = "",
     lookahead_context_block: str = "",
     carryover_context_block: str = "",
+    fact_context_block: str = "",
     bundle_context_block: str = "",
     segment: MarketSegment | None = None,
 ) -> str:
@@ -378,6 +379,7 @@ async def _synthesize(
         recent_context=recent_context_block,
         lookahead_context=lookahead_context_block,
         carryover_context=carryover_context_block,
+        fact_context=fact_context_block,
         bundle_context=bundle_context_block,
     )
     full_prompt = f"{STAGE2_SYSTEM}\n\n{user_prompt}"

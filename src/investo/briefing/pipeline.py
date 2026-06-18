@@ -345,6 +345,7 @@ async def generate_briefing(
     market_anchors: Sequence[MarketAnchor] = (),
     generation_policy: GenerationPolicy | None = None,
     bundle_context: BundleContext | None = None,
+    fact_context_block: str = "",
     archive_root: Path | None = None,
     macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
     macro_lineage_out: list[MacroLineageTrace] | None = None,
@@ -412,6 +413,7 @@ async def generate_briefing(
         recent_context_block=recent_context_block,
         lookahead_context_block=lookahead_context_block,
         carryover_context_block=carryover_context_block,
+        fact_context_block=fact_context_block,
         bundle_context_block=bundle_context_block,
         segment=segment,
     )

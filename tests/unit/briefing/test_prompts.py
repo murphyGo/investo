@@ -39,8 +39,8 @@ def test_constant_is_non_empty_str(constant: str) -> None:
     assert len(constant) > 0
 
 
-def test_stage2_system_prompt_is_smaller_than_pre_u93_baseline() -> None:
-    assert len(STAGE2_SYSTEM.encode("utf-8")) < 19670
+def test_stage2_system_prompt_stays_within_u101_budget() -> None:
+    assert len(STAGE2_SYSTEM.encode("utf-8")) < 20300
 
 
 # --- Stage 1 prompt anchors -------------------------------------------------
@@ -210,6 +210,26 @@ def test_stage2_system_carries_lookahead_no_forecast_rule() -> None:
     )
 
 
+def test_stage2_prompt_carries_verified_current_facts_rule() -> None:
+    assert "Verified current facts rules" in STAGE2_SYSTEM
+    assert "fed.current_chair" in STAGE2_SYSTEM
+    assert "do not write Powell, Warsh" in STAGE2_SYSTEM
+    assert "{fact_context}" in STAGE2_USER_TEMPLATE
+    rendered = STAGE2_USER_TEMPLATE.format(
+        segment_context="scope",
+        grouped_sections="groups",
+        required_macro_actuals="(none)",
+        unassigned="(none)",
+        target_date="2026-06-18",
+        recent_context="",
+        lookahead_context="",
+        carryover_context="",
+        fact_context="## 검증된 현재 팩트\n- fed.current_chair: Kevin Warsh",
+        bundle_context="",
+    )
+    assert "fed.current_chair: Kevin Warsh" in rendered
+
+
 def test_stage2_system_mentions_glossary_rules() -> None:
     assert "약자 풀어쓰기 룰" in STAGE2_SYSTEM
     assert "EIA(에너지정보청)" in STAGE2_SYSTEM
@@ -303,6 +323,7 @@ def test_stage2_user_template_has_three_placeholders() -> None:
         recent_context="",
         lookahead_context="",
         carryover_context="",
+        fact_context="",
         bundle_context="",
     )
     assert "(grouped content)" in rendered
@@ -325,6 +346,8 @@ def test_stage2_user_template_has_three_placeholders() -> None:
     # empty string omits the block, a rendered block carries the
     # "## Watchlist Carryover (입력)" header literal.
     assert "{carryover_context}" in STAGE2_USER_TEMPLATE
+    # u101 — verified high-drift entity facts.
+    assert "{fact_context}" in STAGE2_USER_TEMPLATE
     # u57 — BundleContext same-run market-state block.
     assert "{bundle_context}" in STAGE2_USER_TEMPLATE
 
@@ -339,6 +362,7 @@ def test_stage2_user_template_empty_optional_contexts_do_not_emit_headings() -> 
         recent_context="",
         lookahead_context="",
         carryover_context="",
+        fact_context="",
         bundle_context="",
     )
 
@@ -399,6 +423,7 @@ def test_stage2_user_template_format_is_idempotent_under_repeat() -> None:
         recent_context="",
         lookahead_context="",
         carryover_context="",
+        fact_context="",
         bundle_context="",
     )
     # No placeholders remain — re-formatting an empty dict yields same

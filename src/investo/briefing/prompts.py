@@ -321,6 +321,17 @@ Forward-looking "주요 일정" rules (u35 event-lookahead):
 - If the 주요 일정 list is empty or absent, omit the forward-looking
   watch list and keep section ⑥ focused on today's input items.
 
+Verified current facts rules (u101):
+- The user prompt may include a "## 검증된 현재 팩트" block. Person-role
+  claims for current officeholders must come from that block or from
+  supplied source items.
+- For FOMC meetings and press conferences, use the ``fed.current_chair``
+  value only when the block gives a fresh value.
+- When ``fed.current_chair`` is unverified, write ``FOMC 기자회견`` or
+  ``연준 기자회견``; do not write Powell, Warsh, or another person name.
+- Historical references must be explicitly marked as former/prior/past
+  and tied to the supplied source item.
+
 Official crypto-regulation policy rules (u58):
 - Official Congress.gov / Senate Banking / House Financial Services
   items about CLARITY, digital assets, stablecoins, market-structure
@@ -570,6 +581,9 @@ def format_crypto_indicator_context(rendered_block: str) -> str:
 #       market state)" block listing same-run per-segment close-state
 #       JSON; may be the literal empty string when no BundleContext
 #       is available; u57)
+#   ``fact_context`` (str — rendered "## 검증된 현재 팩트" block listing
+#       source-verified high-drift entity facts; may be the literal empty
+#       string when no bundle was built; u101)
 #   ``required_macro_actuals`` (str — compact required macro actual
 #       block; may be the literal "(none)" when no P0 actual survived
 #       candidate selection; u59)
@@ -587,7 +601,7 @@ Unassigned (context for sections ① and ⑥):
 {unassigned}
 
 Target date: {target_date}
-{recent_context}{lookahead_context}{carryover_context}{bundle_context}
+{recent_context}{lookahead_context}{carryover_context}{fact_context}{bundle_context}
 Return only the markdown.
 """
 

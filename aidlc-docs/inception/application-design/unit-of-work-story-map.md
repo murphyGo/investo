@@ -243,6 +243,20 @@ Deduplicated out:
 - No quality KPI redesign: u96 synchronizes current-run facts across existing public surfaces and leaves severity/source policy untouched.
 - No independent u99 rollout without a surface gate: u99 can be implemented separately, but product rollout should pair it with u100 or include a u99-local surface check for the inserted line.
 
+### u101 Planning Notes
+
+The 2026-06-16 US-equity briefing exposed a different trust class from numeric facts: a high-drift officeholder fact was absent from structured inputs, so Stage 2 filled the FOMC press-conference speaker from stale model memory and wrote Powell where current official data showed Kevin Warsh. u101 deliberately does not hard-code Warsh. It creates an official-source fact cache with short TTL and a publish guard that fails closed when the fact is stale or missing.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u101 verified-fact-cache-and-entity-guard | High-drift entity facts such as current Fed chair need official refresh, prompt injection, and publish blocking so model memory cannot name stale officeholders | FR-001, FR-002, FR-008, FR-009, NFR-003, NFR-006, R13 | u35/u43 FOMC lookahead, u59 macro lineage, u55/u70 trust gates, u85 validators, u100 surface gate |
+
+Deduplicated out:
+- No numeric fact validator: u55/u70 own numeric and market-anchor truth.
+- No macro actual lifecycle replacement: u59 owns scheduled/actual macro events; u101 only supplies current officeholder context missing from schedule feeds.
+- No hard-coded person registry as truth: stored snapshots expire and only official-source refresh can authorize current-role names.
+- No broad fact-checking LLM: first slice uses deterministic source parsing and deterministic entity-role claim scanning.
+
 ---
 
 ## Definition of Done — Inception Phase Output
