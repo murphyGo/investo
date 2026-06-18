@@ -222,6 +222,43 @@ def test_us_only_source_without_crypto_signal_routes_only_to_us_equity() -> None
     assert segmented.domestic_equity == ()
 
 
+def test_fed_speech_rss_routes_only_to_us_equity() -> None:
+    item = _item("fed-speech-rss", "Policy Risks Have Changed")
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_sec_newsroom_generic_item_routes_only_to_us_equity() -> None:
+    item = _item("sec-newsroom-rss", "SEC Announces Investor Advisory Committee Members")
+
+    segmented = segment_items([item])
+
+    assert segmented.us_equity == (item,)
+    assert segmented.crypto == ()
+    assert segmented.domestic_equity == ()
+
+
+def test_sec_newsroom_crypto_policy_metadata_routes_to_crypto() -> None:
+    item = NormalizedItem(
+        source_name="sec-newsroom-rss",
+        category="news",
+        title="SEC Announces Crypto Market Structure Roundtable",
+        summary="Digital asset market structure discussion.",
+        published_at=datetime(2026, 6, 11, 12, 0, tzinfo=UTC),
+        raw_metadata={"policy_priority": "crypto_regulation", "official_source": "true"},
+    )
+
+    segmented = segment_items([item])
+
+    assert segmented.crypto == (item,)
+    assert segmented.us_equity == ()
+    assert segmented.domestic_equity == ()
+
+
 def test_crypto_only_source_with_general_news_stays_crypto_only() -> None:
     """Regression guard — generic crypto news from a single-segment source."""
     item = _item(

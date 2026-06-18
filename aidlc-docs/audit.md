@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u103 official-policy-speech-rss-sources Complete (9/9)
+**Timestamp**: 2026-06-18T18:03:29+09:00
+**Trigger**: Continue source-expansion implementation after u102 registry guardrails landed and were pushed.
+**Decision**: Ratify and close u103 (9/9). Added two official no-key RSS adapters: `fed-speech-rss` for Federal Reserve speeches/testimony and `sec-newsroom-rss` for SEC newsroom press releases plus speeches/statements. Both use `retry_get`, `defusedxml`, sanitized title/summary fields, RFC 822 timestamp parsing to UTC, per-window filtering, official-source metadata, S-tier registration, New York market windows, and explicit US segment routing.
+**Implementation**: `sec-newsroom-rss` stamps u58-compatible `policy_priority=crypto_regulation` only when the item text matches crypto-policy terms, so generic SEC items route to `us-equity` while explicit crypto-policy items route to `crypto` through the existing metadata override. Recorded real fixtures and metadata under `tests/unit/sources/fixtures/api/fed-speech-rss/` and `tests/unit/sources/fixtures/api/sec-newsroom-rss/`. Plugin contract count moved 34 -> 36.
+**Verification**: Code review subagent found two High issues; both were fixed before close: SEC newsroom requests now carry the fair-access User-Agent and generic non-crypto `market structure` items no longer receive crypto-policy metadata. `uv run pytest tests/unit/sources/test_fed_speech_rss.py tests/unit/sources/test_sec_newsroom_rss.py tests/unit/sources/test_plugin_contract.py -q` => 30 passed. `uv run pytest tests/unit/briefing/test_segments*.py -q` => 83 passed. `uv run pytest tests/unit/sources/test_aggregator.py -q` => 51 passed. `uv run ruff check src/investo/sources tests/unit/sources tests/unit/briefing/test_segments_exclusivity.py src/investo/briefing/segments.py` => clean. `uv run python scripts/check_no_paid_apis.py` => clean.
+**Status**: u103 complete. FD+NFR SKIP confirmed. Next unit: u104 sec-company-facts-and-symbol-directory.
+
+---
+
 ## Construction — u102 source-adapter-registry-completeness Complete (6/6)
 **Timestamp**: 2026-06-18T17:42:44+09:00
 **Trigger**: Source-expansion review follow-up and user approval to continue development with per-unit commit/push. u102 hardens source registry completeness before u103-u107 add new adapters.

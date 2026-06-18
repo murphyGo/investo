@@ -43,6 +43,7 @@ from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
 from investo.sources.dart_disclosure import DartDisclosureAdapter
 from investo.sources.defillama_market_structure import DefiLlamaMarketStructureAdapter
 from investo.sources.fed_board_leadership import FedBoardLeadershipAdapter
+from investo.sources.fed_speech_rss import FedSpeechRssAdapter
 from investo.sources.fomc_calendar import FomcCalendarAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
@@ -60,6 +61,7 @@ from investo.sources.official_policy import (
 )
 from investo.sources.okx_derivatives import OkxDerivativesAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
+from investo.sources.sec_newsroom_rss import SecNewsroomRssAdapter
 from investo.sources.stooq_kr_market import StooqKrMarketAdapter
 from investo.sources.stooq_price import StooqPriceAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
@@ -72,7 +74,7 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 32
+EXPECTED_ADAPTER_COUNT = 34
 EXPECTED_ADAPTER_NAMES = {
     "alternative-fng",
     "bybit-derivatives",
@@ -83,6 +85,7 @@ EXPECTED_ADAPTER_NAMES = {
     "dart-disclosure",
     "defillama-market-structure",
     "fed-board-leadership",
+    "fed-speech-rss",
     "fsc-krx-index-price",
     "fsc-krx-stock-price",
     "fomc-calendar",
@@ -101,6 +104,7 @@ EXPECTED_ADAPTER_NAMES = {
     "senate-banking-policy",
     "yahoo-finance-news",
     "sec-edgar-8k",
+    "sec-newsroom-rss",
     "yonhap-market",
     "theblock-crypto",
     "treasury-rates",
@@ -131,6 +135,7 @@ def _isolate_registry() -> Iterator[None]:
     register(DartDisclosureAdapter)
     register(DefiLlamaMarketStructureAdapter)
     register(FedBoardLeadershipAdapter)
+    register(FedSpeechRssAdapter)
     register(FomcCalendarAdapter)
     register(FomcRssAdapter)
     register(FscKrxIndexPriceAdapter)
@@ -150,6 +155,7 @@ def _isolate_registry() -> Iterator[None]:
     register(HouseFinancialServicesPolicyAdapter)
     register(YahooFinanceNewsAdapter)
     register(SecEdgar8kAdapter)
+    register(SecNewsroomRssAdapter)
     register(YonhapMarketAdapter)
     register(TheBlockCryptoAdapter)
     register(TreasuryRatesAdapter)
@@ -324,6 +330,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "FomcCalendarAdapter",
         "fomc_rss",
         "FomcRssAdapter",
+        "fed_speech_rss",
+        "FedSpeechRssAdapter",
         "fsc_krx_index_price",
         "FscKrxIndexPriceAdapter",
         "fsc_krx_stock_price",
@@ -348,6 +356,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "YahooFinanceNewsAdapter",
         "sec_edgar_8k",
         "SecEdgar8kAdapter",
+        "sec_newsroom_rss",
+        "SecNewsroomRssAdapter",
         "stooq_price",
         "StooqPriceAdapter",
         "yonhap_market",

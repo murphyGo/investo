@@ -44,6 +44,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     # S — regulatory / exchange / sovereign data
     "sec-edgar-8k": "S",
     "fed-board-leadership": "S",
+    "fed-speech-rss": "S",
     "fomc-calendar": "S",
     "fomc-rss": "S",
     "fsc-krx-index-price": "S",
@@ -53,6 +54,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "congress-gov-bill-actions": "S",
     "house-financial-services-policy": "S",
     "senate-banking-policy": "S",
+    "sec-newsroom-rss": "S",
     "treasury-rates": "S",
     # u53 — Naver finance mirrors a KRX investor-flow aggregation. KRX
     # is the system of record but the proximate endpoint is an

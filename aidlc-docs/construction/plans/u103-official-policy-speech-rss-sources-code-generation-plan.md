@@ -3,7 +3,7 @@
 **Date**: 2026-06-18
 **Unit**: u103 official-policy-speech-rss-sources
 **Stage**: Code Generation
-**Status**: Backlog
+**Status**: Complete (9/9 steps — 2026-06-18)
 **Source**: 2026-06-18 ten-agent data-source expansion review.
 **Estimated Effort**: ~3-5 h
 **Dependencies**:
@@ -55,15 +55,15 @@ NFR Requirements: skip. Source cost/auth/rate-limit declarations are pinned here
 
 ## Implementation Steps
 
-- [ ] Implement `src/investo/sources/fed_speech_rss.py` with `name="fed-speech-rss"`, `category="news"`, `retry_get`, XML parsing, text sanitation, and UTC timestamp handling.
-- [ ] Implement `src/investo/sources/sec_newsroom_rss.py` with `name="sec-newsroom-rss"`, `category="news"`, `retry_get`, XML parsing, text sanitation, and UTC timestamp handling.
-- [ ] Add imports in `src/investo/sources/__init__.py`.
-- [ ] Add explicit tiers in `src/investo/sources/tiers.py`; both are Tier S official sources.
-- [ ] Add market-window membership in `src/investo/sources/aggregator.py`.
-- [ ] Add segment routing in `src/investo/briefing/segments.py`.
-- [ ] Record real RSS fixtures under `tests/unit/sources/fixtures/api/fed-speech-rss/` and `sec-newsroom-rss/` with metadata.
-- [ ] Add unit tests covering happy path, out-of-window filtering, malformed XML, empty feed, status errors, and no-secret diagnostics.
-- [ ] Update plugin contract expected adapter names/count.
+- [x] Implement `src/investo/sources/fed_speech_rss.py` with `name="fed-speech-rss"`, `category="news"`, `retry_get`, XML parsing, text sanitation, and UTC timestamp handling.
+- [x] Implement `src/investo/sources/sec_newsroom_rss.py` with `name="sec-newsroom-rss"`, `category="news"`, `retry_get`, XML parsing, text sanitation, and UTC timestamp handling.
+- [x] Add imports in `src/investo/sources/__init__.py`.
+- [x] Add explicit tiers in `src/investo/sources/tiers.py`; both are Tier S official sources.
+- [x] Add market-window membership in `src/investo/sources/aggregator.py`.
+- [x] Add segment routing in `src/investo/briefing/segments.py`.
+- [x] Record real RSS fixtures under `tests/unit/sources/fixtures/api/fed-speech-rss/` and `sec-newsroom-rss/` with metadata.
+- [x] Add unit tests covering happy path, out-of-window filtering, malformed XML, empty feed, status errors, and no-secret diagnostics.
+- [x] Update plugin contract expected adapter names/count.
 
 ## Acceptance Criteria
 

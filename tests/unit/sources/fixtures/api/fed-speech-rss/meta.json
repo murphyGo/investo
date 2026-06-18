@@ -1,0 +1,10 @@
+{
+  "recorded_at_utc": "2026-06-18T08:56:51Z",
+  "source": "Federal Reserve official RSS",
+  "urls": [
+    "https://www.federalreserve.gov/feeds/speeches.xml",
+    "https://www.federalreserve.gov/feeds/testimony.xml"
+  ],
+  "auth": "none",
+  "contains_secret_material": false
+}

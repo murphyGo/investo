@@ -36,6 +36,7 @@ from . import (
     dart_disclosure,  # noqa: F401
     defillama_market_structure,  # noqa: F401
     fed_board_leadership,  # noqa: F401
+    fed_speech_rss,  # noqa: F401
     fomc_calendar,  # noqa: F401
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
@@ -49,6 +50,7 @@ from . import (
     official_policy,  # noqa: F401
     okx_derivatives,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
+    sec_newsroom_rss,  # noqa: F401
     stooq_kr_market,  # noqa: F401
     stooq_price,  # noqa: F401
     theblock_crypto,  # noqa: F401
