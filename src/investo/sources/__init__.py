@@ -47,8 +47,10 @@ from . import (
     krx_foreign_flows,  # noqa: F401
     nasdaq_earnings_calendar,  # noqa: F401
     nasdaq_stocks_news,  # noqa: F401
+    nasdaq_symbol_directory,  # noqa: F401
     official_policy,  # noqa: F401
     okx_derivatives,  # noqa: F401
+    sec_company_facts,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
     sec_newsroom_rss,  # noqa: F401
     stooq_kr_market,  # noqa: F401

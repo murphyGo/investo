@@ -199,6 +199,46 @@ def test_missing_category_reason_codes_match_missing_set() -> None:
     assert "MISSING_PRICE" not in coverage.reason_codes
 
 
+def test_static_company_reference_items_do_not_satisfy_news_coverage() -> None:
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [
+            _item("yfinance-price", "AAPL price", category="price"),
+            _item("sec-company-facts", "AAPL SEC facts", category="macro"),
+            _item("nasdaq-symbol-directory", "AAPL listing metadata", category="macro"),
+        ],
+        source_outcomes=[
+            SourceOutcome.ok("yfinance-price", "price", 1),
+            SourceOutcome.ok("sec-company-facts", "macro", 1),
+            SourceOutcome.ok("nasdaq-symbol-directory", "macro", 1),
+        ],
+    )
+
+    assert "MISSING_NEWS" in coverage.reason_codes
+    assert coverage.missing_categories == ("news",)
+
+
+def test_static_company_reference_items_do_not_satisfy_item_threshold() -> None:
+    coverage = build_segment_coverage(
+        US_EQUITY,
+        [
+            _item("yfinance-price", "AAPL price", category="price"),
+            _item("yahoo-finance-news", "AAPL news", category="news"),
+            _item("sec-company-facts", "AAPL SEC facts", category="macro"),
+            _item("nasdaq-symbol-directory", "AAPL listing metadata", category="macro"),
+        ],
+        source_outcomes=[
+            SourceOutcome.ok("yfinance-price", "price", 1),
+            SourceOutcome.ok("yahoo-finance-news", "news", 1),
+            SourceOutcome.ok("sec-company-facts", "macro", 1),
+            SourceOutcome.ok("nasdaq-symbol-directory", "macro", 1),
+        ],
+    )
+
+    assert coverage.status == "partial"
+    assert "BELOW_THRESHOLD" in coverage.reason_codes
+
+
 def test_source_failed_outcome_threads_into_reason_codes() -> None:
     outcome = SourceOutcome.from_failure(
         "fred-macro",

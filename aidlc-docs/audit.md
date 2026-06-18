@@ -1,5 +1,15 @@
 # AI-DLC Audit Log
 
+## Construction — u104 sec-company-facts-and-symbol-directory Complete (9/9)
+**Timestamp**: 2026-06-18T18:15:39+09:00
+**Trigger**: Continue source-expansion implementation after u103 was pushed.
+**Decision**: Ratify and close u104 (9/9). Added `sec-company-facts` for bounded SEC submissions/companyfacts and `nasdaq-symbol-directory` for official Nasdaq Trader symbol-directory metadata. The SEC adapter is env-configurable via `INVESTO_SEC_COMPANY_CIKS`, defaults to the existing mega-cap watchlist bundle, caps to 8 companies, uses the SEC fair-access User-Agent, spaces SEC requests, runs under a 20s adapter-level budget, and emits one compact source item per company. The Nasdaq adapter is env-configurable via `INVESTO_NASDAQ_SYMBOLS`, defaults to a bounded watchlist/listing set, fetches only `nasdaqlisted.txt` and `otherlisted.txt`, and emits filtered listing/ETF/test-issue/financial-status metadata.
+**Implementation**: The SEC concept allow-list is fixed to revenue, net income, diluted EPS, assets, liabilities, operating cash flow, and shares outstanding. Source items carry compact `macro` summaries only, so static reference context cannot satisfy required `news` coverage or item-count thresholds; no raw SEC payload, headers, cookies, or long filing excerpts are rendered. SEC per-company fetch failures are isolated unless every configured company fails. Both adapters are registered in imports, tier maps, New York market-window routing, US segment routing, and plugin contract tests. Official fixtures and metadata were recorded under `tests/unit/sources/fixtures/api/sec-company-facts/` and `tests/unit/sources/fixtures/api/nasdaq-symbol-directory/`.
+**Verification**: Code review subagents found blocking issues; they were fixed before close: static company/listing reference items now emit as `macro` instead of `news`, static references are excluded from item-count thresholds, and SEC company-facts requests are rate-spaced plus adapter-budgeted. `uv run pytest tests/unit/sources/test_sec_company_facts.py tests/unit/sources/test_nasdaq_symbol_directory.py tests/unit/sources/test_plugin_contract.py -q` => 25 passed. `uv run pytest tests/unit/briefing/test_segments*.py -q` => 85 passed. `uv run pytest tests/unit/briefing tests/unit/publisher -q -k 'fact or watchlist or source'` => 169 passed, 1154 deselected. `uv run ruff check src/investo/sources tests/unit/sources tests/unit/briefing/test_segments.py src/investo/briefing/segments.py` => clean. `uv run mypy --strict src/investo/sources src/investo/briefing` => clean over 98 source files. `uv run python scripts/check_no_paid_apis.py` => clean.
+**Status**: u104 complete. FD+NFR SKIP confirmed. Next unit: u105 macro-actual-source-of-record.
+
+---
+
 ## Construction — u103 official-policy-speech-rss-sources Complete (9/9)
 **Timestamp**: 2026-06-18T18:03:29+09:00
 **Trigger**: Continue source-expansion implementation after u102 registry guardrails landed and were pushed.

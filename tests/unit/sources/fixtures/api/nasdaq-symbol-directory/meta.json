@@ -1,0 +1,10 @@
+{
+  "recorded_at_utc": "2026-06-18T09:09:00Z",
+  "source": "Nasdaq Trader symbol directory",
+  "urls": [
+    "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
+    "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt"
+  ],
+  "auth": "none",
+  "contains_secret_material": false
+}

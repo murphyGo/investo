@@ -1,0 +1,11 @@
+{
+  "recorded_at_utc": "2026-06-18T09:09:00Z",
+  "source": "SEC data.sec.gov submissions and companyfacts",
+  "urls": [
+    "https://data.sec.gov/submissions/CIK0000320193.json",
+    "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json"
+  ],
+  "auth": "none",
+  "user_agent": "investo investo@example.com",
+  "contains_secret_material": false
+}

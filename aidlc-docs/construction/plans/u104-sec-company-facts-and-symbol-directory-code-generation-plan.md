@@ -3,7 +3,7 @@
 **Date**: 2026-06-18
 **Unit**: u104 sec-company-facts-and-symbol-directory
 **Stage**: Code Generation
-**Status**: Backlog
+**Status**: Complete (9/9 steps — 2026-06-18)
 **Source**: 2026-06-18 ten-agent data-source expansion review.
 **Estimated Effort**: ~5-8 h
 **Dependencies**:
@@ -52,15 +52,15 @@ NFR Requirements: skip. SEC fair-access and no-paid source constraints are defin
 
 ## Implementation Steps
 
-- [ ] Add `src/investo/sources/sec_company_facts.py`.
-- [ ] Add `src/investo/sources/nasdaq_symbol_directory.py`.
-- [ ] Define env-configurable watchlist CIK/ticker list with safe defaults matching existing watchlist symbols.
-- [ ] Define a fixed XBRL concept allow-list for the first slice: revenue, net income, diluted EPS, assets, liabilities, operating cash flow, and shares outstanding.
-- [ ] Use SEC fair-access User-Agent and bounded request counts.
-- [ ] Parse Nasdaq `nasdaqlisted.txt` and `otherlisted.txt` pipe-delimited text files without browser automation.
-- [ ] Register adapters in source package imports, tiers, market windows, and segment routing.
-- [ ] Render compact context for Stage 2 using existing source item serialization limits.
-- [ ] Add R10 fixtures and unit tests for SEC and Nasdaq paths.
+- [x] Add `src/investo/sources/sec_company_facts.py`.
+- [x] Add `src/investo/sources/nasdaq_symbol_directory.py`.
+- [x] Define env-configurable watchlist CIK/ticker list with safe defaults matching existing watchlist symbols.
+- [x] Define a fixed XBRL concept allow-list for the first slice: revenue, net income, diluted EPS, assets, liabilities, operating cash flow, and shares outstanding.
+- [x] Use SEC fair-access User-Agent and bounded request counts.
+- [x] Parse Nasdaq `nasdaqlisted.txt` and `otherlisted.txt` pipe-delimited text files without browser automation.
+- [x] Register adapters in source package imports, tiers, market windows, and segment routing.
+- [x] Render compact context for Stage 2 using existing source item serialization limits.
+- [x] Add R10 fixtures and unit tests for SEC and Nasdaq paths.
 
 ## Acceptance Criteria
 

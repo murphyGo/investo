@@ -54,12 +54,14 @@ from investo.sources.korea_policy_rss import KoreaPolicyRssAdapter
 from investo.sources.krx_foreign_flows import KrxForeignFlowsAdapter
 from investo.sources.nasdaq_earnings_calendar import NasdaqEarningsCalendarAdapter
 from investo.sources.nasdaq_stocks_news import NasdaqStocksNewsAdapter
+from investo.sources.nasdaq_symbol_directory import NasdaqSymbolDirectoryAdapter
 from investo.sources.official_policy import (
     CongressGovBillActionsAdapter,
     HouseFinancialServicesPolicyAdapter,
     SenateBankingPolicyAdapter,
 )
 from investo.sources.okx_derivatives import OkxDerivativesAdapter
+from investo.sources.sec_company_facts import SecCompanyFactsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 from investo.sources.sec_newsroom_rss import SecNewsroomRssAdapter
 from investo.sources.stooq_kr_market import StooqKrMarketAdapter
@@ -74,7 +76,7 @@ from investo.sources.yonhap_market import YonhapMarketAdapter
 
 # Bump these together when adding/removing an adapter; they must
 # stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 34
+EXPECTED_ADAPTER_COUNT = 36
 EXPECTED_ADAPTER_NAMES = {
     "alternative-fng",
     "bybit-derivatives",
@@ -100,9 +102,11 @@ EXPECTED_ADAPTER_NAMES = {
     "krx-foreign-flows",
     "house-financial-services-policy",
     "nasdaq-earnings-calendar",
+    "nasdaq-symbol-directory",
     "nasdaq-stocks-news",
     "senate-banking-policy",
     "yahoo-finance-news",
+    "sec-company-facts",
     "sec-edgar-8k",
     "sec-newsroom-rss",
     "yonhap-market",
@@ -149,11 +153,13 @@ def _isolate_registry() -> Iterator[None]:
     register(FredEconomicCalendarAdapter)
     register(FredMacroAdapter)
     register(NasdaqEarningsCalendarAdapter)
+    register(NasdaqSymbolDirectoryAdapter)
     register(NasdaqStocksNewsAdapter)
     register(CongressGovBillActionsAdapter)
     register(SenateBankingPolicyAdapter)
     register(HouseFinancialServicesPolicyAdapter)
     register(YahooFinanceNewsAdapter)
+    register(SecCompanyFactsAdapter)
     register(SecEdgar8kAdapter)
     register(SecNewsroomRssAdapter)
     register(YonhapMarketAdapter)
@@ -350,10 +356,14 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "FredEconomicCalendarAdapter",
         "nasdaq_earnings_calendar",
         "NasdaqEarningsCalendarAdapter",
+        "nasdaq_symbol_directory",
+        "NasdaqSymbolDirectoryAdapter",
         "nasdaq_stocks_news",
         "NasdaqStocksNewsAdapter",
         "yahoo_finance_news",
         "YahooFinanceNewsAdapter",
+        "sec_company_facts",
+        "SecCompanyFactsAdapter",
         "sec_edgar_8k",
         "SecEdgar8kAdapter",
         "sec_newsroom_rss",

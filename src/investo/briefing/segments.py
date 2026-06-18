@@ -220,7 +220,9 @@ _US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
         "fred-economic-calendar",
         "fred-macro",
         "nasdaq-earnings-calendar",
+        "nasdaq-symbol-directory",
         "nasdaq-stocks-news",
+        "sec-company-facts",
         "sec-edgar-8k",
         "sec-newsroom-rss",
         "stooq-price",
@@ -308,6 +310,15 @@ _CRYPTO_CROSS_MARKET_TERMS: Final[tuple[str, ...]] = (
     "rate",
     "risk asset",
     "treasury",
+)
+
+_THRESHOLD_EXCLUDED_SOURCES: Final[frozenset[str]] = frozenset(
+    {
+        # Static reference/context sources improve provenance and factual
+        # grounding, but should not make sparse live coverage look normal.
+        "nasdaq-symbol-directory",
+        "sec-company-facts",
+    }
 )
 
 # u45 — strong crypto signal (used to *move* a us-only-source item to
@@ -764,7 +775,7 @@ def _resolve_severity(
     if not has_core_registered:
         if not items:
             return "failed"
-        if len(items) < SEGMENT_THRESHOLDS[segment] or missing_categories:
+        if _threshold_item_count(items) < SEGMENT_THRESHOLDS[segment] or missing_categories:
             return "partial"
         return "normal"
 
@@ -799,7 +810,7 @@ def _resolve_severity(
     if missing_categories or news_zero_or_missing:
         return "partial"
     # Below structural threshold → partial.
-    if len(items) < SEGMENT_THRESHOLDS[segment]:
+    if _threshold_item_count(items) < SEGMENT_THRESHOLDS[segment]:
         return "partial"
     return "normal"
 
@@ -928,7 +939,7 @@ def _derive_reason_codes(
     codes: list[CoverageReasonCode] = []
     if not items:
         codes.append("ZERO_ITEMS")
-    elif len(items) < SEGMENT_THRESHOLDS[segment]:
+    elif _threshold_item_count(items) < SEGMENT_THRESHOLDS[segment]:
         codes.append("BELOW_THRESHOLD")
     for category in missing_categories:
         codes.append(_MISSING_CATEGORY_TO_REASON[category])
@@ -950,6 +961,10 @@ def _derive_reason_codes(
     if _lookahead_data_missing(segment, items, source_outcomes):
         codes.append("LOOKAHEAD_DATA_MISSING")
     return tuple(codes)
+
+
+def _threshold_item_count(items: Sequence[NormalizedItem]) -> int:
+    return sum(1 for item in items if item.source_name not in _THRESHOLD_EXCLUDED_SOURCES)
 
 
 def _lookahead_data_missing(

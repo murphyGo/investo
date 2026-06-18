@@ -54,6 +54,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "congress-gov-bill-actions": "S",
     "house-financial-services-policy": "S",
     "senate-banking-policy": "S",
+    "sec-company-facts": "S",
     "sec-newsroom-rss": "S",
     "treasury-rates": "S",
     # u53 — Naver finance mirrors a KRX investor-flow aggregation. KRX
@@ -66,6 +67,7 @@ ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
     "yahoo-finance-news": "A",
     "binance-crypto-market": "A",
     "nasdaq-earnings-calendar": "A",
+    "nasdaq-symbol-directory": "A",
     "fred-macro": "A",
     "fred-economic-calendar": "A",
     "us-economic-calendar": "A",
