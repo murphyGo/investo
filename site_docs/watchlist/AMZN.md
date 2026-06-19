@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-18 begin -->
+
+## 2026-06-18
+
+- [yonhap-market] **ticker**: 베이조스 "AI가 오히려 노동력 부족 초래할 것"
+- [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
+- [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
+
+<!-- u33 entry 2026-06-18 end -->
 <!-- u33 entry 2026-06-16 begin -->
 
 ## 2026-06-16

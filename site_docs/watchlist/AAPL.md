@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-18 begin -->
+
+## 2026-06-18
+
+- [yonhap-market] **ticker**: 애플 "메모리 대란에 아이폰 가격인상 불가피"
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+
+<!-- u33 entry 2026-06-18 end -->
 <!-- u33 entry 2026-06-12 begin -->
 
 ## 2026-06-12

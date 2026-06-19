@@ -2,6 +2,24 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-18 begin -->
+
+## 2026-06-18
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -5995 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,254,111,279,922; BTC dominance 55.90%
+- [coingecko-price] **ticker**: BTC $62,830.00 (-2.49%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $467,665,770 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000440619335888 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin miner HIVE inks $220 million AI GPU deal with Bell, expects $70 million annual revenue
+- [theblock-crypto] **ticker**: Bitcoin miners Bitdeer, CleanSpark and more report mixed May output as AI buildouts impact hashrate growth, treasury…
+- [theblock-crypto] **ticker**: Bitcoin slips below $64,000 as hawkish Fed overshadows signs of onchain repair
+- [theblock-crypto] **ticker**: CryptoQuant says bitcoin microtransactions now make up 80% of daily transactions
+- [theblock-crypto] **ticker**: JPMorgan says bitcoin mining economics have ‘worsened’ as BTC trades below production cost
+- [theblock-crypto] **ticker**: New Texas power grid allocation framework could lift bitcoin miners turned data center operators
+- [theblock-crypto] **ticker**: Tether’s XAUT gold token added to Ledn lending platform
+
+<!-- u33 entry 2026-06-18 end -->
 <!-- u33 entry 2026-06-17 begin -->
 
 ## 2026-06-17

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-18 begin -->
+
+## 2026-06-18
+
+- [yonhap-market] **ticker**: NYT "머스크의 다음 행보는 스페이스X·테슬라 합병 가능성"
+- [yonhap-market] **ticker**: 머스크, 테슬라 스톡옵션 행사해 의결권 20% 확보
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+
+<!-- u33 entry 2026-06-18 end -->
 <!-- u33 entry 2026-06-11 begin -->
 
 ## 2026-06-11

@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-18 begin -->
+
+## 2026-06-18
+
+- [coingecko-price] **ticker**: SOL $69.60 (-3.29%)
+- [defillama-market-structure] **ticker**: DeFi TVL $72.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Kraken integrates Solana DEX trading into core app, with support for additional networks planned
+
+<!-- u33 entry 2026-06-18 end -->
 <!-- u33 entry 2026-06-17 begin -->
 
 ## 2026-06-17

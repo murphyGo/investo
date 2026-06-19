@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-18 begin -->
+
+## 2026-06-18
+
+- [coingecko-price] **ticker**: ETH $1,708.33 (-2.25%)
+- [defillama-market-structure] **ticker**: DeFi TVL $72.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum Foundation co-Exec Director and board member Hsiao-Wei Wang steps down
+- [theblock-crypto] **ticker**: The DAO hack at 10: From $50 million exploit to a $130 million Ethereum security fund
+
+<!-- u33 entry 2026-06-18 end -->
 <!-- u33 entry 2026-06-17 begin -->
 
 ## 2026-06-17
