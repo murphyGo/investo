@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-19 begin -->
+
+## 2026-06-19
+
+- [yonhap-market] **ticker**: "스웨덴, 테슬라 FSD 유럽 출시 반대…속도제한 우려"
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+
+<!-- u33 entry 2026-06-19 end -->
 <!-- u33 entry 2026-06-18 begin -->
 
 ## 2026-06-18

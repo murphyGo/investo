@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-19 begin -->
+
+## 2026-06-19
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -5995 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,261,954,276,287; BTC dominance 56.18%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,686,850 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,687,360 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000206069904966 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Franklin Templeton files for ETFs that reinvest stock dividends into bitcoin
+- [theblock-crypto] **ticker**: What Happens When Bitcoin Reaches 21 Million Supply?
+
+<!-- u33 entry 2026-06-19 end -->
 <!-- u33 entry 2026-06-18 begin -->
 
 ## 2026-06-18

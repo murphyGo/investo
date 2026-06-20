@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-19 begin -->
+
+## 2026-06-19
+
+- [yonhap-market] **ticker**: 신한운용 'AI반도체TOP2플러스' 순자산 7조원 넘어
+- [defillama-market-structure] **ticker**: DeFi TVL $72.7B; leader Ethereum
+- [theblock-crypto] **ticker**: Morgan Stanley files amendments for ETH and SOL ETFs, revealing lowest fees in market
+
+<!-- u33 entry 2026-06-19 end -->
 <!-- u33 entry 2026-06-18 begin -->
 
 ## 2026-06-18

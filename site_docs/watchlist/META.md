@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-19 begin -->
+
+## 2026-06-19
+
+- [yonhap-market] **ticker**: 메타, AI 인프라 확충 가속…1.6GW 데이터센터 계약
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+
+<!-- u33 entry 2026-06-19 end -->
 <!-- u33 entry 2026-06-18 begin -->
 
 ## 2026-06-18
