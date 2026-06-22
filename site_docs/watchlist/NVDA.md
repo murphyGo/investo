@@ -6,11 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-06-19
 
-- [yonhap-market] **ticker**: 아마존, AI 칩 외부 판매 추진…엔비디아 아성 도전
 - [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
 - [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
 
 <!-- u33 entry 2026-06-19 end -->
+
 <!-- u33 entry 2026-06-18 begin -->
 
 ## 2026-06-18
