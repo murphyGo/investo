@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-22 begin -->
+
+## 2026-06-22
+
+- [coingecko-price] **ticker**: ETH $1,722.77 (+0.54%)
+- [defillama-market-structure] **ticker**: DeFi TVL $73.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine, SharpLink and Joe Lubin back Ethlabs nonprofit to advance Ethereum’s ‘next phase’ of growth
+- [theblock-crypto] **ticker**: Ethereum ‘tax’ debate erupts over proposal to redirect portion of staking rewards to ecosystem funding
+- [theblock-crypto] **ticker**: Tom Lee says ‘best years for crypto remain ahead’ as Bitmine buys another 52,203 ETH
+
+<!-- u33 entry 2026-06-22 end -->
 <!-- u33 entry 2026-06-19 begin -->
 
 ## 2026-06-19

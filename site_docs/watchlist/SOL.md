@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-22 begin -->
+
+## 2026-06-22
+
+- [coingecko-price] **ticker**: SOL $71.96 (-1.13%)
+- [defillama-market-structure] **ticker**: DeFi TVL $73.5B; leader Ethereum
+- [theblock-crypto] **ticker**: MoneyGram becomes Solana validator, expands blockchain payments strategy
+- [theblock-crypto] **ticker**: Solana treasury firm Solmate’s largest stakeholder sues board for self-dealing, fiduciary breaches
+
+<!-- u33 entry 2026-06-22 end -->
 <!-- u33 entry 2026-06-19 begin -->
 
 ## 2026-06-19

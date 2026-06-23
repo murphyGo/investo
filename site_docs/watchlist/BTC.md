@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-22 begin -->
+
+## 2026-06-22
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6607 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,276,241,248,282; BTC dominance 56.24%
+- [coingecko-price] **ticker**: BTC $63,908.00 (+0.32%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $443,941,720 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000219816612042 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin treasury Strive’s shares jump as company’s holdings near 20,000 BTC
+- [theblock-crypto] **ticker**: Michael Saylor’s Strategy buys another 520 BTC for $35 million, adds to USD reserve despite STRC slide
+- [theblock-crypto] **ticker**: Spot bitcoin ETFs log sixth consecutive week of net outflows; analyst says selling wave is exhausting itself
+- [theblock-crypto] **ticker**: ‘Between supportive and restrictive forces’: Bitcoin stalls near $64,000 as Fed rate-hike risk overshadows Iran cease…
+
+<!-- u33 entry 2026-06-22 end -->
 <!-- u33 entry 2026-06-19 begin -->
 
 ## 2026-06-19
