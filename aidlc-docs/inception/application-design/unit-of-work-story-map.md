@@ -285,6 +285,32 @@ Deduplicated out:
 - No generic alternative-data unit: Farside ETF flows, AAII/NAAIM, OCC option files, Deribit, Hyperliquid, and Etherscan require narrower license/rate-limit validation before implementation.
 - No broad source-provider abstraction: existing `SourceAdapter`/registry/coverage contracts already provide the extension mechanism.
 
+### u108-u112 Planning Notes
+
+The 2026-06-23 generated-briefing quality review found a different reader-trust class from source expansion: the public markdown can expose diagnostic language, contradictory anchor numbers, mechanical watchpoint cards, internal watchlist matcher reasons, and malformed Markdown. These are split into five units so each can be implemented against a narrow render/gate contract without reopening the source-adapter backlog.
+
+Recommended implementation order:
+1. u108 first, because removing operator diagnostics from public prose addresses the user-reported "machine-written" symptom directly.
+2. u109 second, because exact domestic price/index claims with invalid provenance are a data-trust failure.
+3. u110 third, because §⑥ is the main actionability section and still carries mechanical residue after u98.
+4. u111 fourth, because watchlist matcher metadata leaks are public-language defects but do not change market facts.
+5. u112 fifth, because it hardens the final polish gate after the higher-risk semantic/provenance defects are bounded.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u108 reader-facing-quality-language-boundary | Operator diagnostics such as `데이터 부족`, `[데이터부족]`, `본문 사용 미집계`, and `확인 소스 미상` must not appear in reader prose | FR-002, FR-003, FR-008, FR-009, NFR-003, NFR-006, R13 | u54/u62/u65/u69/u96 quality surfaces, u71 reflow, u100 surface gate |
+| u109 domestic-anchor-sanity-quarantine | Domestic KOSPI/KOSDAQ and large-cap closes need provenance quarantine before precise values reach tables, prose, charts, visual cards, or Telegram | FR-001, FR-002, FR-003, FR-008, FR-009, NFR-003, NFR-006, R10, R13 | u55 numeric gates, u67 domestic depth, u70 anchor reconciliation, u74 channel depth, u96 quality snapshot |
+| u110 watchpoint-human-readability-v2 | §⑥ cards still repeat labels, lose source names, duplicate up/down conditions, and render low-value placeholders | FR-002, FR-004, FR-008, FR-009, FR-012, NFR-003, NFR-006, R13 | u108 public wording, u64 actionability, u72 matrix, u87 rehabilitation, u98 card renderer, u100 surface gate |
+| u111 watchlist-public-impact-language-cleanup | Public watchlist impact surfaces must hide matcher reason codes and expose only reader-safe labels | FR-002, FR-003, FR-004, FR-009, NFR-003, NFR-006, R13 | u64 matching, u73 impact center, watchlist daily page, visual cards, Telegram |
+| u112 reader-markdown-polish-gate-v2 | Remaining timestamp, emphasis, URL, bounded truncation, and `민감도을` defects need deterministic publish blocking | FR-002, FR-003, FR-008, FR-009, NFR-003, NFR-006, R13 | u51 number bolding, u61 summary gate, u71 reflow, u81 reader-format package, u100 surface gate |
+
+Deduplicated out:
+- No generic generated-briefing quality unit: u54/u62/u65/u69/u96 already own quality accounting and replay.
+- No second first-viewport redesign: u71 owns ordering and u108 only controls public language boundaries.
+- No source-expansion unit: the review defects are render/provenance/polish defects, not missing upstream feeds.
+- No watchlist matcher rewrite: u111 changes public projection only and preserves u64/u73 grouping.
+- No full spellchecker or Markdown parser: u112 pins a bounded defect matrix with deterministic checks.
+
 ---
 
 ## Definition of Done — Inception Phase Output

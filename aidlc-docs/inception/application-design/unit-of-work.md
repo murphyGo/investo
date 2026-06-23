@@ -1584,6 +1584,149 @@ Plan: `aidlc-docs/construction/plans/u106-money-energy-volatility-source-expansi
 
 Plan: `aidlc-docs/construction/plans/u107-cftc-positioning-layer-code-generation-plan.md`.
 
+---
+
+### u108: `reader-facing-quality-language-boundary` - Keep Operator Diagnostics Out of Briefing Prose
+
+**Purpose**: Stop generated daily briefings from exposing operator-facing quality labels such as `데이터 부족`, `[데이터부족]`, `본문 사용 미집계`, `확인 소스 미상`, and raw failure-count language inside the reader narrative, first viewport, site cards, visual cards, and Telegram summaries.
+
+**Stories**: FR-002 (AI briefing), FR-003 (public publishing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (quality observability), R13
+
+**Existing coverage / deduplication**:
+- Extends u54/u62/u65/u69/u96 quality surfaces; it does not add a new KPI family.
+- Extends u71 first-viewport reflow and u100 surface-quality gate; it does not redesign the first viewport.
+- Keeps operator diagnostics in logs, quality history, collapsed diagnostics, and quality pages with reader-safe wording.
+
+**Module path**:
+- `src/investo/_internal/surface_quality.py` - add public-prose forbidden/relocation issue codes.
+- `src/investo/_internal/public_quality_language.py` - own shared reader-safe quality wording for publisher, visuals, and notifier.
+- `src/investo/publisher/segment_reader_format.py` and `src/investo/publisher/reader_format/` - enforce prose boundary after reflow.
+- `src/investo/publisher/site_index/`, `src/investo/visuals/`, and `src/investo/notifier/` - sanitize summary/card/Telegram surfaces.
+- `tests/unit/internal/test_surface_quality.py`, `tests/unit/publisher/test_segment_reader_surface_quality.py`, `tests/unit/publisher/test_site_index.py`, `tests/unit/visuals/`, and `tests/unit/notifier/`.
+
+**Definition of Done**:
+- [ ] Reader-facing body prose and first viewport do not contain operator labels `본문 사용 미집계`, `[데이터부족]`, bare `데이터 부족`, or `확인 소스 미상`.
+- [ ] Collapsed diagnostics and quality dashboards may keep machine-readable evidence only behind reader-safe labels.
+- [ ] Low-coverage pages render human wording such as "이번 문서는 수집 근거가 제한적입니다" without leaking counters into the narrative.
+- [ ] Site index, visual cards, and Telegram summary share the same public-quality projection.
+- [ ] Regression fixtures cover 2026-06-17 domestic, US, and crypto segment snippets.
+
+Plan: `aidlc-docs/construction/plans/u108-reader-facing-quality-language-boundary-code-generation-plan.md`.
+
+---
+
+### u109: `domestic-anchor-sanity-quarantine` - Quarantine Implausible Domestic Anchor Values
+
+**Purpose**: Prevent Korean market briefings from publishing precise KOSPI/KOSDAQ, USD/KRW, or bounded large-cap close values when the core price source is missing, stale, internally contradictory, or outside deterministic plausibility bands.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-003 (public publishing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (quality observability), R10, R13
+
+**Existing coverage / deduplication**:
+- Extends u55 numeric freshness, u67 domestic channel depth, u70 anchor reconciliation, and u96 quality snapshot sync.
+- Does not add a new domestic source adapter and does not replace KRX/Stooq/YFinance collection.
+- Does not rewrite LLM prose; it quarantines invalid anchor payloads before render and blocks precise claims that lack usable anchor provenance.
+
+**Module path**:
+- `src/investo/orchestrator/pipeline.py` and `src/investo/orchestrator/stage_context.py` - quarantine domestic anchors before table/body/chart/visual-card/Telegram projection.
+- `src/investo/publisher/anchor_assertion_gate.py` - block exact domestic index/price claims when anchor trust is invalid.
+- `src/investo/publisher/channel_anchor_block.py` - render missing reasons without precise numbers.
+- `tests/unit/orchestrator/test_anchor_close_reconcile.py`, `tests/unit/orchestrator/test_stage_context.py`, `tests/unit/publisher/test_anchor_assertion_gate.py`, `tests/unit/visuals/`, and notifier summary tests.
+
+**Definition of Done**:
+- [ ] Domestic anchor rows with impossible values or failed core provenance are omitted or rendered as unavailable, never as closes.
+- [ ] Precise domestic index and large-cap price claims are blocked when the matching trusted anchor is quarantined.
+- [ ] `quality_history.jsonl`/quality snapshot records distinguish "exact number withheld" from "number absent".
+- [ ] Archive regression fixtures cover June 2026 domestic snippets where anchor tables contradicted body claims.
+- [ ] Chart sidecars, visual cards, and Telegram summaries do not receive quarantined domestic values.
+- [ ] US and crypto anchor behavior remains unchanged except for shared helper imports.
+
+Plan: `aidlc-docs/construction/plans/u109-domestic-anchor-sanity-quarantine-code-generation-plan.md`.
+
+---
+
+### u110: `watchpoint-human-readability-v2` - Make Watchpoint Cards Actionable and Non-Mechanical
+
+**Purpose**: Clean the §⑥ watchpoint card contract so public cards do not repeat template labels, emit `출처: 확인 소스 미상` when source text is present, duplicate upside/downside conditions, or render low-value data-limited placeholders as substantive watchpoints.
+
+**Stories**: FR-002 (AI briefing), FR-004 (compliance-safe actionability), FR-008 (segmented briefing), FR-009 (reader-facing format), FR-012 (plain-language reader aid), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- Depends on u108 for public-safe collapsed-note wording.
+- Extends u72/u87/u98 watchpoint renderer and u64 actionability checks.
+- Does not change watchlist matching, add source adapters, or create a new matrix shape.
+- Keeps the canonical u98 card format and improves field normalization/source extraction inside that format.
+
+**Module path**:
+- `src/investo/publisher/watchpoint_matrix.py` - normalize field prefixes, extract sources, reject duplicate up/down triggers, and collapse invalid rows.
+- `src/investo/briefing/prompts.py` - tighten Stage 2 watchpoint examples so card fields are populated without repeating labels.
+- `tests/unit/publisher/test_watchpoint_matrix.py`, `tests/unit/briefing/test_prompts.py`, and rendered archive fixtures from 2026-06-17.
+
+**Definition of Done**:
+- [ ] Public cards never contain `관심 영향: 관심 영향`, `상방 상방`, `하방 하방`, or duplicate up/down condition text.
+- [ ] Source names embedded in `현재:` text are promoted to the `출처` field before fallback is used.
+- [ ] Rows with no source, no distinct trigger, and data-limited confidence collapse to the existing bounded note.
+- [ ] Card rendering stays idempotent and byte-preserves text outside §⑥.
+- [ ] Regression tests cover domestic, US, and crypto 2026-06-17 watchpoint snippets.
+
+Plan: `aidlc-docs/construction/plans/u110-watchpoint-human-readability-v2-code-generation-plan.md`.
+
+---
+
+### u111: `watchlist-public-impact-language-cleanup` - Hide Matcher Internals From Public Watchlist Impact
+
+**Purpose**: Stop internal watchlist matcher reasons such as `[boundary-term]`, `[structured-symbol]`, and `[alias:Bitcoin]` from appearing in the public "내 관심 자산 영향" callout, Telegram summary, watchlist daily page, and visual card text.
+
+**Stories**: FR-002 (AI briefing), FR-003 (public publishing), FR-004 (compliance-safe actionability), FR-009 (reader-facing format), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- Extends u64 strict matching and u73 impact center; it does not change match eligibility or Direct/Related/Uncertain/Rejected grouping.
+- Preserves diagnostics in collapsed operator pages with R13-safe wording.
+- Does not expose `matched_alias` or raw `reason` in public briefing prose.
+
+**Module path**:
+- `src/investo/briefing/watchlist.py` - render public labels from match confidence/status instead of raw `match.reason`.
+- `src/investo/briefing/watchlist_impact.py` - keep raw reasons only in diagnostic data.
+- `src/investo/publisher/watchlist_pages.py` and `src/investo/visuals/` - apply the same public projection.
+- `src/investo/notifier/summary.py` - ensure Telegram consumes the sanitized projection.
+- `tests/unit/briefing/test_watchlist.py`, `tests/unit/briefing/test_watchlist_impact.py`, `tests/unit/publisher/test_watchlist_daily_page.py`, and `tests/unit/visuals/`.
+
+**Definition of Done**:
+- [ ] Public surfaces contain no bracketed matcher reason codes.
+- [ ] Public labels use a fixed Korean label map such as `직접 관련`, `관련 맥락`, `관심 목록 보류`, and `수집 제한`.
+- [ ] Telegram and visual-card text use the same sanitized public projection as the site.
+- [ ] Diagnostic surfaces may include reason codes only inside collapsed R13-safe sections.
+- [ ] Existing match/grouping tests prove no matching semantics changed.
+
+Plan: `aidlc-docs/construction/plans/u111-watchlist-public-impact-language-cleanup-code-generation-plan.md`.
+
+---
+
+### u112: `reader-markdown-polish-gate-v2` - Block Remaining Public Markdown and Truncation Artifacts
+
+**Purpose**: Extend the surface-quality gate to block remaining public formatting defects: malformed timestamp watermark brackets, broken signed-number emphasis, nested bold markers, bounded truncation residue, ellipsis inside URL targets, and known Korean particle artifacts.
+
+**Stories**: FR-002 (AI briefing), FR-003 (public publishing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- Extends u51 number bolding, u61 summary gate, u71 reflow, u81 reader-format package, and u100 surface-quality gate.
+- Does not add a full Markdown parser, spellchecker, or broad archive backfill.
+- Does not change watchpoint semantics; §⑥-specific field cleanup belongs to u110.
+
+**Module path**:
+- `src/investo/_internal/surface_quality.py` - add issue codes for watermark syntax, broken emphasis, URL ellipsis, and truncation residue.
+- `src/investo/publisher/reader_format/emphasis.py` - treat sign/currency/number/unit as one boldable token.
+- `src/investo/publisher/segment_reader_format.py` - run the stricter gate before archive/index writes.
+- `tests/unit/internal/test_surface_quality.py`, `tests/unit/publisher/test_reader_format.py`, `tests/unit/publisher/test_segment_reader_surface_quality.py`, and `tests/unit/briefing/test_summary_quality.py`.
+
+**Definition of Done**:
+- [ ] Published segment markdown has a valid `**기준 시각**:` watermark line with balanced market-window brackets.
+- [ ] Signed numeric tokens such as `-0.04%p`, `-$0.23`, and `+0.74달러(+0.97%)` are never split into malformed bold fragments.
+- [ ] Public links never contain `...` or `…` in the href.
+- [ ] First-viewport summary lines do not end with bounded truncation residue.
+- [ ] `민감도을` is repaired or blocked in public prose; `불강한성` remains covered as a u100 regression.
+
+Plan: `aidlc-docs/construction/plans/u112-reader-markdown-polish-gate-v2-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
