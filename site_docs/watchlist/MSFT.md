@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-23 begin -->
+
+## 2026-06-23
+
+- [yonhap-market] **ticker**: '오일 메이저의 진화'…셰브런, 데이터센터 전용 발전소 건설
+- [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
+- [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+- [yfinance-price] **ticker**: MSFT 373.94 (+1.80%)
+
+<!-- u33 entry 2026-06-23 end -->
 <!-- u33 entry 2026-06-22 begin -->
 
 ## 2026-06-22

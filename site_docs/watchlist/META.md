@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-23 begin -->
+
+## 2026-06-23
+
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+- [yfinance-price] **ticker**: META 562.20 (-0.29%)
+- [theblock-crypto] **ticker**: Meta’s Zuckerberg wants to build prediction market app like Polymarket and Kalshi: NYT
+
+<!-- u33 entry 2026-06-23 end -->
 <!-- u33 entry 2026-06-22 begin -->
 
 ## 2026-06-22

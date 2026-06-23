@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-23 begin -->
+
+## 2026-06-23
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6607 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,228,133,195,841; BTC dominance 56.20%
+- [coingecko-price] **ticker**: BTC $62,457.00 (-2.29%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $439,475,630 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000866102034811 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: CryptoQuant says Strategy should pause bitcoin purchases and rebuild cash reserves
+- [theblock-crypto] **ticker**: Hut 8 agrees to $2.35 million settlement in investor suit tied to US Bitcoin merger
+- [theblock-crypto] **ticker**: Strategy: The Capital Stack Meets a Falling Bitcoin Price
+- [theblock-crypto] **ticker**: Trump directing ‘government dollars and time’ to quantum security could be a boon for bitcoin
+- [theblock-crypto] **ticker**: ‘Quarter-end catalyst or consolidation?’: Bitcoin below $63,000 amid ETF outflows, $10.6 billion options expiry
+
+<!-- u33 entry 2026-06-23 end -->
 <!-- u33 entry 2026-06-22 begin -->
 
 ## 2026-06-22

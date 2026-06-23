@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-23 begin -->
+
+## 2026-06-23
+
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+- [yfinance-price] **ticker**: TSLA 381.61 (-5.79%)
+
+<!-- u33 entry 2026-06-23 end -->
 <!-- u33 entry 2026-06-22 begin -->
 
 ## 2026-06-22
