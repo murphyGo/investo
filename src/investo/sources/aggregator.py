@@ -22,6 +22,7 @@ from typing import Final
 
 import httpx
 
+from investo._internal.source_specs import source_names_for_market_window
 from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
 from investo.models.segments import SEGMENT_MARKET_TZ
 from investo.sources._registry import list_sources
@@ -31,49 +32,8 @@ from investo.sources.tiers import adapter_tier
 
 _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
-_US_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
-    {
-        "bea-macro-actuals",
-        "bls-macro-actuals",
-        "cboe-volatility-indices",
-        "cftc-cot-positioning",
-        "cnbc-top-news",
-        "eia-petroleum-weekly",
-        "fed-board-leadership",
-        "fed-speech-rss",
-        "fomc-calendar",
-        "fomc-rss",
-        "fred-economic-calendar",
-        "fred-macro",
-        "nasdaq-earnings-calendar",
-        "nasdaq-symbol-directory",
-        "nasdaq-stocks-news",
-        "nyfed-reference-rates",
-        "sec-company-facts",
-        "sec-edgar-8k",
-        "sec-newsroom-rss",
-        "stooq-price",
-        "treasury-rates",
-        "us-economic-calendar",
-        "yahoo-finance-news",
-        "yfinance-price",
-    }
-)
-_CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = frozenset(
-    {
-        "alternative-fng",
-        "bybit-derivatives",
-        "coingecko-price",
-        "coingecko-global-market",
-        "binance-crypto-market",
-        "defillama-market-structure",
-        "congress-gov-bill-actions",
-        "house-financial-services-policy",
-        "okx-derivatives",
-        "senate-banking-policy",
-        "theblock-crypto",
-    }
-)
+_US_MARKET_SOURCES: Final[frozenset[str]] = source_names_for_market_window("us-equity")
+_CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = source_names_for_market_window("crypto")
 
 
 @dataclass(frozen=True, slots=True)

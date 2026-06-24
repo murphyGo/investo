@@ -36,60 +36,12 @@ from __future__ import annotations
 import logging
 from typing import Final
 
+from investo._internal.source_specs import SOURCE_SPECS
 from investo.models import SourceTier
 
 _logger = logging.getLogger(__name__)
 
-ADAPTER_TIERS: Final[dict[str, SourceTier]] = {
-    # S — regulatory / exchange / sovereign data
-    "bea-macro-actuals": "S",
-    "bls-macro-actuals": "S",
-    "sec-edgar-8k": "S",
-    "fed-board-leadership": "S",
-    "fed-speech-rss": "S",
-    "fomc-calendar": "S",
-    "fomc-rss": "S",
-    "fsc-krx-index-price": "S",
-    "fsc-krx-stock-price": "S",
-    "korea-policy-rss": "S",
-    "dart-disclosure": "S",
-    "congress-gov-bill-actions": "S",
-    "house-financial-services-policy": "S",
-    "senate-banking-policy": "S",
-    "sec-company-facts": "S",
-    "sec-newsroom-rss": "S",
-    "treasury-rates": "S",
-    "eia-petroleum-weekly": "S",
-    "nyfed-reference-rates": "S",
-    "cftc-cot-positioning": "S",
-    # u53 — Naver finance mirrors a KRX investor-flow aggregation. KRX
-    # is the system of record but the proximate endpoint is an
-    # aggregator surface, so this lands in A rather than S.
-    "krx-foreign-flows": "A",
-    # A — first-party / official feeds
-    "yfinance-price": "A",
-    "stooq-price": "A",
-    "yahoo-finance-news": "A",
-    "binance-crypto-market": "A",
-    "nasdaq-earnings-calendar": "A",
-    "nasdaq-symbol-directory": "A",
-    "fred-macro": "A",
-    "fred-economic-calendar": "A",
-    "us-economic-calendar": "A",
-    "nasdaq-stocks-news": "A",
-    "stooq-kr-market": "A",
-    "bybit-derivatives": "A",
-    "okx-derivatives": "A",
-    "cboe-volatility-indices": "A",
-    # B — aggregator / news
-    "cnbc-top-news": "B",
-    "yonhap-market": "B",
-    "theblock-crypto": "B",
-    "coingecko-price": "B",
-    "coingecko-global-market": "B",
-    "alternative-fng": "B",
-    "defillama-market-structure": "B",
-}
+ADAPTER_TIERS: Final[dict[str, SourceTier]] = {spec.name: spec.tier for spec in SOURCE_SPECS}
 
 DEFAULT_TIER: Final[SourceTier] = "B"
 

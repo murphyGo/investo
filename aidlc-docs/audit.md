@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## u115 Land - source-spec-registry-unification
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u115 code generation. Production source metadata is now
+single-sourced in `_internal.source_specs`.
+**Decisions**:
+- Added immutable `SourceSpec` descriptors for all registered production
+  adapters without importing `sources` or `briefing` from the descriptor module.
+- Derived `ADAPTER_TIERS`, aggregator market-window sets, and briefing
+  segment/outcome membership sets from the descriptor registry.
+- Preserved explicit adapter imports, unknown stub fallback tier/window
+  behavior, CFTC contract-group routing, `treasury-rates` fan-out, and
+  `stooq-price` US-window plus crypto-outcome relevance.
+**Quality gate**: 175 focused source/segment tests passed, scoped ruff passed,
+`mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u115 source-spec-registry-unification Code Generation complete.
+
+---
+
 ## u114 Land - shared-domain-contract-boundary
 **Timestamp**: 2026-06-24T00:00:00Z
 **Action**: Landed u114 code generation. Shared briefing vocabulary is now

@@ -8,6 +8,12 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Final, Literal
 
+from investo._internal.source_specs import (
+    SourceItemRouting,
+    source_names_for_item_routing,
+    source_names_for_item_segment,
+    source_names_for_outcome_segment,
+)
 from investo.briefing._text.patterns import (
     CRYPTO_TICKER_PAIR as _CRYPTO_TICKER_RE,
 )
@@ -124,70 +130,31 @@ SEGMENT_CORE_STALENESS_WINDOW: Final[dict[MarketSegment, timedelta]] = {
 # matters for both us-equity and crypto liquidity discussion). Adding a
 # new shared source means: (a) register it explicitly here and (b) bump
 # the regression test in ``test_segments_exclusivity.py``.
-_DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
-    {
-        "dart-disclosure",
-        "fsc-krx-index-price",
-        "fsc-krx-stock-price",
-        "korea-policy-rss",
-        # u53 — KRX investor-flow mirror, domestic-equity narrative only.
-        "krx-foreign-flows",
-        # u67 — no-key KOSPI/KOSDAQ close + 원/달러 fallback, domestic only.
-        "stooq-kr-market",
-        "yonhap-market",
-    }
+_DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = source_names_for_item_segment(
+    DOMESTIC_EQUITY,
+    routing="single-segment",
 )
-_US_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
-    {
-        "bea-macro-actuals",
-        "bls-macro-actuals",
-        "cboe-volatility-indices",
-        "cnbc-top-news",
-        "eia-petroleum-weekly",
-        "fed-board-leadership",
-        "fed-speech-rss",
-        "fomc-calendar",
-        "fomc-rss",
-        "fred-economic-calendar",
-        "fred-macro",
-        "nasdaq-earnings-calendar",
-        "nasdaq-symbol-directory",
-        "nasdaq-stocks-news",
-        "nyfed-reference-rates",
-        "sec-company-facts",
-        "sec-edgar-8k",
-        "sec-newsroom-rss",
-        "stooq-price",
-        "us-economic-calendar",
-        "yahoo-finance-news",
-        "yfinance-price",
-    }
-)
-_CRYPTO_ONLY_SOURCES: Final[frozenset[str]] = frozenset(
-    {
-        # u66 crypto-native indicators (no-key, geo-safe): Fear & Greed,
-        # global market/dominance, BTC funding+OI (Bybit primary → OKX
-        # fallback). Crypto-only; their absence must NOT downgrade
-        # otherwise-usable crypto coverage (they are not core sources).
-        "alternative-fng",
-        "bybit-derivatives",
-        "coingecko-global-market",
-        "okx-derivatives",
-        "binance-crypto-market",
-        "coingecko-price",
-        "congress-gov-bill-actions",
-        "defillama-market-structure",
-        "house-financial-services-policy",
-        "senate-banking-policy",
-        "theblock-crypto",
-    }
+_US_ONLY_SOURCES: Final[frozenset[str]] = source_names_for_item_segment(
+    US_EQUITY,
+    routing="single-segment",
+) | source_names_for_item_routing("us-with-crypto-signal")
+_CRYPTO_ONLY_SOURCES: Final[frozenset[str]] = source_names_for_item_segment(
+    CRYPTO,
+    routing="single-segment",
 )
 _SHARED_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
-    "domestic-equity": frozenset(),
-    "us-equity": frozenset({"treasury-rates"}),
-    "crypto": frozenset({"treasury-rates"}),
+    DOMESTIC_EQUITY: source_names_for_item_segment(DOMESTIC_EQUITY, routing="shared-segments"),
+    US_EQUITY: source_names_for_item_segment(US_EQUITY, routing="shared-segments"),
+    CRYPTO: source_names_for_item_segment(CRYPTO, routing="shared-segments"),
 }
-_CFTC_POSITIONING_SOURCE: Final[str] = "cftc-cot-positioning"
+def _single_source_for_routing(routing: SourceItemRouting) -> str:
+    sources = source_names_for_item_routing(routing)
+    if len(sources) != 1:
+        raise RuntimeError(f"expected exactly one {routing} source, got {sorted(sources)}")
+    return next(iter(sources))
+
+
+_CFTC_POSITIONING_SOURCE: Final[str] = _single_source_for_routing("cftc-contract-group")
 _CFTC_US_GROUPS: Final[frozenset[str]] = frozenset(
     {"equity_index", "volatility", "rates", "fx", "energy", "metals"}
 )
@@ -202,13 +169,13 @@ _DOMESTIC_SOURCES: Final[frozenset[str]] = (
 _US_SOURCES: Final[frozenset[str]] = _US_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["us-equity"]
 _CRYPTO_SOURCES: Final[frozenset[str]] = _CRYPTO_ONLY_SOURCES | _SHARED_SOURCES_BY_SEGMENT["crypto"]
 _OUTCOME_EXTRA_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
-    "domestic-equity": frozenset(),
-    "us-equity": frozenset({_CFTC_POSITIONING_SOURCE}),
+    "domestic-equity": source_names_for_outcome_segment(DOMESTIC_EQUITY) - _DOMESTIC_SOURCES,
+    "us-equity": source_names_for_outcome_segment(US_EQUITY) - _US_SOURCES,
     # ``stooq-price`` is a mixed US/crypto snapshot adapter. Routing remains
     # title-driven in ``segment_items()`` so US tickers do not leak into
     # crypto, but the aggregate source outcome is relevant to crypto coverage
     # because the adapter also emits BTC-USD / ETH-USD rows.
-    "crypto": frozenset({_CFTC_POSITIONING_SOURCE, "stooq-price"}),
+    "crypto": source_names_for_outcome_segment(CRYPTO) - _CRYPTO_SOURCES,
 }
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": _DOMESTIC_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["domestic-equity"],

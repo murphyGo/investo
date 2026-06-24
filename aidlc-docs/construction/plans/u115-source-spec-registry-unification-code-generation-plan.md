@@ -3,7 +3,7 @@
 **Date**: 2026-06-24
 **Unit**: u115 source-spec-registry-unification
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-24 clean-code architecture review; follow-up to u102 source-adapter-registry-completeness.
 **Estimated Effort**: ~3-5 h
 **Dependencies**:
@@ -15,7 +15,7 @@
 - u45 segment routing exclusivity is complete.
 - u54 source-status severity is complete.
 - u102 source-adapter-registry-completeness is complete.
-- u114 shared-domain-contract-boundary is planned immediately before this unit; this unit must preserve the same sibling-boundary direction.
+- u114 shared-domain-contract-boundary is complete; this unit preserves the same sibling-boundary direction.
 
 ---
 
@@ -114,16 +114,16 @@ Compatibility requirements:
 
 ## Implementation Steps
 
-- [ ] Add `src/investo/_internal/source_specs.py` with `SourceSpec`, routing literals, `SOURCE_SPECS`, `SOURCE_SPECS_BY_NAME`, and helper functions.
-- [ ] Populate `SOURCE_SPECS` for every current production adapter by comparing with `list_sources()`.
-- [ ] Refactor `sources/tiers.py` so `ADAPTER_TIERS` is derived from specs.
-- [ ] Refactor `sources/aggregator.py` so `_US_MARKET_SOURCES` and `_CRYPTO_MARKET_SOURCES` are derived from specs.
-- [ ] Refactor `briefing/segments.py` so normal segment/outcome source sets are derived from specs while preserving special-case routing logic.
-- [ ] Update `tests/unit/sources/test_plugin_contract.py` to use descriptor-derived expected names/counts.
-- [ ] Add `tests/unit/sources/test_source_specs.py` for uniqueness, stale descriptors, missing specs, tier/window/segment completeness, and special-case semantics.
-- [ ] Keep compatibility tests proving private derived sets match descriptor-derived sets.
-- [ ] Run focused source and segment validation.
-- [ ] Write `aidlc-docs/construction/u115-source-spec-registry-unification/code/summary.md`.
+- [x] Add `src/investo/_internal/source_specs.py` with `SourceSpec`, routing literals, `SOURCE_SPECS`, `SOURCE_SPECS_BY_NAME`, and helper functions.
+- [x] Populate `SOURCE_SPECS` for every current production adapter by comparing with `list_sources()`.
+- [x] Refactor `sources/tiers.py` so `ADAPTER_TIERS` is derived from specs.
+- [x] Refactor `sources/aggregator.py` so `_US_MARKET_SOURCES` and `_CRYPTO_MARKET_SOURCES` are derived from specs.
+- [x] Refactor `briefing/segments.py` so normal segment/outcome source sets are derived from specs while preserving special-case routing logic.
+- [x] Update `tests/unit/sources/test_plugin_contract.py` to use descriptor-derived expected names/counts.
+- [x] Add `tests/unit/sources/test_source_specs.py` for uniqueness, stale descriptors, missing specs, tier/window/segment completeness, and special-case semantics.
+- [x] Keep compatibility tests proving private derived sets match descriptor-derived sets.
+- [x] Run focused source and segment validation.
+- [x] Write `aidlc-docs/construction/u115-source-spec-registry-unification/code/summary.md`.
 
 ## Acceptance Criteria
 

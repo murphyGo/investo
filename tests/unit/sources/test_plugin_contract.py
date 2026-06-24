@@ -23,6 +23,7 @@ import httpx
 import pytest
 
 import investo.sources
+from investo._internal.source_specs import SOURCE_SPECS_BY_NAME
 from investo.briefing.segments import (
     _CRYPTO_ONLY_SOURCES,
     _DOMESTIC_ONLY_SOURCES,
@@ -80,53 +81,8 @@ from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
 from investo.sources.yfinance import YFinancePriceAdapter
 from investo.sources.yonhap_market import YonhapMarketAdapter
 
-# Bump these together when adding/removing an adapter; they must
-# stay in lockstep with the imports in src/investo/sources/__init__.py.
-EXPECTED_ADAPTER_COUNT = 42
-EXPECTED_ADAPTER_NAMES = {
-    "alternative-fng",
-    "bea-macro-actuals",
-    "bls-macro-actuals",
-    "bybit-derivatives",
-    "cboe-volatility-indices",
-    "cftc-cot-positioning",
-    "coingecko-global-market",
-    "okx-derivatives",
-    "binance-crypto-market",
-    "congress-gov-bill-actions",
-    "dart-disclosure",
-    "defillama-market-structure",
-    "eia-petroleum-weekly",
-    "fed-board-leadership",
-    "fed-speech-rss",
-    "fsc-krx-index-price",
-    "fsc-krx-stock-price",
-    "fomc-calendar",
-    "fomc-rss",
-    "yfinance-price",
-    "stooq-price",
-    "stooq-kr-market",
-    "coingecko-price",
-    "fred-economic-calendar",
-    "fred-macro",
-    "korea-policy-rss",
-    "krx-foreign-flows",
-    "house-financial-services-policy",
-    "nasdaq-earnings-calendar",
-    "nasdaq-symbol-directory",
-    "nasdaq-stocks-news",
-    "nyfed-reference-rates",
-    "senate-banking-policy",
-    "yahoo-finance-news",
-    "sec-company-facts",
-    "sec-edgar-8k",
-    "sec-newsroom-rss",
-    "yonhap-market",
-    "theblock-crypto",
-    "treasury-rates",
-    "us-economic-calendar",
-    "cnbc-top-news",
-}
+EXPECTED_ADAPTER_NAMES = set(SOURCE_SPECS_BY_NAME)
+EXPECTED_ADAPTER_COUNT = len(EXPECTED_ADAPTER_NAMES)
 
 
 @pytest.fixture(autouse=True)
