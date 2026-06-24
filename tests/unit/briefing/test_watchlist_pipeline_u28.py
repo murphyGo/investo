@@ -62,6 +62,22 @@ def _stub_claude(monkeypatch: pytest.MonkeyPatch, *, item_count: int) -> None:
     monkeypatch.setattr(orchestration, "call_claude_code", fake_call)
 
 
+def _macro_item() -> NormalizedItem:
+    return NormalizedItem(
+        source_name="fred-economic-calendar",
+        category="calendar",
+        title="2026-05-13 — Producer Price Index",
+        summary="FRED release_id=46 scheduled for 2026-05-13",
+        published_at=datetime(2026, 5, 7, 12, 0, tzinfo=UTC),
+        scheduled_at=datetime(2026, 5, 13, 0, 0, tzinfo=UTC),
+        raw_metadata={
+            "release_id": "46",
+            "release_name": "Producer Price Index",
+            "scheduled_date": "2026-05-13",
+        },
+    )
+
+
 @pytest.mark.asyncio
 async def test_unconfigured_site_callout_renders_onboarding_nudge(
     monkeypatch: pytest.MonkeyPatch,
@@ -79,6 +95,75 @@ async def test_unconfigured_site_callout_renders_onboarding_nudge(
     # Onboarding nudge appears in the site callout block.
     assert "> **내 관심 자산 영향**: 관심 목록 미설정" in header
     assert "config/watchlist.json" in header
+
+
+@pytest.mark.asyncio
+async def test_generation_input_api_does_not_load_watchlist(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _stub_claude(monkeypatch, item_count=2)
+
+    def fail_load_watchlist() -> WatchlistConfig:
+        raise AssertionError("canonical generation must use explicit watchlist_config")
+
+    monkeypatch.setattr(pipeline, "load_watchlist", fail_load_watchlist)
+
+    result = await pipeline.generate_briefing_from_input(
+        pipeline.GenerationInput(
+            target_date=_TARGET_DATE,
+            items=[_item(1), _item(2)],
+            segment=US_EQUITY,
+            watchlist_config=WatchlistConfig(),
+        )
+    )
+
+    assert result.briefing.target_date == _TARGET_DATE
+    assert result.macro_lineage == ()
+
+
+@pytest.mark.asyncio
+async def test_generation_input_result_carries_macro_lineage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    macro_item = _macro_item()
+    _stub_claude(monkeypatch, item_count=1)
+
+    result = await pipeline.generate_briefing_from_input(
+        pipeline.GenerationInput(
+            target_date=_TARGET_DATE,
+            items=[macro_item],
+            segment=US_EQUITY,
+            watchlist_config=WatchlistConfig(),
+            macro_lineage_all_items=[macro_item],
+        )
+    )
+
+    assert result.briefing.target_date == _TARGET_DATE
+    assert len(result.macro_lineage) == 1
+    assert result.macro_lineage[0].event_key == (
+        "fred-economic-calendar:release_id=46:scheduled_date=2026-05-13"
+    )
+
+
+@pytest.mark.asyncio
+async def test_legacy_wrapper_extends_macro_lineage_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    macro_item = _macro_item()
+    _stub_claude(monkeypatch, item_count=1)
+    lineage_out = []
+
+    briefing = await pipeline.generate_briefing(
+        _TARGET_DATE,
+        [macro_item],
+        segment=US_EQUITY,
+        watchlist_config=WatchlistConfig(),
+        macro_lineage_all_items=[macro_item],
+        macro_lineage_out=lineage_out,
+    )
+
+    assert briefing.target_date == _TARGET_DATE
+    assert len(lineage_out) == 1
 
 
 @pytest.mark.asyncio

@@ -1099,11 +1099,11 @@ async def test_stage_generate_segments_passes_fact_context_to_default_generator(
         bundle_context: object,
         fact_context_block: str = "",
         **_: object,
-    ) -> Briefing:
+    ) -> pipeline_module.GenerationResult:
         del items, runner, data_limited, source_outcomes, recent_context
         del market_anchors, carryover, bundle_context
         captured.append((segment, fact_context_block))
-        return _briefing(target_date, segment=segment)
+        return pipeline_module.GenerationResult(briefing=_briefing(target_date, segment=segment))
 
     monkeypatch.setattr(
         pipeline_module,
@@ -1122,6 +1122,52 @@ async def test_stage_generate_segments_passes_fact_context_to_default_generator(
     assert [segment for segment, _ in captured] == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
     assert all("fed.current_chair: Kevin Warsh" in block for _, block in captured)
     assert (archive_root / "_meta" / "fact_snapshots.jsonl").exists()
+
+
+@pytest.mark.asyncio
+async def test_stage_generate_segments_passes_explicit_watchlist_to_default_generator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.briefing.watchlist import WatchlistConfig
+
+    expected_watchlist = WatchlistConfig(tickers=("NVDA",))
+    captured: list[object] = []
+
+    monkeypatch.setattr(pipeline_module, "load_watchlist", lambda: expected_watchlist)
+
+    async def _fake_default_generate_segment(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object,
+        recent_context: object,
+        market_anchors: object,
+        carryover: object,
+        bundle_context: object,
+        fact_context_block: str = "",
+        **kwargs: object,
+    ) -> pipeline_module.GenerationResult:
+        del items, runner, data_limited, source_outcomes, recent_context
+        del market_anchors, carryover, bundle_context, fact_context_block
+        captured.append(kwargs["watchlist_config"])
+        return pipeline_module.GenerationResult(briefing=_briefing(target_date, segment=segment))
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "_default_generate_segment_briefing",
+        _fake_default_generate_segment,
+    )
+
+    briefings, failures, _, _, _, _ = await pipeline_module._stage_generate_segments(
+        _TARGET,
+        _three_segment_items(),
+    )
+
+    assert failures == {}
+    assert list(briefings) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert captured == [expected_watchlist, expected_watchlist, expected_watchlist]
 
 
 @pytest.mark.asyncio

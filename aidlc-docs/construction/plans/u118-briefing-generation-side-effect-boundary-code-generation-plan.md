@@ -3,7 +3,7 @@
 **Date**: 2026-06-24
 **Unit**: u118 briefing-generation-side-effect-boundary
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (2026-06-25)
 **Source**: 2026-06-24 clean-code review of `briefing.generate_briefing` side-effect and result-boundary contracts.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -110,17 +110,17 @@ Only extract shared LLM loop mechanics if the resulting private helper stays sma
 
 ## Implementation Steps
 
-- [ ] Add `briefing/generation_contract.py` with `GenerationInput` and `GenerationResult`.
-- [ ] Re-export both from `briefing/pipeline.py`.
-- [ ] Add `generate_briefing_from_input(request: GenerationInput) -> GenerationResult`.
-- [ ] Move the current generation body behind the canonical structured API.
-- [ ] Keep `generate_briefing(...) -> Briefing` as a compatibility wrapper.
-- [ ] Change `_record_macro_lineage` or its call site so lineage is returned as a tuple, not written through production out-param.
-- [ ] Update default orchestrator generation to pass explicit `WatchlistConfig`.
-- [ ] Preserve non-default generator seams unless an explicit typed compatibility adapter is needed.
-- [ ] Extract LLM retry-loop mechanics only if the helper is simpler and tests prove identical behavior.
-- [ ] Add tests for canonical no-watchlist-I/O behavior, wrapper compatibility, macro-lineage result payload, and orchestrator explicit watchlist handoff.
-- [ ] Write `aidlc-docs/construction/u118-briefing-generation-side-effect-boundary/code/summary.md`.
+- [x] Add `briefing/generation_contract.py` with `GenerationInput` and `GenerationResult`.
+- [x] Re-export both from `briefing/pipeline.py`.
+- [x] Add `generate_briefing_from_input(request: GenerationInput) -> GenerationResult`.
+- [x] Move the current generation body behind the canonical structured API.
+- [x] Keep `generate_briefing(...) -> Briefing` as a compatibility wrapper.
+- [x] Change `_record_macro_lineage` or its call site so lineage is returned as a tuple, not written through production out-param.
+- [x] Update default orchestrator generation to pass explicit `WatchlistConfig`.
+- [x] Preserve non-default generator seams unless an explicit typed compatibility adapter is needed.
+- [x] Extract LLM retry-loop mechanics only if the helper is simpler and tests prove identical behavior. Decision: skipped because the existing Stage 1/Stage 2 functions keep validation and retry feedback clearer.
+- [x] Add tests for canonical no-watchlist-I/O behavior, wrapper compatibility, macro-lineage result payload, and orchestrator explicit watchlist handoff.
+- [x] Write `aidlc-docs/construction/u118-briefing-generation-side-effect-boundary/code/summary.md`.
 
 ## Acceptance Criteria
 
@@ -140,6 +140,7 @@ Only extract shared LLM loop mechanics if the resulting private helper stays sma
 ```bash
 uv run --extra dev pytest tests/unit/briefing/test_budget_guard.py tests/unit/briefing/test_budget_happy_path.py tests/unit/briefing/test_watchlist_pipeline_u28.py tests/unit/briefing/test_failure_contract.py tests/unit/orchestrator/test_stage_generate.py tests/unit/orchestrator/test_run_pipeline.py tests/integration/test_pipeline.py
 uv run --extra dev ruff check src/investo/briefing src/investo/orchestrator tests/unit/briefing tests/unit/orchestrator tests/integration/test_pipeline.py
+uv run --extra dev ruff format --check src/investo/briefing src/investo/orchestrator tests/unit/briefing tests/unit/orchestrator tests/integration/test_pipeline.py
 uv run --extra dev mypy src
 ```
 

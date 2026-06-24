@@ -1,5 +1,30 @@
 # AI-DLC Audit Log
 
+## u118 Land - briefing-generation-side-effect-boundary
+**Timestamp**: 2026-06-25T00:00:00Z
+**Action**: Landed u118 code generation. Briefing generation now has an
+explicit request/result boundary while preserving the legacy public wrapper.
+**Decisions**:
+- Added immutable `GenerationInput` and `GenerationResult` contracts in the
+  briefing layer.
+- Introduced `generate_briefing_from_input(...) -> GenerationResult` as the
+  canonical API and kept `generate_briefing(...) -> Briefing` compatible.
+- Required explicit `WatchlistConfig` at the canonical API boundary; the
+  legacy wrapper remains the only generation entry point with a watchlist-load
+  fallback.
+- Returned macro lineage through `GenerationResult.macro_lineage` in production
+  and kept `macro_lineage_out` as wrapper-only compatibility.
+- Skipped LLM loop extraction because the shared helper did not improve clarity
+  enough to justify weakening the explicit Stage 1/Stage 2 validation paths.
+**Quality gate**: 129 focused briefing/orchestrator/integration tests passed,
+scoped ruff passed, scoped ruff format check passed, `mypy src` passed, full
+pytest passed, `mkdocs build --strict` passed.
+**TECH-DEBT**: None.
+**Context**: u118 briefing-generation-side-effect-boundary Code Generation
+complete.
+
+---
+
 ## u117 Land - model-contract-invariants-and-typed-metadata
 **Timestamp**: 2026-06-24T00:00:00Z
 **Action**: Landed u117 code generation. Foundation model invariants and

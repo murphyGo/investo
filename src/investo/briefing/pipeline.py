@@ -208,6 +208,7 @@ from investo.briefing.context import RecentBriefingsContext
 from investo.briefing.crypto_indicators import render_crypto_indicator_block
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.generation_contract import GenerationInput, GenerationResult
 from investo.briefing.lineage import (
     MacroLineageTrace,
     build_macro_lineage_traces,
@@ -330,6 +331,123 @@ def _finalize_briefing(
     )
 
 
+async def generate_briefing_from_input(request: GenerationInput) -> GenerationResult:
+    """Atomic two-stage briefing generation (FD L1 + R12).
+
+    Returns a fully-validated ``GenerationResult`` on success. Raises
+    ``BriefingGenerationError`` on LLM-traceable failure (stage = one
+    of ``classification`` / ``synthesis`` / ``post_validation`` /
+    ``budget``). Programmer errors (``KeyError``, ``ValidationError``
+    constructing ``Briefing``, ...) propagate as-is per the failure
+    contract — they are NOT wrapped.
+    """
+    policy = (
+        request.generation_policy if request.generation_policy is not None else GenerationPolicy()
+    )
+    budget = request.budget
+    if budget is None:
+        budget = RetryBudget(total_budget_s=policy.total_budget_s)
+
+    coverage = _build_coverage(request.segment, request.items, request.source_outcomes)
+    watchlist_impact = _resolve_watchlist_impact(
+        request.items,
+        request.watchlist_config,
+        coverage,
+    )
+    effective_data_limited = request.data_limited or (
+        coverage is not None and coverage.status != "normal"
+    )
+
+    if request.segment is not None and effective_data_limited and not request.items:
+        briefing = _generate_data_limited(
+            request.target_date,
+            segment=request.segment,
+            items=request.items,
+            coverage=coverage,
+            watchlist_impact=watchlist_impact,
+            market_anchors=request.market_anchors,
+            archive_root=request.archive_root,
+        )
+        return GenerationResult(briefing=briefing)
+
+    segment_context = _assemble_prompt_context(
+        segment=request.segment,
+        effective_data_limited=effective_data_limited,
+        watchlist_impact=watchlist_impact,
+        items=request.items,
+    )
+    recent_context_block = _render_recent_context_block(request.segment, request.recent_context)
+    carryover_context_block = _render_carryover_context_block(request.carryover)
+    bundle_context_block = _render_bundle_context_block(
+        request.bundle_context,
+        segment=request.segment,
+    )
+    llm_items = _select_llm_candidate_items(request.items, target_date=request.target_date)
+    lookahead_context_block = _render_lookahead_context_block(llm_items)
+    classification = await _classify(
+        llm_items,
+        runner=request.runner,
+        budget=budget,
+        policy=policy,
+        segment_context=segment_context,
+        segment=request.segment,
+    )
+    plan = build_section_plan(llm_items, classification, request.target_date)
+    body_markdown = await _synthesize(
+        plan,
+        runner=request.runner,
+        budget=budget,
+        policy=policy,
+        segment_context=segment_context,
+        recent_context_block=recent_context_block,
+        lookahead_context_block=lookahead_context_block,
+        carryover_context_block=carryover_context_block,
+        fact_context_block=request.fact_context_block,
+        bundle_context_block=bundle_context_block,
+        segment=request.segment,
+    )
+
+    # Body markdown is verified to have all 6 sections (by _synthesize's
+    # internal parse_six_sections check). Re-parse here to extract the
+    # section bodies for the Briefing fields.
+    sections = parse_six_sections(body_markdown)
+    enhanced_markdown = _enhance_reader_experience(
+        body_markdown,
+        target_date=request.target_date,
+        segment=request.segment,
+        sections=sections,
+        coverage=coverage,
+        watchlist_impact=watchlist_impact,
+        data_limited=effective_data_limited,
+        candidates=llm_items,
+        market_anchors=request.market_anchors,
+        archive_root=request.archive_root,
+    )
+    macro_lineage = _build_macro_lineage(
+        macro_lineage_all_items=request.macro_lineage_all_items,
+        items=request.items,
+        llm_items=llm_items,
+        classification=classification,
+        plan=plan,
+        segment=request.segment,
+        final_markdown=enhanced_markdown,
+    )
+    enhanced_markdown = _append_traceability_footer(
+        enhanced_markdown,
+        llm_items=llm_items,
+        classification=classification,
+        body_markdown=body_markdown,
+    )
+    full_markdown = append_disclaimer(enhanced_markdown, request.segment)
+    briefing = _finalize_briefing(
+        sections,
+        full_markdown=full_markdown,
+        segment=request.segment,
+        target_date=request.target_date,
+    )
+    return GenerationResult(briefing=briefing, macro_lineage=macro_lineage)
+
+
 async def generate_briefing(
     target_date: date,
     items: Sequence[NormalizedItem],
@@ -350,113 +468,31 @@ async def generate_briefing(
     macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
     macro_lineage_out: list[MacroLineageTrace] | None = None,
 ) -> Briefing:
-    """Atomic two-stage briefing generation (FD L1 + R12).
-
-    Returns a fully-validated ``Briefing`` on success. Raises
-    ``BriefingGenerationError`` on LLM-traceable failure (stage = one
-    of ``classification`` / ``synthesis`` / ``post_validation`` /
-    ``budget``). Programmer errors (``KeyError``, ``ValidationError``
-    constructing ``Briefing``, ...) propagate as-is per the failure
-    contract — they are NOT wrapped.
-
-    ``runner`` is the ``ClaudeRunner`` test seam (``None`` →
-    ``call_claude_code`` uses its default real-subprocess runner).
-    ``budget`` is the shared retry budget; constructed fresh if not
-    provided.
-    """
-    policy = generation_policy if generation_policy is not None else GenerationPolicy()
-    if budget is None:
-        budget = RetryBudget(total_budget_s=policy.total_budget_s)
-
-    coverage = _build_coverage(segment, items, source_outcomes)
+    """Compatibility wrapper returning only the generated ``Briefing``."""
     watchlist = load_watchlist() if watchlist_config is None else watchlist_config
-    watchlist_impact = _resolve_watchlist_impact(items, watchlist, coverage)
-    effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
-
-    if segment is not None and effective_data_limited and not items:
-        return _generate_data_limited(
-            target_date,
-            segment=segment,
+    result = await generate_briefing_from_input(
+        GenerationInput(
+            target_date=target_date,
             items=items,
-            coverage=coverage,
-            watchlist_impact=watchlist_impact,
+            runner=runner,
+            budget=budget,
+            segment=segment,
+            data_limited=data_limited,
+            watchlist_config=watchlist,
+            source_outcomes=source_outcomes,
+            recent_context=recent_context,
+            carryover=carryover,
             market_anchors=market_anchors,
+            generation_policy=generation_policy,
+            bundle_context=bundle_context,
+            fact_context_block=fact_context_block,
             archive_root=archive_root,
+            macro_lineage_all_items=macro_lineage_all_items,
         )
-
-    segment_context = _assemble_prompt_context(
-        segment=segment,
-        effective_data_limited=effective_data_limited,
-        watchlist_impact=watchlist_impact,
-        items=items,
     )
-    recent_context_block = _render_recent_context_block(segment, recent_context)
-    carryover_context_block = _render_carryover_context_block(carryover)
-    bundle_context_block = _render_bundle_context_block(bundle_context, segment=segment)
-    llm_items = _select_llm_candidate_items(items, target_date=target_date)
-    lookahead_context_block = _render_lookahead_context_block(llm_items)
-    classification = await _classify(
-        llm_items,
-        runner=runner,
-        budget=budget,
-        policy=policy,
-        segment_context=segment_context,
-        segment=segment,
-    )
-    plan = build_section_plan(llm_items, classification, target_date)
-    body_markdown = await _synthesize(
-        plan,
-        runner=runner,
-        budget=budget,
-        policy=policy,
-        segment_context=segment_context,
-        recent_context_block=recent_context_block,
-        lookahead_context_block=lookahead_context_block,
-        carryover_context_block=carryover_context_block,
-        fact_context_block=fact_context_block,
-        bundle_context_block=bundle_context_block,
-        segment=segment,
-    )
-
-    # Body markdown is verified to have all 6 sections (by _synthesize's
-    # internal parse_six_sections check). Re-parse here to extract the
-    # section bodies for the Briefing fields.
-    sections = parse_six_sections(body_markdown)
-    enhanced_markdown = _enhance_reader_experience(
-        body_markdown,
-        target_date=target_date,
-        segment=segment,
-        sections=sections,
-        coverage=coverage,
-        watchlist_impact=watchlist_impact,
-        data_limited=effective_data_limited,
-        candidates=llm_items,
-        market_anchors=market_anchors,
-        archive_root=archive_root,
-    )
-    _record_macro_lineage(
-        macro_lineage_out,
-        macro_lineage_all_items=macro_lineage_all_items,
-        items=items,
-        llm_items=llm_items,
-        classification=classification,
-        plan=plan,
-        segment=segment,
-        final_markdown=enhanced_markdown,
-    )
-    enhanced_markdown = _append_traceability_footer(
-        enhanced_markdown,
-        llm_items=llm_items,
-        classification=classification,
-        body_markdown=body_markdown,
-    )
-    full_markdown = append_disclaimer(enhanced_markdown, segment)
-    return _finalize_briefing(
-        sections,
-        full_markdown=full_markdown,
-        segment=segment,
-        target_date=target_date,
-    )
+    if macro_lineage_out is not None:
+        macro_lineage_out.extend(result.macro_lineage)
+    return result.briefing
 
 
 def _build_coverage(
@@ -528,8 +564,7 @@ def _generate_data_limited(
     )
 
 
-def _record_macro_lineage(
-    macro_lineage_out: list[MacroLineageTrace] | None,
+def _build_macro_lineage(
     *,
     macro_lineage_all_items: Sequence[NormalizedItem] | None,
     items: Sequence[NormalizedItem],
@@ -538,12 +573,12 @@ def _record_macro_lineage(
     plan: SectionPlan,
     segment: MarketSegment | None,
     final_markdown: str,
-) -> None:
-    """Append macro-lineage traces to ``macro_lineage_out`` when wired."""
-    if segment is None or macro_lineage_out is None:
-        return
+) -> tuple[MacroLineageTrace, ...]:
+    """Build macro-lineage traces for the canonical generation result."""
+    if segment is None:
+        return ()
     all_lineage_items = macro_lineage_all_items if macro_lineage_all_items is not None else items
-    macro_lineage_out.extend(
+    return tuple(
         build_macro_lineage_traces(
             _macro_lineage_signals_for_segment(
                 all_items=all_lineage_items,
@@ -561,12 +596,15 @@ def _record_macro_lineage(
 __all__ = [
     "MAX_ATTEMPTS",
     "ClassificationResult",
+    "GenerationInput",
+    "GenerationResult",
     "SectionPlan",
     "StoryMetadata",
     "StoryTier",
     "assign_story_metadata",
     "build_section_plan",
     "generate_briefing",
+    "generate_briefing_from_input",
     "parse_six_sections",
     "serialize_items_for_prompt",
     "story_identity",

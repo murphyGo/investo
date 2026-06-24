@@ -113,8 +113,9 @@ from investo.briefing.monthly_retrospective import (
     render_monthly_retrospective,
 )
 from investo.briefing.numeric_self_check import extract_flaggable_numbers
-from investo.briefing.pipeline import GenerationPolicy
+from investo.briefing.pipeline import GenerationInput, GenerationPolicy, GenerationResult
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
+from investo.briefing.pipeline import generate_briefing_from_input as _u2_generate_from_input
 from investo.briefing.quality_history import (
     QualityHistoryError,
     QualitySnapshot,
@@ -137,7 +138,7 @@ from investo.briefing.summary_quality import (
     SummaryQualityError,
     repair_first_viewport_summary,
 )
-from investo.briefing.watchlist import load_watchlist, match_watchlist_items
+from investo.briefing.watchlist import WatchlistConfig, load_watchlist, match_watchlist_items
 from investo.models import (
     Briefing,
     BriefingCarryover,
@@ -398,7 +399,12 @@ async def _default_generate_briefing(
     orchestrator does not control u2's retry budget per Q4=A; u2's
     default ``RetryBudget()`` is the right one.
     """
-    return await _u2_generate_briefing(target_date, items, runner=runner)
+    return await _u2_generate_briefing(
+        target_date,
+        items,
+        runner=runner,
+        watchlist_config=load_watchlist(),
+    )
 
 
 async def _default_generate_segment_briefing(
@@ -415,8 +421,8 @@ async def _default_generate_segment_briefing(
     fact_context_block: str = "",
     *,
     macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
-    macro_lineage_out: list[MacroLineageTrace] | None = None,
-) -> Briefing:
+    watchlist_config: WatchlistConfig | None = None,
+) -> GenerationResult:
     """Adapter for u7 segmented generation."""
     # u68 — pass the archive root so the glossary callout can suppress
     # terms already glossed in this segment's recent archives. Deferred
@@ -425,22 +431,25 @@ async def _default_generate_segment_briefing(
     # carryover loader below).
     from investo.publisher.paths import ARCHIVE_ROOT
 
-    return await _u2_generate_briefing(
-        target_date,
-        items,
-        runner=runner,
-        segment=segment,
-        data_limited=data_limited,
-        source_outcomes=source_outcomes,
-        recent_context=recent_context,
-        carryover=carryover,
-        market_anchors=market_anchors,
-        generation_policy=SEGMENT_GENERATION_POLICIES[segment],
-        bundle_context=bundle_context,
-        fact_context_block=fact_context_block,
-        archive_root=ARCHIVE_ROOT,
-        macro_lineage_all_items=macro_lineage_all_items,
-        macro_lineage_out=macro_lineage_out,
+    watchlist = load_watchlist() if watchlist_config is None else watchlist_config
+    return await _u2_generate_from_input(
+        GenerationInput(
+            target_date=target_date,
+            items=items,
+            watchlist_config=watchlist,
+            runner=runner,
+            segment=segment,
+            data_limited=data_limited,
+            source_outcomes=source_outcomes,
+            recent_context=recent_context,
+            carryover=carryover,
+            market_anchors=market_anchors,
+            generation_policy=SEGMENT_GENERATION_POLICIES[segment],
+            bundle_context=bundle_context,
+            fact_context_block=fact_context_block,
+            archive_root=ARCHIVE_ROOT,
+            macro_lineage_all_items=macro_lineage_all_items,
+        )
     )
 
 
@@ -561,13 +570,14 @@ async def _generate_one_segment(
     data_limited: bool,
     segment_outcomes: Sequence[SourceOutcome],
     runner: ClaudeRunner | None,
-    runner_callable: SegmentGenerateCallable,
+    runner_callable: SegmentGenerateCallable | None,
     use_default_generator: bool,
     recent_context: RecentBriefingsContext | None,
     segment_anchors: Sequence[MarketAnchor],
     segment_carryover: BriefingCarryover | None,
     bundle_context: BundleContext | None,
     fact_context_block: str,
+    watchlist_config: WatchlistConfig | None,
 ) -> _SegmentGenerationResult:
     start = time.monotonic()
     _logger.info(
@@ -578,9 +588,8 @@ async def _generate_one_segment(
         len(segment_outcomes),
     )
     try:
-        macro_lineage_out: list[MacroLineageTrace] = []
         if use_default_generator:
-            briefing = await _default_generate_segment_briefing(
+            generation_result = await _default_generate_segment_briefing(
                 target_date,
                 segment_source_items,
                 runner,
@@ -593,9 +602,12 @@ async def _generate_one_segment(
                 bundle_context,
                 fact_context_block,
                 macro_lineage_all_items=all_items,
-                macro_lineage_out=macro_lineage_out,
+                watchlist_config=watchlist_config,
             )
+            briefing = generation_result.briefing
+            macro_lineage = generation_result.macro_lineage
         else:
+            assert runner_callable is not None
             briefing = await runner_callable(
                 target_date,
                 segment_source_items,
@@ -608,6 +620,7 @@ async def _generate_one_segment(
                 segment_carryover,
                 bundle_context,
             )
+            macro_lineage = ()
     except BriefingGenerationError as exc:
         _logger.warning(
             "[generate] segment failed segment=%s stage=%s attempts=%s; continuing",
@@ -626,7 +639,7 @@ async def _generate_one_segment(
         segment=segment,
         briefing=briefing,
         failure=None,
-        macro_lineage=tuple(macro_lineage_out),
+        macro_lineage=macro_lineage,
         elapsed_s=time.monotonic() - start,
     )
 
@@ -666,10 +679,8 @@ async def _stage_generate_segments(
     disables the feature (matches the env-var ``=0`` setting and the
     pre-u34 behaviour).
     """
-    runner_callable = (
-        generate_segment if generate_segment is not None else _default_generate_segment_briefing
-    )
     routed = segment_items(items)
+    watchlist_config = load_watchlist() if generate_segment is None else None
     briefings: dict[MarketSegment, Briefing] = {}
     failures: dict[MarketSegment, BriefingGenerationError] = {}
     macro_lineage_by_segment: dict[MarketSegment, tuple[MacroLineageTrace, ...]] = {}
@@ -747,13 +758,14 @@ async def _stage_generate_segments(
                 data_limited=data_limited,
                 segment_outcomes=segment_outcomes,
                 runner=runner,
-                runner_callable=runner_callable,
+                runner_callable=generate_segment,
                 use_default_generator=generate_segment is None,
                 recent_context=recent_context,
                 segment_anchors=segment_anchors,
                 segment_carryover=segment_carryover,
                 bundle_context=bundle_context,
                 fact_context_block=fact_context_block,
+                watchlist_config=watchlist_config,
             )
 
     raw_results = await asyncio.gather(
