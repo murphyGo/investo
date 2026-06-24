@@ -15,7 +15,11 @@ from investo.briefing.segments import (
     MarketSegment,
     SegmentCoverage,
 )
-from investo.briefing.watchlist import WatchlistImpact
+from investo.briefing.watchlist import (
+    WatchlistImpact,
+    public_watchlist_match_group,
+    public_watchlist_match_label,
+)
 from investo.models import NormalizedItem
 
 CardKind = Literal[
@@ -215,23 +219,31 @@ def build_watchlist_relevance_card(
     impact: WatchlistImpact,
 ) -> WatchlistRelevanceCardInput:
     """Build a watchlist card that reports matches without inferring impact."""
+    public_matches = [
+        match
+        for match in impact.matches
+        if public_watchlist_match_group(match) in ("direct", "related")
+    ]
     rows = tuple(
         WatchlistRelevanceRow(
             term=match.term,
-            kind=match.kind,
+            kind=public_watchlist_match_label(
+                match,
+                group=public_watchlist_match_group(match),
+            ),
             source_name=match.item.source_name,
             title=match.item.title,
             url=match.item.url,
         )
         # u28 — site card cap raised to 5 (Telegram suffix stays at 3).
-        for match in impact.matches[:5]
+        for match in public_matches[:5]
     )
     return WatchlistRelevanceCardInput(
         target_date=target_date,
         segment=segment,
         configured=impact.configured,
         is_default_bundle=impact.status == "default_bundle",
-        total_matches=len(impact.matches),
+        total_matches=len(public_matches),
         rows=rows,
     )
 

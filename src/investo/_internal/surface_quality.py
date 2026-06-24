@@ -22,6 +22,11 @@ _ANY_H2_RE = re.compile(r"(?m)^## ")
 _BAD_TOKEN = "불강한성"
 _BAD_TOKEN_REPAIR = "불확실성"
 _TRACE_RE = re.compile(r"\b(?:input_hash|stage1_hash|stage2_hash)\b")
+_WATCHLIST_MATCHER_REASON_RE = re.compile(
+    r"(?:\[(?:boundary-term|structured-symbol|text-match|alias:[^\]]+)\]|"
+    r"\b(?:boundary-term|structured-symbol|text-match|matched_alias)\b|"
+    r"\balias:[^\s\]]+)"
+)
 _TRACE_ASSIGNMENT_RE = re.compile(
     r"`?(?:input_hash|stage1_hash|stage2_hash)`?\s*[:=]\s*`?[\w.-]+`?"
 )
@@ -145,6 +150,16 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
             issues.append(SurfaceQualityIssue("ellipsis.dangling_line", "warn", line, region))
         if _TRACE_RE.search(line):
             issues.append(SurfaceQualityIssue("trace.fragment", "block", line, region))
+        matcher_reason = _WATCHLIST_MATCHER_REASON_RE.search(line)
+        if matcher_reason is not None:
+            issues.append(
+                SurfaceQualityIssue(
+                    "watchlist.matcher_reason.public",
+                    "block",
+                    matcher_reason.group(0),
+                    region,
+                )
+            )
         if _looks_like_unmatched_link(line):
             issues.append(SurfaceQualityIssue("markdown.unmatched_link", "block", line, region))
         public_evidence = first_forbidden_public_evidence(line)

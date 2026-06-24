@@ -281,3 +281,20 @@ def test_build_watchlist_relevance_card_limits_rows_and_avoids_impact_claims() -
     assert card.total_matches == 6
     assert len(card.rows) == 5
     assert "impact" not in card.model_dump()
+
+
+def test_build_watchlist_relevance_card_uses_public_labels_u111() -> None:
+    items = [
+        _item("yahoo-finance-news", "news", "비트코인 ETF 자금 유입"),
+        _item("coingecko-price", "price", "BTC price", raw_metadata={"symbol": "BTC-USD"}),
+    ]
+    impact = match_watchlist_items(items, WatchlistConfig(tickers=("BTC",)))
+
+    card = build_watchlist_relevance_card(date(2026, 5, 7), "crypto", impact)
+    dumped = str(card.model_dump())
+
+    assert card.rows
+    assert {row.kind for row in card.rows} == {"직접 관련"}
+    assert "alias:" not in dumped
+    assert "structured-symbol" not in dumped
+    assert "matched_alias" not in dumped

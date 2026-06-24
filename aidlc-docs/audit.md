@@ -4154,3 +4154,24 @@ scoped ruff passed, `mypy src` passed.
 **Context**: u110 watchpoint-human-readability-v2 Code Generation complete.
 
 ---
+
+## u111 Land - watchlist-public-impact-language-cleanup
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u111 code generation. Public watchlist surfaces now render
+reader-safe labels instead of raw matcher reason codes or alias provenance.
+**Decisions**:
+- Preserved `match_watchlist_items()` output and u73 Direct/Related/Uncertain/
+  Rejected grouping semantics; this is a projection change only.
+- Added canonical public projection helpers in `briefing.watchlist` and routed
+  site/Telegram callouts, daily watchlist public sections, and visual-card rows
+  through the same labels.
+- Kept raw reason codes available inside collapsed diagnostics only; public
+  Direct/Related sections no longer show `matched_alias`/`별칭` wording.
+- Added a surface-quality block for public matcher reason leakage while
+  preserving protected `<details>` diagnostics.
+**Quality gate**: 288 focused watchlist/visual/notifier/surface-quality tests
+passed, scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u111 watchlist-public-impact-language-cleanup Code Generation complete.
+
+---

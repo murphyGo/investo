@@ -87,6 +87,19 @@ def test_daily_page_public_groups_show_titles() -> None:
     assert "NVDA rallies after earnings beat" in body
 
 
+def test_daily_page_public_groups_hide_matcher_reason_and_alias_u111() -> None:
+    config = WatchlistConfig(tickers=("BTC",))
+    items = [_item("비트코인 ETF 자금 유입")]
+    center = _center(config, items)
+    body = render_daily_impact_page(date(2026, 5, 7), center)  # type: ignore[arg-type]
+
+    assert "직접 관련" in body
+    assert "비트코인 ETF 자금 유입" in body
+    assert "별칭" not in body
+    assert "alias:비트코인" not in body
+    assert "[alias:" not in body
+
+
 def test_daily_page_segment_backlinks() -> None:
     config = WatchlistConfig(tickers=("NVDA",))
     items = [_item("NVDA up")]

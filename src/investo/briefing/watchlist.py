@@ -50,6 +50,7 @@ WatchlistImpactStatus = Literal[
 ]
 WatchlistChannel = Literal["site", "telegram"]
 CoverageStatusInput = Literal["normal", "partial", "limited", "failed"]
+PublicWatchlistGroup = Literal["direct", "related", "uncertain", "rejected"]
 
 DEFAULT_WATCHLIST_PATH: Final[Path] = Path("config/watchlist.json")
 WATCHLIST_CONFIG_ENV: Final[str] = "INVESTO_WATCHLIST_CONFIG"
@@ -329,6 +330,34 @@ class WatchlistImpact:
         return bool(self.matches)
 
 
+def public_watchlist_match_label(
+    match: WatchlistMatch,
+    *,
+    group: PublicWatchlistGroup,
+) -> str:
+    """Reader-safe label for a watchlist match group (u111)."""
+    if group == "direct":
+        return "직접 관련"
+    if group == "related":
+        return "관련 맥락"
+    if group == "uncertain":
+        return "관심 목록 보류"
+    return "진단 전용"
+
+
+def public_watchlist_match_summary(
+    match: WatchlistMatch,
+    *,
+    group: PublicWatchlistGroup,
+) -> str:
+    """Reader-safe one-line summary without raw matcher reason or alias metadata."""
+    label = public_watchlist_match_label(match, group=group)
+    title = match.item.title.strip()
+    if len(title) > 120:
+        title = title[:117].rstrip() + "…"
+    return f"{match.term}: {label} · [{match.item.source_name}] {title}"
+
+
 def load_watchlist(path: Path | None = None) -> WatchlistConfig:
     """Load watchlist config from JSON.
 
@@ -467,7 +496,11 @@ def render_watchlist_impact(
     rendered = []
     for match in impact.matches[:cap]:
         d_suffix = _watchlist_d_suffix(match, now_utc=now_utc)
-        rendered.append(f"{match.term}{d_suffix}: [{match.reason}] {match.item.title}")
+        label = public_watchlist_match_label(match, group=public_watchlist_match_group(match))
+        title = match.item.title.strip()
+        if len(title) > 120:
+            title = title[:117].rstrip() + "…"
+        rendered.append(f"{match.term}{d_suffix}: {label} · [{match.item.source_name}] {title}")
     suffix = "" if len(impact.matches) <= cap else " 외"
     badge = f" ({DEFAULT_BUNDLE_BADGE_LABEL})" if impact.status == "default_bundle" else ""
     return f"{len(impact.matches)}건 확인{badge} — " + "; ".join(rendered) + suffix
@@ -499,6 +532,17 @@ def _watchlist_d_suffix(match: WatchlistMatch, *, now_utc: datetime | None) -> s
     if days > 7:
         return ""
     return f" D-{days}"
+
+
+def public_watchlist_match_group(match: WatchlistMatch) -> PublicWatchlistGroup:
+    """Best-effort public group inference for legacy ``WatchlistImpact`` callers."""
+    if match.confidence == "structured":
+        return "direct"
+    if match.confidence in ("strict", "alias") and match.kind in ("ticker", "asset"):
+        return "direct"
+    if match.kind in ("sector", "keyword"):
+        return "related"
+    return "uncertain"
 
 
 def render_watchlist_prompt_context(impact: WatchlistImpact) -> str:
@@ -672,6 +716,7 @@ __all__ = [
     "DEFAULT_WATCHLIST_PATH",
     "WATCHLIST_CONFIG_ENV",
     "CoverageStatusInput",
+    "PublicWatchlistGroup",
     "WatchlistChannel",
     "WatchlistConfig",
     "WatchlistImpact",
@@ -680,6 +725,9 @@ __all__ = [
     "WatchlistTermKind",
     "load_watchlist",
     "match_watchlist_items",
+    "public_watchlist_match_group",
+    "public_watchlist_match_label",
+    "public_watchlist_match_summary",
     "render_watchlist_impact",
     "render_watchlist_prompt_context",
 ]

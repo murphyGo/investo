@@ -27,7 +27,11 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
-from investo.briefing.watchlist import WatchlistMatch
+from investo.briefing.watchlist import (
+    PublicWatchlistGroup,
+    WatchlistMatch,
+    public_watchlist_match_summary,
+)
 from investo.briefing.watchlist_impact import RejectedCandidate, WatchlistImpactCenter
 from investo.models import NormalizedItem
 
@@ -267,8 +271,10 @@ def render_daily_impact_page(
     )
     lines.append("")
 
-    lines.extend(_public_group_section("직접 영향 (Direct)", center.direct))
-    lines.extend(_public_group_section("관련·매크로 맥락 (Related)", center.related))
+    lines.extend(_public_group_section("직접 영향 (Direct)", center.direct, group="direct"))
+    lines.extend(
+        _public_group_section("관련·매크로 맥락 (Related)", center.related, group="related")
+    )
 
     if segment_links:
         lines.append("## 관련 시황")
@@ -283,25 +289,21 @@ def render_daily_impact_page(
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
-def _public_group_section(heading: str, matches: Sequence[WatchlistMatch]) -> list[str]:
+def _public_group_section(
+    heading: str,
+    matches: Sequence[WatchlistMatch],
+    *,
+    group: PublicWatchlistGroup,
+) -> list[str]:
     out = [f"## {heading}", ""]
     if not matches:
         out.append("_해당 항목 없음._")
         out.append("")
         return out
     for match in matches:
-        out.append(_impact_bullet(match))
+        out.append(f"- {public_watchlist_match_summary(match, group=group)}")
     out.append("")
     return out
-
-
-def _impact_bullet(match: WatchlistMatch) -> str:
-    item: NormalizedItem = match.item
-    title = item.title.strip()
-    if len(title) > 120:
-        title = title[:117].rstrip() + "…"
-    alias_part = f" (별칭 {match.matched_alias})" if match.matched_alias else ""
-    return f"- **{match.term}**{alias_part} · [{item.source_name}] {title}"
 
 
 def _prefix_relative_url(url: str, prefix: str) -> str:

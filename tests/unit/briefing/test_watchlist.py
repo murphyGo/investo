@@ -14,6 +14,8 @@ from investo.briefing.watchlist import (
     WatchlistConfig,
     load_watchlist,
     match_watchlist_items,
+    public_watchlist_match_label,
+    public_watchlist_match_summary,
     render_watchlist_impact,
     render_watchlist_prompt_context,
 )
@@ -372,6 +374,27 @@ def test_btc_matches_structured_symbol_and_aliases() -> None:
 
     assert impact.status == "matched"
     assert {match.reason for match in impact.matches} == {"structured-symbol", "alias:비트코인"}
+
+
+def test_public_watchlist_projection_hides_matcher_reason_and_alias_u111() -> None:
+    config = WatchlistConfig(tickers=("BTC",))
+    items = [
+        _item("Market price snapshot", raw_metadata={"symbol": "BTC-USD"}),
+        _item("비트코인 ETF 자금 유입"),
+    ]
+
+    impact = match_watchlist_items(items, config)
+    rendered = render_watchlist_impact(impact)
+    telegram = render_watchlist_impact(impact, channel="telegram")
+    summary = public_watchlist_match_summary(impact.matches[1], group="direct")
+
+    assert public_watchlist_match_label(impact.matches[0], group="direct") == "직접 관련"
+    for public_text in (rendered, telegram, summary):
+        assert "[structured-symbol]" not in public_text
+        assert "[alias:" not in public_text
+        assert "alias:비트코인" not in public_text
+        assert "matched_alias" not in public_text
+        assert "직접 관련" in public_text
 
 
 # ---------------------------------------------------------------------------

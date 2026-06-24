@@ -138,6 +138,35 @@ def test_public_diagnostics_allowed_inside_collapsed_details() -> None:
     assert [issue for issue in issues if issue.code == "public_diagnostic.raw_label"] == []
 
 
+def test_watchlist_matcher_reason_blocks_public_surface_u111() -> None:
+    text = (
+        "# title\n\n"
+        "> **내 관심 자산 영향**: 1건 확인 — BTC: [alias:Bitcoin] Bitcoin ETF flow\n\n"
+        "## ① 요약\n본문"
+    )
+
+    issues = find_surface_quality_issues(text)
+
+    public = [issue for issue in issues if issue.code == "watchlist.matcher_reason.public"]
+    assert public
+    assert public[0].severity == "block"
+    assert public[0].evidence == "[alias:Bitcoin]"
+
+
+def test_watchlist_matcher_reason_allowed_inside_collapsed_details_u111() -> None:
+    text = (
+        "# title\n\n"
+        "## ① 요약\n본문\n\n"
+        "<details><summary>진단: 보류/제외된 후보</summary>\n\n"
+        "- BTC · yahoo-finance-news [boundary-term]\n"
+        "</details>\n"
+    )
+
+    issues = find_surface_quality_issues(text)
+
+    assert [issue for issue in issues if issue.code == "watchlist.matcher_reason.public"] == []
+
+
 def test_public_diagnostics_block_in_segment_body() -> None:
     text = "# title\n\n## ① 요약\n본문 사용 미집계\n"
 
