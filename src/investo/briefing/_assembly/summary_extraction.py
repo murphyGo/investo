@@ -104,7 +104,9 @@ def _summary_sentence(text: str, *, fallback: str) -> str:
     conjunction tail (the three persona-cited 2026-05-06 failures).
     """
     cleaned_lines = [
-        cleaned for line in text.splitlines() if (cleaned := _clean_summary_line(line))
+        cleaned
+        for line in text.splitlines()
+        if not has_blocking_surface_issue(line) and (cleaned := _clean_summary_line(line))
     ]
     normalized = " ".join(cleaned_lines)
     if not normalized:

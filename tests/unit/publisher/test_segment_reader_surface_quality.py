@@ -7,6 +7,7 @@ from datetime import date
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import US_EQUITY
 from investo.models import Briefing
+from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 
 
@@ -82,3 +83,33 @@ def test_segment_reader_repairs_unrecoverable_first_viewport_link_marker() -> No
 
     assert "[broken link" not in out
     assert "broken link" in out
+
+
+def test_segment_reader_repairs_u112_bad_particle_and_numeric_bold() -> None:
+    briefing = _briefing(
+        "# title\n\n"
+        "> **오늘의 결론**: 시장 민감도을 점검하고 **-**0.04%**p** 둔화를 확인합니다.\n\n"
+        "## ① 요약\n본문"
+    )
+
+    out = apply_reader_format_to_segments(
+        {US_EQUITY: briefing},
+        anchors_by_segment={},
+    )[US_EQUITY].rendered_markdown
+
+    assert "민감도을" not in out
+    assert "민감도를" in out
+    assert "**-0.04%p**" in out
+
+
+def test_segment_reader_blocks_u112_href_ellipsis() -> None:
+    briefing = _briefing(
+        "# title\n\n> **오늘의 결론**: [자료](https://example.com/...)\n\n## ① 요약\n본문"
+    )
+
+    try:
+        apply_reader_format_to_segments({US_EQUITY: briefing}, anchors_by_segment={})
+    except SurfaceQualityError as exc:
+        assert any(issue.code == "markdown.href_ellipsis" for issue in exc.issues)
+    else:  # pragma: no cover - assertion clarity
+        raise AssertionError("expected SurfaceQualityError")

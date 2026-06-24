@@ -11,6 +11,10 @@ from typing import Final
 from investo.publisher.reader_format._constants import _TABLE_ROW_RE
 
 # Numeric token shapes we wrap:
+#   - signed compound moves: ``+0.74달러(+0.97%)``.
+#   - signed percentage-point deltas: ``-0.04%p``, ``+0.29pp``.
+#   - signed dollar amounts: ``-$0.23``.
+#   - dollar amounts with scale suffixes: ``$2.30T``.
 #   - signed percentages: ``+11.51%``, ``-0.96%`` (decimal required so the
 #     pure-integer-percent case is captured by the next pattern).
 #   - bare-percent decimals: ``4.42%``, ``0.47pp`` is NOT included — pp /
@@ -25,9 +29,13 @@ from investo.publisher.reader_format._constants import _TABLE_ROW_RE
 _NUMBER_RE: Final[re.Pattern[str]] = re.compile(
     r"(?<!\*)"
     r"(?P<token>"
-    r"[+\-]\d+(?:\.\d+)?%"  # signed percentage
-    r"|\$\d{1,3}(?:,\d{3})*(?:\.\d+)?"  # dollar with thousands
-    r"|\$\d+(?:\.\d+)?"  # plain dollar (no thousands)
+    r"[+\-]\d+(?:\.\d+)?달러\([+\-]\d+(?:\.\d+)?%\)"  # signed KRW/USD prose move
+    r"|[+\-]\d+(?:\.\d+)?(?:%p|pp)"  # signed percentage-point tokens
+    r"|[+\-]\$\d{1,3}(?:,\d{3})*(?:\.\d+)?"  # signed dollar with thousands
+    r"|[+\-]\$\d+(?:\.\d+)?"  # signed plain dollar
+    r"|\$\d{1,3}(?:,\d{3})*(?:\.\d+)?[TMB]?"  # dollar with optional scale suffix
+    r"|\$\d+(?:\.\d+)?[TMB]?"  # plain dollar with optional scale suffix
+    r"|[+\-]\d+(?:\.\d+)?%"  # signed percentage
     r"|\b\d+\.\d+%"  # bare decimal percent
     r")"
     r"(?!\*)"

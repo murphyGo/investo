@@ -148,6 +148,18 @@ def test_wrap_numbers_bold_bare_decimal_percent() -> None:
     assert wrap_numbers_bold("10Y 4.42% 부담.") == "10Y **4.42%** 부담."
 
 
+def test_wrap_numbers_bold_signed_unit_tokens_u112() -> None:
+    cases = {
+        "-0.04%p 둔화": "**-0.04%p** 둔화",
+        "+0.29pp 확대": "**+0.29pp** 확대",
+        "-$0.23 하락": "**-$0.23** 하락",
+        "$2.30T 기록": "**$2.30T** 기록",
+        "+0.74달러(+0.97%) 상승": "**+0.74달러(+0.97%)** 상승",
+    }
+    for raw, expected in cases.items():
+        assert wrap_numbers_bold(raw) == expected
+
+
 def test_wrap_numbers_bold_idempotent_on_already_bold() -> None:
     text = "이미 **+3.89%** 처리됨."
     assert wrap_numbers_bold(text) == text

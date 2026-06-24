@@ -16,6 +16,10 @@ def test_extract_first_viewport_stops_before_section_one() -> None:
     assert extract_first_viewport(text) == "# title\n\nintro\n\n"
 
 
+def _issues_with_code(text: str, code: str) -> list[object]:
+    return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
+
+
 def test_repair_bad_token_and_dangling_ellipsis() -> None:
     text = "# title\n\n불강한성 확대 ...\n...\n\n## ① 요약\n본문"
 
@@ -176,3 +180,89 @@ def test_public_diagnostics_block_in_segment_body() -> None:
     assert public
     assert public[0].evidence == "본문 사용 미집계"
     assert public[0].region == "segment_body"
+
+
+def test_watermark_window_bracket_validation_u112() -> None:
+    valid = (
+        "# title\n\n"
+        "**기준 시각**: 2026-06-24 07:30 KST · 수집창 [2026-06-23T22:00Z, 2026-06-24T07:00Z)]\n\n"
+        "## ① 요약"
+    )
+    missing = "# title\n\n**기준 시각**: 2026-06-24 07:30 KST · 수집창 없음\n\n## ① 요약"
+    extra = "# title\n\n**기준 시각**: 2026-06-24 07:30 KST · 수집창 [[중첩]]\n\n## ① 요약"
+    ignored = "# title\n\n기준 시각: 수집창 없음\n\n## ① 요약"
+
+    assert _issues_with_code(valid, "watermark.window_bracket") == []
+    assert any(i.code == "watermark.window_bracket" for i in find_surface_quality_issues(missing))
+    assert any(i.code == "watermark.window_bracket" for i in find_surface_quality_issues(extra))
+    assert _issues_with_code(ignored, "watermark.window_bracket") == []
+
+
+def test_repairs_broken_numeric_bold_and_blocks_leftovers_u112() -> None:
+    text = (
+        "# title\n\n"
+        "> **오늘의 결론**: **-**0.04%**p**와 $2.30**T, "
+        "**+0.74달러(**+0.97%**)** 확인\n\n"
+        "## ① 요약"
+    )
+
+    repaired = repair_surface_artifacts(text)
+
+    assert "**-0.04%p**" in repaired
+    assert "**$2.30T**" in repaired
+    assert "**+0.74달러(+0.97%)**" in repaired
+    assert _issues_with_code(repaired, "markdown.broken_numeric_bold") == []
+    broken = "# title\n\n> **오늘의 결론**: **-**0.04% 남음\n\n## ① 요약"
+    assert any(
+        i.code == "markdown.broken_numeric_bold"
+        for i in find_surface_quality_issues(broken)
+    )
+
+
+def test_href_ellipsis_blocks_targets_but_not_visible_text_u112() -> None:
+    visible = "# title\n\n[긴 제목...](https://example.com/full)\n\n## ① 요약"
+    inline = "# title\n\n[긴 제목](https://example.com/...)\n\n## ① 요약"
+    image = "# title\n\n![alt](https://example.com/…/img.png)\n\n## ① 요약"
+    ref = "# title\n\n[id]: https://example.com/...\n\n## ① 요약"
+    autolink = "# title\n\n<https://example.com/...>\n\n## ① 요약"
+    code = "# title\n\n`[x](https://example.com/...)`\n\n## ① 요약"
+
+    assert _issues_with_code(visible, "markdown.href_ellipsis") == []
+    for text in (inline, image, ref, autolink):
+        assert any(i.code == "markdown.href_ellipsis" for i in find_surface_quality_issues(text))
+    assert _issues_with_code(code, "markdown.href_ellipsis") == []
+
+
+def test_first_viewport_truncation_residue_blocks_bounded_shapes_u112() -> None:
+    deny = "# title\n\n> **오늘의 결론**: 금리 민\n\n## ① 요약"
+    ellipsis = "# title\n\n> **오늘의 결론**: 변동성 확대...\n\n## ① 요약"
+    unmatched = "# title\n\n> **오늘의 결론**: 반도체 수급(\n\n## ① 요약"
+    allowed = "# title\n\n> **오늘의 결론**: 장중 변동성 확대 중\n\n## ① 요약"
+
+    for text in (deny, ellipsis, unmatched):
+        assert any(
+            i.code == "summary.truncated_mid_token"
+            for i in find_surface_quality_issues(text)
+        )
+    assert _issues_with_code(allowed, "summary.truncated_mid_token") == []
+
+
+def test_repairs_bad_particle_mingamdo_eul_u112() -> None:
+    text = "# title\n\n시장 민감도을 다시 점검합니다.\n\n## ① 요약"
+
+    issues_before = find_surface_quality_issues(text)
+    repaired = repair_surface_artifacts(text)
+
+    assert any(i.code == "korean.bad_particle.mingamdo_eul" for i in issues_before)
+    assert "민감도을" not in repaired
+    assert "민감도를" in repaired
+    assert not has_blocking_surface_issue(repaired)
+
+
+def test_bulganghanseong_repair_remains_u100_regression_u112() -> None:
+    text = "# title\n\n불강한성 확대\n\n## ① 요약"
+
+    repaired = repair_surface_artifacts(text)
+
+    assert "불강한성" not in repaired
+    assert "불확실성 확대" in repaired

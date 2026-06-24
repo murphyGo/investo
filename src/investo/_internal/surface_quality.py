@@ -21,6 +21,8 @@ _FIRST_SECTION_RE = re.compile(r"(?m)^## ①")
 _ANY_H2_RE = re.compile(r"(?m)^## ")
 _BAD_TOKEN = "불강한성"
 _BAD_TOKEN_REPAIR = "불확실성"
+_BAD_PARTICLE = "민감도을"
+_BAD_PARTICLE_REPAIR = "민감도를"
 _TRACE_RE = re.compile(r"\b(?:input_hash|stage1_hash|stage2_hash)\b")
 _WATCHLIST_MATCHER_REASON_RE = re.compile(
     r"(?:\[(?:boundary-term|structured-symbol|text-match|alias:[^\]]+)\]|"
@@ -33,7 +35,29 @@ _TRACE_ASSIGNMENT_RE = re.compile(
 _RECOVERABLE_LINK_FRAGMENT_RE = re.compile(
     r"\[([^\]\n]+)\]\((?:https?://|www\.)[^\s)\n]*"
 )
+_WATERMARK_LINE_RE = re.compile(
+    r"^\*\*기준 시각\*\*:\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+"
+    r"[A-Za-z가-힣0-9 /+:-]+\s+·\s+수집창\s+\[[^\[\]\n]+\]$"
+)
+_BROKEN_NUMERIC_BOLD_RE = re.compile(
+    r"\*\*[+-]\*\*\s*(?:\$?\d|\d+(?:\.\d+)?%)|"
+    r"\$\d+(?:\.\d+)?\*\*[A-Za-z]\*\*|"
+    r"\*\*[+-]?\d+(?:\.\d+)?달러\(\*\*[+-]?\d+(?:\.\d+)?%\*\*\)\*\*"
+)
+_BROKEN_SIGN_UNIT_BOLD_RE = re.compile(
+    r"\*\*([+-])\*\*\s*(\d+(?:\.\d+)?%)(?:\*\*([A-Za-z가-힣]+)\*\*)"
+)
+_BROKEN_DOLLAR_UNIT_BOLD_RE = re.compile(r"(\$\d+(?:\.\d+)?)\*\*([TMB])(?:\*\*)?")
+_BROKEN_NESTED_DOLLAR_PERCENT_RE = re.compile(
+    r"\*\*([+-]?\d+(?:\.\d+)?달러)\(\*\*([+-]?\d+(?:\.\d+)?%)\*\*\)\*\*"
+)
+_INLINE_CODE_RE = re.compile(r"`[^`]*`")
+_INLINE_LINK_RE = re.compile(r"!?\[[^\]\n]*\]\(([^)\n]*(?:\.{3}|…)[^)\n]*)\)")
+_REFERENCE_LINK_RE = re.compile(r"^\s*\[[^\]\n]+\]:\s*(\S*(?:\.{3}|…)\S*)")
+_AUTOLINK_RE = re.compile(r"<(https?://[^>\s]*(?:\.{3}|…)[^>\s]*)>")
 _DANGLING_ELLIPSIS_RE = re.compile(r"(?:^|\s)\.\.\.$")
+_TRUNCATED_KOREAN_ELLIPSIS_RE = re.compile(r"[가-힣](?:\.{3}|…)$")
+_TRUNCATED_DENYLIST_RE = re.compile(r"[채확민관]$")
 _REPEATED_PHRASES = (
     "본문을 참고하세요",
     "데이터가 제한적입니다",
@@ -85,13 +109,18 @@ def repair_surface_artifacts(text: str) -> str:
             offset += len(raw_line)
             continue
 
-        repaired = line.replace(_BAD_TOKEN, _BAD_TOKEN_REPAIR)
+        repaired = line.replace(_BAD_TOKEN, _BAD_TOKEN_REPAIR).replace(
+            _BAD_PARTICLE,
+            _BAD_PARTICLE_REPAIR,
+        )
+        repaired = _repair_broken_numeric_bold(repaired)
         if offset < first_viewport_len:
             repaired = _repair_trace_fragments(repaired)
             if not repaired.strip():
                 offset += len(raw_line)
                 continue
-            repaired = _repair_recoverable_link_fragments(repaired)
+            if _looks_like_unmatched_link(repaired):
+                repaired = _repair_recoverable_link_fragments(repaired)
             repaired = _repair_unmatched_markdown_markers(repaired)
             stripped = repaired.strip()
             if stripped == "...":
@@ -137,6 +166,7 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
             in_details = False
         if protected:
             continue
+        scan_line = _strip_inline_code(line)
         if _BAD_TOKEN in line:
             issues.append(
                 SurfaceQualityIssue(
@@ -146,11 +176,53 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                     region,
                 )
             )
-        if _DANGLING_ELLIPSIS_RE.search(line.strip()):
+        if _BAD_PARTICLE in line:
+            issues.append(
+                SurfaceQualityIssue(
+                    "korean.bad_particle.mingamdo_eul",
+                    "warn",
+                    _BAD_PARTICLE,
+                    region,
+                )
+            )
+        if _DANGLING_ELLIPSIS_RE.search(scan_line.strip()):
             issues.append(SurfaceQualityIssue("ellipsis.dangling_line", "warn", line, region))
-        if _TRACE_RE.search(line):
+        if _TRACE_RE.search(scan_line):
             issues.append(SurfaceQualityIssue("trace.fragment", "block", line, region))
-        matcher_reason = _WATCHLIST_MATCHER_REASON_RE.search(line)
+        if _bad_watermark_window(scan_line):
+            issues.append(
+                SurfaceQualityIssue("watermark.window_bracket", "block", line, region)
+            )
+        numeric_bold = _BROKEN_NUMERIC_BOLD_RE.search(scan_line)
+        if numeric_bold is not None:
+            issues.append(
+                SurfaceQualityIssue(
+                    "markdown.broken_numeric_bold",
+                    "block",
+                    numeric_bold.group(0),
+                    region,
+                )
+            )
+        href_ellipsis = _href_ellipsis_evidence(scan_line)
+        if href_ellipsis is not None:
+            issues.append(
+                SurfaceQualityIssue(
+                    "markdown.href_ellipsis",
+                    "block",
+                    href_ellipsis,
+                    region,
+                )
+            )
+        if region == "segment_first_viewport" and _looks_truncated_mid_token(scan_line):
+            issues.append(
+                SurfaceQualityIssue(
+                    "summary.truncated_mid_token",
+                    "block",
+                    line,
+                    region,
+                )
+            )
+        matcher_reason = _WATCHLIST_MATCHER_REASON_RE.search(scan_line)
         if matcher_reason is not None:
             issues.append(
                 SurfaceQualityIssue(
@@ -160,9 +232,9 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                     region,
                 )
             )
-        if _looks_like_unmatched_link(line):
+        if _looks_like_unmatched_link(scan_line):
             issues.append(SurfaceQualityIssue("markdown.unmatched_link", "block", line, region))
-        public_evidence = first_forbidden_public_evidence(line)
+        public_evidence = first_forbidden_public_evidence(scan_line)
         if public_evidence is not None:
             issues.append(
                 SurfaceQualityIssue(
@@ -187,6 +259,50 @@ def _looks_like_unmatched_link(line: str) -> bool:
     if line.count("[") != line.count("]"):
         return True
     return line.count("](") > line.count(")")
+
+
+def _bad_watermark_window(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped.startswith("**기준 시각**:") or "수집창" not in stripped:
+        return False
+    _, _, window_part = stripped.partition("수집창")
+    if window_part.count("[") != 1 or window_part.count("]") != 1:
+        return True
+    return _WATERMARK_LINE_RE.fullmatch(stripped) is None
+
+
+def _href_ellipsis_evidence(line: str) -> str | None:
+    for pattern in (_INLINE_LINK_RE, _REFERENCE_LINK_RE, _AUTOLINK_RE):
+        match = pattern.search(line)
+        if match is not None:
+            return match.group(1)
+    return None
+
+
+def _looks_truncated_mid_token(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if _TRUNCATED_KOREAN_ELLIPSIS_RE.search(stripped):
+        return True
+    if _TRUNCATED_DENYLIST_RE.search(stripped):
+        return True
+    return (
+        stripped.endswith(("(", "["))
+        or stripped.count("(") > stripped.count(")")
+        or stripped.count("[") > stripped.count("]")
+        or stripped.count("**") % 2 == 1
+    )
+
+
+def _strip_inline_code(line: str) -> str:
+    return _INLINE_CODE_RE.sub("", line)
+
+
+def _repair_broken_numeric_bold(line: str) -> str:
+    repaired = _BROKEN_SIGN_UNIT_BOLD_RE.sub(r"**\1\2\3**", line)
+    repaired = _BROKEN_DOLLAR_UNIT_BOLD_RE.sub(r"**\1\2**", repaired)
+    return _BROKEN_NESTED_DOLLAR_PERCENT_RE.sub(r"**\1(\2)**", repaired)
 
 
 def _repair_recoverable_link_fragments(line: str) -> str:

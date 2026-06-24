@@ -4175,3 +4175,27 @@ passed, scoped ruff passed, `mypy src` passed.
 **Context**: u111 watchlist-public-impact-language-cleanup Code Generation complete.
 
 ---
+
+## u112 Land - reader-markdown-polish-gate-v2
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u112 code generation. Extended the deterministic public
+markdown polish gate for remaining first-viewport, link, numeric-emphasis, and
+Korean particle artifacts.
+**Decisions**:
+- Extended the existing u100 `surface_quality` repair/block path rather than
+  adding a second publish gate.
+- Added safe repairs for fixed broken numeric-bold fragments and `민감도을`;
+  residual malformed numeric emphasis, href ellipsis, malformed `수집창 [...]`
+  watermark brackets, and bounded truncation residue now block.
+- Updated number emphasis to wrap signed compound numeric tokens as one token.
+- Summary extraction now rejects raw lines with blocking surface-quality issues
+  before markdown cleanup can convert them into plausible summary text.
+- Preserved protected-region behavior for code fences, tables, collapsed
+  diagnostics, and disclaimers; `불강한성` remains covered by the existing u100
+  repair path.
+**Quality gate**: 79 focused surface/reader-format/segment-reader/summary tests
+passed, scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u112 reader-markdown-polish-gate-v2 Code Generation complete.
+
+---

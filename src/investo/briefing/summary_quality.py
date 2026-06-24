@@ -176,8 +176,6 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         raise SummaryQualityError(
             f"unbalanced markdown link in first-viewport summary line: {prefix}"
         )
-    if has_blocking_surface_issue(value):
-        raise SummaryQualityError(f"surface-quality issue in first-viewport summary line: {prefix}")
     if _HEADING_RESIDUE_RE.search(value):
         raise SummaryQualityError(f"heading residue in first-viewport summary line: {prefix}")
     if _BROKEN_NUMERIC_BOLD_RE.search(value):
@@ -192,6 +190,8 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         and _DANGLING_LONG_TAIL_RE.search(value)
     ):
         raise SummaryQualityError(f"dangling truncation in first-viewport summary line: {prefix}")
+    if has_blocking_surface_issue(value):
+        raise SummaryQualityError(f"surface-quality issue in first-viewport summary line: {prefix}")
     if _EN_CONJUNCTION_TAIL_RE.search(value) or _KO_PARTICLE_TAIL_RE.search(value):
         raise SummaryQualityError(
             f"conjunction-tail truncation in first-viewport summary line: {prefix}"
