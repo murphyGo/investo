@@ -1,5 +1,28 @@
 # AI-DLC Audit Log
 
+## u117 Land - model-contract-invariants-and-typed-metadata
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u117 code generation. Foundation model invariants and
+macro metadata parsing now fail loudly at shared boundaries.
+**Decisions**:
+- Enforced `SourceOutcome` cross-field invariants in `__post_init__` so direct
+  construction cannot bypass factory assumptions.
+- Kept adapter `raw_metadata` flat and added `MacroMetadataView` as the typed
+  parse boundary in `models.macro`.
+- Added a single `MacroMetadataIssue`/`MacroMetadataIssueCode` surface for
+  invalid macro status, priority, date, and required-section metadata.
+- Refactored existing macro helper APIs through the view while keeping their
+  public names and compatible return values.
+- Addressed code-review findings by preserving explicit required-actual
+  default sections and avoiding false date issues for release-period strings.
+**Quality gate**: 302 focused model/macro/source tests passed, scoped ruff
+passed, scoped ruff format check passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u117 model-contract-invariants-and-typed-metadata Code Generation
+complete.
+
+---
+
 ## u116 Land - repo-quality-guardrails-ci
 **Timestamp**: 2026-06-24T00:00:00Z
 **Action**: Landed u116 code generation. Repository quality checks now run

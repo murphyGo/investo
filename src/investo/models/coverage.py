@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from math import isfinite
 from typing import Final, Literal
 
 from investo._internal.redaction import RedactionPolicy, redact_text
@@ -38,6 +39,10 @@ SourceStatus = Literal["ok", "zero", "failed"]
 # common adapter (aggregator/news); the source aggregator stamps the
 # editorial value from :mod:`investo.sources.tiers` at collection time.
 SourceTier = Literal["S", "A", "B", "C"]
+
+_CATEGORIES: Final[frozenset[str]] = frozenset({"news", "price", "macro", "calendar", "earnings"})
+_SOURCE_STATUSES: Final[frozenset[str]] = frozenset({"ok", "zero", "failed"})
+_SOURCE_TIERS: Final[frozenset[str]] = frozenset({"S", "A", "B", "C"})
 
 # Maximum length of the public-facing failure reason string. Anything
 # longer is truncated with an ellipsis. Keeps SVG rendering predictable
@@ -83,8 +88,40 @@ class SourceOutcome:
     elapsed_s: float | None = None
 
     def __post_init__(self) -> None:
-        if self.elapsed_s is not None and self.elapsed_s < 0:
-            raise ValueError("elapsed_s must be >= 0")
+        if self.category not in _CATEGORIES:
+            raise ValueError("category must be one of news, price, macro, calendar, earnings")
+        if self.status not in _SOURCE_STATUSES:
+            raise ValueError("status must be one of ok, zero, failed")
+        if self.tier not in _SOURCE_TIERS:
+            raise ValueError("tier must be one of S, A, B, C")
+        if self.item_count < 0:
+            raise ValueError("item_count must be >= 0")
+        if self.latest_item_at is not None and self.latest_item_at.utcoffset() is None:
+            raise ValueError("latest_item_at must be timezone-aware")
+        if self.elapsed_s is not None and (self.elapsed_s < 0 or not isfinite(self.elapsed_s)):
+            raise ValueError("elapsed_s must be finite and >= 0")
+
+        if self.status == "ok":
+            if self.item_count <= 0:
+                raise ValueError("ok outcome requires item_count > 0")
+            if self.failure_reason is not None:
+                raise ValueError("ok outcome forbids failure_reason")
+            if self.transient is not None:
+                raise ValueError("ok outcome forbids transient")
+        elif self.status == "zero":
+            if self.item_count != 0:
+                raise ValueError("zero outcome requires item_count == 0")
+            if self.failure_reason is not None:
+                raise ValueError("zero outcome forbids failure_reason")
+            if self.transient is not None:
+                raise ValueError("zero outcome forbids transient")
+        else:
+            if self.item_count != 0:
+                raise ValueError("failed outcome requires item_count == 0")
+            if not self.failure_reason or not self.failure_reason.strip():
+                raise ValueError("failed outcome requires failure_reason")
+            if not isinstance(self.transient, bool):
+                raise ValueError("failed outcome requires transient bool")
 
     @classmethod
     def ok(

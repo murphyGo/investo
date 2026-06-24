@@ -7,6 +7,9 @@ secret-shaped tokens out of any reader-facing failure reason.
 
 from __future__ import annotations
 
+from datetime import datetime
+from math import inf, nan
+
 import pytest
 
 from investo.models import (
@@ -36,13 +39,100 @@ def test_source_outcome_carries_elapsed_seconds_when_provided() -> None:
 
 
 def test_source_outcome_rejects_negative_elapsed_seconds() -> None:
-    with pytest.raises(ValueError, match="elapsed_s must be >= 0"):
+    with pytest.raises(ValueError, match="elapsed_s must be finite and >= 0"):
         SourceOutcome.from_failure(
             "fred-macro",
             "macro",
             message="connection reset",
             transient=True,
             elapsed_s=-0.1,
+        )
+
+
+@pytest.mark.parametrize("elapsed_s", [inf, nan])
+def test_source_outcome_rejects_non_finite_elapsed_seconds(elapsed_s: float) -> None:
+    with pytest.raises(ValueError, match="elapsed_s must be finite and >= 0"):
+        SourceOutcome.zero("yahoo-finance-news", "news", elapsed_s=elapsed_s)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        (
+            {"status": "ok", "item_count": 0},
+            "ok outcome requires item_count > 0",
+        ),
+        (
+            {"status": "ok", "item_count": 1, "failure_reason": "boom"},
+            "ok outcome forbids failure_reason",
+        ),
+        (
+            {"status": "ok", "item_count": 1, "transient": False},
+            "ok outcome forbids transient",
+        ),
+        (
+            {"status": "zero", "item_count": 1},
+            "zero outcome requires item_count == 0",
+        ),
+        (
+            {"status": "zero", "failure_reason": "boom"},
+            "zero outcome forbids failure_reason",
+        ),
+        (
+            {"status": "zero", "transient": False},
+            "zero outcome forbids transient",
+        ),
+        (
+            {"status": "failed", "item_count": 1, "failure_reason": "boom", "transient": True},
+            "failed outcome requires item_count == 0",
+        ),
+        (
+            {"status": "failed", "failure_reason": "", "transient": True},
+            "failed outcome requires failure_reason",
+        ),
+        (
+            {"status": "failed", "failure_reason": "boom", "transient": None},
+            "failed outcome requires transient bool",
+        ),
+        (
+            {"status": "unknown", "item_count": 0},
+            "status must be one of",
+        ),
+        (
+            {"status": "zero", "category": "unknown"},
+            "category must be one of",
+        ),
+        (
+            {"status": "zero", "tier": "Z"},
+            "tier must be one of",
+        ),
+        (
+            {"status": "zero", "item_count": -1},
+            "item_count must be >= 0",
+        ),
+    ],
+)
+def test_source_outcome_direct_construction_rejects_invalid_states(
+    kwargs: dict[str, object],
+    message: str,
+) -> None:
+    fields: dict[str, object] = {
+        "source_name": "test-source",
+        "category": "news",
+        "status": "zero",
+        "item_count": 0,
+    }
+    fields.update(kwargs)
+    with pytest.raises(ValueError, match=message):
+        SourceOutcome(**fields)  # type: ignore[arg-type]
+
+
+def test_source_outcome_rejects_naive_latest_item_timestamp() -> None:
+    with pytest.raises(ValueError, match="latest_item_at must be timezone-aware"):
+        SourceOutcome.zero(
+            "yahoo-finance-news",
+            "news",
+            latest_item_at=datetime(2026, 5, 13, 12, 0),
         )
 
 

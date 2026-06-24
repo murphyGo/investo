@@ -91,6 +91,11 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         # macro_lifecycle.py (u59)
         "MacroLifecycleEvent",
         "MacroLifecycleStatus",
+        # macro.py (u117)
+        "MacroMetadataIssue",
+        "MacroMetadataIssueCode",
+        "MacroMetadataView",
+        "macro_metadata_view",
     }
 )
 

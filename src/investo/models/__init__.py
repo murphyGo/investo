@@ -43,6 +43,12 @@ from investo.models.facts import (
     VerifiedFactBundle,
 )
 from investo.models.items import Category, NormalizedItem
+from investo.models.macro import (
+    MacroMetadataIssue,
+    MacroMetadataIssueCode,
+    MacroMetadataView,
+    macro_metadata_view,
+)
 from investo.models.macro_lifecycle import MacroLifecycleEvent, MacroLifecycleStatus
 from investo.models.market_anchor import (
     DEFAULT_HISTORY_WINDOW_DAYS,
@@ -131,6 +137,9 @@ __all__ = [
     "ImpactGroup",
     "MacroLifecycleEvent",
     "MacroLifecycleStatus",
+    "MacroMetadataIssue",
+    "MacroMetadataIssueCode",
+    "MacroMetadataView",
     "MarketAnchor",
     "MarketSegment",
     "NormalizedItem",
@@ -157,6 +166,7 @@ __all__ = [
     "anchor_label",
     "core_fact_metadata_key",
     "is_core_fact",
+    "macro_metadata_view",
     "public_watchlist_match_group",
     "public_watchlist_match_label",
     "public_watchlist_match_summary",

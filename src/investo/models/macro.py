@@ -10,6 +10,7 @@ that predate u59.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Final, Literal, cast
 
@@ -17,6 +18,12 @@ from investo.models.items import NormalizedItem
 
 MacroEventStatus = Literal["scheduled", "actual", "unresolved", "confirmed", "stale"]
 MacroImportance = Literal["P0", "P1", "P2", "P3"]
+MacroMetadataIssueCode = Literal[
+    "invalid_macro_event_status",
+    "invalid_macro_priority",
+    "invalid_macro_event_date",
+    "invalid_required_section",
+]
 
 _MACRO_PRIORITIES: Final[frozenset[str]] = frozenset({"P0", "P1", "P2", "P3"})
 _MACRO_STATUSES: Final[frozenset[str]] = frozenset(
@@ -43,7 +50,151 @@ _HIGH_IMPORTANCE_FRED_SERIES_IDS: Final[frozenset[str]] = frozenset(
 )
 
 
+@dataclass(frozen=True, slots=True)
+class MacroMetadataIssue:
+    code: MacroMetadataIssueCode
+    key: str
+    value: str
+
+
+@dataclass(frozen=True, slots=True)
+class MacroMetadataView:
+    event_key: str | None
+    status: MacroEventStatus | None
+    priority: MacroImportance | None
+    label: str | None
+    actual: str | None
+    prior: str | None
+    forecast: str | None
+    consensus: str | None
+    surprise: str | None
+    release_period: str | None
+    event_date: date | None
+    required_sections: tuple[int, ...]
+    issues: tuple[MacroMetadataIssue, ...]
+
+
 def macro_event_key(item: NormalizedItem) -> str | None:
+    """Return a stable macro event key when one can be read or inferred."""
+    return macro_metadata_view(item).event_key
+
+
+def macro_event_status(item: NormalizedItem) -> MacroEventStatus | None:
+    """Return explicit or inferred macro event status."""
+    return macro_metadata_view(item).status
+
+
+def macro_priority(item: NormalizedItem) -> MacroImportance | None:
+    """Return explicit or inferred macro priority.
+
+    P0/P1 are used by candidate selection. P2/P3 remain useful metadata
+    for later prompt and quality work but are not reserved by the first
+    u59 slice.
+    """
+    return macro_metadata_view(item).priority
+
+
+def is_required_macro_actual(item: NormalizedItem) -> bool:
+    """Return whether the item should be treated as a required macro actual."""
+    view = macro_metadata_view(item)
+    explicit = _metadata_str(item.raw_metadata, "required_macro_actual")
+    if explicit and explicit.lower() == "true":
+        return True
+    return view.priority == "P0" and view.status == "actual"
+
+
+def macro_required_sections(item: NormalizedItem) -> tuple[int, ...]:
+    """Return required output sections for a required macro item.
+
+    Metadata uses a comma-separated string to preserve the flat
+    ``raw_metadata`` contract.
+    """
+    return macro_metadata_view(item).required_sections
+
+
+def macro_event_date(item: NormalizedItem) -> date:
+    """Return the best date for priority proximity sorting."""
+    view = macro_metadata_view(item)
+    if view.event_date is not None:
+        return view.event_date
+    if item.scheduled_at is not None:
+        return item.scheduled_at.astimezone(UTC).date()
+    return item.published_at.astimezone(UTC).date()
+
+
+def macro_prompt_payload(item: NormalizedItem) -> dict[str, str] | None:
+    """Return a compact macro object for Stage 1 prompt serialization."""
+    view = macro_metadata_view(item)
+    if view.event_key is None and view.priority is None and view.status is None:
+        return None
+
+    payload: dict[str, str] = {}
+    if view.event_key is not None:
+        payload["event_key"] = view.event_key
+    if view.priority is not None:
+        payload["priority"] = view.priority
+    if view.status is not None:
+        payload["status"] = view.status
+    if view.label:
+        payload["label"] = view.label
+
+    for output_key, value in (
+        ("actual", view.actual),
+        ("prior", view.prior),
+        ("forecast", view.forecast),
+        ("consensus", view.consensus),
+        ("surprise", view.surprise),
+        ("release_period", view.release_period),
+    ):
+        if value:
+            payload[output_key] = value
+
+    if view.required_sections:
+        payload["required_sections"] = ",".join(str(section) for section in view.required_sections)
+
+    return payload
+
+
+def macro_metadata_view(item: NormalizedItem) -> MacroMetadataView:
+    """Parse flat raw metadata into the typed macro decision view."""
+    issues: list[MacroMetadataIssue] = []
+    event_key = _macro_event_key(item)
+    status = _macro_event_status(item, event_key=event_key, issues=issues)
+    priority = _macro_priority(item, issues=issues)
+    explicit_required_actual = _is_explicit_required_macro_actual(item.raw_metadata)
+    required_sections = _macro_required_sections(
+        item,
+        priority=priority,
+        status=status,
+        explicit_required_actual=explicit_required_actual,
+        issues=issues,
+    )
+
+    return MacroMetadataView(
+        event_key=event_key,
+        status=status,
+        priority=priority,
+        label=_metadata_str(item.raw_metadata, "macro_event_label")
+        or _metadata_str(item.raw_metadata, "release_name"),
+        actual=_first_metadata_str(item.raw_metadata, ("macro_actual", "value", "actual_value")),
+        prior=_first_metadata_str(
+            item.raw_metadata,
+            ("macro_prior", "previous_value", "prior_value"),
+        ),
+        forecast=_metadata_str(item.raw_metadata, "macro_forecast"),
+        consensus=_metadata_str(item.raw_metadata, "macro_consensus"),
+        surprise=_metadata_str(item.raw_metadata, "macro_surprise"),
+        release_period=_first_metadata_str(
+            item.raw_metadata,
+            ("macro_release_period", "release_date", "scheduled_date", "release_period"),
+        ),
+        event_date=_macro_event_date(item, issues=issues),
+        required_sections=required_sections,
+        issues=tuple(issues),
+    )
+
+
+def _macro_event_key(item: NormalizedItem) -> str | None:
     """Return a stable macro event key when one can be read or inferred."""
 
     explicit = _metadata_str(item.raw_metadata, "macro_event_key")
@@ -71,21 +222,39 @@ def macro_event_key(item: NormalizedItem) -> str | None:
     return None
 
 
-def macro_event_status(item: NormalizedItem) -> MacroEventStatus | None:
+def _macro_event_status(
+    item: NormalizedItem,
+    *,
+    event_key: str | None,
+    issues: list[MacroMetadataIssue],
+) -> MacroEventStatus | None:
     """Return explicit or inferred macro event status."""
 
     explicit = _metadata_str(item.raw_metadata, "macro_event_status")
-    if explicit in _MACRO_STATUSES:
-        return cast(MacroEventStatus, explicit)
+    if explicit:
+        if explicit in _MACRO_STATUSES:
+            return cast(MacroEventStatus, explicit)
+        issues.append(
+            MacroMetadataIssue(
+                code="invalid_macro_event_status",
+                key="macro_event_status",
+                value=explicit,
+            )
+        )
+        return None
 
-    if item.source_name in {"fred-economic-calendar", "fomc-calendar"} and macro_event_key(item):
+    if item.source_name in {"fred-economic-calendar", "fomc-calendar"} and event_key:
         return "scheduled"
-    if item.source_name == "fred-macro" and macro_event_key(item):
+    if item.source_name == "fred-macro" and event_key:
         return "actual"
     return None
 
 
-def macro_priority(item: NormalizedItem) -> MacroImportance | None:
+def _macro_priority(
+    item: NormalizedItem,
+    *,
+    issues: list[MacroMetadataIssue],
+) -> MacroImportance | None:
     """Return explicit or inferred macro priority.
 
     P0/P1 are used by candidate selection. P2/P3 remain useful metadata
@@ -98,6 +267,14 @@ def macro_priority(item: NormalizedItem) -> MacroImportance | None:
         normalized = explicit.upper()
         if normalized in _MACRO_PRIORITIES:
             return cast(MacroImportance, normalized)
+        issues.append(
+            MacroMetadataIssue(
+                code="invalid_macro_priority",
+                key="macro_priority",
+                value=explicit,
+            )
+        )
+        return None
 
     if item.source_name == "fred-economic-calendar":
         release_id = _metadata_str(item.raw_metadata, "release_id")
@@ -117,16 +294,14 @@ def macro_priority(item: NormalizedItem) -> MacroImportance | None:
     return None
 
 
-def is_required_macro_actual(item: NormalizedItem) -> bool:
-    """Return whether the item should be treated as a required macro actual."""
-
-    explicit = _metadata_str(item.raw_metadata, "required_macro_actual")
-    if explicit and explicit.lower() == "true":
-        return True
-    return macro_priority(item) == "P0" and macro_event_status(item) == "actual"
-
-
-def macro_required_sections(item: NormalizedItem) -> tuple[int, ...]:
+def _macro_required_sections(
+    item: NormalizedItem,
+    *,
+    priority: MacroImportance | None,
+    status: MacroEventStatus | None,
+    explicit_required_actual: bool,
+    issues: list[MacroMetadataIssue],
+) -> tuple[int, ...]:
     """Return required output sections for a required macro item.
 
     Metadata uses a comma-separated string to preserve the flat
@@ -135,7 +310,9 @@ def macro_required_sections(item: NormalizedItem) -> tuple[int, ...]:
 
     raw_sections = _metadata_str(item.raw_metadata, "required_sections")
     if not raw_sections:
-        return _DEFAULT_REQUIRED_SECTIONS if is_required_macro_actual(item) else ()
+        if explicit_required_actual or (priority == "P0" and status == "actual"):
+            return _DEFAULT_REQUIRED_SECTIONS
+        return ()
 
     section_ids: list[int] = []
     for token in raw_sections.split(","):
@@ -145,70 +322,49 @@ def macro_required_sections(item: NormalizedItem) -> tuple[int, ...]:
         try:
             section_id = int(stripped)
         except ValueError:
+            issues.append(
+                MacroMetadataIssue(
+                    code="invalid_required_section",
+                    key="required_sections",
+                    value=stripped,
+                )
+            )
             continue
-        if section_id in _REQUIRED_SECTION_IDS and section_id not in section_ids:
+        if section_id not in _REQUIRED_SECTION_IDS:
+            issues.append(
+                MacroMetadataIssue(
+                    code="invalid_required_section",
+                    key="required_sections",
+                    value=stripped,
+                )
+            )
+            continue
+        if section_id not in section_ids:
             section_ids.append(section_id)
     return tuple(section_ids)
 
 
-def macro_event_date(item: NormalizedItem) -> date:
+def _macro_event_date(
+    item: NormalizedItem,
+    *,
+    issues: list[MacroMetadataIssue],
+) -> date | None:
     """Return the best date for priority proximity sorting."""
 
-    for key in ("scheduled_date", "release_date", "macro_release_date", "release_period"):
-        parsed = _parse_iso_date(_metadata_str(item.raw_metadata, key))
+    for key in ("scheduled_date", "release_date", "macro_release_date"):
+        raw = _metadata_str(item.raw_metadata, key)
+        parsed = _parse_iso_date(raw)
         if parsed is not None:
             return parsed
-    if item.scheduled_at is not None:
-        return item.scheduled_at.astimezone(UTC).date()
-    return item.published_at.astimezone(UTC).date()
-
-
-def macro_prompt_payload(item: NormalizedItem) -> dict[str, str] | None:
-    """Return a compact macro object for Stage 1 prompt serialization."""
-
-    event_key = macro_event_key(item)
-    priority = macro_priority(item)
-    status = macro_event_status(item)
-    if event_key is None and priority is None and status is None:
-        return None
-
-    payload: dict[str, str] = {}
-    if event_key is not None:
-        payload["event_key"] = event_key
-    if priority is not None:
-        payload["priority"] = priority
-    if status is not None:
-        payload["status"] = status
-
-    label = _metadata_str(item.raw_metadata, "macro_event_label") or _metadata_str(
-        item.raw_metadata, "release_name"
-    )
-    if label:
-        payload["label"] = label
-
-    for output_key, metadata_key in (
-        ("actual", "macro_actual"),
-        ("actual", "value"),
-        ("prior", "macro_prior"),
-        ("prior", "previous_value"),
-        ("forecast", "macro_forecast"),
-        ("consensus", "macro_consensus"),
-        ("surprise", "macro_surprise"),
-        ("release_period", "macro_release_period"),
-        ("release_period", "release_date"),
-        ("release_period", "scheduled_date"),
-    ):
-        if output_key in payload:
-            continue
-        value = _metadata_str(item.raw_metadata, metadata_key)
-        if value:
-            payload[output_key] = value
-
-    required_sections = macro_required_sections(item)
-    if required_sections:
-        payload["required_sections"] = ",".join(str(section) for section in required_sections)
-
-    return payload
+        if raw is not None:
+            issues.append(
+                MacroMetadataIssue(
+                    code="invalid_macro_event_date",
+                    key=key,
+                    value=raw,
+                )
+            )
+    return None
 
 
 def macro_priority_rank(priority: MacroImportance | None) -> int:
@@ -227,6 +383,19 @@ def _metadata_str(metadata: Mapping[str, object], key: str) -> str | None:
     return None
 
 
+def _is_explicit_required_macro_actual(metadata: Mapping[str, object]) -> bool:
+    explicit = _metadata_str(metadata, "required_macro_actual")
+    return explicit is not None and explicit.lower() == "true"
+
+
+def _first_metadata_str(metadata: Mapping[str, object], keys: tuple[str, ...]) -> str | None:
+    for key in keys:
+        value = _metadata_str(metadata, key)
+        if value:
+            return value
+    return None
+
+
 def _parse_iso_date(value: str | None) -> date | None:
     if value is None:
         return None
@@ -239,10 +408,14 @@ def _parse_iso_date(value: str | None) -> date | None:
 __all__ = [
     "MacroEventStatus",
     "MacroImportance",
+    "MacroMetadataIssue",
+    "MacroMetadataIssueCode",
+    "MacroMetadataView",
     "is_required_macro_actual",
     "macro_event_date",
     "macro_event_key",
     "macro_event_status",
+    "macro_metadata_view",
     "macro_priority",
     "macro_priority_rank",
     "macro_prompt_payload",

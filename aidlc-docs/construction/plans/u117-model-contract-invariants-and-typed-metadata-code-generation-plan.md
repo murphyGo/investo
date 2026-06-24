@@ -3,7 +3,7 @@
 **Date**: 2026-06-24
 **Unit**: u117 model-contract-invariants-and-typed-metadata
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-24 model-contract audit: `SourceOutcome` direct construction can bypass documented invariants, and macro decisions parse `raw_metadata` ad hoc.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -133,16 +133,16 @@ Export `MacroMetadataIssue`, `MacroMetadataIssueCode`, and `MacroMetadataView` f
 
 ## Implementation Steps
 
-- [ ] Add failing tests for invalid direct `SourceOutcome` construction and valid factory construction.
-- [ ] Enforce `SourceOutcome` invariants in `models/coverage.py` while keeping frozen/slotted dataclass behavior.
-- [ ] Add macro metadata view tests for valid explicit metadata, inferred FRED/FOMC metadata, invalid enum values, malformed dates, invalid `required_sections`, and numeric primitive conversion.
-- [ ] Implement the macro metadata view in `models/macro.py` or a small `models/macro_metadata.py`.
-- [ ] Implement the fixed `MacroMetadataIssue` dataclass and `MacroMetadataIssueCode` literal list; do not invent a second diagnostics shape.
-- [ ] Refactor `macro_event_key`, `macro_event_status`, `macro_priority`, `is_required_macro_actual`, `macro_required_sections`, `macro_event_date`, and prompt payload helpers to consume the view.
-- [ ] Add regression tests for BLS/BEA/FRED/FOMC source fixtures if behavior changes.
-- [ ] Fix invalid test fixtures rather than loosening the new contract.
-- [ ] Confirm no adapter needs to emit nested metadata or typed metadata objects.
-- [ ] Write `aidlc-docs/construction/u117-model-contract-invariants-and-typed-metadata/code/summary.md`.
+- [x] Add failing tests for invalid direct `SourceOutcome` construction and valid factory construction.
+- [x] Enforce `SourceOutcome` invariants in `models/coverage.py` while keeping frozen/slotted dataclass behavior.
+- [x] Add macro metadata view tests for valid explicit metadata, inferred FRED/FOMC metadata, invalid enum values, malformed dates, invalid `required_sections`, and numeric primitive conversion.
+- [x] Implement the macro metadata view in `models/macro.py` or a small `models/macro_metadata.py`.
+- [x] Implement the fixed `MacroMetadataIssue` dataclass and `MacroMetadataIssueCode` literal list; do not invent a second diagnostics shape.
+- [x] Refactor `macro_event_key`, `macro_event_status`, `macro_priority`, `is_required_macro_actual`, `macro_required_sections`, `macro_event_date`, and prompt payload helpers to consume the view.
+- [x] Add regression tests for BLS/BEA/FRED/FOMC source fixtures if behavior changes.
+- [x] Fix invalid test fixtures rather than loosening the new contract.
+- [x] Confirm no adapter needs to emit nested metadata or typed metadata objects.
+- [x] Write `aidlc-docs/construction/u117-model-contract-invariants-and-typed-metadata/code/summary.md`.
 
 ## Acceptance Criteria
 
