@@ -279,6 +279,10 @@ def test_stage2_system_carries_watchpoint_structured_bullet_rule_u87() -> None:
     assert "source + trigger" in section
     # A concrete populatable example is present (so the model has an anchor).
     assert "확인 소스: FRED · 10Y 금리가 4.5%를 상회하면" in section
+    # u110: no duplicated card labels or identical up/down trigger fragments.
+    assert "u110 human-readability rule" in section
+    assert "관심 영향: 관심 영향" in section
+    assert "서로 다른 확인 조건" in section
     # Advice wording is explicitly banned (u56 boundary unchanged).
     for banned in ("매수", "매도", "목표가"):
         assert banned in section

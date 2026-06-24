@@ -309,10 +309,11 @@ def test_structured_bullet_produces_populated_card_ac87_5_u98() -> None:
     assert _HEADER_LINE not in out
     assert "#### 관찰 신호:" in out
     assert "- 출처: FRED" in out
-    assert "- 현재: 확인 소스: FRED" in out
+    assert "- 현재: FRED" in out
     assert "- 확인 조건: 상방 " in out
     assert "- 신뢰도: 높음" in out
-    assert "- 관심 영향: 관심 영향: 변동성 확대 여부를 점검" in out
+    assert "- 관심 영향: 변동성 확대 여부를 점검" in out
+    assert "관심 영향: 관심 영향" not in out
     assert DATA_LIMITED_NOTE not in out
 
     rows = build_watchpoint_rows([_STRUCTURED_NUMERIC])
@@ -352,12 +353,81 @@ def test_card_defaults_for_partially_populated_structured_row_u98() -> None:
     cards = render_matrix_table([row])
     assert "- 출처: 확인 소스 미상" in cards
     assert "- 현재: 현재 신호 부족" in cards
-    assert "- 확인 조건: 상방 상방 데이터 부족; 하방 하방 데이터 부족" in cards
+    assert "- 확인 조건: 상방 데이터 부족; 하방 데이터 부족" in cards
     assert "- 관심 영향: 관심 영향 데이터 부족" in cards
     # A structured row without explicit source is still rejected by the u64
     # parser contract and collapses at document-render time.
     out = render_watchpoint_matrix(_section_six([bullet]), segment="us-equity")
     assert DATA_LIMITED_NOTE in out
+
+
+def test_u110_promotes_source_from_current_and_strips_duplicate_labels() -> None:
+    bullet = (
+        "현재: 확인 소스: FRED · 10Y 금리가 상방 압력 구간에 머물며, "
+        "상방: 상방 - 4.5%를 상회하면 성장주 변동성 부담 압력 관찰, "
+        "하방: 하방 - 4.3%를 이탈하면 방어적 해석. "
+        "관심 영향: 관심 영향: 대형 기술주 수급 점검."
+    )
+    out = render_watchpoint_matrix(_section_six([bullet]), segment="us-equity")
+    assert "- 출처: FRED" in out
+    assert "출처: 확인 소스 미상" not in out
+    assert "관심 영향: 관심 영향" not in out
+    assert "상방 상방" not in out
+    assert "하방 하방" not in out
+    # Prefix stripping must not erase semantic direction text in the current field.
+    assert "상방 압력 구간" in out
+
+
+def test_u110_identical_up_down_triggers_are_omitted() -> None:
+    bullet = (
+        "확인 소스: FRED · 10Y 금리가 4.5% 부근에서 정체; "
+        "상방: 4.5% 확인 필요; 하방: 4.5% 확인 필요. "
+        "관심 영향: 성장주 변동성 점검."
+    )
+    out = render_watchpoint_matrix(_section_six([bullet]), segment="us-equity")
+    assert DATA_LIMITED_NOTE in out
+    assert "#### 관찰 신호:" not in out
+
+
+def test_u110_mixed_section_omits_invalid_rows_but_keeps_valid_card() -> None:
+    invalid = (
+        "확인 소스: FRED · 10Y 금리 점검; 상방: 4.5% 확인 필요; "
+        "하방: 4.5% 확인 필요. 관심 영향: 성장주 변동성 점검."
+    )
+    valid = (
+        "현재: 확인 소스: KRX · 외국인 순매수가 확대되면 수급 개선 관찰, "
+        "축소되면 약화. 관심 영향: 대형주 수급 점검."
+    )
+    out = render_watchpoint_matrix(_section_six([invalid, valid]), segment="domestic-equity")
+    assert DATA_LIMITED_NOTE not in out
+    assert out.count("#### 관찰 신호:") == 1
+    assert "- 출처: KRX" in out
+    assert "4.5% 확인 필요; 하방 4.5% 확인 필요" not in out
+
+
+def test_u110_one_soft_invalid_renders_two_soft_invalids_omit() -> None:
+    from investo.publisher.watchpoint_matrix import _renderable_row
+
+    one_soft = WatchpointRow(
+        signal="10Y 금리",
+        source="FRED",
+        current="금리 추세",
+        bullish_trigger="4.5%를 상회하면 압력 관찰",
+        bearish_trigger="4.3%를 이탈하면 방어적 해석",
+        confidence="보통",
+        implication="금리 민감주 점검",
+    )
+    two_soft = WatchpointRow(
+        signal="원/달러 환율",
+        source="KRX",
+        current="환율 추세",
+        bullish_trigger="1,400원을 상회하면 부담 관찰",
+        bearish_trigger="1,350원을 이탈하면 완화",
+        confidence="보통",
+        implication="관심 영향 데이터 부족",
+    )
+    assert _renderable_row(one_soft)
+    assert not _renderable_row(two_soft)
 
 
 def test_card_renderer_removes_urls_broken_markdown_and_trace_tokens_u98() -> None:

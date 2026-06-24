@@ -4129,3 +4129,28 @@ B) Partial"
 **Context**: u109 domestic-anchor-sanity-quarantine Code Generation complete.
 
 ---
+
+## u110 Land - watchpoint-human-readability-v2
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u110 code generation. Cleaned public §⑥ watchpoint cards so
+field labels, source values, triggers, and implication text render as
+human-readable observations instead of template residue.
+**Decisions**:
+- Kept the u98 card shape and `render_watchpoint_matrix()` public signature
+  unchanged.
+- Normalized card fields inside `publisher.watchpoint_matrix` before
+  templating: strip repeated field prefixes, promote valid source candidates,
+  and display trigger text without `상방 상방` / `하방 하방`.
+- Prefer explicit `상방:` / `하방:` clauses over semantic direction text so
+  `상방 압력` remains in the current observation rather than being mistaken for
+  a trigger label.
+- Omit rows with hard-fail defects (missing source, missing trigger, identical
+  triggers) and collapse all-invalid sections to the existing bounded note.
+- Kept the Stage-2 prompt under the u101 byte budget while adding the u110
+  no-duplicate-label / distinct-trigger rule.
+**Quality gate**: 73 focused watchpoint/prompt/surface-quality tests passed,
+scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u110 watchpoint-human-readability-v2 Code Generation complete.
+
+---

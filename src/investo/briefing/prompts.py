@@ -379,7 +379,7 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   (``매수 검토 / 비중 축소 / 손절 라인``) 는 u56 publish 게이트에서
   차단되므로 사용하지 말 것. 관찰형 종결은 reader 에게 "무엇을 할지" 가
   전달되지 않으므로 publisher 단계에서 WARN 으로 표시된다.
-- §⑥ 관전 카드 룰 (u72 watchpoint-action-matrix · u87/u98 강화):
+- §⑥ 관전 카드 룰 (u72 watchpoint-action-matrix · u87/u98/u110 강화):
   §⑥ 의 각 bullet 은 publisher 가 관전 카드
   (``관찰 신호 / 출처 / 현재 / 상방 확인 조건 / 하방 확인 조건 / 신뢰도 /
   관심 영향``) 로 변환할 수 있도록 **하나의 자기완결적 관찰
@@ -393,13 +393,13 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   - **(c) 섹션 내 관심 영향 (implication)** — 그 섹션 watchlist 맥락의 의미
     (예 ``관심 영향: 변동성 확대 여부를 점검``).
   즉 ``source + trigger(상방/하방) + implication`` 셋을 한 문장 bullet 으로
-  묶는다. populatable bullet 예시 (권장):
+  묶는다. u110 human-readability rule: no duplicate labels
+  (``현재:``/``출처:``/``상방:``/``하방:``/``관심 영향: 관심 영향``);
+  up/down trigger must be 서로 다른 확인 조건. 예시:
   - ``확인 소스: FRED · 10Y 금리가 4.5%를 상회하면 성장주 변동성 부담 압력
     관찰, 4.3%를 이탈하면 방어적 해석. 관심 영향: 대형 기술주 수급 점검.``
   rejected fragment 예시 (이렇게 쓰지 말 것 — 카드가 ``데이터부족`` 으로 접힘):
   - ``FOMC 발언 톤 확인 필요`` (source·trigger·implication 모두 없음)
-  - ``[AAPL](https://…) 신고점`` (markdown 링크 단편 — 링크 대신 지표명+조건을
-    한국어 문장으로 쓴다)
   임계 수치는 입력에 존재하는 source-backed 값만 사용한다 — 입력에 없는
   임계값을 발명하지 말 것 (numeric integrity rule 의 연장). source ·
   임계조건을 source-back 할 수 없으면 해당 bullet 은 임계값을 지어내지
