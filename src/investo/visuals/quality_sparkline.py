@@ -6,6 +6,7 @@ import html
 from datetime import datetime
 from typing import Final, Literal
 
+from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
 from investo.briefing.quality_eval import QualityHistoryRow
 from investo.visuals.provenance import VisualProvenanceManifest, _investo_version
 from investo.visuals.render import _CARD_STYLE
@@ -114,10 +115,10 @@ def _empty_svg() -> str:
         f'height="{SVG_HEIGHT - 16}" rx="6"/>'
         '<text class="card-title" x="40" y="82" '
         'font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" '
-        'font-size="22">데이터 부족</text>'
+        'font-size="22">수집 근거 제한</text>'
         '<text class="card-text" x="40" y="112" '
         'font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" '
-        'font-size="13">품질 이력이 더 쌓이면 30일 추세선을 표시합니다.</text>'
+        f'font-size="13">{html.escape(PUBLIC_LOW_COVERAGE_TEXT)}</text>'
         "</svg>"
     )
 

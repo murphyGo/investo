@@ -4100,3 +4100,17 @@ B) Partial"
 **Context**: u107 cftc-positioning-layer Code Generation complete.
 
 ---
+
+## u108 Land - reader-facing-quality-language-boundary
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u108 code generation. Added shared reader-safe public quality language projection and extended the existing surface-quality gate to block raw diagnostic labels in public segment regions.
+**Decisions**:
+- Kept the owner in `src/investo/_internal/public_quality_language.py` so publisher, notifier, and visuals can share the same projection without crossing component ownership.
+- Reused u100 `surface_quality` as the publish-boundary blocker instead of adding a second scanner.
+- Moved public compact status chips away from raw `본문 사용`, `실패 N`, and `0건 N` counts while preserving those values in collapsed diagnostics and structured metadata.
+- Updated site index hero, Telegram summary extraction, visual-card text cleaning, and quality sparkline empty-state copy to avoid reader-visible raw diagnostic terms.
+**Quality gate**: 167 focused tests passed, scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u108 reader-facing-quality-language-boundary Code Generation complete.
+
+---

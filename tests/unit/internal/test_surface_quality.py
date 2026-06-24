@@ -112,9 +112,38 @@ def test_repeated_template_phrase_warns_only() -> None:
     assert [issue for issue in issues if issue.severity == "block"] == []
 
 
-def test_balanced_bracket_status_label_is_not_unmatched_link() -> None:
+def test_balanced_bracket_status_label_is_public_diagnostic_not_unmatched_link() -> None:
     text = "# title\n\n> **데이터 상태**: [데이터부족]\n\n## ① 요약"
 
     issues = find_surface_quality_issues(text)
 
     assert [issue for issue in issues if issue.code == "markdown.unmatched_link"] == []
+    public = [issue for issue in issues if issue.code == "public_diagnostic.raw_label"]
+    assert public
+    assert public[0].severity == "block"
+    assert public[0].region == "segment_first_viewport"
+
+
+def test_public_diagnostics_allowed_inside_collapsed_details() -> None:
+    text = (
+        "# title\n\n"
+        "## ① 요약\n본문\n\n"
+        "<details><summary>수집/품질 진단</summary>\n\n"
+        "> **소스 카운트**: 수집 대상 6 / 성공 4 / 0건 1 / 실패 1 / 본문 사용 미집계\n"
+        "</details>\n"
+    )
+
+    issues = find_surface_quality_issues(text)
+
+    assert [issue for issue in issues if issue.code == "public_diagnostic.raw_label"] == []
+
+
+def test_public_diagnostics_block_in_segment_body() -> None:
+    text = "# title\n\n## ① 요약\n본문 사용 미집계\n"
+
+    issues = find_surface_quality_issues(text)
+
+    public = [issue for issue in issues if issue.code == "public_diagnostic.raw_label"]
+    assert public
+    assert public[0].evidence == "본문 사용 미집계"
+    assert public[0].region == "segment_body"

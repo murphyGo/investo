@@ -383,10 +383,10 @@ def test_build_segmented_summary_prefers_clean_rendered_conclusion() -> None:
     summary = build_segmented_summary(briefings, site_urls=_SEGMENT_URLS)
 
     assert "🇰🇷 *국내 증시*\n[상세보기](" in summary
-    assert "국내 증시는 데이터 부족입니다." in summary
+    assert "국내 증시는 수집 근거가 제한적입니다." in summary
+    assert "데이터 부족" not in summary
     assert "🇰🇷 *국내 증시*\n1." not in summary
     assert "[국내 증시]" not in summary
-    assert "**데이터 부족**" not in summary
 
 
 def test_build_segmented_summary_includes_clean_coverage_label_when_present() -> None:

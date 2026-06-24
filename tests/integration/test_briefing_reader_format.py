@@ -128,9 +128,11 @@ def test_apply_reader_format_to_segments_meets_all_dod_bullets() -> None:
 
     # DoD-1: TL;DR block present + 3 bullets.
     assert "## 한눈에 보기" in markdown
-    tldr_section = markdown.split("## 한눈에 보기", 1)[1].split("## ①", 1)[0]
-    bullets = [line for line in tldr_section.splitlines() if line.startswith("- ")]
-    assert len(bullets) == 3
+    tldr_section = markdown.split("## 한눈에 보기", 1)[1].split("## ⓪-B", 1)[0]
+    summary_lines = [
+        line for line in tldr_section.splitlines() if line.strip() and not line.startswith(">")
+    ]
+    assert len(summary_lines) == 3
 
     # DoD-2: Anchor table replaces the prose blockquote.
     assert "| 종목 | 종가 | 변동 | 비고 |" in markdown
@@ -140,6 +142,8 @@ def test_apply_reader_format_to_segments_meets_all_dod_bullets() -> None:
     # DoD-3: H3 sub-headings.
     assert "### 3대 지수 상승 마감 — 전주 반등 흐름 연장" in markdown
     assert "**3대 지수 상승 마감 — 전주 반등 흐름 연장**\n\n" not in markdown
+    assert "## ③ 섹터/수급 동향\n\n오늘 확인 가능한 새 신호는 제한적입니다." in markdown
+    assert "## ③ 섹터/수급 동향\n\n데이터 부족." not in markdown
 
     # DoD-4: Numbers wrapped in bold (outside tables / URLs / code).
     assert "**+0.37%**" in markdown

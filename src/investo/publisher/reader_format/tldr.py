@@ -60,9 +60,9 @@ def ensure_tldr_block(text: str, *, segment: str | None = None) -> str:
         return text
 
     bullets = [
-        f"- {conclusion}" if conclusion else "- (요약 데이터 부족)",
-        f"- {driver}" if driver else "- (핵심 동인 데이터 부족)",
-        f"- {caution}" if caution else "- (주의 데이터 부족)",
+        f"- {conclusion}" if conclusion else "- 본문에서 확인할 수 있는 핵심만 정리했습니다.",
+        f"- {driver}" if driver else "- 뚜렷한 단일 동인은 본문 흐름으로 확인하세요.",
+        f"- {caution}" if caution else "- 새로 확인되는 변수는 본문 관전 포인트에서 이어봅니다.",
     ]
     block = f"{TLDR_HEADER}\n\n" + "\n".join(bullets) + "\n\n"
 

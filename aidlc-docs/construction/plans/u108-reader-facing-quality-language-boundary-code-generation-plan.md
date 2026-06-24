@@ -3,7 +3,7 @@
 **Date**: 2026-06-23
 **Unit**: u108 reader-facing-quality-language-boundary
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (2026-06-24)
 **Source**: 2026-06-23 generated-briefing quality review with six read-only subagent lanes and parent deduplication
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -177,3 +177,13 @@ uv run --extra dev mypy src
 - No archive backfill.
 - No broad Korean copy rewrite.
 - No LLM paraphrasing pass.
+
+## Completion Summary
+
+Completed 2026-06-24.
+
+- Added `src/investo/_internal/public_quality_language.py` as the shared reader-safe projection boundary.
+- Extended `src/investo/_internal/surface_quality.py` to block raw public diagnostic labels in segment first-viewport and body regions while preserving collapsed diagnostics.
+- Updated reader-format, site index hero, Telegram summary extraction, visual-card text cleaning, and quality sparkline empty-state copy to use reader-safe language.
+- Kept raw operational diagnostics available in collapsed `<details>` blocks, structured history, logs, and tests.
+- Validation: 167 focused tests passed, scoped ruff passed, `mypy src` passed.

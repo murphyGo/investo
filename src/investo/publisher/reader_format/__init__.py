@@ -56,6 +56,12 @@ chain — the pin is a unit test (``test_reader_format_preserves_disclaimer``).
 from __future__ import annotations
 
 import re
+from typing import Final
+
+from investo._internal.public_quality_language import (
+    first_forbidden_public_evidence,
+    project_public_quality_language,
+)
 
 # Private regexes consumed by ``investo.publisher.watchpoint_matrix`` via the
 # historical ``from investo.publisher.reader_format import _BULLET_RE`` path.
@@ -111,6 +117,11 @@ from investo.publisher.reader_format.watchpoint_audit import (
 )
 
 _KR_CODE_LINK_RE = re.compile(r"(?<!\\)\[(\d{6})\](?=\()")
+_DATA_LIMITED_STANDALONE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?P<prefix>[^\S\n]*(?:>[^\S\n]*)?)(?:데이터[^\S\n]*부족|자료[^\S\n]*부족)[.。]?[^\S\n]*$",
+    re.MULTILINE,
+)
+_DATA_LIMITED_READER_COPY: Final[str] = "오늘 확인 가능한 새 신호는 제한적입니다."
 
 
 def apply_reader_format(
@@ -142,6 +153,7 @@ def apply_reader_format(
     out = dedupe_glossings(out)
     out = normalize_meaning_lines(out, segment=segment)
     out = escape_krx_stock_code_link_fragments(out)
+    out = normalize_data_limited_reader_copy(out)
     combined = out + footer
     check_action_bullet_ratio(combined, segment=segment)
     check_watchpoint_actionability(combined, segment=segment)
@@ -151,6 +163,39 @@ def apply_reader_format(
 def escape_krx_stock_code_link_fragments(text: str) -> str:
     """Prevent ``종목[000000](가격...)`` from becoming a Markdown link."""
     return _KR_CODE_LINK_RE.sub(r"\\[\1\\]", text)
+
+
+def normalize_data_limited_reader_copy(text: str) -> str:
+    """Rewrite terse data-limited placeholders into reader prose."""
+
+    def _repl(match: re.Match[str]) -> str:
+        return f"{match.group('prefix')}{_DATA_LIMITED_READER_COPY}"
+
+    lines: list[str] = []
+    in_code = False
+    in_details = False
+    for raw_line in _DATA_LIMITED_STANDALONE_RE.sub(_repl, text).splitlines(keepends=True):
+        line = raw_line.rstrip("\n")
+        stripped = line.strip()
+        protected = (
+            in_code or in_details or stripped.startswith("|") or "수집/품질 진단" in stripped
+        )
+        if stripped.startswith("```"):
+            in_code = not in_code
+        if "<details" in line:
+            in_details = True
+        if "</details>" in line:
+            in_details = False
+        if protected:
+            lines.append(raw_line)
+            continue
+        if first_forbidden_public_evidence(line) is None:
+            lines.append(raw_line)
+            continue
+        newline = "\n" if raw_line.endswith("\n") else ""
+        projected = project_public_quality_language(line)
+        lines.append(projected + newline)
+    return "".join(lines)
 
 
 def _split_disclaimer_footer(text: str) -> tuple[str, str]:
@@ -186,6 +231,7 @@ __all__ = [
     "enforce_h3_subheadings",
     "ensure_tldr_block",
     "escape_krx_stock_code_link_fragments",
+    "normalize_data_limited_reader_copy",
     "normalize_meaning_lines",
     "reflow_first_viewport",
     "wrap_numbers_bold",

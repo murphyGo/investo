@@ -45,7 +45,8 @@ def test_quality_sparkline_is_deterministic() -> None:
 def test_quality_sparkline_empty_input_renders_placeholder() -> None:
     svg = render_quality_sparkline([]).decode("utf-8")
 
-    assert "데이터 부족" in svg
+    assert "수집 근거 제한" in svg
+    assert "데이터 부족" not in svg
 
 
 def test_quality_sparkline_missing_days_break_segments() -> None:

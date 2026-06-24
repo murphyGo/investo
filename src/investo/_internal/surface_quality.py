@@ -6,8 +6,16 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+from investo._internal.public_quality_language import first_forbidden_public_evidence
+
 SurfaceIssueSeverity = Literal["warn", "block"]
-SurfaceIssueRegion = Literal["first_viewport", "body", "protected"]
+SurfaceIssueRegion = Literal[
+    "first_viewport",
+    "segment_first_viewport",
+    "segment_body",
+    "body",
+    "protected",
+]
 
 _FIRST_SECTION_RE = re.compile(r"(?m)^## ①")
 _ANY_H2_RE = re.compile(r"(?m)^## ")
@@ -93,12 +101,15 @@ def repair_surface_artifacts(text: str) -> str:
 
 
 def find_surface_quality_issues(text: str) -> tuple[SurfaceQualityIssue, ...]:
-    """Find first-viewport surface-quality warnings and blockers."""
+    """Find reader-visible surface-quality warnings and blockers."""
 
     issues: list[SurfaceQualityIssue] = []
     first = extract_first_viewport(text)
-    issues.extend(_scan_lines(first, region="first_viewport"))
+    issues.extend(_scan_lines(first, region="segment_first_viewport"))
     issues.extend(_repeated_phrase_warnings(first))
+    body = text[len(first) :]
+    if body:
+        issues.extend(_scan_lines(body, region="segment_body"))
     return tuple(issues)
 
 
@@ -136,12 +147,22 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
             issues.append(SurfaceQualityIssue("trace.fragment", "block", line, region))
         if _looks_like_unmatched_link(line):
             issues.append(SurfaceQualityIssue("markdown.unmatched_link", "block", line, region))
+        public_evidence = first_forbidden_public_evidence(line)
+        if public_evidence is not None:
+            issues.append(
+                SurfaceQualityIssue(
+                    "public_diagnostic.raw_label",
+                    "block",
+                    public_evidence,
+                    region,
+                )
+            )
     return issues
 
 
 def _repeated_phrase_warnings(text: str) -> list[SurfaceQualityIssue]:
     return [
-        SurfaceQualityIssue("template.repeated_phrase", "warn", phrase, "first_viewport")
+        SurfaceQualityIssue("template.repeated_phrase", "warn", phrase, "segment_first_viewport")
         for phrase in _REPEATED_PHRASES
         if text.count(phrase) >= 3
     ]

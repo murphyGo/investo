@@ -14,18 +14,16 @@ public quality truth; u56 owns compliance). u71 only controls *ordering*,
 transform that runs AFTER the u51/u61/u56 chain so it reflows already-
 cleaned values — it never re-validates or regenerates them.
 
-Reflow contract (stable order, first viewport):
+Reflow contract (stable order, reader-facing lead):
   1. title + watermark + segment nav            (untouched, stays first)
   2. ``## 한눈에 보기`` TL;DR bullets             (u51, untouched)
   3. ``> **오늘의 결론/핵심 동인/주의할 점**``       (summary callouts, bounded)
-  4. compact status chip (one line)              (NEW, derived from badge)
-  5. ``<details><summary>수집/품질 진단</summary>`` (NEW, the raw badge body)
-  6. ``## ①`` ... body
+  4. ``## ①`` ... body
+  5. compact status chip + collapsed diagnostics before the disclaimer
 
-The compact status chip is NOT considered raw diagnostics — it stays in
-the first viewport. The raw diagnostics (source-count 5-tuple, tier mix,
-detailed-reason labels, per-source status) move into the collapsed
-``<details>`` block placed after the summary callouts.
+The compact status chip and raw diagnostics are useful audit information,
+but they should not lead the market note. They move behind the main
+sections, immediately before the disclaimer footer.
 """
 
 from __future__ import annotations
@@ -33,7 +31,15 @@ from __future__ import annotations
 import re
 from typing import Final
 
-from investo.publisher.reader_format._constants import _FIRST_SECTION_MARKER, _logger
+from investo._internal.public_quality_language import (
+    PUBLIC_LOW_COVERAGE_TEXT,
+    PUBLIC_SOURCE_DETAIL_TEXT,
+)
+from investo.publisher.reader_format._constants import (
+    _DISCLAIMER_FOOTER_ANCHOR,
+    _FIRST_SECTION_MARKER,
+    _logger,
+)
 
 # Coverage-badge blockquote line prefixes emitted by
 # ``investo.briefing.pipeline._render_coverage_badge``. The status line is
@@ -93,7 +99,10 @@ def _compact_status_chip(text: str) -> str | None:
     count_line = count.group(0)
     zero_match = _BADGE_COUNT_ZERO_RE.search(count_line)
     zero = zero_match.group("zero") if zero_match is not None else "0"
-    return f"> **데이터 상태**: {label} · 본문 사용 {body_used} · 실패 {failed} · 0건 {zero}"
+    _ = (failed, zero, body_used)
+    if label == "정상":
+        return f"> **데이터 상태**: {label}"
+    return f"> **데이터 상태**: {label} · {PUBLIC_LOW_COVERAGE_TEXT} · {PUBLIC_SOURCE_DETAIL_TEXT}"
 
 
 def _badge_is_failed(text: str) -> bool:
@@ -208,7 +217,7 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
     open_tag = _DIAGNOSTICS_DETAILS_OPEN_EXPANDED if expanded else _DIAGNOSTICS_DETAILS_OPEN
     block = f"{chip}\n\n{open_tag}\n\n{diagnostics}\n\n{_DIAGNOSTICS_DETAILS_CLOSE}\n\n"
 
-    out = _insert_after_summary_callouts(without_badge, block)
+    out = _insert_after_main_body(without_badge, block)
     if out is None:
         _logger.warning(
             "reader_format.reflow_no_anchor",
@@ -225,12 +234,18 @@ _DIAGNOSTICS_SUMMARY_PRESENT_RE: Final[re.Pattern[str]] = re.compile(
 _MULTI_BLANK_RE: Final[re.Pattern[str]] = re.compile(r"\n{3,}")
 
 
-def _insert_after_summary_callouts(text: str, block: str) -> str | None:
-    """Insert ``block`` after the last summary callout, else before ``## ①``.
+def _insert_after_main_body(text: str, block: str) -> str | None:
+    """Insert ``block`` before the disclaimer footer, else before ``## ①``.
 
     Returns ``None`` when neither anchor exists (a malformed header the
     caller should leave untouched). The block lands on its own paragraph.
     """
+    footer = text.find(_DISCLAIMER_FOOTER_ANCHOR)
+    if footer != -1:
+        before = text[:footer].rstrip()
+        after = text[footer:].lstrip("\n")
+        return f"{before}\n\n{block}{after}"
+
     callouts = list(_SUMMARY_CALLOUT_RE.finditer(text))
     if callouts:
         last = callouts[-1]

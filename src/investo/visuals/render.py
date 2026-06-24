@@ -6,6 +6,7 @@ import html
 import re
 from typing import Final
 
+from investo._internal.public_quality_language import project_public_quality_language
 from investo.briefing.segments import SEGMENT_LABELS
 from investo.briefing.watchlist import DEFAULT_BUNDLE_BADGE_LABEL
 from investo.visuals.cards import (
@@ -286,7 +287,7 @@ def _clean_visual_text(text: str) -> str:
     cleaned = _MARKDOWN_LINK_RE.sub(r"\1", text)
     cleaned = _LEADING_LIST_RE.sub("", cleaned)
     cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
-    return " ".join(cleaned.split())
+    return project_public_quality_language(" ".join(cleaned.split()))
 
 
 def _truncate_word(word: str, max_chars: int) -> str:

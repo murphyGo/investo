@@ -201,5 +201,12 @@ def test_extract_conclusion_returns_first_match() -> None:
     assert extract_conclusion(body) == "결론 본문입니다."
 
 
+def test_extract_conclusion_projects_raw_quality_language() -> None:
+    body = "> **오늘의 결론**: 국내 증시는 데이터 부족입니다.\n> **핵심 동인**: x\n"
+    out = extract_conclusion(body)
+    assert out == "국내 증시는 수집 근거가 제한적입니다."
+    assert "데이터 부족" not in out
+
+
 def test_extract_conclusion_falls_back_when_missing() -> None:
     assert extract_conclusion("# title\n\nbody") == "결론 인용을 추출하지 못했습니다."

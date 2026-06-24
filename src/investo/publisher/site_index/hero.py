@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from investo._internal.public_quality_language import project_public_quality_language
 from investo.briefing.extract import extract_conclusion as _extract_conclusion_chokepoint
 from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
 from investo.models import Briefing
@@ -63,7 +64,7 @@ def extract_conclusion(rendered_markdown: str) -> str:
     value = _extract_conclusion_chokepoint(rendered_markdown)
     if value is None:
         return _HERO_FALLBACK_TEXT
-    return value
+    return project_public_quality_language(value)
 
 
 def _render_hero_block(

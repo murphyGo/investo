@@ -133,9 +133,9 @@ def test_conclusion_data_falls_back_to_first_market_summary_line() -> None:
 
 def test_conclusion_data_sentinel_when_no_meaningful_line() -> None:
     # No conclusion line and a market_summary whose only line cleans to
-    # empty (markdown tokens only) → the "데이터 부족" sentinel.
+    # empty (markdown tokens only) -> reader-safe limited-evidence sentinel.
     data = conclusion_data(_briefing(market_summary="***"))
-    assert data.conclusion == "데이터 부족"
+    assert data.conclusion == "수집 근거가 제한적입니다"
 
 
 # ---------------------------------------------------------------------------

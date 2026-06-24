@@ -246,10 +246,10 @@ def apply_reader_format_to_segments(
         markdown = emit_first_viewport_disclaimer(markdown, segment)
         # u71 — reader-first viewport reflow. Runs last in the header
         # chain (after the short disclaimer is positioned) so it sees the
-        # final first-viewport shape: it bounds the caution snippet, builds
-        # a compact status chip, and collapses the raw coverage-badge
-        # diagnostics into a <details> block placed AFTER the summary
-        # callouts. Pure str -> str, idempotent, disclaimer-preserving.
+        # final first-viewport shape: it bounds the caution snippet, then
+        # moves the compact status chip and raw coverage-badge diagnostics
+        # into a <details> block behind the main sections. Pure str -> str,
+        # idempotent, disclaimer-preserving.
         markdown = reflow_first_viewport(markdown, segment=segment)
         surface_issues_before = find_surface_quality_issues(markdown)
         repaired_surface = repair_surface_artifacts(markdown)

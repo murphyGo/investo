@@ -32,6 +32,7 @@ from investo.publisher.reader_format import (
     enforce_h3_subheadings,
     ensure_tldr_block,
     escape_krx_stock_code_link_fragments,
+    normalize_data_limited_reader_copy,
     wrap_numbers_bold,
 )
 
@@ -61,6 +62,18 @@ def test_ensure_tldr_block_inserts_from_callouts() -> None:
     assert "- 10Y 4.42% 부담 잔존" in out
     # Block lands BEFORE the first section header.
     assert out.find(TLDR_HEADER) < out.find("## ①")
+
+
+def test_ensure_tldr_block_missing_callout_uses_reader_copy() -> None:
+    text = (
+        "# 2026-05-11 미국 증시 시황\n\n"
+        "> **오늘의 결론**: 3대 지수 상승 마감 [강세]\n"
+        "> **주의할 점**: 10Y 4.42% 부담 잔존\n\n"
+        "## ① 요약\nbody\n"
+    )
+    out = ensure_tldr_block(text)
+    assert "데이터 부족" not in out.split("## ①", 1)[0]
+    assert "- 뚜렷한 단일 동인은 본문 흐름으로 확인하세요." in out
 
 
 def test_ensure_tldr_block_no_callouts_warns_and_passes_through(
@@ -178,6 +191,15 @@ def test_escape_krx_stock_code_link_fragments_preserves_real_links() -> None:
     text = r"[SK오션플랜트\[100090\]](https://example.com) — 삼성전자[005930]는 상승"
 
     assert escape_krx_stock_code_link_fragments(text) == text
+
+
+def test_normalize_data_limited_reader_copy_rewrites_standalone_placeholder() -> None:
+    text = "## ③ 섹터/수급 동향\n\n데이터 부족.\n\n> 데이터 부족\n\n문장 안 데이터 부족은 유지."
+    out = normalize_data_limited_reader_copy(text)
+    assert "오늘 확인 가능한 새 신호는 제한적입니다." in out
+    assert "> 오늘 확인 가능한 새 신호는 제한적입니다." in out
+    assert "문장 안 수집 근거 제한은 유지." in out
+    assert "데이터 부족" not in out
 
 
 # ---------------------------------------------------------------------------

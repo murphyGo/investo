@@ -28,6 +28,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final
 
+from investo._internal.public_quality_language import project_public_quality_language
 from investo.briefing.market_anchor import anchor_label
 from investo.models import Briefing, NormalizedItem
 
@@ -101,6 +102,7 @@ def clean_summary_text(text: str) -> str:
     cleaned = _MARKDOWN_LINK_RE.sub(r"\1", cleaned)
     cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
     cleaned = " ".join(cleaned.split())
+    cleaned = project_public_quality_language(cleaned)
     if not _MEANINGFUL_TEXT_RE.search(cleaned):
         return ""
     return cleaned
@@ -155,7 +157,11 @@ def conclusion_data(briefing: Briefing) -> ConclusionData:
         summary = clean_summary_text(line)
         if summary:
             return ConclusionData(conclusion=summary, coverage_label=None, watchlist=None)
-    return ConclusionData(conclusion="데이터 부족", coverage_label=None, watchlist=None)
+    return ConclusionData(
+        conclusion=project_public_quality_language("데이터 부족"),
+        coverage_label=None,
+        watchlist=None,
+    )
 
 
 def market_snapshot_entries(price_items: Sequence[NormalizedItem]) -> list[SnapshotEntry]:

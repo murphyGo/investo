@@ -56,31 +56,32 @@ def _index(text: str, needle: str) -> int:
 
 
 # ---------------------------------------------------------------------------
-# AC-71.1 / AC-71.2 — ordering: summary before diagnostics
+# AC-71.1 / AC-71.2 — ordering: main note before diagnostics
 # ---------------------------------------------------------------------------
 
 
-def test_summary_callouts_precede_collapsed_diagnostics() -> None:
+def test_main_sections_precede_collapsed_diagnostics() -> None:
     out = reflow_first_viewport(_header(), segment="us-equity")
     tldr = _index(out, "## 한눈에 보기")
     conclusion = _index(out, "**오늘의 결론**")
-    chip = _index(out, "본문 사용 3 · 실패 1 · 0건 1")
-    details = _index(out, f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>")
     section = _index(out, "## ①")
-    assert tldr < conclusion < chip < details < section
+    chip = _index(out, "이번 문서는 수집 근거가 제한적입니다.")
+    details = _index(out, f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>")
+    disclaimer = _index(out, "## ⑦ 면책조항")
+    assert tldr < conclusion < section < chip < details < disclaimer
 
 
-def test_raw_diagnostics_moved_below_summary() -> None:
+def test_raw_diagnostics_moved_below_main_sections() -> None:
     out = reflow_first_viewport(_header(), segment="us-equity")
     # The raw per-source / count / tier lines now live inside <details>,
-    # i.e. after the summary callouts, not before.
-    conclusion = _index(out, "**오늘의 결론**")
+    # i.e. after the main market sections, not in the lead.
+    section = _index(out, "## ①")
     source_status = _index(out, "소스별 상태")
     count_line = _index(out, "소스 카운트")
     tier_line = _index(out, "소스 등급 분포")
-    assert conclusion < source_status
-    assert conclusion < count_line
-    assert conclusion < tier_line
+    assert section < source_status
+    assert section < count_line
+    assert section < tier_line
     # And all sit inside the details block.
     open_idx = _index(out, f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>")
     close_idx = _index(out, "</details>")
@@ -91,14 +92,27 @@ def test_raw_diagnostics_moved_below_summary() -> None:
 
 def test_compact_chip_kept_outside_details() -> None:
     out = reflow_first_viewport(_header(), segment="us-equity")
-    chip = _index(out, "본문 사용 3 · 실패 1 · 0건 1")
+    chip = _index(out, "이번 문서는 수집 근거가 제한적입니다.")
     open_idx = _index(out, f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>")
     assert chip < open_idx
 
 
 def test_chip_format_fixed_fields() -> None:
     out = reflow_first_viewport(_header(), segment="us-equity")
-    assert "> **데이터 상태**: 부분 · 본문 사용 3 · 실패 1 · 0건 1" in out
+    assert (
+        "> **데이터 상태**: 부분 · 이번 문서는 수집 근거가 제한적입니다. "
+        "· 수집 상세는 진단 섹션에서 확인할 수 있습니다."
+    ) in out
+
+
+def test_chip_omits_untracked_body_usage_wording() -> None:
+    badge = _BADGE.replace("본문 사용 3", "본문 사용 미집계")
+    out = reflow_first_viewport(_header(badge=badge), segment="us-equity")
+    assert "> **데이터 상태**: 부분 · 이번 문서는 수집 근거가 제한적입니다." in out
+    chip = out.split(f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>", 1)[0]
+    assert "본문 사용 미집계" not in chip
+    assert "실패 1" not in chip
+    assert "0건 1" not in chip
 
 
 def test_details_collapsed_by_default_for_non_failed() -> None:
@@ -192,9 +206,10 @@ def test_no_badge_is_noop_for_diagnostics() -> None:
 
 
 def test_reflow_without_summary_callouts_uses_section_anchor() -> None:
-    # No summary callouts (rare) — chip + details land before ## ①.
+    # No summary callouts (rare) — chip + details still land at the end.
     out = reflow_first_viewport(_header(summary=""), segment="us-equity")
     chip = _index(out, "> **데이터 상태**: 부분")
     details = _index(out, f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>")
     section = _index(out, "## ①")
-    assert chip < details < section
+    disclaimer = _index(out, "## ⑦ 면책조항")
+    assert section < chip < details < disclaimer

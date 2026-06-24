@@ -154,6 +154,26 @@ def test_render_market_snapshot_card_cleans_markdown_and_wraps_long_text() -> No
     assert "미국 증시 시장 스냅샷" in svg
 
 
+def test_render_market_snapshot_card_projects_quality_language() -> None:
+    card = MarketSnapshotCardInput(
+        target_date=date(2026, 5, 7),
+        segment="us-equity",
+        coverage_status="partial",
+        conclusion="데이터 부족입니다.",
+        main_driver="본문 사용 미집계",
+        caution="확인 소스 미상",
+    )
+
+    svg = render_card_svg(card)
+
+    assert "데이터 부족" not in svg
+    assert "본문 사용 미집계" not in svg
+    assert "확인 소스 미상" not in svg
+    assert "수집 근거가 제한적입니다" in svg
+    assert "수집 상세는 진단 섹션에서 확인할 수 있습니다." in svg
+    assert "확인 가능한 출처가 있는 신호만 표시했습니다." in svg
+
+
 def test_render_price_snapshot_card_escapes_text() -> None:
     card = PriceSnapshotCardInput(
         target_date=date(2026, 5, 7),
