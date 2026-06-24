@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
+from investo.models.segments import SEGMENT_LABELS, MarketSegment
 
 from ._blocks import _write_text_atomic
 

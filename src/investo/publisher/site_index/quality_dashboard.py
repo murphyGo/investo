@@ -93,7 +93,7 @@ def update_accuracy_page(
         compute_accuracy,
         render_accuracy_page,
     )
-    from investo.briefing.segments import MarketSegment
+    from investo.models.segments import MarketSegment
 
     def no_price_data(
         segment: MarketSegment,

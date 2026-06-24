@@ -50,27 +50,20 @@ from __future__ import annotations
 import hashlib
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass, field
-from typing import Final, Literal
+from typing import Final
 
-from investo.briefing.watchlist import (
-    WatchlistConfig,
+from investo.briefing.watchlist import WatchlistConfig
+from investo.models import NormalizedItem
+from investo.models.watchlist import (
+    ImpactGroup,
+    RejectedCandidate,
+    RejectReason,
     WatchlistImpact,
+    WatchlistImpactCenter,
     WatchlistImpactStatus,
     WatchlistMatch,
     WatchlistTermKind,
 )
-from investo.models import NormalizedItem
-
-ImpactGroup = Literal["direct", "related", "uncertain", "rejected"]
-
-# Reason codes for the rejected group. Kept terse + non-PII so they are
-# safe to render inside the collapsed public diagnostics block.
-RejectReason = Literal[
-    "short-ticker-boundary",
-    "conflicting-symbol",
-    "no-source-evidence",
-]
 
 # Short ticker classes whose false positives reviewers flagged (SOL/BTC-
 # like). A configured ASCII ticker at or below this length is checked for
@@ -96,64 +89,6 @@ _MAX_REJECTED: Final[int] = 25
 # ``BTCS`` token). Word-boundary anchored exactly like the u64 matcher so
 # we never claim a rejection u64 itself would have accepted.
 _ASCII_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9]+")
-
-
-@dataclass(frozen=True, slots=True)
-class RejectedCandidate:
-    """A configured term that *resembled* an item but was suppressed.
-
-    Redaction-safe by construction: stores the configured ``term``
-    (user's own), the offending ``token`` it could have been confused
-    with, the ``source_name`` (never the full title), and a short
-    ``reason`` code. ``title_hash`` is a short stable digest of the item
-    title for dedup / operator correlation without leaking the title.
-    """
-
-    term: str
-    kind: WatchlistTermKind
-    token: str
-    source_name: str
-    reason: RejectReason
-    title_hash: str
-
-    def redacted_line(self) -> str:
-        """Render a redaction-safe one-line diagnostic.
-
-        Shape: ``BTC ⊘ BTM [short-ticker-boundary] · yahoo-finance-news
-        #ab12cd``. No item title, no summary, no URL — only the user's
-        own configured term, the offending token, the reason code, the
-        source name, and a short title hash.
-        """
-        return f"{self.term} ⊘ {self.token} [{self.reason}] · {self.source_name} #{self.title_hash}"
-
-
-@dataclass(frozen=True, slots=True)
-class WatchlistImpactCenter:
-    """Daily impact center — u64 matches grouped into four buckets."""
-
-    configured: bool
-    direct: tuple[WatchlistMatch, ...] = ()
-    related: tuple[WatchlistMatch, ...] = ()
-    uncertain: tuple[WatchlistMatch, ...] = ()
-    rejected: tuple[RejectedCandidate, ...] = ()
-    # Carried through from the source impact so renderers can branch on
-    # coverage-hold / unconfigured exactly like the legacy surface.
-    status: WatchlistImpactStatus = "matched"
-    notes: tuple[str, ...] = field(default_factory=tuple)
-
-    @property
-    def has_public_impacts(self) -> bool:
-        """True iff a public-eligible (direct/related) impact exists."""
-        return bool(self.direct or self.related)
-
-    @property
-    def has_diagnostics(self) -> bool:
-        """True iff a diagnostics-only (uncertain/rejected) record exists."""
-        return bool(self.uncertain or self.rejected)
-
-    def public_matches(self) -> tuple[WatchlistMatch, ...]:
-        """Direct first, then related — the public-eligible ordering."""
-        return (*self.direct, *self.related)
 
 
 def _short_title_hash(title: str) -> str:

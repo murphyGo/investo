@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Final, Literal
 
@@ -19,77 +19,20 @@ from investo.briefing._text.patterns import (
 )
 from investo.models import Category, NormalizedItem, SourceOutcome
 from investo.models.macro import is_required_macro_actual, macro_event_status
-from investo.models.segments import MarketSegment
-
-# u54 — 4-tier severity enum. ``limited`` is inserted between
-# ``partial`` and ``failed`` to surface "core data missing but segment
-# can still attempt narrative"; legacy ``insufficient`` migrated to the
-# strictest ``failed`` tier. Single enum — no parallel definition, no
-# conversion shim.
-CoverageStatus = Literal["normal", "partial", "limited", "failed"]
-# u22 — closed set of reason codes describing *why* a segment landed in
-# its current coverage status. Multiple codes can apply at once
-# (e.g. price source failed AND news returned zero items).
-CoverageReasonCode = Literal[
-    "ZERO_ITEMS",
-    "BELOW_THRESHOLD",
-    "MISSING_NEWS",
-    "MISSING_PRICE",
-    "MISSING_MACRO",
-    "MISSING_CALENDAR",
-    "MISSING_EARNINGS",
-    "SOURCE_FAILED",
-    "SOURCE_ZERO",
-    # u41 Step 5 — OpenDART may legitimately return zero disclosures on
-    # a domestic publish window. This is a quiet-day disclosure context,
-    # not a source failure or generic coverage deficiency.
-    "DOMESTIC_DISCLOSURE_QUIET",
-    # u43 — emitted only when the segment had ≥ 1 lookahead-aware
-    # adapter attempted *and* the lookahead pass for that segment
-    # returned zero forward-scheduled items. Never fires on a segment
-    # with no lookahead-aware adapter registered (anti-regression).
-    "LOOKAHEAD_DATA_MISSING",
-    # u54 — core-source / staleness reason codes that feed severity
-    # downgrades. ``CORE_FAILED``: at least one core source failed.
-    # ``CORE_ZERO``: at least one core source emitted zero items.
-    # ``CORE_STALE``: at least one core source's latest item is older
-    # than the segment staleness window. ``ALL_FAILED``: every routed
-    # source failed (or every core source failed simultaneously) —
-    # forces ``failed`` severity.
-    "CORE_FAILED",
-    "CORE_ZERO",
-    "CORE_STALE",
-    "ALL_FAILED",
-    "MACRO_ACTUAL_MISSING",
-    "MACRO_ACTUAL_ZERO",
-    "MACRO_ACTUAL_FAILED",
-    "MACRO_ACTUAL_STALE",
-    "MACRO_REQUIRED_OMITTED",
-    "MACRO_FORECAST_UNVERIFIED",
-]
-COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
-    "ZERO_ITEMS": "수집 항목 0건",
-    "BELOW_THRESHOLD": "최소 수집 기준 미달",
-    "MISSING_NEWS": "뉴스 카테고리 누락",
-    "MISSING_PRICE": "가격 카테고리 누락",
-    "MISSING_MACRO": "거시 카테고리 누락",
-    "MISSING_CALENDAR": "일정 카테고리 누락",
-    "MISSING_EARNINGS": "실적 카테고리 누락",
-    "SOURCE_FAILED": "일부 소스 수집 실패",
-    "SOURCE_ZERO": "일부 소스 0건 반환",
-    "DOMESTIC_DISCLOSURE_QUIET": "DART 주요 공시 0건",
-    "LOOKAHEAD_DATA_MISSING": "예정 일정 데이터 미확보",
-    "CORE_FAILED": "핵심 가격 소스 실패",
-    "CORE_ZERO": "핵심 가격 소스 0건",
-    "CORE_STALE": "핵심 가격 소스 데이터가 stale",
-    "ALL_FAILED": "모든 소스 실패",
-    "MACRO_ACTUAL_MISSING": "거시 실제치 미확보",
-    "MACRO_ACTUAL_ZERO": "거시 실제치 소스 0건",
-    "MACRO_ACTUAL_FAILED": "거시 실제치 소스 실패",
-    "MACRO_ACTUAL_STALE": "거시 실제치 stale",
-    "MACRO_REQUIRED_OMITTED": "필수 거시 지표 본문 누락",
-    "MACRO_FORECAST_UNVERIFIED": "거시 예상치 미검증",
-}
+from investo.models.segments import (
+    CATEGORY_LABELS,
+    COVERAGE_REASON_LABELS,
+    COVERAGE_STATUS_LABELS,
+    CRYPTO,
+    DOMESTIC_EQUITY,
+    SEGMENT_LABELS,
+    SEVERITY_READER_EXPLANATIONS,
+    US_EQUITY,
+    CoverageReasonCode,
+    CoverageStatus,
+    MarketSegment,
+    SegmentCoverage,
+)
 
 # u43 — registry of lookahead-aware adapters. Only adapters listed here
 # have the ability to emit forward-scheduled items
@@ -113,16 +56,6 @@ _MISSING_CATEGORY_TO_REASON: Final[dict[Category, CoverageReasonCode]] = {
     "earnings": "MISSING_EARNINGS",
 }
 _QUIET_ZERO_SOURCES: Final[frozenset[str]] = frozenset({"dart-disclosure"})
-
-DOMESTIC_EQUITY: Final[MarketSegment] = "domestic-equity"
-US_EQUITY: Final[MarketSegment] = "us-equity"
-CRYPTO: Final[MarketSegment] = "crypto"
-
-SEGMENT_LABELS: Final[dict[MarketSegment, str]] = {
-    DOMESTIC_EQUITY: "국내 증시",
-    US_EQUITY: "미국 증시",
-    CRYPTO: "크립토",
-}
 
 SEGMENT_THRESHOLDS: Final[dict[MarketSegment, int]] = {
     DOMESTIC_EQUITY: 3,
@@ -179,29 +112,6 @@ SEGMENT_CORE_STALENESS_WINDOW: Final[dict[MarketSegment, timedelta]] = {
     DOMESTIC_EQUITY: timedelta(hours=30),
     US_EQUITY: timedelta(hours=30),
     CRYPTO: timedelta(hours=6),
-}
-
-COVERAGE_STATUS_LABELS: Final[dict[CoverageStatus, str]] = {
-    "normal": "정상",
-    "partial": "부분",
-    "limited": "제한",
-    "failed": "실패",
-}
-# u54 — One-line Korean reader explanation per severity, surfaced
-# alongside the badge so the reader sees both label and "why it
-# matters".
-SEVERITY_READER_EXPLANATIONS: Final[dict[CoverageStatus, str]] = {
-    "normal": "정상 — 핵심 소스 수집 완료, 본문 결론 신뢰도 양호",
-    "partial": "부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요",
-    "limited": "제한 — 핵심 가격 소스 0건/실패/stale, 본문 결론 신뢰도 낮음",
-    "failed": "실패 — 핵심 소스 전부 실패 또는 수집 항목 0건",
-}
-CATEGORY_LABELS: Final[dict[Category, str]] = {
-    "news": "뉴스",
-    "price": "가격",
-    "macro": "거시",
-    "calendar": "일정",
-    "earnings": "실적",
 }
 
 # u45 — Source allow-lists are split into single-segment vs shared.
@@ -422,88 +332,6 @@ class SegmentedItems:
             now_utc=now_utc,
             macro_sensitive_claim_made=macro_sensitive_claim_made,
         )
-
-
-@dataclass(frozen=True, slots=True)
-class SegmentCoverage:
-    """Reader-facing coverage summary for a routed market segment.
-
-    The u22 fields ``reason_codes`` and ``source_outcomes`` are populated
-    when the orchestrator threads a :class:`investo.models.SourceCollectionReport`
-    through to the briefing layer. When ``source_outcomes`` is empty
-    (e.g. legacy unsegmented runs that still call
-    :func:`build_segment_coverage` with items only) the coverage still
-    reports the structural reasons (zero items, below threshold,
-    missing categories) inferred from the routed item set.
-
-    u54 — counts split (5-tuple): ``targeted_count`` is the number of
-    source outcomes attempted for this segment, ``succeeded_count``
-    those with ``status == "ok"``, ``zero_count`` those with
-    ``status == "zero"``, ``failed_count`` those with ``status ==
-    "failed"``. ``body_used_count`` is wired from the orchestrator's
-    post-LLM body parser (cited URLs); legacy callers can omit it and
-    receive ``0``. Defaults preserve backward-compat for direct
-    constructor users.
-    """
-
-    segment: MarketSegment
-    status: CoverageStatus
-    item_count: int
-    source_count: int
-    categories: tuple[Category, ...]
-    missing_categories: tuple[Category, ...]
-    reason_codes: tuple[CoverageReasonCode, ...] = field(default_factory=tuple)
-    source_outcomes: tuple[SourceOutcome, ...] = field(default_factory=tuple)
-    targeted_count: int = 0
-    succeeded_count: int = 0
-    zero_count: int = 0
-    failed_count: int = 0
-    body_used_count: int = 0
-
-    @property
-    def status_label(self) -> str:
-        return COVERAGE_STATUS_LABELS[self.status]
-
-    @property
-    def missing_category_label(self) -> str:
-        if not self.missing_categories:
-            return "없음"
-        return ", ".join(CATEGORY_LABELS[category] for category in self.missing_categories)
-
-    @property
-    def reason_labels(self) -> tuple[str, ...]:
-        """Human-readable Korean labels for each present reason code."""
-        return tuple(COVERAGE_REASON_LABELS[code] for code in self.reason_codes)
-
-    @property
-    def failed_source_outcomes(self) -> tuple[SourceOutcome, ...]:
-        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "failed")
-
-    @property
-    def zero_source_outcomes(self) -> tuple[SourceOutcome, ...]:
-        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "zero")
-
-    @property
-    def ok_source_outcomes(self) -> tuple[SourceOutcome, ...]:
-        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "ok")
-
-    @property
-    def tier_mix_label(self) -> str:
-        """u32 Step 1 — Render a deterministic S/A/B tier-mix string.
-
-        Counts are read from each ``ok`` outcome's ``tier`` field, which
-        the aggregator stamped at collection time from the source-tier
-        registry. Empty when the segment carries no tagged items
-        (legacy fixtures and pre-u32 runs); reader surfaces gracefully
-        omit the badge in that case.
-        """
-        if not self.ok_source_outcomes:
-            return ""
-        counts: dict[str, int] = {label: 0 for label in ("S", "A", "B", "C")}
-        for outcome in self.ok_source_outcomes:
-            counts[outcome.tier] += 1
-        parts = [f"{label}={count}" for label, count in counts.items() if count]
-        return " / ".join(parts)
 
 
 MacroActualHealthStatus = Literal["not_required", "ok", "missing", "zero", "failed", "stale"]

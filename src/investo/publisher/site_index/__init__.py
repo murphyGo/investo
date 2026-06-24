@@ -28,8 +28,8 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from investo.briefing.segments import MarketSegment
 from investo.models import Briefing
+from investo.models.segments import MarketSegment
 
 from ._blocks import (
     _NEXT_HEADING_RE as _NEXT_HEADING_RE,

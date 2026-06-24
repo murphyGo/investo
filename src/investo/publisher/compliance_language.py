@@ -39,7 +39,6 @@ import re
 from dataclasses import dataclass, field
 from typing import Final, Literal
 
-from investo.briefing.segments import MarketSegment
 from investo.models.compliance_phrases import (
     BANNED_P0_ACTION,
     BANNED_P0_CERTAINTY,
@@ -49,6 +48,7 @@ from investo.models.compliance_phrases import (
     WARN_P1,
     WARN_P1_CLOSED_CAUSATION,
 )
+from investo.models.segments import MarketSegment
 from investo.publisher.errors import PublisherError
 
 _logger = logging.getLogger(__name__)

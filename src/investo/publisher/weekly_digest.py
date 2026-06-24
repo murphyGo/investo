@@ -31,9 +31,9 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal._io import write_atomic
+from investo._internal.briefing_extract import extract_conclusion
 from investo.briefing.disclaimer import DISCLAIMER
-from investo.briefing.extract import extract_conclusion
-from investo.briefing.segments import (
+from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     SEGMENT_LABELS,

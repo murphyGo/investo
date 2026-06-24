@@ -29,13 +29,14 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal._io import write_atomic
-from investo.briefing.watchlist import (
+from investo.models import NormalizedItem
+from investo.models.watchlist import (
     PublicWatchlistGroup,
+    RejectedCandidate,
+    WatchlistImpactCenter,
     WatchlistMatch,
     public_watchlist_match_summary,
 )
-from investo.briefing.watchlist_impact import RejectedCandidate, WatchlistImpactCenter
-from investo.models import NormalizedItem
 from investo.publisher.errors import PublisherIOError
 
 WATCHLIST_PAGES_ROOT: Final[Path] = Path("site_docs/watchlist")

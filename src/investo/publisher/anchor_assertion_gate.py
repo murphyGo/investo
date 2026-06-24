@@ -36,8 +36,8 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Final
 
-from investo.briefing.market_anchor import anchor_label
-from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
+from investo.models.market_anchor import anchor_label
+from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 
 # Core anchor symbols whose precise body claims u70 guards, per segment.
 # These mirror the anchor-table priority basket; a body claim about one of

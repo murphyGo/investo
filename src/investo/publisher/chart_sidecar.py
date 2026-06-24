@@ -46,7 +46,7 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal._io import write_atomic_bytes
-from investo.briefing.market_anchor import MarketAnchor, OHLCRow, anchor_label
+from investo.models.market_anchor import MarketAnchor, OHLCRow, anchor_label
 
 # Fixed sidecar schema version. Bump only on a breaking shape change; the
 # JS loader reads it to refuse incompatible future payloads.

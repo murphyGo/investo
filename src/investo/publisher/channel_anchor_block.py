@@ -42,8 +42,8 @@ from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
 from typing import Final, Literal
 
-from investo.briefing.market_anchor import MarketAnchor, anchor_label
 from investo.models import NormalizedItem
+from investo.models.market_anchor import MarketAnchor, anchor_label
 
 ChannelSegment = Literal["domestic-equity", "us-equity", "crypto"]
 

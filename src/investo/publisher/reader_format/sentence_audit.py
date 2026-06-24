@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from typing import Final
 
-from investo.briefing.segments import MarketSegment
+from investo.models.segments import MarketSegment
 from investo.publisher.reader_format._constants import _TABLE_ROW_RE, _logger
 
 

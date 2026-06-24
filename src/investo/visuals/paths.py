@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal.archive_layout import ArchiveLayout
-from investo.briefing.segments import MarketSegment
+from investo.models.segments import MarketSegment
 
 _SAFE_ASSET_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 _ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".svg", ".png", ".jpg", ".jpeg"})

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal.archive_layout import ArchiveLayout
-from investo.briefing.segments import MarketSegment
+from investo.models.segments import MarketSegment
 
 # Repo-root-relative archive directory — the live, patchable seam. Tests
 # redirect this via ``monkeypatch.setattr(paths, "ARCHIVE_ROOT", tmp_path)``

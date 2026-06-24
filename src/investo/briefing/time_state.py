@@ -39,16 +39,9 @@ References
 from __future__ import annotations
 
 import re
-from typing import Final, Literal
+from typing import Final
 
-TimeState = Literal[
-    "pre-market",
-    "open",
-    "intraday",
-    "close",
-    "post-close",
-    "scheduled",
-]
+from investo.models.time_state import TimeState
 
 # Priority — when multiple regex patterns match the same title the
 # label with the highest priority value wins. ``close`` is higher than

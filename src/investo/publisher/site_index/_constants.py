@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final
 
-from investo.briefing.segments import (
+from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     US_EQUITY,

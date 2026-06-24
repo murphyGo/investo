@@ -38,12 +38,10 @@ from typing import Final, Literal
 from pydantic import ValidationError
 
 from investo._internal.redaction import RedactionPolicy, redact_text
-from investo.briefing.segments import MarketSegment
-from investo.briefing.watchlist import (
-    WatchlistTermKind,
-    _match_term_with_aliases,
-)
+from investo._internal.watchlist_matching import match_term_with_aliases as _match_term_with_aliases
 from investo.models import NormalizedItem
+from investo.models.segments import MarketSegment
+from investo.models.watchlist import WatchlistTermKind
 from investo.visuals.policy import (
     CURATED_DEFERRAL_MARKER,
     ExternalAssetManifest,

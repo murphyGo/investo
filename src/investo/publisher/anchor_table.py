@@ -33,7 +33,7 @@ from collections.abc import Sequence
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Final, Literal
 
-from investo.briefing.market_anchor import MarketAnchor
+from investo.models.market_anchor import MarketAnchor
 
 # u66 — crypto trades 24/7; the close-recap column header ("종가") is
 # misleading for the crypto segment. The crypto anchor table labels the

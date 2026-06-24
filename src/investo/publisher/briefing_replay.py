@@ -13,11 +13,11 @@ from datetime import date
 from pathlib import Path
 from typing import Final, Literal
 
-from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.briefing.summary_quality import (
     SummaryQualityError,
     validate_first_viewport_summary,
 )
+from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.publisher.quality_consistency import (
     build_canonical_snapshot,
     check_quality_consistency,

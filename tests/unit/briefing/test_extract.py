@@ -136,7 +136,8 @@ def test_no_surface_redeclares_prefix_literal() -> None:
 
     Allowed sites:
 
-    * ``briefing/summary_quality.py`` — canonical declaration,
+    * ``_internal/briefing_extract.py`` — canonical declaration,
+    * ``briefing/summary_quality.py`` — compatibility re-export/import,
     * ``briefing/pipeline.py`` — the canonical *emitter*
       (``_enhance_reader_experience`` writes the line),
     * ``briefing/extract.py`` — docstring references only.
@@ -144,6 +145,7 @@ def test_no_surface_redeclares_prefix_literal() -> None:
     src_root = Path(__file__).resolve().parents[3] / "src" / "investo"
     allowed = {
         src_root / "briefing" / "summary_quality.py",
+        src_root / "_internal" / "briefing_extract.py",
         src_root / "briefing" / "pipeline.py",
         src_root / "briefing" / "extract.py",
     }
@@ -162,6 +164,6 @@ def test_no_surface_redeclares_prefix_literal() -> None:
     assert not offenders, (
         "DEBT-060 regression: a non-allowed site re-declared the conclusion "
         "prefix literal. Import CONCLUSION_PREFIX from "
-        "investo.briefing.summary_quality instead. "
+        "investo._internal.briefing_extract instead. "
         f"offenders={offenders}"
     )

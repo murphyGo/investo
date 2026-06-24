@@ -8,19 +8,19 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
-from investo.briefing.segments import (
+from investo.models import NormalizedItem
+from investo.models.segments import (
     CATEGORY_LABELS,
     COVERAGE_REASON_LABELS,
     CoverageStatus,
     MarketSegment,
     SegmentCoverage,
 )
-from investo.briefing.watchlist import (
+from investo.models.watchlist import (
     WatchlistImpact,
     public_watchlist_match_group,
     public_watchlist_match_label,
 )
-from investo.models import NormalizedItem
 
 CardKind = Literal[
     "data-confidence",

@@ -32,7 +32,7 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from investo.briefing.time_state import TimeState
+from investo.models.time_state import TimeState
 
 # Re-exported under :mod:`investo.models` so consumers do not have to
 # reach into ``briefing`` for the literal alias.

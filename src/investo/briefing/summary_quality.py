@@ -38,28 +38,20 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.briefing_extract import (
+    CAUTION_PREFIX,
+    CONCLUSION_PREFIX,
+    DRIVER_PREFIX,
+    FALLBACK_BY_PREFIX,
+    SUMMARY_PREFIXES,
+    WATERMARK_PREFIX,
+)
 from investo._internal.surface_quality import has_blocking_surface_issue
 from investo.briefing._text.patterns import (
     MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE,
 )
 
-# Public canonical prefix literals — DEBT-060 chokepoint. Five surfaces
-# (publisher.site_index, publisher.weekly_digest, visuals.og_card,
-# visuals.assets, briefing.context) used to declare these locally; they
-# now import these constants so a future shape change (e.g.
-# ``**결론**:`` → ``**결론 (yyyy-mm-dd)**:``) lands in one place. The
-# briefing pipeline's ``_enhance_reader_experience`` is the canonical
-# emitter — every consumer is a parser of that emitter's output.
-CONCLUSION_PREFIX: Final[str] = "> **오늘의 결론**:"
-DRIVER_PREFIX: Final[str] = "> **핵심 동인**:"
-CAUTION_PREFIX: Final[str] = "> **주의할 점**:"
-WATERMARK_PREFIX: Final[str] = "**기준 시각**:"
-
-_SUMMARY_PREFIXES: Final[tuple[str, ...]] = (
-    CONCLUSION_PREFIX,
-    DRIVER_PREFIX,
-    CAUTION_PREFIX,
-)
+_SUMMARY_PREFIXES: Final[tuple[str, ...]] = SUMMARY_PREFIXES
 # Reject ``"1."``, ``"-"``, ``"*"``, ``"1)"`` … and the circled-digit
 # Korean numbers occasionally emitted by the LLM. Fullmatch only —
 # partial matches let valid sentences through.
@@ -97,11 +89,7 @@ _DANGLING_LONG_TAIL_RE: Final[re.Pattern[str]] = re.compile(
 _MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 _URL_RE: Final[re.Pattern[str]] = re.compile(r"https?://\S+")
-_FALLBACK_BY_PREFIX: Final[dict[str, str]] = {
-    CONCLUSION_PREFIX: "확인된 요약이 부족합니다.",
-    DRIVER_PREFIX: "핵심 동인은 추가 확인이 필요합니다.",
-    CAUTION_PREFIX: "관전 포인트는 데이터 회복 후 보강합니다.",
-}
+_FALLBACK_BY_PREFIX: Final[dict[str, str]] = FALLBACK_BY_PREFIX
 
 
 class SummaryQualityError(ValueError):

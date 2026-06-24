@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from investo.briefing.segments import MarketSegment
+from investo.models.segments import MarketSegment
 from investo.publisher.reader_format._constants import (
     _FIRST_SECTION_MARKER,
     TLDR_HEADER,

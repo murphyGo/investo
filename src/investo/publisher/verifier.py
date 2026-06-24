@@ -31,7 +31,7 @@ Reference:
 from __future__ import annotations
 
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
-from investo.briefing.segments import MarketSegment
+from investo.models.segments import MarketSegment
 from investo.publisher.reader_format import (
     SHORT_DISCLAIMER_CRYPTO,
     SHORT_DISCLAIMER_EQUITY,

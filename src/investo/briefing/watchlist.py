@@ -27,34 +27,38 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
+from investo._internal.watchlist_matching import (
+    match_term_with_aliases as _match_term_with_aliases,
+)
+from investo._internal.watchlist_matching import (
+    matches_korean_term as _matches_korean_term,  # noqa: F401
+)
 from investo.models import NormalizedItem
+from investo.models.watchlist import (
+    DEFAULT_BUNDLE_BADGE_LABEL,
+    CoverageStatusInput,
+    PublicWatchlistGroup,
+    WatchlistChannel,
+    WatchlistImpact,
+    WatchlistImpactStatus,
+    WatchlistMatch,
+    WatchlistTermKind,
+    public_watchlist_match_group,
+    public_watchlist_match_label,
+    public_watchlist_match_summary,
+)
 
 _logger = logging.getLogger(__name__)
 
-WatchlistTermKind = Literal["ticker", "asset", "sector", "keyword"]
-WatchlistImpactStatus = Literal[
-    "unconfigured",
-    "default_bundle",
-    "matched",
-    "no_match",
-    "coverage_hold",
-]
-WatchlistChannel = Literal["site", "telegram"]
-CoverageStatusInput = Literal["normal", "partial", "limited", "failed"]
-PublicWatchlistGroup = Literal["direct", "related", "uncertain", "rejected"]
-
 DEFAULT_WATCHLIST_PATH: Final[Path] = Path("config/watchlist.json")
 WATCHLIST_CONFIG_ENV: Final[str] = "INVESTO_WATCHLIST_CONFIG"
-DEFAULT_BUNDLE_BADGE_LABEL: Final[str] = "기본 바스켓"
 _SITE_MAX_RENDERED_MATCHES: Final[int] = 5
 _TELEGRAM_MAX_RENDERED_MATCHES: Final[int] = 3
 
@@ -77,18 +81,6 @@ DEFAULT_CORE_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
     "META": ("Meta", "메타", "Facebook"),
     "AMZN": ("Amazon", "아마존"),
 }
-
-# Strict ASCII alphanumeric ticker / asset patterns (length ≥ 3) preserve the
-# u18 word-boundary regex; length ≤ 2 inputs are routed through a stricter
-# capitalize-only check (see ``_match_short_ticker``) to avoid false positives
-# like "F" matching every word starting with F.
-_SHORT_TICKER_THRESHOLD: Final[int] = 2
-
-# Hangul ranges - Hangul Syllables (AC00-D7A3), Hangul Jamo (1100-11FF),
-# Hangul Compatibility Jamo (3130-318F). Used to enforce a syllable-boundary
-# heuristic so "삼성" does not match inside "삼성전자".
-_HANGUL_CHAR_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣ᄀ-ᇿ㄰-㆏]")
-
 
 class WatchlistScope(BaseModel):
     """u33 Step 4 — a named sub-watchlist for sector / account scoping.
@@ -300,64 +292,6 @@ class WatchlistConfig(BaseModel):
         return merged
 
 
-@dataclass(frozen=True, slots=True)
-class WatchlistMatch:
-    """One item matched by one watchlist term."""
-
-    term: str
-    kind: WatchlistTermKind
-    item: NormalizedItem
-    matched_alias: str | None = None
-    confidence: Literal["structured", "strict", "alias", "text"] = "text"
-    reason: str = "text"
-    # u33 Step 1 — copied from ``WatchlistConfig.weights[term]`` at
-    # match time. Defaults to 0.0 (term not weighted by user). Render
-    # paths use this to sort match callouts so high-conviction
-    # positions surface first.
-    weight: float = 0.0
-
-
-@dataclass(frozen=True, slots=True)
-class WatchlistImpact:
-    """Computed relevance summary for a briefing input set."""
-
-    configured: bool
-    matches: tuple[WatchlistMatch, ...]
-    status: WatchlistImpactStatus = "matched"
-
-    @property
-    def has_matches(self) -> bool:
-        return bool(self.matches)
-
-
-def public_watchlist_match_label(
-    match: WatchlistMatch,
-    *,
-    group: PublicWatchlistGroup,
-) -> str:
-    """Reader-safe label for a watchlist match group (u111)."""
-    if group == "direct":
-        return "직접 관련"
-    if group == "related":
-        return "관련 맥락"
-    if group == "uncertain":
-        return "관심 목록 보류"
-    return "진단 전용"
-
-
-def public_watchlist_match_summary(
-    match: WatchlistMatch,
-    *,
-    group: PublicWatchlistGroup,
-) -> str:
-    """Reader-safe one-line summary without raw matcher reason or alias metadata."""
-    label = public_watchlist_match_label(match, group=group)
-    title = match.item.title.strip()
-    if len(title) > 120:
-        title = title[:117].rstrip() + "…"
-    return f"{match.term}: {label} · [{match.item.source_name}] {title}"
-
-
 def load_watchlist(path: Path | None = None) -> WatchlistConfig:
     """Load watchlist config from JSON.
 
@@ -534,17 +468,6 @@ def _watchlist_d_suffix(match: WatchlistMatch, *, now_utc: datetime | None) -> s
     return f" D-{days}"
 
 
-def public_watchlist_match_group(match: WatchlistMatch) -> PublicWatchlistGroup:
-    """Best-effort public group inference for legacy ``WatchlistImpact`` callers."""
-    if match.confidence == "structured":
-        return "direct"
-    if match.confidence in ("strict", "alias") and match.kind in ("ticker", "asset"):
-        return "direct"
-    if match.kind in ("sector", "keyword"):
-        return "related"
-    return "uncertain"
-
-
 def render_watchlist_prompt_context(impact: WatchlistImpact) -> str:
     if not impact.configured:
         return ""
@@ -573,141 +496,6 @@ def _item_text_casefold(item: NormalizedItem) -> str:
 def _item_text_raw(item: NormalizedItem) -> str:
     """Original-case version used for short-ticker capitalize checks."""
     return f"{item.title} {item.summary or ''}"
-
-
-def _match_term_with_aliases(
-    *,
-    term: str,
-    kind: WatchlistTermKind,
-    aliases: Mapping[str, tuple[str, ...]],
-    item: NormalizedItem,
-    text_cf: str,
-    text_raw: str,
-    exact_only: bool,
-) -> tuple[str | None, str | None, Literal["structured", "strict", "alias", "text"], str]:
-    """Return ``(term, alias)`` if matched. ``alias`` is non-None only for
-    alias hits. Canonical term hits short-circuit the alias scan (term wins).
-
-    ``kind`` propagates to :func:`_matches_term` so short (≤2 ASCII) inputs
-    branch correctly: ticker/asset stay case-sensitive (raw text) to avoid
-    "F"→"for" false positives, while keyword/sector use casefolded
-    word-boundary matching so "EV" matches lowercase "ev" in summaries.
-    Aliases inherit the canonical term's ``kind``.
-    """
-    if _matches_structured_term(term, item):
-        return term, None, "structured", "structured-symbol"
-    if _matches_term(term, kind=kind, text_cf=text_cf, text_raw=text_raw, exact_only=exact_only):
-        confidence: Literal["structured", "strict", "alias", "text"] = (
-            "strict" if kind in {"ticker", "asset"} and term.isascii() else "text"
-        )
-        return term, None, confidence, "boundary-term"
-    if exact_only:
-        return None, None, "text", "no-match"
-    canonical_key = term.upper() if term.isascii() else term
-    alt_forms = aliases.get(canonical_key, ())
-    for alt in alt_forms:
-        if _matches_term(alt, kind=kind, text_cf=text_cf, text_raw=text_raw, exact_only=False):
-            return term, alt, "alias", f"alias:{alt}"
-    return None, None, "text", "no-match"
-
-
-def _matches_structured_term(term: str, item: NormalizedItem) -> bool:
-    """Match against structured symbol metadata before free text."""
-    if not term:
-        return False
-    wanted = term.casefold()
-    keys = ("ticker", "symbol", "asset", "base_asset", "coin", "slug")
-    for key in keys:
-        raw = item.raw_metadata.get(key)
-        if not isinstance(raw, str):
-            continue
-        candidates = {raw.casefold()}
-        if raw.endswith("-USD"):
-            candidates.add(raw.removesuffix("-USD").casefold())
-        if raw.endswith("USDT"):
-            candidates.add(raw.removesuffix("USDT").casefold())
-        if wanted in candidates:
-            return True
-    return False
-
-
-def _matches_term(
-    term: str,
-    *,
-    kind: WatchlistTermKind,
-    text_cf: str,
-    text_raw: str,
-    exact_only: bool,
-) -> bool:
-    """Check ``term`` against an item's text with u28 boundary heuristics.
-
-    Branches:
-
-    - exact_only — strict casefold equality on any whitespace-separated token.
-    - ASCII alphanumeric, length > 2 — u18 word-boundary regex (no neighbour
-      letters / digits).
-    - ASCII alphanumeric, length ≤ 2, ticker/asset — capitalize guard: the
-      original-case ticker must appear with non-alphanumeric boundaries in
-      the raw text (suppresses "F" matching every "for"/"From" but preserves
-      "F " or "(F)").
-    - ASCII alphanumeric, length ≤ 2, keyword/sector — u28 fix: short
-      keywords/sectors are semantic concepts, not exchange tickers, so they
-      use the same casefolded word-boundary regex as longer terms (so "EV"
-      matches "new ev launch").
-    - Hangul / non-ASCII — substring match wrapped in a Hangul-syllable
-      boundary check (no Hangul char immediately before or after).
-    """
-    if not term:
-        return False
-    normalized = term.casefold()
-
-    if exact_only:
-        # Match if any whitespace-separated token equals the term casefolded.
-        return any(token.strip(".,!?;:()[]{}") == normalized for token in text_cf.split())
-
-    if term.isascii() and term.replace("-", "").isalnum():
-        if len(term) <= _SHORT_TICKER_THRESHOLD and kind in {"ticker", "asset"}:
-            return _matches_short_ticker(term, text_raw)
-        pattern = rf"(?<![A-Za-z0-9]){re.escape(normalized)}(?![A-Za-z0-9])"
-        return re.search(pattern, text_cf) is not None
-
-    return _matches_korean_term(normalized, text_cf)
-
-
-def _matches_short_ticker(term: str, text_raw: str) -> bool:
-    """Strict capitalize / boundary match for 1-2 character ASCII tickers.
-
-    The token must appear with the original case (e.g. ``F``, ``T``, ``BA``)
-    surrounded by non-alphanumeric characters in the raw text. This blocks
-    common false positives like ``F`` matching ``For`` / ``From``.
-    """
-    pattern = rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])"
-    return re.search(pattern, text_raw) is not None
-
-
-def _matches_korean_term(term_cf: str, text_cf: str) -> bool:
-    """Substring match with Hangul-syllable word-boundary heuristic.
-
-    Defensive guard: empty ``term_cf`` returns False directly. Callers
-    (``_matches_term``) already filter empty terms, but ``str.find("")``
-    returns ``0`` for any text — the boundary check would then incorrectly
-    succeed on an empty input. Pinning False here keeps the helper safe in
-    isolation.
-    """
-    if not term_cf:
-        return False
-    start = 0
-    term_len = len(term_cf)
-    while True:
-        idx = text_cf.find(term_cf, start)
-        if idx < 0:
-            return False
-        before_ok = idx == 0 or not _HANGUL_CHAR_RE.match(text_cf[idx - 1])
-        after_idx = idx + term_len
-        after_ok = after_idx >= len(text_cf) or not _HANGUL_CHAR_RE.match(text_cf[after_idx])
-        if before_ok and after_ok:
-            return True
-        start = idx + 1
 
 
 __all__ = [

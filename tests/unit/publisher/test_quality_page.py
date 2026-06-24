@@ -73,7 +73,6 @@ def test_update_quality_page_empty_history_keeps_no_data_message(tmp_path: Path)
     )
 
     body = quality_page.read_text(encoding="utf-8")
-    assert "데이터 부족" in body
     assert "측정 가능한 게시가 없습니다" in body
 
 

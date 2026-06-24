@@ -39,7 +39,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Final, Literal
 
-from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
+from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 
 PublishStatus = Literal["normal", "partial", "insufficient", "absent"]
 _STATUS_ORDER: Final[tuple[PublishStatus, ...]] = (

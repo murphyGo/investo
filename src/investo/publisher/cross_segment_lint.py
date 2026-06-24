@@ -37,13 +37,13 @@ import re
 from dataclasses import dataclass
 from typing import Final, Literal
 
-from investo.briefing.segments import (
+from investo.models.bundle_context import BundleContext
+from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     US_EQUITY,
     MarketSegment,
 )
-from investo.models.bundle_context import BundleContext
 
 LintSeverity = Literal["WARN", "REJECT"]
 

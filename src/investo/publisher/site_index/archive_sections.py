@@ -18,8 +18,8 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
 from investo.models import Briefing
+from investo.models.segments import SEGMENT_LABELS, MarketSegment
 
 from ._blocks import _replace_marker_block
 from ._constants import (

@@ -14,10 +14,10 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from investo._internal.briefing_extract import extract_conclusion as _extract_conclusion_chokepoint
 from investo._internal.public_quality_language import project_public_quality_language
-from investo.briefing.extract import extract_conclusion as _extract_conclusion_chokepoint
-from investo.briefing.segments import SEGMENT_LABELS, MarketSegment
 from investo.models import Briefing
+from investo.models.segments import SEGMENT_LABELS, MarketSegment
 
 from ._blocks import _escape_inline, _replace_marker_block
 from ._constants import (

@@ -33,8 +33,8 @@ from datetime import date
 from pathlib import Path
 
 from investo._internal._io import write_atomic
-from investo.briefing.segments import MarketSegment
 from investo.models import Briefing
+from investo.models.segments import MarketSegment
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
 from investo.publisher.paths import archive_path
 from investo.publisher.verifier import verify_disclaimer

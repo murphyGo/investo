@@ -44,7 +44,7 @@ from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from investo.briefing.segments import (
+from investo.models.segments import (
     COVERAGE_STATUS_LABELS,
     CRYPTO,
     DOMESTIC_EQUITY,

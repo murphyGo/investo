@@ -12,15 +12,15 @@ from defusedxml.ElementTree import ParseError, fromstring
 
 from investo._internal._io import write_atomic, write_atomic_bytes
 from investo._internal.archive_layout import ArchiveLayout
-from investo.briefing.extract import (
+from investo._internal.briefing_extract import (
+    CONCLUSION_PREFIX,
     extract_caution,
     extract_conclusion,
     extract_key_drivers,
 )
-from investo.briefing.segments import MarketSegment, SegmentCoverage
-from investo.briefing.summary_quality import CONCLUSION_PREFIX
-from investo.briefing.watchlist import WatchlistImpact
 from investo.models import Briefing, NormalizedItem
+from investo.models.segments import MarketSegment, SegmentCoverage
+from investo.models.watchlist import WatchlistImpact
 from investo.visuals.cards import (
     DataConfidenceCardInput,
     MarketSnapshotCardInput,

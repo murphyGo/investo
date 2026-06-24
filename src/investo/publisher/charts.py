@@ -51,7 +51,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Final
 
-from investo.briefing.market_anchor import MarketAnchor, OHLCRow, anchor_label
+from investo.models.market_anchor import MarketAnchor, OHLCRow, anchor_label
 from investo.publisher.chart_sidecar import (
     ChartSidecar,
     build_chart_sidecar,

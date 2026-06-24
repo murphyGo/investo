@@ -33,10 +33,10 @@ from investo._internal.surface_quality import (
     find_surface_quality_issues,
     repair_surface_artifacts,
 )
-from investo.briefing.market_anchor import MarketAnchor
-from investo.briefing.segments import MarketSegment
 from investo.models import Briefing, NormalizedItem
 from investo.models.bundle_context import BundleContext
+from investo.models.market_anchor import MarketAnchor
+from investo.models.segments import MarketSegment
 from investo.publisher.anchor_assertion_gate import enforce_anchor_assertions
 from investo.publisher.anchor_table import render_anchor_table
 from investo.publisher.channel_anchor_block import (

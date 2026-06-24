@@ -72,7 +72,7 @@ from urllib.parse import quote
 
 import httpx
 
-from investo.briefing.market_anchor import OHLCRow
+from investo.models.market_anchor import OHLCRow
 from investo.sources._config import parse_symbol_list
 from investo.sources._retry import retry_get
 from investo.sources.protocol import SourceFetchError

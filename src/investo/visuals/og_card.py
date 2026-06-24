@@ -30,15 +30,15 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal._io import write_atomic, write_atomic_bytes
-from investo.briefing.extract import extract_conclusion
-from investo.briefing.segments import (
+from investo._internal.briefing_extract import extract_conclusion
+from investo.models import Briefing
+from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     SEGMENT_LABELS,
     US_EQUITY,
     MarketSegment,
 )
-from investo.models import Briefing
 from investo.visuals.provenance import (
     VisualProvenanceManifest,
     build_generated_svg_provenance,

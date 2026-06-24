@@ -7,8 +7,8 @@ import re
 from typing import Final
 
 from investo._internal.public_quality_language import project_public_quality_language
-from investo.briefing.segments import SEGMENT_LABELS
-from investo.briefing.watchlist import DEFAULT_BUNDLE_BADGE_LABEL
+from investo.models.segments import SEGMENT_LABELS
+from investo.models.watchlist import DEFAULT_BUNDLE_BADGE_LABEL
 from investo.visuals.cards import (
     DataConfidenceCardInput,
     DataConfidenceSourceRow,

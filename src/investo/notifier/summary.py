@@ -37,7 +37,8 @@ from typing import Final
 
 from investo._internal.text import utf16_truncate as _utf16_truncate
 from investo._internal.text import utf16_units as _utf16_units
-from investo.briefing.segments import (
+from investo.models import Briefing, NormalizedItem
+from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     SEGMENT_LABELS,
@@ -45,7 +46,6 @@ from investo.briefing.segments import (
     MarketSegment,
     SegmentCoverage,
 )
-from investo.models import Briefing, NormalizedItem
 from investo.notifier import _summary_extract as _extract
 from investo.notifier._events import imminent_event_tag
 from investo.notifier._summary_extract import SnapshotEntry

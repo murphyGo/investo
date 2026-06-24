@@ -1,5 +1,28 @@
 # AI-DLC Audit Log
 
+## u114 Land - shared-domain-contract-boundary
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u114 code generation. Shared briefing vocabulary is now
+owned by `models` or `_internal`; `briefing` behavior modules keep
+compatibility re-exports where legacy callers need them.
+**Decisions**:
+- Promoted `TimeState`, segment labels/coverage DTOs, market-anchor DTOs and
+  label lookup, core-fact metadata key formatting, watchlist DTOs/public
+  projections, and first-viewport extraction prefixes/helpers to canonical
+  shared owners.
+- Kept segment routing, coverage construction, watchlist config/matching,
+  watchlist grouping, and first-viewport validation behavior in `briefing`.
+- Added `_internal.watchlist_matching` so `visuals.curated` can reuse the pure
+  matcher without depending on `briefing.watchlist`.
+- Added AST boundary tests to block future `models -> briefing` and
+  sibling-unit shared-vocabulary imports.
+**Quality gate**: 164 focused compatibility/boundary tests passed, 1188
+extended unit tests passed, scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u114 shared-domain-contract-boundary Code Generation complete.
+
+---
+
 ## Construction — u105 macro-actual-source-of-record Complete (7/7)
 **Timestamp**: 2026-06-18T18:37:55+09:00
 **Trigger**: Continue source-expansion implementation after u104 was pushed.

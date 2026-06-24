@@ -3,7 +3,7 @@
 **Date**: 2026-06-24
 **Unit**: u114 shared-domain-contract-boundary
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-24 clean-code architecture review: `models` imports `briefing.time_state`, and sibling units import `briefing` modules as shared vocabulary.
 **Estimated Effort**: ~6-8 h
 **Dependencies**:
@@ -86,17 +86,17 @@ Behavior ownership stays where it is:
 
 ## Implementation Steps
 
-- [ ] Add failing AST boundary tests proving `models -> briefing` and sibling-unit `-> briefing` shared-vocabulary imports are currently present.
-- [ ] Add `models/time_state.py`; update `models/bundle_context.py`; keep `briefing.time_state` compatibility.
-- [ ] Promote segment labels and coverage DTOs into `models`; keep `briefing.segments` behavior and compatibility re-exports.
-- [ ] Add `models/market_anchor.py`; update type/value imports in sources, publisher, notifier, visuals, and orchestrator where appropriate.
-- [ ] Move core-fact metadata key formatting into `models.core_fact`; keep source-local ticker mapping in `sources._core_fact_map`.
-- [ ] Add `models/watchlist.py` for DTOs only; keep loading/matching/grouping behavior in `briefing`.
-- [ ] Add `_internal/briefing_extract.py` for pure extraction markers/helpers and canonical prefix literals; keep `briefing.extract` and `briefing.summary_quality` compatibility.
-- [ ] Update `models/__init__.py` only for names intended as stable public API.
-- [ ] Add compatibility tests proving old imports resolve to the same classes/functions.
-- [ ] Run targeted and full validation.
-- [ ] Write `aidlc-docs/construction/u114-shared-domain-contract-boundary/code/summary.md`.
+- [x] Add failing AST boundary tests proving `models -> briefing` and sibling-unit `-> briefing` shared-vocabulary imports are currently present.
+- [x] Add `models/time_state.py`; update `models/bundle_context.py`; keep `briefing.time_state` compatibility.
+- [x] Promote segment labels and coverage DTOs into `models`; keep `briefing.segments` behavior and compatibility re-exports.
+- [x] Add `models/market_anchor.py`; update type/value imports in sources, publisher, notifier, visuals, and orchestrator where appropriate.
+- [x] Move core-fact metadata key formatting into `models.core_fact`; keep source-local ticker mapping in `sources._core_fact_map`.
+- [x] Add `models/watchlist.py` for DTOs only; keep loading/matching/grouping behavior in `briefing`.
+- [x] Add `_internal/briefing_extract.py` for pure extraction markers/helpers and canonical prefix literals; keep `briefing.extract` and `briefing.summary_quality` compatibility.
+- [x] Update `models/__init__.py` only for names intended as stable public API.
+- [x] Add compatibility tests proving old imports resolve to the same classes/functions.
+- [x] Run targeted and full validation.
+- [x] Write `aidlc-docs/construction/u114-shared-domain-contract-boundary/code/summary.md`.
 
 ## Acceptance Criteria
 

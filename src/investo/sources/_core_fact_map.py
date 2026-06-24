@@ -18,20 +18,11 @@ from __future__ import annotations
 
 from typing import Final
 
-from investo.models.core_fact import CoreFact
-
-# Flat-key prefix used inside ``NormalizedItem.raw_metadata`` for
-# core-fact values. The shared ``_MetadataValue`` union (see
-# ``models/items.py``) forbids nested dicts, so we emit one flat
-# string-typed key per fact instead of a nested ``core_facts`` map.
-#
-# Example: a stooq-price row for ``^GSPC`` emits
-#   raw_metadata["core_fact:spx_close"] = "5820.40"
-#
-# The numeric_verify engine (u55 Step 2) scans every item's
-# raw_metadata for this prefix and builds the aggregate
-# ``dict[CoreFact, Decimal]`` lookup.
-CORE_FACT_METADATA_PREFIX: Final[str] = "core_fact:"
+from investo.models.core_fact import (
+    CORE_FACT_METADATA_PREFIX,
+    CoreFact,
+    core_fact_metadata_key,
+)
 
 # yfinance-style ticker → CoreFact. We use the yfinance vocabulary as
 # the canonical adapter-side name (matches stooq-price's
@@ -61,16 +52,6 @@ def core_fact_for_ticker(ticker: str) -> CoreFact | None:
     O(1) and case-sensitive (tickers are already normalized upstream).
     """
     return _TICKER_TO_CORE_FACT.get(ticker)
-
-
-def core_fact_metadata_key(fact: CoreFact) -> str:
-    """Return the flat ``raw_metadata`` key for ``fact``.
-
-    Format: ``core_fact:<fact_name>`` — colon-delimited so a future
-    consumer can also do ``key.split(":", 1)`` recovery without
-    ambiguity with adapter-private keys.
-    """
-    return f"{CORE_FACT_METADATA_PREFIX}{fact}"
 
 
 __all__ = [

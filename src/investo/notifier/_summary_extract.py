@@ -29,8 +29,8 @@ from dataclasses import dataclass
 from typing import Final
 
 from investo._internal.public_quality_language import project_public_quality_language
-from investo.briefing.market_anchor import anchor_label
 from investo.models import Briefing, NormalizedItem
+from investo.models.market_anchor import anchor_label
 
 _CONCLUSION_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*오늘의 결론\*\*:\s*(.+)$",

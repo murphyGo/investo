@@ -103,6 +103,12 @@ CORE_FACT_TOLERANCE: Final[dict[CoreFact, str]] = {
     "vix": "0.01",
 }
 
+# Flat-key prefix used inside ``NormalizedItem.raw_metadata`` for
+# core-fact values. The shared ``_MetadataValue`` union (see
+# ``models/items.py``) forbids nested dicts, so adapters emit one flat
+# string-typed key per fact instead of a nested ``core_facts`` map.
+CORE_FACT_METADATA_PREFIX: Final[str] = "core_fact:"
+
 
 def is_core_fact(value: str) -> bool:
     """Return ``True`` iff ``value`` is one of the ten enum values.
@@ -114,9 +120,16 @@ def is_core_fact(value: str) -> bool:
     return value in get_args(CoreFact)
 
 
+def core_fact_metadata_key(fact: CoreFact) -> str:
+    """Return the flat ``raw_metadata`` key for ``fact``."""
+    return f"{CORE_FACT_METADATA_PREFIX}{fact}"
+
+
 __all__ = [
     "CORE_FACT_KEYWORDS",
+    "CORE_FACT_METADATA_PREFIX",
     "CORE_FACT_TOLERANCE",
     "CoreFact",
+    "core_fact_metadata_key",
     "is_core_fact",
 ]
