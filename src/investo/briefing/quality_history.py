@@ -56,6 +56,9 @@ class QualitySnapshot:
     current_run_segments_limited_or_worse: int = 0
     current_run_data_limited_briefings: int = 0
     current_run_briefings_observed: int = 0
+    # u109 — bounded domestic exact-anchor quarantine diagnostics.
+    domestic_anchor_withheld_count: int = 0
+    domestic_anchor_withheld_reasons: tuple[str, ...] = ()
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -119,6 +122,8 @@ def append_quality_snapshot(
             0,
         ),
         "current_run_briefings_observed": max(snapshot.current_run_briefings_observed, 0),
+        "domestic_anchor_withheld_count": max(snapshot.domestic_anchor_withheld_count, 0),
+        "domestic_anchor_withheld_reasons": list(snapshot.domestic_anchor_withheld_reasons),
     }
     if snapshot.worst_severity is not None:
         row["worst_severity"] = snapshot.worst_severity

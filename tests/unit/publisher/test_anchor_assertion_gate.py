@@ -59,6 +59,19 @@ def test_multi_sentence_line_rewrites_only_offending_sentence() -> None:
     assert "외국인 수급은 안정적이었다" in result.markdown
 
 
+def test_large_cap_domestic_claim_without_anchor_is_rewritten() -> None:
+    md = "삼성전자는 72,000원까지 상승했다.\n"
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X"),
+    )
+
+    assert "삼성전자 관련 정밀 수치는" in result.markdown
+    assert result.findings
+    assert result.findings[0].symbol == "005930.KS"
+
+
 def test_enforce_raises_on_blocking_finding() -> None:
     md = "| ^KOSPI | 2,500.00 | -1.8% | 급락 |\n"
     with pytest.raises(NumericAnchorReconciliationError):

@@ -3,7 +3,7 @@
 **Date**: 2026-06-23
 **Unit**: u109 domestic-anchor-sanity-quarantine
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete (2026-06-24)
 **Source**: 2026-06-23 generated-briefing quality review with domestic-reader and data-trust findings
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -51,9 +51,14 @@ Out of scope:
 
 ## Stage Decision
 
-Functional Design: skip. This is a trust-gate refinement over the existing anchor and publisher pipeline.
+Functional Design: written. Binding domain entities, business rules, and business logic are in:
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/functional-design/domain-entities.md`
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/functional-design/business-rules.md`
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/functional-design/business-logic-model.md`
 
-NFR Requirements: skip. Deterministic checks use existing data and add no dependency, network call, secret, or paid service.
+NFR Requirements: written. Determinism, graceful degradation, observability, compatibility, R13 diagnostics, and no-infra decisions are in:
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/nfr-requirements/nfr-requirements.md`
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/nfr-requirements/tech-stack-decisions.md`
 
 ## Fixed Contracts
 
@@ -94,8 +99,9 @@ A domestic anchor is `trusted` only when all required fields pass:
   - `KRW=X` aliases: `원/달러`, `USD/KRW`, `달러-원`
   - `005930.KS` aliases: `삼성전자`, `005930`
   - `000660.KS` aliases: `SK하이닉스`, `000660`
-- source provenance is explicit in `NormalizedItem.source_name` or `raw_metadata.source_name`.
-- index rows must have index provenance (`index_name` or an equivalent existing index metadata field), not only a stock ticker.
+- source provenance is explicit in `NormalizedItem.source_name`; `raw_metadata["provenance"]` is an additional detail when present.
+- domestic index/FX rows must come from `source_name == "stooq-kr-market"` with `raw_metadata["ticker"]` in `{"^KOSPI", "^KOSDAQ", "KRW=X"}`.
+- bounded large-cap rows must come from `source_name == "fsc-krx-stock-price"` with `raw_metadata["ticker"]` in `{"005930", "000660"}`; canonicalize those to `005930.KS` and `000660.KS`.
 - item category is `price` or the existing domestic anchor category consumed by u67.
 - observed/as-of date matches the report target date or the accepted domestic market close window already used by u8/u67.
 - source outcome for the contributing source is not failed, terminal, or zero-items for that contract.
@@ -111,7 +117,8 @@ Use deterministic bands only as a quarantine guard, not as truth:
 - Index and large-cap absolute daily percent change must be `<= 30.0`.
 - USD/KRW absolute daily percent change must be `<= 20.0`.
 - Large-cap equity close must not be reused as an index close.
-- A domestic index row sourced from a stock-price adapter without an explicit index provenance flag is `provenance_missing`.
+- A domestic index/FX row from any source other than `stooq-kr-market` is `provenance_missing`.
+- A bounded large-cap row from any source other than `fsc-krx-stock-price` is `provenance_missing`.
 
 Comparisons are inclusive. Missing values classify as `unavailable`; unparsable numeric values classify as `implausible`.
 
@@ -127,7 +134,7 @@ u109 extends u70 without duplicating it:
 
 ## Implementation Steps
 
-- Inspect `src/investo/orchestrator/stage_context.py` and `_build_kr_anchors_from_items` in `src/investo/orchestrator/pipeline.py`.
+- Inspect `src/investo/orchestrator/stage_context.py`, `_build_kr_anchors_from_items`, and existing tests in `tests/unit/orchestrator/test_kr_anchors.py`.
 - Add a small pure helper to classify domestic anchor trust before `_reconcile_anchor_closes()`.
 - Ensure `anchor_table_input` receives only trusted domestic anchors with precise values.
 - Extend `src/investo/publisher/anchor_assertion_gate.py` so exact domestic index/large-cap claims require a trusted matching anchor.
@@ -158,7 +165,7 @@ u109 extends u70 without duplicating it:
 ## Tests / Validation
 
 ```bash
-uv run --extra dev pytest tests/unit/orchestrator/test_anchor_close_reconcile.py tests/unit/orchestrator/test_stage_context.py tests/unit/publisher/test_anchor_assertion_gate.py tests/unit/publisher/test_channel_anchor_block.py tests/unit/publisher/test_chart_sidecar.py tests/unit/visuals tests/unit/notifier/test_summary.py tests/unit/notifier/test_summary_extract.py
+uv run --extra dev pytest tests/unit/orchestrator/test_kr_anchors.py tests/unit/orchestrator/test_domestic_anchor_quarantine.py tests/unit/orchestrator/test_anchor_close_reconcile.py tests/unit/publisher/test_anchor_assertion_gate.py tests/unit/publisher/test_channel_anchor_block.py tests/unit/publisher/test_chart_sidecar.py tests/unit/visuals tests/unit/notifier/test_summary.py tests/unit/notifier/test_summary_extract.py
 uv run --extra dev ruff check src/investo/orchestrator src/investo/publisher src/investo/visuals src/investo/notifier tests/unit/orchestrator tests/unit/publisher tests/unit/visuals tests/unit/notifier
 uv run --extra dev mypy src
 ```
@@ -170,3 +177,14 @@ uv run --extra dev mypy src
 - No historical archive repair.
 - No change to US or crypto anchor semantics.
 - No LLM rewrite of domestic body prose.
+
+## Completion Summary
+
+Completed 2026-06-24.
+
+- Added deterministic `orchestrator.domestic_anchor_quarantine` helper for bounded domestic anchor trust classification.
+- Applied trust filtering to `_build_kr_anchors_from_items()` before domestic KOSPI/KOSDAQ/USD-KRW anchors enter the canonical anchor payload.
+- Filtered untrusted domestic registry price rows before Telegram market-snapshot rendering.
+- Extended the anchor assertion gate to cover Samsung Electronics and SK Hynix exact domestic claims.
+- Persisted bounded u109 quality metadata in `QualitySnapshot` / `quality_history.jsonl`.
+- Validation: 295 focused tests passed, scoped ruff passed, `mypy src` passed.

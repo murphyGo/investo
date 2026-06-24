@@ -1630,7 +1630,7 @@ Plan: `aidlc-docs/construction/plans/u108-reader-facing-quality-language-boundar
 - `src/investo/orchestrator/pipeline.py` and `src/investo/orchestrator/stage_context.py` - quarantine domestic anchors before table/body/chart/visual-card/Telegram projection.
 - `src/investo/publisher/anchor_assertion_gate.py` - block exact domestic index/price claims when anchor trust is invalid.
 - `src/investo/publisher/channel_anchor_block.py` - render missing reasons without precise numbers.
-- `tests/unit/orchestrator/test_anchor_close_reconcile.py`, `tests/unit/orchestrator/test_stage_context.py`, `tests/unit/publisher/test_anchor_assertion_gate.py`, `tests/unit/visuals/`, and notifier summary tests.
+- `tests/unit/orchestrator/test_kr_anchors.py`, new `tests/unit/orchestrator/test_domestic_anchor_quarantine.py`, `tests/unit/orchestrator/test_anchor_close_reconcile.py`, `tests/unit/publisher/test_anchor_assertion_gate.py`, `tests/unit/visuals/`, and notifier summary tests.
 
 **Definition of Done**:
 - [ ] Domestic anchor rows with impossible values or failed core provenance are omitted or rendered as unavailable, never as closes.
@@ -1641,6 +1641,15 @@ Plan: `aidlc-docs/construction/plans/u108-reader-facing-quality-language-boundar
 - [ ] US and crypto anchor behavior remains unchanged except for shared helper imports.
 
 Plan: `aidlc-docs/construction/plans/u109-domestic-anchor-sanity-quarantine-code-generation-plan.md`.
+
+Functional design:
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/functional-design/domain-entities.md`
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/functional-design/business-rules.md`
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/functional-design/business-logic-model.md`
+
+NFR / infrastructure decisions:
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/nfr-requirements/nfr-requirements.md`
+- `aidlc-docs/construction/u109-domestic-anchor-sanity-quarantine/nfr-requirements/tech-stack-decisions.md`
 
 ---
 

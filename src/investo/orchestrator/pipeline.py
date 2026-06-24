@@ -165,6 +165,10 @@ from investo.orchestrator.bundle_context import (
     redecide_daily_thesis_for_successful_segments,
 )
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
+from investo.orchestrator.domestic_anchor_quarantine import (
+    domestic_anchor_verdicts,
+    trusted_domestic_price_items,
+)
 from investo.orchestrator.errors import EmptyCollectError
 from investo.orchestrator.stage_context import (
     SEGMENT_ORDER,
@@ -1720,6 +1724,17 @@ def _build_quality_snapshot(
         current_run_core_missing_segments,
         status_block_limited_or_worse,
     )
+    domestic_verdicts = domestic_anchor_verdicts(
+        items,
+        target_date=briefings[published_segments[0]].target_date if published_segments else None,
+        source_outcomes=source_outcomes,
+    )
+    domestic_withheld_count = sum(1 for verdict in domestic_verdicts if verdict.trust != "trusted")
+    domestic_withheld_reasons = tuple(
+        reason
+        for reason in ("unavailable", "stale", "implausible", "provenance_missing")
+        if any(verdict.trust == reason for verdict in domestic_verdicts)
+    )
     return QualitySnapshot(
         source_liveness=source_liveness,
         figures_presence=(figures_count / non_limited) if non_limited > 0 else 0.0,
@@ -1733,6 +1748,8 @@ def _build_quality_snapshot(
         current_run_segments_limited_or_worse=current_run_segments_limited_or_worse,
         current_run_data_limited_briefings=data_limited_count,
         current_run_briefings_observed=len(bodies),
+        domestic_anchor_withheld_count=domestic_withheld_count,
+        domestic_anchor_withheld_reasons=domestic_withheld_reasons,
     )
 
 
@@ -2349,7 +2366,11 @@ class GenerateStage:
                 # (from the stooq-kr-market snapshot items) into the domestic
                 # segment. Yahoo history cannot supply these (429 on GHA), so
                 # they are synthesized close-only from the collected items.
-                kr_anchors = _build_kr_anchors_from_items(items)
+                kr_anchors = _build_kr_anchors_from_items(
+                    items,
+                    target_date=target_date,
+                    source_outcomes=source_outcomes,
+                )
                 if kr_anchors:
                     existing = market_anchors_by_segment.get(DOMESTIC_EQUITY, ())
                     seen = {a.ticker for a in existing}
@@ -2780,7 +2801,11 @@ class NotifyStage:
                 segment_briefings,
                 publisher=publisher,
                 site_urls=segment_urls,
-                items=items,
+                items=trusted_domestic_price_items(
+                    items,
+                    target_date=target_date,
+                    source_outcomes=source_outcomes,
+                ),
                 coverage_by_segment=coverage_by_segment,
                 lookahead_items_by_segment=lookahead_items_by_segment,
                 now_utc=notify_now_utc,

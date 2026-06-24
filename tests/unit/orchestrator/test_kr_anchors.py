@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from investo.models import NormalizedItem
+from investo.models.coverage import SourceOutcome
 from investo.orchestrator.pipeline import _build_kr_anchors_from_items
 
 _TS = datetime(2026, 5, 22, 6, 30, tzinfo=UTC)
@@ -62,3 +63,33 @@ def test_non_kr_and_empty_contribute_nothing() -> None:
     )
     assert _build_kr_anchors_from_items([us]) == ()
     assert _build_kr_anchors_from_items([]) == ()
+
+
+def test_untrusted_kr_anchor_is_quarantined() -> None:
+    items = [
+        _kr_item("^KOSPI", "999.99"),
+        _kr_item("^KOSDAQ", "870.25"),
+    ]
+
+    anchors = _build_kr_anchors_from_items(items, target_date=_TS.date())
+
+    assert [a.ticker for a in anchors] == ["^KOSDAQ"]
+
+
+def test_failed_source_outcome_quarantines_kr_anchors() -> None:
+    items = [_kr_item("^KOSPI", "2650.50")]
+
+    anchors = _build_kr_anchors_from_items(
+        items,
+        target_date=_TS.date(),
+        source_outcomes=(
+            SourceOutcome.from_failure(
+                "stooq-kr-market",
+                "price",
+                message="boom",
+                transient=True,
+            ),
+        ),
+    )
+
+    assert anchors == ()

@@ -4114,3 +4114,18 @@ B) Partial"
 **Context**: u108 reader-facing-quality-language-boundary Code Generation complete.
 
 ---
+
+## u109 Land - domestic-anchor-sanity-quarantine
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u109 code generation. Added deterministic domestic exact-anchor quarantine before public anchor/prose/chart/visual/Telegram surfaces.
+**Decisions**:
+- Added `orchestrator.domestic_anchor_quarantine` as the in-process trust helper; no source adapter, network call, secret, dependency, workflow, or archive backfill was added.
+- Applied quarantine before domestic KOSPI/KOSDAQ/USD-KRW anchors enter the canonical anchor payload.
+- Reused u70 anchor assertion gate for exact Samsung Electronics and SK Hynix prose claims.
+- Filtered Telegram market snapshots through the same trusted domestic registry path.
+- Persisted bounded `domestic_anchor_withheld_count` and `domestic_anchor_withheld_reasons` fields through `QualitySnapshot`.
+**Quality gate**: 295 focused tests passed, scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u109 domestic-anchor-sanity-quarantine Code Generation complete.
+
+---

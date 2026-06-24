@@ -43,7 +43,7 @@ from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, Market
 # These mirror the anchor-table priority basket; a body claim about one of
 # these labels with NO matching canonical anchor present is gated.
 _SEGMENT_CORE_SYMBOLS: Final[dict[MarketSegment, tuple[str, ...]]] = {
-    DOMESTIC_EQUITY: ("^KOSPI", "^KOSDAQ", "KRW=X"),
+    DOMESTIC_EQUITY: ("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS", "000660.KS"),
     US_EQUITY: ("^GSPC", "^IXIC", "^DJI"),
     CRYPTO: ("BTC-USD", "ETH-USD"),
 }
@@ -72,6 +72,14 @@ _MOVE_VERB_RE: Final[re.Pattern[str]] = re.compile("|".join(_MOVE_VERBS))
 _MAGNITUDE_RE: Final[re.Pattern[str]] = re.compile(
     r"[+\-]?\d[\d,]*(?:\.\d+)?\s*(?:%|％|p|pt|포인트|원|달러|\$)",  # noqa: RUF001
 )
+_EXTRA_SYMBOL_ALIASES: Final[dict[str, tuple[str, ...]]] = {
+    "005930.KS": ("삼성전자", "005930", "005930.KS"),
+    "000660.KS": ("SK하이닉스", "000660", "000660.KS"),
+}
+_EXTRA_SYMBOL_LABELS: Final[dict[str, str]] = {
+    "005930.KS": "삼성전자",
+    "000660.KS": "SK하이닉스",
+}
 
 # Deterministic replacement for an isolated gated sentence.
 _DATA_LIMITED_TEMPLATE: Final[str] = (
@@ -118,6 +126,7 @@ def _label_aliases(symbol: str) -> tuple[str, ...]:
     """Reader-facing strings that denote ``symbol`` in body prose."""
     label = anchor_label(symbol)
     aliases = {label.ko, label.short, label.display, symbol}
+    aliases.update(_EXTRA_SYMBOL_ALIASES.get(symbol, ()))
     return tuple(a for a in aliases if a)
 
 
@@ -215,7 +224,7 @@ def _gate_line(
             continue
         if not _is_precise_move_claim_for_symbol(content, symbol):
             continue
-        label = anchor_label(symbol).ko
+        label = _public_label(symbol)
         if structural:
             # Cannot rewrite structure; record as blocking.
             findings.append(
@@ -261,7 +270,7 @@ def _rewrite_sentence_claims(
                 continue
             if not _is_precise_move_claim_for_symbol(stripped, symbol):
                 continue
-            label = anchor_label(symbol).ko
+            label = _public_label(symbol)
             findings.append(
                 AnchorAssertionFinding(
                     segment=segment,
@@ -282,6 +291,10 @@ def _sentence_units(content: str) -> tuple[str, ...]:
     """Return sentence-like units while preserving terminators and spaces."""
     units = tuple(m.group(0) for m in _SENTENCE_UNIT_RE.finditer(content) if m.group(0))
     return units or (content,)
+
+
+def _public_label(symbol: str) -> str:
+    return _EXTRA_SYMBOL_LABELS.get(symbol, anchor_label(symbol).ko)
 
 
 def enforce_anchor_assertions(

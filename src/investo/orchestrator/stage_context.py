@@ -49,6 +49,8 @@ from investo.briefing.segments import (
     MarketSegment,
 )
 from investo.models import BriefingCarryover, NormalizedItem
+from investo.models.coverage import SourceOutcome
+from investo.orchestrator.domestic_anchor_quarantine import domestic_anchor_verdicts
 
 _logger = logging.getLogger("investo.orchestrator.stage_context")
 _MARKET_ANCHOR_HISTORY_BUDGET_ENV = "INVESTO_MARKET_ANCHOR_HISTORY_BUDGET_S"
@@ -152,6 +154,9 @@ def _snapshot_close_by_ticker(items: Sequence[NormalizedItem]) -> dict[str, Deci
 
 def _build_kr_anchors_from_items(
     items: Sequence[NormalizedItem],
+    *,
+    target_date: date | None = None,
+    source_outcomes: Sequence[SourceOutcome] = (),
 ) -> tuple[MarketAnchor, ...]:
     """Synthesize close-only domestic :class:`MarketAnchor` rows (u67).
 
@@ -166,10 +171,18 @@ def _build_kr_anchors_from_items(
     Empty / missing KR items ⇒ empty tuple (the domestic table omits the
     KR rows entirely, matching the existing graceful-degrade contract).
     """
-    snapshot = _snapshot_close_by_ticker(items)
+    trusted_snapshot = {
+        verdict.candidate.symbol: verdict.candidate.close
+        for verdict in domestic_anchor_verdicts(
+            items,
+            target_date=target_date,
+            source_outcomes=source_outcomes,
+        )
+        if verdict.trust == "trusted" and verdict.candidate.symbol in _KR_ANCHOR_TICKERS
+    }
     anchors: list[MarketAnchor] = []
     for ticker in _KR_ANCHOR_TICKERS:
-        close = snapshot.get(ticker)
+        close = trusted_snapshot.get(ticker)
         if close is None:
             continue
         anchors.append(MarketAnchor(ticker=ticker, close=close, is_ath=False))
