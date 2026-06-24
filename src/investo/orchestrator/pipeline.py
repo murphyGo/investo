@@ -1339,6 +1339,7 @@ async def _stage_publish_segments(
             from investo.briefing.watchlist_impact import build_impact_center
             from investo.publisher.watchlist_pages import (
                 update_watchlist_pages,
+                watchlist_publish_paths_for,
                 write_daily_impact_page,
             )
 
@@ -1353,6 +1354,8 @@ async def _stage_publish_segments(
                     all_items_for_match.extend(segment_items_for_match)
                     impact_for_match = match_watchlist_items(segment_items_for_match, watchlist_cfg)
                     all_matches.extend(impact_for_match.matches)
+            for path in watchlist_publish_paths_for(all_matches):
+                snapshots.setdefault(path, _read_existing_bytes(path))
             watchlist_paths = await asyncio.to_thread(
                 update_watchlist_pages,
                 target_date,
@@ -1381,8 +1384,6 @@ async def _stage_publish_segments(
                 segment_links=daily_segment_links,
             )
             watchlist_paths = (*watchlist_paths, daily_path)
-            for path in watchlist_paths:
-                snapshots.setdefault(path, _read_existing_bytes(path))
             index_paths = (*index_paths, *watchlist_paths)
             # u29 weekly retrospective — opt-in via INVESTO_PUBLISH_WEEKLY=1
             # set by the GHA Saturday cron path. Failing here would block

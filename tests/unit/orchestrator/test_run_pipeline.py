@@ -25,8 +25,10 @@ import json
 import logging
 import subprocess
 import threading
+from collections.abc import Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from pydantic import HttpUrl, TypeAdapter
@@ -2493,6 +2495,33 @@ def _patch_publish_segments_relative_paths(
     monkeypatch.setattr(pipeline_module, "update_weekly_index", fake_update_weekly_index)
 
 
+def _patch_watchlist_publish_inputs(
+    monkeypatch: pytest.MonkeyPatch,
+    items: Sequence[NormalizedItem],
+) -> None:
+    from investo.briefing import watchlist as watchlist_module
+    from investo.briefing.watchlist import WatchlistConfig
+
+    class _SegmentedItems:
+        def for_segment(self, segment: MarketSegment) -> tuple[NormalizedItem, ...]:
+            return tuple(items)
+
+        def coverage_for_segment(
+            self,
+            segment: MarketSegment,
+            *,
+            source_outcomes: object = (),
+        ) -> object:
+            return SimpleNamespace(status="normal")
+
+    monkeypatch.setattr(
+        watchlist_module,
+        "load_watchlist",
+        lambda: WatchlistConfig(tickers=("NVDA",)),
+    )
+    monkeypatch.setattr(pipeline_module, "segment_items", lambda _items: _SegmentedItems())
+
+
 @pytest.mark.asyncio
 async def test_stage_publish_segments_rolls_back_quality_history_append(
     monkeypatch: pytest.MonkeyPatch,
@@ -2670,6 +2699,131 @@ async def test_run_pipeline_weekly_digest_failure_rolls_back_and_fails(
     # No git commit happened — the failure short-circuited before
     # ``commit_and_push`` was reached.
     assert git.calls == []
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_weekly_failure_restores_existing_watchlist_page(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from investo.publisher.errors import PublisherDisclaimerError
+
+    monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
+    _patch_publish_segments_relative_paths(
+        monkeypatch,
+        tmp_path=tmp_path,
+        weekly_raises=PublisherDisclaimerError(target_date=_TARGET),
+    )
+    item = NormalizedItem(
+        source_name="yfinance-price",
+        category="news",
+        title="NVDA earnings surprise",
+        published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+    )
+    _patch_watchlist_publish_inputs(monkeypatch, (item,))
+
+    watchlist_page = tmp_path / "site_docs" / "watchlist" / "NVDA.md"
+    watchlist_page.parent.mkdir(parents=True)
+    original = "# previous watchlist page\n"
+    watchlist_page.write_text(original, encoding="utf-8")
+    monkeypatch.setattr(
+        pipeline_module,
+        "_read_existing_bytes",
+        lambda path: path.read_bytes() if path.exists() else None,
+    )
+
+    with pytest.raises(PublisherDisclaimerError):
+        await pipeline_module._stage_publish_segments(
+            _segment_briefings_dict(),
+            _TARGET,
+            git_runner=_SuccessfulGitRunner(),
+            items=(item,),
+        )
+
+    assert watchlist_page.read_text(encoding="utf-8") == original
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_weekly_failure_removes_new_watchlist_page(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from investo.publisher.errors import PublisherDisclaimerError
+
+    monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
+    _patch_publish_segments_relative_paths(
+        monkeypatch,
+        tmp_path=tmp_path,
+        weekly_raises=PublisherDisclaimerError(target_date=_TARGET),
+    )
+    item = NormalizedItem(
+        source_name="yfinance-price",
+        category="news",
+        title="NVDA earnings surprise",
+        published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+    )
+    _patch_watchlist_publish_inputs(monkeypatch, (item,))
+    watchlist_page = tmp_path / "site_docs" / "watchlist" / "NVDA.md"
+    monkeypatch.setattr(
+        pipeline_module,
+        "_read_existing_bytes",
+        lambda path: path.read_bytes() if path.exists() else None,
+    )
+
+    with pytest.raises(PublisherDisclaimerError):
+        await pipeline_module._stage_publish_segments(
+            _segment_briefings_dict(),
+            _TARGET,
+            git_runner=_SuccessfulGitRunner(),
+            items=(item,),
+        )
+
+    assert not watchlist_page.exists()
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_watchlist_atomic_failure_rolls_back(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from investo.publisher import watchlist_pages as watchlist_pages_module
+
+    _patch_publish_segments_relative_paths(monkeypatch, tmp_path=tmp_path)
+    item = NormalizedItem(
+        source_name="yfinance-price",
+        category="news",
+        title="NVDA earnings surprise",
+        published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+    )
+    _patch_watchlist_publish_inputs(monkeypatch, (item,))
+
+    watchlist_page = tmp_path / "site_docs" / "watchlist" / "NVDA.md"
+    watchlist_page.parent.mkdir(parents=True)
+    original = "# previous watchlist page\n"
+    watchlist_page.write_text(original, encoding="utf-8")
+
+    def fake_write_atomic(path: Path, text: str) -> None:
+        if path.name == "index.md":
+            raise OSError("index write failed")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    monkeypatch.setattr(watchlist_pages_module, "write_atomic", fake_write_atomic)
+    monkeypatch.setattr(
+        pipeline_module,
+        "_read_existing_bytes",
+        lambda path: path.read_bytes() if path.exists() else None,
+    )
+
+    with pytest.raises(PublisherIOError):
+        await pipeline_module._stage_publish_segments(
+            _segment_briefings_dict(),
+            _TARGET,
+            git_runner=_SuccessfulGitRunner(),
+            items=(item,),
+        )
+
+    assert watchlist_page.read_text(encoding="utf-8") == original
 
 
 # ---------------------------------------------------------------------------

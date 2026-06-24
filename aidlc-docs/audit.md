@@ -10,6 +10,24 @@
 
 ---
 
+## u113 Land - publish-transaction-atomicity
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u113 code generation. Watchlist publish pages are now
+pre-snapshotted before mutation and written through the shared atomic writer.
+**Decisions**:
+- Added watchlist path-planning helpers for per-term pages, the index page, and
+  the daily impact page so the publish stage can snapshot before writing.
+- Reused `investo._internal._io.write_atomic` for watchlist page writes instead
+  of adding another atomic helper.
+- Preserved writer-returned paths for git staging while moving rollback
+  snapshots ahead of watchlist side effects.
+**Quality gate**: 110 focused watchlist/orchestrator tests passed, 21 focused
+writer/io tests passed, scoped ruff passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u113 publish-transaction-atomicity Code Generation complete.
+
+---
+
 ## Construction — u104 sec-company-facts-and-symbol-directory Complete (9/9)
 **Timestamp**: 2026-06-18T18:15:39+09:00
 **Trigger**: Continue source-expansion implementation after u103 was pushed.

@@ -3,7 +3,7 @@
 **Date**: 2026-06-24
 **Unit**: u113 publish-transaction-atomicity
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-24 clean-code architecture review: watchlist pages are written before pre-write snapshots are captured, and watchlist page writers still use plain `write_text`.
 **Estimated Effort**: ~3-5 h
 **Dependencies**:
@@ -88,15 +88,15 @@ The plan must cover every watchlist public markdown destination before any mutat
 
 ## Implementation Steps
 
-- [ ] Add pure path helpers in `publisher/watchlist_pages.py`, for example `watchlist_page_paths_for(matches, *, pages_root=WATCHLIST_PAGES_ROOT)` plus explicit index/daily path helpers, or one helper whose return value includes all three destination classes.
-- [ ] Ensure the helper uses the same slug/grouping semantics as `update_watchlist_pages()`.
-- [ ] Update `_stage_publish_segments` so it snapshots per-term, index, and daily watchlist destinations before calling either watchlist writer.
-- [ ] Switch watchlist markdown writes to `investo._internal._io.write_atomic`.
-- [ ] Preserve returned watchlist paths as the commit/index path set.
-- [ ] Add rollback regression tests for pre-existing watchlist pages when later weekly publish fails.
-- [ ] Add rollback regression tests for newly created watchlist pages when later weekly publish fails.
-- [ ] Add focused tests proving watchlist writers use the shared atomic-write path and failed writes do not corrupt existing destination bytes.
-- [ ] Write `aidlc-docs/construction/u113-publish-transaction-atomicity/code/summary.md`.
+- [x] Add pure path helpers in `publisher/watchlist_pages.py`, for example `watchlist_page_paths_for(matches, *, pages_root=WATCHLIST_PAGES_ROOT)` plus explicit index/daily path helpers, or one helper whose return value includes all three destination classes.
+- [x] Ensure the helper uses the same slug/grouping semantics as `update_watchlist_pages()`.
+- [x] Update `_stage_publish_segments` so it snapshots per-term, index, and daily watchlist destinations before calling either watchlist writer.
+- [x] Switch watchlist markdown writes to `investo._internal._io.write_atomic`.
+- [x] Preserve returned watchlist paths as the commit/index path set.
+- [x] Add rollback regression tests for pre-existing watchlist pages when later weekly publish fails.
+- [x] Add rollback regression tests for newly created watchlist pages when later weekly publish fails.
+- [x] Add focused tests proving watchlist writers use the shared atomic-write path and failed writes do not corrupt existing destination bytes.
+- [x] Write `aidlc-docs/construction/u113-publish-transaction-atomicity/code/summary.md`.
 
 ## Acceptance Criteria
 

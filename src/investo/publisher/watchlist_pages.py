@@ -20,6 +20,7 @@ explicitly so tests are deterministic.
 
 from __future__ import annotations
 
+import contextlib
 import posixpath
 import re
 from collections.abc import Iterable, Sequence
@@ -27,6 +28,7 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal._io import write_atomic
 from investo.briefing.watchlist import (
     PublicWatchlistGroup,
     WatchlistMatch,
@@ -34,6 +36,7 @@ from investo.briefing.watchlist import (
 )
 from investo.briefing.watchlist_impact import RejectedCandidate, WatchlistImpactCenter
 from investo.models import NormalizedItem
+from investo.publisher.errors import PublisherIOError
 
 WATCHLIST_PAGES_ROOT: Final[Path] = Path("site_docs/watchlist")
 # u73 — the daily-first impact center page. Today's grouped impacts are
@@ -84,6 +87,48 @@ def _slug_for_term(term: str) -> str:
     return _SLUG_RE.sub("-", term.strip()).strip("-") or "_unnamed"
 
 
+def watchlist_page_paths_for(
+    matches: Sequence[WatchlistMatch],
+    *,
+    pages_root: Path = WATCHLIST_PAGES_ROOT,
+) -> tuple[Path, ...]:
+    """Return per-term/index paths ``update_watchlist_pages`` may rewrite.
+
+    This helper is the publish-stage pre-snapshot contract for the u33
+    accumulation writer. It mirrors the writer's slug/grouping and index
+    conditions without mutating the filesystem.
+    """
+    by_term = _group_by_term(matches)
+    paths = [pages_root / f"{_slug_for_term(term)}.md" for term in sorted(by_term)]
+    if paths or _has_existing_term_pages(pages_root):
+        paths.append(watchlist_index_path(pages_root=pages_root))
+    return _unique_paths(paths)
+
+
+def watchlist_index_path(*, pages_root: Path = WATCHLIST_PAGES_ROOT) -> Path:
+    """Return the per-term watchlist index path."""
+    return pages_root / "index.md"
+
+
+def daily_impact_page_path(*, pages_root: Path = WATCHLIST_PAGES_ROOT) -> Path:
+    """Return the daily-first impact center page path."""
+    return pages_root / DAILY_IMPACT_PAGE
+
+
+def watchlist_publish_paths_for(
+    matches: Sequence[WatchlistMatch],
+    *,
+    pages_root: Path = WATCHLIST_PAGES_ROOT,
+) -> tuple[Path, ...]:
+    """Return every public watchlist markdown path publish can mutate."""
+    return _unique_paths(
+        [
+            *watchlist_page_paths_for(matches, pages_root=pages_root),
+            daily_impact_page_path(pages_root=pages_root),
+        ]
+    )
+
+
 def update_watchlist_pages(
     target_date: date,
     matches: Sequence[WatchlistMatch],
@@ -107,9 +152,9 @@ def update_watchlist_pages(
         path.parent.mkdir(parents=True, exist_ok=True)
         existing = path.read_text(encoding="utf-8") if path.exists() else _initial_page(term)
         next_body = _replace_day_section(existing, target_date, term_matches, term=term)
-        path.write_text(next_body, encoding="utf-8")
+        _write_watchlist_markdown(path, next_body, target_date=target_date)
         written.append(path)
-    index_path = _maybe_write_index(pages_root)
+    index_path = _maybe_write_index(pages_root, target_date=target_date)
     if index_path is not None:
         written.append(index_path)
     return tuple(written)
@@ -182,7 +227,7 @@ def _match_bullet(match: WatchlistMatch) -> str:
     return f"- {source_part} **{match.kind}**: {title}{weight_part}"
 
 
-def _maybe_write_index(pages_root: Path) -> Path | None:
+def _maybe_write_index(pages_root: Path, *, target_date: date) -> Path | None:
     """Refresh the per-term index page so mkdocs nav can list every page.
 
     u33 Step 5 — embed a deterministic SVG chart at the top showing the
@@ -217,8 +262,34 @@ def _maybe_write_index(pages_root: Path) -> Path | None:
         slug = page.stem
         lines.append(f"| {slug} | {counts.get(slug, 0)} | [{slug}.md]({page.name}) |")
     lines.append("")
-    index_path.write_text("\n".join(lines), encoding="utf-8")
+    _write_watchlist_markdown(index_path, "\n".join(lines), target_date=target_date)
     return index_path
+
+
+def _has_existing_term_pages(pages_root: Path) -> bool:
+    if not pages_root.exists():
+        return False
+    return any(p.name not in ("index.md", DAILY_IMPACT_PAGE) for p in pages_root.glob("*.md"))
+
+
+def _unique_paths(paths: Iterable[Path]) -> tuple[Path, ...]:
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for path in paths:
+        if path in seen:
+            continue
+        seen.add(path)
+        out.append(path)
+    return tuple(out)
+
+
+def _write_watchlist_markdown(path: Path, body: str, *, target_date: date) -> None:
+    try:
+        write_atomic(path, body)
+    except OSError as exc:
+        with contextlib.suppress(OSError):
+            path.with_suffix(path.suffix + ".tmp").unlink(missing_ok=True)
+        raise PublisherIOError(target_date=target_date, path=path, cause=exc) from exc
 
 
 def _count_per_page(page: Path) -> int:
@@ -362,14 +433,18 @@ def write_daily_impact_page(
         segment_links=segment_links,
         link_prefix=posixpath.relpath(pages_root.parent.as_posix(), pages_root.as_posix()),
     )
-    path.write_text(body, encoding="utf-8")
+    _write_watchlist_markdown(path, body, target_date=target_date)
     return path
 
 
 __all__ = [
     "DAILY_IMPACT_PAGE",
     "WATCHLIST_PAGES_ROOT",
+    "daily_impact_page_path",
     "render_daily_impact_page",
     "update_watchlist_pages",
+    "watchlist_index_path",
+    "watchlist_page_paths_for",
+    "watchlist_publish_paths_for",
     "write_daily_impact_page",
 ]

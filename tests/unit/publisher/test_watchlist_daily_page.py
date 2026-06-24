@@ -5,9 +5,12 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+import pytest
+
 from investo.briefing.watchlist import WatchlistConfig, match_watchlist_items
 from investo.briefing.watchlist_impact import build_impact_center
 from investo.models import NormalizedItem
+from investo.publisher import watchlist_pages as watchlist_pages_module
 from investo.publisher.watchlist_pages import (
     DAILY_IMPACT_PAGE,
     render_daily_impact_page,
@@ -172,3 +175,27 @@ def test_daily_page_is_idempotent(tmp_path: object) -> None:
     assert p1 == p2
     assert p1.name == DAILY_IMPACT_PAGE
     assert p2.read_text(encoding="utf-8") == first
+
+
+def test_write_daily_page_uses_shared_atomic_writer(
+    tmp_path: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[Path] = []
+
+    def fake_write_atomic(path: Path, text: str) -> None:
+        calls.append(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    monkeypatch.setattr(watchlist_pages_module, "write_atomic", fake_write_atomic)
+    config = WatchlistConfig(tickers=("NVDA",))
+    center = _center(config, [_item("NVDA up")])
+
+    path = write_daily_impact_page(
+        date(2026, 5, 7),
+        center,  # type: ignore[arg-type]
+        pages_root=tmp_path,  # type: ignore[arg-type]
+    )
+
+    assert calls == [path]
