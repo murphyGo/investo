@@ -84,8 +84,7 @@ async def test_requests_carry_sec_user_agent(monkeypatch: pytest.MonkeyPatch) ->
 
     assert [str(request.url) for request in captured] == [_SUBMISSIONS_URL, _FACTS_URL]
     assert all(
-        request.headers["user-agent"] == "investo investo@example.com"
-        for request in captured
+        request.headers["user-agent"] == "investo investo@example.com" for request in captured
     )
 
 

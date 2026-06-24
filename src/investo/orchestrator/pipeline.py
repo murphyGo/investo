@@ -2541,9 +2541,7 @@ class GenerateStage:
                             for segment, briefing in segment_briefings.items()
                             if segment != failed_segment
                         }
-                        stage_notes[f"publish:{failed_segment}"] = (
-                            "failed: SurfaceQualityError"
-                        )
+                        stage_notes[f"publish:{failed_segment}"] = "failed: SurfaceQualityError"
                         _logger.error(
                             "[publish] surface quality blocked segment=%s; "
                             "issues=%s continuing with %d remaining segment(s)",

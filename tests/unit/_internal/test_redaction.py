@@ -287,6 +287,7 @@ class TestSingleSourceOfTruth:
             "CLAUDE_CODE_OAUTH_TOKEN",
             "OPENAI_API_KEY",
             "BEA_API_KEY",
+            "EIA_API_KEY",
             "FRED_API_KEY",
             "CONGRESS_API_KEY",
             "INVESTO_KRX_SERVICE_KEY",

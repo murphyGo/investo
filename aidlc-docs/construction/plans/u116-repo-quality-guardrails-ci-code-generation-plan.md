@@ -3,7 +3,7 @@
 **Date**: 2026-06-24
 **Unit**: u116 repo-quality-guardrails-ci
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-24 repo-local CI and policy-guard audit.
 **Estimated Effort**: ~2-4 h
 **Dependencies**:
@@ -109,16 +109,16 @@ Any top-level import from one adapter package to another must be explicitly allo
 
 ## Implementation Steps
 
-- [ ] Add `.github/workflows/quality.yml`.
-- [ ] Add workflow text tests proving required triggers/commands, `contents: read`, and no `secrets.` usage.
-- [ ] Update `scripts/check_no_anthropic_sdk.py` to parse PEP 621 dependencies with `tomllib`.
-- [ ] Extend `tests/unit/briefing/test_no_anthropic_sdk.py` with actual dependency-array fixtures.
-- [ ] Populate `scripts/check_no_paid_apis.py` with a conservative non-empty blocklist.
-- [ ] Extend `tests/unit/sources/test_no_paid_apis.py` with blocked paid-provider and allowed free-provider fixtures.
-- [ ] Extend `tests/unit/_internal/test_module_boundary.py` to scan all adapter-package top-level sibling imports against an explicit allowlist.
-- [ ] Add synthetic tests proving a new unallowed sibling edge fails.
-- [ ] Run the focused guard tests and the full local quality command set.
-- [ ] Write `aidlc-docs/construction/u116-repo-quality-guardrails-ci/code/summary.md`.
+- [x] Add `.github/workflows/quality.yml`.
+- [x] Add workflow text tests proving required triggers/commands, `contents: read`, and no `secrets.` usage.
+- [x] Update `scripts/check_no_anthropic_sdk.py` to parse PEP 621 dependencies with `tomllib`.
+- [x] Extend `tests/unit/briefing/test_no_anthropic_sdk.py` with actual dependency-array fixtures.
+- [x] Populate `scripts/check_no_paid_apis.py` with a conservative non-empty blocklist.
+- [x] Extend `tests/unit/sources/test_no_paid_apis.py` with blocked paid-provider and allowed free-provider fixtures.
+- [x] Extend `tests/unit/_internal/test_module_boundary.py` to scan all adapter-package top-level sibling imports against an explicit allowlist.
+- [x] Add synthetic tests proving a new unallowed sibling edge fails.
+- [x] Run the focused guard tests and the full local quality command set.
+- [x] Write `aidlc-docs/construction/u116-repo-quality-guardrails-ci/code/summary.md`.
 
 ## Acceptance Criteria
 

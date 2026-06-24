@@ -475,9 +475,7 @@ def _decide_daily_thesis_for_segments(
             continue
         driver = _THESIS_DRIVER_BY_CAUSE_TYPE[cause_type]
         implication = _THESIS_IMPLICATION_BY_CAUSE_TYPE[cause_type]
-        labels = "·".join(
-            _SEGMENT_THESIS_LABEL.get(segment, segment) for segment in supporting
-        )
+        labels = "·".join(_SEGMENT_THESIS_LABEL.get(segment, segment) for segment in supporting)
         line = (
             f"> **오늘의 큰 그림:** {driver}가 {labels}에 동시에 걸리며, "
             f"오늘 독자는 {implication}을 먼저 확인해야 합니다."

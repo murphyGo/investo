@@ -34,7 +34,8 @@ def test_script_exists() -> None:
 
 
 def test_subprocess_invocation_passes_on_current_sources() -> None:
-    # v1 ships an empty BLOCKLIST and no paid-API references → exit 0.
+    # The committed blocklist is non-empty; current sources still avoid
+    # paid-first providers.
     # The subprocess form is what CI executes.
     result = subprocess.run(
         [sys.executable, str(_SCRIPT)],
@@ -54,6 +55,11 @@ def test_find_offenders_returns_empty_on_clean_sources() -> None:
     assert script.find_offenders() == []
 
 
+def test_blocklist_is_non_empty() -> None:
+    script = _load_script_module()
+    assert script.BLOCKLIST
+
+
 def test_find_offenders_detects_match_when_blocklist_populated(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -66,3 +72,50 @@ def test_find_offenders_detects_match_when_blocklist_populated(
     offenders = script.find_offenders()
     assert offenders, "blocklist with federalreserve.gov should match fomc_rss.py"
     assert any("fomc_rss.py" in str(off[0]) for off in offenders)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "import blpapi\n",
+        "host = 'https://api.refinitiv.com/data'\n",
+        "token = os.environ['FACTSET_API_KEY']\n",
+        "provider = 'Nasdaq Data Link'\n",
+        "import quandl\n",
+        "name = 'Morningstar Direct'\n",
+    ],
+)
+def test_find_offenders_detects_paid_first_providers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    text: str,
+) -> None:
+    script = _load_script_module()
+    fake_sources = tmp_path / "sources"
+    fake_sources.mkdir()
+    (fake_sources / "paid.py").write_text(text, encoding="utf-8")
+    monkeypatch.setattr(script, "SOURCES_ROOT", fake_sources)
+
+    offenders = script.find_offenders()
+    assert offenders
+
+
+def test_find_offenders_allows_current_free_public_provider_shapes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    script = _load_script_module()
+    fake_sources = tmp_path / "sources"
+    fake_sources.mkdir()
+    (fake_sources / "free.py").write_text(
+        "FRED_API_KEY = 'free official key env var allowed'\n"
+        "BEA_API_KEY = 'free official key env var allowed'\n"
+        "url = 'https://fred.stlouisfed.org/'\n"
+        "url2 = 'https://api.stlouisfed.org/fred/series/observations'\n"
+        "url3 = 'https://apps.bea.gov/api/data/'\n"
+        "url4 = 'https://data.sec.gov/submissions/'\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(script, "SOURCES_ROOT", fake_sources)
+
+    assert script.find_offenders() == []

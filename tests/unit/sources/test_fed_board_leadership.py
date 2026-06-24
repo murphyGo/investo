@@ -39,9 +39,10 @@ async def test_fetch_emits_current_chair_fact_metadata() -> None:
     assert item.raw_metadata["fact_value"] == "Kevin Warsh"
     assert item.raw_metadata["fact_label_ko"] == "케빈 워시"
     assert item.raw_metadata["fact_source_tier"] == "S"
-    assert item.raw_metadata["fact_expires_at"] == (
-        datetime(2026, 6, 18, tzinfo=UTC) + timedelta(hours=24)
-    ).isoformat()
+    assert (
+        item.raw_metadata["fact_expires_at"]
+        == (datetime(2026, 6, 18, tzinfo=UTC) + timedelta(hours=24)).isoformat()
+    )
     assert "<a" not in item.raw_metadata["raw_evidence_label"]
 
 

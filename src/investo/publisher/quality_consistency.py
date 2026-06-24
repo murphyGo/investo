@@ -485,9 +485,7 @@ def reconcile_kpis_with_history(
     current_run_data_limited_briefings = _non_negative_int(
         row.get("current_run_data_limited_briefings")
     )
-    current_run_briefings_observed = _non_negative_int(
-        row.get("current_run_briefings_observed")
-    )
+    current_run_briefings_observed = _non_negative_int(row.get("current_run_briefings_observed"))
     if (
         raw_failed <= 0
         and current_run_zero_item_sources <= 0

@@ -147,6 +147,8 @@ _SHARED_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
     US_EQUITY: source_names_for_item_segment(US_EQUITY, routing="shared-segments"),
     CRYPTO: source_names_for_item_segment(CRYPTO, routing="shared-segments"),
 }
+
+
 def _single_source_for_routing(routing: SourceItemRouting) -> str:
     sources = source_names_for_item_routing(routing)
     if len(sources) != 1:

@@ -30,6 +30,7 @@ from datetime import date
 
 import pytest
 
+from investo._internal.public_quality_language import project_public_quality_language
 from investo.briefing.pipeline import (
     _build_summary_header,
     _enhance_reader_experience,
@@ -358,7 +359,7 @@ def test_summary_header_from_archive_section_bodies_passes_gate() -> None:
     )
     header = _build_summary_header(sections)
     markdown = _wrap_first_viewport(
-        conclusion=header.conclusion,
+        conclusion=project_public_quality_language(header.conclusion),
         driver=header.driver,
         caution=header.caution,
     )

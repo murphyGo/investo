@@ -23,10 +23,7 @@ def test_unknown_adapter_fallback_emits_diagnostic_log(
     with caplog.at_level(logging.INFO, logger="investo.sources.tiers"):
         assert adapter_tier("non-production-stub") == DEFAULT_TIER
 
-    assert (
-        "[tiers] non-production-stub missing from ADAPTER_TIERS"
-        in caplog.text
-    )
+    assert "[tiers] non-production-stub missing from ADAPTER_TIERS" in caplog.text
 
 
 def test_registry_covers_known_s_tier_sources() -> None:

@@ -1,5 +1,32 @@
 # AI-DLC Audit Log
 
+## u116 Land - repo-quality-guardrails-ci
+**Timestamp**: 2026-06-24T00:00:00Z
+**Action**: Landed u116 code generation. Repository quality checks now run
+through a dedicated GitHub Actions workflow and strengthened local guard
+scripts/tests.
+**Decisions**:
+- Added `.github/workflows/quality.yml` for PR, `main` push, and manual
+  quality validation with read-only contents permission and no secrets.
+- Switched Anthropic dependency scanning from pseudo TOML headers to stdlib
+  `tomllib` parsing of PEP 621 dependency arrays, including optional
+  dependency groups and malformed-TOML fail-closed behavior.
+- Populated the paid-API guard with a narrow paid-first provider blocklist
+  while allowing current official/free provider key shapes.
+- Extended the module-boundary test from the `publisher`/`visuals` pair to all
+  top-level adapter-package sibling imports with explicit allowlist reasons.
+- Addressed code-review findings by covering `from investo import <adapter>`
+  and package-relative sibling import bypass forms.
+- Normalized full-repo formatting because the new workflow enforces
+  `ruff format --check src tests scripts`.
+**Quality gate**: focused guard tests passed (40), full ruff check passed, full
+ruff format check passed, `mypy src` passed, both guard scripts exited 0, full
+pytest passed (3170).
+**TECH-DEBT**: None.
+**Context**: u116 repo-quality-guardrails-ci Code Generation complete.
+
+---
+
 ## u115 Land - source-spec-registry-unification
 **Timestamp**: 2026-06-24T00:00:00Z
 **Action**: Landed u115 code generation. Production source metadata is now

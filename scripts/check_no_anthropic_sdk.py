@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 # Source-side regex patterns. Each is matched against every line
@@ -50,17 +51,18 @@ SOURCE_PATTERNS: list[tuple[str, str]] = [
     ("string_form_subprocess", r"subprocess\.(run|Popen)\(\s*\"[^\"]*\"\s*[,)]"),
 ]
 
-# Pyproject section header → flagged dep regex (case-sensitive). Both
-# locations are checked because either is a real install path.
-PYPROJECT_DEP_SECTIONS: tuple[str, ...] = (
-    "[project.dependencies]",
-    "[project.optional-dependencies]",
-)
-PYPROJECT_DEP_PATTERN = re.compile(r"^\s*[\"']?anthropic", re.IGNORECASE)
-
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 SRC_ROOT = _REPO_ROOT / "src"
 PYPROJECT = _REPO_ROOT / "pyproject.toml"
+
+
+def _dependency_name(requirement: str) -> str:
+    """Return the normalized package name before extras/version/markers."""
+    head = requirement.split(";", 1)[0].strip()
+    match = re.match(r"([A-Za-z0-9_.-]+)", head)
+    if match is None:
+        return ""
+    return match.group(1).replace("_", "-").lower()
 
 
 def find_source_offenders() -> list[tuple[Path, int, str, str]]:
@@ -84,23 +86,44 @@ def find_source_offenders() -> list[tuple[Path, int, str, str]]:
 
 
 def find_pyproject_offenders() -> list[tuple[int, str, str]]:
-    """Return ``(line_no, section_header, line_text)`` for any
-    ``anthropic`` dep listed under a flagged pyproject section.
+    """Return ``(index, dependency_group, requirement)`` for Anthropic deps.
 
-    Returns ``[]`` if pyproject is missing or clean.
+    The parser follows PEP 621: ``[project] dependencies = [...]`` and every
+    ``[project.optional-dependencies]`` group. Malformed TOML fails closed by
+    returning a synthetic offender.
     """
     if not PYPROJECT.exists():
         return []
-    text = PYPROJECT.read_text(encoding="utf-8")
+    try:
+        payload = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        return [(0, "pyproject.toml", f"malformed TOML: {exc}")]
+
     offenders: list[tuple[int, str, str]] = []
-    current_section: str | None = None
-    for line_no, line in enumerate(text.splitlines(), start=1):
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            current_section = stripped
-            continue
-        if current_section in PYPROJECT_DEP_SECTIONS and PYPROJECT_DEP_PATTERN.search(line):
-            offenders.append((line_no, current_section or "?", line.rstrip()))
+    project = payload.get("project", {})
+    dependencies = project.get("dependencies", [])
+    if isinstance(dependencies, list):
+        for index, requirement in enumerate(dependencies):
+            if isinstance(requirement, str) and _dependency_name(requirement) == "anthropic":
+                offenders.append((index, "project.dependencies", requirement))
+    else:
+        offenders.append((0, "project.dependencies", "dependencies must be an array"))
+
+    optional = project.get("optional-dependencies", {})
+    if isinstance(optional, dict):
+        for group, requirements in optional.items():
+            if not isinstance(requirements, list):
+                offenders.append(
+                    (0, f"project.optional-dependencies.{group}", "group must be an array")
+                )
+                continue
+            for index, requirement in enumerate(requirements):
+                if isinstance(requirement, str) and _dependency_name(requirement) == "anthropic":
+                    offenders.append((index, f"project.optional-dependencies.{group}", requirement))
+    else:
+        offenders.append(
+            (0, "project.optional-dependencies", "optional-dependencies must be a table")
+        )
     return offenders
 
 

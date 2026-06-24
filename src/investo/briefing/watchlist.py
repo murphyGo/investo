@@ -82,6 +82,7 @@ DEFAULT_CORE_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
     "AMZN": ("Amazon", "아마존"),
 }
 
+
 class WatchlistScope(BaseModel):
     """u33 Step 4 — a named sub-watchlist for sector / account scoping.
 

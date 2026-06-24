@@ -212,9 +212,7 @@ SOURCE_SPECS_BY_NAME: Final[dict[str, SourceSpec]] = {spec.name: spec for spec i
 
 
 def source_names_for_market_window(segment: MarketSegment) -> frozenset[str]:
-    return frozenset(
-        spec.name for spec in SOURCE_SPECS if spec.market_window_segment == segment
-    )
+    return frozenset(spec.name for spec in SOURCE_SPECS if spec.market_window_segment == segment)
 
 
 def source_names_for_item_segment(

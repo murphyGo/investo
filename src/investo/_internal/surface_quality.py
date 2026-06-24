@@ -32,9 +32,7 @@ _WATCHLIST_MATCHER_REASON_RE = re.compile(
 _TRACE_ASSIGNMENT_RE = re.compile(
     r"`?(?:input_hash|stage1_hash|stage2_hash)`?\s*[:=]\s*`?[\w.-]+`?"
 )
-_RECOVERABLE_LINK_FRAGMENT_RE = re.compile(
-    r"\[([^\]\n]+)\]\((?:https?://|www\.)[^\s)\n]*"
-)
+_RECOVERABLE_LINK_FRAGMENT_RE = re.compile(r"\[([^\]\n]+)\]\((?:https?://|www\.)[^\s)\n]*")
 _WATERMARK_LINE_RE = re.compile(
     r"^\*\*기준 시각\*\*:\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+"
     r"[A-Za-z가-힣0-9 /+:-]+\s+·\s+수집창\s+\[[^\[\]\n]+\]$"
@@ -190,9 +188,7 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
         if _TRACE_RE.search(scan_line):
             issues.append(SurfaceQualityIssue("trace.fragment", "block", line, region))
         if _bad_watermark_window(scan_line):
-            issues.append(
-                SurfaceQualityIssue("watermark.window_bracket", "block", line, region)
-            )
+            issues.append(SurfaceQualityIssue("watermark.window_bracket", "block", line, region))
         numeric_bold = _BROKEN_NUMERIC_BOLD_RE.search(scan_line)
         if numeric_bold is not None:
             issues.append(

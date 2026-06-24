@@ -93,9 +93,7 @@ def candidate_from_item(item: NormalizedItem) -> DomesticAnchorCandidate | None:
     if symbol is None:
         return None
     close, close_parse_failed = _metadata_decimal(item, "close", "last_price", "price")
-    change_pct, change_pct_parse_failed = _metadata_decimal(
-        item, "pct_change", "change_pct", "pct"
-    )
+    change_pct, change_pct_parse_failed = _metadata_decimal(item, "pct_change", "change_pct", "pct")
     return DomesticAnchorCandidate(
         symbol=symbol,
         close=close,

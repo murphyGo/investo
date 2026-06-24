@@ -6,10 +6,10 @@ Implements NFR-002 AC-2.2: a CI grep guard, executed by the lint job
 during ``pytest``), fails the build if any source file under
 ``src/investo/sources/`` matches a known-paid-API pattern.
 
-The blocklist below starts empty for v1 and is appended to as paid
-services are identified during ``/code-review``. A populated entry
-catches direct hostname references, SDK imports, or auth-key envvars
-specific to a paid tier.
+The blocklist below is intentionally narrow: it catches paid-first market data
+providers and provider-specific SDK/env-var references, but does not block broad
+terms such as ``API_KEY`` because the repo intentionally uses free/public keys
+for official providers.
 
 Usage::
 
@@ -30,14 +30,26 @@ from pathlib import Path
 # every ``.py`` file under ``SOURCES_ROOT``. Each entry should be a
 # regex string (not a compiled pattern) so this list stays readable.
 #
-# Append entries here when a paid service is identified during
-# code review. Examples (not yet active — list is intentionally
-# empty for v1):
-#   r"\bbloomberg\.com\b"      # Bloomberg Terminal API
-#   r"\brefinitiv\.com\b"      # Refinitiv Eikon
-#   r"\bfactset\.com\b"        # FactSet
-#   r"\bquandl\.com\b"         # Nasdaq Data Link (mostly paid)
-BLOCKLIST: list[str] = []
+BLOCKLIST: list[str] = [
+    r"\bblpapi\b",
+    r"\bbloomberg(?:professional|terminal)?\.com\b",
+    r"\bBLOOMBERG_[A-Z0-9_]*",
+    r"\brefinitiv\b",
+    r"\beikon\b",
+    r"\bREFINITIV_[A-Z0-9_]*",
+    r"\bEIKON_[A-Z0-9_]*",
+    r"\bfactset\b",
+    r"\bFACTSET_[A-Z0-9_]*",
+    r"\bcapitaliq\b",
+    r"\bcapital\s+iq\b",
+    r"\bCAPITALIQ_[A-Z0-9_]*",
+    r"\bmorningstar\s+direct\b",
+    r"\bMORNINGSTAR_DIRECT_[A-Z0-9_]*",
+    r"\bnasdaq\s+data\s+link\b",
+    r"\bquandl\b",
+    r"\bNASDAQ_DATA_LINK_[A-Z0-9_]*",
+    r"\bQUANDL_[A-Z0-9_]*",
+]
 
 SOURCES_ROOT = Path(__file__).resolve().parent.parent / "src" / "investo" / "sources"
 
@@ -45,12 +57,8 @@ SOURCES_ROOT = Path(__file__).resolve().parent.parent / "src" / "investo" / "sou
 def find_offenders() -> list[tuple[Path, int, str, str]]:
     """Return ``(path, line_no, pattern, line_text)`` for every match.
 
-    Returns an empty list when ``BLOCKLIST`` is empty (v1 default) or
-    no source file matches.
+    Returns an empty list when no source file matches.
     """
-
-    if not BLOCKLIST:
-        return []
     compiled = [(re.compile(p, re.IGNORECASE), p) for p in BLOCKLIST]
     offenders: list[tuple[Path, int, str, str]] = []
     for path in sorted(SOURCES_ROOT.rglob("*.py")):

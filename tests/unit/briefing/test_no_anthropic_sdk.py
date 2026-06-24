@@ -170,37 +170,70 @@ def test_does_not_flag_list_form_subprocess(
 def test_detects_anthropic_in_pyproject_dependencies(
     tmp_path: pytest.MonkeyPatch, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """``anthropic`` listed under ``[project.dependencies]`` is flagged."""
+    """``anthropic`` listed in PEP 621 ``dependencies = [...]`` is flagged."""
     script = _load_script_module()
 
     fake_pyproject = Path(str(tmp_path)) / "pyproject.toml"
     fake_pyproject.write_text(
-        '[project]\nname = "test"\n\n[project.dependencies]\n"anthropic>=0.5"\n',
+        '[project]\nname = "test"\ndependencies = ["httpx", "anthropic>=0.5"]\n',
         encoding="utf-8",
     )
     monkeypatch.setattr(script, "PYPROJECT", fake_pyproject)
 
     offenders = script.find_pyproject_offenders()
-    assert offenders, "anthropic in [project.dependencies] should be flagged"
-    assert any("[project.dependencies]" in section for _, section, _ in offenders)
+    assert offenders, "anthropic in project.dependencies should be flagged"
+    assert any("project.dependencies" in section for _, section, _ in offenders)
 
 
 def test_detects_anthropic_in_pyproject_optional_dependencies(
     tmp_path: pytest.MonkeyPatch, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Optional-dependencies tables are also scanned."""
+    """PEP 621 optional-dependencies groups are also scanned."""
     script = _load_script_module()
 
     fake_pyproject = Path(str(tmp_path)) / "pyproject.toml"
     fake_pyproject.write_text(
-        '[project]\nname = "test"\n\n[project.optional-dependencies]\n"anthropic>=0.5"\n',
+        '[project]\nname = "test"\n\n[project.optional-dependencies]\n'
+        'dev = ["pytest", "Anthropic[bedrock]>=0.5"]\n',
         encoding="utf-8",
     )
     monkeypatch.setattr(script, "PYPROJECT", fake_pyproject)
 
     offenders = script.find_pyproject_offenders()
     assert offenders
-    assert any("[project.optional-dependencies]" in section for _, section, _ in offenders)
+    assert any("project.optional-dependencies.dev" in section for _, section, _ in offenders)
+
+
+def test_pyproject_dependency_parser_strips_extras_versions_and_markers(
+    tmp_path: pytest.MonkeyPatch, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    script = _load_script_module()
+
+    fake_pyproject = Path(str(tmp_path)) / "pyproject.toml"
+    fake_pyproject.write_text(
+        '[project]\nname = "test"\n'
+        'dependencies = ["anthropic[vertex]>=0.5; python_version >= \\"3.11\\""]\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(script, "PYPROJECT", fake_pyproject)
+
+    offenders = script.find_pyproject_offenders()
+    assert offenders
+    assert offenders[0][2].startswith("anthropic[vertex]")
+
+
+def test_malformed_pyproject_fails_closed(
+    tmp_path: pytest.MonkeyPatch, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    script = _load_script_module()
+
+    fake_pyproject = Path(str(tmp_path)) / "pyproject.toml"
+    fake_pyproject.write_text("[project\n", encoding="utf-8")
+    monkeypatch.setattr(script, "PYPROJECT", fake_pyproject)
+
+    offenders = script.find_pyproject_offenders()
+    assert offenders
+    assert "malformed TOML" in offenders[0][2]
 
 
 def test_does_not_flag_anthropic_outside_dep_sections(

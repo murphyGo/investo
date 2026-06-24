@@ -49,12 +49,8 @@ _DATA_LIMITED_NOUN_RE: Final[re.Pattern[str]] = re.compile(
 _BODY_USED_RE: Final[re.Pattern[str]] = re.compile(r"본문 사용\s*(?:\d+|미집계)")
 _FAILED_COUNT_RE: Final[re.Pattern[str]] = re.compile(r"실패\s*\d+")
 _ZERO_COUNT_RE: Final[re.Pattern[str]] = re.compile(r"0건\s*\d+")
-_FALLBACK_RATIO_RE: Final[re.Pattern[str]] = re.compile(
-    r"fallback[_ ]?ratio", re.IGNORECASE
-)
-_FIGURES_PRESENCE_RE: Final[re.Pattern[str]] = re.compile(
-    r"figures[_ ]?presence", re.IGNORECASE
-)
+_FALLBACK_RATIO_RE: Final[re.Pattern[str]] = re.compile(r"fallback[_ ]?ratio", re.IGNORECASE)
+_FIGURES_PRESENCE_RE: Final[re.Pattern[str]] = re.compile(r"figures[_ ]?presence", re.IGNORECASE)
 
 
 def project_public_quality_language(text: str) -> str:

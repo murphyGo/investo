@@ -214,8 +214,7 @@ def test_repairs_broken_numeric_bold_and_blocks_leftovers_u112() -> None:
     assert _issues_with_code(repaired, "markdown.broken_numeric_bold") == []
     broken = "# title\n\n> **오늘의 결론**: **-**0.04% 남음\n\n## ① 요약"
     assert any(
-        i.code == "markdown.broken_numeric_bold"
-        for i in find_surface_quality_issues(broken)
+        i.code == "markdown.broken_numeric_bold" for i in find_surface_quality_issues(broken)
     )
 
 
@@ -241,8 +240,7 @@ def test_first_viewport_truncation_residue_blocks_bounded_shapes_u112() -> None:
 
     for text in (deny, ellipsis, unmatched):
         assert any(
-            i.code == "summary.truncated_mid_token"
-            for i in find_surface_quality_issues(text)
+            i.code == "summary.truncated_mid_token" for i in find_surface_quality_issues(text)
         )
     assert _issues_with_code(allowed, "summary.truncated_mid_token") == []
 

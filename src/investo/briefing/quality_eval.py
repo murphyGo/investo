@@ -519,9 +519,7 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
         figures_verified=_optional_rate(payload.get("figures_verified")),
         macro_actual_missing_segments=_optional_int(payload.get("macro_actual_missing_segments")),
         required_macro_omitted=_optional_int(payload.get("required_macro_omitted")),
-        current_run_zero_item_sources=_optional_int(
-            payload.get("current_run_zero_item_sources")
-        )
+        current_run_zero_item_sources=_optional_int(payload.get("current_run_zero_item_sources"))
         or 0,
         current_run_core_missing_segments=_optional_int(
             payload.get("current_run_core_missing_segments")
@@ -535,9 +533,7 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
             payload.get("current_run_data_limited_briefings")
         )
         or 0,
-        current_run_briefings_observed=_optional_int(
-            payload.get("current_run_briefings_observed")
-        )
+        current_run_briefings_observed=_optional_int(payload.get("current_run_briefings_observed"))
         or 0,
     )
 

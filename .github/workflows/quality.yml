@@ -1,0 +1,51 @@
+name: quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, type check, test, and policy guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: '>=0.4'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install project with dev dependencies
+        run: uv sync --extra dev
+
+      - name: Ruff check
+        run: uv run ruff check src tests scripts
+
+      - name: Ruff format check
+        run: uv run ruff format --check src tests scripts
+
+      - name: Mypy
+        run: uv run mypy src
+
+      - name: Pytest
+        run: uv run pytest
+
+      - name: Anthropic SDK guard
+        run: uv run python scripts/check_no_anthropic_sdk.py
+
+      - name: Paid API guard
+        run: uv run python scripts/check_no_paid_apis.py

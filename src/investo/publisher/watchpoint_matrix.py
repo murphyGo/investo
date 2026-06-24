@@ -506,9 +506,7 @@ def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
     current = _normalise_field_text(current_clause or bullet.strip(), default="현재 신호 부족")
     bullish_trigger = _normalise_field_text(bullish or "", default="상방 데이터 부족")
     bearish_trigger = _normalise_field_text(bearish or "", default="하방 데이터 부족")
-    implication_text = _normalise_field_text(
-        implication or "", default="관심 영향 데이터 부족"
-    )
+    implication_text = _normalise_field_text(implication or "", default="관심 영향 데이터 부족")
     return WatchpointRow(
         signal=_short_signal(bullet),
         source=_promote_source(bullet, current, bullish_trigger, bearish_trigger, implication_text),

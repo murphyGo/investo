@@ -153,8 +153,7 @@ async def test_requests_carry_sec_fair_access_user_agent() -> None:
 
     assert [str(request.url) for request in captured] == [_PRESS_URL, _SPEECHES_URL]
     assert all(
-        request.headers["user-agent"] == "investo investo@example.com"
-        for request in captured
+        request.headers["user-agent"] == "investo investo@example.com" for request in captured
     )
 
 
