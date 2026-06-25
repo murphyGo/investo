@@ -2467,7 +2467,7 @@ def _segment_briefings_dict() -> dict[MarketSegment, Briefing]:
     }
 
 
-def _patch_publish_segments_relative_paths(
+def _patch_publish_segments_side_effects(
     monkeypatch: pytest.MonkeyPatch,
     *,
     tmp_path: Path,
@@ -2475,15 +2475,13 @@ def _patch_publish_segments_relative_paths(
     weekly_index_calls: list[None] | None = None,
     weekly_raises: BaseException | None = None,
 ) -> None:
-    """Patch the absolute-path branch off so weekly publish runs in tests.
+    """Patch publish side effects while preserving absolute archive returns.
 
-    ``_stage_publish_segments`` only runs the index/heatmap/og/weekly
-    code path when every archive path is *relative* (cwd-relative — the
-    production cwd is the repo root). The unit-test fixture's
-    ``ARCHIVE_ROOT`` monkeypatch produces absolute paths under
-    ``tmp_path``, so this helper substitutes ``write_briefing`` /
-    ``compute_archive_path`` with relative-path returns to enter the
-    branch and stubs all the side-effect helpers.
+    ``_stage_publish_segments`` normalizes absolute paths returned from
+    ``write_briefing`` before running index/heatmap/OG/quality/weekly
+    side effects. This helper returns absolute archive paths under
+    ``tmp_path`` so those tests exercise the normalization path while
+    stubbing the expensive side-effect writers.
 
     ``tmp_path`` is required because ``_rollback_paths`` calls
     ``Path.unlink(missing_ok=True)`` on every snapshot path. With
@@ -2495,11 +2493,12 @@ def _patch_publish_segments_relative_paths(
     directory.
     """
     monkeypatch.chdir(tmp_path)
-    rel_dir = Path("archive")
+    archive_root = tmp_path / "archive"
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", archive_root)
 
     def fake_archive_path(target_date: date, *, segment: MarketSegment | None = None) -> Path:
         assert segment is not None
-        return rel_dir / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
+        return archive_root / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
 
     def fake_write_briefing(
         briefing: Briefing,
@@ -2573,7 +2572,7 @@ async def test_stage_publish_segments_rolls_back_quality_history_append(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    _patch_publish_segments_relative_paths(monkeypatch, tmp_path=tmp_path)
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
     history = tmp_path / "quality_history.jsonl"
     monkeypatch.setenv("INVESTO_QUALITY_HISTORY_PATH", str(history))
     original = '{"date":"2026-04-26","source_liveness":1.0}\n'
@@ -2643,7 +2642,7 @@ async def test_stage_publish_segments_invokes_weekly_digest_when_opt_in_set(
     monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
     weekly_calls: list[date] = []
     weekly_index_calls: list[None] = []
-    _patch_publish_segments_relative_paths(
+    _patch_publish_segments_side_effects(
         monkeypatch,
         tmp_path=tmp_path,
         weekly_calls=weekly_calls,
@@ -2677,9 +2676,7 @@ async def test_stage_publish_segments_skips_weekly_digest_when_opt_in_unset(
     """
     monkeypatch.delenv("INVESTO_PUBLISH_WEEKLY", raising=False)
     weekly_calls: list[date] = []
-    _patch_publish_segments_relative_paths(
-        monkeypatch, tmp_path=tmp_path, weekly_calls=weekly_calls
-    )
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path, weekly_calls=weekly_calls)
 
     await pipeline_module._stage_publish_segments(
         _segment_briefings_dict(),
@@ -2698,9 +2695,7 @@ async def test_stage_publish_segments_skips_weekly_digest_when_opt_in_zero(
     """``INVESTO_PUBLISH_WEEKLY=0`` is treated as opt-out (only ``1`` opts in)."""
     monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "0")
     weekly_calls: list[date] = []
-    _patch_publish_segments_relative_paths(
-        monkeypatch, tmp_path=tmp_path, weekly_calls=weekly_calls
-    )
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path, weekly_calls=weekly_calls)
 
     await pipeline_module._stage_publish_segments(
         _segment_briefings_dict(),
@@ -2723,12 +2718,12 @@ async def test_run_pipeline_weekly_digest_failure_rolls_back_and_fails(
     try-block already covers the weekly call, so the segmented publish
     that succeeded is NOT promoted — confirms failure isolation per the
     M3 brief. Routes the failure through ``_stage_publish_segments``
-    directly so the weekly call's relative-path branch executes.
+    directly so the weekly call's normalized publish path executes.
     """
     from investo.publisher.errors import PublisherDisclaimerError
 
     monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
-    _patch_publish_segments_relative_paths(
+    _patch_publish_segments_side_effects(
         monkeypatch,
         tmp_path=tmp_path,
         weekly_raises=PublisherDisclaimerError(target_date=_TARGET),
@@ -2755,7 +2750,7 @@ async def test_stage_publish_segments_weekly_failure_restores_existing_watchlist
     from investo.publisher.errors import PublisherDisclaimerError
 
     monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
-    _patch_publish_segments_relative_paths(
+    _patch_publish_segments_side_effects(
         monkeypatch,
         tmp_path=tmp_path,
         weekly_raises=PublisherDisclaimerError(target_date=_TARGET),
@@ -2797,7 +2792,7 @@ async def test_stage_publish_segments_weekly_failure_removes_new_watchlist_page(
     from investo.publisher.errors import PublisherDisclaimerError
 
     monkeypatch.setenv("INVESTO_PUBLISH_WEEKLY", "1")
-    _patch_publish_segments_relative_paths(
+    _patch_publish_segments_side_effects(
         monkeypatch,
         tmp_path=tmp_path,
         weekly_raises=PublisherDisclaimerError(target_date=_TARGET),
@@ -2834,7 +2829,7 @@ async def test_stage_publish_segments_watchlist_atomic_failure_rolls_back(
 ) -> None:
     from investo.publisher import watchlist_pages as watchlist_pages_module
 
-    _patch_publish_segments_relative_paths(monkeypatch, tmp_path=tmp_path)
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
     item = NormalizedItem(
         source_name="yfinance-price",
         category="news",
@@ -2870,6 +2865,42 @@ async def test_stage_publish_segments_watchlist_atomic_failure_rolls_back(
         )
 
     assert watchlist_page.read_text(encoding="utf-8") == original
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_rejects_absolute_archive_path_outside_root(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    archive_root = tmp_path / "archive"
+    outside_root = tmp_path / "outside"
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", archive_root)
+
+    def fake_archive_path(target_date: date, *, segment: MarketSegment | None = None) -> Path:
+        assert segment is not None
+        return archive_root / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
+
+    def fake_write_briefing(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert segment is not None
+        return outside_root / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
+
+    monkeypatch.setattr(pipeline_module, "compute_archive_path", fake_archive_path)
+    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+
+    with pytest.raises(PublisherIOError) as exc_info:
+        await pipeline_module._stage_publish_segments(
+            _segment_briefings_dict(),
+            _TARGET,
+            git_runner=_SuccessfulGitRunner(),
+        )
+    assert exc_info.value.cause is not None
+    assert "outside archive root" in str(exc_info.value.cause)
 
 
 # ---------------------------------------------------------------------------

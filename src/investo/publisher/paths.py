@@ -47,4 +47,34 @@ def archive_path(target_date: date, *, segment: MarketSegment | None = None) -> 
     return ArchiveLayout(ARCHIVE_ROOT).briefing_path(target_date, segment)
 
 
-__all__ = ["ARCHIVE_ROOT", "archive_path"]
+def normalize_archive_publish_path(path: Path, *, archive_root: Path) -> Path:
+    """Return the repo/archive-relative publish path for downstream renderers.
+
+    ``write_briefing`` normally returns repo-relative paths in production,
+    but tests or alternate callers may return absolute paths under the
+    active archive root. Downstream renderers expect the repo-root-relative
+    shape (``archive/<segment>/YYYY/MM/YYYY-MM-DD.md``), so normalize once
+    at the publish boundary.
+
+    Pure path arithmetic: no filesystem reads or writes.
+    """
+    candidate = Path(path)
+    if not candidate.is_absolute():
+        return candidate
+
+    root = Path(archive_root)
+    if not root.is_absolute():
+        root = Path.cwd() / root
+    root = root.absolute()
+    candidate = candidate.absolute()
+
+    try:
+        relative_to_root = candidate.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(
+            f"archive publish path {candidate} is outside archive root {root}"
+        ) from exc
+    return Path(root.name) / relative_to_root
+
+
+__all__ = ["ARCHIVE_ROOT", "archive_path", "normalize_archive_publish_path"]

@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 7 | 2026-05-07 |
-| Low | 32 | 2026-04-27 |
+| Low | 31 | 2026-04-27 |
 
 ---
 
@@ -243,16 +243,6 @@ _No high priority items._
 - **Effort**: ~20 min including the switch + regression test.
 - **Priority Reasoning**: Low — works correctly today on the supported archive layout. Promote to Medium when an archive layout change is requested (none in flight).
 
-#### DEBT-062: `_stage_publish_segments` archive-paths absolute / relative branching couples production code to test shape
-
-- **Created**: 2026-05-08
-- **Source**: u29 site-discovery-v2 QA review (L1)
-- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness)
-- **Description**: `src/investo/orchestrator/pipeline.py::_stage_publish_segments` branches on whether the archive paths supplied by the publisher are absolute or relative. Test fixtures that monkeypatch the publisher to return absolute paths cause the index-page / heatmap / OG-meta / weekly-digest stages to be skipped entirely — the index / heatmap / og / weekly steps only run on the relative-path branch. The branching exists today because the production publisher emits relative paths and the test helper `_patch_publish_segments_relative_paths` exists to coerce monkeypatched returns into the production shape. The fact that production code shape depends on test shape (rather than the test shape adapting to production) is a smell.
-- **Suggested Fix**: Either (a) make `_stage_publish_segments` always normalise archive paths to relative-to-archive-root before the index / heatmap / og / weekly steps, so the branch becomes a single normalisation point and tests no longer need the helper; or (b) push the absolute-path branch into a dedicated path resolver (`archive_paths_for_publish(...) -> Sequence[Path]`) that the orchestrator and tests both call, so the production / test shape collapses to one. Option (a) is the cleaner refactor; option (b) preserves the existing helper but documents it as an officially supported test surface.
-- **Effort**: ~45 min for option (a) including the normalisation step, removal of the test helper, and a regression test that pins the new normalised shape.
-- **Priority Reasoning**: Low — works correctly today on the production path. The test helper exists exactly to bridge the shape difference, so the divergence is visible and bounded. Promote to Medium when the second test surface (or a third stage that also reads archive paths) needs the same helper.
-
 #### DEBT-061: Calendar heatmap dark-mode toggle accuracy mirrors DEBT-049
 
 - **Created**: 2026-05-08
@@ -416,6 +406,17 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-062: `_stage_publish_segments` archive-paths absolute / relative branching couples production code to test shape
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-06-25 (u121 publish-archive-path-normalization) — Added `publisher.paths.normalize_archive_publish_path(...)` and normalized every `write_briefing` return immediately inside `_stage_publish_segments`. Absolute paths under the active archive root now become the same repo/archive-relative shape as production before index, heatmap, OG-card, quality, forecast, watchlist, monthly, and weekly side effects run. Absolute paths outside the archive root raise `PublisherIOError` through the publish stage. The old `all(not path.is_absolute())` branch was removed, and the publish side-effect test helper now returns absolute paths so tests exercise the normalization path directly.
+- **Source**: u29 site-discovery-v2 QA review (L1)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness)
+- **Description**: `src/investo/orchestrator/pipeline.py::_stage_publish_segments` used to branch on whether publisher archive paths were absolute or relative, causing tests with absolute paths to skip index/heatmap/OG/weekly side effects. u121 closes this by normalizing once at the publish boundary.
+- **Suggested Fix**: Resolved by option (a): normalize archive paths to relative-to-archive-root before downstream side effects.
+- **Effort**: Completed in u121.
+- **Priority Reasoning**: Closed.
 
 #### DEBT-074: §⑥ watchpoint-matrix clause-slotting heuristic can under-populate trigger columns — plumb typed evidence
 

@@ -10,8 +10,10 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from investo.briefing.segments import CRYPTO, US_EQUITY
-from investo.publisher.paths import ARCHIVE_ROOT, archive_path
+from investo.publisher.paths import ARCHIVE_ROOT, archive_path, normalize_archive_publish_path
 
 # ---------------------------------------------------------------------------
 # Constant + signature
@@ -143,6 +145,29 @@ def test_archive_path_uses_archive_root_constant(monkeypatch: object) -> None:
     )
 
 
+def test_normalize_archive_publish_path_keeps_relative_path() -> None:
+    path = Path("archive/us-equity/2026/04/2026-04-25.md")
+
+    assert normalize_archive_publish_path(path, archive_root=Path("/tmp/run/archive")) == path
+
+
+def test_normalize_archive_publish_path_converts_absolute_under_archive_root() -> None:
+    archive_root = Path("/tmp/run/archive")
+
+    assert normalize_archive_publish_path(
+        archive_root / "us-equity" / "2026" / "04" / "2026-04-25.md",
+        archive_root=archive_root,
+    ) == Path("archive/us-equity/2026/04/2026-04-25.md")
+
+
+def test_normalize_archive_publish_path_rejects_absolute_outside_archive_root() -> None:
+    with pytest.raises(ValueError, match="outside archive root"):
+        normalize_archive_publish_path(
+            Path("/tmp/other/archive/us-equity/2026/04/2026-04-25.md"),
+            archive_root=Path("/tmp/run/archive"),
+        )
+
+
 # ---------------------------------------------------------------------------
 # Public surface
 # ---------------------------------------------------------------------------
@@ -153,3 +178,4 @@ def test_paths_module_exports_expected_names() -> None:
 
     assert hasattr(paths_module, "ARCHIVE_ROOT")
     assert hasattr(paths_module, "archive_path")
+    assert hasattr(paths_module, "normalize_archive_publish_path")

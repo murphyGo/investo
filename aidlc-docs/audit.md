@@ -4382,3 +4382,26 @@ passed, scoped ruff passed, scoped format check passed, `mypy src` passed.
 **Context**: u120 visual-asset-archive-context-boundary Code Generation complete.
 
 ---
+
+## u121 Land - publish-archive-path-normalization
+**Timestamp**: 2026-06-25T00:00:00Z
+**Action**: Landed u121 code generation. Normalized segmented publish archive
+paths once after `write_briefing`, removing the absolute/relative branch that
+made downstream side effects depend on test path shape.
+**Decisions**:
+- Kept Functional Design and NFR Requirements skipped because this is a
+  bounded internal publish-path contract repair.
+- Added `publisher.paths.normalize_archive_publish_path(...)` as the single
+  pure helper for relative and absolute archive publish paths.
+- Wrapped outside-root absolute paths as `PublisherIOError` so publish fails
+  loudly and rollback behavior stays in the existing publish error channel.
+- Updated side-effect tests to return absolute paths under the active archive
+  root, proving index/heatmap/OG/quality/weekly paths still run after
+  normalization.
+- Resolved DEBT-062.
+**Quality gate**: 134 focused publisher/orchestrator tests passed, scoped ruff
+passed, scoped format check passed, `mypy src` passed.
+**TECH-DEBT**: Resolved DEBT-062; no new debt.
+**Context**: u121 publish-archive-path-normalization Code Generation complete.
+
+---

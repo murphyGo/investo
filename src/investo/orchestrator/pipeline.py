@@ -1201,7 +1201,20 @@ async def _stage_publish_segments(
                 target_date,
                 segment=segment,
             )
-            archive_paths[segment] = archive_path
+            from investo.publisher.paths import ARCHIVE_ROOT, normalize_archive_publish_path
+
+            try:
+                normalized_archive_path = normalize_archive_publish_path(
+                    archive_path,
+                    archive_root=ARCHIVE_ROOT,
+                )
+            except ValueError as exc:
+                raise PublisherIOError(
+                    target_date=target_date,
+                    path=archive_path,
+                    cause=OSError(str(exc)),
+                ) from exc
+            archive_paths[segment] = normalized_archive_path
             _logger.info("[publish] wrote segment=%s path=%s", segment, archive_path)
             if macro_lineage_by_segment is not None:
                 traces = tuple(macro_lineage_by_segment.get(segment, ()))
@@ -1217,7 +1230,7 @@ async def _stage_publish_segments(
                     macro_lineage_paths = (*macro_lineage_paths, written_lineage_path)
                     for trace in traces:
                         _log_macro_lineage_trace(segment, trace)
-        if all(not path.is_absolute() for path in archive_paths.values()):
+        if archive_paths:
             # Snapshot every page the index/heatmap update may rewrite so a
             # subsequent ``write_briefing`` failure rolls them back too.
             snapshots.update(
@@ -1257,8 +1270,6 @@ async def _stage_publish_segments(
             index_paths = (*index_paths, *og_card_paths)
             # u32 Step 4 — public quality dashboard. Snapshot first so a
             # later atomic-rollback also reverses the dashboard write.
-            from investo.publisher.paths import ARCHIVE_ROOT
-
             quality_history_path = resolve_quality_history_path()
             quality_history_paths: tuple[Path, ...] = ()
             # u54 — derive per-segment severity once so both the quality
