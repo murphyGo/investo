@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-24 begin -->
+
+## 2026-06-24
+
+- [sec-edgar-8k] **ticker**: 8-K: American Bitcoin Corp. (CIK 0001755953)
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6607 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,178,933,708,190; BTC dominance 55.94%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $423,679,120 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000087712509608 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: 21Shares says bitcoin’s post-halving price action ‘still looks familiar,’ but sees recovery toward $100,000 by year-end
+- [theblock-crypto] **ticker**: Bitcoin ETP outflows push rolling one-year flows negative for first time since 2023: K33
+- [theblock-crypto] **ticker**: Bitcoin miners face deepening margin squeeze as revenue falls below production costs
+
+<!-- u33 entry 2026-06-24 end -->
 <!-- u33 entry 2026-06-23 begin -->
 
 ## 2026-06-23

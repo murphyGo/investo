@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-24 begin -->
+
+## 2026-06-24
+
+- [yonhap-market] **ticker**: "중국 암시장서 엔비디아 제품 가격, 배 이상 폭등"
+- [yonhap-market] **ticker**: [특징주] LG그룹주, '엔비디아 협력' 주시하며 혼조세 마감(종합)
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+
+<!-- u33 entry 2026-06-24 end -->
 <!-- u33 entry 2026-06-23 begin -->
 
 ## 2026-06-23
