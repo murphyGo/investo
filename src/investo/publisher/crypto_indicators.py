@@ -1,7 +1,7 @@
 """Crypto-native indicator block injection (u66 Step 5, publisher side).
 
 The pure deterministic renderer lives in
-:mod:`investo.briefing.crypto_indicators` so both the Stage 2 prompt
+:mod:`investo._internal.crypto_indicators` so both the Stage 2 prompt
 grounding (u66 Step 7) and this publisher injection consume the same
 table without inverting the publisher→briefing import direction. This
 module re-exports the renderer and adds the markdown injection helper.
@@ -9,7 +9,7 @@ module re-exports the renderer and adds the markdown injection helper.
 Placement: after the shared-macro ``## ⓪`` block (or the TL;DR block when
 macro is absent) and before ``## ①``. Injection is idempotent.
 
-Module boundary: imports only from :mod:`investo.briefing.crypto_indicators`.
+Module boundary: imports only from :mod:`investo._internal.crypto_indicators`.
 Does NOT import from ``orchestrator`` / ``sources`` / ``notifier``.
 """
 
@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from investo.briefing.crypto_indicators import (
+from investo._internal.crypto_indicators import (
     CRYPTO_INDICATOR_HEADER,
     render_crypto_indicator_block,
 )

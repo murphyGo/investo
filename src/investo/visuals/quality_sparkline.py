@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Final, Literal
 
 from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
-from investo.briefing.quality_eval import QualityHistoryRow
+from investo.models.quality_history import QualityHistoryRow
 from investo.visuals.provenance import VisualProvenanceManifest, _investo_version
 from investo.visuals.render import _CARD_STYLE
 

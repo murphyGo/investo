@@ -13,7 +13,7 @@ from datetime import date
 from pathlib import Path
 from typing import Final, Literal
 
-from investo.briefing.summary_quality import (
+from investo._internal.summary_quality import (
     SummaryQualityError,
     validate_first_viewport_summary,
 )

@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 # Shared cap for stderr excerpts included in operator-visible errors.
 STDERR_BYTE_CAP: Final[int] = 1024
+
+# Shared "does this text carry alnum / Hangul content?" probe for pure
+# internal validation helpers. Adapter packages may re-export it for
+# compatibility, but this module is the inward contract home.
+MEANINGFUL_TEXT: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 
 
 def truncate_stderr(value: str | None) -> str | None:

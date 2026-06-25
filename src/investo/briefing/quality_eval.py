@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Final
 
 from investo.briefing.numeric_self_check import extract_flaggable_numbers
+from investo.models.quality_history import QualityHistoryRow
 
 # Marker the data-limited body emits in the boilerplate text. Updating
 # the boilerplate copy without updating this marker silently invalidates
@@ -128,52 +129,6 @@ class QualityKPIs:
         if self.briefings_observed == 0:
             return None
         return self.briefings_data_limited / self.briefings_observed
-
-
-@dataclass(frozen=True, slots=True)
-class QualityHistoryRow:
-    """One slot in the rolling quality-history window.
-
-    ``has_data=False`` preserves missing-day gaps so visual renderers do
-    not turn absent publishes into synthetic zero-valued KPI points.
-
-    u54 — ``worst_severity`` carries the worst per-segment severity
-    observed on that day, ``None`` for legacy rows that pre-date the
-    field.
-    """
-
-    day: date
-    source_liveness: float | None = None
-    figures_presence: float | None = None
-    fallback_ratio: float | None = None
-    published_segments: int | None = None
-    total_items: int | None = None
-    total_failed_sources: int | None = None
-    worst_severity: str | None = None
-    # u55 — append-only sibling KPI column. Legacy JSONL rows leave this
-    # as ``None`` (backward-compat); rows written from u55 onward carry
-    # the verified-fraction. Surfaced by the sparkline as a distinct
-    # series so a downward trend on ``figures_presence`` vs upward on
-    # ``figures_verified`` (or vice versa) reads as a meaningful signal.
-    figures_verified: float | None = None
-    # u59 — optional macro coverage diagnostics. Legacy rows leave
-    # these unset; new quality-history rows can expose macro actual
-    # availability without changing the public KPI meanings.
-    macro_actual_missing_segments: int | None = None
-    required_macro_omitted: int | None = None
-    current_run_zero_item_sources: int = 0
-    current_run_core_missing_segments: int = 0
-    current_run_segments_limited_or_worse: int = 0
-    current_run_data_limited_briefings: int = 0
-    current_run_briefings_observed: int = 0
-
-    @property
-    def has_data(self) -> bool:
-        return (
-            self.source_liveness is not None
-            and self.figures_presence is not None
-            and self.fallback_ratio is not None
-        )
 
 
 def compute_quality_kpis(

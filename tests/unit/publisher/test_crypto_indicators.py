@@ -10,10 +10,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from investo.briefing.crypto_indicators import (
+from investo._internal.crypto_indicators import (
     CRYPTO_INDICATOR_HEADER,
     render_crypto_indicator_block,
 )
+from investo.briefing import crypto_indicators as legacy_crypto_indicators
 from investo.models import NormalizedItem
 from investo.publisher.crypto_indicators import inject_crypto_indicator_block
 
@@ -83,6 +84,11 @@ def test_partial_block_only_some_rows() -> None:
 def test_render_is_deterministic() -> None:
     items = _full_items()
     assert render_crypto_indicator_block(items) == render_crypto_indicator_block(items)
+
+
+def test_legacy_briefing_crypto_indicator_import_reexports_renderer() -> None:
+    assert legacy_crypto_indicators.CRYPTO_INDICATOR_HEADER is CRYPTO_INDICATOR_HEADER
+    assert legacy_crypto_indicators.render_crypto_indicator_block is render_crypto_indicator_block
 
 
 def test_never_invents_values_for_scope_out_rows() -> None:

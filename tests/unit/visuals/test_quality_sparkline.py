@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime, timedelta
 
-from investo.briefing.quality_eval import QualityHistoryRow
+from investo.models.quality_history import QualityHistoryRow
 from investo.visuals.quality_sparkline import (
     SVG_HEIGHT,
     SVG_WIDTH,

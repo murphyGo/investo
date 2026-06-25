@@ -27,6 +27,8 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.text import MEANINGFUL_TEXT
+
 # Korean exchange ticker token: a bracketed 6-digit KRX code or the
 # 3-letter + 3-digit form (e.g. ``[005930]`` / ``[ABC123]``). Identical
 # in ``segments`` and ``citation_cardinality`` before u79.
@@ -46,10 +48,6 @@ CRYPTO_TICKER: Final[re.Pattern[str]] = re.compile(r"\b(?:BTC|ETH|SOL)\b")
 # group preserved). NOT the same set as ``CRYPTO_TICKER`` — see module
 # docstring. Distinct on purpose.
 CRYPTO_TICKER_PAIR: Final[re.Pattern[str]] = re.compile(r"\b(BTC|ETH)\b")
-
-# "Is there any meaningful (alnum / Hangul) character?" probe. Identical
-# literal in ``pipeline`` and ``summary_quality`` before u79.
-MEANINGFUL_TEXT: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 
 __all__ = [
     "CRYPTO_TICKER",

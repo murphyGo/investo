@@ -19,7 +19,7 @@ Algorithm
 
 1. **Aggregate**. Walk every ``NormalizedItem.raw_metadata`` for keys
    shaped ``core_fact:<name>`` (see
-   :data:`investo.sources._core_fact_map.CORE_FACT_METADATA_PREFIX`).
+   :data:`investo.models.core_fact.CORE_FACT_METADATA_PREFIX`).
    Build ``dict[CoreFact, Decimal]`` — the canonical source value per
    fact. Last-writer-wins on duplicates (idempotent because every
    adapter that stamps the same fact computes from the same close).
@@ -53,7 +53,12 @@ from typing import Final, Literal
 from pydantic import BaseModel, ConfigDict
 
 from investo.models import NormalizedItem
-from investo.models.core_fact import CORE_FACT_KEYWORDS, CORE_FACT_TOLERANCE, CoreFact
+from investo.models.core_fact import (
+    CORE_FACT_KEYWORDS,
+    CORE_FACT_METADATA_PREFIX,
+    CORE_FACT_TOLERANCE,
+    CoreFact,
+)
 
 # Per-fact-group tolerances. The :data:`CORE_FACT_TOLERANCE` table in
 # ``models.core_fact`` is the source of truth — we re-export it here as
@@ -141,8 +146,6 @@ def aggregate_source_facts(items: Sequence[NormalizedItem]) -> dict[CoreFact, De
     is safe because both adapters compute Decimal-as-string from the
     session close — their values agree within tolerance by construction.
     """
-    from investo.sources._core_fact_map import CORE_FACT_METADATA_PREFIX
-
     out: dict[CoreFact, Decimal] = {}
     for item in items:
         for key, value in item.raw_metadata.items():

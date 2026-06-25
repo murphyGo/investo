@@ -93,23 +93,17 @@ def test_verify_disclaimer_returns_false_for_only_header_anchor() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_verifier_uses_u2_disclaimer_constant() -> None:
-    """Pin the cross-unit boundary: u3 imports the canonical
-    DISCLAIMER from u2 (briefing.disclaimer). If this file ever
-    starts redefining the constant locally (a regression that would
-    silently desync u2 + u3), this assertion would not catch it
-    directly — but the test of ``verify_disclaimer(DISCLAIMER) is
-    True`` above will fail if the local copy diverges.
+def test_verifier_uses_internal_disclaimer_constant() -> None:
+    """Pin the boundary: publisher imports the canonical disclaimer
+    from the inward owner, not from a sibling adapter and not by local
+    redefinition.
     """
-    # The verifier's source MUST reference the u2 constant by import,
-    # not by redefining a local one. ``inspect.getsource`` exposes
-    # the import line for a sanity grep.
     import inspect
 
     import investo.publisher.verifier as verifier_module
 
     source = inspect.getsource(verifier_module)
-    assert "from investo.briefing.disclaimer import DISCLAIMER" in source
+    assert "from investo._internal.disclaimer import DISCLAIMER" in source
 
 
 # ---------------------------------------------------------------------------

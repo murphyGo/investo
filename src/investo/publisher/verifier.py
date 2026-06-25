@@ -2,7 +2,7 @@
 publish boundary.
 
 The canonical disclaimer constants (``DISCLAIMER`` /
-``DISCLAIMER_CRYPTO``) live in ``investo.briefing.disclaimer``. u3
+``DISCLAIMER_CRYPTO``) live in ``investo._internal.disclaimer``. u3
 SHOULD NOT redefine or copy them; importing the single source of truth
 ensures u2 and u3 stay aligned automatically across edits.
 
@@ -30,7 +30,7 @@ Reference:
 
 from __future__ import annotations
 
-from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
+from investo._internal.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.models.segments import MarketSegment
 from investo.publisher.reader_format import (
     SHORT_DISCLAIMER_CRYPTO,

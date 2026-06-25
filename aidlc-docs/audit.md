@@ -4334,3 +4334,29 @@ passed, scoped ruff passed, `mypy src` passed.
 **Context**: u112 reader-markdown-polish-gate-v2 Code Generation complete.
 
 ---
+
+## u119 Land - adapter-contract-ports-cleanup
+**Timestamp**: 2026-06-25T00:00:00Z
+**Action**: Landed u119 code generation. Removed the remaining pure shared-contract
+sibling adapter imports by promoting stable contracts to `_internal` and
+`models` while preserving legacy briefing import paths.
+**Decisions**:
+- Kept Functional Design and NFR Requirements skipped because this is a
+  behavior-preserving architecture-boundary refactor with no new runtime
+  dependency, source, secret, or cost surface.
+- Made `_internal.summary_quality`, `_internal.disclaimer`, and
+  `_internal.crypto_indicators` the canonical owners for pure shared contracts.
+- Made `models.quality_history.QualityHistoryRow` the canonical quality-history
+  row DTO while keeping `briefing.quality_eval` compatibility exports.
+- Changed `briefing.numeric_verify` to depend on `models.core_fact` for
+  `CORE_FACT_METADATA_PREFIX`, not the sources adapter package.
+- Removed all pure shared-contract entries from the module-boundary allowlist.
+- Accepted independent review findings by moving `MEANINGFUL_TEXT` into
+  `_internal.text` and pinning the legacy `briefing.crypto_indicators` import
+  path with an identity regression test.
+**Quality gate**: 110 focused boundary/briefing/publisher/visual/model tests
+passed, scoped ruff passed, scoped format check passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u119 adapter-contract-ports-cleanup Code Generation complete.
+
+---

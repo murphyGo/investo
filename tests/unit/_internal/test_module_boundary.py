@@ -51,38 +51,7 @@ class AdapterEdge:
         )
 
 
-_ALLOWED_ADAPTER_EDGES: Mapping[_EDGE_KEY, str] = {
-    (
-        "publisher",
-        "briefing",
-        "publisher/briefing_replay.py",
-        "investo.briefing.summary_quality",
-    ): "offline replay reuses the briefing summary-quality validator",
-    (
-        "publisher",
-        "briefing",
-        "publisher/crypto_indicators.py",
-        "investo.briefing.crypto_indicators",
-    ): "publisher injection reuses the canonical crypto indicator renderer",
-    (
-        "publisher",
-        "briefing",
-        "publisher/verifier.py",
-        "investo.briefing.disclaimer",
-    ): "publish-boundary disclaimer verification reads the canonical disclaimer",
-    (
-        "publisher",
-        "briefing",
-        "publisher/weekly_digest.py",
-        "investo.briefing.disclaimer",
-    ): "weekly digest reattaches the canonical disclaimer to retrospective pages",
-    (
-        "visuals",
-        "briefing",
-        "visuals/quality_sparkline.py",
-        "investo.briefing.quality_eval",
-    ): "quality sparkline consumes the established quality-history row contract",
-}
+_ALLOWED_ADAPTER_EDGES: Mapping[_EDGE_KEY, str] = {}
 
 
 def _top_level_import_modules(node: ast.stmt, relative_file: str) -> list[str]:
@@ -295,12 +264,12 @@ def test_unallowed_adapter_edge_via_relative_sibling_import_is_reported(
     ]
 
 
-def test_allowlisted_adapter_edge_is_not_reported(tmp_path: Path) -> None:
+def test_internal_contract_import_is_not_reported_as_sibling_edge(tmp_path: Path) -> None:
     src_root = tmp_path / "investo"
     _write_module(
         src_root,
         "visuals/quality_sparkline.py",
-        "from investo.briefing.quality_eval import QualityHistoryRow\n",
+        "from investo.models.quality_history import QualityHistoryRow\n",
     )
 
     assert _unallowed_adapter_edges(src_root) == []
@@ -317,6 +286,17 @@ def test_models_do_not_import_briefing_modules() -> None:
         )
         if has_briefing_import:
             offenders.append(str(path.relative_to(_SRC)))
+    assert not offenders
+
+
+def test_internal_summary_quality_does_not_import_briefing_modules() -> None:
+    """The inward summary gate must not pull the briefing adapter package."""
+    imports = _absolute_import_modules(_SRC / "_internal" / "summary_quality.py")
+    offenders = sorted(
+        module
+        for module in imports
+        if module == "investo.briefing" or module.startswith("investo.briefing.")
+    )
     assert not offenders
 
 

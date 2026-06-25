@@ -37,6 +37,8 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "MarketAnchor",
         "OHLCRow",
         "anchor_label",
+        # quality_history.py
+        "QualityHistoryRow",
         # core_fact.py
         "CoreFact",
         "CORE_FACT_KEYWORDS",

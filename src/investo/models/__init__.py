@@ -57,6 +57,7 @@ from investo.models.market_anchor import (
     OHLCRow,
     anchor_label,
 )
+from investo.models.quality_history import QualityHistoryRow
 from investo.models.results import (
     FailureContext,
     FailureStage,
@@ -147,6 +148,7 @@ __all__ = [
     "PipelineResult",
     "PipelineStatus",
     "PublicWatchlistGroup",
+    "QualityHistoryRow",
     "RejectReason",
     "RejectedCandidate",
     "SegmentCoverage",
