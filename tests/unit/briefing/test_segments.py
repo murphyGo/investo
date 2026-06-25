@@ -153,6 +153,24 @@ def test_cftc_unknown_contract_group_routes_nowhere() -> None:
     assert segmented.domestic_equity == ()
 
 
+def test_cftc_policy_rss_routes_to_us_by_default_and_crypto_when_prioritized() -> None:
+    us_item = _item(
+        "cftc-policy-rss",
+        "CFTC announces agricultural advisory committee meeting",
+    )
+    crypto_item = _item(
+        "cftc-policy-rss",
+        "CFTC announces digital asset market structure roundtable",
+        raw_metadata={"official_source": "true", "policy_priority": "crypto_regulation"},
+    )
+
+    segmented = segment_items([us_item, crypto_item])
+
+    assert segmented.us_equity == (us_item,)
+    assert segmented.crypto == (crypto_item,)
+    assert segmented.domestic_equity == ()
+
+
 def test_low_signal_unrelated_item_routes_nowhere() -> None:
     item = _item("weather", "Local weather update", summary="Rain expected")
 

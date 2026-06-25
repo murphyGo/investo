@@ -1,0 +1,11 @@
+{
+  "recorded_at": "2026-06-26",
+  "source": "representative bounded CFTC RSS 2.0 fixtures for unit tests",
+  "urls": [
+    "https://www.cftc.gov/RSS/RSSGP/rssgp.xml",
+    "https://www.cftc.gov/RSS/RSSENF/rssenf.xml",
+    "https://www.cftc.gov/RSS/RSSST/rssst.xml"
+  ],
+  "content_type": "application/rss+xml; charset=utf-8",
+  "auth": "none"
+}

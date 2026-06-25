@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>CFTC Enforcement Press Releases</title>
+    <item>
+      <title>CFTC Orders Firm to Pay Penalty in Spoofing Case</title>
+      <link>https://www.cftc.gov/PressRoom/PressReleases/9102-26</link>
+      <description>Enforcement action in commodity futures markets.</description>
+      <pubDate>Thu, 11 Jun 2026 08:15:00 -0400</pubDate>
+      <guid isPermaLink="false">enforcement-9102-26</guid>
+    </item>
+  </channel>
+</rss>

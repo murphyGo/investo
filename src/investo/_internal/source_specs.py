@@ -127,6 +127,7 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=frozenset(),
         outcome_segments=_US_AND_CRYPTO,
     ),
+    _spec("cftc-policy-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
     _spec(
         "krx-foreign-flows",
         tier="A",

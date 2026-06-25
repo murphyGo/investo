@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>CFTC Speeches and Testimony</title>
+    <item>
+      <title>Commissioner Remarks on Swaps Market Structure</title>
+      <link>https://www.cftc.gov/PressRoom/SpeechesTestimony/opacommr-1</link>
+      <description>Remarks covering swaps oversight and clearing.</description>
+      <pubDate>Thu, 11 Jun 2026 07:00:00 -0400</pubDate>
+      <guid isPermaLink="false">speech-1</guid>
+      <dc:creator>Commissioner Example</dc:creator>
+    </item>
+  </channel>
+</rss>

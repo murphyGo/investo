@@ -57,6 +57,13 @@ def test_segment_item_views_preserve_special_case_semantics() -> None:
     )
     assert source_names_for_item_routing("cftc-contract-group") == {"cftc-cot-positioning"}
 
+    cftc_policy = SOURCE_SPECS_BY_NAME["cftc-policy-rss"]
+    assert cftc_policy.tier == "S"
+    assert cftc_policy.market_window_segment == "us-equity"
+    assert cftc_policy.item_routing == "single-segment"
+    assert cftc_policy.item_segments == {"us-equity"}
+    assert cftc_policy.outcome_segments == {"us-equity"}
+
     stooq = SOURCE_SPECS_BY_NAME["stooq-price"]
     assert stooq.market_window_segment == "us-equity"
     assert stooq.item_routing == "us-with-crypto-signal"

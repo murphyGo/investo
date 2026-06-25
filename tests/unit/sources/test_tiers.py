@@ -37,6 +37,7 @@ def test_registry_covers_known_s_tier_sources() -> None:
         "fsc-krx-stock-price",
         "treasury-rates",
         "korea-policy-rss",
+        "cftc-policy-rss",
     }
     missing = must_include - s_tier
     assert not missing, f"S-tier should include {missing}"

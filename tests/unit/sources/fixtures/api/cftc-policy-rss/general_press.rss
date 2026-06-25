@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>CFTC General Press Releases</title>
+    <item>
+      <title>CFTC Announces Digital Asset Market Structure Roundtable</title>
+      <link>https://www.cftc.gov/PressRoom/PressReleases/9100-26</link>
+      <description>&lt;p&gt;The Commission will discuss digital asset market structure and prediction markets.&lt;/p&gt;</description>
+      <pubDate>Thu, 11 Jun 2026 10:55:00 -0400</pubDate>
+      <guid isPermaLink="false">general-9100-26</guid>
+      <dc:creator>CFTC</dc:creator>
+    </item>
+    <item>
+      <title>CFTC Announces Agricultural Advisory Committee Meeting</title>
+      <link>https://www.cftc.gov/PressRoom/PressReleases/9101-26</link>
+      <description>Commodity market discussion.</description>
+      <pubDate>Thu, 11 Jun 2026 09:30:00 -0400</pubDate>
+      <guid isPermaLink="false">general-9101-26</guid>
+    </item>
+  </channel>
+</rss>

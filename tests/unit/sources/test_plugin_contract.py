@@ -42,6 +42,7 @@ from investo.sources.bls_macro_actuals import BlsMacroActualsAdapter
 from investo.sources.bybit_derivatives import BybitDerivativesAdapter
 from investo.sources.cboe_volatility_indices import CboeVolatilityIndicesAdapter
 from investo.sources.cftc_cot_positioning import CftcCotPositioningAdapter
+from investo.sources.cftc_policy_rss import CftcPolicyRssAdapter
 from investo.sources.cnbc_top_news import CnbcTopNewsAdapter
 from investo.sources.coingecko import CoinGeckoPriceAdapter
 from investo.sources.coingecko_global_market import CoinGeckoGlobalMarketAdapter
@@ -105,6 +106,7 @@ def _isolate_registry() -> Iterator[None]:
     register(BybitDerivativesAdapter)
     register(CboeVolatilityIndicesAdapter)
     register(CftcCotPositioningAdapter)
+    register(CftcPolicyRssAdapter)
     register(CoinGeckoGlobalMarketAdapter)
     register(OkxDerivativesAdapter)
     register(BinanceCryptoMarketAdapter)
