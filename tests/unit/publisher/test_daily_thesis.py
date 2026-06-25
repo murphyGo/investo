@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import pytest
+
 from investo.models.bundle_context import DailyThesisDecision
 from investo.publisher.daily_thesis import (
+    DAILY_THESIS_FALLBACK_LINE,
     DAILY_THESIS_MARKER,
+    assert_distinct_daily_thesis_lines,
     inject_daily_thesis_line,
     render_daily_thesis_line,
 )
+from investo.publisher.errors import DailyThesisConsistencyError
 
 
 def _decision(line: str, mode: str = "strong") -> DailyThesisDecision:
@@ -39,6 +44,27 @@ def test_injects_before_section_one() -> None:
     assert out.count(DAILY_THESIS_MARKER) == 1
 
 
+def test_segment_specific_line_takes_precedence() -> None:
+    decision = DailyThesisDecision(
+        mode="strong",
+        line=f"{DAILY_THESIS_MARKER} 금리와 달러 변수가 공통 변수입니다.",
+        per_segment_lines={
+            "domestic-equity": (
+                f"{DAILY_THESIS_MARKER} 금리와 달러 변수가 공통 변수지만, "
+                "KOSPI·원/달러·외국인 수급을 먼저 확인해야 합니다."
+            ),
+            "us-equity": (
+                f"{DAILY_THESIS_MARKER} 금리와 달러 변수가 공통 변수지만, "
+                "Nasdaq·Dow 섹터 변동성을 먼저 확인해야 합니다."
+            ),
+        },
+        reason="test",
+    )
+
+    assert "KOSPI" in render_daily_thesis_line(decision, segment="domestic-equity")
+    assert "Nasdaq" in render_daily_thesis_line(decision, segment="us-equity")
+
+
 def test_injection_is_idempotent_and_replaces_existing_marker() -> None:
     decision = _decision(
         f"{DAILY_THESIS_MARKER} 금리와 달러 변수가 국내·미국에 동시에 걸리며, "
@@ -64,3 +90,30 @@ def test_omit_removes_existing_marker() -> None:
 
     assert DAILY_THESIS_MARKER not in out
     assert out.startswith("## ① 요약")
+
+
+def test_distinct_guard_blocks_three_identical_public_lines() -> None:
+    repeated = (
+        f"{DAILY_THESIS_MARKER} 금리와 달러 변수가 공통 변수지만, "
+        "KOSPI 수급을 먼저 확인해야 합니다."
+    )
+
+    with pytest.raises(DailyThesisConsistencyError) as exc_info:
+        assert_distinct_daily_thesis_lines(
+            {
+                "domestic-equity": repeated,
+                "us-equity": repeated,
+                "crypto": repeated,
+            }
+        )
+    assert exc_info.value.segments == ("domestic-equity", "us-equity", "crypto")
+
+
+def test_distinct_guard_allows_bounded_fallback_repetition() -> None:
+    assert_distinct_daily_thesis_lines(
+        {
+            "domestic-equity": DAILY_THESIS_FALLBACK_LINE,
+            "us-equity": DAILY_THESIS_FALLBACK_LINE,
+            "crypto": DAILY_THESIS_FALLBACK_LINE,
+        }
+    )

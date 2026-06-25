@@ -27,6 +27,7 @@ References
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 from typing import Final, Literal
 
@@ -38,11 +39,13 @@ from investo.models.time_state import TimeState
 # reach into ``briefing`` for the literal alias.
 __all__ = [
     "CROSS_MARKET_CORE_ALLOWED",
+    "DAILY_THESIS_FALLBACK_LINE",
     "BundleContext",
     "CloseState",
     "DailyThesisDecision",
     "DailyThesisSignal",
     "MarketStateSummary",
+    "SegmentDailyThesisInput",
 ]
 
 
@@ -52,6 +55,10 @@ __all__ = [
 # segment whose routed items contain zero time-state-bearing titles.
 CloseState = TimeState | Literal["pending"]
 DailyThesisMode = Literal["strong", "data_limited", "omit"]
+DAILY_THESIS_FALLBACK_LINE: Final[str] = (
+    "> **오늘의 큰 그림:** 이 세그먼트의 공통 신호는 제한적입니다. "
+    "본문 수급·지표 항목을 먼저 확인하세요."
+)
 
 
 # Cross-market themes allowed to remain at §② core tier even when they
@@ -99,6 +106,16 @@ class DailyThesisSignal(BaseModel):
     source_ids: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True, slots=True)
+class SegmentDailyThesisInput:
+    """Deterministic per-segment daily thesis rendering input."""
+
+    segment: str
+    shared_driver: str
+    segment_consequence: str
+    evidence_labels: tuple[str, ...]
+
+
 class DailyThesisDecision(BaseModel):
     """Final same-run thesis decision rendered by the publisher."""
 
@@ -106,6 +123,7 @@ class DailyThesisDecision(BaseModel):
 
     mode: DailyThesisMode
     line: str | None = None
+    per_segment_lines: dict[str, str] = Field(default_factory=dict)
     macro_keys: tuple[str, ...] = ()
     supporting_segments: tuple[str, ...] = ()
     reason: str = Field(min_length=1, max_length=120)

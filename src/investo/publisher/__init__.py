@@ -57,6 +57,7 @@ from investo.publisher.compliance_language import (
     scan_compliance,
 )
 from investo.publisher.errors import (
+    DailyThesisConsistencyError,
     PublisherDisclaimerError,
     PublisherError,
     PublisherGitError,
@@ -85,6 +86,7 @@ __all__ = [
     "WEEKLY_INDEX_PATH",
     "ComplianceLanguageError",
     "ComplianceReport",
+    "DailyThesisConsistencyError",
     "GitRunner",
     "PublisherDisclaimerError",
     "PublisherError",

@@ -56,7 +56,11 @@ from investo.publisher.crypto_indicators import (
     inject_crypto_indicator_block,
     render_crypto_indicator_block,
 )
-from investo.publisher.daily_thesis import inject_daily_thesis_line
+from investo.publisher.daily_thesis import (
+    assert_distinct_daily_thesis_lines,
+    inject_daily_thesis_line,
+    render_daily_thesis_line,
+)
 from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.reader_format import (
     apply_reader_format,
@@ -102,6 +106,16 @@ def apply_reader_format_to_segments(
     """
     if not segment_briefings:
         return segment_briefings
+    if bundle_context is not None:
+        assert_distinct_daily_thesis_lines(
+            {
+                segment: render_daily_thesis_line(
+                    bundle_context.daily_thesis_decision,
+                    segment=segment,
+                )
+                for segment in segment_briefings
+            }
+        )
     rewritten: dict[MarketSegment, Briefing] = {}
     for segment, briefing in segment_briefings.items():
         markdown = briefing.rendered_markdown
@@ -222,6 +236,7 @@ def apply_reader_format_to_segments(
             markdown = inject_daily_thesis_line(
                 markdown,
                 bundle_context.daily_thesis_decision,
+                segment=segment,
             )
         # u56 — compliance-language gate + first-viewport short disclaimer
         # + retail tone caps. Order: scan first (cheap reject of P0 hits

@@ -449,6 +449,12 @@ class TestDailyThesis:
         assert ctx.daily_thesis_decision.line is not None
         assert "금리와 달러 변수" in ctx.daily_thesis_decision.line
         assert not any(ch.isdigit() for ch in ctx.daily_thesis_decision.line)
+        assert (
+            ctx.daily_thesis_decision.per_segment_lines[DOMESTIC_EQUITY]
+            != (ctx.daily_thesis_decision.per_segment_lines[US_EQUITY])
+        )
+        assert "KOSPI" in ctx.daily_thesis_decision.per_segment_lines[DOMESTIC_EQUITY]
+        assert "Nasdaq" in ctx.daily_thesis_decision.per_segment_lines[US_EQUITY]
 
     def test_data_limited_decision_when_two_segments_have_no_shared_signal(self) -> None:
         routed = {
@@ -465,6 +471,52 @@ class TestDailyThesis:
         assert ctx.daily_thesis_decision.mode == "data_limited"
         assert ctx.daily_thesis_decision.reason == "no_shared_core_signal"
         assert "공통 핵심 신호가 제한적" in (ctx.daily_thesis_decision.line or "")
+        assert set(ctx.daily_thesis_decision.per_segment_lines) == {
+            DOMESTIC_EQUITY,
+            US_EQUITY,
+        }
+        assert all(
+            "이 세그먼트의 공통 신호는 제한적" in line
+            for line in ctx.daily_thesis_decision.per_segment_lines.values()
+        )
+
+    def test_strong_decision_renders_three_distinct_segment_consequences(self) -> None:
+        routed = {
+            DOMESTIC_EQUITY: [
+                make_item(
+                    source="news",
+                    title="UST 수익률 상승에 코스피 약세",
+                    published_at=NOW,
+                ),
+            ],
+            US_EQUITY: [
+                make_item(
+                    source="fred-macro",
+                    title="DGS10 Treasury yield update",
+                    published_at=NOW,
+                    category="macro",
+                ),
+            ],
+            CRYPTO: [
+                make_item(
+                    source="treasury-rates",
+                    title="UST 10Y yield pressure weighs on BTC",
+                    published_at=NOW,
+                    category="macro",
+                ),
+            ],
+        }
+
+        ctx = compute_bundle_context(routed, now_kst=NOW)
+        lines = ctx.daily_thesis_decision.per_segment_lines
+
+        assert ctx.daily_thesis_decision.mode == "strong"
+        assert set(lines) == {DOMESTIC_EQUITY, US_EQUITY, CRYPTO}
+        assert len(set(lines.values())) == 3
+        assert "KOSPI" in lines[DOMESTIC_EQUITY]
+        assert "Nasdaq" in lines[US_EQUITY]
+        assert "BTC" in lines[CRYPTO]
+        assert not any(any(ch.isdigit() for ch in line) for line in lines.values())
 
     def test_daily_thesis_is_redecided_from_generated_segments_only(self) -> None:
         routed = {

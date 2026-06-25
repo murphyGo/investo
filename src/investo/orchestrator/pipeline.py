@@ -189,6 +189,7 @@ from investo.orchestrator.stages import (
 )
 from investo.orchestrator.validators import build_publish_boundary_registry
 from investo.publisher import (
+    DailyThesisConsistencyError,
     GitRunner,
     PublisherDisclaimerError,
     PublisherGitError,
@@ -2958,6 +2959,7 @@ _PUBLISH_FAILURES: Final = (
     PublisherIOError,
     PublisherGitError,
     SurfaceQualityError,
+    DailyThesisConsistencyError,
     QualityConsistencyError,
     QualityHistoryError,
     ForecastLogError,
@@ -2982,6 +2984,9 @@ EXCEPTION_ROUTING: dict[type[BaseException], StageAction] = {
     ),
     PublisherIOError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     PublisherGitError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    DailyThesisConsistencyError: StageAction(
+        stage="publish", alert=True, status=PipelineStatus.FAILED
+    ),
     SurfaceQualityError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     QualityConsistencyError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     QualityHistoryError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),

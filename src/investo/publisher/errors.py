@@ -132,7 +132,22 @@ class SurfaceQualityError(PublisherError):
         self.issues = issues
 
 
+class DailyThesisConsistencyError(PublisherError):
+    """Publish-boundary block for repeated daily thesis lines across a bundle."""
+
+    segments: tuple[str, ...]
+    line: str
+
+    def __init__(self, *, segments: tuple[str, ...], line: str) -> None:
+        super().__init__(
+            f"daily thesis consistency blocked segments={','.join(segments)}: repeated thesis line"
+        )
+        self.segments = segments
+        self.line = line
+
+
 __all__ = [
+    "DailyThesisConsistencyError",
     "PublisherDisclaimerError",
     "PublisherError",
     "PublisherGitError",

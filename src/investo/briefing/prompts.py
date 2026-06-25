@@ -523,7 +523,7 @@ Same-bundle BundleContext rules (u57):
   매크로`` H2 block above §①. Do NOT re-state the same fact verbatim
   inside §②/§③; you may add a 1-sentence segment-specific
   re-interpretation only; no raw repetition or ``> **오늘의 큰 그림:**``.
-  Publisher owns line
+  Publisher owns line.
 """
 
 # u66 — crypto-only UTC 24h framing + indicator grounding note. Emitted

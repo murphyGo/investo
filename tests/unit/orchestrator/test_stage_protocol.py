@@ -112,6 +112,17 @@ def test_quality_consistency_error_routes_as_publish_failure() -> None:
     assert pipeline_module.QualityConsistencyError in pipeline_module._PUBLISH_FAILURES
 
 
+def test_daily_thesis_consistency_error_routes_as_publish_failure() -> None:
+    from investo.orchestrator import pipeline as pipeline_module
+
+    action = pipeline_module.EXCEPTION_ROUTING[pipeline_module.DailyThesisConsistencyError]
+
+    assert action.stage == "publish"
+    assert action.alert is True
+    assert action.status is PipelineStatus.FAILED
+    assert pipeline_module.DailyThesisConsistencyError in pipeline_module._PUBLISH_FAILURES
+
+
 def test_build_default_stages_is_a_composition_root() -> None:
     """Stages are assembled at a composition root + injectable into the loop."""
     from investo.orchestrator import pipeline as pipeline_module
