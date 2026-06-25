@@ -346,6 +346,19 @@ def test_dedupe_glossings_different_terms_unaffected() -> None:
     assert "(다우)" in out
 
 
+def test_dedupe_glossings_keeps_esma_and_es_futures_distinct_u125() -> None:
+    text = (
+        "ESMA(유럽증권시장청) 규제 문서가 나왔고 "
+        "ESU26(미니 S&P 500 선물) 포지션도 언급됐다. "
+        "ESMA(유럽증권시장청) 후속 문서."
+    )
+    out = dedupe_glossings(text)
+
+    assert out.count("ESMA") == 2
+    assert out.count("(유럽증권시장청)") == 1
+    assert "ESU26(미니 S&P 500 선물)" in out
+
+
 def test_dedupe_glossings_url_unaffected() -> None:
     text = "[link](https://example.com/path) 본문."
     assert dedupe_glossings(text) == text

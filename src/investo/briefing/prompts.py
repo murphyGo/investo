@@ -348,8 +348,9 @@ Official crypto-regulation policy rules (u58):
 약자 풀어쓰기 룰 (u40):
 - On first appearance per segment, every financial acronym, futures
   code, and market jargon term must carry a 1-3-word Korean gloss in
-  parentheses. Examples: EIA(에너지정보청) 주간 재고, DXY(달러지수),
-  ESM26(미니S&P선물), 프로그램매매(기관자동주문), 숏커버링(공매도상환).
+  parentheses. Examples: EIA(에너지정보청), DXY(달러지수),
+  ESMA(유럽증권시장청), ESU26(미니 S&P 500 선물).
+  ESMA != ES futures.
 - Subsequent appearances in the same segment do not need a repeated
   gloss. A glossary from another segment does not satisfy this segment.
 

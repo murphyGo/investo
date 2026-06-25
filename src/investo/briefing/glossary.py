@@ -30,44 +30,16 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Final
 
-BASELINE_GLOSSARY: Final[dict[str, str]] = {
-    "CPI": "소비자물가",
-    "PPI": "생산자물가",
-    "PCE": "개인소비지출",
-    "NFP": "고용지표",
-    "EIA": "에너지정보청",
-    "DXY": "달러지수",
-    "ISM": "제조업지수",
-    "JOLTS": "구인보고서",
-    "FOMC": "연준회의",
-    "FRB": "연준",
-    "FFR": "기준금리",
-    "QT": "양적긴축",
-    "QE": "양적완화",
-    "ESM*": "미니S&P선물",
-    "NQU*": "나스닥선물",
-    "CLM*": "원유선물",
-    "GCM*": "금선물",
-    "VIX": "변동성지수",
-    "ETF": "상장지수펀드",
-    "EPS": "주당순이익",
-    "PER": "주가수익비율",
-    "옵션만기": "옵션정산일",
-    "콜옵션": "매수권리",
-    "풋옵션": "매도권리",
-    "프로그램매매": "기관자동주문",
-    "숏커버링": "공매도상환",
-    "배당락": "배당권리소멸",
-    "자사주매입": "회사주식매수",
-    "공매도": "차입매도",
-    "시간외거래": "장외거래",
-    "스테이킹": "예치보상",
-    "토큰언락": "잠금해제",
-    "시가총액": "시장가치",
-    "거래대금": "거래총액",
-}
-
 _PAREN_GLOSS_RE: Final[re.Pattern[str]] = re.compile(r"^\s*\(([^)]*[가-힣][^)]*)\)")
+
+
+@dataclass(frozen=True, slots=True)
+class GlossaryEntry:
+    term: str
+    gloss: str
+    canonical_id: str
+    aliases: tuple[str, ...] = ()
+    forbidden_context_terms: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +49,58 @@ class GlossaryGap:
     segment: str
     term: str
     gloss: str
+
+
+_GLOSSARY_ENTRY_LIST: Final[tuple[GlossaryEntry, ...]] = (
+    GlossaryEntry("CPI", "소비자물가", "macro.cpi"),
+    GlossaryEntry("PPI", "생산자물가", "macro.ppi"),
+    GlossaryEntry("PCE", "개인소비지출", "macro.pce"),
+    GlossaryEntry("NFP", "고용지표", "macro.nfp"),
+    GlossaryEntry("EIA", "에너지정보청", "agency.eia"),
+    GlossaryEntry("DXY", "달러지수", "market.dxy"),
+    GlossaryEntry("ISM", "제조업지수", "macro.ism"),
+    GlossaryEntry("JOLTS", "구인보고서", "macro.jolts"),
+    GlossaryEntry("FOMC", "연준회의", "agency.fomc"),
+    GlossaryEntry("FRB", "연준", "agency.frb"),
+    GlossaryEntry("FFR", "기준금리", "macro.ffr"),
+    GlossaryEntry("QT", "양적긴축", "macro.qt"),
+    GlossaryEntry("QE", "양적완화", "macro.qe"),
+    GlossaryEntry(
+        "ESMA",
+        "유럽증권시장청",
+        "regulator.esma",
+        forbidden_context_terms=("미니S&P선물", "미니 S&P 500 선물", "미니S&P500선물"),
+    ),
+    GlossaryEntry("E-mini S&P 500", "미니 S&P 500 선물", "futures.emini_sp500"),
+    GlossaryEntry("ES*", "미니 S&P 500 선물", "futures.emini_sp500"),
+    GlossaryEntry("NQ*", "나스닥선물", "futures.nasdaq"),
+    GlossaryEntry("CL*", "원유선물", "futures.crude_oil"),
+    GlossaryEntry("GC*", "금선물", "futures.gold"),
+    GlossaryEntry("VIX", "변동성지수", "market.vix"),
+    GlossaryEntry("ETF", "상장지수펀드", "instrument.etf"),
+    GlossaryEntry("EPS", "주당순이익", "fundamental.eps"),
+    GlossaryEntry("PER", "주가수익비율", "fundamental.per"),
+    GlossaryEntry("옵션만기", "옵션정산일", "derivatives.options_expiry"),
+    GlossaryEntry("콜옵션", "매수권리", "derivatives.call_option"),
+    GlossaryEntry("풋옵션", "매도권리", "derivatives.put_option"),
+    GlossaryEntry("프로그램매매", "기관자동주문", "market.program_trading"),
+    GlossaryEntry("숏커버링", "공매도상환", "market.short_covering"),
+    GlossaryEntry("배당락", "배당권리소멸", "equity.ex_dividend"),
+    GlossaryEntry("자사주매입", "회사주식매수", "equity.buyback"),
+    GlossaryEntry("공매도", "차입매도", "market.short_selling"),
+    GlossaryEntry("시간외거래", "장외거래", "market.after_hours"),
+    GlossaryEntry("스테이킹", "예치보상", "crypto.staking"),
+    GlossaryEntry("토큰언락", "잠금해제", "crypto.token_unlock"),
+    GlossaryEntry("시가총액", "시장가치", "market.market_cap"),
+    GlossaryEntry("거래대금", "거래총액", "market.traded_value"),
+)
+
+GLOSSARY_ENTRIES: Final[dict[str, GlossaryEntry]] = {
+    entry.term: entry for entry in _GLOSSARY_ENTRY_LIST
+}
+BASELINE_GLOSSARY: Final[dict[str, str]] = {
+    entry.term: entry.gloss for entry in _GLOSSARY_ENTRY_LIST
+}
 
 
 def audit_glossary_compliance(
@@ -141,7 +165,7 @@ def render_glossary_callout(gaps: list[GlossaryGap]) -> str:
 def _pattern_for(term: str) -> str:
     if term.endswith("*"):
         prefix = re.escape(term[:-1])
-        return rf"(?<![A-Za-z0-9]){prefix}[A-Z0-9]+(?![A-Za-z0-9])"
+        return rf"(?<![A-Za-z0-9]){prefix}[A-Z]\d{{2,}}(?![A-Za-z0-9])"
     escaped = re.escape(term)
     if term.isascii():
         return rf"(?<![A-Za-z0-9]){escaped}(?![A-Za-z0-9])"
@@ -280,6 +304,8 @@ def _glossed_terms_in(content: str) -> set[str]:
 __all__ = [
     "BASELINE_GLOSSARY",
     "DEFAULT_GLOSS_LOOKBACK_DAYS",
+    "GLOSSARY_ENTRIES",
+    "GlossaryEntry",
     "GlossaryGap",
     "audit_glossary_compliance",
     "collect_recently_glossed",

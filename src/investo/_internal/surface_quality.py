@@ -61,6 +61,15 @@ _REPEATED_PHRASES = (
     "데이터가 제한적입니다",
     "추가 확인이 필요합니다",
 )
+_GLOSSARY_COLLISION_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(
+        r"(?<![A-Za-z0-9])ESMA\s*\([^)\n]*(?:미니\s*S&P\s*500\s*선물|미니S&P선물|미니S&P500선물)[^)\n]*\)"
+    ),
+    re.compile(
+        r"(?<![A-Za-z0-9])(?:E-mini\s+S&P\s+500|ES[A-Z]\d{2,})\s*\([^)\n]*유럽증권시장청[^)\n]*\)",
+        re.IGNORECASE,
+    ),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,6 +152,15 @@ def find_surface_quality_issues(text: str) -> tuple[SurfaceQualityIssue, ...]:
     if body:
         issues.extend(_scan_lines(body, region="segment_body"))
     return tuple(issues)
+
+
+def find_glossary_collision_issues(text: str) -> tuple[SurfaceQualityIssue, ...]:
+    """Find public glossary parentheticals that attach another entry's gloss."""
+
+    return tuple(
+        SurfaceQualityIssue("glossary.collision.forbidden_pair", "block", evidence, "body")
+        for evidence in _glossary_collision_evidence(text)
+    )
 
 
 def has_blocking_surface_issue(text: str) -> bool:
@@ -230,6 +248,16 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
             )
         if _looks_like_unmatched_link(scan_line):
             issues.append(SurfaceQualityIssue("markdown.unmatched_link", "block", line, region))
+        glossary_collision = _glossary_collision_evidence(scan_line)
+        for evidence in glossary_collision:
+            issues.append(
+                SurfaceQualityIssue(
+                    "glossary.collision.forbidden_pair",
+                    "block",
+                    evidence,
+                    region,
+                )
+            )
         public_evidence = first_forbidden_public_evidence(scan_line)
         if public_evidence is not None:
             issues.append(
@@ -241,6 +269,13 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                 )
             )
     return issues
+
+
+def _glossary_collision_evidence(text: str) -> tuple[str, ...]:
+    evidence: list[str] = []
+    for pattern in _GLOSSARY_COLLISION_PATTERNS:
+        evidence.extend(match.group(0) for match in pattern.finditer(text))
+    return tuple(evidence)
 
 
 def _repeated_phrase_warnings(text: str) -> list[SurfaceQualityIssue]:
@@ -340,6 +375,7 @@ __all__ = [
     "SurfaceIssueSeverity",
     "SurfaceQualityIssue",
     "extract_first_viewport",
+    "find_glossary_collision_issues",
     "find_surface_quality_issues",
     "has_blocking_surface_issue",
     "repair_surface_artifacts",

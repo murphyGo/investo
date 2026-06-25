@@ -8,6 +8,7 @@ from pathlib import Path
 
 from investo.briefing.glossary import (
     BASELINE_GLOSSARY,
+    GLOSSARY_ENTRIES,
     audit_glossary_compliance,
     collect_recently_glossed,
     render_glossary_callout,
@@ -25,7 +26,14 @@ def test_baseline_glossary_has_minimum_curated_entries() -> None:
     for term, gloss in BASELINE_GLOSSARY.items():
         assert term.strip() == term
         assert gloss.strip() == gloss
-        assert re.fullmatch(r"[가-힣A-Za-z& ]{1,12}", gloss)
+        assert re.fullmatch(r"[가-힣A-Za-z0-9& ]{1,18}", gloss)
+
+
+def test_glossary_entries_pin_ambiguous_acronym_identities() -> None:
+    assert GLOSSARY_ENTRIES["ESMA"].canonical_id == "regulator.esma"
+    assert GLOSSARY_ENTRIES["ESMA"].gloss == "유럽증권시장청"
+    assert "미니S&P선물" in GLOSSARY_ENTRIES["ESMA"].forbidden_context_terms
+    assert GLOSSARY_ENTRIES["E-mini S&P 500"].canonical_id == "futures.emini_sp500"
 
 
 def test_audit_reports_first_appearance_without_gloss() -> None:
@@ -56,12 +64,42 @@ def test_audit_accepts_korean_substring_inside_mixed_parentheses() -> None:
 
 
 def test_audit_matches_futures_code_wildcards() -> None:
-    gaps = audit_glossary_compliance("ESM26 선물과 NQU25 선물이 엇갈렸습니다.", segment="us-equity")
+    gaps = audit_glossary_compliance(
+        "ESM26 선물과 ESU26 선물, NQU25 선물이 엇갈렸습니다.",
+        segment="us-equity",
+    )
 
     assert [(gap.term, gap.gloss) for gap in gaps] == [
-        ("ESM26", "미니S&P선물"),
+        ("ESM26", "미니 S&P 500 선물"),
         ("NQU25", "나스닥선물"),
     ]
+
+
+def test_audit_matches_esma_as_regulator_not_futures_substring() -> None:
+    gaps = audit_glossary_compliance(
+        "ESMA 규제 문서와 E-mini S&P 500 포지션이 함께 언급됐습니다.",
+        segment="crypto",
+    )
+
+    assert [(gap.term, gap.gloss) for gap in gaps] == [
+        ("ESMA", "유럽증권시장청"),
+        ("E-mini S&P 500", "미니 S&P 500 선물"),
+    ]
+
+
+def test_audit_accepts_esma_regulator_gloss() -> None:
+    gaps = audit_glossary_compliance(
+        "ESMA(유럽증권시장청) 규제 문서가 언급됐습니다.",
+        segment="crypto",
+    )
+
+    assert gaps == []
+
+
+def test_audit_esma_does_not_match_es_futures_wildcard() -> None:
+    gaps = audit_glossary_compliance("ESMA 규제 문서가 언급됐습니다.", segment="crypto")
+
+    assert [(gap.term, gap.gloss) for gap in gaps] == [("ESMA", "유럽증권시장청")]
 
 
 def test_audit_empty_input_is_quiet() -> None:

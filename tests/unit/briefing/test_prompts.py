@@ -233,7 +233,8 @@ def test_stage2_prompt_carries_verified_current_facts_rule() -> None:
 def test_stage2_system_mentions_glossary_rules() -> None:
     assert "약자 풀어쓰기 룰" in STAGE2_SYSTEM
     assert "EIA(에너지정보청)" in STAGE2_SYSTEM
-    assert "프로그램매매(기관자동주문)" in STAGE2_SYSTEM
+    assert "ESMA(유럽증권시장청)" in STAGE2_SYSTEM
+    assert "ESMA != ES futures" in STAGE2_SYSTEM
     assert STAGE2_SYSTEM.index("Forward-looking") < STAGE2_SYSTEM.index("약자 풀어쓰기 룰")
 
 

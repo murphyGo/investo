@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from investo._internal.surface_quality import (
     extract_first_viewport,
+    find_glossary_collision_issues,
     find_surface_quality_issues,
     has_blocking_surface_issue,
     repair_surface_artifacts,
@@ -169,6 +170,33 @@ def test_watchlist_matcher_reason_allowed_inside_collapsed_details_u111() -> Non
     issues = find_surface_quality_issues(text)
 
     assert [issue for issue in issues if issue.code == "watchlist.matcher_reason.public"] == []
+
+
+def test_glossary_collision_blocks_wrong_esma_futures_gloss_u125() -> None:
+    text = (
+        "# title\n\n"
+        "> **용어 가이드**: 이번 시황에서 처음 등장한 용어 — ESMA(미니S&P선물)\n\n"
+        "## ① 요약\n본문"
+    )
+
+    issues = find_surface_quality_issues(text)
+
+    collision = [issue for issue in issues if issue.code == "glossary.collision.forbidden_pair"]
+    assert collision
+    assert collision[0].severity == "block"
+    assert collision[0].evidence == "ESMA(미니S&P선물)"
+    assert has_blocking_surface_issue(text)
+
+
+def test_glossary_collision_allows_valid_esma_and_futures_glosses_u125() -> None:
+    text = (
+        "# title\n\n"
+        "> **용어 가이드**: ESMA(유럽증권시장청), ESU26(미니 S&P 500 선물)\n\n"
+        "## ① 요약\n본문"
+    )
+
+    assert find_glossary_collision_issues(text) == ()
+    assert _issues_with_code(text, "glossary.collision.forbidden_pair") == []
 
 
 def test_public_diagnostics_block_in_segment_body() -> None:
