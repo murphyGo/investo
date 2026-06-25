@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.models import Briefing, NormalizedItem, SourceOutcome
+from investo.models.core_fact import core_fact_metadata_key
 from investo.orchestrator.domestic_anchor_quarantine import (
     candidate_from_item,
     classify_domestic_anchor_candidate,
@@ -157,3 +158,60 @@ def test_quality_snapshot_records_domestic_anchor_withholding() -> None:
 
     assert snapshot.domestic_anchor_withheld_count == 1
     assert snapshot.domestic_anchor_withheld_reasons == ("implausible",)
+
+
+def test_quality_snapshot_figures_presence_requires_verified_rendered_fact() -> None:
+    briefing = Briefing(
+        target_date=_TARGET,
+        market_summary="summary",
+        key_issues="issues",
+        sector_flow="sector",
+        indicators_events="events",
+        notable_tickers="tickers",
+        today_watch="watch",
+        disclaimer=DISCLAIMER,
+        rendered_markdown="# 미국\n\n## ① 요약\nS&P 500은 5000.00으로 마감했습니다.\n\n"
+        + DISCLAIMER,
+    )
+    item = NormalizedItem(
+        source_name="stooq-price",
+        category="price",
+        title="S&P 500 close",
+        published_at=_TS,
+        raw_metadata={core_fact_metadata_key("spx_close"): "5000.00"},
+    )
+
+    snapshot = _build_quality_snapshot(
+        briefings={"us-equity": briefing},
+        published_segments=("us-equity",),
+        items=[item],
+        source_outcomes=(),
+    )
+
+    assert snapshot.figures_presence == 1.0
+    assert snapshot.figures_verified == 1.0
+
+
+def test_quality_snapshot_keeps_broad_figures_presence_separate_from_verified() -> None:
+    briefing = Briefing(
+        target_date=_TARGET,
+        market_summary="summary",
+        key_issues="issues",
+        sector_flow="sector",
+        indicators_events="events",
+        notable_tickers="tickers",
+        today_watch="watch",
+        disclaimer=DISCLAIMER,
+        rendered_markdown="# 미국\n\n## ① 요약\nS&P 500은 5000.00으로 마감했습니다.\n\n"
+        + DISCLAIMER,
+    )
+
+    snapshot = _build_quality_snapshot(
+        briefings={"us-equity": briefing},
+        published_segments=("us-equity",),
+        items=[],
+        source_outcomes=(),
+    )
+
+    assert snapshot.figures_presence == 1.0
+    assert snapshot.figures_verified == 0.0

@@ -19,6 +19,7 @@ def _write_segment(
     driver: str = "정상 동인입니다.",
     status_label: str = "정상",
     failed: int = 0,
+    body_used: str = "2",
     body: str = (
         "## ⑥ 오늘의 관전 포인트\n\n"
         "- 확인 소스: FRED · 10Y 금리 4.5% 상회 시 변동성 부담 여부를 확인합니다.\n"
@@ -35,7 +36,7 @@ def _write_segment(
         "> **주의할 점**: 정상 주의입니다.\n\n"
         f"> **데이터 상태**: {status_label} — 설명입니다.\n"
         "> **소스 카운트**: 수집 대상 5 / 성공 1 / 0건 0 / "
-        f"실패 {failed} / 본문 사용 2\n\n"
+        f"실패 {failed} / 본문 사용 {body_used}\n\n"
         "**세그먼트**: [국내 증시](x) | [미국 증시](x) | [크립토](x)\n\n"
         f"{body}\n\n{DISCLAIMER}",
         encoding="utf-8",
@@ -108,6 +109,58 @@ def test_replay_flags_quality_consistency_contradiction(tmp_path: Path) -> None:
     error_codes = {f.code for f in findings if f.severity == "error"}
     assert "quality.status_mismatch" in error_codes
     assert "quality.failed_count_mismatch" in error_codes
+
+
+def test_replay_errors_when_body_evidence_is_untracked(tmp_path: Path) -> None:
+    target = date(2026, 6, 23)
+    archive = tmp_path / "archive"
+    _write_segment(
+        archive,
+        US_EQUITY,
+        target,
+        body_used="0",
+        body=(
+            "## ② 전일 핵심 이슈\n\n"
+            "[FRED](https://fred.stlouisfed.org/series/DGS10) 근거를 본문에서 사용했습니다.\n"
+        ),
+    )
+    history = archive / "_meta" / "quality_history.jsonl"
+    history.parent.mkdir(parents=True)
+    history.write_text(json.dumps({"date": target.isoformat()}) + "\n", encoding="utf-8")
+
+    findings = replay_generated_briefing_quality(
+        target,
+        archive_root=archive,
+        segments=(US_EQUITY,),
+    )
+
+    assert "body-evidence-untracked" in {f.code for f in findings if f.severity == "error"}
+
+
+def test_replay_detects_offline_source_label_links(tmp_path: Path) -> None:
+    target = date(2026, 6, 23)
+    archive = tmp_path / "archive"
+    _write_segment(
+        archive,
+        US_EQUITY,
+        target,
+        body_used="0",
+        body=(
+            "## ② 전일 핵심 이슈\n\n"
+            "[nasdaq-stocks-news](https://static.example.test/item) 근거를 사용했습니다.\n"
+        ),
+    )
+    history = archive / "_meta" / "quality_history.jsonl"
+    history.parent.mkdir(parents=True)
+    history.write_text(json.dumps({"date": target.isoformat()}) + "\n", encoding="utf-8")
+
+    findings = replay_generated_briefing_quality(
+        target,
+        archive_root=archive,
+        segments=(US_EQUITY,),
+    )
+
+    assert "body-evidence-untracked" in {f.code for f in findings if f.severity == "error"}
 
 
 def _write_segment_with_anchor_surfaces(

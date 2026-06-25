@@ -18,6 +18,7 @@ from investo._internal.summary_quality import (
     validate_first_viewport_summary,
 )
 from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
+from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.quality_consistency import (
     build_canonical_snapshot,
     check_quality_consistency,
@@ -28,7 +29,7 @@ from investo.publisher.reader_format import check_watchpoint_actionability
 ReplaySeverity = Literal["error", "warning"]
 
 _SEGMENTS: Final[tuple[MarketSegment, ...]] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
-_BODY_USED_ZERO_RE: Final[re.Pattern[str]] = re.compile(r"본문 사용 0")
+_BODY_USED_UNTRACKED_RE: Final[re.Pattern[str]] = re.compile(r"본문 사용\s+(?:0|미집계)")
 _TRACE_OR_SOURCE_RE: Final[re.Pattern[str]] = re.compile(
     r"(?:##\s*Trace|trace_id|source=|출처|https?://)",
     re.IGNORECASE,
@@ -172,13 +173,23 @@ def _check_markdown(
         validate_first_viewport_summary(text)
     except SummaryQualityError as exc:
         findings.append(ReplayFinding("error", segment, "first-viewport", str(exc)))
-    if _BODY_USED_ZERO_RE.search(text) and _TRACE_OR_SOURCE_RE.search(text):
+    if _BODY_USED_UNTRACKED_RE.search(text) and _TRACE_OR_SOURCE_RE.search(text):
         findings.append(
             ReplayFinding(
                 "warning",
                 segment,
                 "body-used-zero-with-evidence",
                 "`본문 사용 0` appears alongside trace/source evidence",
+            )
+        )
+    evidence = count_rendered_evidence(text, segment=segment)
+    if evidence.body_used_count > 0 and _BODY_USED_UNTRACKED_RE.search(text):
+        findings.append(
+            ReplayFinding(
+                "error",
+                segment,
+                "body-evidence-untracked",
+                "public body contains known source evidence but body_used_count is zero",
             )
         )
     if _BTC_BTM_RE.search(text):

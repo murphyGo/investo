@@ -9,6 +9,7 @@ from pathlib import Path
 from investo.briefing.quality_eval import QualityKPIs
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.publisher.quality_consistency import (
+    CODE_BODY_EVIDENCE_UNTRACKED,
     CODE_CURRENT_RUN_UNDERSTATED,
     CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE,
     CODE_FAILED_COUNT_MISMATCH,
@@ -32,6 +33,26 @@ def _segment_body(*, status_label: str, failed: int, data_limited: bool = False)
         "> **소스 카운트**: 수집 대상 5 / 성공 1 / 0건 0 / "
         f"실패 {failed} / 본문 사용 2\n\n"
         f"{limited}본문 내용입니다.\n"
+    )
+
+
+def _segment_body_with_untracked_evidence() -> str:
+    return (
+        "# title\n\n"
+        "> **데이터 상태**: 정상 — 설명입니다.\n"
+        "> **소스 카운트**: 수집 대상 5 / 성공 1 / 0건 0 / 실패 0 / 본문 사용 미집계\n\n"
+        "## ① 요약\n\n"
+        "[FRED](https://fred.stlouisfed.org/series/DGS10) 근거를 본문에서 사용했습니다.\n"
+    )
+
+
+def _segment_body_with_untracked_source_label_evidence() -> str:
+    return (
+        "# title\n\n"
+        "> **데이터 상태**: 정상 — 설명입니다.\n"
+        "> **소스 카운트**: 수집 대상 5 / 성공 1 / 0건 0 / 실패 0 / 본문 사용 0\n\n"
+        "## ① 요약\n\n"
+        "[nasdaq-stocks-news](https://static.example.test/item) 근거를 사용했습니다.\n"
     )
 
 
@@ -145,6 +166,38 @@ def test_failed_count_mismatch_when_history_zero_but_segment_failed() -> None:
     findings = check_quality_consistency(snapshot, quality_page_text=_quality_page("0 회"))
     codes = {f.code for f in findings if f.is_failure}
     assert CODE_FAILED_COUNT_MISMATCH in codes
+
+
+def test_body_evidence_untracked_when_body_has_known_source_link() -> None:
+    snapshot = build_canonical_snapshot(
+        TARGET,
+        segment_texts={US_EQUITY: _segment_body_with_untracked_evidence()},
+        history_row={
+            "date": TARGET.isoformat(),
+            "worst_severity": "normal",
+            "total_failed_sources": 0,
+        },
+    )
+
+    findings = check_quality_consistency(snapshot, quality_page_text=_quality_page("0 회"))
+
+    assert CODE_BODY_EVIDENCE_UNTRACKED in {f.code for f in findings if f.is_failure}
+
+
+def test_body_evidence_untracked_uses_source_registry_label_offline() -> None:
+    snapshot = build_canonical_snapshot(
+        TARGET,
+        segment_texts={US_EQUITY: _segment_body_with_untracked_source_label_evidence()},
+        history_row={
+            "date": TARGET.isoformat(),
+            "worst_severity": "normal",
+            "total_failed_sources": 0,
+        },
+    )
+
+    findings = check_quality_consistency(snapshot, quality_page_text=_quality_page("0 회"))
+
+    assert CODE_BODY_EVIDENCE_UNTRACKED in {f.code for f in findings if f.is_failure}
 
 
 # ---------------------------------------------------------------------------

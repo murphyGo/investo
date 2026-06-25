@@ -114,6 +114,7 @@ from investo.briefing.monthly_retrospective import (
     render_monthly_retrospective,
 )
 from investo.briefing.numeric_self_check import extract_flaggable_numbers
+from investo.briefing.numeric_verify import verify_core_facts
 from investo.briefing.pipeline import GenerationInput, GenerationPolicy, GenerationResult
 from investo.briefing.pipeline import generate_briefing as _u2_generate_briefing
 from investo.briefing.pipeline import generate_briefing_from_input as _u2_generate_from_input
@@ -213,6 +214,7 @@ from investo.publisher.compliance_language import (
     ComplianceLanguageError,
 )
 from investo.publisher.entity_fact_guard import scan_entity_fact_claims
+from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.reader_format import (
     emit_first_viewport_disclaimer,
@@ -1169,6 +1171,25 @@ async def _stage_publish_segments(
                 briefings[segment] = briefings[segment].model_copy(
                     update={"rendered_markdown": repaired_markdown}
                 )
+            segment_items_for_evidence = segment_items(items).for_segment(segment)
+            verified_report = verify_core_facts(
+                briefings[segment].rendered_markdown,
+                segment_items_for_evidence,
+            )
+            evidence_counts = count_rendered_evidence(
+                briefings[segment].rendered_markdown,
+                segment=segment,
+                source_outcomes=segment_source_outcomes(segment, source_outcomes),
+                verified_facts=tuple(verified_report.verified),
+            )
+            updated_markdown = render_body_used_count(
+                briefings[segment].rendered_markdown,
+                evidence_counts,
+            )
+            if updated_markdown != briefings[segment].rendered_markdown:
+                briefings[segment] = briefings[segment].model_copy(
+                    update={"rendered_markdown": updated_markdown}
+                )
             # u85 — the per-segment publish-boundary gate trio is run
             # through the shared validator registry (first-viewport
             # summary → canonical disclaimer footer → first-viewport short
@@ -1722,6 +1743,21 @@ def _build_quality_snapshot(
         1.0 if source_outcomes and failed_sources == 0 and core_eligible_segments > 0 else 0.0
     )
     bodies = [briefings[segment].rendered_markdown for segment in published_segments]
+    routed = segment_items(items)
+    evidence_by_segment = {
+        segment: count_rendered_evidence(
+            briefings[segment].rendered_markdown,
+            segment=segment,
+            source_outcomes=segment_source_outcomes(segment, source_outcomes),
+            verified_facts=tuple(
+                verify_core_facts(
+                    briefings[segment].rendered_markdown,
+                    routed.for_segment(segment),
+                ).verified
+            ),
+        )
+        for segment in published_segments
+    }
     data_limited_markers = ("[데이터부족]", "데이터 부족 안내", "실시간 안내")
     data_limited_count = sum(
         1 for body in bodies if any(marker in body for marker in data_limited_markers)
@@ -1729,6 +1765,9 @@ def _build_quality_snapshot(
     non_limited = max(len(bodies) - data_limited_count, 0)
     figures_count = sum(
         1 for body in bodies if "데이터 부족 안내" not in body and extract_flaggable_numbers(body)
+    )
+    verified_figures_count = sum(
+        1 for segment in published_segments if evidence_by_segment[segment].verified_figure_mentions
     )
     worst_severity: str | None = None
     if severities_by_segment:
@@ -1763,6 +1802,7 @@ def _build_quality_snapshot(
     return QualitySnapshot(
         source_liveness=source_liveness,
         figures_presence=(figures_count / non_limited) if non_limited > 0 else 0.0,
+        figures_verified=(verified_figures_count / non_limited) if non_limited > 0 else None,
         fallback_ratio=(data_limited_count / len(bodies)) if bodies else 0.0,
         published_segments=len(published_segments),
         total_items=len(items),
@@ -2918,6 +2958,7 @@ _PUBLISH_FAILURES: Final = (
     PublisherIOError,
     PublisherGitError,
     SurfaceQualityError,
+    QualityConsistencyError,
     QualityHistoryError,
     ForecastLogError,
 )
@@ -2942,6 +2983,7 @@ EXCEPTION_ROUTING: dict[type[BaseException], StageAction] = {
     PublisherIOError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     PublisherGitError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     SurfaceQualityError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
+    QualityConsistencyError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     QualityHistoryError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     ForecastLogError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
 }

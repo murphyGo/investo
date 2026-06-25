@@ -25,6 +25,31 @@ complete.
 
 ---
 
+## u123 Land - body-evidence-attribution-reconciliation
+**Timestamp**: 2026-06-26T00:00:00Z
+**Action**: Landed u123 code generation. Reconciled rendered markdown evidence
+back into existing quality metadata by counting public known-source links and
+verified u55 core facts after reader formatting.
+**Decisions**:
+- Kept Functional Design and NFR Requirements skipped because this is a bounded
+  deterministic quality-accounting refinement over existing u54/u65/u96 paths.
+- Added `publisher.evidence_accounting` as a pure post-render helper and reused
+  it from publish, replay, and quality-consistency gates.
+- Rewrote `본문 사용 미집계/0` before archive writes when rendered public evidence
+  exists, without changing severity decisions.
+- Preserved broad `figures_presence` semantics and populated `figures_verified`
+  from rendered u55 core facts.
+- Addressed delegated review findings: routed `QualityConsistencyError` as a
+  publish failure, capped `본문 사용` by successful source count, added
+  source-spec offline label matching, and anchored source-count rewrites.
+**Quality gate**: 155 focused tests passed, scoped ruff passed, scoped format
+check passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u123 body-evidence-attribution-reconciliation Code Generation
+complete.
+
+---
+
 ## u117 Land - model-contract-invariants-and-typed-metadata
 **Timestamp**: 2026-06-24T00:00:00Z
 **Action**: Landed u117 code generation. Foundation model invariants and

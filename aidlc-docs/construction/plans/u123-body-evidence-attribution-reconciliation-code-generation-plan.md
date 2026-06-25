@@ -3,7 +3,7 @@
 **Date**: 2026-06-25
 **Unit**: u123 body-evidence-attribution-reconciliation
 **Stage**: Code Generation
-**Status**: Backlog / Planned
+**Status**: Complete
 **Source**: 2026-06-23 generated-briefing review, focused on `archive/_meta/quality_history.jsonl` and the three 2026-06-23 segment markdown files.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -91,14 +91,14 @@ Rules:
 
 ## Implementation Steps
 
-- [ ] Add `src/investo/publisher/evidence_accounting.py` with `RenderedEvidenceCounts` and `count_rendered_evidence(markdown, segment, source_outcomes, verified_facts)`.
-- [ ] Add fixture snippets from the 2026-06-23 domestic, US, and crypto markdown files that include header navigation, collapsed diagnostics, public body links, and numeric facts.
-- [ ] Update the publish/generate quality assembly in `src/investo/orchestrator/pipeline.py` near `_build_quality_snapshot` and the `SegmentCoverage` map so rendered counts can populate `body_used_count` after reader formatting.
-- [ ] Keep `figures_presence` denominator behavior from `src/investo/briefing/quality_history.py`; only change the numerator when verified figures are present in rendered body.
-- [ ] Extend `src/investo/publisher/quality_consistency.py` to detect the contradiction "public body has known evidence but quality metadata says untracked/zero".
-- [ ] Extend `src/investo/publisher/briefing_replay.py` to report a replay issue when a segment body contains known source links but `body_used_count == 0`.
-- [ ] Add tests in `tests/unit/publisher/test_evidence_accounting.py`, `tests/unit/publisher/test_quality_consistency.py`, `tests/unit/publisher/test_briefing_replay.py`, and focused orchestrator quality snapshot tests.
-- [ ] Write `aidlc-docs/construction/u123-body-evidence-attribution-reconciliation/code/summary.md`.
+- [x] Add `src/investo/publisher/evidence_accounting.py` with `RenderedEvidenceCounts` and `count_rendered_evidence(markdown, segment, source_outcomes, verified_facts)`.
+- [x] Add fixture snippets from the 2026-06-23 domestic, US, and crypto markdown files that include header navigation, collapsed diagnostics, public body links, and numeric facts.
+- [x] Update the publish/generate quality assembly in `src/investo/orchestrator/pipeline.py` near `_build_quality_snapshot` and the `SegmentCoverage` map so rendered counts can populate `body_used_count` after reader formatting.
+- [x] Keep `figures_presence` denominator behavior from `src/investo/briefing/quality_history.py`; only change the numerator when verified figures are present in rendered body.
+- [x] Extend `src/investo/publisher/quality_consistency.py` to detect the contradiction "public body has known evidence but quality metadata says untracked/zero".
+- [x] Extend `src/investo/publisher/briefing_replay.py` to report a replay issue when a segment body contains known source links but `body_used_count == 0`.
+- [x] Add tests in `tests/unit/publisher/test_evidence_accounting.py`, `tests/unit/publisher/test_quality_consistency.py`, `tests/unit/publisher/test_briefing_replay.py`, and focused orchestrator quality snapshot tests.
+- [x] Write `aidlc-docs/construction/u123-body-evidence-attribution-reconciliation/code/summary.md`.
 
 ## Acceptance Criteria
 
