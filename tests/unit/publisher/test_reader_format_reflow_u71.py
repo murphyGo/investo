@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 
+from investo._internal.surface_quality import find_surface_quality_issues
 from investo.publisher.reader_format import (
     DIAGNOSTICS_SUMMARY_LABEL,
     SNIPPET_MAX_CHARS,
@@ -145,12 +146,29 @@ def test_long_caution_truncated_at_word_boundary() -> None:
     m = re.search(r">\s*\*\*주의할 점\*\*\s*:\s*(.+)", out)
     assert m is not None
     body = m.group(1).strip()
-    assert body.endswith("...")
-    # Bounded to the limit (the "..." may push 3 past the visible window).
-    assert len(body) <= SNIPPET_MAX_CHARS + 3
-    # No mid-token break: the char before "..." is not a partial syllable
-    # join — boundary truncation means the text before "..." is a clean run.
+    assert body.endswith("본문 참고.")
+    assert len(body) <= SNIPPET_MAX_CHARS
+    # No mid-token break: boundary truncation means the text before the
+    # continuation note is a clean run.
     assert "  " not in body
+
+
+def test_bounded_caution_does_not_trip_surface_truncation_gate() -> None:
+    long_caution = (
+        "> **주의할 점**: "
+        + "변동성 확대 가능성과 금리 인상 우려 및 실적 둔화 신호가 " * 4
+        + "동시에 작용할 수 있다.\n\n"
+    )
+    out = reflow_first_viewport(_header(summary=long_caution), segment="us-equity")
+    m = re.search(r">\s*\*\*주의할 점\*\*\s*:\s*(.+)", out)
+    assert m is not None
+    first_viewport = f"# title\n\n> **주의할 점**: {m.group(1).strip()}\n\n## ① 요약"
+
+    assert _surface_issues(first_viewport, "summary.truncated_mid_token") == []
+
+
+def _surface_issues(text: str, code: str) -> list[object]:
+    return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
 
 
 def test_bound_summary_snippet_short_unchanged() -> None:

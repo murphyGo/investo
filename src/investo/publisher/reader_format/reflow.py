@@ -67,6 +67,7 @@ _DIAGNOSTICS_DETAILS_CLOSE: Final[str] = "</details>"
 
 # First-viewport caution/watchpoint snippet bound (Korean-visible chars).
 SNIPPET_MAX_CHARS: Final[int] = 90
+_SNIPPET_CONTINUATION: Final[str] = " 본문 참고."
 # Word-boundary characters we may truncate at (whitespace + sentence punct).
 # The set intentionally includes Korean / typographic punctuation glyphs;
 # these are the literal boundary characters we cut at, not lookalikes.
@@ -128,23 +129,24 @@ def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> 
     u71 only reflows/truncates *valid* values; malformed-summary repair is
     u61's job (we never add a parallel validator here). A too-long but valid
     snippet is truncated at the last word boundary before ``max_chars`` and
-    suffixed with ``...``. If no boundary exists before ``max_chars`` (a
-    single unbroken token), the snippet is omitted by returning ``""`` — a
-    mid-token cut would risk the malformed concatenation u71 must prevent.
+    suffixed with a complete continuation note. If no boundary exists before
+    ``max_chars`` (a single unbroken token), the snippet is omitted by
+    returning ``""`` — a mid-token cut would risk the malformed concatenation
+    u71 must prevent.
 
     Idempotent: a value already ``<= max_chars`` is returned unchanged.
     """
     stripped = value.strip()
     if len(stripped) <= max_chars:
         return stripped
-    window = stripped[:max_chars]
+    window = stripped[: max_chars - len(_SNIPPET_CONTINUATION)]
     cut = max(window.rfind(ch) for ch in _SNIPPET_BOUNDARY_CHARS)
     if cut <= 0:
         return ""
     head = window[:cut].rstrip(_SNIPPET_BOUNDARY_CHARS).rstrip()
     if not head:
         return ""
-    return f"{head}..."
+    return f"{head}{_SNIPPET_CONTINUATION}"
 
 
 _CAUTION_BLOCKQUOTE_RE: Final[re.Pattern[str]] = re.compile(
