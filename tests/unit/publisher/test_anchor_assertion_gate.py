@@ -102,6 +102,21 @@ def test_table_row_is_never_rewritten() -> None:
     assert result.has_blocking_finding
 
 
+def test_traceability_source_row_is_diagnostic_not_body_claim() -> None:
+    md = (
+        "| 37 | yonhap-market | news | — | "
+        "'널뛰기' 단일종목 레버리지…삼성전자 25% 폭락 후 19% 급등 |\n"
+    )
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X"),
+    )
+
+    assert result.markdown == md
+    assert result.findings == ()
+
+
 def test_mixed_domestic_paragraph_rewrites_missing_fx_sentence_only() -> None:
     md = (
         "KOSPI(코스피)가 전일 대비 **5%대** 급락한 **8,160**대로 마감했다. "

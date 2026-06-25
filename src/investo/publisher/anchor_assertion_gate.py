@@ -198,6 +198,10 @@ def gate_body_assertions(
 # HTML blocks, blockquote callouts. Rewriting these would damage the
 # anchor table or chart placeholder the gate is meant to protect.
 _STRUCTURAL_PREFIXES: Final[tuple[str, ...]] = ("#", "|", "<", ">", "```")
+_TRACEABILITY_ITEM_ROW_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\|\s*\d+\s*\|\s*[-a-z0-9_]+\s*\|\s*[a-z_]+\s*\|\s*(?:\d+|—)\s*\|",
+    re.IGNORECASE,
+)
 
 
 def _gate_line(
@@ -207,6 +211,8 @@ def _gate_line(
     gated_symbols: Sequence[str],
 ) -> tuple[str, list[AnchorAssertionFinding]]:
     stripped = line.lstrip()
+    if _is_traceability_table_line(stripped):
+        return line, []
     structural = stripped.startswith(_STRUCTURAL_PREFIXES)
     # List bullets are prose-bearing; treat the content after the marker
     # as a candidate isolated sentence.
@@ -245,6 +251,11 @@ def _gate_line(
         findings.extend(sentence_findings)
         return bullet_prefix + rewritten, findings
     return line, findings
+
+
+def _is_traceability_table_line(stripped_line: str) -> bool:
+    """True for the collapsed source/classification trace footer table."""
+    return bool(_TRACEABILITY_ITEM_ROW_RE.match(stripped_line))
 
 
 _SENTENCE_UNIT_RE: Final[re.Pattern[str]] = re.compile(r".*?(?:[.!?。](?:\s+|$)|$)", re.DOTALL)
