@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from investo._internal.archive_layout import ArchiveLayout
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import build_segment_coverage
 from investo.briefing.watchlist import WatchlistConfig, match_watchlist_items
@@ -74,15 +75,14 @@ def _seed_filed_library(tmp_path: Path) -> dict:
 
 def _prepare(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
     selection: CuratedSelection | None,
 ) -> object:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     items = (_item("Powell signals patience at FOMC"),)
     coverage = build_segment_coverage("us-equity", items)
     impact = match_watchlist_items(items, WatchlistConfig())
     return prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -92,16 +92,14 @@ def _prepare(
     )
 
 
-def test_curated_hero_rendered_with_caption_and_disclaimer(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_curated_hero_rendered_with_caption_and_disclaimer(tmp_path: Path) -> None:
     library = _seed_filed_library(tmp_path)
     selection = CuratedSelection(
         asset=library["jerome-powell"],
         matched_key="person:jerome-powell",
         match_reason="boundary-term",
     )
-    prepared = _prepare(tmp_path, monkeypatch, selection)
+    prepared = _prepare(tmp_path, selection)
     markdown = prepared.briefing.rendered_markdown
     # The curated image is rendered as a hero with a provenance caption.
     assert "![큐레이션 시황 이미지]" in markdown
@@ -113,22 +111,18 @@ def test_curated_hero_rendered_with_caption_and_disclaimer(
     assert copied and copied[0].exists()
 
 
-def test_curated_hero_outranks_ai_but_caption_no_secret(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_curated_hero_outranks_ai_but_caption_no_secret(tmp_path: Path) -> None:
     library = _seed_filed_library(tmp_path)
     selection = CuratedSelection(asset=library["jerome-powell"], matched_key="person:jerome-powell")
-    prepared = _prepare(tmp_path, monkeypatch, selection)
+    prepared = _prepare(tmp_path, selection)
     markdown = prepared.briefing.rendered_markdown
     # Hero is above the reader-status block (above the fold).
     assert markdown.index("![큐레이션 시황 이미지]") < markdown.index("> **데이터 상태**")
     assert "[REDACTED" not in markdown  # nothing secret-shaped to redact here
 
 
-def test_no_selection_falls_back_no_curated_card(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    prepared = _prepare(tmp_path, monkeypatch, None)
+def test_no_selection_falls_back_no_curated_card(tmp_path: Path) -> None:
+    prepared = _prepare(tmp_path, None)
     markdown = prepared.briefing.rendered_markdown
     assert "큐레이션 시황 이미지" not in markdown
     assert DISCLAIMER in markdown
@@ -136,11 +130,9 @@ def test_no_selection_falls_back_no_curated_card(
     assert "![데이터 신뢰도]" in markdown
 
 
-def test_deferred_selection_does_not_render(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_deferred_selection_does_not_render(tmp_path: Path) -> None:
     # A selection carrying asset=None (deferred / no-match) renders nothing.
-    prepared = _prepare(tmp_path, monkeypatch, CuratedSelection(asset=None))
+    prepared = _prepare(tmp_path, CuratedSelection(asset=None))
     assert "큐레이션 시황 이미지" not in prepared.briefing.rendered_markdown
 
 
@@ -154,5 +146,5 @@ def test_curated_path_makes_no_http_call(tmp_path: Path, monkeypatch: pytest.Mon
     monkeypatch.setattr(httpx.Client, "get", _boom)
     library = _seed_filed_library(tmp_path)
     selection = CuratedSelection(asset=library["jerome-powell"], matched_key="person:jerome-powell")
-    prepared = _prepare(tmp_path, monkeypatch, selection)
+    prepared = _prepare(tmp_path, selection)
     assert "![큐레이션 시황 이미지]" in prepared.briefing.rendered_markdown

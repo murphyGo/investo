@@ -125,6 +125,7 @@ class PreparedVisualAssets:
 def prepare_segment_visual_assets(
     briefing: Briefing,
     *,
+    archive_layout: ArchiveLayout,
     target_date: date,
     segment: MarketSegment,
     items: tuple[NormalizedItem, ...],
@@ -143,9 +144,7 @@ def prepare_segment_visual_assets(
     existing hero chain unchanged — zero external fetch on every path
     (R4 / AC-1.5).
     """
-    import investo.publisher.paths as _pp
-
-    markdown_path = ArchiveLayout(_pp.ARCHIVE_ROOT).briefing_path(target_date, segment)
+    markdown_path = archive_layout.briefing_path(target_date, segment)
     cards: list[_RenderableCard] = [
         build_data_confidence_card(target_date, coverage),
         _build_market_snapshot_card(
@@ -162,6 +161,7 @@ def prepare_segment_visual_assets(
 
     asset_paths: list[Path] = []
     external_asset_path = _prepare_external_context_image(
+        archive_layout=archive_layout,
         target_date=target_date,
         segment=segment,
         items=items,
@@ -170,6 +170,7 @@ def prepare_segment_visual_assets(
         asset_paths.append(external_asset_path)
 
     curated_asset_path = _prepare_curated_context_image(
+        archive_layout=archive_layout,
         target_date=target_date,
         segment=segment,
         curated_selection=curated_selection,
@@ -178,6 +179,7 @@ def prepare_segment_visual_assets(
         asset_paths.append(curated_asset_path)
 
     ai_asset_path = _prepare_openai_market_image(
+        archive_layout=archive_layout,
         target_date=target_date,
         segment=segment,
         market_card=cards[1],
@@ -188,7 +190,7 @@ def prepare_segment_visual_assets(
         asset_paths.append(ai_asset_path)
 
     for card in cards:
-        path = visual_asset_path(target_date, segment, card.kind)
+        path = visual_asset_path(target_date, segment, card.kind, archive_layout=archive_layout)
         _write_svg(path, render_card_svg(card))
         _write_generated_svg_manifest(path, card_kind=card.kind)
         validate_visual_asset(path)
@@ -388,6 +390,7 @@ def _extract_summary_lines(markdown: str) -> dict[str, str]:
 
 def _prepare_openai_market_image(
     *,
+    archive_layout: ArchiveLayout,
     target_date: date,
     segment: MarketSegment,
     market_card: _RenderableCard,
@@ -409,7 +412,13 @@ def _prepare_openai_market_image(
         return None
     if not _is_png_bytes(image_bytes):
         return None
-    path = visual_asset_path(target_date, segment, "ai-market-hero", extension=".png")
+    path = visual_asset_path(
+        target_date,
+        segment,
+        "ai-market-hero",
+        extension=".png",
+        archive_layout=archive_layout,
+    )
     _write_png(path, image_bytes)
     width, height = _read_png_dimensions(image_bytes) or (1536, 1024)
     manifest = build_ai_generated_provenance(
@@ -427,6 +436,7 @@ def _prepare_openai_market_image(
 
 def _prepare_external_context_image(
     *,
+    archive_layout: ArchiveLayout,
     target_date: date,
     segment: MarketSegment,
     items: tuple[NormalizedItem, ...],
@@ -439,6 +449,7 @@ def _prepare_external_context_image(
         segment,
         "external-context-image",
         extension=external_image.extension,
+        archive_layout=archive_layout,
     )
     _write_binary(path, external_image.content)
     # Build provenance manifest for external image (mandatory attribution).
@@ -466,6 +477,7 @@ def _prepare_external_context_image(
 
 def _prepare_curated_context_image(
     *,
+    archive_layout: ArchiveLayout,
     target_date: date,
     segment: MarketSegment,
     curated_selection: CuratedSelection | None,
@@ -488,6 +500,7 @@ def _prepare_curated_context_image(
         segment,
         "curated-context-image",
         extension=extension,
+        archive_layout=archive_layout,
     )
     source_bytes = asset.path.read_bytes()
     if extension == ".svg":

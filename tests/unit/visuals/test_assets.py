@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
+from investo._internal.archive_layout import ArchiveLayout
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import build_segment_coverage
 from investo.briefing.watchlist import WatchlistConfig, match_watchlist_items
 from investo.models import Briefing, NormalizedItem
-from investo.publisher.paths import archive_path
 from investo.visuals import assets as assets_module
 from investo.visuals.assets import (
     VisualAssetError,
@@ -101,9 +101,7 @@ def test_insert_visual_links_places_images_before_reader_status_block() -> None:
 
 def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     items = (
         _item(
             "yfinance-price",
@@ -125,6 +123,7 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -138,16 +137,14 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
         validate_visual_asset(path)
     assert "2026-05-07.assets/data-confidence.svg" in prepared.briefing.rendered_markdown
     assert "2026-05-07.assets/price-snapshot.svg" in prepared.briefing.rendered_markdown
-    assert archive_path(_TARGET, segment="us-equity").parent == (
+    assert ArchiveLayout(tmp_path / "archive").briefing_path(_TARGET, "us-equity").parent == (
         tmp_path / "archive/us-equity/2026/05"
     )
 
 
 def test_prepare_segment_visual_assets_truncates_long_market_snapshot_text(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     long_caution = (
         "CSCO 포스트마켓 어닝 리스크와 CPI 발표, 금리 경로, 반도체 수급, "
         "달러 움직임을 함께 확인해야 합니다. " * 5
@@ -166,6 +163,7 @@ def test_prepare_segment_visual_assets_truncates_long_market_snapshot_text(
 
     prepared = prepare_segment_visual_assets(
         briefing,
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -183,7 +181,6 @@ def test_prepare_segment_visual_assets_can_prepend_openai_png(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     monkeypatch.setattr(
         "investo.visuals.assets.generate_openai_visual",
         lambda *_args, **_kwargs: _PNG_BYTES,
@@ -194,6 +191,7 @@ def test_prepare_segment_visual_assets_can_prepend_openai_png(
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -215,7 +213,6 @@ def test_prepare_segment_visual_assets_prefers_external_image_before_ai(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     external_manifest = ExternalAssetManifest(
         kind="explicit-license",
         source_url="https://images.example.com/photo.jpg",  # type: ignore[arg-type]
@@ -245,6 +242,7 @@ def test_prepare_segment_visual_assets_prefers_external_image_before_ai(
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -263,7 +261,6 @@ def test_prepare_segment_visual_assets_falls_back_when_openai_png_is_invalid(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     monkeypatch.setattr(
         "investo.visuals.assets.generate_openai_visual",
         lambda *_args, **_kwargs: b"not-png",
@@ -274,6 +271,7 @@ def test_prepare_segment_visual_assets_falls_back_when_openai_png_is_invalid(
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -345,15 +343,14 @@ def test_validate_visual_asset_rejects_missing_manifest(tmp_path: Path) -> None:
 
 def test_prepare_segment_visual_assets_writes_manifest_per_asset(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
     coverage = build_segment_coverage("us-equity", items)
     impact = match_watchlist_items(items, WatchlistConfig(tickers=("NVDA",)))
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -375,9 +372,7 @@ def test_prepare_segment_visual_assets_writes_manifest_per_asset(
 
 def test_prepare_segment_visual_assets_layout_repositions_secondary_cards(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     items = (
         _item(
             "yfinance-price",
@@ -399,6 +394,7 @@ def test_prepare_segment_visual_assets_layout_repositions_secondary_cards(
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,
@@ -422,7 +418,6 @@ def test_prepare_segment_visual_assets_caption_is_secret_safe(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-veryrealsecretvaluedefinitelyok")
     items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
     coverage = build_segment_coverage("us-equity", items)
@@ -430,6 +425,7 @@ def test_prepare_segment_visual_assets_caption_is_secret_safe(
 
     prepared = prepare_segment_visual_assets(
         _briefing(),
+        archive_layout=ArchiveLayout(tmp_path / "archive"),
         target_date=_TARGET,
         segment="us-equity",
         items=items,

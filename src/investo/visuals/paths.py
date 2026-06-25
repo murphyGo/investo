@@ -14,19 +14,20 @@ _SAFE_ASSET_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 _ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".svg", ".png", ".jpg", ".jpeg"})
 
 
-def visual_asset_dir(target_date: date, segment: MarketSegment) -> Path:
+def visual_asset_dir(
+    target_date: date,
+    segment: MarketSegment,
+    *,
+    archive_layout: ArchiveLayout | None = None,
+) -> Path:
     """Return the markdown-adjacent asset directory for a segmented briefing.
 
-    The path *shape* is single-homed in :class:`ArchiveLayout`; the root
-    binding is read from ``publisher.paths.ARCHIVE_ROOT`` at call time so
-    a monkeypatched root flows through (the orchestrator/visuals test
-    contract). Relocating that seam to ``_internal`` to fully dissolve
-    the ``visuals → publisher`` edge requires the orchestrator-side
-    ARCHIVE_ROOT rework owned by u84 — tracked as deferred TECH-DEBT.
+    The path shape and root are supplied through :class:`ArchiveLayout`.
+    Production callers pass the layout assembled at the publish/orchestrator
+    boundary; standalone callers default to the repo-relative archive root.
     """
-    import investo.publisher.paths as _pp
-
-    return ArchiveLayout(_pp.ARCHIVE_ROOT).asset_dir(target_date, segment)
+    layout = archive_layout or ArchiveLayout()
+    return layout.asset_dir(target_date, segment)
 
 
 def visual_asset_path(
@@ -35,13 +36,16 @@ def visual_asset_path(
     name: str,
     *,
     extension: str = ".svg",
+    archive_layout: ArchiveLayout | None = None,
 ) -> Path:
     """Return a generated visual asset path under the segment/date asset directory."""
     if not _SAFE_ASSET_NAME.fullmatch(name):
         raise ValueError(f"unsafe visual asset name: {name!r}")
     if extension not in _ALLOWED_EXTENSIONS:
         raise ValueError(f"unsupported visual asset extension: {extension!r}")
-    return visual_asset_dir(target_date, segment) / f"{name}{extension}"
+    return (
+        visual_asset_dir(target_date, segment, archive_layout=archive_layout) / f"{name}{extension}"
+    )
 
 
 def visual_asset_relative_path(asset_path: Path, markdown_path: Path) -> str:

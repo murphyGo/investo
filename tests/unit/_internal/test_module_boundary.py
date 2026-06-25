@@ -174,6 +174,21 @@ def test_visuals_has_no_top_level_publisher_import() -> None:
     )
 
 
+def test_visuals_has_no_publisher_imports_anywhere() -> None:
+    """The visuals package must receive archive context explicitly."""
+    offenders: list[str] = []
+    for path in sorted((_SRC / "visuals").rglob("*.py")):
+        imports = _absolute_import_modules(path)
+        banned = sorted(
+            module
+            for module in imports
+            if module == "investo.publisher" or module.startswith("investo.publisher.")
+        )
+        if banned:
+            offenders.append(f"{path.relative_to(_SRC)} -> {', '.join(banned)}")
+    assert not offenders
+
+
 def test_publisher_has_no_top_level_visuals_import() -> None:
     """The reverse pairing stays edge-free too (publisher's few visuals
     uses are lazy in-function imports, by design)."""

@@ -80,6 +80,7 @@ from typing import Any, Final, cast
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
+from investo._internal.archive_layout import ArchiveLayout
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
@@ -1915,6 +1916,9 @@ async def _stage_prepare_segment_visual_assets(
     source_outcomes: Sequence[SourceOutcome] = (),
 ) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
     """Generate visual assets and return briefings with relative image links."""
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    archive_layout = ArchiveLayout(ARCHIVE_ROOT)
     routed = segment_items(items)
     watchlist_config = load_watchlist()
     curated_runtime = _load_curated_runtime_safely()
@@ -1928,6 +1932,7 @@ async def _stage_prepare_segment_visual_assets(
             source_outcomes=source_outcomes,
         )
         prepared_kwargs: dict[str, Any] = {
+            "archive_layout": archive_layout,
             "target_date": target_date,
             "segment": segment,
             "items": segment_source_items,

@@ -4360,3 +4360,25 @@ passed, scoped ruff passed, scoped format check passed, `mypy src` passed.
 **Context**: u119 adapter-contract-ports-cleanup Code Generation complete.
 
 ---
+
+## u120 Land - visual-asset-archive-context-boundary
+**Timestamp**: 2026-06-25T00:00:00Z
+**Action**: Landed u120 code generation. Removed the hidden visuals-to-publisher
+archive-root dependency by passing `ArchiveLayout` explicitly into visual asset
+preparation and path helpers.
+**Decisions**:
+- Kept Functional Design and NFR Requirements skipped because this is a
+  behavior-preserving dependency-direction cleanup over the existing visual
+  publish path.
+- Kept the mutable `publisher.paths.ARCHIVE_ROOT` seam at the orchestrator /
+  publish boundary so existing production and test root redirection still work.
+- Made `src/investo/visuals` independent of `investo.publisher` at both module
+  level and function-body lazy-import level.
+- Preserved relative markdown asset links, sidecar paths, curated asset copies,
+  generated image behavior, and rollback-visible asset path collection.
+**Quality gate**: 267 focused boundary/archive-layout/visual/orchestrator tests
+passed, scoped ruff passed, scoped format check passed, `mypy src` passed.
+**TECH-DEBT**: None.
+**Context**: u120 visual-asset-archive-context-boundary Code Generation complete.
+
+---

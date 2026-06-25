@@ -76,15 +76,10 @@ def test_visuals_asset_dir_matches_layout() -> None:
         assert visual_asset_dir(_TARGET, segment) == layout.asset_dir(_TARGET, segment)
 
 
-def test_visuals_asset_dir_honors_monkeypatched_root(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """A patched ``publisher.paths.ARCHIVE_ROOT`` flows through to the
-    visuals asset directory (preserves the orchestrator/visuals seam).
-    """
+def test_visuals_asset_dir_honors_explicit_archive_layout(tmp_path: Path) -> None:
+    """The visuals asset directory receives archive context explicitly."""
     from investo.visuals.paths import visual_asset_dir
 
-    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
-    assert visual_asset_dir(_TARGET, CRYPTO) == (
-        tmp_path / "archive" / "crypto" / "2026" / "04" / "2026-04-25.assets"
-    )
+    assert visual_asset_dir(
+        _TARGET, CRYPTO, archive_layout=ArchiveLayout(tmp_path / "archive")
+    ) == (tmp_path / "archive" / "crypto" / "2026" / "04" / "2026-04-25.assets")
