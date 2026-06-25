@@ -1736,6 +1736,90 @@ Plan: `aidlc-docs/construction/plans/u111-watchlist-public-impact-language-clean
 
 Plan: `aidlc-docs/construction/plans/u112-reader-markdown-polish-gate-v2-code-generation-plan.md`.
 
+---
+
+### u123: `body-evidence-attribution-reconciliation` - Reconcile Rendered Evidence With Quality Metrics
+
+**Purpose**: Stop current-run quality rows from reporting `본문 사용 미집계`, `figures_presence=0.0`, and fallback-heavy status when the published briefing body clearly contains links, figures, and source-backed facts.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-003 (public publishing), FR-008 (segmented briefing), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- Extends u54/u62/u69/u96 quality accounting and u65 replay; it does not create a new quality dashboard.
+- Extends u108 by fixing the operator metric behind the public projection, not by changing reader-safe language.
+- Does not change source collection, source severity rules, or the LLM prompt.
+
+**Module path**:
+- `src/investo/publisher/evidence_accounting.py` or an existing quality helper - compute bounded rendered evidence counts from markdown links, known source domains, and verified numeric anchors.
+- `src/investo/orchestrator/pipeline.py` publish/generate quality assembly - pass rendered evidence counts into `SegmentCoverage`/`QualitySnapshot`.
+- `src/investo/publisher/quality_consistency.py` and `src/investo/publisher/briefing_replay.py` - assert metadata agrees with rendered evidence.
+- `tests/unit/publisher/test_evidence_accounting.py`, quality consistency tests, replay tests, and a fixture built from the 2026-06-23 bundle.
+
+**Definition of Done**:
+- [ ] A segment with rendered source links and source-backed numeric facts records `body_used_count > 0`.
+- [ ] `quality_history.jsonl` no longer records `figures_presence=0.0` for a run whose published markdown contains verified core figures.
+- [ ] The first-viewport public projection still hides operator counters per u108.
+- [ ] Data-limited severity still applies when core sources fail; the fix does not upgrade severity solely because prose has links.
+- [ ] Replay and quality-consistency checks fail when markdown evidence and quality metadata contradict each other.
+
+Plan: `aidlc-docs/construction/plans/u123-body-evidence-attribution-reconciliation-code-generation-plan.md`.
+
+---
+
+### u124: `segment-specific-daily-thesis-guard` - Make Daily Thesis Segment-Native
+
+**Purpose**: Prevent the same generic daily thesis line from being stamped across domestic, US, and crypto briefings when each segment has different evidence, time state, and reader action context.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- Extends u57 time/scope reconciliation and u99 daily thesis layer; it does not redesign bundle context.
+- Reuses u60 shared macro evidence hardening; it does not add new macro sources.
+- Extends u112 only where surface gates catch repeated generic thesis text; it does not add a grammar checker.
+
+**Module path**:
+- `src/investo/briefing/context.py` or bundle-context builder - emit segment-specific thesis inputs with evidence references.
+- `src/investo/briefing/prompts.py` - require the shared macro bridge to name the segment consequence.
+- `src/investo/publisher/reader_format/reflow.py` or `_internal/surface_quality.py` - block identical `오늘의 큰 그림` text across all three segments in one bundle.
+- `tests/unit/briefing/test_context.py`, prompt tests, bundle reconciliation tests, and surface-quality tests.
+
+**Definition of Done**:
+- [ ] Domestic, US, and crypto briefings cannot publish identical `오늘의 큰 그림` lines for the same date bundle.
+- [ ] Each thesis line names a segment-native consequence such as domestic 수급/환율, US sector/rates, or crypto liquidity/policy.
+- [ ] Shared macro facts may be reused, but the consequence sentence must differ by segment.
+- [ ] A missing segment-specific consequence collapses to a bounded reader-safe low-evidence line rather than a generic cross-market sentence.
+- [ ] Regression covers the 2026-06-23 repeated "금리와 달러 변수" line without changing u57 shared macro block rendering.
+
+Plan: `aidlc-docs/construction/plans/u124-segment-specific-daily-thesis-guard-code-generation-plan.md`.
+
+---
+
+### u125: `acronym-glossary-collision-guard` - Prevent Wrong Acronym Expansions
+
+**Purpose**: Stop glossary and inline reader aids from attaching the wrong expansion to a market acronym, such as rendering `ESMA` as `미니S&P선물` instead of the European Securities and Markets Authority.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- Extends u40 glossary and u68 reader-aid residuals; it does not add broad in-body auto-glossing.
+- Extends u51 glossary dedupe by validating expansion identity before a term enters the visible glossary.
+- Does not add a new acronym source or a language model validation pass.
+
+**Module path**:
+- `src/investo/publisher/reader_format/glossary.py` or the current glossary helper - tokenize acronyms with exact boundaries and canonical expansion ids.
+- `src/investo/briefing/prompts.py` glossary instruction - forbid composing acronym expansions from substrings.
+- `src/investo/_internal/surface_quality.py` - block known wrong expansion pairs in public prose and glossary callouts.
+- `tests/unit/publisher/test_glossary.py`, reader-format tests, and a crypto fixture from 2026-06-23.
+
+**Definition of Done**:
+- [ ] `ESMA` renders only as `유럽증권시장청`/European Securities and Markets Authority in crypto regulation context.
+- [ ] `E-mini S&P`/`ES` futures glossary entries do not match inside `ESMA`.
+- [ ] Known wrong acronym-expansion pairs are blocked before archive write.
+- [ ] Existing first-use glossary dedupe from u51 remains unchanged for valid terms.
+- [ ] Tests cover all-caps acronym boundaries, hyphenated futures names, Korean parenthetical expansions, and idempotent reruns.
+
+Plan: `aidlc-docs/construction/plans/u125-acronym-glossary-collision-guard-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

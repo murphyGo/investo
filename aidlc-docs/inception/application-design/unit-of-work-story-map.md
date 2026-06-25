@@ -311,6 +311,27 @@ Deduplicated out:
 - No watchlist matcher rewrite: u111 changes public projection only and preserves u64/u73 grouping.
 - No full spellchecker or Markdown parser: u112 pins a bounded defect matrix with deterministic checks.
 
+### u123-u125 Planning Notes
+
+The 2026-06-23 bundle still exposes three residual defects after deduplicating against completed u108-u112 and planned clean-code units u119-u122: rendered evidence is not reconciled back into quality metrics, the daily thesis line is repeated across all segment briefings, and glossary expansion can collide on acronym substrings. These are reader-trust and operator-trust issues, but they are narrower than a new generated-briefing quality wave.
+
+Recommended implementation order:
+1. u123 first, because incorrect quality metadata hides whether the downstream gates are measuring the real body.
+2. u125 second, because wrong glossary expansions are direct reader misinformation and have a tight deterministic guard.
+3. u124 third, because segment-specific thesis quality is a prompt/context refinement once evidence accounting is reliable.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u123 body-evidence-attribution-reconciliation | Published body evidence and quality metrics disagree: `본문 사용 미집계`, `figures_presence=0.0`, and fallback-heavy status survive despite rendered links and figures | FR-001, FR-002, FR-003, FR-008, NFR-003, NFR-006, R13 | u54/u62/u65/u69/u96 quality surfaces, u108 public language |
+| u124 segment-specific-daily-thesis-guard | `오늘의 큰 그림` can repeat one generic cross-market sentence across domestic, US, and crypto segments | FR-002, FR-008, FR-009, NFR-003, NFR-006, R13 | u57 narrative scope, u60 shared macro evidence, u99 daily thesis, u112 polish gate |
+| u125 acronym-glossary-collision-guard | Glossary expansion can attach a substring-derived wrong meaning such as `ESMA(미니S&P선물)` | FR-002, FR-008, FR-009, NFR-003, NFR-006, R13 | u40 glossary, u51 glossary dedupe, u68 reader-aid residual |
+
+Deduplicated out:
+- No new generic quality KPI unit: u123 only reconciles rendered-body evidence into existing u54/u96 metrics and u65 replay.
+- No additional watchpoint unit: u110 already owns §⑥ field cleanup, source promotion, and duplicate trigger removal.
+- No second markdown polish unit: u112 already owns timestamp, truncation, signed-number emphasis, URL ellipsis, and particle blockers.
+- No source-expansion unit: the reviewed defects are post-render evidence accounting, context wording, and glossary identity failures.
+
 ---
 
 ## Definition of Done — Inception Phase Output
