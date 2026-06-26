@@ -124,6 +124,7 @@ class SegmentStatusBlock:
     status: CoverageStatus | None
     failed_count: int
     body_used_count: int | None
+    body_used_observed: bool
     known_body_evidence_count: int
     data_limited: bool
 
@@ -159,13 +160,14 @@ def parse_segment_status_block(text: str, segment: MarketSegment) -> SegmentStat
         status = _LABEL_TO_STATUS.get(match.group(1).strip())
     failed_match = _FAILED_COUNT_RE.search(text)
     failed_count = int(failed_match.group(1)) if failed_match is not None else 0
-    body_used_count = _parse_body_used_count(text)
+    body_used_count, body_used_observed = _parse_body_used_count(text)
     known_body_evidence_count = count_rendered_evidence(text, segment=segment).body_used_count
     return SegmentStatusBlock(
         segment=segment,
         status=status,
         failed_count=failed_count,
         body_used_count=body_used_count,
+        body_used_observed=body_used_observed,
         known_body_evidence_count=known_body_evidence_count,
         data_limited=any(marker in text for marker in _DATA_LIMITED_MARKERS),
     )
@@ -325,7 +327,11 @@ def check_quality_consistency(
 
     # 3. quality.md dashboard surface.
     for block in snapshot.segment_blocks:
-        if block.known_body_evidence_count > 0 and (block.body_used_count or 0) == 0:
+        if (
+            block.known_body_evidence_count > 0
+            and block.body_used_observed
+            and (block.body_used_count or 0) == 0
+        ):
             findings.append(
                 ConsistencyFinding(
                     CODE_BODY_EVIDENCE_UNTRACKED,
@@ -463,14 +469,17 @@ def _non_negative_int(value: object) -> int:
     return value
 
 
-def _parse_body_used_count(text: str) -> int | None:
-    match = re.search(r"본문 사용\s+(미집계|\d+)", text)
+def _parse_body_used_count(text: str) -> tuple[int | None, bool]:
+    match = re.search(
+        r"(?m)^>\s*\*\*소스 카운트\*\*:\s*.*?\b본문 사용\s+(미집계|\d+)",
+        text,
+    )
     if match is None:
-        return None
+        return None, False
     raw = match.group(1)
     if raw == "미집계":
-        return None
-    return int(raw)
+        return None, True
+    return int(raw), True
 
 
 def _is_zero_or_na(value: str) -> bool:

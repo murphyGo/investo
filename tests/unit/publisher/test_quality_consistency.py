@@ -56,6 +56,19 @@ def _segment_body_with_untracked_source_label_evidence() -> str:
     )
 
 
+def _segment_body_with_reader_safe_source_count() -> str:
+    return (
+        "# title\n\n"
+        "> **데이터 상태**: 제한 · 이번 문서는 수집 근거가 제한적입니다. "
+        "· 수집 상세는 진단 섹션에서 확인할 수 있습니다.\n\n"
+        "## ① 요약\n\n"
+        "[FRED](https://fred.stlouisfed.org/series/DGS10) 근거를 본문에서 사용했습니다.\n\n"
+        "<details><summary>수집/품질 진단</summary>\n\n"
+        "> **소스 카운트**: 수집 대상 5 / 성공 1 / 수집 상세는 진단 섹션에서 확인할 수 있습니다.\n"
+        "</details>\n"
+    )
+
+
 def _quality_page(failed_value: str) -> str:
     return (
         "# 데이터 품질\n\n"
@@ -198,6 +211,22 @@ def test_body_evidence_untracked_uses_source_registry_label_offline() -> None:
     findings = check_quality_consistency(snapshot, quality_page_text=_quality_page("0 회"))
 
     assert CODE_BODY_EVIDENCE_UNTRACKED in {f.code for f in findings if f.is_failure}
+
+
+def test_reader_safe_source_count_without_body_used_does_not_trip_body_evidence_gate() -> None:
+    snapshot = build_canonical_snapshot(
+        TARGET,
+        segment_texts={US_EQUITY: _segment_body_with_reader_safe_source_count()},
+        history_row={
+            "date": TARGET.isoformat(),
+            "worst_severity": "limited",
+            "total_failed_sources": 0,
+        },
+    )
+
+    findings = check_quality_consistency(snapshot, quality_page_text=_quality_page("0 회"))
+
+    assert CODE_BODY_EVIDENCE_UNTRACKED not in {f.code for f in findings if f.is_failure}
 
 
 # ---------------------------------------------------------------------------
