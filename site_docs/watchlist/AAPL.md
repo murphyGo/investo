@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-25 begin -->
+
+## 2026-06-25
+
+- [nasdaq-stocks-news] **ticker**: Stocks Settle Mixed on Apple Weakness and Chipmaker Strength
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+
+<!-- u33 entry 2026-06-25 end -->
 <!-- u33 entry 2026-06-24 begin -->
 
 ## 2026-06-24

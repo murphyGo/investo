@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-25 begin -->
+
+## 2026-06-25
+
+- [nasdaq-symbol-directory] **ticker**: GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: GOOGL SEC company facts: Alphabet Inc.
+- [theblock-crypto] **ticker**: ‘Stablecoin’ Google searches down 54% as supply growth stalls after 2025 boom
+
+<!-- u33 entry 2026-06-25 end -->
 <!-- u33 entry 2026-06-24 begin -->
 
 ## 2026-06-24

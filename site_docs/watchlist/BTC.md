@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-25 begin -->
+
+## 2026-06-25
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6607 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,146,961,122,097; BTC dominance 55.78%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $447,053,950 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000064332007793 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin rout leads Strategy’s STRC to slide 26% below par as MSTR shares hits 16-month low
+- [theblock-crypto] **ticker**: ‘Waiting for buyers’: Bitcoin holds fragile $60K floor ahead of $10.6B quarterly expiry
+
+<!-- u33 entry 2026-06-25 end -->
 <!-- u33 entry 2026-06-24 begin -->
 
 ## 2026-06-24
