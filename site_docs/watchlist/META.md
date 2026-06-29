@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-29 begin -->
+
+## 2026-06-29
+
+- [yonhap-market] **ticker**: '컴퓨팅 파워 부족'…구글, 메타에 제미나이 사용량 제한
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+
+<!-- u33 entry 2026-06-29 end -->
 <!-- u33 entry 2026-06-26 begin -->
 
 ## 2026-06-26

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-29 begin -->
+
+## 2026-06-29
+
+- [coingecko-price] **ticker**: ETH $1,611.12 (+3.69%)
+- [defillama-market-structure] **ticker**: DeFi TVL $71.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine lifts Ethereum treasury to 5.7 million ETH through ‘challenging’ weekly slide, joins Russell 1000
+- [theblock-crypto] **ticker**: Ethereum zkRollup project Loopring sunsets DEX, citing lack of meaningful adoption
+
+<!-- u33 entry 2026-06-29 end -->
 <!-- u33 entry 2026-06-26 begin -->
 
 ## 2026-06-26

@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-29 begin -->
+
+## 2026-06-29
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6130 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,172,148,172,995; BTC dominance 55.63%
+- [coingecko-price] **ticker**: BTC $60,284.00 (+2.23%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $473,956,460 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Arkham launches ranking system for prediction market traders
+- [theblock-crypto] **ticker**: Bitcoin clings to key support level as weekly US spot ETF outflows hit $1.8B and Fed rate hike bets mount: analysts
+- [theblock-crypto] **ticker**: Strategy pauses bitcoin buys, establishes $1B digital credit repurchase program as USD reserve tops $2.5B
+- [theblock-crypto] **ticker**: Strategy’s MSTR, STRC shares recover after brutal week as Saylor unveils new buyback plans
+
+<!-- u33 entry 2026-06-29 end -->
 <!-- u33 entry 2026-06-26 begin -->
 
 ## 2026-06-26

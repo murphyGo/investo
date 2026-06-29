@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-29 begin -->
+
+## 2026-06-29
+
+- [yonhap-market] **ticker**: 메모리 대란에 애플·MS 가격인상…중소 전자업체는 '생존 위기'
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+
+<!-- u33 entry 2026-06-29 end -->
 <!-- u33 entry 2026-06-26 begin -->
 
 ## 2026-06-26

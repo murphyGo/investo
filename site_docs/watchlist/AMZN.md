@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-29 begin -->
+
+## 2026-06-29
+
+- [yonhap-market] **ticker**: [특징주] 화장품주, '美아마존 데이' 약진에 장 초반 강세
+- [yonhap-market] **ticker**: 아마존 프라임데이 40조원 신기록…깊어지는 연준 고민
+- [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
+- [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
+
+<!-- u33 entry 2026-06-29 end -->
 <!-- u33 entry 2026-06-26 begin -->
 
 ## 2026-06-26
