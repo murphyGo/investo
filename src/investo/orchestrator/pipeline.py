@@ -363,10 +363,10 @@ SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
     # job timeout is now 240 minutes, so each segment gets a 30-minute
     # per-call ceiling. 2026-06-13 postmortem — crypto twice returned
     # mid-section markdown without the required first header, so crypto keeps
-    # the default third attempt while the two equity segments stay capped at
-    # two attempts. Worst-case synthesis across all segments still fits the
-    # cron budget with runner overhead.
-    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
+    # the default third attempt. 2026-06-29 showed the same malformed-header
+    # pattern on domestic-equity after two attempts, so domestic also gets a
+    # third attempt while US stays capped at two.
+    DOMESTIC_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=3, total_budget_s=5700.0),
     US_EQUITY: GenerationPolicy(timeout_s=1800.0, max_attempts=2, total_budget_s=3900.0),
     CRYPTO: GenerationPolicy(timeout_s=1800.0, max_attempts=3, total_budget_s=5700.0),
 }

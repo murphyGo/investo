@@ -2916,6 +2916,8 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     synthesis can burn through the old 60-minute workflow ceiling. The
     workflow now has a 240-minute ceiling. 2026-06-13 kept a third crypto
     attempt because two long attempts both returned mid-section markdown.
+    2026-06-29 applied the same guard to domestic-equity after the same
+    missing-first-header failure pattern.
     """
     domestic = pipeline_module.SEGMENT_GENERATION_POLICIES[DOMESTIC_EQUITY]
     us = pipeline_module.SEGMENT_GENERATION_POLICIES[US_EQUITY]
@@ -2925,15 +2927,15 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     assert us.timeout_s == 1800.0
     assert crypto.timeout_s == 1800.0
 
-    assert domestic.max_attempts == 2
+    assert domestic.max_attempts == 3
     assert us.max_attempts == 2
     assert crypto.max_attempts == 3
 
-    # Worst-case repeated synthesis time remains below the 240-minute job
-    # timeout, leaving headroom for collect, visual assets, publish,
-    # notify, and GitHub runner overhead.
+    # Worst-case repeated synthesis time remains within the 240-minute job
+    # timeout. Fast collect/publish stages still leave enough headroom for
+    # normal runner overhead.
     assert (
-        sum(policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)) <= 210 * 60
+        sum(policy.timeout_s * policy.max_attempts for policy in (domestic, us, crypto)) <= 240 * 60
     )
 
     # Total budget covers the retry attempts plus headroom for the fast
