@@ -117,11 +117,17 @@ def _market_anchor_history_budget_from_env() -> float:
     return _DEFAULT_MARKET_ANCHOR_HISTORY_BUDGET_S
 
 
-# u67 — canonical KR anchor tickers and their display priority. KOSPI /
-# KOSDAQ / 원/달러 are sourced from the stooq-kr-market snapshot items
-# (NOT Yahoo history), so they have no ATH / 52w / MTD / YTD derivation —
-# they render as a close-only anchor row (note column "—").
-_KR_ANCHOR_TICKERS: Final[tuple[str, ...]] = ("^KOSPI", "^KOSDAQ", "KRW=X")
+# u67 / u109 — canonical domestic snapshot anchor tickers and display
+# priority. KOSPI / KOSDAQ / 원/달러 are sourced from stooq-kr-market, while
+# the large-cap rows are sourced from fsc-krx-stock-price. None uses Yahoo
+# history, so they render as close-only anchor rows (note column "—").
+_KR_ANCHOR_TICKERS: Final[tuple[str, ...]] = (
+    "^KOSPI",
+    "^KOSDAQ",
+    "KRW=X",
+    "005930.KS",
+    "000660.KS",
+)
 
 
 def _snapshot_close_by_ticker(items: Sequence[NormalizedItem]) -> dict[str, Decimal]:
@@ -160,13 +166,12 @@ def _build_kr_anchors_from_items(
 ) -> tuple[MarketAnchor, ...]:
     """Synthesize close-only domestic :class:`MarketAnchor` rows (u67).
 
-    The Yahoo-history anchor path cannot supply KOSPI / KOSDAQ / 원/달러
-    (the v8 chart endpoint returns HTTP 429 for ``^kospi`` / ``KRW=X``
-    from the GitHub Actions IP space). Instead the domestic anchor table
-    is built from the deterministic ``stooq-kr-market`` price snapshot
-    items: one anchor per KR ticker, close-only (derived range / period
-    fields stay ``None`` → the table renders a "—" note). The body / trace
-    cite the same ``close`` value, so all three surfaces agree.
+    The Yahoo-history anchor path cannot supply domestic rows from the
+    GitHub Actions IP space. Instead the domestic anchor table is built
+    from deterministic trusted snapshot items: one anchor per KR ticker,
+    close-only (derived range / period fields stay ``None`` → the table
+    renders a "—" note). The body / trace cite the same ``close`` value,
+    so all three surfaces agree.
 
     Empty / missing KR items ⇒ empty tuple (the domestic table omits the
     KR rows entirely, matching the existing graceful-degrade contract).

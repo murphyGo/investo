@@ -358,6 +358,8 @@ _register_label("ETH-USD", short="ETH", ko="이더리움")
 _register_label("^KOSPI", short="KOSPI", ko="코스피")
 _register_label("^KOSDAQ", short="KOSDAQ", ko="코스닥")
 _register_label("KRW=X", short="USD/KRW", ko="원/달러")
+_register_label("005930.KS", short="005930", ko="삼성전자")
+_register_label("000660.KS", short="000660", ko="SK하이닉스")
 
 
 def anchor_label(symbol: str) -> AnchorLabel:

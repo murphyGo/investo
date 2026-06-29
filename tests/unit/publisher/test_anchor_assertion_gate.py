@@ -72,6 +72,17 @@ def test_large_cap_domestic_claim_without_anchor_is_rewritten() -> None:
     assert result.findings[0].symbol == "005930.KS"
 
 
+def test_large_cap_domestic_claim_passes_when_anchor_available() -> None:
+    md = "SK하이닉스[000660] +13.06%, 삼성전자[005930] +5.29% 급등이 관찰됐다.\n"
+    out = enforce_anchor_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS", "000660.KS"),
+    )
+
+    assert out == md
+
+
 def test_enforce_raises_on_blocking_finding() -> None:
     md = "| ^KOSPI | 2,500.00 | -1.8% | 급락 |\n"
     with pytest.raises(NumericAnchorReconciliationError):
