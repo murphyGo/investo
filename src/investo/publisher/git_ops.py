@@ -40,6 +40,13 @@ _FINAL_STDERR_LOG_LIMIT: Final[int] = 500
 # the project.
 _BACKOFF_SCHEDULE: Final[tuple[float, ...]] = (0.0, 2.0, 8.0)
 
+_PUSH_REJECTION_MARKERS: Final[tuple[str, ...]] = (
+    "failed to push some refs",
+    "fetch first",
+    "non-fast-forward",
+    "updates were rejected",
+)
+
 
 class GitRunner(Protocol):
     """Test-seam protocol matching the slice of ``subprocess.run`` we
@@ -119,6 +126,53 @@ def _git_diagnostic_output(result: subprocess.CompletedProcess[str]) -> str | No
     if stderr and stdout:
         return f"{stderr}\n{stdout}"
     return stderr or stdout or None
+
+
+def _is_recoverable_remote_ahead_push(result: subprocess.CompletedProcess[str] | None) -> bool:
+    """Detect a push rejection caused by ``origin/main`` advancing.
+
+    The publisher may run for a long time before committing. If another
+    workflow lands a commit meanwhile, the generated briefing commit is
+    still valid but must be replayed on top of the newer remote head.
+    """
+    if result is None or result.returncode == 0:
+        return False
+    haystack = (result.stderr + "\n" + result.stdout).lower()
+    return any(marker in haystack for marker in _PUSH_REJECTION_MARKERS)
+
+
+def _try_rebase_onto_origin_main(runner: GitRunner) -> subprocess.CompletedProcess[str] | None:
+    """Fetch ``origin`` and rebase the local publish commit onto ``origin/main``.
+
+    Returns ``None`` on success. On failure, returns the failed git result
+    so the retry loop can surface the actionable diagnostic. A failed
+    rebase is aborted before returning to leave the checkout reusable.
+    """
+    fetch_result = runner(
+        ["git", "fetch", "origin"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if fetch_result.returncode != 0:
+        return fetch_result
+
+    rebase_result = runner(
+        ["git", "rebase", "origin/main"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if rebase_result.returncode == 0:
+        return None
+
+    runner(
+        ["git", "rebase", "--abort"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return rebase_result
 
 
 def _try_attempt(
@@ -226,6 +280,16 @@ def commit_and_push(
         # Failed step — record git's diagnostic output + try again (or exhaust).
         last_stderr = _git_diagnostic_output(result) if result is not None else None
         last_cause = None
+        if attempt < max_attempts - 1 and _is_recoverable_remote_ahead_push(result):
+            try:
+                rebase_result = _try_rebase_onto_origin_main(actual_runner)
+            except OSError as exc:
+                last_cause = exc
+                last_stderr = str(exc)
+                continue
+            if rebase_result is not None:
+                last_stderr = _git_diagnostic_output(rebase_result)
+                last_cause = None
 
     # 2026-05-09 GHA postmortem — surface the final git stderr at ERROR
     # level so operator log triage doesn't have to dig into the alert

@@ -260,6 +260,53 @@ def test_commit_and_push_handles_partial_success_on_retry() -> None:
     assert len(captured) == 6
 
 
+def test_commit_and_push_rebases_on_remote_ahead_push_rejection() -> None:
+    """A long-running publish may lose a push race to a newer ``main``.
+
+    The local briefing commit is already created, so retrying the same
+    push cannot recover until the local commit is rebased onto the new
+    ``origin/main``.
+    """
+    remote_ahead = _ok(
+        returncode=1,
+        stderr=(
+            "To https://github.com/example/repo\n"
+            " ! [rejected] HEAD -> main (fetch first)\n"
+            "error: failed to push some refs\n"
+            "hint: Updates were rejected because the remote contains work\n"
+        ),
+    )
+    nothing_to_commit = _ok(
+        returncode=1,
+        stdout="On branch main\nnothing to commit, working tree clean\n",
+    )
+    captured, _, runner = _runner_returning(
+        [
+            _ok(),  # attempt 1: add
+            _ok(),  # attempt 1: commit
+            remote_ahead,  # attempt 1: push rejected
+            _ok(),  # recovery: fetch origin
+            _ok(),  # recovery: rebase origin/main
+            _ok(),  # attempt 2: add
+            nothing_to_commit,  # attempt 2: commit already landed locally
+            _ok(),  # attempt 2: push rebased commit
+        ]
+    )
+
+    commit_and_push("publish 2026-06-26", [Path("f.md")], runner=runner)
+
+    assert captured == [
+        ["git", "add", "--", "f.md"],
+        ["git", "commit", "-m", "publish 2026-06-26"],
+        ["git", "push", "origin", "HEAD"],
+        ["git", "fetch", "origin"],
+        ["git", "rebase", "origin/main"],
+        ["git", "add", "--", "f.md"],
+        ["git", "commit", "-m", "publish 2026-06-26"],
+        ["git", "push", "origin", "HEAD"],
+    ]
+
+
 def test_commit_and_push_treats_nothing_to_commit_stdout_as_noop() -> None:
     """Some git versions print "nothing to commit" to stdout instead of
     stderr. `_is_idempotent_commit_noop` checks both streams.
