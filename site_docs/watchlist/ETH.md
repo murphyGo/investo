@@ -6,10 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-06-26
 
-- [defillama-market-structure] **ticker**: DeFi TVL $70.4B; leader Ethereum
-- [theblock-crypto] **ticker**: Ethereum OG wallets finally sell after 8 years, locking in estimated $27M profit after $150M unrealized peak: onchain…
+- [defillama-market-structure] **ticker**: DeFi TVL $70.5B; leader Ethereum
 
 <!-- u33 entry 2026-06-26 end -->
+
 <!-- u33 entry 2026-06-25 begin -->
 
 ## 2026-06-25

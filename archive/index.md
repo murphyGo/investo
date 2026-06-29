@@ -71,7 +71,7 @@
 <rect class="u29-cell-normal" x="155" y="39" width="14" height="14" rx="2" ry="2"><title>2026-06-23 · 정상</title></rect>
 <rect class="u29-cell-normal" x="155" y="56" width="14" height="14" rx="2" ry="2"><title>2026-06-24 · 정상</title></rect>
 <rect class="u29-cell-normal" x="155" y="73" width="14" height="14" rx="2" ry="2"><title>2026-06-25 · 정상</title></rect>
-<rect class="u29-cell-partial" x="155" y="90" width="14" height="14" rx="2" ry="2"><title>2026-06-26 · 부분</title></rect>
+<rect class="u29-cell-normal" x="155" y="90" width="14" height="14" rx="2" ry="2"><title>2026-06-26 · 정상</title></rect>
 <rect class="u29-cell-normal" x="36" y="148" width="11" height="11" rx="2" ry="2"/>
 <text class="u29-legend" x="52" y="158" font-size="11">정상</text>
 <rect class="u29-cell-partial" x="106" y="148" width="11" height="11" rx="2" ry="2"/>
@@ -89,7 +89,7 @@
 
 현재 보관된 최신 묶음은 **2026-06-26**입니다.
 
-- 국내 증시: 2026-06-26 미발행 · [최근 2026-06-25](domestic-equity/2026/06/2026-06-25.md)
+- [국내 증시](domestic-equity/2026/06/2026-06-26.md)
 - [미국 증시](us-equity/2026/06/2026-06-26.md)
 - [크립토](crypto/2026/06/2026-06-26.md)
 ## 과거 단일 시황

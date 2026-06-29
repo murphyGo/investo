@@ -8,8 +8,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 - [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
 - [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+- [yfinance-price] **ticker**: MSFT 372.52 (-0.12%)
 
 <!-- u33 entry 2026-06-26 end -->
+
 <!-- u33 entry 2026-06-25 begin -->
 
 ## 2026-06-25

@@ -7,14 +7,13 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-06-26
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6130 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,154,587,329,833; BTC dominance 55.80%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $469,177,670 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000791873503155 (OKX, UTC 24h)
-- [theblock-crypto] **ticker**: Bitcoin ETF Flows Explained: What ETF Inflows and Outflows Mean for Investors
-- [theblock-crypto] **ticker**: Bitcoin’s fragile floor cracks as Fed hawks circle and ETF investors keep pulling out: analysts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,142,822,222,778; BTC dominance 55.62%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $477,612,440 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: Strategy loses its bitcoin premium as enterprise mNAV dips below 1
 
 <!-- u33 entry 2026-06-26 end -->
+
 <!-- u33 entry 2026-06-25 begin -->
 
 ## 2026-06-25
