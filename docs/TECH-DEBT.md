@@ -64,6 +64,7 @@ _No high priority items._
 - **Suggested Fix**: Extract a public `is_unsafe_summary_value(value: str) -> bool` from `src/investo/briefing/summary_quality.py` carrying the canonical reject set. Have `briefing/pipeline.py` import and call it from `_is_unsafe_summary_candidate`. Pin the contract with a parametrize test that walks every reject pattern through both call paths simultaneously, so adding a new pattern requires exactly one regex edit.
 - **Effort**: ~25 min including the helper extraction, producer-side import switch, and the parametrize regression test.
 - **Priority Reasoning**: Medium — gate-side rejection is the actual publish blocker today, so reader-trust is preserved even on producer drift. Promote to High the moment a sixth reject pattern lands and reviewers ask "did this go in both sites?".
+- **AIDLC follow-up**: Registered as `u127 summary-quality-reject-contract-unification` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
 
 #### DEBT-040: Layout reposition ordering when multiple non-hero cards share the same anchor
 
@@ -84,6 +85,7 @@ _No high priority items._
 - **Suggested Fix**: Either (a) move sidecar validation **before** caption rendering inside `_provenance_caption_for` so corrupt sidecars raise `VisualAssetError` (re-using the existing publish-side fallback), or (b) re-raise as `VisualAssetError` from inside `_provenance_caption_for`, or (c) add an explicit `validate_sidecar_or_raise(asset_path)` helper and require every caller (including future ones) to invoke it before captioning.
 - **Effort**: ~25 min including a test that pins the corrupt-sidecar rejection path.
 - **Priority Reasoning**: Medium — not reachable through today's supported call path, but the silent fall-through is a degradation in observability and could mask malformed sidecars produced by future tooling.
+- **AIDLC follow-up**: Registered as `u129 visual-provenance-sidecar-error-boundary` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
 
 #### DEBT-038: `source_outcomes` segment-filtering contract is not enforced at the type level
 
@@ -94,6 +96,7 @@ _No high priority items._
 - **Suggested Fix**: Introduce a `SegmentScopedOutcomes = NewType("SegmentScopedOutcomes", tuple[SourceOutcome, ...])` and have the orchestrator construct it via a small validating builder that asserts every outcome's category belongs to the segment's allowed categories. Alternatively, add a runtime guard inside `build_segment_coverage` that raises if any outcome category is not in the segment's allow-list.
 - **Effort**: ~45 min including builder + orchestrator/test updates.
 - **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
+- **AIDLC follow-up**: Registered as `u128 segment-scoped-source-outcome-contract` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
 
 ### Low Priority
 
