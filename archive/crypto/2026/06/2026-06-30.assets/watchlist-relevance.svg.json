@@ -1,16 +1,16 @@
 {
   "additional_metadata": {},
-  "asset_path": "og-card.svg",
-  "card_kind": "og-card",
+  "asset_path": "watchlist-relevance.svg",
+  "card_kind": "watchlist-relevance",
   "content_type": "image/svg+xml",
   "dimensions": [
     1200,
     630
   ],
-  "generated_at": "2026-06-30T23:35:55.365514Z",
+  "generated_at": "2026-06-30T23:35:54.960297Z",
   "generator": "investo",
   "schema_version": "1",
-  "source_attribution": "investo 자체 데이터로 결정적 OG 카드 생성",
+  "source_attribution": "investo 자체 데이터로 결정적 SVG 카드 생성",
   "source_type": "generated_svg",
   "version": "0.1.0"
 }

@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-06-30 begin -->
+
+## 2026-06-30
+
+- [yonhap-market] **ticker**: 우리운용, '피지컬AI BIG2플러스' 출시…"테슬라+현대차 약 25%"
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+
+<!-- u33 entry 2026-06-30 end -->
 <!-- u33 entry 2026-06-29 begin -->
 
 ## 2026-06-29
