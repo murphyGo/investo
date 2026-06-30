@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     US_EQUITY,
     build_segment_coverage,
     resolve_macro_actual_health,
+    scope_source_outcomes,
     segment_items,
     segment_source_outcomes,
 )
@@ -407,6 +410,42 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         "fsc-krx-stock-price",
         "korea-policy-rss",
         "yonhap-market",
+    }
+
+
+def test_build_segment_coverage_rejects_unscoped_global_outcomes() -> None:
+    outcomes = (
+        SourceOutcome.ok("yfinance-price", "price", item_count=3),
+        SourceOutcome.ok("fsc-krx-index-price", "price", item_count=3),
+    )
+
+    with pytest.raises(ValueError, match="source outcomes not scoped to us-equity"):
+        build_segment_coverage(
+            US_EQUITY,
+            [_item("yfinance-price", "S&P 500", category="price")],
+            source_outcomes=outcomes,
+        )
+
+
+def test_scope_source_outcomes_keeps_shared_and_cftc_visibility() -> None:
+    outcomes = (
+        SourceOutcome.ok("treasury-rates", "macro", item_count=1),
+        SourceOutcome.ok("cftc-cot-positioning", "macro", item_count=2),
+        SourceOutcome.ok("coingecko-price", "price", item_count=2),
+        SourceOutcome.ok("fsc-krx-index-price", "price", item_count=1),
+    )
+
+    us_scoped = scope_source_outcomes(outcomes, US_EQUITY)
+    crypto_scoped = scope_source_outcomes(outcomes, CRYPTO)
+
+    assert {outcome.source_name for outcome in us_scoped} == {
+        "treasury-rates",
+        "cftc-cot-positioning",
+    }
+    assert {outcome.source_name for outcome in crypto_scoped} == {
+        "treasury-rates",
+        "cftc-cot-positioning",
+        "coingecko-price",
     }
 
 

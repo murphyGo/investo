@@ -6,7 +6,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Final, Literal
+from typing import Final, Literal, NewType
 
 from investo._internal.source_specs import (
     SourceItemRouting,
@@ -184,6 +184,7 @@ _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "us-equity": _US_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["us-equity"],
     "crypto": _CRYPTO_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["crypto"],
 }
+SegmentScopedOutcomes = NewType("SegmentScopedOutcomes", tuple[SourceOutcome, ...])
 
 # u79 — ``_KOREAN_EXCHANGE_TICKER`` / ``_US_TICKER`` / ``_CRYPTO_TICKER_RE``
 # now single-sourced in :mod:`investo.briefing._text.patterns`; imported at
@@ -477,13 +478,14 @@ def build_segment_coverage(
 ) -> SegmentCoverage:
     """Build coverage for a routed segment.
 
-    ``source_outcomes`` is the optional u22 hook: when supplied, it must
-    already be filtered down to outcomes relevant to ``segment`` (use
-    :func:`segment_source_outcomes` to derive the subset from a full
-    :class:`investo.models.SourceCollectionReport`). Reason codes are
-    derived from both the routed item set (structural deficiencies) and
-    the per-source outcomes (operational deficiencies); the resulting
-    ``reason_codes`` tuple is deterministic and order-stable.
+    ``source_outcomes`` is the optional u22 hook. It must be segment-scoped:
+    use :func:`scope_source_outcomes` / :func:`segment_source_outcomes` to
+    derive the subset from a full :class:`investo.models.SourceCollectionReport`.
+    A global mixed-segment outcome list raises ``ValueError`` here instead of
+    leaking another segment's source status into reader-visible coverage.
+    Reason codes are derived from both the routed item set (structural
+    deficiencies) and the per-source outcomes (operational deficiencies); the
+    resulting ``reason_codes`` tuple is deterministic and order-stable.
 
     u54 — ``status`` is the 4-tier severity (``normal`` / ``partial`` /
     ``limited`` / ``failed``). The decision is driven by *core source
@@ -508,7 +510,7 @@ def build_segment_coverage(
     "normal"`` (a non-core source flaked) — intended behaviour, not an
     inconsistency.
     """
-    outcomes_tuple = tuple(source_outcomes)
+    outcomes_tuple = tuple(_validate_segment_scoped_outcomes(segment, source_outcomes))
     categories = tuple(sorted({item.category for item in items}))
     source_count = len({item.source_name for item in items})
     required_categories = SEGMENT_REQUIRED_CATEGORIES[segment]
@@ -762,7 +764,7 @@ def filter_lookahead_items(
 def segment_source_outcomes(
     segment: MarketSegment,
     outcomes: Sequence[SourceOutcome],
-) -> tuple[SourceOutcome, ...]:
+) -> SegmentScopedOutcomes:
     """Filter aggregator outcomes to those mapped to ``segment``.
 
     The mapping mirrors the segment-routing source allow-lists already
@@ -771,8 +773,33 @@ def segment_source_outcomes(
     surface only annotates sources whose verdicts are reader-relevant
     for *that* segment.
     """
+    return scope_source_outcomes(outcomes, segment)
+
+
+def scope_source_outcomes(
+    outcomes: Sequence[SourceOutcome],
+    segment: MarketSegment,
+) -> SegmentScopedOutcomes:
+    """Return the validated source outcomes relevant to ``segment``."""
     allow_list = _SEGMENT_SOURCES[segment]
-    return tuple(outcome for outcome in outcomes if outcome.source_name in allow_list)
+    return SegmentScopedOutcomes(
+        tuple(outcome for outcome in outcomes if outcome.source_name in allow_list)
+    )
+
+
+def _validate_segment_scoped_outcomes(
+    segment: MarketSegment,
+    outcomes: Sequence[SourceOutcome],
+) -> SegmentScopedOutcomes:
+    allow_list = _SEGMENT_SOURCES[segment]
+    scoped = tuple(outcomes)
+    offenders = tuple(
+        outcome.source_name for outcome in scoped if outcome.source_name not in allow_list
+    )
+    if offenders:
+        names = ", ".join(sorted(set(offenders)))
+        raise ValueError(f"source outcomes not scoped to {segment}: {names}")
+    return SegmentScopedOutcomes(scoped)
 
 
 def _derive_reason_codes(
@@ -961,11 +988,13 @@ __all__ = [
     "MacroActualHealthStatus",
     "MarketSegment",
     "SegmentCoverage",
+    "SegmentScopedOutcomes",
     "SegmentedItems",
     "build_segment_coverage",
     "core_staleness_window",
     "filter_lookahead_items",
     "resolve_macro_actual_health",
+    "scope_source_outcomes",
     "segment_items",
     "segment_source_outcomes",
 ]

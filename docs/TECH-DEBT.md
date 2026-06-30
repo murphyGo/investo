@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 6 | 2026-05-07 |
+| Medium | 5 | 2026-05-07 |
 | Low | 31 | 2026-04-27 |
 
 ---
@@ -75,17 +75,6 @@ _No high priority items._
 - **Effort**: ~25 min including a test that pins the corrupt-sidecar rejection path.
 - **Priority Reasoning**: Medium — not reachable through today's supported call path, but the silent fall-through is a degradation in observability and could mask malformed sidecars produced by future tooling.
 - **AIDLC follow-up**: Registered as `u129 visual-provenance-sidecar-error-boundary` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
-
-#### DEBT-038: `source_outcomes` segment-filtering contract is not enforced at the type level
-
-- **Created**: 2026-05-07
-- **Source**: u22 source-coverage-transparency QA review (L4)
-- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness), FR-008 (segmented briefing)
-- **Description**: `build_segment_coverage(...)` in `src/investo/briefing/segments.py` accepts `Sequence[SourceOutcome]` for the segment's source results. The function trusts the caller to have already filtered outcomes to the current segment (orchestrator does this today), but the type signature is identical to a "global outcomes list", so a future refactor could silently feed cross-segment outcomes — leaking another segment's source statuses into a segment's data-confidence card or markdown reason callout.
-- **Suggested Fix**: Introduce a `SegmentScopedOutcomes = NewType("SegmentScopedOutcomes", tuple[SourceOutcome, ...])` and have the orchestrator construct it via a small validating builder that asserts every outcome's category belongs to the segment's allowed categories. Alternatively, add a runtime guard inside `build_segment_coverage` that raises if any outcome category is not in the segment's allow-list.
-- **Effort**: ~45 min including builder + orchestrator/test updates.
-- **Priority Reasoning**: Medium — the orchestrator currently filters correctly, but the contract is invisible to mypy and would be the kind of regression that escapes review. Cheap to harden once and prevents a class of cross-segment data-leak bugs.
-- **AIDLC follow-up**: Registered as `u128 segment-scoped-source-outcome-contract` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
 
 ### Low Priority
 
@@ -398,6 +387,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-038: `source_outcomes` segment-filtering contract is not enforced at the type level
+
+- **Created**: 2026-05-07
+- **Resolved**: 2026-06-30 (u128 segment-scoped-source-outcome-contract) — Added `SegmentScopedOutcomes` plus `scope_source_outcomes` in `briefing/segments.py`, kept `segment_source_outcomes` as the production boundary builder, and made `build_segment_coverage` validate supplied outcomes against the target segment allow-list. A global mixed-segment outcome list now raises `ValueError` with the target segment and offending source name instead of leaking another segment's source status into coverage cards. Regression tests pin cross-segment rejection and shared/CFTC outcome visibility.
+- **Source**: u22 source-coverage-transparency QA review (L4)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness), FR-008 (segmented briefing)
+- **Priority Reasoning**: Closed.
 
 #### DEBT-047: Producer ↔ gate reject set unification (`is_unsafe_summary_value` helper extraction)
 

@@ -3,7 +3,7 @@
 **Date**: 2026-06-29
 **Unit**: u128 segment-scoped-source-outcome-contract
 **Stage**: Code Generation
-**Status**: Planned
+**Status**: Complete
 **Source**: Clean Code & Software Architecture guide re-audit, 2026-06-29. Focus: explicit contracts, value-level boundaries, and preventing cross-segment data leaks. Converts existing `DEBT-038` into a bounded AIDLC unit.
 **Estimated Effort**: ~1.5 h
 **Dependencies**:
@@ -85,12 +85,12 @@ Rules:
 
 ## Implementation Steps
 
-- [ ] Add `SegmentScopedOutcomes` and `scope_source_outcomes` using existing source-spec/segment metadata.
-- [ ] Update `build_segment_coverage` signature and internals to consume the scoped contract.
-- [ ] Update all call sites, especially orchestrator generation/coverage paths, to scope outcomes explicitly.
-- [ ] Add unit tests in `tests/unit/briefing/test_segments.py` or a focused new file for happy path, cross-segment rejection, shared-source acceptance, and CFTC visibility.
-- [ ] Update any tests that currently pass global outcome lists directly to use the builder unless the test intentionally checks rejection.
-- [ ] Write `aidlc-docs/construction/u128-segment-scoped-source-outcome-contract/code/summary.md`.
+- [x] Add `SegmentScopedOutcomes` and `scope_source_outcomes` using existing source-spec/segment metadata.
+- [x] Update `build_segment_coverage` signature and internals to consume the scoped contract.
+- [x] Update all call sites, especially orchestrator generation/coverage paths, to scope outcomes explicitly.
+- [x] Add unit tests in `tests/unit/briefing/test_segments.py` or a focused new file for happy path, cross-segment rejection, shared-source acceptance, and CFTC visibility.
+- [x] Update any tests that currently pass global outcome lists directly to use the builder unless the test intentionally checks rejection.
+- [x] Write `aidlc-docs/construction/u128-segment-scoped-source-outcome-contract/code/summary.md`.
 
 ## Acceptance Criteria
 
