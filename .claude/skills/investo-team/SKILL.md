@@ -1,6 +1,6 @@
 ---
 name: investo-team
-description: Coordinate Investo work with the project's lead, planner, developer, QA, and ops roles adapted from .claude/agents. Use when the user asks to use the Investo team, convert or apply the agent workflow, make autonomous progress, decompose work across specialists, implement AIDLC/code/QA/ops tasks with role discipline, or run parallel Codex workers using Investo role prompts.
+description: Coordinate Investo work with lead, planner, developer, QA, and ops roles. Use for team workflow, autonomous progress, specialist decomposition, AIDLC/code/QA/ops tasks, or parallel Codex workers.
 ---
 
 # Investo Team

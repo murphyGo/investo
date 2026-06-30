@@ -1,4 +1,4 @@
 interface:
   display_name: "AIDLC Refactor Unit Planner"
   short_description: "Turns repo refactor audits into reviewed AIDLC units."
-  default_prompt: "Analyze this repository for clean-code architecture improvements, split the findings into AIDLC units, delegate unit drafting and review to subagents, validate the results, and update the AIDLC state."
+  default_prompt: "Use $aidlc-refactor-unit-planner to analyze this repository for clean-code architecture improvements and turn findings into reviewed AIDLC units."

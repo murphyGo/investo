@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Source Unit Planner"
+  short_description: "Plan validated Investo source units"
+  default_prompt: "Use $data-source-unit-planner to explore available news, indicator, or chart data sources and write appropriate Investo AIDLC units."

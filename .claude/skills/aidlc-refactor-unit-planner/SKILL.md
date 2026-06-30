@@ -1,6 +1,6 @@
 ---
 name: aidlc-refactor-unit-planner
-description: Convert Investo-wide clean-code, architecture, or refactoring audits into reviewed AIDLC implementation units. Use when the user asks to analyze the repository against a guide or architecture standard, derive 개선점, split them into AIDLC units, delegate drafting to subagents, delegate independent review to other subagents, validate the review findings, and update `aidlc-docs/aidlc-state.md` plus construction plan files.
+description: Convert Investo clean-code, architecture, or refactoring audits into reviewed AIDLC units. Use for repo analysis, 개선점 synthesis, subagent drafting/review, and updates to AIDLC state and plan files.
 ---
 
 # AIDLC Refactor Unit Planner
