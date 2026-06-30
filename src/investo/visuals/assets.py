@@ -332,8 +332,11 @@ def _visual_block(path: Path, *, markdown_path: Path) -> str:
 def _provenance_caption_for(path: Path) -> str | None:
     try:
         manifest = read_manifest(path)
-    except (FileNotFoundError, ValueError):
+    except FileNotFoundError:
         return None
+    except (OSError, ValueError) as exc:
+        sidecar = manifest_path_for(path)
+        raise VisualAssetError(f"visual asset manifest invalid: {sidecar}") from exc
     return provenance_caption(manifest)
 
 

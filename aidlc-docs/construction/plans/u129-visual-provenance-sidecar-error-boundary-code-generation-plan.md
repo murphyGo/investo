@@ -3,7 +3,7 @@
 **Date**: 2026-06-29
 **Unit**: u129 visual-provenance-sidecar-error-boundary
 **Stage**: Code Generation
-**Status**: Planned
+**Status**: Complete
 **Source**: Clean Code & Software Architecture guide re-audit, 2026-06-29. Focus: never swallow exceptions silently, explicit error boundaries, and visual provenance trust. Converts existing `DEBT-041` into a bounded AIDLC unit.
 **Estimated Effort**: ~1 h
 **Dependencies**:
@@ -74,11 +74,11 @@ raise VisualAssetError(f"visual asset manifest invalid: {sidecar}") from exc
 
 ## Implementation Steps
 
-- [ ] Inspect `_provenance_caption_for` and any helper it calls for `except ValueError: return None`.
-- [ ] Convert corrupt/schema-invalid sidecar handling to `VisualAssetError` with exception chaining.
-- [ ] Add tests in `tests/unit/visuals/test_assets.py` or the existing visual provenance test file for invalid JSON and invalid schema.
-- [ ] Verify valid captions still render and missing optional captions retain existing behavior.
-- [ ] Write `aidlc-docs/construction/u129-visual-provenance-sidecar-error-boundary/code/summary.md`.
+- [x] Inspect `_provenance_caption_for` and any helper it calls for `except ValueError: return None`.
+- [x] Convert corrupt/schema-invalid sidecar handling to `VisualAssetError` with exception chaining.
+- [x] Add tests in `tests/unit/visuals/test_assets.py` or the existing visual provenance test file for invalid JSON and invalid schema.
+- [x] Verify valid captions still render and missing optional captions retain existing behavior.
+- [x] Write `aidlc-docs/construction/u129-visual-provenance-sidecar-error-boundary/code/summary.md`.
 
 ## Acceptance Criteria
 

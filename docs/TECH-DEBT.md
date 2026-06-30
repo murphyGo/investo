@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 5 | 2026-05-07 |
+| Medium | 4 | 2026-05-07 |
 | Low | 31 | 2026-04-27 |
 
 ---
@@ -64,17 +64,6 @@ _No high priority items._
 - **Suggested Fix**: Either (a) introduce a stable secondary sort key when collecting per-anchor inserts, e.g. `(anchor_line, -original_index)` to make the inversion explicit, or (b) keep the current `lines[insert_at:insert_at]` shape but document the inversion in a docstring on `_reposition_visual_links` plus add a test that pins layout order for ≥ 2 non-hero cards at the same anchor.
 - **Effort**: ~30 min including the chosen fix + test.
 - **Priority Reasoning**: Medium — works correctly today on the observed segment shapes (≤ 1 non-hero card per anchor), but is the kind of regression that escapes review when a fourth card type lands.
-
-#### DEBT-041: `_provenance_caption_for` swallows the pydantic `ValueError` from corrupt sidecars
-
-- **Created**: 2026-05-07
-- **Source**: u24 visual-provenance-and-layout QA review (M4)
-- **Reference**: NFR-003 (graceful degradation), NFR-007 (R13 — secret hygiene), FR-002 (Korean briefing comprehension)
-- **Description**: `_provenance_caption_for` in `src/investo/visuals/assets.py` reads the `<asset>.json` sidecar and constructs a `VisualProvenanceManifest` to choose a Korean caption. If the sidecar JSON is corrupt or schema-violating, the pydantic `ValidationError` (a `ValueError` subclass) is swallowed and the function returns `None`, which renders an image without a caption. Today, `prepare_segment_visual_assets` writes manifests atomically and validates them at write time, so the corrupt-sidecar case is not reachable through the supported call path. However, any future call site that bypasses `prepare_segment_visual_assets` (e.g., a one-off backfill script that copies pre-existing assets) can produce captionless images while looking syntactically correct.
-- **Suggested Fix**: Either (a) move sidecar validation **before** caption rendering inside `_provenance_caption_for` so corrupt sidecars raise `VisualAssetError` (re-using the existing publish-side fallback), or (b) re-raise as `VisualAssetError` from inside `_provenance_caption_for`, or (c) add an explicit `validate_sidecar_or_raise(asset_path)` helper and require every caller (including future ones) to invoke it before captioning.
-- **Effort**: ~25 min including a test that pins the corrupt-sidecar rejection path.
-- **Priority Reasoning**: Medium — not reachable through today's supported call path, but the silent fall-through is a degradation in observability and could mask malformed sidecars produced by future tooling.
-- **AIDLC follow-up**: Registered as `u129 visual-provenance-sidecar-error-boundary` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
 
 ### Low Priority
 
@@ -387,6 +376,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-041: `_provenance_caption_for` swallows the pydantic `ValueError` from corrupt sidecars
+
+- **Created**: 2026-05-07
+- **Resolved**: 2026-06-30 (u129 visual-provenance-sidecar-error-boundary) — `_provenance_caption_for` now returns `None` only for genuinely missing sidecars, preserving optional no-caption behavior. Existing sidecars that cannot be parsed or validated raise `VisualAssetError` with the sidecar path and chained cause, without exposing raw manifest contents. Regression tests pin missing optional sidecar, corrupt JSON, and schema-invalid JSON behavior.
+- **Source**: u24 visual-provenance-and-layout QA review (M4)
+- **Reference**: NFR-003 (graceful degradation), NFR-007 (R13 — secret hygiene), FR-002 (Korean briefing comprehension)
+- **Priority Reasoning**: Closed.
 
 #### DEBT-038: `source_outcomes` segment-filtering contract is not enforced at the type level
 

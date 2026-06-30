@@ -99,6 +99,58 @@ def test_insert_visual_links_places_images_before_reader_status_block() -> None:
     )
 
 
+def test_insert_visual_links_allows_missing_optional_caption_sidecar(tmp_path: Path) -> None:
+    markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
+    asset_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.assets/data-confidence.svg"
+    asset_path.parent.mkdir(parents=True, exist_ok=True)
+    asset_path.write_text("<svg></svg>", encoding="utf-8")
+
+    result = insert_visual_links(
+        _briefing().rendered_markdown,
+        markdown_path=markdown_path,
+        asset_paths=(asset_path,),
+    )
+
+    assert "![데이터 신뢰도](2026-05-07.assets/data-confidence.svg)" in result
+    assert "*이미지:" not in result
+
+
+def test_insert_visual_links_rejects_corrupt_caption_sidecar(tmp_path: Path) -> None:
+    markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
+    asset_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.assets/data-confidence.svg"
+    asset_path.parent.mkdir(parents=True, exist_ok=True)
+    asset_path.write_text("<svg></svg>", encoding="utf-8")
+    manifest_path_for(asset_path).write_text("{not-json", encoding="utf-8")
+
+    with pytest.raises(VisualAssetError, match="visual asset manifest invalid") as exc_info:
+        insert_visual_links(
+            _briefing().rendered_markdown,
+            markdown_path=markdown_path,
+            asset_paths=(asset_path,),
+        )
+
+    assert str(manifest_path_for(asset_path)) in str(exc_info.value)
+    assert "{not-json" not in str(exc_info.value)
+
+
+def test_insert_visual_links_rejects_schema_invalid_caption_sidecar(tmp_path: Path) -> None:
+    markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
+    asset_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.assets/data-confidence.svg"
+    asset_path.parent.mkdir(parents=True, exist_ok=True)
+    asset_path.write_text("<svg></svg>", encoding="utf-8")
+    manifest_path_for(asset_path).write_text('{"schema_version": "1"}', encoding="utf-8")
+
+    with pytest.raises(VisualAssetError, match="visual asset manifest invalid") as exc_info:
+        insert_visual_links(
+            _briefing().rendered_markdown,
+            markdown_path=markdown_path,
+            asset_paths=(asset_path,),
+        )
+
+    assert str(manifest_path_for(asset_path)) in str(exc_info.value)
+    assert "schema_version" not in str(exc_info.value)
+
+
 def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
     tmp_path: Path,
 ) -> None:
