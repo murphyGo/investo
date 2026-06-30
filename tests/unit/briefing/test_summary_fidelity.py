@@ -41,6 +41,7 @@ from investo.briefing.pipeline import (
 )
 from investo.briefing.summary_quality import (
     SummaryQualityError,
+    is_unsafe_summary_value,
     validate_first_viewport_summary,
 )
 
@@ -166,6 +167,27 @@ def test_is_unsafe_summary_candidate_covers_persona_patterns() -> None:
     assert _is_unsafe_summary_candidate("정책과.")
     # Safe sentence — must NOT trip the gate.
     assert not _is_unsafe_summary_candidate("2026년 5월 6일 미국 증시는 대형주 어닝 집중일이다.")
+
+
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "1.",
+        "1)",
+        "①",
+        "**입법 가속화 vs.",
+        "입법 가속화 vs.",
+        "policy and.",
+        "정책과.",
+        "[미국 증시",
+        "(미확인",
+        "### KOSPI 가격 흐름",
+        "금리 **-**0.10%**p** 변동",
+        "미국 증시 변동성 ROS",
+    ],
+)
+def test_producer_uses_canonical_summary_reject_predicate(candidate: str) -> None:
+    assert _is_unsafe_summary_candidate(candidate) is is_unsafe_summary_value(candidate)
 
 
 # ---------------------------------------------------------------------------

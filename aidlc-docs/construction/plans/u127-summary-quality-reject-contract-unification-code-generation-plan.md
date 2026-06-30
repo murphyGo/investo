@@ -3,7 +3,7 @@
 **Date**: 2026-06-29
 **Unit**: u127 summary-quality-reject-contract-unification
 **Stage**: Code Generation
-**Status**: Planned
+**Status**: Complete
 **Source**: Clean Code & Software Architecture guide re-audit, 2026-06-29. Focus: DRY as knowledge, single authoritative representation, and producer/gate contract consistency. Converts existing `DEBT-047` into a bounded AIDLC unit.
 **Estimated Effort**: ~1 h
 **Dependencies**:
@@ -80,12 +80,12 @@ Rules:
 
 ## Implementation Steps
 
-- [ ] Add canonical `is_unsafe_summary_value` in `_internal.summary_quality`.
-- [ ] Rework `_validate_summary_value` to use the canonical predicate without losing existing error specificity where tests cover it.
-- [ ] Export `is_unsafe_summary_value` from `briefing.summary_quality`.
-- [ ] Replace duplicated producer reject logic in `_assembly/summary_extraction.py` with the canonical helper.
-- [ ] Add/extend tests so marker-only, meaningless, unbalanced bold/link, surface blocker, heading residue, broken numeric bold, generator residue, dangling truncation, English conjunction tail, and Korean particle tail are rejected by both paths.
-- [ ] Write `aidlc-docs/construction/u127-summary-quality-reject-contract-unification/code/summary.md`.
+- [x] Add canonical `is_unsafe_summary_value` in `_internal.summary_quality`.
+- [x] Rework `_validate_summary_value` to use the canonical predicate without losing existing error specificity where tests cover it.
+- [x] Export `is_unsafe_summary_value` from `briefing.summary_quality`.
+- [x] Replace duplicated producer reject logic in `_assembly/summary_extraction.py` with the canonical helper.
+- [x] Add/extend tests so marker-only, meaningless, unbalanced bold/link, surface blocker, heading residue, broken numeric bold, generator residue, dangling truncation, English conjunction tail, and Korean particle tail are rejected by both paths.
+- [x] Write `aidlc-docs/construction/u127-summary-quality-reject-contract-unification/code/summary.md`.
 
 ## Acceptance Criteria
 

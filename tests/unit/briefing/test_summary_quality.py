@@ -6,6 +6,7 @@ import pytest
 
 from investo.briefing.summary_quality import (
     SummaryQualityError,
+    is_unsafe_summary_value,
     repair_first_viewport_summary,
     validate_first_viewport_summary,
 )
@@ -28,6 +29,33 @@ def _markdown(
 
 def test_validate_first_viewport_summary_accepts_clean_summary_lines() -> None:
     validate_first_viewport_summary(_markdown())
+    assert not is_unsafe_summary_value("미국 증시는 실적 일정을 앞두고 방향성 확인이 필요합니다.")
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "",
+        "1.",
+        "-",
+        "정책과.",
+        "**입법 가속화",
+        "[미국 증시",
+        "### KOSPI 가격 흐름",
+        "금리 **-**0.10%**p** 변동",
+        "미국 증시 변동성 ROS",
+        (
+            "비트코인 가격은 정책 이벤트와 ETF 자금 흐름 사이에서 방향성을 탐색하고 "
+            "있으며 단기 수급은 아직 확인되지 않은 기관"
+        ),
+        "policy and.",
+    ],
+)
+def test_is_unsafe_summary_value_matches_publish_gate_rejects(value: str) -> None:
+    assert is_unsafe_summary_value(value)
+
+    with pytest.raises(SummaryQualityError):
+        validate_first_viewport_summary(_markdown(caution=value))
 
 
 @pytest.mark.parametrize("caution", ["1.", "-", "*", ""])

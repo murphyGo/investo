@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 7 | 2026-05-07 |
+| Medium | 6 | 2026-05-07 |
 | Low | 31 | 2026-04-27 |
 
 ---
@@ -54,17 +54,6 @@ _No high priority items._
 - **Suggested Fix**: Either (b) inline `<svg>` embed in markdown + parent class selector that picks up the site `data-md-color-scheme` attribute on `<html>` (the SVG `<style>` block then targets `[data-md-color-scheme="slate"] .card-bg` etc.), or (c) render both light and dark variant SVG files and emit a `<picture>` element (`<source media="(prefers-color-scheme: dark)" srcset="...-dark.svg"> <img src="...-light.svg">`). Option (b) keeps the single-asset shape and the existing class hooks; option (c) doubles asset volume but works without inline `<svg>`. Either way, retain the chokepoint shape (one `_CARD_STYLE` block / one render path) so future card types inherit the fix automatically.
 - **Effort**: ~1.5 h for option (b) including the markdown render path switch (`<img>` → inline `<svg>`), parent-attribute selector tests, and a regression test that pins both site-toggle states against a synthesized HTML wrapper. Option (c) ~45 min but requires a second variant render pass.
 - **Priority Reasoning**: Medium — works correctly today for the OS-default theme, but the site toggle is a first-class mkdocs Material affordance and any reader exercising it sees a mismatched card. Reader-trust contract is the highest-leverage signal in the segmented-briefing UX, so the disagreement is worth closing once cleanly rather than carrying forward through every future card type.
-
-#### DEBT-047: Producer ↔ gate reject set unification (`is_unsafe_summary_value` helper extraction)
-
-- **Created**: 2026-05-08
-- **Source**: u25 summary-fidelity-and-content-trust QA review (M2)
-- **Reference**: NFR-005 (consistency / DRY), NFR-006 (test robustness), FR-002 (Korean briefing comprehension)
-- **Description**: u25 widened both `src/investo/briefing/pipeline.py::_is_unsafe_summary_candidate` (producer side) and `src/investo/briefing/summary_quality.py::_validate_summary_value` (gate side) with the same 4-pattern reject set: marker-only (`^\d+\.$`), list-marker-only (`^[-*]\s*$`), conjunction-tail (e.g., `^.*\bvs\.$`), and empty/whitespace. The contract that producer rejection mirrors gate rejection is currently documented in the `summary_quality` module docstring, but the regexes themselves are duplicated. A future widening (say, "trailing colon" patterns) lands in only one site by default; the gate-side reject set is the publish blocker, but the producer site is what generates user-visible fallbacks, so divergence either leaks bad summaries (if only gate widened and producer keeps emitting them) or unnecessarily forces fallbacks (if only producer widened).
-- **Suggested Fix**: Extract a public `is_unsafe_summary_value(value: str) -> bool` from `src/investo/briefing/summary_quality.py` carrying the canonical reject set. Have `briefing/pipeline.py` import and call it from `_is_unsafe_summary_candidate`. Pin the contract with a parametrize test that walks every reject pattern through both call paths simultaneously, so adding a new pattern requires exactly one regex edit.
-- **Effort**: ~25 min including the helper extraction, producer-side import switch, and the parametrize regression test.
-- **Priority Reasoning**: Medium — gate-side rejection is the actual publish blocker today, so reader-trust is preserved even on producer drift. Promote to High the moment a sixth reject pattern lands and reviewers ask "did this go in both sites?".
-- **AIDLC follow-up**: Registered as `u127 summary-quality-reject-contract-unification` on 2026-06-29. Keep this debt open until the unit is implemented and validated.
 
 #### DEBT-040: Layout reposition ordering when multiple non-hero cards share the same anchor
 
@@ -409,6 +398,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-047: Producer ↔ gate reject set unification (`is_unsafe_summary_value` helper extraction)
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-06-30 (u127 summary-quality-reject-contract-unification) — Added canonical `_internal.summary_quality.is_unsafe_summary_value`, kept the `briefing.summary_quality` compatibility export, and changed producer `_is_unsafe_summary_candidate` to delegate to the same predicate used by the publish gate. `_validate_summary_value` now reuses a shared issue helper while preserving existing prefix-specific `SummaryQualityError` messages. Regression tests pin producer/gate agreement across marker-only, meaningless, unbalanced markdown, heading residue, broken numeric bold, generator residue, dangling truncation, and conjunction-tail cases.
+- **Source**: u25 summary-fidelity-and-content-trust QA review (M2)
+- **Reference**: NFR-005 (consistency / DRY), NFR-006 (test robustness), FR-002 (Korean briefing comprehension)
+- **Priority Reasoning**: Closed.
 
 #### DEBT-062: `_stage_publish_segments` archive-paths absolute / relative branching couples production code to test shape
 

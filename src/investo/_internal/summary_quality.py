@@ -50,6 +50,11 @@ class SummaryQualityError(ValueError):
     """Raised when a briefing first-viewport summary is unsafe to publish."""
 
 
+def is_unsafe_summary_value(value: str) -> bool:
+    """Return True when a first-viewport summary value must not be emitted."""
+    return _summary_value_issue(value) is not None
+
+
 def validate_first_viewport_summary(markdown: str) -> None:
     """Validate the three reader-facing summary lines before publish."""
     lines = markdown.splitlines()
@@ -92,40 +97,52 @@ def _summary_value(lines: list[str], prefix: str) -> str | None:
 
 
 def _validate_summary_value(prefix: str, value: str) -> None:
+    issue = _summary_value_issue(value)
+    if issue is not None:
+        message_by_issue = {
+            "empty": "empty first-viewport summary line",
+            "list-marker-only": "list-marker-only first-viewport summary line",
+            "meaningless": "meaningless first-viewport summary line",
+            "unbalanced-bold": "unbalanced bold marker in first-viewport summary line",
+            "unbalanced-link": "unbalanced markdown link in first-viewport summary line",
+            "heading-residue": "heading residue in first-viewport summary line",
+            "broken-numeric-bold": "broken numeric emphasis in first-viewport summary line",
+            "generator-residue": "generator residue in first-viewport summary line",
+            "dangling-truncation": "dangling truncation in first-viewport summary line",
+            "surface-quality": "surface-quality issue in first-viewport summary line",
+            "conjunction-tail": "conjunction-tail truncation in first-viewport summary line",
+        }
+        raise SummaryQualityError(f"{message_by_issue[issue]}: {prefix}")
+
+
+def _summary_value_issue(value: str) -> str | None:
     if not value:
-        raise SummaryQualityError(f"empty first-viewport summary line: {prefix}")
+        return "empty"
     if _LIST_MARKER_ONLY_RE.fullmatch(value) or _NUMBER_DOT_ONLY_RE.fullmatch(value):
-        raise SummaryQualityError(f"list-marker-only first-viewport summary line: {prefix}")
+        return "list-marker-only"
     if not _MEANINGFUL_TEXT_RE.search(value):
-        raise SummaryQualityError(f"meaningless first-viewport summary line: {prefix}")
+        return "meaningless"
     if value.count("**") % 2 != 0:
-        raise SummaryQualityError(
-            f"unbalanced bold marker in first-viewport summary line: {prefix}"
-        )
+        return "unbalanced-bold"
     if value.count("[") != value.count("]") or value.count("(") != value.count(")"):
-        raise SummaryQualityError(
-            f"unbalanced markdown link in first-viewport summary line: {prefix}"
-        )
+        return "unbalanced-link"
     if _HEADING_RESIDUE_RE.search(value):
-        raise SummaryQualityError(f"heading residue in first-viewport summary line: {prefix}")
+        return "heading-residue"
     if _BROKEN_NUMERIC_BOLD_RE.search(value):
-        raise SummaryQualityError(
-            f"broken numeric emphasis in first-viewport summary line: {prefix}"
-        )
+        return "broken-numeric-bold"
     if _GENERATOR_RESIDUE_TAIL_RE.search(value):
-        raise SummaryQualityError(f"generator residue in first-viewport summary line: {prefix}")
+        return "generator-residue"
     if (
         len(value) >= 60
         and not value.rstrip().endswith(("다.", "니다.", "요.", ".", "!", "?", "…"))
         and _DANGLING_LONG_TAIL_RE.search(value)
     ):
-        raise SummaryQualityError(f"dangling truncation in first-viewport summary line: {prefix}")
+        return "dangling-truncation"
     if has_blocking_surface_issue(value):
-        raise SummaryQualityError(f"surface-quality issue in first-viewport summary line: {prefix}")
+        return "surface-quality"
     if _EN_CONJUNCTION_TAIL_RE.search(value) or _KO_PARTICLE_TAIL_RE.search(value):
-        raise SummaryQualityError(
-            f"conjunction-tail truncation in first-viewport summary line: {prefix}"
-        )
+        return "conjunction-tail"
+    return None
 
 
 def _repair_summary_value(prefix: str, value: str) -> str:
@@ -156,6 +173,7 @@ __all__ = [
     "DRIVER_PREFIX",
     "WATERMARK_PREFIX",
     "SummaryQualityError",
+    "is_unsafe_summary_value",
     "repair_first_viewport_summary",
     "validate_first_viewport_summary",
 ]

@@ -9,40 +9,15 @@ behavior-preserving (move-only).
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
-from typing import Final
 
+from investo._internal.summary_quality import is_unsafe_summary_value
 from investo._internal.surface_quality import has_blocking_surface_issue
 from investo.briefing._assembly.text_normalize import (
     _clean_summary_line,
     _split_into_sentences,
 )
-from investo.briefing._text.patterns import (
-    MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE,
-)
 from investo.briefing.action_tag import apply_action_tag
-
-# Reject patterns the summary sentence picker uses to skip a candidate
-# (matches mirror summary_quality gate-side rejects so the producer
-# never emits what the gate would block).
-_MARKER_ONLY_RE: Final[re.Pattern[str]] = re.compile(r"^(?:[-*+]|\d+[.)]|[①-⑳])$")
-_EN_CONJUNCTION_TAIL_RE: Final[re.Pattern[str]] = re.compile(
-    r"\b(?:vs|and|or|but|that|where|which|because|with|of|to|for|on|in|by)\.\s*$",
-    re.IGNORECASE,
-)
-_KO_PARTICLE_TAIL_RE: Final[re.Pattern[str]] = re.compile(
-    r"(?:과|와|및|또는|에서|의|을|를|이|가|은|는)\.\s*$"
-)
-_HEADING_RESIDUE_RE: Final[re.Pattern[str]] = re.compile(r"(^|\s)#{1,6}\s+\S")
-_BROKEN_NUMERIC_BOLD_RE: Final[re.Pattern[str]] = re.compile(
-    r"\*\*[+-]\*\*\s*\d|\d+(?:\.\d+)?%?\s*\*\*p\*\*",
-    re.IGNORECASE,
-)
-_GENERATOR_RESIDUE_TAIL_RE: Final[re.Pattern[str]] = re.compile(r"\b(?:ROS)\s*$")
-_DANGLING_LONG_TAIL_RE: Final[re.Pattern[str]] = re.compile(
-    r"(?:기관|정책|입법|시장|수급|이슈|흐름|요인|변수|데이터)\s*$"
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,42 +30,8 @@ class SummaryHeader:
 
 
 def _is_unsafe_summary_candidate(candidate: str) -> bool:
-    """Reject candidate strings that would later trip the publish gate.
-
-    Mirrors the rejects in ``summary_quality.validate_first_viewport_summary``
-    so the producer never emits a string the gate would block. Keeping
-    the two lists aligned is the contract; a regression here surfaces
-    as a publish-time ``SummaryQualityError``.
-    """
-    if not candidate:
-        return True
-    if _MARKER_ONLY_RE.fullmatch(candidate):
-        return True
-    if not _MEANINGFUL_TEXT_RE.search(candidate):
-        return True
-    if candidate.count("**") % 2 != 0:
-        return True
-    if candidate.count("[") != candidate.count("]"):
-        return True
-    if candidate.count("(") != candidate.count(")"):
-        return True
-    if has_blocking_surface_issue(candidate):
-        return True
-    if _HEADING_RESIDUE_RE.search(candidate):
-        return True
-    if _BROKEN_NUMERIC_BOLD_RE.search(candidate):
-        return True
-    if _GENERATOR_RESIDUE_TAIL_RE.search(candidate):
-        return True
-    if (
-        len(candidate) >= 60
-        and not candidate.rstrip().endswith(("다.", "니다.", "요.", ".", "!", "?", "…"))
-        and _DANGLING_LONG_TAIL_RE.search(candidate)
-    ):
-        return True
-    if _EN_CONJUNCTION_TAIL_RE.search(candidate):
-        return True
-    return bool(_KO_PARTICLE_TAIL_RE.search(candidate))
+    """Reject candidate strings that would later trip the publish gate."""
+    return is_unsafe_summary_value(candidate)
 
 
 def _summary_sentence(text: str, *, fallback: str) -> str:

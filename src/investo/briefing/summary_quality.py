@@ -8,6 +8,7 @@ from investo._internal.summary_quality import (
     DRIVER_PREFIX,
     WATERMARK_PREFIX,
     SummaryQualityError,
+    is_unsafe_summary_value,
     repair_first_viewport_summary,
     validate_first_viewport_summary,
 )
@@ -19,6 +20,7 @@ __all__ = [
     "DRIVER_PREFIX",
     "WATERMARK_PREFIX",
     "SummaryQualityError",
+    "is_unsafe_summary_value",
     "repair_first_viewport_summary",
     "validate_first_viewport_summary",
 ]
