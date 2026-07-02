@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-02 begin -->
+
+## 2026-07-02
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6130 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,207,536,713,609; BTC dominance 55.68%
+- [coingecko-price] **ticker**: BTC $61,295.00 (+1.84%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $442,575,480 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Irish authorities recover another 500 bitcoins from lost Clifton Collins drug stash
+- [theblock-crypto] **ticker**: JPMorgan says Strategy’s bitcoin sale policy introduced ‘avoidable’ risk into crypto markets
+- [theblock-crypto] **ticker**: Metaplanet adds 2,823 bitcoin to holdings in Q2, bringing total to 43,000 BTC
+- [theblock-crypto] **ticker**: ‘Accumulation beneath the surface’: Bitcoin rebounds above $61,000 as long-term holders accumulate amid steady ETF ou…
+- [theblock-crypto] **ticker**: ‘I think we’re nearing the bottom’: Bitwise CIO says Strategy’s STRC selloff is part of bitcoin’s end-of-cycle dynamics
+
+<!-- u33 entry 2026-07-02 end -->
 <!-- u33 entry 2026-07-01 begin -->
 
 ## 2026-07-01

@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-02 begin -->
+
+## 2026-07-02
+
+- [yonhap-market] **ticker**: 美 마이크로 원자로, 엔비디아 블랙웰 구동 시연 성공
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+
+<!-- u33 entry 2026-07-02 end -->
 <!-- u33 entry 2026-07-01 begin -->
 
 ## 2026-07-01

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-02 begin -->
+
+## 2026-07-02
+
+- [yonhap-market] **ticker**: 이번엔 메타…다시 불거진 반도체 수요위축 우려에 코스피 출렁
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+- [yfinance-price] **ticker**: META 582.90 (-4.90%)
+
+<!-- u33 entry 2026-07-02 end -->
 <!-- u33 entry 2026-07-01 begin -->
 
 ## 2026-07-01
