@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-01 begin -->
+
+## 2026-07-01
+
+- [defillama-market-structure] **ticker**: DeFi TVL $70.6B; leader Ethereum
+- [theblock-crypto] **ticker**: Panther Hollow launches multi-strategy merchant bank focused on compliant RWA and yield strategies
+- [theblock-crypto] **ticker**: ‘An honest, neutral counterpart:’ Bitmine, Sharplink and Joe Lubin back new Ethereum Institutional non-profit
+
+<!-- u33 entry 2026-07-01 end -->
 <!-- u33 entry 2026-06-29 begin -->
 
 ## 2026-06-29

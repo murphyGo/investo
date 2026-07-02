@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-01 begin -->
+
+## 2026-07-01
+
+- [sec-edgar-8k] **ticker**: 8-K: iShares Bitcoin Premium Income ETF (CIK 0002089969)
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6130 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,182,027,152,595; BTC dominance 55.78%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $443,492,210 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000891595481363 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Trump-backed American Bitcoin sets 1-for-15 reverse stock split in bid to maintain Nasdaq listing
+- [theblock-crypto] **ticker**: ‘We are bullish on Morpho’: Standard Chartered sees token at $60 by 2030, outperforming bitcoin and ether
+
+<!-- u33 entry 2026-07-01 end -->
 <!-- u33 entry 2026-06-29 begin -->
 
 ## 2026-06-29

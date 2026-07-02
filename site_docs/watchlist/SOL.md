@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-01 begin -->
+
+## 2026-07-01
+
+- [defillama-market-structure] **ticker**: DeFi TVL $70.6B; leader Ethereum
+- [theblock-crypto] **ticker**: Forward Industries jumps 17% after expanding Solana treasury to 7.55 million SOL
+- [theblock-crypto] **ticker**: Panther Hollow launches multi-strategy merchant bank focused on compliant RWA and yield strategies
+- [theblock-crypto] **ticker**: Solana-based prediction market app on Phantom wallet launches
+
+<!-- u33 entry 2026-07-01 end -->
 <!-- u33 entry 2026-06-29 begin -->
 
 ## 2026-06-29

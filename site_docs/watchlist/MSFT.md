@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-01 begin -->
+
+## 2026-07-01
+
+- [yonhap-market] **ticker**: MS, 닷컴버블 이후 최악의 6월…AI 투자 부담이 발목
+- [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
+- [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+
+<!-- u33 entry 2026-07-01 end -->
 <!-- u33 entry 2026-06-30 begin -->
 
 ## 2026-06-30
