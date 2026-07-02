@@ -113,6 +113,29 @@ def test_table_row_is_never_rewritten() -> None:
     assert result.has_blocking_finding
 
 
+def test_market_anchor_blockquote_is_never_rewritten() -> None:
+    md = "> **시장 anchor**: 코스피 1.8% 급락\n"
+    result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
+
+    assert result.markdown == md
+    assert result.findings == ()
+
+
+def test_reader_blockquote_callout_is_rewritten_preserving_label() -> None:
+    md = (
+        "> **핵심 동인**: 코스피·코스닥 동시 마감 — 외국인 매도, 코스닥은 상승 "
+        "코스피는 외국인 매도세가 지속되며 2% 내린 8,300대에서 마감했다"
+        "(관련 보도; stooq 기준 코스피 지수 종가 173.07, 연합뉴스 마켓플러스). "
+        "코스닥은 같은 날 상승 마감했다.\n"
+    )
+    result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
+
+    assert result.markdown.startswith("> **핵심 동인**: 코스피 관련 정밀 수치는")
+    assert "데이터 미수집" in result.markdown
+    assert "코스닥은 같은 날 상승 마감했다" in result.markdown
+    assert not result.has_blocking_finding
+
+
 def test_traceability_source_row_is_diagnostic_not_body_claim() -> None:
     md = (
         "| 37 | yonhap-market | news | — | "

@@ -195,9 +195,16 @@ def gate_body_assertions(
 
 
 # Structural lines we scan-but-never-rewrite: headers, table rows, chart /
-# HTML blocks, blockquote callouts. Rewriting these would damage the
-# anchor table or chart placeholder the gate is meant to protect.
-_STRUCTURAL_PREFIXES: Final[tuple[str, ...]] = ("#", "|", "<", ">", "```")
+# HTML blocks, and the legacy market-anchor blockquote. Rewriting these
+# would damage the anchor table or chart placeholder the gate protects.
+_STRUCTURAL_PREFIXES: Final[tuple[str, ...]] = ("#", "|", "<", "```")
+_PROTECTED_BLOCKQUOTE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\s*>\s*\*\*시장 anchor\*\*:",
+    re.IGNORECASE,
+)
+_PROSE_BLOCKQUOTE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(\s*>\s*(?:\*\*[^*\n]+\*\*:\s*)?)(.*)$"
+)
 _TRACEABILITY_ITEM_ROW_RE: Final[re.Pattern[str]] = re.compile(
     r"^\|\s*\d+\s*\|\s*[-a-z0-9_]+\s*\|\s*[a-z_]+\s*\|\s*(?:\d+|—)\s*\|",
     re.IGNORECASE,
@@ -213,13 +220,19 @@ def _gate_line(
     stripped = line.lstrip()
     if _is_traceability_table_line(stripped):
         return line, []
+    if _PROTECTED_BLOCKQUOTE_RE.match(line):
+        return line, []
     structural = stripped.startswith(_STRUCTURAL_PREFIXES)
     # List bullets are prose-bearing; treat the content after the marker
-    # as a candidate isolated sentence.
+    # as a candidate isolated sentence. Reader-format blockquote callouts
+    # are also prose-bearing; preserve the marker/label while rewriting the
+    # unsupported sentence body.
     bullet_prefix = ""
     content = line
     if not structural:
-        m = re.match(r"^(\s*(?:[-*]|\d+\.)\s+)(.*)$", line)
+        m = _PROSE_BLOCKQUOTE_RE.match(line)
+        if m is None:
+            m = re.match(r"^(\s*(?:[-*]|\d+\.)\s+)(.*)$", line)
         if m is not None:
             bullet_prefix = m.group(1)
             content = m.group(2)
