@@ -1,6 +1,6 @@
 # 오늘의 관심 자산 영향 — 2026-07-03
 
-직접 26 · 관련 0 · 보류 0 · 제외 25
+직접 24 · 관련 0 · 보류 0 · 제외 25
 
 ## 직접 영향 (Direct)
 
@@ -9,25 +9,23 @@
 - AMZN: 직접 관련 · [nasdaq-symbol-directory] AMZN listing metadata: Amazon.com, Inc. - Common Stock
 - AMZN: 직접 관련 · [sec-company-facts] AMZN SEC company facts: AMAZON COM INC
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -6130 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,250,090,078,527; BTC dominance 55.70%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $452,912,580 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000242405586034 (OKX, UTC 24h)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,286,964,207,602; BTC dominance 55.78%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $437,949,430 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000882895845066 (OKX, UTC 24h)
 - BTC: 직접 관련 · [theblock-crypto] CryptoQuant says bitcoin and altcoin exchange deposits have spiked, indicating higher volatility ahead
 - BTC: 직접 관련 · [theblock-crypto] Institutional Bitcoin Adoption Explained: How Blackrock, Fidelity and Others Embraced BTC
 - BTC: 직접 관련 · [theblock-crypto] US bitcoin ETFs break 10-day negative streak with $222 million worth of inflows
 - BTC: 직접 관련 · [theblock-crypto] ‘Markets find their footing’: Bitcoin holds $61,000 rebound ahead of US Independence Day as soft jobs data eases rate…
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $74.2B; leader Ethereum
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $74.6B; leader Ethereum
 - GOOGL: 직접 관련 · [nasdaq-symbol-directory] GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
 - GOOGL: 직접 관련 · [sec-company-facts] GOOGL SEC company facts: Alphabet Inc.
-- GOOGL: 직접 관련 · [yfinance-price] GOOGL 359.91 (-0.36%)
 - META: 직접 관련 · [nasdaq-symbol-directory] META listing metadata: Meta Platforms, Inc. - Class A Common Stock
 - META: 직접 관련 · [sec-company-facts] META SEC company facts: Meta Platforms, Inc.
-- META: 직접 관련 · [yonhap-market] [마켓뷰] '8천피' 무너진 코스피, '추가 하락 vs 반등' 주목
 - MSFT: 직접 관련 · [nasdaq-symbol-directory] MSFT listing metadata: Microsoft Corporation - Common Stock
 - MSFT: 직접 관련 · [sec-company-facts] MSFT SEC company facts: MICROSOFT CORP
 - NVDA: 직접 관련 · [nasdaq-symbol-directory] NVDA listing metadata: NVIDIA Corporation - Common Stock
 - NVDA: 직접 관련 · [sec-company-facts] NVDA SEC company facts: NVIDIA CORP
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $74.2B; leader Ethereum
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $74.6B; leader Ethereum
 - TSLA: 직접 관련 · [nasdaq-symbol-directory] TSLA listing metadata: Tesla, Inc. - Common Stock
 - TSLA: 직접 관련 · [sec-company-facts] TSLA SEC company facts: Tesla, Inc.
 
@@ -60,16 +58,16 @@ _해당 항목 없음._
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #bd84e3
 - BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #4d09ea
 - BTC ⊘ BNK [short-ticker-boundary] · yonhap-market #888838
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #32c193
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #78511f
 - ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #b06a2b
 - ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #6a5af4
 - ETH ⊘ EIA [short-ticker-boundary] · nasdaq-stocks-news #acfd28
-- ETH ⊘ ENSG [short-ticker-boundary] · nasdaq-stocks-news #c9dca7
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #831a36
 - ETH ⊘ etf [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - ETH ⊘ ETF [short-ticker-boundary] · yonhap-market #5df11d
 - ETH ⊘ ETFs [short-ticker-boundary] · theblock-crypto #84a77f
 - ETH ⊘ Ether [short-ticker-boundary] · cftc-cot-positioning #0a4987
 - ETH ⊘ ether [short-ticker-boundary] · theblock-crypto #5d2148
+- META ⊘ MBBL [short-ticker-boundary] · eia-petroleum-weekly #6a5af4
+- META ⊘ MBK [short-ticker-boundary] · yonhap-market #3f0464
 
 </details>

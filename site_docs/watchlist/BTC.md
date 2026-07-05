@@ -7,15 +7,16 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-07-03
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6130 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,250,090,078,527; BTC dominance 55.70%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $452,912,580 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000242405586034 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,286,964,207,602; BTC dominance 55.78%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $437,949,430 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000882895845066 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: CryptoQuant says bitcoin and altcoin exchange deposits have spiked, indicating higher volatility ahead
 - [theblock-crypto] **ticker**: Institutional Bitcoin Adoption Explained: How Blackrock, Fidelity and Others Embraced BTC
 - [theblock-crypto] **ticker**: US bitcoin ETFs break 10-day negative streak with $222 million worth of inflows
 - [theblock-crypto] **ticker**: ‘Markets find their footing’: Bitcoin holds $61,000 rebound ahead of US Independence Day as soft jobs data eases rate…
 
 <!-- u33 entry 2026-07-03 end -->
+
 <!-- u33 entry 2026-07-02 begin -->
 
 ## 2026-07-02

@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">국내 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-03 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피는 연합뉴스 보도 기준 전일대비 5.76% 급반등하며 8,000선을 회복했다고 전해졌으며, 같은 날</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">시세 데이터 기준으로는 코스피 440.25, 코스닥 340.00이 집계됐다. 수집 근거가 제한적입니다</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">연합뉴스에 따르면 코스피(KOSPI, 한국 유가증권시장 종합지수)는 반도체 대형주를 중심으로 강한 반발</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">매수세가 유입되며 전일 대비 +5.76% 급반등해 8,000선을 회복했고, 장중 변동폭은 역대 2위</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피(KOSPI, 한국 유가증권시장 종합지수), 반도체 대형주 반등 보도에도 개별 종목은 큰 폭 하락</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전일(2026-07-02) 컨텍스트는 코어 데이터 미수집으로 결론을 확정하지 못했던 반면, 오늘은</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피, 반도체 반발 매수 보도 속 8,000선 회복 연합뉴스는 코스피가 3일 반도체 대형주 중심의 반발</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">매수세 유입으로 반등해 8,000선을 회복했으며, AI 과잉투자 우려가 다소 완화됐으나 투자심리는 여전히</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 공공데이터포털 KRX(한국거래소) 종목시세 · 삼성전자[005930] 종가 286,000원이</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">당일 고가 304,000원 방향으로 회복되면 반등 압력 관찰, 당일 저가 281,500원을 이탈하면 추가</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: KRX 투자자별 매매동향(코스피 외국인) 기준, 외국인 순매도가 -21,750억원에서</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">축소되면 수급 개선으로 관찰되고, 순매도 규모가 추가로 확대되면 수급 부담 확대로 해석된다.</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

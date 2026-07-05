@@ -6,11 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-03
 
-- [yonhap-market] **ticker**: [마켓뷰] '8천피' 무너진 코스피, '추가 하락 vs 반등' 주목
 - [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
 - [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
 
 <!-- u33 entry 2026-07-03 end -->
+
 <!-- u33 entry 2026-07-02 begin -->
 
 ## 2026-07-02
