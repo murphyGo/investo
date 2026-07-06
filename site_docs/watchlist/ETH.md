@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-06 begin -->
+
+## 2026-07-06
+
+- [coingecko-price] **ticker**: ETH $1,806.02 (+0.48%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.8B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine’s Tom Lee ties ether strength to Clarity Act odds as treasury nears 5% of Ethereum’s total supply
+- [theblock-crypto] **ticker**: Vitalik Buterin proposes ‘Extremely Lean’ Ethereum, shrinking the chain to near-zero state with ZK proofs
+
+<!-- u33 entry 2026-07-06 end -->
 <!-- u33 entry 2026-07-03 begin -->
 
 ## 2026-07-03

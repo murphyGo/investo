@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-06 begin -->
+
+## 2026-07-06
+
+- [yonhap-market] **ticker**: 침체 끝난 폴더블폰 시장…애플 참전 기대에 판 커진다
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+- [yahoo-finance-news] **ticker**: Best Buy and Apple flag a price shock for shoppers
+
+<!-- u33 entry 2026-07-06 end -->
 <!-- u33 entry 2026-07-03 begin -->
 
 ## 2026-07-03

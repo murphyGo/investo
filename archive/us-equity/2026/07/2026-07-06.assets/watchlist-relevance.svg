@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="미국 증시 관심 자산 관련성">
+<style>.card-bg{fill:#f7f5ef;}.card-frame{fill:#ffffff;stroke:#253238;}.card-title{fill:#1d2b2f;}.card-subtitle{fill:#617176;}.card-label{fill:#476169;}.card-emphasis{fill:#14555f;}.card-text{fill:#1d2b2f;}.card-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 관심 자산 관련성</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-06 · 매칭 16건 · 기본 바스켓</text>
+<text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AAPL listing metadata: Apple Inc. - Common Stock</text>
+<text class="card-emphasis" x="90" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>
+<text class="card-text" x="310" y="256" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AAPL SEC company facts: Apple Inc.</text>
+<text class="card-emphasis" x="90" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>
+<text class="card-text" x="310" y="332" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">Best Buy and Apple flag a price shock for shoppers</text>
+<text class="card-emphasis" x="90" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AMZN</text>
+<text class="card-text" x="310" y="408" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AMZN listing metadata: Amazon.com, Inc. - Common Stock</text>
+<text class="card-emphasis" x="90" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AMZN</text>
+<text class="card-text" x="310" y="484" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">AMZN SEC company facts: AMAZON COM INC</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

@@ -2,6 +2,24 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-06 begin -->
+
+## 2026-07-06
+
+- [sec-edgar-8k] **ticker**: 8-K: American Bitcoin Corp. (CIK 0001755953)
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -5313 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,301,148,091,363; BTC dominance 55.96%
+- [coingecko-price] **ticker**: BTC $64,204.00 (+0.54%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $441,685,920 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Grayscale says Strategy’s recent bitcoin sales should restore confidence in its financing structure
+- [theblock-crypto] **ticker**: How Sovereign Wealth Funds Invest in Digital Assets
+- [theblock-crypto] **ticker**: Keel jumps 10% after former bitcoin miner hires data center veteran as president
+- [theblock-crypto] **ticker**: President Trump’s strategic bitcoin reserve hits a legal and jurisdictional snag: Bloomberg
+- [theblock-crypto] **ticker**: Strategy sells 3,588 BTC for $216 million, with total bitcoin holdings still underwater
+- [theblock-crypto] **ticker**: ‘Any signs of life?’ Bernstein holds ‘ambitious’ $150K year-end bitcoin target despite 54% drawdown
+
+<!-- u33 entry 2026-07-06 end -->
 <!-- u33 entry 2026-07-03 begin -->
 
 ## 2026-07-03

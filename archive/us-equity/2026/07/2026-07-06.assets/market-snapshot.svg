@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="미국 증시 시장 스냅샷">
+<style>.card-bg{fill:#f7f5ef;}.card-frame{fill:#ffffff;stroke:#253238;}.card-title{fill:#1d2b2f;}.card-subtitle{fill:#617176;}.card-label{fill:#476169;}.card-emphasis{fill:#14555f;}.card-text{fill:#1d2b2f;}.card-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-06 · 데이터 partial</text>
+<text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BLS가 발표한 6월 실업률(Unemployment Rate)이 4.2%로 전월 4.3%에서 하락하며</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">고용 지표가 개선된 가운데, S&amp;P 500은 전장 대비 +0.72%, 나스닥100은 +1.26% 오르며</text>
+<text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·나스닥100, 반도체·대형 기술주 강세로 상승 마감 나스닥(Nasdaq) 기사에 따르면</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이날 S&amp;P 500은 전장 대비 +0.72% 상승 마감했고, 다우존스 산업평균지수(Dow Jones</text>
+<text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이번 주(7/67/13)에는 Waller 이사 토론(7/6), Bowman 부의장 연설(7/7),</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">FOMC 의사록 공개와 G.19 소비자신용 발표(이상 7/8)가 예정돼 있다.</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

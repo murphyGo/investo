@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-06 begin -->
+
+## 2026-07-06
+
+- [yonhap-market] **ticker**: 신한투자증권, MTS 위젯서비스 전면 개편…"투자정보 간편 조회"
+- [coingecko-price] **ticker**: SOL $82.27 (+0.66%)
+- [defillama-market-structure] **ticker**: DeFi TVL $74.8B; leader Ethereum
+
+<!-- u33 entry 2026-07-06 end -->
 <!-- u33 entry 2026-07-03 begin -->
 
 ## 2026-07-03
