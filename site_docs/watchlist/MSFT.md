@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-07 begin -->
+
+## 2026-07-07
+
+- [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
+- [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+
+<!-- u33 entry 2026-07-07 end -->
 <!-- u33 entry 2026-07-06 begin -->
 
 ## 2026-07-06

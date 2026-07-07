@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-07 begin -->
+
+## 2026-07-07
+
+- [yonhap-market] **ticker**: 삼성전자 2분기 영업익 89조4천억…엔비디아 넘어 빅테크 기록(종합)
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+
+<!-- u33 entry 2026-07-07 end -->
 <!-- u33 entry 2026-07-06 begin -->
 
 ## 2026-07-06
