@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-10 begin -->
+
+## 2026-07-10
+
+- [yonhap-market] **ticker**: 머스크 싫어하는 투자자 위해…테슬라·스페이스X 뺀 ETF 나온다
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+
+<!-- u33 entry 2026-07-10 end -->
 <!-- u33 entry 2026-07-07 begin -->
 
 ## 2026-07-07

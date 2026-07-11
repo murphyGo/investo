@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-10 begin -->
+
+## 2026-07-10
+
+- [yonhap-market] **ticker**: "메타, 올해 컴퓨팅 용량 7GW 구축 계획…내년에도 7GW 추가"
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+
+<!-- u33 entry 2026-07-10 end -->
 <!-- u33 entry 2026-07-09 begin -->
 
 ## 2026-07-09

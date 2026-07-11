@@ -114,3 +114,5 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/07/2026-07-07.md", "published_at": "2026-07-07T23:21:23.197337+00:00", "segment": "domestic-equity", "target_date": "2026-07-07", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/07/2026-07-07.md", "published_at": "2026-07-07T23:21:23.197337+00:00", "segment": "us-equity", "target_date": "2026-07-07", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/07/2026-07-09.md", "published_at": "2026-07-09T23:35:51.791703+00:00", "segment": "domestic-equity", "target_date": "2026-07-09", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/07/2026-07-10.md", "published_at": "2026-07-11T03:07:31.153585+00:00", "segment": "domestic-equity", "target_date": "2026-07-10", "tickers": ["KOSDAQ", "KOSPI"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/07/2026-07-10.md", "published_at": "2026-07-11T03:07:31.153585+00:00", "segment": "us-equity", "target_date": "2026-07-10", "tickers": []}

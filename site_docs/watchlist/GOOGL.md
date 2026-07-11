@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-10 begin -->
+
+## 2026-07-10
+
+- [yonhap-market] **ticker**: "오픈AI·구글, 블랙리스트 中 기업에 AI 모델 이용 허용"
+- [nasdaq-symbol-directory] **ticker**: GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: GOOGL SEC company facts: Alphabet Inc.
+
+<!-- u33 entry 2026-07-10 end -->
 <!-- u33 entry 2026-07-07 begin -->
 
 ## 2026-07-07
