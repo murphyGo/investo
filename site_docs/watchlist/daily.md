@@ -1,6 +1,6 @@
 # 오늘의 관심 자산 영향 — 2026-07-10
 
-직접 18 · 관련 0 · 보류 0 · 제외 25
+직접 16 · 관련 0 · 보류 0 · 제외 25
 
 ## 직접 영향 (Direct)
 
@@ -13,7 +13,6 @@
 - GOOGL: 직접 관련 · [yonhap-market] "오픈AI·구글, 블랙리스트 中 기업에 AI 모델 이용 허용"
 - META: 직접 관련 · [nasdaq-symbol-directory] META listing metadata: Meta Platforms, Inc. - Class A Common Stock
 - META: 직접 관련 · [sec-company-facts] META SEC company facts: Meta Platforms, Inc.
-- META: 직접 관련 · [yonhap-market] "메타, 올해 컴퓨팅 용량 7GW 구축 계획…내년에도 7GW 추가"
 - MSFT: 직접 관련 · [nasdaq-symbol-directory] MSFT listing metadata: Microsoft Corporation - Common Stock
 - MSFT: 직접 관련 · [sec-company-facts] MSFT SEC company facts: MICROSOFT CORP
 - NVDA: 직접 관련 · [nasdaq-symbol-directory] NVDA listing metadata: NVIDIA Corporation - Common Stock
@@ -21,7 +20,6 @@
 - SOL: 직접 관련 · [yonhap-market] 신한투자, 통합계좌 'SOL LINK' 출시 기념 특판 상품 출시
 - TSLA: 직접 관련 · [nasdaq-symbol-directory] TSLA listing metadata: Tesla, Inc. - Common Stock
 - TSLA: 직접 관련 · [sec-company-facts] TSLA SEC company facts: Tesla, Inc.
-- TSLA: 직접 관련 · [yonhap-market] 머스크 싫어하는 투자자 위해…테슬라·스페이스X 뺀 ETF 나온다
 
 ## 관련·매크로 맥락 (Related)
 
@@ -50,7 +48,6 @@ _해당 항목 없음._
 - AMZN ⊘ AGCO [short-ticker-boundary] · sec-edgar-8k #f4f10d
 - AMZN ⊘ AIR [short-ticker-boundary] · sec-edgar-8k #ee489d
 - AMZN ⊘ AMASS [short-ticker-boundary] · sec-edgar-8k #5b8241
-- AMZN ⊘ amp [short-ticker-boundary] · yonhap-market #7ab642
 - AMZN ⊘ AUC [short-ticker-boundary] · nasdaq-earnings-calendar #831a36
 - BTC ⊘ BANK [short-ticker-boundary] · sec-edgar-8k #25fa35
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #de4b31
@@ -59,8 +56,9 @@ _해당 항목 없음._
 - ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #68719e
 - ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #83d547
 - ETH ⊘ END [short-ticker-boundary] · sec-edgar-8k #edfdca
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #37c0af
+- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #808f4e
 - ETH ⊘ etf [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - ETH ⊘ ETF [short-ticker-boundary] · yonhap-market #5bc962
+- META ⊘ MBBL [short-ticker-boundary] · eia-petroleum-weekly #83d547
 
 </details>
