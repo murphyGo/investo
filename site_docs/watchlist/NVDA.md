@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-13 begin -->
+
+## 2026-07-13
+
+- [nasdaq-stocks-news] **ticker**: Nvidia (NVDA) Registers a Bigger Fall Than the Market: Important Facts to Note
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+
+<!-- u33 entry 2026-07-13 end -->
 <!-- u33 entry 2026-07-10 begin -->
 
 ## 2026-07-10

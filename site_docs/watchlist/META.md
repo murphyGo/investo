@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-13 begin -->
+
+## 2026-07-13
+
+- [yonhap-market] **ticker**: 오픈AI·메타·스페이스X, 저비용 AI 각축전
+- [nasdaq-stocks-news] **ticker**: Meta Platforms (META) Registers a Bigger Fall Than the Market: Important Facts to Note
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+
+<!-- u33 entry 2026-07-13 end -->
 <!-- u33 entry 2026-07-10 begin -->
 
 ## 2026-07-10

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-13 begin -->
+
+## 2026-07-13
+
+- [coingecko-price] **ticker**: SOL $74.43 (-2.79%)
+- [defillama-market-structure] **ticker**: DeFi TVL $73.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Onchain Pokémon cards come to Solana-based DEX Jupiter
+- [theblock-crypto] **ticker**: SBI Holdings, Solana Foundation partner to build Japan-based onchain financial market
+
+<!-- u33 entry 2026-07-13 end -->
 <!-- u33 entry 2026-07-10 begin -->
 
 ## 2026-07-10

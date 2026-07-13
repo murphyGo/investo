@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-13 begin -->
+
+## 2026-07-13
+
+- [coingecko-price] **ticker**: ETH $1,755.78 (-2.67%)
+- [defillama-market-structure] **ticker**: DeFi TVL $73.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitcoin and Ethereum tweet volume falls to 12-month lows despite institutional crypto boom
+- [theblock-crypto] **ticker**: Tom Lee says users ‘starting to see Ethereum as money’ as Bitmine adds 27,801 ETH
+
+<!-- u33 entry 2026-07-13 end -->
 <!-- u33 entry 2026-07-06 begin -->
 
 ## 2026-07-06

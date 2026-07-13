@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-13 begin -->
+
+## 2026-07-13
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6717 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,220,277,795,348; BTC dominance 55.96%
+- [coingecko-price] **ticker**: BTC $61,854.00 (-3.14%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $466,365,420 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin and Ethereum tweet volume falls to 12-month lows despite institutional crypto boom
+- [theblock-crypto] **ticker**: Bitcoin whale moves $188 million in BTC after seven-year dormancy: onchain data
+- [theblock-crypto] **ticker**: Strategy sells $467 million in MSTR shares, makes no bitcoin purchases as USD reserve hits $3 billion
+- [theblock-crypto] **ticker**: Strategy’s no-bitcoin-buy week shows ‘greater balance-sheet discipline,’ analysts say
+
+<!-- u33 entry 2026-07-13 end -->
 <!-- u33 entry 2026-07-07 begin -->
 
 ## 2026-07-07
