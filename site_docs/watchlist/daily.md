@@ -1,44 +1,42 @@
-# 오늘의 관심 자산 영향 — 2026-07-13
+# 오늘의 관심 자산 영향 — 2026-07-14
 
-직접 35 · 관련 0 · 보류 0 · 제외 25
+직접 33 · 관련 0 · 보류 0 · 제외 25
 
 ## 직접 영향 (Direct)
 
 - AAPL: 직접 관련 · [nasdaq-symbol-directory] AAPL listing metadata: Apple Inc. - Common Stock
 - AAPL: 직접 관련 · [sec-company-facts] AAPL SEC company facts: Apple Inc.
+- AAPL: 직접 관련 · [yonhap-market] 반도체 급락 국면서 애플 주가는 사상 최고치
+- AAPL: 직접 관련 · [yonhap-market] 오픈AI, '제2의 아이폰'으로 애플 정조준…소송이 최대 변수
 - AMZN: 직접 관련 · [nasdaq-symbol-directory] AMZN listing metadata: Amazon.com, Inc. - Common Stock
 - AMZN: 직접 관련 · [sec-company-facts] AMZN SEC company facts: AMAZON COM INC
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -6717 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,220,277,795,348; BTC dominance 55.96%
-- BTC: 직접 관련 · [coingecko-price] BTC $61,854.00 (-3.14%)
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $466,365,420 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
-- BTC: 직접 관련 · [theblock-crypto] Bitcoin and Ethereum tweet volume falls to 12-month lows despite institutional crypto boom
-- BTC: 직접 관련 · [theblock-crypto] Bitcoin whale moves $188 million in BTC after seven-year dormancy: onchain data
-- BTC: 직접 관련 · [theblock-crypto] Strategy sells $467 million in MSTR shares, makes no bitcoin purchases as USD reserve hits $3 billion
-- BTC: 직접 관련 · [theblock-crypto] Strategy’s no-bitcoin-buy week shows ‘greater balance-sheet discipline,’ analysts say
-- ETH: 직접 관련 · [coingecko-price] ETH $1,755.78 (-2.67%)
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $73.2B; leader Ethereum
-- ETH: 직접 관련 · [theblock-crypto] Bitcoin and Ethereum tweet volume falls to 12-month lows despite institutional crypto boom
-- ETH: 직접 관련 · [theblock-crypto] Tom Lee says users ‘starting to see Ethereum as money’ as Bitmine adds 27,801 ETH
-- GOOGL: 직접 관련 · [nasdaq-stocks-news] Alphabet (GOOGL) Sees a More Significant Dip Than Broader Market: Some Facts to Know
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,309,375,095,328; BTC dominance 56.34%
+- BTC: 직접 관련 · [coingecko-price] BTC $64,837.00 (+4.83%)
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $470,679,030 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000878476270459 (OKX, UTC 24h)
+- BTC: 직접 관련 · [theblock-crypto] Bitcoin mining production slips in June for CleanSpark, BitFuFu and Canaan
+- BTC: 직접 관련 · [theblock-crypto] Distributed compute startup Boundless expands 4,000-GPU network from ZK to AI
+- BTC: 직접 관련 · [theblock-crypto] US government moves over $288 million in seized bitcoin, ether to Coinbase Prime: Arkham
+- BTC: 직접 관련 · [theblock-crypto] ‘Soft print, hard regime’: Bitcoin climbs toward $64,000 as June CPI falls 0.4% in largest monthly drop since 2020
+- ETH: 직접 관련 · [coingecko-price] ETH $1,881.85 (+7.17%)
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $75.5B; leader Ethereum
+- ETH: 직접 관련 · [theblock-crypto] Distributed compute startup Boundless expands 4,000-GPU network from ZK to AI
+- ETH: 직접 관련 · [theblock-crypto] Ethereum Foundation privacy team spins out as for-profit EthSystems to serve institutions with Lubin, Bitmine backing
 - GOOGL: 직접 관련 · [nasdaq-symbol-directory] GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
 - GOOGL: 직접 관련 · [sec-company-facts] GOOGL SEC company facts: Alphabet Inc.
-- META: 직접 관련 · [nasdaq-stocks-news] Meta Platforms (META) Registers a Bigger Fall Than the Market: Important Facts to Note
 - META: 직접 관련 · [nasdaq-symbol-directory] META listing metadata: Meta Platforms, Inc. - Class A Common Stock
 - META: 직접 관련 · [sec-company-facts] META SEC company facts: Meta Platforms, Inc.
-- META: 직접 관련 · [yonhap-market] 오픈AI·메타·스페이스X, 저비용 AI 각축전
 - MSFT: 직접 관련 · [nasdaq-symbol-directory] MSFT listing metadata: Microsoft Corporation - Common Stock
 - MSFT: 직접 관련 · [sec-company-facts] MSFT SEC company facts: MICROSOFT CORP
-- NVDA: 직접 관련 · [nasdaq-stocks-news] Nvidia (NVDA) Registers a Bigger Fall Than the Market: Important Facts to Note
 - NVDA: 직접 관련 · [nasdaq-symbol-directory] NVDA listing metadata: NVIDIA Corporation - Common Stock
 - NVDA: 직접 관련 · [sec-company-facts] NVDA SEC company facts: NVIDIA CORP
-- SOL: 직접 관련 · [coingecko-price] SOL $74.43 (-2.79%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $73.2B; leader Ethereum
-- SOL: 직접 관련 · [theblock-crypto] Onchain Pokémon cards come to Solana-based DEX Jupiter
-- SOL: 직접 관련 · [theblock-crypto] SBI Holdings, Solana Foundation partner to build Japan-based onchain financial market
+- SOL: 직접 관련 · [coingecko-price] SOL $77.64 (+4.33%)
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $75.5B; leader Ethereum
 - TSLA: 직접 관련 · [nasdaq-symbol-directory] TSLA listing metadata: Tesla, Inc. - Common Stock
 - TSLA: 직접 관련 · [sec-company-facts] TSLA SEC company facts: Tesla, Inc.
+- TSLA: 직접 관련 · [yonhap-market] KB운용, '스페이스X+테슬라' 미국채 혼합 ETF 출시
+- TSLA: 직접 관련 · [yonhap-market] NH증권 "엘앤에프, 테슬라 판매 강세 낙수 효과…목표가는 하향"
 
 ## 관련·매크로 맥락 (Related)
 
@@ -46,39 +44,39 @@ _해당 항목 없음._
 
 ## 관련 시황
 
-- [국내 증시](../archive/domestic-equity/2026/07/2026-07-13.md)
-- [미국 증시](../archive/us-equity/2026/07/2026-07-13.md)
-- [크립토](../archive/crypto/2026/07/2026-07-13.md)
+- [국내 증시](../archive/domestic-equity/2026/07/2026-07-14.md)
+- [미국 증시](../archive/us-equity/2026/07/2026-07-14.md)
+- [크립토](../archive/crypto/2026/07/2026-07-14.md)
 
 <details>
 <summary>진단: 보류/제외된 후보</summary>
 
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
-- AAPL ⊘ ACE [short-ticker-boundary] · yonhap-market #29a77e
-- AAPL ⊘ ADR [short-ticker-boundary] · yonhap-market #c17891
-- AAPL ⊘ AERO [short-ticker-boundary] · nasdaq-earnings-calendar #c81e0f
-- AAPL ⊘ AFS [short-ticker-boundary] · sec-edgar-8k #546e67
+- AAPL ⊘ Aave [short-ticker-boundary] · theblock-crypto #8578f4
+- AAPL ⊘ ADR [short-ticker-boundary] · yonhap-market #16196f
+- AAPL ⊘ AEHR [short-ticker-boundary] · nasdaq-earnings-calendar #59c13b
+- AAPL ⊘ AEHR [short-ticker-boundary] · sec-edgar-8k #cd0f72
 - AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-symbol-directory #beb0ca
 - AAPL ⊘ AMZN [short-ticker-boundary] · sec-company-facts #367e13
-- AAPL ⊘ ASSET [short-ticker-boundary] · yonhap-market #3b5f7f
+- AAPL ⊘ ANGO [short-ticker-boundary] · nasdaq-earnings-calendar #4468bd
 - AMZN ⊘ AAPL [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - AMZN ⊘ AAPL [short-ticker-boundary] · sec-company-facts #6e4883
-- AMZN ⊘ ACE [short-ticker-boundary] · yonhap-market #29a77e
-- AMZN ⊘ ADR [short-ticker-boundary] · yonhap-market #c17891
-- AMZN ⊘ AERO [short-ticker-boundary] · nasdaq-earnings-calendar #c81e0f
-- AMZN ⊘ AFS [short-ticker-boundary] · sec-edgar-8k #546e67
-- AMZN ⊘ amid [short-ticker-boundary] · nasdaq-stocks-news #f9bec3
-- AMZN ⊘ amp [short-ticker-boundary] · yonhap-market #790a31
-- AMZN ⊘ ASSET [short-ticker-boundary] · yonhap-market #3b5f7f
+- AMZN ⊘ ADR [short-ticker-boundary] · yonhap-market #16196f
+- AMZN ⊘ AEHR [short-ticker-boundary] · nasdaq-earnings-calendar #59c13b
+- AMZN ⊘ AEHR [short-ticker-boundary] · sec-edgar-8k #cd0f72
+- AMZN ⊘ Ample [short-ticker-boundary] · nasdaq-stocks-news #859559
+- AMZN ⊘ ANGO [short-ticker-boundary] · nasdaq-earnings-calendar #4468bd
+- BTC ⊘ BAC [short-ticker-boundary] · nasdaq-earnings-calendar #e855be
+- BTC ⊘ BBB [short-ticker-boundary] · yonhap-market #71042c
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #720c85
-- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #170e57
-- BTC ⊘ BPI [short-ticker-boundary] · fomc-calendar #1d41cb
-- BTC ⊘ BROWN [short-ticker-boundary] · sec-edgar-8k #65727f
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #0e1473
-- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #9d7a1c
+- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #1c08ec
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #b01d8c
+- BTC ⊘ BUSEY [short-ticker-boundary] · sec-edgar-8k #87f82b
+- ETH ⊘ ECB [short-ticker-boundary] · theblock-crypto #7c3322
+- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #751345
 - ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #83d547
-- ETH ⊘ ELB [short-ticker-boundary] · yonhap-market #52985d
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #909f3b
+- ETH ⊘ ENB [short-ticker-boundary] · nasdaq-stocks-news #eadc82
+- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #131115
 
 </details>

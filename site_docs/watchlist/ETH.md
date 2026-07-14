@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-14 begin -->
+
+## 2026-07-14
+
+- [coingecko-price] **ticker**: ETH $1,881.85 (+7.17%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Distributed compute startup Boundless expands 4,000-GPU network from ZK to AI
+- [theblock-crypto] **ticker**: Ethereum Foundation privacy team spins out as for-profit EthSystems to serve institutions with Lubin, Bitmine backing
+
+<!-- u33 entry 2026-07-14 end -->
 <!-- u33 entry 2026-07-13 begin -->
 
 ## 2026-07-13

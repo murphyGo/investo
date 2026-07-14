@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-14 begin -->
+
+## 2026-07-14
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6717 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,309,375,095,328; BTC dominance 56.34%
+- [coingecko-price] **ticker**: BTC $64,837.00 (+4.83%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $470,679,030 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000878476270459 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin mining production slips in June for CleanSpark, BitFuFu and Canaan
+- [theblock-crypto] **ticker**: Distributed compute startup Boundless expands 4,000-GPU network from ZK to AI
+- [theblock-crypto] **ticker**: US government moves over $288 million in seized bitcoin, ether to Coinbase Prime: Arkham
+- [theblock-crypto] **ticker**: ‘Soft print, hard regime’: Bitcoin climbs toward $64,000 as June CPI falls 0.4% in largest monthly drop since 2020
+
+<!-- u33 entry 2026-07-14 end -->
 <!-- u33 entry 2026-07-13 begin -->
 
 ## 2026-07-13

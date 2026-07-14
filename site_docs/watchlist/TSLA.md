@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-14 begin -->
+
+## 2026-07-14
+
+- [yonhap-market] **ticker**: KB운용, '스페이스X+테슬라' 미국채 혼합 ETF 출시
+- [yonhap-market] **ticker**: NH증권 "엘앤에프, 테슬라 판매 강세 낙수 효과…목표가는 하향"
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+
+<!-- u33 entry 2026-07-14 end -->
 <!-- u33 entry 2026-07-13 begin -->
 
 ## 2026-07-13

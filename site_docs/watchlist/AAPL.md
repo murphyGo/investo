@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-14 begin -->
+
+## 2026-07-14
+
+- [yonhap-market] **ticker**: 반도체 급락 국면서 애플 주가는 사상 최고치
+- [yonhap-market] **ticker**: 오픈AI, '제2의 아이폰'으로 애플 정조준…소송이 최대 변수
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+
+<!-- u33 entry 2026-07-14 end -->
 <!-- u33 entry 2026-07-13 begin -->
 
 ## 2026-07-13
