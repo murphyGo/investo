@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-15 begin -->
+
+## 2026-07-15
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6717 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,312,709,272,626; BTC dominance 56.24%
+- [coingecko-price] **ticker**: BTC $64,830.00 (+0.09%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $465,941,620 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000421745450264 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Core Scientific’s 75% return on AI deal isn’t the template for bitcoin miners, Bernstein says
+- [theblock-crypto] **ticker**: Kraken Institutional taps Upshift to build vaults that earn yield on idle bitcoin, ETH and stablecoins
+- [theblock-crypto] **ticker**: Strategy CEO says company isn’t going anywhere as bitcoin buyer, sees debt concerns only below $10,000 BTC
+
+<!-- u33 entry 2026-07-15 end -->
 <!-- u33 entry 2026-07-14 begin -->
 
 ## 2026-07-14

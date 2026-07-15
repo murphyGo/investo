@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-15 begin -->
+
+## 2026-07-15
+
+- [yonhap-market] **ticker**: 신한자산, SOL AI반도체TOP2플러스 ETF 정기 리밸런싱 진행
+- [coingecko-price] **ticker**: SOL $77.44 (-0.22%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.9B; leader Ethereum
+
+<!-- u33 entry 2026-07-15 end -->
 <!-- u33 entry 2026-07-14 begin -->
 
 ## 2026-07-14

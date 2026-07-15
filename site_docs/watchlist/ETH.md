@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-15 begin -->
+
+## 2026-07-15
+
+- [coingecko-price] **ticker**: ETH $1,922.15 (+2.26%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine says ETH staking generated $45.7 million, accounting for 98% of quarterly revenue
+- [theblock-crypto] **ticker**: Kraken Institutional taps Upshift to build vaults that earn yield on idle bitcoin, ETH and stablecoins
+- [theblock-crypto] **ticker**: Ostium pauses trading after apparent $18 million vault exploit
+
+<!-- u33 entry 2026-07-15 end -->
 <!-- u33 entry 2026-07-14 begin -->
 
 ## 2026-07-14
