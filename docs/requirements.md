@@ -24,89 +24,89 @@
 - **Description**: 매일 정해진 시각에 미국 주식·크립토·(코스피) 관련 뉴스, 주요 지표, 연준 이벤트, 실적 캘린더, 시세를 수집한다.
 - **User Story**: As a 본인, I want 무료 공개 소스에서 전일 시장 데이터를 자동 수집받기를, so that 직접 뉴스를 뒤지지 않아도 시황 작성 재료가 준비되도록.
 - **Acceptance Criteria**:
-  - [ ] 무료 API/RSS만 사용한다 (월 $0)
-  - [ ] 소스 카테고리: 주가/지수, 크립토 시세, 거시 지표(FRED 등), 연준 캘린더, 주요 기업 뉴스, 실적 캘린더
-  - [ ] 신규 소스 추가/제거가 코드 변경 1곳으로 가능 (plugin/registry 구조)
-  - [ ] 단일 소스 실패 시 다른 소스 수집은 계속 진행 (graceful degradation)
-  - [ ] 시장별 거래일 기준을 적용한다: 국내 증시는 KST, 미국 증시는 America/New_York, 크립토는 UTC 기준으로 `target_date` 데이터를 필터링한다.
+  - [x] 무료 API/RSS만 사용한다 (월 $0)
+  - [x] 소스 카테고리: 주가/지수, 크립토 시세, 거시 지표(FRED 등), 연준 캘린더, 주요 기업 뉴스, 실적 캘린더
+  - [x] 신규 소스 추가/제거가 코드 변경 1곳으로 가능 (plugin/registry 구조)
+  - [x] 단일 소스 실패 시 다른 소스 수집은 계속 진행 (graceful degradation)
+  - [x] 시장별 거래일 기준을 적용한다: 국내 증시는 KST, 미국 증시는 America/New_York, 크립토는 UTC 기준으로 `target_date` 데이터를 필터링한다.
 - **Priority**: Must-have
 
 ### FR-008: 세그먼트별 시황 생성
 - **Description**: 단일 통합 시황 대신 국내 증시, 미국 증시, 크립토를 각각 독립 세그먼트로 생성한다. 한 소스군의 강한 이슈가 다른 자산군의 시황을 압도하지 않도록 입력 분리, 최소 커버리지, 섹션별 품질 기준을 둔다.
 - **User Story**: As a 본인, I want 국내/미국/크립토 시황을 분리해서 받기를, so that 각 시장의 핵심 흐름을 빠르게 비교하고 한쪽 시장 뉴스에 전체 브리핑이 끌려가지 않도록.
 - **Acceptance Criteria**:
-  - [ ] 매 실행마다 `domestic-equity`, `us-equity`, `crypto` 세그먼트를 생성한다.
-  - [ ] 각 세그먼트는 독립 제목과 ①~⑥ 본문 섹션을 가진다. ⑦ 면책조항은 기존처럼 코드가 공통 삽입한다.
-  - [ ] 세그먼트별 입력은 source/category/ticker/news provenance 기반으로 분리한다.
-  - [ ] 특정 세그먼트의 핵심 소스가 부족하면 다른 세그먼트 뉴스로 대체하지 않고 "데이터 부족"을 명시한다.
-  - [ ] 텔레그램 메시지는 세 세그먼트의 짧은 요약과 각 상세 링크를 포함한다.
+  - [x] 매 실행마다 `domestic-equity`, `us-equity`, `crypto` 세그먼트를 생성한다.
+  - [x] 각 세그먼트는 독립 제목과 ①~⑥ 본문 섹션을 가진다. ⑦ 면책조항은 기존처럼 코드가 공통 삽입한다.
+  - [x] 세그먼트별 입력은 source/category/ticker/news provenance 기반으로 분리한다.
+  - [x] 특정 세그먼트의 핵심 소스가 부족하면 다른 세그먼트 뉴스로 대체하지 않고 "데이터 부족"을 명시한다.
+  - [x] 텔레그램 메시지는 세 세그먼트의 짧은 요약과 각 상세 링크를 포함한다.
 - **Priority**: Must-have (post-MVP correction)
 
 ### FR-002: AI 시황 작성
 - **Description**: 수집된 데이터를 입력으로, **Claude Code CLI**(GitHub Actions에서 setup token 인증)를 호출해 한국어 시황을 생성한다.
 - **User Story**: As a 본인, I want 일관된 형식의 한국어 시황을, so that 빠르게 훑어보고 핵심을 파악할 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] LLM 호출은 Claude Code CLI를 통해 수행 (Anthropic API key 직접 호출 금지)
-  - [ ] 출력은 정해진 섹션 템플릿 준수: ①요약 ②전일 핵심 이슈 ③섹터/수급 동향 ④지표·이벤트 ⑤주요 종목 ⑥오늘의 관전 포인트 ⑦면책조항
-  - [ ] 한국어로 작성, 영문 종목명/티커는 원문 유지
-  - [ ] 면책조항 자동 삽입 ("투자 자문이 아닌 정보 제공" 명시) — NFR-004 참조
-  - [ ] LLM 호출 실패 시 retry (최대 N회), 최종 실패 시 빈 시황 게시 금지 → 알림
+  - [x] LLM 호출은 Claude Code CLI를 통해 수행 (Anthropic API key 직접 호출 금지)
+  - [x] 출력은 정해진 섹션 템플릿 준수: ①요약 ②전일 핵심 이슈 ③섹터/수급 동향 ④지표·이벤트 ⑤주요 종목 ⑥오늘의 관전 포인트 ⑦면책조항
+  - [x] 한국어로 작성, 영문 종목명/티커는 원문 유지
+  - [x] 면책조항 자동 삽입 ("투자 자문이 아닌 정보 제공" 명시) — NFR-004 참조
+  - [x] LLM 호출 실패 시 retry (최대 N회), 최종 실패 시 빈 시황 게시 금지 → 알림
 - **Priority**: Must-have
 
 ### FR-003: 정적 웹 게시
 - **Description**: 생성된 시황을 GitHub Pages 정적 사이트에 게시한다. 모든 과거 시황은 이력으로 보관·열람 가능.
 - **User Story**: As a 열람자, I want 오늘 시황과 과거 시황을 웹에서 볼 수 있기를, so that 시점별 시장 흐름을 추적할 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] 시황은 markdown 파일로 git repo에 저장 (신규 세그먼트 실행 예: `archive/us-equity/2026/04/2026-04-25.md`; 과거 단일 시황은 `archive/2026/04/2026-04-25.md` 유지)
-  - [ ] 정적 사이트 생성기로 빌드 → GitHub Pages 배포
-  - [ ] 날짜별 인덱스, 최신 시황 홈 노출
-  - [ ] 검색 또는 최소한 날짜/연도별 탐색 가능
+  - [x] 시황은 markdown 파일로 git repo에 저장 (신규 세그먼트 실행 예: `archive/us-equity/2026/04/2026-04-25.md`; 과거 단일 시황은 `archive/2026/04/2026-04-25.md` 유지)
+  - [x] 정적 사이트 생성기로 빌드 → GitHub Pages 배포
+  - [x] 날짜별 인덱스, 최신 시황 홈 노출
+  - [x] 검색 또는 최소한 날짜/연도별 탐색 가능
 - **Priority**: Must-have
 
 ### FR-004: 텔레그램 시황 채널 알림
 - **Description**: 시황 생성 직후 **공개 Telegram 채널/그룹**으로 요약을 전송한다. 운영자 본인과 공유 받은 Public Reader가 동일 채널에 join하여 푸시를 수신한다.
 - **User Story**: As a 운영자/Public Reader, I want 텔레그램 채널 푸시로 시황 요약을 받기를, so that 웹사이트를 열지 않아도 핵심을 알 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] Telegram Bot API 사용 (Bot 토큰은 GitHub Secrets — `TELEGRAM_BOT_TOKEN`)
-  - [ ] 발송 대상: **공개 Telegram 채널 또는 그룹** (`TELEGRAM_BRIEFING_CHANNEL_ID` 시크릿). 누구나 채널 링크로 join 가능.
-  - [ ] 메시지에 국내 증시, 미국 증시, 크립토 상세 URL 링크를 모두 포함
-  - [ ] 텔레그램 메시지 길이 제한(4096자) 준수 — 초과 시 요약 + 링크
-  - [ ] 텔레그램 발송 실패는 시황 게시 자체를 막지 않음 (게시는 성공, 알림만 실패)
-  - [ ] 공개 채널이므로 시크릿/PII가 메시지에 포함되지 않도록 검증
-  - [ ] 운영자 실패 알림(FR-007)과는 **별도 chat**을 사용 — 공개 채널에 노이즈 주입 금지
+  - [x] Telegram Bot API 사용 (Bot 토큰은 GitHub Secrets — `TELEGRAM_BOT_TOKEN`)
+  - [x] 발송 대상: **공개 Telegram 채널 또는 그룹** (`TELEGRAM_BRIEFING_CHANNEL_ID` 시크릿). 누구나 채널 링크로 join 가능.
+  - [x] 메시지에 국내 증시, 미국 증시, 크립토 상세 URL 링크를 모두 포함
+  - [x] 텔레그램 메시지 길이 제한(4096자) 준수 — 초과 시 요약 + 링크
+  - [x] 텔레그램 발송 실패는 시황 게시 자체를 막지 않음 (게시는 성공, 알림만 실패)
+  - [x] 공개 채널이므로 시크릿/PII가 메시지에 포함되지 않도록 검증
+  - [x] 운영자 실패 알림(FR-007)과는 **별도 chat**을 사용 — 공개 채널에 노이즈 주입 금지
 - **Priority**: Must-have
 
 ### FR-005: 스케줄 실행
 - **Description**: GitHub Actions cron으로 매일 자동 실행한다.
 - **User Story**: As a 본인, I want 매일 같은 시각에 자동 실행되기를, so that 수동 트리거가 필요 없도록.
 - **Acceptance Criteria**:
-  - [ ] GitHub Actions `schedule` cron 트리거
-  - [ ] 평일: 미국장 마감 후 충분한 데이터 확보 시각 (예: 한국시간 평일 오전 7시 = UTC 22:00)
-  - [ ] 주말: 토요일 1회 (주간 리뷰)
-  - [ ] 수동 트리거(`workflow_dispatch`)도 지원
-  - [ ] 실행 시간 ≤ 10분 (NFR-001)
+  - [x] GitHub Actions `schedule` cron 트리거
+  - [x] 평일: 미국장 마감 후 충분한 데이터 확보 시각 (예: 한국시간 평일 오전 7시 = UTC 22:00)
+  - [x] 주말: 토요일 1회 (주간 리뷰)
+  - [x] 수동 트리거(`workflow_dispatch`)도 지원
+  - [x] 실행 시간 ≤ 10분 (NFR-001)
 - **Priority**: Must-have
 
 ### FR-006: 영구 이력 보관
 - **Description**: 생성된 모든 시황을 영구 보관한다.
 - **User Story**: As a 본인, I want 과거 시황을 모두 보관하기를, so that 시점별 시장 분석을 회고할 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] 시황은 git commit으로 영구 저장
-  - [ ] 폴더 구조: 신규 세그먼트 시황은 `archive/{segment}/YYYY/MM/YYYY-MM-DD.md`; 과거 단일 시황은 `archive/YYYY/MM/YYYY-MM-DD.md` 읽기 가능
-  - [ ] 저장 용량 문제 발생 시 (수년 후) 별도 archival 정책 검토 — 현재는 Out of Scope
+  - [x] 시황은 git commit으로 영구 저장
+  - [x] 폴더 구조: 신규 세그먼트 시황은 `archive/{segment}/YYYY/MM/YYYY-MM-DD.md`; 과거 단일 시황은 `archive/YYYY/MM/YYYY-MM-DD.md` 읽기 가능
+  - [x] 저장 용량 문제 발생 시 (수년 후) 별도 archival 정책 검토 — 현재는 Out of Scope
 - **Priority**: Must-have
 
 ### FR-009: Reader-facing 출력 포맷 (u51 tldr-block-and-number-bold-inversion)
 - **Description**: 시황의 가독성·액션성을 강제한다. (1) 본문 § 시작 전에 `## 한눈에 보기` TL;DR 3-bullet 블록을 emit 하고, (2) 시장 anchor 정보를 prose blockquote 가 아닌 markdown 표로 렌더하며, (3) §②/③/④/⑥ sub-heading 은 `### Title` (H3) 로 작성하고, (4) 본문 prose 안의 숫자 토큰 (`+11.51%`, `$81,154.06`, `4.42%`) 은 `**...**` 로 강조하며, (5) §⑥ "관전 포인트" bullet 의 관찰형 종결 어미 (`~여부 / ~필요가 있다 / ~관건이다 / ~주목할 필요`) 비율을 40% 이하로 유지하고 (위반 시 WARNING flag, blocking 아님), (6) 같은 segment 내 같은 용어의 풀어쓰기 글로싱은 첫 1회만 표기하고 2번째 이후는 base 용어만 남긴다.
 - **User Story**: As a 시황 reader, I want 페이지를 열자마자 매그니튜드·방향성·액션을 한눈에 보기를, so that 본문을 전부 읽지 않고도 그날의 핵심을 빠르게 잡을 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] 모든 segmented 시황 상단에 `## 한눈에 보기` H2 + 정확히 3 bullet 블록이 워터마크/세그먼트-네비/anchor 다음, ① 요약 헤더 직전에 배치
-  - [ ] 시장 anchor 라인이 4-컬럼 markdown 표 (`| 종목 | 종가 | 변동 | 비고 |`) 로 렌더 — 우선순위 ranking 은 u49 와 동일, 최대 5행
-  - [ ] §②/③/④/⑥ 의 sub-heading 이 `### Title` (H3) 로 작성됨; 기존 `**Title** — body` 패턴 부재
-  - [ ] 본문 prose 의 숫자 토큰 (`[+-]?\d+\.\d+%`, `\$[\d,]+(?:\.\d+)?`, `\d+\.\d+%`) 이 `**...**` 로 wrap; 표 cell / 코드 블록 / 링크 URL 내부 미적용; 이미 wrap 된 토큰 idempotent
-  - [ ] §⑥ bullet 의 관찰형 종결 어미 비율 ≤ 40% 검증 (위반 시 publisher WARN 로그 + segment / ratio / count 구조화 extra; *blocking 아님* — generation 변동성 흡수)
-  - [ ] 같은 segment 내 같은 base 용어의 글로싱 (`base(풀어쓰기)`) 은 첫 1회만 풀어쓰기 표기; 2번째 이후 출현은 `base` 만 남김 (u40 의 `> **용어 가이드**` callout 은 그대로 유지)
-  - [ ] 면책조항 (NFR-004 R5) 은 reader-format chain 후에도 verbatim 보존; `publisher.verify_disclaimer` 가 chain 다음 단계에서 정상 통과
+  - [x] 모든 segmented 시황 상단에 `## 한눈에 보기` H2 + 정확히 3 bullet 블록이 워터마크/세그먼트-네비/anchor 다음, ① 요약 헤더 직전에 배치
+  - [x] 시장 anchor 라인이 4-컬럼 markdown 표 (`| 종목 | 종가 | 변동 | 비고 |`) 로 렌더 — 우선순위 ranking 은 u49 와 동일, 최대 5행
+  - [x] §②/③/④/⑥ 의 sub-heading 이 `### Title` (H3) 로 작성됨; 기존 `**Title** — body` 패턴 부재
+  - [x] 본문 prose 의 숫자 토큰 (`[+-]?\d+\.\d+%`, `\$[\d,]+(?:\.\d+)?`, `\d+\.\d+%`) 이 `**...**` 로 wrap; 표 cell / 코드 블록 / 링크 URL 내부 미적용; 이미 wrap 된 토큰 idempotent
+  - [x] §⑥ bullet 의 관찰형 종결 어미 비율 ≤ 40% 검증 (위반 시 publisher WARN 로그 + segment / ratio / count 구조화 extra; *blocking 아님* — generation 변동성 흡수)
+  - [x] 같은 segment 내 같은 base 용어의 글로싱 (`base(풀어쓰기)`) 은 첫 1회만 풀어쓰기 표기; 2번째 이후 출현은 `base` 만 남김 (u40 의 `> **용어 가이드**` callout 은 그대로 유지)
+  - [x] 면책조항 (NFR-004 R5) 은 reader-format chain 후에도 verbatim 보존; `publisher.verify_disclaimer` 가 chain 다음 단계에서 정상 통과
 - **Priority**: Should-have (reader UX KPI — NFR-001 reliability/quality 보강)
 
 ### FR-010: Source-Status Severity & Quality KPI Truthfulness (u54 source-status-severity-and-quality-kpi)
@@ -176,19 +176,19 @@
 - **Description**: 고중요도 매크로 이벤트를 일정 row 가 아니라 source-backed event object 로 승격한다. (1) CPI/PPI/NFP/PCE/GDP/FOMC 등 핵심 매크로 이벤트는 `macro_event_key`, `macro_event_status`, `macro_priority`, `release_period`, actual/prior/forecast/surprise 필드를 primitive-safe metadata 또는 typed `MacroPrint` 로 보유한다. (2) Stage 1 후보 선별 전 결정론적 priority scoring 을 수행해 P0/P1 macro 이벤트를 generic news/lookahead cap 보다 먼저 bounded reserve 한다. (3) P0 actual 은 `required_macro_actuals` 계약으로 Stage 1 `unassigned` 및 Stage 2 prompt cap 에서 보호되고, post-generation validator 가 최종 markdown 언급/출처를 확인한다. (4) macro actual source health 는 price/news core 와 분리된 severity 축으로 계산되며, macro claim 이 있는데 actual source 가 missing/zero/failed/stale 이면 `limited` 이상으로 downgrade 한다. (5) operator-only lineage artifact 가 source collection → segment routing → Stage 1 candidate → classification → Stage 2 prompt → final body 의 drop 지점을 진단한다. (6) release-day unresolved macro 이벤트는 `scheduled / unresolved / confirmed / stale` lifecycle 로 carryover 된다.
 - **User Story**: As a 시황 reader / 운영자, I want PPI 같은 핵심 매크로 발표가 일정에만 잡히고 실제 발표치/우선순위/최종 본문에서 누락되는 일이 없기를, so that 시장을 움직인 공식 macro actual 이 시황의 중심 사건으로 반영되고 누락 시 원인을 즉시 추적할 수 있도록.
 - **Acceptance Criteria**:
-  - [ ] Macro metadata contract: schedule/actual items carry event key, label, status, priority, release period, and source identity with primitive-safe values.
-  - [ ] PPI schedule identity: `fred-economic-calendar` release id `46` fixture/test pins scheduled date, label, source, and `us-equity` routing.
-  - [ ] PPI actual source path: `fred-macro` or approved official actual adapter emits PPI actual/prior/observation date/source URL without secret leakage.
-  - [ ] Forecast discipline: "예상치 상회/하회" wording is forbidden unless an approved forecast/consensus field is present.
-  - [ ] Priority-aware selection: `_select_llm_candidate_items(items, target_date=...)` reserves bounded P0/P1 macro events before generic caps while preserving existing crypto-policy priority behavior.
-  - [ ] Required macro Stage 1/Stage 2 contract: P0 actuals cannot be omitted, classified `unassigned`, or dropped by Stage 2 caps without retry/fail/downgrade.
-  - [ ] Post-generation validation: final markdown is checked for required macro label/event/source mention; omission emits `MACRO_REQUIRED_OMITTED`.
-  - [ ] Macro severity: `MACRO_ACTUAL_MISSING`, `MACRO_ACTUAL_ZERO`, `MACRO_ACTUAL_FAILED`, `MACRO_ACTUAL_STALE`, `MACRO_FORECAST_UNVERIFIED` reason codes feed coverage and quality diagnostics.
-  - [ ] Lineage: `archive/_meta/run_traces/{target_date}/{segment}.json` diagnoses `missing_at_source`, `dropped_by_segment_routing`, `dropped_by_stage1_candidate_cap`, `dropped_by_stage1_classification`, `dropped_by_stage2_prompt_cap`, `llm_omitted`, or `published`.
-  - [ ] Carryover lifecycle: macro events persist as `scheduled / unresolved / confirmed / stale` and can carry release-day unresolved events into the next run.
-	  - [ ] Quality KPI: `macro_actual_missing_segments` and `required_macro_omitted` are available to operator diagnostics or quality history.
-	  - [ ] R10 fixtures and R13 secret hygiene cover new macro schedule/actual/lineage surfaces.
-	- **Priority**: Must-have (FR-001/FR-002/FR-008 신뢰성 보강 — official macro actual 과 priority 를 놓치지 않는 시황 중심성 회복).
+  - [x] Macro metadata contract: schedule/actual items carry event key, label, status, priority, release period, and source identity with primitive-safe values.
+  - [x] PPI schedule identity: `fred-economic-calendar` release id `46` fixture/test pins scheduled date, label, source, and `us-equity` routing.
+  - [x] PPI actual source path: `fred-macro` or approved official actual adapter emits PPI actual/prior/observation date/source URL without secret leakage.
+  - [x] Forecast discipline: "예상치 상회/하회" wording is forbidden unless an approved forecast/consensus field is present.
+  - [x] Priority-aware selection: `_select_llm_candidate_items(items, target_date=...)` reserves bounded P0/P1 macro events before generic caps while preserving existing crypto-policy priority behavior.
+  - [x] Required macro Stage 1/Stage 2 contract: P0 actuals cannot be omitted, classified `unassigned`, or dropped by Stage 2 caps without retry/fail/downgrade.
+  - [x] Post-generation validation: final markdown is checked for required macro label/event/source mention; omission emits `MACRO_REQUIRED_OMITTED`.
+  - [x] Macro severity: `MACRO_ACTUAL_MISSING`, `MACRO_ACTUAL_ZERO`, `MACRO_ACTUAL_FAILED`, `MACRO_ACTUAL_STALE`, `MACRO_FORECAST_UNVERIFIED` reason codes feed coverage and quality diagnostics.
+  - [x] Lineage: `archive/_meta/run_traces/{target_date}/{segment}.json` diagnoses `missing_at_source`, `dropped_by_segment_routing`, `dropped_by_stage1_candidate_cap`, `dropped_by_stage1_classification`, `dropped_by_stage2_prompt_cap`, `llm_omitted`, or `published`.
+  - [x] Carryover lifecycle: macro events persist as `scheduled / unresolved / confirmed / stale` and can carry release-day unresolved events into the next run.
+  - [x] Quality KPI: `macro_actual_missing_segments` and `required_macro_omitted` are available to operator diagnostics or quality history.
+  - [x] R10 fixtures and R13 secret hygiene cover new macro schedule/actual/lineage surfaces.
+- **Priority**: Must-have (FR-001/FR-002/FR-008 신뢰성 보강 — official macro actual 과 priority 를 놓치지 않는 시황 중심성 회복).
 
 ### FR-015: Shared macro evidence hardening (u60 shared-macro-evidence-hardening)
 - **Description**: `## ⓪ 오늘의 매크로` shared macro block 의 evidence selection 을 source-backed deterministic contract 로 강화한다. (1) UST/oil/FOMC shared macro matcher 는 title substring 만으로 evidence 를 확정하지 않고 key-specific predicate 로 검증한다. (2) `UST` 는 ASCII word-boundary + rate/yield/curve/tenor context 가 있어야 하며, `customers` / `trust` / `custody` / `dust` 같은 substring false positive 는 거부한다. (3) representative evidence 는 first-match order 가 아니라 source/category/title specificity rank 로 선택한다. (4) `ust_yield` reader-facing shared macro 는 valid UST candidate 가 2개 이상 routed segment 에 있고, 그중 최소 1개가 canonical U.S. rates source (`treasury-rates` 또는 `fred-macro`) 일 때만 생성된다. (5) `fred-macro` 는 ranking positive evidence 일 뿐 crypto fan-out 이나 routing 변경을 만들지 않는다. (6) false-positive 후보 또는 non-canonical-only UST 후보만 두 segment 이상에 있어도 `shared_macro_block` 은 생성되지 않는다. (7) reader-facing layout 과 injection idempotency 는 u57 behavior 를 유지한다.
@@ -207,15 +207,87 @@
   - [x] R13 secret hygiene — matcher/ranking diagnostics (`candidate_accepted`, `candidate_rejected`, `key_suppressed`, `representative_selected`) 는 raw_metadata 를 로깅하지 않고 title preview 도 bounded length 로 제한한다.
 - **Priority**: Must-have (FR-008/u57 회귀 방지 — deterministic shared macro evidence 가 독자 신뢰의 첫 화면 표면에 직접 노출됨).
 
+### FR-016: Watchlist relevance and impact center (u18/u28/u33/u73/u111)
+- **Description**: 운영자가 비밀이 아닌 설정으로 관심 자산을 정의하면, 파이프라인이 세그먼트별 소스/본문/알림에서 관련성을 결정론적으로 매칭하고 독자에게 직접 관련 영향만 공개한다. 직접/연관/불확실/거절 매칭을 분리하고, 공개 표면과 진단 표면을 나눠 watchlist 영향이 과장되거나 원시 matcher 사유가 노출되지 않도록 한다.
+- **User Story**: As a 본인, I want 내가 관심 있는 종목/자산이 그날 시황에서 어떤 영향을 받는지 별도 표면으로 확인하기를, so that 전체 시황을 읽기 전에 내 관심 대상과 직접 관련된 이슈를 빠르게 파악할 수 있도록.
+- **Acceptance Criteria**:
+  - [x] 비밀값이 아닌 watchlist 설정을 로드하고, 자산 alias/ticker 기반 매칭을 결정론적으로 수행한다.
+  - [x] 세그먼트 본문 first-viewport, Telegram 요약, watchlist daily/index 페이지가 관심 자산 영향 요약을 노출한다.
+  - [x] 매칭 결과는 Direct / Related / Uncertain / Rejected 계층으로 분리되며, 공개 카운트와 본문에는 Direct/Related 중심의 reader-safe 결과만 반영한다.
+  - [x] Uncertain/Rejected 및 matcher reason code 는 R13-safe collapsed diagnostics 로 제한하고 공개 Telegram 메시지에는 노출하지 않는다.
+  - [x] watchlist public projection 은 `[alias:...]`, `[boundary-term]`, source registry reason 같은 내부 matcher 사유를 독자 표면에서 제거한다.
+  - [x] watchlist 페이지 생성은 archive/site publish 경로와 함께 원자적으로 처리되고, 실패 시 공개 시황 본문과 불일치하지 않는다.
+- **Priority**: Should-have (reader relevance/product utility 확장)
+
+### FR-017: Public quality, source traceability, and consistency dashboard (u22/u32/u54/u69/u96/u123)
+- **Description**: 시황 독자와 운영자가 데이터 수집 상태, 출처 사용, 수치 검증, 품질 KPI 를 공개 표면에서 일관되게 확인할 수 있도록 품질/출처/추적성 대시보드와 publish-time consistency gate 를 제공한다. 내부 진단은 보존하되 reader-facing 문구는 안전하게 투영한다.
+- **User Story**: As a 시황 reader / 운영자, I want 각 시황과 품질 페이지가 실제 수집·출처·본문 사용 상태를 일관되게 보여주기를, so that 데이터 부족이나 품질 저하를 숨긴 브리핑으로 오판하지 않도록.
+- **Acceptance Criteria**:
+  - [x] 각 run 은 source outcome, segment coverage, quality snapshot, quality history 를 append-only 또는 canonical artifact 로 남긴다.
+  - [x] `site_docs/quality.md` 와 `site_docs/accuracy.md` 는 최근 품질 KPI, 실패/0건/제한 상태, 예측 정확도 또는 검증 지표를 공개한다.
+  - [x] trace footer 또는 collapsed diagnostics 는 사용/제외/실패 소스를 redaction chokepoint 를 거쳐 표시한다.
+  - [x] 품질 페이지, 세그먼트 markdown, index label, `quality_history.jsonl` 사이의 상태 불일치는 publish boundary 에서 차단하거나 명시적으로 진단한다.
+  - [x] 본문에서 실제 사용된 known-source 링크와 verified figure 는 quality accounting 에 반영되어 `본문 사용 미집계/0` 같은 과소계상을 방지한다.
+  - [x] reader-facing 품질 문구는 내부 reason code 를 그대로 노출하지 않고 public-quality projection 을 통해 안전한 표현으로 렌더한다.
+- **Priority**: Should-have (trust/operability surface)
+
+### FR-018: Visual briefing assets, charts, and provenance (u19/u24/u26/u50/u75/u86)
+- **Description**: 브리핑은 텍스트만이 아니라 deterministic visual card, chart placeholder/sidecar, OG card, curated context asset 을 함께 생성·게시한다. 모든 시각 자산은 archive-relative 경로와 provenance/validation 계약을 가지며, 외부 이미지 또는 AI 이미지 정책은 비용·권리·보안 제약을 따른다.
+- **User Story**: As a 시황 reader, I want 핵심 데이터와 관심 자산 흐름을 카드/차트/이미지로 빠르게 훑어보기를, so that 긴 본문을 읽기 전에도 시장 상태를 시각적으로 파악할 수 있도록.
+- **Acceptance Criteria**:
+  - [x] 데이터 신뢰도, 시장 스냅샷, 가격 스냅샷, watchlist relevance 등 deterministic SVG visual card 를 생성하고 세그먼트 markdown 에 상대 경로로 삽입한다.
+  - [x] visual asset 은 archive 파일과 함께 stage 되며, asset path/provenance sidecar/dimension validation 이 publish 경로에서 검증된다.
+  - [x] 외부 이미지 스크래핑은 기본 비활성화되고, curated local context asset 과 정책 파일을 통해 권리/출처/런타임 비용을 통제한다.
+  - [x] chart history 는 inline 대용량 HTML 속성이 아니라 archive-local JSON sidecar 로 외부화하고, 독자가 expand 할 때 lazy-load 한다.
+  - [x] chart/visual sidecar 는 deterministic schema, stable key order, target-date provenance, no-secret payload 를 유지한다.
+  - [x] visual 생성 실패 또는 text-only fallback 시에도 시황 본문 publish 는 깨지지 않고 진단 가능한 상태를 남긴다.
+- **Priority**: Should-have (reader UX + visual trust)
+
+### FR-019: Archive discovery, periodic retrospectives, and forecast accuracy (u16/u20/u29/u34/u58)
+- **Description**: 공개 사이트는 최신 시황만 보여주는 것이 아니라 세그먼트별 archive, weekly/monthly retrospective, calendar/search/navigation, forecast/accuracy surface 를 제공한다. 과거 시황과 예측 기록은 독자가 시장 흐름을 회고하고 품질을 추적할 수 있는 탐색 표면으로 유지된다.
+- **User Story**: As a 시황 reader, I want 일별/주별/월별 시황과 예측 정확도를 웹에서 탐색하기를, so that 특정 시점의 판단과 이후 결과를 비교해 볼 수 있도록.
+- **Acceptance Criteria**:
+  - [x] Home/About/Archive navigation 은 segmented product 를 기준으로 최신 domestic/us/crypto 링크와 과거 archive 접근 경로를 제공한다.
+  - [x] 날짜/연도/세그먼트별 archive index 와 검색 기능을 통해 과거 브리핑을 탐색할 수 있다.
+  - [x] weekly digest 와 monthly index 는 기존 archive 를 바탕으로 주차별/월간 회고 페이지를 생성한다.
+  - [x] forecast log 는 예측 또는 관전 포인트의 후속 결과를 기록하고 accuracy dashboard 에 반영한다.
+  - [x] archive path normalization 은 legacy 단일 브리핑과 신규 segmented briefing 경로를 모두 안전하게 처리한다.
+  - [x] archive/site index 갱신은 publish transaction 과 함께 처리되어 latest/index/quality/watchlist/retrospective 표면이 같은 run 기준으로 맞춰진다.
+- **Priority**: Should-have (public discovery + retrospective utility)
+
+### FR-020: Event lookahead, recent-context, and unresolved carryover (u34/u35/u43/u52/u59)
+- **Description**: 파이프라인은 당일 수집 결과만 사용하지 않고 임박 이벤트, 최근 브리핑 맥락, unresolved carryover 를 세그먼트별로 전달한다. 예정/미해결/확정/stale 상태를 구분해 같은 이벤트가 누락되거나 반복 과장되지 않도록 한다.
+- **User Story**: As a 시황 reader, I want 오늘 끝난 이슈뿐 아니라 곧 다가올 이벤트와 전일 미해결 이슈의 이어짐을 보기를, so that 시장 흐름을 단절된 하루 단위가 아니라 연속된 맥락으로 이해할 수 있도록.
+- **Acceptance Criteria**:
+  - [x] lookahead item 은 forward-filter chokepoint 를 거쳐 세그먼트별 summary/Telegram context 에 전달된다.
+  - [x] lookahead context 는 `now_utc` 와 함께 공급되어 임박 이벤트 태그가 시간 기준 없이 렌더되지 않는다.
+  - [x] carryover model 은 topic/status/event type 을 검증하고, 세그먼트별로 isolated 되어 다른 시장의 미해결 이슈를 오염시키지 않는다.
+  - [x] same-day rerun 에서 carryover block injection 은 idempotent 하게 동작한다.
+  - [x] macro event lifecycle 은 `scheduled / unresolved / confirmed / stale` 상태로 이어지며 release-day unresolved event 를 다음 run 으로 carryover 할 수 있다.
+  - [x] 데이터가 없는 lookahead/carryover 는 본문에 허위 이벤트를 만들지 않고 missing reason 또는 empty omission 으로 처리한다.
+- **Priority**: Should-have (narrative continuity)
+
+### FR-021: Operator observability, dry-run, retry budget, and operational digest (u17/u23/u31/u92)
+- **Description**: 운영자는 cron/publish/notification/source-health 상태를 공개 독자 채널과 분리된 운영 표면에서 확인하고, dry-run 과 bounded retry 로 장애 대응을 할 수 있어야 한다. 알림은 중복/스팸을 줄이고 실패 원인을 추적 가능한 메시지와 artifact 로 남긴다.
+- **User Story**: As a 운영자, I want 소스 상태, 알림 실패, retry 소진, dry-run 결과, 주간 운영 요약을 별도 운영 채널에서 확인하기를, so that 공개 독자에게 노이즈를 주지 않고 파이프라인 문제를 빠르게 진단할 수 있도록.
+- **Acceptance Criteria**:
+  - [x] source health 와 coverage history 는 run 별 성공/실패/0건/제한 상태를 기록하고 품질 KPI 또는 운영 진단에 사용된다.
+  - [x] Telegram/public notification 은 bounded retry budget 을 사용하며 429 retry-after 를 존중하고 전역 retry budget 소진 시 중단한다.
+  - [x] dry-run mode 는 공개 채널 발송과 boot/operator alert 를 실제 전송하지 않고, 운영자가 dry-run 상태를 식별할 수 있게 한다.
+  - [x] boot alert dedup 은 같은 설정/부팅 문제로 반복 호출될 때 운영자 알림 스팸을 줄인다.
+  - [x] weekly ops digest 는 최근 run/source/quality 상태를 운영자에게 요약한다.
+  - [x] 운영자 알림 payload 와 로그는 secret-shaped substring 을 redaction chokepoint 로 보호하고 공개 채널과 분리한다.
+- **Priority**: Should-have (operator reliability)
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.
 - **Acceptance Criteria**:
-  - [ ] 파이프라인 실패 시 운영자 텔레그램 1:1 chat 알림 (`TELEGRAM_OPERATOR_CHAT_ID` 시크릿)
-  - [ ] GitHub Actions의 기본 실패 알림(이메일/배너)도 함께 활용
-  - [ ] 실패 사유(어느 단계? 어떤 에러? stack trace 요약) 메시지에 포함
-  - [ ] 공개 시황 채널(FR-004)에는 실패 메시지 발송 금지
-  - [ ] 알림 자체 실패 시 재시도 후 GitHub Actions 로그에라도 명시적으로 마킹
+  - [x] 파이프라인 실패 시 운영자 텔레그램 1:1 chat 알림 (`TELEGRAM_OPERATOR_CHAT_ID` 시크릿)
+  - [x] GitHub Actions의 기본 실패 알림(이메일/배너)도 함께 활용
+  - [x] 실패 사유(어느 단계? 어떤 에러? stack trace 요약) 메시지에 포함
+  - [x] 공개 시황 채널(FR-004)에는 실패 메시지 발송 금지
+  - [x] 알림 자체 실패 시 재시도 후 GitHub Actions 로그에라도 명시적으로 마킹
 - **Priority**: Should-have
 
 ## 3. Non-Functional Requirements
