@@ -66,7 +66,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, parse_rfc822_to_utc
-from investo.sources._feed_media import extract_feed_image
+from investo.sources._feed_media import extract_feed_image, image_metadata
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -168,20 +168,11 @@ class YonhapMarketAdapter:
 
         # u136 Contract #3 — first <media:content> image reference per
         # item, metadata only. Absent field = absent key (never None /
-        # empty). Contract #4: NO license-family keys (image_license /
-        # image_attribution / image_author / image_allowed_use or
-        # visual_image_* synonyms) may ever be emitted here.
+        # empty). Contract #4 (no license-family keys) is enforced by
+        # the shared image_metadata mapper.
         image = extract_feed_image(entry)
         if image is not None:
-            raw_metadata["image_url"] = image.url
-            if image.width is not None:
-                raw_metadata["image_width"] = image.width
-            if image.height is not None:
-                raw_metadata["image_height"] = image.height
-            if image.mime is not None:
-                raw_metadata["image_mime"] = image.mime
-            if image.credit is not None:
-                raw_metadata["image_credit"] = image.credit
+            raw_metadata.update(image_metadata(image))
 
         try:
             return NormalizedItem(

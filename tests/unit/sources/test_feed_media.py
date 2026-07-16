@@ -1,4 +1,4 @@
-"""Unit tests for ``investo.sources._feed_media.extract_feed_image``.
+"""Unit tests for ``investo.sources._feed_media``.
 
 Pins u136 Fixed Contract #2 (Step 1 matrix): media:content only /
 media:thumbnail only / both present (content wins) / multiple images
@@ -6,6 +6,11 @@ media:thumbnail only / both present (content wins) / multiple images
 width·height / credit cap / non-image media:content (mime=video)
 skipped. Sample fragments mirror the three verified live feeds
 (2026-07-17 probe): Yonhap 마켓+, Yahoo Finance rssindex, The Block.
+
+Step 3 additions: the extension-less zenfs-CDN shape (no ``type`` attr,
+image evidence = positive width+height pair — ratified divergence, see
+the ``_feed_media`` module docstring) and the :func:`image_metadata`
+Contract #3 key mapper.
 
 XML fragments are parsed via ``defusedxml`` (never stdlib ElementTree
 — NFR-007 AC-7.6); the parsed element is typed ``Any`` for the same
@@ -18,7 +23,7 @@ from typing import Any
 
 from defusedxml.ElementTree import fromstring
 
-from investo.sources._feed_media import FeedImageRef, extract_feed_image
+from investo.sources._feed_media import FeedImageRef, extract_feed_image, image_metadata
 
 _MRSS = "http://search.yahoo.com/mrss/"
 
@@ -149,6 +154,31 @@ def test_typeless_content_without_image_extension_rejected() -> None:
     assert extract_feed_image(item) is None
 
 
+def test_typeless_extensionless_content_with_dimensions_accepted() -> None:
+    # Yahoo Finance zenfs shape: extension-less content-hash URL, no
+    # `type` attr — the positive width+height pair is the image
+    # evidence (2026-07-16 live recording).
+    item = _item(
+        '<media:content height="86" url="https://media.zenfs.com/en/reuters.com/9a576b76"'
+        ' width="130"/>'
+    )
+    assert extract_feed_image(item) == FeedImageRef(
+        url="https://media.zenfs.com/en/reuters.com/9a576b76",
+        width=130,
+        height=86,
+        mime=None,
+        credit=None,
+    )
+
+
+def test_typeless_extensionless_content_with_partial_dimensions_rejected() -> None:
+    # Width alone (or a non-positive pair) is not image evidence.
+    item = _item('<media:content url="https://cdn.example.com/hash" width="130"/>')
+    assert extract_feed_image(item) is None
+    item = _item('<media:content url="https://cdn.example.com/hash" width="130" height="0"/>')
+    assert extract_feed_image(item) is None
+
+
 def test_extension_check_ignores_query_string() -> None:
     # urlparse strips the query before the suffix test.
     item = _item('<media:content url="https://cdn.example.com/pic.jpg?w=1200&amp;q=80"/>')
@@ -261,3 +291,53 @@ def test_whitespace_only_credit_becomes_none() -> None:
     ref = extract_feed_image(item)
     assert ref is not None
     assert ref.credit is None
+
+
+# --- image_metadata — Contract #3 key mapper ---------------------------------
+
+
+def test_image_metadata_full_ref_emits_all_five_keys() -> None:
+    ref = FeedImageRef(
+        url="https://cdn.example.com/pic.jpg",
+        width=800,
+        height=450,
+        mime="image/jpeg",
+        credit="Reuters",
+    )
+    assert image_metadata(ref) == {
+        "image_url": "https://cdn.example.com/pic.jpg",
+        "image_width": 800,
+        "image_height": 450,
+        "image_mime": "image/jpeg",
+        "image_credit": "Reuters",
+    }
+
+
+def test_image_metadata_minimal_ref_emits_only_image_url() -> None:
+    # Absent field = absent key — never None / empty values (R8).
+    ref = FeedImageRef(
+        url="https://cdn.example.com/pic.jpg",
+        width=None,
+        height=None,
+        mime=None,
+        credit=None,
+    )
+    assert image_metadata(ref) == {"image_url": "https://cdn.example.com/pic.jpg"}
+
+
+def test_image_metadata_never_emits_license_family_keys() -> None:
+    # Contract #4 safety invariant at the mapper level: whatever the
+    # ref carries, only image_* presentation keys come out — no
+    # license / attribution / author / allowed_use (or visual_image_*)
+    # keys that could arm the dormant external-image fetch path.
+    ref = FeedImageRef(
+        url="https://cdn.example.com/pic.jpg",
+        width=1,
+        height=1,
+        mime="image/png",
+        credit="AFP",
+    )
+    keys = set(image_metadata(ref).keys())
+    assert keys == {"image_url", "image_width", "image_height", "image_mime", "image_credit"}
+    assert not any(key.startswith("visual_image_") for key in keys)
+    assert not keys & {"image_license", "image_attribution", "image_author", "image_allowed_use"}

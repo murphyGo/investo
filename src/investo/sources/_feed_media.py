@@ -2,10 +2,11 @@
 
 Implements u136 Fixed Contract #2
 (``aidlc-docs/construction/plans/u136-feed-image-metadata-harvest-code-generation-plan.md``):
-a pure function that pulls the FIRST usable image reference out of an
-already-parsed feed ``<item>`` element, so adapters can surface it as
-``raw_metadata`` image keys without any new HTTP request or binary
-download (those are u137 scope).
+pure functions that pull the FIRST usable image reference out of an
+already-parsed feed ``<item>`` element (:func:`extract_feed_image`) and
+map it to the Contract #3 ``raw_metadata`` keys (:func:`image_metadata`),
+so adapters can surface image candidates without any new HTTP request
+or binary download (those are u137 scope).
 
 Design choices (2026-07-17 live-probe facts in the u136 plan):
 
@@ -15,10 +16,17 @@ Design choices (2026-07-17 live-probe facts in the u136 plan):
   wins and only the first accepted candidate is returned.
 * **``<media:content>`` must be image-shaped** — accepted when its
   ``type`` attribute is an ``image/*`` mime, OR the ``type`` attribute
-  is absent and the URL path carries a known image file extension.
-  Non-image mimes (``video/mp4`` etc.) are skipped so the fallback can
-  still find a thumbnail. ``<media:thumbnail>`` is an image by Media
-  RSS definition and needs no mime gate.
+  is absent and the URL path carries a known image file extension, OR
+  the ``type`` attribute is absent and the element carries positive
+  integer ``width`` + ``height`` attributes (Yahoo Finance's zenfs CDN
+  URLs are extension-less content hashes with no ``type`` — verified
+  against the 2026-07-16 live recording; the dimension pair is the
+  image evidence there. Divergence from the u136 plan's
+  mime-or-extension wording ratified at Step 3 implementation time,
+  same precedent as the L6.5 pubDate-format divergence). Non-image
+  mimes (``video/mp4`` etc.) are skipped so the fallback can still
+  find a thumbnail. ``<media:thumbnail>`` is an image by Media RSS
+  definition and needs no mime gate.
 * **Safe degrade, never raise** — malformed candidates (missing/empty
   ``url``, non-http(s) scheme, URL longer than the 1000-char cap) are
   skipped; non-integer ``width``/``height`` degrade to ``None`` without
@@ -96,7 +104,9 @@ def _is_image_content(content: Any) -> bool:
 
     Image mime in ``type`` → yes. Non-image mime → no (video/audio
     enclosures must not shadow a usable thumbnail). Absent/empty
-    ``type`` → fall back to the URL file-extension test.
+    ``type`` → fall back to the URL file-extension test, then to the
+    positive-``width``+``height`` dimension pair (extension-less
+    zenfs-style CDN URLs — see module docstring).
     """
 
     mime = (content.get("type") or "").strip()
@@ -106,7 +116,12 @@ def _is_image_content(content: Any) -> bool:
     if not url:
         return False
     suffix = PurePosixPath(urlparse(url).path).suffix.lower()
-    return suffix in _IMAGE_EXTENSIONS
+    if suffix in _IMAGE_EXTENSIONS:
+        return True
+    return (
+        _parse_dimension(content.get("width")) is not None
+        and _parse_dimension(content.get("height")) is not None
+    )
 
 
 def _ref_from_element(elem: Any, item: Any) -> FeedImageRef | None:
@@ -143,6 +158,35 @@ def _parse_dimension(raw: str | None) -> int | None:
         return None
     # A zero/negative dimension is feed noise, not usable metadata.
     return value if value > 0 else None
+
+
+def image_metadata(ref: FeedImageRef) -> dict[str, str | int]:
+    """Map a :class:`FeedImageRef` to the u136 Contract #3 keys.
+
+    ``image_url`` is always present; ``image_width`` / ``image_height``
+    / ``image_mime`` / ``image_credit`` appear only when the field is
+    set — absent field = absent key, never ``None`` / empty (R8:
+    flat strings/ints only). Adapters merge the result into their
+    ``raw_metadata`` bag via ``dict.update``.
+
+    Contract #4 (safety invariant): this is the ONLY place adapters
+    derive image keys from, and it never emits license-family keys
+    (``image_license`` / ``image_attribution`` / ``image_author`` /
+    ``image_allowed_use`` or ``visual_image_*`` synonyms) — so the
+    dormant ``visuals/external_image`` fetch path can never trigger
+    off harvested feed metadata.
+    """
+
+    metadata: dict[str, str | int] = {"image_url": ref.url}
+    if ref.width is not None:
+        metadata["image_width"] = ref.width
+    if ref.height is not None:
+        metadata["image_height"] = ref.height
+    if ref.mime is not None:
+        metadata["image_mime"] = ref.mime
+    if ref.credit is not None:
+        metadata["image_credit"] = ref.credit
+    return metadata
 
 
 def _extract_credit(elem: Any, item: Any) -> str | None:

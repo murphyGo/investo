@@ -1,11 +1,14 @@
 {
-  "_recorded_at": "2026-05-01T11:03:14Z",
+  "_recorded_at": "2026-07-16T15:59:50Z",
   "_recorded_url": "https://finance.yahoo.com/news/rssindex",
-  "_note": "One-off recording for u1 sources Extension #2 (FD L6.5). Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md. Yahoo's rssindex feed has no <description> element on items (per FD L6.5: summary=None on emitted NormalizedItem); <pubDate> is ISO 8601 with Z suffix on items (channel-level pubDate uses RFC 822 form, but channel pubDate is not consumed). <source> element carries the originating outlet (e.g. \"Reuters\", \"Barchart\"), captured into raw_metadata.rss_source.",
+  "_note": "Re-recorded for u136 Step 3 (feed-image-metadata-harvest); original u1 Extension #2 recording was 2026-05-01. Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md. Yahoo's rssindex feed has no <description> element on items (per FD L6.5: summary=None on emitted NormalizedItem); <pubDate> is ISO 8601 with Z suffix on items (channel-level pubDate uses RFC 822 form, but channel pubDate is not consumed). <source> element carries the originating outlet (e.g. \"Reuters\", \"Barchart\"), captured into raw_metadata.rss_source. u136: all 48 items carry a <media:content url=… width=\"130\" height=\"86\"> thumbnail on the zenfs CDN — the URLs are extension-less content hashes and the elements have NO type attr, so the shared extract_feed_image helper accepts them via the positive width+height dimension pair; the adapter harvests image_url/image_width/image_height into raw_metadata. Every <media:credit role=\"publishing company\"> element in this recording is EMPTY (self-closing, no text), so image_credit is absent on all replayed items — the credit→image_credit mapping is pinned by synthetic XML in the adapter test instead. Recorded with the same browser UA the production adapter sends (Yahoo requires it).",
   "status": 200,
   "format": "RSS 2.0",
-  "size_bytes": 24767,
+  "size_bytes": 30325,
+  "encoding": "utf-8",
+  "items_in_recording": 48,
+  "items_with_media_content": 48,
   "headers": {
-    "content-type": "application/rss+xml"
+    "content-type": "application/xml"
   }
 }

@@ -25,6 +25,19 @@ Design choices (audit log 2026-05-01T04:00:00Z):
 * **<source> element** is OPTIONAL — some items omit it (Yahoo allows
   internally-authored stories without a syndication source). Adapter
   defaults ``rss_source=""`` rather than dropping the entry.
+* **``<media:content>`` harvested as image metadata** (u136, 2026-07-17)
+  — items carry ``<media:content url=… width=… height=…>`` thumbnails
+  on the zenfs CDN (extension-less content-hash URLs, no ``type``
+  attr; the positive width+height pair is the image evidence the
+  shared helper keys on). The
+  :func:`investo.sources._feed_media.extract_feed_image` helper pulls
+  the FIRST image per item into ``raw_metadata`` under the u136
+  Contract #3 keys (``image_url`` / ``image_width`` / ``image_height``;
+  ``image_credit`` only when ``<media:credit>`` carries text — in the
+  2026-07-16 recording every ``<media:credit role="publishing
+  company">`` element is EMPTY, so the key is absent; the outlet name
+  lives in ``rss_source`` instead). Metadata only: no binary fetch
+  (u137) and NO license-family keys (Contract #4).
 
 u47 (added 2026-05-10 — content filter): the rssindex feed mixes
 generic personal-finance product-comparison headlines (CD rates / HELOC
@@ -57,6 +70,7 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.sources._feed_media import extract_feed_image, image_metadata
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -267,10 +281,18 @@ class YahooFinanceNewsAdapter:
         if source_elem is not None and source_elem.text:
             rss_source = source_elem.text.strip()
 
-        raw_metadata: dict[str, str] = {
+        raw_metadata: dict[str, str | int] = {
             "guid": guid,
             "rss_source": rss_source,
         }
+
+        # u136 Contract #3 — first <media:content> image reference per
+        # item, metadata only. Absent field = absent key (never None /
+        # empty). Contract #4 (no license-family keys) is enforced by
+        # the shared image_metadata mapper.
+        image = extract_feed_image(entry)
+        if image is not None:
+            raw_metadata.update(image_metadata(image))
 
         try:
             return NormalizedItem(

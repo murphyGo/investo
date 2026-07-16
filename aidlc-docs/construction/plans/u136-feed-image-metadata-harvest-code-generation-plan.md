@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u136 feed-image-metadata-harvest
 **Stage**: Code Generation
-**Status**: In Progress (2/5)
+**Status**: In Progress (3/5)
 **Source**: 2026-07-17 user feature request — 시황 비주얼을 SVG 카드 중심에서 "실제 뉴스/칼럼/커뮤니티 이미지 활용"으로 확장. 1단계는 **이미지 수집 + 이미지 메타데이터**. u136은 그 첫 슬라이스: 이미 수집 중인 뉴스 피드 payload 안의 이미지 참조를 메타데이터로 채집한다.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -88,9 +88,10 @@ Out of scope (명시적 non-goal):
 - [x] R10 라이브 픽스처 재녹화(success에 media:content 포함) + empty/malformed 경로 유지.
 - **Acceptance**: 픽스처 replay에서 이미지 보유 item의 raw_metadata에 5개 키가 정확히 존재하고, 이미지 없는 item에는 키가 없다.
 
-### Step 3 — `yahoo-finance-news` + `theblock-crypto` 확장 `[ ]`
-- [ ] 동일 배선. yahoo는 `media:credit` → `image_credit` 매핑 포함, theblock은 thumbnail 경로 검증.
-- [ ] 각 어댑터 R10 픽스처 재녹화.
+### Step 3 — `yahoo-finance-news` + `theblock-crypto` 확장 `[x]`
+- [x] 동일 배선. yahoo는 `media:credit` → `image_credit` 매핑 포함, theblock은 thumbnail 경로 검증.
+- [x] 각 어댑터 R10 픽스처 재녹화.
+- 구현 시 계약 #2 확장(2026-07-17 ratified): yahoo zenfs CDN은 type·확장자 모두 부재 → `_is_image_content`에 "type 부재 + 양의 정수 width+height 쌍" 수용 경로 추가. 라이브 야후 recording의 `media:credit`은 전부 빈 요소 → `image_credit` 부재(합성 XML로 매핑 자체는 고정). audit.md 기록 필요.
 - **Acceptance**: Step 2와 동일 기준 ×2. 기존 어댑터 테스트(제목/요약/URL/published_at) 전부 그린 유지.
 
 ### Step 4 — 라이선스 키 비오염 회귀 테스트 `[ ]`

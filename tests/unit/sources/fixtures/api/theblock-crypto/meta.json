@@ -1,12 +1,13 @@
 {
-  "_recorded_at": "2026-05-01T14:35:20Z",
+  "_recorded_at": "2026-07-16T16:05:10Z",
   "_recorded_url": "https://www.theblock.co/rss.xml",
-  "_note": "One-off recording for u1 sources Extension #3 Step 2 (FD L6.8). Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md. The Block crypto feed is RSS 2.0 (UTF-8 declared); <pubDate> is RFC 822 with -0400 (US/Eastern EDT) offset; titles are plain text (no CDATA), descriptions are CDATA-wrapped HTML. Every item's <link> ends with '?utm_source=rss&utm_medium=rss' tracking parameters which the adapter strips via the per-adapter _strip_tracking_params helper before storing the canonical URL on NormalizedItem.url (the original tracked URL is NOT preserved anywhere — single source of truth, per FD L6.8). Items expose <dc:creator> (Dublin Core namespace) and multiple <category> elements (CDATA-wrapped) per item; both surface under raw_metadata when present. <content:encoded> is also emitted but the adapter IGNORES it — only <description> is consumed (and truncated to 280 chars). The recorder UA 'investo-fixture-recorder@example.com' is for fixture-provenance audit only; the production adapter sends NO custom UA (R14 does NOT apply to this source).",
+  "_note": "Re-recorded for u136 Step 3 (feed-image-metadata-harvest); original u1 Extension #3 Step 2 recording was 2026-05-01. Tests must NOT re-fetch — they replay this body via httpx.MockTransport. Re-record only when the live feed structure changes; document the change in aidlc-docs/audit.md. The Block crypto feed is RSS 2.0 (UTF-8 declared); <pubDate> is RFC 822 with -0400 (US/Eastern EDT) offset; titles are plain text (no CDATA), descriptions are CDATA-wrapped HTML. Every item's <link> ends with '?utm_source=rss&utm_medium=rss' tracking parameters which the adapter strips via the per-adapter _strip_tracking_params helper before storing the canonical URL on NormalizedItem.url (the original tracked URL is NOT preserved anywhere — single source of truth, per FD L6.8). Items expose <dc:creator> (Dublin Core namespace) and multiple <category> elements (CDATA-wrapped) per item; both surface under raw_metadata when present. <content:encoded> is also emitted but the adapter IGNORES it — only <description> is consumed (and truncated to 280 chars). u136: all 20 items carry a single <media:thumbnail url=… width=\"800\" height=\"450\"> on The Block's own CDN (tbstat.com) and NO <media:content> — the extract_feed_image thumbnail-fallback branch fires; the adapter harvests image_url/image_width/image_height into raw_metadata (no type attr, no <media:credit> → no image_mime/image_credit keys). The recorder UA 'investo-fixture-recorder@example.com' is for fixture-provenance audit only; the production adapter sends NO custom UA (R14 does NOT apply to this source).",
   "status": 200,
   "format": "RSS 2.0",
-  "size_bytes": 31427,
+  "size_bytes": 29104,
   "encoding": "utf-8",
   "items_in_recording": 20,
+  "items_with_media_thumbnail": 20,
   "headers": {
     "content-type": "text/xml; charset=UTF-8"
   }

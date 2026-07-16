@@ -2,11 +2,21 @@
 
 Pins the algorithm from FD L6.5 (Extension #2 2026-05-01) against:
 
-* The recorded real-feed fixture (`fixtures/api/yahoo-finance-news/feed.xml`)
-  — field mapping, ISO 8601 `Z` → tz-aware UTC parsing, window filtering.
+* The recorded real-feed fixture (`fixtures/api/yahoo-finance-news/feed.xml`,
+  re-recorded 2026-07-16 for u136) — field mapping, ISO 8601 `Z` →
+  tz-aware UTC parsing, window filtering, and the u136 image-metadata
+  harvest (all 48 items carry an extension-less zenfs/yimg
+  ``<media:content width="130" height="86">`` thumbnail; every
+  ``<media:credit>`` in the recording is EMPTY, so ``image_credit`` is
+  pinned via synthetic XML instead).
 * Inline synthetic XML — AC-7.2 (HTML in title stripped), AC-7.3
   (non-http/https URLs dropped), edge cases (missing <source>,
-  missing required fields, naive pubDate, malformed XML).
+  missing required fields, naive pubDate, malformed XML), u136
+  ``media:credit`` → ``image_credit`` mapping and image-less items.
+
+u136 contracts pinned here: Contract #3 (``image_*`` raw_metadata keys,
+absent field = absent key) and Contract #4 (license-family keys are
+NEVER emitted).
 """
 
 from __future__ import annotations
@@ -32,12 +42,13 @@ _REAL_FIXTURE = _FIXTURE_DIR / "feed.xml"
 
 
 async def test_fetch_returns_items_within_window() -> None:
-    # KST 2026-04-29 → UTC [2026-04-28 15:00, 2026-04-29 15:00). The
-    # fixture has many entries dated "2026-04-29T14:xx:xxZ" which fall
-    # in this window. Older 2024 entries are out.
+    # KST 2026-07-16 → UTC [2026-07-15 15:00, 2026-07-16 15:00). The
+    # fixture has many entries dated 2026-07-16TXX:XX:XXZ before 15:00Z
+    # which fall in this window. Older June entries and the handful of
+    # post-15:00Z entries are out.
     body = _REAL_FIXTURE.read_bytes()
     adapter = YahooFinanceNewsAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -63,7 +74,7 @@ async def test_fetch_published_at_is_tz_aware_and_utc() -> None:
     # AC-7.4 — every returned item has tz-aware published_at, in UTC.
     body = _REAL_FIXTURE.read_bytes()
     adapter = YahooFinanceNewsAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -81,7 +92,7 @@ async def test_fetch_summary_always_none() -> None:
     # adapter sets None explicitly so the contract is intentional.
     body = _REAL_FIXTURE.read_bytes()
     adapter = YahooFinanceNewsAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -93,7 +104,7 @@ async def test_fetch_summary_always_none() -> None:
 async def test_fetch_url_is_http_or_https() -> None:
     body = _REAL_FIXTURE.read_bytes()
     adapter = YahooFinanceNewsAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -104,20 +115,31 @@ async def test_fetch_url_is_http_or_https() -> None:
         assert str(item.url).startswith(("http://", "https://"))
 
 
-async def test_fetch_raw_metadata_keys_are_strings() -> None:
-    # R8: raw_metadata values must be strings (DEBT-028 guardrail).
+async def test_fetch_raw_metadata_keys_and_value_types() -> None:
+    # R8: raw_metadata values must be flat strings/ints (DEBT-028
+    # guardrail). Every item in the 2026-07-16 recording carries a
+    # zenfs/yimg <media:content> thumbnail with width+height, so the
+    # exact key set is uniform: guid + rss_source + the u136 image
+    # trio (no image_mime — the feed has no `type` attr; no
+    # image_credit — every <media:credit> in the recording is empty).
     body = _REAL_FIXTURE.read_bytes()
     adapter = YahooFinanceNewsAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
 
     assert items
     for item in items:
-        assert set(item.raw_metadata.keys()) == {"guid", "rss_source"}
+        assert set(item.raw_metadata.keys()) == {
+            "guid",
+            "rss_source",
+            "image_url",
+            "image_width",
+            "image_height",
+        }
         for value in item.raw_metadata.values():
-            assert isinstance(value, str)
+            assert isinstance(value, str | int)
 
 
 async def test_fetch_sends_browser_user_agent() -> None:
@@ -132,7 +154,7 @@ async def test_fetch_sends_browser_user_agent() -> None:
         )
 
     adapter = YahooFinanceNewsAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 4, 29))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         await adapter.fetch(client, window)
@@ -141,6 +163,128 @@ async def test_fetch_sends_browser_user_agent() -> None:
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 Chrome/124 Safari/537.36"
     ]
+
+
+# ---------------------------------------------------------------------------
+# u136 — <media:content> image-metadata harvest (Contracts #3 and #4)
+# ---------------------------------------------------------------------------
+
+# Contract #4 — license-family keys the adapter must NEVER emit: their
+# absence keeps visuals/external_image._manifest_from_item at None, so
+# the dormant external-image fetch path can never trigger off harvested
+# feed metadata.
+_FORBIDDEN_LICENSE_KEYS = frozenset(
+    {
+        "image_license",
+        "image_attribution",
+        "image_author",
+        "image_allowed_use",
+        "license",
+        "attribution",
+        "author",
+        "allowed_use",
+    }
+)
+
+
+async def test_image_bearing_items_expose_url_and_dimensions() -> None:
+    # Every in-window item in the recording carries an extension-less
+    # zenfs/yimg CDN thumbnail with uniform 130x86 dimensions and no
+    # `type` attr — so exactly image_url + image_width + image_height
+    # appear (absent field = absent key).
+    body = _REAL_FIXTURE.read_bytes()
+    adapter = YahooFinanceNewsAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
+
+    async with _mock_client(body) as client:
+        items = await adapter.fetch(client, window)
+
+    assert items
+    for item in items:
+        image_url = item.raw_metadata["image_url"]
+        assert isinstance(image_url, str)
+        assert image_url.startswith(("https://media.zenfs.com/", "https://s.yimg.com/"))
+        assert item.raw_metadata["image_width"] == 130
+        assert item.raw_metadata["image_height"] == 86
+        assert "image_mime" not in item.raw_metadata
+        # Every <media:credit role="publishing company"> in the
+        # recording is EMPTY (self-closing) → key absent; the outlet
+        # name lives in rss_source instead.
+        assert "image_credit" not in item.raw_metadata
+
+
+async def test_no_license_family_keys_ever_emitted() -> None:
+    # Contract #4 safety invariant, pinned against the full recording.
+    body = _REAL_FIXTURE.read_bytes()
+    adapter = YahooFinanceNewsAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
+
+    async with _mock_client(body) as client:
+        items = await adapter.fetch(client, window)
+
+    assert items
+    for item in items:
+        keys = set(item.raw_metadata.keys())
+        assert not keys & _FORBIDDEN_LICENSE_KEYS
+        assert not any(key.startswith("visual_image_") for key in keys)
+
+
+_SYNTH_CREDIT_WITH_TEXT = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel><title>Synthetic</title>
+  <item>
+    <title>Story with credited thumbnail</title>
+    <link>https://finance.yahoo.com/news/credited.html</link>
+    <pubDate>2026-07-16T10:00:00Z</pubDate>
+    <guid>g-credit</guid>
+    <source url="https://www.reuters.com/">Reuters</source>
+    <media:content height="86" url="https://media.zenfs.com/en/reuters.com/abc123" width="130"/>
+    <media:credit role="publishing company">Reuters</media:credit>
+  </item>
+</channel></rss>
+"""
+
+
+async def test_media_credit_text_lands_in_image_credit() -> None:
+    # The live 2026-07-16 recording has only EMPTY <media:credit>
+    # elements, so the credit → image_credit mapping is pinned here
+    # with synthetic XML shaped like Yahoo's documented credited form.
+    adapter = YahooFinanceNewsAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
+
+    async with _mock_client(_SYNTH_CREDIT_WITH_TEXT) as client:
+        items = await adapter.fetch(client, window)
+
+    assert len(items) == 1
+    assert items[0].raw_metadata["image_credit"] == "Reuters"
+    assert items[0].raw_metadata["image_url"] == "https://media.zenfs.com/en/reuters.com/abc123"
+    assert items[0].raw_metadata["image_width"] == 130
+    assert items[0].raw_metadata["image_height"] == 86
+
+
+_SYNTH_NO_IMAGE = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel><title>Synthetic</title>
+  <item>
+    <title>Story without any media element</title>
+    <link>https://finance.yahoo.com/news/plain.html</link>
+    <pubDate>2026-07-16T10:00:00Z</pubDate>
+    <guid>g-plain</guid>
+  </item>
+</channel></rss>
+"""
+
+
+async def test_image_less_item_has_no_image_keys() -> None:
+    adapter = YahooFinanceNewsAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
+
+    async with _mock_client(_SYNTH_NO_IMAGE) as client:
+        items = await adapter.fetch(client, window)
+
+    assert len(items) == 1
+    image_keys = {"image_url", "image_width", "image_height", "image_mime", "image_credit"}
+    assert not image_keys & set(items[0].raw_metadata.keys())
 
 
 # ---------------------------------------------------------------------------

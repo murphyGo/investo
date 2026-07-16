@@ -38,8 +38,19 @@ Design choices (audit log 2026-05-01T06:00:00Z):
   carry several ``<category>`` elements (e.g. ``Markets``, ``DeFi``,
   ``Bitcoin``). When at least one is present, the trimmed text values
   are joined with ``,`` into ``raw_metadata["categories"]`` (a single
-  string, R8 — flat ``dict[str, str]`` only). When zero ``<category>``
+  string, R8 — flat primitives only). When zero ``<category>``
   elements are present, the ``categories`` key is OMITTED.
+* **``<media:thumbnail>`` harvested as image metadata** (u136,
+  2026-07-17) — every item in the 2026-07-16 recording carries a
+  single ``<media:thumbnail url=… width="800" height="450">`` on The
+  Block's own CDN (tbstat.com). There is no ``<media:content>`` on
+  this feed, so the
+  :func:`investo.sources._feed_media.extract_feed_image` helper's
+  thumbnail-fallback branch fires, mapping into ``raw_metadata`` under
+  the u136 Contract #3 keys (``image_url`` / ``image_width`` /
+  ``image_height``; no ``type`` attr and no ``<media:credit>`` → no
+  ``image_mime`` / ``image_credit`` keys). Metadata only: no binary
+  fetch (u137) and NO license-family keys (Contract #4).
 * **``<pubDate>`` is RFC-822 with ``-0400`` (US/Eastern EDT) offset**
   — :func:`email.utils.parsedate_to_datetime` handles the offset
   natively and returns a tz-aware datetime. We convert to UTC before
@@ -74,6 +85,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, parse_rfc822_to_utc
+from investo.sources._feed_media import extract_feed_image, image_metadata
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -216,10 +228,10 @@ class TheBlockCryptoAdapter:
         if summary and len(summary) > SUMMARY_MAX_LEN:
             summary = summary[:SUMMARY_MAX_LEN]
 
-        # raw_metadata: provenance bag (R8 — strings only, no nesting).
-        # Optional keys (creator, categories) are OMITTED when absent
-        # (do NOT emit empty string).
-        raw_metadata: dict[str, str] = {}
+        # raw_metadata: provenance bag (R8 — strings/ints only, no
+        # nesting). Optional keys (creator, categories) are OMITTED
+        # when absent (do NOT emit empty string).
+        raw_metadata: dict[str, str | int] = {}
         guid = (entry.findtext("guid") or "").strip()
         if guid:
             raw_metadata["guid"] = guid
@@ -240,6 +252,15 @@ class TheBlockCryptoAdapter:
                 category_values.append(text)
         if category_values:
             raw_metadata["categories"] = ",".join(category_values)
+
+        # u136 Contract #3 — first image reference per item (this feed
+        # only emits <media:thumbnail>, so the helper's fallback branch
+        # fires), metadata only. Absent field = absent key (never None
+        # / empty). Contract #4 (no license-family keys) is enforced by
+        # the shared image_metadata mapper.
+        image = extract_feed_image(entry)
+        if image is not None:
+            raw_metadata.update(image_metadata(image))
 
         try:
             return NormalizedItem(

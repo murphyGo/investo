@@ -2,9 +2,13 @@
 
 Pins the algorithm from FD L6.8 (Extension #3 2026-05-01) against:
 
-* The recorded real-feed fixture (``fixtures/api/theblock-crypto/feed.xml``)
-  — field mapping, RFC-822 ``-0400`` → tz-aware UTC parsing, KST window
-  filtering, ``utm_*`` query-param stripping on every emitted URL.
+* The recorded real-feed fixture (``fixtures/api/theblock-crypto/feed.xml``,
+  re-recorded 2026-07-16 for u136) — field mapping, RFC-822 ``-0400`` →
+  tz-aware UTC parsing, KST window filtering, ``utm_*`` query-param
+  stripping on every emitted URL, and the u136 image-metadata harvest
+  (all 20 items carry a single tbstat-CDN
+  ``<media:thumbnail width="800" height="450">`` — the helper's
+  thumbnail-fallback branch; Contracts #3 and #4).
 * Inline synthetic XML — AC-7.2 (HTML in title stripped), AC-7.3
   (non-http/https URLs dropped), edge cases (missing required fields,
   naive pubDate, missing ``<dc:creator>`` → key OMITTED, missing
@@ -87,12 +91,12 @@ def test_strip_tracking_params_no_query_is_noop() -> None:
 
 
 async def test_fetch_returns_items_within_window() -> None:
-    # KST 2026-05-01 → UTC [2026-04-30 15:00, 2026-05-01 15:00). The
-    # fixture has 20 entries dated -0400 (EDT) on 2026-04-30 and
-    # 2026-05-01; most fall in this window once converted to UTC.
+    # KST 2026-07-16 → UTC [2026-07-15 15:00, 2026-07-16 15:00). The
+    # fixture has 20 entries dated -0400 (EDT) on 2026-07-15 and
+    # 2026-07-16; 17 fall in this window once converted to UTC.
     body = _REAL_FIXTURE.read_bytes()
     adapter = TheBlockCryptoAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -118,7 +122,7 @@ async def test_fetch_published_at_is_tz_aware_and_utc() -> None:
     # AC-7.4 — every returned item has tz-aware published_at, in UTC.
     body = _REAL_FIXTURE.read_bytes()
     adapter = TheBlockCryptoAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -132,7 +136,7 @@ async def test_fetch_published_at_is_tz_aware_and_utc() -> None:
 async def test_fetch_url_is_http_or_https() -> None:
     body = _REAL_FIXTURE.read_bytes()
     adapter = TheBlockCryptoAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -152,7 +156,7 @@ async def test_fetch_emitted_urls_have_no_utm_params() -> None:
     # _normalize_entry path.
     body = _REAL_FIXTURE.read_bytes()
     adapter = TheBlockCryptoAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -167,22 +171,33 @@ async def test_fetch_emitted_urls_have_no_utm_params() -> None:
         assert "utm_content" not in url_str
 
 
-async def test_fetch_raw_metadata_values_are_strings() -> None:
-    # R8 / DEBT-028 guardrail: raw_metadata values must all be strings,
-    # not floats / ints / nested dicts.
+async def test_fetch_raw_metadata_keys_and_value_types() -> None:
+    # R8 / DEBT-028 guardrail: raw_metadata values must all be flat
+    # strings/ints — not floats / nested dicts. Allowed keys are a
+    # subset of {"guid", "creator", "categories"} plus the u136
+    # Contract #3 image keys.
     body = _REAL_FIXTURE.read_bytes()
     adapter = TheBlockCryptoAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
 
+    allowed = {
+        "guid",
+        "creator",
+        "categories",
+        "image_url",
+        "image_width",
+        "image_height",
+        "image_mime",
+        "image_credit",
+    }
     assert items
     for item in items:
-        # Allowed keys are a subset of {"guid", "creator", "categories"}.
-        assert set(item.raw_metadata.keys()).issubset({"guid", "creator", "categories"})
+        assert set(item.raw_metadata.keys()).issubset(allowed)
         for value in item.raw_metadata.values():
-            assert isinstance(value, str)
+            assert isinstance(value, str | int)
             assert value != ""  # absent keys are omitted, not empty
 
 
@@ -193,7 +208,7 @@ async def test_fetch_real_fixture_categories_are_comma_joined() -> None:
     # feed is re-recorded, but the comma-join shape is the contract).
     body = _REAL_FIXTURE.read_bytes()
     adapter = TheBlockCryptoAdapter()
-    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
 
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, window)
@@ -207,6 +222,94 @@ async def test_fetch_real_fixture_categories_are_comma_joined() -> None:
         for segment in cats.split(","):
             assert segment.strip() == segment
             assert segment != ""
+
+
+# ---------------------------------------------------------------------------
+# u136 — <media:thumbnail> image-metadata harvest (Contracts #3 and #4)
+# ---------------------------------------------------------------------------
+
+# Contract #4 — license-family keys the adapter must NEVER emit: their
+# absence keeps visuals/external_image._manifest_from_item at None, so
+# the dormant external-image fetch path can never trigger off harvested
+# feed metadata.
+_FORBIDDEN_LICENSE_KEYS = frozenset(
+    {
+        "image_license",
+        "image_attribution",
+        "image_author",
+        "image_allowed_use",
+        "license",
+        "attribution",
+        "author",
+        "allowed_use",
+    }
+)
+
+
+async def test_image_bearing_items_expose_thumbnail_url_and_dimensions() -> None:
+    # Every item in the recording carries a single tbstat-CDN
+    # <media:thumbnail width="800" height="450"> and NO <media:content>
+    # — this is the helper's thumbnail-fallback branch. No `type` attr
+    # and no <media:credit> → exactly image_url + image_width +
+    # image_height appear (absent field = absent key).
+    body = _REAL_FIXTURE.read_bytes()
+    adapter = TheBlockCryptoAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
+
+    async with _mock_client(body) as client:
+        items = await adapter.fetch(client, window)
+
+    assert items
+    for item in items:
+        image_url = item.raw_metadata["image_url"]
+        assert isinstance(image_url, str)
+        assert image_url.startswith("https://www.tbstat.com/")
+        assert item.raw_metadata["image_width"] == 800
+        assert item.raw_metadata["image_height"] == 450
+        assert "image_mime" not in item.raw_metadata
+        assert "image_credit" not in item.raw_metadata
+
+
+async def test_no_license_family_keys_ever_emitted() -> None:
+    # Contract #4 safety invariant, pinned against the full recording.
+    body = _REAL_FIXTURE.read_bytes()
+    adapter = TheBlockCryptoAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 16))
+
+    async with _mock_client(body) as client:
+        items = await adapter.fetch(client, window)
+
+    assert items
+    for item in items:
+        keys = set(item.raw_metadata.keys())
+        assert not keys & _FORBIDDEN_LICENSE_KEYS
+        assert not any(key.startswith("visual_image_") for key in keys)
+
+
+_SYNTH_NO_IMAGE = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel><title>Synthetic</title>
+    <item>
+      <title>Post without any media element</title>
+      <link>https://www.theblock.co/post/plain</link>
+      <guid>tb-plain</guid>
+      <pubDate>Fri, 01 May 2026 10:00:00 -0400</pubDate>
+    </item>
+  </channel>
+</rss>
+"""
+
+
+async def test_image_less_item_has_no_image_keys() -> None:
+    adapter = TheBlockCryptoAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 5, 1))
+
+    async with _mock_client(_SYNTH_NO_IMAGE) as client:
+        items = await adapter.fetch(client, window)
+
+    assert len(items) == 1
+    image_keys = {"image_url", "image_width", "image_height", "image_mime", "image_credit"}
+    assert not image_keys & set(items[0].raw_metadata.keys())
 
 
 # ---------------------------------------------------------------------------
