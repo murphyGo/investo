@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u136 feed-image-metadata-harvest
 **Stage**: Code Generation
-**Status**: Planned (0/5)
+**Status**: In Progress (1/5)
 **Source**: 2026-07-17 user feature request — 시황 비주얼을 SVG 카드 중심에서 "실제 뉴스/칼럼/커뮤니티 이미지 활용"으로 확장. 1단계는 **이미지 수집 + 이미지 메타데이터**. u136은 그 첫 슬라이스: 이미 수집 중인 뉴스 피드 payload 안의 이미지 참조를 메타데이터로 채집한다.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -78,9 +78,9 @@ Out of scope (명시적 non-goal):
 
 ## Implementation Steps
 
-### Step 1 — 네임스페이스 상수 + `_feed_media.py` 헬퍼 `[ ]`
-- [ ] `MEDIA_*` 상수 추가, `extract_feed_image` 구현 (계약 #1, #2).
-- [ ] 단위 테스트: media:content only / media:thumbnail only / 둘 다(우선순위) / 복수 이미지(첫 번째만) / 비-http URL 거부 / URL 길이 캡 / width·height 비정수 / credit 캡 / 이미지 아닌 media:content(mime=video) 스킵.
+### Step 1 — 네임스페이스 상수 + `_feed_media.py` 헬퍼 `[x]`
+- [x] `MEDIA_*` 상수 추가, `extract_feed_image` 구현 (계약 #1, #2).
+- [x] 단위 테스트: media:content only / media:thumbnail only / 둘 다(우선순위) / 복수 이미지(첫 번째만) / 비-http URL 거부 / URL 길이 캡 / width·height 비정수 / credit 캡 / 이미지 아닌 media:content(mime=video) 스킵.
 - **Acceptance**: 헬퍼가 세 실피드 샘플 XML 조각 전부에서 기대 `FeedImageRef`를 반환하고, 악성/비정형 입력에 None 또는 필드 None으로 안전 강하.
 
 ### Step 2 — `yonhap-market` 어댑터 확장 + 픽스처 재녹화 `[ ]`
