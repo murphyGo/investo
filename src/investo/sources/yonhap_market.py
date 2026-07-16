@@ -28,10 +28,19 @@ Design choices (audit log 2026-05-01T06:00:00Z):
   during KST trading hours and through the evening; no cadence gap, so
   R11's relaxation clause does NOT apply. Window filter is the
   half-open ``[start_utc, end_utc)`` from :class:`FetchWindow`.
-* **Namespaced child elements ignored** — ``<media:content>`` and any
-  other ``xmlns:*`` element under ``<item>`` is naturally not matched
-  by ``findtext("local_name")`` (which uses unprefixed local names),
-  so no string-substitution namespace stripping is needed.
+* **``<media:content>`` harvested as image metadata** (u136, 2026-07-17)
+  — the feed attaches copyrighted wire photos
+  (``img.yna.co.kr/photo/{reuters,ap,af,…}/…``) as
+  ``<media:content url=… type="image/jpeg">`` children. The shared
+  :func:`investo.sources._feed_media.extract_feed_image` helper pulls
+  the FIRST image per item into ``raw_metadata`` under the u136
+  Contract #3 keys (``image_url`` / ``image_mime`` — this feed carries
+  no width/height attrs and no ``<media:credit>``). Metadata only: no
+  binary fetch here (u137), and NO license-family keys are emitted
+  (Contract #4), so the dormant ``visuals/external_image`` fetch path
+  can never trigger off harvested items. Other ``xmlns:*`` children
+  remain ignored — ``findtext("local_name")`` matches unprefixed local
+  names only, so no namespace stripping is needed.
 * **No ``_USER_AGENT`` constant** — Yonhap does not require a
   compliance header; R14 does NOT apply to this source. The
   ``investo-fixture-recorder@example.com`` UA visible in
@@ -57,6 +66,7 @@ from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, parse_rfc822_to_utc
+from investo.sources._feed_media import extract_feed_image
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
@@ -143,10 +153,10 @@ class YonhapMarketAdapter:
         if summary and len(summary) > SUMMARY_MAX_LEN:
             summary = summary[:SUMMARY_MAX_LEN]
 
-        # raw_metadata: provenance bag (R8 — strings only, no nesting).
-        # <dc:creator> is OPTIONAL per FD L6.7 — the key is OMITTED
-        # entirely when absent (do NOT emit empty string).
-        raw_metadata: dict[str, str] = {}
+        # raw_metadata: provenance bag (R8 — strings/ints only, no
+        # nesting). <dc:creator> is OPTIONAL per FD L6.7 — the key is
+        # OMITTED entirely when absent (do NOT emit empty string).
+        raw_metadata: dict[str, str | int] = {}
         guid = (entry.findtext("guid") or "").strip()
         if guid:
             raw_metadata["guid"] = guid
@@ -155,6 +165,23 @@ class YonhapMarketAdapter:
             creator = creator_raw.strip()
             if creator:
                 raw_metadata["creator"] = creator
+
+        # u136 Contract #3 — first <media:content> image reference per
+        # item, metadata only. Absent field = absent key (never None /
+        # empty). Contract #4: NO license-family keys (image_license /
+        # image_attribution / image_author / image_allowed_use or
+        # visual_image_* synonyms) may ever be emitted here.
+        image = extract_feed_image(entry)
+        if image is not None:
+            raw_metadata["image_url"] = image.url
+            if image.width is not None:
+                raw_metadata["image_width"] = image.width
+            if image.height is not None:
+                raw_metadata["image_height"] = image.height
+            if image.mime is not None:
+                raw_metadata["image_mime"] = image.mime
+            if image.credit is not None:
+                raw_metadata["image_credit"] = image.credit
 
         try:
             return NormalizedItem(
