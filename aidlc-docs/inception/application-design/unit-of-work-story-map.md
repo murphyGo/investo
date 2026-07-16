@@ -360,6 +360,29 @@ Deduplicated out:
 - No watchlist matcher change: u133 routes a fixed registry source class out of public impact only.
 - No quality-KPI unit: the suspicious persistent `source_liveness=0.0` is reported as a TECH-DEBT candidate for operator triage, not a unit, pending semantics confirmation against u54/u123.
 
+### u136-u137 Planning Notes
+
+Derived from the 2026-07-17 user feature request: use real news-article / finance-column / community images in briefings instead of only generated SVG cards, starting with **collection + image metadata**. Local evidence: no adapter emits image URLs today (RSS media namespaces are discarded by design), `NormalizedItem` has no image field, `visuals/external_image.py` is dormant scaffolding with no producer, and there is no image ledger/store. Live feed probe (2026-07-17): `yonhap-market` (`media:content`, Reuters/AP wire photos), `yahoo-finance-news` (`media:content` + `media:credit`), `theblock-crypto` (`media:thumbnail` 800×450) carry per-item images; CNBC/Nasdaq feeds do not.
+
+Binding posture (public repo + public Pages + public Telegram): **metadata for everything, binaries only with per-candidate operator clearance.** News wire photos and community memes default to `metadata-only` (no republish); the u86 exclusion of news photos/memes from the curated library stays intact.
+
+Recommended implementation order:
+1. u136 first — the candidate supply pipe; smallest safe slice, zero new HTTP.
+2. u137 second — persistence, recurrence ("자주 쓰이는 이미지") tracking, and the license-gated store; requires FD/NFR before code.
+3. Usage phase (deterministic selection into hero/link-cards; Telegram `sendPhoto`) is deliberately NOT registered yet — design it after u136/u137 have accumulated real candidate data.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u136 feed-image-metadata-harvest | Image references in already-fetched feeds are discarded; no candidate metadata exists anywhere | FR-001, FR-008, NFR-002, NFR-006, R8, R13 | u1 RSS adapters, u10 diagnostics, u19 key contract (aligned, not enabled) |
+| u137 image-candidate-registry-and-licensed-store | Candidates are ephemeral (CDN URLs expire); no rights-safe path to store real images on a public surface | FR-001, FR-006, NFR-002, NFR-006, NFR-007 (R13), R8 | u19/u24 policy+provenance, u86 state-machine/CI-gate precedents, u78 fs primitives, orchestrator staging |
+
+Deduplicated out / deferred:
+- No change to the u86 curated library or its exclusions; license-clean alternatives operators find still land there.
+- No og:image page-fetch enrichment for CNBC/Nasdaq (per-item HTTP + scraping posture) — defer until candidate volume proves insufficient.
+- No community source adapter: unauthenticated Reddit JSON is blocked (probed 2026-07-17); OAuth/data-API terms review required — defer. Korean scrape-only communities — reject.
+- No perceptual-hash dedup in v1 (URL-hash identity only); promote to TECH-DEBT if recurrence signals warrant it.
+- No `NormalizedItem` model field: raw_metadata keys suffice and avoid a frozen-model migration.
+
 ---
 
 ## Definition of Done — Inception Phase Output

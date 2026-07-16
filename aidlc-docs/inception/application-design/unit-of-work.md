@@ -1981,6 +1981,64 @@ Plan: `aidlc-docs/construction/plans/u134-callout-and-diagnostic-line-compositio
 
 Plan: `aidlc-docs/construction/plans/u135-watchpoint-current-value-and-deterministic-fallback-code-generation-plan.md`.
 
+---
+
+### u136: `feed-image-metadata-harvest` - Collect Real-Article Image References From Feeds Already Fetched
+
+**Purpose**: Start the "실제 뉴스 이미지 활용" track (2026-07-17 user request) at its safe base: extract per-item image references (`media:content` / `media:thumbnail` / `media:credit`) from the news feed XML the pipeline already downloads, into `NormalizedItem.raw_metadata` image keys plus per-source image-yield diagnostics. No new HTTP requests, no binary downloads, no page scraping.
+
+**Stories**: FR-001 (data collection), FR-008 (segmented briefing), NFR-002 (no paid APIs — no new calls at all), NFR-006, R8, R13
+
+**Existing coverage / deduplication**:
+- `visuals/external_image.py` already recognizes `image_url`/`thumbnail_url` raw_metadata keys but has no producer; u136 aligns to that key contract without calling or enabling the dormant fetch path.
+- u86 curated library is a separate pre-cleared static channel; u136 harvests daily news candidates and replaces nothing.
+- RSS adapters currently discard media namespaces by design (`yonhap_market.py`, `sec_edgar_8k.py` docstrings) — u136 reverses that only for verified image-bearing feeds.
+
+**Module path**:
+- `src/investo/sources/_xml_namespaces.py` - add `MEDIA_NS` (`http://search.yahoo.com/mrss/`) constants.
+- `src/investo/sources/_feed_media.py` (new) - `extract_feed_image(item) -> FeedImageRef | None`, first-image-only, http(s)-only, capped fields.
+- `src/investo/sources/yonhap_market.py`, `yahoo_finance_news.py`, `theblock_crypto.py` - wire the helper into item parsing (live-probed 2026-07-17: these three feeds carry per-item images; CNBC/Nasdaq do not).
+- Aggregator per-source `source returned` diagnostics - add `image_items` count.
+- `tests/unit/sources/test_feed_media.py` (new), adapter tests + re-recorded R10 fixtures, `test_external_image.py` non-contamination invariant.
+
+**Definition of Done**:
+- [ ] Image-bearing items from the three verified feeds carry `image_url` (+width/height/mime/credit when available) in raw_metadata; imageless items carry no image keys.
+- [ ] No adapter emits license/attribution/author/allowed_use keys, and the dormant external-image fetch path cannot trigger from harvested metadata even with the env flag on (regression-pinned).
+- [ ] Zero new HTTP requests (feed fetch count/targets unchanged).
+- [ ] Per-source diagnostics expose image-bearing item counts.
+- [ ] R8 (strings/ints, no nesting) and R13 hold; existing adapter behavior regressions green.
+
+Plan: `aidlc-docs/construction/plans/u136-feed-image-metadata-harvest-code-generation-plan.md`.
+
+---
+
+### u137: `image-candidate-registry-and-licensed-store` - Persist Image Candidates; Store Binaries Only With Clearance
+
+**Purpose**: Persist u136's harvested image references into a per-date candidate ledger with a recurrence index ("자주 쓰이는 이미지" signal), an explicit rights state machine (`metadata-only` default / `cleared` / `blocked`), and a content-addressed binary store that fetches only operator-cleared, license-manifested candidates — metadata for everything, binaries only with clearance, on a public repo/Pages/Telegram surface.
+
+**Stories**: FR-001, FR-006 (permanent archive), NFR-002, NFR-006, NFR-007 (R13), R8
+
+**Existing coverage / deduplication**:
+- Reuses u19 `ExternalAssetManifest` + policy gates, u24 provenance manifests, `external_image.py` fetch internals (signature/byte checks), u86 deferred-state-machine and CI-gate precedents, u78 atomic-write primitives.
+- Does not change `EXTERNAL_IMAGE_SCRAPING_ENABLED` global default or u86 curated policy; cleared license-clean alternatives still belong in the u86 library.
+- Depends on u136; blocked without it.
+
+**Module path**:
+- `src/investo/visuals/image_library.py` (new) - `ImageCandidateRecord`, ledger append (`archive/_meta/image_candidates/{YYYY}/{date}.jsonl`), recurrence index, rights-state resolution from operator clearance/block files, license-gated fetch into `assets/images/{hash[:2]}/{hash}.{ext}` + provenance sidecar.
+- `src/investo/orchestrator/pipeline.py` - failure-isolated post-routing stage; outputs join publish staging.
+- `scripts/check_image_store.py` (new) - CI gate mirroring `check_curated_assets.py`: manifest completeness, no orphans, 2MB/file + 50MB/store budgets, R13 scan.
+- CONTRIBUTING runbook - operator clearance procedure (investo-ops surface).
+- FD (R/E/I) + NFR (AC) documents required before code (new persisted artifact + rights state machine + storage budget).
+
+**Definition of Done**:
+- [ ] Runs with image-bearing items leave a deterministic per-date ledger and updated recurrence index; reruns idempotent.
+- [ ] Binaries are stored only for `cleared` + env-opt-in + policy-passing candidates; default posture stores zero binaries.
+- [ ] Every stored binary has a provenance sidecar and clearance manifest, enforced by the CI gate with byte budgets.
+- [ ] Image-stage failure never fails briefing generation/publish.
+- [ ] Same-URL recurrence across days is queryable via `seen_count`.
+
+Plan: `aidlc-docs/construction/plans/u137-image-candidate-registry-and-licensed-store-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
