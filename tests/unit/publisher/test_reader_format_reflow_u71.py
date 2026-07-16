@@ -167,8 +167,56 @@ def test_bounded_caution_does_not_trip_surface_truncation_gate() -> None:
     assert _surface_issues(first_viewport, "summary.truncated_mid_token") == []
 
 
+def test_long_tldr_bullet_bounded_before_surface_gate() -> None:
+    long_bullet = "금리 민감도와 반도체 수급 변화 및 실적 기대가 동시에 작용합니다 " * 5
+    text = _header().replace("- 결론 한 줄", f"- {long_bullet}")
+
+    out = reflow_first_viewport(text, segment="us-equity")
+    first_viewport = out[: out.index("## ①")]
+
+    assert "본문 참고." in first_viewport
+    assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
+
+
+def test_long_summary_callout_bounded_before_surface_gate() -> None:
+    long_conclusion = (
+        "> **오늘의 결론**: "
+        + "AI 반도체와 금리 민감 업종의 방향성이 엇갈리며 지수 레벨 확인이 필요합니다 " * 4
+        + "\n"
+    )
+    summary = _SUMMARY.replace("> **오늘의 결론**: [관망] 3대 지수 혼조 마감.\n", long_conclusion)
+
+    out = reflow_first_viewport(_header(summary=summary), segment="us-equity")
+    first_viewport = out[: out.index("## ①")]
+
+    assert "본문 참고." in first_viewport
+    assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
+
+
+def test_short_ellipsis_summary_completed_before_surface_gate() -> None:
+    summary = _SUMMARY.replace(
+        "> **핵심 동인**: 금리 우려와 실적 기대가 충돌.\n",
+        "> **핵심 동인**: 금리 우려와 실적 기대가 충돌...\n",
+    )
+
+    out = reflow_first_viewport(_header(summary=summary), segment="us-equity")
+    first_viewport = out[: out.index("## ①")]
+
+    assert "충돌 본문 참고." in first_viewport
+    assert "충돌..." not in first_viewport
+    assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
+
+
 def _surface_issues(text: str, code: str) -> list[object]:
     return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
+
+
+def _summary_truncation_issues_without_fixture_watermark(text: str) -> list[object]:
+    return [
+        issue
+        for issue in _surface_issues(text, "summary.truncated_mid_token")
+        if "기준 시각" not in issue.evidence
+    ]
 
 
 def test_bound_summary_snippet_short_unchanged() -> None:

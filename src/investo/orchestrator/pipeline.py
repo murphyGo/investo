@@ -2620,6 +2620,7 @@ class GenerateStage:
                                     "code": issue.code,
                                     "region": issue.region,
                                     "evidence_len": len(issue.evidence),
+                                    "evidence_preview": " ".join(issue.evidence.split())[:160],
                                 }
                                 for issue in exc.issues
                             ],
