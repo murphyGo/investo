@@ -332,6 +332,34 @@ Deduplicated out:
 - No second markdown polish unit: u112 already owns timestamp, truncation, signed-number emphasis, URL ellipsis, and particle blockers.
 - No source-expansion unit: the reviewed defects are post-render evidence accounting, context wording, and glossary identity failures.
 
+### u130-u135 Planning Notes
+
+Derived from the 2026-06-29/2026-06-30 production bundle review (2026-07-17). The striking pattern: u109/u110/u112 are complete with green gates, yet the 06-29/06-30 archives still exhibit defects inside those units' Definition of Done — because gate patterns drifted from production shapes (u112 watermark check keys on a token production never emits), gates cover move-claims but not level-claims (u109/u70), and field promotion misses the production payload path (u110). These units close production-evidenced gaps in completed units; none introduces a new gate family, source, or redesign.
+
+Recommended implementation order:
+1. u130 first — published "코스피는 150.00" is direct reader misinformation.
+2. u132 second — the malformed watermark appears in every published document.
+3. u131 third — truncation residue appears on three surfaces per document.
+4. u134 fourth — composition splices appear in every first viewport.
+5. u133 fifth — impact-count inflation is trust erosion but not misinformation.
+6. u135 last — depends on u110-filter behavior staying stable through u131's title bounding.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u130 domestic-anchor-level-claim-quarantine-v2 | Body/callouts published "코스피는 150.00" while the anchor was quarantined; ^KOSDAQ 477→344 discontinuity passed the static band | FR-001, FR-002, FR-003, FR-008, FR-009, NFR-003, NFR-006, R13 | u109 quarantine, u70 assertion gate, u55 numeric verify, quality history |
+| u131 bounded-line-sentence-boundary-truncation | 주의할 점 / 그래서 의미는? / §⑥ titles end mid-clause with `...`/`…`/spliced suffix | FR-002, FR-008, FR-009, FR-012, NFR-003, NFR-006 | u71 reflow, u76 meaning lines, u98/u110 cards, u112 surface gate |
+| u132 watermark-window-reader-render-and-gate-alignment | Every watermark line shows a dangling `)` because bracket repair strips the half-open `[`; the u112 check never fires | FR-002, FR-003, FR-008, FR-009, NFR-006 | u112 issue codes, u81 reader-format, u8 windows (unchanged) |
+| u133 watchlist-registry-source-impact-suppression | Static listing/facts registry rows counted as "직접 관련" impacts and narrated as §⑤ pseudo-news | FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, R13 | u64/u73 grouping (unchanged), u111 projection, u101 fact cache, u115 source specs |
+| u134 callout-and-diagnostic-line-composition-repair | 핵심 동인 heading+sentence splice, 결론 suffix splice, 소스 카운트 pointer repeated ×3, funding rate `0.0001000000000000` | FR-002, FR-008, FR-009, NFR-003, NFR-006 | u61/u71/u127 summary contracts, u108 language boundary, u66/u74 tables |
+| u135 watchpoint-current-value-and-deterministic-fallback | `현재: CoinGecko BTC` (source in value slot); 2/3 segments render the bounded note despite concrete CFTC/anchor signals | FR-002, FR-004, FR-008, FR-009, FR-012, NFR-003, NFR-006, R13 | u72/u87/u98/u110 watchpoint stack, u64 structure regexes, scan_compliance |
+
+Deduplicated out:
+- No new anchor plausibility framework: u109 bands stay; u130 adds only level-claim detection, a `discontinuous` continuity reason, and same-run gating consistency.
+- No new truncation caps or fallback texts: u131 changes the bounding algorithm shared by existing u71/u76/u98 call sites.
+- No watchpoint redesign or new matrix: u135 adds value resolution plus a bounded deterministic fallback behind the existing u98 card shape.
+- No watchlist matcher change: u133 routes a fixed registry source class out of public impact only.
+- No quality-KPI unit: the suspicious persistent `source_liveness=0.0` is reported as a TECH-DEBT candidate for operator triage, not a unit, pending semantics confirmation against u54/u123.
+
 ---
 
 ## Definition of Done — Inception Phase Output

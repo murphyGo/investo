@@ -1820,6 +1820,167 @@ Plan: `aidlc-docs/construction/plans/u124-segment-specific-daily-thesis-guard-co
 
 Plan: `aidlc-docs/construction/plans/u125-acronym-glossary-collision-guard-code-generation-plan.md`.
 
+---
+
+### u130: `domestic-anchor-level-claim-quarantine-v2` - Gate Bare Index Level Claims and Discontinuous Anchors
+
+**Purpose**: Stop published briefings from asserting precise index/large-cap *level* values (bare closes without movement verbs, e.g. "코스피는 150.00을 나타냈다") when the matching anchor is quarantined or absent, and quarantine anchor values that are discontinuous against the segment's own recent published anchors.
+
+**Stories**: FR-001 (data collection), FR-002 (AI briefing), FR-003 (public publishing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003 (graceful degradation), NFR-006 (quality observability), R13
+
+**Existing coverage / deduplication**:
+- Extends u109 anchor trust classification (plausibility bands stay) and the u70 assertion gate (movement-verb claims stay); the 2026-07-02 commit `d4d32d1` already extended the gate to blockquote callouts — keep that behavior.
+- Does not add a source adapter, re-verify numeric truth (u55), or change US/crypto anchor behavior.
+- Does not re-implement channel-baseline missing reasons (u74) or anchor label registry (u70).
+
+**Module path**:
+- `src/investo/publisher/anchor_assertion_gate.py` - add level-claim detection (core anchor label adjacent to a bare numeric close) beside the existing move-claim detection; enforce same-run same-symbol gate-decision consistency across TL;DR/callouts/body.
+- `src/investo/orchestrator/domestic_anchor_quarantine.py` - add a `discontinuous` quarantine reason comparing candidate values against the most recent published anchor within 7 calendar days.
+- `tests/unit/publisher/test_anchor_assertion_gate.py`, `tests/unit/orchestrator/test_domestic_anchor_quarantine.py`, plus a rendered regression fixture from the 2026-06-30 domestic archive.
+
+**Definition of Done**:
+- [ ] A bare level claim about a core anchor symbol whose anchor is quarantined/absent is gated identically to a move claim (2026-06-30 "코스피는 150.00" shape).
+- [ ] Index/FX anchor values differing >15% (large-caps >30%) from the most recent published anchor within 7 days quarantine as `discontinuous` (2026-06-30 ^KOSDAQ 477→344 shape).
+- [ ] When the gate rewrites a claim about symbol X anywhere in a run, equivalent precise claims about X in other sections of the same document are also gated (2026-06-30 SK하이닉스 TL;DR-vs-§③ contradiction shape).
+- [ ] Quality history records the new quarantine reason distinctly; US/crypto outputs are byte-unchanged on existing fixtures.
+
+Plan: `aidlc-docs/construction/plans/u130-domestic-anchor-level-claim-quarantine-v2-code-generation-plan.md`.
+
+---
+
+### u131: `bounded-line-sentence-boundary-truncation` - Bounded Reader Lines End at Sentence Boundaries
+
+**Purpose**: Ensure every bounded reader-facing line (주의할 점 snippet, `그래서 의미는?` meaning line, §⑥ card title) ends at a complete Korean sentence/clause boundary — never mid-clause with `...`/`…` residue or a spliced continuation suffix.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), FR-012 (plain-language reader aid), NFR-003, NFR-006
+
+**Existing coverage / deduplication**:
+- Extends the shared bounding algorithm used by u71 (주의할 점 snippet), u76 (meaning lines), and u98/u110 (card titles); caps and line types are unchanged.
+- Extends u112 truncation-residue detection so it fires on the production shapes it currently misses; no new issue-code family.
+- Does not add new fallback texts: reuses `MEANING_FALLBACK` (u76) and the existing bounded-note collapse (u110).
+
+**Module path**:
+- `src/investo/_internal/text.py` - shared sentence-boundary bounding helper (single home).
+- `src/investo/publisher/reader_format/meaning.py` - replace the word-boundary + `...` cut.
+- `src/investo/publisher/reader_format/reflow.py` - replace the 주의할 점 snippet cut + `본문 참고.` splice.
+- `src/investo/publisher/watchpoint_matrix.py` - card title bounding.
+- `src/investo/_internal/surface_quality.py` - extend `_looks_truncated_mid_token` region coverage to meaning lines, caution callouts, and §⑥ titles.
+- `tests/unit/publisher/test_reader_format_meaning_u76.py`, `tests/unit/publisher/test_watchpoint_matrix.py`, `tests/unit/internal/test_surface_quality.py`, rendered regression fixtures from 2026-06-29 crypto and 2026-06-30 us-equity archives.
+
+**Definition of Done**:
+- [ ] No public bounded line ends with `...`/`…` or a mid-clause splice (2026-06-29 "특정 지역의...", 2026-06-30 "매파적 본문 참고." shapes).
+- [ ] A first sentence exceeding the cap collapses to the surface's existing deterministic fallback, not a hard cut.
+- [ ] The u112 surface gate blocks the legacy residue shapes on rendered segment markdown.
+- [ ] All existing caps (`MEANING_MAX_CHARS`, snippet cap) are unchanged and reruns stay idempotent.
+
+Plan: `aidlc-docs/construction/plans/u131-bounded-line-sentence-boundary-truncation-code-generation-plan.md`.
+
+---
+
+### u132: `watermark-window-reader-render-and-gate-alignment` - Readable Collection Window That Survives Repair
+
+**Purpose**: Render the `**기준 시각**` collection window in a reader-readable bracket-free form so downstream bracket repair cannot mangle it, and align the u112 watermark check with the shape production actually emits so the gate fires.
+
+**Stories**: FR-002 (AI briefing), FR-003 (public publishing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-006
+
+**Existing coverage / deduplication**:
+- Extends u112's `watermark.window_bracket` issue code (currently keyed on a `수집창` token production never emits — the check never fires); no new issue-code family.
+- Does not backfill legacy archives and does not change window computation (u8 market-aware windows stay).
+
+**Module path**:
+- `src/investo/briefing/_reader_enhance/enhancement.py` - replace the half-open `[start, end)` math notation (its lone `[` is inherently bracket-unbalanced, so bracket repair strips it, leaving the dangling `)` seen in every published briefing) with `수집창 {start} ~ {end}`.
+- `src/investo/_internal/surface_quality.py` - update `_WATERMARK_LINE_RE` and `_bad_watermark_window` to the new shape; add a blocking match for the legacy dangling-paren shape.
+- `tests/unit/internal/test_surface_quality.py`, `tests/unit/briefing/` enhancement tests, rendered regression from the 2026-06-30 archives.
+
+**Definition of Done**:
+- [ ] Published watermark lines contain a balanced, bracket-free `수집창 start ~ end` window.
+- [ ] The legacy `..., ...Z)` dangling-paren shape is a blocking surface-quality issue on new writes.
+- [ ] The watermark line is byte-stable through the full reader-format chain (repair passes leave it untouched).
+- [ ] Legacy committed archives are not rewritten.
+
+Plan: `aidlc-docs/construction/plans/u132-watermark-window-reader-render-and-gate-alignment-code-generation-plan.md`.
+
+---
+
+### u133: `watchlist-registry-source-impact-suppression` - Registry Metadata Is Not a Watchlist Impact
+
+**Purpose**: Stop static reference/registry sources (`nasdaq-symbol-directory`, `sec-company-facts`) from creating public "직접 관련" watchlist impact rows, inflating the "N건 확인" count, and being narrated as §⑤ pseudo-news ("상장 정보가 갱신됐으나 …").
+
+**Stories**: FR-002 (AI briefing), FR-004 (compliance-safe actionability), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- u64 matching semantics and u73 Direct/Related/Uncertain/Rejected grouping are unchanged; this adds a source-class routing input, not a matcher change.
+- u111 public label projection is unchanged; u101 fact-cache/entity-guard continues consuming registry sources for verification.
+- u104 keeps collecting these sources; nothing is removed from collection or diagnostics.
+
+**Module path**:
+- `src/investo/_internal/source_specs.py` - add a `reference_registry` spec flag (initial fixed set: `nasdaq-symbol-directory`, `sec-company-facts`).
+- `src/investo/briefing/watchlist_impact.py` - route registry-source matches to diagnostics only; exclude from public impact rows and the "N건 확인" count.
+- `src/investo/briefing/prompts.py` - Stage-2 rule: registry metadata items are entity evidence, not §⑤ narrative events, unless a same-run non-registry item corroborates the ticker.
+- `tests/unit/briefing/test_watchlist_impact.py`, `tests/unit/sources/test_source_specs.py`, prompt tests, rendered regression from the 2026-06-30 us-equity archive.
+
+**Definition of Done**:
+- [ ] The public impact callout count excludes registry-source rows (2026-06-30 "14건 확인" listing-metadata shape).
+- [ ] Registry-source matches appear only in collapsed diagnostics with R13-safe wording.
+- [ ] §⑤ no longer renders a registry-only "상장 정보 갱신" narrative block.
+- [ ] Telegram/visual-card impact counts agree with the site callout; u73 grouping tests prove matching semantics unchanged.
+
+Plan: `aidlc-docs/construction/plans/u133-watchlist-registry-source-impact-suppression-code-generation-plan.md`.
+
+---
+
+### u134: `callout-and-diagnostic-line-composition-repair` - Well-Formed Deterministic Callout Composition
+
+**Purpose**: Fix four deterministic composition defects visible in every recent briefing: (a) `핵심 동인` heading+sentence concatenation without a separator, (b) `오늘의 결론` low-coverage suffix spliced without punctuation, (c) the collapsed-diagnostics `소스 카운트` line repeating the public pointer sentence three times in place of numeric counters, (d) crypto funding rate rendered as `0.0001000000000000`.
+
+**Stories**: FR-002 (AI briefing), FR-008 (segmented briefing), FR-009 (reader-facing format), NFR-003, NFR-006
+
+**Existing coverage / deduplication**:
+- u61/u71/u127 summary extraction/reflow/reject-predicate contracts stay; this repairs producers, adding no new gate family.
+- u108's public-language boundary stays for first-viewport/public regions; the fix restores numeric counters only *inside* the collapsed `<details>` diagnostics where u108 permits operator counts.
+- u66/u74 indicator table structure is unchanged; only Decimal normalization changes.
+
+**Module path**:
+- `src/investo/briefing/_reader_enhance/enhancement.py` - `핵심 동인` driver = `{heading} — {first sentence}` with an explicit ` — ` separator.
+- `src/investo/publisher/reader_format/reflow.py` - low-coverage suffix appended as its own sentence (reuse `PUBLIC_LOW_COVERAGE_TEXT`, not the inline fragment); `소스 카운트` slots render numeric counters inside diagnostics, with the pointer sentence at most once per line.
+- `src/investo/publisher/channel_anchor_block.py` - normalize funding-rate Decimals to shortest exact form.
+- `tests/unit/publisher/test_reader_format.py`, `tests/unit/publisher/test_channel_anchor_block.py`, enhancement tests, rendered regressions from 2026-06-29/30 archives.
+
+**Definition of Done**:
+- [ ] `핵심 동인` renders heading and sentence with a visible separator (2026-06-30 "…마감 나스닥 기사에 따르면…" shape eliminated).
+- [ ] The low-coverage note renders as its own complete sentence after the preceding period (no "…관찰된다. 수집 근거가 제한적입니다" splice).
+- [ ] The collapsed `소스 카운트` line shows numeric `0건/실패/본문 사용` counters; the pointer sentence appears at most once.
+- [ ] Funding rates render without trailing-zero noise (`0.0001`).
+
+Plan: `aidlc-docs/construction/plans/u134-callout-and-diagnostic-line-composition-repair-code-generation-plan.md`.
+
+---
+
+### u135: `watchpoint-current-value-and-deterministic-fallback` - Cards Carry Real Values; Rich Runs Don't Go Empty
+
+**Purpose**: Make §⑥ cards show an actual snapshot value in `현재:` (not a source name), and synthesize at most two bounded observational cards from already-reconciled deterministic data when all LLM cards are filtered out but the run demonstrably has concrete signals.
+
+**Stories**: FR-002 (AI briefing), FR-004 (compliance-safe actionability), FR-008 (segmented briefing), FR-009 (reader-facing format), FR-012, NFR-003, NFR-006, R13
+
+**Existing coverage / deduplication**:
+- u72 matrix contract, u87 rehabilitation, u98 card shape, and u110 field cleanup/filters all stay; this adds value resolution and a bounded deterministic fallback only.
+- DEBT-074's graceful `데이터부족` collapse remains correct for genuinely empty payloads.
+- No new LLM call, no matrix redesign, no watchlist matching change.
+
+**Module path**:
+- `src/investo/publisher/watchpoint_matrix.py` - resolve `현재:` values from the reconciled indicator/anchor payload by symbol/indicator key (anchor close, 24h range, F&G value, CFTC net-% rows); rows whose value cannot resolve keep hard-failing per u110.
+- `src/investo/publisher/watchpoint_matrix.py` (or a sibling module) - deterministic synthesis: when zero LLM cards survive AND the payload contains ≥1 of {reconciled core anchor with range data, CFTC positioning row, F&G value}, emit ≤2 cards from closed Korean templates pinned in the plan; 신뢰도 derives from data freshness (weekly-delayed → `보통`).
+- `src/investo/orchestrator/pipeline.py` - pass the reconciled payload into the §⑥ conversion; re-run `scan_compliance` over synthesized cards.
+- `tests/unit/publisher/test_watchpoint_matrix.py`, orchestrator stage tests, rendered regressions from 2026-06-29 crypto (`현재: CoinGecko BTC` shape) and 2026-06-30 us-equity (empty §⑥ despite CFTC divergence).
+
+**Definition of Done**:
+- [ ] No public card renders a source label in the `현재:` slot; values resolve from reconciled data or the row is filtered.
+- [ ] A run with reconciled anchor/CFTC/F&G data and zero surviving LLM cards renders 1-2 synthesized observational cards instead of the bounded note.
+- [ ] Synthesized cards pass `scan_compliance` and the u64 structure regexes; segments with genuinely empty payloads keep the bounded note.
+- [ ] Card shape, 신뢰도 closed set, and u110 filters are unchanged for LLM-produced cards.
+
+Plan: `aidlc-docs/construction/plans/u135-watchpoint-current-value-and-deterministic-fallback-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
