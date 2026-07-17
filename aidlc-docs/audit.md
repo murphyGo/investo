@@ -4574,3 +4574,15 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Ruff/format passed; `mypy src` passed for 226 files; pytest returned 1,440 passed plus 2 baseline-identical failures, then 1,440 passed with those tests deselected; cumulative fresh-eyes review found no issues and confirmed AC-132.1 through AC-132.5.
 **TECH-DEBT**: No new item; DEBT-081 remains active and unchanged.
 **Context**: Step 6 commit `843d191` was pushed before this step began. Cross-check is pending.
+
+## u132 Cross-Check Complete
+**Timestamp**: 2026-07-17T20:06:52Z
+**Scope**: u132 watermark-window-reader-render-and-gate-alignment against FR-002, FR-003, FR-008, FR-009, NFR-006, the unit DoD, and AC-132.1 through AC-132.5.
+**Result**: APPROVE, 100% compliance; no gaps or new TECH-DEBT items.
+**Evidence**:
+- Current-HEAD focused cross-check suite: 100 passed.
+- Scoped Ruff/format and `mypy src` passed; Step 7's 1,440-test clean remainder remains valid.
+- Cumulative diff contains no archive or generated-site paths.
+- Existing DEBT-081 failures reproduce unchanged at the pre-u132 baseline and are not u132 gaps.
+**Report**: `docs/cross-checks/2026-07-18-u132-watermark-window-reader-render-and-gate-alignment.md`
+**Context**: Step 7 commit `8682b94` was pushed before cross-check began.
