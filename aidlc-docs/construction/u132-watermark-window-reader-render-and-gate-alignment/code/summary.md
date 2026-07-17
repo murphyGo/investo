@@ -47,3 +47,21 @@ Step 2 validation:
 - Focused briefing and segment-reader tests: 47 passed.
 - Scoped Ruff and format checks: passed.
 - Fresh-eyes review: no findings; confirmed no Step 3 gate changes leaked in.
+
+## Step 3 Gate Alignment
+
+`_WATERMARK_LINE_RE` now accepts only the pinned KST/NY/UTC reader shape.
+`_bad_watermark_window()` keeps non-watermark lines out of scope, then blocks
+unbalanced parentheses, the legacy `Z, Z)` tail, and every other watermark
+shape that does not fully match the new contract. The existing
+`watermark.window_bracket` issue code remains the single enforcement surface.
+The Step 1 production-call spy now also confirms that a repaired legacy line is
+blocked after repair instead of surviving to the returned briefing.
+Direct gate acceptance tests cover all three timezone labels.
+
+Step 3 validation:
+
+- Focused surface, renderer, and segment-chain tests: 68 passed.
+- Scoped Ruff and format checks: passed.
+- Fresh-eyes review: no findings; the NY-only residual test risk was closed by
+  adding direct KST and UTC gate-acceptance cases.

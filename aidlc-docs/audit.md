@@ -4519,3 +4519,13 @@ passed, scoped format check passed, `mypy src` passed.
 - Deferred `_WATERMARK_LINE_RE` and `_bad_watermark_window` alignment to the explicit Step 3 boundary; Step 2 is not committed as a standalone production checkpoint.
 **Validation**: Renderer expectations updated for all three segments and the full enhanced-header line; 47 focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no issues.
 **Context**: Step 1 commit `6e21ba8` was pushed before this step began.
+
+## u132 Code Generation Step 3 - Watermark Gate Alignment
+**Timestamp**: 2026-07-17T19:22:27Z
+**Action**: Completed Code Generation Step 3 in the dedicated u132 worktree.
+**Decisions**:
+- Re-aimed the existing `_WATERMARK_LINE_RE` at the exact KST/NY/UTC reader contract instead of adding a second gate family.
+- Made every bold `기준 시각` line fail closed unless it matches the new contract; non-bold lookalike text remains outside the gate.
+- Added explicit legacy `Z, Z)` and parenthesis-balance checks while preserving the existing `watermark.window_bracket` issue code.
+**Validation**: Focused helper tests cover valid KST/NY/UTC shapes, missing `수집창`, the legacy dangling tail, and unbalanced parentheses; 68 focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no issues, and its NY-only residual risk was closed with direct KST/UTC acceptance cases.
+**Context**: Step 2 commit `fe2df76` was pushed before this step began.

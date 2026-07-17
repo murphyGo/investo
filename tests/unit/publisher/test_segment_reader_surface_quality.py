@@ -122,16 +122,16 @@ def test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132(
 
     monkeypatch.setattr(segment_reader_format, "repair_surface_artifacts", traced_repair)
 
-    out = apply_reader_format_to_segments(
-        {US_EQUITY: _briefing(markdown)},
-        anchors_by_segment={},
-    )[US_EQUITY].rendered_markdown
+    with pytest.raises(SurfaceQualityError) as exc_info:
+        apply_reader_format_to_segments(
+            {US_EQUITY: _briefing(markdown)},
+            anchors_by_segment={},
+        )
 
     assert legacy_watermark in captured["input"]
     assert legacy_watermark not in captured["output"]
     assert malformed_watermark in captured["output"]
-    assert legacy_watermark not in out
-    assert malformed_watermark in out
+    assert any(issue.code == "watermark.window_bracket" for issue in exc_info.value.issues)
 
 
 def test_segment_reader_repairs_u112_bad_particle_and_numeric_bold() -> None:

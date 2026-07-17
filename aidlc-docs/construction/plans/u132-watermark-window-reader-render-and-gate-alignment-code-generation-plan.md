@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u132 watermark-window-reader-render-and-gate-alignment
 **Stage**: Code Generation
-**Status**: In Progress (2/7; Steps 1-2 complete 2026-07-18)
+**Status**: In Progress (3/7; Steps 1-3 complete 2026-07-18)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~2 h
 **Dependencies**:
@@ -64,9 +64,9 @@ NFR Requirements: SKIP — deterministic rendering; no new dependency, source, s
 ## Implementation Steps
 
 - [x] Step 1 — Trace the stripper: feed the current legacy line through the production reader-format/publish chain in a test to identify which repair pass removes the `[` (candidates listed in Problem Statement). Record the finding in the unit summary; do not "fix" the stripper — it is correct for genuine unbalanced brackets.
-  - Finding: `apply_reader_format()`, `reflow_first_viewport()`, and `repair_first_viewport_summary()` preserve the legacy line. A spy on the actual `segment_reader_format.apply_reader_format_to_segments()` call captures the legacy line immediately before `repair_surface_artifacts()` and the stripped line immediately after it. Its first-viewport `_repair_unmatched_markdown_markers()` path treats the unmatched `[` as a recoverable Markdown marker and removes it.
+  - Finding: `apply_reader_format()`, `reflow_first_viewport()`, and `repair_first_viewport_summary()` preserve the legacy line. A spy on the actual `segment_reader_format.apply_reader_format_to_segments()` call captures the legacy line immediately before `repair_surface_artifacts()` and the stripped line immediately after it. Its first-viewport `_repair_unmatched_markdown_markers()` path treats the unmatched `[` as a recoverable Markdown marker and removes it. After Step 3, the same regression confirms that the repaired-but-legacy line is then blocked under `watermark.window_bracket` rather than published.
 - [x] Step 2 — Change `src/investo/briefing/_reader_enhance/enhancement.py` (line ~114 and docstring example at ~96) to the pinned shape.
-- [ ] Step 3 — Update `_WATERMARK_LINE_RE` and `_bad_watermark_window` in `src/investo/_internal/surface_quality.py` per Fixed Contract 2, including the legacy-shape blocker.
+- [x] Step 3 — Update `_WATERMARK_LINE_RE` and `_bad_watermark_window` in `src/investo/_internal/surface_quality.py` per Fixed Contract 2, including the legacy-shape blocker.
 - [ ] Step 4 — Add the chain byte-stability regression (Fixed Contract 3) using a full segment fixture.
 - [ ] Step 5 — Add gate tests: new shape passes; legacy 2026-06-30 line (verbatim) blocks; unbalanced-paren variant blocks.
 - [ ] Step 6 — Sweep other consumers: `rg -n "기준 시각" src/ tests/` and update any test fixture or parser expecting the old shape (notably `_internal/briefing_extract.py` if it parses the line).
