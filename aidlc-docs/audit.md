@@ -1,5 +1,55 @@
 # AI-DLC Audit Log
 
+## u136 Land - feed-image-metadata-harvest
+**Timestamp**: 2026-07-18T00:00:00Z
+**Action**: Landed u136 code generation (5/5). Media RSS image metadata
+harvest wired into yonhap-market / yahoo-finance-news / theblock-crypto via
+the shared `sources/_feed_media.py` helper.
+**Decisions**:
+- Added `MEDIA_NS`/`MEDIA_CONTENT`/`MEDIA_THUMBNAIL`/`MEDIA_CREDIT` constants
+  in `_xml_namespaces.py` and the pure `extract_feed_image` helper
+  (Fixed Contract #2; media:content preferred over media:thumbnail, first
+  accepted candidate only, http(s)-only, URL/credit caps).
+- Emitted Contract #3 raw_metadata keys `image_url`/`image_width`/
+  `image_height`/`image_mime`/`image_credit` (R8 strings/ints; absent image =
+  absent keys) from the three verified adapters only (AC-136.1, AC-136.5).
+- Pinned Contract #4 license-key non-pollution with manifest-level regression
+  tests: adapters never emit license/attribution/author/allowed_use keys, so
+  `external_image._manifest_from_item` stays None and the dormant fetch path
+  cannot trigger from harvested metadata even with
+  `INVESTO_EXTERNAL_IMAGE_ASSETS=1` (AC-136.3).
+- Extended the aggregator per-source "source returned" record with
+  `image_items=<n>` (Contract #6; no new KPI/severity — AC-136.4).
+- R10 fixtures re-recorded live (2026-07-16) for the three adapters.
+**Quality gate**: full gate green — ruff, ruff format (changed scope),
+`mypy --strict`, pytest, `scripts/check_no_paid_apis.py`, mkdocs build
+--strict; zero new HTTP calls confirmed via httpx mock watch (AC-136.2). Two
+briefing test failures pre-date u136 (reproduce at 3a67cbc) → DEBT-081.
+**TECH-DEBT**: DEBT-081 (pre-existing briefing test breakage — triage),
+DEBT-082 (`_ALLOWED_SCHEMES` / `_FORBIDDEN_LICENSE_KEYS` duplication).
+**Context**: u136 feed-image-metadata-harvest Code Generation complete
+(commits 1d37010, 642de28, cfed840, 7141661, 71c20ac). Cross-check pending.
+Unblocks u137 image-candidate-registry-and-licensed-store.
+
+---
+
+## Construction — u136 Fixed Contract #2 divergence ratified (yahoo media:content image gate)
+**Timestamp**: 2026-07-18T00:00:00Z
+**Trigger**: Step 3 implementation (2026-07-17) — the live `yahoo-finance-news` feed's `<media:content>` elements carry no `type` attribute and extension-less zenfs CDN content-hash URLs, so the plan's "image mime OR image extension" acceptance gate matched zero Yahoo images and AC-136.1 was unachievable for that adapter.
+**Decision**: Extend `_is_image_content` with a third acceptance path — `type` absent + positive-integer `width`+`height` attribute pair. False-positive risk is low because video enclosures do carry a `type` attribute; non-image mimes (`video/*` etc.) are still skipped and the mime/extension paths are unchanged. Precedent: the L6.5 pubDate-format divergence (spec adjusted to verified live-feed reality at implementation time).
+**Ratification**: recorded in the `src/investo/sources/_feed_media.py` module docstring and inline in the plan's Step 3 section (`/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u136-feed-image-metadata-harvest-code-generation-plan.md`).
+**Status**: Ratified 2026-07-18 (decision made 2026-07-17 at Step 3).
+
+---
+
+## Construction — u136 recording-time fact: Yahoo media:credit empty in 2026-07-16 recording
+**Timestamp**: 2026-07-18T00:00:00Z
+**Trigger**: Step 3 R10 fixture re-recording for `yahoo-finance-news`.
+**Decision**: Record the fact — every `<media:credit>` element in the 2026-07-16 Yahoo recording is empty, so `image_credit` is absent from replayed Yahoo items (Contract #3: absent field = absent key; conforming behavior, not a defect). The credit→`image_credit` mapping is therefore pinned via synthetic XML instead of the live recording.
+**Status**: Informational — no code divergence; re-recording may later capture a non-empty credit and exercise the mapping against live bytes.
+
+---
+
 ## u118 Land - briefing-generation-side-effect-boundary
 **Timestamp**: 2026-06-25T00:00:00Z
 **Action**: Landed u118 code generation. Briefing generation now has an

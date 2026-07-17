@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 4 | 2026-05-07 |
-| Low | 31 | 2026-04-27 |
+| Medium | 5 | 2026-05-07 |
+| Low | 32 | 2026-04-27 |
 
 ---
 
@@ -22,6 +22,16 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
+
+#### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
+
+- **Created**: 2026-07-18
+- **Source**: u136 feed-image-metadata-harvest Step 5 full gate (pre-existing failure surfaced during the gate; reproduces at commit 3a67cbc, i.e., pre-u136)
+- **Reference**: NFR-006 (testing), u128 segment-scoped-source-outcome-contract (`_validate_segment_scoped_outcomes` fail-loud guard)
+- **Description**: `tests/unit/briefing/test_pattern_dedup_guard.py::test_consumers_share_the_canonical_objects` and `tests/unit/briefing/test_trace_diagnostics.py::test_reader_line_omits_raw_english_plumbing` fail via a collection-time `ValueError` raised at `src/investo/briefing/segments.py:801` — the u128 `_validate_segment_scoped_outcomes` guard (`source outcomes not scoped to {segment}: {names}`). The failure reproduces at 3a67cbc, so it pre-dates u136 and is not caused by the image-harvest change. Untriaged ambiguity: either the two tests build source-outcome fixtures whose source names fell outside the u128 per-segment allow-list after a later registry change (test-fixture drift), or the allow-list/registry itself regressed and the guard is correctly catching it. Until triaged, the full suite cannot run fully green without deselecting the two tests.
+- **Suggested Fix**: Bisect between the u128 landing and 3a67cbc to identify which change put the tests' fixture source names outside `_SEGMENT_SOURCES[segment]`; then either fix the fixtures to use allow-listed sources (drift case) or fix the registry/allow-list (regression case). Pin the outcome with a note in the affected tests so the next registry change updates them deliberately.
+- **Effort**: ~1-2 h including the bisect.
+- **Priority Reasoning**: Medium — two failing tests block clean full-suite runs and may be masking a real segment-scoping regression. Not user-facing today, but the drift-vs-regression ambiguity is exactly the kind of gate-trust erosion that worsens the longer it ages; triage promptly rather than letting future units inherit the deselection habit.
 
 #### DEBT-067: event-lookahead remaining adapters — CoinGecko fallback decision + KRX option-expiry public path
 
@@ -66,6 +76,16 @@ _No high priority items._
 - **Priority Reasoning**: Medium — works correctly today on the observed segment shapes (≤ 1 non-hero card per anchor), but is the kind of regression that escapes review when a fourth card type lands.
 
 ### Low Priority
+
+#### DEBT-082: `_ALLOWED_SCHEMES` duplicated across 13 sources modules; `_FORBIDDEN_LICENSE_KEYS` duplicated across 4 test files
+
+- **Created**: 2026-07-18
+- **Source**: u136 feed-image-metadata-harvest closeout (duplication grew by one member on each family)
+- **Reference**: NFR-005 (consistency / maintainability), u136 Fixed Contract #4 (license-key non-pollution invariant), DEBT-032 precedent (`_SUMMARY_MAX_LEN` duplicated across 8 adapters), DEBT-034 precedent (test-helper duplication)
+- **Description**: Two small duplication families. (a) `_ALLOWED_SCHEMES = ("http", "https")` is repeated per sources module — now 13 files under `src/investo/sources/` including the new `_feed_media.py` (`cftc_policy_rss.py`, `cnbc_top_news.py`, `fed_speech_rss.py`, `fomc_rss.py`, `korea_policy_rss.py`, `nasdaq_stocks_news.py`, `official_policy.py`, `sec_edgar_8k.py`, `sec_newsroom_rss.py`, `theblock_crypto.py`, `yahoo_finance_news.py`, `yonhap_market.py`, `_feed_media.py`); any future scheme-policy change needs 13 lockstep edits. (b) The `_FORBIDDEN_LICENSE_KEYS` set backing the u136 Contract #4 non-pollution regression tests is duplicated across 4 test files (`tests/unit/sources/test_yonhap_market.py`, `tests/unit/sources/test_yahoo_finance_news.py`, `tests/unit/sources/test_theblock_crypto.py`, `tests/unit/visuals/test_external_image.py`); drift in any one copy would silently weaken the safety invariant that copy pins.
+- **Suggested Fix**: (a) Hoist `_ALLOWED_SCHEMES` (or an `is_allowed_http_url` predicate) into an existing shared sources helper module and import it from the 13 sites. (b) Single-home `_FORBIDDEN_LICENSE_KEYS` — either a shared test helper or, better, export the canonical forbidden-key tuple from the production module whose contract the tests guard, so the test set can never drift from the production contract — and import it from the 4 test files.
+- **Effort**: ~45 min for both moves + import updates.
+- **Priority Reasoning**: Low — pure duplication with correct behavior today, same shape as DEBT-032/DEBT-034. The `_FORBIDDEN_LICENSE_KEYS` copies matter slightly more than typical test duplication because they pin a safety invariant (Contract #4), so resolve that half first if the work is split.
 
 #### DEBT-079: macro calendar↔actual share no canonical `event_key` (u59 carryover tracks them as two events)
 
