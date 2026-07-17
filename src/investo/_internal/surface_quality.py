@@ -34,8 +34,13 @@ _TRACE_ASSIGNMENT_RE = re.compile(
 )
 _RECOVERABLE_LINK_FRAGMENT_RE = re.compile(r"\[([^\]\n]+)\]\((?:https?://|www\.)[^\s)\n]*")
 _WATERMARK_LINE_RE = re.compile(
-    r"^\*\*기준 시각\*\*:\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+"
-    r"[A-Za-z가-힣0-9 /+:-]+\s+·\s+수집창\s+\[[^\[\]\n]+\]$"
+    r"^\*\*기준 시각\*\*:\s+\d{4}-\d{2}-\d{2}\s+(?:KST|NY|UTC)\s+·\s+"
+    r"수집창\s+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\s+~\s+"
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\s+\(종료 미포함\)$"
+)
+_LEGACY_WATERMARK_DANGLING_RE = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z,\s+"
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\)$"
 )
 _BROKEN_NUMERIC_BOLD_RE = re.compile(
     r"\*\*[+-]\*\*\s*(?:\$?\d|\d+(?:\.\d+)?%)|"
@@ -294,10 +299,11 @@ def _looks_like_unmatched_link(line: str) -> bool:
 
 def _bad_watermark_window(line: str) -> bool:
     stripped = line.strip()
-    if not stripped.startswith("**기준 시각**:") or "수집창" not in stripped:
+    if not stripped.startswith("**기준 시각**:"):
         return False
-    _, _, window_part = stripped.partition("수집창")
-    if window_part.count("[") != 1 or window_part.count("]") != 1:
+    if stripped.count("(") != stripped.count(")"):
+        return True
+    if _LEGACY_WATERMARK_DANGLING_RE.search(stripped) is not None:
         return True
     return _WATERMARK_LINE_RE.fullmatch(stripped) is None
 

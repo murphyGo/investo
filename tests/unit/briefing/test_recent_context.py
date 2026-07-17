@@ -28,6 +28,7 @@ from investo.briefing.context import (
     load_recent_briefings,
     resolve_recent_days,
 )
+from investo.briefing.pipeline import _render_timestamp_watermark
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 
 _ALL_SEGMENTS: tuple[MarketSegment, ...] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
@@ -40,16 +41,21 @@ def _write_archive(
     *,
     conclusion: str = "테스트 결론",
     drivers: str = "테스트 동인",
-    watermark: str = "2026-05-06 KST · [...]",
+    watermark: str | None = None,
     extra_body: str = "본문 생략",
 ) -> Path:
     """Write a minimal archive markdown file mirroring publisher output."""
     folder = archive_root / segment / f"{day.year:04d}" / f"{day.month:02d}"
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"{day.isoformat()}.md"
+    watermark_line = (
+        _render_timestamp_watermark(day, segment)
+        if watermark is None
+        else f"**기준 시각**: {watermark}"
+    )
     body = (
         f"# {day.isoformat()} 시황\n\n"
-        f"**기준 시각**: {watermark}\n\n"
+        f"{watermark_line}\n\n"
         f"> **오늘의 결론**: {conclusion}\n"
         f"> **핵심 동인**: {drivers}\n"
         f"> **주의할 점**: 주의\n\n"
@@ -109,7 +115,12 @@ def test_load_pulls_one_entry_per_segment_for_yesterday(tmp_path: Path) -> None:
         assert entry.segment == segment
         assert entry.conclusion == f"{segment} 결론"
         assert entry.key_drivers == f"{segment} 동인"
-        assert entry.watermark.startswith("2026-05-06 KST")
+        produced_watermark = _render_timestamp_watermark(yesterday, segment).removeprefix(
+            "**기준 시각**: "
+        )
+        assert len(entry.watermark) == 50
+        assert entry.watermark.endswith("…")
+        assert produced_watermark.startswith(entry.watermark.removesuffix("…"))
 
 
 def test_load_walks_back_n_weekdays_skipping_weekends(tmp_path: Path) -> None:
@@ -202,7 +213,9 @@ def test_load_skips_entry_when_both_signal_fields_empty(tmp_path: Path) -> None:
     folder.mkdir(parents=True)
     # Watermark present, but no conclusion / driver lines.
     (folder / "2026-05-07.md").write_text(
-        "# 2026-05-07 시황\n\n**기준 시각**: 2026-05-06 KST · [...]\n\n## ① 요약\n\n빈 본문\n",
+        "# 2026-05-07 시황\n\n"
+        f"{_render_timestamp_watermark(date(2026, 5, 7), US_EQUITY)}\n\n"
+        "## ① 요약\n\n빈 본문\n",
         encoding="utf-8",
     )
 

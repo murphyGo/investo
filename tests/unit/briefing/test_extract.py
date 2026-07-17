@@ -52,7 +52,7 @@ def _briefing(*lines: str) -> str:
         (
             extract_watermark,
             WATERMARK_PREFIX,
-            "2026-05-08 KST · [2026-05-07T15:00Z, 2026-05-08T15:00Z)",
+            ("2026-05-08 KST · 수집창 2026-05-07T15:00Z ~ 2026-05-08T15:00Z (종료 미포함)"),
         ),
     ],
 )

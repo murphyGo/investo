@@ -210,19 +210,44 @@ def test_public_diagnostics_block_in_segment_body() -> None:
     assert public[0].region == "segment_body"
 
 
-def test_watermark_window_bracket_validation_u112() -> None:
-    valid = (
+def test_watermark_window_contract_alignment_u132() -> None:
+    valid_lines = (
+        "**기준 시각**: 2026-06-30 KST · "
+        "수집창 2026-06-29T15:00Z ~ 2026-06-30T15:00Z (종료 미포함)",
+        "**기준 시각**: 2026-06-30 NY · 수집창 2026-06-30T04:00Z ~ 2026-07-01T04:00Z (종료 미포함)",
+        "**기준 시각**: 2026-06-30 UTC · "
+        "수집창 2026-06-30T00:00Z ~ 2026-07-01T00:00Z (종료 미포함)",
+    )
+    missing = (
         "# title\n\n"
-        "**기준 시각**: 2026-06-24 07:30 KST · 수집창 [2026-06-23T22:00Z, 2026-06-24T07:00Z)]\n\n"
+        "**기준 시각**: 2026-06-30 NY · "
+        "2026-06-30T04:00Z ~ 2026-07-01T04:00Z (종료 미포함)\n\n"
         "## ① 요약"
     )
-    missing = "# title\n\n**기준 시각**: 2026-06-24 07:30 KST · 수집창 없음\n\n## ① 요약"
-    extra = "# title\n\n**기준 시각**: 2026-06-24 07:30 KST · 수집창 [[중첩]]\n\n## ① 요약"
+    legacy = (
+        "# title\n\n"
+        "**기준 시각**: 2026-06-30 NY · "
+        "2026-06-30T04:00Z, 2026-07-01T04:00Z)\n\n"
+        "## ① 요약"
+    )
+    unbalanced = (
+        "# title\n\n"
+        "**기준 시각**: 2026-06-30 NY · "
+        "수집창 2026-06-30T04:00Z ~ 2026-07-01T04:00Z (종료 미포함\n\n"
+        "## ① 요약"
+    )
     ignored = "# title\n\n기준 시각: 수집창 없음\n\n## ① 요약"
 
-    assert _issues_with_code(valid, "watermark.window_bracket") == []
-    assert any(i.code == "watermark.window_bracket" for i in find_surface_quality_issues(missing))
-    assert any(i.code == "watermark.window_bracket" for i in find_surface_quality_issues(extra))
+    for line in valid_lines:
+        assert (
+            _issues_with_code(
+                f"# title\n\n{line}\n\n## ① 요약",
+                "watermark.window_bracket",
+            )
+            == []
+        )
+    for text in (missing, legacy, unbalanced):
+        assert any(i.code == "watermark.window_bracket" for i in find_surface_quality_issues(text))
     assert _issues_with_code(ignored, "watermark.window_bracket") == []
 
 

@@ -4517,3 +4517,89 @@ passed, scoped format check passed, `mypy src` passed.
 **Context**: u121 publish-archive-path-normalization Code Generation complete.
 
 ---
+## u132 Code Generation Step 1 - Watermark Stripper Trace
+**Timestamp**: 2026-07-17T19:07:28Z
+**Action**: Started u132 in a dedicated worktree and completed Code Generation Step 1.
+**Decisions**:
+- Confirmed `apply_reader_format()`, `reflow_first_viewport()`, and `repair_first_viewport_summary()` preserve the legacy half-open watermark.
+- Identified `repair_surface_artifacts()` and its `_repair_unmatched_markdown_markers()` path as the production writer by spying on the actual full-chain call and asserting its before/after values.
+- Kept the generic Markdown repair unchanged; u132 will correct the watermark producer and align the existing gate in later steps.
+**Validation**: Focused segment reader-format regression added; 7 tests passed; scoped Ruff and format checks passed; fresh-eyes review found no remaining issues after the production-call spy was added. Plan/state/partial unit summary updated.
+**Context**: User explicitly approved u132 execution in a separate worktree via `$dev-investo`.
+
+## u132 Code Generation Step 2 - Reader-Facing Watermark Renderer
+**Timestamp**: 2026-07-17T19:19:50Z
+**Action**: Completed Code Generation Step 2 in the dedicated u132 worktree.
+**Decisions**:
+- Replaced mathematical `[start, end)` notation with `수집창 {start} ~ {end} (종료 미포함)` at the producer.
+- Preserved the existing KST/NY/UTC market-window computation and changed presentation only.
+- Deferred `_WATERMARK_LINE_RE` and `_bad_watermark_window` alignment to the explicit Step 3 boundary; Step 2 is not committed as a standalone production checkpoint.
+**Validation**: Renderer expectations updated for all three segments and the full enhanced-header line; 47 focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no issues.
+**Context**: Step 1 commit `6e21ba8` was pushed before this step began.
+
+## u132 Code Generation Step 3 - Watermark Gate Alignment
+**Timestamp**: 2026-07-17T19:22:27Z
+**Action**: Completed Code Generation Step 3 in the dedicated u132 worktree.
+**Decisions**:
+- Re-aimed the existing `_WATERMARK_LINE_RE` at the exact KST/NY/UTC reader contract instead of adding a second gate family.
+- Made every bold `기준 시각` line fail closed unless it matches the new contract; non-bold lookalike text remains outside the gate.
+- Added explicit legacy `Z, Z)` and parenthesis-balance checks while preserving the existing `watermark.window_bracket` issue code.
+**Validation**: Focused helper tests cover valid KST/NY/UTC shapes, missing `수집창`, the legacy dangling tail, and unbalanced parentheses; 68 focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no issues, and its NY-only residual risk was closed with direct KST/UTC acceptance cases.
+**Context**: Step 2 commit `fe2df76` was pushed before this step began.
+
+## u132 Code Generation Step 4 - Full-Chain Watermark Stability
+**Timestamp**: 2026-07-17T19:39:13Z
+**Action**: Completed Code Generation Step 4 in the dedicated u132 worktree.
+**Decisions**:
+- Used `_enhance_reader_experience()` with a complete six-section body instead of injecting a hand-authored watermark into the publisher test.
+- Compared the exact producer line after summary repair, surface repair, and the full segment reader chain; unrelated document normalization is outside this line-level byte-stability contract.
+- Updated only the shared integration fixture touched by this test from its obsolete abbreviated watermark; the repository-wide consumer sweep remains Step 6.
+- Preserved and asserted `Briefing.target_date` and disclaimer model fields across the chain.
+**Validation**: 35 integration/focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no remaining issues after the producer-to-chain assertion was strengthened.
+**Context**: Step 3 commit `d05f798` was pushed before this step began.
+
+## u132 Code Generation Step 5 - Publish-Gate Regressions
+**Timestamp**: 2026-07-17T19:44:37Z
+**Action**: Completed Code Generation Step 5 in the dedicated u132 worktree.
+**Decisions**:
+- Exercised `apply_reader_format_to_segments()` so tests observe the actual `SurfaceQualityError` boundary rather than only the private helper predicate.
+- Pinned the exact public 2026-06-30 legacy line and a missing-closing-parenthesis new line as blocking evidence.
+- Required exactly one `watermark.window_bracket` issue with evidence equal to the malformed input line.
+- Made `_briefing()` target-date configurable and aligned all u132 fixtures to 2026-06-30 after fresh-eyes review.
+**Validation**: 38 integration/focused tests passed; scoped Ruff and format checks passed; fresh-eyes re-review found no remaining issues.
+**Context**: Step 4 commit `0e15927` was pushed before this step began.
+
+## u132 Code Generation Step 6 - Watermark Consumer Sweep
+**Timestamp**: 2026-07-17T19:57:15Z
+**Action**: Completed Code Generation Step 6 in the dedicated u132 worktree.
+**Decisions**:
+- Swept every `기준 시각` occurrence under `src/` and `tests/`; confirmed `_internal/briefing_extract.py` is prefix-only and does not parse the window syntax.
+- Updated seven general test consumers to the new `수집창 ... ~ ... (종료 미포함)` contract while preserving explicit legacy-invalid repair and gate regressions.
+- Reused `_render_timestamp_watermark()` in variable-date and variable-segment archive fixtures so their timezone and UTC window cannot drift from the producer.
+- Excluded unrelated generated archive/site changes observed in the shared worktree from the u132 keep-set.
+**Validation**: 200 focused/integration tests passed; scoped Ruff and format checks and `git diff --check` passed; fresh-eyes final review found no issues after three fixture-consistency findings were corrected.
+**Context**: Step 5 commit `166f002` was pushed before this step began.
+
+## u132 Code Generation Step 7 - Final Quality Gate
+**Timestamp**: 2026-07-17T20:03:12Z
+**Action**: Completed Code Generation Step 7 and the u132 Code Generation stage in the dedicated worktree.
+**Decisions**:
+- Ran Ruff/format over all 13 Python files changed since the pre-u132 baseline, plus `mypy src` and the planned internal/briefing/publisher pytest scope.
+- Classified the two failing tests as existing DEBT-081 only after reproducing both unchanged at baseline commit `0af9c7a`; u132 does not modify either failing surface.
+- Re-ran the planned pytest scope with only those two baseline failures deselected to prove all other 1,440 tests pass.
+- Kept unrelated generated archive/site worktree changes outside the u132 diff; AC-132.5 remains satisfied.
+**Validation**: Ruff/format passed; `mypy src` passed for 226 files; pytest returned 1,440 passed plus 2 baseline-identical failures, then 1,440 passed with those tests deselected; cumulative fresh-eyes review found no issues and confirmed AC-132.1 through AC-132.5.
+**TECH-DEBT**: No new item; DEBT-081 remains active and unchanged.
+**Context**: Step 6 commit `843d191` was pushed before this step began. Cross-check is pending.
+
+## u132 Cross-Check Complete
+**Timestamp**: 2026-07-17T20:06:52Z
+**Scope**: u132 watermark-window-reader-render-and-gate-alignment against FR-002, FR-003, FR-008, FR-009, NFR-006, the unit DoD, and AC-132.1 through AC-132.5.
+**Result**: APPROVE, 100% compliance; no gaps or new TECH-DEBT items.
+**Evidence**:
+- Current-HEAD focused cross-check suite: 100 passed.
+- Scoped Ruff/format and `mypy src` passed; Step 7's 1,440-test clean remainder remains valid.
+- Cumulative diff contains no archive or generated-site paths.
+- Existing DEBT-081 failures reproduce unchanged at the pre-u132 baseline and are not u132 gaps.
+**Report**: `docs/cross-checks/2026-07-18-u132-watermark-window-reader-render-and-gate-alignment.md`
+**Context**: Step 7 commit `8682b94` was pushed before cross-check began.

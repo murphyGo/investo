@@ -21,6 +21,7 @@ from pathlib import Path
 import pytest
 
 from investo.briefing.disclaimer import DISCLAIMER, append_disclaimer
+from investo.briefing.pipeline import _render_timestamp_watermark
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.models import Briefing, BriefingCarryover, CarryoverItem
 from investo.orchestrator.pipeline import (
@@ -44,7 +45,8 @@ def _write_archive(
 
 _HEADER = (
     "# 2026-05-07 시황\n\n"
-    "**기준 시각**: 2026-05-07 NY · [2026-05-07T04:00Z, 2026-05-08T04:00Z)\n\n"
+    "**기준 시각**: 2026-05-07 NY · "
+    "수집창 2026-05-07T04:00Z ~ 2026-05-08T04:00Z (종료 미포함)\n\n"
     "> **오늘의 결론**: 보합. [관망]\n"
     "> **핵심 동인**: 거시.\n"
     "> **주의할 점**: FOMC.\n\n"
@@ -55,10 +57,10 @@ def _briefing_md() -> str:
     return _HEADER + "## ⑥ 오늘의 관전 포인트\n\n" + "1. **ARM 어닝**: 분기 실적 발표 예고.\n"
 
 
-def _stub_briefing_body() -> str:
+def _stub_briefing_body(target_date: date, segment: MarketSegment) -> str:
     return (
-        "# 2026-05-08 미국 증시 시황\n\n"
-        "**기준 시각**: 2026-05-08 NY · [...]\n\n"
+        f"# {target_date.isoformat()} 시황\n\n"
+        f"{_render_timestamp_watermark(target_date, segment)}\n\n"
         "> **오늘의 결론**: 강세 마감. [강세]\n"
         "> **핵심 동인**: 거시.\n"
         "> **주의할 점**: 메모.\n\n"
@@ -76,8 +78,11 @@ def _stub_briefing_body() -> str:
     )
 
 
-def _stub_briefing(target_date: date) -> Briefing:
-    body = _stub_briefing_body()
+def _stub_briefing(
+    target_date: date,
+    segment: MarketSegment = US_EQUITY,
+) -> Briefing:
+    body = _stub_briefing_body(target_date, segment)
     full = append_disclaimer(body)
     return Briefing(
         target_date=target_date,
@@ -141,7 +146,9 @@ def test_inject_carryover_into_segments_idempotent_same_day_rerun(
         US_EQUITY: bundle,
         CRYPTO: BriefingCarryover(prior_resolved=(), prior_unresolved=(), lookback_days=0),
     }
-    briefings = {seg: _stub_briefing(today) for seg in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)}
+    briefings = {
+        segment: _stub_briefing(today, segment) for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    }
     once = _inject_carryover_into_segments(
         briefings,
         carryover_by_segment=carryover_by_segment,

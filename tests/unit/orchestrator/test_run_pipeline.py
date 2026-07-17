@@ -561,7 +561,8 @@ async def test_run_pipeline_threads_recent_context_to_segment_generate(
     seed_dir.mkdir(parents=True, exist_ok=True)
     (seed_dir / "2026-04-24.md").write_text(
         "# 2026-04-24 미국 증시 시황\n\n"
-        "**기준 시각**: 2026-04-24 NY · [...]\n\n"
+        "**기준 시각**: 2026-04-24 NY · "
+        "수집창 2026-04-24T04:00Z ~ 2026-04-25T04:00Z (종료 미포함)\n\n"
         "> **오늘의 결론**: 어제는 반도체 주도\n"
         "> **핵심 동인**: AI 투자 사이클\n"
         "> **주의할 점**: 변동성\n\n"
