@@ -1,5 +1,73 @@
 # AI-DLC Audit Log
 
+## Construction — u139 NFR approved; Code Generation Step 1 complete
+**Timestamp**: 2026-07-17T21:05:17Z
+**User decision**: "승인, 다음단계 진행" — the complete NFR Requirements and TS-1..TS-8 decisions are approved; Code Generation is authorized.
+**Implementation**: Added the fixed sector/SPY universe and immutable manifest, NAV, failure, coverage, diagnostic, canonical bundle, metric, regime, rank, snapshot, provenance, and private-artifact contracts in `src/investo/models/sector.py`; exposed the public model names; established the isolated `sector_dashboard` package; and added deterministic model/PBT coverage.
+**Contract hardening**: Bundle coverage is cross-checked against actual series and benchmark counts; regime labels must match axes; unavailable sectors and insufficient/warming states suppress unsupported claims; diagnostic metric identifiers are closed; dates reject timestamp strings; and `snapshot_id` is a validated typed projection-integrity field.
+**Code review**: The required independent review found two High and three Medium issues. All five were fixed and the re-review returned `APPROVED` with no remaining Critical, High, or Medium finding.
+**Verification**: Focused sector model tests 27 passed; all model tests 237 passed; scoped Ruff format/check and mypy passed.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/code/step-1-model-contracts.md`
+- `docs/sessions/2026-07-18-u139-code-generation-step1.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+**Status**: NFR Requirements Complete and approved. Code Generation Step 1/5 Complete; Step 2 local private input adapter is next. No new TECH-DEBT; existing public artifacts and u140 status are unchanged.
+
+---
+
+## Construction — u139 NFR Requirements authored; review required
+**Timestamp**: 2026-07-17T20:37:31Z
+**User decision**: "전부 권장안으로" — NFR Q1-Q5 recorded as option A.
+**Answer reconciliation**: No clarification file required. The selected 10-second/256-MiB profile is measured against the observed-shape twelve-workbook benchmark while file/cell limits remain rejection ceilings. The selected two-file behavior is specified as a recoverable POSIX transaction with one shared snapshot id, exclusive marker, prepared pair, backup, rollback, and fail-closed interrupted recovery rather than a false pair-level atomicity claim.
+**Technical decision**: Add `openpyxl>=3.1,<4` as the sole new runtime dependency; use `read_only=True`, `data_only=True`, `keep_links=False`, explicit close, stdlib ZIP preflight, and existing defusedxml. Official openpyxl documentation/PyPI metadata were rechecked on 2026-07-18 for lazy read-only semantics, load options, security posture, version family, and MIT license.
+**NFR contracts**: AC-1.1..AC-6.7 and TS-1..TS-8 pin private path/log/output boundaries; 8-MiB compressed, 64-MiB declared-uncompressed, 100:1, 20-sheet, and 250,000-cell ceilings; observed-shape 10-second/256-MiB budgets; Decimal-first calculation with a narrow float transcendental boundary; 10dp snapshot, 2dp percent/pp, and 4dp rank display; deterministic shared snapshot id; explicit `--replace`; modes 0700/0600; macOS/Linux POSIX only; synthetic fixtures, resource-adversary tests, transaction fault injection, and public-pipeline non-interference gates.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/nfr-requirements.md`
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/tech-stack-decisions.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-nfr-requirements-plan.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+**Status**: NFR artifacts complete and review-ready. `aidlc-state.md` records Review Required; Code Generation remains blocked until explicit user approval.
+
+---
+
+## Construction — u139 Functional Design approved; NFR Requirements entered
+**Timestamp**: 2026-07-17T20:31:46Z
+**User decision**: "승인. 다음 단계 진행".
+**Functional Design status**: Approved R1-R33, E1-E21, I1-I6, and C1-C8 without requested changes. The reviewed artifacts are now the binding input to NFR Requirements.
+**NFR stage decision**: Enter NFR Requirements because u139 adds private XLSX parsing, private filesystem outputs, resource-exhaustion exposure, numerical reproducibility requirements, and a new runtime dependency decision even though it has no network or scheduled service.
+**Questions created**: XLSX parser stack, bounded file/time/memory profile, Decimal/float precision boundary, atomic replacement behavior, and supported platform/owner-only permissions.
+**Artifact**: `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-nfr-requirements-plan.md`.
+**Status**: Functional Design Complete. NFR Requirements in progress and awaiting five `[Answer]:` responses.
+
+---
+
+## Construction — u139 Functional Design authored; review required
+**Timestamp**: 2026-07-17T20:25:25Z
+**User decision**: "전부 권장안으로" — Q1-Q6 recorded as option A.
+**Answer validation**: No clarification file required. Manifest completeness and partial coverage are compatible because identity is fixed before reads while individual workbook parse failures affect availability; strict as-of equality applies to every successfully parsed series and overrides coverage when violated.
+**Design decisions**: Fixed the exact 12-symbol absolute-path manifest; NAV-only parsing; strict successful-series newest-date equality; SPY benchmark-grid endpoints; simple 1D/5D/21D/63D NAV returns and excess returns; adjacent non-overlapping 5D excess-return acceleration; 20D annualized NAV log-return volatility; 20D NAV max drawdown; 10 bps hysteresis regime with 0/5/10/15/20 bps private sensitivity; deterministic midrank-based `relative_rank_v1`; normal/partial/warming_up/insufficient coverage; and private `snapshot.json` + `report.md` projections from one immutable snapshot.
+**Privacy boundary**: Paths and raw/daily workbook values stop at the input boundary. Snapshot/report/diagnostics contain no path, raw row, shares, AUM, volume, flow, earnings, public-readiness, Pages, or Telegram field. Output stays outside the repository and u140 remains blocked.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/business-logic-model.md`
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/business-rules.md`
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/domain-entities.md`
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/frontend-components.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-functional-design-plan.md`
+**Status**: Functional Design artifacts authored and validated; explicit user review/approval is required before marking the stage Complete and entering NFR Requirements.
+
+---
+
+## Construction — u139 Functional Design stage entry
+**Timestamp**: 2026-07-17T19:59:01Z
+**Trigger**: User approved continuation with "진행" after u139/u140 Application Design registration.
+**Health check**: No Critical or High TECH-DEBT. Aged Medium items and the pending u136 cross-check are acknowledged as independent work and do not block u139. Existing dirty generated Pages/watchlist artifacts remain outside this stage.
+**Context loaded**: FR-022, NFR-008, US-010, S0 private validation decision, C6 Application Design, u139 unit/story/dependency/code plan, current module boundaries, State Street 12-workbook schema facts, and prior AIDLC trust-boundary handoff patterns.
+**Decision**: Enter Functional Design and create a bounded answer plan rather than inventing six implementation-affecting contracts: workbook identity, cross-symbol as-of behavior, 5D acceleration formula, neutral-band sensitivity, coverage/warming states, and private artifact set. All previously approved scope and private/public boundaries remain binding.
+**Artifact**: `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-functional-design-plan.md`.
+**Status**: Functional Design in progress; design artifacts are blocked until every `[Answer]:` tag is completed and checked for contradictions.
+
+---
+
 ## Application Design — US sector core radar private validation and public price gate
 **Timestamp**: 2026-07-17T19:50:34Z
 **User requests**: "커밋 푸시하고 S0-P private core-radar validation의 Application Design 진행하자" and "그리고 가격 정보 가져오는 문제 해결을 위한 유닛도 등록했ㅇ더".

@@ -2,8 +2,8 @@
 
 **Date**: 2026-07-18
 **Unit**: u139 sector-dashboard-private-core-radar-validation
-**Stage**: Construction planning
-**Status**: Backlog (Blocked until Functional Design and NFR Requirements are approved)
+**Stage**: Code Generation
+**Status**: In Progress — Step 1 complete
 **Source**: FR-022, NFR-008, US-010, and the approved S0-P Application Design
 **Estimated Effort**: ~12-18 h after design approval
 **Dependencies**: none; u140 is intentionally not a dependency
@@ -12,12 +12,11 @@
 
 ## Stage Decision
 
-- Functional Design: **REQUIRED** because the unit introduces the sector series,
-  metric, regime, coverage, and snapshot contracts.
-- NFR Requirements: **REQUIRED** because the unit handles operator-provided private
-  workbooks and must prevent public artifact or log leakage.
-- Code Generation cannot begin until both artifacts fix all input, error, privacy,
-  serialization, and test contracts.
+- Functional Design: **COMPLETE — approved 2026-07-18**. Binding artifacts are under
+  `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/`.
+- NFR Requirements: **COMPLETE — approved 2026-07-18**. The binding artifacts are under
+  `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/`.
+- Code Generation: **IN PROGRESS**. Step 1 is complete; Step 2 is the next bounded slice.
 
 ## Scope Boundary
 
@@ -73,20 +72,22 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 0 — Approve Functional Design and NFR Requirements
+### Step 0 — Fix Functional Design and NFR Contracts
 
-- [ ] Define workbook identification, sheet/column matching, Excel date/numeric
+- [x] Define workbook identification, sheet/column matching, Excel date/numeric
   coercion, duplicate resolution, sort order, and cross-symbol as-of rules.
-- [ ] Define metric formulas, minimum observations, neutral bands, discontinuity
+- [x] Define metric formulas, minimum observations, neutral bands, discontinuity
   diagnostics, coverage states, and serialization schema.
-- [ ] Define private path, log-redaction, fixture, retention, and failure contracts.
-- [ ] Map each requirement to deterministic unit/PBT/privacy tests.
+- [x] Define private path, log-redaction, fixture, retention, and failure contracts.
+- [x] Map each requirement to deterministic unit/PBT/privacy tests.
+
+Contract definition and its NFR review gate were explicitly approved on 2026-07-18.
 
 ### Step 1 — Typed sector contracts and universe
 
-- [ ] Add fixed symbol and benchmark identities plus NAV series/value constraints.
-- [ ] Add metric, regime, coverage, provenance, and snapshot models.
-- [ ] Pin JSON round-trip and stable ordering with property-based tests.
+- [x] Add fixed symbol and benchmark identities plus NAV series/value constraints.
+- [x] Add metric, regime, coverage, provenance, and snapshot models.
+- [x] Pin JSON round-trip and stable ordering with property-based tests.
 
 ### Step 2 — Local private input adapter
 
