@@ -2084,6 +2084,76 @@ NFR: `aidlc-docs/construction/u138-price-source-endpoint-lifecycle-repair/nfr-re
 
 Plan: `aidlc-docs/construction/plans/u138-price-source-endpoint-lifecycle-repair-code-generation-plan.md`.
 
+---
+
+### u139: `sector-dashboard-private-core-radar-validation` - Validate Core Radar with Private NAV Input
+
+**Purpose**: Validate the sector-dashboard domain and reader contract without waiting for a public OHLCV provider. Read operator-supplied local State Street NAV History workbooks, normalize the fixed 11-sector + SPY universe, compute deterministic relative-strength/regime metrics, and render only to an operator-selected private output directory.
+
+**Stories**: US-010, FR-022, NFR-002, NFR-003, NFR-006, NFR-008
+
+**Application Design boundary**:
+- Adds the pure `sector_dashboard` component as a sibling work component that imports `models` only.
+- No registered source adapter, network fetch, GitHub Actions stage, archive/site_docs output, publisher, or Telegram integration.
+- State Street raw workbooks are operator-provided local inputs and are never committed, copied, logged, or stored as R10 fixtures.
+- Tests use synthetic schema-equivalent workbook bytes or typed in-memory series, not provider data.
+
+**Proposed module surfaces**:
+- `src/investo/models/sector.py` - fixed universe, series, metric, regime, coverage, and snapshot contracts.
+- `src/investo/sector_dashboard/private_input.py` - local workbook parser and canonical bundle validation.
+- `src/investo/sector_dashboard/metrics.py` - return, excess return, realized volatility, and drawdown pure functions.
+- `src/investo/sector_dashboard/regime.py` - relative-strength/acceleration state classification.
+- `src/investo/sector_dashboard/private_render.py` - private-only table/quadrant render with mandatory NAV labels.
+- `scripts/validate_sector_dashboard_private.py` - manual local entrypoint with explicit output directory outside public roots.
+
+**Definition of Done**:
+- [ ] Fixed universe contains exactly 11 sector ETFs plus SPY and rejects unknown/missing benchmark identity.
+- [ ] Local workbook parser validates ticker, date, NAV, duplicate rows, sort order, numeric domain, and cross-symbol as-of alignment without network access.
+- [ ] Deterministic 1D/5D/21D/63D NAV returns, SPY excess returns, 5D acceleration, 20D NAV volatility, and 20D max drawdown are reproducible from one canonical bundle.
+- [ ] Regime output is one of `leading / weakening / recovering / lagging / insufficient`; neutral-band sensitivity is explicit and fixture-tested.
+- [ ] Private render labels every return/volatility field as NAV-based and omits exchange volume, dollar volume, actual flow, earnings actual, and public-source claims.
+- [ ] Output path validation rejects repository `archive/`, `site_docs/`, tracked fixture paths, and workspace-default output.
+- [ ] Synthetic fixtures and PBT cover ordering, missing data, split-like discontinuity diagnostics, equal-value series, and serialization determinism.
+- [ ] Existing briefing pipeline behavior and public artifacts are byte-unchanged.
+
+**Construction strategy**: Functional Design and NFR Requirements are required before Code Generation because this unit introduces a new domain component, typed snapshot contract, private-data boundary, and local artifact policy.
+
+Plan: `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`.
+
+---
+
+### u140: `sector-dashboard-public-ohlcv-source-qualification` - Clear the Public Price Data Gate
+
+**Purpose**: Find and qualify a free, structured, terms-compatible source that can supply 63+ daily OHLCV bars for the 11 sector ETFs plus SPY and permit derived values on public GitHub Pages. The unit owns source facts, live/GHA evidence, rights disposition, and the go/no-go decision; it does not weaken the public gate to fit an available provider.
+
+**Stories**: US-001, US-003, US-008, US-010, FR-001, FR-003, FR-022, NFR-002, NFR-003, NFR-006, NFR-008
+
+**Existing coverage / deduplication**:
+- u138 repairs current production price endpoints but does not establish sector-universe coverage or public redistribution rights.
+- u139 validates domain/UI contracts with private NAV input and does not select a public provider.
+- The S0 decision already rejects TradingView as a data API, State Street as public redistribution, and individual/free Alpha Vantage, Twelve Data, and Nasdaq contracts for public Pages.
+
+**Binding qualification gate**:
+- primary-source evidence for public display or derived redistribution rights;
+- 12/12 symbol reachability and at least 63 daily OHLCV bars;
+- weekday freshness at most 36 hours and consistent adjusted/unadjusted-price semantics;
+- five GitHub Actions runs or replay-equivalent runner probes within a bounded request budget;
+- no paid API, trial credential, browser automation, scraping bypass, or secret leakage;
+- documented attribution, cache, raw-retention, rate-limit, failure, and fallback policy.
+
+**Definition of Done**:
+- [ ] Candidate inventory is deduplicated against current adapters/u138 and each candidate has owner, docs, endpoint, auth, cost, rate limit, fields, cadence, terms, and reliability evidence.
+- [ ] TradingView widgets/Datafeed/Broker APIs are not treated as downloadable market-data APIs; unofficial WebSocket/scraping paths remain rejected.
+- [ ] At least one candidate is classified `ship-now` only after all binding gates pass; otherwise the unit remains blocked with evidence and public construction stays unregistered.
+- [ ] Accepted candidate has recorded 12-symbol success/empty/malformed/rate-limit evidence and exact GHA request/wall-clock budgets.
+- [ ] Raw provider payload retention and derived public artifact fields are explicitly separated under NFR-008.
+- [ ] Only after source acceptance are adapter module, source name, metadata, source specs, tier/window/segment routing, diagnostics, fixtures, no-paid guard, and tests fixed in FD/NFR/code plan.
+- [ ] No provider implementation or Pages output lands while the status is blocked.
+
+**Construction strategy**: Blocked at source qualification. Functional Design and NFR Requirements become mandatory after a candidate clears the gate; Code Generation cannot begin before then.
+
+Plan: `aidlc-docs/construction/plans/u140-sector-dashboard-public-ohlcv-source-qualification-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

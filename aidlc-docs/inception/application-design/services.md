@@ -12,8 +12,36 @@
 | **PipelineService** | `orchestrator` | GitHub Actions cron + workflow_dispatch |
 | **DateResolutionService** | `orchestrator` | PipelineService 진입 시 |
 | **AlertingService** | `notifier.OperatorAlerter` | 실패 단계에서 호출 |
+| **PrivateSectorRadarValidationService** | `sector_dashboard` + local runner | operator manual execution only |
+| **PublicSectorSourceQualificationGate** | planning/source governance | before public sector construction |
 
 외부 노출 service나 RPC는 없음. 모두 in-process Python 함수/클래스.
+
+---
+
+## 2026-07-18 Sector Dashboard Services
+
+### PrivateSectorRadarValidationService
+
+1. operator가 repository 밖 local path의 12개 XLSX 파일을 지정한다.
+2. service가 ticker/date/NAV schema를 검증하고 canonical bundle을 만든다.
+3. `sector_dashboard`가 deterministic snapshot을 계산한다.
+4. renderer가 operator-selected private output directory에 결과를 쓴다.
+5. raw workbook과 파생 일별 레코드는 git, archive, site_docs, pipeline log에 남기지 않는다.
+
+이 service는 GitHub Actions cron, 기존 briefing publish, Pages, Telegram과 연결하지 않는다.
+
+### PublicSectorSourceQualificationGate
+
+runtime service가 아니라 public construction 전 fail-closed gate다. u140이 다음을 모두
+입증해야 gate가 열린다.
+
+- public derived-display 권한
+- 11개 sector ETF + SPY의 63거래일 OHLCV
+- weekday freshness와 5회 GHA/replay-equivalent 안정성
+- no-paid, auth, rate-limit, attribution, raw-retention 계약
+
+gate가 닫혀 있어도 u138 운영 가격 복구와 u139 private validation은 독립적으로 진행한다.
 
 ---
 

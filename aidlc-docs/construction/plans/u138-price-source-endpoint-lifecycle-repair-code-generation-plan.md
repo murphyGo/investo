@@ -140,6 +140,8 @@ Out of scope:
 - Backfilling old archive pages or renaming historical source references in completed AIDLC documents.
 - Treating SPY/QQQ/DIA as exact index closes.
 - Publishing restricted FRED index series.
+- Qualifying a 12-symbol sector OHLCV source for public GitHub Pages or granting
+  derived-display/redistribution rights. That independent gate is owned by u140.
 
 ## Fixed Contracts
 

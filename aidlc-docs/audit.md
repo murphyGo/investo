@@ -1,5 +1,22 @@
 # AI-DLC Audit Log
 
+## Application Design — US sector core radar private validation and public price gate
+**Timestamp**: 2026-07-17T19:50:34Z
+**User requests**: "커밋 푸시하고 S0-P private core-radar validation의 Application Design 진행하자" and "그리고 가격 정보 가져오는 문제 해결을 위한 유닛도 등록했ㅇ더".
+**Decision**: Extended Application Design with the independent `sector_dashboard` component and registered two bounded units. `u139` validates the fixed 11-sector + SPY domain, deterministic metric/regime policy, and private render contract from operator-provided local NAV workbooks without network/public artifacts. `u140` owns the fail-closed qualification of a free, structured, terms-compatible 63+ bar OHLCV source for public GitHub Pages. Existing `u138` remains the operational repair for current briefing price endpoints and does not clear u140's public derived-display rights or sector-universe gates.
+**Stage approval**: The user's request is the explicit approval to proceed from the completed product/S0 decision into Application Design. No public provider is inferred; provider selection remains a blocked evidence task in u140.
+**Affected docs**:
+- `docs/requirements.md` and `aidlc-docs/inception/user-stories/stories.md` (FR-022, NFR-008, US-010)
+- `aidlc-docs/inception/application-design/` component/service/dependency/unit maps
+- `aidlc-docs/inception/plans/us-sector-dashboard-application-design-plan.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+- `aidlc-docs/construction/plans/u140-sector-dashboard-public-ohlcv-source-qualification-code-generation-plan.md`
+- `aidlc-docs/aidlc-state.md`
+**Commit boundary**: Product and S0 decision documents were committed and pushed first as `6673ea3`. The u138 planning commit `54ea1e5` landed independently before this Application Design closeout.
+**Status**: Application Design and unit registration complete. u139 is blocked on required FD/NFR; u140 is blocked on a source that clears every public-use gate.
+
+---
+
 ## Construction — u137 Step 0 — FD + NFR authored (image-candidate registry + licensed store)
 **Timestamp**: 2026-07-18T00:00:00Z
 **Trigger**: u137 code-generation plan Step 0 (Stage Decision: FD REQUIRED lightweight / NFR REQUIRED focused — new persisted ledger/index/store artifacts + rights state machine must have fixed contract numbers before development starts).

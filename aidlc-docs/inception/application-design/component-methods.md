@@ -225,3 +225,53 @@ def resolve_target_date(now_utc: datetime, *, weekday_only_us_close: bool = True
 | `notifier.OperatorAlerter.alert` | US-007 |
 | `orchestrator.run_pipeline` | US-005, NFR-001, NFR-003 |
 | `orchestrator.resolve_target_date` | US-005 (KST 평일/주말 분기) |
+| `sector_dashboard.load_private_nav_workbooks` | US-010 private validation, NFR-008 |
+| `sector_dashboard.compute_sector_snapshot` | FR-022 deterministic radar |
+| `sector_dashboard.render_private_validation` | US-010 private-only reader contract |
+
+---
+
+## 2026-07-18 Extension: C6 `sector_dashboard`
+
+```python
+def load_private_nav_workbooks(
+    paths_by_ticker: Mapping[str, Path],
+    *,
+    expected_universe: SectorUniverse,
+) -> SectorSeriesBundle:
+    """Read operator-provided local XLSX files without network access.
+
+    Rejects ticker mismatch, duplicate dates, malformed rows, and cross-ticker
+    as-of mismatch. The caller owns the source files; raw bytes are not persisted.
+    """
+
+def compute_sector_snapshot(
+    bundle: SectorSeriesBundle,
+    *,
+    target_date: date,
+    benchmark_ticker: str = "SPY",
+) -> SectorDashboardSnapshot:
+    """Compute deterministic return, excess-return, acceleration, regime,
+    volatility, drawdown, and coverage records from one canonical bundle."""
+
+def classify_sector_regime(
+    *,
+    relative_strength_21d: Decimal,
+    acceleration_5d: Decimal,
+    neutral_band: Decimal,
+) -> SectorRegime: ...
+
+def render_private_validation(
+    snapshot: SectorDashboardSnapshot,
+    *,
+    output_dir: Path,
+) -> tuple[Path, ...]:
+    """Render private validation artifacts outside archive/site_docs.
+
+    Requires value_kind=NAV labels and omits unsupported volume/flow fields.
+    """
+```
+
+Detailed neutral-band sensitivity, XLSX cell parsing, and fallback rules belong to
+u139 Functional Design. No public source adapter method is defined until u140 accepts
+a provider.

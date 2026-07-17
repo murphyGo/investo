@@ -493,12 +493,14 @@ collect
 
 ## 10. Candidate Construction Slices
 
-아래는 승인 후 AIDLC unit으로 등록할 후보이며 아직 unit id를 할당하지 않는다.
+아래 slice 중 source gate와 private validation은 2026-07-18에 AIDLC unit으로 등록했다.
+`u138`은 기존 시황 가격 endpoint의 운영 복구이며 공개 섹터 OHLCV source gate를
+대체하지 않는다.
 
 | Slice | Scope | Depends on | Deliverable |
 | --- | --- | --- | --- |
-| S0 data-source spike | price/history source, terms, GHA reachability, fixtures | none | source decision record; no production code |
-| S0-P private validation | NAV fixture schema, regime math, local/private render contract | S0 public gate blocked | no public artifacts; validates domain/UI assumptions only |
+| S0 data-source spike / `u140` | price/history source, terms, GHA reachability, fixtures | none | source decision record; blocked until a source clears every public gate |
+| S0-P private validation / `u139` | NAV fixture schema, regime math, local/private render contract | S0 public gate blocked | no public artifacts; validates domain/UI assumptions only |
 | S1 sector domain contract | universe, models, metric/regime pure functions | S0 | deterministic snapshot contract |
 | S2 sector data pipeline | selected OHLCV/history acquisition, canonical history, coverage | S0, S1 | 11-sector computed snapshot |
 | S3 sector evidence layer | news/earnings tagging, evidence-bound narrative | S1 | per-sector evidence and optional narrative |
@@ -515,7 +517,9 @@ S0 -> S1 -> S2 -> S4 -> S3 -> S5
 ```
 
 S0가 통과하기 전 S1 이후의 production unit을 등록하지 않는다.
-그 전에는 `S0-P`만 별도 private validation unit으로 설계할 수 있다.
+그 전에는 `u139`만 별도 private validation unit으로 construction할 수 있다.
+Application Design 결과는
+[us-sector-dashboard-application-design-plan.md](us-sector-dashboard-application-design-plan.md)에 기록한다.
 
 ---
 

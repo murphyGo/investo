@@ -106,3 +106,17 @@
 | u5 orchestrator가 4 unit 모두 import → 전파 위험 | orchestrator 내부에서 각 unit과 thin adapter (즉 `_stage_*`) 통해 격리 |
 | u6 workflow 수동 점검 부족 | 첫 cron 실행 후 1주는 매일 결과 확인 + 실패 alert 검증 |
 | Claude Code CLI binary 부재 (GH Actions runner) | u2 도입 전에 install step 정합성 검증 (curl/install) |
+
+---
+
+## 2026-07-18 Sector Dashboard Unit Dependencies
+
+| Unit | Depends on | Does not depend on | Unblocks |
+| --- | --- | --- | --- |
+| u138 price-source-endpoint-lifecycle-repair | existing u46/u49/u54/u67/u115/u128 contracts | u139, u140 | existing briefing price health |
+| u139 sector-dashboard-private-core-radar-validation | approved product plan, S0 private schema | u138, u140, public provider | sector domain/UI contract |
+| u140 sector-dashboard-public-ohlcv-source-qualification | S0 decision, NFR-008, source evidence | u139 implementation | public provider decision |
+| future public sector collection/publisher | u139 + u140 | Phase 2 flow/earnings, Telegram | Pages core radar |
+
+u139 and u140 can proceed independently. Public construction remains blocked until both
+the domain contract and source gate are complete. u138 completion does not satisfy u140.

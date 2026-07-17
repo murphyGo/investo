@@ -143,3 +143,21 @@ PipelineResult: SUCCESS | PARTIAL
 - Telegram Bot API — 안정
 - `claude` CLI — Anthropic 제공, OAuth token 인증. 향후 SDK가 변경되면 `briefing.call_claude_code` 한 곳만 수정하면 됨 (캡슐화)
 - `git` CLI — 시스템 표준
+
+---
+
+## 2026-07-18 Sector Dashboard Dependency Extension
+
+| Caller | Callee | Allowed | Contract |
+| --- | --- | :---: | --- |
+| `sector_dashboard` | `models` | Yes | typed universe, series, metric, regime, snapshot models |
+| `sector_dashboard` | `sources` | No | acquisition is injected by orchestrator/local runner |
+| `sector_dashboard` | `publisher` | No | public rendering consumes a completed snapshot later |
+| `orchestrator` | `sector_dashboard` | Future | only after u140 public source gate and public construction approval |
+| private validation runner | `sector_dashboard` | Yes | local paths in, private artifacts out |
+| u140 qualification gate | runtime components | No | docs/evidence decision until a source is accepted |
+
+The extension preserves the DAG: `orchestrator -> work components -> models`. C6 is a
+sibling of sources/briefing/publisher/notifier, never their caller. u139 has no dependency
+on u138 or u140. Future public sector collection depends on both the validated u139 domain
+contract and the u140 source decision.

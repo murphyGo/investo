@@ -7,7 +7,7 @@
 
 ## Component Overview
 
-5개의 1차 컴포넌트 + 1개의 공통 모듈(`models/`)로 구성. 모든 컴포넌트는 단일 Python 패키지 `investo` 안의 서브패키지.
+6개의 1차 컴포넌트 + 1개의 공통 모듈(`models/`)로 구성. 모든 컴포넌트는 단일 Python 패키지 `investo` 안의 서브패키지.
 
 ```
 investo/
@@ -16,7 +16,8 @@ investo/
 ├── briefing/       # C2: Briefing Generator (Claude Code CLI driver)
 ├── publisher/      # C3: Publisher (markdown archive + git commit)
 ├── notifier/       # C4: Notifier (BriefingPublisher + OperatorAlerter)
-└── orchestrator/   # C5: Orchestrator (pipeline runner + entrypoint)
+├── orchestrator/   # C5: Orchestrator (pipeline runner + entrypoint)
+└── sector_dashboard/ # C6: deterministic sector radar + private validation
 ```
 
 `mkdocs build` + GitHub Pages 배포는 GitHub Actions step으로 분리 (Q7=B) — Python 코드가 직접 호출하지 않음.
@@ -156,4 +157,36 @@ investo/
 | C3 | publisher | US-003, US-006 | NFR-001, NFR-007 | git CLI, 파일시스템 |
 | C4 | notifier | US-004, US-007 | NFR-003, NFR-007 | httpx, Telegram Bot API |
 | C5 | orchestrator | US-005 | NFR-001, NFR-003 | (내부 의존만) |
+| C6 | sector_dashboard | US-010, FR-022 | NFR-003, NFR-006, NFR-008 | local/private input in u139; qualified OHLCV later |
 | — | models | (모든 스토리) | NFR-006 (PBT) | pydantic |
+
+---
+
+## 2026-07-18 Extension: C6 `sector_dashboard`
+
+**Purpose**: 11개 Select Sector SPDR ETF와 SPY의 동일 기준 시계열을 받아 상대강도,
+가속도, regime, 변동성, 낙폭, coverage를 결정론적으로 계산한다.
+
+**Responsibilities**:
+- fixed universe와 benchmark identity 검증
+- NAV 또는 OHLCV 입력을 typed series로 정규화
+- 1D/5D/21D/63D return, SPY excess return, 5D acceleration 계산
+- `주도 / 둔화 / 회복 / 부진 / 데이터 부족` regime 계산
+- input kind에 따라 volume·거래대금 지원 여부를 명시적으로 제한
+- public/private artifact policy를 snapshot metadata에 포함
+
+**Interfaces**:
+- local private workbook을 canonical series input으로 변환
+- canonical input에서 `SectorDashboardSnapshot` 계산
+- private validation 결과를 repository 밖의 operator-selected output directory에 렌더
+
+**Dependencies**: `models`, stdlib/approved XML parser only
+
+**Used by**:
+- u139 local/private validation runner
+- future orchestrator/public publisher only after u140 source gate clears
+
+**Boundary**:
+- `sector_dashboard`는 `sources`, `briefing`, `publisher`, `notifier`를 import하지 않는다.
+- source acquisition과 publish integration은 orchestrator가 조정한다.
+- u140은 runtime component가 아니라 C1 source 후보를 승인하는 pre-construction gate다.

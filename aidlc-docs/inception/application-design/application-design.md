@@ -211,3 +211,33 @@ class OperatorAlerter:    async def alert(failure) -> SendResult
 - 면책조항 정확한 문구 (Functional Design briefing unit)
 - 미국 공휴일 처리 (운영 중 발견 시 보강)
 - notify_briefing 반복 실패 시 alert 트리거 여부 (현재 v1: PartialSuccess 표시만)
+
+---
+
+## 2026-07-18 Extension: 미국 섹터 core radar
+
+Application Design에 pure `sector_dashboard` component를 추가한다. 이 component는
+11개 sector ETF + SPY의 canonical series input만 받아 metric/regime/snapshot을
+계산하며 `models` 외 work component를 import하지 않는다.
+
+### Delivery split
+
+| Unit | Responsibility | Public effect |
+| --- | --- | --- |
+| u138 | dead Stooq/query1 runtime을 query2 기반으로 복구 | existing briefing price health only |
+| u139 | local NAV workbook으로 domain math와 private render 검증 | none; repository 밖 output only |
+| u140 | public Pages용 OHLCV provider의 rights/reachability qualification | gate only until provider accepted |
+
+### Binding boundaries
+
+- u138의 Yahoo endpoint 복구는 u140의 public data-rights gate를 통과한 것으로 보지 않는다.
+- u139는 local file input만 허용하고 network collector, archive, site_docs, Telegram을
+  사용하지 않는다.
+- NAV input은 `NAV 수익률`과 `NAV 기준 실현변동성`으로만 표기하며 volume/flow를
+  만들지 않는다.
+- public sector collection/publish는 u139 domain validation과 u140 source qualification이
+  모두 완료된 뒤 별도 construction units로 시작한다.
+- actual flow/earnings는 Phase 2, Telegram은 web stability 이후다.
+
+Detailed business rules and measurable controls are deferred to u139/u140 Functional Design
+and NFR Requirements as declared in their unit registrations.

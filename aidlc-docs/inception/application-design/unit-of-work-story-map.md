@@ -403,6 +403,27 @@ Candidate disposition:
 - **Reject**: Stooq `q/d/l` JavaScript challenge; Cboe delayed quote JSON because Cboe explicitly prohibits automated extraction; Nasdaq quote-page JSON because Nasdaq's current site agreement prohibits automated capture; FRED SP500/DJIA/NASDAQCOM as a public fallback because the series notes carry reproduction/copyright restrictions.
 - **Defer**: Alpha Vantage, Twelve Data, Finnhub, and similar key/metered price APIs until an operator-owned free key and bounded request policy exist. They are not required to restore the currently proven Yahoo path.
 
+### u139-u140 Planning Notes
+
+Derived from the approved 2026-07-18 sector-dashboard product plan and S0 decision. Private domain/UI validation and public market-data qualification are deliberately separate so terms uncertainty cannot block metric/regime design and private data cannot leak into public artifacts.
+
+Implementation and gate order:
+1. u138 may restore the existing briefing price path independently.
+2. u139 validates the new `sector_dashboard` component with operator-local NAV input.
+3. u140 evaluates public OHLCV candidates and remains blocked until one clears every rights/reachability gate.
+4. Future public sector collection/publisher units require both u139 and u140; actual flow/earnings and Telegram remain later phases.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+| --- | --- | --- | --- |
+| u139 sector-dashboard-private-core-radar-validation | Domain math and reader contract need validation while public OHLCV rights are unresolved | US-010, FR-022, NFR-003, NFR-006, NFR-008 | models, new pure sector_dashboard component; no public pipeline |
+| u140 sector-dashboard-public-ohlcv-source-qualification | No verified free source currently combines public derived-display rights with stable 12-symbol OHLCV | US-001, US-003, US-008, US-010, FR-001, FR-003, FR-022, NFR-002, NFR-003, NFR-008 | u138 endpoint evidence, u139 input contract, future source/publisher units |
+
+Deduplicated out:
+- u138 is not expanded into a sector-dashboard license decision; it repairs existing runtime endpoints only.
+- u139 does not automate State Street downloads or commit provider fixtures.
+- u140 does not register a speculative adapter before a candidate is `ship-now`.
+- TradingView remains eligible only as a future display widget, never as the radar calculation source.
+
 ---
 
 ## Definition of Done — Inception Phase Output
