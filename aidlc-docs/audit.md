@@ -4551,3 +4551,14 @@ passed, scoped format check passed, `mypy src` passed.
 - Made `_briefing()` target-date configurable and aligned all u132 fixtures to 2026-06-30 after fresh-eyes review.
 **Validation**: 38 integration/focused tests passed; scoped Ruff and format checks passed; fresh-eyes re-review found no remaining issues.
 **Context**: Step 4 commit `0e15927` was pushed before this step began.
+
+## u132 Code Generation Step 6 - Watermark Consumer Sweep
+**Timestamp**: 2026-07-17T19:57:15Z
+**Action**: Completed Code Generation Step 6 in the dedicated u132 worktree.
+**Decisions**:
+- Swept every `기준 시각` occurrence under `src/` and `tests/`; confirmed `_internal/briefing_extract.py` is prefix-only and does not parse the window syntax.
+- Updated seven general test consumers to the new `수집창 ... ~ ... (종료 미포함)` contract while preserving explicit legacy-invalid repair and gate regressions.
+- Reused `_render_timestamp_watermark()` in variable-date and variable-segment archive fixtures so their timezone and UTC window cannot drift from the producer.
+- Excluded unrelated generated archive/site changes observed in the shared worktree from the u132 keep-set.
+**Validation**: 200 focused/integration tests passed; scoped Ruff and format checks and `git diff --check` passed; fresh-eyes final review found no issues after three fixture-consistency findings were corrected.
+**Context**: Step 5 commit `166f002` was pushed before this step began.

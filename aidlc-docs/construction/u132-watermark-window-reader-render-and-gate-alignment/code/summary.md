@@ -102,3 +102,22 @@ Step 5 validation:
 - Full reader-format integration plus focused gate tests: 38 passed.
 - Scoped Ruff and format checks: passed.
 - Fresh-eyes re-review: no remaining findings after aligning fixture dates.
+
+## Step 6 Consumer Sweep
+
+The repository-wide `기준 시각` sweep found no parser coupled to the old
+window syntax. `_internal/briefing_extract.py` extracts the canonical prefix
+value without parsing its contents, so no application-code change was needed.
+
+Seven general test consumers now use the reader-facing contract. Archive
+fixtures whose date or segment varies call `_render_timestamp_watermark()`
+instead of carrying a fixed NY/KST example, keeping the timezone and UTC
+window consistent with the file being modeled. The only remaining old shapes
+are explicit repair-path and publish-gate rejection fixtures.
+
+Step 6 validation:
+
+- Consumer, parser, orchestrator, model, publisher, surface, and integration tests: 200 passed.
+- Scoped Ruff and format checks plus `git diff --check`: passed.
+- Fresh-eyes review: date/segment fixture mismatches were fixed; final re-review found no issues.
+- No u132 archive or generated-site file is part of the Step 6 keep-set.

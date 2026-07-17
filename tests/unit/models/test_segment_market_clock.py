@@ -33,7 +33,7 @@ def test_briefing_watermark_matches_aggregator_window(
     end = window.end_utc.strftime("%Y-%m-%dT%H:%MZ")
     assert (
         watermark == f"**기준 시각**: 2026-05-06 {SEGMENT_MARKET_TZ_LABEL[segment]} · "
-        f"[{start}, {end})"
+        f"수집창 {start} ~ {end} (종료 미포함)"
     )
 
 

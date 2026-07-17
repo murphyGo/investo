@@ -25,6 +25,8 @@ from investo.briefing.carryover_parser import (
     load_carryover,
     resolve_lookback_days,
 )
+from investo.briefing.pipeline import _render_timestamp_watermark
+from investo.briefing.segments import DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.models import NormalizedItem
 
 
@@ -40,21 +42,22 @@ def _write_archive(
     return path
 
 
-_HEADER_LINES = (
-    "# 2026-05-07 미국 증시 시황\n"
-    "\n"
-    "**기준 시각**: 2026-05-07 NY · [2026-05-07T04:00Z, 2026-05-08T04:00Z)\n"
-    "\n"
-    "> **오늘의 결론**: 어제 미국 증시는 보합. [관망]\n"
-    "> **핵심 동인**: 거시 지표 부재.\n"
-    "> **주의할 점**: FOMC 의사록 대기.\n"
-    "\n"
-)
-
-
-def _briefing_md(items_block: str, lookahead_block: str = "") -> str:
+def _briefing_md(
+    items_block: str,
+    lookahead_block: str = "",
+    *,
+    day: date = date(2026, 5, 7),
+    segment: MarketSegment = US_EQUITY,
+) -> str:
+    header = (
+        f"# {day.isoformat()} 시황\n\n"
+        f"{_render_timestamp_watermark(day, segment)}\n\n"
+        "> **오늘의 결론**: 어제 시장은 보합. [관망]\n"
+        "> **핵심 동인**: 거시 지표 부재.\n"
+        "> **주의할 점**: 주요 일정 대기.\n\n"
+    )
     return (
-        _HEADER_LINES
+        header
         + "## ① 요약\n\n오늘의 요약 본문.\n\n"
         + "## ② 전일 핵심 이슈\n\n전일 본문.\n\n"
         + "## ③ 섹터/수급 동향\n\n섹터 본문.\n\n"
@@ -76,7 +79,8 @@ def test_parser_normal_one_day_walkback(tmp_path: Path) -> None:
         "us-equity",
         yesterday,
         _briefing_md(
-            "1. **ARM 어닝**: 분기 실적 발표 예고.\n2. **FOMC 의사록**: 다음 주 공개 예정.\n"
+            "1. **ARM 어닝**: 분기 실적 발표 예고.\n2. **FOMC 의사록**: 다음 주 공개 예정.\n",
+            day=yesterday,
         ),
     )
 
@@ -101,7 +105,7 @@ def test_parser_three_day_walkback_skips_weekend(tmp_path: Path) -> None:
             tmp_path,
             "us-equity",
             day,
-            _briefing_md(f"1. **EVENT-{day.isoformat()}**: 본문.\n"),
+            _briefing_md(f"1. **EVENT-{day.isoformat()}**: 본문.\n", day=day),
         )
 
     result = load_carryover(tmp_path, "us-equity", today, lookback=3)
@@ -127,7 +131,10 @@ def test_parser_empty_section_six(tmp_path: Path) -> None:
         tmp_path,
         "us-equity",
         yesterday,
-        _briefing_md("**금일 핵심 확인 사항**\n\n관전 포인트가 없습니다.\n"),
+        _briefing_md(
+            "**금일 핵심 확인 사항**\n\n관전 포인트가 없습니다.\n",
+            day=yesterday,
+        ),
     )
     result = load_carryover(tmp_path, "us-equity", today, lookback=1)
     # lookback_days reflects the day was loaded; just no items extracted.
@@ -143,7 +150,10 @@ def test_parser_malformed_list_skipped(tmp_path: Path) -> None:
         tmp_path,
         "us-equity",
         yesterday,
-        _briefing_md("1. 토픽 없이 본문만 있음 (bold prefix 누락).\n2. **OK 토픽**: 정상 본문.\n"),
+        _briefing_md(
+            "1. 토픽 없이 본문만 있음 (bold prefix 누락).\n2. **OK 토픽**: 정상 본문.\n",
+            day=yesterday,
+        ),
     )
     result = load_carryover(tmp_path, "us-equity", today, lookback=1)
     assert len(result.prior_unresolved) == 1
@@ -159,7 +169,8 @@ def test_parser_resolves_status_when_candidate_matches(tmp_path: Path) -> None:
         "us-equity",
         yesterday,
         _briefing_md(
-            "1. **ARM 어닝**: 분기 실적 발표 예고.\n2. **TSLA 컨퍼런스콜**: 가이던스 갱신 여부.\n"
+            "1. **ARM 어닝**: 분기 실적 발표 예고.\n2. **TSLA 컨퍼런스콜**: 가이던스 갱신 여부.\n",
+            day=yesterday,
         ),
     )
     candidates = [
@@ -199,7 +210,7 @@ def test_parser_future_expected_date_marks_carried_over(tmp_path: Path) -> None:
         tmp_path,
         "us-equity",
         yesterday,
-        _briefing_md("", lookahead_block=lookahead),
+        _briefing_md("", lookahead_block=lookahead, day=yesterday),
     )
     result = load_carryover(tmp_path, "us-equity", today, lookback=1)
     statuses = {item.expected_date: item.status for item in result.prior_unresolved}
@@ -215,9 +226,13 @@ def test_parser_isolates_segment(tmp_path: Path) -> None:
     today = date(2026, 5, 8)
     _write_archive(
         tmp_path,
-        "domestic-equity",
+        DOMESTIC_EQUITY,
         yesterday,
-        _briefing_md("1. **KOSPI 200**: 변동성 확대.\n"),
+        _briefing_md(
+            "1. **KOSPI 200**: 변동성 확대.\n",
+            day=yesterday,
+            segment=DOMESTIC_EQUITY,
+        ),
     )
     result = load_carryover(tmp_path, "us-equity", today, lookback=1)
     assert result.is_empty
