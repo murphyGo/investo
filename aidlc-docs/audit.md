@@ -4603,3 +4603,17 @@ passed, scoped format check passed, `mypy src` passed.
 - Existing DEBT-081 failures reproduce unchanged at the pre-u132 baseline and are not u132 gaps.
 **Report**: `docs/cross-checks/2026-07-18-u132-watermark-window-reader-render-and-gate-alignment.md`
 **Context**: Step 7 commit `8682b94` was pushed before cross-check began.
+
+## u138 Code Generation Approval and Step 1 - Endpoint Evidence Fixtures
+**Timestamp**: 2026-07-17T20:43:41Z
+**Approval**: User response `u138 진행하자` approved the existing six-step code-generation plan and started the unit in dedicated branch `codex/u138-price-source-lifecycle`.
+**Action**: Completed Code Generation Step 1 by recording endpoint-lifecycle evidence and replay fixtures before changing production source behavior.
+**Decisions**:
+- Captured live query2/1y responses for AAPL, Brent, and Russell 2000; added the missing Brent/Russell fixtures while retaining the previously recorded critical basket.
+- Captured a live Yahoo invalid-symbol chart error, Stooq q/l 404 body, Stooq q/d/l JavaScript challenge, and FRED DEXKOUS JSON using the existing local key without storing that key.
+- Represented the GHA-only 429 as observed status plus the empty-body hash rather than fabricating response bytes.
+- Derived the misaligned-array fixture from a hash-identified live AAPL response and documented the transformation.
+- Added byte/hash, critical-basket, error, partial-basket, placeholder, stale-context, and secret-hygiene contract tests.
+**Validation**: 33 focused fixture/history tests passed; scoped Ruff and format checks passed; the local FRED key is absent from fixture bytes. Fresh-eyes review initially found metadata-only replay and sidecar masking gaps; both were fixed and re-review found no remaining issues.
+**TECH-DEBT**: None.
+**Context**: u138 is now in progress at Step 1 of 6; no production code changed in this step.

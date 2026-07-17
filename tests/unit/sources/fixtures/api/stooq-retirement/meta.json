@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-07-17T20:43:41Z",
+  "source": "https://stooq.com",
+  "responses": {
+    "quote-404.html": {
+      "url_template": "https://stooq.com/q/l/?s={symbol}&i=d&h=1&f=sd2t2ohlcv",
+      "status": 404,
+      "size_bytes": 271,
+      "sha256": "03fa6d7ffcac125ba680b7558912f278abec5a5685a4fee3c26a023b32354115"
+    },
+    "history-challenge.html": {
+      "url_template": "https://stooq.com/q/d/l/?s={symbol}&i=d&d1={start}&d2={end}",
+      "status": 200,
+      "size_bytes": 796,
+      "sha256": "83f5cbeeb755cd881ff79db2e9d3b44ffbe8262220b412a1fc072c38eb326a5a",
+      "note": "JavaScript proof-of-work challenge, retained only as retirement evidence."
+    }
+  },
+  "github_actions": {
+    "run_29541149434": {
+      "target_date": "2026-07-16",
+      "quote_requests": "all logged q/l calls returned 404",
+      "stooq_price_item_count": 0,
+      "stooq_kr_market_item_count": 2,
+      "note": "The two Korean items came from the existing Yonhap fallback, not Stooq."
+    },
+    "run_29457241746": {
+      "target_date": "2026-07-15",
+      "stooq_price_item_count": 0
+    }
+  }
+}
