@@ -30,3 +30,20 @@ Step 2 will replace the renderer's inherently unbalanced notation.
 - `uv run ruff check tests/unit/publisher/test_segment_reader_surface_quality.py`: passed.
 - `uv run ruff format --check tests/unit/publisher/test_segment_reader_surface_quality.py`: passed.
 - Fresh-eyes review: no remaining findings after the production-call spy was added.
+
+## Step 2 Renderer Change
+
+`_render_timestamp_watermark()` now emits the fixed reader-facing contract:
+
+`**기준 시각**: {date} {timezone} · 수집창 {start} ~ {end} (종료 미포함)`
+
+The UTC window computation and KST/NY/UTC market-clock mapping are unchanged.
+The three segment renderer tests and the enhanced-header assertion pin the
+complete new line. Gate alignment remains Step 3, so this Step 2 worktree state
+is not a standalone production checkpoint.
+
+Step 2 validation:
+
+- Focused briefing and segment-reader tests: 47 passed.
+- Scoped Ruff and format checks: passed.
+- Fresh-eyes review: no findings; confirmed no Step 3 gate changes leaked in.

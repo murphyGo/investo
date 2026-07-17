@@ -4509,3 +4509,13 @@ passed, scoped format check passed, `mypy src` passed.
 - Kept the generic Markdown repair unchanged; u132 will correct the watermark producer and align the existing gate in later steps.
 **Validation**: Focused segment reader-format regression added; 7 tests passed; scoped Ruff and format checks passed; fresh-eyes review found no remaining issues after the production-call spy was added. Plan/state/partial unit summary updated.
 **Context**: User explicitly approved u132 execution in a separate worktree via `$dev-investo`.
+
+## u132 Code Generation Step 2 - Reader-Facing Watermark Renderer
+**Timestamp**: 2026-07-17T19:19:50Z
+**Action**: Completed Code Generation Step 2 in the dedicated u132 worktree.
+**Decisions**:
+- Replaced mathematical `[start, end)` notation with `수집창 {start} ~ {end} (종료 미포함)` at the producer.
+- Preserved the existing KST/NY/UTC market-window computation and changed presentation only.
+- Deferred `_WATERMARK_LINE_RE` and `_bad_watermark_window` alignment to the explicit Step 3 boundary; Step 2 is not committed as a standalone production checkpoint.
+**Validation**: Renderer expectations updated for all three segments and the full enhanced-header line; 47 focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no issues.
+**Context**: Step 1 commit `6e21ba8` was pushed before this step began.

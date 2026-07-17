@@ -93,12 +93,12 @@ def _render_timestamp_watermark(target_date: date, segment: MarketSegment) -> st
 
     Format::
 
-        **기준 시각**: 2026-05-06 KST · [2026-05-05T15:00Z, 2026-05-06T15:00Z)
+        **기준 시각**: 2026-05-06 KST · 수집창 2026-05-05T15:00Z ~ 2026-05-06T15:00Z (종료 미포함)
 
     The local-clock label (KST / NY / UTC) is the segment's market
     clock — domestic-equity uses KST, us-equity uses America/New_York,
-    crypto uses UTC. The bracketed window is the half-open UTC range
-    used by the adapters that fed this segment, so the line reads
+    crypto uses UTC. The Korean range label describes the half-open UTC
+    window used by the adapters that fed this segment, so the line reads
     "this is what trading day this is, and what slice of UTC it
     covered". Pure: no I/O, no clock reads — the value is a function
     of ``(target_date, segment)`` only.
@@ -111,7 +111,10 @@ def _render_timestamp_watermark(target_date: date, segment: MarketSegment) -> st
     end_utc = end_local.astimezone(UTC)
     start_str = start_utc.strftime("%Y-%m-%dT%H:%MZ")
     end_str = end_utc.strftime("%Y-%m-%dT%H:%MZ")
-    return f"**기준 시각**: {target_date.isoformat()} {tz_label} · [{start_str}, {end_str})"
+    return (
+        f"**기준 시각**: {target_date.isoformat()} {tz_label} · "
+        f"수집창 {start_str} ~ {end_str} (종료 미포함)"
+    )
 
 
 def _enhance_reader_experience(

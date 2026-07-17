@@ -19,8 +19,8 @@ Coverage:
 * Gate-side ``validate_first_viewport_summary`` rejects marker-only,
   conjunction-tail (English + Korean), unbalanced-bold, and
   unbalanced-link inputs.
-* Watermark renderer emits the deterministic
-  ``**기준 시각**: YYYY-MM-DD <TZ> · [start_utc, end_utc)`` line
+* Watermark renderer emits the deterministic reader-facing
+  ``**기준 시각**: YYYY-MM-DD <TZ> · 수집창 start_utc ~ end_utc (종료 미포함)`` line
   and is included in the segmented brief header.
 """
 
@@ -250,18 +250,24 @@ def test_gate_accepts_well_formed_segmented_brief() -> None:
 def test_watermark_us_equity_uses_ny_clock() -> None:
     line = _render_timestamp_watermark(date(2026, 5, 6), "us-equity")
     # NY EDT in May → UTC-4. So 2026-05-06 00:00 NY = 2026-05-06 04:00Z.
-    assert line == "**기준 시각**: 2026-05-06 NY · [2026-05-06T04:00Z, 2026-05-07T04:00Z)"
+    assert line == (
+        "**기준 시각**: 2026-05-06 NY · 수집창 2026-05-06T04:00Z ~ 2026-05-07T04:00Z (종료 미포함)"
+    )
 
 
 def test_watermark_domestic_equity_uses_kst_clock() -> None:
     line = _render_timestamp_watermark(date(2026, 5, 6), "domestic-equity")
     # KST = UTC+9. So 2026-05-06 00:00 KST = 2026-05-05 15:00Z.
-    assert line == "**기준 시각**: 2026-05-06 KST · [2026-05-05T15:00Z, 2026-05-06T15:00Z)"
+    assert line == (
+        "**기준 시각**: 2026-05-06 KST · 수집창 2026-05-05T15:00Z ~ 2026-05-06T15:00Z (종료 미포함)"
+    )
 
 
 def test_watermark_crypto_uses_utc_clock() -> None:
     line = _render_timestamp_watermark(date(2026, 5, 6), "crypto")
-    assert line == "**기준 시각**: 2026-05-06 UTC · [2026-05-06T00:00Z, 2026-05-07T00:00Z)"
+    assert line == (
+        "**기준 시각**: 2026-05-06 UTC · 수집창 2026-05-06T00:00Z ~ 2026-05-07T00:00Z (종료 미포함)"
+    )
 
 
 def test_watermark_appears_in_segmented_brief_header() -> None:
@@ -284,7 +290,9 @@ def test_watermark_appears_in_segmented_brief_header() -> None:
         sections=sections,
     )
     assert "# 2026-05-06 미국 증시 시황\n\n" in enhanced
-    assert "**기준 시각**: 2026-05-06 NY ·" in enhanced
+    assert (
+        "**기준 시각**: 2026-05-06 NY · 수집창 2026-05-06T04:00Z ~ 2026-05-07T04:00Z (종료 미포함)"
+    ) in enhanced
     # Watermark precedes the segment-nav line.
     watermark_idx = enhanced.find("**기준 시각**:")
     nav_idx = enhanced.find("**세그먼트**:")
