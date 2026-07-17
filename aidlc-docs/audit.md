@@ -4500,3 +4500,12 @@ passed, scoped format check passed, `mypy src` passed.
 **Context**: u121 publish-archive-path-normalization Code Generation complete.
 
 ---
+## u132 Code Generation Step 1 - Watermark Stripper Trace
+**Timestamp**: 2026-07-17T19:07:28Z
+**Action**: Started u132 in a dedicated worktree and completed Code Generation Step 1.
+**Decisions**:
+- Confirmed `apply_reader_format()`, `reflow_first_viewport()`, and `repair_first_viewport_summary()` preserve the legacy half-open watermark.
+- Identified `repair_surface_artifacts()` and its `_repair_unmatched_markdown_markers()` path as the production writer by spying on the actual full-chain call and asserting its before/after values.
+- Kept the generic Markdown repair unchanged; u132 will correct the watermark producer and align the existing gate in later steps.
+**Validation**: Focused segment reader-format regression added; 7 tests passed; scoped Ruff and format checks passed; fresh-eyes review found no remaining issues after the production-call spy was added. Plan/state/partial unit summary updated.
+**Context**: User explicitly approved u132 execution in a separate worktree via `$dev-investo`.

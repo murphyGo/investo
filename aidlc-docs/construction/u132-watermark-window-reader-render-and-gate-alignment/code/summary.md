@@ -1,0 +1,32 @@
+# u132 Watermark Window Reader Render and Gate Alignment
+
+## Status
+
+Code Generation is in progress. Step 1 of 7 is complete.
+
+## Step 1 Trace Finding
+
+The legacy half-open watermark line survives `apply_reader_format()`,
+`reflow_first_viewport()`, and `repair_first_viewport_summary()` byte-for-byte.
+A spy on the production segment chain captures the legacy line immediately
+before `repair_surface_artifacts()` and the stripped line immediately after it.
+In the first viewport,
+`_repair_unmatched_markdown_markers()` sees the single `[` as an unmatched
+Markdown marker and removes it, leaving the dangling `)`.
+
+`_internal.summary_quality` is not the writer: its repair loop only visits the
+three summary-prefix values and never processes the watermark line.
+
+The regression test
+`test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132`
+pins the intermediate transforms, the production repair call's input/output,
+and the complete `apply_reader_format_to_segments()` result. The bracket
+repair remains unchanged because it is valid for genuinely broken Markdown;
+Step 2 will replace the renderer's inherently unbalanced notation.
+
+## Validation
+
+- `uv run --extra dev pytest tests/unit/publisher/test_segment_reader_surface_quality.py -q`: 7 passed.
+- `uv run ruff check tests/unit/publisher/test_segment_reader_surface_quality.py`: passed.
+- `uv run ruff format --check tests/unit/publisher/test_segment_reader_surface_quality.py`: passed.
+- Fresh-eyes review: no remaining findings after the production-call spy was added.
