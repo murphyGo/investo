@@ -143,15 +143,21 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
                 )
                 continue
             kept.append(item)
+        # u136 Contract #6 — per-source count of returned items carrying
+        # a harvested raw_metadata.image_url. Diagnostics only: no KPI,
+        # no severity change. R13: the log field is the integer count —
+        # never the image URLs themselves.
+        image_items = sum(1 for item in result if "image_url" in item.raw_metadata)
         _logger.info(
             "source returned source_name=%s category=%s item_count=%d "
-            "window_start_utc=%s window_end_utc=%s elapsed_s=%.3f",
+            "window_start_utc=%s window_end_utc=%s elapsed_s=%.3f image_items=%d",
             adapter.name,
             adapter.category,
             len(result),
             window.start_utc.isoformat(),
             window.end_utc.isoformat(),
             elapsed_s,
+            image_items,
             extra={
                 "source_name": adapter.name,
                 "category": adapter.category,
@@ -159,6 +165,7 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
                 "window_start_utc": window.start_utc.isoformat(),
                 "window_end_utc": window.end_utc.isoformat(),
                 "elapsed_s": elapsed_s,
+                "image_items": image_items,
             },
         )
         items.extend(kept)

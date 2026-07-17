@@ -122,6 +122,57 @@ async def test_fetch_all_logs_source_success_count_and_window(
     assert record.window_start_utc == "2026-04-26T15:00:00+00:00"
     assert record.window_end_utc == "2026-04-27T15:00:00+00:00"
     assert record.__dict__["elapsed_s"] >= 0
+    # u136 Contract #6 — items without harvested images report zero.
+    assert record.image_items == 0
+    assert record.getMessage().endswith("image_items=0")
+
+
+async def test_fetch_all_logs_image_items_count(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # u136 Contract #6 — the per-source diagnostics record counts the
+    # returned items whose raw_metadata carries a harvested image_url.
+    # R13: only the integer count is logged, never the URLs.
+    image_url = "https://img.example.com/photo.jpg"
+
+    def _image_item(title: str) -> NormalizedItem:
+        return NormalizedItem(
+            source_name="image-stub",
+            category="news",
+            title=title,
+            published_at=_PUBLISHED,
+            raw_metadata={"image_url": image_url, "image_mime": "image/jpeg"},
+        )
+
+    @register
+    class ImageStub:
+        name: ClassVar[str] = "image-stub"
+        category: ClassVar[Category] = "news"
+
+        async def fetch(
+            self, client: httpx.AsyncClient, window: FetchWindow
+        ) -> list[NormalizedItem]:
+            return [
+                _image_item("with image 1"),
+                _item("image-stub", "no image"),
+                _image_item("with image 2"),
+            ]
+
+    with caplog.at_level(logging.INFO, logger="investo.sources.aggregator"):
+        await fetch_all(_TARGET_DATE)
+
+    info_records = [
+        record
+        for record in caplog.records
+        if record.levelno == logging.INFO and record.getMessage().startswith("source returned")
+    ]
+    assert len(info_records) == 1
+    record = info_records[0]
+    assert record.item_count == 3
+    assert record.image_items == 2
+    assert record.getMessage().endswith("image_items=2")
+    # R13: the record must not leak the image URL itself.
+    assert image_url not in record.getMessage()
 
 
 async def test_fetch_all_logs_zero_item_success(
@@ -159,6 +210,9 @@ async def test_fetch_all_logs_zero_item_success(
     assert info_records[0].source_name == "empty-source"
     assert info_records[0].item_count == 0
     assert info_records[0].__dict__["elapsed_s"] >= 0
+    # u136 Contract #6 — zero returned items → image_items=0.
+    assert info_records[0].image_items == 0
+    assert info_records[0].getMessage().endswith("image_items=0")
 
 
 async def test_fetch_all_multiple_adapters_concatenates_results() -> None:

@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u136 feed-image-metadata-harvest
 **Stage**: Code Generation
-**Status**: In Progress (4/5)
+**Status**: Completed (5/5, 2026-07-18)
 **Source**: 2026-07-17 user feature request — 시황 비주얼을 SVG 카드 중심에서 "실제 뉴스/칼럼/커뮤니티 이미지 활용"으로 확장. 1단계는 **이미지 수집 + 이미지 메타데이터**. u136은 그 첫 슬라이스: 이미 수집 중인 뉴스 피드 payload 안의 이미지 참조를 메타데이터로 채집한다.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -98,9 +98,9 @@ Out of scope (명시적 non-goal):
 - [x] 3개 어댑터의 replay 결과에 대해 `_manifest_from_item(item, target_date=…) is None`을 직접 단언 + emit 금지 키 부재 grep-단언 테스트 (계약 #4).
 - **Acceptance**: 스크래핑 env 플래그가 켜진 상태를 monkeypatch해도 `fetch_contextual_external_image`가 harvested item만으로는 fetch를 시도하지 않음이 테스트로 고정.
 
-### Step 5 — 커버리지 진단 + 품질 게이트 `[ ]`
-- [ ] aggregator `source returned` 레코드에 `image_items` 필드 (계약 #6) + 테스트.
-- [ ] full gate: ruff / ruff format(변경 범위) / mypy --strict / pytest / `scripts/check_no_paid_apis.py` / mkdocs build --strict(문서 영향 없음 확인).
+### Step 5 — 커버리지 진단 + 품질 게이트 `[x]`
+- [x] aggregator `source returned` 레코드에 `image_items` 필드 (계약 #6) + 테스트.
+- [x] full gate: ruff / ruff format(변경 범위) / mypy --strict / pytest / `scripts/check_no_paid_apis.py` / mkdocs build --strict(문서 영향 없음 확인).
 - **Acceptance**: 게이트 그린. 신규 외부 호출 0 (httpx mock 감시로 확인).
 
 ## Acceptance Criteria (unit-level)
