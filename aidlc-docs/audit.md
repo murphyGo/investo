@@ -4562,3 +4562,15 @@ passed, scoped format check passed, `mypy src` passed.
 - Excluded unrelated generated archive/site changes observed in the shared worktree from the u132 keep-set.
 **Validation**: 200 focused/integration tests passed; scoped Ruff and format checks and `git diff --check` passed; fresh-eyes final review found no issues after three fixture-consistency findings were corrected.
 **Context**: Step 5 commit `166f002` was pushed before this step began.
+
+## u132 Code Generation Step 7 - Final Quality Gate
+**Timestamp**: 2026-07-17T20:03:12Z
+**Action**: Completed Code Generation Step 7 and the u132 Code Generation stage in the dedicated worktree.
+**Decisions**:
+- Ran Ruff/format over all 13 Python files changed since the pre-u132 baseline, plus `mypy src` and the planned internal/briefing/publisher pytest scope.
+- Classified the two failing tests as existing DEBT-081 only after reproducing both unchanged at baseline commit `0af9c7a`; u132 does not modify either failing surface.
+- Re-ran the planned pytest scope with only those two baseline failures deselected to prove all other 1,440 tests pass.
+- Kept unrelated generated archive/site worktree changes outside the u132 diff; AC-132.5 remains satisfied.
+**Validation**: Ruff/format passed; `mypy src` passed for 226 files; pytest returned 1,440 passed plus 2 baseline-identical failures, then 1,440 passed with those tests deselected; cumulative fresh-eyes review found no issues and confirmed AC-132.1 through AC-132.5.
+**TECH-DEBT**: No new item; DEBT-081 remains active and unchanged.
+**Context**: Step 6 commit `843d191` was pushed before this step began. Cross-check is pending.

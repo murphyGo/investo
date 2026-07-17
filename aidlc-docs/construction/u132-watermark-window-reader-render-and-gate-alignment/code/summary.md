@@ -121,3 +121,19 @@ Step 6 validation:
 - Scoped Ruff and format checks plus `git diff --check`: passed.
 - Fresh-eyes review: date/segment fixture mismatches were fixed; final re-review found no issues.
 - No u132 archive or generated-site file is part of the Step 6 keep-set.
+
+## Step 7 Quality Gate
+
+The cumulative u132 Python diff passes scoped Ruff and format checks, and
+`mypy src` reports no issues across 226 source files. The planned internal,
+briefing, and publisher pytest scope completed with 1,440 passes and the two
+known DEBT-081 failures.
+
+Both failures reproduce unchanged at the pre-u132 baseline commit `0af9c7a`,
+and no u132 commit touches either failing test or its implicated application
+code. Re-running the same scope with those two baseline failures deselected
+produced 1,440 passes.
+
+The final cumulative fresh-eyes review found no issues in the 13 changed
+Python files and confirmed AC-132.1 through AC-132.5. The committed unit diff
+contains no `archive/` or generated-site changes.

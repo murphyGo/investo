@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u132 watermark-window-reader-render-and-gate-alignment
 **Stage**: Code Generation
-**Status**: In Progress (6/7; Steps 1-6 complete 2026-07-18)
+**Status**: Complete (7/7, 2026-07-18)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~2 h
 **Dependencies**:
@@ -70,7 +70,8 @@ NFR Requirements: SKIP — deterministic rendering; no new dependency, source, s
 - [x] Step 4 — Add the chain byte-stability regression (Fixed Contract 3) using a full segment fixture.
 - [x] Step 5 — Add gate tests: new shape passes; legacy 2026-06-30 line (verbatim) blocks; unbalanced-paren variant blocks.
 - [x] Step 6 — Sweep other consumers: `rg -n "기준 시각" src/ tests/` and update any test fixture or parser expecting the old shape (notably `_internal/briefing_extract.py` if it parses the line).
-- [ ] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/internal tests/unit/briefing tests/unit/publisher`.
+- [x] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/internal tests/unit/briefing tests/unit/publisher`.
+  - Result: Ruff/format and `mypy src` passed. The planned pytest scope produced 1,440 passes plus the two existing DEBT-081 failures, reproduced unchanged at the pre-u132 baseline `0af9c7a`; the same scope with those two tests deselected produced 1,440 passes.
 
 ## Acceptance Criteria
 
