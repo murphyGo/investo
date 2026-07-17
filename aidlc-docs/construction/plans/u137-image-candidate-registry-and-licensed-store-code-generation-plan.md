@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u137 image-candidate-registry-and-licensed-store
 **Stage**: Code Generation
-**Status**: In Progress (Step 0 done, 2026-07-18) — FD/NFR authored, R/E/I/AC 고정
+**Status**: In Progress (2/7: Step 0-1 done, 2026-07-18)
 **Source**: 2026-07-17 user feature request — "실제 뉴스/칼럼/커뮤니티 이미지를 **저장해두고** 활용" 중 저장(수집 2단계). u136이 채집한 이미지 메타데이터를 영속 원장으로 굳히고, 재출현(자주 쓰이는 이미지) 추적과 라이선스 게이트 바이너리 저장을 붙인다.
 **Estimated Effort**: ~10-14 h (FD/NFR 포함)
 **Dependencies**:
@@ -83,8 +83,9 @@ Out of scope (명시적 non-goal):
 - [x] FD 3문서 + NFR 2문서, R/E/I/AC 번호 고정 (Stage Decision 참조).
 - **Acceptance**: 개발자가 계약 번호를 인용해 착수 가능.
 
-### Step 1 — `ImageCandidateRecord` + 원장 쓰기 `[ ]`
-- [ ] `visuals/image_library.py`: 모델 + `append_candidates(target_date, items) -> LedgerWriteReport` (u136 키 없는 item 스킵; 동일 run 내 동일 candidate_id 1회).
+### Step 1 — `ImageCandidateRecord` + 원장 쓰기 `[x]`
+- [x] `visuals/image_library.py`: 모델 + `append_candidates(target_date, items) -> LedgerWriteReport` (u136 키 없는 item 스킵; 동일 run 내 동일 candidate_id 1회).
+- 구현 시 I2/R4 divergence ratified (2026-07-18): u27 STRICT sanitizer가 64-hex/쿼리스트링/장문 URL 경로를 redact해 I1/I9 해시 정체성을 깨므로, `candidate_id`(regex-lock)·URL 필드는 rewrite 대신 **fail-closed 스크리닝**(SECRET_ENV_VARS + scan_for_leak 히트 시 후보 전체 드롭). 텍스트 필드는 STRICT chokepoint 유지. audit.md 기록 필요.
 - **Acceptance**: 픽스처 items로 결정적 JSONL 산출(키 순서/정렬 고정), 재실행 idempotent.
 
 ### Step 2 — 재출현 인덱스 + rights 상태 반영 `[ ]`
