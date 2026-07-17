@@ -1,17 +1,26 @@
-"""Tests for ``investo.visuals.image_library`` (u137 Step 1).
+"""Tests for ``investo.visuals.image_library`` (u137 Steps 1-2).
 
-Pins FD Contract #1 / E1 / R2-R4 / I1-I4 for the candidate ledger:
-identity normalization (I1), sanitize + caps (I2/R4), target-date
-provenance (I3), byte-determinism + merge-rewrite idempotency with
-existing-row-wins (I4/R3), imageless skip + same-run first-wins dedup
-(R3), atomic-write convention, and R13 (AC-1.3) — including the
-fail-closed URL screening documented in the module docstring.
+Step 1 pins FD Contract #1 / E1 / R2-R4 / I1-I4 for the candidate
+ledger: identity normalization (I1), sanitize + caps (I2/R4),
+target-date provenance (I3), byte-determinism + merge-rewrite
+idempotency with existing-row-wins (I4/R3), imageless skip + same-run
+first-wins dedup (R3), atomic-write convention, and R13 (AC-1.3) —
+including the fail-closed URL screening documented in the module
+docstring.
+
+Step 2 pins Contract #2/#3 read-side / E2/E5 / R5-R7 / I5-I9/I14 for
+the recurrence index: distinct-ledger-date ``seen_count`` (AC-137.6),
+rights mirroring from operator clearance files (blocked-wins, I9
+URL-identity, fail-closed manifest parsing), atomic + deterministic
+rewrite, and the no-auto-promotion guarantee.
 
 All filesystem writes go to ``tmp_path`` — never the real ``archive/``.
 """
 
 from __future__ import annotations
 
+import json
+import logging
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -22,9 +31,13 @@ from investo.visuals.image_library import (
     ImageCandidateRecord,
     append_candidates,
     candidate_id_for_url,
+    clearances_dir_for,
+    index_path_for,
     ledger_path_for,
     normalize_image_url,
+    update_index,
 )
+from investo.visuals.policy import ExternalAssetManifest
 
 _TARGET = date(2026, 7, 16)
 _PUBLISHED = datetime(2026, 7, 16, 12, 0, tzinfo=UTC)
@@ -398,8 +411,6 @@ def test_corrupted_existing_line_dropped_with_count(
     path = ledger_path_for(_TARGET, ledger_root=tmp_path)
     path.write_text(path.read_text(encoding="utf-8") + "{not valid json\n", encoding="utf-8")
 
-    import logging
-
     with caplog.at_level(logging.WARNING, logger="investo.visuals.image_library"):
         report = append_candidates(
             _TARGET,
@@ -413,3 +424,218 @@ def test_corrupted_existing_line_dropped_with_count(
     assert len(lines) == 2  # kept row + new row; corrupt line gone
     for line in lines:
         ImageCandidateRecord.model_validate_json(line)  # all valid again
+
+
+# ---------------------------------------------------------------------------
+# Step 2 — recurrence index (E2, R5, I5/I6) + rights mirror (E5, R6/R7, I7-I9)
+# ---------------------------------------------------------------------------
+
+_URL_A = "https://img.yna.co.kr/photo/reuters/recurring.jpg"
+_URL_B = "https://www.tbstat.com/wp/uploads/one-off.jpg"
+
+
+def _build_three_day_ledgers(root: Path) -> None:
+    """Candidate A on 3 distinct dates (two sources), B on one date."""
+
+    append_candidates(
+        date(2026, 7, 14),
+        {"domestic-equity": [_item(image_url=_URL_A)]},
+        ledger_root=root,
+    )
+    append_candidates(
+        date(2026, 7, 15),
+        {
+            "us-equity": [
+                _item(
+                    source_name="yahoo-finance-news",
+                    url="https://finance.yahoo.com/news/a.html",
+                    image_url=_URL_A,
+                ),
+            ],
+            "crypto": [
+                _item(
+                    source_name="theblock-crypto",
+                    url="https://www.theblock.co/post/1",
+                    image_url=_URL_B,
+                ),
+            ],
+        },
+        ledger_root=root,
+    )
+    append_candidates(
+        date(2026, 7, 16),
+        {"domestic-equity": [_item(image_url=_URL_A)]},
+        ledger_root=root,
+    )
+
+
+def _write_clearance(
+    root: Path,
+    image_url: str,
+    *,
+    kind: str = "explicit-license",
+    source_url: str | None = None,
+) -> str:
+    """Author an operator clearance manifest; returns the candidate id."""
+
+    cid = candidate_id_for_url(image_url)
+    manifest = ExternalAssetManifest(
+        kind=kind,  # type: ignore[arg-type]
+        source_url=source_url or image_url,  # type: ignore[arg-type]
+        license="CC BY 4.0",
+        attribution="Example Agency / CC BY 4.0",
+        author="Example Agency",
+        fetched_on=date(2026, 7, 16),
+        allowed_use="Public redistribution with attribution",
+    )
+    path = clearances_dir_for(ledger_root=root) / f"{cid}.manifest.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(manifest.model_dump_json(), encoding="utf-8")
+    return cid
+
+
+def _load_index(root: Path) -> dict[str, dict[str, object]]:
+    loaded: dict[str, dict[str, object]] = json.loads(
+        index_path_for(ledger_root=root).read_text(encoding="utf-8")
+    )
+    return loaded
+
+
+def test_index_recurrence_counts_distinct_ledger_dates(tmp_path: Path) -> None:
+    # R5 / AC-137.6 — seen_count counts distinct dates, first/last span
+    # them, sources are the sorted union across appearances.
+    _build_three_day_ledgers(tmp_path)
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+
+    assert report.ledger_dates_scanned == 3
+    assert report.candidates_indexed == 2
+    index = _load_index(tmp_path)
+    a = index[candidate_id_for_url(_URL_A)]
+    assert a["first_seen"] == "2026-07-14"
+    assert a["last_seen"] == "2026-07-16"
+    assert a["seen_count"] == 3
+    assert a["sources"] == ["yahoo-finance-news", "yonhap-market"]
+    assert a["rights_state"] == "metadata-only"
+    b = index[candidate_id_for_url(_URL_B)]
+    assert b["seen_count"] == 1
+    assert b["first_seen"] == b["last_seen"] == "2026-07-15"
+    assert b["sources"] == ["theblock-crypto"]
+
+
+def test_index_rewrite_is_byte_deterministic(tmp_path: Path) -> None:
+    # I5/I6 — full derived rebuild; re-run over the same inputs is
+    # byte-identical, keys candidate_id-sorted.
+    _build_three_day_ledgers(tmp_path)
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    first = index_path_for(ledger_root=tmp_path).read_bytes()
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert index_path_for(ledger_root=tmp_path).read_bytes() == first
+    index = _load_index(tmp_path)
+    assert list(index.keys()) == sorted(index.keys())
+
+
+def test_clearance_placement_and_removal_reflected_on_rerun(tmp_path: Path) -> None:
+    # R6/I7 — the index mirrors operator file existence per run; I14 —
+    # code never touches the clearance file itself.
+    _build_three_day_ledgers(tmp_path)
+    cid = _write_clearance(tmp_path, _URL_A)
+    clearance_path = clearances_dir_for(ledger_root=tmp_path) / f"{cid}.manifest.json"
+    authored_bytes = clearance_path.read_bytes()
+
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert report.cleared == 1
+    assert report.invalid_clearances == 0
+    assert _load_index(tmp_path)[cid]["rights_state"] == "cleared"
+    assert clearance_path.read_bytes() == authored_bytes  # I14 read-only
+
+    clearance_path.unlink()  # operator removal
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert report.cleared == 0
+    assert _load_index(tmp_path)[cid]["rights_state"] == "metadata-only"
+
+
+def test_blocked_marker_wins_over_coexisting_manifest(tmp_path: Path) -> None:
+    # I7 precedence — blocked is the fail-safe state.
+    _build_three_day_ledgers(tmp_path)
+    cid = _write_clearance(tmp_path, _URL_A)
+    (clearances_dir_for(ledger_root=tmp_path) / f"{cid}.blocked").touch()
+
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert report.blocked == 1
+    assert report.cleared == 0
+    assert _load_index(tmp_path)[cid]["rights_state"] == "blocked"
+
+
+def test_url_identity_mismatch_is_not_cleared(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    # I9 — a clearance authored for URL B under candidate A's filename
+    # never clears A.
+    _build_three_day_ledgers(tmp_path)
+    cid = _write_clearance(tmp_path, _URL_A, source_url="https://img.example.com/other.jpg")
+
+    with caplog.at_level(logging.WARNING, logger="investo.visuals.image_library"):
+        report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+
+    assert report.cleared == 0
+    assert report.invalid_clearances == 1
+    assert _load_index(tmp_path)[cid]["rights_state"] == "metadata-only"
+    assert "does not hash to" in caplog.text
+
+
+def test_unparseable_manifest_degrades_to_metadata_only(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    # I8 — fail-closed runtime parse; the CI gate (Step 5) is the RED
+    # enforcement.
+    _build_three_day_ledgers(tmp_path)
+    cid = candidate_id_for_url(_URL_A)
+    clearances = clearances_dir_for(ledger_root=tmp_path)
+    clearances.mkdir(parents=True, exist_ok=True)
+    (clearances / f"{cid}.manifest.json").write_text("{broken", encoding="utf-8")
+
+    with caplog.at_level(logging.WARNING, logger="investo.visuals.image_library"):
+        report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+
+    assert report.cleared == 0
+    assert report.invalid_clearances == 1
+    assert _load_index(tmp_path)[cid]["rights_state"] == "metadata-only"
+    assert "unparseable" in caplog.text
+
+
+def test_non_explicit_license_kind_is_not_cleared(tmp_path: Path) -> None:
+    # E3 — curated-licensed manifests belong to the u86 library, not the
+    # per-candidate clearance contract.
+    _build_three_day_ledgers(tmp_path)
+    cid = _write_clearance(tmp_path, _URL_A, kind="curated-licensed")
+
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert report.cleared == 0
+    assert report.invalid_clearances == 1
+    assert _load_index(tmp_path)[cid]["rights_state"] == "metadata-only"
+
+
+def test_index_atomic_write_leaves_no_tmp_sibling(tmp_path: Path) -> None:
+    _build_three_day_ledgers(tmp_path)
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert list(tmp_path.rglob("*.tmp")) == []
+
+
+def test_no_ledgers_and_no_index_writes_nothing(tmp_path: Path) -> None:
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert report.candidates_indexed == 0
+    assert not index_path_for(ledger_root=tmp_path).exists()
+
+
+def test_existing_index_refreshes_to_empty_when_ledgers_removed(tmp_path: Path) -> None:
+    # I6 derived-only: the index never carries state the ledgers cannot
+    # re-derive — removal is reflected, not fossilized.
+    _build_three_day_ledgers(tmp_path)
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    for year_dir in tmp_path.glob("[0-9][0-9][0-9][0-9]"):
+        for ledger in year_dir.glob("*.jsonl"):
+            ledger.unlink()
+
+    report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    assert report.candidates_indexed == 0
+    assert index_path_for(ledger_root=tmp_path).read_text(encoding="utf-8") == "{}\n"

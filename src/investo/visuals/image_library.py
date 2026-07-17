@@ -1,10 +1,13 @@
-"""Image-candidate ledger for harvested feed images (u137 Step 1).
+"""Image-candidate ledger + recurrence index for harvested feed images (u137).
 
-Persists the u136 ``image_*`` raw_metadata harvest as a date-keyed JSONL
-ledger — the first artifact of the u137 registry (FD Contract #1, E1,
-R2/R3/R4). Later steps add the recurrence index (E2), the rights state
-machine (E5), and the license-gated binary store (E4); none of that
-lives here yet.
+Step 1 persists the u136 ``image_*`` raw_metadata harvest as a
+date-keyed JSONL ledger (FD Contract #1, E1, R2/R3/R4). Step 2 adds the
+recurrence index (Contract #2, E2, R5, I5-I7) and the read-side of the
+rights state machine (Contract #3, E5, R6/R7, I8/I9/I14): the index
+mirrors clearance-directory file existence into ``rights_state`` but
+never writes under ``clearances/`` — state transitions are
+operator-file-only. The license-gated binary store (E4) is Step 3 and
+does not live here yet.
 
 Legal posture (R1): the ledger is **metadata only**. Nothing in this
 module fetches, stores, or licenses any binary; every candidate's
@@ -53,6 +56,31 @@ Design choices (2026-07-18, Step 1):
   earlier rows" holds for every valid row.
 * **No wall clock** (I3/R3) — ``collected_on`` comes only from the
   ``target_date`` parameter; this module never reads ``datetime.now``.
+
+Step 2 design choices (2026-07-18):
+
+* **Derived-only full rebuild (I6)** — :func:`update_index` rescans
+  every date ledger under the root plus the clearances directory and
+  rewrites ``index.json`` from scratch; the index carries no state that
+  is not derivable from those inputs, so placement/removal of operator
+  files is reflected on the next run with no migration logic.
+* **``seen_count`` = distinct ledger dates (R5)** — the v1 "자주 쓰이는
+  이미지" signal counts the number of date files carrying the
+  candidate, not per-run row totals. The ledger date is the file's
+  ``YYYY-MM-DD`` stem (Step 1 stamps ``collected_on`` equal to it).
+* **Rights mirror, fail-closed (I7/I8/I9)** — ``blocked`` marker wins
+  over a coexisting manifest; a clearance manifest counts as valid only
+  when it parses as a u19 :class:`ExternalAssetManifest` with
+  ``kind="explicit-license"`` (E3 — no parallel schema) AND its
+  ``source_url`` hashes to the ``{candidate_id}`` filename stem (I9 —
+  a clearance for URL A can never authorize URL B). Anything else
+  degrades to ``metadata-only`` with one WARN and an
+  ``invalid_clearances`` count; the CI gate (Step 5) is the RED
+  enforcement. I9 hashing uses ``str(manifest.source_url)`` — pydantic's
+  ``HttpUrl`` round-trip lowercases the host, which the R2
+  normalization does anyway.
+* **I14** — this module only ever *reads* ``clearances/``; no code path
+  creates, modifies, or deletes files there.
 """
 
 from __future__ import annotations
@@ -65,7 +93,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Final
+from typing import Final, Literal
 from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
@@ -74,6 +102,7 @@ from investo._internal._io import write_atomic
 from investo._internal.redaction import SECRET_ENV_VARS, scan_for_leak
 from investo.models import NormalizedItem
 from investo.models.segments import MarketSegment
+from investo.visuals.policy import ExternalAssetManifest
 from investo.visuals.provenance import sanitize_provenance_text
 
 _logger = logging.getLogger(__name__)
@@ -375,12 +404,202 @@ def _read_existing_rows(path: Path) -> tuple[dict[str, ImageCandidateRecord], in
     return rows, invalid
 
 
+# ---------------------------------------------------------------------------
+# Step 2 — recurrence index + rights-state mirror (Contract #2/#3 read-side)
+# ---------------------------------------------------------------------------
+
+_INDEX_FILENAME: Final[str] = "index.json"
+_CLEARANCES_DIRNAME: Final[str] = "clearances"
+
+# E5 — the only recognized rights states. The clearances directory
+# encodes the state; code only reads it (I14).
+ImageRightsState = Literal["metadata-only", "cleared", "blocked"]
+
+_RIGHTS_METADATA_ONLY: Final[ImageRightsState] = "metadata-only"
+_RIGHTS_CLEARED: Final[ImageRightsState] = "cleared"
+_RIGHTS_BLOCKED: Final[ImageRightsState] = "blocked"
+
+
+class RecurrenceIndexEntry(BaseModel):
+    """One ``index.json`` entry (E2). Field order = serialization order (I6)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    first_seen: date
+    last_seen: date
+    seen_count: int = Field(ge=1)
+    sources: tuple[str, ...]
+    rights_state: ImageRightsState
+
+
+@dataclass(frozen=True, slots=True)
+class IndexReport:
+    """Outcome counts for one :func:`update_index` run (R5)."""
+
+    index_path: Path
+    ledger_dates_scanned: int
+    candidates_indexed: int
+    metadata_only: int
+    cleared: int
+    blocked: int
+    invalid_clearances: int
+    invalid_ledger_rows: int
+
+
+def index_path_for(*, ledger_root: Path = DEFAULT_LEDGER_ROOT) -> Path:
+    """Return the recurrence index path (Contract #2 / R5 layout)."""
+
+    return ledger_root / _INDEX_FILENAME
+
+
+def clearances_dir_for(*, ledger_root: Path = DEFAULT_LEDGER_ROOT) -> Path:
+    """Return the operator clearance directory (Contract #3 / R6 layout)."""
+
+    return ledger_root / _CLEARANCES_DIRNAME
+
+
+def update_index(
+    target_date: date,
+    *,
+    ledger_root: Path = DEFAULT_LEDGER_ROOT,
+) -> IndexReport:
+    """Rebuild ``index.json`` from every date ledger + the clearances dir.
+
+    Derived-only full rebuild (I6): recurrence facts come from the date
+    ledgers; ``rights_state`` mirrors clearance-directory file existence
+    at write time (I7, ``blocked`` wins) and is never a source of truth
+    (I14). The rewrite is atomic (I5) and byte-deterministic (sorted
+    ``candidate_id`` keys, fixed entry key order). ``target_date`` is
+    run context for the summary log only — no persisted value reads it
+    or the wall clock (I3/R5).
+
+    Nothing is written when there are no ledgers and no pre-existing
+    index (mirrors the Step 1 empty-merge behavior); an existing index
+    is refreshed even to empty so removals stay reflected.
+    """
+
+    appearances: dict[str, set[date]] = {}
+    sources: dict[str, set[str]] = {}
+    ledger_dates = 0
+    invalid_ledger_rows = 0
+
+    for ledger_file in sorted(ledger_root.glob("[0-9][0-9][0-9][0-9]/*.jsonl")):
+        try:
+            ledger_date = date.fromisoformat(ledger_file.stem)
+        except ValueError:
+            _logger.warning(
+                "image candidate ledger %s has a non-date filename — skipped from index",
+                ledger_file,
+            )
+            continue
+        ledger_dates += 1
+        rows, invalid = _read_existing_rows(ledger_file)
+        invalid_ledger_rows += invalid
+        for cid, record in rows.items():
+            appearances.setdefault(cid, set()).add(ledger_date)
+            sources.setdefault(cid, set()).add(record.source_name)
+
+    clearances_dir = clearances_dir_for(ledger_root=ledger_root)
+    entries: dict[str, RecurrenceIndexEntry] = {}
+    counts = {_RIGHTS_METADATA_ONLY: 0, _RIGHTS_CLEARED: 0, _RIGHTS_BLOCKED: 0}
+    invalid_clearances = 0
+    for cid in sorted(appearances):
+        dates = appearances[cid]
+        rights_state, clearance_invalid = _mirror_rights_state(cid, clearances_dir)
+        if clearance_invalid:
+            invalid_clearances += 1
+        counts[rights_state] += 1
+        entries[cid] = RecurrenceIndexEntry(
+            first_seen=min(dates),
+            last_seen=max(dates),
+            seen_count=len(dates),  # R5 — distinct ledger dates
+            sources=tuple(sorted(sources[cid])),
+            rights_state=rights_state,
+        )
+
+    path = index_path_for(ledger_root=ledger_root)
+    if entries or path.exists():
+        payload = {cid: entry.model_dump(mode="json") for cid, entry in entries.items()}
+        write_atomic(path, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+
+    _logger.info(
+        "image candidate index rebuilt target_date=%s candidates=%d cleared=%d "
+        "blocked=%d invalid_clearances=%d",
+        target_date.isoformat(),
+        len(entries),
+        counts[_RIGHTS_CLEARED],
+        counts[_RIGHTS_BLOCKED],
+        invalid_clearances,
+    )
+    return IndexReport(
+        index_path=path,
+        ledger_dates_scanned=ledger_dates,
+        candidates_indexed=len(entries),
+        metadata_only=counts[_RIGHTS_METADATA_ONLY],
+        cleared=counts[_RIGHTS_CLEARED],
+        blocked=counts[_RIGHTS_BLOCKED],
+        invalid_clearances=invalid_clearances,
+        invalid_ledger_rows=invalid_ledger_rows,
+    )
+
+
+def _mirror_rights_state(cid: str, clearances_dir: Path) -> tuple[ImageRightsState, bool]:
+    """Mirror clearance-file existence into a rights state (I7/I8/I9).
+
+    Returns ``(state, clearance_invalid)`` where ``clearance_invalid``
+    flags a present-but-unusable manifest (fail-closed to
+    ``metadata-only``). Read-only — never touches the files (I14).
+    """
+
+    if (clearances_dir / f"{cid}.blocked").exists():
+        # I7 — blocked wins over any coexisting manifest (fail-safe).
+        return _RIGHTS_BLOCKED, False
+    manifest_path = clearances_dir / f"{cid}.manifest.json"
+    if not manifest_path.exists():
+        return _RIGHTS_METADATA_ONLY, False
+    try:
+        manifest = ExternalAssetManifest.model_validate_json(
+            manifest_path.read_text(encoding="utf-8")
+        )
+    except (ValidationError, OSError, UnicodeDecodeError):
+        _logger.warning(
+            "clearance manifest for candidate %s is unparseable — treated as metadata-only",
+            cid,
+        )
+        return _RIGHTS_METADATA_ONLY, True
+    if manifest.kind != "explicit-license":
+        # E3 — the per-candidate clearance contract is explicit-license
+        # only; curated-licensed manifests belong to the u86 library.
+        _logger.warning(
+            "clearance manifest for candidate %s has kind=%r (expected 'explicit-license') "
+            "— treated as metadata-only",
+            cid,
+            manifest.kind,
+        )
+        return _RIGHTS_METADATA_ONLY, True
+    if candidate_id_for_url(str(manifest.source_url)) != cid:
+        # I9 — a clearance authored for URL A never authorizes URL B.
+        _logger.warning(
+            "clearance manifest for candidate %s has a source_url that does not hash to "
+            "the candidate id — treated as metadata-only",
+            cid,
+        )
+        return _RIGHTS_METADATA_ONLY, True
+    return _RIGHTS_CLEARED, False
+
+
 __all__ = [
     "DEFAULT_LEDGER_ROOT",
     "ImageCandidateRecord",
+    "ImageRightsState",
+    "IndexReport",
     "LedgerWriteReport",
+    "RecurrenceIndexEntry",
     "append_candidates",
     "candidate_id_for_url",
+    "clearances_dir_for",
+    "index_path_for",
     "ledger_path_for",
     "normalize_image_url",
+    "update_index",
 ]
