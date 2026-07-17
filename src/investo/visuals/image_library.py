@@ -6,12 +6,15 @@ recurrence index (Contract #2, E2, R5, I5-I7) and the read-side of the
 rights state machine (Contract #3, E5, R6/R7, I8/I9/I14): the index
 mirrors clearance-directory file existence into ``rights_state`` but
 never writes under ``clearances/`` — state transitions are
-operator-file-only. The license-gated binary store (E4) is Step 3 and
-does not live here yet.
+operator-file-only. Step 3 adds the quadruple-gated fetch +
+content-addressed binary store (Contract #4, E4, R8, I10-I13), reusing
+the u19 fetch machinery and the u24 provenance sidecar system (TS-1 /
+TS-2 — no private re-implementation, no parallel schema).
 
-Legal posture (R1): the ledger is **metadata only**. Nothing in this
-module fetches, stores, or licenses any binary; every candidate's
-implicit rights state is ``metadata-only``.
+Legal posture (R1): **metadata-everything, binaries-only-with-
+clearance** (I17). Every candidate's default rights state is
+``metadata-only``; a default run (no clearance files, no env opt-in)
+stores exactly zero binaries (AC-137.2).
 
 Module boundary (R10): called by the orchestrator only. Imports are
 limited to ``investo.models`` (shared), ``investo._internal`` (shared
@@ -91,19 +94,33 @@ import logging
 import os
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime, time
 from pathlib import Path
 from typing import Final, Literal
 from urllib.parse import urlsplit, urlunsplit
 
+import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
-from investo._internal._io import write_atomic
+from investo._internal._io import write_atomic, write_atomic_bytes
 from investo._internal.redaction import SECRET_ENV_VARS, scan_for_leak
 from investo.models import NormalizedItem
 from investo.models.segments import MarketSegment
-from investo.visuals.policy import ExternalAssetManifest
-from investo.visuals.provenance import sanitize_provenance_text
+from investo.visuals.assets import read_image_dimensions
+from investo.visuals.external_image import fetch_manifest_image
+from investo.visuals.policy import (
+    ExternalAssetManifest,
+    ExternalAssetPolicyError,
+    allowed_external_image_hosts,
+    assert_external_asset_allowed,
+    assert_external_image_host_allowed,
+    external_image_scraping_enabled,
+)
+from investo.visuals.provenance import (
+    build_external_provenance,
+    sanitize_provenance_text,
+    write_manifest,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -554,9 +571,29 @@ def _mirror_rights_state(cid: str, clearances_dir: Path) -> tuple[ImageRightsSta
     if (clearances_dir / f"{cid}.blocked").exists():
         # I7 — blocked wins over any coexisting manifest (fail-safe).
         return _RIGHTS_BLOCKED, False
+    manifest, invalid = _load_valid_clearance(cid, clearances_dir)
+    if manifest is not None:
+        return _RIGHTS_CLEARED, False
+    return _RIGHTS_METADATA_ONLY, invalid
+
+
+def _load_valid_clearance(
+    cid: str, clearances_dir: Path
+) -> tuple[ExternalAssetManifest | None, bool]:
+    """Load + validate the clearance manifest for ``cid`` (E3, I8, I9).
+
+    Returns ``(manifest, invalid)``: a valid manifest with
+    ``invalid=False``; ``(None, False)`` when the file simply does not
+    exist; ``(None, True)`` + one WARN when the file exists but is
+    unparseable, has the wrong ``kind``, or fails the I9 URL-identity
+    hash. Shared by the index mirror (Step 2) and the fetch path
+    (Step 3), which re-checks the file truth per I8/I9 rather than
+    trusting the index (I7 — the index is never a source of truth).
+    """
+
     manifest_path = clearances_dir / f"{cid}.manifest.json"
     if not manifest_path.exists():
-        return _RIGHTS_METADATA_ONLY, False
+        return None, False
     try:
         manifest = ExternalAssetManifest.model_validate_json(
             manifest_path.read_text(encoding="utf-8")
@@ -566,7 +603,7 @@ def _mirror_rights_state(cid: str, clearances_dir: Path) -> tuple[ImageRightsSta
             "clearance manifest for candidate %s is unparseable — treated as metadata-only",
             cid,
         )
-        return _RIGHTS_METADATA_ONLY, True
+        return None, True
     if manifest.kind != "explicit-license":
         # E3 — the per-candidate clearance contract is explicit-license
         # only; curated-licensed manifests belong to the u86 library.
@@ -576,7 +613,7 @@ def _mirror_rights_state(cid: str, clearances_dir: Path) -> tuple[ImageRightsSta
             cid,
             manifest.kind,
         )
-        return _RIGHTS_METADATA_ONLY, True
+        return None, True
     if candidate_id_for_url(str(manifest.source_url)) != cid:
         # I9 — a clearance authored for URL A never authorizes URL B.
         _logger.warning(
@@ -584,12 +621,242 @@ def _mirror_rights_state(cid: str, clearances_dir: Path) -> tuple[ImageRightsSta
             "the candidate id — treated as metadata-only",
             cid,
         )
-        return _RIGHTS_METADATA_ONLY, True
-    return _RIGHTS_CLEARED, False
+        return None, True
+    return manifest, False
+
+
+# ---------------------------------------------------------------------------
+# Step 3 — quadruple-gated fetch + content-addressed store (Contract #4)
+# ---------------------------------------------------------------------------
+
+# Contract #4 store root: assets/images/{candidate_id[:2]}/{candidate_id}{ext}.
+DEFAULT_STORE_ROOT: Final[Path] = Path("assets") / "images"
+
+# The _extension_for_image output set (I11) — the only extensions the
+# store may ever contain (also the I10 existence-probe set).
+_STORE_EXTENSIONS: Final[tuple[str, ...]] = (".png", ".jpg")
+
+_CONTENT_TYPE_FOR_EXTENSION: Final[dict[str, Literal["image/png", "image/jpeg"]]] = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+}
+
+_STORE_CARD_KIND: Final[str] = "external-context-image"
+
+
+@dataclass(frozen=True, slots=True)
+class FetchReport:
+    """Outcome counts for one :func:`fetch_cleared_candidates` run (R8).
+
+    ``scraping_enabled=False`` short-circuits everything (gate 2 of
+    I13): every other count is zero. ``cleared`` is the file-truth
+    cleared set entering the gate chain; ``attempted`` counts actual
+    HTTP fetches (``skipped_existing`` candidates never produce one —
+    I10). ``fetch_failed`` covers HTTP errors and the signature /
+    byte-cap / dimension validation rejections (I11 — nothing written).
+    """
+
+    store_root: Path
+    scraping_enabled: bool
+    candidates_considered: int
+    cleared: int
+    invalid_clearances: int
+    gate_blocked: int
+    skipped_existing: int
+    attempted: int
+    fetch_failed: int
+    stored: int
+
+
+def store_binary_path(
+    candidate_id: str,
+    extension: str,
+    *,
+    store_root: Path = DEFAULT_STORE_ROOT,
+) -> Path:
+    """Return the content-addressed store path (Contract #4 / E4 layout)."""
+
+    return store_root / candidate_id[:2] / f"{candidate_id}{extension}"
+
+
+def store_sidecar_path(binary_path: Path) -> Path:
+    """Return the provenance sidecar path for a store binary (E4, TS-2 b)."""
+
+    return binary_path.with_name(binary_path.name + ".provenance.json")
+
+
+def read_index(*, ledger_root: Path = DEFAULT_LEDGER_ROOT) -> dict[str, RecurrenceIndexEntry]:
+    """Load ``index.json`` into typed entries ({} when absent).
+
+    Companion to :func:`update_index` for the Step 4 pipeline sequence
+    (BLM §4: the fetch stage consumes the index the same run rebuilt).
+    """
+
+    path = index_path_for(ledger_root=ledger_root)
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        cid: RecurrenceIndexEntry.model_validate(entry) for cid, entry in sorted(payload.items())
+    }
+
+
+def fetch_cleared_candidates(
+    index: Mapping[str, RecurrenceIndexEntry],
+    *,
+    ledger_root: Path = DEFAULT_LEDGER_ROOT,
+    store_root: Path = DEFAULT_STORE_ROOT,
+    client: httpx.Client | None = None,
+) -> FetchReport:
+    """Fetch + store binaries for cleared candidates only (R8, I13).
+
+    The quadruple gate (I13) — every fetch requires ALL of:
+
+    1. file-truth ``cleared`` rights state with a valid manifest
+       (I8/I9 re-checked here; the index only supplies the candidate
+       universe and is never trusted for rights — I7/I14, so a
+       ``.blocked`` marker added after the index rebuild still blocks);
+    2. ``external_image_scraping_enabled()`` env opt-in — checked first,
+       zero-fetch report when off;
+    3. ``assert_external_asset_allowed`` for the clearance manifest
+       (invoked with the env-derived flag; the module-level
+       ``EXTERNAL_IMAGE_SCRAPING_ENABLED`` default stays ``False``);
+    4. ``assert_external_image_host_allowed`` (public host + optional
+       ``INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS`` allowlist).
+
+    ``metadata-only`` / ``blocked`` candidates produce zero fetch
+    attempts under every combination of the other gates (AC-137.2).
+    The store is content-addressed: an existing binary skips the fetch
+    entirely and leaves the sidecar untouched (I10 — zero git churn).
+    Validation reuses the u19 machinery (I11 — PNG/JPEG signature,
+    100 B-2,000,000 B cap); failures store nothing + one WARN. The
+    sidecar records ``content_sha256`` (bytes hash, distinct from the
+    URL-hash id) and ``candidate_id`` (I12); its ``generated_at`` is
+    the operator's ``fetched_on`` verification date at UTC midnight —
+    never the wall clock (I3, BLM §6: sidecars are written once and
+    never churned).
+    """
+
+    scraping_enabled = external_image_scraping_enabled()
+    if not scraping_enabled:
+        # Gate (2) — I13/I17: a default run stores exactly zero binaries.
+        return FetchReport(
+            store_root=store_root,
+            scraping_enabled=False,
+            candidates_considered=len(index),
+            cleared=0,
+            invalid_clearances=0,
+            gate_blocked=0,
+            skipped_existing=0,
+            attempted=0,
+            fetch_failed=0,
+            stored=0,
+        )
+
+    clearances_dir = clearances_dir_for(ledger_root=ledger_root)
+    cleared = 0
+    invalid_clearances = 0
+    gate_blocked = 0
+    skipped_existing = 0
+    attempted = 0
+    fetch_failed = 0
+    stored = 0
+
+    for cid in sorted(index):
+        if (clearances_dir / f"{cid}.blocked").exists():
+            # Gate (1) / I7 / I15 — blocked is permanent exclusion,
+            # regardless of what the (possibly stale) index says.
+            continue
+        manifest, invalid = _load_valid_clearance(cid, clearances_dir)
+        if manifest is None:
+            if invalid:
+                invalid_clearances += 1
+            continue  # metadata-only — never a fetch candidate (I13)
+        cleared += 1
+
+        if any(
+            store_binary_path(cid, ext, store_root=store_root).exists() for ext in _STORE_EXTENSIONS
+        ):
+            # I10 — content-addressed idempotency: no fetch, sidecar
+            # untouched, zero git churn.
+            skipped_existing += 1
+            continue
+
+        url = str(manifest.source_url)
+        try:
+            # Gates (3) + (4) — explicit per BLM §3 so a policy trip is
+            # distinguishable from a network/validation failure.
+            assert_external_asset_allowed(manifest, scraping_enabled=scraping_enabled)
+            assert_external_image_host_allowed(url, allowed_hosts=allowed_external_image_hosts())
+        except ExternalAssetPolicyError as exc:
+            gate_blocked += 1
+            _logger.warning("image store fetch blocked for candidate %s: %s", cid, exc)
+            continue
+
+        attempted += 1
+        fetched = fetch_manifest_image(manifest, manifest.attribution, client=client)
+        if fetched is None:
+            # I11 / AC-1.1 — HTTP failure or signature/byte-cap
+            # rejection; nothing written.
+            fetch_failed += 1
+            _logger.warning(
+                "image store fetch failed or rejected for candidate %s — nothing stored",
+                cid,
+            )
+            continue
+
+        dimensions = read_image_dimensions(fetched.content, fetched.extension)
+        if dimensions is None:
+            fetch_failed += 1
+            _logger.warning(
+                "image store fetch for candidate %s has unreadable dimensions — nothing stored",
+                cid,
+            )
+            continue
+
+        binary_path = store_binary_path(cid, fetched.extension, store_root=store_root)
+        write_atomic_bytes(binary_path, fetched.content)
+        sidecar_manifest = build_external_provenance(
+            # Canonical Contract #4 store address — the manifest
+            # describes the store location, not an injected test root.
+            asset_relative_path=f"assets/images/{cid[:2]}/{binary_path.name}",
+            card_kind=_STORE_CARD_KIND,
+            generated_at=datetime.combine(manifest.fetched_on, time(0), tzinfo=UTC),
+            width=dimensions[0],
+            height=dimensions[1],
+            content_type=_CONTENT_TYPE_FOR_EXTENSION[fetched.extension],
+            license_name=manifest.license,
+            attribution=manifest.attribution,
+            author=manifest.author,
+            allowed_use=manifest.allowed_use,
+            fetched_from_host=urlsplit(url).hostname or "",
+            additional_metadata={
+                # I12 — bytes hash, distinct from the URL-hash id.
+                "content_sha256": hashlib.sha256(fetched.content).hexdigest(),
+                "candidate_id": cid,
+            },
+        )
+        write_manifest(sidecar_manifest, binary_path, sidecar_path=store_sidecar_path(binary_path))
+        stored += 1
+
+    return FetchReport(
+        store_root=store_root,
+        scraping_enabled=True,
+        candidates_considered=len(index),
+        cleared=cleared,
+        invalid_clearances=invalid_clearances,
+        gate_blocked=gate_blocked,
+        skipped_existing=skipped_existing,
+        attempted=attempted,
+        fetch_failed=fetch_failed,
+        stored=stored,
+    )
 
 
 __all__ = [
     "DEFAULT_LEDGER_ROOT",
+    "DEFAULT_STORE_ROOT",
+    "FetchReport",
     "ImageCandidateRecord",
     "ImageRightsState",
     "IndexReport",
@@ -598,8 +865,12 @@ __all__ = [
     "append_candidates",
     "candidate_id_for_url",
     "clearances_dir_for",
+    "fetch_cleared_candidates",
     "index_path_for",
     "ledger_path_for",
     "normalize_image_url",
+    "read_index",
+    "store_binary_path",
+    "store_sidecar_path",
     "update_index",
 ]

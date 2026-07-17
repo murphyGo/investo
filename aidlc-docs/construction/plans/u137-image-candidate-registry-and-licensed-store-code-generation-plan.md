@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u137 image-candidate-registry-and-licensed-store
 **Stage**: Code Generation
-**Status**: In Progress (3/7: Step 0-2 done, 2026-07-18)
+**Status**: In Progress (4/7: Step 0-3 done, 2026-07-18)
 **Source**: 2026-07-17 user feature request — "실제 뉴스/칼럼/커뮤니티 이미지를 **저장해두고** 활용" 중 저장(수집 2단계). u136이 채집한 이미지 메타데이터를 영속 원장으로 굳히고, 재출현(자주 쓰이는 이미지) 추적과 라이선스 게이트 바이너리 저장을 붙인다.
 **Estimated Effort**: ~10-14 h (FD/NFR 포함)
 **Dependencies**:
@@ -92,8 +92,9 @@ Out of scope (명시적 non-goal):
 - [x] `update_index(target_date) -> IndexReport`: 원장 스캔 → seen_count/last_seen 갱신, clearances/blocked 파일 → rights_state 반영.
 - **Acceptance**: 3일치 픽스처 원장에서 재출현 카운트 정확, 상태 파일 배치/제거가 인덱스에 반영, atomic rewrite 검증.
 
-### Step 3 — 라이선스 게이트 fetch + store `[ ]`
-- [ ] `fetch_cleared_candidates(...)`: 계약 #4의 4중 조건, `external_image.py` fetch 기계 재사용(필요 최소 공개화), provenance 사이드카 작성.
+### Step 3 — 라이선스 게이트 fetch + store `[x]`
+- [x] `fetch_cleared_candidates(...)`: 계약 #4의 4중 조건, `external_image.py` fetch 기계 재사용(필요 최소 공개화), provenance 사이드카 작성.
+- 구현 시 TS-2 accommodation ratified (2026-07-18): u24 `VisualProvenanceManifest`의 STRICT 스크럽이 64-hex digest를 redact해 I12 페어링을 깨므로, `additional_metadata`의 `candidate_id`/`content_sha256` **두 키에 한해** `^[0-9a-f]{64}$` fullmatch 값만 verbatim 통과(형태 불일치 값·타 키는 전부 기존 STRICT 유지, u27 카탈로그 무변경). fetch 경로는 인덱스가 아닌 **파일 진실** 재확인(I7/I14). audit.md 기록 필요.
 - **Acceptance**: cleared+env-on만 fetch 시도(httpx mock 감시), metadata-only/blocked은 어떤 조합에서도 fetch 0회 — 회귀 테스트 고정; 시그니처 불일치/2MB 초과 저장 거부.
 
 ### Step 4 — orchestrator stage 배선 + 실패 격리 `[ ]`

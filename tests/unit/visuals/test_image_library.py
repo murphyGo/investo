@@ -14,16 +14,27 @@ rights mirroring from operator clearance files (blocked-wins, I9
 URL-identity, fail-closed manifest parsing), atomic + deterministic
 rewrite, and the no-auto-promotion guarantee.
 
-All filesystem writes go to ``tmp_path`` — never the real ``archive/``.
+Step 3 pins Contract #4 / E4 / R8 / I10-I13 for the license-gated
+store: the quadruple fetch gate matrix (each gate individually off →
+zero HTTP requests; ``metadata-only`` / ``blocked`` never fetch under
+ANY combination — the u136 Contract-#4-style regression), skip-if-
+present idempotency, signature / byte-cap rejection, and sidecar
+content correctness (``content_sha256`` bytes hash + license fields).
+All HTTP goes through ``httpx.MockTransport`` — never live.
+
+All filesystem writes go to ``tmp_path`` — never the real ``archive/``
+or ``assets/``.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+import httpx
 import pytest
 
 from investo.models import NormalizedItem
@@ -32,9 +43,13 @@ from investo.visuals.image_library import (
     append_candidates,
     candidate_id_for_url,
     clearances_dir_for,
+    fetch_cleared_candidates,
     index_path_for,
     ledger_path_for,
     normalize_image_url,
+    read_index,
+    store_binary_path,
+    store_sidecar_path,
     update_index,
 )
 from investo.visuals.policy import ExternalAssetManifest
@@ -639,3 +654,341 @@ def test_existing_index_refreshes_to_empty_when_ledgers_removed(tmp_path: Path) 
     report = update_index(date(2026, 7, 16), ledger_root=tmp_path)
     assert report.candidates_indexed == 0
     assert index_path_for(ledger_root=tmp_path).read_text(encoding="utf-8") == "{}\n"
+
+
+# ---------------------------------------------------------------------------
+# Step 3 — quadruple-gated fetch + content-addressed store (E4, R8, I10-I13)
+# ---------------------------------------------------------------------------
+
+# Minimal valid PNG: 8-byte signature + IHDR chunk (64x48) + padding to
+# clear the 100-byte minimum of the u19 _extension_for_image gate.
+_PNG_BYTES = (
+    b"\x89PNG\r\n\x1a\n"
+    + (13).to_bytes(4, "big")
+    + b"IHDR"
+    + (64).to_bytes(4, "big")
+    + (48).to_bytes(4, "big")
+    + b"\x08\x06\x00\x00\x00"
+    + b"\x00" * 100
+)
+
+_ENV_FLAG = "INVESTO_EXTERNAL_IMAGE_ASSETS"
+_ENV_HOSTS = "INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS"
+
+
+@pytest.fixture(autouse=True)
+def _clean_image_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Default-off posture (I17): each test opts in explicitly.
+    monkeypatch.delenv(_ENV_FLAG, raising=False)
+    monkeypatch.delenv(_ENV_HOSTS, raising=False)
+
+
+def _store(tmp_path: Path) -> Path:
+    return tmp_path / "assets" / "images"
+
+
+def _spy_client(
+    body: bytes = _PNG_BYTES,
+    content_type: str = "image/png",
+    captured: list[httpx.Request] | None = None,
+) -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if captured is not None:
+            captured.append(request)
+        return httpx.Response(200, headers={"content-type": content_type}, content=body)
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def _fail_client() -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError(f"fetch must not happen; attempted GET {request.url}")
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def _cleared_setup(root: Path) -> str:
+    """One-candidate ledger + index + valid operator clearance; returns cid."""
+
+    append_candidates(
+        date(2026, 7, 16),
+        {"domestic-equity": [_item(image_url=_URL_A)]},
+        ledger_root=root,
+    )
+    update_index(date(2026, 7, 16), ledger_root=root)
+    return _write_clearance(root, _URL_A)
+
+
+def test_all_four_gates_on_fetches_and_stores(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # I13 — cleared + env opt-in + asset policy + host allowlist → one
+    # fetch, binary + sidecar under the content-addressed layout (E4).
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    monkeypatch.setenv(_ENV_HOSTS, "img.yna.co.kr")
+    cid = _cleared_setup(tmp_path)
+    captured: list[httpx.Request] = []
+
+    with _spy_client(captured=captured) as client:
+        report = fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+
+    assert len(captured) == 1
+    assert str(captured[0].url) == _URL_A
+    assert report.cleared == 1
+    assert report.attempted == 1
+    assert report.stored == 1
+    binary = store_binary_path(cid, ".png", store_root=_store(tmp_path))
+    assert binary == _store(tmp_path) / cid[:2] / f"{cid}.png"
+    assert binary.read_bytes() == _PNG_BYTES
+    assert store_sidecar_path(binary).exists()
+
+
+def test_env_off_zero_fetches_even_when_cleared(tmp_path: Path) -> None:
+    # Gate (2) off — I17: default runs store exactly zero binaries.
+    _cleared_setup(tmp_path)
+    with _fail_client() as client:
+        report = fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+    assert report.scraping_enabled is False
+    assert report.attempted == 0
+    assert report.stored == 0
+    assert not _store(tmp_path).exists()
+
+
+def test_metadata_only_never_fetches_in_any_env_combination(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Gate (1) — no clearance file: zero fetches under every
+    # combination of the other gates (AC-137.2 regression pin).
+    append_candidates(
+        date(2026, 7, 16),
+        {"domestic-equity": [_item(image_url=_URL_A)]},
+        ledger_root=tmp_path,
+    )
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    index = read_index(ledger_root=tmp_path)
+
+    for hosts in (None, "img.yna.co.kr"):
+        monkeypatch.setenv(_ENV_FLAG, "1")
+        if hosts is None:
+            monkeypatch.delenv(_ENV_HOSTS, raising=False)
+        else:
+            monkeypatch.setenv(_ENV_HOSTS, hosts)
+        with _fail_client() as client:
+            report = fetch_cleared_candidates(
+                index, ledger_root=tmp_path, store_root=_store(tmp_path), client=client
+            )
+        assert report.cleared == 0
+        assert report.attempted == 0
+        assert report.stored == 0
+
+
+def test_blocked_never_fetches_even_with_manifest_env_on_and_stale_index(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # I7/I15 — blocked wins over a coexisting valid manifest AND over a
+    # stale index that still says cleared: the fetch path re-reads file
+    # truth (the index is never a source of truth for rights).
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    cid = _cleared_setup(tmp_path)
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    stale_index = read_index(ledger_root=tmp_path)
+    assert stale_index[cid].rights_state == "cleared"
+    (clearances_dir_for(ledger_root=tmp_path) / f"{cid}.blocked").touch()
+
+    with _fail_client() as client:
+        report = fetch_cleared_candidates(
+            stale_index, ledger_root=tmp_path, store_root=_store(tmp_path), client=client
+        )
+    assert report.cleared == 0
+    assert report.attempted == 0
+    assert report.stored == 0
+
+
+def test_host_allowlist_blocks_before_any_request(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Gate (4) — a non-matching allowlist trips the policy assert; no
+    # HTTP request is issued.
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    monkeypatch.setenv(_ENV_HOSTS, "other.example.com")
+    _cleared_setup(tmp_path)
+
+    with _fail_client() as client:
+        report = fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+    assert report.gate_blocked == 1
+    assert report.attempted == 0
+    assert report.stored == 0
+
+
+def test_invalid_clearance_at_fetch_time_never_fetches(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # I8/I9 re-checked on the fetch path (BLM §3): an I9 hash-mismatched
+    # manifest is not cleared regardless of env state.
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    append_candidates(
+        date(2026, 7, 16),
+        {"domestic-equity": [_item(image_url=_URL_A)]},
+        ledger_root=tmp_path,
+    )
+    update_index(date(2026, 7, 16), ledger_root=tmp_path)
+    _write_clearance(tmp_path, _URL_A, source_url="https://img.example.com/other.jpg")
+
+    with _fail_client() as client:
+        report = fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+    assert report.invalid_clearances == 1
+    assert report.cleared == 0
+    assert report.stored == 0
+
+
+def test_skip_if_present_second_run_zero_requests_bytes_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # I10 — content-addressed idempotency: existing binary → no fetch,
+    # binary and sidecar byte-untouched (zero git churn).
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    cid = _cleared_setup(tmp_path)
+    index = read_index(ledger_root=tmp_path)
+    with _spy_client() as client:
+        fetch_cleared_candidates(
+            index, ledger_root=tmp_path, store_root=_store(tmp_path), client=client
+        )
+    binary = store_binary_path(cid, ".png", store_root=_store(tmp_path))
+    sidecar = store_sidecar_path(binary)
+    binary_bytes = binary.read_bytes()
+    sidecar_bytes = sidecar.read_bytes()
+
+    with _fail_client() as client:
+        report = fetch_cleared_candidates(
+            index, ledger_root=tmp_path, store_root=_store(tmp_path), client=client
+        )
+    assert report.skipped_existing == 1
+    assert report.attempted == 0
+    assert binary.read_bytes() == binary_bytes
+    assert sidecar.read_bytes() == sidecar_bytes
+
+
+def test_bad_signature_rejected_nothing_stored(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # I11 — declared image/jpeg but PNG-signed bytes → the u19 gate
+    # rejects; nothing lands in the store.
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    _cleared_setup(tmp_path)
+    with _spy_client(body=_PNG_BYTES, content_type="image/jpeg") as client:
+        report = fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+    assert report.attempted == 1
+    assert report.fetch_failed == 1
+    assert report.stored == 0
+    assert not _store(tmp_path).exists()
+
+
+def test_over_2mb_body_rejected_nothing_stored(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # AC-1.1 — the existing 2,000,000-byte cap is enforced at fetch
+    # time; an over-cap body stores nothing.
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    _cleared_setup(tmp_path)
+    oversized = _PNG_BYTES + b"\x00" * 2_000_001
+    with _spy_client(body=oversized) as client:
+        report = fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+    assert report.fetch_failed == 1
+    assert report.stored == 0
+    assert not _store(tmp_path).exists()
+
+
+def test_sidecar_records_content_hash_and_license_fields(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # I12 / TS-2 — the sidecar carries the bytes sha256 (distinct from
+    # the URL-hash candidate_id), the license evidence, and the
+    # canonical store address; generated_at is the operator's
+    # fetched_on date at UTC midnight (no wall clock).
+    monkeypatch.setenv(_ENV_FLAG, "1")
+    cid = _cleared_setup(tmp_path)
+    with _spy_client() as client:
+        fetch_cleared_candidates(
+            read_index(ledger_root=tmp_path),
+            ledger_root=tmp_path,
+            store_root=_store(tmp_path),
+            client=client,
+        )
+
+    binary = store_binary_path(cid, ".png", store_root=_store(tmp_path))
+    payload = json.loads(store_sidecar_path(binary).read_text(encoding="utf-8"))
+    assert payload["asset_path"] == f"assets/images/{cid[:2]}/{cid}.png"
+    assert payload["content_type"] == "image/png"
+    assert payload["dimensions"] == [64, 48]
+    assert payload["card_kind"] == "external-context-image"
+    assert payload["generated_at"].startswith("2026-07-16T00:00:00")
+    metadata = payload["additional_metadata"]
+    assert metadata["content_sha256"] == hashlib.sha256(_PNG_BYTES).hexdigest()
+    assert metadata["content_sha256"] != cid  # bytes hash != URL hash
+    assert metadata["candidate_id"] == cid
+    assert metadata["license"] == "CC BY 4.0"
+    assert metadata["author"] == "Example Agency"
+    assert metadata["allowed_use"] == "Public redistribution with attribution"
+    assert metadata["fetched_from_host"] == "img.yna.co.kr"
+
+
+def test_digest_metadata_exemption_is_shape_locked() -> None:
+    # The u137 digest exemption in the u24 manifest validator passes
+    # ONLY bare 64-hex values under the digest keys; a token-shaped
+    # value under those keys — and a digest under any other key — still
+    # gets the full STRICT chokepoint treatment (R13 stays closed).
+    from investo.visuals.provenance import build_external_provenance
+
+    token = "8123456789:AAF-abcdefghijklmnopqrstuvwxyz123456789"
+    digest = hashlib.sha256(b"payload").hexdigest()
+    manifest = build_external_provenance(
+        asset_relative_path="assets/images/ab/x.png",
+        card_kind="external-context-image",
+        generated_at=datetime(2026, 7, 16, tzinfo=UTC),
+        width=64,
+        height=48,
+        content_type="image/png",
+        license_name="CC BY 4.0",
+        attribution="Example",
+        author="Example",
+        allowed_use="republication",
+        fetched_from_host="img.example.com",
+        additional_metadata={
+            "content_sha256": token,  # not digest-shaped → sanitized
+            "candidate_id": digest,  # digest-shaped → verbatim
+            "note": digest,  # digest under a non-digest key → sanitized
+        },
+    )
+    assert token not in manifest.additional_metadata["content_sha256"]
+    assert manifest.additional_metadata["candidate_id"] == digest
+    assert manifest.additional_metadata["note"] == "[REDACTED]"

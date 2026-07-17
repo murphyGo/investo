@@ -109,6 +109,21 @@ def sanitize_provenance_text(text: str) -> str:
     return redact_text(text, policy=RedactionPolicy.STRICT)
 
 
+# u137 (TS-2 accommodation a): integrity digests the image store records
+# in ``additional_metadata``. Values under these keys pass verbatim IFF
+# they are exactly a 64-char lowercase hex digest — the STRICT
+# chokepoint's generic long-base64 pattern would otherwise redact the
+# digest, destroying the CI gate's binary↔sidecar pairing check (I12).
+# Shape-locked and key-scoped: any value under these keys that is NOT a
+# bare hex digest (e.g. a token-shaped string) is sanitized as usual,
+# and every other key keeps the full chokepoint treatment. This is not
+# a redaction-pattern override — the u27 catalogue is untouched.
+_DIGEST_METADATA_KEYS: Final[frozenset[str]] = frozenset({"candidate_id", "content_sha256"})
+# Plain string pattern + re.fullmatch, matching the module's
+# no-compiled-local-pattern convention (see _GIT_SHORT_SHA_PATTERN).
+_HEX_DIGEST_PATTERN: Final[str] = r"^[0-9a-f]{64}$"
+
+
 class VisualProvenanceManifest(BaseModel):
     """Closed manifest schema for any briefing visual asset.
 
@@ -142,7 +157,14 @@ class VisualProvenanceManifest(BaseModel):
     def _scrub_additional_metadata(cls, value: dict[str, str]) -> dict[str, str]:
         if not value:
             return {}
-        return {key: sanitize_provenance_text(item) for key, item in value.items()}
+        scrubbed: dict[str, str] = {}
+        for key, item in value.items():
+            if key in _DIGEST_METADATA_KEYS and re.fullmatch(_HEX_DIGEST_PATTERN, item):
+                # u137 digest exemption — see _DIGEST_METADATA_KEYS.
+                scrubbed[key] = item
+            else:
+                scrubbed[key] = sanitize_provenance_text(item)
+        return scrubbed
 
     @field_validator("dimensions")
     @classmethod
@@ -222,13 +244,19 @@ def build_external_provenance(
     author: str,
     allowed_use: str,
     fetched_from_host: str,
+    additional_metadata: dict[str, str] | None = None,
 ) -> VisualProvenanceManifest:
-    """Build a manifest for an externally licensed image (schema-only in v1).
+    """Build a manifest for an externally licensed image.
 
     The actual fetcher remains gated by the u19 policy
     (``EXTERNAL_IMAGE_SCRAPING_ENABLED``); this builder only ensures the
     manifest layer can describe such an asset without leaking secrets.
-    No real third-party network calls are introduced here.
+
+    ``additional_metadata`` (u137, TS-2 accommodation a) merges extra
+    keys — e.g. the store's ``content_sha256`` bytes hash — on top of
+    the fixed license/author/use/host set; the fixed keys win on
+    collision, and every value still passes the field-validator
+    sanitizer chokepoint.
     """
     safe_license = sanitize_provenance_text(license_name)
     safe_attribution = sanitize_provenance_text(attribution)
@@ -236,6 +264,15 @@ def build_external_provenance(
     safe_use = sanitize_provenance_text(allowed_use)
     safe_host = sanitize_provenance_text(fetched_from_host)
     composed_attribution = f"{safe_attribution} ({safe_author}) — {safe_license}"
+    metadata = dict(additional_metadata or {})
+    metadata.update(
+        {
+            "license": safe_license,
+            "author": safe_author,
+            "allowed_use": safe_use,
+            "fetched_from_host": safe_host,
+        }
+    )
     return VisualProvenanceManifest(
         asset_path=asset_relative_path,
         source_type="external",
@@ -245,12 +282,7 @@ def build_external_provenance(
         version=_investo_version(),
         content_type=content_type,
         dimensions=(width, height),
-        additional_metadata={
-            "license": safe_license,
-            "author": safe_author,
-            "allowed_use": safe_use,
-            "fetched_from_host": safe_host,
-        },
+        additional_metadata=metadata,
         card_kind=card_kind,
     )
 
@@ -303,9 +335,21 @@ def build_curated_provenance(
     )
 
 
-def write_manifest(manifest: VisualProvenanceManifest, asset_path: Path) -> Path:
-    """Write a manifest JSON sidecar atomically beside ``asset_path``."""
-    sidecar = manifest_path_for(asset_path)
+def write_manifest(
+    manifest: VisualProvenanceManifest,
+    asset_path: Path,
+    *,
+    sidecar_path: Path | None = None,
+) -> Path:
+    """Write a manifest JSON sidecar atomically beside ``asset_path``.
+
+    ``sidecar_path`` (u137, TS-2 accommodation b) overrides the default
+    ``<asset>.json`` naming — the u137 store pins its sidecars at
+    ``{candidate_id}{ext}.provenance.json`` per Fixed Contract #4 so the
+    CI gate can address them unambiguously. Existing callers are
+    unaffected.
+    """
+    sidecar = sidecar_path if sidecar_path is not None else manifest_path_for(asset_path)
     payload = manifest.model_dump(mode="json")
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     sidecar.parent.mkdir(parents=True, exist_ok=True)

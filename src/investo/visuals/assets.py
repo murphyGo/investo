@@ -692,6 +692,22 @@ def _read_image_dimensions(path: Path) -> tuple[int, int] | None:
     return None
 
 
+def read_image_dimensions(content: bytes, extension: str) -> tuple[int, int] | None:
+    """Read PNG/JPEG pixel dimensions from raw bytes, or ``None``.
+
+    Public since u137 (TS-1 minimal publicization): the image store
+    needs dimensions for its provenance sidecar before the binary is
+    written to disk, and re-implementing the header parsers privately
+    is forbidden (R8). ``extension`` is the ``_extension_for_image``
+    output set (``.png`` / ``.jpg``); anything else returns ``None``.
+    """
+    if extension == ".png":
+        return _read_png_dimensions(content)
+    if extension in {".jpg", ".jpeg"}:
+        return _read_jpeg_dimensions(content)
+    return None
+
+
 def _read_png_dimensions(content: bytes) -> tuple[int, int] | None:
     if len(content) < _PNG_IHDR_OFFSET + _PNG_IHDR_LENGTH:
         return None
@@ -780,6 +796,7 @@ __all__ = [
     "VisualAssetError",
     "insert_visual_links",
     "prepare_segment_visual_assets",
+    "read_image_dimensions",
     "validate_visual_asset",
     "validate_visual_binary",
 ]

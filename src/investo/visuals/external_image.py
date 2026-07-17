@@ -70,7 +70,7 @@ def fetch_contextual_external_image(
         manifest = _manifest_from_item(item, target_date=target_date)
         if manifest is None:
             continue
-        fetched = _fetch_manifest_image(manifest, item.title, client=client)
+        fetched = fetch_manifest_image(manifest, item.title, client=client)
         if fetched is not None:
             return fetched
     return None
@@ -105,12 +105,21 @@ def _manifest_from_item(
     return manifest
 
 
-def _fetch_manifest_image(
+def fetch_manifest_image(
     manifest: ExternalAssetManifest,
     source_item_title: str,
     *,
     client: httpx.Client | None,
 ) -> ExternalImageAsset | None:
+    """Fetch + validate the image a license manifest points at, or ``None``.
+
+    Public since u137 (TS-1 minimal publicization — R8 forbids a private
+    re-implementation in ``visuals/image_library.py``). Behavior is
+    unchanged from the original private ``_fetch_manifest_image``:
+    host-allowlist assertion, bounded GET, and the PNG/JPEG signature +
+    100 B-2,000,000 B cap via :func:`_extension_for_image`; every policy
+    / HTTP failure degrades to ``None``.
+    """
     url = str(manifest.source_url)
     try:
         assert_external_image_host_allowed(url, allowed_hosts=allowed_external_image_hosts())
@@ -166,4 +175,4 @@ def _metadata_text(item: NormalizedItem, keys: tuple[str, ...]) -> str | None:
     return None
 
 
-__all__ = ["ExternalImageAsset", "fetch_contextual_external_image"]
+__all__ = ["ExternalImageAsset", "fetch_contextual_external_image", "fetch_manifest_image"]
