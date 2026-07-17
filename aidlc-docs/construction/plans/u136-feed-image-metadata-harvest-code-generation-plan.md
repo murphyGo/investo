@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u136 feed-image-metadata-harvest
 **Stage**: Code Generation
-**Status**: In Progress (3/5)
+**Status**: In Progress (4/5)
 **Source**: 2026-07-17 user feature request — 시황 비주얼을 SVG 카드 중심에서 "실제 뉴스/칼럼/커뮤니티 이미지 활용"으로 확장. 1단계는 **이미지 수집 + 이미지 메타데이터**. u136은 그 첫 슬라이스: 이미 수집 중인 뉴스 피드 payload 안의 이미지 참조를 메타데이터로 채집한다.
 **Estimated Effort**: ~4-6 h
 **Dependencies**:
@@ -94,8 +94,8 @@ Out of scope (명시적 non-goal):
 - 구현 시 계약 #2 확장(2026-07-17 ratified): yahoo zenfs CDN은 type·확장자 모두 부재 → `_is_image_content`에 "type 부재 + 양의 정수 width+height 쌍" 수용 경로 추가. 라이브 야후 recording의 `media:credit`은 전부 빈 요소 → `image_credit` 부재(합성 XML로 매핑 자체는 고정). audit.md 기록 필요.
 - **Acceptance**: Step 2와 동일 기준 ×2. 기존 어댑터 테스트(제목/요약/URL/published_at) 전부 그린 유지.
 
-### Step 4 — 라이선스 키 비오염 회귀 테스트 `[ ]`
-- [ ] 3개 어댑터의 replay 결과에 대해 `_manifest_from_item(item, target_date=…) is None`을 직접 단언 + emit 금지 키 부재 grep-단언 테스트 (계약 #4).
+### Step 4 — 라이선스 키 비오염 회귀 테스트 `[x]`
+- [x] 3개 어댑터의 replay 결과에 대해 `_manifest_from_item(item, target_date=…) is None`을 직접 단언 + emit 금지 키 부재 grep-단언 테스트 (계약 #4).
 - **Acceptance**: 스크래핑 env 플래그가 켜진 상태를 monkeypatch해도 `fetch_contextual_external_image`가 harvested item만으로는 fetch를 시도하지 않음이 테스트로 고정.
 
 ### Step 5 — 커버리지 진단 + 품질 게이트 `[ ]`
