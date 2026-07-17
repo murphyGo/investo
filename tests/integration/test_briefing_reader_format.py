@@ -16,15 +16,18 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
+from investo._internal.summary_quality import repair_first_viewport_summary
+from investo._internal.surface_quality import repair_surface_artifacts
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.market_anchor import MarketAnchor
+from investo.briefing.pipeline import _enhance_reader_experience, parse_six_sections
 from investo.models import Briefing, NormalizedItem
 from investo.orchestrator.pipeline import _apply_reader_format_to_segments
 
 
-def _make_briefing(rendered: str) -> Briefing:
+def _make_briefing(rendered: str, *, target_date: date = date(2026, 5, 11)) -> Briefing:
     return Briefing(
-        target_date=date(2026, 5, 11),
+        target_date=target_date,
         market_summary="요약 본문.",
         key_issues="이슈 본문.",
         sector_flow="섹터 본문.",
@@ -69,7 +72,7 @@ _SAMPLE_BRIEFING = (
     """\
 # 2026-05-11 미국 증시 시황
 
-**기준 시각**: 2026-05-11 NY
+**기준 시각**: 2026-05-11 NY · 수집창 2026-05-11T04:00Z ~ 2026-05-12T04:00Z (종료 미포함)
 
 > **시장 anchor**: ^GSPC 7,412.84 ATH 경신, ^IXIC 26,274.13 ATH 경신
 **세그먼트**: A | B | C
@@ -116,6 +119,32 @@ TSLA +3.89%, NVDA +2.50%.
     + "\n"
 )
 
+_U132_STAGE2_BODY = """\
+## ① 요약
+
+미국 증시는 금리 경로를 확인하며 혼조세를 보였습니다. [혼재]
+
+## ② 전일 핵심 이슈
+
+정책 발언과 장기 금리 움직임이 시장의 핵심 변수였습니다.
+
+## ③ 섹터/수급 동향
+
+대형 기술주와 방어주의 상대 흐름이 엇갈렸습니다.
+
+## ④ 지표·이벤트
+
+향후 일정은 공식 발표 시각을 기준으로 확인합니다.
+
+## ⑤ 주요 종목
+
+개별 종목은 검증된 공시와 가격 자료를 함께 확인합니다.
+
+## ⑥ 오늘의 관전 포인트
+
+금리와 지수의 동행 여부를 관찰합니다.
+"""
+
 
 def test_apply_reader_format_to_segments_meets_all_dod_bullets() -> None:
     segment_briefings = {"us-equity": _make_briefing(_SAMPLE_BRIEFING)}  # type: ignore[dict-item]
@@ -159,6 +188,39 @@ def test_apply_reader_format_to_segments_meets_all_dod_bullets() -> None:
     assert DISCLAIMER in markdown
     # And lives at the tail.
     assert markdown.rstrip().endswith(DISCLAIMER.rstrip())
+
+
+def test_u132_produced_watermark_is_byte_stable_through_full_reader_chain() -> None:
+    def watermark_line(markdown: str) -> str:
+        return next(line for line in markdown.splitlines() if line.startswith("**기준 시각**:"))
+
+    target_date = date(2026, 6, 30)
+    produced = _enhance_reader_experience(
+        _U132_STAGE2_BODY,
+        target_date=target_date,
+        segment="us-equity",
+        sections=parse_six_sections(_U132_STAGE2_BODY),
+    )
+    expected_watermark = (
+        "**기준 시각**: 2026-06-30 NY · 수집창 2026-06-30T04:00Z ~ 2026-07-01T04:00Z (종료 미포함)"
+    )
+    produced_watermark = watermark_line(produced)
+    source = f"{produced}\n\n{DISCLAIMER}\n"
+
+    assert produced_watermark == expected_watermark
+    assert watermark_line(repair_first_viewport_summary(produced)) == produced_watermark
+    assert watermark_line(repair_surface_artifacts(produced)) == produced_watermark
+
+    result = _apply_reader_format_to_segments(
+        {"us-equity": _make_briefing(source, target_date=target_date)},  # type: ignore[dict-item]
+        anchors_by_segment={},
+    )["us-equity"]  # type: ignore[index]
+    output_watermark = watermark_line(result.rendered_markdown)
+
+    assert output_watermark == produced_watermark
+    assert result.rendered_markdown.count(produced_watermark) == 1
+    assert result.target_date == target_date
+    assert result.disclaimer == DISCLAIMER
 
 
 def test_apply_reader_format_to_segments_empty_input_is_noop() -> None:

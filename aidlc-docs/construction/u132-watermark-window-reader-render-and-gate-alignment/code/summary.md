@@ -65,3 +65,22 @@ Step 3 validation:
 - Scoped Ruff and format checks: passed.
 - Fresh-eyes review: no findings; the NY-only residual test risk was closed by
   adding direct KST and UTC gate-acceptance cases.
+
+## Step 4 Full-Chain Stability
+
+An integration fixture now builds a complete six-section US-equity body and
+passes it through the actual `_enhance_reader_experience()` producer. The test
+extracts the producer watermark, pins the exact contract, and compares that
+same line after `repair_first_viewport_summary()`,
+`repair_surface_artifacts()`, and `_apply_reader_format_to_segments()`.
+
+The full chain returns exactly one byte-identical watermark and preserves the
+`Briefing.target_date` and disclaimer field. The shared integration fixture was
+updated from its obsolete abbreviated watermark so the complete file remains
+green under the fail-closed Step 3 gate.
+
+Step 4 validation:
+
+- Full reader-format integration plus focused surface tests: 35 passed.
+- Scoped Ruff and format checks: passed.
+- Fresh-eyes review: no remaining findings after strengthening the producer-to-chain comparison.

@@ -4529,3 +4529,14 @@ passed, scoped format check passed, `mypy src` passed.
 - Added explicit legacy `Z, Z)` and parenthesis-balance checks while preserving the existing `watermark.window_bracket` issue code.
 **Validation**: Focused helper tests cover valid KST/NY/UTC shapes, missing `수집창`, the legacy dangling tail, and unbalanced parentheses; 68 focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no issues, and its NY-only residual risk was closed with direct KST/UTC acceptance cases.
 **Context**: Step 2 commit `fe2df76` was pushed before this step began.
+
+## u132 Code Generation Step 4 - Full-Chain Watermark Stability
+**Timestamp**: 2026-07-17T19:39:13Z
+**Action**: Completed Code Generation Step 4 in the dedicated u132 worktree.
+**Decisions**:
+- Used `_enhance_reader_experience()` with a complete six-section body instead of injecting a hand-authored watermark into the publisher test.
+- Compared the exact producer line after summary repair, surface repair, and the full segment reader chain; unrelated document normalization is outside this line-level byte-stability contract.
+- Updated only the shared integration fixture touched by this test from its obsolete abbreviated watermark; the repository-wide consumer sweep remains Step 6.
+- Preserved and asserted `Briefing.target_date` and disclaimer model fields across the chain.
+**Validation**: 35 integration/focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no remaining issues after the producer-to-chain assertion was strengthened.
+**Context**: Step 3 commit `d05f798` was pushed before this step began.
