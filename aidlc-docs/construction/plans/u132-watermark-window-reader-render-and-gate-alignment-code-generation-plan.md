@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u132 watermark-window-reader-render-and-gate-alignment
 **Stage**: Code Generation
-**Status**: In Progress (4/7; Steps 1-4 complete 2026-07-18)
+**Status**: In Progress (5/7; Steps 1-5 complete 2026-07-18)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~2 h
 **Dependencies**:
@@ -68,7 +68,7 @@ NFR Requirements: SKIP — deterministic rendering; no new dependency, source, s
 - [x] Step 2 — Change `src/investo/briefing/_reader_enhance/enhancement.py` (line ~114 and docstring example at ~96) to the pinned shape.
 - [x] Step 3 — Update `_WATERMARK_LINE_RE` and `_bad_watermark_window` in `src/investo/_internal/surface_quality.py` per Fixed Contract 2, including the legacy-shape blocker.
 - [x] Step 4 — Add the chain byte-stability regression (Fixed Contract 3) using a full segment fixture.
-- [ ] Step 5 — Add gate tests: new shape passes; legacy 2026-06-30 line (verbatim) blocks; unbalanced-paren variant blocks.
+- [x] Step 5 — Add gate tests: new shape passes; legacy 2026-06-30 line (verbatim) blocks; unbalanced-paren variant blocks.
 - [ ] Step 6 — Sweep other consumers: `rg -n "기준 시각" src/ tests/` and update any test fixture or parser expecting the old shape (notably `_internal/briefing_extract.py` if it parses the line).
 - [ ] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/internal tests/unit/briefing tests/unit/publisher`.
 

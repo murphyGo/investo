@@ -84,3 +84,21 @@ Step 4 validation:
 - Full reader-format integration plus focused surface tests: 35 passed.
 - Scoped Ruff and format checks: passed.
 - Fresh-eyes review: no remaining findings after strengthening the producer-to-chain comparison.
+
+## Step 5 Publish-Gate Regressions
+
+Full segment-gate tests now pin all three required paths with a
+`Briefing.target_date` matching the watermark date:
+
+- The fixed `수집창 ... ~ ... (종료 미포함)` line passes and appears once.
+- The verbatim published 2026-06-30 `Z, Z)` legacy line blocks.
+- A new-contract line missing its closing parenthesis blocks.
+
+Both invalid cases raise `SurfaceQualityError` with exactly one
+`watermark.window_bracket` issue whose evidence is the malformed line.
+
+Step 5 validation:
+
+- Full reader-format integration plus focused gate tests: 38 passed.
+- Scoped Ruff and format checks: passed.
+- Fresh-eyes re-review: no remaining findings after aligning fixture dates.

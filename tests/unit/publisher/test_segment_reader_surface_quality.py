@@ -16,10 +16,10 @@ from investo.publisher.reader_format import apply_reader_format, reflow_first_vi
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 
 
-def _briefing(markdown: str) -> Briefing:
+def _briefing(markdown: str, *, target_date: date = date(2026, 6, 11)) -> Briefing:
     full = f"{markdown}\n\n{DISCLAIMER}\n"
     return Briefing(
-        target_date=date(2026, 6, 11),
+        target_date=target_date,
         market_summary="요약 [혼재]",
         key_issues="핵심",
         sector_flow="섹터",
@@ -28,6 +28,17 @@ def _briefing(markdown: str) -> Briefing:
         today_watch="관전",
         disclaimer=DISCLAIMER,
         rendered_markdown=full,
+    )
+
+
+def _watermarked_markdown(watermark: str) -> str:
+    return (
+        "# title\n\n"
+        f"{watermark}\n\n"
+        "> **오늘의 결론**: 정책 변수 확인이 필요합니다. [혼재]\n"
+        "> **핵심 동인**: 금리 경로가 시장 방향을 좌우합니다.\n"
+        "> **주의할 점**: 단기 변동성을 점검합니다.\n\n"
+        "## ① 요약\n본문입니다."
     )
 
 
@@ -124,7 +135,7 @@ def test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132(
 
     with pytest.raises(SurfaceQualityError) as exc_info:
         apply_reader_format_to_segments(
-            {US_EQUITY: _briefing(markdown)},
+            {US_EQUITY: _briefing(markdown, target_date=date(2026, 6, 30))},
             anchors_by_segment={},
         )
 
@@ -132,6 +143,52 @@ def test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132(
     assert legacy_watermark not in captured["output"]
     assert malformed_watermark in captured["output"]
     assert any(issue.code == "watermark.window_bracket" for issue in exc_info.value.issues)
+
+
+def test_segment_reader_accepts_u132_watermark_contract() -> None:
+    watermark = (
+        "**기준 시각**: 2026-06-30 NY · 수집창 2026-06-30T04:00Z ~ 2026-07-01T04:00Z (종료 미포함)"
+    )
+
+    output = apply_reader_format_to_segments(
+        {
+            US_EQUITY: _briefing(
+                _watermarked_markdown(watermark),
+                target_date=date(2026, 6, 30),
+            )
+        },
+        anchors_by_segment={},
+    )[US_EQUITY].rendered_markdown
+
+    assert output.count(watermark) == 1
+
+
+@pytest.mark.parametrize(
+    "watermark",
+    (
+        "**기준 시각**: 2026-06-30 NY · 2026-06-30T04:00Z, 2026-07-01T04:00Z)",
+        (
+            "**기준 시각**: 2026-06-30 NY · "
+            "수집창 2026-06-30T04:00Z ~ 2026-07-01T04:00Z (종료 미포함"
+        ),
+    ),
+    ids=("legacy-dangling-parenthesis", "unbalanced-new-contract"),
+)
+def test_segment_reader_blocks_u132_invalid_watermarks(watermark: str) -> None:
+    with pytest.raises(SurfaceQualityError) as exc_info:
+        apply_reader_format_to_segments(
+            {
+                US_EQUITY: _briefing(
+                    _watermarked_markdown(watermark),
+                    target_date=date(2026, 6, 30),
+                )
+            },
+            anchors_by_segment={},
+        )
+
+    issues = [issue for issue in exc_info.value.issues if issue.code == "watermark.window_bracket"]
+    assert len(issues) == 1
+    assert issues[0].evidence == watermark
 
 
 def test_segment_reader_repairs_u112_bad_particle_and_numeric_bold() -> None:

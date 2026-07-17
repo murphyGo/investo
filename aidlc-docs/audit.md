@@ -4540,3 +4540,14 @@ passed, scoped format check passed, `mypy src` passed.
 - Preserved and asserted `Briefing.target_date` and disclaimer model fields across the chain.
 **Validation**: 35 integration/focused tests passed; scoped Ruff and format checks passed; fresh-eyes review found no remaining issues after the producer-to-chain assertion was strengthened.
 **Context**: Step 3 commit `d05f798` was pushed before this step began.
+
+## u132 Code Generation Step 5 - Publish-Gate Regressions
+**Timestamp**: 2026-07-17T19:44:37Z
+**Action**: Completed Code Generation Step 5 in the dedicated u132 worktree.
+**Decisions**:
+- Exercised `apply_reader_format_to_segments()` so tests observe the actual `SurfaceQualityError` boundary rather than only the private helper predicate.
+- Pinned the exact public 2026-06-30 legacy line and a missing-closing-parenthesis new line as blocking evidence.
+- Required exactly one `watermark.window_bracket` issue with evidence equal to the malformed input line.
+- Made `_briefing()` target-date configurable and aligned all u132 fixtures to 2026-06-30 after fresh-eyes review.
+**Validation**: 38 integration/focused tests passed; scoped Ruff and format checks passed; fresh-eyes re-review found no remaining issues.
+**Context**: Step 4 commit `0e15927` was pushed before this step began.
