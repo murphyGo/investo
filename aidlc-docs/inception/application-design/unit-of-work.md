@@ -2039,6 +2039,51 @@ Plan: `aidlc-docs/construction/plans/u136-feed-image-metadata-harvest-code-gener
 
 Plan: `aidlc-docs/construction/plans/u137-image-candidate-registry-and-licensed-store-code-generation-plan.md`.
 
+---
+
+### u138: `price-source-endpoint-lifecycle-repair` - Retire Dead Stooq Reads and Restore Price Snapshots
+
+**Purpose**: Repair the production price-source contract after Stooq's unauthenticated `q/l` CSV path became a hard 404 and Yahoo `query1` became unusable from GitHub Actions. Move `yfinance-price` to the already-proven Yahoo `query2` chart path, reuse same-run Yahoo history as a bounded missing-ticker fallback, remove all runtime calls to the retired Stooq endpoint, and preserve the Korean index/FX legs with the existing Yonhap RSS parser plus a public-domain FRED `DEXKOUS` adapter.
+
+**Stories**: FR-001 (data collection), FR-003 (deterministic facts), FR-008 (segmented briefing), FR-010 (truthful source status), NFR-002 (free/no-paid sources), NFR-003 (graceful degradation), NFR-006, R3, R6, R8, R9, R10, R11, R12, R13
+
+**Live evidence (2026-07-18)**:
+- Local exact-request probe: Stooq `q/l` returned HTTP 404 for both `aapl.us` and `^spx`; `q/d/l` returned a JavaScript proof-of-work page instead of CSV.
+- Local Yahoo probe: `query1` was mixed (`AAPL` 429, `^GSPC` 200), proving IP/ticker instability rather than a stable source contract.
+- GitHub Actions run `29541149434` (2026-07-16 target): `stooq-price item_count=0`, `yfinance-price item_count=0`; every logged Stooq `q/l` request was 404 and every Yahoo `query1` request was 429.
+- The same Actions run fetched all 12 configured `query2` `range=1y` histories with HTTP 200. The prior successful run `29457241746` still had `stooq-price=0` and only one `yfinance-price` item, so this is persistent coverage loss, not a one-off alert.
+
+**Existing coverage / deduplication**:
+- Extends u46 and u49; it does not add a second anchor system or a new price model.
+- Converts u49's unfiled D49-B same-provider fallback idea into a bounded same-run fallback because the snapshot source is now empty while the `query2` history path is healthy.
+- Reuses u22/u54/u115/u128 outcome, severity, source-spec, and segment-scoping contracts; no parallel registry or quality KPI.
+- `coingecko-price` remains the crypto price source. Retiring Stooq's BTC/ETH rows does not change the crypto core-source contract.
+
+**Module path**:
+- `src/investo/sources/_yahoo_chart.py` (new) - single Yahoo chart request/parser contract shared by snapshot and history callers; `query2`, browser UA, `interval=1d`, `range=1y`, per-ticker isolation.
+- `src/investo/sources/yfinance.py`, `yfinance_history.py` - delegate to the shared contract; critical basket first, enrichment basket second; `query1` forbidden.
+- `src/investo/orchestrator/stage_context.py`, `pipeline.py` - synthesize only missing price items from same-run fresh history and reconcile the one `yfinance-price` outcome with explicit `provenance=query2-history-fallback`.
+- `src/investo/sources/stooq_price.py` - retire from plugin discovery and source specs; no runtime Stooq request remains.
+- `src/investo/sources/yonhap_index_close.py` (replacement for `stooq_kr_market.py`) - keep the existing KOSPI/KOSDAQ RSS numeric fallback without a misleading Stooq identity.
+- `src/investo/sources/fred_fx_close.py` (new) - `DEXKOUS` only, existing `FRED_API_KEY` path, public-domain/citation-requested H.10 daily KRW-per-USD observation, domestic `price` item with core-fact metadata.
+- `src/investo/sources/__init__.py`, `src/investo/_internal/source_specs.py`, `src/investo/briefing/segments.py`, source plugin/spec/window/tier tests - remove retired names and register exact replacements.
+
+**Definition of Done**:
+- [ ] Production makes zero requests to `stooq.com/q/l/` and `query1.finance.yahoo.com`.
+- [ ] The critical Yahoo basket uses the exact GHA-proven `query2` `range=1y` shape and emits snapshots with unchanged ticker/core-fact metadata.
+- [ ] A ticker missing from the direct snapshot pass is filled only from a fresh same-run history row; stale or future rows are rejected, provenance is explicit, and `SourceOutcome` agrees with the final item set.
+- [ ] `stooq-price` and `stooq-kr-market` are absent from plugin discovery, source specs, market windows, segment allow-lists, core-source sets, and current diagnostics.
+- [ ] KOSPI/KOSDAQ best-effort fallback continues as `yonhap-index-close`; KRW/USD fallback continues as `fred-fx-close` with public-domain H.10 provenance and existing-key secret hygiene.
+- [ ] Cboe delayed quotes and Nasdaq quote-page JSON remain rejected because their current official terms prohibit automated extraction; copyrighted FRED S&P/Dow/Nasdaq index series are not introduced as a public fallback.
+- [ ] R10 fixtures cover query2 success/429/malformed/partial baskets, fallback freshness, Stooq-name absence, Yonhap replacement, and FRED DEXKOUS success/missing-key/placeholder paths.
+- [ ] No paid source, dependency, new secret, or public archive backfill is introduced.
+
+FD: `aidlc-docs/construction/u138-price-source-endpoint-lifecycle-repair/functional-design/functional-design.md`.
+
+NFR: `aidlc-docs/construction/u138-price-source-endpoint-lifecycle-repair/nfr-requirements/nfr-requirements.md`.
+
+Plan: `aidlc-docs/construction/plans/u138-price-source-endpoint-lifecycle-repair-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

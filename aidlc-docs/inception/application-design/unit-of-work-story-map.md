@@ -383,6 +383,26 @@ Deduplicated out / deferred:
 - No perceptual-hash dedup in v1 (URL-hash identity only); promote to TECH-DEBT if recurrence signals warrant it.
 - No `NormalizedItem` model field: raw_metadata keys suffice and avoid a frozen-model migration.
 
+### u138 Planning Notes
+
+Derived from direct local probes on 2026-07-18 plus GitHub Actions runs `29541149434` and `29457241746`. The retired Stooq `q/l` endpoint is a cross-adapter lifecycle failure: it empties `stooq-price`, wastes requests inside `stooq-kr-market`, and leaves Yahoo `query1` as the only US snapshot path even though the same runner successfully reads every configured ticker from Yahoo `query2` history. This unit repairs the shared endpoint contract rather than adding an error-specific 404 bypass.
+
+Implementation order:
+1. Share the proven `query2` chart parser/request contract between snapshot and history callers.
+2. Add same-run missing-ticker fallback and outcome reconciliation.
+3. Remove all Stooq runtime registrations and calls.
+4. Preserve Korean fallback semantics under truthful source identities (`yonhap-index-close`, `fred-fx-close`).
+5. Re-pin source-spec, routing, coverage, no-paid, and live-canary tests.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u138 price-source-endpoint-lifecycle-repair | Stooq `q/l` is hard 404 and Yahoo `query1` is 429 on GHA, leaving both US price adapters empty while `query2` history remains healthy | FR-001, FR-003, FR-008, FR-010, NFR-002, NFR-003, NFR-006, R3/R6/R8-R13 | u46 source coverage, u49 history, u54 core severity, u115 source specs, u128 scoped outcomes, u67 KR fallback |
+
+Candidate disposition:
+- **Ship now**: Yahoo `query2` as an existing-source endpoint repair; same-run fresh-history fallback; Yonhap's already-implemented RSS numeric parser; FRED `DEXKOUS` because it is public-domain, citation-requested, daily, structured, and uses the existing redacted key path.
+- **Reject**: Stooq `q/d/l` JavaScript challenge; Cboe delayed quote JSON because Cboe explicitly prohibits automated extraction; Nasdaq quote-page JSON because Nasdaq's current site agreement prohibits automated capture; FRED SP500/DJIA/NASDAQCOM as a public fallback because the series notes carry reproduction/copyright restrictions.
+- **Defer**: Alpha Vantage, Twelve Data, Finnhub, and similar key/metered price APIs until an operator-owned free key and bounded request policy exist. They are not required to restore the currently proven Yahoo path.
+
 ---
 
 ## Definition of Done — Inception Phase Output
