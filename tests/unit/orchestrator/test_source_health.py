@@ -34,6 +34,23 @@ def test_append_daily_coverage_appends_multiple_days(tmp_path: Path) -> None:
     assert len(lines) == 2
 
 
+def test_append_daily_coverage_records_image_stage_note(tmp_path: Path) -> None:
+    # u137 R9 — the image-candidate stage note rides the daily coverage
+    # line under the ``image_stage`` key; omitted when not supplied
+    # (legacy/unsegmented runs).
+    target = tmp_path / "coverage.jsonl"
+    source_health.append_daily_coverage(
+        date(2026, 7, 16),
+        [_ok("a")],
+        path=target,
+        image_stage="failed: RuntimeError",
+    )
+    source_health.append_daily_coverage(date(2026, 7, 17), [_ok("a")], path=target)
+    lines = [line for line in target.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert '"image_stage": "failed: RuntimeError"' in lines[0]
+    assert "image_stage" not in lines[1]
+
+
 def test_detect_consecutive_failed_returns_empty_when_no_log(tmp_path: Path) -> None:
     target = tmp_path / "coverage.jsonl"
     assert source_health.detect_consecutive_failed(today=date(2026, 5, 9), path=target) == ()

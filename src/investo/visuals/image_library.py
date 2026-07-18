@@ -654,6 +654,11 @@ class FetchReport:
     HTTP fetches (``skipped_existing`` candidates never produce one —
     I10). ``fetch_failed`` covers HTTP errors and the signature /
     byte-cap / dimension validation rejections (I11 — nothing written).
+
+    ``stored_paths`` (u137 Step 4) lists the binary + sidecar files
+    written by THIS run — pre-existing (skipped) binaries are excluded
+    — so the orchestrator can join exactly the new store outputs to the
+    publish staging list (R9).
     """
 
     store_root: Path
@@ -666,6 +671,7 @@ class FetchReport:
     attempted: int
     fetch_failed: int
     stored: int
+    stored_paths: tuple[Path, ...] = ()
 
 
 def store_binary_path(
@@ -761,6 +767,7 @@ def fetch_cleared_candidates(
     attempted = 0
     fetch_failed = 0
     stored = 0
+    stored_paths: tuple[Path, ...] = ()
 
     for cid in sorted(index):
         if (clearances_dir / f"{cid}.blocked").exists():
@@ -836,8 +843,10 @@ def fetch_cleared_candidates(
                 "candidate_id": cid,
             },
         )
-        write_manifest(sidecar_manifest, binary_path, sidecar_path=store_sidecar_path(binary_path))
+        sidecar_path = store_sidecar_path(binary_path)
+        write_manifest(sidecar_manifest, binary_path, sidecar_path=sidecar_path)
         stored += 1
+        stored_paths = (*stored_paths, binary_path, sidecar_path)
 
     return FetchReport(
         store_root=store_root,
@@ -850,6 +859,7 @@ def fetch_cleared_candidates(
         attempted=attempted,
         fetch_failed=fetch_failed,
         stored=stored,
+        stored_paths=stored_paths,
     )
 
 

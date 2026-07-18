@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u137 image-candidate-registry-and-licensed-store
 **Stage**: Code Generation
-**Status**: In Progress (4/7: Step 0-3 done, 2026-07-18)
+**Status**: In Progress (5/7: Step 0-4 done, 2026-07-18)
 **Source**: 2026-07-17 user feature request — "실제 뉴스/칼럼/커뮤니티 이미지를 **저장해두고** 활용" 중 저장(수집 2단계). u136이 채집한 이미지 메타데이터를 영속 원장으로 굳히고, 재출현(자주 쓰이는 이미지) 추적과 라이선스 게이트 바이너리 저장을 붙인다.
 **Estimated Effort**: ~10-14 h (FD/NFR 포함)
 **Dependencies**:
@@ -97,8 +97,9 @@ Out of scope (명시적 non-goal):
 - 구현 시 TS-2 accommodation ratified (2026-07-18): u24 `VisualProvenanceManifest`의 STRICT 스크럽이 64-hex digest를 redact해 I12 페어링을 깨므로, `additional_metadata`의 `candidate_id`/`content_sha256` **두 키에 한해** `^[0-9a-f]{64}$` fullmatch 값만 verbatim 통과(형태 불일치 값·타 키는 전부 기존 STRICT 유지, u27 카탈로그 무변경). fetch 경로는 인덱스가 아닌 **파일 진실** 재확인(I7/I14). audit.md 기록 필요.
 - **Acceptance**: cleared+env-on만 fetch 시도(httpx mock 감시), metadata-only/blocked은 어떤 조합에서도 fetch 0회 — 회귀 테스트 고정; 시그니처 불일치/2MB 초과 저장 거부.
 
-### Step 4 — orchestrator stage 배선 + 실패 격리 `[ ]`
-- [ ] stage 추가(계약 #5), 산출 경로 publish 스테이징 합류, stage 예외 → WARN + 파이프라인 계속.
+### Step 4 — orchestrator stage 배선 + 실패 격리 `[x]`
+- [x] stage 추가(계약 #5), 산출 경로 publish 스테이징 합류, stage 예외 → WARN + 파이프라인 계속.
+- 구현 노트: 이미지 산출물은 publish 롤백 `snapshots`에서 **의도적으로 제외** — merge-rewrite 아티팩트를 `previous_bytes=None`으로 등록하면 롤백이 기존 원장을 삭제해 R3 never-drop을 위반하므로 git add 목록에만 합류.
 - **Acceptance**: stage 강제 예외 주입 통합 테스트에서 시황 3세그먼트 게시 정상 완료; run trace에 이미지 stage 결과 기록.
 
 ### Step 5 — CI 게이트 스크립트 + 워크플로 편입 `[ ]`

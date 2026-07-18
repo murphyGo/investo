@@ -248,11 +248,13 @@ async def test_pipeline_end_to_end_success(
     assert result.target_date == _TARGET
     assert result.briefing_url is not None
     assert "archive/domestic-equity/2026/04/2026-04-27" in str(result.briefing_url)
-    # All 4 stages recorded as ok.
+    # All 4 stages recorded as ok (+ the u137 image-candidate stage
+    # note — the fake items carry no image metadata, so all zeros).
     assert result.stages == {
         "collect": "ok",
         "generate": "ok",
         "visual_assets": "ok: 18 files",
+        "image_candidates": "ok: candidates=0 indexed=0 stored=0",
         "publish": "ok",
         "notify_briefing": "ok",
     }
@@ -302,6 +304,134 @@ async def test_pipeline_end_to_end_success(
     assert "/archive/crypto/2026/04/2026-04-27/" in str(public_sends[0]["text"])
     # NO operator alert on the happy path (CLAUDE.md #5 isolation pin).
     assert operator_alerts == []
+
+
+# ---------------------------------------------------------------------------
+# u137 AC-137.4 — image-candidate stage failure isolation + staging join
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_pipeline_image_stage_failure_never_blocks_publish(
+    isolated_archive: Path,
+    stub_u2_claude: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC-137.4 acceptance: a forced exception inside the image-candidate
+    stage degrades to a ``failed:`` note while the 3-segment briefing
+    still generates, publishes, and notifies with unchanged SUCCESS
+    status (I16 — the stage never changes pipeline semantics).
+    """
+
+    def _boom(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("image ledger exploded")
+
+    monkeypatch.setattr("investo.visuals.image_library.append_candidates", _boom)
+
+    items = _fake_items(2)
+    git = _SuccessfulGitRunner()
+    public_sends: list[dict[str, object]] = []
+    operator_alerts: list[dict[str, object]] = []
+
+    def _telegram_handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content.decode("utf-8"))
+        chat_id = body.get("chat_id")
+        if chat_id == _PUBLIC_CHANNEL:
+            public_sends.append(body)
+        elif chat_id == _OPERATOR_CHAT:
+            operator_alerts.append(body)
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 42}})
+
+    transport = httpx.MockTransport(_telegram_handler)
+    async with httpx.AsyncClient(transport=transport, timeout=5.0) as http_client:
+        publisher = BriefingPublisher(
+            bot_token=_BOT_TOKEN, channel_id=_PUBLIC_CHANNEL, http=http_client
+        )
+        alerter = OperatorAlerter(
+            bot_token=_BOT_TOKEN,
+            operator_chat_id=_OPERATOR_CHAT,
+            http=http_client,
+        )
+        result = await run_pipeline(
+            _TARGET,
+            publisher=publisher,
+            alerter=alerter,
+            site_url_base=_SITE_BASE,
+            fetch=_make_fetch_callable(items),
+            git_runner=git,
+        )
+
+    # Status semantics unchanged: SUCCESS despite the image-stage crash.
+    assert result.status == PipelineStatus.SUCCESS
+    assert result.stages["image_candidates"] == "failed: RuntimeError"
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"] == "ok"
+    # All three segment briefings still landed + committed + notified.
+    for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO):
+        assert archive_path(_TARGET, segment=segment).exists()
+    assert [c[1] for c in git.calls] == ["add", "commit", "push"]
+    assert len(public_sends) == 1
+    assert operator_alerts == []  # the isolated failure never alerts
+
+
+@pytest.mark.asyncio
+async def test_pipeline_image_outputs_join_publish_staging(
+    isolated_archive: Path,
+    stub_u2_claude: list[str],
+) -> None:
+    """u137 R9: image-bearing items produce the date ledger + index and
+    both paths join the git add list; the imageless happy-path test
+    above pins the absent case (no image paths staged).
+    """
+    # Same source/category/count as the happy path so the canned LLM
+    # stub order is undisturbed — only the raw_metadata differs (one
+    # item carries the u136 image harvest keys).
+    items = [
+        *_fake_items(1),
+        NormalizedItem(
+            source_name="fomc-rss",
+            category="calendar",
+            title="FOMC item with image",
+            url="https://www.federalreserve.gov/newsevents/pressreleases/monetary.htm",
+            published_at=datetime(2026, 4, 25, 14, 0, tzinfo=UTC),
+            raw_metadata={
+                "image_url": "https://img.example.com/fomc-chart.png",
+                "image_mime": "image/png",
+            },
+        ),
+    ]
+    git = _SuccessfulGitRunner()
+
+    transport = httpx.MockTransport(_telegram_send_handler())
+    async with httpx.AsyncClient(transport=transport, timeout=5.0) as http_client:
+        publisher = BriefingPublisher(
+            bot_token=_BOT_TOKEN, channel_id=_PUBLIC_CHANNEL, http=http_client
+        )
+        alerter = OperatorAlerter(
+            bot_token=_BOT_TOKEN,
+            operator_chat_id=_OPERATOR_CHAT,
+            http=http_client,
+        )
+        result = await run_pipeline(
+            _TARGET,
+            publisher=publisher,
+            alerter=alerter,
+            site_url_base=_SITE_BASE,
+            fetch=_make_fetch_callable(items),
+            git_runner=git,
+        )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert result.stages["image_candidates"] == "ok: candidates=1 indexed=1 stored=0"
+    # Ledger + index written under the isolated archive _meta root.
+    ledger_path = isolated_archive / "_meta" / "image_candidates" / "2026" / "2026-04-27.jsonl"
+    index_path = isolated_archive / "_meta" / "image_candidates" / "index.json"
+    assert ledger_path.exists()
+    assert index_path.exists()
+    # Both joined the git add target list (R9 staging).
+    add_call = next(c for c in git.calls if c[1] == "add")
+    assert any(arg.endswith("2026-04-27.jsonl") and "image_candidates" in arg for arg in add_call)
+    assert any(arg.endswith("index.json") and "image_candidates" in arg for arg in add_call)
 
 
 # ---------------------------------------------------------------------------

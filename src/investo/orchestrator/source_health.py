@@ -57,6 +57,7 @@ def append_daily_coverage(
     *,
     path: Path | None = None,
     severities: dict[str, str] | None = None,
+    image_stage: str | None = None,
 ) -> None:
     """Append one JSON line summarising today's per-source outcomes.
 
@@ -72,6 +73,12 @@ def append_daily_coverage(
     compute ``core_missing_segments`` / ``segments_limited_or_worse``.
     Legacy callers omit it; pre-u54 rows simply contribute 0 to those
     counters.
+
+    u137 (R9) — ``image_stage`` is the image-candidate stage's outcome
+    note (``"ok: …"`` counts or ``"failed: <ExceptionType>"``), written
+    verbatim under the ``image_stage`` key. This is the "one coverage
+    diagnostic line" of the stage's failure-isolation contract
+    (I16/AC-137.4); omitted for legacy/unsegmented runs.
     """
     target_path = path if path is not None else resolve_coverage_path()
     line: dict[str, object] = {
@@ -88,6 +95,8 @@ def append_daily_coverage(
     }
     if severities:
         line["severities"] = dict(severities)
+    if image_stage:
+        line["image_stage"] = image_stage
     try:
         target_path.parent.mkdir(parents=True, exist_ok=True)
         with target_path.open("a", encoding="utf-8") as fp:

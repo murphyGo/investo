@@ -239,6 +239,7 @@ from investo.publisher.weekly_digest import (
     weekly_path as compute_weekly_path,
 )
 from investo.sources import collect_sources as _default_collect_sources
+from investo.visuals import image_library as _image_library
 from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
 from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
 from investo.visuals.og_card import (
@@ -856,6 +857,89 @@ def _fact_snapshot_path() -> Path:
     return ARCHIVE_ROOT / "_meta" / "fact_snapshots.jsonl"
 
 
+def _image_candidates_root() -> Path:
+    # u137 Contract #1 root under the archive _meta convention. Local
+    # import keeps the ``monkeypatch.setattr("investo.publisher.paths",
+    # "ARCHIVE_ROOT", tmp)`` test seam working (same pattern as
+    # ``_macro_lineage_trace_path``).
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    return ARCHIVE_ROOT / "_meta" / "image_candidates"
+
+
+def _run_image_candidate_stage(
+    target_date: date,
+    items: Sequence[NormalizedItem],
+    *,
+    ledger_root: Path | None = None,
+    store_root: Path | None = None,
+) -> tuple[tuple[Path, ...], str]:
+    """u137 Contract #5 image-candidate stage (BLM §4, R9).
+
+    Post-routing sequence: routed items → candidate ledger merge-rewrite
+    → recurrence index rebuild → quadruple-gated cleared fetch. Returns
+    ``(paths, note)`` where ``paths`` are the stage outputs that exist
+    on disk (date ledger, index.json, newly stored binaries + sidecars)
+    for the publish staging list, and ``note`` is the run-trace record.
+
+    Failure isolation (I16 / AC-137.4): ANY exception anywhere in the
+    stage degrades to one WARNING + a ``"failed: <Type>"`` note — this
+    function never raises, never changes pipeline status, and briefing
+    generation / publish / notify proceed unaffected. The note also
+    lands in the coverage diagnostics line via
+    :func:`source_health.append_daily_coverage` (R9).
+
+    No wall clock: ``target_date`` flows straight through to the
+    library (I3). Roots default to the production layout
+    (``ARCHIVE_ROOT/_meta/image_candidates`` + ``assets/images``);
+    tests inject tmp roots.
+    """
+    try:
+        resolved_ledger_root = ledger_root if ledger_root is not None else _image_candidates_root()
+        resolved_store_root = (
+            store_root if store_root is not None else _image_library.DEFAULT_STORE_ROOT
+        )
+        routed = segment_items(items)
+        routed_by_segment: dict[MarketSegment, Sequence[NormalizedItem]] = {
+            segment: routed.for_segment(segment) for segment in SEGMENT_ORDER
+        }
+        ledger_report = _image_library.append_candidates(
+            target_date,
+            routed_by_segment,
+            ledger_root=resolved_ledger_root,
+        )
+        index_report = _image_library.update_index(
+            target_date,
+            ledger_root=resolved_ledger_root,
+        )
+        fetch_report = _image_library.fetch_cleared_candidates(
+            _image_library.read_index(ledger_root=resolved_ledger_root),
+            ledger_root=resolved_ledger_root,
+            store_root=resolved_store_root,
+        )
+        # R9 — only stage paths that actually exist join the git add
+        # list (an imageless run writes neither ledger nor index).
+        paths: list[Path] = [
+            path for path in (ledger_report.ledger_path, index_report.index_path) if path.exists()
+        ]
+        paths.extend(fetch_report.stored_paths)
+        note = (
+            f"ok: candidates={ledger_report.candidates_written} "
+            f"indexed={index_report.candidates_indexed} stored={fetch_report.stored}"
+        )
+        _logger.info("[image_candidates] %s target_date=%s", note, target_date)
+        return tuple(paths), note
+    except Exception as exc:
+        _logger.warning(
+            "[image_candidates] stage failed target_date=%s error_type=%s error=%s; "
+            "continuing — the image stage never blocks briefing/publish (I16)",
+            target_date,
+            type(exc).__name__,
+            exc,
+        )
+        return (), f"failed: {type(exc).__name__}"
+
+
 def _persist_fact_snapshot_safely(
     target_date: date,
     *,
@@ -1060,12 +1144,22 @@ async def _stage_publish_segments(
     source_outcomes: Sequence[SourceOutcome] = (),
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
     fact_bundle: VerifiedFactBundle | None = None,
+    extra_commit_paths: Sequence[Path] = (),
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
     The set is best-effort atomic before git commit: all disclaimers are
     validated up front, and any write failure rolls back files already
     written in this stage to their prior bytes or absence.
+
+    ``extra_commit_paths`` (u137 R9) joins the git add list ONLY — it
+    is deliberately excluded from the rollback ``snapshots``: the
+    image-candidate ledger / index are failure-isolated merge-rewrite
+    artifacts written before this stage; registering them with
+    ``previous_bytes=None`` (the ``asset_paths`` convention) would make
+    a publish-gate rollback DELETE a pre-existing ledger (violating
+    R3's never-drop guarantee). Worst case on rollback they sit
+    uncommitted until the next run's byte-idempotent rewrite.
     """
     _logger.info("[publish] starting segmented target_date=%s", target_date)
 
@@ -1475,6 +1569,9 @@ async def _stage_publish_segments(
             *macro_lineage_paths,
             *index_paths,
             *weekly_paths,
+            # u137 R9 — image-candidate stage outputs (existence-checked
+            # by the stage helper; never in the rollback snapshots).
+            *extra_commit_paths,
         ],
         runner=git_runner,
         dry_run=dry_run,
@@ -2524,6 +2621,9 @@ class GenerateStage:
 
         visual_assets_failed = False
         visual_asset_paths: tuple[Path, ...] = ()
+        # u137 — image-candidate stage outputs (segmented mode only).
+        image_candidate_paths: tuple[Path, ...] = ()
+        image_stage_note: str | None = None
 
         if segmented_mode:
             assert segment_briefings is not None
@@ -2548,6 +2648,22 @@ class GenerateStage:
             else:
                 stage_notes["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
                 va_elapsed = time.monotonic() - va_start
+
+            # u137 Contract #5 — image-candidate stage (post-routing:
+            # ledger → index → cleared fetch). Failure-isolated inside
+            # the helper (I16/AC-137.4): it never raises and its note
+            # never changes the stage status. Run in a thread — the
+            # ledger/index writes and the (env-gated, default-off)
+            # fetch path are blocking I/O.
+            image_start = time.monotonic()
+            image_candidate_paths, image_note = await asyncio.to_thread(
+                _run_image_candidate_stage,
+                target_date,
+                items,
+            )
+            image_stage_note = image_note
+            stage_notes["image_candidates"] = image_note
+            generate_sub_timings["image_candidates"] = time.monotonic() - image_start
 
             # u52 — inject the deterministic Watchlist Carryover block.
             segment_briefings = _inject_carryover_into_segments(
@@ -2720,6 +2836,8 @@ class GenerateStage:
                 "entity_fact_blocked_segments": entity_fact_blocked_segments,
                 "visual_assets_failed": visual_assets_failed,
                 "visual_asset_paths": visual_asset_paths,
+                "image_candidate_paths": image_candidate_paths,
+                "image_stage_note": image_stage_note,
                 "fact_bundle": fact_bundle,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
                 "_stage_alerts": stage_alerts,
@@ -2754,6 +2872,12 @@ class PublishStage:
         )
         fact_bundle = cast("VerifiedFactBundle | None", accumulated.get("fact_bundle"))
         visual_asset_paths = cast("tuple[Path, ...]", accumulated["visual_asset_paths"])
+        # u137 — stage outputs of the failure-isolated image-candidate
+        # stage; joins the git add list only (never the rollback
+        # snapshots — see _stage_publish_segments).
+        image_candidate_paths = cast(
+            "tuple[Path, ...]", accumulated.get("image_candidate_paths", ())
+        )
 
         start = time.monotonic()
         try:
@@ -2768,6 +2892,7 @@ class PublishStage:
                     source_outcomes=source_outcomes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
                     fact_bundle=fact_bundle,
+                    extra_commit_paths=image_candidate_paths,
                 )
             else:
                 await _stage_publish(briefing, target_date, git_runner=git_runner)
@@ -2919,6 +3044,9 @@ class HealthTrackingStage:
         segment_briefings = cast(
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
         )
+        # u137 R9 — the image-candidate stage's outcome note rides the
+        # same daily coverage line (one diagnostic line per run).
+        image_stage_note = cast("str | None", accumulated.get("image_stage_note"))
         soft_alert: RuntimeError | None = None
         try:
             severities_for_coverage: dict[str, str] = {}
@@ -2932,6 +3060,7 @@ class HealthTrackingStage:
                 target_date,
                 source_outcomes,
                 severities=severities_for_coverage or None,
+                image_stage=image_stage_note,
             )
             consecutive_failed = source_health.detect_consecutive_failed(today=target_date)
             if consecutive_failed:
