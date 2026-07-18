@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u137 image-candidate-registry-and-licensed-store
 **Stage**: Code Generation
-**Status**: In Progress (5/7: Step 0-4 done, 2026-07-18)
+**Status**: In Progress (6/7: Step 0-5 done, 2026-07-18)
 **Source**: 2026-07-17 user feature request — "실제 뉴스/칼럼/커뮤니티 이미지를 **저장해두고** 활용" 중 저장(수집 2단계). u136이 채집한 이미지 메타데이터를 영속 원장으로 굳히고, 재출현(자주 쓰이는 이미지) 추적과 라이선스 게이트 바이너리 저장을 붙인다.
 **Estimated Effort**: ~10-14 h (FD/NFR 포함)
 **Dependencies**:
@@ -102,8 +102,9 @@ Out of scope (명시적 non-goal):
 - 구현 노트: 이미지 산출물은 publish 롤백 `snapshots`에서 **의도적으로 제외** — merge-rewrite 아티팩트를 `previous_bytes=None`으로 등록하면 롤백이 기존 원장을 삭제해 R3 never-drop을 위반하므로 git add 목록에만 합류.
 - **Acceptance**: stage 강제 예외 주입 통합 테스트에서 시황 3세그먼트 게시 정상 완료; run trace에 이미지 stage 결과 기록.
 
-### Step 5 — CI 게이트 스크립트 + 워크플로 편입 `[ ]`
-- [ ] `scripts/check_image_store.py`(계약 #6) + 워크플로 스텝(investo-ops).
+### Step 5 — CI 게이트 스크립트 + 워크플로 편입 `[x]`
+- [x] `scripts/check_image_store.py`(계약 #6) + 워크플로 스텝(investo-ops).
+- ops 발견: `check_curated_assets.py`는 어떤 워크플로에도 미편입 상태 — 별도 TECH-DEBT 후보로 planner 전달 예정.
 - **Acceptance**: 정상 store 통과 / 주입된 고아·무매니페스트·예산 초과 픽스처 각각 명확한 메시지로 실패.
 
 ### Step 6 — full gate + 문서 `[ ]`

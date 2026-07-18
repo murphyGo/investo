@@ -49,3 +49,10 @@ jobs:
 
       - name: Paid API guard
         run: uv run python scripts/check_no_paid_apis.py
+
+      - name: Image store guard
+        # u137: license-compliance gate for the image-candidate store
+        # (provenance sidecars, clearance manifests, size budgets, R13
+        # secret scan). Runs after ``uv sync`` because the script
+        # imports in-tree ``investo`` modules.
+        run: uv run python scripts/check_image_store.py
