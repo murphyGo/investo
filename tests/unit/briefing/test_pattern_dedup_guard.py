@@ -66,8 +66,9 @@ def test_crypto_patterns_remain_distinct() -> None:
 
 
 def test_consumers_share_the_canonical_objects() -> None:
-    # The four sites must reference the *same* compiled objects, proving
-    # they delegate rather than carry a private copy.
+    # The consuming sites must reference the *same* compiled objects,
+    # proving they delegate rather than carry a private copy.
+    from investo._internal import summary_quality as internal_summary_quality
     from investo.briefing import citation_cardinality, segments, summary_quality
 
     # u83 — the former ``pipeline._MEANINGFUL_TEXT_RE`` consumer split
@@ -83,7 +84,16 @@ def test_consumers_share_the_canonical_objects() -> None:
     assert citation_cardinality._US_TICKER is patterns.US_TICKER
     assert citation_cardinality._CRYPTO_TICKER is patterns.CRYPTO_TICKER
     assert text_normalize._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
-    assert summary_extraction._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
+    # u127 (fb6539a) — ``summary_extraction`` no longer consumes the
+    # pattern directly: its meaningful-text check moved into the
+    # centralized unsafe-summary predicate. The dedup guarantee now
+    # holds via delegation (same predicate object) plus the
+    # centralized module consuming the same canonical pattern.
+    assert (
+        summary_extraction.is_unsafe_summary_value
+        is internal_summary_quality.is_unsafe_summary_value
+    )
+    assert internal_summary_quality._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
     assert summary_quality._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT
 
 

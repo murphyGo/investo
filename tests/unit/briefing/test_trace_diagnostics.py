@@ -14,7 +14,7 @@ from investo.briefing.pipeline import (
     _classify_failure_reason,
     _render_source_outcome_line,
 )
-from investo.briefing.segments import US_EQUITY, build_segment_coverage
+from investo.briefing.segments import CRYPTO, US_EQUITY, build_segment_coverage
 from investo.models import SourceOutcome
 
 
@@ -95,15 +95,23 @@ def test_classify_failure_reason(reason: str | None, expected_label: str) -> Non
 
 def test_reader_line_omits_raw_english_plumbing() -> None:
     """The rendered reader line carries the Korean label, not the raw
-    ``status 403 (terminal)`` / ``not set`` plumbing text (P1-3)."""
+    ``status 451 (terminal)`` / ``not set`` plumbing text (P1-3).
+
+    Fixture is CRYPTO-scoped (DEBT-081): ``congress-gov-bill-actions``
+    has been a crypto-segment source since its creation (077d8e9), and
+    the u128 ``_validate_segment_scoped_outcomes`` guard correctly
+    rejects it inside a us-equity coverage build — the original
+    us-equity fixture pre-dated that validation. Both sources here are
+    in ``_SEGMENT_SOURCES["crypto"]``.
+    """
     coverage = build_segment_coverage(
-        US_EQUITY,
+        CRYPTO,
         [],
         source_outcomes=(
             SourceOutcome.from_failure(
-                "cnbc-top-news",
-                "news",
-                message="source 'cnbc-top-news' failed: status 403 (terminal)",
+                "binance-crypto-market",
+                "price",
+                message="source 'binance-crypto-market' failed: status 451 (terminal)",
                 transient=False,
             ),
             SourceOutcome.from_failure(
@@ -115,10 +123,10 @@ def test_reader_line_omits_raw_english_plumbing() -> None:
         ),
     )
     rendered = _render_source_outcome_line(coverage)
-    assert "cnbc-top-news 실패 (접근 제한)" in rendered
+    assert "binance-crypto-market 실패 (접근 제한)" in rendered
     assert "congress-gov-bill-actions 실패 (설정 미완료(미수집))" in rendered
     # no raw English plumbing leaks to the reader surface.
-    assert "status 403" not in rendered
+    assert "status 451" not in rendered
     assert "terminal" not in rendered
     assert "not set" not in rendered
     assert "CONGRESS_API_KEY" not in rendered

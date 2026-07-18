@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 4 | 2026-05-07 |
+| Medium | 3 | 2026-05-07 |
 | Low | 33 | 2026-04-27 |
 
 ---
@@ -22,16 +22,6 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
-
-#### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
-
-- **Created**: 2026-07-18
-- **Source**: u136 feed-image-metadata-harvest Step 5 full gate (pre-existing failure surfaced during the gate; reproduces at commit 3a67cbc, i.e., pre-u136)
-- **Reference**: NFR-006 (testing), u128 segment-scoped-source-outcome-contract (`_validate_segment_scoped_outcomes` fail-loud guard)
-- **Description**: `tests/unit/briefing/test_pattern_dedup_guard.py::test_consumers_share_the_canonical_objects` and `tests/unit/briefing/test_trace_diagnostics.py::test_reader_line_omits_raw_english_plumbing` fail via a collection-time `ValueError` raised at `src/investo/briefing/segments.py:801` — the u128 `_validate_segment_scoped_outcomes` guard (`source outcomes not scoped to {segment}: {names}`). The failure reproduces at 3a67cbc, so it pre-dates u136 and is not caused by the image-harvest change. Untriaged ambiguity: either the two tests build source-outcome fixtures whose source names fell outside the u128 per-segment allow-list after a later registry change (test-fixture drift), or the allow-list/registry itself regressed and the guard is correctly catching it. Until triaged, the full suite cannot run fully green without deselecting the two tests.
-- **Suggested Fix**: Bisect between the u128 landing and 3a67cbc to identify which change put the tests' fixture source names outside `_SEGMENT_SOURCES[segment]`; then either fix the fixtures to use allow-listed sources (drift case) or fix the registry/allow-list (regression case). Pin the outcome with a note in the affected tests so the next registry change updates them deliberately.
-- **Effort**: ~1-2 h including the bisect.
-- **Priority Reasoning**: Medium — two failing tests block clean full-suite runs and may be masking a real segment-scoping regression. Not user-facing today, but the drift-vs-regression ambiguity is exactly the kind of gate-trust erosion that worsens the longer it ages; triage promptly rather than letting future units inherit the deselection habit.
 
 #### DEBT-067: event-lookahead remaining adapters — CoinGecko fallback decision + KRX option-expiry public path
 
@@ -407,6 +397,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
+
+- **Created**: 2026-07-18
+- **Resolved**: 2026-07-19 — Triaged via traceback + `git log -S` (no bisect needed): the entry's premise was partially wrong — the two tests fail at CALL time with two DISTINCT causes, and **both are test/fixture drift, not production regressions** (verdict: drift). (1) `test_pattern_dedup_guard.py::test_consumers_share_the_canonical_objects` broke at u127 (`fb6539a`, 2026-06-30): `summary_extraction` legitimately stopped importing `_MEANINGFUL_TEXT_RE` when its meaningful-text check centralized into `_internal.summary_quality.is_unsafe_summary_value`, and the guard's consumer list was not updated — production dedup verified intact (one compiled object in `_internal.text`, re-exported by `_text/patterns`, shared by `text_normalize` + both `summary_quality` modules). Fixed by asserting the u127 shape: `summary_extraction` delegates to the same predicate object AND `_internal.summary_quality._MEANINGFUL_TEXT_RE is patterns.MEANINGFUL_TEXT`. (2) `test_trace_diagnostics.py::test_reader_line_omits_raw_english_plumbing` broke at u128 (`a47697f`, 2026-06-30): its 2026-05-24 fixture scoped `congress-gov-bill-actions` — a crypto-segment source since creation (`077d8e9`, 2026-05-14) — under a us-equity coverage build, which the new `_validate_segment_scoped_outcomes` guard correctly rejects. Fixed by rescoping the fixture to CRYPTO with allow-listed sources (`binance-crypto-market` + `congress-gov-bill-actions`), preserving the P1-3 intent (Korean labels, no raw English plumbing). Full suite now runs **fully green (3556 passed, 0 failed)** for the first time since registration.
+- **Source**: u136 feed-image-metadata-harvest Step 5 full gate (pre-existing failure surfaced during the gate; reproduces at commit 3a67cbc, i.e., pre-u136)
+- **Reference**: NFR-006 (testing), u128 segment-scoped-source-outcome-contract (`_validate_segment_scoped_outcomes` fail-loud guard), u127 summary-quality-reject-contract-unification, u79 pattern dedup guard
+- **Priority Reasoning**: Closed.
 
 #### DEBT-086: `check_image_store.py` R13 pre-mask is shape-locked but not key-scoped — a 64-hex-shaped secret in an operator-authored clearance manifest evades the gate
 
