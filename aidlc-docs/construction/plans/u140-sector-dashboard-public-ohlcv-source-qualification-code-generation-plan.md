@@ -52,6 +52,7 @@ adapter or Pages construction is registered.
 | Stooq | current quote endpoint 404; history path returns an automation challenge in observed probes | reject for the gate |
 | Alpha Vantage / Twelve Data / similar individual free plans | structured APIs, but individual/free display and redistribution conditions do not currently clear this public product | reject until written terms fit |
 | Finnhub stock candles | official structured OHLCV, but the endpoint is Premium-only; market-data plans are Personal Use and public/commercial use requires written approval | reject for the no-paid public gate (2026-07-19 Step 0) |
+| Alpaca Market Data API | free Basic technically provides US stock/ETF history since 2016 and multi-symbol daily bars, but Alpaca says its API data cannot be redistributed and its customer agreement requires written consent for reproduction/distribution | reject until written public derived-display consent (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -67,6 +68,13 @@ Primary Finnhub references, checked 2026-07-19:
 - `https://finnhub.io/pricing`
 - `https://finnhub.io/pricing-stock-api-market-data`
 - `https://finnhub.io/register`
+
+Primary Alpaca references, checked 2026-07-19:
+
+- `https://docs.alpaca.markets/us/docs/about-market-data-api`
+- `https://docs.alpaca.markets/us/reference/stockbars`
+- `https://alpaca.markets/support/redistribute-alpaca-api`
+- `https://files.alpaca.markets/disclosures/library/AcctAppMarginAndCustAgmt.pdf`
 
 ## Qualification Steps
 
@@ -86,6 +94,22 @@ Disposition: **reject**. Historical stock OHLCV is a Premium endpoint and the li
 market-data licenses are Personal Use; the registration surface requires written
 approval for commercial/professional use. This fails the free/public-rights gates
 before any credentialed probe. Step 1 does not apply to this candidate.
+
+#### Iteration 2 — Alpaca Market Data API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-alpaca.md`.
+Disposition: **reject under current written terms**. The free Basic plan and daily
+bars clear the preliminary structure/cost check, but Alpaca's official support says
+API data cannot be redistributed and the current customer agreement requires written
+consent for reproduction or distribution. No explicit public derived-display grant
+exists for Investo. Step 1 does not apply to this candidate.
 
 #### Next candidate iteration
 

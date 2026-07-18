@@ -403,6 +403,7 @@ Candidate disposition:
 - **Reject**: Stooq `q/d/l` JavaScript challenge; Cboe delayed quote JSON because Cboe explicitly prohibits automated extraction; Nasdaq quote-page JSON because Nasdaq's current site agreement prohibits automated capture; FRED SP500/DJIA/NASDAQCOM as a public fallback because the series notes carry reproduction/copyright restrictions.
 - **Defer**: Alpha Vantage, Twelve Data, and similar key/metered price APIs until an operator-owned free key and bounded request policy exist. They are not required to restore the currently proven Yahoo path.
 - **Reject for u140 public Pages (2026-07-19 evidence refresh)**: Finnhub stock candles are Premium-only and the listed market-data licenses are Personal Use; no credentialed probe is justified without written public/commercial approval.
+- **Reject for u140 public Pages under current written terms (2026-07-19)**: Alpaca Basic is technically free and structured, but Alpaca's official support says its API data cannot be redistributed and the customer agreement requires written consent for reproduction/distribution. No public derived-display grant is inferred.
 
 ### u139-u140 Planning Notes
 

@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 2 (Alpaca)
+**Timestamp**: 2026-07-18T20:49:14Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed the Finnhub Step 0 slice as `24e069b`, preserved and merged concurrent u141/u142 planning, pushed merged `main` as `a493d80`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: Alpaca Basic is free and documents US stocks/ETFs, history since 2016, 200 historical calls/minute, authenticated multi-symbol daily bars, pagination, and explicit raw/split/dividend/spin-off/all adjustment modes. Alpaca's official support answer states that Alpaca API data cannot be redistributed. The current customer agreement separately prohibits reproduction, distribution, sale, or commercial exploitation of market data without written consent.
+**Deduplication**: No Alpaca adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply Alpaca rights.
+**Decision**: `reject under current written terms` for u140. The source clears preliminary cost/structure checks but fails the binding public-rights gate. No account/key was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-alpaca.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 1 (Finnhub)
 **Timestamp**: 2026-07-18T20:32:08Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed u139 Step 5 closeout as `f8ea94e`, then proceeded to the first u140 candidate fact sheet.
