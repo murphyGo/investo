@@ -1524,6 +1524,108 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
 
 
 @pytest.mark.asyncio
+async def test_run_pipeline_publish_rollback_never_touches_image_ledger(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """DEBT-085 regression pin — u137 Step 4 rollback exclusion.
+
+    Image-stage outputs join the publish git-add list but are EXCLUDED
+    from the rollback snapshots (u137 R3 never-drop / R9). If a future
+    edit registers ``extra_commit_paths`` into ``snapshots`` with
+    ``previous_bytes=None`` (the ``asset_paths`` idiom), a publish-gate
+    rollback would DELETE the merge-rewrite ledger — this test goes red
+    in exactly that case: it pre-seeds a prior-run ledger row, lets the
+    run merge a NEW candidate into the same date file, forces a
+    ``PublisherIOError`` rollback, and asserts the ledger (both rows)
+    and ``index.json`` survive byte-intact while the segment markdown
+    writes ARE rolled back.
+    """
+    from investo.visuals.image_library import (
+        ImageCandidateRecord,
+        append_candidates,
+        candidate_id_for_url,
+    )
+
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+
+    # Pre-seed the date ledger with a prior-run candidate (a DIFFERENT
+    # image URL), via the real merge-rewrite writer under the isolated
+    # archive root the pipeline's _image_candidates_root() resolves to.
+    ledger_root = archive_root / "_meta" / "image_candidates"
+    preseeded_url = "https://img.yna.co.kr/photo/reuters/OLD001.jpg"
+    preseeded_item = NormalizedItem(
+        source_name="yonhap-market",
+        category="news",
+        title="전일 이미지 기사",
+        url="https://www.yna.co.kr/view/OLD001",
+        published_at=datetime(2026, 4, 27, 9, 0, tzinfo=UTC),
+        raw_metadata={"image_url": preseeded_url},
+    )
+    append_candidates(_TARGET, {"domestic-equity": [preseeded_item]}, ledger_root=ledger_root)
+    ledger_path = ledger_root / "2026" / "2026-04-27.jsonl"
+    preseeded_line = ledger_path.read_text(encoding="utf-8").splitlines()[0]
+
+    # This run carries one NEW image-bearing item (different candidate).
+    new_url = "https://img.yna.co.kr/photo/reuters/NEW001.jpg"
+    image_item = NormalizedItem(
+        source_name="yonhap-market",
+        category="news",
+        title="오늘 이미지 기사",
+        url="https://www.yna.co.kr/view/NEW001",
+        published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+        raw_metadata={"image_url": new_url},
+    )
+
+    def fake_write_briefing(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert segment is not None
+        path = archive_root / segment / "2026" / "04" / "2026-04-27.md"
+        if segment == US_EQUITY:
+            raise PublisherIOError(target_date=target_date, path=path, cause=OSError("boom"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"new {segment}", encoding="utf-8")
+        return path
+
+    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL"), image_item]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    # The publish failure fired and the rollback provably ran (the
+    # markdown writes were reversed) …
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: PublisherIOError"
+    assert not list(archive_root.rglob("*.md"))
+    # … the image stage itself had succeeded before publish: 1 new
+    # candidate merged, 2 total indexed (preseeded + new).
+    assert result.stages["image_candidates"] == "ok: candidates=1 indexed=2 stored=0"
+
+    # DEBT-085 core: rollback must not touch the ledger at all.
+    assert ledger_path.exists()
+    lines = ledger_path.read_text(encoding="utf-8").splitlines()
+    assert preseeded_line in lines  # pre-seeded row byte-preserved (R3)
+    rows = [ImageCandidateRecord.model_validate_json(line) for line in lines]
+    candidate_ids = {row.candidate_id for row in rows}
+    assert candidate_id_for_url(preseeded_url) in candidate_ids
+    assert candidate_id_for_url(new_url) in candidate_ids  # merged row survives too
+    assert (ledger_root / "index.json").exists()
+
+
+@pytest.mark.asyncio
 async def test_stage_publish_segments_stages_latest_index_pages(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

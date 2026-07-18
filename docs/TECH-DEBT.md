@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 6 | 2026-05-07 |
+| Medium | 5 | 2026-05-07 |
 | Low | 33 | 2026-04-27 |
 
 ---
@@ -22,16 +22,6 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
-
-#### DEBT-085: u137 Step 4 rollback exclusion is documented but not regression-pinned — a future `previous_bytes=None` registration would silently reintroduce the R3 never-drop violation
-
-- **Created**: 2026-07-19
-- **Source**: u137 image-candidate-registry-and-licensed-store cross-check (M1) — `docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md`
-- **Reference**: u137 R3 (ledger merge-rewrite / never-drop), u137 R9/I16 (failure-isolated stage; outputs join publish staging), Step 4 ratified divergence (audit 2026-07-18 — image outputs excluded from publish rollback snapshots), NFR-006 (testing)
-- **Description**: The ratified Step 4 divergence — image-stage outputs (`archive/_meta/image_candidates/` ledgers/index, `assets/images/` binaries/sidecars) join the publish `git add` list but are excluded from rollback snapshots (`src/investo/orchestrator/pipeline.py:1155-1162`, `1216-1219`) — is consistent and documented but carries no regression test. No test injects a publish write-failure on a run whose image stage wrote (or merged into a pre-existing) ledger and asserts the ledger/index survive `_rollback_paths`. A future edit registering `extra_commit_paths` with `previous_bytes=None` (the `asset_paths` idiom at `pipeline.py:1219`) would make rollback delete pre-existing merge-rewrite ledgers — exactly the R3 never-drop violation the divergence exists to prevent — and nothing would go red. Existing rollback tests (`tests/unit/orchestrator/test_run_pipeline.py:1478-1523`) use imageless items, so the exclusion is exercised by zero paths.
-- **Suggested Fix**: Extend the `PublisherIOError` rollback test with one image-bearing item and a pre-seeded date ledger; assert the ledger bytes are byte-intact post-rollback (and the index/store paths untouched), pinning the exclusion the same way the staging join and failure isolation are already pinned.
-- **Effort**: ~30-45 min.
-- **Priority Reasoning**: Medium — the divergence guards a persistence-safety invariant (R3 never-drop) at a chokepoint the next rollback-related edit is likely to touch, and the failure mode is silent deletion of committed ledger data on a publish failure. Bounded and cheap to close; pin before any further publish-transaction work.
 
 #### DEBT-086: `check_image_store.py` R13 pre-mask is shape-locked but not key-scoped — a 64-hex-shaped secret in an operator-authored clearance manifest evades the gate
 
@@ -427,6 +417,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-085: u137 Step 4 rollback exclusion is documented but not regression-pinned — a future `previous_bytes=None` registration would silently reintroduce the R3 never-drop violation
+
+- **Created**: 2026-07-19
+- **Resolved**: 2026-07-19 — Added `tests/unit/orchestrator/test_run_pipeline.py::test_run_pipeline_publish_rollback_never_touches_image_ledger`: pre-seeds a prior-run row into the date ledger via the real merge-rewrite writer, runs the segmented pipeline with a NEW image-bearing candidate, forces the `PublisherIOError` rollback (markdown writes provably reversed), and asserts the ledger survives with the pre-seeded row byte-preserved AND the run's newly-merged row intact, plus `index.json` present. Mutation-verified: temporarily registering `extra_commit_paths` into `snapshots` with `previous_bytes=None` (the exact feared future edit) turns the test RED; reverting restores green. Test-only change — production behavior was confirmed correct.
+- **Source**: u137 image-candidate-registry-and-licensed-store cross-check (M1) — `docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md`
+- **Reference**: u137 R3 (ledger merge-rewrite / never-drop), u137 R9/I16 (failure-isolated stage; outputs join publish staging), Step 4 ratified divergence (audit 2026-07-18 — image outputs excluded from publish rollback snapshots), NFR-006 (testing)
+- **Priority Reasoning**: Closed.
 
 #### DEBT-083: `scripts/check_curated_assets.py` is authored but not wired into any GitHub Actions workflow
 
