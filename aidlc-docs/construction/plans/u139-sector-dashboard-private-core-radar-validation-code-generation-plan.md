@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u139 sector-dashboard-private-core-radar-validation
 **Stage**: Code Generation
-**Status**: In Progress — Step 4 complete
+**Status**: Complete — 5/5 steps, cross-check APPROVE
 **Source**: FR-022, NFR-008, US-010, and the approved S0-P Application Design
 **Estimated Effort**: ~12-18 h after design approval
 **Dependencies**: none; u140 is intentionally not a dependency
@@ -16,7 +16,7 @@
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/`.
 - NFR Requirements: **COMPLETE — approved 2026-07-18**. The binding artifacts are under
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/`.
-- Code Generation: **IN PROGRESS**. Steps 1-4 are complete; Step 5 is the next bounded slice.
+- Code Generation: **COMPLETE**. Steps 1-5 and the u139 cross-check are complete.
 
 ## Scope Boundary
 
@@ -114,12 +114,12 @@ Contract definition and its NFR review gate were explicitly approved on 2026-07-
 
 ### Step 5 — Quality gates and handoff evidence
 
-- [ ] Run focused tests, full pytest, ruff, format check, mypy strict, no-paid guard,
+- [x] Run focused tests, full pytest, ruff, format check, mypy strict, no-paid guard,
   and `mkdocs build --strict`.
-- [ ] Confirm existing briefing/public artifacts remain unchanged, including an
+- [x] Confirm existing briefing/public artifacts remain unchanged, including an
   explicit `git diff` sentinel scan over `archive/`, `site_docs/`, `mkdocs.yml`, and
   `.github/workflows/` after the synthetic/manual run.
-- [ ] Record a synthetic-input run and an operator-local smoke result without
+- [x] Record a synthetic-input run and an operator-local smoke result without
   committing the input or private output.
 
 ## Acceptance Evidence
@@ -129,3 +129,21 @@ Contract definition and its NFR review gate were explicitly approved on 2026-07-
 - Negative path tests for every forbidden repository/public output location.
 - Explicit statement that a successful u139 run does not authorize public Pages
   output and does not change u140 status.
+
+Recorded 2026-07-19:
+
+- focused sector-dashboard suite: 126 passed;
+- full repository suite: 3550 passed plus the two baseline-identical DEBT-081
+  failures, reproduced at pre-u139 commit `d19daf0`;
+- Ruff, format, strict mypy over 232 source files, no-paid guard, diff check,
+  unresolved-placeholder scan, and clean-tree `mkdocs build --strict`: passed;
+- 12-workbook x 6,000-row x 4-column benchmark: 5.583 s and 104.03 MiB peak RSS;
+- repeated normal snapshot id:
+  `sha256:1f2a08f1e9ed9e3bd9b88f5e07ecdb52b41ebac522c11032f0bc3d8e400747b6`;
+- repeated pair hash:
+  `24161ffb238b9fabbe640a4e221cb301884657d13a976bf051dbfceafb3859ac`;
+- public-surface diff sentinel before/after private execution:
+  `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`;
+- repository root, `archive/`, `site_docs/`, and tracked fixtures each rejected
+  before manifest read with redacted exit 2;
+- cross-check: `docs/cross-checks/2026-07-19-u139-sector-dashboard-private-core-radar-validation.md`.

@@ -283,10 +283,10 @@
 - **Description**: S&P 500의 11개 Select Sector SPDR ETF와 SPY를 동일 기준으로 비교해 `주도 / 둔화 / 회복 / 부진`을 결정론적으로 분류한다. 공개 Pages를 최종 표면으로 유지하되, 공개 표시권이 확인된 OHLCV source가 없을 때는 State Street NAV local fixture를 사용한 private validation만 허용한다. 실제 ETF flow와 실적 actual은 Phase 2, Telegram은 웹 안정화 후로 분리한다.
 - **User Story**: As a 운영자 / 시황 reader, I want 11개 섹터의 상대강도와 변화 방향을 한 화면에서 비교하고 각 상태의 데이터 범위와 출처를 확인하기를, so that 현재 주도·부진 섹터를 빠르게 파악하되 NAV·거래량·실제 자금흐름을 혼동하지 않도록.
 - **Acceptance Criteria**:
-  - [ ] universe는 `XLC, XLY, XLP, XLE, XLF, XLV, XLI, XLB, XLRE, XLK, XLU`와 benchmark `SPY`로 고정한다.
-  - [ ] 1D/5D/21D/63D 수익률, SPY 대비 상대수익률, 5D 가속도, 20D 실현변동성, 20D 최대낙폭은 deterministic code가 계산한다.
-  - [ ] private validation은 operator-provided local XLSX만 읽고 `NAV 수익률`, `NAV 기준 실현변동성`, `실제 시장 OHLCV 아님`을 명시한다.
-  - [ ] private 입력 원본과 파생 일별 값은 `archive/`, `site_docs/`, public git artifact, 로그에 저장하지 않는다.
+  - [x] universe는 `XLC, XLY, XLP, XLE, XLF, XLV, XLI, XLB, XLRE, XLK, XLU`와 benchmark `SPY`로 고정한다. (u139 private validation)
+  - [x] 1D/5D/21D/63D 수익률, SPY 대비 상대수익률, 5D 가속도, 20D 실현변동성, 20D 최대낙폭은 deterministic code가 계산한다. (u139)
+  - [x] private validation은 operator-provided local XLSX만 읽고 `NAV 수익률`, `NAV 기준 실현변동성`, `실제 시장 OHLCV 아님`을 명시한다. (u139)
+  - [x] private 입력 원본과 파생 일별 값은 `archive/`, `site_docs/`, public git artifact, 로그에 저장하지 않는다. (u139)
   - [ ] 공개 Pages는 source별 public derived-display 권한, 11 sectors + SPY의 63거래일 OHLCV, weekday freshness, GitHub Actions 안정성 gate를 모두 통과한 뒤에만 연다.
   - [ ] exchange volume이 없으면 거래강도·거래대금 카드를 숨기고, shares outstanding 변화는 Phase 2 전 actual flow 또는 score로 표시하지 않는다.
   - [ ] public source가 `normal / partial / insufficient` coverage 계약을 충족하지 못하면 마지막 정상 latest를 보존하고 누락값을 추정하지 않는다.

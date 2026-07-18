@@ -107,7 +107,12 @@ not a two-file atomic rename.
 
 Managed temporary names are derived from the output directory name plus a random
 nonce, never from an input filename or ticker value. Marker content uses relative
-managed names only.
+managed names plus bounded projection anchors only: candidate/backup snapshot ids
+and candidate/backup report SHA-256 digests. It contains no private input path,
+value, row, fingerprint, or projection body. This TS-5 clarification was ratified at
+closeout on 2026-07-19 with the AC-3.7 amendment after recovery fault injection
+proved that one expected id cannot authenticate both projections and the rollback
+pair.
 
 ## TS-6. Canonical JSON and Markdown
 

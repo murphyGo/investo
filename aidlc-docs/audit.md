@@ -1,5 +1,20 @@
 # AI-DLC Audit Log
 
+## Construction — u139 Code Generation Step 5 and cross-check complete
+**Timestamp**: 2026-07-18T20:22:49Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed Step 4 private renderer/runner slice as `79dc4ee`, then executed the final bounded Code Generation Step 5.
+**Verification**: Isolated clean-tree focused suite 126 passed. Full pytest returned 3550 passed plus exactly the two DEBT-081 failures, and both failures reproduced at pre-u139 commit `d19daf0`. Ruff check/format, strict mypy over 232 source files, no-paid guard, `git diff --check`, unresolved-placeholder scan, and clean-tree `mkdocs build --strict` passed.
+**Synthetic/operator evidence**: A private external 12-workbook x 6,000-row x 4-column run completed `normal` at 11/11 sectors as of 2026-07-17 in 5.583 s with 104.03 MiB peak RSS. A repeated run was a byte-preserving no-op. Snapshot id `sha256:1f2a08f1e9ed9e3bd9b88f5e07ecdb52b41ebac522c11032f0bc3d8e400747b6` and NUL-framed pair hash `24161ffb238b9fabbe640a4e221cb301884657d13a976bf051dbfceafb3859ac` remained unchanged; output mode was `0700` and projection modes were `0600`. No input path, row, fingerprint, or private output was committed.
+**Public boundary**: Repository root, `archive/`, `site_docs/`, and tracked fixture outputs each failed before manifest read with redacted exit 2. The public-surface diff sentinel over `archive/`, `site_docs/`, `mkdocs.yml`, and `.github/workflows/` was the empty-diff SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` before and after private execution; the isolated tree remained clean.
+**Ratified closeout amendment**: Fresh-eyes review found one documentation-only Medium mismatch: AC-3.7 named only the expected snapshot id, while fail-closed recovery authenticates candidate/backup snapshot ids plus candidate/backup report SHA-256 digests. AC-3.7 and TS-5 now bind those bounded projection anchors and continue to forbid private input path/value/row/fingerprint/body metadata. No runtime change was needed.
+**Code review and cross-check**: Independent fresh-eyes review repeated the focused/full/static/MkDocs gates, confirmed the pair framing and benchmark artifacts, and returned final `APPROVED` with no remaining Critical, High, Medium, or Low finding. All 43 AC-1.1..AC-6.7 criteria are Complete; no new TECH-DEBT.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/code/step-5-quality-gates-and-handoff.md`
+- `docs/sessions/2026-07-19-u139-code-generation-step5.md`
+- `docs/cross-checks/2026-07-19-u139-sector-dashboard-private-core-radar-validation.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+**Status**: u139 Code Generation Complete (5/5) and cross-check APPROVE. The result is private NAV validation only; it does not authorize Pages, actual OHLCV/volume/flow/earnings claims, or Telegram. u140 remains blocked.
+
 ## u137 Cross-Check Complete
 **Timestamp**: 2026-07-19T00:00:00Z
 **Scope**: u137 image-candidate-registry-and-licensed-store against AC-137.1 through AC-137.6, NFR AC-1.1..AC-1.3, FD contracts R1-R10 / E1-E5 / I1-I17, TS-1..TS-4, the three ratified divergences, and project rules. Verified by investo-qa at worktree HEAD with all tests executed.

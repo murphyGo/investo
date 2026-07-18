@@ -180,8 +180,18 @@ The transaction marker is created with exclusive-create semantics and held with 
 non-blocking POSIX advisory lock. If a marker remains after process death, recovery
 opens it with no-follow/owner/mode checks and must acquire the same lock before
 inspection. A second live process cannot parse or write the same output target.
-Marker metadata contains only schema version, phase, relative managed names, and
-expected snapshot id—never an input path/value.
+The append-only marker journal contains only schema version, phase, relative
+prepared/backup managed names, candidate/backup snapshot ids, and candidate/backup
+report SHA-256 digests. These projection anchors are required to reject a canonical
+but unrelated prepared, backup, or current pair during recovery. The marker never
+contains an input path, workbook value, raw row, input fingerprint, or report body.
+
+**Closeout amendment (2026-07-19)**: the approved wording originally named only the
+expected snapshot id. Step 4 fault injection showed that phase-specific recovery
+cannot authenticate both projections or the rollback pair from that field alone.
+The additional backup id and candidate/backup report digests are bounded hashes of
+approved projections, not private input metadata, and are now part of this binding
+fail-closed contract.
 
 ### AC-3.8 CLI completion semantics
 
