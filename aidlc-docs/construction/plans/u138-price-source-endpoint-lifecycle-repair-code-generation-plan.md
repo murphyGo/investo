@@ -253,7 +253,7 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 4 — Retire Stooq and preserve Korean legs
 
-- [ ] Complete
+- [x] Complete (2026-07-18)
 
 - Migrate the Yonhap parser into `yonhap_index_close.py`.
 - Add `fred_fx_close.py` and move DEXKOUS out of `fred-macro` defaults.

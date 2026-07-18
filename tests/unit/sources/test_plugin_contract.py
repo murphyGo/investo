@@ -55,6 +55,7 @@ from investo.sources.fomc_calendar import FomcCalendarAdapter
 from investo.sources.fomc_rss import FomcRssAdapter
 from investo.sources.fred import FredMacroAdapter
 from investo.sources.fred_economic_calendar import FredEconomicCalendarAdapter
+from investo.sources.fred_fx_close import FredFxCloseAdapter
 from investo.sources.fsc_krx_index_price import FscKrxIndexPriceAdapter
 from investo.sources.fsc_krx_stock_price import FscKrxStockPriceAdapter
 from investo.sources.korea_policy_rss import KoreaPolicyRssAdapter
@@ -72,14 +73,13 @@ from investo.sources.okx_derivatives import OkxDerivativesAdapter
 from investo.sources.sec_company_facts import SecCompanyFactsAdapter
 from investo.sources.sec_edgar_8k import SecEdgar8kAdapter
 from investo.sources.sec_newsroom_rss import SecNewsroomRssAdapter
-from investo.sources.stooq_kr_market import StooqKrMarketAdapter
-from investo.sources.stooq_price import StooqPriceAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.tiers import ADAPTER_TIERS
 from investo.sources.treasury_rates import TreasuryRatesAdapter
 from investo.sources.us_economic_calendar import UsEconomicCalendarAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
 from investo.sources.yfinance import YFinancePriceAdapter
+from investo.sources.yonhap_index_close import YonhapIndexCloseAdapter
 from investo.sources.yonhap_market import YonhapMarketAdapter
 
 EXPECTED_ADAPTER_NAMES = set(SOURCE_SPECS_BY_NAME)
@@ -122,10 +122,9 @@ def _isolate_registry() -> Iterator[None]:
     register(KoreaPolicyRssAdapter)
     register(KrxForeignFlowsAdapter)
     register(YFinancePriceAdapter)
-    register(StooqPriceAdapter)
-    register(StooqKrMarketAdapter)
     register(CoinGeckoPriceAdapter)
     register(FredEconomicCalendarAdapter)
+    register(FredFxCloseAdapter)
     register(FredMacroAdapter)
     register(NasdaqEarningsCalendarAdapter)
     register(NasdaqSymbolDirectoryAdapter)
@@ -138,6 +137,7 @@ def _isolate_registry() -> Iterator[None]:
     register(SecCompanyFactsAdapter)
     register(SecEdgar8kAdapter)
     register(SecNewsroomRssAdapter)
+    register(YonhapIndexCloseAdapter)
     register(YonhapMarketAdapter)
     register(TheBlockCryptoAdapter)
     register(TreasuryRatesAdapter)
@@ -335,6 +335,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "FredMacroAdapter",
         "fred_economic_calendar",
         "FredEconomicCalendarAdapter",
+        "fred_fx_close",
+        "FredFxCloseAdapter",
         "nasdaq_earnings_calendar",
         "NasdaqEarningsCalendarAdapter",
         "nasdaq_symbol_directory",
@@ -349,8 +351,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "SecEdgar8kAdapter",
         "sec_newsroom_rss",
         "SecNewsroomRssAdapter",
-        "stooq_price",
-        "StooqPriceAdapter",
+        "yonhap_index_close",
+        "YonhapIndexCloseAdapter",
         "yonhap_market",
         "YonhapMarketAdapter",
         "theblock_crypto",

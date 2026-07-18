@@ -466,7 +466,6 @@ async def test_env_unset_uses_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
         "UNRATE",
         "DFF",
         "DGS10",
-        "DEXKOUS",
         "PPIFID",
     }
 

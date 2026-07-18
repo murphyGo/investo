@@ -394,14 +394,14 @@ def test_keyword_fallback_korean_ticker_routes_to_domestic() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u46 — stooq-price routing (us-only source, BTC/ETH titles override)
+# u138 — yfinance-price routing (us-only source, crypto titles override)
 # ---------------------------------------------------------------------------
 
 
-def test_stooq_price_us_index_routes_to_us_equity_only() -> None:
-    """``^GSPC`` from stooq-price stays us-equity; no crypto leak."""
+def test_yfinance_price_us_index_routes_to_us_equity_only() -> None:
+    """``^GSPC`` from yfinance-price stays us-equity; no crypto leak."""
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "^GSPC 7,398.90",
         category="price",
         summary="O:7363.00 H:7401.50 L:7363.00 C:7398.90 V:3349607690",
@@ -414,10 +414,10 @@ def test_stooq_price_us_index_routes_to_us_equity_only() -> None:
     assert segmented.domestic_equity == ()
 
 
-def test_stooq_price_btc_title_moves_to_crypto() -> None:
-    """``BTC-USD`` title from stooq-price triggers strong-crypto override."""
+def test_yfinance_price_btc_title_moves_to_crypto() -> None:
+    """``BTC-USD`` title from yfinance-price triggers the crypto override."""
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "BTC-USD 80,142.30",
         category="price",
         summary="O:79735.20 H:80482.80 L:79230.50 C:80142.30 V:14237",
@@ -429,9 +429,9 @@ def test_stooq_price_btc_title_moves_to_crypto() -> None:
     assert segmented.us_equity == ()
 
 
-def test_stooq_price_eth_title_moves_to_crypto() -> None:
+def test_yfinance_price_eth_title_moves_to_crypto() -> None:
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "ETH-USD 2,331.00",
         category="price",
         summary="O:2314.40 H:2338.14 L:2300.00 C:2331.00 V:282698",
@@ -443,9 +443,9 @@ def test_stooq_price_eth_title_moves_to_crypto() -> None:
     assert segmented.us_equity == ()
 
 
-def test_stooq_price_aapl_stays_us_equity() -> None:
+def test_yfinance_price_aapl_stays_us_equity() -> None:
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "AAPL 293.32",
         category="price",
         summary="O:290.01 H:294.76 L:290.00 C:293.32 V:52692761",
@@ -531,10 +531,10 @@ def test_krx_foreign_flows_routes_to_domestic_only() -> None:
     assert segmented.crypto == ()
 
 
-def test_stooq_price_sector_etf_routes_to_us_equity_only() -> None:
-    """u53 — ``XLK`` (Stooq sector SPDR) is us-equity-only; no crypto leak."""
+def test_yfinance_price_sector_etf_routes_to_us_equity_only() -> None:
+    """u53 — ``XLK`` is us-equity-only; no crypto leak."""
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "XLK 173.96",
         category="price",
         summary="O:176.15 H:176.99 L:171.20 C:173.96 V:6687269",
@@ -547,10 +547,10 @@ def test_stooq_price_sector_etf_routes_to_us_equity_only() -> None:
     assert segmented.domestic_equity == ()
 
 
-def test_stooq_price_gold_etf_routes_to_us_equity_only() -> None:
+def test_yfinance_price_gold_etf_routes_to_us_equity_only() -> None:
     """u53 commodity-proxy policy — ``GLD`` rides us-equity only (MVP)."""
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "GLD 431.60",
         category="price",
         summary="O:430.73 H:431.74 L:425.85 C:431.60 V:3165479",
@@ -563,10 +563,10 @@ def test_stooq_price_gold_etf_routes_to_us_equity_only() -> None:
     assert segmented.domestic_equity == ()
 
 
-def test_stooq_price_oil_futures_routes_to_us_equity_only() -> None:
+def test_yfinance_price_oil_futures_routes_to_us_equity_only() -> None:
     """u53 — ``CL=F`` (WTI futures) lands in us-equity only (commodity proxy MVP)."""
     item = _item(
-        "stooq-price",
+        "yfinance-price",
         "CL=F 102.31",
         category="price",
         summary="O:98.28 H:102.72 L:98.02 C:102.31 V:0",

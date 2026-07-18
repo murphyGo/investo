@@ -40,10 +40,11 @@ def test_source_specs_have_valid_segments_and_nonempty_outcome_membership() -> N
 
 
 def test_market_window_views_are_descriptor_derived() -> None:
-    assert "stooq-price" in source_names_for_market_window("us-equity")
+    assert "yfinance-price" in source_names_for_market_window("us-equity")
     assert "treasury-rates" in source_names_for_market_window("us-equity")
     assert "theblock-crypto" in source_names_for_market_window("crypto")
-    assert "stooq-kr-market" in source_names_for_market_window("domestic-equity")
+    assert "yonhap-index-close" in source_names_for_market_window("domestic-equity")
+    assert "fred-fx-close" in source_names_for_market_window("domestic-equity")
 
 
 def test_segment_item_views_preserve_special_case_semantics() -> None:
@@ -64,18 +65,23 @@ def test_segment_item_views_preserve_special_case_semantics() -> None:
     assert cftc_policy.item_segments == {"us-equity"}
     assert cftc_policy.outcome_segments == {"us-equity"}
 
-    stooq = SOURCE_SPECS_BY_NAME["stooq-price"]
-    assert stooq.market_window_segment == "us-equity"
-    assert stooq.item_routing == "us-with-crypto-signal"
-    assert stooq.item_segments == {"us-equity"}
-    assert stooq.outcome_segments == {"us-equity", "crypto"}
+    yonhap = SOURCE_SPECS_BY_NAME["yonhap-index-close"]
+    assert yonhap.tier == "B"
+    assert yonhap.market_window_segment == "domestic-equity"
+    assert yonhap.item_segments == {"domestic-equity"}
+    assert yonhap.outcome_segments == {"domestic-equity"}
+
+    fred_fx = SOURCE_SPECS_BY_NAME["fred-fx-close"]
+    assert fred_fx.tier == "S"
+    assert fred_fx.market_window_segment == "domestic-equity"
+    assert fred_fx.item_segments == {"domestic-equity"}
+    assert fred_fx.outcome_segments == {"domestic-equity"}
 
 
 def test_outcome_views_preserve_cross_segment_relevance() -> None:
     assert "cftc-cot-positioning" in source_names_for_outcome_segment("us-equity")
     assert "cftc-cot-positioning" in source_names_for_outcome_segment("crypto")
-    assert "stooq-price" in source_names_for_outcome_segment("crypto")
-    assert "stooq-price" not in source_names_for_item_segment("crypto")
+    assert "yfinance-price" not in source_names_for_outcome_segment("crypto")
 
 
 def test_source_specs_module_does_not_import_work_units() -> None:

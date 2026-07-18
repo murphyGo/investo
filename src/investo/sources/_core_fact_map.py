@@ -1,6 +1,6 @@
 """u55 Step 1 — Source-ticker → :class:`CoreFact` mapping table.
 
-Adapters (stooq-price, yfinance) call :func:`core_fact_for_ticker`
+Price adapters call :func:`core_fact_for_ticker`
 when building ``raw_metadata["core_facts"]`` so the numeric_verify
 gate can look up "what does this ticker stand for" without
 hard-coding ticker knowledge in every adapter.
@@ -24,9 +24,8 @@ from investo.models.core_fact import (
     core_fact_metadata_key,
 )
 
-# yfinance-style ticker → CoreFact. We use the yfinance vocabulary as
-# the canonical adapter-side name (matches stooq-price's
-# :data:`_TICKER_MAP` and yfinance's own ticker list).
+# yfinance-style ticker → CoreFact. This is the canonical adapter-side
+# vocabulary shared by Yahoo, Yonhap, and FRED price adapters.
 _TICKER_TO_CORE_FACT: Final[dict[str, CoreFact]] = {
     "^KS11": "kospi_close",
     "^KOSPI": "kospi_close",  # alt

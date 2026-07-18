@@ -25,10 +25,12 @@ def _item(
     ticker: str,
     close: str,
     *,
-    source: str = "stooq-kr-market",
+    source: str | None = None,
     pct: str | None = "1.25",
     published_at: datetime = _TS,
 ) -> NormalizedItem:
+    if source is None:
+        source = "fred-fx-close" if ticker == "KRW=X" else "yonhap-index-close"
     metadata: dict[str, str] = {"ticker": ticker, "close": close}
     if pct is not None:
         metadata["pct_change"] = pct
@@ -50,7 +52,7 @@ def test_normalize_domestic_anchor_symbol_registry() -> None:
     assert normalize_domestic_anchor_symbol("AAPL") is None
 
 
-def test_classifies_trusted_stooq_index_candidate() -> None:
+def test_classifies_trusted_yonhap_index_candidate() -> None:
     candidate = candidate_from_item(_item("^KOSPI", "2650.50"))
     assert candidate is not None
 
@@ -97,7 +99,7 @@ def test_wrong_source_and_bad_source_outcome_are_not_trusted() -> None:
     verdicts = domestic_anchor_verdicts(
         [wrong_source, bad_outcome],
         target_date=_TARGET,
-        source_outcomes=(SourceOutcome.zero("stooq-kr-market", "price"),),
+        source_outcomes=(SourceOutcome.zero("yonhap-index-close", "price"),),
     )
 
     assert [verdict.trust for verdict in verdicts] == [
@@ -114,6 +116,31 @@ def test_stale_candidate_is_withheld() -> None:
     assert verdict.trust == "stale"
 
 
+def test_fred_fx_candidate_uses_source_specific_seven_day_freshness() -> None:
+    seven_days_old = _item(
+        "KRW=X",
+        "1508.76",
+        published_at=datetime(2026, 5, 15, 16, 0, tzinfo=UTC),
+    )
+    eight_days_old = _item(
+        "KRW=X",
+        "1508.76",
+        published_at=datetime(2026, 5, 14, 16, 0, tzinfo=UTC),
+    )
+    future = _item(
+        "KRW=X",
+        "1508.76",
+        published_at=datetime(2026, 5, 23, 16, 0, tzinfo=UTC),
+    )
+
+    verdicts = domestic_anchor_verdicts(
+        [seven_days_old, eight_days_old, future],
+        target_date=_TARGET,
+    )
+
+    assert [verdict.trust for verdict in verdicts] == ["trusted", "stale", "stale"]
+
+
 def test_large_cap_source_contract() -> None:
     samsung = _item("005930", "72000", source="fsc-krx-stock-price", pct="2.0")
     sk_hynix = _item("000660", "185000", source="fsc-krx-stock-price", pct="-1.0")
@@ -128,7 +155,7 @@ def test_trusted_domestic_price_items_filters_only_registry_failures() -> None:
     items = [
         _item("^KOSPI", "999.99"),
         _item("^KOSDAQ", "870.25"),
-        _item("AAPL", "305.10", source="stooq-price"),
+        _item("AAPL", "305.10", source="yfinance-price"),
     ]
 
     out = trusted_domestic_price_items(items, target_date=_TARGET)
@@ -174,7 +201,7 @@ def test_quality_snapshot_figures_presence_requires_verified_rendered_fact() -> 
         + DISCLAIMER,
     )
     item = NormalizedItem(
-        source_name="stooq-price",
+        source_name="yfinance-price",
         category="price",
         title="S&P 500 close",
         published_at=_TS,

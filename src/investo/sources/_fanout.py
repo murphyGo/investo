@@ -17,13 +17,11 @@ concern — concurrent fan-out — so it gets its own module.
 Two escalation modes seen in the wild are both preserved:
 
 * ``raise_if_all_failed=False`` (default) — pure per-item isolation:
-  reproduces ``fred`` / ``yfinance`` / ``stooq_price``.
+  reproduces ``fred`` / ``yfinance``.
 * ``raise_if_all_failed=True`` — re-raise the first ``SourceFetchError``
   only when zero items were produced AND at least one fetch failed:
   reproduces ``binance`` / ``fsc_krx_stock_price``.
 
-``stooq_kr_market`` keeps its bespoke symbol-keyed dict + Yonhap fallback
-loop and is intentionally NOT migrated (different contract).
 """
 
 from __future__ import annotations

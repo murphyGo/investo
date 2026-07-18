@@ -47,6 +47,7 @@ from . import (
     fomc_rss,  # noqa: F401
     fred,  # noqa: F401
     fred_economic_calendar,  # noqa: F401
+    fred_fx_close,  # noqa: F401
     fsc_krx_index_price,  # noqa: F401
     fsc_krx_stock_price,  # noqa: F401
     korea_policy_rss,  # noqa: F401
@@ -60,13 +61,12 @@ from . import (
     sec_company_facts,  # noqa: F401
     sec_edgar_8k,  # noqa: F401
     sec_newsroom_rss,  # noqa: F401
-    stooq_kr_market,  # noqa: F401
-    stooq_price,  # noqa: F401
     theblock_crypto,  # noqa: F401
     treasury_rates,  # noqa: F401
     us_economic_calendar,  # noqa: F401
     yahoo_finance_news,  # noqa: F401
     yfinance,  # noqa: F401
+    yonhap_index_close,  # noqa: F401
     yonhap_market,  # noqa: F401
 )
 

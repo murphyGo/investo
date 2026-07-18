@@ -18,9 +18,14 @@ DomesticAnchorTrust = Literal[
     "provenance_missing",
 ]
 
-_INDEX_FX_SOURCE: Final[str] = "stooq-kr-market"
+_INDEX_FX_SOURCES: Final[dict[str, str]] = {
+    "^KOSPI": "yonhap-index-close",
+    "^KOSDAQ": "yonhap-index-close",
+    "KRW=X": "fred-fx-close",
+}
+_FRED_FX_SOURCE: Final[str] = "fred-fx-close"
+_FRED_FX_MAX_AGE_DAYS: Final[int] = 7
 _LARGE_CAP_SOURCE: Final[str] = "fsc-krx-stock-price"
-_INDEX_FX_SYMBOLS: Final[frozenset[str]] = frozenset({"^KOSPI", "^KOSDAQ", "KRW=X"})
 _LARGE_CAP_SYMBOLS: Final[frozenset[str]] = frozenset({"005930.KS", "000660.KS"})
 _STATE_ORDER: Final[tuple[DomesticAnchorTrust, ...]] = (
     "unavailable",
@@ -128,7 +133,11 @@ def classify_domestic_anchor_candidate(
     outcome_status = _source_statuses(source_outcomes).get(candidate.source_name)
     if outcome_status in {"failed", "zero"}:
         return "provenance_missing"
-    if target_date is not None and not _date_matches(candidate.observed_at, target_date):
+    if target_date is not None and not _date_matches(
+        candidate.observed_at,
+        target_date,
+        source_name=candidate.source_name,
+    ):
         return "stale"
     min_close, max_close, max_abs_change = _BANDS[candidate.symbol]
     if not min_close <= candidate.close <= max_close:
@@ -210,8 +219,8 @@ def _verdict_for_item(
 
 
 def _expected_source(symbol: str) -> str:
-    if symbol in _INDEX_FX_SYMBOLS:
-        return _INDEX_FX_SOURCE
+    if symbol in _INDEX_FX_SOURCES:
+        return _INDEX_FX_SOURCES[symbol]
     if symbol in _LARGE_CAP_SYMBOLS:
         return _LARGE_CAP_SOURCE
     return ""
@@ -221,10 +230,19 @@ def _source_statuses(outcomes: Sequence[SourceOutcome]) -> Mapping[str, str]:
     return {outcome.source_name: outcome.status for outcome in outcomes}
 
 
-def _date_matches(observed_at: datetime | None, target_date: date) -> bool:
+def _date_matches(
+    observed_at: datetime | None,
+    target_date: date,
+    *,
+    source_name: str,
+) -> bool:
     if observed_at is None:
         return False
-    return observed_at.astimezone(UTC).date() == target_date
+    observed_date = observed_at.astimezone(UTC).date()
+    age_days = (target_date - observed_date).days
+    if source_name == _FRED_FX_SOURCE:
+        return 0 <= age_days <= _FRED_FX_MAX_AGE_DAYS
+    return age_days == 0
 
 
 def _metadata_text(item: NormalizedItem, key: str) -> str:

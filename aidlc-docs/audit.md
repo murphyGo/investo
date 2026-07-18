@@ -4642,3 +4642,16 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 1,236 orchestrator/source tests and a final 56-test focused rerun passed; scoped Ruff/format, no-paid guard, `mypy src` for 228 files, and `git diff --check` passed; fresh-eyes review found no issues.
 **TECH-DEBT**: None.
 **Context**: Step 2 commit `bdae20d` was pushed before this step began; u138 is now at Step 3 of 6.
+
+## u138 Code Generation Step 4 - Retire Stooq and Preserve Korean Legs
+**Timestamp**: 2026-07-18T19:56:26Z
+**Action**: Completed Code Generation Step 4 in the dedicated u138 worktree.
+**Decisions**:
+- Removed both Stooq production modules, discovery imports, source specs, tiers, core memberships, and the orphan `us-with-crypto-signal` route.
+- Migrated the existing Yonhap RSS numeric parser to `yonhap-index-close`, limited to KOSPI/KOSDAQ with direct article provenance and KRX-close timestamps.
+- Added fixed-series `fred-fx-close` for DEXKOUS using the existing `FRED_API_KEY`, New York-noon timestamps, `fred-h10` provenance, placeholder/future/non-finite filtering, and seven-day freshness.
+- Removed DEXKOUS from `fred-macro` defaults and split u109 provenance/freshness so only FRED FX accepts ages 0-7 while Yonhap/KRX/large-cap sources remain exact-date.
+- Updated source declarations and optional-secret behavior in `docs/tech-env.md` and `CONTRIBUTING.md`.
+**Validation**: 824 source tests, 81 registry/segment tests, and 33 adapter-to-quarantine tests passed; Ruff/format, `mypy src` for 228 files, no-paid guard, strict docs build, static retired-endpoint checks, and `git diff --check` passed. Fresh-eyes review found the FRED/u109 freshness mismatch; it was fixed and re-review found no remaining Step 4 issues.
+**TECH-DEBT**: None.
+**Context**: Step 3 commit `b3e812a` was pushed before this step began; u138 is now at Step 4 of 6. The remaining stale briefing coverage/diagnostic expectations are planned Step 5 scope.

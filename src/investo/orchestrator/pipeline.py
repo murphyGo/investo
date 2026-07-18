@@ -1566,8 +1566,8 @@ def _inject_chart_blocks_into_segments(
 #
 # Root cause: the anchor header table renders ``MarketAnchor.close`` (the
 # last OHLCV bar from ``yfinance_history``), while the body prose and the
-# trace footer cite the price-snapshot ``NormalizedItem`` close (stooq-price
-# / yfinance). The two feeds differ by provider / timestamp / resolution, so
+# trace footer cites the ``yfinance-price`` snapshot close. History and
+# snapshot feeds can differ by timestamp / resolution, so
 # the same ticker can show e.g. AAPL 304.99 (header) vs 305.10 (trace).
 #
 # Fix: reconcile the *display* close only. We extract the per-ticker snapshot
@@ -1577,8 +1577,8 @@ def _inject_chart_blocks_into_segments(
 # recomputed): only the displayed close is swapped so all three surfaces
 # agree. Tickers without a snapshot keep the history close (safe fallback).
 #
-# Mapping: both stooq-price and yfinance stamp ``raw_metadata["ticker"]`` in
-# the same yfinance vocabulary the anchors use (``^GSPC`` / ``AAPL`` /
+# Mapping: yfinance stamps ``raw_metadata["ticker"]`` in the same vocabulary
+# the anchors use (``^GSPC`` / ``AAPL`` /
 # ``BTC-USD``) plus ``raw_metadata["close"]``. That ticker key is the
 # universal snapshot (covers indices AND individual stocks); the
 # ``core_fact:`` keys are a redundant overlay for the 12 mapped tickers
@@ -2481,10 +2481,9 @@ class GenerateStage:
                             "final_count": final_yahoo_count,
                         },
                     )
-                # u67 — fold deterministic KR index-close + 원/달러 anchors
-                # (from the stooq-kr-market snapshot items) into the domestic
-                # segment. Yahoo history cannot supply these (429 on GHA), so
-                # they are synthesized close-only from the collected items.
+                # u67/u138 — fold deterministic Yonhap index closes and the
+                # FRED 원/달러 observation into the domestic segment. They are
+                # synthesized close-only from the collected items.
                 kr_anchors = _build_kr_anchors_from_items(
                     items,
                     target_date=target_date,

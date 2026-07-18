@@ -141,10 +141,8 @@ class CoreFactVerificationReport(BaseModel):
 def aggregate_source_facts(items: Sequence[NormalizedItem]) -> dict[CoreFact, Decimal]:
     """Build ``{fact: Decimal}`` from every ``core_fact:*`` raw_metadata key.
 
-    Multiple adapters can stamp the same fact (stooq-price + yfinance
-    both emit ``core_fact:spx_close`` from ``^GSPC``). Last-writer-wins
-    is safe because both adapters compute Decimal-as-string from the
-    session close — their values agree within tolerance by construction.
+    Multiple adapters can stamp the same fact. Last-writer-wins is safe
+    when duplicate facts agree within the gate's configured tolerance.
     """
     out: dict[CoreFact, Decimal] = {}
     for item in items:

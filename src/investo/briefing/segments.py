@@ -79,16 +79,14 @@ SEGMENT_REQUIRED_CATEGORIES: Final[dict[MarketSegment, tuple[Category, ...]]] = 
 #     failed/zero ⇒ no ``normal`` possible (single canonical KRX index
 #     feed today; ``krx-foreign-flows`` is narrative-critical but not
 #     core, so it drives ``partial`` not ``limited``).
-#   - us-equity: 2 listed sources, **at-least-one** must be ``ok`` for
-#     ``normal``. Both failed/zero ⇒ ``limited``. Both ``failed`` and
-#     summed item_count = 0 ⇒ ``failed``.
-#   - crypto: CoinGecko + Stooq are core. Binance remains collected when
-#     reachable, but GitHub Actions runners regularly receive HTTP 451, so it
-#     must not be the source that downgrades otherwise usable crypto coverage.
+#   - us-equity: Yahoo query2 is the canonical snapshot source.
+#   - crypto: CoinGecko is core. Binance remains collected when reachable,
+#     but GitHub Actions runners regularly receive HTTP 451, so it must not
+#     be the source that downgrades otherwise usable crypto coverage.
 SEGMENT_CORE_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     DOMESTIC_EQUITY: frozenset({"fsc-krx-index-price"}),
-    US_EQUITY: frozenset({"yfinance-price", "stooq-price"}),
-    CRYPTO: frozenset({"coingecko-price", "stooq-price"}),
+    US_EQUITY: frozenset({"yfinance-price"}),
+    CRYPTO: frozenset({"coingecko-price"}),
 }
 SEGMENT_MACRO_ACTUAL_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     DOMESTIC_EQUITY: frozenset({"krx-foreign-flows"}),
@@ -137,7 +135,7 @@ _DOMESTIC_ONLY_SOURCES: Final[frozenset[str]] = source_names_for_item_segment(
 _US_ONLY_SOURCES: Final[frozenset[str]] = source_names_for_item_segment(
     US_EQUITY,
     routing="single-segment",
-) | source_names_for_item_routing("us-with-crypto-signal")
+)
 _CRYPTO_ONLY_SOURCES: Final[frozenset[str]] = source_names_for_item_segment(
     CRYPTO,
     routing="single-segment",
@@ -173,10 +171,6 @@ _CRYPTO_SOURCES: Final[frozenset[str]] = _CRYPTO_ONLY_SOURCES | _SHARED_SOURCES_
 _OUTCOME_EXTRA_SOURCES_BY_SEGMENT: Final[dict[MarketSegment, frozenset[str]]] = {
     "domestic-equity": source_names_for_outcome_segment(DOMESTIC_EQUITY) - _DOMESTIC_SOURCES,
     "us-equity": source_names_for_outcome_segment(US_EQUITY) - _US_SOURCES,
-    # ``stooq-price`` is a mixed US/crypto snapshot adapter. Routing remains
-    # title-driven in ``segment_items()`` so US tickers do not leak into
-    # crypto, but the aggregate source outcome is relevant to crypto coverage
-    # because the adapter also emits BTC-USD / ETH-USD rows.
     "crypto": source_names_for_outcome_segment(CRYPTO) - _CRYPTO_SOURCES,
 }
 _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
