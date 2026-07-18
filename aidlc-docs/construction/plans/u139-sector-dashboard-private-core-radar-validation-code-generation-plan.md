@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u139 sector-dashboard-private-core-radar-validation
 **Stage**: Code Generation
-**Status**: In Progress — Step 3 complete
+**Status**: In Progress — Step 4 complete
 **Source**: FR-022, NFR-008, US-010, and the approved S0-P Application Design
 **Estimated Effort**: ~12-18 h after design approval
 **Dependencies**: none; u140 is intentionally not a dependency
@@ -16,7 +16,7 @@
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/`.
 - NFR Requirements: **COMPLETE — approved 2026-07-18**. The binding artifacts are under
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/`.
-- Code Generation: **IN PROGRESS**. Steps 1-3 are complete; Step 4 is the next bounded slice.
+- Code Generation: **IN PROGRESS**. Steps 1-4 are complete; Step 5 is the next bounded slice.
 
 ## Scope Boundary
 
@@ -106,17 +106,19 @@ Contract definition and its NFR review gate were explicitly approved on 2026-07-
 
 ### Step 4 — Private renderer and manual runner
 
-- [ ] Render a compact summary, quadrant/table, coverage, and diagnostics with
+- [x] Render a compact summary, quadrant/table, coverage, and diagnostics with
   mandatory NAV/private labels.
-- [ ] Reject public/tracked output paths before reading source bytes.
-- [ ] Verify output contains no raw row, provider payload, exchange-volume, flow, or
+- [x] Reject public/tracked output paths before reading source bytes.
+- [x] Verify output contains no raw row, provider payload, exchange-volume, flow, or
   public-source claim.
 
 ### Step 5 — Quality gates and handoff evidence
 
 - [ ] Run focused tests, full pytest, ruff, format check, mypy strict, no-paid guard,
   and `mkdocs build --strict`.
-- [ ] Confirm existing briefing/public artifacts remain unchanged.
+- [ ] Confirm existing briefing/public artifacts remain unchanged, including an
+  explicit `git diff` sentinel scan over `archive/`, `site_docs/`, `mkdocs.yml`, and
+  `.github/workflows/` after the synthetic/manual run.
 - [ ] Record a synthetic-input run and an operator-local smoke result without
   committing the input or private output.
 

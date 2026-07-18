@@ -1,5 +1,18 @@
 # AI-DLC Audit Log
 
+## Construction — u139 Code Generation Step 4 complete
+**Timestamp**: 2026-07-18T13:03:50Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed Step 3 metric/regime slice as `f8cfc90`, then executed the next bounded Code Generation slice only.
+**Implementation**: Added canonical private NAV-only JSON/Markdown rendering, coverage-aware C1-C8 report surfaces, exact snapshot/report pair verification, owner-only external output policy, explicit replace/no-op semantics, and a manual CLI with bounded redacted exits. The recoverable transaction uses a stable append-only locked journal, pinned output/prepared/backup directory descriptors, single-link file invariants, candidate/backup snapshot IDs and report digests, phase-specific current-pair invariants, and verified partial/empty cleanup recovery after the durable commit point.
+**Public boundary**: The runner requires explicit paths and opens/recoveries the output session before reading private input. AST/reverse-reference guards cover source registration, briefing/orchestrator/publisher/notifier/Telegram, workflows, and `mkdocs.yml`; the public tracked diff is scanned for private sentinels and runner registration. No source adapter, scheduled task, Pages navigation, Telegram path, or u140 authorization was added.
+**Code review**: Fresh-eyes fault injection reproduced issues in marker durability, canonical evidence anchoring, output/managed path swaps, hardlinks, at-rest report validation, phase disagreement, interrupted temp creation/cleanup, descriptor lifecycle, raw exception leakage, and negative public evidence. Every Critical/High/Medium finding was fixed with a regression. Final re-review returned `APPROVED` with no remaining Critical, High, or Medium finding.
+**Verification**: Focused Step 4 renderer/CLI tests 61 passed; cumulative sector-dashboard tests 126 passed; repository Ruff check/format, `mypy src` (232 files), and `git diff --check` passed. Prior full pytest evidence remained 3514 passes plus the two baseline-identical DEBT-081 failures; Step 5 owns the final full gate, no-paid guard, mkdocs strict build, synthetic/operator smoke, acceptance matrix, and public diff audit.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/code/step-4-private-renderer-and-manual-runner.md`
+- `docs/sessions/2026-07-18-u139-code-generation-step4.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+**Status**: Code Generation Step 4/5 Complete; Step 5 quality gates and handoff evidence is next. No new TECH-DEBT; unrelated generated Pages/watchlist files and u140 status are unchanged.
+
 ## Construction — u139 Code Generation Step 3 complete
 **Timestamp**: 2026-07-18T09:12:37Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed Step 2 private-input slice as `eb6311f`, then executed the next bounded Code Generation slice only.

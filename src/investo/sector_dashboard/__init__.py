@@ -22,6 +22,16 @@ from investo.sector_dashboard.private_input import (
     parse_private_nav_workbooks,
     read_private_workbook_manifest,
 )
+from investo.sector_dashboard.private_render import (
+    PrivateCommitResult,
+    PrivateOutputRejectedError,
+    PrivateOutputSession,
+    PrivateTransactionError,
+    RenderedPrivateProjection,
+    open_private_output_session,
+    render_private_projection,
+    verify_private_projection,
+)
 from investo.sector_dashboard.regime import (
     classify_regime_history,
     classify_sector_regime,
@@ -31,7 +41,12 @@ from investo.sector_dashboard.regime import (
 )
 
 __all__ = [
+    "PrivateCommitResult",
     "PrivateInputError",
+    "PrivateOutputRejectedError",
+    "PrivateOutputSession",
+    "PrivateTransactionError",
+    "RenderedPrivateProjection",
     "classify_regime_history",
     "classify_sector_regime",
     "compute_relative_ranks",
@@ -45,8 +60,11 @@ __all__ = [
     "nav_relative_acceleration_5d",
     "nav_return",
     "neutral_band_ratio",
+    "open_private_output_session",
     "parse_private_nav_workbooks",
     "read_private_workbook_manifest",
     "regime_policy_for_band",
+    "render_private_projection",
     "resolve_axis_state",
+    "verify_private_projection",
 ]
