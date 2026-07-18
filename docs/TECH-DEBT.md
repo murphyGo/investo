@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 5 | 2026-05-07 |
-| Low | 32 | 2026-04-27 |
+| Low | 33 | 2026-04-27 |
 
 ---
 
@@ -22,6 +22,16 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
+
+#### DEBT-083: `scripts/check_curated_assets.py` is authored but not wired into any GitHub Actions workflow
+
+- **Created**: 2026-07-18
+- **Source**: u137 image-candidate-registry-and-licensed-store Step 5 ops work (discovered while wiring `scripts/check_image_store.py` into `.github/workflows/quality.yml`)
+- **Reference**: u86 curated-assets policy, u137 TS-3 (`check_image_store.py` deliberately mirrors `check_curated_assets.py`), AC-137.3/AC-137.5 precedent (a gate only binds when CI-wired), NFR-005 (consistency)
+- **Description**: `scripts/check_curated_assets.py` exists and runs locally, but no workflow under `.github/workflows/` invokes it — grep confirms `quality.yml` wires only `check_no_paid_apis.py` and the new `check_image_store.py`. The curated-asset invariants that script pins are therefore enforced only when an operator remembers to run it manually; a change violating curated-asset policy would merge green. The inconsistency is now conspicuous because u137's sibling gate, modeled on this script per TS-3, IS wired into the same workflow. **Decision (2026-07-18)**: wire it, do not retire it — the u86 policy the script guards is still binding and the u137 pairing makes an unwired sibling actively misleading about what CI enforces.
+- **Suggested Fix**: Add a `uv run python scripts/check_curated_assets.py` step to `.github/workflows/quality.yml` adjacent to the `check_image_store.py` step (investo-ops owns the YAML). Verify it exits 0 on the current clean tree first; if it fails on legacy curated assets, fix or explicitly waive those before wiring so the gate lands green rather than red-on-arrival.
+- **Effort**: ~15-30 min (one workflow step + one clean-tree verification run; more only if legacy assets fail).
+- **Priority Reasoning**: Medium — an authored-but-unwired gate is silent policy erosion: the repo looks protected while the invariant goes unenforced, the same gate-trust concern that motivated DEBT-081's Medium. The fix is trivially cheap and the wired/unwired split between two sibling gates in the same family will confuse future contributors about which checks actually bind.
 
 #### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
 
@@ -76,6 +86,16 @@ _No high priority items._
 - **Priority Reasoning**: Medium — works correctly today on the observed segment shapes (≤ 1 non-hero card per anchor), but is the kind of regression that escapes review when a fourth card type lands.
 
 ### Low Priority
+
+#### DEBT-084: archive-side visuals manifests stamp wall-clock `generated_at` while the u137 image store persists no wall clock — determinism inconsistency
+
+- **Created**: 2026-07-18
+- **Source**: u137 image-candidate-registry-and-licensed-store closeout (BLM §6 "No wall clock in persisted values" contrast noted during the land review)
+- **Reference**: u137 I3 (`collected_on` = target date) / BLM §6 determinism summary, u24 visual-provenance manifests, u75 precedent (`provenance.run_date` = target date, no wall clock), NFR-005 (consistency)
+- **Description**: `_prepare_external_context_image` in `src/investo/visuals/assets.py` (line 466) stamps `generated_at=datetime.now(tz=UTC)` into the archive-side visual provenance manifest; the same pattern appears in `_prepare_openai_market_image` (line 430), `_prepare_curated_context_image` (line 523), and `_write_generated_svg_manifest` (line 543). u137's store deliberately went the other way — no wall clock in any persisted value (`collected_on` = target date per I3; sidecars written once at first store and never churned), matching the u75 chart-sidecar precedent. The result is two coexisting provenance conventions in the same `visuals/` package: re-running the archive-side path for the same target date produces byte-different manifests (timestamp churn in git diffs), while the u137 ledger/index/sidecar path is byte-idempotent. Behaviorally correct today; the inconsistency is a determinism/idempotency gap, not a defect.
+- **Suggested Fix**: Align the archive-side manifests with the target-date convention — pass the pipeline target date into the four `_prepare_*`/`_write_*` call sites and stamp it (or a derived deterministic value) as `generated_at` instead of `datetime.now(tz=UTC)`, preserving the field name for schema compatibility. Pin with a re-run idempotency test that asserts byte-equal manifests for the same target date.
+- **Effort**: ~1 h (plumb target date through four call sites + idempotency regression test).
+- **Priority Reasoning**: Low — no reader-facing or correctness impact; the cost is manifest churn on re-runs and a mixed convention future contributors may copy from the wrong side. Resolve opportunistically the next time the archive-side visuals path is touched; promote only if manifest churn starts polluting publish diffs or a serialization/replay consumer begins depending on `generated_at`.
 
 #### DEBT-082: `_ALLOWED_SCHEMES` duplicated across 13 sources modules; `_FORBIDDEN_LICENSE_KEYS` duplicated across 4 test files
 

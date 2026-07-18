@@ -12,6 +12,80 @@
 - `docs/sessions/2026-07-18-u139-code-generation-step3.md`
 - `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
 **Status**: Code Generation Step 3/5 Complete; Step 4 private renderer and manual runner is next. No new TECH-DEBT; existing Pages/watchlist dirty files, scheduled/public surfaces, and u140 status are unchanged.
+## u137 Land - image-candidate-registry-and-licensed-store
+**Timestamp**: 2026-07-18T00:00:00Z
+**Action**: Landed u137 code generation (7/7). Metadata-only-by-default image
+candidate registry + licensed content-addressed store in
+`visuals/image_library.py`, wired as a failure-isolated orchestrator stage
+with a CI license gate.
+**Decisions**:
+- Date ledgers `archive/_meta/image_candidates/{YYYY}/{YYYY-MM-DD}.jsonl`
+  (R3 union merge-rewrite, existing-row-wins, byte-idempotent) + recurrence
+  index with `seen_count` = distinct ledger dates (R5) — AC-137.1/AC-137.6.
+- Operator-file-driven rights states `metadata-only`/`cleared`/`blocked`
+  (I14 no auto-promote, I7 blocked-wins, I15 blocked permanence); the fetch
+  path re-verifies clearance/blocked file truth, not the index.
+- I13 quadruple-gated fetch (`cleared` + env opt-in + policy pass + I9
+  clearance URL-identity hash match) into content-addressed
+  `assets/images/{candidate_id[:2]}/{candidate_id}{ext}` with
+  `.provenance.json` sidecars carrying `content_sha256` (I10
+  skip-if-present) — AC-137.2/AC-137.3; default runs store 0 binaries.
+- Failure-isolated post-routing pipeline stage: forced-exception integration
+  test keeps 3-segment publish green (AC-137.4, integration-pinned).
+- `scripts/check_image_store.py` CI gate wired into
+  `.github/workflows/quality.yml`: binary/sidecar/clearance pair
+  completeness, clearance validity incl. I9 hash match, 2,000,000 B /
+  50,000,000 B budgets, R13 secret scan, unparseable clearance = RED even
+  without a stored binary; empty / metadata-only store green —
+  AC-137.3/AC-137.5.
+- CONTRIBUTING clearance runbook with the binding legal bar (재게시 가능
+  근거가 확인된 경우만 매니페스트 작성).
+- Step 0 Design Q/A ratifications carried through implementation unchanged:
+  I9 clearance URL-identity invariant, blocked-wins precedence, union
+  merge-rewrite ledger semantics, fail-closed unparseable-clearance handling
+  (runtime treats the candidate as metadata-only; CI RED).
+- Zero new unconditional HTTP call sites (httpx mock watch).
+**Quality gate**: full gate green — ruff, `mypy --strict` (229 files),
+pytest 3460 passed (only the pre-existing DEBT-081 pair excepted),
+`scripts/check_no_paid_apis.py`, `scripts/check_image_store.py`,
+`mkdocs build --strict` at clean tree.
+**TECH-DEBT**: DEBT-083 (`check_curated_assets.py` authored but not wired
+into any workflow — u137 Step 5 ops finding; the u137 gate IS wired),
+DEBT-084 (`_prepare_external_context_image` wall-clock `generated_at` vs
+u137's no-wall-clock store).
+**Context**: u137 image-candidate-registry-and-licensed-store Code Generation
+complete (commits e93e7f0, 37b3c64, ca17a58, 0af9c7a, 54188c4, 68dd5e1,
+1b3cdf3). Cross-check pending. Ratified divergences logged below (Step 1
+I2/R4 sanitization split, Step 3 TS-2 digest exemption, Step 4 rollback
+exclusion). Unblocks the usage-phase follow-up units (hero/link-card
+selection, Telegram sendPhoto).
+
+---
+
+## Construction — u137 Step 4 design decision — image outputs excluded from publish rollback snapshots
+**Timestamp**: 2026-07-18T00:00:00Z
+**Trigger**: Step 4 orchestrator wiring — joining the image-stage outputs (date ledger, recurrence index, store binaries/sidecars) to publish staging raised the rollback question: files first seen in a run would be snapshot-registered with `previous_bytes=None`, and rollback deletes `None`-snapshot files.
+**Decision**: Image-stage outputs join the publish git-add staging list but are excluded from rollback snapshots. Registering the merge-rewrite artifacts with `previous_bytes=None` would make a later rollback delete pre-existing ledgers (a re-run date's ledger file exists before the run and is union merge-rewritten), violating R3 never-drop. Failure isolation (I16) already guarantees the publish decision never depends on image artifacts, so rollback fidelity for them buys nothing.
+**Ratification**: recorded inline in the plan's Step 4 section (`/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u137-image-candidate-registry-and-licensed-store-code-generation-plan.md`).
+**Status**: Ratified 2026-07-18.
+
+---
+
+## Construction — u137 Step 3 ratified accommodation — TS-2 sidecar digest exemption (VisualProvenanceManifest)
+**Timestamp**: 2026-07-18T00:00:00Z
+**Trigger**: Step 3 implementation — the u24 `VisualProvenanceManifest` STRICT scrub redacts 64-hex tokens, so the `.provenance.json` sidecar could not carry the verbatim `candidate_id`/`content_sha256` values the I12 CI pairing check needs to match binaries to sidecars and clearances.
+**Decision**: `additional_metadata` passes exactly the two keys `candidate_id` and `content_sha256` verbatim IFF the value fullmatches `^[0-9a-f]{64}$`; a shape-mismatched value and every other key/value keep the full existing STRICT treatment. The u27 catalogue is untouched. Required for the I12 CI pairing check (`check_image_store.py` recomputes and compares `content_sha256`). The fetch path additionally re-confirms file truth (clearance/blocked files), not the index (I7/I14).
+**Ratification**: recorded inline in the plan's Step 3 section (`/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u137-image-candidate-registry-and-licensed-store-code-generation-plan.md`).
+**Status**: Ratified 2026-07-18.
+
+---
+
+## Construction — u137 Step 1 ratified divergence — I2/R4 sanitization split (candidate identity vs STRICT scrub)
+**Timestamp**: 2026-07-18T00:00:00Z
+**Trigger**: Step 1 implementation — R4 routes all persisted strings through the u27 STRICT `sanitize_provenance_text`, but STRICT redacts 64-hex tokens, query strings, and long URL path runs, which would rewrite `candidate_id` and the source/image URLs and break the I1/I9 hash-identity contracts (candidate_id = sha256 of the normalized URL; the clearance filename must hash-match the URL).
+**Decision**: Split the sanitization contract by field class. `candidate_id` is regex-locked (`^[0-9a-f]{64}$`) instead of rewritten; URL fields are fail-closed secret-screened — `SECRET_ENV_VARS` value scan + `scan_for_leak`, any hit drops the whole candidate rather than persisting a rewritten URL; all free-text fields keep the STRICT `sanitize_provenance_text` chokepoint plus the R4 160-char `item_title` cap. Net effect: R13 hygiene stays fail-closed while hash identity stays byte-exact.
+**Ratification**: recorded inline in the plan's Step 1 section (`/Users/user/Desktop/Projects/investo/aidlc-docs/construction/plans/u137-image-candidate-registry-and-licensed-store-code-generation-plan.md`).
+**Status**: Ratified 2026-07-18.
 
 ---
 
