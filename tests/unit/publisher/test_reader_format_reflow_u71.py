@@ -208,6 +208,19 @@ def test_short_ellipsis_summary_completed_before_surface_gate() -> None:
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
 
+def test_unbalanced_parenthetical_summary_is_bounded_before_surface_gate() -> None:
+    summary = _SUMMARY.replace(
+        "> **오늘의 결론**: [관망] 3대 지수 혼조 마감.\n",
+        "> **오늘의 결론**: 코스피는 6,800으로 마감했다(연합뉴스 본문 참고.\n",
+    )
+
+    out = reflow_first_viewport(_header(summary=summary), segment="domestic-equity")
+    first_viewport = out[: out.index("## ①")]
+
+    assert "본문 참고." in first_viewport
+    assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
+
+
 def _surface_issues(text: str, code: str) -> list[object]:
     return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
 

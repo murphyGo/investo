@@ -158,7 +158,12 @@ def _looks_like_truncated_summary_snippet(value: str) -> bool:
         return False
     if _SNIPPET_TRUNCATED_KOREAN_ELLIPSIS_RE.search(value):
         return True
-    return _SNIPPET_TRUNCATED_DENYLIST_RE.search(value) is not None
+    if _SNIPPET_TRUNCATED_DENYLIST_RE.search(value) is not None:
+        return True
+    # A viewport cut can leave Markdown or a parenthetical claim open even
+    # when no explicit ellipsis survived. Treat those lines as candidates for
+    # the same word-boundary repair instead of publishing malformed evidence.
+    return value.count("(") > value.count(")")
 
 
 _SUMMARY_CALLOUT_LINE_RE: Final[re.Pattern[str]] = re.compile(
