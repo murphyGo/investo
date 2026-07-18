@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 5 | 2026-05-07 |
+| Medium | 4 | 2026-05-07 |
 | Low | 33 | 2026-04-27 |
 
 ---
@@ -22,16 +22,6 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
-
-#### DEBT-086: `check_image_store.py` R13 pre-mask is shape-locked but not key-scoped — a 64-hex-shaped secret in an operator-authored clearance manifest evades the gate
-
-- **Created**: 2026-07-19
-- **Source**: u137 image-candidate-registry-and-licensed-store cross-check (M2) — `docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md`
-- **Reference**: u137 NFR AC-1.3 (R13 hygiene across persisted artifacts), u137 TS-2 digest exemption (audit 2026-07-18 — key-scoped to `additional_metadata.candidate_id`/`content_sha256`), project rule R13 (secret hygiene), u27 `scan_for_leak`
-- **Description**: `scripts/check_image_store.py` (lines 75, 223) strips every bare `\b[0-9a-f]{64}\b` token from the full text of every scanned artifact before running `scan_for_leak`. The ratified TS-2 exemption is key-scoped, and the runtime side honors that scope (`src/investo/visuals/provenance.py:155-167` passes only `additional_metadata.candidate_id`/`content_sha256` verbatim) — but the gate widens the exemption file-wide. Consequence: a 64-hex-shaped secret anywhere in a scanned file evades the gate's R13 scan. The residual exposure concentrates in operator-authored clearance manifests: their `ExternalAssetManifest` fields carry no sanitizer (`src/investo/visuals/policy.py:55-66`), and the CI gate is the only automated check for that surface.
-- **Suggested Fix**: Replace the flat regex pre-mask with JSON-aware masking — mask only sidecar `additional_metadata.candidate_id`/`content_sha256` values, index map keys, and ledger `candidate_id` fields, and scan everything else unmasked. Pin with a RED test that places a 64-hex token in a clearance-manifest free-text field. Opportunistically add the 100 B per-file floor the gate currently skips (cross-check L2) in the same pass.
-- **Effort**: ~1-2 h.
-- **Priority Reasoning**: Medium, triaged at the low edge (QA banded it Medium-Low) — the evasion requires the single operator to hand-paste a 64-hex-shaped secret into a manifest they author, and non-64-hex secret shapes (Telegram bot token, `ghp_` PATs) are still caught; but R13 is a hard project rule, the gate is the sole automated check for the clearance-manifest surface, and the fix simply restores the exemption to its ratified key scope. Resolve before clearance manifests see routine operator use.
 
 #### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
 
@@ -417,6 +407,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-086: `check_image_store.py` R13 pre-mask is shape-locked but not key-scoped — a 64-hex-shaped secret in an operator-authored clearance manifest evades the gate
+
+- **Created**: 2026-07-19
+- **Resolved**: 2026-07-19 — Replaced the file-wide `\b[0-9a-f]{64}\b` pre-mask in `scripts/check_image_store.py` with JSON-aware key-scoped exemption matching the ratified TS-2 scope: only sidecar `additional_metadata.candidate_id`/`content_sha256` values, `index.json` top-level map keys, ledger-row `candidate_id` values, and the sidecar `asset_path` when it exactly matches the Contract #4 store-address shape are exempt (all 64-hex shape-locked); clearance manifests and every other position are scanned in full, and unparseable-as-JSON content falls back to a raw unmasked scan (fail-closed). Also added the 100 B per-file floor check (cross-check L2, AC-1.1, reusing `_MIN_IMAGE_BYTES`). Pinned by 4 new tests including the evasion regression (64-hex secret in a clearance `attribution` field → RED naming `oauth_long_base64`, value withheld) — verified the old design MISSED that exact artifact while the new design catches it; all pre-existing green tests (clean store, digest tolerance) stay green.
+- **Source**: u137 image-candidate-registry-and-licensed-store cross-check (M2) — `docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md`
+- **Reference**: u137 NFR AC-1.3 (R13 hygiene across persisted artifacts), u137 TS-2 digest exemption (audit 2026-07-18 — key-scoped to `additional_metadata.candidate_id`/`content_sha256`), project rule R13 (secret hygiene), u27 `scan_for_leak`
+- **Priority Reasoning**: Closed.
 
 #### DEBT-085: u137 Step 4 rollback exclusion is documented but not regression-pinned — a future `previous_bytes=None` registration would silently reintroduce the R3 never-drop violation
 

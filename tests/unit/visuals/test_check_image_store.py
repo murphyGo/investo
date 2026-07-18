@@ -77,7 +77,13 @@ def _item() -> NormalizedItem:
     )
 
 
-def _write_clearance(registry: Path, *, source_url: str = _URL, body: str | None = None) -> str:
+def _write_clearance(
+    registry: Path,
+    *,
+    source_url: str = _URL,
+    body: str | None = None,
+    attribution: str = "Example Agency / CC BY 4.0",
+) -> str:
     cid = candidate_id_for_url(_URL)
     path = clearances_dir_for(ledger_root=registry) / f"{cid}.manifest.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -88,7 +94,7 @@ def _write_clearance(registry: Path, *, source_url: str = _URL, body: str | None
         kind="explicit-license",
         source_url=source_url,  # type: ignore[arg-type]
         license="CC BY 4.0",
-        attribution="Example Agency / CC BY 4.0",
+        attribution=attribution,
         author="Example Agency",
         fetched_on=_TARGET,
         allowed_use="Public redistribution with attribution",
@@ -284,6 +290,53 @@ def test_r13_secret_hit_fails_and_names_pattern_not_value(tmp_path: Path) -> Non
     ledger = registry / "2026" / "2026-07-16.jsonl"
     ledger.write_text(
         ledger.read_text(encoding="utf-8") + f'{{"note": "{secret}"}}\n',
+        encoding="utf-8",
+    )
+    script = _load_script()
+    exit_code, messages = script.check(store, registry)
+    assert exit_code == 1
+    assert any("R13 secret-pattern hit" in m and "github_pat" in m for m in messages)
+    assert all(secret not in m for m in messages)
+
+
+def test_r13_hex_secret_in_clearance_field_fails(tmp_path: Path) -> None:
+    # DEBT-086 evasion regression — the digest exemption is KEY-SCOPED:
+    # a 64-hex-shaped secret in an otherwise-valid clearance manifest's
+    # attribution field (an operator-authored surface with no upstream
+    # sanitizer) must go RED, naming the pattern and withholding the
+    # value. Under the old file-wide pre-mask this evaded the gate.
+    store, registry = _registry_only(tmp_path)
+    hex_secret = "deadbeef" * 8  # 64-hex secret-shaped token
+    _write_clearance(registry, attribution=f"Agency key {hex_secret}")
+    script = _load_script()
+    exit_code, messages = script.check(store, registry)
+    assert exit_code == 1
+    assert any("R13 secret-pattern hit" in m and "oauth_long_base64" in m for m in messages)
+    assert all(hex_secret not in m for m in messages)
+
+
+def test_under_100_byte_binary_fails_floor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # AC-1.1 (cross-check L2) — the 100 B fetch floor is enforced at
+    # the gate too; a truncated store binary goes RED with the
+    # distinct floor message (alongside the sha-mismatch it implies).
+    store, registry, cid = _clean_store(tmp_path, monkeypatch)
+    binary = store_binary_path(cid, ".png", store_root=store)
+    binary.write_bytes(_PNG_BYTES[:40])
+    script = _load_script()
+    exit_code, messages = script.check(store, registry)
+    assert exit_code == 1
+    assert any("per-file floor breach" in m and "AC-1.1" in m for m in messages)
+
+
+def test_unparseable_ledger_line_scanned_raw(tmp_path: Path) -> None:
+    # DEBT-086 fail-closed branch — content that does not parse as JSON
+    # is scanned raw with NO masking, so a secret in a corrupt line
+    # still goes RED.
+    store, registry = _registry_only(tmp_path)
+    secret = "ghp_" + "Zx9Q" * 9
+    ledger = registry / "2026" / "2026-07-16.jsonl"
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8") + f"not-json {secret} trailing\n",
         encoding="utf-8",
     )
     script = _load_script()

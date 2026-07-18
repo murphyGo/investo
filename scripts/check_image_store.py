@@ -17,10 +17,18 @@ The gate fails (non-zero exit, one distinct message per violation) on:
   * an unrecognized extension or non-hex filename in the store tree;
   * a per-file > 2,000,000 B or store-total > 50,000,000 B budget breach
     (AC-1.1 — the per-file cap is the existing u19 fetch cap, reused);
+  * a per-file < 100 B floor breach on a store binary (AC-1.1 — the
+    floor is the existing u19 fetch minimum, reused);
   * an R13 secret-pattern hit in any sidecar / ledger / index /
     clearance manifest (AC-1.3 — reuses the u27 ``scan_for_leak``
-    catalogue; bare 64-hex digests are pre-masked per the ratified u137
-    digest exemption, matching ``visuals/provenance.py``).
+    catalogue). The ratified u137 digest exemption is applied
+    KEY-SCOPED (DEBT-086), mirroring ``visuals/provenance.py``: only
+    sidecar ``additional_metadata.candidate_id`` /
+    ``content_sha256`` values, ``index.json`` top-level map keys, and
+    ledger-row ``candidate_id`` values are exempt (64-hex shape
+    required). A 64-hex-shaped string anywhere else — including any
+    clearance-manifest field — triggers the RED. Content that does not
+    parse as JSON is scanned raw with NO masking (fail-closed).
 
 Green states (binding, AC-1.2): an empty store passes; a
 metadata-only-everything state (ledgers + index present, zero binaries,
@@ -51,7 +59,10 @@ if str(_REPO_ROOT / "src") not in sys.path:
 from pydantic import ValidationError  # noqa: E402
 
 from investo._internal.redaction import scan_for_leak  # noqa: E402
-from investo.visuals.external_image import _MAX_IMAGE_BYTES  # noqa: E402
+from investo.visuals.external_image import (  # noqa: E402
+    _MAX_IMAGE_BYTES,
+    _MIN_IMAGE_BYTES,
+)
 from investo.visuals.image_library import candidate_id_for_url  # noqa: E402
 from investo.visuals.policy import ExternalAssetManifest  # noqa: E402
 from investo.visuals.provenance import VisualProvenanceManifest  # noqa: E402
@@ -68,11 +79,21 @@ _BINARY_EXTENSIONS = (".png", ".jpg")
 _SIDECAR_SUFFIX = ".provenance.json"
 _HEX_CID = r"[0-9a-f]{64}"
 
-# The ratified u137 digest exemption (see visuals/provenance.py):
-# candidate ids / content hashes are bare 64-hex values that the
-# generic long-base64 pattern would otherwise flag. Masked before the
-# R13 scan; every other shape still fires.
-_HEX_DIGEST_RE = re.compile(rf"\b{_HEX_CID}\b")
+# The ratified u137 digest exemption (see visuals/provenance.py) is
+# KEY-SCOPED (DEBT-086): only these positions may carry a bare 64-hex
+# value without triggering the R13 long-base64 pattern. Everything
+# else — clearance-manifest fields included — is scanned in full.
+_SIDECAR_DIGEST_PATHS = (
+    ("additional_metadata", "candidate_id"),
+    ("additional_metadata", "content_sha256"),
+)
+_LEDGER_DIGEST_PATH = ("candidate_id",)
+# The sidecar's asset_path embeds the cid in a slash-joined store
+# address ("/" is inside the long-base64 character class, so the whole
+# address would false-positive). Exempt ONLY when the value is exactly
+# the Contract #4 store-address shape — anything else under that key
+# is scanned.
+_STORE_ADDRESS_SHAPE = rf"assets/images/[0-9a-f]{{2}}/{_HEX_CID}\.(?:png|jpg)"
 
 
 def check(
@@ -111,6 +132,10 @@ def check(
             failures.append(
                 f"per-file budget breach ({len(content)} B > {_MAX_IMAGE_BYTES} B, "
                 f"AC-1.1): {binary}"
+            )
+        if len(content) < _MIN_IMAGE_BYTES:
+            failures.append(
+                f"per-file floor breach ({len(content)} B < {_MIN_IMAGE_BYTES} B, AC-1.1): {binary}"
             )
         sidecar = binary.with_name(binary.name + _SIDECAR_SUFFIX)
         if not sidecar.exists():
@@ -206,27 +231,101 @@ def _scan_r13(registry: Path, sidecars: list[Path]) -> list[str]:
     """AC-1.3 — u27 secret-pattern scan over the persisted artifacts.
 
     Scanned: every store sidecar, every date ledger, the recurrence
-    index, and every clearance manifest. On a hit the message names the
-    PATTERN and the file — never the matched secret text (R13).
+    index, and every other JSON under the registry (clearance manifests
+    included — with NO masking; the digest exemption never applies to
+    operator-authored content). On a hit the message names the PATTERN
+    and the file — never the matched secret text (R13).
     """
-    targets: list[Path] = list(sidecars)
+    index_path = registry / "index.json"
+    targets: list[tuple[Path, str]] = [(sidecar, "sidecar") for sidecar in sidecars]
     if registry.exists():
-        targets.extend(sorted(registry.rglob("*.jsonl")))
-        targets.extend(sorted(registry.rglob("*.json")))
+        targets.extend((path, "ledger") for path in sorted(registry.rglob("*.jsonl")))
+        for path in sorted(registry.rglob("*.json")):
+            kind = "index" if path == index_path else "raw"
+            targets.append((path, kind))
     failures: list[str] = []
-    for target in targets:
+    for target, kind in targets:
         try:
             text = target.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:
             failures.append(f"R13 scan could not read (AC-1.3): {target} ({type(exc).__name__})")
             continue
-        hit = scan_for_leak(_HEX_DIGEST_RE.sub("", text))
-        if hit is not None:
+        pattern_name = _leak_pattern_in_artifact(text, kind)
+        if pattern_name is not None:
             failures.append(
                 f"R13 secret-pattern hit (AC-1.3): {target} matched pattern "
-                f"'{hit.pattern_name}' — value withheld"
+                f"'{pattern_name}' — value withheld"
             )
     return failures
+
+
+def _leak_pattern_in_artifact(text: str, kind: str) -> str | None:
+    """Return the first leak pattern name in one artifact, or ``None``.
+
+    ``kind`` selects the key-scoped digest exemption (DEBT-086):
+    ``sidecar`` / ``index`` / ``ledger`` parse as JSON and skip only
+    the ratified digest positions; ``raw`` (clearance manifests, stray
+    files) scans everything. Unparseable-as-JSON content falls back to
+    a raw full-text scan with no masking — fail-closed.
+    """
+    if kind == "raw":
+        hit = scan_for_leak(text)
+        return hit.pattern_name if hit is not None else None
+    chunks = text.splitlines() if kind == "ledger" else [text]
+    for chunk in chunks:
+        if not chunk.strip():
+            continue
+        try:
+            parsed = json.loads(chunk)
+        except ValueError:
+            hit = scan_for_leak(chunk)  # fail-closed: unmasked raw scan
+            if hit is not None:
+                return hit.pattern_name
+            continue
+        for path, value, is_key in _iter_json_strings(parsed):
+            if not is_key and _is_exempt_digest(kind, path, value):
+                continue
+            if is_key and kind == "index" and path == () and re.fullmatch(_HEX_CID, value):
+                continue  # index top-level map keys ARE candidate ids
+            hit = scan_for_leak(value)
+            if hit is not None:
+                return hit.pattern_name
+    return None
+
+
+def _is_exempt_digest(kind: str, path: tuple[str, ...], value: str) -> bool:
+    """Shape-locked, key-scoped digest exemption (TS-2 / DEBT-086)."""
+    if kind == "sidecar" and path == ("asset_path",):
+        return re.fullmatch(_STORE_ADDRESS_SHAPE, value) is not None
+    if not re.fullmatch(_HEX_CID, value):
+        return False
+    if kind == "sidecar":
+        return path in _SIDECAR_DIGEST_PATHS
+    if kind == "ledger":
+        return path == _LEDGER_DIGEST_PATH
+    return False
+
+
+def _iter_json_strings(
+    node: object, path: tuple[str, ...] = ()
+) -> list[tuple[tuple[str, ...], str, bool]]:
+    """Yield every string in a parsed JSON tree as ``(path, text, is_key)``.
+
+    A value's ``path`` includes its own key; a key's ``path`` is its
+    parent's. Lists do not extend the path.
+    """
+    found: list[tuple[tuple[str, ...], str, bool]] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if isinstance(key, str):
+                found.append((path, key, True))
+                found.extend(_iter_json_strings(value, (*path, key)))
+    elif isinstance(node, list):
+        for item in node:
+            found.extend(_iter_json_strings(item, path))
+    elif isinstance(node, str):
+        found.append((path, node, False))
+    return found
 
 
 def main() -> int:
