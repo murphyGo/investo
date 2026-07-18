@@ -4617,3 +4617,15 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 33 focused fixture/history tests passed; scoped Ruff and format checks passed; the local FRED key is absent from fixture bytes. Fresh-eyes review initially found metadata-only replay and sidecar masking gaps; both were fixed and re-review found no remaining issues.
 **TECH-DEBT**: None.
 **Context**: u138 is now in progress at Step 1 of 6; no production code changed in this step.
+
+## u138 Code Generation Step 2 - Shared Yahoo Chart and Phased Collection
+**Timestamp**: 2026-07-17T21:51:37Z
+**Action**: Completed Code Generation Step 2 in the dedicated u138 worktree.
+**Decisions**:
+- Added `_yahoo_chart.py` as the single Yahoo query2/1y/1d request and parser implementation shared by snapshot and history collection.
+- Completed all 13 critical requests before starting the 14-ticker enrichment phase; zero critical results skip enrichment and enrichment failures preserve critical output.
+- Preserved the public history API, previous-close fallback, close-time semantics, per-ticker failure isolation, and the existing concurrency limit.
+- Added `provenance=query2-snapshot` to direct snapshot items and removed runtime query1 references.
+**Validation**: 93 focused tests and 85 registry/plugin tests passed; the full source suite reached 850 passed with one unrelated SEC timing test passing on isolated rerun; scoped Ruff/format and `mypy src` for 227 files passed; fresh-eyes review found no issues.
+**TECH-DEBT**: None.
+**Context**: Step 1 commit `6f27e81` was pushed before this step began; u138 is now at Step 2 of 6.

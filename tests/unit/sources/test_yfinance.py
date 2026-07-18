@@ -26,6 +26,7 @@ from investo.sources._window import FetchWindow
 from investo.sources.yfinance import YFinancePriceAdapter
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "yfinance-price"
+_QUERY2_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "yfinance-history"
 _GSPC_FIXTURE = _FIXTURE_DIR / "GSPC.json"
 _AAPL_FIXTURE = _FIXTURE_DIR / "AAPL.json"
 _INVALID_FIXTURE = _FIXTURE_DIR / "INVALID.json"
@@ -63,6 +64,9 @@ def _mock_client(
 
 def _override_tickers(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
     monkeypatch.setenv("INVESTO_YFINANCE_TICKERS", value)
+    # Existing single-phase tests isolate the critical basket by making
+    # enrichment overlap it; the adapter de-duplicates cross-phase symbols.
+    monkeypatch.setenv("INVESTO_YFINANCE_ENRICHMENT_TICKERS", value)
 
 
 # ---------------------------------------------------------------------------
@@ -86,6 +90,25 @@ async def test_fetch_two_tickers_real_fixtures(monkeypatch: pytest.MonkeyPatch) 
         assert item.source_name == "yfinance-price"
         assert item.category == "price"
         assert item.published_at.tzinfo is UTC
+
+
+async def test_query2_1y_recording_preserves_snapshot_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _override_tickers(monkeypatch, "AAPL")
+    adapter = YFinancePriceAdapter()
+    fixtures = {"AAPL": (_QUERY2_FIXTURE_DIR / "AAPL.json").read_bytes()}
+    async with _mock_client(fixtures) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert len(items) == 1
+    item = items[0]
+    assert item.source_name == "yfinance-price"
+    assert item.category == "price"
+    assert item.raw_metadata["ticker"] == "AAPL"
+    assert item.raw_metadata["provenance"] == "query2-snapshot"
+    assert item.summary is not None
+    assert item.title.startswith("AAPL ")
 
 
 async def test_title_and_summary_format_from_real_fixture(
@@ -121,8 +144,18 @@ async def test_raw_metadata_keys_present_and_strings(
     async with _mock_client(fixtures) as client:
         items = await adapter.fetch(client, _WINDOW)
     item = items[0]
-    expected_keys = {"ticker", "open", "high", "low", "close", "volume", "prev_close"}
+    expected_keys = {
+        "ticker",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "prev_close",
+        "provenance",
+    }
     assert set(item.raw_metadata) == expected_keys
+    assert item.raw_metadata["provenance"] == "query2-snapshot"
     assert all(isinstance(v, str) for v in item.raw_metadata.values())
 
 
@@ -406,13 +439,96 @@ async def test_env_unset_uses_default_tickers(
     }
 
 
+async def test_enrichment_runs_after_critical_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_YFINANCE_TICKERS", "AAPL")
+    monkeypatch.setenv("INVESTO_YFINANCE_ENRICHMENT_TICKERS", "XLK,XLE")
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested.append(unquote(request.url.path.rsplit("/", 1)[-1]))
+        return httpx.Response(200, content=_AAPL_FIXTURE.read_bytes())
+
+    adapter = YFinancePriceAdapter()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert requested[0] == "AAPL"
+    assert requested[1:] == ["XLK", "XLE"]
+    assert [item.raw_metadata["ticker"] for item in items] == ["AAPL", "XLK", "XLE"]
+
+
+async def test_enrichment_is_skipped_when_critical_basket_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_YFINANCE_TICKERS", "INVALID")
+    monkeypatch.setenv("INVESTO_YFINANCE_ENRICHMENT_TICKERS", "XLK")
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested.append(unquote(request.url.path.rsplit("/", 1)[-1]))
+        return httpx.Response(200, content=_INVALID_FIXTURE.read_bytes())
+
+    adapter = YFinancePriceAdapter()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert items == []
+    assert requested == ["INVALID"]
+
+
+async def test_enrichment_failures_preserve_critical_items(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_YFINANCE_TICKERS", "AAPL")
+    monkeypatch.setenv("INVESTO_YFINANCE_ENRICHMENT_TICKERS", "XLK,XLE")
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        ticker = unquote(request.url.path.rsplit("/", 1)[-1])
+        requested.append(ticker)
+        if ticker == "AAPL":
+            return httpx.Response(200, content=_AAPL_FIXTURE.read_bytes())
+        return httpx.Response(404, content=_INVALID_FIXTURE.read_bytes())
+
+    adapter = YFinancePriceAdapter()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert requested == ["AAPL", "XLK", "XLE"]
+    assert [item.raw_metadata["ticker"] for item in items] == ["AAPL"]
+
+
+async def test_blank_enrichment_override_uses_fixed_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_YFINANCE_TICKERS", "AAPL")
+    monkeypatch.setenv("INVESTO_YFINANCE_ENRICHMENT_TICKERS", "")
+    requested: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        ticker = unquote(request.url.path.rsplit("/", 1)[-1])
+        requested.append(ticker)
+        body = _AAPL_FIXTURE.read_bytes() if ticker == "AAPL" else _INVALID_FIXTURE.read_bytes()
+        return httpx.Response(200, content=body)
+
+    adapter = YFinancePriceAdapter()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        items = await adapter.fetch(client, _WINDOW)
+
+    assert [item.raw_metadata["ticker"] for item in items] == ["AAPL"]
+    assert requested[0] == "AAPL"
+    assert set(requested[1:]) == set(adapter._DEFAULT_ENRICHMENT_TICKERS)
+
+
 # ---------------------------------------------------------------------------
 # u53 — Brent (BZ=F) and Russell 2000 (^RUT) coverage gap
 # ---------------------------------------------------------------------------
 
 
-_BZ_F_FIXTURE = _FIXTURE_DIR / "BZ_F.json"
-_RUT_FIXTURE = _FIXTURE_DIR / "RUT.json"
+_BZ_F_FIXTURE = _QUERY2_FIXTURE_DIR / "BZ_F.json"
+_RUT_FIXTURE = _QUERY2_FIXTURE_DIR / "RUT.json"
 
 
 async def test_brent_futures_round_trips_through_fixture(
@@ -454,6 +570,9 @@ async def test_fetch_sends_browser_user_agent(monkeypatch: pytest.MonkeyPatch) -
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen_headers.append(request.headers["user-agent"])
+        assert request.url.host == "query2.finance.yahoo.com"
+        assert request.url.params["interval"] == "1d"
+        assert request.url.params["range"] == "1y"
         return httpx.Response(
             200,
             content=_AAPL_FIXTURE.read_bytes(),
@@ -464,8 +583,8 @@ async def test_fetch_sends_browser_user_agent(monkeypatch: pytest.MonkeyPatch) -
         await adapter.fetch(client, _WINDOW)
 
     assert seen_headers == [
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-        "AppleWebKit/537.36 Chrome/124 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
     ]
 
 
@@ -529,6 +648,15 @@ async def test_fetch_allows_concurrency_override(monkeypatch: pytest.MonkeyPatch
 def test_class_attributes() -> None:
     assert YFinancePriceAdapter.name == "yfinance-price"
     assert YFinancePriceAdapter.category == "price"
+
+
+def test_default_phase_baskets_are_disjoint_and_bounded() -> None:
+    critical = YFinancePriceAdapter._DEFAULT_TICKERS
+    enrichment = YFinancePriceAdapter._DEFAULT_ENRICHMENT_TICKERS
+    assert len(critical) == 13
+    assert len(enrichment) == 14
+    assert set(critical).isdisjoint(enrichment)
+    assert len(critical) + len(enrichment) == 27
 
 
 # ---------------------------------------------------------------------------

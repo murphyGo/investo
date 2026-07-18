@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u138 price-source-endpoint-lifecycle-repair
 **Stage**: Code Generation
-**Status**: In Progress (1/6 steps complete; FD/NFR complete)
+**Status**: In Progress (2/6 steps complete; FD/NFR complete)
 **Source**: Direct 2026-07-18 reachability probes plus GitHub Actions runs `29541149434` and `29457241746`
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -235,7 +235,7 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 2 — Consolidate Yahoo chart handling
 
-- [ ] Complete
+- [x] Complete (2026-07-18)
 
 - Add `_yahoo_chart.py` request/parser helper.
 - Make `yfinance_history.py` delegate without changing its public functions.
@@ -299,7 +299,7 @@ uv run pytest tests/unit/sources/test_yfinance.py tests/unit/sources/test_yfinan
 uv run pytest tests/unit/sources/test_fred_fx_close.py tests/unit/sources/test_yonhap_index_close.py -q
 uv run pytest tests/unit/sources/test_plugin_contract.py tests/unit/sources/test_source_specs.py tests/unit/sources/test_tiers.py -q
 uv run pytest tests/unit/briefing/test_segments.py tests/unit/briefing/test_segments_exclusivity.py -q
-uv run pytest tests/unit/orchestrator/test_stage_context.py tests/unit/orchestrator/test_run_pipeline.py -q
+uv run pytest tests/unit/orchestrator/test_stage_context_budget.py tests/unit/orchestrator/test_run_pipeline.py -q
 ```
 
 Repository gates:
