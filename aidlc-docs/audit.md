@@ -1,5 +1,20 @@
 # AI-DLC Audit Log
 
+## Construction — u139 Code Generation Step 3 complete
+**Timestamp**: 2026-07-18T09:12:37Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed Step 2 private-input slice as `eb6311f`, then executed the next bounded Code Generation slice only.
+**Implementation**: Added Decimal-first pure functions for 1D/5D/21D/63D NAV return and same-window SPY excess return, adjacent non-overlapping 5D relative acceleration, annualized sample volatility from 20 daily NAV log returns, and 20D NAV max drawdown. Added raw-before-snapshot-quantization cross-sectional midrank/weight-renormalized `relative_rank_v1`, versioned 0/5/10/15/20-bps regime policies, historical two-axis hysteresis, explicit metric/regime/rank suppression for warming/insufficient coverage, and deterministic snapshot assembly.
+**Discontinuity contract**: Every return/excess horizon requires all `h+1` SPY-grid sector observations, volatility/drawdown require all 21 points, and regime strength history requires every 22-point 21D window; acceleration alone intentionally requires only offsets 0/5/10. No missing observation is interpolated or forward-filled.
+**Code review**: The required independent review found one blocking correctness issue: current and historical return-strength paths initially checked only endpoints, contrary to the approved full-window discontinuity contract. Both paths were fixed with 5D/21D/current/history regressions. The review also identified two AC-4.8 evidence gaps; 100-example Hypothesis properties for adjacent acceleration and tied midranks were added. Final re-review returned `APPROVED` with no remaining Critical, High, or Medium finding; error-contract and bounded-performance protocols passed.
+**Verification**: Focused Step 3 tests 29 passed; combined Step 1 model, Step 2 adapter, and Step 3 engine tests 92 passed; scoped Ruff check/format, strict mypy, and `git diff --check` passed.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/code/step-3-metric-regime-engine.md`
+- `docs/sessions/2026-07-18-u139-code-generation-step3.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+**Status**: Code Generation Step 3/5 Complete; Step 4 private renderer and manual runner is next. No new TECH-DEBT; existing Pages/watchlist dirty files, scheduled/public surfaces, and u140 status are unchanged.
+
+---
+
 ## Construction — u139 Code Generation Step 2 complete
 **Timestamp**: 2026-07-17T23:04:53Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — pushed the completed Step 1 model-contract slice as `08eb813`, then executed the next bounded Code Generation slice only.

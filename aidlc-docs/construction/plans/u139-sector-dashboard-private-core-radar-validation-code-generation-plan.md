@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u139 sector-dashboard-private-core-radar-validation
 **Stage**: Code Generation
-**Status**: In Progress — Step 2 complete
+**Status**: In Progress — Step 3 complete
 **Source**: FR-022, NFR-008, US-010, and the approved S0-P Application Design
 **Estimated Effort**: ~12-18 h after design approval
 **Dependencies**: none; u140 is intentionally not a dependency
@@ -16,7 +16,7 @@
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/`.
 - NFR Requirements: **COMPLETE — approved 2026-07-18**. The binding artifacts are under
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/`.
-- Code Generation: **IN PROGRESS**. Steps 1-2 are complete; Step 3 is the next bounded slice.
+- Code Generation: **IN PROGRESS**. Steps 1-3 are complete; Step 4 is the next bounded slice.
 
 ## Scope Boundary
 
@@ -98,10 +98,10 @@ Contract definition and its NFR review gate were explicitly approved on 2026-07-
 
 ### Step 3 — Metric and regime engine
 
-- [ ] Implement the fixed return, excess, acceleration, volatility, and drawdown
+- [x] Implement the fixed return, excess, acceleration, volatility, and drawdown
   formulas as pure functions.
-- [ ] Implement the versioned regime policy and insufficient-data behavior.
-- [ ] Cover equal series, sparse series, discontinuities, neutral bands, and
+- [x] Implement the versioned regime policy and insufficient-data behavior.
+- [x] Cover equal series, sparse series, discontinuities, neutral bands, and
   deterministic repeat execution.
 
 ### Step 4 — Private renderer and manual runner
