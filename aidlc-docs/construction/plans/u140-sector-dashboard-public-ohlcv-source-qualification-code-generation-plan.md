@@ -53,6 +53,7 @@ adapter or Pages construction is registered.
 | Alpha Vantage / Twelve Data / similar individual free plans | structured APIs, but individual/free display and redistribution conditions do not currently clear this public product | reject until written terms fit |
 | Finnhub stock candles | official structured OHLCV, but the endpoint is Premium-only; market-data plans are Personal Use and public/commercial use requires written approval | reject for the no-paid public gate (2026-07-19 Step 0) |
 | Alpaca Market Data API | free Basic technically provides US stock/ETF history since 2016 and multi-symbol daily bars, but Alpaca says its API data cannot be redistributed and its customer agreement requires written consent for reproduction/distribution | reject until written public derived-display consent (2026-07-19 Step 0) |
+| Financial Modeling Prep | free Basic technically provides five years of end-of-day history at 250 calls/day, but is classified as Individual use and public display/redistribution requires a separate Data Display and Licensing Agreement | reject until a written public derived-display agreement exists (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -75,6 +76,15 @@ Primary Alpaca references, checked 2026-07-19:
 - `https://docs.alpaca.markets/us/reference/stockbars`
 - `https://alpaca.markets/support/redistribute-alpaca-api`
 - `https://files.alpaca.markets/disclosures/library/AcctAppMarginAndCustAgmt.pdf`
+
+Primary Financial Modeling Prep references, checked 2026-07-19:
+
+- `https://site.financialmodelingprep.com/developer/docs/pricing`
+- `https://site.financialmodelingprep.com/developer/docs/terms-of-service`
+- `https://site.financialmodelingprep.com/developer/docs/quickstart`
+- `https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full`
+- `https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-non-split-adjusted`
+- `https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-dividend-adjusted`
 
 ## Qualification Steps
 
@@ -110,6 +120,23 @@ bars clear the preliminary structure/cost check, but Alpaca's official support s
 API data cannot be redistributed and the current customer agreement requires written
 consent for reproduction or distribution. No explicit public derived-display grant
 exists for Investo. Step 1 does not apply to this candidate.
+
+#### Iteration 3 — Financial Modeling Prep
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-financial-modeling-prep.md`.
+Disposition: **reject under current written terms**. Basic is free and exposes
+end-of-day historical price/volume data, but the official pricing table classifies
+the plan as Individual use and requires a separate Data Display and Licensing
+Agreement for display or redistribution. The general terms independently prohibit
+third-party-accessible application integration and multi-user display without a
+specific agreement. Step 1 does not apply to this candidate.
 
 #### Next candidate iteration
 

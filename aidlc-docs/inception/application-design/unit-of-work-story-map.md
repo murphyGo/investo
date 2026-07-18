@@ -404,6 +404,7 @@ Candidate disposition:
 - **Defer**: Alpha Vantage, Twelve Data, and similar key/metered price APIs until an operator-owned free key and bounded request policy exist. They are not required to restore the currently proven Yahoo path.
 - **Reject for u140 public Pages (2026-07-19 evidence refresh)**: Finnhub stock candles are Premium-only and the listed market-data licenses are Personal Use; no credentialed probe is justified without written public/commercial approval.
 - **Reject for u140 public Pages under current written terms (2026-07-19)**: Alpaca Basic is technically free and structured, but Alpaca's official support says its API data cannot be redistributed and the customer agreement requires written consent for reproduction/distribution. No public derived-display grant is inferred.
+- **Reject Financial Modeling Prep for u140 public Pages under current written terms (2026-07-19)**: FMP Basic technically supplies free five-year end-of-day history, but its official pricing classifies the plan as Individual use and requires a separate Data Display and Licensing Agreement for display or redistribution. No such Investo agreement exists.
 
 ### u139-u140 Planning Notes
 

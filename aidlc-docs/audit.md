@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 3 (Financial Modeling Prep)
+**Timestamp**: 2026-07-18T20:55:04Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Alpaca Step 0 slice as `8110028`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: FMP documents an authenticated full historical end-of-day endpoint with daily open, high, low, close, volume, price-change, and VWAP fields. Its official pricing lists Basic as free, 250 calls/day, end-of-day data, five years of history, 500 MB trailing-30-day bandwidth, and Individual usage. The same pricing surface says displaying or redistributing FMP data requires a specific Data Display and Licensing Agreement. FMP's current terms additionally prohibit third-party-accessible application integration and multi-user display without a specific agreement.
+**Deduplication**: No FMP adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply FMP rights.
+**Decision**: `reject under current written terms` for u140. The candidate clears the preliminary free/history/field check but fails the binding public-rights gate. No account/key was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-financial-modeling-prep.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 2 (Alpaca)
 **Timestamp**: 2026-07-18T20:49:14Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the Finnhub Step 0 slice as `24e069b`, preserved and merged concurrent u141/u142 planning, pushed merged `main` as `a493d80`, then proceeded to the next u140 candidate fact sheet.
