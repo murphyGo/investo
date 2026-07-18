@@ -51,7 +51,7 @@ def test_zero_and_failed_render_deterministic_order() -> None:
         source_outcomes=(
             SourceOutcome.zero("yahoo-finance-news", "news"),
             SourceOutcome.from_failure("yfinance-price", "price", message="x", transient=True),
-            SourceOutcome.ok("stooq-price", "price", 2),
+            SourceOutcome.ok("fomc-rss", "calendar", 2),
         ),
     )
     rendered = _render_source_outcome_line(coverage)
@@ -107,18 +107,18 @@ def test_reader_line_omits_raw_english_plumbing() -> None:
                 transient=False,
             ),
             SourceOutcome.from_failure(
-                "congress-gov-bill-actions",
-                "calendar",
-                message="CONGRESS_API_KEY not set; congress-gov-bill-actions adapter will not run",
+                "fred-macro",
+                "macro",
+                message="FRED_API_KEY not set; fred-macro adapter will not run",
                 transient=False,
             ),
         ),
     )
     rendered = _render_source_outcome_line(coverage)
     assert "cnbc-top-news 실패 (접근 제한)" in rendered
-    assert "congress-gov-bill-actions 실패 (설정 미완료(미수집))" in rendered
+    assert "fred-macro 실패 (설정 미완료(미수집))" in rendered
     # no raw English plumbing leaks to the reader surface.
     assert "status 403" not in rendered
     assert "terminal" not in rendered
     assert "not set" not in rendered
-    assert "CONGRESS_API_KEY" not in rendered
+    assert "FRED_API_KEY" not in rendered

@@ -158,7 +158,7 @@ def test_serialize_collapses_none_summary_and_url_to_empty_string() -> None:
 @pytest.mark.parametrize(
     ("source_name", "category"),
     [
-        ("stooq-kr-market", "price"),
+        ("yonhap-index-close", "price"),
         ("nasdaq-stocks-news", "news"),
         ("coingecko-price", "price"),
     ],

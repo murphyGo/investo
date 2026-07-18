@@ -4655,3 +4655,15 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 824 source tests, 81 registry/segment tests, and 33 adapter-to-quarantine tests passed; Ruff/format, `mypy src` for 228 files, no-paid guard, strict docs build, static retired-endpoint checks, and `git diff --check` passed. Fresh-eyes review found the FRED/u109 freshness mismatch; it was fixed and re-review found no remaining Step 4 issues.
 **TECH-DEBT**: None.
 **Context**: Step 3 commit `b3e812a` was pushed before this step began; u138 is now at Step 4 of 6. The remaining stale briefing coverage/diagnostic expectations are planned Step 5 scope.
+
+## u138 Code Generation Step 5 - Registry, Routing, Coverage, and Diagnostics
+**Timestamp**: 2026-07-18T20:17:16Z
+**Action**: Completed Code Generation Step 5 in the dedicated u138 worktree.
+**Decisions**:
+- Swept all derived registry views and pinned the retired Stooq identities absent from market-window, item-routing, and outcome-routing views.
+- Updated US/crypto core-source expectations and removed retired-source assumptions from severity, staleness, count-split, coverage-badge, trace, numeric, serialization, and reader-format tests.
+- Kept `price_fallback_reconciled` as the sole fallback operator diagnostic and added an explicit structured-field allowlist test: source name, original status, direct count, fallback count, and final count.
+- Excluded generated archive/site output produced by tests from the Step 5 keep-set.
+**Validation**: 262 Step 5-focused tests passed. The full suite reached 3,385 passed with one pre-existing `summary_extraction._MEANINGFUL_TEXT_RE` pattern-dedup failure unrelated to u138. `git diff --check` passed; fresh-eyes review is pending.
+**TECH-DEBT**: No new item; the unrelated pattern-dedup baseline failure remains unchanged.
+**Context**: Step 4 commit `626ee48` was already pushed before this step began; u138 is now at Step 5 of 6. Step 5 changes remain uncommitted for the next commit/push request.

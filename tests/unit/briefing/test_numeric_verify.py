@@ -19,7 +19,7 @@ def _item(
     *,
     title: str = "fixture",
     raw_metadata: dict[str, str] | None = None,
-    source_name: str = "stooq-price",
+    source_name: str = "yfinance-price",
 ) -> NormalizedItem:
     return NormalizedItem(
         source_name=source_name,
@@ -61,12 +61,18 @@ def test_aggregate_skips_malformed_decimal() -> None:
 
 def test_aggregate_last_writer_wins() -> None:
     items = [
-        _item(raw_metadata={"core_fact:spx_close": "5820.40"}, source_name="stooq-price"),
-        _item(raw_metadata={"core_fact:spx_close": "5820.41"}, source_name="yfinance-price"),
+        _item(
+            raw_metadata={"core_fact:kospi_close": "2820.40"},
+            source_name="fsc-krx-index-price",
+        ),
+        _item(
+            raw_metadata={"core_fact:kospi_close": "2820.41"},
+            source_name="yonhap-index-close",
+        ),
     ]
-    # Idempotent for our purposes; both stamp the same close within tol.
+    # Both current domestic adapters can stamp the same close within tolerance.
     out = aggregate_source_facts(items)
-    assert out["spx_close"] in (Decimal("5820.40"), Decimal("5820.41"))
+    assert out["kospi_close"] in (Decimal("2820.40"), Decimal("2820.41"))
 
 
 # --- find_body_value (keyword-window scan) -------------------------------

@@ -84,6 +84,15 @@ def test_outcome_views_preserve_cross_segment_relevance() -> None:
     assert "yfinance-price" not in source_names_for_outcome_segment("crypto")
 
 
+def test_retired_stooq_sources_are_absent_from_all_registry_views() -> None:
+    retired = {"stooq-price", "stooq-kr-market"}
+    assert retired.isdisjoint(SOURCE_SPECS_BY_NAME)
+    for segment in ("domestic-equity", "us-equity", "crypto"):
+        assert retired.isdisjoint(source_names_for_market_window(segment))
+        assert retired.isdisjoint(source_names_for_item_segment(segment))
+        assert retired.isdisjoint(source_names_for_outcome_segment(segment))
+
+
 def test_source_specs_module_does_not_import_work_units() -> None:
     path = Path("src/investo/_internal/source_specs.py")
     tree = ast.parse(path.read_text(encoding="utf-8"))

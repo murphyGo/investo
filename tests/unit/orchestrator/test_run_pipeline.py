@@ -763,6 +763,15 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
     assert record.__dict__["direct_count"] == 0
     assert record.__dict__["fallback_count"] == 1
     assert record.__dict__["final_count"] == 1
+    standard_keys = set(logging.makeLogRecord({}).__dict__) | {"message", "asctime"}
+    custom_keys = set(record.__dict__) - standard_keys
+    assert custom_keys == {
+        "source_name",
+        "original_status",
+        "direct_count",
+        "fallback_count",
+        "final_count",
+    }
     assert "AAPL" not in record.getMessage()
     assert "http" not in record.getMessage()
 
