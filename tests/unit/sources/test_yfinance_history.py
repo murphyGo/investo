@@ -24,6 +24,7 @@ import httpx
 import pytest
 
 from investo.sources.protocol import SourceFetchError
+from investo.sources.yfinance import DEFAULT_CRITICAL_TICKERS
 from investo.sources.yfinance_history import (
     DEFAULT_HISTORY_TICKERS,
     fetch_price_history,
@@ -45,6 +46,7 @@ _TICKER_FIXTURE_MAP: dict[str, str] = {
     "^GSPC": "GSPC",
     "^IXIC": "IXIC",
     "^DJI": "DJI",
+    "^VIX": "VIX",
     "AAPL": "AAPL",
     "MSFT": "MSFT",
     "GOOGL": "GOOGL",
@@ -52,6 +54,8 @@ _TICKER_FIXTURE_MAP: dict[str, str] = {
     "NVDA": "NVDA",
     "META": "META",
     "TSLA": "TSLA",
+    "BZ=F": "BZ_F",
+    "^RUT": "RUT",
     "BTC-USD": "BTC-USD",
     "ETH-USD": "ETH-USD",
 }
@@ -221,7 +225,7 @@ async def test_fetch_returns_history_for_default_basket() -> None:
     transport = _build_handler()
     async with httpx.AsyncClient(transport=transport) as client:
         history = await fetch_price_history(client)
-    # Default basket excludes ^VIX; should land 12 tickers from fixtures.
+    # Default basket covers all 13 critical fallbacks plus two crypto anchors.
     expected = set(DEFAULT_HISTORY_TICKERS)
     assert set(history) == expected
     # All tickers have at least 250 rows.
@@ -286,9 +290,5 @@ async def test_fetch_env_var_override_replaces_default_basket(
 
 def test_default_history_tickers_is_a_tuple() -> None:
     assert isinstance(DEFAULT_HISTORY_TICKERS, tuple)
-    # Snapshot: the basket mirrors the stooq-price / yfinance-price
-    # adapters minus ^VIX (Stooq returns N/D and Yahoo's volume is
-    # zero-filled — anchors would degrade to None across the board).
-    assert "^GSPC" in DEFAULT_HISTORY_TICKERS
-    assert "BTC-USD" in DEFAULT_HISTORY_TICKERS
-    assert "^VIX" not in DEFAULT_HISTORY_TICKERS
+    assert DEFAULT_HISTORY_TICKERS[:-2] == DEFAULT_CRITICAL_TICKERS
+    assert DEFAULT_HISTORY_TICKERS[-2:] == ("BTC-USD", "ETH-USD")

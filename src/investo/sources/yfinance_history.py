@@ -72,6 +72,7 @@ from investo.models.market_anchor import OHLCRow
 from investo.sources._config import parse_symbol_list
 from investo.sources._yahoo_chart import fetch_chart_rows, parse_chart_rows
 from investo.sources.protocol import SourceFetchError
+from investo.sources.yfinance import DEFAULT_CRITICAL_TICKERS
 
 _logger = logging.getLogger(__name__)
 
@@ -79,20 +80,10 @@ _ENV_TICKERS: Final[str] = "INVESTO_YFINANCE_HISTORY_TICKERS"
 _ENV_CONCURRENCY: Final[str] = "INVESTO_YFINANCE_HISTORY_CONCURRENCY"
 _DEFAULT_CONCURRENCY: Final[int] = 2
 
-# Default ticker basket — mirrors the ``stooq-price`` / ``yfinance-
-# price`` snapshot adapters so the anchor line covers the same set
-# the snapshot cards already speak about.
+# Default ticker basket covers every u138 critical snapshot fallback plus
+# the two crypto histories retained for the u49 anchor/chart surfaces.
 DEFAULT_HISTORY_TICKERS: Final[tuple[str, ...]] = (
-    "^GSPC",
-    "^IXIC",
-    "^DJI",
-    "AAPL",
-    "MSFT",
-    "GOOGL",
-    "AMZN",
-    "NVDA",
-    "META",
-    "TSLA",
+    *DEFAULT_CRITICAL_TICKERS,
     "BTC-USD",
     "ETH-USD",
 )

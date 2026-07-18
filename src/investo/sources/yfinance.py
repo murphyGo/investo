@@ -38,7 +38,8 @@ import asyncio
 import os
 from collections.abc import Sequence
 from datetime import UTC, date, datetime, time
-from typing import ClassVar
+from decimal import Decimal
+from typing import ClassVar, Final
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
@@ -46,6 +47,7 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.market_anchor import OHLCRow
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
 from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
 from investo.sources._fanout import gather_with_error_isolation
@@ -59,6 +61,22 @@ _ENV_ENRICHMENT_TICKERS = "INVESTO_YFINANCE_ENRICHMENT_TICKERS"
 _ENV_CONCURRENCY = "INVESTO_YFINANCE_CONCURRENCY"
 _DEFAULT_CONCURRENCY = 2
 
+DEFAULT_CRITICAL_TICKERS: Final[tuple[str, ...]] = (
+    "^GSPC",
+    "^IXIC",
+    "^DJI",
+    "^VIX",
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "NVDA",
+    "META",
+    "TSLA",
+    "BZ=F",
+    "^RUT",
+)
+
 
 @register
 class YFinancePriceAdapter:
@@ -67,23 +85,9 @@ class YFinancePriceAdapter:
     name: ClassVar[str] = "yfinance-price"
     category: ClassVar[Category] = "price"
 
-    _DEFAULT_TICKERS: ClassVar[tuple[str, ...]] = (
-        "^GSPC",
-        "^IXIC",
-        "^DJI",
-        "^VIX",
-        "AAPL",
-        "MSFT",
-        "GOOGL",
-        "AMZN",
-        "NVDA",
-        "META",
-        "TSLA",
-        # u53 — Brent and Russell 2000 remain part of the critical basket.
-        # u138 moves the former Stooq-only macro/ETF set to the second phase.
-        "BZ=F",
-        "^RUT",
-    )
+    # u53 retains Brent/Russell in the critical basket. u138 exposes the
+    # tuple at module scope so same-run history reconciliation cannot drift.
+    _DEFAULT_TICKERS: ClassVar[tuple[str, ...]] = DEFAULT_CRITICAL_TICKERS
     _DEFAULT_ENRICHMENT_TICKERS: ClassVar[tuple[str, ...]] = (
         "XLK",
         "XLE",
@@ -172,57 +176,71 @@ class YFinancePriceAdapter:
 
         latest = rows[latest_idx]
         previous = rows[latest_idx - 1].close if latest_idx > 0 else chart.chart_previous_close
-        prev_close = float(previous) if previous is not None else 0.0
-        published_at = self._resolve_close_timestamp(latest.trading_date)
-        open_ = float(latest.open)
-        high = float(latest.high)
-        low = float(latest.low)
-        close = float(latest.close)
-        volume = int(latest.volume) if latest.volume is not None else 0
-        pct = ((close - prev_close) / prev_close * 100.0) if prev_close else 0.0
+        return build_yfinance_price_item(
+            ticker,
+            latest,
+            previous_close=previous,
+            provenance="query2-snapshot",
+        )
 
-        title = f"{ticker} {close:,.2f} ({pct:+.2f}%)"
-        summary = f"O:{open_:,.2f} H:{high:,.2f} L:{low:,.2f} C:{close:,.2f} V:{volume:,}"
-        if len(summary) > SUMMARY_MAX_LEN:
-            summary = summary[:SUMMARY_MAX_LEN]
 
-        raw_metadata: dict[str, str] = {
-            "ticker": ticker,
-            "open": format_float(open_),
-            "high": format_float(high),
-            "low": format_float(low),
-            "close": format_float(close),
-            "volume": format_int(volume),
-            "prev_close": format_float(prev_close) if prev_close else "",
-            "provenance": "query2-snapshot",
-        }
-        # u55 Step 1 — typed CoreFact stamp (see stooq-price for the
-        # rationale). yfinance and stooq-price both emit the same fact
-        # key for the same ticker; numeric_verify aggregates across the
-        # whole candidate stream so duplicate stamps are idempotent.
-        fact = core_fact_for_ticker(ticker)
-        if fact is not None:
-            raw_metadata[core_fact_metadata_key(fact)] = format_float(close)
+def build_yfinance_price_item(
+    ticker: str,
+    row: OHLCRow,
+    *,
+    previous_close: Decimal | None,
+    provenance: str,
+    history_range: str | None = None,
+) -> NormalizedItem | None:
+    """Build the stable public Yahoo price item from one daily row."""
 
-        try:
-            return NormalizedItem(
-                source_name=self.name,
-                category=self.category,
-                title=title,
-                summary=summary,
-                url=f"https://finance.yahoo.com/quote/{quote(ticker, safe='')}",
-                published_at=published_at,
-                raw_metadata=raw_metadata,
-            )
-        except ValidationError:
-            return None
+    open_ = float(row.open)
+    high = float(row.high)
+    low = float(row.low)
+    close = float(row.close)
+    prev_close = float(previous_close) if previous_close is not None else 0.0
+    volume = int(row.volume) if row.volume is not None else None
+    pct = ((close - prev_close) / prev_close * 100.0) if prev_close else 0.0
+    title = f"{ticker} {close:,.2f} ({pct:+.2f}%)"
+    volume_text = f"{volume:,}" if volume is not None else "N/A"
+    summary = (f"O:{open_:,.2f} H:{high:,.2f} L:{low:,.2f} C:{close:,.2f} V:{volume_text}")[
+        :SUMMARY_MAX_LEN
+    ]
+    raw_metadata: dict[str, str] = {
+        "ticker": ticker,
+        "open": format_float(open_),
+        "high": format_float(high),
+        "low": format_float(low),
+        "close": format_float(close),
+        "volume": format_int(volume) if volume is not None else "",
+        "prev_close": format_float(prev_close) if prev_close else "",
+        "provenance": provenance,
+    }
+    if history_range is not None:
+        raw_metadata["history_range"] = history_range
+    fact = core_fact_for_ticker(ticker)
+    if fact is not None:
+        raw_metadata[core_fact_metadata_key(fact)] = format_float(close)
 
-    @staticmethod
-    def _resolve_close_timestamp(trading_date: date) -> datetime:
-        """Resolve one Yahoo trading date to 16:00 New York in UTC."""
+    try:
+        return NormalizedItem(
+            source_name=YFinancePriceAdapter.name,
+            category=YFinancePriceAdapter.category,
+            title=title,
+            summary=summary,
+            url=f"https://finance.yahoo.com/quote/{quote(ticker, safe='')}",
+            published_at=resolve_yahoo_close_timestamp(row.trading_date),
+            raw_metadata=raw_metadata,
+        )
+    except ValidationError:
+        return None
 
-        close_local = datetime.combine(trading_date, time(16), tzinfo=_NY)
-        return close_local.astimezone(UTC)
+
+def resolve_yahoo_close_timestamp(trading_date: date) -> datetime:
+    """Resolve one Yahoo trading date to 16:00 New York in UTC."""
+
+    close_local = datetime.combine(trading_date, time(16), tzinfo=_NY)
+    return close_local.astimezone(UTC)
 
 
 def _parse_concurrency() -> int:

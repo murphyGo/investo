@@ -27,8 +27,10 @@ import subprocess
 import threading
 from collections.abc import Sequence
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 from pydantic import HttpUrl, TypeAdapter
@@ -44,7 +46,9 @@ from investo.models import (
     NormalizedItem,
     PipelineStatus,
     SendResult,
+    SourceOutcome,
 )
+from investo.models.market_anchor import OHLCRow
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.orchestrator import pipeline as pipeline_module
 from investo.orchestrator import validators as validators_module
@@ -629,6 +633,138 @@ async def test_run_pipeline_threads_recent_context_to_segment_generate(
     assert len(us_entries) == 1
     assert us_entries[0].publish_date == yesterday
     assert "반도체" in us_entries[0].conclusion
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_consumers(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    del archive_root
+    history_row = OHLCRow(
+        trading_date=date(2026, 4, 27),
+        open=Decimal("100"),
+        high=Decimal("110"),
+        low=Decimal("90"),
+        close=Decimal("105"),
+        volume=Decimal("1000"),
+    )
+
+    async def _load_history(
+        target_date: date,
+    ) -> tuple[
+        dict[MarketSegment, tuple[object, ...]],
+        dict[str, tuple[OHLCRow, ...]],
+    ]:
+        assert target_date == _TARGET
+        return (
+            {segment: () for segment in pipeline_module.SEGMENT_ORDER},
+            {"AAPL": (history_row,)},
+        )
+
+    generated: list[tuple[tuple[NormalizedItem, ...], tuple[SourceOutcome, ...]]] = []
+
+    async def _capture_generate(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: Sequence[SourceOutcome] = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del (
+            runner,
+            data_limited,
+            recent_context,
+            market_anchors,
+            carryover,
+            bundle_context,
+        )
+        if segment == US_EQUITY:
+            generated.append((tuple(items), tuple(source_outcomes)))
+        return _briefing(target_date, segment=segment)
+
+    visual_inputs: list[tuple[tuple[NormalizedItem, ...], tuple[SourceOutcome, ...]]] = []
+
+    async def _capture_visuals(
+        briefings: dict[MarketSegment, Briefing],
+        items: Sequence[NormalizedItem],
+        target_date: date,
+        *,
+        source_outcomes: Sequence[SourceOutcome] = (),
+    ) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
+        assert target_date == _TARGET
+        visual_inputs.append((tuple(items), tuple(source_outcomes)))
+        return briefings, ()
+
+    publish_inputs: list[tuple[tuple[NormalizedItem, ...], tuple[SourceOutcome, ...]]] = []
+
+    async def _capture_publish(
+        briefings: dict[MarketSegment, Briefing],
+        target_date: date,
+        **kwargs: object,
+    ) -> None:
+        del briefings
+        assert target_date == _TARGET
+        publish_inputs.append(
+            (
+                tuple(cast("Sequence[NormalizedItem]", kwargs["items"])),
+                tuple(cast("Sequence[SourceOutcome]", kwargs["source_outcomes"])),
+            )
+        )
+
+    monkeypatch.setattr(pipeline_module, "_load_market_anchors_for_run", _load_history)
+    monkeypatch.setattr(pipeline_module, "_stage_prepare_segment_visual_assets", _capture_visuals)
+    monkeypatch.setattr(pipeline_module, "_stage_publish_segments", _capture_publish)
+
+    with caplog.at_level(logging.INFO, logger="investo.orchestrator.pipeline"):
+        result = await run_pipeline(
+            _TARGET,
+            publisher=_FakePublisher(),
+            alerter=_FakeAlerter(),
+            site_url_base=_SITE_BASE,
+            fetch=_success_fetch([_item("non-price seed")]),
+            git_runner=_SuccessfulGitRunner(),
+            generate_segment=_capture_generate,
+        )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert len(generated) == 1
+    assert len(visual_inputs) == 1
+    assert len(publish_inputs) == 1
+    for final_items, final_outcomes in (*generated, *visual_inputs, *publish_inputs):
+        fallback_items = [
+            item
+            for item in final_items
+            if item.raw_metadata.get("provenance") == "query2-history-fallback"
+        ]
+        assert len(fallback_items) == 1
+        yahoo_outcomes = [
+            outcome for outcome in final_outcomes if outcome.source_name == "yfinance-price"
+        ]
+        assert len(yahoo_outcomes) == 1
+        assert yahoo_outcomes[0].status == "ok"
+        assert yahoo_outcomes[0].item_count == 1
+
+    records = [
+        record
+        for record in caplog.records
+        if record.getMessage().startswith("[price_fallback_reconciled]")
+    ]
+    assert len(records) == 1
+    record = records[0]
+    assert record.__dict__["source_name"] == "yfinance-price"
+    assert record.__dict__["original_status"] == "missing"
+    assert record.__dict__["direct_count"] == 0
+    assert record.__dict__["fallback_count"] == 1
+    assert record.__dict__["final_count"] == 1
+    assert "AAPL" not in record.getMessage()
+    assert "http" not in record.getMessage()
 
 
 @pytest.mark.asyncio

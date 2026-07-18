@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u138 price-source-endpoint-lifecycle-repair
 **Stage**: Code Generation
-**Status**: In Progress (2/6 steps complete; FD/NFR complete)
+**Status**: In Progress (3/6 steps complete; FD/NFR complete)
 **Source**: Direct 2026-07-18 reachability probes plus GitHub Actions runs `29541149434` and `29457241746`
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -244,7 +244,7 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 3 — Add fallback and outcome reconciliation
 
-- [ ] Complete
+- [x] Complete (2026-07-18)
 
 - Add the pure reconciliation helper in `orchestrator/stage_context.py` or a focused sibling module under `orchestrator/`.
 - Invoke after `_load_market_anchors_for_run` and before `_stage_generate_segmented`.

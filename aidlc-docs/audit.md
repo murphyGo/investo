@@ -4629,3 +4629,16 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 93 focused tests and 85 registry/plugin tests passed; the full source suite reached 850 passed with one unrelated SEC timing test passing on isolated rerun; scoped Ruff/format and `mypy src` for 227 files passed; fresh-eyes review found no issues.
 **TECH-DEBT**: None.
 **Context**: Step 1 commit `6f27e81` was pushed before this step began; u138 is now at Step 2 of 6.
+
+## u138 Code Generation Step 3 - Same-Run Fallback and Outcome Reconciliation
+**Timestamp**: 2026-07-18T09:06:57Z
+**Action**: Completed Code Generation Step 3 in the dedicated u138 worktree.
+**Decisions**:
+- Added pure `orchestrator/price_fallback.py` reconciliation with direct-wins, age 0-4 freshness, future/stale/invalid-row rejection, duplicate suppression, and query2-history provenance.
+- Shared the Yahoo public item builder between direct snapshots and history fallbacks while keeping formatting inside the source boundary.
+- Expanded default history collection to all 13 critical tickers plus the existing BTC/ETH anchor histories.
+- Rebuilt exactly one Yahoo outcome when fallbacks land, preserving tier and elapsed time while aligning status/count/latest timestamp to final items.
+- Replaced both local and accumulated items/outcomes before segmentation and every downstream public/operator consumer; emitted only fixed source/status/count fields in `price_fallback_reconciled` logs.
+**Validation**: 1,236 orchestrator/source tests and a final 56-test focused rerun passed; scoped Ruff/format, no-paid guard, `mypy src` for 228 files, and `git diff --check` passed; fresh-eyes review found no issues.
+**TECH-DEBT**: None.
+**Context**: Step 2 commit `bdae20d` was pushed before this step began; u138 is now at Step 3 of 6.

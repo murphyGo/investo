@@ -173,6 +173,10 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     trusted_domestic_price_items,
 )
 from investo.orchestrator.errors import EmptyCollectError
+from investo.orchestrator.price_fallback import (
+    YFINANCE_SOURCE_NAME,
+    reconcile_yahoo_history_fallback,
+)
 from investo.orchestrator.stage_context import (
     SEGMENT_ORDER,
     _build_kr_anchors_from_items,
@@ -2432,6 +2436,51 @@ class GenerateStage:
                     market_anchors_by_segment,
                     market_history_by_ticker,
                 ) = await _load_market_anchors_for_run(target_date)
+                direct_yahoo_count = sum(item.source_name == YFINANCE_SOURCE_NAME for item in items)
+                original_yahoo_outcome = next(
+                    (
+                        outcome
+                        for outcome in source_outcomes
+                        if outcome.source_name == YFINANCE_SOURCE_NAME
+                    ),
+                    None,
+                )
+                reconciled_prices = reconcile_yahoo_history_fallback(
+                    items=items,
+                    outcomes=source_outcomes,
+                    history_by_ticker=market_history_by_ticker,
+                    target_date=target_date,
+                )
+                items = list(reconciled_prices.items)
+                source_outcomes = reconciled_prices.outcomes
+                accumulated["items"] = items
+                accumulated["source_outcomes"] = source_outcomes
+                if reconciled_prices.fallback_count:
+                    original_status = (
+                        original_yahoo_outcome.status
+                        if original_yahoo_outcome is not None
+                        else "missing"
+                    )
+                    final_yahoo_count = sum(
+                        item.source_name == YFINANCE_SOURCE_NAME for item in items
+                    )
+                    _logger.info(
+                        "[price_fallback_reconciled] source_name=%s "
+                        "original_status=%s direct_count=%d fallback_count=%d "
+                        "final_count=%d",
+                        YFINANCE_SOURCE_NAME,
+                        original_status,
+                        direct_yahoo_count,
+                        reconciled_prices.fallback_count,
+                        final_yahoo_count,
+                        extra={
+                            "source_name": YFINANCE_SOURCE_NAME,
+                            "original_status": original_status,
+                            "direct_count": direct_yahoo_count,
+                            "fallback_count": reconciled_prices.fallback_count,
+                            "final_count": final_yahoo_count,
+                        },
+                    )
                 # u67 — fold deterministic KR index-close + 원/달러 anchors
                 # (from the stooq-kr-market snapshot items) into the domestic
                 # segment. Yahoo history cannot supply these (429 on GHA), so
