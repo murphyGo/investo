@@ -49,7 +49,9 @@ the store contains **only** operator-cleared, fully documented binaries.
 ### Acceptance criteria
 
 - **AC-1.2** — A CI-runnable check (`scripts/check_image_store.py`,
-  stdlib-only, wired into the GHA quality workflow) **exits non-zero**
+  no new third-party dependency with in-tree module reuse allowed
+  *(edited 2026-07-19 — u137 cross-check L1, matching the TS-3/R10
+  amendment)*, wired into the GHA quality workflow) **exits non-zero**
   on any of:
   - a store binary with no valid `…{ext}.provenance.json` sidecar, or a
     sidecar missing `content_sha256` (I12);

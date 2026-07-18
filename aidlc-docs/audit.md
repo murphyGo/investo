@@ -1,5 +1,42 @@
 # AI-DLC Audit Log
 
+## u137 Cross-Check Complete
+**Timestamp**: 2026-07-19T00:00:00Z
+**Scope**: u137 image-candidate-registry-and-licensed-store against AC-137.1 through AC-137.6, NFR AC-1.1..AC-1.3, FD contracts R1-R10 / E1-E5 / I1-I17, TS-1..TS-4, the three ratified divergences, and project rules. Verified by investo-qa at worktree HEAD with all tests executed.
+**Result**: PASS-with-notes — all 9 acceptance criteria Complete (100%); no Critical/High; 2 Medium test/scope gaps (M1, M2), 4 Low (L1-L4).
+**Findings and dispositions**:
+- M1 (rollback-exclusion divergence documented but not regression-pinned; a future `previous_bytes=None` registration would silently reintroduce the R3 never-drop violation) → registered as **DEBT-085** (Medium, ~30-45 min).
+- M2 (`check_image_store.py` R13 pre-mask shape-locked but not key-scoped; a 64-hex-shaped secret in an operator-authored clearance manifest evades the gate) → registered as **DEBT-086** (Medium at the low edge per QA's Medium-Low banding, ~1-2 h; JSON-aware masking).
+- L1 ("stdlib-only" wording in TS-3/R10 diverges from the shipped gate, which imports pydantic + four in-tree modules) → **fixed 2026-07-19**: TS-3 and R10 amended to "no new third-party dependency; in-tree module reuse allowed" with edit notes; BLM §5 comment aligned. Code unchanged.
+- L4 (BLM §3 pseudocode ordered gates (3)/(4) before skip-if-present; implementation checks skip-if-present first) → **fixed 2026-07-19**: BLM §3 reordered to match the implementation with an edit note (no invariant impact; gate-blocked counters not incremented for already-stored candidates).
+- L2 (gate does not re-enforce the 100 B per-file floor) and L3 (image stage is segmented-mode-only; production always segmented) → recorded in the cross-check report; L2 folded into the DEBT-086 suggested fix.
+**Evidence**: u137 unit scope 80 passed; `tests/integration/test_pipeline.py` 9 passed; `scripts/check_image_store.py` exit 0; `scripts/check_no_paid_apis.py` exit 0; scoped mypy clean. All three ratified divergences verified consistent across code/audit/plan/docstrings; Step 1 and Step 3 divergences regression-pinned, Step 4 only partially (= M1).
+**TECH-DEBT**: DEBT-085 and DEBT-086 registered; DEBT-082 extended with the u136 L1 URL-cap duplication. **DEBT-083 resolved 2026-07-19** — the `check_curated_assets.py` gate was wired into `.github/workflows/quality.yml` by ops adjacent to the u137 image-store gate (clean-tree verification passed before wiring).
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md` (new)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u137-image-candidate-registry-and-licensed-store/code/summary.md` (new closeout)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u137-image-candidate-registry-and-licensed-store/nfr-requirements/tech-stack-decisions.md` (TS-3 amended)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u137-image-candidate-registry-and-licensed-store/functional-design/business-rules.md` (R10 amended)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u137-image-candidate-registry-and-licensed-store/functional-design/business-logic-model.md` (§3 order, §5 comment)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-085/086 new, DEBT-082 extended, DEBT-083 resolved, counts updated)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u137 row)
+**Status**: u137 construction and cross-check complete. Real-image collection track (u136+u137) fully closed; usage-phase units remain unregistered until collection accumulates data.
+
+## u136 Cross-Check Complete
+**Timestamp**: 2026-07-19T00:00:00Z
+**Scope**: u136 feed-image-metadata-harvest against AC-136.1 through AC-136.5, the plan's Fixed Contracts #1-#6, the ratified Contract #2 divergence, and project rules (FD/NFR skipped per the plan's confirmed Stage Decision). Verified by investo-qa at worktree HEAD with all tests executed; implementation commits 1d37010/642de28/cfed840/7141661/71c20ac verified to touch source, tests, fixtures, and the plan file only (baseline 3a67cbc).
+**Result**: PASS — 5/5 acceptance criteria Complete (100%); no Critical/High/Medium findings; one Low.
+**Findings and dispositions**:
+- L1 (1000-char URL cap duplicated: `_feed_media._URL_MAX_LEN` vs `image_library._IMAGE_URL_MAX`; drift would silently turn in-cap harvests into u137 `screened_skipped` drops) → **folded into DEBT-082** as a dated extension (same constant-duplication family).
+**Evidence**: u136 scope 165 passed; `scripts/check_no_paid_apis.py` exit 0; scoped mypy clean. Contract #4 license-key non-pollution triple-pinned (mapper / adapter replay / armed-flag fetch spy); Contract #2 width+height acceptance divergence verified consistent and regression-pinned against the real zenfs fixture shape; no Anthropic SDK, no stdlib XML, module boundary and R8/R13 verified clean.
+**TECH-DEBT**: no new item; DEBT-082 extended (2026-07-19).
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/docs/cross-checks/2026-07-19-u136-feed-image-metadata-harvest.md` (new)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/construction/u136-feed-image-metadata-harvest/code/summary.md` (new closeout; unit dir created — FD/NFR intentionally absent per Stage Decision)
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` (DEBT-082 extension)
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/aidlc-state.md` (u136 row)
+**Status**: u136 construction and cross-check complete.
+
 ## Construction — u139 Code Generation Step 4 complete
 **Timestamp**: 2026-07-18T13:03:50Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed Step 3 metric/regime slice as `f8cfc90`, then executed the next bounded Code Generation slice only.

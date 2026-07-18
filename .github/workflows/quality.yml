@@ -50,6 +50,14 @@ jobs:
       - name: Paid API guard
         run: uv run python scripts/check_no_paid_apis.py
 
+      - name: Curated assets guard
+        # u86: license-clearance gate for the curated context-asset
+        # library (sibling manifests, license allow-list, byte/dimension
+        # budgets, registry integrity, secret scan). Runs after
+        # ``uv sync`` because the script imports in-tree ``investo``
+        # modules. Wired per DEBT-083 (2026-07-18 decision).
+        run: uv run python scripts/check_curated_assets.py
+
       - name: Image store guard
         # u137: license-compliance gate for the image-candidate store
         # (provenance sidecars, clearance manifests, size budgets, R13

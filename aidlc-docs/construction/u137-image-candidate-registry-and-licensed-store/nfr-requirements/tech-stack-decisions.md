@@ -37,16 +37,23 @@
   chokepoint (u27) and the clearance semantics; u86's TS-2 precedent
   applies unchanged.
 
-## TS-3. CI gate as a stdlib script mirroring `check_curated_assets.py`
+## TS-3. CI gate mirroring `check_curated_assets.py` — no new third-party dependency; in-tree module reuse allowed
 
 - **Decision**: the license-compliance gate (AC-1.2) ships as
-  `scripts/check_image_store.py`, a stdlib-only Python script (no new
-  dependency) wired into the GHA quality workflow alongside the existing
-  gates. JSON parsing uses stdlib `json`; hashing stdlib `hashlib`;
-  secret screening reuses the u27 redaction patterns already in-tree.
+  `scripts/check_image_store.py` with **no new third-party dependency;
+  in-tree module reuse allowed** — the script may import already-present
+  core dependencies (pydantic) and in-tree investo modules so it
+  validates against the same contracts the runtime uses. Wired into the
+  GHA quality workflow alongside the existing gates. JSON parsing uses
+  stdlib `json`; hashing stdlib `hashlib`; secret screening reuses the
+  u27 redaction patterns already in-tree.
 - **Rationale**: matches the established `check_curated_assets.py` /
   `check_no_paid_apis.py` blocking-gate pattern with zero dependency
   delta.
+- *(edited 2026-07-19 — u137 cross-check L1: replaced the original
+  "stdlib-only" wording with the constraint actually enforced; the
+  shipped gate imports pydantic + four in-tree modules, matching the
+  `check_curated_assets.py` mirror precedent. Code unchanged.)*
 
 ## TS-4. Persistence is JSONL + JSON on git — no database
 

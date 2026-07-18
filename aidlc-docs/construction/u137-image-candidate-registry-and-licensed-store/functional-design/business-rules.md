@@ -133,7 +133,8 @@ means the **project-wide** secret-hygiene rule.
 
 ## R10. CI gate + reuse boundary (AC-1.1, AC-1.2, AC-1.3; TS-1..TS-4)
 
-- New `scripts/check_image_store.py` — stdlib-only, mirrors
+- New `scripts/check_image_store.py` — no new third-party dependency,
+  in-tree module reuse allowed; mirrors
   `check_curated_assets.py` — exits non-zero on: missing binary↔sidecar
   pairing or missing clearance manifest for a store binary (I12);
   invalid / hash-mismatched clearance manifest (I8/I9); unrecognized
@@ -146,6 +147,9 @@ means the **project-wide** secret-hygiene rule.
 - `EXTERNAL_IMAGE_SCRAPING_ENABLED` module default stays `False`
   (unchanged); the u86 curated library remains a separate channel with
   its own gate.
+- *(edited 2026-07-19 — u137 cross-check L1: "stdlib-only" → "no new
+  third-party dependency; in-tree module reuse allowed", matching the
+  shipped gate and the `check_curated_assets.py` precedent.)*
 
 ---
 

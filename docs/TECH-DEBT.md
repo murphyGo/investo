@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 5 | 2026-05-07 |
+| Medium | 6 | 2026-05-07 |
 | Low | 33 | 2026-04-27 |
 
 ---
@@ -23,15 +23,25 @@ _No high priority items._
 
 ### Medium Priority
 
-#### DEBT-083: `scripts/check_curated_assets.py` is authored but not wired into any GitHub Actions workflow
+#### DEBT-085: u137 Step 4 rollback exclusion is documented but not regression-pinned — a future `previous_bytes=None` registration would silently reintroduce the R3 never-drop violation
 
-- **Created**: 2026-07-18
-- **Source**: u137 image-candidate-registry-and-licensed-store Step 5 ops work (discovered while wiring `scripts/check_image_store.py` into `.github/workflows/quality.yml`)
-- **Reference**: u86 curated-assets policy, u137 TS-3 (`check_image_store.py` deliberately mirrors `check_curated_assets.py`), AC-137.3/AC-137.5 precedent (a gate only binds when CI-wired), NFR-005 (consistency)
-- **Description**: `scripts/check_curated_assets.py` exists and runs locally, but no workflow under `.github/workflows/` invokes it — grep confirms `quality.yml` wires only `check_no_paid_apis.py` and the new `check_image_store.py`. The curated-asset invariants that script pins are therefore enforced only when an operator remembers to run it manually; a change violating curated-asset policy would merge green. The inconsistency is now conspicuous because u137's sibling gate, modeled on this script per TS-3, IS wired into the same workflow. **Decision (2026-07-18)**: wire it, do not retire it — the u86 policy the script guards is still binding and the u137 pairing makes an unwired sibling actively misleading about what CI enforces.
-- **Suggested Fix**: Add a `uv run python scripts/check_curated_assets.py` step to `.github/workflows/quality.yml` adjacent to the `check_image_store.py` step (investo-ops owns the YAML). Verify it exits 0 on the current clean tree first; if it fails on legacy curated assets, fix or explicitly waive those before wiring so the gate lands green rather than red-on-arrival.
-- **Effort**: ~15-30 min (one workflow step + one clean-tree verification run; more only if legacy assets fail).
-- **Priority Reasoning**: Medium — an authored-but-unwired gate is silent policy erosion: the repo looks protected while the invariant goes unenforced, the same gate-trust concern that motivated DEBT-081's Medium. The fix is trivially cheap and the wired/unwired split between two sibling gates in the same family will confuse future contributors about which checks actually bind.
+- **Created**: 2026-07-19
+- **Source**: u137 image-candidate-registry-and-licensed-store cross-check (M1) — `docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md`
+- **Reference**: u137 R3 (ledger merge-rewrite / never-drop), u137 R9/I16 (failure-isolated stage; outputs join publish staging), Step 4 ratified divergence (audit 2026-07-18 — image outputs excluded from publish rollback snapshots), NFR-006 (testing)
+- **Description**: The ratified Step 4 divergence — image-stage outputs (`archive/_meta/image_candidates/` ledgers/index, `assets/images/` binaries/sidecars) join the publish `git add` list but are excluded from rollback snapshots (`src/investo/orchestrator/pipeline.py:1155-1162`, `1216-1219`) — is consistent and documented but carries no regression test. No test injects a publish write-failure on a run whose image stage wrote (or merged into a pre-existing) ledger and asserts the ledger/index survive `_rollback_paths`. A future edit registering `extra_commit_paths` with `previous_bytes=None` (the `asset_paths` idiom at `pipeline.py:1219`) would make rollback delete pre-existing merge-rewrite ledgers — exactly the R3 never-drop violation the divergence exists to prevent — and nothing would go red. Existing rollback tests (`tests/unit/orchestrator/test_run_pipeline.py:1478-1523`) use imageless items, so the exclusion is exercised by zero paths.
+- **Suggested Fix**: Extend the `PublisherIOError` rollback test with one image-bearing item and a pre-seeded date ledger; assert the ledger bytes are byte-intact post-rollback (and the index/store paths untouched), pinning the exclusion the same way the staging join and failure isolation are already pinned.
+- **Effort**: ~30-45 min.
+- **Priority Reasoning**: Medium — the divergence guards a persistence-safety invariant (R3 never-drop) at a chokepoint the next rollback-related edit is likely to touch, and the failure mode is silent deletion of committed ledger data on a publish failure. Bounded and cheap to close; pin before any further publish-transaction work.
+
+#### DEBT-086: `check_image_store.py` R13 pre-mask is shape-locked but not key-scoped — a 64-hex-shaped secret in an operator-authored clearance manifest evades the gate
+
+- **Created**: 2026-07-19
+- **Source**: u137 image-candidate-registry-and-licensed-store cross-check (M2) — `docs/cross-checks/2026-07-19-u137-image-candidate-registry-and-licensed-store.md`
+- **Reference**: u137 NFR AC-1.3 (R13 hygiene across persisted artifacts), u137 TS-2 digest exemption (audit 2026-07-18 — key-scoped to `additional_metadata.candidate_id`/`content_sha256`), project rule R13 (secret hygiene), u27 `scan_for_leak`
+- **Description**: `scripts/check_image_store.py` (lines 75, 223) strips every bare `\b[0-9a-f]{64}\b` token from the full text of every scanned artifact before running `scan_for_leak`. The ratified TS-2 exemption is key-scoped, and the runtime side honors that scope (`src/investo/visuals/provenance.py:155-167` passes only `additional_metadata.candidate_id`/`content_sha256` verbatim) — but the gate widens the exemption file-wide. Consequence: a 64-hex-shaped secret anywhere in a scanned file evades the gate's R13 scan. The residual exposure concentrates in operator-authored clearance manifests: their `ExternalAssetManifest` fields carry no sanitizer (`src/investo/visuals/policy.py:55-66`), and the CI gate is the only automated check for that surface.
+- **Suggested Fix**: Replace the flat regex pre-mask with JSON-aware masking — mask only sidecar `additional_metadata.candidate_id`/`content_sha256` values, index map keys, and ledger `candidate_id` fields, and scan everything else unmasked. Pin with a RED test that places a 64-hex token in a clearance-manifest free-text field. Opportunistically add the 100 B per-file floor the gate currently skips (cross-check L2) in the same pass.
+- **Effort**: ~1-2 h.
+- **Priority Reasoning**: Medium, triaged at the low edge (QA banded it Medium-Low) — the evasion requires the single operator to hand-paste a 64-hex-shaped secret into a manifest they author, and non-64-hex secret shapes (Telegram bot token, `ghp_` PATs) are still caught; but R13 is a hard project rule, the gate is the sole automated check for the clearance-manifest surface, and the fix simply restores the exemption to its ratified key scope. Resolve before clearance manifests see routine operator use.
 
 #### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
 
@@ -104,7 +114,8 @@ _No high priority items._
 - **Reference**: NFR-005 (consistency / maintainability), u136 Fixed Contract #4 (license-key non-pollution invariant), DEBT-032 precedent (`_SUMMARY_MAX_LEN` duplicated across 8 adapters), DEBT-034 precedent (test-helper duplication)
 - **Description**: Two small duplication families. (a) `_ALLOWED_SCHEMES = ("http", "https")` is repeated per sources module — now 13 files under `src/investo/sources/` including the new `_feed_media.py` (`cftc_policy_rss.py`, `cnbc_top_news.py`, `fed_speech_rss.py`, `fomc_rss.py`, `korea_policy_rss.py`, `nasdaq_stocks_news.py`, `official_policy.py`, `sec_edgar_8k.py`, `sec_newsroom_rss.py`, `theblock_crypto.py`, `yahoo_finance_news.py`, `yonhap_market.py`, `_feed_media.py`); any future scheme-policy change needs 13 lockstep edits. (b) The `_FORBIDDEN_LICENSE_KEYS` set backing the u136 Contract #4 non-pollution regression tests is duplicated across 4 test files (`tests/unit/sources/test_yonhap_market.py`, `tests/unit/sources/test_yahoo_finance_news.py`, `tests/unit/sources/test_theblock_crypto.py`, `tests/unit/visuals/test_external_image.py`); drift in any one copy would silently weaken the safety invariant that copy pins.
 - **Suggested Fix**: (a) Hoist `_ALLOWED_SCHEMES` (or an `is_allowed_http_url` predicate) into an existing shared sources helper module and import it from the 13 sites. (b) Single-home `_FORBIDDEN_LICENSE_KEYS` — either a shared test helper or, better, export the canonical forbidden-key tuple from the production module whose contract the tests guard, so the test set can never drift from the production contract — and import it from the 4 test files.
-- **Effort**: ~45 min for both moves + import updates.
+- **Extension (2026-07-19, u136 cross-check L1)**: a third duplication family — the 1000-char image-URL cap is pinned independently as `_URL_MAX_LEN = 1000` (`src/investo/sources/_feed_media.py:58`) and `_IMAGE_URL_MAX = 1000` (`src/investo/visuals/image_library.py:134`). Values agree today; a drift would silently turn in-cap u136 harvests into u137 `screened_skipped` drops. The two sit across the sources↔visuals module boundary (string contract, no import), so the shared home must be a `models/` or `_internal` constant rather than a sources-local helper. Fold into the same pass (~15 min extra).
+- **Effort**: ~45 min for both moves + import updates (+~15 min for the extension).
 - **Priority Reasoning**: Low — pure duplication with correct behavior today, same shape as DEBT-032/DEBT-034. The `_FORBIDDEN_LICENSE_KEYS` copies matter slightly more than typical test duplication because they pin a safety invariant (Contract #4), so resolve that half first if the work is split.
 
 #### DEBT-079: macro calendar↔actual share no canonical `event_key` (u59 carryover tracks them as two events)
@@ -416,6 +427,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-083: `scripts/check_curated_assets.py` is authored but not wired into any GitHub Actions workflow
+
+- **Created**: 2026-07-18
+- **Resolved**: 2026-07-19 — Added a `Curated assets guard` step to `.github/workflows/quality.yml` (`uv run python scripts/check_curated_assets.py`), adjacent to the u137 `Image store guard` and mirroring its invocation style, so the u86 curated-asset license-clearance invariants now bind on every PR / push alongside the sibling gate. Clean-tree verification passed before wiring (`curated library OK — 0 filed, 13 deferred`, exit 0), so the gate landed green rather than red-on-arrival. Per the 2026-07-18 decision the script was wired, not retired.
+- **Source**: u137 image-candidate-registry-and-licensed-store Step 5 ops work (discovered while wiring `scripts/check_image_store.py` into `.github/workflows/quality.yml`)
+- **Reference**: u86 curated-assets policy, u137 TS-3 (`check_image_store.py` deliberately mirrors `check_curated_assets.py`), AC-137.3/AC-137.5 precedent (a gate only binds when CI-wired), NFR-005 (consistency)
+- **Priority Reasoning**: Closed.
 
 #### DEBT-041: `_provenance_caption_for` swallows the pydantic `ValueError` from corrupt sidecars
 

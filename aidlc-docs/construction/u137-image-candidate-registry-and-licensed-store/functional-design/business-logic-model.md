@@ -67,9 +67,9 @@ fetch_cleared_candidates(index, *, client=None) -> FetchReport:
     manifest = parse ExternalAssetManifest(clearances/{cid}.manifest.json)  # E3
     if invalid or sha256(normalize(manifest.source_url)) != cid:       # I8 / I9
       WARN; continue
+    if store_binary_path(cid) exists: continue                         # I10 — idempotent skip (precedes gates 3/4)
     assert_external_asset_allowed(manifest, scraping_enabled=env)      # gate (3), I13
     assert_external_image_host_allowed(url, allowed_hosts=env)         # gate (4), I13
-    if store_binary_path(cid) exists: continue                         # I10 — idempotent skip
     fetched = reuse external_image fetch machinery                     # R8 — minimal publicization
              (signature + 100B-2,000,000B cap via _extension_for_image)  # I11 / AC-1.1
     if fetched is None: WARN; continue                                 # nothing written
@@ -82,6 +82,11 @@ fetch_cleared_candidates(index, *, client=None) -> FetchReport:
 
 `metadata-only` / `blocked` candidates produce **zero** fetch attempts in
 every env/policy combination — regression-pinned (I13, AC-137.2).
+
+*(edited 2026-07-19 — u137 cross-check L4: the I10 skip-if-present check
+now precedes policy gates (3)/(4), matching the shipped implementation
+(`image_library.py:784-801`); consequence: gate-blocked counters are not
+incremented for already-stored candidates. No invariant impact.)*
 
 ## 4. Pipeline sequence (one run, failure-isolated stage)
 
@@ -102,7 +107,7 @@ orchestrator/pipeline.py — after segment routing (R9):
 ## 5. CI gate (`scripts/check_image_store.py`, build/CI time)
 
 ```
-check_image_store():                                # stdlib only, mirrors check_curated_assets.py (R10, TS-3)
+check_image_store():                                # no new third-party deps (in-tree reuse allowed), mirrors check_curated_assets.py (R10, TS-3)
   for binary under assets/images/:
     extension recognized (.png/.jpg)?               else RED
     sidecar {binary}.provenance.json valid?         else RED   (I12)
