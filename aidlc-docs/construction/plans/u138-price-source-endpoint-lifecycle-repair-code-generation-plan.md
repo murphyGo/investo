@@ -271,7 +271,7 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 6 — Validation
 
-- [ ] Complete
+- [ ] Complete (local gates passed 2026-07-19; exact-date GHA dispatch blocked by repository authorization)
 
 - Run focused tests listed below.
 - Run full source/plugin/segment/orchestrator gates.
