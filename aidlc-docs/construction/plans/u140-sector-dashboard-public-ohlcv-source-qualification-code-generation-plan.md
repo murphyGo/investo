@@ -54,6 +54,7 @@ adapter or Pages construction is registered.
 | Finnhub stock candles | official structured OHLCV, but the endpoint is Premium-only; market-data plans are Personal Use and public/commercial use requires written approval | reject for the no-paid public gate (2026-07-19 Step 0) |
 | Alpaca Market Data API | free Basic technically provides US stock/ETF history since 2016 and multi-symbol daily bars, but Alpaca says its API data cannot be redistributed and its customer agreement requires written consent for reproduction/distribution | reject until written public derived-display consent (2026-07-19 Step 0) |
 | Financial Modeling Prep | free Basic technically provides five years of end-of-day history at 250 calls/day, but is classified as Individual use and public display/redistribution requires a separate Data Display and Licensing Agreement | reject until a written public derived-display agreement exists (2026-07-19 Step 0) |
+| Tiingo EOD API | free Starter technically provides broad raw/adjusted EOD OHLCV within ample daily quotas, but all listed standard tiers are Internal Use Only and display redistribution starts at a paid USD 250/month plan | reject for the no-paid public gate (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -85,6 +86,13 @@ Primary Financial Modeling Prep references, checked 2026-07-19:
 - `https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full`
 - `https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-non-split-adjusted`
 - `https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-dividend-adjusted`
+
+Primary Tiingo references, checked 2026-07-19:
+
+- `https://www.tiingo.com/documentation/end-of-day`
+- `https://www.tiingo.com/pricing`
+- `https://www.tiingo.com/products/end-of-day-stock-price-data`
+- `https://app.tiingo.com/tos/`
 
 ## Qualification Steps
 
@@ -137,6 +145,22 @@ the plan as Individual use and requires a separate Data Display and Licensing
 Agreement for display or redistribution. The general terms independently prohibit
 third-party-accessible application integration and multi-user display without a
 specific agreement. Step 1 does not apply to this candidate.
+
+#### Iteration 4 — Tiingo EOD API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-tiingo.md`.
+Disposition: **reject**. Free Starter has sufficient structured EOD fields, history,
+and request capacity, but Tiingo classifies every listed standard tier as Internal
+Use Only and prohibits public analysis/display under its current terms. Display
+redistribution requires special permission and a paid plan listed from USD 250/month,
+so both the free and public-rights gates fail. Step 1 does not apply to this candidate.
 
 #### Next candidate iteration
 

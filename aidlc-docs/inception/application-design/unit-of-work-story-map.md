@@ -405,6 +405,7 @@ Candidate disposition:
 - **Reject for u140 public Pages (2026-07-19 evidence refresh)**: Finnhub stock candles are Premium-only and the listed market-data licenses are Personal Use; no credentialed probe is justified without written public/commercial approval.
 - **Reject for u140 public Pages under current written terms (2026-07-19)**: Alpaca Basic is technically free and structured, but Alpaca's official support says its API data cannot be redistributed and the customer agreement requires written consent for reproduction/distribution. No public derived-display grant is inferred.
 - **Reject Financial Modeling Prep for u140 public Pages under current written terms (2026-07-19)**: FMP Basic technically supplies free five-year end-of-day history, but its official pricing classifies the plan as Individual use and requires a separate Data Display and Licensing Agreement for display or redistribution. No such Investo agreement exists.
+- **Reject Tiingo for u140 public Pages (2026-07-19)**: free Starter technically supplies broad raw/adjusted EOD OHLCV, but every listed standard tier is Internal Use Only, the terms prohibit public analysis/display, and display redistribution starts at USD 250/month. It fails both the no-paid and public-rights gates before probing.
 
 ### u139-u140 Planning Notes
 

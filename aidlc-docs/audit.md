@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 4 (Tiingo)
+**Timestamp**: 2026-07-18T21:00:08Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Financial Modeling Prep Step 0 slice as `8f08b2d`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: Tiingo documents token-authenticated EOD REST endpoints with raw and split/dividend-adjusted OHLCV, dividends, split factors, daily ticker metadata, and US equity/ETF updates around 5:30 PM EST with corrections through 8 PM EST. Free Starter allows 500 unique symbols/month, 50 requests/hour, 1,000/day, and 1 GB/month. Its official pricing and product pages classify free, individual paid, and commercial tiers as Internal Use Only. The current terms prohibit publishing public analysis of Tiingo data and state that redistribution requires special permission and additional fees; the product page lists display redistribution from USD 250/month.
+**Deduplication**: No Tiingo adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply Tiingo rights.
+**Decision**: `reject` for u140. The candidate clears preliminary structure, field, history, and free-request-budget checks but fails both the no-paid public redistribution and public-rights gates. No account/token was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-tiingo.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 3 (Financial Modeling Prep)
 **Timestamp**: 2026-07-18T20:55:04Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Alpaca Step 0 slice as `8110028`, then proceeded to the next u140 candidate fact sheet.
