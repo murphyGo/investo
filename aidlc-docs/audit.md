@@ -1,5 +1,20 @@
 # AI-DLC Audit Log
 
+## Construction — u139 Code Generation Step 2 complete
+**Timestamp**: 2026-07-17T23:04:53Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — pushed the completed Step 1 model-contract slice as `08eb813`, then executed the next bounded Code Generation slice only.
+**Implementation**: Added the explicit fixed-universe private manifest/XLSX adapter, approved `openpyxl>=3.1,<4` dependency, stable no-follow input handles with bounded ticker-local byte snapshots, relationship-aware ZIP/defusedxml preflight, sequential Date/NAV parsing, typed/redacted per-workbook isolation, strict SPY as-of and coverage resolution, and deterministic binary-safe input fingerprinting.
+**Security and resource hardening**: Manifest reads are bounded to 64 KiB and reject duplicate JSON keys. Workbooks enforce 8 MiB compressed, 64 MiB uncompressed, 100:1, 2,000-member, 20-sheet, and 250,000-cell ceilings. Preflight follows the exact workbook relationship targets; preflight, hashing, and openpyxl consume the same bounded snapshot, so path replacement or same-inode mutation cannot introduce unpreflighted bytes. Identity or path changes fail closed.
+**Code review**: The required independent review found three High issues (path-reopen TOCTOU, relationship-target cell-limit bypass, and same-inode mutation after preflight) plus two Medium issues (ambiguous fingerprint framing and duplicate JSON keys). All five were fixed with synthetic adversarial regressions; final re-review returned `APPROVED` with no remaining Critical, High, or Medium finding.
+**Verification**: Focused private-input tests 36 passed; combined Step 1 model plus Step 2 adapter tests 273 passed; scoped Ruff check/format, strict mypy, and `git diff --check` passed.
+**Artifacts**:
+- `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/code/step-2-private-input-adapter.md`
+- `docs/sessions/2026-07-18-u139-code-generation-step2.md`
+- `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-validation-code-generation-plan.md`
+**Status**: Code Generation Step 2/5 Complete; Step 3 pure metric and regime engine is next. No new TECH-DEBT; existing Pages/watchlist dirty files, public artifacts, and u140 status are unchanged.
+
+---
+
 ## Construction — u139 NFR approved; Code Generation Step 1 complete
 **Timestamp**: 2026-07-17T21:05:17Z
 **User decision**: "승인, 다음단계 진행" — the complete NFR Requirements and TS-1..TS-8 decisions are approved; Code Generation is authorized.

@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u139 sector-dashboard-private-core-radar-validation
 **Stage**: Code Generation
-**Status**: In Progress — Step 1 complete
+**Status**: In Progress — Step 2 complete
 **Source**: FR-022, NFR-008, US-010, and the approved S0-P Application Design
 **Estimated Effort**: ~12-18 h after design approval
 **Dependencies**: none; u140 is intentionally not a dependency
@@ -16,7 +16,7 @@
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/functional-design/`.
 - NFR Requirements: **COMPLETE — approved 2026-07-18**. The binding artifacts are under
   `aidlc-docs/construction/u139-sector-dashboard-private-core-radar-validation/nfr-requirements/`.
-- Code Generation: **IN PROGRESS**. Step 1 is complete; Step 2 is the next bounded slice.
+- Code Generation: **IN PROGRESS**. Steps 1-2 are complete; Step 3 is the next bounded slice.
 
 ## Scope Boundary
 
@@ -91,10 +91,10 @@ Contract definition and its NFR review gate were explicitly approved on 2026-07-
 
 ### Step 2 — Local private input adapter
 
-- [ ] Parse only explicit local workbook paths without network access.
-- [ ] Validate schema, ticker identity, dates, NAV domain, duplicates, ordering, and
+- [x] Parse only explicit local workbook paths without network access.
+- [x] Validate schema, ticker identity, dates, NAV domain, duplicates, ordering, and
   as-of alignment.
-- [ ] Produce redacted, typed failures and synthetic workbook tests.
+- [x] Produce redacted, typed failures and synthetic workbook tests.
 
 ### Step 3 — Metric and regime engine
 

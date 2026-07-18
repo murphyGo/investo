@@ -5,4 +5,16 @@ Runtime behavior is added stepwise under this package.  The component may depend
 scheduled orchestration components.
 """
 
-__all__: list[str] = []
+from investo.sector_dashboard.private_input import (
+    PrivateInputError,
+    load_private_nav_workbooks,
+    parse_private_nav_workbooks,
+    read_private_workbook_manifest,
+)
+
+__all__ = [
+    "PrivateInputError",
+    "load_private_nav_workbooks",
+    "parse_private_nav_workbooks",
+    "read_private_workbook_manifest",
+]
