@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 1 (Finnhub)
+**Timestamp**: 2026-07-18T20:32:08Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed u139 Step 5 closeout as `f8ea94e`, then proceeded to the first u140 candidate fact sheet.
+**Primary-source evidence**: Finnhub's official API documentation labels `/stock/candle` (daily OHLCV) `Premium Access Required` and states daily prices are split-adjusted. The official market-data pricing lists paid plans starting at USD 49.99/month with `Personal Use` licenses. The general free plan leaves US-market OHLC blank, and registration requires users to identify as qualified non-professional/personal or obtain written approval as commercial/professional.
+**Deduplication**: No Finnhub adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, secret, or workflow exists under `src/`, `tests/`, `scripts/`, or `.github/`. Existing Yahoo history/u138 paths do not provide public-rights evidence and are not extended by this decision.
+**Decision**: `reject` for u140. The candidate fails both the no-paid and public-rights gates before reachability testing. No API key was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-finnhub.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a provisional rights/cost pass can advance to local and five-run GitHub Actions probes.
+
 ## Construction — u139 Code Generation Step 5 and cross-check complete
 **Timestamp**: 2026-07-18T20:22:49Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the completed Step 4 private renderer/runner slice as `79dc4ee`, then executed the final bounded Code Generation Step 5.

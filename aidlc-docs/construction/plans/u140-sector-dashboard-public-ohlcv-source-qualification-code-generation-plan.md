@@ -51,6 +51,7 @@ adapter or Pages construction is registered.
 | Yahoo `query2` chart | existing operational path and useful reachability evidence; terms/public derived-display basis remains insufficient for this new Pages surface | defer; u138 only |
 | Stooq | current quote endpoint 404; history path returns an automation challenge in observed probes | reject for the gate |
 | Alpha Vantage / Twelve Data / similar individual free plans | structured APIs, but individual/free display and redistribution conditions do not currently clear this public product | reject until written terms fit |
+| Finnhub stock candles | official structured OHLCV, but the endpoint is Premium-only; market-data plans are Personal Use and public/commercial use requires written approval | reject for the no-paid public gate (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -60,17 +61,39 @@ Primary TradingView references:
 - `https://www.tradingview.com/widget-docs/faq/data/`
 - `https://www.tradingview.com/policies/`
 
+Primary Finnhub references, checked 2026-07-19:
+
+- `https://finnhub.io/docs/api/stock-candles`
+- `https://finnhub.io/pricing`
+- `https://finnhub.io/pricing-stock-api-market-data`
+- `https://finnhub.io/register`
+
 ## Qualification Steps
 
-### Step 0 — Candidate fact sheet
+### Step 0 — Candidate fact sheet (repeat for each serious candidate)
 
-- [ ] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+#### Iteration 1 — Finnhub stock candles
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
   cadence, adjustment semantics, attribution, caching, raw-retention, and derived
   public-display clauses with dated primary-source links.
-- [ ] Deduplicate the candidate against existing registry/spec/routing and u138.
-- [ ] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
 
-### Step 1 — Local bounded probe
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-finnhub.md`.
+Disposition: **reject**. Historical stock OHLCV is a Premium endpoint and the listed
+market-data licenses are Personal Use; the registration surface requires written
+approval for commercial/professional use. This fails the free/public-rights gates
+before any credentialed probe. Step 1 does not apply to this candidate.
+
+#### Next candidate iteration
+
+- [ ] Select the next non-duplicate candidate and repeat the complete Step 0 fact
+  sheet. Only a candidate with a provisional `ship-now` rights/cost disposition may
+  advance to Step 1.
+
+### Step 1 — Local bounded probe (accepted Step 0 candidate only)
 
 - [ ] Probe the exact 12-symbol universe and record status, content type, row count,
   as-of date, malformed/empty behavior, request count, and wall time.

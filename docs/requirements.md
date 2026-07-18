@@ -397,7 +397,7 @@
 
 ## 7. Open Questions
 
-- **무료 데이터 소스 정확한 조합** — 후보: Alpha Vantage, Finnhub free, Yahoo Finance(yfinance), FRED, CoinGecko, NewsAPI free, FOMC RSS, SEC EDGAR. 구현 단계에서 PoC로 결정.
+- **무료 데이터 소스 정확한 조합** — 후보: Alpha Vantage, Yahoo Finance(yfinance), FRED, CoinGecko, NewsAPI free, FOMC RSS, SEC EDGAR. Finnhub historical stock OHLCV는 2026-07-19 u140 공식 문서 검토에서 Premium-only/Personal Use로 확인되어 public Pages 후보에서 제외. 나머지는 구현 단계 PoC와 용도별 권리 gate로 결정.
 - **시황 작성 정확한 시각** — 한국시간 평일 오전 7시 기본, 주말 토요일 오전 9시 (가설)
 - **시황 출력 포맷 디테일** — 섹션은 정해졌으나 각 섹션 길이/스타일 가이드 필요
 - **Claude Code CLI 호출 패턴** — `-p` 비대화형 모드, prompt 입력 방식, output 파싱 전략 (구현 시 결정)
