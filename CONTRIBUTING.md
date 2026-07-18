@@ -470,6 +470,78 @@ The pipeline writes to `archive/2026/11/2026-11-25.md`, which git
 already contains from the prior day's run — the **same-day overwrite
 contract** (FR-006) replaces it cleanly with the re-run version.
 
+### Image-candidate clearance (u137)
+
+Every run harvests image *metadata* from the news feeds into
+`archive/_meta/image_candidates/` (date ledgers + `index.json`). The
+default rights state of every candidate is **`metadata-only`** —
+no binary is ever fetched or republished without an explicit,
+per-candidate operator clearance. All state transitions happen by
+**operator file placement only**; no code path ever writes under
+`clearances/`.
+
+**Legal bar (binding, R1)**: author a clearance ONLY when a concrete
+republication right is confirmed — an official press-kit license, a
+CC-licensed source, or explicit written permission. **Wire photos
+(Reuters/AP via the Yonhap feed) and publisher thumbnails (Yahoo /
+The Block CDN images) do NOT qualify** and must stay `metadata-only`
+(or be `.blocked`). When you instead source a license-clean substitute
+image, it belongs in the u86 curated library, not here.
+
+**To clear a candidate**:
+
+1. Find it in `archive/_meta/image_candidates/index.json` (the
+   `seen_count` field shows multi-day recurrence) or in a date ledger
+   `archive/_meta/image_candidates/{YYYY}/{YYYY-MM-DD}.jsonl`; note
+   its `candidate_id` and exact `image_url`.
+2. Verify the republication basis per the legal bar above.
+3. Author
+   `archive/_meta/image_candidates/clearances/{candidate_id}.manifest.json`
+   as a complete `ExternalAssetManifest` with
+   `kind="explicit-license"`. `source_url` must be the **exact image
+   URL** — it is hash-verified against the `{candidate_id}` filename
+   (I9: `sha256` of the normalized URL — lowercase scheme/host,
+   fragment stripped), so a manifest authored for a different URL
+   never clears this candidate. `license` / `attribution` / `author` /
+   `allowed_use` document your verified basis; `fetched_on` is your
+   verification date.
+
+Worked example — for the (fictional) image URL
+`https://example.com/press-kit/chart-2026.png` the candidate id is
+`4b71cff188bdf32c8e9a71e2953045857edcb8ee83f2dceeb05c5970b1f377d9`, so
+the clearance file is
+`clearances/4b71cff188bdf32c8e9a71e2953045857edcb8ee83f2dceeb05c5970b1f377d9.manifest.json`:
+
+```json
+{
+  "kind": "explicit-license",
+  "source_url": "https://example.com/press-kit/chart-2026.png",
+  "license": "Example Corp press-kit license",
+  "attribution": "Example Corp 공식 프레스킷",
+  "author": "Example Corp",
+  "fetched_on": "2026-07-18",
+  "allowed_use": "공식 프레스킷 약관에 따른 재게시 허용 (편집 목적)"
+}
+```
+
+(You can double-check an id with
+`uv run python -c "from investo.visuals.image_library import candidate_id_for_url; print(candidate_id_for_url('<image-url>'))"`.)
+
+**To block a candidate permanently**: create an empty marker file
+`clearances/{candidate_id}.blocked`. Blocked wins over a coexisting
+manifest and is permanent until you remove the marker (I15) — the
+candidate keeps appearing in the ledger/index (metadata is always
+collected) but is excluded from fetch candidacy forever.
+
+**Fetch is doubly gated**: even a cleared candidate is only downloaded
+when the run has `INVESTO_EXTERNAL_IMAGE_ASSETS=1` set (plus the
+public-host / optional `INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS`
+allowlist). Stored binaries land content-addressed under
+`assets/images/` with a provenance sidecar, and
+`scripts/check_image_store.py` (wired into the quality workflow)
+blocks CI on any unpaired / unclearanced / over-budget /
+secret-bearing store state — an empty store always passes.
+
 ### Pages deploy
 
 `pages.yml` triggers automatically on every push to `main` (including

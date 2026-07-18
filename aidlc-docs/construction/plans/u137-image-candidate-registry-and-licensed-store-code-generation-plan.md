@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u137 image-candidate-registry-and-licensed-store
 **Stage**: Code Generation
-**Status**: In Progress (6/7: Step 0-5 done, 2026-07-18)
+**Status**: Completed (7/7, 2026-07-18)
 **Source**: 2026-07-17 user feature request — "실제 뉴스/칼럼/커뮤니티 이미지를 **저장해두고** 활용" 중 저장(수집 2단계). u136이 채집한 이미지 메타데이터를 영속 원장으로 굳히고, 재출현(자주 쓰이는 이미지) 추적과 라이선스 게이트 바이너리 저장을 붙인다.
 **Estimated Effort**: ~10-14 h (FD/NFR 포함)
 **Dependencies**:
@@ -107,9 +107,9 @@ Out of scope (명시적 non-goal):
 - ops 발견: `check_curated_assets.py`는 어떤 워크플로에도 미편입 상태 — 별도 TECH-DEBT 후보로 planner 전달 예정.
 - **Acceptance**: 정상 store 통과 / 주입된 고아·무매니페스트·예산 초과 픽스처 각각 명확한 메시지로 실패.
 
-### Step 6 — full gate + 문서 `[ ]`
-- [ ] ruff / mypy --strict / pytest / mkdocs build --strict / `check_no_paid_apis` / 신규 게이트.
-- [ ] CONTRIBUTING 운영 런북에 클리어런스 절차(운영자가 매니페스트 작성하는 법 + 법적 기준: 재게시 가능 근거가 확인된 경우만) 1절 추가.
+### Step 6 — full gate + 문서 `[x]`
+- [x] ruff / mypy --strict / pytest / mkdocs build --strict / `check_no_paid_apis` / 신규 게이트.
+- [x] CONTRIBUTING 운영 런북에 클리어런스 절차(운영자가 매니페스트 작성하는 법 + 법적 기준: 재게시 가능 근거가 확인된 경우만) 1절 추가.
 - **Acceptance**: 게이트 그린, 런북에 클리어런스 예시 1건.
 
 ## Acceptance Criteria (unit-level)
