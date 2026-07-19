@@ -99,6 +99,39 @@ def test_insert_visual_links_places_images_before_reader_status_block() -> None:
     )
 
 
+def test_insert_visual_links_same_anchor_cards_keep_iteration_order() -> None:
+    # DEBT-040 — an ``ai-market-hero`` takes the hero slot, demoting
+    # ``data-confidence`` to the ``## ① 요약`` anchor it shares with
+    # ``market-snapshot``. Same-anchor cards must render in
+    # ``asset_paths`` iteration order (pre-fix, the stacked same-point
+    # inserts silently inverted it).
+    markdown_path = Path("archive/us-equity/2026/05/2026-05-07.md")
+    assets_dir = Path("archive/us-equity/2026/05/2026-05-07.assets")
+    asset_paths = (
+        assets_dir / "ai-market-hero.png",
+        assets_dir / "data-confidence.svg",
+        assets_dir / "market-snapshot.svg",
+    )
+
+    result = insert_visual_links(
+        _briefing().rendered_markdown,
+        markdown_path=markdown_path,
+        asset_paths=asset_paths,
+    )
+
+    # Hero above the fold; both demoted cards under ① 요약 in
+    # iteration order, before the next section starts.
+    assert result.index("![AI 시황 이미지]") < result.index("> **데이터 상태**")
+    summary_at = result.index("## ① 요약")
+    confidence_at = result.index("![데이터 신뢰도]")
+    snapshot_at = result.index("![시장 스냅샷]")
+    assert summary_at < confidence_at < snapshot_at < result.index("## ② 전일 핵심 이슈")
+    # Idempotent second pass.
+    assert (
+        insert_visual_links(result, markdown_path=markdown_path, asset_paths=asset_paths) == result
+    )
+
+
 def test_insert_visual_links_allows_missing_optional_caption_sidecar(tmp_path: Path) -> None:
     markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
     asset_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.assets/data-confidence.svg"
