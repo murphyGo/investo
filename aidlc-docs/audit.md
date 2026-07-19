@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 7 (EODHD)
+**Timestamp**: 2026-07-19T08:41:36Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed the Massive Step 0 slice as `52559c1`, merged the concurrent non-overlapping DEBT-040 commit `478c410`, pushed final `3472357`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: EODHD Free Starter is USD 0, allows 20 calls/day, and supplies one year of single-symbol EOD history. The endpoint returns daily open, high, low, unadjusted close, split- and dividend-adjusted close, and volume; 12 symbols are technically within the daily quota, and major US exchanges are documented as updating within 15 minutes after close. The pricing surface classifies Free Starter as Personal use. The binding terms permit non-professional storage/manipulation/analysis only for private non-commercial use, prohibit display or redistribution of original or repackaged Information, and require professional users to obtain prior written approval.
+**Deduplication**: No EODHD/EODHistoricalData adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply EODHD rights.
+**Decision**: `reject under current written terms` for u140. The candidate clears preliminary structure, field, history, freshness-documentation, and free-request-budget checks but fails the binding public-rights gate. No account/token was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-eodhd.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 6 (Massive Stocks)
 **Timestamp**: 2026-07-19T08:36:08Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Marketstack Step 0 slice as `7ecb9ad`, then proceeded to the next u140 candidate fact sheet.

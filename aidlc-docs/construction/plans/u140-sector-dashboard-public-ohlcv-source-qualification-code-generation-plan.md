@@ -57,6 +57,7 @@ adapter or Pages construction is registered.
 | Tiingo EOD API | free Starter technically provides broad raw/adjusted EOD OHLCV within ample daily quotas, but all listed standard tiers are Internal Use Only and display redistribution starts at a paid USD 250/month plan | reject for the no-paid public gate (2026-07-19 Step 0) |
 | Marketstack EOD API | free access technically provides one year of batch EOD raw/adjusted OHLCV at 100 requests/month, but Commercial Use begins on a paid plan and current linked Freeware terms restrict use to testing/evaluation without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
 | Massive Stocks API (formerly Polygon.io) | free Stocks Basic technically provides two years of all-US-ticker EOD aggregates at five calls/minute, but the individual license prohibits apps for other end users and third-party display/distribution of Market Data or derived analytics/research | reject until express written public derived-display consent (2026-07-19 Step 0) |
+| EODHD EOD API | free Starter technically provides one year of single-symbol EOD OHLCV plus adjusted close at 20 calls/day, but the plan is Personal use and current terms prohibit display or redistribution by non-professional users without prior written approval | reject under current written terms (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -110,6 +111,13 @@ Primary Massive references, checked 2026-07-19:
 - `https://massive.com/docs/rest/stocks/aggregates/custom-bars`
 - `https://massive.com/legal/individuals-terms-of-service`
 - `https://massive.com/legal/market-data-terms-of-service`
+
+Primary EODHD references, checked 2026-07-19:
+
+- `https://eodhd.com/financial-apis/api-for-historical-data-and-volumes`
+- `https://eodhd.com/pricing`
+- `https://eodhd.com/financial-apis/terms-conditions`
+- `https://eodhd.com/financial-apis/our-data-sources-and-data-partners`
 
 ## Qualification Steps
 
@@ -211,6 +219,23 @@ preliminary history, field, and request-budget gates, but the individual license
 personal-only and explicitly prohibits applications for other end users and
 third-party display/distribution of both Market Data and derived analytics or
 research. No express written Investo consent exists. Step 1 does not apply to this
+candidate.
+
+#### Iteration 7 — EODHD EOD API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-eodhd.md`.
+Disposition: **reject under current written terms**. Free Starter has sufficient
+history, fields, freshness documentation, and daily calls for the 12-symbol workload,
+but it is Personal use and the terms prohibit non-professional users from displaying
+or redistributing original or repackaged Information. Professional display requires
+prior written approval, which Investo does not have. Step 1 does not apply to this
 candidate.
 
 #### Next candidate iteration
