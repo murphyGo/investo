@@ -76,6 +76,7 @@ from investo.sources.stooq_kr_market import StooqKrMarketAdapter
 from investo.sources.stooq_price import StooqPriceAdapter
 from investo.sources.theblock_crypto import TheBlockCryptoAdapter
 from investo.sources.tiers import ADAPTER_TIERS
+from investo.sources.treasury_auctions import TreasuryAuctionsAdapter
 from investo.sources.treasury_rates import TreasuryRatesAdapter
 from investo.sources.us_economic_calendar import UsEconomicCalendarAdapter
 from investo.sources.yahoo_finance_news import YahooFinanceNewsAdapter
@@ -140,6 +141,7 @@ def _isolate_registry() -> Iterator[None]:
     register(SecNewsroomRssAdapter)
     register(YonhapMarketAdapter)
     register(TheBlockCryptoAdapter)
+    register(TreasuryAuctionsAdapter)
     register(TreasuryRatesAdapter)
     register(UsEconomicCalendarAdapter)
     register(CnbcTopNewsAdapter)
@@ -355,6 +357,8 @@ def test_all_does_not_leak_internal_helpers() -> None:
         "YonhapMarketAdapter",
         "theblock_crypto",
         "TheBlockCryptoAdapter",
+        "treasury_auctions",
+        "TreasuryAuctionsAdapter",
         "treasury_rates",
         "TreasuryRatesAdapter",
         "us_economic_calendar",

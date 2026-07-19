@@ -52,6 +52,7 @@ LOOKAHEAD_AWARE_SOURCES: Final[frozenset[str]] = frozenset(
         "fomc-calendar",
         "fred-economic-calendar",
         "nasdaq-earnings-calendar",
+        "treasury-auctions",
     }
 )
 _MISSING_CATEGORY_TO_REASON: Final[dict[Category, CoverageReasonCode]] = {

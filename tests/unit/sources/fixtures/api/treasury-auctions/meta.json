@@ -1,0 +1,27 @@
+{
+  "_recorded_at": "2026-07-19T09:23:18Z",
+  "_recorded_url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/upcoming_auctions?sort=-auction_date&page%5Bsize%5D=500",
+  "_note": "Treasury Fiscal Data 'Upcoming Treasury Auctions' dataset — forward auction schedule (auction_date, security_type, security_term, cusip, offering_amt, announcemt_date, issue_date). Recorded live per R10 during the DEBT-067 phase-A availability probe; tests replay these bodies via httpx.MockTransport and never hit the live endpoint. The endpoint is unauthenticated and requires no API key, so no secret appears in the URL, body, or headers (R13). Re-record only when the live shape changes and document the change in aidlc-docs/audit.md. Byte-equality is pinned by the sha256 values below.",
+  "_robots": "https://fiscaldata.treasury.gov/robots.txt served 'User-agent: * / Allow: /' at record time (verified 2026-07-19) — crawl-permissive, no disallow on the API path. Note the distinct host www.treasurydirect.gov serves 'User-agent: * / Disallow: /' and was therefore rejected as a source for the same data.",
+  "files": {
+    "upcoming.json": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "sha256": "4f9cd66392f1026a7adfb2a5b8201f0b850cbf060b8d885915d81fd306788f9a",
+      "byte_size": 23867,
+      "_note": "Full dataset snapshot: 100 rows, auction_date span 2024-03-14 .. 2026-07-29, security_type distribution {Bill: 63, Note: 17, CMB: 10, Bond: 6, TIPS Note: 2, FRN Note: 2}. 12 rows carry offering_amt='null' (string sentinel — the offering size is published in a later announcement), which pins the nullable-amount branch."
+    },
+    "empty_far_future.json": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "sha256": "b2a4081b3804e41cf69f5b3dca014419f9ce1dba2802e11ade5a6b9b3e5471d6",
+      "byte_size": 972,
+      "_recorded_url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/upcoming_auctions?sort=-auction_date&page%5Bsize%5D=500&filter=auction_date%3Agte%3A2099-01-01",
+      "_note": "Live recording of a genuinely empty result set (filtered to auction_date >= 2099-01-01). Pins the zero-row graceful-degradation branch with real bytes rather than a synthesized payload (R10)."
+    }
+  }
+}

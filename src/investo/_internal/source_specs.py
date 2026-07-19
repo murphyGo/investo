@@ -129,6 +129,12 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
     ),
     _spec("cftc-policy-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
     _spec(
+        "treasury-auctions",
+        tier="A",
+        market_window_segment="us-equity",
+        item_segments=_US,
+    ),
+    _spec(
         "krx-foreign-flows",
         tier="A",
         market_window_segment="domestic-equity",

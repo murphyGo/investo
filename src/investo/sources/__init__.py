@@ -63,6 +63,7 @@ from . import (
     stooq_kr_market,  # noqa: F401
     stooq_price,  # noqa: F401
     theblock_crypto,  # noqa: F401
+    treasury_auctions,  # noqa: F401
     treasury_rates,  # noqa: F401
     us_economic_calendar,  # noqa: F401
     yahoo_finance_news,  # noqa: F401
