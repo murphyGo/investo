@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 5 (Marketstack)
+**Timestamp**: 2026-07-18T21:05:00Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Tiingo Step 0 slice as `9c68c7b`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: Marketstack's official v2 OpenAPI documents an authenticated `/eod` endpoint accepting one or multiple comma-separated symbols and returning raw/adjusted OHLCV, dividend, split factor, exchange, currency, asset type, and timezone-bearing dates. Free access lists 100 requests/month, EOD data, one year of history, splits, and dividends, so a once-daily 12-symbol batch is technically within budget. The same pricing surface reserves Commercial Use for paid Basic and higher plans. The current APILayer legal agreement linked by Marketstack limits Freeware to testing/evaluation and provides no public display or redistribution grant.
+**Deduplication**: No Marketstack/APILayer adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply Marketstack rights.
+**Decision**: `reject under current written terms` for u140. The candidate clears preliminary structure, field, history, and request-budget checks but fails the explicit free public-rights gate. No account/key was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-marketstack.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 4 (Tiingo)
 **Timestamp**: 2026-07-18T21:00:08Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Financial Modeling Prep Step 0 slice as `8f08b2d`, then proceeded to the next u140 candidate fact sheet.

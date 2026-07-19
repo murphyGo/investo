@@ -55,6 +55,7 @@ adapter or Pages construction is registered.
 | Alpaca Market Data API | free Basic technically provides US stock/ETF history since 2016 and multi-symbol daily bars, but Alpaca says its API data cannot be redistributed and its customer agreement requires written consent for reproduction/distribution | reject until written public derived-display consent (2026-07-19 Step 0) |
 | Financial Modeling Prep | free Basic technically provides five years of end-of-day history at 250 calls/day, but is classified as Individual use and public display/redistribution requires a separate Data Display and Licensing Agreement | reject until a written public derived-display agreement exists (2026-07-19 Step 0) |
 | Tiingo EOD API | free Starter technically provides broad raw/adjusted EOD OHLCV within ample daily quotas, but all listed standard tiers are Internal Use Only and display redistribution starts at a paid USD 250/month plan | reject for the no-paid public gate (2026-07-19 Step 0) |
+| Marketstack EOD API | free access technically provides one year of batch EOD raw/adjusted OHLCV at 100 requests/month, but Commercial Use begins on a paid plan and current linked Freeware terms restrict use to testing/evaluation without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -93,6 +94,14 @@ Primary Tiingo references, checked 2026-07-19:
 - `https://www.tiingo.com/pricing`
 - `https://www.tiingo.com/products/end-of-day-stock-price-data`
 - `https://app.tiingo.com/tos/`
+
+Primary Marketstack/APILayer references, checked 2026-07-19:
+
+- `https://docs.apilayer.com/marketstack/docs/api-endpoints-v2`
+- `https://api.swaggerhub.com/apis/apilayer-863/MarketstackAPIv2/2.0.0/swagger.json`
+- `https://marketstack.com/pricing/`
+- `https://www.ideracorp.com/legal/APILayer`
+- `https://www.ideracorp.com/~/media/IderaInc/Files/APILayer/Apilayer%20Master%20Software%20as%20a%20Service%20Subscription%20Agreement%20SaaS%20082523ns%20FORM`
 
 ## Qualification Steps
 
@@ -161,6 +170,23 @@ and request capacity, but Tiingo classifies every listed standard tier as Intern
 Use Only and prohibits public analysis/display under its current terms. Display
 redistribution requires special permission and a paid plan listed from USD 250/month,
 so both the free and public-rights gates fail. Step 1 does not apply to this candidate.
+
+#### Iteration 5 — Marketstack EOD API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-marketstack.md`.
+Disposition: **reject under current written terms**. The free tier's batch EOD API,
+one-year range, and 100-request monthly allowance clear the preliminary technical
+gate, but Commercial Use is a paid-plan feature and the current linked APILayer
+Freeware terms permit testing/evaluation rather than a public Pages product. No
+explicit free public derived-display or redistribution grant exists. Step 1 does not
+apply to this candidate.
 
 #### Next candidate iteration
 

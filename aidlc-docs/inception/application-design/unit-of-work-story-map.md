@@ -406,6 +406,7 @@ Candidate disposition:
 - **Reject for u140 public Pages under current written terms (2026-07-19)**: Alpaca Basic is technically free and structured, but Alpaca's official support says its API data cannot be redistributed and the customer agreement requires written consent for reproduction/distribution. No public derived-display grant is inferred.
 - **Reject Financial Modeling Prep for u140 public Pages under current written terms (2026-07-19)**: FMP Basic technically supplies free five-year end-of-day history, but its official pricing classifies the plan as Individual use and requires a separate Data Display and Licensing Agreement for display or redistribution. No such Investo agreement exists.
 - **Reject Tiingo for u140 public Pages (2026-07-19)**: free Starter technically supplies broad raw/adjusted EOD OHLCV, but every listed standard tier is Internal Use Only, the terms prohibit public analysis/display, and display redistribution starts at USD 250/month. It fails both the no-paid and public-rights gates before probing.
+- **Reject Marketstack for u140 public Pages under current written terms (2026-07-19)**: free access technically supplies one year of batch raw/adjusted EOD OHLCV at 100 requests/month, but Commercial Use begins on a paid plan and the current linked APILayer Freeware terms permit only testing/evaluation. No free public derived-display grant is documented.
 
 ### u139-u140 Planning Notes
 
