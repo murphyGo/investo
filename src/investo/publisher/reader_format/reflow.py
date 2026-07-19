@@ -35,6 +35,10 @@ from investo._internal.public_quality_language import (
     PUBLIC_LOW_COVERAGE_TEXT,
     PUBLIC_SOURCE_DETAIL_TEXT,
 )
+from investo._internal.surface_quality import (
+    has_blocking_surface_issue,
+    looks_truncated_mid_token,
+)
 from investo.publisher.reader_format._constants import (
     _DISCLAIMER_FOOTER_ANCHOR,
     _FIRST_SECTION_MARKER,
@@ -72,8 +76,8 @@ _SNIPPET_CONTINUATION: Final[str] = " 본문 참고."
 # The set intentionally includes Korean / typographic punctuation glyphs;
 # these are the literal boundary characters we cut at, not lookalikes.
 _SNIPPET_BOUNDARY_CHARS: Final[str] = " \t,.;:!?·…—)]」』"
-_SNIPPET_TRUNCATED_KOREAN_ELLIPSIS_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣](?:\.{3}|…)$")
-_SNIPPET_TRUNCATED_DENYLIST_RE: Final[re.Pattern[str]] = re.compile(r"[채확민관]$")
+_SNIPPET_TRIMMABLE_BOUNDARY_CHARS: Final[str] = " \t,.;:!?·…—"
+_NUMERIC_SEPARATOR_CHARS: Final[str] = ",."
 
 
 def _compact_status_chip(text: str) -> str | None:
@@ -143,22 +147,52 @@ def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> 
     stripped = value.strip()
     if len(stripped) <= max_chars and not _looks_like_truncated_summary_snippet(stripped):
         return stripped
-    window = stripped[: max_chars - len(_SNIPPET_CONTINUATION)]
-    cut = max(window.rfind(ch) for ch in _SNIPPET_BOUNDARY_CHARS)
-    if cut <= 0:
+    budget = max_chars - len(_SNIPPET_CONTINUATION)
+    if budget <= 0:
         return ""
-    head = window[:cut].rstrip(_SNIPPET_BOUNDARY_CHARS).rstrip()
-    if not head:
-        return ""
-    return f"{head}{_SNIPPET_CONTINUATION}"
+    for end in reversed(_snippet_boundary_ends(stripped, budget=budget)):
+        head = stripped[:end].rstrip(_SNIPPET_TRIMMABLE_BOUNDARY_CHARS)
+        if not head:
+            continue
+        bounded = f"{head}{_SNIPPET_CONTINUATION}"
+        if not has_blocking_surface_issue(bounded):
+            return bounded
+    return ""
+
+
+def _snippet_boundary_ends(value: str, *, budget: int) -> tuple[int, ...]:
+    """Return candidate cut ends without splitting formatted numbers.
+
+    Closing brackets are included in the candidate so a balanced construct
+    stays balanced.  Punctuation between digits is not a boundary: cutting
+    ``64,612`` at the comma would exchange a Markdown-safe line for a false
+    numeric claim.
+    """
+
+    ends: list[int] = []
+    for index, char in enumerate(value[:budget]):
+        if char not in _SNIPPET_BOUNDARY_CHARS:
+            continue
+        if (
+            char in _NUMERIC_SEPARATOR_CHARS
+            and index > 0
+            and index + 1 < len(value)
+            and value[index - 1].isdigit()
+            and value[index + 1].isdigit()
+        ):
+            continue
+        ends.append(index if char.isspace() else index + 1)
+    return tuple(end for end in ends if end > 0)
 
 
 def _looks_like_truncated_summary_snippet(value: str) -> bool:
-    if not value:
-        return False
-    if _SNIPPET_TRUNCATED_KOREAN_ELLIPSIS_RE.search(value):
-        return True
-    return _SNIPPET_TRUNCATED_DENYLIST_RE.search(value) is not None
+    # Unmatched square brackets belong to the dedicated link/Markdown repair
+    # that runs after reflow and preserves the visible link text.
+    return not _has_unmatched_square_bracket(value) and looks_truncated_mid_token(value)
+
+
+def _has_unmatched_square_bracket(value: str) -> bool:
+    return value.count("[") > value.count("]")
 
 
 _SUMMARY_CALLOUT_LINE_RE: Final[re.Pattern[str]] = re.compile(
@@ -205,7 +239,41 @@ def _bound_first_viewport_summary_lines(text: str) -> str:
 
     head = _SUMMARY_CALLOUT_LINE_RE.sub(_summary_repl, head)
     head = _FIRST_VIEWPORT_BULLET_RE.sub(_bullet_repl, head)
+    head = _bound_residual_truncated_summary_lines(head)
     return f"{head}{tail}"
+
+
+def _bound_residual_truncated_summary_lines(text: str) -> str:
+    """Repair malformed summary continuations missed by line-shape regexes.
+
+    LLM output can wrap a TL;DR bullet or callout onto an unprefixed second
+    line.  The surface gate scans that line, but the targeted callout/bullet
+    regexes above cannot see its ownership.  Limit this fallback to the
+    reader-summary window and leave coverage diagnostics untouched because
+    those lines are moved into the protected details block later.
+    """
+
+    summary_start = text.find("## 한눈에 보기")
+    if summary_start == -1:
+        return text
+    prefix = text[:summary_start]
+    summary = text[summary_start:]
+    repaired: list[str] = []
+    for raw_line in summary.splitlines(keepends=True):
+        newline = "\n" if raw_line.endswith("\n") else ""
+        line = raw_line.removesuffix("\n")
+        if (
+            not line.strip()
+            or line.lstrip().startswith("#")
+            or _BADGE_LINE_RE.fullmatch(line) is not None
+            or _has_unmatched_square_bracket(line)
+            or not looks_truncated_mid_token(line)
+        ):
+            repaired.append(raw_line)
+            continue
+        bounded = bound_summary_snippet(line.strip())
+        repaired.append(f"{bounded or '요약은 본문을 참고하세요.'}{newline}")
+    return f"{prefix}{''.join(repaired)}"
 
 
 # Anchor used to locate the end of the summary callout block (after which

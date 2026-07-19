@@ -208,6 +208,74 @@ def test_short_ellipsis_summary_completed_before_surface_gate() -> None:
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
 
+def test_unbalanced_parenthetical_summary_is_bounded_before_surface_gate() -> None:
+    summary = _SUMMARY.replace(
+        "> **오늘의 결론**: [관망] 3대 지수 혼조 마감.\n",
+        "> **오늘의 결론**: 코스피는 6,800으로 마감했다(연합뉴스 본문 참고.\n",
+    )
+
+    out = reflow_first_viewport(_header(summary=summary), segment="domestic-equity")
+    first_viewport = out[: out.index("## ①")]
+
+    assert "마감했다(연합뉴스 본문 참고." not in first_viewport
+    assert "본문 참고." in first_viewport
+    assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
+
+
+def test_cut_backtracks_before_unclosed_numeric_emphasis() -> None:
+    value = "금리 민감도 확인 후 " + "**-39.4%**(-2,079계약) 변화를 점검합니다 " * 3
+
+    bounded = bound_summary_snippet(value)
+
+    assert bounded
+    assert len(bounded) <= SNIPPET_MAX_CHARS
+    assert "**-39.4%**(-2,079계약)" in bounded
+    assert (
+        _surface_issues(
+            f"# title\n\n> **오늘의 결론**: {bounded}\n\n## ① 요약",
+            "summary.truncated_mid_token",
+        )
+        == []
+    )
+
+
+def test_short_unclosed_bold_number_is_bounded_before_surface_gate() -> None:
+    value = "크립토 전체 시가총액은 2조 달러이며 BTC 도미넌스 **56 본문 참고."
+
+    bounded = bound_summary_snippet(value)
+
+    assert bounded
+    assert "**56" not in bounded
+    assert (
+        _surface_issues(
+            f"# title\n\n> **오늘의 결론**: {bounded}\n\n## ① 요약",
+            "summary.truncated_mid_token",
+        )
+        == []
+    )
+
+
+def test_wrapped_plain_summary_residue_is_repaired_before_surface_gate() -> None:
+    residue = (
+        "10Y 국채 CFTC(미국 상품선물거래위원회) COT(선물포지션 보고서) "
+        "순포지션이 **-39.4%**(-2,079 본문 참고."
+    )
+    summary = f"{_SUMMARY}{residue}\n"
+
+    out = reflow_first_viewport(_header(summary=summary), segment="us-equity")
+    first_viewport = out[: out.index("## ①")]
+
+    assert residue not in first_viewport
+    assert "본문 참고." in first_viewport
+    assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
+
+
+def test_numeric_separator_inside_number_is_not_a_cut_boundary() -> None:
+    bounded = bound_summary_snippet("가격 " + "64,612.00" * 12, max_chars=18)
+
+    assert bounded == "가격 본문 참고."
+
+
 def _surface_issues(text: str, code: str) -> list[object]:
     return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
 

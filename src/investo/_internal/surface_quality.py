@@ -232,7 +232,7 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                     region,
                 )
             )
-        if region == "segment_first_viewport" and _looks_truncated_mid_token(scan_line):
+        if region == "segment_first_viewport" and looks_truncated_mid_token(scan_line):
             issues.append(
                 SurfaceQualityIssue(
                     "summary.truncated_mid_token",
@@ -316,7 +316,14 @@ def _href_ellipsis_evidence(line: str) -> str | None:
     return None
 
 
-def _looks_truncated_mid_token(line: str) -> bool:
+def looks_truncated_mid_token(line: str) -> bool:
+    """Return whether a reader-facing line has a truncated surface shape.
+
+    Reader-format repair imports this predicate so the repair and blocking
+    gate share one structural contract.  Keep the checks here conservative:
+    the caller may pass either a complete Markdown line or a summary body.
+    """
+
     stripped = line.strip()
     if not stripped:
         return False
@@ -384,5 +391,6 @@ __all__ = [
     "find_glossary_collision_issues",
     "find_surface_quality_issues",
     "has_blocking_surface_issue",
+    "looks_truncated_mid_token",
     "repair_surface_artifacts",
 ]
