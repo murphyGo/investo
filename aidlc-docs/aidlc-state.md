@@ -177,4 +177,4 @@
 |-----------|---------|----------|
 | Security Baseline | No | User declined (본인용 도구, 민감 데이터 없음, public repo) |
 | Property-Based Testing | Partial | 순수 함수 + 직렬화 round-trip만 적용 |
-<!-- u138 Step 6 local gates passed 2026-07-19; exact-date GHA dispatch remains pending because repository authorization returned HTTP 403. -->
+<!-- u138 Step 6 local gates and exact-date GHA run 29660523181 passed 2026-07-19. -->
