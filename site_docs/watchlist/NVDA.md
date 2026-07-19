@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-18 begin -->
+
+## 2026-07-18
+
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+- [yahoo-finance-news] **ticker**: Has Nvidia Become a Value Stock?
+
+<!-- u33 entry 2026-07-18 end -->
 <!-- u33 entry 2026-07-14 begin -->
 
 ## 2026-07-14

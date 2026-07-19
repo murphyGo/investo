@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-18 begin -->
+
+## 2026-07-18
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7491 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,295,064,268,857; BTC dominance 56.49%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $461,380,420 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000917486511632 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin Japan, which holds no bitcoin, taps EVO Fund in planned $60 million raise to finally buy some
+
+<!-- u33 entry 2026-07-18 end -->
 <!-- u33 entry 2026-07-15 begin -->
 
 ## 2026-07-15

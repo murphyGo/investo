@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-18 begin -->
+
+## 2026-07-18
+
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+- [yahoo-finance-news] **ticker**: Tesla Just Posted Its Best Second Quarter Deliveries Ever. Here's the 1 Number That Will Actually Move the Stock on J…
+
+<!-- u33 entry 2026-07-18 end -->
 <!-- u33 entry 2026-07-14 begin -->
 
 ## 2026-07-14
