@@ -407,6 +407,7 @@ Candidate disposition:
 - **Reject Financial Modeling Prep for u140 public Pages under current written terms (2026-07-19)**: FMP Basic technically supplies free five-year end-of-day history, but its official pricing classifies the plan as Individual use and requires a separate Data Display and Licensing Agreement for display or redistribution. No such Investo agreement exists.
 - **Reject Tiingo for u140 public Pages (2026-07-19)**: free Starter technically supplies broad raw/adjusted EOD OHLCV, but every listed standard tier is Internal Use Only, the terms prohibit public analysis/display, and display redistribution starts at USD 250/month. It fails both the no-paid and public-rights gates before probing.
 - **Reject Marketstack for u140 public Pages under current written terms (2026-07-19)**: free access technically supplies one year of batch raw/adjusted EOD OHLCV at 100 requests/month, but Commercial Use begins on a paid plan and the current linked APILayer Freeware terms permit only testing/evaluation. No free public derived-display grant is documented.
+- **Reject Massive Stocks for u140 public Pages under current written terms (2026-07-19)**: free Stocks Basic technically supplies two years of EOD aggregates for all US tickers, but the individual Market Data Terms prohibit apps for other end users and third-party display/distribution of both source data and derived analytics/research without express written consent.
 
 ### u139-u140 Planning Notes
 

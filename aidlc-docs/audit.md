@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 6 (Massive Stocks)
+**Timestamp**: 2026-07-19T08:36:08Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Marketstack Step 0 slice as `7ecb9ad`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: Massive Stocks Basic is USD 0/month and documents all US stock tickers, five API calls/minute, two years of history, end-of-day data, corporate actions, and minute aggregates. The custom-bars endpoint provides token-authenticated daily OHLCV/VWAP/transaction-count aggregates, optional pagination, and selectable split adjustment. Massive labels the plan Individual use. Its Market Data Terms grant only personal non-business/non-commercial use, prohibit applications intended for other end users, and prohibit third-party display or distribution of both Market Data and derived charts, analytics, and research without express written consent.
+**Deduplication**: No Massive/Polygon.io adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply Massive rights.
+**Decision**: `reject under current written terms` for u140. The candidate clears preliminary structure, field, history, and free-request-budget checks but fails the binding public-rights gate. No account/key was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-massive-stocks.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 5 (Marketstack)
 **Timestamp**: 2026-07-18T21:05:00Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Tiingo Step 0 slice as `9c68c7b`, then proceeded to the next u140 candidate fact sheet.
