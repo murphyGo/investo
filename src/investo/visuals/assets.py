@@ -226,6 +226,12 @@ def insert_visual_links(
     readers can see attribution without a click. Idempotent: a
     second pass that already finds every link in place returns the
     input unchanged.
+
+    When two or more non-hero cards resolve to the SAME anchor (e.g.
+    a demoted ``data-confidence`` plus ``market-snapshot``, both at
+    ``## ① 요약``), they render in ``asset_paths`` iteration order —
+    the upstream build order is the deliberate reader-facing priority
+    (DEBT-040; pre-fix the stacked same-point inserts inverted it).
     """
     if not asset_paths:
         return markdown
@@ -239,7 +245,7 @@ def insert_visual_links(
     # Track inserts in source-line coordinates (we mutate as we go).
     # Insert non-hero cards *first* (later positions first), so the
     # earlier hero insert does not shift their resolved positions.
-    non_hero_inserts: list[tuple[int, str]] = []
+    non_hero_inserts: list[tuple[int, int, str]] = []
     for index, path in enumerate(asset_paths):
         if index == hero_index:
             continue
@@ -250,9 +256,15 @@ def insert_visual_links(
         if anchor_line is None:
             # No matching H2 — fall back to immediately after the H1.
             anchor_line = 0
-        non_hero_inserts.append((anchor_line, block))
-    # Apply non-hero inserts in descending order so earlier indices stay valid.
-    for anchor_line, block in sorted(non_hero_inserts, key=lambda item: item[0], reverse=True):
+        non_hero_inserts.append((anchor_line, index, block))
+    # Apply non-hero inserts in descending (anchor_line, original_index)
+    # order: descending anchor keeps earlier line indices valid, and the
+    # descending index tiebreak makes same-anchor cards render in
+    # ``asset_paths`` iteration order (DEBT-040) — repeated insertion at
+    # the same point stacks the last-applied block on top, so the
+    # highest original index must be applied first for the first
+    # iterated card to end up highest on the page.
+    for anchor_line, _index, block in sorted(non_hero_inserts, reverse=True):
         # Insert *after* the section H2 line.
         insert_at = anchor_line + 1
         lines[insert_at:insert_at] = ["", block, ""]

@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 3 | 2026-05-07 |
+| Medium | 2 | 2026-05-08 |
 | Low | 33 | 2026-04-27 |
 
 ---
@@ -54,16 +54,6 @@ _No high priority items._
 - **Suggested Fix**: Either (b) inline `<svg>` embed in markdown + parent class selector that picks up the site `data-md-color-scheme` attribute on `<html>` (the SVG `<style>` block then targets `[data-md-color-scheme="slate"] .card-bg` etc.), or (c) render both light and dark variant SVG files and emit a `<picture>` element (`<source media="(prefers-color-scheme: dark)" srcset="...-dark.svg"> <img src="...-light.svg">`). Option (b) keeps the single-asset shape and the existing class hooks; option (c) doubles asset volume but works without inline `<svg>`. Either way, retain the chokepoint shape (one `_CARD_STYLE` block / one render path) so future card types inherit the fix automatically.
 - **Effort**: ~1.5 h for option (b) including the markdown render path switch (`<img>` → inline `<svg>`), parent-attribute selector tests, and a regression test that pins both site-toggle states against a synthesized HTML wrapper. Option (c) ~45 min but requires a second variant render pass.
 - **Priority Reasoning**: Medium — works correctly today for the OS-default theme, but the site toggle is a first-class mkdocs Material affordance and any reader exercising it sees a mismatched card. Reader-trust contract is the highest-leverage signal in the segmented-briefing UX, so the disagreement is worth closing once cleanly rather than carrying forward through every future card type.
-
-#### DEBT-040: Layout reposition ordering when multiple non-hero cards share the same anchor
-
-- **Created**: 2026-05-07
-- **Source**: u24 visual-provenance-and-layout QA review (M3)
-- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness), FR-003 (static web publishing)
-- **Description**: `_reposition_visual_links` in `src/investo/visuals/assets.py` reinserts non-hero cards via `lines[insert_at:insert_at] = […]`. When two or more non-hero asset paths anchor to the same H2 (e.g., two cards both flagged for `① 요약`), the inserts happen in `asset_paths` reverse order, so the rendered layout sees the cards in the opposite order from the iteration order. The ordering intent (intentional reverse vs. accidental) is not documented and no test pins it. A future contributor adding a third non-hero card to the same anchor will land an unintended layout reshuffle.
-- **Suggested Fix**: Either (a) introduce a stable secondary sort key when collecting per-anchor inserts, e.g. `(anchor_line, -original_index)` to make the inversion explicit, or (b) keep the current `lines[insert_at:insert_at]` shape but document the inversion in a docstring on `_reposition_visual_links` plus add a test that pins layout order for ≥ 2 non-hero cards at the same anchor.
-- **Effort**: ~30 min including the chosen fix + test.
-- **Priority Reasoning**: Medium — works correctly today on the observed segment shapes (≤ 1 non-hero card per anchor), but is the kind of regression that escapes review when a fourth card type lands.
 
 ### Low Priority
 
@@ -397,6 +387,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-040: Layout reposition ordering when multiple non-hero cards share the same anchor
+
+- **Created**: 2026-05-07
+- **Resolved**: 2026-07-19 — Chose option (a): the insert loop in `insert_visual_links` now sorts on descending `(anchor_line, original_index)` (3-tuple with the original `asset_paths` index), so same-anchor non-hero cards render in `asset_paths` iteration order — the upstream build order is the deliberate reader-facing priority; the pre-fix inversion was an accidental artifact of same-point insert stacking, not intent (no documentation or test suggested otherwise). Output-neutrality verified before choosing (a): **0 of 135** committed archive briefings carry ≥2 images under the shared `## ① 요약` anchor, and the demoting hero kinds (`ai-market-hero` / `curated-context-image`) appear in zero archives — `data-confidence` has been the hero in every production run, so the collision path never fired and (a) is byte-neutral for all published output. Pinned by `test_insert_visual_links_same_anchor_cards_keep_iteration_order` (AI hero demotes data-confidence onto market-snapshot's anchor → iteration order asserted + idempotency), mutation-verified RED under the pre-fix anchor-only sort. Docstring documents the same-anchor ordering contract.
+- **Source**: u24 visual-provenance-and-layout QA review (M3)
+- **Reference**: NFR-005 (consistency / contract integrity), NFR-006 (test robustness), FR-003 (static web publishing)
+- **Priority Reasoning**: Closed.
 
 #### DEBT-081: Pre-existing briefing test breakage — segment-scope ValueError fails two tests at collection time
 
