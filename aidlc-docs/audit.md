@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 8 (Tradier)
+**Timestamp**: 2026-07-19T09:07:39Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the EODHD Step 0 slice as `6bd695e`, then proceeded to the next u140 candidate fact sheet.
+**Primary-source evidence**: Tradier's single-security history endpoint exposes daily/weekly/monthly date ranges and a JSON OHLCV response, usually across the security's lifetime. US equities and ETFs are supported, and market-data rate limits are 120 requests/minute in production and 60 in sandbox. Tradier does not charge brokerage account holders for API access and lists a USD 0 Lite account. The same official FAQ restricts non-Partner API entitlement to personal use, while the authentication guide requires public-release applications to become Tradier Partners and the business integration path sends users to sales. Attribution guidance requests a linked Tradier mark for displayed data but does not grant public-release rights.
+**Deduplication**: No Tradier adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply Tradier rights.
+**Decision**: `reject under current written terms` for u140. The candidate clears preliminary structure, field, history, documented US-ETF-family coverage, and request-budget checks but fails the binding free public-rights gate. Exact 12-symbol coverage, adjustment, and daily-history freshness semantics remain unproven. No brokerage account/token was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-tradier.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 7 (EODHD)
 **Timestamp**: 2026-07-19T08:41:36Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the Massive Step 0 slice as `52559c1`, merged the concurrent non-overlapping DEBT-040 commit `478c410`, pushed final `3472357`, then proceeded to the next u140 candidate fact sheet.

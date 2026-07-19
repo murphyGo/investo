@@ -58,6 +58,7 @@ adapter or Pages construction is registered.
 | Marketstack EOD API | free access technically provides one year of batch EOD raw/adjusted OHLCV at 100 requests/month, but Commercial Use begins on a paid plan and current linked Freeware terms restrict use to testing/evaluation without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
 | Massive Stocks API (formerly Polygon.io) | free Stocks Basic technically provides two years of all-US-ticker EOD aggregates at five calls/minute, but the individual license prohibits apps for other end users and third-party display/distribution of Market Data or derived analytics/research | reject until express written public derived-display consent (2026-07-19 Step 0) |
 | EODHD EOD API | free Starter technically provides one year of single-symbol EOD OHLCV plus adjusted close at 20 calls/day, but the plan is Personal use and current terms prohibit display or redistribution by non-professional users without prior written approval | reject under current written terms (2026-07-19 Step 0) |
+| Tradier Market Data API | uncharged brokerage-account access technically provides lifetime single-symbol daily OHLCV at 60-120 market-data requests/minute, but non-Partner API entitlement is personal use and public-release applications require Partner approval with no published no-cost public license | reject under current written terms (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -118,6 +119,19 @@ Primary EODHD references, checked 2026-07-19:
 - `https://eodhd.com/pricing`
 - `https://eodhd.com/financial-apis/terms-conditions`
 - `https://eodhd.com/financial-apis/our-data-sources-and-data-partners`
+
+Primary Tradier references, checked 2026-07-19:
+
+- `https://docs.tradier.com/reference/brokerage-api-markets-get-history`
+- `https://docs.tradier.com/docs/historical-data`
+- `https://docs.tradier.com/docs/historical`
+- `https://docs.tradier.com/docs/rate-limiting`
+- `https://docs.tradier.com/docs/faq`
+- `https://docs.tradier.com/docs/authentication`
+- `https://docs.tradier.com/docs/attribution-guidelines`
+- `https://production.tradier.com/individuals/web`
+- `https://production.tradier.com/businesses/fintechs`
+- `https://api.tradier.com/v2/applications/agreements?key=api_agreement`
 
 ## Qualification Steps
 
@@ -237,6 +251,23 @@ but it is Personal use and the terms prohibit non-professional users from displa
 or redistributing original or repackaged Information. Professional display requires
 prior written approval, which Investo does not have. Step 1 does not apply to this
 candidate.
+
+#### Iteration 8 — Tradier Market Data API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-tradier.md`.
+Disposition: **reject under current written terms**. Tradier's account-holder API has
+sufficient historical OHLCV depth and request capacity, but non-Partner access is
+personal use. A public-release application requires Partner approval, and the
+business integration path provides no published zero-cost public-display license.
+Attribution guidance is not a substitute for that authorization. Step 1 does not
+apply to this candidate.
 
 #### Next candidate iteration
 
