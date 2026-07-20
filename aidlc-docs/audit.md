@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 12 (Databento Historical)
+**Timestamp**: 2026-07-20T17:07:35Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Barchart OnDemand Step 0 slice as `5cfbd86`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.
+**Primary-source evidence**: Databento's `EQUS.SUMMARY` dataset normalizes the Nasdaq NLS+ consolidated US-equities end-of-day summary into `ohlcv-1d`; its official example requests multiple symbols over one year, and the Historical API supplies CSV/JSON/DBN with ample rate limits. Historical access is always metered by uncompressed bytes. Each new team receives one $125 credit grant, but it expires after six months and cannot recur. Databento states that redistribution rights depend on the dataset and underlying publisher and must be checked through the Data Catalog or License Manager; the reviewed public pages do not expressly grant `EQUS.SUMMARY` a free public derived-display right.
+**Deduplication**: No `databento`, `EQUS.SUMMARY`, `hist.databento`, or `DATABENTO_API_KEY` endpoint, adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, dependency configuration, current plans, or requirements.
+**Decision**: `reject under current published cost and rights evidence` for u140. The candidate clears preliminary structure, field, history-depth, consolidated-volume, and request-capacity checks but fails the durable no-paid gate; exact free public derived-display rights also remain unproven. Exact 12-symbol rows, at-most-36-hour historical availability, corporate-action treatment, continuity, and rotating-runner behavior were not probed. No account/key or cost request was created, no credentialed payload was fetched, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-databento-historical.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-12. A new candidate must repeat Step 0; only a candidate with at least 63 free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 11 (Barchart OnDemand)
 **Timestamp**: 2026-07-20T17:00:25Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the MarketData.app Step 0 slice as `c80f36d`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.

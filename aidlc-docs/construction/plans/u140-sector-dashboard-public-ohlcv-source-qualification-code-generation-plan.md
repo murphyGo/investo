@@ -62,6 +62,7 @@ adapter or Pages construction is registered.
 | StockData.org EOD API | free access provides 100 requests/day but only one month of EOD history; one year begins at paid Basic, and the current terms limit use to personal, non-commercial purposes without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
 | MarketData.app Historical Candles API | Free technically provides one year of split-adjusted OHLCV and 100 daily credits, but every self-service plan is Internal Use and end-user display/redistribution requires a custom annual Commercial plan plus applicable exchange licenses | reject for the no-paid public gate (2026-07-21 Step 0) |
 | Barchart OnDemand `getHistory` API | technically provides daily ETF OHLCV with split/dividend controls, but free access is only a limited evaluation trial; production is usage-priced, and the general terms require prior written consent for publication/distribution | reject for the permanent-free and public-rights gates (2026-07-21 Step 0) |
+| Databento Historical API / `EQUS.SUMMARY` | technically provides consolidated US-equities EOD `ohlcv-1d`, multi-symbol requests, and ample rate limits, but every historical byte is usage-billed after a one-time $125 credit that expires in six months; exact dataset public derived-display rights require separate catalog/license-manager confirmation | reject for the permanent-free gate and unproven exact public rights (2026-07-21 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -162,6 +163,17 @@ Primary Barchart OnDemand references, checked 2026-07-21:
 - `https://www.barchart.com/ondemand/faq`
 - `https://www.barchart.com/solutions/legal/terms`
 - `https://www.barchart.com/solutions/exchange-fees`
+
+Primary Databento references, checked 2026-07-21:
+
+- `https://databento.com/docs/venues-and-datasets/equs-summary`
+- `https://databento.com/docs/examples/equities/closing-prices`
+- `https://databento.com/docs/api-reference-historical`
+- `https://databento.com/pricing`
+- `https://databento.com/docs/faqs/usage-pricing-and-data-credits`
+- `https://databento.com/docs/quickstart`
+- `https://databento.com/docs/portal`
+- `https://databento.com/docs/knowledge-base`
 
 ## Qualification Steps
 
@@ -347,6 +359,25 @@ only published free access is a limited-request evaluation trial. Production acc
 is usage-priced, while the general terms require prior express written consent for
 publication or distribution. The permanent-free and explicit free public-use gates
 therefore fail before probing. Step 1 does not apply to this candidate.
+
+#### Iteration 12 — Databento Historical API / `EQUS.SUMMARY`
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-databento-historical.md`.
+Disposition: **reject under current published cost and rights evidence**.
+`EQUS.SUMMARY` technically supplies consolidated US-equities EOD OHLCV, one-year
+multi-symbol queries, and ample rate limits. Historical data is nevertheless billed
+per byte after a one-time $125 credit that expires in six months, so no durable free
+production tier exists. Redistribution rights are dataset-specific, and the reviewed
+public pages do not expressly grant free public derived display for `EQUS.SUMMARY`.
+The permanent-free gate fails and exact rights remain unproven before probing. Step 1
+does not apply to this candidate.
 
 #### Next candidate iteration
 
