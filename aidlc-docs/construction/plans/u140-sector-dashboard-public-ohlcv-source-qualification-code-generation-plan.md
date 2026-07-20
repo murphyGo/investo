@@ -61,6 +61,7 @@ adapter or Pages construction is registered.
 | Tradier Market Data API | uncharged brokerage-account access technically provides lifetime single-symbol daily OHLCV at 60-120 market-data requests/minute, but non-Partner API entitlement is personal use and public-release applications require Partner approval with no published no-cost public license | reject under current written terms (2026-07-19 Step 0) |
 | StockData.org EOD API | free access provides 100 requests/day but only one month of EOD history; one year begins at paid Basic, and the current terms limit use to personal, non-commercial purposes without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
 | MarketData.app Historical Candles API | Free technically provides one year of split-adjusted OHLCV and 100 daily credits, but every self-service plan is Internal Use and end-user display/redistribution requires a custom annual Commercial plan plus applicable exchange licenses | reject for the no-paid public gate (2026-07-21 Step 0) |
+| Barchart OnDemand `getHistory` API | technically provides daily ETF OHLCV with split/dividend controls, but free access is only a limited evaluation trial; production is usage-priced, and the general terms require prior written consent for publication/distribution | reject for the permanent-free and public-rights gates (2026-07-21 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -151,6 +152,16 @@ Primary MarketData.app references, checked 2026-07-21:
 - `https://www.marketdata.app/terms/`
 - `https://www.marketdata.app/docs/account/data-policies/data-redistribution/`
 - `https://www.marketdata.app/terms/commercial-use-addendum/`
+
+Primary Barchart OnDemand references, checked 2026-07-21:
+
+- `https://www.barchart.com/ondemand/api/getHistory`
+- `https://www.barchart.com/ondemand/data`
+- `https://www.barchart.com/solutions/services/ondemand`
+- `https://www.barchart.com/ondemand`
+- `https://www.barchart.com/ondemand/faq`
+- `https://www.barchart.com/solutions/legal/terms`
+- `https://www.barchart.com/solutions/exchange-fees`
 
 ## Qualification Steps
 
@@ -319,6 +330,23 @@ fields, and credits for the 12-symbol workload, but every self-service plan is
 Internal Use. End-user display and redistribution require a custom annual Commercial
 plan plus applicable exchange licenses, so the no-paid and explicit free public-use
 gates fail before probing. Step 1 does not apply to this candidate.
+
+#### Iteration 11 — Barchart OnDemand `getHistory` API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-barchart-ondemand.md`.
+Disposition: **reject under current published terms**. `getHistory` technically
+supports daily stock/ETF OHLCV plus explicit split and dividend adjustments, but the
+only published free access is a limited-request evaluation trial. Production access
+is usage-priced, while the general terms require prior express written consent for
+publication or distribution. The permanent-free and explicit free public-use gates
+therefore fail before probing. Step 1 does not apply to this candidate.
 
 #### Next candidate iteration
 

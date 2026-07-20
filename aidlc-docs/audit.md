@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 11 (Barchart OnDemand)
+**Timestamp**: 2026-07-20T17:00:25Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the MarketData.app Step 0 slice as `c80f36d`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.
+**Primary-source evidence**: Barchart's `getHistory` API technically exposes historical daily stock/ETF OHLCV in JSON/XML/CSV with date bounds, ordered results, API-key authentication, and explicit split/dividend adjustment switches. Barchart publishes only a limited-request free trial for evaluation before committing to a plan; production OnDemand pricing is usage-based and tailored through sales, with no permanent free production tier or quota. The general Terms of Service limit ordinary use to personal, non-commercial use and prohibit publishing or distributing content without prior express written consent from Barchart and relevant data providers. The attributed-static-screenshot exception does not grant API or derived-data rights, and Barchart identifies websites/data redistributors as exchange-fee subjects.
+**Deduplication**: No Barchart OnDemand endpoint, API key, adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, dependency configuration, or current plans. Existing `Barchart` strings are article-creator values in Nasdaq/Yahoo news fixtures and tests, not a price-data integration or rights grant.
+**Decision**: `reject under current published terms` for u140. The candidate clears the preliminary field/format/history-shape review but fails both binding gates: published free access is only a trial, and public publication/distribution needs prior written consent. Exact 12-symbol entitlements, at-most-36-hour freshness, quotas, holiday behavior, and rotating-runner behavior remain unproven. No account/key was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-barchart-ondemand.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with at least 63 free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
