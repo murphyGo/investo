@@ -60,6 +60,7 @@ adapter or Pages construction is registered.
 | EODHD EOD API | free Starter technically provides one year of single-symbol EOD OHLCV plus adjusted close at 20 calls/day, but the plan is Personal use and current terms prohibit display or redistribution by non-professional users without prior written approval | reject under current written terms (2026-07-19 Step 0) |
 | Tradier Market Data API | uncharged brokerage-account access technically provides lifetime single-symbol daily OHLCV at 60-120 market-data requests/minute, but non-Partner API entitlement is personal use and public-release applications require Partner approval with no published no-cost public license | reject under current written terms (2026-07-19 Step 0) |
 | StockData.org EOD API | free access provides 100 requests/day but only one month of EOD history; one year begins at paid Basic, and the current terms limit use to personal, non-commercial purposes without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
+| MarketData.app Historical Candles API | Free technically provides one year of split-adjusted OHLCV and 100 daily credits, but every self-service plan is Internal Use and end-user display/redistribution requires a custom annual Commercial plan plus applicable exchange licenses | reject for the no-paid public gate (2026-07-21 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -139,6 +140,17 @@ Primary StockData.org references, checked 2026-07-19:
 - `https://www.stockdata.org/documentation`
 - `https://www.stockdata.org/pricing`
 - `https://www.stockdata.org/tos`
+
+Primary MarketData.app references, checked 2026-07-21:
+
+- `https://www.marketdata.app/docs/api/stocks/candles/`
+- `https://www.marketdata.app/docs/api/authentication/`
+- `https://www.marketdata.app/docs/api/rate-limiting/`
+- `https://www.marketdata.app/docs/account/free-accounts/`
+- `https://www.marketdata.app/pricing/`
+- `https://www.marketdata.app/terms/`
+- `https://www.marketdata.app/docs/account/data-policies/data-redistribution/`
+- `https://www.marketdata.app/terms/commercial-use-addendum/`
 
 ## Qualification Steps
 
@@ -291,6 +303,22 @@ requests for the 12-symbol workload but only one month of EOD history, so it can
 meet the 63-trading-day gate. One year begins at paid Basic. The current terms also
 limit use to personal, non-commercial purposes and provide no public derived-display
 grant. Step 1 does not apply to this candidate.
+
+#### Iteration 10 — MarketData.app Historical Candles API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-marketdata-app.md`.
+Disposition: **reject under current written terms**. Free provides enough history,
+fields, and credits for the 12-symbol workload, but every self-service plan is
+Internal Use. End-user display and redistribution require a custom annual Commercial
+plan plus applicable exchange licenses, so the no-paid and explicit free public-use
+gates fail before probing. Step 1 does not apply to this candidate.
 
 #### Next candidate iteration
 
