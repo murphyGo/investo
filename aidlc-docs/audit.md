@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 13 (Intrinio EOD Historical Stock Prices)
+**Timestamp**: 2026-07-20T17:15:00Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Databento Historical Step 0 slice as `05a31e8`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.
+**Primary-source evidence**: Intrinio's security-price endpoint returns daily EOD raw and split/dividend-adjusted OHLCV plus factor, split, and dividend fields; its pricing page advertises more than 50 years of daily history. The only zero-cost offer is a trial. Production Individual access costs USD 150/month and expressly excludes redistribution or external display. Display and commercial use begin on the Startup plan at USD 333/month to start. The effective 2026-06-03 terms independently restrict ordinary access to internal use and require an executed Order Form for third-party Display, redistribution, or externally visible derived/AI output.
+**Deduplication**: No `intrinio`, `api-v2.intrinio.com`, `INTRINIO_API_KEY`, security-price endpoint, adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, dependency configuration, current plans, or requirements.
+**Decision**: `reject under current published pricing and terms` for u140. The candidate clears preliminary field and history-depth checks but fails both durable no-paid and explicit free public derived-display gates. Exact 12-symbol rows, at-most-36-hour availability, continuity, request behavior, and rotating-runner stability were not probed. No account/key or paid plan/trial request was created, no credentialed payload was fetched, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-intrinio-eod-historical-stock-prices.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-13. A new candidate must repeat Step 0; only a candidate with at least 63 permanently free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 12 (Databento Historical)
 **Timestamp**: 2026-07-20T17:07:35Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Barchart OnDemand Step 0 slice as `5cfbd86`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.

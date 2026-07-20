@@ -63,6 +63,7 @@ adapter or Pages construction is registered.
 | MarketData.app Historical Candles API | Free technically provides one year of split-adjusted OHLCV and 100 daily credits, but every self-service plan is Internal Use and end-user display/redistribution requires a custom annual Commercial plan plus applicable exchange licenses | reject for the no-paid public gate (2026-07-21 Step 0) |
 | Barchart OnDemand `getHistory` API | technically provides daily ETF OHLCV with split/dividend controls, but free access is only a limited evaluation trial; production is usage-priced, and the general terms require prior written consent for publication/distribution | reject for the permanent-free and public-rights gates (2026-07-21 Step 0) |
 | Databento Historical API / `EQUS.SUMMARY` | technically provides consolidated US-equities EOD `ohlcv-1d`, multi-symbol requests, and ample rate limits, but every historical byte is usage-billed after a one-time $125 credit that expires in six months; exact dataset public derived-display rights require separate catalog/license-manager confirmation | reject for the permanent-free gate and unproven exact public rights (2026-07-21 Step 0) |
+| Intrinio EOD Historical Stock Prices | technically provides 50+ years of daily raw/adjusted OHLCV, corporate-action fields, and up to 100 rows per page, but production starts at USD 150/month for internal-only Individual access; external display begins on the paid Startup plan under an executed Order Form | reject for the permanent-free and free public-rights gates (2026-07-21 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -174,6 +175,14 @@ Primary Databento references, checked 2026-07-21:
 - `https://databento.com/docs/quickstart`
 - `https://databento.com/docs/portal`
 - `https://databento.com/docs/knowledge-base`
+
+Primary Intrinio references, checked 2026-07-21:
+
+- `https://docs.intrinio.com/documentation/web_api/get_security_stock_prices_v2`
+- `https://intrinio.com/access-methods`
+- `https://help.intrinio.com/whats-an-api-call-and-how-are-they-counted`
+- `https://intrinio.com/pricing`
+- `https://about.intrinio.com/terms`
 
 ## Qualification Steps
 
@@ -378,6 +387,26 @@ production tier exists. Redistribution rights are dataset-specific, and the revi
 public pages do not expressly grant free public derived display for `EQUS.SUMMARY`.
 The permanent-free gate fails and exact rights remain unproven before probing. Step 1
 does not apply to this candidate.
+
+#### Iteration 13 — Intrinio EOD Historical Stock Prices
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-intrinio-eod-historical-stock-prices.md`.
+Disposition: **reject under current published pricing and terms**. The security-price
+endpoint technically supplies daily raw and split/dividend-adjusted OHLCV plus
+corporate-action fields, and the product advertises more than 50 years of history.
+There is no permanent free production tier: the Individual plan is USD 150/month and
+explicitly excludes redistribution or external display. Display rights begin on the
+paid Startup plan, currently USD 333/month to start, and the terms require an executed
+Order Form for third-party display, redistribution, or public derived outputs. The
+permanent-free and explicit free public-use gates fail before probing. Step 1 does not
+apply to this candidate.
 
 #### Next candidate iteration
 
