@@ -19,6 +19,15 @@
 **Status**: DEBT-067 **open at Low**. Three of the lookahead adapters ship (FOMC + FRED + `treasury-auctions`); us-equity lookahead coverage is considered adequate. Two remainders are externally blocked. **Next action is not an engineering task** — it is an operator decision on the CoinGecko surface (register a CoinMarketCal free-tier key, or ratify the drop so the dead branch can be pruned).
 **Context**: Phase A was a live-access probe session; no synthesized payloads were introduced (R10). The `coingecko-events` WONTFIX is deliberately left un-ratified in the registry so the operator decision is not silently made by an agent.
 
+## Source qualification — u140 Step 0 iteration 9 (StockData.org)
+**Timestamp**: 2026-07-19T09:18:24Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Tradier Step 0 slice as `d77db54`, then proceeded to the next u140 candidate fact sheet. The concurrent non-overlapping viewport repair commit `1925892` was preserved.
+**Primary-source evidence**: StockData.org documents a token-authenticated, single-symbol EOD endpoint with JSON/CSV date-range output and date, ticker, OHLC, and volume fields. It says EOD values are split-adjusted and US trading data comes from IEX. Free allows 100 requests/day but only one month of EOD history; the first listed one-year tier is paid Basic at USD 29/month, or USD 24/month billed annually. The current terms grant use solely for personal, non-commercial purposes and require specific endorsement or approval for commercial endeavors. No public derived-display grant is published.
+**Deduplication**: No StockData.org adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, credential path, dependency, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration. Existing Yahoo/u138 paths remain separate and do not supply StockData.org history or rights.
+**Decision**: `reject under current written terms` for u140. Free cannot supply 63 trading days, paid Basic violates the no-paid gate, and the reviewed terms do not authorize public Pages derived display. Exact 12-symbol coverage, freshness, and dividend-adjustment semantics remain unproven. No account/token was requested, no credentialed or payload probe was run, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-stockdata-org.md`
+**Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with at least 63 free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 8 (Tradier)
 **Timestamp**: 2026-07-19T09:07:39Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the EODHD Step 0 slice as `6bd695e`, then proceeded to the next u140 candidate fact sheet.

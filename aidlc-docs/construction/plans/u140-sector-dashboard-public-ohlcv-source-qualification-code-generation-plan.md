@@ -59,6 +59,7 @@ adapter or Pages construction is registered.
 | Massive Stocks API (formerly Polygon.io) | free Stocks Basic technically provides two years of all-US-ticker EOD aggregates at five calls/minute, but the individual license prohibits apps for other end users and third-party display/distribution of Market Data or derived analytics/research | reject until express written public derived-display consent (2026-07-19 Step 0) |
 | EODHD EOD API | free Starter technically provides one year of single-symbol EOD OHLCV plus adjusted close at 20 calls/day, but the plan is Personal use and current terms prohibit display or redistribution by non-professional users without prior written approval | reject under current written terms (2026-07-19 Step 0) |
 | Tradier Market Data API | uncharged brokerage-account access technically provides lifetime single-symbol daily OHLCV at 60-120 market-data requests/minute, but non-Partner API entitlement is personal use and public-release applications require Partner approval with no published no-cost public license | reject under current written terms (2026-07-19 Step 0) |
+| StockData.org EOD API | free access provides 100 requests/day but only one month of EOD history; one year begins at paid Basic, and the current terms limit use to personal, non-commercial purposes without a public derived-display grant | reject under current written terms (2026-07-19 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -132,6 +133,12 @@ Primary Tradier references, checked 2026-07-19:
 - `https://production.tradier.com/individuals/web`
 - `https://production.tradier.com/businesses/fintechs`
 - `https://api.tradier.com/v2/applications/agreements?key=api_agreement`
+
+Primary StockData.org references, checked 2026-07-19:
+
+- `https://www.stockdata.org/documentation`
+- `https://www.stockdata.org/pricing`
+- `https://www.stockdata.org/tos`
 
 ## Qualification Steps
 
@@ -268,6 +275,22 @@ personal use. A public-release application requires Partner approval, and the
 business integration path provides no published zero-cost public-display license.
 Attribution guidance is not a substitute for that authorization. Step 1 does not
 apply to this candidate.
+
+#### Iteration 9 — StockData.org EOD API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-19-stockdata-org.md`.
+Disposition: **reject under current written terms**. Free provides enough daily
+requests for the 12-symbol workload but only one month of EOD history, so it cannot
+meet the 63-trading-day gate. One year begins at paid Basic. The current terms also
+limit use to personal, non-commercial purposes and provide no public derived-display
+grant. Step 1 does not apply to this candidate.
 
 #### Next candidate iteration
 
