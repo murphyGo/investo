@@ -1405,6 +1405,13 @@ def test_region_spec_table_matches_all_seventeen_fd_priorities() -> None:
         "always",
         "conditional",
     )
+    assert tuple(spec.projection_policy for spec in _REGION_SPECS) == (
+        "exact_disclaimer",
+        "protected_diagnostics",
+        *("reader_visible",) * 9,
+        "exact_disclaimer",
+        *("reader_visible",) * 5,
+    )
 
 
 def test_region_reindex_forms_exact_partition_with_active_conditions() -> None:
@@ -1570,6 +1577,83 @@ def test_marker_pairing_and_carryover_heading_fail_closed() -> None:
             _canonical_region_markdown(supplements=(bad_carryover,)),
             expectation=_region_expectation(supplement_ids=("carry",)),
         )
+
+
+@pytest.mark.parametrize(
+    ("malformation", "issue_code"),
+    (
+        ("duplicate", "structure.duplicate_supplement_id"),
+        ("nested", "structure.nested_supplement_marker"),
+        ("missing", "structure.supplement_expectation"),
+    ),
+)
+def test_region_reindex_rejects_duplicate_nested_and_missing_supplement_markers(
+    malformation: str,
+    issue_code: str,
+) -> None:
+    hero = PublicDocumentSupplement(
+        supplement_id="hero",
+        kind="visual",
+        markdown="![hero](hero.svg)",
+        stable_order=1,
+    )
+    hero_block = _render_supplement_block(hero)
+    if malformation == "duplicate":
+        markdown = _canonical_region_markdown(supplements=(hero,)).replace(
+            hero_block,
+            f"{hero_block}\n{hero_block}",
+        )
+        expectation = _region_expectation(supplement_ids=("hero",))
+    elif malformation == "nested":
+        nested = (
+            "<!-- investo:block visual:hero -->\n"
+            "<!-- investo:block chart:market -->\n"
+            "chart\n"
+            "<!-- /investo:block chart:market -->\n"
+            "<!-- /investo:block visual:hero -->"
+        )
+        markdown = _canonical_region_markdown().replace(
+            "## ① 요약",
+            f"{nested}\n\n## ① 요약",
+        )
+        expectation = _region_expectation(supplement_ids=("hero", "market"))
+    else:
+        markdown = _canonical_region_markdown()
+        expectation = _region_expectation(supplement_ids=("hero",))
+
+    with pytest.raises(ValueError, match=issue_code):
+        PublicDocumentLayout.reindex(markdown, expectation=expectation)
+
+
+def test_every_region_containing_a_markdown_table_is_reader_visible() -> None:
+    carryover = PublicDocumentSupplement(
+        supplement_id="carry",
+        kind="carryover",
+        markdown="## Watchlist Carryover\n\n| 항목 | 상태 |\n|---|---|\n| CPI | 확인 |",
+        stable_order=1,
+    )
+    markdown = _canonical_region_markdown(
+        supplements=(carryover,),
+        anchor_rows=("| KOSPI | 2,900 | +1.0% | 마감 |",),
+    ).replace("요약 본문", "| 구분 | 상태 |\n|---|---|\n| 요약 | 확인 |")
+    layout = PublicDocumentLayout.reindex(
+        markdown,
+        expectation=_region_expectation(
+            supplement_ids=("carry",),
+            anchor_table_required=True,
+        ),
+    )
+
+    table_regions = {
+        region.region_id: region.projection_policy
+        for region in layout.regions
+        if any(
+            line.startswith("|") for line in layout.markdown[region.start : region.end].splitlines()
+        )
+    }
+
+    assert {"carryover:carry", "anchor:market", "section:1"} <= set(table_regions)
+    assert set(table_regions.values()) == {"reader_visible"}
 
 
 def test_pre_finalization_supplement_adapter_wraps_once_and_is_idempotent() -> None:

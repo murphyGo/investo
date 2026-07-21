@@ -5449,3 +5449,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Watchpoint, public-document, and notifier summary tests 143 passed; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-watchpoint-notifier-invariants.md`.
 **Status**: Step 6 checklist 5/9 complete. Next: exhaustive region-table contracts.
+
+## Construction — u144 Step 6.6 region-table contracts
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Completed the exhaustive region-layout matrix, adding projection-policy coverage for every RegionSpec, direct duplicate/nested/missing marker failures, and table visibility across carryover, anchor, and section regions.
+**Decisions**: Existing anchor, omission/artifact, residual partition, replacement-ID, and structure tests remain authoritative. Nested markers represent the overlap failure class; all table-bearing regions must use `reader_visible` projection.
+**Validation**: Region/type and terminal projection tests 341 passed; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-region-table-contracts.md`.
+**Status**: Step 6 checklist 6/9 complete. Next: staging rollback and E8 destination identity.
