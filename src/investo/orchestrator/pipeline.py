@@ -213,6 +213,7 @@ from investo.publisher.compliance_language import (
 from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.public_document import (
+    PublicDocumentFinalizationError,
     PublicDocumentSupplement,
     _apply_pre_finalization_supplements,
     _assemble_phase_one_body_evidence,
@@ -3050,6 +3051,7 @@ class HealthTrackingStage:
 # Error`` are caught inside ``GenerateStage`` and routed to the publish
 # label via :data:`EXCEPTION_ROUTING`).
 _PUBLISH_FAILURES: Final = (
+    PublicDocumentFinalizationError,
     SummaryQualityError,
     ComplianceLanguageError,
     PublisherDisclaimerError,
@@ -3070,6 +3072,9 @@ EXCEPTION_ROUTING: dict[type[BaseException], StageAction] = {
     EmptyCollectError: StageAction(stage="collect", alert=True, status=PipelineStatus.FAILED),
     BriefingGenerationError: StageAction(
         stage="generate", alert=True, status=PipelineStatus.FAILED
+    ),
+    PublicDocumentFinalizationError: StageAction(
+        stage="publish", alert=True, status=PipelineStatus.FAILED
     ),
     SummaryQualityError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),
     ComplianceLanguageError: StageAction(stage="publish", alert=True, status=PipelineStatus.FAILED),

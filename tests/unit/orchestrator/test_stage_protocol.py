@@ -123,6 +123,24 @@ def test_daily_thesis_consistency_error_routes_as_publish_failure() -> None:
     assert pipeline_module.DailyThesisConsistencyError in pipeline_module._PUBLISH_FAILURES
 
 
+def test_public_document_finalization_error_routes_as_publish_failure() -> None:
+    from investo.orchestrator import pipeline as pipeline_module
+
+    error = pipeline_module.PublicDocumentFinalizationError(
+        target_date=date(2026, 7, 21),
+        segment=None,
+        phase="bundle",
+        issue_codes=("bundle.zero_survivors",),
+    )
+    action = pipeline_module.EXCEPTION_ROUTING[pipeline_module.PublicDocumentFinalizationError]
+
+    assert action.stage == "publish"
+    assert action.alert is True
+    assert action.status is PipelineStatus.FAILED
+    assert pipeline_module.PublicDocumentFinalizationError in pipeline_module._PUBLISH_FAILURES
+    assert pipeline_module._route_failure(error) == action
+
+
 def test_build_default_stages_is_a_composition_root() -> None:
     """Stages are assembled at a composition root + injectable into the loop."""
     from investo.orchestrator import pipeline as pipeline_module

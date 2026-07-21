@@ -337,6 +337,13 @@
 **Validation**: Focused compliance/assembly/projection/integration scope passed 107 tests; the full publisher/orchestrator unit scope passed 1,060. Strict mypy passed all 242 source files; Ruff check/format and scoped diff checks passed.
 **Next**: Step 4 checklist 7 — register `PublicDocumentFinalizationError` with publish-stage routing and alert/status semantics.
 
+## Construction — u144 Code Generation Step 4.7 finalization error routing landed
+
+**Timestamp**: 2026-07-21T22:31:35+09:00
+**Action**: Registered `PublicDocumentFinalizationError` exactly once in the orchestrator `_PUBLISH_FAILURES` catch tuple and declarative `EXCEPTION_ROUTING` table. The existing PublishStage/run-loop path now converts it to a failed publish outcome, raises the operator alert, records `PipelineStatus.FAILED`, and skips notification without adding a bespoke fallback.
+**Validation**: Focused stage-protocol/lifecycle tests passed 51; the full publisher/orchestrator unit scope passed 1,061. Strict mypy, Ruff check/format, and scoped diff checks passed. Fresh-eyes review verified the catch path, exact registration, routing semantics, and import/inheritance safety with no blocker.
+**Next**: Replace the orchestrator surface catch/drop retry with one production `finalize_public_bundle()` call and add the reviewer-requested execution-level PublishStage failure-propagation test.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
