@@ -231,6 +231,16 @@
 **Scope**: No default writer/finalizer call, producer default, coverage-reason derivation, or terminal leakage gate changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 3 checklist 2 — replace raw prompt/watchpoint defaults with the shared public-language constants.
 
+## Construction — u144 Code Generation Step 3.2 public-safe producer defaults landed
+
+**Timestamp**: 2026-07-21T16:51:51+09:00
+**Action**: Replaced raw prompt and watchpoint output defaults with the neutral shared public-language map. Stage-2 now prescribes the exact reader-safe limitation sentence. Limited and partially populated watchpoint rows use shared source, trigger, confidence, implication, and collapsed-note values, including direct `render_matrix_table()` calls.
+**Legacy-input boundary**: Historical raw labels remain only in parser regexes and invalid-source sentinels so old or malformed input can be recognized and rejected. They are not output defaults. The run-29707052598 fixture remains immutable incident evidence; the characterization proves its captured pre-u144 output still blocks while the same live input now produces zero raw-label findings.
+**Safety detail**: The shared source fallback is itself in `_INVALID_SOURCE_VALUES`, including its normalized no-period form, so a safe placeholder cannot masquerade as a source-backed structured row.
+**Validation**: Focused prompt/watchpoint/incident tests passed 112; the broad local briefing/publisher/surface/integration set passed 1,545. Fresh-eyes review independently passed 1,583 in its related scope and approved. Ruff check/format, strict mypy, and the scoped diff check passed.
+**Scope**: No production watchpoint API call-site switch, E2 limitation accumulation, terminal leakage traversal, or finalizer/writer switch changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 3 checklist 3 — make the typed watchpoint result the production API and accumulate its limitation reason in E2.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

@@ -28,9 +28,8 @@ def test_stage2_prompt_advertises_new_observation_tag(tag: str) -> None:
 
 
 def test_stage2_prompt_advertises_data_insufficient_tag_role() -> None:
-    # The publisher forces [데이터부족] — the LLM must know not to emit
-    # it itself.
-    assert "[데이터부족]" in STAGE2_SYSTEM
+    assert "publisher owns the separate limited-coverage tag" in STAGE2_SYSTEM.lower()
+    assert "[데이터부족]" not in STAGE2_SYSTEM
 
 
 @pytest.mark.parametrize(

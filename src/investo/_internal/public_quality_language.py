@@ -19,6 +19,7 @@ PUBLIC_WATCHPOINT_LIMITED_TEXT: Final[str] = (
     "오늘은 공개 근거가 충분한 관전 신호만 본문에 남겼습니다."
 )
 PUBLIC_LOW_COVERAGE_INLINE_TEXT: Final[str] = "수집 근거가 제한적입니다"
+PUBLIC_LOW_COVERAGE_LABEL: Final[str] = "근거 제한"
 
 FORBIDDEN_PUBLIC_PHRASES: Final[tuple[str, ...]] = (
     "[데이터부족]",
@@ -88,6 +89,7 @@ __all__ = [
     "FORBIDDEN_PUBLIC_PHRASES",
     "PUBLIC_CORE_PRICE_MISSING_TEXT",
     "PUBLIC_LOW_COVERAGE_INLINE_TEXT",
+    "PUBLIC_LOW_COVERAGE_LABEL",
     "PUBLIC_LOW_COVERAGE_TEXT",
     "PUBLIC_SOURCE_DETAIL_TEXT",
     "PUBLIC_WATCHPOINT_LIMITED_TEXT",

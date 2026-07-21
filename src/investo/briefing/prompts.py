@@ -68,6 +68,8 @@ from __future__ import annotations
 
 from typing import Final
 
+from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
+
 # ---------------------------------------------------------------------------
 # Stage 1 — classification
 # ---------------------------------------------------------------------------
@@ -151,8 +153,8 @@ SEGMENT_DATA_READY_NOTE: Final[str] = (
     "The routed item set has enough signal for a normal segment briefing."
 )
 SEGMENT_DATA_LIMITED_NOTE: Final[str] = (
-    'The routed item set is data-limited; explicitly say "데이터 부족" '
-    "where evidence is insufficient."
+    "The routed item set has limited evidence. When evidence is insufficient, "
+    f'use the reader-safe Korean sentence "{PUBLIC_LOW_COVERAGE_TEXT}".'
 )
 # u56 — crypto-only forbidden retail-coded terms (가상자산이용자보호법
 # §10 disorderly-market reference). Emitted only when ``segment == "crypto"``;
@@ -237,8 +239,8 @@ Rules:
   in English: AAPL, MSFT, BTC-USD, SPY, Federal Reserve, S&P 500,
   Bitcoin, $, ¥, €, 1,234.56.
 - Each section non-blank. If the grouped items are empty for a
-  given section, write one concise sentence about the missing evidence
-  instead of repeating generic "데이터 부족" paragraphs.
+  given section, write one concise reader-safe sentence about the missing
+  evidence instead of repeating an operator diagnostic label.
 - Write like a market newsletter. Use prompt-only
   ``tier`` metadata to lead ①/early ② with ``core`` evidence, then explain
   with ②-⑤; never let ``watchlist_only`` define the thesis. Don't copy
@@ -271,9 +273,8 @@ Rules:
   (``[강세]``, ``[약세]``, ``[혼조]``, ``[변동성↑]``, ``[관망]``);
   the publisher's post-processor will rewrite legacy tags to the
   observation set, but emitting them directly is a contract drift.
-  The publisher additionally forces ``[데이터부족]`` on segments
-  with insufficient coverage regardless of what you emit, so do not
-  emit ``[데이터부족]`` yourself.
+  The publisher owns the separate limited-coverage tag when evidence is
+  insufficient, so do not invent or emit an operator coverage tag yourself.
 - 행동·권유성 어구 금지 (u56 compliance gate): 다음 어휘는 자본시장법
   §17 / 가상자산이용자보호법 §10 reference 로 publish 게이트에서 차단된다 —
   ``매수 검토, 매도 검토, 비중 축소, 비중 확대, 편입, 차익실현, 익절,
@@ -385,7 +386,7 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   (``관찰 신호 / 출처 / 현재 / 상방 확인 조건 / 하방 확인 조건 / 신뢰도 /
   관심 영향``) 로 변환할 수 있도록 **하나의 자기완결적 관찰
   문장** 안에 다음 3요소를 *모두* 담아 작성한다 (셋 중 하나라도 빠지면
-  publisher 가 ``데이터부족`` 으로 떨어뜨려 단일 안내문으로 접는다):
+  publisher 가 shared reader-safe limitation 안내문 하나로 접는다):
   - **(a) source / anchor** — 인용 지표·출처 (예 ``확인 소스: FRED · 10Y 금리``,
     ``KRX 외국인 순매수``).
   - **(b) 상방 확인 조건 *와* 하방 확인 조건** — 한 bullet 안에 상방 trigger 와
@@ -399,13 +400,13 @@ Reader-facing 포맷 룰 (u51 tldr-block-and-number-bold-inversion):
   up/down trigger must be 서로 다른 확인 조건. 예시:
   - ``확인 소스: FRED · 10Y 금리가 4.5%를 상회하면 성장주 변동성 부담 압력
     관찰, 4.3%를 이탈하면 방어적 해석. 관심 영향: 대형 기술주 수급 점검.``
-  rejected fragment 예시 (이렇게 쓰지 말 것 — 카드가 ``데이터부족`` 으로 접힘):
+  rejected fragment 예시 (이렇게 쓰지 말 것 — 카드는 limitation 안내문으로 접힘):
   - ``FOMC 발언 톤 확인 필요`` (source·trigger·implication 모두 없음)
   임계 수치는 입력에 존재하는 source-backed 값만 사용한다 — 입력에 없는
   임계값을 발명하지 말 것 (numeric integrity rule 의 연장). source ·
   임계조건을 source-back 할 수 없으면 해당 bullet 은 임계값을 지어내지
-  말고 "데이터 부족" 으로 명시한다 (publisher 가 단일 ``데이터부족`` 노트로
-  접는다). bullet 은 *관찰형* 만 쓴다 — 금지 어휘 (관찰형 위반):
+  말고 segment context의 reader-safe limitation 문장을 사용한다 (publisher가
+  shared limitation 안내문 하나로 접는다). bullet 은 *관찰형* 만 쓴다 — 금지 어휘 (관찰형 위반):
   ``매수 / 매도 / 목표가 / 비중 확대 / 손절 / 진입 / 청산`` 및 결과를 단정하는
   결과예측·보장성 표현 — u56 게이트에서 차단된다. ``input_hash`` /
   ``stage1_hash`` 같은 진단 토큰을 §⑥ bullet 으로 출력하지 말 것.

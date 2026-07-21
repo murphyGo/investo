@@ -60,7 +60,8 @@ document text. No advice wording is introduced here.
 
 Module boundary
 ~~~~~~~~~~~~~~~
-* Imports stdlib only + ``reader_format`` structure regexes (both publisher).
+* Imports stdlib + the neutral public-language wording owner and
+  ``reader_format`` structure regexes.
 * Does NOT import from ``briefing/`` / ``sources/`` / ``notifier/``.
 
 Disclaimer enforcement
@@ -80,6 +81,12 @@ import re
 from dataclasses import dataclass
 from typing import Final, Literal, cast
 
+from investo._internal.public_quality_language import (
+    PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+    PUBLIC_LOW_COVERAGE_LABEL,
+    PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    PUBLIC_WATCHPOINT_SOURCE_TEXT,
+)
 from investo.publisher.reader_format import (
     _BULLET_RE,
     _SECTION_HEADER_RE,
@@ -90,15 +97,18 @@ from investo.publisher.reader_format import (
 
 _logger = logging.getLogger(__name__)
 
-ConfidenceLabel = Literal["높음", "보통", "낮음", "데이터부족"]
+ConfidenceLabel = Literal["높음", "보통", "낮음", "근거 제한"]
 WatchpointRenderState = Literal["rendered", "limited"]
 WatchpointLimitationReason = Literal["watchpoint_unavailable"]
 
 # Closed confidence label set (plan Step 1). Pinned in tests.
 CONFIDENCE_LABELS: Final[frozenset[ConfidenceLabel]] = frozenset(
-    {"높음", "보통", "낮음", "데이터부족"}
+    {"높음", "보통", "낮음", cast(ConfidenceLabel, PUBLIC_LOW_COVERAGE_LABEL)}
 )
-DATA_LIMITED_CONFIDENCE: Final[ConfidenceLabel] = "데이터부족"
+DATA_LIMITED_CONFIDENCE: Final[ConfidenceLabel] = cast(
+    ConfidenceLabel,
+    PUBLIC_LOW_COVERAGE_LABEL,
+)
 
 # Reader-facing column headers — observational labels per plan §Goal.
 # Parser/card field labels retained as a compatibility constant. u98 no longer
@@ -183,9 +193,7 @@ _HANGUL_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣]")
 # u87 Step 3 — single pinned data-limited note (AC-87.4). When no usable
 # observation row survives, §⑥ collapses to this one blockquote line instead of
 # rendering a ≥2-row wall of ``데이터부족``.
-DATA_LIMITED_NOTE: Final[str] = (
-    "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조"
-)
+DATA_LIMITED_NOTE: Final[str] = f"> **관전 포인트**: {PUBLIC_WATCHPOINT_LIMITED_TEXT}"
 _RENDERED_CONDITION_RE: Final[re.Pattern[str]] = re.compile(
     r"^- 확인 조건: 상방 (?P<upside>\S.+); 하방 (?P<downside>\S.+)$"
 )
@@ -325,12 +333,12 @@ class WatchpointRow:
         """Build an explicit ``데이터부족`` row (plan AC-72.2)."""
         return cls(
             signal=signal or "관전 포인트",
-            source="확인 소스 미상",
-            current="현재 신호 부족",
-            bullish_trigger="상방 데이터 부족",
-            bearish_trigger="하방 데이터 부족",
+            source=PUBLIC_WATCHPOINT_SOURCE_TEXT,
+            current=PUBLIC_WATCHPOINT_LIMITED_TEXT,
+            bullish_trigger=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+            bearish_trigger=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
             confidence=DATA_LIMITED_CONFIDENCE,
-            implication="관심 영향 데이터 부족",
+            implication=PUBLIC_WATCHPOINT_LIMITED_TEXT,
         )
 
 
@@ -379,7 +387,16 @@ _FIELD_PREFIX_RE: Final[re.Pattern[str]] = re.compile(
     re.IGNORECASE,
 )
 _INVALID_SOURCE_VALUES: Final[frozenset[str]] = frozenset(
-    {"", "확인 소스 미상", "source missing", "missing source", "데이터 부족", "데이터부족"}
+    {
+        "",
+        "확인 소스 미상",
+        "source missing",
+        "missing source",
+        "데이터 부족",
+        "데이터부족",
+        PUBLIC_WATCHPOINT_SOURCE_TEXT,
+        PUBLIC_WATCHPOINT_SOURCE_TEXT.rstrip("."),
+    }
 )
 _GENERIC_CURRENT_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?:[A-Z0-9.^=-]{2,12}|[가-힣A-Za-z0-9.^=-]{2,20}\s*(?:확인|점검|관찰|추세|흐름)?|"
@@ -508,7 +525,7 @@ def _promote_source(*fields: str) -> str:
             return candidate
         if _valid_source(candidate) and _SOURCE_CANDIDATE_RE.search(field):
             return candidate
-    return "확인 소스 미상"
+    return PUBLIC_WATCHPOINT_SOURCE_TEXT
 
 
 def _field_missing(text: str, *, data_limited_default: str) -> bool:
@@ -546,9 +563,15 @@ def _renderable_row(row: WatchpointRow) -> bool:
     )
     if not _valid_source(source):
         return False
-    if _field_missing(row.bullish_trigger, data_limited_default="상방 데이터 부족"):
+    if _field_missing(
+        row.bullish_trigger,
+        data_limited_default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+    ):
         return False
-    if _field_missing(row.bearish_trigger, data_limited_default="하방 데이터 부족"):
+    if _field_missing(
+        row.bearish_trigger,
+        data_limited_default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+    ):
         return False
     if _trigger_key(row.bullish_trigger) == _trigger_key(row.bearish_trigger):
         return False
@@ -558,7 +581,10 @@ def _renderable_row(row: WatchpointRow) -> bool:
         soft_invalids += 1
     if _is_generic_current(row.current):
         soft_invalids += 1
-    if _field_missing(row.implication, data_limited_default="관심 영향 데이터 부족"):
+    if _field_missing(
+        row.implication,
+        data_limited_default=PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    ):
         soft_invalids += 1
     return soft_invalids < 2
 
@@ -569,9 +595,9 @@ def _source_from_bullet(bullet: str) -> str:
         return source
     match = _SOURCE_VALUE_RE.search(bullet)
     if not match:
-        return "확인 소스 미상"
+        return PUBLIC_WATCHPOINT_SOURCE_TEXT
     candidate = _source_candidate_from(match.group(0))
-    return candidate if _valid_source(candidate) else "확인 소스 미상"
+    return candidate if _valid_source(candidate) else PUBLIC_WATCHPOINT_SOURCE_TEXT
 
 
 def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
@@ -603,9 +629,18 @@ def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
         "",
     )
     current = _normalise_field_text(current_clause or bullet.strip(), default="현재 신호 부족")
-    bullish_trigger = _normalise_field_text(bullish or "", default="상방 데이터 부족")
-    bearish_trigger = _normalise_field_text(bearish or "", default="하방 데이터 부족")
-    implication_text = _normalise_field_text(implication or "", default="관심 영향 데이터 부족")
+    bullish_trigger = _normalise_field_text(
+        bullish or "",
+        default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+    )
+    bearish_trigger = _normalise_field_text(
+        bearish or "",
+        default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+    )
+    implication_text = _normalise_field_text(
+        implication or "",
+        default=PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    )
     return WatchpointRow(
         signal=_short_signal(bullet),
         source=_promote_source(bullet, current, bullish_trigger, bearish_trigger, implication_text),
@@ -626,7 +661,7 @@ def build_watchpoint_rows(
     if not bullets:
         return []
     if coverage_limited:
-        return [WatchpointRow.data_limited("데이터 수집 부족")]
+        return [WatchpointRow.data_limited("관전 포인트")]
     rows = [_build_row(b, coverage_limited=False) for b in bullets[:MAX_VISIBLE_ROWS]]
     return rows
 
@@ -653,19 +688,32 @@ def render_matrix_table(rows: list[WatchpointRow]) -> str:
             row.bearish_trigger,
             row.implication,
         )
+        source_text = _normalise_field_text(
+            source,
+            default=PUBLIC_WATCHPOINT_SOURCE_TEXT,
+        )
+        upside = _trigger_display(
+            row.bullish_trigger,
+            default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+        )
+        downside = _trigger_display(
+            row.bearish_trigger,
+            default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+        )
+        implication = _normalise_field_text(
+            row.implication,
+            default=PUBLIC_WATCHPOINT_LIMITED_TEXT,
+        )
         body_lines.append(
             "\n".join(
                 [
                     f"#### 관찰 신호: {_normalise_field_text(row.signal, default='관전 포인트')}",
                     "",
-                    f"- 출처: {_normalise_field_text(source, default='확인 소스 미상')}",
+                    f"- 출처: {source_text}",
                     f"- 현재: {_normalise_field_text(row.current, default='현재 신호 부족')}",
-                    "- 확인 조건: "
-                    f"상방 {_trigger_display(row.bullish_trigger, default='데이터 부족')}; "
-                    f"하방 {_trigger_display(row.bearish_trigger, default='데이터 부족')}",
+                    f"- 확인 조건: 상방 {upside}; 하방 {downside}",
                     f"- 신뢰도: {row.confidence}",
-                    "- 관심 영향: "
-                    f"{_normalise_field_text(row.implication, default='관심 영향 데이터 부족')}",
+                    f"- 관심 영향: {implication}",
                 ]
             )
         )

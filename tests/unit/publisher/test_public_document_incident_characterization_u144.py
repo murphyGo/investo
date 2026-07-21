@@ -9,6 +9,10 @@ from typing import Any
 
 import pytest
 
+from investo._internal.public_quality_language import (
+    PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    first_forbidden_public_evidence,
+)
 from investo._internal.surface_quality import find_surface_quality_issues
 from investo.models.segments import US_EQUITY
 from investo.publisher.quality_consistency import (
@@ -56,7 +60,7 @@ def _quality_failure_codes(markdown: str) -> frozenset[str]:
     )
 
 
-def test_watchpoint_producer_reintroduces_raw_label_after_legacy_projection() -> None:
+def test_watchpoint_incident_fixture_now_uses_safe_producer_default() -> None:
     fixture = _load_fixture("run-29707052598-watchpoint-reintroduction.json")
     before = fixture["markdown_before_watchpoint"]
 
@@ -65,15 +69,22 @@ def test_watchpoint_producer_reintroduces_raw_label_after_legacy_projection() ->
 
     rows = build_watchpoint_rows(fixture["input_bullets"])
     assert len(rows) == 1
-    expected_row = fixture["expected_row"]
-    assert {field: getattr(rows[0], field) for field in expected_row} == expected_row
+    legacy_row = fixture["expected_row"]
+    assert first_forbidden_public_evidence(legacy_row["implication"]) is not None
+    for field, value in legacy_row.items():
+        if field != "implication":
+            assert getattr(rows[0], field) == value
+    assert rows[0].implication == PUBLIC_WATCHPOINT_LIMITED_TEXT
 
     rendered = render_watchpoint_matrix(
         before,
         segment=fixture["incident"]["segment"],
     )
-    assert rendered == fixture["markdown_after_watchpoint"]
-    assert _blocking_codes(rendered) == tuple(fixture["expected_pre_u144"]["blocking_issue_codes"])
+    assert _blocking_codes(fixture["markdown_after_watchpoint"]) == tuple(
+        fixture["expected_pre_u144"]["blocking_issue_codes"]
+    )
+    assert rendered != fixture["markdown_after_watchpoint"]
+    assert _blocking_codes(rendered) == ()
 
 
 @pytest.mark.parametrize("case_index", range(3))

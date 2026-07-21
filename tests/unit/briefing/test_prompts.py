@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
 from investo.briefing.prompts import (
     DEFAULT_SEGMENT_CONTEXT,
     LOOKAHEAD_EMPTY_NOTE,
@@ -104,7 +105,16 @@ def test_segment_context_template_supports_data_limited_note() -> None:
 
     assert "미국 증시" in rendered
     assert "us-equity" in rendered
-    assert "데이터 부족" in rendered
+    assert PUBLIC_LOW_COVERAGE_TEXT in rendered
+    assert "데이터 부족" not in rendered
+
+
+def test_prompt_defaults_never_request_raw_public_limitation_labels() -> None:
+    prompt_defaults = f"{SEGMENT_DATA_LIMITED_NOTE}\n{STAGE2_SYSTEM}"
+
+    assert "데이터 부족" not in prompt_defaults
+    assert "데이터부족" not in prompt_defaults
+    assert "확인 소스 미상" not in prompt_defaults
 
 
 # --- Stage 2 prompt anchors -------------------------------------------------
@@ -264,7 +274,7 @@ def test_stage2_system_carries_watchpoint_structured_bullet_rule_u87() -> None:
     """u87 — §⑥ Stage-2 rule mandates the source+trigger+implication
     contract per bullet and bans advice wording.
 
-    The matrix renderer only populates a non-``데이터부족`` row when a
+    The matrix renderer only populates a non-limited row when a
     bullet carries source + (상방/하방) trigger + implication. The prompt
     must instruct the LLM to emit that exact shape, give a populatable
     example, and keep it observational-only (no 매수/매도/목표가/결과예측).

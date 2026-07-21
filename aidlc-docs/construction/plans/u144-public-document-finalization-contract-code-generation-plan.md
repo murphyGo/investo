@@ -313,7 +313,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 ### Step 3 — Align producers and terminal public projection
 
 - [x] Implement exact `project_public_markdown(layout, *, limitation_reasons) -> PublicDocumentLayout` semantics from Contract 4 and move production u108 projection to phase 2 after watchpoint and all other text producers. Region projection policy, not blanket table protection, controls visibility. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-terminal-public-projection.md`.
-- [ ] Change prompt/default producer copy to use the shared public-language map; eliminate raw public defaults from `watchpoint_matrix.py`.
+- [x] Change prompt/default producer copy to use the shared public-language map; eliminate raw public defaults from `watchpoint_matrix.py`. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-public-safe-producer-defaults.md`.
 - [ ] Make `render_watchpoint_matrix_result()` the production API, accumulate its typed limitation reason in E2, and reduce the legacy string renderer to a zero-production-call compatibility facade.
 - [ ] Preserve raw diagnostic labels inside collapsed diagnostics and structured metadata only.
 - [ ] Add the read-only owned-region leakage traversal over the existing u108 evidence predicate so reader-visible tables are terminally checked without cloning phrase policy.

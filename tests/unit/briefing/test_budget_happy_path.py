@@ -25,6 +25,7 @@ from datetime import UTC, date, datetime
 
 import pytest
 
+from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
 from investo.briefing import pipeline
 from investo.briefing._core import orchestration  # u83: call_claude_code seam moved here
 from investo.briefing.claude_code import RetryBudget
@@ -166,7 +167,8 @@ async def test_generate_briefing_passes_segment_context_to_both_stages(
     for prompt in captured_prompts:
         assert "미국 증시" in prompt
         assert "us-equity" in prompt
-        assert "데이터 부족" in prompt
+        assert PUBLIC_LOW_COVERAGE_TEXT in prompt
+        assert "데이터 부족" not in prompt
     assert result.rendered_markdown.startswith("# 2026-04-25 미국 증시 시황")
     assert "**세그먼트**:" in result.rendered_markdown
     assert "> **데이터 상태**: 부분" in result.rendered_markdown

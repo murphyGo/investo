@@ -17,6 +17,13 @@ from __future__ import annotations
 
 import pytest
 
+from investo._internal.public_quality_language import (
+    PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+    PUBLIC_LOW_COVERAGE_LABEL,
+    PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    PUBLIC_WATCHPOINT_SOURCE_TEXT,
+    first_forbidden_public_evidence,
+)
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.publisher.compliance_language import scan_compliance
 from investo.publisher.reader_format import check_watchpoint_actionability
@@ -68,8 +75,9 @@ def _section_six(bullets: list[str]) -> str:
 
 
 def test_confidence_label_closed_set() -> None:
-    assert CONFIDENCE_LABELS == frozenset({"높음", "보통", "낮음", "데이터부족"})  # noqa: SIM300
-    assert DATA_LIMITED_CONFIDENCE == "데이터부족"
+    expected = frozenset({"높음", "보통", "낮음", PUBLIC_LOW_COVERAGE_LABEL})
+    assert expected == CONFIDENCE_LABELS
+    assert DATA_LIMITED_CONFIDENCE == PUBLIC_LOW_COVERAGE_LABEL
 
 
 def test_matrix_columns_are_observational() -> None:
@@ -92,11 +100,12 @@ def test_max_visible_rows_bounds_table() -> None:
 def test_data_limited_row_uses_card_defaults() -> None:
     row = WatchpointRow.data_limited("신호")
     assert row.confidence == DATA_LIMITED_CONFIDENCE
-    assert row.source == "확인 소스 미상"
-    assert row.current == "현재 신호 부족"
-    assert row.bullish_trigger == "상방 데이터 부족"
-    assert row.bearish_trigger == "하방 데이터 부족"
-    assert row.implication == "관심 영향 데이터 부족"
+    assert row.source == PUBLIC_WATCHPOINT_SOURCE_TEXT
+    assert row.current == PUBLIC_WATCHPOINT_LIMITED_TEXT
+    assert row.bullish_trigger == PUBLIC_LOW_COVERAGE_INLINE_TEXT
+    assert row.bearish_trigger == PUBLIC_LOW_COVERAGE_INLINE_TEXT
+    assert row.implication == PUBLIC_WATCHPOINT_LIMITED_TEXT
+    assert first_forbidden_public_evidence(render_matrix_table([row])) is None
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +144,7 @@ def test_generic_bullet_becomes_data_limited_row() -> None:
     assert check_watchpoint_actionability(_section_six([_GENERIC])) == (_GENERIC,)
     rows = build_watchpoint_rows([_GENERIC])
     assert rows[0].confidence == DATA_LIMITED_CONFIDENCE
-    assert rows[0].bullish_trigger == "상방 데이터 부족"
+    assert rows[0].bullish_trigger == PUBLIC_LOW_COVERAGE_INLINE_TEXT
 
 
 def test_structured_bullet_populates_all_columns() -> None:
@@ -355,10 +364,14 @@ def test_card_defaults_for_partially_populated_structured_row_u98() -> None:
         implication="",
     )
     cards = render_matrix_table([row])
-    assert "- 출처: 확인 소스 미상" in cards
+    assert f"- 출처: {PUBLIC_WATCHPOINT_SOURCE_TEXT}" in cards
     assert "- 현재: 현재 신호 부족" in cards
-    assert "- 확인 조건: 상방 데이터 부족; 하방 데이터 부족" in cards
-    assert "- 관심 영향: 관심 영향 데이터 부족" in cards
+    assert (
+        f"- 확인 조건: 상방 {PUBLIC_LOW_COVERAGE_INLINE_TEXT}; "
+        f"하방 {PUBLIC_LOW_COVERAGE_INLINE_TEXT}" in cards
+    )
+    assert f"- 관심 영향: {PUBLIC_WATCHPOINT_LIMITED_TEXT}" in cards
+    assert first_forbidden_public_evidence(cards) is None
     # A structured row without explicit source is still rejected by the u64
     # parser contract and collapses at document-render time.
     out = render_watchpoint_matrix(_section_six([bullet]), segment="us-equity")
