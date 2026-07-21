@@ -5369,3 +5369,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Focused result/orchestrator tests 51 passed; combined result/finalizer/staging/orchestrator scope 189 passed; Ruff/format and `mypy src` (244 source files) passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-content-completeness-result.md`.
 **Status**: Step 5 checklist 4/8 complete. Next: process exit mapping.
+
+## Construction — u144 Step 5.5 content-aware exit codes
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Replaced status-only CLI exit mapping with the typed public-content contract: complete content exits 0, zero content or legacy failed exits 1, and a committed content-partial bundle exits 2.
+**Decisions**: Content-partial is evaluated before legacy status so its severity wins when delivery also fails. The `FAILED` guard remains for backward-compatible result producers that do not yet populate content outcomes.
+**Validation**: CLI tests 61 passed; combined CLI/orchestrator scope 159 passed; Ruff/format and `mypy src` (244 source files) passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-content-aware-exit-codes.md`.
+**Status**: Step 5 checklist 5/8 complete. Next: workflow output capture, Pages gating, and delayed rc re-emission.

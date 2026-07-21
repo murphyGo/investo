@@ -3,15 +3,16 @@
 Parses 5 environment variables, enforces the CLAUDE.md #5 chat-ID
 disjointness invariant *before* constructing either dispatcher,
 builds a shared ``httpx.AsyncClient`` for both Telegram dispatchers,
-runs ``investo.orchestrator.run_pipeline``, maps the resulting
-:class:`PipelineStatus` to an exit code, and (per AC-003-7) wraps
+runs ``investo.orchestrator.run_pipeline``, maps the resulting public-content
+completeness to an exit code, and (per AC-003-7) wraps
 the whole thing so an unexpected programmer error still triggers a
 best-effort operator alert + ``exit 1``.
 
-Exit codes (per `aidlc-docs/inception/application-design/component-methods.md` C5):
+Exit codes (u144 public-document finalization contract):
 
-* ``SUCCESS`` or ``PARTIAL`` → ``0``
-* ``FAILED`` → ``1``
+* complete public content (including notifier-only ``PARTIAL``) → ``0``
+* zero public documents or ``FAILED`` → ``1``
+* one/two-document content-partial publication → ``2``
 * :class:`ConfigError` (env validation) → ``1``
 * unexpected ``Exception`` → ``1``
 
@@ -304,6 +305,15 @@ def _redact_diagnostic_text(text: str) -> str:
     return redact_text(text, policy=RedactionPolicy.STRICT)
 
 
+def _pipeline_exit_code(result: PipelineResult) -> int:
+    """Map typed public-content disposition to the process contract."""
+    if result.content_completeness == "partial":
+        return 2
+    if result.status == PipelineStatus.FAILED or result.content_completeness == "none":
+        return 1
+    return 0
+
+
 def _write_github_step_summary(result: PipelineResult) -> None:
     """Write a concise GitHub Actions run summary when available.
 
@@ -531,9 +541,7 @@ async def _async_main() -> int:
                     _logger.warning("[weekly_ops_digest] dispatch failed", exc_info=True)
 
         _write_github_step_summary(result)
-        if result.status == PipelineStatus.FAILED:
-            return 1
-        return 0  # SUCCESS or PARTIAL.
+        return _pipeline_exit_code(result)
     except Exception as exc:
         # Programmer errors (KeyError, AttributeError, ValidationError
         # constructing models, etc.) reach here. Log + best-effort

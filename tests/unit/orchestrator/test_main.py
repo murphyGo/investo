@@ -3,8 +3,7 @@
 Pins AC-007-1 (5-var validation), AC-007-2 (chat-ID disjointness),
 AC-007-3 (best-effort alert when token+operator-id available even on
 ConfigError), AC-003-7 (top-level exception → alert(stage="orchestrator")
-+ exit 1), and the SUCCESS/PARTIAL/FAILED → 0/0/1 exit-code mapping
-from ``component-methods.md`` C5.
++ exit 1), and the complete/none/content-partial → 0/1/2 exit-code mapping.
 """
 
 from __future__ import annotations
@@ -18,7 +17,16 @@ from typing import Any
 import pytest
 
 import investo.__main__ as main_mod
-from investo.models import FailureContext, PipelineResult, PipelineStatus, SendResult, SourceOutcome
+from investo.models import (
+    ContentCompleteness,
+    FailureContext,
+    PipelineResult,
+    PipelineStatus,
+    SegmentFinalizationOutcome,
+    SendResult,
+    SourceOutcome,
+)
+from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 
 _VALID_ENV: dict[str, str] = {
     "CLAUDE_CODE_OAUTH_TOKEN": "fake-claude-token",
@@ -73,6 +81,8 @@ def _make_pipeline_result(
     stage_timings: dict[str, float] | None = None,
     briefing_url: str | None = None,
     source_outcomes: tuple[SourceOutcome, ...] = (),
+    content_completeness: ContentCompleteness = "complete",
+    segment_outcomes: tuple[SegmentFinalizationOutcome, ...] = (),
 ) -> PipelineResult:
     return PipelineResult(
         target_date=date(2026, 4, 27),
@@ -82,6 +92,8 @@ def _make_pipeline_result(
         duration_seconds=1.0,
         briefing_url=briefing_url,
         source_outcomes=source_outcomes,
+        content_completeness=content_completeness,
+        segment_outcomes=segment_outcomes,
     )
 
 
@@ -395,26 +407,42 @@ def test_validate_env_accepts_openai_opt_in_with_key(
 
 
 # ---------------------------------------------------------------------------
-# Exit-code mapping (PipelineStatus → int)
+# Exit-code mapping (public content completeness → int)
 # ---------------------------------------------------------------------------
 
 
+_CONTENT_PARTIAL_OUTCOMES = (
+    SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized"),
+    SegmentFinalizationOutcome(segment=US_EQUITY, state="trust_blocked"),
+    SegmentFinalizationOutcome(segment=CRYPTO, state="finalized"),
+)
+
+
 @pytest.mark.parametrize(
-    ("status", "expected_rc"),
+    ("status", "content_completeness", "segment_outcomes", "expected_rc"),
     [
-        (PipelineStatus.SUCCESS, 0),
-        (PipelineStatus.PARTIAL, 0),
-        (PipelineStatus.FAILED, 1),
+        (PipelineStatus.SUCCESS, "complete", (), 0),
+        (PipelineStatus.PARTIAL, "complete", (), 0),
+        (PipelineStatus.PARTIAL, "partial", _CONTENT_PARTIAL_OUTCOMES, 2),
+        (PipelineStatus.FAILED, "none", (), 1),
+        (PipelineStatus.FAILED, "complete", (), 1),
+        (PipelineStatus.FAILED, "partial", _CONTENT_PARTIAL_OUTCOMES, 2),
     ],
 )
-def test_main_exit_code_maps_pipeline_status(
+def test_main_exit_code_maps_public_content_disposition(
     monkeypatch: pytest.MonkeyPatch,
     status: PipelineStatus,
+    content_completeness: ContentCompleteness,
+    segment_outcomes: tuple[SegmentFinalizationOutcome, ...],
     expected_rc: int,
 ) -> None:
-    """SUCCESS|PARTIAL → 0; FAILED → 1 per component-methods.md C5."""
+    """Content partial wins; notifier-only partial remains successful."""
     _set_env(monkeypatch)
-    result = _make_pipeline_result(status)
+    result = _make_pipeline_result(
+        status,
+        content_completeness=content_completeness,
+        segment_outcomes=segment_outcomes,
+    )
     with _stub_pipeline(monkeypatch, result=result), _capture_alerts(monkeypatch):
         assert main_mod.main() == expected_rc
 
