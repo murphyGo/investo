@@ -5425,3 +5425,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Terminal projection module 291 passed, including 252 closure cases; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-transform-closure.md`.
 **Status**: Step 6 checklist 2/9 complete. Next: partial fixed-point matrix.
+
+## Construction — u144 Step 6.3 partial fixed-point matrix
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Completed the bounded partial-publication test matrix, including notification-summary removal, sequential survivor retries, canonical absence navigation, and the three-pass ceiling.
+**Decisions**: Existing generation-absence, None-context, single trust-block, and zero-survivor tests remain the authoritative cases. New tests pin summary-specific outcome codes and record the exact 3+2+1 assembly sequence after two sequential blocks; the last survivor's sealed bytes contain canonical u63 `미발행` navigation.
+**Validation**: Public-document lifecycle/type tests 44 passed; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-partial-fixed-point.md`.
+**Status**: Step 6 checklist 3/9 complete. Next: active-survivor thesis isolation.

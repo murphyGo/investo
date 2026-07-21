@@ -43,6 +43,7 @@ from investo.publisher.public_document import (
     StagedArtifact,
     _accumulate_watchpoint_result,
     _apply_pre_finalization_supplements,
+    _assemble_phase_one_presentation_briefing,
     _build_finalized_bundle,
     _FinalizationPhaseHandlers,
     _finalize_bundle_skeleton,
@@ -1005,6 +1006,115 @@ def test_bundle_skeleton_keeps_valid_sibling_when_one_segment_is_trust_blocked()
         "trust_blocked",
     )
     assert bundle.segment_outcomes[1].issue_codes == ("entity.fact_contradiction",)
+
+
+def test_bundle_skeleton_keeps_valid_sibling_when_notification_summary_is_blocked() -> None:
+    context = _context(expected_segments=(DOMESTIC_EQUITY, US_EQUITY))
+    valid = _phase_handlers()
+
+    def validate(
+        draft: PublicDocumentDraft,
+        phase_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        if draft.segment == US_EQUITY:
+            raise _SegmentTrustBlockedError(
+                phase="validated",
+                issue_codes=("summary.missing_conclusion",),
+            )
+        return valid.validate(draft, phase_context)
+
+    bundle = _finalize_bundle_skeleton(
+        {
+            DOMESTIC_EQUITY: build_briefing(target_date=_TARGET_DATE),
+            US_EQUITY: build_briefing(target_date=_TARGET_DATE),
+        },
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_FinalizationPhaseHandlers(
+            assemble=valid.assemble,
+            project=valid.project,
+            repair=valid.repair,
+            validate=validate,
+            artifact_ids=valid.artifact_ids,
+        ),
+    )
+
+    assert tuple(document.segment for document in bundle.documents) == (DOMESTIC_EQUITY,)
+    assert bundle.segment_outcomes[1] == SegmentFinalizationOutcome(
+        segment=US_EQUITY,
+        state="trust_blocked",
+        issue_codes=("summary.missing_conclusion",),
+    )
+
+
+def test_bundle_fixed_point_bounds_two_sequential_blocks_to_three_passes_and_u63_nav() -> None:
+    expected = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    context = _context(expected_segments=expected)
+    valid = _phase_handlers()
+    assembly_calls: list[tuple[MarketSegment, tuple[MarketSegment, ...]]] = []
+
+    def assemble(
+        draft: PublicDocumentDraft,
+        active_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        assert active_context.active_segments is not None
+        active = active_context.active_segments
+        assembly_calls.append((draft.segment, active))
+        if (active, draft.segment) in (
+            (expected, CRYPTO),
+            ((DOMESTIC_EQUITY, US_EQUITY), US_EQUITY),
+        ):
+            raise _SegmentTrustBlockedError(
+                phase="assembled",
+                issue_codes=("entity.fact_contradiction",),
+            )
+        briefing = _assemble_phase_one_presentation_briefing(
+            draft.source_briefing,
+            target_date=draft.target_date,
+            segment=draft.segment,
+            active_segments=active,
+        )
+        return _transition_draft(
+            draft,
+            next_phase="assembled",
+            layout=PublicDocumentLayout(
+                markdown=briefing.rendered_markdown,
+                regions=(),
+                expectation=draft.layout.expectation,
+            ),
+        )
+
+    bundle = _finalize_bundle_skeleton(
+        {segment: build_briefing(target_date=_TARGET_DATE) for segment in expected},
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_FinalizationPhaseHandlers(
+            assemble=assemble,
+            project=valid.project,
+            repair=valid.repair,
+            validate=valid.validate,
+            artifact_ids=valid.artifact_ids,
+        ),
+    )
+
+    assert assembly_calls == [
+        (DOMESTIC_EQUITY, expected),
+        (US_EQUITY, expected),
+        (CRYPTO, expected),
+        (DOMESTIC_EQUITY, (DOMESTIC_EQUITY, US_EQUITY)),
+        (US_EQUITY, (DOMESTIC_EQUITY, US_EQUITY)),
+        (DOMESTIC_EQUITY, (DOMESTIC_EQUITY,)),
+    ]
+    assert tuple(outcome.state for outcome in bundle.segment_outcomes) == (
+        "finalized",
+        "trust_blocked",
+        "trust_blocked",
+    )
+    assert (
+        "**세그먼트**: "
+        f"[국내 증시]({_TARGET_DATE.isoformat()}.md) | "
+        "미국 증시(미발행) | 크립토(미발행)"
+    ) in bundle.documents[0].briefing.rendered_markdown
 
 
 def _three_segment_thesis_context() -> BundleContext:
