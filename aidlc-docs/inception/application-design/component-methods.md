@@ -10,7 +10,7 @@
 ```python
 from datetime import date, datetime
 from enum import Enum
-from typing import Literal
+from typing import Literal, Mapping
 from pydantic import BaseModel, HttpUrl
 
 Category = Literal["news", "price", "macro", "calendar", "earnings"]
@@ -54,8 +54,15 @@ class SendResult(BaseModel):
 
 class PipelineStatus(str, Enum):
     SUCCESS = "success"
-    PARTIAL = "partial"   # 게시 성공 + notify briefing 실패 등
+    PARTIAL = "partial"   # 콘텐츠 일부 발행 또는 delivery/visual 저하
     FAILED = "failed"     # 게시 자체 실패
+
+ContentCompleteness = Literal["complete", "partial", "none"]
+
+class SegmentFinalizationOutcome:
+    segment: Literal["domestic-equity", "us-equity", "crypto"]
+    state: Literal["finalized", "generation_absent", "trust_blocked"]
+    issue_codes: tuple[str, ...] = ()
 
 class PipelineResult(BaseModel):
     target_date: date
@@ -63,6 +70,9 @@ class PipelineResult(BaseModel):
     stages: dict[str, str]         # stage_name -> "ok" / "skipped" / "failed: reason"
     duration_seconds: float
     briefing_url: HttpUrl | None = None
+    content_completeness: ContentCompleteness = "complete"
+    segment_outcomes: tuple[SegmentFinalizationOutcome, ...] = ()
+    publication_committed: bool = False
 ```
 
 ---
@@ -144,6 +154,19 @@ def verify_disclaimer(briefing_md: str) -> bool:
     """Checks disclaimer boilerplate substring presence.
        Returns False if missing — caller blocks publish."""
 
+def finalize_public_bundle(
+    briefings: Mapping[MarketSegment, Briefing],
+    *,
+    context: PublicDocumentContext,
+) -> FinalizedPublicBundle:
+    """Default segmented generated→sealed transition.
+       Runs all assembly producers, public projection/repair, read-only
+       terminal trust gates, active-survivor fixed point, notification DTO
+       derivation, and SHA-256 sealing without I/O."""
+
+def write_finalized_document(document: FinalizedPublicDocument) -> Path:
+    """Verify seal/date/segment/disclaimer, then atomically write exact E5 bytes."""
+
 def commit_and_push(
     message: str,
     files: list[Path],
@@ -176,6 +199,15 @@ class OperatorAlerter:
 
 def build_summary(briefing: Briefing, max_chars: int = 4096) -> str:
     """Compose channel summary with site link. Truncates safely if > max_chars."""
+
+def build_segmented_summary(
+    summaries: Mapping[MarketSegment, PublicNotificationSummary],
+    *,
+    site_urls: Mapping[MarketSegment, HttpUrl],
+    ...,
+) -> str:
+    """Format terminally validated E5 DTOs only. Rejects Briefing values and
+       checks mapping-key/segment/date identity; no market_summary fallback."""
 ```
 
 ---
@@ -188,18 +220,22 @@ async def run_pipeline(target_date: date | None = None) -> PipelineResult:
        Stages with Q9=B graceful degradation policy applied.
        Always returns PipelineResult; raises only on programmer errors."""
 
-async def main() -> int:
+def main() -> int:
     """Module entrypoint:
        - Parse env (CLAUDE_CODE_OAUTH_TOKEN, TELEGRAM_BOT_TOKEN,
          TELEGRAM_BRIEFING_CHANNEL_ID, TELEGRAM_OPERATOR_CHAT_ID, SITE_URL_BASE)
        - run_pipeline()
-       - Return exit code (0=ok or partial, 1=failed)
+       - Write bounded GitHub controller outputs
+       - Return exit code (0=complete content, 1=no content/failed,
+         2=committed one/two-segment content-partial)
        - On failed: ensure OperatorAlerter was called"""
 
 # Stage runners (internal — testable)
 async def _stage_collect(target_date: date) -> list[NormalizedItem]: ...
 async def _stage_generate(items: list[NormalizedItem], target_date: date) -> Briefing: ...
-async def _stage_publish(briefing: Briefing, target_date: date) -> Path: ...
+async def _stage_publish_segments(...) -> dict[MarketSegment, Path]:
+    """Finalize once, write E5 bytes, update sealed consumers, and commit once.
+       Returns publication_committed only after the transaction succeeds."""
 async def _stage_notify_briefing(briefing: Briefing, site_url: HttpUrl) -> SendResult: ...
 
 # Date resolution
@@ -219,9 +255,12 @@ def resolve_target_date(now_utc: datetime, *, weekday_only_us_close: bool = True
 | `briefing.append_disclaimer` | US-002 면책조항 AC, NFR-004 |
 | `briefing.call_claude_code` | US-009 (CLI only, no anthropic SDK) |
 | `publisher.write_briefing` | US-003, US-006 |
+| `publisher.finalize_public_bundle` | u144 AC-144.1~AC-144.12 |
+| `publisher.write_finalized_document` | u144 AC-144.2, AC-144.10 |
 | `publisher.verify_disclaimer` | NFR-004 강제 (Q6 보강) |
 | `publisher.commit_and_push` | US-006 (영구 보관) |
 | `notifier.BriefingPublisher.send` | US-004 |
+| `notifier.build_segmented_summary` | u144 terminal notification DTO boundary |
 | `notifier.OperatorAlerter.alert` | US-007 |
 | `orchestrator.run_pipeline` | US-005, NFR-001, NFR-003 |
 | `orchestrator.resolve_target_date` | US-005 (KST 평일/주말 분기) |

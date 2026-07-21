@@ -65,6 +65,11 @@
 #   2 = committed one/two-segment content-partial publication
 # The pipeline step captures rc without stopping the job. Pages runs only
 # when ``publication_committed=true``; the final step then re-emits rc 1/2.
+# ``python -m investo`` writes only bounded controller outputs to the step's
+# ``$GITHUB_OUTPUT``: pipeline_status, content_completeness,
+# publication_committed, and expected/finalized/published segment counts.
+# The shell wrapper adds process_exit_code. No Markdown, URL, exception text,
+# token, or chat ID is allowed in this controller channel.
 
 name: daily-briefing
 

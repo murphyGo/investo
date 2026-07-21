@@ -5393,3 +5393,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: CLI summary tests 65 passed; combined CLI/workflow/orchestrator/finalizer scope 206 passed; Ruff/format and `mypy src` (244 source files) passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-github-summary-diagnostics.md`.
 **Status**: Step 5 checklist 7/8 complete. Next: production-owner documentation alignment.
+
+## Construction — u144 Step 5.8 production-owner documentation
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Aligned the daily workflow header, component methods, and developer design guide with the single finalizer/seal, exact-byte consumer, terminal notifier DTO, typed partial, and Pages-before-exit owners.
+**Decisions**: The old status-only 0/1 exit description is retired. The docs now distinguish mutable generated drafts from E5 sealed documents and make `publication_committed` the sole Pages gate.
+**Validation**: CLI/workflow tests 68 passed; workflow YAML parse, owner-term search, and diff check passed. Shared-tree strict MkDocs was blocked by 12 generated dangling links to absent 2026-04-27 archive files and is explicitly deferred to the clean-HEAD Step 6 gate.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-production-owner-documentation.md`.
+**Status**: Step 5 complete, 8/8. Next: Step 6 composition/property/full validation.

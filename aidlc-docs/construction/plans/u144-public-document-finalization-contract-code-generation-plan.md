@@ -341,7 +341,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Map complete success to exit 0, content-partial to exit 2, zero-document/bundle failure to exit 1, and complete-content notifier-only partial to exit 0. Content-partial severity wins if notification also fails. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-content-aware-exit-codes.md`.
 - [x] Update `daily-briefing.yml`: wrapper captures the pipeline rc and `$GITHUB_OUTPUT`; Pages runs when `publication_committed=true`; a final `if: always()` step re-emits rc 1/2 after Pages. Add workflow contract tests. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-workflow-pages-sequencing.md`.
 - [x] Extend GitHub step summary with expected/finalized/published counts, content completeness, and bounded finalization codes. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-github-summary-diagnostics.md`.
-- [ ] Update the `daily-briefing.yml` contract header, `aidlc-docs/inception/application-design/component-methods.md`, and `docs/DESIGN.md` so the finalizer, sealed consumer, notifier DTO, and exit/Pages sequence are the documented production owners.
+- [x] Update the `daily-briefing.yml` contract header, `aidlc-docs/inception/application-design/component-methods.md`, and `docs/DESIGN.md` so the finalizer, sealed consumer, notifier DTO, and exit/Pages sequence are the documented production owners. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-production-owner-documentation.md`.
 
 ### Step 6 — Composition/property tests and full validation
 

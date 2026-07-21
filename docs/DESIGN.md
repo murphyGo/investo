@@ -12,11 +12,11 @@
 Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions cron이 매일 `python -m investo`를 실행해 다음 단계를 순차로 수행한다:
 
 1. **수집** (sources): 무료 공개 API/RSS에서 전일 시장 데이터 수집
-2. **시황 작성** (briefing): Claude Code CLI를 two-stage prompt로 호출, 국내 증시·미국 증시·크립토 세그먼트별 한국어 시황 생성, 면책조항 자동 삽입
-3. **게시** (publisher): markdown을 `archive/{segment}/YYYY/MM/`에 저장 + git commit + push
-4. **알림** (notifier): 공개 Telegram 채널에 세 세그먼트 요약과 링크를 한 메시지로 푸시 (실패 시 운영자 1:1 chat에 별도 알림)
+2. **시황 초안 작성** (briefing): Claude Code CLI를 two-stage prompt로 호출해 국내 증시·미국 증시·크립토 세그먼트별 한국어 초안을 생성
+3. **최종화·게시** (publisher): 모든 조립/공개 projection/repair를 수행한 뒤 read-only 신뢰 게이트와 SHA-256 seal을 통과한 문서만 `archive/{segment}/YYYY/MM/`에 exact-byte 저장 + 단일 git commit/push
+4. **알림** (notifier): 봉인 직전 terminal validation에서 파생된 `PublicNotificationSummary` DTO로 세 세그먼트 요약과 링크를 공개 Telegram 채널에 푸시 (실패 시 운영자 1:1 chat에 별도 알림)
 
-`mkdocs build`와 GitHub Pages 배포는 별도 GitHub Actions step의 책임이며, Python 코드의 책임이 아니다.
+`mkdocs build`와 GitHub Pages 배포는 별도 GitHub Actions workflow의 책임이다. daily workflow는 공개 commit이 있으면 Pages를 먼저 dispatch한 뒤 Python rc를 재발생시켜, 1~2개 세그먼트만 발행된 경우에도 사이트는 갱신하되 daily run은 exit 2로 red 상태를 유지한다.
 
 ---
 
@@ -42,7 +42,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
      |    sources     | |    briefing    | |   publisher    | |    notifier    |
      | (asyncio.gather| | (Claude Code   | | (md write +    | | (Telegram Bot  |
      |  + degradation)| |  CLI two-stage)| |  git push +    | |  API)          |
-     |                | | + disclaimer   | |  verify)       | |                |
+     |                | |  draft output) | | finalizer+seal | | sealed DTO)    |
      +-------+--------+ +-------+--------+ +-------+--------+ +---+--------+---+
              |                  |                  |             |        |
              v (HTTP)           v (subprocess)     v             v        v
@@ -59,9 +59,9 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 | Component | Responsibility | Module path |
 |-----------|---------------|-------------|
 | sources | 무료 데이터 plugin 수집 + 부분 실패 허용 | `src/investo/sources/` |
-| briefing | Claude Code CLI two-stage 호출 + 면책조항 자동 삽입 | `src/investo/briefing/` |
-| publisher | markdown archive + git commit + disclaimer 검증 | `src/investo/publisher/` |
-| notifier | BriefingPublisher (공개 채널) + OperatorAlerter (1:1) | `src/investo/notifier/` |
+| briefing | Claude Code CLI two-stage 초안 생성 + 호환 면책조항 보장 | `src/investo/briefing/` |
+| publisher | generated→sealed 단일 finalizer, exact-byte archive, sealed consumer view, git commit | `src/investo/publisher/` |
+| notifier | terminal `PublicNotificationSummary` formatter + BriefingPublisher (공개 채널) + OperatorAlerter (1:1) | `src/investo/notifier/` |
 | orchestrator | 파이프라인 단일 진입점 + 단계별 에러 정책 | `src/investo/orchestrator/` |
 | models | 공통 pydantic v2 타입 (NormalizedItem, Briefing, ...) | `src/investo/models/` |
 
@@ -92,7 +92,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 
 ### TD-004: 면책조항 코드 자동 append + Publisher 검증
 
-**Choice**: `briefing.append_disclaimer`가 LLM 출력 뒤에 모듈 상수 disclaimer를 idempotent하게 append. `publisher.verify_disclaimer`가 게시 직전 검증.
+**Choice**: `briefing.append_disclaimer`는 생성 경계의 호환 보장을 유지한다. 기본 segmented 경로에서는 `publisher.finalize_public_bundle`가 nav/요약/본문 evidence/visual/watchpoint/면책조항을 포함한 모든 producer 이후 terminal exact-disclaimer 검증을 수행하고 seal한다. `write_finalized_document`는 seal과 면책조항을 다시 확인한 뒤 exact bytes만 쓴다.
 **Rationale**: NFR-004(컴플라이언스) 강제. LLM이 누락하더라도 코드로 보장.
 **Alternatives Considered**: prompt에만 의존 (누락 위험).
 
@@ -104,13 +104,13 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 
 ### TD-006: GitHub Actions step에서 mkdocs build / Pages deploy
 
-**Choice**: Python publisher는 markdown write + git commit까지. `mkdocs build` + `actions/deploy-pages`는 별도 workflow step.
-**Rationale**: 책임 분리, GitHub native 활용, Python 코드 단순화.
+**Choice**: Python publisher는 sealed markdown write + git commit까지 맡는다. daily workflow는 bounded `$GITHUB_OUTPUT`을 읽어 `publication_committed=true`일 때 Pages workflow를 dispatch하고, 마지막 `always()` step에서 rc 1/2를 재발생시킨다.
+**Rationale**: 책임 분리와 GitHub native 배포를 유지하면서 content-partial commit도 배포하고 운영 실패 신호는 보존한다.
 **Alternatives Considered**: Python에서 `mkdocs build` subprocess 호출 (책임 혼합).
 
 ### TD-007: Graceful Degradation Pipeline
 
-**Choice**: 단일 source 실패는 흡수, LLM 최종 실패는 게시 차단, 게시 실패는 retry, 알림 실패는 비차단.
+**Choice**: 단일 source 실패는 흡수한다. 세그먼트 생성 부재 또는 numeric/entity/compliance/disclaimer/structure/notification-summary 신뢰 차단은 유효 sibling만 한 트랜잭션으로 발행하고 `content_completeness=partial`, exit 2로 표시한다. 0개 survivor/게시 실패는 exit 1, 완전 콘텐츠의 알림 실패는 exit 0이다.
 **Rationale**: 무료 API의 불안정성 + 시황 품질 보장 + 외부 노출 안전.
 **Alternatives Considered**: Fail-fast (단일 장애로 시황 누락).
 
@@ -130,6 +130,12 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Storage/secret**: filed 자산 ≤ 500 KB(raster)/≤ 64 KB(SVG), 라이브러리 총합 ≤ 20 MB, 100–2000 px(기존 게이트 재사용, pillow 미도입). 매니페스트 텍스트는 u27 redaction chokepoint 통과(R7/R13).
 **Excluded**: 뉴스사진/짤방/기업 상표로고/실존인물 비공식 사진은 라이선스 게이트에서 거부.
 
+### TD-010: 공개 문서 단일 finalization/seal 경계 (u144)
+
+**Choice**: 기본 segmented production은 `publisher.public_document.finalize_public_bundle()`를 정확히 한 번 호출한다. 모든 Markdown producer와 deterministic repair는 E2 이전에 끝나며, terminal gate는 read-only다. 유효 문서는 `FinalizedPublicDocument` E5로 SHA-256 봉인되고 archive/index/OG/evidence/quality/replay/notifier consumer는 봉인된 bytes/DTO만 본다.
+**Containment**: optional presentation defect는 region fallback/omission으로 격리하고 세그먼트를 제거하지 않는다. 실제 신뢰 위반만 `trust_blocked`; generation absence는 `generation_absent`다. survivor 변경 시 active `BundleContext`를 재계산하는 최대 3-pass fixed point를 사용한다.
+**Artifact transaction**: 선택된 staged artifact만 E5 ID와 E6 promotion manifest를 거쳐 공개 위치로 승격된다. git 전 I/O 실패는 기존 byte snapshot으로 rollback하고, commit/push 이후는 기존 `PublisherGitError` 복구 계약을 따른다.
+
 ---
 
 ## Data Model
@@ -140,8 +146,13 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 ### Briefing (LLM 출력 + 메타)
 - 7섹션 (`market_summary`, `key_issues`, `sector_flow`, `indicators_events`, `notable_tickers`, `today_watch`, `disclaimer`) + `rendered_markdown`
 
+### FinalizedPublicDocument / PublicNotificationSummary
+- `FinalizedPublicDocument`: segment/date, exact final Markdown bytes, SHA-256 seal, terminal notification DTO, selected artifact IDs를 갖는 immutable E5
+- `PublicNotificationSummary`: final layout에서 파생된 conclusion/watchlist와 E1 typed coverage만 보유하며 notifier가 `Briefing.market_summary`를 다시 읽지 못하게 하는 경계
+
 ### BriefingNotification / FailureContext / SendResult / PipelineResult
 - 채널 발송 페이로드, 실패 컨텍스트, Bot API 응답, 파이프라인 종료 상태
+- `PipelineResult`는 기존 `PipelineStatus`와 별도로 `content_completeness`, canonical `segment_outcomes`, `publication_committed`를 제공한다.
 
 자세한 정의는 `aidlc-docs/inception/application-design/component-methods.md`.
 
