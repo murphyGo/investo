@@ -1196,7 +1196,7 @@ async def test_stage_generate_segments_passes_fact_context_to_default_generator(
         _fake_default_generate_segment,
     )
 
-    briefings, failures, _, fact_bundle, _, _ = await pipeline_module._stage_generate_segments(
+    briefings, failures, _, fact_bundle, _, _, _ = await pipeline_module._stage_generate_segments(
         _TARGET,
         [*_three_segment_items(), _fed_chair_fact_item()],
     )
@@ -1245,7 +1245,7 @@ async def test_stage_generate_segments_passes_explicit_watchlist_to_default_gene
         _fake_default_generate_segment,
     )
 
-    briefings, failures, _, _, _, _ = await pipeline_module._stage_generate_segments(
+    briefings, failures, _, _, _, _, _ = await pipeline_module._stage_generate_segments(
         _TARGET,
         _three_segment_items(),
     )
@@ -1286,7 +1286,7 @@ async def test_stage_generate_segments_default_concurrency_is_serial(
         active -= 1
         return _briefing(target_date, segment=segment)
 
-    briefings, failures, _, _, _, timings = await pipeline_module._stage_generate_segments(
+    briefings, failures, _, _, _, _, timings = await pipeline_module._stage_generate_segments(
         _TARGET,
         _three_segment_items(),
         generate_segment=_serial_probe,
@@ -1347,7 +1347,7 @@ async def test_stage_generate_segments_concurrency_two_starts_two_segments(
     assert max_active == 2
 
     release.set()
-    briefings, failures, _, _, _, timings = await task
+    briefings, failures, _, _, _, _, timings = await task
 
     assert started == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
     assert list(briefings) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]

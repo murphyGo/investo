@@ -305,6 +305,14 @@
 **Validation**: Direct containment tests passed 13; publisher/module-boundary/summary-fidelity regressions passed 720; strict mypy passed for the changed test and all 241 source files. Ruff check/format and scoped diff check passed. Fresh-eyes review found and drove fixes for exhaustive first-viewport dispatch, residual re-resolution, and grouped watermark/summary copy loss; final re-review approved with no remaining blocker.
 **Next**: Step 4 checklist 3 — remove both duplicate entity-drop paths and compose the terminal entity-fact scan once.
 
+## Construction — u144 Code Generation Step 4.3 single terminal entity-fact gate landed
+
+**Timestamp**: 2026-07-21T19:45:00+09:00
+**Action**: Removed entity-fact scans and segment drops from both `GenerateStage` and `_stage_publish_segments`. The fact-context build now returns its exact timezone-aware observation instant, which flows unchanged through stage data to one pre-I/O terminal bridge in `PublishStage` and then to the finalizer-owned scanner adapter.
+**Failure behavior**: Each active segment is scanned exactly once. Violations create the existing per-segment `EntityFactGuard` diagnostic, update the survivor mapping and notification missing-segment input, and force final `PipelineStatus.PARTIAL`. Zero survivors fail before `_stage_publish_segments` and before public writes. No clock is reread and no fact bundle is rebuilt at publish time.
+**Validation**: Focused terminal/projection/stage/pipeline tests passed 142; orchestrator/publisher/integration regressions passed 1,063; the final focused status-propagation rerun passed 105. Strict mypy passed all 241 source files; Ruff check/format and scoped diff check passed. Fresh-eyes review approved with no remaining blocker.
+**Next**: Step 4 checklist 4 — move the daily-thesis survivor decision to a neutral owner and recompute it on every active fixed-point pass.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

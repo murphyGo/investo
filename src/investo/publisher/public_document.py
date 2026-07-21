@@ -2299,12 +2299,35 @@ def _scan_terminal_entity_fact_claims(
 
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("entity guard context identity must match draft")
-    return scan_entity_fact_claims(
+    return _scan_terminal_entity_fact_markdown(
         draft.layout.markdown,
-        context.fact_bundle,
-        context.target_date,
-        context.entity_observed_at_utc,
         segment=draft.segment,
+        fact_bundle=context.fact_bundle,
+        target_date=context.target_date,
+        entity_observed_at_utc=context.entity_observed_at_utc,
+    )
+
+
+def _scan_terminal_entity_fact_markdown(
+    markdown: str,
+    *,
+    segment: MarketSegment,
+    fact_bundle: VerifiedFactBundle,
+    target_date: date,
+    entity_observed_at_utc: datetime,
+) -> tuple[EntityFactViolation, ...]:
+    """Compatibility bridge for the sole pre-I/O terminal entity gate."""
+
+    if fact_bundle.target_date != target_date:
+        raise ValueError("entity fact bundle target_date must match terminal input")
+    if entity_observed_at_utc.utcoffset() is None:
+        raise ValueError("entity observation clock must be timezone-aware")
+    return scan_entity_fact_claims(
+        markdown,
+        fact_bundle,
+        target_date,
+        entity_observed_at_utc,
+        segment=segment,
     )
 
 

@@ -210,7 +210,6 @@ from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
 )
-from investo.publisher.entity_fact_guard import scan_entity_fact_claims
 from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.public_document import (
@@ -218,6 +217,7 @@ from investo.publisher.public_document import (
     _apply_pre_finalization_supplements,
     _assemble_phase_one_body_evidence,
     _assemble_phase_one_presentation_briefings,
+    _scan_terminal_entity_fact_markdown,
 )
 from investo.publisher.public_document import (
     _assemble_phase_one_reader_briefings as _apply_reader_format_to_segments,
@@ -667,6 +667,7 @@ async def _stage_generate_segments(
     dict[MarketSegment, BriefingGenerationError],
     BundleContext | None,
     VerifiedFactBundle,
+    datetime,
     dict[MarketSegment, tuple[MacroLineageTrace, ...]],
     dict[str, float],
 ]:
@@ -813,6 +814,7 @@ async def _stage_generate_segments(
         failures,
         bundle_context,
         fact_bundle,
+        fact_now_utc,
         macro_lineage_by_segment,
         segment_timings,
     )
@@ -1146,7 +1148,6 @@ async def _stage_publish_segments(
     items: Sequence[NormalizedItem] = (),
     source_outcomes: Sequence[SourceOutcome] = (),
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
-    fact_bundle: VerifiedFactBundle | None = None,
     extra_commit_paths: Sequence[Path] = (),
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
@@ -1167,50 +1168,6 @@ async def _stage_publish_segments(
     _logger.info("[publish] starting segmented target_date=%s", target_date)
 
     archive_paths: dict[MarketSegment, Path] = {}
-    if fact_bundle is None:
-        try:
-            fact_bundle = build_verified_fact_bundle(tuple(items), target_date, datetime.now(UTC))
-        except VerifiedFactConflictError as exc:
-            _logger.warning(
-                "[publish] fact conflict fact_id=%s values=%s; entity guard uses unverified state",
-                exc.fact_id,
-                exc.values,
-            )
-            fact_bundle = VerifiedFactBundle(target_date=target_date)
-    entity_now_utc = datetime.now(UTC)
-    entity_blocked: dict[MarketSegment, object] = {}
-    for segment in SEGMENT_ORDER:
-        briefing = briefings.get(segment)
-        if briefing is None:
-            continue
-        violations = scan_entity_fact_claims(
-            briefing.rendered_markdown,
-            fact_bundle,
-            target_date,
-            entity_now_utc,
-            segment=segment,
-        )
-        if violations:
-            entity_blocked[segment] = violations
-            for violation in violations:
-                _logger.error(
-                    "[publish] entity fact blocked segment=%s fact_id=%s expected=%s "
-                    "term=%s line=%d preview=%s",
-                    violation.segment,
-                    violation.fact_id,
-                    violation.expected_value,
-                    violation.offending_term,
-                    violation.line_number,
-                    violation.preview,
-                )
-    if entity_blocked:
-        briefings = {
-            segment: briefing
-            for segment, briefing in briefings.items()
-            if segment not in entity_blocked
-        }
-        if not briefings:
-            raise PublisherDisclaimerError(target_date=target_date)
 
     published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
     snapshot_paths = [
@@ -1797,54 +1754,6 @@ def _inject_carryover_into_segments(
             owned_regions=(("carryover", f"{segment}.carryover.watchlist"),),
         )
     return rewritten
-
-
-def _filter_entity_fact_violations(
-    segment_briefings: dict[MarketSegment, Briefing],
-    *,
-    fact_bundle: VerifiedFactBundle,
-    target_date: date,
-    now_utc: datetime,
-) -> tuple[dict[MarketSegment, Briefing], tuple[MarketSegment, ...]]:
-    """Drop segments whose current-role claims contradict verified facts."""
-
-    blocked: list[MarketSegment] = []
-    for segment in SEGMENT_ORDER:
-        briefing = segment_briefings.get(segment)
-        if briefing is None:
-            continue
-        violations = scan_entity_fact_claims(
-            briefing.rendered_markdown,
-            fact_bundle,
-            target_date,
-            now_utc,
-            segment=segment,
-        )
-        if not violations:
-            continue
-        blocked.append(segment)
-        for violation in violations:
-            _logger.error(
-                "[publish] entity fact blocked segment=%s fact_id=%s expected=%s "
-                "term=%s line=%d preview=%s",
-                violation.segment,
-                violation.fact_id,
-                violation.expected_value,
-                violation.offending_term,
-                violation.line_number,
-                violation.preview,
-            )
-    if not blocked:
-        return segment_briefings, ()
-    blocked_set = set(blocked)
-    return (
-        {
-            segment: briefing
-            for segment, briefing in segment_briefings.items()
-            if segment not in blocked_set
-        },
-        tuple(blocked),
-    )
 
 
 def _build_quality_snapshot(
@@ -2534,7 +2443,6 @@ class GenerateStage:
         segmented_mode = generate is None
         segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
         surface_quality_failures: dict[MarketSegment, SurfaceQualityError] = {}
-        entity_fact_blocked_segments: tuple[MarketSegment, ...] = ()
         market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
         market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
             segment: () for segment in SEGMENT_ORDER
@@ -2543,6 +2451,7 @@ class GenerateStage:
         carryover_by_segment: dict[MarketSegment, BriefingCarryover] = {}
         segment_briefings: dict[MarketSegment, Briefing] | None = None
         fact_bundle: VerifiedFactBundle | None = None
+        entity_observed_at_utc: datetime | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
         generate_sub_timings: dict[str, float] = {}
         try:
@@ -2590,6 +2499,7 @@ class GenerateStage:
                     segment_generation_failures,
                     run_bundle_context,
                     fact_bundle,
+                    entity_observed_at_utc,
                     macro_lineage_by_segment,
                     segment_timings,
                 ) = await _stage_generate_segments(
@@ -2613,6 +2523,7 @@ class GenerateStage:
                 segment_briefings = None
                 run_bundle_context = None
                 fact_bundle = None
+                entity_observed_at_utc = None
                 macro_lineage_by_segment = {}
                 briefing = await _stage_generate(
                     target_date, items, runner=runner, generate=generate
@@ -2807,33 +2718,6 @@ class GenerateStage:
                     data={"_stage_alerts": stage_alerts},
                 )
             reader_format_elapsed = time.monotonic() - reader_format_start
-            assert fact_bundle is not None
-            segment_briefings, entity_fact_blocked_segments = _filter_entity_fact_violations(
-                segment_briefings,
-                fact_bundle=fact_bundle,
-                target_date=target_date,
-                now_utc=datetime.now(UTC),
-            )
-            for blocked_segment in entity_fact_blocked_segments:
-                stage_notes[f"publish:{blocked_segment}"] = "failed: EntityFactGuard"
-            if entity_fact_blocked_segments and not segment_briefings:
-                entity_error = PublisherDisclaimerError(target_date=target_date)
-                stage_notes["publish"] = "failed: EntityFactGuard"
-                stage_notes["notify_briefing"] = "skipped"
-                return StageResult(
-                    status="failed",
-                    error=entity_error,
-                    stage_notes=stage_notes,
-                    timings={
-                        "generate": generate_elapsed,
-                        **generate_sub_timings,
-                        "visual_assets": va_elapsed,
-                        "generate:reader_format": reader_format_elapsed,
-                        "publish": 0.0,
-                    },
-                    data={"_stage_alerts": stage_alerts},
-                )
-
             timings = {
                 "generate": generate_elapsed,
                 **generate_sub_timings,
@@ -2844,31 +2728,66 @@ class GenerateStage:
             timings = {"generate": generate_elapsed}
 
         return StageResult(
-            status=(
-                "partial"
-                if segment_generation_failures
-                or surface_quality_failures
-                or entity_fact_blocked_segments
-                else "ok"
-            ),
+            status=("partial" if segment_generation_failures or surface_quality_failures else "ok"),
             data={
                 "segmented_mode": segmented_mode,
                 "briefing": briefing,
                 "segment_briefings": segment_briefings,
                 "segment_generation_failures": segment_generation_failures,
                 "surface_quality_failures": surface_quality_failures,
-                "entity_fact_blocked_segments": entity_fact_blocked_segments,
+                "entity_fact_blocked_segments": (),
                 "visual_assets_failed": visual_assets_failed,
                 "visual_asset_paths": visual_asset_paths,
                 "image_candidate_paths": image_candidate_paths,
                 "image_stage_note": image_stage_note,
                 "fact_bundle": fact_bundle,
+                "entity_observed_at_utc": entity_observed_at_utc,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
                 "_stage_alerts": stage_alerts,
             },
             stage_notes=stage_notes,
             timings=timings,
         )
+
+
+def _terminal_validate_entity_fact_segments(
+    segment_briefings: Mapping[MarketSegment, Briefing],
+    *,
+    fact_bundle: VerifiedFactBundle,
+    target_date: date,
+    entity_observed_at_utc: datetime,
+) -> tuple[dict[MarketSegment, Briefing], tuple[MarketSegment, ...]]:
+    """Run the sole compatibility entity gate at the pre-I/O terminal boundary."""
+
+    survivors: dict[MarketSegment, Briefing] = {}
+    blocked: list[MarketSegment] = []
+    for segment in SEGMENT_ORDER:
+        briefing = segment_briefings.get(segment)
+        if briefing is None:
+            continue
+        violations = _scan_terminal_entity_fact_markdown(
+            briefing.rendered_markdown,
+            segment=segment,
+            fact_bundle=fact_bundle,
+            target_date=target_date,
+            entity_observed_at_utc=entity_observed_at_utc,
+        )
+        if not violations:
+            survivors[segment] = briefing
+            continue
+        blocked.append(segment)
+        for violation in violations:
+            _logger.error(
+                "[publish] entity fact blocked segment=%s fact_id=%s expected=%s "
+                "term=%s line=%d preview=%s",
+                violation.segment,
+                violation.fact_id,
+                violation.expected_value,
+                violation.offending_term,
+                violation.line_number,
+                violation.preview,
+            )
+    return survivors, tuple(blocked)
 
 
 class PublishStage:
@@ -2895,6 +2814,10 @@ class PublishStage:
             accumulated["macro_lineage_by_segment"],
         )
         fact_bundle = cast("VerifiedFactBundle | None", accumulated.get("fact_bundle"))
+        entity_observed_at_utc = cast(
+            "datetime | None",
+            accumulated.get("entity_observed_at_utc"),
+        )
         visual_asset_paths = cast("tuple[Path, ...]", accumulated["visual_asset_paths"])
         # u137 — stage outputs of the failure-isolated image-candidate
         # stage; joins the git add list only (never the rollback
@@ -2904,9 +2827,25 @@ class PublishStage:
         )
 
         start = time.monotonic()
+        entity_fact_blocked_segments: tuple[MarketSegment, ...] = ()
+        stage_notes: dict[str, str] = {}
         try:
             if segmented_mode:
                 assert segment_briefings is not None
+                if fact_bundle is None or entity_observed_at_utc is None:
+                    raise RuntimeError("segmented publish requires terminal entity context")
+                segment_briefings, entity_fact_blocked_segments = (
+                    _terminal_validate_entity_fact_segments(
+                        segment_briefings,
+                        fact_bundle=fact_bundle,
+                        target_date=target_date,
+                        entity_observed_at_utc=entity_observed_at_utc,
+                    )
+                )
+                for blocked_segment in entity_fact_blocked_segments:
+                    stage_notes[f"publish:{blocked_segment}"] = "failed: EntityFactGuard"
+                if not segment_briefings:
+                    raise PublisherDisclaimerError(target_date=target_date)
                 await _stage_publish_segments(
                     segment_briefings,
                     target_date,
@@ -2915,7 +2854,6 @@ class PublishStage:
                     items=items,
                     source_outcomes=source_outcomes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
-                    fact_bundle=fact_bundle,
                     extra_commit_paths=image_candidate_paths,
                 )
             else:
@@ -2931,14 +2869,19 @@ class PublishStage:
                 status="failed",
                 error=exc,
                 stage_notes={
+                    **stage_notes,
                     "publish": f"failed: {type(exc).__name__}",
                     "notify_briefing": "skipped",
                 },
                 timings={"publish": time.monotonic() - start},
             )
         return StageResult(
-            status="ok",
-            stage_notes={"publish": "ok"},
+            status="partial" if entity_fact_blocked_segments else "ok",
+            data={
+                "segment_briefings": segment_briefings,
+                "entity_fact_blocked_segments": entity_fact_blocked_segments,
+            },
+            stage_notes={**stage_notes, "publish": "ok"},
             timings={"publish": time.monotonic() - start},
         )
 
@@ -3312,6 +3255,10 @@ async def run_pipeline(
                 "dict[MarketSegment, SurfaceQualityError]",
                 accumulated.get("surface_quality_failures", {}),
             )
+            entity_fact_blocked_segments = cast(
+                "tuple[MarketSegment, ...]",
+                accumulated.get("entity_fact_blocked_segments", ()),
+            )
             if notify_result.ok:
                 stage_status["notify_briefing"] = "ok"
                 status = (
@@ -3320,6 +3267,7 @@ async def run_pipeline(
                         visual_assets_failed
                         or bool(segment_generation_failures)
                         or bool(surface_quality_failures)
+                        or bool(entity_fact_blocked_segments)
                     )
                     else PipelineStatus.SUCCESS
                 )
