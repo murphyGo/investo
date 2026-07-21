@@ -946,6 +946,126 @@ def _render_supplement_block(supplement: PublicDocumentSupplement) -> str:
     )
 
 
+def _apply_pre_finalization_supplements(
+    briefing: Briefing,
+    *,
+    supplements: Sequence[PublicDocumentSupplement],
+    place: Callable[[str, tuple[str, ...]], str],
+    owned_regions: Sequence[tuple[PublicSupplementKind, str]] = (),
+) -> Briefing:
+    """Apply already-rendered E1 supplements through one mutation boundary.
+
+    Producers retain their existing kind-specific placement algorithm by
+    supplying ``place``. This adapter owns canonical marker wrapping and the
+    sole ``Briefing.rendered_markdown`` replacement for visual, chart, and
+    carryover producers while the complete pure finalizer is wired in.
+
+    An empty supplement tuple still invokes ``place``. Carryover uses that
+    branch to remove a stale legacy block when today's typed input is empty.
+    """
+
+    ordered = tuple(supplements)
+    ordering = tuple(
+        (supplement.stable_order, supplement.kind, supplement.supplement_id)
+        for supplement in ordered
+    )
+    if ordering != tuple(sorted(ordering)):
+        raise ValueError("supplements must use stable (order, kind, id) ordering")
+    _require_unique(
+        tuple(supplement.supplement_id for supplement in ordered),
+        field_name="supplement_id",
+    )
+    order_kind = tuple((supplement.stable_order, supplement.kind) for supplement in ordered)
+    if len(set(order_kind)) != len(order_kind):
+        raise ValueError("supplements must not duplicate (stable_order, kind)")
+
+    rendered = tuple(_render_supplement_block(supplement) for supplement in ordered)
+    rendered_by_region = {
+        (supplement.kind, supplement.supplement_id): block
+        for supplement, block in zip(ordered, rendered, strict=True)
+    }
+    region_order = tuple(dict.fromkeys((*rendered_by_region, *owned_regions)))
+    for kind, supplement_id in region_order:
+        if kind not in _SUPPLEMENT_KINDS:
+            raise ValueError("owned supplement kind must be visual, chart, or carryover")
+        _require_identifier(supplement_id, field_name="owned supplement_id")
+
+    markdown = briefing.rendered_markdown
+    for kind, supplement_id in region_order:
+        _validate_existing_supplement_region(
+            markdown,
+            kind=kind,
+            supplement_id=supplement_id,
+        )
+    if (
+        rendered
+        and all(block in markdown for block in rendered)
+        and len(region_order) == len(rendered_by_region)
+    ):
+        return briefing
+    placement_input = markdown
+    for region in region_order:
+        expected = rendered_by_region.get(region)
+        if expected is not None and expected in placement_input:
+            continue
+        placement_input = _remove_existing_supplement_region(
+            placement_input,
+            kind=region[0],
+            supplement_id=region[1],
+        )
+    placed = place(placement_input, rendered)
+    return (
+        briefing
+        if placed == markdown
+        else briefing.model_copy(update={"rendered_markdown": placed})
+    )
+
+
+def _remove_existing_supplement_region(
+    markdown: str,
+    *,
+    kind: PublicSupplementKind,
+    supplement_id: str,
+) -> str:
+    """Remove one complete typed marker pair before replacement/omission."""
+
+    pattern = _validate_existing_supplement_region(
+        markdown,
+        kind=kind,
+        supplement_id=supplement_id,
+    )
+    if pattern is None:
+        return markdown
+    return pattern.sub("", markdown, count=1)
+
+
+def _validate_existing_supplement_region(
+    markdown: str,
+    *,
+    kind: PublicSupplementKind,
+    supplement_id: str,
+) -> re.Pattern[str] | None:
+    """Return the unique balanced marker pattern or fail closed."""
+
+    region_id = f"{kind}:{supplement_id}"
+    opening = f"<!-- investo:block {region_id} -->"
+    closing = f"<!-- /investo:block {region_id} -->"
+    opening_count = len(re.findall(rf"^{re.escape(opening)}$", markdown, re.MULTILINE))
+    closing_count = len(re.findall(rf"^{re.escape(closing)}$", markdown, re.MULTILINE))
+    if opening_count == closing_count == 0:
+        return None
+    if opening_count != 1 or closing_count != 1:
+        raise ValueError("existing supplement marker must be one balanced pair")
+    pattern = re.compile(
+        rf"^{re.escape(opening)}(?:\r?\n|\r).*?^{re.escape(closing)}(?:\r?\n|\r)?",
+        re.MULTILINE | re.DOTALL,
+    )
+    matches = tuple(pattern.finditer(markdown))
+    if len(matches) != 1:
+        raise ValueError("existing supplement marker must be one balanced pair")
+    return pattern
+
+
 def _marker_candidates(
     markdown: str,
     *,

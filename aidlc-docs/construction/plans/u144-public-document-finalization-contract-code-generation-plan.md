@@ -305,7 +305,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 
 - [x] Move nav, canonical/short disclaimer, summary repair, and body-used rendering out of `_stage_publish_segments` into phase 1. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-2-phase-one-publish-mutations.md`.
 - [x] Make `segment_reader_format` an internal assembly collaborator; remove its premature terminal surface gate. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-2-segment-reader-internal-collaborator.md`.
-- [ ] Route visual/chart/carryover Markdown through explicit pre-finalization supplements or a single pre-finalizer adapter.
+- [x] Route visual/chart/carryover Markdown through explicit pre-finalization supplements or a single pre-finalizer adapter. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-2-pre-finalization-supplements.md`.
 - [ ] Change current visual/chart file writers (and the common contract for any future file-backed carryover) to accept a run staging root and return full typed `StagedArtifact` descriptors; text-only carryover stays in memory. Typed supplement IDs/marker regions must resolve, omitted supplements contribute no E5 IDs, E5 survivor IDs must form the E6 promotion manifest without parsing Markdown URLs, promotion occurs only inside the post-E6 publish transaction, and staging cleans on all exits.
 - [ ] Remove every production `Briefing.model_copy(update={"rendered_markdown": ...})` that occurs after finalization.
 - [ ] Add an AST architecture test with an explicit compatibility allowlist.

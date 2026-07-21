@@ -213,6 +213,8 @@ from investo.publisher.entity_fact_guard import scan_entity_fact_claims
 from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.public_document import (
+    PublicDocumentSupplement,
+    _apply_pre_finalization_supplements,
     _assemble_phase_one_body_evidence,
     _assemble_phase_one_presentation_briefings,
 )
@@ -236,7 +238,12 @@ from investo.publisher.weekly_digest import (
 )
 from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals import image_library as _image_library
-from investo.visuals.assets import VisualAssetError, prepare_segment_visual_assets
+from investo.visuals.assets import (
+    VisualAssetError,
+    VisualMarkdownBlock,
+    insert_prebuilt_visual_blocks,
+    prepare_segment_visual_assets,
+)
 from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
 from investo.visuals.og_card import (
     OG_CARD_PNG_RELATIVE_PATH,
@@ -1575,14 +1582,27 @@ def _inject_chart_blocks_into_segments(
         if not artifacts.block:
             rewritten[segment] = briefing
             continue
-        new_md = inject_chart_block(briefing.rendered_markdown, artifacts.block)
-        if new_md == briefing.rendered_markdown:
+        supplements = (
+            PublicDocumentSupplement(
+                supplement_id=f"{segment}.chart.market",
+                kind="chart",
+                markdown=artifacts.block,
+                stable_order=20_000,
+            ),
+        )
+        updated = _apply_pre_finalization_supplements(
+            briefing,
+            supplements=supplements,
+            place=lambda markdown, blocks: inject_chart_block(markdown, blocks[0]),
+            owned_regions=(("chart", f"{segment}.chart.market"),),
+        )
+        if updated is briefing:
             rewritten[segment] = briefing
             continue
         markdown_path = compute_archive_path(target_date, segment=segment)
         for sidecar in artifacts.sidecars:
             sidecar_paths.append(write_chart_sidecar(sidecar, markdown_path))
-        rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_md})
+        rewritten[segment] = updated
     return rewritten, tuple(sidecar_paths)
 
 
@@ -1706,11 +1726,27 @@ def _inject_carryover_into_segments(
             rewritten[segment] = briefing
             continue
         block = render_carryover_block(carryover)
-        new_markdown = inject_carryover_block(briefing.rendered_markdown, block)
-        if new_markdown == briefing.rendered_markdown:
-            rewritten[segment] = briefing
-        else:
-            rewritten[segment] = briefing.model_copy(update={"rendered_markdown": new_markdown})
+        supplements = (
+            (
+                PublicDocumentSupplement(
+                    supplement_id=f"{segment}.carryover.watchlist",
+                    kind="carryover",
+                    markdown=block,
+                    stable_order=10_000,
+                ),
+            )
+            if block
+            else ()
+        )
+        rewritten[segment] = _apply_pre_finalization_supplements(
+            briefing,
+            supplements=supplements,
+            place=lambda markdown, blocks: inject_carryover_block(
+                markdown,
+                blocks[0] if blocks else "",
+            ),
+            owned_regions=(("carryover", f"{segment}.carryover.watchlist"),),
+        )
     return rewritten
 
 
@@ -2017,9 +2053,43 @@ async def _stage_prepare_segment_visual_assets(
             manifest_path = manifest_path_for(path)
             if manifest_path.exists():
                 segment_asset_paths.append(manifest_path)
+        prepared_briefing = prepared.briefing
+        if prepared.markdown_blocks:
+            supplements = tuple(
+                PublicDocumentSupplement(
+                    supplement_id=f"{segment}.visual.{block.placement_key}",
+                    kind="visual",
+                    markdown=block.markdown,
+                    stable_order=index,
+                )
+                for index, block in enumerate(prepared.markdown_blocks)
+            )
+
+            def _place_visual_blocks(
+                markdown: str,
+                rendered_blocks: tuple[str, ...],
+            ) -> str:
+                marked_blocks = tuple(
+                    VisualMarkdownBlock(
+                        placement_key=source.placement_key,
+                        markdown=rendered,
+                    )
+                    for source, rendered in zip(
+                        prepared.markdown_blocks,
+                        rendered_blocks,
+                        strict=True,
+                    )
+                )
+                return insert_prebuilt_visual_blocks(markdown, blocks=marked_blocks)
+
+            prepared_briefing = _apply_pre_finalization_supplements(
+                briefings[segment],
+                supplements=supplements,
+                place=_place_visual_blocks,
+            )
         return _VisualPrepResult(
             segment=segment,
-            briefing=prepared.briefing,
+            briefing=prepared_briefing,
             asset_paths=tuple(segment_asset_paths),
         )
 

@@ -53,6 +53,7 @@ from investo.orchestrator.pipeline import (
     _build_failure_context,
     run_pipeline,
 )
+from investo.publisher.charts import ChartArtifacts
 from investo.publisher.errors import PublisherIOError, SurfaceQualityError
 from investo.visuals.assets import PreparedVisualAssets, VisualAssetError
 
@@ -762,6 +763,10 @@ async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_sv
         assert f"![데이터 신뢰도]({rel_prefix}data-confidence.svg)" in body
         assert f"![시장 스냅샷]({rel_prefix}market-snapshot.svg)" in body
         assert f"![관심 자산 관련성]({rel_prefix}watchlist-relevance.svg)" in body
+        for kind in ("data-confidence", "market-snapshot", "watchlist-relevance"):
+            marker_id = f"{segment}.visual.{kind}"
+            assert f"<!-- investo:block visual:{marker_id} -->" in body
+            assert f"<!-- /investo:block visual:{marker_id} -->" in body
         # (2) SVG assets + manifests land beside the markdown.
         assets_dir = markdown_path.with_suffix(".assets")
         for kind in ("data-confidence", "market-snapshot", "watchlist-relevance"):
@@ -778,6 +783,31 @@ async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_sv
     assert any(arg.endswith(".svg.json") for arg in add_call), (
         f"expected at least one SVG manifest in git add; got {add_call!r}"
     )
+
+
+def test_chart_injection_routes_through_typed_pre_finalization_marker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    block = '\n<div class="investo-chart-block">chart</div>\n'
+    monkeypatch.setattr(
+        pipeline_module,
+        "build_chart_artifacts",
+        lambda *args, **kwargs: ChartArtifacts(block=block, sidecars=()),
+    )
+    briefings = {US_EQUITY: _briefing(segment=US_EQUITY)}
+
+    rewritten, sidecars = pipeline_module._inject_chart_blocks_into_segments(
+        briefings,
+        target_date=_TARGET,
+        anchors_by_segment={US_EQUITY: (object(),)},  # type: ignore[dict-item]
+        history_by_ticker={"AAPL": (object(),)},  # type: ignore[dict-item]
+    )
+
+    marker_id = f"{US_EQUITY}.chart.market"
+    markdown = rewritten[US_EQUITY].rendered_markdown
+    assert f"<!-- investo:block chart:{marker_id} -->" in markdown
+    assert f"<!-- /investo:block chart:{marker_id} -->" in markdown
+    assert sidecars == ()
 
 
 @pytest.mark.asyncio

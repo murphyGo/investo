@@ -15,6 +15,8 @@ from investo.models import Briefing, NormalizedItem
 from investo.visuals import assets as assets_module
 from investo.visuals.assets import (
     VisualAssetError,
+    build_visual_markdown_blocks,
+    insert_prebuilt_visual_blocks,
     insert_visual_links,
     prepare_segment_visual_assets,
     validate_visual_asset,
@@ -129,6 +131,29 @@ def test_insert_visual_links_same_anchor_cards_keep_iteration_order() -> None:
     # Idempotent second pass.
     assert (
         insert_visual_links(result, markdown_path=markdown_path, asset_paths=asset_paths) == result
+    )
+
+
+def test_prebuilt_visual_blocks_preserve_legacy_placement_bytes() -> None:
+    markdown_path = Path("archive/us-equity/2026/05/2026-05-07.md")
+    assets_dir = Path("archive/us-equity/2026/05/2026-05-07.assets")
+    asset_paths = (
+        assets_dir / "ai-market-hero.png",
+        assets_dir / "data-confidence.svg",
+        assets_dir / "market-snapshot.svg",
+    )
+    blocks = build_visual_markdown_blocks(
+        markdown_path=markdown_path,
+        asset_paths=asset_paths,
+    )
+
+    assert insert_prebuilt_visual_blocks(
+        _briefing().rendered_markdown,
+        blocks=blocks,
+    ) == insert_visual_links(
+        _briefing().rendered_markdown,
+        markdown_path=markdown_path,
+        asset_paths=asset_paths,
     )
 
 

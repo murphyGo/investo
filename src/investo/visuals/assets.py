@@ -115,11 +115,26 @@ class VisualAssetError(ValueError):
 
 
 @dataclass(frozen=True, slots=True)
+class VisualMarkdownBlock:
+    """One rendered visual block plus its explicit placement key."""
+
+    placement_key: str
+    markdown: str
+
+    def __post_init__(self) -> None:
+        if self.placement_key not in _CARD_LABELS:
+            raise ValueError("placement_key must be a known visual card kind")
+        if not self.markdown.strip():
+            raise ValueError("visual markdown must not be blank")
+
+
+@dataclass(frozen=True, slots=True)
 class PreparedVisualAssets:
     """A briefing with visual links plus the generated asset paths."""
 
     briefing: Briefing
     asset_paths: tuple[Path, ...]
+    markdown_blocks: tuple[VisualMarkdownBlock, ...] = ()
 
 
 def prepare_segment_visual_assets(
@@ -196,14 +211,34 @@ def prepare_segment_visual_assets(
         validate_visual_asset(path)
         asset_paths.append(path)
 
-    rendered_markdown = insert_visual_links(
-        briefing.rendered_markdown,
+    markdown_blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,
         asset_paths=tuple(asset_paths),
+    )
+    rendered_markdown = insert_prebuilt_visual_blocks(
+        briefing.rendered_markdown,
+        blocks=markdown_blocks,
     )
     return PreparedVisualAssets(
         briefing=briefing.model_copy(update={"rendered_markdown": rendered_markdown}),
         asset_paths=tuple(asset_paths),
+        markdown_blocks=markdown_blocks,
+    )
+
+
+def build_visual_markdown_blocks(
+    *,
+    markdown_path: Path,
+    asset_paths: tuple[Path, ...],
+) -> tuple[VisualMarkdownBlock, ...]:
+    """Render visual Markdown once, keeping placement metadata explicit."""
+
+    return tuple(
+        VisualMarkdownBlock(
+            placement_key=path.stem,
+            markdown=_visual_block(path, markdown_path=markdown_path),
+        )
+        for path in asset_paths
     )
 
 
@@ -233,26 +268,39 @@ def insert_visual_links(
     the upstream build order is the deliberate reader-facing priority
     (DEBT-040; pre-fix the stacked same-point inserts inverted it).
     """
-    if not asset_paths:
+    blocks = build_visual_markdown_blocks(
+        markdown_path=markdown_path,
+        asset_paths=asset_paths,
+    )
+    return insert_prebuilt_visual_blocks(markdown, blocks=blocks)
+
+
+def insert_prebuilt_visual_blocks(
+    markdown: str,
+    *,
+    blocks: tuple[VisualMarkdownBlock, ...],
+) -> str:
+    """Place pre-rendered visual blocks without reading asset files."""
+
+    if not blocks:
         return markdown
-    blocks = tuple(_visual_block(path, markdown_path=markdown_path) for path in asset_paths)
     # Idempotency: if every block is already present, do nothing.
-    if all(block in markdown for block in blocks):
+    if all(block.markdown in markdown for block in blocks):
         return markdown
 
-    hero_index = _select_hero_index(asset_paths)
+    hero_index = _select_hero_key_index(tuple(block.placement_key for block in blocks))
     lines = markdown.splitlines()
     # Track inserts in source-line coordinates (we mutate as we go).
     # Insert non-hero cards *first* (later positions first), so the
     # earlier hero insert does not shift their resolved positions.
     non_hero_inserts: list[tuple[int, int, str]] = []
-    for index, path in enumerate(asset_paths):
+    for index, visual_block in enumerate(blocks):
         if index == hero_index:
             continue
-        block = blocks[index]
+        block = visual_block.markdown
         if block in markdown:
             continue
-        anchor_line = _find_section_anchor(lines, path.stem)
+        anchor_line = _find_section_anchor(lines, visual_block.placement_key)
         if anchor_line is None:
             # No matching H2 — fall back to immediately after the H1.
             anchor_line = 0
@@ -270,7 +318,7 @@ def insert_visual_links(
         lines[insert_at:insert_at] = ["", block, ""]
 
     # Now insert the hero block before the reader-status / summary block.
-    hero_block = blocks[hero_index]
+    hero_block = blocks[hero_index].markdown
     if hero_block not in "\n".join(lines):
         hero_anchor = next(
             (
@@ -317,9 +365,14 @@ def validate_visual_binary(path: Path) -> None:
 
 def _select_hero_index(asset_paths: tuple[Path, ...]) -> int:
     """Pick the single hero card index by priority, with a deterministic fallback."""
+    return _select_hero_key_index(tuple(path.stem for path in asset_paths))
+
+
+def _select_hero_key_index(placement_keys: tuple[str, ...]) -> int:
+    """Pick the hero from explicit placement keys, without opening assets."""
+
     by_kind: dict[str, int] = {}
-    for index, path in enumerate(asset_paths):
-        kind = path.stem
+    for index, kind in enumerate(placement_keys):
         if kind in _HERO_CARD_KINDS and kind not in by_kind:
             by_kind[kind] = index
     for kind in _HERO_PRIORITY:
@@ -806,6 +859,9 @@ def _write_binary(path: Path, content: bytes) -> None:
 __all__ = [
     "PreparedVisualAssets",
     "VisualAssetError",
+    "VisualMarkdownBlock",
+    "build_visual_markdown_blocks",
+    "insert_prebuilt_visual_blocks",
     "insert_visual_links",
     "prepare_segment_visual_assets",
     "read_image_dimensions",

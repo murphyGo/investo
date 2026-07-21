@@ -174,6 +174,16 @@
 **Scope**: No blocker was weakened and no sealed production switch occurred. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 2 checklist 3 — route visual/chart/carryover Markdown through explicit supplements or one pre-finalizer adapter.
 
+## Construction — u144 Code Generation Step 2.3 pre-finalization supplements landed
+
+**Timestamp**: 2026-07-21T15:38:28+09:00
+**Action**: Routed the production visual, chart, and carryover Markdown producers through one publisher-owned pre-finalization adapter using typed `PublicDocumentSupplement` values and canonical `investo:block` marker pairs.
+**Compatibility boundary**: Existing kind-specific placement remains canonical. Visuals expose pre-rendered blocks plus explicit placement keys without publisher imports; chart/carryover retain their existing injectors. The adapter alone replaces `Briefing.rendered_markdown`, while current asset/sidecar destination I/O remains unchanged until Step 2.4.
+**Fresh-eyes corrections**: Review found typed carryover markers conflicted with the legacy H2 replacement regex on changed/empty same-day inputs, then found exact-idempotent early return could hide duplicate/orphan markers. The final adapter validates each owned region before returning, requires zero markers or exactly one balanced pair, removes that whole pair before replacement/omission, and fails duplicate/extra opening/closing markers closed.
+**Validation**: Scoped Ruff/format and source mypy passed; 7 transition/malformed focused tests and 1,224 publisher/visual/orchestrator/integration tests passed. Fresh-eyes final re-review independently reproduced changed, empty, orphan, and duplicate cases and approved with no remaining defects.
+**Scope**: No staging-root, artifact promotion, sealed-writer switch, or terminal finalizer was introduced. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 2 checklist 4 — move file-producing supplements to a run-owned staging root and return full typed `StagedArtifact` descriptors through the E1→E5→E6 promotion chain.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

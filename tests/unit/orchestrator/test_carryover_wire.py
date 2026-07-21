@@ -207,5 +207,78 @@ def test_inject_carryover_into_segments_populated_bundle_injects_block(
     section_two_idx = markdown.find("## ② 전일 핵심 이슈")
     section_three_idx = markdown.find("## ③ 섹터/수급 동향")
     assert -1 < section_two_idx < block_idx < section_three_idx
+    marker_id = f"{US_EQUITY}.carryover.watchlist"
+    assert f"<!-- investo:block carryover:{marker_id} -->" in markdown
+    assert f"<!-- /investo:block carryover:{marker_id} -->" in markdown
     # Disclaimer preserved (not touched by injection).
     assert DISCLAIMER.strip() in markdown
+
+
+def test_carryover_transition_to_empty_removes_complete_typed_marker_pair() -> None:
+    today = date(2026, 5, 8)
+    populated = BriefingCarryover(
+        prior_resolved=(
+            CarryoverItem(
+                event_type="earnings",
+                ticker_or_topic="ARM",
+                originated_date=date(2026, 5, 6),
+                expected_date=date(2026, 5, 7),
+                status="resolved",
+                note=None,
+            ),
+        ),
+        prior_unresolved=(),
+        lookback_days=1,
+    )
+    empty = BriefingCarryover(prior_resolved=(), prior_unresolved=(), lookback_days=0)
+    once = _inject_carryover_into_segments(
+        {US_EQUITY: _stub_briefing(today)},
+        carryover_by_segment={US_EQUITY: populated},
+    )
+
+    cleaned = _inject_carryover_into_segments(
+        once,
+        carryover_by_segment={US_EQUITY: empty},
+    )[US_EQUITY].rendered_markdown
+
+    marker_id = f"{US_EQUITY}.carryover.watchlist"
+    assert f"investo:block carryover:{marker_id}" not in cleaned
+    assert f"/investo:block carryover:{marker_id}" not in cleaned
+    assert CARRYOVER_BLOCK_HEADING not in cleaned
+
+
+def test_carryover_changed_content_replaces_one_balanced_typed_region() -> None:
+    today = date(2026, 5, 8)
+
+    def bundle(topic: str) -> BriefingCarryover:
+        return BriefingCarryover(
+            prior_resolved=(
+                CarryoverItem(
+                    event_type="earnings",
+                    ticker_or_topic=topic,
+                    originated_date=date(2026, 5, 6),
+                    expected_date=date(2026, 5, 7),
+                    status="resolved",
+                    note=None,
+                ),
+            ),
+            prior_unresolved=(),
+            lookback_days=1,
+        )
+
+    first = _inject_carryover_into_segments(
+        {US_EQUITY: _stub_briefing(today)},
+        carryover_by_segment={US_EQUITY: bundle("ARM")},
+    )
+    changed = _inject_carryover_into_segments(
+        first,
+        carryover_by_segment={US_EQUITY: bundle("NVDA")},
+    )[US_EQUITY].rendered_markdown
+
+    marker_id = f"{US_EQUITY}.carryover.watchlist"
+    opening = f"<!-- investo:block carryover:{marker_id} -->"
+    closing = f"<!-- /investo:block carryover:{marker_id} -->"
+    assert changed.count(opening) == 1
+    assert changed.count(closing) == 1
+    assert "| ARM |" not in changed
+    assert "| NVDA |" in changed

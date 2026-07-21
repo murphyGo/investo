@@ -39,6 +39,7 @@ from investo.publisher.public_document import (
     SegmentFinalizationOutcome,
     SegmentInputAbsence,
     StagedArtifact,
+    _apply_pre_finalization_supplements,
     _build_finalized_bundle,
     _FinalizationPhaseHandlers,
     _finalize_bundle_skeleton,
@@ -1002,6 +1003,83 @@ def test_marker_pairing_and_carryover_heading_fail_closed() -> None:
         PublicDocumentLayout.reindex(
             _canonical_region_markdown(supplements=(bad_carryover,)),
             expectation=_region_expectation(supplement_ids=("carry",)),
+        )
+
+
+def test_pre_finalization_supplement_adapter_wraps_once_and_is_idempotent() -> None:
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    supplement = PublicDocumentSupplement(
+        supplement_id="domestic-equity.visual.hero",
+        kind="visual",
+        markdown="![시장 카드](hero.svg)",
+        stable_order=1,
+    )
+    calls: list[tuple[str, ...]] = []
+
+    def place(markdown: str, blocks: tuple[str, ...]) -> str:
+        calls.append(blocks)
+        return f"{markdown}\n{blocks[0]}\n"
+
+    once = _apply_pre_finalization_supplements(
+        briefing,
+        supplements=(supplement,),
+        place=place,
+    )
+    twice = _apply_pre_finalization_supplements(
+        once,
+        supplements=(supplement,),
+        place=place,
+    )
+
+    marker = _render_supplement_block(supplement)
+    assert marker in once.rendered_markdown
+    assert twice is once
+    assert calls == [(marker,)]
+
+
+def test_pre_finalization_supplement_adapter_keeps_empty_cleanup_branch() -> None:
+    briefing = build_briefing(target_date=_TARGET_DATE)
+
+    cleaned = _apply_pre_finalization_supplements(
+        briefing,
+        supplements=(),
+        place=lambda markdown, blocks: (
+            markdown.replace("요약", "정리", 1) if not blocks else markdown
+        ),
+    )
+
+    assert cleaned.rendered_markdown != briefing.rendered_markdown
+
+
+@pytest.mark.parametrize("malformation", ("extra_open", "extra_close", "duplicate"))
+def test_pre_finalization_adapter_rejects_duplicate_or_orphan_owned_markers(
+    malformation: str,
+) -> None:
+    supplement = PublicDocumentSupplement(
+        supplement_id="domestic-equity.carryover.watchlist",
+        kind="carryover",
+        markdown="## Watchlist Carryover\n\n| 항목 | 상태 |\n|---|---|\n| CPI | 확인 |",
+        stable_order=1,
+    )
+    marker = _render_supplement_block(supplement)
+    opening = "<!-- investo:block carryover:domestic-equity.carryover.watchlist -->"
+    closing = "<!-- /investo:block carryover:domestic-equity.carryover.watchlist -->"
+    malformed = {
+        "extra_open": f"{opening}\n{marker}",
+        "extra_close": f"{marker}\n{closing}",
+        "duplicate": f"{marker}\n{marker}",
+    }[malformation]
+    source = build_briefing(target_date=_TARGET_DATE)
+    briefing = source.model_copy(
+        update={"rendered_markdown": f"{source.rendered_markdown}\n{malformed}\n"}
+    )
+
+    with pytest.raises(ValueError, match="one balanced pair"):
+        _apply_pre_finalization_supplements(
+            briefing,
+            supplements=(supplement,),
+            place=lambda markdown, blocks: markdown,
+            owned_regions=((supplement.kind, supplement.supplement_id),),
         )
 
 
