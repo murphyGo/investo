@@ -287,7 +287,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 
 - [x] Enumerate every production `rendered_markdown` mutation and its call order. The baseline list must include `visuals/assets.py`, chart/carryover injection, `segment_reader_format.py`, `_rewrite_segment_nav_for_published_segments`, canonical/short disclaimer, summary repair, and body-used rendering. Baseline: `aidlc-docs/construction/u144-public-document-finalization-contract/code/mutation-graph-baseline.md`.
 - [x] Add redacted fixtures for run `29707052598` (`데이터 부족` reintroduction), the first-viewport truncation family, and the body-evidence projection mismatch. Fixtures: `tests/fixtures/u144/`.
-- [ ] Pin the pre-u144 failure behavior in characterization tests before changing it.
+- [x] Pin the pre-u144 failure behavior in characterization tests before changing it. Tests: `tests/unit/publisher/test_public_document_incident_characterization_u144.py`.
 - [ ] Freeze the existing u63/u94 content-partial behavior and notifier-only partial behavior as separate fixtures before changing exit signaling.
 - [ ] Enumerate every current `SurfaceQualityIssue.code` and land the exhaustive issue-code × owned-block disposition table from FD; a newly added code must fail the exhaustiveness test.
 - [ ] Record the exact list of planned u130/u131/u133/u134/u135 hooks that need rebasing if they land concurrently.
