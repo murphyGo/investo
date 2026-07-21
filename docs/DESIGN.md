@@ -133,8 +133,11 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 ### TD-010: 공개 문서 단일 finalization/seal 경계 (u144)
 
 **Choice**: 기본 segmented production은 `publisher.public_document.finalize_public_bundle()`를 정확히 한 번 호출한다. 모든 Markdown producer와 deterministic repair는 E2 이전에 끝나며, terminal gate는 read-only다. 유효 문서는 `FinalizedPublicDocument` E5로 SHA-256 봉인되고 archive/index/OG/evidence/quality/replay/notifier consumer는 봉인된 bytes/DTO만 본다.
+**Lifecycle order**: generated draft → phase-one assembly(요약/nav/body evidence/watchpoint/visual·chart·carryover supplement) → 단일 public projection → owned-region repair/replacement/omission → numeric/entity/compliance/structure/disclaimer/notification-summary read-only validation → E5 seal → E6 staged-artifact promotion/write/git. Seal 이후 `rendered_markdown` mutation은 architecture guard가 차단한다.
 **Containment**: optional presentation defect는 region fallback/omission으로 격리하고 세그먼트를 제거하지 않는다. 실제 신뢰 위반만 `trust_blocked`; generation absence는 `generation_absent`다. survivor 변경 시 active `BundleContext`를 재계산하는 최대 3-pass fixed point를 사용한다.
 **Artifact transaction**: 선택된 staged artifact만 E5 ID와 E6 promotion manifest를 거쳐 공개 위치로 승격된다. git 전 I/O 실패는 기존 byte snapshot으로 rollback하고, commit/push 이후는 기존 `PublisherGitError` 복구 계약을 따른다.
+**Result/notification contract**: `PipelineResult`의 `content_completeness`와 ordered segment outcomes가 exit 0/1/2 및 Pages sequencing의 근거다. notifier는 terminal layout과 E1 coverage에서 파생된 `PublicNotificationSummary`만 소비하며 generated `Briefing.market_summary` fallback은 없다.
+**Boundary owner**: numeric verification과 source-outcome scoping처럼 publisher와 briefing이 함께 필요한 순수 로직은 `_internal` neutral owner가 소유한다. publisher→briefing/orchestrator 직접 import는 u114 AST test가 차단한다.
 
 ---
 
@@ -173,7 +176,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 - 4 working unit (sources / briefing / publisher / notifier)은 서로 import 금지
 - `orchestrator`만 위 4개를 호출
 - `models`는 모두에 의존되는 leaf
-- 강제 방식: Convention only (코드리뷰 + 디렉토리 구조)
+- 강제 방식: u114 AST import-boundary tests + 코드리뷰 + 디렉토리 구조. 공유 순수 로직/타입은 `models` 또는 `_internal` neutral owner에 둔다.
 
 ---
 

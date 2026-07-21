@@ -5481,3 +5481,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Focused 677 passed; full pytest 4,062 passed; import-boundary 13 passed; Ruff, format, mypy (246 files), no-paid, strict MkDocs, and diff check passed. The 200/100 KiB median ratio was 1.919 and peak RSS delta was 7.13 MiB, both below closeout limits.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-full-quality-gates.md`.
 **Status**: Step 6 checklist complete 9/9. Next: Step 7 production closeout.
+
+## Construction — u144 Step 7.1 summary and final design boundary
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Wrote the implementation summary and aligned `docs/DESIGN.md` with the landed generated-to-sealed lifecycle, terminal notifier/result contract, staged E6 transaction, and neutral-owner import enforcement.
+**Decisions**: The developer summary groups the per-step commit wave and keeps production evidence explicitly pending. DESIGN now names the exact lifecycle order and u114 AST enforcement rather than describing component boundaries as convention-only.
+**Validation**: Documentation diff check passed; the recorded implementation/gate values match Step 6.9 evidence.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/summary.md`.
+**Status**: Step 7 checklist 1/4 complete. Next: confirm the bounded implementation commit/push handoff.
