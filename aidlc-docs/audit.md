@@ -100,6 +100,15 @@
 **Scope**: Documentation/baseline only. None of the five planned units or any production path was implemented or switched; unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 1 checklist 1 — add the publisher-owned lifecycle types, inputs/outcomes, errors, and seal factory.
 
+## Construction — u144 Code Generation Step 1.1 lifecycle types and seal factory landed
+
+**Timestamp**: 2026-07-21T03:25:00Z
+**Action**: Added the immutable publisher-owned E1-E8 construction values and pure module-private E5 seal factory.
+**Evidence**: E1 freezes and validates all explicit context/supplement/artifact inputs, including defensive snapshots of nested model mappings; E2 is transition-only and E5 requires its private terminal-validation witness before hashing the exact final compatibility Markdown; E6 is factory-only and derives exact E1 staged-artifact descriptors; E8 retains causes without rendering them.
+**Validation**: Scoped Ruff/format and publisher-package strict mypy passed; all 544 publisher unit tests passed; `git diff --check` passed.
+**Scope**: Types and pure construction only. The minimal notification DTO shell is an E5 dependency; its validation/export plus typed watchpoint result remain Step 1.4. No finalizer/writer/production path switched, and unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 1 checklist 2 — add pure bundle/segment finalization skeletons with explicit phase assertions.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

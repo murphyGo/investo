@@ -66,6 +66,10 @@ from investo.publisher.errors import (
 )
 from investo.publisher.git_ops import GitRunner, commit_and_push
 from investo.publisher.paths import ARCHIVE_ROOT, archive_path
+from investo.publisher.public_document import (
+    FinalizedPublicBundle,
+    FinalizedPublicDocument,
+)
 from investo.publisher.verifier import (
     verify_disclaimer,
     verify_short_disclaimer_first_viewport,
@@ -87,6 +91,8 @@ __all__ = [
     "ComplianceLanguageError",
     "ComplianceReport",
     "DailyThesisConsistencyError",
+    "FinalizedPublicBundle",
+    "FinalizedPublicDocument",
     "GitRunner",
     "PublisherDisclaimerError",
     "PublisherError",
