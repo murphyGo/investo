@@ -45,6 +45,7 @@ from investo.publisher.public_document import (
     _apply_pre_finalization_supplements,
     _assemble_phase_one_presentation_briefing,
     _build_finalized_bundle,
+    _derive_public_notification_summary,
     _FinalizationPhaseHandlers,
     _finalize_bundle_skeleton,
     _finalize_segment_skeleton,
@@ -54,6 +55,7 @@ from investo.publisher.public_document import (
     _SegmentTrustBlockedError,
     _select_surviving_supplement_artifact_ids,
     _transition_draft,
+    _validate_repaired_draft,
 )
 from investo.publisher.watchpoint_matrix import WatchpointRenderResult
 from tests._helpers.briefings import build_briefing
@@ -709,6 +711,65 @@ def test_notification_summary_error_is_bounded_and_carries_only_issue_code() -> 
 
     with pytest.raises(ValueError, match="unsupported public notification summary issue code"):
         PublicNotificationSummaryError("secret=value")  # type: ignore[arg-type]
+
+
+def test_terminal_validation_converts_missing_conclusion_to_trust_block(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.publisher import public_document as public_document_module
+
+    source = build_briefing(target_date=_TARGET_DATE)
+    generated = _draft_factory(source, DOMESTIC_EQUITY, _context())
+    assembled = _transition_draft(generated, next_phase="assembled")
+    projected = _transition_draft(assembled, next_phase="projected")
+    repaired = _transition_draft(projected, next_phase="repaired")
+    monkeypatch.setattr(public_document_module, "_scan_terminal_anchor_assertions", lambda *_: ())
+    monkeypatch.setattr(public_document_module, "_scan_terminal_entity_fact_claims", lambda *_: ())
+    monkeypatch.setattr(public_document_module, "_scan_terminal_compliance", lambda *_: None)
+    monkeypatch.setattr(public_document_module, "_find_owned_surface_quality_issues", lambda *_: ())
+    monkeypatch.setattr(public_document_module, "validate_first_viewport_summary", lambda *_: None)
+    monkeypatch.setattr(public_document_module, "verify_disclaimer", lambda *_: True)
+    monkeypatch.setattr(
+        public_document_module,
+        "verify_short_disclaimer_first_viewport",
+        lambda *_: True,
+    )
+
+    with pytest.raises(_SegmentTrustBlockedError) as exc:
+        _validate_repaired_draft(repaired, _context())
+
+    assert exc.value.phase == "validated"
+    assert exc.value.issue_codes == ("summary.missing_conclusion",)
+
+
+def test_terminal_notification_summary_never_reads_unsafe_generated_market_summary() -> None:
+    unsafe = "[데이터부족] unsafe generated fallback"
+    markdown = (
+        "> **오늘의 결론**: 봉인된 공개 결론입니다.\n"
+        "> **내 관심 자산 영향**: 1건 확인 — NVDA: 실적을 확인합니다.\n"
+    )
+    source = build_briefing(target_date=_TARGET_DATE).model_copy(
+        update={
+            "market_summary": unsafe,
+            "rendered_markdown": markdown,
+        }
+    )
+    draft = _new_generated_draft(
+        source,
+        segment=DOMESTIC_EQUITY,
+        layout=PublicDocumentLayout(
+            markdown=markdown,
+            regions=(),
+            expectation=_expectation(),
+        ),
+    )
+
+    summary = _derive_public_notification_summary(draft, _context())
+
+    assert draft.source_briefing.market_summary == unsafe
+    assert summary.conclusion == "봉인된 공개 결론입니다."
+    assert summary.watchlist == "1건 확인 — NVDA: 실적을 확인합니다."
+    assert unsafe not in repr(summary)
 
 
 def test_segment_skeleton_runs_declared_phase_order_and_seals() -> None:

@@ -5441,3 +5441,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Lifecycle and neutral-owner tests 47 passed; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-active-survivor-thesis.md`.
 **Status**: Step 6 checklist 4/9 complete. Next: watchpoint and notifier invariants.
+
+## Construction — u144 Step 6.5 watchpoint and notifier invariants
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Completed the typed watchpoint/notifier boundary matrix, including direct failed-coverage collapse, typed watchlist decoration, missing-conclusion trust blocking, and generated-summary isolation.
+**Decisions**: Existing watchpoint state/count/reason and notifier identity tests remain authoritative. New notifier cases bypass the legacy Briefing adapter and call the DTO-only formatter; terminal summary derivation is tested with an unsafe private `market_summary` and safe final-layout fields.
+**Validation**: Watchpoint, public-document, and notifier summary tests 143 passed; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-watchpoint-notifier-invariants.md`.
+**Status**: Step 6 checklist 5/9 complete. Next: exhaustive region-table contracts.

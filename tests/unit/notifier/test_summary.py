@@ -338,6 +338,54 @@ def test_build_segmented_summary_rejects_mixed_dto_dates() -> None:
         _build_segmented_summary_from_dtos(summaries, site_urls=_SEGMENT_URLS)
 
 
+def test_typed_failed_coverage_dto_collapses_without_rendering_conclusion() -> None:
+    dto = PublicNotificationSummary(
+        segment=DOMESTIC_EQUITY,
+        target_date=_TARGET_DATE,
+        conclusion="이 결론은 실패 상태에서 표시되면 안 됩니다.",
+        coverage_status="failed",
+        coverage_label="실패",
+    )
+
+    rendered = _build_segmented_summary_from_dtos(
+        {DOMESTIC_EQUITY: dto},
+        site_urls=_SEGMENT_URLS,
+        now_utc=datetime(2026, 4, 25, tzinfo=UTC),
+    )
+
+    assert f"🇰🇷 *국내 증시* [실패] · [상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})" in rendered
+    assert dto.conclusion not in rendered
+
+
+def test_sealed_watchlist_dto_is_decorated_from_typed_price_items() -> None:
+    dto = PublicNotificationSummary(
+        segment=US_EQUITY,
+        target_date=_TARGET_DATE,
+        conclusion="반도체 실적을 확인합니다.",
+        coverage_status="normal",
+        coverage_label="정상",
+        watchlist="NVDA: 실적 발표 뒤 강세",
+    )
+    price = _price_item(
+        source_name="yfinance-price",
+        title="NVDA 121.20 (+1.20%)",
+        raw_metadata={
+            "ticker": "NVDA",
+            "close": "121.2",
+            "prev_close": "119.767",
+        },
+    )
+
+    rendered = _build_segmented_summary_from_dtos(
+        {US_EQUITY: dto},
+        site_urls=_SEGMENT_URLS,
+        price_items=(price,),
+        now_utc=datetime(2026, 4, 25, tzinfo=UTC),
+    )
+
+    assert "관심: NVDA(+1.2%): 실적 발표 뒤 강세" in rendered
+
+
 def test_build_segmented_summary_marks_missing_segments_on_partial_publish() -> None:
     briefings = {
         DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),
