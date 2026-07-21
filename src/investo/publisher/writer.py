@@ -30,14 +30,98 @@ from __future__ import annotations
 
 import contextlib
 from datetime import date
+from hashlib import sha256
 from pathlib import Path
 
 from investo._internal._io import write_atomic
 from investo.models import Briefing
-from investo.models.segments import MarketSegment
+from investo.models.segments import SEGMENT_LABELS, MarketSegment
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
 from investo.publisher.paths import archive_path
-from investo.publisher.verifier import verify_disclaimer
+from investo.publisher.public_document import FinalizedPublicDocument
+from investo.publisher.verifier import (
+    verify_disclaimer,
+    verify_short_disclaimer_first_viewport,
+)
+
+
+def _raise_seal_mismatch(
+    document: FinalizedPublicDocument,
+    *,
+    issue_code: str,
+    path_segment: MarketSegment | None,
+) -> None:
+    """Raise a bounded pre-I/O integrity error for a sealed document."""
+
+    path = archive_path(document.target_date, segment=path_segment)
+    cause = OSError(f"sealed document rejected: {issue_code}")
+    raise PublisherIOError(
+        target_date=document.target_date,
+        path=path,
+        cause=cause,
+    ) from cause
+
+
+def write_finalized_document(document: FinalizedPublicDocument) -> Path:
+    """Verify an E5 seal and atomically write its exact Markdown bytes.
+
+    Identity, digest, path, and both disclaimer invariants are checked before
+    :func:`write_atomic` can create a directory or temporary file. The default
+    segmented production caller switches to this API in u144 Step 5; this step
+    only establishes the sealed boundary.
+    """
+
+    if type(document) is not FinalizedPublicDocument:
+        raise TypeError("write_finalized_document requires FinalizedPublicDocument")
+    if document.segment not in SEGMENT_LABELS:
+        _raise_seal_mismatch(
+            document,
+            issue_code="seal.invalid_segment",
+            path_segment=None,
+        )
+    notification = document.notification_summary
+    if (
+        document.briefing.target_date != document.target_date
+        or notification.target_date != document.target_date
+    ):
+        _raise_seal_mismatch(
+            document,
+            issue_code="seal.date_mismatch",
+            path_segment=document.segment,
+        )
+    if notification.segment != document.segment:
+        _raise_seal_mismatch(
+            document,
+            issue_code="seal.segment_mismatch",
+            path_segment=document.segment,
+        )
+
+    markdown = document.briefing.rendered_markdown
+    digest = sha256(markdown.encode("utf-8")).hexdigest()
+    if digest != document.markdown_sha256:
+        _raise_seal_mismatch(
+            document,
+            issue_code="seal.digest_mismatch",
+            path_segment=document.segment,
+        )
+
+    path = archive_path(document.target_date, segment=document.segment)
+    if not verify_disclaimer(
+        markdown, document.segment
+    ) or not verify_short_disclaimer_first_viewport(markdown, document.segment):
+        raise PublisherDisclaimerError(target_date=document.target_date)
+
+    try:
+        write_atomic(path, markdown)
+    except OSError as exc:
+        with contextlib.suppress(OSError):
+            path.with_suffix(path.suffix + ".tmp").unlink(missing_ok=True)
+        raise PublisherIOError(
+            target_date=document.target_date,
+            path=path,
+            cause=exc,
+        ) from exc
+    return path
 
 
 def write_briefing(
@@ -78,4 +162,4 @@ def write_briefing(
     return path
 
 
-__all__ = ["write_briefing"]
+__all__ = ["write_briefing", "write_finalized_document"]

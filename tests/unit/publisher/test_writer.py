@@ -15,14 +15,20 @@ Covered behaviors:
 
 from __future__ import annotations
 
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
 
+import investo.publisher as publisher_package
 from investo.briefing.segments import DOMESTIC_EQUITY
+from investo.models.public_notification import PublicNotificationSummary
+from investo.models.segments import US_EQUITY
+from investo.publisher import FinalizedPublicDocument
 from investo.publisher import paths as paths_module
 from investo.publisher.errors import PublisherDisclaimerError, PublisherIOError
-from investo.publisher.writer import write_briefing
+from investo.publisher.verifier import SHORT_DISCLAIMER_EQUITY
+from investo.publisher.writer import write_briefing, write_finalized_document
 from tests._helpers.briefings import DEFAULT_TARGET_DATE, build_briefing
 
 # ---------------------------------------------------------------------------
@@ -30,6 +36,32 @@ from tests._helpers.briefings import DEFAULT_TARGET_DATE, build_briefing
 # ---------------------------------------------------------------------------
 
 _TARGET_DATE = DEFAULT_TARGET_DATE
+
+
+def _sealed_document() -> FinalizedPublicDocument:
+    briefing = build_briefing()
+    markdown = f"{SHORT_DISCLAIMER_EQUITY}\n\n{briefing.rendered_markdown}"
+    final_briefing = briefing.model_copy(update={"rendered_markdown": markdown})
+    document = object.__new__(FinalizedPublicDocument)
+    object.__setattr__(document, "segment", DOMESTIC_EQUITY)
+    object.__setattr__(document, "target_date", _TARGET_DATE)
+    object.__setattr__(document, "briefing", final_briefing)
+    object.__setattr__(document, "markdown_sha256", sha256(markdown.encode()).hexdigest())
+    object.__setattr__(document, "staged_artifact_ids", ())
+    object.__setattr__(
+        document,
+        "notification_summary",
+        PublicNotificationSummary(
+            segment=DOMESTIC_EQUITY,
+            target_date=_TARGET_DATE,
+            conclusion="[관망] 확인된 결론",
+            coverage_status="normal",
+            coverage_label="정상",
+        ),
+    )
+    object.__setattr__(document, "block_outcomes", ())
+    object.__setattr__(document, "warnings", ())
+    return document
 
 
 @pytest.fixture
@@ -70,6 +102,105 @@ def test_write_briefing_writes_segmented_archive_path(archive_root: Path) -> Non
     assert written_path == expected
     assert written_path.exists()
     assert written_path.read_text(encoding="utf-8") == briefing.rendered_markdown
+
+
+def test_write_finalized_document_writes_exact_sealed_bytes(archive_root: Path) -> None:
+    document = _sealed_document()
+
+    written_path = write_finalized_document(document)
+
+    expected = archive_root / "domestic-equity" / "2026" / "04" / "2026-04-25.md"
+    assert written_path == expected
+    assert written_path.read_bytes() == document.briefing.rendered_markdown.encode("utf-8")
+
+
+def test_write_finalized_document_rejects_digest_before_io(archive_root: Path) -> None:
+    document = _sealed_document()
+    object.__setattr__(document, "markdown_sha256", "0" * 64)
+    expected = archive_root / "domestic-equity" / "2026" / "04" / "2026-04-25.md"
+
+    with pytest.raises(PublisherIOError) as exc:
+        write_finalized_document(document)
+
+    assert exc.value.path == expected
+    assert isinstance(exc.value.cause, OSError)
+    assert str(exc.value.cause) == "sealed document rejected: seal.digest_mismatch"
+    assert not archive_root.exists()
+
+
+@pytest.mark.parametrize("identity", ("briefing_date", "notification_date"))
+def test_write_finalized_document_rejects_date_mismatch_before_io(
+    archive_root: Path,
+    identity: str,
+) -> None:
+    document = _sealed_document()
+    if identity == "briefing_date":
+        object.__setattr__(
+            document,
+            "briefing",
+            document.briefing.model_copy(update={"target_date": _TARGET_DATE.replace(day=24)}),
+        )
+    else:
+        summary = document.notification_summary
+        object.__setattr__(
+            document,
+            "notification_summary",
+            PublicNotificationSummary(
+                segment=summary.segment,
+                target_date=_TARGET_DATE.replace(day=24),
+                conclusion=summary.conclusion,
+                coverage_status=summary.coverage_status,
+                coverage_label=summary.coverage_label,
+                watchlist=summary.watchlist,
+            ),
+        )
+
+    with pytest.raises(PublisherIOError) as exc:
+        write_finalized_document(document)
+
+    assert str(exc.value.cause) == "sealed document rejected: seal.date_mismatch"
+    assert not archive_root.exists()
+
+
+def test_write_finalized_document_rejects_segment_mismatch_before_io(
+    archive_root: Path,
+) -> None:
+    document = _sealed_document()
+    summary = document.notification_summary
+    object.__setattr__(
+        document,
+        "notification_summary",
+        PublicNotificationSummary(
+            segment=US_EQUITY,
+            target_date=summary.target_date,
+            conclusion=summary.conclusion,
+            coverage_status=summary.coverage_status,
+            coverage_label=summary.coverage_label,
+            watchlist=summary.watchlist,
+        ),
+    )
+
+    with pytest.raises(PublisherIOError) as exc:
+        write_finalized_document(document)
+
+    assert str(exc.value.cause) == "sealed document rejected: seal.segment_mismatch"
+    assert not archive_root.exists()
+
+
+def test_write_finalized_document_rejects_noncanonical_segment_before_path_io(
+    archive_root: Path,
+) -> None:
+    document = _sealed_document()
+    object.__setattr__(document, "segment", "../../escape")
+    object.__setattr__(document.notification_summary, "segment", "../../escape")
+
+    with pytest.raises(PublisherIOError) as exc:
+        write_finalized_document(document)
+
+    assert str(exc.value.cause) == "sealed document rejected: seal.invalid_segment"
+    assert exc.value.path == archive_root / "2026" / "04" / "2026-04-25.md"
+    assert not archive_root.exists()
+    assert not (archive_root.parent / "escape").exists()
 
 
 def test_write_briefing_creates_nested_year_month_dirs(
@@ -225,6 +356,8 @@ def test_writer_module_exports_expected_names() -> None:
     from investo.publisher import writer as writer_module
 
     assert hasattr(writer_module, "write_briefing")
+    assert hasattr(writer_module, "write_finalized_document")
+    assert publisher_package.write_finalized_document is write_finalized_document
 
 
 def test_write_briefing_uses_archive_root_at_call_time(archive_root: Path) -> None:

@@ -82,7 +82,7 @@ from investo.publisher.weekly_digest import (
     weekly_digest_opt_in,
     weekly_path,
 )
-from investo.publisher.writer import write_briefing
+from investo.publisher.writer import write_briefing, write_finalized_document
 
 __all__ = [
     "ARCHIVE_ROOT",
@@ -109,4 +109,5 @@ __all__ = [
     "weekly_digest_opt_in",
     "weekly_path",
     "write_briefing",
+    "write_finalized_document",
 ]
