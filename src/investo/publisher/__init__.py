@@ -69,6 +69,7 @@ from investo.publisher.paths import ARCHIVE_ROOT, archive_path
 from investo.publisher.public_document import (
     FinalizedPublicBundle,
     FinalizedPublicDocument,
+    finalize_public_bundle,
 )
 from investo.publisher.verifier import (
     verify_disclaimer,
@@ -101,6 +102,7 @@ __all__ = [
     "SurfaceQualityError",
     "archive_path",
     "commit_and_push",
+    "finalize_public_bundle",
     "publish_weekly_digest",
     "scan_compliance",
     "update_weekly_index",

@@ -329,7 +329,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Use existing `gate_body_assertions()` in assembly for deterministic repair and add exact read-only `scan_anchor_assertions(markdown, *, segment, available_symbols) -> tuple[AnchorAssertionFinding, ...]` for terminal validation. Keep `enforce_anchor_assertions()` only as a compatibility wrapper with zero default segmented call sites. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-4-terminal-numeric-anchor-scan.md`.
 - [x] Keep `repair_compliance_language()` in assembly and `scan_compliance()` read-only at the terminal gate; remove duplicate/interleaved reader-format ownership after characterization. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-4-compliance-repair-terminal-scan.md`.
 - [x] Register `PublicDocumentFinalizationError` in `_PUBLISH_FAILURES` and `EXCEPTION_ROUTING` with publish-stage alert/status semantics. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-4-finalization-error-routing.md`.
-- [ ] Replace the orchestrator's surface catch/drop retry with one `finalize_public_bundle` call; hard-block fixed-point and outcome creation live inside the pure finalizer.
+- [x] Replace the orchestrator's surface catch/drop retry with one `finalize_public_bundle` call; hard-block fixed-point and outcome creation live inside the pure finalizer. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-4-production-finalizer-switch.md`.
 - [ ] Preserve rollback for failures that occur later during actual I/O.
 
 ### Step 5 — Preserve partial publication and switch to sealed documents

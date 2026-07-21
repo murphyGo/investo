@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from typing import Final
 
 from investo._internal.public_quality_language import project_public_quality_language
+from investo._internal.public_summary_extract import clean_public_summary_text
 from investo.models import Briefing, NormalizedItem
 from investo.models.market_anchor import anchor_label
 
@@ -44,12 +45,6 @@ _WATCHLIST_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*내 관심 자산 영향\*\*:\s*(.+)$",
     re.MULTILINE,
 )
-_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"!?\[([^\]]*)\]\([^)]+\)")
-_MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`~]+")
-_LEADING_MARKDOWN_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:>\s*)?(?:#{1,6}\s*)?(?:(?:[-*+])|\d+[.)])\s*"
-)
-_MEANINGFUL_TEXT_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 _WATCHLIST_MATCH_TERM_RE: Final[re.Pattern[str]] = re.compile(r"([^;,]+?):\s*([^;]+)")
 
 
@@ -95,17 +90,7 @@ def clean_summary_text(text: str) -> str:
     / Hangul) content. This cleaning is intrinsic to extraction: the
     *cleaned* text is the datum a caller means by "the conclusion".
     """
-    cleaned = text.strip()
-    if not cleaned:
-        return ""
-    cleaned = _LEADING_MARKDOWN_RE.sub("", cleaned).strip()
-    cleaned = _MARKDOWN_LINK_RE.sub(r"\1", cleaned)
-    cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)
-    cleaned = " ".join(cleaned.split())
-    cleaned = project_public_quality_language(cleaned)
-    if not _MEANINGFUL_TEXT_RE.search(cleaned):
-        return ""
-    return cleaned
+    return clean_public_summary_text(text)
 
 
 def coverage_label(briefing: Briefing) -> str | None:

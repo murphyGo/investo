@@ -344,6 +344,14 @@
 **Validation**: Focused stage-protocol/lifecycle tests passed 51; the full publisher/orchestrator unit scope passed 1,061. Strict mypy, Ruff check/format, and scoped diff checks passed. Fresh-eyes review verified the catch path, exact registration, routing semantics, and import/inheritance safety with no blocker.
 **Next**: Replace the orchestrator surface catch/drop retry with one production `finalize_public_bundle()` call and add the reviewer-requested execution-level PublishStage failure-propagation test.
 
+## Construction — u144 Code Generation Step 4.8 production finalizer switch landed
+
+**Timestamp**: 2026-07-21T23:25:00+09:00
+**Action**: Removed the `GenerateStage` surface-quality catch/drop retry and switched default segmented publishing to exactly one `PublishStage.finalize_public_bundle()` call. The stage freezes E1 after generation/supplement preparation; the pure finalizer now exclusively owns active-survivor retries, terminal trust blocks, typed segment outcomes, final navigation, notification-summary derivation, and E6 sealing.
+**Compatibility and failure behavior**: The legacy direct `_stage_publish_segments` path retains its pre-seal transforms for focused compatibility callers, while production passes `phase_one_complete=True` and performs no post-E6 reader mutation. Presentation defects remain contained. Genuine trust failures publish valid siblings as typed partial results; E8 fails at the publish boundary and skips notification. The real no-title generation fixture is normalized to the exact publisher-owned H1 before layout indexing.
+**Validation**: Focused pipeline/finalizer/integration scope passed 119; full publisher/orchestrator unit scope passed 1,063; Ruff check/format and strict mypy over 243 source files passed. Architecture tests reject GenerateStage reader retry/calls and require exactly one PublishStage finalizer call. The Step 4.7 execution-level E8 propagation recommendation is covered. Fresh-eyes review approved with no Critical/High finding; its one Medium test gap was closed by a direct sealed-path regression proving both phase-one helpers stay uncalled and exact Markdown reaches `write_briefing`.
+**Next**: Step 4 checklist 9 — move all file-producing supplements to the run-owned staging root and preserve rollback for failures during promotion/write/index/quality I/O.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

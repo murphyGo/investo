@@ -232,7 +232,7 @@ def test_rendered_markdown_construction_and_mutation_sites_are_allowlisted() -> 
         (Path("briefing/pipeline.py"), "_finalize_briefing", "construction"),
         (
             _PUBLIC_DOCUMENT,
-            "_assemble_phase_one_presentation_briefings",
+            "_assemble_phase_one_presentation_briefing",
             "model_copy",
         ),
         (_PUBLIC_DOCUMENT, "_assemble_phase_one_body_evidence", "model_copy"),

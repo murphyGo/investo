@@ -10,6 +10,7 @@ CONCLUSION_PREFIX: Final[str] = "> **오늘의 결론**:"
 DRIVER_PREFIX: Final[str] = "> **핵심 동인**:"
 CAUTION_PREFIX: Final[str] = "> **주의할 점**:"
 WATERMARK_PREFIX: Final[str] = "**기준 시각**:"
+WATCHLIST_IMPACT_PREFIX: Final[str] = "> **내 관심 자산 영향**:"
 
 SUMMARY_PREFIXES: Final[tuple[str, ...]] = (
     CONCLUSION_PREFIX,
@@ -54,15 +55,23 @@ def extract_watermark(rendered_markdown: str) -> str | None:
     return _extract_first(rendered_markdown, WATERMARK_PREFIX)
 
 
+def extract_watchlist_impact(rendered_markdown: str) -> str | None:
+    """Extract the final reader-layout watchlist-impact value, if present."""
+
+    return _extract_first(rendered_markdown, WATCHLIST_IMPACT_PREFIX)
+
+
 __all__ = [
     "CAUTION_PREFIX",
     "CONCLUSION_PREFIX",
     "DRIVER_PREFIX",
     "FALLBACK_BY_PREFIX",
     "SUMMARY_PREFIXES",
+    "WATCHLIST_IMPACT_PREFIX",
     "WATERMARK_PREFIX",
     "extract_caution",
     "extract_conclusion",
     "extract_key_drivers",
+    "extract_watchlist_impact",
     "extract_watermark",
 ]

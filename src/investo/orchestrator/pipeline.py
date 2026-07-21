@@ -80,9 +80,6 @@ from typing import Any, Final, cast, overload
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo._internal.archive_layout import ArchiveLayout
-from investo._internal.daily_thesis_decision import (
-    redecide_daily_thesis_for_active_segments,
-)
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
@@ -213,15 +210,17 @@ from investo.publisher.compliance_language import (
 from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.public_document import (
+    FinalizedPublicBundle,
+    PublicDocumentContext,
     PublicDocumentFinalizationError,
     PublicDocumentSupplement,
     _apply_pre_finalization_supplements,
     _assemble_phase_one_body_evidence,
     _assemble_phase_one_presentation_briefings,
-    _scan_terminal_entity_fact_markdown,
+    finalize_public_bundle,
 )
 from investo.publisher.public_document import (
-    _assemble_phase_one_reader_briefings as _apply_reader_format_to_segments,
+    _assemble_phase_one_reader_briefings as _apply_reader_format_to_segments,  # noqa: F401
 )
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
@@ -1150,6 +1149,7 @@ async def _stage_publish_segments(
     source_outcomes: Sequence[SourceOutcome] = (),
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
     extra_commit_paths: Sequence[Path] = (),
+    phase_one_complete: bool = False,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -1179,37 +1179,35 @@ async def _stage_publish_segments(
     }
     snapshots.update({path: None for path in asset_paths})
     try:
-        briefings = _assemble_phase_one_presentation_briefings(
-            briefings,
-            target_date=target_date,
-            active_segments=published_segments,
-        )
-        for segment in published_segments:
-            segment_items_for_evidence = segment_items(items).for_segment(segment)
-            verified_report = verify_core_facts(
-                briefings[segment].rendered_markdown,
-                segment_items_for_evidence,
+        if not phase_one_complete:
+            briefings = _assemble_phase_one_presentation_briefings(
+                briefings,
+                target_date=target_date,
+                active_segments=published_segments,
             )
-            briefings[segment] = _assemble_phase_one_body_evidence(
-                briefings[segment],
-                segment=segment,
-                source_outcomes=segment_source_outcomes(segment, source_outcomes),
-                verified_facts=tuple(verified_report.verified),
-            )
-            # u85 — the per-segment publish-boundary gate trio is run
-            # through the shared validator registry (first-viewport
-            # summary → canonical disclaimer footer → first-viewport short
-            # disclaimer), preserving order, the raise-at-boundary
-            # ``SummaryQualityError`` (raised inside the summary gate), and
-            # the ``PublisherDisclaimerError`` raised here on the first
-            # blocking disclaimer result with the same log line.
-            for _gate_result in build_publish_boundary_registry(
-                markdown=briefings[segment].rendered_markdown,
-                segment=segment,
-            ).run():
-                if _gate_result.is_block:
-                    _logger.error("[publish] %s", _gate_result.message)
-                    raise PublisherDisclaimerError(target_date=target_date)
+            for segment in published_segments:
+                segment_items_for_evidence = segment_items(items).for_segment(segment)
+                verified_report = verify_core_facts(
+                    briefings[segment].rendered_markdown,
+                    segment_items_for_evidence,
+                )
+                briefings[segment] = _assemble_phase_one_body_evidence(
+                    briefings[segment],
+                    segment=segment,
+                    source_outcomes=segment_source_outcomes(segment, source_outcomes),
+                    verified_facts=tuple(verified_report.verified),
+                )
+                # Compatibility path for direct legacy callers. Production
+                # segmented runs arrive with sealed phase-one bytes.
+                for _gate_result in build_publish_boundary_registry(
+                    markdown=briefings[segment].rendered_markdown,
+                    segment=segment,
+                ).run():
+                    if _gate_result.is_block:
+                        _logger.error("[publish] %s", _gate_result.message)
+                        raise PublisherDisclaimerError(target_date=target_date)
+        elif any(briefing.target_date != target_date for briefing in briefings.values()):
+            raise ValueError("finalized briefing target_date must match publish target_date")
     except Exception:
         # Visual asset files (snapshotted with previous_bytes=None) must be
         # rolled back for every pre-write assembly failure — otherwise an
@@ -1613,7 +1611,7 @@ def _inject_chart_blocks_into_segments(
     )
 
 
-# u51 — pre-publish reader-format pass.
+# u51 legacy reader-format compatibility path.
 #
 # Two rewrites:
 #   1. Replace the deprecated ``> **시장 anchor**: ...`` blockquote line
@@ -1622,10 +1620,9 @@ def _inject_chart_blocks_into_segments(
 #      block insert / H3 promotion / number bold / glossing dedupe /
 #      action-ratio diagnostic.
 #
-# Position: invoked AFTER ``_inject_chart_blocks_into_segments`` and
-# BEFORE ``_stage_publish_segments``. The chain is a string transform
-# only — no I/O, no clock, no env reads — so a same-day re-publish
-# (FR-006) yields byte-equal output.
+# Production segmented runs now invoke the canonical owner from
+# ``finalize_public_bundle``. This alias remains only for the focused legacy
+# integration contracts while those collaborators stay independently reusable.
 #
 # ---------------------------------------------------------------------------
 # P1-2 — header-table / body / trace close reconciliation (option B).
@@ -2414,16 +2411,51 @@ class CollectStage:
         )
 
 
-class GenerateStage:
-    """u2 synthesis + (segmented) the pre-publish transform chain.
+def _build_public_document_context(
+    *,
+    target_date: date,
+    briefings: Mapping[MarketSegment, Briefing],
+    generation_failures: Mapping[MarketSegment, BriefingGenerationError],
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    items: Sequence[NormalizedItem],
+    source_outcomes: Sequence[SourceOutcome],
+    bundle_context: BundleContext | None,
+    fact_bundle: VerifiedFactBundle,
+    entity_observed_at_utc: datetime,
+) -> PublicDocumentContext:
+    """Freeze the complete E1 input consumed by the pure finalizer."""
 
-    Carries the segmented context loaders, the visual-asset preparation,
-    the deterministic carryover / anchor-reconcile / chart-block / reader-
-    format passes that ran inline between generate and publish. Routable
-    failures: ``BriefingGenerationError`` (→ generate label), and the
-    reader-format gate's ``ComplianceLanguageError`` /
-    ``NumericAnchorReconciliationError`` (→ publish label, preserving the
-    prior ``stage_timings["publish"]=0.0`` marker).
+    generated = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
+    routed = segment_items(items)
+    return PublicDocumentContext(
+        target_date=target_date,
+        expected_segments=SEGMENT_ORDER,
+        input_absences={segment: "generation_failed" for segment in generation_failures},
+        anchors_by_segment={
+            segment: tuple(anchors_by_segment.get(segment, ())) for segment in generated
+        },
+        items_by_segment={segment: routed.for_segment(segment) for segment in generated},
+        coverage_by_segment={
+            segment: routed.coverage_for_segment(
+                segment,
+                source_outcomes=source_outcomes,
+            )
+            for segment in generated
+        },
+        source_outcomes=tuple(source_outcomes),
+        bundle_context=bundle_context,
+        fact_bundle=fact_bundle,
+        entity_observed_at_utc=entity_observed_at_utc,
+    )
+
+
+class GenerateStage:
+    """u2 synthesis plus segmented E1 input and supplement preparation.
+
+    This stage freezes generated briefings, typed context, and pre-finalization
+    supplement inputs. Reader-facing assembly, projection, repair, trust gates,
+    survivor fixed-point handling, and sealing belong exclusively to the pure
+    publisher finalizer invoked by :class:`PublishStage`.
     """
 
     name = "generate"
@@ -2443,7 +2475,6 @@ class GenerateStage:
         start = time.monotonic()
         segmented_mode = generate is None
         segment_generation_failures: dict[MarketSegment, BriefingGenerationError] = {}
-        surface_quality_failures: dict[MarketSegment, SurfaceQualityError] = {}
         market_history_by_ticker: dict[str, tuple[OHLCRow, ...]] = {}
         market_anchors_by_segment: dict[MarketSegment, tuple[MarketAnchor, ...]] = {
             segment: () for segment in SEGMENT_ORDER
@@ -2453,6 +2484,7 @@ class GenerateStage:
         segment_briefings: dict[MarketSegment, Briefing] | None = None
         fact_bundle: VerifiedFactBundle | None = None
         entity_observed_at_utc: datetime | None = None
+        public_document_context: PublicDocumentContext | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
         generate_sub_timings: dict[str, float] = {}
         try:
@@ -2624,171 +2656,48 @@ class GenerateStage:
             if chart_sidecar_paths:
                 visual_asset_paths = (*visual_asset_paths, *chart_sidecar_paths)
 
-            # u51 / u56 — reader-format chain (incl. the compliance gate).
-            # A P0 hit raises ``ComplianceLanguageError`` here and an
-            # un-rewritable anchor contradiction raises
-            # ``NumericAnchorReconciliationError``; both route to the
-            # publish label (preserving ``stage_timings["publish"]=0.0``).
-            reader_format_start = time.monotonic()
-            try:
-                _routed_for_indicators = segment_items(items)
-                items_by_segment = {
-                    seg: _routed_for_indicators.for_segment(seg) for seg in SEGMENT_ORDER
-                }
-                while True:
-                    reader_bundle_context = (
-                        redecide_daily_thesis_for_active_segments(
-                            run_bundle_context,
-                            tuple(segment_briefings),
-                        )
-                        if run_bundle_context is not None
-                        else None
-                    )
-                    try:
-                        segment_briefings = _apply_reader_format_to_segments(
-                            segment_briefings,
-                            anchors_by_segment=anchor_table_input,
-                            bundle_context=reader_bundle_context,
-                            items_by_segment=items_by_segment,
-                        )
-                        break
-                    except SurfaceQualityError as exc:
-                        failed_segment = cast(MarketSegment, exc.segment)
-                        if failed_segment not in segment_briefings:
-                            raise
-                        surface_quality_failures[failed_segment] = exc
-                        segment_briefings = {
-                            segment: briefing
-                            for segment, briefing in segment_briefings.items()
-                            if segment != failed_segment
-                        }
-                        stage_notes[f"publish:{failed_segment}"] = "failed: SurfaceQualityError"
-                        _logger.error(
-                            "[publish] surface quality blocked segment=%s; "
-                            "issues=%s continuing with %d remaining segment(s)",
-                            failed_segment,
-                            [
-                                {
-                                    "code": issue.code,
-                                    "region": issue.region,
-                                    "evidence_len": len(issue.evidence),
-                                    "evidence_preview": " ".join(issue.evidence.split())[:160],
-                                }
-                                for issue in exc.issues
-                            ],
-                            len(segment_briefings),
-                        )
-                        if not segment_briefings:
-                            reader_format_elapsed = time.monotonic() - reader_format_start
-                            stage_notes["publish"] = "failed: SurfaceQualityError"
-                            stage_notes["notify_briefing"] = "skipped"
-                            return StageResult(
-                                status="failed",
-                                error=exc,
-                                stage_notes=stage_notes,
-                                timings={
-                                    "generate": generate_elapsed,
-                                    **generate_sub_timings,
-                                    "visual_assets": va_elapsed,
-                                    "generate:reader_format": reader_format_elapsed,
-                                    "publish": 0.0,
-                                },
-                                data={"_stage_alerts": stage_alerts},
-                            )
-            except (ComplianceLanguageError, NumericAnchorReconciliationError) as exc:
-                reader_format_elapsed = time.monotonic() - reader_format_start
-                _logger.error(
-                    "[publish] failed during reader-format target_date=%s error_type=%s error=%s",
-                    target_date,
-                    type(exc).__name__,
-                    exc,
-                )
-                stage_notes["publish"] = f"failed: {type(exc).__name__}"
-                stage_notes["notify_briefing"] = "skipped"
-                return StageResult(
-                    status="failed",
-                    error=exc,
-                    stage_notes=stage_notes,
-                    timings={
-                        "generate": generate_elapsed,
-                        **generate_sub_timings,
-                        "visual_assets": va_elapsed,
-                        "generate:reader_format": reader_format_elapsed,
-                        "publish": 0.0,
-                    },
-                    data={"_stage_alerts": stage_alerts},
-                )
-            reader_format_elapsed = time.monotonic() - reader_format_start
+            if fact_bundle is None or entity_observed_at_utc is None:
+                raise RuntimeError("segmented generation requires terminal entity context")
+            public_document_context = _build_public_document_context(
+                target_date=target_date,
+                briefings=segment_briefings,
+                generation_failures=segment_generation_failures,
+                anchors_by_segment=anchor_table_input,
+                items=items,
+                source_outcomes=source_outcomes,
+                bundle_context=run_bundle_context,
+                fact_bundle=fact_bundle,
+                entity_observed_at_utc=entity_observed_at_utc,
+            )
             timings = {
                 "generate": generate_elapsed,
                 **generate_sub_timings,
                 "visual_assets": va_elapsed,
-                "generate:reader_format": reader_format_elapsed,
             }
         else:
             timings = {"generate": generate_elapsed}
 
         return StageResult(
-            status=("partial" if segment_generation_failures or surface_quality_failures else "ok"),
+            status=("partial" if segment_generation_failures else "ok"),
             data={
                 "segmented_mode": segmented_mode,
                 "briefing": briefing,
                 "segment_briefings": segment_briefings,
                 "segment_generation_failures": segment_generation_failures,
-                "surface_quality_failures": surface_quality_failures,
-                "entity_fact_blocked_segments": (),
+                "finalization_blocked_segments": (),
                 "visual_assets_failed": visual_assets_failed,
                 "visual_asset_paths": visual_asset_paths,
                 "image_candidate_paths": image_candidate_paths,
                 "image_stage_note": image_stage_note,
                 "fact_bundle": fact_bundle,
                 "entity_observed_at_utc": entity_observed_at_utc,
+                "public_document_context": public_document_context,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
                 "_stage_alerts": stage_alerts,
             },
             stage_notes=stage_notes,
             timings=timings,
         )
-
-
-def _terminal_validate_entity_fact_segments(
-    segment_briefings: Mapping[MarketSegment, Briefing],
-    *,
-    fact_bundle: VerifiedFactBundle,
-    target_date: date,
-    entity_observed_at_utc: datetime,
-) -> tuple[dict[MarketSegment, Briefing], tuple[MarketSegment, ...]]:
-    """Run the sole compatibility entity gate at the pre-I/O terminal boundary."""
-
-    survivors: dict[MarketSegment, Briefing] = {}
-    blocked: list[MarketSegment] = []
-    for segment in SEGMENT_ORDER:
-        briefing = segment_briefings.get(segment)
-        if briefing is None:
-            continue
-        violations = _scan_terminal_entity_fact_markdown(
-            briefing.rendered_markdown,
-            segment=segment,
-            fact_bundle=fact_bundle,
-            target_date=target_date,
-            entity_observed_at_utc=entity_observed_at_utc,
-        )
-        if not violations:
-            survivors[segment] = briefing
-            continue
-        blocked.append(segment)
-        for violation in violations:
-            _logger.error(
-                "[publish] entity fact blocked segment=%s fact_id=%s expected=%s "
-                "term=%s line=%d preview=%s",
-                violation.segment,
-                violation.fact_id,
-                violation.expected_value,
-                violation.offending_term,
-                violation.line_number,
-                violation.preview,
-            )
-    return survivors, tuple(blocked)
 
 
 class PublishStage:
@@ -2814,10 +2723,9 @@ class PublishStage:
             "Mapping[MarketSegment, Sequence[MacroLineageTrace]]",
             accumulated["macro_lineage_by_segment"],
         )
-        fact_bundle = cast("VerifiedFactBundle | None", accumulated.get("fact_bundle"))
-        entity_observed_at_utc = cast(
-            "datetime | None",
-            accumulated.get("entity_observed_at_utc"),
+        public_document_context = cast(
+            "PublicDocumentContext | None",
+            accumulated.get("public_document_context"),
         )
         visual_asset_paths = cast("tuple[Path, ...]", accumulated["visual_asset_paths"])
         # u137 — stage outputs of the failure-isolated image-candidate
@@ -2828,25 +2736,33 @@ class PublishStage:
         )
 
         start = time.monotonic()
-        entity_fact_blocked_segments: tuple[MarketSegment, ...] = ()
+        finalization_blocked_segments: tuple[MarketSegment, ...] = ()
+        finalized_bundle: FinalizedPublicBundle | None = None
+        finalize_elapsed: float | None = None
         stage_notes: dict[str, str] = {}
         try:
             if segmented_mode:
                 assert segment_briefings is not None
-                if fact_bundle is None or entity_observed_at_utc is None:
-                    raise RuntimeError("segmented publish requires terminal entity context")
-                segment_briefings, entity_fact_blocked_segments = (
-                    _terminal_validate_entity_fact_segments(
+                if public_document_context is None:
+                    raise RuntimeError("segmented publish requires public document context")
+                finalize_start = time.monotonic()
+                try:
+                    finalized_bundle = finalize_public_bundle(
                         segment_briefings,
-                        fact_bundle=fact_bundle,
-                        target_date=target_date,
-                        entity_observed_at_utc=entity_observed_at_utc,
+                        context=public_document_context,
                     )
+                finally:
+                    finalize_elapsed = time.monotonic() - finalize_start
+                segment_briefings = {
+                    document.segment: document.briefing for document in finalized_bundle.documents
+                }
+                finalization_blocked_segments = tuple(
+                    outcome.segment
+                    for outcome in finalized_bundle.segment_outcomes
+                    if outcome.state == "trust_blocked"
                 )
-                for blocked_segment in entity_fact_blocked_segments:
-                    stage_notes[f"publish:{blocked_segment}"] = "failed: EntityFactGuard"
-                if not segment_briefings:
-                    raise PublisherDisclaimerError(target_date=target_date)
+                for blocked_segment in finalization_blocked_segments:
+                    stage_notes[f"publish:{blocked_segment}"] = "failed: PublicDocumentTrustGate"
                 await _stage_publish_segments(
                     segment_briefings,
                     target_date,
@@ -2856,6 +2772,7 @@ class PublishStage:
                     source_outcomes=source_outcomes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
                     extra_commit_paths=image_candidate_paths,
+                    phase_one_complete=True,
                 )
             else:
                 await _stage_publish(briefing, target_date, git_runner=git_runner)
@@ -2874,16 +2791,27 @@ class PublishStage:
                     "publish": f"failed: {type(exc).__name__}",
                     "notify_briefing": "skipped",
                 },
-                timings={"publish": time.monotonic() - start},
+                timings={
+                    **(
+                        {"publish:finalize": finalize_elapsed}
+                        if finalize_elapsed is not None
+                        else {}
+                    ),
+                    "publish": time.monotonic() - start,
+                },
             )
         return StageResult(
-            status="partial" if entity_fact_blocked_segments else "ok",
+            status="partial" if finalization_blocked_segments else "ok",
             data={
                 "segment_briefings": segment_briefings,
-                "entity_fact_blocked_segments": entity_fact_blocked_segments,
+                "finalized_bundle": finalized_bundle,
+                "finalization_blocked_segments": finalization_blocked_segments,
             },
             stage_notes={**stage_notes, "publish": "ok"},
-            timings={"publish": time.monotonic() - start},
+            timings={
+                **({"publish:finalize": finalize_elapsed} if finalize_elapsed is not None else {}),
+                "publish": time.monotonic() - start,
+            },
         )
 
 
@@ -2910,13 +2838,9 @@ class NotifyStage:
             "dict[MarketSegment, BriefingGenerationError]",
             accumulated["segment_generation_failures"],
         )
-        surface_quality_failures = cast(
-            "dict[MarketSegment, SurfaceQualityError]",
-            accumulated.get("surface_quality_failures", {}),
-        )
-        entity_fact_blocked_segments = cast(
+        finalization_blocked_segments = cast(
             "tuple[MarketSegment, ...]",
-            accumulated.get("entity_fact_blocked_segments", ()),
+            accumulated.get("finalization_blocked_segments", ()),
         )
 
         primary_segment = (
@@ -2975,8 +2899,7 @@ class NotifyStage:
                     segment
                     for segment in SEGMENT_ORDER
                     if segment in segment_generation_failures
-                    or segment in surface_quality_failures
-                    or segment in entity_fact_blocked_segments
+                    or segment in finalization_blocked_segments
                 ),
             )
         else:
@@ -3046,10 +2969,10 @@ class HealthTrackingStage:
         return StageResult(status="ok", data={"_soft_alert": soft_alert})
 
 
-# Publish-stage routable failures — the exact prior tuple (the reader-
-# format gate's ``ComplianceLanguageError`` / ``NumericAnchorReconciliation
-# Error`` are caught inside ``GenerateStage`` and routed to the publish
-# label via :data:`EXCEPTION_ROUTING`).
+# Publish-stage routable failures. Finalization and all terminal trust-gate
+# failures enter this boundary through ``PublicDocumentFinalizationError``;
+# the older specialized exceptions remain for unsegmented and compatibility
+# publish paths.
 _PUBLISH_FAILURES: Final = (
     PublicDocumentFinalizationError,
     SummaryQualityError,
@@ -3256,13 +3179,9 @@ async def run_pipeline(
                 "dict[MarketSegment, BriefingGenerationError]",
                 accumulated["segment_generation_failures"],
             )
-            surface_quality_failures = cast(
-                "dict[MarketSegment, SurfaceQualityError]",
-                accumulated.get("surface_quality_failures", {}),
-            )
-            entity_fact_blocked_segments = cast(
+            finalization_blocked_segments = cast(
                 "tuple[MarketSegment, ...]",
-                accumulated.get("entity_fact_blocked_segments", ()),
+                accumulated.get("finalization_blocked_segments", ()),
             )
             if notify_result.ok:
                 stage_status["notify_briefing"] = "ok"
@@ -3271,8 +3190,7 @@ async def run_pipeline(
                     if (
                         visual_assets_failed
                         or bool(segment_generation_failures)
-                        or bool(surface_quality_failures)
-                        or bool(entity_fact_blocked_segments)
+                        or bool(finalization_blocked_segments)
                     )
                     else PipelineStatus.SUCCESS
                 )

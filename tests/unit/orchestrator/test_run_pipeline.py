@@ -33,10 +33,15 @@ from types import SimpleNamespace
 import pytest
 from pydantic import HttpUrl, TypeAdapter
 
-from investo._internal.surface_quality import SurfaceQualityIssue
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import BriefingGenerationError
-from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
+from investo.briefing.segments import (
+    CRYPTO,
+    DOMESTIC_EQUITY,
+    SEGMENT_LABELS,
+    US_EQUITY,
+    MarketSegment,
+)
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -48,14 +53,14 @@ from investo.models import (
 from investo.models.public_artifact import StagedArtifact
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.orchestrator import pipeline as pipeline_module
-from investo.orchestrator import validators as validators_module
 from investo.orchestrator.pipeline import (
     _briefing_url_for,
     _build_failure_context,
     run_pipeline,
 )
+from investo.publisher import public_document as public_document_module
 from investo.publisher.charts import ChartArtifacts
-from investo.publisher.errors import PublisherIOError, SurfaceQualityError
+from investo.publisher.errors import PublisherIOError
 from investo.visuals.assets import PreparedVisualAssets, VisualAssetError
 
 _TARGET = date(2026, 4, 27)  # Mon
@@ -90,8 +95,12 @@ def _briefing(target_date: date = _TARGET, segment: MarketSegment | None = None)
         "## ③ 섹터/수급 동향\n섹터\n\n"
         "## ④ 지표·이벤트\n지표\n\n"
         "## ⑤ 주요 종목\n종목\n\n"
-        "## ⑥ 오늘의 관전 포인트\n관전\n\n" + footer
+        "## ⑥ 오늘의 관전 포인트\n관전\n\n"
+        "<details><summary>수집/품질 진단</summary>\n"
+        "진단 정보\n"
+        "</details>\n\n" + footer
     )
+    title = SEGMENT_LABELS[segment] if segment is not None else "테스트"
     return Briefing(
         target_date=target_date,
         market_summary="오늘 시장 요약",
@@ -102,7 +111,7 @@ def _briefing(target_date: date = _TARGET, segment: MarketSegment | None = None)
         today_watch="관전",
         disclaimer=footer,
         rendered_markdown=(
-            "# 2026-04-27 테스트 시황\n\n"
+            f"# {target_date.isoformat()} {title} 시황\n\n"
             "> **오늘의 결론**: 오늘 시장 요약\n"
             "> **핵심 동인**: 핵심 이슈\n"
             "> **주의할 점**: 관전\n\n"
@@ -269,7 +278,7 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
                 last_stderr=f"{segment} failed",
                 cause=None,
             )
-        return _briefing(target_date)
+        return _briefing(target_date, segment=segment)
 
     return _fake
 
@@ -1034,7 +1043,7 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert result.stage_timings["generate:crypto"] >= 0
     assert result.stage_timings["generate:domestic-equity"] >= 0
     assert result.stage_timings["generate:us-equity"] >= 0
-    assert result.stage_timings["generate:reader_format"] >= 0
+    assert result.stage_timings["publish:finalize"] >= 0
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"] == "ok"
     assert len(publisher.calls) == 1
@@ -1048,39 +1057,12 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_surface_quality_failure_publishes_remaining_segments_partial(
+async def test_run_pipeline_surface_quality_defect_is_contained_without_segment_drop(
     archive_root: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     publisher = _FakePublisher()
     alerter = _FakeAlerter()
     git = _SuccessfulGitRunner()
-    real_apply_reader_format = pipeline_module._apply_reader_format_to_segments
-
-    def fake_apply_reader_format(
-        segment_briefings: dict[MarketSegment, Briefing],
-        **kwargs: object,
-    ) -> dict[MarketSegment, Briefing]:
-        if CRYPTO in segment_briefings:
-            raise SurfaceQualityError(
-                segment=CRYPTO,
-                issues=(
-                    SurfaceQualityIssue(
-                        code="markdown.unmatched_link",
-                        severity="block",
-                        evidence="[broken link",
-                        region="first_viewport",
-                    ),
-                ),
-            )
-        return real_apply_reader_format(segment_briefings, **kwargs)
-
-    monkeypatch.setattr(
-        pipeline_module,
-        "_apply_reader_format_to_segments",
-        fake_apply_reader_format,
-    )
-
     result = await run_pipeline(
         _TARGET,
         publisher=publisher,
@@ -1088,18 +1070,18 @@ async def test_run_pipeline_surface_quality_failure_publishes_remaining_segments
         site_url_base=_SITE_BASE,
         fetch=_success_fetch([_item("Bitcoin"), _item("AAPL")]),
         git_runner=git,
-        generate_segment=_success_segment_generate([]),
+        generate_segment=_surface_blocking_segment_generate(CRYPTO),
     )
 
-    assert result.status == PipelineStatus.PARTIAL
+    assert result.status == PipelineStatus.SUCCESS
     assert result.stages["publish"] == "ok"
-    assert result.stages["publish:crypto"] == "failed: SurfaceQualityError"
+    assert "publish:crypto" not in result.stages
     assert result.stages["notify_briefing"] == "ok"
     assert len(publisher.calls) == 1
     assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
-    assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
-    assert "/archive/crypto/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
+    assert (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
+    assert "/archive/crypto/2026/04/2026-04-27/" in publisher.calls[0].summary_text
     assert "push" in [call[1] for call in git.calls]
 
 
@@ -1453,14 +1435,13 @@ def test_rewrite_segment_nav_for_partial_publish_labels_missing_segments() -> No
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
+async def test_run_pipeline_segment_disclaimer_failure_withholds_only_failed_segment(
     archive_root: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     publisher = _FakePublisher()
     alerter = _FakeAlerter()
     git = _SuccessfulGitRunner()
-    calls = 0
 
     def fake_verify_disclaimer(
         markdown: str,
@@ -1468,13 +1449,14 @@ async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
         *,
         legacy: bool = False,
     ) -> bool:
-        nonlocal calls
-        calls += 1
-        return calls != 2
+        del markdown, legacy
+        return segment != US_EQUITY
 
-    # u85 — verify_disclaimer is now invoked through the publish-boundary
-    # validator registry (orchestrator.validators); patch it there.
-    monkeypatch.setattr(validators_module, "verify_disclaimer", fake_verify_disclaimer)
+    monkeypatch.setattr(
+        public_document_module,
+        "verify_disclaimer",
+        fake_verify_disclaimer,
+    )
 
     result = await run_pipeline(
         _TARGET,
@@ -1486,17 +1468,19 @@ async def test_run_pipeline_segment_disclaimer_failure_writes_nothing(
         generate_segment=_success_segment_generate([]),
     )
 
-    assert result.status == PipelineStatus.FAILED
-    assert result.stages["publish"] == "failed: PublisherDisclaimerError"
-    assert result.stages["notify_briefing"] == "skipped"
-    assert publisher.calls == []
-    assert git.calls == []
-    assert not list(archive_root.rglob("*.md"))
-    assert not list(archive_root.rglob("*.svg"))
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.stages["publish:us-equity"] == "failed: PublicDocumentTrustGate"
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"] == "ok"
+    assert len(publisher.calls) == 1
+    assert git.calls
+    assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert not (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
+async def test_run_pipeline_segment_summary_quality_failure_withholds_only_failed_segment(
     archive_root: Path,
 ) -> None:
     publisher = _FakePublisher()
@@ -1542,21 +1526,16 @@ async def test_run_pipeline_segment_summary_quality_failure_writes_nothing(
         generate_segment=broken_segment_generate,
     )
 
-    assert result.status == PipelineStatus.FAILED
-    assert result.stages["publish"] == "failed: SummaryQualityError"
-    assert result.stages["notify_briefing"] == "skipped"
-    assert len(alerter.calls) == 1
-    assert alerter.calls[0].stage == "publish"
-    assert alerter.calls[0].error_type == "SummaryQualityError"
-    assert publisher.calls == []
-    assert git.calls == []
-    assert not list(archive_root.rglob("*.md"))
-    # u29 QA M1 regression — visual asset SVGs staged via ``asset_paths``
-    # before the validate gate must be rolled back when SummaryQualityError
-    # fires. Pre-fix the rollback only ran for PublisherDisclaimerError,
-    # leaving orphan SVGs under ``archive_root/{segment}/.../*.assets/``.
-    assert not list(archive_root.rglob("*.svg"))
-    assert not list(archive_root.rglob("*.svg.json"))
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.stages["publish:us-equity"] == "failed: PublicDocumentTrustGate"
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"] == "ok"
+    assert alerter.calls == []
+    assert len(publisher.calls) == 1
+    assert git.calls
+    assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert not (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+    assert (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
 
 
 @pytest.mark.asyncio
@@ -2747,6 +2726,54 @@ async def test_stage_publish_segments_identity_failure_removes_staged_asset(
         )
 
     assert not asset_path.exists()
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_sealed_path_preserves_exact_markdown(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
+    sealed = _briefing(segment=DOMESTIC_EQUITY).model_copy(
+        update={"rendered_markdown": "sealed bytes -- do not mutate\n"}
+    )
+    written: list[Briefing] = []
+
+    def fail_phase_one(*args: object, **kwargs: object) -> object:
+        raise AssertionError("sealed path must not re-run phase-one producers")
+
+    def capture_write(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert target_date == _TARGET
+        assert segment == DOMESTIC_EQUITY
+        written.append(briefing)
+        return tmp_path / "archive" / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md"
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "_assemble_phase_one_presentation_briefings",
+        fail_phase_one,
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "_assemble_phase_one_body_evidence",
+        fail_phase_one,
+    )
+    monkeypatch.setattr(pipeline_module, "write_briefing", capture_write)
+
+    await pipeline_module._stage_publish_segments(
+        {DOMESTIC_EQUITY: sealed},
+        _TARGET,
+        git_runner=_SuccessfulGitRunner(),
+        phase_one_complete=True,
+    )
+
+    assert written == [sealed]
+    assert written[0].rendered_markdown == "sealed bytes -- do not mutate\n"
 
 
 def _patch_watchlist_publish_inputs(

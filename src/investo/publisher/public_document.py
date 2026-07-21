@@ -19,6 +19,7 @@ from types import MappingProxyType
 from typing import Final, Literal, Self, TypeVar
 from unicodedata import name as unicode_name
 
+from investo._internal.briefing_extract import extract_conclusion, extract_watchlist_impact
 from investo._internal.daily_thesis_decision import (
     redecide_daily_thesis_for_active_segments,
 )
@@ -29,14 +30,23 @@ from investo._internal.public_quality_language import (
     PUBLIC_INDICATOR_LIMITED_TEXT,
     PUBLIC_SHARED_MACRO_LIMITED_TEXT,
     PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    first_forbidden_public_evidence,
 )
+from investo._internal.public_summary_extract import clean_public_summary_text
 from investo._internal.public_watermark import replace_timestamp_watermark_line
-from investo._internal.summary_quality import repair_first_viewport_summary
+from investo._internal.summary_quality import (
+    SummaryQualityError,
+    is_unsafe_summary_value,
+    repair_first_viewport_summary,
+    validate_first_viewport_summary,
+)
 from investo._internal.surface_quality import (
     SurfaceQualityIssue,
     find_surface_quality_issues,
     repair_surface_artifacts,
 )
+from investo.briefing.numeric_verify import verify_core_facts
+from investo.briefing.segments import segment_source_outcomes
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
@@ -62,9 +72,15 @@ from investo.publisher._public_document_policy import (
 )
 from investo.publisher.anchor_assertion_gate import (
     AnchorAssertionFinding,
+    NumericAnchorReconciliationError,
     scan_anchor_assertions,
 )
-from investo.publisher.compliance_language import ComplianceReport, scan_compliance
+from investo.publisher.channel_anchor_block import render_channel_anchor_block
+from investo.publisher.compliance_language import (
+    ComplianceLanguageError,
+    ComplianceReport,
+    scan_compliance,
+)
 from investo.publisher.daily_thesis import (
     assert_distinct_daily_thesis_lines,
     render_daily_thesis_line,
@@ -74,6 +90,10 @@ from investo.publisher.errors import DailyThesisConsistencyError, SurfaceQuality
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
+from investo.publisher.verifier import (
+    verify_disclaimer,
+    verify_short_disclaimer_first_viewport,
+)
 from investo.publisher.watchpoint_matrix import WatchpointRenderResult
 
 PublicDocumentPhase = Literal["generated", "assembled", "projected", "repaired", "validated"]
@@ -198,6 +218,7 @@ _SECTION_HEADINGS: Final[tuple[str, ...]] = (
 _WATCHPOINT_HEADING: Final[str] = "## ⑥ 오늘의 관전 포인트"
 _CANONICAL_DISCLAIMER_HEADING: Final[str] = "## ⑦ 면책조항"
 _DIAGNOSTICS_OPEN: Final[str] = "<details><summary>수집/품질 진단</summary>"
+_DIAGNOSTICS_OPEN_EXPANDED: Final[str] = "<details open><summary>수집/품질 진단</summary>"
 _DIAGNOSTICS_CLOSE: Final[str] = "</details>"
 _SHARED_MACRO_HEADING: Final[str] = "## ⓪ 오늘의 매크로"
 _CRYPTO_INDICATOR_HEADING: Final[str] = "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)"
@@ -272,29 +293,60 @@ def _assemble_phase_one_presentation_briefings(
     active = _canonical_active_segments(active_segments)
     if set(briefings) != set(active):
         raise ValueError("briefing keys must exactly match active_segments")
-    assembled: dict[MarketSegment, Briefing] = {}
-    for segment in active:
-        briefing = briefings[segment]
-        if briefing.target_date != target_date:
-            raise ValueError("briefing target_date must match assembly target_date")
-        markdown = _NAVIGATION_LINE_RE.sub(
-            _active_segment_nav_line(
-                target_date,
-                current_segment=segment,
-                active_segments=active,
-            ),
-            briefing.rendered_markdown,
-            count=1,
+    return {
+        segment: _assemble_phase_one_presentation_briefing(
+            briefings[segment],
+            target_date=target_date,
+            segment=segment,
+            active_segments=active,
         )
-        markdown = emit_first_viewport_disclaimer(markdown, segment)
-        markdown = ensure_canonical_disclaimer(markdown, segment)
-        markdown = repair_first_viewport_summary(markdown)
-        assembled[segment] = (
-            briefing
-            if markdown == briefing.rendered_markdown
-            else briefing.model_copy(update={"rendered_markdown": markdown})
-        )
-    return assembled
+        for segment in active
+    }
+
+
+def _assemble_phase_one_presentation_briefing(
+    briefing: Briefing,
+    *,
+    target_date: date,
+    segment: MarketSegment,
+    active_segments: Sequence[MarketSegment],
+) -> Briefing:
+    """Run the phase-one presentation producers for one active document."""
+
+    if briefing.target_date != target_date:
+        raise ValueError("briefing target_date must match assembly target_date")
+    expected_title = f"# {target_date.isoformat()} {SEGMENT_LABELS[segment]} 시황"
+    markdown_lines = briefing.rendered_markdown.splitlines(keepends=True)
+    if markdown_lines and markdown_lines[0].startswith("# "):
+        line_ending = "\n" if markdown_lines[0].endswith("\n") else ""
+        markdown_lines[0] = f"{expected_title}{line_ending}"
+        markdown = "".join(markdown_lines)
+    else:
+        markdown = f"{expected_title}\n\n{briefing.rendered_markdown}"
+    navigation = _active_segment_nav_line(
+        target_date,
+        current_segment=segment,
+        active_segments=active_segments,
+    )
+    markdown, navigation_count = _NAVIGATION_LINE_RE.subn(
+        navigation,
+        markdown,
+        count=1,
+    )
+    if navigation_count == 0:
+        title_end = markdown.find("\n")
+        if title_end == -1:
+            raise ValueError("briefing title line is required for navigation")
+        markdown = f"{markdown[: title_end + 1]}\n{navigation}\n{markdown[title_end + 1 :]}"
+    markdown = emit_first_viewport_disclaimer(markdown, segment)
+    markdown = ensure_canonical_disclaimer(markdown, segment)
+    markdown = repair_first_viewport_summary(markdown)
+    markdown = markdown.replace(_DIAGNOSTICS_OPEN_EXPANDED, _DIAGNOSTICS_OPEN)
+    return (
+        briefing
+        if markdown == briefing.rendered_markdown
+        else briefing.model_copy(update={"rendered_markdown": markdown})
+    )
 
 
 def _assemble_phase_one_body_evidence(
@@ -422,7 +474,7 @@ def _snapshot_item(item: NormalizedItem) -> NormalizedItem:
     """Copy the only mutable container inside a frozen NormalizedItem."""
 
     return item.model_copy(
-        deep=True,
+        deep=False,
         update={"raw_metadata": MappingProxyType(dict(item.raw_metadata))},
     )
 
@@ -484,6 +536,11 @@ class PublicDocumentContext:
     bundle_context: BundleContext | None
     fact_bundle: VerifiedFactBundle
     entity_observed_at_utc: datetime
+    active_segments: tuple[MarketSegment, ...] | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
     supplements_by_segment: Mapping[MarketSegment, tuple[PublicDocumentSupplement, ...]] = field(
         default_factory=dict
     )
@@ -512,6 +569,12 @@ class PublicDocumentContext:
         if any(reason != "generation_failed" for reason in absences.values()):
             raise ValueError("input_absences contains an unsupported reason")
         generated = expected_set - set(absences)
+        default_active = tuple(segment for segment in expected if segment in generated)
+        active = default_active if self.active_segments is None else tuple(self.active_segments)
+        if len(set(active)) != len(active) or not set(active) <= generated:
+            raise ValueError("active_segments must be unique generated segments")
+        if active != tuple(segment for segment in expected if segment in set(active)):
+            raise ValueError("active_segments must follow expected segment order")
 
         anchors = {segment: tuple(values) for segment, values in self.anchors_by_segment.items()}
         items = {
@@ -586,6 +649,7 @@ class PublicDocumentContext:
 
         object.__setattr__(self, "expected_segments", expected)
         object.__setattr__(self, "input_absences", _freeze_mapping(absences))
+        object.__setattr__(self, "active_segments", active)
         object.__setattr__(self, "anchors_by_segment", _freeze_mapping(anchors))
         object.__setattr__(self, "items_by_segment", _freeze_mapping(items))
         object.__setattr__(self, "coverage_by_segment", _freeze_mapping(coverage))
@@ -1012,7 +1076,9 @@ def _render_supplement_block(supplement: PublicDocumentSupplement) -> str:
     body = supplement.markdown
     separator = "" if body.endswith(("\n", "\r")) else "\n"
     return (
-        f"<!-- investo:block {region_id} -->\n{body}{separator}<!-- /investo:block {region_id} -->"
+        f"<!-- investo:block {region_id} -->\n"
+        f"{body}{separator}"
+        f"<!-- /investo:block {region_id} -->\n"
     )
 
 
@@ -2162,6 +2228,85 @@ def _transition_draft(
     )
 
 
+def _observed_supplement_ids(markdown: str) -> tuple[str, ...]:
+    """Return canonical opening-marker IDs from a preassembled draft."""
+
+    return tuple(
+        match.group(2)
+        for line in markdown.splitlines()
+        if (match := _MARKER_LINE_RE.fullmatch(line)) is not None
+    )
+
+
+def _build_region_expectation(
+    briefing: Briefing,
+    *,
+    segment: MarketSegment,
+    context: PublicDocumentContext,
+) -> PublicRegionExpectation:
+    """Build the final-layout expectation from typed producer inputs."""
+
+    declared_supplements = context.supplements_by_segment.get(segment, ())
+    declared_ids = tuple(supplement.supplement_id for supplement in declared_supplements)
+    observed_ids = _observed_supplement_ids(briefing.rendered_markdown)
+    if declared_ids and set(declared_ids) != set(observed_ids):
+        raise _FinalizationInvariantError(
+            phase="generated",
+            issue_code="invariant.supplement_input",
+        )
+    supplement_ids = declared_ids or observed_ids
+    anchors = context.anchors_by_segment.get(segment, ())
+    items = context.items_by_segment.get(segment, ())
+    bundle_context = context.bundle_context
+    channel_block = render_channel_anchor_block(
+        segment,
+        anchors=anchors,
+        crypto_items=items if segment == CRYPTO else (),
+        source_items=items,
+    )
+    daily_thesis_required = bool(
+        bundle_context is not None
+        and render_daily_thesis_line(
+            bundle_context.daily_thesis_decision,
+            segment=segment,
+        )
+    )
+    return PublicRegionExpectation(
+        target_date=context.target_date,
+        segment=segment,
+        segmented_mode=True,
+        supplement_ids=supplement_ids,
+        shared_macro_required=bool(
+            bundle_context is not None and bundle_context.shared_macro_block
+        ),
+        crypto_indicators_required=segment == CRYPTO and bool(items),
+        channel_anchors_required=bool(channel_block),
+        daily_thesis_required=daily_thesis_required,
+        anchor_table_required=bool(anchors),
+    )
+
+
+def _default_draft_factory(
+    briefing: Briefing,
+    segment: MarketSegment,
+    context: PublicDocumentContext,
+) -> PublicDocumentDraft:
+    expectation = _build_region_expectation(
+        briefing,
+        segment=segment,
+        context=context,
+    )
+    return _new_generated_draft(
+        briefing,
+        segment=segment,
+        layout=PublicDocumentLayout(
+            markdown=briefing.rendered_markdown,
+            regions=(),
+            expectation=expectation,
+        ),
+    )
+
+
 def _assemble_phase_one_reader_draft(
     draft: PublicDocumentDraft,
     context: PublicDocumentContext,
@@ -2184,18 +2329,51 @@ def _assemble_phase_one_reader_draft(
             raise ValueError("reader assembly must produce exactly one matching watchpoint result")
         observed.append(result)
 
-    rewritten = _assemble_phase_one_reader_briefings(
-        {draft.segment: draft.source_briefing},
-        anchors_by_segment=context.anchors_by_segment,
-        bundle_context=context.bundle_context,
-        items_by_segment=context.items_by_segment,
-        _watchpoint_result_observer=observe,
-    )
+    try:
+        rewritten = apply_reader_format_to_segments(
+            {draft.segment: draft.source_briefing},
+            anchors_by_segment=context.anchors_by_segment,
+            bundle_context=context.bundle_context,
+            items_by_segment=context.items_by_segment,
+            _watchpoint_result_observer=observe,
+        )
+    except NumericAnchorReconciliationError as exc:
+        raise _SegmentTrustBlockedError(
+            phase="assembled",
+            issue_codes=("numeric.anchor_assertion",),
+        ) from exc
+    except ComplianceLanguageError as exc:
+        raise _SegmentTrustBlockedError(
+            phase="assembled",
+            issue_codes=("compliance.language",),
+        ) from exc
     if len(observed) != 1 or set(rewritten) != {draft.segment}:
         raise ValueError("reader assembly must produce exactly one segment result")
     accumulated = _accumulate_watchpoint_result(draft, observed[0])
+    active_segments = context.active_segments
+    if active_segments is None or draft.segment not in active_segments:
+        raise ValueError("reader assembly requires an active segment context")
+    assembled_briefing = _assemble_phase_one_presentation_briefing(
+        rewritten[draft.segment],
+        target_date=context.target_date,
+        segment=draft.segment,
+        active_segments=active_segments,
+    )
+    verified_report = verify_core_facts(
+        assembled_briefing.rendered_markdown,
+        context.items_by_segment.get(draft.segment, ()),
+    )
+    assembled_briefing = _assemble_phase_one_body_evidence(
+        assembled_briefing,
+        segment=draft.segment,
+        source_outcomes=segment_source_outcomes(
+            draft.segment,
+            context.source_outcomes,
+        ),
+        verified_facts=tuple(verified_report.verified),
+    )
     layout = PublicDocumentLayout.reindex(
-        rewritten[draft.segment].rendered_markdown,
+        assembled_briefing.rendered_markdown,
         expectation=draft.layout.expectation,
     )
     return _transition_draft(
@@ -2346,6 +2524,115 @@ def _scan_terminal_compliance(
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("compliance context identity must match draft")
     return scan_compliance(draft.layout.markdown, draft.segment)
+
+
+def _derive_public_notification_summary(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> PublicNotificationSummary:
+    """Derive the sealed notifier DTO only from terminal layout and E1."""
+
+    raw_conclusion = extract_conclusion(draft.layout.markdown)
+    if raw_conclusion is None:
+        raise PublicNotificationSummaryError("summary.missing_conclusion")
+    conclusion = clean_public_summary_text(raw_conclusion)
+    if (
+        not conclusion
+        or is_unsafe_summary_value(conclusion)
+        or first_forbidden_public_evidence(conclusion) is not None
+    ):
+        raise PublicNotificationSummaryError("summary.invalid_conclusion")
+
+    watchlist: str | None = None
+    raw_watchlist = extract_watchlist_impact(draft.layout.markdown)
+    if raw_watchlist is not None and not raw_watchlist.startswith(
+        ("관심 목록 미설정", "데이터 수집 부족으로 매칭 판단 보류")
+    ):
+        watchlist = clean_public_summary_text(raw_watchlist)
+        if not watchlist or first_forbidden_public_evidence(watchlist) is not None:
+            raise PublicNotificationSummaryError("summary.invalid_watchlist")
+
+    coverage = context.coverage_by_segment[draft.segment]
+    return PublicNotificationSummary(
+        segment=draft.segment,
+        target_date=draft.target_date,
+        conclusion=conclusion,
+        coverage_status=coverage.status,
+        coverage_label=coverage.status_label,
+        watchlist=watchlist,
+    )
+
+
+def _validate_repaired_draft(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> PublicDocumentDraft:
+    """Run the read-only terminal trust gates and advance to validated."""
+
+    if draft.phase != "repaired":
+        raise ValueError("terminal validation requires a repaired draft")
+    anchor_findings = _scan_terminal_anchor_assertions(draft, context)
+    if anchor_findings:
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=("numeric.anchor_assertion",),
+        )
+    if _scan_terminal_entity_fact_claims(draft, context):
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=("entity.fact_contradiction",),
+        )
+    try:
+        _scan_terminal_compliance(draft, context)
+    except ComplianceLanguageError as exc:
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=("compliance.language",),
+        ) from exc
+
+    blocking_surface_codes = tuple(
+        sorted(
+            {
+                finding.issue.code
+                for finding in _find_owned_surface_quality_issues(draft.layout)
+                if finding.issue.severity == "block"
+            }
+        )
+    )
+    if blocking_surface_codes:
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=blocking_surface_codes,
+        )
+    try:
+        validate_first_viewport_summary(draft.layout.markdown)
+    except SummaryQualityError as exc:
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=("summary.first_viewport",),
+        ) from exc
+    if not verify_disclaimer(draft.layout.markdown, draft.segment):
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=("disclaimer.canonical",),
+        )
+    if not verify_short_disclaimer_first_viewport(draft.layout.markdown, draft.segment):
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=("disclaimer.first_viewport",),
+        )
+    try:
+        notification_summary = _derive_public_notification_summary(draft, context)
+    except PublicNotificationSummaryError as exc:
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=(exc.issue_code,),
+        ) from exc
+    return _transition_draft(
+        draft,
+        next_phase="validated",
+        notification_summary=notification_summary,
+    )
 
 
 def _scan_terminal_entity_fact_markdown(
@@ -2549,9 +2836,10 @@ def _context_for_active_segments(
     """
 
     if context.bundle_context is None:
-        return context
+        return replace(context, active_segments=active_segments)
     return replace(
         context,
+        active_segments=active_segments,
         bundle_context=redecide_daily_thesis_for_active_segments(
             context.bundle_context,
             active_segments,
@@ -2761,6 +3049,28 @@ def _finalize_bundle_skeleton(
     )
 
 
+def finalize_public_bundle(
+    briefings: Mapping[MarketSegment, Briefing],
+    *,
+    context: PublicDocumentContext,
+) -> FinalizedPublicBundle:
+    """Pure default generated-draft to sealed-bundle transition."""
+
+    handlers = _FinalizationPhaseHandlers(
+        assemble=_assemble_phase_one_reader_draft,
+        project=_project_assembled_draft,
+        repair=_repair_projected_draft,
+        validate=_validate_repaired_draft,
+        artifact_ids=_select_surviving_supplement_artifact_ids,
+    )
+    return _finalize_bundle_skeleton(
+        briefings,
+        context=context,
+        draft_factory=_default_draft_factory,
+        handlers=handlers,
+    )
+
+
 @dataclass(frozen=True, slots=True, init=False)
 class FinalizedPublicDocument:
     segment: MarketSegment
@@ -2918,4 +3228,5 @@ class PublicDocumentFinalizationError(Exception):
 __all__ = [
     "FinalizedPublicBundle",
     "FinalizedPublicDocument",
+    "finalize_public_bundle",
 ]
