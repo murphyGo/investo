@@ -91,6 +91,15 @@
 **Scope**: Policy plus tests/documentation only. The table does not yet execute repair/containment or change publication behavior; unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 0 checklist 6 — record exact planned u130/u131/u133/u134/u135 hook rebases.
 
+## Construction — u144 Code Generation Step 0.6 planned hook rebases frozen
+
+**Timestamp**: 2026-07-21T03:00:00Z
+**Action**: Completed the last Step 0 checklist item by assigning every planned u130/u131/u133/u134/u135 producer and routing hook to the u144 lifecycle.
+**Evidence**: The baseline names each planned function/module, distinguishes upstream context building from public Markdown mutation, fixes phase-1 ordering before the single projection/seal, and records shared conflict surfaces. u135 is explicitly bound to the typed `WatchpointRenderResult`/finalizer-context contract and cannot extend the current late mutation path.
+**Validation**: All five registered plans were checked against live module/function names and the u144 business-logic model; `git diff --check` passed.
+**Scope**: Documentation/baseline only. None of the five planned units or any production path was implemented or switched; unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 1 checklist 1 — add the publisher-owned lifecycle types, inputs/outcomes, errors, and seal factory.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
