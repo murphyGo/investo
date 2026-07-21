@@ -81,6 +81,16 @@
 **Scope**: Fixture/documentation only. No result model, orchestrator, CLI, or workflow behavior changed; unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 0 checklist 5 — enumerate all current surface issue codes and land the exhaustive issue-code × owned-block disposition table.
 
+## Construction — u144 Code Generation Step 0.5 surface disposition policy frozen
+
+**Timestamp**: 2026-07-21T02:37:33Z
+**Action**: Landed the closed FD surface issue-code × owned-block disposition policy before finalizer implementation.
+**Evidence**: The policy enumerates all 13 static codes currently emitted by `_internal.surface_quality`, expands each across all 16 `PublicBlockKind` values, applies the exact optional/conditional omit-or-replace lookup, protects diagnostics, and fails unknown code/block pairs closed. Scanner regexes remain with their existing owner.
+**Exhaustiveness**: An AST test reads the production scanner and requires every `SurfaceQualityIssue` construction to use a static code whose set exactly equals the policy registry. Adding a scanner code without policy now fails the test.
+**Validation**: 36 policy/surface tests passed; scoped Ruff/format and strict mypy passed; `git diff --check` passed.
+**Scope**: Policy plus tests/documentation only. The table does not yet execute repair/containment or change publication behavior; unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 0 checklist 6 — record exact planned u130/u131/u133/u134/u135 hook rebases.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

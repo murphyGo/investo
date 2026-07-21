@@ -289,7 +289,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Add redacted fixtures for run `29707052598` (`데이터 부족` reintroduction), the first-viewport truncation family, and the body-evidence projection mismatch. Fixtures: `tests/fixtures/u144/`.
 - [x] Pin the pre-u144 failure behavior in characterization tests before changing it. Tests: `tests/unit/publisher/test_public_document_incident_characterization_u144.py`.
 - [x] Freeze the existing u63/u94 content-partial behavior and notifier-only partial behavior as separate fixtures before changing exit signaling. Fixtures: `tests/fixtures/u144/legacy-content-partial-u63-u94.json`, `tests/fixtures/u144/legacy-notifier-only-partial.json`.
-- [ ] Enumerate every current `SurfaceQualityIssue.code` and land the exhaustive issue-code × owned-block disposition table from FD; a newly added code must fail the exhaustiveness test.
+- [x] Enumerate every current `SurfaceQualityIssue.code` and land the exhaustive issue-code × owned-block disposition table from FD; a newly added code must fail the exhaustiveness test. Policy: `src/investo/publisher/_public_document_policy.py`; baseline: `aidlc-docs/construction/u144-public-document-finalization-contract/code/surface-issue-disposition-baseline.md`.
 - [ ] Record the exact list of planned u130/u131/u133/u134/u135 hooks that need rebasing if they land concurrently.
 
 ### Step 1 — Add lifecycle types and pure finalizer skeleton
