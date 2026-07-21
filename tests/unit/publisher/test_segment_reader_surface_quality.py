@@ -6,6 +6,7 @@ from datetime import date
 
 import pytest
 
+import investo.publisher.public_document as public_document
 import investo.publisher.segment_reader_format as segment_reader_format
 from investo._internal.summary_quality import repair_first_viewport_summary
 from investo.briefing.disclaimer import DISCLAIMER
@@ -208,6 +209,64 @@ def test_segment_reader_repairs_u112_bad_particle_and_numeric_bold() -> None:
     assert "민감도을" not in out
     assert "민감도를" in out
     assert "**-0.04%p**" in out
+
+
+def test_compliance_scans_only_raw_and_rendered_watchpoint_shapes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed: list[str] = []
+    real_scan = segment_reader_format.scan_compliance
+    markdown = (
+        "# title\n\n"
+        "> **오늘의 결론**: 정책 변수 확인이 필요합니다.\n"
+        "> **핵심 동인**: 금리 경로를 확인합니다.\n"
+        "> **주의할 점**: 변동성을 점검합니다.\n\n"
+        "## ① 요약\n본문입니다.\n\n"
+        "## ⑥ 오늘의 관전 포인트\n\n"
+        "- 확인 소스: FRED · 10Y 금리가 4.5%를 상회하면 변동성 확대를 관찰; "
+        "4.3%를 이탈하면 완화를 확인. 관심 영향: 성장주 민감도를 점검.\n"
+    )
+
+    def observe_scan(text: str, segment: MarketSegment) -> object:
+        observed.append(text)
+        return real_scan(text, segment)
+
+    monkeypatch.setattr(segment_reader_format, "scan_compliance", observe_scan)
+
+    apply_reader_format_to_segments(
+        {US_EQUITY: _briefing(markdown)},
+        anchors_by_segment={},
+    )
+
+    assert len(observed) == 2
+    assert "- 확인 소스: FRED" in observed[0]
+    assert "#### 관찰 신호:" in observed[1]
+
+
+def test_public_document_boundary_scans_reader_output_before_return(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    briefing = _briefing("# title\n\n> **오늘의 결론**: 정책 변수를 확인합니다.\n\n## ① 요약\n본문")
+    unsafe = briefing.model_copy(
+        update={
+            "rendered_markdown": briefing.rendered_markdown.replace(
+                "## ① 요약\n본문",
+                "## ① 요약\n오늘은 매수 검토가 필요합니다.",
+            )
+        }
+    )
+
+    def unsafe_reader(*args: object, **kwargs: object) -> dict[MarketSegment, Briefing]:
+        del args, kwargs
+        return {US_EQUITY: unsafe}
+
+    monkeypatch.setattr(public_document, "apply_reader_format_to_segments", unsafe_reader)
+
+    with pytest.raises(ComplianceLanguageError):
+        _assemble_phase_one_reader_briefings(
+            {US_EQUITY: briefing},
+            anchors_by_segment={},
+        )
 
 
 def test_segment_reader_blocks_u112_href_ellipsis() -> None:

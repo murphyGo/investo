@@ -15,6 +15,7 @@ from investo.models.facts import VerifiedFactBundle
 from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import DOMESTIC_EQUITY, CoverageReasonCode, SegmentCoverage
 from investo.publisher import public_document
+from investo.publisher.compliance_language import ComplianceLanguageError
 from investo.publisher.public_document import (
     _COVERAGE_REASON_LIMITATIONS,
     PublicDocumentContext,
@@ -25,6 +26,7 @@ from investo.publisher.public_document import (
     _new_generated_draft,
     _project_assembled_draft,
     _scan_terminal_anchor_assertions,
+    _scan_terminal_compliance,
     _scan_terminal_entity_fact_claims,
     _transition_draft,
 )
@@ -549,6 +551,35 @@ def test_terminal_anchor_guard_reads_final_layout_and_e1_symbols_only() -> None:
         },
     )
     assert _scan_terminal_anchor_assertions(generated, anchored_context) == ()
+
+
+def test_terminal_compliance_guard_reads_final_layout_without_repair() -> None:
+    layout = PublicDocumentLayout.reindex(
+        _layout().markdown.replace("수급 본문", "오늘은 매수 검토가 필요합니다."),
+        expectation=_expectation(),
+    )
+    generated = _new_generated_draft(
+        Briefing(
+            target_date=_TARGET_DATE,
+            market_summary="요약",
+            key_issues="이슈",
+            sector_flow="수급",
+            indicators_events="지표",
+            notable_tickers="종목",
+            today_watch="관전",
+            disclaimer="면책",
+            rendered_markdown=layout.markdown,
+        ),
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+    original_markdown = generated.layout.markdown
+
+    with pytest.raises(ComplianceLanguageError):
+        _scan_terminal_compliance(generated, _context())
+
+    assert generated.layout.markdown == original_markdown
+    assert "매수 검토" in generated.layout.markdown
 
 
 def test_reader_assembly_carries_typed_watchpoint_reason_into_projection() -> None:

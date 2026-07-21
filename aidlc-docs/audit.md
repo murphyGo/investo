@@ -329,6 +329,14 @@
 **Validation**: Focused and integration review scope passed 105 tests; the full publisher/orchestrator unit scope passed 1,057. Strict mypy passed all 242 source files; Ruff check/format and scoped diff checks passed. Fresh-eyes review approved scanner/gate semantic parity, read-only behavior, E1/final-layout ownership, and zero default wrapper calls with no blocker.
 **Next**: Step 4 checklist 6 — retain compliance repair in assembly, make terminal compliance read-only, and remove duplicate/interleaved reader-format ownership after characterization.
 
+## Construction — u144 Code Generation Step 4.6 compliance ownership landed
+
+**Timestamp**: 2026-07-21T21:45:00+09:00
+**Action**: Kept `repair_compliance_language()` in assembly and characterized the two load-bearing scans around watchpoint rendering: raw section-⑥ prose after repair, then rendered watchpoint output. Removed the third scan from the generic reader transform and moved final reader-output fail-close to the public-document phase-1 compatibility boundary. Added the typed `_scan_terminal_compliance()` adapter over final layout bytes for the sealed lifecycle.
+**Review correction**: Fresh-eyes review found that the first draft only defined the typed terminal helper and had removed the prior final reader scan without connecting a production caller. The correction made `_assemble_phase_one_reader_briefings()` scan every returned reader document and added an unsafe-output injection test proving real `ComplianceLanguageError` propagation. Re-review approved with no remaining blocker.
+**Validation**: Focused compliance/assembly/projection/integration scope passed 107 tests; the full publisher/orchestrator unit scope passed 1,060. Strict mypy passed all 242 source files; Ruff check/format and scoped diff checks passed.
+**Next**: Step 4 checklist 7 — register `PublicDocumentFinalizationError` with publish-stage routing and alert/status semantics.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

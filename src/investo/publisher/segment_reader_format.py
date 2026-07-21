@@ -292,7 +292,6 @@ def apply_reader_format_to_segments(
             markdown = repaired_surface
         if _surface_repair_observer is not None:
             _surface_repair_observer(segment, surface_before, markdown)
-        scan_compliance(markdown, segment)
         check_sentence_ending_diversity(markdown, segment=segment)
         check_filler_phrase_density(markdown, segment=segment)
         if markdown == briefing.rendered_markdown:

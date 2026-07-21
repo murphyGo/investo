@@ -64,6 +64,7 @@ from investo.publisher.anchor_assertion_gate import (
     AnchorAssertionFinding,
     scan_anchor_assertions,
 )
+from investo.publisher.compliance_language import ComplianceReport, scan_compliance
 from investo.publisher.daily_thesis import (
     assert_distinct_daily_thesis_lines,
     render_daily_thesis_line,
@@ -331,9 +332,9 @@ def _assemble_phase_one_reader_briefings(
     """Run the legacy reader transform as a phase-1 internal collaborator.
 
     Surface repair remains a text-producing assembly pass. The old transform
-    module no longer claims terminal validation ownership; this compatibility
-    boundary preserves the current fail-close behavior until the read-only
-    terminal validator lands in the finalized lifecycle.
+    module no longer claims the final compatibility scan; this public-document
+    boundary preserves the current fail-close behavior until the typed draft
+    terminal validator consumes :func:`_scan_terminal_compliance` directly.
     """
 
     assembled = apply_reader_format_to_segments(
@@ -344,6 +345,8 @@ def _assemble_phase_one_reader_briefings(
         _surface_repair_observer=_enforce_phase_one_surface_compatibility,
         _watchpoint_result_observer=_watchpoint_result_observer,
     )
+    for segment, briefing in assembled.items():
+        scan_compliance(briefing.rendered_markdown, segment)
     return assembled
 
 
@@ -2332,6 +2335,17 @@ def _scan_terminal_anchor_assertions(
             anchor.ticker for anchor in context.anchors_by_segment.get(draft.segment, ())
         ),
     )
+
+
+def _scan_terminal_compliance(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> ComplianceReport:
+    """Run the existing read-only compliance gate on final layout bytes."""
+
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise ValueError("compliance context identity must match draft")
+    return scan_compliance(draft.layout.markdown, draft.segment)
 
 
 def _scan_terminal_entity_fact_markdown(
