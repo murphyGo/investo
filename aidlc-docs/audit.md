@@ -260,6 +260,15 @@
 **Validation**: Projection/surface/lifecycle tests passed 67. Ruff check/format passed. Fresh-eyes review independently passed 58 focused tests plus Ruff/format/mypy/scoped diff check and approved with no blocker.
 **Next**: Step 3 checklist 5 — add the terminal reader-visible owned-region leakage traversal using the existing u108 predicate.
 
+## Construction — u144 Code Generation Step 3.5 owned-region leakage traversal landed
+
+**Timestamp**: 2026-07-21T17:24:17+09:00
+**Action**: Added `find_reader_visible_public_label_leaks(layout)` and frozen `PublicLabelLeakage` findings. The detector walks typed reader-visible regions in source order and delegates each unfenced line to the existing u108 `first_forbidden_public_evidence()` predicate.
+**Typed boundary**: Protected diagnostics and exact disclaimer regions are excluded by `projection_policy`; the projection module's existing backtick/tilde fence semantics exclude fenced bytes. Reader-visible tables and arbitrary details remain checked. Findings retain only bounded `(region_id, block, evidence)` data.
+**Read-only contract**: The traversal performs no projection, repair, reindex, or mutation. Regression coverage proves the input Markdown and region tuple identity are unchanged, raw reader-visible section/watchpoint findings are ordered, and a projected layout returns zero findings.
+**Validation**: Related projection/reader/lifecycle/surface/integration tests passed 114. Ruff check/format, strict mypy, and scoped diff check passed. Fresh-eyes review independently passed 98 focused tests and approved with no blocker.
+**Next**: Step 3 checklist 6 — add exhaustive coverage-reason mapping and thread the timezone-aware entity observation clock.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

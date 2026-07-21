@@ -316,7 +316,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Change prompt/default producer copy to use the shared public-language map; eliminate raw public defaults from `watchpoint_matrix.py`. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-public-safe-producer-defaults.md`.
 - [x] Make `render_watchpoint_matrix_result()` the production API, accumulate its typed limitation reason in E2, and reduce the legacy string renderer to a zero-production-call compatibility facade. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-typed-watchpoint-result.md`.
 - [x] Preserve raw diagnostic labels inside collapsed diagnostics and structured metadata only. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-protected-diagnostic-metadata-boundary.md`.
-- [ ] Add the read-only owned-region leakage traversal over the existing u108 evidence predicate so reader-visible tables are terminally checked without cloning phrase policy.
+- [x] Add the read-only owned-region leakage traversal over the existing u108 evidence predicate so reader-visible tables are terminally checked without cloning phrase policy. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-owned-region-leakage-traversal.md`.
 - [ ] Add the exhaustive `CoverageReasonCode -> PublicLimitationReason` mapping test and pass timezone-aware `entity_observed_at_utc` into the existing entity guard.
 - [ ] Add whole-chain regression proving the run-29707052598 watchpoint shape finalizes with zero `public_diagnostic.raw_label` issues.
 

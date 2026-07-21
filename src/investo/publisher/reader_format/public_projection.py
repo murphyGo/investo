@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
 from investo._internal.public_quality_language import (
@@ -11,6 +13,7 @@ from investo._internal.public_quality_language import (
 )
 
 if TYPE_CHECKING:
+    from investo.publisher._public_document_policy import PublicBlockKind
     from investo.publisher.public_document import (
         PublicDocumentLayout,
         PublicLimitationReason,
@@ -19,6 +22,15 @@ if TYPE_CHECKING:
 _FENCE_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})(?P<suffix>.*)$"
 )
+
+
+@dataclass(frozen=True, slots=True)
+class PublicLabelLeakage:
+    """One bounded u108 evidence match in a reader-visible owned region."""
+
+    region_id: str
+    block: PublicBlockKind
+    evidence: str
 
 
 def _line_content_and_ending(raw_line: str) -> tuple[str, str]:
@@ -69,6 +81,50 @@ def _project_reader_visible_region(markdown: str) -> str:
     return "".join(projected)
 
 
+def _iter_unfenced_reader_lines(markdown: str) -> Iterator[str]:
+    fence_marker: tuple[str, int] | None = None
+    for raw_line in markdown.splitlines(keepends=True):
+        line, _ending = _line_content_and_ending(raw_line)
+        if fence_marker is None:
+            opening = _opening_fence(line)
+            if opening is not None:
+                fence_marker = opening
+                continue
+            yield line
+            continue
+        if _is_closing_fence(line, fence_marker):
+            fence_marker = None
+
+
+def find_reader_visible_public_label_leaks(
+    layout: PublicDocumentLayout,
+) -> tuple[PublicLabelLeakage, ...]:
+    """Read every reader-visible owned region through the u108 predicate.
+
+    Protected diagnostics, exact disclaimer bytes, and fenced code are outside
+    this public-language check by their existing typed policies. Reader-visible
+    tables and arbitrary details receive no blanket exemption. The traversal
+    never repairs, reindexes, or mutates the supplied layout.
+    """
+
+    leaks: list[PublicLabelLeakage] = []
+    for region in layout.regions:
+        if region.projection_policy != "reader_visible":
+            continue
+        fragment = layout.markdown[region.start : region.end]
+        for line in _iter_unfenced_reader_lines(fragment):
+            evidence = first_forbidden_public_evidence(line)
+            if evidence is not None:
+                leaks.append(
+                    PublicLabelLeakage(
+                        region_id=region.region_id,
+                        block=region.block,
+                        evidence=evidence,
+                    )
+                )
+    return tuple(leaks)
+
+
 def project_public_markdown(
     layout: PublicDocumentLayout,
     *,
@@ -96,4 +152,8 @@ def project_public_markdown(
     return type(layout).reindex(markdown, expectation=layout.expectation)
 
 
-__all__ = ["project_public_markdown"]
+__all__ = [
+    "PublicLabelLeakage",
+    "find_reader_visible_public_label_leaks",
+    "project_public_markdown",
+]

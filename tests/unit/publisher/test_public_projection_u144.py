@@ -19,6 +19,10 @@ from investo.publisher.public_document import (
     _project_assembled_draft,
     _transition_draft,
 )
+from investo.publisher.reader_format import (
+    PublicLabelLeakage,
+    find_reader_visible_public_label_leaks,
+)
 from investo.publisher.reader_format.public_projection import project_public_markdown
 
 _TARGET_DATE = date(2026, 7, 21)
@@ -201,6 +205,36 @@ def test_projection_keeps_raw_structured_source_metadata_private() -> None:
     assert projected.source_briefing.rendered_markdown == layout.markdown
     assert projected.layout.markdown != layout.markdown
     assert "데이터 부족입니다" not in projected.layout.markdown
+
+
+def test_reader_visible_leakage_traversal_is_owned_and_read_only() -> None:
+    layout = _layout()
+    original_markdown = layout.markdown
+    original_regions = layout.regions
+
+    leaks = find_reader_visible_public_label_leaks(layout)
+
+    assert leaks == (
+        PublicLabelLeakage(
+            region_id="section:1",
+            block="section_body",
+            evidence="데이터 부족",
+        ),
+        PublicLabelLeakage(
+            region_id="watchpoints:section",
+            block="watchpoints",
+            evidence="데이터 부족",
+        ),
+    )
+    assert layout.markdown == original_markdown
+    assert layout.regions is original_regions
+
+
+def test_reader_visible_leakage_traversal_accepts_projected_owned_regions() -> None:
+    layout = _layout()
+    projected = project_public_markdown(layout, limitation_reasons=("limited_coverage",))
+
+    assert find_reader_visible_public_label_leaks(projected) == ()
 
 
 def test_projection_is_byte_idempotent_and_preserves_crlf() -> None:
