@@ -154,6 +154,16 @@
 **Scope**: Tests/docs only; no production call site changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 2 checklist 1 — move nav, canonical/short disclaimer, summary repair, and body-used rendering into assembly phase 1.
 
+## Construction — u144 Code Generation Step 2.1 phase-one publish mutations landed
+
+**Timestamp**: 2026-07-21T00:00:00+09:00
+**Action**: Moved active-segment navigation, first-viewport short disclaimer, canonical disclaimer, first-viewport summary repair, and body-used evidence rendering behind pure phase-1 assembly collaborators in `publisher.public_document` before the existing publish-boundary validators.
+**Evidence**: Assembly validates canonical active-segment/date/key identity, preserves the historical transform order, renders explicit absence navigation for partial publication, and is byte-idempotent. `_stage_publish_segments` no longer owns direct Markdown rewrite helpers; it supplies source/fact evidence to the phase-1 owner and runs the existing validators afterward.
+**Rollback correction**: Fresh-eyes review found that a phase-1 `ValueError` could bypass cleanup after visual assets were staged. The pre-write catch now rolls back snapshots for every ordinary exception and re-raises the original error; a target-date mismatch plus real staged SVG regression proves no orphan remains.
+**Validation**: Scoped Ruff/format passed; strict mypy passed for 59 publisher/orchestrator source files; 6 focused, 594 publisher, and 374 orchestrator tests passed; fresh-eyes re-review approved with no remaining findings.
+**Scope**: No sealed-writer production switch or terminal finalizer was introduced. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 2 checklist 2 — make `segment_reader_format` an internal assembly collaborator and remove its premature terminal surface gate.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

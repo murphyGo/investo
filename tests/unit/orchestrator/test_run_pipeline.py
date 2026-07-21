@@ -1354,10 +1354,10 @@ def test_rewrite_segment_nav_for_partial_publish_labels_missing_segments() -> No
         }
     )
 
-    rewritten = pipeline_module._rewrite_segment_nav_for_published_segments(
+    rewritten = pipeline_module._assemble_phase_one_presentation_briefings(
         {CRYPTO: briefing},
         target_date=_TARGET,
-        published_segments=(CRYPTO,),
+        active_segments=(CRYPTO,),
     )
 
     markdown = rewritten[CRYPTO].rendered_markdown
@@ -2641,6 +2641,28 @@ def _patch_publish_segments_side_effects(
 
     monkeypatch.setattr(pipeline_module, "publish_weekly_digest", fake_publish_weekly_digest)
     monkeypatch.setattr(pipeline_module, "update_weekly_index", fake_update_weekly_index)
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_identity_failure_removes_staged_asset(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
+    asset_path = tmp_path / "archive" / DOMESTIC_EQUITY / "staged.assets" / "chart.svg"
+    asset_path.parent.mkdir(parents=True)
+    asset_path.write_text("<svg/>", encoding="utf-8")
+    mismatched = _briefing(date(2026, 4, 26), segment=DOMESTIC_EQUITY)
+
+    with pytest.raises(ValueError, match="briefing target_date must match"):
+        await pipeline_module._stage_publish_segments(
+            {DOMESTIC_EQUITY: mismatched},
+            _TARGET,
+            asset_paths=(asset_path,),
+            git_runner=_SuccessfulGitRunner(),
+        )
+
+    assert not asset_path.exists()
 
 
 def _patch_watchlist_publish_inputs(

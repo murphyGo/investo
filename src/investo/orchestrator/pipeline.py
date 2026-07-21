@@ -68,7 +68,6 @@ import importlib
 import json
 import logging
 import os
-import re
 import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, Sequence
@@ -85,7 +84,6 @@ from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
 )
-from investo.briefing.disclaimer import ensure_canonical_disclaimer
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.fact_context import (
     VerifiedFactConflictError,
@@ -136,10 +134,7 @@ from investo.briefing.segments import (
     segment_items,
     segment_source_outcomes,
 )
-from investo.briefing.summary_quality import (
-    SummaryQualityError,
-    repair_first_viewport_summary,
-)
+from investo.briefing.summary_quality import SummaryQualityError
 from investo.briefing.watchlist import WatchlistConfig, load_watchlist, match_watchlist_items
 from investo.models import (
     Briefing,
@@ -215,10 +210,11 @@ from investo.publisher.compliance_language import (
     ComplianceLanguageError,
 )
 from investo.publisher.entity_fact_guard import scan_entity_fact_claims
-from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
+from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
-from investo.publisher.reader_format import (
-    emit_first_viewport_disclaimer,
+from investo.publisher.public_document import (
+    _assemble_phase_one_body_evidence,
+    _assemble_phase_one_presentation_briefings,
 )
 from investo.publisher.segment_reader_format import (
     apply_reader_format_to_segments as _apply_reader_format_to_segments,
@@ -264,7 +260,6 @@ _logger = logging.getLogger("investo.orchestrator.pipeline")
 _DRY_RUN_ENV: Final[str] = "INVESTO_DRY_RUN"
 _SEGMENT_GENERATION_CONCURRENCY_ENV: Final[str] = "INVESTO_SEGMENT_GENERATION_CONCURRENCY"
 _VISUAL_PREP_CONCURRENCY_ENV: Final[str] = "INVESTO_VISUAL_PREP_CONCURRENCY"
-_SEGMENT_NAV_LINE_RE: Final[re.Pattern[str]] = re.compile(r"^\*\*세그먼트\*\*: .*$", re.MULTILINE)
 
 
 def _is_dry_run() -> bool:
@@ -1217,74 +1212,24 @@ async def _stage_publish_segments(
         path: _read_existing_bytes(path) for path in snapshot_paths
     }
     snapshots.update({path: None for path in asset_paths})
-    briefings = _rewrite_segment_nav_for_published_segments(
-        briefings,
-        target_date=target_date,
-        published_segments=published_segments,
-    )
-
-    # u56 — ensure the segment-aware first-viewport short disclaimer is
-    # present BEFORE the gate checks it. The reader-format chain inserts
-    # it for full run_pipeline paths; this defensive pass covers callers
-    # that bypass _apply_reader_format_to_segments (e.g. unit tests
-    # exercising _stage_publish_segments directly). Idempotent — a
-    # second insertion is a noop.
-    briefings = {
-        segment: briefing.model_copy(
-            update={
-                "rendered_markdown": emit_first_viewport_disclaimer(
-                    briefing.rendered_markdown, segment
-                )
-            }
-        )
-        if emit_first_viewport_disclaimer(briefing.rendered_markdown, segment)
-        != briefing.rendered_markdown
-        else briefing
-        for segment, briefing in briefings.items()
-    }
-
     try:
+        briefings = _assemble_phase_one_presentation_briefings(
+            briefings,
+            target_date=target_date,
+            active_segments=published_segments,
+        )
         for segment in published_segments:
-            canonical_markdown = ensure_canonical_disclaimer(
-                briefings[segment].rendered_markdown,
-                segment,
-            )
-            if canonical_markdown != briefings[segment].rendered_markdown:
-                _logger.warning(
-                    "[publish] repaired canonical disclaimer segment=%s",
-                    segment,
-                )
-                briefings[segment] = briefings[segment].model_copy(
-                    update={"rendered_markdown": canonical_markdown}
-                )
-            repaired_markdown = repair_first_viewport_summary(briefings[segment].rendered_markdown)
-            if repaired_markdown != briefings[segment].rendered_markdown:
-                _logger.warning(
-                    "[publish] repaired first-viewport summary segment=%s",
-                    segment,
-                )
-                briefings[segment] = briefings[segment].model_copy(
-                    update={"rendered_markdown": repaired_markdown}
-                )
             segment_items_for_evidence = segment_items(items).for_segment(segment)
             verified_report = verify_core_facts(
                 briefings[segment].rendered_markdown,
                 segment_items_for_evidence,
             )
-            evidence_counts = count_rendered_evidence(
-                briefings[segment].rendered_markdown,
+            briefings[segment] = _assemble_phase_one_body_evidence(
+                briefings[segment],
                 segment=segment,
                 source_outcomes=segment_source_outcomes(segment, source_outcomes),
                 verified_facts=tuple(verified_report.verified),
             )
-            updated_markdown = render_body_used_count(
-                briefings[segment].rendered_markdown,
-                evidence_counts,
-            )
-            if updated_markdown != briefings[segment].rendered_markdown:
-                briefings[segment] = briefings[segment].model_copy(
-                    update={"rendered_markdown": updated_markdown}
-                )
             # u85 — the per-segment publish-boundary gate trio is run
             # through the shared validator registry (first-viewport
             # summary → canonical disclaimer footer → first-viewport short
@@ -1299,10 +1244,11 @@ async def _stage_publish_segments(
                 if _gate_result.is_block:
                     _logger.error("[publish] %s", _gate_result.message)
                     raise PublisherDisclaimerError(target_date=target_date)
-    except (SummaryQualityError, PublisherDisclaimerError, PublisherIOError):
+    except Exception:
         # Visual asset files (snapshotted with previous_bytes=None) must be
-        # rolled back — otherwise a SummaryQualityError leaves orphan
-        # ``*.assets/`` SVGs on disk that the next run picks up as stale.
+        # rolled back for every pre-write assembly failure — otherwise an
+        # identity invariant (or another phase-1 collaborator error) leaves
+        # orphan ``*.assets/`` files that the next run picks up as stale.
         _rollback_paths(snapshots)
         raise
 
@@ -1970,48 +1916,6 @@ def _forecast_briefing_urls(
         segment: f"archive/{segment}/{target_date:%Y}/{target_date:%m}/{target_date.isoformat()}.md"
         for segment in published_segments
     }
-
-
-def _rewrite_segment_nav_for_published_segments(
-    briefings: dict[MarketSegment, Briefing],
-    *,
-    target_date: date,
-    published_segments: Sequence[MarketSegment],
-) -> dict[MarketSegment, Briefing]:
-    """Rewrite nav so partial publishes label missing segments explicitly."""
-    published_set = set(published_segments)
-    rewritten: dict[MarketSegment, Briefing] = {}
-    for segment, briefing in briefings.items():
-        nav_line = _segment_nav_line(
-            target_date,
-            current_segment=segment,
-            published_segments=published_set,
-        )
-        markdown = _SEGMENT_NAV_LINE_RE.sub(nav_line, briefing.rendered_markdown, count=1)
-        rewritten[segment] = briefing.model_copy(update={"rendered_markdown": markdown})
-    return rewritten
-
-
-def _segment_nav_line(
-    target_date: date,
-    *,
-    current_segment: MarketSegment,
-    published_segments: set[MarketSegment],
-) -> str:
-    parts: list[str] = []
-    filename = f"{target_date.isoformat()}.md"
-    for segment in SEGMENT_ORDER:
-        label = SEGMENT_LABELS[segment]
-        if segment not in published_segments:
-            parts.append(f"{label}(미발행)")
-            continue
-        href = (
-            filename
-            if segment == current_segment
-            else f"../../../{segment}/{target_date.year}/{target_date.month:02d}/{filename}"
-        )
-        parts.append(f"[{label}]({href})")
-    return f"**세그먼트**: {' | '.join(parts)}"
 
 
 def _maybe_publish_monthly_retrospective(

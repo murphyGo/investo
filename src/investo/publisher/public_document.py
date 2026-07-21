@@ -18,6 +18,8 @@ from types import MappingProxyType
 from typing import Final, Literal, Self, TypeVar
 from unicodedata import name as unicode_name
 
+from investo._internal.disclaimer import ensure_canonical_disclaimer
+from investo._internal.summary_quality import repair_first_viewport_summary
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
@@ -34,6 +36,8 @@ from investo.models.segments import (
     SegmentCoverage,
 )
 from investo.publisher._public_document_policy import PUBLIC_BLOCK_KINDS, PublicBlockKind
+from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
+from investo.publisher.reader_format import emit_first_viewport_disclaimer
 
 PublicDocumentPhase = Literal["generated", "assembled", "projected", "repaired", "validated"]
 PublicBlockDisposition = Literal["kept", "repaired", "replaced", "omitted"]
@@ -123,6 +127,10 @@ _CHANNEL_ANCHOR_HEADING: Final[str] = "## ⓪-B 채널 기준선"
 _CAUSE_PREFIX: Final[str] = "> **크로스마켓 연결 고리**:"
 _THESIS_PREFIX: Final[str] = "> **오늘의 큰 그림:**"
 _NAVIGATION_PREFIX: Final[str] = "**세그먼트**:"
+_NAVIGATION_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    rf"^{re.escape(_NAVIGATION_PREFIX)} .*$",
+    re.MULTILINE,
+)
 _SHORT_DISCLAIMER_EQUITY: Final[str] = "> 정보 제공용 자동 시황이며 매매 권유가 아닙니다."
 _SHORT_DISCLAIMER_CRYPTO: Final[str] = (
     "> 정보 제공용 자동 시황이며 가상자산 매매 권유가 아닙니다. "
@@ -133,6 +141,104 @@ _CRYPTO_ANCHOR_HEADER: Final[str] = "| 종목 | 스냅샷(UTC 24h) | 구간 변�
 _ANCHOR_DELIMITER: Final[str] = "|------|------|------|------|"
 _K = TypeVar("_K")
 _V = TypeVar("_V")
+
+
+def _canonical_active_segments(
+    active_segments: Sequence[MarketSegment],
+) -> tuple[MarketSegment, ...]:
+    active = tuple(active_segments)
+    if len(set(active)) != len(active) or any(segment not in _SEGMENTS for segment in active):
+        raise ValueError("active_segments must contain unique known segments")
+    canonical = tuple(segment for segment in _CANONICAL_SEGMENT_ORDER if segment in active)
+    if active != canonical:
+        raise ValueError("active_segments must use canonical segment order")
+    if not active:
+        raise ValueError("active_segments must not be empty")
+    return active
+
+
+def _active_segment_nav_line(
+    target_date: date,
+    *,
+    current_segment: MarketSegment,
+    active_segments: Sequence[MarketSegment],
+) -> str:
+    active = set(_canonical_active_segments(active_segments))
+    if current_segment not in active:
+        raise ValueError("current_segment must be active")
+    filename = f"{target_date.isoformat()}.md"
+    parts: list[str] = []
+    for segment in _CANONICAL_SEGMENT_ORDER:
+        label = SEGMENT_LABELS[segment]
+        if segment not in active:
+            parts.append(f"{label}(미발행)")
+            continue
+        href = (
+            filename
+            if segment == current_segment
+            else f"../../../{segment}/{target_date.year}/{target_date.month:02d}/{filename}"
+        )
+        parts.append(f"[{label}]({href})")
+    return f"{_NAVIGATION_PREFIX} {' | '.join(parts)}"
+
+
+def _assemble_phase_one_presentation_briefings(
+    briefings: Mapping[MarketSegment, Briefing],
+    *,
+    target_date: date,
+    active_segments: Sequence[MarketSegment],
+) -> dict[MarketSegment, Briefing]:
+    """Run nav/disclaimer/summary text producers in phase 1 (pure)."""
+
+    active = _canonical_active_segments(active_segments)
+    if set(briefings) != set(active):
+        raise ValueError("briefing keys must exactly match active_segments")
+    assembled: dict[MarketSegment, Briefing] = {}
+    for segment in active:
+        briefing = briefings[segment]
+        if briefing.target_date != target_date:
+            raise ValueError("briefing target_date must match assembly target_date")
+        markdown = _NAVIGATION_LINE_RE.sub(
+            _active_segment_nav_line(
+                target_date,
+                current_segment=segment,
+                active_segments=active,
+            ),
+            briefing.rendered_markdown,
+            count=1,
+        )
+        markdown = emit_first_viewport_disclaimer(markdown, segment)
+        markdown = ensure_canonical_disclaimer(markdown, segment)
+        markdown = repair_first_viewport_summary(markdown)
+        assembled[segment] = (
+            briefing
+            if markdown == briefing.rendered_markdown
+            else briefing.model_copy(update={"rendered_markdown": markdown})
+        )
+    return assembled
+
+
+def _assemble_phase_one_body_evidence(
+    briefing: Briefing,
+    *,
+    segment: MarketSegment,
+    source_outcomes: Sequence[SourceOutcome],
+    verified_facts: Sequence[object],
+) -> Briefing:
+    """Render the u123 body-used producer inside phase 1 (pure)."""
+
+    counts = count_rendered_evidence(
+        briefing.rendered_markdown,
+        segment=segment,
+        source_outcomes=tuple(source_outcomes),
+        verified_facts=tuple(verified_facts),
+    )
+    markdown = render_body_used_count(briefing.rendered_markdown, counts)
+    return (
+        briefing
+        if markdown == briefing.rendered_markdown
+        else briefing.model_copy(update={"rendered_markdown": markdown})
+    )
 
 
 def _require_identifier(value: str, *, field_name: str) -> None:
