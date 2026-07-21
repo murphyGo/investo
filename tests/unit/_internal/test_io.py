@@ -73,6 +73,7 @@ def test_write_atomic_failed_replace_keeps_prior_destination(
         write_atomic(target, "should not land")
 
     assert target.read_text(encoding="utf-8") == "original"
+    assert not target.with_suffix(target.suffix + ".tmp").exists()
 
 
 def test_write_atomic_bytes_failed_replace_keeps_prior_destination(
@@ -90,3 +91,4 @@ def test_write_atomic_bytes_failed_replace_keeps_prior_destination(
         write_atomic_bytes(target, b"should not land")
 
     assert target.read_bytes() == b"original"
+    assert not target.with_suffix(target.suffix + ".tmp").exists()

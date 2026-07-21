@@ -352,6 +352,14 @@
 **Validation**: Focused pipeline/finalizer/integration scope passed 119; full publisher/orchestrator unit scope passed 1,063; Ruff check/format and strict mypy over 243 source files passed. Architecture tests reject GenerateStage reader retry/calls and require exactly one PublishStage finalizer call. The Step 4.7 execution-level E8 propagation recommendation is covered. Fresh-eyes review approved with no Critical/High finding; its one Medium test gap was closed by a direct sealed-path regression proving both phase-one helpers stay uncalled and exact Markdown reaches `write_briefing`.
 **Next**: Step 4 checklist 9 — move all file-producing supplements to the run-owned staging root and preserve rollback for failures during promotion/write/index/quality I/O.
 
+## Construction — u144 Code Generation Step 4.9 staged promotion and rollback landed
+
+**Timestamp**: 2026-07-21T23:55:00+09:00
+**Action**: Wrapped the complete pipeline stage sequence in one context-managed temporary artifact root. Visual and chart writers now receive that root explicitly and return typed descriptors; visual/carryover/chart supplements and artifacts are grouped into E1. No reader-facing visual/chart destination is created before E6, and only the E6 promotion manifest is promoted.
+**Transaction behavior**: Promotion runs inside the existing pre-git snapshots before sealed Markdown and derived public surfaces are written. Promotion or covered later-I/O failure restores prior public bytes and removes new destinations. E8 performs no public promotion/write. The temporary root is removed on success, E8, covered failure, programmer error, and cancellation. Existing `PublisherGitError` semantics remain unchanged after commit/push begins.
+**Validation**: Publisher/orchestrator/staging/atomic-I/O/pipeline integration scope passed 1,122; Ruff check/format and strict mypy over 243 source files passed. Regressions prove E8 public-byte identity plus staging cleanup, writer failure after real E6 promotion restores prior Markdown/visual bytes and removes all other promoted files, cancellation drains visual/writer threads before cleanup or rollback, and failed atomic replacement preserves prior bytes without a leftover `.tmp` sibling. Fresh-eyes review's cancellation and atomic-cleanup findings were closed and independently revalidated.
+**Next**: Step 5 checklist 1 — switch segmented archive writes from the sealed compatibility `Briefing` view to `write_finalized_document()`.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

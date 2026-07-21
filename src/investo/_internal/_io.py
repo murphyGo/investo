@@ -22,15 +22,16 @@ Leak boundaries the helper cannot hide (state them, do not pretend):
   after return may lose the data even though the rename "succeeded".
   Callers needing crash-durability must add their own ``fsync``.
 
-Both helpers create ``path.parent`` (``parents=True, exist_ok=True``)
-and never leave the ``<path>.tmp`` sibling behind on the success path.
-``OSError`` propagates unchanged to the caller (callers map it to their
-own domain error as before).
+Both helpers create ``path.parent`` (``parents=True, exist_ok=True``) and
+best-effort remove the ``<path>.tmp`` sibling on both success and failure.
+The original ``OSError`` propagates unchanged to the caller (callers map it
+to their own domain error as before).
 """
 
 from __future__ import annotations
 
 import os
+from contextlib import suppress
 from pathlib import Path
 
 __all__ = ["write_atomic", "write_atomic_bytes"]
@@ -46,8 +47,12 @@ def write_atomic(path: Path, text: str) -> None:
     """
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path.write_text(text, encoding="utf-8")
-    os.replace(tmp_path, path)
+    try:
+        tmp_path.write_text(text, encoding="utf-8")
+        os.replace(tmp_path, path)
+    finally:
+        with suppress(OSError):
+            tmp_path.unlink(missing_ok=True)
 
 
 def write_atomic_bytes(path: Path, data: bytes) -> None:
@@ -58,5 +63,9 @@ def write_atomic_bytes(path: Path, data: bytes) -> None:
     """
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path.write_bytes(data)
-    os.replace(tmp_path, path)
+    try:
+        tmp_path.write_bytes(data)
+        os.replace(tmp_path, path)
+    finally:
+        with suppress(OSError):
+            tmp_path.unlink(missing_ok=True)

@@ -70,16 +70,17 @@ import logging
 import os
 import time
 import traceback
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Final, cast, overload
+from typing import Any, Final, TypeVar, cast, overload
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo._internal.archive_layout import ArchiveLayout
+from investo._internal.artifact_staging import temporary_artifact_staging_root
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
@@ -231,6 +232,7 @@ from investo.publisher.site_index import (
     update_latest_index_pages,
     update_quality_page,
 )
+from investo.publisher.staged_artifacts import promote_finalized_bundle_artifacts
 from investo.publisher.weekly_digest import (
     WEEKLY_INDEX_PATH,
 )
@@ -375,6 +377,34 @@ SEGMENT_GENERATION_POLICIES: dict[MarketSegment, GenerationPolicy] = {
     CRYPTO: GenerationPolicy(timeout_s=1800.0, max_attempts=3, total_budget_s=5700.0),
 }
 
+_ThreadResult = TypeVar("_ThreadResult")
+
+
+async def _to_thread_drained(
+    func: Callable[..., _ThreadResult],
+    /,
+    *args: object,
+    **kwargs: object,
+) -> _ThreadResult:
+    """Run sync work and drain its worker before propagating cancellation."""
+
+    task = asyncio.create_task(asyncio.to_thread(func, *args, **kwargs))
+    cancellation: asyncio.CancelledError | None = None
+    while not task.done():
+        try:
+            await asyncio.shield(task)
+        except asyncio.CancelledError as exc:
+            cancellation = exc
+        except BaseException:
+            if cancellation is None:
+                raise
+            break
+    if cancellation is not None:
+        with contextlib.suppress(BaseException):
+            task.result()
+        raise cancellation
+    return task.result()
+
 
 @dataclass(frozen=True, slots=True)
 class _SegmentGenerationResult:
@@ -389,7 +419,8 @@ class _SegmentGenerationResult:
 class _VisualPrepResult:
     segment: MarketSegment
     briefing: Briefing
-    asset_paths: tuple[Path, ...]
+    staged_artifacts: tuple[StagedArtifact, ...]
+    supplements: tuple[PublicDocumentSupplement, ...]
 
 
 async def _default_generate_briefing(
@@ -1150,6 +1181,8 @@ async def _stage_publish_segments(
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
     extra_commit_paths: Sequence[Path] = (),
     phase_one_complete: bool = False,
+    finalized_bundle: FinalizedPublicBundle | None = None,
+    staging_root: Path | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -1178,6 +1211,7 @@ async def _stage_publish_segments(
         path: _read_existing_bytes(path) for path in snapshot_paths
     }
     snapshots.update({path: None for path in asset_paths})
+    promoted_asset_paths: tuple[Path, ...] = ()
     try:
         if not phase_one_complete:
             briefings = _assemble_phase_one_presentation_briefings(
@@ -1208,6 +1242,18 @@ async def _stage_publish_segments(
                         raise PublisherDisclaimerError(target_date=target_date)
         elif any(briefing.target_date != target_date for briefing in briefings.values()):
             raise ValueError("finalized briefing target_date must match publish target_date")
+        if finalized_bundle is not None:
+            if finalized_bundle.promotion_manifest and staging_root is None:
+                raise ValueError("artifact promotion requires a staging root")
+            if staging_root is not None:
+                from investo.publisher.paths import ARCHIVE_ROOT
+
+                promoted_asset_paths = promote_finalized_bundle_artifacts(
+                    finalized_bundle,
+                    staging_root=staging_root,
+                    archive_root=ARCHIVE_ROOT,
+                    snapshots=snapshots,
+                )
     except Exception:
         # Visual asset files (snapshotted with previous_bytes=None) must be
         # rolled back for every pre-write assembly failure — otherwise an
@@ -1221,7 +1267,7 @@ async def _stage_publish_segments(
         weekly_paths: tuple[Path, ...] = ()
         macro_lineage_paths: tuple[Path, ...] = ()
         for segment in published_segments:
-            archive_path = await asyncio.to_thread(
+            archive_path = await _to_thread_drained(
                 write_briefing,
                 briefings[segment],
                 target_date,
@@ -1247,7 +1293,7 @@ async def _stage_publish_segments(
                 if traces:
                     lineage_path = _macro_lineage_trace_path(target_date, segment)
                     snapshots[lineage_path] = _read_existing_bytes(lineage_path)
-                    written_lineage_path = await asyncio.to_thread(
+                    written_lineage_path = await _to_thread_drained(
                         _write_macro_lineage_traces,
                         target_date,
                         segment=segment,
@@ -1276,17 +1322,17 @@ async def _stage_publish_segments(
             for segment_index_path in SEGMENT_ARCHIVE_INDEX_PATHS.values():
                 snapshots[segment_index_path] = _read_existing_bytes(segment_index_path)
 
-            heatmap_svg = await asyncio.to_thread(
+            heatmap_svg = await _to_thread_drained(
                 _build_publish_heatmap_svg,
                 target_date,
             )
-            index_paths = await asyncio.to_thread(
+            index_paths = await _to_thread_drained(
                 update_latest_index_pages,
                 target_date,
                 segment_briefings=briefings,
                 heatmap_svg=heatmap_svg,
             )
-            og_card_paths = await asyncio.to_thread(
+            og_card_paths = await _to_thread_drained(
                 write_og_card,
                 target_date,
                 briefings,
@@ -1309,7 +1355,7 @@ async def _stage_publish_segments(
             }
             if not _is_dry_run():
                 snapshots[quality_history_path] = _read_existing_bytes(quality_history_path)
-                written_quality_history = await asyncio.to_thread(
+                written_quality_history = await _to_thread_drained(
                     append_quality_snapshot,
                     target_date,
                     snapshot=_build_quality_snapshot(
@@ -1324,7 +1370,7 @@ async def _stage_publish_segments(
                 quality_history_paths = (written_quality_history,)
             quality_path_resolved = _site_index_mod.QUALITY_PAGE_PATH
             snapshots[quality_path_resolved] = _read_existing_bytes(quality_path_resolved)
-            quality_path = await asyncio.to_thread(
+            quality_path = await _to_thread_drained(
                 update_quality_page,
                 target_date,
                 coverage_path=source_health.resolve_coverage_path(),
@@ -1341,7 +1387,7 @@ async def _stage_publish_segments(
             # dashboard so a healthier-looking public surface cannot ship
             # alongside a failed / limited archive body. A genuine
             # contradiction rolls back this run's writes and raises.
-            await asyncio.to_thread(
+            await _to_thread_drained(
                 _enforce_quality_consistency_gate,
                 target_date,
                 briefings=briefings,
@@ -1354,7 +1400,7 @@ async def _stage_publish_segments(
                 forecast_log_path = resolve_forecast_log_path()
                 snapshots[forecast_log_path] = _read_existing_bytes(forecast_log_path)
                 snapshots[ACCURACY_PAGE_PATH] = _read_existing_bytes(ACCURACY_PAGE_PATH)
-                forecast_log_written = await asyncio.to_thread(
+                forecast_log_written = await _to_thread_drained(
                     append_forecast_entries,
                     target_date,
                     segment_briefings=briefings,
@@ -1362,7 +1408,7 @@ async def _stage_publish_segments(
                     briefing_urls=_forecast_briefing_urls(target_date, published_segments),
                     log_path=forecast_log_path,
                 )
-                accuracy_page = await asyncio.to_thread(
+                accuracy_page = await _to_thread_drained(
                     update_accuracy_page,
                     forecast_log_path=forecast_log_path,
                     accuracy_page_path=ACCURACY_PAGE_PATH,
@@ -1372,7 +1418,7 @@ async def _stage_publish_segments(
 
             monthly_paths: tuple[Path, ...] = ()
             if not _is_dry_run():
-                monthly_paths = await asyncio.to_thread(
+                monthly_paths = await _to_thread_drained(
                     _maybe_publish_monthly_retrospective,
                     target_date,
                     snapshots,
@@ -1406,7 +1452,7 @@ async def _stage_publish_segments(
                     all_matches.extend(impact_for_match.matches)
             for path in watchlist_publish_paths_for(all_matches):
                 snapshots.setdefault(path, _read_existing_bytes(path))
-            watchlist_paths = await asyncio.to_thread(
+            watchlist_paths = await _to_thread_drained(
                 update_watchlist_pages,
                 target_date,
                 all_matches,
@@ -1427,7 +1473,7 @@ async def _stage_publish_segments(
                 for segment_for_link in SEGMENT_ORDER
                 if segment_for_link in briefings
             ]
-            daily_path = await asyncio.to_thread(
+            daily_path = await _to_thread_drained(
                 write_daily_impact_page,
                 target_date,
                 impact_center,
@@ -1443,24 +1489,18 @@ async def _stage_publish_segments(
                 weekly_md_path = compute_weekly_path(target_date)
                 snapshots[weekly_md_path] = _read_existing_bytes(weekly_md_path)
                 snapshots[WEEKLY_INDEX_PATH] = _read_existing_bytes(WEEKLY_INDEX_PATH)
-                written_weekly = await asyncio.to_thread(
+                written_weekly = await _to_thread_drained(
                     publish_weekly_digest,
                     target_date,
                 )
-                weekly_index_path = await asyncio.to_thread(update_weekly_index)
+                weekly_index_path = await _to_thread_drained(update_weekly_index)
                 weekly_paths = (written_weekly, weekly_index_path)
                 _logger.info(
                     "[publish] weekly digest written %s + index %s",
                     written_weekly,
                     weekly_index_path,
                 )
-    except (
-        PublisherDisclaimerError,
-        PublisherIOError,
-        QualityHistoryError,
-        ForecastLogError,
-        QualityConsistencyError,
-    ):
+    except BaseException:
         _rollback_paths(snapshots)
         raise
 
@@ -1470,12 +1510,13 @@ async def _stage_publish_segments(
         else f"briefing: {target_date} segmented partial"
     )
     dry_run = _is_dry_run()
-    await asyncio.to_thread(
+    await _to_thread_drained(
         commit_and_push,
         commit_message,
         [
             *archive_paths.values(),
             *asset_paths,
+            *promoted_asset_paths,
             *macro_lineage_paths,
             *index_paths,
             *weekly_paths,
@@ -1501,6 +1542,8 @@ def _inject_chart_blocks_into_segments(
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
     staging_root: None = None,
+    supplements_by_segment: MutableMapping[MarketSegment, tuple[PublicDocumentSupplement, ...]]
+    | None = None,
 ) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]: ...
 
 
@@ -1512,6 +1555,8 @@ def _inject_chart_blocks_into_segments(
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
     staging_root: Path,
+    supplements_by_segment: MutableMapping[MarketSegment, tuple[PublicDocumentSupplement, ...]]
+    | None = None,
 ) -> tuple[dict[MarketSegment, Briefing], tuple[StagedArtifact, ...]]: ...
 
 
@@ -1522,6 +1567,8 @@ def _inject_chart_blocks_into_segments(
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
     staging_root: Path | None = None,
+    supplements_by_segment: MutableMapping[MarketSegment, tuple[PublicDocumentSupplement, ...]]
+    | None = None,
 ) -> tuple[
     dict[MarketSegment, Briefing],
     tuple[Path, ...] | tuple[StagedArtifact, ...],
@@ -1588,6 +1635,11 @@ def _inject_chart_blocks_into_segments(
                 artifact_ids=tuple(artifact.artifact_id for artifact in segment_staged_sidecars),
             ),
         )
+        if supplements_by_segment is not None:
+            supplements_by_segment[segment] = (
+                *supplements_by_segment.get(segment, ()),
+                *supplements,
+            )
         updated = _apply_pre_finalization_supplements(
             briefing,
             supplements=supplements,
@@ -1706,6 +1758,8 @@ def _inject_carryover_into_segments(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
     carryover_by_segment: Mapping[MarketSegment, BriefingCarryover],
+    supplements_by_segment: MutableMapping[MarketSegment, tuple[PublicDocumentSupplement, ...]]
+    | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Post-process per-segment markdown with the u52 carryover block.
 
@@ -1742,6 +1796,11 @@ def _inject_carryover_into_segments(
             if block
             else ()
         )
+        if supplements_by_segment is not None and supplements:
+            supplements_by_segment[segment] = (
+                *supplements_by_segment.get(segment, ()),
+                *supplements,
+            )
         rewritten[segment] = _apply_pre_finalization_supplements(
             briefing,
             supplements=supplements,
@@ -1958,9 +2017,14 @@ async def _stage_prepare_segment_visual_assets(
     items: Sequence[NormalizedItem],
     target_date: date,
     *,
+    staging_root: Path,
     source_outcomes: Sequence[SourceOutcome] = (),
-) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
-    """Generate visual assets and return briefings with relative image links."""
+) -> tuple[
+    dict[MarketSegment, Briefing],
+    tuple[StagedArtifact, ...],
+    dict[MarketSegment, tuple[PublicDocumentSupplement, ...]],
+]:
+    """Stage visual files and return their typed E1 supplements."""
     from investo.publisher.paths import ARCHIVE_ROOT
 
     archive_layout = ArchiveLayout(ARCHIVE_ROOT)
@@ -1999,17 +2063,14 @@ async def _stage_prepare_segment_visual_assets(
             if curated_selection is not None:
                 prepared_kwargs["curated_selection"] = curated_selection
         async with semaphore:
-            prepared = await asyncio.to_thread(
+            prepared = await _to_thread_drained(
                 prepare_segment_visual_assets,
                 briefings[segment],
+                staging_root=staging_root,
                 **prepared_kwargs,
             )
-        segment_asset_paths: list[Path] = list(prepared.asset_paths)
-        for path in prepared.asset_paths:
-            manifest_path = manifest_path_for(path)
-            if manifest_path.exists():
-                segment_asset_paths.append(manifest_path)
         prepared_briefing = prepared.briefing
+        supplements: tuple[PublicDocumentSupplement, ...] = ()
         if prepared.markdown_blocks:
             supplements = tuple(
                 PublicDocumentSupplement(
@@ -2047,7 +2108,8 @@ async def _stage_prepare_segment_visual_assets(
         return _VisualPrepResult(
             segment=segment,
             briefing=prepared_briefing,
-            asset_paths=tuple(segment_asset_paths),
+            staged_artifacts=prepared.staged_artifacts,
+            supplements=supplements,
         )
 
     segments = [segment for segment in SEGMENT_ORDER if segment in briefings]
@@ -2062,14 +2124,17 @@ async def _stage_prepare_segment_visual_assets(
         results_by_segment[segment] = raw_result
 
     prepared_briefings: dict[MarketSegment, Briefing] = {}
-    asset_paths: list[Path] = []
+    staged_artifacts: list[StagedArtifact] = []
+    supplements_by_segment: dict[MarketSegment, tuple[PublicDocumentSupplement, ...]] = {}
     for segment in SEGMENT_ORDER:
         if segment not in results_by_segment:
             continue
         result = results_by_segment[segment]
         prepared_briefings[segment] = result.briefing
-        asset_paths.extend(result.asset_paths)
-    return prepared_briefings, tuple(asset_paths)
+        staged_artifacts.extend(result.staged_artifacts)
+        if result.supplements:
+            supplements_by_segment[segment] = result.supplements
+    return prepared_briefings, tuple(staged_artifacts), supplements_by_segment
 
 
 def _load_curated_runtime_safely() -> (
@@ -2422,11 +2487,20 @@ def _build_public_document_context(
     bundle_context: BundleContext | None,
     fact_bundle: VerifiedFactBundle,
     entity_observed_at_utc: datetime,
+    supplements_by_segment: Mapping[MarketSegment, tuple[PublicDocumentSupplement, ...]]
+    | None = None,
+    staged_artifacts: Sequence[StagedArtifact] = (),
 ) -> PublicDocumentContext:
     """Freeze the complete E1 input consumed by the pure finalizer."""
 
     generated = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
     routed = segment_items(items)
+    supplement_mapping = supplements_by_segment or {}
+    artifacts_by_segment = {
+        segment: tuple(artifact for artifact in staged_artifacts if artifact.segment == segment)
+        for segment in generated
+        if any(artifact.segment == segment for artifact in staged_artifacts)
+    }
     return PublicDocumentContext(
         target_date=target_date,
         expected_segments=SEGMENT_ORDER,
@@ -2446,6 +2520,12 @@ def _build_public_document_context(
         bundle_context=bundle_context,
         fact_bundle=fact_bundle,
         entity_observed_at_utc=entity_observed_at_utc,
+        supplements_by_segment={
+            segment: tuple(supplement_mapping.get(segment, ()))
+            for segment in generated
+            if supplement_mapping.get(segment)
+        },
+        staged_artifacts_by_segment=artifacts_by_segment,
     )
 
 
@@ -2487,6 +2567,10 @@ class GenerateStage:
         public_document_context: PublicDocumentContext | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
         generate_sub_timings: dict[str, float] = {}
+        artifact_staging_root = cast(
+            "Path | None",
+            accumulated.get("artifact_staging_root"),
+        )
         try:
             if segmented_mode:
                 context_start = time.monotonic()
@@ -2588,24 +2672,36 @@ class GenerateStage:
             stage_notes["generate"] = "ok"
 
         visual_assets_failed = False
-        visual_asset_paths: tuple[Path, ...] = ()
+        staged_public_artifacts: tuple[StagedArtifact, ...] = ()
+        public_supplements_by_segment: dict[
+            MarketSegment, tuple[PublicDocumentSupplement, ...]
+        ] = {}
         # u137 — image-candidate stage outputs (segmented mode only).
         image_candidate_paths: tuple[Path, ...] = ()
         image_stage_note: str | None = None
 
         if segmented_mode:
             assert segment_briefings is not None
+            if artifact_staging_root is None:
+                raise RuntimeError("segmented generation requires an artifact staging root")
             va_start = time.monotonic()
             try:
-                segment_briefings, visual_asset_paths = await _stage_prepare_segment_visual_assets(
+                (
+                    segment_briefings,
+                    staged_public_artifacts,
+                    visual_supplements,
+                ) = await _stage_prepare_segment_visual_assets(
                     segment_briefings,
                     items,
                     target_date,
+                    staging_root=artifact_staging_root,
                     source_outcomes=source_outcomes,
                 )
+                public_supplements_by_segment.update(visual_supplements)
             except VisualAssetError as exc:
                 visual_assets_failed = True
-                visual_asset_paths = ()
+                staged_public_artifacts = ()
+                public_supplements_by_segment.clear()
                 stage_notes["visual_assets"] = f"failed: {type(exc).__name__}"
                 _logger.warning(
                     "[visual_assets] failed target_date=%s error=%s; publishing text-only",
@@ -2614,7 +2710,7 @@ class GenerateStage:
                 )
                 va_elapsed = time.monotonic() - va_start
             else:
-                stage_notes["visual_assets"] = f"ok: {len(visual_asset_paths)} files"
+                stage_notes["visual_assets"] = f"ok: {len(staged_public_artifacts)} files"
                 va_elapsed = time.monotonic() - va_start
 
             # u137 Contract #5 — image-candidate stage (post-routing:
@@ -2637,6 +2733,7 @@ class GenerateStage:
             segment_briefings = _inject_carryover_into_segments(
                 segment_briefings,
                 carryover_by_segment=carryover_by_segment,
+                supplements_by_segment=public_supplements_by_segment,
             )
 
             # u70 — derive the SINGLE canonical anchor payload before any
@@ -2652,9 +2749,28 @@ class GenerateStage:
                 target_date=target_date,
                 anchors_by_segment=anchor_table_input,
                 history_by_ticker=market_history_by_ticker,
+                staging_root=artifact_staging_root,
+                supplements_by_segment=public_supplements_by_segment,
             )
             if chart_sidecar_paths:
-                visual_asset_paths = (*visual_asset_paths, *chart_sidecar_paths)
+                staged_public_artifacts = (
+                    *staged_public_artifacts,
+                    *chart_sidecar_paths,
+                )
+
+            public_supplements_by_segment = {
+                segment: tuple(
+                    sorted(
+                        supplements,
+                        key=lambda supplement: (
+                            supplement.stable_order,
+                            supplement.kind,
+                            supplement.supplement_id,
+                        ),
+                    )
+                )
+                for segment, supplements in public_supplements_by_segment.items()
+            }
 
             if fact_bundle is None or entity_observed_at_utc is None:
                 raise RuntimeError("segmented generation requires terminal entity context")
@@ -2668,6 +2784,8 @@ class GenerateStage:
                 bundle_context=run_bundle_context,
                 fact_bundle=fact_bundle,
                 entity_observed_at_utc=entity_observed_at_utc,
+                supplements_by_segment=public_supplements_by_segment,
+                staged_artifacts=staged_public_artifacts,
             )
             timings = {
                 "generate": generate_elapsed,
@@ -2686,7 +2804,8 @@ class GenerateStage:
                 "segment_generation_failures": segment_generation_failures,
                 "finalization_blocked_segments": (),
                 "visual_assets_failed": visual_assets_failed,
-                "visual_asset_paths": visual_asset_paths,
+                "visual_asset_paths": (),
+                "staged_public_artifacts": staged_public_artifacts,
                 "image_candidate_paths": image_candidate_paths,
                 "image_stage_note": image_stage_note,
                 "fact_bundle": fact_bundle,
@@ -2728,6 +2847,10 @@ class PublishStage:
             accumulated.get("public_document_context"),
         )
         visual_asset_paths = cast("tuple[Path, ...]", accumulated["visual_asset_paths"])
+        artifact_staging_root = cast(
+            "Path | None",
+            accumulated.get("artifact_staging_root"),
+        )
         # u137 — stage outputs of the failure-isolated image-candidate
         # stage; joins the git add list only (never the rollback
         # snapshots — see _stage_publish_segments).
@@ -2773,6 +2896,8 @@ class PublishStage:
                     macro_lineage_by_segment=macro_lineage_by_segment,
                     extra_commit_paths=image_candidate_paths,
                     phase_one_complete=True,
+                    finalized_bundle=finalized_bundle,
+                    staging_root=artifact_staging_root,
                 )
             else:
                 await _stage_publish(briefing, target_date, git_runner=git_runner)
@@ -3129,13 +3254,35 @@ async def run_pipeline(
         generate=generate,
         generate_segment=generate_segment,
     )
+    with temporary_artifact_staging_root() as artifact_staging_root:
+        return await _execute_pipeline_stages(
+            ctx=ctx,
+            stages=stages,
+            publisher=publisher,
+            alerter=alerter,
+            pipeline_start=pipeline_start,
+            artifact_staging_root=artifact_staging_root,
+        )
+
+
+async def _execute_pipeline_stages(
+    *,
+    ctx: PipelineContext,
+    stages: tuple[Stage, ...],
+    publisher: BriefingPublisher,
+    alerter: OperatorAlerter,
+    pipeline_start: float,
+    artifact_staging_root: Path,
+) -> PipelineResult:
+    """Execute one stage sequence inside its run-owned artifact root."""
+
+    target_date = ctx.target_date
     stage_status: dict[str, str] = {}
     stage_timings: dict[str, float] = {}
-    # The loop's own accumulator — stage outputs flow here (NOT into the
-    # frozen ``ctx``). ``publisher`` is an input the notify stage needs but
-    # is not a DI seam threaded through ``PipelineContext``; it is placed
-    # here so stages read it uniformly from the accumulator.
-    accumulated: dict[str, object] = {"publisher": publisher}
+    accumulated: dict[str, object] = {
+        "publisher": publisher,
+        "artifact_staging_root": artifact_staging_root,
+    }
 
     _logger.info("[pipeline] starting target_date=%s", target_date)
 
@@ -3147,9 +3294,6 @@ async def run_pipeline(
         stage_status.update(result.stage_notes)
         stage_timings.update(result.timings)
 
-        # Per-segment generate alerts fire as the generate stage reports
-        # them — before any later (publish / notify) alert — preserving the
-        # historical ``alerter.calls`` ordering.
         if result.data is not None:
             for generation_error in cast(
                 "list[BriefingGenerationError]", result.data.get("_stage_alerts", [])
@@ -3165,12 +3309,6 @@ async def run_pipeline(
             failed_status = action.status
             break
 
-        # AC-003-6 / AC-003-8 — notify is non-raising: a delivery failure is
-        # PARTIAL + an operator alert; otherwise a visual-asset failure or a
-        # per-segment generate failure is PARTIAL with no extra alert (the
-        # per-segment generate alerts already fired above). The reconciliation
-        # runs inside the loop (before the best-effort health soft alert) so
-        # the ``alerter.calls`` ordering matches the pre-refactor pipeline.
         if stage.name == "notify_briefing":
             notify_result = cast("SendResult", accumulated["notify_result"])
             briefing_url = cast("HttpUrl", accumulated["briefing_url"])
@@ -3205,7 +3343,6 @@ async def run_pipeline(
                     ),
                 )
 
-        # Soft (best-effort) alert requested by the health stage.
         if result.data is not None:
             soft_alert = cast("RuntimeError | None", result.data.get("_soft_alert"))
             if soft_alert is not None:

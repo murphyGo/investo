@@ -25,7 +25,8 @@ import json
 import logging
 import subprocess
 import threading
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from datetime import UTC, date, datetime
 from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
@@ -973,11 +974,13 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
     lock = threading.Lock()
     second_started = threading.Event()
     release = threading.Event()
+    staging_root = tmp_path / "stage"
 
     def _fake_prepare(briefing: Briefing, **kwargs: object) -> PreparedVisualAssets:
         nonlocal active, max_active
         segment = kwargs["segment"]
         assert segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+        assert kwargs["staging_root"] == staging_root
         with lock:
             active += 1
             max_active = max(max_active, active)
@@ -987,8 +990,22 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
         release.wait(timeout=1)
         with lock:
             active -= 1
-        path = tmp_path / f"{segment}.svg"
-        return PreparedVisualAssets(briefing=briefing, asset_paths=(path,))
+        path = staging_root / segment / f"{segment}.svg"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(segment.encode())
+        artifact = StagedArtifact(
+            artifact_id=f"{segment}.visual.test",
+            segment=segment,
+            kind="visual",
+            relative_public_path=PurePosixPath(f"{segment}/{segment}.svg"),
+            staged_path=path,
+            sha256="0" * 64,
+        )
+        return PreparedVisualAssets(
+            briefing=briefing,
+            asset_paths=(path,),
+            staged_artifacts=(artifact,),
+        )
 
     monkeypatch.setattr(pipeline_module, "prepare_segment_visual_assets", _fake_prepare)
     briefings = {
@@ -1001,6 +1018,7 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
             briefings,
             _three_segment_items(),
             _TARGET,
+            staging_root=staging_root,
         )
     )
     await asyncio.wait_for(asyncio.to_thread(second_started.wait, 1), timeout=2)
@@ -1009,14 +1027,61 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
     assert max_active == 2
 
     release.set()
-    prepared, asset_paths = await task
+    prepared, staged_artifacts, supplements_by_segment = await task
 
     assert list(prepared) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
-    assert [path.name for path in asset_paths] == [
-        f"{DOMESTIC_EQUITY}.svg",
-        f"{US_EQUITY}.svg",
-        f"{CRYPTO}.svg",
+    assert [artifact.segment for artifact in staged_artifacts] == [
+        DOMESTIC_EQUITY,
+        US_EQUITY,
+        CRYPTO,
     ]
+    assert supplements_by_segment == {}
+
+
+@pytest.mark.asyncio
+async def test_stage_visual_cancellation_drains_worker_before_staging_cleanup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    started = threading.Event()
+    release = threading.Event()
+    staging_roots: list[Path] = []
+    real_staging = pipeline_module.temporary_artifact_staging_root
+
+    def blocking_prepare(briefing: Briefing, **kwargs: object) -> PreparedVisualAssets:
+        staging_root = kwargs["staging_root"]
+        assert isinstance(staging_root, Path)
+        started.set()
+        release.wait(timeout=10)
+        late_path = staging_root / "late" / "worker-finished.svg"
+        late_path.parent.mkdir(parents=True, exist_ok=True)
+        late_path.write_bytes(b"done")
+        return PreparedVisualAssets(briefing=briefing, asset_paths=(late_path,))
+
+    monkeypatch.setattr(pipeline_module, "prepare_segment_visual_assets", blocking_prepare)
+
+    async def prepare_in_run_owned_staging() -> None:
+        with real_staging() as staging_root:
+            staging_roots.append(staging_root)
+            await pipeline_module._stage_prepare_segment_visual_assets(
+                _segment_briefings_dict(),
+                _three_segment_items(),
+                _TARGET,
+                staging_root=staging_root,
+            )
+
+    task = asyncio.create_task(prepare_in_run_owned_staging())
+    try:
+        assert await asyncio.to_thread(started.wait, 5)
+
+        task.cancel()
+        await asyncio.sleep(0)
+        assert not task.done()
+    finally:
+        release.set()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert staging_roots and all(not root.exists() for root in staging_roots)
 
 
 @pytest.mark.asyncio
@@ -1549,6 +1614,23 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
     domestic_path = archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md"
     domestic_path.parent.mkdir(parents=True)
     domestic_path.write_text("previous domestic", encoding="utf-8")
+    prior_asset = domestic_path.with_suffix(".assets") / "data-confidence.svg"
+    prior_asset.parent.mkdir(parents=True)
+    prior_asset.write_bytes(b"previous visual")
+    staging_roots: list[Path] = []
+    real_staging = pipeline_module.temporary_artifact_staging_root
+
+    @contextmanager
+    def observe_staging() -> Iterator[Path]:
+        with real_staging() as root:
+            staging_roots.append(root)
+            yield root
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "temporary_artifact_staging_root",
+        observe_staging,
+    )
 
     def fake_write_briefing(
         briefing: Briefing,
@@ -1580,9 +1662,163 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
     assert result.stages["publish"] == "failed: PublisherIOError"
     assert result.stages["notify_briefing"] == "skipped"
     assert domestic_path.read_text(encoding="utf-8") == "previous domestic"
+    assert prior_asset.read_bytes() == b"previous visual"
+    assert {
+        path
+        for path in archive_root.rglob("*")
+        if path.is_file() and not path.is_relative_to(archive_root / "_meta")
+    } == {
+        domestic_path,
+        prior_asset,
+    }
+    assert staging_roots and all(not root.exists() for root in staging_roots)
     assert not (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
     assert publisher.calls == []
+    assert git.calls == []
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_finalization_e8_changes_no_public_destination(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    prior_asset = (
+        archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.assets" / "data-confidence.svg"
+    )
+    prior_asset.parent.mkdir(parents=True)
+    prior_asset.write_bytes(b"previous visual")
+    staging_roots: list[Path] = []
+    real_staging = pipeline_module.temporary_artifact_staging_root
+
+    @contextmanager
+    def observe_staging() -> Iterator[Path]:
+        with real_staging() as root:
+            staging_roots.append(root)
+            yield root
+
+    def fail_finalization(*args: object, **kwargs: object) -> None:
+        del args, kwargs
+        raise pipeline_module.PublicDocumentFinalizationError(
+            target_date=_TARGET,
+            segment=None,
+            phase="bundle",
+            issue_codes=("bundle.zero_survivors",),
+        )
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "temporary_artifact_staging_root",
+        observe_staging,
+    )
+    monkeypatch.setattr(pipeline_module, "finalize_public_bundle", fail_finalization)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: PublicDocumentFinalizationError"
+    assert result.stages["notify_briefing"] == "skipped"
+    assert prior_asset.read_bytes() == b"previous visual"
+    assert sorted(
+        path
+        for path in archive_root.rglob("*")
+        if path.is_file() and not path.is_relative_to(archive_root / "_meta")
+    ) == [prior_asset]
+    assert staging_roots and all(not root.exists() for root in staging_roots)
+    assert publisher.calls == []
+    assert git.calls == []
+
+
+@pytest.mark.asyncio
+async def test_publish_cancellation_after_promotion_drains_writer_then_rolls_back(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    git = _SuccessfulGitRunner()
+    prior_asset = (
+        archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.assets" / "data-confidence.svg"
+    )
+    prior_asset.parent.mkdir(parents=True)
+    prior_asset.write_bytes(b"previous visual")
+    writer_started = threading.Event()
+    release_writer = threading.Event()
+    staging_roots: list[Path] = []
+    real_staging = pipeline_module.temporary_artifact_staging_root
+
+    def fake_promote(
+        bundle: object,
+        *,
+        staging_root: Path,
+        archive_root: Path,
+        snapshots: dict[Path, bytes | None],
+    ) -> tuple[Path, ...]:
+        del bundle
+        assert staging_root.exists()
+        assert prior_asset.is_relative_to(archive_root)
+        snapshots[prior_asset] = prior_asset.read_bytes()
+        prior_asset.write_bytes(b"promoted visual")
+        return (prior_asset,)
+
+    def blocking_write(
+        briefing: Briefing,
+        target_date: date,
+        *,
+        segment: MarketSegment | None = None,
+    ) -> Path:
+        assert segment == DOMESTIC_EQUITY
+        writer_started.set()
+        release_writer.wait(timeout=10)
+        path = archive_root / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(briefing.rendered_markdown, encoding="utf-8")
+        return path
+
+    monkeypatch.setattr(pipeline_module, "promote_finalized_bundle_artifacts", fake_promote)
+    monkeypatch.setattr(pipeline_module, "write_briefing", blocking_write)
+
+    async def publish_from_run_owned_staging() -> None:
+        with real_staging() as staging_root:
+            staging_roots.append(staging_root)
+            await pipeline_module._stage_publish_segments(
+                {DOMESTIC_EQUITY: _briefing(segment=DOMESTIC_EQUITY)},
+                _TARGET,
+                git_runner=git,
+                phase_one_complete=True,
+                finalized_bundle=SimpleNamespace(promotion_manifest=(object(),)),
+                staging_root=staging_root,
+            )
+
+    task = asyncio.create_task(publish_from_run_owned_staging())
+    try:
+        assert await asyncio.to_thread(writer_started.wait, 5)
+        assert prior_asset.read_bytes() == b"promoted visual"
+
+        task.cancel()
+        await asyncio.sleep(0)
+        assert not task.done()
+    finally:
+        release_writer.set()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert prior_asset.read_bytes() == b"previous visual"
+    assert sorted(
+        path
+        for path in archive_root.rglob("*")
+        if path.is_file() and not path.is_relative_to(archive_root / "_meta")
+    ) == [prior_asset]
+    assert staging_roots and all(not root.exists() for root in staging_roots)
     assert git.calls == []
 
 
