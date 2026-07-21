@@ -251,6 +251,15 @@
 **Compatibility boundary**: The old orchestrator dict path remains active only until the Step 5 sealed-finalizer switch; the concrete E2 handler is ready for that composition. No writer/finalizer production switch or terminal leakage policy changed.
 **Next**: Step 3 checklist 4 — preserve raw labels only in protected collapsed diagnostics and structured metadata.
 
+## Construction — u144 Code Generation Step 3.4 protected diagnostic/metadata boundary pinned
+
+**Timestamp**: 2026-07-21T17:18:03+09:00
+**Action**: Added explicit characterization for the raw diagnostic retention boundary. The canonical `diagnostics:quality` region remains byte-exact, while an arbitrary `<details>` inside a reader-visible section receives the same shared public-language projection as adjacent prose.
+**Private metadata**: Projection preserves E2 `source_briefing` identity, structured field values, and original generated Markdown separately from the projected public layout. The original rendered field is private evidence after E2 exists and is not a publishable view.
+**Boundary**: No new phrase policy or scanner was cloned. Step 3.5 still owns the read-only terminal traversal over reader-visible regions; Step 5 owns sealed-byte consumer enforcement.
+**Validation**: Projection/surface/lifecycle tests passed 67. Ruff check/format passed. Fresh-eyes review independently passed 58 focused tests plus Ruff/format/mypy/scoped diff check and approved with no blocker.
+**Next**: Step 3 checklist 5 — add the terminal reader-visible owned-region leakage traversal using the existing u108 predicate.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

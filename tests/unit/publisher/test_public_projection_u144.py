@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime
 
 import pytest
 
+from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_INLINE_TEXT
 from investo.models import Briefing
 from investo.models.facts import VerifiedFactBundle
 from investo.models.segments import DOMESTIC_EQUITY, SegmentCoverage
@@ -148,6 +149,58 @@ def test_projection_uses_region_policy_and_projects_reader_visible_tables() -> N
         projected.markdown[projected_disclaimer.start : projected_disclaimer.end]
         == protected_before[1]
     )
+
+
+def test_projection_protects_exact_quality_diagnostics_not_arbitrary_details() -> None:
+    markdown = _markdown().replace(
+        "이슈 본문",
+        "<details><summary>기타 메모</summary>\n데이터 부족\n</details>",
+    )
+    layout = PublicDocumentLayout.reindex(markdown, expectation=_expectation())
+
+    projected = project_public_markdown(layout, limitation_reasons=("limited_coverage",))
+
+    assert "<details><summary>기타 메모</summary>\n데이터 부족\n</details>" not in (
+        projected.markdown
+    )
+    assert "<details><summary>기타 메모</summary>" in projected.markdown
+    assert (
+        f"<details><summary>기타 메모</summary>\n"
+        f"{PUBLIC_LOW_COVERAGE_INLINE_TEXT}\n</details>" in projected.markdown
+    )
+    assert "<details><summary>수집/품질 진단</summary>\n데이터 부족\n</details>" in (
+        projected.markdown
+    )
+
+
+def test_projection_keeps_raw_structured_source_metadata_private() -> None:
+    layout = _layout()
+    raw_summary = "[데이터부족] operator state"
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary=raw_summary,
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+    generated = _new_generated_draft(
+        briefing,
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+    assembled = _transition_draft(generated, next_phase="assembled")
+
+    projected = _project_assembled_draft(assembled, _context())
+
+    assert projected.source_briefing is briefing
+    assert projected.source_briefing.model_dump()["market_summary"] == raw_summary
+    assert projected.source_briefing.rendered_markdown == layout.markdown
+    assert projected.layout.markdown != layout.markdown
+    assert "데이터 부족입니다" not in projected.layout.markdown
 
 
 def test_projection_is_byte_idempotent_and_preserves_crlf() -> None:
