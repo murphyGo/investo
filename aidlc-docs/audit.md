@@ -194,6 +194,15 @@
 **Scope**: No default segmented finalizer/sealed-writer switch, notifier change, or post-seal mutation removal landed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 2 checklist 5 — remove every production `Briefing.model_copy(update={"rendered_markdown": ...})` after finalization.
 
+## Construction — u144 Code Generation Step 2.5 post-finalization mutation audit closed
+
+**Timestamp**: 2026-07-21T16:17:00+09:00
+**Action**: Re-audited every production `.model_copy(` call and exact `rendered_markdown` replacement. Five executable owners are pre-finalization producers/assembly collaborators; the sixth is the design-required `_seal_document` E5 compatibility-view construction. There is no post-E5 `Briefing.model_copy(update={"rendered_markdown": ...})` call.
+**Compatibility boundary**: This is a Step 5 pre-switch call-graph verification, not a claim that the production finalizer or sealed writer is connected. Step 5 must connect phase-one assembly before/inside finalization and repeat the audit. Step 2.6 separately pins the sites with an explicit AST allowlist.
+**Validation**: Existing architecture/sealed-writer/phase-one tests passed 33 locally with strict mypy over the five involved source files. Fresh-eyes review independently passed 69 focused tests and approved the code-change-free closure.
+**Scope**: No runtime code changed. The result records a negative invariant already achieved by Steps 2.1-2.4 without inventing a redundant compatibility rewrite. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 2 checklist 6 — add the explicit compatibility allowlist AST architecture guard.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
