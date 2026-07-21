@@ -129,7 +129,6 @@ from investo.briefing.segments import (
     SEGMENT_LABELS,
     US_EQUITY,
     MarketSegment,
-    SegmentCoverage,
     SegmentedItems,
     filter_lookahead_items,
     segment_items,
@@ -145,6 +144,7 @@ from investo.models import (
     NormalizedItem,
     PipelineResult,
     PipelineStatus,
+    PublicNotificationSummary,
     SendResult,
     SourceOutcome,
 )
@@ -2317,17 +2317,16 @@ async def _stage_notify_briefing(
 
 
 async def _stage_notify_segmented_briefing(
-    briefings: dict[MarketSegment, Briefing],
+    summaries: Mapping[MarketSegment, PublicNotificationSummary],
     *,
     publisher: BriefingPublisher,
     site_urls: dict[MarketSegment, HttpUrl],
     items: Sequence[NormalizedItem] = (),
-    coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
     lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     now_utc: datetime | None = None,
     missing_segments: Sequence[MarketSegment] = (),
 ) -> SendResult:
-    """Compose + dispatch one public-channel message for all segments.
+    """Compose + dispatch one public-channel message from sealed DTOs.
 
     u43 / DEBT-067 M1 — clock-explicit contract. When the caller wants
     forward-looking imminent-event tags rendered into the Telegram
@@ -2337,20 +2336,23 @@ async def _stage_notify_segmented_briefing(
     fixtures can pin the rendered output deterministically. The
     notifier itself enforces the symmetric invariant
     (``ValueError`` when one is supplied without the other).
+
+    ``summaries`` is the E5 terminal-validation output. This helper never
+    accepts or reads a generated/sealed ``Briefing`` and cannot fall back to
+    ``market_summary``.
     """
-    published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
+    published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in summaries)
     if not published_segments:
-        return SendResult(ok=False, error="segmented notification requires at least one briefing")
-    primary_segment = DOMESTIC_EQUITY if DOMESTIC_EQUITY in briefings else published_segments[0]
-    target_date = briefings[primary_segment].target_date
+        return SendResult(ok=False, error="segmented notification requires at least one summary")
+    primary_segment = DOMESTIC_EQUITY if DOMESTIC_EQUITY in summaries else published_segments[0]
+    target_date = summaries[primary_segment].target_date
     _logger.info("[notify_briefing] starting segmented target_date=%s", target_date)
 
     try:
         summary_text = build_segmented_summary(
-            briefings,
+            summaries,
             site_urls={segment: str(url) for segment, url in site_urls.items()},
             price_items=items,
-            coverage_by_segment=coverage_by_segment,
             enabled_segments=resolve_enabled_segments(),
             lookahead_items_by_segment=lookahead_items_by_segment,
             now_utc=now_utc,
@@ -2990,6 +2992,10 @@ class NotifyStage:
             "tuple[MarketSegment, ...]",
             accumulated.get("finalization_blocked_segments", ()),
         )
+        finalized_bundle = cast(
+            "FinalizedPublicBundle | None",
+            accumulated.get("finalized_bundle"),
+        )
 
         primary_segment = (
             DOMESTIC_EQUITY
@@ -3018,21 +3024,20 @@ class NotifyStage:
         if segmented_mode:
             assert segment_briefings is not None
             assert segment_urls is not None
-            routed_items_for_alert = segment_items(items)
-            coverage_by_segment = {
-                segment: routed_items_for_alert.coverage_for_segment(
-                    segment,
-                    source_outcomes=source_outcomes,
-                )
-                for segment in segment_briefings
+            if finalized_bundle is None:
+                raise RuntimeError("segmented notification requires finalized bundle")
+            notification_summaries = {
+                document.segment: document.notification_summary
+                for document in finalized_bundle.documents
             }
+            routed_items_for_alert = segment_items(items)
             notify_now_utc = datetime.now(UTC)
             lookahead_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
                 segment: filter_lookahead_items(routed_items_for_alert.for_segment(segment))
                 for segment in segment_briefings
             }
             notify_result = await _stage_notify_segmented_briefing(
-                segment_briefings,
+                notification_summaries,
                 publisher=publisher,
                 site_urls=segment_urls,
                 items=trusted_domestic_price_items(
@@ -3040,7 +3045,6 @@ class NotifyStage:
                     target_date=target_date,
                     source_outcomes=source_outcomes,
                 ),
-                coverage_by_segment=coverage_by_segment,
                 lookahead_items_by_segment=lookahead_items_by_segment,
                 now_utc=notify_now_utc,
                 missing_segments=tuple(

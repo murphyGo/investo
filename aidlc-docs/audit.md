@@ -376,6 +376,14 @@
 **Validation**: Direct sealed-consumer and PublishStage handoff regressions passed 4; Ruff check/format and strict mypy over 243 source files passed.
 **Next**: Step 5 checklist 3 — enforce the terminal `PublicNotificationSummary` DTO boundary.
 
+## Construction — u144 Code Generation Step 5.3 notifier DTO boundary landed
+
+**Timestamp**: 2026-07-22T01:10:00+09:00
+**Action**: The default segmented notifier now accepts only `PublicNotificationSummary` mappings plus URLs and the existing typed lookahead/price inputs. It validates mapping-key/DTO-segment identity and one shared target date before rendering. Coverage badges/collapse and watchlist price decoration consume DTO fields; no Markdown or `Briefing.market_summary` is read downstream.
+**Terminal ownership**: The already-landed canonical `extract_conclusion()`/`extract_watchlist_impact()` and neutral `clean_public_summary_text()` remain inside publisher terminal validation. Validated E2 owns the DTO, E5 copies it unchanged, PublishStage extracts it from E6, and `Briefing` values are rejected by the formatter.
+**Validation**: Notifier, terminal DTO/finalizer, and full orchestrator regression scope passed 300; Ruff check/format and strict mypy over 243 source files passed. Explicit regressions reject `Briefing`, key/segment mismatch, and mixed dates.
+**Next**: Step 5 checklist 4 — add typed content completeness and segment outcomes to `PipelineResult`.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

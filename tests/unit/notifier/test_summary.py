@@ -13,14 +13,23 @@ import pytest
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
-from investo.models import Briefing, BriefingNotification, NormalizedItem
+from investo.models import (
+    Briefing,
+    BriefingNotification,
+    NormalizedItem,
+    PublicNotificationSummary,
+)
+from investo.models.segments import COVERAGE_STATUS_LABELS, SegmentCoverage
+from investo.notifier._summary_extract import conclusion_data
 from investo.notifier.summary import (
     DEFAULT_MAX_UNITS,
     _utf16_truncate,
     _utf16_units,
-    build_segmented_summary,
     build_summary,
     plain_text_summary,
+)
+from investo.notifier.summary import (
+    build_segmented_summary as _build_segmented_summary_from_dtos,
 )
 
 _TARGET_DATE = date(2026, 4, 25)
@@ -54,6 +63,40 @@ def _build_briefing(*, market_summary: str = "오늘 시장 요약") -> Briefing
         today_watch="관전",
         disclaimer=DISCLAIMER,
         rendered_markdown=rendered,
+    )
+
+
+def build_segmented_summary(
+    briefings: dict[str, Briefing],
+    *,
+    site_urls: dict[str, str],
+    coverage_by_segment: dict[str, SegmentCoverage] | None = None,
+    **kwargs: object,
+) -> str:
+    """Adapt pre-u144 extraction fixtures to the DTO-only formatter API."""
+
+    label_to_status = {label: status for status, label in COVERAGE_STATUS_LABELS.items()}
+    summaries: dict[str, PublicNotificationSummary] = {}
+    for segment, briefing in briefings.items():
+        data = conclusion_data(briefing)
+        coverage = coverage_by_segment.get(segment) if coverage_by_segment is not None else None
+        status = (
+            coverage.status
+            if coverage is not None
+            else label_to_status.get(data.coverage_label or "", "normal")
+        )
+        summaries[segment] = PublicNotificationSummary(
+            segment=segment,
+            target_date=briefing.target_date,
+            conclusion=data.conclusion,
+            coverage_status=status,
+            coverage_label=COVERAGE_STATUS_LABELS[status],
+            watchlist=data.watchlist,
+        )
+    return _build_segmented_summary_from_dtos(
+        summaries,
+        site_urls=site_urls,
+        **kwargs,
     )
 
 
@@ -247,6 +290,52 @@ def test_build_segmented_summary_includes_all_labels_and_urls() -> None:
     assert "• 크립토: [상세보기](" in summary
     for url in _SEGMENT_URLS.values():
         assert url in summary
+
+
+def test_build_segmented_summary_rejects_legacy_briefing_values() -> None:
+    with pytest.raises(TypeError, match="requires PublicNotificationSummary"):
+        _build_segmented_summary_from_dtos(
+            {DOMESTIC_EQUITY: _build_briefing(market_summary="unsafe generated fallback")},
+            site_urls=_SEGMENT_URLS,
+        )
+
+
+def test_build_segmented_summary_rejects_dto_key_identity_mismatch() -> None:
+    summary = PublicNotificationSummary(
+        segment=DOMESTIC_EQUITY,
+        target_date=_TARGET_DATE,
+        conclusion="검증된 공개 결론",
+        coverage_status="normal",
+        coverage_label="정상",
+    )
+
+    with pytest.raises(ValueError, match="key/segment mismatch"):
+        _build_segmented_summary_from_dtos(
+            {US_EQUITY: summary},
+            site_urls=_SEGMENT_URLS,
+        )
+
+
+def test_build_segmented_summary_rejects_mixed_dto_dates() -> None:
+    summaries = {
+        DOMESTIC_EQUITY: PublicNotificationSummary(
+            segment=DOMESTIC_EQUITY,
+            target_date=_TARGET_DATE,
+            conclusion="검증된 국내 결론",
+            coverage_status="normal",
+            coverage_label="정상",
+        ),
+        US_EQUITY: PublicNotificationSummary(
+            segment=US_EQUITY,
+            target_date=date(2026, 4, 24),
+            conclusion="검증된 미국 결론",
+            coverage_status="normal",
+            coverage_label="정상",
+        ),
+    }
+
+    with pytest.raises(ValueError, match="share target_date"):
+        _build_segmented_summary_from_dtos(summaries, site_urls=_SEGMENT_URLS)
 
 
 def test_build_segmented_summary_marks_missing_segments_on_partial_publish() -> None:
@@ -791,7 +880,7 @@ def test_partial_or_normal_segment_keeps_three_line_block() -> None:
 
     # No collapsed line for the partial segment.
     assert "🇰🇷 *국내 증시* [부족] · [상세보기]" not in summary
-    assert f"🇰🇷 *국내 증시*\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n" in summary
+    assert f"🇰🇷 *국내 증시* [부분]\n[상세보기]({_SEGMENT_URLS[DOMESTIC_EQUITY]})\n" in summary
 
 
 def test_enabled_segments_filter_drops_other_segments_from_body_and_footer() -> None:

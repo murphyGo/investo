@@ -1,10 +1,10 @@
 """Telegram channel summary formatter (FR-004).
 
 This is the **formatting** half of the notifier summary split (u80).
-It turns the structured data produced by
-:mod:`investo.notifier._summary_extract` (conclusion / coverage /
-market-snapshot / watchlist) and the imminent-event tag produced by
-:mod:`investo.notifier._events` into Telegram-safe message strings:
+It turns the terminally validated :class:`PublicNotificationSummary`, the
+price-only structured data produced by :mod:`investo.notifier._summary_extract`,
+and the imminent-event tag produced by :mod:`investo.notifier._events` into
+Telegram-safe message strings:
 percent / price formatting, markdown-token cleanup for the plain-text
 fallback, watchlist price decoration, segment-block assembly, and the
 UTF-16-bounded truncation.
@@ -37,14 +37,13 @@ from typing import Final
 
 from investo._internal.text import utf16_truncate as _utf16_truncate
 from investo._internal.text import utf16_units as _utf16_units
-from investo.models import Briefing, NormalizedItem
+from investo.models import Briefing, NormalizedItem, PublicNotificationSummary
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
     SEGMENT_LABELS,
     US_EQUITY,
     MarketSegment,
-    SegmentCoverage,
 )
 from investo.notifier import _summary_extract as _extract
 from investo.notifier._events import imminent_event_tag
@@ -116,18 +115,17 @@ def build_summary(
 
 
 def build_segmented_summary(
-    briefings: Mapping[MarketSegment, Briefing],
+    summaries: Mapping[MarketSegment, PublicNotificationSummary],
     *,
     site_urls: Mapping[MarketSegment, str],
     max_units: int = DEFAULT_MAX_UNITS,
     lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     now_utc: datetime | None = None,
     price_items: Sequence[NormalizedItem] = (),
-    coverage_by_segment: Mapping[MarketSegment, SegmentCoverage] | None = None,
     enabled_segments: Sequence[MarketSegment] | None = None,
     missing_segments: Sequence[MarketSegment] = (),
 ) -> str:
-    """Build one Telegram message with all segment summaries and links.
+    """Build one Telegram message from terminal summary DTOs and links.
 
     The three URLs are repeated in the segment blocks and the fixed
     footer. The footer is always preserved; segment summary lines are
@@ -142,15 +140,13 @@ def build_segmented_summary(
     current time when ``None``). Absence of imminent items leaves the
     line unchanged.
 
-    u30 Step 2 — when ``coverage_by_segment`` is supplied and the entry
-    for a given segment reports ``status == "failed"`` (legacy
-    ``insufficient`` mapped to ``failed`` per u54 enum migration),
-    that segment's block collapses to a single line that combines the
-    icon, label, ``[실패]`` tag, and the detail link. The conclusion
-    line is omitted because the segment markdown itself is the data-
-    limited fallback (``데이터 부족`` boilerplate). When omitted or
-    when the segment is not present in the mapping, the legacy 3-line
-    block rendering is preserved.
+    Coverage comes only from each terminal DTO. A ``failed`` summary collapses
+    to a single line that combines the icon, label, ``[실패]`` tag, and detail
+    link; other statuses retain the three-line block and their typed label.
+
+    Mapping key, DTO segment, and target-date identity are checked before
+    rendering. ``Briefing`` values are rejected, so generated
+    ``market_summary`` cannot become a segmented Telegram fallback.
 
     u30 Step 2 — when ``enabled_segments`` is supplied (resolved
     upstream from ``INVESTO_TELEGRAM_ENABLED_SEGMENTS`` via
@@ -161,9 +157,18 @@ def build_segmented_summary(
     completely link-less alert.
     """
     ordered_segments = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
-    all_published = tuple(segment for segment in ordered_segments if segment in briefings)
+    all_published = tuple(segment for segment in ordered_segments if segment in summaries)
     if not all_published:
-        raise ValueError("segmented summary requires at least one briefing")
+        raise ValueError("segmented summary requires at least one notification summary")
+    for segment in all_published:
+        summary = summaries[segment]
+        if type(summary) is not PublicNotificationSummary:
+            raise TypeError("segmented summary requires PublicNotificationSummary values")
+        if summary.segment != segment:
+            raise ValueError("notification summary key/segment mismatch")
+    target_dates = {summaries[segment].target_date for segment in all_published}
+    if len(target_dates) != 1:
+        raise ValueError("notification summaries must share target_date")
     # u43 / DEBT-067 M1 — clock-explicit contract: when the caller
     # supplies ``lookahead_items_by_segment`` it must also pass
     # ``now_utc`` explicitly. Falling back to ``datetime.now(UTC)``
@@ -179,7 +184,7 @@ def build_segmented_summary(
         published_segments = filtered if filtered else all_published
     else:
         published_segments = all_published
-    target_date = briefings[published_segments[0]].target_date
+    target_date = summaries[published_segments[0]].target_date
     snapshot = _market_snapshot_line(price_items)
     resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
     publish_label = _publish_time_label(resolved_now, target_date=target_date)
@@ -200,7 +205,7 @@ def build_segmented_summary(
     body = "\n\n".join(
         _segment_summary_block(
             segment,
-            briefings[segment],
+            summaries[segment],
             site_urls[segment],
             lookahead_items=(
                 lookahead_items_by_segment.get(segment, ())
@@ -208,9 +213,6 @@ def build_segmented_summary(
                 else ()
             ),
             now_utc=resolved_now,
-            coverage=(
-                coverage_by_segment.get(segment) if coverage_by_segment is not None else None
-            ),
             watchlist_prices=price_index,
         )
         for segment in published_segments
@@ -272,17 +274,16 @@ def resolve_enabled_segments(
 
 def _segment_summary_block(
     segment: MarketSegment,
-    briefing: Briefing,
+    summary: PublicNotificationSummary,
     site_url: str,
     *,
     lookahead_items: Sequence[NormalizedItem] = (),
     now_utc: datetime | None = None,
-    coverage: SegmentCoverage | None = None,
     watchlist_prices: Mapping[str, str] | None = None,
 ) -> str:
     label = SEGMENT_LABELS[segment]
     icon = _SEGMENT_ICONS[segment]
-    if coverage is not None and coverage.status == "failed":
+    if summary.coverage_status == "failed":
         # u30 Step 2 collapsed shape — single line with status badge and
         # the detail link only. Skipping the conclusion line keeps the
         # alert dense when the segment markdown itself is the data-
@@ -290,9 +291,8 @@ def _segment_summary_block(
         # ``insufficient`` enum migrated to ``failed``; label is now
         # ``[실패]``.
         return f"{icon} *{label}* [실패] · {_detail_link(site_url)}"
-    status = _extract.coverage_label(briefing)
-    status_tag = f" [{status}]" if status else ""
-    one_line = _one_line_summary(briefing, watchlist_prices=watchlist_prices)
+    status_tag = f" [{summary.coverage_label}]" if summary.coverage_status != "normal" else ""
+    one_line = _one_line_summary(summary, watchlist_prices=watchlist_prices)
     imminent = imminent_event_tag(lookahead_items, now_utc=now_utc)
     if imminent:
         one_line = f"{imminent} · {one_line}"
@@ -341,16 +341,15 @@ def _format_compact_price(value: float) -> str:
 
 
 def _one_line_summary(
-    briefing: Briefing,
+    summary: PublicNotificationSummary,
     *,
     watchlist_prices: Mapping[str, str] | None = None,
 ) -> str:
-    data = _extract.conclusion_data(briefing)
-    conclusion = data.conclusion
-    if data.coverage_label:
-        conclusion = f"{data.coverage_label} — {conclusion}"
-    if data.watchlist is not None:
-        decorated = _decorate_watchlist_with_prices(data.watchlist, watchlist_prices)
+    conclusion = summary.conclusion
+    if summary.coverage_status != "normal":
+        conclusion = f"{summary.coverage_label} — {conclusion}"
+    if summary.watchlist is not None:
+        decorated = _decorate_watchlist_with_prices(summary.watchlist, watchlist_prices)
         return f"{conclusion} / 관심: {decorated}"
     return conclusion
 

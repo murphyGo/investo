@@ -17,7 +17,6 @@ import httpx
 import pytest
 from pydantic import HttpUrl, TypeAdapter
 
-from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -25,7 +24,7 @@ from investo.briefing.segments import (
     MarketSegment,
     filter_lookahead_items,
 )
-from investo.models import Briefing, NormalizedItem
+from investo.models import NormalizedItem, PublicNotificationSummary
 from investo.notifier import BriefingPublisher
 from investo.orchestrator.pipeline import _stage_notify_segmented_briefing
 
@@ -46,36 +45,21 @@ _SEGMENT_URLS: dict[MarketSegment, HttpUrl] = {
 }
 
 
-def _briefing(label: str) -> Briefing:
-    body = (
-        f"{label} 요약\n\n"
-        "## ② 전일 핵심 이슈\n핵심 이슈\n\n"
-        "## ③ 섹터/수급 동향\n섹터\n\n"
-        "## ④ 지표·이벤트\n지표\n\n"
-        "## ⑤ 주요 종목\n종목\n\n"
-        "## ⑥ 오늘의 관전 포인트\n관전\n\n"
-        f"{DISCLAIMER}"
-    )
-    return Briefing(
+def _summary(segment: MarketSegment, label: str) -> PublicNotificationSummary:
+    return PublicNotificationSummary(
+        segment=segment,
         target_date=_TARGET,
-        market_summary=f"{label} 요약",
-        key_issues="핵심 이슈",
-        sector_flow="섹터",
-        indicators_events="지표",
-        notable_tickers="종목",
-        today_watch="관전",
-        disclaimer=DISCLAIMER,
-        rendered_markdown=(
-            f"# 2026-04-25 {label} 시황\n\n> **오늘의 결론**: {label} 한 줄.\n\n## ① 요약\n{body}"
-        ),
+        conclusion=f"{label} 한 줄.",
+        coverage_status="normal",
+        coverage_label="정상",
     )
 
 
-def _briefings() -> dict[MarketSegment, Briefing]:
+def _summaries() -> dict[MarketSegment, PublicNotificationSummary]:
     return {
-        DOMESTIC_EQUITY: _briefing("국내"),
-        US_EQUITY: _briefing("미국"),
-        CRYPTO: _briefing("크립토"),
+        DOMESTIC_EQUITY: _summary(DOMESTIC_EQUITY, "국내"),
+        US_EQUITY: _summary(US_EQUITY, "미국"),
+        CRYPTO: _summary(CRYPTO, "크립토"),
     }
 
 
@@ -116,7 +100,7 @@ async def test_stage_passes_lookahead_and_now_utc_to_summary_builder() -> None:
     async with _mock_client(handler) as client:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_PUBLIC_CHANNEL, http=client)
         result = await _stage_notify_segmented_briefing(
-            _briefings(),
+            _summaries(),
             publisher=publisher,
             site_urls=_SEGMENT_URLS,
             items=(fomc_item,),
@@ -148,7 +132,7 @@ async def test_stage_returns_failure_send_result_when_clock_invariant_violated()
     async with _mock_client(never_called) as client:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_PUBLIC_CHANNEL, http=client)
         result = await _stage_notify_segmented_briefing(
-            _briefings(),
+            _summaries(),
             publisher=publisher,
             site_urls=_SEGMENT_URLS,
             items=(fomc_item,),
@@ -177,7 +161,7 @@ async def test_stage_omits_imminent_tag_when_no_lookahead_supplied() -> None:
     async with _mock_client(handler) as client:
         publisher = BriefingPublisher(bot_token=_BOT_TOKEN, channel_id=_PUBLIC_CHANNEL, http=client)
         result = await _stage_notify_segmented_briefing(
-            _briefings(),
+            _summaries(),
             publisher=publisher,
             site_urls=_SEGMENT_URLS,
         )
