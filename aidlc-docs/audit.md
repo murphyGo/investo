@@ -5385,3 +5385,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Focused scope 116 passed; combined result/CLI/workflow/env/weekly/orchestrator scope 229 passed; Ruff/format and `mypy src` (244 source files) passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-workflow-pages-sequencing.md`.
 **Status**: Step 5 checklist 6/8 complete. Next: GitHub step-summary content diagnostics.
+
+## Construction — u144 Step 5.7 GitHub summary diagnostics
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Extended the GitHub step summary with content completeness, publication commit state, expected/finalized/published counts, and a canonical per-segment finalization table.
+**Decisions**: Summary and workflow outputs share one count helper. Finalization codes pass through strict redaction and are capped at eight per segment with an omitted-count suffix; no raw evidence or Markdown body is exposed.
+**Validation**: CLI summary tests 65 passed; combined CLI/workflow/orchestrator/finalizer scope 206 passed; Ruff/format and `mypy src` (244 source files) passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-github-summary-diagnostics.md`.
+**Status**: Step 5 checklist 7/8 complete. Next: production-owner documentation alignment.

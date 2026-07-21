@@ -103,6 +103,8 @@ _BOOT_ALERT_TIMEOUT_S: Final[float] = 5.0
 _BOOT_ALERT_ATTEMPTS: Final[int] = 2
 _GITHUB_STEP_SUMMARY_VAR: Final[str] = "GITHUB_STEP_SUMMARY"
 _GITHUB_OUTPUT_VAR: Final[str] = "GITHUB_OUTPUT"
+_EXPECTED_PUBLIC_SEGMENTS: Final[int] = 3
+_FINALIZATION_CODE_DISPLAY_LIMIT: Final[int] = 8
 
 
 def _missing_env_vars() -> tuple[str, ...]:
@@ -315,20 +317,23 @@ def _pipeline_exit_code(result: PipelineResult) -> int:
     return 0
 
 
+def _public_result_counts(result: PipelineResult) -> tuple[int, int, int]:
+    finalized = sum(1 for outcome in result.segment_outcomes if outcome.state == "finalized")
+    published = finalized if result.publication_committed else 0
+    return _EXPECTED_PUBLIC_SEGMENTS, finalized, published
+
+
 def _write_github_outputs(result: PipelineResult) -> None:
     """Append bounded machine outputs for the daily workflow controller."""
     output_path = os.environ.get(_GITHUB_OUTPUT_VAR, "").strip()
     if not output_path:
         return
-    finalized_segments = sum(
-        1 for outcome in result.segment_outcomes if outcome.state == "finalized"
-    )
-    published_segments = finalized_segments if result.publication_committed else 0
+    expected_segments, finalized_segments, published_segments = _public_result_counts(result)
     lines = (
         f"pipeline_status={result.status}",
         f"content_completeness={result.content_completeness}",
         f"publication_committed={str(result.publication_committed).lower()}",
-        "expected_segments=3",
+        f"expected_segments={expected_segments}",
         f"finalized_segments={finalized_segments}",
         f"published_segments={published_segments}",
     )
@@ -350,19 +355,44 @@ def _write_github_step_summary(result: PipelineResult) -> None:
     if not summary_path:
         return
 
+    expected_segments, finalized_segments, published_segments = _public_result_counts(result)
     lines = [
         "## Investo Daily Briefing",
         "",
         f"- Status: `{result.status}`",
+        f"- Content completeness: `{result.content_completeness}`",
+        f"- Publication committed: `{str(result.publication_committed).lower()}`",
+        f"- Public segments: `{finalized_segments}/{expected_segments}` finalized, "
+        f"`{published_segments}` published",
         f"- Target date: `{result.target_date.isoformat()}`",
         f"- Briefing URL: {result.briefing_url if result.briefing_url is not None else 'n/a'}",
         f"- Duration: `{result.duration_seconds:.2f}s`",
-        "",
-        "### Stages",
-        "",
-        "| Stage | Status | Seconds |",
-        "|-------|--------|---------|",
     ]
+    if result.segment_outcomes:
+        lines.extend(
+            [
+                "",
+                "### Public Documents",
+                "",
+                "| Segment | Finalization | Codes |",
+                "|---------|--------------|-------|",
+            ]
+        )
+        for segment_outcome in result.segment_outcomes:
+            visible_codes = segment_outcome.issue_codes[:_FINALIZATION_CODE_DISPLAY_LIMIT]
+            codes = ", ".join(_redact_diagnostic_text(code) for code in visible_codes) or "-"
+            if len(segment_outcome.issue_codes) > len(visible_codes):
+                codes += f", ... (+{len(segment_outcome.issue_codes) - len(visible_codes)})"
+            lines.append(f"| {segment_outcome.segment} | {segment_outcome.state} | {codes} |")
+    lines.extend(
+        [
+            "",
+            "### Stages",
+            "",
+            "| Stage | Status | Seconds |",
+            "|-------|--------|---------|",
+        ]
+    )
     stage_names = list(result.stages)
     stage_names.extend(stage for stage in result.stage_timings if stage not in result.stages)
     for stage in stage_names:

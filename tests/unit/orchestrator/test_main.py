@@ -415,7 +415,11 @@ def test_validate_env_accepts_openai_opt_in_with_key(
 
 _CONTENT_PARTIAL_OUTCOMES = (
     SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized"),
-    SegmentFinalizationOutcome(segment=US_EQUITY, state="trust_blocked"),
+    SegmentFinalizationOutcome(
+        segment=US_EQUITY,
+        state="trust_blocked",
+        issue_codes=("entity.fact_contradiction",),
+    ),
     SegmentFinalizationOutcome(segment=CRYPTO, state="finalized"),
 )
 
@@ -539,6 +543,58 @@ def test_main_writes_redacted_github_step_summary_for_partial_result(
     assert "[REDACTED]" in summary
     assert "AAFakeBotToken" not in summary
     assert "12345678" not in summary
+
+
+def test_github_step_summary_reports_public_document_outcomes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    summary_path = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+    result = _make_pipeline_result(
+        PipelineStatus.PARTIAL,
+        content_completeness="partial",
+        segment_outcomes=_CONTENT_PARTIAL_OUTCOMES,
+        publication_committed=True,
+    )
+
+    main_mod._write_github_step_summary(result)
+
+    summary = summary_path.read_text(encoding="utf-8")
+    assert "Content completeness: `partial`" in summary
+    assert "Publication committed: `true`" in summary
+    assert "Public segments: `2/3` finalized, `2` published" in summary
+    assert "### Public Documents" in summary
+    assert "| domestic-equity | finalized | - |" in summary
+    assert "| us-equity | trust_blocked | entity.fact_contradiction |" in summary
+    assert "| crypto | finalized | - |" in summary
+
+
+def test_github_step_summary_bounds_finalization_code_count(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    summary_path = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+    codes = tuple(f"gate.issue_{index}" for index in range(10))
+    result = _make_pipeline_result(
+        PipelineStatus.PARTIAL,
+        content_completeness="none",
+        segment_outcomes=(
+            SegmentFinalizationOutcome(
+                segment=DOMESTIC_EQUITY,
+                state="trust_blocked",
+                issue_codes=codes,
+            ),
+        ),
+    )
+
+    main_mod._write_github_step_summary(result)
+
+    summary = summary_path.read_text(encoding="utf-8")
+    assert "gate.issue_7" in summary
+    assert "gate.issue_8" not in summary
+    assert "... (+2)" in summary
 
 
 # ---------------------------------------------------------------------------
