@@ -5457,3 +5457,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Region/type and terminal projection tests 341 passed; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-region-table-contracts.md`.
 **Status**: Step 6 checklist 6/9 complete. Next: staging rollback and E8 destination identity.
+
+## Construction — u144 Step 6.7 staging and rollback
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Added real promotion-failure integration coverage and consolidated the E8 no-write/staging-cleanup contract.
+**Decisions**: The promotion test fails the second atomic artifact write inside the production promotion function, then compares the full public relative-path/byte map to its pre-run snapshot. Existing orchestrator rollback remains the sole recovery owner.
+**Validation**: Staged-artifact tests plus E8/promotion integration cases 7 passed; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-staging-rollback.md`.
+**Status**: Step 6 checklist 7/9 complete. Next: Hypothesis property suite.

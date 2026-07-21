@@ -1773,6 +1773,81 @@ async def test_run_pipeline_finalization_e8_changes_no_public_destination(
 
 
 @pytest.mark.asyncio
+async def test_run_pipeline_promotion_failure_rolls_back_every_public_destination(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.publisher import staged_artifacts as staged_artifacts_module
+
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+    prior_asset = (
+        archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.assets" / "data-confidence.svg"
+    )
+    prior_asset.parent.mkdir(parents=True)
+    prior_asset.write_bytes(b"previous visual")
+    unrelated = archive_root / "operator-note.txt"
+    unrelated.write_bytes(b"untouched")
+
+    def public_bytes() -> dict[Path, bytes]:
+        return {
+            path.relative_to(archive_root): path.read_bytes()
+            for path in archive_root.rglob("*")
+            if path.is_file() and not path.is_relative_to(archive_root / "_meta")
+        }
+
+    before = public_bytes()
+    attempts: list[Path] = []
+    real_write = staged_artifacts_module.write_atomic_bytes
+
+    def fail_second_promotion(path: Path, payload: bytes) -> None:
+        attempts.append(path)
+        if len(attempts) == 2:
+            raise OSError("injected second promotion failure")
+        real_write(path, payload)
+
+    staging_roots: list[Path] = []
+    real_staging = pipeline_module.temporary_artifact_staging_root
+
+    @contextmanager
+    def observe_staging() -> Iterator[Path]:
+        with real_staging() as root:
+            staging_roots.append(root)
+            yield root
+
+    monkeypatch.setattr(
+        staged_artifacts_module,
+        "write_atomic_bytes",
+        fail_second_promotion,
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "temporary_artifact_staging_root",
+        observe_staging,
+    )
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: PublisherIOError"
+    assert result.publication_committed is False
+    assert len(attempts) == 2
+    assert public_bytes() == before
+    assert staging_roots and all(not root.exists() for root in staging_roots)
+    assert publisher.calls == []
+    assert git.calls == []
+
+
+@pytest.mark.asyncio
 async def test_publish_cancellation_after_promotion_drains_writer_then_rolls_back(
     archive_root: Path,
     monkeypatch: pytest.MonkeyPatch,
