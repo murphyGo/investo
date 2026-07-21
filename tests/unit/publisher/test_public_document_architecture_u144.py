@@ -158,7 +158,12 @@ class _ConstructionVisitor(ast.NodeVisitor):
                 self.constructor_calls.append((self.relative_path, self.function_name, constructed))
         if call_symbol == "_seal_document":
             self.seal_calls.append((self.relative_path, self.function_name))
-        if call_symbol == "write_finalized_document":
+        threaded_writer = (
+            _call_name(node.func) == "_to_thread_drained"
+            and bool(node.args)
+            and self._canonical_symbol(node.args[0]) == "write_finalized_document"
+        )
+        if call_symbol == "write_finalized_document" or threaded_writer:
             self.finalized_writer_calls.append((self.relative_path, self.function_name))
         if call_symbol == "render_watchpoint_matrix":
             self.watchpoint_legacy_calls.append((self.relative_path, self.function_name))
@@ -219,10 +224,12 @@ def test_draft_and_final_document_construction_is_single_owned() -> None:
     ]
 
 
-def test_sealed_writer_has_no_production_call_before_step_five_switch() -> None:
+def test_sealed_writer_has_one_production_call_at_segment_publish_boundary() -> None:
     snapshot = _production_construction_snapshot()
 
-    assert snapshot.finalized_writer_calls == []
+    assert snapshot.finalized_writer_calls == [
+        (Path("orchestrator/pipeline.py"), "_stage_publish_segments")
+    ]
 
 
 def test_rendered_markdown_construction_and_mutation_sites_are_allowlisted() -> None:

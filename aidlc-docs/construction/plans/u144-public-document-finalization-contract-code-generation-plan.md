@@ -334,7 +334,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 
 ### Step 5 — Preserve partial publication and switch to sealed documents
 
-- [ ] Switch segmented writer to `write_finalized_document`.
+- [x] Switch segmented writer to `write_finalized_document`. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-sealed-writer-switch.md`.
 - [ ] Pass finalized bytes to index, OG, evidence accounting, quality snapshot, replay, and notifier summary consumers without mutation.
 - [ ] Add canonical `extract_watchlist_impact()` beside `extract_conclusion()`, move notifier text cleanup to neutral `_internal.public_summary_extract`, and derive `PublicNotificationSummary` inside terminal validation from final layout bytes plus typed coverage. Store it on validated E2; seal only copies it. Missing/unsafe conclusion is a survivor-attempt trust block. Default segmented `build_segmented_summary(summaries, ...)` accepts DTOs/URLs/existing typed lookahead and price inputs only, checks key/segment/date identity, and cannot read a `Briefing` or fall back to generated `market_summary`.
 - [ ] Extend `PipelineResult` with backward-compatible typed `content_completeness` and per-segment outcomes. Preserve u63 absence navigation for one/two-document E6.

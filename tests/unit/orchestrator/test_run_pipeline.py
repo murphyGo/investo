@@ -1632,13 +1632,11 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
         observe_staging,
     )
 
-    def fake_write_briefing(
-        briefing: Briefing,
-        target_date: date,
-        *,
-        segment: MarketSegment | None = None,
+    def fake_write_finalized_document(
+        document: public_document_module.FinalizedPublicDocument,
     ) -> Path:
-        assert segment is not None
+        segment = document.segment
+        target_date = document.target_date
         path = archive_root / segment / "2026" / "04" / "2026-04-27.md"
         if segment == US_EQUITY:
             raise PublisherIOError(target_date=target_date, path=path, cause=OSError("boom"))
@@ -1646,7 +1644,11 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
         path.write_text(f"new {segment}", encoding="utf-8")
         return path
 
-    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+    monkeypatch.setattr(
+        pipeline_module,
+        "write_finalized_document",
+        fake_write_finalized_document,
+    )
 
     result = await run_pipeline(
         _TARGET,
@@ -1770,22 +1772,22 @@ async def test_publish_cancellation_after_promotion_drains_writer_then_rolls_bac
         prior_asset.write_bytes(b"promoted visual")
         return (prior_asset,)
 
-    def blocking_write(
-        briefing: Briefing,
-        target_date: date,
-        *,
-        segment: MarketSegment | None = None,
-    ) -> Path:
-        assert segment == DOMESTIC_EQUITY
+    document = SimpleNamespace(
+        segment=DOMESTIC_EQUITY,
+        briefing=_briefing(segment=DOMESTIC_EQUITY),
+    )
+
+    def blocking_write(value: object) -> Path:
+        assert value is document
         writer_started.set()
         release_writer.wait(timeout=10)
-        path = archive_root / segment / "2026" / "04" / f"{target_date.isoformat()}.md"
+        path = archive_root / DOMESTIC_EQUITY / "2026" / "04" / f"{_TARGET.isoformat()}.md"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(briefing.rendered_markdown, encoding="utf-8")
+        path.write_text(document.briefing.rendered_markdown, encoding="utf-8")
         return path
 
     monkeypatch.setattr(pipeline_module, "promote_finalized_bundle_artifacts", fake_promote)
-    monkeypatch.setattr(pipeline_module, "write_briefing", blocking_write)
+    monkeypatch.setattr(pipeline_module, "write_finalized_document", blocking_write)
 
     async def publish_from_run_owned_staging() -> None:
         with real_staging() as staging_root:
@@ -1795,7 +1797,10 @@ async def test_publish_cancellation_after_promotion_drains_writer_then_rolls_bac
                 _TARGET,
                 git_runner=git,
                 phase_one_complete=True,
-                finalized_bundle=SimpleNamespace(promotion_manifest=(object(),)),
+                finalized_bundle=SimpleNamespace(
+                    documents=(document,),
+                    promotion_manifest=(object(),),
+                ),
                 staging_root=staging_root,
             )
 
@@ -1878,13 +1883,11 @@ async def test_run_pipeline_publish_rollback_never_touches_image_ledger(
         raw_metadata={"image_url": new_url},
     )
 
-    def fake_write_briefing(
-        briefing: Briefing,
-        target_date: date,
-        *,
-        segment: MarketSegment | None = None,
+    def fake_write_finalized_document(
+        document: public_document_module.FinalizedPublicDocument,
     ) -> Path:
-        assert segment is not None
+        segment = document.segment
+        target_date = document.target_date
         path = archive_root / segment / "2026" / "04" / "2026-04-27.md"
         if segment == US_EQUITY:
             raise PublisherIOError(target_date=target_date, path=path, cause=OSError("boom"))
@@ -1892,7 +1895,11 @@ async def test_run_pipeline_publish_rollback_never_touches_image_ledger(
         path.write_text(f"new {segment}", encoding="utf-8")
         return path
 
-    monkeypatch.setattr(pipeline_module, "write_briefing", fake_write_briefing)
+    monkeypatch.setattr(
+        pipeline_module,
+        "write_finalized_document",
+        fake_write_finalized_document,
+    )
 
     result = await run_pipeline(
         _TARGET,
@@ -3010,6 +3017,42 @@ async def test_stage_publish_segments_sealed_path_preserves_exact_markdown(
 
     assert written == [sealed]
     assert written[0].rendered_markdown == "sealed bytes -- do not mutate\n"
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
+    sealed = _briefing(segment=DOMESTIC_EQUITY).model_copy(
+        update={"rendered_markdown": "sealed bytes -- sealed writer only\n"}
+    )
+    document = SimpleNamespace(segment=DOMESTIC_EQUITY, briefing=sealed)
+    bundle = SimpleNamespace(documents=(document,), promotion_manifest=())
+    written: list[object] = []
+
+    def fail_legacy_writer(*args: object, **kwargs: object) -> Path:
+        del args, kwargs
+        raise AssertionError("finalized bundle must not use write_briefing")
+
+    def capture_sealed_writer(value: object) -> Path:
+        written.append(value)
+        return tmp_path / "archive" / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md"
+
+    monkeypatch.setattr(pipeline_module, "write_briefing", fail_legacy_writer)
+    monkeypatch.setattr(pipeline_module, "write_finalized_document", capture_sealed_writer)
+
+    await pipeline_module._stage_publish_segments(
+        {DOMESTIC_EQUITY: sealed},
+        _TARGET,
+        git_runner=_SuccessfulGitRunner(),
+        phase_one_complete=True,
+        finalized_bundle=bundle,
+        staging_root=tmp_path / "staging",
+    )
+
+    assert written == [document]
 
 
 def _patch_watchlist_publish_inputs(

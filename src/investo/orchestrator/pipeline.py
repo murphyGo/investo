@@ -239,6 +239,7 @@ from investo.publisher.weekly_digest import (
 from investo.publisher.weekly_digest import (
     weekly_path as compute_weekly_path,
 )
+from investo.publisher.writer import write_finalized_document
 from investo.sources import collect_sources as _default_collect_sources
 from investo.visuals import image_library as _image_library
 from investo.visuals.assets import (
@@ -1204,6 +1205,13 @@ async def _stage_publish_segments(
     archive_paths: dict[MarketSegment, Path] = {}
 
     published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
+    finalized_documents = (
+        {document.segment: document for document in finalized_bundle.documents}
+        if finalized_bundle is not None
+        else {}
+    )
+    if finalized_bundle is not None and tuple(finalized_documents) != published_segments:
+        raise ValueError("finalized documents must match published segments in canonical order")
     snapshot_paths = [
         *(compute_archive_path(target_date, segment=segment) for segment in published_segments),
     ]
@@ -1267,12 +1275,18 @@ async def _stage_publish_segments(
         weekly_paths: tuple[Path, ...] = ()
         macro_lineage_paths: tuple[Path, ...] = ()
         for segment in published_segments:
-            archive_path = await _to_thread_drained(
-                write_briefing,
-                briefings[segment],
-                target_date,
-                segment=segment,
-            )
+            if finalized_bundle is None:
+                archive_path = await _to_thread_drained(
+                    write_briefing,
+                    briefings[segment],
+                    target_date,
+                    segment=segment,
+                )
+            else:
+                archive_path = await _to_thread_drained(
+                    write_finalized_document,
+                    finalized_documents[segment],
+                )
             from investo.publisher.paths import ARCHIVE_ROOT, normalize_archive_publish_path
 
             try:

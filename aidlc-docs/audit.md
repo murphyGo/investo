@@ -360,6 +360,14 @@
 **Validation**: Publisher/orchestrator/staging/atomic-I/O/pipeline integration scope passed 1,122; Ruff check/format and strict mypy over 243 source files passed. Regressions prove E8 public-byte identity plus staging cleanup, writer failure after real E6 promotion restores prior Markdown/visual bytes and removes all other promoted files, cancellation drains visual/writer threads before cleanup or rollback, and failed atomic replacement preserves prior bytes without a leftover `.tmp` sibling. Fresh-eyes review's cancellation and atomic-cleanup findings were closed and independently revalidated.
 **Next**: Step 5 checklist 1 — switch segmented archive writes from the sealed compatibility `Briefing` view to `write_finalized_document()`.
 
+## Construction — u144 Code Generation Step 5.1 sealed writer switch landed
+
+**Timestamp**: 2026-07-22T00:25:00+09:00
+**Action**: Default segmented publication now maps E6 documents by canonical segment and sends each immutable E5 `FinalizedPublicDocument` to `write_finalized_document()`. The writer verifies identity, date, digest, and disclaimer invariants before exact-byte atomic output. Direct legacy callers without an E6 bundle retain the characterized `write_briefing()` compatibility path.
+**Architecture guard**: Production has exactly one sealed-writer dispatch at `_stage_publish_segments`; the AST guard recognizes the cancellation-draining thread boundary and rejects additional production call sites.
+**Validation**: Sealed-writer, rollback, writer-contract, architecture, and orchestrator regression scope passed 128; Ruff check/format and strict mypy over 243 source files passed.
+**Next**: Step 5 checklist 2 — feed sealed bytes to index, OG, evidence, quality, replay, and notifier consumers without mutation.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
