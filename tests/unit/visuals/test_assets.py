@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -250,6 +251,41 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
     assert ArchiveLayout(tmp_path / "archive").briefing_path(_TARGET, "us-equity").parent == (
         tmp_path / "archive/us-equity/2026/05"
     )
+
+
+def test_prepare_visuals_in_staging_returns_complete_descriptors_without_public_writes(
+    tmp_path: Path,
+) -> None:
+    items = (_item("yahoo-finance-news", "news", "NVDA rallies after earnings"),)
+    coverage = build_segment_coverage("us-equity", items)
+    impact = match_watchlist_items(items, WatchlistConfig(tickers=("NVDA",)))
+    staging_root = tmp_path / "stage"
+    public_root = tmp_path / "public"
+
+    prepared = prepare_segment_visual_assets(
+        _briefing(),
+        archive_layout=ArchiveLayout(public_root),
+        staging_root=staging_root,
+        target_date=_TARGET,
+        segment="us-equity",
+        items=items,
+        coverage=coverage,
+        watchlist_impact=impact,
+    )
+
+    assert not public_root.exists()
+    assert len(prepared.staged_artifacts) == len(prepared.asset_paths) * 2
+    descriptor_ids = {artifact.artifact_id for artifact in prepared.staged_artifacts}
+    referenced_ids = {
+        artifact_id for block in prepared.markdown_blocks for artifact_id in block.artifact_ids
+    }
+    assert referenced_ids == descriptor_ids
+    assert all(len(block.artifact_ids) == 2 for block in prepared.markdown_blocks)
+    for artifact in prepared.staged_artifacts:
+        assert artifact.staged_path.is_relative_to(staging_root)
+        assert sha256(artifact.staged_path.read_bytes()).hexdigest() == artifact.sha256
+    assert "2026-05-07.assets/data-confidence.svg" in prepared.briefing.rendered_markdown
+    assert str(staging_root) not in prepared.briefing.rendered_markdown
 
 
 def test_prepare_segment_visual_assets_truncates_long_market_snapshot_text(

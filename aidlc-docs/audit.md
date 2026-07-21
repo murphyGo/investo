@@ -184,6 +184,16 @@
 **Scope**: No staging-root, artifact promotion, sealed-writer switch, or terminal finalizer was introduced. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 2 checklist 4 — move file-producing supplements to a run-owned staging root and return full typed `StagedArtifact` descriptors through the E1→E5→E6 promotion chain.
 
+## Construction — u144 Code Generation Step 2.4 staged artifact chain landed
+
+**Timestamp**: 2026-07-21T16:09:23+09:00
+**Action**: Added the run-owned file-staging contract for visual/chart supplements, complete immutable descriptors for each staged file, omission-aware E5 selection, exact E6 promotion manifests, and a post-E6-only promotion API that validates the whole manifest before writing.
+**Compatibility boundary**: The current segmented production calls remain on their legacy public writers until Step 5 installs the concrete finalizer and one surrounding staging/publish transaction. Staging-mode visual/chart APIs, temp-root cleanup, E5/E6 joins, and promotion are complete and tested without prematurely creating unpromotable production files. Text-only carryover remains in memory.
+**Fresh-eyes corrections**: Initial review found that the skeleton still trusted an arbitrary handler-selected known artifact ID and that promotion checked only a leaf symlink. The skeleton now requires exact equality with its canonical supplement/marker/outcome join, and promotion rejects lexical mismatches plus symlinks in every source or destination path component before any write. Malicious omitted-ID revival and source/destination parent-alias regressions fail closed with zero public files.
+**Validation**: Scoped Ruff/format passed; strict mypy passed over 239 source files; 1,638 internal/model/visual/publisher/orchestrator/integration tests passed. Fresh-eyes final re-review reproduced both corrections and approved with no remaining findings.
+**Scope**: No default segmented finalizer/sealed-writer switch, notifier change, or post-seal mutation removal landed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 2 checklist 5 — remove every production `Briefing.model_copy(update={"rendered_markdown": ...})` after finalization.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

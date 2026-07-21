@@ -27,7 +27,7 @@ import subprocess
 import threading
 from collections.abc import Sequence
 from datetime import UTC, date, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 
 import pytest
@@ -45,6 +45,7 @@ from investo.models import (
     PipelineStatus,
     SendResult,
 )
+from investo.models.public_artifact import StagedArtifact
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.orchestrator import pipeline as pipeline_module
 from investo.orchestrator import validators as validators_module
@@ -808,6 +809,59 @@ def test_chart_injection_routes_through_typed_pre_finalization_marker(
     assert f"<!-- investo:block chart:{marker_id} -->" in markdown
     assert f"<!-- /investo:block chart:{marker_id} -->" in markdown
     assert sidecars == ()
+
+
+def test_chart_staging_links_descriptor_to_typed_supplement(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    block = '\n<div class="investo-chart-block">chart</div>\n'
+    sidecar = object()
+    monkeypatch.setattr(
+        pipeline_module,
+        "build_chart_artifacts",
+        lambda *args, **kwargs: ChartArtifacts(block=block, sidecars=(sidecar,)),
+    )
+    staging_root = tmp_path / "stage"
+    staged_path = staging_root / "us-equity/chart.json"
+    staged_path.parent.mkdir(parents=True)
+    staged_path.write_bytes(b"chart")
+    descriptor = StagedArtifact(
+        artifact_id="us-equity.chart.market",
+        segment=US_EQUITY,
+        kind="chart",
+        relative_public_path=PurePosixPath("us-equity/chart.json"),
+        staged_path=staged_path,
+        sha256="0" * 64,
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "stage_chart_sidecar",
+        lambda *args, **kwargs: descriptor,
+    )
+    real_apply = pipeline_module._apply_pre_finalization_supplements
+    captured = []
+
+    def _capture(*args: object, **kwargs: object) -> Briefing:
+        captured.extend(kwargs["supplements"])  # type: ignore[arg-type, index]
+        return real_apply(*args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(pipeline_module, "_apply_pre_finalization_supplements", _capture)
+
+    rewritten, descriptors = pipeline_module._inject_chart_blocks_into_segments(
+        {US_EQUITY: _briefing(segment=US_EQUITY)},
+        target_date=_TARGET,
+        anchors_by_segment={US_EQUITY: (object(),)},  # type: ignore[dict-item]
+        history_by_ticker={"AAPL": (object(),)},  # type: ignore[dict-item]
+        staging_root=staging_root,
+    )
+
+    marker_id = f"{US_EQUITY}.chart.market"
+    markdown = rewritten[US_EQUITY].rendered_markdown
+    assert markdown.count(f"<!-- investo:block chart:{marker_id} -->") == 1
+    assert markdown.count(f"<!-- /investo:block chart:{marker_id} -->") == 1
+    assert descriptors == (descriptor,)
+    assert captured[0].artifact_ids == (descriptor.artifact_id,)
 
 
 @pytest.mark.asyncio

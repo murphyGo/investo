@@ -29,6 +29,7 @@ from investo.models.segments import (
 from investo.publisher import FinalizedPublicBundle, FinalizedPublicDocument
 from investo.publisher.public_document import (
     _REGION_SPECS,
+    PublicBlockOutcome,
     PublicDocumentContext,
     PublicDocumentDraft,
     PublicDocumentFinalizationError,
@@ -48,6 +49,7 @@ from investo.publisher.public_document import (
     _render_supplement_block,
     _seal_document,
     _SegmentTrustBlockedError,
+    _select_surviving_supplement_artifact_ids,
     _transition_draft,
 )
 from tests._helpers.briefings import build_briefing
@@ -502,6 +504,151 @@ def test_bundle_requires_outcome_and_promotion_manifest_agreement(tmp_path: Path
     assert bundle.promotion_manifest[0] is artifact
     with pytest.raises(TypeError):
         FinalizedPublicBundle()  # type: ignore[call-arg]
+
+
+def test_omitted_supplement_contributes_no_e5_or_e6_artifact_ids(tmp_path: Path) -> None:
+    visual_artifact = StagedArtifact(
+        artifact_id="visual.hero",
+        segment=DOMESTIC_EQUITY,
+        kind="visual",
+        relative_public_path=PurePosixPath("assets/hero.svg"),
+        staged_path=tmp_path / "hero.svg",
+        sha256=_DIGEST,
+    )
+    chart_artifact = StagedArtifact(
+        artifact_id="chart.market",
+        segment=DOMESTIC_EQUITY,
+        kind="chart",
+        relative_public_path=PurePosixPath("assets/chart.json"),
+        staged_path=tmp_path / "chart.json",
+        sha256=_DIGEST,
+    )
+    supplements = (
+        PublicDocumentSupplement(
+            supplement_id="hero",
+            kind="visual",
+            markdown="![hero](assets/hero.svg)",
+            stable_order=1,
+            artifact_ids=(visual_artifact.artifact_id,),
+        ),
+        PublicDocumentSupplement(
+            supplement_id="market",
+            kind="chart",
+            markdown='<div class="market-chart"></div>',
+            stable_order=2,
+            artifact_ids=(chart_artifact.artifact_id,),
+        ),
+    )
+    expectation = _region_expectation(supplement_ids=("hero", "market"))
+    full_layout = PublicDocumentLayout.reindex(
+        _canonical_region_markdown(supplements=supplements),
+        expectation=expectation,
+    )
+    omitted_layout = full_layout.omit_optional_region("chart:market")
+    source = build_briefing(target_date=_TARGET_DATE).model_copy(
+        update={"rendered_markdown": full_layout.markdown}
+    )
+    context = PublicDocumentContext(
+        target_date=_TARGET_DATE,
+        expected_segments=(DOMESTIC_EQUITY,),
+        input_absences={},
+        anchors_by_segment={},
+        items_by_segment={},
+        coverage_by_segment={DOMESTIC_EQUITY: _coverage()},
+        source_outcomes=(),
+        bundle_context=None,
+        fact_bundle=VerifiedFactBundle(target_date=_TARGET_DATE),
+        entity_observed_at_utc=datetime(2026, 7, 21, tzinfo=UTC),
+        supplements_by_segment={DOMESTIC_EQUITY: supplements},
+        staged_artifacts_by_segment={DOMESTIC_EQUITY: (visual_artifact, chart_artifact)},
+    )
+
+    def draft_factory(
+        briefing: Briefing,
+        segment: MarketSegment,
+        unused_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        del unused_context
+        return _new_generated_draft(briefing, segment=segment, layout=full_layout)
+
+    def assemble(
+        draft: PublicDocumentDraft,
+        unused_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        del unused_context
+        return _transition_draft(
+            draft,
+            next_phase="assembled",
+            layout=omitted_layout,
+            block_outcomes=(
+                PublicBlockOutcome(
+                    region_id="chart:market",
+                    block="chart",
+                    disposition="omitted",
+                ),
+            ),
+        )
+
+    def project(
+        draft: PublicDocumentDraft,
+        unused_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        del unused_context
+        return _transition_draft(draft, next_phase="projected")
+
+    def repair(
+        draft: PublicDocumentDraft,
+        unused_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        del unused_context
+        return _transition_draft(draft, next_phase="repaired")
+
+    def validate(
+        draft: PublicDocumentDraft,
+        unused_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        del unused_context
+        return _transition_draft(
+            draft,
+            next_phase="validated",
+            notification_summary=_notification(),
+        )
+
+    malicious_handlers = _FinalizationPhaseHandlers(
+        assemble=assemble,
+        project=project,
+        repair=repair,
+        validate=validate,
+        artifact_ids=lambda draft, ctx: (
+            visual_artifact.artifact_id,
+            chart_artifact.artifact_id,
+        ),
+    )
+    with pytest.raises(PublicDocumentFinalizationError) as exc_info:
+        _finalize_bundle_skeleton(
+            {DOMESTIC_EQUITY: source},
+            context=context,
+            draft_factory=draft_factory,
+            handlers=malicious_handlers,
+        )
+    assert exc_info.value.issue_codes == ("invariant.artifact_selection",)
+
+    canonical_handlers = _FinalizationPhaseHandlers(
+        assemble=assemble,
+        project=project,
+        repair=repair,
+        validate=validate,
+        artifact_ids=_select_surviving_supplement_artifact_ids,
+    )
+    bundle = _finalize_bundle_skeleton(
+        {DOMESTIC_EQUITY: source},
+        context=context,
+        draft_factory=draft_factory,
+        handlers=canonical_handlers,
+    )
+
+    assert bundle.documents[0].staged_artifact_ids == (visual_artifact.artifact_id,)
+    assert bundle.promotion_manifest == (visual_artifact,)
 
 
 def test_finalization_error_message_never_renders_cause() -> None:

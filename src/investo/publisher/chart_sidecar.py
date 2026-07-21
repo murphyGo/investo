@@ -46,7 +46,10 @@ from pathlib import Path
 from typing import Final
 
 from investo._internal._io import write_atomic_bytes
+from investo._internal.archive_layout import ArchiveLayout
 from investo.models.market_anchor import MarketAnchor, OHLCRow, anchor_label
+from investo.models.public_artifact import StagedArtifact, build_staged_artifact
+from investo.models.segments import MarketSegment
 
 # Fixed sidecar schema version. Bump only on a breaking shape change; the
 # JS loader reads it to refuse incompatible future payloads.
@@ -219,6 +222,25 @@ def write_chart_sidecar(sidecar: ChartSidecar, markdown_path: Path) -> Path:
     return target
 
 
+def stage_chart_sidecar(
+    sidecar: ChartSidecar,
+    *,
+    staging_root: Path,
+    target_date: date,
+    segment: MarketSegment,
+) -> StagedArtifact:
+    """Write one chart below ``staging_root`` and return its typed descriptor."""
+
+    markdown_path = ArchiveLayout(staging_root).briefing_path(target_date, segment)
+    staged_path = write_chart_sidecar(sidecar, markdown_path)
+    return build_staged_artifact(
+        staging_root=staging_root,
+        staged_path=staged_path,
+        segment=segment,
+        kind="chart",
+    )
+
+
 __all__ = [
     "SIDECAR_PROVENANCE_SOURCE",
     "SIDECAR_SCHEMA_VERSION",
@@ -226,5 +248,6 @@ __all__ = [
     "ChartSidecar",
     "build_chart_sidecar",
     "normalize_chart_id",
+    "stage_chart_sidecar",
     "write_chart_sidecar",
 ]

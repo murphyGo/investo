@@ -28,6 +28,7 @@ from investo.publisher.chart_sidecar import (
     SIDECAR_SCHEMA_VERSION,
     build_chart_sidecar,
     normalize_chart_id,
+    stage_chart_sidecar,
     write_chart_sidecar,
 )
 
@@ -188,6 +189,33 @@ def test_write_chart_sidecar_lands_under_assets_dir(tmp_path: Path) -> None:
     first = written.read_bytes()
     write_chart_sidecar(sidecar, markdown_path)
     assert written.read_bytes() == first
+
+
+def test_stage_chart_sidecar_writes_only_below_run_root(tmp_path: Path) -> None:
+    sidecar = build_chart_sidecar(
+        _anchor(),
+        _history(),
+        markdown_stem="2026-05-24",
+        chart_id="us-equity-aapl",
+        run_date=_RUN_DATE,
+    )
+    staging_root = tmp_path / "stage"
+    public_root = tmp_path / "archive"
+
+    artifact = stage_chart_sidecar(
+        sidecar,
+        staging_root=staging_root,
+        target_date=_RUN_DATE,
+        segment="us-equity",
+    )
+
+    assert artifact.kind == "chart"
+    assert artifact.staged_path.is_file()
+    assert artifact.staged_path.is_relative_to(staging_root)
+    assert artifact.relative_public_path.as_posix().endswith(
+        "2026-05-24.assets/charts/us-equity-aapl.json"
+    )
+    assert not public_root.exists()
 
 
 def test_write_leaves_no_tmp_artifact(tmp_path: Path) -> None:

@@ -14,7 +14,7 @@ from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from hashlib import sha256
 from itertools import pairwise
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from types import MappingProxyType
 from typing import Final, Literal, Self, TypeVar
 from unicodedata import name as unicode_name
@@ -28,6 +28,7 @@ from investo.models.coverage import SourceOutcome
 from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
+from investo.models.public_artifact import PublicArtifactKind, StagedArtifact
 from investo.models.public_notification import PublicNotificationSummary
 from investo.models.segments import (
     CRYPTO,
@@ -51,7 +52,7 @@ PublicProjectionPolicy = Literal[
     "exact_disclaimer",
 ]
 PublicRegionRequirement = Literal["always", "conditional", "optional"]
-PublicSupplementKind = Literal["visual", "chart", "carryover"]
+PublicSupplementKind = PublicArtifactKind
 SegmentInputAbsence = Literal["generation_failed"]
 PublicLimitationReason = Literal[
     "limited_coverage",
@@ -106,7 +107,6 @@ _FINALIZATION_STATES: Final[frozenset[str]] = frozenset(
     {"finalized", "generation_absent", "trust_blocked"}
 )
 _ID_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
-_SHA256_RE: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _ISSUE_CODE_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 _MARKER_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^<!-- investo:block (chart|visual|carryover):([a-z0-9][a-z0-9._-]{0,127}) -->$"
@@ -348,33 +348,6 @@ def _snapshot_bundle_context(context: BundleContext | None) -> BundleContext | N
             "daily_thesis_decision": decision,
         },
     )
-
-
-@dataclass(frozen=True, slots=True)
-class StagedArtifact:
-    artifact_id: str
-    segment: MarketSegment
-    kind: PublicSupplementKind
-    relative_public_path: PurePosixPath
-    staged_path: Path
-    sha256: str
-
-    def __post_init__(self) -> None:
-        _require_identifier(self.artifact_id, field_name="artifact_id")
-        if self.segment not in _SEGMENTS:
-            raise ValueError("segment must be a known market segment")
-        if self.kind not in _SUPPLEMENT_KINDS:
-            raise ValueError("kind must be visual, chart, or carryover")
-        if not isinstance(self.relative_public_path, PurePosixPath):
-            raise TypeError("relative_public_path must be PurePosixPath")
-        if self.relative_public_path.is_absolute() or ".." in self.relative_public_path.parts:
-            raise ValueError("relative_public_path must be relative and contain no '..'")
-        if str(self.relative_public_path) in {"", "."}:
-            raise ValueError("relative_public_path must identify a public file")
-        if not isinstance(self.staged_path, Path):
-            raise TypeError("staged_path must be Path")
-        if _SHA256_RE.fullmatch(self.sha256) is None:
-            raise ValueError("sha256 must be lowercase hexadecimal")
 
 
 @dataclass(frozen=True, slots=True)
@@ -1879,6 +1852,41 @@ class _FinalizationPhaseHandlers:
     artifact_ids: _ArtifactIdSelector
 
 
+def _select_surviving_supplement_artifact_ids(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> tuple[str, ...]:
+    """Join typed E1 supplements to E5 artifacts by owned region identity."""
+
+    regions = {region.region_id: region for region in draft.layout.regions}
+    outcomes = {outcome.region_id: outcome for outcome in draft.block_outcomes}
+    selected: list[str] = []
+    for supplement in context.supplements_by_segment.get(draft.segment, ()):
+        region_id = f"{supplement.kind}:{supplement.supplement_id}"
+        region = regions.get(region_id)
+        if region is None or region.block != supplement.kind:
+            raise _FinalizationInvariantError(
+                phase="validated",
+                issue_code="invariant.supplement_region",
+            )
+        outcome = outcomes.get(region_id)
+        if outcome is not None and outcome.block != supplement.kind:
+            raise _FinalizationInvariantError(
+                phase="validated",
+                issue_code="invariant.supplement_outcome",
+            )
+        is_empty = region.content_start == region.content_end
+        is_omitted = outcome is not None and outcome.disposition == "omitted"
+        if is_empty != is_omitted:
+            raise _FinalizationInvariantError(
+                phase="validated",
+                issue_code="invariant.supplement_omission",
+            )
+        if not is_omitted:
+            selected.extend(supplement.artifact_ids)
+    return tuple(selected)
+
+
 class _SegmentTrustBlockedError(Exception):
     """Internal typed signal for one non-degradable segment finding."""
 
@@ -1976,7 +1984,13 @@ def _finalize_segment_skeleton(
         )
         current = result
 
-    artifact_ids = tuple(handlers.artifact_ids(current, context))
+    artifact_ids = _select_surviving_supplement_artifact_ids(current, context)
+    handler_artifact_ids = tuple(handlers.artifact_ids(current, context))
+    if handler_artifact_ids != artifact_ids:
+        raise _FinalizationInvariantError(
+            phase="validated",
+            issue_code="invariant.artifact_selection",
+        )
     known_artifacts = {
         artifact.artifact_id
         for artifact in context.staged_artifacts_by_segment.get(draft.segment, ())

@@ -75,7 +75,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Final, cast
+from typing import Any, Final, cast, overload
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
@@ -149,6 +149,7 @@ from investo.models import (
 )
 from investo.models.bundle_context import BundleContext
 from investo.models.facts import FactId, VerifiedFactBundle
+from investo.models.public_artifact import StagedArtifact
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.notifier import (
     BriefingPublisher,
@@ -204,7 +205,7 @@ from investo.publisher.anchor_assertion_gate import (
     NumericAnchorReconciliationError,
 )
 from investo.publisher.carryover import inject_carryover_block, render_carryover_block
-from investo.publisher.chart_sidecar import write_chart_sidecar
+from investo.publisher.chart_sidecar import stage_chart_sidecar, write_chart_sidecar
 from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
@@ -1536,13 +1537,39 @@ async def _stage_publish_segments(
     return archive_paths
 
 
+@overload
 def _inject_chart_blocks_into_segments(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
     target_date: date,
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
-) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
+    staging_root: None = None,
+) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]: ...
+
+
+@overload
+def _inject_chart_blocks_into_segments(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    target_date: date,
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    history_by_ticker: Mapping[str, Sequence[OHLCRow]],
+    staging_root: Path,
+) -> tuple[dict[MarketSegment, Briefing], tuple[StagedArtifact, ...]]: ...
+
+
+def _inject_chart_blocks_into_segments(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    target_date: date,
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    history_by_ticker: Mapping[str, Sequence[OHLCRow]],
+    staging_root: Path | None = None,
+) -> tuple[
+    dict[MarketSegment, Briefing],
+    tuple[Path, ...] | tuple[StagedArtifact, ...],
+]:
     """Insert a Lightweight Charts placeholder block into each briefing (u75).
 
     The heavy OHLC history no longer rides inline: each placeholder
@@ -1567,6 +1594,7 @@ def _inject_chart_blocks_into_segments(
         return segment_briefings, ()
     rewritten: dict[MarketSegment, Briefing] = {}
     sidecar_paths: list[Path] = []
+    staged_sidecars: list[StagedArtifact] = []
     for segment, briefing in segment_briefings.items():
         anchors = anchors_by_segment.get(segment, ())
         if not anchors:
@@ -1582,12 +1610,26 @@ def _inject_chart_blocks_into_segments(
         if not artifacts.block:
             rewritten[segment] = briefing
             continue
+        segment_staged_sidecars = (
+            tuple(
+                stage_chart_sidecar(
+                    sidecar,
+                    staging_root=staging_root,
+                    target_date=target_date,
+                    segment=segment,
+                )
+                for sidecar in artifacts.sidecars
+            )
+            if staging_root is not None
+            else ()
+        )
         supplements = (
             PublicDocumentSupplement(
                 supplement_id=f"{segment}.chart.market",
                 kind="chart",
                 markdown=artifacts.block,
                 stable_order=20_000,
+                artifact_ids=tuple(artifact.artifact_id for artifact in segment_staged_sidecars),
             ),
         )
         updated = _apply_pre_finalization_supplements(
@@ -1596,14 +1638,21 @@ def _inject_chart_blocks_into_segments(
             place=lambda markdown, blocks: inject_chart_block(markdown, blocks[0]),
             owned_regions=(("chart", f"{segment}.chart.market"),),
         )
+        if staging_root is not None:
+            staged_sidecars.extend(segment_staged_sidecars)
+        elif updated is not briefing:
+            markdown_path = compute_archive_path(target_date, segment=segment)
+            for sidecar in artifacts.sidecars:
+                sidecar_paths.append(write_chart_sidecar(sidecar, markdown_path))
         if updated is briefing:
             rewritten[segment] = briefing
             continue
-        markdown_path = compute_archive_path(target_date, segment=segment)
-        for sidecar in artifacts.sidecars:
-            sidecar_paths.append(write_chart_sidecar(sidecar, markdown_path))
         rewritten[segment] = updated
-    return rewritten, tuple(sidecar_paths)
+    return (
+        (rewritten, tuple(staged_sidecars))
+        if staging_root is not None
+        else (rewritten, tuple(sidecar_paths))
+    )
 
 
 # u51 — pre-publish reader-format pass.
@@ -2061,6 +2110,7 @@ async def _stage_prepare_segment_visual_assets(
                     kind="visual",
                     markdown=block.markdown,
                     stable_order=index,
+                    artifact_ids=block.artifact_ids,
                 )
                 for index, block in enumerate(prepared.markdown_blocks)
             )

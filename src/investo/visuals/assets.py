@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ from investo._internal.briefing_extract import (
     extract_key_drivers,
 )
 from investo.models import Briefing, NormalizedItem
+from investo.models.public_artifact import StagedArtifact, build_staged_artifact
 from investo.models.segments import MarketSegment, SegmentCoverage
 from investo.models.watchlist import WatchlistImpact
 from investo.visuals.cards import (
@@ -120,12 +122,15 @@ class VisualMarkdownBlock:
 
     placement_key: str
     markdown: str
+    artifact_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.placement_key not in _CARD_LABELS:
             raise ValueError("placement_key must be a known visual card kind")
         if not self.markdown.strip():
             raise ValueError("visual markdown must not be blank")
+        if len(set(self.artifact_ids)) != len(self.artifact_ids):
+            raise ValueError("visual artifact_ids must be unique")
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +140,7 @@ class PreparedVisualAssets:
     briefing: Briefing
     asset_paths: tuple[Path, ...]
     markdown_blocks: tuple[VisualMarkdownBlock, ...] = ()
+    staged_artifacts: tuple[StagedArtifact, ...] = ()
 
 
 def prepare_segment_visual_assets(
@@ -147,6 +153,7 @@ def prepare_segment_visual_assets(
     coverage: SegmentCoverage,
     watchlist_impact: WatchlistImpact,
     curated_selection: CuratedSelection | None = None,
+    staging_root: Path | None = None,
 ) -> PreparedVisualAssets:
     """Generate SVG cards, write provenance manifests, and lay out markdown.
 
@@ -159,7 +166,8 @@ def prepare_segment_visual_assets(
     existing hero chain unchanged — zero external fetch on every path
     (R4 / AC-1.5).
     """
-    markdown_path = archive_layout.briefing_path(target_date, segment)
+    write_layout = ArchiveLayout(staging_root) if staging_root is not None else archive_layout
+    markdown_path = write_layout.briefing_path(target_date, segment)
     cards: list[_RenderableCard] = [
         build_data_confidence_card(target_date, coverage),
         _build_market_snapshot_card(
@@ -176,7 +184,7 @@ def prepare_segment_visual_assets(
 
     asset_paths: list[Path] = []
     external_asset_path = _prepare_external_context_image(
-        archive_layout=archive_layout,
+        archive_layout=write_layout,
         target_date=target_date,
         segment=segment,
         items=items,
@@ -185,7 +193,7 @@ def prepare_segment_visual_assets(
         asset_paths.append(external_asset_path)
 
     curated_asset_path = _prepare_curated_context_image(
-        archive_layout=archive_layout,
+        archive_layout=write_layout,
         target_date=target_date,
         segment=segment,
         curated_selection=curated_selection,
@@ -194,7 +202,7 @@ def prepare_segment_visual_assets(
         asset_paths.append(curated_asset_path)
 
     ai_asset_path = _prepare_openai_market_image(
-        archive_layout=archive_layout,
+        archive_layout=write_layout,
         target_date=target_date,
         segment=segment,
         market_card=cards[1],
@@ -205,15 +213,38 @@ def prepare_segment_visual_assets(
         asset_paths.append(ai_asset_path)
 
     for card in cards:
-        path = visual_asset_path(target_date, segment, card.kind, archive_layout=archive_layout)
+        path = visual_asset_path(target_date, segment, card.kind, archive_layout=write_layout)
         _write_svg(path, render_card_svg(card))
         _write_generated_svg_manifest(path, card_kind=card.kind)
         validate_visual_asset(path)
         asset_paths.append(path)
 
+    staged_artifacts: list[StagedArtifact] = []
+    artifact_ids_by_path: dict[Path, tuple[str, ...]] = {}
+    if staging_root is not None:
+        for path in asset_paths:
+            asset_artifact = build_staged_artifact(
+                staging_root=staging_root,
+                staged_path=path,
+                segment=segment,
+                kind="visual",
+            )
+            manifest_artifact = build_staged_artifact(
+                staging_root=staging_root,
+                staged_path=manifest_path_for(path),
+                segment=segment,
+                kind="visual",
+            )
+            staged_artifacts.extend((asset_artifact, manifest_artifact))
+            artifact_ids_by_path[path] = (
+                asset_artifact.artifact_id,
+                manifest_artifact.artifact_id,
+            )
+
     markdown_blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,
         asset_paths=tuple(asset_paths),
+        artifact_ids_by_path=artifact_ids_by_path,
     )
     rendered_markdown = insert_prebuilt_visual_blocks(
         briefing.rendered_markdown,
@@ -223,6 +254,7 @@ def prepare_segment_visual_assets(
         briefing=briefing.model_copy(update={"rendered_markdown": rendered_markdown}),
         asset_paths=tuple(asset_paths),
         markdown_blocks=markdown_blocks,
+        staged_artifacts=tuple(staged_artifacts),
     )
 
 
@@ -230,6 +262,7 @@ def build_visual_markdown_blocks(
     *,
     markdown_path: Path,
     asset_paths: tuple[Path, ...],
+    artifact_ids_by_path: Mapping[Path, tuple[str, ...]] | None = None,
 ) -> tuple[VisualMarkdownBlock, ...]:
     """Render visual Markdown once, keeping placement metadata explicit."""
 
@@ -237,6 +270,7 @@ def build_visual_markdown_blocks(
         VisualMarkdownBlock(
             placement_key=path.stem,
             markdown=_visual_block(path, markdown_path=markdown_path),
+            artifact_ids=(artifact_ids_by_path or {}).get(path, ()),
         )
         for path in asset_paths
     )
