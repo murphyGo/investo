@@ -41,6 +41,10 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "QualityHistoryRow",
         # public_notification.py (u144)
         "PublicNotificationSummary",
+        # public_document_outcome.py (u144)
+        "ContentCompleteness",
+        "SegmentFinalizationOutcome",
+        "SegmentFinalizationState",
         # core_fact.py
         "CoreFact",
         "CORE_FACT_KEYWORDS",
