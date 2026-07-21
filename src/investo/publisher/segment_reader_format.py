@@ -10,29 +10,25 @@ viewport short disclaimer, the u72 watchpoint matrix, and the u71 first-
 viewport reflow. It calls publisher APIs end-to-end and never reads any
 orchestrator/pipeline state.
 
-u84 moves it here so the module boundary reads correctly: the orchestrator
-calls it as a *publisher API* (orchestrator → publisher is the allowed
-edge). Its signature speaks publisher/models vocabulary only — it takes
-the per-segment briefings, the reconciled anchors, the optional
-:class:`~investo.models.bundle_context.BundleContext`, and the routed
-per-segment items. It does NOT accept (or know about) a ``PipelineContext``.
+u84 originally exposed it directly to the orchestrator. u144 now treats the
+module as an internal phase-1 collaborator beneath ``publisher.public_document``;
+the public function name remains only as a compatibility surface for existing
+tests and non-production callers. Its signature speaks publisher/models
+vocabulary only and never accepts a ``PipelineContext``.
 
-Behaviour-preserving: this is a verbatim move of the prior orchestrator
-helper. ``orchestrator/pipeline.py`` re-imports it under the legacy
-private name so existing callers/tests keep their import path.
+The collaborator owns text-producing reader transforms and surface repair. It
+does not own terminal surface validation; the public-document boundary retains
+the fail-close compatibility check until the sealed lifecycle lands.
 """
 
 from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Final
 
-from investo._internal.surface_quality import (
-    find_surface_quality_issues,
-    repair_surface_artifacts,
-)
+from investo._internal.surface_quality import repair_surface_artifacts
 from investo.models import Briefing, NormalizedItem
 from investo.models.bundle_context import BundleContext
 from investo.models.market_anchor import MarketAnchor
@@ -61,7 +57,6 @@ from investo.publisher.daily_thesis import (
     inject_daily_thesis_line,
     render_daily_thesis_line,
 )
-from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.reader_format import (
     apply_reader_format,
     check_filler_phrase_density,
@@ -80,6 +75,7 @@ _logger = logging.getLogger("investo.publisher.segment_reader_format")
 # ``tests/integration/test_briefing_reader_format.py`` and
 # ``tests/unit/publisher/test_reader_format.py::test_apply_reader_format_preserves_disclaimer``.
 _ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
+_SurfaceRepairObserver = Callable[[MarketSegment, str, str], None]
 
 
 def apply_reader_format_to_segments(
@@ -88,6 +84,7 @@ def apply_reader_format_to_segments(
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     bundle_context: BundleContext | None = None,
     items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+    _surface_repair_observer: _SurfaceRepairObserver | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
@@ -266,8 +263,8 @@ def apply_reader_format_to_segments(
         # into a <details> block behind the main sections. Pure str -> str,
         # idempotent, disclaimer-preserving.
         markdown = reflow_first_viewport(markdown, segment=segment)
-        surface_issues_before = find_surface_quality_issues(markdown)
-        repaired_surface = repair_surface_artifacts(markdown)
+        surface_before = markdown
+        repaired_surface = repair_surface_artifacts(surface_before)
         if repaired_surface != markdown:
             _logger.warning(
                 "surface_quality.repaired segment=%s",
@@ -275,25 +272,8 @@ def apply_reader_format_to_segments(
                 extra={"segment": segment},
             )
             markdown = repaired_surface
-        surface_issues_after = find_surface_quality_issues(markdown)
-        for issue in (*surface_issues_before, *surface_issues_after):
-            if issue.severity == "warn":
-                _logger.warning(
-                    "surface_quality.%s segment=%s",
-                    issue.code,
-                    segment,
-                    extra={
-                        "segment": segment,
-                        "code": issue.code,
-                        "region": issue.region,
-                        "evidence_len": len(issue.evidence),
-                    },
-                )
-        blocking_issues = tuple(
-            issue for issue in surface_issues_after if issue.severity == "block"
-        )
-        if blocking_issues:
-            raise SurfaceQualityError(segment=segment, issues=blocking_issues)
+        if _surface_repair_observer is not None:
+            _surface_repair_observer(segment, surface_before, markdown)
         scan_compliance(markdown, segment)
         check_sentence_ending_diversity(markdown, segment=segment)
         check_filler_phrase_density(markdown, segment=segment)

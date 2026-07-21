@@ -7,6 +7,7 @@ the phase algorithms and production switch land in later construction steps.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
@@ -20,6 +21,7 @@ from unicodedata import name as unicode_name
 
 from investo._internal.disclaimer import ensure_canonical_disclaimer
 from investo._internal.summary_quality import repair_first_viewport_summary
+from investo._internal.surface_quality import find_surface_quality_issues
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
@@ -36,8 +38,10 @@ from investo.models.segments import (
     SegmentCoverage,
 )
 from investo.publisher._public_document_policy import PUBLIC_BLOCK_KINDS, PublicBlockKind
+from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.reader_format import emit_first_viewport_disclaimer
+from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 
 PublicDocumentPhase = Literal["generated", "assembled", "projected", "repaired", "validated"]
 PublicBlockDisposition = Literal["kept", "repaired", "replaced", "omitted"]
@@ -141,6 +145,7 @@ _CRYPTO_ANCHOR_HEADER: Final[str] = "| 종목 | 스냅샷(UTC 24h) | 구간 변�
 _ANCHOR_DELIMITER: Final[str] = "|------|------|------|------|"
 _K = TypeVar("_K")
 _V = TypeVar("_V")
+_surface_logger = logging.getLogger("investo.publisher.segment_reader_format")
 
 
 def _canonical_active_segments(
@@ -239,6 +244,58 @@ def _assemble_phase_one_body_evidence(
         if markdown == briefing.rendered_markdown
         else briefing.model_copy(update={"rendered_markdown": markdown})
     )
+
+
+def _assemble_phase_one_reader_briefings(
+    segment_briefings: dict[MarketSegment, Briefing],
+    *,
+    anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
+    bundle_context: BundleContext | None = None,
+    items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+) -> dict[MarketSegment, Briefing]:
+    """Run the legacy reader transform as a phase-1 internal collaborator.
+
+    Surface repair remains a text-producing assembly pass. The old transform
+    module no longer claims terminal validation ownership; this compatibility
+    boundary preserves the current fail-close behavior until the read-only
+    terminal validator lands in the finalized lifecycle.
+    """
+
+    assembled = apply_reader_format_to_segments(
+        segment_briefings,
+        anchors_by_segment=anchors_by_segment,
+        bundle_context=bundle_context,
+        items_by_segment=items_by_segment,
+        _surface_repair_observer=_enforce_phase_one_surface_compatibility,
+    )
+    return assembled
+
+
+def _enforce_phase_one_surface_compatibility(
+    segment: MarketSegment,
+    before_repair: str,
+    after_repair: str,
+) -> None:
+    """Preserve the legacy per-segment fail-close order until Step 4."""
+
+    issues_before = find_surface_quality_issues(before_repair)
+    issues_after = find_surface_quality_issues(after_repair)
+    for issue in (*issues_before, *issues_after):
+        if issue.severity == "warn":
+            _surface_logger.warning(
+                "surface_quality.%s segment=%s",
+                issue.code,
+                segment,
+                extra={
+                    "segment": segment,
+                    "code": issue.code,
+                    "region": issue.region,
+                    "evidence_len": len(issue.evidence),
+                },
+            )
+    blocking_issues = tuple(issue for issue in issues_after if issue.severity == "block")
+    if blocking_issues:
+        raise SurfaceQualityError(segment=segment, issues=blocking_issues)
 
 
 def _require_identifier(value: str, *, field_name: str) -> None:

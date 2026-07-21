@@ -9,9 +9,11 @@ import pytest
 import investo.publisher.segment_reader_format as segment_reader_format
 from investo._internal.summary_quality import repair_first_viewport_summary
 from investo.briefing.disclaimer import DISCLAIMER
-from investo.briefing.segments import US_EQUITY
+from investo.briefing.segments import DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 from investo.models import Briefing
+from investo.publisher.compliance_language import ComplianceHit, ComplianceLanguageError
 from investo.publisher.errors import SurfaceQualityError
+from investo.publisher.public_document import _assemble_phase_one_reader_briefings
 from investo.publisher.reader_format import apply_reader_format, reflow_first_viewport
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 
@@ -134,7 +136,7 @@ def test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132(
     monkeypatch.setattr(segment_reader_format, "repair_surface_artifacts", traced_repair)
 
     with pytest.raises(SurfaceQualityError) as exc_info:
-        apply_reader_format_to_segments(
+        _assemble_phase_one_reader_briefings(
             {US_EQUITY: _briefing(markdown, target_date=date(2026, 6, 30))},
             anchors_by_segment={},
         )
@@ -176,7 +178,7 @@ def test_segment_reader_accepts_u132_watermark_contract() -> None:
 )
 def test_segment_reader_blocks_u132_invalid_watermarks(watermark: str) -> None:
     with pytest.raises(SurfaceQualityError) as exc_info:
-        apply_reader_format_to_segments(
+        _assemble_phase_one_reader_briefings(
             {
                 US_EQUITY: _briefing(
                     _watermarked_markdown(watermark),
@@ -214,8 +216,52 @@ def test_segment_reader_blocks_u112_href_ellipsis() -> None:
     )
 
     try:
-        apply_reader_format_to_segments({US_EQUITY: briefing}, anchors_by_segment={})
+        _assemble_phase_one_reader_briefings({US_EQUITY: briefing}, anchors_by_segment={})
     except SurfaceQualityError as exc:
         assert any(issue.code == "markdown.href_ellipsis" for issue in exc.issues)
     else:  # pragma: no cover - assertion clarity
         raise AssertionError("expected SurfaceQualityError")
+
+
+def test_phase_one_surface_block_precedes_later_segment_hard_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    real_scan = segment_reader_format.scan_compliance
+    later_segment_scanned = False
+
+    def fail_later_segment(markdown: str, segment: MarketSegment) -> object:
+        nonlocal later_segment_scanned
+        if segment == US_EQUITY:
+            later_segment_scanned = True
+            raise ComplianceLanguageError(
+                segment=US_EQUITY,
+                hits=(
+                    ComplianceHit(
+                        phrase="매수 검토",
+                        severity="P0",
+                        line_no=1,
+                        category="action",
+                    ),
+                ),
+            )
+        return real_scan(markdown, segment)
+
+    monkeypatch.setattr(segment_reader_format, "scan_compliance", fail_later_segment)
+    blocked_first = _briefing(
+        "# title\n\n> **오늘의 결론**: [자료](https://example.com/...)\n\n## ① 요약\n본문"
+    )
+    later_hard_error = _briefing(
+        "# title\n\n> **오늘의 결론**: 정책 변수를 확인합니다.\n\n## ① 요약\n본문"
+    )
+
+    with pytest.raises(SurfaceQualityError) as exc_info:
+        _assemble_phase_one_reader_briefings(
+            {
+                DOMESTIC_EQUITY: blocked_first,
+                US_EQUITY: later_hard_error,
+            },
+            anchors_by_segment={},
+        )
+
+    assert exc_info.value.segment == DOMESTIC_EQUITY
+    assert later_segment_scanned is False

@@ -164,6 +164,16 @@
 **Scope**: No sealed-writer production switch or terminal finalizer was introduced. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 2 checklist 2 — make `segment_reader_format` an internal assembly collaborator and remove its premature terminal surface gate.
 
+## Construction — u144 Code Generation Step 2.2 segment reader internalized
+
+**Timestamp**: 2026-07-21T15:18:45+09:00
+**Action**: Routed the production reader-format call through `publisher.public_document` and reduced `segment_reader_format` to a phase-1 text-transform/repair collaborator with no direct surface scanner or `SurfaceQualityError` policy dependency.
+**Compatibility boundary**: Until Step 4 installs the read-only terminal lifecycle validator, `public_document` injects a policy-free post-repair observer and preserves the existing per-segment pre-scan→repair→post-scan→WARN→block behavior. The orchestrator no longer imports `segment_reader_format` directly.
+**Fresh-eyes correction**: Initial batch-level compatibility scanning changed exception precedence when an earlier segment had a surface blocker and a later segment had another hard error. The observer now runs synchronously after each segment repair and before later scans/segments; a domestic blocker plus later US compliance failure regression proves the original `SurfaceQualityError` wins and partial isolation remains available.
+**Validation**: Scoped Ruff/format passed; strict mypy passed for 59 publisher/orchestrator files; 19 focused, 597 publisher, 374 orchestrator, 14 reader/bundle integration, and 28 boundary/public-document tests passed; fresh-eyes re-review approved with no remaining findings.
+**Scope**: No blocker was weakened and no sealed production switch occurred. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 2 checklist 3 — route visual/chart/carryover Markdown through explicit supplements or one pre-finalizer adapter.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

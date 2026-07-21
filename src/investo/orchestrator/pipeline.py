@@ -216,8 +216,8 @@ from investo.publisher.public_document import (
     _assemble_phase_one_body_evidence,
     _assemble_phase_one_presentation_briefings,
 )
-from investo.publisher.segment_reader_format import (
-    apply_reader_format_to_segments as _apply_reader_format_to_segments,
+from investo.publisher.public_document import (
+    _assemble_phase_one_reader_briefings as _apply_reader_format_to_segments,
 )
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
