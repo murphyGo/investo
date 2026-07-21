@@ -9,7 +9,11 @@ from typing import get_args
 
 import pytest
 
-from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_INLINE_TEXT
+from investo._internal.public_quality_language import (
+    FORBIDDEN_PUBLIC_PHRASES,
+    PUBLIC_LOW_COVERAGE_INLINE_TEXT,
+)
+from investo._internal.surface_quality import repair_surface_artifacts
 from investo.models import Briefing, SourceOutcome
 from investo.models.facts import VerifiedFactBundle
 from investo.models.market_anchor import MarketAnchor
@@ -37,6 +41,39 @@ from investo.publisher.reader_format import (
 from investo.publisher.reader_format.public_projection import project_public_markdown
 
 _TARGET_DATE = date(2026, 7, 21)
+
+_ASSEMBLY_PRODUCER_OUTPUTS = (
+    "generated_body",
+    "prebuilt_supplement",
+    "anchor_table",
+    "anchor_assertion",
+    "reader_structure",
+    "shared_macro",
+    "crypto_indicators",
+    "channel_anchors",
+    "cause_map",
+    "daily_thesis",
+    "compliance_repair",
+    "watchpoint_matrix",
+    "partial_bundle_navigation",
+    "canonical_disclaimer",
+    "first_viewport_disclaimer",
+    "first_viewport_reflow",
+    "summary_repair",
+    "body_used_count",
+)
+_FORBIDDEN_PUBLIC_TOKEN_MATRIX = tuple(
+    dict.fromkeys(
+        (
+            *FORBIDDEN_PUBLIC_PHRASES,
+            "본문 사용 7",
+            "실패 3",
+            "0건 2",
+            "fallback ratio",
+            "Figures Presence",
+        )
+    )
+)
 
 
 def _expectation() -> PublicRegionExpectation:
@@ -246,6 +283,32 @@ def test_reader_visible_leakage_traversal_accepts_projected_owned_regions() -> N
     projected = project_public_markdown(layout, limitation_reasons=("limited_coverage",))
 
     assert find_reader_visible_public_label_leaks(projected) == ()
+
+
+@pytest.mark.parametrize("producer", _ASSEMBLY_PRODUCER_OUTPUTS)
+@pytest.mark.parametrize("token", _FORBIDDEN_PUBLIC_TOKEN_MATRIX)
+def test_every_assembly_producer_output_is_closed_by_terminal_projection_and_repair(
+    producer: str,
+    token: str,
+) -> None:
+    """Pin transform closure for the complete documented phase-one call graph."""
+
+    markdown = _markdown().replace(
+        "이슈 본문",
+        f"이슈 본문\n{producer}: {token}",
+    )
+    layout = PublicDocumentLayout.reindex(markdown, expectation=_expectation())
+
+    projected = project_public_markdown(
+        layout,
+        limitation_reasons=("limited_coverage",),
+    )
+    repaired = PublicDocumentLayout.reindex(
+        repair_surface_artifacts(projected.markdown),
+        expectation=projected.expectation,
+    )
+
+    assert find_reader_visible_public_label_leaks(repaired) == ()
 
 
 def test_projection_is_byte_idempotent_and_preserves_crlf() -> None:

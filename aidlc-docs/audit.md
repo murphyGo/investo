@@ -5408,3 +5408,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Public-document lifecycle/type scope 42 passed; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-idempotence-phase-misuse.md`.
 **Status**: Step 6 checklist 1/9 complete. Next: producer transform-closure matrices.
+
+## Construction — u144 Step 6.2 assembly transform closure
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Added a complete producer-by-token closure matrix proving every documented phase-one producer output is cleaned by the terminal projection/repair sequence before sealing.
+**Decisions**: The matrix enumerates 18 producer boundaries and all canonical forbidden phrases plus concrete pattern-only samples. It injects only into reader-visible owned regions; protected diagnostics, exact disclaimer bytes, and fenced code retain their typed exclusion contracts. The final assertion uses the independent read-only leakage traversal after reindexing.
+**Validation**: Terminal projection module 291 passed, including 252 closure cases; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-transform-closure.md`.
+**Status**: Step 6 checklist 2/9 complete. Next: partial fixed-point matrix.
