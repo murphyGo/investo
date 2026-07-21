@@ -13,6 +13,8 @@ from investo.publisher.writer import write_finalized_document
 _SRC = Path(__file__).parents[3] / "src" / "investo"
 _PUBLIC_DOCUMENT = Path("publisher/public_document.py")
 _CANONICAL_SYMBOLS = {
+    "investo.models.Briefing": "Briefing",
+    "investo.models.briefing.Briefing": "Briefing",
     "investo.publisher.FinalizedPublicDocument": "FinalizedPublicDocument",
     "investo.publisher.write_finalized_document": "write_finalized_document",
     "investo.publisher.public_document.FinalizedPublicDocument": "FinalizedPublicDocument",
@@ -21,6 +23,8 @@ _CANONICAL_SYMBOLS = {
     "investo.publisher.writer.write_finalized_document": "write_finalized_document",
 }
 _CANONICAL_MODULES = {
+    "investo.models",
+    "investo.models.briefing",
     "investo.publisher",
     "investo.publisher.public_document",
     "investo.publisher.writer",
@@ -50,6 +54,7 @@ class _ConstructionVisitor(ast.NodeVisitor):
         self.constructor_calls: list[tuple[Path, str, str]] = []
         self.seal_calls: list[tuple[Path, str]] = []
         self.finalized_writer_calls: list[tuple[Path, str]] = []
+        self.rendered_markdown_writes: list[tuple[Path, str, str]] = []
 
     @property
     def function_name(self) -> str:
@@ -114,6 +119,23 @@ class _ConstructionVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call) -> None:
         call_symbol = self._canonical_symbol(node.func)
+        if call_symbol == "Briefing" and any(
+            keyword.arg == "rendered_markdown" for keyword in node.keywords
+        ):
+            self.rendered_markdown_writes.append(
+                (self.relative_path, self.function_name, "construction")
+            )
+        if (
+            isinstance(node.func, ast.Attribute)
+            and node.func.attr == "model_copy"
+            and any(
+                keyword.arg == "update" and _updates_rendered_markdown(keyword.value)
+                for keyword in node.keywords
+            )
+        ):
+            self.rendered_markdown_writes.append(
+                (self.relative_path, self.function_name, "model_copy")
+            )
         if call_symbol in {"FinalizedPublicDocument", "PublicDocumentDraft"}:
             self.constructor_calls.append((self.relative_path, self.function_name, call_symbol))
         if _call_name(node.func) == "object.__new__" and node.args:
@@ -136,6 +158,7 @@ def _production_construction_snapshot() -> _ConstructionVisitor:
         aggregate.constructor_calls.extend(visitor.constructor_calls)
         aggregate.seal_calls.extend(visitor.seal_calls)
         aggregate.finalized_writer_calls.extend(visitor.finalized_writer_calls)
+        aggregate.rendered_markdown_writes.extend(visitor.rendered_markdown_writes)
     return aggregate
 
 
@@ -147,6 +170,21 @@ def _visit_source(
     visitor = _ConstructionVisitor(relative_path)
     visitor.visit(ast.parse(source))
     return visitor
+
+
+def _updates_rendered_markdown(node: ast.expr) -> bool:
+    """Recognize the bounded direct-update spellings covered by AC-144.4."""
+
+    if isinstance(node, ast.Dict):
+        return any(
+            isinstance(key, ast.Constant) and key.value == "rendered_markdown" for key in node.keys
+        )
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "dict"
+        and any(keyword.arg == "rendered_markdown" for keyword in node.keywords)
+    )
 
 
 def test_draft_and_final_document_construction_is_single_owned() -> None:
@@ -165,6 +203,56 @@ def test_sealed_writer_has_no_production_call_before_step_five_switch() -> None:
     snapshot = _production_construction_snapshot()
 
     assert snapshot.finalized_writer_calls == []
+
+
+def test_rendered_markdown_construction_and_mutation_sites_are_allowlisted() -> None:
+    snapshot = _production_construction_snapshot()
+
+    assert snapshot.rendered_markdown_writes == [
+        (Path("briefing/pipeline.py"), "_finalize_briefing", "construction"),
+        (
+            _PUBLIC_DOCUMENT,
+            "_assemble_phase_one_presentation_briefings",
+            "model_copy",
+        ),
+        (_PUBLIC_DOCUMENT, "_assemble_phase_one_body_evidence", "model_copy"),
+        (_PUBLIC_DOCUMENT, "_apply_pre_finalization_supplements", "model_copy"),
+        (_PUBLIC_DOCUMENT, "_seal_document", "model_copy"),
+        (
+            Path("publisher/segment_reader_format.py"),
+            "apply_reader_format_to_segments",
+            "model_copy",
+        ),
+        (
+            Path("visuals/assets.py"),
+            "prepare_segment_visual_assets",
+            "model_copy",
+        ),
+    ]
+    assert [
+        write for write in snapshot.rendered_markdown_writes if write[1] == "_seal_document"
+    ] == [(_PUBLIC_DOCUMENT, "_seal_document", "model_copy")]
+
+
+def test_rendered_markdown_guard_covers_direct_update_spellings() -> None:
+    snapshot = _visit_source(
+        '''
+"""briefing.model_copy(update={"rendered_markdown": ignored})"""
+
+from investo.models import Briefing
+
+Briefing(rendered_markdown=markdown)
+briefing.model_copy(update={"rendered_markdown": markdown})
+briefing.model_copy(update=dict(rendered_markdown=markdown))
+briefing.model_copy(update={"market_summary": summary})
+'''
+    )
+
+    assert snapshot.rendered_markdown_writes == [
+        (Path("synthetic.py"), "<module>", "construction"),
+        (Path("synthetic.py"), "<module>", "model_copy"),
+        (Path("synthetic.py"), "<module>", "model_copy"),
+    ]
 
 
 def test_sealed_writer_rejects_publisher_private_draft() -> None:

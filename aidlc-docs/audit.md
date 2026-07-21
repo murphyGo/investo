@@ -203,6 +203,15 @@
 **Scope**: No runtime code changed. The result records a negative invariant already achieved by Steps 2.1-2.4 without inventing a redundant compatibility rewrite. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 2 checklist 6 — add the explicit compatibility allowlist AST architecture guard.
 
+## Construction — u144 Code Generation Step 2.6 rendered-Markdown AST guard landed
+
+**Timestamp**: 2026-07-21T16:24:04+09:00
+**Action**: Extended the existing production architecture scanner with an exact ordered allowlist for the canonical generated `Briefing(rendered_markdown=...)` construction, five direct pre-finalization/legacy `model_copy` owners, and the single `_seal_document` E5 compatibility copy. Literal-dict and `dict(rendered_markdown=...)` direct replacements are recognized; executable AST traversal ignores the chart docstring example and unrelated copy fields.
+**Boundary**: The guard intentionally detects direct construction/replacement spellings, not arbitrary semantic string transforms or data flow hidden behind helpers. The adjacent writer guard still requires zero production `write_finalized_document` calls before the Step 5 switch; Step 5 must update that exact expectation when the one default path lands.
+**Validation**: The architecture suite passed 10 tests; the related assembly/incident/writer set passed 40 tests total. Ruff check, Ruff format check, and strict mypy passed. Fresh-eyes review requested one format-only correction, then independently re-ran the architecture suite and approved with no functional findings.
+**Scope**: Test and construction evidence only; no production runtime or default publish path changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 3 checklist 1 — implement the exact region-aware terminal public projection after every text producer.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
