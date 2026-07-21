@@ -5361,3 +5361,11 @@ passed, scoped format check passed, `mypy src` passed.
 - Existing DEBT-081 failures reproduce unchanged at the pre-u132 baseline and are not u132 gaps.
 **Report**: `docs/cross-checks/2026-07-18-u132-watermark-window-reader-render-and-gate-alignment.md`
 **Context**: Step 7 commit `8682b94` was pushed before cross-check began.
+
+## Construction — u144 Step 5.4 content completeness result
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Added shared typed segment-finalization outcomes and extended `PipelineResult` with backward-compatible public `content_completeness`, separating content publication from legacy delivery/visual partial status.
+**Decisions**: Completeness is derived from sealed E5 outcomes only: all expected segments finalized is `complete`, a non-empty survivor subset is `partial`, and no survivor is `none`. Unsegmented callers preserve empty outcomes. Duplicate segment outcomes and completeness mismatches fail model validation; bounded issue codes remain canonical.
+**Validation**: Focused result/orchestrator tests 51 passed; combined result/finalizer/staging/orchestrator scope 189 passed; Ruff/format and `mypy src` (244 source files) passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-content-completeness-result.md`.
+**Status**: Step 5 checklist 4/8 complete. Next: process exit mapping.

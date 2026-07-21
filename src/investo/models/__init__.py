@@ -57,6 +57,11 @@ from investo.models.market_anchor import (
     OHLCRow,
     anchor_label,
 )
+from investo.models.public_document_outcome import (
+    ContentCompleteness,
+    SegmentFinalizationOutcome,
+    SegmentFinalizationState,
+)
 from investo.models.public_notification import PublicNotificationSummary
 from investo.models.quality_history import QualityHistoryRow
 from investo.models.results import (
@@ -175,6 +180,7 @@ __all__ = [
     "CarryoverItem",
     "CarryoverStatus",
     "Category",
+    "ContentCompleteness",
     "CoreFact",
     "CoverageReasonCode",
     "CoverageStatus",
@@ -226,6 +232,8 @@ __all__ = [
     "SectorTicker",
     "SectorUniverse",
     "SegmentCoverage",
+    "SegmentFinalizationOutcome",
+    "SegmentFinalizationState",
     "SendResult",
     "SourceCollectionReport",
     "SourceOutcome",

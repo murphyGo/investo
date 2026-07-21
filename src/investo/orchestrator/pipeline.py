@@ -140,11 +140,13 @@ from investo.models import (
     Briefing,
     BriefingCarryover,
     BriefingNotification,
+    ContentCompleteness,
     FailureContext,
     NormalizedItem,
     PipelineResult,
     PipelineStatus,
     PublicNotificationSummary,
+    SegmentFinalizationOutcome,
     SendResult,
     SourceOutcome,
 )
@@ -3376,6 +3378,24 @@ async def _execute_pipeline_stages(
                 await _safe_alert(alerter, "orchestrator", soft_alert)
 
     source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated.get("source_outcomes", ()))
+    finalized_bundle = cast(
+        "FinalizedPublicBundle | None",
+        accumulated.get("finalized_bundle"),
+    )
+    segment_outcomes = (
+        tuple(finalized_bundle.segment_outcomes) if finalized_bundle is not None else ()
+    )
+    if segment_outcomes:
+        finalized_count = sum(1 for outcome in segment_outcomes if outcome.state == "finalized")
+        content_completeness: ContentCompleteness = (
+            "complete"
+            if finalized_count == len(segment_outcomes)
+            else "partial"
+            if finalized_count > 0
+            else "none"
+        )
+    else:
+        content_completeness = "none" if failed_status is not None else "complete"
 
     if failed_status is not None:
         return _build_result(
@@ -3386,6 +3406,8 @@ async def _execute_pipeline_stages(
             pipeline_start=pipeline_start,
             briefing_url=None,
             source_outcomes=source_outcomes,
+            content_completeness=content_completeness,
+            segment_outcomes=segment_outcomes,
         )
 
     return _build_result(
@@ -3396,6 +3418,8 @@ async def _execute_pipeline_stages(
         pipeline_start=pipeline_start,
         briefing_url=briefing_url,
         source_outcomes=source_outcomes,
+        content_completeness=content_completeness,
+        segment_outcomes=segment_outcomes,
     )
 
 
@@ -3453,6 +3477,8 @@ def _build_result(
     pipeline_start: float,
     briefing_url: HttpUrl | None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    content_completeness: ContentCompleteness = "complete",
+    segment_outcomes: Sequence[SegmentFinalizationOutcome] = (),
 ) -> PipelineResult:
     """Final ``PipelineResult`` constructor + closing INFO log."""
     duration = time.monotonic() - pipeline_start
@@ -3470,6 +3496,8 @@ def _build_result(
         duration_seconds=duration,
         briefing_url=briefing_url,
         source_outcomes=tuple(source_outcomes),
+        content_completeness=content_completeness,
+        segment_outcomes=tuple(segment_outcomes),
     )
 
 

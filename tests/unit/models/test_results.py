@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
+from investo.models.public_document_outcome import SegmentFinalizationOutcome
 from investo.models.results import (
     FailureContext,
     FailureStage,
@@ -15,6 +16,7 @@ from investo.models.results import (
     PipelineStatus,
     SendResult,
 )
+from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 
 _FAILURE_STAGES: tuple[FailureStage, ...] = (
     "collect",
@@ -227,6 +229,71 @@ def test_pipeline_result_full() -> None:
     assert pr.status == PipelineStatus.PARTIAL
     assert pr.stages["notify_briefing"] == "failed: timeout"
     assert str(pr.briefing_url) == "https://example.com/2026-04-27"
+
+
+def test_pipeline_result_content_fields_are_backward_compatible() -> None:
+    result = PipelineResult(**_pipeline_kwargs())
+
+    assert result.content_completeness == "complete"
+    assert result.segment_outcomes == ()
+
+
+@pytest.mark.parametrize(
+    ("states", "content_completeness"),
+    [
+        (("finalized", "finalized", "finalized"), "complete"),
+        (("finalized", "trust_blocked", "generation_absent"), "partial"),
+        (("trust_blocked", "generation_absent", "trust_blocked"), "none"),
+    ],
+)
+def test_pipeline_result_content_completeness_matches_segment_outcomes(
+    states: tuple[str, str, str],
+    content_completeness: str,
+) -> None:
+    outcomes = tuple(
+        SegmentFinalizationOutcome(segment=segment, state=state)  # type: ignore[arg-type]
+        for segment, state in zip(
+            (DOMESTIC_EQUITY, US_EQUITY, CRYPTO),
+            states,
+            strict=True,
+        )
+    )
+
+    result = PipelineResult(
+        **_pipeline_kwargs(
+            content_completeness=content_completeness,
+            segment_outcomes=outcomes,
+        )
+    )
+
+    assert result.segment_outcomes == outcomes
+
+
+def test_pipeline_result_rejects_content_outcome_mismatch() -> None:
+    outcomes = (
+        SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized"),
+        SegmentFinalizationOutcome(segment=US_EQUITY, state="trust_blocked"),
+    )
+
+    with pytest.raises(ValidationError, match="must match segment_outcomes"):
+        PipelineResult(
+            **_pipeline_kwargs(
+                content_completeness="complete",
+                segment_outcomes=outcomes,
+            )
+        )
+
+
+def test_pipeline_result_rejects_duplicate_segment_outcomes() -> None:
+    outcome = SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized")
+
+    with pytest.raises(ValidationError, match="duplicate segments"):
+        PipelineResult(
+            **_pipeline_kwargs(
+                content_completeness="complete",
+                segment_outcomes=(outcome, outcome),
+            )
+        )
 
 
 def test_pipeline_result_negative_duration_rejected() -> None:

@@ -347,6 +347,8 @@ async def test_run_pipeline_happy_path_success(archive_root: Path) -> None:
     )
 
     assert result.status == PipelineStatus.SUCCESS
+    assert result.content_completeness == "complete"
+    assert result.segment_outcomes == ()
     assert result.target_date == _TARGET
     assert result.stages == {
         "collect": "ok",
@@ -411,6 +413,12 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
     )
 
     assert result.status == PipelineStatus.SUCCESS
+    assert result.content_completeness == "complete"
+    assert tuple(outcome.state for outcome in result.segment_outcomes) == (
+        "finalized",
+        "finalized",
+        "finalized",
+    )
     assert [call[0] for call in segment_calls] == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
     assert [call[1] for call in segment_calls] == [1, 1, 1]
     assert [call[2] for call in segment_calls] == [True, True, True]
@@ -907,6 +915,12 @@ async def test_run_pipeline_visual_asset_failure_publishes_text_only_partial(
     )
 
     assert result.status == PipelineStatus.PARTIAL
+    assert result.content_completeness == "complete"
+    assert tuple(outcome.state for outcome in result.segment_outcomes) == (
+        "finalized",
+        "finalized",
+        "finalized",
+    )
     assert result.stages["visual_assets"] == "failed: VisualAssetError"
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"] == "ok"
@@ -1103,6 +1117,12 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     )
 
     assert result.status == PipelineStatus.PARTIAL
+    assert result.content_completeness == "partial"
+    assert tuple(outcome.state for outcome in result.segment_outcomes) == (
+        "finalized",
+        "finalized",
+        "generation_absent",
+    )
     assert result.stages["generate"] == "partial: failed crypto"
     assert result.stages["generate:crypto"] == "failed: synthesis"
     assert result.stage_timings["generate:crypto"] >= 0
@@ -1534,6 +1554,12 @@ async def test_run_pipeline_segment_disclaimer_failure_withholds_only_failed_seg
     )
 
     assert result.status == PipelineStatus.PARTIAL
+    assert result.content_completeness == "partial"
+    assert tuple(outcome.state for outcome in result.segment_outcomes) == (
+        "finalized",
+        "trust_blocked",
+        "finalized",
+    )
     assert result.stages["publish:us-equity"] == "failed: PublicDocumentTrustGate"
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"] == "ok"

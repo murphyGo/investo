@@ -54,6 +54,12 @@ from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
 from investo.models.public_artifact import PublicArtifactKind, StagedArtifact
+from investo.models.public_document_outcome import (
+    SegmentFinalizationOutcome,
+)
+from investo.models.public_document_outcome import (
+    SegmentFinalizationState as SegmentFinalizationState,
+)
 from investo.models.public_notification import PublicNotificationSummary
 from investo.models.segments import (
     CRYPTO,
@@ -112,7 +118,6 @@ PublicLimitationReason = Literal[
     "source_count_unavailable",
     "watchpoint_unavailable",
 ]
-SegmentFinalizationState = Literal["finalized", "generation_absent", "trust_blocked"]
 PublicNotificationSummaryIssueCode = Literal[
     "summary.missing_conclusion",
     "summary.invalid_conclusion",
@@ -196,9 +201,6 @@ _NOTIFICATION_SUMMARY_ISSUE_CODES: Final[frozenset[str]] = frozenset(
         "summary.invalid_coverage_label",
         "summary.invalid_watchlist",
     }
-)
-_FINALIZATION_STATES: Final[frozenset[str]] = frozenset(
-    {"finalized", "generation_absent", "trust_blocked"}
 )
 _ID_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 _ISSUE_CODE_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
@@ -3119,20 +3121,6 @@ def _seal_document(
     object.__setattr__(sealed, "block_outcomes", draft.block_outcomes)
     object.__setattr__(sealed, "warnings", canonical_warnings)
     return sealed
-
-
-@dataclass(frozen=True, slots=True)
-class SegmentFinalizationOutcome:
-    segment: MarketSegment
-    state: SegmentFinalizationState
-    issue_codes: tuple[str, ...] = ()
-
-    def __post_init__(self) -> None:
-        if self.segment not in _SEGMENTS:
-            raise ValueError("segment must be a known market segment")
-        if self.state not in _FINALIZATION_STATES:
-            raise ValueError("segment finalization state is not supported")
-        object.__setattr__(self, "issue_codes", _canonical_issue_codes(self.issue_codes))
 
 
 @dataclass(frozen=True, slots=True, init=False)

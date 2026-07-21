@@ -41,6 +41,10 @@ from investo.models._validators import (
     reject_blank_strict,
 )
 from investo.models.coverage import SourceOutcome
+from investo.models.public_document_outcome import (
+    ContentCompleteness,
+    SegmentFinalizationOutcome,
+)
 
 FailureStage = Literal[
     "collect",
@@ -202,6 +206,31 @@ class PipelineResult(BaseModel):
     # branches still populate this). Default ``()`` keeps existing
     # constructions backward-compatible.
     source_outcomes: tuple[SourceOutcome, ...] = Field(default_factory=tuple)
+    # u144 — separates public-content completeness from the legacy overloaded
+    # PARTIAL status (which also represents notification-only degradation).
+    content_completeness: ContentCompleteness = "complete"
+    segment_outcomes: tuple[SegmentFinalizationOutcome, ...] = Field(default_factory=tuple)
+
+    @model_validator(mode="after")
+    def _check_content_completeness(self) -> PipelineResult:
+        if not self.segment_outcomes:
+            return self
+        segments = tuple(outcome.segment for outcome in self.segment_outcomes)
+        if len(set(segments)) != len(segments):
+            raise ValueError("segment_outcomes must not contain duplicate segments")
+        finalized_count = sum(
+            1 for outcome in self.segment_outcomes if outcome.state == "finalized"
+        )
+        expected = (
+            "complete"
+            if finalized_count == len(self.segment_outcomes)
+            else "partial"
+            if finalized_count > 0
+            else "none"
+        )
+        if self.content_completeness != expected:
+            raise ValueError("content_completeness must match segment_outcomes")
+        return self
 
     @field_validator("stage_timings")
     @classmethod
