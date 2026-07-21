@@ -322,7 +322,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 
 ### Step 4 — Add block-scoped containment and remove duplicate gates
 
-- [ ] Add region-owned outcome recording and implement the exhaustive single-disposition table from FD. Group every region's findings, apply the fixed precedence once, and test multiple simultaneous cosmetic findings without a second-attempt segment drop.
+- [x] Add region-owned outcome recording and implement the exhaustive single-disposition table from FD. Group every region's findings, apply the fixed precedence once, and test multiple simultaneous cosmetic findings without a second-attempt segment drop. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-4-grouped-region-dispositions.md`.
 - [ ] Prove a malformed required watchpoint section is safely replaced without losing `## ⑥`, and malformed optional chart/visual blocks do not drop the segment.
 - [ ] Remove both current entity-drop paths from `GenerateStage` and `_stage_publish_segments`; run `scan_entity_fact_claims(..., entity_observed_at_utc)` once in terminal validation.
 - [ ] Move the existing pure daily-thesis survivor decision from `orchestrator.bundle_context` to `_internal.daily_thesis_decision`; each fixed-point pass branches `None -> None`, otherwise recomputes and validates the active context before assembly. Publisher must not import orchestrator.

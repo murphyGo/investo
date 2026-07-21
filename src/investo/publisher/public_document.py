@@ -21,7 +21,7 @@ from unicodedata import name as unicode_name
 
 from investo._internal.disclaimer import ensure_canonical_disclaimer
 from investo._internal.summary_quality import repair_first_viewport_summary
-from investo._internal.surface_quality import find_surface_quality_issues
+from investo._internal.surface_quality import SurfaceQualityIssue, find_surface_quality_issues
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
@@ -39,7 +39,12 @@ from investo.models.segments import (
     MarketSegment,
     SegmentCoverage,
 )
-from investo.publisher._public_document_policy import PUBLIC_BLOCK_KINDS, PublicBlockKind
+from investo.publisher._public_document_policy import (
+    PUBLIC_BLOCK_KINDS,
+    FinalizationIssueDisposition,
+    PublicBlockKind,
+    strongest_surface_disposition,
+)
 from investo.publisher.entity_fact_guard import EntityFactViolation, scan_entity_fact_claims
 from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
@@ -90,6 +95,16 @@ _PROJECTION_POLICIES: Final[frozenset[str]] = frozenset(
 )
 _REGION_REQUIREMENTS: Final[frozenset[str]] = frozenset({"always", "conditional", "optional"})
 _BLOCK_DISPOSITIONS: Final[frozenset[str]] = frozenset({"kept", "repaired", "replaced", "omitted"})
+_FINALIZATION_TO_BLOCK_DISPOSITION: Final[
+    Mapping[FinalizationIssueDisposition, PublicBlockDisposition]
+] = MappingProxyType(
+    {
+        "record_warning": "kept",
+        "repair": "repaired",
+        "replace_block": "replaced",
+        "omit_optional_block": "omitted",
+    }
+)
 _LIMITATION_REASONS: Final[frozenset[str]] = frozenset(
     {
         "limited_coverage",
@@ -1776,6 +1791,107 @@ class PublicBlockOutcome:
         if self.disposition not in _BLOCK_DISPOSITIONS:
             raise ValueError("block disposition is not supported")
         object.__setattr__(self, "issue_codes", _canonical_issue_codes(self.issue_codes))
+
+
+@dataclass(frozen=True, slots=True)
+class _OwnedSurfaceQualityFinding:
+    """One canonical scanner finding assigned to exactly one E3 region."""
+
+    region_id: str
+    block: PublicBlockKind
+    issue: SurfaceQualityIssue
+
+    def __post_init__(self) -> None:
+        if not self.region_id:
+            raise ValueError("region_id must not be empty")
+        if self.block not in PUBLIC_BLOCK_KINDS:
+            raise ValueError("block must be a known public block kind")
+        if not self.issue.code:
+            raise ValueError("surface issue code must not be empty")
+
+
+@dataclass(frozen=True, slots=True)
+class _RegionDispositionDecision:
+    """Redacted one-action plan for all findings owned by one region."""
+
+    region_id: str
+    block: PublicBlockKind
+    issue_codes: tuple[str, ...]
+    disposition: FinalizationIssueDisposition
+
+    def __post_init__(self) -> None:
+        if not self.region_id:
+            raise ValueError("region_id must not be empty")
+        if self.block not in PUBLIC_BLOCK_KINDS:
+            raise ValueError("block must be a known public block kind")
+        codes = _canonical_issue_codes(self.issue_codes)
+        if not codes:
+            raise ValueError("issue_codes must not be empty")
+        if self.disposition != strongest_surface_disposition(codes, self.block):
+            raise ValueError("disposition must equal the grouped policy decision")
+        object.__setattr__(self, "issue_codes", codes)
+
+
+def _resolve_owned_region_dispositions(
+    layout: PublicDocumentLayout,
+    findings: Sequence[_OwnedSurfaceQualityFinding],
+) -> tuple[_RegionDispositionDecision, ...]:
+    """Group findings by E3 region and choose one stable R10 disposition."""
+
+    regions = {region.region_id: region for region in layout.regions}
+    grouped: dict[str, list[_OwnedSurfaceQualityFinding]] = {}
+    for finding in findings:
+        region = regions.get(finding.region_id)
+        if region is None or region.block != finding.block:
+            raise _FinalizationInvariantError(
+                phase="repaired",
+                issue_code="invariant.finding_ownership",
+            )
+        grouped.setdefault(finding.region_id, []).append(finding)
+
+    decisions: list[_RegionDispositionDecision] = []
+    for region in layout.regions:
+        region_findings = grouped.get(region.region_id)
+        if not region_findings:
+            continue
+        issue_codes = tuple(sorted({finding.issue.code for finding in region_findings}))
+        decisions.append(
+            _RegionDispositionDecision(
+                region_id=region.region_id,
+                block=region.block,
+                issue_codes=issue_codes,
+                disposition=strongest_surface_disposition(issue_codes, region.block),
+            )
+        )
+    return tuple(decisions)
+
+
+def _append_region_block_outcome(
+    outcomes: Sequence[PublicBlockOutcome],
+    decision: _RegionDispositionDecision,
+) -> tuple[PublicBlockOutcome, ...]:
+    """Record one redacted E3 outcome after the caller completes its action."""
+
+    current = tuple(outcomes)
+    if any(outcome.region_id == decision.region_id for outcome in current):
+        raise _SegmentTrustBlockedError(
+            phase="repaired",
+            issue_codes=("document.fallback_repeat",),
+        )
+    if decision.disposition == "block_segment":
+        raise _SegmentTrustBlockedError(
+            phase="repaired",
+            issue_codes=decision.issue_codes,
+        )
+    return (
+        *current,
+        PublicBlockOutcome(
+            region_id=decision.region_id,
+            block=decision.block,
+            disposition=_FINALIZATION_TO_BLOCK_DISPOSITION[decision.disposition],
+            issue_codes=decision.issue_codes,
+        ),
+    )
 
 
 @dataclass(frozen=True, slots=True, init=False)

@@ -7,7 +7,7 @@ than duplicating scanner regexes or repairing by unowned text search.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Final, Literal
 
@@ -37,6 +37,14 @@ FinalizationIssueDisposition = Literal[
     "omit_optional_block",
     "block_segment",
 ]
+
+FINALIZATION_DISPOSITION_PRECEDENCE: Final[tuple[FinalizationIssueDisposition, ...]] = (
+    "block_segment",
+    "omit_optional_block",
+    "replace_block",
+    "repair",
+    "record_warning",
+)
 
 PUBLIC_BLOCK_KINDS: Final[tuple[PublicBlockKind, ...]] = (
     "header",
@@ -183,12 +191,31 @@ def surface_issue_disposition(
     return SURFACE_ISSUE_DISPOSITION_TABLE.get((issue_code, block), "block_segment")
 
 
+def strongest_surface_disposition(
+    issue_codes: Sequence[str],
+    block: PublicBlockKind,
+) -> FinalizationIssueDisposition:
+    """Resolve one grouped region action through the fixed R10 precedence."""
+
+    codes = tuple(issue_codes)
+    if not codes:
+        raise ValueError("issue_codes must not be empty")
+    dispositions = {surface_issue_disposition(code, block) for code in codes}
+    return next(
+        disposition
+        for disposition in FINALIZATION_DISPOSITION_PRECEDENCE
+        if disposition in dispositions
+    )
+
+
 __all__ = [
+    "FINALIZATION_DISPOSITION_PRECEDENCE",
     "OPTIONAL_BLOCK_DISPOSITIONS",
     "PUBLIC_BLOCK_KINDS",
     "SURFACE_ISSUE_CODES",
     "SURFACE_ISSUE_DISPOSITION_TABLE",
     "FinalizationIssueDisposition",
     "PublicBlockKind",
+    "strongest_surface_disposition",
     "surface_issue_disposition",
 ]

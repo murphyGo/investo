@@ -287,6 +287,15 @@
 **Validation**: Two direct regressions and 92 related incident/projection/lifecycle/surface tests passed. Publisher/orchestrator regression tests passed 1,031 before final documentation; module-boundary/u144 architecture/publish-validator tests passed 30. Ruff check/format and scoped diff check passed. Fresh-eyes review found one missing independent projection source-connection assertion; after correction, re-review approved with no remaining finding.
 **Next**: Step 4 checklist 1 — add grouped region-owned outcomes and the exhaustive single-disposition containment table.
 
+## Construction — u144 Code Generation Step 4.1 grouped region dispositions landed
+
+**Timestamp**: 2026-07-21T17:55:28+09:00
+**Action**: Added typed region-owned surface findings, stable source-order grouping, and one redacted disposition decision per E3 region. Unique sorted issue codes resolve through the exact R10 precedence `block_segment > omit_optional_block > replace_block > repair > record_warning` while reusing the existing exhaustive issue-code × block table.
+**Outcome boundary**: E7 actions map exhaustively to E3 `kept`/`repaired`/`replaced`/`omitted`; `block_segment` raises the typed segment trust-block signal. Raw evidence and Markdown are absent from outcomes. A repeated region attempt terminates with `document.fallback_repeat`, while multiple simultaneous cosmetic findings produce one grouped outcome.
+**Scope**: This slice records decisions/outcomes only. Actual replacement, omission, repair execution, residual checking, terminal validator composition, and production switching remain later Step 4/5 checklist items.
+**Validation**: Policy/containment/lifecycle tests passed 51; publisher/orchestrator regression tests passed 1,041; module-boundary/u144 architecture/publish-validator tests passed 30. Ruff check/format, strict mypy for both changed production modules, and scoped diff check passed. Fresh-eyes review approved with no remaining finding.
+**Next**: Step 4 checklist 2 — implement required watchpoint replacement and optional chart/visual containment.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
