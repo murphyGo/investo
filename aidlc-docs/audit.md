@@ -241,6 +241,16 @@
 **Scope**: No production watchpoint API call-site switch, E2 limitation accumulation, terminal leakage traversal, or finalizer/writer switch changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 3 checklist 3 — make the typed watchpoint result the production API and accumulate its limitation reason in E2.
 
+## Construction — u144 Code Generation Step 3.3 typed watchpoint result landed
+
+**Timestamp**: 2026-07-21T17:12:37+09:00
+**Action**: Switched the default segmented reader chain to `render_watchpoint_matrix_result()`. Its typed observer fires after the raw-prose compliance scan and before the rendered-card scan. The legacy string renderer is now a compatibility facade with zero production call sites, pinned by an alias-aware AST guard.
+**E2 connection**: `_assemble_phase_one_reader_draft()` requires exactly one same-segment result, accumulates ordered unique limitation reasons, reindexes the Markdown, and then advances to `assembled`. A generated→assembled→projected integration test proves `watchpoint_unavailable` remains on E2 without parsing Korean output.
+**Fresh-eyes correction**: The first review rejected an optional observer plus uncalled accumulator because no source assembly owner joined them. The corrected handler makes that join explicit and fails closed for missing, duplicate, wrong-segment, or rewritten-key outcomes. Re-review approved with no remaining blocker.
+**Validation**: Focused lifecycle/assembly/projection/watchpoint/architecture tests passed 115; publisher plus reader integration passed 629; orchestrator passed 378; pipeline integration passed 9. Ruff check/format, strict mypy, and scoped diff check passed. Fresh-eyes re-review independently passed 104 focused tests.
+**Compatibility boundary**: The old orchestrator dict path remains active only until the Step 5 sealed-finalizer switch; the concrete E2 handler is ready for that composition. No writer/finalizer production switch or terminal leakage policy changed.
+**Next**: Step 3 checklist 4 — preserve raw labels only in protected collapsed diagnostics and structured metadata.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

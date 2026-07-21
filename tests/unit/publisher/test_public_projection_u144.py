@@ -13,6 +13,7 @@ from investo.publisher.public_document import (
     PublicDocumentContext,
     PublicDocumentLayout,
     PublicRegionExpectation,
+    _assemble_phase_one_reader_draft,
     _new_generated_draft,
     _project_assembled_draft,
     _transition_draft,
@@ -219,3 +220,31 @@ def test_phase_two_handler_projects_only_after_assembled_transition() -> None:
     assert "데이터 부족입니다" not in projected.layout.markdown
     with pytest.raises(ValueError, match="invalid public-document phase transition"):
         _project_assembled_draft(projected, _context())
+
+
+def test_reader_assembly_carries_typed_watchpoint_reason_into_projection() -> None:
+    layout = _layout()
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+    generated = _new_generated_draft(
+        briefing,
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+
+    assembled = _assemble_phase_one_reader_draft(generated, _context())
+    projected = _project_assembled_draft(assembled, _context())
+
+    assert assembled.phase == "assembled"
+    assert assembled.limitation_reasons == ("watchpoint_unavailable",)
+    assert projected.phase == "projected"
+    assert projected.limitation_reasons == ("watchpoint_unavailable",)

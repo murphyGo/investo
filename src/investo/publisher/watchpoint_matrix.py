@@ -817,7 +817,7 @@ def render_watchpoint_matrix(
     segment: str | None = None,
     coverage_limited: bool = False,
 ) -> str:
-    """Compatibility string view; default callers are switched in a later step."""
+    """Compatibility string view with no default segmented production caller."""
 
     if not text:
         return text

@@ -40,6 +40,7 @@ from investo.publisher.public_document import (
     SegmentFinalizationOutcome,
     SegmentInputAbsence,
     StagedArtifact,
+    _accumulate_watchpoint_result,
     _apply_pre_finalization_supplements,
     _build_finalized_bundle,
     _FinalizationPhaseHandlers,
@@ -52,6 +53,7 @@ from investo.publisher.public_document import (
     _select_surviving_supplement_artifact_ids,
     _transition_draft,
 )
+from investo.publisher.watchpoint_matrix import WatchpointRenderResult
 from tests._helpers.briefings import build_briefing
 
 _TARGET_DATE = date(2026, 7, 21)
@@ -288,6 +290,36 @@ def _phase_handlers(events: list[str] | None = None) -> _FinalizationPhaseHandle
         validate=validate,
         artifact_ids=lambda draft, context: (),
     )
+
+
+def test_watchpoint_result_accumulates_typed_reason_on_generated_draft() -> None:
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    draft = _draft_factory(briefing, DOMESTIC_EQUITY, _context())
+    limited = WatchpointRenderResult(
+        markdown=briefing.rendered_markdown,
+        state="limited",
+        usable_card_count=0,
+        limitation_reasons=("watchpoint_unavailable",),
+    )
+
+    accumulated = _accumulate_watchpoint_result(draft, limited)
+
+    assert accumulated is not draft
+    assert accumulated.phase == "generated"
+    assert accumulated.source_briefing is draft.source_briefing
+    assert accumulated.limitation_reasons == ("watchpoint_unavailable",)
+    assert _accumulate_watchpoint_result(accumulated, limited) is accumulated
+
+    rendered = WatchpointRenderResult(
+        markdown=briefing.rendered_markdown,
+        state="rendered",
+        usable_card_count=1,
+    )
+    assert _accumulate_watchpoint_result(draft, rendered) is draft
+
+    assembled = _transition_draft(accumulated, next_phase="assembled")
+    with pytest.raises(ValueError, match="only be accumulated during assembly"):
+        _accumulate_watchpoint_result(assembled, limited)
 
 
 def _validated_draft(*, supplement_ids: tuple[str, ...] = ()) -> PublicDocumentDraft:

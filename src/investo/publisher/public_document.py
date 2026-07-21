@@ -43,6 +43,7 @@ from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
+from investo.publisher.watchpoint_matrix import WatchpointRenderResult
 
 PublicDocumentPhase = Literal["generated", "assembled", "projected", "repaired", "validated"]
 PublicBlockDisposition = Literal["kept", "repaired", "replaced", "omitted"]
@@ -252,6 +253,8 @@ def _assemble_phase_one_reader_briefings(
     anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]],
     bundle_context: BundleContext | None = None,
     items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+    _watchpoint_result_observer: Callable[[MarketSegment, WatchpointRenderResult], None]
+    | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Run the legacy reader transform as a phase-1 internal collaborator.
 
@@ -267,6 +270,7 @@ def _assemble_phase_one_reader_briefings(
         bundle_context=bundle_context,
         items_by_segment=items_by_segment,
         _surface_repair_observer=_enforce_phase_one_surface_compatibility,
+        _watchpoint_result_observer=_watchpoint_result_observer,
     )
     return assembled
 
@@ -1808,6 +1812,35 @@ def _new_generated_draft(
     )
 
 
+def _accumulate_watchpoint_result(
+    draft: PublicDocumentDraft,
+    result: WatchpointRenderResult,
+) -> PublicDocumentDraft:
+    """Carry a typed phase-1 watchpoint outcome on E2 before projection.
+
+    The assembly caller owns ``result.markdown`` and advances the reindexed
+    layout separately. This helper prevents later phases from rediscovering
+    watchpoint availability by parsing the reader-facing Korean copy.
+    """
+
+    if draft.phase != "generated":
+        raise ValueError("watchpoint result can only be accumulated during assembly")
+    limitation_reasons = tuple(
+        dict.fromkeys((*draft.limitation_reasons, *result.limitation_reasons))
+    )
+    if limitation_reasons == draft.limitation_reasons:
+        return draft
+    return _construct_draft(
+        segment=draft.segment,
+        target_date=draft.target_date,
+        source_briefing=draft.source_briefing,
+        layout=draft.layout,
+        phase=draft.phase,
+        limitation_reasons=limitation_reasons,
+        block_outcomes=draft.block_outcomes,
+    )
+
+
 def _transition_draft(
     draft: PublicDocumentDraft,
     *,
@@ -1833,6 +1866,49 @@ def _transition_draft(
         block_outcomes=draft.block_outcomes if block_outcomes is None else block_outcomes,
         notification_summary=notification_summary,
         validation_witness=witness,
+    )
+
+
+def _assemble_phase_one_reader_draft(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> PublicDocumentDraft:
+    """Run the typed reader collaborator and advance one E2 draft.
+
+    This is the concrete phase-handler slice used by the sealed lifecycle. The
+    default orchestrator still reaches the dict compatibility wrapper until
+    the Step 5 finalizer switch, but the E2 assembly path cannot discard the
+    typed watchpoint result: exactly one result is required for this segment
+    and accumulated before the ``assembled`` transition.
+    """
+
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise ValueError("reader assembly context identity must match draft")
+    observed: list[WatchpointRenderResult] = []
+
+    def observe(segment: MarketSegment, result: WatchpointRenderResult) -> None:
+        if segment != draft.segment or observed:
+            raise ValueError("reader assembly must produce exactly one matching watchpoint result")
+        observed.append(result)
+
+    rewritten = _assemble_phase_one_reader_briefings(
+        {draft.segment: draft.source_briefing},
+        anchors_by_segment=context.anchors_by_segment,
+        bundle_context=context.bundle_context,
+        items_by_segment=context.items_by_segment,
+        _watchpoint_result_observer=observe,
+    )
+    if len(observed) != 1 or set(rewritten) != {draft.segment}:
+        raise ValueError("reader assembly must produce exactly one segment result")
+    accumulated = _accumulate_watchpoint_result(draft, observed[0])
+    layout = PublicDocumentLayout.reindex(
+        rewritten[draft.segment].rendered_markdown,
+        expectation=draft.layout.expectation,
+    )
+    return _transition_draft(
+        accumulated,
+        next_phase="assembled",
+        layout=layout,
     )
 
 

@@ -65,7 +65,10 @@ from investo.publisher.reader_format import (
     reflow_first_viewport,
 )
 from investo.publisher.shared_macro import inject_shared_macro_block
-from investo.publisher.watchpoint_matrix import render_watchpoint_matrix
+from investo.publisher.watchpoint_matrix import (
+    WatchpointRenderResult,
+    render_watchpoint_matrix_result,
+)
 
 _logger = logging.getLogger("investo.publisher.segment_reader_format")
 
@@ -76,6 +79,7 @@ _logger = logging.getLogger("investo.publisher.segment_reader_format")
 # ``tests/unit/publisher/test_reader_format.py::test_apply_reader_format_preserves_disclaimer``.
 _ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
 _SurfaceRepairObserver = Callable[[MarketSegment, str, str], None]
+_WatchpointResultObserver = Callable[[MarketSegment, WatchpointRenderResult], None]
 
 
 def apply_reader_format_to_segments(
@@ -85,6 +89,7 @@ def apply_reader_format_to_segments(
     bundle_context: BundleContext | None = None,
     items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     _surface_repair_observer: _SurfaceRepairObserver | None = None,
+    _watchpoint_result_observer: _WatchpointResultObserver | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
@@ -253,7 +258,10 @@ def apply_reader_format_to_segments(
         # (a table-cell mask would otherwise hide advice wording from the
         # P0 gate); the resulting matrix is observational only and rescanned
         # by the second scan_compliance below.
-        markdown = render_watchpoint_matrix(markdown, segment=segment)
+        watchpoint_result = render_watchpoint_matrix_result(markdown, segment=segment)
+        if _watchpoint_result_observer is not None:
+            _watchpoint_result_observer(segment, watchpoint_result)
+        markdown = watchpoint_result.markdown
         scan_compliance(markdown, segment)
         markdown = emit_first_viewport_disclaimer(markdown, segment)
         # u71 — reader-first viewport reflow. Runs last in the header

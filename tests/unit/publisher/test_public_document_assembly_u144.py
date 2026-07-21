@@ -18,6 +18,7 @@ from investo.publisher.public_document import (
     _assemble_phase_one_reader_briefings,
 )
 from investo.publisher.verifier import SHORT_DISCLAIMER_CRYPTO
+from investo.publisher.watchpoint_matrix import WatchpointRenderResult
 from tests._helpers.briefings import build_briefing
 
 _TARGET_DATE = date(2026, 7, 21)
@@ -144,3 +145,21 @@ def test_phase_one_reader_boundary_preserves_surface_fail_close() -> None:
         )
 
     assert {issue.code for issue in exc_info.value.issues} == {"markdown.href_ellipsis"}
+
+
+def test_phase_one_reader_boundary_reports_typed_watchpoint_result() -> None:
+    observed: list[tuple[str, WatchpointRenderResult]] = []
+
+    rewritten = _assemble_phase_one_reader_briefings(
+        {CRYPTO: _phase_one_briefing()},
+        anchors_by_segment={},
+        _watchpoint_result_observer=lambda segment, result: observed.append((segment, result)),
+    )
+
+    assert set(rewritten) == {CRYPTO}
+    assert len(observed) == 1
+    segment, result = observed[0]
+    assert segment == CRYPTO
+    assert result.state == "limited"
+    assert result.usable_card_count == 0
+    assert result.limitation_reasons == ("watchpoint_unavailable",)

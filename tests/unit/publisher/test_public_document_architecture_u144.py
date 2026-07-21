@@ -12,6 +12,7 @@ from investo.publisher.writer import write_finalized_document
 
 _SRC = Path(__file__).parents[3] / "src" / "investo"
 _PUBLIC_DOCUMENT = Path("publisher/public_document.py")
+_WATCHPOINT_MODULE = Path("publisher/watchpoint_matrix.py")
 _CANONICAL_SYMBOLS = {
     "investo.models.Briefing": "Briefing",
     "investo.models.briefing.Briefing": "Briefing",
@@ -21,6 +22,10 @@ _CANONICAL_SYMBOLS = {
     "investo.publisher.public_document.PublicDocumentDraft": "PublicDocumentDraft",
     "investo.publisher.public_document._seal_document": "_seal_document",
     "investo.publisher.writer.write_finalized_document": "write_finalized_document",
+    "investo.publisher.watchpoint_matrix.render_watchpoint_matrix": ("render_watchpoint_matrix"),
+    "investo.publisher.watchpoint_matrix.render_watchpoint_matrix_result": (
+        "render_watchpoint_matrix_result"
+    ),
 }
 _CANONICAL_MODULES = {
     "investo.models",
@@ -28,11 +33,16 @@ _CANONICAL_MODULES = {
     "investo.publisher",
     "investo.publisher.public_document",
     "investo.publisher.writer",
+    "investo.publisher.watchpoint_matrix",
 }
 _PUBLIC_DOCUMENT_LOCALS = {
     "FinalizedPublicDocument": "FinalizedPublicDocument",
     "PublicDocumentDraft": "PublicDocumentDraft",
     "_seal_document": "_seal_document",
+}
+_WATCHPOINT_LOCALS = {
+    "render_watchpoint_matrix": "render_watchpoint_matrix",
+    "render_watchpoint_matrix_result": "render_watchpoint_matrix_result",
 }
 
 
@@ -55,6 +65,8 @@ class _ConstructionVisitor(ast.NodeVisitor):
         self.seal_calls: list[tuple[Path, str]] = []
         self.finalized_writer_calls: list[tuple[Path, str]] = []
         self.rendered_markdown_writes: list[tuple[Path, str, str]] = []
+        self.watchpoint_legacy_calls: list[tuple[Path, str]] = []
+        self.watchpoint_result_calls: list[tuple[Path, str]] = []
 
     @property
     def function_name(self) -> str:
@@ -71,6 +83,8 @@ class _ConstructionVisitor(ast.NodeVisitor):
             return _CANONICAL_SYMBOLS.get(f"{self.module_aliases[head]}.{tail}")
         if self.relative_path == _PUBLIC_DOCUMENT:
             return _PUBLIC_DOCUMENT_LOCALS.get(raw_name)
+        if self.relative_path == _WATCHPOINT_MODULE:
+            return _WATCHPOINT_LOCALS.get(raw_name)
         return _CANONICAL_SYMBOLS.get(raw_name)
 
     def visit_Import(self, node: ast.Import) -> None:
@@ -146,6 +160,10 @@ class _ConstructionVisitor(ast.NodeVisitor):
             self.seal_calls.append((self.relative_path, self.function_name))
         if call_symbol == "write_finalized_document":
             self.finalized_writer_calls.append((self.relative_path, self.function_name))
+        if call_symbol == "render_watchpoint_matrix":
+            self.watchpoint_legacy_calls.append((self.relative_path, self.function_name))
+        if call_symbol == "render_watchpoint_matrix_result":
+            self.watchpoint_result_calls.append((self.relative_path, self.function_name))
         self.generic_visit(node)
 
 
@@ -159,6 +177,8 @@ def _production_construction_snapshot() -> _ConstructionVisitor:
         aggregate.seal_calls.extend(visitor.seal_calls)
         aggregate.finalized_writer_calls.extend(visitor.finalized_writer_calls)
         aggregate.rendered_markdown_writes.extend(visitor.rendered_markdown_writes)
+        aggregate.watchpoint_legacy_calls.extend(visitor.watchpoint_legacy_calls)
+        aggregate.watchpoint_result_calls.extend(visitor.watchpoint_result_calls)
     return aggregate
 
 
@@ -253,6 +273,46 @@ briefing.model_copy(update={"market_summary": summary})
         (Path("synthetic.py"), "<module>", "model_copy"),
         (Path("synthetic.py"), "<module>", "model_copy"),
     ]
+
+
+def test_default_segmented_path_uses_typed_watchpoint_renderer_only() -> None:
+    snapshot = _production_construction_snapshot()
+
+    assert snapshot.watchpoint_legacy_calls == []
+    assert snapshot.watchpoint_result_calls == [
+        (
+            Path("publisher/segment_reader_format.py"),
+            "apply_reader_format_to_segments",
+        ),
+        (_WATCHPOINT_MODULE, "render_watchpoint_matrix"),
+    ]
+
+
+def test_watchpoint_renderer_guard_resolves_direct_and_module_aliases() -> None:
+    direct = _visit_source(
+        """
+from investo.publisher.watchpoint_matrix import (
+    render_watchpoint_matrix as legacy,
+    render_watchpoint_matrix_result as typed,
+)
+
+legacy(markdown)
+typed(markdown)
+"""
+    )
+    module = _visit_source(
+        """
+import investo.publisher.watchpoint_matrix as watchpoints
+
+watchpoints.render_watchpoint_matrix(markdown)
+watchpoints.render_watchpoint_matrix_result(markdown)
+"""
+    )
+
+    assert direct.watchpoint_legacy_calls == [(Path("synthetic.py"), "<module>")]
+    assert direct.watchpoint_result_calls == [(Path("synthetic.py"), "<module>")]
+    assert module.watchpoint_legacy_calls == [(Path("synthetic.py"), "<module>")]
+    assert module.watchpoint_result_calls == [(Path("synthetic.py"), "<module>")]
 
 
 def test_sealed_writer_rejects_publisher_private_draft() -> None:
