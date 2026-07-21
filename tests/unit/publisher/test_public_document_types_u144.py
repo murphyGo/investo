@@ -727,6 +727,45 @@ def test_segment_skeleton_runs_declared_phase_order_and_seals() -> None:
     assert document.briefing.rendered_markdown == briefing.rendered_markdown
 
 
+def test_refinalizing_sealed_compatibility_input_is_byte_stable() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    nav = "**세그먼트**: [국내 증시](/archive/domestic-equity/)\n\n"
+    briefing = briefing.model_copy(
+        update={"rendered_markdown": f"{nav}{briefing.rendered_markdown}"}
+    )
+
+    first = _finalize_bundle_skeleton(
+        {DOMESTIC_EQUITY: briefing},
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_phase_handlers(),
+    ).documents[0]
+    second = _finalize_bundle_skeleton(
+        {DOMESTIC_EQUITY: first.briefing},
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_phase_handlers(),
+    ).documents[0]
+
+    assert second.briefing.rendered_markdown == first.briefing.rendered_markdown
+    assert second.markdown_sha256 == first.markdown_sha256
+    markdown = second.briefing.rendered_markdown
+    assert markdown.count("**세그먼트**:") == 1
+    assert markdown.count("## ① 요약") == 1
+    assert markdown.count("## ⑥ 오늘의 관전 포인트") == 1
+    assert markdown.count(first.briefing.disclaimer) == 1
+
+
+def test_segment_skeleton_rejects_validated_draft_as_explicit_phase_misuse() -> None:
+    with pytest.raises(ValueError, match=r"invariant\.segment_start_phase"):
+        _finalize_segment_skeleton(
+            _validated_draft(),
+            context=_context(),
+            handlers=_phase_handlers(),
+        )
+
+
 def test_segment_skeleton_rejects_handler_that_skips_phase() -> None:
     context = _context()
     briefing = build_briefing(target_date=_TARGET_DATE)

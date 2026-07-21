@@ -5401,3 +5401,10 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: CLI/workflow tests 68 passed; workflow YAML parse, owner-term search, and diff check passed. Shared-tree strict MkDocs was blocked by 12 generated dangling links to absent 2026-04-27 archive files and is explicitly deferred to the clean-HEAD Step 6 gate.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-production-owner-documentation.md`.
 **Status**: Step 5 complete, 8/8. Next: Step 6 composition/property/full validation.
+
+## Construction — u144 Step 6.1 idempotence and phase misuse
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Added lifecycle-level repeated-finalization tests proving sealed compatibility input is byte/hash stable with no duplicated nav, numbered sections, or disclaimer, while direct validated-draft re-entry fails as explicit phase misuse.
+**Validation**: Public-document lifecycle/type scope 42 passed; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-idempotence-phase-misuse.md`.
+**Status**: Step 6 checklist 1/9 complete. Next: producer transform-closure matrices.

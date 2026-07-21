@@ -345,7 +345,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 
 ### Step 6 — Composition/property tests and full validation
 
-- [ ] Add idempotence tests: finalizing already-finalized equivalent input is byte-stable or rejected as an explicit phase misuse; no duplicate block/disclaimer/nav.
+- [x] Add idempotence tests: finalizing already-finalized equivalent input is byte-stable or rejected as an explicit phase misuse; no duplicate block/disclaimer/nav. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-idempotence-phase-misuse.md`.
 - [ ] Add transform-closure tests: every producer in the documented assembly call graph followed by terminal projection/repair yields zero public-label leaks on generated token matrices.
 - [ ] Add partial fixed-point tests: initial generation absence, `bundle_context=None`, one hard-trust block, notification-summary hard block, two sequential hard blocks, zero survivors, canonical u63 nav, and a strict maximum of three passes.
 - [ ] Add active-survivor thesis tests proving a removed segment is absent from support/wording on the next pass without a publisher→orchestrator import.
