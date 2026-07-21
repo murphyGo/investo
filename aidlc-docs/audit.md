@@ -313,6 +313,14 @@
 **Validation**: Focused terminal/projection/stage/pipeline tests passed 142; orchestrator/publisher/integration regressions passed 1,063; the final focused status-propagation rerun passed 105. Strict mypy passed all 241 source files; Ruff check/format and scoped diff check passed. Fresh-eyes review approved with no remaining blocker.
 **Next**: Step 4 checklist 4 — move the daily-thesis survivor decision to a neutral owner and recompute it on every active fixed-point pass.
 
+## Construction — u144 Code Generation Step 4.4 active daily-thesis fixed point landed
+
+**Timestamp**: 2026-07-21T20:35:00+09:00
+**Action**: Moved the pure daily-thesis decision and survivor redecision from `orchestrator.bundle_context` to `_internal.daily_thesis_decision`. Initial computation, the orchestrator compatibility name, and `publisher.public_document` now share that neutral owner; publisher has no orchestrator import.
+**Fixed-point behavior**: The bundle finalization coordinator now restarts from the original generated `Briefing` mapping after a typed trust block, for at most `len(expected_segments)` passes. Every non-null pass recomputes and validates active signals, support, per-segment wording, date, and distinctness before assembly. `BundleContext=None` stays the exact no-call branch. Generation absence, trust-block outcomes, zero survivors, and E1-derived promotion manifests remain typed and bounded.
+**Validation**: Focused U-144/orchestrator tests passed 172; the full publisher/orchestrator unit scope passed 1,053. Strict mypy passed all 242 source files; Ruff check/format and scoped diff checks passed. Neutral-boundary AST tests and survivor-removal tests cover publisher import ownership and removal from signal/support/wording state. Fresh-eyes review approved the neutral ownership, bounded restart, exact `None` branch, zero-survivor handling, publisher import boundary, and shallow snapshot safety with no blocker.
+**Next**: Step 4 checklist 5 — split numeric-anchor repair in assembly from the exact read-only terminal scanner while retaining the legacy wrapper only for compatibility.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

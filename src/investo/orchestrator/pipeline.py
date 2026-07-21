@@ -80,6 +80,9 @@ from typing import Any, Final, cast, overload
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo._internal.archive_layout import ArchiveLayout
+from investo._internal.daily_thesis_decision import (
+    redecide_daily_thesis_for_active_segments,
+)
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
@@ -159,10 +162,7 @@ from investo.notifier import (
 )
 from investo.notifier.summary import resolve_enabled_segments
 from investo.orchestrator import source_health
-from investo.orchestrator.bundle_context import (
-    compute_bundle_context,
-    redecide_daily_thesis_for_successful_segments,
-)
+from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.domestic_anchor_quarantine import (
     domestic_anchor_verdicts,
@@ -2636,7 +2636,7 @@ class GenerateStage:
                 }
                 while True:
                     reader_bundle_context = (
-                        redecide_daily_thesis_for_successful_segments(
+                        redecide_daily_thesis_for_active_segments(
                             run_bundle_context,
                             tuple(segment_briefings),
                         )

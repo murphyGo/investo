@@ -19,6 +19,9 @@ from types import MappingProxyType
 from typing import Final, Literal, Self, TypeVar
 from unicodedata import name as unicode_name
 
+from investo._internal.daily_thesis_decision import (
+    redecide_daily_thesis_for_active_segments,
+)
 from investo._internal.disclaimer import ensure_canonical_disclaimer
 from investo._internal.public_quality_language import (
     PUBLIC_CHANNEL_ANCHOR_LIMITED_TEXT,
@@ -57,8 +60,12 @@ from investo.publisher._public_document_policy import (
     PublicBlockKind,
     strongest_surface_disposition,
 )
+from investo.publisher.daily_thesis import (
+    assert_distinct_daily_thesis_lines,
+    render_daily_thesis_line,
+)
 from investo.publisher.entity_fact_guard import EntityFactViolation, scan_entity_fact_claims
-from investo.publisher.errors import SurfaceQualityError
+from investo.publisher.errors import DailyThesisConsistencyError, SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
@@ -419,7 +426,6 @@ def _snapshot_bundle_context(context: BundleContext | None) -> BundleContext | N
     if context is None:
         return None
     decision = context.daily_thesis_decision.model_copy(
-        deep=True,
         update={
             "per_segment_lines": MappingProxyType(
                 dict(context.daily_thesis_decision.per_segment_lines)
@@ -427,7 +433,6 @@ def _snapshot_bundle_context(context: BundleContext | None) -> BundleContext | N
         },
     )
     return context.model_copy(
-        deep=True,
         update={
             "segments": MappingProxyType(dict(context.segments)),
             "daily_thesis_decision": decision,
@@ -2498,6 +2503,75 @@ def _finalize_segment_skeleton(
     return _seal_document(current, staged_artifact_ids=artifact_ids)
 
 
+def _context_for_active_segments(
+    context: PublicDocumentContext,
+    active_segments: tuple[MarketSegment, ...],
+) -> PublicDocumentContext:
+    """Return the immutable context for one survivor pass.
+
+    ``None`` is an exact compatibility branch: the neutral redecision owner is
+    not called and thesis/cause producers continue to receive ``None``.
+    """
+
+    if context.bundle_context is None:
+        return context
+    return replace(
+        context,
+        bundle_context=redecide_daily_thesis_for_active_segments(
+            context.bundle_context,
+            active_segments,
+        ),
+    )
+
+
+def _validate_cross_segment_thesis_inputs(
+    briefings: Mapping[MarketSegment, Briefing],
+    *,
+    active_segments: tuple[MarketSegment, ...],
+    context: PublicDocumentContext,
+) -> None:
+    """Validate survivor-scoped thesis state before any draft is assembled."""
+
+    if any(segment not in briefings for segment in active_segments):
+        raise _FinalizationInvariantError(
+            phase="fixed_point",
+            issue_code="invariant.active_briefing",
+        )
+    bundle_context = context.bundle_context
+    if bundle_context is None:
+        return
+    active_set = set(active_segments)
+    decision = bundle_context.daily_thesis_decision
+    signal_segments = {signal.segment for signal in bundle_context.daily_thesis_signals}
+    if (
+        bundle_context.target_kst_date != context.target_date
+        or not signal_segments <= active_set
+        or not set(decision.supporting_segments) <= active_set
+    ):
+        raise _FinalizationInvariantError(
+            phase="fixed_point",
+            issue_code="invariant.daily_thesis_context",
+        )
+    expected_line_segments = set() if decision.mode == "omit" else active_set
+    if set(decision.per_segment_lines) != expected_line_segments:
+        raise _FinalizationInvariantError(
+            phase="fixed_point",
+            issue_code="invariant.daily_thesis_context",
+        )
+    try:
+        assert_distinct_daily_thesis_lines(
+            {
+                segment: render_daily_thesis_line(decision, segment=segment)
+                for segment in active_segments
+            }
+        )
+    except DailyThesisConsistencyError as exc:
+        raise _FinalizationInvariantError(
+            phase="fixed_point",
+            issue_code="invariant.daily_thesis_distinctness",
+        ) from exc
+
+
 def _finalize_bundle_skeleton(
     briefings: Mapping[MarketSegment, Briefing],
     *,
@@ -2505,13 +2579,7 @@ def _finalize_bundle_skeleton(
     draft_factory: _DraftFactory,
     handlers: _FinalizationPhaseHandlers,
 ) -> FinalizedPublicBundle:
-    """Pure single-pass bundle coordinator used before the production switch.
-
-    The active-survivor fixed point and concrete phase collaborators land in
-    later checklist items.  This skeleton already pins input identity,
-    generation-absence outcomes, segment trust blocks, zero-survivor E8, and
-    E1-derived promotion manifests.
-    """
+    """Run the bounded active-survivor fixed point from original inputs."""
 
     expected_generated = set(context.expected_segments) - set(context.input_absences)
     if set(briefings) != expected_generated:
@@ -2529,97 +2597,133 @@ def _finalize_bundle_skeleton(
             issue_codes=("input.target_date",),
         )
 
-    documents: list[FinalizedPublicDocument] = []
-    outcomes: list[SegmentFinalizationOutcome] = []
-    for segment in context.expected_segments:
-        if segment in context.input_absences:
-            outcomes.append(
-                SegmentFinalizationOutcome(
-                    segment=segment,
-                    state="generation_absent",
-                    issue_codes=("generation.failed",),
-                )
-            )
-            continue
-        briefing = briefings[segment]
+    blocked: dict[MarketSegment, tuple[str, ...]] = {}
+    for _pass_index in range(len(context.expected_segments)):
+        active = tuple(
+            segment
+            for segment in context.expected_segments
+            if segment in briefings and segment not in blocked
+        )
+        if not active:
+            break
         try:
-            draft = draft_factory(briefing, segment, context)
-            if (
-                draft.phase != "generated"
-                or draft.segment != segment
-                or draft.target_date != context.target_date
-                or draft.source_briefing is not briefing
-            ):
-                raise _FinalizationInvariantError(
-                    phase="generated",
-                    issue_code="invariant.draft_factory",
-                )
-            document = _finalize_segment_skeleton(
-                draft,
-                context=context,
-                handlers=handlers,
+            active_context = _context_for_active_segments(context, active)
+            _validate_cross_segment_thesis_inputs(
+                briefings,
+                active_segments=active,
+                context=active_context,
             )
-        except _SegmentTrustBlockedError as exc:
-            outcomes.append(
-                SegmentFinalizationOutcome(
-                    segment=segment,
-                    state="trust_blocked",
-                    issue_codes=exc.issue_codes,
-                )
-            )
-            continue
         except _FinalizationInvariantError as exc:
             raise PublicDocumentFinalizationError(
                 target_date=context.target_date,
-                segment=segment,
+                segment=None,
                 phase=exc.phase,
                 issue_codes=(exc.issue_code,),
                 cause=exc,
             ) from exc
+
+        documents: list[FinalizedPublicDocument] = []
+        newly_blocked: dict[MarketSegment, tuple[str, ...]] = {}
+        for segment in active:
+            briefing = briefings[segment]
+            try:
+                draft = draft_factory(briefing, segment, active_context)
+                if (
+                    draft.phase != "generated"
+                    or draft.segment != segment
+                    or draft.target_date != context.target_date
+                    or draft.source_briefing is not briefing
+                ):
+                    raise _FinalizationInvariantError(
+                        phase="generated",
+                        issue_code="invariant.draft_factory",
+                    )
+                document = _finalize_segment_skeleton(
+                    draft,
+                    context=active_context,
+                    handlers=handlers,
+                )
+            except _SegmentTrustBlockedError as exc:
+                newly_blocked[segment] = exc.issue_codes
+                continue
+            except _FinalizationInvariantError as exc:
+                raise PublicDocumentFinalizationError(
+                    target_date=context.target_date,
+                    segment=segment,
+                    phase=exc.phase,
+                    issue_codes=(exc.issue_code,),
+                    cause=exc,
+                ) from exc
+            except ValueError as exc:
+                raise PublicDocumentFinalizationError(
+                    target_date=context.target_date,
+                    segment=segment,
+                    phase="bundle",
+                    issue_codes=("invariant.phase_handler",),
+                    cause=exc,
+                ) from exc
+            except Exception as exc:
+                raise PublicDocumentFinalizationError(
+                    target_date=context.target_date,
+                    segment=segment,
+                    phase="bundle",
+                    issue_codes=("invariant.phase_handler_exception",),
+                    cause=exc,
+                ) from exc
+            documents.append(document)
+
+        if newly_blocked:
+            blocked.update(newly_blocked)
+            if not any(segment in briefings and segment not in blocked for segment in active):
+                break
+            continue
+
+        outcomes = tuple(
+            SegmentFinalizationOutcome(
+                segment=segment,
+                state=(
+                    "generation_absent"
+                    if segment in context.input_absences
+                    else "trust_blocked"
+                    if segment in blocked
+                    else "finalized"
+                ),
+                issue_codes=(
+                    ("generation.failed",)
+                    if segment in context.input_absences
+                    else blocked.get(segment, ())
+                ),
+            )
+            for segment in context.expected_segments
+        )
+        try:
+            return _build_finalized_bundle(
+                context,
+                documents=documents,
+                segment_outcomes=outcomes,
+            )
         except ValueError as exc:
             raise PublicDocumentFinalizationError(
                 target_date=context.target_date,
-                segment=segment,
+                segment=None,
                 phase="bundle",
-                issue_codes=("invariant.phase_handler",),
+                issue_codes=("invariant.bundle_factory",),
                 cause=exc,
             ) from exc
-        except Exception as exc:
-            raise PublicDocumentFinalizationError(
-                target_date=context.target_date,
-                segment=segment,
-                phase="bundle",
-                issue_codes=("invariant.phase_handler_exception",),
-                cause=exc,
-            ) from exc
-        documents.append(document)
-        outcomes.append(SegmentFinalizationOutcome(segment=segment, state="finalized"))
 
-    if not documents:
-        all_codes = (
-            *(code for outcome in outcomes for code in outcome.issue_codes),
-            "bundle.zero_survivors",
-        )
-        raise PublicDocumentFinalizationError(
-            target_date=context.target_date,
-            segment=None,
-            phase="bundle",
-            issue_codes=all_codes,
-        )
-    try:
-        return _build_finalized_bundle(
-            context,
-            documents=documents,
-            segment_outcomes=outcomes,
-        )
-    except ValueError as exc:
-        raise PublicDocumentFinalizationError(
-            target_date=context.target_date,
-            segment=None,
-            phase="bundle",
-            issue_codes=("invariant.bundle_factory",),
-            cause=exc,
-        ) from exc
+    all_codes = (
+        *(("generation.failed",) if context.input_absences else ()),
+        *(code for codes in blocked.values() for code in codes),
+        "bundle.zero_survivors"
+        if len(blocked) == len(briefings)
+        else "document.survivor_fixed_point_exhausted",
+    )
+    raise PublicDocumentFinalizationError(
+        target_date=context.target_date,
+        segment=None,
+        phase="bundle" if len(blocked) == len(briefings) else "fixed_point",
+        issue_codes=all_codes,
+    )
 
 
 @dataclass(frozen=True, slots=True, init=False)

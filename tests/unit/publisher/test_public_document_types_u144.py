@@ -14,6 +14,7 @@ from investo.models.briefing import Briefing
 from investo.models.bundle_context import (
     BundleContext,
     DailyThesisDecision,
+    DailyThesisSignal,
     MarketStateSummary,
 )
 from investo.models.facts import VerifiedFactBundle
@@ -207,6 +208,7 @@ def _context(
     *,
     expected_segments: tuple[MarketSegment, ...] = (DOMESTIC_EQUITY,),
     input_absences: dict[MarketSegment, SegmentInputAbsence] | None = None,
+    bundle_context: BundleContext | None = None,
 ) -> PublicDocumentContext:
     absences = {} if input_absences is None else input_absences
     generated = tuple(segment for segment in expected_segments if segment not in absences)
@@ -218,7 +220,7 @@ def _context(
         items_by_segment={},
         coverage_by_segment={segment: _coverage(segment) for segment in generated},
         source_outcomes=(),
-        bundle_context=None,
+        bundle_context=bundle_context,
         fact_bundle=VerifiedFactBundle(target_date=_TARGET_DATE),
         entity_observed_at_utc=datetime(2026, 7, 21, tzinfo=UTC),
     )
@@ -905,6 +907,27 @@ def test_bundle_skeleton_zero_survivors_raises_bounded_e8() -> None:
     )
 
 
+def test_bundle_skeleton_all_generation_absent_raises_zero_survivor_e8() -> None:
+    context = _context(
+        expected_segments=(DOMESTIC_EQUITY, US_EQUITY),
+        input_absences={
+            DOMESTIC_EQUITY: "generation_failed",
+            US_EQUITY: "generation_failed",
+        },
+    )
+
+    with pytest.raises(PublicDocumentFinalizationError) as exc:
+        _finalize_bundle_skeleton(
+            {},
+            context=context,
+            draft_factory=_draft_factory,
+            handlers=_phase_handlers(),
+        )
+
+    assert exc.value.phase == "bundle"
+    assert exc.value.issue_codes == ("bundle.zero_survivors", "generation.failed")
+
+
 def test_bundle_skeleton_keeps_valid_sibling_when_one_segment_is_trust_blocked() -> None:
     context = _context(expected_segments=(DOMESTIC_EQUITY, US_EQUITY))
     valid = _phase_handlers()
@@ -943,6 +966,152 @@ def test_bundle_skeleton_keeps_valid_sibling_when_one_segment_is_trust_blocked()
         "trust_blocked",
     )
     assert bundle.segment_outcomes[1].issue_codes == ("entity.fact_contradiction",)
+
+
+def _three_segment_thesis_context() -> BundleContext:
+    signals = tuple(
+        DailyThesisSignal(
+            segment=segment,
+            key="ust_yield",
+            tier="core",
+            evidence_label="미 국채 수익률",
+        )
+        for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    )
+    return BundleContext(
+        bundle_id="u144-active-thesis",
+        target_kst_date=_TARGET_DATE,
+        daily_thesis_signals=signals,
+        daily_thesis_decision=DailyThesisDecision(
+            mode="strong",
+            line="> **오늘의 큰 그림:** 원본 세 세그먼트 문구",
+            per_segment_lines={
+                DOMESTIC_EQUITY: "> **오늘의 큰 그림:** 국내 원본 문구",
+                US_EQUITY: "> **오늘의 큰 그림:** 미국 원본 문구",
+                CRYPTO: "> **오늘의 큰 그림:** 크립토 원본 문구",
+            },
+            macro_keys=("ust_yield",),
+            supporting_segments=(DOMESTIC_EQUITY, US_EQUITY, CRYPTO),
+            reason="shared_core_signal",
+        ),
+    )
+
+
+def test_bundle_fixed_point_redecides_active_thesis_before_each_assembly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo._internal.daily_thesis_decision import (
+        redecide_daily_thesis_for_active_segments as neutral_redecide,
+    )
+    from investo.publisher import public_document as public_document_module
+
+    expected = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    context = _context(
+        expected_segments=expected,
+        bundle_context=_three_segment_thesis_context(),
+    )
+    calls: list[tuple[str, ...]] = []
+
+    def observe_redecision(
+        base: BundleContext,
+        active: tuple[MarketSegment, ...],
+    ) -> BundleContext:
+        calls.append(active)
+        return neutral_redecide(base, active)
+
+    monkeypatch.setattr(
+        public_document_module,
+        "redecide_daily_thesis_for_active_segments",
+        observe_redecision,
+    )
+    valid = _phase_handlers()
+    assembly_contexts: list[tuple[str, tuple[str, ...], tuple[str, ...], tuple[str, ...]]] = []
+
+    def assemble(
+        draft: PublicDocumentDraft,
+        active_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        assert active_context.bundle_context is not None
+        thesis = active_context.bundle_context
+        assembly_contexts.append(
+            (
+                draft.segment,
+                tuple(signal.segment for signal in thesis.daily_thesis_signals),
+                thesis.daily_thesis_decision.supporting_segments,
+                tuple(thesis.daily_thesis_decision.per_segment_lines),
+            )
+        )
+        if draft.segment == CRYPTO:
+            raise _SegmentTrustBlockedError(
+                phase="assembled",
+                issue_codes=("entity.fact_contradiction",),
+            )
+        return valid.assemble(draft, active_context)
+
+    bundle = _finalize_bundle_skeleton(
+        {segment: build_briefing(target_date=_TARGET_DATE) for segment in expected},
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_FinalizationPhaseHandlers(
+            assemble=assemble,
+            project=valid.project,
+            repair=valid.repair,
+            validate=valid.validate,
+            artifact_ids=valid.artifact_ids,
+        ),
+    )
+
+    assert calls == [expected, (DOMESTIC_EQUITY, US_EQUITY)]
+    assert tuple(document.segment for document in bundle.documents) == (
+        DOMESTIC_EQUITY,
+        US_EQUITY,
+    )
+    second_pass = assembly_contexts[-2:]
+    assert all(CRYPTO not in values for event in second_pass for values in event[1:])
+    assert context.bundle_context is not None
+    assert CRYPTO in context.bundle_context.daily_thesis_decision.supporting_segments
+
+
+def test_bundle_context_none_never_calls_neutral_redecision(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.publisher import public_document as public_document_module
+
+    def forbidden(*args: object, **kwargs: object) -> BundleContext:
+        del args, kwargs
+        raise AssertionError("None branch must not call thesis redecision")
+
+    monkeypatch.setattr(
+        public_document_module,
+        "redecide_daily_thesis_for_active_segments",
+        forbidden,
+    )
+    observed: list[BundleContext | None] = []
+    valid = _phase_handlers()
+
+    def assemble(
+        draft: PublicDocumentDraft,
+        active_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        observed.append(active_context.bundle_context)
+        return valid.assemble(draft, active_context)
+
+    context = _context()
+    bundle = _finalize_bundle_skeleton(
+        {DOMESTIC_EQUITY: build_briefing(target_date=_TARGET_DATE)},
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_FinalizationPhaseHandlers(
+            assemble=assemble,
+            project=valid.project,
+            repair=valid.repair,
+            validate=valid.validate,
+            artifact_ids=valid.artifact_ids,
+        ),
+    )
+
+    assert observed == [None]
+    assert tuple(document.segment for document in bundle.documents) == (DOMESTIC_EQUITY,)
 
 
 def test_bundle_skeleton_rejects_unexplained_missing_briefing() -> None:
