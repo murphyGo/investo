@@ -5465,3 +5465,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Staged-artifact tests plus E8/promotion integration cases 7 passed; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-staging-rollback.md`.
 **Status**: Step 6 checklist 7/9 complete. Next: Hypothesis property suite.
+
+## Construction — u144 Step 6.8 Hypothesis properties
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Added four 100-example properties for forbidden-label closure, supplement delimiter balance, required-block fallback determinism, and stable grouped issue ordering.
+**Decisions**: Strategies generate domain-valid identifiers/nonblank Markdown and cover optional artifact-ID combinations. Fallback runs start from two fresh identical projected drafts; issue ordering is asserted independently of generated input order and duplication.
+**Validation**: Containment/property module 17 passed with 400 generated examples; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-hypothesis-properties.md`.
+**Status**: Step 6 checklist 8/9 complete. Next: full clean-tree quality gates.

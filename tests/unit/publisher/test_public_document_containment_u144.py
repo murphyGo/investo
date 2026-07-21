@@ -6,10 +6,17 @@ from datetime import UTC, date, datetime
 from typing import get_args
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 import investo.publisher.public_document as public_document_module
 from investo._internal.briefing_extract import CONCLUSION_PREFIX, FALLBACK_BY_PREFIX
-from investo._internal.public_quality_language import PUBLIC_WATCHPOINT_LIMITED_TEXT
+from investo._internal.public_quality_language import (
+    FORBIDDEN_PUBLIC_PHRASES,
+    PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    first_forbidden_public_evidence,
+    project_public_quality_language,
+)
 from investo._internal.public_watermark import render_timestamp_watermark
 from investo._internal.surface_quality import SurfaceQualityIssue
 from investo.models import Briefing
@@ -25,11 +32,13 @@ from investo.publisher.public_document import (
     PublicDocumentDraft,
     PublicDocumentLayout,
     PublicDocumentRegion,
+    PublicDocumentSupplement,
     PublicRegionExpectation,
     _append_region_block_outcome,
     _new_generated_draft,
     _OwnedSurfaceQualityFinding,
     _RegionDispositionDecision,
+    _render_supplement_block,
     _repair_projected_draft,
     _resolve_owned_region_dispositions,
     _SegmentTrustBlockedError,
@@ -447,3 +456,134 @@ def test_new_actionable_residual_after_projection_fails_closed(
     with pytest.raises(_SegmentTrustBlockedError) as blocked:
         _repair_projected_draft(projected, context)
     assert blocked.value.issue_codes == ("document.fallback_exhausted",)
+
+
+_FORBIDDEN_PROPERTY_TOKENS = (
+    *FORBIDDEN_PUBLIC_PHRASES,
+    "본문 사용 7",
+    "실패 3",
+    "0건 2",
+    "fallback ratio",
+    "Figures Presence",
+)
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    fragments=st.lists(
+        st.tuples(
+            st.sampled_from(_FORBIDDEN_PROPERTY_TOKENS),
+            st.sampled_from(("", " ", " / ", " · ", "\n")),
+        ),
+        min_size=1,
+        max_size=12,
+    )
+)
+def test_forbidden_public_label_combinations_close_idempotently(
+    fragments: list[tuple[str, str]],
+) -> None:
+    raw = "".join(f"{token}{separator}" for token, separator in fragments)
+
+    projected = project_public_quality_language(raw)
+
+    assert first_forbidden_public_evidence(projected) is None
+    assert project_public_quality_language(projected) == projected
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    kind=st.sampled_from(("chart", "visual")),
+    suffix=st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789-", min_size=1, max_size=24),
+    body=st.tuples(
+        st.sampled_from(tuple("가나다abcXYZ0123")),
+        st.text(alphabet="가나다라마바사 abcXYZ0123|:_-.\n", max_size=119),
+    ).map(lambda parts: "".join(parts)),
+    stable_order=st.integers(min_value=0, max_value=10_000),
+    artifact_ids=st.lists(
+        st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=16),
+        unique=True,
+        max_size=4,
+    ).map(lambda values: [f"artifact-{value}" for value in values]),
+)
+def test_supplement_delimiters_stay_balanced_for_optional_field_combinations(
+    kind: str,
+    suffix: str,
+    body: str,
+    stable_order: int,
+    artifact_ids: list[str],
+) -> None:
+    supplement = PublicDocumentSupplement(
+        supplement_id=f"asset-{suffix}",
+        kind=kind,  # type: ignore[arg-type]
+        markdown=body,
+        stable_order=stable_order,
+        artifact_ids=tuple(artifact_ids),
+    )
+
+    rendered = _render_supplement_block(supplement)
+    opening = f"<!-- investo:block {kind}:asset-{suffix} -->"
+    closing = f"<!-- /investo:block {kind}:asset-{suffix} -->"
+
+    assert rendered.count(opening) == 1
+    assert rendered.count(closing) == 1
+    assert rendered.index(opening) < rendered.index(closing)
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    tokens=st.lists(
+        st.sampled_from(_FORBIDDEN_PROPERTY_TOKENS),
+        min_size=1,
+        max_size=8,
+    ),
+    separator=st.sampled_from((" ", " / ", " · ", "\n- ")),
+)
+def test_required_block_fallback_is_deterministic(
+    tokens: list[str],
+    separator: str,
+) -> None:
+    markdown = _canonical_markdown(
+        watchpoint_body=f"- {separator.join(tokens)}",
+    )
+    first_projected, first_context = _projected_draft(markdown)
+    second_projected, second_context = _projected_draft(markdown)
+
+    first = _repair_projected_draft(first_projected, first_context)
+    second = _repair_projected_draft(second_projected, second_context)
+
+    assert first.layout.markdown == second.layout.markdown
+    assert first.block_outcomes == second.block_outcomes
+    assert first.layout.markdown.count(PUBLIC_WATCHPOINT_LIMITED_TEXT) == 1
+
+
+_ORDERABLE_FINDINGS = (
+    ("first_viewport:1", "first_viewport", "bad_token.bulganghanseong"),
+    ("first_viewport:1", "first_viewport", "markdown.broken_numeric_bold"),
+    ("first_viewport:1", "first_viewport", "summary.truncated_mid_token"),
+    ("first_viewport:1", "first_viewport", "template.repeated_phrase"),
+    ("watchpoints:section", "watchpoints", "ellipsis.dangling_line"),
+    ("watchpoints:section", "watchpoints", "public_diagnostic.raw_label"),
+    ("watchpoints:section", "watchpoints", "trace.fragment"),
+    ("watchpoints:section", "watchpoints", "template.repeated_phrase"),
+)
+
+
+@settings(max_examples=100, deadline=None)
+@given(entries=st.lists(st.sampled_from(_ORDERABLE_FINDINGS), min_size=1, max_size=24))
+def test_grouped_issue_order_is_stable_for_arbitrary_input_order(
+    entries: list[tuple[str, str, str]],
+) -> None:
+    findings = tuple(_finding(region_id, block, code) for region_id, block, code in entries)
+
+    decisions = _resolve_owned_region_dispositions(_layout(), findings)
+
+    expected_regions = tuple(
+        region_id
+        for region_id in ("first_viewport:1", "watchpoints:section")
+        if any(entry[0] == region_id for entry in entries)
+    )
+    assert tuple(decision.region_id for decision in decisions) == expected_regions
+    for decision in decisions:
+        assert decision.issue_codes == tuple(
+            sorted({code for region_id, _block, code in entries if region_id == decision.region_id})
+        )

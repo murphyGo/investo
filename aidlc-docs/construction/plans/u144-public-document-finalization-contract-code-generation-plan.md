@@ -352,7 +352,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Add watchpoint result tests for rendered/limited count/reason invariants and notifier tests for DTO key/segment/date mismatch, typed failed-coverage collapse, sealed watchlist decoration, missing conclusion hard block, and unsafe generated `market_summary` being unreachable when sealed Markdown is safe. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-watchpoint-notifier-invariants.md`.
 - [x] Add region-table contract tests for every spec, empty/non-empty anchor inputs, supplement marker pairing, explicit marker-shell omission with no E5 artifact, duplicate/overlap/missing markers, residual partition coverage, stable IDs after replacement, and reader-visible tables. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-region-table-contracts.md`.
 - [x] Add staging tests proving E8 leaves every public destination byte-identical and removes the temporary root; promotion failure exercises existing rollback. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-staging-rollback.md`.
-- [ ] Add Hypothesis tests for forbidden-label combinations, delimiter balance, block fallback determinism, and stable issue ordering.
+- [x] Add Hypothesis tests for forbidden-label combinations, delimiter balance, block fallback determinism, and stable issue ordering. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-hypothesis-properties.md`.
 - [ ] Run focused, full, static, import-boundary, no-paid, and strict MkDocs gates.
 
 ### Step 7 — Production closeout
