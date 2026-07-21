@@ -285,23 +285,31 @@ regions, so regions form a non-overlapping partition of the whole string.
 | 11 `navigation:segments` | `navigation` | line prefix `**세그먼트**:` | newline | always in segmented mode | reader-visible, once |
 | 12 `disclaimer:short` | `disclaimer` | equity: exact `> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.`; crypto: exact `> 정보 제공용 자동 시황이며 가상자산 매매 권유가 아닙니다. 가상자산은 가격 변동성이 매우 큽니다.` | newline | always | `exact_disclaimer`, once |
 | 13 `anchor:market` | `anchor_table` | equity/domestic line exactly `| 종목 | 종가 | 변동 | 비고 |`; crypto line exactly `| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |` | first non-table line; next line exactly `|------|------|------|------|` | conditional on non-empty reconciled anchors (`anchor_table_required`) | reader-visible, once |
-| 14 `watchpoints:section` | `watchpoints` | line exactly `## ⑥ 오늘의 관전 포인트` | diagnostics start or `## ⑦` | always | reader-visible, once |
-| 15 `section:{n}` | `section_body` | exact one of `## ① 요약`, `## ② 전일 핵심 이슈`, `## ③ 섹터/수급 동향`, `## ④ 지표·이벤트`, `## ⑤ 주요 종목` | next numbered H2/special owned H2 | all five required in that order | reader-visible, five unique IDs |
+| 14 `watchpoints:section`, then `watchpoints:section:continuation:{ordinal}` | `watchpoints` | primary starts at line exactly `## ⑥ 오늘의 관전 포인트`; each continuation is the next non-empty residual after a claimed marker | next claimed marker, diagnostics start, or `## ⑦` | primary always; continuations conditional residual | reader-visible; one primary plus zero or more continuations in source order |
+| 15 `section:{n}`, then `section:{n}:continuation:{ordinal}` | `section_body` | primary starts at exact one of `## ① 요약`, `## ② 전일 핵심 이슈`, `## ③ 섹터/수급 동향`, `## ④ 지표·이벤트`, `## ⑤ 주요 종목`; each continuation is the next non-empty residual after a claimed marker | next claimed marker, numbered H2, or special owned H2 | all five primaries required in order; continuations conditional residual | reader-visible; five unique primary IDs plus source-ordered continuations |
 | 16 `header:title` | `header` | first line exactly `# {target_date.isoformat()} {SEGMENT_LABELS[segment]} 시황` | newline | always | reader-visible, once |
 | 17 `first_viewport:{ordinal}` | `first_viewport` | each remaining non-empty unclaimed span before `## ①` | next claimed span or `## ①` | conditional residual | reader-visible, repeatable in source order |
 
 Supplement assembly adds the invisible paired comments in rows 3-5; it never
-discovers supplement regions from image URL/evidence text. A duplicated
-non-repeatable ID, unmatched marker pair, nested/overlapping span, missing
-required region, unexpected numbered H2, or unclaimed bytes after partition is
-a required-structure hard block.
+discovers supplement regions from image URL/evidence text. Because the existing
+canonical producers place visual/chart supplements immediately below section
+and watchpoint H2s, rows 14-15 retain one heading-owning primary and assign each
+post-marker residual to a deterministic `continuation` ID. Consecutive markers
+create no empty continuation. This is the minimum representable refinement of
+the original five-section rule: a single contiguous span cannot both own the
+H2 and skip a higher-priority marker while also owning prose after that marker.
+A duplicated non-repeatable ID, unmatched marker pair, nested/overlapping span,
+missing required primary, any circled-number H2 outside the exact canonical
+allowlist (including `## ⑧` and `## ⓪-C`), or unclaimed bytes after partition
+is a required-structure hard block.
 
 `replace_region_body()` splices by the current content offsets, preserves the
 canonical wrapper/heading, then calls
 `reindex(..., expectation=self.expectation)` on the entire result. A
 replacement for a marker-backed always/conditional region must reproduce the
-same canonical marker/ID; a first-viewport residual keeps its ordinal between
-the same neighboring claimed regions. `omit_optional_region()` follows I10e;
+same canonical marker/ID; first-viewport and section/watchpoint continuation
+residuals keep their ordinal between the same neighboring claimed regions.
+`omit_optional_region()` follows I10e;
 it does not delete a conditionally expected supplement marker pair. After
 reindex, unaffected region IDs and order must remain stable. A second
 replacement/omission of the same ID in one call is forbidden by E7.

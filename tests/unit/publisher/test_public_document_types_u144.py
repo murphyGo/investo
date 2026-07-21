@@ -20,6 +20,7 @@ from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.public_notification import PublicNotificationSummary
 from investo.models.segments import (
+    CRYPTO,
     DOMESTIC_EQUITY,
     US_EQUITY,
     MarketSegment,
@@ -27,6 +28,7 @@ from investo.models.segments import (
 )
 from investo.publisher import FinalizedPublicBundle, FinalizedPublicDocument
 from investo.publisher.public_document import (
+    _REGION_SPECS,
     PublicDocumentContext,
     PublicDocumentDraft,
     PublicDocumentFinalizationError,
@@ -41,6 +43,7 @@ from investo.publisher.public_document import (
     _finalize_bundle_skeleton,
     _finalize_segment_skeleton,
     _new_generated_draft,
+    _render_supplement_block,
     _seal_document,
     _SegmentTrustBlockedError,
     _transition_draft,
@@ -74,6 +77,114 @@ def _expectation(*, supplement_ids: tuple[str, ...] = ()) -> PublicRegionExpecta
         daily_thesis_required=False,
         anchor_table_required=False,
     )
+
+
+def _region_expectation(
+    *,
+    segment: MarketSegment = DOMESTIC_EQUITY,
+    segmented_mode: bool = True,
+    supplement_ids: tuple[str, ...] = (),
+    shared_macro_required: bool = False,
+    crypto_indicators_required: bool = False,
+    channel_anchors_required: bool = False,
+    daily_thesis_required: bool = False,
+    anchor_table_required: bool = False,
+) -> PublicRegionExpectation:
+    return PublicRegionExpectation(
+        target_date=_TARGET_DATE,
+        segment=segment,
+        segmented_mode=segmented_mode,
+        supplement_ids=supplement_ids,
+        shared_macro_required=shared_macro_required,
+        crypto_indicators_required=crypto_indicators_required,
+        channel_anchors_required=channel_anchors_required,
+        daily_thesis_required=daily_thesis_required,
+        anchor_table_required=anchor_table_required,
+    )
+
+
+def _canonical_region_markdown(
+    *,
+    segment: MarketSegment = DOMESTIC_EQUITY,
+    segmented_mode: bool = True,
+    supplements: tuple[PublicDocumentSupplement, ...] = (),
+    shared_macro: bool = False,
+    crypto_indicators: bool = False,
+    channel_anchors: bool = False,
+    daily_thesis: bool = False,
+    anchor_rows: tuple[str, ...] = (),
+    cause: bool = False,
+) -> str:
+    label = {
+        DOMESTIC_EQUITY: "국내 증시",
+        US_EQUITY: "미국 증시",
+        CRYPTO: "크립토",
+    }[segment]
+    short_disclaimer = (
+        "> 정보 제공용 자동 시황이며 가상자산 매매 권유가 아닙니다. "
+        "가상자산은 가격 변동성이 매우 큽니다."
+        if segment == CRYPTO
+        else "> 정보 제공용 자동 시황이며 매매 권유가 아닙니다."
+    )
+    lines = [f"# {_TARGET_DATE.isoformat()} {label} 시황", ""]
+    if segmented_mode:
+        lines.extend(("**세그먼트**: [국내](/domestic)", ""))
+    lines.extend((short_disclaimer, ""))
+    for supplement in supplements:
+        lines.extend((_render_supplement_block(supplement), ""))
+    if cause:
+        lines.extend(("> **크로스마켓 연결 고리**: 금리와 수급", ""))
+    if daily_thesis:
+        lines.extend(("> **오늘의 큰 그림:** 확인 후 대응", ""))
+    if anchor_rows:
+        header = (
+            "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |"
+            if segment == CRYPTO
+            else "| 종목 | 종가 | 변동 | 비고 |"
+        )
+        lines.extend((header, "|------|------|------|------|", *anchor_rows, ""))
+    if shared_macro:
+        lines.extend(("## ⓪ 오늘의 매크로", "", "매크로 본문", ""))
+    if crypto_indicators:
+        lines.extend(("## ⓪-A 크립토 지표 (UTC 24h 스냅샷)", "", "지표 본문", ""))
+    if channel_anchors:
+        lines.extend(("## ⓪-B 채널 기준선", "", "채널 본문", ""))
+    lines.extend(
+        (
+            "## ① 요약",
+            "",
+            "요약 본문",
+            "",
+            "## ② 전일 핵심 이슈",
+            "",
+            "이슈 본문",
+            "",
+            "## ③ 섹터/수급 동향",
+            "",
+            "수급 본문",
+            "",
+            "## ④ 지표·이벤트",
+            "",
+            "이벤트 본문",
+            "",
+            "## ⑤ 주요 종목",
+            "",
+            "종목 본문",
+            "",
+            "## ⑥ 오늘의 관전 포인트",
+            "",
+            "- 확인할 조건",
+            "",
+            "<details><summary>수집/품질 진단</summary>",
+            "품질 본문",
+            "</details>",
+            "",
+            "## ⑦ 면책조항",
+            "",
+            "본 문서는 정보 제공용입니다.",
+        )
+    )
+    return "\n".join(lines) + "\n"
 
 
 def _notification() -> PublicNotificationSummary:
@@ -641,3 +752,360 @@ def test_bundle_skeleton_rejects_unexplained_missing_briefing() -> None:
 
     assert exc.value.phase == "input"
     assert exc.value.issue_codes == ("input.briefing_keys",)
+
+
+def test_region_spec_table_matches_all_seventeen_fd_priorities() -> None:
+    assert tuple(spec.id_pattern for spec in _REGION_SPECS) == (
+        "disclaimer:canonical",
+        "diagnostics:quality",
+        "chart:{supplement_id}",
+        "visual:{supplement_id}",
+        "carryover:{supplement_id}",
+        "macro:shared",
+        "indicator:crypto",
+        "anchor:channel",
+        "cause:cross_market",
+        "thesis:daily",
+        "navigation:segments",
+        "disclaimer:short",
+        "anchor:market",
+        "watchpoints:section[`:continuation:{ordinal}`]",
+        "section:{n}[`:continuation:{ordinal}`]",
+        "header:title",
+        "first_viewport:{ordinal}",
+    )
+    assert tuple(spec.block for spec in _REGION_SPECS) == (
+        "disclaimer",
+        "diagnostics",
+        "chart",
+        "visual",
+        "carryover",
+        "shared_macro",
+        "crypto_indicators",
+        "channel_anchors",
+        "cause_map",
+        "daily_thesis",
+        "navigation",
+        "disclaimer",
+        "anchor_table",
+        "watchpoints",
+        "section_body",
+        "header",
+        "first_viewport",
+    )
+    assert tuple(spec.requirement for spec in _REGION_SPECS) == (
+        "always",
+        "always",
+        "conditional",
+        "conditional",
+        "conditional",
+        "conditional",
+        "conditional",
+        "conditional",
+        "optional",
+        "conditional",
+        "conditional",
+        "always",
+        "conditional",
+        "always",
+        "always",
+        "always",
+        "conditional",
+    )
+
+
+def test_region_reindex_forms_exact_partition_with_active_conditions() -> None:
+    supplements = (
+        PublicDocumentSupplement(
+            supplement_id="chart-one",
+            kind="chart",
+            markdown="![차트](chart.svg)",
+            stable_order=1,
+        ),
+        PublicDocumentSupplement(
+            supplement_id="carry-one",
+            kind="carryover",
+            markdown="## Watchlist Carryover\n\n| 항목 | 상태 |\n|---|---|\n| CPI | 확인 |",
+            stable_order=2,
+        ),
+    )
+    expectation = _region_expectation(
+        supplement_ids=tuple(item.supplement_id for item in supplements),
+        shared_macro_required=True,
+        channel_anchors_required=True,
+        daily_thesis_required=True,
+        anchor_table_required=True,
+    )
+    markdown = _canonical_region_markdown(
+        supplements=supplements,
+        shared_macro=True,
+        channel_anchors=True,
+        daily_thesis=True,
+        anchor_rows=("| KOSPI | 2,900 | +1.0% | 마감 |",),
+        cause=True,
+    )
+
+    layout = PublicDocumentLayout.reindex(markdown, expectation=expectation)
+
+    assert layout.markdown == markdown
+    assert layout.regions[0].start == 0
+    assert layout.regions[-1].end == len(markdown)
+    assert all(
+        left.end == right.start
+        for left, right in zip(layout.regions, layout.regions[1:], strict=False)
+    )
+    region_ids = {region.region_id for region in layout.regions}
+    assert {
+        "chart:chart-one",
+        "carryover:carry-one",
+        "macro:shared",
+        "anchor:channel",
+        "cause:cross_market",
+        "thesis:daily",
+        "anchor:market",
+        "section:1",
+        "section:5",
+        "watchpoints:section",
+        "diagnostics:quality",
+        "disclaimer:canonical",
+    } <= region_ids
+
+
+@pytest.mark.parametrize(
+    ("segment", "anchor_row", "expected_header"),
+    (
+        (DOMESTIC_EQUITY, "| KOSPI | 2,900 | +1.0% | 마감 |", "| 종목 | 종가 | 변동 | 비고 |"),
+        (
+            CRYPTO,
+            "| BTC | 100,000 | +2.0% | UTC |",
+            "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |",
+        ),
+    ),
+)
+def test_anchor_region_uses_exact_segment_header_and_empty_anchor_absence(
+    segment: MarketSegment,
+    anchor_row: str,
+    expected_header: str,
+) -> None:
+    absent_markdown = _canonical_region_markdown(segment=segment)
+    absent = PublicDocumentLayout.reindex(
+        absent_markdown,
+        expectation=_region_expectation(segment=segment),
+    )
+    assert "anchor:market" not in {region.region_id for region in absent.regions}
+
+    present_markdown = _canonical_region_markdown(segment=segment, anchor_rows=(anchor_row,))
+    present = PublicDocumentLayout.reindex(
+        present_markdown,
+        expectation=_region_expectation(segment=segment, anchor_table_required=True),
+    )
+    anchor = next(region for region in present.regions if region.region_id == "anchor:market")
+    assert present.markdown[anchor.start : anchor.content_start].startswith(expected_header)
+
+    with pytest.raises(ValueError, match=r"structure.unexpected.anchor:market"):
+        PublicDocumentLayout.reindex(
+            present_markdown,
+            expectation=_region_expectation(segment=segment),
+        )
+
+
+def test_crypto_indicator_is_active_pass_conditional_and_forbidden_on_sibling() -> None:
+    crypto_markdown = _canonical_region_markdown(segment=CRYPTO, crypto_indicators=True)
+    crypto = PublicDocumentLayout.reindex(
+        crypto_markdown,
+        expectation=_region_expectation(segment=CRYPTO, crypto_indicators_required=True),
+    )
+    assert "indicator:crypto" in {region.region_id for region in crypto.regions}
+
+    sibling_markdown = _canonical_region_markdown(crypto_indicators=True)
+    with pytest.raises(ValueError, match=r"structure.unexpected.indicator:crypto"):
+        PublicDocumentLayout.reindex(
+            sibling_markdown,
+            expectation=_region_expectation(),
+        )
+
+
+def test_channel_region_ends_before_owned_cause_and_thesis_suffix() -> None:
+    markdown = _canonical_region_markdown(channel_anchors=True)
+    channel_body = "## ⓪-B 채널 기준선\n\n채널 본문\n\n"
+    markdown = markdown.replace(
+        channel_body,
+        channel_body
+        + "> **크로스마켓 연결 고리**: 금리와 수급\n"
+        + "> **오늘의 큰 그림:** 확인 후 대응\n",
+    )
+    layout = PublicDocumentLayout.reindex(
+        markdown,
+        expectation=_region_expectation(
+            channel_anchors_required=True,
+            daily_thesis_required=True,
+        ),
+    )
+
+    by_id = {region.region_id: region for region in layout.regions}
+    assert by_id["anchor:channel"].end == by_id["cause:cross_market"].start
+    assert by_id["cause:cross_market"].end == by_id["thesis:daily"].start
+
+
+def test_marker_pairing_and_carryover_heading_fail_closed() -> None:
+    supplement = PublicDocumentSupplement(
+        supplement_id="hero",
+        kind="visual",
+        markdown="![hero](hero.svg)",
+        stable_order=1,
+    )
+    markdown = _canonical_region_markdown(supplements=(supplement,))
+    expectation = _region_expectation(supplement_ids=("hero",))
+
+    with pytest.raises(ValueError, match=r"structure.mismatched_supplement_marker"):
+        PublicDocumentLayout.reindex(
+            markdown.replace(
+                "<!-- /investo:block visual:hero -->",
+                "<!-- /investo:block visual:other -->",
+            ),
+            expectation=expectation,
+        )
+
+    bad_carryover = PublicDocumentSupplement(
+        supplement_id="carry",
+        kind="carryover",
+        markdown="제목 없는 본문",
+        stable_order=1,
+    )
+    with pytest.raises(ValueError, match=r"structure.carryover_heading"):
+        PublicDocumentLayout.reindex(
+            _canonical_region_markdown(supplements=(bad_carryover,)),
+            expectation=_region_expectation(supplement_ids=("carry",)),
+        )
+
+
+def test_region_replacement_targets_duplicate_evidence_by_region_id() -> None:
+    first = PublicDocumentSupplement(
+        supplement_id="first",
+        kind="visual",
+        markdown="동일 근거",
+        stable_order=1,
+    )
+    second = PublicDocumentSupplement(
+        supplement_id="second",
+        kind="visual",
+        markdown="동일 근거",
+        stable_order=2,
+    )
+    markdown = _canonical_region_markdown(supplements=(first, second))
+    layout = PublicDocumentLayout.reindex(
+        markdown,
+        expectation=_region_expectation(supplement_ids=("first", "second")),
+    )
+
+    replaced = layout.replace_region_body("visual:second", "교체 근거\n")
+
+    first_region = next(region for region in replaced.regions if region.region_id == "visual:first")
+    second_region = next(
+        region for region in replaced.regions if region.region_id == "visual:second"
+    )
+    assert replaced.markdown[first_region.content_start : first_region.content_end] == "동일 근거\n"
+    assert (
+        replaced.markdown[second_region.content_start : second_region.content_end] == "교체 근거\n"
+    )
+    assert tuple(region.region_id for region in replaced.regions) == tuple(
+        region.region_id for region in layout.regions
+    )
+
+
+def test_marker_omission_preserves_empty_shell_and_reindexes() -> None:
+    supplement = PublicDocumentSupplement(
+        supplement_id="hero",
+        kind="visual",
+        markdown="![hero](hero.svg)",
+        stable_order=1,
+    )
+    layout = PublicDocumentLayout.reindex(
+        _canonical_region_markdown(supplements=(supplement,)),
+        expectation=_region_expectation(supplement_ids=("hero",)),
+    )
+
+    omitted = layout.omit_optional_region("visual:hero")
+
+    region = next(region for region in omitted.regions if region.region_id == "visual:hero")
+    assert omitted.markdown[region.content_start : region.content_end] == ""
+    assert (
+        omitted.markdown[region.start : region.end]
+        == "<!-- investo:block visual:hero -->\n<!-- /investo:block visual:hero -->\n"
+    )
+    with pytest.raises(ValueError, match="already omitted"):
+        omitted.omit_optional_region("visual:hero")
+
+
+def test_region_reindex_rejects_duplicate_missing_and_unexpected_numbered_h2() -> None:
+    markdown = _canonical_region_markdown()
+    expectation = _region_expectation()
+
+    with pytest.raises(ValueError, match=r"structure.duplicate.section:1"):
+        PublicDocumentLayout.reindex(
+            markdown.replace("## ② 전일", "## ① 요약\n\n## ② 전일", 1),
+            expectation=expectation,
+        )
+    with pytest.raises(ValueError, match=r"structure.missing.section:3"):
+        PublicDocumentLayout.reindex(
+            markdown.replace("## ③ 섹터/수급 동향", "## 섹터/수급 동향"),
+            expectation=expectation,
+        )
+
+    with pytest.raises(ValueError, match=r"structure.unexpected_numbered_h2"):
+        PublicDocumentLayout.reindex(
+            markdown.replace("요약 본문", "요약 본문\n\n## ⑧ 비허용 섹션"),
+            expectation=expectation,
+        )
+
+    with pytest.raises(ValueError, match=r"structure.unexpected_numbered_h2"):
+        PublicDocumentLayout.reindex(
+            markdown.replace("요약 본문", "요약 본문\n\n## ⓪-C 비허용 섹션"),
+            expectation=expectation,
+        )
+
+
+@pytest.mark.parametrize(
+    ("heading", "body", "primary_id", "continuation_id"),
+    (
+        ("① 요약", "요약 본문", "section:1", "section:1:continuation:1"),
+        (
+            "⑥ 오늘의 관전 포인트",
+            "- 확인할 조건",
+            "watchpoints:section",
+            "watchpoints:section:continuation:1",
+        ),
+    ),
+)
+def test_section_scoped_marker_partitions_into_stable_continuation_regions(
+    heading: str,
+    body: str,
+    primary_id: str,
+    continuation_id: str,
+) -> None:
+    markdown = _canonical_region_markdown()
+
+    supplement = PublicDocumentSupplement(
+        supplement_id="inside-section",
+        kind="visual",
+        markdown="![섹션 시각물](section.svg)",
+        stable_order=1,
+    )
+    marked = markdown.replace(
+        f"## {heading}\n\n{body}",
+        f"## {heading}\n\n{_render_supplement_block(supplement)}\n\n{body}",
+    )
+
+    layout = PublicDocumentLayout.reindex(
+        marked,
+        expectation=_region_expectation(supplement_ids=("inside-section",)),
+    )
+
+    region_ids = tuple(region.region_id for region in layout.regions)
+    assert primary_id in region_ids
+    assert "visual:inside-section" in region_ids
+    assert continuation_id in region_ids
+    assert all(
+        left.end == right.start
+        for left, right in zip(layout.regions, layout.regions[1:], strict=False)
+    )

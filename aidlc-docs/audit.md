@@ -118,6 +118,15 @@
 **Scope**: No concrete phase algorithm, fixed-point retry, public finalizer export, writer, or production call site was introduced. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 1 checklist 3 — implement the exact FD RegionSpec table, expectations, marker regions, partition/reindex, replacement, and omission behavior.
 
+## Construction — u144 Code Generation Step 1.3 canonical region index landed
+
+**Timestamp**: 2026-07-21T05:10:00Z
+**Action**: Implemented the exhaustive typed public-document region table, active-pass expectations, full partition/reindex, body replacement, and marker-shell omission.
+**Evidence**: Exact H1/sections/watchpoints/diagnostics/disclaimers/segment anchors and conditional producers are fail-closed; typed supplement markers use paired IDs and never evidence search. Duplicated evidence is replaced by indexed region ID. Fresh-eyes review exposed that the original single-span/five-section wording could not represent existing H2-scoped visual markers without overlap, so FD rows 14-15 were minimally refined with deterministic section/watchpoint continuation IDs. The same review expanded unexpected-numbered-H2 rejection to all Unicode circled digits/numbers outside the exact allowlist.
+**Validation**: Scoped Ruff/format passed; publisher strict mypy passed for 47 files; 28 focused tests and all 565 publisher tests passed; one committed domestic briefing with macro/channel/cause/thesis ordering reindexed successfully. Fresh re-review approved the corrected snapshot.
+**Scope**: Pure indexing/types/tests and the necessary FD clarification only. No production finalizer, writer, asset promotion, notifier, or phase algorithm was switched; unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 1 checklist 4 — complete `PublicNotificationSummary` validation/export and add the typed `WatchpointRenderResult` contract without switching production.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

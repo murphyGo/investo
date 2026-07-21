@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from hashlib import sha256
+from itertools import pairwise
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 from typing import Final, Literal, Self, TypeVar
+from unicodedata import name as unicode_name
 
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
@@ -26,6 +28,7 @@ from investo.models.public_notification import PublicNotificationSummary
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
+    SEGMENT_LABELS,
     US_EQUITY,
     MarketSegment,
     SegmentCoverage,
@@ -83,6 +86,37 @@ _FINALIZATION_STATES: Final[frozenset[str]] = frozenset(
 _ID_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 _SHA256_RE: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _ISSUE_CODE_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
+_MARKER_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^<!-- investo:block (chart|visual|carryover):([a-z0-9][a-z0-9._-]{0,127}) -->$"
+)
+_MARKER_CLOSE_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^<!-- /investo:block (chart|visual|carryover):([a-z0-9][a-z0-9._-]{0,127}) -->$"
+)
+_SECTION_HEADINGS: Final[tuple[str, ...]] = (
+    "## ① 요약",
+    "## ② 전일 핵심 이슈",
+    "## ③ 섹터/수급 동향",
+    "## ④ 지표·이벤트",
+    "## ⑤ 주요 종목",
+)
+_WATCHPOINT_HEADING: Final[str] = "## ⑥ 오늘의 관전 포인트"
+_CANONICAL_DISCLAIMER_HEADING: Final[str] = "## ⑦ 면책조항"
+_DIAGNOSTICS_OPEN: Final[str] = "<details><summary>수집/품질 진단</summary>"
+_DIAGNOSTICS_CLOSE: Final[str] = "</details>"
+_SHARED_MACRO_HEADING: Final[str] = "## ⓪ 오늘의 매크로"
+_CRYPTO_INDICATOR_HEADING: Final[str] = "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)"
+_CHANNEL_ANCHOR_HEADING: Final[str] = "## ⓪-B 채널 기준선"
+_CAUSE_PREFIX: Final[str] = "> **크로스마켓 연결 고리**:"
+_THESIS_PREFIX: Final[str] = "> **오늘의 큰 그림:**"
+_NAVIGATION_PREFIX: Final[str] = "**세그먼트**:"
+_SHORT_DISCLAIMER_EQUITY: Final[str] = "> 정보 제공용 자동 시황이며 매매 권유가 아닙니다."
+_SHORT_DISCLAIMER_CRYPTO: Final[str] = (
+    "> 정보 제공용 자동 시황이며 가상자산 매매 권유가 아닙니다. "
+    "가상자산은 가격 변동성이 매우 큽니다."
+)
+_EQUITY_ANCHOR_HEADER: Final[str] = "| 종목 | 종가 | 변동 | 비고 |"
+_CRYPTO_ANCHOR_HEADER: Final[str] = "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |"
+_ANCHOR_DELIMITER: Final[str] = "|------|------|------|------|"
 _K = TypeVar("_K")
 _V = TypeVar("_V")
 
@@ -351,6 +385,18 @@ class PublicRegionExpectation:
     def __post_init__(self) -> None:
         if self.segment not in _SEGMENTS:
             raise ValueError("segment must be a known market segment")
+        boolean_fields = (
+            self.segmented_mode,
+            self.shared_macro_required,
+            self.crypto_indicators_required,
+            self.channel_anchors_required,
+            self.daily_thesis_required,
+            self.anchor_table_required,
+        )
+        if any(type(value) is not bool for value in boolean_fields):
+            raise TypeError("public region expectation flags must be bool")
+        if self.crypto_indicators_required and self.segment != CRYPTO:
+            raise ValueError("crypto indicators are forbidden on non-crypto segments")
         supplement_ids = tuple(self.supplement_ids)
         _require_unique(supplement_ids, field_name="supplement_ids")
         for supplement_id in supplement_ids:
@@ -381,6 +427,66 @@ class PublicDocumentLayout:
             prior_end = region.end
         object.__setattr__(self, "regions", regions)
 
+    def replace_region_body(
+        self,
+        region_id: str,
+        replacement_body: str,
+    ) -> PublicDocumentLayout:
+        """Replace one owned body by its indexed offsets, then fully reindex."""
+
+        region = _require_layout_region(self, region_id)
+        if not isinstance(replacement_body, str):
+            raise TypeError("replacement_body must be str")
+        markdown = (
+            self.markdown[: region.content_start]
+            + replacement_body
+            + self.markdown[region.content_end :]
+        )
+        reindexed = type(self).reindex(markdown, expectation=self.expectation)
+        _require_stable_region_ids(
+            before=self.regions,
+            after=reindexed.regions,
+            operation="replacement",
+        )
+        return reindexed
+
+    def omit_optional_region(self, region_id: str) -> PublicDocumentLayout:
+        """Omit one degradable region without weakening structural ownership."""
+
+        region = _require_layout_region(self, region_id)
+        if region.block in {"visual", "chart", "carryover"}:
+            if region.content_start == region.content_end:
+                raise ValueError("marker-backed region is already omitted")
+            return self.replace_region_body(region_id, "")
+        if region.block != "cause_map" or region.required:
+            raise ValueError("region is not an optional omittable block")
+        markdown = self.markdown[: region.start] + self.markdown[region.end :]
+        reindexed = type(self).reindex(markdown, expectation=self.expectation)
+        expected_ids = tuple(
+            existing.region_id
+            for existing in self.regions
+            if existing.region_id != region_id and existing.block != "first_viewport"
+        )
+        actual_ids = tuple(
+            existing.region_id
+            for existing in reindexed.regions
+            if existing.block != "first_viewport"
+        )
+        if actual_ids != expected_ids:
+            raise ValueError("region IDs changed outside the omitted optional block")
+        return reindexed
+
+    @classmethod
+    def reindex(
+        cls,
+        markdown: str,
+        *,
+        expectation: PublicRegionExpectation,
+    ) -> PublicDocumentLayout:
+        """Build the exhaustive FD region partition for one active pass."""
+
+        return _reindex_public_document(markdown, expectation=expectation)
+
 
 @dataclass(frozen=True, slots=True)
 class RegionSpec:
@@ -401,6 +507,930 @@ class RegionSpec:
             raise ValueError("region requirement is not supported")
         if self.projection_policy not in _PROJECTION_POLICIES:
             raise ValueError("projection_policy is not supported")
+
+
+_REGION_SPECS: Final[tuple[RegionSpec, ...]] = (
+    RegionSpec(
+        "disclaimer:canonical",
+        "disclaimer",
+        f"line exactly {_CANONICAL_DISCLAIMER_HEADING!r}",
+        "EOF",
+        "always",
+        "exact_disclaimer",
+    ),
+    RegionSpec(
+        "diagnostics:quality",
+        "diagnostics",
+        f"line exactly {_DIAGNOSTICS_OPEN!r}",
+        f"matching {_DIAGNOSTICS_CLOSE!r} inclusive",
+        "always",
+        "protected_diagnostics",
+    ),
+    RegionSpec(
+        "chart:{supplement_id}",
+        "chart",
+        "exact investo:block chart:{supplement_id} open marker",
+        "matching exact close marker inclusive",
+        "conditional",
+        "reader_visible",
+        True,
+    ),
+    RegionSpec(
+        "visual:{supplement_id}",
+        "visual",
+        "exact investo:block visual:{supplement_id} open marker",
+        "matching exact close marker inclusive",
+        "conditional",
+        "reader_visible",
+        True,
+    ),
+    RegionSpec(
+        "carryover:{supplement_id}",
+        "carryover",
+        "exact investo:block carryover:{supplement_id} open marker",
+        "matching exact close marker inclusive",
+        "conditional",
+        "reader_visible",
+        True,
+    ),
+    RegionSpec(
+        "macro:shared",
+        "shared_macro",
+        f"line exactly {_SHARED_MACRO_HEADING!r}",
+        "next H2 or EOF",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "indicator:crypto",
+        "crypto_indicators",
+        f"line exactly {_CRYPTO_INDICATOR_HEADING!r}",
+        "next H2 or EOF",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "anchor:channel",
+        "channel_anchors",
+        f"line exactly {_CHANNEL_ANCHOR_HEADING!r}",
+        "next H2 or EOF",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "cause:cross_market",
+        "cause_map",
+        f"line prefix {_CAUSE_PREFIX!r}",
+        "newline",
+        "optional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "thesis:daily",
+        "daily_thesis",
+        f"line prefix {_THESIS_PREFIX!r}",
+        "newline",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "navigation:segments",
+        "navigation",
+        f"line prefix {_NAVIGATION_PREFIX!r}",
+        "newline",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "disclaimer:short",
+        "disclaimer",
+        "segment-exact short disclaimer line",
+        "newline",
+        "always",
+        "exact_disclaimer",
+    ),
+    RegionSpec(
+        "anchor:market",
+        "anchor_table",
+        "segment-exact anchor table header line",
+        "first non-table line after exact delimiter",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "watchpoints:section[`:continuation:{ordinal}`]",
+        "watchpoints",
+        f"primary: line exactly {_WATCHPOINT_HEADING!r}; continuation: residual after marker",
+        "next marker, diagnostics start, or canonical disclaimer",
+        "always",
+        "reader_visible",
+        True,
+    ),
+    RegionSpec(
+        "section:{n}[`:continuation:{ordinal}`]",
+        "section_body",
+        "primary: exact canonical section H2; continuation: residual after marker",
+        "next marker, numbered H2, or special owned H2",
+        "always",
+        "reader_visible",
+        True,
+    ),
+    RegionSpec(
+        "header:title",
+        "header",
+        "first line exact target-date segment title",
+        "newline",
+        "always",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "first_viewport:{ordinal}",
+        "first_viewport",
+        "remaining non-empty unclaimed span before section 1",
+        "next claimed span or section 1",
+        "conditional",
+        "reader_visible",
+        True,
+    ),
+)
+
+
+@dataclass(frozen=True, slots=True)
+class _MarkdownLine:
+    start: int
+    end: int
+    content_end: int
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class _RegionCandidate:
+    priority: int
+    region: PublicDocumentRegion
+
+
+def _layout_error(issue_code: str) -> ValueError:
+    return ValueError(f"public document layout invalid: {issue_code}")
+
+
+def _markdown_lines(markdown: str) -> tuple[_MarkdownLine, ...]:
+    lines: list[_MarkdownLine] = []
+    for match in re.finditer(r"[^\r\n]*(?:\r\n|\r|\n|$)", markdown):
+        raw = match.group(0)
+        if not raw:
+            continue
+        if raw.endswith("\r\n"):
+            content_end = match.end() - 2
+        elif raw.endswith(("\r", "\n")):
+            content_end = match.end() - 1
+        else:
+            content_end = match.end()
+        lines.append(
+            _MarkdownLine(
+                start=match.start(),
+                end=match.end(),
+                content_end=content_end,
+                text=markdown[match.start() : content_end],
+            )
+        )
+    return tuple(lines)
+
+
+def _candidate(
+    *,
+    priority: int,
+    region_id: str,
+    block: PublicBlockKind,
+    required: bool,
+    projection_policy: PublicProjectionPolicy,
+    start: int,
+    end: int,
+    content_start: int,
+    content_end: int,
+) -> _RegionCandidate:
+    return _RegionCandidate(
+        priority=priority,
+        region=PublicDocumentRegion(
+            region_id=region_id,
+            block=block,
+            required=required,
+            projection_policy=projection_policy,
+            start=start,
+            end=end,
+            content_start=content_start,
+            content_end=content_end,
+        ),
+    )
+
+
+def _matching_line_indices(lines: Sequence[_MarkdownLine], text: str) -> tuple[int, ...]:
+    return tuple(index for index, line in enumerate(lines) if line.text == text)
+
+
+def _prefix_line_indices(lines: Sequence[_MarkdownLine], prefix: str) -> tuple[int, ...]:
+    return tuple(index for index, line in enumerate(lines) if line.text.startswith(prefix))
+
+
+def _one_line_index(
+    indices: Sequence[int],
+    *,
+    region_id: str,
+    expected: bool,
+) -> int | None:
+    if len(indices) > 1:
+        raise _layout_error(f"structure.duplicate.{region_id}")
+    if expected and not indices:
+        raise _layout_error(f"structure.missing.{region_id}")
+    if not expected and indices:
+        raise _layout_error(f"structure.unexpected.{region_id}")
+    return indices[0] if indices else None
+
+
+def _next_h2_start(
+    lines: Sequence[_MarkdownLine],
+    *,
+    after_index: int,
+    markdown_length: int,
+) -> int:
+    return next(
+        (line.start for line in lines[after_index + 1 :] if line.text.startswith("## ")),
+        markdown_length,
+    )
+
+
+def _render_supplement_block(supplement: PublicDocumentSupplement) -> str:
+    """Wrap one typed E1 supplement in its canonical invisible marker pair."""
+
+    region_id = f"{supplement.kind}:{supplement.supplement_id}"
+    body = supplement.markdown
+    separator = "" if body.endswith(("\n", "\r")) else "\n"
+    return (
+        f"<!-- investo:block {region_id} -->\n{body}{separator}<!-- /investo:block {region_id} -->"
+    )
+
+
+def _marker_candidates(
+    markdown: str,
+    *,
+    lines: Sequence[_MarkdownLine],
+    expectation: PublicRegionExpectation,
+) -> tuple[_RegionCandidate, ...]:
+    open_marker: tuple[int, str, str] | None = None
+    candidates: list[_RegionCandidate] = []
+    supplement_ids: list[str] = []
+    priorities = {"chart": 3, "visual": 4, "carryover": 5}
+    for index, line in enumerate(lines):
+        if "investo:block" not in line.text:
+            continue
+        opening = _MARKER_LINE_RE.fullmatch(line.text)
+        closing = _MARKER_CLOSE_LINE_RE.fullmatch(line.text)
+        if opening is not None:
+            if open_marker is not None:
+                raise _layout_error("structure.nested_supplement_marker")
+            open_marker = (index, opening.group(1), opening.group(2))
+            continue
+        if closing is None:
+            raise _layout_error("structure.malformed_supplement_marker")
+        if open_marker is None:
+            raise _layout_error("structure.unmatched_supplement_marker")
+        open_index, kind, supplement_id = open_marker
+        if (closing.group(1), closing.group(2)) != (kind, supplement_id):
+            raise _layout_error("structure.mismatched_supplement_marker")
+        opening_line = lines[open_index]
+        body = markdown[opening_line.end : line.start]
+        if kind == "carryover" and body.strip():
+            carryover_headings = sum(
+                child.text == "## Watchlist Carryover" for child in lines[open_index + 1 : index]
+            )
+            if carryover_headings != 1:
+                raise _layout_error("structure.carryover_heading")
+        region_id = f"{kind}:{supplement_id}"
+        candidates.append(
+            _candidate(
+                priority=priorities[kind],
+                region_id=region_id,
+                block=kind,  # type: ignore[arg-type]
+                required=True,
+                projection_policy="reader_visible",
+                start=opening_line.start,
+                end=line.end,
+                content_start=opening_line.end,
+                content_end=line.start,
+            )
+        )
+        supplement_ids.append(supplement_id)
+        open_marker = None
+    if open_marker is not None:
+        raise _layout_error("structure.unmatched_supplement_marker")
+    if len(set(supplement_ids)) != len(supplement_ids):
+        raise _layout_error("structure.duplicate_supplement_id")
+    if set(supplement_ids) != set(expectation.supplement_ids):
+        raise _layout_error("structure.supplement_expectation")
+    return tuple(candidates)
+
+
+def _heading_candidate(
+    *,
+    lines: Sequence[_MarkdownLine],
+    markdown_length: int,
+    heading: str,
+    expected: bool,
+    priority: int,
+    region_id: str,
+    block: PublicBlockKind,
+) -> _RegionCandidate | None:
+    index = _one_line_index(
+        _matching_line_indices(lines, heading),
+        region_id=region_id,
+        expected=expected,
+    )
+    if index is None:
+        return None
+    line = lines[index]
+    return _candidate(
+        priority=priority,
+        region_id=region_id,
+        block=block,
+        required=True,
+        projection_policy="reader_visible",
+        start=line.start,
+        end=_next_h2_start(lines, after_index=index, markdown_length=markdown_length),
+        content_start=line.end,
+        content_end=_next_h2_start(
+            lines,
+            after_index=index,
+            markdown_length=markdown_length,
+        ),
+    )
+
+
+def _line_candidate(
+    *,
+    line: _MarkdownLine,
+    priority: int,
+    region_id: str,
+    block: PublicBlockKind,
+    required: bool,
+    projection_policy: PublicProjectionPolicy = "reader_visible",
+    prefix: str | None = None,
+) -> _RegionCandidate:
+    content_start = line.content_end if prefix is None else line.start + len(prefix)
+    return _candidate(
+        priority=priority,
+        region_id=region_id,
+        block=block,
+        required=required,
+        projection_policy=projection_policy,
+        start=line.start,
+        end=line.end,
+        content_start=content_start,
+        content_end=line.content_end,
+    )
+
+
+def _is_numbered_h2(line: str) -> bool:
+    if not line.startswith("## ") or len(line) <= 3:
+        return False
+    character_name = unicode_name(line[3], "")
+    return character_name.startswith(("CIRCLED DIGIT", "CIRCLED NUMBER"))
+
+
+def _marker_regions_within(
+    candidates: Sequence[_RegionCandidate],
+    *,
+    start: int,
+    end: int,
+) -> tuple[PublicDocumentRegion, ...]:
+    return tuple(
+        candidate.region
+        for candidate in sorted(candidates, key=lambda item: item.region.start)
+        if candidate.region.block in {"visual", "chart", "carryover"}
+        and start <= candidate.region.start
+        and candidate.region.end <= end
+    )
+
+
+def _container_residual_candidates(
+    *,
+    priority: int,
+    primary_region_id: str,
+    block: PublicBlockKind,
+    start: int,
+    end: int,
+    primary_content_start: int,
+    exclusions: Sequence[PublicDocumentRegion],
+) -> tuple[_RegionCandidate, ...]:
+    """Partition one H2-owned body around higher-priority marker spans."""
+
+    residuals: list[_RegionCandidate] = []
+    cursor = start
+    continuation_ordinal = 1
+    for exclusion in exclusions:
+        if exclusion.start < cursor or exclusion.end > end:
+            raise _layout_error("structure.overlapping_supplement_markers")
+        if exclusion.start > cursor:
+            is_primary = cursor == start
+            region_id = (
+                primary_region_id
+                if is_primary
+                else f"{primary_region_id}:continuation:{continuation_ordinal}"
+            )
+            residuals.append(
+                _candidate(
+                    priority=priority,
+                    region_id=region_id,
+                    block=block,
+                    required=True,
+                    projection_policy="reader_visible",
+                    start=cursor,
+                    end=exclusion.start,
+                    content_start=primary_content_start if is_primary else cursor,
+                    content_end=exclusion.start,
+                )
+            )
+            if not is_primary:
+                continuation_ordinal += 1
+        cursor = exclusion.end
+    if cursor < end:
+        is_primary = cursor == start
+        region_id = (
+            primary_region_id
+            if is_primary
+            else f"{primary_region_id}:continuation:{continuation_ordinal}"
+        )
+        residuals.append(
+            _candidate(
+                priority=priority,
+                region_id=region_id,
+                block=block,
+                required=True,
+                projection_policy="reader_visible",
+                start=cursor,
+                end=end,
+                content_start=primary_content_start if is_primary else cursor,
+                content_end=end,
+            )
+        )
+    if not residuals or residuals[0].region.region_id != primary_region_id:
+        raise _layout_error(f"structure.missing.{primary_region_id}")
+    return tuple(residuals)
+
+
+def _trim_fully_claimed_container_suffixes(
+    markdown: str,
+    candidates: Sequence[_RegionCandidate],
+) -> tuple[_RegionCandidate, ...]:
+    """End H2 augmentation regions before fully owned trailing line regions."""
+
+    trimmable = {"shared_macro", "crypto_indicators", "channel_anchors"}
+    result = list(candidates)
+    for index, container in enumerate(result):
+        region = container.region
+        if region.block not in trimmable:
+            continue
+        nested = sorted(
+            (
+                candidate.region
+                for candidate in result
+                if candidate is not container
+                and region.content_start <= candidate.region.start
+                and candidate.region.end <= region.end
+            ),
+            key=lambda child: child.start,
+        )
+        if not nested:
+            continue
+        cursor = nested[0].start
+        suffix_is_claimed = True
+        for child in nested:
+            if child.start < cursor or markdown[cursor : child.start].strip():
+                suffix_is_claimed = False
+                break
+            cursor = child.end
+        if not suffix_is_claimed or markdown[cursor : region.end].strip():
+            continue
+        trimmed = replace(
+            region,
+            end=nested[0].start,
+            content_end=min(region.content_end, nested[0].start),
+        )
+        result[index] = replace(container, region=trimmed)
+    return tuple(result)
+
+
+def _require_layout_region(
+    layout: PublicDocumentLayout,
+    region_id: str,
+) -> PublicDocumentRegion:
+    matches = tuple(region for region in layout.regions if region.region_id == region_id)
+    if len(matches) != 1:
+        raise ValueError("region_id must identify exactly one indexed region")
+    return matches[0]
+
+
+def _require_stable_region_ids(
+    *,
+    before: Sequence[PublicDocumentRegion],
+    after: Sequence[PublicDocumentRegion],
+    operation: str,
+) -> None:
+    if tuple(region.region_id for region in before) != tuple(region.region_id for region in after):
+        raise ValueError(f"region IDs changed during {operation}")
+
+
+def _reindex_public_document(
+    markdown: str,
+    *,
+    expectation: PublicRegionExpectation,
+) -> PublicDocumentLayout:
+    if not isinstance(markdown, str):
+        raise TypeError("markdown must be str")
+    if not markdown:
+        raise _layout_error("structure.empty")
+    lines = _markdown_lines(markdown)
+    candidates: list[_RegionCandidate] = []
+
+    canonical_index = _one_line_index(
+        _matching_line_indices(lines, _CANONICAL_DISCLAIMER_HEADING),
+        region_id="disclaimer:canonical",
+        expected=True,
+    )
+    assert canonical_index is not None
+    canonical_line = lines[canonical_index]
+    candidates.append(
+        _candidate(
+            priority=1,
+            region_id="disclaimer:canonical",
+            block="disclaimer",
+            required=True,
+            projection_policy="exact_disclaimer",
+            start=canonical_line.start,
+            end=len(markdown),
+            content_start=canonical_line.end,
+            content_end=len(markdown),
+        )
+    )
+
+    diagnostics_index = _one_line_index(
+        _matching_line_indices(lines, _DIAGNOSTICS_OPEN),
+        region_id="diagnostics:quality",
+        expected=True,
+    )
+    assert diagnostics_index is not None
+    diagnostics_closes = tuple(
+        index
+        for index in range(diagnostics_index + 1, len(lines))
+        if lines[index].text == _DIAGNOSTICS_CLOSE
+    )
+    if not diagnostics_closes:
+        raise _layout_error("structure.unmatched_diagnostics")
+    diagnostics_close_index = diagnostics_closes[0]
+    if any(
+        line.text.startswith("<details")
+        for line in lines[diagnostics_index + 1 : diagnostics_close_index + 1]
+    ):
+        raise _layout_error("structure.nested_diagnostics")
+    if len(diagnostics_closes) > 1:
+        raise _layout_error("structure.duplicate_diagnostics_close")
+    diagnostics_line = lines[diagnostics_index]
+    diagnostics_close = lines[diagnostics_close_index]
+    candidates.append(
+        _candidate(
+            priority=2,
+            region_id="diagnostics:quality",
+            block="diagnostics",
+            required=True,
+            projection_policy="protected_diagnostics",
+            start=diagnostics_line.start,
+            end=diagnostics_close.end,
+            content_start=diagnostics_line.end,
+            content_end=diagnostics_close.start,
+        )
+    )
+    candidates.extend(_marker_candidates(markdown, lines=lines, expectation=expectation))
+
+    conditional_headings = (
+        (
+            _SHARED_MACRO_HEADING,
+            expectation.shared_macro_required,
+            6,
+            "macro:shared",
+            "shared_macro",
+        ),
+        (
+            _CRYPTO_INDICATOR_HEADING,
+            expectation.crypto_indicators_required,
+            7,
+            "indicator:crypto",
+            "crypto_indicators",
+        ),
+        (
+            _CHANNEL_ANCHOR_HEADING,
+            expectation.channel_anchors_required,
+            8,
+            "anchor:channel",
+            "channel_anchors",
+        ),
+    )
+    for heading, expected, priority, region_id, block in conditional_headings:
+        found = _heading_candidate(
+            lines=lines,
+            markdown_length=len(markdown),
+            heading=heading,
+            expected=expected,
+            priority=priority,
+            region_id=region_id,
+            block=block,  # type: ignore[arg-type]
+        )
+        if found is not None:
+            candidates.append(found)
+
+    cause_indices = _prefix_line_indices(lines, _CAUSE_PREFIX)
+    if len(cause_indices) > 1:
+        raise _layout_error("structure.duplicate.cause:cross_market")
+    cause_index = cause_indices[0] if cause_indices else None
+    if cause_index is not None:
+        candidates.append(
+            _line_candidate(
+                line=lines[cause_index],
+                priority=9,
+                region_id="cause:cross_market",
+                block="cause_map",
+                required=False,
+                prefix=_CAUSE_PREFIX,
+            )
+        )
+
+    thesis_index = _one_line_index(
+        _prefix_line_indices(lines, _THESIS_PREFIX),
+        region_id="thesis:daily",
+        expected=expectation.daily_thesis_required,
+    )
+    if thesis_index is not None:
+        candidates.append(
+            _line_candidate(
+                line=lines[thesis_index],
+                priority=10,
+                region_id="thesis:daily",
+                block="daily_thesis",
+                required=True,
+                prefix=_THESIS_PREFIX,
+            )
+        )
+
+    navigation_index = _one_line_index(
+        _prefix_line_indices(lines, _NAVIGATION_PREFIX),
+        region_id="navigation:segments",
+        expected=expectation.segmented_mode,
+    )
+    if navigation_index is not None:
+        candidates.append(
+            _line_candidate(
+                line=lines[navigation_index],
+                priority=11,
+                region_id="navigation:segments",
+                block="navigation",
+                required=True,
+                prefix=_NAVIGATION_PREFIX,
+            )
+        )
+
+    short_disclaimer = (
+        _SHORT_DISCLAIMER_CRYPTO if expectation.segment == CRYPTO else _SHORT_DISCLAIMER_EQUITY
+    )
+    other_short_disclaimer = (
+        _SHORT_DISCLAIMER_EQUITY if expectation.segment == CRYPTO else _SHORT_DISCLAIMER_CRYPTO
+    )
+    if _matching_line_indices(lines, other_short_disclaimer):
+        raise _layout_error("structure.wrong_segment_short_disclaimer")
+    short_index = _one_line_index(
+        _matching_line_indices(lines, short_disclaimer),
+        region_id="disclaimer:short",
+        expected=True,
+    )
+    assert short_index is not None
+    candidates.append(
+        _line_candidate(
+            line=lines[short_index],
+            priority=12,
+            region_id="disclaimer:short",
+            block="disclaimer",
+            required=True,
+            projection_policy="exact_disclaimer",
+        )
+    )
+
+    expected_anchor_header = (
+        _CRYPTO_ANCHOR_HEADER if expectation.segment == CRYPTO else _EQUITY_ANCHOR_HEADER
+    )
+    other_anchor_header = (
+        _EQUITY_ANCHOR_HEADER if expectation.segment == CRYPTO else _CRYPTO_ANCHOR_HEADER
+    )
+    if _matching_line_indices(lines, other_anchor_header):
+        raise _layout_error("structure.wrong_segment_anchor_header")
+    anchor_index = _one_line_index(
+        _matching_line_indices(lines, expected_anchor_header),
+        region_id="anchor:market",
+        expected=expectation.anchor_table_required,
+    )
+    if anchor_index is not None:
+        if anchor_index + 1 >= len(lines) or lines[anchor_index + 1].text != _ANCHOR_DELIMITER:
+            raise _layout_error("structure.anchor_delimiter")
+        end_index = anchor_index + 2
+        while end_index < len(lines) and lines[end_index].text.startswith("|"):
+            end_index += 1
+        if end_index == anchor_index + 2:
+            raise _layout_error("structure.anchor_rows")
+        anchor_end = lines[end_index].start if end_index < len(lines) else len(markdown)
+        candidates.append(
+            _candidate(
+                priority=13,
+                region_id="anchor:market",
+                block="anchor_table",
+                required=True,
+                projection_policy="reader_visible",
+                start=lines[anchor_index].start,
+                end=anchor_end,
+                content_start=lines[anchor_index + 1].end,
+                content_end=anchor_end,
+            )
+        )
+
+    watchpoint_index = _one_line_index(
+        _matching_line_indices(lines, _WATCHPOINT_HEADING),
+        region_id="watchpoints:section",
+        expected=True,
+    )
+    assert watchpoint_index is not None
+    watchpoint_line = lines[watchpoint_index]
+    watchpoint_boundaries = tuple(
+        position
+        for position in (diagnostics_line.start, canonical_line.start)
+        if position > watchpoint_line.start
+    )
+    if not watchpoint_boundaries:
+        raise _layout_error("structure.watchpoint_order")
+    watchpoint_end = min(watchpoint_boundaries)
+    candidates.extend(
+        _container_residual_candidates(
+            priority=14,
+            primary_region_id="watchpoints:section",
+            block="watchpoints",
+            start=watchpoint_line.start,
+            end=watchpoint_end,
+            primary_content_start=watchpoint_line.end,
+            exclusions=_marker_regions_within(
+                candidates,
+                start=watchpoint_line.start,
+                end=watchpoint_end,
+            ),
+        )
+    )
+
+    allowed_numbered = {
+        *_SECTION_HEADINGS,
+        _WATCHPOINT_HEADING,
+        _CANONICAL_DISCLAIMER_HEADING,
+        _SHARED_MACRO_HEADING,
+        _CRYPTO_INDICATOR_HEADING,
+        _CHANNEL_ANCHOR_HEADING,
+    }
+    if any(_is_numbered_h2(line.text) and line.text not in allowed_numbered for line in lines):
+        raise _layout_error("structure.unexpected_numbered_h2")
+    section_indices: list[int] = []
+    for number, heading in enumerate(_SECTION_HEADINGS, start=1):
+        section_index = _one_line_index(
+            _matching_line_indices(lines, heading),
+            region_id=f"section:{number}",
+            expected=True,
+        )
+        assert section_index is not None
+        section_indices.append(section_index)
+    if section_indices != sorted(section_indices):
+        raise _layout_error("structure.section_order")
+    owned_h2s = {
+        *_SECTION_HEADINGS,
+        _WATCHPOINT_HEADING,
+        _CANONICAL_DISCLAIMER_HEADING,
+        _SHARED_MACRO_HEADING,
+        _CRYPTO_INDICATOR_HEADING,
+        _CHANNEL_ANCHOR_HEADING,
+    }
+    for number, section_index in enumerate(section_indices, start=1):
+        section_line = lines[section_index]
+        section_end = next(
+            (line.start for line in lines[section_index + 1 :] if line.text in owned_h2s),
+            len(markdown),
+        )
+        candidates.extend(
+            _container_residual_candidates(
+                priority=15,
+                primary_region_id=f"section:{number}",
+                block="section_body",
+                start=section_line.start,
+                end=section_end,
+                primary_content_start=section_line.end,
+                exclusions=_marker_regions_within(
+                    candidates,
+                    start=section_line.start,
+                    end=section_end,
+                ),
+            )
+        )
+
+    expected_title = (
+        f"# {expectation.target_date.isoformat()} {SEGMENT_LABELS[expectation.segment]} 시황"
+    )
+    if not lines or lines[0].text != expected_title:
+        raise _layout_error("structure.header_title")
+    candidates.append(
+        _line_candidate(
+            line=lines[0],
+            priority=16,
+            region_id="header:title",
+            block="header",
+            required=True,
+        )
+    )
+
+    candidates = list(_trim_fully_claimed_container_suffixes(markdown, candidates))
+    ordered = sorted(candidates, key=lambda item: (item.region.start, item.priority))
+    region_ids = tuple(candidate.region.region_id for candidate in ordered)
+    if len(set(region_ids)) != len(region_ids):
+        raise _layout_error("structure.duplicate_region_id")
+    for previous, current in pairwise(ordered):
+        if current.region.start < previous.region.end:
+            raise _layout_error("structure.overlapping_regions")
+
+    first_section_start = lines[section_indices[0]].start
+    first_viewport: list[_RegionCandidate] = []
+    cursor = 0
+    ordinal = 1
+    for claimed in ordered:
+        if claimed.region.start >= first_section_start:
+            break
+        if claimed.region.start > cursor:
+            first_viewport.append(
+                _candidate(
+                    priority=17,
+                    region_id=f"first_viewport:{ordinal}",
+                    block="first_viewport",
+                    required=True,
+                    projection_policy="reader_visible",
+                    start=cursor,
+                    end=claimed.region.start,
+                    content_start=cursor,
+                    content_end=claimed.region.start,
+                )
+            )
+            ordinal += 1
+        cursor = claimed.region.end
+    if cursor < first_section_start:
+        first_viewport.append(
+            _candidate(
+                priority=17,
+                region_id=f"first_viewport:{ordinal}",
+                block="first_viewport",
+                required=True,
+                projection_policy="reader_visible",
+                start=cursor,
+                end=first_section_start,
+                content_start=cursor,
+                content_end=first_section_start,
+            )
+        )
+
+    partition = sorted((*ordered, *first_viewport), key=lambda item: item.region.start)
+    normalized: list[PublicDocumentRegion] = []
+    cursor = 0
+    for claimed in partition:
+        region = claimed.region
+        if region.start < cursor:
+            raise _layout_error("structure.overlapping_regions")
+        if region.start > cursor:
+            gap = markdown[cursor : region.start]
+            if cursor < first_section_start:
+                raise _layout_error("structure.first_viewport_partition")
+            if gap.strip() or not normalized:
+                raise _layout_error("structure.unclaimed_bytes")
+            normalized[-1] = replace(normalized[-1], end=region.start)
+        normalized.append(region)
+        cursor = region.end
+    if cursor < len(markdown):
+        gap = markdown[cursor:]
+        if gap.strip() or not normalized:
+            raise _layout_error("structure.unclaimed_bytes")
+        normalized[-1] = replace(normalized[-1], end=len(markdown))
+        cursor = len(markdown)
+    if not normalized or normalized[0].start != 0 or cursor != len(markdown):
+        raise _layout_error("structure.partition")
+    if any(left.end != right.start for left, right in pairwise(normalized)):
+        raise _layout_error("structure.partition")
+    return PublicDocumentLayout(
+        markdown=markdown,
+        regions=tuple(normalized),
+        expectation=expectation,
+    )
 
 
 @dataclass(frozen=True, slots=True)
