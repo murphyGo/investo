@@ -84,6 +84,7 @@ from investo.publisher.reader_format.emphasis import wrap_numbers_bold
 from investo.publisher.reader_format.glossary import dedupe_glossings
 from investo.publisher.reader_format.headings import enforce_h3_subheadings
 from investo.publisher.reader_format.meaning import normalize_meaning_lines
+from investo.publisher.reader_format.public_projection import project_public_markdown
 from investo.publisher.reader_format.reflow import (
     DIAGNOSTICS_SUMMARY_LABEL,
     SNIPPET_MAX_CHARS,
@@ -233,6 +234,7 @@ __all__ = [
     "escape_krx_stock_code_link_fragments",
     "normalize_data_limited_reader_copy",
     "normalize_meaning_lines",
+    "project_public_markdown",
     "reflow_first_viewport",
     "wrap_numbers_bold",
 ]

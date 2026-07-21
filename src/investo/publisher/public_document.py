@@ -41,7 +41,7 @@ from investo.models.segments import (
 from investo.publisher._public_document_policy import PUBLIC_BLOCK_KINDS, PublicBlockKind
 from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
-from investo.publisher.reader_format import emit_first_viewport_disclaimer
+from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 
 PublicDocumentPhase = Literal["generated", "assembled", "projected", "repaired", "validated"]
@@ -1833,6 +1833,25 @@ def _transition_draft(
         block_outcomes=draft.block_outcomes if block_outcomes is None else block_outcomes,
         notification_summary=notification_summary,
         validation_witness=witness,
+    )
+
+
+def _project_assembled_draft(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> PublicDocumentDraft:
+    """Run the canonical u108 projection at the E2 phase boundary."""
+
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise ValueError("projection context identity must match draft")
+    layout = project_public_markdown(
+        draft.layout,
+        limitation_reasons=draft.limitation_reasons,
+    )
+    return _transition_draft(
+        draft,
+        next_phase="projected",
+        layout=layout,
     )
 
 

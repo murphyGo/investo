@@ -221,6 +221,16 @@
 **Scope**: Test and construction evidence only; no production runtime or default publish path changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 3 checklist 1 — implement the exact region-aware terminal public projection after every text producer.
 
+## Construction — u144 Code Generation Step 3.1 terminal public projection landed
+
+**Timestamp**: 2026-07-21T16:39:34+09:00
+**Action**: Added the canonical `reader_format.public_projection.project_public_markdown()` API and the concrete E2 `assembled -> projected` handler. Projection follows each typed region's policy, projects reader-visible prose and tables through the single u108 wording owner, reindexes changed layouts, and is byte-idempotent.
+**Protected bytes**: Fenced code, collapsed quality diagnostics, and exact short/canonical disclaimer regions are copied unchanged; transformed lines retain their original LF/CRLF bytes. Fresh-eyes review reproduced an opening/closing fence ambiguity, so closing now requires the same marker kind, sufficient length, and a whitespace-only suffix. Backtick and tilde regressions pin the correction.
+**Compatibility boundary**: The handler is the concrete phase-2 algorithm but the default segmented finalizer remains unconnected until Step 5. The legacy early normalization therefore remains active during the pre-switch window; Step 5 removes that production compatibility call when it installs the one finalizer path.
+**Validation**: Projection/layout/reader-format tests passed 78; the publisher plus existing surface suite passed 638. Ruff check/format and strict mypy passed. Fresh-eyes final review independently passed 52 focused tests and approved with no remaining finding.
+**Scope**: No default writer/finalizer call, producer default, coverage-reason derivation, or terminal leakage gate changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 3 checklist 2 — replace raw prompt/watchpoint defaults with the shared public-language constants.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
