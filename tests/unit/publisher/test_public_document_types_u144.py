@@ -34,6 +34,7 @@ from investo.publisher.public_document import (
     PublicDocumentFinalizationError,
     PublicDocumentLayout,
     PublicDocumentSupplement,
+    PublicNotificationSummaryError,
     PublicRegionExpectation,
     SegmentFinalizationOutcome,
     SegmentInputAbsence,
@@ -515,6 +516,16 @@ def test_finalization_error_message_never_renders_cause() -> None:
     assert error.issue_codes == ("summary.invalid",)
     assert error.cause is secret_cause
     assert "must-not-render" not in str(error)
+
+
+def test_notification_summary_error_is_bounded_and_carries_only_issue_code() -> None:
+    error = PublicNotificationSummaryError("summary.invalid_conclusion")
+
+    assert error.issue_code == "summary.invalid_conclusion"
+    assert str(error) == "public notification summary invalid: code=summary.invalid_conclusion"
+
+    with pytest.raises(ValueError, match="unsupported public notification summary issue code"):
+        PublicNotificationSummaryError("secret=value")  # type: ignore[arg-type]
 
 
 def test_segment_skeleton_runs_declared_phase_order_and_seals() -> None:

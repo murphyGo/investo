@@ -127,6 +127,15 @@
 **Scope**: Pure indexing/types/tests and the necessary FD clarification only. No production finalizer, writer, asset promotion, notifier, or phase algorithm was switched; unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 1 checklist 4 — complete `PublicNotificationSummary` validation/export and add the typed `WatchpointRenderResult` contract without switching production.
 
+## Construction — u144 Code Generation Step 1.4 notification/watchpoint contracts landed
+
+**Timestamp**: 2026-07-21T06:05:00Z
+**Action**: Completed the sealed-notification compatibility DTO and typed watchpoint rendered/limited result without switching production callers.
+**Evidence**: `PublicNotificationSummary` now enforces closed segment/date/coverage/label identity plus cleaned sealed conclusion/watchlist lines. Publisher summary failures carry one of four bounded codes. Existing watchpoint cards are accepted as idempotent only when they round-trip byte-exactly through the canonical renderer, pass normal usability rules, and stay within the six-card bound; malformed, mixed, data-limited, raw-URL, and trace-token shapes fail closed.
+**Validation**: Scoped Ruff/format passed; strict mypy passed for 69 models/publisher files; 83 focused and 821 full models/publisher tests passed; `git diff --check` passed. Fresh-eyes re-review approved the final snapshot after three bounded correction rounds.
+**Scope**: Contract/types and pure compatibility delegation only. No production finalizer, notifier, writer, orchestrator, or watchpoint caller was switched; unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 1 checklist 5 — add writer digest verification and the sealed writer API without switching production.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

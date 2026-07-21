@@ -52,6 +52,12 @@ PublicLimitationReason = Literal[
     "watchpoint_unavailable",
 ]
 SegmentFinalizationState = Literal["finalized", "generation_absent", "trust_blocked"]
+PublicNotificationSummaryIssueCode = Literal[
+    "summary.missing_conclusion",
+    "summary.invalid_conclusion",
+    "summary.invalid_coverage_label",
+    "summary.invalid_watchlist",
+]
 
 _PHASES: Final[tuple[PublicDocumentPhase, ...]] = (
     "generated",
@@ -78,6 +84,14 @@ _LIMITATION_REASONS: Final[frozenset[str]] = frozenset(
         "core_price_missing",
         "source_count_unavailable",
         "watchpoint_unavailable",
+    }
+)
+_NOTIFICATION_SUMMARY_ISSUE_CODES: Final[frozenset[str]] = frozenset(
+    {
+        "summary.missing_conclusion",
+        "summary.invalid_conclusion",
+        "summary.invalid_coverage_label",
+        "summary.invalid_watchlist",
     }
 )
 _FINALIZATION_STATES: Final[frozenset[str]] = frozenset(
@@ -1604,6 +1618,16 @@ class _FinalizationInvariantError(ValueError):
         self.phase = phase
         self.issue_code = issue_code
         super().__init__(f"finalization invariant failed: phase={phase} code={issue_code}")
+
+
+class PublicNotificationSummaryError(ValueError):
+    """Publisher-private bounded terminal-summary validation error."""
+
+    def __init__(self, issue_code: PublicNotificationSummaryIssueCode) -> None:
+        if issue_code not in _NOTIFICATION_SUMMARY_ISSUE_CODES:
+            raise ValueError("unsupported public notification summary issue code")
+        self.issue_code = issue_code
+        super().__init__(f"public notification summary invalid: code={issue_code}")
 
 
 def _assert_phase_result(

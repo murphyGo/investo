@@ -78,7 +78,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
 from investo.publisher.reader_format import (
     _BULLET_RE,
@@ -91,6 +91,8 @@ from investo.publisher.reader_format import (
 _logger = logging.getLogger(__name__)
 
 ConfidenceLabel = Literal["높음", "보통", "낮음", "데이터부족"]
+WatchpointRenderState = Literal["rendered", "limited"]
+WatchpointLimitationReason = Literal["watchpoint_unavailable"]
 
 # Closed confidence label set (plan Step 1). Pinned in tests.
 CONFIDENCE_LABELS: Final[frozenset[ConfidenceLabel]] = frozenset(
@@ -184,6 +186,103 @@ _HANGUL_RE: Final[re.Pattern[str]] = re.compile(r"[가-힣]")
 DATA_LIMITED_NOTE: Final[str] = (
     "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조"
 )
+_RENDERED_CONDITION_RE: Final[re.Pattern[str]] = re.compile(
+    r"^- 확인 조건: 상방 (?P<upside>\S.+); 하방 (?P<downside>\S.+)$"
+)
+_RENDERED_OMISSION_RE: Final[re.Pattern[str]] = re.compile(
+    r"^_관전 신호 \d+건 추가 — 본문 참조\._$"
+)
+
+
+@dataclass(frozen=True, slots=True)
+class WatchpointRenderResult:
+    """Typed availability result for the u144 assembly boundary."""
+
+    markdown: str
+    state: WatchpointRenderState
+    usable_card_count: int
+    limitation_reasons: tuple[WatchpointLimitationReason, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.markdown, str) or not self.markdown:
+            raise ValueError("watchpoint result markdown must not be empty")
+        if type(self.usable_card_count) is not int or self.usable_card_count < 0:
+            raise ValueError("usable_card_count must be a non-negative int")
+        reasons = tuple(self.limitation_reasons)
+        if self.state == "rendered":
+            if self.usable_card_count == 0 or reasons:
+                raise ValueError("rendered watchpoint result requires usable cards and no reason")
+        elif self.state == "limited":
+            if self.usable_card_count != 0 or reasons != ("watchpoint_unavailable",):
+                raise ValueError(
+                    "limited watchpoint result requires zero cards and watchpoint_unavailable"
+                )
+        else:
+            raise ValueError("watchpoint result state must be rendered or limited")
+        object.__setattr__(self, "limitation_reasons", reasons)
+
+
+def _existing_watchpoint_state(body: str) -> tuple[WatchpointRenderState, int] | None:
+    """Recognize only exact renderer output, never a heading substring."""
+
+    if body.strip() == DATA_LIMITED_NOTE:
+        return ("limited", 0)
+    if DATA_LIMITED_NOTE in body:
+        return None
+    lines = body.splitlines()
+    index = 0
+    card_count = 0
+    while index < len(lines):
+        while index < len(lines) and not lines[index]:
+            index += 1
+        if index >= len(lines):
+            break
+        if _RENDERED_OMISSION_RE.fullmatch(lines[index]):
+            index += 1
+            while index < len(lines) and not lines[index]:
+                index += 1
+            return ("rendered", card_count) if card_count and index == len(lines) else None
+        if not lines[index].startswith("#### 관찰 신호: "):
+            return None
+        signal = lines[index].removeprefix("#### 관찰 신호: ").strip()
+        if not signal:
+            return None
+        if index + 6 >= len(lines) or lines[index + 1] != "":
+            return None
+        fields = lines[index + 2 : index + 7]
+        source = fields[0].removeprefix("- 출처: ").strip()
+        if not fields[0].startswith("- 출처: ") or not source:
+            return None
+        current = fields[1].removeprefix("- 현재: ").strip()
+        if not fields[1].startswith("- 현재: ") or not current:
+            return None
+        condition_match = _RENDERED_CONDITION_RE.fullmatch(fields[2])
+        if condition_match is None:
+            return None
+        if fields[3] not in {f"- 신뢰도: {label}" for label in CONFIDENCE_LABELS}:
+            return None
+        implication = fields[4].removeprefix("- 관심 영향: ").strip()
+        if not fields[4].startswith("- 관심 영향: ") or not implication:
+            return None
+        row = WatchpointRow(
+            signal=signal,
+            source=source,
+            current=current,
+            bullish_trigger=condition_match.group("upside"),
+            bearish_trigger=condition_match.group("downside"),
+            confidence=cast(ConfidenceLabel, fields[3].removeprefix("- 신뢰도: ")),
+            implication=implication,
+        )
+        original_card = "\n".join(lines[index : index + 7])
+        if (
+            not _renderable_row(row)
+            or render_matrix_table([row]) != original_card
+            or card_count >= MAX_VISIBLE_ROWS
+        ):
+            return None
+        card_count += 1
+        index += 7
+    return ("rendered", card_count) if card_count else None
 
 
 def _is_observation_bullet(bullet: str) -> bool:
@@ -573,21 +672,23 @@ def render_matrix_table(rows: list[WatchpointRow]) -> str:
     return "\n\n".join(body_lines)
 
 
-def render_watchpoint_matrix(
+def render_watchpoint_matrix_result(
     text: str,
     *,
     section_marker: str = "⑥",
     segment: str | None = None,
     coverage_limited: bool = False,
-) -> str:
-    """Rewrite §⑥ body bullets into observational cards (pure).
+) -> WatchpointRenderResult:
+    """Rewrite §⑥ and return typed usable-card availability (pure).
 
     Idempotent: if §⑥ already contains card headings *or* the collapsed
-    :data:`DATA_LIMITED_NOTE` (same-day re-run), the document is returned
-    unchanged. Missing / empty §⑥ → unchanged. The transform is bounded to the
-    §⑥ body region; every other section and the disclaimer footer are
-    byte-preserved.
+    :data:`DATA_LIMITED_NOTE` (same-day re-run), the document bytes are returned
+    unchanged with the matching typed state. The transform is bounded to the
+    §⑥ body region; every other section and the disclaimer footer is
+    byte-preserved. Missing/empty/unusable §⑥ is explicitly `limited`.
     """
+    if not text:
+        raise ValueError("watchpoint input markdown must not be empty")
     headers = list(_SECTION_HEADER_RE.finditer(text))
     for idx, match in enumerate(headers):
         if section_marker not in match.group("header"):
@@ -595,16 +696,32 @@ def render_watchpoint_matrix(
         body_start = match.end()
         body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
         body = text[body_start:body_end]
-        # Idempotent (AC-87.7): a same-day re-run that already contains the
-        # card heading *or* the collapsed DATA_LIMITED_NOTE returns unchanged.
-        if "#### 관찰 신호:" in body or DATA_LIMITED_NOTE in body:
-            return text
+        # Idempotent (AC-87.7): accept only the exact complete card/note shape.
+        existing_state = _existing_watchpoint_state(body)
+        if existing_state is not None and existing_state[0] == "rendered":
+            return WatchpointRenderResult(
+                markdown=text,
+                state="rendered",
+                usable_card_count=existing_state[1],
+            )
+        if existing_state == ("limited", 0):
+            return WatchpointRenderResult(
+                markdown=text,
+                state="limited",
+                usable_card_count=0,
+                limitation_reasons=("watchpoint_unavailable",),
+            )
         # u87 Step 1 — drop non-observation lines (trace-footer diagnostics,
         # bare-link/pure-symbol bullets) before row building (AC-87.1).
         raw_bullets = [m.group(1).strip() for m in _BULLET_RE.finditer(body)]
         bullets = [b for b in raw_bullets if _is_observation_bullet(b)]
         if not bullets and not coverage_limited:
-            return text  # also covers "all bullets filtered out"
+            return WatchpointRenderResult(
+                markdown=text,
+                state="limited",
+                usable_card_count=0,
+                limitation_reasons=("watchpoint_unavailable",),
+            )
         rows = build_watchpoint_rows(bullets, coverage_limited=coverage_limited)
         rows = [r for r in rows if _renderable_row(r)]
         # u87 Step 3 — collapse an all-데이터부족 (or empty) result to the single
@@ -615,15 +732,53 @@ def render_watchpoint_matrix(
                 extra={"segment": segment, "count": len(bullets)},
             )
             new_body = f"\n\n{DATA_LIMITED_NOTE}\n"
-            return text[:body_start] + new_body + text[body_end:]
+            return WatchpointRenderResult(
+                markdown=text[:body_start] + new_body + text[body_end:],
+                state="limited",
+                usable_card_count=0,
+                limitation_reasons=("watchpoint_unavailable",),
+            )
         cards = render_matrix_table(rows)
         if not cards:
-            return text
+            return WatchpointRenderResult(
+                markdown=text,
+                state="limited",
+                usable_card_count=0,
+                limitation_reasons=("watchpoint_unavailable",),
+            )
         omitted = max(0, len(bullets) - MAX_VISIBLE_ROWS)
         suffix = f"\n\n_관전 신호 {omitted}건 추가 — 본문 참조._" if omitted else ""
         new_body = f"\n\n{cards}{suffix}\n"
-        return text[:body_start] + new_body + text[body_end:]
-    return text
+        return WatchpointRenderResult(
+            markdown=text[:body_start] + new_body + text[body_end:],
+            state="rendered",
+            usable_card_count=len(rows),
+        )
+    return WatchpointRenderResult(
+        markdown=text,
+        state="limited",
+        usable_card_count=0,
+        limitation_reasons=("watchpoint_unavailable",),
+    )
+
+
+def render_watchpoint_matrix(
+    text: str,
+    *,
+    section_marker: str = "⑥",
+    segment: str | None = None,
+    coverage_limited: bool = False,
+) -> str:
+    """Compatibility string view; default callers are switched in a later step."""
+
+    if not text:
+        return text
+    return render_watchpoint_matrix_result(
+        text,
+        section_marker=section_marker,
+        segment=segment,
+        coverage_limited=coverage_limited,
+    ).markdown
 
 
 __all__ = [
@@ -633,8 +788,11 @@ __all__ = [
     "MATRIX_COLUMNS",
     "MAX_VISIBLE_ROWS",
     "ConfidenceLabel",
+    "WatchpointRenderResult",
+    "WatchpointRenderState",
     "WatchpointRow",
     "build_watchpoint_rows",
     "render_matrix_table",
     "render_watchpoint_matrix",
+    "render_watchpoint_matrix_result",
 ]

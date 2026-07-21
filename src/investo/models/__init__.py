@@ -57,6 +57,7 @@ from investo.models.market_anchor import (
     OHLCRow,
     anchor_label,
 )
+from investo.models.public_notification import PublicNotificationSummary
 from investo.models.quality_history import QualityHistoryRow
 from investo.models.results import (
     FailureContext,
@@ -206,6 +207,7 @@ __all__ = [
     "PrivateArtifactSet",
     "PrivateDiagnostic",
     "PrivateWorkbookManifest",
+    "PublicNotificationSummary",
     "PublicWatchlistGroup",
     "QualityHistoryRow",
     "RankHorizon",

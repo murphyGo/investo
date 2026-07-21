@@ -39,6 +39,8 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "anchor_label",
         # quality_history.py
         "QualityHistoryRow",
+        # public_notification.py (u144)
+        "PublicNotificationSummary",
         # core_fact.py
         "CoreFact",
         "CORE_FACT_KEYWORDS",

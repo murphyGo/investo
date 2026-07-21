@@ -15,6 +15,8 @@ Coverage map (per u72 plan Steps 1/3/4/6 + AC-72.1..72.5):
 
 from __future__ import annotations
 
+import pytest
+
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.publisher.compliance_language import scan_compliance
 from investo.publisher.reader_format import check_watchpoint_actionability
@@ -24,10 +26,12 @@ from investo.publisher.watchpoint_matrix import (
     DATA_LIMITED_NOTE,
     MATRIX_COLUMNS,
     MAX_VISIBLE_ROWS,
+    WatchpointRenderResult,
     WatchpointRow,
     build_watchpoint_rows,
     render_matrix_table,
     render_watchpoint_matrix,
+    render_watchpoint_matrix_result,
 )
 
 # ---------------------------------------------------------------------------
@@ -481,3 +485,107 @@ def test_render_byte_preserves_outside_section_six_ac87_7() -> None:
     assert out.startswith(head)
     assert out.endswith(tail)
     assert DATA_LIMITED_NOTE in out
+
+
+def test_typed_watchpoint_result_reports_rendered_cards_without_limitation() -> None:
+    text = _section_six([_STRUCTURED_NUMERIC])
+
+    result = render_watchpoint_matrix_result(text, segment="us-equity")
+
+    assert result.state == "rendered"
+    assert result.usable_card_count == 1
+    assert result.limitation_reasons == ()
+    assert "#### 관찰 신호:" in result.markdown
+    assert render_watchpoint_matrix(text, segment="us-equity") == result.markdown
+
+
+def test_typed_watchpoint_result_reports_exact_limited_reason() -> None:
+    result = render_watchpoint_matrix_result(
+        _section_six([_GENERIC]),
+        segment="crypto",
+        coverage_limited=True,
+    )
+
+    assert result.state == "limited"
+    assert result.usable_card_count == 0
+    assert result.limitation_reasons == ("watchpoint_unavailable",)
+    assert DATA_LIMITED_NOTE in result.markdown
+
+
+def test_typed_watchpoint_result_rejects_forged_or_mixed_idempotent_shapes() -> None:
+    malformed = _section_six([]).replace(
+        "## ⑥ 오늘의 관전 포인트\n\n",
+        "## ⑥ 오늘의 관전 포인트\n\n#### 관찰 신호: 제목만\n",
+    )
+    malformed_result = render_watchpoint_matrix_result(malformed)
+    assert malformed_result.state == "limited"
+    assert malformed_result.usable_card_count == 0
+
+    embedded_note = _section_six([_STRUCTURED_NUMERIC]).replace(
+        "## ⑥ 오늘의 관전 포인트\n\n",
+        f"## ⑥ 오늘의 관전 포인트\n\n{DATA_LIMITED_NOTE}\n\n",
+    )
+    embedded_result = render_watchpoint_matrix_result(embedded_note)
+    assert embedded_result.state == "rendered"
+    assert DATA_LIMITED_NOTE not in embedded_result.markdown
+
+    rendered = render_watchpoint_matrix_result(_section_six([_STRUCTURED_NUMERIC])).markdown
+    mixed = f"{rendered.rstrip()}\n\n{DATA_LIMITED_NOTE}\n"
+    mixed_result = render_watchpoint_matrix_result(mixed)
+    assert mixed_result.state == "limited"
+    assert mixed_result.markdown != mixed
+    assert mixed_result.markdown.count(DATA_LIMITED_NOTE) == 1
+    assert "#### 관찰 신호:" not in mixed_result.markdown
+
+    unusable = rendered.replace("- 출처: FRED", "- 출처: 확인 소스 미상").replace(
+        "- 신뢰도: 높음", "- 신뢰도: 데이터부족"
+    )
+    unusable_result = render_watchpoint_matrix_result(unusable)
+    assert unusable_result.state == "limited"
+    assert unusable_result.usable_card_count == 0
+    assert "#### 관찰 신호:" not in unusable_result.markdown
+
+    card = rendered.split("## ⑥ 오늘의 관전 포인트\n\n", maxsplit=1)[1].strip()
+    overbound = (
+        "## ① 요약\n본문\n\n## ⑥ 오늘의 관전 포인트\n\n"
+        + "\n\n".join([card] * (MAX_VISIBLE_ROWS + 1))
+        + "\n"
+    )
+    overbound_result = render_watchpoint_matrix_result(overbound)
+    assert overbound_result.state == "limited"
+    assert overbound_result.usable_card_count == 0
+
+    for forged in (
+        rendered.replace("#### 관찰 신호: 10Y 금리", "#### 관찰 신호: https://secret.test/raw"),
+        rendered.replace("- 현재: ", "- 현재: input_hash: deadbeef ", 1),
+    ):
+        forged_result = render_watchpoint_matrix_result(forged)
+        assert forged_result.state == "limited"
+        assert forged_result.usable_card_count == 0
+        assert "https://secret.test/raw" not in forged_result.markdown
+        assert "deadbeef" not in forged_result.markdown
+
+
+def test_legacy_watchpoint_renderer_preserves_empty_input_compatibility() -> None:
+    assert render_watchpoint_matrix("") == ""
+    with pytest.raises(ValueError, match="input markdown must not be empty"):
+        render_watchpoint_matrix_result("")
+
+
+@pytest.mark.parametrize(
+    "result",
+    (
+        lambda: WatchpointRenderResult("body", "rendered", 0),
+        lambda: WatchpointRenderResult(
+            "body",
+            "rendered",
+            1,
+            ("watchpoint_unavailable",),
+        ),
+        lambda: WatchpointRenderResult("body", "limited", 1, ("watchpoint_unavailable",)),
+        lambda: WatchpointRenderResult("body", "limited", 0),
+    ),
+)
+def test_typed_watchpoint_result_rejects_state_count_reason_drift(result: object) -> None:
+    with pytest.raises(ValueError):
+        result()  # type: ignore[operator]
