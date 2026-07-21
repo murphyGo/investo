@@ -6,8 +6,13 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Final, Literal, NewType
+from typing import Final, Literal
 
+from investo._internal.source_outcomes import (
+    SegmentScopedOutcomes,
+    scope_source_outcomes,
+    segment_source_outcomes,
+)
 from investo._internal.source_specs import (
     SourceItemRouting,
     source_names_for_item_routing,
@@ -185,8 +190,6 @@ _SEGMENT_SOURCES: Final[dict[MarketSegment, frozenset[str]]] = {
     "us-equity": _US_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["us-equity"],
     "crypto": _CRYPTO_SOURCES | _OUTCOME_EXTRA_SOURCES_BY_SEGMENT["crypto"],
 }
-SegmentScopedOutcomes = NewType("SegmentScopedOutcomes", tuple[SourceOutcome, ...])
-
 # u79 — ``_KOREAN_EXCHANGE_TICKER`` / ``_US_TICKER`` / ``_CRYPTO_TICKER_RE``
 # now single-sourced in :mod:`investo.briefing._text.patterns`; imported at
 # module top under their historic local aliases so the routing logic below
@@ -760,32 +763,6 @@ def filter_lookahead_items(
     happens here; both surfaces inherit the change automatically.
     """
     return tuple(item for item in items if item.scheduled_at is not None)
-
-
-def segment_source_outcomes(
-    segment: MarketSegment,
-    outcomes: Sequence[SourceOutcome],
-) -> SegmentScopedOutcomes:
-    """Filter aggregator outcomes to those mapped to ``segment``.
-
-    The mapping mirrors the segment-routing source allow-lists already
-    used by :func:`segment_items`. Adapters not assigned to any segment
-    (none today) are intentionally dropped — the segment-level coverage
-    surface only annotates sources whose verdicts are reader-relevant
-    for *that* segment.
-    """
-    return scope_source_outcomes(outcomes, segment)
-
-
-def scope_source_outcomes(
-    outcomes: Sequence[SourceOutcome],
-    segment: MarketSegment,
-) -> SegmentScopedOutcomes:
-    """Return the validated source outcomes relevant to ``segment``."""
-    allow_list = _SEGMENT_SOURCES[segment]
-    return SegmentScopedOutcomes(
-        tuple(outcome for outcome in outcomes if outcome.source_name in allow_list)
-    )
 
 
 def _validate_segment_scoped_outcomes(

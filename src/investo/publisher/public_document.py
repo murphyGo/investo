@@ -24,6 +24,7 @@ from investo._internal.daily_thesis_decision import (
     redecide_daily_thesis_for_active_segments,
 )
 from investo._internal.disclaimer import ensure_canonical_disclaimer
+from investo._internal.numeric_verify import verify_core_facts
 from investo._internal.public_quality_language import (
     PUBLIC_CHANNEL_ANCHOR_LIMITED_TEXT,
     PUBLIC_DAILY_THESIS_LIMITED_TEXT,
@@ -34,6 +35,7 @@ from investo._internal.public_quality_language import (
 )
 from investo._internal.public_summary_extract import clean_public_summary_text
 from investo._internal.public_watermark import replace_timestamp_watermark_line
+from investo._internal.source_outcomes import segment_source_outcomes
 from investo._internal.summary_quality import (
     SummaryQualityError,
     is_unsafe_summary_value,
@@ -45,8 +47,6 @@ from investo._internal.surface_quality import (
     find_surface_quality_issues,
     repair_surface_artifacts,
 )
-from investo.briefing.numeric_verify import verify_core_facts
-from investo.briefing.segments import segment_source_outcomes
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
