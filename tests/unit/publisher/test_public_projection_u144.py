@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, date, datetime
+from typing import get_args
 
 import pytest
 
 from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_INLINE_TEXT
-from investo.models import Briefing
+from investo.models import Briefing, SourceOutcome
 from investo.models.facts import VerifiedFactBundle
-from investo.models.segments import DOMESTIC_EQUITY, SegmentCoverage
+from investo.models.segments import DOMESTIC_EQUITY, CoverageReasonCode, SegmentCoverage
+from investo.publisher import public_document
 from investo.publisher.public_document import (
+    _COVERAGE_REASON_LIMITATIONS,
     PublicDocumentContext,
     PublicDocumentLayout,
     PublicRegionExpectation,
     _assemble_phase_one_reader_draft,
+    _derive_public_limitation_reasons,
     _new_generated_draft,
     _project_assembled_draft,
+    _scan_terminal_entity_fact_claims,
     _transition_draft,
 )
 from investo.publisher.reader_format import (
@@ -113,7 +119,7 @@ def _context() -> PublicDocumentContext:
                 missing_categories=(),
             )
         },
-        source_outcomes=(),
+        source_outcomes=(SourceOutcome.ok("fixture", "news", 1),),
         bundle_context=None,
         fact_bundle=VerifiedFactBundle(target_date=_TARGET_DATE),
         entity_observed_at_utc=datetime(2026, 7, 21, tzinfo=UTC),
@@ -307,6 +313,196 @@ def test_phase_two_handler_projects_only_after_assembled_transition() -> None:
     assert "데이터 부족입니다" not in projected.layout.markdown
     with pytest.raises(ValueError, match="invalid public-document phase transition"):
         _project_assembled_draft(projected, _context())
+
+
+def test_coverage_reason_mapping_is_exhaustive_and_classified() -> None:
+    expected = {
+        "ZERO_ITEMS": ("limited_coverage",),
+        "BELOW_THRESHOLD": ("limited_coverage",),
+        "MISSING_NEWS": ("limited_coverage",),
+        "MISSING_PRICE": ("core_price_missing",),
+        "MISSING_MACRO": ("limited_coverage",),
+        "MISSING_CALENDAR": ("limited_coverage",),
+        "MISSING_EARNINGS": ("limited_coverage",),
+        "SOURCE_FAILED": ("limited_coverage",),
+        "SOURCE_ZERO": ("limited_coverage",),
+        "DOMESTIC_DISCLOSURE_QUIET": (),
+        "LOOKAHEAD_DATA_MISSING": ("limited_coverage",),
+        "CORE_FAILED": ("core_price_missing",),
+        "CORE_ZERO": ("core_price_missing",),
+        "CORE_STALE": ("core_price_missing",),
+        "ALL_FAILED": ("limited_coverage",),
+        "MACRO_ACTUAL_MISSING": ("limited_coverage",),
+        "MACRO_ACTUAL_ZERO": ("limited_coverage",),
+        "MACRO_ACTUAL_FAILED": ("limited_coverage",),
+        "MACRO_ACTUAL_STALE": ("limited_coverage",),
+        "MACRO_REQUIRED_OMITTED": ("limited_coverage",),
+        "MACRO_FORECAST_UNVERIFIED": ("limited_coverage",),
+    }
+
+    assert set(_COVERAGE_REASON_LIMITATIONS) == set(get_args(CoverageReasonCode))
+    assert dict(_COVERAGE_REASON_LIMITATIONS) == expected
+
+
+@pytest.mark.parametrize(
+    ("reason_code", "expected"),
+    tuple(_COVERAGE_REASON_LIMITATIONS.items()),
+)
+def test_typed_coverage_reason_derives_only_its_classified_limitation(
+    reason_code: CoverageReasonCode,
+    expected: tuple[str, ...],
+) -> None:
+    coverage = SegmentCoverage(
+        segment=DOMESTIC_EQUITY,
+        status="normal",
+        item_count=1,
+        source_count=1,
+        categories=(),
+        missing_categories=(),
+        reason_codes=(reason_code,),
+    )
+
+    assert (
+        _derive_public_limitation_reasons(
+            coverage=coverage,
+            source_outcomes=(SourceOutcome.ok("fixture", "news", 1),),
+        )
+        == expected
+    )
+
+
+def test_projection_merges_coverage_reasons_before_producer_reasons() -> None:
+    context = _context()
+    coverage = SegmentCoverage(
+        segment=DOMESTIC_EQUITY,
+        status="limited",
+        item_count=1,
+        source_count=0,
+        categories=(),
+        missing_categories=(),
+        reason_codes=("CORE_STALE",),
+    )
+    context = PublicDocumentContext(
+        target_date=context.target_date,
+        expected_segments=context.expected_segments,
+        input_absences=context.input_absences,
+        anchors_by_segment=context.anchors_by_segment,
+        items_by_segment=context.items_by_segment,
+        coverage_by_segment={DOMESTIC_EQUITY: coverage},
+        source_outcomes=context.source_outcomes,
+        bundle_context=context.bundle_context,
+        fact_bundle=context.fact_bundle,
+        entity_observed_at_utc=context.entity_observed_at_utc,
+    )
+    generated = _new_generated_draft(
+        Briefing(
+            target_date=_TARGET_DATE,
+            market_summary="요약",
+            key_issues="이슈",
+            sector_flow="수급",
+            indicators_events="지표",
+            notable_tickers="종목",
+            today_watch="관전",
+            disclaimer="면책",
+            rendered_markdown=_layout().markdown,
+        ),
+        segment=DOMESTIC_EQUITY,
+        layout=_layout(),
+    )
+    assembled = _transition_draft(
+        generated,
+        next_phase="assembled",
+        limitation_reasons=("watchpoint_unavailable",),
+    )
+
+    projected = _project_assembled_draft(assembled, context)
+
+    assert projected.limitation_reasons == (
+        "limited_coverage",
+        "core_price_missing",
+        "source_count_unavailable",
+        "watchpoint_unavailable",
+    )
+
+
+@pytest.mark.parametrize(
+    ("source_outcomes", "expected"),
+    (
+        ((), ("source_count_unavailable",)),
+        ((SourceOutcome.ok("fixture", "news", 1),), ()),
+    ),
+)
+def test_projection_derives_source_count_availability_from_e1_outcomes(
+    source_outcomes: tuple[SourceOutcome, ...],
+    expected: tuple[str, ...],
+) -> None:
+    context = replace(_context(), source_outcomes=source_outcomes)
+    layout = _layout()
+    generated = _new_generated_draft(
+        Briefing(
+            target_date=_TARGET_DATE,
+            market_summary="요약",
+            key_issues="이슈",
+            sector_flow="수급",
+            indicators_events="지표",
+            notable_tickers="종목",
+            today_watch="관전",
+            disclaimer="면책",
+            rendered_markdown=layout.markdown,
+        ),
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+    assembled = _transition_draft(generated, next_phase="assembled")
+
+    projected = _project_assembled_draft(assembled, context)
+
+    assert projected.limitation_reasons == expected
+
+
+def test_terminal_entity_guard_uses_e1_observation_clock(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _context()
+    layout = _layout()
+    generated = _new_generated_draft(
+        Briefing(
+            target_date=_TARGET_DATE,
+            market_summary="요약",
+            key_issues="이슈",
+            sector_flow="수급",
+            indicators_events="지표",
+            notable_tickers="종목",
+            today_watch="관전",
+            disclaimer="면책",
+            rendered_markdown=layout.markdown,
+        ),
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+    observed: list[tuple[object, ...]] = []
+
+    def fake_scan(
+        markdown: str,
+        bundle: VerifiedFactBundle,
+        target_date: object,
+        now_utc: datetime,
+        *,
+        segment: str,
+    ) -> tuple[()]:
+        observed.append((markdown, bundle, target_date, now_utc, segment))
+        return ()
+
+    monkeypatch.setattr(public_document, "scan_entity_fact_claims", fake_scan)
+
+    assert _scan_terminal_entity_fact_claims(generated, context) == ()
+    assert observed == [
+        (
+            layout.markdown,
+            context.fact_bundle,
+            context.target_date,
+            context.entity_observed_at_utc,
+            DOMESTIC_EQUITY,
+        )
+    ]
 
 
 def test_reader_assembly_carries_typed_watchpoint_reason_into_projection() -> None:

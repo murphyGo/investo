@@ -269,6 +269,15 @@
 **Validation**: Related projection/reader/lifecycle/surface/integration tests passed 114. Ruff check/format, strict mypy, and scoped diff check passed. Fresh-eyes review independently passed 98 focused tests and approved with no blocker.
 **Next**: Step 3 checklist 6 — add exhaustive coverage-reason mapping and thread the timezone-aware entity observation clock.
 
+## Construction — u144 Code Generation Step 3.6 coverage reason/entity clock landed
+
+**Timestamp**: 2026-07-21T17:34:46+09:00
+**Action**: Added the closed 21-value `CoverageReasonCode -> PublicLimitationReason` table and connected it to the concrete `assembled -> projected` handler. Coverage-derived reasons use stable order before typed producer reasons; `DOMESTIC_DISCLOSURE_QUIET` alone remains a truthful no-op, and unavailable E1 source accounting is explicit.
+**Exhaustiveness**: The test compares mapping keys to `typing.get_args(CoverageReasonCode)` and verifies every exact classification. Projection-level empty/non-empty E1 source-outcome cases prevent the handler from silently dropping that context input.
+**Entity boundary**: Added the finalizer-owned adapter over the existing `scan_entity_fact_claims()` and proved it forwards the exact timezone-aware `entity_observed_at_utc` from E1 without a new clock read. The existing two orchestrator drop paths remain for Step 4 removal.
+**Validation**: Public projection tests passed 37; publisher/orchestrator regression tests passed 1,028; module-boundary/u144 architecture/publish-validator tests passed 30. Ruff check/format, strict mypy, and scoped diff check passed. Fresh-eyes review found one missing projection-level source-outcome connection test; after correction, re-review approved with no remaining finding.
+**Next**: Step 3 checklist 7 — add the whole-chain run-29707052598 incident regression.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

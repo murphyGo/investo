@@ -35,10 +35,12 @@ from investo.models.segments import (
     DOMESTIC_EQUITY,
     SEGMENT_LABELS,
     US_EQUITY,
+    CoverageReasonCode,
     MarketSegment,
     SegmentCoverage,
 )
 from investo.publisher._public_document_policy import PUBLIC_BLOCK_KINDS, PublicBlockKind
+from investo.publisher.entity_fact_guard import EntityFactViolation, scan_entity_fact_claims
 from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
@@ -95,6 +97,38 @@ _LIMITATION_REASONS: Final[frozenset[str]] = frozenset(
         "source_count_unavailable",
         "watchpoint_unavailable",
     }
+)
+_COVERAGE_REASON_LIMITATIONS: Final[
+    Mapping[CoverageReasonCode, tuple[PublicLimitationReason, ...]]
+] = MappingProxyType(
+    {
+        "ZERO_ITEMS": ("limited_coverage",),
+        "BELOW_THRESHOLD": ("limited_coverage",),
+        "MISSING_NEWS": ("limited_coverage",),
+        "MISSING_PRICE": ("core_price_missing",),
+        "MISSING_MACRO": ("limited_coverage",),
+        "MISSING_CALENDAR": ("limited_coverage",),
+        "MISSING_EARNINGS": ("limited_coverage",),
+        "SOURCE_FAILED": ("limited_coverage",),
+        "SOURCE_ZERO": ("limited_coverage",),
+        "DOMESTIC_DISCLOSURE_QUIET": (),
+        "LOOKAHEAD_DATA_MISSING": ("limited_coverage",),
+        "CORE_FAILED": ("core_price_missing",),
+        "CORE_ZERO": ("core_price_missing",),
+        "CORE_STALE": ("core_price_missing",),
+        "ALL_FAILED": ("limited_coverage",),
+        "MACRO_ACTUAL_MISSING": ("limited_coverage",),
+        "MACRO_ACTUAL_ZERO": ("limited_coverage",),
+        "MACRO_ACTUAL_FAILED": ("limited_coverage",),
+        "MACRO_ACTUAL_STALE": ("limited_coverage",),
+        "MACRO_REQUIRED_OMITTED": ("limited_coverage",),
+        "MACRO_FORECAST_UNVERIFIED": ("limited_coverage",),
+    }
+)
+_COVERAGE_LIMITATION_ORDER: Final[tuple[PublicLimitationReason, ...]] = (
+    "limited_coverage",
+    "core_price_missing",
+    "source_count_unavailable",
 )
 _NOTIFICATION_SUMMARY_ISSUE_CODES: Final[frozenset[str]] = frozenset(
     {
@@ -317,6 +351,26 @@ def _canonical_issue_codes(issue_codes: Sequence[str]) -> tuple[str, ...]:
     if any(_ISSUE_CODE_RE.fullmatch(code) is None for code in canonical):
         raise ValueError("issue_codes must contain bounded machine-readable codes")
     return canonical
+
+
+def _derive_public_limitation_reasons(
+    *,
+    coverage: SegmentCoverage,
+    source_outcomes: Sequence[SourceOutcome],
+) -> tuple[PublicLimitationReason, ...]:
+    """Map private typed coverage state to stable reader-projection reasons."""
+
+    derived: set[PublicLimitationReason] = set()
+    if coverage.status != "normal":
+        derived.add("limited_coverage")
+    for reason_code in coverage.reason_codes:
+        try:
+            derived.update(_COVERAGE_REASON_LIMITATIONS[reason_code])
+        except KeyError as exc:
+            raise ValueError("coverage contains an unclassified reason code") from exc
+    if coverage.source_count == 0 or not source_outcomes:
+        derived.add("source_count_unavailable")
+    return tuple(reason for reason in _COVERAGE_LIMITATION_ORDER if reason in derived)
 
 
 def _freeze_mapping(value: Mapping[_K, _V]) -> Mapping[_K, _V]:
@@ -1920,14 +1974,37 @@ def _project_assembled_draft(
 
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("projection context identity must match draft")
+    coverage_limitations = _derive_public_limitation_reasons(
+        coverage=context.coverage_by_segment[draft.segment],
+        source_outcomes=context.source_outcomes,
+    )
+    typed_limitations = tuple(dict.fromkeys((*coverage_limitations, *draft.limitation_reasons)))
     layout = project_public_markdown(
         draft.layout,
-        limitation_reasons=draft.limitation_reasons,
+        limitation_reasons=typed_limitations,
     )
     return _transition_draft(
         draft,
         next_phase="projected",
         layout=layout,
+        limitation_reasons=typed_limitations,
+    )
+
+
+def _scan_terminal_entity_fact_claims(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> tuple[EntityFactViolation, ...]:
+    """Run the existing entity guard with the immutable E1 observation clock."""
+
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise ValueError("entity guard context identity must match draft")
+    return scan_entity_fact_claims(
+        draft.layout.markdown,
+        context.fact_bundle,
+        context.target_date,
+        context.entity_observed_at_utc,
+        segment=draft.segment,
     )
 
 
