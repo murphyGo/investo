@@ -20,8 +20,20 @@ from typing import Final, Literal, Self, TypeVar
 from unicodedata import name as unicode_name
 
 from investo._internal.disclaimer import ensure_canonical_disclaimer
+from investo._internal.public_quality_language import (
+    PUBLIC_CHANNEL_ANCHOR_LIMITED_TEXT,
+    PUBLIC_DAILY_THESIS_LIMITED_TEXT,
+    PUBLIC_INDICATOR_LIMITED_TEXT,
+    PUBLIC_SHARED_MACRO_LIMITED_TEXT,
+    PUBLIC_WATCHPOINT_LIMITED_TEXT,
+)
+from investo._internal.public_watermark import replace_timestamp_watermark_line
 from investo._internal.summary_quality import repair_first_viewport_summary
-from investo._internal.surface_quality import SurfaceQualityIssue, find_surface_quality_issues
+from investo._internal.surface_quality import (
+    SurfaceQualityIssue,
+    find_surface_quality_issues,
+    repair_surface_artifacts,
+)
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
@@ -1894,6 +1906,105 @@ def _append_region_block_outcome(
     )
 
 
+_REGION_SAFE_FALLBACK_TEXT: Final[Mapping[PublicBlockKind, str]] = MappingProxyType(
+    {
+        "shared_macro": PUBLIC_SHARED_MACRO_LIMITED_TEXT,
+        "crypto_indicators": PUBLIC_INDICATOR_LIMITED_TEXT,
+        "channel_anchors": PUBLIC_CHANNEL_ANCHOR_LIMITED_TEXT,
+        "daily_thesis": PUBLIC_DAILY_THESIS_LIMITED_TEXT,
+        "watchpoints": PUBLIC_WATCHPOINT_LIMITED_TEXT,
+    }
+)
+
+
+def _find_owned_surface_quality_issues(
+    layout: PublicDocumentLayout,
+) -> tuple[_OwnedSurfaceQualityFinding, ...]:
+    """Run the canonical scanner once per reader-visible E3 region."""
+
+    findings: list[_OwnedSurfaceQualityFinding] = []
+    for region in layout.regions:
+        if region.projection_policy != "reader_visible":
+            continue
+        body = layout.markdown[region.content_start : region.content_end]
+        findings.extend(
+            _OwnedSurfaceQualityFinding(
+                region_id=region.region_id,
+                block=region.block,
+                issue=issue,
+            )
+            for issue in find_surface_quality_issues(body)
+        )
+    return tuple(findings)
+
+
+def _replace_region_with_safe_fallback(
+    layout: PublicDocumentLayout,
+    decision: _RegionDispositionDecision,
+) -> PublicDocumentLayout:
+    if decision.block == "first_viewport":
+        updated = layout
+        if "watermark.window_bracket" in decision.issue_codes:
+            region = _require_layout_region(updated, decision.region_id)
+            body = updated.markdown[region.content_start : region.content_end]
+            replacement_body = replace_timestamp_watermark_line(
+                body,
+                target_date=updated.expectation.target_date,
+                segment=updated.expectation.segment,
+            )
+            if replacement_body != body:
+                updated = updated.replace_region_body(decision.region_id, replacement_body)
+        if "summary.truncated_mid_token" in decision.issue_codes:
+            repaired = repair_first_viewport_summary(updated.markdown)
+            if repaired != updated.markdown:
+                updated = PublicDocumentLayout.reindex(
+                    repaired,
+                    expectation=updated.expectation,
+                )
+        if updated.markdown != layout.markdown:
+            return PublicDocumentLayout.reindex(
+                updated.markdown,
+                expectation=updated.expectation,
+            )
+    fallback = _REGION_SAFE_FALLBACK_TEXT.get(decision.block)
+    if fallback is None:
+        raise _SegmentTrustBlockedError(
+            phase="repaired",
+            issue_codes=("document.fallback_unavailable",),
+        )
+    return layout.replace_region_body(decision.region_id, f"\n{fallback}\n\n")
+
+
+def _repair_owned_region_once(
+    layout: PublicDocumentLayout,
+    decision: _RegionDispositionDecision,
+) -> PublicDocumentLayout:
+    region = _require_layout_region(layout, decision.region_id)
+    body = layout.markdown[region.content_start : region.content_end]
+    repaired_body = repair_surface_artifacts(body)
+    if repaired_body == body:
+        return layout
+    return layout.replace_region_body(decision.region_id, repaired_body)
+
+
+def _apply_region_disposition_once(
+    layout: PublicDocumentLayout,
+    decision: _RegionDispositionDecision,
+) -> PublicDocumentLayout:
+    if decision.disposition == "record_warning":
+        return layout
+    if decision.disposition == "repair":
+        return _repair_owned_region_once(layout, decision)
+    if decision.disposition == "replace_block":
+        return _replace_region_with_safe_fallback(layout, decision)
+    if decision.disposition == "omit_optional_block":
+        return layout.omit_optional_region(decision.region_id)
+    raise _SegmentTrustBlockedError(
+        phase="repaired",
+        issue_codes=decision.issue_codes,
+    )
+
+
 @dataclass(frozen=True, slots=True, init=False)
 class PublicDocumentDraft:
     segment: MarketSegment
@@ -2104,6 +2215,79 @@ def _project_assembled_draft(
         next_phase="projected",
         layout=layout,
         limitation_reasons=typed_limitations,
+    )
+
+
+def _repair_projected_draft(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> PublicDocumentDraft:
+    """Apply one bounded R8/R10 containment pass to the projected layout."""
+
+    if draft.phase != "projected":
+        raise ValueError("surface containment requires a projected draft")
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise ValueError("surface containment context identity must match draft")
+
+    initially_repaired = repair_surface_artifacts(draft.layout.markdown)
+    layout = PublicDocumentLayout.reindex(
+        initially_repaired,
+        expectation=draft.layout.expectation,
+    )
+    decisions = _resolve_owned_region_dispositions(
+        layout,
+        _find_owned_surface_quality_issues(layout),
+    )
+    outcomes = draft.block_outcomes
+    attempted_region_ids: set[str] = set()
+    for decision in decisions:
+        if decision.region_id in attempted_region_ids:
+            raise _SegmentTrustBlockedError(
+                phase="repaired",
+                issue_codes=("document.fallback_repeat",),
+            )
+        attempted_region_ids.add(decision.region_id)
+        layout = _apply_region_disposition_once(layout, decision)
+        outcomes = _append_region_block_outcome(outcomes, decision)
+        if decision.disposition == "record_warning":
+            for issue_code in decision.issue_codes:
+                _surface_logger.warning(
+                    "surface_quality.%s segment=%s region_id=%s",
+                    issue_code,
+                    draft.segment,
+                    decision.region_id,
+                    extra={
+                        "segment": draft.segment,
+                        "code": issue_code,
+                        "region_id": decision.region_id,
+                    },
+                )
+
+    layout = project_public_markdown(
+        layout,
+        limitation_reasons=draft.limitation_reasons,
+    )
+    final_markdown = repair_surface_artifacts(layout.markdown)
+    layout = PublicDocumentLayout.reindex(
+        final_markdown,
+        expectation=draft.layout.expectation,
+    )
+
+    residual_decisions = _resolve_owned_region_dispositions(
+        layout,
+        _find_owned_surface_quality_issues(layout),
+    )
+    if any(decision.disposition != "record_warning" for decision in residual_decisions):
+        raise _SegmentTrustBlockedError(
+            phase="repaired",
+            issue_codes=("document.fallback_exhausted",),
+        )
+
+    return _transition_draft(
+        draft,
+        next_phase="repaired",
+        layout=layout,
+        block_outcomes=outcomes,
     )
 
 

@@ -296,6 +296,15 @@
 **Validation**: Policy/containment/lifecycle tests passed 51; publisher/orchestrator regression tests passed 1,041; module-boundary/u144 architecture/publish-validator tests passed 30. Ruff check/format, strict mypy for both changed production modules, and scoped diff check passed. Fresh-eyes review approved with no remaining finding.
 **Next**: Step 4 checklist 2 — implement required watchpoint replacement and optional chart/visual containment.
 
+## Construction — u144 Code Generation Step 4.2 required/optional containment landed
+
+**Timestamp**: 2026-07-21T19:05:00+09:00
+**Action**: Added the concrete projected-to-repaired containment handler. It applies the existing deterministic repair, resolves owned findings once per region, executes the fixed disposition, records a redacted outcome, reprojects replacements, and rejects any actionable residual with `document.fallback_exhausted`.
+**Required/optional behavior**: Malformed required watchpoint bodies are replaced with the shared public-safe limitation text without losing `## ⑥`. Malformed chart/visual bodies are omitted while their canonical marker shells remain, so presentation defects do not drop the segment. Shared macro/indicator/channel/thesis fallback wording now also has the FD-named neutral owner.
+**Smallest-safe boundary**: The canonical timestamp watermark renderer moved to `_internal.public_watermark` for cross-adapter reuse. Repair replaces only the malformed watermark line, then applies the existing canonical summary fallback in the same grouped attempt, preserving unrelated first-viewport copy.
+**Validation**: Direct containment tests passed 13; publisher/module-boundary/summary-fidelity regressions passed 720; strict mypy passed for the changed test and all 241 source files. Ruff check/format and scoped diff check passed. Fresh-eyes review found and drove fixes for exhaustive first-viewport dispatch, residual re-resolution, and grouped watermark/summary copy loss; final re-review approved with no remaining blocker.
+**Next**: Step 4 checklist 3 — remove both duplicate entity-drop paths and compose the terminal entity-fact scan once.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

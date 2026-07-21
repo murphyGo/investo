@@ -15,10 +15,13 @@ from ``briefing/pipeline.py``.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal.public_watermark import (
+    render_timestamp_watermark as _render_timestamp_watermark,
+)
 from investo.briefing import numeric_self_check
 from investo.briefing._assembly.summary_extraction import _build_summary_header
 from investo.briefing._reader_enhance.coverage_badge import _render_coverage_badge
@@ -32,7 +35,6 @@ from investo.briefing.prompts import STAGE2_SECTION_HEADERS
 from investo.briefing.segments import SEGMENT_LABELS, MarketSegment, SegmentCoverage
 from investo.briefing.watchlist import WatchlistImpact, render_watchlist_impact
 from investo.models import NormalizedItem
-from investo.models.segments import SEGMENT_MARKET_TZ, SEGMENT_MARKET_TZ_LABEL
 
 _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "domestic-equity": "국내 증시",
@@ -86,35 +88,6 @@ def _render_watchlist_callout(impact: WatchlistImpact) -> str:
     ``channel='telegram'`` and is allowed to skip these branches.
     """
     return f"> **내 관심 자산 영향**: {render_watchlist_impact(impact, channel='site')}\n"
-
-
-def _render_timestamp_watermark(target_date: date, segment: MarketSegment) -> str:
-    """Render the per-segment data-window watermark line.
-
-    Format::
-
-        **기준 시각**: 2026-05-06 KST · 수집창 2026-05-05T15:00Z ~ 2026-05-06T15:00Z (종료 미포함)
-
-    The local-clock label (KST / NY / UTC) is the segment's market
-    clock — domestic-equity uses KST, us-equity uses America/New_York,
-    crypto uses UTC. The Korean range label describes the half-open UTC
-    window used by the adapters that fed this segment, so the line reads
-    "this is what trading day this is, and what slice of UTC it
-    covered". Pure: no I/O, no clock reads — the value is a function
-    of ``(target_date, segment)`` only.
-    """
-    market_tz = SEGMENT_MARKET_TZ[segment]
-    tz_label = SEGMENT_MARKET_TZ_LABEL[segment]
-    start_local = datetime.combine(target_date, time.min, tzinfo=market_tz)
-    end_local = start_local + timedelta(days=1)
-    start_utc = start_local.astimezone(UTC)
-    end_utc = end_local.astimezone(UTC)
-    start_str = start_utc.strftime("%Y-%m-%dT%H:%MZ")
-    end_str = end_utc.strftime("%Y-%m-%dT%H:%MZ")
-    return (
-        f"**기준 시각**: {target_date.isoformat()} {tz_label} · "
-        f"수집창 {start_str} ~ {end_str} (종료 미포함)"
-    )
 
 
 def _enhance_reader_experience(

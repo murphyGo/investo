@@ -2,27 +2,38 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import get_args
 
 import pytest
 
+import investo.publisher.public_document as public_document_module
+from investo._internal.briefing_extract import CONCLUSION_PREFIX, FALLBACK_BY_PREFIX
+from investo._internal.public_quality_language import PUBLIC_WATCHPOINT_LIMITED_TEXT
+from investo._internal.public_watermark import render_timestamp_watermark
 from investo._internal.surface_quality import SurfaceQualityIssue
-from investo.models.segments import DOMESTIC_EQUITY
+from investo.models import Briefing
+from investo.models.facts import VerifiedFactBundle
+from investo.models.segments import DOMESTIC_EQUITY, SegmentCoverage
 from investo.publisher._public_document_policy import (
     FINALIZATION_DISPOSITION_PRECEDENCE,
     FinalizationIssueDisposition,
     strongest_surface_disposition,
 )
 from investo.publisher.public_document import (
+    PublicDocumentContext,
+    PublicDocumentDraft,
     PublicDocumentLayout,
     PublicDocumentRegion,
     PublicRegionExpectation,
     _append_region_block_outcome,
+    _new_generated_draft,
     _OwnedSurfaceQualityFinding,
     _RegionDispositionDecision,
+    _repair_projected_draft,
     _resolve_owned_region_dispositions,
     _SegmentTrustBlockedError,
+    _transition_draft,
 )
 
 _TARGET_DATE = date(2026, 7, 21)
@@ -86,6 +97,129 @@ def _finding(
             region="body",
         ),
     )
+
+
+def _canonical_markdown(
+    *,
+    watchpoint_body: str,
+    supplements: tuple[tuple[str, str, str], ...] = (),
+    first_viewport_lines: tuple[str, ...] = (),
+) -> str:
+    lines = [
+        f"# {_TARGET_DATE.isoformat()} 국내 증시 시황",
+        "",
+        "**세그먼트**: [국내](/domestic)",
+        "",
+        "> 정보 제공용 자동 시황이며 매매 권유가 아닙니다.",
+        "",
+        *first_viewport_lines,
+        *(("",) if first_viewport_lines else ()),
+    ]
+    for kind, supplement_id, body in supplements:
+        region_id = f"{kind}:{supplement_id}"
+        lines.extend(
+            (
+                f"<!-- investo:block {region_id} -->",
+                body,
+                f"<!-- /investo:block {region_id} -->",
+                "",
+            )
+        )
+    lines.extend(
+        (
+            "## ① 요약",
+            "",
+            "요약 본문",
+            "",
+            "## ② 전일 핵심 이슈",
+            "",
+            "이슈 본문",
+            "",
+            "## ③ 섹터/수급 동향",
+            "",
+            "수급 본문",
+            "",
+            "## ④ 지표·이벤트",
+            "",
+            "이벤트 본문",
+            "",
+            "## ⑤ 주요 종목",
+            "",
+            "종목 본문",
+            "",
+            "## ⑥ 오늘의 관전 포인트",
+            "",
+            watchpoint_body,
+            "",
+            "<details><summary>수집/품질 진단</summary>",
+            "정상 수집",
+            "</details>",
+            "",
+            "## ⑦ 면책조항",
+            "",
+            "본 문서는 정보 제공용입니다.",
+        )
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _projected_draft(
+    markdown: str,
+    *,
+    supplement_ids: tuple[str, ...] = (),
+) -> tuple[PublicDocumentDraft, PublicDocumentContext]:
+    expectation = PublicRegionExpectation(
+        target_date=_TARGET_DATE,
+        segment=DOMESTIC_EQUITY,
+        segmented_mode=True,
+        supplement_ids=supplement_ids,
+        shared_macro_required=False,
+        crypto_indicators_required=False,
+        channel_anchors_required=False,
+        daily_thesis_required=False,
+        anchor_table_required=False,
+    )
+    layout = PublicDocumentLayout.reindex(markdown, expectation=expectation)
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약 본문",
+        key_issues="이슈 본문",
+        sector_flow="수급 본문",
+        indicators_events="이벤트 본문",
+        notable_tickers="종목 본문",
+        today_watch="확인할 조건",
+        disclaimer="본 문서는 정보 제공용입니다.",
+        rendered_markdown=markdown,
+    )
+    generated = _new_generated_draft(
+        briefing,
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+    assembled = _transition_draft(generated, next_phase="assembled")
+    projected = _transition_draft(assembled, next_phase="projected")
+    context = PublicDocumentContext(
+        target_date=_TARGET_DATE,
+        expected_segments=(DOMESTIC_EQUITY,),
+        input_absences={},
+        anchors_by_segment={},
+        items_by_segment={},
+        coverage_by_segment={
+            DOMESTIC_EQUITY: SegmentCoverage(
+                segment=DOMESTIC_EQUITY,
+                status="normal",
+                item_count=1,
+                source_count=1,
+                categories=("news",),
+                missing_categories=(),
+            )
+        },
+        source_outcomes=(),
+        bundle_context=None,
+        fact_bundle=VerifiedFactBundle(target_date=_TARGET_DATE),
+        entity_observed_at_utc=datetime(2026, 7, 21, tzinfo=UTC),
+    )
+    return projected, context
 
 
 def test_disposition_precedence_is_exhaustive_and_fixed() -> None:
@@ -218,3 +352,98 @@ def test_finding_ownership_must_match_the_indexed_region() -> None:
             _layout(),
             (_finding("watchpoints:section", "section_body", "ellipsis.dangling_line"),),
         )
+
+
+def test_required_watchpoint_fallback_preserves_heading_and_replaces_only_body() -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 관심 영향 데이터 부족")
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert repaired.phase == "repaired"
+    assert repaired.layout.markdown.count("## ⑥ 오늘의 관전 포인트") == 1
+    watchpoints = next(
+        region for region in repaired.layout.regions if region.region_id == "watchpoints:section"
+    )
+    body = repaired.layout.markdown[watchpoints.content_start : watchpoints.content_end]
+    assert PUBLIC_WATCHPOINT_LIMITED_TEXT in body
+    assert "데이터 부족" not in body
+    assert repaired.block_outcomes[-1].region_id == "watchpoints:section"
+    assert repaired.block_outcomes[-1].disposition == "replaced"
+
+
+def test_malformed_chart_and_visual_are_omitted_without_dropping_segment() -> None:
+    supplements = (
+        ("chart", "bad-chart", "source missing"),
+        ("visual", "bad-visual", "price missing"),
+    )
+    markdown = _canonical_markdown(
+        watchpoint_body="- 확인할 조건",
+        supplements=supplements,
+    )
+    projected, context = _projected_draft(
+        markdown,
+        supplement_ids=("bad-chart", "bad-visual"),
+    )
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert repaired.phase == "repaired"
+    assert tuple(
+        (outcome.region_id, outcome.disposition) for outcome in repaired.block_outcomes
+    ) == (("chart:bad-chart", "omitted"), ("visual:bad-visual", "omitted"))
+    for region_id in ("chart:bad-chart", "visual:bad-visual"):
+        region = next(region for region in repaired.layout.regions if region.region_id == region_id)
+        assert repaired.layout.markdown[region.content_start : region.content_end] == ""
+        assert f"<!-- investo:block {region_id} -->" in repaired.layout.markdown
+        assert f"<!-- /investo:block {region_id} -->" in repaired.layout.markdown
+
+
+def test_first_viewport_replacements_use_canonical_summary_and_watermark_owners() -> None:
+    malformed_watermark = "**기준 시각**: 2026-07-21 KST · 수집창 [깨짐"
+    malformed_summary = "> **오늘의 결론**: 확인이 더 필요한 관"
+    unrelated_line = "> 정상적인 별도 안내는 유지합니다."
+    markdown = _canonical_markdown(
+        watchpoint_body="- 확인할 조건",
+        first_viewport_lines=(malformed_watermark, malformed_summary, unrelated_line),
+    )
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert render_timestamp_watermark(_TARGET_DATE, DOMESTIC_EQUITY) in repaired.layout.markdown
+    assert malformed_watermark not in repaired.layout.markdown
+    assert malformed_summary not in repaired.layout.markdown
+    assert f"{CONCLUSION_PREFIX} {FALLBACK_BY_PREFIX[CONCLUSION_PREFIX]}" in (
+        repaired.layout.markdown
+    )
+    assert unrelated_line in repaired.layout.markdown
+    assert any(
+        outcome.block == "first_viewport" and outcome.disposition == "replaced"
+        for outcome in repaired.block_outcomes
+    )
+
+
+def test_new_actionable_residual_after_projection_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건")
+    projected, context = _projected_draft(markdown)
+
+    def inject_required_body_issue(
+        layout: PublicDocumentLayout,
+        *,
+        limitation_reasons: tuple[str, ...],
+    ) -> PublicDocumentLayout:
+        del limitation_reasons
+        return layout.replace_region_body("section:2", "\ninput_hash=late\n\n")
+
+    monkeypatch.setattr(
+        public_document_module,
+        "project_public_markdown",
+        inject_required_body_issue,
+    )
+
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _repair_projected_draft(projected, context)
+    assert blocked.value.issue_codes == ("document.fallback_exhausted",)
