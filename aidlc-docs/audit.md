@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 14 (SimFin Daily Share Prices)
+**Timestamp**: 2026-07-20T17:44:58Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Intrinio Step 0 slice as `1d3eff3`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.
+**Primary-source evidence**: SimFin's current pricing page publishes a permanent USD 0 account with five years of chart history, Data API/bulk download, daily open/high/low/close, adjusted close, volume, and a two-request-per-second Web API limit. Its official Python repository requires a free account API key and exposes daily US share-price loading. The binding FREE/BASIC license limits data to personal research and own use, prohibits sharing with other parties, and applies the same disclosure restrictions to reprocessed data. SimFin separately states that Enterprise is the only subscription permitting redistribution. Although the license excludes undefined `interpretations` from those restrictions, it does not expressly classify public numeric radar metrics as interpretations rather than restricted reprocessed data.
+**Deduplication**: No `simfin`, `prod.simfin.com`, `SIMFIN_API_KEY`, `load_shareprices`, share-price adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, dependency configuration, current plans, or requirements.
+**Decision**: `reject under the current FREE/BASIC data license` for u140. Preliminary cost, history depth, fields, and request-rate evidence is promising, but explicit free public derived-display rights fail. Exact ETF coverage, the Free bulk `delayed` semantics, at-most-36-hour freshness, adjustment behavior, continuity, and rotating-runner stability were not probed. No account/key was created, no payload was fetched, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-simfin-daily-share-prices.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-14. A new candidate must repeat Step 0; only a candidate with at least 63 permanently free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 13 (Intrinio EOD Historical Stock Prices)
 **Timestamp**: 2026-07-20T17:15:00Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Databento Historical Step 0 slice as `05a31e8`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.

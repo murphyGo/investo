@@ -64,6 +64,7 @@ adapter or Pages construction is registered.
 | Barchart OnDemand `getHistory` API | technically provides daily ETF OHLCV with split/dividend controls, but free access is only a limited evaluation trial; production is usage-priced, and the general terms require prior written consent for publication/distribution | reject for the permanent-free and public-rights gates (2026-07-21 Step 0) |
 | Databento Historical API / `EQUS.SUMMARY` | technically provides consolidated US-equities EOD `ohlcv-1d`, multi-symbol requests, and ample rate limits, but every historical byte is usage-billed after a one-time $125 credit that expires in six months; exact dataset public derived-display rights require separate catalog/license-manager confirmation | reject for the permanent-free gate and unproven exact public rights (2026-07-21 Step 0) |
 | Intrinio EOD Historical Stock Prices | technically provides 50+ years of daily raw/adjusted OHLCV, corporate-action fields, and up to 100 rows per page, but production starts at USD 150/month for internal-only Individual access; external display begins on the paid Startup plan under an executed Order Form | reject for the permanent-free and free public-rights gates (2026-07-21 Step 0) |
+| SimFin Daily Share Prices | Free technically offers five years of daily US share-price history, API/bulk access, OHLC, adjusted close, and volume, but FREE/BASIC permits personal research only and forbids sharing; reprocessed data keeps the same restrictions, while redistribution requires a separate commercial redistribution/Enterprise license | reject for the explicit free public-rights gate (2026-07-21 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -183,6 +184,14 @@ Primary Intrinio references, checked 2026-07-21:
 - `https://help.intrinio.com/whats-an-api-call-and-how-are-they-counted`
 - `https://intrinio.com/pricing`
 - `https://about.intrinio.com/terms`
+
+Primary SimFin references, checked 2026-07-21:
+
+- `https://www.simfin.com/en/prices/`
+- `https://www.simfin.com/en/commercial-license/`
+- `https://www.simfin.com/en/fundamental-data-download/`
+- `https://github.com/SimFin/simfin`
+- `https://www.simfin.com/en/technical-updates-to-api-v3-and-bulk-download/`
 
 ## Qualification Steps
 
@@ -407,6 +416,28 @@ paid Startup plan, currently USD 333/month to start, and the terms require an ex
 Order Form for third-party display, redistribution, or public derived outputs. The
 permanent-free and explicit free public-use gates fail before probing. Step 1 does not
 apply to this candidate.
+
+#### Iteration 14 — SimFin Daily Share Prices
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-simfin-daily-share-prices.md`.
+Disposition: **reject under the current FREE/BASIC data license**. Free access is
+technically promising: SimFin publishes a zero-dollar account with five years of
+history, daily open/high/low/close, adjusted close, volume, API/bulk access, and a
+free API key path. The binding license permits FREE/BASIC data only for personal
+research and prohibits sharing it with other parties. Reprocessed data remains under
+the same disclosure restrictions; a redistribution license is separate, and SimFin
+states that Enterprise is the only subscription that permits redistribution. The
+license's undefined `interpretations` exception is not an explicit grant for public
+numeric radar metrics, which may instead be reprocessed data. Exact ETF coverage and
+the meaning of the Free bulk `delayed` label also remain unproven. The explicit free
+public derived-display gate therefore fails before probing. Step 1 does not apply.
 
 #### Next candidate iteration
 
