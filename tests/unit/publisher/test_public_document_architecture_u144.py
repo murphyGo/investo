@@ -1,0 +1,264 @@
+"""U144 Step 1 construction and pre-production-use architecture guards."""
+
+from __future__ import annotations
+
+import ast
+from pathlib import Path
+
+import pytest
+
+from investo.publisher.public_document import PublicDocumentDraft
+from investo.publisher.writer import write_finalized_document
+
+_SRC = Path(__file__).parents[3] / "src" / "investo"
+_PUBLIC_DOCUMENT = Path("publisher/public_document.py")
+_CANONICAL_SYMBOLS = {
+    "investo.publisher.FinalizedPublicDocument": "FinalizedPublicDocument",
+    "investo.publisher.write_finalized_document": "write_finalized_document",
+    "investo.publisher.public_document.FinalizedPublicDocument": "FinalizedPublicDocument",
+    "investo.publisher.public_document.PublicDocumentDraft": "PublicDocumentDraft",
+    "investo.publisher.public_document._seal_document": "_seal_document",
+    "investo.publisher.writer.write_finalized_document": "write_finalized_document",
+}
+_CANONICAL_MODULES = {
+    "investo.publisher",
+    "investo.publisher.public_document",
+    "investo.publisher.writer",
+}
+_PUBLIC_DOCUMENT_LOCALS = {
+    "FinalizedPublicDocument": "FinalizedPublicDocument",
+    "PublicDocumentDraft": "PublicDocumentDraft",
+    "_seal_document": "_seal_document",
+}
+
+
+def _call_name(node: ast.expr) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        owner = _call_name(node.value)
+        return f"{owner}.{node.attr}" if owner else node.attr
+    return None
+
+
+class _ConstructionVisitor(ast.NodeVisitor):
+    def __init__(self, relative_path: Path) -> None:
+        self.relative_path = relative_path
+        self.scope: list[str] = []
+        self.symbol_aliases: dict[str, str] = {}
+        self.module_aliases: dict[str, str] = {}
+        self.constructor_calls: list[tuple[Path, str, str]] = []
+        self.seal_calls: list[tuple[Path, str]] = []
+        self.finalized_writer_calls: list[tuple[Path, str]] = []
+
+    @property
+    def function_name(self) -> str:
+        return self.scope[-1] if self.scope else "<module>"
+
+    def _canonical_symbol(self, node: ast.expr) -> str | None:
+        raw_name = _call_name(node)
+        if raw_name is None:
+            return None
+        if raw_name in self.symbol_aliases:
+            return self.symbol_aliases[raw_name]
+        head, separator, tail = raw_name.partition(".")
+        if separator and head in self.module_aliases:
+            return _CANONICAL_SYMBOLS.get(f"{self.module_aliases[head]}.{tail}")
+        if self.relative_path == _PUBLIC_DOCUMENT:
+            return _PUBLIC_DOCUMENT_LOCALS.get(raw_name)
+        return _CANONICAL_SYMBOLS.get(raw_name)
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            if alias.asname is not None:
+                self.module_aliases[alias.asname] = alias.name
+        self.generic_visit(node)
+
+    def _absolute_import_module(self, node: ast.ImportFrom) -> str | None:
+        if node.level == 0:
+            return node.module
+        package_parts = ["investo", *self.relative_path.parent.parts]
+        ascend = node.level - 1
+        if ascend >= len(package_parts):
+            return None
+        absolute_parts = package_parts[: len(package_parts) - ascend]
+        if node.module:
+            absolute_parts.extend(node.module.split("."))
+        return ".".join(absolute_parts)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        absolute_module = self._absolute_import_module(node)
+        if absolute_module is not None:
+            for alias in node.names:
+                absolute_target = f"{absolute_module}.{alias.name}"
+                local_name = alias.asname or alias.name
+                canonical = _CANONICAL_SYMBOLS.get(absolute_target)
+                if canonical is not None:
+                    self.symbol_aliases[local_name] = canonical
+                elif absolute_target in _CANONICAL_MODULES:
+                    self.module_aliases[local_name] = absolute_target
+        self.generic_visit(node)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.scope.append(node.name)
+        self.generic_visit(node)
+        self.scope.pop()
+
+    def visit_AsyncFunctionDef(
+        self,
+        node: ast.AsyncFunctionDef,
+    ) -> None:
+        self.scope.append(node.name)
+        self.generic_visit(node)
+        self.scope.pop()
+
+    def visit_Call(self, node: ast.Call) -> None:
+        call_symbol = self._canonical_symbol(node.func)
+        if call_symbol in {"FinalizedPublicDocument", "PublicDocumentDraft"}:
+            self.constructor_calls.append((self.relative_path, self.function_name, call_symbol))
+        if _call_name(node.func) == "object.__new__" and node.args:
+            constructed = self._canonical_symbol(node.args[0])
+            if constructed in {"FinalizedPublicDocument", "PublicDocumentDraft"}:
+                self.constructor_calls.append((self.relative_path, self.function_name, constructed))
+        if call_symbol == "_seal_document":
+            self.seal_calls.append((self.relative_path, self.function_name))
+        if call_symbol == "write_finalized_document":
+            self.finalized_writer_calls.append((self.relative_path, self.function_name))
+        self.generic_visit(node)
+
+
+def _production_construction_snapshot() -> _ConstructionVisitor:
+    aggregate = _ConstructionVisitor(Path("<aggregate>"))
+    for path in sorted(_SRC.rglob("*.py")):
+        relative = path.relative_to(_SRC)
+        visitor = _ConstructionVisitor(relative)
+        visitor.visit(ast.parse(path.read_text(encoding="utf-8"), filename=str(path)))
+        aggregate.constructor_calls.extend(visitor.constructor_calls)
+        aggregate.seal_calls.extend(visitor.seal_calls)
+        aggregate.finalized_writer_calls.extend(visitor.finalized_writer_calls)
+    return aggregate
+
+
+def _visit_source(
+    source: str,
+    *,
+    relative_path: Path = Path("synthetic.py"),
+) -> _ConstructionVisitor:
+    visitor = _ConstructionVisitor(relative_path)
+    visitor.visit(ast.parse(source))
+    return visitor
+
+
+def test_draft_and_final_document_construction_is_single_owned() -> None:
+    snapshot = _production_construction_snapshot()
+
+    assert snapshot.constructor_calls == [
+        (_PUBLIC_DOCUMENT, "_construct_draft", "PublicDocumentDraft"),
+        (_PUBLIC_DOCUMENT, "_seal_document", "FinalizedPublicDocument"),
+    ]
+    assert snapshot.seal_calls == [
+        (_PUBLIC_DOCUMENT, "_finalize_segment_skeleton"),
+    ]
+
+
+def test_sealed_writer_has_no_production_call_before_step_five_switch() -> None:
+    snapshot = _production_construction_snapshot()
+
+    assert snapshot.finalized_writer_calls == []
+
+
+def test_sealed_writer_rejects_publisher_private_draft() -> None:
+    draft = object.__new__(PublicDocumentDraft)
+
+    with pytest.raises(TypeError, match="requires FinalizedPublicDocument"):
+        write_finalized_document(draft)  # type: ignore[arg-type]
+
+
+def test_architecture_guard_resolves_direct_import_aliases() -> None:
+    snapshot = _visit_source(
+        """
+from investo.publisher.public_document import (
+    FinalizedPublicDocument as FinalDoc,
+    _seal_document as seal,
+)
+
+FinalDoc()
+seal(value)
+"""
+    )
+
+    assert snapshot.constructor_calls == [
+        (Path("synthetic.py"), "<module>", "FinalizedPublicDocument")
+    ]
+    assert snapshot.seal_calls == [(Path("synthetic.py"), "<module>")]
+
+
+def test_architecture_guard_resolves_module_aliases() -> None:
+    snapshot = _visit_source(
+        """
+import investo.publisher.public_document as pd
+import investo.publisher.writer as sealed_writer
+
+object.__new__(pd.PublicDocumentDraft)
+pd._seal_document(value)
+sealed_writer.write_finalized_document(value)
+"""
+    )
+
+    assert snapshot.constructor_calls == [(Path("synthetic.py"), "<module>", "PublicDocumentDraft")]
+    assert snapshot.seal_calls == [(Path("synthetic.py"), "<module>")]
+    assert snapshot.finalized_writer_calls == [(Path("synthetic.py"), "<module>")]
+
+
+def test_architecture_guard_resolves_import_from_module_aliases() -> None:
+    snapshot = _visit_source(
+        """
+from investo.publisher import public_document as pd
+from investo.publisher import writer as sealed_writer
+
+object.__new__(pd.FinalizedPublicDocument)
+pd._seal_document(value)
+sealed_writer.write_finalized_document(value)
+"""
+    )
+
+    assert snapshot.constructor_calls == [
+        (Path("synthetic.py"), "<module>", "FinalizedPublicDocument")
+    ]
+    assert snapshot.seal_calls == [(Path("synthetic.py"), "<module>")]
+    assert snapshot.finalized_writer_calls == [(Path("synthetic.py"), "<module>")]
+
+
+def test_architecture_guard_resolves_publisher_relative_imports() -> None:
+    relative_path = Path("publisher/synthetic.py")
+    snapshot = _visit_source(
+        """
+from .public_document import _seal_document as seal
+from .writer import write_finalized_document as sealed_write
+
+seal(value)
+sealed_write(value)
+""",
+        relative_path=relative_path,
+    )
+
+    assert snapshot.seal_calls == [(relative_path, "<module>")]
+    assert snapshot.finalized_writer_calls == [(relative_path, "<module>")]
+
+
+def test_architecture_guard_ignores_unrelated_local_same_name_symbols() -> None:
+    snapshot = _visit_source(
+        """
+class PublicDocumentDraft:
+    pass
+
+def _seal_document(value):
+    return value
+
+PublicDocumentDraft()
+_seal_document(value)
+"""
+    )
+
+    assert snapshot.constructor_calls == []
+    assert snapshot.seal_calls == []

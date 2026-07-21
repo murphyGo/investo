@@ -562,6 +562,21 @@ def test_segment_skeleton_rejects_handler_that_skips_phase() -> None:
         _finalize_segment_skeleton(draft, context=context, handlers=invalid)
 
 
+def test_transition_factory_rejects_direct_phase_skip() -> None:
+    context = _context()
+    draft = _draft_factory(
+        build_briefing(target_date=_TARGET_DATE),
+        DOMESTIC_EQUITY,
+        context,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="invalid public-document phase transition: generated->projected",
+    ):
+        _transition_draft(draft, next_phase="projected")
+
+
 def test_bundle_skeleton_converts_phase_skip_to_bounded_e8() -> None:
     context = _context()
     briefing = build_briefing(target_date=_TARGET_DATE)

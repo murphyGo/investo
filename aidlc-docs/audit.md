@@ -145,6 +145,15 @@
 **Scope**: Sealed API/export/tests only. Default segmented production still uses the legacy writer until Step 5; unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 1 checklist 6 — add lifecycle misuse, construction, and production-use architecture guards.
 
+## Construction — u144 Code Generation Step 1.6 lifecycle/architecture guards landed
+
+**Timestamp**: 2026-07-21T07:20:00Z
+**Action**: Completed the final Step 1 checklist with invalid-transition, writer-misuse, external-construction, and pre-switch production-use guards.
+**Evidence**: Production AST scanning fixes E2 allocation to `_construct_draft`, E5 allocation to `_seal_document`, and seal invocation to `_finalize_segment_skeleton`; the sealed writer has zero production calls before Step 5. Canonical binding resolution covers direct/module aliases, `from package import module` aliases, and publisher-relative imports without flagging unrelated local names. Step 1.5 mismatch tests supply digest, two date identities, canonical/invalid segment, and no-I/O coverage.
+**Validation**: Scoped Ruff/format passed; 56 focused and 589 full publisher tests passed; `git diff --check` passed. Fresh-eyes review drove two alias-hardening rounds, approved the final snapshot, and independently reran 38 architecture/types tests.
+**Scope**: Tests/docs only; no production call site changed. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 2 checklist 1 — move nav, canonical/short disclaimer, summary repair, and body-used rendering into assembly phase 1.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
