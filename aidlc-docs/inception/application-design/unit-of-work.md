@@ -2154,6 +2154,54 @@ Plan: `aidlc-docs/construction/plans/u139-sector-dashboard-private-core-radar-va
 
 Plan: `aidlc-docs/construction/plans/u140-sector-dashboard-public-ohlcv-source-qualification-code-generation-plan.md`.
 
+---
+
+### u144: `public-document-finalization-contract` - Seal Public Markdown Behind One Typed Finalization Boundary
+
+**Purpose**: Replace the order-dependent post-generation Markdown mutation chain with one publisher-owned bundle finalizer. The finalizer assembles all public blocks, projects typed limitation states after the last producer, contains presentation defects by an owned block region, runs terminal trust/quality gates read-only, and seals the exact bytes written to archive. Presentation defects cannot remove a segment. Real truth/compliance/structure/disclaimer failures preserve the intentional u63/u94 partial-bundle contract with typed absence outcomes and exit 2 after Pages; zero survivors fail before public writes.
+
+**Stories**: US-002, US-003, US-005, US-007, FR-002, FR-003, FR-008, FR-009, FR-012, NFR-003, NFR-006, NFR-007/R13
+
+**Existing coverage / deduplication**:
+- u81/u84 own reader-format package and publisher/orchestrator placement; u144 centralizes lifecycle/order rather than moving algorithms back.
+- u85 owns the validation envelope and intentionally excluded interleaved transform/gate chains; u144 does not create a generic god registry.
+- u100/u108/u110/u112 own surface issues, public wording, watchpoint eligibility, and Markdown repair.
+- u118 keeps `Briefing` as the generated result; u144 introduces a distinct sealed publisher artifact.
+- u123/u127 retain evidence-accounting and summary-rejection semantics.
+- u63/u94 retain intentional partial navigation and isolated segment generation failure; u144 adds typed finalization outcomes and red workflow visibility.
+- u130/u131/u133/u134/u135 keep issue-specific producer/gate behavior and must execute before terminal projection after u144.
+
+**Binding contracts**:
+- `publisher.public_document.finalize_public_bundle(...) -> FinalizedPublicBundle` is the only default production path.
+- Every expected segment has exactly one finalized/generation-absent/trust-blocked outcome before reader-facing archive/index/quality writes or their git staging begin; at least one finalized document is required. Existing private operational state files remain outside E5/E6.
+- Every fixed-point retry restarts from the original drafts. `BundleContext=None` stays `None`; otherwise the daily-thesis decision is recomputed and validated for the active survivor tuple through the neutral `_internal.daily_thesis_decision` owner.
+- Public projection runs after watchpoint and every other text producer.
+- `PublicDocumentLayout` uses the exhaustive canonical `RegionSpec` table; duplicate, overlapping, missing, or unclaimed spans fail deterministically, and every replacement performs a full stable reindex.
+- Watchpoint limitation is carried by `WatchpointRenderResult`, never recovered from Korean output text.
+- Final validation is read-only; the sealed SHA-256 is rechecked by `write_finalized_document()` before I/O.
+- Optional presentation blocks may repair/replace/omit once; numeric/entity/compliance/disclaimer/required-structure failures produce a typed hard-block for that segment.
+- Content-partial is `PARTIAL`/exit 2 with a valid-subset commit and red workflow after Pages; zero survivors are `FAILED`/exit 1; notifier-only delivery failure with complete content remains `PARTIAL`/exit 0.
+- Pre-finalization artifacts form one referential chain: E1 full staging descriptors → non-omitted survivor E5 artifact IDs → E6 promotion manifest. Optional omission preserves an empty marker shell and a region-ID outcome but promotes no asset. Only the E6 manifest can enter pre-git publish rollback/promotion; existing `PublisherGitError` semantics remain unchanged after commit/push begins.
+- Default segmented notification accepts only E5 `PublicNotificationSummary` plus URLs/existing typed lookahead and price inputs. Its conclusion/watchlist come from validated layout, its coverage fields come from E1, and it has no `Briefing.market_summary` fallback. DTO derivation occurs inside terminal validation so failure participates in survivor navigation/thesis recomputation; seal only copies it.
+
+**Definition of Done**:
+- [ ] Every production `rendered_markdown` mutation is inventoried and moved before the terminal boundary.
+- [ ] Typed draft/final document, limitation reason, block outcome, and finalization error contracts are implemented.
+- [ ] Prompt/watchpoint public defaults no longer encode missing state as `데이터 부족` strings.
+- [ ] Region-spec/expectation, region-grouped single disposition, watchpoint-result, active-survivor thesis including `None`, marker-shell staging-reference, and terminally validated notification DTO contracts are implemented and architecture-tested.
+- [ ] The current crypto incident and prior truncation/body-evidence fixtures pass the full finalizer path.
+- [ ] Optional surface defects cannot remove a market segment.
+- [ ] Missing/hard-blocked segment uses explicit u63 absence navigation, valid-subset atomic commit, operator alert, Pages dispatch, and exit 2; zero survivors make no public commit and exit 1.
+- [ ] Pre-finalization asset staging leaves public destinations unchanged on E8 and cleans its temporary root on every exit.
+- [ ] Writer rejects seal/date/segment/disclaimer mismatch before I/O.
+- [ ] Missing/unsafe sealed conclusion hard-blocks without generated-summary fallback; default segmented notifier cannot accept a `Briefing`.
+- [ ] Architecture/PBT/full static and test gates pass.
+- [ ] Exact-date `2026-07-17` replay publishes 3/3 and the separate Pages workflow succeeds.
+
+**Construction strategy**: Functional Design, NFR Requirements, and NFR Design are authored under the unit directory. Implement Code Generation in eight ordered steps from characterization through exact-date production closeout. No long-lived dual finalizer or feature flag.
+
+Plan: `aidlc-docs/construction/plans/u144-public-document-finalization-contract-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

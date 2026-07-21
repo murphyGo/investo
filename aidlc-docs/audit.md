@@ -27,6 +27,33 @@
 **Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-barchart-ondemand.md`
 **Status**: u140 remains blocked. A new candidate must repeat Step 0; only a candidate with at least 63 free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
 
+## Construction — u144 public-document-finalization-contract designed and registered
+**Timestamp**: 2026-07-21T00:00:00+09:00
+**Trigger**: The user asked whether the proposed recurring-incident repair was fundamental, then requested one carefully designed unit covering the entire correction. Live evidence from run `29707052598` showed generation 3/3 but crypto removal at publish because watchpoint rendering reintroduced `데이터 부족` after an earlier public-language projection. Code review also found the apparent terminal surface gate was followed by navigation, disclaimer, summary, and body-used mutations in `_stage_publish_segments`.
+**Decision**: Registered **u144 public-document-finalization-contract** as the root-cause architecture unit. The unit creates a publisher-owned typed lifecycle from generated `Briefing` draft to sealed `FinalizedPublicDocument`, moves all text producers before one newline-preserving public projection/repair/read-only validation sequence, and contains optional presentation failures through canonical owned regions. Independent review corrected the initial all-three-or-fail draft: later u63/u94 intentionally support partial publication, so genuine generation/trust absence remains a typed valid-subset outcome. A 1/3 or 2/3 commit keeps explicit absence navigation, dispatches Pages, and then exits 2 so Actions is red; zero survivors exit 1. Presentation wording defects cannot create absence. Complete-content notifier-only failure remains exit 0.
+**Independent review resolution**: Review was repeated through final `APPROVE` with no Critical/High findings. The design fixes the complete `RegionSpec` marker/span/priority/reindex table plus typed conditional expectation and exact anchor headers; groups all findings by region and resolves one closed disposition; preserves marker shells while excluding omitted artifact IDs from the E1→E5→E6 manifest; handles `BundleContext=None` explicitly and recomputes/validates active daily thesis otherwise; returns typed `WatchpointRenderResult`; and replaces the default segmented notifier's generated-`market_summary` fallback with `PublicNotificationSummary`. DTO derivation occurs inside terminal validation, so a missing/unsafe conclusion becomes a survivor hard block before nav/thesis seal. Rollback guarantees now match the actual transaction boundary: promotion/write/quality before git is snapshot-covered, while commit/push retains existing `PublisherGitError` semantics without an invented history-compensation promise.
+**Deduplication**: u81/u84 keep reader-format/stage placement, u85 keeps its deliberately narrow validation envelope, u100/u108/u112 keep surface/public wording/repair rules, u110/u135 keep watchpoint content semantics, u118 keeps generation contracts, u123 keeps evidence accounting, u127 keeps the summary reject predicate, and u63/u94 keep intentional partial navigation/generation isolation. u144 owns lifecycle order, bounded region ownership, typed finalization outcomes, seal, staged-asset promotion, and operational content-completeness signaling. A full Markdown AST, new scanner, new LLM pass, source/KPI redesign, and historical backfill are excluded.
+**Stage decision**: Functional Design, NFR Requirements, and NFR Design are required and authored because the unit changes lifecycle/state ownership, failure containment, staged filesystem boundaries, and CLI/workflow status semantics. Infrastructure Design is limited to the existing `daily-briefing.yml` step sequence; no new job, dependency, service, secret, or storage format is added.
+**Affected docs**:
+- `aidlc-docs/construction/plans/u144-public-document-finalization-contract-code-generation-plan.md`
+- `aidlc-docs/construction/u144-public-document-finalization-contract/functional-design/`
+- `aidlc-docs/construction/u144-public-document-finalization-contract/nfr-requirements/`
+- `aidlc-docs/construction/u144-public-document-finalization-contract/nfr-design/`
+- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/inception/application-design/unit-of-work.md`
+- `aidlc-docs/inception/application-design/unit-of-work-story-map.md`
+- `aidlc-docs/audit.md`
+**Status**: Documentation/design only. u144 Code Generation is Backlog/Ready; no runtime code was changed. Existing u140 worktree changes and u143 plan remain untouched. Planned u135 must not be implemented in parallel with u144 without explicit watchpoint file/contract coordination.
+
+## Construction — u144 Code Generation Step 0.1 mutation graph frozen
+
+**Timestamp**: 2026-07-21T01:27:33Z
+**Action**: Completed the first of six Step 0 checklist items for `u144 public-document-finalization-contract` by freezing the current default segmented public-Markdown mutation graph.
+**Evidence**: Recorded generated construction, all nine executable post-generation `rendered_markdown` replacement sites, the exact `segment_reader_format` transform/gate order, both entity-drop paths, pre-gate visual/chart I/O, and post-surface-gate nav/disclaimer/summary/body-used rewrites in `aidlc-docs/construction/u144-public-document-finalization-contract/code/mutation-graph-baseline.md`.
+**Scope**: Documentation/characterization only; no runtime code or tests changed. Existing u140, generated archive/site, settings, and worktree changes were preserved.
+**Independent review**: Corrected the post-surface-gate direct-replacement count from four to five and recorded `write_briefing()`'s final disclaimer verification. Re-review otherwise confirmed all nine executable sites, call order, exclusions, and the bounded AC-144.4 claim.
+**Next**: Step 0 checklist 2 — add the redacted incident fixtures.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

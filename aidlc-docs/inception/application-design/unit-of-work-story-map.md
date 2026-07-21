@@ -437,6 +437,43 @@ Deduplicated out:
 - u140 does not register a speculative adapter before a candidate is `ship-now`.
 - TradingView remains eligible only as a future display widget, never as the radar calculation source.
 
+### u144 Public Document Finalization Planning Notes
+
+Derived from GitHub Actions run `29707052598` and the recurring
+post-generation failure family. The current public-language pass is followed by
+new text producers, the surface gate is followed by additional publish-stage
+mutations, and a cosmetic residual can drop a segment while the workflow
+remains green. u144 creates one typed, sealed terminal boundary rather than
+adding another phrase rule.
+
+Implementation order:
+1. Characterize every Markdown mutation and freeze real incident fixtures.
+2. Introduce typed draft/final/seal, exhaustive region, watchpoint outcome, and block outcome contracts.
+3. Move all producers and late publish rewrites before terminal projection; recompute daily thesis for the active survivor tuple on every retry.
+4. Add bounded block fallback, typed hard-block outcomes, and the u63 survivor fixed point.
+5. Stage assets through the E1→E5→E6 referential chain, switch writer/consumers to sealed bytes and notifier DTOs, and make content-partial exit 2 after Pages.
+6. Close with exact-date replay and one normal-date run.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|---|---|---|---|
+| u144 public-document-finalization-contract | Post-generation transforms can reintroduce forbidden/internal phrases after an earlier filter; the apparent final gate is not final; a presentation defect can create a green two-of-three publish | US-002, US-003, US-005, US-007, FR-002, FR-003, FR-008, FR-009, FR-012, NFR-003, NFR-006, NFR-007/R13 | u81/u84/u85 lifecycle placement, u100/u108/u112 surface/public projection, u110/u135 watchpoints, u118 generation boundary, u123 evidence accounting, u127 summary contract |
+
+Compatibility note: u63/u94 partial publication remains a product feature.
+u144 removes only presentation-driven segment loss; genuine generation/trust
+absence remains publishable as a typed valid subset, but daily Actions is red
+through exit 2 after the Pages dispatch.
+
+Consumer note: default segmented Telegram formatting receives sealed
+`PublicNotificationSummary` values, URLs, and existing typed event/price data.
+It cannot read a generated `Briefing` or select `market_summary` fallback prose.
+
+Deduplicated out:
+- No second public phrase map or surface scanner.
+- No generic Markdown AST/parser or LLM rewrite pass.
+- No change to numeric/entity/compliance policy thresholds.
+- No watchlist matching or u135 signal-synthesis implementation.
+- No historical archive backfill.
+
 ---
 
 ## Definition of Done — Inception Phase Output
