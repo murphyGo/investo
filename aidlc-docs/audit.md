@@ -278,6 +278,15 @@
 **Validation**: Public projection tests passed 37; publisher/orchestrator regression tests passed 1,028; module-boundary/u144 architecture/publish-validator tests passed 30. Ruff check/format, strict mypy, and scoped diff check passed. Fresh-eyes review found one missing projection-level source-outcome connection test; after correction, re-review approved with no remaining finding.
 **Next**: Step 3 checklist 7 — add the whole-chain run-29707052598 incident regression.
 
+## Construction — u144 Code Generation Step 3.7 whole-chain incident regression landed
+
+**Timestamp**: 2026-07-21T17:45:46+09:00
+**Action**: Added a fixture-driven whole-chain regression for the exact redacted run `29707052598` crypto watchpoint shape. The generated draft crosses production reader assembly and projection, test-only phase advancement/read-only validation, and the real skeleton seal; the legacy fixture still reproduces `public_diagnostic.raw_label`, while sealed Markdown returns zero such issues.
+**Independent connections**: The whole-chain test asserts the production assembly result before projection, including removal of the legacy implication. A separate typed legacy assembled layout proves both owned-region and surface scanners find the raw label before the real `_project_assembled_draft()` call and neither finds it afterward.
+**Scope**: Test-only repair/validate collaborators do not implement Step 4 containment or Step 5 production composition. They advance declared phases, invoke existing read-only checks, build the required DTO, and permit the existing seal factory to run.
+**Validation**: Two direct regressions and 92 related incident/projection/lifecycle/surface tests passed. Publisher/orchestrator regression tests passed 1,031 before final documentation; module-boundary/u144 architecture/publish-validator tests passed 30. Ruff check/format and scoped diff check passed. Fresh-eyes review found one missing independent projection source-connection assertion; after correction, re-review approved with no remaining finding.
+**Next**: Step 4 checklist 1 — add grouped region-owned outcomes and the exhaustive single-disposition containment table.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

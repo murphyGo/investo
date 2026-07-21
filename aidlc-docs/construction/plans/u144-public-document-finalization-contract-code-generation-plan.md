@@ -318,7 +318,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Preserve raw diagnostic labels inside collapsed diagnostics and structured metadata only. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-protected-diagnostic-metadata-boundary.md`.
 - [x] Add the read-only owned-region leakage traversal over the existing u108 evidence predicate so reader-visible tables are terminally checked without cloning phrase policy. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-owned-region-leakage-traversal.md`.
 - [x] Add the exhaustive `CoverageReasonCode -> PublicLimitationReason` mapping test and pass timezone-aware `entity_observed_at_utc` into the existing entity guard. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-coverage-reason-entity-clock.md`.
-- [ ] Add whole-chain regression proving the run-29707052598 watchpoint shape finalizes with zero `public_diagnostic.raw_label` issues.
+- [x] Add whole-chain regression proving the run-29707052598 watchpoint shape finalizes with zero `public_diagnostic.raw_label` issues. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-3-whole-chain-incident-regression.md`.
 
 ### Step 4 — Add block-scoped containment and remove duplicate gates
 
