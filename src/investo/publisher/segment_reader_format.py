@@ -33,7 +33,10 @@ from investo.models import Briefing, NormalizedItem
 from investo.models.bundle_context import BundleContext
 from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import MarketSegment
-from investo.publisher.anchor_assertion_gate import enforce_anchor_assertions
+from investo.publisher.anchor_assertion_gate import (
+    NumericAnchorReconciliationError,
+    gate_body_assertions,
+)
 from investo.publisher.anchor_table import render_anchor_table
 from investo.publisher.channel_anchor_block import (
     inject_channel_anchor_block,
@@ -157,11 +160,18 @@ def apply_reader_format_to_segments(
         # sentence is rewritten to a data-limited callout; an un-rewritable
         # contradiction raises ``NumericAnchorReconciliationError`` (caught by
         # the publish-stage handler below alongside the other reader gates).
-        markdown = enforce_anchor_assertions(
+        anchor_gate = gate_body_assertions(
             markdown,
             segment=segment,
             available_symbols=tuple(a.ticker for a in anchors),
         )
+        if anchor_gate.has_blocking_finding:
+            blocking = next(finding for finding in anchor_gate.findings if not finding.isolated)
+            raise NumericAnchorReconciliationError(
+                f"{segment}: precise move claim for {blocking.label} "
+                f"({blocking.symbol}) without a canonical anchor: {blocking.sentence!r}"
+            )
+        markdown = anchor_gate.markdown
         # Step 3 — pure str → str post-format chain.
         markdown = apply_reader_format(markdown, segment=segment)
         # u57 — inject shared macro block + run cross-segment lint.

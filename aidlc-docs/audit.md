@@ -321,6 +321,14 @@
 **Validation**: Focused U-144/orchestrator tests passed 172; the full publisher/orchestrator unit scope passed 1,053. Strict mypy passed all 242 source files; Ruff check/format and scoped diff checks passed. Neutral-boundary AST tests and survivor-removal tests cover publisher import ownership and removal from signal/support/wording state. Fresh-eyes review approved the neutral ownership, bounded restart, exact `None` branch, zero-survivor handling, publisher import boundary, and shallow snapshot safety with no blocker.
 **Next**: Step 4 checklist 5 — split numeric-anchor repair in assembly from the exact read-only terminal scanner while retaining the legacy wrapper only for compatibility.
 
+## Construction — u144 Code Generation Step 4.5 terminal numeric-anchor scan landed
+
+**Timestamp**: 2026-07-21T21:10:00+09:00
+**Action**: Kept the existing `gate_body_assertions()` as the assembly repair owner and added exact read-only `scan_anchor_assertions()` for terminal validation. The default segmented reader path now consumes the typed gate result directly; `enforce_anchor_assertions()` remains only as a gate-then-residual-scan compatibility wrapper with zero default segmented call sites.
+**Terminal input**: The public-document adapter scans final `draft.layout.markdown` against only the reconciled ticker symbols supplied in E1 `anchors_by_segment`. It performs no mutation, refetch, history lookup, or post-validation repair. Existing prose/structural/list/blockquote/protected-anchor/traceability semantics reuse the same predicate helpers.
+**Validation**: Focused and integration review scope passed 105 tests; the full publisher/orchestrator unit scope passed 1,057. Strict mypy passed all 242 source files; Ruff check/format and scoped diff checks passed. Fresh-eyes review approved scanner/gate semantic parity, read-only behavior, E1/final-layout ownership, and zero default wrapper calls with no blocker.
+**Next**: Step 4 checklist 6 — retain compliance repair in assembly, make terminal compliance read-only, and remove duplicate/interleaved reader-format ownership after characterization.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

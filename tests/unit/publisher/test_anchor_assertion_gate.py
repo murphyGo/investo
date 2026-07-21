@@ -8,6 +8,9 @@ data-limited callout and raises on un-rewritable contradictions.
 
 from __future__ import annotations
 
+import ast
+from pathlib import Path
+
 import pytest
 
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
@@ -15,6 +18,7 @@ from investo.publisher.anchor_assertion_gate import (
     NumericAnchorReconciliationError,
     enforce_anchor_assertions,
     gate_body_assertions,
+    scan_anchor_assertions,
 )
 
 
@@ -111,6 +115,56 @@ def test_table_row_is_never_rewritten() -> None:
     # Structural ⇒ recorded as a blocking finding, markdown unchanged.
     assert result.markdown == md
     assert result.has_blocking_finding
+
+
+def test_terminal_scan_reports_isolated_claim_without_rewriting_input() -> None:
+    md = "코스피는 1.8% 급락 마감했다. 외국인 수급은 안정적이었다.\n"
+
+    findings = scan_anchor_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=(),
+    )
+
+    assert len(findings) == 1
+    assert findings[0].symbol == "^KOSPI"
+    assert findings[0].isolated is True
+    assert md == "코스피는 1.8% 급락 마감했다. 외국인 수급은 안정적이었다.\n"
+
+
+def test_assembly_repair_leaves_no_terminal_anchor_finding() -> None:
+    md = "코스피는 1.8% 급락 마감했다.\n"
+
+    repaired = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=(),
+    ).markdown
+
+    assert "데이터 미수집" in repaired
+    assert (
+        scan_anchor_assertions(
+            repaired,
+            segment=DOMESTIC_EQUITY,
+            available_symbols=(),
+        )
+        == ()
+    )
+
+
+def test_default_segmented_modules_do_not_call_compatibility_wrapper() -> None:
+    source_root = Path(__file__).parents[3] / "src/investo"
+    for relative_path in (
+        "publisher/segment_reader_format.py",
+        "orchestrator/pipeline.py",
+    ):
+        tree = ast.parse((source_root / relative_path).read_text(encoding="utf-8"))
+        called_names = {
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+        assert "enforce_anchor_assertions" not in called_names
 
 
 def test_market_anchor_blockquote_is_never_rewritten() -> None:

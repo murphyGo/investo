@@ -211,6 +211,85 @@ _TRACEABILITY_ITEM_ROW_RE: Final[re.Pattern[str]] = re.compile(
 )
 
 
+def scan_anchor_assertions(
+    markdown: str,
+    *,
+    segment: MarketSegment,
+    available_symbols: Iterable[str],
+) -> tuple[AnchorAssertionFinding, ...]:
+    """Return exact unsupported numeric claims without rewriting Markdown."""
+
+    available = set(available_symbols)
+    gated_symbols = tuple(
+        symbol for symbol in _SEGMENT_CORE_SYMBOLS.get(segment, ()) if symbol not in available
+    )
+    if not gated_symbols:
+        return ()
+    findings: list[AnchorAssertionFinding] = []
+    for line in markdown.split("\n"):
+        findings.extend(
+            _scan_line_assertions(
+                line,
+                segment=segment,
+                gated_symbols=gated_symbols,
+            )
+        )
+    return tuple(findings)
+
+
+def _scan_line_assertions(
+    line: str,
+    *,
+    segment: MarketSegment,
+    gated_symbols: Sequence[str],
+) -> tuple[AnchorAssertionFinding, ...]:
+    stripped = line.lstrip()
+    if _is_traceability_table_line(stripped) or _PROTECTED_BLOCKQUOTE_RE.match(line):
+        return ()
+    structural = stripped.startswith(_STRUCTURAL_PREFIXES)
+    content = line
+    if not structural:
+        match = _PROSE_BLOCKQUOTE_RE.match(line)
+        if match is None:
+            match = re.match(r"^(\s*(?:[-*]|\d+\.)\s+)(.*)$", line)
+        if match is not None:
+            content = match.group(2)
+
+    if structural:
+        for symbol in gated_symbols:
+            if _is_precise_move_claim_for_symbol(content, symbol):
+                return (
+                    AnchorAssertionFinding(
+                        segment=segment,
+                        symbol=symbol,
+                        label=_public_label(symbol),
+                        sentence=line.strip(),
+                        isolated=False,
+                    ),
+                )
+        return ()
+
+    findings: list[AnchorAssertionFinding] = []
+    for unit in _sentence_units(content):
+        sentence = unit.strip()
+        if not sentence:
+            continue
+        for symbol in gated_symbols:
+            if not _is_precise_move_claim_for_symbol(sentence, symbol):
+                continue
+            findings.append(
+                AnchorAssertionFinding(
+                    segment=segment,
+                    symbol=symbol,
+                    label=_public_label(symbol),
+                    sentence=sentence,
+                    isolated=True,
+                )
+            )
+            break
+    return tuple(findings)
+
+
 def _gate_line(
     line: str,
     *,
@@ -334,9 +413,15 @@ def enforce_anchor_assertions(
     :class:`NumericAnchorReconciliationError` when a blocking finding
     remains so the publish path fails closed.
     """
-    result = gate_body_assertions(markdown, segment=segment, available_symbols=available_symbols)
-    if result.has_blocking_finding:
-        blocking = next(f for f in result.findings if not f.isolated)
+    available = tuple(available_symbols)
+    result = gate_body_assertions(markdown, segment=segment, available_symbols=available)
+    residual = scan_anchor_assertions(
+        result.markdown,
+        segment=segment,
+        available_symbols=available,
+    )
+    if residual:
+        blocking = residual[0]
         raise NumericAnchorReconciliationError(
             f"{segment}: precise move claim for {blocking.label} "
             f"({blocking.symbol}) without a canonical anchor: {blocking.sentence!r}"
@@ -350,4 +435,5 @@ __all__ = [
     "NumericAnchorReconciliationError",
     "enforce_anchor_assertions",
     "gate_body_assertions",
+    "scan_anchor_assertions",
 ]

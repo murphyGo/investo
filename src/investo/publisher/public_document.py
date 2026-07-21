@@ -60,6 +60,10 @@ from investo.publisher._public_document_policy import (
     PublicBlockKind,
     strongest_surface_disposition,
 )
+from investo.publisher.anchor_assertion_gate import (
+    AnchorAssertionFinding,
+    scan_anchor_assertions,
+)
 from investo.publisher.daily_thesis import (
     assert_distinct_daily_thesis_lines,
     render_daily_thesis_line,
@@ -2310,6 +2314,23 @@ def _scan_terminal_entity_fact_claims(
         fact_bundle=context.fact_bundle,
         target_date=context.target_date,
         entity_observed_at_utc=context.entity_observed_at_utc,
+    )
+
+
+def _scan_terminal_anchor_assertions(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+) -> tuple[AnchorAssertionFinding, ...]:
+    """Run the exact read-only numeric-anchor gate on final layout bytes."""
+
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise ValueError("numeric anchor context identity must match draft")
+    return scan_anchor_assertions(
+        draft.layout.markdown,
+        segment=draft.segment,
+        available_symbols=tuple(
+            anchor.ticker for anchor in context.anchors_by_segment.get(draft.segment, ())
+        ),
     )
 
 

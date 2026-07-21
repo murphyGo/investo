@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import get_args
 
 import pytest
@@ -11,6 +12,7 @@ import pytest
 from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_INLINE_TEXT
 from investo.models import Briefing, SourceOutcome
 from investo.models.facts import VerifiedFactBundle
+from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import DOMESTIC_EQUITY, CoverageReasonCode, SegmentCoverage
 from investo.publisher import public_document
 from investo.publisher.public_document import (
@@ -22,6 +24,7 @@ from investo.publisher.public_document import (
     _derive_public_limitation_reasons,
     _new_generated_draft,
     _project_assembled_draft,
+    _scan_terminal_anchor_assertions,
     _scan_terminal_entity_fact_claims,
     _transition_draft,
 )
@@ -503,6 +506,49 @@ def test_terminal_entity_guard_uses_e1_observation_clock(monkeypatch: pytest.Mon
             DOMESTIC_EQUITY,
         )
     ]
+
+
+def test_terminal_anchor_guard_reads_final_layout_and_e1_symbols_only() -> None:
+    layout = PublicDocumentLayout.reindex(
+        _layout().markdown.replace("수급 본문", "코스피는 1.8% 급락 마감했다."),
+        expectation=_expectation(),
+    )
+    generated = _new_generated_draft(
+        Briefing(
+            target_date=_TARGET_DATE,
+            market_summary="요약",
+            key_issues="이슈",
+            sector_flow="수급",
+            indicators_events="지표",
+            notable_tickers="종목",
+            today_watch="관전",
+            disclaimer="면책",
+            rendered_markdown=layout.markdown,
+        ),
+        segment=DOMESTIC_EQUITY,
+        layout=layout,
+    )
+    original_markdown = generated.layout.markdown
+
+    findings = _scan_terminal_anchor_assertions(generated, _context())
+
+    assert len(findings) == 1
+    assert findings[0].symbol == "^KOSPI"
+    assert generated.layout.markdown == original_markdown
+
+    anchored_context = replace(
+        _context(),
+        anchors_by_segment={
+            DOMESTIC_EQUITY: (
+                MarketAnchor(
+                    ticker="^KOSPI",
+                    close=Decimal("2500"),
+                    is_ath=False,
+                ),
+            )
+        },
+    )
+    assert _scan_terminal_anchor_assertions(generated, anchored_context) == ()
 
 
 def test_reader_assembly_carries_typed_watchpoint_reason_into_projection() -> None:
