@@ -66,6 +66,15 @@ def test_neutral_owner_removes_non_survivor_from_all_thesis_state() -> None:
         DOMESTIC_EQUITY,
         US_EQUITY,
     )
+    rendered = "\n".join(
+        (
+            active.daily_thesis_decision.line,
+            *active.daily_thesis_decision.per_segment_lines.values(),
+        )
+    )
+    assert "가상자산" not in rendered
+    assert "BTC" not in rendered
+    assert "ETH" not in rendered
     assert CRYPTO in base.daily_thesis_decision.supporting_segments
 
 

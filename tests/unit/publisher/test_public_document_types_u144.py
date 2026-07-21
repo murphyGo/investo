@@ -1174,7 +1174,7 @@ def test_bundle_fixed_point_redecides_active_thesis_before_each_assembly(
         observe_redecision,
     )
     valid = _phase_handlers()
-    assembly_contexts: list[tuple[str, tuple[str, ...], tuple[str, ...], tuple[str, ...]]] = []
+    assembly_contexts: list[tuple[str, tuple[str, ...], tuple[str, ...], tuple[str, ...], str]] = []
 
     def assemble(
         draft: PublicDocumentDraft,
@@ -1188,6 +1188,12 @@ def test_bundle_fixed_point_redecides_active_thesis_before_each_assembly(
                 tuple(signal.segment for signal in thesis.daily_thesis_signals),
                 thesis.daily_thesis_decision.supporting_segments,
                 tuple(thesis.daily_thesis_decision.per_segment_lines),
+                "\n".join(
+                    (
+                        thesis.daily_thesis_decision.line,
+                        *thesis.daily_thesis_decision.per_segment_lines.values(),
+                    )
+                ),
             )
         )
         if draft.segment == CRYPTO:
@@ -1216,7 +1222,9 @@ def test_bundle_fixed_point_redecides_active_thesis_before_each_assembly(
         US_EQUITY,
     )
     second_pass = assembly_contexts[-2:]
-    assert all(CRYPTO not in values for event in second_pass for values in event[1:])
+    assert all(CRYPTO not in values for event in second_pass for values in event[1:4])
+    assert all("가상자산" not in event[4] for event in second_pass)
+    assert any("가상자산" in event[4] for event in assembly_contexts[:3])
     assert context.bundle_context is not None
     assert CRYPTO in context.bundle_context.daily_thesis_decision.supporting_segments
 

@@ -5433,3 +5433,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Public-document lifecycle/type tests 44 passed; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-partial-fixed-point.md`.
 **Status**: Step 6 checklist 3/9 complete. Next: active-survivor thesis isolation.
+
+## Construction — u144 Step 6.4 active-survivor thesis isolation
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Strengthened fixed-point tests to prove a removed crypto segment disappears from both typed thesis support and reader-facing wording on the immediately following pass.
+**Decisions**: The lifecycle test records first-pass wording containing the crypto label and second-pass wording without it, avoiding a vacuous fixture. The direct neutral-owner test rejects crypto-native wording while the AST architecture guard keeps the publisher free of orchestrator imports.
+**Validation**: Lifecycle and neutral-owner tests 47 passed; scoped Ruff and format check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-active-survivor-thesis.md`.
+**Status**: Step 6 checklist 4/9 complete. Next: watchpoint and notifier invariants.
