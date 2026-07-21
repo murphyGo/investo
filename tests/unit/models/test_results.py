@@ -236,6 +236,7 @@ def test_pipeline_result_content_fields_are_backward_compatible() -> None:
 
     assert result.content_completeness == "complete"
     assert result.segment_outcomes == ()
+    assert result.publication_committed is False
 
 
 @pytest.mark.parametrize(

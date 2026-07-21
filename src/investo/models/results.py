@@ -210,6 +210,9 @@ class PipelineResult(BaseModel):
     # PARTIAL status (which also represents notification-only degradation).
     content_completeness: ContentCompleteness = "complete"
     segment_outcomes: tuple[SegmentFinalizationOutcome, ...] = Field(default_factory=tuple)
+    # True only after the publish transaction completed outside dry-run mode.
+    # The workflow uses this bounded flag to decide whether Pages should run.
+    publication_committed: bool = False
 
     @model_validator(mode="after")
     def _check_content_completeness(self) -> PipelineResult:

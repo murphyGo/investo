@@ -83,6 +83,7 @@ def _make_pipeline_result(
     source_outcomes: tuple[SourceOutcome, ...] = (),
     content_completeness: ContentCompleteness = "complete",
     segment_outcomes: tuple[SegmentFinalizationOutcome, ...] = (),
+    publication_committed: bool = False,
 ) -> PipelineResult:
     return PipelineResult(
         target_date=date(2026, 4, 27),
@@ -94,6 +95,7 @@ def _make_pipeline_result(
         source_outcomes=source_outcomes,
         content_completeness=content_completeness,
         segment_outcomes=segment_outcomes,
+        publication_committed=publication_committed,
     )
 
 
@@ -445,6 +447,51 @@ def test_main_exit_code_maps_public_content_disposition(
     )
     with _stub_pipeline(monkeypatch, result=result), _capture_alerts(monkeypatch):
         assert main_mod.main() == expected_rc
+
+
+def test_main_writes_bounded_github_outputs_for_content_partial(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _set_env(monkeypatch)
+    output_path = tmp_path / "github-output.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output_path))
+    result = _make_pipeline_result(
+        PipelineStatus.PARTIAL,
+        content_completeness="partial",
+        segment_outcomes=_CONTENT_PARTIAL_OUTCOMES,
+        publication_committed=True,
+    )
+
+    with _stub_pipeline(monkeypatch, result=result), _capture_alerts(monkeypatch):
+        assert main_mod.main() == 2
+
+    assert output_path.read_text(encoding="utf-8").splitlines() == [
+        "pipeline_status=partial",
+        "content_completeness=partial",
+        "publication_committed=true",
+        "expected_segments=3",
+        "finalized_segments=2",
+        "published_segments=2",
+    ]
+
+
+def test_github_outputs_report_zero_published_without_commit(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    output_path = tmp_path / "github-output.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output_path))
+    result = _make_pipeline_result(
+        PipelineStatus.PARTIAL,
+        content_completeness="partial",
+        segment_outcomes=_CONTENT_PARTIAL_OUTCOMES,
+    )
+
+    main_mod._write_github_outputs(result)
+
+    assert "publication_committed=false" in output_path.read_text(encoding="utf-8")
+    assert "published_segments=0" in output_path.read_text(encoding="utf-8")
 
 
 def test_main_writes_redacted_github_step_summary_for_partial_result(

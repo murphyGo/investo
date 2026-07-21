@@ -2958,6 +2958,7 @@ class PublishStage:
                 "segment_briefings": segment_briefings,
                 "finalized_bundle": finalized_bundle,
                 "finalization_blocked_segments": finalization_blocked_segments,
+                "publication_committed": not _is_dry_run(),
             },
             stage_notes={**stage_notes, "publish": "ok"},
             timings={
@@ -3385,6 +3386,10 @@ async def _execute_pipeline_stages(
     segment_outcomes = (
         tuple(finalized_bundle.segment_outcomes) if finalized_bundle is not None else ()
     )
+    publication_committed = cast(
+        "bool",
+        accumulated.get("publication_committed", False),
+    )
     if segment_outcomes:
         finalized_count = sum(1 for outcome in segment_outcomes if outcome.state == "finalized")
         content_completeness: ContentCompleteness = (
@@ -3408,6 +3413,7 @@ async def _execute_pipeline_stages(
             source_outcomes=source_outcomes,
             content_completeness=content_completeness,
             segment_outcomes=segment_outcomes,
+            publication_committed=publication_committed,
         )
 
     return _build_result(
@@ -3420,6 +3426,7 @@ async def _execute_pipeline_stages(
         source_outcomes=source_outcomes,
         content_completeness=content_completeness,
         segment_outcomes=segment_outcomes,
+        publication_committed=publication_committed,
     )
 
 
@@ -3479,6 +3486,7 @@ def _build_result(
     source_outcomes: Sequence[SourceOutcome] = (),
     content_completeness: ContentCompleteness = "complete",
     segment_outcomes: Sequence[SegmentFinalizationOutcome] = (),
+    publication_committed: bool = False,
 ) -> PipelineResult:
     """Final ``PipelineResult`` constructor + closing INFO log."""
     duration = time.monotonic() - pipeline_start
@@ -3498,6 +3506,7 @@ def _build_result(
         source_outcomes=tuple(source_outcomes),
         content_completeness=content_completeness,
         segment_outcomes=tuple(segment_outcomes),
+        publication_committed=publication_committed,
     )
 
 

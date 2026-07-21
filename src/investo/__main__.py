@@ -102,6 +102,7 @@ _TARGET_DATE_OVERRIDE_VAR: Final[str] = "INVESTO_TARGET_DATE"
 _BOOT_ALERT_TIMEOUT_S: Final[float] = 5.0
 _BOOT_ALERT_ATTEMPTS: Final[int] = 2
 _GITHUB_STEP_SUMMARY_VAR: Final[str] = "GITHUB_STEP_SUMMARY"
+_GITHUB_OUTPUT_VAR: Final[str] = "GITHUB_OUTPUT"
 
 
 def _missing_env_vars() -> tuple[str, ...]:
@@ -312,6 +313,30 @@ def _pipeline_exit_code(result: PipelineResult) -> int:
     if result.status == PipelineStatus.FAILED or result.content_completeness == "none":
         return 1
     return 0
+
+
+def _write_github_outputs(result: PipelineResult) -> None:
+    """Append bounded machine outputs for the daily workflow controller."""
+    output_path = os.environ.get(_GITHUB_OUTPUT_VAR, "").strip()
+    if not output_path:
+        return
+    finalized_segments = sum(
+        1 for outcome in result.segment_outcomes if outcome.state == "finalized"
+    )
+    published_segments = finalized_segments if result.publication_committed else 0
+    lines = (
+        f"pipeline_status={result.status}",
+        f"content_completeness={result.content_completeness}",
+        f"publication_committed={str(result.publication_committed).lower()}",
+        "expected_segments=3",
+        f"finalized_segments={finalized_segments}",
+        f"published_segments={published_segments}",
+    )
+    try:
+        with Path(output_path).open("a", encoding="utf-8") as output_file:
+            output_file.write("\n".join(lines) + "\n")
+    except OSError:
+        _logger.warning("could not write GitHub outputs", exc_info=True)
 
 
 def _write_github_step_summary(result: PipelineResult) -> None:
@@ -541,6 +566,7 @@ async def _async_main() -> int:
                     _logger.warning("[weekly_ops_digest] dispatch failed", exc_info=True)
 
         _write_github_step_summary(result)
+        _write_github_outputs(result)
         return _pipeline_exit_code(result)
     except Exception as exc:
         # Programmer errors (KeyError, AttributeError, ValidationError

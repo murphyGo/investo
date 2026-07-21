@@ -349,6 +349,7 @@ async def test_run_pipeline_happy_path_success(archive_root: Path) -> None:
     assert result.status == PipelineStatus.SUCCESS
     assert result.content_completeness == "complete"
     assert result.segment_outcomes == ()
+    assert result.publication_committed is True
     assert result.target_date == _TARGET
     assert result.stages == {
         "collect": "ok",
@@ -419,6 +420,7 @@ async def test_run_pipeline_default_generates_and_publishes_three_segments(
         "finalized",
         "finalized",
     )
+    assert result.publication_committed is True
     assert [call[0] for call in segment_calls] == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
     assert [call[1] for call in segment_calls] == [1, 1, 1]
     assert [call[2] for call in segment_calls] == [True, True, True]
@@ -547,7 +549,7 @@ async def test_run_pipeline_dry_run_skips_quality_history_append(
 ) -> None:
     monkeypatch.setenv("INVESTO_DRY_RUN", "1")
 
-    await run_pipeline(
+    result = await run_pipeline(
         _TARGET,
         publisher=_FakePublisher(),
         alerter=_FakeAlerter(),
@@ -560,6 +562,7 @@ async def test_run_pipeline_dry_run_skips_quality_history_append(
     assert not (tmp_path / "quality_history.jsonl").exists()
     assert not (tmp_path / "forecast_log.jsonl").exists()
     assert not (tmp_path / "accuracy.md").exists()
+    assert result.publication_committed is False
 
 
 @pytest.mark.asyncio
@@ -1688,6 +1691,7 @@ async def test_run_pipeline_segment_publish_io_failure_rolls_back_written_files(
 
     assert result.status == PipelineStatus.FAILED
     assert result.stages["publish"] == "failed: PublisherIOError"
+    assert result.publication_committed is False
     assert result.stages["notify_briefing"] == "skipped"
     assert domestic_path.read_text(encoding="utf-8") == "previous domestic"
     assert prior_asset.read_bytes() == b"previous visual"

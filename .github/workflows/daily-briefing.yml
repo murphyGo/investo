@@ -59,9 +59,12 @@
 #                                  degradation). Free key from
 #                                  https://fred.stlouisfed.org/.
 #
-# **Exit code mapping**:
-#   0 = SUCCESS or PARTIAL  (workflow ✅)
-#   1 = FAILED              (workflow ❌ + GHA default email alert)
+# **Exit code / Pages sequencing**:
+#   0 = complete public content, including notifier-only PARTIAL
+#   1 = no public commit / FAILED
+#   2 = committed one/two-segment content-partial publication
+# The pipeline step captures rc without stopping the job. Pages runs only
+# when ``publication_committed=true``; the final step then re-emits rc 1/2.
 
 name: daily-briefing
 
@@ -178,6 +181,7 @@ jobs:
         run: python scripts/resolve_weekly_flags.py
 
       - name: Run pipeline (python -m investo)
+        id: pipeline
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -240,9 +244,26 @@ jobs:
           # this directory; pinning it explicitly makes the GHA cache
           # key match the path the workflow restores below.
           INVESTO_OPERATOR_STATE_DIR: archive/_meta/operator_state
-        run: uv run python -m investo
+        run: |
+          set +e
+          uv run python -m investo
+          pipeline_rc=$?
+          echo "process_exit_code=$pipeline_rc" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Trigger Pages deploy
+        if: steps.pipeline.outputs.publication_committed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --ref "$GITHUB_REF_NAME"
+
+      - name: Re-emit pipeline exit code
+        if: always()
+        env:
+          PIPELINE_RC: ${{ steps.pipeline.outputs.process_exit_code }}
+        run: |
+          case "$PIPELINE_RC" in
+            0) exit 0 ;;
+            1|2) exit "$PIPELINE_RC" ;;
+            *) echo "Invalid or missing pipeline exit code" >&2; exit 1 ;;
+          esac

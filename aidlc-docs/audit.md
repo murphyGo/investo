@@ -5377,3 +5377,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: CLI tests 61 passed; combined CLI/orchestrator scope 159 passed; Ruff/format and `mypy src` (244 source files) passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-content-aware-exit-codes.md`.
 **Status**: Step 5 checklist 5/8 complete. Next: workflow output capture, Pages gating, and delayed rc re-emission.
+
+## Construction — u144 Step 5.6 workflow Pages sequencing
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Added publish-owned `publication_committed`, bounded `$GITHUB_OUTPUT` values, a non-short-circuiting pipeline wrapper, commit-gated Pages dispatch, and an `always()` final step that validates and re-emits rc 0/1/2.
+**Decisions**: Dry-run and any pre-commit failure remain `publication_committed=false`. Pages depends only on the commit flag, not overloaded pipeline status. Missing or invalid captured rc fails closed as 1 after Pages opportunity.
+**Validation**: Focused scope 116 passed; combined result/CLI/workflow/env/weekly/orchestrator scope 229 passed; Ruff/format and `mypy src` (244 source files) passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-workflow-pages-sequencing.md`.
+**Status**: Step 5 checklist 6/8 complete. Next: GitHub step-summary content diagnostics.
