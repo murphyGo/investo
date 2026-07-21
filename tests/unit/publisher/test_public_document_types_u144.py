@@ -10,6 +10,7 @@ from types import MappingProxyType
 
 import pytest
 
+from investo.models.briefing import Briefing
 from investo.models.bundle_context import (
     BundleContext,
     DailyThesisDecision,
@@ -18,7 +19,12 @@ from investo.models.bundle_context import (
 from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.public_notification import PublicNotificationSummary
-from investo.models.segments import DOMESTIC_EQUITY, SegmentCoverage
+from investo.models.segments import (
+    DOMESTIC_EQUITY,
+    US_EQUITY,
+    MarketSegment,
+    SegmentCoverage,
+)
 from investo.publisher import FinalizedPublicBundle, FinalizedPublicDocument
 from investo.publisher.public_document import (
     PublicDocumentContext,
@@ -28,10 +34,15 @@ from investo.publisher.public_document import (
     PublicDocumentSupplement,
     PublicRegionExpectation,
     SegmentFinalizationOutcome,
+    SegmentInputAbsence,
     StagedArtifact,
     _build_finalized_bundle,
+    _FinalizationPhaseHandlers,
+    _finalize_bundle_skeleton,
+    _finalize_segment_skeleton,
     _new_generated_draft,
     _seal_document,
+    _SegmentTrustBlockedError,
     _transition_draft,
 )
 from tests._helpers.briefings import build_briefing
@@ -40,9 +51,9 @@ _TARGET_DATE = date(2026, 7, 21)
 _DIGEST = sha256(b"asset").hexdigest()
 
 
-def _coverage() -> SegmentCoverage:
+def _coverage(segment: MarketSegment = DOMESTIC_EQUITY) -> SegmentCoverage:
     return SegmentCoverage(
-        segment=DOMESTIC_EQUITY,
+        segment=segment,
         status="normal",
         item_count=0,
         source_count=0,
@@ -72,6 +83,95 @@ def _notification() -> PublicNotificationSummary:
         conclusion="[관망] 확인된 결론",
         coverage_status="normal",
         coverage_label="정상",
+    )
+
+
+def _context(
+    *,
+    expected_segments: tuple[MarketSegment, ...] = (DOMESTIC_EQUITY,),
+    input_absences: dict[MarketSegment, SegmentInputAbsence] | None = None,
+) -> PublicDocumentContext:
+    absences = {} if input_absences is None else input_absences
+    generated = tuple(segment for segment in expected_segments if segment not in absences)
+    return PublicDocumentContext(
+        target_date=_TARGET_DATE,
+        expected_segments=expected_segments,
+        input_absences=absences,
+        anchors_by_segment={},
+        items_by_segment={},
+        coverage_by_segment={segment: _coverage(segment) for segment in generated},
+        source_outcomes=(),
+        bundle_context=None,
+        fact_bundle=VerifiedFactBundle(target_date=_TARGET_DATE),
+        entity_observed_at_utc=datetime(2026, 7, 21, tzinfo=UTC),
+    )
+
+
+def _draft_factory(
+    briefing: Briefing,
+    segment: MarketSegment,
+    context: PublicDocumentContext,
+) -> PublicDocumentDraft:
+    return _new_generated_draft(
+        briefing,
+        segment=segment,
+        layout=PublicDocumentLayout(
+            markdown=briefing.rendered_markdown,
+            regions=(),
+            expectation=PublicRegionExpectation(
+                target_date=context.target_date,
+                segment=segment,
+                segmented_mode=True,
+                supplement_ids=(),
+                shared_macro_required=False,
+                crypto_indicators_required=False,
+                channel_anchors_required=False,
+                daily_thesis_required=False,
+                anchor_table_required=False,
+            ),
+        ),
+    )
+
+
+def _phase_handlers(events: list[str] | None = None) -> _FinalizationPhaseHandlers:
+    seen = [] if events is None else events
+
+    def assemble(draft: PublicDocumentDraft, context: PublicDocumentContext) -> PublicDocumentDraft:
+        del context
+        seen.append("assembled")
+        return _transition_draft(draft, next_phase="assembled")
+
+    def project(draft: PublicDocumentDraft, context: PublicDocumentContext) -> PublicDocumentDraft:
+        del context
+        seen.append("projected")
+        return _transition_draft(draft, next_phase="projected")
+
+    def repair(draft: PublicDocumentDraft, context: PublicDocumentContext) -> PublicDocumentDraft:
+        del context
+        seen.append("repaired")
+        return _transition_draft(draft, next_phase="repaired")
+
+    def validate(draft: PublicDocumentDraft, context: PublicDocumentContext) -> PublicDocumentDraft:
+        seen.append("validated")
+        coverage = context.coverage_by_segment[draft.segment]
+        return _transition_draft(
+            draft,
+            next_phase="validated",
+            notification_summary=PublicNotificationSummary(
+                segment=draft.segment,
+                target_date=draft.target_date,
+                conclusion="[관망] 확인된 결론",
+                coverage_status=coverage.status,
+                coverage_label=coverage.status_label,
+            ),
+        )
+
+    return _FinalizationPhaseHandlers(
+        assemble=assemble,
+        project=project,
+        repair=repair,
+        validate=validate,
+        artifact_ids=lambda draft, context: (),
     )
 
 
@@ -304,3 +404,240 @@ def test_finalization_error_message_never_renders_cause() -> None:
     assert error.issue_codes == ("summary.invalid",)
     assert error.cause is secret_cause
     assert "must-not-render" not in str(error)
+
+
+def test_segment_skeleton_runs_declared_phase_order_and_seals() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    draft = _draft_factory(briefing, DOMESTIC_EQUITY, context)
+    events: list[str] = []
+
+    document = _finalize_segment_skeleton(
+        draft,
+        context=context,
+        handlers=_phase_handlers(events),
+    )
+
+    assert events == ["assembled", "projected", "repaired", "validated"]
+    assert document.segment == DOMESTIC_EQUITY
+    assert document.briefing.rendered_markdown == briefing.rendered_markdown
+
+
+def test_segment_skeleton_rejects_handler_that_skips_phase() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    draft = _draft_factory(briefing, DOMESTIC_EQUITY, context)
+    valid = _phase_handlers()
+    invalid = _FinalizationPhaseHandlers(
+        assemble=lambda current, _: current,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    with pytest.raises(ValueError, match=r"invariant\.phase_transition"):
+        _finalize_segment_skeleton(draft, context=context, handlers=invalid)
+
+
+def test_bundle_skeleton_converts_phase_skip_to_bounded_e8() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    valid = _phase_handlers()
+    invalid = _FinalizationPhaseHandlers(
+        assemble=lambda current, _: current,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    with pytest.raises(PublicDocumentFinalizationError) as exc:
+        _finalize_bundle_skeleton(
+            {DOMESTIC_EQUITY: briefing},
+            context=context,
+            draft_factory=_draft_factory,
+            handlers=invalid,
+        )
+
+    assert exc.value.segment == DOMESTIC_EQUITY
+    assert exc.value.phase == "assembled"
+    assert exc.value.issue_codes == ("invariant.phase_transition",)
+    assert exc.value.cause is not None
+
+
+def test_bundle_skeleton_converts_briefing_identity_swap_to_bounded_e8() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    valid = _phase_handlers()
+
+    def swap_briefing(
+        draft: PublicDocumentDraft, phase_context: PublicDocumentContext
+    ) -> PublicDocumentDraft:
+        replacement = build_briefing(target_date=draft.target_date)
+        replacement_draft = _draft_factory(replacement, draft.segment, phase_context)
+        return _transition_draft(replacement_draft, next_phase="assembled")
+
+    invalid = _FinalizationPhaseHandlers(
+        assemble=swap_briefing,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    with pytest.raises(PublicDocumentFinalizationError) as exc:
+        _finalize_bundle_skeleton(
+            {DOMESTIC_EQUITY: briefing},
+            context=context,
+            draft_factory=_draft_factory,
+            handlers=invalid,
+        )
+
+    assert exc.value.segment == DOMESTIC_EQUITY
+    assert exc.value.phase == "assembled"
+    assert exc.value.issue_codes == ("invariant.briefing_identity",)
+    assert exc.value.cause is not None
+
+
+def test_bundle_skeleton_bounds_unexpected_handler_exception() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    valid = _phase_handlers()
+
+    def explode(
+        draft: PublicDocumentDraft, phase_context: PublicDocumentContext
+    ) -> PublicDocumentDraft:
+        del draft, phase_context
+        raise RuntimeError("secret payload must not render")
+
+    handlers = _FinalizationPhaseHandlers(
+        assemble=explode,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    with pytest.raises(PublicDocumentFinalizationError) as exc:
+        _finalize_bundle_skeleton(
+            {DOMESTIC_EQUITY: briefing},
+            context=context,
+            draft_factory=_draft_factory,
+            handlers=handlers,
+        )
+
+    assert exc.value.issue_codes == ("invariant.phase_handler_exception",)
+    assert isinstance(exc.value.cause, RuntimeError)
+    assert "secret payload" not in str(exc.value)
+
+
+def test_bundle_skeleton_preserves_typed_generation_absence() -> None:
+    context = _context(
+        expected_segments=(DOMESTIC_EQUITY, US_EQUITY),
+        input_absences={US_EQUITY: "generation_failed"},
+    )
+    briefing = build_briefing(target_date=_TARGET_DATE)
+
+    bundle = _finalize_bundle_skeleton(
+        {DOMESTIC_EQUITY: briefing},
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=_phase_handlers(),
+    )
+
+    assert tuple(outcome.state for outcome in bundle.segment_outcomes) == (
+        "finalized",
+        "generation_absent",
+    )
+    assert bundle.documents[0].segment == DOMESTIC_EQUITY
+
+
+def test_bundle_skeleton_zero_survivors_raises_bounded_e8() -> None:
+    context = _context()
+    briefing = build_briefing(target_date=_TARGET_DATE)
+    valid = _phase_handlers()
+
+    def block(draft: PublicDocumentDraft, context: PublicDocumentContext) -> PublicDocumentDraft:
+        del draft, context
+        raise _SegmentTrustBlockedError(
+            phase="assembled",
+            issue_codes=("numeric.anchor_assertion",),
+        )
+
+    handlers = _FinalizationPhaseHandlers(
+        assemble=block,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    with pytest.raises(PublicDocumentFinalizationError) as exc:
+        _finalize_bundle_skeleton(
+            {DOMESTIC_EQUITY: briefing},
+            context=context,
+            draft_factory=_draft_factory,
+            handlers=handlers,
+        )
+
+    assert exc.value.phase == "bundle"
+    assert exc.value.issue_codes == (
+        "bundle.zero_survivors",
+        "numeric.anchor_assertion",
+    )
+
+
+def test_bundle_skeleton_keeps_valid_sibling_when_one_segment_is_trust_blocked() -> None:
+    context = _context(expected_segments=(DOMESTIC_EQUITY, US_EQUITY))
+    valid = _phase_handlers()
+
+    def assemble(
+        draft: PublicDocumentDraft, phase_context: PublicDocumentContext
+    ) -> PublicDocumentDraft:
+        if draft.segment == US_EQUITY:
+            raise _SegmentTrustBlockedError(
+                phase="assembled",
+                issue_codes=("entity.fact_contradiction",),
+            )
+        return valid.assemble(draft, phase_context)
+
+    handlers = _FinalizationPhaseHandlers(
+        assemble=assemble,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    bundle = _finalize_bundle_skeleton(
+        {
+            DOMESTIC_EQUITY: build_briefing(target_date=_TARGET_DATE),
+            US_EQUITY: build_briefing(target_date=_TARGET_DATE),
+        },
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=handlers,
+    )
+
+    assert tuple(document.segment for document in bundle.documents) == (DOMESTIC_EQUITY,)
+    assert tuple(outcome.state for outcome in bundle.segment_outcomes) == (
+        "finalized",
+        "trust_blocked",
+    )
+    assert bundle.segment_outcomes[1].issue_codes == ("entity.fact_contradiction",)
+
+
+def test_bundle_skeleton_rejects_unexplained_missing_briefing() -> None:
+    context = _context()
+
+    with pytest.raises(PublicDocumentFinalizationError) as exc:
+        _finalize_bundle_skeleton(
+            {},
+            context=context,
+            draft_factory=_draft_factory,
+            handlers=_phase_handlers(),
+        )
+
+    assert exc.value.phase == "input"
+    assert exc.value.issue_codes == ("input.briefing_keys",)

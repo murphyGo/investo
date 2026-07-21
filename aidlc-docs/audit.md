@@ -109,6 +109,15 @@
 **Scope**: Types and pure construction only. The minimal notification DTO shell is an E5 dependency; its validation/export plus typed watchpoint result remain Step 1.4. No finalizer/writer/production path switched, and unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 1 checklist 2 — add pure bundle/segment finalization skeletons with explicit phase assertions.
 
+## Construction — u144 Code Generation Step 1.2 pure finalizer skeleton landed
+
+**Timestamp**: 2026-07-21T03:45:00Z
+**Action**: Added publisher-private pure segment/bundle coordinators over the five-state lifecycle.
+**Evidence**: Segment handlers must return the exact next phase without changing segment/date/generated-briefing identity; only known E1 artifact IDs may seal. Bundle inputs exactly reconcile expected segments and typed generation absences, trust blocks remain per-segment outcomes, zero survivors and programmer invariant failures become bounded E8, and E6 reuses exact E1 descriptors.
+**Validation**: Scoped Ruff/format and publisher-package strict mypy passed; 16 lifecycle/skeleton tests and all 553 publisher tests passed; fresh re-review approved the final snapshot.
+**Scope**: No concrete phase algorithm, fixed-point retry, public finalizer export, writer, or production call site was introduced. Unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 1 checklist 3 — implement the exact FD RegionSpec table, expectations, marker regions, partition/reindex, replacement, and omission behavior.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

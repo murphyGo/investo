@@ -8,7 +8,7 @@ the phase algorithms and production switch land in later construction steps.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from hashlib import sha256
@@ -534,6 +534,246 @@ def _transition_draft(
         notification_summary=notification_summary,
         validation_witness=witness,
     )
+
+
+_DraftFactory = Callable[[Briefing, MarketSegment, PublicDocumentContext], PublicDocumentDraft]
+_DraftPhaseHandler = Callable[[PublicDocumentDraft, PublicDocumentContext], PublicDocumentDraft]
+_ArtifactIdSelector = Callable[[PublicDocumentDraft, PublicDocumentContext], Sequence[str]]
+
+
+@dataclass(frozen=True, slots=True)
+class _FinalizationPhaseHandlers:
+    """Pure collaborators used while the concrete phase algorithms land."""
+
+    assemble: _DraftPhaseHandler
+    project: _DraftPhaseHandler
+    repair: _DraftPhaseHandler
+    validate: _DraftPhaseHandler
+    artifact_ids: _ArtifactIdSelector
+
+
+class _SegmentTrustBlockedError(Exception):
+    """Internal typed signal for one non-degradable segment finding."""
+
+    def __init__(
+        self,
+        *,
+        phase: PublicDocumentPhase,
+        issue_codes: Sequence[str],
+    ) -> None:
+        self.phase = phase
+        self.issue_codes = _canonical_issue_codes(issue_codes)
+        codes = ",".join(self.issue_codes) if self.issue_codes else "unspecified"
+        super().__init__(f"segment trust blocked: phase={phase} codes={codes}")
+
+
+class _FinalizationInvariantError(ValueError):
+    """Internal bounded programmer-invariant failure converted to E8."""
+
+    def __init__(self, *, phase: str, issue_code: str) -> None:
+        self.phase = phase
+        self.issue_code = issue_code
+        super().__init__(f"finalization invariant failed: phase={phase} code={issue_code}")
+
+
+def _assert_phase_result(
+    *,
+    previous: PublicDocumentDraft,
+    result: PublicDocumentDraft,
+    expected_phase: PublicDocumentPhase,
+) -> None:
+    if result.phase != expected_phase:
+        raise _FinalizationInvariantError(
+            phase=expected_phase,
+            issue_code="invariant.phase_transition",
+        )
+    if result.segment != previous.segment or result.target_date != previous.target_date:
+        raise _FinalizationInvariantError(
+            phase=expected_phase,
+            issue_code="invariant.segment_identity",
+        )
+    if result.source_briefing is not previous.source_briefing:
+        raise _FinalizationInvariantError(
+            phase=expected_phase,
+            issue_code="invariant.briefing_identity",
+        )
+
+
+def _finalize_segment_skeleton(
+    draft: PublicDocumentDraft,
+    *,
+    context: PublicDocumentContext,
+    handlers: _FinalizationPhaseHandlers,
+) -> FinalizedPublicDocument:
+    """Run one generated draft through the declared pure phase order."""
+
+    if draft.phase != "generated":
+        raise _FinalizationInvariantError(
+            phase="generated",
+            issue_code="invariant.segment_start_phase",
+        )
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise _FinalizationInvariantError(
+            phase="generated",
+            issue_code="invariant.segment_identity",
+        )
+    if draft.segment in context.input_absences:
+        raise _FinalizationInvariantError(
+            phase="generated",
+            issue_code="invariant.absence_conflict",
+        )
+
+    current = draft
+    phase_handlers: tuple[tuple[PublicDocumentPhase, _DraftPhaseHandler], ...] = (
+        ("assembled", handlers.assemble),
+        ("projected", handlers.project),
+        ("repaired", handlers.repair),
+        ("validated", handlers.validate),
+    )
+    for expected_phase, handler in phase_handlers:
+        result = handler(current, context)
+        _assert_phase_result(
+            previous=current,
+            result=result,
+            expected_phase=expected_phase,
+        )
+        current = result
+
+    artifact_ids = tuple(handlers.artifact_ids(current, context))
+    known_artifacts = {
+        artifact.artifact_id
+        for artifact in context.staged_artifacts_by_segment.get(draft.segment, ())
+    }
+    if not set(artifact_ids) <= known_artifacts:
+        raise _FinalizationInvariantError(
+            phase="validated",
+            issue_code="invariant.artifact_selection",
+        )
+    return _seal_document(current, staged_artifact_ids=artifact_ids)
+
+
+def _finalize_bundle_skeleton(
+    briefings: Mapping[MarketSegment, Briefing],
+    *,
+    context: PublicDocumentContext,
+    draft_factory: _DraftFactory,
+    handlers: _FinalizationPhaseHandlers,
+) -> FinalizedPublicBundle:
+    """Pure single-pass bundle coordinator used before the production switch.
+
+    The active-survivor fixed point and concrete phase collaborators land in
+    later checklist items.  This skeleton already pins input identity,
+    generation-absence outcomes, segment trust blocks, zero-survivor E8, and
+    E1-derived promotion manifests.
+    """
+
+    expected_generated = set(context.expected_segments) - set(context.input_absences)
+    if set(briefings) != expected_generated:
+        raise PublicDocumentFinalizationError(
+            target_date=context.target_date,
+            segment=None,
+            phase="input",
+            issue_codes=("input.briefing_keys",),
+        )
+    if any(briefing.target_date != context.target_date for briefing in briefings.values()):
+        raise PublicDocumentFinalizationError(
+            target_date=context.target_date,
+            segment=None,
+            phase="input",
+            issue_codes=("input.target_date",),
+        )
+
+    documents: list[FinalizedPublicDocument] = []
+    outcomes: list[SegmentFinalizationOutcome] = []
+    for segment in context.expected_segments:
+        if segment in context.input_absences:
+            outcomes.append(
+                SegmentFinalizationOutcome(
+                    segment=segment,
+                    state="generation_absent",
+                    issue_codes=("generation.failed",),
+                )
+            )
+            continue
+        briefing = briefings[segment]
+        try:
+            draft = draft_factory(briefing, segment, context)
+            if (
+                draft.phase != "generated"
+                or draft.segment != segment
+                or draft.target_date != context.target_date
+                or draft.source_briefing is not briefing
+            ):
+                raise _FinalizationInvariantError(
+                    phase="generated",
+                    issue_code="invariant.draft_factory",
+                )
+            document = _finalize_segment_skeleton(
+                draft,
+                context=context,
+                handlers=handlers,
+            )
+        except _SegmentTrustBlockedError as exc:
+            outcomes.append(
+                SegmentFinalizationOutcome(
+                    segment=segment,
+                    state="trust_blocked",
+                    issue_codes=exc.issue_codes,
+                )
+            )
+            continue
+        except _FinalizationInvariantError as exc:
+            raise PublicDocumentFinalizationError(
+                target_date=context.target_date,
+                segment=segment,
+                phase=exc.phase,
+                issue_codes=(exc.issue_code,),
+                cause=exc,
+            ) from exc
+        except ValueError as exc:
+            raise PublicDocumentFinalizationError(
+                target_date=context.target_date,
+                segment=segment,
+                phase="bundle",
+                issue_codes=("invariant.phase_handler",),
+                cause=exc,
+            ) from exc
+        except Exception as exc:
+            raise PublicDocumentFinalizationError(
+                target_date=context.target_date,
+                segment=segment,
+                phase="bundle",
+                issue_codes=("invariant.phase_handler_exception",),
+                cause=exc,
+            ) from exc
+        documents.append(document)
+        outcomes.append(SegmentFinalizationOutcome(segment=segment, state="finalized"))
+
+    if not documents:
+        all_codes = (
+            *(code for outcome in outcomes for code in outcome.issue_codes),
+            "bundle.zero_survivors",
+        )
+        raise PublicDocumentFinalizationError(
+            target_date=context.target_date,
+            segment=None,
+            phase="bundle",
+            issue_codes=all_codes,
+        )
+    try:
+        return _build_finalized_bundle(
+            context,
+            documents=documents,
+            segment_outcomes=outcomes,
+        )
+    except ValueError as exc:
+        raise PublicDocumentFinalizationError(
+            target_date=context.target_date,
+            segment=None,
+            phase="bundle",
+            issue_codes=("invariant.bundle_factory",),
+            cause=exc,
+        ) from exc
 
 
 @dataclass(frozen=True, slots=True, init=False)

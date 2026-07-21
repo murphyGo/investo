@@ -295,7 +295,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 ### Step 1 — Add lifecycle types and pure finalizer skeleton
 
 - [x] Add `publisher/public_document.py` with `generated -> assembled -> projected -> repaired -> validated`, E1 coverage/absence/entity-clock/supplement/staged-artifact inputs, bounded layout regions, E5 artifact/notification outputs, E6 segment outcomes/promotion manifest, errors, and seal factory. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-1-lifecycle-types.md`.
-- [ ] Add pure bundle/segment finalization skeletons with phase assertions.
+- [x] Add pure bundle/segment finalization skeletons with phase assertions. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-1-finalizer-skeleton.md`.
 - [ ] Implement the FD `RegionSpec` table and `PublicRegionExpectation` exactly, including typed `supplement_id` marker-wrapped blocks, active-pass conditional presence, exact anchor headers/empty-anchor absence, five section titles/short disclaimers/H1, priority partition, duplicate/overlap/missing rules, body-only replacement/marker-shell omission, and full reindex; prove duplicated evidence in two blocks maps by region ID rather than `str.find`.
 - [ ] Add `models.public_notification.PublicNotificationSummary` with segment/date, typed coverage status/label, sealed conclusion, and optional sealed watchlist; add the typed `WatchpointRenderResult` contract without switching production yet.
 - [ ] Add writer digest verification and the new sealed writer API without switching production yet.
