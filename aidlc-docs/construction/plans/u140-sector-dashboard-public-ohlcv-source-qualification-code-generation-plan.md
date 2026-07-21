@@ -65,6 +65,7 @@ adapter or Pages construction is registered.
 | Databento Historical API / `EQUS.SUMMARY` | technically provides consolidated US-equities EOD `ohlcv-1d`, multi-symbol requests, and ample rate limits, but every historical byte is usage-billed after a one-time $125 credit that expires in six months; exact dataset public derived-display rights require separate catalog/license-manager confirmation | reject for the permanent-free gate and unproven exact public rights (2026-07-21 Step 0) |
 | Intrinio EOD Historical Stock Prices | technically provides 50+ years of daily raw/adjusted OHLCV, corporate-action fields, and up to 100 rows per page, but production starts at USD 150/month for internal-only Individual access; external display begins on the paid Startup plan under an executed Order Form | reject for the permanent-free and free public-rights gates (2026-07-21 Step 0) |
 | SimFin Daily Share Prices | Free technically offers five years of daily US share-price history, API/bulk access, OHLC, adjusted close, and volume, but FREE/BASIC permits personal research only and forbids sharing; reprocessed data keeps the same restrictions, while redistribution requires a separate commercial redistribution/Enterprise license | reject for the explicit free public-rights gate (2026-07-21 Step 0) |
+| FinancialData.Net ETF Prices API | technically provides an exact SPY/ETF daily OHLCV route, more than ten years of history, and up to 300 records per response, but ETF Prices is Premium at USD 69/month or USD 599/year; external display and redistribution are Enterprise-only at USD 299/month or USD 2,599/year | reject for the permanent-free and explicit free public-rights gates (2026-07-21 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -192,6 +193,13 @@ Primary SimFin references, checked 2026-07-21:
 - `https://www.simfin.com/en/fundamental-data-download/`
 - `https://github.com/SimFin/simfin`
 - `https://www.simfin.com/en/technical-updates-to-api-v3-and-bulk-download/`
+
+Primary FinancialData.Net references, checked 2026-07-21:
+
+- `https://financialdata.net/documentation`
+- `https://financialdata.net/pricing`
+- `https://financialdata.net/terms-of-service`
+- `https://financialdata.net/stock-prices-api`
 
 ## Qualification Steps
 
@@ -438,6 +446,28 @@ license's undefined `interpretations` exception is not an explicit grant for pub
 numeric radar metrics, which may instead be reprocessed data. Exact ETF coverage and
 the meaning of the Free bulk `delayed` label also remain unproven. The explicit free
 public derived-display gate therefore fails before probing. Step 1 does not apply.
+
+#### Iteration 15 — FinancialData.Net ETF Prices API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-financialdata-net-etf-prices.md`.
+Disposition: **reject under current published pricing and terms**. The documented
+ETF endpoint is technically well matched: `GET /api/v1/etf-prices?identifier=SPY`
+returns daily open, high, low, close, and volume, advertises more than ten years of
+history, and allows up to 300 records per response. However, ETF Prices is explicitly
+a Premium feature at USD 69/month or USD 599/year. The USD 0 Free plan's historical
+price route covers company stocks, not ETFs. The terms prohibit public display and
+distribution except where a subscription permits them, and the pricing page reserves
+external commercial use, display, and redistribution for Enterprise at USD 299/month
+or USD 2,599/year. Both binding gates fail before account creation or probing. Exact
+12-symbol coverage, freshness, adjustment semantics, and runner stability remain
+unproven. Step 1 does not apply.
 
 #### Next candidate iteration
 

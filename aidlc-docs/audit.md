@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 15 (FinancialData.Net ETF Prices)
+**Timestamp**: 2026-07-21T07:34:05Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the SimFin Step 0 slice as `b4f0578`, staging only its seven u140 document changes while preserving concurrent u144 implementation work and unrelated generated/settings artifacts.
+**Primary-source evidence**: FinancialData.Net documents an exact `GET /api/v1/etf-prices?identifier=SPY` endpoint with more than ten years of daily open, high, low, close, and volume and up to 300 records per response. That ETF route is explicitly a Premium feature, currently USD 69/month or USD 599/year for personal use. The Free plan's historical price access is for company stocks rather than ETFs. External commercial use, display, and redistribution appear only on Enterprise, currently USD 299/month or USD 2,599/year, while the general terms prohibit public display, transmission, and distribution unless the selected subscription expressly permits them.
+**Deduplication**: No `financialdata.net`, FinancialData.Net API key, ETF-prices endpoint, adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under `src/`, `tests/`, `scripts/`, `.github/`, or dependency configuration.
+**Decision**: `reject under current published pricing and terms` for u140. The endpoint clears preliminary field, range, and per-response depth checks, but fails both the permanent-free and explicit free public derived-display gates. Exact 12-symbol availability, corporate-action adjustment semantics, at-most-36-hour freshness, continuity, and rotating-runner stability were not probed. No account/key or paid plan was created, no payload was fetched, and no raw provider data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-21-financialdata-net-etf-prices.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-15. A new candidate must repeat Step 0; only a candidate with at least 63 permanently free daily bars and explicit free public derived-display rights can advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 14 (SimFin Daily Share Prices)
 **Timestamp**: 2026-07-20T17:44:58Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the Intrinio Step 0 slice as `1d3eff3`, staging only its seven u140 document changes while preserving concurrent u144 design work and unrelated generated/settings artifacts.
