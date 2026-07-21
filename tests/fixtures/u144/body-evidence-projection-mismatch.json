@@ -1,0 +1,23 @@
+{
+  "fixture_id": "u144-body-evidence-projection-mismatch",
+  "segment": "us-equity",
+  "markdown_before_projection": "# 미국 주식 시황\n\n> **데이터 상태**: 정상 — 공개 근거를 바탕으로 작성했습니다.\n> **소스 카운트**: 수집 대상 5 / 성공 1 / 0건 0 / 실패 0 / 본문 사용 미집계\n\n## ② 금리와 주식의 연결\n\n- [공개 금리 지표](https://fred.stlouisfed.org/series/REDACTED)는 본문 판단 근거입니다.\n",
+  "markdown_after_projection": "# 미국 주식 시황\n\n> **데이터 상태**: 정상 — 공개 근거를 바탕으로 작성했습니다.\n> **소스 카운트**: 수집 대상 5 / 성공 1 / 수집 상세는 진단 섹션에서 확인할 수 있습니다. / 수집 상세는 진단 섹션에서 확인할 수 있습니다. / 수집 상세는 진단 섹션에서 확인할 수 있습니다.\n\n## ② 금리와 주식의 연결\n\n- [공개 금리 지표](https://fred.stlouisfed.org/series/REDACTED)는 본문 판단 근거입니다.\n",
+  "expected_pre_u144": {
+    "known_body_evidence_count": 1,
+    "parsed_body_used_count_before_projection": null,
+    "body_used_observed_before_projection": true,
+    "parsed_body_used_count_after_projection": null,
+    "body_used_observed_after_projection": false,
+    "issue_codes_before_projection": [
+      "quality.body_evidence_untracked"
+    ],
+    "issue_codes_after_projection": [],
+    "later_gate_loses_accounting_signal": true
+  },
+  "redactions": [
+    "source series identifier",
+    "market values",
+    "source item text"
+  ]
+}

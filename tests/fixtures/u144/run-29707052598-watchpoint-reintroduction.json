@@ -1,0 +1,37 @@
+{
+  "fixture_id": "u144-run-29707052598-watchpoint-reintroduction",
+  "incident": {
+    "github_actions_run_id": 29707052598,
+    "target_date": "2026-07-17",
+    "segment": "crypto",
+    "generated_segment_count": 3,
+    "failed_segment_count": 0,
+    "pipeline_status": "partial",
+    "terminal_issue_code": "public_diagnostic.raw_label"
+  },
+  "markdown_before_watchpoint": "# 디지털 자산 시황\n\n## ① 요약\n\n공개 근거를 요약합니다.\n\n## ⑥ 오늘의 관전 포인트\n\n- 확인 소스: CoinGecko · 현재 BTC 공개 가격 흐름; 기준선을 상회하면 변동성 확대 확인; 기준선을 이탈하면 변동성 완화 확인.\n",
+  "input_bullets": [
+    "확인 소스: CoinGecko · 현재 BTC 공개 가격 흐름; 기준선을 상회하면 변동성 확대 확인; 기준선을 이탈하면 변동성 완화 확인."
+  ],
+  "expected_row": {
+    "source": "CoinGecko",
+    "current": "현재 BTC 공개 가격 흐름",
+    "bullish_trigger": "기준선을 상회하면 변동성 확대 확인",
+    "bearish_trigger": "기준선을 이탈하면 변동성 완화 확인.",
+    "confidence": "보통",
+    "implication": "관심 영향 데이터 부족"
+  },
+  "markdown_after_watchpoint": "# 디지털 자산 시황\n\n## ① 요약\n\n공개 근거를 요약합니다.\n\n## ⑥ 오늘의 관전 포인트\n\n#### 관찰 신호: 현재 BTC 공개 가격 흐름; 기준선을 상회하면 변동성…\n\n- 출처: CoinGecko\n- 현재: 현재 BTC 공개 가격 흐름\n- 확인 조건: 상방 기준선을 상회하면 변동성 확대 확인; 하방 기준선을 이탈하면 변동성 완화 확인.\n- 신뢰도: 보통\n- 관심 영향: 관심 영향 데이터 부족\n",
+  "expected_pre_u144": {
+    "public_projection_before_watchpoint": true,
+    "raw_label_reintroduced_by_watchpoint": true,
+    "blocking_issue_codes": [
+      "public_diagnostic.raw_label"
+    ]
+  },
+  "redactions": [
+    "source payloads",
+    "market values",
+    "notification destination"
+  ]
+}

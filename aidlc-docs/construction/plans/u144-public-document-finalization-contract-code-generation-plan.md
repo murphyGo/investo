@@ -286,7 +286,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 ### Step 0 — Freeze the current mutation graph and incident corpus
 
 - [x] Enumerate every production `rendered_markdown` mutation and its call order. The baseline list must include `visuals/assets.py`, chart/carryover injection, `segment_reader_format.py`, `_rewrite_segment_nav_for_published_segments`, canonical/short disclaimer, summary repair, and body-used rendering. Baseline: `aidlc-docs/construction/u144-public-document-finalization-contract/code/mutation-graph-baseline.md`.
-- [ ] Add redacted fixtures for run `29707052598` (`데이터 부족` reintroduction), the first-viewport truncation family, and the body-evidence projection mismatch.
+- [x] Add redacted fixtures for run `29707052598` (`데이터 부족` reintroduction), the first-viewport truncation family, and the body-evidence projection mismatch. Fixtures: `tests/fixtures/u144/`.
 - [ ] Pin the pre-u144 failure behavior in characterization tests before changing it.
 - [ ] Freeze the existing u63/u94 content-partial behavior and notifier-only partial behavior as separate fixtures before changing exit signaling.
 - [ ] Enumerate every current `SurfaceQualityIssue.code` and land the exhaustive issue-code × owned-block disposition table from FD; a newly added code must fail the exhaustiveness test.
