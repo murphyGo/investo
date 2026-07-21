@@ -368,6 +368,14 @@
 **Validation**: Sealed-writer, rollback, writer-contract, architecture, and orchestrator regression scope passed 128; Ruff check/format and strict mypy over 243 source files passed.
 **Next**: Step 5 checklist 2 — feed sealed bytes to index, OG, evidence, quality, replay, and notifier consumers without mutation.
 
+## Construction — u144 Code Generation Step 5.2 sealed consumer view landed
+
+**Timestamp**: 2026-07-22T00:45:00+09:00
+**Action**: `_stage_publish_segments()` now treats E6 as the only downstream byte owner. After validating that the compatibility input keys equal the canonical E6 survivor tuple, it replaces the input mapping with an E5-derived briefing view. Index, OG, evidence accounting, quality snapshot/consistency, forecast replay, watchlist, and other pre-git consumers all receive that same sealed view. PublishStage also returns it unchanged for the notifier handoff.
+**Mutation rule**: The existing production AST allowlist continues to reject post-seal `rendered_markdown` construction or `model_copy(update=...)` sites. A hostile differing compatibility briefing cannot reach index or OG when E6 is present.
+**Validation**: Direct sealed-consumer and PublishStage handoff regressions passed 4; Ruff check/format and strict mypy over 243 source files passed.
+**Next**: Step 5 checklist 3 — enforce the terminal `PublicNotificationSummary` DTO boundary.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.

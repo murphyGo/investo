@@ -1204,14 +1204,23 @@ async def _stage_publish_segments(
 
     archive_paths: dict[MarketSegment, Path] = {}
 
-    published_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
+    requested_segments = tuple(segment for segment in SEGMENT_ORDER if segment in briefings)
     finalized_documents = (
         {document.segment: document for document in finalized_bundle.documents}
         if finalized_bundle is not None
         else {}
     )
-    if finalized_bundle is not None and tuple(finalized_documents) != published_segments:
+    if finalized_bundle is not None and tuple(finalized_documents) != requested_segments:
         raise ValueError("finalized documents must match published segments in canonical order")
+    if finalized_bundle is not None:
+        # E5 owns the only bytes downstream consumers may observe. Ignore the
+        # compatibility Briefing values supplied alongside E6 after checking
+        # their segment set; every index/OG/evidence/quality/replay consumer
+        # below, and PublishStage's notifier handoff, receives this sealed view.
+        briefings = {
+            segment: finalized_documents[segment].briefing for segment in requested_segments
+        }
+    published_segments = requested_segments
     snapshot_paths = [
         *(compute_archive_path(target_date, segment=segment) for segment in published_segments),
     ]

@@ -3025,12 +3025,15 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
     tmp_path: Path,
 ) -> None:
     _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
-    sealed = _briefing(segment=DOMESTIC_EQUITY).model_copy(
-        update={"rendered_markdown": "sealed bytes -- sealed writer only\n"}
+    sealed = _briefing(segment=DOMESTIC_EQUITY)
+    unsealed = sealed.model_copy(
+        update={"rendered_markdown": sealed.rendered_markdown.replace("오늘 시장 요약", "unsealed")}
     )
     document = SimpleNamespace(segment=DOMESTIC_EQUITY, briefing=sealed)
     bundle = SimpleNamespace(documents=(document,), promotion_manifest=())
     written: list[object] = []
+    indexed: list[dict[MarketSegment, Briefing]] = []
+    og_inputs: list[dict[MarketSegment, Briefing]] = []
 
     def fail_legacy_writer(*args: object, **kwargs: object) -> Path:
         del args, kwargs
@@ -3040,11 +3043,32 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
         written.append(value)
         return tmp_path / "archive" / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md"
 
+    def capture_index(
+        target_date: date,
+        *,
+        segment_briefings: dict[MarketSegment, Briefing],
+        heatmap_svg: str,
+    ) -> tuple[Path, ...]:
+        assert target_date == _TARGET
+        assert heatmap_svg == "<svg/>"
+        indexed.append(segment_briefings)
+        return (Path("site_docs/index.md"),)
+
+    def capture_og(
+        target_date: date,
+        segment_briefings: dict[MarketSegment, Briefing],
+    ) -> Path:
+        assert target_date == _TARGET
+        og_inputs.append(segment_briefings)
+        return Path("site_docs/assets/og-card.svg")
+
     monkeypatch.setattr(pipeline_module, "write_briefing", fail_legacy_writer)
     monkeypatch.setattr(pipeline_module, "write_finalized_document", capture_sealed_writer)
+    monkeypatch.setattr(pipeline_module, "update_latest_index_pages", capture_index)
+    monkeypatch.setattr(pipeline_module, "write_og_card", capture_og)
 
     await pipeline_module._stage_publish_segments(
-        {DOMESTIC_EQUITY: sealed},
+        {DOMESTIC_EQUITY: unsealed},
         _TARGET,
         git_runner=_SuccessfulGitRunner(),
         phase_one_complete=True,
@@ -3053,6 +3077,8 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
     )
 
     assert written == [document]
+    assert indexed == [{DOMESTIC_EQUITY: sealed}]
+    assert og_inputs == [{DOMESTIC_EQUITY: sealed}]
 
 
 def _patch_watchlist_publish_inputs(

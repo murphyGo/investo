@@ -335,7 +335,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 ### Step 5 — Preserve partial publication and switch to sealed documents
 
 - [x] Switch segmented writer to `write_finalized_document`. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-sealed-writer-switch.md`.
-- [ ] Pass finalized bytes to index, OG, evidence accounting, quality snapshot, replay, and notifier summary consumers without mutation.
+- [x] Pass finalized bytes to index, OG, evidence accounting, quality snapshot, replay, and notifier summary consumers without mutation. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-5-sealed-consumer-view.md`.
 - [ ] Add canonical `extract_watchlist_impact()` beside `extract_conclusion()`, move notifier text cleanup to neutral `_internal.public_summary_extract`, and derive `PublicNotificationSummary` inside terminal validation from final layout bytes plus typed coverage. Store it on validated E2; seal only copies it. Missing/unsafe conclusion is a survivor-attempt trust block. Default segmented `build_segmented_summary(summaries, ...)` accepts DTOs/URLs/existing typed lookahead and price inputs only, checks key/segment/date identity, and cannot read a `Briefing` or fall back to generated `market_summary`.
 - [ ] Extend `PipelineResult` with backward-compatible typed `content_completeness` and per-segment outcomes. Preserve u63 absence navigation for one/two-document E6.
 - [ ] Map complete success to exit 0, content-partial to exit 2, zero-document/bundle failure to exit 1, and complete-content notifier-only partial to exit 0. Content-partial severity wins if notification also fails.
