@@ -5473,3 +5473,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Containment/property module 17 passed with 400 generated examples; scoped Ruff and format check passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-hypothesis-properties.md`.
 **Status**: Step 6 checklist 8/9 complete. Next: full clean-tree quality gates.
+
+## Construction — u144 Step 6.9 full quality gates
+**Timestamp**: 2026-07-22T00:00:00Z
+**Action**: Ran the complete gate set from a detached clean worktree and closed three gate-discovered omissions: the required benchmark harness, two publisher-to-briefing imports, and the stale public-model export expectation.
+**Decisions**: Numeric verification and source-outcome scoping now have neutral `_internal` owners with briefing compatibility exports. The benchmark drives the real default finalizer with byte-targeted deterministic inputs and stable digest checks.
+**Validation**: Focused 677 passed; full pytest 4,062 passed; import-boundary 13 passed; Ruff, format, mypy (246 files), no-paid, strict MkDocs, and diff check passed. The 200/100 KiB median ratio was 1.919 and peak RSS delta was 7.13 MiB, both below closeout limits.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-full-quality-gates.md`.
+**Status**: Step 6 checklist complete 9/9. Next: Step 7 production closeout.

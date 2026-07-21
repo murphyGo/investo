@@ -353,7 +353,7 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Add region-table contract tests for every spec, empty/non-empty anchor inputs, supplement marker pairing, explicit marker-shell omission with no E5 artifact, duplicate/overlap/missing markers, residual partition coverage, stable IDs after replacement, and reader-visible tables. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-region-table-contracts.md`.
 - [x] Add staging tests proving E8 leaves every public destination byte-identical and removes the temporary root; promotion failure exercises existing rollback. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-staging-rollback.md`.
 - [x] Add Hypothesis tests for forbidden-label combinations, delimiter balance, block fallback determinism, and stable issue ordering. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-hypothesis-properties.md`.
-- [ ] Run focused, full, static, import-boundary, no-paid, and strict MkDocs gates.
+- [x] Run focused, full, static, import-boundary, no-paid, and strict MkDocs gates. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-6-full-quality-gates.md`.
 
 ### Step 7 — Production closeout
 
