@@ -1,0 +1,47 @@
+{
+  "fixture_id": "u144-legacy-content-partial-u63-u94",
+  "contract_origin": [
+    "u63",
+    "u94"
+  ],
+  "target_date": "2026-04-27",
+  "expected_segments": [
+    "domestic-equity",
+    "us-equity",
+    "crypto"
+  ],
+  "generated_segments": [
+    "domestic-equity",
+    "us-equity"
+  ],
+  "generation_failures": {
+    "crypto": "BriefingGenerationError"
+  },
+  "publication": {
+    "committed": true,
+    "published_segments": [
+      "domestic-equity",
+      "us-equity"
+    ],
+    "missing_segment_nav_label": "크립토(미발행)"
+  },
+  "notification": {
+    "attempted": true,
+    "ok": true,
+    "operator_alert_stages": [
+      "generate"
+    ]
+  },
+  "legacy_result": {
+    "status": "partial",
+    "content_completeness_field_present": false,
+    "stages": {
+      "generate": "partial: failed crypto",
+      "generate:crypto": "failed: synthesis",
+      "publish": "ok",
+      "notify_briefing": "ok"
+    },
+    "main_exit_code": 0,
+    "github_actions_conclusion_from_exit": "success"
+  }
+}

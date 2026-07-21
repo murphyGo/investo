@@ -1,0 +1,47 @@
+{
+  "fixture_id": "u144-legacy-notifier-only-partial",
+  "contract_origin": [
+    "u5",
+    "u23"
+  ],
+  "target_date": "2026-04-27",
+  "expected_segments": [
+    "domestic-equity",
+    "us-equity",
+    "crypto"
+  ],
+  "generated_segments": [
+    "domestic-equity",
+    "us-equity",
+    "crypto"
+  ],
+  "generation_failures": {},
+  "publication": {
+    "committed": true,
+    "published_segments": [
+      "domestic-equity",
+      "us-equity",
+      "crypto"
+    ],
+    "missing_segment_nav_label": null
+  },
+  "notification": {
+    "attempted": true,
+    "ok": false,
+    "error": "rate limited",
+    "operator_alert_stages": [
+      "notify_briefing"
+    ]
+  },
+  "legacy_result": {
+    "status": "partial",
+    "content_completeness_field_present": false,
+    "stages": {
+      "generate": "ok",
+      "publish": "ok",
+      "notify_briefing": "failed: rate limited"
+    },
+    "main_exit_code": 0,
+    "github_actions_conclusion_from_exit": "success"
+  }
+}

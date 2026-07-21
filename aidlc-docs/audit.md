@@ -72,6 +72,15 @@
 **Scope**: Test/documentation only. No `src/` or workflow behavior changed, and unrelated u140/generated/settings/worktree changes remain outside the slice.
 **Next**: Step 0 checklist 4 — freeze content-partial and notifier-only partial behavior as distinct fixtures.
 
+## Construction — u144 Code Generation Step 0.4 partial outcomes separated
+
+**Timestamp**: 2026-07-21T02:27:14Z
+**Action**: Froze the current u63/u94 valid-subset content-partial path and the complete-content notifier-only partial path as two separate redacted JSON fixtures before changing result or exit signaling.
+**Evidence**: The content fixture records crypto generation absence, two committed archive segments, explicit `크립토(미발행)` navigation, successful notification, `PipelineStatus.PARTIAL`, and legacy exit 0. The notifier fixture records all three committed segments, notification failure plus operator alert, the same legacy `PARTIAL`, and the same exit 0. Both record that `PipelineResult` currently has no content-completeness field.
+**Validation**: JSON parse and `git diff --check` passed; current CLI mapping and workflow command were checked directly; focused u94 generation-partial, notifier-partial, and main exit-code tests remain the executable owners.
+**Scope**: Fixture/documentation only. No result model, orchestrator, CLI, or workflow behavior changed; unrelated u140/generated/settings/worktree changes remain outside the slice.
+**Next**: Step 0 checklist 5 — enumerate all current surface issue codes and land the exhaustive issue-code × owned-block disposition table.
+
 ## Source qualification — u140 Step 0 iteration 10 (MarketData.app)
 **Timestamp**: 2026-07-20T16:39:30Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed the StockData.org Step 0 slice, rebased it over five non-overlapping upstream commits, resolved the additive audit conflict, and pushed `ae3f2e9`. Existing local settings and generated artifacts were restored byte-for-byte from the temporary stash before proceeding.
