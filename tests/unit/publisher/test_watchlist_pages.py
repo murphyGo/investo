@@ -45,6 +45,21 @@ def test_update_creates_per_term_page(tmp_path: Path) -> None:
     assert nvda in written
 
 
+def test_update_default_pages_root_resolves_module_constant(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # DEBT-089 — with no explicit ``pages_root`` the writer resolves
+    # ``WATCHLIST_PAGES_ROOT`` AT CALL TIME (was a frozen default arg,
+    # so a patch could never redirect it and the suite wrote into the
+    # committed ``site_docs/watchlist/``).
+    monkeypatch.setattr(watchlist_pages_module, "WATCHLIST_PAGES_ROOT", tmp_path)
+    matches = [_match(term="NVDA", title="NVDA earnings")]
+    written = update_watchlist_pages(date(2026, 5, 9), matches)
+    assert (tmp_path / "NVDA.md") in written
+    assert (tmp_path / "NVDA.md").exists()
+
+
 def test_watchlist_page_paths_predicts_per_term_and_index(tmp_path: Path) -> None:
     matches = [
         _match(term="NVDA", title="NVDA earnings"),

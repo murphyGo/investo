@@ -114,8 +114,8 @@ from .segment_archives import (
 def update_latest_index_pages(
     target_date: date,
     *,
-    site_index_path: Path = SITE_INDEX_PATH,
-    archive_index_path: Path = ARCHIVE_INDEX_PATH,
+    site_index_path: Path | None = None,
+    archive_index_path: Path | None = None,
     segment_briefings: dict[MarketSegment, Briefing] | None = None,
     heatmap_svg: str | None = None,
 ) -> tuple[Path, ...]:
@@ -127,7 +127,12 @@ def update_latest_index_pages(
         Publish date threaded into both the hero card and the
         ``## 최신 시황`` section.
     site_index_path / archive_index_path:
-        Test seams. Production callers use the module defaults.
+        Test seams. ``None`` (the production default) resolves the
+        module-level constants AT CALL TIME — DEBT-089: binding them as
+        default ARGUMENT values froze them at import, so a
+        ``monkeypatch.setattr(site_index, "SITE_INDEX_PATH", …)`` could
+        never redirect the writer and test runs rewrote the committed
+        ``site_docs/index.md`` / ``archive/index.md``.
     segment_briefings:
         u29 hero feed — when supplied, the rendered "오늘의 결론" quotes
         for each segment are inlined into the hero block on the Home
@@ -145,6 +150,10 @@ def update_latest_index_pages(
         All paths that were rewritten — orchestrator passes these to
         ``commit_and_push`` so mkdocs picks up the regenerated copy.
     """
+    site_index_path = site_index_path if site_index_path is not None else SITE_INDEX_PATH
+    archive_index_path = (
+        archive_index_path if archive_index_path is not None else ARCHIVE_INDEX_PATH
+    )
     written: list[Path] = [site_index_path, archive_index_path]
 
     if segment_briefings is not None:

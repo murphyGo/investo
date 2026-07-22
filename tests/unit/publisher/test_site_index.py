@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.models import Briefing
@@ -89,6 +91,28 @@ def test_update_latest_index_pages_refreshes_legacy_section(tmp_path: Path) -> N
     assert "과거 단일 시황은 세그먼트 분리 이전 형식입니다." in archive
     assert "2026-05-06 단일 시황 (레거시)" in archive
     assert "## 경로 안내" in archive
+
+
+def test_update_latest_index_pages_default_paths_resolve_module_constants(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # DEBT-089 — with no explicit path args the writer resolves the
+    # module-level constants AT CALL TIME, so patching them redirects
+    # production writes (previously the frozen default arguments made
+    # them unpatchable and the suite rewrote the committed renderings).
+    site_index, archive_index = _seed_index_pages(tmp_path)
+    monkeypatch.setattr("investo.publisher.site_index._constants.SITE_INDEX_PATH", site_index)
+    monkeypatch.setattr("investo.publisher.site_index.SITE_INDEX_PATH", site_index)
+    monkeypatch.setattr("investo.publisher.site_index._constants.ARCHIVE_INDEX_PATH", archive_index)
+    monkeypatch.setattr("investo.publisher.site_index.ARCHIVE_INDEX_PATH", archive_index)
+
+    changed = update_latest_index_pages(date(2026, 5, 7))
+
+    # The patched constants are exactly what the default-arg path wrote.
+    assert site_index in changed
+    assert archive_index in changed
+    assert "2026-05-07" in site_index.read_text(encoding="utf-8")
 
 
 def test_update_index_hero_inlines_segment_conclusions(tmp_path: Path) -> None:

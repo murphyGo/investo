@@ -40,6 +40,22 @@ from investo.models.watchlist import (
 from investo.publisher.errors import PublisherIOError
 
 WATCHLIST_PAGES_ROOT: Final[Path] = Path("site_docs/watchlist")
+
+
+def _resolve_pages_root(pages_root: Path | None) -> Path:
+    """Resolve the watchlist pages root AT CALL TIME (DEBT-089).
+
+    Previously every public helper bound ``WATCHLIST_PAGES_ROOT`` as a
+    default ARGUMENT value, which freezes the path at import time — a
+    ``monkeypatch.setattr(watchlist_pages, "WATCHLIST_PAGES_ROOT", ...)``
+    could never redirect it, so test runs wrote into the real
+    ``site_docs/watchlist/``. Reading the module global here makes the
+    standard patch seam work while production behaviour is unchanged
+    (``None`` still means "the committed site_docs location").
+    """
+    return pages_root if pages_root is not None else WATCHLIST_PAGES_ROOT
+
+
 # u73 — the daily-first impact center page. Today's grouped impacts are
 # the first content block; per-term accumulation pages remain the
 # history surface.
@@ -91,7 +107,7 @@ def _slug_for_term(term: str) -> str:
 def watchlist_page_paths_for(
     matches: Sequence[WatchlistMatch],
     *,
-    pages_root: Path = WATCHLIST_PAGES_ROOT,
+    pages_root: Path | None = None,
 ) -> tuple[Path, ...]:
     """Return per-term/index paths ``update_watchlist_pages`` may rewrite.
 
@@ -99,6 +115,7 @@ def watchlist_page_paths_for(
     accumulation writer. It mirrors the writer's slug/grouping and index
     conditions without mutating the filesystem.
     """
+    pages_root = _resolve_pages_root(pages_root)
     by_term = _group_by_term(matches)
     paths = [pages_root / f"{_slug_for_term(term)}.md" for term in sorted(by_term)]
     if paths or _has_existing_term_pages(pages_root):
@@ -106,22 +123,23 @@ def watchlist_page_paths_for(
     return _unique_paths(paths)
 
 
-def watchlist_index_path(*, pages_root: Path = WATCHLIST_PAGES_ROOT) -> Path:
+def watchlist_index_path(*, pages_root: Path | None = None) -> Path:
     """Return the per-term watchlist index path."""
-    return pages_root / "index.md"
+    return _resolve_pages_root(pages_root) / "index.md"
 
 
-def daily_impact_page_path(*, pages_root: Path = WATCHLIST_PAGES_ROOT) -> Path:
+def daily_impact_page_path(*, pages_root: Path | None = None) -> Path:
     """Return the daily-first impact center page path."""
-    return pages_root / DAILY_IMPACT_PAGE
+    return _resolve_pages_root(pages_root) / DAILY_IMPACT_PAGE
 
 
 def watchlist_publish_paths_for(
     matches: Sequence[WatchlistMatch],
     *,
-    pages_root: Path = WATCHLIST_PAGES_ROOT,
+    pages_root: Path | None = None,
 ) -> tuple[Path, ...]:
     """Return every public watchlist markdown path publish can mutate."""
+    pages_root = _resolve_pages_root(pages_root)
     return _unique_paths(
         [
             *watchlist_page_paths_for(matches, pages_root=pages_root),
@@ -134,7 +152,7 @@ def update_watchlist_pages(
     target_date: date,
     matches: Sequence[WatchlistMatch],
     *,
-    pages_root: Path = WATCHLIST_PAGES_ROOT,
+    pages_root: Path | None = None,
 ) -> tuple[Path, ...]:
     """Regenerate the per-term accumulation pages for ``matches``.
 
@@ -145,6 +163,7 @@ def update_watchlist_pages(
     Returns the deterministic alphabetical tuple of paths the helper
     rewrote so the caller can pass them to ``commit_and_push``.
     """
+    pages_root = _resolve_pages_root(pages_root)
     by_term = _group_by_term(matches)
     written: list[Path] = []
     for term, term_matches in sorted(by_term.items()):
@@ -417,7 +436,7 @@ def write_daily_impact_page(
     target_date: date,
     center: WatchlistImpactCenter,
     *,
-    pages_root: Path = WATCHLIST_PAGES_ROOT,
+    pages_root: Path | None = None,
     segment_links: Sequence[tuple[str, str]] = (),
 ) -> Path:
     """Write the daily impact center page and return its path.
@@ -426,6 +445,7 @@ def write_daily_impact_page(
     today's impacts), so re-running for the same ``target_date`` yields
     byte-identical output.
     """
+    pages_root = _resolve_pages_root(pages_root)
     pages_root.mkdir(parents=True, exist_ok=True)
     path = pages_root / DAILY_IMPACT_PAGE
     body = render_daily_impact_page(
