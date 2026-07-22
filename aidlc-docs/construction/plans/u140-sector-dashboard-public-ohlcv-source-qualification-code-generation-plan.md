@@ -72,6 +72,7 @@ adapter or Pages construction is registered.
 | Direct IEX Exchange HIST / TOPS | free T+1 downloads, 12 months of history, and distribution with mandatory attribution pass preliminary cost/rights checks; however each date is a whole-market gzip PCAP of roughly 9–21 GB, not ticker-filtered daily bars, and derived activity is IEX-only rather than consolidated | reject for current public-MVP operational and metric fitness (2026-07-22 Step 0) |
 | MIAX Pearl Equities Historical Market Data | official ToM/DoM history provides up to the most recent six months of venue messages, but costs USD 500 per MIAX-provided eight-terabyte USB device, requires exchange data agreements, is not an automated daily-bar endpoint, and remains MIAX-only | reject for permanent-free, automated-delivery, and unproven public-rights gates (2026-07-22 Step 0) |
 | Cboe DataShop Equity EOD Summary | technically offers daily U.S. equity/ETF OHLC, trade volume, VWAP, and bid/ask history from January 2010 through historical purchases or subscriptions, but has no free entitlement; even eligible academic use carries a USD 500 minimum and public distribution remains agreement/license controlled | reject for permanent-free and explicit free public-rights gates (2026-07-22 Step 0) |
+| MEMX MEMOIR Historical Data | official prior-day Depth/Top/Last Sale history is available through cloud APIs, but requires a Market Data Agreement and approved Order Form/System Description; public-use fees/approval are feed-specific and derived bars remain MEMX-only raw-message aggregates | reject for current public-MVP cost/rights certainty and metric fitness (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -254,6 +255,15 @@ Primary Cboe DataShop Equity EOD Summary references, checked 2026-07-22:
 - `https://datashop.cboe.com/academic-discount`
 - `https://datashop.cboe.com/equity-etf-quotes`
 - `https://www.cboe.com/market_data_services/document_library/`
+
+Primary MEMX MEMOIR Historical Data references, checked 2026-07-22:
+
+- `https://info.memxtrading.com/equities-trading-resources/us-equities-faq/`
+- `https://info.memxtrading.com/memx-user-manual/`
+- `https://info.memxtrading.com/equities-trading-resources/us-equities-fee-schedule/`
+- `https://info.memxtrading.com/membership-connectivity-and-market-data-documents/`
+- `https://info.memxtrading.com/wp-content/uploads/2023/01/MEMX-Market-Data-Policies.pdf`
+- `https://info.memxtrading.com/wp-content/uploads/2026/06/MEMX-Rulebook-6.22.26clean.pdf`
 
 ## Qualification Steps
 
@@ -659,6 +669,29 @@ remain applicable, with no explicit no-cost public derived-display grant. The bi
 cost and rights gates therefore fail before account, cart, quote, order, sample,
 exact-universe, posting-SLA, adjustment, volume-provenance, local, or GHA probes; Step
 1 does not apply.
+
+#### Iteration 22 — MEMX MEMOIR Historical Data
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-memx-memoir-historical-data.md`.
+Disposition: **reject for current public MVP cost/rights certainty and metric
+fitness**. MEMX officially offers prior-day Depth, Top, and Last Sale history through
+cloud APIs, but access is not an anonymous ticker-filtered daily-bar surface. A market
+data subscriber must execute an agreement and request connectivity; derived-data
+distribution still requires an approved Order Form/System Description and can remain
+subject to feed-specific fees. The current schedule charges USD 2,000/month for
+external or digital-media distribution of Top/Last Sale. Even under an approved
+non-fee-liable derived-data configuration, bars would be MEMX-only raw-message
+aggregates requiring decoding, correction handling, and corporate-action input, not
+consolidated ETF OHLCV. Cost/right certainty and metric fitness fail before agreement,
+order-form, credential, payload, exact-universe, local, or GHA probes; Step 1 does not
+apply.
 
 #### Next candidate iteration
 
