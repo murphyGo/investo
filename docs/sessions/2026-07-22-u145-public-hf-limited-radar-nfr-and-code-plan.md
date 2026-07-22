@@ -27,3 +27,7 @@ The provider requires accurate account details, email verification, and an API k
 operator-owned HF key exists in the current environment, so authenticated payload shape,
 adjustment semantics, and error behavior cannot be qualified. The design deliberately forbids
 implementation assumptions before this evidence. No account or credential was fabricated.
+
+Post-push live verification found no local `HF_DATA_API_KEY` and no secret with that name in
+the GitHub Actions secret inventory. Only secret names and update timestamps were queried; no
+secret value was available to or printed by the check.

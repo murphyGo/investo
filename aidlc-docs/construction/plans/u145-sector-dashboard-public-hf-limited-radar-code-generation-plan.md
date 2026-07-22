@@ -136,3 +136,8 @@ HF requires accurate account registration, email verification, and an API key th
 every 30 days. No operator-owned key is available in the current environment. Creating an
 identity/account or completing email verification is outside Investo's autonomous code scope.
 Therefore Step 0 payload qualification—and all implementation that depends on it—cannot begin.
+
+Live verification on 2026-07-22 confirmed both boundaries without reading any secret value:
+
+- local `HF_DATA_API_KEY`: absent;
+- GitHub Actions secret-name inventory: no `HF_DATA_API_KEY` entry.
