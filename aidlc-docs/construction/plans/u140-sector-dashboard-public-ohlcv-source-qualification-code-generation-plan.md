@@ -71,6 +71,7 @@ adapter or Pages construction is registered.
 | London Strategic Edge Free Market Data API | one free key technically advertises daily JSON/CSV OHLCV, 5,000 rows/request, history back to 2003, and 25 ETFs; however the Terms prohibit redistribution and derivative works without express written consent and leave upstream ETF-data provenance unverified | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
 | Direct IEX Exchange HIST / TOPS | free T+1 downloads, 12 months of history, and distribution with mandatory attribution pass preliminary cost/rights checks; however each date is a whole-market gzip PCAP of roughly 9–21 GB, not ticker-filtered daily bars, and derived activity is IEX-only rather than consolidated | reject for current public-MVP operational and metric fitness (2026-07-22 Step 0) |
 | MIAX Pearl Equities Historical Market Data | official ToM/DoM history provides up to the most recent six months of venue messages, but costs USD 500 per MIAX-provided eight-terabyte USB device, requires exchange data agreements, is not an automated daily-bar endpoint, and remains MIAX-only | reject for permanent-free, automated-delivery, and unproven public-rights gates (2026-07-22 Step 0) |
+| Cboe DataShop Equity EOD Summary | technically offers daily U.S. equity/ETF OHLC, trade volume, VWAP, and bid/ask history from January 2010 through historical purchases or subscriptions, but has no free entitlement; even eligible academic use carries a USD 500 minimum and public distribution remains agreement/license controlled | reject for permanent-free and explicit free public-rights gates (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -245,6 +246,14 @@ Primary MIAX Pearl Equities historical-data references, checked 2026-07-22:
 - `https://www.miaxglobal.com/markets/us-equities/pearl-equities/market-data-vendor-agreements`
 - `https://www.miaxglobal.com/markets/us-equities/pearl-equities/fees`
 - `https://www.miaxglobal.com/sites/default/files/fee_schedule-files/MIAX_Pearl_Equities_Fee_Schedule_05012026_0.pdf`
+
+Primary Cboe DataShop Equity EOD Summary references, checked 2026-07-22:
+
+- `https://datashop.cboe.com/equity-eod-summary`
+- `https://datashop.cboe.com/faqs`
+- `https://datashop.cboe.com/academic-discount`
+- `https://datashop.cboe.com/equity-etf-quotes`
+- `https://www.cboe.com/market_data_services/document_library/`
 
 ## Qualification Steps
 
@@ -629,6 +638,27 @@ would remain MIAX-only and require binary-feed decoding, cancellation handling, 
 separate corporate-action source. The permanent-free gate therefore fails before any
 request, agreement, purchase, payload, exact-universe, local, or GHA probe; Step 1 does
 not apply.
+
+#### Iteration 21 — Cboe DataShop Equity EOD Summary
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-cboe-datashop-equity-eod-summary.md`.
+Disposition: **reject under current published cost and licensing terms**. The product's
+daily U.S. equity/ETF OHLC, trade volume, VWAP, bid/ask fields, CSV delivery, and
+history since January 2010 are technically strong. Access is nevertheless an order or
+subscription, not a permanently free endpoint. The only published discount reviewed
+is limited to qualifying academic use, charges at least USD 500, and does not apply to
+Investo. Cboe data agreements, policies, fees, and separate external-distribution use
+remain applicable, with no explicit no-cost public derived-display grant. The binding
+cost and rights gates therefore fail before account, cart, quote, order, sample,
+exact-universe, posting-SLA, adjustment, volume-provenance, local, or GHA probes; Step
+1 does not apply.
 
 #### Next candidate iteration
 
