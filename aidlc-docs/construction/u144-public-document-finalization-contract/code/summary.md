@@ -85,6 +85,13 @@ repair keeps finalization as the marker owner and passes exact supplement
 fragments to the watchpoint collaborator as opaque bytes. It is documented in
 `step-7-watchpoint-supplement-preservation.md`.
 
+Run `29897137121` then proved the supplement repair and the intended partial
+contract: domestic equity and crypto committed as `c83fac3`, notifier delivery
+succeeded, the daily run exited 2, and Pages `29898005248` succeeded. US equity
+was terminally trust-blocked, but the downloadable log omitted its bounded
+outcome code. `PublishStage` now logs every typed segment outcome without raw
+content; the change is documented in `step-7-finalization-outcome-logging.md`.
+
 Still pending Step 7 live evidence for:
 
 - exact replay `target_date=2026-07-17`;

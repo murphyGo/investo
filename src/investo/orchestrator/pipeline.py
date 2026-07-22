@@ -2903,6 +2903,14 @@ class PublishStage:
                     )
                 finally:
                     finalize_elapsed = time.monotonic() - finalize_start
+                for outcome in finalized_bundle.segment_outcomes:
+                    _logger.info(
+                        "[finalize] target_date=%s segment=%s state=%s codes=%s",
+                        target_date,
+                        outcome.segment,
+                        outcome.state,
+                        ",".join(outcome.issue_codes) or "none",
+                    )
                 segment_briefings = {
                     document.segment: document.briefing for document in finalized_bundle.documents
                 }

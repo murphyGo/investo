@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import logging
 from datetime import UTC, date, datetime, timedelta
 
 import pytest
@@ -126,7 +127,9 @@ def test_legacy_generate_and_segment_publish_entity_scan_paths_are_absent() -> N
 @pytest.mark.asyncio
 async def test_publish_terminal_gate_scans_each_active_attempt_with_e1_clock(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
+    caplog.set_level(logging.INFO, logger="investo.orchestrator.pipeline")
     briefings = {
         DOMESTIC_EQUITY: _briefing(DOMESTIC_EQUITY, "국내 시장의 일반 근거입니다."),
         US_EQUITY: _briefing(US_EQUITY, "파월 의장 기자회견이 예정돼 있습니다."),
@@ -223,6 +226,17 @@ async def test_publish_terminal_gate_scans_each_active_attempt_with_e1_clock(
         (DOMESTIC_EQUITY, _OBSERVED_AT),
     ]
     assert result.stage_notes[f"publish:{US_EQUITY}"] == ("failed: PublicDocumentTrustGate")
+    assert (
+        "[finalize] target_date=2026-07-21 segment=domestic-equity state=finalized codes=none"
+    ) in caplog.messages
+    assert (
+        "[finalize] target_date=2026-07-21 segment=us-equity "
+        "state=trust_blocked codes=entity.fact_contradiction"
+    ) in caplog.messages
+    assert (
+        "[finalize] target_date=2026-07-21 segment=crypto "
+        "state=generation_absent codes=generation.failed"
+    ) in caplog.messages
 
 
 @pytest.mark.asyncio

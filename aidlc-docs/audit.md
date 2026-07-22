@@ -5531,3 +5531,12 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Focused watchpoint/public-document/architecture scope passed 125; Ruff check/format and strict mypy for all touched source files passed. Regressions cover rendered/limited outcomes, byte idempotence, and the actual phase-one assembly boundary.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-watchpoint-supplement-preservation.md`.
 **Status**: Step 7 remains 2/4 pending exact replay at the repair commit and current-date verification.
+
+## Construction — u144 Step 7 exact replay attempt 3 and outcome logging
+**Timestamp**: 2026-07-22T06:49:25Z
+**Production evidence**: `daily-briefing.yml` run `29897137121` at head `fb09360` generated all three drafts (`ok=3 failed=0`). Domestic equity and crypto finalized and were committed/pushed as `c83fac3`; US equity was terminally trust-blocked. Notification succeeded with message ID 73, the pipeline reported partial and exited 2, and Pages run `29898005248` succeeded for the partial commit.
+**Finding**: Supplement preservation fixed the previous zero-survivor defect and AC-144.8 partial sequencing worked end-to-end. The retained execution log did not include the US outcome code, preventing precise remote trust-gate diagnosis even though the GitHub step summary had the bounded outcome table.
+**Repair**: `PublishStage` now logs one structured record per typed `SegmentFinalizationOutcome` immediately after pure finalization. It includes target date, segment, state, and bounded codes only; the pure finalizer remains I/O-free and no Markdown/evidence/URL/source payload is logged.
+**Validation**: PublishStage log regression passed 3; combined orchestrator result/CLI/pipeline scope passed 167; Ruff check/format and strict mypy passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-finalization-outcome-logging.md`.
+**Status**: Step 7 remains 2/4 pending an all-three exact replay and current-date verification.
