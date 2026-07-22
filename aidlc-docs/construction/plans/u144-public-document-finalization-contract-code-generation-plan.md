@@ -358,9 +358,9 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 ### Step 7 — Production closeout
 
 - [x] Write the unit code summary and update DESIGN.md with the finalization/seal boundary. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/summary.md`.
-- [x] Commit/push the implementation as one bounded unit or one commit per completed step according to the active user instruction. The per-step wave through summary commit `55c70f2` is synchronized on `origin/main`.
-- [ ] Rerun the exact failed `target_date=2026-07-17` and one current normal date.
-- [ ] Verify `ok=3 failed=0`, all three archive paths, commit/push, notifier result, internal `status=success`, daily workflow conclusion, and separate Pages success.
+- [x] Commit/push the implementation as one bounded unit or one commit per completed step according to the active user instruction. The per-step wave, runtime repairs through `39381dc`, and production bot commit `e3c8b2f` are synchronized on `origin/main`.
+- [x] Rerun the exact failed `target_date=2026-07-17` and one current normal date. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
+- [x] Verify `ok=3 failed=0`, all three archive paths, commit/push, notifier result, internal `status=success`, daily workflow conclusion, and separate Pages success. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
 
 ## Acceptance Criteria
 

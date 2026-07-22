@@ -5558,3 +5558,26 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: PublishStage log regression passed 3; combined orchestrator result/CLI/pipeline scope passed 167; Ruff check/format and strict mypy passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-finalization-outcome-logging.md`.
 **Status**: Step 7 remains 2/4 pending an all-three exact replay and current-date verification.
+
+## Construction — u144 Step 7 exact replay success
+**Timestamp**: 2026-07-22T07:54:31Z
+**Production evidence**: Exact-date run `29901183324` at head `614b3da` generated all three drafts (`ok=3 failed=0`), finalized all three with no codes, and wrote all three `2026-07-17` archive paths. Bot commit `28173ce` was pushed, Telegram message `74` was delivered, the pipeline completed with `status=success` and exit 0, and Pages run `29901936785` succeeded at that bot head.
+**Validation**: The original failed date satisfies every Step 7 operational check and AC-144.14.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
+**Status**: Step 7 checklist 3/4 complete. Next: no-input current-date verification.
+
+## Construction — u144 Step 7 current-date false-positive containment
+**Timestamp**: 2026-07-22T09:04:04Z
+**Production evidence**: First no-input run `29902837609` resolved `target_date=2026-07-21` and generated all three drafts. Domestic and US equity were trust-blocked with `summary.truncated_mid_token`; crypto committed in intended partial bot commit `6f3053a`, Telegram message `75` was delivered, exit 2 was re-emitted, and Pages run `29903899895` succeeded.
+**Root cause**: E3 scans each indexed region body in isolation. The canonical scanner treats the start of an isolated input as a document first viewport, so the first line of a non-viewport section could receive the viewport-only truncated-summary code and be escalated by required-region policy.
+**Repair**: Commit `39381dc` retains `summary.truncated_mid_token` only for an indexed `first_viewport` owner while preserving detection and deterministic replacement for the true viewport.
+**Validation**: U-144 unit scope 422 passed; Ruff check/format, strict mypy for the changed source, and diff check passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
+**Status**: Step 7 remains 3/4 pending current-date retry.
+
+## Construction — u144 Step 7 current-date success and unit closeout
+**Timestamp**: 2026-07-22T09:23:49Z
+**Production evidence**: No-input run `29906481364` at head `39381dc` resolved `target_date=2026-07-21`, generated all three drafts (`ok=3 failed=0`), finalized all three with no codes, and wrote all three current-date archive paths. Bot commit `e3c8b2f` was pushed, Telegram message `76` was delivered, the pipeline completed with `status=success` and exit 0, and Pages run `29907789648` succeeded at the same bot head.
+**Decision**: Close U-144 without weakening numeric, entity, compliance, required-structure, disclaimer, or notification-summary trust blocks. The repair changes only ownership of a viewport-specific presentation diagnostic.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
+**Status**: Step 7 checklist complete 4/4. U-144 construction complete.

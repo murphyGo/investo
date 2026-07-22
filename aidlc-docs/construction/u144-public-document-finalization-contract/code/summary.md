@@ -2,9 +2,9 @@
 
 ## Status
 
-Code Generation Step 6 complete (9/9, 2026-07-22). Step 7 production
-closeout is in progress; the exact-date and current-date workflow evidence is
-recorded only after the live runs finish.
+Code Generation and Step 7 production closeout are complete (2026-07-22).
+Both the exact failed date and a no-input current-date run published all three
+segments, notified successfully, and completed their separate Pages runs.
 
 ## Delivered boundary
 
@@ -35,6 +35,7 @@ mutate or rediscover public Markdown after the seal.
 | 4 | `b703267`–`902b523` | Grouped block containment, terminal entity/numeric/compliance gates, survivor-scoped neutral daily thesis, typed publish error routing, production finalizer switch, and staged rollback. |
 | 5 | `8189588`–`85d185a` | Sealed exact-byte writer/consumers, terminal notifier DTO, typed content completeness/outcomes, exit 0/1/2 mapping, Pages-before-red workflow sequencing, bounded GitHub summary, and owner documentation. |
 | 6 | `7ed4a21`–`c28924b` | Idempotence, transform closure, partial fixed point, active-survivor isolation, notifier/watchpoint invariants, exhaustive regions, rollback, 400 Hypothesis examples, benchmark harness, import-boundary repair, and full clean-tree gates. |
+| 7 | `55c70f2`–`39381dc` | Summary/design synchronization, exact-date production characterization, typed structure routing, opaque supplement preservation, bounded outcome logs, viewport-only issue ownership, and successful exact/current production closeout. |
 
 ## Fixed contracts
 
@@ -92,9 +93,20 @@ was terminally trust-blocked, but the downloadable log omitted its bounded
 outcome code. `PublishStage` now logs every typed segment outcome without raw
 content; the change is documented in `step-7-finalization-outcome-logging.md`.
 
-Still pending Step 7 live evidence for:
+Exact-date run `29901183324` then published all three `2026-07-17` segments as
+bot commit `28173ce`, delivered Telegram message `74`, completed internally and
+at the daily workflow level with success, and dispatched successful Pages run
+`29901936785`.
 
-- exact replay `target_date=2026-07-17`;
-- one current normal date;
-- `ok=3 failed=0`, all three archive paths, commit/push, notifier result,
-  internal success, daily workflow conclusion, and separate Pages success.
+The first no-input current-date run `29902837609` revealed that region-local
+scanner inputs could misclassify a section's first line as the document first
+viewport. This raised `summary.truncated_mid_token` outside the viewport and
+incorrectly escalated a presentation finding to segment absence. Commit
+`39381dc` scopes that viewport-only finding to indexed `first_viewport` owners;
+the U-144 unit scope passed 422 tests with static checks clean.
+
+No-input retry `29906481364` published domestic equity, US equity, and crypto
+for `2026-07-21` as bot commit `e3c8b2f`, delivered Telegram message `76`, and
+completed with `status=success` and `PIPELINE_RC=0`. Separate Pages run
+`29907789648` succeeded at the same bot head. Detailed evidence is recorded in
+`step-7-production-closeout.md`.
