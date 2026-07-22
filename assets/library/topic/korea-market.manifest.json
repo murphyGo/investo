@@ -1,9 +1,9 @@
 {
-  "allowed_use": "not-yet-available — public republish once filed; basis: Unsplash License",
-  "attribution": "Generic Seoul skyline",
-  "author": "Unsplash contributor",
-  "fetched_on": "2026-05-28",
+  "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with Pixabay source link.",
+  "attribution": "Seoul skyline with the 63 Building over the Han River (CC0-era Pixabay photo; via Wikimedia Commons)",
+  "author": "USAGI_POST (Pixabay)",
+  "fetched_on": "2026-07-22",
   "kind": "curated-licensed",
-  "license": "unsplash",
-  "source_url": "https://unsplash.com/s/photos/seoul"
+  "license": "cc0",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Han_River_Seoul_skyline_Pixabay_1214950.jpg"
 }

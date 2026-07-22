@@ -49,5 +49,12 @@ pass; silent empties fail.
 
 ## Seed status
 
-All seed keys currently ship **deferred** — binaries are filed by the
-operator after per-file license verification, never auto-downloaded.
+All 13 seed keys ship **filed** (since 2026-07-22) with per-file
+license-verified binaries — US federal-government works (17 U.S.C.
+§105 / PD-USGov) for the person and government slots, and explicit
+CC0 / public-domain files (Wikimedia Commons file pages, Flickr CC0
+markers) for the rest. Each sibling `*.manifest.json` records the
+source page, license token, author, and how the license was verified.
+No Unsplash/Pexels-site claims were used: both photo-page hosts block
+programmatic license verification, so only sources whose license
+wording could be machine-checked were accepted.

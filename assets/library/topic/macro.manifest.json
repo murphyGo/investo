@@ -1,9 +1,9 @@
 {
-  "allowed_use": "not-yet-available — public republish once filed; basis: Unsplash License",
-  "attribution": "Generic economy photo",
-  "author": "Unsplash contributor",
-  "fetched_on": "2026-05-28",
+  "allowed_use": "Public republish on the investo site and channel; public domain. Verified: Commons file page states public domain (PD-Highsmith - the photographer placed her Library of Congress collection in the public domain).",
+  "attribution": "US Treasury Department Building, Washington DC, by Carol M. Highsmith (photographer-dedicated public domain; Library of Congress via Wikimedia Commons)",
+  "author": "Carol M. Highsmith",
+  "fetched_on": "2026-07-22",
   "kind": "curated-licensed",
-  "license": "unsplash",
-  "source_url": "https://unsplash.com/s/photos/economy"
+  "license": "public-domain",
+  "source_url": "https://commons.wikimedia.org/wiki/File:U.S._Treasury_Department_Building,_Washington,_D.C_LCCN2011635063.jpg"
 }

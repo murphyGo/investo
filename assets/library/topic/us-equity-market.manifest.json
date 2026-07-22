@@ -1,9 +1,9 @@
 {
-  "allowed_use": "not-yet-available — public republish once filed; basis: Unsplash License",
-  "attribution": "Generic trading floor / ticker board",
-  "author": "Unsplash contributor",
-  "fetched_on": "2026-05-28",
+  "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with archived Pixabay source.",
+  "attribution": "Stock exchange price display board, by Pixabay contributor AhmadArdity (CC0-era Pixabay upload; via Wikimedia Commons)",
+  "author": "AhmadArdity (Pixabay)",
+  "fetched_on": "2026-07-22",
   "kind": "curated-licensed",
-  "license": "unsplash",
-  "source_url": "https://unsplash.com/s/photos/stock-exchange"
+  "license": "cc0",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Stockmarket.jpg"
 }

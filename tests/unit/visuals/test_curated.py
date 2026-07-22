@@ -250,8 +250,12 @@ def test_seed_registry_integrity_against_seed_library() -> None:
     repo_root = Path(__file__).resolve().parents[3]
     library = load_library(repo_root / LIBRARY_ROOT)
     assert_registry_integrity(default_registry(), library)
-    # All seeds ship deferred in this unit.
-    assert all(asset.state == "deferred" for asset in library.values())
+    # 2026-07-22: all 13 seed keys are filed with license-verified
+    # binaries (PD / 17 U.S.C. 105 / CC0 — see each sibling manifest).
+    # load_library() has already applied the full clearance gate here;
+    # this pins the operator-facing steady state: no deferred stragglers.
+    assert all(asset.state == "filed" for asset in library.values())
+    assert len(library) == 13
 
 
 # --------------------------------------------------------------------------- #

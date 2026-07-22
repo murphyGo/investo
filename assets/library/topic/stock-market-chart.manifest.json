@@ -1,9 +1,9 @@
 {
-  "allowed_use": "not-yet-available — public republish once filed; basis: Unsplash License",
-  "attribution": "Abstract candlestick / market chart photo",
-  "author": "Unsplash contributor",
-  "fetched_on": "2026-05-28",
+  "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero, external-source license reviewed.",
+  "attribution": "Laptop showing a candlestick stock chart, by Negative Space (CC0-era Pexels photo; via Wikimedia Commons)",
+  "author": "Negative Space (Pexels)",
+  "fetched_on": "2026-07-22",
   "kind": "curated-licensed",
-  "license": "unsplash",
-  "source_url": "https://unsplash.com/s/photos/stock-chart"
+  "license": "cc0",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Blur-chart-data-69760.jpg"
 }

@@ -1,9 +1,9 @@
 {
-  "allowed_use": "not-yet-available — public republish once filed; basis: Unsplash License",
-  "attribution": "Generic crypto / blockchain photo",
-  "author": "Unsplash contributor",
-  "fetched_on": "2026-05-28",
+  "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: the Flickr photo page (via Flickr's official flic.kr short link) shows the CC0 Public Domain Dedication marker and CC0 in the title.",
+  "attribution": "Bitcoin blockchain-network wallpaper, titled 'Bitcoin V2 - Public Domain (CC0)', by Flickr user PerfectHue",
+  "author": "PerfectHue (Flickr)",
+  "fetched_on": "2026-07-22",
   "kind": "curated-licensed",
-  "license": "unsplash",
-  "source_url": "https://unsplash.com/s/photos/cryptocurrency"
+  "license": "cc0",
+  "source_url": "https://flic.kr/p/kuVQud"
 }

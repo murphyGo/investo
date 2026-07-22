@@ -1,9 +1,9 @@
 {
-  "allowed_use": "not-yet-available — public republish once filed; basis: Unsplash License",
-  "attribution": "Generic economy / money photo",
-  "author": "Unsplash contributor",
-  "fetched_on": "2026-05-28",
+  "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states the creator released the file explicitly under Creative Commons Zero on Pixabay.",
+  "attribution": "US one-hundred-dollar Federal Reserve notes, by Pixabay contributor Maklay62 (explicit CC0 release; via Wikimedia Commons)",
+  "author": "Maklay62 (Pixabay)",
+  "fetched_on": "2026-07-22",
   "kind": "curated-licensed",
-  "license": "unsplash",
-  "source_url": "https://unsplash.com/s/photos/money"
+  "license": "cc0",
+  "source_url": "https://commons.wikimedia.org/wiki/File:Money-1428594_1920.jpg"
 }

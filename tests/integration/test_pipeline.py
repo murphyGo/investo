@@ -250,10 +250,13 @@ async def test_pipeline_end_to_end_success(
     assert "archive/domestic-equity/2026/04/2026-04-27" in str(result.briefing_url)
     # All 4 stages recorded as ok (+ the u137 image-candidate stage
     # note — the fake items carry no image metadata, so all zeros).
+    # 20 files since 2026-07-22: the u86 curated library ships filed
+    # binaries, so the "FOMC item" titles select the jerome-powell
+    # curated hero (+ binary + provenance sidecar) in one segment.
     assert result.stages == {
         "collect": "ok",
         "generate": "ok",
-        "visual_assets": "ok: 18 files",
+        "visual_assets": "ok: 20 files",
         "image_candidates": "ok: candidates=0 indexed=0 stored=0",
         "publish": "ok",
         "notify_briefing": "ok",
