@@ -979,6 +979,76 @@ def _run_image_candidate_stage(
         return (), f"failed: {type(exc).__name__}"
 
 
+def _append_daily_coverage_line(
+    target_date: date,
+    items: Sequence[NormalizedItem],
+    *,
+    segmented_mode: bool,
+    source_outcomes: Sequence[SourceOutcome],
+    segment_briefings: dict[MarketSegment, Briefing] | None,
+    image_stage_note: str | None,
+) -> Path | None:
+    """Append this run's per-source coverage line; return its path (DEBT-088).
+
+    Hoisted out of ``HealthTrackingStage`` (which runs after publish) so
+    the current run's own row exists before ``PublishStage`` assembles
+    its ``git add`` list — otherwise every commit carried only the
+    PREVIOUS runs' rows (one-day lag). Safe to run here: every input
+    (items / source_outcomes / segment_briefings / image_stage_note) is
+    finalized by the end of ``GenerateStage`` and none of them depends
+    on publish.
+
+    Best-effort, matching the prior behaviour: any failure degrades to a
+    WARNING and returns ``None`` (nothing to stage) rather than
+    affecting pipeline status.
+    """
+    try:
+        severities_for_coverage: dict[str, str] = {}
+        if segmented_mode and segment_briefings is not None:
+            severity_segmented = segment_items(items)
+            for segment in segment_briefings:
+                severities_for_coverage[segment] = severity_segmented.coverage_for_segment(
+                    segment, source_outcomes=source_outcomes
+                ).status
+        coverage_path = source_health.resolve_coverage_path()
+        source_health.append_daily_coverage(
+            target_date,
+            source_outcomes,
+            severities=severities_for_coverage or None,
+            image_stage=image_stage_note,
+        )
+        return coverage_path
+    except Exception as exc:
+        _logger.warning("[source_health] could not record coverage log: %s", exc)
+        return None
+
+
+def _coverage_path_for_staging(coverage_path: Path | None) -> tuple[Path, ...]:
+    """Return the coverage path iff it is safe to stage (DEBT-088).
+
+    Existence-checked like every other ``extra_commit_paths`` entry.
+    The default path is derived from ``ARCHIVE_ROOT`` and is therefore
+    in-repo by construction, so it always stages. An operator
+    ``INVESTO_COVERAGE_LOG_PATH`` override is staged only when it
+    actually lives under the working tree — a local run pointing the
+    log at ``~/tmp`` must never make the pipeline ``git add`` a foreign
+    path.
+    """
+    if coverage_path is None or not coverage_path.exists():
+        return ()
+    if not os.environ.get(source_health.COVERAGE_PATH_ENV, "").strip():
+        # Archive-derived default — in-repo by construction.
+        return (coverage_path,)
+    try:
+        coverage_path.resolve().relative_to(Path.cwd().resolve())
+    except (OSError, ValueError):
+        _logger.info(
+            "[source_health] coverage log path is outside the working tree — not staged",
+        )
+        return ()
+    return (coverage_path,)
+
+
 def _persist_fact_snapshot_safely(
     target_date: date,
     *,
@@ -2822,6 +2892,17 @@ class GenerateStage:
         else:
             timings = {"generate": generate_elapsed}
 
+        # DEBT-088 — append this run's coverage line here (pre-publish)
+        # so PublishStage can stage it in the same commit.
+        coverage_log_path = _append_daily_coverage_line(
+            target_date,
+            items,
+            segmented_mode=segmented_mode,
+            source_outcomes=source_outcomes,
+            segment_briefings=segment_briefings,
+            image_stage_note=image_stage_note,
+        )
+
         return StageResult(
             status=("partial" if segment_generation_failures else "ok"),
             data={
@@ -2835,6 +2916,7 @@ class GenerateStage:
                 "staged_public_artifacts": staged_public_artifacts,
                 "image_candidate_paths": image_candidate_paths,
                 "image_stage_note": image_stage_note,
+                "coverage_log_path": coverage_log_path,
                 "fact_bundle": fact_bundle,
                 "entity_observed_at_utc": entity_observed_at_utc,
                 "public_document_context": public_document_context,
@@ -2884,6 +2966,13 @@ class PublishStage:
         image_candidate_paths = cast(
             "tuple[Path, ...]", accumulated.get("image_candidate_paths", ())
         )
+        # DEBT-088 — the append-only coverage diagnostics log rides the
+        # same ``extra_commit_paths`` channel: existence-checked, staged
+        # for commit, and (like the image ledger) never registered in
+        # the rollback snapshots.
+        coverage_staging_paths = _coverage_path_for_staging(
+            cast("Path | None", accumulated.get("coverage_log_path"))
+        )
 
         start = time.monotonic()
         finalization_blocked_segments: tuple[MarketSegment, ...] = ()
@@ -2929,7 +3018,7 @@ class PublishStage:
                     items=items,
                     source_outcomes=source_outcomes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
-                    extra_commit_paths=image_candidate_paths,
+                    extra_commit_paths=(*image_candidate_paths, *coverage_staging_paths),
                     phase_one_complete=True,
                     finalized_bundle=finalized_bundle,
                     staging_root=artifact_staging_root,
@@ -3098,24 +3187,15 @@ class HealthTrackingStage:
         segment_briefings = cast(
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
         )
-        # u137 R9 — the image-candidate stage's outcome note rides the
-        # same daily coverage line (one diagnostic line per run).
-        image_stage_note = cast("str | None", accumulated.get("image_stage_note"))
+        del segmented_mode, items, source_outcomes, segment_briefings
         soft_alert: RuntimeError | None = None
         try:
-            severities_for_coverage: dict[str, str] = {}
-            if segmented_mode and segment_briefings is not None:
-                severity_segmented = segment_items(items)
-                for segment in segment_briefings:
-                    severities_for_coverage[segment] = severity_segmented.coverage_for_segment(
-                        segment, source_outcomes=source_outcomes
-                    ).status
-            source_health.append_daily_coverage(
-                target_date,
-                source_outcomes,
-                severities=severities_for_coverage or None,
-                image_stage=image_stage_note,
-            )
+            # DEBT-088 — the coverage line itself is now appended at the
+            # END of GenerateStage (``_append_daily_coverage_line``) so
+            # this run's own row exists before PublishStage builds its
+            # git-add list and therefore ships in the same commit. This
+            # stage keeps the consecutive-failure detection, which must
+            # read the file *after* that append.
             consecutive_failed = source_health.detect_consecutive_failed(today=target_date)
             if consecutive_failed:
                 _logger.warning(

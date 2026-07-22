@@ -2037,6 +2037,127 @@ async def test_run_pipeline_publish_rollback_never_touches_image_ledger(
 
 
 @pytest.mark.asyncio
+async def test_run_pipeline_stages_coverage_log_for_commit(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """DEBT-088 — this run's coverage line is appended BEFORE publish and
+    its path joins the ``git add`` argv (mirrors the ``*.svg.json``
+    staging assertion), so the diagnostics log is actually committed.
+    """
+    # No env override — the path derives from the (tmp) ARCHIVE_ROOT,
+    # which is the in-repo shape production uses.
+    monkeypatch.delenv("INVESTO_COVERAGE_LOG_PATH", raising=False)
+    coverage_path = archive_root / "_meta" / "coverage.jsonl"
+
+    publisher = _FakePublisher()
+    alerter = _FakeAlerter()
+    git = _SuccessfulGitRunner()
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    # The line for THIS run exists (hoisted ahead of publish) …
+    assert coverage_path.exists()
+    assert _TARGET.isoformat() in coverage_path.read_text(encoding="utf-8")
+    # … and its path was staged in the same commit.
+    add_call = next(c for c in git.calls if c[1] == "add")
+    assert any("coverage.jsonl" in arg for arg in add_call)
+
+
+@pytest.mark.asyncio
+async def test_publish_rollback_never_touches_coverage_log(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """DEBT-088 + DEBT-085 shape — the append-only coverage log rides
+    ``extra_commit_paths``, so a publish-gate rollback must NOT delete
+    it (registering it in the rollback snapshots with
+    ``previous_bytes=None`` would wipe committed diagnostics history).
+    """
+    monkeypatch.delenv("INVESTO_COVERAGE_LOG_PATH", raising=False)
+    coverage_path = archive_root / "_meta" / "coverage.jsonl"
+    coverage_path.parent.mkdir(parents=True, exist_ok=True)
+    preseeded = '{"target_date": "2026-04-20", "outcomes": []}\n'
+    coverage_path.write_text(preseeded, encoding="utf-8")
+
+    def fake_write_finalized_document(
+        document: public_document_module.FinalizedPublicDocument,
+    ) -> Path:
+        segment = document.segment
+        target_date = document.target_date
+        path = archive_root / segment / "2026" / "04" / "2026-04-27.md"
+        if segment == US_EQUITY:
+            raise PublisherIOError(target_date=target_date, path=path, cause=OSError("boom"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"new {segment}", encoding="utf-8")
+        return path
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "write_finalized_document",
+        fake_write_finalized_document,
+    )
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.FAILED
+    assert result.stages["publish"] == "failed: PublisherIOError"
+    assert not list(archive_root.rglob("*.md"))  # rollback provably ran
+    # Coverage log survives with the pre-seeded row AND this run's row.
+    assert coverage_path.exists()
+    content = coverage_path.read_text(encoding="utf-8")
+    assert preseeded.strip() in content
+    assert _TARGET.isoformat() in content
+
+
+@pytest.mark.asyncio
+async def test_coverage_log_outside_repo_is_not_staged(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """DEBT-088 — an operator-local ``INVESTO_COVERAGE_LOG_PATH`` outside
+    the repo must never enter the ``git add`` list."""
+    outside = tmp_path / "operator_local" / "coverage.jsonl"
+    monkeypatch.setenv("INVESTO_COVERAGE_LOG_PATH", str(outside))
+
+    git = _SuccessfulGitRunner()
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert outside.exists()  # still written — only staging is skipped
+    add_call = next(c for c in git.calls if c[1] == "add")
+    assert not any("coverage.jsonl" in arg for arg in add_call)
+
+
+@pytest.mark.asyncio
 async def test_stage_publish_segments_stages_latest_index_pages(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

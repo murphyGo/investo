@@ -40,15 +40,30 @@ from investo.models.coverage import SourceOutcome
 _logger = logging.getLogger(__name__)
 
 COVERAGE_PATH_ENV: Final[str] = "INVESTO_COVERAGE_LOG_PATH"
-_DEFAULT_COVERAGE_PATH: Final[Path] = Path("archive/_meta/coverage.jsonl")
 # Default consecutive-failure threshold. The orchestrator passes this
 # explicitly; tests pin different values.
 DEFAULT_CONSECUTIVE_THRESHOLD: Final[int] = 3
 
 
 def resolve_coverage_path() -> Path:
+    """Return the coverage-log path: env override, else archive-derived.
+
+    DEBT-087 — the default is derived from
+    :data:`investo.publisher.paths.ARCHIVE_ROOT` **at call time** rather
+    than frozen into a module constant, so the project-standard
+    ``monkeypatch.setattr("investo.publisher.paths", "ARCHIVE_ROOT",
+    tmp_path)`` seam actually redirects it (previously a hardcoded
+    relative path let test runs append into the real
+    ``archive/_meta/coverage.jsonl``). Same local-import seam as
+    ``pipeline._fact_snapshot_path`` / ``_image_candidates_root``:
+    importing at call time is what makes the attribute patch visible.
+    """
     raw = os.environ.get(COVERAGE_PATH_ENV, "").strip()
-    return Path(raw) if raw else _DEFAULT_COVERAGE_PATH
+    if raw:
+        return Path(raw)
+    from investo.publisher.paths import ARCHIVE_ROOT
+
+    return ARCHIVE_ROOT / "_meta" / "coverage.jsonl"
 
 
 def append_daily_coverage(

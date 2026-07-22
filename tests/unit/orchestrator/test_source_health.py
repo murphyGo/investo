@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from investo.models.coverage import SourceOutcome
 from investo.orchestrator import source_health
 
@@ -109,5 +111,16 @@ def test_detect_consecutive_failed_intersects_failed_sources(tmp_path: Path) -> 
 def test_resolve_coverage_path_honours_env(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     monkeypatch.setenv("INVESTO_COVERAGE_LOG_PATH", "/tmp/x.jsonl")
     assert source_health.resolve_coverage_path() == Path("/tmp/x.jsonl")
-    monkeypatch.delenv("INVESTO_COVERAGE_LOG_PATH")
-    assert source_health.resolve_coverage_path() == Path("archive/_meta/coverage.jsonl")
+
+
+def test_resolve_coverage_path_default_derives_from_archive_root(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    # DEBT-087 — with no env override the default is derived from
+    # ``publisher.paths.ARCHIVE_ROOT`` AT CALL TIME, so the standard
+    # test seam redirects it (previously a frozen relative constant let
+    # test runs append into the real repo archive).
+    monkeypatch.delenv("INVESTO_COVERAGE_LOG_PATH", raising=False)
+    monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", tmp_path / "archive")
+    assert source_health.resolve_coverage_path() == tmp_path / "archive/_meta/coverage.jsonl"
