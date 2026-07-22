@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 17 (BusinessQuant Stock Quotes API)
+**Timestamp**: 2026-07-22T06:14:47Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the HF Data Library Step 0 slice as `77ecf6b`, staging only its seven u140 document changes while preserving unrelated generated/settings/worktree artifacts.
+**Primary-source evidence**: BusinessQuant's Stock Quotes documentation advertises a free authenticated `GET /quotes` endpoint with strict EOD, live-merged daily, and minute-bar modes; multi-ticker responses; US-listed equity and ETF coverage; many years of OHLCV history; and EOD finalization typically within minutes of the 16:00 ET close. The Free plan publishes 30 API calls/day, 0.1 GB/month, and no credit-card requirement. The binding Terms state that using the Website grants no ownership or license in accessed content, information, or data. The pricing page separately markets "Commercial use API" on Enterprise and lists commercial redistribution as a plan-controlled feature, so free public derived-display rights are not expressly granted.
+**Deduplication**: No `businessquant`, `data.businessquant.com`, BusinessQuant API key, quotes endpoint, adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under Investo runtime, configuration, tests, or planning surfaces.
+**Decision**: `reject under current published terms and pricing` for u140. Technical cost, history-depth, fields, ETF-family coverage, cadence, and request-budget evidence is promising, but the binding free public derived-display rights gate fails. Exact SPY plus eleven-sector-ETF coverage, corporate-action adjustment semantics, consolidated-volume meaning, continuity, and rotating-runner stability were not probed. No account/key was created, no provider payload was fetched, and no raw data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-businessquant-stock-quotes.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-17. A new candidate must repeat Step 0; only a source with at least 63 permanently free daily bars and explicit free public derived-display rights may advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 16 (HF Data Library daily OHLCV)
 **Timestamp**: 2026-07-21T20:00:47Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the FinancialData.Net Step 0 slice as `0044767`, staging only its seven u140 document changes while preserving unrelated generated/settings/worktree artifacts. The previously concurrent u144 commit `b52d00a` was already synchronized on `origin/main` before this commit.

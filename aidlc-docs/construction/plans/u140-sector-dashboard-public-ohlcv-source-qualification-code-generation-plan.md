@@ -67,6 +67,7 @@ adapter or Pages construction is registered.
 | SimFin Daily Share Prices | Free technically offers five years of daily US share-price history, API/bulk access, OHLC, adjusted close, and volume, but FREE/BASIC permits personal research only and forbids sharing; reprocessed data keeps the same restrictions, while redistribution requires a separate commercial redistribution/Enterprise license | reject for the explicit free public-rights gate (2026-07-21 Step 0) |
 | FinancialData.Net ETF Prices API | technically provides an exact SPY/ETF daily OHLCV route, more than ten years of history, and up to 300 records per response, but ETF Prices is Premium at USD 69/month or USD 599/year; external display and redistribution are Enterprise-only at USD 299/month or USD 2,599/year | reject for the permanent-free and explicit free public-rights gates (2026-07-21 Step 0) |
 | HF Data Library daily OHLCV | free API, 23+ years, daily aggregation, CC BY 4.0 plus IEX historical-data distribution with attribution, and current public metadata; however the required universe is 11/12 because `XLRE` is absent, and post-2022 volume is IEX-only at roughly 2–3% of consolidated volume | defer for exact-universe and volume-fitness repair (2026-07-22 Step 0) |
+| BusinessQuant Stock Quotes API | free authenticated API technically advertises multi-year US-listed ETF EOD OHLCV, multi-ticker responses, and a 30-call daily Free budget; however the binding Terms grant no license in accessed data and pricing places commercial API use on Enterprise while treating commercial redistribution as plan-controlled | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -211,6 +212,13 @@ Primary HF Data Library references, checked 2026-07-22:
 - `https://hfdatalibrary.com/pages/issues`
 - `https://github.com/elkassabgi/hfdatalibrary`
 - `https://www.iex.io/legal/hist-data-terms`
+
+Primary BusinessQuant references, checked 2026-07-22:
+
+- `https://businessquant.com/docs/api/quotes`
+- `https://businessquant.com/docs/api/universe`
+- `https://businessquant.com/pricing`
+- `https://businessquant.com/terms-of-use`
 
 ## Qualification Steps
 
@@ -503,6 +511,30 @@ OHLC values that differ from the full tape. Investo cannot label that field as t
 ETF volume. Exact-universe coverage therefore fails before account/API probing, and
 the volume metric needs an explicit venue-limited product contract. Step 1 does not
 apply unless both blockers are resolved.
+
+#### Iteration 17 — BusinessQuant Stock Quotes API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-businessquant-stock-quotes.md`.
+Disposition: **reject under current published terms and pricing**. The Quotes API is
+technically promising: it advertises a free API-key path, strict historical EOD and
+daily OHLCV modes, multi-ticker responses, US-listed ETF coverage, many years of
+history, and EOD finalization within minutes of market close. The Free plan publishes
+30 calls/day and 0.1 GB/month, enough for a bounded collection design even if its
+two-simultaneous-ticker limit requires six requests. The binding Terms nevertheless
+state that use grants no ownership or license in accessed content, information, or
+data. Pricing separately places commercial API use on Enterprise and lists commercial
+redistribution as a plan-controlled capability. That is not an explicit free public
+derived-display grant for Investo Pages. The rights gate therefore fails before
+account creation or payload probing. Exact 12-symbol coverage, adjustment semantics,
+volume venue meaning, continuity, freshness, and runner stability remain unproven;
+Step 1 does not apply.
 
 #### Next candidate iteration
 
