@@ -21,6 +21,14 @@
 **Status**: Both entries **closed**. Commit `8f83d4d` is on `main` and pushed. Follow-ups: (a) **re-run DEBT-073's replay** now that persistence is fixed — its `outcomes: []` / `실패한 소스 누적 = 0` symptom was likely caused by DEBT-088, so several flagged dates may resolve on their own; (b) DEBT-089 is the open remainder of the "tests must not write generated paths" invariant.
 **Context**: DEBT-087's original entry carried a promotion trigger ("promote to Medium the moment DEBT-088 lands") because untracked synthetic rows become committable once the file is tracked. Landing both in the same commit retired that trigger instead of exercising it. No synthesized coverage history was introduced anywhere in this change (R10).
 
+## Functional Design — u145 public HF limited radar
+
+**Status**: complete. Authored R1-R33, E1-E19, I1-I7, C1-C7, and L1-L12 for the limited public Pages path.
+**Boundary**: the existing u139 `SectorSeriesBundle`/`SectorDashboardSnapshot` remain NAV/private literals. u145 adds sibling public bar/bundle/snapshot/provenance types and extracts only source-neutral mathematical kernels behind unchanged u139 wrappers.
+**Truth contract**: the request set is fixed at SPY plus ten supported sector ETFs; XLRE is never requested or proxied and remains a value-free `provider_unavailable` record. Post-2022 values are `IEX venue sample`; IEX volume is validated but cannot reach metric, regime, rank, summary, color, quadrant, or composite inputs.
+**Publication contract**: all eleven cards, first-viewport limitation language, HF/IEX attribution, shared snapshot id, derived-only retention, first-publish fail-closed, and last-good unchanged-`as_of` behavior are mandatory. Five isolated GHA probes precede schedule/nav activation.
+**Validation**: documentation-only Functional Design; PBT/runtime tests are N/A. The existing u139 model, metric, regime, input, and renderer surfaces were inspected to pin compatibility and avoid a duplicate calculation engine.
+
 ## Application Design — u145 public HF limited radar
 
 **User decision**: "내 허락 묻지 말고 계속 작업해줘" — continue autonomously after u140 exhausted the strict candidate inventory. The recommended product relaxation keeps permanent-free access and explicit public reuse rights while relaxing exact 12-symbol coverage and consolidated-volume semantics only.
