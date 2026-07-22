@@ -525,6 +525,46 @@ def test_typed_watchpoint_result_reports_exact_limited_reason() -> None:
     assert DATA_LIMITED_NOTE in result.markdown
 
 
+@pytest.mark.parametrize(
+    ("bullet", "coverage_limited", "expected_state"),
+    (
+        (_STRUCTURED_NUMERIC, False, "rendered"),
+        (_GENERIC, True, "limited"),
+    ),
+)
+def test_typed_watchpoint_result_byte_preserves_opaque_owned_fragment(
+    bullet: str,
+    coverage_limited: bool,
+    expected_state: str,
+) -> None:
+    fragment = (
+        "<!-- investo:block visual:us-equity.visual.watchlist-relevance -->\n"
+        "![관심 자산 관련성](watchlist-relevance.svg)\n"
+        "<!-- /investo:block visual:us-equity.visual.watchlist-relevance -->\n"
+    )
+    text = _section_six([bullet]).replace(
+        "## ⑥ 오늘의 관전 포인트\n\n",
+        f"## ⑥ 오늘의 관전 포인트\n\n{fragment}\n",
+    )
+
+    result = render_watchpoint_matrix_result(
+        text,
+        segment="us-equity",
+        coverage_limited=coverage_limited,
+        preserved_fragments=(fragment,),
+    )
+    repeated = render_watchpoint_matrix_result(
+        result.markdown,
+        segment="us-equity",
+        coverage_limited=coverage_limited,
+        preserved_fragments=(fragment,),
+    )
+
+    assert result.state == expected_state
+    assert result.markdown.count(fragment) == 1
+    assert repeated.markdown == result.markdown
+
+
 def test_typed_watchpoint_result_rejects_forged_or_mixed_idempotent_shapes() -> None:
     malformed = _section_six([]).replace(
         "## ⑥ 오늘의 관전 포인트\n\n",

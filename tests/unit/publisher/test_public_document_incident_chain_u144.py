@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -18,12 +19,14 @@ from investo.publisher.public_document import (
     PublicDocumentContext,
     PublicDocumentDraft,
     PublicDocumentLayout,
+    PublicDocumentSupplement,
     PublicRegionExpectation,
     _assemble_phase_one_reader_draft,
     _FinalizationPhaseHandlers,
     _finalize_segment_skeleton,
     _new_generated_draft,
     _project_assembled_draft,
+    _render_supplement_block,
     _scan_terminal_entity_fact_claims,
     _transition_draft,
 )
@@ -227,6 +230,42 @@ def test_run_29707052598_watchpoint_shape_seals_without_raw_public_label() -> No
         issue.code == incident["terminal_issue_code"]
         for issue in find_surface_quality_issues(finalized.briefing.rendered_markdown)
     )
+
+
+def test_phase_one_watchpoint_rewrite_preserves_typed_visual_supplement() -> None:
+    fixture = _load_fixture()
+    generated, context, _coverage = _build_incident_draft(fixture)
+    supplement = PublicDocumentSupplement(
+        supplement_id="crypto.visual.watchlist-relevance",
+        kind="visual",
+        markdown="![관심 자산 관련성](watchlist-relevance.svg)",
+        stable_order=1,
+    )
+    fragment = _render_supplement_block(supplement)
+    rendered = generated.source_briefing.rendered_markdown.replace(
+        "## ⑥ 오늘의 관전 포인트\n\n",
+        f"## ⑥ 오늘의 관전 포인트\n\n{fragment}\n",
+    )
+    expectation = replace(
+        generated.layout.expectation,
+        supplement_ids=(supplement.supplement_id,),
+    )
+    briefing = generated.source_briefing.model_copy(update={"rendered_markdown": rendered})
+    draft = _new_generated_draft(
+        briefing,
+        segment=generated.segment,
+        layout=PublicDocumentLayout.reindex(rendered, expectation=expectation),
+    )
+    active_context = replace(
+        context,
+        supplements_by_segment={generated.segment: (supplement,)},
+    )
+
+    assembled = _assemble_phase_one_reader_draft(draft, active_context)
+
+    assert assembled.phase == "assembled"
+    assert assembled.layout.markdown.count(fragment) == 1
+    assert "#### 관찰 신호:" in assembled.layout.markdown
 
 
 def test_run_29707052598_legacy_assembled_shape_crosses_real_projection() -> None:

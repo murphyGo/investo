@@ -2346,6 +2346,12 @@ def _assemble_phase_one_reader_draft(
             bundle_context=context.bundle_context,
             items_by_segment=context.items_by_segment,
             _watchpoint_result_observer=observe,
+            _watchpoint_preserved_fragments_by_segment={
+                draft.segment: tuple(
+                    _render_supplement_block(supplement)
+                    for supplement in context.supplements_by_segment.get(draft.segment, ())
+                )
+            },
         )
     except NumericAnchorReconciliationError as exc:
         raise _SegmentTrustBlockedError(

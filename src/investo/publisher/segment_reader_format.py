@@ -93,6 +93,7 @@ def apply_reader_format_to_segments(
     items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     _surface_repair_observer: _SurfaceRepairObserver | None = None,
     _watchpoint_result_observer: _WatchpointResultObserver | None = None,
+    _watchpoint_preserved_fragments_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
@@ -268,7 +269,11 @@ def apply_reader_format_to_segments(
         # (a table-cell mask would otherwise hide advice wording from the
         # P0 gate); the resulting matrix is observational only and rescanned
         # by the second scan_compliance below.
-        watchpoint_result = render_watchpoint_matrix_result(markdown, segment=segment)
+        watchpoint_result = render_watchpoint_matrix_result(
+            markdown,
+            segment=segment,
+            preserved_fragments=(_watchpoint_preserved_fragments_by_segment or {}).get(segment, ()),
+        )
         if _watchpoint_result_observer is not None:
             _watchpoint_result_observer(segment, watchpoint_result)
         markdown = watchpoint_result.markdown

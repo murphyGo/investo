@@ -78,6 +78,13 @@ lost typed-boundary bug: a layout `ValueError` became whole-bundle
 through the survivor fixed point and is documented in
 `step-7-exact-replay-structure-routing.md`.
 
+Retry `29895552891` preserved the structure code and exposed the next concrete
+composition gap: phase-one watchpoint rendering replaced the full §⑥ body and
+removed every segment's marker-backed `watchlist-relevance` supplement. The
+repair keeps finalization as the marker owner and passes exact supplement
+fragments to the watchpoint collaborator as opaque bytes. It is documented in
+`step-7-watchpoint-supplement-preservation.md`.
+
 Still pending Step 7 live evidence for:
 
 - exact replay `target_date=2026-07-17`;

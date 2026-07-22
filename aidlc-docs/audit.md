@@ -5522,3 +5522,12 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Focused public-document/pipeline/CLI scope 232 passed; Ruff/format and mypy (246 files) passed.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-exact-replay-structure-routing.md`.
 **Status**: Step 7 remains 2/4 pending exact replay retry and current-date verification.
+
+## Construction — u144 Step 7 exact replay attempt 2 and supplement preservation
+**Timestamp**: 2026-07-22T06:31:16Z
+**Production evidence**: `daily-briefing.yml` run `29895552891` at head `f918982` collected 119 items and built all drafts (`ok=3 failed=0`), then correctly surfaced `bundle.zero_survivors,structure.supplement_expectation`; no commit was made, Pages was skipped, the operator notification succeeded, and pipeline exit 1 was re-emitted.
+**Root cause**: Every segment's visual preparation places a typed `watchlist-relevance` supplement inside §⑥. The subsequent watchpoint renderer replaced that entire section body, deleting the marker-backed fragment before canonical layout reindexing.
+**Repair**: The public-document boundary now supplies its exact rendered E1 fragments to the phase-one collaborator. Watchpoint rendering treats matching §⑥ fragments as opaque bytes, excludes them from bullet interpretation, and reinserts them unchanged before rendered cards or the limitation note. It does not parse or reconstruct the U-144 marker grammar.
+**Validation**: Focused watchpoint/public-document/architecture scope passed 125; Ruff check/format and strict mypy for all touched source files passed. Regressions cover rendered/limited outcomes, byte idempotence, and the actual phase-one assembly boundary.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-watchpoint-supplement-preservation.md`.
+**Status**: Step 7 remains 2/4 pending exact replay at the repair commit and current-date verification.

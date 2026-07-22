@@ -78,6 +78,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final, Literal, cast
 
@@ -726,6 +727,7 @@ def render_watchpoint_matrix_result(
     section_marker: str = "⑥",
     segment: str | None = None,
     coverage_limited: bool = False,
+    preserved_fragments: Sequence[str] = (),
 ) -> WatchpointRenderResult:
     """Rewrite §⑥ and return typed usable-card availability (pure).
 
@@ -733,7 +735,10 @@ def render_watchpoint_matrix_result(
     :data:`DATA_LIMITED_NOTE` (same-day re-run), the document bytes are returned
     unchanged with the matching typed state. The transform is bounded to the
     §⑥ body region; every other section and the disclaimer footer is
-    byte-preserved. Missing/empty/unusable §⑥ is explicitly `limited`.
+    byte-preserved. Exact caller-owned ``preserved_fragments`` inside §⑥ are
+    treated as opaque bytes and reinserted ahead of the rewritten cards. The
+    renderer neither parses nor reconstructs those fragments. Missing,
+    empty, or unusable §⑥ content is explicitly `limited`.
     """
     if not text:
         raise ValueError("watchpoint input markdown must not be empty")
@@ -744,8 +749,12 @@ def render_watchpoint_matrix_result(
         body_start = match.end()
         body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
         body = text[body_start:body_end]
+        watchpoint_body, owned_fragments = _extract_preserved_fragments(
+            body,
+            preserved_fragments,
+        )
         # Idempotent (AC-87.7): accept only the exact complete card/note shape.
-        existing_state = _existing_watchpoint_state(body)
+        existing_state = _existing_watchpoint_state(watchpoint_body)
         if existing_state is not None and existing_state[0] == "rendered":
             return WatchpointRenderResult(
                 markdown=text,
@@ -761,7 +770,7 @@ def render_watchpoint_matrix_result(
             )
         # u87 Step 1 — drop non-observation lines (trace-footer diagnostics,
         # bare-link/pure-symbol bullets) before row building (AC-87.1).
-        raw_bullets = [m.group(1).strip() for m in _BULLET_RE.finditer(body)]
+        raw_bullets = [m.group(1).strip() for m in _BULLET_RE.finditer(watchpoint_body)]
         bullets = [b for b in raw_bullets if _is_observation_bullet(b)]
         if not bullets and not coverage_limited:
             return WatchpointRenderResult(
@@ -779,7 +788,7 @@ def render_watchpoint_matrix_result(
                 "watchpoint_matrix.data_limited_rows",
                 extra={"segment": segment, "count": len(bullets)},
             )
-            new_body = f"\n\n{DATA_LIMITED_NOTE}\n"
+            new_body = _compose_watchpoint_body(DATA_LIMITED_NOTE, owned_fragments)
             return WatchpointRenderResult(
                 markdown=text[:body_start] + new_body + text[body_end:],
                 state="limited",
@@ -796,7 +805,7 @@ def render_watchpoint_matrix_result(
             )
         omitted = max(0, len(bullets) - MAX_VISIBLE_ROWS)
         suffix = f"\n\n_관전 신호 {omitted}건 추가 — 본문 참조._" if omitted else ""
-        new_body = f"\n\n{cards}{suffix}\n"
+        new_body = _compose_watchpoint_body(f"{cards}{suffix}", owned_fragments)
         return WatchpointRenderResult(
             markdown=text[:body_start] + new_body + text[body_end:],
             state="rendered",
@@ -808,6 +817,45 @@ def render_watchpoint_matrix_result(
         usable_card_count=0,
         limitation_reasons=("watchpoint_unavailable",),
     )
+
+
+def _extract_preserved_fragments(
+    body: str,
+    preserved_fragments: Sequence[str],
+) -> tuple[str, tuple[str, ...]]:
+    """Remove exact caller-owned fragments without interpreting their bytes."""
+
+    ordered = tuple(preserved_fragments)
+    if any(not fragment for fragment in ordered):
+        raise ValueError("preserved watchpoint fragments must not be empty")
+    if len(set(ordered)) != len(ordered):
+        raise ValueError("preserved watchpoint fragments must be unique")
+    remainder = body
+    found: list[str] = []
+    for fragment in ordered:
+        count = remainder.count(fragment)
+        if count > 1:
+            raise ValueError("preserved watchpoint fragment must occur at most once")
+        if count == 1:
+            remainder = remainder.replace(fragment, "", 1)
+            found.append(fragment)
+    return remainder, tuple(found)
+
+
+def _compose_watchpoint_body(content: str, preserved_fragments: Sequence[str]) -> str:
+    """Compose §⑥ while retaining every opaque fragment byte-for-byte."""
+
+    body = "\n\n"
+    for fragment in preserved_fragments:
+        body += fragment
+        if not fragment.endswith(("\n", "\r")):
+            body += "\n"
+    if preserved_fragments:
+        body += "\n"
+    body += content
+    if not body.endswith(("\n", "\r")):
+        body += "\n"
+    return body
 
 
 def render_watchpoint_matrix(
