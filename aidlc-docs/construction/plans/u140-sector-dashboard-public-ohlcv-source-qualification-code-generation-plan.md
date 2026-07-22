@@ -69,6 +69,7 @@ adapter or Pages construction is registered.
 | HF Data Library daily OHLCV | free API, 23+ years, daily aggregation, CC BY 4.0 plus IEX historical-data distribution with attribution, and current public metadata; however the required universe is 11/12 because `XLRE` is absent, and post-2022 volume is IEX-only at roughly 2–3% of consolidated volume | defer for exact-universe and volume-fitness repair (2026-07-22 Step 0) |
 | BusinessQuant Stock Quotes API | free authenticated API technically advertises multi-year US-listed ETF EOD OHLCV, multi-ticker responses, and a 30-call daily Free budget; however the binding Terms grant no license in accessed data and pricing places commercial API use on Enterprise while treating commercial redistribution as plan-controlled | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
 | London Strategic Edge Free Market Data API | one free key technically advertises daily JSON/CSV OHLCV, 5,000 rows/request, history back to 2003, and 25 ETFs; however the Terms prohibit redistribution and derivative works without express written consent and leave upstream ETF-data provenance unverified | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
+| Direct IEX Exchange HIST / TOPS | free T+1 downloads, 12 months of history, and distribution with mandatory attribution pass preliminary cost/rights checks; however each date is a whole-market gzip PCAP of roughly 9–21 GB, not ticker-filtered daily bars, and derived activity is IEX-only rather than consolidated | reject for current public-MVP operational and metric fitness (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -227,6 +228,14 @@ Primary London Strategic Edge references, checked 2026-07-22:
 - `https://londonstrategicedge.com/api/`
 - `https://londonstrategicedge.com/data/`
 - `https://londonstrategicedge.com/terms-of-service`
+
+Primary direct IEX HIST references, checked 2026-07-22:
+
+- `https://www.iex.io/products/equities/market-data-connectivity`
+- `https://www.iex.io/legal/hist-data-terms`
+- `https://iextrading.com/trading/market-data/`
+- `https://www.iex.io/resources/trading/market-data`
+- `https://iextrading.com/trading/eligible-symbols/`
 
 ## Qualification Steps
 
@@ -565,6 +574,30 @@ Investo Pages. The reviewed materials also do not identify the upstream ETF feed
 consolidated-volume semantics. Rights therefore fail before account or payload probing.
 Exact 12-symbol coverage, endpoint grammar, adjustment, volume provenance, continuity,
 freshness, and runner stability remain unproven; Step 1 does not apply.
+
+#### Iteration 19 — Direct IEX Exchange HIST / TOPS
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-iex-hist-direct.md`.
+Disposition: **reject for current public MVP operational and metric fitness**. IEX
+officially provides free T+1 HIST downloads for the most recent 12 months and permits
+distribution with mandatory attribution, so preliminary cost, history-depth, and
+public-rights checks pass. The delivery unit nevertheless fails this product's bounded
+collection contract: every date is a whole-market gzip PCAP requiring IEX-TP/TOPS
+decoding and message-to-bar aggregation, and current catalog examples are roughly
+9–21 GB for one TOPS trading day. A 63-day bootstrap therefore requires hundreds of
+gigabytes before the 12 symbols can even be filtered. Resulting OHLCV would describe
+IEX-only last sales, not consolidated ETF activity; routed executions and other
+markets are excluded. Exact required-symbol trade continuity, corporate-action
+adjustment, and usable-bar freshness remain unproven. The official catalog and feed
+contract are sufficient to reject the current GHA-hosted public MVP path, so no HIST
+file, payload, decoder fixture, local probe, or five-run GHA probe was created.
 
 #### Next candidate iteration
 
