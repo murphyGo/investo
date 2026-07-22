@@ -75,6 +75,7 @@ adapter or Pages construction is registered.
 | MEMX MEMOIR Historical Data | official prior-day Depth/Top/Last Sale history is available through cloud APIs, but requires a Market Data Agreement and approved Order Form/System Description; public-use fees/approval are feed-specific and derived bars remain MEMX-only raw-message aggregates | reject for current public-MVP cost/rights certainty and metric fitness (2026-07-22 Step 0) |
 | NYSE Daily TAQ | official consolidated CTA/UTP T+1 trades/quotes/NBBO archive covers U.S. securities from 1993, but the commercial subscription is USD 3,800/month with a 12-month minimum, older history and external historical redistribution are separately charged/licensed, and whole-market tick files are not bounded ticker-filtered bars | reject for permanent-free, explicit free public-rights, and operational-budget gates (2026-07-22 Step 0) |
 | NYSE TAQ Closing Prices | official per-exchange daily Open/High/Low/Last, Total Volume, and closing quote summaries have NYSE Arca history since 2008 and bounded files, but cost USD 500/month under a 12-month minimum, external historical distribution requires a specific license/fee, and volume is NYSE-venue-local rather than consolidated | reject for permanent-free, explicit free public-rights, and volume-semantics gates (2026-07-22 Step 0) |
+| SEC MIDAS Metrics by Individual Security | anonymous official quarterly ZIPs cover 4,800+ securities and long daily market-activity history, but expose ranks/counts/order and trade volumes rather than OHLC, currently stop at December 2025, and intentionally exclude off-exchange, auction, and off-hours volume | reject as u140 OHLCV source; possible Phase 2 research input only (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -284,6 +285,13 @@ Primary NYSE TAQ Closing Prices references, checked 2026-07-22:
 - `https://www.nyse.com/publicdocs/nyse/data/NYSE_Historical_Market_Data_Pricing.pdf`
 - `https://www.nyse.com/publicdocs/nyse/data/NYSE_Market_Data_Complete_Policy_Package.pdf`
 - `https://www.nyse.com/market-data/pricing-policies-contracts-guidelines`
+
+Primary SEC MIDAS Metrics by Individual Security references, checked 2026-07-22:
+
+- `https://www.sec.gov/data-research/market-structure-data`
+- `https://www.sec.gov/data-research/sec-markets-data/marketstructuredata-security`
+- `https://www.sec.gov/featured-topics/market-structure-analytics/market-activity-report-methodology`
+- `https://www.sec.gov/securities-topics/market-structure-analytics/midas-feedback`
 
 ## Qualification Steps
 
@@ -757,11 +765,37 @@ than consolidated U.S. OHLCV. Cost, free public rights, and metric fitness fail 
 dashboard registration, purchase, entitlement, sample, exact-universe, local, or GHA
 probes; Step 1 does not apply.
 
-#### Next candidate iteration
+#### Iteration 25 — SEC MIDAS Metrics by Individual Security
 
-- [ ] Select the next non-duplicate candidate and repeat the complete Step 0 fact
-  sheet. Only a candidate with a provisional `ship-now` rights/cost disposition may
-  advance to Step 1.
+- [x] Record owner, official docs, delivery, cost, universe, fields, cadence,
+  price/volume semantics, freshness, retention, and public-download posture with dated
+  primary-source links.
+- [x] Deduplicate the candidate against existing SEC adapters and Phase 2 inputs.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-sec-midas-individual-security-metrics.md`.
+Disposition: **reject as the u140 public OHLCV source; defer only as a possible Phase
+2 market-structure research input**. SEC provides anonymous quarterly ZIPs with daily
+metrics for more than 4,800 securities, but the published columns contain ticker/date,
+ranks, trade/order counts and volumes, and lit/odd-lot/hidden fields rather than daily
+Open/High/Low/Close. The current download inventory ends at December 2025, so it also
+fails the at-most-36-hour cadence. MIDAS volume excludes off-exchange activity,
+opening/closing auctions, and off-hours trading, so it cannot stand in for consolidated
+ETF volume. Schema, cadence, and metric fitness fail before ZIP download,
+exact-universe, local, or GHA probes; Step 1 does not apply.
+
+#### Terminal blocker after iteration 25
+
+- [x] Exhaust the current non-duplicate inventory across existing paths, issuer files,
+  major free/self-service APIs, commercial EOD vendors, exchange-direct products, and
+  the official public SEC market-structure dataset.
+- [x] Keep all rejected candidates out of account, credential, payload, and runner
+  probes when a binding published gate fails first.
+- [ ] Resume only when new primary-source evidence appears or the user explicitly
+  relaxes at least one binding constraint: permanent-free access, explicit public
+  derived-display rights, exact 12-symbol coverage, consolidated-volume semantics, or
+  at-most-36-hour freshness.
 
 ### Step 1 — Local bounded probe (accepted Step 0 candidate only)
 
