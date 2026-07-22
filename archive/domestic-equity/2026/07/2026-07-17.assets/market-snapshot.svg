@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">국내 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-17 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피는 9,000.00, 코스닥은 100.00으로 집계됐다(연합뉴스). 원/달러 환율은 입력 데이터에</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">포함되지 않아 환율 데이터 미수집 상태다. 수집 근거가 제한적입니다</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피(KOSPI, 한국 유가증권시장 종합지수)는 456.00, 코스닥(KOSDAQ, 코스닥종합지수)은</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">466.00으로 집계됐다(연합뉴스). 등락률은 이번 회차 입력 데이터에 포함되지 않았고, 원/달러 환율</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피 9,000선·코스닥 100선 마감 코스피는 9,000.00, 코스닥은 100.00으로</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">집계됐다(연합뉴스). 최근 며칠간 반도체 업종을 중심으로 변동성 장세가 이어진 가운데, 전날 뉴욕증시는</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">SK하이닉스[000660]·삼성전자[005930], 반도체 대형주 동반 급락 SK하이닉스[000660]는</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전 거래일 대비 -11.53% 하락한 1,842,000원에, 삼성전자[005930]는 -8.77% 하락한</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 공공데이터포털 KRX 시세(SK하이닉스[000660]) · SK하이닉스가 오늘 종가</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2,082,000원을 상회 유지하면 반도체 강세 지속 관찰, 2,082,000원을 하회 이탈하면 되돌림</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 공공데이터포털 · SK하이닉스[000660] 종가가 1,842,000원을 상회 마감하면 반등</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">시도 신호로 관찰되고, 1,842,000원을 하회 마감하면 조정 국면 연장으로 해석된다.</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

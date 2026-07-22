@@ -7,13 +7,13 @@
 <text class="card-emphasis" x="90" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">상태</text>
 <text class="card-text" x="310" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">limited</text>
 <text class="card-emphasis" x="90" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">수집</text>
-<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">19건</text>
+<text class="card-text" x="310" y="292" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">15건</text>
 <text class="card-emphasis" x="90" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">소스</text>
-<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">4개</text>
+<text class="card-text" x="310" y="364" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">3개</text>
 <text class="card-emphasis" x="90" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">누락</text>
-<text class="card-text" x="310" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">없음</text>
+<text class="card-text" x="310" y="436" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">뉴스</text>
 <text class="card-emphasis" x="90" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">사유</text>
-<text class="card-text" x="310" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">일부 소스 수집 실패, 일부 소스 0건 반환, DART 주요 공시 0건, 핵심 가격 소스 0건</text>
+<text class="card-text" x="310" y="508" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">뉴스 카테고리 누락, 일부 소스 수집 실패, 일부 소스 0건 반환, DART 주요 공시 0건, 핵심 가격 소스 0건</text>
 <text class="card-label" x="620" y="200" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22" font-weight="700">소스별 상태</text>
 <text class="card-emphasis" x="620" y="240" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">korea-policy-rss</text>
 <text class="card-text" x="620" y="266" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">실패 · source &#x27;korea-policy-rss&#x27; failed:</text>
@@ -21,7 +21,7 @@
 <text class="card-text" x="620" y="326" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 0건 반환</text>
 <text class="card-emphasis" x="620" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">fsc-krx-index-price</text>
 <text class="card-text" x="620" y="386" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 0건 반환</text>
-<text class="card-emphasis" x="620" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">정상 4개</text>
-<text class="card-text" x="620" y="446" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">정상 · fsc-krx-stock-price, krx-foreign-flows,</text>
+<text class="card-emphasis" x="620" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="20" font-weight="700">yonhap-market</text>
+<text class="card-text" x="620" y="446" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="18">0건 · 0건 반환</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
