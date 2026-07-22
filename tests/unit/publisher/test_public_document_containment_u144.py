@@ -35,6 +35,7 @@ from investo.publisher.public_document import (
     PublicDocumentSupplement,
     PublicRegionExpectation,
     _append_region_block_outcome,
+    _find_owned_surface_quality_issues,
     _new_generated_draft,
     _OwnedSurfaceQualityFinding,
     _RegionDispositionDecision,
@@ -246,6 +247,28 @@ def test_disposition_precedence_is_exhaustive_and_fixed() -> None:
             "first_viewport",
         )
         == "replace_block"
+    )
+
+
+def test_truncated_summary_finding_is_owned_only_by_actual_first_viewport() -> None:
+    body_markdown = _canonical_markdown(watchpoint_body="- 공급망 관")
+    body_draft, _ = _projected_draft(body_markdown)
+
+    assert all(
+        finding.issue.code != "summary.truncated_mid_token"
+        for finding in _find_owned_surface_quality_issues(body_draft.layout)
+    )
+
+    viewport_markdown = _canonical_markdown(
+        watchpoint_body="- 확인할 조건",
+        first_viewport_lines=("공급망 관",),
+    )
+    viewport_draft, _ = _projected_draft(viewport_markdown)
+    findings = _find_owned_surface_quality_issues(viewport_draft.layout)
+
+    assert any(
+        finding.issue.code == "summary.truncated_mid_token" and finding.block == "first_viewport"
+        for finding in findings
     )
 
 
