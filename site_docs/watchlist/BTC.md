@@ -7,11 +7,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-07-17
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7491 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,326,737,786,797; BTC dominance 56.75%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $474,118,170 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000705934819172 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,325,566,632,077; BTC dominance 56.76%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $472,292,410 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000531288557558 (OKX, UTC 24h)
 
 <!-- u33 entry 2026-07-17 end -->
+
 <!-- u33 entry 2026-07-18 begin -->
 
 ## 2026-07-18

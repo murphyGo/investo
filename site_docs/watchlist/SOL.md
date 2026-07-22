@@ -6,9 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-17
 
-- [defillama-market-structure] **ticker**: DeFi TVL $77.2B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $77.1B; leader Ethereum
 
 <!-- u33 entry 2026-07-17 end -->
+
 <!-- u33 entry 2026-07-18 begin -->
 
 ## 2026-07-18

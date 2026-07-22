@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-17 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">6월 CPI(소비자물가지수)·PPI(생산자물가지수)가 나란히 전월 대비 하락하며 물가 둔화 흐름이</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이어졌고, 연방기금실효금리는 3.63%로 동결 유지됐다. 수집 근거가 제한적입니다</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">오늘(2026-07-17) 미국 증시(us-equity) 세그먼트에는 개별 지수·종목의 당일 가격 등락을</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">나타내는 데이터가 제공되지 않았다. 수집 근거가 제한적입니다</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·나스닥100, 선물시장 포지셔닝은 약세 우위 CFTC(미국 상품선물거래위원회)의 최신</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">COT(선물포지션보고서)에 따르면 E-mini S&amp;P 500 선물의 레버리지드머니(leveraged</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·나스닥100 오늘 세그먼트로 라우팅된 입력에는 S&amp;P 500·나스닥100 등 개별 지수의</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">당일 등락을 다루는 이슈 데이터가 수집되지 않았다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · E-mini S&amp;P 500 레버리지드머니 순포지션이 현재 순매도</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">365,002계약(-18.8%)에서 플러스 전환하면 상방 압력 관찰, 순매도 규모가 유지·확대되면 방어적</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: FRED · CPI(소비자물가지수)가 최신 332.568로 전월(333.979) 대비 하락한</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">가운데, 333.979 위로 재상승하면 물가 재가속 신호로 관찰되고 332.568 아래로 추가 하락하면</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

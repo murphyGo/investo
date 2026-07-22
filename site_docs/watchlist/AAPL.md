@@ -6,11 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-17
 
-- [yonhap-market] **ticker**: 애플, 엔비디아 제치고 장중 글로벌 시총 1위 탈환
 - [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
 - [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
 
 <!-- u33 entry 2026-07-17 end -->
+
 <!-- u33 entry 2026-07-18 begin -->
 
 ## 2026-07-18
