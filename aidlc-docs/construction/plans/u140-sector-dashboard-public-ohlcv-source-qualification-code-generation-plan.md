@@ -66,6 +66,7 @@ adapter or Pages construction is registered.
 | Intrinio EOD Historical Stock Prices | technically provides 50+ years of daily raw/adjusted OHLCV, corporate-action fields, and up to 100 rows per page, but production starts at USD 150/month for internal-only Individual access; external display begins on the paid Startup plan under an executed Order Form | reject for the permanent-free and free public-rights gates (2026-07-21 Step 0) |
 | SimFin Daily Share Prices | Free technically offers five years of daily US share-price history, API/bulk access, OHLC, adjusted close, and volume, but FREE/BASIC permits personal research only and forbids sharing; reprocessed data keeps the same restrictions, while redistribution requires a separate commercial redistribution/Enterprise license | reject for the explicit free public-rights gate (2026-07-21 Step 0) |
 | FinancialData.Net ETF Prices API | technically provides an exact SPY/ETF daily OHLCV route, more than ten years of history, and up to 300 records per response, but ETF Prices is Premium at USD 69/month or USD 599/year; external display and redistribution are Enterprise-only at USD 299/month or USD 2,599/year | reject for the permanent-free and explicit free public-rights gates (2026-07-21 Step 0) |
+| HF Data Library daily OHLCV | free API, 23+ years, daily aggregation, CC BY 4.0 plus IEX historical-data distribution with attribution, and current public metadata; however the required universe is 11/12 because `XLRE` is absent, and post-2022 volume is IEX-only at roughly 2–3% of consolidated volume | defer for exact-universe and volume-fitness repair (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -200,6 +201,16 @@ Primary FinancialData.Net references, checked 2026-07-21:
 - `https://financialdata.net/pricing`
 - `https://financialdata.net/terms-of-service`
 - `https://financialdata.net/stock-prices-api`
+
+Primary HF Data Library references, checked 2026-07-22:
+
+- `https://hfdatalibrary.com/`
+- `https://hfdatalibrary.com/pages/api`
+- `https://hfdatalibrary.com/pages/license`
+- `https://hfdatalibrary.com/pages/terms`
+- `https://hfdatalibrary.com/pages/issues`
+- `https://github.com/elkassabgi/hfdatalibrary`
+- `https://www.iex.io/legal/hist-data-terms`
 
 ## Qualification Steps
 
@@ -468,6 +479,30 @@ external commercial use, display, and redistribution for Enterprise at USD 299/m
 or USD 2,599/year. Both binding gates fail before account creation or probing. Exact
 12-symbol coverage, freshness, adjustment semantics, and runner stability remain
 unproven. Step 1 does not apply.
+
+#### Iteration 16 — HF Data Library daily OHLCV
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-hf-data-library.md`.
+Disposition: **defer pending exact-universe and volume-fitness repair**. This is the
+first candidate in the sequence to publish a plausible zero-cost public-use path:
+the API is free at 100 downloads/minute, daily OHLCV is aggregated from one-minute
+bars, history exceeds 23 years, CC BY 4.0 permits sharing and adaptation, and IEX's
+upstream terms expressly permit distribution of post-March-2022 historical data with
+the required attribution. Public repository metadata was current through 2026-07-20
+and included SPY plus ten sector ETFs, but `XLRE` was absent, so fixed-universe
+coverage is 11/12. The provider further discloses that post-2022 data represents only
+IEX activity, roughly 2–3% of consolidated volume; it can have no-trade days and
+OHLC values that differ from the full tape. Investo cannot label that field as total
+ETF volume. Exact-universe coverage therefore fails before account/API probing, and
+the volume metric needs an explicit venue-limited product contract. Step 1 does not
+apply unless both blockers are resolved.
 
 #### Next candidate iteration
 

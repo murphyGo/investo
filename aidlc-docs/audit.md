@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 16 (HF Data Library daily OHLCV)
+**Timestamp**: 2026-07-21T20:00:47Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the FinancialData.Net Step 0 slice as `0044767`, staging only its seven u140 document changes while preserving unrelated generated/settings/worktree artifacts. The previously concurrent u144 commit `b52d00a` was already synchronized on `origin/main` before this commit.
+**Primary-source evidence**: HF Data Library publishes free API access at 100 downloads/minute, a daily OHLCV aggregation route, more than 23 years of history, and explicit CC BY 4.0 sharing/adaptation rights. For post-March-2022 bars, the upstream IEX Historical Data Terms expressly allow distribution with a fixed attribution. Public repository metadata was current through 2026-07-20 on the 2026-07-21 check. The same catalog contains SPY and ten sector ETFs but omits required `XLRE`, so the fixed 12-symbol universe is only 11/12. The provider also documents that current bars reflect IEX-only activity, approximately 2–3% of consolidated volume, with possible no-trade days and OHLC values that can differ from the full tape.
+**Deduplication**: No `hfdatalibrary`, `api.hfdatalibrary.com`, HF Data Library key, IEX HIST/PiTrading adapter, daily-bars route, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under Investo runtime/configuration surfaces.
+**Decision**: `defer pending exact-universe and volume-fitness repair` for u140. This candidate provisionally clears the durable free, structured-history, freshness-metadata, and explicit public redistribution/derived-use gates, but fails the exact 12-symbol contract because `XLRE` is absent. IEX-only volume also cannot be presented as consolidated ETF trading volume. No account/key was created and no API/data payload, local probe, fixture, or GitHub Actions probe was run or retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-hf-data-library.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-16. Reconsider HF Data Library only after `XLRE` is cataloged and the product contract explicitly accepts venue-limited IEX volume; otherwise the next candidate must repeat Step 0 before any local or five-run GitHub Actions probe.
+
 ## Source qualification — u140 Step 0 iteration 15 (FinancialData.Net ETF Prices)
 **Timestamp**: 2026-07-21T07:34:05Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the SimFin Step 0 slice as `b4f0578`, staging only its seven u140 document changes while preserving concurrent u144 implementation work and unrelated generated/settings artifacts.
