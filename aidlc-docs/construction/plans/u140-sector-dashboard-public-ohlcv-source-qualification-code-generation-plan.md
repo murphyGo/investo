@@ -73,6 +73,7 @@ adapter or Pages construction is registered.
 | MIAX Pearl Equities Historical Market Data | official ToM/DoM history provides up to the most recent six months of venue messages, but costs USD 500 per MIAX-provided eight-terabyte USB device, requires exchange data agreements, is not an automated daily-bar endpoint, and remains MIAX-only | reject for permanent-free, automated-delivery, and unproven public-rights gates (2026-07-22 Step 0) |
 | Cboe DataShop Equity EOD Summary | technically offers daily U.S. equity/ETF OHLC, trade volume, VWAP, and bid/ask history from January 2010 through historical purchases or subscriptions, but has no free entitlement; even eligible academic use carries a USD 500 minimum and public distribution remains agreement/license controlled | reject for permanent-free and explicit free public-rights gates (2026-07-22 Step 0) |
 | MEMX MEMOIR Historical Data | official prior-day Depth/Top/Last Sale history is available through cloud APIs, but requires a Market Data Agreement and approved Order Form/System Description; public-use fees/approval are feed-specific and derived bars remain MEMX-only raw-message aggregates | reject for current public-MVP cost/rights certainty and metric fitness (2026-07-22 Step 0) |
+| NYSE Daily TAQ | official consolidated CTA/UTP T+1 trades/quotes/NBBO archive covers U.S. securities from 1993, but the commercial subscription is USD 3,800/month with a 12-month minimum, older history and external historical redistribution are separately charged/licensed, and whole-market tick files are not bounded ticker-filtered bars | reject for permanent-free, explicit free public-rights, and operational-budget gates (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -264,6 +265,16 @@ Primary MEMX MEMOIR Historical Data references, checked 2026-07-22:
 - `https://info.memxtrading.com/membership-connectivity-and-market-data-documents/`
 - `https://info.memxtrading.com/wp-content/uploads/2023/01/MEMX-Market-Data-Policies.pdf`
 - `https://info.memxtrading.com/wp-content/uploads/2026/06/MEMX-Rulebook-6.22.26clean.pdf`
+
+Primary NYSE Daily TAQ references, checked 2026-07-22:
+
+- `https://www.nyse.com/data-products/catalog/daily-taq`
+- `https://www.nyse.com/market-data/historical`
+- `https://www.nyse.com/publicdocs/nyse/data/NYSE_Historical_Market_Data_Pricing.pdf`
+- `https://www.nyse.com/publicdocs/nyse/data/Daily_TAQ_Client_Spec_v4.1b.pdf`
+- `https://www.nyse.com/publicdocs/nyse/data/Daily_TAQ_Client_Spec_v3.3b.pdf`
+- `https://www.nyse.com/publicdocs/nyse/data/NYSE_Market_Data_Complete_Policy_Package.pdf`
+- `https://www.nyse.com/market-data/pricing-policies-contracts-guidelines`
 
 ## Qualification Steps
 
@@ -692,6 +703,28 @@ aggregates requiring decoding, correction handling, and corporate-action input, 
 consolidated ETF OHLCV. Cost/right certainty and metric fitness fail before agreement,
 order-form, credential, payload, exact-universe, local, or GHA probes; Step 1 does not
 apply.
+
+#### Iteration 23 — NYSE Daily TAQ
+
+- [x] Record owner, official docs, delivery, auth, cost, symbols, fields, cadence,
+  adjustment semantics, attribution, retention, file size, and derived public-display
+  clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-nyse-daily-taq.md`.
+Disposition: **reject under current published pricing, licensing, and operational
+budget**. Daily TAQ is the technically strongest consolidated candidate reviewed: the
+official product contains CTA/UTP all-trades, all-quotes, and NBBO files for U.S.
+securities, has history from 1993, and is delivered T+1. It is nevertheless a paid
+whole-market archive. The commercial subscription costs USD 3,800/month under a
+12-month minimum, older history is separately charged, and external historical
+redistribution requires a specific NYSE license and fee. Representative daily files
+are approximately 649 MB for Trades, 17 GB for Quotes, and 2.2 GB for NBBO, so deriving
+12-symbol OHLCV would also violate the bounded GitHub Actions budget. The permanent-
+free and explicit free public-rights gates fail before agreement, order, sample,
+payload, exact-universe, local, or GHA probes; Step 1 does not apply.
 
 #### Next candidate iteration
 
