@@ -2,7 +2,7 @@
 
 **Date**: 2026-07-18<br>
 **Stage**: Product discovery approved / Phase 0 source viability<br>
-**Status**: Approved on 2026-07-18 — public source gate blocked, private validation path selected<br>
+**Status**: Amended on 2026-07-22 — strict public source gate blocked; limited HF/IEX Pages path selected<br>
 **Owner**: Investo planner
 
 ---
@@ -83,6 +83,17 @@ MVP는 `가격 모멘텀 + 거래강도 + 실현 변동성 + 뉴스/내러티브
    radar다.
 4. 실제 ETF flow와 실적 actual 집계는 Phase 2로 분리한다.
 5. Telegram 요약은 웹 대시보드가 안정화 게이트를 통과한 뒤 별도 단계로 추가한다.
+
+2026-07-22에 u140의 25개 후보 검토가 모두 끝난 뒤 다음 제한 공개 결정을 추가했다.
+
+6. 무상성과 명시적 공개 재사용 권리는 유지하되, 첫 공개판에 한해 exact 12-symbol
+   coverage와 consolidated-volume 요구를 완화한다.
+7. HF Data Library가 제공하는 SPY와 10개 섹터 ETF만 계산에 사용하고, 누락된 XLRE는
+   대체 ETF 없이 `unavailable` 카드로 표시한다.
+8. 2022-03 이후 OHLCV는 `IEX venue sample`로 표시한다. IEX 거래량은 전체시장 거래량,
+   자금, 거래강도 또는 composite score로 사용하지 않는다.
+9. 이 완화는 u145에만 적용한다. u140의 strict gate 실패 기록과 Phase 2/Telegram 순서는
+   변경하지 않는다.
 
 ### 3.3 Sector universe
 
@@ -526,6 +537,7 @@ collect
 | --- | --- | --- | --- |
 | S0 data-source spike / `u140` | price/history source, terms, GHA reachability, fixtures | none | source decision record; blocked until a source clears every public gate |
 | S0-P private validation / `u139` | NAV fixture schema, regime math, local/private render contract | S0 public gate blocked | no public artifacts; validates domain/UI assumptions only |
+| S0-L limited public radar / `u145` | HF/IEX daily bars, explicit XLRE gap, attribution, derived Pages projection | u139 complete; u140 strict inventory exhausted | 10-sector+SPY public radar with eleven-card partial coverage |
 | S1 sector domain contract | universe, models, metric/regime pure functions | S0 | deterministic snapshot contract |
 | S2 sector data pipeline | selected OHLCV/history acquisition, canonical history, coverage | S0, S1 | 11-sector computed snapshot |
 | S3 sector evidence layer | news/earnings tagging, evidence-bound narrative | S1 | per-sector evidence and optional narrative |
@@ -541,8 +553,9 @@ S0 -> S1 -> S2 -> S4 -> S3 -> S5
                          └-> S6 after MVP observation
 ```
 
-S0가 통과하기 전 S1 이후의 production unit을 등록하지 않는다.
-그 전에는 `u139`만 별도 private validation unit으로 construction할 수 있다.
+Strict S0는 통과하지 못했다. u145는 u140을 통과시킨 것이 아니라 사용자가 승인한
+별도 limited-public 경로다. u145가 live source gate와 5회 GHA probe를 통과하기 전에는
+scheduled collection과 Pages navigation을 켜지 않는다.
 Application Design 결과는
 [us-sector-dashboard-application-design-plan.md](us-sector-dashboard-application-design-plan.md)에 기록한다.
 
@@ -627,9 +640,11 @@ Application Design 결과는
 
 ### Remaining gate, not a product-scope decision
 
-공개 Pages에 쓸 가격 source가 아직 확정되지 않았다. 새 무료 key의 허용 여부는
-제품 기능 결정이 아니라 source별 사용권·표시권·GHA 안정성 검증 결과로 결정한다.
-별도 서면 권한 없이 개인용 API 데이터를 공개하지 않는다.
+엄격한 12-symbol/consolidated-volume source는 확보하지 못했다. 제한 공개 source는 HF Data
+Library로 확정했지만, provider payload와 GitHub Actions 안정성은 아직 검증하지 않았다.
+HF는 정확한 계정 정보, 이메일 인증, 30일 만료 API key를 요구한다. operator-owned key가
+준비된 뒤 local probe와 isolated GHA 5회를 통과해야 scheduled collection/Pages를 연다.
+별도 서면 권한 없이 개인용 API 데이터를 공개하지 않는 원칙은 그대로 유지한다.
 
 ---
 

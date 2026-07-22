@@ -1,5 +1,13 @@
 # AI-DLC Audit Log
 
+## Application Design — u145 public HF limited radar
+
+**User decision**: "내 허락 묻지 말고 계속 작업해줘" — continue autonomously after u140 exhausted the strict candidate inventory. The recommended product relaxation keeps permanent-free access and explicit public reuse rights while relaxing exact 12-symbol coverage and consolidated-volume semantics only.
+**Decision**: register `u145 sector-dashboard-public-hf-limited-radar` as a sibling of blocked u140, not as a retroactive u140 pass. HF Data Library is the sole candidate: SPY plus ten supported sector ETFs may feed a limited public radar; XLRE remains an explicit unavailable card. Every post-2022 price/volume claim is labeled as an IEX venue sample, and venue volume is excluded from rank/composite scoring.
+**Architecture**: preserve the completed u139 NAV/private boundary and generalize its pure metric engine behind a value-series contract. Add distinct public source/provenance/snapshot/rendering types, required HF/IEX attribution, raw-payload non-retention, conservative 100 requests/minute handling, and fail-closed last-good publication semantics. Pages is the only delivery surface; Telegram, actual flow, earnings actual, constituent breadth, and evidence narrative stay out of scope.
+**Gate**: published HF terms require an account with accurate registration data, email verification, and an API key that expires every 30 days. No account, identity, email verification, key, provider payload, fixture, or GitHub Actions probe was created. Functional Design and NFR authoring may continue, but implementation remains blocked before provider-payload work until an operator-owned key exists.
+**Validation**: documentation-only Application Design; PBT and runtime tests are N/A. Existing u139 model/metric boundaries were inspected, the u140 HF fact sheet was reused, and the change set was limited to planning/state/session documents.
+
 ## Source qualification — u140 Step 0 iteration 25 (SEC MIDAS Metrics by Individual Security)
 
 **User decision**: "블로킹될때까지 계속 다음 단계 알아서 진행" — committed and pushed the NYSE TAQ Closing Prices Step 0 slice as `6878065`, preserving exactly its seven u140 documentation changes. The original dirty worktree and unrelated generated/settings/worktree artifacts were not overwritten or staged.

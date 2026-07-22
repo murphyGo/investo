@@ -2156,6 +2156,43 @@ Plan: `aidlc-docs/construction/plans/u140-sector-dashboard-public-ohlcv-source-q
 
 ---
 
+### u145: `sector-dashboard-public-hf-limited-radar` - Publish a Truthful Limited-Coverage Core Radar
+
+**Purpose**: Resume the public Pages goal after u140 exhausted the strict source inventory. Use the best rights-cleared permanently free candidate without pretending it provides all twelve symbols or consolidated-market activity.
+
+**Stories**: US-001, US-003, US-008, US-010, FR-001, FR-003, FR-022, NFR-002, NFR-003, NFR-006, NFR-008
+
+**Application Design boundary**:
+- u140 remains blocked and authoritative for the strict 12-symbol/consolidated-volume gate; u145 is an explicitly relaxed sibling.
+- HF Data Library is the only provider. The request universe is SPY plus XLB, XLC, XLE, XLF, XLI, XLK, XLP, XLU, XLV, and XLY.
+- All eleven sector cards remain present. XLRE is a typed `unavailable` record; no proxy, inference, fallback provider, or silent omission is allowed.
+- Post-March-2022 OHLCV is an `IEX venue sample`, never consolidated market data. IEX volume is excluded from rank, regime, and composite scoring.
+- u139 private NAV input/output remains byte-compatible. Only source-neutral pure metric math is reused through a generalized value-series boundary.
+- Public input, provenance, snapshot, rendering, persistence, and orchestration are distinct types and owners.
+- Pages is the only delivery surface. Telegram, actual flow, earnings actual, constituent breadth, and narrative are excluded.
+
+**Proposed module surfaces**:
+- `src/investo/models/sector.py` - source-neutral value-series and limited-public snapshot/provenance contracts without weakening private NAV models.
+- `src/investo/sector_dashboard/hf_data.py` - bounded authenticated daily-bar client and provider normalization.
+- `src/investo/sector_dashboard/public_render.py` - deterministic eleven-card Markdown with unavailable/stale/source labels and attribution.
+- `src/investo/sector_dashboard/public_store.py` - derived-only last-good snapshot transaction and freshness checks.
+- `scripts/build_sector_dashboard_public.py` - isolated collection/render entrypoint; no daily briefing coupling.
+- `.github/workflows/sector-dashboard-probe.yml` - manual five-run qualification before scheduled/Pages activation.
+
+**Definition of Done**:
+- [ ] One operator-owned HF key retrieves at least 63 valid daily bars for every supported symbol under a conservative 100 requests/minute budget.
+- [ ] Provider parsing records exact adjustment, timestamp, OHLC, volume, missing-day, and schema behavior from credentialed evidence before assumptions enter production code.
+- [ ] Deterministic public output contains all eleven sector cards, XLRE unavailable, SPY benchmark provenance, source freshness, and mandatory HF/IEX attribution.
+- [ ] Price-based return, SPY excess, acceleration, realized volatility, drawdown, regime, and rank reuse u139 math; IEX volume contributes to none of them.
+- [ ] Raw API responses, API keys, request URLs containing credentials, and provider-shaped history are absent from repository/public artifacts/logs.
+- [ ] First publish fails closed without a valid snapshot. Later collection failure may retain only the last-good derived snapshot with unchanged `as_of` and a visible stale warning.
+- [ ] Five isolated GitHub Actions probes pass before scheduled collection, Pages navigation, or existing pipeline integration is enabled.
+- [ ] u139 private runner and artifacts remain byte-compatible; existing briefing pipeline behavior is unchanged.
+
+**Construction strategy**: Functional Design, NFR/Security Requirements, and a staged code-generation plan are required. Design may complete without credentials; provider-payload qualification and implementation are blocked until an operator-owned HF account, verified email, and current API key exist.
+
+---
+
 ### u144: `public-document-finalization-contract` - Seal Public Markdown Behind One Typed Finalization Boundary
 
 **Purpose**: Replace the order-dependent post-generation Markdown mutation chain with one publisher-owned bundle finalizer. The finalizer assembles all public blocks, projects typed limitation states after the last producer, contains presentation defects by an owned block region, runs terminal trust/quality gates read-only, and seals the exact bytes written to archive. Presentation defects cannot remove a segment. Real truth/compliance/structure/disclaimer failures preserve the intentional u63/u94 partial-bundle contract with typed absence outcomes and exit 2 after Pages; zero survivors fail before public writes.

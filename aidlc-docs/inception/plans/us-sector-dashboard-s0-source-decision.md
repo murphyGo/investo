@@ -26,6 +26,40 @@
 이 결정은 제품 범위를 축소하지 않는다. 공개 가능한 가격 source를 확보하면 같은
 도메인 계약에 OHLCV 입력을 연결하고 Pages 경로를 연다.
 
+### 1.1 2026-07-22 amendment — limited public sibling
+
+u140 Step 0 iterations 1-25가 strict gate를 만족하는 후보 없이 종료된 뒤, 제품은
+`u145 sector-dashboard-public-hf-limited-radar`를 별도 경로로 선택했다. 이 결정은
+u140을 통과 처리하거나 위의 strict 판단을 수정하지 않는다.
+
+유지하는 gate:
+- 영구 무료 기본 사용 경로
+- 공개 파생 표시와 배포를 허용하는 명시적 권리
+- ≤36시간 freshness 목표와 bounded GitHub Actions 실행
+- 필수 attribution, raw-payload 비보존, secret 비노출
+
+u145에서만 완화하는 gate:
+- exact 12-symbol coverage: HF catalog의 SPY + 10개 sector ETF를 사용하고 XLRE는
+  `unavailable`로 표시
+- consolidated-volume semantics: post-2022 OHLCV를 `IEX venue sample`로 표시하고
+  IEX volume을 rank/regime/composite score에서 제외
+
+필수 공개 계약:
+- 열한 섹터 카드를 항상 렌더하고 XLRE를 대체·추정·자동 누락하지 않는다.
+- 가격 기반 수익률/상대강도/가속도/실현변동성/낙폭은 IEX 샘플이라는 라벨과 함께
+  제공한다.
+- `거래량`, `거래강도`, `자금 유입/유출`, `미국시장 전체`라는 무수식 표현을 금지한다.
+- HF Data Library CC BY 4.0 attribution과 IEX 고정 attribution을 화면 및 provenance에
+  남긴다.
+- 첫 valid snapshot 전 source 실패는 게시를 막고, 이후 실패는 last-good snapshot의
+  원래 `as_of`를 유지한 채 stale 경고를 강제한다.
+
+외부 prerequisite:
+- HF는 다운로드/API 사용에 계정, 정확한 등록 정보, 이메일 인증을 요구한다.
+- API key는 30일마다 만료된다.
+- Investo는 operator-owned key 없이는 payload probe, fixture 기록, 5-run GHA 검증,
+  scheduled collection을 시작하지 않는다.
+
 ---
 
 ## 2. Acceptance Gate Result

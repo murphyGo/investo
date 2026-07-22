@@ -450,6 +450,40 @@ Deduplicated out:
 - u140 does not register a speculative adapter before a candidate is `ship-now`.
 - TradingView remains eligible only as a future display widget, never as the radar calculation source.
 
+### u145 Limited Public Radar Planning Notes
+
+u140 remains the record of the strict gate and stays blocked. On 2026-07-22 the product
+selected a narrower, truthful public sibling so Pages work can resume without inventing
+coverage or market-wide volume claims.
+
+Implementation and gate order:
+1. Reuse u139's deterministic math by introducing a generic value-series boundary; keep its
+   NAV/private source, labels, artifacts, and runner byte-compatible.
+2. Add one HF Data Library adapter for `SPY` plus the ten cataloged sector ETFs. Never proxy,
+   infer, or silently drop `XLRE`; emit its eleventh card as `unavailable`.
+3. Treat post-2022 bars as an `IEX venue sample`. Price-based return/regime/rank may be shown
+   only with that surface label; IEX volume cannot enter rank, regime, or a composite score.
+4. Publish a bounded derived snapshot and Pages projection with HF CC BY 4.0 and mandatory IEX
+   attribution. Do not retain raw provider responses in the repository or public archive.
+5. Fail closed before first valid snapshot. After launch, an auth/source failure may retain the
+   last-good derived snapshot only with an explicit stale warning and without changing `as_of`.
+6. Run local contract tests and five isolated GitHub Actions probes before enabling scheduled
+   collection or Pages navigation.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+| --- | --- | --- | --- |
+| u145 sector-dashboard-public-hf-limited-radar | Best rights-cleared free source lacks XLRE and represents IEX rather than the consolidated market | US-001, US-003, US-008, US-010, FR-001, FR-003, FR-022, NFR-002, NFR-003, NFR-006, NFR-008 | u139 metric engine, source registry, derived snapshot, MkDocs Pages, dedicated workflow |
+
+Application Design boundary:
+- Included: HF daily-bar adapter, public provenance, generic metric input boundary, explicit
+  partial coverage, deterministic public renderer, isolated workflow, attribution, freshness.
+- Excluded: Telegram, actual ETF flow, earnings actual, narrative generation, constituent
+  breadth, consolidated-volume claims, and any XLRE substitute.
+- External prerequisite: an operator-owned HF account, verified email, and current API key.
+- Security design is required because u145 introduces a renewable secret and public output.
+- PBT remains required for value-series/snapshot serialization and determinism; network behavior
+  uses fixtures and bounded integration probes instead of generative tests.
+
 ### u144 Public Document Finalization Planning Notes
 
 Derived from GitHub Actions run `29707052598` and the recurring
