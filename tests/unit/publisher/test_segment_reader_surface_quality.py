@@ -73,7 +73,7 @@ def test_segment_reader_repairs_recoverable_first_viewport_link_fragment() -> No
     assert "broken link" in out
 
 
-def test_segment_reader_repairs_first_viewport_trace_fragments() -> None:
+def test_segment_reader_repairs_visible_trace_and_preserves_inline_example() -> None:
     briefing = _briefing(
         "# title\n\n"
         "> **오늘의 결론**: 정책 변수 확인 필요\n"
@@ -87,7 +87,7 @@ def test_segment_reader_repairs_first_viewport_trace_fragments() -> None:
         anchors_by_segment={},
     )[US_EQUITY].rendered_markdown
 
-    assert "input_hash" not in out
+    assert "- `input_hash`: `1ee42e89b281`" in out
     assert "stage1_hash" not in out
     assert "정책 변수 확인 필요" in out
 

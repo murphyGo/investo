@@ -71,7 +71,33 @@ def test_repairs_plain_unmatched_bracket_marker() -> None:
     assert not has_blocking_surface_issue(repaired)
 
 
-def test_repairs_first_viewport_trace_assignment_lines() -> None:
+def test_repairs_owned_first_viewport_fragment_with_internal_heading() -> None:
+    fragment = "\n## 한눈에 보기\n\n- [broken link\n- 핵심 이슈\n"
+
+    unchanged = repair_surface_artifacts(fragment)
+    repaired = repair_surface_artifacts(fragment, treat_all_as_first_viewport=True)
+
+    assert "[broken link" in unchanged
+    assert "[broken link" not in repaired
+    assert "- broken link" in repaired
+    assert "- 핵심 이슈" in repaired
+    assert not has_blocking_surface_issue(repaired)
+
+
+def test_repair_preserves_inline_code_ignored_by_surface_scanner() -> None:
+    inline = "`input_hash [broken **+** 1 불강한성`는 내부 코드 예시입니다."
+    text = f"# title\n\n불강한성 확대를 점검합니다.\n{inline}\n\n## ① 요약"
+
+    issues = find_surface_quality_issues(text)
+    repaired = repair_surface_artifacts(text)
+
+    assert {issue.code for issue in issues} == {"bad_token.bulganghanseong"}
+    assert "불확실성 확대를 점검합니다." in repaired
+    assert inline in repaired
+    assert find_surface_quality_issues(repaired) == ()
+
+
+def test_repairs_visible_trace_assignment_and_preserves_inline_code_example() -> None:
     text = (
         "# title\n\n"
         "> **오늘의 결론**: 금리 민감도가 커졌습니다.\n"
@@ -82,7 +108,7 @@ def test_repairs_first_viewport_trace_assignment_lines() -> None:
 
     repaired = repair_surface_artifacts(text)
 
-    assert "input_hash" not in repaired
+    assert "- `input_hash`: `1ee42e89b281`" in repaired
     assert "stage2_hash" not in repaired
     assert "> **오늘의 결론**: 금리 민감도가 커졌습니다." in repaired
     assert not has_blocking_surface_issue(repaired)

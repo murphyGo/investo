@@ -386,7 +386,9 @@ def test_finding_ownership_must_match_the_indexed_region() -> None:
         )
 
 
-def test_required_watchpoint_fallback_preserves_heading_and_replaces_only_body() -> None:
+def test_required_watchpoint_fallback_preserves_heading_and_replaces_only_body(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     markdown = _canonical_markdown(watchpoint_body="- 관심 영향 데이터 부족")
     projected, context = _projected_draft(markdown)
 
@@ -402,6 +404,34 @@ def test_required_watchpoint_fallback_preserves_heading_and_replaces_only_body()
     assert "데이터 부족" not in body
     assert repaired.block_outcomes[-1].region_id == "watchpoints:section"
     assert repaired.block_outcomes[-1].disposition == "replaced"
+    degraded = [record for record in caplog.records if "block_degraded" in record.message]
+    assert len(degraded) == 1
+    assert "segment=domestic-equity" in degraded[0].message
+    assert "block=watchpoints" in degraded[0].message
+    assert "disposition=replace_block" in degraded[0].message
+    assert "public_diagnostic.raw_label" in degraded[0].message
+    assert "관심 영향 데이터 부족" not in degraded[0].message
+
+
+def test_automatic_surface_repair_records_one_owned_outcome() -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "요약 본문",
+        "불강한성 확대를 점검합니다.",
+    )
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert "불강한성" not in repaired.layout.markdown
+    assert "불확실성 확대를 점검합니다." in repaired.layout.markdown
+    matching = [
+        outcome
+        for outcome in repaired.block_outcomes
+        if "bad_token.bulganghanseong" in outcome.issue_codes
+    ]
+    assert len(matching) == 1
+    assert matching[0].region_id == "section:1"
+    assert matching[0].disposition == "repaired"
 
 
 def test_malformed_chart_and_visual_are_omitted_without_dropping_segment() -> None:

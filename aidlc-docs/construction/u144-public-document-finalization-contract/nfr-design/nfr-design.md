@@ -73,6 +73,12 @@ before the staging context exits. Once commit/push begins, existing
 dispatched, and operator recovery is required; no automatic local-history
 rewrite or byte-rollback promise is added.
 
+The pre-git rollback itself restores prior bytes through the shared atomic byte
+writer. It continues across individual restore/unlink failures and raises one
+bounded `PublisherIOError` for the first failed path after attempting the full
+snapshot set. Empty-directory pruning remains best-effort and is not part of
+the byte-restoration guarantee.
+
 ## 3. Seal and destination integrity
 
 `write_finalized_document()` verifies in this order before destination

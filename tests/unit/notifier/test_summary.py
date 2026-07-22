@@ -18,6 +18,7 @@ from investo.models import (
     BriefingNotification,
     NormalizedItem,
     PublicNotificationSummary,
+    SegmentFinalizationOutcome,
 )
 from investo.models.segments import COVERAGE_STATUS_LABELS, SegmentCoverage
 from investo.notifier._summary_extract import conclusion_data
@@ -401,6 +402,68 @@ def test_build_segmented_summary_marks_missing_segments_on_partial_publish() -> 
     assert "⚠️ 부분 발행: 크립토 생성 실패" in summary
     assert "₿ *크립토*" not in summary
     assert f"• 크립토: [상세보기]({_SEGMENT_URLS[CRYPTO]})" not in summary
+
+
+def test_segmented_summary_distinguishes_generation_and_trust_absence() -> None:
+    briefings = {
+        DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약"),
+    }
+
+    summary = build_segmented_summary(
+        briefings,
+        site_urls=_SEGMENT_URLS,
+        segment_outcomes=(
+            SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized"),
+            SegmentFinalizationOutcome(
+                segment=US_EQUITY,
+                state="generation_absent",
+                issue_codes=("generation.failed",),
+            ),
+            SegmentFinalizationOutcome(
+                segment=CRYPTO,
+                state="trust_blocked",
+                issue_codes=("public_language.residual",),
+            ),
+        ),
+    )
+
+    assert "⚠️ 부분 발행: 미국 증시 생성 실패; 크립토 발행 전 검증 미통과" in summary
+    assert "public_language.residual" not in summary
+
+
+def test_segmented_summary_rejects_ambiguous_partial_inputs() -> None:
+    summaries = {
+        DOMESTIC_EQUITY: PublicNotificationSummary(
+            segment=DOMESTIC_EQUITY,
+            target_date=_TARGET_DATE,
+            conclusion="검증된 결론",
+            coverage_status="normal",
+            coverage_label="정상",
+        )
+    }
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        _build_segmented_summary_from_dtos(
+            summaries,
+            site_urls=_SEGMENT_URLS,
+            segment_outcomes=(
+                SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized"),
+            ),
+            missing_segments=(CRYPTO,),
+        )
+
+
+def test_segmented_summary_rejects_incomplete_typed_outcomes() -> None:
+    briefings = {DOMESTIC_EQUITY: _build_briefing(market_summary="코스피 요약")}
+
+    with pytest.raises(ValueError, match="complete canonical segment order"):
+        build_segmented_summary(
+            briefings,
+            site_urls=_SEGMENT_URLS,
+            segment_outcomes=(
+                SegmentFinalizationOutcome(segment=DOMESTIC_EQUITY, state="finalized"),
+            ),
+        )
 
 
 def test_segmented_summary_preserves_default_bundle_badge() -> None:

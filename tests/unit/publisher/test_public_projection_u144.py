@@ -9,12 +9,14 @@ from typing import get_args
 
 import pytest
 
+import investo.publisher.segment_reader_format as segment_reader_format_module
 from investo._internal.public_quality_language import (
     FORBIDDEN_PUBLIC_PHRASES,
     PUBLIC_LOW_COVERAGE_INLINE_TEXT,
 )
-from investo._internal.surface_quality import repair_surface_artifacts
+from investo._internal.surface_quality import SurfaceQualityIssue, repair_surface_artifacts
 from investo.models import Briefing, SourceOutcome
+from investo.models.bundle_context import BundleContext
 from investo.models.facts import VerifiedFactBundle
 from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import DOMESTIC_EQUITY, CoverageReasonCode, SegmentCoverage
@@ -26,13 +28,17 @@ from investo.publisher.public_document import (
     PublicDocumentLayout,
     PublicRegionExpectation,
     _assemble_phase_one_reader_draft,
+    _default_draft_factory,
     _derive_public_limitation_reasons,
     _new_generated_draft,
     _project_assembled_draft,
+    _repair_projected_draft,
     _scan_terminal_anchor_assertions,
     _scan_terminal_compliance,
     _scan_terminal_entity_fact_claims,
+    _SegmentTrustBlockedError,
     _transition_draft,
+    _validate_repaired_draft,
 )
 from investo.publisher.reader_format import (
     PublicLabelLeakage,
@@ -645,6 +651,94 @@ def test_terminal_compliance_guard_reads_final_layout_without_repair() -> None:
     assert "매수 검토" in generated.layout.markdown
 
 
+def test_terminal_validation_blocks_reader_visible_table_label_leak() -> None:
+    layout = PublicDocumentLayout.reindex(
+        _layout()
+        .markdown.replace("데이터 부족입니다.", "관찰 범위가 제한됩니다.")
+        .replace(
+            "수급 본문",
+            "| 관찰 항목 | 상태 |\n|---|---|\n| 정책 변수 | 데이터 부족 |",
+        ),
+        expectation=_expectation(),
+    )
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="면책",
+        rendered_markdown=layout.markdown,
+    )
+    generated = _new_generated_draft(briefing, segment=DOMESTIC_EQUITY, layout=layout)
+    assembled = _transition_draft(generated, next_phase="assembled")
+    projected = _transition_draft(assembled, next_phase="projected")
+    repaired = _transition_draft(projected, next_phase="repaired")
+    original_markdown = repaired.layout.markdown
+
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, _context())
+
+    assert blocked.value.issue_codes == ("public_language.residual",)
+    assert repaired.layout.markdown == original_markdown
+
+
+def test_terminal_validation_runs_full_document_surface_scan(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    layout = PublicDocumentLayout.reindex(
+        _layout().markdown.replace("데이터 부족입니다.", "관찰 범위가 제한됩니다."),
+        expectation=_expectation(),
+    )
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="면책",
+        rendered_markdown=layout.markdown,
+    )
+    generated = _new_generated_draft(briefing, segment=DOMESTIC_EQUITY, layout=layout)
+    assembled = _transition_draft(generated, next_phase="assembled")
+    projected = _transition_draft(assembled, next_phase="projected")
+    repaired = _transition_draft(projected, next_phase="repaired")
+    full_document_calls = 0
+
+    def fake_surface_scan(text: str) -> tuple[SurfaceQualityIssue, ...]:
+        nonlocal full_document_calls
+        if text != repaired.layout.markdown:
+            return ()
+        full_document_calls += 1
+        return (
+            SurfaceQualityIssue(
+                code="trace.fragment",
+                severity="block",
+                evidence="cross-region-context",
+                region="body",
+            ),
+        )
+
+    monkeypatch.setattr(public_document, "_scan_terminal_anchor_assertions", lambda *_: ())
+    monkeypatch.setattr(public_document, "_scan_terminal_entity_fact_claims", lambda *_: ())
+    monkeypatch.setattr(public_document, "_scan_terminal_compliance", lambda *_: None)
+    monkeypatch.setattr(public_document, "find_reader_visible_public_label_leaks", lambda *_: ())
+    monkeypatch.setattr(public_document, "validate_first_viewport_summary", lambda *_: None)
+    monkeypatch.setattr(public_document, "verify_disclaimer", lambda *_: True)
+    monkeypatch.setattr(public_document, "verify_short_disclaimer_first_viewport", lambda *_: True)
+    monkeypatch.setattr(public_document, "find_surface_quality_issues", fake_surface_scan)
+
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, _context())
+
+    assert blocked.value.issue_codes == ("trace.fragment",)
+    assert full_document_calls == 1
+
+
 def test_reader_assembly_carries_typed_watchpoint_reason_into_projection() -> None:
     layout = _layout()
     briefing = Briefing(
@@ -671,3 +765,231 @@ def test_reader_assembly_carries_typed_watchpoint_reason_into_projection() -> No
     assert assembled.limitation_reasons == ("watchpoint_unavailable",)
     assert projected.phase == "projected"
     assert projected.limitation_reasons == ("watchpoint_unavailable",)
+
+
+def test_active_pass_reuses_one_producer_plan_for_expectation_and_assembly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    layout = _layout()
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+    calls = 0
+    real_builder = public_document.build_segment_reader_producer_plan
+
+    def observe_builder(*args: object, **kwargs: object):
+        nonlocal calls
+        calls += 1
+        return real_builder(*args, **kwargs)
+
+    def forbid_independent_rebuild(*args: object, **kwargs: object):
+        del args, kwargs
+        raise AssertionError("assembly must reuse the draft's producer plan")
+
+    monkeypatch.setattr(public_document, "build_segment_reader_producer_plan", observe_builder)
+    monkeypatch.setattr(
+        segment_reader_format_module,
+        "build_segment_reader_producer_plan",
+        forbid_independent_rebuild,
+    )
+
+    generated = _default_draft_factory(briefing, DOMESTIC_EQUITY, _context())
+    assembled = _assemble_phase_one_reader_draft(generated, _context())
+
+    assert calls == 1
+    assert generated._producer_plan is assembled._producer_plan
+    assert generated._producer_plan is not None
+    reader = generated._producer_plan.reader
+    expectation = generated.layout.expectation
+    assert expectation.anchor_table_required is bool(reader.anchor_table)
+    assert expectation.shared_macro_required is bool(reader.shared_macro_block)
+    assert expectation.crypto_indicators_required is bool(reader.crypto_indicator_block)
+    assert expectation.channel_anchors_required is bool(reader.channel_anchor_block)
+    assert expectation.daily_thesis_required is bool(reader.daily_thesis_line)
+
+
+def test_full_finalizer_builds_each_active_producer_plan_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    layout = _layout()
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+    context = replace(
+        _context(),
+        bundle_context=BundleContext(
+            bundle_id="u144-producer-plan",
+            target_kst_date=_TARGET_DATE,
+        ),
+    )
+    builder_calls: list[str] = []
+    thesis_calls: list[str] = []
+    real_builder = public_document.build_segment_reader_producer_plan
+    real_thesis_renderer = segment_reader_format_module.render_daily_thesis_line
+
+    def observe_builder(*args: object, **kwargs: object):
+        builder_calls.append(str(args[0]))
+        return real_builder(*args, **kwargs)
+
+    def observe_thesis(*args: object, **kwargs: object) -> str:
+        thesis_calls.append(str(kwargs["segment"]))
+        return real_thesis_renderer(*args, **kwargs)
+
+    def validate_for_structure_test(
+        draft: public_document.PublicDocumentDraft,
+        _context_value: PublicDocumentContext,
+    ) -> public_document.PublicDocumentDraft:
+        return _transition_draft(
+            draft,
+            next_phase="validated",
+            notification_summary=public_document.PublicNotificationSummary(
+                segment=draft.segment,
+                target_date=draft.target_date,
+                conclusion="검증된 결론",
+                coverage_status="normal",
+                coverage_label="정상",
+            ),
+        )
+
+    monkeypatch.setattr(public_document, "build_segment_reader_producer_plan", observe_builder)
+    monkeypatch.setattr(
+        segment_reader_format_module,
+        "render_daily_thesis_line",
+        observe_thesis,
+    )
+    monkeypatch.setattr(
+        public_document,
+        "_validate_repaired_draft",
+        validate_for_structure_test,
+    )
+
+    bundle = public_document.finalize_public_bundle(
+        {DOMESTIC_EQUITY: briefing},
+        context=context,
+    )
+
+    assert tuple(document.segment for document in bundle.documents) == (DOMESTIC_EQUITY,)
+    assert builder_calls == [DOMESTIC_EQUITY]
+    assert thesis_calls == [DOMESTIC_EQUITY]
+
+
+def test_full_finalizer_bounds_producer_plan_value_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    layout = _layout()
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+
+    def fail_builder(*args: object, **kwargs: object):
+        del args, kwargs
+        raise ValueError("must-not-escape")
+
+    monkeypatch.setattr(public_document, "_build_public_document_producer_plan", fail_builder)
+
+    with pytest.raises(public_document.PublicDocumentFinalizationError) as raised:
+        public_document.finalize_public_bundle(
+            {DOMESTIC_EQUITY: briefing},
+            context=_context(),
+        )
+
+    assert raised.value.segment == DOMESTIC_EQUITY
+    assert raised.value.phase == "generated"
+    assert raised.value.issue_codes == ("invariant.producer_plan",)
+    assert "must-not-escape" not in str(raised.value)
+
+
+def test_full_finalizer_bounds_invalid_cached_plan_map(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    layout = _layout()
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+    context = _context()
+    plan = public_document._build_public_document_producer_plan(
+        briefing,
+        segment=DOMESTIC_EQUITY,
+        context=context,
+    )
+    invalid_plan = replace(
+        plan,
+        reader=replace(plan.reader, segment="us-equity"),
+    )
+    monkeypatch.setattr(
+        public_document,
+        "_build_public_document_producer_plan",
+        lambda *_args, **_kwargs: invalid_plan,
+    )
+
+    with pytest.raises(public_document.PublicDocumentFinalizationError) as raised:
+        public_document.finalize_public_bundle(
+            {DOMESTIC_EQUITY: briefing},
+            context=context,
+        )
+
+    assert raised.value.segment is None
+    assert raised.value.phase == "fixed_point"
+    assert raised.value.issue_codes == ("invariant.producer_plan_context",)
+
+
+def test_production_assembly_defers_surface_repair_until_outcome_owner() -> None:
+    layout = PublicDocumentLayout.reindex(
+        _layout().markdown.replace("이슈 본문", "불강한성 확대를 점검합니다."),
+        expectation=_expectation(),
+    )
+    briefing = Briefing(
+        target_date=_TARGET_DATE,
+        market_summary="요약",
+        key_issues="이슈",
+        sector_flow="수급",
+        indicators_events="지표",
+        notable_tickers="종목",
+        today_watch="관전",
+        disclaimer="데이터 부족 원문은 면책조항 byte 보존 대상입니다.",
+        rendered_markdown=layout.markdown,
+    )
+    generated = _default_draft_factory(briefing, DOMESTIC_EQUITY, _context())
+
+    assembled = _assemble_phase_one_reader_draft(generated, _context())
+    projected = _project_assembled_draft(assembled, _context())
+    repaired = _repair_projected_draft(projected, _context())
+
+    assert "불강한성" in assembled.layout.markdown
+    assert "불강한성" not in repaired.layout.markdown
+    assert any(
+        outcome.issue_codes == ("bad_token.bulganghanseong",) and outcome.disposition == "repaired"
+        for outcome in repaired.block_outcomes
+    )

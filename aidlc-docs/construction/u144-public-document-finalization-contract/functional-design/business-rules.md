@@ -72,7 +72,9 @@ The u108 public-language projection is the last semantic text transformation.
 
 - `normalize_data_limited_reader_copy` must not run inside an earlier generic
   reader-format chain and then assume later producers are safe.
-- Every replacement/fallback block is projected before full-document repair.
+- Every producer output is projected before owned-region repair, and every
+  replacement/fallback is re-projected before residual and terminal scans.
+  Terminal validation runs the canonical full-document scanner read-only.
 - `public_quality_language.py` remains the only public wording map.
 - Adding a new public producer requires placing it in the documented assembly
   call graph before projection. The bounded architecture test guards direct
@@ -269,6 +271,9 @@ before path creation or atomic write.
 - On mismatch, destination bytes are untouched.
 - The existing `write_atomic` and rollback behavior remain in force after the
   seal passes.
+- Pre-git snapshot restoration uses the shared atomic byte writer. A failed
+  restore/unlink is surfaced as `PublisherIOError` after the remaining
+  snapshots have still been attempted.
 - The legacy `write_briefing()` path may remain for unsegmented compatibility,
   but default segmented production cannot call it.
 

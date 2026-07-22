@@ -37,7 +37,12 @@ from typing import Final
 
 from investo._internal.text import utf16_truncate as _utf16_truncate
 from investo._internal.text import utf16_units as _utf16_units
-from investo.models import Briefing, NormalizedItem, PublicNotificationSummary
+from investo.models import (
+    Briefing,
+    NormalizedItem,
+    PublicNotificationSummary,
+    SegmentFinalizationOutcome,
+)
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -123,6 +128,7 @@ def build_segmented_summary(
     now_utc: datetime | None = None,
     price_items: Sequence[NormalizedItem] = (),
     enabled_segments: Sequence[MarketSegment] | None = None,
+    segment_outcomes: Sequence[SegmentFinalizationOutcome] = (),
     missing_segments: Sequence[MarketSegment] = (),
 ) -> str:
     """Build one Telegram message from terminal summary DTOs and links.
@@ -169,6 +175,19 @@ def build_segmented_summary(
     target_dates = {summaries[segment].target_date for segment in all_published}
     if len(target_dates) != 1:
         raise ValueError("notification summaries must share target_date")
+    if segment_outcomes and missing_segments:
+        raise ValueError("segment_outcomes and missing_segments are mutually exclusive")
+    if segment_outcomes:
+        outcome_segments = tuple(outcome.segment for outcome in segment_outcomes)
+        if len(set(outcome_segments)) != len(outcome_segments):
+            raise ValueError("segment_outcomes must contain unique segments")
+        if outcome_segments != ordered_segments:
+            raise ValueError("segment_outcomes must use the complete canonical segment order")
+        finalized_segments = {
+            outcome.segment for outcome in segment_outcomes if outcome.state == "finalized"
+        }
+        if finalized_segments != set(all_published):
+            raise ValueError("finalized segment outcomes must match notification summaries")
     # u43 / DEBT-067 M1 — clock-explicit contract: when the caller
     # supplies ``lookahead_items_by_segment`` it must also pass
     # ``now_utc`` explicitly. Falling back to ``datetime.now(UTC)``
@@ -190,7 +209,10 @@ def build_segmented_summary(
     publish_label = _publish_time_label(resolved_now, target_date=target_date)
     header = f"📈 {target_date.isoformat()} 데일리 시황\n"
     header += f"{publish_label}\n"
-    partial_line = _partial_publish_line(missing_segments)
+    partial_line = _partial_publish_line(
+        segment_outcomes=segment_outcomes,
+        missing_segments=missing_segments,
+    )
     if partial_line:
         header += f"{partial_line}\n"
     if snapshot:
@@ -299,11 +321,27 @@ def _segment_summary_block(
     return f"{icon} *{label}*{status_tag}\n{_detail_link(site_url)}\n{one_line}"
 
 
-def _partial_publish_line(missing_segments: Sequence[MarketSegment]) -> str:
-    if not missing_segments:
-        return ""
-    labels = ", ".join(SEGMENT_LABELS[segment] for segment in missing_segments)
-    return f"⚠️ 부분 발행: {labels} 생성 실패"
+def _partial_publish_line(
+    *,
+    segment_outcomes: Sequence[SegmentFinalizationOutcome],
+    missing_segments: Sequence[MarketSegment],
+) -> str:
+    if not segment_outcomes:
+        if not missing_segments:
+            return ""
+        labels = ", ".join(SEGMENT_LABELS[segment] for segment in missing_segments)
+        return f"⚠️ 부분 발행: {labels} 생성 실패"
+
+    reasons = {
+        "generation_absent": "생성 실패",
+        "trust_blocked": "발행 전 검증 미통과",
+    }
+    parts = [
+        f"{SEGMENT_LABELS[outcome.segment]} {reasons[outcome.state]}"
+        for outcome in segment_outcomes
+        if outcome.state != "finalized"
+    ]
+    return f"⚠️ 부분 발행: {'; '.join(parts)}" if parts else ""
 
 
 def _detail_link(site_url: str) -> str:

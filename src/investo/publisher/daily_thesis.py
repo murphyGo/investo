@@ -60,6 +60,18 @@ def inject_daily_thesis_line(
     """Replace/remove existing thesis marker and insert before section ①."""
 
     rendered = render_daily_thesis_line(decision, segment=segment)
+    return inject_rendered_daily_thesis_line(text, rendered)
+
+
+def inject_rendered_daily_thesis_line(text: str, rendered: str) -> str:
+    """Inject one already-validated producer-plan thesis payload."""
+
+    if rendered and (
+        not rendered.startswith(DAILY_THESIS_MARKER)
+        or len(rendered) > _MAX_LINE_CHARS
+        or _DIGIT_RE.search(rendered)
+    ):
+        raise ValueError("rendered daily thesis line is not canonical")
     without_existing = _THESIS_LINE_RE.sub("", text).lstrip("\n")
     if not rendered:
         return without_existing
@@ -95,5 +107,6 @@ __all__ = [
     "DAILY_THESIS_MARKER",
     "assert_distinct_daily_thesis_lines",
     "inject_daily_thesis_line",
+    "inject_rendered_daily_thesis_line",
     "render_daily_thesis_line",
 ]

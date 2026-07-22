@@ -79,6 +79,7 @@ from typing import Any, Final, TypeVar, cast, overload
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
+from investo._internal._io import write_atomic_bytes
 from investo._internal.archive_layout import ArchiveLayout
 from investo._internal.artifact_staging import temporary_artifact_staging_root
 from investo.briefing.claude_code import ClaudeRunner
@@ -153,7 +154,7 @@ from investo.models import (
 from investo.models.bundle_context import BundleContext
 from investo.models.facts import FactId, VerifiedFactBundle
 from investo.models.public_artifact import StagedArtifact
-from investo.models.results import TRACEBACK_EXCERPT_MAX
+from investo.models.results import TRACEBACK_EXCERPT_MAX, FailureStage
 from investo.notifier import (
     BriefingPublisher,
     OperatorAlerter,
@@ -1348,7 +1349,7 @@ async def _stage_publish_segments(
         # rolled back for every pre-write assembly failure — otherwise an
         # identity invariant (or another phase-1 collaborator error) leaves
         # orphan ``*.assets/`` files that the next run picks up as stale.
-        _rollback_paths(snapshots)
+        _rollback_paths(snapshots, target_date=target_date)
         raise
 
     try:
@@ -1596,7 +1597,7 @@ async def _stage_publish_segments(
                     weekly_index_path,
                 )
     except BaseException:
-        _rollback_paths(snapshots)
+        _rollback_paths(snapshots, target_date=target_date)
         raise
 
     commit_message = (
@@ -2277,15 +2278,28 @@ def _read_existing_bytes(path: Path) -> bytes | None:
     return path.read_bytes()
 
 
-def _rollback_paths(snapshots: dict[Path, bytes | None]) -> None:
+def _rollback_paths(
+    snapshots: dict[Path, bytes | None],
+    *,
+    target_date: date,
+) -> None:
+    failures: list[tuple[Path, OSError]] = []
     for path, previous_bytes in snapshots.items():
-        if previous_bytes is None:
-            with contextlib.suppress(OSError):
+        try:
+            if previous_bytes is None:
                 path.unlink(missing_ok=True)
-        else:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(previous_bytes)
+            else:
+                write_atomic_bytes(path, previous_bytes)
+        except OSError as exc:
+            failures.append((path, exc))
     _prune_empty_parent_dirs(snapshots)
+    if failures:
+        failed_path, cause = failures[0]
+        raise PublisherIOError(
+            target_date=target_date,
+            path=failed_path,
+            cause=cause,
+        ) from cause
 
 
 def _prune_empty_parent_dirs(snapshots: dict[Path, bytes | None]) -> None:
@@ -2396,6 +2410,7 @@ async def _stage_notify_segmented_briefing(
     items: Sequence[NormalizedItem] = (),
     lookahead_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     now_utc: datetime | None = None,
+    segment_outcomes: Sequence[SegmentFinalizationOutcome] = (),
     missing_segments: Sequence[MarketSegment] = (),
 ) -> SendResult:
     """Compose + dispatch one public-channel message from sealed DTOs.
@@ -2428,6 +2443,7 @@ async def _stage_notify_segmented_briefing(
             enabled_segments=resolve_enabled_segments(),
             lookahead_items_by_segment=lookahead_items_by_segment,
             now_utc=now_utc,
+            segment_outcomes=segment_outcomes,
             missing_segments=missing_segments,
         )
         payload = BriefingNotification(
@@ -2626,6 +2642,14 @@ def _build_public_document_context(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class _StageAlert:
+    """One bounded request for the operator's private alert channel."""
+
+    stage: FailureStage
+    error: BaseException
+
+
 class GenerateStage:
     """u2 synthesis plus segmented E1 input and supplement preparation.
 
@@ -2757,13 +2781,13 @@ class GenerateStage:
         generate_elapsed = time.monotonic() - start
 
         stage_notes: dict[str, str] = {}
-        stage_alerts: list[BriefingGenerationError] = []
+        stage_alerts: list[_StageAlert] = []
         if segment_generation_failures:
             failed_segments = ", ".join(segment_generation_failures)
             stage_notes["generate"] = f"partial: failed {failed_segments}"
             for segment, generation_error in segment_generation_failures.items():
                 _log_briefing_generation_error(generation_error)
-                stage_alerts.append(generation_error)
+                stage_alerts.append(_StageAlert(stage="generate", error=generation_error))
                 stage_notes[f"generate:{segment}"] = f"failed: {generation_error.stage}"
         else:
             stage_notes["generate"] = "ok"
@@ -3056,6 +3080,21 @@ class PublishStage:
                 "finalized_bundle": finalized_bundle,
                 "finalization_blocked_segments": finalization_blocked_segments,
                 "publication_committed": not _is_dry_run(),
+                "_stage_alerts": tuple(
+                    _StageAlert(
+                        stage="publish",
+                        error=PublicDocumentFinalizationError(
+                            target_date=target_date,
+                            segment=outcome.segment,
+                            phase="content_partial",
+                            issue_codes=outcome.issue_codes,
+                        ),
+                    )
+                    for outcome in (
+                        finalized_bundle.segment_outcomes if finalized_bundle is not None else ()
+                    )
+                    if outcome.state == "trust_blocked"
+                ),
             },
             stage_notes={**stage_notes, "publish": "ok"},
             timings={
@@ -3084,14 +3123,6 @@ class NotifyStage:
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
         )
         briefing = cast("Briefing", accumulated["briefing"])
-        segment_generation_failures = cast(
-            "dict[MarketSegment, BriefingGenerationError]",
-            accumulated["segment_generation_failures"],
-        )
-        finalization_blocked_segments = cast(
-            "tuple[MarketSegment, ...]",
-            accumulated.get("finalization_blocked_segments", ()),
-        )
         finalized_bundle = cast(
             "FinalizedPublicBundle | None",
             accumulated.get("finalized_bundle"),
@@ -3147,12 +3178,7 @@ class NotifyStage:
                 ),
                 lookahead_items_by_segment=lookahead_items_by_segment,
                 now_utc=notify_now_utc,
-                missing_segments=tuple(
-                    segment
-                    for segment in SEGMENT_ORDER
-                    if segment in segment_generation_failures
-                    or segment in finalization_blocked_segments
-                ),
+                segment_outcomes=finalized_bundle.segment_outcomes,
             )
         else:
             notify_result = await _stage_notify_briefing(
@@ -3413,10 +3439,8 @@ async def _execute_pipeline_stages(
         stage_timings.update(result.timings)
 
         if result.data is not None:
-            for generation_error in cast(
-                "list[BriefingGenerationError]", result.data.get("_stage_alerts", [])
-            ):
-                await _safe_alert(alerter, "generate", generation_error)
+            for stage_alert in cast("Sequence[_StageAlert]", result.data.get("_stage_alerts", ())):
+                await _safe_alert(alerter, stage_alert.stage, stage_alert.error)
             accumulated.update({k: v for k, v in result.data.items() if not k.startswith("_")})
 
         if result.status == "failed":

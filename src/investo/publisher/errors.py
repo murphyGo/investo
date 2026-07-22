@@ -10,8 +10,8 @@ Error contract:
 
 * ``PublisherDisclaimerError`` is raised by ``write_briefing`` when
   ``verify_disclaimer`` returns False. The write does NOT happen.
-* ``PublisherIOError`` wraps ``OSError`` raised during the atomic
-  markdown write (mkdir / tmp file write / replace).
+* ``PublisherIOError`` wraps ``OSError`` raised during public-artifact writes
+  or pre-git rollback (mkdir / tmp write / replace / unlink).
 * ``PublisherGitError`` is raised by ``commit_and_push`` after the
   retry budget is exhausted. ``last_stderr`` is truncated to 1024
   UTF-8 bytes (mirrors u2 ``BriefingGenerationError`` AC-7.4 pattern
@@ -55,15 +55,17 @@ class PublisherDisclaimerError(PublisherError):
 
 
 class PublisherIOError(PublisherError):
-    """Atomic markdown write failed.
+    """Atomic public-artifact write or pre-git rollback failed.
 
     Wraps the underlying ``OSError`` (mkdir / tmp write / replace).
-    The destination archive file is guaranteed to be unaffected when
-    this error is raised — the atomic-write contract from Step 5.1.
+    Primary writer failures preserve the destination through the atomic-write
+    contract. A rollback failure instead identifies the first snapshot path
+    that could not be restored or removed after all remaining entries were
+    attempted; operator recovery may be required for that path.
 
-    ``cause`` is typed as ``OSError | None`` because the only writer
-    catch site narrows to ``OSError``; tightening the annotation
-    documents the contract.
+    ``cause`` is typed as ``OSError | None`` because both writer and rollback
+    catch sites narrow to operating-system I/O failures; tightening the
+    annotation documents the contract.
     """
 
     target_date: date
@@ -78,7 +80,7 @@ class PublisherIOError(PublisherError):
         cause: OSError | None,
     ) -> None:
         super().__init__(
-            f"archive write failed for {target_date.isoformat()} at {path}: "
+            f"public artifact I/O failed for {target_date.isoformat()} at {path}: "
             f"{type(cause).__name__ if cause is not None else 'no-cause'}"
         )
         self.target_date = target_date

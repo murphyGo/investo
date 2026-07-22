@@ -219,6 +219,12 @@ async def test_publish_terminal_gate_scans_each_active_attempt_with_e1_clock(
     bundle = result.data["finalized_bundle"]
     assert bundle.documents[0].notification_summary.conclusion == "공개 근거를 요약합니다."
     assert result.data["segment_briefings"] == {DOMESTIC_EQUITY: bundle.documents[0].briefing}
+    alerts = result.data["_stage_alerts"]
+    assert len(alerts) == 1
+    assert alerts[0].stage == "publish"
+    assert alerts[0].error.segment == US_EQUITY
+    assert alerts[0].error.phase == "content_partial"
+    assert alerts[0].error.issue_codes == ("entity.fact_contradiction",)
     assert tuple(published[0]) == (DOMESTIC_EQUITY,)
     assert calls == [
         (DOMESTIC_EQUITY, _OBSERVED_AT),

@@ -81,21 +81,25 @@ from investo.publisher.anchor_assertion_gate import (
     NumericAnchorReconciliationError,
     scan_anchor_assertions,
 )
-from investo.publisher.channel_anchor_block import render_channel_anchor_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
     ComplianceReport,
     scan_compliance,
 )
-from investo.publisher.daily_thesis import (
-    assert_distinct_daily_thesis_lines,
-    render_daily_thesis_line,
-)
+from investo.publisher.daily_thesis import assert_distinct_daily_thesis_lines
 from investo.publisher.entity_fact_guard import EntityFactViolation, scan_entity_fact_claims
 from investo.publisher.errors import DailyThesisConsistencyError, SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
-from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
-from investo.publisher.segment_reader_format import apply_reader_format_to_segments
+from investo.publisher.reader_format import (
+    emit_first_viewport_disclaimer,
+    find_reader_visible_public_label_leaks,
+    project_public_markdown,
+)
+from investo.publisher.segment_reader_format import (
+    SegmentReaderProducerPlan,
+    apply_reader_format_to_segments,
+    build_segment_reader_producer_plan,
+)
 from investo.publisher.verifier import (
     verify_disclaimer,
     verify_short_disclaimer_first_viewport,
@@ -543,6 +547,11 @@ class PublicDocumentContext:
         repr=False,
         compare=False,
     )
+    _producer_plans_by_segment: Mapping[MarketSegment, _PublicDocumentProducerPlan] = field(
+        default_factory=dict,
+        repr=False,
+        compare=False,
+    )
     supplements_by_segment: Mapping[MarketSegment, tuple[PublicDocumentSupplement, ...]] = field(
         default_factory=dict
     )
@@ -577,6 +586,16 @@ class PublicDocumentContext:
             raise ValueError("active_segments must be unique generated segments")
         if active != tuple(segment for segment in expected if segment in set(active)):
             raise ValueError("active_segments must follow expected segment order")
+        producer_plans = dict(self._producer_plans_by_segment)
+        if producer_plans and set(producer_plans) != set(active):
+            raise ValueError("producer plans must exactly match active segments")
+        for segment, plan in producer_plans.items():
+            if (
+                plan.reader.segment != segment
+                or plan.region_expectation.segment != segment
+                or plan.region_expectation.target_date != self.target_date
+            ):
+                raise ValueError("producer plan identity must match its active segment")
 
         anchors = {segment: tuple(values) for segment, values in self.anchors_by_segment.items()}
         items = {
@@ -652,6 +671,7 @@ class PublicDocumentContext:
         object.__setattr__(self, "expected_segments", expected)
         object.__setattr__(self, "input_absences", _freeze_mapping(absences))
         object.__setattr__(self, "active_segments", active)
+        object.__setattr__(self, "_producer_plans_by_segment", _freeze_mapping(producer_plans))
         object.__setattr__(self, "anchors_by_segment", _freeze_mapping(anchors))
         object.__setattr__(self, "items_by_segment", _freeze_mapping(items))
         object.__setattr__(self, "coverage_by_segment", _freeze_mapping(coverage))
@@ -2073,7 +2093,10 @@ def _repair_owned_region_once(
 ) -> PublicDocumentLayout:
     region = _require_layout_region(layout, decision.region_id)
     body = layout.markdown[region.content_start : region.content_end]
-    repaired_body = repair_surface_artifacts(body)
+    repaired_body = repair_surface_artifacts(
+        body,
+        treat_all_as_first_viewport=decision.block == "first_viewport",
+    )
     if repaired_body == body:
         return layout
     return layout.replace_region_body(decision.region_id, repaired_body)
@@ -2107,6 +2130,11 @@ class PublicDocumentDraft:
     limitation_reasons: tuple[PublicLimitationReason, ...] = ()
     block_outcomes: tuple[PublicBlockOutcome, ...] = ()
     notification_summary: PublicNotificationSummary | None = None
+    _producer_plan: _PublicDocumentProducerPlan | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
     _validation_witness: object | None = field(default=None, repr=False, compare=False)
 
     def __new__(cls) -> Self:
@@ -2126,6 +2154,7 @@ def _construct_draft(
     limitation_reasons: Sequence[PublicLimitationReason] = (),
     block_outcomes: Sequence[PublicBlockOutcome] = (),
     notification_summary: PublicNotificationSummary | None = None,
+    producer_plan: _PublicDocumentProducerPlan | None = None,
     validation_witness: object | None = None,
 ) -> PublicDocumentDraft:
     if phase not in _PHASES:
@@ -2136,6 +2165,8 @@ def _construct_draft(
         raise ValueError("layout expectation segment must match draft")
     if layout.expectation.target_date != target_date:
         raise ValueError("layout expectation target_date must match draft")
+    if producer_plan is not None and producer_plan.region_expectation != layout.expectation:
+        raise ValueError("producer plan expectation must match draft layout")
     reasons = tuple(dict.fromkeys(limitation_reasons))
     if any(reason not in _LIMITATION_REASONS for reason in reasons):
         raise ValueError("limitation_reasons contains an unsupported reason")
@@ -2164,6 +2195,7 @@ def _construct_draft(
     object.__setattr__(draft, "limitation_reasons", reasons)
     object.__setattr__(draft, "block_outcomes", outcomes)
     object.__setattr__(draft, "notification_summary", notification_summary)
+    object.__setattr__(draft, "_producer_plan", producer_plan)
     object.__setattr__(draft, "_validation_witness", validation_witness)
     return draft
 
@@ -2173,6 +2205,7 @@ def _new_generated_draft(
     *,
     segment: MarketSegment,
     layout: PublicDocumentLayout,
+    producer_plan: _PublicDocumentProducerPlan | None = None,
 ) -> PublicDocumentDraft:
     if layout.markdown != briefing.rendered_markdown:
         raise ValueError("generated draft layout must equal generated briefing markdown")
@@ -2182,6 +2215,7 @@ def _new_generated_draft(
         source_briefing=briefing,
         layout=layout,
         phase="generated",
+        producer_plan=producer_plan,
     )
 
 
@@ -2211,6 +2245,7 @@ def _accumulate_watchpoint_result(
         phase=draft.phase,
         limitation_reasons=limitation_reasons,
         block_outcomes=draft.block_outcomes,
+        producer_plan=draft._producer_plan,
     )
 
 
@@ -2238,6 +2273,7 @@ def _transition_draft(
         ),
         block_outcomes=draft.block_outcomes if block_outcomes is None else block_outcomes,
         notification_summary=notification_summary,
+        producer_plan=draft._producer_plan,
         validation_witness=witness,
     )
 
@@ -2252,14 +2288,20 @@ def _observed_supplement_ids(markdown: str) -> tuple[str, ...]:
     )
 
 
-def _build_region_expectation(
+@dataclass(frozen=True, slots=True)
+class _PublicDocumentProducerPlan:
+    """One active-pass producer evaluation shared with the E3 index."""
+
+    reader: SegmentReaderProducerPlan
+    region_expectation: PublicRegionExpectation
+
+
+def _build_public_document_producer_plan(
     briefing: Briefing,
     *,
     segment: MarketSegment,
     context: PublicDocumentContext,
-) -> PublicRegionExpectation:
-    """Build the final-layout expectation from typed producer inputs."""
-
+) -> _PublicDocumentProducerPlan:
     declared_supplements = context.supplements_by_segment.get(segment, ())
     declared_ids = tuple(supplement.supplement_id for supplement in declared_supplements)
     observed_ids = _observed_supplement_ids(briefing.rendered_markdown)
@@ -2268,36 +2310,42 @@ def _build_region_expectation(
             phase="generated",
             issue_code="invariant.supplement_input",
         )
-    supplement_ids = declared_ids or observed_ids
-    anchors = context.anchors_by_segment.get(segment, ())
-    items = context.items_by_segment.get(segment, ())
-    bundle_context = context.bundle_context
-    channel_block = render_channel_anchor_block(
+    reader = build_segment_reader_producer_plan(
         segment,
-        anchors=anchors,
-        crypto_items=items if segment == CRYPTO else (),
-        source_items=items,
+        anchors=context.anchors_by_segment.get(segment, ()),
+        bundle_context=context.bundle_context,
+        items=context.items_by_segment.get(segment, ()),
     )
-    daily_thesis_required = bool(
-        bundle_context is not None
-        and render_daily_thesis_line(
-            bundle_context.daily_thesis_decision,
-            segment=segment,
-        )
-    )
-    return PublicRegionExpectation(
+    expectation = PublicRegionExpectation(
         target_date=context.target_date,
         segment=segment,
         segmented_mode=True,
-        supplement_ids=supplement_ids,
-        shared_macro_required=bool(
-            bundle_context is not None and bundle_context.shared_macro_block
-        ),
-        crypto_indicators_required=segment == CRYPTO and bool(items),
-        channel_anchors_required=bool(channel_block),
-        daily_thesis_required=daily_thesis_required,
-        anchor_table_required=bool(anchors),
+        supplement_ids=declared_ids or observed_ids,
+        shared_macro_required=bool(reader.shared_macro_block),
+        crypto_indicators_required=bool(reader.crypto_indicator_block),
+        channel_anchors_required=bool(reader.channel_anchor_block),
+        daily_thesis_required=bool(reader.daily_thesis_line),
+        anchor_table_required=bool(reader.anchor_table),
     )
+    return _PublicDocumentProducerPlan(
+        reader=reader,
+        region_expectation=expectation,
+    )
+
+
+def _build_region_expectation(
+    briefing: Briefing,
+    *,
+    segment: MarketSegment,
+    context: PublicDocumentContext,
+) -> PublicRegionExpectation:
+    """Compatibility view of the one active-pass producer plan."""
+
+    return _build_public_document_producer_plan(
+        briefing,
+        segment=segment,
+        context=context,
+    ).region_expectation
 
 
 def _default_draft_factory(
@@ -2305,11 +2353,14 @@ def _default_draft_factory(
     segment: MarketSegment,
     context: PublicDocumentContext,
 ) -> PublicDocumentDraft:
-    expectation = _build_region_expectation(
-        briefing,
-        segment=segment,
-        context=context,
-    )
+    producer_plan = context._producer_plans_by_segment.get(segment)
+    if producer_plan is None:
+        producer_plan = _build_public_document_producer_plan(
+            briefing,
+            segment=segment,
+            context=context,
+        )
+    expectation = producer_plan.region_expectation
     return _new_generated_draft(
         briefing,
         segment=segment,
@@ -2318,6 +2369,7 @@ def _default_draft_factory(
             regions=(),
             expectation=expectation,
         ),
+        producer_plan=producer_plan,
     )
 
 
@@ -2336,6 +2388,13 @@ def _assemble_phase_one_reader_draft(
 
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("reader assembly context identity must match draft")
+    producer_plan = draft._producer_plan or _build_public_document_producer_plan(
+        draft.source_briefing,
+        segment=draft.segment,
+        context=context,
+    )
+    if producer_plan.region_expectation != draft.layout.expectation:
+        raise ValueError("reader producer plan must match draft expectation")
     observed: list[WatchpointRenderResult] = []
 
     def observe(segment: MarketSegment, result: WatchpointRenderResult) -> None:
@@ -2356,6 +2415,8 @@ def _assemble_phase_one_reader_draft(
                     for supplement in context.supplements_by_segment.get(draft.segment, ())
                 )
             },
+            _apply_surface_repairs=False,
+            _producer_plans_by_segment={draft.segment: producer_plan.reader},
         )
     except NumericAnchorReconciliationError as exc:
         raise _SegmentTrustBlockedError(
@@ -2439,11 +2500,7 @@ def _repair_projected_draft(
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("surface containment context identity must match draft")
 
-    initially_repaired = repair_surface_artifacts(draft.layout.markdown)
-    layout = PublicDocumentLayout.reindex(
-        initially_repaired,
-        expectation=draft.layout.expectation,
-    )
+    layout = draft.layout
     decisions = _resolve_owned_region_dispositions(
         layout,
         _find_owned_surface_quality_issues(layout),
@@ -2459,6 +2516,20 @@ def _repair_projected_draft(
         attempted_region_ids.add(decision.region_id)
         layout = _apply_region_disposition_once(layout, decision)
         outcomes = _append_region_block_outcome(outcomes, decision)
+        if decision.disposition in {"replace_block", "omit_optional_block"}:
+            _surface_logger.warning(
+                "public_document.block_degraded segment=%s block=%s disposition=%s codes=%s",
+                draft.segment,
+                decision.block,
+                decision.disposition,
+                ",".join(decision.issue_codes),
+                extra={
+                    "segment": draft.segment,
+                    "block": decision.block,
+                    "disposition": decision.disposition,
+                    "codes": decision.issue_codes,
+                },
+            )
         if decision.disposition == "record_warning":
             for issue_code in decision.issue_codes:
                 _surface_logger.warning(
@@ -2477,17 +2548,25 @@ def _repair_projected_draft(
         layout,
         limitation_reasons=draft.limitation_reasons,
     )
-    final_markdown = repair_surface_artifacts(layout.markdown)
-    layout = PublicDocumentLayout.reindex(
-        final_markdown,
-        expectation=draft.layout.expectation,
-    )
 
     residual_decisions = _resolve_owned_region_dispositions(
         layout,
         _find_owned_surface_quality_issues(layout),
     )
     if any(decision.disposition != "record_warning" for decision in residual_decisions):
+        for decision in residual_decisions:
+            if decision.disposition != "record_warning":
+                _surface_logger.warning(
+                    "surface_quality.fallback_exhausted segment=%s region_id=%s codes=%s",
+                    draft.segment,
+                    decision.region_id,
+                    ",".join(decision.issue_codes),
+                    extra={
+                        "segment": draft.segment,
+                        "region_id": decision.region_id,
+                        "codes": decision.issue_codes,
+                    },
+                )
         raise _SegmentTrustBlockedError(
             phase="repaired",
             issue_codes=("document.fallback_exhausted",),
@@ -2610,19 +2689,10 @@ def _validate_repaired_draft(
             issue_codes=("compliance.language",),
         ) from exc
 
-    blocking_surface_codes = tuple(
-        sorted(
-            {
-                finding.issue.code
-                for finding in _find_owned_surface_quality_issues(draft.layout)
-                if finding.issue.severity == "block"
-            }
-        )
-    )
-    if blocking_surface_codes:
+    if find_reader_visible_public_label_leaks(draft.layout):
         raise _SegmentTrustBlockedError(
             phase="validated",
-            issue_codes=blocking_surface_codes,
+            issue_codes=("public_language.residual",),
         )
     try:
         validate_first_viewport_summary(draft.layout.markdown)
@@ -2640,6 +2710,27 @@ def _validate_repaired_draft(
         raise _SegmentTrustBlockedError(
             phase="validated",
             issue_codes=("disclaimer.first_viewport",),
+        )
+    blocking_surface_codes = tuple(
+        sorted(
+            {
+                *(
+                    finding.issue.code
+                    for finding in _find_owned_surface_quality_issues(draft.layout)
+                    if finding.issue.severity == "block"
+                ),
+                *(
+                    issue.code
+                    for issue in find_surface_quality_issues(draft.layout.markdown)
+                    if issue.severity == "block"
+                ),
+            }
+        )
+    )
+    if blocking_surface_codes:
+        raise _SegmentTrustBlockedError(
+            phase="validated",
+            issue_codes=blocking_surface_codes,
         )
     try:
         notification_summary = _derive_public_notification_summary(draft, context)
@@ -2784,6 +2875,11 @@ def _assert_phase_result(
             phase=expected_phase,
             issue_code="invariant.briefing_identity",
         )
+    if result._producer_plan is not previous._producer_plan:
+        raise _FinalizationInvariantError(
+            phase=expected_phase,
+            issue_code="invariant.producer_plan_identity",
+        )
 
 
 def _finalize_segment_skeleton(
@@ -2862,10 +2958,15 @@ def _context_for_active_segments(
     """
 
     if context.bundle_context is None:
-        return replace(context, active_segments=active_segments)
+        return replace(
+            context,
+            active_segments=active_segments,
+            _producer_plans_by_segment={},
+        )
     return replace(
         context,
         active_segments=active_segments,
+        _producer_plans_by_segment={},
         bundle_context=redecide_daily_thesis_for_active_segments(
             context.bundle_context,
             active_segments,
@@ -2908,12 +3009,16 @@ def _validate_cross_segment_thesis_inputs(
             issue_code="invariant.daily_thesis_context",
         )
     try:
-        assert_distinct_daily_thesis_lines(
-            {
-                segment: render_daily_thesis_line(decision, segment=segment)
-                for segment in active_segments
-            }
-        )
+        plans = context._producer_plans_by_segment
+        if set(plans) != active_set:
+            raise _FinalizationInvariantError(
+                phase="fixed_point",
+                issue_code="invariant.producer_plan_context",
+            )
+        lines = {
+            str(segment): plans[segment].reader.daily_thesis_line for segment in active_segments
+        }
+        assert_distinct_daily_thesis_lines(lines)
     except DailyThesisConsistencyError as exc:
         raise _FinalizationInvariantError(
             phase="fixed_point",
@@ -2957,6 +3062,42 @@ def _finalize_bundle_skeleton(
             break
         try:
             active_context = _context_for_active_segments(context, active)
+            producer_plans: dict[MarketSegment, _PublicDocumentProducerPlan] = {}
+            for segment in active:
+                try:
+                    producer_plans[segment] = _build_public_document_producer_plan(
+                        briefings[segment],
+                        segment=segment,
+                        context=active_context,
+                    )
+                except _FinalizationInvariantError as exc:
+                    raise PublicDocumentFinalizationError(
+                        target_date=context.target_date,
+                        segment=segment,
+                        phase=exc.phase,
+                        issue_codes=(exc.issue_code,),
+                        cause=exc,
+                    ) from exc
+                except ValueError as exc:
+                    raise PublicDocumentFinalizationError(
+                        target_date=context.target_date,
+                        segment=segment,
+                        phase="generated",
+                        issue_codes=("invariant.producer_plan",),
+                        cause=exc,
+                    ) from exc
+                except Exception as exc:
+                    raise PublicDocumentFinalizationError(
+                        target_date=context.target_date,
+                        segment=segment,
+                        phase="generated",
+                        issue_codes=("invariant.producer_plan_exception",),
+                        cause=exc,
+                    ) from exc
+            active_context = replace(
+                active_context,
+                _producer_plans_by_segment=producer_plans,
+            )
             _validate_cross_segment_thesis_inputs(
                 briefings,
                 active_segments=active,
@@ -2968,6 +3109,24 @@ def _finalize_bundle_skeleton(
                 segment=None,
                 phase=exc.phase,
                 issue_codes=(exc.issue_code,),
+                cause=exc,
+            ) from exc
+        except PublicDocumentFinalizationError:
+            raise
+        except ValueError as exc:
+            raise PublicDocumentFinalizationError(
+                target_date=context.target_date,
+                segment=None,
+                phase="fixed_point",
+                issue_codes=("invariant.producer_plan_context",),
+                cause=exc,
+            ) from exc
+        except Exception as exc:
+            raise PublicDocumentFinalizationError(
+                target_date=context.target_date,
+                segment=None,
+                phase="fixed_point",
+                issue_codes=("invariant.active_pass_exception",),
                 cause=exc,
             ) from exc
 

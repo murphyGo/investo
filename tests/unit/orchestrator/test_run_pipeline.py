@@ -1624,7 +1624,11 @@ async def test_run_pipeline_segment_summary_quality_failure_withholds_only_faile
     assert result.stages["publish:us-equity"] == "failed: PublicDocumentTrustGate"
     assert result.stages["publish"] == "ok"
     assert result.stages["notify_briefing"] == "ok"
-    assert alerter.calls == []
+    assert len(alerter.calls) == 1
+    assert alerter.calls[0].stage == "publish"
+    assert alerter.calls[0].error_type == "PublicDocumentFinalizationError"
+    assert "segment=us-equity" in alerter.calls[0].error_message
+    assert "summary.first_viewport" in alerter.calls[0].error_message
     assert len(publisher.calls) == 1
     assert git.calls
     assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()

@@ -81,7 +81,24 @@
 **Decision**: `reject for current public MVP cost/rights certainty and metric fitness` for u140. MEMX publishes no anonymous permanent-free historical entitlement or self-service public derived-display grant for this exact use. Even if MEMX approved a non-fee-liable derived-data configuration, input access and public use would remain agreement/order-form controlled, while derived bars would represent MEMX-only executions rather than consolidated ETF OHLCV and require message decoding, cancellation/correction handling, and separate corporate-action normalization. Exact history depth, the 12-symbol trade continuity, posting SLA, API request limits, and approval/fee treatment were left unprobed. No agreement, order form, connectivity request, account, API credential, provider payload, fixture, local probe, or GitHub Actions probe was created or run.
 **Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-memx-memoir-historical-data.md`
 **Status**: u140 remains blocked after Step 0 iterations 1-22. Reconsider only if MEMX publishes an anonymous or permanently free historical entitlement with explicit public derived-display approval and the product contract accepts MEMX-only volume; otherwise select another non-duplicate candidate and repeat Step 0.
+## 2026-07-22 — u144 Code Generation Step 8 complete
+**Timestamp**: 2026-07-22T22:33:07+09:00
+**Decision**: Complete the approved five-item corrective slice after implementation, full validation, and independent fresh-eyes review.
+**Result**: Terminal reader-visible/full-document scans are read-only and fail closed; every production surface mutation is owned and outcome-recorded; typed partial reasons drive distinct public copy and bounded publish alerts; pre-git rollback is atomic/observable; and one active-pass producer plan owns both rendered conditional payloads and region eligibility.
+**Review follow-up**: Fresh-eyes review additionally closed inline-code mutation, duplicate anchor/thesis producer computation, producer/context exception leakage, and the missing Contract 9 `block_degraded` diagnostic. No blocking finding remains.
+**Validation**: 529 U-144/owner tests, 99 orchestrator pipeline tests, 4,083 full tests, 19 module-boundary/shared-domain tests, Ruff, format, strict mypy across 246 source files, no-paid guard, strict MkDocs, and `git diff --check` passed.
+**Git**: The user subsequently authorized commit/push. This entry travels with the isolated `codex/u144-review-fixes` commit rebased onto current `origin/main`; the user's dirty main worktree remains untouched.
 
+---
+
+## 2026-07-22 — u144 Code Generation Step 8 corrective plan approved
+**Timestamp**: 2026-07-22T00:00:00+09:00
+**User Input**: "위 개선 안건들을 u144에 반영하고 작업 진행하자"
+**Decision**: Reopen only U-144 Code Generation as Step 8; Functional Design and NFR Requirements remain complete because the findings are implementation gaps against already-approved R5/R8/R12/R14a, I10b/I10d, and AC-3.1/AC-3.3/AC-4.1.
+**Scope**: terminal leakage plus full-document scanning, auditable owned repairs, typed partial-publication reasons plus publish-stage operator alerts, observable atomic pre-git rollback, and one producer plan shared by assembly/region expectation.
+**Isolation**: Work proceeds on `codex/u144-review-fixes` from current `origin/main`; the user's dirty main worktree is untouched.
+
+---
 ## Source qualification — u140 Step 0 iteration 21 (Cboe DataShop Equity EOD Summary)
 **Timestamp**: 2026-07-22T10:03:31Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the MIAX Pearl Equities Step 0 slice as `e7d72f8`, preserving exactly its seven u140 documentation changes after rebasing onto concurrent generated-briefing and u144 closeout commits through `a63bca9`. The original dirty worktree and unrelated generated/settings/worktree artifacts were not overwritten or staged.

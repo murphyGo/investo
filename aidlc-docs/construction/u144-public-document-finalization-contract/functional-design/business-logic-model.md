@@ -248,10 +248,7 @@ defense in depth.
 
 ```python
 repair(draft):
-  layout = PublicDocumentLayout.reindex(
-      repair_surface_artifacts(draft.layout.markdown),
-      expectation=draft.layout.expectation,
-  )
+  layout = draft.layout
   findings = find_owned_surface_quality_issues(layout)
   grouped = group_findings_by_region(findings)
   attempts = set()
@@ -295,19 +292,23 @@ repair(draft):
               return hard_blocked_segment(issue_codes, ...)
 
       outcomes.append(redacted_block_outcome(issue_codes=issue_codes, ...))
+      if disposition in {"replace_block", "omit_optional_block"}:
+          log_bounded_block_degraded(segment, region.block, disposition, issue_codes)
 
   # Every changed fragment crosses the same boundary again.
   layout = project_public_markdown(
       layout,
       limitation_reasons=typed_limitations,
   )
-  markdown = repair_surface_artifacts(layout.markdown)
-  return draft.advance(
-    "repaired",
-    PublicDocumentLayout.reindex(markdown, expectation=draft.layout.expectation),
-    outcomes,
-  )
+  residual = group_findings_by_region(find_owned_surface_quality_issues(layout))
+  if any(strongest_disposition(group) != "record_warning" for group in residual):
+      return hard_blocked_segment("document.fallback_exhausted", ...)
+  return draft.advance("repaired", layout, outcomes)
 ```
+
+Whole-document repair is intentionally absent. Terminal validation runs the
+canonical reader-visible label traversal, owned-region scan, and one canonical
+full-document surface scan read-only; any residual blocker fails closed.
 
 Owned findings use the E3 bounded canonical section/marker index. It is not a
 general Markdown parser. An unlocatable blocking finding maps to

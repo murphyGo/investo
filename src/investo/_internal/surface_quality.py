@@ -97,10 +97,23 @@ def extract_first_viewport(text: str) -> str:
     return text[:1600]
 
 
-def repair_surface_artifacts(text: str) -> str:
-    """Repair known deterministic artifacts outside protected regions."""
+def repair_surface_artifacts(
+    text: str,
+    *,
+    treat_all_as_first_viewport: bool = False,
+) -> str:
+    """Repair known deterministic artifacts outside protected regions.
 
-    first_viewport_len = len(extract_first_viewport(text))
+    ``treat_all_as_first_viewport`` is reserved for callers that already
+    sliced an owned first-viewport region from a larger document.  Such a
+    slice may itself contain an ``##`` heading, so deriving the viewport from
+    the fragment would incorrectly make the remainder ineligible for the
+    first-viewport-only repairs.
+    """
+
+    first_viewport_len = (
+        len(text) if treat_all_as_first_viewport else len(extract_first_viewport(text))
+    )
     lines = text.splitlines(keepends=True)
     out: list[str] = []
     offset = 0
@@ -121,7 +134,8 @@ def repair_surface_artifacts(text: str) -> str:
             offset += len(raw_line)
             continue
 
-        repaired = line.replace(_BAD_TOKEN, _BAD_TOKEN_REPAIR).replace(
+        repaired, protected_inline = _mask_inline_code(line)
+        repaired = repaired.replace(_BAD_TOKEN, _BAD_TOKEN_REPAIR).replace(
             _BAD_PARTICLE,
             _BAD_PARTICLE_REPAIR,
         )
@@ -140,6 +154,7 @@ def repair_surface_artifacts(text: str) -> str:
                 continue
             if repaired.endswith(" ..."):
                 repaired = repaired[:-4].rstrip()
+        repaired = _restore_inline_code(repaired, protected_inline)
         newline = "\n" if raw_line.endswith("\n") else ""
         out.append(repaired + newline)
         offset += len(raw_line)
@@ -188,7 +203,7 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
         if protected:
             continue
         scan_line = _strip_inline_code(line)
-        if _BAD_TOKEN in line:
+        if _BAD_TOKEN in scan_line:
             issues.append(
                 SurfaceQualityIssue(
                     "bad_token.bulganghanseong",
@@ -197,7 +212,7 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                     region,
                 )
             )
-        if _BAD_PARTICLE in line:
+        if _BAD_PARTICLE in scan_line:
             issues.append(
                 SurfaceQualityIssue(
                     "korean.bad_particle.mingamdo_eul",
@@ -343,6 +358,32 @@ def _strip_inline_code(line: str) -> str:
     return _INLINE_CODE_RE.sub("", line)
 
 
+def _mask_inline_code(line: str) -> tuple[str, tuple[tuple[str, str], ...]]:
+    """Replace balanced inline-code spans with inert, reversible sentinels."""
+
+    protected: list[tuple[str, str]] = []
+
+    def replace_match(match: re.Match[str]) -> str:
+        index = len(protected)
+        token = f"\x00investo_inline_{index}\x00"
+        while token in line or any(existing == token for existing, _ in protected):
+            index += 1
+            token = f"\x00investo_inline_{index}\x00"
+        protected.append((token, match.group(0)))
+        return token
+
+    return _INLINE_CODE_RE.sub(replace_match, line), tuple(protected)
+
+
+def _restore_inline_code(
+    line: str,
+    protected: tuple[tuple[str, str], ...],
+) -> str:
+    for token, original in protected:
+        line = line.replace(token, original)
+    return line
+
+
 def _repair_broken_numeric_bold(line: str) -> str:
     repaired = _BROKEN_SIGN_UNIT_BOLD_RE.sub(r"**\1\2\3**", line)
     repaired = _BROKEN_DOLLAR_UNIT_BOLD_RE.sub(r"**\1\2**", repaired)
@@ -369,6 +410,8 @@ def _repair_trace_fragments(line: str) -> str:
     without_assignments = _TRACE_ASSIGNMENT_RE.sub("", line).strip()
     if _TRACE_RE.search(without_assignments):
         return ""
+    if without_assignments == line.strip():
+        return line
     return without_assignments.strip(" -·,;|")
 
 

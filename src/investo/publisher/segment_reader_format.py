@@ -26,6 +26,7 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from typing import Final
 
 from investo._internal.surface_quality import repair_surface_artifacts
@@ -47,6 +48,7 @@ from investo.publisher.compliance_language import (
     scan_compliance,
 )
 from investo.publisher.cross_market_cause_map import (
+    CauseMapDecision,
     evaluate_cause_map,
     inject_cause_map_line,
 )
@@ -57,7 +59,7 @@ from investo.publisher.crypto_indicators import (
 )
 from investo.publisher.daily_thesis import (
     assert_distinct_daily_thesis_lines,
-    inject_daily_thesis_line,
+    inject_rendered_daily_thesis_line,
     render_daily_thesis_line,
 )
 from investo.publisher.reader_format import (
@@ -85,6 +87,61 @@ _SurfaceRepairObserver = Callable[[MarketSegment, str, str], None]
 _WatchpointResultObserver = Callable[[MarketSegment, WatchpointRenderResult], None]
 
 
+@dataclass(frozen=True, slots=True)
+class SegmentReaderProducerPlan:
+    """One active-pass source for producer payloads and region eligibility."""
+
+    segment: MarketSegment
+    anchors: tuple[MarketAnchor, ...]
+    anchor_table: str
+    shared_macro_block: str | None
+    crypto_indicator_block: str
+    channel_anchor_block: str
+    cause_map: CauseMapDecision
+    daily_thesis_line: str
+
+
+def build_segment_reader_producer_plan(
+    segment: MarketSegment,
+    *,
+    anchors: Sequence[MarketAnchor],
+    bundle_context: BundleContext | None,
+    items: Sequence[NormalizedItem],
+) -> SegmentReaderProducerPlan:
+    """Evaluate each conditional phase-one producer exactly once."""
+
+    canonical_anchors = tuple(anchors)
+    canonical_items = tuple(items)
+    return SegmentReaderProducerPlan(
+        segment=segment,
+        anchors=canonical_anchors,
+        anchor_table=render_anchor_table(canonical_anchors, segment=segment),
+        shared_macro_block=(
+            bundle_context.shared_macro_block if bundle_context is not None else None
+        ),
+        crypto_indicator_block=(
+            render_crypto_indicator_block(canonical_items)
+            if segment == "crypto" and canonical_items
+            else ""
+        ),
+        channel_anchor_block=render_channel_anchor_block(
+            segment,
+            anchors=canonical_anchors,
+            crypto_items=canonical_items if segment == "crypto" else (),
+            source_items=canonical_items,
+        ),
+        cause_map=evaluate_cause_map(bundle_context),
+        daily_thesis_line=(
+            render_daily_thesis_line(
+                bundle_context.daily_thesis_decision,
+                segment=segment,
+            )
+            if bundle_context is not None
+            else ""
+        ),
+    )
+
+
 def apply_reader_format_to_segments(
     segment_briefings: dict[MarketSegment, Briefing],
     *,
@@ -94,6 +151,8 @@ def apply_reader_format_to_segments(
     _surface_repair_observer: _SurfaceRepairObserver | None = None,
     _watchpoint_result_observer: _WatchpointResultObserver | None = None,
     _watchpoint_preserved_fragments_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
+    _apply_surface_repairs: bool = True,
+    _producer_plans_by_segment: Mapping[MarketSegment, SegmentReaderProducerPlan] | None = None,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
@@ -112,48 +171,58 @@ def apply_reader_format_to_segments(
     """
     if not segment_briefings:
         return segment_briefings
-    if bundle_context is not None:
-        assert_distinct_daily_thesis_lines(
-            {
-                segment: render_daily_thesis_line(
-                    bundle_context.daily_thesis_decision,
-                    segment=segment,
-                )
-                for segment in segment_briefings
-            }
-        )
+    producer_plans = (
+        {
+            segment: build_segment_reader_producer_plan(
+                segment,
+                anchors=anchors_by_segment.get(segment, ()),
+                bundle_context=bundle_context,
+                items=(items_by_segment or {}).get(segment, ()),
+            )
+            for segment in segment_briefings
+        }
+        if _producer_plans_by_segment is None
+        else dict(_producer_plans_by_segment)
+    )
+    if set(producer_plans) != set(segment_briefings) or any(
+        plan.segment != segment for segment, plan in producer_plans.items()
+    ):
+        raise ValueError("producer plans must exactly match segment briefings")
+    assert_distinct_daily_thesis_lines(
+        {segment: producer_plans[segment].daily_thesis_line for segment in segment_briefings}
+    )
     rewritten: dict[MarketSegment, Briefing] = {}
     for segment, briefing in segment_briefings.items():
+        producer_plan = producer_plans[segment]
         markdown = briefing.rendered_markdown
         # Step 2 — anchor table swap. Only fires when the segment has at
         # least one anchor; otherwise the deprecated line (or its absence)
         # is left untouched and reader_format handles the rest.
-        anchors = anchors_by_segment.get(segment, ())
-        if anchors:
-            table = render_anchor_table(anchors, segment=segment)
-            if table:
-                # Idempotent: if the briefing already contains the table
-                # (same-day re-run), skip the swap so we don't duplicate.
-                # u66 — crypto uses a UTC 24h snapshot header, so check
-                # both the legacy equity header and the crypto header.
-                if (
-                    "| 종목 | 종가 | 변동 | 비고 |" in markdown
-                    or "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |" in markdown
-                ):
-                    pass
+        anchors = producer_plan.anchors
+        table = producer_plan.anchor_table
+        if table:
+            # Idempotent: if the briefing already contains the table
+            # (same-day re-run), skip the swap so we don't duplicate.
+            # u66 — crypto uses a UTC 24h snapshot header, so check
+            # both the legacy equity header and the crypto header.
+            if (
+                "| 종목 | 종가 | 변동 | 비고 |" in markdown
+                or "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |" in markdown
+            ):
+                pass
+            else:
+                new_markdown, count = _ANCHOR_LINE_RE.subn(f"\n{table}\n", markdown, count=1)
+                if count > 0:
+                    markdown = new_markdown
                 else:
-                    new_markdown, count = _ANCHOR_LINE_RE.subn(f"\n{table}\n", markdown, count=1)
-                    if count > 0:
-                        markdown = new_markdown
-                    else:
-                        # Anchor line is missing from the markdown (e.g.
-                        # data-limited segment with no header line). Inject
-                        # the table immediately before ``## ① 요약`` so the
-                        # reader still gets the quantitative grid.
-                        marker = "## ①"
-                        idx = markdown.find(marker)
-                        if idx != -1:
-                            markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
+                    # Anchor line is missing from the markdown (e.g.
+                    # data-limited segment with no header line). Inject
+                    # the table immediately before ``## ① 요약`` so the
+                    # reader still gets the quantitative grid.
+                    marker = "## ①"
+                    idx = markdown.find(marker)
+                    if idx != -1:
+                        markdown = markdown[:idx] + f"{table}\n" + markdown[idx:]
         # u70 — gate precise body claims on canonical anchor availability.
         # ``anchors`` is the reconciled single-payload set for this segment;
         # its tickers are the only core symbols the body may assert a precise
@@ -176,12 +245,13 @@ def apply_reader_format_to_segments(
         # Step 3 — pure str → str post-format chain.
         markdown = apply_reader_format(markdown, segment=segment)
         # u57 — inject shared macro block + run cross-segment lint.
-        if bundle_context is not None:
+        if producer_plan.shared_macro_block:
             markdown = inject_shared_macro_block(
                 markdown,
-                bundle_context.shared_macro_block,
+                producer_plan.shared_macro_block,
                 segment=segment,
             )
+        if bundle_context is not None:
             violations = run_all_cross_segment_lints(
                 markdown,
                 segment=segment,
@@ -206,51 +276,34 @@ def apply_reader_format_to_segments(
         # u66 — crypto-native indicator block (Fear & Greed, dominance,
         # funding/OI, DeFi, scope-out rows). Crypto segment only; placed
         # after the shared-macro block and before §①. Idempotent.
-        if segment == "crypto" and items_by_segment is not None:
-            crypto_items = items_by_segment.get("crypto", ())
-            if crypto_items:
-                markdown = inject_crypto_indicator_block(
-                    markdown,
-                    render_crypto_indicator_block(crypto_items),
-                )
+        markdown = inject_crypto_indicator_block(
+            markdown,
+            producer_plan.crypto_indicator_block,
+        )
         # u74 — channel-depth v2 native-anchor block. Standardises every
         # segment's reader-facing anchor block so missing native anchors
         # render explicit reason rows instead of silent omissions. Consumes
         # the same reconciled ``anchors`` (u49/u55/u67) the table swap used
         # and, for crypto, the u66 indicator raw_metadata contract. Does NOT
         # re-collect or re-rank either — pure presentation. Idempotent.
-        crypto_block_items = (
-            items_by_segment.get("crypto", ())
-            if (segment == "crypto" and items_by_segment is not None)
-            else ()
+        markdown = inject_channel_anchor_block(
+            markdown,
+            producer_plan.channel_anchor_block,
         )
-        segment_source_items = (
-            items_by_segment.get(segment, ()) if items_by_segment is not None else ()
-        )
-        channel_block = render_channel_anchor_block(
-            segment,
-            anchors=anchors,
-            crypto_items=crypto_block_items,
-            source_items=segment_source_items,
-        )
-        markdown = inject_channel_anchor_block(markdown, channel_block)
         # u74 Step 4 — cross-market cause-map line, gated by the u57
         # BundleContext shared-macro evidence + cross_market_core_allowed
         # allow-list. Forbidden linkages are omitted (logged), never demoted
         # into prose. Observational wording only.
-        if bundle_context is not None:
-            cause_map = evaluate_cause_map(bundle_context)
-            for suppressed in cause_map.suppressed:
-                _logger.info(
-                    "cross_market_cause_map.suppressed",
-                    extra={"segment": segment, "cause_type": suppressed},
-                )
-            markdown = inject_cause_map_line(markdown, cause_map)
-            markdown = inject_daily_thesis_line(
-                markdown,
-                bundle_context.daily_thesis_decision,
-                segment=segment,
+        for suppressed in producer_plan.cause_map.suppressed:
+            _logger.info(
+                "cross_market_cause_map.suppressed",
+                extra={"segment": segment, "cause_type": suppressed},
             )
+        markdown = inject_cause_map_line(markdown, producer_plan.cause_map)
+        markdown = inject_rendered_daily_thesis_line(
+            markdown,
+            producer_plan.daily_thesis_line,
+        )
         # u56 — compliance-language gate + first-viewport short disclaimer
         # + retail tone caps. Order: scan first (cheap reject of P0 hits
         # before any post-format I/O), then prepend the short disclaimer
@@ -286,17 +339,20 @@ def apply_reader_format_to_segments(
         # into a <details> block behind the main sections. Pure str -> str,
         # idempotent, disclaimer-preserving.
         markdown = reflow_first_viewport(markdown, segment=segment)
-        surface_before = markdown
-        repaired_surface = repair_surface_artifacts(surface_before)
-        if repaired_surface != markdown:
-            _logger.warning(
-                "surface_quality.repaired segment=%s",
-                segment,
-                extra={"segment": segment},
-            )
-            markdown = repaired_surface
-        if _surface_repair_observer is not None:
-            _surface_repair_observer(segment, surface_before, markdown)
+        if _apply_surface_repairs:
+            surface_before = markdown
+            repaired_surface = repair_surface_artifacts(surface_before)
+            if repaired_surface != markdown:
+                _logger.warning(
+                    "surface_quality.repaired segment=%s",
+                    segment,
+                    extra={"segment": segment},
+                )
+                markdown = repaired_surface
+            if _surface_repair_observer is not None:
+                _surface_repair_observer(segment, surface_before, markdown)
+        elif _surface_repair_observer is not None:
+            raise ValueError("surface repair observer requires surface repairs")
         check_sentence_ending_diversity(markdown, segment=segment)
         check_filler_phrase_density(markdown, segment=segment)
         if markdown == briefing.rendered_markdown:
@@ -306,4 +362,8 @@ def apply_reader_format_to_segments(
     return rewritten
 
 
-__all__ = ["apply_reader_format_to_segments"]
+__all__ = [
+    "SegmentReaderProducerPlan",
+    "apply_reader_format_to_segments",
+    "build_segment_reader_producer_plan",
+]

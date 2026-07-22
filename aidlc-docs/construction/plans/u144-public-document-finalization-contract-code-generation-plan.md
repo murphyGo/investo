@@ -3,7 +3,7 @@
 **Date**: 2026-07-21
 **Unit**: u144 public-document-finalization-contract
 **Stage**: Code Generation
-**Status**: Backlog / Ready for implementation
+**Status**: Complete through Step 8 (2026-07-22)
 **Source**: 2026-07-20/21 daily-briefing incident diagnosis; GitHub Actions run `29707052598` (`target_date=2026-07-17`) and the earlier `summary.truncated_mid_token`, `quality.body_evidence_untracked`, and numeric-anchor incident family
 **Estimated Effort**: ~28-36 h across eight bounded implementation steps
 **Dependencies**:
@@ -362,6 +362,20 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 - [x] Rerun the exact failed `target_date=2026-07-17` and one current normal date. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
 - [x] Verify `ok=3 failed=0`, all three archive paths, commit/push, notifier result, internal `status=success`, daily workflow conclusion, and separate Pages success. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
 
+### Step 8 — Close post-implementation review gaps
+
+This corrective slice reuses the approved FD/NFR contracts; it does not add a
+new product workflow, external dependency, persisted schema, or infrastructure
+resource. Functional Design and NFR Requirements therefore remain complete.
+The user approved this complete five-item corrective sequence on 2026-07-22
+with: "위 개선 안건들을 u144에 반영하고 작업 진행하자".
+
+- [x] Wire the existing owned-region public-label traversal and the canonical full-document surface scan into terminal validation. Reader-visible tables must be checked, and any residual/unowned blocker must fail closed before notifier DTO derivation.
+- [x] Remove silent whole-document surface repair from the production assembly/repair path. Every repair/replacement/omission must start from an owned finding and append one `PublicBlockOutcome`; residual blocking findings still fail closed after the single bounded attempt.
+- [x] Carry typed `SegmentFinalizationOutcome` values into the segmented notifier, render generation absence and trust-blocked absence with distinct public copy, and emit a bounded publish-stage operator alert for each committed trust-blocked outcome.
+- [x] Make pre-git rollback failures observable as `PublisherIOError`, restore prior bytes atomically, continue best-effort restoration of the remaining snapshot set, and preserve the existing no-rollback claim after git begins.
+- [x] Introduce one typed per-segment producer plan for each active-survivor pass and reuse its payload/eligibility decisions for both assembly and `PublicRegionExpectation`; add focused regressions and run the full U-144 quality gate. Evidence: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-8-review-corrections.md`.
+
 ## Acceptance Criteria
 
 1. **AC-144.1**: Default segmented production has exactly one `finalize_public_bundle` call and no reader-facing archive/index/quality write or git staging before it succeeds. Existing private operational state files are explicitly outside E5/E6.
@@ -386,6 +400,11 @@ The GitHub step summary/output must show expected/finalized/published counts, co
 20. **AC-144.20**: Watchpoint availability reaches projection only through `WatchpointRenderResult`; the limited state yields the typed reason and no raw sentinel default.
 21. **AC-144.21**: Default segmented notification is built only from E5 `PublicNotificationSummary` plus URLs and existing typed lookahead/price inputs. DTO identity/date is checked; conclusion/watchlist come only from validated layout, coverage fields come from E1, missing/unsafe conclusion hard-blocks inside terminal validation and participates in survivor fixed-point/nav/thesis recomputation, and generated `Briefing.market_summary` cannot reach Telegram after finalization.
 22. **AC-144.22**: Every canonical region has a fixed `RegionSpec` and every active pass has a typed `PublicRegionExpectation`; duplicate/overlap/missing/unclaimed layouts and missing expected conditional regions fail deterministically, while replacement preserves the expectation and performs a full stable reindex.
+23. **AC-144.23**: Terminal validation invokes the canonical reader-visible leakage traversal and the canonical full-document surface scan exactly as read-only gates; a reader-visible table leak or unowned/cross-region blocking surface finding cannot seal.
+24. **AC-144.24**: A deterministic surface repair that changes final Markdown always has one matching redacted `PublicBlockOutcome`; production assembly performs no unrecorded surface repair and the bounded repair phase performs no unowned whole-document rewrite.
+25. **AC-144.25**: A committed content-partial bundle emits bounded operator diagnostics for every `trust_blocked` outcome, while public Telegram copy distinguishes `generation_absent` from `trust_blocked` without exposing issue codes or rejected prose.
+26. **AC-144.26**: Pre-git rollback restores existing bytes with the shared atomic byte writer, reports unlink/restore failure as `PublisherIOError`, and still attempts the remaining snapshot entries; rollback failure is never silently suppressed.
+27. **AC-144.27**: Each active survivor pass constructs one typed producer plan whose rendered payloads and eligibility booleans feed both assembly and `PublicRegionExpectation`; the production path does not independently recompute conditional-region eligibility.
 
 ## Tests / Validation
 
