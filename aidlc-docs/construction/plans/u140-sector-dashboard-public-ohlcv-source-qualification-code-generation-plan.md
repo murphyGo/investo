@@ -70,6 +70,7 @@ adapter or Pages construction is registered.
 | BusinessQuant Stock Quotes API | free authenticated API technically advertises multi-year US-listed ETF EOD OHLCV, multi-ticker responses, and a 30-call daily Free budget; however the binding Terms grant no license in accessed data and pricing places commercial API use on Enterprise while treating commercial redistribution as plan-controlled | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
 | London Strategic Edge Free Market Data API | one free key technically advertises daily JSON/CSV OHLCV, 5,000 rows/request, history back to 2003, and 25 ETFs; however the Terms prohibit redistribution and derivative works without express written consent and leave upstream ETF-data provenance unverified | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
 | Direct IEX Exchange HIST / TOPS | free T+1 downloads, 12 months of history, and distribution with mandatory attribution pass preliminary cost/rights checks; however each date is a whole-market gzip PCAP of roughly 9–21 GB, not ticker-filtered daily bars, and derived activity is IEX-only rather than consolidated | reject for current public-MVP operational and metric fitness (2026-07-22 Step 0) |
+| MIAX Pearl Equities Historical Market Data | official ToM/DoM history provides up to the most recent six months of venue messages, but costs USD 500 per MIAX-provided eight-terabyte USB device, requires exchange data agreements, is not an automated daily-bar endpoint, and remains MIAX-only | reject for permanent-free, automated-delivery, and unproven public-rights gates (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -236,6 +237,14 @@ Primary direct IEX HIST references, checked 2026-07-22:
 - `https://iextrading.com/trading/market-data/`
 - `https://www.iex.io/resources/trading/market-data`
 - `https://iextrading.com/trading/eligible-symbols/`
+
+Primary MIAX Pearl Equities historical-data references, checked 2026-07-22:
+
+- `https://www.miaxglobal.com/markets/us-equities/pearl-equities/historical-market-data`
+- `https://www.miaxglobal.com/markets/us-equities/pearl-equities/market-data`
+- `https://www.miaxglobal.com/markets/us-equities/pearl-equities/market-data-vendor-agreements`
+- `https://www.miaxglobal.com/markets/us-equities/pearl-equities/fees`
+- `https://www.miaxglobal.com/sites/default/files/fee_schedule-files/MIAX_Pearl_Equities_Fee_Schedule_05012026_0.pdf`
 
 ## Qualification Steps
 
@@ -598,6 +607,28 @@ markets are excluded. Exact required-symbol trade continuity, corporate-action
 adjustment, and usable-bar freshness remain unproven. The official catalog and feed
 contract are sufficient to reject the current GHA-hosted public MVP path, so no HIST
 file, payload, decoder fixture, local probe, or five-run GHA probe was created.
+
+#### Iteration 20 — MIAX Pearl Equities Historical Market Data
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-miax-pearl-equities-historical-market-data.md`.
+Disposition: **reject under current published cost, delivery, and rights terms**.
+Official ToM/DoM historical data reaches the most recent six months and includes
+last-sale/order-execution messages that could theoretically be aggregated into
+venue-level OHLCV. The required product is nevertheless a USD 500 purchase delivered
+on a MIAX-provided eight-terabyte USB device, not a free ticker-filtered daily API or
+automatable download. Direct receipt requires an exchange data agreement and request
+schedules, and external distribution has separate policy/fee obligations. Derived bars
+would remain MIAX-only and require binary-feed decoding, cancellation handling, and a
+separate corporate-action source. The permanent-free gate therefore fails before any
+request, agreement, purchase, payload, exact-universe, local, or GHA probe; Step 1 does
+not apply.
 
 #### Next candidate iteration
 
