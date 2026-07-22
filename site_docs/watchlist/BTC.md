@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-21 begin -->
+
+## 2026-07-21
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7491 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,328,599,652,867; BTC dominance 56.80%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $471,267,830 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000522485550742 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Galaxy launches Bitcoin quantum computing initiative, commits up to $5 million in developer grants
+- [theblock-crypto] **ticker**: Satsuma shareholders approve bitcoin treasury liquidation and London delisting
+- [theblock-crypto] **ticker**: Uphold launches fractional share trading in US for more than 4,000 stocks and ETFs
+
+<!-- u33 entry 2026-07-21 end -->
 <!-- u33 entry 2026-07-17 begin -->
 
 ## 2026-07-17
