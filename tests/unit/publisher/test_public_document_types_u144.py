@@ -952,6 +952,45 @@ def test_bundle_skeleton_bounds_unexpected_handler_exception() -> None:
     assert "secret payload" not in str(exc.value)
 
 
+def test_bundle_skeleton_routes_layout_failure_through_survivor_fixed_point() -> None:
+    context = _context(expected_segments=(DOMESTIC_EQUITY, US_EQUITY))
+    briefings = {
+        segment: build_briefing(target_date=_TARGET_DATE) for segment in context.expected_segments
+    }
+    valid = _phase_handlers()
+
+    def assemble(
+        draft: PublicDocumentDraft,
+        phase_context: PublicDocumentContext,
+    ) -> PublicDocumentDraft:
+        if draft.segment == DOMESTIC_EQUITY:
+            PublicDocumentLayout.reindex(
+                "",
+                expectation=draft.layout.expectation,
+            )
+        return valid.assemble(draft, phase_context)
+
+    handlers = _FinalizationPhaseHandlers(
+        assemble=assemble,
+        project=valid.project,
+        repair=valid.repair,
+        validate=valid.validate,
+        artifact_ids=valid.artifact_ids,
+    )
+
+    bundle = _finalize_bundle_skeleton(
+        briefings,
+        context=context,
+        draft_factory=_draft_factory,
+        handlers=handlers,
+    )
+
+    assert tuple(document.segment for document in bundle.documents) == (US_EQUITY,)
+    assert bundle.segment_outcomes[0].state == "trust_blocked"
+    assert bundle.segment_outcomes[0].issue_codes == ("structure.empty",)
+    assert bundle.segment_outcomes[1].state == "finalized"
+
+
 def test_bundle_skeleton_preserves_typed_generation_absence() -> None:
     context = _context(
         expected_segments=(DOMESTIC_EQUITY, US_EQUITY),

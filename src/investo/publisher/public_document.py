@@ -982,8 +982,16 @@ class _RegionCandidate:
     region: PublicDocumentRegion
 
 
-def _layout_error(issue_code: str) -> ValueError:
-    return ValueError(f"public document layout invalid: {issue_code}")
+class _PublicDocumentLayoutError(ValueError):
+    """Typed required-structure failure owned by the survivor fixed point."""
+
+    def __init__(self, issue_code: str) -> None:
+        self.issue_code = issue_code
+        super().__init__(f"public document layout invalid: {issue_code}")
+
+
+def _layout_error(issue_code: str) -> _PublicDocumentLayoutError:
+    return _PublicDocumentLayoutError(issue_code)
 
 
 def _markdown_lines(markdown: str) -> tuple[_MarkdownLine, ...]:
@@ -2800,7 +2808,13 @@ def _finalize_segment_skeleton(
         ("validated", handlers.validate),
     )
     for expected_phase, handler in phase_handlers:
-        result = handler(current, context)
+        try:
+            result = handler(current, context)
+        except _PublicDocumentLayoutError as exc:
+            raise _SegmentTrustBlockedError(
+                phase=expected_phase,
+                issue_codes=(exc.issue_code,),
+            ) from exc
         _assert_phase_result(
             previous=current,
             result=result,

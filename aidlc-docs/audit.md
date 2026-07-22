@@ -5495,3 +5495,12 @@ passed, scoped format check passed, `mypy src` passed.
 **Action**: Confirmed every completed implementation and documentation slice through Step 7.1 is committed independently and synchronized on `origin/main` through `55c70f2`.
 **Validation**: Local `main`, `origin/main`, and the Step 7.1 summary commit matched before starting production replay. Concurrent u140 and generated/settings artifacts remained outside every u144 commit.
 **Status**: Step 7 checklist 2/4 complete. Next: exact-date and current-date production replay.
+
+## Construction — u144 Step 7 exact replay attempt 1 and structure routing repair
+**Timestamp**: 2026-07-22T01:27:35Z
+**Production evidence**: `daily-briefing.yml` run `29882588545` at head `516e582` collected 119 items and built all drafts (`ok=3 failed=0`), then failed domestic publish with `phase=bundle codes=invariant.phase_handler`; no commit was made and Pages was correctly skipped.
+**Root cause**: Canonical `PublicDocumentLayout.reindex()` structure errors were plain `ValueError`s, so the bundle wrapper erased their `structure.*` identity and treated the expected segment-level trust failure as a whole-bundle handler invariant.
+**Repair**: Added a typed layout error at the canonical factory and converted it to `_SegmentTrustBlockedError` inside the phase loop, preserving the concrete issue code and valid-sibling fixed point. Added a two-segment regression for `structure.empty` isolation.
+**Validation**: Focused public-document/pipeline/CLI scope 232 passed; Ruff/format and mypy (246 files) passed.
+**Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-exact-replay-structure-routing.md`.
+**Status**: Step 7 remains 2/4 pending exact replay retry and current-date verification.

@@ -72,7 +72,13 @@ Detailed gate evidence:
 
 ## Production closeout
 
-Pending Step 7 live evidence for:
+First exact-date attempt `29882588545` generated all three drafts but exposed a
+lost typed-boundary bug: a layout `ValueError` became whole-bundle
+`invariant.phase_handler`. The repair routes canonical `structure.*` codes
+through the survivor fixed point and is documented in
+`step-7-exact-replay-structure-routing.md`.
+
+Still pending Step 7 live evidence for:
 
 - exact replay `target_date=2026-07-17`;
 - one current normal date;
