@@ -6,7 +6,7 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 2 | 2026-05-08 |
+| Medium | 1 | 2026-05-08 |
 | Low | 34 | 2026-04-27 |
 
 ---
@@ -22,16 +22,6 @@ _No critical items._
 _No high priority items._
 
 ### Medium Priority
-
-#### DEBT-089: a full test run MODIFIES tracked generated files — `archive/index.md` + 7 `site_docs/*` renderings dirty every checkout
-
-- **Created**: 2026-07-19
-- **Source**: DEBT-087 resolution verification (registry session 2026-07-19) — the post-fix `git status` sweep that confirmed zero *untracked* archive residue also confirmed the tracked half is untouched by that fix
-- **Reference**: NFR-006 (testing), NFR-007 (R10 — no fabrication), FR-003 (static web publishing / permanent archive), DEBT-087 (companion — the untracked half, resolved 2026-07-19), DEBT-088 (`coverage.jsonl` now tracked, so the "tests must not write real generated paths" invariant is load-bearing), u10 archive index, u69 quality-consistency page, u137 visual provenance sidecars
-- **Description**: DEBT-087 closed the *untracked* half of test-suite archive pollution (`archive/_meta/coverage.jsonl`, `archive/_meta/fact_snapshots.jsonl`). A full `pytest` run still leaves the working tree dirty with **tracked modifications**: `archive/index.md` plus seven `site_docs/*` entries — `assets/og-card.png` and `assets/og-card.svg` with their `.json` provenance sidecars, `index.md`, `quality.md`, and `watchlist/*`. Different mechanism from DEBT-087: these writers resolve through `ARCHIVE_INDEX_PATH` and the site-page path constants, **not** `ARCHIVE_ROOT`, so neither the `ARCHIVE_ROOT`-derivation nor the `INVESTO_*_PATH` env seam that DEBT-087 installed redirects them. The condition is **pre-existing** and long predates the DEBT-087/088 work; it was simply masked by the louder untracked residue. The operational cost is a standing manual step: every commit in every worktree must be preceded by `git checkout HEAD -- archive/ site_docs/` to avoid carrying test-run renderings into the diff. Two failure modes follow from that step being manual: (1) **silently committing a test-run rendering** — the suite's `quality.md` is computed from synthetic KPI rows and its `og-card`/watchlist renderings from test constants, so a missed restore publishes fabricated figures to the public Pages surface (adjacent to the R10 no-fabrication rule); (2) **clobbering a real generated artifact** — a blanket `git checkout HEAD -- archive/ site_docs/` performed in a tree that also holds a genuine pipeline run's output reverts that output along with the test residue.
-- **Suggested Fix**: Extend the seam DEBT-087 established rather than inventing a second one. Where the module boundary allows (rule 3), derive the index/site-page write paths from the one patchable root the same way `resolve_coverage_path()` now derives from `publisher.paths.ARCHIVE_ROOT` at call time, so the standard `monkeypatch.setattr("investo.publisher.paths.ARCHIVE_ROOT", …)` fixture redirects them; where a writer lives outside `publisher/` and therefore cannot import `publisher.paths`, reuse the env-variable lever and add the corresponding `INVESTO_*_PATH` redirects to the root `tests/conftest.py` autouse fixture (set-only-if-unset, so per-test overrides keep winning). Pin with a session-scoped check asserting `git status --porcelain archive/ site_docs/` is empty after the suite, which closes DEBT-087 and this entry against future regression in one assertion.
-- **Effort**: ~1-1.5 h (path derivation / env-seam extension across the index + site-page writers, conftest additions, and the session-scoped clean-tree assertion).
-- **Priority Reasoning**: **Medium** — one band above DEBT-087's Low precisely because these files are **already tracked**, so no promotion trigger is needed: they are committable today, and the only thing standing between a test run and a fabricated public quality page is a human remembering a `git checkout`. That manual step is repeated in every worktree by every agent and operator, which makes eventual failure a matter of frequency rather than possibility. Held below High because reaching a reader still requires a human mistake, the restore step is well understood by current operators, and no such rendering has reached `main`. **Promote to High** if a test-run rendering is ever found committed on `main`, or if a blanket restore is found to have reverted a genuine pipeline artifact.
 
 #### DEBT-049: SVG `@media (prefers-color-scheme)` disagrees with mkdocs Material site toggle
 
@@ -412,6 +402,14 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-089: a full test run MODIFIES tracked generated files — `archive/index.md` + 7 `site_docs/*` renderings dirty every checkout
+
+- **Created**: 2026-07-19
+- **Resolved**: 2026-07-22 — commit `e00d706`. Root cause was **two** distinct binding failures, not one: `update_latest_index_pages` and six `watchlist_pages` helpers bound their path constants as **frozen default arguments** (evaluated at import, unreachable by any later patch), while the og-card and quality-page writers were call-time-resolvable but simply **unpatched by any suite fixture**. Actual scope: **11 files across 5 constants** — larger than this entry's 8-file estimate. Production fix: the frozen defaults were converted to `None` + call-time resolution of the module constant — production output unchanged, pinned by **two neutrality tests**. Test fix: an autouse `tests/conftest.py` fixture redirects all five constants (all 11 files) to a **temp mirror seeded from the committed originals** — seeding is required because the index/quality writers are read-modify-write over marker blocks — with the mirror placed under `tmp_path_factory` to avoid the curated-library loader scan collision. Plus the session-scoped guard this entry asked for: the suite now **fails naming any tracked `archive/` / `site_docs/` change the session itself introduced** — diff-based against pre-session state so unrelated local edits cause no false positives, proven to fire with a redirect removed — guarding DEBT-087 **and** this entry against regression in one assertion. Verified: full suite **4076 passed / 0 failed**; `git status` over `archive/` + `site_docs/` **empty after a full run**. The standing manual `git checkout HEAD -- archive/ site_docs/` pre-commit step is retired.
+- **Source**: DEBT-087 resolution verification (registry session 2026-07-19) — the post-fix `git status` sweep that confirmed zero *untracked* archive residue also confirmed the tracked half is untouched by that fix
+- **Reference**: NFR-006 (testing), NFR-007 (R10 — no fabrication), FR-003 (static web publishing / permanent archive), DEBT-087 (companion — the untracked half, resolved 2026-07-19), DEBT-088 (`coverage.jsonl` now tracked, so the "tests must not write real generated paths" invariant is load-bearing), u10 archive index, u69 quality-consistency page, u137 visual provenance sidecars
+- **Priority Reasoning**: Closed.
 
 #### DEBT-088: `archive/_meta/coverage.jsonl` is never committed — every CI run starts from an empty coverage log, so all coverage-derived KPIs and alerts read a 1-run history
 

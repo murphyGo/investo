@@ -1,5 +1,24 @@
 # AI-DLC Audit Log
 
+## Construction — DEBT-089 — tracked generated files no longer dirtied by the test suite (frozen-default path constants unfrozen; session-scoped clean-tree guard)
+**Timestamp**: 2026-07-22T22:56:00+09:00
+**Trigger**: DEBT-089 (registered 2026-07-19 as the tracked-file remainder of the DEBT-087/088 archive-pollution work) held the last standing manual step in every worktree: `git checkout HEAD -- archive/ site_docs/` before every commit, with two known failure modes — silently committing a test-run rendering to the public Pages surface, or a blanket restore clobbering a genuine pipeline artifact. Burned down and pushed as commit `e00d706`.
+**Root cause (corrected vs the entry)**: two distinct binding failures, not one mechanism. (1) `update_latest_index_pages` and six `watchlist_pages` helpers bound their path constants as **frozen default arguments** — evaluated at import time, so no later monkeypatch could reach them. (2) The og-card and quality-page writers were already call-time-resolvable but simply **unpatched by any suite fixture**. Actual scope was **11 files across 5 constants**, larger than the entry's 8-file estimate.
+**Decision**:
+1. **Production fix — unfreeze, don't re-plumb.** The frozen defaults were converted to `None` + call-time resolution of the module constant. Production output is byte-unchanged, pinned by **two neutrality tests**.
+2. **Test fix — seeded temp mirror.** An autouse `tests/conftest.py` fixture redirects all five constants (all 11 files) to a temp mirror **seeded from the committed originals** — seeding is required because the index/quality writers are read-modify-write over marker blocks, so an empty mirror would break them. The mirror lives under `tmp_path_factory` to avoid the curated-library loader scan collision.
+3. **Session-scoped guard — one assertion for both entries.** The suite now fails naming any tracked `archive/` / `site_docs/` change the session itself introduced. It is **diff-based against pre-session state**, so unrelated local edits in a dirty worktree cause no false positives; it was proven to fire with a redirect deliberately removed. This is the pin DEBT-089's suggested fix asked for, and it guards **DEBT-087 and DEBT-089 against regression in one assertion**.
+**Design Q/A**:
+- *Why did the DEBT-087 seams not cover these writers?* — The entry anticipated this: these writers resolve through `ARCHIVE_INDEX_PATH` / site-page constants, not `ARCHIVE_ROOT` or the `INVESTO_*_PATH` env levers. What the entry did not anticipate is that seven of the writers had the constants **frozen at import** as default arguments — for those, no seam of any kind could work until the defaults were unfrozen.
+- *Why a seeded mirror instead of empty temp paths?* — The index and quality writers are read-modify-write over marker blocks in existing files; pointing them at empty paths changes their behavior under test. Seeding from the committed originals keeps the tests exercising the production code path.
+- *Why diff-based rather than asserting a clean `git status` outright?* — An absolute cleanliness assertion false-positives in any worktree carrying legitimate local edits (the normal state of agent worktrees). Diffing against pre-session state isolates exactly what the suite itself did.
+**Validation**: full suite **4076 passed / 0 failed**; `git status` over `archive/` + `site_docs/` **empty after a full run**; guard proven to fire (RED with a redirect removed, green restored).
+**Affected docs**:
+- `/Users/user/Desktop/Projects/investo/docs/TECH-DEBT.md` — DEBT-089 moved `### Medium Priority` → `## Resolved Items` (top, newest-first); Summary table Medium count 2 → 1, Low stays 34.
+- `/Users/user/Desktop/Projects/investo/aidlc-docs/audit.md` — this entry.
+**Status**: DEBT-089 **closed**. Commit `e00d706` is on `main` and pushed. With DEBT-087 (untracked half) and DEBT-088 (coverage persistence) already closed 2026-07-19, the entire "tests write into real generated paths" family is retired, and the manual pre-commit restore step is no longer required in any worktree. The sole remaining Medium is **DEBT-049**, which is planned as **u143** (`u143 visual-theme-parity-dual-variant`) and closes with that unit rather than as a debt-burn task.
+**Context**: DEBT-089's registered promotion trigger ("promote to High if a test-run rendering is ever found committed on `main`") was never exercised — no such rendering reached `main` during the entry's 3-day life. No synthesized generated content was introduced; the mirror is seeded from committed originals only (R10).
+
 ## NFR/Security and Code Plan — u145 public HF limited radar
 
 **Status**: NFR/Security design complete; Code Generation blocked before Step 0. Authored AC-1.1 through AC-6.6, TS-1 through TS-8, technology decisions, and a seven-step code-generation plan.
