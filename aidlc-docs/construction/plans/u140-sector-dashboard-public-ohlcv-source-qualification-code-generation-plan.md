@@ -74,6 +74,7 @@ adapter or Pages construction is registered.
 | Cboe DataShop Equity EOD Summary | technically offers daily U.S. equity/ETF OHLC, trade volume, VWAP, and bid/ask history from January 2010 through historical purchases or subscriptions, but has no free entitlement; even eligible academic use carries a USD 500 minimum and public distribution remains agreement/license controlled | reject for permanent-free and explicit free public-rights gates (2026-07-22 Step 0) |
 | MEMX MEMOIR Historical Data | official prior-day Depth/Top/Last Sale history is available through cloud APIs, but requires a Market Data Agreement and approved Order Form/System Description; public-use fees/approval are feed-specific and derived bars remain MEMX-only raw-message aggregates | reject for current public-MVP cost/rights certainty and metric fitness (2026-07-22 Step 0) |
 | NYSE Daily TAQ | official consolidated CTA/UTP T+1 trades/quotes/NBBO archive covers U.S. securities from 1993, but the commercial subscription is USD 3,800/month with a 12-month minimum, older history and external historical redistribution are separately charged/licensed, and whole-market tick files are not bounded ticker-filtered bars | reject for permanent-free, explicit free public-rights, and operational-budget gates (2026-07-22 Step 0) |
+| NYSE TAQ Closing Prices | official per-exchange daily Open/High/Low/Last, Total Volume, and closing quote summaries have NYSE Arca history since 2008 and bounded files, but cost USD 500/month under a 12-month minimum, external historical distribution requires a specific license/fee, and volume is NYSE-venue-local rather than consolidated | reject for permanent-free, explicit free public-rights, and volume-semantics gates (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -273,6 +274,14 @@ Primary NYSE Daily TAQ references, checked 2026-07-22:
 - `https://www.nyse.com/publicdocs/nyse/data/NYSE_Historical_Market_Data_Pricing.pdf`
 - `https://www.nyse.com/publicdocs/nyse/data/Daily_TAQ_Client_Spec_v4.1b.pdf`
 - `https://www.nyse.com/publicdocs/nyse/data/Daily_TAQ_Client_Spec_v3.3b.pdf`
+- `https://www.nyse.com/publicdocs/nyse/data/NYSE_Market_Data_Complete_Policy_Package.pdf`
+- `https://www.nyse.com/market-data/pricing-policies-contracts-guidelines`
+
+Primary NYSE TAQ Closing Prices references, checked 2026-07-22:
+
+- `https://www.nyse.com/data-products/catalog/taq-nyse-closing-prices`
+- `https://www.nyse.com/publicdocs/nyse/data/TAQ_Closing_Prices_Client_Spec_v2.1.pdf`
+- `https://www.nyse.com/publicdocs/nyse/data/NYSE_Historical_Market_Data_Pricing.pdf`
 - `https://www.nyse.com/publicdocs/nyse/data/NYSE_Market_Data_Complete_Policy_Package.pdf`
 - `https://www.nyse.com/market-data/pricing-policies-contracts-guidelines`
 
@@ -725,6 +734,28 @@ are approximately 649 MB for Trades, 17 GB for Quotes, and 2.2 GB for NBBO, so d
 12-symbol OHLCV would also violate the bounded GitHub Actions budget. The permanent-
 free and explicit free public-rights gates fail before agreement, order, sample,
 payload, exact-universe, local, or GHA probes; Step 1 does not apply.
+
+#### Iteration 24 — NYSE TAQ Closing Prices
+
+- [x] Record owner, official docs, delivery, auth, cost, symbols, fields, cadence,
+  adjustment semantics, attribution, retention, volume meaning, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against NYSE Daily TAQ, existing routing, and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-nyse-taq-closing-prices.md`.
+Disposition: **reject under current published cost, public-rights, and
+volume-semantics terms**. The product avoids Daily TAQ's raw-tick scale: it publishes
+one daily file per NYSE group exchange with Open/High/Low/Last, Total Volume, and
+closing bid/ask fields, with NYSE Arca history from December 2008 and typical 10 p.m.
+Eastern delivery. Access nevertheless costs USD 500/month under a 12-month minimum,
+back history is separately charged, and external historical distribution requires a
+specific NYSE license and relevant fee. The specification also defines Total Volume
+as volume on that exchange, so the ETF bars remain NYSE Arca-venue summaries rather
+than consolidated U.S. OHLCV. Cost, free public rights, and metric fitness fail before
+dashboard registration, purchase, entitlement, sample, exact-universe, local, or GHA
+probes; Step 1 does not apply.
 
 #### Next candidate iteration
 
