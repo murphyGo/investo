@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-22 begin -->
+
+## 2026-07-22
+
+- [yonhap-market] **ticker**: 코스피 장초반 5%대 급등에 매수 사이드카 발동
+- [yonhap-market] **ticker**: 코스피, 알파벳 실적 앞두고 경계에 '전강후약'…6,797서 마감(종합)
+- [nasdaq-earnings-calendar] **ticker**: GOOG earnings — after-hours — EPS forecast $2.87
+- [nasdaq-earnings-calendar] **ticker**: GOOGL earnings — after-hours — EPS forecast $2.87
+- [nasdaq-stocks-news] **ticker**: Stock Indexes Mixed Ahead of Alphabet’s Earnings
+- [nasdaq-symbol-directory] **ticker**: GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: GOOGL SEC company facts: Alphabet Inc.
+
+<!-- u33 entry 2026-07-22 end -->
 <!-- u33 entry 2026-07-21 begin -->
 
 ## 2026-07-21

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-22 begin -->
+
+## 2026-07-22
+
+- [yonhap-market] **ticker**: 엔비디아, 네비우스 지분 9.3% 보유…AI 생태계 확장
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+- [yfinance-price] **ticker**: NVDA 212.06 (+2.30%)
+
+<!-- u33 entry 2026-07-22 end -->
 <!-- u33 entry 2026-07-21 begin -->
 
 ## 2026-07-21

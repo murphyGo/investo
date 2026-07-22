@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-22 begin -->
+
+## 2026-07-22
+
+- [coingecko-price] **ticker**: ETH $1,934.59 (+0.88%)
+- [defillama-market-structure] **ticker**: DeFi TVL $77.1B; leader Ethereum
+
+<!-- u33 entry 2026-07-22 end -->
 <!-- u33 entry 2026-07-21 begin -->
 
 ## 2026-07-21

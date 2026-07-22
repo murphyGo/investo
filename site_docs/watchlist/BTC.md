@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-22 begin -->
+
+## 2026-07-22
+
+- [yonhap-market] **ticker**: 디지털자산 추적대회 '스캔' 개최…총상금 2비트코인
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7491 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,334,247,980,263; BTC dominance 56.72%
+- [coingecko-price] **ticker**: BTC $66,006.00 (-0.35%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $468,244,190 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000093611009775 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: ‘Optimistic signals’ meet a $68,000 wall as bitcoin’s recovery faces its next test: analysts
+
+<!-- u33 entry 2026-07-22 end -->
 <!-- u33 entry 2026-07-21 begin -->
 
 ## 2026-07-21
