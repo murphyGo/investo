@@ -1,13 +1,13 @@
 {
   "additional_metadata": {},
-  "asset_path": "watchlist-relevance.svg",
-  "card_kind": "watchlist-relevance",
+  "asset_path": "market-snapshot.svg",
+  "card_kind": "market-snapshot",
   "content_type": "image/svg+xml",
   "dimensions": [
     1200,
     630
   ],
-  "generated_at": "2026-07-22T09:23:44.782075Z",
+  "generated_at": "2026-07-22T09:23:44.768026Z",
   "generator": "investo",
   "schema_version": "1",
   "source_attribution": "investo 자체 데이터로 결정적 SVG 카드 생성",

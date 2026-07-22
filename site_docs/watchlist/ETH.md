@@ -6,9 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-21
 
+- [yonhap-market] **ticker**: 이더리움 APAC 정책총괄 "韓, 세계적 시장으로 영향력 있어"
 - [defillama-market-structure] **ticker**: DeFi TVL $77.0B; leader Ethereum
 
 <!-- u33 entry 2026-07-21 end -->
+
 <!-- u33 entry 2026-07-17 begin -->
 
 ## 2026-07-17

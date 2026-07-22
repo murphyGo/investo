@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-21 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 7월 21일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$2,328,599,652,867로 24시간 동안 -0.54% 하락했다. 수집 근거가 제한적입니다</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 7월 21일 UTC 24h 스냅샷 기준, 크립토 전체 시가총액은 $2.33T로 24시간 동안</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">-0.49% 하락했고 BTC 도미넌스는 56.77%를 나타냈다. 수집 근거가 제한적입니다</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·ETH CME 포지셔닝, 레버리지드머니 순매도 흐름 지속 CFTC COT 자료에 따르면 BTC</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">CME 레버리지드머니는 롱 4,015계약, 숏 11,506계약으로 순매도 -7,491계약(전체</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·ETH CME 포지셔닝, 레버리지드머니 순매도 우위 지속 CFTC(미국 상품선물거래위원회)</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">CME(시카고상업거래소) 리포트에 따르면 BTC 레버리지드머니는 롱 4,015계약, 숏</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · BTC CME 레버리지드머니 순매도가 현재 -7,491계약(전체</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미결제약정의 -38.6%)에서 추가 확대되면 하방 압력 우위 관찰, 축소·순매수 전환되면 숏 커버링</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC(미국 상품선물거래위원회) CME BTC 리포트 · 레버리지드머니 순매도</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">-7,491계약(전체 미결제약정 대비 -38.6%)이 이번 주 대비 축소되면 매도 압력 완화로,</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
