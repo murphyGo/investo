@@ -1,5 +1,14 @@
 # AI-DLC Audit Log
 
+## Source qualification — u140 Step 0 iteration 18 (London Strategic Edge Free Market Data API)
+**Timestamp**: 2026-07-22T06:26:52Z
+**User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the BusinessQuant Step 0 slice as `c547701`, staging only its seven u140 document changes while preserving unrelated generated/settings/worktree artifacts.
+**Primary-source evidence**: London Strategic Edge's official API page advertises one free API key, daily through one-minute OHLCV in JSON or CSV, up to 5,000 rows per request, history reaching 2003 for long-listed instruments, and 25 index/sector ETFs. The databank page additionally advertises ten free downloads/hour at up to one million rows. The binding Terms prohibit scraping or automated access without permission, redistribution/resale/commercial exploitation of data or services, and copying, modifying, distributing, or creating derivative works without express written consent. The reviewed pages do not grant Investo free public derived-display or retention rights and do not identify the upstream venue/consolidation source for ETF OHLCV.
+**Deduplication**: No `londonstrategicedge`, `lse-data`, London Strategic Edge API key, candle client, endpoint, adapter, registry entry, `SourceSpec`, tier/window/segment route, fixture, dependency, secret path, or workflow exists under Investo runtime, configuration, tests, or planning surfaces.
+**Decision**: `reject under current published terms` for u140. Technical cost, history depth, structure, ETF-family coverage, and row-budget evidence is promising, but the explicit free public derived-display rights gate fails. Exact SPY plus eleven-sector-ETF coverage, endpoint contract, corporate-action adjustment, consolidated-volume provenance, freshness, continuity, and rotating-runner stability were not probed. No account/key was created, no provider payload was fetched, and no raw data was retained.
+**Artifact**: `aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-london-strategic-edge.md`
+**Status**: u140 remains blocked after Step 0 iterations 1-18. A new candidate must repeat Step 0; only a source with at least 63 permanently free daily bars and explicit free public derived-display rights may advance to local and five-run GitHub Actions probes.
+
 ## Source qualification — u140 Step 0 iteration 17 (BusinessQuant Stock Quotes API)
 **Timestamp**: 2026-07-22T06:14:47Z
 **User decision**: "커밋 푸시 후 다음단계 진행" — committed and pushed the HF Data Library Step 0 slice as `77ecf6b`, staging only its seven u140 document changes while preserving unrelated generated/settings/worktree artifacts.

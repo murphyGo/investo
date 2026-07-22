@@ -68,6 +68,7 @@ adapter or Pages construction is registered.
 | FinancialData.Net ETF Prices API | technically provides an exact SPY/ETF daily OHLCV route, more than ten years of history, and up to 300 records per response, but ETF Prices is Premium at USD 69/month or USD 599/year; external display and redistribution are Enterprise-only at USD 299/month or USD 2,599/year | reject for the permanent-free and explicit free public-rights gates (2026-07-21 Step 0) |
 | HF Data Library daily OHLCV | free API, 23+ years, daily aggregation, CC BY 4.0 plus IEX historical-data distribution with attribution, and current public metadata; however the required universe is 11/12 because `XLRE` is absent, and post-2022 volume is IEX-only at roughly 2–3% of consolidated volume | defer for exact-universe and volume-fitness repair (2026-07-22 Step 0) |
 | BusinessQuant Stock Quotes API | free authenticated API technically advertises multi-year US-listed ETF EOD OHLCV, multi-ticker responses, and a 30-call daily Free budget; however the binding Terms grant no license in accessed data and pricing places commercial API use on Enterprise while treating commercial redistribution as plan-controlled | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
+| London Strategic Edge Free Market Data API | one free key technically advertises daily JSON/CSV OHLCV, 5,000 rows/request, history back to 2003, and 25 ETFs; however the Terms prohibit redistribution and derivative works without express written consent and leave upstream ETF-data provenance unverified | reject for the explicit free public-rights gate (2026-07-22 Step 0) |
 | Nasdaq/Cboe website endpoints | public pages or delayed displays do not authorize automated extraction for this use | reject |
 
 Primary TradingView references:
@@ -219,6 +220,13 @@ Primary BusinessQuant references, checked 2026-07-22:
 - `https://businessquant.com/docs/api/universe`
 - `https://businessquant.com/pricing`
 - `https://businessquant.com/terms-of-use`
+
+Primary London Strategic Edge references, checked 2026-07-22:
+
+- `https://londonstrategicedge.com/free-market-data-api/`
+- `https://londonstrategicedge.com/api/`
+- `https://londonstrategicedge.com/data/`
+- `https://londonstrategicedge.com/terms-of-service`
 
 ## Qualification Steps
 
@@ -535,6 +543,28 @@ derived-display grant for Investo Pages. The rights gate therefore fails before
 account creation or payload probing. Exact 12-symbol coverage, adjustment semantics,
 volume venue meaning, continuity, freshness, and runner stability remain unproven;
 Step 1 does not apply.
+
+#### Iteration 18 — London Strategic Edge Free Market Data API
+
+- [x] Record owner, official docs, endpoint, auth, cost, quota, symbols, fields,
+  cadence, adjustment semantics, attribution, caching, raw-retention, and derived
+  public-display clauses with dated primary-source links.
+- [x] Deduplicate the candidate against existing registry/spec/routing and u138.
+- [x] Classify `ship-now`, `defer`, or `reject` with one evidence-backed reason.
+
+Recorded in
+`aidlc-docs/construction/u140-sector-dashboard-public-ohlcv-source-qualification/source-qualification/2026-07-22-london-strategic-edge.md`.
+Disposition: **reject under current published terms**. The service technically looks
+well matched: one free API key, OHLCV from one-minute through daily resolution, JSON
+or CSV, up to 5,000 rows per request, history back to 2003 for long-listed instruments,
+and 25 index/sector ETFs. Its binding Terms nevertheless prohibit redistributing,
+reselling, or commercially exploiting data and forbid copying, modifying, distributing,
+or creating derivative works without express written consent. The documented API
+access is not an express free right to retain rows or publish derived sector metrics on
+Investo Pages. The reviewed materials also do not identify the upstream ETF feed or
+consolidated-volume semantics. Rights therefore fail before account or payload probing.
+Exact 12-symbol coverage, endpoint grammar, adjustment, volume provenance, continuity,
+freshness, and runner stability remain unproven; Step 1 does not apply.
 
 #### Next candidate iteration
 
