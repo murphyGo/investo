@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-23 begin -->
+
+## 2026-07-23
+
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+- [yfinance-price] **ticker**: AAPL 321.66 (-1.30%)
+
+<!-- u33 entry 2026-07-23 end -->
 <!-- u33 entry 2026-07-22 begin -->
 
 ## 2026-07-22

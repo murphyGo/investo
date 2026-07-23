@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-23 begin -->
+
+## 2026-07-23
+
+- [yonhap-market] **ticker**: '알파벳 랠리' 코스피 4.4% 급등 마감…5거래일 만에 '7천피'(종합)
+- [nasdaq-stocks-news] **ticker**: Stocks Fall Sharply as Crude Oil Prices Soar and Alphabet Sparks AI Spending Concerns
+- [nasdaq-symbol-directory] **ticker**: GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: GOOGL SEC company facts: Alphabet Inc.
+
+<!-- u33 entry 2026-07-23 end -->
 <!-- u33 entry 2026-07-22 begin -->
 
 ## 2026-07-22

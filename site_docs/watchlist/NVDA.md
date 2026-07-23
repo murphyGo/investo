@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-23 begin -->
+
+## 2026-07-23
+
+- [yonhap-market] **ticker**: 젠슨 황 "훌륭한 중국 오픈소스 모델들은 사용돼야"
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+
+<!-- u33 entry 2026-07-23 end -->
 <!-- u33 entry 2026-07-22 begin -->
 
 ## 2026-07-22

@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-23 begin -->
+
+## 2026-07-23
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7491 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,303,130,851,113; BTC dominance 56.74%
+- [coingecko-price] **ticker**: BTC $65,148.00 (-1.20%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $470,169,480 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $470,170,060 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000231660198235 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Flow Traders pilots Lombard’s new bitcoin-backed credit strategy for stablecoin borrowing
+- [theblock-crypto] **ticker**: Strategy, BlackRock form Bitcoin Security Consortium to prepare for quantum computing threat
+- [theblock-crypto] **ticker**: ‘Not currently the right capital solution’: Smarter Web sells 178 bitcoin to repay $11.7M convertible instrument
+
+<!-- u33 entry 2026-07-23 end -->
 <!-- u33 entry 2026-07-22 begin -->
 
 ## 2026-07-22

@@ -1,0 +1,21 @@
+{
+  "additional_metadata": {
+    "allowed_use": "Public republish on the investo site and channel; US federal-government work (17 U.S.C. 105), public domain. Verified: Federal Reserve Flickr page shows 'United States Government Work'; Commons file page states public domain.",
+    "author": "Federal Reserve Board",
+    "license": "17-usc-105",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Jerome_H._Powell,_Federal_Reserve_Chair.jpg"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    960,
+    1200
+  ],
+  "generated_at": "2026-07-23T23:16:02.701752Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "Official Federal Reserve portrait of Jerome H. Powell (US government work; via Wikimedia Commons, PD US Federal Reserve) (Federal Reserve Board) — 17-usc-105",
+  "source_type": "external",
+  "version": "0.1.0"
+}

@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-23 begin -->
+
+## 2026-07-23
+
+- [coingecko-price] **ticker**: ETH $1,882.29 (-2.70%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Arbitrum protocol AFX Trade hit by $24 million bridge exploit: Blockaid
+- [theblock-crypto] **ticker**: LayerZero, Keeta enable tokenized bank deposits across Ethereum, Solana and Base
+- [theblock-crypto] **ticker**: New Verus-Ethereum bridge attack drains $7.5 million through flaw used in May: Blockaid
+
+<!-- u33 entry 2026-07-23 end -->
 <!-- u33 entry 2026-07-22 begin -->
 
 ## 2026-07-22

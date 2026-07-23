@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-23 begin -->
+
+## 2026-07-23
+
+- [coingecko-price] **ticker**: SOL $76.14 (-2.30%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.3B; leader Ethereum
+- [theblock-crypto] **ticker**: LayerZero, Keeta enable tokenized bank deposits across Ethereum, Solana and Base
+
+<!-- u33 entry 2026-07-23 end -->
 <!-- u33 entry 2026-07-22 begin -->
 
 ## 2026-07-22
