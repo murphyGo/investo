@@ -17,6 +17,7 @@ session is documented in that directory's ``_meta.json`` sidecar.
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from pathlib import Path
 
 import httpx
@@ -103,6 +104,32 @@ def test_parse_chart_payload_returns_ordered_rows() -> None:
     # Rows must be ordered ascending by trading_date.
     dates = [row.trading_date for row in rows]
     assert dates == sorted(dates)
+
+
+def test_parse_chart_payload_sorts_rows_with_values_still_aligned() -> None:
+    payload: dict[str, object] = {
+        "chart": {
+            "result": [
+                {
+                    "timestamp": [1700086400, 1700000000],
+                    "indicators": {
+                        "quote": [
+                            {
+                                "open": [2.0, 1.0],
+                                "high": [2.5, 1.5],
+                                "low": [1.5, 0.5],
+                                "close": [2.25, 1.25],
+                                "volume": [20, 10],
+                            }
+                        ]
+                    },
+                }
+            ],
+            "error": None,
+        }
+    }
+    rows = parse_chart_payload(payload, ticker="X")
+    assert [row.close for row in rows] == [Decimal("1.25"), Decimal("2.25")]
 
 
 def test_parse_chart_payload_empty_input_returns_empty() -> None:

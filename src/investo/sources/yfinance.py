@@ -10,14 +10,14 @@ Design choices (audit log 2026-05-01):
   We hit the same v8 endpoint the library hits internally; the
   library's sync-only ``requests.Session`` would defeat the shared
   ``httpx.AsyncClient`` injection (FD R3).
-* **One HTTP per ticker**, fired concurrently via ``asyncio.gather``
-  so worst-case wall-clock ≈ slowest single ticker.
+* **One HTTP per ticker**, with the critical basket completed before
+  the enrichment basket starts. Each phase is concurrency-bounded.
 * **Per-ticker isolation**: a 4xx on one ticker does not fail the
   adapter — the failed ticker contributes nothing, sibling tickers
   produce items normally. This is *intra*-adapter isolation, parallel
   to the aggregator's *inter*-adapter R6 isolation.
 * **R7 window relaxation** (FD L6.2 / R11): the adapter emits the
-  most recent valid trading day in the 5-day response regardless of
+  most recent valid trading day in the 1-year response regardless of
   strict R7 membership. KST Monday and Saturday cron fires after a US
   market weekend — Friday's close lies outside the strict R7 window
   for those targets, and strict filtering would drop all yfinance
@@ -29,14 +29,16 @@ Pins (extension 2026-05-01):
 * R11 — `published_at` = market close (16:00 ET) as UTC tz-aware via
   ``zoneinfo("America/New_York")``; DST handled automatically
 * R12 — `INVESTO_YFINANCE_TICKERS` env-var override
+* u138 — shared query2/1y chart parser plus critical-first enrichment
 """
 
 from __future__ import annotations
 
 import asyncio
 import os
-from datetime import UTC, datetime
-from typing import Any, ClassVar
+from collections.abc import Sequence
+from datetime import UTC, date, datetime, time
+from typing import ClassVar
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
@@ -47,19 +49,15 @@ from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN, format_float, format_int, parse_symbol_list
 from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
 from investo.sources._fanout import gather_with_error_isolation
-from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
-from investo.sources._retry import retry_get
 from investo.sources._window import FetchWindow
-from investo.sources.protocol import SourceFetchError
+from investo.sources._yahoo_chart import fetch_chart_data
 
 _NY = ZoneInfo("America/New_York")
 _ENV_TICKERS = "INVESTO_YFINANCE_TICKERS"
+_ENV_ENRICHMENT_TICKERS = "INVESTO_YFINANCE_ENRICHMENT_TICKERS"
 _ENV_CONCURRENCY = "INVESTO_YFINANCE_CONCURRENCY"
 _DEFAULT_CONCURRENCY = 2
-_USER_AGENT = (
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36"
-)
 
 
 @register
@@ -81,28 +79,67 @@ class YFinancePriceAdapter:
         "NVDA",
         "META",
         "TSLA",
-        # u53 — Stooq returns ``N/D`` for both of these (Stooq does not
-        # carry Brent futures or the Russell 2000 index). yfinance covers
-        # the gap; sector ETFs / WTI / gold remain Stooq-only because
-        # Yahoo v8 chart hits GHA IP 429s more often than Stooq.
+        # u53 — Brent and Russell 2000 remain part of the critical basket.
+        # u138 moves the former Stooq-only macro/ETF set to the second phase.
         "BZ=F",
         "^RUT",
     )
-
-    _BASE_URL: ClassVar[str] = "https://query1.finance.yahoo.com/v8/finance/chart"
+    _DEFAULT_ENRICHMENT_TICKERS: ClassVar[tuple[str, ...]] = (
+        "XLK",
+        "XLE",
+        "XLF",
+        "XLV",
+        "XLY",
+        "XLI",
+        "SMH",
+        "IWM",
+        "TLT",
+        "GLD",
+        "USO",
+        "UUP",
+        "CL=F",
+        "GC=F",
+    )
 
     async def fetch(
         self,
         client: httpx.AsyncClient,
         window: FetchWindow,  # window unused — yfinance applies R7-relaxation per FD L6.2
     ) -> list[NormalizedItem]:
-        tickers = parse_symbol_list(_ENV_TICKERS, self._DEFAULT_TICKERS)
+        critical_tickers = parse_symbol_list(_ENV_TICKERS, self._DEFAULT_TICKERS)
         concurrency = _parse_concurrency()
         semaphore = asyncio.Semaphore(concurrency)
-        # Per-ticker isolation: a per-ticker SourceFetchError (404 ticker,
-        # 5xx after retries, malformed body, scheme-issue URL) contributes
-        # nothing; sibling tickers continue. This is *intra*-adapter
-        # isolation, parallel to the aggregator's *inter*-adapter R6.
+        critical_items = await self._fetch_tickers(
+            client,
+            critical_tickers,
+            semaphore,
+        )
+        if not critical_items:
+            return []
+
+        configured_enrichment = parse_symbol_list(
+            _ENV_ENRICHMENT_TICKERS,
+            self._DEFAULT_ENRICHMENT_TICKERS,
+        )
+        enrichment_tickers = _unique_tickers(
+            configured_enrichment,
+            excluded=frozenset(critical_tickers),
+        )
+        enrichment_items = await self._fetch_tickers(
+            client,
+            enrichment_tickers,
+            semaphore,
+        )
+        return [*critical_items, *enrichment_items]
+
+    async def _fetch_tickers(
+        self,
+        client: httpx.AsyncClient,
+        tickers: Sequence[str],
+        semaphore: asyncio.Semaphore,
+    ) -> list[NormalizedItem]:
+        # Per-ticker isolation: a failed ticker contributes nothing and
+        # never removes successful siblings within the same phase.
         return await gather_with_error_isolation(
             (self._fetch_one_limited(client, ticker, semaphore) for ticker in tickers),
             source_name=self.name,
@@ -118,101 +155,30 @@ class YFinancePriceAdapter:
             return await self._fetch_one(client, ticker)
 
     async def _fetch_one(self, client: httpx.AsyncClient, ticker: str) -> NormalizedItem | None:
-        url = f"{self._BASE_URL}/{quote(ticker, safe='')}"
-        response = await retry_get(
+        chart = await fetch_chart_data(
             client,
-            url,
+            ticker,
+            range_param="1y",
+            interval="1d",
             source_name=self.name,
-            params={"interval": "1d", "range": "5d"},
-            headers={"User-Agent": _USER_AGENT},
         )
-        payload = parse_json_response(
-            response,
-            source_name=self.name,
-            message=f"malformed JSON for {ticker}",
+        rows = chart.rows
+        latest_idx = next(
+            (index for index in range(len(rows) - 1, -1, -1) if rows[index].volume is not None),
+            None,
         )
-
-        chart = payload.get("chart") if isinstance(payload, dict) else None
-        if not isinstance(chart, dict):
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"missing 'chart' object for {ticker}",
-                transient=False,
-            )
-        error = chart.get("error")
-        if error is not None:
-            # Yahoo's documented not-found shape — terminal for this ticker.
-            description = error.get("description") if isinstance(error, dict) else str(error)
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"{ticker}: {description}",
-                transient=False,
-            )
-        result_list = chart.get("result")
-        if not isinstance(result_list, list) or not result_list:
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"empty chart.result for {ticker}",
-                transient=False,
-            )
-        result = result_list[0]
-        if not isinstance(result, dict):
-            raise SourceFetchError(
-                source_name=self.name,
-                message=f"chart.result[0] is not an object for {ticker}",
-                transient=False,
-            )
-
-        timestamps = result.get("timestamp")
-        indicators = result.get("indicators")
-        meta = result.get("meta")
-        if (
-            not isinstance(timestamps, list)
-            or not isinstance(indicators, dict)
-            or not isinstance(meta, dict)
-        ):
-            return None
-        quote_list = indicators.get("quote")
-        if not isinstance(quote_list, list) or not quote_list:
-            return None
-        quote_obj = quote_list[0]
-        if not isinstance(quote_obj, dict):
-            return None
-
-        opens = quote_obj.get("open") or []
-        highs = quote_obj.get("high") or []
-        lows = quote_obj.get("low") or []
-        closes = quote_obj.get("close") or []
-        volumes = quote_obj.get("volume") or []
-        n = len(timestamps)
-        if not (len(opens) == len(highs) == len(lows) == len(closes) == len(volumes) == n):
-            # Inconsistent array lengths — treat as malformed for this ticker.
-            return None
-
-        # Iterate from the most recent day backward; pick the first day
-        # where every OHLC value is non-null. Volume may be 0 (an index
-        # like ^VIX); we only require it to be non-null.
-        latest_idx = self._find_latest_valid(opens, highs, lows, closes, volumes, n)
         if latest_idx is None:
             return None
 
-        # Prior-day close for pct: prefer the most recent valid day
-        # before ``latest_idx``; fall back to ``meta.chartPreviousClose``.
-        prev_close = self._find_prior_close(closes, latest_idx, meta)
-
-        ts_epoch = timestamps[latest_idx]
-        if not isinstance(ts_epoch, (int, float)):
-            return None
-        try:
-            published_at = self._resolve_close_timestamp(int(ts_epoch))
-        except (OverflowError, OSError, ValueError):
-            return None
-
-        open_ = float(opens[latest_idx])
-        high = float(highs[latest_idx])
-        low = float(lows[latest_idx])
-        close = float(closes[latest_idx])
-        volume = int(volumes[latest_idx])
+        latest = rows[latest_idx]
+        previous = rows[latest_idx - 1].close if latest_idx > 0 else chart.chart_previous_close
+        prev_close = float(previous) if previous is not None else 0.0
+        published_at = self._resolve_close_timestamp(latest.trading_date)
+        open_ = float(latest.open)
+        high = float(latest.high)
+        low = float(latest.low)
+        close = float(latest.close)
+        volume = int(latest.volume) if latest.volume is not None else 0
         pct = ((close - prev_close) / prev_close * 100.0) if prev_close else 0.0
 
         title = f"{ticker} {close:,.2f} ({pct:+.2f}%)"
@@ -228,6 +194,7 @@ class YFinancePriceAdapter:
             "close": format_float(close),
             "volume": format_int(volume),
             "prev_close": format_float(prev_close) if prev_close else "",
+            "provenance": "query2-snapshot",
         }
         # u55 Step 1 — typed CoreFact stamp (see stooq-price for the
         # rationale). yfinance and stooq-price both emit the same fact
@@ -251,49 +218,10 @@ class YFinancePriceAdapter:
             return None
 
     @staticmethod
-    def _find_latest_valid(
-        opens: list[Any],
-        highs: list[Any],
-        lows: list[Any],
-        closes: list[Any],
-        volumes: list[Any],
-        n: int,
-    ) -> int | None:
-        for idx in range(n - 1, -1, -1):
-            if (
-                opens[idx] is not None
-                and highs[idx] is not None
-                and lows[idx] is not None
-                and closes[idx] is not None
-                and volumes[idx] is not None
-            ):
-                return idx
-        return None
+    def _resolve_close_timestamp(trading_date: date) -> datetime:
+        """Resolve one Yahoo trading date to 16:00 New York in UTC."""
 
-    @staticmethod
-    def _find_prior_close(closes: list[Any], latest_idx: int, meta: dict[str, Any]) -> float:
-        for idx in range(latest_idx - 1, -1, -1):
-            if closes[idx] is not None:
-                return float(closes[idx])
-        prev = meta.get("chartPreviousClose")
-        if isinstance(prev, (int, float)):
-            return float(prev)
-        return 0.0
-
-    @staticmethod
-    def _resolve_close_timestamp(epoch_seconds: int) -> datetime:
-        """Resolve a session-start epoch to that day's 16:00 ET as UTC.
-
-        ``timestamps[i]`` from Yahoo's v8 chart response is the regular
-        session start (9:30 ET) for trading day ``i``. We convert to NY
-        local time (DST handled by ``zoneinfo``), pin to 16:00 ET, and
-        return as UTC. This yields the close timestamp R11 requires
-        and is robust against future API changes that might tweak the
-        session-start offset.
-        """
-
-        ny_local = datetime.fromtimestamp(epoch_seconds, tz=_NY)
-        close_local = ny_local.replace(hour=16, minute=0, second=0, microsecond=0)
+        close_local = datetime.combine(trading_date, time(16), tzinfo=_NY)
         return close_local.astimezone(UTC)
 
 
@@ -308,3 +236,18 @@ def _parse_concurrency() -> int:
     if parsed < 1:
         return _DEFAULT_CONCURRENCY
     return parsed
+
+
+def _unique_tickers(
+    tickers: Sequence[str],
+    *,
+    excluded: frozenset[str],
+) -> tuple[str, ...]:
+    seen = set(excluded)
+    unique: list[str] = []
+    for ticker in tickers:
+        if ticker in seen:
+            continue
+        seen.add(ticker)
+        unique.append(ticker)
+    return tuple(unique)
