@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-24 begin -->
+
+## 2026-07-24
+
+- [binance-crypto-market] **ticker**: BTCUSDT 24h 64,024.00 (-1.52%)
+- [bybit-derivatives] **ticker**: BTC 미결제약정 $3,686,313,626 (Bybit, UTC 24h)
+- [bybit-derivatives] **ticker**: BTC 펀딩비 0.00000385 (Bybit, UTC 24h)
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7949 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,271,965,809,046; BTC dominance 56.50%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $471,621,310 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000127753387404 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin Policy Institute, Palantir and Anduril join US State Department’s Freedom Tech Excellence Program
+- [theblock-crypto] **ticker**: Cardano co-founder Hoskinson says Bitcoin could lose top spot if governance fails quantum test
+- [theblock-crypto] **ticker**: Former bitcoin miner Poolin files Chapter 11, sets $52 million floor bid for Texas operations
+
+<!-- u33 entry 2026-07-24 end -->
 <!-- u33 entry 2026-07-23 begin -->
 
 ## 2026-07-23

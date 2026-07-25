@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-24 begin -->
+
+## 2026-07-24
+
+- [yonhap-market] **ticker**: "할인이 덫 됐나" 테슬라 이익 쇼크에 주가 15%↓
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+
+<!-- u33 entry 2026-07-24 end -->
 <!-- u33 entry 2026-07-23 begin -->
 
 ## 2026-07-23

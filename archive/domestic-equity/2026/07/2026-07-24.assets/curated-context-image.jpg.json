@@ -1,0 +1,21 @@
+{
+  "additional_metadata": {
+    "allowed_use": "Public republish on the investo site and channel; Federal Reserve (US government) photograph, public domain. Verified: Commons file page states public domain, category PD US Federal Reserve, FlickreviewR-verified Fed Flickr import.",
+    "author": "Federal Reserve Board",
+    "license": "pd-usgov",
+    "source_url": "https://commons.wikimedia.org/wiki/File:The_Entrance_to_the_FOMC_Board_Room.jpg"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    1280,
+    1927
+  ],
+  "generated_at": "2026-07-25T03:07:14.353604Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "Entrance to the FOMC Board Room, Eccles Building (Federal Reserve photograph; via Wikimedia Commons, PD US Federal Reserve) (Federal Reserve Board) — pd-usgov",
+  "source_type": "external",
+  "version": "0.1.0"
+}

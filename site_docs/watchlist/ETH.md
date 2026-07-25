@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-24 begin -->
+
+## 2026-07-24
+
+- [binance-crypto-market] **ticker**: ETHUSDT 24h 1,858.56 (-0.48%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.6B; leader Ethereum
+
+<!-- u33 entry 2026-07-24 end -->
 <!-- u33 entry 2026-07-23 begin -->
 
 ## 2026-07-23
