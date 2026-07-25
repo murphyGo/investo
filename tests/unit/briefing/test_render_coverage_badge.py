@@ -34,13 +34,13 @@ def test_badge_carries_severity_explanation_inline() -> None:
         US_EQUITY,
         [
             _item("yfinance-price"),
-            _item("stooq-price"),
             _item("yahoo-finance-news", "news"),
+            _item("fomc-rss", "calendar"),
         ],
         source_outcomes=(
             SourceOutcome.ok("yfinance-price", "price", 1),
-            SourceOutcome.ok("stooq-price", "price", 1),
             SourceOutcome.ok("yahoo-finance-news", "news", 1),
+            SourceOutcome.ok("fomc-rss", "calendar", 1),
         ),
     )
     badge = _render_coverage_badge(coverage)
@@ -55,7 +55,7 @@ def test_badge_carries_five_tuple_count_split() -> None:
         [_item("yfinance-price"), _item("yahoo-finance-news", "news")],
         source_outcomes=(
             SourceOutcome.ok("yfinance-price", "price", 1),
-            SourceOutcome.zero("stooq-price", "price"),
+            SourceOutcome.zero("nasdaq-stocks-news", "news"),
             SourceOutcome.from_failure("cnbc-top-news", "news", message="boom", transient=True),
             SourceOutcome.ok("yahoo-finance-news", "news", 1),
         ),
@@ -99,8 +99,7 @@ def test_badge_limited_severity_label_renders_jeshan() -> None:
         US_EQUITY,
         [_item("yahoo-finance-news", "news")],
         source_outcomes=(
-            SourceOutcome.from_failure("yfinance-price", "price", message="x", transient=True),
-            SourceOutcome.ok("stooq-price", "price", 1),
+            SourceOutcome.zero("yfinance-price", "price"),
             SourceOutcome.ok("yahoo-finance-news", "news", 1),
         ),
     )
@@ -116,7 +115,6 @@ def test_badge_failed_severity_label_renders() -> None:
         [],
         source_outcomes=(
             SourceOutcome.from_failure("yfinance-price", "price", message="x", transient=True),
-            SourceOutcome.from_failure("stooq-price", "price", message="x", transient=True),
         ),
     )
     badge = _render_coverage_badge(coverage)

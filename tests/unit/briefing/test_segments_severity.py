@@ -65,13 +65,12 @@ def _failed(source: str, category: str = "price") -> SourceOutcome:
 
 
 def test_us_equity_all_core_failed_yields_failed() -> None:
-    """Both yfinance + stooq failed simultaneously → ``failed``."""
+    """The single Yahoo core source failing makes the segment fail."""
     coverage = build_segment_coverage(
         US_EQUITY,
         [_item("yahoo-finance-news", "news"), _item("fomc-rss", "calendar")],
         source_outcomes=(
             _failed("yfinance-price"),
-            _failed("stooq-price"),
             _ok("yahoo-finance-news", "news"),
             _ok("fomc-rss", "calendar"),
         ),
@@ -92,30 +91,6 @@ def test_domestic_single_core_failed_yields_failed() -> None:
         ),
     )
     assert coverage.status == "failed"
-
-
-# ---------------------------------------------------------------------------
-# Row 2: ≥ 1 core failed (but not all) → limited
-# ---------------------------------------------------------------------------
-
-
-def test_us_equity_one_core_failed_one_ok_yields_limited() -> None:
-    """yfinance failed, stooq ok → ``limited`` (degraded but salvageable)."""
-    coverage = build_segment_coverage(
-        US_EQUITY,
-        [
-            _item("stooq-price", "price"),
-            _item("yahoo-finance-news", "news"),
-        ],
-        source_outcomes=(
-            _failed("yfinance-price"),
-            _ok("stooq-price", "price"),
-            _ok("yahoo-finance-news", "news"),
-        ),
-    )
-    assert coverage.status == "limited"
-    assert "CORE_FAILED" in coverage.reason_codes
-    assert "ALL_FAILED" not in coverage.reason_codes
 
 
 # ---------------------------------------------------------------------------
@@ -147,13 +122,11 @@ def test_core_healthy_missing_news_yields_partial() -> None:
         US_EQUITY,
         [
             _item("yfinance-price", "price"),
-            _item("stooq-price", "price"),
             _item("fomc-rss", "calendar"),
             _item("yfinance-price", "price"),
         ],
         source_outcomes=(
             _ok("yfinance-price"),
-            _ok("stooq-price"),
             _ok("fomc-rss", "calendar"),
         ),
     )
@@ -170,12 +143,11 @@ def test_core_healthy_non_core_failed_stays_normal_with_reason_signal() -> None:
         US_EQUITY,
         [
             _item("yfinance-price", "price"),
-            _item("stooq-price", "price"),
+            _item("yfinance-price", "price"),
             _item("yahoo-finance-news", "news"),
         ],
         source_outcomes=(
             _ok("yfinance-price"),
-            _ok("stooq-price"),
             _ok("yahoo-finance-news", "news"),
             _failed("cnbc-top-news", "news"),
         ),
@@ -196,7 +168,6 @@ def test_zero_items_with_core_registered_yields_failed() -> None:
         [],
         source_outcomes=(
             _zero("yfinance-price"),
-            _zero("stooq-price"),
             _zero("yahoo-finance-news", "news"),
         ),
     )
@@ -213,12 +184,11 @@ def test_all_core_ok_meeting_threshold_yields_normal() -> None:
         US_EQUITY,
         [
             _item("yfinance-price", "price"),
-            _item("stooq-price", "price"),
+            _item("yfinance-price", "price"),
             _item("yahoo-finance-news", "news"),
         ],
         source_outcomes=(
             _ok("yfinance-price"),
-            _ok("stooq-price"),
             _ok("yahoo-finance-news", "news"),
         ),
     )
@@ -282,8 +252,8 @@ def test_new_reason_codes_have_korean_labels() -> None:
 def test_segment_core_sources_membership_pinned() -> None:
     """Plan-frozen constants — change here is a deliberate policy shift."""
     assert SEGMENT_CORE_SOURCES[DOMESTIC_EQUITY] == frozenset({"fsc-krx-index-price"})
-    assert SEGMENT_CORE_SOURCES[US_EQUITY] == frozenset({"yfinance-price", "stooq-price"})
-    assert SEGMENT_CORE_SOURCES[CRYPTO] == frozenset({"coingecko-price", "stooq-price"})
+    assert SEGMENT_CORE_SOURCES[US_EQUITY] == frozenset({"yfinance-price"})
+    assert SEGMENT_CORE_SOURCES[CRYPTO] == frozenset({"coingecko-price"})
 
 
 def test_segment_core_staleness_windows_pinned() -> None:

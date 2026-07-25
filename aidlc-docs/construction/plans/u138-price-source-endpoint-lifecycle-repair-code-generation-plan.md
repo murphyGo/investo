@@ -262,7 +262,7 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 5 — Registry, routing, coverage, and diagnostics
 
-- [ ] Complete
+- [x] Complete (2026-07-19)
 
 - Update `src/investo/_internal/source_specs.py` and every derived view.
 - Update source plugin count/name tests, market windows, segment item/outcome scopes, and core-source constants.

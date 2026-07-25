@@ -35,7 +35,7 @@ from investo.models import NormalizedItem
 
 def _item_with_fact(fact: str, value: str) -> NormalizedItem:
     return NormalizedItem(
-        source_name="stooq-price",
+        source_name="yfinance-price",
         category="price",
         title="fixture",
         summary=None,

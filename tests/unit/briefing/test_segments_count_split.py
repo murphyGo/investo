@@ -32,7 +32,7 @@ def test_five_tuple_counts_sum_to_targeted() -> None:
         [_item("yfinance-price"), _item("yahoo-finance-news", "news")],
         source_outcomes=(
             SourceOutcome.ok("yfinance-price", "price", 3),
-            SourceOutcome.zero("stooq-price", "price"),
+            SourceOutcome.zero("nasdaq-stocks-news", "news"),
             SourceOutcome.from_failure(
                 "cnbc-top-news",
                 "news",
@@ -103,7 +103,7 @@ def test_count_split_all_failed() -> None:
         [],
         source_outcomes=(
             SourceOutcome.from_failure("yfinance-price", "price", message="x", transient=True),
-            SourceOutcome.from_failure("stooq-price", "price", message="x", transient=True),
+            SourceOutcome.from_failure("cnbc-top-news", "news", message="x", transient=True),
         ),
     )
     assert coverage.targeted_count == 2

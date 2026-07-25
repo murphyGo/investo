@@ -54,12 +54,11 @@ def test_fresh_us_equity_core_within_window_stays_normal() -> None:
         US_EQUITY,
         [
             _item("yfinance-price"),
-            _item("stooq-price"),
+            _item("yfinance-price"),
             _item("yahoo-finance-news", "news"),
         ],
         source_outcomes=(
             _ok("yfinance-price", fresh),
-            _ok("stooq-price", fresh),
             _ok("yahoo-finance-news", None),
         ),
         now_utc=_NOW,
@@ -75,7 +74,6 @@ def test_stale_us_equity_core_outside_window_downgrades_to_limited() -> None:
         [_item("yfinance-price"), _item("yahoo-finance-news", "news")],
         source_outcomes=(
             _ok("yfinance-price", stale),
-            _ok("stooq-price", stale),
             _ok("yahoo-finance-news", None),
         ),
         now_utc=_NOW,
@@ -91,7 +89,6 @@ def test_crypto_short_window_six_hours_strict() -> None:
         [_item("coingecko-price"), _item("theblock-crypto", "news")],
         source_outcomes=(
             _ok("coingecko-price", stale),
-            _ok("stooq-price", stale),
             _ok("theblock-crypto", None),
         ),
         now_utc=_NOW,
@@ -106,12 +103,11 @@ def test_legacy_caller_without_latest_item_at_skips_check() -> None:
         US_EQUITY,
         [
             _item("yfinance-price"),
-            _item("stooq-price"),
+            _item("yfinance-price"),
             _item("yahoo-finance-news", "news"),
         ],
         source_outcomes=(
             _ok("yfinance-price", None),
-            _ok("stooq-price", None),
             _ok("yahoo-finance-news", None),
         ),
         now_utc=_NOW,
@@ -128,12 +124,11 @@ def test_now_utc_omitted_disables_staleness_path() -> None:
         US_EQUITY,
         [
             _item("yfinance-price"),
-            _item("stooq-price"),
+            _item("yfinance-price"),
             _item("yahoo-finance-news", "news"),
         ],
         source_outcomes=(
             _ok("yfinance-price", stale),
-            _ok("stooq-price", stale),
             _ok("yahoo-finance-news", None),
         ),
         # now_utc not supplied
@@ -142,22 +137,21 @@ def test_now_utc_omitted_disables_staleness_path() -> None:
     assert "CORE_STALE" not in coverage.reason_codes
 
 
-def test_one_core_fresh_other_stale_stays_normal() -> None:
-    """At least one fresh core source means we have a current quote
-    → no staleness downgrade."""
+def test_stale_non_core_does_not_override_fresh_core() -> None:
+    """Only the registered core source participates in staleness."""
     fresh = _NOW - timedelta(hours=2)
     stale = _NOW - timedelta(hours=48)
     coverage = build_segment_coverage(
         US_EQUITY,
         [
             _item("yfinance-price"),
-            _item("stooq-price"),
             _item("yahoo-finance-news", "news"),
+            _item("fomc-rss", "calendar"),
         ],
         source_outcomes=(
             _ok("yfinance-price", fresh),
-            _ok("stooq-price", stale),
-            _ok("yahoo-finance-news", None),
+            _ok("yahoo-finance-news", stale),
+            _ok("fomc-rss", None),
         ),
         now_utc=_NOW,
     )
