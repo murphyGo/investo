@@ -68,14 +68,13 @@
   - `INVESTO_CONGRESS_BILLS` (선택: Congress.gov 감시 bill id 목록, 예: `119/hr/3633`)
   - `INVESTO_SENATE_BANKING_WATCH_URLS` (선택: Senate Banking 공식 crypto-policy watch URL 목록)
   - `INVESTO_HOUSE_FINANCIAL_SERVICES_RSS_URLS` (선택: House Financial Services 공식 RSS URL 목록)
-  - `INVESTO_STOOQ_KR_SYMBOLS` (선택: 국내 지수/환율 fallback 심볼 목록, 기본 `^KOSPI,^KOSDAQ,KRW=X`)
-  - `INVESTO_STOOQ_KR_CONCURRENCY` (선택: 위 어댑터 동시 fetch 수, 기본 2)
   - 데이터 소스 API key (사용 시)
 
-### Free data sources (no-key) — domestic depth (u67)
-- **`stooq-kr-market` 어댑터** — KOSPI 종가·원/달러 환율은 Stooq 무인증 CSV(`^kospi`, `usdkrw`)에서, KOSDAQ는 Stooq가 `N/D`를 반환하므로 연합뉴스 마켓+ RSS 헤드라인 숫자 파싱(`defusedxml`)에서 수집한다. yfinance `KRW=X`는 GitHub Actions IP에서 HTTP 429를 받아 사용하지 않는다.
-- **국내 지수 종가 precedence**: `fsc-krx-index-price`(공식 KRX) → Stooq `^kospi` → 연합뉴스 숫자 파싱. KOSDAQ는 공식 KRX → 연합뉴스 숫자 파싱(스투크 미보유).
-- **원/달러 precedence**: Stooq `usdkrw`(no-key) — `usd_krw` core fact를 채운다.
+### Free data sources — domestic depth (u67/u138)
+- **`yonhap-index-close` 어댑터** — 연합뉴스 마켓+ RSS 한 건을 `defusedxml`로 파싱해 KOSPI/KOSDAQ 종가를 best-effort로 수집한다. 숫자 헤드라인이 없으면 값을 추정하지 않고 빈 결과를 반환한다.
+- **`fred-fx-close` 어댑터** — 기존 `FRED_API_KEY`로 FRED H.10 `DEXKOUS`를 수집해 1달러당 원화 값을 제공한다. `.` 관측값을 건너뛰고 7일보다 오래된 값은 내보내지 않는다.
+- **국내 지수 종가 precedence**: `fsc-krx-index-price`(공식 KRX) → `yonhap-index-close`.
+- **원/달러 source**: `fred-fx-close`의 `DEXKOUS` — `usd_krw` core fact를 채운다.
 
 ### Free data sources (no-key) — crypto channel depth (u66)
 - **`alternative-fng` 어댑터** — Crypto Fear & Greed 지수를 Alternative.me 무인증 JSON(`https://api.alternative.me/fng/?limit=1`)에서 수집한다. `indicator=fear_greed` 태그, `value`(0-100)·`classification`.

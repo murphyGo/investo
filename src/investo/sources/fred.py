@@ -73,7 +73,6 @@ class FredMacroAdapter:
         "UNRATE",
         "DFF",
         "DGS10",
-        "DEXKOUS",
         "PPIFID",
     )
 

@@ -76,8 +76,8 @@ Convention (FD R12):
 
 ### Adapters that need an authentication secret (R13)
 
-Adapters that require a per-deployment secret (currently only
-`fred-macro` with `FRED_API_KEY`) follow this pattern:
+Adapters that require a per-deployment secret (currently `fred-macro`
+and `fred-fx-close`, both with `FRED_API_KEY`) follow this pattern:
 
 ```python
 import os
@@ -119,8 +119,8 @@ Rules (FD R13):
   inject what the workflow file doesn't ask for.
 
 The `fred-macro` adapter at `src/investo/sources/fred.py` is the
-canonical reference for both R12 (`INVESTO_FRED_SERIES`) and R13
-(`FRED_API_KEY`).
+canonical R12 reference (`INVESTO_FRED_SERIES`). It and the fixed-series
+`fred-fx-close` adapter share the R13 `FRED_API_KEY` contract.
 
 ---
 
@@ -372,12 +372,12 @@ the market-data collection/generation pipeline starts.
 
 | Secret | Source | Effect when absent |
 |--------|--------|---------------------|
-| `FRED_API_KEY` | Free key from <https://fred.stlouisfed.org/docs/api/api_key.html> | The `fred-macro` adapter raises `SourceFetchError(transient=False)` on its first invocation; the aggregator catches per FD R6 and `fred-macro` contributes `[]` for the run. All other adapters (FOMC RSS, yfinance, CoinGecko) run normally. The pipeline still ships a briefing — just without macro-indicator content. |
+| `FRED_API_KEY` | Free key from <https://fred.stlouisfed.org/docs/api/api_key.html> | The `fred-macro` and `fred-fx-close` adapters each raise `SourceFetchError(transient=False)` on invocation; the aggregator catches per FD R6 and both contribute `[]` for the run. All other adapters run normally. The pipeline still ships a briefing, without FRED macro indicators or the DEXKOUS FX fallback. |
 | `OPENAI_API_KEY` | OpenAI dashboard key | **Disabled by default** — the `daily-briefing.yml` workflow forces `INVESTO_OPENAI_VISUALS=0` so the OpenAI visual surface never runs in CI even when this secret is configured. See "OpenAI visual surface (cost-bearing)" below for the override contract. |
 
 Adapter-level optional secrets follow FD R13 — failure mode is graceful
-degradation, never pipeline-fatal. Set `FRED_API_KEY` only if you want
-macro coverage in the briefing.
+degradation, never pipeline-fatal. Set `FRED_API_KEY` when FRED macro
+and DEXKOUS FX coverage are required in the briefing.
 
 ### OpenAI visual surface (cost-bearing — opt-in only)
 

@@ -17,7 +17,6 @@ from investo.models import MarketSegment, SourceTier
 SourceItemRouting = Literal[
     "single-segment",
     "shared-segments",
-    "us-with-crypto-signal",
     "cftc-contract-group",
 ]
 
@@ -135,20 +134,18 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=_US,
     ),
     _spec(
+        "fred-fx-close",
+        tier="S",
+        market_window_segment="domestic-equity",
+        item_segments=_DOMESTIC,
+    ),
+    _spec(
         "krx-foreign-flows",
         tier="A",
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,
     ),
     _spec("yfinance-price", tier="A", market_window_segment="us-equity", item_segments=_US),
-    _spec(
-        "stooq-price",
-        tier="A",
-        market_window_segment="us-equity",
-        item_routing="us-with-crypto-signal",
-        item_segments=_US,
-        outcome_segments=_US_AND_CRYPTO,
-    ),
     _spec("yahoo-finance-news", tier="A", market_window_segment="us-equity", item_segments=_US),
     _spec(
         "binance-crypto-market",
@@ -177,12 +174,6 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
     ),
     _spec("us-economic-calendar", tier="A", market_window_segment="us-equity", item_segments=_US),
     _spec("nasdaq-stocks-news", tier="A", market_window_segment="us-equity", item_segments=_US),
-    _spec(
-        "stooq-kr-market",
-        tier="A",
-        market_window_segment="domestic-equity",
-        item_segments=_DOMESTIC,
-    ),
     _spec("bybit-derivatives", tier="A", market_window_segment="crypto", item_segments=_CRYPTO),
     _spec("okx-derivatives", tier="A", market_window_segment="crypto", item_segments=_CRYPTO),
     _spec(
@@ -194,6 +185,12 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
     _spec("cnbc-top-news", tier="B", market_window_segment="us-equity", item_segments=_US),
     _spec(
         "yonhap-market",
+        tier="B",
+        market_window_segment="domestic-equity",
+        item_segments=_DOMESTIC,
+    ),
+    _spec(
+        "yonhap-index-close",
         tier="B",
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,

@@ -81,10 +81,9 @@ _ANCHOR_SEGMENT_ROUTING: dict[str, MarketSegment] = {
     "TSLA": US_EQUITY,
     "BTC-USD": CRYPTO,
     "ETH-USD": CRYPTO,
-    # u67 — domestic index close + 원/달러 (from stooq-kr-market). These
-    # are not Yahoo-history-backed (yfinance KRW=X / ^kospi are 429 on the
-    # GHA IP); the anchors are synthesized close-only from the domestic
-    # price snapshot items via ``_build_kr_anchors_from_items``.
+    # u67/u138 — domestic index closes come from Yonhap and 원/달러 from
+    # FRED DEXKOUS. These are synthesized close-only from domestic price
+    # snapshot items via ``_build_kr_anchors_from_items``.
     "^KOSPI": DOMESTIC_EQUITY,
     "^KOSDAQ": DOMESTIC_EQUITY,
     "KRW=X": DOMESTIC_EQUITY,
@@ -118,9 +117,9 @@ def _market_anchor_history_budget_from_env() -> float:
 
 
 # u67 / u109 — canonical domestic snapshot anchor tickers and display
-# priority. KOSPI / KOSDAQ / 원/달러 are sourced from stooq-kr-market, while
-# the large-cap rows are sourced from fsc-krx-stock-price. None uses Yahoo
-# history, so they render as close-only anchor rows (note column "—").
+# priority. KOSPI / KOSDAQ are sourced from Yonhap, 원/달러 from FRED, and
+# the large-cap rows from fsc-krx-stock-price. None uses Yahoo history, so
+# they render as close-only anchor rows (note column "—").
 _KR_ANCHOR_TICKERS: Final[tuple[str, ...]] = (
     "^KOSPI",
     "^KOSDAQ",

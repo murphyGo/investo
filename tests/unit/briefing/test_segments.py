@@ -385,13 +385,14 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         SourceOutcome.ok("treasury-rates", "macro", item_count=1),
         SourceOutcome.ok("cftc-cot-positioning", "macro", item_count=2),
         SourceOutcome.ok("us-economic-calendar", "calendar", item_count=2),
-        SourceOutcome.ok("stooq-price", "price", item_count=2),
         SourceOutcome.ok("binance-crypto-market", "price", item_count=3),
         SourceOutcome.ok("coingecko-price", "price", item_count=2),
         SourceOutcome.ok("defillama-market-structure", "macro", item_count=2),
         SourceOutcome.ok("fsc-krx-index-price", "price", item_count=3),
         SourceOutcome.ok("fsc-krx-stock-price", "price", item_count=5),
         SourceOutcome.ok("korea-policy-rss", "news", item_count=2),
+        SourceOutcome.ok("fred-fx-close", "price", item_count=1),
+        SourceOutcome.ok("yonhap-index-close", "price", item_count=2),
         SourceOutcome.zero("yonhap-market", "news"),
     )
     crypto_only = segment_source_outcomes(CRYPTO, outcomes)
@@ -401,14 +402,15 @@ def test_segment_source_outcomes_filters_to_segment_allowlist() -> None:
         "binance-crypto-market",
         "coingecko-price",
         "defillama-market-structure",
-        "stooq-price",
         "treasury-rates",
         "cftc-cot-positioning",
     }
     assert {outcome.source_name for outcome in domestic_only} == {
         "fsc-krx-index-price",
         "fsc-krx-stock-price",
+        "fred-fx-close",
         "korea-policy-rss",
+        "yonhap-index-close",
         "yonhap-market",
     }
 

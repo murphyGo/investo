@@ -8,17 +8,6 @@ YTD / volume z-score) for the brief header.
 Why a separate caller API?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The u46 stooq-price-primary unit's plan suggested extending the
-Stooq endpoint with ``&d1=...&d2=...`` for multi-row history. That
-suggestion does not survive contact with the live API as of
-2026-05-10:
-
-* ``https://stooq.com/q/d/l/`` (the bulk-history endpoint) returns
-  an ``apikey`` gate page for unauthenticated requests.
-* ``https://stooq.com/q/l/`` (the single-day endpoint used by the
-  ``stooq-price`` adapter) ignores the ``d1`` / ``d2`` query params
-  and always emits the most recent trading day.
-
 Yahoo Finance's v8 chart endpoint with ``interval=1d&range=1y`` returns
 ~250 daily bars per equity / index and ~365 for crypto. Since u138,
 this module retains the history basket/concurrency API while delegating

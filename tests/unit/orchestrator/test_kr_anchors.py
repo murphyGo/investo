@@ -22,7 +22,12 @@ _TS = datetime(2026, 5, 22, 6, 30, tzinfo=UTC)
 
 
 def _kr_item(ticker: str, close: str) -> NormalizedItem:
-    source_name = "fsc-krx-stock-price" if ticker in {"005930", "000660"} else "stooq-kr-market"
+    if ticker in {"005930", "000660"}:
+        source_name = "fsc-krx-stock-price"
+    elif ticker == "KRW=X":
+        source_name = "fred-fx-close"
+    else:
+        source_name = "yonhap-index-close"
     return NormalizedItem(
         source_name=source_name,
         category="price",
@@ -66,7 +71,7 @@ def test_partial_basket_yields_only_present_tickers() -> None:
 
 def test_non_kr_and_empty_contribute_nothing() -> None:
     us = NormalizedItem(
-        source_name="stooq-price",
+        source_name="yfinance-price",
         category="price",
         title="AAPL 305.10",
         published_at=_TS,
@@ -95,7 +100,7 @@ def test_failed_source_outcome_quarantines_kr_anchors() -> None:
         target_date=_TS.date(),
         source_outcomes=(
             SourceOutcome.from_failure(
-                "stooq-kr-market",
+                "yonhap-index-close",
                 "price",
                 message="boom",
                 transient=True,
