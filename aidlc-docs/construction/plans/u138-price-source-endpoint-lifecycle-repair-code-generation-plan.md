@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u138 price-source-endpoint-lifecycle-repair
 **Stage**: Code Generation
-**Status**: Backlog (Ready; FD/NFR complete)
+**Status**: In Progress (1/6 steps complete; FD/NFR complete)
 **Source**: Direct 2026-07-18 reachability probes plus GitHub Actions runs `29541149434` and `29457241746`
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -226,12 +226,16 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 1 — Record live evidence and fixtures
 
+- [x] Complete (2026-07-18)
+
 - Add a 2026-07-18 metadata note to the Yahoo/Stooq fixture area with the exact local and GHA results.
 - Record/replay `query2 range=1y` fixtures for critical success, 429, chart error, malformed arrays, and partial basket.
 - Record/replay FRED `DEXKOUS` valid, placeholder, and stale bodies without an API key value.
 - Keep Stooq 404 HTML and JavaScript challenge snippets as test evidence only; production code must not call them.
 
 ### Step 2 — Consolidate Yahoo chart handling
+
+- [ ] Complete
 
 - Add `_yahoo_chart.py` request/parser helper.
 - Make `yfinance_history.py` delegate without changing its public functions.
@@ -240,12 +244,16 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 3 — Add fallback and outcome reconciliation
 
+- [ ] Complete
+
 - Add the pure reconciliation helper in `orchestrator/stage_context.py` or a focused sibling module under `orchestrator/`.
 - Invoke after `_load_market_anchors_for_run` and before `_stage_generate_segmented`.
 - Replace accumulated `items` and `source_outcomes`, not local-only copies.
 - Pin direct-wins, freshness, future-row rejection, duplicate suppression, and outcome/public-consistency tests.
 
 ### Step 4 — Retire Stooq and preserve Korean legs
+
+- [ ] Complete
 
 - Migrate the Yonhap parser into `yonhap_index_close.py`.
 - Add `fred_fx_close.py` and move DEXKOUS out of `fred-macro` defaults.
@@ -254,12 +262,16 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 5 — Registry, routing, coverage, and diagnostics
 
+- [ ] Complete
+
 - Update `src/investo/_internal/source_specs.py` and every derived view.
 - Update source plugin count/name tests, market windows, segment item/outcome scopes, and core-source constants.
 - Add operator diagnostic `price_fallback_reconciled` with only source name, original status, direct count, fallback count, and final count.
 - Confirm no reader-facing status lists a retired source.
 
 ### Step 6 — Validation
+
+- [ ] Complete
 
 - Run focused tests listed below.
 - Run full source/plugin/segment/orchestrator gates.

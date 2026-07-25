@@ -2,6 +2,21 @@
   "recorded_at": "2026-05-10T06:30Z",
   "source": "https://query2.finance.yahoo.com/v8/finance/chart",
   "url_template": "https://query2.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1y",
+  "u138_lifecycle_evidence": {
+    "recorded_at": "2026-07-17T20:43:41Z",
+    "local": {
+      "query2_AAPL": {"status": 200, "size_bytes": 28297},
+      "query2_BZ_F": {"status": 200, "size_bytes": 27228},
+      "query2_RUT": {"status": 200, "size_bytes": 27661},
+      "query2_invalid_symbol": {"status": 404, "size_bytes": 108},
+      "query1_AAPL_planning_probe": {"status": 429, "note": "Observed during the 2026-07-18 planning probe."},
+      "query1_AAPL_step1_reprobe": {"status": 200, "size_bytes": 1605, "note": "Later success confirms host behavior is unstable rather than a durable recovery."}
+    },
+    "github_actions": {
+      "run_29541149434": {"target_date": "2026-07-16", "query1": "all configured requests returned 429", "query2": "12 of 12 history requests returned 200", "yfinance_price_item_count": 0},
+      "run_29457241746": {"target_date": "2026-07-15", "yfinance_price_item_count": 1}
+    }
+  },
   "filename_note": "Sidecar is named '_meta.json' (not 'meta.json') because META.json (Meta Platforms ticker fixture) collides with meta.json on case-insensitive filesystems (macOS HFS+/APFS default). Underscore prefix sorts ahead of capital letters so the metadata is visually first in directory listings.",
   "rationale": "u49 deterministic-market-anchor needs ~1 year of daily OHLCV per ticker to compute ATH / 52-week distance / MTD / YTD / volume z-score. Stooq's bulk q/d/l/ endpoint requires an apikey; Stooq's q/l/ endpoint always returns the most recent day regardless of d1/d2 query params (verified 2026-05-10 — Stooq now displays the apikey gate page). Yahoo Finance v8 chart endpoint with interval=1d&range=1y returns ~250-365 daily rows per ticker without auth. yfinance-price snapshot adapter (u46) already uses query1.finance.yahoo.com; query2.finance.yahoo.com is the same backend with friendlier rate limits for dev IPs. Live runtime on GHA may hit 429 (per u46 note); when the history fetch fails the anchor module gracefully degrades to an empty MarketAnchor tuple and the briefing header line is omitted (DoD A4/A5 + Open Question fallback).",
   "ticker_url_map": {
@@ -16,6 +31,8 @@
     "NVDA": "NVDA",
     "META": "META",
     "TSLA": "TSLA",
+    "BZ=F": "BZ%3DF",
+    "^RUT": "%5ERUT",
     "BTC-USD": "BTC-USD",
     "ETH-USD": "ETH-USD"
   },
@@ -31,7 +48,15 @@
     "NVDA.json": {"status": 200, "rows": 251, "note": "Nvidia — happy-path"},
     "META.json": {"status": 200, "rows": 251, "note": "Meta — happy-path"},
     "TSLA.json": {"status": 200, "rows": 251, "note": "Tesla — happy-path"},
+    "BZ_F.json": {"status": 200, "sha256": "dcd5ecca5ec52ac38d263b7531297e6937aa841c74f8ee41742ebe64743c7270", "note": "u138 live query2/1y recording for Brent futures"},
+    "RUT.json": {"status": 200, "sha256": "493974c977f35b21b829865058198b2cf8d23820a37daee1746dfdd41693d085", "note": "u138 live query2/1y recording for Russell 2000"},
     "BTC-USD.json": {"status": 200, "rows": 366, "note": "Bitcoin — 366 rows because crypto trades 365 days/yr"},
-    "ETH-USD.json": {"status": 200, "rows": 366, "note": "Ethereum — 366 rows because crypto trades 365 days/yr"}
+    "ETH-USD.json": {"status": 200, "rows": 366, "note": "Ethereum — 366 rows because crypto trades 365 days/yr"},
+    "chart-error.json": {"status": 404, "sha256": "f0b5f9feeac9f1fc93c31b1edc03fbc1fda4acb3ec5e233ebb39d6f8b66e1769", "note": "u138 live invalid-symbol chart error"},
+    "malformed-arrays.json": {"status": 200, "sha256": "495c4e37955536c7c4d28c637080102b60e6742e174eea95be49ff21f3ae4cee", "derived_from": "live AAPL response sha256 5b7146b2e610c8d9b32cbc87414c464c0ac987c31bcad9a1700c3701549b90cc", "note": "Two live rows with the low array intentionally shortened to pin per-row shape isolation."}
+  },
+  "replay_cases": {
+    "rate_limited": {"status": 429, "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "evidence": "GitHub Actions run 29541149434"},
+    "partial_basket": {"AAPL": 200, "BZ=F": 429, "INVESTO-U138-NOT-A-TICKER": 404, "note": "Composed replay case from recorded success/error bodies and the recorded GHA 429 status."}
   }
 }

@@ -1,0 +1,15 @@
+{
+  "recorded_at": "2026-07-17T20:43:41Z",
+  "source": "https://api.stlouisfed.org/fred/series/observations",
+  "url_template": "https://api.stlouisfed.org/fred/series/observations?series_id=DEXKOUS&api_key=***&file_type=json&sort_order=desc&limit=16",
+  "fixture": "DEXKOUS.json",
+  "status": 200,
+  "size_bytes": 1831,
+  "sha256": "7730be3b075bda1d8dc9dc26b706400e7dce9591f6a5d16977be1c18f2568aaa",
+  "notes": {
+    "valid": "Latest live observation is 2026-07-10 at 1501.06; use target_date 2026-07-10 for the valid path.",
+    "placeholder": "The byte-preserved response contains '.' placeholders at 2026-07-03 and 2026-06-19; replay can slice from either row to pin fallback to the prior valid observation.",
+    "stale": "Use target_date 2026-07-18 to pin the older-than-seven-calendar-days branch.",
+    "secret_hygiene": "The request used the existing local FRED_API_KEY, but the key is absent from the response body and this sidecar."
+  }
+}
