@@ -5711,3 +5711,25 @@ passed, scoped format check passed, `mypy src` passed.
 **Decision**: Close U-144 without weakening numeric, entity, compliance, required-structure, disclaimer, or notification-summary trust blocks. The repair changes only ownership of a viewport-specific presentation diagnostic.
 **Evidence**: `aidlc-docs/construction/u144-public-document-finalization-contract/code/step-7-production-closeout.md`.
 **Status**: Step 7 checklist complete 4/4. U-144 construction complete.
+
+## Construction — u130 Code Generation continuity and target approval
+**Timestamp**: 2026-07-26T18:00:17Z
+**Action**: Resumed the AIDLC construction workflow with the explicit `u130` override in an isolated worktree based on current `origin/main`.
+**Context loaded**: `aidlc-state.md`, execution plan, u130 unit/story mappings, the existing seven-step code-generation plan, required common AIDLC rules, partial property-based-testing opt-in, project context, TECH-DEBT, and cross-check inventory.
+**Health check**: `DEBT-049` exceeds the Medium-age threshold but is already mapped to Ready unit u143. U-144 is construction-complete with production evidence but has no report under `docs/cross-checks/`; both findings are informational.
+**Target**: Code Generation Step 1/7 — extend `publisher/anchor_assertion_gate.py` with domestic bare level-claim detection and exact 2026-06-30 regression tests.
+**Decision state**: Awaiting the required explicit answer in `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code-generation/entry-questions.md`.
+
+## Construction — u130 Code Generation Step 1 approval
+**Timestamp**: 2026-07-26T18:33:31Z
+**Decision**: User selected option A and approved immediate execution of u130 Code Generation Step 1 while deferring the informational DEBT-049/u143 and u144 cross-check findings.
+**Scope**: Domestic bare level-claim detection plus the exact 2026-06-30 regression cases only; consistency sweep and discontinuity quarantine remain later plan steps.
+
+## Construction — u130 Code Generation Step 1 complete
+**Timestamp**: 2026-07-26T19:04:23Z
+**Action**: Extended the canonical anchor assertion gate with domestic-only bare level-claim detection and completed the exact 2026-06-30 index/large-cap regression scope.
+**Decisions**: Existing u70 move detection remains first; level detection uses existing sentence units and canonical aliases. Numeric ticker aliases, valid dates, percent/count units, and KOSPI 200/KOSDAQ 150 instrument names are excluded. US/crypto remain move-only, including their compatibility-wrapper error wording.
+**Review**: Separate fresh-eyes review found no Critical/High/Medium issue. Its Low US/crypto error-wording observation was fixed before closeout. The Fixed Contract intentionally leaves movement-verb sentences that do not satisfy the existing magnitude pattern outside Step 1.
+**Validation**: `test_anchor_assertion_gate.py` 41 passed; all publisher unit tests 972 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-1-level-claim-detection.md`.
+**Status**: Step 1 checklist complete 1/7. Next: Step 2 same-run same-symbol consistency sweep.
