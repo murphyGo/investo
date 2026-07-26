@@ -12,9 +12,13 @@ import ast
 from pathlib import Path
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
+from investo.publisher import anchor_assertion_gate as anchor_gate
 from investo.publisher.anchor_assertion_gate import (
+    AnchorAssertionFinding,
     NumericAnchorReconciliationError,
     enforce_anchor_assertions,
     gate_body_assertions,
@@ -37,6 +41,134 @@ def test_rewrite_is_idempotent() -> None:
     md = "코스피는 1.8% 급락 마감했다.\n"
     once = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=()).markdown
     twice = gate_body_assertions(once, segment=DOMESTIC_EQUITY, available_symbols=()).markdown
+    assert once == twice
+
+
+def test_same_run_symbol_consistency_gates_tldr_and_section_claims() -> None:
+    md = (
+        "## 한눈에 보기\n"
+        "- SK하이닉스[000660]는 2,628,000원이다.\n"
+        "## ③ 섹터·수급 동향\n"
+        "SK하이닉스[000660]는 2,700,000원으로 하락했다.\n"
+    )
+
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS"),
+    )
+
+    assert "2,628,000원" not in result.markdown
+    assert "2,700,000원" not in result.markdown
+    assert result.markdown.count("SK하이닉스 관련 정밀 수치는") == 2
+    assert [finding.symbol for finding in result.findings] == ["000660.KS", "000660.KS"]
+    assert (
+        scan_anchor_assertions(
+            result.markdown,
+            segment=DOMESTIC_EQUITY,
+            available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS"),
+        )
+        == ()
+    )
+
+
+def test_consistency_sweep_deduplicates_unchanged_structural_finding() -> None:
+    md = "코스피는 150.00을 나타냈다.\n| ^KOSPI | 2,500.00 | -1.8% | 급락 |\n"
+
+    result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
+
+    assert [finding.isolated for finding in result.findings] == [True, False]
+    assert result.has_blocking_finding
+    assert "| ^KOSPI | 2,500.00 | -1.8% | 급락 |" in result.markdown
+
+
+def test_consistency_sweep_targets_only_rewritten_symbols_in_canonical_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original_pass = anchor_gate._gate_markdown_pass
+    calls: list[tuple[str, ...]] = []
+    staged_markdown = (
+        "코스피는 150.00을 나타냈다.\n"
+        "삼성전자는 72,000원까지 상승했다.\n"
+        "| ^KOSDAQ | 344.00 | -1.8% | 급락 |\n"
+    )
+    first_findings = [
+        AnchorAssertionFinding(
+            segment=DOMESTIC_EQUITY,
+            symbol="005930.KS",
+            label="삼성전자",
+            sentence="첫 패스 삼성전자 rewrite",
+            isolated=True,
+        ),
+        AnchorAssertionFinding(
+            segment=DOMESTIC_EQUITY,
+            symbol="^KOSDAQ",
+            label="코스닥",
+            sentence="| ^KOSDAQ | 344.00 | -1.8% | 급락 |",
+            isolated=False,
+        ),
+        AnchorAssertionFinding(
+            segment=DOMESTIC_EQUITY,
+            symbol="^KOSPI",
+            label="코스피",
+            sentence="첫 패스 코스피 rewrite",
+            isolated=True,
+        ),
+    ]
+
+    def staged_pass(
+        markdown: str,
+        *,
+        segment: object,
+        gated_symbols: tuple[str, ...] | list[str],
+    ) -> tuple[str, list[AnchorAssertionFinding]]:
+        calls.append(tuple(gated_symbols))
+        if len(calls) == 1:
+            return staged_markdown, first_findings
+        return original_pass(
+            markdown,
+            segment=segment,
+            gated_symbols=gated_symbols,
+        )
+
+    monkeypatch.setattr(anchor_gate, "_gate_markdown_pass", staged_pass)
+
+    result = gate_body_assertions(
+        "first-pass input",
+        segment=DOMESTIC_EQUITY,
+        available_symbols=(),
+    )
+
+    assert calls == [
+        ("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS", "000660.KS"),
+        ("^KOSPI", "005930.KS"),
+    ]
+    assert "150.00" not in result.markdown
+    assert "72,000원" not in result.markdown
+    assert "| ^KOSDAQ | 344.00 | -1.8% | 급락 |" in result.markdown
+
+
+@given(
+    first_level=st.integers(min_value=10, max_value=9_999_999),
+    second_level=st.integers(min_value=10, max_value=9_999_999),
+)
+def test_same_run_consistency_sweep_is_byte_idempotent(
+    first_level: int,
+    second_level: int,
+) -> None:
+    md = f"- 코스피는 {first_level}을 나타냈다.\n코스피는 {second_level}을 나타냈다.\n"
+
+    once = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=(),
+    ).markdown
+    twice = gate_body_assertions(
+        once,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=(),
+    ).markdown
+
     assert once == twice
 
 

@@ -281,6 +281,9 @@ def gate_body_assertions(
     * An offending prose sentence is replaced with a deterministic
       data-limited callout (idempotent), even when it shares a line with
       other sentences.
+    * Symbols rewritten in the first per-line pass are swept once more
+      across the whole document so no same-run precise claim for that
+      symbol survives in another section.
     * An offending structural line is left in place and surfaced as a
       *blocking* finding so the publish path can reject the bundle.
 
@@ -294,13 +297,47 @@ def gate_body_assertions(
     if not gated_symbols:
         return AnchorGateResult(markdown=markdown, findings=())
 
+    first_markdown, first_findings = _gate_markdown_pass(
+        markdown,
+        segment=segment,
+        gated_symbols=gated_symbols,
+    )
+    rewritten_symbol_set = {finding.symbol for finding in first_findings if finding.isolated}
+    consistency_symbols = tuple(
+        symbol for symbol in gated_symbols if symbol in rewritten_symbol_set
+    )
+    if not consistency_symbols:
+        return AnchorGateResult(markdown=first_markdown, findings=tuple(first_findings))
+
+    swept_markdown, sweep_findings = _gate_markdown_pass(
+        first_markdown,
+        segment=segment,
+        gated_symbols=consistency_symbols,
+    )
+    findings = list(first_findings)
+    seen_findings = set(first_findings)
+    for finding in sweep_findings:
+        if finding in seen_findings:
+            continue
+        findings.append(finding)
+        seen_findings.add(finding)
+    return AnchorGateResult(markdown=swept_markdown, findings=tuple(findings))
+
+
+def _gate_markdown_pass(
+    markdown: str,
+    *,
+    segment: MarketSegment,
+    gated_symbols: Sequence[str],
+) -> tuple[str, list[AnchorAssertionFinding]]:
+    """Run one deterministic per-line gate pass."""
     findings: list[AnchorAssertionFinding] = []
     out_lines: list[str] = []
     for line in markdown.split("\n"):
         rewritten, line_findings = _gate_line(line, segment=segment, gated_symbols=gated_symbols)
         out_lines.append(rewritten)
         findings.extend(line_findings)
-    return AnchorGateResult(markdown="\n".join(out_lines), findings=tuple(findings))
+    return "\n".join(out_lines), findings
 
 
 # Structural lines we scan-but-never-rewrite: headers, table rows, chart /
