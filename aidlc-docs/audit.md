@@ -5733,3 +5733,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: `test_anchor_assertion_gate.py` 41 passed; all publisher unit tests 972 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-1-level-claim-detection.md`.
 **Status**: Step 1 checklist complete 1/7. Next: Step 2 same-run same-symbol consistency sweep.
+
+## Construction — u130 Code Generation Step 1 synchronization and Step 2 approval
+**Timestamp**: 2026-07-26T19:09:06Z
+**Synchronization**: Committed the validated Step 1 slice as `ac79288` (`feat: gate domestic bare anchor levels`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched.
+**User response**: `커밋 푸시 후 계속 진행`
+**Decision**: Treat the explicit continuation after the previously reported next target as approval to execute Code Generation Step 2/7.
+**Target**: Fixed Contract 4 same-run same-symbol consistency sweep plus double-application idempotency coverage. Steps 3-7 remain out of scope for this invocation.
+
+## Construction — u130 Code Generation Step 2 complete
+**Timestamp**: 2026-07-26T19:17:21Z
+**Action**: Added the Fixed Contract 4 post-pass to the anchor gate. The first pass still evaluates the full canonical missing-symbol basket; only symbols with an actual isolated rewrite are swept again, in canonical order, across the rewritten document.
+**Determinism**: The sweep preserves byte-idempotent output and merges findings in stable order. Identical structural findings observed in both passes are value-deduplicated without dropping distinct-symbol findings.
+**Review**: Separate fresh-eyes review found no implementation defect. Its Medium test-adequacy finding was fixed by directly pinning both pass calls, canonical ordering, structural-only exclusion, and staged residual-claim removal; re-review approved Step 2 with no remaining findings.
+**Validation**: `test_anchor_assertion_gate.py` 45 passed; all publisher unit tests 976 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-2-consistency-sweep.md`.
+**Status**: Step 2 checklist complete 2/7. Next: Step 3 discontinuity quarantine using the existing previous-published-anchor path.
