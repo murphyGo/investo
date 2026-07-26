@@ -27,8 +27,8 @@ import subprocess
 import threading
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
-from decimal import Decimal
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 from typing import cast
@@ -159,9 +159,24 @@ class _FakeAlerter:
         self._results = list(results) if results is not None else None
         self._raise = raise_exc
         self.calls: list[FailureContext] = []
+        self.source_health_calls: list[tuple[PipelineStatus, int, tuple[str, ...]]] = []
 
     async def alert(self, ctx: FailureContext) -> SendResult:
         self.calls.append(ctx)
+        if self._raise is not None:
+            raise self._raise
+        if self._results is not None:
+            return self._results.pop(0)
+        return self._result
+
+    async def source_health_alert(
+        self,
+        *,
+        run_status: PipelineStatus,
+        consecutive_days: int,
+        sources: Sequence[str],
+    ) -> SendResult:
+        self.source_health_calls.append((run_status, consecutive_days, tuple(sources)))
         if self._raise is not None:
             raise self._raise
         if self._results is not None:
@@ -376,6 +391,39 @@ async def test_run_pipeline_happy_path_success(archive_root: Path) -> None:
     # Publisher was called exactly once with the per-day URL.
     assert len(publisher.calls) == 1
     assert str(publisher.calls[0].site_url) == str(result.briefing_url)
+
+
+@pytest.mark.asyncio
+async def test_source_health_warning_uses_success_notice_not_failure_alert(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    alerter = _FakeAlerter()
+    monkeypatch.setattr(
+        pipeline_module.source_health,
+        "detect_consecutive_failed",
+        lambda **_kwargs: ("cnbc-top-news", "korea-policy-rss"),
+    )
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=alerter,
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("a"), _item("b")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate=_success_generate(),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert alerter.calls == []
+    assert alerter.source_health_calls == [
+        (
+            PipelineStatus.SUCCESS,
+            pipeline_module.source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
+            ("cnbc-top-news", "korea-policy-rss"),
+        )
+    ]
 
 
 @pytest.mark.asyncio
@@ -665,6 +713,7 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     del archive_root
+    monkeypatch.setenv("INVESTO_YFINANCE_TICKERS", "CUSTOM")
     history_row = OHLCRow(
         trading_date=date(2026, 4, 27),
         open=Decimal("100"),
@@ -683,7 +732,10 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
         assert target_date == _TARGET
         return (
             {segment: () for segment in pipeline_module.SEGMENT_ORDER},
-            {"AAPL": (history_row,)},
+            {
+                "CUSTOM": (history_row,),
+                "AAPL": (history_row,),
+            },
         )
 
     generated: list[tuple[tuple[NormalizedItem, ...], tuple[SourceOutcome, ...]]] = []
@@ -719,11 +771,17 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
         items: Sequence[NormalizedItem],
         target_date: date,
         *,
+        staging_root: Path,
         source_outcomes: Sequence[SourceOutcome] = (),
-    ) -> tuple[dict[MarketSegment, Briefing], tuple[Path, ...]]:
+    ) -> tuple[
+        dict[MarketSegment, Briefing],
+        tuple[StagedArtifact, ...],
+        dict[MarketSegment, tuple[object, ...]],
+    ]:
+        del staging_root
         assert target_date == _TARGET
         visual_inputs.append((tuple(items), tuple(source_outcomes)))
-        return briefings, ()
+        return briefings, (), {}
 
     publish_inputs: list[tuple[tuple[NormalizedItem, ...], tuple[SourceOutcome, ...]]] = []
 
@@ -795,6 +853,7 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
         "fallback_count",
         "final_count",
     }
+    assert "CUSTOM" not in record.getMessage()
     assert "AAPL" not in record.getMessage()
     assert "http" not in record.getMessage()
 
@@ -1249,10 +1308,16 @@ async def test_stage_visual_cancellation_drains_worker_before_staging_cleanup(
 @pytest.mark.asyncio
 async def test_run_pipeline_segment_generation_failure_publishes_remaining_segments_partial(
     archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     publisher = _FakePublisher()
     alerter = _FakeAlerter()
     git = _SuccessfulGitRunner()
+    monkeypatch.setattr(
+        pipeline_module.source_health,
+        "detect_consecutive_failed",
+        lambda **_kwargs: ("cnbc-top-news",),
+    )
 
     result = await run_pipeline(
         _TARGET,
@@ -1281,6 +1346,13 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
     assert result.stages["notify_briefing"] == "ok"
     assert len(publisher.calls) == 1
     assert len(alerter.calls) == 1
+    assert alerter.source_health_calls == [
+        (
+            PipelineStatus.PARTIAL,
+            pipeline_module.source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
+            ("cnbc-top-news",),
+        )
+    ]
     assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert not (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
@@ -2708,6 +2780,7 @@ async def test_run_pipeline_git_push_failure_fails_with_alert(
 @pytest.mark.asyncio
 async def test_run_pipeline_notify_failure_yields_partial_and_alerts_operator(
     archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Publish succeeds, notify_briefing fails → PARTIAL and operator alert.
 
@@ -2716,6 +2789,11 @@ async def test_run_pipeline_notify_failure_yields_partial_and_alerts_operator(
     """
     publisher = _FakePublisher(result=SendResult(ok=False, error="rate limited"))
     alerter = _FakeAlerter()
+    monkeypatch.setattr(
+        pipeline_module.source_health,
+        "detect_consecutive_failed",
+        lambda **_kwargs: ("cnbc-top-news",),
+    )
 
     result = await run_pipeline(
         _TARGET,
@@ -2735,6 +2813,13 @@ async def test_run_pipeline_notify_failure_yields_partial_and_alerts_operator(
     assert alerter.calls[0].stage == "notify_briefing"
     assert alerter.calls[0].error_type == "NotifyDeliveryError"
     assert "rate limited" in alerter.calls[0].error_message
+    assert alerter.source_health_calls == [
+        (
+            PipelineStatus.PARTIAL,
+            pipeline_module.source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
+            ("cnbc-top-news",),
+        )
+    ]
 
 
 # ---------------------------------------------------------------------------

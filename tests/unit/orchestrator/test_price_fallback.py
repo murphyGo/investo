@@ -101,6 +101,22 @@ def test_future_latest_row_rejects_ticker_instead_of_scanning_back() -> None:
     assert reconciled.items == ()
 
 
+def test_fallback_uses_configured_critical_basket_only() -> None:
+    reconciled = reconcile_yahoo_history_fallback(
+        items=(),
+        outcomes=(SourceOutcome.zero("yfinance-price", "price", tier="A"),),
+        history_by_ticker={
+            "CUSTOM": (_row(date(2026, 7, 17)),),
+            "AAPL": (_row(date(2026, 7, 17)),),
+        },
+        target_date=_TARGET,
+        critical_tickers=("CUSTOM",),
+    )
+
+    assert reconciled.fallback_count == 1
+    assert [item.raw_metadata["ticker"] for item in reconciled.items] == ["CUSTOM"]
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [

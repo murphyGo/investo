@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 import httpx
 import pytest
 
-from investo.models import FailureContext
+from investo.models import FailureContext, PipelineStatus
 from investo.notifier.operator_alerter import OperatorAlerter
 from tests.unit.notifier.conftest import mock_client
 
@@ -132,6 +132,67 @@ async def test_operator_alerter_dispatches_to_operator_chat_id() -> None:
         await alerter.alert(_build_failure())
 
     assert captured == [_OPERATOR_CHAT_ID]
+
+
+@pytest.mark.asyncio
+async def test_source_health_alert_distinguishes_success_from_degradation() -> None:
+    captured: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        body = _json.loads(request.content.decode("utf-8"))
+        captured.append(str(body["text"]))
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    async with mock_client(handler) as http:
+        alerter = OperatorAlerter(
+            bot_token=_BOT_TOKEN,
+            operator_chat_id=_OPERATOR_CHAT_ID,
+            http=http,
+        )
+        result = await alerter.source_health_alert(
+            run_status=PipelineStatus.SUCCESS,
+            consecutive_days=3,
+            sources=("cnbc-top-news", "korea-policy-rss"),
+        )
+
+    assert result.ok is True
+    text = captured[0]
+    assert "✅ 시황 생성·게시 성공" in text
+    assert "⚠️ 일부 데이터 소스 장애" in text
+    assert "- 연속 실패: 3일" in text
+    assert "cnbc-top-news, korea-policy-rss" in text
+    assert "Pipeline failure" not in text
+
+
+@pytest.mark.asyncio
+async def test_source_health_alert_uses_partial_safe_heading() -> None:
+    captured: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        body = _json.loads(request.content.decode("utf-8"))
+        captured.append(str(body["text"]))
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+
+    async with mock_client(handler) as http:
+        alerter = OperatorAlerter(
+            bot_token=_BOT_TOKEN,
+            operator_chat_id=_OPERATOR_CHAT_ID,
+            http=http,
+        )
+        result = await alerter.source_health_alert(
+            run_status=PipelineStatus.PARTIAL,
+            consecutive_days=3,
+            sources=("cnbc-top-news",),
+        )
+
+    assert result.ok is True
+    text = captured[0]
+    assert "⚠️ 시황 파이프라인 부분 성공" in text
+    assert "✅ 시황 생성·게시 성공" not in text
 
 
 # ---------------------------------------------------------------------------

@@ -34,6 +34,7 @@ def reconcile_yahoo_history_fallback(
     outcomes: Sequence[SourceOutcome],
     history_by_ticker: Mapping[str, Sequence[OHLCRow]],
     target_date: date,
+    critical_tickers: Sequence[str] = DEFAULT_CRITICAL_TICKERS,
 ) -> ReconciledPriceCollection:
     """Fill missing critical Yahoo snapshots from fresh same-run history."""
 
@@ -49,7 +50,7 @@ def reconcile_yahoo_history_fallback(
     }
 
     fallback_items: list[NormalizedItem] = []
-    for ticker in DEFAULT_CRITICAL_TICKERS:
+    for ticker in critical_tickers:
         if ticker in seen_tickers:
             continue
         rows = history_by_ticker.get(ticker, ())

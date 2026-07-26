@@ -19,13 +19,14 @@ Reference:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Literal
 from zoneinfo import ZoneInfo
 
 import httpx
 
 from investo._internal.text import truncate_with_suffix, utf16_units
-from investo.models import FailureContext, SendResult
+from investo.models import FailureContext, PipelineStatus, SendResult
 from investo.notifier._dispatcher import dispatch
 from investo.notifier._telegram import _redact_bot_token
 from investo.notifier.summary import DEFAULT_MAX_UNITS
@@ -114,15 +115,18 @@ class OperatorAlerter:
         """
         if self._dry_run:
             return SendResult(ok=True, message_id=None, error=None)
-        text = _format_alert_text(failure)
-        text = _redact_bot_token(text)
-        if utf16_units(text) > DEFAULT_MAX_UNITS:
-            text = truncate_with_suffix(text, DEFAULT_MAX_UNITS)
+        return await self._send_text(_format_alert_text(failure))
+
+    async def _send_text(self, text: str) -> SendResult:
+        """Apply the shared operator-message safety and dispatch contract."""
+        safe_text = _redact_bot_token(text)
+        if utf16_units(safe_text) > DEFAULT_MAX_UNITS:
+            safe_text = truncate_with_suffix(safe_text, DEFAULT_MAX_UNITS)
 
         if self._http is None:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                return await self._dispatch(client, text)
-        return await self._dispatch(self._http, text)
+                return await self._dispatch(client, safe_text)
+        return await self._dispatch(self._http, safe_text)
 
     async def _dispatch(self, client: httpx.AsyncClient, text: str) -> SendResult:
         # Shared dispatch (composition, not inheritance): the operator
@@ -165,14 +169,27 @@ class OperatorAlerter:
         """
         if self._dry_run:
             return SendResult(ok=True, message_id=None, error=None)
-        text = _format_numeric_alert_text(kind, segment=segment, detail=detail)
-        text = _redact_bot_token(text)
-        if utf16_units(text) > DEFAULT_MAX_UNITS:
-            text = truncate_with_suffix(text, DEFAULT_MAX_UNITS)
-        if self._http is None:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                return await self._dispatch(client, text)
-        return await self._dispatch(self._http, text)
+        return await self._send_text(
+            _format_numeric_alert_text(kind, segment=segment, detail=detail)
+        )
+
+    async def source_health_alert(
+        self,
+        *,
+        run_status: PipelineStatus,
+        consecutive_days: int,
+        sources: Sequence[str],
+    ) -> SendResult:
+        """Report degraded source coverage without labelling the run failed."""
+        if self._dry_run:
+            return SendResult(ok=True, message_id=None, error=None)
+        return await self._send_text(
+            _format_source_health_alert_text(
+                run_status=run_status,
+                consecutive_days=consecutive_days,
+                sources=sources,
+            )
+        )
 
 
 def _format_numeric_alert_text(kind: NumericAlertKind, *, segment: str, detail: str) -> str:
@@ -189,6 +206,28 @@ def _format_numeric_alert_text(kind: NumericAlertKind, *, segment: str, detail: 
         "segment_stale": "⏰ 세그먼트 stale",
     }[kind]
     return f"{heading}\n\n- 세그먼트: {segment}\n- 상세: {detail}\n"
+
+
+def _format_source_health_alert_text(
+    *,
+    run_status: PipelineStatus,
+    consecutive_days: int,
+    sources: Sequence[str],
+) -> str:
+    """Format a successful-run notice with an explicit coverage warning."""
+    source_list = ", ".join(sources)
+    heading = (
+        "✅ 시황 생성·게시 성공"
+        if run_status == PipelineStatus.SUCCESS
+        else "⚠️ 시황 파이프라인 부분 성공"
+    )
+    return (
+        f"{heading}\n\n"
+        "⚠️ 일부 데이터 소스 장애\n"
+        f"- 연속 실패: {consecutive_days}일\n"
+        f"- 대상 소스: {source_list}\n"
+        "- 영향: 시황은 게시됐지만 일부 데이터 커버리지가 제한될 수 있습니다.\n"
+    )
 
 
 __all__ = ["NumericAlertKind", "OperatorAlerter"]

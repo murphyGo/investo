@@ -17,11 +17,12 @@ Design choices (audit log 2026-05-01):
   produce items normally. This is *intra*-adapter isolation, parallel
   to the aggregator's *inter*-adapter R6 isolation.
 * **R7 window relaxation** (FD L6.2 / R11): the adapter emits the
-  most recent valid trading day in the 1-year response regardless of
-  strict R7 membership. KST Monday and Saturday cron fires after a US
+  most recent valid trading day on or before the target date, regardless
+  of strict R7 membership. KST Monday and Saturday cron fires after a US
   market weekend — Friday's close lies outside the strict R7 window
   for those targets, and strict filtering would drop all yfinance
-  data on those days.
+  data on those days. Rows after the target date are never relabelled
+  into historical exact-date replays.
 
 Pins (extension 2026-05-01):
 
@@ -108,15 +109,16 @@ class YFinancePriceAdapter:
     async def fetch(
         self,
         client: httpx.AsyncClient,
-        window: FetchWindow,  # window unused — yfinance applies R7-relaxation per FD L6.2
+        window: FetchWindow,
     ) -> list[NormalizedItem]:
-        critical_tickers = parse_symbol_list(_ENV_TICKERS, self._DEFAULT_TICKERS)
+        critical_tickers = resolve_yfinance_critical_tickers()
         concurrency = _parse_concurrency()
         semaphore = asyncio.Semaphore(concurrency)
         critical_items = await self._fetch_tickers(
             client,
             critical_tickers,
             semaphore,
+            target_date=window.target_date,
         )
         if not critical_items:
             return []
@@ -133,6 +135,7 @@ class YFinancePriceAdapter:
             client,
             enrichment_tickers,
             semaphore,
+            target_date=window.target_date,
         )
         return [*critical_items, *enrichment_items]
 
@@ -141,11 +144,21 @@ class YFinancePriceAdapter:
         client: httpx.AsyncClient,
         tickers: Sequence[str],
         semaphore: asyncio.Semaphore,
+        *,
+        target_date: date,
     ) -> list[NormalizedItem]:
         # Per-ticker isolation: a failed ticker contributes nothing and
         # never removes successful siblings within the same phase.
         return await gather_with_error_isolation(
-            (self._fetch_one_limited(client, ticker, semaphore) for ticker in tickers),
+            (
+                self._fetch_one_limited(
+                    client,
+                    ticker,
+                    semaphore,
+                    target_date=target_date,
+                )
+                for ticker in tickers
+            ),
             source_name=self.name,
         )
 
@@ -154,11 +167,19 @@ class YFinancePriceAdapter:
         client: httpx.AsyncClient,
         ticker: str,
         semaphore: asyncio.Semaphore,
+        *,
+        target_date: date,
     ) -> NormalizedItem | None:
         async with semaphore:
-            return await self._fetch_one(client, ticker)
+            return await self._fetch_one(client, ticker, target_date=target_date)
 
-    async def _fetch_one(self, client: httpx.AsyncClient, ticker: str) -> NormalizedItem | None:
+    async def _fetch_one(
+        self,
+        client: httpx.AsyncClient,
+        ticker: str,
+        *,
+        target_date: date,
+    ) -> NormalizedItem | None:
         chart = await fetch_chart_data(
             client,
             ticker,
@@ -168,7 +189,11 @@ class YFinancePriceAdapter:
         )
         rows = chart.rows
         latest_idx = next(
-            (index for index in range(len(rows) - 1, -1, -1) if rows[index].volume is not None),
+            (
+                index
+                for index in range(len(rows) - 1, -1, -1)
+                if rows[index].trading_date <= target_date and rows[index].volume is not None
+            ),
             None,
         )
         if latest_idx is None:
@@ -241,6 +266,12 @@ def resolve_yahoo_close_timestamp(trading_date: date) -> datetime:
 
     close_local = datetime.combine(trading_date, time(16), tzinfo=_NY)
     return close_local.astimezone(UTC)
+
+
+def resolve_yfinance_critical_tickers() -> tuple[str, ...]:
+    """Resolve the run's critical Yahoo basket from the shared R12 contract."""
+
+    return parse_symbol_list(_ENV_TICKERS, DEFAULT_CRITICAL_TICKERS)
 
 
 def _parse_concurrency() -> int:

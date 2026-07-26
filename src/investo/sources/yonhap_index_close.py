@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import UTC, date, datetime, time
+from datetime import datetime
 from typing import ClassVar, Final
 from zoneinfo import ZoneInfo
 
@@ -12,7 +12,7 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
-from investo.sources._config import SUMMARY_MAX_LEN, format_float
+from investo.sources._config import SUMMARY_MAX_LEN, format_float, parse_rfc822_to_utc
 from investo.sources._core_fact_map import core_fact_for_ticker, core_fact_metadata_key
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
@@ -20,7 +20,6 @@ from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _KST = ZoneInfo("Asia/Seoul")
-_KR_CLOSE_KST = time(15, 30, tzinfo=_KST)
 _USER_AGENT = "Investo/1.0 (https://murphygo.github.io/investo)"
 _FEED_URL: Final[str] = "https://www.yna.co.kr/rss/market.xml"
 _PAGE_URL: Final[str] = "https://www.yna.co.kr/market-plus/all"
@@ -64,25 +63,32 @@ class YonhapIndexCloseAdapter:
                 cause=exc,
             ) from exc
 
-        entries: list[tuple[str, str, str]] = []
+        entries: list[tuple[str, str, str, datetime]] = []
         for entry in root.iter("item"):
             title = (entry.findtext("title") or "").strip()
             description = (entry.findtext("description") or "").strip()
             link = (entry.findtext("link") or "").strip()
-            entries.append((title, description, link))
+            pubdate = (entry.findtext("pubDate") or "").strip()
+            try:
+                published_at = parse_rfc822_to_utc(pubdate)
+            except (TypeError, ValueError):
+                continue
+            if published_at.astimezone(_KST).date() != window.target_date:
+                continue
+            entries.append((title, description, link, published_at))
 
         items: list[NormalizedItem] = []
         for ticker in self._TICKERS:
             match = _first_index_match(_INDEX_PATTERNS[ticker], entries)
             if match is None:
                 continue
-            close, headline, link = match
+            close, headline, link, published_at = match
             item = _build_item(
                 source_name=self.name,
                 ticker=ticker,
                 close=close,
                 source_headline=headline,
-                source_date=window.target_date,
+                published_at=published_at,
                 url=link or _PAGE_URL,
             )
             if item is not None:
@@ -92,9 +98,9 @@ class YonhapIndexCloseAdapter:
 
 def _first_index_match(
     pattern: re.Pattern[str],
-    entries: list[tuple[str, str, str]],
-) -> tuple[float, str, str] | None:
-    for title, description, link in entries:
+    entries: list[tuple[str, str, str, datetime]],
+) -> tuple[float, str, str, datetime] | None:
+    for title, description, link, published_at in entries:
         for text in (title, description):
             match = pattern.search(text)
             if match is None:
@@ -104,7 +110,7 @@ def _first_index_match(
             except ValueError:
                 continue
             if value >= 100.0:
-                return value, title or text, link
+                return value, title or text, link, published_at
     return None
 
 
@@ -114,10 +120,11 @@ def _build_item(
     ticker: str,
     close: float,
     source_headline: str,
-    source_date: date,
+    published_at: datetime,
     url: str,
 ) -> NormalizedItem | None:
     display = _DISPLAY[ticker]
+    source_date = published_at.astimezone(_KST).date()
     raw_metadata = {
         "ticker": ticker,
         "display_name": display,
@@ -138,7 +145,7 @@ def _build_item(
             title=f"{display} {close:,.2f}",
             summary=summary[:SUMMARY_MAX_LEN],
             url=url,
-            published_at=datetime.combine(source_date, _KR_CLOSE_KST).astimezone(UTC),
+            published_at=published_at,
             raw_metadata=raw_metadata,
         )
     except ValidationError:

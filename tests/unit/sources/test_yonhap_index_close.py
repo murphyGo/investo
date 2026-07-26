@@ -17,7 +17,11 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "api" / "yonhap-index-close" / "
 _WINDOW = FetchWindow.from_kst_date(date(2026, 5, 22))
 
 
-async def _fetch(body: bytes) -> tuple[list, list[httpx.Request]]:
+async def _fetch(
+    body: bytes,
+    *,
+    window: FetchWindow = _WINDOW,
+) -> tuple[list, list[httpx.Request]]:
     requests: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -25,7 +29,7 @@ async def _fetch(body: bytes) -> tuple[list, list[httpx.Request]]:
         return httpx.Response(200, content=body)
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        items = await YonhapIndexCloseAdapter().fetch(client, _WINDOW)
+        items = await YonhapIndexCloseAdapter().fetch(client, window)
     return items, requests
 
 
@@ -52,7 +56,8 @@ async def test_recorded_feed_emits_two_indices_from_one_request() -> None:
         core_fact_metadata_key("kospi_close"): "2650.500000",
     }
     assert str(kospi.url) == "https://www.yna.co.kr/view/AKR20260522000100001"
-    assert kospi.published_at == datetime(2026, 5, 22, 6, 30, tzinfo=UTC)
+    assert kospi.published_at == datetime(2026, 5, 22, 7, 0, tzinfo=UTC)
+    assert kosdaq.published_at == datetime(2026, 5, 22, 7, 1, tzinfo=UTC)
     assert kosdaq.raw_metadata[core_fact_metadata_key("kosdaq_close")] == "870.250000"
     assert all(item.raw_metadata["ticker"] != "KRW=X" for item in items)
 
@@ -60,11 +65,45 @@ async def test_recorded_feed_emits_two_indices_from_one_request() -> None:
 async def test_one_index_match_emits_only_that_index() -> None:
     body = """<?xml version="1.0" encoding="UTF-8"?>
     <rss><channel><item><title><![CDATA[코스닥 870.25 마감]]></title>
-    <link>https://www.yna.co.kr/view/AKR1</link></item></channel></rss>""".encode()
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>Fri, 22 May 2026 16:00:00 +0900</pubDate>
+    </item></channel></rss>""".encode()
 
     items, _ = await _fetch(body)
 
     assert [item.raw_metadata["ticker"] for item in items] == ["^KOSDAQ"]
+
+
+@pytest.mark.parametrize(
+    "pubdate",
+    [
+        "Thu, 21 May 2026 16:00:00 +0900",
+        "Sat, 23 May 2026 16:00:00 +0900",
+    ],
+)
+async def test_non_target_feed_entries_are_not_relabelled(pubdate: str) -> None:
+    body = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item><title>코스피 2,650.50 마감</title>
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>{pubdate}</pubDate>
+    </item></channel></rss>""".encode()
+
+    items, _ = await _fetch(body)
+
+    assert items == []
+
+
+@pytest.mark.parametrize("pubdate", ["", "not a date", "Fri, 22 May 2026 16:00:00"])
+async def test_missing_invalid_or_naive_pubdate_is_dropped(pubdate: str) -> None:
+    body = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item><title>코스피 2,650.50 마감</title>
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>{pubdate}</pubDate>
+    </item></channel></rss>""".encode()
+
+    items, _ = await _fetch(body)
+
+    assert items == []
 
 
 async def test_no_numeric_index_match_returns_zero_items() -> None:

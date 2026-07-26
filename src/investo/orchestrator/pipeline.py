@@ -247,6 +247,7 @@ from investo.publisher.weekly_digest import (
 )
 from investo.publisher.writer import write_finalized_document
 from investo.sources import collect_sources as _default_collect_sources
+from investo.sources.yfinance import resolve_yfinance_critical_tickers
 from investo.visuals import image_library as _image_library
 from investo.visuals.assets import (
     VisualAssetError,
@@ -2694,6 +2695,7 @@ class GenerateStage:
                     outcomes=source_outcomes,
                     history_by_ticker=market_history_by_ticker,
                     target_date=target_date,
+                    critical_tickers=resolve_yfinance_critical_tickers(),
                 )
                 items = list(reconciled_prices.items)
                 source_outcomes = reconciled_prices.outcomes
@@ -3214,11 +3216,11 @@ class NotifyStage:
 
 
 class HealthTrackingStage:
-    """u31 per-source coverage append + consecutive-failure soft alert.
+    """u31 per-source coverage append + consecutive-failure health alert.
 
     Best-effort: any failure is swallowed (logged) so it never changes the
-    pipeline's exit semantics. Always reports ``ok``; the soft alert is
-    requested via ``data`` (the loop dispatches it through ``_safe_alert``).
+    pipeline's exit semantics. Always reports ``ok``; degraded sources are
+    returned as data so the loop uses the non-failure operator alert path.
     """
 
     name = "health"
@@ -3236,7 +3238,7 @@ class HealthTrackingStage:
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
         )
         del segmented_mode, items, source_outcomes, segment_briefings
-        soft_alert: RuntimeError | None = None
+        degraded_sources: tuple[str, ...] = ()
         try:
             # DEBT-088 — the coverage line itself is now appended at the
             # END of GenerateStage (``_append_daily_coverage_line``) so
@@ -3251,13 +3253,13 @@ class HealthTrackingStage:
                     source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
                     ", ".join(consecutive_failed),
                 )
-                soft_alert = RuntimeError(
-                    f"sources failed {source_health.DEFAULT_CONSECUTIVE_THRESHOLD} "
-                    f"consecutive days: {', '.join(consecutive_failed)}"
-                )
+                degraded_sources = consecutive_failed
         except Exception as exc:
             _logger.warning("[source_health] could not record coverage log: %s", exc)
-        return StageResult(status="ok", data={"_soft_alert": soft_alert})
+        return StageResult(
+            status="ok",
+            data={"_source_health_alert_sources": degraded_sources},
+        )
 
 
 # Publish-stage routable failures. Finalization and all terminal trust-gate
@@ -3510,9 +3512,16 @@ async def _execute_pipeline_stages(
                 )
 
         if result.data is not None:
-            soft_alert = cast("RuntimeError | None", result.data.get("_soft_alert"))
-            if soft_alert is not None:
-                await _safe_alert(alerter, "orchestrator", soft_alert)
+            degraded_sources = cast(
+                "tuple[str, ...]",
+                result.data.get("_source_health_alert_sources", ()),
+            )
+            if degraded_sources:
+                await _safe_source_health_alert(
+                    alerter,
+                    degraded_sources,
+                    run_status=status,
+                )
 
     source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated.get("source_outcomes", ()))
     finalized_bundle = cast(
@@ -3606,6 +3615,39 @@ async def _safe_alert(
             _logger.warning(
                 "[pipeline] alert delivery failed during %s failure after %s attempts: %s",
                 stage,
+                attempt,
+                result.error,
+            )
+
+
+async def _safe_source_health_alert(
+    alerter: OperatorAlerter,
+    sources: tuple[str, ...],
+    *,
+    run_status: PipelineStatus,
+) -> None:
+    """Best-effort degraded-source notice that never changes run status."""
+    for attempt in range(1, _ALERT_DELIVERY_ATTEMPTS + 1):
+        try:
+            result = await alerter.source_health_alert(
+                run_status=run_status,
+                consecutive_days=source_health.DEFAULT_CONSECUTIVE_THRESHOLD,
+                sources=sources,
+            )
+        except Exception as alert_exc:
+            if attempt == _ALERT_DELIVERY_ATTEMPTS:
+                _logger.warning(
+                    "[pipeline] source health alert raised unexpected %s after %s attempts: %s",
+                    type(alert_exc).__name__,
+                    attempt,
+                    alert_exc,
+                )
+            continue
+        if result.ok:
+            return
+        if attempt == _ALERT_DELIVERY_ATTEMPTS:
+            _logger.warning(
+                "[pipeline] source health alert delivery failed after %s attempts: %s",
                 attempt,
                 result.error,
             )

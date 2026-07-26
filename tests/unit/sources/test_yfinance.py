@@ -31,8 +31,8 @@ _GSPC_FIXTURE = _FIXTURE_DIR / "GSPC.json"
 _AAPL_FIXTURE = _FIXTURE_DIR / "AAPL.json"
 _INVALID_FIXTURE = _FIXTURE_DIR / "INVALID.json"
 
-# Any window — adapter applies R7 relaxation, so the window value is
-# unused per L6.2. Tests use a fixed window for clarity.
+# The adapter applies R7 relaxation within the target-date ceiling.
+# Tests use a fixed window for deterministic historical selection.
 _WINDOW = FetchWindow.from_kst_date(date(2026, 5, 1))
 
 
@@ -269,6 +269,49 @@ async def test_null_latest_day_falls_through_to_prior(
     assert "+4.98%" in item.title
 
 
+async def test_historical_replay_never_selects_post_target_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    before_target = int(datetime(2026, 4, 30, 14, 30, tzinfo=UTC).timestamp())
+    after_target = int(datetime(2026, 5, 4, 14, 30, tzinfo=UTC).timestamp())
+    body = _build_synthetic_payload(
+        timestamps=[before_target, after_target],
+        opens=[100.0, 900.0],
+        highs=[102.0, 902.0],
+        lows=[99.0, 899.0],
+        closes=[101.0, 901.0],
+        volumes=[1_000_000, 9_000_000],
+    )
+    _override_tickers(monkeypatch, "TEST")
+
+    async with _mock_client({"TEST": body}) as client:
+        items = await YFinancePriceAdapter().fetch(client, _WINDOW)
+
+    assert len(items) == 1
+    assert items[0].raw_metadata["close"] == "101.000000"
+    assert items[0].published_at == datetime(2026, 4, 30, 20, 0, tzinfo=UTC)
+
+
+async def test_historical_replay_with_only_future_rows_returns_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    after_target = int(datetime(2026, 5, 4, 14, 30, tzinfo=UTC).timestamp())
+    body = _build_synthetic_payload(
+        timestamps=[after_target],
+        opens=[900.0],
+        highs=[902.0],
+        lows=[899.0],
+        closes=[901.0],
+        volumes=[9_000_000],
+    )
+    _override_tickers(monkeypatch, "TEST")
+
+    async with _mock_client({"TEST": body}) as client:
+        items = await YFinancePriceAdapter().fetch(client, _WINDOW)
+
+    assert items == []
+
+
 async def test_all_null_ohlc_drops_ticker(monkeypatch: pytest.MonkeyPatch) -> None:
     body = _build_synthetic_payload(
         timestamps=[1759321800, 1759408200],
@@ -335,8 +378,9 @@ async def test_published_at_is_market_close_in_summer_edt(
     )
     _override_tickers(monkeypatch, "TEST")
     adapter = YFinancePriceAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 7, 14))
     async with _mock_client({"TEST": body}) as client:
-        items = await adapter.fetch(client, _WINDOW)
+        items = await adapter.fetch(client, window)
     item = items[0]
     assert item.published_at == datetime(2026, 7, 14, 20, 0, tzinfo=UTC)
 
@@ -356,8 +400,9 @@ async def test_published_at_is_market_close_in_winter_est(
     )
     _override_tickers(monkeypatch, "TEST")
     adapter = YFinancePriceAdapter()
+    window = FetchWindow.from_kst_date(date(2026, 1, 15))
     async with _mock_client({"TEST": body}) as client:
-        items = await adapter.fetch(client, _WINDOW)
+        items = await adapter.fetch(client, window)
     item = items[0]
     assert item.published_at == datetime(2026, 1, 14, 21, 0, tzinfo=UTC)
 
@@ -553,8 +598,9 @@ async def test_russell_2000_round_trips_through_fixture(
     _override_tickers(monkeypatch, "^RUT")
     adapter = YFinancePriceAdapter()
     fixtures = {"^RUT": _RUT_FIXTURE.read_bytes()}
+    window = FetchWindow.from_kst_date(date(2026, 7, 18))
     async with _mock_client(fixtures) as client:
-        items = await adapter.fetch(client, _WINDOW)
+        items = await adapter.fetch(client, window)
     assert len(items) == 1
     item = items[0]
     assert item.raw_metadata["ticker"] == "^RUT"
