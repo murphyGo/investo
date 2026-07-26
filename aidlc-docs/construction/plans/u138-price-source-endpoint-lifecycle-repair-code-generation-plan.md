@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Unit**: u138 price-source-endpoint-lifecycle-repair
 **Stage**: Code Generation
-**Status**: In Progress (3/6 steps complete; FD/NFR complete)
+**Status**: Complete (6/6 steps; production closeout 2026-07-26)
 **Source**: Direct 2026-07-18 reachability probes plus GitHub Actions runs `29541149434` and `29457241746`
 **Estimated Effort**: ~8-12 h
 **Dependencies**:
@@ -271,12 +271,28 @@ The reconciled items and outcomes replace the accumulated pipeline values before
 
 ### Step 6 — Validation
 
-- [ ] Complete
+- [x] Complete (2026-07-26)
 
 - Run focused tests listed below.
 - Run full source/plugin/segment/orchestrator gates.
 - Run no-paid guard and strict docs build.
 - Run a GHA exact-date workflow dispatch only during implementation closeout; success requires non-zero `yfinance-price`, zero Stooq requests, and query2 evidence in logs.
+
+Closeout evidence:
+
+- Local gate: Ruff and format clean; mypy clean across 248 source files;
+  `4099 passed`; no-paid and Anthropic-SDK guards clean; strict MkDocs build
+  clean; `git diff --check` clean.
+- Exact-date GHA run
+  [`30200378661`](https://github.com/murphyGo/investo/actions/runs/30200378661)
+  on `2026-07-24`: `yfinance-price=27`, `fred-fx-close=1`,
+  `yonhap-index-close=1`; query2 requests returned 200; no Stooq/query1
+  request; three segments generated and finalized; pipeline status `success`;
+  Telegram briefing message `80`; source-health notice delivered separately.
+- Pages run
+  [`30200904739`](https://github.com/murphyGo/investo/actions/runs/30200904739)
+  built and deployed bot commit `ce6ab25`; all three dated live URLs returned
+  HTTP 200.
 
 ## Acceptance Criteria
 

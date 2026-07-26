@@ -48,7 +48,9 @@ Every final `yfinance-price` item set has exactly one matching outcome; its stat
 
 - Yonhap output labels provenance as `yonhap-rss` and never claims Stooq.
 - DEXKOUS is emitted as KRW per one USD without inversion and labeled `fred-h10`.
-- FRED observation time is New York noon; Yonhap index time remains KRX close semantics from u67.
+- FRED observation time is New York noon. Yonhap preserves the real RSS
+  publication timestamp and accepts it only when its KST date equals the
+  requested target date; it does not invent a KRX-close timestamp.
 
 ## 3. Performance and Runtime Budget
 
@@ -115,7 +117,8 @@ Byte-preserved fixtures cover:
 - malformed/misaligned arrays
 - direct partial basket
 - fallback accepted/stale/future/invalid/direct-wins
-- Yonhap two-index/one-index/no-index/malformed XML
+- Yonhap two-index/one-index/no-index/malformed XML plus
+  missing/invalid/stale/future `pubDate`
 - DEXKOUS valid/placeholder/stale/missing-key/malformed JSON
 
 ### AC-6.2 Registry regression

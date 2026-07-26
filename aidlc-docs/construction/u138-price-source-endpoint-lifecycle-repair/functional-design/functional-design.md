@@ -122,6 +122,10 @@ Reconciled items/outcomes must replace the pipeline's accumulated values before:
 ### R10. Yonhap replacement identity
 
 The existing u67 RSS numeric parser is retained under `yonhap-index-close`. It fetches one RSS document and can emit KOSPI/KOSDAQ only. Absence of a matching numeric headline returns zero items and remains visible as fallback absence.
+Each numeric item must carry a parseable timezone-aware RSS `pubDate` whose KST
+calendar date exactly equals the requested target date. The adapter preserves
+that real publication timestamp; it never relabels a stale or future headline
+with the replay date.
 
 ### R11. FRED FX source-of-truth
 
@@ -213,6 +217,8 @@ No response body, URL, headline, ticker list, or secret is logged by this event.
 - Direct and history disagree: direct wins; u70 reconciliation handles downstream anchors as before.
 - FRED latest observation is `.`: walk to prior valid observation, then apply seven-day freshness.
 - Yonhap feed contains no numeric close: zero items, no fabricated value.
+- Yonhap numeric headline has a missing, invalid, stale, or future `pubDate`:
+  zero items; no replay-date relabeling.
 - Existing historical docs mention Stooq: allowed; runtime registries do not.
 
 ## 8. Non-Goals
