@@ -5,13 +5,12 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-24 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전일 AAPL은 -1.30% 내린 $321.66에 마감하며 대형 기술주 중심의 숨고르기 흐름을 보였다.</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">수집 근거가 제한적입니다</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">오늘(2026-07-24) 미국 증시(us-equity) 세그먼트에는 개별 지수 종가 데이터 없이,</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">CFTC(미국 상품선물거래위원회) 포지셔닝과 변동성 지수, 개별 종목 공시 데이터가 핵심 근거로</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">AAPL 하락 속 대형 기술주 숨고르기 전일 AAPL은 -1.30% 하락한 $321.66에 거래를</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">마쳤다.</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이번 문서는 수집 근거가 제한적입니다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이번 주(2026-07-31)에는 2026-07-29 FOMC(연방공개시장위원회) 기자회견을 비롯해</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">H.6 통화량지표(7/28), G.20 금융회사 통계(7/31) 발표가 예정돼 있다.</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">이번 주(2026-07-2407-31)에는 FOMC(연방공개시장위원회) 기자회견(2026-07-29)과</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">H.6 통화량지표 발표(2026-07-28), G.20 파이낸스컴퍼니 통계(2026-07-31)가 예정돼</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

@@ -9,9 +9,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 - [yonhap-market] **ticker**: 알파벳의 앤트로픽 지분가치 183조원으로 뛰어
 - [nasdaq-symbol-directory] **ticker**: GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
 - [sec-company-facts] **ticker**: GOOGL SEC company facts: Alphabet Inc.
-- [yfinance-price] **ticker**: GOOGL 317.69 (-7.13%)
+- [yfinance-price] **ticker**: GOOGL 319.74 (+0.65%)
 
 <!-- u33 entry 2026-07-24 end -->
+
 
 <!-- u33 entry 2026-07-23 begin -->
 

@@ -8,9 +8,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 - [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
 - [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
-- [yfinance-price] **ticker**: AMZN 233.66 (-4.57%)
+- [yfinance-price] **ticker**: AMZN 232.11 (-0.66%)
 
 <!-- u33 entry 2026-07-24 end -->
+
 
 <!-- u33 entry 2026-07-23 begin -->
 

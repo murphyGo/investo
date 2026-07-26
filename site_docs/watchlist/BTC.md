@@ -7,14 +7,15 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-07-24
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7949 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,289,907,933,645; BTC dominance 56.46%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $456,236,840 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000053524196854 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,322,009,927,891; BTC dominance 56.49%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $451,698,420 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000679678091959 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: Bitcoin Policy Institute, Palantir and Anduril join US State Department’s Freedom Tech Excellence Program
 - [theblock-crypto] **ticker**: Cardano co-founder Hoskinson says Bitcoin could lose top spot if governance fails quantum test
 - [theblock-crypto] **ticker**: Former bitcoin miner Poolin files Chapter 11, sets $52 million floor bid for Texas operations
 
 <!-- u33 entry 2026-07-24 end -->
+
 
 <!-- u33 entry 2026-07-23 begin -->
 

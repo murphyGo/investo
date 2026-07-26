@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">국내 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-24 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피(KOSPI, 한국 유가증권시장 종합지수)는 2026년 7월 24일 454.00을</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">기록했다(연합뉴스). 같은 날 국제유가 급등 여파로 코스피가 5.7%, 코스닥(KOSDAQ,</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피는 2026년 7월 24일 454.00으로 마감했다(연합뉴스). 같은 날 연합뉴스는 국제유가 급등에</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">따른 매도세로 코스피가 -5.7% 급락해 7,000선 아래로 밀려났고, 코스닥(KOSDAQ,</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피·코스닥, 유가 충격에 급락 코스피가 국제유가 급등에 따라 5.7% 급락하며 7,000선 아래로</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">밀려났고, 코스닥도 5.3% 급락했다(연합뉴스). 전일 뉴욕증시는 인텔 실적과 중동 갈등을 소화하며 혼조</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피, 유가발 매도세에 454.00 마감 코스피는 24일 454.00으로 거래를 마쳤다(연합뉴스).</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">연합뉴스는 같은 날 국제유가 급등에 따른 중동 리스크가 부각되며 코스피가 -5.7%, 코스닥이 -5.3%</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 연합뉴스 · 국제유가 — 유가가 배럴당 100달러 위에서 추가 상승하면 국내 지수 하방 압력</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">지속 관찰, 100달러 아래로 진정되면 낙폭 완화 관찰. 관심 영향: 대형주 전반 수급 흐름 점검. 확인</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: FRED · 원/달러 환율이 1,489.44원을 상회해 오르면 원화 약세 압력을 관찰하고,</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">직전치인 1,478.20원 수준으로 되돌리면 안정 흐름으로 해석한다.</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
