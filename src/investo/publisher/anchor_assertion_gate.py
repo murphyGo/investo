@@ -1,4 +1,4 @@
-"""u70 — gate precise body claims on canonical anchor availability.
+"""u70/u130 — gate precise body claims on canonical anchor availability.
 
 A reviewed failure: the domestic status block reported the core price
 source as missing/empty, yet the body prose still asserted a precise
@@ -12,13 +12,17 @@ This module is the cross-surface guard, not a new numeric validator:
 * It consumes the *prepared* set of canonical anchor symbols the
   orchestrator already reconciled (the single anchor payload). It does
   NOT re-fetch, re-verify, or re-decide a numeric truth — if a symbol's
-  anchor is absent, the body cannot assert a precise move about it.
+  anchor is absent, the body cannot assert a precise move or domestic
+  level about it.
 * For an **isolated** offending sentence (its own paragraph / line) the
   gate rewrites it to a deterministic data-limited callout, so a
   same-day re-run is byte-stable.
 * When the offending sentence is part of a multi-sentence prose line, the
   gate rewrites only the offending sentence and preserves the neighboring
   supported sentences. Structural lines still fail closed.
+* u130 extends the domestic gate to precise *level* claims without a
+  movement verb (for example, ``"코스피는 150.00을 나타냈다"``). US and
+  crypto claim detection remains move-only.
 
 Module boundary
 ~~~~~~~~~~~~~~~
@@ -34,6 +38,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from datetime import date
 from typing import Final
 
 from investo.models.market_anchor import anchor_label
@@ -72,6 +77,25 @@ _MOVE_VERB_RE: Final[re.Pattern[str]] = re.compile("|".join(_MOVE_VERBS))
 _MAGNITUDE_RE: Final[re.Pattern[str]] = re.compile(
     r"[+\-]?\d[\d,]*(?:\.\d+)?\s*(?:%|％|p|pt|포인트|원|달러|\$)",  # noqa: RUF001
 )
+# u130 bare level token. The integer part has at least two digits, or is a
+# comma-grouped value such as ``1,600``. The surrounding ASCII boundary
+# rejects dates, versions, requirement IDs, and ticker suffixes. A helper
+# below additionally excludes numeric ticker aliases such as ``[000660]``
+# and non-level suffixes such as percent/year/count tokens.
+_LEVEL_VALUE_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?<![0-9A-Za-z_./:\-])"
+    r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d{2,})(?:\.\d+)?)"
+    r"(?P<unit>\s*(?:원|포인트|pt))?"
+    r"(?![0-9A-Za-z_./:\-])",
+    re.IGNORECASE,
+)
+_NON_LEVEL_SUFFIX_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?:\*\*)?\s*(?:%|％|퍼센트|년|월|일|주|회|건|명|개|시|분|초|배|만|억|조)",  # noqa: RUF001
+)
+_NAMED_DOMESTIC_INDEX_NUMBER: Final[dict[str, str]] = {
+    "^KOSPI": "200",
+    "^KOSDAQ": "150",
+}
 _EXTRA_SYMBOL_ALIASES: Final[dict[str, tuple[str, ...]]] = {
     "005930.KS": ("삼성전자", "005930", "005930.KS"),
     "000660.KS": ("SK하이닉스", "000660", "000660.KS"),
@@ -91,7 +115,7 @@ class NumericAnchorReconciliationError(RuntimeError):
     """A precise body claim references a core symbol with no canonical anchor.
 
     Raised when the gate finds an un-rewritable (non-isolated) precise
-    move claim about a core index/asset whose anchor is missing/stale.
+    move/level claim about a core index/asset whose anchor is missing/stale.
     The orchestrator's publish-stage handler catches this alongside the
     other reader-format gates, rolls back this run's writes, and fails the
     publish rather than shipping a body that contradicts the status block.
@@ -100,7 +124,7 @@ class NumericAnchorReconciliationError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class AnchorAssertionFinding:
-    """One body sentence that asserts a precise move without an anchor."""
+    """One body sentence that asserts a precise move/level without an anchor."""
 
     segment: MarketSegment
     symbol: str
@@ -154,6 +178,91 @@ def _is_precise_move_claim_for_symbol(sentence: str, symbol: str) -> bool:
     return False
 
 
+def _is_precise_level_claim_for_symbol(sentence: str, symbol: str) -> bool:
+    """True for a domestic symbol-local bare level claim.
+
+    Movement clauses remain owned by the existing u70 path. Numeric ticker
+    aliases (``[005930]`` / ``[000660]``), dates, percentages, and count-like
+    tokens are not market levels.
+    """
+    numeric_aliases = {
+        alias for alias in _label_aliases(symbol) if alias.isascii() and alias.isdigit()
+    }
+    for unit in _sentence_units(sentence):
+        sentence_unit = unit.strip()
+        if not _sentence_targets_symbol(sentence_unit, symbol):
+            continue
+        if _MOVE_VERB_RE.search(sentence_unit):
+            continue
+        for match in _LEVEL_VALUE_RE.finditer(sentence_unit):
+            normalized_number = match.group("number").replace(",", "")
+            if match.group("unit") is None and normalized_number in numeric_aliases:
+                continue
+            if match.group("unit") is None and _is_compact_calendar_date(normalized_number):
+                continue
+            if _is_named_domestic_index_reference(
+                sentence_unit,
+                symbol=symbol,
+                normalized_number=normalized_number,
+                value_start=match.start(),
+                has_unit=match.group("unit") is not None,
+            ):
+                continue
+            if _NON_LEVEL_SUFFIX_RE.match(sentence_unit[match.end() :]):
+                continue
+            return True
+    return False
+
+
+def _is_compact_calendar_date(value: str) -> bool:
+    """True for a valid basic-ISO date token such as ``20260630``."""
+    if len(value) != 8 or not value.isascii() or not value.isdigit():
+        return False
+    try:
+        date.fromisoformat(f"{value[:4]}-{value[4:6]}-{value[6:]}")
+    except ValueError:
+        return False
+    return True
+
+
+def _is_named_domestic_index_reference(
+    sentence: str,
+    *,
+    symbol: str,
+    normalized_number: str,
+    value_start: int,
+    has_unit: bool,
+) -> bool:
+    """Exclude ``KOSPI 200`` / ``KOSDAQ 150`` instrument names.
+
+    Those numbers identify separate indices; they are not levels of the
+    guarded ``^KOSPI`` / ``^KOSDAQ`` symbols. The exclusion applies only
+    when the fixed name-number immediately follows one of that symbol's
+    aliases and carries no price/point unit.
+    """
+    named_number = _NAMED_DOMESTIC_INDEX_NUMBER.get(symbol)
+    if has_unit or named_number is None or normalized_number != named_number:
+        return False
+    prefix = sentence[:value_start].rstrip()
+    return any(prefix.casefold().endswith(alias.casefold()) for alias in _label_aliases(symbol))
+
+
+def _is_precise_claim_for_symbol(
+    sentence: str,
+    *,
+    segment: MarketSegment,
+    symbol: str,
+) -> bool:
+    """Return the segment-specific precise-claim decision.
+
+    u70 move claims remain first and unchanged. u130 level claims are a
+    domestic-only extension, so existing US/crypto semantics stay intact.
+    """
+    if _is_precise_move_claim_for_symbol(sentence, symbol):
+        return True
+    return segment == DOMESTIC_EQUITY and _is_precise_level_claim_for_symbol(sentence, symbol)
+
+
 def gate_body_assertions(
     markdown: str,
     *,
@@ -165,7 +274,7 @@ def gate_body_assertions(
     ``available_symbols`` is the set of symbols present in the canonical
     reconciled anchor payload for this segment. A core symbol absent from
     that set is "missing/stale" — the body may not assert a precise move
-    about it.
+    (or a domestic bare level) about it.
 
     Behaviour:
 
@@ -257,7 +366,7 @@ def _scan_line_assertions(
 
     if structural:
         for symbol in gated_symbols:
-            if _is_precise_move_claim_for_symbol(content, symbol):
+            if _is_precise_claim_for_symbol(content, segment=segment, symbol=symbol):
                 return (
                     AnchorAssertionFinding(
                         segment=segment,
@@ -275,7 +384,7 @@ def _scan_line_assertions(
         if not sentence:
             continue
         for symbol in gated_symbols:
-            if not _is_precise_move_claim_for_symbol(sentence, symbol):
+            if not _is_precise_claim_for_symbol(sentence, segment=segment, symbol=symbol):
                 continue
             findings.append(
                 AnchorAssertionFinding(
@@ -320,7 +429,7 @@ def _gate_line(
     for symbol in gated_symbols:
         if not _sentence_targets_symbol(content, symbol):
             continue
-        if not _is_precise_move_claim_for_symbol(content, symbol):
+        if not _is_precise_claim_for_symbol(content, segment=segment, symbol=symbol):
             continue
         label = _public_label(symbol)
         if structural:
@@ -371,7 +480,7 @@ def _rewrite_sentence_claims(
         for symbol in gated_symbols:
             if not _sentence_targets_symbol(stripped, symbol):
                 continue
-            if not _is_precise_move_claim_for_symbol(stripped, symbol):
+            if not _is_precise_claim_for_symbol(stripped, segment=segment, symbol=symbol):
                 continue
             label = _public_label(symbol)
             findings.append(
@@ -422,8 +531,9 @@ def enforce_anchor_assertions(
     )
     if residual:
         blocking = residual[0]
+        claim_kind = "precise anchor claim" if segment == DOMESTIC_EQUITY else "precise move claim"
         raise NumericAnchorReconciliationError(
-            f"{segment}: precise move claim for {blocking.label} "
+            f"{segment}: {claim_kind} for {blocking.label} "
             f"({blocking.symbol}) without a canonical anchor: {blocking.sentence!r}"
         )
     return result.markdown

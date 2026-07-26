@@ -76,6 +76,133 @@ def test_large_cap_domestic_claim_without_anchor_is_rewritten() -> None:
     assert result.findings[0].symbol == "005930.KS"
 
 
+def test_exact_2026_06_30_bare_index_levels_without_anchors_are_rewritten() -> None:
+    md = "코스피는 150.00, 코스닥은 344.00을 나타냈다.\n"
+
+    result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
+
+    assert "150.00" not in result.markdown
+    assert "344.00" not in result.markdown
+    assert "코스피 관련 정밀 수치는" in result.markdown
+    assert [finding.symbol for finding in result.findings] == ["^KOSPI"]
+    assert not result.has_blocking_finding
+
+
+def test_actual_parenthetical_2026_06_30_level_shape_is_rewritten() -> None:
+    md = (
+        "코스피(KOSPI, 한국 유가증권시장 종합지수)는 150.00, "
+        "코스닥(KOSDAQ, 코스닥시장 종합지수)은 344.00을 나타냈다.\n"
+    )
+
+    result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
+
+    assert "150.00" not in result.markdown
+    assert "344.00" not in result.markdown
+    assert result.findings
+    assert result.findings[0].symbol == "^KOSPI"
+
+
+def test_kosdaq_bare_level_is_detected_independently() -> None:
+    md = "코스닥은 344.00을 나타냈다.\n"
+
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI",),
+    )
+
+    assert "344.00" not in result.markdown
+    assert "코스닥 관련 정밀 수치는" in result.markdown
+    assert [finding.symbol for finding in result.findings] == ["^KOSDAQ"]
+
+
+def test_bare_index_level_passes_when_matching_anchor_is_available() -> None:
+    md = "코스피는 150.00을 나타냈다.\n"
+
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI",),
+    )
+
+    assert result.markdown == md
+    assert result.findings == ()
+
+
+@pytest.mark.parametrize(
+    ("prefix", "expected_prefix"),
+    (
+        ("- ", "- "),
+        ("> **핵심 동인**: ", "> **핵심 동인**: "),
+    ),
+)
+def test_bare_index_level_rewrite_preserves_prose_prefix(
+    prefix: str,
+    expected_prefix: str,
+) -> None:
+    md = f"{prefix}코스피는 150.00을 나타냈다.\n"
+
+    result = gate_body_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
+
+    assert result.markdown.startswith(expected_prefix)
+    assert "150.00" not in result.markdown
+    assert "코스피 관련 정밀 수치는" in result.markdown
+
+
+def test_bare_large_cap_level_ignores_numeric_ticker_alias_and_gates_value() -> None:
+    md = "SK하이닉스[000660]는 2,628,000원이다.\n"
+
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS"),
+    )
+
+    assert "2,628,000원" not in result.markdown
+    assert "SK하이닉스 관련 정밀 수치는" in result.markdown
+    assert [finding.symbol for finding in result.findings] == ["000660.KS"]
+
+
+def test_exact_large_cap_move_sentence_stays_on_existing_move_claim_path() -> None:
+    md = "SK하이닉스[000660]는 2,628,000원으로 동반 하락했다.\n"
+
+    result = gate_body_assertions(
+        md,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=("^KOSPI", "^KOSDAQ", "KRW=X", "005930.KS"),
+    )
+
+    assert "하락" not in result.markdown
+    assert "SK하이닉스 관련 정밀 수치는" in result.markdown
+    assert [finding.symbol for finding in result.findings] == ["000660.KS"]
+
+
+@pytest.mark.parametrize(
+    "claim",
+    (
+        "SK하이닉스[000660] 관련 수치는 이번 회차에 없다.",
+        "코스피는 2026-06-30 기준 데이터가 없다.",
+        "코스피는 20260630 기준 데이터가 없다.",
+        "코스피 표본은 15.0%였다.",
+        "코스피 표본은 15.0퍼센트였다.",
+        "코스피 관련 보도는 24건이었다.",
+        "코스피는 52주 고점을 확인하지 못했다.",
+        "SK하이닉스 거래량은 120만 주였다.",
+        "코스피 200 지수 편입 종목을 점검했다.",
+        "KOSDAQ 150 선물 동향을 점검했다.",
+    ),
+)
+def test_non_level_domestic_numbers_are_not_gated(claim: str) -> None:
+    result = gate_body_assertions(
+        claim,
+        segment=DOMESTIC_EQUITY,
+        available_symbols=(),
+    )
+
+    assert result.markdown == claim
+    assert result.findings == ()
+
+
 def test_large_cap_domestic_claim_passes_when_anchor_available() -> None:
     md = "SK하이닉스[000660] +13.06%, 삼성전자[005930] +5.29% 급등이 관찰됐다.\n"
     out = enforce_anchor_assertions(
@@ -89,7 +216,7 @@ def test_large_cap_domestic_claim_passes_when_anchor_available() -> None:
 
 def test_enforce_raises_on_blocking_finding() -> None:
     md = "| ^KOSPI | 2,500.00 | -1.8% | 급락 |\n"
-    with pytest.raises(NumericAnchorReconciliationError):
+    with pytest.raises(NumericAnchorReconciliationError, match="precise anchor claim"):
         enforce_anchor_assertions(md, segment=DOMESTIC_EQUITY, available_symbols=())
 
 
@@ -259,6 +386,13 @@ def test_us_segment_ixic_claim_gated_when_absent() -> None:
     # ^GSPC present but ^IXIC absent → IXIC claim gated.
     assert result.findings
     assert result.findings[0].symbol == "^IXIC"
+
+
+def test_us_compatibility_error_keeps_move_claim_wording() -> None:
+    md = "| 나스닥 종합 | 15,000.00 | +0.5% | 상승 |\n"
+
+    with pytest.raises(NumericAnchorReconciliationError, match="precise move claim"):
+        enforce_anchor_assertions(md, segment=US_EQUITY, available_symbols=())
 
 
 def test_crypto_btc_claim_passes_when_present() -> None:
