@@ -6,11 +6,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-24
 
-- [nasdaq-stocks-news] **ticker**: Mag 7 Earnings Preview: Alphabet's Cloud Surge and CapEx Hike Raise the Stakes
 - [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
 - [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+- [yfinance-price] **ticker**: MSFT 381.58 (-2.24%)
 
 <!-- u33 entry 2026-07-24 end -->
+
 <!-- u33 entry 2026-07-23 begin -->
 
 ## 2026-07-23

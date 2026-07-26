@@ -6,11 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-24
 
-- [yonhap-market] **ticker**: 신한운용 "SOL금융지주고배당 ETF, 코스피 수익률 웃돌아"
-- [binance-crypto-market] **ticker**: SOLUSDT 24h 74.08 (-1.78%)
-- [defillama-market-structure] **ticker**: DeFi TVL $75.6B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $76.1B; leader Ethereum
 
 <!-- u33 entry 2026-07-24 end -->
+
 <!-- u33 entry 2026-07-23 begin -->
 
 ## 2026-07-23

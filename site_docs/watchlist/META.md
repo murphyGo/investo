@@ -7,11 +7,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-07-24
 
 - [yonhap-market] **ticker**: FT "메타 데이터센터 구축용 차입비용 한층 커져"
-- [nasdaq-stocks-news] **ticker**: Mag 7 Earnings Preview: Alphabet's Cloud Surge and CapEx Hike Raise the Stakes
 - [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
 - [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+- [yfinance-price] **ticker**: META 606.10 (-3.36%)
 
 <!-- u33 entry 2026-07-24 end -->
+
 <!-- u33 entry 2026-07-23 begin -->
 
 ## 2026-07-23
