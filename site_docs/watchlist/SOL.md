@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-27 begin -->
+
+## 2026-07-27
+
+- [coingecko-price] **ticker**: SOL $73.94 (-3.71%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum, Solana and Avalanche get busier and cheaper even as token prices fall: Bitwise
+
+<!-- u33 entry 2026-07-27 end -->
 <!-- u33 entry 2026-07-24 begin -->
 
 ## 2026-07-24

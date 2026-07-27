@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-27 begin -->
+
+## 2026-07-27
+
+- [coingecko-price] **ticker**: ETH $1,890.07 (-3.48%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine adds nearly 10,000 ETH while repurchasing 6.1 million common shares
+- [theblock-crypto] **ticker**: Ethereum, Solana and Avalanche get busier and cheaper even as token prices fall: Bitwise
+- [theblock-crypto] **ticker**: Lido begins consolidating $16 billion worth of staked ETH as Curated Module v2 rolls out
+
+<!-- u33 entry 2026-07-27 end -->
 <!-- u33 entry 2026-07-24 begin -->
 
 ## 2026-07-24

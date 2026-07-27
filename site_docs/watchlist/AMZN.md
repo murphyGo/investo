@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-27 begin -->
+
+## 2026-07-27
+
+- [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
+- [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
+- [yfinance-price] **ticker**: AMZN 231.39 (-0.97%)
+
+<!-- u33 entry 2026-07-27 end -->
 <!-- u33 entry 2026-07-24 begin -->
 
 ## 2026-07-24

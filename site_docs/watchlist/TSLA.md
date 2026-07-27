@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-27 begin -->
+
+## 2026-07-27
+
+- [yonhap-market] **ticker**: 금감원 특사경, 거래소 압수수색…엘앤에프 정정공시 관련 수사
+- [nasdaq-symbol-directory] **ticker**: TSLA listing metadata: Tesla, Inc. - Common Stock
+- [sec-company-facts] **ticker**: TSLA SEC company facts: Tesla, Inc.
+- [yfinance-price] **ticker**: TSLA 309.22 (-3.28%)
+
+<!-- u33 entry 2026-07-27 end -->
 <!-- u33 entry 2026-07-24 begin -->
 
 ## 2026-07-24

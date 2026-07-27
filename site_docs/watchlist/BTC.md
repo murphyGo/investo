@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-27 begin -->
+
+## 2026-07-27
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7949 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,263,442,234,356; BTC dominance 56.41%
+- [coingecko-price] **ticker**: BTC $63,755.00 (-2.61%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $455,539,330 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000218958787670 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000229564499883 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Benchmark reiterates $570 Strategy target, says cash reserve strengthens bitcoin acquisition plan
+- [theblock-crypto] **ticker**: Metaplanet’s brokerage deal ‘badly undersells’ plans for bitcoin-backed ‘Bitbonds,’ Benchmark says
+- [theblock-crypto] **ticker**: Strategy extends bitcoin pause to five weeks, sells $544.5 million in MSTR as USD reserve hits $3.75 billion
+- [theblock-crypto] **ticker**: TD Cowen cuts David Bailey’s Nakamoto target 58% after bitcoin outlook reset
+
+<!-- u33 entry 2026-07-27 end -->
 <!-- u33 entry 2026-07-24 begin -->
 
 ## 2026-07-24
