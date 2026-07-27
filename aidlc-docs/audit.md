@@ -5749,3 +5749,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: `test_anchor_assertion_gate.py` 45 passed; all publisher unit tests 976 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-2-consistency-sweep.md`.
 **Status**: Step 2 checklist complete 2/7. Next: Step 3 discontinuity quarantine using the existing previous-published-anchor path.
+
+## Construction — u130 Code Generation Step 2 synchronization and Step 3 approval
+**Timestamp**: 2026-07-26T19:24:04Z
+**Synchronization**: Committed the validated Step 2 slice as `dea2601` (`feat: sweep rewritten anchor symbols`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched.
+**User response**: `커밋 푸시 후 계속 진행`
+**Decision**: Treat the explicit continuation after the reported Step 3 target as approval to execute Code Generation Step 3/7.
+**Target**: Fixed Contract 3 `discontinuous` trust reason, prior-seven-calendar-day published-anchor lookup by reusing the existing recent-archive walk, and boundary regressions. Steps 4-7 remain out of scope for this invocation.
+
+## Construction — u130 Code Generation Step 3 complete
+**Timestamp**: 2026-07-26T19:36:08Z
+**Action**: Added the `discontinuous` trust reason, strict per-symbol thresholds, previous-close propagation through verdict/filter APIs, and a prior-seven-calendar-day domestic anchor loader.
+**Archive path**: Promoted the existing quality archive iterator as the shared public walk. The loader queries exactly target-minus-seven through target-minus-one, includes weekend publications, filters to domestic archives, and keeps the newest published close per symbol. A live repository check for target 2026-06-30 recovered `^KOSDAQ=477.00`, `^KOSPI=8800.00`, and `005930.KS=339500.00`.
+**Safety**: Missing, unreadable, non-positive, `NaN`, and infinite history fail open without suppressing the candidate. Non-finite candidate values classify as `implausible` instead of raising.
+**Review**: Fresh-eyes review initially found a High weekend omission and Medium non-finite Decimal crash. Both were fixed and re-review approved with no Critical/High/Medium issue. Its Low downside/FX test observation was also closed with explicit -15% boundary cases.
+**Validation**: `test_domestic_anchor_quarantine.py` 22 passed; related regression tests 45 passed; all orchestrator unit tests 429 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-3-discontinuity-quarantine.md`.
+**Status**: Step 3 checklist complete 3/7. Next: Step 4 load the previous-close mapping once and wire it through anchor assembly, quality metadata, and notification filtering.

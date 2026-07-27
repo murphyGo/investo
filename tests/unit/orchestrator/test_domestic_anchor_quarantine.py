@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from pathlib import Path
+
+from hypothesis import given
+from hypothesis import strategies as st
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.models import Briefing, NormalizedItem, SourceOutcome
@@ -12,6 +16,7 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     candidate_from_item,
     classify_domestic_anchor_candidate,
     domestic_anchor_verdicts,
+    load_previous_domestic_anchor_closes,
     normalize_domestic_anchor_symbol,
     trusted_domestic_price_items,
 )
@@ -92,6 +97,18 @@ def test_out_of_band_or_unparseable_values_are_implausible() -> None:
     ]
 
 
+def test_non_finite_candidate_values_are_implausible() -> None:
+    verdicts = domestic_anchor_verdicts(
+        [
+            _item("^KOSPI", "NaN"),
+            _item("^KOSDAQ", "Infinity"),
+        ],
+        target_date=_TARGET,
+    )
+
+    assert [verdict.trust for verdict in verdicts] == ["implausible", "implausible"]
+
+
 def test_wrong_source_and_bad_source_outcome_are_not_trusted() -> None:
     wrong_source = _item("^KOSPI", "2650.50", source="fsc-krx-stock-price")
     bad_outcome = _item("^KOSDAQ", "870.25")
@@ -149,6 +166,207 @@ def test_large_cap_source_contract() -> None:
 
     assert [verdict.candidate.symbol for verdict in verdicts] == ["005930.KS", "000660.KS"]
     assert [verdict.trust for verdict in verdicts] == ["trusted", "trusted"]
+
+
+def test_kosdaq_discontinuity_quarantines_477_to_344_but_allows_477_to_460() -> None:
+    discontinuous = candidate_from_item(_item("^KOSDAQ", "344"))
+    continuous = candidate_from_item(_item("^KOSDAQ", "460"))
+    assert discontinuous is not None
+    assert continuous is not None
+
+    assert (
+        classify_domestic_anchor_candidate(
+            discontinuous,
+            target_date=_TARGET,
+            previous_close=Decimal("477"),
+        )
+        == "discontinuous"
+    )
+    assert (
+        classify_domestic_anchor_candidate(
+            continuous,
+            target_date=_TARGET,
+            previous_close=Decimal("477"),
+        )
+        == "trusted"
+    )
+
+
+def test_discontinuity_is_skipped_without_previous_close() -> None:
+    candidate = candidate_from_item(_item("^KOSDAQ", "344"))
+    assert candidate is not None
+
+    assert classify_domestic_anchor_candidate(candidate, target_date=_TARGET) == "trusted"
+
+
+def test_verdict_and_filter_apply_previous_close_mapping() -> None:
+    item = _item("^KOSDAQ", "344")
+    previous_closes = {"^KOSDAQ": Decimal("477")}
+
+    (verdict,) = domestic_anchor_verdicts(
+        [item],
+        target_date=_TARGET,
+        previous_closes=previous_closes,
+    )
+    trusted = trusted_domestic_price_items(
+        [item],
+        target_date=_TARGET,
+        previous_closes=previous_closes,
+    )
+
+    assert verdict.trust == "discontinuous"
+    assert trusted == ()
+
+
+def test_large_cap_discontinuity_threshold_is_strictly_above_thirty_percent() -> None:
+    exact_boundary = candidate_from_item(_item("005930", "130000", source="fsc-krx-stock-price"))
+    above_boundary = candidate_from_item(_item("005930", "130001", source="fsc-krx-stock-price"))
+    assert exact_boundary is not None
+    assert above_boundary is not None
+
+    assert (
+        classify_domestic_anchor_candidate(
+            exact_boundary,
+            target_date=_TARGET,
+            previous_close=Decimal("100000"),
+        )
+        == "trusted"
+    )
+    assert (
+        classify_domestic_anchor_candidate(
+            above_boundary,
+            target_date=_TARGET,
+            previous_close=Decimal("100000"),
+        )
+        == "discontinuous"
+    )
+
+
+@given(basis_points=st.integers(min_value=0, max_value=10_000))
+def test_index_discontinuity_threshold_is_strictly_above_fifteen_percent(
+    basis_points: int,
+) -> None:
+    candidate_close = Decimal("1000") * (Decimal(1) + Decimal(basis_points) / Decimal("10000"))
+    candidate = candidate_from_item(_item("^KOSDAQ", str(candidate_close)))
+    assert candidate is not None
+
+    trust = classify_domestic_anchor_candidate(
+        candidate,
+        target_date=_TARGET,
+        previous_close=Decimal("1000"),
+    )
+
+    assert trust == ("discontinuous" if basis_points > 1500 else "trusted")
+
+
+def test_index_downside_and_fx_discontinuity_share_the_strict_fifteen_percent_rule() -> None:
+    kosdaq_boundary = candidate_from_item(_item("^KOSDAQ", "850"))
+    kosdaq_below = candidate_from_item(_item("^KOSDAQ", "849.99"))
+    fx_boundary = candidate_from_item(_item("KRW=X", "1275"))
+    fx_below = candidate_from_item(_item("KRW=X", "1274.99"))
+    assert kosdaq_boundary is not None
+    assert kosdaq_below is not None
+    assert fx_boundary is not None
+    assert fx_below is not None
+
+    assert (
+        classify_domestic_anchor_candidate(
+            kosdaq_boundary,
+            target_date=_TARGET,
+            previous_close=Decimal("1000"),
+        )
+        == "trusted"
+    )
+    assert (
+        classify_domestic_anchor_candidate(
+            kosdaq_below,
+            target_date=_TARGET,
+            previous_close=Decimal("1000"),
+        )
+        == "discontinuous"
+    )
+    assert (
+        classify_domestic_anchor_candidate(
+            fx_boundary,
+            target_date=_TARGET,
+            previous_close=Decimal("1500"),
+        )
+        == "trusted"
+    )
+    assert (
+        classify_domestic_anchor_candidate(
+            fx_below,
+            target_date=_TARGET,
+            previous_close=Decimal("1500"),
+        )
+        == "discontinuous"
+    )
+
+
+def test_previous_close_loader_uses_most_recent_value_within_seven_calendar_days(
+    tmp_path: Path,
+) -> None:
+    target = date(2026, 6, 30)
+    _write_anchor_archive(
+        tmp_path,
+        date(2026, 6, 26),
+        "| ^KOSDAQ | 477.00 | — | — |",
+    )
+    _write_anchor_archive(
+        tmp_path,
+        date(2026, 6, 25),
+        "| ^KOSDAQ | 480.00 | — | — |",
+    )
+    _write_anchor_archive(
+        tmp_path,
+        date(2026, 6, 22),
+        "| ^KOSPI | 8,800.00 | — | — |",
+    )
+
+    previous = load_previous_domestic_anchor_closes(tmp_path, target)
+
+    assert previous == {"^KOSDAQ": Decimal("477.00")}
+
+
+def test_previous_close_loader_prefers_weekend_publish_over_older_weekday(
+    tmp_path: Path,
+) -> None:
+    target = date(2026, 7, 20)
+    _write_anchor_archive(
+        tmp_path,
+        date(2026, 7, 18),
+        "| ^KOSPI | 9,000.00 | — | — |",
+    )
+    _write_anchor_archive(
+        tmp_path,
+        date(2026, 7, 17),
+        "| ^KOSPI | 8,000.00 | — | — |",
+    )
+
+    previous = load_previous_domestic_anchor_closes(tmp_path, target)
+
+    assert previous == {"^KOSPI": Decimal("9000.00")}
+
+
+def test_non_finite_previous_closes_are_skipped_without_raising(tmp_path: Path) -> None:
+    target = date(2026, 6, 30)
+    _write_anchor_archive(
+        tmp_path,
+        date(2026, 6, 29),
+        "| ^KOSPI | NaN | — | — |\n| ^KOSDAQ | Infinity | — | — |",
+    )
+    candidate = candidate_from_item(_item("^KOSPI", "2650.50"))
+    assert candidate is not None
+
+    previous = load_previous_domestic_anchor_closes(tmp_path, target)
+    trust = classify_domestic_anchor_candidate(
+        candidate,
+        target_date=_TARGET,
+        previous_close=Decimal("NaN"),
+    )
+
+    assert previous == {}
+    assert trust == "trusted"
 
 
 def test_trusted_domestic_price_items_filters_only_registry_failures() -> None:
@@ -242,3 +460,18 @@ def test_quality_snapshot_keeps_broad_figures_presence_separate_from_verified() 
 
     assert snapshot.figures_presence == 1.0
     assert snapshot.figures_verified == 0.0
+
+
+def _write_anchor_archive(root: Path, day: date, row: str) -> None:
+    path = (
+        root / "domestic-equity" / f"{day.year:04d}" / f"{day.month:02d}" / f"{day.isoformat()}.md"
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "# 국내 증시\n\n"
+        "| 종목 | 종가 | 변동 | 비고 |\n"
+        "|------|-----:|-----:|------|\n"
+        f"{row}\n\n"
+        "> **오늘의 결론**: 회귀 테스트용 국내 시황입니다.\n",
+        encoding="utf-8",
+    )

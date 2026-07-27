@@ -4,17 +4,21 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 from typing import Final, Literal
 
+from investo.briefing.quality_eval import iter_archive_files
 from investo.models import NormalizedItem, SourceOutcome
+from investo.models.segments import DOMESTIC_EQUITY
 
 DomesticAnchorTrust = Literal[
     "trusted",
     "unavailable",
     "stale",
     "implausible",
+    "discontinuous",
     "provenance_missing",
 ]
 
@@ -32,8 +36,17 @@ _STATE_ORDER: Final[tuple[DomesticAnchorTrust, ...]] = (
     "provenance_missing",
     "stale",
     "implausible",
+    "discontinuous",
     "trusted",
 )
+_PREVIOUS_ANCHOR_LOOKBACK_DAYS: Final[int] = 7
+_DISCONTINUITY_THRESHOLDS: Final[dict[str, Decimal]] = {
+    "^KOSPI": Decimal("0.15"),
+    "^KOSDAQ": Decimal("0.15"),
+    "KRW=X": Decimal("0.15"),
+    "005930.KS": Decimal("0.30"),
+    "000660.KS": Decimal("0.30"),
+}
 _BANDS: Final[dict[str, tuple[Decimal, Decimal, Decimal]]] = {
     "^KOSPI": (Decimal("1000"), Decimal("12000"), Decimal("30.0")),
     "^KOSDAQ": (Decimal("300"), Decimal("3000"), Decimal("30.0")),
@@ -116,6 +129,7 @@ def classify_domestic_anchor_candidate(
     *,
     target_date: date | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    previous_close: Decimal | None = None,
 ) -> DomesticAnchorTrust:
     """Classify one domestic anchor candidate using u109 fixed rules."""
 
@@ -144,6 +158,12 @@ def classify_domestic_anchor_candidate(
         return "implausible"
     if candidate.change_pct is not None and abs(candidate.change_pct) > max_abs_change:
         return "implausible"
+    if _is_discontinuous(
+        symbol=candidate.symbol,
+        candidate_close=candidate.close,
+        previous_close=previous_close,
+    ):
+        return "discontinuous"
     return "trusted"
 
 
@@ -152,9 +172,11 @@ def domestic_anchor_verdicts(
     *,
     target_date: date | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    previous_closes: Mapping[str, Decimal] | None = None,
 ) -> tuple[DomesticAnchorVerdict, ...]:
     """Return deterministic u109 verdicts for in-scope domestic price items."""
 
+    resolved_previous_closes = previous_closes or {}
     verdicts: list[DomesticAnchorVerdict] = []
     for item in items:
         if item.category != "price":
@@ -169,6 +191,7 @@ def domestic_anchor_verdicts(
                     candidate,
                     target_date=target_date,
                     source_outcomes=source_outcomes,
+                    previous_close=resolved_previous_closes.get(candidate.symbol),
                 ),
             )
         )
@@ -180,13 +203,24 @@ def trusted_domestic_price_items(
     *,
     target_date: date | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    previous_closes: Mapping[str, Decimal] | None = None,
 ) -> tuple[NormalizedItem, ...]:
     """Filter only u109-trusted domestic registry price rows; pass others through."""
 
+    resolved_previous_closes = previous_closes or {}
     verdict_by_identity = {
         id(item): verdict
         for item, verdict in (
-            (item, _verdict_for_item(item, target_date, source_outcomes)) for item in items
+            (
+                item,
+                _verdict_for_item(
+                    item,
+                    target_date,
+                    source_outcomes,
+                    resolved_previous_closes,
+                ),
+            )
+            for item in items
         )
         if verdict is not None
     }
@@ -202,6 +236,7 @@ def _verdict_for_item(
     item: NormalizedItem,
     target_date: date | None,
     source_outcomes: Sequence[SourceOutcome],
+    previous_closes: Mapping[str, Decimal],
 ) -> DomesticAnchorVerdict | None:
     if item.category != "price":
         return None
@@ -214,8 +249,87 @@ def _verdict_for_item(
             candidate,
             target_date=target_date,
             source_outcomes=source_outcomes,
+            previous_close=previous_closes.get(candidate.symbol),
         ),
     )
+
+
+def load_previous_domestic_anchor_closes(
+    archive_root: Path,
+    target_date: date,
+    *,
+    lookback_days: int = _PREVIOUS_ANCHOR_LOOKBACK_DAYS,
+) -> dict[str, Decimal]:
+    """Load newest published domestic closes inside a calendar-day window.
+
+    Reuses the quality-history archive iterator, which includes weekend
+    publications, then reads only domestic documents selected inside the
+    exact prior calendar-day window.
+    """
+
+    if lookback_days <= 0:
+        return {}
+    domestic_root = archive_root / DOMESTIC_EQUITY
+    archive_paths = sorted(
+        (
+            path
+            for path in iter_archive_files(
+                archive_root,
+                today=target_date - timedelta(days=1),
+                window_days=lookback_days,
+            )
+            if path.is_relative_to(domestic_root)
+        ),
+        key=lambda path: path.stem,
+        reverse=True,
+    )
+    previous_closes: dict[str, Decimal] = {}
+    for path in archive_paths:
+        try:
+            markdown = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for symbol, close in _published_anchor_closes(markdown).items():
+            previous_closes.setdefault(symbol, close)
+        if len(previous_closes) == len(_DISCONTINUITY_THRESHOLDS):
+            break
+    return previous_closes
+
+
+def _published_anchor_closes(markdown: str) -> dict[str, Decimal]:
+    """Extract canonical symbol/close pairs from published Markdown tables."""
+
+    closes: dict[str, Decimal] = {}
+    for raw_line in markdown.splitlines():
+        line = raw_line.strip()
+        if not line.startswith("|") or not line.endswith("|"):
+            continue
+        cells = [cell.strip() for cell in line[1:-1].split("|")]
+        if len(cells) < 2:
+            continue
+        symbol = normalize_domestic_anchor_symbol(cells[0])
+        if symbol is None or symbol in closes:
+            continue
+        try:
+            close = Decimal(cells[1].replace(",", ""))
+        except (InvalidOperation, ValueError):
+            continue
+        if not close.is_finite() or close <= 0:
+            continue
+        closes[symbol] = close
+    return closes
+
+
+def _is_discontinuous(
+    *,
+    symbol: str,
+    candidate_close: Decimal,
+    previous_close: Decimal | None,
+) -> bool:
+    if previous_close is None or not previous_close.is_finite() or previous_close <= 0:
+        return False
+    threshold = _DISCONTINUITY_THRESHOLDS[symbol]
+    return abs(candidate_close / previous_close - Decimal(1)) > threshold
 
 
 def _expected_source(symbol: str) -> str:
@@ -256,9 +370,12 @@ def _metadata_decimal(item: NormalizedItem, *keys: str) -> tuple[Decimal | None,
         if value is None:
             continue
         try:
-            return Decimal(str(value).replace(",", "").strip()), False
+            parsed = Decimal(str(value).replace(",", "").strip())
         except (InvalidOperation, ValueError):
             return None, True
+        if not parsed.is_finite():
+            return None, True
+        return parsed, False
     return None, False
 
 
@@ -269,6 +386,7 @@ __all__ = [
     "candidate_from_item",
     "classify_domestic_anchor_candidate",
     "domestic_anchor_verdicts",
+    "load_previous_domestic_anchor_closes",
     "normalize_domestic_anchor_symbol",
     "trusted_domestic_price_items",
 ]
