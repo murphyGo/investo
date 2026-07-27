@@ -166,6 +166,7 @@ from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.domestic_anchor_quarantine import (
     domestic_anchor_verdicts,
+    load_previous_domestic_anchor_closes,
     trusted_domestic_price_items,
 )
 from investo.orchestrator.errors import EmptyCollectError
@@ -1256,6 +1257,7 @@ async def _stage_publish_segments(
     git_runner: GitRunner | None = None,
     items: Sequence[NormalizedItem] = (),
     source_outcomes: Sequence[SourceOutcome] = (),
+    previous_domestic_anchor_closes: Mapping[str, Decimal] | None = None,
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
     extra_commit_paths: Sequence[Path] = (),
     phase_one_complete: bool = False,
@@ -1463,6 +1465,7 @@ async def _stage_publish_segments(
                         published_segments=published_segments,
                         items=items,
                         source_outcomes=source_outcomes,
+                        previous_domestic_anchor_closes=previous_domestic_anchor_closes,
                         severities_by_segment=severities_by_segment_for_quality,
                     ),
                     history_path=quality_history_path,
@@ -1919,6 +1922,7 @@ def _build_quality_snapshot(
     published_segments: Sequence[MarketSegment],
     items: Sequence[NormalizedItem],
     source_outcomes: Sequence[SourceOutcome],
+    previous_domestic_anchor_closes: Mapping[str, Decimal] | None = None,
     severities_by_segment: dict[MarketSegment, str] | None = None,
 ) -> QualitySnapshot:
     from investo.publisher.quality_consistency import parse_segment_status_block
@@ -1987,11 +1991,18 @@ def _build_quality_snapshot(
         items,
         target_date=briefings[published_segments[0]].target_date if published_segments else None,
         source_outcomes=source_outcomes,
+        previous_closes=previous_domestic_anchor_closes,
     )
     domestic_withheld_count = sum(1 for verdict in domestic_verdicts if verdict.trust != "trusted")
     domestic_withheld_reasons = tuple(
         reason
-        for reason in ("unavailable", "stale", "implausible", "provenance_missing")
+        for reason in (
+            "unavailable",
+            "stale",
+            "implausible",
+            "provenance_missing",
+            "discontinuous",
+        )
         if any(verdict.trust == reason for verdict in domestic_verdicts)
     )
     return QualitySnapshot(
@@ -2668,6 +2679,7 @@ class GenerateStage:
         entity_observed_at_utc: datetime | None = None
         public_document_context: PublicDocumentContext | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
+        previous_domestic_anchor_closes: dict[str, Decimal] = {}
         generate_sub_timings: dict[str, float] = {}
         artifact_staging_root = cast(
             "Path | None",
@@ -2727,6 +2739,12 @@ class GenerateStage:
                             "final_count": final_yahoo_count,
                         },
                     )
+                from investo.publisher.paths import ARCHIVE_ROOT
+
+                previous_domestic_anchor_closes = load_previous_domestic_anchor_closes(
+                    ARCHIVE_ROOT,
+                    target_date,
+                )
                 # u67/u138 — fold deterministic Yonhap index closes and the
                 # FRED 원/달러 observation into the domestic segment. They are
                 # synthesized close-only from the collected items.
@@ -2734,6 +2752,7 @@ class GenerateStage:
                     items,
                     target_date=target_date,
                     source_outcomes=source_outcomes,
+                    previous_closes=previous_domestic_anchor_closes,
                 )
                 if kr_anchors:
                     existing = market_anchors_by_segment.get(DOMESTIC_EQUITY, ())
@@ -2971,6 +2990,7 @@ class GenerateStage:
                 "entity_observed_at_utc": entity_observed_at_utc,
                 "public_document_context": public_document_context,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
+                "previous_domestic_anchor_closes": previous_domestic_anchor_closes,
                 "_stage_alerts": stage_alerts,
             },
             stage_notes=stage_notes,
@@ -2993,6 +3013,10 @@ class PublishStage:
         segmented_mode = cast("bool", accumulated["segmented_mode"])
         items = cast("list[NormalizedItem]", accumulated["items"])
         source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
+        previous_domestic_anchor_closes = cast(
+            "Mapping[str, Decimal]",
+            accumulated.get("previous_domestic_anchor_closes", {}),
+        )
         segment_briefings = cast(
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
         )
@@ -3067,6 +3091,7 @@ class PublishStage:
                     git_runner=git_runner,
                     items=items,
                     source_outcomes=source_outcomes,
+                    previous_domestic_anchor_closes=previous_domestic_anchor_closes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
                     extra_commit_paths=(*image_candidate_paths, *coverage_staging_paths),
                     phase_one_complete=True,
@@ -3130,6 +3155,10 @@ class NotifyStage:
         segmented_mode = cast("bool", accumulated["segmented_mode"])
         items = cast("list[NormalizedItem]", accumulated["items"])
         source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
+        previous_domestic_anchor_closes = cast(
+            "Mapping[str, Decimal]",
+            accumulated.get("previous_domestic_anchor_closes", {}),
+        )
         segment_briefings = cast(
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
         )
@@ -3194,6 +3223,7 @@ class NotifyStage:
                     items,
                     target_date=target_date,
                     source_outcomes=source_outcomes,
+                    previous_closes=previous_domestic_anchor_closes,
                 ),
                 lookahead_items_by_segment=lookahead_items_by_segment,
                 now_utc=notify_now_utc,

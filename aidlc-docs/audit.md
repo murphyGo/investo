@@ -5766,3 +5766,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: `test_domestic_anchor_quarantine.py` 22 passed; related regression tests 45 passed; all orchestrator unit tests 429 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-3-discontinuity-quarantine.md`.
 **Status**: Step 3 checklist complete 3/7. Next: Step 4 load the previous-close mapping once and wire it through anchor assembly, quality metadata, and notification filtering.
+
+## Construction — u130 Code Generation Step 3 synchronization and Step 4 approval
+**Timestamp**: 2026-07-27T00:55:51Z
+**Synchronization**: Committed the validated Step 3 slice as `1855b91` (`feat: quarantine discontinuous domestic anchors`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched.
+**User response**: `커밋 푸시 후 계속 진행`
+**Decision**: Treat the explicit continuation after the reported Step 4 target as approval to execute Code Generation Step 4/7.
+**Target**: Load the previous-close mapping once per segmented run and pass that identical mapping through domestic anchor assembly, quality-history withheld metadata, and notification-side trusted-item filtering. Steps 5-7 remain out of scope for this invocation.
+
+## Construction — u130 Code Generation Step 4 complete
+**Timestamp**: 2026-07-27T07:49:18Z
+**Action**: Hoisted the previous domestic anchor close lookup into the segmented GenerateStage and preserved the same mapping through domestic anchor construction, PublishStage quality-history assembly, and NotifyStage trusted-item filtering.
+**Metadata**: `discontinuous` verdicts now increment `domestic_anchor_withheld_count` and appear last in the deterministic `domestic_anchor_withheld_reasons` order without changing existing reason ordering.
+**Compatibility**: Legacy/unsegmented runs do not invoke the archive loader and use empty fail-open defaults. Missing accumulated state remains safe for direct stage callers.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings and confirmed one archive scan per segmented run plus identical-object propagation to all three consumers.
+**Validation**: 31 focused tests passed; all orchestrator unit tests 433 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-4-production-metadata-wiring.md`.
+**Status**: Step 4 checklist complete 4/7. Next: Step 5 rendered 2026-06-30 regression fixture.
