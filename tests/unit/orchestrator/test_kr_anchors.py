@@ -92,6 +92,21 @@ def test_untrusted_kr_anchor_is_quarantined() -> None:
     assert [a.ticker for a in anchors] == ["^KOSDAQ"]
 
 
+def test_discontinuous_kr_anchor_is_quarantined_with_previous_close() -> None:
+    items = [
+        _kr_item("^KOSPI", "2650.50"),
+        _kr_item("^KOSDAQ", "344.00"),
+    ]
+
+    anchors = _build_kr_anchors_from_items(
+        items,
+        target_date=_TS.date(),
+        previous_closes={"^KOSDAQ": Decimal("477.00")},
+    )
+
+    assert [a.ticker for a in anchors] == ["^KOSPI"]
+
+
 def test_failed_source_outcome_quarantines_kr_anchors() -> None:
     items = [_kr_item("^KOSPI", "2650.50")]
 

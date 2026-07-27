@@ -162,6 +162,7 @@ def _build_kr_anchors_from_items(
     *,
     target_date: date | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
+    previous_closes: Mapping[str, Decimal] | None = None,
 ) -> tuple[MarketAnchor, ...]:
     """Synthesize close-only domestic :class:`MarketAnchor` rows (u67).
 
@@ -181,6 +182,7 @@ def _build_kr_anchors_from_items(
             items,
             target_date=target_date,
             source_outcomes=source_outcomes,
+            previous_closes=previous_closes,
         )
         if verdict.trust == "trusted" and verdict.candidate.symbol in _KR_ANCHOR_TICKERS
     }

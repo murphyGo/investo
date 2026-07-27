@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u130 domestic-anchor-level-claim-quarantine-v2
 **Stage**: Code Generation
-**Status**: In Progress (Step 3/7 complete)
+**Status**: In Progress (Step 4/7 complete)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~4-5 h
 **Dependencies**:
@@ -68,7 +68,7 @@ NFR Requirements: SKIP — deterministic string/decimal logic; no new dependency
 - [x] Step 1 — Read `src/investo/publisher/anchor_assertion_gate.py` end to end; extend claim detection with the level-claim pattern (Fixed Contract 1), reusing `_SEGMENT_CORE_SYMBOLS` and the existing sentence splitter. Add unit tests for the exact 2026-06-30 sentences ("코스피는 150.00, 코스닥은 344.00을 나타냈다", "SK하이닉스[000660]는 2,628,000원으로 동반 하락했다").
 - [x] Step 2 — Add the consistency sweep (Fixed Contract 4) as a post-pass in the gate's public entry point; pin idempotency with a double-application test.
 - [x] Step 3 — In `src/investo/orchestrator/domestic_anchor_quarantine.py`, add the `discontinuous` reason (Fixed Contract 3). Locate the previous-published-value lookup: first inspect what u109 already loads for `stale` detection; reuse that data path. Add tests for 477→344 (quarantined), 477→460 (passes), no-history (skipped).
-- [ ] Step 4 — Wire `discontinuous` into withheld-count/reasons metadata (`src/investo/orchestrator/pipeline.py` quality assembly; follow the existing reason plumbing added by u109).
+- [x] Step 4 — Wire `discontinuous` into withheld-count/reasons metadata (`src/investo/orchestrator/pipeline.py` quality assembly; follow the existing reason plumbing added by u109).
 - [ ] Step 5 — Record a rendered regression fixture: run the reader-format + gate chain over a stored copy of the raw 2026-06-30 domestic Stage-2 output (or a trimmed snippet fixture reproducing the four "150.00" claims) and assert no precise 코스피 level survives.
 - [ ] Step 6 — Prove US/crypto fixtures byte-unchanged (existing `test_anchor_assertion_gate.py` US/crypto cases must not need edits).
 - [ ] Step 7 — Quality gate: scoped ruff + format, `mypy src`, focused pytest for the two modules, full `pytest tests/unit/publisher tests/unit/orchestrator`.

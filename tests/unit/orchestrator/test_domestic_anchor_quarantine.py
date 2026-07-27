@@ -405,6 +405,31 @@ def test_quality_snapshot_records_domestic_anchor_withholding() -> None:
     assert snapshot.domestic_anchor_withheld_reasons == ("implausible",)
 
 
+def test_quality_snapshot_records_discontinuous_anchor_withholding() -> None:
+    briefing = Briefing(
+        target_date=_TARGET,
+        market_summary="summary",
+        key_issues="issues",
+        sector_flow="sector",
+        indicators_events="events",
+        notable_tickers="tickers",
+        today_watch="watch",
+        disclaimer=DISCLAIMER,
+        rendered_markdown="# 국내\n\n## ① 요약\n본문\n\n" + DISCLAIMER,
+    )
+
+    snapshot = _build_quality_snapshot(
+        briefings={"domestic-equity": briefing},
+        published_segments=("domestic-equity",),
+        items=[_item("^KOSDAQ", "344.00")],
+        source_outcomes=(),
+        previous_domestic_anchor_closes={"^KOSDAQ": Decimal("477.00")},
+    )
+
+    assert snapshot.domestic_anchor_withheld_count == 1
+    assert snapshot.domestic_anchor_withheld_reasons == ("discontinuous",)
+
+
 def test_quality_snapshot_figures_presence_requires_verified_rendered_fact() -> None:
     briefing = Briefing(
         target_date=_TARGET,

@@ -859,6 +859,89 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
 
 
 @pytest.mark.asyncio
+async def test_run_pipeline_loads_previous_domestic_closes_once_for_all_consumers(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    previous_closes = {"^KOSDAQ": Decimal("477.00")}
+    load_calls: list[tuple[Path, date]] = []
+    anchor_inputs: list[object] = []
+    publish_inputs: list[object] = []
+    notify_inputs: list[object] = []
+
+    def _load_previous(root: Path, target_date: date) -> dict[str, Decimal]:
+        load_calls.append((root, target_date))
+        return previous_closes
+
+    async def _load_history(
+        target_date: date,
+    ) -> tuple[dict[MarketSegment, tuple[object, ...]], dict[str, tuple[OHLCRow, ...]]]:
+        assert target_date == _TARGET
+        return ({segment: () for segment in pipeline_module.SEGMENT_ORDER}, {})
+
+    def _capture_anchor_inputs(
+        items: Sequence[NormalizedItem],
+        *,
+        target_date: date | None = None,
+        source_outcomes: Sequence[SourceOutcome] = (),
+        previous_closes: object = None,
+    ) -> tuple[object, ...]:
+        del items, target_date, source_outcomes
+        anchor_inputs.append(previous_closes)
+        return ()
+
+    async def _capture_publish(
+        briefings: dict[MarketSegment, Briefing],
+        target_date: date,
+        **kwargs: object,
+    ) -> dict[MarketSegment, Path]:
+        del briefings
+        assert target_date == _TARGET
+        publish_inputs.append(kwargs["previous_domestic_anchor_closes"])
+        return {}
+
+    def _capture_notify_filter(
+        items: Sequence[NormalizedItem],
+        *,
+        target_date: date | None = None,
+        source_outcomes: Sequence[SourceOutcome] = (),
+        previous_closes: object = None,
+    ) -> tuple[NormalizedItem, ...]:
+        del target_date, source_outcomes
+        notify_inputs.append(previous_closes)
+        return tuple(items)
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "load_previous_domestic_anchor_closes",
+        _load_previous,
+    )
+    monkeypatch.setattr(pipeline_module, "_load_market_anchors_for_run", _load_history)
+    monkeypatch.setattr(pipeline_module, "_build_kr_anchors_from_items", _capture_anchor_inputs)
+    monkeypatch.setattr(pipeline_module, "_stage_publish_segments", _capture_publish)
+    monkeypatch.setattr(pipeline_module, "trusted_domestic_price_items", _capture_notify_filter)
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("seed")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_success_segment_generate([]),
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert load_calls == [(archive_root, _TARGET)]
+    assert anchor_inputs == [previous_closes]
+    assert publish_inputs == [previous_closes]
+    assert notify_inputs == [previous_closes]
+    assert anchor_inputs[0] is previous_closes
+    assert publish_inputs[0] is previous_closes
+    assert notify_inputs[0] is previous_closes
+
+
+@pytest.mark.asyncio
 async def test_run_pipeline_recent_context_disabled_when_env_zero(
     archive_root: Path,
     monkeypatch: pytest.MonkeyPatch,
