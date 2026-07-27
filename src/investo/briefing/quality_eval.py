@@ -158,7 +158,7 @@ def compute_quality_kpis(
     zero_item_sources = sum(
         sum(1 for entry in outcomes if entry.get("status") == "zero") for outcomes in runs.values()
     )
-    archive_files = list(_iter_archive_files(archive_root, today=today, window_days=window_days))
+    archive_files = list(iter_archive_files(archive_root, today=today, window_days=window_days))
     briefings_observed = len(archive_files)
     briefings_data_limited = sum(1 for path in archive_files if _is_data_limited(path))
     briefings_with_figures = sum(
@@ -381,8 +381,14 @@ def _load_recent_runs(
     return out
 
 
-def _iter_archive_files(archive_root: Path, *, today: date, window_days: int) -> Iterable[Path]:
-    """Yield archive markdown files written within the window."""
+def iter_archive_files(archive_root: Path, *, today: date, window_days: int) -> Iterable[Path]:
+    """Yield archive Markdown files inside an inclusive calendar-day window.
+
+    The iterator deliberately does not apply weekday filtering: Investo can
+    publish weekend archives, and consumers decide which segments or dates
+    they need from this shared bounded walk.
+    """
+
     if not archive_root.exists():
         return
     horizon = today - timedelta(days=window_days - 1)
@@ -515,5 +521,6 @@ __all__ = [
     "QualityKPIs",
     "compute_quality_history",
     "compute_quality_kpis",
+    "iter_archive_files",
     "render_quality_page",
 ]
