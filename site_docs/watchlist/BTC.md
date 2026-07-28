@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-28 begin -->
+
+## 2026-07-28
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7949 contracts
+- [coingecko-price] **ticker**: BTC $63,688.00 (-1.30%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $455,796,590 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Ionic Digital jumps 25% in Nasdaq debut after expanding Celsius bitcoin mining assets into AI infrastructure
+- [theblock-crypto] **ticker**: Morgan Stanley debuts Ethereum and Solana ETFs with market’s lowest fee, staking rewards
+
+<!-- u33 entry 2026-07-28 end -->
 <!-- u33 entry 2026-07-27 begin -->
 
 ## 2026-07-27

@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-28 begin -->
+
+## 2026-07-28
+
+- [yonhap-market] **ticker**: 엔비디아, '챗GPT 개발 주역' 스타트업에 7.3조원 투자
+- [yonhap-market] **ticker**: 자사 AI 생태계 강화?…"엔비디아 73조원 데이터센터 임차"
+- [nasdaq-symbol-directory] **ticker**: NVDA listing metadata: NVIDIA Corporation - Common Stock
+- [sec-company-facts] **ticker**: NVDA SEC company facts: NVIDIA CORP
+- [yfinance-price] **ticker**: NVDA 197.01 (+0.25%)
+
+<!-- u33 entry 2026-07-28 end -->
 <!-- u33 entry 2026-07-27 begin -->
 
 ## 2026-07-27

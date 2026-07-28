@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-28 begin -->
+
+## 2026-07-28
+
+- [coingecko-price] **ticker**: SOL $73.32 (-2.60%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.9B; leader Ethereum
+- [theblock-crypto] **ticker**: Crypto hacks hit record high in H1 2026 as losses top $1 billion, Blockaid says
+- [theblock-crypto] **ticker**: Morgan Stanley debuts Ethereum and Solana ETFs with market’s lowest fee, staking rewards
+
+<!-- u33 entry 2026-07-28 end -->
 <!-- u33 entry 2026-07-27 begin -->
 
 ## 2026-07-27

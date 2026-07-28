@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-28 begin -->
+
+## 2026-07-28
+
+- [yonhap-market] **ticker**: 아마존, 위성 5천기 발사 승인 요청…스타링크 도전
+- [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
+- [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
+- [yfinance-price] **ticker**: AMZN 230.86 (-0.23%)
+
+<!-- u33 entry 2026-07-28 end -->
 <!-- u33 entry 2026-07-27 begin -->
 
 ## 2026-07-27

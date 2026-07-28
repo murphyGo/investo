@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-28 begin -->
+
+## 2026-07-28
+
+- [yonhap-market] **ticker**: 애플 차기 경영자도 영화·TV 분야에 자신감 보여
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+- [yfinance-price] **ticker**: AAPL 340.08 (+0.94%)
+
+<!-- u33 entry 2026-07-28 end -->
 <!-- u33 entry 2026-07-27 begin -->
 
 ## 2026-07-27
