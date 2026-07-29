@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-29 begin -->
+
+## 2026-07-29
+
+- [nasdaq-earnings-calendar] **ticker**: MSFT earnings — after-hours — EPS forecast $4.21
+- [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
+- [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+- [yfinance-price] **ticker**: MSFT 390.54 (-0.71%)
+
+<!-- u33 entry 2026-07-29 end -->
 <!-- u33 entry 2026-07-28 begin -->
 
 ## 2026-07-28

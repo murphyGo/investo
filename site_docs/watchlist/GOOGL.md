@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-29 begin -->
+
+## 2026-07-29
+
+- [yonhap-market] **ticker**: 구글 딥마인드 노벨상 수상 알파폴드팀 해체
+- [nasdaq-symbol-directory] **ticker**: GOOGL listing metadata: Alphabet Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: GOOGL SEC company facts: Alphabet Inc.
+- [yfinance-price] **ticker**: GOOGL 336.71 (+0.90%)
+
+<!-- u33 entry 2026-07-29 end -->
 <!-- u33 entry 2026-07-28 begin -->
 
 ## 2026-07-28

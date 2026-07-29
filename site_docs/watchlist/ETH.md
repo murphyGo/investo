@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-29 begin -->
+
+## 2026-07-29
+
+- [coingecko-price] **ticker**: ETH $1,905.04 (-0.90%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Tether’s GENIUS-compliant USAT stablecoin launches on Celo, marking first expansion beyond Ethereum
+- [theblock-crypto] **ticker**: ‘Ethereum Cypherpunk Manifesto’ author joins Ethereum Foundation as fourth board member
+
+<!-- u33 entry 2026-07-29 end -->
 <!-- u33 entry 2026-07-28 begin -->
 
 ## 2026-07-28

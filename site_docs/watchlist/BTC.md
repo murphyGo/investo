@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-29 begin -->
+
+## 2026-07-29
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7949 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,268,072,995,138; BTC dominance 56.49%
+- [coingecko-price] **ticker**: BTC $63,872.00 (+0.00%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $460,841,560 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000819182843050 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: ‘Sleepy July’: K33 says bitcoin spot volume on track for weakest month since late 2023
+
+<!-- u33 entry 2026-07-29 end -->
 <!-- u33 entry 2026-07-28 begin -->
 
 ## 2026-07-28

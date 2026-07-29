@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-29 begin -->
+
+## 2026-07-29
+
+- [coingecko-price] **ticker**: SOL $73.57 (-0.60%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.2B; leader Ethereum
+- [theblock-crypto] **ticker**: ‘The moment to act is now’: Solana Policy Institute urges Senate to move on crypto bill as time dwindles
+
+<!-- u33 entry 2026-07-29 end -->
 <!-- u33 entry 2026-07-28 begin -->
 
 ## 2026-07-28
