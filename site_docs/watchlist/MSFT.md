@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-30 begin -->
+
+## 2026-07-30
+
+- [yonhap-market] **ticker**: MS 올해 자본지출 가이던스 유지…메타는 하단 상향(종합)
+- [yonhap-market] **ticker**: 뉴욕증시, 마이크로소프트 실적·반도체 강세 힘입어 상승 출발
+- [nasdaq-stocks-news] **ticker**: Stocks Rally on Stellar Microsoft Earnings and Chip Stock Strength
+- [nasdaq-stocks-news] **ticker**: Stocks Rebound as Microsoft Earnings Ease AI Spending Concerns
+- [nasdaq-stocks-news] **ticker**: Stocks Settle Sharply Higher as Microsoft Leads a Surge in Tech Stocks
+- [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
+- [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
+- [yfinance-price] **ticker**: MSFT 451.10 (+15.51%)
+
+<!-- u33 entry 2026-07-30 end -->
 <!-- u33 entry 2026-07-29 begin -->
 
 ## 2026-07-29

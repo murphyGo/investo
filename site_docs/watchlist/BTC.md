@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-30 begin -->
+
+## 2026-07-30
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7949 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,297,903,055,640; BTC dominance 56.58%
+- [coingecko-price] **ticker**: BTC $64,851.00 (+1.50%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $460,019,890 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000652204646207 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Coinbase shares slip after Q2 results despite prediction markets doubling and record trading market share
+- [theblock-crypto] **ticker**: Hyperscale Data sells 100 bitcoin to fund Michigan AI data center build
+- [theblock-crypto] **ticker**: Strategy posts $8.2 billion loss as bitcoin holdings increase 11% during Q2
+- [theblock-crypto] **ticker**: ‘Paid to wait’: Bitcoin presses toward $65,000 as Treasuries out-yield the carry trade for only second time on record
+
+<!-- u33 entry 2026-07-30 end -->
 <!-- u33 entry 2026-07-29 begin -->
 
 ## 2026-07-29

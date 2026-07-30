@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-30 begin -->
+
+## 2026-07-30
+
+- [nasdaq-earnings-calendar] **ticker**: AMZN earnings — after-hours — EPS forecast $1.83
+- [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
+- [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
+- [yfinance-price] **ticker**: AMZN 235.50 (+3.90%)
+
+<!-- u33 entry 2026-07-30 end -->
 <!-- u33 entry 2026-07-29 begin -->
 
 ## 2026-07-29

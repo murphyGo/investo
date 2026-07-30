@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-30 begin -->
+
+## 2026-07-30
+
+- [coingecko-price] **ticker**: ETH $1,926.06 (+1.30%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.6B; leader Ethereum
+- [theblock-crypto] **ticker**: Quantum Solutions loses top Japan ETH treasury spot after another $1.9 million sale
+
+<!-- u33 entry 2026-07-30 end -->
 <!-- u33 entry 2026-07-29 begin -->
 
 ## 2026-07-29
