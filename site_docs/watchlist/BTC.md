@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-31 begin -->
+
+## 2026-07-31
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6873 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,248,175,421,548; BTC dominance 56.22%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $468,112,430 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000026036088491 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Analysts back Strategy’s cash buildup as Saylor shifts from ‘100% bitcoin’ approach
+- [theblock-crypto] **ticker**: Bitcoin losses linked to Coldcard vulnerability grow to $70 million, Galaxy Research says
+- [theblock-crypto] **ticker**: ‘Funds may be at risk’: Coinkite issues warning for Coldcard Mk3 users amid 594 BTC theft reports
+
+<!-- u33 entry 2026-07-31 end -->
 <!-- u33 entry 2026-07-30 begin -->
 
 ## 2026-07-30

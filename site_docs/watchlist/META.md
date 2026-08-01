@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-31 begin -->
+
+## 2026-07-31
+
+- [nasdaq-symbol-directory] **ticker**: META listing metadata: Meta Platforms, Inc. - Class A Common Stock
+- [sec-company-facts] **ticker**: META SEC company facts: Meta Platforms, Inc.
+- [yfinance-price] **ticker**: META 556.71 (+3.28%)
+
+<!-- u33 entry 2026-07-31 end -->
 <!-- u33 entry 2026-07-30 begin -->
 
 ## 2026-07-30

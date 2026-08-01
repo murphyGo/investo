@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-31 begin -->
+
+## 2026-07-31
+
+- [yonhap-market] **ticker**: 애플, 4∼6월 분기 최대 매출…반도체 가격 급등에도 마진율↑(종합2보)
+- [nasdaq-symbol-directory] **ticker**: AAPL listing metadata: Apple Inc. - Common Stock
+- [sec-company-facts] **ticker**: AAPL SEC company facts: Apple Inc.
+- [yahoo-finance-news] **ticker**: Want to trade SpaceX for Apple? 1inch says skip the dollars
+- [yfinance-price] **ticker**: AAPL 308.91 (-7.35%)
+
+<!-- u33 entry 2026-07-31 end -->
 <!-- u33 entry 2026-07-30 begin -->
 
 ## 2026-07-30

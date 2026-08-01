@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-07-31 begin -->
+
+## 2026-07-31
+
+- [defillama-market-structure] **ticker**: DeFi TVL $74.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum’s 43-day staking queue isn’t a clean demand signal, Sygnum says
+- [theblock-crypto] **ticker**: TD Cowen cuts Sharplink price target to $13 on lower 2026 ether outlook
+
+<!-- u33 entry 2026-07-31 end -->
 <!-- u33 entry 2026-07-30 begin -->
 
 ## 2026-07-30
