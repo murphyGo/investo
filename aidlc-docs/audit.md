@@ -5800,3 +5800,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: The focused fixture test passed; all publisher unit tests 977 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-5-rendered-regression-fixture.md`.
 **Status**: Step 5 checklist complete 5/7. Next: Step 6 prove US/crypto behavior byte-unchanged.
+
+## Construction — u130 Code Generation Step 5 synchronization and Step 6 approval
+**Timestamp**: 2026-08-02T19:30:59Z
+**Synchronization**: Repaired the prunable isolated worktree after temporary-directory cleanup, reconstructed the previously reviewed Step 5 slice byte-for-byte from its evidence, re-ran the full publisher validation, committed it as `41e2042` (`test: pin domestic anchor incident rendering`), and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched.
+**User response**: `더이상 개발할 게 없을 떄까지 커밋 푸시 후 계속 진행해줘`
+**Decision**: Continue autonomously through the remaining u130 plan steps, committing and pushing each validated slice. Execute Code Generation Step 6/7 now.
+**Target**: Prove the existing US/crypto anchor-gate fixtures remain byte-identical to the pre-u130 baseline without modifying those fixture cases or production code. Step 7 remains the final quality gate.
+
+## Construction — u130 Code Generation Step 6 complete
+**Timestamp**: 2026-08-02T19:34:54Z
+**Action**: Compared current u130 gate behavior with the pre-u130 baseline commit `08b241f43824463370b9c1faf6e504cc0170f7a4` for four representative existing US/crypto move and bare-level cases.
+**Compatibility**: Current and baseline rendered Markdown bytes, ordered finding tuples, and SHA-256 digests matched exactly for every case. Existing US/crypto test cases were not edited, and Step 6 required no production-code change.
+**Review**: Fresh-eyes review independently repeated the in-process baseline/current comparison and approved AC-130.6 with no Critical/High/Medium/Low findings.
+**Validation**: 3 focused existing US/crypto tests passed; all 45 anchor-gate tests passed; four baseline/current characterization hashes matched exactly; `git diff 08b241f..HEAD` confirmed the pre-existing US/crypto cases were unchanged.
+**Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-6-us-crypto-byte-stability.md`.
+**Status**: Step 6 checklist complete 6/7. Next: Step 7 full quality gate and cumulative fresh-eyes review.
