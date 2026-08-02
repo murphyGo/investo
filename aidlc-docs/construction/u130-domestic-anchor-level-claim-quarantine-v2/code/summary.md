@@ -29,5 +29,6 @@ Four representative US/crypto cases were run against pre-u130 commit `08b241f`. 
 - Publisher and orchestrator unit suites: 1,410 passed.
 - Lock and diff checks: passed.
 - Cumulative fresh-eyes review: AC-130.1-6 and Fixed Contracts 1-5 approved with no findings.
+- Scoped requirements cross-check: 100%, APPROVE (`docs/cross-checks/2026-08-03-u130-domestic-anchor-level-claim-quarantine-v2.md`).
 
 No archive/generated-site output changed and no TECH-DEBT item was added.
