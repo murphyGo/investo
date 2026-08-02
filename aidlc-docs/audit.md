@@ -5832,3 +5832,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Extensions**: Property-Based Testing remained Partial and no new pure production function was introduced in Steps 5-7; the Security Baseline remained disabled and u130 added no dependency, source, secret, network call, or cost surface.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/summary.md`.
 **Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
+
+## Cross-Check — u130 complete
+**Timestamp**: 2026-08-02T19:51:24Z
+**Synchronization**: Committed the Step 7 closeout as `2ca93a7` (`docs: close u130 quality gate`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched before cross-check.
+**Scope**: Traced the u130 unit definition, mapped FR/NFR/R13 areas, Fixed Contracts 1-5, Definition of Done, and AC-130.1 through AC-130.6 to implementation, regression tests, baseline compatibility evidence, and the completed quality gate.
+**Result**: 6/6 acceptance criteria Complete, 100% compliance, QA verdict APPROVE. No Partial, Gap, Deferred, or In-Progress item remains in u130.
+**Actions**: No implementation follow-up, development-plan addition, or TECH-DEBT item required.
+**Report**: `docs/cross-checks/2026-08-03-u130-domestic-anchor-level-claim-quarantine-v2.md`.
