@@ -5783,3 +5783,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 31 focused tests passed; all orchestrator unit tests 433 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-4-production-metadata-wiring.md`.
 **Status**: Step 4 checklist complete 4/7. Next: Step 5 rendered 2026-06-30 regression fixture.
+
+## Construction — u130 Code Generation Step 4 synchronization and Step 5 approval
+**Timestamp**: 2026-07-27T08:32:34Z
+**Synchronization**: Committed the validated Step 4 slice as `a6b8411` (`feat: wire domestic continuity metadata`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched.
+**User response**: `커밋 푸시 후 계속 진행`
+**Decision**: Treat the explicit continuation after the reported Step 5 target as approval to execute Code Generation Step 5/7.
+**Target**: Add a redacted trimmed fixture reproducing the four public `코스피 150.00` claim surfaces from the 2026-06-30 domestic Stage-2 shape, run it through the real segment reader-format and anchor-gate chain, and prove no precise KOSPI level survives. Steps 6-7 remain out of scope for this invocation.
+
+## Construction — u130 Code Generation Step 5 complete
+**Timestamp**: 2026-07-27T08:37:39Z
+**Action**: Added a redacted trimmed fixture reproducing the 2026-06-30 domestic Stage-2 KOSPI 150.00 incident across 오늘의 결론, 핵심 동인, section ①, and section ②.
+**Regression**: The test constructs a real domestic `Briefing`, appends the canonical disclaimer, runs `apply_reader_format_to_segments` with the incident's empty prepared anchor set, and proves all four unsupported KOSPI levels disappear while supported neighboring prose remains and the terminal anchor scan is empty.
+**Fixture safety**: Unrelated values and source details are deterministic placeholders; no raw payloads, credentials, repository URLs, notification destinations, or private metadata are stored.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings and confirmed fixture fidelity, cwd-independent path resolution, real-chain coverage, neighboring-prose preservation, and KOSPI-specific replacement evidence.
+**Validation**: The focused fixture test passed; all publisher unit tests 977 passed; scoped Ruff and format passed; `mypy src` passed for 248 source files; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-5-rendered-regression-fixture.md`.
+**Status**: Step 5 checklist complete 5/7. Next: Step 6 prove US/crypto behavior byte-unchanged.
