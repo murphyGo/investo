@@ -7,15 +7,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-07-31
 
 - [yonhap-market] **ticker**: 뉴욕증시, 아마존 실적·반도체 강세 속 혼조 출발
-- [yonhap-market] **ticker**: 빅테크 클라우드 '트리플 서프라이즈'…AI주 동반 급등
-- [yonhap-market] **ticker**: 아마존, 분기매출 2천억불 첫 돌파…메모리급등에 자본지출 상향(종합2보)
-- [nasdaq-stocks-news] **ticker**: Stock Indexes Supported as Amazon Earnings Bolster Tech Stocks
-- [nasdaq-stocks-news] **ticker**: Stocks Finish Higher as Amazon Leads Megacaps Higher
 - [nasdaq-symbol-directory] **ticker**: AMZN listing metadata: Amazon.com, Inc. - Common Stock
 - [sec-company-facts] **ticker**: AMZN SEC company facts: AMAZON COM INC
 - [yfinance-price] **ticker**: AMZN 271.58 (+15.32%)
 
 <!-- u33 entry 2026-07-31 end -->
+
 <!-- u33 entry 2026-07-30 begin -->
 
 ## 2026-07-30

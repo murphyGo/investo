@@ -6,12 +6,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-07-31
 
-- [yonhap-market] **ticker**: 빅테크 클라우드 '트리플 서프라이즈'…AI주 동반 급등
 - [nasdaq-symbol-directory] **ticker**: MSFT listing metadata: Microsoft Corporation - Common Stock
 - [sec-company-facts] **ticker**: MSFT SEC company facts: MICROSOFT CORP
 - [yfinance-price] **ticker**: MSFT 464.72 (+3.02%)
 
 <!-- u33 entry 2026-07-31 end -->
+
 <!-- u33 entry 2026-07-30 begin -->
 
 ## 2026-07-30

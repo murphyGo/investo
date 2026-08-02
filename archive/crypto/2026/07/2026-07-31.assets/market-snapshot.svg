@@ -5,12 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-07-31 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 7월 31일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은 -1.43% 하락한</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$2,248,175,421,548을 기록했고 BTC 도미넌스는 56.22%로 집계됐다. 수집 근거가</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 7월 31일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은 +1.06% 상승한</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$2.26T를 기록했으며 BTC 도미넌스(시장 지배력)는 56.25%로 나타났다. 수집 근거가</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">어제(2026-07-30) 반등을 시도했던 비트코인(BTC) 흐름이 하루 만에 힘을 잃는 모습이다.</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC 하드웨어 지갑(Coldcard Mk3) 취약점, 손실 $70 million로 확대</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">Coinkite가 Coldcard Mk3 사용자 대상 경고를 발령한 가운데, 594건의 BTC 도난</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · 비트코인 CME 레버리지드머니 포지션은 현재 순</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">-6,873계약(미결제약정의 -34.3%)으로 숏 우위인 가운데, 다음 주간 보고에서 숏 비중이 줄어들면</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · CME 비트코인 레버리지드머니 순매도가 -6,873계약보다 축소되면</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">포지셔닝 완화로 관찰하고, 순매도가 추가로 확대되면 파생 압력 심화로 해석한다.</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
