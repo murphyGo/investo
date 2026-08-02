@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u130 domestic-anchor-level-claim-quarantine-v2
 **Stage**: Code Generation
-**Status**: In Progress (Step 6/7 complete)
+**Status**: Complete (7/7, 2026-08-03)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~4-5 h
 **Dependencies**:
@@ -71,7 +71,7 @@ NFR Requirements: SKIP — deterministic string/decimal logic; no new dependency
 - [x] Step 4 — Wire `discontinuous` into withheld-count/reasons metadata (`src/investo/orchestrator/pipeline.py` quality assembly; follow the existing reason plumbing added by u109).
 - [x] Step 5 — Record a rendered regression fixture: run the reader-format + gate chain over a stored copy of the raw 2026-06-30 domestic Stage-2 output (or a trimmed snippet fixture reproducing the four "150.00" claims) and assert no precise 코스피 level survives.
 - [x] Step 6 — Prove US/crypto fixtures byte-unchanged (existing `test_anchor_assertion_gate.py` US/crypto cases must not need edits).
-- [ ] Step 7 — Quality gate: scoped ruff + format, `mypy src`, focused pytest for the two modules, full `pytest tests/unit/publisher tests/unit/orchestrator`.
+- [x] Step 7 — Quality gate: scoped ruff + format, `mypy src`, focused pytest for the two modules, full `pytest tests/unit/publisher tests/unit/orchestrator`.
 
 ## Acceptance Criteria
 
