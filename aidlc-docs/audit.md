@@ -5874,3 +5874,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 51 related reader-format tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-2-meaning-line-integration.md`.
 **Status**: Step 2 checklist complete 2/7. Next: Step 3 주의할 점 snippet integration and continuation contract.
+
+## Construction — u131 Code Generation Step 2 synchronization and Step 3 approval
+**Timestamp**: 2026-08-03T01:42:46Z
+**Synchronization**: Committed the validated Step 2 slice as `4eb2caf` (`fix: bound meaning lines at sentences`) and pushed `codex/u131`; local HEAD and `origin/codex/u131` matched.
+**User response**: `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**Decision**: Continue under the approved seven-step sequence into Step 3 without another approval pause.
+**Target**: Route only 주의할 점 callouts through sentence-boundary bounding, preserve the 90-character cap, append the continuation only after a retained complete sentence with omitted content, and use the exact fixed fallback when no sentence fits.
+
+## Construction — u131 Code Generation Step 3 complete
+**Timestamp**: 2026-08-03T01:42:46Z
+**Action**: Added a caution-only sentence-boundary path in the first-viewport reflow. It reserves continuation space before selecting the last complete sentence and leaves the existing TL;DR, 오늘의 결론, and 핵심 동인 word-boundary behavior unchanged.
+**Fallback and idempotency**: No fitting complete sentence renders exact `본문 §②·§④ 참조`. `본문 참고.` follows a complete retained sentence only when non-empty source text was omitted. Reapplying reflow remains byte-stable.
+**Review**: Fresh-eyes review found one Low documentation-contract mismatch because the public non-caution helper still described itself as caution-capable. The docstring and reflow step contract were corrected; re-review approved with no remaining findings and independently passed 25 focused tests.
+**Validation**: 63 related reader-format/helper tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-3-caution-snippet-integration.md`.
+**Status**: Step 3 checklist complete 3/7. Next: Step 4 watchpoint card-title segment-drop without ellipsis.
