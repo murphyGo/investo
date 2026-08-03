@@ -39,6 +39,7 @@ from investo._internal.surface_quality import (
     has_blocking_surface_issue,
     looks_truncated_mid_token,
 )
+from investo._internal.text import bound_at_sentence
 from investo.publisher.reader_format._constants import (
     _DISCLAIMER_FOOTER_ANCHOR,
     _FIRST_SECTION_MARKER,
@@ -72,6 +73,7 @@ _DIAGNOSTICS_DETAILS_CLOSE: Final[str] = "</details>"
 # First-viewport caution/watchpoint snippet bound (Korean-visible chars).
 SNIPPET_MAX_CHARS: Final[int] = 90
 _SNIPPET_CONTINUATION: Final[str] = " 본문 참고."
+_CAUTION_SNIPPET_FALLBACK: Final[str] = "본문 §②·§④ 참조"
 # Word-boundary characters we may truncate at (whitespace + sentence punct).
 # The set intentionally includes Korean / typographic punctuation glyphs;
 # these are the literal boundary characters we cut at, not lookalikes.
@@ -130,7 +132,7 @@ def _extract_badge_lines(text: str) -> tuple[str, list[str]]:
 
 
 def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> str:
-    """Bound a single caution/watchpoint snippet for the first viewport.
+    """Bound a non-caution summary snippet for the first viewport.
 
     u71 only reflows/truncates *valid* values; malformed-summary repair is
     u61's job (we never add a parallel validator here). A too-long but valid
@@ -158,6 +160,32 @@ def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> 
         if not has_blocking_surface_issue(bounded):
             return bounded
     return ""
+
+
+def _bound_caution_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> str:
+    """Bound a caution callout at a complete sentence boundary.
+
+    The continuation consumes part of the cap and is appended only after a
+    complete retained sentence when non-empty content was omitted.  A short
+    value that already carries truncation residue is rejected so the caller
+    can render the deterministic caution fallback instead of preserving a
+    broken clause.
+    """
+    stripped = value.strip()
+    if len(stripped) <= max_chars:
+        return "" if _looks_like_truncated_summary_snippet(stripped) else stripped
+
+    budget = max_chars - len(_SNIPPET_CONTINUATION)
+    if budget <= 0:
+        return ""
+    bounded = bound_at_sentence(stripped, budget)
+    if bounded is None:
+        return ""
+    omitted = stripped[len(bounded) :].strip()
+    if not omitted:
+        return bounded
+    candidate = f"{bounded}{_SNIPPET_CONTINUATION}"
+    return "" if has_blocking_surface_issue(candidate) else candidate
 
 
 def _snippet_boundary_ends(value: str, *, budget: int) -> tuple[int, ...]:
@@ -222,13 +250,14 @@ def _bound_first_viewport_summary_lines(text: str) -> str:
         tail = text[split_at:]
 
     def _summary_repl(match: re.Match[str]) -> str:
-        bounded = bound_summary_snippet(match.group("body"))
+        is_caution = "주의할 점" in match.group("prefix")
+        bounded = (
+            _bound_caution_snippet(match.group("body"))
+            if is_caution
+            else bound_summary_snippet(match.group("body"))
+        )
         if not bounded:
-            bounded = (
-                "주요 주의 사항은 본문을 참고하세요."
-                if "주의할 점" in match.group("prefix")
-                else "요약은 본문을 참고하세요."
-            )
+            bounded = _CAUTION_SNIPPET_FALLBACK if is_caution else "요약은 본문을 참고하세요."
         return f"{match.group('prefix')}{bounded}"
 
     def _bullet_repl(match: re.Match[str]) -> str:
@@ -294,7 +323,8 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
     TL;DR / u56 short-disclaimer placement.
 
     Steps:
-      1. Bound first-viewport TL;DR/callout snippets (≤ 90 chars, word boundary).
+      1. Bound first-viewport snippets to ≤ 90 chars. Caution callouts use a
+         sentence boundary; TL;DR and other callouts keep their u71 word boundary.
       2. Extract the coverage-badge blockquote lines from wherever they sit.
       3. Build a compact status chip from the status/count lines.
       4. Re-insert the chip + a collapsed ``<details>`` diagnostics block

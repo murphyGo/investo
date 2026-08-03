@@ -137,21 +137,21 @@ def test_details_expanded_when_failed() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_long_caution_truncated_at_word_boundary() -> None:
+def test_long_caution_bounded_at_sentence_boundary() -> None:
+    first_sentence = "금리 경로와 외국인 수급을 함께 확인해야 합니다."
     long_caution = (
         "> **주의할 점**: "
-        + "변동성 확대 가능성과 금리 인상 우려 및 실적 둔화 신호가 " * 4
-        + "동시에 작용할 수 있다.\n\n"
+        + first_sentence
+        + " 후속 위험 신호와 금리 변동을 면밀히 점검해야 하는 상황이 이어져" * 3
+        + " 마지막 확인이 필요합니다."
     )
-    out = reflow_first_viewport(_header(summary=_SUMMARY[:0] + long_caution), segment="us-equity")
+    out = reflow_first_viewport(_header(summary=f"{long_caution}\n\n"), segment="us-equity")
     m = re.search(r">\s*\*\*주의할 점\*\*\s*:\s*(.+)", out)
     assert m is not None
     body = m.group(1).strip()
-    assert body.endswith("본문 참고.")
+    assert body == f"{first_sentence} 본문 참고."
     assert len(body) <= SNIPPET_MAX_CHARS
-    # No mid-token break: boundary truncation means the text before the
-    # continuation note is a clean run.
-    assert "  " not in body
+    assert "합니다. 본문 참고." in body
 
 
 def test_bounded_caution_does_not_trip_surface_truncation_gate() -> None:
@@ -163,6 +163,7 @@ def test_bounded_caution_does_not_trip_surface_truncation_gate() -> None:
     out = reflow_first_viewport(_header(summary=long_caution), segment="us-equity")
     m = re.search(r">\s*\*\*주의할 점\*\*\s*:\s*(.+)", out)
     assert m is not None
+    assert m.group(1).strip() == "본문 §②·§④ 참조"
     first_viewport = f"# title\n\n> **주의할 점**: {m.group(1).strip()}\n\n## ① 요약"
 
     assert _surface_issues(first_viewport, "summary.truncated_mid_token") == []
@@ -304,7 +305,7 @@ def test_unbreakable_caution_falls_back_not_blank() -> None:
     out = reflow_first_viewport(_header(summary=bad), segment="us-equity")
     m = re.search(r">\s*\*\*주의할 점\*\*\s*:\s*(\S.+)", out)
     assert m is not None
-    assert m.group(1).strip() == "주요 주의 사항은 본문을 참고하세요."
+    assert m.group(1).strip() == "본문 §②·§④ 참조"
 
 
 # ---------------------------------------------------------------------------
