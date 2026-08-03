@@ -2239,6 +2239,66 @@ Plan: `aidlc-docs/construction/plans/u140-sector-dashboard-public-ohlcv-source-q
 
 Plan: `aidlc-docs/construction/plans/u144-public-document-finalization-contract-code-generation-plan.md`.
 
+---
+
+### u146: `trusted-curated-image-supply-workbench` - Expand the Library Through an Auditable Rights Graph
+
+**Purpose**: Turn exact-file public-license evidence into a repeatable, offline operator review packet so the curated image library can grow without weakening u137/u86's no-auto-clear rule. Phase 1 accepts only exact Wikimedia Commons files whose stored snapshot proves file identity, revision, PD/CC0 license metadata, author, restrictions, binary variant, dimensions, MIME, and source hash. The workbench can emit `READY_FOR_REVIEW`; only a separately authored operator decision can approve filing.
+
+**Stories**: US-002, US-003, US-005, FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-006, NFR-007/R13, NFR-008
+
+**Existing coverage / deduplication**:
+- u86 validates the seven-field curated manifest and local binary, but it does not preserve immutable source revision evidence or a reviewer decision.
+- u137 owns feed candidate ledgers, rights markers, and the licensed store. u146 never writes its clearance tree or promotes feed candidates.
+- u141 selects from the committed curated library after final-body semantic matching. u146 changes supply trust only, not selection.
+
+**Binding contracts**:
+- `visuals/curated_supply.py` owns frozen `CuratedRightsEvidence`, `CuratedOperatorDecision`, exact-byte SHA-256 verification, the 15-entry `legacy-v0` seal, and new-filing graph validation.
+- `scripts/prepare_curated_asset_review.py` is offline, performs no network calls, refuses outputs inside `assets/library`, `assets/images`, and u137 clearances, never writes a manifest/registry/approved decision, and emits at most a deterministic pending review bundle.
+- Exact stored bytes are the hash source. JSON reserialization is never used by the verifier; whitespace-only tampering must break the chain.
+- Every new filed asset requires snapshot + `READY_FOR_REVIEW` evidence + an explicit approved decision + matching binary/manifest + registry reachability. Current 15 assets are exempt only through immutable binary/manifest path and hash entries in `assets/library/_rights/legacy-v0.json`.
+- Phase 1 supports `wikimedia-commons-exact-file` with PD/CC0 only. CC BY/SA, Openverse discovery, WordPress Photo Directory, Unsplash/Pexels, government-photo inference, and publisher feed images remain non-filing inputs until their separate attribution/policy contracts are implemented.
+
+**Definition of Done**:
+- [ ] The exact-file snapshot parser maps only Commons PD/CC0 evidence to `READY_FOR_REVIEW`; missing/restricted/contradictory metadata is `BLOCKED` or rejected.
+- [ ] The workbench cannot approve or file an asset and produces byte-identical output from byte-identical inputs.
+- [ ] Legacy-v0 contains exactly the current 15 assets with category/path/binary/manifest SHA-256 and is itself sealed by a test.
+- [ ] `check_curated_assets.py` fails on every incomplete/tampered new-filing chain and on unregistered library assets.
+- [ ] At least four new Commons exact-file assets are reviewed, filed, registry-reachable, and pass the full graph gate without weakening byte-identity, dimension, or R13 policy.
+- [ ] Tests cover model shape, provider parsing, path traversal, duplicate JSON keys, hash tamper, missing evidence/decision, legacy tamper, no-auto-clear, no-network, R13, and current-library compatibility.
+
+**Construction strategy**: Functional Design and focused NFR Requirements are required because this unit introduces a new external evidence and compliance trust boundary. No runtime source adapter or daily HTTP path is added.
+
+Plan: `aidlc-docs/construction/plans/u146-trusted-curated-image-supply-workbench-code-generation-plan.md`.
+
+---
+
+### u147: `curated-image-semantic-variants` - Select Specific Themes and Distribute Repeated Contexts
+
+**Purpose**: Make the larger curated library useful in the right places. Replace the parallel fixed key-priority list with registry-owned alias metadata, compare every reader-visible alias by semantic specificity and narrative offset, and choose among the winning key's filed variants through a deterministic narrative digest. This prevents a person portrait or broad market image from dominating merely because its key appears earlier in code.
+
+**Stories**: US-002, US-003, US-005, FR-002, FR-003, FR-008, FR-012, NFR-003, NFR-006, NFR-007/R13
+
+**Binding contracts**:
+- Each alias carries an explicit semantic rank. Theme drivers such as semiconductor/data-center/clean-energy/gold are most specific; named people, assets, indices, institutions, and indicators share the next tier; bounded market/location aliases follow; broad market and generic motion terms are last.
+- Candidate ordering is `(semantic_rank, reader_visible_offset, registry_order, alias_order, key)`. Person entries receive no special global precedence. Link destinations, raw URLs, and HTML remain excluded.
+- Selection first fixes the semantic key, filters that key to filed assets in registry order, and selects `sha256(narrative_sha256 + segment + key) mod filed_variant_count`. Deferred assets never affect the modulo.
+- `CuratedSelection` and public provenance record semantic rank, alias offset, variant contract/index/count, and the existing final-body narrative digest.
+- Registry integrity fails on duplicate keys/assets/aliases, empty mappings, dangling references, same-rank alias ambiguity in an overlapping segment, and every filed orphan.
+- New topic keys are limited to data center, clean energy, gold, and Bitcoin mining. Narrow mining hardware cannot serve generic Bitcoin text. History-only KOSPI and semiconductor aliases may exist without registry rows until assets clear byte-identity, freshness, dimension, and R13 gates. No runtime HTTP, LLM, clock, or random source is introduced.
+
+**Definition of Done**:
+- [ ] Specific topical evidence can outrank broad segment anchors while same-tier evidence is resolved by the earliest reader-visible occurrence.
+- [ ] Named-person evidence never wins solely because the person registry row is first.
+- [ ] Every multi-variant key is deterministically reachable; deferred variants do not skew distribution.
+- [ ] The curated gate reports 19 filed, zero deferred, zero orphan assets.
+- [ ] A fixed 11-date/33-segment replay records semantic fit and diversity; role-only person selection remains zero and repeated high-volume keys exercise every filed variant.
+- [ ] Selection, injection provenance, CI failure, and replay audit tests pass with the existing u141 feed-image contract unchanged.
+
+**Construction strategy**: Functional Design and NFR Requirements are skipped. This is a bounded deterministic refinement of u141/u86 with no new dependency, external call, secret, persistence family, or public compliance rule; the code plan fixes the ranking and replay acceptance criteria.
+
+Plan: `aidlc-docs/construction/plans/u147-curated-image-semantic-variants-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

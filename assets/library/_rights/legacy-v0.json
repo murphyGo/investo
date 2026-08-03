@@ -1,0 +1,126 @@
+{
+  "entries": [
+    {
+      "asset_id": "bitcoin",
+      "binary_relpath": "asset/bitcoin.jpg",
+      "binary_sha256": "409a11ee0ee1573fd5a9fc76925b2bdd802e5dd761b50a4f83b10749dd7eeed9",
+      "category": "asset",
+      "manifest_relpath": "asset/bitcoin.manifest.json",
+      "manifest_sha256": "b789154feaf59643c7b462e11937303bfd2d9f3ddaaa2e9785dea7857a755413"
+    },
+    {
+      "asset_id": "cryptocurrency",
+      "binary_relpath": "topic/cryptocurrency.jpg",
+      "binary_sha256": "c54074dffca22605a9c08ae945c4e6c1034d7d019560f93aef3ecd35f70c9cf2",
+      "category": "topic",
+      "manifest_relpath": "topic/cryptocurrency.manifest.json",
+      "manifest_sha256": "117c693bf7d064effc87cb7e81c634e632c6cb5480987e275dfb96b2ab861134"
+    },
+    {
+      "asset_id": "ethereum",
+      "binary_relpath": "asset/ethereum.png",
+      "binary_sha256": "ee568f8a072f565e951867df686cfed85a47a9b9482c836c66b73d043665bbd7",
+      "category": "asset",
+      "manifest_relpath": "asset/ethereum.manifest.json",
+      "manifest_sha256": "813a59254c4dac42ccb22ef131a42a35f51b7fc956e4acc7571aadf9382112fa"
+    },
+    {
+      "asset_id": "federal-reserve",
+      "binary_relpath": "topic/federal-reserve.jpg",
+      "binary_sha256": "4e5834a24625962d8a6bad160e7b38fcebd4ae71d7ca7b439b0e7cf80653725b",
+      "category": "topic",
+      "manifest_relpath": "topic/federal-reserve.manifest.json",
+      "manifest_sha256": "b1f0cb874ce87c7031d92d250fc8291023acafea05d756a1bbb55eb21a8cf4c5"
+    },
+    {
+      "asset_id": "inflation",
+      "binary_relpath": "topic/inflation.jpg",
+      "binary_sha256": "3fd37036d1d8543766fad7a3384bcbd924e6912f930a84fc6981d10d1bb42830",
+      "category": "topic",
+      "manifest_relpath": "topic/inflation.manifest.json",
+      "manifest_sha256": "4d2890ff3fc66c08d0df1299660a39249e88b8fdbab0faef6d42bf7c9d89aac1"
+    },
+    {
+      "asset_id": "jerome-powell",
+      "binary_relpath": "person/jerome-powell.jpg",
+      "binary_sha256": "ec525cf141bf0e4d5d4c693a379070fcd6409dbbfab1bee118d83aa9edaa101a",
+      "category": "person",
+      "manifest_relpath": "person/jerome-powell.manifest.json",
+      "manifest_sha256": "3dbd3bf41ec76c4ef14283932fbef93b8a8800cf5125c3b3e0c306ba4c8b510a"
+    },
+    {
+      "asset_id": "kevin-warsh",
+      "binary_relpath": "person/kevin-warsh.jpg",
+      "binary_sha256": "eb338312c7a4edd75e06fc449ba49cd1d7d27e14ec3146e64f2a96d1291a0648",
+      "category": "person",
+      "manifest_relpath": "person/kevin-warsh.manifest.json",
+      "manifest_sha256": "38e51bfc387fd5bb215a5e871da160205238177bcd158c709704526420727368"
+    },
+    {
+      "asset_id": "korea-market",
+      "binary_relpath": "topic/korea-market.jpg",
+      "binary_sha256": "4504ed870847c9bc182575d8188be7ea9e98ac1cca08f1152f5a564d42677158",
+      "category": "topic",
+      "manifest_relpath": "topic/korea-market.manifest.json",
+      "manifest_sha256": "805e62b9d95ab4c189e44fd56631418f2ac119955a4d1662df1913476b582c6e"
+    },
+    {
+      "asset_id": "kospi",
+      "binary_relpath": "topic/kospi.jpg",
+      "binary_sha256": "3fa65627b4a207ba65fe1c22b27ec6f6e1b518e8e744f68b597af2d501254120",
+      "category": "topic",
+      "manifest_relpath": "topic/kospi.manifest.json",
+      "manifest_sha256": "5b0bbfd98a8717df5ef9e4af00ae945b3eeb6d9738127cb3685d30327b637a08"
+    },
+    {
+      "asset_id": "macro",
+      "binary_relpath": "topic/macro.jpg",
+      "binary_sha256": "d9055afc55d27db5a732f3cb475d08027b89be1f5336acd17e92a3f5594ab825",
+      "category": "topic",
+      "manifest_relpath": "topic/macro.manifest.json",
+      "manifest_sha256": "9040e5518d5d500118e4ccf253e7c4fc18502193b87a81659c29c793f3c73616"
+    },
+    {
+      "asset_id": "scott-bessent",
+      "binary_relpath": "person/scott-bessent.jpg",
+      "binary_sha256": "7400c8be6433a2875fcd006eb9ec6d964ec3dcfda0762e04a950d3322ee0be77",
+      "category": "person",
+      "manifest_relpath": "person/scott-bessent.manifest.json",
+      "manifest_sha256": "6aeb9f13e60152bcce617e1072bc0a456b8e65447666577ed4867d88ebe15937"
+    },
+    {
+      "asset_id": "stock-market-chart",
+      "binary_relpath": "topic/stock-market-chart.jpg",
+      "binary_sha256": "c0dcbab74d81b803f79b0eedd663160ea9a4599dd8ce6f2b455f67f180a23751",
+      "category": "topic",
+      "manifest_relpath": "topic/stock-market-chart.manifest.json",
+      "manifest_sha256": "e12969e2d1428c4d15fde6b674d373d6c9724ee8f08c73796df3f17c6c83a761"
+    },
+    {
+      "asset_id": "us-equity-market",
+      "binary_relpath": "topic/us-equity-market.jpg",
+      "binary_sha256": "1123989dd72f39313a13d26b301bfb708324fea7e351e9968781e97274e2bb04",
+      "category": "topic",
+      "manifest_relpath": "topic/us-equity-market.manifest.json",
+      "manifest_sha256": "63ffad0af4e47e1ac0dd5afa5080c1ae5625a11aa06dbbea50d2f8fcbe402cdb"
+    },
+    {
+      "asset_id": "us-president",
+      "binary_relpath": "person/us-president.jpg",
+      "binary_sha256": "1ad978cae271f99ece7b50fcdb46be9295c719e547fbae25ee1883684a4f85f3",
+      "category": "person",
+      "manifest_relpath": "person/us-president.manifest.json",
+      "manifest_sha256": "ed3526f2b296be3882d16201410b451d263771c4eddd1617b585256c825f01f2"
+    },
+    {
+      "asset_id": "wall-street",
+      "binary_relpath": "topic/wall-street.jpg",
+      "binary_sha256": "6e6de17ec42d15e43ed45e392b09854bb8dbbf0c99ac6606a3ba939a9145bf36",
+      "category": "topic",
+      "manifest_relpath": "topic/wall-street.manifest.json",
+      "manifest_sha256": "831359843e759c9db70227892a11e12ac429a6349cd286d91c82cbae72b2acab"
+    }
+  ],
+  "schema_version": "curated-rights-legacy-v0",
+  "sealed_on": "2026-08-03"
+}

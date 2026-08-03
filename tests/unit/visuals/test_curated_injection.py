@@ -74,6 +74,20 @@ def _seed_filed_library(tmp_path: Path) -> dict:
     return load_library(tmp_path / "library")
 
 
+def _complete_selection(asset: object) -> CuratedSelection:
+    return CuratedSelection(
+        asset=asset,  # type: ignore[arg-type]
+        matched_key="person:jerome-powell",
+        match_reason="alias:Jerome Powell;scope=hero;rank=10;offset=0",
+        narrative_sha256="a" * 64,
+        semantic_rank=10,
+        semantic_offset=0,
+        variant_contract="narrative-key-digest-mod-v1",
+        variant_index=0,
+        variant_count=1,
+    )
+
+
 def _prepare(
     tmp_path: Path,
     selection: CuratedSelection | None,
@@ -95,12 +109,7 @@ def _prepare(
 
 def test_curated_hero_rendered_with_caption_and_disclaimer(tmp_path: Path) -> None:
     library = _seed_filed_library(tmp_path)
-    selection = CuratedSelection(
-        asset=library["jerome-powell"],
-        matched_key="person:jerome-powell",
-        match_reason="boundary-term",
-        narrative_sha256="a" * 64,
-    )
+    selection = _complete_selection(library["jerome-powell"])
     prepared = _prepare(tmp_path, selection)
     markdown = prepared.briefing.rendered_markdown
     # The curated image is rendered as a hero with a provenance caption.
@@ -115,11 +124,16 @@ def test_curated_hero_rendered_with_caption_and_disclaimer(tmp_path: Path) -> No
     assert manifest.additional_metadata["matched_key"] == "person:jerome-powell"
     assert manifest.additional_metadata["narrative_sha256"] == "a" * 64
     assert manifest.additional_metadata["selection_contract"] == "final-body-semantic-v1"
+    assert manifest.additional_metadata["semantic_rank"] == "10"
+    assert manifest.additional_metadata["semantic_offset"] == "0"
+    assert manifest.additional_metadata["variant_contract"] == ("narrative-key-digest-mod-v1")
+    assert manifest.additional_metadata["variant_index"] == "0"
+    assert manifest.additional_metadata["variant_count"] == "1"
 
 
 def test_curated_hero_outranks_ai_but_caption_no_secret(tmp_path: Path) -> None:
     library = _seed_filed_library(tmp_path)
-    selection = CuratedSelection(asset=library["jerome-powell"], matched_key="person:jerome-powell")
+    selection = _complete_selection(library["jerome-powell"])
     prepared = _prepare(tmp_path, selection)
     markdown = prepared.briefing.rendered_markdown
     # Hero is above the reader-status block (above the fold).
@@ -142,6 +156,18 @@ def test_deferred_selection_does_not_render(tmp_path: Path) -> None:
     assert "큐레이션 시황 이미지" not in prepared.briefing.rendered_markdown
 
 
+def test_incomplete_filed_selection_falls_through(tmp_path: Path) -> None:
+    library = _seed_filed_library(tmp_path)
+    prepared = _prepare(
+        tmp_path,
+        CuratedSelection(
+            asset=library["jerome-powell"],
+            matched_key="person:jerome-powell",
+        ),
+    )
+    assert "큐레이션 시황 이미지" not in prepared.briefing.rendered_markdown
+
+
 def test_curated_path_makes_no_http_call(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # AC-1.5 — guard: any httpx call on the curated path explodes the test.
     import httpx
@@ -151,6 +177,6 @@ def test_curated_path_makes_no_http_call(tmp_path: Path, monkeypatch: pytest.Mon
 
     monkeypatch.setattr(httpx.Client, "get", _boom)
     library = _seed_filed_library(tmp_path)
-    selection = CuratedSelection(asset=library["jerome-powell"], matched_key="person:jerome-powell")
+    selection = _complete_selection(library["jerome-powell"])
     prepared = _prepare(tmp_path, selection)
     assert "![큐레이션 시황 이미지]" in prepared.briefing.rendered_markdown

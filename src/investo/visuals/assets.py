@@ -66,6 +66,7 @@ _PNG_IHDR_LENGTH: Final[int] = 25
 _DIMENSION_NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"\d+")
 _MARKET_SNAPSHOT_TEXT_MAX_CHARS: Final[int] = 240
 _FINAL_BODY_SELECTION_CONTRACT: Final[str] = "final-body-semantic-v1"
+_CURATED_VARIANT_CONTRACT: Final[str] = "narrative-key-digest-mod-v1"
 _CARD_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
     "curated-context-image": "큐레이션 시황 이미지",
@@ -715,6 +716,23 @@ def _prepare_curated_context_image(
     """
     if curated_selection is None or curated_selection.asset is None:
         return None
+    matched_key = curated_selection.matched_key
+    narrative_sha256 = curated_selection.narrative_sha256
+    if (
+        not matched_key
+        or not narrative_sha256
+        or re.fullmatch(r"[0-9a-f]{64}", narrative_sha256) is None
+        or curated_selection.semantic_rank is None
+        or curated_selection.semantic_rank < 0
+        or curated_selection.semantic_offset is None
+        or curated_selection.semantic_offset < 0
+        or curated_selection.variant_contract != _CURATED_VARIANT_CONTRACT
+        or curated_selection.variant_count < 1
+        or curated_selection.variant_index is None
+        or curated_selection.variant_index < 0
+        or curated_selection.variant_index >= curated_selection.variant_count
+    ):
+        raise VisualAssetError("curated selection metadata is incomplete")
     asset = curated_selection.asset
     if asset.state != "filed" or asset.path is None:
         return None
@@ -752,10 +770,15 @@ def _prepare_curated_context_image(
         source_url=str(asset.manifest.source_url),
         additional_metadata={
             "asset_id": asset.asset_id,
-            "matched_key": curated_selection.matched_key or "unknown",
+            "matched_key": matched_key,
             "match_reason": curated_selection.match_reason,
-            "narrative_sha256": curated_selection.narrative_sha256 or "unknown",
+            "narrative_sha256": narrative_sha256,
             "selection_contract": _FINAL_BODY_SELECTION_CONTRACT,
+            "semantic_rank": str(curated_selection.semantic_rank),
+            "semantic_offset": str(curated_selection.semantic_offset),
+            "variant_contract": _CURATED_VARIANT_CONTRACT,
+            "variant_index": str(curated_selection.variant_index),
+            "variant_count": str(curated_selection.variant_count),
         },
     )
     write_manifest(manifest, path)

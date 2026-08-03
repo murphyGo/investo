@@ -13,6 +13,7 @@ from investo.visuals.curated import (
     CuratedAsset,
     CuratedLibraryError,
     RegistryEntry,
+    SemanticAlias,
     assert_registry_integrity,
     default_registry,
     load_library,
@@ -242,18 +243,21 @@ def test_dangling_registry_id_fails(tmp_path: Path) -> None:
     library: dict[str, CuratedAsset] = {}
     registry = (
         RegistryEntry(
-            key="asset:bitcoin", asset_ids=("bitcoin",), segment_affinity=frozenset({"crypto"})
+            key="asset:bitcoin",
+            asset_ids=("bitcoin",),
+            segment_affinity=frozenset({"crypto"}),
+            aliases=(SemanticAlias("Bitcoin", 10),),
         ),
     )
     with pytest.raises(CuratedLibraryError, match="unknown asset id"):
         assert_registry_integrity(registry, library)
 
 
-def test_orphan_filed_asset_warns_not_fails(tmp_path: Path) -> None:
+def test_orphan_filed_asset_fails(tmp_path: Path) -> None:
     _file_clean_png(tmp_path / "asset", "bitcoin")
     library = load_library(tmp_path)
-    orphans = assert_registry_integrity((), library)
-    assert orphans == ["bitcoin"]
+    with pytest.raises(CuratedLibraryError, match="orphan curated assets"):
+        assert_registry_integrity((), library)
 
 
 def test_seed_registry_integrity_against_seed_library() -> None:
@@ -263,12 +267,11 @@ def test_seed_registry_integrity_against_seed_library() -> None:
     repo_root = Path(__file__).resolve().parents[3]
     library = load_library(repo_root / LIBRARY_ROOT)
     assert assert_registry_integrity(default_registry(), library) == []
-    # 2026-08-03: all 15 seed keys are filed with license-verified
-    # binaries (PD / 17 U.S.C. 105 / CC0 — see each sibling manifest).
+    # 2026-08-03: all seed keys are filed with license-verified binaries.
     # load_library() has already applied the full clearance gate here;
     # this pins the operator-facing steady state: no deferred stragglers.
     assert all(asset.state == "filed" for asset in library.values())
-    assert len(library) == 15
+    assert len(library) == 19
 
 
 # --------------------------------------------------------------------------- #
@@ -394,6 +397,218 @@ def test_selection_is_byte_stable(tmp_path: Path) -> None:
     a = select_curated_asset("us-equity", context, library, default_registry())
     b = select_curated_asset("us-equity", context, library, default_registry())
     assert a == b
+
+
+def test_specific_driver_alias_outranks_broad_market_alias(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "topic", "market")
+    _file_clean_png(tmp_path / "topic", "data-center")
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key="topic:market",
+            asset_ids=("market",),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias("미국 증시", 30),),
+        ),
+        RegistryEntry(
+            key="topic:data-center",
+            asset_ids=("data-center",),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias("데이터센터", 0),),
+        ),
+    )
+    context = _context("미국 증시는 데이터센터 투자 확대를 반영했다")
+    selection = select_curated_asset("us-equity", context, library, registry)
+    assert selection.matched_key == "topic:data-center"
+    assert selection.semantic_rank == 0
+
+
+def test_dated_kospi_chart_requires_explicit_history_context(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "topic", "kospi")
+    _file_clean_png(tmp_path / "topic", "kospi-history")
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key="topic:kospi",
+            asset_ids=("kospi",),
+            segment_affinity=frozenset({"domestic-equity"}),
+            aliases=(SemanticAlias("KOSPI", 10), SemanticAlias("코스피", 10)),
+        ),
+        RegistryEntry(
+            key="topic:kospi-history",
+            asset_ids=("kospi-history",),
+            segment_affinity=frozenset({"domestic-equity"}),
+            aliases=(
+                SemanticAlias("KOSPI history", 0),
+                SemanticAlias("코스피 장기 추이", 0),
+            ),
+        ),
+    )
+    current = select_curated_asset(
+        "domestic-equity",
+        _context("KOSPI rose in today's session", segment="domestic-equity"),
+        library,
+        registry,
+    )
+    historical = select_curated_asset(
+        "domestic-equity",
+        _context("KOSPI history shows a long cycle", segment="domestic-equity"),
+        library,
+        registry,
+    )
+    current_long_term = select_curated_asset(
+        "domestic-equity",
+        _context("코스피 장기 투자자 수급을 점검한다", segment="domestic-equity"),
+        library,
+        registry,
+    )
+    assert current.asset is not None and current.asset.asset_id == "kospi"
+    assert current_long_term.asset is not None
+    assert current_long_term.asset.asset_id == "kospi"
+    assert historical.asset is not None
+    assert historical.asset.asset_id == "kospi-history"
+
+
+def test_bitcoin_miner_requires_explicit_mining_context(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "asset", "bitcoin")
+    _file_clean_png(tmp_path / "asset", "bitcoin-miner")
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key="asset:bitcoin",
+            asset_ids=("bitcoin",),
+            segment_affinity=frozenset({"crypto"}),
+            aliases=(SemanticAlias("Bitcoin", 10),),
+        ),
+        RegistryEntry(
+            key="topic:bitcoin-mining",
+            asset_ids=("bitcoin-miner",),
+            segment_affinity=frozenset({"crypto"}),
+            aliases=(SemanticAlias("Bitcoin mining", 0),),
+        ),
+    )
+    generic = select_curated_asset(
+        "crypto",
+        _context("Bitcoin ETF inflows increased", segment="crypto"),
+        library,
+        registry,
+    )
+    mining = select_curated_asset(
+        "crypto",
+        _context("Bitcoin mining hashrate increased", segment="crypto"),
+        library,
+        registry,
+    )
+    assert generic.asset is not None and generic.asset.asset_id == "bitcoin"
+    assert mining.asset is not None and mining.asset.asset_id == "bitcoin-miner"
+
+
+@pytest.mark.parametrize(
+    ("asset_id", "key", "text", "alias"),
+    [
+        ("gold", "asset:gold", "금 가격이 안전자산 수요로 올랐다", "금 가격"),
+        (
+            "renewable-grid",
+            "topic:clean-energy",
+            "재생에너지 투자가 전력망 수요를 키웠다",
+            "재생에너지",
+        ),
+    ],
+)
+def test_specific_new_topic_assets_are_reachable(
+    tmp_path: Path,
+    asset_id: str,
+    key: str,
+    text: str,
+    alias: str,
+) -> None:
+    category = "asset" if key.startswith("asset:") else "topic"
+    _file_clean_png(tmp_path / category, asset_id)
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key=key,
+            asset_ids=(asset_id,),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias(alias, 0),),
+        ),
+    )
+    selection = select_curated_asset("us-equity", _context(text), library, registry)
+    assert selection.asset is not None
+    assert selection.asset.asset_id == asset_id
+    assert selection.semantic_rank == 0
+
+
+def test_same_rank_uses_earliest_reader_visible_alias_not_registry_order(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "powell")
+    _file_clean_png(tmp_path / "topic", "wall-street")
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key="person:powell",
+            asset_ids=("powell",),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias("Jerome Powell", 10),),
+        ),
+        RegistryEntry(
+            key="topic:wall-street",
+            asset_ids=("wall-street",),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias("S&P 500", 10),),
+        ),
+    )
+    context = _context("S&P 500 변동 뒤 Jerome Powell 발언이 이어졌다")
+    selection = select_curated_asset("us-equity", context, library, registry)
+    assert selection.matched_key == "topic:wall-street"
+    assert selection.semantic_offset is not None
+
+
+def test_digest_variant_reaches_every_filed_asset_and_is_stable(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "asset", "bitcoin-a")
+    _file_clean_png(tmp_path / "asset", "bitcoin-b")
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key="asset:bitcoin",
+            asset_ids=("bitcoin-a", "bitcoin-b"),
+            segment_affinity=frozenset({"crypto"}),
+            aliases=(SemanticAlias("Bitcoin", 10),),
+        ),
+    )
+    selected: set[str] = set()
+    for ordinal in range(100):
+        context = _context(f"Bitcoin 시나리오 {ordinal}", segment="crypto")
+        first = select_curated_asset("crypto", context, library, registry)
+        second = select_curated_asset("crypto", context, library, registry)
+        assert first == second
+        assert first.variant_contract == "narrative-key-digest-mod-v1"
+        assert first.variant_count == 2
+        assert first.variant_index in {0, 1}
+        assert first.asset is not None
+        selected.add(first.asset.asset_id)
+    assert selected == {"bitcoin-a", "bitcoin-b"}
+
+
+def test_registry_rejects_same_rank_alias_ambiguity(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "topic", "one")
+    _file_clean_png(tmp_path / "topic", "two")
+    library = load_library(tmp_path)
+    registry = (
+        RegistryEntry(
+            key="topic:one",
+            asset_ids=("one",),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias("shared", 10),),
+        ),
+        RegistryEntry(
+            key="topic:two",
+            asset_ids=("two",),
+            segment_affinity=frozenset({"us-equity"}),
+            aliases=(SemanticAlias("SHARED", 10),),
+        ),
+    )
+    with pytest.raises(CuratedLibraryError, match="ambiguous"):
+        assert_registry_integrity(registry, library)
 
 
 def test_segment_affinity_excludes_candidate(tmp_path: Path) -> None:

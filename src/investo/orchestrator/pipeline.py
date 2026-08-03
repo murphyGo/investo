@@ -2347,16 +2347,21 @@ def _load_curated_runtime_safely() -> (
 
     load_library = curated.load_library
     default_registry = curated.default_registry
+    assert_registry_integrity = curated.assert_registry_integrity
     select_curated_asset = curated.select_curated_asset
     curated_library_error = curated.CuratedLibraryError
     try:
         curated_library = load_library()
+        curated_registry = default_registry()
+        assert_registry_integrity(curated_registry, curated_library)
     except curated_library_error:
-        _logger.warning("curated library failed to load; falling back to existing hero chain")
+        _logger.warning(
+            "curated library or registry failed validation; falling back to existing hero chain"
+        )
         return None
     if not curated_library:
         return None
-    return (curated_library, default_registry(), select_curated_asset)
+    return (curated_library, curated_registry, select_curated_asset)
 
 
 def _read_existing_bytes(path: Path) -> bytes | None:

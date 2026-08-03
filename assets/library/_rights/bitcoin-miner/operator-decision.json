@@ -1,0 +1,19 @@
+{
+  "asset_id": "bitcoin-miner",
+  "binary_relpath": "asset/bitcoin-miner.jpg",
+  "binary_sha256": "fb844a480656090ea0f58979bcc2d72f7c112dda8172c711c547bb804f0a8f00",
+  "decision": "approved",
+  "endorsement_risk_reviewed": true,
+  "evidence_sha256": "328cc630811b8b1441b072334c8866959981bf68a5d21da168c7d7821273b993",
+  "file_identity_confirmed": true,
+  "license_scope_confirmed": true,
+  "manifest_relpath": "asset/bitcoin-miner.manifest.json",
+  "manifest_sha256": "740f6bc94b75ad99188796a3fab5d1611cbc4144a3f0fad8a2fb35c5fcd73cec",
+  "non_copyright_restrictions_reviewed": true,
+  "notes": "ASIC-based Bitcoin mining hardware with no people or prominent visible marks. Relevant to explicit Bitcoin, mining, or hashrate stories and does not imply manufacturer endorsement.",
+  "registry_key": "topic:bitcoin-mining",
+  "reviewed_by": "Investo operator review",
+  "reviewed_on": "2026-08-03",
+  "schema_version": "curated-operator-decision-v1",
+  "subject_relevance_confirmed": true
+}

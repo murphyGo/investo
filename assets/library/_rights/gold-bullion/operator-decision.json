@@ -1,0 +1,19 @@
+{
+  "asset_id": "gold-bullion",
+  "binary_relpath": "asset/gold-bullion.jpg",
+  "binary_sha256": "a9c3037d92f2eb25de28c1ee6e1cd4e310659b0e7264d5429b5d36c299e15b22",
+  "decision": "approved",
+  "endorsement_risk_reviewed": true,
+  "evidence_sha256": "fed8ae0de73d7442548a06f00e27deca4d309b48a3ff9dd5892c06f153c7ddf7",
+  "file_identity_confirmed": true,
+  "license_scope_confirmed": true,
+  "manifest_relpath": "asset/gold-bullion.manifest.json",
+  "manifest_sha256": "f905eb96a9fe1fab9b9177d04d5e7ef8edfbb5b2039f82a30be44028f1bded2c",
+  "non_copyright_restrictions_reviewed": true,
+  "notes": "Generic stacked gold bullion with no people or prominent marks. Relevant only to explicit gold-price or gold-futures stories and does not imply endorsement.",
+  "registry_key": "asset:gold",
+  "reviewed_by": "Investo operator review",
+  "reviewed_on": "2026-08-03",
+  "schema_version": "curated-operator-decision-v1",
+  "subject_relevance_confirmed": true
+}

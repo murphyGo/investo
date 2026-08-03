@@ -1,0 +1,109 @@
+{
+  "capture": {
+    "binary_response": {
+      "content_length": 271825,
+      "etag_md5": "8deade516cc724446c6f727bf3ed383b",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Avalon-An_ASIC_base_bitcoin_machine.jpg/1280px-Avalon-An_ASIC_base_bitcoin_machine.jpg"
+    },
+    "captured_on": "2026-08-03",
+    "imageinfo_request": "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo%7Crevisions&iiprop=url%7Csize%7Cmime%7Csha1%7Ctimestamp%7Cextmetadata&iiurlwidth=1280&rvprop=ids%7Ctimestamp&rvlimit=1&titles=File%3AAvalon-An+ASIC+base+bitcoin+machine.jpg",
+    "structured_data_request": "https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&ids=M28280558"
+  },
+  "imageinfo_response": {
+    "query": {
+      "pages": [
+        {
+          "imageinfo": [
+            {
+              "extmetadata": {
+                "Artist": {
+                  "value": "张楠赓"
+                },
+                "Categories": {
+                  "value": "CC-Zero|Uploaded with en.wp upload wizard|Avalon Project"
+                },
+                "Copyrighted": {
+                  "value": "True"
+                },
+                "LicenseShortName": {
+                  "value": "CC0"
+                },
+                "LicenseUrl": {
+                  "value": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+                },
+                "Restrictions": {
+                  "value": ""
+                }
+              },
+              "height": 1063,
+              "mime": "image/jpeg",
+              "sha1": "b7ec6558b56978b1fe19ee26f8e77da84a5332d9",
+              "thumbheight": 850,
+              "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Avalon-An_ASIC_base_bitcoin_machine.jpg/1280px-Avalon-An_ASIC_base_bitcoin_machine.jpg",
+              "thumbwidth": 1280,
+              "timestamp": "2013-09-14T14:25:00Z",
+              "url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Avalon-An_ASIC_base_bitcoin_machine.jpg",
+              "width": 1600
+            }
+          ],
+          "pageid": 28280558,
+          "revisions": [
+            {
+              "parentid": 459959892,
+              "revid": 808943858,
+              "timestamp": "2023-10-05T17:10:41Z"
+            }
+          ],
+          "title": "File:Avalon-An ASIC base bitcoin machine.jpg"
+        }
+      ]
+    }
+  },
+  "schema_version": "commons-exact-file-snapshot-v1",
+  "structured_data_response": {
+    "entities": {
+      "M28280558": {
+        "lastrevid": 808943858,
+        "modified": "2023-10-05T17:10:41Z",
+        "statements": {
+          "P275": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q6938433",
+                    "numeric-id": 6938433
+                  }
+                },
+                "property": "P275",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ],
+          "P6216": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q88088423",
+                    "numeric-id": 88088423
+                  }
+                },
+                "property": "P6216",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

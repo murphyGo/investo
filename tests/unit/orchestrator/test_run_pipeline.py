@@ -239,6 +239,42 @@ def test_curated_asset_runtime_is_optional(monkeypatch: pytest.MonkeyPatch) -> N
     assert pipeline_module._load_curated_runtime_safely() is None
 
 
+def test_curated_asset_runtime_rejects_invalid_registry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.visuals.curated import CuratedLibraryError
+
+    curated_library_error = CuratedLibraryError
+
+    class _BrokenCuratedModule:
+        CuratedLibraryError = curated_library_error
+
+        @staticmethod
+        def load_library() -> dict[str, object]:
+            return {"filed": object()}
+
+        @staticmethod
+        def default_registry() -> tuple[object, ...]:
+            return ()
+
+        @staticmethod
+        def assert_registry_integrity(
+            _registry: tuple[object, ...], _library: dict[str, object]
+        ) -> None:
+            raise CuratedLibraryError("orphan")
+
+        @staticmethod
+        def select_curated_asset(*_args: object) -> None:
+            return None
+
+    monkeypatch.setattr(
+        importlib,
+        "import_module",
+        lambda _name: _BrokenCuratedModule,
+    )
+    assert pipeline_module._load_curated_runtime_safely() is None
+
+
 def _success_generate() -> object:
     async def _fake(
         target_date: date,

@@ -29,6 +29,7 @@ calls :func:`load_library` over the committed root.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections.abc import Iterable, Mapping, Sequence
@@ -63,6 +64,7 @@ _ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".png", ".jpg", ".jpeg",
 _ALLOWED_CATEGORIES: Final[frozenset[str]] = frozenset({"person", "topic", "asset"})
 _MANIFEST_SUFFIX: Final[str] = ".manifest.json"
 _DEFERRED_SUFFIX: Final[str] = ".deferred"
+_HEX64_RE: Final[str] = r"^[0-9a-f]{64}$"
 
 # AC-1.1 — storage budget. Raster ≤ 500 KB, SVG ≤ 64 KB per asset;
 # total library footprint ≤ 20 MB across all filed assets.
@@ -87,13 +89,33 @@ class CuratedAsset:
 
 
 @dataclass(frozen=True, slots=True)
+class SemanticAlias:
+    """One reader-visible alias with an explicit semantic specificity rank."""
+
+    text: str
+    rank: int
+
+
+@dataclass(frozen=True, slots=True)
 class RegistryEntry:
     """An entity/topic → asset_ids mapping with segment affinity (E3)."""
 
     key: str
     asset_ids: tuple[str, ...]
     segment_affinity: frozenset[str]
-    aliases: tuple[str, ...] = ()
+    aliases: tuple[SemanticAlias, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class SemanticMatch:
+    """Bounded alias evidence used for deterministic candidate ordering."""
+
+    key: str
+    alias: str
+    rank: int
+    offset: int
+    registry_order: int
+    alias_order: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,6 +126,11 @@ class CuratedSelection:
     matched_key: str | None = None
     match_reason: str = "no-match"
     narrative_sha256: str | None = None
+    semantic_rank: int | None = None
+    semantic_offset: int | None = None
+    variant_contract: str | None = None
+    variant_index: int | None = None
+    variant_count: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -187,22 +214,65 @@ def assert_registry_integrity(
     registry: Sequence[RegistryEntry],
     library: Mapping[str, CuratedAsset],
 ) -> list[str]:
-    """Assert every registry asset_id resolves; return orphan (unregistered) ids.
+    """Fail closed on every ambiguous, dangling, duplicate, or orphan mapping."""
 
-    A dangling registry id (no library entry) is a gate failure (I8 /
-    R8). An orphan filed asset (in the library, never referenced) is
-    allowed but never selectable — returned as a warning list, not a
-    failure.
-    """
-    referenced: set[str] = set()
+    referenced: dict[str, str] = {}
+    seen_keys: set[str] = set()
+    seen_aliases: dict[tuple[str, int, str], str] = {}
     for entry in registry:
+        if entry.key in seen_keys:
+            raise CuratedLibraryError(f"duplicate registry key {entry.key!r}")
+        seen_keys.add(entry.key)
+        if not entry.asset_ids:
+            raise CuratedLibraryError(f"registry key {entry.key!r} has no asset ids")
+        if not entry.aliases:
+            raise CuratedLibraryError(f"registry key {entry.key!r} has no semantic aliases")
+        if not entry.segment_affinity:
+            raise CuratedLibraryError(f"registry key {entry.key!r} has no segment affinity")
+        local_asset_ids: set[str] = set()
         for asset_id in entry.asset_ids:
+            if asset_id in local_asset_ids:
+                raise CuratedLibraryError(
+                    f"registry key {entry.key!r} repeats asset id {asset_id!r}"
+                )
+            local_asset_ids.add(asset_id)
             if asset_id not in library:
                 raise CuratedLibraryError(
                     f"registry key {entry.key!r} references unknown asset id {asset_id!r}"
                 )
-            referenced.add(asset_id)
-    return sorted(asset_id for asset_id in library if asset_id not in referenced)
+            previous_key = referenced.get(asset_id)
+            if previous_key is not None:
+                raise CuratedLibraryError(
+                    f"asset id {asset_id!r} is referenced by both {previous_key!r} "
+                    f"and {entry.key!r}"
+                )
+            referenced[asset_id] = entry.key
+        local_aliases: set[tuple[int, str]] = set()
+        for alias in entry.aliases:
+            normalized = alias.text.strip().casefold()
+            if not normalized or alias.rank < 0:
+                raise CuratedLibraryError(
+                    f"registry key {entry.key!r} has an invalid semantic alias"
+                )
+            local_identity = (alias.rank, normalized)
+            if local_identity in local_aliases:
+                raise CuratedLibraryError(
+                    f"registry key {entry.key!r} repeats alias {alias.text!r}"
+                )
+            local_aliases.add(local_identity)
+            for segment in entry.segment_affinity:
+                identity = (segment, alias.rank, normalized)
+                previous_key = seen_aliases.get(identity)
+                if previous_key is not None and previous_key != entry.key:
+                    raise CuratedLibraryError(
+                        f"semantic alias {alias.text!r} rank {alias.rank} is ambiguous "
+                        f"for segment {segment!r}: {previous_key!r} vs {entry.key!r}"
+                    )
+                seen_aliases[identity] = entry.key
+    orphans = sorted(asset_id for asset_id in library if asset_id not in referenced)
+    if orphans:
+        raise CuratedLibraryError("orphan curated assets are not selectable: " + ", ".join(orphans))
+    return []
 
 
 def _read_curated_manifest(manifest_path: Path, *, asset_id: str) -> ExternalAssetManifest:
@@ -291,64 +361,160 @@ def _assert_no_orphan_binaries(root: Path, assets: Mapping[str, CuratedAsset]) -
 # Entity extraction + deterministic selection (generation time)
 # ---------------------------------------------------------------------------
 
+
 # Semantic aliases are explicit registry metadata. Person entries contain
 # names only: a role/institution term can select a topic asset, never a
 # specific office-holder portrait (U-141 R4).
-_KEY_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
+def _alias(text: str, rank: int) -> SemanticAlias:
+    return SemanticAlias(text=text, rank=rank)
+
+
+_KEY_ALIASES: Final[Mapping[str, tuple[SemanticAlias, ...]]] = {
     "person:kevin-warsh": (
-        "Kevin Warsh",
-        "Kevin M. Warsh",
-        "Warsh",
-        "케빈 워시",
+        _alias("Kevin Warsh", 10),
+        _alias("Kevin M. Warsh", 10),
+        _alias("Warsh", 10),
+        _alias("케빈 워시", 10),
     ),
     "person:scott-bessent": (
-        "Scott Bessent",
-        "Scott K. Bessent",
-        "Bessent",
-        "스콧 베선트",
-        "베선트",
+        _alias("Scott Bessent", 10),
+        _alias("Scott K. Bessent", 10),
+        _alias("Bessent", 10),
+        _alias("스콧 베선트", 10),
+        _alias("베선트", 10),
     ),
-    "person:jerome-powell": ("Jerome Powell", "Powell", "제롬 파월", "파월"),
-    "person:us-president": ("Donald Trump", "Donald J. Trump", "Trump", "도널드 트럼프", "트럼프"),
+    "person:jerome-powell": (
+        _alias("Jerome Powell", 10),
+        _alias("Powell", 10),
+        _alias("제롬 파월", 10),
+        _alias("파월", 10),
+    ),
+    "person:us-president": (
+        _alias("Donald Trump", 10),
+        _alias("Donald J. Trump", 10),
+        _alias("Trump", 10),
+        _alias("도널드 트럼프", 10),
+        _alias("트럼프", 10),
+    ),
     "topic:federal-reserve": (
-        "Federal Reserve",
-        "Fed",
-        "FOMC",
-        "연준",
-        "기준금리",
-        "rate decision",
+        _alias("Federal Reserve", 10),
+        _alias("Fed", 10),
+        _alias("FOMC", 10),
+        _alias("연준", 10),
+        _alias("기준금리", 10),
+        _alias("rate decision", 10),
     ),
-    "topic:wall-street": ("Wall Street", "NYSE", "월스트리트", "S&P 500", "Dow", "Nasdaq"),
-    "topic:us-equity-market": ("US stocks", "equities", "미국 증시", "trading floor"),
-    "topic:stock-market-chart": ("market chart", "rally", "selloff", "증시"),
-    "asset:bitcoin": ("Bitcoin", "BTC", "비트코인"),
-    "asset:ethereum": ("Ethereum", "ETH", "이더리움"),
-    "topic:cryptocurrency": ("crypto", "cryptocurrency", "blockchain", "가상자산", "암호화폐"),
-    "topic:kospi": ("KOSPI", "코스피", "KRX", "Korea market", "한국 증시"),
-    "topic:korea-market": ("KOSPI", "코스피", "Korea", "한국 증시"),
-    "topic:inflation": ("inflation", "CPI", "PCE", "물가", "인플레이션"),
-    "topic:macro": ("macro", "GDP", "unemployment", "거시", "경기"),
+    "topic:wall-street": (
+        _alias("NYSE", 10),
+        _alias("S&P 500", 10),
+        _alias("Dow", 10),
+        _alias("Nasdaq", 10),
+        _alias("Wall Street", 20),
+        _alias("월스트리트", 20),
+    ),
+    "topic:us-equity-market": (
+        _alias("trading floor", 20),
+        _alias("US stocks", 30),
+        _alias("equities", 30),
+        _alias("미국 증시", 30),
+    ),
+    "topic:stock-market-chart": (
+        _alias("market chart", 40),
+        _alias("rally", 40),
+        _alias("selloff", 40),
+        _alias("증시", 40),
+    ),
+    "asset:bitcoin": (
+        _alias("Bitcoin", 10),
+        _alias("BTC", 10),
+        _alias("비트코인", 10),
+    ),
+    "topic:bitcoin-mining": (
+        _alias("Bitcoin mining", 0),
+        _alias("Bitcoin miner", 0),
+        _alias("ASIC", 0),
+        _alias("hashrate", 0),
+        _alias("비트코인 채굴", 0),
+        _alias("비트코인 채굴기", 0),
+        _alias("해시레이트", 0),
+    ),
+    "asset:ethereum": (
+        _alias("Ethereum", 10),
+        _alias("ETH", 10),
+        _alias("이더리움", 10),
+    ),
+    "topic:cryptocurrency": (
+        _alias("blockchain", 20),
+        _alias("crypto", 20),
+        _alias("cryptocurrency", 20),
+        _alias("가상자산", 20),
+        _alias("암호화폐", 20),
+    ),
+    "topic:kospi": (
+        _alias("KOSPI", 10),
+        _alias("코스피", 10),
+        _alias("KRX", 10),
+    ),
+    "topic:kospi-history": (
+        _alias("KOSPI history", 0),
+        _alias("historical KOSPI", 0),
+        _alias("역대 코스피", 0),
+        _alias("코스피 장기 추이", 0),
+        _alias("코스피 장기 시계열", 0),
+        _alias("코스피 역사", 0),
+    ),
+    "topic:korea-market": (
+        _alias("Korea market", 20),
+        _alias("한국 증시", 30),
+        _alias("국내 증시", 30),
+    ),
+    "topic:inflation": (
+        _alias("CPI", 10),
+        _alias("PCE", 10),
+        _alias("inflation", 10),
+        _alias("물가", 10),
+        _alias("인플레이션", 10),
+    ),
+    "topic:macro": (
+        _alias("GDP", 10),
+        _alias("unemployment", 10),
+        _alias("macro", 40),
+        _alias("거시", 40),
+        _alias("경기", 40),
+    ),
+    "topic:semiconductor": (
+        _alias("semiconductor", 0),
+        _alias("AI chip", 0),
+        _alias("반도체", 0),
+        _alias("HBM", 0),
+        _alias("파운드리", 0),
+    ),
+    "topic:data-center": (
+        _alias("data center", 0),
+        _alias("datacenter", 0),
+        _alias("데이터센터", 0),
+        _alias("AI infrastructure", 0),
+        _alias("AI 인프라", 0),
+    ),
+    "topic:clean-energy": (
+        _alias("clean energy", 0),
+        _alias("renewable energy", 0),
+        _alias("wind power", 0),
+        _alias("청정에너지", 0),
+        _alias("재생에너지", 0),
+        _alias("풍력", 0),
+    ),
+    "asset:gold": (
+        _alias("gold price", 0),
+        _alias("gold futures", 0),
+        _alias("bullion", 0),
+        _alias("금값", 0),
+        _alias("금 가격", 0),
+        _alias("금 선물", 0),
+    ),
 }
 
-# Registry-priority order. Earlier = higher priority (R5 tie-break). The
-# index in this tuple is the deterministic registry priority.
-_REGISTRY_PRIORITY: Final[tuple[str, ...]] = (
-    "person:kevin-warsh",
-    "person:scott-bessent",
-    "person:jerome-powell",
-    "person:us-president",
-    "asset:bitcoin",
-    "asset:ethereum",
-    "topic:federal-reserve",
-    "topic:wall-street",
-    "topic:us-equity-market",
-    "topic:cryptocurrency",
-    "topic:stock-market-chart",
-    "topic:inflation",
-    "topic:macro",
-    "topic:kospi",
-    "topic:korea-market",
-)
+_VARIANT_CONTRACT: Final[str] = "narrative-key-digest-mod-v1"
 
 
 def select_curated_asset(
@@ -364,47 +530,69 @@ def select_curated_asset(
     the caller falls through to the existing hero chain (R9).
     """
     by_key = {entry.key: entry for entry in registry}
-    candidates: list[tuple[int, str, str]] = []  # (priority, key, reason)
-    for priority, key in enumerate(_REGISTRY_PRIORITY):
-        entry = by_key.get(key)
-        if entry is None:
-            continue
+    candidates: list[SemanticMatch] = []
+    for registry_order, entry in enumerate(registry):
         if segment not in entry.segment_affinity:
             continue
-        reason = _match_registry_key(entry, context.hero_markdown)
-        if reason is None:
-            continue
-        candidates.append((priority, key, reason))
+        for alias_order, alias in enumerate(entry.aliases):
+            offset = _semantic_alias_offset(context.hero_markdown, alias.text)
+            if offset is None:
+                continue
+            candidates.append(
+                SemanticMatch(
+                    key=entry.key,
+                    alias=alias.text,
+                    rank=alias.rank,
+                    offset=offset,
+                    registry_order=registry_order,
+                    alias_order=alias_order,
+                )
+            )
 
     if not candidates:
         return CuratedSelection(asset=None, narrative_sha256=context.narrative_sha256)
 
-    # Deterministic ordering (R5 / I12): registry priority, then key lexical.
-    candidates.sort(key=lambda c: (c[0], c[1]))
-    for _priority, key, reason in candidates:
-        entry = by_key[key]
-        for asset_id in entry.asset_ids:  # registry-ordered (I9)
-            asset = library.get(asset_id)
-            if asset is not None and asset.state == "filed":
-                return CuratedSelection(
-                    asset=asset,
-                    matched_key=key,
-                    match_reason=reason,
-                    narrative_sha256=context.narrative_sha256,
-                )
+    candidates.sort(
+        key=lambda match: (
+            match.rank,
+            match.offset,
+            match.registry_order,
+            match.alias_order,
+            match.key,
+        )
+    )
+    seen_keys: set[str] = set()
+    for match in candidates:
+        if match.key in seen_keys:
+            continue
+        seen_keys.add(match.key)
+        entry = by_key[match.key]
+        filed = tuple(
+            asset
+            for asset_id in entry.asset_ids
+            if (asset := library.get(asset_id)) is not None and asset.state == "filed"
+        )
+        if not filed:
+            continue
+        if re.fullmatch(_HEX64_RE, context.narrative_sha256) is None:
+            raise CuratedLibraryError("narrative digest is not a lowercase SHA-256 value")
+        variant_payload = f"{context.narrative_sha256}\0{segment}\0{match.key}".encode()
+        variant_digest = hashlib.sha256(variant_payload).hexdigest()
+        variant_index = int(variant_digest, 16) % len(filed)
+        return CuratedSelection(
+            asset=filed[variant_index],
+            matched_key=match.key,
+            match_reason=(
+                f"alias:{match.alias};scope=hero;rank={match.rank};offset={match.offset}"
+            ),
+            narrative_sha256=context.narrative_sha256,
+            semantic_rank=match.rank,
+            semantic_offset=match.offset,
+            variant_contract=_VARIANT_CONTRACT,
+            variant_index=variant_index,
+            variant_count=len(filed),
+        )
     return CuratedSelection(asset=None, narrative_sha256=context.narrative_sha256)
-
-
-def _match_registry_key(entry: RegistryEntry, hero_markdown: str) -> str | None:
-    """Return bounded evidence when an entry alias occurs in hero scope."""
-
-    if not hero_markdown:
-        return None
-    reader_visible_text = _reader_visible_semantic_text(hero_markdown)
-    for alias in entry.aliases:
-        if _contains_semantic_alias(reader_visible_text, alias):
-            return f"alias:{alias};scope=hero"
-    return None
 
 
 def _reader_visible_semantic_text(markdown: str) -> str:
@@ -416,19 +604,21 @@ def _reader_visible_semantic_text(markdown: str) -> str:
     return re.sub(r"<[^>\n]+>", "", without_raw_urls)
 
 
-def _contains_semantic_alias(text: str, alias: str) -> bool:
+def _semantic_alias_offset(markdown: str, alias: str) -> int | None:
+    if not markdown:
+        return None
+    text = _reader_visible_semantic_text(markdown)
     if alias.isascii():
-        return (
-            re.search(
-                rf"(?<![0-9A-Za-z]){re.escape(alias)}(?![0-9A-Za-z])",
-                text,
-                flags=re.IGNORECASE,
-            )
-            is not None
+        match = re.search(
+            rf"(?<![0-9A-Za-z]){re.escape(alias)}(?![0-9A-Za-z])",
+            text,
+            flags=re.IGNORECASE,
         )
+        return match.start() if match is not None else None
     # Korean postpositions attach without whitespace; named/topic aliases are
     # explicit and sufficiently specific for a literal Unicode match.
-    return alias.casefold() in text.casefold()
+    offset = text.casefold().find(alias.casefold())
+    return offset if offset >= 0 else None
 
 
 def default_registry() -> tuple[RegistryEntry, ...]:
@@ -459,12 +649,28 @@ _SEED_REGISTRY: Final[tuple[RegistryEntry, ...]] = (
     _entry("topic:us-equity-market", ("us-equity-market",), ("us-equity",)),
     _entry("topic:stock-market-chart", ("stock-market-chart",), ("us-equity", "domestic-equity")),
     _entry("asset:bitcoin", ("bitcoin",), ("crypto",)),
+    _entry("topic:bitcoin-mining", ("bitcoin-miner",), ("crypto",)),
     _entry("asset:ethereum", ("ethereum",), ("crypto",)),
     _entry("topic:cryptocurrency", ("cryptocurrency",), ("crypto",)),
     _entry("topic:kospi", ("kospi",), ("domestic-equity",)),
     _entry("topic:korea-market", ("korea-market",), ("domestic-equity",)),
     _entry("topic:inflation", ("inflation",), ("us-equity", "domestic-equity")),
     _entry("topic:macro", ("macro",), ("us-equity", "domestic-equity")),
+    _entry(
+        "topic:data-center",
+        ("data-center-roof",),
+        ("us-equity", "domestic-equity", "crypto"),
+    ),
+    _entry(
+        "topic:clean-energy",
+        ("renewable-grid",),
+        ("us-equity", "domestic-equity"),
+    ),
+    _entry(
+        "asset:gold",
+        ("gold-bullion",),
+        ("us-equity", "domestic-equity", "crypto"),
+    ),
 )
 
 
@@ -475,6 +681,8 @@ __all__ = [
     "CuratedLibraryError",
     "CuratedSelection",
     "RegistryEntry",
+    "SemanticAlias",
+    "SemanticMatch",
     "assert_registry_integrity",
     "default_registry",
     "load_library",
