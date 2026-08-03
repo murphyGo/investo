@@ -5923,3 +5923,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 132 related detector/reader/watchpoint/u144 tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-5-owned-surface-detector.md`.
 **Status**: Step 5 checklist complete 5/7. Next: Step 6 rendered-chain regression and byte-stable reruns.
+
+## Construction — u131 Code Generation Step 5 synchronization and Step 6 approval
+**Timestamp**: 2026-08-03T07:09:38Z
+**Synchronization**: Committed the validated Step 5 slice as `6e0331b` (`fix: block owned truncation residue`) and pushed `codex/u131`; local HEAD and `origin/codex/u131` matched.
+**User response**: `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**Decision**: Continue under the approved seven-step sequence into Step 6 without another approval pause.
+**Target**: Exercise all three bounded producers through the real segment/u81 reader chain using a trimmed 2026-06-29/30 fixture, assert exact complete outputs, and prove a full second run is byte-identical.
+
+## Construction — u131 Code Generation Step 6 complete
+**Timestamp**: 2026-08-03T07:09:38Z
+**Fixture**: Added a redacted JSON fixture carrying a reconstructed full meaning sentence, the exact malformed US caution residue, a structured CoinGecko watchpoint bullet that exercises segment removal, and the three exact legacy residue strings. It contains no raw payload, secret, URL, repository identity, or private destination.
+**Real chain**: Constructed a real crypto `Briefing` and ran `apply_reader_format_to_segments`, which includes the canonical u81 `apply_reader_format`, watchpoint rendering, first-viewport reflow, and surface repair in production order.
+**Assertions**: The owned lines equal exactly three outputs in document order: fixed caution cross-reference, `MEANING_FALLBACK`, and `#### 관찰 신호: CoinGecko BTC`. Legacy residue is absent, no owned line ends in ellipsis, the terminal scanner emits no truncation blocker, and a second full-chain run is byte-identical.
+**Review**: Fresh-eyes review found a Low test-adequacy gap because initial presence checks could allow suffixes or duplicates. Exact ordered line-list equality closed it; re-review approved with no remaining findings.
+**Validation**: Rendered regression 1 passed; cumulative related scope 133 passed; scoped Ruff/format, JSON parse, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-6-rendered-chain-regression.md`.
+**Status**: Step 6 checklist complete 6/7. Next: Step 7 final quality gate and cumulative review.
