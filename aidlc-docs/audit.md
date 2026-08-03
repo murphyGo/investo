@@ -5890,3 +5890,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 63 related reader-format/helper tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-3-caution-snippet-integration.md`.
 **Status**: Step 3 checklist complete 3/7. Next: Step 4 watchpoint card-title segment-drop without ellipsis.
+
+## Construction — u131 Code Generation Step 3 synchronization and Step 4 approval
+**Timestamp**: 2026-08-03T04:15:21Z
+**Synchronization**: Committed the validated Step 3 slice as `2532842` (`fix: bound caution snippets at sentences`) and pushed `codex/u131`; local HEAD and `origin/codex/u131` matched.
+**User response**: `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**Decision**: Continue under the approved seven-step sequence into Step 4 without another approval pause.
+**Target**: Replace watchpoint title hard cuts with deterministic right-to-left exact-` · ` segment removal, keep the 30-character threshold and the first segment whole, and remove ellipsis construction.
+
+## Construction — u131 Code Generation Step 4 complete
+**Timestamp**: 2026-08-03T04:15:21Z
+**Action**: Replaced the 30-character hard slice in `_short_signal` with right-to-left exact-` · ` segment removal. The largest whole segment prefix fitting the threshold is retained; when the first segment itself exceeds 30 characters, it remains whole. No ellipsis is appended.
+**Compatibility**: The existing directional-particle derivation still runs first, Markdown link text remains unwrapped before title derivation, dangling Korean particles are removed, and rendered matrix idempotency remains intact.
+**Review**: Fresh-eyes review found a Medium ordering regression because the initial segment branch bypassed directional-particle derivation. Restoring the established derivation first and adding a centered-dot regression closed the finding; re-review approved with no remaining findings.
+**Validation**: 45 watchpoint matrix tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-4-watchpoint-title-segment-drop.md`.
+**Status**: Step 4 checklist complete 4/7. Next: Step 5 truncation detector coverage for meaning lines, caution callouts, and watchpoint headings.
