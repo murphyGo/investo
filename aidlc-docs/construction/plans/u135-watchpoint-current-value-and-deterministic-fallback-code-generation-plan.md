@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u135 watchpoint-current-value-and-deterministic-fallback
 **Stage**: Code Generation
-**Status**: Backlog (Ready) — implement after u131 (card-title bounding lands first so title tests don't churn)
+**Status**: In Progress (1/7) — u131 dependency complete; implementation proceeding on its bounded-title contract
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~4-5 h
 **Dependencies**:
@@ -11,7 +11,7 @@
 - u87/u98 watchpoint rehabilitation/card redesign (Complete) — card shape.
 - u110 watchpoint-human-readability-v2 (Complete) — field cleanup and hard-fail filters.
 - u70 anchor reconciliation + u66 crypto indicators + u107 CFTC positioning (Complete) — the deterministic payloads this unit reads.
-- u131 bounded-line-sentence-boundary-truncation (Backlog) — card-title bounding.
+- u131 bounded-line-sentence-boundary-truncation (Complete) — card-title bounding.
 - DEBT-074 — graceful `데이터부족` collapse stays for genuinely empty payloads.
 
 ---
@@ -20,7 +20,7 @@
 
 Two production failures in §⑥ 오늘의 관전 포인트:
 
-1. **Source label in the value slot.** `archive/crypto/2026/06/2026-06-29.md` lines 123-129 render a card whose `현재:` field is `CoinGecko BTC` — the *source name*, not a value — while the real values ($60,284 close, $58,935–$60,644 24h range) sit in the same briefing's reconciled payload. u110's DoD included promoting embedded source names out of text fields, and its gate is green, yet this shape published five days after u110 completed: the promotion leaves the vacated `현재:` slot empty-or-source-filled instead of resolving an actual value.
+1. **Source label in the value slot.** `archive/crypto/2026/06/2026-06-29.md` lines 123-129 render a card whose `현재:` field is `CoinGecko BTC` — the *source name*, not a value — while the real values ($60,284 close, $58,935–$60,644 24h range) sit in the same briefing's reconciled payload. u110's DoD included promoting embedded source names into the rendered `출처:` field, and its gate is green, yet this shape published five days after u110 completed: promotion does not remove or resolve the independently stored `현재:` value, so the same source label can remain in both fields.
 2. **Rich runs collapse to the bounded note.** `archive/us-equity/2026/06/2026-06-30.md:102` and `archive/domestic-equity/2026/06/2026-06-30.md:85` both render only `관전 포인트: 구조화 가능한 관찰 신호가 부족합니다` — although the us-equity briefing's own §③ carries CFTC leveraged-money net-short divergence (E-mini -18.9% OI, NQ -19.3% OI vs. indices up) and reconciled anchor closes with 52w ranges: exactly the observational up/down material §⑥ exists for. When Stage-2 emits no well-formed signals (or u110 filters kill them all), there is no deterministic path from already-collected data to a card.
 
 ## Goal
@@ -67,7 +67,7 @@ NFR Requirements: SKIP — deterministic synthesis from already-collected data; 
 
 ## Implementation Steps
 
-- [ ] Step 1 — Read `src/investo/publisher/watchpoint_matrix.py` (u72/u87/u98/u110 layers) and the orchestrator conversion call in `src/investo/orchestrator/pipeline.py`; document (in the unit summary) where u110 promotion vacates `현재:`.
+- [x] Step 1 — Read `src/investo/publisher/watchpoint_matrix.py` (u72/u87/u98/u110 layers) and the active u144/orchestrator conversion path; document (in the unit summary) where u110 promotion populates `출처:` but leaves the independently stored `현재:` unresolved.
 - [ ] Step 2 — Implement value resolution (Fixed Contracts 1-2) in `watchpoint_matrix.py`; the reconciled payload arrives via a new explicit parameter from the orchestrator (no publisher→orchestrator import; payload is plain data).
 - [ ] Step 3 — Implement fallback synthesis (Fixed Contracts 3-5) in a new sibling `src/investo/publisher/watchpoint_fallback.py`; templates as module constants.
 - [ ] Step 4 — Wire the orchestrator: pass the payload, run synthesis when the trigger fires, re-run `scan_compliance` over the final §⑥ (existing u72 double-pass extended to cover synthesized output), stamp `watchpoint_synthesized` into the quality snapshot.
