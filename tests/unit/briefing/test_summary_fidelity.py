@@ -394,3 +394,59 @@ def test_summary_header_from_archive_section_bodies_passes_gate() -> None:
         caution=header.caution,
     )
     validate_first_viewport_summary(markdown)
+
+
+def test_summary_header_driver_separates_production_heading_and_sentence_u134() -> None:
+    sections = (
+        "미국 증시는 동반 상승했다.",
+        "### 칩메이커 강세에 나스닥100 **+1.68%** 마감\n\n"
+        "[나스닥 기사](https://www.nasdaq.com/articles/stocks-settle-higher-chipmakers-rally)"
+        "에 따르면 화요일(목표일) S&P 500은 **+0.79%**, 다우는 **+0.26%**, "
+        "나스닥100은 **+1.68%**로 마감했다.",
+        "섹터 흐름.",
+        "지표 흐름.",
+        "종목 흐름.",
+        "관전 포인트를 확인합니다.",
+    )
+
+    header = _build_summary_header(sections)
+
+    assert header.driver == (
+        "칩메이커 강세에 나스닥100 +1.68% 마감 — "
+        "나스닥 기사에 따르면 화요일(목표일) S&P 500은 +0.79%, "
+        "다우는 +0.26%, 나스닥100은 +1.68%로 마감했다."
+    )
+    assert "마감 나스닥 기사" not in header.driver
+
+
+def test_summary_header_driver_uses_heading_alone_past_existing_budget_u134() -> None:
+    heading = "칩메이커 강세 마감"
+    sentence = f"{'가' * 270}다."
+    sections = (
+        "미국 증시는 동반 상승했다.",
+        f"### {heading}\n{sentence}",
+        "섹터 흐름.",
+        "지표 흐름.",
+        "종목 흐름.",
+        "관전 포인트를 확인합니다.",
+    )
+
+    header = _build_summary_header(sections)
+
+    assert len(f"{heading} — {sentence}") > 280
+    assert header.driver == heading
+
+
+def test_summary_header_driver_keeps_separator_for_heading_conjunction_tail_u134() -> None:
+    sections = (
+        "미국 증시는 동반 상승했다.",
+        "### 정책 대 기술 vs.\n본문은 안전하다.",
+        "섹터 흐름.",
+        "지표 흐름.",
+        "종목 흐름.",
+        "관전 포인트를 확인합니다.",
+    )
+
+    header = _build_summary_header(sections)
+
+    assert header.driver == "정책 대 기술 vs. — 본문은 안전하다."

@@ -9,7 +9,9 @@ behavior-preserving (move-only).
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
+from typing import Final
 
 from investo._internal.summary_quality import is_unsafe_summary_value
 from investo._internal.surface_quality import has_blocking_surface_issue
@@ -18,6 +20,12 @@ from investo.briefing._assembly.text_normalize import (
     _split_into_sentences,
 )
 from investo.briefing.action_tag import apply_action_tag
+
+_SUMMARY_SENTENCE_MAX_CHARS: Final[int] = 280
+_SUMMARY_LINE_MAX_CHARS: Final[int] = 140
+_DRIVER_HEADING_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\s*(?:#{1,6}\s+\S.*|\*\*[^*\n]+\*\*)\s*$"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,22 +66,50 @@ def _summary_sentence(text: str, *, fallback: str) -> str:
     # Per-sentence scan first: pick the first complete, safe sentence.
     for candidate in sentences:
         if not _is_unsafe_summary_candidate(candidate):
-            return candidate[:280].strip()
+            return candidate[:_SUMMARY_SENTENCE_MAX_CHARS].strip()
 
     # No complete sentence survived. Try each cleaned line as a
     # standalone candidate (truncated to 140 chars) — line-shaped
     # phrases without a terminator can still be valid summaries.
     for line in cleaned_lines:
-        candidate = line[:140].strip()
+        candidate = line[:_SUMMARY_LINE_MAX_CHARS].strip()
         if not _is_unsafe_summary_candidate(candidate):
             return candidate
 
     # Last resort: the truncated normalized blob. If even that is
     # unsafe, hand back the explicit data-limited fallback string.
-    candidate = normalized[:140].strip()
+    candidate = normalized[:_SUMMARY_LINE_MAX_CHARS].strip()
     if not _is_unsafe_summary_candidate(candidate):
         return candidate
     return fallback
+
+
+def _driver_summary(text: str, *, fallback: str) -> str:
+    """Compose a section heading and its first sentence without a splice.
+
+    A leading Markdown heading is a label, not part of the following prose.
+    Preserve both with the u134 ``heading — sentence`` contract while keeping
+    the existing 280-character summary budget. If the pair is too long, the
+    heading alone is the bounded deterministic driver.
+    """
+    nonblank_lines = [line for line in text.splitlines() if line.strip()]
+    if not nonblank_lines or _DRIVER_HEADING_RE.fullmatch(nonblank_lines[0]) is None:
+        return _summary_sentence(text, fallback=fallback)
+
+    # A Markdown heading is a valid section label even though the generic
+    # summary surface scanner correctly rejects heading residue in a final
+    # callout. Consume it as a separate label before validating body lines.
+    heading = _clean_summary_line(nonblank_lines[0])
+    if not heading:
+        return fallback
+
+    first_sentence = _summary_sentence("\n".join(nonblank_lines[1:]), fallback="")
+    if not first_sentence:
+        return heading if not _is_unsafe_summary_candidate(heading) else fallback
+    combined = f"{heading} — {first_sentence}"
+    if len(combined) > _SUMMARY_SENTENCE_MAX_CHARS:
+        return heading if not _is_unsafe_summary_candidate(heading) else fallback
+    return combined if not _is_unsafe_summary_candidate(combined) else fallback
 
 
 def _build_summary_header(
@@ -98,7 +134,7 @@ def _build_summary_header(
             data_limited=data_limited,
             section_text=sections[0],
         ),
-        driver=_summary_sentence(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다."),
+        driver=_driver_summary(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다."),
         caution=_summary_sentence(sections[5], fallback="관전 포인트는 데이터 회복 후 보강합니다."),
     )
 
@@ -106,6 +142,7 @@ def _build_summary_header(
 __all__ = [
     "SummaryHeader",
     "_build_summary_header",
+    "_driver_summary",
     "_is_unsafe_summary_candidate",
     "_summary_sentence",
 ]

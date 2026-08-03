@@ -5999,6 +5999,21 @@ passed, scoped format check passed, `mypy src` passed.
 **Decision**: Continue under the user-approved seven-step sequence without another approval pause.
 **Target**: Route accepted registry matches to existing redacted diagnostics with a distinct reason and exclude them from public impact.
 
+## Construction — u134 Code Generation approval
+**Timestamp**: 2026-08-03T13:27:58Z
+**User response**: `u133 → u134 → u135 까지 같은 방식으로 계속 개발해줘` / `블록커 이슈가 아닌한 나에게 묻지말고 계속 작업해줘`
+**Decision**: Treat the existing six-step u134 plan as approved and commit/push each validated step without intermediate approval pauses. Functional Design and NFR Requirements remain skipped because this unit repairs deterministic composition at existing producer boundaries.
+**Target**: Execute Step 1/6 by separating a driver heading from its first prose sentence at summary-header assembly.
+
+## Construction — u134 Code Generation Step 1 complete
+**Timestamp**: 2026-08-03T13:27:58Z
+**Action**: Added heading-aware driver composition at the canonical summary-header assembly point. Markdown headings render with a spaced em dash before the first sentence; pairs beyond the existing 280-character budget render the heading alone.
+**Scope**: `enhancement.py` remains a renderer, the shared unsafe-summary predicate remains unchanged, and non-heading driver inputs keep the existing extraction path.
+**Review**: Fresh-eyes review found two Medium gaps: an unsafe heading could re-enter the legacy bare-space path, and the production regression abbreviated the verbatim sentence. Validating the completed composition, closing unsafe heading-only paths with the explicit fallback, and pinning the full archived sentence resolved both findings; re-review approved with no remaining findings.
+**Validation**: 52 focused briefing tests passed; scoped Ruff/format, mypy, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-1-driver-composition.md`.
+**Status**: Step 1 checklist complete 1/6. Next: low-coverage conclusion suffix composition.
+
 ## Construction — u133 Code Generation Step 2 complete
 **Timestamp**: 2026-08-03T12:15:09Z
 **Action**: Added source-spec-driven pre-classification routing that copies registry matches into the uncertain diagnostics bucket with `reference-registry`; public projection drops them while non-registry matches remain unchanged.
