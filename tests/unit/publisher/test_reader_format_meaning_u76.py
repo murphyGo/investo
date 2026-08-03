@@ -2,11 +2,12 @@
 
 Coverage map (per u76 plan Steps 1, 3, 4, 5 + AC-76.1..76.5):
 
-* Contract (Step 1 / AC-76.1, AC-76.2):
+* Contract (Step 1 / AC-76.1, AC-76.2, u131):
   - exact marker ``> **그래서 의미는?** ``;
   - placement inside §②-§⑤ after the first block;
   - one line per section (duplicates dropped);
-  - overlong body bounded to ``MEANING_MAX_CHARS`` at a word boundary;
+  - overlong body bounded to ``MEANING_MAX_CHARS`` at a sentence boundary;
+  - existing deterministic fallback when no complete sentence fits;
   - idempotent re-run.
 * Ticker-name clarity (Step 4 / AC-76.3): a meaning line carrying a
   ``ticker(name)`` form survives normalization unchanged; no name is
@@ -92,16 +93,28 @@ def test_meaning_line_idempotent() -> None:
     assert once == twice
 
 
-def test_overlong_meaning_body_bounded_at_word_boundary() -> None:
+def test_overlong_meaning_body_without_sentence_uses_existing_fallback() -> None:
+    assert MEANING_MAX_CHARS == 80
     long_body = "금리 상승 압력 " * 20  # well over 80 chars
     body2 = f"문단.\n\n{MEANING_MARKER}{long_body}\n"
     text = _doc("요약", body2, "섹터", "지표", "종목", "관전")
     out = normalize_meaning_lines(text)
     line = next(ln for ln in out.splitlines() if ln.startswith(MEANING_MARKER))
-    visible = line[len(MEANING_MARKER) :]
-    assert visible.endswith("...")
-    # Visible (excluding the ... suffix) is within the cap.
-    assert len(visible.rstrip(".")) <= MEANING_MAX_CHARS
+
+    assert line == MEANING_FALLBACK
+
+
+def test_overlong_meaning_body_keeps_last_complete_sentence_without_ellipsis() -> None:
+    complete = "금리 변동성 확대를 확인할 필요가 있습니다."
+    long_remainder = " 후속 방향은 추가 자료를 확인한 뒤 판단해야 합니다" * 5
+    body2 = f"문단.\n\n{MEANING_MARKER}{complete}{long_remainder}\n"
+    text = _doc("요약", body2, "섹터", "지표", "종목", "관전")
+
+    out = normalize_meaning_lines(text)
+    line = next(ln for ln in out.splitlines() if ln.startswith(MEANING_MARKER))
+
+    assert line == f"{MEANING_MARKER}{complete}"
+    assert not line.endswith(("...", "…"))
 
 
 def test_section_without_meaning_line_untouched() -> None:
@@ -194,5 +207,5 @@ def test_apply_reader_format_bounds_meaning_line() -> None:
     text = _doc("요약", body2, "섹터", "지표", "종목", "관전")
     out = apply_reader_format(text, segment="us-equity")
     line = next(ln for ln in out.splitlines() if ln.startswith(MEANING_MARKER))
-    visible = line[len(MEANING_MARKER) :]
-    assert len(visible.rstrip(".")) <= MEANING_MAX_CHARS
+
+    assert line == MEANING_FALLBACK

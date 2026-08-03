@@ -36,8 +36,10 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.text import bound_at_sentence
 from investo.publisher.reader_format._constants import (
     _SECTION_HEADER_RE,
+    MEANING_FALLBACK,
     MEANING_MARKER,
     MEANING_MAX_CHARS,
     _logger,
@@ -51,27 +53,17 @@ _MEANING_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*그래서 의미는\?\*\*\s*(?P<body>[^\n]*)$",
     re.MULTILINE,
 )
-# Truncation boundary characters (whitespace + sentence/clause punctuation).
-_MEANING_BOUNDARY_CHARS: Final[str] = " \t,.;:!?·…—)]」』"
 
 
-def _bound_meaning_body(body: str) -> str:
-    """Bound a meaning-line body to ``MEANING_MAX_CHARS`` at a word boundary.
+def _bound_meaning_body(body: str) -> str | None:
+    """Bound a meaning-line body at its last complete sentence.
 
-    Idempotent: a body already within the cap is returned unchanged. When
-    the body is too long, it is cut at the last boundary char before the
-    cap and suffixed with ``...``. If no boundary exists, a hard cut at the
-    cap is used (the line is still a complete, compliance-scannable string).
+    Idempotent: a body already within ``MEANING_MAX_CHARS`` is returned
+    unchanged. Overflow without a complete sentence returns ``None`` so the
+    caller can use the existing deterministic u76 fallback.
     """
     stripped = body.strip()
-    if len(stripped) <= MEANING_MAX_CHARS:
-        return stripped
-    window = stripped[:MEANING_MAX_CHARS]
-    cut = max(window.rfind(ch) for ch in _MEANING_BOUNDARY_CHARS)
-    head = window.rstrip() if cut <= 0 else window[:cut].rstrip(_MEANING_BOUNDARY_CHARS).rstrip()
-    if not head:
-        head = window.rstrip()
-    return f"{head}..."
+    return bound_at_sentence(stripped, MEANING_MAX_CHARS)
 
 
 def normalize_meaning_lines(text: str, *, segment: str | None = None) -> str:
@@ -83,8 +75,8 @@ def normalize_meaning_lines(text: str, *, segment: str | None = None) -> str:
       1. Keeps at most ONE meaning line (the first), dropping any
          duplicates the LLM emitted in the same section (idempotency +
          "one per section").
-      2. Bounds the kept line's body to ``MEANING_MAX_CHARS`` at a word
-         boundary.
+      2. Bounds the kept line's body to ``MEANING_MAX_CHARS`` at a sentence
+         boundary, or uses the existing fallback when none fits.
 
     It does NOT fabricate a meaning line for a section that has none — an
     omitted line stays omitted (empty/weak sections get no invented
@@ -129,7 +121,7 @@ def _repair_section_meaning(body: str, *, segment: str | None) -> str:
         return body
     first = matches[0]
     bounded = _bound_meaning_body(first.group("body"))
-    repaired_line = f"{MEANING_MARKER}{bounded}".rstrip()
+    repaired_line = MEANING_FALLBACK if bounded is None else f"{MEANING_MARKER}{bounded}".rstrip()
 
     # Replace the first occurrence with the bounded line; drop the rest.
     result: list[str] = [body[: first.start()], repaired_line]
