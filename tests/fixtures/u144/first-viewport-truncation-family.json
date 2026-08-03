@@ -16,7 +16,7 @@
       "case_id": "unclosed-parenthesis",
       "markdown_before_reflow": "> **주의할 점**: 정책 발언과 수급 변화를 함께 확인합니다.\n",
       "markdown_after_reflow": "> **주의할 점**: 정책 발언(본문 참고.\n",
-      "current_reflow_output": "> **주의할 점**: 정책 본문 참고.\n",
+      "current_reflow_output": "> **주의할 점**: 본문 §②·§④ 참조\n",
       "expected_issue_codes": [
         "summary.truncated_mid_token"
       ]

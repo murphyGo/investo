@@ -5940,3 +5940,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Rendered regression 1 passed; cumulative related scope 133 passed; scoped Ruff/format, JSON parse, and `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-6-rendered-chain-regression.md`.
 **Status**: Step 6 checklist complete 6/7. Next: Step 7 final quality gate and cumulative review.
+
+## Construction — u131 Code Generation Step 6 synchronization and Step 7 approval
+**Timestamp**: 2026-08-03T09:30:12Z
+**Synchronization**: Committed the validated Step 6 slice as `40715e8` (`test: pin bounded line rendering`) and pushed `codex/u131`; local HEAD and `origin/codex/u131` matched.
+**User response**: `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**Decision**: Continue under the approved seven-step sequence into the final quality gate without another approval pause.
+**Target**: Run the complete planned static, type, publisher/internal unit, fixture-integrity, and diff gates; reconcile any contract-driven characterization drift; obtain a cumulative AC/Fixed Contract review.
+
+## Construction — u131 Code Generation Step 7 complete
+**Timestamp**: 2026-08-03T09:30:12Z
+**Gate**: Ruff passed for all 13 changed Python files; format reported all 13 already formatted; `mypy src` passed for 248 source files; publisher, internal, and `_internal` unit suites passed 1,142 tests; `uv lock --check`, three fixture JSON parses, and `git diff --check` passed.
+**Characterization reconciliation**: The first full test run exposed two expected u144 fixture drifts: the historical ellipsized watchpoint now also emits `summary.truncated_mid_token`, and the historical malformed caution now repairs to exact `본문 §②·§④ 참조`. Updating only those expected values made the full 1,142-test scope green.
+**Review**: Cumulative fresh-eyes review approved AC-131.1 through AC-131.6 and Fixed Contracts 1 through 5 with no Critical/High/Medium/Low findings. It confirmed unchanged 80/90/30 caps, decimal safety, producer/full-chain idempotency, u134/u135 scope isolation, u144 ownership/policy compatibility, and no security/R13 concern.
+**Extensions**: Property-Based Testing remained Partial; the new shared pure helper carries Hypothesis idempotency coverage. Security Baseline remained declined; u131 adds no dependency, source, secret, network call, external I/O, or cost surface.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/summary.md`.
+**Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
