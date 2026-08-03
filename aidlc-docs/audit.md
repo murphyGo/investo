@@ -5880,6 +5880,22 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-4-funding-decimal.md`.
 **Status**: Step 4 checklist complete 4/6. Next: four-shape rendered regression and rerun idempotence.
 
+## Construction — u134 Code Generation Step 4 synchronization and Step 5 approval
+**Timestamp**: 2026-08-03T14:24:30Z
+**Synchronization**: Committed Step 4 as `ec54194` (`fix: normalize funding decimals`) and pushed `codex/u134`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved six-step sequence without another approval pause.
+**Target**: Reproduce all four 2026-06-29/30 defect shapes in one redacted fixture and prove exact repairs plus byte-idempotent reruns.
+
+## Construction — u134 Code Generation Step 5 complete
+**Timestamp**: 2026-08-03T14:24:30Z
+**Fixture**: Added `tests/fixtures/u134/2026-06-29-30-composition-shapes.json` with the archived US driver pair, archived two-sentence conclusion, canonical 25/20/2/3/미집계 source-count document, and noisy crypto funding rate. The fixture contains no raw payload, secret, private destination, or credential.
+**Regression**: The real driver and conclusion producers render exact repaired strings; the reader-format/reflow chain contains the exact numeric count only inside diagnostics; ⓪-A and ⓪-B both render `0.0001`. All legacy splice/pointer/noisy-rate shapes are absent.
+**Idempotence**: Reapplying driver/conclusion repair to repaired values, re-running reader-format/reflow on the repaired document, and rerendering both funding blocks are byte-stable.
+**Review**: Fresh-eyes review found a Medium funding-idempotence adequacy gap and a Low public-prefix containment gap. Comparing noisy versus already-repaired funding inputs across both full blocks, asserting exact compact chip copy, and excluding every diagnostic count from the public prefix closed both; re-review approved with no remaining findings.
+**Validation**: 108 cumulative focused tests passed; scoped Ruff/format, fixture JSON, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-5-rendered-regression.md`.
+**Status**: Step 5 checklist complete 5/6. Next: final cumulative quality gate.
+
 ## Cross-Check — u133 complete
 **Timestamp**: 2026-08-03T13:12:17Z
 **Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.
