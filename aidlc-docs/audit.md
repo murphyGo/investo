@@ -5896,6 +5896,22 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-5-rendered-regression.md`.
 **Status**: Step 5 checklist complete 5/6. Next: final cumulative quality gate.
 
+## Construction — u134 Code Generation Step 5 synchronization and Step 6 approval
+**Timestamp**: 2026-08-03T14:32:01Z
+**Synchronization**: Committed Step 5 as `e62a6c6` (`test: pin u134 rendered repairs`) and pushed `codex/u134`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved six-step sequence into the final gate without another approval pause.
+**Target**: Run the complete planned static/type/unit/integrity gate and obtain cumulative AC/Fixed Contract review.
+
+## Construction — u134 Code Generation Step 6 gate complete
+**Timestamp**: 2026-08-03T14:32:01Z
+**Gate**: Ruff and format passed all 13 changed Python files; `mypy src` passed 249 source files; publisher+briefing+internal passed 1,947 tests; lock, u134 fixture JSON, and `git diff --check` passed.
+**Environment**: The default host UV cache was sandbox-unreadable; the lock check passed with isolated `UV_CACHE_DIR=/private/tmp/investo-u134-uv-cache` and changed no dependency or lockfile.
+**Coverage**: AC-134.1-6 are pinned by exact producer, public conclusion, full reader chain, downstream parser, cross-funding-surface, production-fixture, and byte-idempotence tests.
+**Extensions**: Property-Based Testing remains Partial; 10,000 seeded Decimal reference comparisons supplemented deterministic boundaries. Security Baseline remains declined, while the review-identified exponent memory-growth boundary is explicitly capped and tested.
+**Review**: Cumulative fresh-eyes review approved AC-134.1-6, Fixed Contracts 1-4, all stated non-goals, u131/u108/u127/u144 compatibility, R13 fixture safety, and the bounded external-Decimal memory boundary with no remaining Critical/High/Medium/Low findings. Independent cumulative validation passed 420 tests plus 10,000 seeded Decimal/reference comparisons.
+**Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-6-quality-gate.md`; summary `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/summary.md`.
+**Status**: Code Generation complete 6/6. No TECH-DEBT item added. Proceed to scoped cross-check.
+
 ## Cross-Check — u133 complete
 **Timestamp**: 2026-08-03T13:12:17Z
 **Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.
