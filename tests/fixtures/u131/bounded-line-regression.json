@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "source_dates": [
+    "2026-06-29",
+    "2026-06-30"
+  ],
+  "meaning_body": "Ethereum 기반 DeFi TVL 집중은 ETH 생태계 수요의 구조적 기반으로 관찰되며, 인도 USDT 프리미엄 이상 급등은 특정 지역의 왜곡을 보여줍니다.",
+  "caution_body": "확인 소스: FOMC(연방공개시장위원회) 일정 · Kevin Warsh(케빈 워시) 연준 의장의 7월 1일 ECB(유럽중앙은행) 포럼 발언이 매파적 본문 참고.",
+  "watchpoint_bullet": "CoinGecko BTC · UTC 24h 일중 변동 범위 · 확인 소스: CoinGecko BTC; 상방: 강세 흐름이 확대되면 회복 확인; 하방: 약세 흐름으로 되돌림; 관심 영향: 기관 수요 변화를 점검.",
+  "legacy_residue": {
+    "meaning_line": "> **그래서 의미는?** Ethereum 기반 DeFi TVL 집중은 ETH 생태계 수요의 구조적 기반으로 관찰되며, 인도 USDT 프리미엄 이상 급등은 특정 지역의...",
+    "caution_line": "> **주의할 점**: 확인 소스: FOMC(연방공개시장위원회) 일정 · Kevin Warsh(케빈 워시) 연준 의장의 7월 1일 ECB(유럽중앙은행) 포럼 발언이 매파적 본문 참고.",
+    "watchpoint_title": "#### 관찰 신호: CoinGecko BTC · UTC 24h…"
+  }
+}
