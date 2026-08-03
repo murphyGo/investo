@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from investo._internal.crypto_indicators import (
     CRYPTO_INDICATOR_HEADER,
     render_crypto_indicator_block,
@@ -174,3 +176,20 @@ def test_u74_contract_keys_consumed() -> None:
         [_item({"indicator": "btc_oi", "btc_oi_usd": "5000000000", "oi_source": "okx"})]
     )
     assert "$5.0B (okx)" in oi
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    (
+        ("0.0001000000000000", "0.0001"),
+        ("0.0100", "0.01"),
+        ("1.000", "1"),
+    ),
+)
+def test_funding_rate_uses_shortest_exact_decimal_u134(raw: str, expected: str) -> None:
+    block = render_crypto_indicator_block(
+        [_item({"indicator": "btc_funding", "btc_funding_rate": raw})]
+    )
+
+    assert f"| BTC 펀딩비 | {expected} |" in block
+    assert "E" not in next(line for line in block.splitlines() if "BTC 펀딩비" in line)

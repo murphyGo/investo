@@ -11,6 +11,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import pytest
+
+from investo._internal.crypto_indicators import render_crypto_indicator_block
 from investo.briefing.market_anchor import MarketAnchor
 from investo.models import NormalizedItem
 from investo.publisher.channel_anchor_block import (
@@ -163,6 +166,52 @@ def test_crypto_full_consumes_u66_indicators() -> None:
     # to keep the reader-format gloss-dedupe idempotent).
     assert "| 공포·탐욕 | 28 |" in block
     assert "| 펀딩/OI/청산 | 펀딩 0.00003545 · OI 수집됨 |" in block
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    (
+        ("0.0001000000000000", "0.0001"),
+        ("0.0100", "0.01"),
+        ("1.000", "1"),
+    ),
+)
+def test_crypto_funding_baseline_uses_shortest_exact_decimal_u134(
+    raw: str,
+    expected: str,
+) -> None:
+    items = [_crypto_item({"indicator": "btc_funding", "btc_funding_rate": raw})]
+
+    block = render_channel_anchor_block("crypto", crypto_items=items)
+
+    assert f"| 펀딩/OI/청산 | 펀딩 {expected} |" in block
+    assert "E" not in next(line for line in block.splitlines() if "펀딩/OI/청산" in line)
+
+
+def test_crypto_funding_value_matches_indicator_and_baseline_tables_u134() -> None:
+    items = [
+        _crypto_item(
+            {
+                "indicator": "btc_funding",
+                "btc_funding_rate": "0.0001000000000000",
+            }
+        )
+    ]
+
+    indicator_block = render_crypto_indicator_block(items)
+    baseline_block = render_channel_anchor_block("crypto", crypto_items=items)
+
+    indicator_value = next(
+        line.split("|")[2].strip()
+        for line in indicator_block.splitlines()
+        if line.startswith("| BTC 펀딩비 |")
+    )
+    baseline_value = next(
+        line.split("|")[2].strip().removeprefix("펀딩 ")
+        for line in baseline_block.splitlines()
+        if line.startswith("| 펀딩/OI/청산 |")
+    )
+    assert indicator_value == baseline_value == "0.0001"
 
 
 def test_crypto_not_yet_available_when_u66_absent() -> None:

@@ -42,6 +42,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from enum import StrEnum
 from typing import Final, Literal
 
+from investo._internal.decimal_format import shortest_exact_decimal
 from investo.models import NormalizedItem
 from investo.models.market_anchor import MarketAnchor, anchor_label
 
@@ -202,7 +203,9 @@ def _funding_oi_cell(items: Sequence[NormalizedItem]) -> str | None:
     if funding_item is not None:
         rate = _meta(funding_item, "btc_funding_rate")
         if rate is not None:
-            parts.append(f"펀딩 {rate}")
+            normalized_rate = shortest_exact_decimal(rate)
+            if normalized_rate is not None:
+                parts.append(f"펀딩 {normalized_rate}")
     if oi_item is not None and _meta(oi_item, "btc_oi_usd") is not None:
         parts.append("OI 수집됨")
     if not parts:

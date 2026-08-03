@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Final
 
+from investo._internal.decimal_format import shortest_exact_decimal
 from investo.models import NormalizedItem
 
 CRYPTO_INDICATOR_HEADER: Final[str] = "## ⓪-A 크립토 지표 (UTC 24h 스냅샷)"
@@ -93,6 +94,9 @@ def _funding_row(items: Sequence[NormalizedItem]) -> str:
     if item is None:
         return _NOT_COLLECTED
     rate = _meta(item, "btc_funding_rate")
+    if rate is None:
+        return _NOT_COLLECTED
+    rate = shortest_exact_decimal(rate)
     if rate is None:
         return _NOT_COLLECTED
     source = _meta(item, "funding_source")

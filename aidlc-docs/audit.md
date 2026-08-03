@@ -5864,6 +5864,22 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-3-diagnostic-source-count.md`.
 **Status**: Step 3 checklist complete 3/6. Next: shortest-exact funding-rate Decimal rendering.
 
+## Construction — u134 Code Generation Step 3 synchronization and Step 4 approval
+**Timestamp**: 2026-08-03T13:59:39Z
+**Synchronization**: Committed Step 3 as `c19ae0c` (`fix: restore diagnostic source counts`) and pushed `codex/u134`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved six-step sequence without another approval pause.
+**Target**: Share shortest-exact Decimal formatting across the ⓪-A and ⓪-B funding-rate rows.
+
+## Construction — u134 Code Generation Step 4 complete
+**Timestamp**: 2026-08-03T13:59:39Z
+**Action**: Added `_internal.decimal_format.shortest_exact_decimal` and routed both crypto funding renderers through it. Fixed-point formatting removes trailing fractional zeroes and exponent notation without quantization or rounding; integer-valued and signed-zero cases have stable plain forms.
+**Failure behavior**: Invalid and non-finite strings return `None`, preserving each renderer's existing missing-value behavior rather than exposing malformed metadata.
+**Cross-surface contract**: An explicit regression proves the ⓪-A indicator and ⓪-B channel baseline render `0.0001000000000000` identically as `0.0001`.
+**Review**: Fresh-eyes review found one High memory-growth risk because `format(value, "f")` could expand a compact external exponent without bound. Pre-format input/output caps, zero short-circuiting, and bounded `Decimal.as_tuple()` assembly closed it; re-review approved with no remaining security or memory finding.
+**Validation**: 53 focused internal/indicator/channel/grounding tests and 10,000 bounded reference comparisons passed; scoped Ruff/format, mypy, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-4-funding-decimal.md`.
+**Status**: Step 4 checklist complete 4/6. Next: four-shape rendered regression and rerun idempotence.
+
 ## Cross-Check — u133 complete
 **Timestamp**: 2026-08-03T13:12:17Z
 **Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.
