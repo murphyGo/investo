@@ -6008,3 +6008,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings. It confirmed Fixed Contracts 2-3, AC-133.3, R13 redaction, u144 pre-seal placement, unknown/unconfigured/coverage behavior, rollback path agreement, and concurrency safety. Independent six-test/Ruff/mypy/diff gates passed.
 **Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-3-public-count-consumers.md`.
 **Status**: Step 3 checklist complete 3/7. Next: add the Stage-2 §⑤ registry narration rule.
+
+## Construction — u133 Code Generation Step 3 synchronization and Step 4 approval
+**Timestamp**: 2026-08-03T12:38:39Z
+**Synchronization**: Committed Step 3 as `9e7ca2b` (`fix: align public watchlist counts`) and pushed `codex/u133`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved seven-step sequence without another approval pause.
+**Target**: Add and test Fixed Contract 4 in the existing Stage-2 §⑤ instruction block.
+
+## Construction — u133 Code Generation Step 4 implementation
+**Timestamp**: 2026-08-03T12:38:39Z
+**Action**: Marked the exact two registry sources as entity-identification evidence only; allowed citation only beside a same-run non-registry item for the same ticker; prohibited registry-only ticker sets from creating §⑤ subsections.
+**Budget**: Compressed adjacent non-semantic prose while preserving every existing assertion; the updated Stage-2 prompt is 20,271 bytes against the unchanged 20,300-byte ceiling.
+**Backstop**: This is best-effort input shaping only. Step 2's deterministic impact-center routing remains authoritative, and no post-render scanner was added.
+**Validation**: Prompt suite 39 passed; scoped Ruff/format and mypy passed; `git diff --check` passed.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings. It confirmed all Fixed Contract 4 clauses, preserved adjacent prompt semantics, correct ownership, non-tautological tests, R13/compliance safety, and no scanner/renderer/gate scope creep. Independent 57-test/Ruff/format/mypy/size/diff gates passed.
+**Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-4-stage2-prompt-rule.md`.
+**Status**: Step 4 checklist complete 4/7. Next: rendered 2026-06-30 match-set regression.

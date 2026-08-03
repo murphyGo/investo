@@ -182,6 +182,16 @@ def test_stage2_system_uses_neutral_section5_grouping_labels() -> None:
     assert "주의" in STAGE2_SYSTEM  # only as forbidden example
 
 
+def test_stage2_system_suppresses_registry_only_section5_narration() -> None:
+    """u133 — registry metadata cannot narrate a §⑤ market event."""
+    assert "Section ⑤ registry rule" in STAGE2_SYSTEM
+    assert "nasdaq-symbol-directory" in STAGE2_SYSTEM
+    assert "sec-company-facts" in STAGE2_SYSTEM
+    assert "entity-identification evidence only" in STAGE2_SYSTEM
+    assert "same-run non-registry item about the same ticker" in STAGE2_SYSTEM
+    assert "registry-only ticker set MUST NOT create a section ⑤ subsection" in STAGE2_SYSTEM
+
+
 def test_stage2_system_carries_recent_context_continuity_rules() -> None:
     """u34 — Stage 2 system prompt instructs the LLM how to use the
     "최근 N일 컨텍스트" block (continuity / divergence / no-change /

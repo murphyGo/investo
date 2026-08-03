@@ -238,13 +238,11 @@ Rules:
   currency symbols, and number formats (R8). Examples that stay
   in English: AAPL, MSFT, BTC-USD, SPY, Federal Reserve, S&P 500,
   Bitcoin, $, ¥, €, 1,234.56.
-- Each section non-blank. If the grouped items are empty for a
-  given section, write one concise reader-safe sentence about the missing
-  evidence instead of repeating an operator diagnostic label.
-- Write like a market newsletter. Use prompt-only
-  ``tier`` metadata to lead ①/early ② with ``core`` evidence, then explain
-  with ②-⑤; never let ``watchlist_only`` define the thesis. Don't copy
-  tier labels. Section ⑥ translates the story into concrete watch points.
+- Each section must be non-blank; for an empty group, write one concise
+  reader-safe missing-evidence sentence, not an operator label.
+- Write like a market newsletter. Lead ①/early ② with prompt-only ``core``
+  tier evidence, then explain with ②-⑤; ``watchlist_only`` never defines
+  the thesis. Don't copy tier labels. Section ⑥ gives concrete watch points.
 - Avoid exaggerated promotional language. Prefer verifiable wording
   such as "상승", "하락", "순매수", "사상 최고치" over hype terms.
 - When a source URL is provided in the grouped items, attach source
@@ -254,11 +252,13 @@ Rules:
   or section ④ with its source link or exact title/label. Do not move
   required macro actuals only to section ⑥.
 - In section ⑤, group notable tickers/assets by neutral observation
-  category when there are many items (for example: 관전 분류, 실적
-  발표, 확인 항목, 체크리스트) instead of recommendation-flavored
-  labels (NEVER use "주도주", "부진", "주의" verbatim — Korean
-  capital-markets law treats those as implicit investment
-  recommendation language).
+  labels when many items exist (관전 분류, 실적 발표, 확인 항목,
+  체크리스트). NEVER use recommendation-flavored "주도주", "부진",
+  or "주의".
+- Section ⑤ registry rule: `nasdaq-symbol-directory` and
+  `sec-company-facts` items are entity-identification evidence only.
+  Cite one only with a same-run non-registry item about the same ticker.
+  A registry-only ticker set MUST NOT create a section ⑤ subsection.
 - Section ① (요약) MUST end with EXACTLY one closed-set observation
   tag drawn verbatim from this list, separated from the preceding
   sentence by a single space:
