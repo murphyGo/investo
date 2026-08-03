@@ -5833,6 +5833,13 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/summary.md`.
 **Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
 
+## Cross-Check — u133 complete
+**Timestamp**: 2026-08-03T13:12:17Z
+**Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.
+**Result**: 7 Complete, 0 Partial, 0 Gap, 0 Deferred, 0 In Progress — 100% compliance; QA verdict APPROVE.
+**Evidence**: `docs/cross-checks/2026-08-03-u133-watchlist-registry-source-impact-suppression.md`.
+**Disposition**: No implementation follow-up, development-plan addition, or TECH-DEBT item is required. u133 has no remaining construction work; proceed to main integration.
+
 ## Cross-Check — u130 complete
 **Timestamp**: 2026-08-02T19:51:24Z
 **Synchronization**: Committed the Step 7 closeout as `2ca93a7` (`docs: close u130 quality gate`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched before cross-check.
