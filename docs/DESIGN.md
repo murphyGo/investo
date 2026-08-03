@@ -130,6 +130,9 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Storage/secret**: filed 자산 ≤ 500 KB(raster)/≤ 64 KB(SVG), 라이브러리 총합 ≤ 20 MB, 100–2000 px(기존 게이트 재사용, pillow 미도입). 매니페스트 텍스트는 u27 redaction chokepoint 통과(R7/R13).
 **Excluded**: 뉴스사진/짤방/기업 상표로고/실존인물 비공식 사진은 라이선스 게이트에서 거부.
 
+**U-141 semantic-selection amendment**: 큐레이션과 피드 이미지의 의미 입력은 raw routed item이 아니라 visual supplement 삽입 직전의 reader-visible **finalizable narrative body**다. 히어로 scope는 결론+핵심 동인+`## ②` 첫 H3, 원문 카드 scope는 `## ②` 전체이며, 구조가 없으면 전체 문서로 넓히지 않는다. 피드 후보는 해당 scope에 exact `item_url`이 있어야 하고, `person:*` 초상은 인물 이름 alias가 있어야 한다. `FOMC`/`Fed Chair`/`연준 의장`/`President`/`White House` 같은 역할어는 특정 인물 초상을 선택할 수 없다. 결정 순서는 URL 등장 위치→`first_seen`→`candidate_id`; 실데이터 재출현율 5.6%라 `seen_count`는 제외한다. 선택 sidecar는 `selection_contract=final-body-semantic-v1`과 narrative digest를 기록한다.
+**Feed-image use**: 당일 원장 후보 중 current clearance file truth + store binary/sidecar hash pair + metadata 600x338 이상을 만족한 exact-body 후보만 `external-context-image`로 로컬 복사한다. 그 외 non-blocked exact-body 후보는 `item_url` 텍스트 카드만 `## ②` 첫 이슈 뒤에 넣으며 `image_url`/핫링크/바이너리는 노출하지 않는다. 후보 stage는 visual prep 앞에 실행되고 선택·복사·카드 실패는 세그먼트별 기존 fallback으로 격리된다.
+
 ### TD-010: 공개 문서 단일 finalization/seal 경계 (u144)
 
 **Choice**: 기본 segmented production은 `publisher.public_document.finalize_public_bundle()`를 정확히 한 번 호출한다. 모든 Markdown producer와 deterministic repair는 E2 이전에 끝나며, terminal gate는 read-only다. 유효 문서는 `FinalizedPublicDocument` E5로 SHA-256 봉인되고 archive/index/OG/evidence/quality/replay/notifier consumer는 봉인된 bytes/DTO만 본다.

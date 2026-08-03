@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u141 image-selection-and-insertion
 **Stage**: Code Generation
-**Status**: Planned — implementation gated on candidate-data accumulation (start when the image_candidates ledger holds >=5 distinct dates; check archive/_meta/image_candidates/)
+**Status**: In construction — data gate satisfied; final-body-centered semantic contract approved 2026-08-03
 **Source**: u137 Roadmap 항목 1 (활용 단계 — 선정·삽입 유닛). 2026-07-17 user feature request "실제 뉴스/칼럼/커뮤니티 이미지를 저장해두고 **활용**" 중 활용 1단계: 재출현 인덱스 + 당일 후보에서 히어로/섹션 이미지를 결정적으로 선정하고, cleared 바이너리는 기존 `_HERO_PRIORITY`의 `external-context-image` 슬롯으로, metadata-only 후보는 "원문 링크 카드"(제목+크레딧+링크, 바이너리 비게시)로 렌더한다.
 **Estimated Effort**: ~10-14 h (Step 0 데이터 분석 + FD 포함)
 **Dependencies**:
@@ -16,9 +16,24 @@
 
 ---
 
-## Data-Accumulation Gate (구현 착수 조건)
+## 2026-08-03 Contract Amendment — Final-Body-Centered Semantic Selection
 
-u137은 의도적으로 "수집 먼저, 활용은 데이터 본 뒤"로 닫혔다. 이 유닛은 **원장에 ≥5 distinct dates가 쌓인 뒤** 착수하며, Step 0에서 실데이터로 아래 질문에 답한 뒤에야 선정 휴리스틱의 상수를 고정한다 (계획 시점 2026-07-19 현재 `archive/_meta/image_candidates/`는 미존재 = 0 dates):
+This amendment is binding where it narrows or replaces the original plan:
+
+- The generated, reader-visible briefing immediately before visual/card supplements and terminal finalization is the sole semantic input. Raw routed items and the candidate ledger supply candidate identities only.
+- Hero relevance scope is conclusion + key drivers + the first story in `## ② 전일 핵심 이슈`; link-card scope is the complete `## ②` section. Missing structure yields no selection rather than a whole-document fallback.
+- A feed candidate is eligible only when its exact `item_url` occurs in the applicable narrative scope.
+- A `person:*` curated portrait requires the person's explicit name in hero scope. Generic office/institution terms cannot select a named office holder.
+- Selection provenance records `selection_contract=final-body-semantic-v1`, bounded match evidence, and the narrative digest.
+- Current rights-file truth, a valid store binary/sidecar pair, and dimensions >=600x338 are required for a stored hero. Metadata-only use remains a text-only article card.
+- The candidate stage moves before visual preparation; every new selection/copy/insertion boundary remains failure-isolated.
+
+The detailed approved contract is owned by
+`aidlc-docs/construction/u141-image-selection-and-insertion/functional-design/`.
+
+## Data-Accumulation Gate (satisfied 2026-08-03)
+
+착수 스냅샷은 11 distinct dates / 804 rows / 748 unique candidates다. 재출현 42건(5.6%)은 사전 기준 10% 미만이므로 `seen_count`는 v1 랭킹에서 제외한다. 세그먼트별 metadata 품질과 cleared store 상태는 FD의 data-backed constants에 고정했다.
 
 | # | 실데이터 질문 | 결정되는 설계 |
 | --- | --- | --- |
@@ -74,10 +89,12 @@ Out of scope (명시적 non-goal):
 ## Fixed Contracts
 
 1. **선정 함수** — 신규 `visuals/image_selection.py`:
-   `select_image_usage(segment, *, target_date, ledger_root, store_root) -> ImageUsageSelection`
+   `select_image_usage(context, *, target_date, ledger_root, store_root) -> ImageUsageSelection`
+   - `context`는 `build_image_narrative_context(segment, rendered_markdown)`가 만든 finalizable-body snapshot이다. raw item sequence를 받는 API는 금지한다.
    - 입력은 전부 **파일 진실**: 당일 원장 `ledger_path_for(target_date)`의 해당-세그먼트 레코드 + `read_index()` + `store_binary_path` 존재 확인. rights는 인덱스 표시값이 아니라 store 파일+사이드카 존재로 판정한다(u137 I7/I14 정신 — 인덱스는 후보 우주만 공급).
    - `ImageUsageSelection`(frozen dataclass): `hero_candidate: ImageCandidateRecord | None`(store에 바이너리+사이드카가 있는 cleared 후보), `card_candidate: ImageCandidateRecord | None`(metadata-only 후보; hero로 채택된 candidate_id는 제외), `reason: str`(진단용, sanitized).
-   - **결정성**: 동일 원장/인덱스/store → 바이트 동일 출력. 랭킹 키는 Step 0 Q1 답으로 고정하되 tie-break 사슬은 지금 고정: `(랭킹 키…, first_seen asc, candidate_id lexical)` (u86 `select_curated_asset`의 priority→lexical 선례). wall clock 금지 — `target_date`만 사용.
+   - **의미 관련성**: hero는 `context.hero_markdown`, card는 `context.issue_markdown`에 후보의 exact `item_url`이 존재해야 한다. title fuzzy match는 v1 금지.
+   - **결정성**: `(URL occurrence offset, first_seen asc, candidate_id lexical)`. `seen_count`, wall clock, 파일 순회 순서는 금지한다.
    - 세그먼트당 hero ≤1, card ≤1 (v1 캡).
 2. **히어로 경로** — `visuals/assets.py`에 `_prepare_curated_context_image` 미러인 `_prepare_stored_context_image` 추가:
    - `store_binary_path`의 바이트를 `visual_asset_path(target_date, segment, "external-context-image", extension)`으로 복사(`_STORE_EXTENSIONS` = `.png`/`.jpg`만), store 사이드카+클리어런스 매니페스트 필드로 `build_external_provenance` 작성, `validate_visual_asset` 통과. **외부 fetch 0회** (로컬 바이트만).
@@ -94,30 +111,30 @@ Out of scope (명시적 non-goal):
 
 ## Implementation Steps
 
-### Step 0 — 원장 데이터 분석 + FD 작성 (planner + developer) `[ ]`
-- [ ] ≥5 dates 원장 실데이터로 Q1-Q6에 답하고 선정 상수(랭킹 키, 히어로 적합성 필터, 카드 credit 정책, 제목 절단) 확정. 분석 요약은 FD에 부록으로.
-- [ ] FD 3문서 작성, R/E/I 번호 고정. Step 3 절단 여부(Q3/Q5 결과) 결정·기록.
+### Step 0 — 원장 데이터 분석 + FD 작성 (planner + developer) `[x]`
+- [x] 11 dates 실데이터로 Q1-Q6에 답하고 선정 상수(본문 URL 순서, 600x338, source-name fallback)를 확정.
+- [x] FD 3문서와 FD plan 작성, R/E/I 번호 고정. 링크 카드 slice 유지 결정.
 - **Acceptance**: 개발자가 계약 번호를 인용해 착수 가능; 선정 상수에 "TBD" 0건.
 
-### Step 1 — 선정 함수 + `ImageUsageSelection` `[ ]`
-- [ ] `visuals/image_selection.py`: 계약 #1. 파일-진실 판정, 결정성, 캡.
+### Step 1 — 선정 함수 + `ImageUsageSelection` `[x]`
+- [x] `visuals/image_selection.py`: finalizable-body context, exact URL-token relevance, file-truth 판정, 결정성, 캡.
 - **Acceptance**: 다일 픽스처 원장/인덱스/store에서 결정적 선정(동일 입력 → 동일 출력 바이트 비교), cleared-없음/후보-없음/세그먼트-없음 각 fall-through, wall-clock 미사용.
 
-### Step 2 — cleared 히어로 복사 경로 `[ ]`
-- [ ] `_prepare_stored_context_image` + `prepare_segment_visual_assets` optional kwarg 배선 + u19 경로 스킵 조건 (계약 #2).
+### Step 2 — cleared 히어로 복사 경로 `[x]`
+- [x] `_prepare_stored_context_image` + optional kwarg 배선 + legacy external semantic URL filter (계약 #2/U-141 amendment).
 - **Acceptance**: cleared 픽스처에서 세그먼트 복사본+provenance 사이드카 생성·`_select_hero_index`가 히어로로 채택(우선순위 테이블 무변경 assert), 캡션에 attribution 노출, 외부 fetch 0회(httpx spy), 계약 #6(a)/(b) 회귀 고정.
 
-### Step 3 — 원문 링크 카드 렌더러 + 주입 `[ ]`
-- [ ] 렌더러(순수 함수) + orchestrator 주입 (계약 #3). `image_url` 비출력 정적 assert 포함.
+### Step 3 — 원문 링크 카드 렌더러 + 주입 `[x]`
+- [x] inert plain-text 렌더러 + typed supplement/orchestrator 주입. metadata URL/Markdown/HTML과 `image_url` 비출력 회귀 포함.
 - **Acceptance**: 카드 idempotent 주입(재실행 교체), 마커 disjoint 테스트, `## ②` 부재 시 생략(첫 화면 불침범), compliance/polish 게이트 통과, `image_url` 문자열이 rendered markdown에 0회 출현 회귀 고정.
 
-### Step 4 — 파이프라인 순서 재배선 + 실패 격리 `[ ]`
-- [ ] 이미지 stage 이동 + 선정 배선 (계약 #4), stage 예외 → WARN + 기존 체인 fall-through (계약 #5).
+### Step 4 — 파이프라인 순서 재배선 + 실패 격리 `[x]`
+- [x] 이미지 stage 이동 + 선정 배선, context/filter/select/copy/card 예외 → WARN + segment-local 기존 체인 fall-through.
 - **Acceptance**: 강제 예외 주입 통합 테스트에서 3세그먼트 게시 정상(u137 AC-137.4 재고정 포함), run trace에 선정 결과 기록, stage 순서 이동 후에도 원장/인덱스/store 산출 동일.
 
-### Step 5 — full gate + 문서 `[ ]`
-- [ ] ruff / mypy --strict / pytest / mkdocs build --strict / `check_no_paid_apis` / `check_image_store`.
-- [ ] CONTRIBUTING 런북에 "클리어된 이미지가 히어로로 나가기까지" 흐름 1절(클리어런스 작성→다음 run fetch→그다음 선정) 추가.
+### Step 5 — full gate + 문서 `[x]`
+- [x] ruff / mypy --strict / pytest / mkdocs build --strict / `check_no_paid_apis` / `check_image_store` / `check_curated_assets`.
+- [x] CONTRIBUTING 런북에 "클리어된 이미지가 히어로로 나가기까지" 흐름과 final-body/person/plain-text 규칙 추가.
 - **Acceptance**: 게이트 그린; Q6이 cleared=0이면 프로덕션 dark-launch 사실과 수동 검증 계획을 code/summary.md에 기록.
 
 ## Acceptance Criteria (unit-level)

@@ -21,6 +21,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import importlib
+import inspect
 import json
 import logging
 import subprocess
@@ -1340,6 +1341,55 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
         CRYPTO,
     ]
     assert supplements_by_segment == {}
+
+
+def test_u141_candidate_stage_precedes_visual_selection() -> None:
+    source = inspect.getsource(pipeline_module.GenerateStage.execute)
+    assert source.index("_run_image_candidate_stage") < source.index(
+        "_stage_prepare_segment_visual_assets"
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "failing_hook",
+    ("build_image_narrative_context", "select_image_usage"),
+)
+async def test_u141_selection_failure_is_isolated_for_all_three_segments(
+    failing_hook: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prepared_segments: list[MarketSegment] = []
+
+    def _fail_selection(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("selection unavailable")
+
+    def _fake_prepare(briefing: Briefing, **kwargs: object) -> PreparedVisualAssets:
+        assert "stored_selection" not in kwargs
+        prepared_segments.append(cast("MarketSegment", kwargs["segment"]))
+        return PreparedVisualAssets(briefing=briefing, asset_paths=())
+
+    monkeypatch.setattr(pipeline_module, failing_hook, _fail_selection)
+    monkeypatch.setattr(pipeline_module, "prepare_segment_visual_assets", _fake_prepare)
+    monkeypatch.setattr(pipeline_module, "_load_curated_runtime_safely", lambda: None)
+
+    briefings = {
+        DOMESTIC_EQUITY: _briefing(segment=DOMESTIC_EQUITY),
+        US_EQUITY: _briefing(segment=US_EQUITY),
+        CRYPTO: _briefing(segment=CRYPTO),
+    }
+    prepared, staged, supplements = await pipeline_module._stage_prepare_segment_visual_assets(
+        briefings,
+        _three_segment_items(),
+        _TARGET,
+        staging_root=tmp_path / "stage",
+    )
+
+    assert prepared_segments == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert list(prepared) == [DOMESTIC_EQUITY, US_EQUITY, CRYPTO]
+    assert staged == ()
+    assert supplements == {}
 
 
 @pytest.mark.asyncio
