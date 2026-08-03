@@ -5919,6 +5919,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `docs/cross-checks/2026-08-03-u134-callout-and-diagnostic-line-composition-repair.md`.
 **Disposition**: No implementation follow-up, development-plan addition, or TECH-DEBT item is required. u134 has no remaining construction work.
 
+## Integration — u134 main fast-forward prepared
+**Timestamp**: 2026-08-03T14:47:46Z
+**Isolation**: Created `/private/tmp/investo-u134-main-integration` from `origin/main@beb0f4b`; the user's original main worktree and its unrelated changes remain untouched.
+**Integration**: Fast-forwarded the isolated integration branch to validated `origin/codex/u134@e9ff4ac`; no merge conflict or code reconciliation was required.
+**Scope**: Seven u134 commits from `db5552b` through `e9ff4ac`, covering six construction steps and scoped cross-check.
+**Validation**: The identical implementation head passed the final 1,947-test gate, Ruff/format on 13 changed Python files, `mypy src` on 249 files, lock/fixture/diff integrity, and 100% cross-check. The integration range itself passes `git diff --check` and is exactly seven commits ahead of `origin/main`.
+**Status**: Commit this closeout, push the resulting head to `origin/main`, and verify GitHub Actions quality.
+
 ## Cross-Check — u133 complete
 **Timestamp**: 2026-08-03T13:12:17Z
 **Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.
