@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u131 bounded-line-sentence-boundary-truncation
 **Stage**: Code Generation
-**Status**: In Progress (Step 6/7 complete)
+**Status**: Complete (7/7, 2026-08-03)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~3-4 h
 **Dependencies**:
@@ -68,7 +68,7 @@ NFR Requirements: SKIP — pure string logic; no new dependency, source, secret,
 - [x] Step 4 — Swap card-title bounding in `src/investo/publisher/watchpoint_matrix.py` to the `·`-segment-drop rule; remove the `…` suffix.
 - [x] Step 5 — Extend `src/investo/_internal/surface_quality.py` truncation detection per Fixed Contract 4; add the three production lines from 2026-06-29/30 archives verbatim as blocking-case tests.
 - [x] Step 6 — Rendered regression: run `apply_reader_format` (u81 chain) over trimmed fixtures reproducing the three shapes; assert outputs end at sentence boundaries and reruns are byte-stable.
-- [ ] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/publisher tests/unit/internal`.
+- [x] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/publisher tests/unit/internal`.
 
 ## Acceptance Criteria
 

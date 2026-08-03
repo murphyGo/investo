@@ -26,6 +26,7 @@
     "public_projection_before_watchpoint": true,
     "raw_label_reintroduced_by_watchpoint": true,
     "blocking_issue_codes": [
+      "summary.truncated_mid_token",
       "public_diagnostic.raw_label"
     ]
   },
