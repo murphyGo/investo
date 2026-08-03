@@ -13,6 +13,32 @@ STDERR_BYTE_CAP: Final[int] = 1024
 # compatibility, but this module is the inward contract home.
 MEANINGFUL_TEXT: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 
+# u131 — Sentence terminators safe for bounded reader-facing text.  A period
+# preceded by a digit is intentionally excluded so market values such as
+# ``7,499.36`` can never become a synthetic sentence boundary.
+_SENTENCE_TERMINATOR_RE: Final[re.Pattern[str]] = re.compile(r"(?<=[^\d\s])[.!?。](?=\s|$)")
+
+
+def bound_at_sentence(text: str, max_chars: int) -> str | None:
+    """Bound ``text`` at its last complete sentence within ``max_chars``.
+
+    Text that already fits is returned byte-for-byte.  Overflowing text is
+    cut only after the last sentence terminator whose end is within the cap;
+    callers receive ``None`` when no complete sentence fits and must use their
+    surface-specific deterministic fallback.
+    """
+
+    if len(text) <= max_chars:
+        return text
+    last_end: int | None = None
+    for match in _SENTENCE_TERMINATOR_RE.finditer(text):
+        if match.end() > max_chars:
+            break
+        last_end = match.end()
+    if last_end is None:
+        return None
+    return text[:last_end].rstrip()
+
 
 def truncate_stderr(value: str | None) -> str | None:
     """Truncate ``value`` to ``STDERR_BYTE_CAP`` UTF-8 bytes.

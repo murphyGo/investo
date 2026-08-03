@@ -5840,3 +5840,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Result**: 6/6 acceptance criteria Complete, 100% compliance, QA verdict APPROVE. No Partial, Gap, Deferred, or In-Progress item remains in u130.
 **Actions**: No implementation follow-up, development-plan addition, or TECH-DEBT item required.
 **Report**: `docs/cross-checks/2026-08-03-u130-domestic-anchor-level-claim-quarantine-v2.md`.
+
+## Construction — u130 main integration and u131 Code Generation approval
+**Timestamp**: 2026-08-03T01:06:18Z
+**User response**: `u130 main 통합 → u131 개발 순으로 진행해줘` / `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**u130 integration**: Replayed the eight validated u130 commits onto the latest generated-output-only `origin/main`, preserved their atomic boundaries, and pushed final main head `b449591`. Integration validation passed scoped Ruff/format, `mypy src` for 248 files, 69 focused tests, 1,410 publisher/orchestrator tests, lock and diff checks. The user's dirty primary worktree was not modified.
+**Decision**: Treat the explicit sequential instruction as approval of the existing seven-step u131 Code Generation plan and authorization to commit/push each validated step without repeated approval pauses.
+**Target**: Execute u131 Step 1/7, the shared `bound_at_sentence` pure helper and its fixed-contract tests. Steps 2-7 remain outside this atomic slice.
+
+## Construction — u131 Code Generation Step 1 complete
+**Timestamp**: 2026-08-03T01:08:50Z
+**Action**: Added `bound_at_sentence(text, max_chars)` to the shared internal text boundary. Overflowing text returns the last complete pinned terminator at or before the cap, or `None` when no complete sentence fits; already-fitting text is returned byte-for-byte.
+**Safety**: The exact `(?<=[^\d\s])[.!?。](?=\s|$)` contract prevents numeric periods from becoming synthetic boundaries. No ellipsis is appended and no existing truncation helper changes behavior.
+**PBT**: Added a Hypothesis idempotency property for the new pure helper, consistent with the project's Partial opt-in.
+**Review**: Fresh-eyes review found one Low test-adequacy gap: the first decimal example was also rejected by the regex lookahead. Added a discriminating digit-preceded-period-before-space case; re-review approved with no remaining findings.
+**Validation**: `tests/unit/_internal/test_text.py` 25 passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-1-sentence-boundary-helper.md`.
+**Status**: Step 1 checklist complete 1/7. Next: Step 2 meaning-line integration using `MEANING_FALLBACK` on `None`.
