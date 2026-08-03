@@ -328,13 +328,18 @@ def test_telegram_render_has_no_diagnostic_leak() -> None:
     """
     from investo.briefing.watchlist import render_watchlist_impact
 
-    config = WatchlistConfig(keywords=("EV",), tickers=("BTC",))
-    items = [_item("a new ev launch and BTM Corp news")]
+    config = WatchlistConfig(keywords=("EV",), tickers=("BTC", "AAPL"))
+    registry_title = "AAPL listing metadata: Apple Inc. - Common Stock"
+    items = [
+        _item("a new ev launch and BTM Corp news"),
+        _item(registry_title, source_name="nasdaq-symbol-directory"),
+    ]
     center = build_impact_center(match_watchlist_items(items, config), items=items, config=config)
     # Sanity: this day produced only diagnostics.
     assert center.uncertain
     assert center.rejected
     assert not center.has_public_impacts
+    assert any(match.reason == "reference-registry" for match in center.uncertain)
 
     pub = public_impact(center)
     telegram = render_watchlist_impact(pub, channel="telegram")
@@ -344,6 +349,10 @@ def test_telegram_render_has_no_diagnostic_leak() -> None:
         assert "BTM" not in surface
         assert "⊘" not in surface
         assert "진단" not in surface
+        assert "reference-registry" not in surface
+        assert "nasdaq-symbol-directory" not in surface
+        assert registry_title not in surface
+        assert "건 확인" not in surface
 
 
 def test_center_helpers() -> None:

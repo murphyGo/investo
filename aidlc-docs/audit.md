@@ -6039,3 +6039,18 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review found one Low test-adequacy gap: the first test accepted appended empty-state wording and did not inspect the public region after `</details>`. Exact empty-state equality, combined before/after public-region checks, and exactly-one diagnostic-row assertions closed it. Re-review approved with no remaining finding; independent focused test/Ruff/format/diff gates passed.
 **Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-5-rendered-regression.md`.
 **Status**: Step 5 checklist complete 5/7. Next: explicit Telegram registry non-leakage.
+
+## Construction — u133 Code Generation Step 5 synchronization and Step 6 approval
+**Timestamp**: 2026-08-03T12:49:57Z
+**Synchronization**: Committed Step 5 as `250e8f9` (`test: pin registry-only watchlist rendering`) and pushed `codex/u133`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved seven-step sequence without another approval pause.
+**Target**: Pin registry count/reason/source/title non-leakage through the Telegram public renderer and terminal typed formatter.
+
+## Construction — u133 Code Generation Step 6 implementation
+**Timestamp**: 2026-08-03T12:49:57Z
+**Action**: Extended the existing u73 Telegram diagnostic test with a real registry row and added a `PublicNotificationSummary` terminal-formatter regression using both registry sources.
+**Contract**: The final notification retains only the existing no-public-impact sentence. `2건 확인`, `reference-registry`, both source names, and both title shapes are absent. The notifier consumes only the public DTO and gains no raw-match or source-spec logic.
+**Validation**: Impact + notifier summary suites 82 passed; scoped Ruff/format and `git diff --check` passed.
+**Review**: Fresh-eyes review found one Low test-adequacy gap: the renderer no-public state was only checked as a final-summary substring. Exact equality before DTO construction closed it, independently pinning the renderer and terminal formatter seams. Re-review approved with no remaining finding; focused test/Ruff/format/diff gates passed.
+**Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-6-telegram-nonleak.md`.
+**Status**: Step 6 checklist complete 6/7. Next: final cumulative quality gate.

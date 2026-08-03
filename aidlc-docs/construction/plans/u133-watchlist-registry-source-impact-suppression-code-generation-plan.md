@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u133 watchlist-registry-source-impact-suppression
 **Stage**: Code Generation
-**Status**: In Progress (5/7)
+**Status**: In Progress (6/7)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~3 h
 **Dependencies**:
@@ -68,7 +68,7 @@ NFR Requirements: SKIP — deterministic routing; no new dependency, source, sec
 - [x] Step 3 — Verify every "N건 확인" consumer derives its count from the public rows produced in Step 2 (`briefing/watchlist.py:441` renderer, `notifier/summary.py`, `visuals/` watchlist card, `publisher/watchlist_pages.py`); fix any consumer that counts raw matches.
 - [x] Step 4 — Add the Stage-2 §⑤ prompt rule (Fixed Contract 4) in `src/investo/briefing/prompts.py`; extend prompt tests.
 - [x] Step 5 — Rendered regression: fixture reproducing the 2026-06-30 us-equity match set (5+ registry rows, 0 non-registry rows for MSFT/NVDA/TSLA) asserting the public callout count excludes registry rows and the registry rows appear only in collapsed diagnostics.
-- [ ] Step 6 — Telegram non-leakage: extend the existing u73 Telegram test to assert registry rows/count do not appear.
+- [x] Step 6 — Telegram non-leakage: extend the existing u73 Telegram test to assert registry rows/count do not appear.
 - [ ] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/briefing tests/unit/notifier tests/unit/publisher tests/unit/visuals tests/unit/sources`.
 
 ## Acceptance Criteria

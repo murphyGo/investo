@@ -13,6 +13,12 @@ import pytest
 
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
+from investo.briefing.watchlist import (
+    WatchlistConfig,
+    match_watchlist_items,
+    render_watchlist_impact,
+)
+from investo.briefing.watchlist_impact import build_impact_center, public_impact
 from investo.models import (
     Briefing,
     BriefingNotification,
@@ -384,6 +390,59 @@ def test_sealed_watchlist_dto_is_decorated_from_typed_price_items() -> None:
     )
 
     assert "관심: NVDA(+1.2%): 실적 발표 뒤 강세" in rendered
+
+
+def test_registry_only_watchlist_dto_does_not_leak_into_telegram_summary() -> None:
+    registry_items = (
+        NormalizedItem(
+            source_name="nasdaq-symbol-directory",
+            category="news",
+            title="AAPL listing metadata: Apple Inc. - Common Stock",
+            published_at=datetime(2026, 4, 25, tzinfo=UTC),
+        ),
+        NormalizedItem(
+            source_name="sec-company-facts",
+            category="news",
+            title="AAPL SEC company facts: Apple Inc.",
+            published_at=datetime(2026, 4, 25, tzinfo=UTC),
+        ),
+    )
+    config = WatchlistConfig(tickers=("AAPL",))
+    center = build_impact_center(
+        match_watchlist_items(registry_items, config),
+        items=registry_items,
+        config=config,
+    )
+    telegram_watchlist = render_watchlist_impact(public_impact(center), channel="telegram")
+    assert (
+        telegram_watchlist
+        == "관심 목록과 직접 연결된 수집 항목 없음 — 영향은 별도로 단정하지 않습니다."
+    )
+    dto = PublicNotificationSummary(
+        segment=US_EQUITY,
+        target_date=_TARGET_DATE,
+        conclusion="미국 증시의 공개 근거를 확인합니다.",
+        coverage_status="normal",
+        coverage_label="정상",
+        watchlist=telegram_watchlist,
+    )
+
+    rendered = _build_segmented_summary_from_dtos(
+        {US_EQUITY: dto},
+        site_urls=_SEGMENT_URLS,
+        now_utc=datetime(2026, 4, 25, tzinfo=UTC),
+    )
+
+    assert "관심: 관심 목록과 직접 연결된 수집 항목 없음" in rendered
+    for private_diagnostic in (
+        "2건 확인",
+        "reference-registry",
+        "nasdaq-symbol-directory",
+        "sec-company-facts",
+        "listing metadata",
+        "SEC company facts",
+    ):
+        assert private_diagnostic not in rendered
 
 
 def test_build_segmented_summary_marks_missing_segments_on_partial_publish() -> None:
