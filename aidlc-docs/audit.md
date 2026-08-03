@@ -5857,3 +5857,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: `tests/unit/_internal/test_text.py` 25 passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-1-sentence-boundary-helper.md`.
 **Status**: Step 1 checklist complete 1/7. Next: Step 2 meaning-line integration using `MEANING_FALLBACK` on `None`.
+
+## Construction — u131 Code Generation Step 1 synchronization and Step 2 approval
+**Timestamp**: 2026-08-03T01:24:26Z
+**Synchronization**: Committed the validated Step 1 slice as `fea0e32` (`feat: bound reader text at sentences`) and pushed `codex/u131`; local HEAD and `origin/codex/u131` matched.
+**User response**: `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**Decision**: Continue under the approved seven-step u131 sequence into Step 2 without another approval pause.
+**Target**: Replace meaning-line word-boundary truncation with the shared helper, reuse the exact existing fallback on `None`, and remove the ellipsis-producing path while preserving the 80-character cap.
+
+## Construction — u131 Code Generation Step 2 complete
+**Timestamp**: 2026-08-03T01:24:26Z
+**Action**: Made `_bound_meaning_body` delegate to `bound_at_sentence` and made its caller use the exact `MEANING_FALLBACK` when no complete sentence fits.
+**Compatibility**: `MEANING_MAX_CHARS` remains 80. Short lines, advice/compliance visibility, duplicate removal, section eligibility, glossary/carryover preservation, and normalization idempotency remain unchanged.
+**Cleanup**: Removed the dead `_MEANING_BOUNDARY_CHARS` constant and all meaning-line `...` construction.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings and independently reran the helper and meaning modules (38 passed).
+**Validation**: 51 related reader-format tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-2-meaning-line-integration.md`.
+**Status**: Step 2 checklist complete 2/7. Next: Step 3 주의할 점 snippet integration and continuation contract.

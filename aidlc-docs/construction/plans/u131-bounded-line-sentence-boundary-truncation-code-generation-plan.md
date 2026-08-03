@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u131 bounded-line-sentence-boundary-truncation
 **Stage**: Code Generation
-**Status**: In Progress (Step 1/7 complete)
+**Status**: In Progress (Step 2/7 complete)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~3-4 h
 **Dependencies**:
@@ -63,7 +63,7 @@ NFR Requirements: SKIP — pure string logic; no new dependency, source, secret,
 ## Implementation Steps
 
 - [x] Step 1 — Add `bound_at_sentence` to `src/investo/_internal/text.py` with the pinned terminator regex; unit tests including the digit guard (`7,499.36` unsplit), no-terminator → `None`, exact-cap boundary.
-- [ ] Step 2 — Swap `src/investo/publisher/reader_format/meaning.py` `_bound…` internals to the helper + `MEANING_FALLBACK` on `None`; delete the `...` suffix path; keep `MEANING_MAX_CHARS` and `_MEANING_BOUNDARY_CHARS` removal if now dead.
+- [x] Step 2 — Swap `src/investo/publisher/reader_format/meaning.py` `_bound…` internals to the helper + `MEANING_FALLBACK` on `None`; delete the `...` suffix path; keep `MEANING_MAX_CHARS` and `_MEANING_BOUNDARY_CHARS` removal if now dead.
 - [ ] Step 3 — Swap the 주의할 점 snippet bounding in `src/investo/publisher/reader_format/reflow.py` to the helper; apply Fixed Contract 3 for `_SNIPPET_CONTINUATION`; fallback per Fixed Contract 2.
 - [ ] Step 4 — Swap card-title bounding in `src/investo/publisher/watchpoint_matrix.py` to the `·`-segment-drop rule; remove the `…` suffix.
 - [ ] Step 5 — Extend `src/investo/_internal/surface_quality.py` truncation detection per Fixed Contract 4; add the three production lines from 2026-06-29/30 archives verbatim as blocking-case tests.
