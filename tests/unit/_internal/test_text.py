@@ -9,12 +9,74 @@ still import the same helpers via the notifier alias.
 
 from __future__ import annotations
 
+from hypothesis import given
+from hypothesis import strategies as st
+
 from investo._internal.text import (
     UTF16_TRUNCATION_SUFFIX,
+    bound_at_sentence,
     truncate_with_suffix,
     utf16_truncate,
     utf16_units,
 )
+
+
+def test_bound_at_sentence_passthrough_below_and_at_cap() -> None:
+    text = "코스피 변동성을 확인했다."
+
+    assert bound_at_sentence(text, len(text) + 1) == text
+    assert bound_at_sentence(text, len(text)) == text
+
+
+def test_bound_at_sentence_uses_last_complete_sentence_within_cap() -> None:
+    first = "첫 문장을 확인했다."
+    second = " 두 번째 문장도 확인했다!"
+    remainder = " 아직 끝나지 않은 세 번째 문장"
+    text = first + second + remainder
+
+    assert bound_at_sentence(text, len(first + second)) == first + second
+
+
+def test_bound_at_sentence_supports_pinned_terminators() -> None:
+    for terminator in (".", "!", "?", "。"):
+        sentence = f"완료된 문장{terminator}"
+        text = sentence + " 뒤 문장은 한도를 넘는다"
+
+        assert bound_at_sentence(text, len(sentence)) == sentence
+
+
+def test_bound_at_sentence_does_not_split_decimal_value() -> None:
+    text = "비트코인은 7,499.36 수준에서 방향성을 탐색했다."
+    decimal_cap = text.index("36") + 2
+
+    assert bound_at_sentence(text, decimal_cap) is None
+
+
+def test_bound_at_sentence_rejects_digit_preceded_period_before_space() -> None:
+    text = "지수는 7,499.36. 후속 설명"
+    number_suffix_period = text.index(". 후속") + 1
+
+    assert bound_at_sentence(text, number_suffix_period) is None
+
+
+def test_bound_at_sentence_returns_none_without_terminator() -> None:
+    assert bound_at_sentence("완결 경계 없이 이어지는 문장", 10) is None
+
+
+@given(
+    body=st.text(alphabet=st.sampled_from(tuple("가나다라마바사ABC")), min_size=1, max_size=40),
+    remainder=st.text(
+        alphabet=st.sampled_from(tuple("가나다라마바사 ABC")), min_size=1, max_size=40
+    ),
+)
+def test_bound_at_sentence_is_byte_idempotent(body: str, remainder: str) -> None:
+    sentence = f"{body}."
+    text = f"{sentence} {remainder}"
+
+    once = bound_at_sentence(text, len(sentence))
+
+    assert once == sentence
+    assert bound_at_sentence(once, len(sentence)) == once
 
 
 def test_utf16_units_ascii_is_one_per_char() -> None:
