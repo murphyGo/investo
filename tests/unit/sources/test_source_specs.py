@@ -84,6 +84,16 @@ def test_outcome_views_preserve_cross_segment_relevance() -> None:
     assert "yfinance-price" not in source_names_for_outcome_segment("crypto")
 
 
+def test_reference_registry_source_set_is_exact_and_defaults_false() -> None:
+    reference_registry_names = {spec.name for spec in SOURCE_SPECS if spec.reference_registry}
+
+    assert reference_registry_names == {
+        "nasdaq-symbol-directory",
+        "sec-company-facts",
+    }
+    assert not SOURCE_SPECS_BY_NAME["yfinance-price"].reference_registry
+
+
 def test_retired_stooq_sources_are_absent_from_all_registry_views() -> None:
     retired = {"stooq-price", "stooq-kr-market"}
     assert retired.isdisjoint(SOURCE_SPECS_BY_NAME)

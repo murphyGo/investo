@@ -5963,3 +5963,17 @@ passed, scoped format check passed, `mypy src` passed.
 **Result**: 6 Complete, 0 Partial, 0 Gap, 0 Deferred, 0 In Progress — 100% compliance; QA verdict APPROVE.
 **Evidence**: `docs/cross-checks/2026-08-03-u131-bounded-line-sentence-boundary-truncation.md`.
 **Disposition**: No implementation follow-up, development-plan addition, or TECH-DEBT item is required. u131 has no remaining construction work.
+
+## Construction — u133 Code Generation approval
+**Timestamp**: 2026-08-03T10:26:24Z
+**User response**: `u133 → u134 → u135 까지 같은 방식으로 계속 개발해줘` / `블록커 이슈가 아닌한 나에게 묻지말고 계속 작업해줘`
+**Decision**: Treat the existing seven-step u133 plan as approved and commit/push each validated step without intermediate approval pauses. Functional Design and NFR Requirements remain skipped per the plan's bounded routing refinement.
+**Target**: Execute Step 1/7, adding the canonical `reference_registry` source-spec flag and exact pinned set.
+
+## Construction — u133 Code Generation Step 1 complete
+**Timestamp**: 2026-08-03T10:26:24Z
+**Action**: Added the backward-compatible `SourceSpec.reference_registry` field and set it only for `nasdaq-symbol-directory` and `sec-company-facts` in the canonical descriptor table.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings and independently passed the 10 focused tests, Ruff, and mypy.
+**Validation**: Source-spec suite 10 passed; scoped Ruff/format and mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-1-source-spec-flag.md`.
+**Status**: Step 1 checklist complete 1/7. Next: registry-match diagnostics-only routing.

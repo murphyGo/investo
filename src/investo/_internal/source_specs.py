@@ -31,6 +31,7 @@ class SourceSpec:
     item_routing: SourceItemRouting
     item_segments: frozenset[MarketSegment]
     outcome_segments: frozenset[MarketSegment]
+    reference_registry: bool = False
 
 
 def _spec(
@@ -41,6 +42,7 @@ def _spec(
     item_routing: SourceItemRouting = "single-segment",
     item_segments: frozenset[MarketSegment],
     outcome_segments: frozenset[MarketSegment] | None = None,
+    reference_registry: bool = False,
 ) -> SourceSpec:
     return SourceSpec(
         name=name,
@@ -49,6 +51,7 @@ def _spec(
         item_routing=item_routing,
         item_segments=item_segments,
         outcome_segments=outcome_segments if outcome_segments is not None else item_segments,
+        reference_registry=reference_registry,
     )
 
 
@@ -107,7 +110,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         market_window_segment="crypto",
         item_segments=_CRYPTO,
     ),
-    _spec("sec-company-facts", tier="S", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "sec-company-facts",
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        reference_registry=True,
+    ),
     _spec("sec-newsroom-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
     _spec(
         "treasury-rates",
@@ -164,6 +173,7 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         tier="A",
         market_window_segment="us-equity",
         item_segments=_US,
+        reference_registry=True,
     ),
     _spec("fred-macro", tier="A", market_window_segment="us-equity", item_segments=_US),
     _spec(
