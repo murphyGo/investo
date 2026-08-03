@@ -2023,9 +2023,12 @@ def _find_owned_surface_quality_issues(
             )
             for issue in find_surface_quality_issues(body)
             # The scanner treats the start of an isolated input as a document
-            # first viewport.  E3 scans region bodies in isolation, so retain
-            # this viewport-only finding only for the actual indexed viewport.
-            if issue.code != "summary.truncated_mid_token" or region.block == "first_viewport"
+            # first viewport. E3 scans region bodies in isolation, so retain a
+            # truncation finding only for the actual indexed viewport or for a
+            # scanner-owned bounded body line (meaning/watchpoint title).
+            if issue.code != "summary.truncated_mid_token"
+            or region.block == "first_viewport"
+            or issue.region == "segment_body"
         )
     return tuple(findings)
 
