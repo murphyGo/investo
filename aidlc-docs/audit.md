@@ -5992,3 +5992,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Impact, daily-page, and source-spec suites 46 passed; scoped Ruff/format and mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-2-diagnostics-routing.md`.
 **Status**: Step 2 checklist complete 2/7. Next: audit and align every public count consumer.
+
+## Construction — u133 Code Generation Step 2 synchronization and Step 3 approval
+**Timestamp**: 2026-08-03T12:25:26Z
+**Synchronization**: Committed Step 2 as `f52fa44` (`fix: suppress registry watchlist impacts`) and pushed `codex/u133`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved seven-step sequence without another approval pause.
+**Target**: Audit every public count consumer and align any raw-match handoff with the canonical public projection.
+
+## Construction — u133 Code Generation Step 3 implementation
+**Timestamp**: 2026-08-03T12:25:26Z
+**Audit**: The briefing/site path already builds `public_impact`, and the notifier consumes the finalized public line. Two raw handoffs remained: segmented visual preparation and per-term watchlist-page publication.
+**Action**: Projected visual input through `build_impact_center` + `public_impact`; built one aggregate impact center before publish snapshot/write and passed only `public_matches()` to per-term surfaces while retaining the full center for redacted daily diagnostics.
+**Regression**: Added behavior-level tests proving a registry + public AAPL pair yields only the public source on the visual and per-term surfaces, with the registry row retained only as daily `uncertain` diagnostics.
+**Validation**: 154 related orchestrator/impact/daily-page/visual-card tests passed; scoped Ruff/format and mypy passed; `git diff --check` passed.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings. It confirmed Fixed Contracts 2-3, AC-133.3, R13 redaction, u144 pre-seal placement, unknown/unconfigured/coverage behavior, rollback path agreement, and concurrency safety. Independent six-test/Ruff/mypy/diff gates passed.
+**Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-3-public-count-consumers.md`.
+**Status**: Step 3 checklist complete 3/7. Next: add the Stage-2 §⑤ registry narration rule.

@@ -136,6 +136,7 @@ from investo.briefing.segments import (
 )
 from investo.briefing.summary_quality import SummaryQualityError
 from investo.briefing.watchlist import WatchlistConfig, load_watchlist, match_watchlist_items
+from investo.briefing.watchlist_impact import build_impact_center, public_impact
 from investo.models import (
     Briefing,
     BriefingCarryover,
@@ -1535,7 +1536,6 @@ async def _stage_publish_segments(
                 load_watchlist,
                 match_watchlist_items,
             )
-            from investo.briefing.watchlist_impact import build_impact_center
             from investo.publisher.watchlist_pages import (
                 update_watchlist_pages,
                 watchlist_publish_paths_for,
@@ -1543,7 +1543,6 @@ async def _stage_publish_segments(
             )
 
             watchlist_cfg = load_watchlist()
-            all_matches: list[Any] = []
             all_items_for_match: list[Any] = []
             if watchlist_cfg.is_configured:
                 for segment_for_match in SEGMENT_ORDER:
@@ -1551,25 +1550,24 @@ async def _stage_publish_segments(
                         continue
                     segment_items_for_match = segment_items(items).for_segment(segment_for_match)
                     all_items_for_match.extend(segment_items_for_match)
-                    impact_for_match = match_watchlist_items(segment_items_for_match, watchlist_cfg)
-                    all_matches.extend(impact_for_match.matches)
-            for path in watchlist_publish_paths_for(all_matches):
-                snapshots.setdefault(path, _read_existing_bytes(path))
-            watchlist_paths = await _to_thread_drained(
-                update_watchlist_pages,
-                target_date,
-                all_matches,
-            )
-            # u73 — daily-first impact center page. Recompute the grouped
-            # center across all segments (Direct/Related/Uncertain/Rejected)
-            # and write today's impacts as the first content block. The
-            # writer fully regenerates the page so re-runs are idempotent.
             combined_impact = match_watchlist_items(all_items_for_match, watchlist_cfg)
             impact_center = build_impact_center(
                 combined_impact,
                 items=all_items_for_match,
                 config=watchlist_cfg,
             )
+            public_matches = impact_center.public_matches()
+            for path in watchlist_publish_paths_for(public_matches):
+                snapshots.setdefault(path, _read_existing_bytes(path))
+            watchlist_paths = await _to_thread_drained(
+                update_watchlist_pages,
+                target_date,
+                public_matches,
+            )
+            # u73 — daily-first impact center page. Recompute the grouped
+            # center across all segments (Direct/Related/Uncertain/Rejected)
+            # and write today's impacts as the first content block. The
+            # writer fully regenerates the page so re-runs are idempotent.
             _briefing_urls = _forecast_briefing_urls(target_date, published_segments)
             daily_segment_links = [
                 (SEGMENT_LABELS[segment_for_link], _briefing_urls[segment_for_link])
@@ -2151,17 +2149,23 @@ async def _stage_prepare_segment_visual_assets(
             segment,
             source_outcomes=source_outcomes,
         )
+        raw_watchlist_impact = match_watchlist_items(
+            segment_source_items,
+            watchlist_config,
+            coverage_status=segment_coverage.status,
+        )
+        watchlist_center = build_impact_center(
+            raw_watchlist_impact,
+            items=segment_source_items,
+            config=watchlist_config,
+        )
         prepared_kwargs: dict[str, Any] = {
             "archive_layout": archive_layout,
             "target_date": target_date,
             "segment": segment,
             "items": segment_source_items,
             "coverage": segment_coverage,
-            "watchlist_impact": match_watchlist_items(
-                segment_source_items,
-                watchlist_config,
-                coverage_status=segment_coverage.status,
-            ),
+            "watchlist_impact": public_impact(watchlist_center),
         }
         if curated_runtime is not None:
             curated_library, curated_registry, select_curated_asset = curated_runtime

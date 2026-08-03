@@ -53,6 +53,7 @@ from investo.models import (
     PipelineStatus,
     SendResult,
     SourceOutcome,
+    WatchlistImpact,
 )
 from investo.models.market_anchor import OHLCRow
 from investo.models.public_artifact import StagedArtifact
@@ -1268,9 +1269,10 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    from investo.briefing.watchlist import WatchlistConfig
+
     monkeypatch.setenv("INVESTO_VISUAL_PREP_CONCURRENCY", "2")
-    monkeypatch.setattr(pipeline_module, "load_watchlist", lambda: object())
-    monkeypatch.setattr(pipeline_module, "match_watchlist_items", lambda *args, **kwargs: None)
+    monkeypatch.setattr(pipeline_module, "load_watchlist", WatchlistConfig)
     monkeypatch.setattr(pipeline_module, "_load_curated_runtime_safely", lambda: None)
     started: list[MarketSegment] = []
     active = 0
@@ -1340,6 +1342,68 @@ async def test_stage_prepare_visual_assets_concurrency_two_preserves_order(
         CRYPTO,
     ]
     assert supplements_by_segment == {}
+
+
+@pytest.mark.asyncio
+async def test_stage_prepare_visual_assets_excludes_reference_registry_matches(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from investo.briefing.watchlist import WatchlistConfig
+
+    registry_item = NormalizedItem(
+        source_name="nasdaq-symbol-directory",
+        category="news",
+        title="AAPL listing metadata: Apple Inc. - Common Stock",
+        published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+    )
+    public_item = NormalizedItem(
+        source_name="yahoo-finance-news",
+        category="news",
+        title="AAPL earnings beat expectations",
+        published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+    )
+
+    class _RoutedItems:
+        def for_segment(self, segment: MarketSegment) -> tuple[NormalizedItem, ...]:
+            assert segment == US_EQUITY
+            return (registry_item, public_item)
+
+        def coverage_for_segment(
+            self,
+            segment: MarketSegment,
+            *,
+            source_outcomes: object = (),
+        ) -> object:
+            assert segment == US_EQUITY
+            del source_outcomes
+            return SimpleNamespace(status="normal")
+
+    captured_impacts: list[object] = []
+
+    def _capture_prepare(briefing: Briefing, **kwargs: object) -> PreparedVisualAssets:
+        captured_impacts.append(kwargs["watchlist_impact"])
+        return PreparedVisualAssets(briefing=briefing, asset_paths=())
+
+    monkeypatch.setattr(
+        pipeline_module,
+        "load_watchlist",
+        lambda: WatchlistConfig(tickers=("AAPL",)),
+    )
+    monkeypatch.setattr(pipeline_module, "segment_items", lambda _items: _RoutedItems())
+    monkeypatch.setattr(pipeline_module, "_load_curated_runtime_safely", lambda: None)
+    monkeypatch.setattr(pipeline_module, "prepare_segment_visual_assets", _capture_prepare)
+
+    await pipeline_module._stage_prepare_segment_visual_assets(
+        {US_EQUITY: _briefing(segment=US_EQUITY)},
+        (registry_item, public_item),
+        _TARGET,
+        staging_root=tmp_path / "stage",
+    )
+
+    assert len(captured_impacts) == 1
+    impact = cast(WatchlistImpact, captured_impacts[0])
+    assert [match.item.source_name for match in impact.matches] == ["yahoo-finance-news"]
 
 
 @pytest.mark.asyncio
@@ -3945,6 +4009,97 @@ async def test_stage_publish_segments_watchlist_atomic_failure_rolls_back(
         )
 
     assert watchlist_page.read_text(encoding="utf-8") == original
+
+
+@pytest.mark.asyncio
+async def test_stage_publish_segments_excludes_reference_registry_from_public_pages(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from investo.briefing import watchlist as watchlist_module
+    from investo.briefing.watchlist import WatchlistConfig
+    from investo.models import WatchlistImpactCenter, WatchlistMatch
+    from investo.publisher import watchlist_pages as watchlist_pages_module
+
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
+    registry_item = NormalizedItem(
+        source_name="nasdaq-symbol-directory",
+        category="news",
+        title="AAPL listing metadata: Apple Inc. - Common Stock",
+        published_at=datetime(2026, 4, 27, 12, 0, tzinfo=UTC),
+    )
+    public_item = NormalizedItem(
+        source_name="yahoo-finance-news",
+        category="news",
+        title="AAPL earnings beat expectations",
+        published_at=datetime(2026, 4, 27, 12, 1, tzinfo=UTC),
+    )
+
+    class _SegmentedItems:
+        def for_segment(self, segment: MarketSegment) -> tuple[NormalizedItem, ...]:
+            assert segment == US_EQUITY
+            return (registry_item, public_item)
+
+        def coverage_for_segment(
+            self,
+            segment: MarketSegment,
+            *,
+            source_outcomes: object = (),
+        ) -> object:
+            assert segment == US_EQUITY
+            del source_outcomes
+            return SimpleNamespace(status="normal")
+
+    path_matches: list[tuple[WatchlistMatch, ...]] = []
+    updated_matches: list[tuple[WatchlistMatch, ...]] = []
+    daily_centers: list[WatchlistImpactCenter] = []
+
+    def _capture_paths(matches: Sequence[WatchlistMatch]) -> tuple[Path, ...]:
+        path_matches.append(tuple(matches))
+        return ()
+
+    def _capture_update(
+        target_date: date,
+        matches: Sequence[WatchlistMatch],
+    ) -> tuple[Path, ...]:
+        assert target_date == _TARGET
+        updated_matches.append(tuple(matches))
+        return ()
+
+    def _capture_daily(
+        target_date: date,
+        center: WatchlistImpactCenter,
+        *,
+        segment_links: object = (),
+    ) -> Path:
+        assert target_date == _TARGET
+        del segment_links
+        daily_centers.append(center)
+        return Path("site_docs/watchlist/daily.md")
+
+    monkeypatch.setattr(
+        watchlist_module,
+        "load_watchlist",
+        lambda: WatchlistConfig(tickers=("AAPL",)),
+    )
+    monkeypatch.setattr(pipeline_module, "segment_items", lambda _items: _SegmentedItems())
+    monkeypatch.setattr(watchlist_pages_module, "watchlist_publish_paths_for", _capture_paths)
+    monkeypatch.setattr(watchlist_pages_module, "update_watchlist_pages", _capture_update)
+    monkeypatch.setattr(watchlist_pages_module, "write_daily_impact_page", _capture_daily)
+
+    await pipeline_module._stage_publish_segments(
+        {US_EQUITY: _briefing(segment=US_EQUITY)},
+        _TARGET,
+        git_runner=_SuccessfulGitRunner(),
+        items=(registry_item, public_item),
+    )
+
+    assert len(path_matches) == len(updated_matches) == len(daily_centers) == 1
+    assert [match.item.source_name for match in path_matches[0]] == ["yahoo-finance-news"]
+    assert updated_matches[0] == path_matches[0]
+    assert [match.item.source_name for match in daily_centers[0].uncertain] == [
+        "nasdaq-symbol-directory"
+    ]
 
 
 @pytest.mark.asyncio
