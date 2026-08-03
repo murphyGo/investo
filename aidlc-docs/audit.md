@@ -5956,3 +5956,10 @@ passed, scoped format check passed, `mypy src` passed.
 **Extensions**: Property-Based Testing remained Partial; the new shared pure helper carries Hypothesis idempotency coverage. Security Baseline remained declined; u131 adds no dependency, source, secret, network call, external I/O, or cost surface.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/summary.md`.
 **Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
+
+## Cross-Check — u131 complete
+**Timestamp**: 2026-08-03T09:34:37Z
+**Scope**: Traced FR-002, FR-008, FR-009, FR-012, NFR-003, and NFR-006 plus AC-131.1 through AC-131.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.
+**Result**: 6 Complete, 0 Partial, 0 Gap, 0 Deferred, 0 In Progress — 100% compliance; QA verdict APPROVE.
+**Evidence**: `docs/cross-checks/2026-08-03-u131-bounded-line-sentence-boundary-truncation.md`.
+**Disposition**: No implementation follow-up, development-plan addition, or TECH-DEBT item is required. u131 has no remaining construction work.
