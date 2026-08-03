@@ -126,6 +126,7 @@ MATRIX_COLUMNS: Final[tuple[str, ...]] = (
 # Maximum visible rows; extra bullets are summarised into a trailing note so
 # §⑥ stays daily-readable rather than growing unbounded.
 MAX_VISIBLE_ROWS: Final[int] = 6
+_SIGNAL_TITLE_MAX_CHARS: Final[int] = 30
 
 # Verified-numeric-threshold signal: a percent / dollar / yield figure that
 # turns a source-backed bullet from 보통 into 높음. Reuses the broad numeric
@@ -450,16 +451,18 @@ def _short_signal(bullet: str) -> str:
     # terse (e.g. ``10Y 금리가 4.5% 를``).
     for sep in ("가 ", "이 ", "는 ", "은 ", "："):  # noqa: RUF001 — full-width colon is valid Korean punctuation
         idx = head.find(sep)
-        if 0 < idx <= 30:
-            return _trim_trailing_particle(head[: idx + 1].strip(), truncated=False)
-    truncated = len(head) > 30
-    return _trim_trailing_particle(head[:30], truncated=truncated)
+        if 0 < idx <= _SIGNAL_TITLE_MAX_CHARS:
+            return _trim_trailing_particle(head[: idx + 1].strip())
+
+    segments = [segment.strip() for segment in head.split(" · ") if segment.strip()]
+    while len(" · ".join(segments)) > _SIGNAL_TITLE_MAX_CHARS and len(segments) > 1:
+        segments.pop()
+    return _trim_trailing_particle(" · ".join(segments))
 
 
-def _trim_trailing_particle(label: str, *, truncated: bool) -> str:
-    """Strip a trailing bare 조사 (AC-87.3); re-append ``…`` iff truncated."""
-    trimmed = _TRAILING_PARTICLE_RE.sub("", label).rstrip()
-    return f"{trimmed}…" if truncated else trimmed
+def _trim_trailing_particle(label: str) -> str:
+    """Strip a trailing bare 조사 without introducing truncation residue."""
+    return _TRAILING_PARTICLE_RE.sub("", label).rstrip()
 
 
 def _sanitize_card_text(text: str, *, default: str) -> str:

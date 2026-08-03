@@ -294,9 +294,44 @@ def test_signal_never_ends_on_bare_particle_ac87_3() -> None:
         ("BTC-USD가 단기 변동성 확대 국면", "BTC-USD가"),
     ):
         signal = _short_signal(bullet)
+        assert not signal.endswith("…"), signal
         assert not signal.rstrip("…").endswith(forbidden), signal
         for particle in ("이", "가", "은", "는", "을", "를"):
             assert not signal.rstrip("…").endswith(particle), signal
+
+
+def test_signal_title_drops_trailing_segments_without_ellipsis() -> None:
+    from investo.publisher.watchpoint_matrix import _short_signal
+
+    title = _short_signal("CoinGecko BTC · UTC 24h · 일중 범위 · 기관 흐름 점검")
+
+    assert title == "CoinGecko BTC · UTC 24h"
+    assert len(title) <= 30
+    assert "…" not in title
+    assert _short_signal(title) == title
+
+    incident_shape = _short_signal("CoinGecko BTC · UTC 24h 수익률과 흐름 점검")
+    assert incident_shape == "CoinGecko BTC"
+
+
+def test_signal_title_preserves_directional_particle_derivation() -> None:
+    from investo.publisher.watchpoint_matrix import _short_signal
+
+    title = _short_signal("CoinGecko BTC · 가격이 상승한다")
+
+    assert title == "CoinGecko BTC · 가격"
+    assert "…" not in title
+
+
+def test_signal_title_keeps_overlong_first_segment_whole() -> None:
+    from investo.publisher.watchpoint_matrix import _short_signal
+
+    first_segment = "장기관찰신호" * 6
+    title = _short_signal(f"{first_segment} · 후속 세그먼트")
+
+    assert len(first_segment) > 30
+    assert title == first_segment
+    assert "…" not in title
 
 
 def test_all_unstructured_collapses_to_single_note_ac87_4() -> None:
