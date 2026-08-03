@@ -6024,3 +6024,18 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings. It confirmed all Fixed Contract 4 clauses, preserved adjacent prompt semantics, correct ownership, non-tautological tests, R13/compliance safety, and no scanner/renderer/gate scope creep. Independent 57-test/Ruff/format/mypy/size/diff gates passed.
 **Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-4-stage2-prompt-rule.md`.
 **Status**: Step 4 checklist complete 4/7. Next: rendered 2026-06-30 match-set regression.
+
+## Construction — u133 Code Generation Step 4 synchronization and Step 5 approval
+**Timestamp**: 2026-08-03T12:44:31Z
+**Synchronization**: Committed Step 4 as `d4d3b25` (`feat: suppress registry-only section five`) and pushed `codex/u133`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved seven-step sequence without another approval pause.
+**Target**: Reconstruct the minimum 2026-06-30 registry-only match set and pin rendered public/diagnostic containment.
+
+## Construction — u133 Code Generation Step 5 implementation
+**Timestamp**: 2026-08-03T12:44:31Z
+**Fixture**: Added a redacted MSFT/NVDA/TSLA fixture with Nasdaq directory and SEC company-facts rows for each ticker: six accepted registry matches, zero non-registry items, and no raw payload/URL/secret/private destination.
+**Regression**: Ran the real matcher and impact center, then rendered site and daily surfaces. The site uses the existing no-public state; daily public counts are zero; all six term/source/reason signatures occur only inside collapsed diagnostics; all full source titles are absent.
+**Validation**: Focused rendered regression 1 passed; cumulative impact/daily/rendered scope 37 passed; fixture JSON, Ruff/format, and `git diff --check` passed.
+**Review**: Fresh-eyes review found one Low test-adequacy gap: the first test accepted appended empty-state wording and did not inspect the public region after `</details>`. Exact empty-state equality, combined before/after public-region checks, and exactly-one diagnostic-row assertions closed it. Re-review approved with no remaining finding; independent focused test/Ruff/format/diff gates passed.
+**Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-5-rendered-regression.md`.
+**Status**: Step 5 checklist complete 5/7. Next: explicit Telegram registry non-leakage.

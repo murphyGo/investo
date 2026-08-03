@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "target_date": "2026-06-30",
+  "watchlist": {
+    "tickers": [
+      "MSFT",
+      "NVDA",
+      "TSLA"
+    ]
+  },
+  "items": [
+    {
+      "source_name": "nasdaq-symbol-directory",
+      "category": "news",
+      "title": "MSFT listing metadata: Microsoft Corporation - Common Stock",
+      "published_at": "2026-06-30T04:00:00Z"
+    },
+    {
+      "source_name": "sec-company-facts",
+      "category": "news",
+      "title": "MSFT SEC company facts: MICROSOFT CORP",
+      "published_at": "2026-06-30T04:00:00Z"
+    },
+    {
+      "source_name": "nasdaq-symbol-directory",
+      "category": "news",
+      "title": "NVDA listing metadata: NVIDIA Corporation - Common Stock",
+      "published_at": "2026-06-30T04:00:00Z"
+    },
+    {
+      "source_name": "sec-company-facts",
+      "category": "news",
+      "title": "NVDA SEC company facts: NVIDIA CORP",
+      "published_at": "2026-06-30T04:00:00Z"
+    },
+    {
+      "source_name": "nasdaq-symbol-directory",
+      "category": "news",
+      "title": "TSLA listing metadata: Tesla, Inc. - Common Stock",
+      "published_at": "2026-06-30T04:00:00Z"
+    },
+    {
+      "source_name": "sec-company-facts",
+      "category": "news",
+      "title": "TSLA SEC company facts: TESLA INC",
+      "published_at": "2026-06-30T04:00:00Z"
+    }
+  ],
+  "expected": {
+    "raw_match_count": 6,
+    "public_match_count": 0,
+    "diagnostic_reason": "reference-registry"
+  }
+}
