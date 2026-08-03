@@ -65,6 +65,60 @@ def test_alias_ticker_hit_is_direct() -> None:
     assert center.direct[0].confidence == "alias"
 
 
+def test_reference_registry_match_routes_to_diagnostics_only() -> None:
+    config = WatchlistConfig(tickers=("AAPL",))
+    items = [
+        _item(
+            "AAPL listing metadata: Apple Inc. - Common Stock",
+            source_name="nasdaq-symbol-directory",
+        ),
+        _item(
+            "AAPL SEC company facts: Apple Inc.",
+            source_name="sec-company-facts",
+        ),
+    ]
+
+    center = build_impact_center(
+        match_watchlist_items(items, config),
+        items=items,
+        config=config,
+    )
+
+    assert center.direct == ()
+    assert center.related == ()
+    assert len(center.uncertain) == 2
+    assert {match.reason for match in center.uncertain} == {"reference-registry"}
+    assert not center.has_public_impacts
+    assert center.has_diagnostics
+
+    public = public_impact(center)
+    assert public.matches == ()
+    assert public.status == "no_match"
+
+
+def test_non_registry_match_for_same_ticker_remains_public() -> None:
+    config = WatchlistConfig(tickers=("AAPL",))
+    items = [
+        _item(
+            "AAPL listing metadata: Apple Inc. - Common Stock",
+            source_name="nasdaq-symbol-directory",
+        ),
+        _item("AAPL rallies after earnings beat"),
+    ]
+
+    center = build_impact_center(
+        match_watchlist_items(items, config),
+        items=items,
+        config=config,
+    )
+
+    assert len(center.direct) == 1
+    assert center.direct[0].item.source_name == "yahoo-finance-news"
+    assert len(center.uncertain) == 1
+    assert center.uncertain[0].reason == "reference-registry"
+    assert public_impact(center).matches == center.direct
+
+
 def test_sector_keyword_text_hit_is_related() -> None:
     config = WatchlistConfig(sectors=("semiconductor",))
     items = [_item("The semiconductor cycle shows signs of recovery")]

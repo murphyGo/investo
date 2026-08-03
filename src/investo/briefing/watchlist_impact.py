@@ -50,8 +50,10 @@ from __future__ import annotations
 import hashlib
 import re
 from collections.abc import Sequence
+from dataclasses import replace
 from typing import Final
 
+from investo._internal.source_specs import SOURCE_SPECS_BY_NAME
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models import NormalizedItem
 from investo.models.watchlist import (
@@ -89,6 +91,7 @@ _MAX_REJECTED: Final[int] = 25
 # ``BTCS`` token). Word-boundary anchored exactly like the u64 matcher so
 # we never claim a rejection u64 itself would have accepted.
 _ASCII_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9]+")
+_REFERENCE_REGISTRY_REASON: Final[str] = "reference-registry"
 
 
 def _short_title_hash(title: str) -> str:
@@ -129,6 +132,15 @@ def _classify_match(match: WatchlistMatch) -> ImpactGroup:
     # because a text hit without structured evidence is the lowest tier
     # for an asset/ticker.
     return "uncertain"
+
+
+def _route_reference_registry_match(match: WatchlistMatch) -> WatchlistMatch | None:
+    """Return a diagnostics-only copy when ``match`` comes from a registry source."""
+
+    spec = SOURCE_SPECS_BY_NAME.get(match.item.source_name)
+    if spec is None or not spec.reference_registry:
+        return None
+    return replace(match, reason=_REFERENCE_REGISTRY_REASON)
 
 
 def _ascii_short_tickers(config: WatchlistConfig) -> tuple[tuple[str, WatchlistTermKind], ...]:
@@ -278,6 +290,10 @@ def build_impact_center(
     related: list[WatchlistMatch] = []
     uncertain: list[WatchlistMatch] = []
     for match in impact.matches:
+        registry_match = _route_reference_registry_match(match)
+        if registry_match is not None:
+            uncertain.append(registry_match)
+            continue
         group = _classify_match(match)
         if group == "direct":
             direct.append(match)

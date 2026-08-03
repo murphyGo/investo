@@ -22,10 +22,11 @@ def _item(
     title: str,
     summary: str | None = None,
     *,
+    source_name: str = "yahoo-finance-news",
     raw_metadata: dict[str, str] | None = None,
 ) -> NormalizedItem:
     return NormalizedItem(
-        source_name="yahoo-finance-news",
+        source_name=source_name,
         category="news",
         title=title,
         summary=summary,
@@ -114,6 +115,23 @@ def test_daily_page_segment_backlinks() -> None:
     )
     assert "## 관련 시황" in body
     assert "archive/us-equity/2026/05/2026-05-07.md" in body
+
+
+def test_daily_page_redacts_reference_registry_match_in_diagnostics() -> None:
+    config = WatchlistConfig(tickers=("AAPL",))
+    item = _item(
+        "AAPL listing metadata: Apple Inc. - Common Stock",
+        source_name="nasdaq-symbol-directory",
+    )
+    center = _center(config, [item])
+
+    body = render_daily_impact_page(date(2026, 5, 7), center)  # type: ignore[arg-type]
+
+    assert "직접 0 · 관련 0 · 보류 1 · 제외 0" in body
+    assert "<details>" in body
+    assert "AAPL · nasdaq-symbol-directory [reference-registry]" in body
+    assert "listing metadata" not in body
+    assert "Apple Inc." not in body
 
 
 def test_write_daily_page_prefixes_segment_backlinks_for_mkdocs(tmp_path: object) -> None:

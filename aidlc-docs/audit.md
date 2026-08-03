@@ -5977,3 +5977,18 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Source-spec suite 10 passed; scoped Ruff/format and mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-1-source-spec-flag.md`.
 **Status**: Step 1 checklist complete 1/7. Next: registry-match diagnostics-only routing.
+
+## Construction — u133 Code Generation Step 1 synchronization and Step 2 approval
+**Timestamp**: 2026-08-03T12:15:09Z
+**Synchronization**: Committed Step 1 as `11f7cad` (`feat: classify reference registry sources`) and pushed `codex/u133`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved seven-step sequence without another approval pause.
+**Target**: Route accepted registry matches to existing redacted diagnostics with a distinct reason and exclude them from public impact.
+
+## Construction — u133 Code Generation Step 2 complete
+**Timestamp**: 2026-08-03T12:15:09Z
+**Action**: Added source-spec-driven pre-classification routing that copies registry matches into the uncertain diagnostics bucket with `reference-registry`; public projection drops them while non-registry matches remain unchanged.
+**R13**: Daily diagnostics expose only term, source name, and reason. Registry title/summary/URL never render.
+**Review**: Fresh-eyes review approved with no Critical/High/Medium/Low findings and independently passed 74 related tests, Ruff, and mypy.
+**Validation**: Impact, daily-page, and source-spec suites 46 passed; scoped Ruff/format and mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-2-diagnostics-routing.md`.
+**Status**: Step 2 checklist complete 2/7. Next: audit and align every public count consumer.
