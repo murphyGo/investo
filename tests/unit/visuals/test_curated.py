@@ -262,13 +262,13 @@ def test_seed_registry_integrity_against_seed_library() -> None:
 
     repo_root = Path(__file__).resolve().parents[3]
     library = load_library(repo_root / LIBRARY_ROOT)
-    assert_registry_integrity(default_registry(), library)
-    # 2026-07-22: all 13 seed keys are filed with license-verified
+    assert assert_registry_integrity(default_registry(), library) == []
+    # 2026-08-03: all 15 seed keys are filed with license-verified
     # binaries (PD / 17 U.S.C. 105 / CC0 — see each sibling manifest).
     # load_library() has already applied the full clearance gate here;
     # this pins the operator-facing steady state: no deferred stragglers.
     assert all(asset.state == "filed" for asset in library.values())
-    assert len(library) == 13
+    assert len(library) == 15
 
 
 # --------------------------------------------------------------------------- #
@@ -301,14 +301,56 @@ def test_generic_fomc_evidence_selects_topic_not_powell(tmp_path: Path) -> None:
 
 
 def test_current_warsh_fomc_story_never_selects_powell(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "kevin-warsh")
     _file_clean_png(tmp_path / "person", "jerome-powell")
     _file_clean_png(tmp_path / "topic", "federal-reserve")
     library = load_library(tmp_path)
     context = _context("Kevin Warsh chaired the FOMC rate decision")
     selection = select_curated_asset("us-equity", context, library, default_registry())
-    assert selection.matched_key == "topic:federal-reserve"
+    assert selection.matched_key == "person:kevin-warsh"
     assert selection.asset is not None
-    assert selection.asset.asset_id != "jerome-powell"
+    assert selection.asset.asset_id == "kevin-warsh"
+
+
+def test_named_bessent_story_selects_bessent_portrait(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "scott-bessent")
+    _file_clean_png(tmp_path / "topic", "macro")
+    library = load_library(tmp_path)
+    context = _context("Scott Bessent discussed the Treasury market outlook")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.matched_key == "person:scott-bessent"
+    assert selection.asset is not None
+    assert selection.asset.asset_id == "scott-bessent"
+
+
+@pytest.mark.parametrize(
+    ("asset_id", "text", "expected_key"),
+    [
+        ("kevin-warsh", "케빈 워시가 연준 통화정책을 설명했다", "person:kevin-warsh"),
+        ("scott-bessent", "스콧 베선트가 미 국채 시장을 설명했다", "person:scott-bessent"),
+    ],
+)
+def test_korean_named_current_official_selects_portrait(
+    tmp_path: Path,
+    asset_id: str,
+    text: str,
+    expected_key: str,
+) -> None:
+    _file_clean_png(tmp_path / "person", asset_id)
+    library = load_library(tmp_path)
+    selection = select_curated_asset("us-equity", _context(text), library, default_registry())
+    assert selection.matched_key == expected_key
+    assert selection.asset is not None
+    assert selection.asset.asset_id == asset_id
+
+
+def test_generic_official_roles_do_not_select_new_portraits(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "kevin-warsh")
+    _file_clean_png(tmp_path / "person", "scott-bessent")
+    library = load_library(tmp_path)
+    context = _context("The Fed Chair met the Treasury Secretary")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.asset is None
 
 
 def test_powell_name_in_link_destination_is_not_person_evidence(tmp_path: Path) -> None:
