@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final, Literal, Protocol
+from urllib.parse import urlsplit
 
 from defusedxml.ElementTree import ParseError, fromstring
 
@@ -63,6 +65,7 @@ _PNG_IHDR_OFFSET: Final[int] = 8
 _PNG_IHDR_LENGTH: Final[int] = 25
 _DIMENSION_NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"\d+")
 _MARKET_SNAPSHOT_TEXT_MAX_CHARS: Final[int] = 240
+_FINAL_BODY_SELECTION_CONTRACT: Final[str] = "final-body-semantic-v1"
 _CARD_LABELS: Final[dict[str, str]] = {
     "ai-market-hero": "AI 시황 이미지",
     "curated-context-image": "큐레이션 시황 이미지",
@@ -116,6 +119,37 @@ class VisualAssetError(ValueError):
     """Raised when visual assets cannot be prepared safely."""
 
 
+_logger = logging.getLogger(__name__)
+
+
+class _StoredCandidate(Protocol):
+    candidate_id: str
+
+
+class _StoredProvenance(Protocol):
+    additional_metadata: Mapping[str, str]
+
+
+class _ClearanceManifest(Protocol):
+    license: str
+    attribution: str
+    author: str
+    allowed_use: str
+    source_url: object
+
+
+class _StoredHero(Protocol):
+    candidate: _StoredCandidate
+    binary_path: Path
+    store_manifest: _StoredProvenance
+    clearance_manifest: _ClearanceManifest
+
+
+class _ImageUsageSelection(Protocol):
+    hero: _StoredHero | None
+    narrative_sha256: str
+
+
 @dataclass(frozen=True, slots=True)
 class VisualMarkdownBlock:
     """One rendered visual block plus its explicit placement key."""
@@ -153,6 +187,8 @@ def prepare_segment_visual_assets(
     coverage: SegmentCoverage,
     watchlist_impact: WatchlistImpact,
     curated_selection: CuratedSelection | None = None,
+    stored_selection: _ImageUsageSelection | None = None,
+    external_image_items: tuple[NormalizedItem, ...] = (),
     staging_root: Path | None = None,
 ) -> PreparedVisualAssets:
     """Generate SVG cards, write provenance manifests, and lay out markdown.
@@ -183,21 +219,37 @@ def prepare_segment_visual_assets(
         cards.insert(2, price_card)
 
     asset_paths: list[Path] = []
-    external_asset_path = _prepare_external_context_image(
+    stored_asset_path = _prepare_stored_context_image(
         archive_layout=write_layout,
         target_date=target_date,
         segment=segment,
-        items=items,
+        stored_selection=stored_selection,
     )
+    external_asset_path = stored_asset_path
+    if external_asset_path is None:
+        external_asset_path = _prepare_external_context_image(
+            archive_layout=write_layout,
+            target_date=target_date,
+            segment=segment,
+            items=external_image_items,
+        )
     if external_asset_path is not None:
         asset_paths.append(external_asset_path)
 
-    curated_asset_path = _prepare_curated_context_image(
-        archive_layout=write_layout,
-        target_date=target_date,
-        segment=segment,
-        curated_selection=curated_selection,
-    )
+    try:
+        curated_asset_path = _prepare_curated_context_image(
+            archive_layout=write_layout,
+            target_date=target_date,
+            segment=segment,
+            curated_selection=curated_selection,
+        )
+    except Exception as exc:
+        _logger.warning(
+            "curated image copy failed segment=%s error_type=%s; falling through",
+            segment,
+            type(exc).__name__,
+        )
+        curated_asset_path = None
     if curated_asset_path is not None:
         asset_paths.append(curated_asset_path)
 
@@ -577,6 +629,76 @@ def _prepare_external_context_image(
     return path
 
 
+def _prepare_stored_context_image(
+    *,
+    archive_layout: ArchiveLayout,
+    target_date: date,
+    segment: MarketSegment,
+    stored_selection: _ImageUsageSelection | None,
+) -> Path | None:
+    """Copy one U-141 cleared store pair into the existing hero slot.
+
+    The path is local-only. A stale/corrupt pair or copy/provenance failure
+    degrades to the existing external/curated/AI/data-confidence chain.
+    """
+
+    if stored_selection is None or stored_selection.hero is None:
+        return None
+    selected = stored_selection.hero
+    try:
+        extension = selected.binary_path.suffix
+        if extension not in {".png", ".jpg"}:
+            return None
+        path = visual_asset_path(
+            target_date,
+            segment,
+            "external-context-image",
+            extension=extension,
+            archive_layout=archive_layout,
+        )
+        content = selected.binary_path.read_bytes()
+        _write_binary(path, content)
+        dimensions = read_image_dimensions(content, extension)
+        if dimensions is None:
+            raise VisualAssetError("stored image dimensions are unreadable")
+        clearance = selected.clearance_manifest
+        content_type: Literal["image/png", "image/jpeg"] = (
+            "image/png" if extension == ".png" else "image/jpeg"
+        )
+        store_metadata = selected.store_manifest.additional_metadata
+        manifest = build_external_provenance(
+            asset_relative_path=path.name,
+            card_kind="external-context-image",
+            generated_at=datetime.combine(target_date, datetime.min.time(), tzinfo=UTC),
+            width=dimensions[0],
+            height=dimensions[1],
+            content_type=content_type,
+            license_name=clearance.license,
+            attribution=clearance.attribution,
+            author=clearance.author,
+            allowed_use=clearance.allowed_use,
+            fetched_from_host=urlsplit(str(clearance.source_url)).hostname or "",
+            additional_metadata={
+                "candidate_id": selected.candidate.candidate_id,
+                "content_sha256": store_metadata.get("content_sha256", ""),
+                "selection_contract": _FINAL_BODY_SELECTION_CONTRACT,
+                "match_reason": "exact-item-url-in-hero-scope",
+                "narrative_sha256": stored_selection.narrative_sha256,
+            },
+        )
+        write_manifest(manifest, path)
+        validate_visual_asset(path)
+        return path
+    except Exception as exc:
+        _logger.warning(
+            "stored image copy failed segment=%s candidate_id=%s error_type=%s; falling through",
+            segment,
+            selected.candidate.candidate_id,
+            type(exc).__name__,
+        )
+        return None
+
+
 def _prepare_curated_context_image(
     *,
     archive_layout: ArchiveLayout,
@@ -628,6 +750,13 @@ def _prepare_curated_context_image(
         author=asset.manifest.author,
         allowed_use=asset.manifest.allowed_use,
         source_url=str(asset.manifest.source_url),
+        additional_metadata={
+            "asset_id": asset.asset_id,
+            "matched_key": curated_selection.matched_key or "unknown",
+            "match_reason": curated_selection.match_reason,
+            "narrative_sha256": curated_selection.narrative_sha256 or "unknown",
+            "selection_contract": _FINAL_BODY_SELECTION_CONTRACT,
+        },
     )
     write_manifest(manifest, path)
     validate_visual_asset(path)

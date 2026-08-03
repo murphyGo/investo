@@ -30,24 +30,28 @@ calls :func:`load_library` over the committed root.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final, Literal, Protocol
 
 from pydantic import ValidationError
 
 from investo._internal.redaction import RedactionPolicy, redact_text
-from investo._internal.watchlist_matching import match_term_with_aliases as _match_term_with_aliases
-from investo.models import NormalizedItem
 from investo.models.segments import MarketSegment
-from investo.models.watchlist import WatchlistTermKind
 from investo.visuals.policy import (
     CURATED_DEFERRAL_MARKER,
     ExternalAssetManifest,
     ExternalAssetPolicyError,
     assert_curated_asset_allowed,
 )
+
+
+class _NarrativeContext(Protocol):
+    hero_markdown: str
+    narrative_sha256: str
+
 
 CuratedAssetState = Literal["filed", "deferred"]
 
@@ -89,6 +93,7 @@ class RegistryEntry:
     key: str
     asset_ids: tuple[str, ...]
     segment_affinity: frozenset[str]
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,6 +103,7 @@ class CuratedSelection:
     asset: CuratedAsset | None
     matched_key: str | None = None
     match_reason: str = "no-match"
+    narrative_sha256: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -285,13 +291,12 @@ def _assert_no_orphan_binaries(root: Path, assets: Mapping[str, CuratedAsset]) -
 # Entity extraction + deterministic selection (generation time)
 # ---------------------------------------------------------------------------
 
-# The key namespace's term used for matching is the slug after the
-# ``namespace:`` prefix, with hyphens treated as a phrase. We additionally
-# match a human alias map so e.g. ``person:jerome-powell`` matches
-# "Powell" / "파월" / "FOMC". The matcher reuses u64 boundary primitives.
+# Semantic aliases are explicit registry metadata. Person entries contain
+# names only: a role/institution term can select a topic asset, never a
+# specific office-holder portrait (U-141 R4).
 _KEY_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
-    "person:jerome-powell": ("Powell", "파월", "Jerome Powell", "Fed Chair", "FOMC", "연준 의장"),
-    "person:us-president": ("President", "White House", "대통령", "백악관"),
+    "person:jerome-powell": ("Jerome Powell", "Powell", "제롬 파월", "파월"),
+    "person:us-president": ("Donald Trump", "Donald J. Trump", "Trump", "도널드 트럼프", "트럼프"),
     "topic:federal-reserve": (
         "Federal Reserve",
         "Fed",
@@ -333,7 +338,7 @@ _REGISTRY_PRIORITY: Final[tuple[str, ...]] = (
 
 def select_curated_asset(
     segment: MarketSegment,
-    items: Sequence[NormalizedItem],
+    context: _NarrativeContext,
     library: Mapping[str, CuratedAsset],
     registry: Sequence[RegistryEntry],
 ) -> CuratedSelection:
@@ -351,13 +356,13 @@ def select_curated_asset(
             continue
         if segment not in entry.segment_affinity:
             continue
-        reason = _match_registry_key(key, items)
+        reason = _match_registry_key(entry, context.hero_markdown)
         if reason is None:
             continue
         candidates.append((priority, key, reason))
 
     if not candidates:
-        return CuratedSelection(asset=None)
+        return CuratedSelection(asset=None, narrative_sha256=context.narrative_sha256)
 
     # Deterministic ordering (R5 / I12): registry priority, then key lexical.
     candidates.sort(key=lambda c: (c[0], c[1]))
@@ -366,49 +371,49 @@ def select_curated_asset(
         for asset_id in entry.asset_ids:  # registry-ordered (I9)
             asset = library.get(asset_id)
             if asset is not None and asset.state == "filed":
-                return CuratedSelection(asset=asset, matched_key=key, match_reason=reason)
-    return CuratedSelection(asset=None)
+                return CuratedSelection(
+                    asset=asset,
+                    matched_key=key,
+                    match_reason=reason,
+                    narrative_sha256=context.narrative_sha256,
+                )
+    return CuratedSelection(asset=None, narrative_sha256=context.narrative_sha256)
 
 
-def _match_registry_key(key: str, items: Sequence[NormalizedItem]) -> str | None:
-    """Return a match reason if any item evidences ``key`` (reuse u64 matcher, R6)."""
-    namespace, _, slug = key.partition(":")
-    kind: WatchlistTermKind = "asset" if namespace == "asset" else "keyword"
-    # The phrase form of the slug ("jerome-powell" -> "jerome powell") plus
-    # the curated alias bundle for the key.
-    primary_term = slug.replace("-", " ")
-    aliases: Mapping[str, tuple[str, ...]] = {primary_term: _KEY_ALIASES.get(key, ())}
-    for item in items:
-        text_cf = f"{item.title} {item.summary or ''}".casefold()
-        text_raw = f"{item.title} {item.summary or ''}"
-        hit_term, _hit_alias, _confidence, reason = _match_term_with_aliases(
-            term=primary_term,
-            kind=kind,
-            aliases=aliases,
-            item=item,
-            text_cf=text_cf,
-            text_raw=text_raw,
-            exact_only=False,
-        )
-        if hit_term is not None:
-            return reason
-        # Also try each alias as a standalone term (the alias bundle in
-        # ``aliases`` only fires when keyed by ``primary_term``; a fresh
-        # standalone scan catches aliases that are themselves the surface
-        # form, e.g. matching "FOMC" without the slug appearing).
-        for alias in _KEY_ALIASES.get(key, ()):
-            alias_hit, _a, _c, _alias_reason = _match_term_with_aliases(
-                term=alias,
-                kind=kind,
-                aliases={},
-                item=item,
-                text_cf=text_cf,
-                text_raw=text_raw,
-                exact_only=False,
-            )
-            if alias_hit is not None:
-                return f"alias:{alias}"
+def _match_registry_key(entry: RegistryEntry, hero_markdown: str) -> str | None:
+    """Return bounded evidence when an entry alias occurs in hero scope."""
+
+    if not hero_markdown:
+        return None
+    reader_visible_text = _reader_visible_semantic_text(hero_markdown)
+    for alias in entry.aliases:
+        if _contains_semantic_alias(reader_visible_text, alias):
+            return f"alias:{alias};scope=hero"
     return None
+
+
+def _reader_visible_semantic_text(markdown: str) -> str:
+    """Remove link destinations and raw HTML before semantic alias matching."""
+
+    without_destinations = re.sub(r"\]\([^\n)]*\)", "]", markdown)
+    without_autolinks = re.sub(r"<https?://[^>\n]+>", "", without_destinations)
+    without_raw_urls = re.sub(r"https?://[^\s<>]+", "", without_autolinks)
+    return re.sub(r"<[^>\n]+>", "", without_raw_urls)
+
+
+def _contains_semantic_alias(text: str, alias: str) -> bool:
+    if alias.isascii():
+        return (
+            re.search(
+                rf"(?<![0-9A-Za-z]){re.escape(alias)}(?![0-9A-Za-z])",
+                text,
+                flags=re.IGNORECASE,
+            )
+            is not None
+        )
+    # Korean postpositions attach without whitespace; named/topic aliases are
+    # explicit and sufficiently specific for a literal Unicode match.
+    return alias.casefold() in text.casefold()
 
 
 def default_registry() -> tuple[RegistryEntry, ...]:
@@ -421,6 +426,7 @@ def _entry(key: str, asset_ids: Iterable[str], affinity: Iterable[str]) -> Regis
         key=key,
         asset_ids=tuple(asset_ids),
         segment_affinity=frozenset(affinity),
+        aliases=_KEY_ALIASES.get(key, ()),
     )
 
 

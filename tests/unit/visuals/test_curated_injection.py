@@ -15,6 +15,7 @@ from investo.briefing.watchlist import WatchlistConfig, match_watchlist_items
 from investo.models import Briefing, NormalizedItem
 from investo.visuals.assets import prepare_segment_visual_assets
 from investo.visuals.curated import CuratedSelection, load_library
+from investo.visuals.provenance import read_manifest
 from tests.unit.visuals._image_bytes import VALID_PNG_BYTES
 
 _TARGET = date(2026, 5, 7)
@@ -98,6 +99,7 @@ def test_curated_hero_rendered_with_caption_and_disclaimer(tmp_path: Path) -> No
         asset=library["jerome-powell"],
         matched_key="person:jerome-powell",
         match_reason="boundary-term",
+        narrative_sha256="a" * 64,
     )
     prepared = _prepare(tmp_path, selection)
     markdown = prepared.briefing.rendered_markdown
@@ -109,6 +111,10 @@ def test_curated_hero_rendered_with_caption_and_disclaimer(tmp_path: Path) -> No
     # A copied binary + provenance sidecar landed under the asset dir.
     copied = [p for p in prepared.asset_paths if p.stem == "curated-context-image"]
     assert copied and copied[0].exists()
+    manifest = read_manifest(copied[0])
+    assert manifest.additional_metadata["matched_key"] == "person:jerome-powell"
+    assert manifest.additional_metadata["narrative_sha256"] == "a" * 64
+    assert manifest.additional_metadata["selection_contract"] == "final-body-semantic-v1"
 
 
 def test_curated_hero_outranks_ai_but_caption_no_secret(tmp_path: Path) -> None:

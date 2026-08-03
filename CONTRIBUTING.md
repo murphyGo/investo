@@ -542,6 +542,32 @@ allowlist). Stored binaries land content-addressed under
 blocks CI on any unpaired / unclearanced / over-budget /
 secret-bearing store state — an empty store always passes.
 
+### How a cleared image reaches a briefing (u141)
+
+Clearance makes an image *eligible*; it does not make the image
+editorially relevant. On the next run the pipeline updates the candidate
+ledger/store before visual preparation, then evaluates the generated
+reader-facing body:
+
+1. The article's exact `item_url` must appear in the finalizable briefing.
+   Hero scope is the conclusion, key drivers, and first story in `## ②`;
+   a text source card may use the complete `## ②` section.
+2. A stored hero additionally requires current clearance-file truth, one
+   valid binary/provenance pair whose hashes agree, and image metadata of at
+   least 600x338. Otherwise the existing curated/AI/data-confidence fallback
+   remains in charge.
+3. A metadata-only candidate can produce at most one text card containing
+   title, credit (or source name), and the article URL. Its `image_url` is
+   never rendered or hotlinked.
+4. A person portrait requires that person's name in the hero scope. Generic
+   role terms such as FOMC, Fed Chair, 연준 의장, President, or White House
+   never select a named person's portrait.
+
+The selected asset sidecar records
+`selection_contract=final-body-semantic-v1`, a bounded match reason, and a
+digest of the narrative scope. Selection/copy/card errors are warnings only
+and fall through without blocking publication.
+
 ### Pages deploy
 
 `pages.yml` triggers automatically on every push to `main` (including

@@ -118,7 +118,9 @@ def sanitize_provenance_text(text: str) -> str:
 # bare hex digest (e.g. a token-shaped string) is sanitized as usual,
 # and every other key keeps the full chokepoint treatment. This is not
 # a redaction-pattern override — the u27 catalogue is untouched.
-_DIGEST_METADATA_KEYS: Final[frozenset[str]] = frozenset({"candidate_id", "content_sha256"})
+_DIGEST_METADATA_KEYS: Final[frozenset[str]] = frozenset(
+    {"candidate_id", "content_sha256", "narrative_sha256"}
+)
 # Plain string pattern + re.fullmatch, matching the module's
 # no-compiled-local-pattern convention (see _GIT_SHORT_SHA_PATTERN).
 _HEX_DIGEST_PATTERN: Final[str] = r"^[0-9a-f]{64}$"
@@ -299,6 +301,7 @@ def build_curated_provenance(
     author: str,
     allowed_use: str,
     source_url: str,
+    additional_metadata: dict[str, str] | None = None,
 ) -> VisualProvenanceManifest:
     """Build a provenance manifest for a u86 curated-library hero image.
 
@@ -316,6 +319,15 @@ def build_curated_provenance(
     safe_use = sanitize_provenance_text(allowed_use)
     safe_source = sanitize_provenance_text(source_url)
     composed_attribution = f"{safe_attribution} ({safe_author}) — {safe_license}"
+    metadata = dict(additional_metadata or {})
+    metadata.update(
+        {
+            "license": safe_license,
+            "author": safe_author,
+            "allowed_use": safe_use,
+            "source_url": safe_source,
+        }
+    )
     return VisualProvenanceManifest(
         asset_path=asset_relative_path,
         source_type="external",
@@ -325,12 +337,7 @@ def build_curated_provenance(
         version=_investo_version(),
         content_type=content_type,
         dimensions=(width, height),
-        additional_metadata={
-            "license": safe_license,
-            "author": safe_author,
-            "allowed_use": safe_use,
-            "source_url": safe_source,
-        },
+        additional_metadata=metadata,
         card_kind="curated-context-image",
     )
 

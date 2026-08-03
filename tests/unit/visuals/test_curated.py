@@ -12,13 +12,13 @@ from investo.models import NormalizedItem
 from investo.visuals.curated import (
     CuratedAsset,
     CuratedLibraryError,
-    CuratedSelection,
     RegistryEntry,
     assert_registry_integrity,
     default_registry,
     load_library,
     select_curated_asset,
 )
+from investo.visuals.image_selection import build_image_narrative_context
 from investo.visuals.policy import (
     CURATED_DEFERRAL_MARKER,
     EXTERNAL_IMAGE_SCRAPING_ENABLED,
@@ -84,6 +84,19 @@ def _item(title: str, *, summary: str = "", category: str = "news") -> Normalize
         published_at=datetime(2026, 5, 28, 12, 0, tzinfo=UTC),
         raw_metadata={},
     )
+
+
+def _context(text: str, *, segment: str = "us-equity") -> object:
+    markdown = (
+        "# 시황\n"
+        f"> **오늘의 결론**: {text}\n"
+        f"> **핵심 동인**: {text}\n\n"
+        "## ② 전일 핵심 이슈\n\n"
+        f"### 첫 이슈\n\n{text}\n\n"
+        "### 둘째 이슈\n\n후속 내용\n\n"
+        "## ③ 섹터/수급 동향\n"
+    )
+    return build_image_narrative_context(segment, markdown)  # type: ignore[arg-type]
 
 
 # --------------------------------------------------------------------------- #
@@ -268,19 +281,66 @@ def _crypto_library(tmp_path: Path) -> dict[str, CuratedAsset]:
     return load_library(tmp_path)
 
 
-def test_select_powell_on_fomc_evidence(tmp_path: Path) -> None:
+def test_select_powell_on_named_primary_story(tmp_path: Path) -> None:
     _file_clean_png(tmp_path / "person", "jerome-powell")
     library = load_library(tmp_path)
-    items = (_item("Powell signals patience at FOMC", summary="rate decision ahead"),)
-    selection = select_curated_asset("us-equity", items, library, default_registry())
+    context = _context("Jerome Powell signals patience at the meeting")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
     assert selection.asset is not None
     assert selection.matched_key == "person:jerome-powell"
 
 
+def test_generic_fomc_evidence_selects_topic_not_powell(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "jerome-powell")
+    _file_clean_png(tmp_path / "topic", "federal-reserve")
+    library = load_library(tmp_path)
+    context = _context("FOMC rate decision moved Treasury yields")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.asset is not None
+    assert selection.matched_key == "topic:federal-reserve"
+
+
+def test_current_warsh_fomc_story_never_selects_powell(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "jerome-powell")
+    _file_clean_png(tmp_path / "topic", "federal-reserve")
+    library = load_library(tmp_path)
+    context = _context("Kevin Warsh chaired the FOMC rate decision")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.matched_key == "topic:federal-reserve"
+    assert selection.asset is not None
+    assert selection.asset.asset_id != "jerome-powell"
+
+
+def test_powell_name_in_link_destination_is_not_person_evidence(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "jerome-powell")
+    library = load_library(tmp_path)
+    context = _context(
+        "[Kevin Warsh policy history](https://news.example.com/jerome-powell-history)"
+    )
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.asset is None
+
+
+def test_generic_president_role_does_not_select_trump_portrait(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "us-president")
+    library = load_library(tmp_path)
+    context = _context("The President met advisers at the White House")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.asset is None
+
+
+def test_named_trump_story_can_select_trump_portrait(tmp_path: Path) -> None:
+    _file_clean_png(tmp_path / "person", "us-president")
+    library = load_library(tmp_path)
+    context = _context("Donald Trump announced a new trade policy")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
+    assert selection.matched_key == "person:us-president"
+
+
 def test_select_bitcoin_on_crypto_segment(tmp_path: Path) -> None:
     library = _crypto_library(tmp_path)
-    items = (_item("Bitcoin rallies past resistance", summary="BTC up"),)
-    selection = select_curated_asset("crypto", items, library, default_registry())
+    context = _context("Bitcoin rallies past resistance", segment="crypto")
+    selection = select_curated_asset("crypto", context, library, default_registry())
     assert selection.asset is not None
     assert selection.matched_key == "asset:bitcoin"
 
@@ -288,23 +348,24 @@ def test_select_bitcoin_on_crypto_segment(tmp_path: Path) -> None:
 def test_selection_is_byte_stable(tmp_path: Path) -> None:
     _file_clean_png(tmp_path / "person", "jerome-powell")
     library = load_library(tmp_path)
-    items = (_item("Powell speaks", summary="FOMC"),)
-    a = select_curated_asset("us-equity", items, library, default_registry())
-    b = select_curated_asset("us-equity", items, library, default_registry())
+    context = _context("Powell speaks about policy")
+    a = select_curated_asset("us-equity", context, library, default_registry())
+    b = select_curated_asset("us-equity", context, library, default_registry())
     assert a == b
 
 
 def test_segment_affinity_excludes_candidate(tmp_path: Path) -> None:
     # Bitcoin is crypto-only; a us-equity segment must not select it.
     library = _crypto_library(tmp_path)
-    items = (_item("Bitcoin in the news", summary="BTC"),)
-    selection = select_curated_asset("us-equity", items, library, default_registry())
+    context = _context("Bitcoin in the news")
+    selection = select_curated_asset("us-equity", context, library, default_registry())
     assert selection.asset is None
 
 
 def test_empty_segment_selects_nothing(tmp_path: Path) -> None:
     library = _crypto_library(tmp_path)
-    selection = select_curated_asset("crypto", (), library, default_registry())
+    context = build_image_narrative_context("crypto", "# empty")
+    selection = select_curated_asset("crypto", context, library, default_registry())
     assert selection.asset is None
 
 
@@ -312,11 +373,13 @@ def test_deferred_key_is_not_selectable(tmp_path: Path) -> None:
     # bitcoin is deferred -> even on a matching crypto segment, selection is None.
     _defer(tmp_path / "asset", "bitcoin")
     library = load_library(tmp_path)
-    items = (_item("Bitcoin rallies", summary="BTC up"),)
-    selection = select_curated_asset("crypto", items, library, default_registry())
+    context = _context("Bitcoin rallies", segment="crypto")
+    selection = select_curated_asset("crypto", context, library, default_registry())
     assert selection.asset is None
 
 
 def test_no_match_returns_clean_none() -> None:
-    selection = select_curated_asset("crypto", (), {}, default_registry())
-    assert selection == CuratedSelection(asset=None)
+    context = build_image_narrative_context("crypto", "# empty")
+    selection = select_curated_asset("crypto", context, {}, default_registry())
+    assert selection.asset is None
+    assert selection.narrative_sha256 == context.narrative_sha256

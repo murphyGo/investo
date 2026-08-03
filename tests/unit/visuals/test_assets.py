@@ -392,6 +392,7 @@ def test_prepare_segment_visual_assets_prefers_external_image_before_ai(
         target_date=_TARGET,
         segment="us-equity",
         items=items,
+        external_image_items=items,
         coverage=coverage,
         watchlist_impact=impact,
     )
