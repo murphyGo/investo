@@ -1,0 +1,104 @@
+{
+  "capture": {
+    "captured_on": "2026-08-03",
+    "imageinfo_request": "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo%7Crevisions&iiprop=url%7Csize%7Cmime%7Csha1%7Ctimestamp%7Cextmetadata&iiurlwidth=1280&rvprop=ids%7Ctimestamp&rvlimit=1&titles=File%3ARenewable+Energy+on+the+Grid.jpg",
+    "structured_data_request": "https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&ids=M50505011"
+  },
+  "imageinfo_response": {
+    "query": {
+      "pages": [
+        {
+          "imageinfo": [
+            {
+              "extmetadata": {
+                "Artist": {
+                  "value": "<a rel=\"nofollow\" class=\"external text\" href=\"https://pixabay.com/en/users/Kenueone-2397379/\">Kenueone</a>"
+                },
+                "Categories": {
+                  "value": "CC-Zero|Wind-solar hybrid power systems|Images from Pixabay|Electricity pylons in unidentified locations|Wind turbines in unidentified locations|Photovoltaic power stations (ground-mounted)"
+                },
+                "Copyrighted": {
+                  "value": "True"
+                },
+                "LicenseShortName": {
+                  "value": "CC0"
+                },
+                "LicenseUrl": {
+                  "value": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+                },
+                "Restrictions": {
+                  "value": ""
+                }
+              },
+              "height": 621,
+              "mime": "image/jpeg",
+              "sha1": "387b85002ffde6ffe784eee044cdee9139d9dec0",
+              "thumbheight": 621,
+              "thumburl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Renewable_Energy_on_the_Grid.jpg",
+              "thumbwidth": 886,
+              "timestamp": "2016-08-05T22:14:36Z",
+              "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Renewable_Energy_on_the_Grid.jpg",
+              "width": 886
+            }
+          ],
+          "pageid": 50505011,
+          "revisions": [
+            {
+              "parentid": 1032496471,
+              "revid": 1073521616,
+              "timestamp": "2025-08-17T08:39:12Z"
+            }
+          ],
+          "title": "File:Renewable Energy on the Grid.jpg"
+        }
+      ]
+    }
+  },
+  "schema_version": "commons-exact-file-snapshot-v1",
+  "structured_data_response": {
+    "entities": {
+      "M50505011": {
+        "lastrevid": 1073521616,
+        "modified": "2025-08-17T08:39:12Z",
+        "statements": {
+          "P275": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q6938433",
+                    "numeric-id": 6938433
+                  }
+                },
+                "property": "P275",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ],
+          "P6216": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q88088423",
+                    "numeric-id": 88088423
+                  }
+                },
+                "property": "P6216",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

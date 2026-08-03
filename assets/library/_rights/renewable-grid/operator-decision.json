@@ -1,0 +1,19 @@
+{
+  "asset_id": "renewable-grid",
+  "binary_relpath": "topic/renewable-grid.jpg",
+  "binary_sha256": "eb36d14f46189d00943a2046601269c25cf48e48befa67db6bf5461b12311c7d",
+  "decision": "approved",
+  "endorsement_risk_reviewed": true,
+  "evidence_sha256": "629a2f195c64f50410736e989821e34c6635f5f23545f70a5426c67888a349be",
+  "file_identity_confirmed": true,
+  "license_scope_confirmed": true,
+  "manifest_relpath": "topic/renewable-grid.manifest.json",
+  "manifest_sha256": "fea62a4771da7cf8fb2f7336c984d772240f4cdab9d2da98bd26c7ad205ec592",
+  "non_copyright_restrictions_reviewed": true,
+  "notes": "Solar panels, wind turbines, and grid infrastructure with no people or prominent marks. Relevant only to explicit renewable or clean-energy stories and does not imply endorsement.",
+  "registry_key": "topic:clean-energy",
+  "reviewed_by": "Investo operator review",
+  "reviewed_on": "2026-08-03",
+  "schema_version": "curated-operator-decision-v1",
+  "subject_relevance_confirmed": true
+}

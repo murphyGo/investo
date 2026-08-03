@@ -48,6 +48,8 @@ from investo.orchestrator import (
     run_pipeline,
 )
 from investo.publisher.paths import archive_path
+from investo.visuals.image_library import ImageCandidateRecord, candidate_id_for_url
+from investo.visuals.image_selection import ImageUsageSelection
 
 _TARGET = date(2026, 4, 27)  # Monday
 _BOT_TOKEN = "1234567890:AAFakeBotTokenThatLooksLikeARealOneXYZ"
@@ -250,13 +252,14 @@ async def test_pipeline_end_to_end_success(
     assert "archive/domestic-equity/2026/04/2026-04-27" in str(result.briefing_url)
     # All 4 stages recorded as ok (+ the u137 image-candidate stage
     # note — the fake items carry no image metadata, so all zeros).
-    # 20 files since 2026-07-22: the u86 curated library ships filed
-    # binaries, so the "FOMC item" titles select the jerome-powell
-    # curated hero (+ binary + provenance sidecar) in one segment.
+    # 18 files under U-141: raw "FOMC item" titles are no longer semantic
+    # evidence for a Jerome Powell portrait. The canned finalizable body has
+    # no named-person match, so only the six standard visual files per
+    # segment are staged.
     assert result.stages == {
         "collect": "ok",
         "generate": "ok",
-        "visual_assets": "ok: 20 files",
+        "visual_assets": "ok: 18 files",
         "image_candidates": "ok: candidates=0 indexed=0 stored=0",
         "publish": "ok",
         "notify_briefing": "ok",
@@ -307,6 +310,93 @@ async def test_pipeline_end_to_end_success(
     assert "/archive/crypto/2026/04/2026-04-27/" in str(public_sends[0]["text"])
     # NO operator alert on the happy path (CLAUDE.md #5 isolation pin).
     assert operator_alerts == []
+
+
+@pytest.mark.asyncio
+async def test_u141_metadata_card_survives_finalizer_without_image_url(
+    isolated_archive: Path,
+    stub_u2_claude: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    del stub_u2_claude
+    item_url = "https://news.example.com/market-story"
+    image_url = "https://img.example.com/never-render.png"
+    candidate = ImageCandidateRecord(
+        candidate_id=candidate_id_for_url(image_url),
+        image_url=image_url,
+        source_name="example-news",
+        segment=US_EQUITY,
+        item_url=item_url,
+        item_title="시장 이미지가 포함된 기사",
+        image_credit=None,
+        collected_on=_TARGET,
+    )
+    issue_markdown = _stage2_markdown().replace(
+        "## ② 전일 핵심 이슈\n전일에는 FOMC 관련 이슈가 핵심이었습니다. 발표 대기 중입니다.",
+        "## ② 전일 핵심 이슈\n\n### 정책 일정\n\n"
+        "전일에는 FOMC 관련 이슈가 핵심이었습니다. 발표 대기 중입니다.",
+    )
+    stdouts = [_stage1_classification_json(2), issue_markdown]
+    call_index = 0
+
+    async def _fake_call(
+        prompt: str,
+        *,
+        timeout_s: float = 120.0,
+        runner: object | None = None,
+    ) -> SubprocessOutcome:
+        del prompt, timeout_s, runner
+        nonlocal call_index
+        outcome = SubprocessOutcome(
+            stdout=stdouts[call_index],
+            stderr="",
+            returncode=0,
+            elapsed_s=1.0,
+        )
+        call_index += 1
+        return outcome
+
+    monkeypatch.setattr(briefing_orchestration, "call_claude_code", _fake_call)
+
+    def _select(context: object, **_kwargs: object) -> ImageUsageSelection:
+        segment = context.segment
+        digest = context.narrative_sha256
+        return ImageUsageSelection(
+            hero=None,
+            card_candidate=candidate if segment == US_EQUITY else None,
+            narrative_sha256=digest,
+            reason="integration-fixture",
+        )
+
+    monkeypatch.setattr("investo.orchestrator.pipeline.select_image_usage", _select)
+    git = _SuccessfulGitRunner()
+    transport = httpx.MockTransport(_telegram_send_handler())
+    async with httpx.AsyncClient(transport=transport, timeout=5.0) as http_client:
+        result = await run_pipeline(
+            _TARGET,
+            publisher=BriefingPublisher(
+                bot_token=_BOT_TOKEN,
+                channel_id=_PUBLIC_CHANNEL,
+                http=http_client,
+            ),
+            alerter=OperatorAlerter(
+                bot_token=_BOT_TOKEN,
+                operator_chat_id=_OPERATOR_CHAT,
+                http=http_client,
+            ),
+            site_url_base=_SITE_BASE,
+            fetch=_make_fetch_callable(_fake_items(2)),
+            git_runner=git,
+        )
+
+    assert result.status == PipelineStatus.SUCCESS
+    rendered = archive_path(_TARGET, segment=US_EQUITY).read_text(encoding="utf-8")
+    marker = "visual:us-equity.visual.image-source-card"
+    assert rendered.count(f"<!-- investo:block {marker} -->") == 1
+    assert rendered.count(f"<!-- /investo:block {marker} -->") == 1
+    assert item_url in rendered
+    assert "example-news" in rendered
+    assert image_url not in rendered
 
 
 # ---------------------------------------------------------------------------

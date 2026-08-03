@@ -1,0 +1,109 @@
+{
+  "capture": {
+    "binary_response": {
+      "content_length": 270047,
+      "etag_md5": "44dbe3d355bc2b35409ed39a8ce8eb89",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Gold_bullion_bars.jpg/1280px-Gold_bullion_bars.jpg"
+    },
+    "captured_on": "2026-08-03",
+    "imageinfo_request": "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo%7Crevisions&iiprop=url%7Csize%7Cmime%7Csha1%7Ctimestamp%7Cextmetadata&iiurlwidth=1280&rvprop=ids%7Ctimestamp&rvlimit=1&titles=File%3AGold+bullion+bars.jpg",
+    "structured_data_request": "https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&ids=M70003226"
+  },
+  "imageinfo_response": {
+    "query": {
+      "pages": [
+        {
+          "imageinfo": [
+            {
+              "extmetadata": {
+                "Artist": {
+                  "value": "Stevebidmead"
+                },
+                "Categories": {
+                  "value": "CC-Zero|Gold ingots|Images from Pixabay"
+                },
+                "Copyrighted": {
+                  "value": "True"
+                },
+                "LicenseShortName": {
+                  "value": "CC0"
+                },
+                "LicenseUrl": {
+                  "value": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+                },
+                "Restrictions": {
+                  "value": ""
+                }
+              },
+              "height": 3840,
+              "mime": "image/jpeg",
+              "sha1": "8308158679489e5311a7b46909ed4d3579ae5872",
+              "thumbheight": 960,
+              "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Gold_bullion_bars.jpg/1280px-Gold_bullion_bars.jpg",
+              "thumbwidth": 1280,
+              "timestamp": "2018-06-17T16:12:35Z",
+              "url": "https://upload.wikimedia.org/wikipedia/commons/a/af/Gold_bullion_bars.jpg",
+              "width": 5120
+            }
+          ],
+          "pageid": 70003226,
+          "revisions": [
+            {
+              "parentid": 981769910,
+              "revid": 1148527553,
+              "timestamp": "2026-01-16T21:03:33Z"
+            }
+          ],
+          "title": "File:Gold bullion bars.jpg"
+        }
+      ]
+    }
+  },
+  "schema_version": "commons-exact-file-snapshot-v1",
+  "structured_data_response": {
+    "entities": {
+      "M70003226": {
+        "lastrevid": 1148527553,
+        "modified": "2026-01-16T21:03:33Z",
+        "statements": {
+          "P275": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q6938433",
+                    "numeric-id": 6938433
+                  }
+                },
+                "property": "P275",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ],
+          "P6216": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q88088423",
+                    "numeric-id": 88088423
+                  }
+                },
+                "property": "P6216",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

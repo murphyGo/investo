@@ -1,0 +1,109 @@
+{
+  "capture": {
+    "binary_response": {
+      "content_length": 499546,
+      "etag_md5": "53c4566e296aba18388dc1ba202ea2e8",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Data_center_roof.jpg/1280px-Data_center_roof.jpg"
+    },
+    "captured_on": "2026-08-03",
+    "imageinfo_request": "https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=imageinfo%7Crevisions&iiprop=url%7Csize%7Cmime%7Csha1%7Ctimestamp%7Cextmetadata&iiurlwidth=1280&rvprop=ids%7Ctimestamp&rvlimit=1&titles=File%3AData+center+roof.jpg",
+    "structured_data_request": "https://commons.wikimedia.org/w/api.php?action=wbgetentities&format=json&ids=M178932171"
+  },
+  "imageinfo_response": {
+    "query": {
+      "pages": [
+        {
+          "imageinfo": [
+            {
+              "extmetadata": {
+                "Artist": {
+                  "value": "<a href=\"//commons.wikimedia.org/wiki/User:Rsparks3\" title=\"User:Rsparks3\">Rsparks3</a>"
+                },
+                "Categories": {
+                  "value": "CC-Zero|Data centers|Self-published work|Files with coordinates missing SDC location of creation"
+                },
+                "Copyrighted": {
+                  "value": "True"
+                },
+                "LicenseShortName": {
+                  "value": "CC0"
+                },
+                "LicenseUrl": {
+                  "value": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+                },
+                "Restrictions": {
+                  "value": ""
+                }
+              },
+              "height": 3072,
+              "mime": "image/jpeg",
+              "sha1": "a06a5143f400361ae5fd50e67f3e043221269327",
+              "thumbheight": 960,
+              "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Data_center_roof.jpg/1280px-Data_center_roof.jpg",
+              "thumbwidth": 1280,
+              "timestamp": "2025-11-25T01:55:49Z",
+              "url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Data_center_roof.jpg",
+              "width": 4096
+            }
+          ],
+          "pageid": 178932171,
+          "revisions": [
+            {
+              "parentid": 1145614144,
+              "revid": 1146723451,
+              "timestamp": "2026-01-12T17:43:25Z"
+            }
+          ],
+          "title": "File:Data center roof.jpg"
+        }
+      ]
+    }
+  },
+  "schema_version": "commons-exact-file-snapshot-v1",
+  "structured_data_response": {
+    "entities": {
+      "M178932171": {
+        "lastrevid": 1146723451,
+        "modified": "2026-01-12T17:43:25Z",
+        "statements": {
+          "P275": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q6938433",
+                    "numeric-id": 6938433
+                  }
+                },
+                "property": "P275",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ],
+          "P6216": [
+            {
+              "mainsnak": {
+                "datavalue": {
+                  "type": "wikibase-entityid",
+                  "value": {
+                    "entity-type": "item",
+                    "id": "Q88088423",
+                    "numeric-id": 88088423
+                  }
+                },
+                "property": "P6216",
+                "snaktype": "value"
+              },
+              "rank": "normal",
+              "type": "statement"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

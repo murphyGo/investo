@@ -475,6 +475,41 @@ def clearances_dir_for(*, ledger_root: Path = DEFAULT_LEDGER_ROOT) -> Path:
     return ledger_root / _CLEARANCES_DIRNAME
 
 
+def current_rights_state(
+    candidate_id: str,
+    *,
+    ledger_root: Path = DEFAULT_LEDGER_ROOT,
+) -> ImageRightsState:
+    """Return current operator-file rights truth for one candidate.
+
+    U-141 deliberately calls this read-side helper instead of trusting
+    ``index.json``. Invalid manifests fail closed to ``metadata-only`` and
+    a blocked marker retains precedence (U-137 I7/I8/I9/I14).
+    """
+
+    state, _invalid = _mirror_rights_state(
+        candidate_id,
+        clearances_dir_for(ledger_root=ledger_root),
+    )
+    return state
+
+
+def load_clearance_manifest(
+    candidate_id: str,
+    *,
+    ledger_root: Path = DEFAULT_LEDGER_ROOT,
+) -> ExternalAssetManifest | None:
+    """Load the current valid clearance manifest, or fail closed to ``None``."""
+
+    if current_rights_state(candidate_id, ledger_root=ledger_root) != _RIGHTS_CLEARED:
+        return None
+    manifest, _invalid = _load_valid_clearance(
+        candidate_id,
+        clearances_dir_for(ledger_root=ledger_root),
+    )
+    return manifest
+
+
 def update_index(
     target_date: date,
     *,
@@ -691,6 +726,16 @@ def store_sidecar_path(binary_path: Path) -> Path:
     return binary_path.with_name(binary_path.name + ".provenance.json")
 
 
+def read_stored_image_dimensions(binary_path: Path) -> tuple[int, int] | None:
+    """Read actual dimensions with the store's existing header parser."""
+
+    try:
+        content = binary_path.read_bytes()
+    except OSError:
+        return None
+    return read_image_dimensions(content, binary_path.suffix)
+
+
 def read_index(*, ledger_root: Path = DEFAULT_LEDGER_ROOT) -> dict[str, RecurrenceIndexEntry]:
     """Load ``index.json`` into typed entries ({} when absent).
 
@@ -705,6 +750,21 @@ def read_index(*, ledger_root: Path = DEFAULT_LEDGER_ROOT) -> dict[str, Recurren
     return {
         cid: RecurrenceIndexEntry.model_validate(entry) for cid, entry in sorted(payload.items())
     }
+
+
+def read_date_ledger(
+    target_date: date,
+    *,
+    ledger_root: Path = DEFAULT_LEDGER_ROOT,
+) -> tuple[ImageCandidateRecord, ...]:
+    """Read one date ledger in deterministic candidate-id order.
+
+    Invalid rows retain U-137's existing fail-closed warning/drop behavior.
+    The helper performs no writes and does not widen selection to other dates.
+    """
+
+    rows, _invalid = _read_existing_rows(ledger_path_for(target_date, ledger_root=ledger_root))
+    return tuple(rows[candidate_id] for candidate_id in sorted(rows))
 
 
 def fetch_cleared_candidates(
@@ -875,11 +935,15 @@ __all__ = [
     "append_candidates",
     "candidate_id_for_url",
     "clearances_dir_for",
+    "current_rights_state",
     "fetch_cleared_candidates",
     "index_path_for",
     "ledger_path_for",
+    "load_clearance_manifest",
     "normalize_image_url",
+    "read_date_ledger",
     "read_index",
+    "read_stored_image_dimensions",
     "store_binary_path",
     "store_sidecar_path",
     "update_index",

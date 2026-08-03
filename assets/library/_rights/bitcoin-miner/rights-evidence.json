@@ -1,0 +1,39 @@
+{
+  "assessment": "READY_FOR_REVIEW",
+  "asset_id": "bitcoin-miner",
+  "author_plaintext": "张楠赓",
+  "binary_height": 850,
+  "binary_mime": "image/jpeg",
+  "binary_relpath": "asset/bitcoin-miner.jpg",
+  "binary_sha256": "fb844a480656090ea0f58979bcc2d72f7c112dda8172c711c547bb804f0a8f00",
+  "binary_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Avalon-An_ASIC_base_bitcoin_machine.jpg/1280px-Avalon-An_ASIC_base_bitcoin_machine.jpg",
+  "binary_width": 1280,
+  "blocker_codes": [],
+  "category": "asset",
+  "copyrighted": true,
+  "embedded_restriction_signals": [],
+  "file_title": "File:Avalon-An ASIC base bitcoin machine.jpg",
+  "image_timestamp": "2013-09-14T14:25:00Z",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "manifest_license": "cc0",
+  "original_sha1": "b7ec6558b56978b1fe19ee26f8e77da84a5332d9",
+  "page_id": 28280558,
+  "page_revision_id": 808943858,
+  "provider": "wikimedia-commons-exact-file",
+  "provider_binary_etag_md5": "8deade516cc724446c6f727bf3ed383b",
+  "provider_license_name": "CC0",
+  "restrictions": [],
+  "schema_version": "curated-rights-evidence-v1",
+  "snapshot_relpath": "_rights/bitcoin-miner/source-snapshot.json",
+  "snapshot_sha256": "2cdf60a2739f52897c0daaccb7b2141a1208e317e5bec7434c4928bf2e9e9700",
+  "source_page_url": "https://commons.wikimedia.org/wiki/File:Avalon-An_ASIC_base_bitcoin_machine.jpg",
+  "structured_copyright_status_ids": [
+    "Q88088423"
+  ],
+  "structured_data_revision_id": 808943858,
+  "structured_license_ids": [
+    "Q6938433"
+  ],
+  "variant_kind": "thumbnail",
+  "verified_on": "2026-08-03"
+}

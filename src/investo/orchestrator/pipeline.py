@@ -258,6 +258,13 @@ from investo.visuals.assets import (
     prepare_segment_visual_assets,
 )
 from investo.visuals.calendar_heatmap import render_publish_heatmap, scan_publish_coverage
+from investo.visuals.image_selection import (
+    build_image_narrative_context,
+    filter_items_for_hero_context,
+    insert_image_source_card,
+    render_image_source_card,
+    select_image_usage,
+)
 from investo.visuals.og_card import (
     OG_CARD_PNG_RELATIVE_PATH,
     OG_CARD_RELATIVE_PATH,
@@ -2164,19 +2171,63 @@ async def _stage_prepare_segment_visual_assets(
             "target_date": target_date,
             "segment": segment,
             "items": segment_source_items,
+            "external_image_items": (),
             "coverage": segment_coverage,
             "watchlist_impact": public_impact(watchlist_center),
         }
-        if curated_runtime is not None:
-            curated_library, curated_registry, select_curated_asset = curated_runtime
-            curated_selection = select_curated_asset(
+        image_usage = None
+        try:
+            narrative_context = build_image_narrative_context(
                 segment,
-                segment_source_items,
-                curated_library,
-                curated_registry,
+                briefings[segment].rendered_markdown,
             )
-            if curated_selection is not None:
-                prepared_kwargs["curated_selection"] = curated_selection
+            prepared_kwargs["external_image_items"] = filter_items_for_hero_context(
+                narrative_context,
+                segment_source_items,
+            )
+        except Exception as exc:
+            _logger.warning(
+                "[image_selection] context construction failed segment=%s error_type=%s; "
+                "falling through",
+                segment,
+                type(exc).__name__,
+            )
+        else:
+            try:
+                image_usage = select_image_usage(
+                    narrative_context,
+                    target_date=target_date,
+                    ledger_root=_image_candidates_root(),
+                    store_root=_image_library.DEFAULT_STORE_ROOT,
+                )
+            except Exception as exc:
+                _logger.warning(
+                    "[image_selection] feed selection failed segment=%s error_type=%s; "
+                    "falling through",
+                    segment,
+                    type(exc).__name__,
+                )
+            else:
+                prepared_kwargs["stored_selection"] = image_usage
+            if curated_runtime is not None:
+                curated_library, curated_registry, select_curated_asset = curated_runtime
+                try:
+                    curated_selection = select_curated_asset(
+                        segment,
+                        narrative_context,
+                        curated_library,
+                        curated_registry,
+                    )
+                except Exception as exc:
+                    _logger.warning(
+                        "[image_selection] curated selection failed segment=%s error_type=%s; "
+                        "falling through",
+                        segment,
+                        type(exc).__name__,
+                    )
+                else:
+                    if curated_selection is not None:
+                        prepared_kwargs["curated_selection"] = curated_selection
         async with semaphore:
             prepared = await _to_thread_drained(
                 prepare_segment_visual_assets,
@@ -2220,6 +2271,27 @@ async def _stage_prepare_segment_visual_assets(
                 supplements=supplements,
                 place=_place_visual_blocks,
             )
+        if image_usage is not None and image_usage.card_candidate is not None:
+            try:
+                card_supplement = PublicDocumentSupplement(
+                    supplement_id=f"{segment}.visual.image-source-card",
+                    kind="visual",
+                    markdown=render_image_source_card(image_usage.card_candidate),
+                    stable_order=100,
+                )
+                prepared_briefing = _apply_pre_finalization_supplements(
+                    prepared_briefing,
+                    supplements=(card_supplement,),
+                    place=insert_image_source_card,
+                )
+                supplements = (*supplements, card_supplement)
+            except Exception as exc:
+                _logger.warning(
+                    "[image_selection] source-card insertion failed segment=%s "
+                    "error_type=%s; omitting card",
+                    segment,
+                    type(exc).__name__,
+                )
         return _VisualPrepResult(
             segment=segment,
             briefing=prepared_briefing,
@@ -2256,7 +2328,7 @@ def _load_curated_runtime_safely() -> (
     tuple[
         Mapping[str, Any],
         Sequence[Any],
-        Callable[[MarketSegment, Sequence[NormalizedItem], Mapping[str, Any], Sequence[Any]], Any],
+        Callable[[MarketSegment, Any, Mapping[str, Any], Sequence[Any]], Any],
     ]
     | None
 ):
@@ -2279,16 +2351,21 @@ def _load_curated_runtime_safely() -> (
 
     load_library = curated.load_library
     default_registry = curated.default_registry
+    assert_registry_integrity = curated.assert_registry_integrity
     select_curated_asset = curated.select_curated_asset
     curated_library_error = curated.CuratedLibraryError
     try:
         curated_library = load_library()
+        curated_registry = default_registry()
+        assert_registry_integrity(curated_registry, curated_library)
     except curated_library_error:
-        _logger.warning("curated library failed to load; falling back to existing hero chain")
+        _logger.warning(
+            "curated library or registry failed validation; falling back to existing hero chain"
+        )
         return None
     if not curated_library:
         return None
-    return (curated_library, default_registry(), select_curated_asset)
+    return (curated_library, curated_registry, select_curated_asset)
 
 
 def _read_existing_bytes(path: Path) -> bytes | None:
@@ -2854,6 +2931,20 @@ class GenerateStage:
             assert segment_briefings is not None
             if artifact_staging_root is None:
                 raise RuntimeError("segmented generation requires an artifact staging root")
+
+            # U-141 R9 — persist/update the candidate universe before visual
+            # preparation so a same-run cleared store pair can be selected.
+            # The helper is independently failure-isolated and never raises.
+            image_start = time.monotonic()
+            image_candidate_paths, image_note = await asyncio.to_thread(
+                _run_image_candidate_stage,
+                target_date,
+                items,
+            )
+            image_stage_note = image_note
+            stage_notes["image_candidates"] = image_note
+            generate_sub_timings["image_candidates"] = time.monotonic() - image_start
+
             va_start = time.monotonic()
             try:
                 (
@@ -2882,22 +2973,6 @@ class GenerateStage:
             else:
                 stage_notes["visual_assets"] = f"ok: {len(staged_public_artifacts)} files"
                 va_elapsed = time.monotonic() - va_start
-
-            # u137 Contract #5 — image-candidate stage (post-routing:
-            # ledger → index → cleared fetch). Failure-isolated inside
-            # the helper (I16/AC-137.4): it never raises and its note
-            # never changes the stage status. Run in a thread — the
-            # ledger/index writes and the (env-gated, default-off)
-            # fetch path are blocking I/O.
-            image_start = time.monotonic()
-            image_candidate_paths, image_note = await asyncio.to_thread(
-                _run_image_candidate_stage,
-                target_date,
-                items,
-            )
-            image_stage_note = image_note
-            stage_notes["image_candidates"] = image_note
-            generate_sub_timings["image_candidates"] = time.monotonic() - image_start
 
             # u52 — inject the deterministic Watchlist Carryover block.
             segment_briefings = _inject_carryover_into_segments(

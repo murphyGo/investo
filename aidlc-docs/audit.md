@@ -6072,7 +6072,6 @@ passed, scoped format check passed, `mypy src` passed.
 **Result**: 6 Complete, 0 Partial, 0 Gap, 0 Deferred, 0 In Progress — 100% compliance; QA verdict APPROVE.
 **Evidence**: `docs/cross-checks/2026-08-03-u131-bounded-line-sentence-boundary-truncation.md`.
 **Disposition**: No implementation follow-up, development-plan addition, or TECH-DEBT item is required. u131 has no remaining construction work.
-
 ## Construction — u133 Code Generation approval
 **Timestamp**: 2026-08-03T10:26:24Z
 **User response**: `u133 → u134 → u135 까지 같은 방식으로 계속 개발해줘` / `블록커 이슈가 아닌한 나에게 묻지말고 계속 작업해줘`
@@ -6194,3 +6193,25 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Cumulative fresh-eyes review approved AC-133.1-6, Fixed Contracts 1-5, and the unit Definition of Done with no Critical/High/Medium/Low findings. It confirmed exact source membership, diagnostics containment, cross-surface public counts, prompt budget/ownership, matcher and unknown-source compatibility, u101 preservation, u144 pre-seal/terminal-DTO constraints, rollback/concurrency safety, R13/security, and fixture minimality. Independent 23-test target passed.
 **Evidence**: `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u133-watchlist-registry-source-impact-suppression/code/summary.md`.
 **Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
+
+## Construction — u141 final-body semantic image selection
+**Timestamp**: 2026-08-03T00:00:00Z
+**User decision**: `u141을 “최종 본문 중심의 의미 기반 선정” 계약으로 보강해 구현 진행하자` — the previously proposed diagnosis/remediation was explicit construction approval.
+**Data gate**: Satisfied with 11 ledger dates, 804 rows, 748 unique candidates, and 42 recurrent candidates (5.6%). Because recurrence remained below the predeclared 10% threshold, `seen_count` was excluded from v1 rank; narrative URL occurrence→`first_seen`→candidate id is binding. Current cleared store population is zero, so the stored-hero path remains production-dark pending an operator clearance/fetch.
+**Functional Design**: Authored the approved finalizable-reader-body contract as R1-R10/E1-E5/I1-I17. Hero scope is conclusion+key drivers+the first `## ②` H3; card scope is the complete `## ②`; missing structure fails closed. Feed usage requires exact article URL-token equality. A `person:*` portrait requires a reader-visible named-person alias; role terms and link-destination URL slugs cannot establish identity.
+**Implementation**: Added deterministic context/selection, current rights-file/store-pair/content-hash/actual-dimension gates, cleared local hero copying, inert metadata-only article cards, semantic provenance, candidate-stage-before-visual ordering, and context/filter/select/copy/card failure isolation. The legacy licensed external path now receives only exact hero-body-linked items. Metadata title/credit/source values remove URL tokens and escape HTML/Markdown; `image_url` is never rendered.
+**Fresh-eyes review**: Initial review found raw legacy-external bypass, context-exception propagation, declared-vs-actual dimension mismatch, URL substring matching, and finalizer/card test gaps; all were repaired. Follow-up found metadata Markdown/HTML injection and person alias matches inside URL destinations; both were repaired. Final independent review reported no unresolved High/Medium findings and 177 relevant tests passed.
+**Validation**: Ruff/format clean; strict mypy passed 249 source files; no-paid, image-store (0 binary/0 sidecar), curated-assets (13 filed), strict MkDocs, and diff check passed. After rebasing onto current `origin/main`, the final full suite passed all 4,158 tests in 418.95 seconds. Applying the new contract to 2026-07-22..2026-07-31 US briefings selected zero Powell portraits.
+**Evidence**: `aidlc-docs/construction/u141-image-selection-and-insertion/functional-design/`; `aidlc-docs/construction/u141-image-selection-and-insertion/code/summary.md`.
+**Handoff decision**: On 2026-08-03 the user explicitly approved committing and pushing the validated U-141 slice.
+**Status**: U-141 local construction complete and approved for commit/push. Production workflow replay was not requested or performed.
+
+## Construction — u146/u147 curated image supply and semantic selection complete
+**Timestamp**: 2026-08-03T00:00:00Z
+**Supply graph**: Added an offline exact-file Commons review workbench and a blocking evidence graph that joins snapshot, provider byte identity, evidence, separate operator decision, binary, manifest, and registry. The immutable legacy seal retains all 15 prior assets; four new evidence-backed assets bring the library to 19 filed and zero deferred.
+**Selection contract**: Final reader-body aliases now rank by specificity and visible offset without global person priority. Data center, gold, clean energy, and explicit Bitcoin-mining topics are reachable; mining hardware cannot serve generic Bitcoin text. Runtime and CI reject invalid registry states, and selected provenance must be complete before copying.
+**Rejected candidates**: Semiconductor remained unfiled under the unchanged R13 URL guard. KOSPI history remained unfiled because the thumbnail had no provider checksum and the original exceeded the unchanged dimension gate.
+**Replay**: The fixed 11-date/33-segment fixture gates allowed semantic keys and abstention per row, zero role-only person selection, and concentration thresholds. It produced 32 selections, one abstention, five unique assets, and no person portrait.
+**Review**: Independent semantic review findings were fixed by separating Bitcoin mining from generic Bitcoin, enforcing every replay fit row and concentration threshold, narrowing KOSPI-history aliases, validating runtime registry integrity, and rejecting incomplete selected provenance. Independent rights-graph findings were fixed by anchoring originals/thumbnails to provider checksums, closing root/directory shapes, scanning all JSON and allowed-URL components, rechecking packet inputs, requiring all 15 legacy assets, accepting only normal/preferred value statements, and rejecting rights-artifact symlinks. Final reviews found no remaining Critical/High/Medium issue.
+**Validation**: 115 focused tests passed; the independent semantic review scope passed 170 tests; Ruff lint/format, strict mypy on four changed source modules, the 19-asset curated graph, no-paid guard, replay gate, strict MkDocs build, and `git diff --check` passed.
+**Status**: u146 and u147 code generation complete. Future supply may add equally current-safe KOSPI and Wall Street variants through the same evidence graph.

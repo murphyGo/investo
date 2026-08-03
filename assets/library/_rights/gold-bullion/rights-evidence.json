@@ -1,0 +1,39 @@
+{
+  "assessment": "READY_FOR_REVIEW",
+  "asset_id": "gold-bullion",
+  "author_plaintext": "Stevebidmead",
+  "binary_height": 960,
+  "binary_mime": "image/jpeg",
+  "binary_relpath": "asset/gold-bullion.jpg",
+  "binary_sha256": "a9c3037d92f2eb25de28c1ee6e1cd4e310659b0e7264d5429b5d36c299e15b22",
+  "binary_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Gold_bullion_bars.jpg/1280px-Gold_bullion_bars.jpg",
+  "binary_width": 1280,
+  "blocker_codes": [],
+  "category": "asset",
+  "copyrighted": true,
+  "embedded_restriction_signals": [],
+  "file_title": "File:Gold bullion bars.jpg",
+  "image_timestamp": "2018-06-17T16:12:35Z",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "manifest_license": "cc0",
+  "original_sha1": "8308158679489e5311a7b46909ed4d3579ae5872",
+  "page_id": 70003226,
+  "page_revision_id": 1148527553,
+  "provider": "wikimedia-commons-exact-file",
+  "provider_binary_etag_md5": "44dbe3d355bc2b35409ed39a8ce8eb89",
+  "provider_license_name": "CC0",
+  "restrictions": [],
+  "schema_version": "curated-rights-evidence-v1",
+  "snapshot_relpath": "_rights/gold-bullion/source-snapshot.json",
+  "snapshot_sha256": "4a8701d741ce307a7883c8d344ce6044230793d29a1896680885b0087b30b48b",
+  "source_page_url": "https://commons.wikimedia.org/wiki/File:Gold_bullion_bars.jpg",
+  "structured_copyright_status_ids": [
+    "Q88088423"
+  ],
+  "structured_data_revision_id": 1148527553,
+  "structured_license_ids": [
+    "Q6938433"
+  ],
+  "variant_kind": "thumbnail",
+  "verified_on": "2026-08-03"
+}

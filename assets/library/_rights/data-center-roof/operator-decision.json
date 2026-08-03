@@ -1,0 +1,19 @@
+{
+  "asset_id": "data-center-roof",
+  "binary_relpath": "topic/data-center-roof.jpg",
+  "binary_sha256": "f0ba20706ff5069d4ded4856b3ae3f01713388249b1f33bd1828e46dca887b94",
+  "decision": "approved",
+  "endorsement_risk_reviewed": true,
+  "evidence_sha256": "2331144ea391633d76a8ff4e36ddca03264438ea7af423cdf995780d9b86ab93",
+  "file_identity_confirmed": true,
+  "license_scope_confirmed": true,
+  "manifest_relpath": "topic/data-center-roof.manifest.json",
+  "manifest_sha256": "1cb6dd5c0f887e1b4d55789bb1b218dbf7cb0f55e5d6ccd2253c39ab9afa9b32",
+  "non_copyright_restrictions_reviewed": true,
+  "notes": "Aerial view of data-center cooling infrastructure; no people or prominent marks. Relevant only to explicit data-center or AI-infrastructure stories and does not imply endorsement.",
+  "registry_key": "topic:data-center",
+  "reviewed_by": "Investo operator review",
+  "reviewed_on": "2026-08-03",
+  "schema_version": "curated-operator-decision-v1",
+  "subject_relevance_confirmed": true
+}

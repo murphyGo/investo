@@ -505,6 +505,28 @@ Implementation order:
 |---|---|---|---|
 | u144 public-document-finalization-contract | Post-generation transforms can reintroduce forbidden/internal phrases after an earlier filter; the apparent final gate is not final; a presentation defect can create a green two-of-three publish | US-002, US-003, US-005, US-007, FR-002, FR-003, FR-008, FR-009, FR-012, NFR-003, NFR-006, NFR-007/R13 | u81/u84/u85 lifecycle placement, u100/u108/u112 surface/public projection, u110/u135 watchpoints, u118 generation boundary, u123 evidence accounting, u127 summary contract |
 
+### u146-u147 Curated Image Supply and Semantic Variant Notes
+
+The 2026-08-03 review found that the curated channel was legally usable but
+operationally narrow: 15 filed assets were reachable, yet the approval path had
+no immutable source-evidence graph and the selector always returned the first
+filed asset from a fixed key-priority list. The work is split at the trust
+boundary. u146 grows supply through offline exact-file evidence and an explicit
+operator decision; u147 changes only local semantic selection and distribution.
+
+Implementation order:
+1. Seal the current 15 binary/manifest pairs as legacy-v0; do not silently grandfather later assets.
+2. Prepare Commons exact-file PD/CC0 evidence offline and stop at `READY_FOR_REVIEW`.
+3. File only assets with a separately authored approved decision and full exact-byte hash chain.
+4. Make every filed asset registry-reachable and fail CI on orphans or ambiguous mappings.
+5. Rank every alias by semantic specificity and reader-visible offset, then select a deterministic filed variant for the winning key.
+6. Replay the fixed 11-date/33-segment corpus and record both semantic-fit and diversity outcomes.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+| --- | --- | --- | --- |
+| u146 trusted-curated-image-supply-workbench | More approved images are needed, but manifest-only filing cannot prove the reviewed source revision or decision | US-002, US-003, US-005, FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-006, NFR-007/R13, NFR-008 | u86 curated library, u137 no-auto-clear posture, CI gate, offline operator workflow |
+| u147 curated-image-semantic-variants | Fixed key priority and first-filed selection concentrate unrelated hero images and leave added variants unused | US-002, US-003, US-005, FR-002, FR-003, FR-008, FR-012, NFR-003, NFR-006, NFR-007/R13 | u141 final-body context, curated registry, provenance, archive replay audit |
+
 Compatibility note: u63/u94 partial publication remains a product feature.
 u144 removes only presentation-driven segment loss; genuine generation/trust
 absence remains publishable as a typed valid subset, but daily Actions is red

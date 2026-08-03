@@ -13,12 +13,12 @@ The gate fails (non-zero exit, clear message) on:
     a silent empty (R8 / I14);
   * a manifest carrying a disallowed / unrecognized license (R2);
   * a byte / dimension / format budget violation on a filed asset (AC-1.1);
-  * a registry id that resolves to no library entry (I8);
+  * a registry id that resolves to no library entry, or a filed orphan (I8);
+  * an incomplete/tampered U-146 evidence/decision filing graph;
   * a secret-shaped value in any manifest field (R7 / AC-1.6).
 
 An explicitly *deferred* key (deferral marker present, no binary)
-**passes** (exit 0). An orphan filed asset (in the library, never
-referenced by the registry) is a warning, not a failure.
+**passes** (exit 0). Every filed asset must be registry-reachable.
 
 Usage::
 
@@ -45,6 +45,10 @@ from investo.visuals.curated import (  # noqa: E402
     default_registry,
     load_library,
 )
+from investo.visuals.curated_supply import (  # noqa: E402
+    CuratedSupplyError,
+    validate_curated_rights_graph,
+)
 
 
 def check(root: Path | None = None) -> tuple[int, list[str]]:
@@ -63,11 +67,17 @@ def check(root: Path | None = None) -> tuple[int, list[str]]:
         library = load_library(library_root)
     except CuratedLibraryError as exc:
         return 1, [f"curated library clearance failed: {exc}"]
-    orphans: list[str] = []
+    graph = None
     if check_registry:
         try:
-            orphans = assert_registry_integrity(default_registry(), library)
-        except CuratedLibraryError as exc:
+            registry = default_registry()
+            assert_registry_integrity(registry, library)
+            graph = validate_curated_rights_graph(
+                library_root=library_root,
+                library=library,
+                registry=registry,
+            )
+        except (CuratedLibraryError, CuratedSupplyError) as exc:
             return 1, [f"curated registry integrity failed: {exc}"]
 
     filed = sorted(a.asset_id for a in library.values() if a.state == "filed")
@@ -77,8 +87,12 @@ def check(root: Path | None = None) -> tuple[int, list[str]]:
         messages.append(f"  filed: {', '.join(filed)}")
     if deferred:
         messages.append(f"  deferred: {', '.join(deferred)}")
-    for orphan in orphans:
-        messages.append(f"  warning: orphan filed asset (never referenced): {orphan}")
+    if graph is not None:
+        messages.append(
+            "  rights graph: "
+            f"{graph.legacy_assets} legacy, "
+            f"{graph.evidence_backed_assets} evidence-backed"
+        )
     return 0, messages
 
 

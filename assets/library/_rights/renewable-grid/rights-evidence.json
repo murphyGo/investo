@@ -1,0 +1,39 @@
+{
+  "assessment": "READY_FOR_REVIEW",
+  "asset_id": "renewable-grid",
+  "author_plaintext": "Kenueone",
+  "binary_height": 621,
+  "binary_mime": "image/jpeg",
+  "binary_relpath": "topic/renewable-grid.jpg",
+  "binary_sha256": "eb36d14f46189d00943a2046601269c25cf48e48befa67db6bf5461b12311c7d",
+  "binary_url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Renewable_Energy_on_the_Grid.jpg",
+  "binary_width": 886,
+  "blocker_codes": [],
+  "category": "topic",
+  "copyrighted": true,
+  "embedded_restriction_signals": [],
+  "file_title": "File:Renewable Energy on the Grid.jpg",
+  "image_timestamp": "2016-08-05T22:14:36Z",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "manifest_license": "cc0",
+  "original_sha1": "387b85002ffde6ffe784eee044cdee9139d9dec0",
+  "page_id": 50505011,
+  "page_revision_id": 1073521616,
+  "provider": "wikimedia-commons-exact-file",
+  "provider_binary_etag_md5": null,
+  "provider_license_name": "CC0",
+  "restrictions": [],
+  "schema_version": "curated-rights-evidence-v1",
+  "snapshot_relpath": "_rights/renewable-grid/source-snapshot.json",
+  "snapshot_sha256": "63d40a239b169605bd817a7b5de67e9f18818ddcaf909ce821a03914d78715fa",
+  "source_page_url": "https://commons.wikimedia.org/wiki/File:Renewable_Energy_on_the_Grid.jpg",
+  "structured_copyright_status_ids": [
+    "Q88088423"
+  ],
+  "structured_data_revision_id": 1073521616,
+  "structured_license_ids": [
+    "Q6938433"
+  ],
+  "variant_kind": "original",
+  "verified_on": "2026-08-03"
+}

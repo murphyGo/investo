@@ -1,0 +1,39 @@
+{
+  "assessment": "READY_FOR_REVIEW",
+  "asset_id": "data-center-roof",
+  "author_plaintext": "Rsparks3",
+  "binary_height": 960,
+  "binary_mime": "image/jpeg",
+  "binary_relpath": "topic/data-center-roof.jpg",
+  "binary_sha256": "f0ba20706ff5069d4ded4856b3ae3f01713388249b1f33bd1828e46dca887b94",
+  "binary_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Data_center_roof.jpg/1280px-Data_center_roof.jpg",
+  "binary_width": 1280,
+  "blocker_codes": [],
+  "category": "topic",
+  "copyrighted": true,
+  "embedded_restriction_signals": [],
+  "file_title": "File:Data center roof.jpg",
+  "image_timestamp": "2025-11-25T01:55:49Z",
+  "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+  "manifest_license": "cc0",
+  "original_sha1": "a06a5143f400361ae5fd50e67f3e043221269327",
+  "page_id": 178932171,
+  "page_revision_id": 1146723451,
+  "provider": "wikimedia-commons-exact-file",
+  "provider_binary_etag_md5": "53c4566e296aba18388dc1ba202ea2e8",
+  "provider_license_name": "CC0",
+  "restrictions": [],
+  "schema_version": "curated-rights-evidence-v1",
+  "snapshot_relpath": "_rights/data-center-roof/source-snapshot.json",
+  "snapshot_sha256": "8ffbd3c82537e7683e4415b1ece4a47b080b76ed93c3f227eee7c1d875a6395f",
+  "source_page_url": "https://commons.wikimedia.org/wiki/File:Data_center_roof.jpg",
+  "structured_copyright_status_ids": [
+    "Q88088423"
+  ],
+  "structured_data_revision_id": 1146723451,
+  "structured_license_ids": [
+    "Q6938433"
+  ],
+  "variant_kind": "thumbnail",
+  "verified_on": "2026-08-03"
+}
