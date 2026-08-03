@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u134 callout-and-diagnostic-line-composition-repair
 **Stage**: Code Generation
-**Status**: In Progress (1/6)
+**Status**: In Progress (2/6)
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~3 h
 **Dependencies**:
@@ -65,7 +65,7 @@ NFR Requirements: SKIP — no new dependency, source, secret, network, or cost.
 ## Implementation Steps
 
 - [x] Step 1 — Trace driver assembly upstream of `enhancement.py:176` (the `summary_header.driver` builder in `briefing/_assembly/` per u83 decomposition); apply Fixed Contract 1 at the assembly point, not the render point. Tests with the verbatim 2026-06-30 heading+sentence pair.
-- [ ] Step 2 — Locate the 결론-append site for `PUBLIC_LOW_COVERAGE_INLINE_TEXT` (rg the constant; the append happens in the summary/first-viewport pipeline); apply Fixed Contract 2. Test both terminator-present and terminator-absent preceding prose.
+- [x] Step 2 — Locate the 결론-append site for `PUBLIC_LOW_COVERAGE_INLINE_TEXT` (rg the constant; the append happens in the summary/first-viewport pipeline); apply Fixed Contract 2. Test both terminator-present and terminator-absent preceding prose.
 - [ ] Step 3 — Fix the `소스 카운트` composer in `src/investo/publisher/reader_format/reflow.py` per Fixed Contract 3; confirm the consuming regexes in `publisher/quality_consistency.py` and `publisher/evidence_accounting.py` (both parse `실패 N / 본문 사용 N`) still match, and update their tests if the restored counters change matches from `미집계` paths.
 - [ ] Step 4 — Add Decimal normalization per Fixed Contract 4 in `src/investo/publisher/channel_anchor_block.py` and the u66 indicator table renderer; test `0.0001000000000000 → 0.0001`, `0.0100 → 0.01`, integer-valued Decimals keep no trailing dot.
 - [ ] Step 5 — Rendered regression fixtures reproducing all four 2026-06-29/30 shapes; assert repaired output and idempotent reruns.

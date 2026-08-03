@@ -19,12 +19,14 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
 from investo._internal.public_watermark import (
     render_timestamp_watermark as _render_timestamp_watermark,
 )
 from investo.briefing import numeric_self_check
 from investo.briefing._assembly.summary_extraction import _build_summary_header
 from investo.briefing._reader_enhance.coverage_badge import _render_coverage_badge
+from investo.briefing.action_tag import DATA_LIMITED_ACTION_TAG
 from investo.briefing.glossary import (
     audit_glossary_compliance,
     collect_recently_glossed,
@@ -41,6 +43,10 @@ _SEGMENT_NAV_LABELS: Final[dict[MarketSegment, str]] = {
     "us-equity": "미국 증시",
     "crypto": "크립토",
 }
+_CONCLUSION_TERMINATORS: Final[tuple[str, ...]] = (".", "!", "?", "…", "。")
+_CONCLUSION_CLOSERS: Final[frozenset[str]] = frozenset(
+    "\"')]}" + "\u201d\u2019\uff09\u3011\u300d\u300f"
+)
 
 
 def _build_data_limited_body(target_date: date, segment: MarketSegment) -> str:
@@ -90,6 +96,23 @@ def _render_watchlist_callout(impact: WatchlistImpact) -> str:
     return f"> **내 관심 자산 영향**: {render_watchlist_impact(impact, channel='site')}\n"
 
 
+def _render_public_conclusion(conclusion: str) -> str:
+    """Replace a terminal data-limited tag with its own reader sentence."""
+    stripped = conclusion.strip()
+    if not stripped.endswith(DATA_LIMITED_ACTION_TAG):
+        return stripped
+
+    preceding = stripped[: -len(DATA_LIMITED_ACTION_TAG)].rstrip()
+    terminal_probe = preceding
+    while terminal_probe and terminal_probe[-1] in _CONCLUSION_CLOSERS:
+        terminal_probe = terminal_probe[:-1].rstrip()
+    if preceding and not terminal_probe.endswith(_CONCLUSION_TERMINATORS):
+        preceding = f"{preceding}."
+    if not preceding:
+        return PUBLIC_LOW_COVERAGE_TEXT
+    return f"{preceding} {PUBLIC_LOW_COVERAGE_TEXT}"
+
+
 def _enhance_reader_experience(
     body_markdown: str,
     *,
@@ -110,6 +133,7 @@ def _enhance_reader_experience(
     label = SEGMENT_LABELS[segment]
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
     summary_header = _build_summary_header(sections, data_limited=effective_data_limited)
+    public_conclusion = _render_public_conclusion(summary_header.conclusion)
     watermark = _render_timestamp_watermark(target_date, segment)
     # u49 — deterministic market anchor line (ATH / 52w / MTD / YTD).
     # Empty when no anchors landed (history fetch failed or empty
@@ -148,7 +172,7 @@ def _enhance_reader_experience(
         f"{_render_watchlist_callout(watchlist_impact) if watchlist_impact is not None else ''}"
         f"{numeric_warning_line}"
         f"{glossary_line}"
-        f"> **오늘의 결론**: {summary_header.conclusion}\n"
+        f"> **오늘의 결론**: {public_conclusion}\n"
         f"> **핵심 동인**: {summary_header.driver}\n"
         f"> **주의할 점**: {summary_header.caution}\n\n"
     )
@@ -158,6 +182,7 @@ def _enhance_reader_experience(
 __all__ = [
     "_build_data_limited_body",
     "_enhance_reader_experience",
+    "_render_public_conclusion",
     "_render_timestamp_watermark",
     "_render_watchlist_callout",
     "_segment_nav",

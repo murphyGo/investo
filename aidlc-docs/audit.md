@@ -5833,6 +5833,21 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u130-domestic-anchor-level-claim-quarantine-v2/code/summary.md`.
 **Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
 
+## Construction — u134 Code Generation Step 1 synchronization and Step 2 approval
+**Timestamp**: 2026-08-03T13:36:52Z
+**Synchronization**: Committed Step 1 as `db5552b` (`fix: separate summary driver heading`) and pushed `codex/u134`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved six-step sequence without another approval pause.
+**Target**: Render the terminal data-limited conclusion tag as its own full reader sentence while preserving genuine inline projection uses.
+
+## Construction — u134 Code Generation Step 2 complete
+**Timestamp**: 2026-08-03T13:36:52Z
+**Action**: Added a conclusion-only renderer that replaces a terminal `[데이터부족]` tag with `PUBLIC_LOW_COVERAGE_TEXT`. It preserves an existing sentence terminator or inserts `.` before the full note when the preceding conclusion lacks one.
+**Scope audit**: `PUBLIC_LOW_COVERAGE_INLINE_TEXT` remains unchanged in generic public projection and watchpoint mid-sentence slots; only the first-viewport conclusion append site now uses the full sentence constant.
+**Review**: Fresh-eyes review found one Medium punctuation gap: a terminator before a closing quote/bracket produced an extra period. A closing-punctuation-aware probe and curly-quote/parenthesis regressions closed it; re-review approved with no remaining findings.
+**Validation**: 404 focused briefing/publisher tests passed; scoped Ruff/format, mypy, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-2-low-coverage-conclusion.md`.
+**Status**: Step 2 checklist complete 2/6. Next: restore numeric diagnostic source counters.
+
 ## Cross-Check — u133 complete
 **Timestamp**: 2026-08-03T13:12:17Z
 **Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.

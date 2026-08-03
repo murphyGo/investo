@@ -31,6 +31,7 @@ from datetime import date
 import pytest
 
 from investo._internal.public_quality_language import project_public_quality_language
+from investo.briefing._reader_enhance.enhancement import _render_public_conclusion
 from investo.briefing.pipeline import (
     _build_summary_header,
     _enhance_reader_experience,
@@ -366,6 +367,65 @@ def test_summary_header_forces_data_limited_tag_when_data_limited_true() -> None
     header = _build_summary_header(sections, data_limited=True)
     assert header.conclusion.endswith(" [데이터부족]")
     assert "[강세]" not in header.conclusion
+
+
+def test_public_conclusion_appends_full_low_coverage_sentence_after_terminator_u134() -> None:
+    rendered = _render_public_conclusion("가격과 기관 포지셔닝의 괴리가 관찰된다. [데이터부족]")
+
+    assert rendered == (
+        "가격과 기관 포지셔닝의 괴리가 관찰된다. 이번 문서는 수집 근거가 제한적입니다."
+    )
+
+
+def test_public_conclusion_adds_terminator_before_low_coverage_sentence_u134() -> None:
+    rendered = _render_public_conclusion("가격과 기관 포지셔닝의 괴리가 관찰된다 [데이터부족]")
+
+    assert rendered == (
+        "가격과 기관 포지셔닝의 괴리가 관찰된다. 이번 문서는 수집 근거가 제한적입니다."
+    )
+
+
+@pytest.mark.parametrize(
+    "conclusion",
+    (
+        "가격과 기관 포지셔닝의 괴리가 관찰된다.” [데이터부족]",
+        "가격과 기관 포지셔닝의 괴리가 관찰된다.) [데이터부족]",
+    ),
+)
+def test_public_conclusion_recognizes_terminator_before_closer_u134(conclusion: str) -> None:
+    rendered = _render_public_conclusion(conclusion)
+
+    preceding = conclusion.removesuffix(" [데이터부족]")
+    assert rendered == f"{preceding} 이번 문서는 수집 근거가 제한적입니다."
+    assert ".”. 이번 문서는" not in rendered
+    assert ".). 이번 문서는" not in rendered
+
+
+def test_enhanced_header_uses_full_low_coverage_sentence_u134() -> None:
+    body = (
+        "## ① 요약\n가격과 기관 포지셔닝의 괴리가 관찰된다\n\n"
+        "## ② 전일 핵심 이슈\n핵심 동인입니다.\n\n"
+        "## ③ 섹터/수급 동향\n섹터 흐름입니다.\n\n"
+        "## ④ 지표·이벤트\n지표 흐름입니다.\n\n"
+        "## ⑤ 주요 종목\n종목 흐름입니다.\n\n"
+        "## ⑥ 오늘의 관전 포인트\n관전 포인트입니다.\n"
+    )
+    sections = parse_six_sections(body)
+
+    enhanced = _enhance_reader_experience(
+        body,
+        target_date=date(2026, 6, 30),
+        segment="us-equity",
+        sections=sections,
+        data_limited=True,
+    )
+
+    assert (
+        "> **오늘의 결론**: 가격과 기관 포지셔닝의 괴리가 관찰된다. "
+        "이번 문서는 수집 근거가 제한적입니다."
+    ) in enhanced
+    assert "관찰된다 수집 근거가 제한적입니다" not in enhanced
+    assert "[데이터부족]" not in enhanced.split("## ① 요약", maxsplit=1)[0]
 
 
 def test_summary_header_from_archive_section_bodies_passes_gate() -> None:
