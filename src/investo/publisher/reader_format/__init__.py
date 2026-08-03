@@ -93,6 +93,7 @@ from investo.publisher.reader_format.reflow import (
     DIAGNOSTICS_SUMMARY_LABEL,
     SNIPPET_MAX_CHARS,
     bound_summary_snippet,
+    is_diagnostic_source_count_line,
     reflow_first_viewport,
 )
 from investo.publisher.reader_format.sentence_audit import (
@@ -158,7 +159,7 @@ def apply_reader_format(
     out = dedupe_glossings(out)
     out = normalize_meaning_lines(out, segment=segment)
     out = escape_krx_stock_code_link_fragments(out)
-    out = normalize_data_limited_reader_copy(out)
+    out = normalize_data_limited_reader_copy(out, preserve_diagnostic_source_counts=True)
     combined = out + footer
     check_action_bullet_ratio(combined, segment=segment)
     check_watchpoint_actionability(combined, segment=segment)
@@ -170,7 +171,11 @@ def escape_krx_stock_code_link_fragments(text: str) -> str:
     return _KR_CODE_LINK_RE.sub(r"\\[\1\\]", text)
 
 
-def normalize_data_limited_reader_copy(text: str) -> str:
+def normalize_data_limited_reader_copy(
+    text: str,
+    *,
+    preserve_diagnostic_source_counts: bool = False,
+) -> str:
     """Rewrite terse data-limited placeholders into reader prose."""
 
     def _repl(match: re.Match[str]) -> str:
@@ -183,7 +188,11 @@ def normalize_data_limited_reader_copy(text: str) -> str:
         line = raw_line.rstrip("\n")
         stripped = line.strip()
         protected = (
-            in_code or in_details or stripped.startswith("|") or "수집/품질 진단" in stripped
+            in_code
+            or in_details
+            or stripped.startswith("|")
+            or "수집/품질 진단" in stripped
+            or (preserve_diagnostic_source_counts and is_diagnostic_source_count_line(line))
         )
         if stripped.startswith("```"):
             in_code = not in_code
@@ -238,6 +247,7 @@ __all__ = [
     "ensure_tldr_block",
     "escape_krx_stock_code_link_fragments",
     "find_reader_visible_public_label_leaks",
+    "is_diagnostic_source_count_line",
     "normalize_data_limited_reader_copy",
     "normalize_meaning_lines",
     "project_public_markdown",

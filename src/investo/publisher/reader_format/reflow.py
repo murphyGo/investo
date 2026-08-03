@@ -34,6 +34,7 @@ from typing import Final
 from investo._internal.public_quality_language import (
     PUBLIC_LOW_COVERAGE_TEXT,
     PUBLIC_SOURCE_DETAIL_TEXT,
+    project_public_quality_language,
 )
 from investo._internal.surface_quality import (
     has_blocking_surface_issue,
@@ -54,10 +55,14 @@ _BADGE_STATUS_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*데이터 상태\*\*\s*:\s*(?P<label>[^—·\n]+?)\s*(?:—|·|$)", re.MULTILINE
 )
 _BADGE_COUNT_RE: Final[re.Pattern[str]] = re.compile(
-    r"^>\s*\*\*소스 카운트\*\*\s*:.*?실패\s*(?P<failed>\d+)\s*/\s*본문 사용\s*(?P<body>\S+)",
+    r"^>\s*\*\*소스 카운트\*\*\s*:\s*"
+    r"수집 대상\s*(?P<targeted>\d+)\s*/\s*"
+    r"성공\s*(?P<succeeded>\d+)\s*/\s*"
+    r"0건\s*(?P<zero>\d+)\s*/\s*"
+    r"실패\s*(?P<failed>\d+)\s*/\s*"
+    r"본문 사용\s*(?P<body>미집계|\d+)[^\S\n]*$",
     re.MULTILINE,
 )
-_BADGE_COUNT_ZERO_RE: Final[re.Pattern[str]] = re.compile(r"0건\s*(?P<zero>\d+)")
 # All five badge blockquote lines (status + the four diagnostic lines).
 _BADGE_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^>\s*\*\*(?:데이터 상태|소스 카운트|소스 등급 분포|상세 사유|소스별 상태)\*\*.*$",
@@ -106,9 +111,7 @@ def _compact_status_chip(text: str) -> str | None:
         return f"> **데이터 상태**: {label}"
     body_used = count.group("body").strip()
     failed = count.group("failed")
-    count_line = count.group(0)
-    zero_match = _BADGE_COUNT_ZERO_RE.search(count_line)
-    zero = zero_match.group("zero") if zero_match is not None else "0"
+    zero = count.group("zero")
     _ = (failed, zero, body_used)
     if label == "정상":
         return f"> **데이터 상태**: {label}"
@@ -127,9 +130,30 @@ def _extract_badge_lines(text: str) -> tuple[str, list[str]]:
     ``lines`` preserves source order (status first, then the diagnostic
     lines) so the collapsed block reproduces the original badge body.
     """
-    lines = [m.group(0).rstrip() for m in _BADGE_LINE_RE.finditer(text)]
+    lines: list[str] = []
+    for match in _BADGE_LINE_RE.finditer(text):
+        line = match.group(0).rstrip()
+        count = _BADGE_COUNT_RE.fullmatch(line)
+        lines.append(_compose_diagnostic_source_count(count) if count is not None else line)
     without = _BADGE_LINE_RE.sub("", text)
     return without, lines
+
+
+def _compose_diagnostic_source_count(match: re.Match[str]) -> str:
+    """Render the five canonical diagnostic slots from numeric captures."""
+    return (
+        "> **소스 카운트**: "
+        f"수집 대상 {match.group('targeted')} / "
+        f"성공 {match.group('succeeded')} / "
+        f"0건 {match.group('zero')} / "
+        f"실패 {match.group('failed')} / "
+        f"본문 사용 {match.group('body')}"
+    )
+
+
+def is_diagnostic_source_count_line(line: str) -> bool:
+    """Return whether ``line`` is the canonical pre-collapse count record."""
+    return _BADGE_COUNT_RE.fullmatch(line.strip()) is not None
 
 
 def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> str:
@@ -350,7 +374,7 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
     chip = _compact_status_chip(text)
     if chip is None:
         # No badge rendered (data-limited legacy run). Nothing to reflow.
-        return text
+        return _project_uncontained_source_counts(text)
 
     expanded = _badge_is_failed(text)
     without_badge, badge_lines = _extract_badge_lines(text)
@@ -364,7 +388,7 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
             "reader_format.reflow_no_anchor",
             extra={"segment": segment},
         )
-        return text
+        return _project_uncontained_source_counts(text)
     # Collapse any blank-line runs the badge removal may have left.
     return _MULTI_BLANK_RE.sub("\n\n", out)
 
@@ -373,6 +397,14 @@ _DIAGNOSTICS_SUMMARY_PRESENT_RE: Final[re.Pattern[str]] = re.compile(
     re.escape(f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>")
 )
 _MULTI_BLANK_RE: Final[re.Pattern[str]] = re.compile(r"\n{3,}")
+
+
+def _project_uncontained_source_counts(text: str) -> str:
+    """Restore the existing public projection when diagnostics cannot collapse."""
+    return _BADGE_COUNT_RE.sub(
+        lambda match: project_public_quality_language(match.group(0)),
+        text,
+    )
 
 
 def _insert_after_main_body(text: str, block: str) -> str | None:

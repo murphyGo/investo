@@ -5848,6 +5848,22 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-2-low-coverage-conclusion.md`.
 **Status**: Step 2 checklist complete 2/6. Next: restore numeric diagnostic source counters.
 
+## Construction — u134 Code Generation Step 2 synchronization and Step 3 approval
+**Timestamp**: 2026-08-03T13:46:54Z
+**Synchronization**: Committed Step 2 as `13670a2` (`fix: terminate low coverage conclusion`) and pushed `codex/u134`; local and remote branch heads matched.
+**Decision**: Continue under the user-approved six-step sequence without another approval pause.
+**Target**: Preserve and canonically compose the five source-count slots inside collapsed diagnostics while keeping public projections unchanged.
+
+## Construction — u134 Code Generation Step 3 complete
+**Timestamp**: 2026-08-03T13:46:54Z
+**Action**: Expanded the reflow source-count parser to capture all five slots, added a canonical diagnostic composer, and exempted only a fully canonical pre-collapse count line from generic public projection so its numbers survive until it enters protected diagnostics.
+**Boundary**: The reader-visible compact status chip is byte-unchanged. Malformed/noncanonical source-count lines still fall through to the existing public projection; only the canonical record receives diagnostics protection.
+**Parser agreement**: The final line remains readable by `quality_consistency.parse_segment_status_block` and rewritable by `evidence_accounting.render_body_used_count`.
+**Review**: Fresh-eyes review found a Medium no-anchor leakage path and a Low EOF-newline stability issue. Keeping direct normalization unchanged, adding no-status/no-anchor fail-safe projection, and constraining terminal regex whitespace to the same line closed both; re-review approved with no remaining findings and confirmed LF/CRLF byte equality.
+**Validation**: 389 focused reader-format/public-projection/quality/evidence/incident tests passed; scoped Ruff/format, mypy, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u134-callout-and-diagnostic-line-composition-repair/code/step-3-diagnostic-source-count.md`.
+**Status**: Step 3 checklist complete 3/6. Next: shortest-exact funding-rate Decimal rendering.
+
 ## Cross-Check — u133 complete
 **Timestamp**: 2026-08-03T13:12:17Z
 **Scope**: Traced FR-002, FR-004, FR-008, FR-009, NFR-003, NFR-006, and R13 plus AC-133.1 through AC-133.6, Fixed Contracts 1-5, and the unit Definition of Done to implementation and test evidence.

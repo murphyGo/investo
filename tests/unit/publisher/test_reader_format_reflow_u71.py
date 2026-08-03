@@ -12,11 +12,17 @@ from __future__ import annotations
 
 import re
 
+from investo._internal.public_quality_language import project_public_quality_language
 from investo._internal.surface_quality import find_surface_quality_issues
+from investo.briefing.segments import US_EQUITY
+from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
+from investo.publisher.quality_consistency import parse_segment_status_block
 from investo.publisher.reader_format import (
     DIAGNOSTICS_SUMMARY_LABEL,
     SNIPPET_MAX_CHARS,
+    apply_reader_format,
     bound_summary_snippet,
+    normalize_data_limited_reader_copy,
     reflow_first_viewport,
 )
 
@@ -90,6 +96,44 @@ def test_raw_diagnostics_moved_below_main_sections() -> None:
     for needle in ("소스 카운트", "소스 등급 분포", "상세 사유", "소스별 상태"):
         idx = _index(out, needle)
         assert open_idx < idx < close_idx
+
+
+def test_full_chain_restores_numeric_source_count_inside_diagnostics_u134() -> None:
+    formatted = apply_reader_format(_header(), segment="us-equity")
+    out = reflow_first_viewport(formatted, segment="us-equity")
+    details = out.split(f"<summary>{DIAGNOSTICS_SUMMARY_LABEL}</summary>", 1)[1].split(
+        "</details>", 1
+    )[0]
+
+    expected = "> **소스 카운트**: 수집 대상 6 / 성공 4 / 0건 1 / 실패 1 / 본문 사용 3"
+    assert expected in details
+    assert "수집 상세는 진단 섹션에서 확인할 수 있습니다." not in details
+    assert parse_segment_status_block(out, US_EQUITY).failed_count == 1
+
+    counts = count_rendered_evidence(
+        "## ① 요약\n\n[FRED](https://fred.stlouisfed.org/series/DGS10)\n",
+        segment=US_EQUITY,
+    )
+    reconciled = render_body_used_count(out, counts)
+    assert "실패 1 / 본문 사용 1" in reconciled
+
+
+def test_uncontained_source_count_uses_existing_public_projection_u134() -> None:
+    raw = (
+        "> **데이터 상태**: 부분 — 설명\n"
+        "> **소스 카운트**: 수집 대상 6 / 성공 4 / 0건 1 / 실패 1 / 본문 사용 미집계\n"
+    )
+    formatted = apply_reader_format(raw, segment="us-equity")
+    out = reflow_first_viewport(formatted, segment="us-equity")
+    expected_projection = normalize_data_limited_reader_copy(formatted)
+    expected_count = project_public_quality_language(raw.splitlines()[1])
+
+    assert out == expected_projection
+    assert "<details" not in out
+    assert expected_count in out
+    assert "0건 1" not in out
+    assert "실패 1" not in out
+    assert "본문 사용 미집계" not in out
 
 
 def test_compact_chip_kept_outside_details() -> None:
