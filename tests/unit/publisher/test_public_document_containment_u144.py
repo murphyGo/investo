@@ -272,6 +272,31 @@ def test_truncated_summary_finding_is_owned_only_by_actual_first_viewport() -> N
     )
 
 
+def test_owned_bounded_body_truncation_findings_survive_region_local_scan() -> None:
+    watchpoint_markdown = _canonical_markdown(
+        watchpoint_body="#### 관찰 신호: CoinGecko BTC · UTC 24h…"
+    )
+    watchpoint_draft, _ = _projected_draft(watchpoint_markdown)
+    watchpoint_findings = _find_owned_surface_quality_issues(watchpoint_draft.layout)
+
+    assert any(
+        finding.issue.code == "summary.truncated_mid_token" and finding.block == "watchpoints"
+        for finding in watchpoint_findings
+    )
+
+    meaning_markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "수급 본문",
+        "> **그래서 의미는?** 수급 변화가 특정 지역의...",
+    )
+    meaning_draft, _ = _projected_draft(meaning_markdown)
+    meaning_findings = _find_owned_surface_quality_issues(meaning_draft.layout)
+
+    assert any(
+        finding.issue.code == "summary.truncated_mid_token" and finding.block == "section_body"
+        for finding in meaning_findings
+    )
+
+
 def test_multiple_findings_group_once_in_region_order_and_record_redacted_outcomes() -> None:
     findings = (
         _finding(

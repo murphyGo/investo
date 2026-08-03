@@ -5906,3 +5906,20 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 45 watchpoint matrix tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-4-watchpoint-title-segment-drop.md`.
 **Status**: Step 4 checklist complete 4/7. Next: Step 5 truncation detector coverage for meaning lines, caution callouts, and watchpoint headings.
+
+## Construction — u131 Code Generation Step 4 synchronization and Step 5 approval
+**Timestamp**: 2026-08-03T05:34:32Z
+**Synchronization**: Committed the validated Step 4 slice as `8cb6a63` (`fix: preserve whole watchpoint title segments`) and pushed `codex/u131`; local HEAD and `origin/codex/u131` matched after retrying a transient DNS failure.
+**User response**: `지금까지와 똑같이 스텝 하나 완료하면 커밋하고 다음 계속 진행해줘`
+**Decision**: Continue under the approved seven-step sequence into Step 5 without another approval pause.
+**Target**: Extend the existing publish-blocking truncation code to the three owned u131 surfaces, pin verbatim production residue, and preserve u144 region-local containment without arbitrary body false positives.
+
+## Construction — u131 Code Generation Step 5 complete
+**Timestamp**: 2026-08-03T05:34:32Z
+**Action**: Extended `summary.truncated_mid_token` routing to body-owned meaning-marker lines and watchpoint headings while preserving broad first-viewport scanning. Caution callouts now reject an incomplete clause before `본문 참고.` and both ASCII/Unicode ellipsis endings regardless of the preceding character.
+**u144 ownership**: Body-owned findings carry `segment_body`; the region-local finalizer accepts that sentinel only for the scanner-owned marker shapes. Arbitrary isolated body fragments remain excluded, and no new issue code or disposition-table row was required.
+**Regression**: Added verbatim 2026-06-29/30 archive lines for meaning, caution, and watchpoint-title residue, exact severity/evidence checks, allowed complete-line controls, non-Hangul caution endings, and region-local meaning/watchpoint ownership tests.
+**Review**: Fresh-eyes review found a Medium gap for `BTC...`/`BTC…` caution endings because the first version inherited the old Hangul guard. Explicit owned-caution ellipsis detection and dedicated tests closed it; re-review approved with no remaining findings.
+**Validation**: 132 related detector/reader/watchpoint/u144 tests passed; scoped Ruff and format passed; scoped mypy passed; `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u131-bounded-line-sentence-boundary-truncation/code/step-5-owned-surface-detector.md`.
+**Status**: Step 5 checklist complete 5/7. Next: Step 6 rendered-chain regression and byte-stable reruns.

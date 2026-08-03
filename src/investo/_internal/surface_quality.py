@@ -61,6 +61,11 @@ _AUTOLINK_RE = re.compile(r"<(https?://[^>\s]*(?:\.{3}|…)[^>\s]*)>")
 _DANGLING_ELLIPSIS_RE = re.compile(r"(?:^|\s)\.\.\.$")
 _TRUNCATED_KOREAN_ELLIPSIS_RE = re.compile(r"[가-힣](?:\.{3}|…)$")
 _TRUNCATED_DENYLIST_RE = re.compile(r"[채확민관]$")
+_BODY_BOUNDED_LINE_RE = re.compile(
+    r"^(?:>\s*\*\*그래서 의미는\?\*\*|####\s+관찰 신호\s*:)",
+)
+_CAUTION_LINE_RE = re.compile(r"^>\s*\*\*주의할 점\*\*\s*:\s*(?P<body>.+)$")
+_BOUNDED_LINE_ELLIPSIS_RE = re.compile(r"(?:\.{3}|…)$")
 _REPEATED_PHRASES = (
     "본문을 참고하세요",
     "데이터가 제한적입니다",
@@ -232,13 +237,27 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                     region,
                 )
             )
-        if region == "segment_first_viewport" and looks_truncated_mid_token(scan_line):
+        body_bounded_line = _BODY_BOUNDED_LINE_RE.match(scan_line.strip()) is not None
+        caution_line = _CAUTION_LINE_RE.match(scan_line.strip()) is not None
+        caution_truncated = caution_line and (
+            looks_truncated_caution_continuation(scan_line)
+            or _BOUNDED_LINE_ELLIPSIS_RE.search(scan_line.strip()) is not None
+        )
+        bounded_line_truncated = body_bounded_line and (
+            looks_truncated_mid_token(scan_line)
+            or _BOUNDED_LINE_ELLIPSIS_RE.search(scan_line.strip()) is not None
+        )
+        if (
+            (region == "segment_first_viewport" and looks_truncated_mid_token(scan_line))
+            or caution_truncated
+            or bounded_line_truncated
+        ):
             issues.append(
                 SurfaceQualityIssue(
                     "summary.truncated_mid_token",
                     "block",
                     line,
-                    region,
+                    "segment_body" if body_bounded_line else region,
                 )
             )
         matcher_reason = _WATCHLIST_MATCHER_REASON_RE.search(scan_line)
@@ -339,6 +358,19 @@ def looks_truncated_mid_token(line: str) -> bool:
     )
 
 
+def looks_truncated_caution_continuation(line: str) -> bool:
+    """Return whether ``본문 참고.`` follows an incomplete caution clause."""
+
+    stripped = line.strip()
+    match = _CAUTION_LINE_RE.match(stripped)
+    body = match.group("body").strip() if match is not None else stripped
+    continuation = "본문 참고."
+    if not body.endswith(continuation):
+        return False
+    retained = body[: -len(continuation)].rstrip()
+    return bool(retained) and not retained.endswith((".", "!", "?", "。"))
+
+
 def _strip_inline_code(line: str) -> str:
     return _INLINE_CODE_RE.sub("", line)
 
@@ -391,6 +423,7 @@ __all__ = [
     "find_glossary_collision_issues",
     "find_surface_quality_issues",
     "has_blocking_surface_issue",
+    "looks_truncated_caution_continuation",
     "looks_truncated_mid_token",
     "repair_surface_artifacts",
 ]

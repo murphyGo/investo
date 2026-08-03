@@ -37,6 +37,7 @@ from investo._internal.public_quality_language import (
 )
 from investo._internal.surface_quality import (
     has_blocking_surface_issue,
+    looks_truncated_caution_continuation,
     looks_truncated_mid_token,
 )
 from investo._internal.text import bound_at_sentence
@@ -173,7 +174,12 @@ def _bound_caution_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) ->
     """
     stripped = value.strip()
     if len(stripped) <= max_chars:
-        return "" if _looks_like_truncated_summary_snippet(stripped) else stripped
+        return (
+            ""
+            if _looks_like_truncated_summary_snippet(stripped)
+            or looks_truncated_caution_continuation(stripped)
+            else stripped
+        )
 
     budget = max_chars - len(_SNIPPET_CONTINUATION)
     if budget <= 0:

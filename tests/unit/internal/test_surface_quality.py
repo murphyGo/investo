@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from investo._internal.surface_quality import (
+    SurfaceQualityIssue,
     extract_first_viewport,
     find_glossary_collision_issues,
     find_surface_quality_issues,
     has_blocking_surface_issue,
+    looks_truncated_caution_continuation,
     repair_surface_artifacts,
 )
 
@@ -17,7 +19,7 @@ def test_extract_first_viewport_stops_before_section_one() -> None:
     assert extract_first_viewport(text) == "# title\n\nintro\n\n"
 
 
-def _issues_with_code(text: str, code: str) -> list[object]:
+def _issues_with_code(text: str, code: str) -> list[SurfaceQualityIssue]:
     return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
 
 
@@ -296,6 +298,64 @@ def test_first_viewport_truncation_residue_blocks_bounded_shapes_u112() -> None:
             i.code == "summary.truncated_mid_token" for i in find_surface_quality_issues(text)
         )
     assert _issues_with_code(allowed, "summary.truncated_mid_token") == []
+
+
+def test_u131_production_bounded_line_residue_is_blocking() -> None:
+    production_lines = (
+        (
+            "> **그래서 의미는?** Ethereum 기반 DeFi TVL 집중은 ETH 생태계 수요의 "
+            "구조적 기반으로 관찰되며, 인도 USDT 프리미엄 이상 급등은 특정 지역의...",
+            "body",
+        ),
+        (
+            "> **주의할 점**: 확인 소스: FOMC(연방공개시장위원회) 일정 · "
+            "Kevin Warsh(케빈 워시) 연준 의장의 7월 1일 ECB(유럽중앙은행) 포럼 "
+            "발언이 매파적 본문 참고.",
+            "first_viewport",
+        ),
+        ("#### 관찰 신호: CoinGecko BTC · UTC 24h…", "body"),
+    )
+
+    for line, placement in production_lines:
+        text = (
+            f"# title\n\n{line}\n\n## ① 요약\n본문"
+            if placement == "first_viewport"
+            else f"# title\n\n## ① 요약\n본문\n\n{line}"
+        )
+        issues = _issues_with_code(text, "summary.truncated_mid_token")
+
+        assert len(issues) == 1
+        assert issues[0].severity == "block"
+        assert issues[0].evidence == line
+
+
+def test_u131_complete_bounded_lines_and_unowned_body_ellipsis_are_allowed() -> None:
+    text = (
+        "# title\n\n"
+        "> **주의할 점**: 금리 경로 확인 필요. 본문 참고.\n\n"
+        "## ① 요약\n본문\n\n"
+        "> **그래서 의미는?** 수급 변화가 변동성의 핵심 변수입니다.\n\n"
+        "일반 설명...\n\n"
+        "#### 관찰 신호: CoinGecko BTC"
+    )
+
+    assert _issues_with_code(text, "summary.truncated_mid_token") == []
+
+
+def test_u131_caution_continuation_requires_a_completed_sentence() -> None:
+    assert looks_truncated_caution_continuation("발언이 매파적 본문 참고.")
+    assert not looks_truncated_caution_continuation("금리 경로 확인 필요. 본문 참고.")
+    assert not looks_truncated_caution_continuation("금리 경로 확인 필요.")
+
+
+def test_u131_caution_blocks_non_hangul_ellipsis_endings() -> None:
+    for ending in ("BTC...", "BTC…"):
+        text = f"# title\n\n> **주의할 점**: {ending}\n\n## ① 요약\n본문"
+        issues = _issues_with_code(text, "summary.truncated_mid_token")
+
+        assert len(issues) == 1
+        assert issues[0].severity == "block"
+        assert issues[0].region == "segment_first_viewport"
 
 
 def test_repairs_bad_particle_mingamdo_eul_u112() -> None:
