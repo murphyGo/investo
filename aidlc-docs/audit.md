@@ -5840,6 +5840,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Evidence**: `docs/cross-checks/2026-08-03-u133-watchlist-registry-source-impact-suppression.md`.
 **Disposition**: No implementation follow-up, development-plan addition, or TECH-DEBT item is required. u133 has no remaining construction work; proceed to main integration.
 
+## Integration — u133 main fast-forward prepared
+**Timestamp**: 2026-08-03T13:16:42Z
+**Isolation**: Created `/private/tmp/investo-u133-main-integration` from `origin/main@a475dd2`; the user's original main worktree and its unrelated changes remain untouched.
+**Integration**: Fast-forwarded the isolated integration branch to validated `origin/codex/u133@63dcbe6`; no merge conflict or code reconciliation was required.
+**Scope**: Eleven u133 commits from `11f7cad` through `63dcbe6`, covering seven construction steps and scoped cross-check.
+**Validation**: 144 focused surface/source/prompt/notifier/publisher tests plus 3 orchestrator routing tests passed; Ruff/format passed 11 changed Python files; `mypy src` passed 248 source files; lock, fixture JSON, and diff checks passed.
+**Status**: Commit this closeout, push the resulting head to `origin/main`, and verify GitHub Actions quality.
+
 ## Cross-Check — u130 complete
 **Timestamp**: 2026-08-02T19:51:24Z
 **Synchronization**: Committed the Step 7 closeout as `2ca93a7` (`docs: close u130 quality gate`) and pushed `codex/u130`; local HEAD and `origin/codex/u130` matched before cross-check.
