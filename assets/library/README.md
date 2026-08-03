@@ -49,7 +49,7 @@ pass; silent empties fail.
 
 ## Seed status
 
-All 13 seed keys ship **filed** (since 2026-07-22) with per-file
+All 15 seed keys ship **filed** (since 2026-08-03) with per-file
 license-verified binaries — US federal-government works (17 U.S.C.
 §105 / PD-USGov) for the person and government slots, and explicit
 CC0 / public-domain files (Wikimedia Commons file pages, Flickr CC0
@@ -58,3 +58,8 @@ source page, license token, author, and how the license was verified.
 No Unsplash/Pexels-site claims were used: both photo-page hosts block
 programmatic license verification, so only sources whose license
 wording could be machine-checked were accepted.
+
+Person assets are registered by explicit names only. Office titles such
+as `Fed Chair` or `Treasury Secretary` never select a specific portrait;
+this keeps office-holder changes from silently reusing a predecessor's
+image.

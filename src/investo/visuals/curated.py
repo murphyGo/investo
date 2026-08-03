@@ -295,6 +295,19 @@ def _assert_no_orphan_binaries(root: Path, assets: Mapping[str, CuratedAsset]) -
 # names only: a role/institution term can select a topic asset, never a
 # specific office-holder portrait (U-141 R4).
 _KEY_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
+    "person:kevin-warsh": (
+        "Kevin Warsh",
+        "Kevin M. Warsh",
+        "Warsh",
+        "케빈 워시",
+    ),
+    "person:scott-bessent": (
+        "Scott Bessent",
+        "Scott K. Bessent",
+        "Bessent",
+        "스콧 베선트",
+        "베선트",
+    ),
     "person:jerome-powell": ("Jerome Powell", "Powell", "제롬 파월", "파월"),
     "person:us-president": ("Donald Trump", "Donald J. Trump", "Trump", "도널드 트럼프", "트럼프"),
     "topic:federal-reserve": (
@@ -320,6 +333,8 @@ _KEY_ALIASES: Final[Mapping[str, tuple[str, ...]]] = {
 # Registry-priority order. Earlier = higher priority (R5 tie-break). The
 # index in this tuple is the deterministic registry priority.
 _REGISTRY_PRIORITY: Final[tuple[str, ...]] = (
+    "person:kevin-warsh",
+    "person:scott-bessent",
     "person:jerome-powell",
     "person:us-president",
     "asset:bitcoin",
@@ -435,6 +450,8 @@ def _entry(key: str, asset_ids: Iterable[str], affinity: Iterable[str]) -> Regis
 # KR topics; macro-driven content (Fed / inflation) is shared across the
 # equity segments.
 _SEED_REGISTRY: Final[tuple[RegistryEntry, ...]] = (
+    _entry("person:kevin-warsh", ("kevin-warsh",), ("us-equity", "domestic-equity")),
+    _entry("person:scott-bessent", ("scott-bessent",), ("us-equity", "domestic-equity")),
     _entry("person:jerome-powell", ("jerome-powell",), ("us-equity", "domestic-equity")),
     _entry("person:us-president", ("us-president",), ("us-equity",)),
     _entry("topic:federal-reserve", ("federal-reserve",), ("us-equity", "domestic-equity")),
