@@ -364,12 +364,12 @@ class WatchpointRow:
 
 
 @dataclass(frozen=True, slots=True)
-class _WatchpointItemSnapshot:
+class WatchpointItemSnapshot:
     source_name: str
     metadata: tuple[tuple[str, str], ...]
 
     @classmethod
-    def from_item(cls, item: NormalizedItem) -> _WatchpointItemSnapshot:
+    def from_item(cls, item: NormalizedItem) -> WatchpointItemSnapshot:
         pairs = tuple(
             sorted(
                 (key, str(value).strip())
@@ -397,11 +397,14 @@ class WatchpointValuePayload:
 
     segment: MarketSegment
     anchors: tuple[MarketAnchor, ...] = ()
-    _items: tuple[_WatchpointItemSnapshot, ...] = dataclass_field(default=(), repr=False)
+    item_snapshots: tuple[WatchpointItemSnapshot, ...] = dataclass_field(
+        default=(),
+        repr=False,
+    )
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "anchors", tuple(self.anchors))
-        object.__setattr__(self, "_items", tuple(self._items))
+        object.__setattr__(self, "item_snapshots", tuple(self.item_snapshots))
 
     @classmethod
     def from_inputs(
@@ -416,7 +419,7 @@ class WatchpointValuePayload:
         return cls(
             segment=segment,
             anchors=tuple(anchors),
-            _items=tuple(_WatchpointItemSnapshot.from_item(item) for item in items),
+            item_snapshots=tuple(WatchpointItemSnapshot.from_item(item) for item in items),
         )
 
 
@@ -649,7 +652,7 @@ class _CurrentValueCandidate:
     current: str
 
 
-def _metadata_text(item: _WatchpointItemSnapshot, key: str) -> str | None:
+def _metadata_text(item: WatchpointItemSnapshot, key: str) -> str | None:
     return item.get(key)
 
 
@@ -735,7 +738,7 @@ def _anchor_belongs_to_segment(anchor: MarketAnchor, segment: MarketSegment) -> 
     )
 
 
-def _coingecko_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+def _coingecko_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
     if item.source_name != _COINGECKO_SOURCE:
         return None
     symbol = _metadata_text(item, "symbol")
@@ -759,7 +762,7 @@ def _coingecko_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidat
     )
 
 
-def _fear_greed_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+def _fear_greed_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
     if _metadata_text(item, "indicator") != "fear_greed":
         return None
     value_text = _metadata_text(item, "value")
@@ -778,7 +781,7 @@ def _fear_greed_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandida
     )
 
 
-def _funding_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+def _funding_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
     if _metadata_text(item, "indicator") != "btc_funding":
         return None
     raw = _metadata_text(item, "btc_funding_rate")
@@ -794,7 +797,7 @@ def _funding_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate 
     )
 
 
-def _oi_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+def _oi_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
     if _metadata_text(item, "indicator") != "btc_oi":
         return None
     raw = _metadata_text(item, "btc_oi_usd")
@@ -808,7 +811,7 @@ def _oi_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | Non
 
 
 def _cftc_candidate(
-    item: _WatchpointItemSnapshot,
+    item: WatchpointItemSnapshot,
     *,
     groups: frozenset[str],
 ) -> _CurrentValueCandidate | None:
@@ -846,7 +849,7 @@ def _current_value_candidates(
         candidate = _anchor_candidate(anchor, segment=payload.segment)
         if candidate is not None:
             candidates.append(candidate)
-    for item in payload._items:
+    for item in payload.item_snapshots:
         builders = (
             (_coingecko_candidate, _fear_greed_candidate, _funding_candidate, _oi_candidate)
             if payload.segment == "crypto"
@@ -1302,6 +1305,7 @@ __all__ = [
     "MATRIX_COLUMNS",
     "MAX_VISIBLE_ROWS",
     "ConfidenceLabel",
+    "WatchpointItemSnapshot",
     "WatchpointRenderResult",
     "WatchpointRenderState",
     "WatchpointRow",

@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u135 watchpoint-current-value-and-deterministic-fallback
 **Stage**: Code Generation
-**Status**: In Progress (2/7) — current-value resolution complete; deterministic fallback next
+**Status**: In Progress (3/7) — deterministic fallback rows complete; orchestration wiring next
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~4-5 h
 **Dependencies**:
@@ -59,7 +59,8 @@ NFR Requirements: SKIP — deterministic synthesis from already-collected data; 
    - Range: `관찰 신호: {label} 가격 구간 · 현재: {close} ({pct}) · 확인 조건: 상방 {upper} 상회 시 단기 회복 흐름 관찰; 하방 {lower} 이탈 시 방어적 수급 관찰 · 신뢰도: {conf} · 관심 영향: 본문 §⑤ 가격 동향과 연계 점검.`
      - Crypto `{upper}/{lower}` = 24h high/low; US/domestic = 52w high/low from the reconciled anchor.
    - CFTC: `관찰 신호: {contract} 포지셔닝 · 현재: 순포지션 {net}계약 ({oi_pct} OI, 주간 지연) · 확인 조건: 상방 순매도 축소 전환 관찰; 하방 순매도 확대 지속 관찰 · 신뢰도: 보통 · 관심 영향: 가격과 포지셔닝 괴리 지속 여부 점검.`
-   - F&G: `관찰 신호: 공포·탐욕 지수 · 현재: {value} ({band}) · 확인 조건: 상방 20 상회 시 심리 회복 관찰; 하방 10 이탈 시 극단 공포 심화 관찰 · 신뢰도: 높음 · 관심 영향: 반등 지속성 판단 보조 지표.`
+   - F&G fear branch (`value ≤20`): `관찰 신호: 공포·탐욕 지수 · 현재: {value} ({band}) · 확인 조건: 상방 20 상회 시 심리 회복 관찰; 하방 10 이탈 시 극단 공포 심화 관찰 · 신뢰도: 높음 · 관심 영향: 반등 지속성 판단 보조 지표.`
+   - F&G greed branch (`value ≥80`, Step 3 semantic correction): same shape/source/confidence/impact, with `상방 90 상회 시 심리 과열 심화 관찰; 하방 80 이탈 시 심리 과열 완화 관찰`. The originally planned fear-only thresholds cannot truthfully describe an extreme-greed current value, so the closed template is split rather than emitting a contradictory card.
    (Rendered through the existing u98 card renderer — the templates define field payloads, not raw markdown.)
 5. **신뢰도** from data freshness: same-run reconciled data → `높음`; weekly-delayed (CFTC) → `보통`. Never `데이터부족` on a synthesized card (contradiction by construction).
 6. **Compliance**: synthesized cards pass the u64 structure regexes and the second `scan_compliance` pass (u72 orchestration); a compliance failure on a synthesized card drops that card (falls back toward the bounded note), never blocks publish.
@@ -69,7 +70,7 @@ NFR Requirements: SKIP — deterministic synthesis from already-collected data; 
 
 - [x] Step 1 — Read `src/investo/publisher/watchpoint_matrix.py` (u72/u87/u98/u110 layers) and the active u144/orchestrator conversion path; document (in the unit summary) where u110 promotion populates `출처:` but leaves the independently stored `현재:` unresolved.
 - [x] Step 2 — Implement value resolution (Fixed Contracts 1-2) in `watchpoint_matrix.py`; the reconciled payload arrives via a new explicit parameter from the orchestrator (no publisher→orchestrator import; payload is plain data).
-- [ ] Step 3 — Implement fallback synthesis (Fixed Contracts 3-5) in a new sibling `src/investo/publisher/watchpoint_fallback.py`; templates as module constants.
+- [x] Step 3 — Implement fallback synthesis (Fixed Contracts 3-5) in a new sibling `src/investo/publisher/watchpoint_fallback.py`; templates as module constants.
 - [ ] Step 4 — Wire the orchestrator: pass the payload, run synthesis when the trigger fires, re-run `scan_compliance` over the final §⑥ (existing u72 double-pass extended to cover synthesized output), stamp `watchpoint_synthesized` into the quality snapshot.
 - [ ] Step 5 — Regressions: (a) 2026-06-29 crypto fixture — `현재: CoinGecko BTC` resolves to `$60,284.00 (+2.23%)` or the row fails; (b) 2026-06-30 us-equity fixture — CFTC + anchor payload synthesizes 2 cards where production rendered the bounded note; (c) empty-payload fixture — bounded note preserved (DEBT-074).
 - [ ] Step 6 — Compliance tests: synthesized templates pass u64 structure regexes and contain no banned-advice tokens; forced-failure path drops the card.

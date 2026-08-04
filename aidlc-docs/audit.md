@@ -6216,3 +6216,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: 55 watchpoint-matrix tests passed; scoped Ruff/format, mypy, and `git diff --check` passed. Independent reviewer run also passed all 55 tests.
 **Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-2-current-value-resolution.md`.
 **Status**: Step 2 checklist complete 2/7. Next: deterministic fallback synthesis.
+
+## Construction — u135 Code Generation Step 2 synchronization and Step 3 complete
+**Timestamp**: 2026-08-04T01:25:49Z
+**Synchronization**: Committed Step 2 as `9867de3` (`fix: resolve watchpoint current values`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Added pure `publisher/watchpoint_fallback.py` synthesis over immutable value payloads. It emits existing-shape `WatchpointRow` values only, in range → CFTC → F&G order, capped at two, with no I/O or LLM call.
+**Range contract**: Crypto requires same-symbol CoinGecko 24h high/low around the reconciled close. US/domestic reconstruct 52w bounds from reconciled anchor percentage distances. Core symbols are deterministic priority inputs; missing, cross-segment, nonpositive, or zero-quantized thresholds are omitted.
+**CFTC/F&G contract**: CFTC requires the segment's contract group plus consistent negative net-contract and OI-percentage signs, and receives `보통`. F&G requires an integer extreme (≤20 or ≥80) and receives `높음`. The original plan paired ≥80 extreme greed with fear-only 20/10 triggers; Step 3 ratified a second closed greed template (90/80) to prevent contradictory public guidance.
+**Review**: Fresh-eyes review found one High F&G semantic contradiction, one Medium CFTC sign-consistency gap, and one Low zero-quantized 52w threshold. A closed greed branch, sign pairing, post-quantization positivity check, and regressions closed all three; re-review approved with no remaining findings.
+**Validation**: Matrix+fallback tests 62 passed; scoped Ruff/format, mypy, and `git diff --check` passed. Independent reviewer gate also passed 62 tests and Ruff.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-3-deterministic-fallback.md`.
+**Status**: Step 3 checklist complete 3/7. Next: orchestrator/pre-seal wiring, compliance filtering, and `watchpoint_synthesized` metadata.
