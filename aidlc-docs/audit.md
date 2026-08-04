@@ -6205,3 +6205,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Existing watchpoint matrix suite passed; scoped Ruff/format and `git diff --check` passed. Fresh-eyes review found two Medium and two Low documentation-precision issues: the inherited plan's false "vacated current" wording, premature approval text, stale u131 dependency status, and an overbroad renderer exclusion. All four were corrected; re-review approved with no remaining findings.
 **Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-1-current-value-trace.md`.
 **Status**: Step 1 checklist complete 1/7. Next: reconciled-payload value resolution and unresolved-row hard fail.
+
+## Construction — u135 Code Generation Step 1 synchronization and Step 2 complete
+**Timestamp**: 2026-08-03T20:21:53Z
+**Synchronization**: Committed Step 1 as `2e0c2c5` (`docs: trace u135 current value gap`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Added an immutable publisher-owned `WatchpointValuePayload` scalar snapshot plus exact current-value resolution for segment-correct reconciled anchors, CoinGecko price, F&G, funding/OI, and CFTC inputs. Source promotion is retained before substitution; a payload-backed non-numeric unresolved row is omitted through the existing invalid-row path. Canonical legacy cards repair once and remain byte-idempotent.
+**Boundaries**: Anchors and item families are gated by crypto/US/domestic ownership; CFTC rows require the correct contract group. Matching uses bounded exact ASCII/Hangul token boundaries and longest exact-token specificity, never fuzzy matching. `segment` is mandatory and must match whenever a value payload is supplied. No-payload callers keep the u110 behavior unchanged.
+**Safety**: Item metadata is snapshotted into immutable scalar tuples. Nonfinite/negative/oversized price, OI, funding, F&G, percentage, and CFTC shapes fail closed before formatting.
+**Review**: Fresh-eyes review found one High segment-cross-pollution issue, two Medium payload-immutability/segment-identity issues, and one Low numeric-domain issue. Segment dispatch, immutable snapshots, mandatory segment identity, and key-specific numeric guards plus regressions closed all findings; re-review approved with no remaining Critical/High/Medium/Low issue.
+**Validation**: 55 watchpoint-matrix tests passed; scoped Ruff/format, mypy, and `git diff --check` passed. Independent reviewer run also passed all 55 tests.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-2-current-value-resolution.md`.
+**Status**: Step 2 checklist complete 2/7. Next: deterministic fallback synthesis.

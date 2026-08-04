@@ -79,15 +79,21 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from dataclasses import field as dataclass_field
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Final, Literal, cast
 
+from investo._internal.decimal_format import shortest_exact_decimal
 from investo._internal.public_quality_language import (
     PUBLIC_LOW_COVERAGE_INLINE_TEXT,
     PUBLIC_LOW_COVERAGE_LABEL,
     PUBLIC_WATCHPOINT_LIMITED_TEXT,
     PUBLIC_WATCHPOINT_SOURCE_TEXT,
 )
+from investo.models.items import NormalizedItem
+from investo.models.market_anchor import MarketAnchor, anchor_label
+from investo.models.segments import MarketSegment
 from investo.publisher.reader_format import (
     _BULLET_RE,
     _SECTION_HEADER_RE,
@@ -239,19 +245,32 @@ def _existing_watchpoint_state(body: str) -> tuple[WatchpointRenderState, int] |
         return ("limited", 0)
     if DATA_LIMITED_NOTE in body:
         return None
+    parsed = _parse_existing_watchpoint_cards(body)
+    if parsed is None:
+        return None
+    rows, _ = parsed
+    return ("rendered", len(rows)) if rows else None
+
+
+def _parse_existing_watchpoint_cards(
+    body: str,
+) -> tuple[tuple[WatchpointRow, ...], str] | None:
+    """Parse only byte-canonical cards plus an optional omission suffix."""
+
     lines = body.splitlines()
     index = 0
-    card_count = 0
+    rows: list[WatchpointRow] = []
     while index < len(lines):
         while index < len(lines) and not lines[index]:
             index += 1
         if index >= len(lines):
             break
         if _RENDERED_OMISSION_RE.fullmatch(lines[index]):
+            omission = lines[index]
             index += 1
             while index < len(lines) and not lines[index]:
                 index += 1
-            return ("rendered", card_count) if card_count and index == len(lines) else None
+            return (tuple(rows), omission) if rows and index == len(lines) else None
         if not lines[index].startswith("#### 관찰 신호: "):
             return None
         signal = lines[index].removeprefix("#### 관찰 신호: ").strip()
@@ -287,12 +306,12 @@ def _existing_watchpoint_state(body: str) -> tuple[WatchpointRenderState, int] |
         if (
             not _renderable_row(row)
             or render_matrix_table([row]) != original_card
-            or card_count >= MAX_VISIBLE_ROWS
+            or len(rows) >= MAX_VISIBLE_ROWS
         ):
             return None
-        card_count += 1
+        rows.append(row)
         index += 7
-    return ("rendered", card_count) if card_count else None
+    return (tuple(rows), "") if rows else None
 
 
 def _is_observation_bullet(bullet: str) -> bool:
@@ -341,6 +360,63 @@ class WatchpointRow:
             bearish_trigger=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
             confidence=DATA_LIMITED_CONFIDENCE,
             implication=PUBLIC_WATCHPOINT_LIMITED_TEXT,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class _WatchpointItemSnapshot:
+    source_name: str
+    metadata: tuple[tuple[str, str], ...]
+
+    @classmethod
+    def from_item(cls, item: NormalizedItem) -> _WatchpointItemSnapshot:
+        pairs = tuple(
+            sorted(
+                (key, str(value).strip())
+                for key, value in item.raw_metadata.items()
+                if not isinstance(value, bool) and str(value).strip()
+            )
+        )
+        return cls(source_name=item.source_name, metadata=pairs)
+
+    def get(self, key: str) -> str | None:
+        for candidate, value in self.metadata:
+            if candidate == key:
+                return value
+        return None
+
+
+@dataclass(frozen=True, slots=True)
+class WatchpointValuePayload:
+    """Frozen reconciled inputs used only for exact current-value resolution.
+
+    The publisher owns this plain-data DTO. It contains the canonical anchors
+    and already-routed items supplied by the caller; constructing it performs
+    no I/O and does not import orchestrator state.
+    """
+
+    segment: MarketSegment
+    anchors: tuple[MarketAnchor, ...] = ()
+    _items: tuple[_WatchpointItemSnapshot, ...] = dataclass_field(default=(), repr=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "anchors", tuple(self.anchors))
+        object.__setattr__(self, "_items", tuple(self._items))
+
+    @classmethod
+    def from_inputs(
+        cls,
+        segment: MarketSegment,
+        *,
+        anchors: Sequence[MarketAnchor] = (),
+        items: Sequence[NormalizedItem] = (),
+    ) -> WatchpointValuePayload:
+        """Snapshot mutable item metadata into immutable scalar tuples."""
+
+        return cls(
+            segment=segment,
+            anchors=tuple(anchors),
+            _items=tuple(_WatchpointItemSnapshot.from_item(item) for item in items),
         )
 
 
@@ -404,6 +480,16 @@ _GENERIC_CURRENT_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?:[A-Z0-9.^=-]{2,12}|[가-힣A-Za-z0-9.^=-]{2,20}\s*(?:확인|점검|관찰|추세|흐름)?|"
     r"(?:FOMC|CPI|PPI|환율|금리|유가|비트코인|이더리움)\s*(?:확인|점검|관찰|추세|흐름)?)$"
 )
+_CURRENT_VALUE_RE: Final[re.Pattern[str]] = re.compile(r"\d")
+_MAX_NUMERIC_INPUT_CHARS: Final[int] = 64
+_MAX_DISPLAY_MAGNITUDE: Final[int] = 18
+_PRICE_QUANTUM: Final[Decimal] = Decimal("0.01")
+_COINGECKO_SOURCE: Final[str] = "coingecko-price"
+_CFTC_SOURCE: Final[str] = "cftc-cot-positioning"
+_CFTC_US_GROUPS: Final[frozenset[str]] = frozenset(
+    {"equity_index", "rates", "fx", "energy", "metals", "volatility"}
+)
+_CFTC_CRYPTO_GROUPS: Final[frozenset[str]] = frozenset({"crypto"})
 
 
 def _clauses(bullet: str) -> list[str]:
@@ -555,6 +641,305 @@ def _is_generic_current(text: str) -> bool:
     if not normalized or _DATA_LIMITED_RE.search(normalized):
         return True
     return bool(len(normalized) <= 24 and _GENERIC_CURRENT_RE.match(normalized))
+
+
+@dataclass(frozen=True, slots=True)
+class _CurrentValueCandidate:
+    match_tokens: tuple[str, ...]
+    current: str
+
+
+def _metadata_text(item: _WatchpointItemSnapshot, key: str) -> str | None:
+    return item.get(key)
+
+
+def _bounded_decimal(raw: object) -> Decimal | None:
+    text = str(raw).strip()
+    if not text or len(text) > _MAX_NUMERIC_INPUT_CHARS:
+        return None
+    try:
+        value = Decimal(text)
+    except InvalidOperation:
+        return None
+    if not value.is_finite() or abs(value.adjusted()) > _MAX_DISPLAY_MAGNITUDE:
+        return None
+    return value
+
+
+def _format_price_value(value: object, *, prefix: str = "") -> str | None:
+    decimal_value = _bounded_decimal(value)
+    if decimal_value is None or decimal_value <= 0:
+        return None
+    try:
+        quantized = decimal_value.quantize(_PRICE_QUANTUM, rounding=ROUND_HALF_UP)
+    except InvalidOperation:
+        return None
+    return f"{prefix}{quantized:,.2f}"
+
+
+def _format_pct_value(value: object) -> str | None:
+    decimal_value = _bounded_decimal(value)
+    if decimal_value is None or abs(decimal_value) > Decimal("1000000"):
+        return None
+    exact = shortest_exact_decimal(str(decimal_value))
+    if exact is None:
+        return None
+    return f"{exact if decimal_value <= 0 else f'+{exact}'}%"
+
+
+def _anchor_price_prefix(anchor: MarketAnchor, segment: MarketSegment) -> str:
+    if segment == "crypto":
+        return "$"
+    if segment == "us-equity" and not anchor.ticker.startswith("^"):
+        return "$"
+    if segment == "domestic-equity" and anchor.ticker.endswith((".KS", ".KQ")):
+        return "₩"
+    return ""
+
+
+def _anchor_candidate(
+    anchor: MarketAnchor,
+    *,
+    segment: MarketSegment,
+) -> _CurrentValueCandidate | None:
+    if anchor.pct is None:
+        return None
+    price = _format_price_value(
+        anchor.close,
+        prefix=_anchor_price_prefix(anchor, segment),
+    )
+    pct = _format_pct_value(anchor.pct)
+    if price is None or pct is None:
+        return None
+    label = anchor_label(anchor.ticker)
+    return _CurrentValueCandidate(
+        match_tokens=tuple(
+            dict.fromkeys(
+                token for token in (anchor.ticker, label.short, label.ko, label.display) if token
+            )
+        ),
+        current=f"{price} ({pct})",
+    )
+
+
+def _anchor_belongs_to_segment(anchor: MarketAnchor, segment: MarketSegment) -> bool:
+    ticker = anchor.ticker
+    if segment == "crypto":
+        return ticker.endswith("-USD")
+    if segment == "domestic-equity":
+        return ticker in {"^KOSPI", "^KOSDAQ", "KRW=X"} or ticker.endswith((".KS", ".KQ"))
+    return not (
+        ticker.endswith("-USD")
+        or ticker in {"^KOSPI", "^KOSDAQ", "KRW=X"}
+        or ticker.endswith((".KS", ".KQ"))
+    )
+
+
+def _coingecko_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+    if item.source_name != _COINGECKO_SOURCE:
+        return None
+    symbol = _metadata_text(item, "symbol")
+    coin_id = _metadata_text(item, "coin_id")
+    price = _metadata_text(item, "price_usd")
+    pct = _metadata_text(item, "pct_24h")
+    if None in (symbol, coin_id, price, pct):
+        return None
+    assert symbol is not None and coin_id is not None and price is not None and pct is not None
+    rendered_price = _format_price_value(price, prefix="$")
+    rendered_pct = _format_pct_value(pct)
+    if rendered_price is None or rendered_pct is None:
+        return None
+    ticker = f"{symbol.upper()}-USD"
+    label = anchor_label(ticker)
+    return _CurrentValueCandidate(
+        match_tokens=tuple(
+            dict.fromkeys((symbol.upper(), ticker, coin_id, label.short, label.ko, label.display))
+        ),
+        current=f"{rendered_price} ({rendered_pct})",
+    )
+
+
+def _fear_greed_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+    if _metadata_text(item, "indicator") != "fear_greed":
+        return None
+    value_text = _metadata_text(item, "value")
+    value = _bounded_decimal(value_text) if value_text is not None else None
+    if (
+        value is None
+        or value != value.to_integral_value()
+        or not Decimal(0) <= value <= Decimal(100)
+    ):
+        return None
+    classification = _metadata_text(item, "classification")
+    suffix = f" ({classification})" if classification is not None else ""
+    return _CurrentValueCandidate(
+        match_tokens=("공포·탐욕", "공포 탐욕", "Fear & Greed", "Fear and Greed", "F&G"),
+        current=f"{int(value)}{suffix}",
+    )
+
+
+def _funding_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+    if _metadata_text(item, "indicator") != "btc_funding":
+        return None
+    raw = _metadata_text(item, "btc_funding_rate")
+    decimal_value = _bounded_decimal(raw) if raw is not None else None
+    if decimal_value is None or abs(decimal_value) > Decimal(1):
+        return None
+    value = shortest_exact_decimal(str(decimal_value))
+    if value is None:
+        return None
+    return _CurrentValueCandidate(
+        match_tokens=("BTC 펀딩", "펀딩", "BTC funding", "funding rate", "funding"),
+        current=f"펀딩 {value}",
+    )
+
+
+def _oi_candidate(item: _WatchpointItemSnapshot) -> _CurrentValueCandidate | None:
+    if _metadata_text(item, "indicator") != "btc_oi":
+        return None
+    raw = _metadata_text(item, "btc_oi_usd")
+    value = _format_price_value(raw, prefix="$") if raw is not None else None
+    if value is None:
+        return None
+    return _CurrentValueCandidate(
+        match_tokens=("BTC 미결제약정", "BTC OI", "미결제약정", "open interest", "OI"),
+        current=f"OI {value}",
+    )
+
+
+def _cftc_candidate(
+    item: _WatchpointItemSnapshot,
+    *,
+    groups: frozenset[str],
+) -> _CurrentValueCandidate | None:
+    if item.source_name != _CFTC_SOURCE:
+        return None
+    if _metadata_text(item, "contract_group") not in groups:
+        return None
+    contract = _metadata_text(item, "contract_label")
+    net_raw = _metadata_text(item, "net_contracts")
+    pct_raw = _metadata_text(item, "net_pct_open_interest")
+    net = _bounded_decimal(net_raw) if net_raw is not None else None
+    pct_value = _bounded_decimal(pct_raw) if pct_raw is not None else None
+    pct = _format_pct_value(pct_value) if pct_value is not None else None
+    if (
+        contract is None
+        or net is None
+        or pct is None
+        or abs(pct_value or Decimal(0)) > Decimal(100)
+        or net != net.to_integral_value()
+    ):
+        return None
+    return _CurrentValueCandidate(
+        match_tokens=(contract,),
+        current=f"순포지션 {int(net):,}계약 ({pct} OI, 주간 지연)",
+    )
+
+
+def _current_value_candidates(
+    payload: WatchpointValuePayload,
+) -> tuple[_CurrentValueCandidate, ...]:
+    candidates: list[_CurrentValueCandidate] = []
+    for anchor in payload.anchors:
+        if not _anchor_belongs_to_segment(anchor, payload.segment):
+            continue
+        candidate = _anchor_candidate(anchor, segment=payload.segment)
+        if candidate is not None:
+            candidates.append(candidate)
+    for item in payload._items:
+        builders = (
+            (_coingecko_candidate, _fear_greed_candidate, _funding_candidate, _oi_candidate)
+            if payload.segment == "crypto"
+            else ()
+        )
+        for builder in builders:
+            candidate = builder(item)
+            if candidate is not None:
+                candidates.append(candidate)
+                break
+        else:
+            cftc_groups = _CFTC_CRYPTO_GROUPS if payload.segment == "crypto" else _CFTC_US_GROUPS
+            if payload.segment != "domestic-equity":
+                candidate = _cftc_candidate(item, groups=cftc_groups)
+                if candidate is not None:
+                    candidates.append(candidate)
+    return tuple(candidates)
+
+
+def _has_exact_signal_token(signal: str, token: str) -> bool:
+    stripped = token.strip()
+    if not stripped:
+        return False
+    escaped = re.escape(stripped)
+    if stripped.isascii():
+        return (
+            re.search(
+                rf"(?<![A-Za-z0-9]){escaped}(?![A-Za-z0-9])",
+                signal,
+                re.IGNORECASE,
+            )
+            is not None
+        )
+    return (
+        re.search(
+            rf"(?<![가-힣A-Za-z0-9]){escaped}(?![가-힣A-Za-z0-9])",
+            signal,
+            re.IGNORECASE,
+        )
+        is not None
+    )
+
+
+def _candidate_for_signal(
+    signal: str,
+    candidates: Sequence[_CurrentValueCandidate],
+) -> _CurrentValueCandidate | None:
+    best: _CurrentValueCandidate | None = None
+    best_score = (-1, 0)
+    for index, candidate in enumerate(candidates):
+        matched_lengths = [
+            len(token.strip())
+            for token in candidate.match_tokens
+            if _has_exact_signal_token(signal, token)
+        ]
+        if matched_lengths:
+            score = (max(matched_lengths), -index)
+            if score > best_score:
+                best = candidate
+                best_score = score
+    return best
+
+
+def resolve_watchpoint_currents(
+    rows: Sequence[WatchpointRow],
+    payload: WatchpointValuePayload,
+) -> list[WatchpointRow]:
+    """Resolve non-numeric current fields by exact signal token or drop them.
+
+    Existing numeric current text is byte-preserved. A non-numeric value must
+    match one canonical ticker/label/indicator token from the supplied payload;
+    otherwise the row is omitted through the existing invalid-row flow.
+    """
+
+    candidates = _current_value_candidates(payload)
+    resolved: list[WatchpointRow] = []
+    for row in rows:
+        source = _promote_source(
+            row.source,
+            row.current,
+            row.bullish_trigger,
+            row.bearish_trigger,
+            row.implication,
+        )
+        promoted = replace(row, source=source)
+        current = _normalise_field_text(row.current, default="")
+        if _CURRENT_VALUE_RE.search(current):
+            resolved.append(promoted)
+            continue
+        candidate = _candidate_for_signal(row.signal, candidates)
+        if candidate is not None:
+            resolved.append(replace(promoted, current=candidate.current))
+    return resolved
 
 
 def _renderable_row(row: WatchpointRow) -> bool:
@@ -731,20 +1116,27 @@ def render_watchpoint_matrix_result(
     segment: str | None = None,
     coverage_limited: bool = False,
     preserved_fragments: Sequence[str] = (),
+    value_payload: WatchpointValuePayload | None = None,
 ) -> WatchpointRenderResult:
     """Rewrite §⑥ and return typed usable-card availability (pure).
 
-    Idempotent: if §⑥ already contains card headings *or* the collapsed
-    :data:`DATA_LIMITED_NOTE` (same-day re-run), the document bytes are returned
-    unchanged with the matching typed state. The transform is bounded to the
-    §⑥ body region; every other section and the disclaimer footer is
-    byte-preserved. Exact caller-owned ``preserved_fragments`` inside §⑥ are
-    treated as opaque bytes and reinserted ahead of the rewritten cards. The
-    renderer neither parses nor reconstructs those fragments. Missing,
-    empty, or unusable §⑥ content is explicitly `limited`.
+    Idempotent: canonical cards and the collapsed :data:`DATA_LIMITED_NOTE`
+    return unchanged on a same-day re-run, except that an explicit value
+    payload may repair or drop a legacy non-numeric current field. The
+    transform is bounded to the §⑥ body region; every other section and the
+    disclaimer footer is byte-preserved. Exact caller-owned
+    ``preserved_fragments`` inside §⑥ are treated as opaque bytes and reinserted
+    ahead of the rewritten cards. The renderer neither parses nor reconstructs
+    those fragments. Missing, empty, or unusable §⑥ content is explicitly
+    `limited`.
     """
     if not text:
         raise ValueError("watchpoint input markdown must not be empty")
+    if value_payload is not None:
+        if segment is None:
+            raise ValueError("watchpoint render segment is required with a value payload")
+        if value_payload.segment != segment:
+            raise ValueError("watchpoint value payload segment must match render segment")
     headers = list(_SECTION_HEADER_RE.finditer(text))
     for idx, match in enumerate(headers):
         if section_marker not in match.group("header"):
@@ -759,6 +1151,25 @@ def render_watchpoint_matrix_result(
         # Idempotent (AC-87.7): accept only the exact complete card/note shape.
         existing_state = _existing_watchpoint_state(watchpoint_body)
         if existing_state is not None and existing_state[0] == "rendered":
+            if value_payload is not None:
+                parsed = _parse_existing_watchpoint_cards(watchpoint_body)
+                assert parsed is not None
+                existing_rows, omission = parsed
+                resolved_rows = resolve_watchpoint_currents(existing_rows, value_payload)
+                resolved_rows = [row for row in resolved_rows if _renderable_row(row)]
+                if tuple(resolved_rows) != existing_rows:
+                    content = (
+                        render_matrix_table(resolved_rows) if resolved_rows else DATA_LIMITED_NOTE
+                    )
+                    if omission and resolved_rows:
+                        content = f"{content}\n\n{omission}"
+                    new_body = _compose_watchpoint_body(content, owned_fragments)
+                    return WatchpointRenderResult(
+                        markdown=text[:body_start] + new_body + text[body_end:],
+                        state="rendered" if resolved_rows else "limited",
+                        usable_card_count=len(resolved_rows),
+                        limitation_reasons=() if resolved_rows else ("watchpoint_unavailable",),
+                    )
             return WatchpointRenderResult(
                 markdown=text,
                 state="rendered",
@@ -783,6 +1194,8 @@ def render_watchpoint_matrix_result(
                 limitation_reasons=("watchpoint_unavailable",),
             )
         rows = build_watchpoint_rows(bullets, coverage_limited=coverage_limited)
+        if value_payload is not None:
+            rows = resolve_watchpoint_currents(rows, value_payload)
         rows = [r for r in rows if _renderable_row(r)]
         # u87 Step 3 — collapse an all-데이터부족 (or empty) result to the single
         # pinned note instead of a ≥2-row wall of 데이터부족 (AC-87.4).
@@ -867,6 +1280,7 @@ def render_watchpoint_matrix(
     section_marker: str = "⑥",
     segment: str | None = None,
     coverage_limited: bool = False,
+    value_payload: WatchpointValuePayload | None = None,
 ) -> str:
     """Compatibility string view with no default segmented production caller."""
 
@@ -877,6 +1291,7 @@ def render_watchpoint_matrix(
         section_marker=section_marker,
         segment=segment,
         coverage_limited=coverage_limited,
+        value_payload=value_payload,
     ).markdown
 
 
@@ -890,8 +1305,10 @@ __all__ = [
     "WatchpointRenderResult",
     "WatchpointRenderState",
     "WatchpointRow",
+    "WatchpointValuePayload",
     "build_watchpoint_rows",
     "render_matrix_table",
     "render_watchpoint_matrix",
     "render_watchpoint_matrix_result",
+    "resolve_watchpoint_currents",
 ]

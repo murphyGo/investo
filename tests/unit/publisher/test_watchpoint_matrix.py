@@ -15,6 +15,9 @@ Coverage map (per u72 plan Steps 1/3/4/6 + AC-72.1..72.5):
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from decimal import Decimal
+
 import pytest
 
 from investo._internal.public_quality_language import (
@@ -25,6 +28,8 @@ from investo._internal.public_quality_language import (
     first_forbidden_public_evidence,
 )
 from investo.briefing.disclaimer import DISCLAIMER
+from investo.models.items import NormalizedItem
+from investo.models.market_anchor import MarketAnchor
 from investo.publisher.compliance_language import scan_compliance
 from investo.publisher.reader_format import check_watchpoint_actionability
 from investo.publisher.watchpoint_matrix import (
@@ -35,10 +40,12 @@ from investo.publisher.watchpoint_matrix import (
     MAX_VISIBLE_ROWS,
     WatchpointRenderResult,
     WatchpointRow,
+    WatchpointValuePayload,
     build_watchpoint_rows,
     render_matrix_table,
     render_watchpoint_matrix,
     render_watchpoint_matrix_result,
+    resolve_watchpoint_currents,
 )
 
 # ---------------------------------------------------------------------------
@@ -677,3 +684,309 @@ def test_legacy_watchpoint_renderer_preserves_empty_input_compatibility() -> Non
 def test_typed_watchpoint_result_rejects_state_count_reason_drift(result: object) -> None:
     with pytest.raises(ValueError):
         result()  # type: ignore[operator]
+
+
+# ---------------------------------------------------------------------------
+# u135 Step 2 — exact current-value resolution
+# ---------------------------------------------------------------------------
+
+
+def _value_row(signal: str, *, current: str = "CoinGecko BTC") -> WatchpointRow:
+    return WatchpointRow(
+        signal=signal,
+        source="CoinGecko BTC",
+        current=current,
+        bullish_trigger="상단 상회 시 회복 흐름 관찰",
+        bearish_trigger="하단 이탈 시 방어적 수급 관찰",
+        confidence="높음",
+        implication="본문 가격 동향과 연계 점검",
+    )
+
+
+def _value_item(
+    *,
+    source_name: str,
+    metadata: dict[str, str],
+) -> NormalizedItem:
+    return NormalizedItem(
+        source_name=source_name,
+        category="price" if source_name == "coingecko-price" else "macro",
+        title=f"{source_name} deterministic value",
+        published_at=datetime(2026, 6, 30, tzinfo=UTC),
+        raw_metadata=metadata,
+    )
+
+
+def test_u135_resolves_source_shaped_crypto_current_from_reconciled_anchor() -> None:
+    payload = WatchpointValuePayload(
+        segment="crypto",
+        anchors=(
+            MarketAnchor(
+                ticker="BTC-USD",
+                close=Decimal("60284"),
+                prev_close=Decimal("58969.09"),
+                pct=Decimal("2.23"),
+                is_ath=False,
+            ),
+        ),
+    )
+
+    rows = resolve_watchpoint_currents([_value_row("CoinGecko BTC · UTC 24h")], payload)
+
+    assert len(rows) == 1
+    assert rows[0].source == "CoinGecko BTC"
+    assert rows[0].current == "$60,284.00 (+2.23%)"
+    assert "- 현재: $60,284.00 (+2.23%)" in render_matrix_table(rows)
+
+
+def test_u135_repairs_canonical_legacy_card_once_then_is_byte_idempotent() -> None:
+    payload = WatchpointValuePayload(
+        segment="crypto",
+        anchors=(
+            MarketAnchor(
+                ticker="BTC-USD",
+                close=Decimal("60284"),
+                pct=Decimal("2.23"),
+                is_ath=False,
+            ),
+        ),
+    )
+    legacy_card = render_matrix_table([_value_row("CoinGecko BTC · UTC 24h")])
+    markdown = f"## ① 요약\n본문\n\n## ⑥ 오늘의 관전 포인트\n\n{legacy_card}\n"
+
+    repaired = render_watchpoint_matrix_result(
+        markdown,
+        segment="crypto",
+        value_payload=payload,
+    )
+    repeated = render_watchpoint_matrix_result(
+        repaired.markdown,
+        segment="crypto",
+        value_payload=payload,
+    )
+
+    assert repaired.state == "rendered"
+    assert repaired.usable_card_count == 1
+    assert "- 현재: $60,284.00 (+2.23%)" in repaired.markdown
+    assert "- 현재: CoinGecko BTC" not in repaired.markdown
+    assert repeated.markdown == repaired.markdown
+
+
+def test_u135_preserves_numeric_current_and_drops_unresolved_or_fuzzy_rows() -> None:
+    payload = WatchpointValuePayload(
+        segment="crypto",
+        anchors=(
+            MarketAnchor(
+                ticker="BTC-USD",
+                close=Decimal("60284"),
+                pct=Decimal("2.23"),
+                is_ath=False,
+            ),
+        ),
+    )
+    numeric = _value_row("BTC 가격", current="$60,284.00 (+2.23%)")
+
+    resolved = resolve_watchpoint_currents(
+        [
+            numeric,
+            _value_row("BT 가격"),
+            _value_row("이더리움 가격"),
+            _value_row("가짜비트코인파생 가격"),
+        ],
+        payload,
+    )
+
+    assert resolved == [numeric]
+
+
+def test_u135_resolves_every_pinned_item_value_key_by_exact_signal_token() -> None:
+    payload = WatchpointValuePayload.from_inputs(
+        "crypto",
+        items=(
+            _value_item(
+                source_name="coingecko-price",
+                metadata={
+                    "coin_id": "bitcoin",
+                    "symbol": "btc",
+                    "price_usd": "60284",
+                    "pct_24h": "2.23",
+                    "high_24h": "60644",
+                    "low_24h": "58935",
+                },
+            ),
+            _value_item(
+                source_name="alternative-fng",
+                metadata={
+                    "indicator": "fear_greed",
+                    "value": "18",
+                    "classification": "Extreme Fear",
+                },
+            ),
+            _value_item(
+                source_name="okx-derivatives",
+                metadata={"indicator": "btc_funding", "btc_funding_rate": "0.0001000"},
+            ),
+            _value_item(
+                source_name="bybit-derivatives",
+                metadata={"indicator": "btc_oi", "btc_oi_usd": "18450000000"},
+            ),
+            _value_item(
+                source_name="cftc-cot-positioning",
+                metadata={
+                    "contract_label": "Bitcoin CME",
+                    "contract_group": "crypto",
+                    "net_contracts": "-2400",
+                    "net_pct_open_interest": "-4.20",
+                },
+            ),
+        ),
+    )
+
+    rows = resolve_watchpoint_currents(
+        [
+            _value_row("BTC 가격"),
+            _value_row("공포·탐욕 지수"),
+            _value_row("BTC 펀딩"),
+            _value_row("BTC OI"),
+            _value_row("Bitcoin CME 포지셔닝"),
+        ],
+        payload,
+    )
+
+    assert [row.current for row in rows] == [
+        "$60,284.00 (+2.23%)",
+        "18 (Extreme Fear)",
+        "펀딩 0.0001",
+        "OI $18,450,000,000.00",
+        "순포지션 -2,400계약 (-4.2% OI, 주간 지연)",
+    ]
+
+
+def test_u135_payload_snapshots_mutable_item_metadata() -> None:
+    item = _value_item(
+        source_name="alternative-fng",
+        metadata={"indicator": "fear_greed", "value": "18", "classification": "Fear"},
+    )
+    payload = WatchpointValuePayload.from_inputs("crypto", items=(item,))
+
+    item.raw_metadata["value"] = "99"
+    rows = resolve_watchpoint_currents([_value_row("공포·탐욕 지수")], payload)
+
+    assert [row.current for row in rows] == ["18 (Fear)"]
+
+
+def test_u135_rejects_cross_segment_value_sources_and_anchors() -> None:
+    fear_greed = _value_item(
+        source_name="alternative-fng",
+        metadata={"indicator": "fear_greed", "value": "18", "classification": "Fear"},
+    )
+    bitcoin_anchor = MarketAnchor(
+        ticker="BTC-USD",
+        close=Decimal("60284"),
+        pct=Decimal("2.23"),
+        is_ath=False,
+    )
+    cftc_us = _value_item(
+        source_name="cftc-cot-positioning",
+        metadata={
+            "contract_label": "E-mini S&P 500",
+            "contract_group": "equity_index",
+            "net_contracts": "-451586",
+            "net_pct_open_interest": "-20.50",
+        },
+    )
+
+    domestic = WatchpointValuePayload.from_inputs(
+        "domestic-equity",
+        anchors=(bitcoin_anchor,),
+        items=(fear_greed, cftc_us),
+    )
+    crypto = WatchpointValuePayload.from_inputs("crypto", items=(cftc_us,))
+    us = WatchpointValuePayload.from_inputs("us-equity", items=(fear_greed, cftc_us))
+
+    assert (
+        resolve_watchpoint_currents(
+            [_value_row("공포·탐욕 지수"), _value_row("BTC 가격")], domestic
+        )
+        == []
+    )
+    assert resolve_watchpoint_currents([_value_row("E-mini S&P 500 포지셔닝")], crypto) == []
+    assert [
+        row.current
+        for row in resolve_watchpoint_currents(
+            [_value_row("공포·탐욕 지수"), _value_row("E-mini S&P 500 포지셔닝")],
+            us,
+        )
+    ] == ["순포지션 -451,586계약 (-20.5% OI, 주간 지연)"]
+
+
+def test_u135_invalid_numeric_domains_fail_closed() -> None:
+    payload = WatchpointValuePayload.from_inputs(
+        "crypto",
+        items=(
+            _value_item(
+                source_name="coingecko-price",
+                metadata={
+                    "coin_id": "bitcoin",
+                    "symbol": "btc",
+                    "price_usd": "-1",
+                    "pct_24h": "NaN",
+                },
+            ),
+            _value_item(
+                source_name="okx-derivatives",
+                metadata={"indicator": "btc_funding", "btc_funding_rate": "1e100"},
+            ),
+            _value_item(
+                source_name="bybit-derivatives",
+                metadata={"indicator": "btc_oi", "btc_oi_usd": "-10"},
+            ),
+            _value_item(
+                source_name="alternative-fng",
+                metadata={"indicator": "fear_greed", "value": "Infinity"},
+            ),
+        ),
+    )
+
+    assert (
+        resolve_watchpoint_currents(
+            [
+                _value_row("BTC 가격"),
+                _value_row("BTC 펀딩"),
+                _value_row("BTC OI"),
+                _value_row("공포·탐욕 지수"),
+            ],
+            payload,
+        )
+        == []
+    )
+
+
+def test_u135_payload_hard_fails_non_numeric_unresolved_public_row() -> None:
+    result = render_watchpoint_matrix_result(
+        _section_six([_STRUCTURED_NO_FIGURE]),
+        segment="domestic-equity",
+        value_payload=WatchpointValuePayload(segment="domestic-equity"),
+    )
+
+    assert result.state == "limited"
+    assert result.usable_card_count == 0
+    assert DATA_LIMITED_NOTE in result.markdown
+    assert "- 현재: KRX" not in result.markdown
+
+
+def test_u135_rejects_mismatched_payload_segment() -> None:
+    with pytest.raises(ValueError, match="payload segment must match"):
+        render_watchpoint_matrix_result(
+            _section_six([_STRUCTURED_NUMERIC]),
+            segment="us-equity",
+            value_payload=WatchpointValuePayload(segment="crypto"),
+        )
+
+
+def test_u135_requires_explicit_render_segment_with_payload() -> None:
+    with pytest.raises(ValueError, match="render segment is required"):
+        render_watchpoint_matrix_result(
+            _section_six([_STRUCTURED_NUMERIC]),
+            value_payload=WatchpointValuePayload(segment="crypto"),
+        )
