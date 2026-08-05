@@ -6306,3 +6306,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Lock, u135 fixture JSON, and range diff integrity passed; Ruff/format passed 17 u135 Python files; `mypy src` passed 252 current-main source files; publisher and orchestrator passed 1,468 tests. No `site_docs` path changed, so the conditional strict MkDocs gate did not apply.
 **Evidence**: Unit report `docs/cross-checks/2026-08-05-u135-watchpoint-current-value-and-deterministic-fallback.md`; integration session `docs/sessions/2026-08-05-u135-main-integration.md`.
 **Status**: Current-main integration validation complete. Commit/push the merge and verify the exact main quality workflow.
+
+## Main CI recovery — u135 diagnostics boundary
+**Timestamp**: 2026-08-05T10:47:47Z
+**Observed failure**: Main quality run `30994558625` failed twice on merge SHA `49018867aca154df3601a1924da280c072591e8a`. Both attempts passed Ruff, format, and mypy, then produced the same 18 downstream orchestrator failures from one `us-equity` `PublicDocumentFinalizationError`.
+**Root cause**: The u135 synthesized-row renderer bounded section ⑥ only by the next H2. A protected `수집/품질 진단` details block immediately before the disclaimer therefore entered the replacement body and was deleted. The subsequent `structure.missing.diagnostics:quality` layout error was forwarded unchanged into the stricter bounded issue-code contract; its colon caused a second `ValueError` and escalated an intended segment trust block into bundle failure.
+**Repair**: All watchpoint parse/render/matching routes now terminate before collapsed or expanded quality diagnostics. A regression byte-pins the diagnostics and disclaimer tail. Layout region separators are normalized when crossing into bounded issue codes. Finalization errors expose only an allow-listed R13-safe `cause_code`, never the raw cause.
+**Validation**: The combined watchpoint/public-document/orchestrator regression scope passed 225 tests. The complete suite passed 4,299 tests in 264.89 seconds; Ruff and format passed all 567 Python files; strict mypy passed 252 source files; `git diff --check` passed.
+**Status**: Bounded u135 main-CI repair validated. Commit/push and verify the new exact-SHA quality run before queue audit.

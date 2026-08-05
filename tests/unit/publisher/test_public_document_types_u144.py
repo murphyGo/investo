@@ -718,7 +718,26 @@ def test_finalization_error_message_never_renders_cause() -> None:
 
     assert error.issue_codes == ("summary.invalid",)
     assert error.cause is secret_cause
+    assert error.cause_code == "exception.unclassified"
+    assert "cause_code=exception.unclassified" in str(error)
     assert "must-not-render" not in str(error)
+
+
+def test_finalization_error_classifies_watchpoint_invariant_without_raw_cause() -> None:
+    cause = ValueError(
+        "synthesized_card_count must be a non-negative int no greater than usable cards"
+    )
+    error = PublicDocumentFinalizationError(
+        target_date=_TARGET_DATE,
+        segment=US_EQUITY,
+        phase="bundle",
+        issue_codes=("invariant.phase_handler",),
+        cause=cause,
+    )
+
+    assert error.cause_code == "value_error.watchpoint_synthesized_count"
+    assert "cause_code=value_error.watchpoint_synthesized_count" in str(error)
+    assert str(cause) not in str(error)
 
 
 def test_notification_summary_error_is_bounded_and_carries_only_issue_code() -> None:

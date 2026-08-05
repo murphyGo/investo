@@ -210,6 +210,10 @@ _RENDERED_CONDITION_RE: Final[re.Pattern[str]] = re.compile(
 _RENDERED_OMISSION_RE: Final[re.Pattern[str]] = re.compile(
     r"^_관전 신호 \d+건 추가 — 본문 참조\._$"
 )
+_QUALITY_DIAGNOSTICS_OPEN_RE: Final[re.Pattern[str]] = re.compile(
+    r"^<details(?: open)?><summary>수집/품질 진단</summary>\r?$",
+    re.MULTILINE,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -261,6 +265,19 @@ def _existing_watchpoint_state(body: str) -> tuple[WatchpointRenderState, int] |
         return None
     rows, _ = parsed
     return ("rendered", len(rows)) if rows else None
+
+
+def _watchpoint_body_end(
+    text: str,
+    headers: Sequence[re.Match[str]],
+    index: int,
+) -> int:
+    """Stop §⑥ before the next H2 or the protected diagnostics block."""
+
+    body_start = headers[index].end()
+    next_header = headers[index + 1].start() if index + 1 < len(headers) else len(text)
+    diagnostics = _QUALITY_DIAGNOSTICS_OPEN_RE.search(text, body_start, next_header)
+    return diagnostics.start() if diagnostics is not None else next_header
 
 
 def _parse_existing_watchpoint_cards(
@@ -1190,7 +1207,7 @@ def render_watchpoint_matrix_result(
         if section_marker not in match.group("header"):
             continue
         body_start = match.end()
-        body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
+        body_end = _watchpoint_body_end(text, headers, idx)
         body = text[body_start:body_end]
         watchpoint_body, owned_fragments = _extract_preserved_fragments(
             body,
@@ -1301,7 +1318,7 @@ def render_watchpoint_rows_result(
         if section_marker not in match.group("header"):
             continue
         body_start = match.end()
-        body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
+        body_end = _watchpoint_body_end(text, headers, idx)
         body = text[body_start:body_end]
         _, owned_fragments = _extract_preserved_fragments(body, preserved_fragments)
         content = render_matrix_table(list(rendered_rows)) if rendered_rows else DATA_LIMITED_NOTE
@@ -1348,7 +1365,7 @@ def matching_watchpoint_rows(
     for idx, match in enumerate(headers):
         if section_marker not in match.group("header"):
             continue
-        body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
+        body_end = _watchpoint_body_end(text, headers, idx)
         watchpoint_body, _ = _extract_preserved_fragments(
             text[match.end() : body_end],
             preserved_fragments,

@@ -2836,7 +2836,7 @@ def _finalize_segment_skeleton(
         except _PublicDocumentLayoutError as exc:
             raise _SegmentTrustBlockedError(
                 phase=expected_phase,
-                issue_codes=(exc.issue_code,),
+                issue_codes=(exc.issue_code.replace(":", "."),),
             ) from exc
         _assert_phase_result(
             previous=current,
@@ -3225,6 +3225,64 @@ def _build_finalized_bundle(
     return bundle
 
 
+_FINALIZATION_VALUE_ERROR_CAUSE_CODES: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "watchpoint_synthesized must be a non-negative int": ("value_error.watchpoint_synthesized"),
+        "watchpoint result markdown must not be empty": "value_error.watchpoint_markdown",
+        "usable_card_count must be a non-negative int": "value_error.watchpoint_usable_count",
+        "synthesized_card_count must be a non-negative int no greater than usable cards": (
+            "value_error.watchpoint_synthesized_count"
+        ),
+        "rendered watchpoint result requires usable cards and no reason": (
+            "value_error.watchpoint_rendered_state"
+        ),
+        "limited watchpoint result requires zero cards and watchpoint_unavailable": (
+            "value_error.watchpoint_limited_state"
+        ),
+        "watchpoint result state must be rendered or limited": "value_error.watchpoint_state",
+        "watchpoint input markdown must not be empty": "value_error.watchpoint_input",
+        "watchpoint render segment is required with a value payload": (
+            "value_error.watchpoint_segment_required"
+        ),
+        "watchpoint value payload segment must match render segment": (
+            "value_error.watchpoint_segment_mismatch"
+        ),
+        "preserved watchpoint fragments must not be empty": (
+            "value_error.watchpoint_fragment_empty"
+        ),
+        "preserved watchpoint fragments must be unique": (
+            "value_error.watchpoint_fragment_duplicate"
+        ),
+        "preserved watchpoint fragment must occur at most once": (
+            "value_error.watchpoint_fragment_occurrence"
+        ),
+        "watchpoint result can only be accumulated during assembly": (
+            "value_error.watchpoint_phase"
+        ),
+        "reader assembly must produce exactly one matching watchpoint result": (
+            "value_error.watchpoint_observer_cardinality"
+        ),
+        "reader assembly must produce exactly one segment result": (
+            "value_error.reader_result_cardinality"
+        ),
+        "reader assembly requires an active segment context": ("value_error.reader_active_segment"),
+    }
+)
+
+
+def _bounded_finalization_cause_code(cause: Exception | None) -> str | None:
+    """Classify an internal cause without serializing its message or payload."""
+
+    if cause is None:
+        return None
+    if isinstance(cause, ValueError):
+        return _FINALIZATION_VALUE_ERROR_CAUSE_CODES.get(
+            str(cause),
+            "value_error.unclassified",
+        )
+    return "exception.unclassified"
+
+
 class PublicDocumentFinalizationError(Exception):
     """Bounded, R13-safe error for finalization contract failures."""
 
@@ -3244,11 +3302,13 @@ class PublicDocumentFinalizationError(Exception):
         self.phase = phase
         self.issue_codes = _canonical_issue_codes(issue_codes)
         self.cause = cause
+        self.cause_code = _bounded_finalization_cause_code(cause)
         segment_label = segment if segment is not None else "bundle"
         codes = ",".join(self.issue_codes) if self.issue_codes else "unspecified"
+        cause_suffix = f" cause_code={self.cause_code}" if self.cause_code is not None else ""
         super().__init__(
             f"public document finalization failed: date={target_date.isoformat()} "
-            f"segment={segment_label} phase={phase} codes={codes}"
+            f"segment={segment_label} phase={phase} codes={codes}{cause_suffix}"
         )
 
 

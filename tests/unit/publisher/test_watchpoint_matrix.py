@@ -592,6 +592,33 @@ def test_synthesized_row_renderer_replaces_only_section_six_and_reports_count() 
     assert "synth" not in result.markdown.casefold()
 
 
+@pytest.mark.parametrize("expanded", (False, True))
+def test_synthesized_row_renderer_preserves_protected_diagnostics(expanded: bool) -> None:
+    row = WatchpointRow(
+        signal="S&P 500 가격 구간",
+        source="검증된 시장 앵커",
+        current="7,000.00 (+1%)",
+        bullish_trigger="7,368.42 상회 시 단기 회복 흐름 관찰",
+        bearish_trigger="5,833.33 이탈 시 방어적 수급 관찰",
+        confidence="높음",
+        implication="본문 §⑤ 가격 동향과 연계 점검.",
+    )
+    open_tag = (
+        "<details open><summary>수집/품질 진단</summary>"
+        if expanded
+        else "<details><summary>수집/품질 진단</summary>"
+    )
+    tail = f"{open_tag}\n진단 정보\n</details>\n\n## ⑦ 면책조항\n\n{DISCLAIMER}\n"
+    text = f"{_section_six([_GENERIC])}\n{tail}"
+
+    result = render_watchpoint_rows_result(text, (row,), segment="us-equity")
+
+    assert result.state == "rendered"
+    assert result.markdown.endswith(tail)
+    assert result.markdown.count(open_tag) == 1
+    assert "#### 관찰 신호: S&P 500 가격 구간" in result.markdown
+
+
 @pytest.mark.parametrize(
     ("bullet", "coverage_limited", "expected_state"),
     (
