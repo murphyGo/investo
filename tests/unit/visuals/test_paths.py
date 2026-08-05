@@ -8,7 +8,18 @@ from pathlib import Path
 import pytest
 
 from investo._internal.archive_layout import ArchiveLayout
-from investo.visuals.paths import visual_asset_dir, visual_asset_path, visual_asset_relative_path
+from investo.visuals.paths import (
+    DARK_ONLY_FRAGMENT,
+    LIGHT_ONLY_FRAGMENT,
+    visual_asset_dir,
+    visual_asset_path,
+    visual_asset_relative_path,
+)
+
+
+def test_material_theme_fragments_are_single_homed() -> None:
+    assert LIGHT_ONLY_FRAGMENT == "#gh-light-mode-only"
+    assert DARK_ONLY_FRAGMENT == "#gh-dark-mode-only"
 
 
 def test_visual_asset_dir_is_markdown_adjacent_for_segment() -> None:
@@ -65,3 +76,4 @@ def test_visual_asset_relative_path_is_posix_markdown_safe() -> None:
     assert visual_asset_relative_path(asset_path, markdown_path) == (
         "2026-05-07.assets/data-confidence.svg"
     )
+    assert "#" not in visual_asset_relative_path(asset_path, markdown_path)

@@ -39,7 +39,12 @@ from investo.visuals.openai_image import (
     generate_openai_visual,
     load_openai_visual_config,
 )
-from investo.visuals.paths import visual_asset_path, visual_asset_relative_path
+from investo.visuals.paths import (
+    DARK_ONLY_FRAGMENT,
+    LIGHT_ONLY_FRAGMENT,
+    visual_asset_path,
+    visual_asset_relative_path,
+)
 from investo.visuals.provenance import (
     VisualProvenanceManifest,
     build_ai_generated_provenance,
@@ -214,6 +219,7 @@ def prepare_segment_visual_assets(
 
     asset_paths: list[Path] = []
     companion_paths: list[Path] = []
+    dark_variants: dict[Path, Path] = {}
     stored_asset_path = _prepare_stored_context_image(
         archive_layout=write_layout,
         target_date=target_date,
@@ -278,6 +284,7 @@ def prepare_segment_visual_assets(
         validate_visual_binary(dark_path)
         asset_paths.append(path)
         companion_paths.append(dark_path)
+        dark_variants[path] = dark_path
 
     staged_artifacts: list[StagedArtifact] = []
     artifact_ids_by_path: dict[Path, tuple[str, ...]] = {}
@@ -304,6 +311,7 @@ def prepare_segment_visual_assets(
     markdown_blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,
         asset_paths=tuple(asset_paths),
+        dark_variants=dark_variants,
         artifact_ids_by_path=artifact_ids_by_path,
     )
     rendered_markdown = insert_prebuilt_visual_blocks(
@@ -323,14 +331,24 @@ def build_visual_markdown_blocks(
     *,
     markdown_path: Path,
     asset_paths: tuple[Path, ...],
+    dark_variants: Mapping[Path, Path] | None = None,
     artifact_ids_by_path: Mapping[Path, tuple[str, ...]] | None = None,
 ) -> tuple[VisualMarkdownBlock, ...]:
-    """Render visual Markdown once, keeping placement metadata explicit."""
+    """Render visual Markdown once, keeping placement metadata explicit.
+
+    ``dark_variants`` is a presentation-only primary-to-companion mapping.
+    Paths remain fragment-free; :func:`_visual_block` appends the Material
+    fragments only after converting both paths to relative URL strings.
+    """
 
     return tuple(
         VisualMarkdownBlock(
             placement_key=path.stem,
-            markdown=_visual_block(path, markdown_path=markdown_path),
+            markdown=_visual_block(
+                path,
+                markdown_path=markdown_path,
+                dark_variant=(dark_variants or {}).get(path),
+            ),
             artifact_ids=(artifact_ids_by_path or {}).get(path, ()),
         )
         for path in asset_paths
@@ -342,6 +360,7 @@ def insert_visual_links(
     *,
     markdown_path: Path,
     asset_paths: tuple[Path, ...],
+    dark_variants: Mapping[Path, Path] | None = None,
 ) -> str:
     """Lay out one hero visual above the fold and reposition the rest (u24).
 
@@ -362,10 +381,15 @@ def insert_visual_links(
     ``## ① 요약``), they render in ``asset_paths`` iteration order —
     the upstream build order is the deliberate reader-facing priority
     (DEBT-040; pre-fix the stacked same-point inserts inverted it).
+
+    ``dark_variants`` defaults to the legacy single-link representation.
+    Production preparation always supplies a companion for every SVG card;
+    the empty default remains available for old callers and non-paired images.
     """
     blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,
         asset_paths=asset_paths,
+        dark_variants=dark_variants,
     )
     return insert_prebuilt_visual_blocks(markdown, blocks=blocks)
 
@@ -478,15 +502,29 @@ def _select_hero_key_index(placement_keys: tuple[str, ...]) -> int:
     return 0
 
 
-def _visual_block(path: Path, *, markdown_path: Path) -> str:
+def _visual_block(
+    path: Path,
+    *,
+    markdown_path: Path,
+    dark_variant: Path | None = None,
+) -> str:
     """Compose ``![label](rel)\\n*caption*`` for one asset."""
     label = _CARD_LABELS[path.stem]
     rel = visual_asset_relative_path(path, markdown_path)
-    image_line = f"![{label}]({rel})"
+    if dark_variant is None:
+        image_lines = f"![{label}]({rel})"
+    else:
+        dark_rel = visual_asset_relative_path(dark_variant, markdown_path)
+        image_lines = "\n".join(
+            (
+                f"![{label}]({rel}{LIGHT_ONLY_FRAGMENT})",
+                f"![{label}]({dark_rel}{DARK_ONLY_FRAGMENT})",
+            )
+        )
     caption = _provenance_caption_for(path)
     if caption is None:
-        return image_line
-    return f"{image_line}\n{caption}"
+        return image_lines
+    return f"{image_lines}\n{caption}"
 
 
 def _provenance_caption_for(path: Path) -> str | None:

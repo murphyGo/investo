@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: In Progress (3/7)
+**Status**: In Progress (4/7)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -166,12 +166,12 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - [x] 테스트: 4종 카드 각각 두 파일 존재 / 다크 파일에 `.json` 사이드카 부재 / 주 매니페스트에 두 키 존재 / `asset_paths` 길이·순서가 pre-u143과 동일 / 다크 SVG가 `_validate_svg_asset` 치수·텍스트 요건 통과.
 - **Acceptance**: 디스크에 쌍이 떨어지고, `asset_paths` 기반 히어로 선택·앵커 배치 테스트가 **무수정으로** 그린 유지.
 
-### Step 3 — markdown fragment 쌍 방출 `[ ]`
-- [ ] `visuals/paths.py`에 `LIGHT_ONLY_FRAGMENT` / `DARK_ONLY_FRAGMENT` 상수 단일 등록 (Contract #4 철자).
-- [ ] `insert_visual_links(..., dark_variants: Mapping[Path, Path] = {})` + `_visual_block`이 쌍 + 단일 캡션을 방출 (Contract #2).
-- [ ] PNG/JPEG 히어로는 fragment 없는 단일 링크 유지.
-- [ ] 테스트: 쌍 형태 정확 일치 / 캡션 1회 / 멱등성(2회 호출 = 입력 동일) / PNG 히어로 무-fragment / **`#`가 어떤 `Path`·`asset_paths`·`companion_paths`·매니페스트 `asset_path`에도 없음**(AC-143.5) / 빈 기본 매핑이 pre-u143 단일 링크와 바이트 동일.
-- [ ] 기존 단일 링크 단언(`tests/unit/visuals/test_assets.py:95,147`)을 **쌍 형태로 갱신**(삭제·완화 금지).
+### Step 3 — markdown fragment 쌍 방출 `[x]`
+- [x] `visuals/paths.py`에 `LIGHT_ONLY_FRAGMENT` / `DARK_ONLY_FRAGMENT` 상수 단일 등록 (Contract #4 철자).
+- [x] `insert_visual_links(..., dark_variants: Mapping[Path, Path] = {})` + `_visual_block`이 쌍 + 단일 캡션을 방출 (Contract #2; 구현은 동일한 empty semantics의 `None` sentinel로 mutable default를 피함).
+- [x] PNG/JPEG 히어로는 fragment 없는 단일 링크 유지.
+- [x] 테스트: 쌍 형태 정확 일치 / 캡션 1회 / 멱등성(2회 호출 = 입력 동일) / PNG 히어로 무-fragment / **`#`가 어떤 `Path`·`asset_paths`·`companion_paths`·매니페스트 `asset_path`에도 없음**(AC-143.5) / 빈 기본 매핑이 pre-u143 단일 링크와 바이트 동일.
+- [x] 기존 단일 링크 단언(`tests/unit/visuals/test_assets.py:95,147`)을 **프로덕션 쌍 형태로 갱신**하되 legacy empty-mapping 단언은 보존(삭제·완화 금지).
 - **Acceptance**: 렌더된 markdown이 카드마다 정확히 2개의 `<img>` 라인 + 1개 캡션을 갖고, fragment는 문자열 계층에만 존재.
 
 ### Step 4 — 오케스트레이터 스테이징 + 카운트 단언 정정 `[ ]`
@@ -258,4 +258,4 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Next Step
 
-Step 3의 Material fragment 쌍 markdown과 단일 캡션 계약을 구현한다.
+Step 4의 companion staging, artifact descriptor, 실제 파일-count 계약을 구현한다.

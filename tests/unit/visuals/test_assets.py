@@ -98,6 +98,7 @@ def test_insert_visual_links_places_images_before_reader_status_block() -> None:
     )
 
     assert "![데이터 신뢰도](2026-05-07.assets/data-confidence.svg)" in result
+    assert "#gh-" not in result
     assert result.index("![데이터 신뢰도]") < result.index("> **데이터 상태**")
     assert (
         insert_visual_links(result, markdown_path=markdown_path, asset_paths=asset_paths) == result
@@ -174,6 +175,51 @@ def test_insert_visual_links_allows_missing_optional_caption_sidecar(tmp_path: P
 
     assert "![데이터 신뢰도](2026-05-07.assets/data-confidence.svg)" in result
     assert "*이미지:" not in result
+
+
+def test_insert_visual_links_emits_theme_pair_with_one_caption(tmp_path: Path) -> None:
+    markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
+    assets_dir = markdown_path.parent / "2026-05-07.assets"
+    primary = assets_dir / "data-confidence.svg"
+    dark = assets_dir / "data-confidence-dark.svg"
+    assets_dir.mkdir(parents=True)
+    primary.write_text("<svg></svg>", encoding="utf-8")
+    dark.write_text("<svg></svg>", encoding="utf-8")
+    write_manifest(
+        build_generated_svg_provenance(
+            asset_relative_path=primary.name,
+            card_kind="data-confidence",
+            generated_at=datetime(2026, 5, 7, 12, 0, tzinfo=UTC),
+            width=1200,
+            height=630,
+        ),
+        primary,
+    )
+
+    result = insert_visual_links(
+        _briefing().rendered_markdown,
+        markdown_path=markdown_path,
+        asset_paths=(primary,),
+        dark_variants={primary: dark},
+    )
+
+    expected_pair = (
+        "![데이터 신뢰도](2026-05-07.assets/data-confidence.svg#gh-light-mode-only)\n"
+        "![데이터 신뢰도](2026-05-07.assets/data-confidence-dark.svg#gh-dark-mode-only)"
+    )
+    assert expected_pair in result
+    assert result.count("*이미지: 데이터 신뢰도") == 1
+    assert (
+        insert_visual_links(
+            result,
+            markdown_path=markdown_path,
+            asset_paths=(primary,),
+            dark_variants={primary: dark},
+        )
+        == result
+    )
+    assert all("#" not in str(path) for path in (primary, dark))
+    assert "#" not in read_manifest(primary).asset_path
 
 
 def test_insert_visual_links_rejects_corrupt_caption_sidecar(tmp_path: Path) -> None:
@@ -281,6 +327,18 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
         assert "#0f1417" in dark_svg
     assert "2026-05-07.assets/data-confidence.svg" in prepared.briefing.rendered_markdown
     assert "2026-05-07.assets/price-snapshot.svg" in prepared.briefing.rendered_markdown
+    for primary_path, dark_path in zip(
+        prepared.asset_paths,
+        prepared.companion_paths,
+        strict=True,
+    ):
+        label = assets_module._CARD_LABELS[primary_path.stem]
+        light_link = f"![{label}](2026-05-07.assets/{primary_path.name}#gh-light-mode-only)"
+        dark_link = f"![{label}](2026-05-07.assets/{dark_path.name}#gh-dark-mode-only)"
+        assert f"{light_link}\n{dark_link}" in prepared.briefing.rendered_markdown
+        assert "#" not in str(primary_path)
+        assert "#" not in str(dark_path)
+        assert "#" not in read_manifest(primary_path).asset_path
     assert ArchiveLayout(tmp_path / "archive").briefing_path(_TARGET, "us-equity").parent == (
         tmp_path / "archive/us-equity/2026/05"
     )

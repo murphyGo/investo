@@ -6349,3 +6349,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review approved Contracts #1/#3/#5, pair generation, primary-order preservation, sidecar policy, sanitizer round-trip, binary validation, and the explicit Step 4 staging boundary with no findings.
 **Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-2-dual-assets.md`.
 **Status**: Step 2 complete 3/7. Next: markdown fragment pairs with one caption.
+
+## Construction — u143 Code Generation Step 3 complete
+**Timestamp**: 2026-08-05T14:55:06Z
+**Synchronization**: Step 2 was committed and pushed as `1198be9`; local and remote `codex/u143` heads matched before Step 3 construction.
+**Action**: Added single-home `#gh-light-mode-only` / `#gh-dark-mode-only` constants and presentation-only primary-to-dark mapping support. Production SVG cards emit an exact two-link pair and one primary caption.
+**Fragment isolation**: Fragments are appended only after `Path` values become relative URL strings. Primary/companion paths, manifest `asset_path`, validation inputs, and the existing staged paths contain no `#`.
+**Compatibility**: Empty/default mapping keeps pre-u143 single-link bytes. PNG/JPEG heroes remain one fragment-free link. Pair insertion is byte-idempotent.
+**Validation**: Paths/assets/render/provenance scope 66 passed; complete visual suite 300 passed. Ruff/format, scoped source mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Contracts #2/#3/#4 and the applicable AC-143.1/143.5/143.7 slice with no findings, including empty-sentinel equivalence and non-weakening of legacy tests.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-3-fragment-markdown.md`.
+**Status**: Step 3 complete 4/7. Next: companion staging and file-count accounting.
