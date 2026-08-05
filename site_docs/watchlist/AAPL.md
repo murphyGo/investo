@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-05 begin -->
+
+## 2026-08-05
+
+- [nasdaq-earnings-calendar] **ticker**: APLE earnings — after-hours — EPS forecast $0.50
+- [yfinance-price] **ticker**: AAPL 311.00 (+0.52%)
+
+<!-- u33 entry 2026-08-05 end -->
 <!-- u33 entry 2026-08-04 begin -->
 
 ## 2026-08-04

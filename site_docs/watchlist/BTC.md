@@ -2,6 +2,25 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-05 begin -->
+
+## 2026-08-05
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6873 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,287,565,044,357; BTC dominance 56.62%
+- [coingecko-price] **ticker**: BTC $64,544.00 (+0.70%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $473,193,010 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000747680963337 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Analysts see bitcoin bottom forming through boredom as price clings to $64K amid spot ETF inflows
+- [theblock-crypto] **ticker**: Block’s bitcoin gross profit falls 31% after Cash App fee cuts as shares reverse initial gains
+- [theblock-crypto] **ticker**: Cipher slides 16% on wider Q2 losses as Bernstein sees upside from Texas power audit
+- [theblock-crypto] **ticker**: CryptoQuant says bitcoin, ether and XRP whales are accumulating, signaling a ‘late-stage bear market’
+- [theblock-crypto] **ticker**: Former LAPD officer gets life sentence for kidnapping teen in $350,000 bitcoin robbery: report
+- [theblock-crypto] **ticker**: TeraWulf’s HPC leasing revenue jumps 52%, widening lead over bitcoin mining
+- [theblock-crypto] **ticker**: Three Missouri men charged over alleged plot to steal bitcoin through home invasion
+- [theblock-crypto] **ticker**: ‘Panic visible onchain’: Bitcoin activity hits 2026 high amid Coldcard attack as K33 flags potential bottoming pattern
+
+<!-- u33 entry 2026-08-05 end -->
 <!-- u33 entry 2026-08-04 begin -->
 
 ## 2026-08-04

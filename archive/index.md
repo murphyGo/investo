@@ -12,7 +12,7 @@
 
 <figure class="u29-heatmap" markdown="1">
 <svg xmlns="http://www.w3.org/2000/svg" width="282" height="165" viewBox="0 0 282 165" role="img" aria-label="투자 시황 발행 캘린더 (2026-05-04 ~ 2026-08-09)">
-<style>.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}@media (prefers-color-scheme: dark){.u29-cell-normal{fill:#3fb950;}.u29-cell-partial{fill:#d29922;}.u29-cell-insufficient{fill:#f85149;}.u29-cell-absent{fill:#30363d;}.u29-text{fill:#e6edf3;}.u29-legend{fill:#e6edf3;}}</style>
+<style>.u29-cell-normal{fill:#2ea44f;}.u29-cell-partial{fill:#f1c40f;}.u29-cell-insufficient{fill:#cf222e;}.u29-cell-absent{fill:#d0d7de;}.u29-text{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}.u29-legend{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}[data-md-color-scheme="slate"] .u29-cell-normal{fill:#3fb950;}[data-md-color-scheme="slate"] .u29-cell-partial{fill:#d29922;}[data-md-color-scheme="slate"] .u29-cell-insufficient{fill:#f85149;}[data-md-color-scheme="slate"] .u29-cell-absent{fill:#30363d;}[data-md-color-scheme="slate"] .u29-text{fill:#e6edf3;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}[data-md-color-scheme="slate"] .u29-legend{fill:#e6edf3;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}</style>
 <text class="u29-text" x="8" y="34" font-size="11">월</text>
 <text class="u29-text" x="8" y="51" font-size="11">화</text>
 <text class="u29-text" x="8" y="68" font-size="11">수</text>
@@ -111,6 +111,7 @@
 <rect class="u29-cell-absent" x="240" y="124" width="14" height="14" rx="2" ry="2"><title>2026-08-02 · 미발행</title></rect>
 <rect class="u29-cell-partial" x="257" y="22" width="14" height="14" rx="2" ry="2"><title>2026-08-03 · 부분</title></rect>
 <rect class="u29-cell-partial" x="257" y="39" width="14" height="14" rx="2" ry="2"><title>2026-08-04 · 부분</title></rect>
+<rect class="u29-cell-normal" x="257" y="56" width="14" height="14" rx="2" ry="2"><title>2026-08-05 · 정상</title></rect>
 <rect class="u29-cell-normal" x="36" y="148" width="11" height="11" rx="2" ry="2"/>
 <text class="u29-legend" x="52" y="158" font-size="11">정상</text>
 <rect class="u29-cell-partial" x="106" y="148" width="11" height="11" rx="2" ry="2"/>
@@ -126,11 +127,11 @@
 
 ## 최신 시황
 
-현재 보관된 최신 묶음은 **2026-08-04**입니다.
+현재 보관된 최신 묶음은 **2026-08-05**입니다.
 
-- 국내 증시: 2026-08-04 미발행 · [최근 2026-07-31](domestic-equity/2026/07/2026-07-31.md)
-- [미국 증시](us-equity/2026/08/2026-08-04.md)
-- [크립토](crypto/2026/08/2026-08-04.md)
+- [국내 증시](domestic-equity/2026/08/2026-08-05.md)
+- [미국 증시](us-equity/2026/08/2026-08-05.md)
+- [크립토](crypto/2026/08/2026-08-05.md)
 ## 과거 단일 시황
 
 과거 단일 시황은 세그먼트 분리 이전 형식입니다. 최신 탐색은 위의 국내 증시·미국 증시·크립토 링크를 우선 사용하세요.
