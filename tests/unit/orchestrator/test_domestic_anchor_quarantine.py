@@ -18,6 +18,7 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     domestic_anchor_verdicts,
     load_previous_domestic_anchor_closes,
     normalize_domestic_anchor_symbol,
+    project_domestic_public_items,
     trusted_domestic_price_items,
 )
 from investo.orchestrator.pipeline import _build_quality_snapshot
@@ -381,6 +382,39 @@ def test_trusted_domestic_price_items_filters_only_registry_failures() -> None:
     assert [item.raw_metadata["ticker"] for item in out] == ["^KOSDAQ", "AAPL"]
 
 
+def test_public_projection_pairs_duplicate_rows_by_raw_ordinal() -> None:
+    trusted = _item("^KOSDAQ", "870.25")
+    rejected = _item("^KOSPI", "999.99")
+    projection = project_domestic_public_items(
+        [trusted, trusted.model_copy(deep=True), rejected],
+        target_date=_TARGET,
+    )
+
+    assert projection.public_items == (trusted, trusted)
+    assert [(ordinal, verdict.trust) for ordinal, verdict in projection.item_verdicts] == [
+        (0, "trusted"),
+        (1, "trusted"),
+        (2, "implausible"),
+    ]
+
+
+def test_public_projection_is_idempotent_and_preserves_out_of_registry_order() -> None:
+    news = NormalizedItem(
+        source_name="yonhap-news",
+        category="news",
+        title="국내 뉴스",
+        published_at=_TS,
+    )
+    us_price = _item("AAPL", "305.10", source="yfinance-price")
+    raw = [news, _item("^KOSPI", "999.99"), us_price]
+
+    first = project_domestic_public_items(raw, target_date=_TARGET)
+    second = project_domestic_public_items(raw, target_date=_TARGET)
+
+    assert first == second
+    assert first.public_items == (news, us_price)
+
+
 def test_quality_snapshot_records_domestic_anchor_withholding() -> None:
     briefing = Briefing(
         target_date=_TARGET,
@@ -427,6 +461,33 @@ def test_quality_snapshot_carries_typed_watchpoint_synthesis_count() -> None:
     )
 
     assert snapshot.watchpoint_synthesized == 2
+
+
+def test_quality_snapshot_carries_numeric_degradation_counts() -> None:
+    briefing = Briefing(
+        target_date=_TARGET,
+        market_summary="summary",
+        key_issues="issues",
+        sector_flow="sector",
+        indicators_events="events",
+        notable_tickers="tickers",
+        today_watch="watch",
+        disclaimer=DISCLAIMER,
+        rendered_markdown="# 국내\n\n## ① 요약\n데이터 부족 안내\n\n" + DISCLAIMER,
+    )
+
+    snapshot = _build_quality_snapshot(
+        briefings={"domestic-equity": briefing},
+        published_segments=("domestic-equity",),
+        items=[],
+        source_outcomes=(),
+        degraded_segments=1,
+        numeric_containment_actions=2,
+    )
+
+    assert snapshot.current_run_data_limited_briefings == 1
+    assert snapshot.current_run_degraded_segments == 1
+    assert snapshot.current_run_numeric_containment_actions == 2
 
 
 def test_quality_snapshot_records_discontinuous_anchor_withholding() -> None:

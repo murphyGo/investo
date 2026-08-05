@@ -61,8 +61,31 @@ ContentCompleteness = Literal["complete", "partial", "none"]
 
 class SegmentFinalizationOutcome:
     segment: Literal["domestic-equity", "us-equity", "crypto"]
-    state: Literal["finalized", "generation_absent", "trust_blocked"]
+    state: Literal[
+        "finalized",
+        "finalized_degraded",
+        "generation_absent",
+        "trust_blocked",
+    ]
     issue_codes: tuple[str, ...] = ()
+    numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...] = ()
+
+@dataclass(frozen=True, slots=True)
+class NumericContainmentOutcome:
+    target_date: date
+    segment: Literal["domestic-equity", "us-equity", "crypto"]
+    symbol: str
+    region_id: str
+    line_kind: Literal[
+        "prose_sentence", "list_or_callout", "table_row", "h3_subtree",
+        "structural_region",
+    ]
+    action: Literal[
+        "corrected", "rewritten", "excluded", "replaced", "omitted",
+        "minimal_fallback",
+    ]
+    issue_codes: tuple[str, ...]
+    claim_digest: str
 
 class PipelineResult(BaseModel):
     target_date: date
@@ -162,7 +185,9 @@ def finalize_public_bundle(
     """Default segmented generated→sealed transition.
        Runs all assembly producers, public projection/repair, read-only
        terminal trust gates, active-survivor fixed point, notification DTO
-       derivation, and SHA-256 sealing without I/O."""
+       derivation, and SHA-256 sealing without I/O. Domestic numeric-only
+       findings use owned-region containment or one neutral minimal fallback;
+       sealed witnesses produce finalized_degraded."""
 
 def write_finalized_document(document: FinalizedPublicDocument) -> Path:
     """Verify seal/date/segment/disclaimer, then atomically write exact E5 bytes."""
@@ -220,6 +245,17 @@ async def run_pipeline(target_date: date | None = None) -> PipelineResult:
        Stages with Q9=B graceful degradation policy applied.
        Always returns PipelineResult; raises only on programmer errors."""
 
+def project_domestic_public_items(
+    raw_items: Sequence[NormalizedItem],
+    *,
+    target_date: date,
+    source_outcomes: Sequence[SourceOutcome] = (),
+    previous_closes: Mapping[str, Decimal] | None = None,
+) -> DomesticPublicProjection:
+    """Classify each registered domestic price row once by raw ordinal.
+       Returns ordered public_items plus ordinal-paired u109 verdicts.
+       Raw rows remain diagnostics-only after this boundary."""
+
 def main() -> int:
     """Module entrypoint:
        - Parse env (CLAUDE_CODE_OAUTH_TOKEN, TELEGRAM_BOT_TOKEN,
@@ -255,7 +291,8 @@ def resolve_target_date(now_utc: datetime, *, weekday_only_us_close: bool = True
 | `briefing.append_disclaimer` | US-002 면책조항 AC, NFR-004 |
 | `briefing.call_claude_code` | US-009 (CLI only, no anthropic SDK) |
 | `publisher.write_briefing` | US-003, US-006 |
-| `publisher.finalize_public_bundle` | u144 AC-144.1~AC-144.12 |
+| `orchestrator.project_domestic_public_items` | u148 AC-148.1~AC-148.9 |
+| `publisher.finalize_public_bundle` | u144 AC-144.1~AC-144.12, u149 AC-149.1~AC-149.22 |
 | `publisher.write_finalized_document` | u144 AC-144.2, AC-144.10 |
 | `publisher.verify_disclaimer` | NFR-004 강제 (Q6 보강) |
 | `publisher.commit_and_push` | US-006 (영구 보관) |

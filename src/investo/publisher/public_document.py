@@ -23,6 +23,7 @@ from investo._internal.briefing_extract import extract_conclusion, extract_watch
 from investo._internal.daily_thesis_decision import (
     redecide_daily_thesis_for_active_segments,
 )
+from investo._internal.data_limited_segment import build_data_limited_briefing
 from investo._internal.disclaimer import ensure_canonical_disclaimer
 from investo._internal.numeric_verify import verify_core_facts
 from investo._internal.public_quality_language import (
@@ -55,6 +56,7 @@ from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
 from investo.models.public_artifact import PublicArtifactKind, StagedArtifact
 from investo.models.public_document_outcome import (
+    NumericContainmentOutcome,
     SegmentFinalizationOutcome,
 )
 from investo.models.public_document_outcome import (
@@ -94,6 +96,10 @@ from investo.publisher.daily_thesis import (
 from investo.publisher.entity_fact_guard import EntityFactViolation, scan_entity_fact_claims
 from investo.publisher.errors import DailyThesisConsistencyError, SurfaceQualityError
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
+from investo.publisher.numeric_containment import (
+    apply_numeric_containment_plan,
+    plan_numeric_containment,
+)
 from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 from investo.publisher.verifier import (
@@ -2001,6 +2007,12 @@ _REGION_SAFE_FALLBACK_TEXT: Final[Mapping[PublicBlockKind, str]] = MappingProxyT
         "channel_anchors": PUBLIC_CHANNEL_ANCHOR_LIMITED_TEXT,
         "daily_thesis": PUBLIC_DAILY_THESIS_LIMITED_TEXT,
         "watchpoints": PUBLIC_WATCHPOINT_LIMITED_TEXT,
+        "section_body": "검증된 수치 근거가 부족해 이 섹션의 정밀 판단을 보류합니다.",
+        "first_viewport": (
+            "> **오늘의 결론**: 검증된 입력이 부족해 시장 방향 판단을 보류합니다.\n"
+            "> **핵심 동인**: 대표 가격과 주요 뉴스의 수집 공백을 우선 확인해야 합니다.\n"
+            "> **주의할 점**: 다음 정상 수집 전까지 정밀 수치와 방향을 단정하지 않습니다."
+        ),
     }
 )
 
@@ -2110,6 +2122,7 @@ class PublicDocumentDraft:
     limitation_reasons: tuple[PublicLimitationReason, ...] = ()
     watchpoint_synthesized: int = 0
     block_outcomes: tuple[PublicBlockOutcome, ...] = ()
+    numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...] = ()
     notification_summary: PublicNotificationSummary | None = None
     _validation_witness: object | None = field(default=None, repr=False, compare=False)
 
@@ -2130,6 +2143,7 @@ def _construct_draft(
     limitation_reasons: Sequence[PublicLimitationReason] = (),
     watchpoint_synthesized: int = 0,
     block_outcomes: Sequence[PublicBlockOutcome] = (),
+    numeric_containment_outcomes: Sequence[NumericContainmentOutcome] = (),
     notification_summary: PublicNotificationSummary | None = None,
     validation_witness: object | None = None,
 ) -> PublicDocumentDraft:
@@ -2149,6 +2163,12 @@ def _construct_draft(
     outcomes = tuple(block_outcomes)
     if len({outcome.region_id for outcome in outcomes}) != len(outcomes):
         raise ValueError("block_outcomes must contain at most one outcome per region")
+    numeric_outcomes = tuple(numeric_containment_outcomes)
+    if any(
+        outcome.segment != segment or outcome.target_date != target_date
+        for outcome in numeric_outcomes
+    ):
+        raise ValueError("numeric containment outcome identity must match draft")
     if phase == "validated":
         if validation_witness is not _VALIDATED_DRAFT_WITNESS:
             raise ValueError("validated draft requires the terminal-validation witness")
@@ -2171,6 +2191,7 @@ def _construct_draft(
     object.__setattr__(draft, "limitation_reasons", reasons)
     object.__setattr__(draft, "watchpoint_synthesized", watchpoint_synthesized)
     object.__setattr__(draft, "block_outcomes", outcomes)
+    object.__setattr__(draft, "numeric_containment_outcomes", numeric_outcomes)
     object.__setattr__(draft, "notification_summary", notification_summary)
     object.__setattr__(draft, "_validation_witness", validation_witness)
     return draft
@@ -2223,6 +2244,7 @@ def _accumulate_watchpoint_result(
         limitation_reasons=limitation_reasons,
         watchpoint_synthesized=result.synthesized_card_count,
         block_outcomes=draft.block_outcomes,
+        numeric_containment_outcomes=draft.numeric_containment_outcomes,
     )
 
 
@@ -2233,6 +2255,7 @@ def _transition_draft(
     layout: PublicDocumentLayout | None = None,
     limitation_reasons: Sequence[PublicLimitationReason] | None = None,
     block_outcomes: Sequence[PublicBlockOutcome] | None = None,
+    numeric_containment_outcomes: Sequence[NumericContainmentOutcome] | None = None,
     notification_summary: PublicNotificationSummary | None = None,
 ) -> PublicDocumentDraft:
     current_index = _PHASES.index(draft.phase)
@@ -2250,6 +2273,11 @@ def _transition_draft(
         ),
         watchpoint_synthesized=draft.watchpoint_synthesized,
         block_outcomes=draft.block_outcomes if block_outcomes is None else block_outcomes,
+        numeric_containment_outcomes=(
+            draft.numeric_containment_outcomes
+            if numeric_containment_outcomes is None
+            else numeric_containment_outcomes
+        ),
         notification_summary=notification_summary,
         validation_witness=witness,
     )
@@ -2369,6 +2397,7 @@ def _assemble_phase_one_reader_draft(
                     for supplement in context.supplements_by_segment.get(draft.segment, ())
                 )
             },
+            _defer_domestic_terminal_gates=True,
         )
     except NumericAnchorReconciliationError as exc:
         raise _SegmentTrustBlockedError(
@@ -2506,11 +2535,51 @@ def _repair_projected_draft(
             issue_codes=("document.fallback_exhausted",),
         )
 
+    anchor_findings = _scan_terminal_anchor_assertions_for_layout(draft, context, layout)
+    if anchor_findings and draft.segment == DOMESTIC_EQUITY:
+        original_gate_snapshot = _collect_terminal_hard_gates(draft, context, layout=layout)
+        if original_gate_snapshot.issue_codes != ("numeric.anchor_assertion",):
+            raise _SegmentTrustBlockedError(
+                phase="repaired",
+                issue_codes=original_gate_snapshot.issue_codes,
+            )
+        plan = plan_numeric_containment(
+            layout,
+            anchor_findings,
+            target_date=draft.target_date,
+            fallback_text_by_block=_REGION_SAFE_FALLBACK_TEXT,
+        )
+        if plan.requires_minimal:
+            raise _MinimalFallbackRequestError(_minimal_fallback_outcomes(layout, anchor_findings))
+        original_numeric_layout = layout
+        containment = apply_numeric_containment_plan(layout, plan)
+        layout = project_public_markdown(
+            containment.layout,
+            limitation_reasons=draft.limitation_reasons,
+        )
+        layout = PublicDocumentLayout.reindex(
+            repair_surface_artifacts(layout.markdown),
+            expectation=draft.layout.expectation,
+        )
+        if _scan_terminal_anchor_assertions_for_layout(draft, context, layout):
+            raise _MinimalFallbackRequestError(
+                _minimal_fallback_outcomes(original_numeric_layout, anchor_findings)
+            )
+        outcomes = _merge_numeric_omission_block_outcomes(
+            original_numeric_layout,
+            outcomes,
+            containment.outcomes,
+        )
+        numeric_outcomes = (*draft.numeric_containment_outcomes, *containment.outcomes)
+    else:
+        numeric_outcomes = draft.numeric_containment_outcomes
+
     return _transition_draft(
         draft,
         next_phase="repaired",
         layout=layout,
         block_outcomes=outcomes,
+        numeric_containment_outcomes=numeric_outcomes,
     )
 
 
@@ -2541,6 +2610,20 @@ def _scan_terminal_anchor_assertions(
         raise ValueError("numeric anchor context identity must match draft")
     return scan_anchor_assertions(
         draft.layout.markdown,
+        segment=draft.segment,
+        available_symbols=tuple(
+            anchor.ticker for anchor in context.anchors_by_segment.get(draft.segment, ())
+        ),
+    )
+
+
+def _scan_terminal_anchor_assertions_for_layout(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+    layout: PublicDocumentLayout,
+) -> tuple[AnchorAssertionFinding, ...]:
+    return scan_anchor_assertions(
+        layout.markdown,
         segment=draft.segment,
         available_symbols=tuple(
             anchor.ticker for anchor in context.anchors_by_segment.get(draft.segment, ())
@@ -2596,6 +2679,73 @@ def _derive_public_notification_summary(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class _TerminalHardGateSnapshot:
+    issue_codes: tuple[str, ...]
+    notification_summary: PublicNotificationSummary | None
+
+
+def _draft_with_layout(
+    draft: PublicDocumentDraft,
+    layout: PublicDocumentLayout,
+) -> PublicDocumentDraft:
+    if layout is draft.layout:
+        return draft
+    return _construct_draft(
+        segment=draft.segment,
+        target_date=draft.target_date,
+        source_briefing=draft.source_briefing,
+        layout=layout,
+        phase=draft.phase,
+        limitation_reasons=draft.limitation_reasons,
+        watchpoint_synthesized=draft.watchpoint_synthesized,
+        block_outcomes=draft.block_outcomes,
+        numeric_containment_outcomes=draft.numeric_containment_outcomes,
+    )
+
+
+def _collect_terminal_hard_gates(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+    *,
+    layout: PublicDocumentLayout | None = None,
+) -> _TerminalHardGateSnapshot:
+    """Run every existing read-only hard gate without short-circuiting."""
+
+    candidate = draft if layout is None else _draft_with_layout(draft, layout)
+    codes: set[str] = set()
+    if _scan_terminal_anchor_assertions(candidate, context):
+        codes.add("numeric.anchor_assertion")
+    if _scan_terminal_entity_fact_claims(candidate, context):
+        codes.add("entity.fact_contradiction")
+    try:
+        _scan_terminal_compliance(candidate, context)
+    except ComplianceLanguageError:
+        codes.add("compliance.language")
+    codes.update(
+        finding.issue.code
+        for finding in _find_owned_surface_quality_issues(candidate.layout)
+        if finding.issue.severity == "block"
+    )
+    try:
+        validate_first_viewport_summary(candidate.layout.markdown)
+    except SummaryQualityError:
+        codes.add("summary.first_viewport")
+    if not verify_disclaimer(candidate.layout.markdown, candidate.segment):
+        codes.add("disclaimer.canonical")
+    if not verify_short_disclaimer_first_viewport(candidate.layout.markdown, candidate.segment):
+        codes.add("disclaimer.first_viewport")
+    notification_summary: PublicNotificationSummary | None = None
+    try:
+        notification_summary = _derive_public_notification_summary(candidate, context)
+    except PublicNotificationSummaryError as exc:
+        codes.add(exc.issue_code)
+    return _TerminalHardGateSnapshot(
+        issue_codes=_canonical_issue_codes(tuple(codes)),
+        notification_summary=notification_summary,
+    )
+
+
 def _validate_repaired_draft(
     draft: PublicDocumentDraft,
     context: PublicDocumentContext,
@@ -2604,67 +2754,21 @@ def _validate_repaired_draft(
 
     if draft.phase != "repaired":
         raise ValueError("terminal validation requires a repaired draft")
-    anchor_findings = _scan_terminal_anchor_assertions(draft, context)
-    if anchor_findings:
+    snapshot = _collect_terminal_hard_gates(draft, context)
+    if snapshot.issue_codes:
         raise _SegmentTrustBlockedError(
             phase="validated",
-            issue_codes=("numeric.anchor_assertion",),
+            issue_codes=snapshot.issue_codes,
         )
-    if _scan_terminal_entity_fact_claims(draft, context):
-        raise _SegmentTrustBlockedError(
+    if snapshot.notification_summary is None:
+        raise _FinalizationInvariantError(
             phase="validated",
-            issue_codes=("entity.fact_contradiction",),
+            issue_code="invariant.notification_summary",
         )
-    try:
-        _scan_terminal_compliance(draft, context)
-    except ComplianceLanguageError as exc:
-        raise _SegmentTrustBlockedError(
-            phase="validated",
-            issue_codes=("compliance.language",),
-        ) from exc
-
-    blocking_surface_codes = tuple(
-        sorted(
-            {
-                finding.issue.code
-                for finding in _find_owned_surface_quality_issues(draft.layout)
-                if finding.issue.severity == "block"
-            }
-        )
-    )
-    if blocking_surface_codes:
-        raise _SegmentTrustBlockedError(
-            phase="validated",
-            issue_codes=blocking_surface_codes,
-        )
-    try:
-        validate_first_viewport_summary(draft.layout.markdown)
-    except SummaryQualityError as exc:
-        raise _SegmentTrustBlockedError(
-            phase="validated",
-            issue_codes=("summary.first_viewport",),
-        ) from exc
-    if not verify_disclaimer(draft.layout.markdown, draft.segment):
-        raise _SegmentTrustBlockedError(
-            phase="validated",
-            issue_codes=("disclaimer.canonical",),
-        )
-    if not verify_short_disclaimer_first_viewport(draft.layout.markdown, draft.segment):
-        raise _SegmentTrustBlockedError(
-            phase="validated",
-            issue_codes=("disclaimer.first_viewport",),
-        )
-    try:
-        notification_summary = _derive_public_notification_summary(draft, context)
-    except PublicNotificationSummaryError as exc:
-        raise _SegmentTrustBlockedError(
-            phase="validated",
-            issue_codes=(exc.issue_code,),
-        ) from exc
     return _transition_draft(
         draft,
         next_phase="validated",
-        notification_summary=notification_summary,
+        notification_summary=snapshot.notification_summary,
     )
 
 
@@ -2755,6 +2859,94 @@ class _SegmentTrustBlockedError(Exception):
         self.issue_codes = _canonical_issue_codes(issue_codes)
         codes = ",".join(self.issue_codes) if self.issue_codes else "unspecified"
         super().__init__(f"segment trust blocked: phase={phase} codes={codes}")
+
+
+class _MinimalFallbackRequestError(Exception):
+    """Internal domestic numeric-only request for the one stored minimal source."""
+
+    def __init__(self, outcomes: Sequence[NumericContainmentOutcome]) -> None:
+        canonical = tuple(outcomes)
+        if not canonical:
+            raise ValueError("minimal fallback request requires typed outcomes")
+        self.outcomes = canonical
+        super().__init__("domestic numeric containment requires minimal fallback")
+
+
+def _minimal_fallback_outcomes(
+    layout: PublicDocumentLayout,
+    findings: Sequence[AnchorAssertionFinding],
+) -> tuple[NumericContainmentOutcome, ...]:
+    outcomes: list[NumericContainmentOutcome] = []
+    for finding in findings:
+        owners = tuple(
+            region
+            for region in layout.regions
+            if finding.start < finding.end
+            and region.start <= finding.start
+            and finding.end <= region.end
+        )
+        region_id = owners[0].region_id if len(owners) == 1 else "document:unowned"
+        outcomes.append(
+            NumericContainmentOutcome(
+                target_date=layout.expectation.target_date,
+                segment=finding.segment,
+                symbol=finding.symbol,
+                region_id=region_id,
+                line_kind=finding.line_kind,
+                action="minimal_fallback",
+                issue_codes=("numeric.anchor_assertion",),
+                claim_digest=sha256(finding.sentence.encode("utf-8")).hexdigest(),
+            )
+        )
+    return tuple(outcomes)
+
+
+def _merge_numeric_omission_block_outcomes(
+    layout: PublicDocumentLayout,
+    block_outcomes: Sequence[PublicBlockOutcome],
+    numeric_outcomes: Sequence[NumericContainmentOutcome],
+) -> tuple[PublicBlockOutcome, ...]:
+    """Mirror numeric optional omissions into the existing E5 artifact witness."""
+
+    omitted_codes: dict[str, set[str]] = {}
+    for outcome in numeric_outcomes:
+        if outcome.action == "omitted":
+            omitted_codes.setdefault(outcome.region_id, set()).update(outcome.issue_codes)
+    if not omitted_codes:
+        return tuple(block_outcomes)
+
+    regions = {region.region_id: region for region in layout.regions}
+    merged = list(block_outcomes)
+    positions = {outcome.region_id: index for index, outcome in enumerate(merged)}
+    for region in layout.regions:
+        codes = omitted_codes.get(region.region_id)
+        if codes is None:
+            continue
+        if region.block not in {"visual", "chart", "carryover", "cause_map"}:
+            raise _FinalizationInvariantError(
+                phase="repaired",
+                issue_code="invariant.numeric_omission_region",
+            )
+        position = positions.get(region.region_id)
+        if position is not None:
+            codes.update(merged[position].issue_codes)
+        replacement = PublicBlockOutcome(
+            region_id=region.region_id,
+            block=region.block,
+            disposition="omitted",
+            issue_codes=tuple(codes),
+        )
+        if position is None:
+            positions[region.region_id] = len(merged)
+            merged.append(replacement)
+        else:
+            merged[position] = replacement
+    if set(omitted_codes) - set(regions):
+        raise _FinalizationInvariantError(
+            phase="repaired",
+            issue_code="invariant.numeric_omission_region",
+        )
+    return tuple(merged)
 
 
 class _FinalizationInvariantError(ValueError):
@@ -2886,6 +3078,52 @@ def _context_for_active_segments(
     )
 
 
+def _context_for_minimal_segment(
+    context: PublicDocumentContext,
+    segment: MarketSegment,
+) -> PublicDocumentContext:
+    """Strip every semantic/artifact input that could recreate a bad claim."""
+
+    return replace(
+        context,
+        anchors_by_segment={
+            key: value for key, value in context.anchors_by_segment.items() if key != segment
+        },
+        items_by_segment={
+            key: value for key, value in context.items_by_segment.items() if key != segment
+        },
+        bundle_context=None,
+        fact_bundle=VerifiedFactBundle(target_date=context.target_date),
+        supplements_by_segment={
+            key: value for key, value in context.supplements_by_segment.items() if key != segment
+        },
+        staged_artifacts_by_segment={
+            key: value
+            for key, value in context.staged_artifacts_by_segment.items()
+            if key != segment
+        },
+    )
+
+
+def _attach_numeric_containment_outcomes(
+    draft: PublicDocumentDraft,
+    outcomes: Sequence[NumericContainmentOutcome],
+) -> PublicDocumentDraft:
+    if draft.phase != "generated" or draft.numeric_containment_outcomes:
+        raise ValueError("minimal outcomes attach only to a clean generated draft")
+    return _construct_draft(
+        segment=draft.segment,
+        target_date=draft.target_date,
+        source_briefing=draft.source_briefing,
+        layout=draft.layout,
+        phase=draft.phase,
+        limitation_reasons=draft.limitation_reasons,
+        watchpoint_synthesized=draft.watchpoint_synthesized,
+        block_outcomes=draft.block_outcomes,
+        numeric_containment_outcomes=outcomes,
+    )
+
+
 def _validate_cross_segment_thesis_inputs(
     briefings: Mapping[MarketSegment, Briefing],
     *,
@@ -2960,7 +3198,11 @@ def _finalize_bundle_skeleton(
         )
 
     blocked: dict[MarketSegment, tuple[str, ...]] = {}
-    for _pass_index in range(len(context.expected_segments)):
+    minimal_source_by_segment: dict[MarketSegment, Briefing] = {}
+    minimal_outcomes_by_segment: dict[MarketSegment, tuple[NumericContainmentOutcome, ...]] = {}
+    attempted_minimal_segments: set[MarketSegment] = set()
+    max_passes = len(context.expected_segments) * 2
+    for _pass_index in range(max_passes):
         active = tuple(
             segment
             for segment in context.expected_segments
@@ -2986,10 +3228,16 @@ def _finalize_bundle_skeleton(
 
         documents: list[FinalizedPublicDocument] = []
         newly_blocked: dict[MarketSegment, tuple[str, ...]] = {}
+        minimal_requested = False
         for segment in active:
-            briefing = briefings[segment]
+            briefing = minimal_source_by_segment.get(segment, briefings[segment])
+            segment_context = (
+                _context_for_minimal_segment(active_context, segment)
+                if segment in minimal_source_by_segment
+                else active_context
+            )
             try:
-                draft = draft_factory(briefing, segment, active_context)
+                draft = draft_factory(briefing, segment, segment_context)
                 if (
                     draft.phase != "generated"
                     or draft.segment != segment
@@ -3000,13 +3248,43 @@ def _finalize_bundle_skeleton(
                         phase="generated",
                         issue_code="invariant.draft_factory",
                     )
+                if segment in minimal_source_by_segment:
+                    draft = _attach_numeric_containment_outcomes(
+                        draft,
+                        minimal_outcomes_by_segment[segment],
+                    )
                 document = _finalize_segment_skeleton(
                     draft,
-                    context=active_context,
+                    context=segment_context,
                     handlers=handlers,
                 )
+            except _MinimalFallbackRequestError as exc:
+                if segment != DOMESTIC_EQUITY or segment in attempted_minimal_segments:
+                    newly_blocked[segment] = (
+                        "numeric.anchor_assertion",
+                        "numeric.fallback_exhausted",
+                    )
+                    continue
+                attempted_minimal_segments.add(segment)
+                minimal_source_by_segment[segment] = build_data_limited_briefing(
+                    context.target_date,
+                    segment,
+                )
+                minimal_outcomes_by_segment[segment] = exc.outcomes
+                minimal_requested = True
+                continue
             except _SegmentTrustBlockedError as exc:
-                newly_blocked[segment] = exc.issue_codes
+                newly_blocked[segment] = (
+                    _canonical_issue_codes(
+                        (
+                            *exc.issue_codes,
+                            "numeric.anchor_assertion",
+                            "numeric.fallback_exhausted",
+                        )
+                    )
+                    if segment in minimal_source_by_segment
+                    else exc.issue_codes
+                )
                 continue
             except _FinalizationInvariantError as exc:
                 raise PublicDocumentFinalizationError(
@@ -3038,26 +3316,44 @@ def _finalize_bundle_skeleton(
             blocked.update(newly_blocked)
             if not any(segment in briefings and segment not in blocked for segment in active):
                 break
+        if minimal_requested or newly_blocked:
             continue
 
-        outcomes = tuple(
-            SegmentFinalizationOutcome(
-                segment=segment,
-                state=(
-                    "generation_absent"
-                    if segment in context.input_absences
-                    else "trust_blocked"
-                    if segment in blocked
-                    else "finalized"
-                ),
-                issue_codes=(
-                    ("generation.failed",)
-                    if segment in context.input_absences
-                    else blocked.get(segment, ())
-                ),
+        document_by_segment = {document.segment: document for document in documents}
+        outcome_values: list[SegmentFinalizationOutcome] = []
+        for segment in context.expected_segments:
+            if segment in context.input_absences:
+                outcome_values.append(
+                    SegmentFinalizationOutcome(
+                        segment=segment,
+                        state="generation_absent",
+                        issue_codes=("generation.failed",),
+                    )
+                )
+                continue
+            if segment in blocked:
+                outcome_values.append(
+                    SegmentFinalizationOutcome(
+                        segment=segment,
+                        state="trust_blocked",
+                        issue_codes=blocked[segment],
+                    )
+                )
+                continue
+            document = document_by_segment[segment]
+            numeric_outcomes = document.numeric_containment_outcomes
+            issue_codes = tuple(
+                sorted({code for outcome in numeric_outcomes for code in outcome.issue_codes})
             )
-            for segment in context.expected_segments
-        )
+            outcome_values.append(
+                SegmentFinalizationOutcome(
+                    segment=segment,
+                    state="finalized_degraded" if numeric_outcomes else "finalized",
+                    issue_codes=issue_codes,
+                    numeric_containment_outcomes=numeric_outcomes,
+                )
+            )
+        outcomes = tuple(outcome_values)
         try:
             return _build_finalized_bundle(
                 context,
@@ -3119,6 +3415,7 @@ class FinalizedPublicDocument:
     staged_artifact_ids: tuple[str, ...]
     notification_summary: PublicNotificationSummary
     block_outcomes: tuple[PublicBlockOutcome, ...]
+    numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...]
     watchpoint_synthesized: int = 0
     warnings: tuple[str, ...] = ()
 
@@ -3157,6 +3454,11 @@ def _seal_document(
     object.__setattr__(sealed, "staged_artifact_ids", artifact_ids)
     object.__setattr__(sealed, "notification_summary", draft.notification_summary)
     object.__setattr__(sealed, "block_outcomes", draft.block_outcomes)
+    object.__setattr__(
+        sealed,
+        "numeric_containment_outcomes",
+        draft.numeric_containment_outcomes,
+    )
     object.__setattr__(sealed, "watchpoint_synthesized", draft.watchpoint_synthesized)
     object.__setattr__(sealed, "warnings", canonical_warnings)
     return sealed
@@ -3192,12 +3494,20 @@ def _build_finalized_bundle(
         if known_absence != (outcome.state == "generation_absent"):
             raise ValueError("generation_absent outcomes must exactly match E1 input_absences")
     finalized_segments = tuple(
-        outcome.segment for outcome in outcomes if outcome.state == "finalized"
+        outcome.segment
+        for outcome in outcomes
+        if outcome.state in {"finalized", "finalized_degraded"}
     )
     if tuple(document.segment for document in canonical_documents) != finalized_segments:
         raise ValueError("documents must match finalized outcomes in expected order")
     if any(document.target_date != context.target_date for document in canonical_documents):
         raise ValueError("all finalized documents must share context target_date")
+    document_outcomes = tuple(
+        outcome for outcome in outcomes if outcome.state in {"finalized", "finalized_degraded"}
+    )
+    for document, outcome in zip(canonical_documents, document_outcomes, strict=True):
+        if document.numeric_containment_outcomes != outcome.numeric_containment_outcomes:
+            raise ValueError("document/outcome numeric containment witnesses must match")
 
     artifact_by_id = {
         artifact.artifact_id: artifact

@@ -92,6 +92,14 @@ class DomesticAnchorVerdict:
     trust: DomesticAnchorTrust
 
 
+@dataclass(frozen=True, slots=True)
+class DomesticPublicProjection:
+    """Run-scoped public rows paired with duplicate-safe raw ordinals."""
+
+    public_items: tuple[NormalizedItem, ...]
+    item_verdicts: tuple[tuple[int, DomesticAnchorVerdict], ...]
+
+
 def normalize_domestic_anchor_symbol(value: str | None) -> str | None:
     """Return the bounded u109 registry symbol for ``value``."""
 
@@ -176,26 +184,49 @@ def domestic_anchor_verdicts(
 ) -> tuple[DomesticAnchorVerdict, ...]:
     """Return deterministic u109 verdicts for in-scope domestic price items."""
 
+    projection = project_domestic_public_items(
+        items,
+        target_date=target_date,
+        source_outcomes=source_outcomes,
+        previous_closes=previous_closes,
+    )
+    return tuple(verdict for _, verdict in projection.item_verdicts)
+
+
+def project_domestic_public_items(
+    raw_items: Sequence[NormalizedItem],
+    *,
+    target_date: date | None = None,
+    source_outcomes: Sequence[SourceOutcome] = (),
+    previous_closes: Mapping[str, Decimal] | None = None,
+) -> DomesticPublicProjection:
+    """Classify each registry price row once and project public-safe items.
+
+    The raw ordinal is the only verdict join key.  It deliberately keeps
+    model-equal duplicates distinct without relying on equality, symbol,
+    value, or object identity.
+    """
+
     resolved_previous_closes = previous_closes or {}
-    verdicts: list[DomesticAnchorVerdict] = []
-    for item in items:
-        if item.category != "price":
-            continue
-        candidate = candidate_from_item(item)
-        if candidate is None:
-            continue
-        verdicts.append(
-            DomesticAnchorVerdict(
-                candidate=candidate,
-                trust=classify_domestic_anchor_candidate(
-                    candidate,
-                    target_date=target_date,
-                    source_outcomes=source_outcomes,
-                    previous_close=resolved_previous_closes.get(candidate.symbol),
-                ),
-            )
+    public_items: list[NormalizedItem] = []
+    item_verdicts: list[tuple[int, DomesticAnchorVerdict]] = []
+    for raw_index, item in enumerate(raw_items):
+        verdict = _verdict_for_item(
+            item,
+            target_date,
+            source_outcomes,
+            resolved_previous_closes,
         )
-    return tuple(verdicts)
+        if verdict is None:
+            public_items.append(item)
+            continue
+        item_verdicts.append((raw_index, verdict))
+        if verdict.trust == "trusted":
+            public_items.append(item)
+    return DomesticPublicProjection(
+        public_items=tuple(public_items),
+        item_verdicts=tuple(item_verdicts),
+    )
 
 
 def trusted_domestic_price_items(
@@ -207,29 +238,12 @@ def trusted_domestic_price_items(
 ) -> tuple[NormalizedItem, ...]:
     """Filter only u109-trusted domestic registry price rows; pass others through."""
 
-    resolved_previous_closes = previous_closes or {}
-    verdict_by_identity = {
-        id(item): verdict
-        for item, verdict in (
-            (
-                item,
-                _verdict_for_item(
-                    item,
-                    target_date,
-                    source_outcomes,
-                    resolved_previous_closes,
-                ),
-            )
-            for item in items
-        )
-        if verdict is not None
-    }
-    out: list[NormalizedItem] = []
-    for item in items:
-        verdict = verdict_by_identity.get(id(item))
-        if verdict is None or verdict.trust == "trusted":
-            out.append(item)
-    return tuple(out)
+    return project_domestic_public_items(
+        items,
+        target_date=target_date,
+        source_outcomes=source_outcomes,
+        previous_closes=previous_closes,
+    ).public_items
 
 
 def _verdict_for_item(
@@ -383,10 +397,12 @@ __all__ = [
     "DomesticAnchorCandidate",
     "DomesticAnchorTrust",
     "DomesticAnchorVerdict",
+    "DomesticPublicProjection",
     "candidate_from_item",
     "classify_domestic_anchor_candidate",
     "domestic_anchor_verdicts",
     "load_previous_domestic_anchor_closes",
     "normalize_domestic_anchor_symbol",
+    "project_domestic_public_items",
     "trusted_domestic_price_items",
 ]

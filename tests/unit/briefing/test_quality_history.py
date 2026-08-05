@@ -136,6 +136,28 @@ def test_watchpoint_synthesized_count_persists_as_private_diagnostic(tmp_path: P
     assert _read_rows(path)[0]["watchpoint_synthesized"] == 2
 
 
+def test_numeric_degradation_counts_persist_as_private_diagnostics(tmp_path: Path) -> None:
+    path = tmp_path / "quality_history.jsonl"
+    append_quality_snapshot(
+        date(2026, 8, 4),
+        snapshot=QualitySnapshot(
+            source_liveness=1.0,
+            figures_presence=0.0,
+            fallback_ratio=1.0 / 3.0,
+            published_segments=3,
+            total_items=12,
+            total_failed_sources=0,
+            current_run_degraded_segments=1,
+            current_run_numeric_containment_actions=2,
+        ),
+        history_path=path,
+    )
+
+    row = _read_rows(path)[0]
+    assert row["current_run_degraded_segments"] == 1
+    assert row["current_run_numeric_containment_actions"] == 2
+
+
 def test_same_day_republish_replaces_existing_row(tmp_path: Path) -> None:
     path = tmp_path / "quality_history.jsonl"
     append_quality_snapshot(date(2026, 5, 8), snapshot=_snapshot(), history_path=path)

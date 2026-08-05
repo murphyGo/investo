@@ -59,6 +59,9 @@ from investo.models.market_anchor import (
 )
 from investo.models.public_document_outcome import (
     ContentCompleteness,
+    NumericClaimLineKind,
+    NumericContainmentAction,
+    NumericContainmentOutcome,
     SegmentFinalizationOutcome,
     SegmentFinalizationState,
 )
@@ -206,6 +209,9 @@ __all__ = [
     "NavPoint",
     "NavSeries",
     "NormalizedItem",
+    "NumericClaimLineKind",
+    "NumericContainmentAction",
+    "NumericContainmentOutcome",
     "OHLCRow",
     "ParsedWorkbookSet",
     "PipelineResult",

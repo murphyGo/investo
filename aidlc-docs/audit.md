@@ -6314,3 +6314,18 @@ passed, scoped format check passed, `mypy src` passed.
 **Repair**: All watchpoint parse/render/matching routes now terminate before collapsed or expanded quality diagnostics. A regression byte-pins the diagnostics and disclaimer tail. Layout region separators are normalized when crossing into bounded issue codes. Finalization errors expose only an allow-listed R13-safe `cause_code`, never the raw cause.
 **Validation**: The combined watchpoint/public-document/orchestrator regression scope passed 225 tests. The complete suite passed 4,299 tests in 264.89 seconds; Ruff and format passed all 567 Python files; strict mypy passed 252 source files; `git diff --check` passed.
 **Status**: Bounded u135 main-CI repair validated. Commit/push and verify the new exact-SHA quality run before queue audit.
+
+## Construction — u148/u149 local-main approval and implementation
+**Timestamp**: 2026-08-05T15:33:33Z
+**User response**: `개발 진행해줘` / `승인 받지말고 계속 개발해` / `워크트리 따서 하면 계속 승인 받게 되니까 로컬 메인에서 해줘`
+**Decision**: Treat both reviewed unit plans as approved for uninterrupted local construction on `main`. Preserve unrelated dirty files and the pre-work stash; do not commit, push, workflow-dispatch, or deploy without separate scope.
+**Action**: U148 now computes one ordinal-paired domestic public trust projection and routes it across every public semantic fork; the Yonhap parser is close-coupled and fails quiet on ambiguity. U149 now performs domestic numeric-only indexed containment, exhaustive masking prevention, one neutral minimal fallback, typed sealed witnesses, `finalized_degraded`, completeness/quality/log propagation, and preserves US/crypto hard-block behavior.
+**Design**: U148 Functional/NFR Design remain skipped under existing u109/u130 contracts. U149 Functional Design and NFR Requirements were authored and independently reviewed; NFR Design remains skipped because the implementation stays inside the synchronous u144 lifecycle.
+**Validation**: The combined U148/U149/U144 focused regression scope passed 314 tests, including numeric+compliance masking prevention and one minimal-builder call across a survivor rerun. Full gates and fresh-eyes code review remain before local construction closeout; production replay is recorded separately and has not been invoked.
+
+## Construction — u148/u149 local-main quality gate complete
+**Timestamp**: 2026-08-05T16:17:06Z
+**Result**: U148 local code generation is complete 5/5. U149 local code generation and documentation are complete through Step 7a; exact-date production replay, Telegram, Pages, and live-URL verification remain the separately unchecked Step 7b.
+**Gate**: The complete repository suite passed 4,334 tests in 448.30 seconds. Ruff check passed; Ruff format verified 559 files; strict mypy passed 254 source files; `uv lock --check`, no-paid API policy, strict MkDocs, and `git diff --check` passed.
+**Review**: Cumulative fresh-eyes review identified and closed cross-index close-value binding, multi-region edit ordering/reindexing, stale offsets, optional-artifact promotion, linear planning, and CR/LF/CRLF subtree-boundary issues. The final review passed 37 focused regressions and reported no remaining Critical, High, Medium, or Low finding.
+**Boundaries**: Construction remained on the user's local `main`; unrelated dirty files and `stash@{0}` were preserved. No commit, push, workflow dispatch, archive publish, Telegram delivery, or deployment was performed.

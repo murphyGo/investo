@@ -236,6 +236,11 @@ def test_rendered_markdown_construction_and_mutation_sites_are_allowlisted() -> 
     snapshot = _production_construction_snapshot()
 
     assert snapshot.rendered_markdown_writes == [
+        (
+            Path("_internal/data_limited_segment.py"),
+            "build_data_limited_briefing",
+            "construction",
+        ),
         (Path("briefing/pipeline.py"), "_finalize_briefing", "construction"),
         (
             _PUBLIC_DOCUMENT,

@@ -166,9 +166,10 @@ from investo.orchestrator import source_health
 from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.date_resolution import resolve_target_date, validate_target_date_sanity
 from investo.orchestrator.domestic_anchor_quarantine import (
+    DomesticAnchorVerdict,
     domestic_anchor_verdicts,
     load_previous_domestic_anchor_closes,
-    trusted_domestic_price_items,
+    project_domestic_public_items,
 )
 from investo.orchestrator.errors import EmptyCollectError
 from investo.orchestrator.price_fallback import (
@@ -177,7 +178,8 @@ from investo.orchestrator.price_fallback import (
 )
 from investo.orchestrator.stage_context import (
     SEGMENT_ORDER,
-    _build_kr_anchors_from_items,
+    _build_kr_anchors_from_items,  # noqa: F401 - legacy focused-test facade
+    _build_kr_anchors_from_verdicts,
     _load_carryover_for_run,
     _load_market_anchors_for_run,
     _load_recent_context_for_run,
@@ -1264,6 +1266,8 @@ async def _stage_publish_segments(
     asset_paths: Sequence[Path] = (),
     git_runner: GitRunner | None = None,
     items: Sequence[NormalizedItem] = (),
+    raw_items: Sequence[NormalizedItem] | None = None,
+    domestic_item_verdicts: Sequence[tuple[int, DomesticAnchorVerdict]] | None = None,
     source_outcomes: Sequence[SourceOutcome] = (),
     previous_domestic_anchor_closes: Mapping[str, Decimal] | None = None,
     macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] | None = None,
@@ -1472,11 +1476,21 @@ async def _stage_publish_segments(
                         briefings=briefings,
                         published_segments=published_segments,
                         items=items,
+                        raw_items=raw_items,
+                        domestic_item_verdicts=domestic_item_verdicts,
                         source_outcomes=source_outcomes,
                         previous_domestic_anchor_closes=previous_domestic_anchor_closes,
                         severities_by_segment=severities_by_segment_for_quality,
                         watchpoint_synthesized=sum(
                             document.watchpoint_synthesized
+                            for document in finalized_documents.values()
+                        ),
+                        degraded_segments=sum(
+                            bool(document.numeric_containment_outcomes)
+                            for document in finalized_documents.values()
+                        ),
+                        numeric_containment_actions=sum(
+                            len(document.numeric_containment_outcomes)
                             for document in finalized_documents.values()
                         ),
                     ),
@@ -1930,10 +1944,14 @@ def _build_quality_snapshot(
     briefings: dict[MarketSegment, Briefing],
     published_segments: Sequence[MarketSegment],
     items: Sequence[NormalizedItem],
+    raw_items: Sequence[NormalizedItem] | None = None,
+    domestic_item_verdicts: Sequence[tuple[int, DomesticAnchorVerdict]] | None = None,
     source_outcomes: Sequence[SourceOutcome],
     previous_domestic_anchor_closes: Mapping[str, Decimal] | None = None,
     severities_by_segment: dict[MarketSegment, str] | None = None,
     watchpoint_synthesized: int = 0,
+    degraded_segments: int = 0,
+    numeric_containment_actions: int = 0,
 ) -> QualitySnapshot:
     from investo.publisher.quality_consistency import parse_segment_status_block
 
@@ -1997,11 +2015,18 @@ def _build_quality_snapshot(
         current_run_core_missing_segments,
         status_block_limited_or_worse,
     )
-    domestic_verdicts = domestic_anchor_verdicts(
-        items,
-        target_date=briefings[published_segments[0]].target_date if published_segments else None,
-        source_outcomes=source_outcomes,
-        previous_closes=previous_domestic_anchor_closes,
+    diagnostic_items = items if raw_items is None else raw_items
+    domestic_verdicts = (
+        tuple(verdict for _, verdict in domestic_item_verdicts)
+        if domestic_item_verdicts is not None
+        else domestic_anchor_verdicts(
+            diagnostic_items,
+            target_date=(
+                briefings[published_segments[0]].target_date if published_segments else None
+            ),
+            source_outcomes=source_outcomes,
+            previous_closes=previous_domestic_anchor_closes,
+        )
     )
     domestic_withheld_count = sum(1 for verdict in domestic_verdicts if verdict.trust != "trusted")
     domestic_withheld_reasons = tuple(
@@ -2021,7 +2046,7 @@ def _build_quality_snapshot(
         figures_verified=(verified_figures_count / non_limited) if non_limited > 0 else None,
         fallback_ratio=(data_limited_count / len(bodies)) if bodies else 0.0,
         published_segments=len(published_segments),
-        total_items=len(items),
+        total_items=len(diagnostic_items),
         total_failed_sources=failed_sources,
         worst_severity=worst_severity,
         current_run_zero_item_sources=zero_item_sources,
@@ -2032,6 +2057,8 @@ def _build_quality_snapshot(
         domestic_anchor_withheld_count=domestic_withheld_count,
         domestic_anchor_withheld_reasons=domestic_withheld_reasons,
         watchpoint_synthesized=watchpoint_synthesized,
+        current_run_degraded_segments=degraded_segments,
+        current_run_numeric_containment_actions=numeric_containment_actions,
     )
 
 
@@ -2749,7 +2776,7 @@ class GenerateStage:
         runner = cast("ClaudeRunner | None", ctx.runner)
         generate = cast("GenerateCallable | None", ctx.generate)
         generate_segment = cast("SegmentGenerateCallable | None", ctx.generate_segment)
-        items = cast("list[NormalizedItem]", accumulated["items"])
+        raw_items = cast("list[NormalizedItem]", accumulated["items"])
         source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
 
         start = time.monotonic()
@@ -2767,6 +2794,8 @@ class GenerateStage:
         public_document_context: PublicDocumentContext | None = None
         macro_lineage_by_segment: Mapping[MarketSegment, Sequence[MacroLineageTrace]] = {}
         previous_domestic_anchor_closes: dict[str, Decimal] = {}
+        public_items: list[NormalizedItem] = list(raw_items)
+        domestic_item_verdicts: tuple[tuple[int, DomesticAnchorVerdict], ...] = ()
         generate_sub_timings: dict[str, float] = {}
         artifact_staging_root = cast(
             "Path | None",
@@ -2780,7 +2809,9 @@ class GenerateStage:
                     market_anchors_by_segment,
                     market_history_by_ticker,
                 ) = await _load_market_anchors_for_run(target_date)
-                direct_yahoo_count = sum(item.source_name == YFINANCE_SOURCE_NAME for item in items)
+                direct_yahoo_count = sum(
+                    item.source_name == YFINANCE_SOURCE_NAME for item in raw_items
+                )
                 original_yahoo_outcome = next(
                     (
                         outcome
@@ -2790,15 +2821,16 @@ class GenerateStage:
                     None,
                 )
                 reconciled_prices = reconcile_yahoo_history_fallback(
-                    items=items,
+                    items=raw_items,
                     outcomes=source_outcomes,
                     history_by_ticker=market_history_by_ticker,
                     target_date=target_date,
                     critical_tickers=resolve_yfinance_critical_tickers(),
                 )
-                items = list(reconciled_prices.items)
+                raw_items = list(reconciled_prices.items)
                 source_outcomes = reconciled_prices.outcomes
-                accumulated["items"] = items
+                accumulated["items"] = raw_items
+                accumulated["raw_items"] = raw_items
                 accumulated["source_outcomes"] = source_outcomes
                 if reconciled_prices.fallback_count:
                     original_status = (
@@ -2807,7 +2839,7 @@ class GenerateStage:
                         else "missing"
                     )
                     final_yahoo_count = sum(
-                        item.source_name == YFINANCE_SOURCE_NAME for item in items
+                        item.source_name == YFINANCE_SOURCE_NAME for item in raw_items
                     )
                     _logger.info(
                         "[price_fallback_reconciled] source_name=%s "
@@ -2832,14 +2864,22 @@ class GenerateStage:
                     ARCHIVE_ROOT,
                     target_date,
                 )
-                # u67/u138 — fold deterministic Yonhap index closes and the
-                # FRED 원/달러 observation into the domestic segment. They are
-                # synthesized close-only from the collected items.
-                kr_anchors = _build_kr_anchors_from_items(
-                    items,
+                domestic_projection = project_domestic_public_items(
+                    raw_items,
                     target_date=target_date,
                     source_outcomes=source_outcomes,
                     previous_closes=previous_domestic_anchor_closes,
+                )
+                public_items = list(domestic_projection.public_items)
+                domestic_item_verdicts = domestic_projection.item_verdicts
+                accumulated["public_items"] = public_items
+                accumulated["domestic_item_verdicts"] = domestic_item_verdicts
+                # u67/u138 — fold deterministic Yonhap index closes and the
+                # FRED 원/달러 observation into the domestic segment. They are
+                # synthesized from the same run-scoped u148 verdicts that own
+                # every public domestic price fork.
+                kr_anchors = _build_kr_anchors_from_verdicts(
+                    tuple(verdict for _, verdict in domestic_item_verdicts)
                 )
                 if kr_anchors:
                     existing = market_anchors_by_segment.get(DOMESTIC_EQUITY, ())
@@ -2850,7 +2890,7 @@ class GenerateStage:
                 # trading-day archives. Each segment receives only its own
                 # routed candidates so resolution matching stays
                 # source-scoped.
-                routed_candidates = segment_items(items)
+                routed_candidates = segment_items(public_items)
                 candidates_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
                     segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
                 }
@@ -2860,7 +2900,7 @@ class GenerateStage:
                 # transition; persistence failures degrade gracefully.
                 _advance_and_persist_macro_carryover(
                     target_date,
-                    items,
+                    public_items,
                     routed_candidates,
                 )
                 generate_sub_timings["generate:context"] = time.monotonic() - context_start
@@ -2874,7 +2914,7 @@ class GenerateStage:
                     segment_timings,
                 ) = await _stage_generate_segments(
                     target_date,
-                    items,
+                    public_items,
                     runner=runner,
                     generate_segment=generate_segment,
                     source_outcomes=source_outcomes,
@@ -2896,7 +2936,7 @@ class GenerateStage:
                 entity_observed_at_utc = None
                 macro_lineage_by_segment = {}
                 briefing = await _stage_generate(
-                    target_date, items, runner=runner, generate=generate
+                    target_date, public_items, runner=runner, generate=generate
                 )
         except BriefingGenerationError as exc:
             _log_briefing_generation_error(exc)
@@ -2945,7 +2985,7 @@ class GenerateStage:
             image_candidate_paths, image_note = await asyncio.to_thread(
                 _run_image_candidate_stage,
                 target_date,
-                items,
+                public_items,
             )
             image_stage_note = image_note
             stage_notes["image_candidates"] = image_note
@@ -2959,7 +2999,7 @@ class GenerateStage:
                     visual_supplements,
                 ) = await _stage_prepare_segment_visual_assets(
                     segment_briefings,
-                    items,
+                    public_items,
                     target_date,
                     staging_root=artifact_staging_root,
                     source_outcomes=source_outcomes,
@@ -2991,7 +3031,7 @@ class GenerateStage:
             # reader surface renders.
             anchor_table_input = _reconcile_anchor_closes(
                 market_anchors_by_segment,
-                _snapshot_close_by_ticker(items),
+                _snapshot_close_by_ticker(public_items),
             )
 
             # u50 — inject the per-segment chart placeholder block.
@@ -3030,7 +3070,7 @@ class GenerateStage:
                 briefings=segment_briefings,
                 generation_failures=segment_generation_failures,
                 anchors_by_segment=anchor_table_input,
-                items=items,
+                items=public_items,
                 source_outcomes=source_outcomes,
                 bundle_context=run_bundle_context,
                 fact_bundle=fact_bundle,
@@ -3050,7 +3090,7 @@ class GenerateStage:
         # so PublishStage can stage it in the same commit.
         coverage_log_path = _append_daily_coverage_line(
             target_date,
-            items,
+            public_items,
             segmented_mode=segmented_mode,
             source_outcomes=source_outcomes,
             segment_briefings=segment_briefings,
@@ -3076,6 +3116,9 @@ class GenerateStage:
                 "public_document_context": public_document_context,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
                 "previous_domestic_anchor_closes": previous_domestic_anchor_closes,
+                "public_items": public_items,
+                "raw_items": raw_items,
+                "domestic_item_verdicts": domestic_item_verdicts,
                 "_stage_alerts": stage_alerts,
             },
             stage_notes=stage_notes,
@@ -3096,7 +3139,18 @@ class PublishStage:
         target_date = ctx.target_date
         git_runner = cast("GitRunner | None", ctx.git_runner)
         segmented_mode = cast("bool", accumulated["segmented_mode"])
-        items = cast("list[NormalizedItem]", accumulated["items"])
+        raw_items = cast(
+            "list[NormalizedItem]",
+            accumulated.get("raw_items", accumulated["items"]),
+        )
+        public_items = cast(
+            "list[NormalizedItem]",
+            accumulated.get("public_items", raw_items),
+        )
+        domestic_item_verdicts = cast(
+            "tuple[tuple[int, DomesticAnchorVerdict], ...]",
+            accumulated.get("domestic_item_verdicts", ()),
+        )
         source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
         previous_domestic_anchor_closes = cast(
             "Mapping[str, Decimal]",
@@ -3159,6 +3213,19 @@ class PublishStage:
                         outcome.state,
                         ",".join(outcome.issue_codes) or "none",
                     )
+                    for witness in outcome.numeric_containment_outcomes:
+                        _logger.info(
+                            "[numeric_containment] target_date=%s segment=%s symbol=%s "
+                            "region_id=%s line_kind=%s action=%s codes=%s claim_digest=%s",
+                            witness.target_date,
+                            witness.segment,
+                            witness.symbol,
+                            witness.region_id,
+                            witness.line_kind,
+                            witness.action,
+                            ",".join(witness.issue_codes),
+                            witness.claim_digest[:16],
+                        )
                 segment_briefings = {
                     document.segment: document.briefing for document in finalized_bundle.documents
                 }
@@ -3174,7 +3241,9 @@ class PublishStage:
                     target_date,
                     asset_paths=visual_asset_paths,
                     git_runner=git_runner,
-                    items=items,
+                    items=public_items,
+                    raw_items=raw_items,
+                    domestic_item_verdicts=domestic_item_verdicts,
                     source_outcomes=source_outcomes,
                     previous_domestic_anchor_closes=previous_domestic_anchor_closes,
                     macro_lineage_by_segment=macro_lineage_by_segment,
@@ -3238,11 +3307,9 @@ class NotifyStage:
         target_date = ctx.target_date
         publisher = cast("BriefingPublisher", accumulated["publisher"])
         segmented_mode = cast("bool", accumulated["segmented_mode"])
-        items = cast("list[NormalizedItem]", accumulated["items"])
-        source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated["source_outcomes"])
-        previous_domestic_anchor_closes = cast(
-            "Mapping[str, Decimal]",
-            accumulated.get("previous_domestic_anchor_closes", {}),
+        public_items = cast(
+            "list[NormalizedItem]",
+            accumulated.get("public_items", accumulated["items"]),
         )
         segment_briefings = cast(
             "dict[MarketSegment, Briefing] | None", accumulated["segment_briefings"]
@@ -3294,7 +3361,7 @@ class NotifyStage:
                 document.segment: document.notification_summary
                 for document in finalized_bundle.documents
             }
-            routed_items_for_alert = segment_items(items)
+            routed_items_for_alert = segment_items(public_items)
             notify_now_utc = datetime.now(UTC)
             lookahead_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
                 segment: filter_lookahead_items(routed_items_for_alert.for_segment(segment))
@@ -3304,12 +3371,7 @@ class NotifyStage:
                 notification_summaries,
                 publisher=publisher,
                 site_urls=segment_urls,
-                items=trusted_domestic_price_items(
-                    items,
-                    target_date=target_date,
-                    source_outcomes=source_outcomes,
-                    previous_closes=previous_domestic_anchor_closes,
-                ),
+                items=public_items,
                 lookahead_items_by_segment=lookahead_items_by_segment,
                 now_utc=notify_now_utc,
                 missing_segments=tuple(
@@ -3651,7 +3713,11 @@ async def _execute_pipeline_stages(
         accumulated.get("publication_committed", False),
     )
     if segment_outcomes:
-        finalized_count = sum(1 for outcome in segment_outcomes if outcome.state == "finalized")
+        finalized_count = sum(
+            1
+            for outcome in segment_outcomes
+            if outcome.state in {"finalized", "finalized_degraded"}
+        )
         content_completeness: ContentCompleteness = (
             "complete"
             if finalized_count == len(segment_outcomes)

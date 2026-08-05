@@ -33,7 +33,7 @@ from investo._internal.surface_quality import repair_surface_artifacts
 from investo.models import Briefing, NormalizedItem
 from investo.models.bundle_context import BundleContext
 from investo.models.market_anchor import MarketAnchor
-from investo.models.segments import MarketSegment
+from investo.models.segments import DOMESTIC_EQUITY, MarketSegment
 from investo.publisher.anchor_assertion_gate import (
     NumericAnchorReconciliationError,
     gate_body_assertions,
@@ -126,6 +126,7 @@ def apply_reader_format_to_segments(
     _surface_repair_observer: _SurfaceRepairObserver | None = None,
     _watchpoint_result_observer: _WatchpointResultObserver | None = None,
     _watchpoint_preserved_fragments_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
+    _defer_domestic_terminal_gates: bool = False,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
 
@@ -193,18 +194,19 @@ def apply_reader_format_to_segments(
         # sentence is rewritten to a data-limited callout; an un-rewritable
         # contradiction raises ``NumericAnchorReconciliationError`` (caught by
         # the publish-stage handler below alongside the other reader gates).
-        anchor_gate = gate_body_assertions(
-            markdown,
-            segment=segment,
-            available_symbols=tuple(a.ticker for a in anchors),
-        )
-        if anchor_gate.has_blocking_finding:
-            blocking = next(finding for finding in anchor_gate.findings if not finding.isolated)
-            raise NumericAnchorReconciliationError(
-                f"{segment}: precise move claim for {blocking.label} "
-                f"({blocking.symbol}) without a canonical anchor: {blocking.sentence!r}"
+        if not (_defer_domestic_terminal_gates and segment == DOMESTIC_EQUITY):
+            anchor_gate = gate_body_assertions(
+                markdown,
+                segment=segment,
+                available_symbols=tuple(a.ticker for a in anchors),
             )
-        markdown = anchor_gate.markdown
+            if anchor_gate.has_blocking_finding:
+                blocking = next(finding for finding in anchor_gate.findings if not finding.isolated)
+                raise NumericAnchorReconciliationError(
+                    f"{segment}: precise move claim for {blocking.label} "
+                    f"({blocking.symbol}) without a canonical anchor"
+                )
+            markdown = anchor_gate.markdown
         # Step 3 — pure str → str post-format chain.
         markdown = apply_reader_format(markdown, segment=segment)
         # u57 — inject shared macro block + run cross-segment lint.
@@ -295,7 +297,8 @@ def apply_reader_format_to_segments(
                 segment,
             )
             markdown = repaired_markdown
-        scan_compliance(markdown, segment)
+        if not (_defer_domestic_terminal_gates and segment == DOMESTIC_EQUITY):
+            scan_compliance(markdown, segment)
         # u72 — convert §⑥ bullets into the observational watchpoint matrix.
         # Runs AFTER scan_compliance so the raw bullets are scanned as prose
         # (a table-cell mask would otherwise hide advice wording from the
@@ -366,7 +369,8 @@ def apply_reader_format_to_segments(
         if _watchpoint_result_observer is not None:
             _watchpoint_result_observer(segment, watchpoint_result)
         markdown = watchpoint_result.markdown
-        scan_compliance(markdown, segment)
+        if not (_defer_domestic_terminal_gates and segment == DOMESTIC_EQUITY):
+            scan_compliance(markdown, segment)
         markdown = emit_first_viewport_disclaimer(markdown, segment)
         # u71 — reader-first viewport reflow. Runs last in the header
         # chain (after the short disclaimer is positioned) so it sees the

@@ -222,7 +222,9 @@ class PipelineResult(BaseModel):
         if len(set(segments)) != len(segments):
             raise ValueError("segment_outcomes must not contain duplicate segments")
         finalized_count = sum(
-            1 for outcome in self.segment_outcomes if outcome.state == "finalized"
+            1
+            for outcome in self.segment_outcomes
+            if outcome.state in {"finalized", "finalized_degraded"}
         )
         expected = (
             "complete"

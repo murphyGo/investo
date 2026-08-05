@@ -43,6 +43,9 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "PublicNotificationSummary",
         # public_document_outcome.py (u144)
         "ContentCompleteness",
+        "NumericClaimLineKind",
+        "NumericContainmentAction",
+        "NumericContainmentOutcome",
         "SegmentFinalizationOutcome",
         "SegmentFinalizationState",
         # core_fact.py

@@ -142,6 +142,19 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Result/notification contract**: `PipelineResult`의 `content_completeness`와 ordered segment outcomes가 exit 0/1/2 및 Pages sequencing의 근거다. notifier는 terminal layout과 E1 coverage에서 파생된 `PublicNotificationSummary`만 소비하며 generated `Briefing.market_summary` fallback은 없다.
 **Boundary owner**: numeric verification과 source-outcome scoping처럼 publisher와 briefing이 함께 필요한 순수 로직은 `_internal` neutral owner가 소유한다. publisher→briefing/orchestrator 직접 import는 u114 AST test가 차단한다.
 
+### TD-011: 국내 가격 raw/public 단일 신뢰 투영 (u148)
+
+**Choice**: 가격 fallback reconciliation 직후 `project_domestic_public_items()`가 기존 u109/u130 판정을 원본 ordinal 기준으로 정확히 한 번 계산한다. 결과는 진단용 `raw_items`/ordinal verdict와 독자 노출용 `public_items`로 분리된다. 생성 prompt, BundleContext/fact/carryover, coverage, image/visual/chart, finalizer E1, 공개 품질 검증, Telegram은 모두 `public_items` 또는 그 세그먼트 route만 소비한다.
+**Parser boundary**: `yonhap-index-close`는 종가·마감 문구에 직접 결합된 숫자만 선택한다. 등락 폭, 선물·옵션, 라운드 레벨, 복수 모호 후보는 추측하지 않고 zero-item으로 닫히며 연속성·plausibility 판단은 계속 u109/u130이 소유한다.
+**Diagnostics**: source-health와 withheld reason은 raw item/verdict에서 유지하되 raw 국내 가격이 public semantic fork로 재진입하지 못하도록 AST production-path guard를 둔다.
+
+### TD-012: 국내 numeric-only 국소 격리와 degraded seal (u149)
+
+**Choice**: u144 lifecycle은 유지하고 국내 `numeric.anchor_assertion`만 indexed region에서 최소 단위로 격리한다. 원본 repaired layout의 전체 hard gate를 먼저 수집하며 숫자 외 entity/compliance/structure/disclaimer/summary 결함이 함께 있으면 기존 `trust_blocked`를 유지한다. 미국/크립토 숫자 결함도 기존 정책 그대로다.
+**Containment order**: trusted whole-block renderer → 문장 rewrite/표 행·H3 subtree 제외 → owned region replace/omit → 한 번의 no-LLM 6-section minimal fallback 순서다. 원본 offset으로 region당 한 번만 적용하고 재투영·재인덱싱·read-only terminal validation 후에만 봉인한다.
+**State contract**: 격리 witness가 있는 봉인 문서는 `finalized_degraded`다. witness는 symbol/region/line kind/action/sorted code/SHA-256 claim digest만 가지며 원문은 로그에 남기지 않는다. `finalized`와 `finalized_degraded`는 모두 published document로 계산되므로 세 문서가 봉인되면 content completeness와 exit는 complete/0을 유지한다.
+**Fallback boundary**: neutral `_internal.data_limited_segment` builder는 네트워크·LLM·파일·환경·현재시각 없이 세그먼트당 최대 한 번만 호출된다. items/anchors/facts/supplements/staged artifacts/bundle semantics를 제거한 context로 같은 finalizer와 seal을 통과하며, 실패 시에만 `numeric.fallback_exhausted`로 차단된다.
+
 ---
 
 ## Data Model
@@ -153,7 +166,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 - 7섹션 (`market_summary`, `key_issues`, `sector_flow`, `indicators_events`, `notable_tickers`, `today_watch`, `disclaimer`) + `rendered_markdown`
 
 ### FinalizedPublicDocument / PublicNotificationSummary
-- `FinalizedPublicDocument`: segment/date, exact final Markdown bytes, SHA-256 seal, terminal notification DTO, selected artifact IDs를 갖는 immutable E5
+- `FinalizedPublicDocument`: segment/date, exact final Markdown bytes, SHA-256 seal, terminal notification DTO, selected artifact IDs, sealed numeric-containment witness를 갖는 immutable E5
 - `PublicNotificationSummary`: final layout에서 파생된 conclusion/watchlist와 E1 typed coverage만 보유하며 notifier가 `Briefing.market_summary`를 다시 읽지 못하게 하는 경계
 
 ### BriefingNotification / FailureContext / SendResult / PipelineResult

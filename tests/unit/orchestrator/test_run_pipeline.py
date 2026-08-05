@@ -898,15 +898,14 @@ async def test_run_pipeline_reconciles_history_fallback_before_all_downstream_co
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_loads_previous_domestic_closes_once_for_all_consumers(
+async def test_run_pipeline_projects_domestic_items_once_with_previous_closes(
     archive_root: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     previous_closes = {"^KOSDAQ": Decimal("477.00")}
     load_calls: list[tuple[Path, date]] = []
-    anchor_inputs: list[object] = []
+    projection_inputs: list[object] = []
     publish_inputs: list[object] = []
-    notify_inputs: list[object] = []
 
     def _load_previous(root: Path, target_date: date) -> dict[str, Decimal]:
         load_calls.append((root, target_date))
@@ -918,16 +917,22 @@ async def test_run_pipeline_loads_previous_domestic_closes_once_for_all_consumer
         assert target_date == _TARGET
         return ({segment: () for segment in pipeline_module.SEGMENT_ORDER}, {})
 
-    def _capture_anchor_inputs(
+    real_projection = pipeline_module.project_domestic_public_items
+
+    def _capture_projection_inputs(
         items: Sequence[NormalizedItem],
         *,
         target_date: date | None = None,
         source_outcomes: Sequence[SourceOutcome] = (),
         previous_closes: object = None,
-    ) -> tuple[object, ...]:
-        del items, target_date, source_outcomes
-        anchor_inputs.append(previous_closes)
-        return ()
+    ) -> object:
+        projection_inputs.append(previous_closes)
+        return real_projection(
+            items,
+            target_date=target_date,
+            source_outcomes=source_outcomes,
+            previous_closes=previous_closes,
+        )
 
     async def _capture_publish(
         briefings: dict[MarketSegment, Briefing],
@@ -939,26 +944,18 @@ async def test_run_pipeline_loads_previous_domestic_closes_once_for_all_consumer
         publish_inputs.append(kwargs["previous_domestic_anchor_closes"])
         return {}
 
-    def _capture_notify_filter(
-        items: Sequence[NormalizedItem],
-        *,
-        target_date: date | None = None,
-        source_outcomes: Sequence[SourceOutcome] = (),
-        previous_closes: object = None,
-    ) -> tuple[NormalizedItem, ...]:
-        del target_date, source_outcomes
-        notify_inputs.append(previous_closes)
-        return tuple(items)
-
     monkeypatch.setattr(
         pipeline_module,
         "load_previous_domestic_anchor_closes",
         _load_previous,
     )
     monkeypatch.setattr(pipeline_module, "_load_market_anchors_for_run", _load_history)
-    monkeypatch.setattr(pipeline_module, "_build_kr_anchors_from_items", _capture_anchor_inputs)
+    monkeypatch.setattr(
+        pipeline_module,
+        "project_domestic_public_items",
+        _capture_projection_inputs,
+    )
     monkeypatch.setattr(pipeline_module, "_stage_publish_segments", _capture_publish)
-    monkeypatch.setattr(pipeline_module, "trusted_domestic_price_items", _capture_notify_filter)
 
     result = await run_pipeline(
         _TARGET,
@@ -972,12 +969,75 @@ async def test_run_pipeline_loads_previous_domestic_closes_once_for_all_consumer
 
     assert result.status == PipelineStatus.SUCCESS
     assert load_calls == [(archive_root, _TARGET)]
-    assert anchor_inputs == [previous_closes]
+    assert projection_inputs == [previous_closes]
     assert publish_inputs == [previous_closes]
-    assert notify_inputs == [previous_closes]
-    assert anchor_inputs[0] is previous_closes
+    assert projection_inputs[0] is previous_closes
     assert publish_inputs[0] is previous_closes
-    assert notify_inputs[0] is previous_closes
+
+
+@pytest.mark.asyncio
+async def test_domestic_numeric_only_containment_keeps_three_segment_run_complete(
+    archive_root: Path,
+) -> None:
+    async def generate_with_domestic_table(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del (
+            items,
+            runner,
+            data_limited,
+            source_outcomes,
+            recent_context,
+            market_anchors,
+            carryover,
+            bundle_context,
+        )
+        briefing = _briefing(target_date, segment=segment)
+        if segment != DOMESTIC_EQUITY:
+            return briefing
+        return briefing.model_copy(
+            update={
+                "rendered_markdown": briefing.rendered_markdown.replace(
+                    "## ② 전일 핵심 이슈\n핵심 이슈",
+                    "## ② 전일 핵심 이슈\n"
+                    "| 구분 | 값 |\n|---|---|\n"
+                    "| 코스피 | 150.00 |\n"
+                    "| 수급 | 확인 중 |",
+                )
+            }
+        )
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("seed")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=generate_with_domestic_table,
+    )
+
+    assert result.status == PipelineStatus.SUCCESS
+    assert result.content_completeness == "complete"
+    assert len(result.segment_outcomes) == 3
+    domestic = next(
+        outcome for outcome in result.segment_outcomes if outcome.segment == DOMESTIC_EQUITY
+    )
+    assert domestic.state == "finalized_degraded"
+    assert {witness.action for witness in domestic.numeric_containment_outcomes} == {"excluded"}
+    domestic_archive = archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md"
+    markdown = domestic_archive.read_text(encoding="utf-8")
+    assert "150.00" not in markdown
+    assert "| 수급 | 확인 중 |" in markdown
 
 
 @pytest.mark.asyncio
@@ -3723,6 +3783,7 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
         segment=DOMESTIC_EQUITY,
         briefing=sealed,
         watchpoint_synthesized=2,
+        numeric_containment_outcomes=(),
     )
     bundle = SimpleNamespace(documents=(document,), promotion_manifest=())
     written: list[object] = []

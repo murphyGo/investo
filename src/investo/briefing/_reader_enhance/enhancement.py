@@ -19,6 +19,7 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal.data_limited_segment import build_data_limited_body
 from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
 from investo._internal.public_watermark import (
     render_timestamp_watermark as _render_timestamp_watermark,
@@ -33,7 +34,6 @@ from investo.briefing.glossary import (
     render_glossary_callout,
 )
 from investo.briefing.market_anchor import MarketAnchor, render_market_anchor_line
-from investo.briefing.prompts import STAGE2_SECTION_HEADERS
 from investo.briefing.segments import SEGMENT_LABELS, MarketSegment, SegmentCoverage
 from investo.briefing.watchlist import WatchlistImpact, render_watchlist_impact
 from investo.models import NormalizedItem
@@ -51,25 +51,7 @@ _CONCLUSION_CLOSERS: Final[frozenset[str]] = frozenset(
 
 def _build_data_limited_body(target_date: date, segment: MarketSegment) -> str:
     """Return a concise six-section body for a segment with zero routed items."""
-    label = SEGMENT_LABELS[segment]
-    h1, h2, h3, h4, h5, h6 = STAGE2_SECTION_HEADERS
-    return (
-        f"{h1}\n{target_date.isoformat()} {label} 세그먼트는 정식 시황을 만들 만큼 "
-        "검증된 입력 데이터가 수집되지 않았습니다. 오늘 문서는 시장 방향을 단정하지 않고, "
-        "수집 공백과 확인할 항목만 짧게 남깁니다.\n\n"
-        f"{h2}\n확인된 핵심 이슈 없음 — 해당 세그먼트의 뉴스/공시 입력이 충분하지 않아 "
-        "주요 이벤트를 선별하지 않았습니다.\n\n"
-        f"{h3}\n가격·수급 데이터 미확인 — 섹터, 자금 흐름, 상대강도 판단은 다음 정상 "
-        "수집 이후로 보류합니다.\n\n"
-        f"{h4}\n일정·거시 이벤트 미확인 — 세그먼트에 직접 연결되는 지표와 이벤트 근거가 "
-        "부족합니다.\n\n"
-        f"{h5}\n개별 종목·자산 선별 보류 — 충분한 가격/뉴스 근거 없이 티커를 나열하지 "
-        "않습니다.\n\n"
-        f"{h6}\n"
-        "1. 데이터 수집 로그에서 실패한 소스와 성공했지만 0건을 반환한 소스를 구분합니다.\n"
-        "2. 해당 시장의 대표 가격 지표와 주요 뉴스 소스가 회복됐는지 확인합니다.\n"
-        "3. 다음 발행 전까지는 공신력 있는 원천 데이터로 가격과 이벤트를 별도 확인합니다.\n"
-    )
+    return build_data_limited_body(target_date, segment)
 
 
 def _segment_nav(target_date: date, segment: MarketSegment) -> str:

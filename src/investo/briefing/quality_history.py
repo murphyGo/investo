@@ -61,6 +61,9 @@ class QualitySnapshot:
     domestic_anchor_withheld_reasons: tuple[str, ...] = ()
     # u135 — private diagnostics for deterministic §⑥ fallback frequency.
     watchpoint_synthesized: int = 0
+    # u149 — bounded sealed numeric-degradation frequency.
+    current_run_degraded_segments: int = 0
+    current_run_numeric_containment_actions: int = 0
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -121,6 +124,11 @@ def append_quality_snapshot(
         ),
         "current_run_data_limited_briefings": max(
             snapshot.current_run_data_limited_briefings,
+            0,
+        ),
+        "current_run_degraded_segments": max(snapshot.current_run_degraded_segments, 0),
+        "current_run_numeric_containment_actions": max(
+            snapshot.current_run_numeric_containment_actions,
             0,
         ),
         "current_run_briefings_observed": max(snapshot.current_run_briefings_observed, 0),

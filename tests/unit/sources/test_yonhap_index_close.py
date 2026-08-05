@@ -115,6 +115,87 @@ async def test_no_numeric_index_match_returns_zero_items() -> None:
     assert items == []
 
 
+@pytest.mark.parametrize(
+    ("headline", "expected"),
+    [
+        ("코스피 2,650.50 마감", "2650.500000"),
+        ("코스피가 2,650.50에 거래를 마쳤다", "2650.500000"),
+        ("[코스피] 483.00p 내린 7,500.00(장종료)", "7500.000000"),
+        ("코스피 지수가 2,650.50로 종가를 기록했다", "2650.500000"),
+    ],
+)
+async def test_close_coupled_shapes_select_terminal_level(
+    headline: str,
+    expected: str,
+) -> None:
+    body = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item><title>{headline}</title>
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>Fri, 22 May 2026 16:00:00 +0900</pubDate>
+    </item></channel></rss>""".encode()
+
+    items, _ = await _fetch(body)
+
+    assert len(items) == 1
+    assert items[0].raw_metadata["close"] == expected
+
+
+@pytest.mark.parametrize(
+    "headline",
+    [
+        "코스피 483.00포인트 하락",
+        "코스피 7,500선 회복",
+        "코스피200 선물 483.00p 내린 7,500.00 마감",
+        "코스피 옵션 2,650.50 마감",
+        "코스피 2,650.50 마감, 2,660.50 마감",
+    ],
+)
+async def test_move_round_level_derivative_or_ambiguous_shapes_fail_quiet(
+    headline: str,
+) -> None:
+    body = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item><title>{headline}</title>
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>Fri, 22 May 2026 16:00:00 +0900</pubDate>
+    </item></channel></rss>""".encode()
+
+    items, _ = await _fetch(body)
+
+    assert items == []
+
+
+async def test_combined_index_close_sentence_keeps_each_value_with_its_alias() -> None:
+    body = """<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item><title>코스피 2,650.50 마감, 코스닥 870.25 마감</title>
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>Fri, 22 May 2026 16:00:00 +0900</pubDate>
+    </item></channel></rss>""".encode()
+
+    items, _ = await _fetch(body)
+
+    assert [item.raw_metadata["ticker"] for item in items] == ["^KOSPI", "^KOSDAQ"]
+    assert [item.raw_metadata["close"] for item in items] == [
+        "2650.500000",
+        "870.250000",
+    ]
+
+
+@pytest.mark.parametrize("intraday_label", ["장중", "한때"])
+async def test_intraday_value_cannot_borrow_other_index_close_phrase(
+    intraday_label: str,
+) -> None:
+    body = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item><title>코스피 2,650.50 마감, 코스닥 {intraday_label} 870.25</title>
+    <link>https://www.yna.co.kr/view/AKR1</link>
+    <pubDate>Fri, 22 May 2026 16:00:00 +0900</pubDate>
+    </item></channel></rss>""".encode()
+
+    items, _ = await _fetch(body)
+
+    assert [item.raw_metadata["ticker"] for item in items] == ["^KOSPI"]
+    assert items[0].raw_metadata["close"] == "2650.500000"
+
+
 async def test_malformed_xml_is_terminal_source_error() -> None:
     with pytest.raises(SourceFetchError) as exc_info:
         await _fetch(b"<rss><channel>")

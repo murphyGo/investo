@@ -27,11 +27,24 @@ _DISPLAY: Final[dict[str, str]] = {
     "^KOSPI": "코스피",
     "^KOSDAQ": "코스닥",
 }
-_NUM = r"([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)"
+_NUMBER_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?<![0-9])(?P<value>[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)(?![0-9])"
+)
 _INDEX_PATTERNS: Final[dict[str, re.Pattern[str]]] = {
-    "^KOSPI": re.compile(rf"코스피[^0-9]{{0,40}}{_NUM}"),
-    "^KOSDAQ": re.compile(rf"코스닥[^0-9]{{0,40}}{_NUM}"),
+    "^KOSPI": re.compile(r"코스피"),
+    "^KOSDAQ": re.compile(r"코스닥"),
 }
+_ANY_INDEX_RE: Final[re.Pattern[str]] = re.compile(r"코스피|코스닥")
+_CLOSE_RE: Final[re.Pattern[str]] = re.compile(
+    r"거래를\s+마쳤(?:다|습니다)?|장을\s+마쳤(?:다|습니다)?|장종료|종가|마감"
+)
+_NON_CLOSE_SUFFIX_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\s*(?:%|\uff05|p(?:t)?\b|포인트|선|대)",
+    re.IGNORECASE,
+)
+_DERIVATIVES_RE: Final[re.Pattern[str]] = re.compile(r"(?:선물|옵션|코스피\s*200)")
+_MAX_ALIAS_DISTANCE: Final[int] = 120
+_MAX_CLOSE_DISTANCE: Final[int] = 24
 
 
 @register
@@ -102,16 +115,93 @@ def _first_index_match(
 ) -> tuple[float, str, str, datetime] | None:
     for title, description, link, published_at in entries:
         for text in (title, description):
-            match = pattern.search(text)
-            if match is None:
-                continue
-            try:
-                value = float(match.group(1).replace(",", ""))
-            except ValueError:
+            value = _extract_close_coupled_value(pattern, text)
+            if value is None:
                 continue
             if value >= 100.0:
                 return value, title or text, link, published_at
     return None
+
+
+def _extract_close_coupled_value(
+    index_pattern: re.Pattern[str],
+    text: str,
+) -> float | None:
+    """Return one unambiguous number coupled to an index close phrase."""
+
+    if _DERIVATIVES_RE.search(text):
+        return None
+    aliases = tuple(index_pattern.finditer(text))
+    all_index_aliases = tuple(_ANY_INDEX_RE.finditer(text))
+    close_phrases = tuple(_CLOSE_RE.finditer(text))
+    if not aliases or not close_phrases:
+        return None
+    matching_alias_spans = {alias.span() for alias in aliases}
+    alias_windows = tuple(
+        (
+            alias.start(),
+            (
+                all_index_aliases[index + 1].start()
+                if index + 1 < len(all_index_aliases)
+                else len(text)
+            ),
+        )
+        for index, alias in enumerate(all_index_aliases)
+        if alias.span() in matching_alias_spans
+    )
+
+    ranked: list[tuple[int, str]] = []
+    for number in _NUMBER_RE.finditer(text):
+        if _NON_CLOSE_SUFFIX_RE.match(text[number.end() :]):
+            continue
+        nearest_alias = min(
+            (_span_distance(number.span(), alias.span()) for alias in aliases),
+            default=_MAX_ALIAS_DISTANCE + 1,
+        )
+        if nearest_alias > _MAX_ALIAS_DISTANCE:
+            continue
+        owner_window = next(
+            (
+                (window_start, window_end)
+                for window_start, window_end in alias_windows
+                if window_start <= number.start() < window_end
+            ),
+            None,
+        )
+        if owner_window is None:
+            continue
+        window_start, window_end = owner_window
+        owned_close_phrases = tuple(
+            close for close in close_phrases if window_start <= close.start() < window_end
+        )
+        if not owned_close_phrases:
+            continue
+        nearest_close = min(
+            (_span_distance(number.span(), close.span()) for close in owned_close_phrases),
+            default=_MAX_CLOSE_DISTANCE + 1,
+        )
+        if nearest_close > _MAX_CLOSE_DISTANCE:
+            continue
+        ranked.append((nearest_close, number.group("value")))
+
+    if not ranked:
+        return None
+    best_distance = min(distance for distance, _ in ranked)
+    best_values = {value for distance, value in ranked if distance == best_distance}
+    if len(best_values) != 1:
+        return None
+    try:
+        return float(best_values.pop().replace(",", ""))
+    except ValueError:
+        return None
+
+
+def _span_distance(left: tuple[int, int], right: tuple[int, int]) -> int:
+    if left[1] <= right[0]:
+        return right[0] - left[1]
+    if right[1] <= left[0]:
+        return left[0] - right[1]
+    return 0
 
 
 def _build_item(

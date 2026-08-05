@@ -50,7 +50,10 @@ from investo.briefing.segments import (
 )
 from investo.models import BriefingCarryover, NormalizedItem
 from investo.models.coverage import SourceOutcome
-from investo.orchestrator.domestic_anchor_quarantine import domestic_anchor_verdicts
+from investo.orchestrator.domestic_anchor_quarantine import (
+    DomesticAnchorVerdict,
+    domestic_anchor_verdicts,
+)
 
 _logger = logging.getLogger("investo.orchestrator.stage_context")
 _MARKET_ANCHOR_HISTORY_BUDGET_ENV = "INVESTO_MARKET_ANCHOR_HISTORY_BUDGET_S"
@@ -193,6 +196,23 @@ def _build_kr_anchors_from_items(
             continue
         anchors.append(MarketAnchor(ticker=ticker, close=close, is_ath=False))
     return tuple(anchors)
+
+
+def _build_kr_anchors_from_verdicts(
+    verdicts: Sequence[DomesticAnchorVerdict],
+) -> tuple[MarketAnchor, ...]:
+    """Synthesize domestic anchors from an already-computed trust projection."""
+
+    trusted_snapshot = {
+        verdict.candidate.symbol: verdict.candidate.close
+        for verdict in verdicts
+        if verdict.trust == "trusted" and verdict.candidate.symbol in _KR_ANCHOR_TICKERS
+    }
+    return tuple(
+        MarketAnchor(ticker=ticker, close=close, is_ath=False)
+        for ticker in _KR_ANCHOR_TICKERS
+        if (close := trusted_snapshot.get(ticker)) is not None
+    )
 
 
 async def _load_market_anchors_for_run(
@@ -372,6 +392,7 @@ def _load_recent_context_for_run(target_date: date) -> RecentBriefingsContext | 
 __all__ = [
     "SEGMENT_ORDER",
     "_build_kr_anchors_from_items",
+    "_build_kr_anchors_from_verdicts",
     "_load_carryover_for_run",
     "_load_market_anchors_for_run",
     "_load_recent_context_for_run",

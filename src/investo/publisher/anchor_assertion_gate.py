@@ -42,6 +42,7 @@ from datetime import date
 from typing import Final
 
 from investo.models.market_anchor import anchor_label
+from investo.models.public_document_outcome import NumericClaimLineKind
 from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
 
 # Core anchor symbols whose precise body claims u70 guards, per segment.
@@ -131,6 +132,13 @@ class AnchorAssertionFinding:
     label: str
     sentence: str
     isolated: bool
+    start: int = 0
+    end: int = 0
+    line_kind: NumericClaimLineKind = "prose_sentence"
+
+    def __post_init__(self) -> None:
+        if not (0 <= self.start <= self.end):
+            raise ValueError("finding offsets must be ordered and non-negative")
 
 
 @dataclass(frozen=True, slots=True)
@@ -372,14 +380,18 @@ def scan_anchor_assertions(
     if not gated_symbols:
         return ()
     findings: list[AnchorAssertionFinding] = []
-    for line in markdown.split("\n"):
+    line_start = 0
+    for raw_line in markdown.splitlines(keepends=True):
+        line = raw_line.rstrip("\r\n")
         findings.extend(
             _scan_line_assertions(
                 line,
                 segment=segment,
                 gated_symbols=gated_symbols,
+                line_start=line_start,
             )
         )
+        line_start += len(raw_line)
     return tuple(findings)
 
 
@@ -388,20 +400,32 @@ def _scan_line_assertions(
     *,
     segment: MarketSegment,
     gated_symbols: Sequence[str],
+    line_start: int = 0,
 ) -> tuple[AnchorAssertionFinding, ...]:
     stripped = line.lstrip()
     if _is_traceability_table_line(stripped) or _PROTECTED_BLOCKQUOTE_RE.match(line):
         return ()
     structural = stripped.startswith(_STRUCTURAL_PREFIXES)
     content = line
+    content_start = line_start
+    has_prose_marker = False
     if not structural:
         match = _PROSE_BLOCKQUOTE_RE.match(line)
         if match is None:
             match = re.match(r"^(\s*(?:[-*]|\d+\.)\s+)(.*)$", line)
         if match is not None:
             content = match.group(2)
+            content_start = line_start + match.start(2)
+            has_prose_marker = True
 
     if structural:
+        line_kind: NumericClaimLineKind = (
+            "table_row"
+            if stripped.startswith("|")
+            else "h3_subtree"
+            if stripped.startswith("### ")
+            else "structural_region"
+        )
         for symbol in gated_symbols:
             if _is_precise_claim_for_symbol(content, segment=segment, symbol=symbol):
                 return (
@@ -411,15 +435,23 @@ def _scan_line_assertions(
                         label=_public_label(symbol),
                         sentence=line.strip(),
                         isolated=False,
+                        start=line_start,
+                        end=line_start + len(line),
+                        line_kind=line_kind,
                     ),
                 )
         return ()
 
     findings: list[AnchorAssertionFinding] = []
-    for unit in _sentence_units(content):
+    for match in _SENTENCE_UNIT_RE.finditer(content):
+        unit = match.group(0)
         sentence = unit.strip()
         if not sentence:
             continue
+        leading = len(unit) - len(unit.lstrip())
+        trailing = len(unit) - len(unit.rstrip())
+        finding_start = content_start + match.start() + leading
+        finding_end = content_start + match.end() - trailing
         for symbol in gated_symbols:
             if not _is_precise_claim_for_symbol(sentence, segment=segment, symbol=symbol):
                 continue
@@ -430,6 +462,9 @@ def _scan_line_assertions(
                     label=_public_label(symbol),
                     sentence=sentence,
                     isolated=True,
+                    start=finding_start,
+                    end=finding_end,
+                    line_kind=("list_or_callout" if has_prose_marker else "prose_sentence"),
                 )
             )
             break
@@ -546,6 +581,12 @@ def _public_label(symbol: str) -> str:
     return _EXTRA_SYMBOL_LABELS.get(symbol, anchor_label(symbol).ko)
 
 
+def render_data_limited_anchor_claim(symbol: str) -> str:
+    """Return the canonical u109/u130 data-limited sentence for ``symbol``."""
+
+    return _DATA_LIMITED_TEMPLATE.format(label=_public_label(symbol))
+
+
 def enforce_anchor_assertions(
     markdown: str,
     *,
@@ -571,7 +612,7 @@ def enforce_anchor_assertions(
         claim_kind = "precise anchor claim" if segment == DOMESTIC_EQUITY else "precise move claim"
         raise NumericAnchorReconciliationError(
             f"{segment}: {claim_kind} for {blocking.label} "
-            f"({blocking.symbol}) without a canonical anchor: {blocking.sentence!r}"
+            f"({blocking.symbol}) without a canonical anchor"
         )
     return result.markdown
 
@@ -582,5 +623,6 @@ __all__ = [
     "NumericAnchorReconciliationError",
     "enforce_anchor_assertions",
     "gate_body_assertions",
+    "render_data_limited_anchor_claim",
     "scan_anchor_assertions",
 ]
