@@ -1108,9 +1108,15 @@ async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_sv
         assert markdown_path.exists()
         body = markdown_path.read_text(encoding="utf-8")
         # (1) Markdown image references for every staged SVG card.
-        assert f"![데이터 신뢰도]({rel_prefix}data-confidence.svg)" in body
-        assert f"![시장 스냅샷]({rel_prefix}market-snapshot.svg)" in body
-        assert f"![관심 자산 관련성]({rel_prefix}watchlist-relevance.svg)" in body
+        for label, kind in (
+            ("데이터 신뢰도", "data-confidence"),
+            ("시장 스냅샷", "market-snapshot"),
+            ("관심 자산 관련성", "watchlist-relevance"),
+        ):
+            assert (
+                f"![{label}]({rel_prefix}{kind}.svg#gh-light-mode-only)\n"
+                f"![{label}]({rel_prefix}{kind}-dark.svg#gh-dark-mode-only)"
+            ) in body
         for kind in ("data-confidence", "market-snapshot", "watchlist-relevance"):
             marker_id = f"{segment}.visual.{kind}"
             assert f"<!-- investo:block visual:{marker_id} -->" in body
@@ -1119,9 +1125,13 @@ async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_sv
         assets_dir = markdown_path.with_suffix(".assets")
         for kind in ("data-confidence", "market-snapshot", "watchlist-relevance"):
             asset = assets_dir / f"{kind}.svg"
+            dark_asset = assets_dir / f"{kind}-dark.svg"
             manifest = assets_dir / f"{kind}.svg.json"
+            dark_manifest = assets_dir / f"{kind}-dark.svg.json"
             assert asset.exists(), f"missing asset: {asset}"
+            assert dark_asset.exists(), f"missing asset: {dark_asset}"
             assert manifest.exists(), f"missing manifest: {manifest}"
+            assert not dark_manifest.exists(), f"unexpected manifest: {dark_manifest}"
     # (3) git ``add`` picks up SVGs and their provenance manifests so
     # the commit publishes the cards alongside the markdown.
     add_call = next(call for call in git.calls if call[1] == "add")
@@ -1130,6 +1140,9 @@ async def test_run_pipeline_segmented_publish_inserts_visual_links_and_stages_sv
     )
     assert any(arg.endswith(".svg.json") for arg in add_call), (
         f"expected at least one SVG manifest in git add; got {add_call!r}"
+    )
+    assert any(arg.endswith("-dark.svg") for arg in add_call), (
+        f"expected a dark SVG companion in git add; got {add_call!r}"
     )
 
 

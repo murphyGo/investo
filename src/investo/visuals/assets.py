@@ -302,11 +302,26 @@ def prepare_segment_visual_assets(
                 segment=segment,
                 kind="visual",
             )
-            staged_artifacts.extend((asset_artifact, manifest_artifact))
-            artifact_ids_by_path[path] = (
-                asset_artifact.artifact_id,
-                manifest_artifact.artifact_id,
-            )
+            companion_path = dark_variants.get(path)
+            if companion_path is None:
+                staged_artifacts.extend((asset_artifact, manifest_artifact))
+                artifact_ids_by_path[path] = (
+                    asset_artifact.artifact_id,
+                    manifest_artifact.artifact_id,
+                )
+            else:
+                dark_artifact = build_staged_artifact(
+                    staging_root=staging_root,
+                    staged_path=companion_path,
+                    segment=segment,
+                    kind="visual",
+                )
+                staged_artifacts.extend((asset_artifact, dark_artifact, manifest_artifact))
+                artifact_ids_by_path[path] = (
+                    asset_artifact.artifact_id,
+                    dark_artifact.artifact_id,
+                    manifest_artifact.artifact_id,
+                )
 
     markdown_blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,

@@ -6360,3 +6360,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review approved Contracts #2/#3/#4 and the applicable AC-143.1/143.5/143.7 slice with no findings, including empty-sentinel equivalence and non-weakening of legacy tests.
 **Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-3-fragment-markdown.md`.
 **Status**: Step 3 complete 4/7. Next: companion staging and file-count accounting.
+
+## Construction — u143 Code Generation Step 4 complete
+**Timestamp**: 2026-08-05T15:02:51Z
+**Synchronization**: Step 3 was committed and pushed as `0a9c8a2`; local and remote `codex/u143` heads matched before Step 4 construction.
+**Action**: Added each dark companion to the current u144 staged-artifact descriptor owner. Paired visual supplements now bind light SVG, dark SVG, and one primary manifest as three artifact IDs through E1→E5→E6 promotion and git add.
+**Plan grounding**: The July plan's direct `pipeline.py:2111` loop no longer exists on current main; `prepare_segment_visual_assets` owns descriptor creation and `_stage_prepare_visual_assets` forwards it. The same approved staging behavior was implemented at that current owner without recreating a second loop.
+**Measured count**: The normal integration path reports exactly `ok: 27 files` = 3 segments × 3 cards × (light + dark + primary manifest). Dark archive files exist, dark sidecars do not, and git add includes `-dark.svg`.
+**Validation**: Asset + exact pipeline path 23 passed; complete run-pipeline unit and integration files 121 passed. Ruff/format, scoped source mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved the complete u144 artifact lifecycle, 27-file accounting, non-paired image compatibility, current-owner plan grounding, and data/resource integrity with no findings.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-4-staging.md`.
+**Status**: Step 4 complete 5/7. Next: site-scoped inline heatmap and quality sparkline.

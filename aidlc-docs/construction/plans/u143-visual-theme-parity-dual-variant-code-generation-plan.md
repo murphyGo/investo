@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: In Progress (4/7)
+**Status**: In Progress (5/7)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -174,10 +174,10 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - [x] 기존 단일 링크 단언(`tests/unit/visuals/test_assets.py:95,147`)을 **프로덕션 쌍 형태로 갱신**하되 legacy empty-mapping 단언은 보존(삭제·완화 금지).
 - **Acceptance**: 렌더된 markdown이 카드마다 정확히 2개의 `<img>` 라인 + 1개 캡션을 갖고, fragment는 문자열 계층에만 존재.
 
-### Step 4 — 오케스트레이터 스테이징 + 카운트 단언 정정 `[ ]`
-- [ ] `pipeline.py:2111` 루프에 `companion_paths` 합류(스테이징 대상 포함, 매니페스트 경로 부여는 주 자산에만).
-- [ ] `stage_notes["visual_assets"] = f"ok: {n} files"`의 새 값 산정: 현재 18(3 세그먼트 × 3 카드 × [svg+manifest]) → 다크 트윈 합류로 3 × 3 × [light svg + dark svg + manifest] = **27 예상**. 실제 값은 실행으로 확정하고 `tests/integration/test_pipeline.py:256`을 그 값으로 갱신.
-- [ ] 테스트: `tests/unit/orchestrator/test_run_pipeline.py:762-764` 단언을 fragment 쌍 형태로 갱신; L831의 `![` 라인 스캔 로직이 쌍을 정상 처리하는지 확인.
+### Step 4 — 오케스트레이터 스테이징 + 카운트 단언 정정 `[x]`
+- [x] 현재 u144 staged-artifact 구조의 실제 owner인 `prepare_segment_visual_assets`에서 companion descriptor를 주 자산+주 매니페스트와 함께 생성하고 pipeline에 전달(계획 작성 당시 `pipeline.py:2111` 직접 루프는 현 main에 없음; 동작 계약은 동일).
+- [x] `stage_notes["visual_assets"] = f"ok: {n} files"`의 새 값 산정: 현재 18(3 세그먼트 × 3 카드 × [svg+manifest]) → 다크 트윈 합류로 3 × 3 × [light svg + dark svg + manifest] = **27 실측**. `tests/integration/test_pipeline.py`을 그 값으로 갱신.
+- [x] 테스트: `tests/unit/orchestrator/test_run_pipeline.py` 단언을 fragment 쌍 형태로 갱신하고 두 자산+주 매니페스트의 promotion/git-add를 확인; `![` 쌍을 포함한 전체 경로가 정상 완주함을 확인.
 - **Acceptance**: 통합 파이프라인이 3세그먼트 그린으로 완주하고, 다크 트윈이 git add 대상에 포함되며, 카운트 노트가 실제 파일 수와 일치.
 
 ### Step 5 — DEBT-061: 히트맵 + 스파크라인 조상 셀렉터 전환 `[ ]`
@@ -258,4 +258,4 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Next Step
 
-Step 4의 companion staging, artifact descriptor, 실제 파일-count 계약을 구현한다.
+Step 5의 인라인 히트맵·품질 스파크라인을 site-scoped selector로 전환한다.

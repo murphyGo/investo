@@ -365,7 +365,9 @@ def test_prepare_visuals_in_staging_returns_complete_descriptors_without_public_
     )
 
     assert not public_root.exists()
-    assert len(prepared.staged_artifacts) == len(prepared.asset_paths) * 2
+    assert len(prepared.staged_artifacts) == (
+        len(prepared.asset_paths) * 2 + len(prepared.companion_paths)
+    )
     assert len(prepared.companion_paths) == len(prepared.asset_paths)
     assert all(path.is_relative_to(staging_root) for path in prepared.companion_paths)
     descriptor_ids = {artifact.artifact_id for artifact in prepared.staged_artifacts}
@@ -373,7 +375,10 @@ def test_prepare_visuals_in_staging_returns_complete_descriptors_without_public_
         artifact_id for block in prepared.markdown_blocks for artifact_id in block.artifact_ids
     }
     assert referenced_ids == descriptor_ids
-    assert all(len(block.artifact_ids) == 2 for block in prepared.markdown_blocks)
+    assert all(len(block.artifact_ids) == 3 for block in prepared.markdown_blocks)
+    assert {artifact.staged_path for artifact in prepared.staged_artifacts}.issuperset(
+        prepared.companion_paths
+    )
     for artifact in prepared.staged_artifacts:
         assert artifact.staged_path.is_relative_to(staging_root)
         assert sha256(artifact.staged_path.read_bytes()).hexdigest() == artifact.sha256
