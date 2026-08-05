@@ -824,6 +824,44 @@ def test_u135_preserves_numeric_current_and_drops_unresolved_or_fuzzy_rows() -> 
     assert resolved == [numeric]
 
 
+def test_u135_ascii_token_allows_only_bounded_korean_particle_suffix() -> None:
+    payload = WatchpointValuePayload(
+        segment="crypto",
+        anchors=(
+            MarketAnchor(
+                ticker="BTC-USD",
+                close=Decimal("60284"),
+                pct=Decimal("2.23"),
+                is_ath=False,
+            ),
+        ),
+    )
+
+    resolved = resolve_watchpoint_currents(
+        [
+            _value_row("BTC가 기준선을 상회"),
+            _value_row("가짜BTC 가격"),
+            _value_row("BTC파생 가격"),
+            _value_row("가짜BTC파생 가격"),
+        ],
+        payload,
+    )
+
+    assert [row.signal for row in resolved] == ["BTC가 기준선을 상회"]
+    assert resolved[0].current == "$60,284.00 (+2.23%)"
+
+
+def test_u135_resolves_trusted_domestic_close_only_anchor_without_inventing_pct() -> None:
+    payload = WatchpointValuePayload(
+        segment="domestic-equity",
+        anchors=(MarketAnchor(ticker="^KOSPI", close=Decimal("2650.50"), is_ath=False),),
+    )
+
+    resolved = resolve_watchpoint_currents([_value_row("코스피 종가 기준선")], payload)
+
+    assert [row.current for row in resolved] == ["2,650.50"]
+
+
 def test_u135_resolves_every_pinned_item_value_key_by_exact_signal_token() -> None:
     payload = WatchpointValuePayload.from_inputs(
         "crypto",

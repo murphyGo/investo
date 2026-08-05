@@ -151,3 +151,32 @@ def test_empty_payload_preserves_existing_bounded_note_byte_identically() -> Non
     assert result.state == "limited"
     assert result.markdown == markdown
     assert result.synthesized_card_count == 0
+
+
+def test_domestic_close_only_payload_renders_reference_card_without_invented_pct() -> None:
+    fixture = _fixtures()["domestic_equity_close_only"]
+    target_date = date.fromisoformat(fixture["target_date"])
+    anchor_data = fixture["anchor"]
+    segment = cast(MarketSegment, fixture["segment"])
+    observed = []
+
+    output = apply_reader_format_to_segments(
+        {segment: _briefing(target_date, fixture["watchpoint_body"])},
+        anchors_by_segment={
+            segment: (
+                MarketAnchor(
+                    ticker=anchor_data["ticker"],
+                    close=Decimal(anchor_data["close"]),
+                    is_ath=False,
+                ),
+            )
+        },
+        _watchpoint_result_observer=lambda _segment, result: observed.append(result),
+    )[segment].rendered_markdown
+
+    assert f"#### 관찰 신호: {fixture['expected_signal']}" in output
+    assert f"- 현재: {fixture['expected_current']}" in output
+    assert f"상방 {fixture['expected_current']} 상회" in output
+    assert f"하방 {fixture['expected_current']} 이탈" in output
+    assert "+" not in output.split(f"- 현재: {fixture['expected_current']}", 1)[1].splitlines()[0]
+    assert observed[0].synthesized_card_count == 1

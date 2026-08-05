@@ -42,6 +42,18 @@
       "E-mini S&P 500 포지셔닝"
     ]
   },
+  "domestic_equity_close_only": {
+    "segment": "domestic-equity",
+    "target_date": "2026-06-30",
+    "fixture_scope": "Production-contract fixture for the u67/u138 trusted close-only domestic MarketAnchor path; no percentage or 52-week history is invented.",
+    "watchpoint_body": "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조",
+    "anchor": {
+      "ticker": "^KOSPI",
+      "close": "2650.50"
+    },
+    "expected_signal": "코스피 종가 기준선",
+    "expected_current": "2,650.50"
+  },
   "empty_payload": {
     "segment": "domestic-equity",
     "markdown": "## ① 요약\n본문\n\n## ⑥ 오늘의 관전 포인트\n\n> **관전 포인트**: 오늘은 공개 근거가 충분한 관전 신호만 본문에 남겼습니다.\n"

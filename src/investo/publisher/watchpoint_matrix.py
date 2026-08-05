@@ -718,15 +718,23 @@ def _anchor_candidate(
     *,
     segment: MarketSegment,
 ) -> _CurrentValueCandidate | None:
-    if anchor.pct is None:
-        return None
     price = _format_price_value(
         anchor.close,
         prefix=_anchor_price_prefix(anchor, segment),
     )
-    pct = _format_pct_value(anchor.pct)
-    if price is None or pct is None:
+    if price is None:
         return None
+    if anchor.pct is None:
+        # u67/u138 trusted domestic anchors are intentionally close-only.
+        # The close is still a reconciled public value; do not invent a pct.
+        if segment != "domestic-equity":
+            return None
+        current = price
+    else:
+        pct = _format_pct_value(anchor.pct)
+        if pct is None:
+            return None
+        current = f"{price} ({pct})"
     label = anchor_label(anchor.ticker)
     return _CurrentValueCandidate(
         match_tokens=tuple(
@@ -734,7 +742,7 @@ def _anchor_candidate(
                 token for token in (anchor.ticker, label.short, label.ko, label.display) if token
             )
         ),
-        current=f"{price} ({pct})",
+        current=current,
     )
 
 
@@ -893,9 +901,15 @@ def _has_exact_signal_token(signal: str, token: str) -> bool:
         return False
     escaped = re.escape(stripped)
     if stripped.isascii():
+        # Korean often attaches a grammatical particle directly to an ASCII
+        # ticker (``BTC가``). Permit only a closed particle suffix while
+        # rejecting Hangul prefixes and arbitrary mixed words such as
+        # ``가짜BTC파생``.
+        particle = r"(?:으로|에서|부터|까지|보다|처럼|은|는|이|가|을|를|와|과|도|의|에|로)"
         return (
             re.search(
-                rf"(?<![A-Za-z0-9]){escaped}(?![A-Za-z0-9])",
+                rf"(?<![가-힣A-Za-z0-9]){escaped}"
+                rf"(?:(?=[^가-힣A-Za-z0-9]|$)|(?={particle}(?:[^가-힣A-Za-z0-9]|$)))",
                 signal,
                 re.IGNORECASE,
             )

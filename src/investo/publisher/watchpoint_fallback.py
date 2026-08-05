@@ -46,6 +46,15 @@ RANGE_TEMPLATE: Final[ClosedWatchpointTemplate] = ClosedWatchpointTemplate(
     implication="본문 §⑤ 가격 동향과 연계 점검.",
     source="{source}",
 )
+DOMESTIC_CLOSE_TEMPLATE: Final[ClosedWatchpointTemplate] = ClosedWatchpointTemplate(
+    signal="{label} 종가 기준선",
+    current="{current}",
+    upside="{reference} 상회 시 단기 회복 흐름 관찰",
+    downside="{reference} 이탈 시 방어적 수급 관찰",
+    confidence="높음",
+    implication="본문 §⑤ 가격 동향과 연계 점검.",
+    source="검증된 시장 앵커",
+)
 CFTC_TEMPLATE: Final[ClosedWatchpointTemplate] = ClosedWatchpointTemplate(
     signal="{contract} 포지셔닝",
     current="{current}",
@@ -219,6 +228,28 @@ def _range_row(payload: WatchpointValuePayload) -> WatchpointRow | None:
     return None
 
 
+def _domestic_close_row(payload: WatchpointValuePayload) -> WatchpointRow | None:
+    """Render a truthful reference-level card for u67/u138 close-only anchors."""
+
+    if payload.segment != "domestic-equity":
+        return None
+    for anchor in _ordered_anchors(payload):
+        reference = _format_price(anchor.close, prefix=_price_prefix(anchor, payload.segment))
+        if reference is None:
+            continue
+        label = anchor_label(anchor.ticker).ko
+        unresolved = _format_template_row(
+            DOMESTIC_CLOSE_TEMPLATE,
+            label=label,
+            current="시장 앵커",
+            reference=reference,
+        )
+        resolved = resolve_watchpoint_currents((unresolved,), payload)
+        if resolved:
+            return resolved[0]
+    return None
+
+
 def _cftc_row(payload: WatchpointValuePayload) -> WatchpointRow | None:
     if payload.segment == "domestic-equity":
         return None
@@ -276,12 +307,14 @@ def _fear_greed_row(payload: WatchpointValuePayload) -> WatchpointRow | None:
 def synthesize_watchpoint_rows(payload: WatchpointValuePayload) -> tuple[WatchpointRow, ...]:
     """Return at most two rows in the pinned range → CFTC → F&G priority."""
 
-    candidates = (_range_row(payload), _cftc_row(payload), _fear_greed_row(payload))
+    range_or_domestic_close = _range_row(payload) or _domestic_close_row(payload)
+    candidates = (range_or_domestic_close, _cftc_row(payload), _fear_greed_row(payload))
     return tuple(row for row in candidates if row is not None)[:MAX_SYNTHESIZED_ROWS]
 
 
 __all__ = [
     "CFTC_TEMPLATE",
+    "DOMESTIC_CLOSE_TEMPLATE",
     "FEAR_GREED_TEMPLATE",
     "GREED_TEMPLATE",
     "MAX_SYNTHESIZED_ROWS",

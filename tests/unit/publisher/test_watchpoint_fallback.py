@@ -21,6 +21,7 @@ from investo.publisher.reader_format import (
 )
 from investo.publisher.watchpoint_fallback import (
     CFTC_TEMPLATE,
+    DOMESTIC_CLOSE_TEMPLATE,
     FEAR_GREED_TEMPLATE,
     GREED_TEMPLATE,
     MAX_SYNTHESIZED_ROWS,
@@ -101,6 +102,7 @@ def test_closed_templates_are_existing_card_field_payloads() -> None:
     assert MAX_SYNTHESIZED_ROWS == 2
     assert RANGE_TEMPLATE.signal == "{label} 가격 구간"
     assert RANGE_TEMPLATE.upside == "{upper} 상회 시 단기 회복 흐름 관찰"
+    assert DOMESTIC_CLOSE_TEMPLATE.signal == "{label} 종가 기준선"
     assert CFTC_TEMPLATE.confidence == "보통"
     assert FEAR_GREED_TEMPLATE.downside == "10 이탈 시 극단 공포 심화 관찰"
     assert GREED_TEMPLATE.downside == "80 이탈 시 심리 과열 완화 관찰"
@@ -177,6 +179,21 @@ def test_missing_range_and_non_short_cftc_do_not_invent_fallbacks() -> None:
     assert synthesize_watchpoint_rows(WatchpointValuePayload(segment="domestic-equity")) == ()
 
 
+def test_domestic_close_only_anchor_synthesizes_truthful_reference_level() -> None:
+    payload = WatchpointValuePayload.from_inputs(
+        "domestic-equity",
+        anchors=(MarketAnchor(ticker="^KOSPI", close=Decimal("2650.50"), is_ath=False),),
+    )
+
+    rows = synthesize_watchpoint_rows(payload)
+
+    assert [row.signal for row in rows] == ["코스피 종가 기준선"]
+    assert rows[0].current == "2,650.50"
+    assert rows[0].bullish_trigger == "2,650.50 상회 시 단기 회복 흐름 관찰"
+    assert rows[0].bearish_trigger == "2,650.50 이탈 시 방어적 수급 관찰"
+    assert rows[0].source == "검증된 시장 앵커"
+
+
 def test_cross_segment_or_malformed_payload_cannot_synthesize() -> None:
     domestic = WatchpointValuePayload.from_inputs(
         "domestic-equity",
@@ -239,6 +256,10 @@ def test_every_closed_template_passes_u64_structure_and_p0_compliance_contracts(
             anchors=(_us_anchor(),),
             items=(_cftc(),),
         ),
+        WatchpointValuePayload.from_inputs(
+            "domestic-equity",
+            anchors=(MarketAnchor(ticker="^KOSPI", close=Decimal("2650.50"), is_ath=False),),
+        ),
         WatchpointValuePayload.from_inputs("crypto", items=(_fear_greed("18"),)),
         WatchpointValuePayload.from_inputs("crypto", items=(_fear_greed("85"),)),
     )
@@ -256,4 +277,4 @@ def test_every_closed_template_passes_u64_structure_and_p0_compliance_contracts(
             assert not any(pattern.search(card) for pattern in BANNED_P0_QUANTIFIED_OUTCOME)
             assert scan_compliance(card, payload.segment).p0_hits == ()
 
-    assert len(rendered_cards) == 4
+    assert len(rendered_cards) == 5
