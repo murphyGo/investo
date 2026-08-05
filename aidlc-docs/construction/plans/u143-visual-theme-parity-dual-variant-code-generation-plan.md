@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: In Progress (1/7)
+**Status**: In Progress (2/7)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -150,12 +150,12 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - [x] 현재 `_CARD_STYLE` 문자열을 테스트 픽스처로 스냅샷(Step 1의 바이트 동일성 기준선).
 - **Acceptance**: 4개 셀렉터 전부 확인됨. 증가분 수치가 문서에 기록됨. `mkdocs.yml`은 손대지 않음이 확인됨.
 
-### Step 1 — 스타일 팩토리 (`render.py`) `[ ]`
-- [ ] `_CARD_PALETTE` 테이블 + `CardStyleVariant` + `build_card_style(variant)` 도입 (Contract #1). 색 hex 값 변경 금지.
-- [ ] `_CARD_STYLE = build_card_style("auto")` 별칭 유지.
-- [ ] `render_card_svg(card, *, variant="light")` / `_svg_document(..., variant)` 배선.
-- [ ] 테스트: `build_card_style("auto")`가 Step 0 스냅샷과 **바이트 동일**; `light`/`dark`에 `@media` 부재; `light` != `dark`; `site-scoped`에 `[data-md-color-scheme="slate"]` 포함 및 `@media` 부재; 8개 클래스가 4개 variant 전부에서 정확히 1회씩 정의됨.
-- [ ] 테스트(초크포인트 핀): `typing.get_args(_RenderableCard)` registry-driven 파라미터라이즈로 각 카드 입력 클래스가 두 variant를 산출함을 단언 (Contract #1).
+### Step 1 — 스타일 팩토리 (`render.py`) `[x]`
+- [x] `_CARD_PALETTE` 테이블 + `CardStyleVariant` + `build_card_style(variant)` 도입 (Contract #1). 색 hex 값 변경 금지.
+- [x] `_CARD_STYLE = build_card_style("auto")` 별칭 유지.
+- [x] `render_card_svg(card, *, variant="light")` / `_svg_document(..., variant)` 배선.
+- [x] 테스트: `build_card_style("auto")`가 Step 0 스냅샷과 **바이트 동일**; `light`/`dark`에 `@media` 부재; `light` != `dark`; `site-scoped`에 `[data-md-color-scheme="slate"]` 포함 및 `@media` 부재; 각 팔레트 선언이 해당 variant에서 정확히 1회 생성됨.
+- [x] 테스트(초크포인트 핀): `typing.get_args(_RenderableCard)` registry-driven 파라미터라이즈로 각 카드 입력 클래스가 두 variant를 산출함을 단언 (Contract #1).
 - **Acceptance**: `auto` 바이트 동일성 통과 → `og_card`/인라인 표면/기존 골든이 이 단계에서 churn 0. 카드 SVG 산출은 variant 기본값(`light`) 때문에 아직 바뀌지 않음(다음 스텝에서 쌍 방출).
 
 ### Step 2 — 이중 산출 + 프로비넌스 정책 (`assets.py`) `[ ]`
@@ -258,4 +258,4 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Next Step
 
-Step 1의 스타일 팩토리와 variant 렌더 배선을 구현한다.
+Step 2의 light/dark 이중 산출, companion 경로, 프로비넌스 정책을 구현한다.

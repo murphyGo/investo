@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import re
-from typing import Final
+from typing import Final, Literal, TypeAlias
 
 from investo._internal.public_quality_language import project_public_quality_language
 from investo.models.segments import SEGMENT_LABELS
@@ -27,50 +27,72 @@ _LEADING_LIST_RE = re.compile(r"^\s*(?:[-*]|\d+[.)])\s+")
 # KR). Arial / sans-serif fallbacks keep CI / offline rendering legible
 # when the web font is unavailable.
 _FONT_FAMILY: Final[str] = "&quot;Noto Sans KR&quot;, Arial, sans-serif"
-# Embedded ``<style>`` block — drives the dark-mode variant via
-# ``prefers-color-scheme`` so the same SVG is legible on both the light
-# and dark mkdocs themes (u26 Step 3, persona #2). Element classes are
-# applied below in :func:`_svg_document`.
-_CARD_STYLE: Final[str] = (
-    "<style>"
-    ".card-bg{fill:#f7f5ef;}"
-    ".card-frame{fill:#ffffff;stroke:#253238;}"
-    ".card-title{fill:#1d2b2f;}"
-    ".card-subtitle{fill:#617176;}"
-    ".card-label{fill:#476169;}"
-    ".card-emphasis{fill:#14555f;}"
-    ".card-text{fill:#1d2b2f;}"
-    ".card-disclaimer{fill:#7b5e2a;}"
-    "@media (prefers-color-scheme: dark){"
-    ".card-bg{fill:#0f1417;}"
-    ".card-frame{fill:#1a2026;stroke:#9fb1ba;}"
-    ".card-title{fill:#f4f6f8;}"
-    ".card-subtitle{fill:#bfcdd4;}"
-    ".card-label{fill:#a8c0c8;}"
-    ".card-emphasis{fill:#7adfe8;}"
-    ".card-text{fill:#e8eef1;}"
-    ".card-disclaimer{fill:#e2c489;}"
-    "}"
-    "</style>"
+CardStyleVariant = Literal["light", "dark", "auto", "site-scoped"]
+_RenderableCard: TypeAlias = (
+    DataConfidenceCardInput
+    | MarketSnapshotCardInput
+    | PriceSnapshotCardInput
+    | WatchlistRelevanceCardInput
+)
+
+# One palette owns every card color. The declaration order is part of the
+# pre-u143 byte-compatibility contract for the ``auto`` variant.
+_CARD_PALETTE: Final[tuple[tuple[str, str, str], ...]] = (
+    ("card-bg", "fill:#f7f5ef;", "fill:#0f1417;"),
+    ("card-frame", "fill:#ffffff;stroke:#253238;", "fill:#1a2026;stroke:#9fb1ba;"),
+    ("card-title", "fill:#1d2b2f;", "fill:#f4f6f8;"),
+    ("card-subtitle", "fill:#617176;", "fill:#bfcdd4;"),
+    ("card-label", "fill:#476169;", "fill:#a8c0c8;"),
+    ("card-emphasis", "fill:#14555f;", "fill:#7adfe8;"),
+    ("card-text", "fill:#1d2b2f;", "fill:#e8eef1;"),
+    ("card-disclaimer", "fill:#7b5e2a;", "fill:#e2c489;"),
 )
 
 
+def build_card_style(variant: CardStyleVariant) -> str:
+    """Build one deterministic style block for the requested surface."""
+    light_rules = "".join(
+        f".{css_class}{{{light_declarations}}}"
+        for css_class, light_declarations, _ in _CARD_PALETTE
+    )
+    dark_rules = "".join(
+        f".{css_class}{{{dark_declarations}}}" for css_class, _, dark_declarations in _CARD_PALETTE
+    )
+    if variant == "light":
+        body = light_rules
+    elif variant == "dark":
+        body = dark_rules
+    elif variant == "auto":
+        body = f"{light_rules}@media (prefers-color-scheme: dark){{{dark_rules}}}"
+    elif variant == "site-scoped":
+        site_dark_rules = "".join(
+            f'[data-md-color-scheme="slate"] .{css_class}{{{dark_declarations}}}'
+            for css_class, _, dark_declarations in _CARD_PALETTE
+        )
+        body = f"{light_rules}{site_dark_rules}"
+    else:  # pragma: no cover - defensive runtime boundary beyond the Literal type
+        raise ValueError(f"unsupported card style variant: {variant}")
+    return f"<style>{body}</style>"
+
+
+# Compatibility alias for the inline quality sparkline until u143 Step 5 moves
+# that surface to the site-scoped variant.
+_CARD_STYLE: Final[str] = build_card_style("auto")
+
+
 def render_card_svg(
-    card: (
-        DataConfidenceCardInput
-        | MarketSnapshotCardInput
-        | PriceSnapshotCardInput
-        | WatchlistRelevanceCardInput
-    ),
+    card: _RenderableCard,
+    *,
+    variant: CardStyleVariant = "light",
 ) -> str:
     """Render a card input to a standalone SVG string."""
     if isinstance(card, DataConfidenceCardInput):
-        return _render_data_confidence(card)
+        return _render_data_confidence(card, variant=variant)
     if isinstance(card, MarketSnapshotCardInput):
-        return _render_market_snapshot(card)
+        return _render_market_snapshot(card, variant=variant)
     if isinstance(card, PriceSnapshotCardInput):
-        return _render_price_snapshot(card)
-    return _render_watchlist(card)
+        return _render_price_snapshot(card, variant=variant)
+    return _render_watchlist(card, variant=variant)
 
 
 def wrap_visual_text(text: str, *, max_chars: int, max_lines: int) -> tuple[str, ...]:
@@ -107,7 +129,11 @@ _SOURCE_STATUS_LABELS: Final[dict[str, str]] = {
 }
 
 
-def _render_data_confidence(card: DataConfidenceCardInput) -> str:
+def _render_data_confidence(
+    card: DataConfidenceCardInput,
+    *,
+    variant: CardStyleVariant,
+) -> str:
     missing = ", ".join(card.missing_categories) if card.missing_categories else "없음"
     reasons = ", ".join(card.reason_labels) if card.reason_labels else "없음"
     rows = [
@@ -125,6 +151,7 @@ def _render_data_confidence(card: DataConfidenceCardInput) -> str:
         title=f"{SEGMENT_LABELS[card.segment]} 데이터 신뢰도",
         subtitle=card.target_date.isoformat(),
         body="\n".join(body_parts),
+        variant=variant,
     )
 
 
@@ -164,7 +191,11 @@ def _render_source_rows(rows: tuple[DataConfidenceSourceRow, ...]) -> str:
     return "\n".join(rendered)
 
 
-def _render_market_snapshot(card: MarketSnapshotCardInput) -> str:
+def _render_market_snapshot(
+    card: MarketSnapshotCardInput,
+    *,
+    variant: CardStyleVariant,
+) -> str:
     lines = [
         _text_block("오늘의 결론", card.conclusion, y=180),
         _text_block("핵심 동인", card.main_driver, y=300),
@@ -174,10 +205,15 @@ def _render_market_snapshot(card: MarketSnapshotCardInput) -> str:
         title=f"{SEGMENT_LABELS[card.segment]} 시장 스냅샷",
         subtitle=f"{card.target_date.isoformat()} · 데이터 {card.coverage_status}",
         body="\n".join(lines),
+        variant=variant,
     )
 
 
-def _render_price_snapshot(card: PriceSnapshotCardInput) -> str:
+def _render_price_snapshot(
+    card: PriceSnapshotCardInput,
+    *,
+    variant: CardStyleVariant,
+) -> str:
     y = 180
     rows: list[str] = []
     for row in card.rows[:6]:
@@ -195,10 +231,15 @@ def _render_price_snapshot(card: PriceSnapshotCardInput) -> str:
         title=f"{SEGMENT_LABELS[card.segment]} 가격 스냅샷",
         subtitle=subtitle,
         body="\n".join(rows),
+        variant=variant,
     )
 
 
-def _render_watchlist(card: WatchlistRelevanceCardInput) -> str:
+def _render_watchlist(
+    card: WatchlistRelevanceCardInput,
+    *,
+    variant: CardStyleVariant,
+) -> str:
     if not card.configured:
         body = _text_block(
             "관심 목록",
@@ -219,17 +260,24 @@ def _render_watchlist(card: WatchlistRelevanceCardInput) -> str:
         title=f"{SEGMENT_LABELS[card.segment]} 관심 자산 관련성",
         subtitle=f"{card.target_date.isoformat()} · 매칭 {card.total_matches}건{badge}",
         body=body,
+        variant=variant,
     )
 
 
-def _svg_document(*, title: str, subtitle: str, body: str) -> str:
+def _svg_document(
+    *,
+    title: str,
+    subtitle: str,
+    body: str,
+    variant: CardStyleVariant,
+) -> str:
     safe_title = _escape(title)
     safe_subtitle = _escape(subtitle)
     return "\n".join(
         [
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{SVG_WIDTH}" height="{SVG_HEIGHT}" '
             f'viewBox="0 0 {SVG_WIDTH} {SVG_HEIGHT}" role="img" aria-label="{safe_title}">',
-            _CARD_STYLE,
+            build_card_style(variant),
             '<rect class="card-bg" width="1200" height="630"/>',
             '<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" '
             'stroke-width="3"/>',
@@ -306,4 +354,11 @@ def _escape(text: str) -> str:
     return html.escape(text, quote=True)
 
 
-__all__ = ["SVG_HEIGHT", "SVG_WIDTH", "render_card_svg", "wrap_visual_text"]
+__all__ = [
+    "SVG_HEIGHT",
+    "SVG_WIDTH",
+    "CardStyleVariant",
+    "build_card_style",
+    "render_card_svg",
+    "wrap_visual_text",
+]

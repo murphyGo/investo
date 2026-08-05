@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
+from typing import get_args
+
+import pytest
 
 from investo.visuals.cards import (
     DataConfidenceCardInput,
@@ -13,7 +17,103 @@ from investo.visuals.cards import (
     WatchlistRelevanceCardInput,
     WatchlistRelevanceRow,
 )
-from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, render_card_svg, wrap_visual_text
+from investo.visuals.render import (
+    _CARD_PALETTE,
+    SVG_HEIGHT,
+    SVG_WIDTH,
+    CardStyleVariant,
+    _RenderableCard,
+    build_card_style,
+    render_card_svg,
+    wrap_visual_text,
+)
+
+_STYLE_BASELINE = (
+    (Path(__file__).parents[2] / "fixtures" / "u143_card_style_auto.txt")
+    .read_text(encoding="utf-8")
+    .removesuffix("\n")
+)
+
+
+def _sample_renderable_card(card_type: type[object]) -> _RenderableCard:
+    if card_type is DataConfidenceCardInput:
+        return DataConfidenceCardInput(
+            target_date=date(2026, 5, 7),
+            segment="domestic-equity",
+            coverage_status="partial",
+            item_count=3,
+            source_count=2,
+        )
+    if card_type is MarketSnapshotCardInput:
+        return MarketSnapshotCardInput(
+            target_date=date(2026, 5, 7),
+            segment="us-equity",
+            coverage_status="normal",
+            conclusion="결론",
+            main_driver="동인",
+            caution="주의",
+        )
+    if card_type is PriceSnapshotCardInput:
+        return PriceSnapshotCardInput(
+            target_date=date(2026, 5, 7),
+            segment="crypto",
+            rows=(
+                PriceSnapshotRow(
+                    symbol="BTC",
+                    price="$76,105.00",
+                    percent_change="+0.33%",
+                    source_name="coingecko-price",
+                ),
+            ),
+        )
+    if card_type is WatchlistRelevanceCardInput:
+        return WatchlistRelevanceCardInput(
+            target_date=date(2026, 5, 7),
+            segment="us-equity",
+            configured=True,
+            total_matches=0,
+        )
+    raise AssertionError(f"missing sample for renderable card type: {card_type}")
+
+
+def test_build_card_style_auto_is_byte_identical_to_pre_u143_fixture() -> None:
+    assert build_card_style("auto") == _STYLE_BASELINE
+
+
+@pytest.mark.parametrize("variant", ("light", "dark", "auto", "site-scoped"))
+def test_build_card_style_variant_matrix(variant: CardStyleVariant) -> None:
+    style = build_card_style(variant)
+
+    expected_definitions = 2 if variant in ("auto", "site-scoped") else 1
+    for css_class, light_declarations, dark_declarations in _CARD_PALETTE:
+        assert style.count(f".{css_class}{{") == expected_definitions
+        if variant != "dark":
+            assert style.count(f".{css_class}{{{light_declarations}}}") == 1
+        if variant != "light":
+            assert style.count(f".{css_class}{{{dark_declarations}}}") == 1
+
+    if variant == "auto":
+        assert "@media (prefers-color-scheme: dark)" in style
+    else:
+        assert "@media" not in style
+    if variant == "site-scoped":
+        assert '[data-md-color-scheme="slate"]' in style
+
+
+@pytest.mark.parametrize("card_type", get_args(_RenderableCard))
+def test_every_renderable_card_type_inherits_light_and_dark_variants(
+    card_type: type[object],
+) -> None:
+    card = _sample_renderable_card(card_type)
+
+    light = render_card_svg(card, variant="light")
+    dark = render_card_svg(card, variant="dark")
+
+    assert light != dark
+    assert "@media" not in light
+    assert "@media" not in dark
+    assert "#f7f5ef" in light
+    assert "#0f1417" in dark
 
 
 def test_render_data_confidence_card_svg_has_fixed_dimensions_and_content() -> None:
@@ -308,15 +408,8 @@ def test_render_card_uses_noto_sans_kr_font_with_arial_fallback() -> None:
     assert 'font-family="Arial, sans-serif"' not in svg
 
 
-def test_render_card_includes_dark_mode_style_block() -> None:
-    """u26 Step 3 — dark-mode legibility via prefers-color-scheme.
-
-    Persona #2: the white card became visually awkward when the
-    public mkdocs theme switched to dark mode. The SVG now embeds a
-    ``<style>`` block whose ``@media (prefers-color-scheme: dark)``
-    rules swap the card background and foreground colors so the
-    same asset is legible on either theme.
-    """
+def test_render_card_defaults_to_forced_light_style() -> None:
+    """u143 Step 1 — primary card output is a forced-light variant."""
     card = DataConfidenceCardInput(
         target_date=date(2026, 5, 7),
         segment="domestic-equity",
@@ -329,11 +422,9 @@ def test_render_card_includes_dark_mode_style_block() -> None:
     svg = render_card_svg(card)
 
     assert "<style>" in svg
-    assert "@media (prefers-color-scheme: dark)" in svg
-    # Both card-bg and card-text must declare dark variants.
-    dark_section = svg.split("@media (prefers-color-scheme: dark)", 1)[1]
-    assert ".card-bg{fill:" in dark_section
-    assert ".card-text{fill:" in dark_section
+    assert "@media" not in svg
+    assert ".card-bg{fill:#f7f5ef;}" in svg
+    assert "#0f1417" not in svg
     # Class hooks present on the actual elements (not just the style).
     assert 'class="card-bg"' in svg
     assert 'class="card-frame"' in svg

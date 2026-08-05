@@ -6326,3 +6326,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review found that the initial `2026-07-23` sample was not the latest complete set and understated the projection by about 12.5%. The records now use the live `2026-08-04` four-card set; all size math and synchronized documents were corrected.
 **Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-0-measured-baseline.md`.
 **Status**: Step 0 complete 1/7. Next: style factory and variant renderer wiring.
+
+## Construction — u143 Code Generation Step 1 complete
+**Timestamp**: 2026-08-05T14:37:41Z
+**Synchronization**: Step 0 was committed and pushed as `ad42bd6`; local and remote `codex/u143` heads matched before Step 1 construction.
+**Action**: Replaced the literal card style with the ordered `_CARD_PALETTE`, typed `CardStyleVariant`, and the sole `build_card_style` generation path. Added forced light/dark, byte-compatible auto, and Material-ancestor site-scoped variants. `_CARD_STYLE` remains the auto compatibility alias for Step 5.
+**Renderer boundary**: Named the `_RenderableCard` union and threaded the variant through `render_card_svg` into `_svg_document`; primary rendering defaults to forced light. A `typing.get_args(_RenderableCard)` test now exercises every registered card input against light and dark output.
+**Compatibility**: `build_card_style("auto")` is byte-identical to the 512-byte Step 0 fixture. No palette hex value changed; forced variants contain no `@media`, and site-scoped output contains the Material slate ancestor selector.
+**Validation**: Renderer suite 22 passed; complete visual unit suite 297 passed. Ruff/format, scoped renderer and test mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Fixed Contract #1, AC-143.3/143.4, all four renderer branches, the byte-compatible alias, and Step 5 quality-sparkline compatibility with no findings.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-1-style-factory.md`.
+**Status**: Step 1 complete 2/7. Next: paired asset output, companion paths, and manifest metadata.
