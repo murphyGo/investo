@@ -6426,3 +6426,9 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Combined latest-main tree passed 4,354 tests in 276.12 seconds; Ruff/format across 573 Python files; strict mypy across 254 source files; lock check; four policy guards; strict MkDocs; combined Material CSS + actual built-HTML pair contract; staged diff check; and generated-file cleanliness. A focused visual/orchestrator/integration preflight also passed 429 tests.
 **Evidence**: `docs/sessions/2026-08-05-u143-main-integration.md`.
 **Status**: Main integration validated. Create/push the two-parent merge and verify the exact merge SHA's Quality workflow before queue audit.
+
+## Main CI closeout — u143 visual-theme-parity-dual-variant
+**Timestamp**: 2026-08-05T16:37:34Z
+**Merge**: Two-parent commit `c19f6916245c0a0bf245a8ea00d8511b76c1b9fa` (`985b7e4` + `fe0f49e`) pushed to `refs/heads/main`; remote ref matched exactly.
+**Quality**: GitHub Actions run `31025763001` completed success in 4m07s on exact merge SHA `c19f691`. Ruff, format, mypy, full pytest, Anthropic/paid/curated/image-store guards, strict documentation build, and the new Material CSS + built-HTML contract all passed.
+**Status**: U143 construction, cross-check, main integration, and remote quality verification complete. Raw GitHub observation remains an operational first-post-u143-publish check and does not represent executable development.

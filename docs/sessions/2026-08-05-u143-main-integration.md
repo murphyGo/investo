@@ -40,3 +40,15 @@ generated archive/site-doc residue remains.
 
 Commit the two-parent merge, push it to `main`, and require the exact merge SHA's
 Quality workflow to finish green before queue closeout.
+
+## Remote closeout
+
+- Two-parent main merge: `c19f691` (`985b7e4` + `fe0f49e`).
+- Remote `refs/heads/main`: exact `c19f6916245c0a0bf245a8ea00d8511b76c1b9fa`.
+- Quality run `31025763001`: success in 4m07s on that exact SHA.
+- Remote steps passed: Ruff, format, mypy, full pytest, four policy guards,
+  strict documentation build, and Material CSS + built-HTML contract.
+
+U143 is integrated and remotely verified. The raw-GitHub observation remains an
+operational check on the first real post-u143 production archive, not unfinished
+development.
