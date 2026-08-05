@@ -6314,3 +6314,15 @@ passed, scoped format check passed, `mypy src` passed.
 **Repair**: All watchpoint parse/render/matching routes now terminate before collapsed or expanded quality diagnostics. A regression byte-pins the diagnostics and disclaimer tail. Layout region separators are normalized when crossing into bounded issue codes. Finalization errors expose only an allow-listed R13-safe `cause_code`, never the raw cause.
 **Validation**: The combined watchpoint/public-document/orchestrator regression scope passed 225 tests. The complete suite passed 4,299 tests in 264.89 seconds; Ruff and format passed all 567 Python files; strict mypy passed 252 source files; `git diff --check` passed.
 **Status**: Bounded u135 main-CI repair validated. Commit/push and verify the new exact-SHA quality run before queue audit.
+
+## Construction — u143 Code Generation Step 0 complete
+**Timestamp**: 2026-08-05T11:00:48Z
+**Approval**: The user had already ratified u143's third path and instructed the agent to continue without requesting approval (`내게 승인 묻지 말고 계속 작업해`). This satisfies the Step 0 execution boundary without changing the approved contracts.
+**Isolation**: Created `codex/u143` from `origin/main@850d9cc` in `/private/tmp/investo-u143`; the original dirty worktree remains untouched.
+**Measurement**: The latest complete `2026-08-04` US-equity four-card sample contains 13,003 bytes of SVG and 1,686 bytes of manifests. With no dark sidecars, the projected increment is 39,009 bytes per three-segment run, 1,014,234 bytes per average 26-run month, and 12,170,808 bytes per 312-run year.
+**Material contract**: Strict MkDocs build passed on Material 9.7.6. Generated CSS contains all four `#only-light`, `#only-dark`, `#gh-light-mode-only`, and `#gh-dark-mode-only` selectors with the expected `display:none` rules. `mkdocs.yml` remains unchanged.
+**Compatibility**: Snapshotted the exact pre-u143 `_CARD_STYLE` in `tests/fixtures/u143_card_style_auto.txt` for Step 1 byte-equality enforcement.
+**Validation**: Existing visual renderer suite passed 13 tests; strict MkDocs and `git diff --check` passed.
+**Review**: Fresh-eyes review found that the initial `2026-07-23` sample was not the latest complete set and understated the projection by about 12.5%. The records now use the live `2026-08-04` four-card set; all size math and synchronized documents were corrected.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-0-measured-baseline.md`.
+**Status**: Step 0 complete 1/7. Next: style factory and variant renderer wiring.

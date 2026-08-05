@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: Planned (0/6)
+**Status**: In Progress (1/7)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -144,10 +144,10 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Implementation Steps
 
-### Step 0 — 기준선 실측 + Material CSS 규약 검증 `[ ]`
-- [ ] 실제 `archive/{segment}/{YYYY}/{MM}/{date}.assets/` 1개 디렉터리에서 SVG 파일 수·바이트·매니페스트 바이트를 실측하고 일/월/연 증가분을 계획서 하단 "Measured Baseline" 절에 기록.
-- [ ] 빌드 산출 CSS(`site/assets/stylesheets/palette.*.min.css`, `main.*.min.css`)에서 4개 셀렉터(`#only-light`, `#only-dark`, `#gh-light-mode-only`, `#gh-dark-mode-only`)의 존재를 확인하고 정확한 규칙 문자열을 기록.
-- [ ] 현재 `_CARD_STYLE` 문자열을 테스트 픽스처로 스냅샷(Step 1의 바이트 동일성 기준선).
+### Step 0 — 기준선 실측 + Material CSS 규약 검증 `[x]`
+- [x] 실제 `archive/{segment}/{YYYY}/{MM}/{date}.assets/` 1개 디렉터리에서 SVG 파일 수·바이트·매니페스트 바이트를 실측하고 일/월/연 증가분을 계획서 하단 "Measured Baseline" 절에 기록.
+- [x] 빌드 산출 CSS(`site/assets/stylesheets/palette.*.min.css`, `main.*.min.css`)에서 4개 셀렉터(`#only-light`, `#only-dark`, `#gh-light-mode-only`, `#gh-dark-mode-only`)의 존재를 확인하고 정확한 규칙 문자열을 기록.
+- [x] 현재 `_CARD_STYLE` 문자열을 테스트 픽스처로 스냅샷(Step 1의 바이트 동일성 기준선).
 - **Acceptance**: 4개 셀렉터 전부 확인됨. 증가분 수치가 문서에 기록됨. `mkdocs.yml`은 손대지 않음이 확인됨.
 
 ### Step 1 — 스타일 팩토리 (`render.py`) `[ ]`
@@ -227,7 +227,35 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - **다크 트윈 개별 사이드카** — Contract #5에서 명시적으로 기각. 프로비넌스 소비자가 렌더링 변종 단위 추적을 요구하게 되면 재검토.
 - **브라우저 이중 fetch 최적화** — `display:none` 대상도 fetch될 수 있는 점. 자산이 KB 단위라 현 시점 비용 무시 가능.
 
-## How to Approve
+## Measured Baseline (Step 0, 2026-08-05)
 
-1. **Request Changes** — 계약/스텝/AC 수정 요청
-2. **Continue to Next Stage** — Step 0 착수 승인
+- 표본: `archive/us-equity/2026/08/2026-08-04.assets/`. 네 카드 종류가
+  모두 존재하는 최신 완전 세트다.
+- 현재 주 SVG 4개: 13,003 bytes
+  (`data-confidence` 4,113 + `market-snapshot` 3,068 +
+  `price-snapshot` 3,040 + `watchlist-relevance` 2,782).
+- 현재 주 매니페스트 4개: 1,686 bytes. Contract #5에 따라 다크 트윈은
+  별도 매니페스트를 만들지 않으므로 매니페스트 증분은 0 bytes다.
+- 다크 SVG가 주 SVG와 같은 크기라고 두는 보수적 Step 0 투영은 세그먼트
+  발행일당 +13,003 bytes, 3세그먼트 실행일당 +39,009 bytes다. 현재 주 6회
+  스케줄(월평균 26회, 연 312회)을 적용하면 월 +1,014,234 bytes(약 0.97 MiB),
+  연 +12,170,808 bytes(약 11.61 MiB)다. 실제 forced-dark 산출 바이트는
+  Step 2에서 다시 확인한다.
+- `uv run --extra docs mkdocs build --strict`가 Material 9.7.6으로 성공했다.
+  산출물의 정확한 숨김 규칙은 다음과 같다.
+
+  ```css
+  [data-md-color-scheme=slate] img[src$="#gh-light-mode-only"],[data-md-color-scheme=slate] img[src$="#only-light"]{display:none}
+  [data-md-color-scheme=default] img[src$="#gh-dark-mode-only"],[data-md-color-scheme=default] img[src$="#only-dark"]{display:none}
+  ```
+
+- 네 fragment 셀렉터가 모두 확인됐다. `mkdocs.yml`은 수정하지 않았으며
+  기준 SHA-256은
+  `d6a1a767426199da7e1ec639903ebfd91dca021f6867b1235b5172efecdb495d`다.
+- pre-u143 `_CARD_STYLE`은
+  `tests/fixtures/u143_card_style_auto.txt`에 고정했다. Step 1은 이 파일과
+  `build_card_style("auto")`의 바이트 동일성을 검사한다.
+
+## Next Step
+
+Step 1의 스타일 팩토리와 variant 렌더 배선을 구현한다.
