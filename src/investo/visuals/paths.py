@@ -12,6 +12,8 @@ from investo.models.segments import MarketSegment
 
 _SAFE_ASSET_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 _ALLOWED_EXTENSIONS: Final[frozenset[str]] = frozenset({".svg", ".png", ".jpg", ".jpeg"})
+LIGHT_ONLY_FRAGMENT: Final[str] = "#gh-light-mode-only"
+DARK_ONLY_FRAGMENT: Final[str] = "#gh-dark-mode-only"
 
 
 def visual_asset_dir(
@@ -53,4 +55,10 @@ def visual_asset_relative_path(asset_path: Path, markdown_path: Path) -> str:
     return asset_path.relative_to(markdown_path.parent).as_posix()
 
 
-__all__ = ["visual_asset_dir", "visual_asset_path", "visual_asset_relative_path"]
+__all__ = [
+    "DARK_ONLY_FRAGMENT",
+    "LIGHT_ONLY_FRAGMENT",
+    "visual_asset_dir",
+    "visual_asset_path",
+    "visual_asset_relative_path",
+]

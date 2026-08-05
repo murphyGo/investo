@@ -9,7 +9,7 @@ from typing import Final, Literal
 from investo._internal.public_quality_language import PUBLIC_LOW_COVERAGE_TEXT
 from investo.models.quality_history import QualityHistoryRow
 from investo.visuals.provenance import VisualProvenanceManifest, _investo_version
-from investo.visuals.render import _CARD_STYLE
+from investo.visuals.render import build_card_style
 
 SVG_WIDTH: Final[int] = 600
 SVG_HEIGHT: Final[int] = 260
@@ -17,6 +17,7 @@ _PANEL_HEIGHT: Final[int] = 60
 _PANEL_GAP: Final[int] = 4
 _PADDING_X: Final[int] = 56
 _LINE_WIDTH: Final[int] = SVG_WIDTH - (_PADDING_X * 2)
+_QUALITY_STYLE: Final[str] = build_card_style("site-scoped")
 _METRICS: Final[tuple[tuple[str, str, str], ...]] = (
     ("source_liveness", "소스 라이브니스", "#167a6f"),
     ("figures_presence", "수치 인용", "#2457a6"),
@@ -34,7 +35,7 @@ def render_quality_sparkline(rows: list[QualityHistoryRow]) -> bytes:
     parts: list[str] = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {SVG_WIDTH} {SVG_HEIGHT}" '
         'role="img" aria-label="최근 30일 데이터 품질 추세">',
-        _CARD_STYLE,
+        _QUALITY_STYLE,
         f'<rect class="card-bg" x="0" y="0" width="{SVG_WIDTH}" height="{SVG_HEIGHT}"/>',
         f'<rect class="card-frame" x="8" y="8" width="{SVG_WIDTH - 16}" '
         f'height="{SVG_HEIGHT - 16}" rx="6"/>',
@@ -109,7 +110,7 @@ def _empty_svg() -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {SVG_WIDTH} {SVG_HEIGHT}" '
         'role="img" aria-label="최근 30일 데이터 품질 추세">'
-        f"{_CARD_STYLE}"
+        f"{_QUALITY_STYLE}"
         f'<rect class="card-bg" x="0" y="0" width="{SVG_WIDTH}" height="{SVG_HEIGHT}"/>'
         f'<rect class="card-frame" x="8" y="8" width="{SVG_WIDTH - 16}" '
         f'height="{SVG_HEIGHT - 16}" rx="6"/>'

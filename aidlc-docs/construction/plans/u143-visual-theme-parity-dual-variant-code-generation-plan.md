@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: Planned (0/6)
+**Status**: Complete (7/7; pending main integration)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -144,57 +144,57 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Implementation Steps
 
-### Step 0 — 기준선 실측 + Material CSS 규약 검증 `[ ]`
-- [ ] 실제 `archive/{segment}/{YYYY}/{MM}/{date}.assets/` 1개 디렉터리에서 SVG 파일 수·바이트·매니페스트 바이트를 실측하고 일/월/연 증가분을 계획서 하단 "Measured Baseline" 절에 기록.
-- [ ] 빌드 산출 CSS(`site/assets/stylesheets/palette.*.min.css`, `main.*.min.css`)에서 4개 셀렉터(`#only-light`, `#only-dark`, `#gh-light-mode-only`, `#gh-dark-mode-only`)의 존재를 확인하고 정확한 규칙 문자열을 기록.
-- [ ] 현재 `_CARD_STYLE` 문자열을 테스트 픽스처로 스냅샷(Step 1의 바이트 동일성 기준선).
+### Step 0 — 기준선 실측 + Material CSS 규약 검증 `[x]`
+- [x] 실제 `archive/{segment}/{YYYY}/{MM}/{date}.assets/` 1개 디렉터리에서 SVG 파일 수·바이트·매니페스트 바이트를 실측하고 일/월/연 증가분을 계획서 하단 "Measured Baseline" 절에 기록.
+- [x] 빌드 산출 CSS(`site/assets/stylesheets/palette.*.min.css`, `main.*.min.css`)에서 4개 셀렉터(`#only-light`, `#only-dark`, `#gh-light-mode-only`, `#gh-dark-mode-only`)의 존재를 확인하고 정확한 규칙 문자열을 기록.
+- [x] 현재 `_CARD_STYLE` 문자열을 테스트 픽스처로 스냅샷(Step 1의 바이트 동일성 기준선).
 - **Acceptance**: 4개 셀렉터 전부 확인됨. 증가분 수치가 문서에 기록됨. `mkdocs.yml`은 손대지 않음이 확인됨.
 
-### Step 1 — 스타일 팩토리 (`render.py`) `[ ]`
-- [ ] `_CARD_PALETTE` 테이블 + `CardStyleVariant` + `build_card_style(variant)` 도입 (Contract #1). 색 hex 값 변경 금지.
-- [ ] `_CARD_STYLE = build_card_style("auto")` 별칭 유지.
-- [ ] `render_card_svg(card, *, variant="light")` / `_svg_document(..., variant)` 배선.
-- [ ] 테스트: `build_card_style("auto")`가 Step 0 스냅샷과 **바이트 동일**; `light`/`dark`에 `@media` 부재; `light` != `dark`; `site-scoped`에 `[data-md-color-scheme="slate"]` 포함 및 `@media` 부재; 8개 클래스가 4개 variant 전부에서 정확히 1회씩 정의됨.
-- [ ] 테스트(초크포인트 핀): `typing.get_args(_RenderableCard)` registry-driven 파라미터라이즈로 각 카드 입력 클래스가 두 variant를 산출함을 단언 (Contract #1).
+### Step 1 — 스타일 팩토리 (`render.py`) `[x]`
+- [x] `_CARD_PALETTE` 테이블 + `CardStyleVariant` + `build_card_style(variant)` 도입 (Contract #1). 색 hex 값 변경 금지.
+- [x] `_CARD_STYLE = build_card_style("auto")` 별칭 유지.
+- [x] `render_card_svg(card, *, variant="light")` / `_svg_document(..., variant)` 배선.
+- [x] 테스트: `build_card_style("auto")`가 Step 0 스냅샷과 **바이트 동일**; `light`/`dark`에 `@media` 부재; `light` != `dark`; `site-scoped`에 `[data-md-color-scheme="slate"]` 포함 및 `@media` 부재; 각 팔레트 선언이 해당 variant에서 정확히 1회 생성됨.
+- [x] 테스트(초크포인트 핀): `typing.get_args(_RenderableCard)` registry-driven 파라미터라이즈로 각 카드 입력 클래스가 두 variant를 산출함을 단언 (Contract #1).
 - **Acceptance**: `auto` 바이트 동일성 통과 → `og_card`/인라인 표면/기존 골든이 이 단계에서 churn 0. 카드 SVG 산출은 variant 기본값(`light`) 때문에 아직 바뀌지 않음(다음 스텝에서 쌍 방출).
 
-### Step 2 — 이중 산출 + 프로비넌스 정책 (`assets.py`) `[ ]`
-- [ ] `prepare_segment_visual_assets`의 카드 루프를 쌍 방출기로 교체: light `{kind}.svg` + dark `{kind}-dark.svg` 작성.
-- [ ] 주 자산: 기존대로 `_write_generated_svg_manifest` + `validate_visual_asset`. 매니페스트 `additional_metadata`에 `theme_variant` / `dark_variant` 추가 (Contract #5).
-- [ ] 다크 트윈: 사이드카 미발급 + `validate_visual_binary`로 검증 (Contract #5).
-- [ ] `PreparedVisualAssets.companion_paths` 추가; `asset_paths` 멤버십/순서 불변 (Contract #3).
-- [ ] 테스트: 4종 카드 각각 두 파일 존재 / 다크 파일에 `.json` 사이드카 부재 / 주 매니페스트에 두 키 존재 / `asset_paths` 길이·순서가 pre-u143과 동일 / 다크 SVG가 `_validate_svg_asset` 치수·텍스트 요건 통과.
+### Step 2 — 이중 산출 + 프로비넌스 정책 (`assets.py`) `[x]`
+- [x] `prepare_segment_visual_assets`의 카드 루프를 쌍 방출기로 교체: light `{kind}.svg` + dark `{kind}-dark.svg` 작성.
+- [x] 주 자산: 기존대로 `_write_generated_svg_manifest` + `validate_visual_asset`. 매니페스트 `additional_metadata`에 `theme_variant` / `dark_variant` 추가 (Contract #5).
+- [x] 다크 트윈: 사이드카 미발급 + `validate_visual_binary`로 검증 (Contract #5).
+- [x] `PreparedVisualAssets.companion_paths` 추가; `asset_paths` 멤버십/순서 불변 (Contract #3).
+- [x] 테스트: 4종 카드 각각 두 파일 존재 / 다크 파일에 `.json` 사이드카 부재 / 주 매니페스트에 두 키 존재 / `asset_paths` 길이·순서가 pre-u143과 동일 / 다크 SVG가 `_validate_svg_asset` 치수·텍스트 요건 통과.
 - **Acceptance**: 디스크에 쌍이 떨어지고, `asset_paths` 기반 히어로 선택·앵커 배치 테스트가 **무수정으로** 그린 유지.
 
-### Step 3 — markdown fragment 쌍 방출 `[ ]`
-- [ ] `visuals/paths.py`에 `LIGHT_ONLY_FRAGMENT` / `DARK_ONLY_FRAGMENT` 상수 단일 등록 (Contract #4 철자).
-- [ ] `insert_visual_links(..., dark_variants: Mapping[Path, Path] = {})` + `_visual_block`이 쌍 + 단일 캡션을 방출 (Contract #2).
-- [ ] PNG/JPEG 히어로는 fragment 없는 단일 링크 유지.
-- [ ] 테스트: 쌍 형태 정확 일치 / 캡션 1회 / 멱등성(2회 호출 = 입력 동일) / PNG 히어로 무-fragment / **`#`가 어떤 `Path`·`asset_paths`·`companion_paths`·매니페스트 `asset_path`에도 없음**(AC-143.5) / 빈 기본 매핑이 pre-u143 단일 링크와 바이트 동일.
-- [ ] 기존 단일 링크 단언(`tests/unit/visuals/test_assets.py:95,147`)을 **쌍 형태로 갱신**(삭제·완화 금지).
+### Step 3 — markdown fragment 쌍 방출 `[x]`
+- [x] `visuals/paths.py`에 `LIGHT_ONLY_FRAGMENT` / `DARK_ONLY_FRAGMENT` 상수 단일 등록 (Contract #4 철자).
+- [x] `insert_visual_links(..., dark_variants: Mapping[Path, Path] = {})` + `_visual_block`이 쌍 + 단일 캡션을 방출 (Contract #2; 구현은 동일한 empty semantics의 `None` sentinel로 mutable default를 피함).
+- [x] PNG/JPEG 히어로는 fragment 없는 단일 링크 유지.
+- [x] 테스트: 쌍 형태 정확 일치 / 캡션 1회 / 멱등성(2회 호출 = 입력 동일) / PNG 히어로 무-fragment / **`#`가 어떤 `Path`·`asset_paths`·`companion_paths`·매니페스트 `asset_path`에도 없음**(AC-143.5) / 빈 기본 매핑이 pre-u143 단일 링크와 바이트 동일.
+- [x] 기존 단일 링크 단언(`tests/unit/visuals/test_assets.py:95,147`)을 **프로덕션 쌍 형태로 갱신**하되 legacy empty-mapping 단언은 보존(삭제·완화 금지).
 - **Acceptance**: 렌더된 markdown이 카드마다 정확히 2개의 `<img>` 라인 + 1개 캡션을 갖고, fragment는 문자열 계층에만 존재.
 
-### Step 4 — 오케스트레이터 스테이징 + 카운트 단언 정정 `[ ]`
-- [ ] `pipeline.py:2111` 루프에 `companion_paths` 합류(스테이징 대상 포함, 매니페스트 경로 부여는 주 자산에만).
-- [ ] `stage_notes["visual_assets"] = f"ok: {n} files"`의 새 값 산정: 현재 18(3 세그먼트 × 3 카드 × [svg+manifest]) → 다크 트윈 합류로 3 × 3 × [light svg + dark svg + manifest] = **27 예상**. 실제 값은 실행으로 확정하고 `tests/integration/test_pipeline.py:256`을 그 값으로 갱신.
-- [ ] 테스트: `tests/unit/orchestrator/test_run_pipeline.py:762-764` 단언을 fragment 쌍 형태로 갱신; L831의 `![` 라인 스캔 로직이 쌍을 정상 처리하는지 확인.
+### Step 4 — 오케스트레이터 스테이징 + 카운트 단언 정정 `[x]`
+- [x] 현재 u144 staged-artifact 구조의 실제 owner인 `prepare_segment_visual_assets`에서 companion descriptor를 주 자산+주 매니페스트와 함께 생성하고 pipeline에 전달(계획 작성 당시 `pipeline.py:2111` 직접 루프는 현 main에 없음; 동작 계약은 동일).
+- [x] `stage_notes["visual_assets"] = f"ok: {n} files"`의 새 값 산정: 현재 18(3 세그먼트 × 3 카드 × [svg+manifest]) → 다크 트윈 합류로 3 × 3 × [light svg + dark svg + manifest] = **27 실측**. `tests/integration/test_pipeline.py`을 그 값으로 갱신.
+- [x] 테스트: `tests/unit/orchestrator/test_run_pipeline.py` 단언을 fragment 쌍 형태로 갱신하고 두 자산+주 매니페스트의 promotion/git-add를 확인; `![` 쌍을 포함한 전체 경로가 정상 완주함을 확인.
 - **Acceptance**: 통합 파이프라인이 3세그먼트 그린으로 완주하고, 다크 트윈이 git add 대상에 포함되며, 카운트 노트가 실제 파일 수와 일치.
 
-### Step 5 — DEBT-061: 히트맵 + 스파크라인 조상 셀렉터 전환 `[ ]`
-- [ ] `calendar_heatmap.py`: `_HEATMAP_PALETTE` 테이블 + `build_heatmap_style(variant)`; 산출은 `site-scoped`. 모듈 docstring의 DEBT-049 수용 문단을 새 사실로 교체.
-- [ ] `quality_sparkline.py`: `_CARD_STYLE` import → `build_card_style("site-scoped")`.
-- [ ] `render.py` `_CARD_STYLE` 별칭의 잔여 사용처 정리(남으면 `og_card` 계열 주석으로 이유 명시).
-- [ ] 테스트: `tests/unit/visuals/test_calendar_heatmap.py:53`의 `@media (prefers-color-scheme: dark)` 단언을 `[data-md-color-scheme="slate"]` 단언으로 **갱신**(약화 아님 — 토글 추종을 더 강하게 고정); 스파크라인 동일 단언 추가.
-- [ ] `archive/index.md` / `site_docs/quality.md`의 인라인 SVG는 다음 발행 시 자동 갱신 — 재생성 경로가 새 스타일을 쓰는지 게이트에서 확인.
+### Step 5 — DEBT-061: 히트맵 + 스파크라인 조상 셀렉터 전환 `[x]`
+- [x] `calendar_heatmap.py`: `_HEATMAP_PALETTE` 테이블 + `build_heatmap_style(variant)`; 산출은 `site-scoped`. 모듈 docstring의 DEBT-049 수용 문단을 새 사실로 교체.
+- [x] `quality_sparkline.py`: `_CARD_STYLE` import → `build_card_style("site-scoped")`.
+- [x] `render.py` `_CARD_STYLE` 별칭의 잔여 사용처 정리(생산 사용처 0; pre-u143 import/byte 계약 보존용 alias라는 주석 명시). `og_card.py`의 독립 `_OG_STYLE` auto는 Material 부재 표면이라 범위 밖 유지.
+- [x] 테스트: `tests/unit/visuals/test_calendar_heatmap.py`의 `@media (prefers-color-scheme: dark)` 단언을 `[data-md-color-scheme="slate"]` 단언으로 **갱신**(약화 아님 — 토글 추종을 더 강하게 고정); 스파크라인의 populated/empty 양 경로에 동일 단언 추가.
+- [x] `archive/index.md` / `site_docs/quality.md`의 인라인 SVG는 다음 발행 시 자동 갱신 — 두 재생성 함수가 새 스타일을 산출함을 단위 게이트로 확인.
 - **Acceptance**: 두 인라인 표면의 `<style>`이 사이트 토글 속성으로 구동되고 `@media`가 사라짐. 파일 수 증가 0.
 
-### Step 6 — 골든/테스트 churn 정리 + 게이트 + 문서/부채 종결 `[ ]`
-- [ ] 잔여 골든 마크다운·스냅샷·파일 카운트 단언 일괄 갱신(`test_briefing_replay.py`, `test_git_ops.py` 등 `.assets/` 참조 테스트 스윕).
-- [ ] full gate: ruff / ruff format(변경 범위) / mypy --strict / pytest / `scripts/check_no_paid_apis.py` / `scripts/check_image_store.py` / `mkdocs build --strict`(clean tree).
-- [ ] 실제 push된 아카이브 `.md` 1개를 github.com raw 렌더에서 육안 확인 → 결과를 Contract #4에 따라 기록.
-- [ ] `docs/DESIGN.md`에 "테마 패리티 계약" 절 추가: dual-variant 규약, fragment 철자, 사이드카 정책, raw-GitHub 트레이드오프, 인라인 표면의 조상 셀렉터 예외.
-- [ ] `docs/TECH-DEBT.md`: DEBT-049 / DEBT-061을 `## Resolved Items`로 이동 + `**Resolved**: 2026-07-19 — …` 라인.
-- [ ] `aidlc-docs/aidlc-state.md` u143 행 갱신, `code/summary.md` 작성.
+### Step 6 — 골든/테스트 churn 정리 + 게이트 + 문서/부채 종결 `[x]`
+- [x] 잔여 골든 마크다운·스냅샷·파일 카운트 단언 일괄 갱신(`test_briefing_replay.py`, `test_git_ops.py` 등 `.assets/` 참조 테스트 스윕); 잔여 `ok: 18 files` 단언 0건.
+- [x] full gate: ruff / ruff format / mypy --strict / pytest / 모든 정책 가드 / `mkdocs build --strict`(clean tree).
+- [x] raw-GitHub 운영 확인 경계를 기록: 브랜치에 post-u143 production archive가 아직 없으므로 가짜 발행/기존 archive 백필 없이 첫 post-u143 발행으로 실제 육안 확인을 넘긴다. GitHub 공식 현재 계약은 `<picture>`이고 legacy fragment 무시는 이미 비준된 pair-stacking fallback이다.
+- [x] `docs/DESIGN.md`에 "테마 패리티 계약" 절 추가: dual-variant 규약, fragment 철자, 사이드카 정책, raw-GitHub 트레이드오프, 인라인 표면의 조상 셀렉터 예외.
+- [x] `docs/TECH-DEBT.md`: DEBT-049 / DEBT-061을 `## Resolved Items`로 이동 + `**Resolved**: 2026-08-05 — …` 라인.
+- [x] `aidlc-docs/aidlc-state.md` u143 행 갱신, `code/summary.md` 작성.
 - **Acceptance**: 전 게이트 그린(사전 존재 DEBT-081 쌍 제외). 두 부채 종결. 신규 외부 호출 0.
 
 ## Acceptance Criteria (unit-level)
@@ -227,7 +227,54 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - **다크 트윈 개별 사이드카** — Contract #5에서 명시적으로 기각. 프로비넌스 소비자가 렌더링 변종 단위 추적을 요구하게 되면 재검토.
 - **브라우저 이중 fetch 최적화** — `display:none` 대상도 fetch될 수 있는 점. 자산이 KB 단위라 현 시점 비용 무시 가능.
 
-## How to Approve
+## Measured Baseline (Step 0, 2026-08-05)
 
-1. **Request Changes** — 계약/스텝/AC 수정 요청
-2. **Continue to Next Stage** — Step 0 착수 승인
+- 표본: `archive/us-equity/2026/08/2026-08-04.assets/`. 네 카드 종류가
+  모두 존재하는 최신 완전 세트다.
+- 현재 주 SVG 4개: 13,003 bytes
+  (`data-confidence` 4,113 + `market-snapshot` 3,068 +
+  `price-snapshot` 3,040 + `watchlist-relevance` 2,782).
+- 현재 주 매니페스트 4개: 1,686 bytes. Contract #5에 따라 다크 트윈은
+  별도 매니페스트를 만들지 않으므로 매니페스트 증분은 0 bytes다.
+- 다크 SVG가 주 SVG와 같은 크기라고 두는 보수적 Step 0 투영은 세그먼트
+  발행일당 +13,003 bytes, 3세그먼트 실행일당 +39,009 bytes다. 현재 주 6회
+  스케줄(월평균 26회, 연 312회)을 적용하면 월 +1,014,234 bytes(약 0.97 MiB),
+  연 +12,170,808 bytes(약 11.61 MiB)다. 실제 forced-dark 산출 바이트는
+  Step 2에서 다시 확인한다.
+- `uv run --extra docs mkdocs build --strict`가 Material 9.7.6으로 성공했다.
+  산출물의 정확한 숨김 규칙은 다음과 같다.
+
+  ```css
+  [data-md-color-scheme=slate] img[src$="#gh-light-mode-only"],[data-md-color-scheme=slate] img[src$="#only-light"]{display:none}
+  [data-md-color-scheme=default] img[src$="#gh-dark-mode-only"],[data-md-color-scheme=default] img[src$="#only-dark"]{display:none}
+  ```
+
+- 네 fragment 셀렉터가 모두 확인됐다. `mkdocs.yml`은 수정하지 않았으며
+  기준 SHA-256은
+  `d6a1a767426199da7e1ec639903ebfd91dca021f6867b1235b5172efecdb495d`다.
+- pre-u143 `_CARD_STYLE`은
+  `tests/fixtures/u143_card_style_auto.txt`에 고정했다. Step 1은 이 파일과
+  `build_card_style("auto")`의 바이트 동일성을 검사한다.
+
+## Completion Evidence (Step 6, 2026-08-05)
+
+- `uv lock --check`, Ruff check/format on all 569 Python files, strict mypy on
+  252 source files, and `git diff --check` passed.
+- Full pytest passed **4,319 tests** in 267.90 seconds. Anthropic SDK, paid API,
+  curated assets, and image-store policy guards all passed. The run left no
+  tracked or untracked generated archive/site-document residue.
+- Strict Material 9.7.6 build passed. A temporary exact-pair page built to HTML
+  with both `src="card.svg#gh-light-mode-only"` and
+  `src="card-dark.svg#gh-dark-mode-only"`; the real built CSS passed the new
+  CI-wired `check_material_theme_contract.py` rule guard. The guard also builds
+  that exact pair through MkDocs Material on every CI run, so Markdown/render
+  upgrades cannot silently strip or rewrite the fragments.
+- Fresh-eyes review found and closed two gaps: AC-143.1(a) is now a persistent
+  executable built-HTML guard, and the rerunnable 2026-05-06 legacy backfill
+  explicitly requests `variant="auto"` so it cannot regress to light-only.
+- The current branch contains no post-u143 production archive, so no fabricated
+  archive/backfill was created merely for GitHub visual inspection. GitHub's
+  current official documented responsive-image mechanism is `<picture>`; the
+  ratified raw fallback remains a stacked pair if legacy fragments are ignored.
+- DEBT-049 and DEBT-061 are resolved. Next: requirements cross-check, isolated
+  main integration, exact-SHA Quality workflow verification, then queue audit.

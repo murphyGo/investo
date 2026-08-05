@@ -154,7 +154,42 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Containment order**: trusted whole-block renderer → 문장 rewrite/표 행·H3 subtree 제외 → owned region replace/omit → 한 번의 no-LLM 6-section minimal fallback 순서다. 원본 offset으로 region당 한 번만 적용하고 재투영·재인덱싱·read-only terminal validation 후에만 봉인한다.
 **State contract**: 격리 witness가 있는 봉인 문서는 `finalized_degraded`다. witness는 symbol/region/line kind/action/sorted code/SHA-256 claim digest만 가지며 원문은 로그에 남기지 않는다. `finalized`와 `finalized_degraded`는 모두 published document로 계산되므로 세 문서가 봉인되면 content completeness와 exit는 complete/0을 유지한다.
 **Fallback boundary**: neutral `_internal.data_limited_segment` builder는 네트워크·LLM·파일·환경·현재시각 없이 세그먼트당 최대 한 번만 호출된다. items/anchors/facts/supplements/staged artifacts/bundle semantics를 제거한 context로 같은 finalizer와 seal을 통과하며, 실패 시에만 `numeric.fallback_exhausted`로 차단된다.
+### TD-013: Material 사이트 토글과 SVG 테마 패리티 (u143)
 
+**Choice**: `<img>`로 삽입되는 네 카드 종류는 `{kind}.svg` forced-light와
+`{kind}-dark.svg` forced-dark를 함께 생성한다. Markdown은 각 URL에
+`#gh-light-mode-only` / `#gh-dark-mode-only`를 붙인 두 이미지와 주 자산의
+캡션 하나를 방출한다. Material의 부모 문서 CSS가 현재
+`data-md-color-scheme`에 맞지 않는 이미지를 숨기므로 OS 미디어 쿼리와
+무관하게 사이트 토글을 따른다.
+
+**Artifact/provenance contract**: 기존 `asset_paths`의 멤버십·순서는 유지하고
+다크 파일은 `companion_paths`로만 전달한다. light SVG, dark SVG, 주
+매니페스트는 모두 같은 u144 staged-artifact 블록에 결속된다. 다크 변종은
+별도 사이드카를 만들지 않고 주 매니페스트의 `theme_variant=light`와
+`dark_variant={kind}-dark.svg`가 두 렌더링의 관계를 기록한다. 다크 파일은
+`validate_visual_binary`로 검증한다.
+
+**Inline exception**: `archive/index.md`의 캘린더 히트맵과
+`site_docs/quality.md`의 품질 스파크라인은 raw inline SVG라 부모 cascade를
+직접 볼 수 있다. 이 둘은 파일 쌍 대신 base light 선언과
+`[data-md-color-scheme="slate"] .class` 오버라이드를 사용한다. OG 카드는
+Material 밖의 scraper/PNG 표면이라 기존 `auto` OS-media 스타일을 유지한다.
+
+**Compatibility and operations**: URL fragment는 Markdown 문자열에만 존재하고
+파일 경로, manifest, validation, staging, git 인자에는 들어가지 않는다.
+Material 업그레이드가 내장 fragment 규칙을 제거하면 strict docs build 뒤의
+`scripts/check_material_theme_contract.py`가 CI를 실패시킨다. 브라우저는
+`display:none` 이미지도 fetch할 수 있어 카드 요청 수는 최대 두 배지만 실제
+증분은 3-segment run당 약 39 KB다. 기존 pre-u143 archive는 backfill하지 않아
+단일 OS-theme 자산을 유지한다.
+
+**Raw GitHub fallback**: `gh-*` 철자는 GitHub의 legacy convention을 겨냥하지만
+GitHub는 현재 `<picture>`를 권장하므로 fallback 화면의 단일 표시를 계약으로
+삼지 않는다. GitHub가 fragment를 무시하면 두 장이 쌓이는 상태를 수용한다.
+코드 브랜치에는 아직 u143 이후 production archive가 없으므로 실제 archive
+페이지의 육안 결과는 첫 post-u143 발행에서 기록한다. Pages가 canonical reader
+surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건이 아니다.
 ---
 
 ## Data Model

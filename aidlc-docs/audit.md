@@ -6329,3 +6329,100 @@ passed, scoped format check passed, `mypy src` passed.
 **Gate**: The complete repository suite passed 4,334 tests in 448.30 seconds. Ruff check passed; Ruff format verified 559 files; strict mypy passed 254 source files; `uv lock --check`, no-paid API policy, strict MkDocs, and `git diff --check` passed.
 **Review**: Cumulative fresh-eyes review identified and closed cross-index close-value binding, multi-region edit ordering/reindexing, stale offsets, optional-artifact promotion, linear planning, and CR/LF/CRLF subtree-boundary issues. The final review passed 37 focused regressions and reported no remaining Critical, High, Medium, or Low finding.
 **Boundaries**: Construction remained on the user's local `main`; unrelated dirty files and `stash@{0}` were preserved. No commit, push, workflow dispatch, archive publish, Telegram delivery, or deployment was performed.
+## Construction — u143 Code Generation Step 0 complete
+**Timestamp**: 2026-08-05T11:00:48Z
+**Approval**: The user had already ratified u143's third path and instructed the agent to continue without requesting approval (`내게 승인 묻지 말고 계속 작업해`). This satisfies the Step 0 execution boundary without changing the approved contracts.
+**Isolation**: Created `codex/u143` from `origin/main@850d9cc` in `/private/tmp/investo-u143`; the original dirty worktree remains untouched.
+**Measurement**: The latest complete `2026-08-04` US-equity four-card sample contains 13,003 bytes of SVG and 1,686 bytes of manifests. With no dark sidecars, the projected increment is 39,009 bytes per three-segment run, 1,014,234 bytes per average 26-run month, and 12,170,808 bytes per 312-run year.
+**Material contract**: Strict MkDocs build passed on Material 9.7.6. Generated CSS contains all four `#only-light`, `#only-dark`, `#gh-light-mode-only`, and `#gh-dark-mode-only` selectors with the expected `display:none` rules. `mkdocs.yml` remains unchanged.
+**Compatibility**: Snapshotted the exact pre-u143 `_CARD_STYLE` in `tests/fixtures/u143_card_style_auto.txt` for Step 1 byte-equality enforcement.
+**Validation**: Existing visual renderer suite passed 13 tests; strict MkDocs and `git diff --check` passed.
+**Review**: Fresh-eyes review found that the initial `2026-07-23` sample was not the latest complete set and understated the projection by about 12.5%. The records now use the live `2026-08-04` four-card set; all size math and synchronized documents were corrected.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-0-measured-baseline.md`.
+**Status**: Step 0 complete 1/7. Next: style factory and variant renderer wiring.
+
+## Construction — u143 Code Generation Step 1 complete
+**Timestamp**: 2026-08-05T14:37:41Z
+**Synchronization**: Step 0 was committed and pushed as `ad42bd6`; local and remote `codex/u143` heads matched before Step 1 construction.
+**Action**: Replaced the literal card style with the ordered `_CARD_PALETTE`, typed `CardStyleVariant`, and the sole `build_card_style` generation path. Added forced light/dark, byte-compatible auto, and Material-ancestor site-scoped variants. `_CARD_STYLE` remains the auto compatibility alias for Step 5.
+**Renderer boundary**: Named the `_RenderableCard` union and threaded the variant through `render_card_svg` into `_svg_document`; primary rendering defaults to forced light. A `typing.get_args(_RenderableCard)` test now exercises every registered card input against light and dark output.
+**Compatibility**: `build_card_style("auto")` is byte-identical to the 512-byte Step 0 fixture. No palette hex value changed; forced variants contain no `@media`, and site-scoped output contains the Material slate ancestor selector.
+**Validation**: Renderer suite 22 passed; complete visual unit suite 297 passed. Ruff/format, scoped renderer and test mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Fixed Contract #1, AC-143.3/143.4, all four renderer branches, the byte-compatible alias, and Step 5 quality-sparkline compatibility with no findings.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-1-style-factory.md`.
+**Status**: Step 1 complete 2/7. Next: paired asset output, companion paths, and manifest metadata.
+
+## Construction — u143 Code Generation Step 2 complete
+**Timestamp**: 2026-08-05T14:48:46Z
+**Synchronization**: Step 1 was committed and pushed as `8f73ddc`; local and remote `codex/u143` heads matched before Step 2 construction.
+**Action**: The visual preparation loop now writes forced-light `{kind}.svg` and forced-dark `{kind}-dark.svg` for every `_RenderableCard`. It reuses the renderer union as the single card-type registry.
+**Path contract**: Added ordered `PreparedVisualAssets.companion_paths`; primary `asset_paths` names, membership, and order remain byte-for-byte equivalent at the path layer. Dark stems cannot enter hero selection, label lookup, or section-anchor routing.
+**Provenance**: Primary manifests carry `theme_variant=light` and `dark_variant={kind}-dark.svg`. Dark companions receive no sidecar and are checked with `validate_visual_binary`; primary assets retain `validate_visual_asset`.
+**Storage confirmation**: Forced-light and forced-dark style blocks are both 245 bytes, and all four generated pairs have equal UTF-8 byte length. This confirms the Step 0 parity projection; manifest count remains flat.
+**Validation**: Render/assets/provenance scope 60 passed; complete visual suite 298 passed. Ruff/format, scoped mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Contracts #1/#3/#5, pair generation, primary-order preservation, sidecar policy, sanitizer round-trip, binary validation, and the explicit Step 4 staging boundary with no findings.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-2-dual-assets.md`.
+**Status**: Step 2 complete 3/7. Next: markdown fragment pairs with one caption.
+
+## Construction — u143 Code Generation Step 3 complete
+**Timestamp**: 2026-08-05T14:55:06Z
+**Synchronization**: Step 2 was committed and pushed as `1198be9`; local and remote `codex/u143` heads matched before Step 3 construction.
+**Action**: Added single-home `#gh-light-mode-only` / `#gh-dark-mode-only` constants and presentation-only primary-to-dark mapping support. Production SVG cards emit an exact two-link pair and one primary caption.
+**Fragment isolation**: Fragments are appended only after `Path` values become relative URL strings. Primary/companion paths, manifest `asset_path`, validation inputs, and the existing staged paths contain no `#`.
+**Compatibility**: Empty/default mapping keeps pre-u143 single-link bytes. PNG/JPEG heroes remain one fragment-free link. Pair insertion is byte-idempotent.
+**Validation**: Paths/assets/render/provenance scope 66 passed; complete visual suite 300 passed. Ruff/format, scoped source mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Contracts #2/#3/#4 and the applicable AC-143.1/143.5/143.7 slice with no findings, including empty-sentinel equivalence and non-weakening of legacy tests.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-3-fragment-markdown.md`.
+**Status**: Step 3 complete 4/7. Next: companion staging and file-count accounting.
+
+## Construction — u143 Code Generation Step 4 complete
+**Timestamp**: 2026-08-05T15:02:51Z
+**Synchronization**: Step 3 was committed and pushed as `0a9c8a2`; local and remote `codex/u143` heads matched before Step 4 construction.
+**Action**: Added each dark companion to the current u144 staged-artifact descriptor owner. Paired visual supplements now bind light SVG, dark SVG, and one primary manifest as three artifact IDs through E1→E5→E6 promotion and git add.
+**Plan grounding**: The July plan's direct `pipeline.py:2111` loop no longer exists on current main; `prepare_segment_visual_assets` owns descriptor creation and `_stage_prepare_visual_assets` forwards it. The same approved staging behavior was implemented at that current owner without recreating a second loop.
+**Measured count**: The normal integration path reports exactly `ok: 27 files` = 3 segments × 3 cards × (light + dark + primary manifest). Dark archive files exist, dark sidecars do not, and git add includes `-dark.svg`.
+**Validation**: Asset + exact pipeline path 23 passed; complete run-pipeline unit and integration files 121 passed. Ruff/format, scoped source mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved the complete u144 artifact lifecycle, 27-file accounting, non-paired image compatibility, current-owner plan grounding, and data/resource integrity with no findings.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-4-staging.md`.
+**Status**: Step 4 complete 5/7. Next: site-scoped inline heatmap and quality sparkline.
+
+## Construction — u143 Code Generation Step 5 complete
+**Timestamp**: 2026-08-05T15:42:08Z
+**Synchronization**: Step 4 was committed and pushed as `35b41d9`; local and remote `codex/u143` heads matched before Step 5 construction.
+**Action**: Replaced the inline calendar heatmap's literal media-query style with `_HEATMAP_PALETTE` + `build_heatmap_style`, and switched both heatmap and quality-sparkline output to Material site-scoped ancestor selectors.
+**Behavior**: Populated and empty inline SVG outputs contain `[data-md-color-scheme="slate"]` overrides and no OS media query. The Material toolbar and inline visuals now consume the same page state. File/manifest count increase is zero.
+**Compatibility**: `_CARD_STYLE` has no production consumer after this step but remains the byte-compatible auto alias required by Contract #1. `og_card.py::_OG_STYLE` remains auto because its social/PNG surfaces have no Material ancestor.
+**Validation**: Heatmap/sparkline/renderer scope 35 passed; complete visual suite 302 passed. Ruff/format, scoped source mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Fixed Contract #6 / AC-143.6 with zero findings. It independently confirmed palette/font preservation, populated and empty site-scoped output, stronger ancestor specificity, no production `_CARD_STYLE` consumer, unchanged OG auto scope, zero file-count delta, and all bounded gates.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-5-inline-site-scope.md`.
+**Status**: Step 5 complete 6/7. Next: cumulative gates, built-site verification, docs/debt/state closeout.
+
+## Construction — u143 Code Generation Step 6 complete
+**Timestamp**: 2026-08-05T16:01:49Z
+**Synchronization**: Step 5 was committed and pushed as `6d57271`; local and remote `codex/u143` heads matched before Step 6 construction.
+**Action**: Added a stdlib built-CSS contract gate for Material's light/dark fragment rules and wired dev+docs install, strict MkDocs build, and the gate into the Quality workflow. Added the theme parity contract (TD-013 after main integration), closed DEBT-049/061, updated the construction plan/state, and authored the cumulative summary.
+**Built-site proof**: Material 9.7.6 built an ephemeral exact-pair Markdown page to HTML with both `card.svg#gh-light-mode-only` and `card-dark.svg#gh-dark-mode-only`. The repository site's two minified stylesheets passed the exact hiding-rule gate. The gate has positive and fail-closed unit cases and a workflow binding test.
+**Raw GitHub boundary**: No post-u143 production archive exists before main integration. Existing archives were not backfilled and no market content was fabricated for visual evidence. GitHub's current official responsive-image contract uses `<picture>`; if the legacy fragments are ignored, pair stacking remains the user-ratified fallback. Observe the first real post-u143 archive after publish; Pages is the canonical guarded surface.
+**Review corrections**: Cumulative review found one Medium gap because built HTML fragment preservation was only one-time evidence, and one Low regression because the rerunnable legacy backfill inherited the new forced-light default. The CI guard now performs an exact-pair MkDocs Material build on every run and fails if either output fragment is absent. The legacy script explicitly requests `variant="auto"`, pinned by regression test. Re-review found both implementation shapes sound.
+**Final review**: Approved with zero remaining Critical/High/Medium/Low findings. Independent revalidation covered 65 focused tests, the live combined CSS + built-HTML guard, scoped mypy, all-repository Ruff/format, diff check, debt counts, synchronized closeout records, and generated-file cleanliness.
+**Validation**: `uv lock --check`; Ruff/format across 569 Python files; strict mypy across 252 source files; post-fix full pytest 4,319 passed in 267.90 seconds; Anthropic, paid API, curated-assets, and image-store guards; strict MkDocs; CSS + built-HTML Material contract; and `git diff --check` all passed. The suite left no archive/site-doc residue.
+**Debt**: DEBT-049 and DEBT-061 moved to Resolved Items. Active dashboard: Critical 0, High 0, Medium 0, Low 33.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-6-quality-gate.md`; `code/summary.md`; `docs/sessions/2026-08-05-u143-code-generation-step6.md`.
+**Status**: Code Generation complete 7/7. Next: fresh-eyes cumulative review, requirements cross-check, then isolated main integration and exact-SHA Quality verification.
+
+## Cross-check — u143 visual-theme-parity-dual-variant
+**Timestamp**: 2026-08-05T16:18:23Z
+**Scope**: Component u143 against FR-002, FR-003, NFR-005, NFR-006, Fixed Contracts #1-#6, and AC-143.1-.7.
+**Result**: APPROVE — 7/7 unit acceptance criteria complete (100%); 0 partial, 0 gaps, 0 new development-plan actions, and 0 new technical-debt items.
+**Evidence**: `docs/cross-checks/2026-08-05-u143-visual-theme-parity-dual-variant.md`; implementation head `09be264`; post-review full suite 4,319 passed; all static, policy, strict docs, CSS+built-HTML theme, diff, and cleanliness gates green.
+**Boundary**: Raw GitHub observation remains assigned to the first real post-u143 production archive. This is the ratified non-canonical fallback and does not weaken the fully guarded Pages contract; no market artifact was fabricated or backfilled.
+**Status**: Requirements cross-check complete. Commit/push the report, then integrate u143 into main from an isolated worktree and verify exact-SHA Quality.
+
+## Main integration — u143 visual-theme-parity-dual-variant
+**Timestamp**: 2026-08-05T16:30:09Z
+**Inputs**: Latest `origin/main@985b7e4` (including concurrent U148/U149) and validated `origin/codex/u143@fe0f49e`.
+**Isolation**: Used `/private/tmp/investo-u143-main-integration`; the user's original dirty main worktree remained untouched. Remote main advanced during the first validation pass, so the temporary merge was aborted, the integration branch fast-forwarded, and U143 was re-merged on the new head.
+**Resolution**: Preserved both append-only audit histories. Preserved U148 TD-011 and U149 TD-012, renumbered U143 theme parity to TD-013, and synchronized all U143 references. The overlapping run-pipeline tests auto-merged with both numeric-containment and dark-companion coverage intact.
+**Validation**: Combined latest-main tree passed 4,354 tests in 276.12 seconds; Ruff/format across 573 Python files; strict mypy across 254 source files; lock check; four policy guards; strict MkDocs; combined Material CSS + actual built-HTML pair contract; staged diff check; and generated-file cleanliness. A focused visual/orchestrator/integration preflight also passed 429 tests.
+**Evidence**: `docs/sessions/2026-08-05-u143-main-integration.md`.
+**Status**: Main integration validated. Create/push the two-parent merge and verify the exact merge SHA's Quality workflow before queue audit.

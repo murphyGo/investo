@@ -7,6 +7,7 @@ from pathlib import Path
 
 from investo.visuals.calendar_heatmap import (
     CalendarCell,
+    build_heatmap_style,
     render_publish_heatmap,
     scan_publish_coverage,
 )
@@ -47,10 +48,21 @@ def test_render_heatmap_is_deterministic() -> None:
     assert a == b
 
 
-def test_render_heatmap_uses_dark_mode_media_query() -> None:
+def test_render_heatmap_follows_material_site_toggle() -> None:
     cells = [CalendarCell(target_date=date(2026, 4, 27), status="normal")]
     svg = render_publish_heatmap(cells, today=date(2026, 5, 1))
-    assert "@media (prefers-color-scheme: dark)" in svg
+    assert "@media" not in svg
+    assert '[data-md-color-scheme="slate"] .u29-cell-normal{fill:#3fb950;}' in svg
+    assert '[data-md-color-scheme="slate"] .u29-text{fill:#e6edf3;' in svg
+
+
+def test_heatmap_style_factory_preserves_forced_and_auto_variants() -> None:
+    assert "@media" not in build_heatmap_style("light")
+    assert "#2ea44f" in build_heatmap_style("light")
+    assert "@media" not in build_heatmap_style("dark")
+    assert "#3fb950" in build_heatmap_style("dark")
+    assert "@media (prefers-color-scheme: dark)" in build_heatmap_style("auto")
+    assert '[data-md-color-scheme="slate"]' in build_heatmap_style("site-scoped")
 
 
 def test_scan_publish_coverage_classifies_by_segment_count(tmp_path: Path) -> None:

@@ -26,11 +26,9 @@ from investo.models.public_artifact import StagedArtifact, build_staged_artifact
 from investo.models.segments import MarketSegment, SegmentCoverage
 from investo.models.watchlist import WatchlistImpact
 from investo.visuals.cards import (
-    DataConfidenceCardInput,
     MarketSnapshotCardInput,
     PriceSnapshotCardInput,
     PriceSnapshotRow,
-    WatchlistRelevanceCardInput,
     build_data_confidence_card,
     build_price_snapshot_card,
     build_watchlist_relevance_card,
@@ -41,7 +39,12 @@ from investo.visuals.openai_image import (
     generate_openai_visual,
     load_openai_visual_config,
 )
-from investo.visuals.paths import visual_asset_path, visual_asset_relative_path
+from investo.visuals.paths import (
+    DARK_ONLY_FRAGMENT,
+    LIGHT_ONLY_FRAGMENT,
+    visual_asset_path,
+    visual_asset_relative_path,
+)
 from investo.visuals.provenance import (
     VisualProvenanceManifest,
     build_ai_generated_provenance,
@@ -53,7 +56,7 @@ from investo.visuals.provenance import (
     read_manifest,
     write_manifest,
 )
-from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, render_card_svg
+from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, _RenderableCard, render_card_svg
 
 _MIN_SVG_BYTES: Final[int] = 500
 _MIN_PNG_BYTES: Final[int] = 100
@@ -108,12 +111,6 @@ _SECTION_ANCHORS: Final[dict[str, tuple[str, ...]]] = {
     # (re-enabled) external image, it repositions near the summary.
     "curated-context-image": ("## ① 요약",),
 }
-_RenderableCard = (
-    DataConfidenceCardInput
-    | MarketSnapshotCardInput
-    | PriceSnapshotCardInput
-    | WatchlistRelevanceCardInput
-)
 
 
 class VisualAssetError(ValueError):
@@ -174,6 +171,7 @@ class PreparedVisualAssets:
 
     briefing: Briefing
     asset_paths: tuple[Path, ...]
+    companion_paths: tuple[Path, ...] = ()
     markdown_blocks: tuple[VisualMarkdownBlock, ...] = ()
     staged_artifacts: tuple[StagedArtifact, ...] = ()
 
@@ -220,6 +218,8 @@ def prepare_segment_visual_assets(
         cards.insert(2, price_card)
 
     asset_paths: list[Path] = []
+    companion_paths: list[Path] = []
+    dark_variants: dict[Path, Path] = {}
     stored_asset_path = _prepare_stored_context_image(
         archive_layout=write_layout,
         target_date=target_date,
@@ -267,10 +267,24 @@ def prepare_segment_visual_assets(
 
     for card in cards:
         path = visual_asset_path(target_date, segment, card.kind, archive_layout=write_layout)
-        _write_svg(path, render_card_svg(card))
-        _write_generated_svg_manifest(path, card_kind=card.kind)
+        dark_path = visual_asset_path(
+            target_date,
+            segment,
+            f"{card.kind}-dark",
+            archive_layout=write_layout,
+        )
+        _write_svg(path, render_card_svg(card, variant="light"))
+        _write_svg(dark_path, render_card_svg(card, variant="dark"))
+        _write_generated_svg_manifest(
+            path,
+            card_kind=card.kind,
+            dark_variant=dark_path.name,
+        )
         validate_visual_asset(path)
+        validate_visual_binary(dark_path)
         asset_paths.append(path)
+        companion_paths.append(dark_path)
+        dark_variants[path] = dark_path
 
     staged_artifacts: list[StagedArtifact] = []
     artifact_ids_by_path: dict[Path, tuple[str, ...]] = {}
@@ -288,15 +302,31 @@ def prepare_segment_visual_assets(
                 segment=segment,
                 kind="visual",
             )
-            staged_artifacts.extend((asset_artifact, manifest_artifact))
-            artifact_ids_by_path[path] = (
-                asset_artifact.artifact_id,
-                manifest_artifact.artifact_id,
-            )
+            companion_path = dark_variants.get(path)
+            if companion_path is None:
+                staged_artifacts.extend((asset_artifact, manifest_artifact))
+                artifact_ids_by_path[path] = (
+                    asset_artifact.artifact_id,
+                    manifest_artifact.artifact_id,
+                )
+            else:
+                dark_artifact = build_staged_artifact(
+                    staging_root=staging_root,
+                    staged_path=companion_path,
+                    segment=segment,
+                    kind="visual",
+                )
+                staged_artifacts.extend((asset_artifact, dark_artifact, manifest_artifact))
+                artifact_ids_by_path[path] = (
+                    asset_artifact.artifact_id,
+                    dark_artifact.artifact_id,
+                    manifest_artifact.artifact_id,
+                )
 
     markdown_blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,
         asset_paths=tuple(asset_paths),
+        dark_variants=dark_variants,
         artifact_ids_by_path=artifact_ids_by_path,
     )
     rendered_markdown = insert_prebuilt_visual_blocks(
@@ -306,6 +336,7 @@ def prepare_segment_visual_assets(
     return PreparedVisualAssets(
         briefing=briefing.model_copy(update={"rendered_markdown": rendered_markdown}),
         asset_paths=tuple(asset_paths),
+        companion_paths=tuple(companion_paths),
         markdown_blocks=markdown_blocks,
         staged_artifacts=tuple(staged_artifacts),
     )
@@ -315,14 +346,24 @@ def build_visual_markdown_blocks(
     *,
     markdown_path: Path,
     asset_paths: tuple[Path, ...],
+    dark_variants: Mapping[Path, Path] | None = None,
     artifact_ids_by_path: Mapping[Path, tuple[str, ...]] | None = None,
 ) -> tuple[VisualMarkdownBlock, ...]:
-    """Render visual Markdown once, keeping placement metadata explicit."""
+    """Render visual Markdown once, keeping placement metadata explicit.
+
+    ``dark_variants`` is a presentation-only primary-to-companion mapping.
+    Paths remain fragment-free; :func:`_visual_block` appends the Material
+    fragments only after converting both paths to relative URL strings.
+    """
 
     return tuple(
         VisualMarkdownBlock(
             placement_key=path.stem,
-            markdown=_visual_block(path, markdown_path=markdown_path),
+            markdown=_visual_block(
+                path,
+                markdown_path=markdown_path,
+                dark_variant=(dark_variants or {}).get(path),
+            ),
             artifact_ids=(artifact_ids_by_path or {}).get(path, ()),
         )
         for path in asset_paths
@@ -334,6 +375,7 @@ def insert_visual_links(
     *,
     markdown_path: Path,
     asset_paths: tuple[Path, ...],
+    dark_variants: Mapping[Path, Path] | None = None,
 ) -> str:
     """Lay out one hero visual above the fold and reposition the rest (u24).
 
@@ -354,10 +396,15 @@ def insert_visual_links(
     ``## ① 요약``), they render in ``asset_paths`` iteration order —
     the upstream build order is the deliberate reader-facing priority
     (DEBT-040; pre-fix the stacked same-point inserts inverted it).
+
+    ``dark_variants`` defaults to the legacy single-link representation.
+    Production preparation always supplies a companion for every SVG card;
+    the empty default remains available for old callers and non-paired images.
     """
     blocks = build_visual_markdown_blocks(
         markdown_path=markdown_path,
         asset_paths=asset_paths,
+        dark_variants=dark_variants,
     )
     return insert_prebuilt_visual_blocks(markdown, blocks=blocks)
 
@@ -470,15 +517,29 @@ def _select_hero_key_index(placement_keys: tuple[str, ...]) -> int:
     return 0
 
 
-def _visual_block(path: Path, *, markdown_path: Path) -> str:
+def _visual_block(
+    path: Path,
+    *,
+    markdown_path: Path,
+    dark_variant: Path | None = None,
+) -> str:
     """Compose ``![label](rel)\\n*caption*`` for one asset."""
     label = _CARD_LABELS[path.stem]
     rel = visual_asset_relative_path(path, markdown_path)
-    image_line = f"![{label}]({rel})"
+    if dark_variant is None:
+        image_lines = f"![{label}]({rel})"
+    else:
+        dark_rel = visual_asset_relative_path(dark_variant, markdown_path)
+        image_lines = "\n".join(
+            (
+                f"![{label}]({rel}{LIGHT_ONLY_FRAGMENT})",
+                f"![{label}]({dark_rel}{DARK_ONLY_FRAGMENT})",
+            )
+        )
     caption = _provenance_caption_for(path)
     if caption is None:
-        return image_line
-    return f"{image_line}\n{caption}"
+        return image_lines
+    return f"{image_lines}\n{caption}"
 
 
 def _provenance_caption_for(path: Path) -> str | None:
@@ -786,7 +847,12 @@ def _prepare_curated_context_image(
     return path
 
 
-def _write_generated_svg_manifest(path: Path, *, card_kind: str) -> None:
+def _write_generated_svg_manifest(
+    path: Path,
+    *,
+    card_kind: str,
+    dark_variant: str,
+) -> None:
     """Write the JSON sidecar for a freshly rendered SVG card."""
     manifest = build_generated_svg_provenance(
         asset_relative_path=path.name,
@@ -794,6 +860,10 @@ def _write_generated_svg_manifest(path: Path, *, card_kind: str) -> None:
         generated_at=datetime.now(tz=UTC),
         width=SVG_WIDTH,
         height=SVG_HEIGHT,
+        additional_metadata={
+            "theme_variant": "light",
+            "dark_variant": dark_variant,
+        },
     )
     write_manifest(manifest, path)
 

@@ -259,7 +259,10 @@ def _render_assets(payload: _SegmentBackfill) -> tuple[Path, ...]:
     for card in cards:
         asset_path = visual_asset_path(_TARGET, payload.segment, card.kind)
         asset_path.parent.mkdir(parents=True, exist_ok=True)
-        asset_path.write_text(render_card_svg(card), encoding="utf-8")
+        # This one-shot script preserves the pre-u143 single-link archive
+        # contract. Its SVG must therefore remain OS-auto rather than inheriting
+        # the production renderer's forced-light default.
+        asset_path.write_text(render_card_svg(card, variant="auto"), encoding="utf-8")
         manifest = build_generated_svg_provenance(
             asset_relative_path=asset_path.name,
             card_kind=card.kind,

@@ -6,8 +6,8 @@
 |----------|-------|--------|
 | Critical | 0 | - |
 | High | 0 | - |
-| Medium | 1 | 2026-05-08 |
-| Low | 34 | 2026-04-27 |
+| Medium | 0 | - |
+| Low | 33 | 2026-04-27 |
 
 ---
 
@@ -23,21 +23,7 @@ _No high priority items._
 
 ### Medium Priority
 
-#### DEBT-049: SVG `@media (prefers-color-scheme)` disagrees with mkdocs Material site toggle
-
-- **Created**: 2026-05-08
-- **Source**: u26 visual-delivery-integrity QA review (M1)
-- **Reference**: NFR-005 (consistency / theme parity), FR-002 (Korean briefing comprehension), FR-003 (static web publishing)
-- **Description**: u26 introduced dark-mode support for `DataConfidenceCard` and `WatchlistCard` via option (a) — single SVG with embedded `<style>` block carrying `@media (prefers-color-scheme: dark)` rules driving classed `<rect>` / `<text>` elements. The SVGs are referenced from markdown via `<img src="...svg">`, so the `prefers-color-scheme` query is evaluated at the SVG document level, which only sees the **OS-level** scheme. mkdocs Material's site-level theme toggle (`data-md-color-scheme="slate"`) lives on the parent HTML and is invisible to the embedded SVG. As a result, an OS-light + site-dark reader (or OS-dark + site-light) sees a card rendered against the wrong scheme — the surrounding mkdocs page is dark, but the embedded card stays light, or vice versa. Reader-trust degrades visibly for any user who toggled the site theme away from their OS default.
-- **Suggested Fix**: Either (b) inline `<svg>` embed in markdown + parent class selector that picks up the site `data-md-color-scheme` attribute on `<html>` (the SVG `<style>` block then targets `[data-md-color-scheme="slate"] .card-bg` etc.), or (c) render both light and dark variant SVG files and emit a `<picture>` element (`<source media="(prefers-color-scheme: dark)" srcset="...-dark.svg"> <img src="...-light.svg">`). Option (b) keeps the single-asset shape and the existing class hooks; option (c) doubles asset volume but works without inline `<svg>`. Either way, retain the chokepoint shape (one `_CARD_STYLE` block / one render path) so future card types inherit the fix automatically.
-- **Investigation (2026-07-19 — both suggested options found materially flawed; ratification-ready third path recorded, entry stays open)**:
-  - Premise re-verified: `mkdocs.yml` defines the two-palette manual toggle (`scheme: default`/`slate` with OS-media defaults), so a reader-toggled `data-md-color-scheme` genuinely diverges from `prefers-color-scheme` and the mismatch is real.
-  - **Option (b) rejected**: (1) archive `.md` files are the permanent record — the current 3-4 SVGs/briefing (~8.8 KB vs a ~15.6 KB markdown, measured on 2026-07-14 us-equity) would ~1.5× every archive file and its diffs forever; (2) GitHub's markdown sanitizer strips inline `<svg>`, so the raw-repo fallback surface loses cards entirely; (3) every publish gate that scans `rendered_markdown` (leak_guard, compliance-language, summary-quality, reader-format chain) would begin processing SVG internals — a large hidden blast radius.
-  - **Option (c) rejected as-written**: `<source media="(prefers-color-scheme: dark)">` evaluates the OS media feature in the parent page; Material's manual toggle flips only `data-md-color-scheme` and never `prefers-color-scheme`, so (c) doubles asset volume without fixing the reported mismatch at all (plus raw-HTML `<picture>` through the markdown gates). Fundamental constraint confirmed: an `<img>`-embedded SVG is an isolated document — no CSS mechanism can make it see the parent attribute; only dual assets switched by parent-side CSS/JS can track the toggle.
-  - **Proposed third path (needs planner ratification — reader-surface/permanent-record shape change, unit-sized)**: mkdocs-material's built-in light/dark image convention — emit `![라벨](x.svg#only-light)` + `![라벨](x-dark.svg#only-dark)` pairs (pure markdown, keyed on Material's own `data-md-color-scheme` CSS, zero `mkdocs.yml` change). Chokepoint preserved by parameterizing `_CARD_STYLE` into light/forced-dark/auto rule sets; dark twins written + manifested beside the primary and staged via the chart-sidecar precedent. Trade-offs to ratify: raw-GitHub archive rendering shows the light+dark pair stacked (URL fragments don't affect fetch); ~2× SVG assets + provenance sidecars; broad test churn (file-count assertions, golden markdown). Not implementable as a debt-burn task without that sign-off.
-- **Planned (2026-07-19 — third path RATIFIED by the user; scheduled as u143)**: registered as `u143 visual-theme-parity-dual-variant` (`aidlc-docs/construction/plans/u143-visual-theme-parity-dual-variant-code-generation-plan.md`, audit entry same date). Closes this entry **and DEBT-061** in one unit. Two of the investigation's premises were corrected while grounding the plan against code: (1) the heatmap/sparkline are **inline `<svg>`**, not `<img>`-embedded, so they take an ancestor-selector (`[data-md-color-scheme="slate"]`) fix at zero file increase rather than dual variants; (2) there are **three** style blocks (`_CARD_STYLE` / `_HEATMAP_STYLE` / `_OG_STYLE`), and only `_CARD_STYLE`'s four `<img>`-embedded card kinds need dual variants (OG stays `auto` — no Material CSS on scraper/`cairosvg` surfaces). Cheaper mitigation found for the raw-GitHub trade-off: Material's shipped CSS matches `#gh-light-mode-only`/`#gh-dark-mode-only` in the same rule as `#only-light`/`#only-dark`, so that spelling is identical on the site and additionally matches GitHub's legacy convention — if GitHub has retired it the pair simply stacks, i.e. exactly the ratified accepted state (downside 0, one-constant revert). Dark twins get **no** sidecar of their own (recorded on the primary manifest, validated via `validate_visual_binary`), and card SVGs fall under **no** storage-budget gate (u137's 2 MB/50 MB gate scopes `assets/images/` only). Entry stays **open** until u143 Step 6 lands.
-- **Effort**: (superseded — see Investigation) unit-sized for the ratified third path; original (b)/(c) estimates no longer applicable.
-- **Priority Reasoning**: Medium — works correctly today for the OS-default theme, but the site toggle is a first-class mkdocs Material affordance and any reader exercising it sees a mismatched card. Reader-trust contract is the highest-leverage signal in the segmented-briefing UX, so the disagreement is worth closing once cleanly rather than carrying forward through every future card type.
+_No medium priority items._
 
 ### Low Priority
 
@@ -237,18 +223,6 @@ _No high priority items._
 - **Effort**: ~20 min including the switch + regression test.
 - **Priority Reasoning**: Low — works correctly today on the supported archive layout. Promote to Medium when an archive layout change is requested (none in flight).
 
-#### DEBT-061: Calendar heatmap dark-mode toggle accuracy mirrors DEBT-049
-
-- **Created**: 2026-05-08
-- **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P3)
-- **Reference**: NFR-005 (consistency / theme parity), FR-003 (static web publishing)
-- **Description**: u29's `src/investo/visuals/calendar_heatmap.py` renders a deterministic SVG that ships with the same dark-mode policy as the u26 visual cards — single SVG with embedded `<style>` carrying `@media (prefers-color-scheme: dark)`. As with DEBT-049, the SVG is referenced from markdown via `<img src="...svg">`, so the `prefers-color-scheme` query sees only the OS-level scheme and the mkdocs Material site-toggle (`data-md-color-scheme="slate"`) is invisible to the embedded heatmap. An OS-light + site-dark reader sees a heatmap rendered against the wrong scheme on `archive/index.md`. This is a cross-reference to DEBT-049, not a separate fix path — closing DEBT-049 by switching to inline `<svg>` + parent-attribute selectors (option (b) in DEBT-049) closes this item simultaneously.
-- **Suggested Fix**: Resolve as part of DEBT-049 — when the visual-card render path moves to inline `<svg>` + `[data-md-color-scheme="slate"]` selectors, apply the same change to `calendar_heatmap.py`. No independent fix path; cross-reference only.
-- **Investigation (2026-07-19)**: DEBT-049's 2026-07-19 investigation found both of its suggested options materially flawed and recorded a ratification-ready third path (Material `#only-light`/`#only-dark` dual variants). This entry remains coupled: the heatmap inherits whichever path is ratified (the heatmap's `<style>` block would gain the same light/forced-dark variant split). No independent action taken; stays open pending the DEBT-049 decision.
-- **Planned (2026-07-19 — scheduled as u143 together with DEBT-049)**: in scope for `u143 visual-theme-parity-dual-variant` (Fixed Contract #6, AC-143.6). **This entry's stated mechanism was wrong**: the heatmap is not referenced via `<img src="…svg">` — it is emitted as raw **inline `<svg>`** into `archive/index.md` (`publisher/site_index/archive_sections.py:71`, `<figure class="u29-heatmap" markdown="1">`), and the quality sparkline is likewise inline in `site_docs/quality.md` (`publisher/site_index/quality_dashboard.py:77`). Inline SVG participates in the page CSS cascade, so the fix is an ancestor selector (`[data-md-color-scheme="slate"] .u29-cell-…`, specificity (0,2,0) > (0,1,0)) with **zero file increase** — not the dual-variant emission DEBT-049 uses for its `<img>`-embedded cards. Both surfaces move onto the same parameterized style factory (`site-scoped` variant), so the two debts still close in the same unit. Entry stays **open** until u143 Step 5/6 land.
-- **Effort**: ~5 min once DEBT-049 lands, to mirror the change in `calendar_heatmap.py` and add a regression test that pins the heatmap dark-mode shape under a synthesized site-toggle wrapper. (Superseded by the 2026-07-19 Planned note: the inline-surface switch plus the sparkline twin is ~30-45 min inside u143 Step 5.)
-- **Priority Reasoning**: Low — same trust-degradation surface as DEBT-049 but on a less first-impression page (`archive/index.md`, not the segment briefing page). Resolves automatically when DEBT-049 is fixed.
-
 #### DEBT-051: `WatchlistConfig` does not validate alias value cross-key collisions
 
 - **Created**: 2026-05-08
@@ -402,6 +376,22 @@ _No high priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-049: SVG `@media (prefers-color-scheme)` disagrees with mkdocs Material site toggle
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-08-05 — u143 emits forced-light/forced-dark SVG pairs for every registered card kind and switches them with Material's built-in `#gh-light-mode-only` / `#gh-dark-mode-only` parent CSS contract. The renderer remains one palette/factory chokepoint; primary path/order is unchanged; dark companions have no redundant sidecar and are staged transactionally with the primary manifest. A strict built-site CI guard now fails if a Material upgrade drops either hiding rule. Existing archive files are intentionally not backfilled, and raw GitHub stacking remains an accepted fallback while Pages is canonical.
+- **Source**: u26 visual-delivery-integrity QA review (M1)
+- **Reference**: u143 visual-theme-parity-dual-variant, AC-143.1..143.7, `docs/DESIGN.md` TD-013
+- **Priority Reasoning**: Closed.
+
+#### DEBT-061: Calendar heatmap dark-mode toggle accuracy mirrors DEBT-049
+
+- **Created**: 2026-05-08
+- **Resolved**: 2026-08-05 — u143 corrected the original premise: the calendar heatmap and quality sparkline are inline SVG, so both now use base light declarations plus `[data-md-color-scheme="slate"]` ancestor overrides instead of OS media queries. Populated and empty paths are pinned; file/manifest count increase is zero. The separate OG auto surface remains intentionally unchanged.
+- **Source**: u29 site-discovery-v2 QA review (TECH-DEBT P3)
+- **Reference**: u143 Fixed Contract #6 / AC-143.6, `docs/DESIGN.md` TD-013
+- **Priority Reasoning**: Closed.
 
 #### DEBT-089: a full test run MODIFIES tracked generated files — `archive/index.md` + 7 `site_docs/*` renderings dirty every checkout
 

@@ -21,12 +21,14 @@ from investo.visuals.assets import (
     insert_visual_links,
     prepare_segment_visual_assets,
     validate_visual_asset,
+    validate_visual_binary,
 )
 from investo.visuals.external_image import ExternalImageAsset
 from investo.visuals.policy import ExternalAssetManifest
 from investo.visuals.provenance import (
     build_generated_svg_provenance,
     manifest_path_for,
+    read_manifest,
     write_manifest,
 )
 from tests.unit.visuals._image_bytes import VALID_JPEG_BYTES, VALID_PNG_BYTES
@@ -96,6 +98,7 @@ def test_insert_visual_links_places_images_before_reader_status_block() -> None:
     )
 
     assert "![데이터 신뢰도](2026-05-07.assets/data-confidence.svg)" in result
+    assert "#gh-" not in result
     assert result.index("![데이터 신뢰도]") < result.index("> **데이터 상태**")
     assert (
         insert_visual_links(result, markdown_path=markdown_path, asset_paths=asset_paths) == result
@@ -174,6 +177,51 @@ def test_insert_visual_links_allows_missing_optional_caption_sidecar(tmp_path: P
     assert "*이미지:" not in result
 
 
+def test_insert_visual_links_emits_theme_pair_with_one_caption(tmp_path: Path) -> None:
+    markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
+    assets_dir = markdown_path.parent / "2026-05-07.assets"
+    primary = assets_dir / "data-confidence.svg"
+    dark = assets_dir / "data-confidence-dark.svg"
+    assets_dir.mkdir(parents=True)
+    primary.write_text("<svg></svg>", encoding="utf-8")
+    dark.write_text("<svg></svg>", encoding="utf-8")
+    write_manifest(
+        build_generated_svg_provenance(
+            asset_relative_path=primary.name,
+            card_kind="data-confidence",
+            generated_at=datetime(2026, 5, 7, 12, 0, tzinfo=UTC),
+            width=1200,
+            height=630,
+        ),
+        primary,
+    )
+
+    result = insert_visual_links(
+        _briefing().rendered_markdown,
+        markdown_path=markdown_path,
+        asset_paths=(primary,),
+        dark_variants={primary: dark},
+    )
+
+    expected_pair = (
+        "![데이터 신뢰도](2026-05-07.assets/data-confidence.svg#gh-light-mode-only)\n"
+        "![데이터 신뢰도](2026-05-07.assets/data-confidence-dark.svg#gh-dark-mode-only)"
+    )
+    assert expected_pair in result
+    assert result.count("*이미지: 데이터 신뢰도") == 1
+    assert (
+        insert_visual_links(
+            result,
+            markdown_path=markdown_path,
+            asset_paths=(primary,),
+            dark_variants={primary: dark},
+        )
+        == result
+    )
+    assert all("#" not in str(path) for path in (primary, dark))
+    assert "#" not in read_manifest(primary).asset_path
+
+
 def test_insert_visual_links_rejects_corrupt_caption_sidecar(tmp_path: Path) -> None:
     markdown_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.md"
     asset_path = tmp_path / "archive/us-equity/2026/05/2026-05-07.assets/data-confidence.svg"
@@ -242,12 +290,55 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
         watchlist_impact=impact,
     )
 
-    assert len(prepared.asset_paths) == 4
+    assert tuple(path.name for path in prepared.asset_paths) == (
+        "data-confidence.svg",
+        "market-snapshot.svg",
+        "price-snapshot.svg",
+        "watchlist-relevance.svg",
+    )
+    assert tuple(path.name for path in prepared.companion_paths) == (
+        "data-confidence-dark.svg",
+        "market-snapshot-dark.svg",
+        "price-snapshot-dark.svg",
+        "watchlist-relevance-dark.svg",
+    )
     for path in prepared.asset_paths:
         assert path.exists()
         validate_visual_asset(path)
+    for primary_path, dark_path in zip(
+        prepared.asset_paths,
+        prepared.companion_paths,
+        strict=True,
+    ):
+        validate_visual_binary(dark_path)
+        assert not manifest_path_for(dark_path).exists()
+        manifest = read_manifest(primary_path)
+        assert manifest.additional_metadata == {
+            "dark_variant": dark_path.name,
+            "theme_variant": "light",
+        }
+        light_svg = primary_path.read_text(encoding="utf-8")
+        dark_svg = dark_path.read_text(encoding="utf-8")
+        assert light_svg != dark_svg
+        assert len(light_svg.encode("utf-8")) == len(dark_svg.encode("utf-8"))
+        assert "@media" not in light_svg
+        assert "@media" not in dark_svg
+        assert "#f7f5ef" in light_svg
+        assert "#0f1417" in dark_svg
     assert "2026-05-07.assets/data-confidence.svg" in prepared.briefing.rendered_markdown
     assert "2026-05-07.assets/price-snapshot.svg" in prepared.briefing.rendered_markdown
+    for primary_path, dark_path in zip(
+        prepared.asset_paths,
+        prepared.companion_paths,
+        strict=True,
+    ):
+        label = assets_module._CARD_LABELS[primary_path.stem]
+        light_link = f"![{label}](2026-05-07.assets/{primary_path.name}#gh-light-mode-only)"
+        dark_link = f"![{label}](2026-05-07.assets/{dark_path.name}#gh-dark-mode-only)"
+        assert f"{light_link}\n{dark_link}" in prepared.briefing.rendered_markdown
+        assert "#" not in str(primary_path)
+        assert "#" not in str(dark_path)
+        assert "#" not in read_manifest(primary_path).asset_path
     assert ArchiveLayout(tmp_path / "archive").briefing_path(_TARGET, "us-equity").parent == (
         tmp_path / "archive/us-equity/2026/05"
     )
@@ -274,13 +365,20 @@ def test_prepare_visuals_in_staging_returns_complete_descriptors_without_public_
     )
 
     assert not public_root.exists()
-    assert len(prepared.staged_artifacts) == len(prepared.asset_paths) * 2
+    assert len(prepared.staged_artifacts) == (
+        len(prepared.asset_paths) * 2 + len(prepared.companion_paths)
+    )
+    assert len(prepared.companion_paths) == len(prepared.asset_paths)
+    assert all(path.is_relative_to(staging_root) for path in prepared.companion_paths)
     descriptor_ids = {artifact.artifact_id for artifact in prepared.staged_artifacts}
     referenced_ids = {
         artifact_id for block in prepared.markdown_blocks for artifact_id in block.artifact_ids
     }
     assert referenced_ids == descriptor_ids
-    assert all(len(block.artifact_ids) == 2 for block in prepared.markdown_blocks)
+    assert all(len(block.artifact_ids) == 3 for block in prepared.markdown_blocks)
+    assert {artifact.staged_path for artifact in prepared.staged_artifacts}.issuperset(
+        prepared.companion_paths
+    )
     for artifact in prepared.staged_artifacts:
         assert artifact.staged_path.is_relative_to(staging_root)
         assert sha256(artifact.staged_path.read_bytes()).hexdigest() == artifact.sha256
@@ -515,6 +613,10 @@ def test_prepare_segment_visual_assets_writes_manifest_per_asset(
         assert payload["source_type"] == "generated_svg"
         assert payload["generator"] == "investo"
         assert payload["dimensions"] == [1200, 630]
+        assert payload["additional_metadata"] == {
+            "dark_variant": f"{path.stem}-dark.svg",
+            "theme_variant": "light",
+        }
 
 
 def test_prepare_segment_visual_assets_layout_repositions_secondary_cards(
