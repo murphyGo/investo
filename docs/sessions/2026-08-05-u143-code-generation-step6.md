@@ -1,7 +1,7 @@
 # Session — u143 Code Generation Step 6
 
-**Date**: 2026-08-05  
-**Branch base**: Step 5 commit `6d57271`  
+**Date**: 2026-08-05
+**Branch base**: Step 5 commit `6d57271`
 **Scope**: cumulative gates, built-site contract, docs/debt/state closeout
 
 ## Changes

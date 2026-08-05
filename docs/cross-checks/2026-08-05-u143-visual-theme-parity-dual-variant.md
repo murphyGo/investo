@@ -1,8 +1,8 @@
 # Cross-check — u143 visual-theme-parity-dual-variant
 
-**Scope**: component `u143 visual-theme-parity-dual-variant`  
-**Date**: 2026-08-05  
-**Checked by**: Codex  
+**Scope**: component `u143 visual-theme-parity-dual-variant`
+**Date**: 2026-08-05
+**Checked by**: Codex
 **Implementation head**: `09be264`
 
 ## Summary
