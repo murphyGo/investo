@@ -38,6 +38,7 @@ from pydantic import HttpUrl, TypeAdapter
 
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.quality_history import QualitySnapshot
 from investo.briefing.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -3632,11 +3633,16 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
     unsealed = sealed.model_copy(
         update={"rendered_markdown": sealed.rendered_markdown.replace("오늘 시장 요약", "unsealed")}
     )
-    document = SimpleNamespace(segment=DOMESTIC_EQUITY, briefing=sealed)
+    document = SimpleNamespace(
+        segment=DOMESTIC_EQUITY,
+        briefing=sealed,
+        watchpoint_synthesized=2,
+    )
     bundle = SimpleNamespace(documents=(document,), promotion_manifest=())
     written: list[object] = []
     indexed: list[dict[MarketSegment, Briefing]] = []
     og_inputs: list[dict[MarketSegment, Briefing]] = []
+    quality_snapshots: list[QualitySnapshot] = []
 
     def fail_legacy_writer(*args: object, **kwargs: object) -> Path:
         del args, kwargs
@@ -3670,6 +3676,18 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
     monkeypatch.setattr(pipeline_module, "update_latest_index_pages", capture_index)
     monkeypatch.setattr(pipeline_module, "write_og_card", capture_og)
 
+    def capture_quality_snapshot(
+        target_date: date,
+        *,
+        snapshot: QualitySnapshot,
+        history_path: Path,
+    ) -> Path:
+        assert target_date == _TARGET
+        quality_snapshots.append(snapshot)
+        return history_path
+
+    monkeypatch.setattr(pipeline_module, "append_quality_snapshot", capture_quality_snapshot)
+
     await pipeline_module._stage_publish_segments(
         {DOMESTIC_EQUITY: unsealed},
         _TARGET,
@@ -3682,6 +3700,8 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
     assert written == [document]
     assert indexed == [{DOMESTIC_EQUITY: sealed}]
     assert og_inputs == [{DOMESTIC_EQUITY: sealed}]
+    assert len(quality_snapshots) == 1
+    assert quality_snapshots[0].watchpoint_synthesized == 2
 
 
 def _patch_watchlist_publish_inputs(

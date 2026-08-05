@@ -117,6 +117,25 @@ def test_domestic_anchor_withheld_fields_persist_as_append_only_fields(tmp_path:
     assert rows[0]["domestic_anchor_withheld_reasons"] == ["implausible", "stale"]
 
 
+def test_watchpoint_synthesized_count_persists_as_private_diagnostic(tmp_path: Path) -> None:
+    path = tmp_path / "quality_history.jsonl"
+    append_quality_snapshot(
+        date(2026, 6, 30),
+        snapshot=QualitySnapshot(
+            source_liveness=1.0,
+            figures_presence=1.0,
+            fallback_ratio=0.0,
+            published_segments=3,
+            total_items=12,
+            total_failed_sources=0,
+            watchpoint_synthesized=2,
+        ),
+        history_path=path,
+    )
+
+    assert _read_rows(path)[0]["watchpoint_synthesized"] == 2
+
+
 def test_same_day_republish_replaces_existing_row(tmp_path: Path) -> None:
     path = tmp_path / "quality_history.jsonl"
     append_quality_snapshot(date(2026, 5, 8), snapshot=_snapshot(), history_path=path)

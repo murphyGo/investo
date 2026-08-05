@@ -31,6 +31,7 @@ from investo.publisher.public_document import (
     _transition_draft,
 )
 from investo.publisher.reader_format import find_reader_visible_public_label_leaks
+from investo.publisher.watchpoint_matrix import DATA_LIMITED_NOTE
 
 _FIXTURE_PATH = (
     Path(__file__).parents[2]
@@ -265,7 +266,9 @@ def test_phase_one_watchpoint_rewrite_preserves_typed_visual_supplement() -> Non
 
     assert assembled.phase == "assembled"
     assert assembled.layout.markdown.count(fragment) == 1
-    assert "#### 관찰 신호:" in assembled.layout.markdown
+    assert "#### 관찰 신호:" not in assembled.layout.markdown
+    assert DATA_LIMITED_NOTE in assembled.layout.markdown
+    assert assembled.limitation_reasons == ("watchpoint_unavailable",)
 
 
 def test_run_29707052598_legacy_assembled_shape_crosses_real_projection() -> None:

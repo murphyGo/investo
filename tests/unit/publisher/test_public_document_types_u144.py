@@ -327,7 +327,11 @@ def test_watchpoint_result_accumulates_typed_reason_on_generated_draft() -> None
         _accumulate_watchpoint_result(assembled, limited)
 
 
-def _validated_draft(*, supplement_ids: tuple[str, ...] = ()) -> PublicDocumentDraft:
+def _validated_draft(
+    *,
+    supplement_ids: tuple[str, ...] = (),
+    watchpoint_synthesized: int = 0,
+) -> PublicDocumentDraft:
     briefing = build_briefing(target_date=_TARGET_DATE)
     markdown = f"{briefing.rendered_markdown}\n<!-- sealed -->\n"
     generated = _new_generated_draft(
@@ -339,8 +343,21 @@ def _validated_draft(*, supplement_ids: tuple[str, ...] = ()) -> PublicDocumentD
             expectation=_expectation(supplement_ids=supplement_ids),
         ),
     )
+    accumulated = (
+        _accumulate_watchpoint_result(
+            generated,
+            WatchpointRenderResult(
+                markdown=briefing.rendered_markdown,
+                state="rendered",
+                usable_card_count=watchpoint_synthesized,
+                synthesized_card_count=watchpoint_synthesized,
+            ),
+        )
+        if watchpoint_synthesized
+        else generated
+    )
     assembled = _transition_draft(
-        generated,
+        accumulated,
         next_phase="assembled",
         layout=PublicDocumentLayout(
             markdown=markdown,
@@ -476,7 +493,7 @@ def test_context_defensively_freezes_nested_model_mappings() -> None:
 
 
 def test_seal_factory_creates_exact_final_compatibility_view() -> None:
-    draft = _validated_draft()
+    draft = _validated_draft(watchpoint_synthesized=2)
 
     document = _seal_document(draft, warnings=("surface.warning", "surface.warning"))
 
@@ -484,6 +501,7 @@ def test_seal_factory_creates_exact_final_compatibility_view() -> None:
     assert document.briefing.rendered_markdown == draft.layout.markdown
     assert document.markdown_sha256 == sha256(draft.layout.markdown.encode()).hexdigest()
     assert document.notification_summary is draft.notification_summary
+    assert document.watchpoint_synthesized == 2
     assert document.warnings == ("surface.warning",)
     with pytest.raises(FrozenInstanceError):
         document.markdown_sha256 = "0" * 64  # type: ignore[misc]

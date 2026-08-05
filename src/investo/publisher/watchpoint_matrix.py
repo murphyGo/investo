@@ -82,6 +82,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from itertools import combinations
 from typing import Final, Literal, cast
 
 from investo._internal.decimal_format import shortest_exact_decimal
@@ -101,6 +102,7 @@ from investo.publisher.reader_format import (
     _WATCHPOINT_SOURCE_RE,
     _WATCHPOINT_TRIGGER_RE,
 )
+from investo.publisher.reader_format.emphasis import wrap_numbers_bold
 
 _logger = logging.getLogger(__name__)
 
@@ -218,12 +220,21 @@ class WatchpointRenderResult:
     state: WatchpointRenderState
     usable_card_count: int
     limitation_reasons: tuple[WatchpointLimitationReason, ...] = ()
+    synthesized_card_count: int = 0
 
     def __post_init__(self) -> None:
         if not isinstance(self.markdown, str) or not self.markdown:
             raise ValueError("watchpoint result markdown must not be empty")
         if type(self.usable_card_count) is not int or self.usable_card_count < 0:
             raise ValueError("usable_card_count must be a non-negative int")
+        if (
+            type(self.synthesized_card_count) is not int
+            or self.synthesized_card_count < 0
+            or self.synthesized_card_count > self.usable_card_count
+        ):
+            raise ValueError(
+                "synthesized_card_count must be a non-negative int no greater than usable cards"
+            )
         reasons = tuple(self.limitation_reasons)
         if self.state == "rendered":
             if self.usable_card_count == 0 or reasons:
@@ -1238,6 +1249,109 @@ def render_watchpoint_matrix_result(
     )
 
 
+def render_watchpoint_rows_result(
+    text: str,
+    rows: Sequence[WatchpointRow],
+    *,
+    section_marker: str = "⑥",
+    segment: str | None = None,
+    preserved_fragments: Sequence[str] = (),
+) -> WatchpointRenderResult:
+    """Replace §⑥ with already-validated synthesized rows."""
+
+    if not text:
+        raise ValueError("watchpoint input markdown must not be empty")
+    rendered_rows = tuple(row for row in rows if _renderable_row(row))[:MAX_VISIBLE_ROWS]
+    headers = list(_SECTION_HEADER_RE.finditer(text))
+    for idx, match in enumerate(headers):
+        if section_marker not in match.group("header"):
+            continue
+        body_start = match.end()
+        body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
+        body = text[body_start:body_end]
+        _, owned_fragments = _extract_preserved_fragments(body, preserved_fragments)
+        content = render_matrix_table(list(rendered_rows)) if rendered_rows else DATA_LIMITED_NOTE
+        new_body = _compose_watchpoint_body(content, owned_fragments)
+        return WatchpointRenderResult(
+            markdown=text[:body_start] + new_body + text[body_end:],
+            state="rendered" if rendered_rows else "limited",
+            usable_card_count=len(rendered_rows),
+            limitation_reasons=() if rendered_rows else ("watchpoint_unavailable",),
+            synthesized_card_count=len(rendered_rows),
+        )
+    _logger.info(
+        "watchpoint_matrix.synthesized_section_missing",
+        extra={"segment": segment, "count": len(rendered_rows)},
+    )
+    return WatchpointRenderResult(
+        markdown=text,
+        state="limited",
+        usable_card_count=0,
+        limitation_reasons=("watchpoint_unavailable",),
+    )
+
+
+def matching_watchpoint_rows(
+    text: str,
+    rows: Sequence[WatchpointRow],
+    *,
+    section_marker: str = "⑥",
+    preserved_fragments: Sequence[str] = (),
+) -> tuple[WatchpointRow, ...]:
+    """Recognize an exact canonical deterministic-row subset.
+
+    The quality marker is deliberately not embedded in public Markdown. On an
+    idempotent re-entry, exact equality with rows derivable from the same
+    frozen payload restores the typed diagnostic count without fuzzy matching.
+    """
+
+    if not text or not rows:
+        return ()
+    rendered_rows = tuple(row for row in rows if _renderable_row(row))[:MAX_VISIBLE_ROWS]
+    if not rendered_rows:
+        return ()
+    headers = list(_SECTION_HEADER_RE.finditer(text))
+    for idx, match in enumerate(headers):
+        if section_marker not in match.group("header"):
+            continue
+        body_end = headers[idx + 1].start() if idx + 1 < len(headers) else len(text)
+        watchpoint_body, _ = _extract_preserved_fragments(
+            text[match.end() : body_end],
+            preserved_fragments,
+        )
+        existing_state = _existing_watchpoint_state(watchpoint_body)
+        if existing_state is None or existing_state[0] != "rendered":
+            return ()
+        existing_count = existing_state[1]
+        if existing_count > len(rendered_rows):
+            return ()
+        for subset in combinations(rendered_rows, existing_count):
+            expected = wrap_numbers_bold(render_matrix_table(list(subset)))
+            if watchpoint_body.strip() == expected:
+                return tuple(subset)
+        return ()
+    return ()
+
+
+def matching_watchpoint_row_count(
+    text: str,
+    rows: Sequence[WatchpointRow],
+    *,
+    section_marker: str = "⑥",
+    preserved_fragments: Sequence[str] = (),
+) -> int:
+    """Compatibility count view over :func:`matching_watchpoint_rows`."""
+
+    return len(
+        matching_watchpoint_rows(
+            text,
+            rows,
+            section_marker=section_marker,
+            preserved_fragments=preserved_fragments,
+        )
+    )
+
+
 def _extract_preserved_fragments(
     body: str,
     preserved_fragments: Sequence[str],
@@ -1311,8 +1425,11 @@ __all__ = [
     "WatchpointRow",
     "WatchpointValuePayload",
     "build_watchpoint_rows",
+    "matching_watchpoint_row_count",
+    "matching_watchpoint_rows",
     "render_matrix_table",
     "render_watchpoint_matrix",
     "render_watchpoint_matrix_result",
+    "render_watchpoint_rows_result",
     "resolve_watchpoint_currents",
 ]

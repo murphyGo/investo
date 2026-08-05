@@ -5,12 +5,14 @@ from __future__ import annotations
 import json
 import re
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 from investo._internal.surface_quality import find_surface_quality_issues
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.models import Briefing
+from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import CRYPTO
 from investo.publisher.reader_format import MEANING_FALLBACK
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
@@ -59,13 +61,21 @@ def test_u131_trimmed_incidents_render_cleanly_and_rerun_byte_stable() -> None:
     fixture = _load_fixture()
     original = _briefing(fixture)
 
+    anchor = MarketAnchor(
+        ticker="BTC-USD",
+        close=Decimal("60284"),
+        prev_close=Decimal("58969.09"),
+        pct=Decimal("2.23"),
+        is_ath=False,
+    )
+    anchors = {CRYPTO: (anchor,)}
     first = apply_reader_format_to_segments(
         {CRYPTO: original},
-        anchors_by_segment={},
+        anchors_by_segment=anchors,
     )[CRYPTO]
     second = apply_reader_format_to_segments(
         {CRYPTO: first},
-        anchors_by_segment={},
+        anchors_by_segment=anchors,
     )[CRYPTO]
     rendered = first.rendered_markdown
     rendered_lines = rendered.splitlines()
@@ -79,6 +89,7 @@ def test_u131_trimmed_incidents_render_cleanly_and_rerun_byte_stable() -> None:
         "#### 관찰 신호: CoinGecko BTC",
     ]
     assert all(_TRAILING_ELLIPSIS_RE.search(line) is None for line in owned_lines)
+    assert "- 현재: **$60,284.00** (**+2.23%**)" in rendered
     assert not any(
         issue.code == "summary.truncated_mid_token"
         for issue in find_surface_quality_issues(rendered)

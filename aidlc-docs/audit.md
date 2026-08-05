@@ -6227,3 +6227,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Matrix+fallback tests 62 passed; scoped Ruff/format, mypy, and `git diff --check` passed. Independent reviewer gate also passed 62 tests and Ruff.
 **Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-3-deterministic-fallback.md`.
 **Status**: Step 3 checklist complete 3/7. Next: orchestrator/pre-seal wiring, compliance filtering, and `watchpoint_synthesized` metadata.
+
+## Construction — u135 Code Generation Step 3 synchronization and Step 4 complete
+**Timestamp**: 2026-08-05T03:38:38Z
+**Synchronization**: Step 3 is committed as `82b3aee` (`feat: synthesize watchpoint fallbacks`) and pushed on `codex/u135`; local and remote branch heads matched before Step 4 construction.
+**Action**: Wired the immutable reconciled payload and deterministic fallback into u144 phase-1 assembly. Synthesis runs only when zero LLM cards survive. Synthesized rows are compliance-scanned independently and rejected rows are omitted without blocking; the existing final full-document scan remains in place.
+**Typed diagnostics**: Added `synthesized_card_count` to `WatchpointRenderResult`, propagated it through `PublicDocumentDraft` transitions and `FinalizedPublicDocument`, and summed sealed counts into private quality-history metadata as `watchpoint_synthesized`. No public marker is emitted and no sealed Markdown is parsed for the count.
+**Idempotence**: Exact canonical, order-preserving deterministic subsets are recognized from the same frozen payload on re-entry. The current compliance survivor set is re-rendered or collapsed as necessary; a partial-drop regression now preserves byte-identical output and count `[1, 1]`. Numeric emphasis is applied immediately after card generation so resolved values stabilize on the first pass.
+**Review**: Initial review found three Medium gaps in sealed-writer fixture coverage, rerun typed-count restoration, and forced compliance-drop tests. Re-review found one combined partial-drop rerun gap. Fixture coverage, exact subset recognition, and one/all-drop integration tests closed every finding; final re-review approved with no remaining correctness/security/architecture/test issue.
+**Validation**: Changed-impact suite 274 passed; publisher/orchestrator suites 1,453 passed before the final isolated subset refinement; final affected gate 22 passed. Scoped Ruff, format, mypy, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-4-orchestration-and-quality.md`.
+**Status**: Step 4 checklist complete 4/7. Next: exact 2026-06-29/30 and empty-payload incident regressions.

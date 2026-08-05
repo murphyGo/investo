@@ -26,6 +26,7 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import replace
 from typing import Final
 
 from investo._internal.surface_quality import repair_surface_artifacts
@@ -43,6 +44,7 @@ from investo.publisher.channel_anchor_block import (
     render_channel_anchor_block,
 )
 from investo.publisher.compliance_language import (
+    ComplianceLanguageError,
     repair_compliance_language,
     scan_compliance,
 )
@@ -66,11 +68,18 @@ from investo.publisher.reader_format import (
     check_sentence_ending_diversity,
     emit_first_viewport_disclaimer,
     reflow_first_viewport,
+    wrap_numbers_bold,
 )
 from investo.publisher.shared_macro import inject_shared_macro_block
+from investo.publisher.watchpoint_fallback import synthesize_watchpoint_rows
 from investo.publisher.watchpoint_matrix import (
     WatchpointRenderResult,
+    WatchpointRow,
+    WatchpointValuePayload,
+    matching_watchpoint_rows,
+    render_matrix_table,
     render_watchpoint_matrix_result,
+    render_watchpoint_rows_result,
 )
 
 _logger = logging.getLogger("investo.publisher.segment_reader_format")
@@ -83,6 +92,29 @@ _logger = logging.getLogger("investo.publisher.segment_reader_format")
 _ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
 _SurfaceRepairObserver = Callable[[MarketSegment, str, str], None]
 _WatchpointResultObserver = Callable[[MarketSegment, WatchpointRenderResult], None]
+
+
+def _filter_compliant_synthesized_rows(
+    rows: Sequence[WatchpointRow],
+    *,
+    segment: MarketSegment,
+    scanner: Callable[[str, MarketSegment], object] | None = None,
+) -> tuple[WatchpointRow, ...]:
+    """Drop only synthesized rows rejected by the compliance gate."""
+
+    compliant: list[WatchpointRow] = []
+    active_scanner = scan_compliance if scanner is None else scanner
+    for row in rows:
+        try:
+            active_scanner(render_matrix_table([row]), segment)
+        except ComplianceLanguageError:
+            _logger.warning(
+                "watchpoint_fallback.compliance_row_dropped",
+                extra={"segment": segment},
+            )
+            continue
+        compliant.append(row)
+    return tuple(compliant)
 
 
 def apply_reader_format_to_segments(
@@ -269,11 +301,68 @@ def apply_reader_format_to_segments(
         # (a table-cell mask would otherwise hide advice wording from the
         # P0 gate); the resulting matrix is observational only and rescanned
         # by the second scan_compliance below.
+        watchpoint_fragments = (_watchpoint_preserved_fragments_by_segment or {}).get(segment, ())
+        watchpoint_payload = WatchpointValuePayload.from_inputs(
+            segment,
+            anchors=anchors,
+            items=segment_source_items,
+        )
+        deterministic_rows = synthesize_watchpoint_rows(watchpoint_payload)
+        preexisting_synthesized_rows = matching_watchpoint_rows(
+            markdown,
+            deterministic_rows,
+            preserved_fragments=watchpoint_fragments,
+        )
+        compliant_deterministic_rows = (
+            _filter_compliant_synthesized_rows(
+                deterministic_rows,
+                segment=segment,
+            )
+            if preexisting_synthesized_rows
+            else None
+        )
         watchpoint_result = render_watchpoint_matrix_result(
             markdown,
             segment=segment,
-            preserved_fragments=(_watchpoint_preserved_fragments_by_segment or {}).get(segment, ()),
+            preserved_fragments=watchpoint_fragments,
+            value_payload=watchpoint_payload,
         )
+        if watchpoint_result.state == "limited":
+            synthesized_rows = (
+                compliant_deterministic_rows
+                if compliant_deterministic_rows is not None
+                else _filter_compliant_synthesized_rows(
+                    deterministic_rows,
+                    segment=segment,
+                )
+            )
+            if synthesized_rows:
+                watchpoint_result = render_watchpoint_rows_result(
+                    watchpoint_result.markdown,
+                    synthesized_rows,
+                    segment=segment,
+                    preserved_fragments=watchpoint_fragments,
+                )
+        elif preexisting_synthesized_rows:
+            assert compliant_deterministic_rows is not None
+            if compliant_deterministic_rows != preexisting_synthesized_rows:
+                watchpoint_result = render_watchpoint_rows_result(
+                    watchpoint_result.markdown,
+                    compliant_deterministic_rows,
+                    segment=segment,
+                    preserved_fragments=watchpoint_fragments,
+                )
+            else:
+                watchpoint_result = replace(
+                    watchpoint_result,
+                    synthesized_card_count=len(preexisting_synthesized_rows),
+                )
+        emphasized_watchpoints = wrap_numbers_bold(watchpoint_result.markdown)
+        if emphasized_watchpoints != watchpoint_result.markdown:
+            watchpoint_result = replace(
+                watchpoint_result,
+                markdown=emphasized_watchpoints,
+            )
         if _watchpoint_result_observer is not None:
             _watchpoint_result_observer(segment, watchpoint_result)
         markdown = watchpoint_result.markdown

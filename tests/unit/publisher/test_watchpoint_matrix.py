@@ -45,6 +45,7 @@ from investo.publisher.watchpoint_matrix import (
     render_matrix_table,
     render_watchpoint_matrix,
     render_watchpoint_matrix_result,
+    render_watchpoint_rows_result,
     resolve_watchpoint_currents,
 )
 
@@ -565,6 +566,30 @@ def test_typed_watchpoint_result_reports_exact_limited_reason() -> None:
     assert result.usable_card_count == 0
     assert result.limitation_reasons == ("watchpoint_unavailable",)
     assert DATA_LIMITED_NOTE in result.markdown
+
+
+def test_synthesized_row_renderer_replaces_only_section_six_and_reports_count() -> None:
+    row = WatchpointRow(
+        signal="S&P 500 가격 구간",
+        source="검증된 시장 앵커",
+        current="7,000.00 (+1%)",
+        bullish_trigger="7,368.42 상회 시 단기 회복 흐름 관찰",
+        bearish_trigger="5,833.33 이탈 시 방어적 수급 관찰",
+        confidence="높음",
+        implication="본문 §⑤ 가격 동향과 연계 점검.",
+    )
+    result = render_watchpoint_rows_result(
+        _section_six([_GENERIC]),
+        (row,),
+        segment="us-equity",
+    )
+
+    assert result.state == "rendered"
+    assert result.usable_card_count == 1
+    assert result.synthesized_card_count == 1
+    assert result.limitation_reasons == ()
+    assert "#### 관찰 신호: S&P 500 가격 구간" in result.markdown
+    assert "synth" not in result.markdown.casefold()
 
 
 @pytest.mark.parametrize(

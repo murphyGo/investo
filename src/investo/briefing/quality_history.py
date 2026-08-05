@@ -59,6 +59,8 @@ class QualitySnapshot:
     # u109 — bounded domestic exact-anchor quarantine diagnostics.
     domestic_anchor_withheld_count: int = 0
     domestic_anchor_withheld_reasons: tuple[str, ...] = ()
+    # u135 — private diagnostics for deterministic §⑥ fallback frequency.
+    watchpoint_synthesized: int = 0
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -124,6 +126,7 @@ def append_quality_snapshot(
         "current_run_briefings_observed": max(snapshot.current_run_briefings_observed, 0),
         "domestic_anchor_withheld_count": max(snapshot.domestic_anchor_withheld_count, 0),
         "domestic_anchor_withheld_reasons": list(snapshot.domestic_anchor_withheld_reasons),
+        "watchpoint_synthesized": max(snapshot.watchpoint_synthesized, 0),
     }
     if snapshot.worst_severity is not None:
         row["worst_severity"] = snapshot.worst_severity
