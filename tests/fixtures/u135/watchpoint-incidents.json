@@ -1,0 +1,61 @@
+{
+  "crypto_2026_06_29": {
+    "segment": "crypto",
+    "target_date": "2026-06-29",
+    "legacy_markdown": "## ① 요약\n본문\n\n## ⑥ 오늘의 관전 포인트\n\n#### 관찰 신호: CoinGecko BTC · UTC 24h…\n\n- 출처: CoinGecko BTC\n- 현재: CoinGecko BTC\n- 확인 조건: 상방 UTC 24h 고가 $60,644 / 저가 $58,935 — BTC가 $60,644 저항을 상회하면 단기 회복 흐름 확인; 하방 $58,935 지지를 이탈하면 방어적 수급 관찰\n- 신뢰도: 높음\n- 관심 영향: ETF 주간 순유출 흐름과 연계해 기관 수요 추이 점검.\n",
+    "anchor": {
+      "ticker": "BTC-USD",
+      "close": "60284.41",
+      "pct": "1.26"
+    },
+    "coingecko": {
+      "coin_id": "bitcoin",
+      "symbol": "btc",
+      "price_usd": "60284",
+      "pct_24h": "2.23",
+      "high_24h": "60644",
+      "low_24h": "58935"
+    },
+    "expected_current": "$60,284.00 (+2.23%)"
+  },
+  "us_equity_2026_06_30": {
+    "segment": "us-equity",
+    "target_date": "2026-06-30",
+    "fixture_scope": "Archive-evidenced close, 52w-high distance, CFTC row, and bounded-note shape; pct_from_52w_low is a synthetic internal range-enabler because the retained public archive does not expose that raw payload field.",
+    "watchpoint_body": "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조",
+    "anchor": {
+      "ticker": "^GSPC",
+      "close": "7499.36",
+      "prev_close": "7440.58",
+      "pct": "0.79",
+      "pct_from_52w_high": "-1.45",
+      "pct_from_52w_low": "20.00"
+    },
+    "cftc": {
+      "contract_label": "E-mini S&P 500",
+      "contract_group": "equity_index",
+      "net_contracts": "-373468",
+      "net_pct_open_interest": "-18.86"
+    },
+    "expected_signals": [
+      "S&P 500 가격 구간",
+      "E-mini S&P 500 포지셔닝"
+    ]
+  },
+  "domestic_equity_close_only": {
+    "segment": "domestic-equity",
+    "target_date": "2026-06-30",
+    "fixture_scope": "Production-contract fixture for the u67/u138 trusted close-only domestic MarketAnchor path; no percentage or 52-week history is invented.",
+    "watchpoint_body": "> **관전 포인트**: 구조화 가능한 관찰 신호가 부족합니다 — 본문 §②·§④ 참조",
+    "anchor": {
+      "ticker": "^KOSPI",
+      "close": "2650.50"
+    },
+    "expected_signal": "코스피 종가 기준선",
+    "expected_current": "2,650.50"
+  },
+  "empty_payload": {
+    "segment": "domestic-equity",
+    "markdown": "## ① 요약\n본문\n\n## ⑥ 오늘의 관전 포인트\n\n> **관전 포인트**: 오늘은 공개 근거가 충분한 관전 신호만 본문에 남겼습니다.\n"
+  }
+}

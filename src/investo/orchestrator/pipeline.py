@@ -1475,6 +1475,10 @@ async def _stage_publish_segments(
                         source_outcomes=source_outcomes,
                         previous_domestic_anchor_closes=previous_domestic_anchor_closes,
                         severities_by_segment=severities_by_segment_for_quality,
+                        watchpoint_synthesized=sum(
+                            document.watchpoint_synthesized
+                            for document in finalized_documents.values()
+                        ),
                     ),
                     history_path=quality_history_path,
                 )
@@ -1929,6 +1933,7 @@ def _build_quality_snapshot(
     source_outcomes: Sequence[SourceOutcome],
     previous_domestic_anchor_closes: Mapping[str, Decimal] | None = None,
     severities_by_segment: dict[MarketSegment, str] | None = None,
+    watchpoint_synthesized: int = 0,
 ) -> QualitySnapshot:
     from investo.publisher.quality_consistency import parse_segment_status_block
 
@@ -2026,6 +2031,7 @@ def _build_quality_snapshot(
         current_run_briefings_observed=len(bodies),
         domestic_anchor_withheld_count=domestic_withheld_count,
         domestic_anchor_withheld_reasons=domestic_withheld_reasons,
+        watchpoint_synthesized=watchpoint_synthesized,
     )
 
 

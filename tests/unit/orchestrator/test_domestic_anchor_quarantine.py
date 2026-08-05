@@ -405,6 +405,30 @@ def test_quality_snapshot_records_domestic_anchor_withholding() -> None:
     assert snapshot.domestic_anchor_withheld_reasons == ("implausible",)
 
 
+def test_quality_snapshot_carries_typed_watchpoint_synthesis_count() -> None:
+    briefing = Briefing(
+        target_date=_TARGET,
+        market_summary="summary",
+        key_issues="issues",
+        sector_flow="sector",
+        indicators_events="events",
+        notable_tickers="tickers",
+        today_watch="watch",
+        disclaimer=DISCLAIMER,
+        rendered_markdown="# 미국\n\n## ① 요약\n본문\n\n" + DISCLAIMER,
+    )
+
+    snapshot = _build_quality_snapshot(
+        briefings={"us-equity": briefing},
+        published_segments=("us-equity",),
+        items=[],
+        source_outcomes=(),
+        watchpoint_synthesized=2,
+    )
+
+    assert snapshot.watchpoint_synthesized == 2
+
+
 def test_quality_snapshot_records_discontinuous_anchor_withholding() -> None:
     briefing = Briefing(
         target_date=_TARGET,

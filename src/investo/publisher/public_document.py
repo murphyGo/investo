@@ -2108,6 +2108,7 @@ class PublicDocumentDraft:
     layout: PublicDocumentLayout
     phase: PublicDocumentPhase
     limitation_reasons: tuple[PublicLimitationReason, ...] = ()
+    watchpoint_synthesized: int = 0
     block_outcomes: tuple[PublicBlockOutcome, ...] = ()
     notification_summary: PublicNotificationSummary | None = None
     _validation_witness: object | None = field(default=None, repr=False, compare=False)
@@ -2127,6 +2128,7 @@ def _construct_draft(
     layout: PublicDocumentLayout,
     phase: PublicDocumentPhase,
     limitation_reasons: Sequence[PublicLimitationReason] = (),
+    watchpoint_synthesized: int = 0,
     block_outcomes: Sequence[PublicBlockOutcome] = (),
     notification_summary: PublicNotificationSummary | None = None,
     validation_witness: object | None = None,
@@ -2142,6 +2144,8 @@ def _construct_draft(
     reasons = tuple(dict.fromkeys(limitation_reasons))
     if any(reason not in _LIMITATION_REASONS for reason in reasons):
         raise ValueError("limitation_reasons contains an unsupported reason")
+    if type(watchpoint_synthesized) is not int or watchpoint_synthesized < 0:
+        raise ValueError("watchpoint_synthesized must be a non-negative int")
     outcomes = tuple(block_outcomes)
     if len({outcome.region_id for outcome in outcomes}) != len(outcomes):
         raise ValueError("block_outcomes must contain at most one outcome per region")
@@ -2165,6 +2169,7 @@ def _construct_draft(
     object.__setattr__(draft, "layout", layout)
     object.__setattr__(draft, "phase", phase)
     object.__setattr__(draft, "limitation_reasons", reasons)
+    object.__setattr__(draft, "watchpoint_synthesized", watchpoint_synthesized)
     object.__setattr__(draft, "block_outcomes", outcomes)
     object.__setattr__(draft, "notification_summary", notification_summary)
     object.__setattr__(draft, "_validation_witness", validation_witness)
@@ -2204,7 +2209,10 @@ def _accumulate_watchpoint_result(
     limitation_reasons = tuple(
         dict.fromkeys((*draft.limitation_reasons, *result.limitation_reasons))
     )
-    if limitation_reasons == draft.limitation_reasons:
+    if (
+        limitation_reasons == draft.limitation_reasons
+        and result.synthesized_card_count == draft.watchpoint_synthesized
+    ):
         return draft
     return _construct_draft(
         segment=draft.segment,
@@ -2213,6 +2221,7 @@ def _accumulate_watchpoint_result(
         layout=draft.layout,
         phase=draft.phase,
         limitation_reasons=limitation_reasons,
+        watchpoint_synthesized=result.synthesized_card_count,
         block_outcomes=draft.block_outcomes,
     )
 
@@ -2239,6 +2248,7 @@ def _transition_draft(
         limitation_reasons=(
             draft.limitation_reasons if limitation_reasons is None else limitation_reasons
         ),
+        watchpoint_synthesized=draft.watchpoint_synthesized,
         block_outcomes=draft.block_outcomes if block_outcomes is None else block_outcomes,
         notification_summary=notification_summary,
         validation_witness=witness,
@@ -3109,6 +3119,7 @@ class FinalizedPublicDocument:
     staged_artifact_ids: tuple[str, ...]
     notification_summary: PublicNotificationSummary
     block_outcomes: tuple[PublicBlockOutcome, ...]
+    watchpoint_synthesized: int = 0
     warnings: tuple[str, ...] = ()
 
     def __new__(cls) -> Self:
@@ -3146,6 +3157,7 @@ def _seal_document(
     object.__setattr__(sealed, "staged_artifact_ids", artifact_ids)
     object.__setattr__(sealed, "notification_summary", draft.notification_summary)
     object.__setattr__(sealed, "block_outcomes", draft.block_outcomes)
+    object.__setattr__(sealed, "watchpoint_synthesized", draft.watchpoint_synthesized)
     object.__setattr__(sealed, "warnings", canonical_warnings)
     return sealed
 

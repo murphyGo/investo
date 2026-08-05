@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
+from decimal import Decimal
 
 import pytest
 
@@ -11,12 +12,14 @@ import investo.publisher.segment_reader_format as segment_reader_format
 from investo._internal.summary_quality import repair_first_viewport_summary
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import DOMESTIC_EQUITY, US_EQUITY, MarketSegment
-from investo.models import Briefing
+from investo.models import Briefing, NormalizedItem
+from investo.models.market_anchor import MarketAnchor
 from investo.publisher.compliance_language import ComplianceHit, ComplianceLanguageError
 from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.public_document import _assemble_phase_one_reader_briefings
 from investo.publisher.reader_format import apply_reader_format, reflow_first_viewport
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
+from investo.publisher.watchpoint_matrix import DATA_LIMITED_NOTE
 
 
 def _briefing(markdown: str, *, target_date: date = date(2026, 6, 11)) -> Briefing:
@@ -241,6 +244,126 @@ def test_compliance_scans_only_raw_and_rendered_watchpoint_shapes(
     assert len(observed) == 2
     assert "- 확인 소스: FRED" in observed[0]
     assert "#### 관찰 신호:" in observed[1]
+
+
+def _fallback_markdown() -> str:
+    return (
+        "# title\n\n"
+        "> **오늘의 결론**: 정책 변수 확인이 필요합니다.\n"
+        "> **핵심 동인**: 금리 경로를 확인합니다.\n"
+        "> **주의할 점**: 변동성을 점검합니다.\n\n"
+        "## ① 요약\n본문입니다.\n\n"
+        "## ⑥ 오늘의 관전 포인트\n\n"
+        "- 구조화 가능한 관찰 신호가 부족합니다.\n"
+    )
+
+
+def _fallback_anchor() -> MarketAnchor:
+    return MarketAnchor(
+        ticker="^GSPC",
+        close=Decimal("7000"),
+        prev_close=Decimal("6930.69"),
+        pct=Decimal("1.00"),
+        is_ath=False,
+        pct_from_52w_high=Decimal("-5.00"),
+        pct_from_52w_low=Decimal("20.00"),
+    )
+
+
+def test_segment_reader_synthesizes_watchpoint_and_restores_count_on_rerun() -> None:
+    anchor = _fallback_anchor()
+    observed = []
+
+    first = apply_reader_format_to_segments(
+        {US_EQUITY: _briefing(_fallback_markdown())},
+        anchors_by_segment={US_EQUITY: (anchor,)},
+        _watchpoint_result_observer=lambda _segment, result: observed.append(result),
+    )[US_EQUITY]
+    second = apply_reader_format_to_segments(
+        {US_EQUITY: first},
+        anchors_by_segment={US_EQUITY: (anchor,)},
+        _watchpoint_result_observer=lambda _segment, result: observed.append(result),
+    )[US_EQUITY]
+    output = first.rendered_markdown
+
+    assert [result.synthesized_card_count for result in observed] == [1, 1]
+    assert first.rendered_markdown == second.rendered_markdown
+    assert "#### 관찰 신호: S&P 500 가격 구간" in output
+    assert "- 현재: 7,000.00 (**+1%**)" in output
+    assert "watchpoint_synthesized" not in output
+
+
+def test_synthesized_compliance_failure_drops_only_failed_row_without_blocking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cftc = NormalizedItem(
+        source_name="cftc-cot-positioning",
+        category="macro",
+        title="CFTC fixture",
+        published_at=datetime(2026, 6, 30, tzinfo=UTC),
+        raw_metadata={
+            "contract_label": "E-mini S&P 500",
+            "contract_group": "equity_index",
+            "net_contracts": "-451586",
+            "net_pct_open_interest": "-20.50",
+        },
+    )
+    real_scan = segment_reader_format.scan_compliance
+
+    def reject_range_card(text: str, segment: MarketSegment) -> object:
+        if text.startswith("####") and "S&P 500 가격 구간" in text:
+            raise ComplianceLanguageError(segment=segment, hits=())
+        return real_scan(text, segment)
+
+    monkeypatch.setattr(segment_reader_format, "scan_compliance", reject_range_card)
+
+    observed = []
+    first = apply_reader_format_to_segments(
+        {US_EQUITY: _briefing(_fallback_markdown())},
+        anchors_by_segment={US_EQUITY: (_fallback_anchor(),)},
+        items_by_segment={US_EQUITY: (cftc,)},
+        _watchpoint_result_observer=lambda _segment, result: observed.append(result),
+    )[US_EQUITY]
+    second = apply_reader_format_to_segments(
+        {US_EQUITY: first},
+        anchors_by_segment={US_EQUITY: (_fallback_anchor(),)},
+        items_by_segment={US_EQUITY: (cftc,)},
+        _watchpoint_result_observer=lambda _segment, result: observed.append(result),
+    )[US_EQUITY]
+    result = first.rendered_markdown
+
+    assert "S&P 500 가격 구간" not in result
+    assert "#### 관찰 신호: E-mini S&P 500 포지셔닝" in result
+    assert first.rendered_markdown == second.rendered_markdown
+    assert [item.synthesized_card_count for item in observed] == [1, 1]
+    assert [item.state for item in observed] == ["rendered", "rendered"]
+    assert [item.usable_card_count for item in observed] == [1, 1]
+
+
+def test_all_synthesized_compliance_failures_preserve_bounded_note_without_blocking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    real_scan = segment_reader_format.scan_compliance
+
+    def reject_synthesized_card(text: str, segment: MarketSegment) -> object:
+        if text.startswith("####"):
+            raise ComplianceLanguageError(segment=segment, hits=())
+        return real_scan(text, segment)
+
+    monkeypatch.setattr(segment_reader_format, "scan_compliance", reject_synthesized_card)
+
+    observed = []
+    result = apply_reader_format_to_segments(
+        {US_EQUITY: _briefing(_fallback_markdown())},
+        anchors_by_segment={US_EQUITY: (_fallback_anchor(),)},
+        _watchpoint_result_observer=lambda _segment, item: observed.append(item),
+    )[US_EQUITY].rendered_markdown
+
+    assert "#### 관찰 신호:" not in result
+    assert DATA_LIMITED_NOTE in result
+    assert len(observed) == 1
+    assert observed[0].state == "limited"
+    assert observed[0].synthesized_card_count == 0
 
 
 def test_public_document_boundary_scans_reader_output_before_return(

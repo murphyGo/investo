@@ -6215,3 +6215,94 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Independent semantic review findings were fixed by separating Bitcoin mining from generic Bitcoin, enforcing every replay fit row and concentration threshold, narrowing KOSPI-history aliases, validating runtime registry integrity, and rejecting incomplete selected provenance. Independent rights-graph findings were fixed by anchoring originals/thumbnails to provider checksums, closing root/directory shapes, scanning all JSON and allowed-URL components, rechecking packet inputs, requiring all 15 legacy assets, accepting only normal/preferred value statements, and rejecting rights-artifact symlinks. Final reviews found no remaining Critical/High/Medium issue.
 **Validation**: 115 focused tests passed; the independent semantic review scope passed 170 tests; Ruff lint/format, strict mypy on four changed source modules, the 19-asset curated graph, no-paid guard, replay gate, strict MkDocs build, and `git diff --check` passed.
 **Status**: u146 and u147 code generation complete. Future supply may add equally current-safe KOSPI and Wall Street variants through the same evidence graph.
+## Construction — u135 Code Generation approval and Step 1 trace
+**Timestamp**: 2026-08-03T14:55:15Z
+**User response**: `u133 → u134 → u135 까지 같은 방식으로 계속 개발해줘` / `블록커 이슈가 아닌한 나에게 묻지말고 계속 작업해줘`
+**Decision**: Treat the existing seven-step u135 plan as approved and commit/push each validated step without intermediate approval pauses. Functional Design and NFR Requirements remain skipped because the unit adds deterministic resolution and synthesis over already-reconciled data with no dependency, source, secret, network, or cost change.
+**Trace**: The active production route is `orchestrator.pipeline::_build_public_document_context` → `publisher.public_document::_assemble_phase_one_reader_draft` → `publisher.segment_reader_format::apply_reader_format_to_segments` → `publisher.watchpoint_matrix::render_watchpoint_matrix_result`. The first compliance scan covers raw prose; the second covers the rendered §⑥ result.
+**Root cause**: `_build_row` derives `current` independently, while `_promote_source` only chooses the `출처` value. `render_matrix_table` normalizes and renders the original `row.current` without substituting a payload value, and `_renderable_row` only treats generic current text as one soft invalid. A source-shaped value such as `CoinGecko BTC` therefore survives as `현재` when the rest of the row is populated.
+**Scope**: Preserve u72/u98/u110 behavior, u131 title bounding, u144 pre-seal assembly, and the two compliance scans. Step 2 will add an explicit plain-data resolution payload; no publisher-to-orchestrator import.
+**Validation**: Existing watchpoint matrix suite passed; scoped Ruff/format and `git diff --check` passed. Fresh-eyes review found two Medium and two Low documentation-precision issues: the inherited plan's false "vacated current" wording, premature approval text, stale u131 dependency status, and an overbroad renderer exclusion. All four were corrected; re-review approved with no remaining findings.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-1-current-value-trace.md`.
+**Status**: Step 1 checklist complete 1/7. Next: reconciled-payload value resolution and unresolved-row hard fail.
+
+## Construction — u135 Code Generation Step 1 synchronization and Step 2 complete
+**Timestamp**: 2026-08-03T20:21:53Z
+**Synchronization**: Committed Step 1 as `2e0c2c5` (`docs: trace u135 current value gap`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Added an immutable publisher-owned `WatchpointValuePayload` scalar snapshot plus exact current-value resolution for segment-correct reconciled anchors, CoinGecko price, F&G, funding/OI, and CFTC inputs. Source promotion is retained before substitution; a payload-backed non-numeric unresolved row is omitted through the existing invalid-row path. Canonical legacy cards repair once and remain byte-idempotent.
+**Boundaries**: Anchors and item families are gated by crypto/US/domestic ownership; CFTC rows require the correct contract group. Matching uses bounded exact ASCII/Hangul token boundaries and longest exact-token specificity, never fuzzy matching. `segment` is mandatory and must match whenever a value payload is supplied. No-payload callers keep the u110 behavior unchanged.
+**Safety**: Item metadata is snapshotted into immutable scalar tuples. Nonfinite/negative/oversized price, OI, funding, F&G, percentage, and CFTC shapes fail closed before formatting.
+**Review**: Fresh-eyes review found one High segment-cross-pollution issue, two Medium payload-immutability/segment-identity issues, and one Low numeric-domain issue. Segment dispatch, immutable snapshots, mandatory segment identity, and key-specific numeric guards plus regressions closed all findings; re-review approved with no remaining Critical/High/Medium/Low issue.
+**Validation**: 55 watchpoint-matrix tests passed; scoped Ruff/format, mypy, and `git diff --check` passed. Independent reviewer run also passed all 55 tests.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-2-current-value-resolution.md`.
+**Status**: Step 2 checklist complete 2/7. Next: deterministic fallback synthesis.
+
+## Construction — u135 Code Generation Step 2 synchronization and Step 3 complete
+**Timestamp**: 2026-08-04T01:25:49Z
+**Synchronization**: Committed Step 2 as `9867de3` (`fix: resolve watchpoint current values`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Added pure `publisher/watchpoint_fallback.py` synthesis over immutable value payloads. It emits existing-shape `WatchpointRow` values only, in range → CFTC → F&G order, capped at two, with no I/O or LLM call.
+**Range contract**: Crypto requires same-symbol CoinGecko 24h high/low around the reconciled close. US/domestic reconstruct 52w bounds from reconciled anchor percentage distances. Core symbols are deterministic priority inputs; missing, cross-segment, nonpositive, or zero-quantized thresholds are omitted.
+**CFTC/F&G contract**: CFTC requires the segment's contract group plus consistent negative net-contract and OI-percentage signs, and receives `보통`. F&G requires an integer extreme (≤20 or ≥80) and receives `높음`. The original plan paired ≥80 extreme greed with fear-only 20/10 triggers; Step 3 ratified a second closed greed template (90/80) to prevent contradictory public guidance.
+**Review**: Fresh-eyes review found one High F&G semantic contradiction, one Medium CFTC sign-consistency gap, and one Low zero-quantized 52w threshold. A closed greed branch, sign pairing, post-quantization positivity check, and regressions closed all three; re-review approved with no remaining findings.
+**Validation**: Matrix+fallback tests 62 passed; scoped Ruff/format, mypy, and `git diff --check` passed. Independent reviewer gate also passed 62 tests and Ruff.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-3-deterministic-fallback.md`.
+**Status**: Step 3 checklist complete 3/7. Next: orchestrator/pre-seal wiring, compliance filtering, and `watchpoint_synthesized` metadata.
+
+## Construction — u135 Code Generation Step 3 synchronization and Step 4 complete
+**Timestamp**: 2026-08-05T03:38:38Z
+**Synchronization**: Step 3 is committed as `82b3aee` (`feat: synthesize watchpoint fallbacks`) and pushed on `codex/u135`; local and remote branch heads matched before Step 4 construction.
+**Action**: Wired the immutable reconciled payload and deterministic fallback into u144 phase-1 assembly. Synthesis runs only when zero LLM cards survive. Synthesized rows are compliance-scanned independently and rejected rows are omitted without blocking; the existing final full-document scan remains in place.
+**Typed diagnostics**: Added `synthesized_card_count` to `WatchpointRenderResult`, propagated it through `PublicDocumentDraft` transitions and `FinalizedPublicDocument`, and summed sealed counts into private quality-history metadata as `watchpoint_synthesized`. No public marker is emitted and no sealed Markdown is parsed for the count.
+**Idempotence**: Exact canonical, order-preserving deterministic subsets are recognized from the same frozen payload on re-entry. The current compliance survivor set is re-rendered or collapsed as necessary; a partial-drop regression now preserves byte-identical output and count `[1, 1]`. Numeric emphasis is applied immediately after card generation so resolved values stabilize on the first pass.
+**Review**: Initial review found three Medium gaps in sealed-writer fixture coverage, rerun typed-count restoration, and forced compliance-drop tests. Re-review found one combined partial-drop rerun gap. Fixture coverage, exact subset recognition, and one/all-drop integration tests closed every finding; final re-review approved with no remaining correctness/security/architecture/test issue.
+**Validation**: Changed-impact suite 274 passed; publisher/orchestrator suites 1,453 passed before the final isolated subset refinement; final affected gate 22 passed. Scoped Ruff, format, mypy, and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-4-orchestration-and-quality.md`.
+**Status**: Step 4 checklist complete 4/7. Next: exact 2026-06-29/30 and empty-payload incident regressions.
+
+## Construction — u135 Code Generation Step 4 synchronization and Step 5 complete
+**Timestamp**: 2026-08-05T04:36:25Z
+**Synchronization**: Committed Step 4 as `3782136` (`feat: wire watchpoint fallbacks`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Added dedicated u135 fixtures for the 2026-06-29 crypto source-in-value defect, the 2026-06-30 US bounded-note despite anchor/CFTC evidence, and the empty-payload canonical note. The crypto fixture carries both anchor and CoinGecko candidates and resolves to the named CoinGecko `$60,284.00 (+2.23%)` snapshot. The US fixture renders range then CFTC with count 2. Empty payload is byte-identical.
+**Precedence correction**: Candidate resolution now ranks semantic indicator class, longest exact signal token, source specificity, then stable order. The source cue therefore resolves an equal BTC price tie but cannot override funding/OI/CFTC/F&G meaning. Separator regressions pin `BTC · 펀딩` and `BTC · OI`.
+**Provenance**: US close, high-distance, CFTC, and bounded-note values are archive-evidenced. The public archive does not retain `pct_from_52w_low`; its `20.00` fixture value is explicitly a synthetic range-enabler, so this is incident-shaped rather than a full raw-payload replay claim.
+**Review**: Fresh-eyes review found one High semantic-precedence regression where separator-delimited funding/OI could receive the CoinGecko price. Indicator priority plus regressions closed it; re-review approved with no remaining correctness/security/R13 finding. The fixture-provenance note was non-blocking and documented.
+**Validation**: Focused suite 68 passed; publisher suite 1,022 passed; fixture JSON and scoped Ruff/format/mypy/`git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-5-incident-regressions.md`.
+**Status**: Step 5 checklist complete 5/7. Next: explicit u64 structure and compliance tests.
+
+## Construction — u135 Code Generation Step 5 synchronization and Step 6 complete
+**Timestamp**: 2026-08-05T04:55:06Z
+**Synchronization**: Committed Step 5 as `c14a9d3` (`test: pin watchpoint incident regressions`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Exercised RANGE, CFTC, FEAR, and GREED through the real synthesis/renderer path and asserted the shared u64 source/trigger/implication regexes, every P0 literal category, quantified-outcome patterns, and `scan_compliance` result. No duplicate scanner or catalogue was introduced.
+**Failure semantics**: A forced single-row compliance failure leaves one rendered usable/synthesized card and remains byte-idempotent. Forced rejection of every synthesized row does not block publish; the canonical limited note and typed zero counts remain.
+**Review**: Fresh-eyes review found no blocker. Its Low recommendation to pin `state=rendered` and `usable_card_count=1` on the partial-drop path was implemented and revalidated.
+**Validation**: Compliance/reader/fallback/orchestration gate 101 passed; scoped Ruff/format and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-6-compliance-contract.md`.
+**Status**: Step 6 checklist complete 6/7. Next: cumulative static/type/test/lock quality gate.
+
+## Construction — u135 Code Generation Step 6 synchronization and Step 7 complete
+**Timestamp**: 2026-08-05T05:34:09Z
+**Synchronization**: Committed Step 6 as `857e72c` (`test: enforce watchpoint compliance contracts`) and pushed `codex/u135`; local and remote branch heads matched.
+**Gate**: `uv lock --check`, u135 fixture JSON parse, and range diff integrity passed. Ruff and format passed all 17 changed Python files; `mypy src` passed 250 source files; publisher and orchestrator passed 1,464 tests. No `site_docs` path changed, so the plan's conditional strict MkDocs gate did not apply.
+**Coverage**: AC-135.1-6 and Fixed Contracts 1-7 are pinned across current-value resolution, deterministic fallback, exact incident fixtures, the u67/u138 close-only domestic production contract, empty-payload preservation, compliance row drops, typed quality-history propagation, and the full publisher/orchestrator regression scope.
+**Extensions**: Property-Based Testing remains Partial; Security Baseline remains declined because u135 adds no dependency, source, credential, network, external-I/O, or cost surface. Existing flat scalar metadata is snapshotted immutably, resolution consumes explicit public candidate fields, no raw-metadata logging is added, and the private synthesized marker preserves the R13 boundary.
+**Review**: Cumulative fresh-eyes review first found a Medium unreachable close-only domestic production path and a Low mixed ASCII/Hangul token boundary. The domestic close-reference template plus production/render regressions and closed particle-suffix matcher resolved both. A re-review Low for missing shared-compliance coverage of the new template was also closed. Final review approved AC-135.1-6, Fixed Contracts 1-7, u144 pre-seal/seal lifecycle compatibility, R13, and security boundaries with no remaining Critical, High, Medium, or Low finding.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/summary.md`.
+**Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
+
+## Cross-check — u135 complete
+**Timestamp**: 2026-08-05T09:30:54Z
+**Scope**: Mapped the eight u135 UoW requirement areas, AC-135.1-6, Fixed Contracts 1-7, Definition of Done, and project rules to implementation, regression, and final-gate evidence.
+**Result**: 8 Complete, 0 Partial, 0 Gap, 0 Deferred; overall compliance 100%; QA verdict APPROVE.
+**Boundaries**: Confirmed u64/u72/u98/u110 ownership, u130 trusted domestic quarantine, u144 pre-seal/seal lifecycle, empty and compliance-drop graceful degradation, zero-cost/no-new-I/O posture, and R13 public containment.
+**Evidence**: `docs/cross-checks/2026-08-05-u135-watchpoint-current-value-and-deterministic-fallback.md`; final gate `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-7-quality-gate.md`.
+**TECH-DEBT**: None added. No u135 gap or follow-up unit remains.
+**Status**: u135 construction and cross-check complete. Proceed to isolated current-main integration.
+
+## Main integration — u135 validated
+**Timestamp**: 2026-08-05T09:42:02Z
+**Base**: `origin/main@b06b1ba`; validated unit head `origin/codex/u135@64a54ef`.
+**Merge**: Used an isolated integration worktree and a two-parent merge. All code/test paths merged automatically. The sole append-only audit conflict retained both the current-main u141/u146 records and the complete u135 history. The user's original dirty main worktree remained untouched.
+**Validation**: Lock, u135 fixture JSON, and range diff integrity passed; Ruff/format passed 17 u135 Python files; `mypy src` passed 252 current-main source files; publisher and orchestrator passed 1,468 tests. No `site_docs` path changed, so the conditional strict MkDocs gate did not apply.
+**Evidence**: Unit report `docs/cross-checks/2026-08-05-u135-watchpoint-current-value-and-deterministic-fallback.md`; integration session `docs/sessions/2026-08-05-u135-main-integration.md`.
+**Status**: Current-main integration validation complete. Commit/push the merge and verify the exact main quality workflow.

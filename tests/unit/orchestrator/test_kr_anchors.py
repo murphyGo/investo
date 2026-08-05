@@ -17,6 +17,8 @@ from decimal import Decimal
 from investo.models import NormalizedItem
 from investo.models.coverage import SourceOutcome
 from investo.orchestrator.pipeline import _build_kr_anchors_from_items
+from investo.publisher.watchpoint_fallback import synthesize_watchpoint_rows
+from investo.publisher.watchpoint_matrix import WatchpointValuePayload, render_matrix_table
 
 _TS = datetime(2026, 5, 22, 6, 30, tzinfo=UTC)
 
@@ -133,3 +135,22 @@ def test_trusted_large_cap_anchors_unblock_reader_gate_core_symbols() -> None:
     )
 
     assert [a.ticker for a in anchors] == ["005930.KS", "000660.KS"]
+
+
+def test_trusted_close_only_kospi_reaches_u135_fallback_without_derived_history() -> None:
+    anchors = _build_kr_anchors_from_items(
+        [_kr_item("^KOSPI", "2650.50")],
+        target_date=_TS.date(),
+    )
+
+    assert len(anchors) == 1
+    assert anchors[0].pct is None
+    assert anchors[0].pct_from_52w_high is None
+    rows = synthesize_watchpoint_rows(
+        WatchpointValuePayload.from_inputs("domestic-equity", anchors=anchors)
+    )
+    rendered = render_matrix_table(list(rows))
+
+    assert [row.signal for row in rows] == ["코스피 종가 기준선"]
+    assert "- 현재: 2,650.50" in rendered
+    assert "- 확인 조건: 상방 2,650.50 상회" in rendered
