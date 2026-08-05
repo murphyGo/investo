@@ -26,11 +26,9 @@ from investo.models.public_artifact import StagedArtifact, build_staged_artifact
 from investo.models.segments import MarketSegment, SegmentCoverage
 from investo.models.watchlist import WatchlistImpact
 from investo.visuals.cards import (
-    DataConfidenceCardInput,
     MarketSnapshotCardInput,
     PriceSnapshotCardInput,
     PriceSnapshotRow,
-    WatchlistRelevanceCardInput,
     build_data_confidence_card,
     build_price_snapshot_card,
     build_watchlist_relevance_card,
@@ -53,7 +51,7 @@ from investo.visuals.provenance import (
     read_manifest,
     write_manifest,
 )
-from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, render_card_svg
+from investo.visuals.render import SVG_HEIGHT, SVG_WIDTH, _RenderableCard, render_card_svg
 
 _MIN_SVG_BYTES: Final[int] = 500
 _MIN_PNG_BYTES: Final[int] = 100
@@ -108,12 +106,6 @@ _SECTION_ANCHORS: Final[dict[str, tuple[str, ...]]] = {
     # (re-enabled) external image, it repositions near the summary.
     "curated-context-image": ("## ① 요약",),
 }
-_RenderableCard = (
-    DataConfidenceCardInput
-    | MarketSnapshotCardInput
-    | PriceSnapshotCardInput
-    | WatchlistRelevanceCardInput
-)
 
 
 class VisualAssetError(ValueError):
@@ -174,6 +166,7 @@ class PreparedVisualAssets:
 
     briefing: Briefing
     asset_paths: tuple[Path, ...]
+    companion_paths: tuple[Path, ...] = ()
     markdown_blocks: tuple[VisualMarkdownBlock, ...] = ()
     staged_artifacts: tuple[StagedArtifact, ...] = ()
 
@@ -220,6 +213,7 @@ def prepare_segment_visual_assets(
         cards.insert(2, price_card)
 
     asset_paths: list[Path] = []
+    companion_paths: list[Path] = []
     stored_asset_path = _prepare_stored_context_image(
         archive_layout=write_layout,
         target_date=target_date,
@@ -267,10 +261,23 @@ def prepare_segment_visual_assets(
 
     for card in cards:
         path = visual_asset_path(target_date, segment, card.kind, archive_layout=write_layout)
-        _write_svg(path, render_card_svg(card))
-        _write_generated_svg_manifest(path, card_kind=card.kind)
+        dark_path = visual_asset_path(
+            target_date,
+            segment,
+            f"{card.kind}-dark",
+            archive_layout=write_layout,
+        )
+        _write_svg(path, render_card_svg(card, variant="light"))
+        _write_svg(dark_path, render_card_svg(card, variant="dark"))
+        _write_generated_svg_manifest(
+            path,
+            card_kind=card.kind,
+            dark_variant=dark_path.name,
+        )
         validate_visual_asset(path)
+        validate_visual_binary(dark_path)
         asset_paths.append(path)
+        companion_paths.append(dark_path)
 
     staged_artifacts: list[StagedArtifact] = []
     artifact_ids_by_path: dict[Path, tuple[str, ...]] = {}
@@ -306,6 +313,7 @@ def prepare_segment_visual_assets(
     return PreparedVisualAssets(
         briefing=briefing.model_copy(update={"rendered_markdown": rendered_markdown}),
         asset_paths=tuple(asset_paths),
+        companion_paths=tuple(companion_paths),
         markdown_blocks=markdown_blocks,
         staged_artifacts=tuple(staged_artifacts),
     )
@@ -786,7 +794,12 @@ def _prepare_curated_context_image(
     return path
 
 
-def _write_generated_svg_manifest(path: Path, *, card_kind: str) -> None:
+def _write_generated_svg_manifest(
+    path: Path,
+    *,
+    card_kind: str,
+    dark_variant: str,
+) -> None:
     """Write the JSON sidecar for a freshly rendered SVG card."""
     manifest = build_generated_svg_provenance(
         asset_relative_path=path.name,
@@ -794,6 +807,10 @@ def _write_generated_svg_manifest(path: Path, *, card_kind: str) -> None:
         generated_at=datetime.now(tz=UTC),
         width=SVG_WIDTH,
         height=SVG_HEIGHT,
+        additional_metadata={
+            "theme_variant": "light",
+            "dark_variant": dark_variant,
+        },
     )
     write_manifest(manifest, path)
 

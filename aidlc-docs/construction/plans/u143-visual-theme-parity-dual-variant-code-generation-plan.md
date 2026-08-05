@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: In Progress (2/7)
+**Status**: In Progress (3/7)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -158,12 +158,12 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - [x] 테스트(초크포인트 핀): `typing.get_args(_RenderableCard)` registry-driven 파라미터라이즈로 각 카드 입력 클래스가 두 variant를 산출함을 단언 (Contract #1).
 - **Acceptance**: `auto` 바이트 동일성 통과 → `og_card`/인라인 표면/기존 골든이 이 단계에서 churn 0. 카드 SVG 산출은 variant 기본값(`light`) 때문에 아직 바뀌지 않음(다음 스텝에서 쌍 방출).
 
-### Step 2 — 이중 산출 + 프로비넌스 정책 (`assets.py`) `[ ]`
-- [ ] `prepare_segment_visual_assets`의 카드 루프를 쌍 방출기로 교체: light `{kind}.svg` + dark `{kind}-dark.svg` 작성.
-- [ ] 주 자산: 기존대로 `_write_generated_svg_manifest` + `validate_visual_asset`. 매니페스트 `additional_metadata`에 `theme_variant` / `dark_variant` 추가 (Contract #5).
-- [ ] 다크 트윈: 사이드카 미발급 + `validate_visual_binary`로 검증 (Contract #5).
-- [ ] `PreparedVisualAssets.companion_paths` 추가; `asset_paths` 멤버십/순서 불변 (Contract #3).
-- [ ] 테스트: 4종 카드 각각 두 파일 존재 / 다크 파일에 `.json` 사이드카 부재 / 주 매니페스트에 두 키 존재 / `asset_paths` 길이·순서가 pre-u143과 동일 / 다크 SVG가 `_validate_svg_asset` 치수·텍스트 요건 통과.
+### Step 2 — 이중 산출 + 프로비넌스 정책 (`assets.py`) `[x]`
+- [x] `prepare_segment_visual_assets`의 카드 루프를 쌍 방출기로 교체: light `{kind}.svg` + dark `{kind}-dark.svg` 작성.
+- [x] 주 자산: 기존대로 `_write_generated_svg_manifest` + `validate_visual_asset`. 매니페스트 `additional_metadata`에 `theme_variant` / `dark_variant` 추가 (Contract #5).
+- [x] 다크 트윈: 사이드카 미발급 + `validate_visual_binary`로 검증 (Contract #5).
+- [x] `PreparedVisualAssets.companion_paths` 추가; `asset_paths` 멤버십/순서 불변 (Contract #3).
+- [x] 테스트: 4종 카드 각각 두 파일 존재 / 다크 파일에 `.json` 사이드카 부재 / 주 매니페스트에 두 키 존재 / `asset_paths` 길이·순서가 pre-u143과 동일 / 다크 SVG가 `_validate_svg_asset` 치수·텍스트 요건 통과.
 - **Acceptance**: 디스크에 쌍이 떨어지고, `asset_paths` 기반 히어로 선택·앵커 배치 테스트가 **무수정으로** 그린 유지.
 
 ### Step 3 — markdown fragment 쌍 방출 `[ ]`
@@ -258,4 +258,4 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Next Step
 
-Step 2의 light/dark 이중 산출, companion 경로, 프로비넌스 정책을 구현한다.
+Step 3의 Material fragment 쌍 markdown과 단일 캡션 계약을 구현한다.

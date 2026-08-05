@@ -21,12 +21,14 @@ from investo.visuals.assets import (
     insert_visual_links,
     prepare_segment_visual_assets,
     validate_visual_asset,
+    validate_visual_binary,
 )
 from investo.visuals.external_image import ExternalImageAsset
 from investo.visuals.policy import ExternalAssetManifest
 from investo.visuals.provenance import (
     build_generated_svg_provenance,
     manifest_path_for,
+    read_manifest,
     write_manifest,
 )
 from tests.unit.visuals._image_bytes import VALID_JPEG_BYTES, VALID_PNG_BYTES
@@ -242,10 +244,41 @@ def test_prepare_segment_visual_assets_writes_assets_and_updates_markdown(
         watchlist_impact=impact,
     )
 
-    assert len(prepared.asset_paths) == 4
+    assert tuple(path.name for path in prepared.asset_paths) == (
+        "data-confidence.svg",
+        "market-snapshot.svg",
+        "price-snapshot.svg",
+        "watchlist-relevance.svg",
+    )
+    assert tuple(path.name for path in prepared.companion_paths) == (
+        "data-confidence-dark.svg",
+        "market-snapshot-dark.svg",
+        "price-snapshot-dark.svg",
+        "watchlist-relevance-dark.svg",
+    )
     for path in prepared.asset_paths:
         assert path.exists()
         validate_visual_asset(path)
+    for primary_path, dark_path in zip(
+        prepared.asset_paths,
+        prepared.companion_paths,
+        strict=True,
+    ):
+        validate_visual_binary(dark_path)
+        assert not manifest_path_for(dark_path).exists()
+        manifest = read_manifest(primary_path)
+        assert manifest.additional_metadata == {
+            "dark_variant": dark_path.name,
+            "theme_variant": "light",
+        }
+        light_svg = primary_path.read_text(encoding="utf-8")
+        dark_svg = dark_path.read_text(encoding="utf-8")
+        assert light_svg != dark_svg
+        assert len(light_svg.encode("utf-8")) == len(dark_svg.encode("utf-8"))
+        assert "@media" not in light_svg
+        assert "@media" not in dark_svg
+        assert "#f7f5ef" in light_svg
+        assert "#0f1417" in dark_svg
     assert "2026-05-07.assets/data-confidence.svg" in prepared.briefing.rendered_markdown
     assert "2026-05-07.assets/price-snapshot.svg" in prepared.briefing.rendered_markdown
     assert ArchiveLayout(tmp_path / "archive").briefing_path(_TARGET, "us-equity").parent == (
@@ -275,6 +308,8 @@ def test_prepare_visuals_in_staging_returns_complete_descriptors_without_public_
 
     assert not public_root.exists()
     assert len(prepared.staged_artifacts) == len(prepared.asset_paths) * 2
+    assert len(prepared.companion_paths) == len(prepared.asset_paths)
+    assert all(path.is_relative_to(staging_root) for path in prepared.companion_paths)
     descriptor_ids = {artifact.artifact_id for artifact in prepared.staged_artifacts}
     referenced_ids = {
         artifact_id for block in prepared.markdown_blocks for artifact_id in block.artifact_ids
@@ -515,6 +550,10 @@ def test_prepare_segment_visual_assets_writes_manifest_per_asset(
         assert payload["source_type"] == "generated_svg"
         assert payload["generator"] == "investo"
         assert payload["dimensions"] == [1200, 630]
+        assert payload["additional_metadata"] == {
+            "dark_variant": f"{path.stem}-dark.svg",
+            "theme_variant": "light",
+        }
 
 
 def test_prepare_segment_visual_assets_layout_repositions_secondary_cards(

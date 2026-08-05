@@ -6337,3 +6337,15 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review approved Fixed Contract #1, AC-143.3/143.4, all four renderer branches, the byte-compatible alias, and Step 5 quality-sparkline compatibility with no findings.
 **Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-1-style-factory.md`.
 **Status**: Step 1 complete 2/7. Next: paired asset output, companion paths, and manifest metadata.
+
+## Construction — u143 Code Generation Step 2 complete
+**Timestamp**: 2026-08-05T14:48:46Z
+**Synchronization**: Step 1 was committed and pushed as `8f73ddc`; local and remote `codex/u143` heads matched before Step 2 construction.
+**Action**: The visual preparation loop now writes forced-light `{kind}.svg` and forced-dark `{kind}-dark.svg` for every `_RenderableCard`. It reuses the renderer union as the single card-type registry.
+**Path contract**: Added ordered `PreparedVisualAssets.companion_paths`; primary `asset_paths` names, membership, and order remain byte-for-byte equivalent at the path layer. Dark stems cannot enter hero selection, label lookup, or section-anchor routing.
+**Provenance**: Primary manifests carry `theme_variant=light` and `dark_variant={kind}-dark.svg`. Dark companions receive no sidecar and are checked with `validate_visual_binary`; primary assets retain `validate_visual_asset`.
+**Storage confirmation**: Forced-light and forced-dark style blocks are both 245 bytes, and all four generated pairs have equal UTF-8 byte length. This confirms the Step 0 parity projection; manifest count remains flat.
+**Validation**: Render/assets/provenance scope 60 passed; complete visual suite 298 passed. Ruff/format, scoped mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Contracts #1/#3/#5, pair generation, primary-order preservation, sidecar policy, sanitizer round-trip, binary validation, and the explicit Step 4 staging boundary with no findings.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-2-dual-assets.md`.
+**Status**: Step 2 complete 3/7. Next: markdown fragment pairs with one caption.

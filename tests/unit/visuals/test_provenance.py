@@ -130,6 +130,29 @@ def test_write_manifest_round_trip(tmp_path: Path) -> None:
     assert loaded == manifest
 
 
+def test_theme_variant_metadata_round_trips_without_redaction(tmp_path: Path) -> None:
+    asset_path = tmp_path / "data-confidence.svg"
+    asset_path.write_text("<svg></svg>", encoding="utf-8")
+    manifest = build_generated_svg_provenance(
+        asset_relative_path=asset_path.name,
+        card_kind="data-confidence",
+        generated_at=_GENERATED_AT,
+        width=1200,
+        height=630,
+        additional_metadata={
+            "theme_variant": "light",
+            "dark_variant": "data-confidence-dark.svg",
+        },
+    )
+
+    write_manifest(manifest, asset_path)
+
+    assert read_manifest(asset_path).additional_metadata == {
+        "dark_variant": "data-confidence-dark.svg",
+        "theme_variant": "light",
+    }
+
+
 def test_read_manifest_missing_raises(tmp_path: Path) -> None:
     asset_path = tmp_path / "missing.svg"
     asset_path.write_text("<svg></svg>", encoding="utf-8")
