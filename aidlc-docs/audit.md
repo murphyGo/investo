@@ -6395,3 +6395,11 @@ passed, scoped format check passed, `mypy src` passed.
 **Debt**: DEBT-049 and DEBT-061 moved to Resolved Items. Active dashboard: Critical 0, High 0, Medium 0, Low 33.
 **Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-6-quality-gate.md`; `code/summary.md`; `docs/sessions/2026-08-05-u143-code-generation-step6.md`.
 **Status**: Code Generation complete 7/7. Next: fresh-eyes cumulative review, requirements cross-check, then isolated main integration and exact-SHA Quality verification.
+
+## Cross-check — u143 visual-theme-parity-dual-variant
+**Timestamp**: 2026-08-05T16:18:23Z
+**Scope**: Component u143 against FR-002, FR-003, NFR-005, NFR-006, Fixed Contracts #1-#6, and AC-143.1-.7.
+**Result**: APPROVE — 7/7 unit acceptance criteria complete (100%); 0 partial, 0 gaps, 0 new development-plan actions, and 0 new technical-debt items.
+**Evidence**: `docs/cross-checks/2026-08-05-u143-visual-theme-parity-dual-variant.md`; implementation head `09be264`; post-review full suite 4,319 passed; all static, policy, strict docs, CSS+built-HTML theme, diff, and cleanliness gates green.
+**Boundary**: Raw GitHub observation remains assigned to the first real post-u143 production archive. This is the ratified non-canonical fallback and does not weaken the fully guarded Pages contract; no market artifact was fabricated or backfilled.
+**Status**: Requirements cross-check complete. Commit/push the report, then integrate u143 into main from an isolated worktree and verify exact-SHA Quality.
