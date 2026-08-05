@@ -63,6 +63,16 @@ def test_quality_sparkline_dimensions_are_fixed() -> None:
     assert SVG_HEIGHT >= 244
 
 
+def test_quality_sparkline_follows_material_site_toggle() -> None:
+    for svg in (
+        render_quality_sparkline(_rows()).decode("utf-8"),
+        render_quality_sparkline([]).decode("utf-8"),
+    ):
+        assert "@media" not in svg
+        assert '[data-md-color-scheme="slate"] .card-bg{fill:#0f1417;}' in svg
+        assert '[data-md-color-scheme="slate"] .card-text{fill:#e8eef1;}' in svg
+
+
 def test_quality_sparkline_manifest_fields() -> None:
     generated_at = datetime(2026, 5, 9, 12, 0, tzinfo=UTC)
 

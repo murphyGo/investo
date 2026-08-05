@@ -75,8 +75,9 @@ def build_card_style(variant: CardStyleVariant) -> str:
     return f"<style>{body}</style>"
 
 
-# Compatibility alias for the inline quality sparkline until u143 Step 5 moves
-# that surface to the site-scoped variant.
+# Compatibility alias for callers that intentionally need OS-auto behavior.
+# Production inline surfaces use site-scoped factories after u143 Step 5; the
+# alias remains to preserve the pre-u143 import and byte contract.
 _CARD_STYLE: Final[str] = build_card_style("auto")
 
 

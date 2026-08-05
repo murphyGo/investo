@@ -18,13 +18,10 @@ state without seeding archive dirs. The companion
 :func:`scan_publish_coverage` is the production seam — it walks the
 archive root and produces the coverage mapping the renderer consumes.
 
-Dark-mode policy mirrors :mod:`investo.visuals.render` (u26 DEBT-049):
-fill colors swap under ``@media (prefers-color-scheme: dark)`` so the
-same SVG works on both mkdocs Material light / dark schemes. The
-toggle limitation (visitors who manually flip the mkdocs theme via the
-toolbar without changing OS preference will see the OS-preferred
-palette) is the same as the briefing cards — accepted under the same
-DEBT-049 rationale.
+The SVG is inserted inline, so its style participates in the page cascade.
+Dark colors therefore use the mkdocs Material body ancestor
+``[data-md-color-scheme="slate"]`` rather than the OS media query. The
+toolbar toggle and the heatmap now change from the same state (u143 / DEBT-061).
 
 No raw stdlib XML used — the SVG is assembled as a string literal with
 escaped attributes, the same approach as ``visuals.render``. (Project
@@ -40,6 +37,7 @@ from pathlib import Path
 from typing import Final, Literal
 
 from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
+from investo.visuals.render import CardStyleVariant
 
 PublishStatus = Literal["normal", "partial", "insufficient", "absent"]
 _STATUS_ORDER: Final[tuple[PublishStatus, ...]] = (
@@ -177,24 +175,45 @@ def scan_publish_coverage(
 # ---------------------------------------------------------------------------
 
 
-_HEATMAP_STYLE: Final[str] = (
-    "<style>"
-    ".u29-cell-normal{fill:#2ea44f;}"
-    ".u29-cell-partial{fill:#f1c40f;}"
-    ".u29-cell-insufficient{fill:#cf222e;}"
-    ".u29-cell-absent{fill:#d0d7de;}"
-    ".u29-text{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}"
-    ".u29-legend{fill:#1d2b2f;font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;}"
-    "@media (prefers-color-scheme: dark){"
-    ".u29-cell-normal{fill:#3fb950;}"
-    ".u29-cell-partial{fill:#d29922;}"
-    ".u29-cell-insufficient{fill:#f85149;}"
-    ".u29-cell-absent{fill:#30363d;}"
-    ".u29-text{fill:#e6edf3;}"
-    ".u29-legend{fill:#e6edf3;}"
-    "}"
-    "</style>"
+_HEATMAP_FONT: Final[str] = "font-family:&quot;Noto Sans KR&quot;,Arial,sans-serif;"
+_HEATMAP_PALETTE: Final[tuple[tuple[str, str, str], ...]] = (
+    ("u29-cell-normal", "fill:#2ea44f;", "fill:#3fb950;"),
+    ("u29-cell-partial", "fill:#f1c40f;", "fill:#d29922;"),
+    ("u29-cell-insufficient", "fill:#cf222e;", "fill:#f85149;"),
+    ("u29-cell-absent", "fill:#d0d7de;", "fill:#30363d;"),
+    ("u29-text", f"fill:#1d2b2f;{_HEATMAP_FONT}", f"fill:#e6edf3;{_HEATMAP_FONT}"),
+    ("u29-legend", f"fill:#1d2b2f;{_HEATMAP_FONT}", f"fill:#e6edf3;{_HEATMAP_FONT}"),
 )
+
+
+def build_heatmap_style(variant: CardStyleVariant) -> str:
+    """Build one deterministic heatmap style for the requested surface."""
+    light_rules = "".join(
+        f".{css_class}{{{light_declarations}}}"
+        for css_class, light_declarations, _ in _HEATMAP_PALETTE
+    )
+    dark_rules = "".join(
+        f".{css_class}{{{dark_declarations}}}"
+        for css_class, _, dark_declarations in _HEATMAP_PALETTE
+    )
+    if variant == "light":
+        body = light_rules
+    elif variant == "dark":
+        body = dark_rules
+    elif variant == "auto":
+        body = f"{light_rules}@media (prefers-color-scheme: dark){{{dark_rules}}}"
+    elif variant == "site-scoped":
+        site_dark_rules = "".join(
+            f'[data-md-color-scheme="slate"] .{css_class}{{{dark_declarations}}}'
+            for css_class, _, dark_declarations in _HEATMAP_PALETTE
+        )
+        body = f"{light_rules}{site_dark_rules}"
+    else:  # pragma: no cover - defensive runtime boundary beyond the Literal type
+        raise ValueError(f"unsupported heatmap style variant: {variant}")
+    return f"<style>{body}</style>"
+
+
+_HEATMAP_STYLE: Final[str] = build_heatmap_style("site-scoped")
 
 
 def _render_svg(weeks: list[list[CalendarCell | None]], *, anchor: date) -> str:
@@ -273,6 +292,7 @@ __all__ = [
     "PROJECT_START",
     "CalendarCell",
     "PublishStatus",
+    "build_heatmap_style",
     "render_publish_heatmap",
     "scan_publish_coverage",
 ]

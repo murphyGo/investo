@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: In Progress (5/7)
+**Status**: In Progress (6/7)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -180,12 +180,12 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - [x] 테스트: `tests/unit/orchestrator/test_run_pipeline.py` 단언을 fragment 쌍 형태로 갱신하고 두 자산+주 매니페스트의 promotion/git-add를 확인; `![` 쌍을 포함한 전체 경로가 정상 완주함을 확인.
 - **Acceptance**: 통합 파이프라인이 3세그먼트 그린으로 완주하고, 다크 트윈이 git add 대상에 포함되며, 카운트 노트가 실제 파일 수와 일치.
 
-### Step 5 — DEBT-061: 히트맵 + 스파크라인 조상 셀렉터 전환 `[ ]`
-- [ ] `calendar_heatmap.py`: `_HEATMAP_PALETTE` 테이블 + `build_heatmap_style(variant)`; 산출은 `site-scoped`. 모듈 docstring의 DEBT-049 수용 문단을 새 사실로 교체.
-- [ ] `quality_sparkline.py`: `_CARD_STYLE` import → `build_card_style("site-scoped")`.
-- [ ] `render.py` `_CARD_STYLE` 별칭의 잔여 사용처 정리(남으면 `og_card` 계열 주석으로 이유 명시).
-- [ ] 테스트: `tests/unit/visuals/test_calendar_heatmap.py:53`의 `@media (prefers-color-scheme: dark)` 단언을 `[data-md-color-scheme="slate"]` 단언으로 **갱신**(약화 아님 — 토글 추종을 더 강하게 고정); 스파크라인 동일 단언 추가.
-- [ ] `archive/index.md` / `site_docs/quality.md`의 인라인 SVG는 다음 발행 시 자동 갱신 — 재생성 경로가 새 스타일을 쓰는지 게이트에서 확인.
+### Step 5 — DEBT-061: 히트맵 + 스파크라인 조상 셀렉터 전환 `[x]`
+- [x] `calendar_heatmap.py`: `_HEATMAP_PALETTE` 테이블 + `build_heatmap_style(variant)`; 산출은 `site-scoped`. 모듈 docstring의 DEBT-049 수용 문단을 새 사실로 교체.
+- [x] `quality_sparkline.py`: `_CARD_STYLE` import → `build_card_style("site-scoped")`.
+- [x] `render.py` `_CARD_STYLE` 별칭의 잔여 사용처 정리(생산 사용처 0; pre-u143 import/byte 계약 보존용 alias라는 주석 명시). `og_card.py`의 독립 `_OG_STYLE` auto는 Material 부재 표면이라 범위 밖 유지.
+- [x] 테스트: `tests/unit/visuals/test_calendar_heatmap.py`의 `@media (prefers-color-scheme: dark)` 단언을 `[data-md-color-scheme="slate"]` 단언으로 **갱신**(약화 아님 — 토글 추종을 더 강하게 고정); 스파크라인의 populated/empty 양 경로에 동일 단언 추가.
+- [x] `archive/index.md` / `site_docs/quality.md`의 인라인 SVG는 다음 발행 시 자동 갱신 — 두 재생성 함수가 새 스타일을 산출함을 단위 게이트로 확인.
 - **Acceptance**: 두 인라인 표면의 `<style>`이 사이트 토글 속성으로 구동되고 `@media`가 사라짐. 파일 수 증가 0.
 
 ### Step 6 — 골든/테스트 churn 정리 + 게이트 + 문서/부채 종결 `[ ]`
@@ -258,4 +258,4 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 
 ## Next Step
 
-Step 5의 인라인 히트맵·품질 스파크라인을 site-scoped selector로 전환한다.
+Step 6의 누적 게이트, built-site 규약, DESIGN/TECH-DEBT/state 종결을 수행한다.

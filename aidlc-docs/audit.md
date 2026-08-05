@@ -6371,3 +6371,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Review**: Fresh-eyes review approved the complete u144 artifact lifecycle, 27-file accounting, non-paired image compatibility, current-owner plan grounding, and data/resource integrity with no findings.
 **Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-4-staging.md`.
 **Status**: Step 4 complete 5/7. Next: site-scoped inline heatmap and quality sparkline.
+
+## Construction — u143 Code Generation Step 5 complete
+**Timestamp**: 2026-08-05T15:42:08Z
+**Synchronization**: Step 4 was committed and pushed as `35b41d9`; local and remote `codex/u143` heads matched before Step 5 construction.
+**Action**: Replaced the inline calendar heatmap's literal media-query style with `_HEATMAP_PALETTE` + `build_heatmap_style`, and switched both heatmap and quality-sparkline output to Material site-scoped ancestor selectors.
+**Behavior**: Populated and empty inline SVG outputs contain `[data-md-color-scheme="slate"]` overrides and no OS media query. The Material toolbar and inline visuals now consume the same page state. File/manifest count increase is zero.
+**Compatibility**: `_CARD_STYLE` has no production consumer after this step but remains the byte-compatible auto alias required by Contract #1. `og_card.py::_OG_STYLE` remains auto because its social/PNG surfaces have no Material ancestor.
+**Validation**: Heatmap/sparkline/renderer scope 35 passed; complete visual suite 302 passed. Ruff/format, scoped source mypy, and `git diff --check` passed.
+**Review**: Fresh-eyes review approved Fixed Contract #6 / AC-143.6 with zero findings. It independently confirmed palette/font preservation, populated and empty site-scoped output, stronger ancestor specificity, no production `_CARD_STYLE` consumer, unchanged OG auto scope, zero file-count delta, and all bounded gates.
+**Evidence**: `aidlc-docs/construction/u143-visual-theme-parity-dual-variant/code/step-5-inline-site-scope.md`.
+**Status**: Step 5 complete 6/7. Next: cumulative gates, built-site verification, docs/debt/state closeout.
