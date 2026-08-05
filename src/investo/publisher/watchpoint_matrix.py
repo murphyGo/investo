@@ -661,6 +661,8 @@ def _is_generic_current(text: str) -> bool:
 class _CurrentValueCandidate:
     match_tokens: tuple[str, ...]
     current: str
+    source_tokens: tuple[str, ...] = ()
+    is_indicator: bool = False
 
 
 def _metadata_text(item: WatchpointItemSnapshot, key: str) -> str | None:
@@ -770,6 +772,7 @@ def _coingecko_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate
             dict.fromkeys((symbol.upper(), ticker, coin_id, label.short, label.ko, label.display))
         ),
         current=f"{rendered_price} ({rendered_pct})",
+        source_tokens=("CoinGecko",),
     )
 
 
@@ -789,6 +792,7 @@ def _fear_greed_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidat
     return _CurrentValueCandidate(
         match_tokens=("공포·탐욕", "공포 탐욕", "Fear & Greed", "Fear and Greed", "F&G"),
         current=f"{int(value)}{suffix}",
+        is_indicator=True,
     )
 
 
@@ -805,6 +809,7 @@ def _funding_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate |
     return _CurrentValueCandidate(
         match_tokens=("BTC 펀딩", "펀딩", "BTC funding", "funding rate", "funding"),
         current=f"펀딩 {value}",
+        is_indicator=True,
     )
 
 
@@ -818,6 +823,7 @@ def _oi_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate | None
     return _CurrentValueCandidate(
         match_tokens=("BTC 미결제약정", "BTC OI", "미결제약정", "open interest", "OI"),
         current=f"OI {value}",
+        is_indicator=True,
     )
 
 
@@ -847,6 +853,7 @@ def _cftc_candidate(
     return _CurrentValueCandidate(
         match_tokens=(contract,),
         current=f"순포지션 {int(net):,}계약 ({pct} OI, 주간 지연)",
+        is_indicator=True,
     )
 
 
@@ -907,9 +914,11 @@ def _has_exact_signal_token(signal: str, token: str) -> bool:
 def _candidate_for_signal(
     signal: str,
     candidates: Sequence[_CurrentValueCandidate],
+    *,
+    source: str = "",
 ) -> _CurrentValueCandidate | None:
     best: _CurrentValueCandidate | None = None
-    best_score = (-1, 0)
+    best_score = (-1, -1, -1, 0)
     for index, candidate in enumerate(candidates):
         matched_lengths = [
             len(token.strip())
@@ -917,7 +926,18 @@ def _candidate_for_signal(
             if _has_exact_signal_token(signal, token)
         ]
         if matched_lengths:
-            score = (max(matched_lengths), -index)
+            source_specificity = int(
+                any(
+                    _has_exact_signal_token(f"{signal} {source}", token)
+                    for token in candidate.source_tokens
+                )
+            )
+            score = (
+                int(candidate.is_indicator),
+                max(matched_lengths),
+                source_specificity,
+                -index,
+            )
             if score > best_score:
                 best = candidate
                 best_score = score
@@ -950,7 +970,7 @@ def resolve_watchpoint_currents(
         if _CURRENT_VALUE_RE.search(current):
             resolved.append(promoted)
             continue
-        candidate = _candidate_for_signal(row.signal, candidates)
+        candidate = _candidate_for_signal(row.signal, candidates, source=source)
         if candidate is not None:
             resolved.append(replace(promoted, current=candidate.current))
     return resolved

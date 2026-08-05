@@ -887,6 +887,45 @@ def test_u135_resolves_every_pinned_item_value_key_by_exact_signal_token() -> No
     ]
 
 
+@pytest.mark.parametrize(
+    ("signal", "expected"),
+    (
+        ("BTC · 펀딩", "펀딩 0.0001"),
+        ("BTC · OI", "OI $18,450,000,000.00"),
+    ),
+)
+def test_u135_indicator_semantics_beat_price_source_tie_across_separator(
+    signal: str,
+    expected: str,
+) -> None:
+    payload = WatchpointValuePayload.from_inputs(
+        "crypto",
+        items=(
+            _value_item(
+                source_name="coingecko-price",
+                metadata={
+                    "coin_id": "bitcoin",
+                    "symbol": "btc",
+                    "price_usd": "60284",
+                    "pct_24h": "2.23",
+                },
+            ),
+            _value_item(
+                source_name="okx-derivatives",
+                metadata={"indicator": "btc_funding", "btc_funding_rate": "0.0001000"},
+            ),
+            _value_item(
+                source_name="bybit-derivatives",
+                metadata={"indicator": "btc_oi", "btc_oi_usd": "18450000000"},
+            ),
+        ),
+    )
+
+    resolved = resolve_watchpoint_currents((_value_row(signal),), payload)
+
+    assert [row.current for row in resolved] == [expected]
+
+
 def test_u135_payload_snapshots_mutable_item_metadata() -> None:
     item = _value_item(
         source_name="alternative-fng",

@@ -3,7 +3,7 @@
 **Date**: 2026-07-17
 **Unit**: u135 watchpoint-current-value-and-deterministic-fallback
 **Stage**: Code Generation
-**Status**: In Progress (4/7) — pre-seal wiring and quality diagnostics complete; incident regressions next
+**Status**: In Progress (5/7) — exact incident regressions complete; compliance contract gate next
 **Source**: 2026-06-29/2026-06-30 production bundle review (briefing-unit-planner, 2026-07-17)
 **Estimated Effort**: ~4-5 h
 **Dependencies**:
@@ -72,7 +72,7 @@ NFR Requirements: SKIP — deterministic synthesis from already-collected data; 
 - [x] Step 2 — Implement value resolution (Fixed Contracts 1-2) in `watchpoint_matrix.py`; the reconciled payload arrives via a new explicit parameter from the orchestrator (no publisher→orchestrator import; payload is plain data).
 - [x] Step 3 — Implement fallback synthesis (Fixed Contracts 3-5) in a new sibling `src/investo/publisher/watchpoint_fallback.py`; templates as module constants.
 - [x] Step 4 — Wire the orchestrator: pass the payload, run synthesis when the trigger fires, re-run `scan_compliance` over the final §⑥ (existing u72 double-pass extended to cover synthesized output), stamp `watchpoint_synthesized` into the quality snapshot.
-- [ ] Step 5 — Regressions: (a) 2026-06-29 crypto fixture — `현재: CoinGecko BTC` resolves to `$60,284.00 (+2.23%)` or the row fails; (b) 2026-06-30 us-equity fixture — CFTC + anchor payload synthesizes 2 cards where production rendered the bounded note; (c) empty-payload fixture — bounded note preserved (DEBT-074).
+- [x] Step 5 — Regressions: (a) 2026-06-29 crypto fixture — `현재: CoinGecko BTC` resolves to `$60,284.00 (+2.23%)` or the row fails; (b) 2026-06-30 us-equity fixture — CFTC + anchor payload synthesizes 2 cards where production rendered the bounded note; (c) empty-payload fixture — bounded note preserved (DEBT-074).
 - [ ] Step 6 — Compliance tests: synthesized templates pass u64 structure regexes and contain no banned-advice tokens; forced-failure path drops the card.
 - [ ] Step 7 — Quality gate: scoped ruff/format, `mypy src`, `pytest tests/unit/publisher tests/unit/orchestrator`, `mkdocs build --strict` if site_docs touched (expected: not touched).
 

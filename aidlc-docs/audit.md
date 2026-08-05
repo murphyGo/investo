@@ -6238,3 +6238,14 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Changed-impact suite 274 passed; publisher/orchestrator suites 1,453 passed before the final isolated subset refinement; final affected gate 22 passed. Scoped Ruff, format, mypy, and `git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-4-orchestration-and-quality.md`.
 **Status**: Step 4 checklist complete 4/7. Next: exact 2026-06-29/30 and empty-payload incident regressions.
+
+## Construction — u135 Code Generation Step 4 synchronization and Step 5 complete
+**Timestamp**: 2026-08-05T04:36:25Z
+**Synchronization**: Committed Step 4 as `3782136` (`feat: wire watchpoint fallbacks`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Added dedicated u135 fixtures for the 2026-06-29 crypto source-in-value defect, the 2026-06-30 US bounded-note despite anchor/CFTC evidence, and the empty-payload canonical note. The crypto fixture carries both anchor and CoinGecko candidates and resolves to the named CoinGecko `$60,284.00 (+2.23%)` snapshot. The US fixture renders range then CFTC with count 2. Empty payload is byte-identical.
+**Precedence correction**: Candidate resolution now ranks semantic indicator class, longest exact signal token, source specificity, then stable order. The source cue therefore resolves an equal BTC price tie but cannot override funding/OI/CFTC/F&G meaning. Separator regressions pin `BTC · 펀딩` and `BTC · OI`.
+**Provenance**: US close, high-distance, CFTC, and bounded-note values are archive-evidenced. The public archive does not retain `pct_from_52w_low`; its `20.00` fixture value is explicitly a synthetic range-enabler, so this is incident-shaped rather than a full raw-payload replay claim.
+**Review**: Fresh-eyes review found one High semantic-precedence regression where separator-delimited funding/OI could receive the CoinGecko price. Indicator priority plus regressions closed it; re-review approved with no remaining correctness/security/R13 finding. The fixture-provenance note was non-blocking and documented.
+**Validation**: Focused suite 68 passed; publisher suite 1,022 passed; fixture JSON and scoped Ruff/format/mypy/`git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-5-incident-regressions.md`.
+**Status**: Step 5 checklist complete 5/7. Next: explicit u64 structure and compliance tests.
