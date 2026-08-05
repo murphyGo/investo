@@ -3,7 +3,7 @@
 **Date**: 2026-07-19
 **Unit**: u143 visual-theme-parity-dual-variant
 **Stage**: Code Generation
-**Status**: In Progress (6/7)
+**Status**: Complete (7/7; pending main integration)
 **Source**: 2026-07-19 user ratification of the third path recorded in the DEBT-049 investigation (2026-07-19). 원안 (b) inline `<svg>` / (c) `<picture>` 모두 기각되었고, mkdocs-material 내장 light/dark 이미지 규약(`#only-light` / `#only-dark` 계열 fragment 쌍)을 채택한다. DEBT-061(캘린더 히트맵)은 같은 단위에서 함께 닫는다.
 **Estimated Effort**: ~5-7 h
 **Dependencies**:
@@ -188,13 +188,13 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
 - [x] `archive/index.md` / `site_docs/quality.md`의 인라인 SVG는 다음 발행 시 자동 갱신 — 두 재생성 함수가 새 스타일을 산출함을 단위 게이트로 확인.
 - **Acceptance**: 두 인라인 표면의 `<style>`이 사이트 토글 속성으로 구동되고 `@media`가 사라짐. 파일 수 증가 0.
 
-### Step 6 — 골든/테스트 churn 정리 + 게이트 + 문서/부채 종결 `[ ]`
-- [ ] 잔여 골든 마크다운·스냅샷·파일 카운트 단언 일괄 갱신(`test_briefing_replay.py`, `test_git_ops.py` 등 `.assets/` 참조 테스트 스윕).
-- [ ] full gate: ruff / ruff format(변경 범위) / mypy --strict / pytest / `scripts/check_no_paid_apis.py` / `scripts/check_image_store.py` / `mkdocs build --strict`(clean tree).
-- [ ] 실제 push된 아카이브 `.md` 1개를 github.com raw 렌더에서 육안 확인 → 결과를 Contract #4에 따라 기록.
-- [ ] `docs/DESIGN.md`에 "테마 패리티 계약" 절 추가: dual-variant 규약, fragment 철자, 사이드카 정책, raw-GitHub 트레이드오프, 인라인 표면의 조상 셀렉터 예외.
-- [ ] `docs/TECH-DEBT.md`: DEBT-049 / DEBT-061을 `## Resolved Items`로 이동 + `**Resolved**: 2026-07-19 — …` 라인.
-- [ ] `aidlc-docs/aidlc-state.md` u143 행 갱신, `code/summary.md` 작성.
+### Step 6 — 골든/테스트 churn 정리 + 게이트 + 문서/부채 종결 `[x]`
+- [x] 잔여 골든 마크다운·스냅샷·파일 카운트 단언 일괄 갱신(`test_briefing_replay.py`, `test_git_ops.py` 등 `.assets/` 참조 테스트 스윕); 잔여 `ok: 18 files` 단언 0건.
+- [x] full gate: ruff / ruff format / mypy --strict / pytest / 모든 정책 가드 / `mkdocs build --strict`(clean tree).
+- [x] raw-GitHub 운영 확인 경계를 기록: 브랜치에 post-u143 production archive가 아직 없으므로 가짜 발행/기존 archive 백필 없이 첫 post-u143 발행으로 실제 육안 확인을 넘긴다. GitHub 공식 현재 계약은 `<picture>`이고 legacy fragment 무시는 이미 비준된 pair-stacking fallback이다.
+- [x] `docs/DESIGN.md`에 "테마 패리티 계약" 절 추가: dual-variant 규약, fragment 철자, 사이드카 정책, raw-GitHub 트레이드오프, 인라인 표면의 조상 셀렉터 예외.
+- [x] `docs/TECH-DEBT.md`: DEBT-049 / DEBT-061을 `## Resolved Items`로 이동 + `**Resolved**: 2026-08-05 — …` 라인.
+- [x] `aidlc-docs/aidlc-state.md` u143 행 갱신, `code/summary.md` 작성.
 - **Acceptance**: 전 게이트 그린(사전 존재 DEBT-081 쌍 제외). 두 부채 종결. 신규 외부 호출 0.
 
 ## Acceptance Criteria (unit-level)
@@ -256,6 +256,25 @@ GitHub는 이 문법을 `<picture>` 권장으로 **deprecate**했고 현재 렌�
   `tests/fixtures/u143_card_style_auto.txt`에 고정했다. Step 1은 이 파일과
   `build_card_style("auto")`의 바이트 동일성을 검사한다.
 
-## Next Step
+## Completion Evidence (Step 6, 2026-08-05)
 
-Step 6의 누적 게이트, built-site 규약, DESIGN/TECH-DEBT/state 종결을 수행한다.
+- `uv lock --check`, Ruff check/format on all 569 Python files, strict mypy on
+  252 source files, and `git diff --check` passed.
+- Full pytest passed **4,319 tests** in 267.90 seconds. Anthropic SDK, paid API,
+  curated assets, and image-store policy guards all passed. The run left no
+  tracked or untracked generated archive/site-document residue.
+- Strict Material 9.7.6 build passed. A temporary exact-pair page built to HTML
+  with both `src="card.svg#gh-light-mode-only"` and
+  `src="card-dark.svg#gh-dark-mode-only"`; the real built CSS passed the new
+  CI-wired `check_material_theme_contract.py` rule guard. The guard also builds
+  that exact pair through MkDocs Material on every CI run, so Markdown/render
+  upgrades cannot silently strip or rewrite the fragments.
+- Fresh-eyes review found and closed two gaps: AC-143.1(a) is now a persistent
+  executable built-HTML guard, and the rerunnable 2026-05-06 legacy backfill
+  explicitly requests `variant="auto"` so it cannot regress to light-only.
+- The current branch contains no post-u143 production archive, so no fabricated
+  archive/backfill was created merely for GitHub visual inspection. GitHub's
+  current official documented responsive-image mechanism is `<picture>`; the
+  ratified raw fallback remains a stacked pair if legacy fragments are ignored.
+- DEBT-049 and DEBT-061 are resolved. Next: requirements cross-check, isolated
+  main integration, exact-SHA Quality workflow verification, then queue audit.

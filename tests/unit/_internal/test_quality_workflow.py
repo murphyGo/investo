@@ -26,12 +26,15 @@ def test_quality_workflow_has_required_triggers_and_permissions() -> None:
 def test_quality_workflow_runs_required_commands() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     required = [
+        "uv sync --extra dev --extra docs",
         "uv run ruff check src tests scripts",
         "uv run ruff format --check src tests scripts",
         "uv run mypy src",
         "uv run pytest",
         "uv run python scripts/check_no_anthropic_sdk.py",
         "uv run python scripts/check_no_paid_apis.py",
+        "uv run mkdocs build --strict",
+        "uv run python scripts/check_material_theme_contract.py",
     ]
 
     for command in required:

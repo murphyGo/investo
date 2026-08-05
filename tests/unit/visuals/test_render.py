@@ -80,6 +80,13 @@ def test_build_card_style_auto_is_byte_identical_to_pre_u143_fixture() -> None:
     assert build_card_style("auto") == _STYLE_BASELINE
 
 
+def test_legacy_visual_backfill_explicitly_preserves_auto_theme() -> None:
+    script = Path(__file__).parents[3] / "scripts" / "backfill_2026_05_06_visuals.py"
+    source = script.read_text(encoding="utf-8")
+
+    assert 'render_card_svg(card, variant="auto")' in source
+
+
 @pytest.mark.parametrize("variant", ("light", "dark", "auto", "site-scoped"))
 def test_build_card_style_variant_matrix(variant: CardStyleVariant) -> None:
     style = build_card_style(variant)
