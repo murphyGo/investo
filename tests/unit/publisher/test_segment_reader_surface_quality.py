@@ -336,6 +336,8 @@ def test_synthesized_compliance_failure_drops_only_failed_row_without_blocking(
     assert "#### 관찰 신호: E-mini S&P 500 포지셔닝" in result
     assert first.rendered_markdown == second.rendered_markdown
     assert [item.synthesized_card_count for item in observed] == [1, 1]
+    assert [item.state for item in observed] == ["rendered", "rendered"]
+    assert [item.usable_card_count for item in observed] == [1, 1]
 
 
 def test_all_synthesized_compliance_failures_preserve_bounded_note_without_blocking(
@@ -350,13 +352,18 @@ def test_all_synthesized_compliance_failures_preserve_bounded_note_without_block
 
     monkeypatch.setattr(segment_reader_format, "scan_compliance", reject_synthesized_card)
 
+    observed = []
     result = apply_reader_format_to_segments(
         {US_EQUITY: _briefing(_fallback_markdown())},
         anchors_by_segment={US_EQUITY: (_fallback_anchor(),)},
+        _watchpoint_result_observer=lambda _segment, item: observed.append(item),
     )[US_EQUITY].rendered_markdown
 
     assert "#### 관찰 신호:" not in result
     assert DATA_LIMITED_NOTE in result
+    assert len(observed) == 1
+    assert observed[0].state == "limited"
+    assert observed[0].synthesized_card_count == 0
 
 
 def test_public_document_boundary_scans_reader_output_before_return(

@@ -5,8 +5,20 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from investo.models.compliance_phrases import (
+    BANNED_P0_ACTION,
+    BANNED_P0_CERTAINTY,
+    BANNED_P0_CRYPTO_ONLY,
+    BANNED_P0_QUANTIFIED_OUTCOME,
+)
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
+from investo.publisher.compliance_language import scan_compliance
+from investo.publisher.reader_format import (
+    _WATCHPOINT_IMPLICATION_RE,
+    _WATCHPOINT_SOURCE_RE,
+    _WATCHPOINT_TRIGGER_RE,
+)
 from investo.publisher.watchpoint_fallback import (
     CFTC_TEMPLATE,
     FEAR_GREED_TEMPLATE,
@@ -218,3 +230,30 @@ def test_cftc_sign_mismatch_and_zero_quantized_equity_bound_fail_closed() -> Non
     )
 
     assert synthesize_watchpoint_rows(payload) == ()
+
+
+def test_every_closed_template_passes_u64_structure_and_p0_compliance_contracts() -> None:
+    payloads = (
+        WatchpointValuePayload.from_inputs(
+            "us-equity",
+            anchors=(_us_anchor(),),
+            items=(_cftc(),),
+        ),
+        WatchpointValuePayload.from_inputs("crypto", items=(_fear_greed("18"),)),
+        WatchpointValuePayload.from_inputs("crypto", items=(_fear_greed("85"),)),
+    )
+    banned_literals = (*BANNED_P0_ACTION, *BANNED_P0_CERTAINTY, *BANNED_P0_CRYPTO_ONLY)
+
+    rendered_cards = []
+    for payload in payloads:
+        for row in synthesize_watchpoint_rows(payload):
+            card = render_matrix_table([row])
+            rendered_cards.append(card)
+            assert _WATCHPOINT_SOURCE_RE.search(card)
+            assert _WATCHPOINT_TRIGGER_RE.search(card)
+            assert _WATCHPOINT_IMPLICATION_RE.search(card)
+            assert not any(phrase in card for phrase in banned_literals)
+            assert not any(pattern.search(card) for pattern in BANNED_P0_QUANTIFIED_OUTCOME)
+            assert scan_compliance(card, payload.segment).p0_hits == ()
+
+    assert len(rendered_cards) == 4

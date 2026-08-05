@@ -6249,3 +6249,13 @@ passed, scoped format check passed, `mypy src` passed.
 **Validation**: Focused suite 68 passed; publisher suite 1,022 passed; fixture JSON and scoped Ruff/format/mypy/`git diff --check` passed.
 **Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-5-incident-regressions.md`.
 **Status**: Step 5 checklist complete 5/7. Next: explicit u64 structure and compliance tests.
+
+## Construction — u135 Code Generation Step 5 synchronization and Step 6 complete
+**Timestamp**: 2026-08-05T04:55:06Z
+**Synchronization**: Committed Step 5 as `c14a9d3` (`test: pin watchpoint incident regressions`) and pushed `codex/u135`; local and remote branch heads matched.
+**Action**: Exercised RANGE, CFTC, FEAR, and GREED through the real synthesis/renderer path and asserted the shared u64 source/trigger/implication regexes, every P0 literal category, quantified-outcome patterns, and `scan_compliance` result. No duplicate scanner or catalogue was introduced.
+**Failure semantics**: A forced single-row compliance failure leaves one rendered usable/synthesized card and remains byte-idempotent. Forced rejection of every synthesized row does not block publish; the canonical limited note and typed zero counts remain.
+**Review**: Fresh-eyes review found no blocker. Its Low recommendation to pin `state=rendered` and `usable_card_count=1` on the partial-drop path was implemented and revalidated.
+**Validation**: Compliance/reader/fallback/orchestration gate 101 passed; scoped Ruff/format and `git diff --check` passed.
+**Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-6-compliance-contract.md`.
+**Status**: Step 6 checklist complete 6/7. Next: cumulative static/type/test/lock quality gate.
