@@ -38,8 +38,9 @@
   ownership paths cover the bounded pure functions. No new property target was
   added.
 - Security Baseline: declined; the unit adds no dependency, source, credential,
-  network call, external I/O, or cost surface. Payloads are immutable bounded
-  scalars and raw metadata is not logged or published.
+  network call, external I/O, or cost surface. Existing flat scalar metadata is
+  snapshotted immutably, resolution consumes explicit public candidate fields,
+  no raw-metadata logging is added, and the synthesized marker remains private.
 
 ## Cumulative review
 

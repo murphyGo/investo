@@ -30,8 +30,9 @@ longer collapses to the bounded note solely because every LLM row was filtered.
   close-reference card with no derived percentage.
 - Empty payload, partial compliance drop, and repeated application are
   byte-stable.
-- RANGE, CFTC, FEAR, and GREED pass the shared structure and compliance
-  contracts, including forced partial/all rejection behavior.
+- RANGE, domestic close-reference, CFTC, FEAR, and GREED pass the shared
+  structure and compliance contracts, including forced partial/all rejection
+  behavior.
 
 ## Validation
 

@@ -6265,7 +6265,16 @@ passed, scoped format check passed, `mypy src` passed.
 **Synchronization**: Committed Step 6 as `857e72c` (`test: enforce watchpoint compliance contracts`) and pushed `codex/u135`; local and remote branch heads matched.
 **Gate**: `uv lock --check`, u135 fixture JSON parse, and range diff integrity passed. Ruff and format passed all 17 changed Python files; `mypy src` passed 250 source files; publisher and orchestrator passed 1,464 tests. No `site_docs` path changed, so the plan's conditional strict MkDocs gate did not apply.
 **Coverage**: AC-135.1-6 and Fixed Contracts 1-7 are pinned across current-value resolution, deterministic fallback, exact incident fixtures, the u67/u138 close-only domestic production contract, empty-payload preservation, compliance row drops, typed quality-history propagation, and the full publisher/orchestrator regression scope.
-**Extensions**: Property-Based Testing remains Partial; Security Baseline remains declined because u135 adds no dependency, source, credential, network, external-I/O, or cost surface. Immutable bounded scalars, no raw-metadata logging, and public-marker absence preserve R13.
+**Extensions**: Property-Based Testing remains Partial; Security Baseline remains declined because u135 adds no dependency, source, credential, network, external-I/O, or cost surface. Existing flat scalar metadata is snapshotted immutably, resolution consumes explicit public candidate fields, no raw-metadata logging is added, and the private synthesized marker preserves the R13 boundary.
 **Review**: Cumulative fresh-eyes review first found a Medium unreachable close-only domestic production path and a Low mixed ASCII/Hangul token boundary. The domestic close-reference template plus production/render regressions and closed particle-suffix matcher resolved both. A re-review Low for missing shared-compliance coverage of the new template was also closed. Final review approved AC-135.1-6, Fixed Contracts 1-7, u144 pre-seal/seal lifecycle compatibility, R13, and security boundaries with no remaining Critical, High, Medium, or Low finding.
 **Evidence**: `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-7-quality-gate.md`; summary `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/summary.md`.
 **Status**: Code Generation complete 7/7. No TECH-DEBT item added. Proceed to scoped cross-check.
+
+## Cross-check — u135 complete
+**Timestamp**: 2026-08-05T09:30:54Z
+**Scope**: Mapped the eight u135 UoW requirement areas, AC-135.1-6, Fixed Contracts 1-7, Definition of Done, and project rules to implementation, regression, and final-gate evidence.
+**Result**: 8 Complete, 0 Partial, 0 Gap, 0 Deferred; overall compliance 100%; QA verdict APPROVE.
+**Boundaries**: Confirmed u64/u72/u98/u110 ownership, u130 trusted domestic quarantine, u144 pre-seal/seal lifecycle, empty and compliance-drop graceful degradation, zero-cost/no-new-I/O posture, and R13 public containment.
+**Evidence**: `docs/cross-checks/2026-08-05-u135-watchpoint-current-value-and-deterministic-fallback.md`; final gate `aidlc-docs/construction/u135-watchpoint-current-value-and-deterministic-fallback/code/step-7-quality-gate.md`.
+**TECH-DEBT**: None added. No u135 gap or follow-up unit remains.
+**Status**: u135 construction and cross-check complete. Proceed to isolated current-main integration.
