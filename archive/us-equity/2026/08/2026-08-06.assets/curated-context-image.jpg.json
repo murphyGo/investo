@@ -1,0 +1,31 @@
+{
+  "additional_metadata": {
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero, FlickreviewR-verified at import.",
+    "asset_id": "wall-street",
+    "author": "Billie Grace Ward",
+    "license": "cc0",
+    "match_reason": "alias:S&P 500;scope=hero;rank=10;offset=101",
+    "matched_key": "topic:wall-street",
+    "narrative_sha256": "d9754872f36a53f6276300e485f48ed9ca8d5e59198f9fcc1411a7cb58f40980",
+    "selection_contract": "final-body-semantic-v1",
+    "semantic_offset": "101",
+    "semantic_rank": "10",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Sign_of_the_New_York_Stock_Exchange,_Broad_Street.jpg",
+    "variant_contract": "narrative-key-digest-mod-v1",
+    "variant_count": "1",
+    "variant_index": "0"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    1200,
+    801
+  ],
+  "generated_at": "2026-08-07T01:46:08.666883Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "New York Stock Exchange facade sign on Broad Street, by Billie Grace Ward (CC0; via Wikimedia Commons) (Billie Grace Ward) — cc0",
+  "source_type": "external",
+  "version": "0.1.0"
+}

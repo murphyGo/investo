@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-06 begin -->
+
+## 2026-08-06
+
+- [defillama-market-structure] **ticker**: DeFi TVL $75.3B; leader Ethereum
+- [theblock-crypto] **ticker**: JPMorgan says Hyperliquid faces growing competition while HYPE ETF inflows stall
+
+<!-- u33 entry 2026-08-06 end -->
 <!-- u33 entry 2026-08-05 begin -->
 
 ## 2026-08-05

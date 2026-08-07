@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-06 begin -->
+
+## 2026-08-06
+
+- [yfinance-price] **ticker**: NVDA 218.99 (-0.10%)
+- [yonhap-market] **ticker**: "엔비디아 칩만 쓴다" 머스크 발언에 AMD CEO 의연한 반응
+
+<!-- u33 entry 2026-08-06 end -->
 <!-- u33 entry 2026-08-05 begin -->
 
 ## 2026-08-05

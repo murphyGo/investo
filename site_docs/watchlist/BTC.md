@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-06 begin -->
+
+## 2026-08-06
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6873 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,279,768,975,945; BTC dominance 56.59%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $463,571,870 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000257123761134 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin miners MARA and CleanSpark post double-digital revenue drops as AI infrastructure pivot continues
+
+<!-- u33 entry 2026-08-06 end -->
 <!-- u33 entry 2026-08-05 begin -->
 
 ## 2026-08-05
