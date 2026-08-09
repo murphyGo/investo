@@ -7,15 +7,16 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-08-07
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7240 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,293,725,018,950; BTC dominance 56.77%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $467,614,230 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0001075807204402 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,310,093,489,964; BTC dominance 56.63%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $470,504,160 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000706335909823 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: BTCPay warns of actively exploited vulnerability that could drain funds
 - [theblock-crypto] **ticker**: Bitcoin tops $65,000 after ‘massive surprise’ US jobs miss
 - [theblock-crypto] **ticker**: Coldcard bitcoin exploit exposes crypto’s ‘original sin’ of private keys, Blockaid CEO says
 - [theblock-crypto] **ticker**: SharpLink CEO warns EIP-8363 could kill ETH’s biggest advantage over Bitcoin
 
 <!-- u33 entry 2026-08-07 end -->
+
 <!-- u33 entry 2026-08-06 begin -->
 
 ## 2026-08-06

@@ -6,10 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-07
 
-- [yonhap-market] **ticker**: "엔비디아, 차세대 '루빈 울트라'에 메모리 축소 검토"
+- [yfinance-price] **ticker**: NVDA 223.96 (+2.27%)
 - [yonhap-market] **ticker**: [AI픽] 네이버, 엔비디아 업고 AI 인프라 기업 도약할까
 
 <!-- u33 entry 2026-08-07 end -->
+
 <!-- u33 entry 2026-08-06 begin -->
 
 ## 2026-08-06

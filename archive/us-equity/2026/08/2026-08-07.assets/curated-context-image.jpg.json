@@ -1,0 +1,31 @@
+{
+  "additional_metadata": {
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with archived Pixabay source.",
+    "asset_id": "us-equity-market",
+    "author": "AhmadArdity (Pixabay)",
+    "license": "cc0",
+    "match_reason": "alias:미국 증시;scope=hero;rank=30;offset=12",
+    "matched_key": "topic:us-equity-market",
+    "narrative_sha256": "4b44a1059d1f2baf44056e6d9c5040569eff7fd7a9444f18c6e62b940275dc47",
+    "selection_contract": "final-body-semantic-v1",
+    "semantic_offset": "12",
+    "semantic_rank": "30",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Stockmarket.jpg",
+    "variant_contract": "narrative-key-digest-mod-v1",
+    "variant_count": "1",
+    "variant_index": "0"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    1400,
+    933
+  ],
+  "generated_at": "2026-08-09T22:53:26.073272Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "Stock exchange price display board, by Pixabay contributor AhmadArdity (CC0-era Pixabay upload; via Wikimedia Commons) (AhmadArdity (Pixabay)) — cc0",
+  "source_type": "external",
+  "version": "0.1.0"
+}
