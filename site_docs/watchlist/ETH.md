@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-10 begin -->
+
+## 2026-08-10
+
+- [coingecko-price] **ticker**: ETH $1,872.17 (-2.40%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitmine adds 7,391 ether in a week, bringing total Ethereum holdings to 5.81 million ETH
+- [theblock-crypto] **ticker**: Vitalik Buterin puts privacy and quantum resistance front and center in Ethereum’s latest roadmap
+
+<!-- u33 entry 2026-08-10 end -->
 <!-- u33 entry 2026-08-07 begin -->
 
 ## 2026-08-07

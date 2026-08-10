@@ -2,6 +2,23 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-10 begin -->
+
+## 2026-08-10
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7240 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,271,295,047,971; BTC dominance 56.48%
+- [coingecko-price] **ticker**: BTC $63,904.00 (-1.80%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $454,242,010 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000651243281189 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Adam Back-backed H100 more than triples bitcoin holdings to 3,506 BTC in acquisition deal
+- [theblock-crypto] **ticker**: BTCPay Server supporters offer up to 3 BTC for recovery bounty after critical exploit
+- [theblock-crypto] **ticker**: Bitcoin miner Bitdeer’s shares sink 15% despite revenue growth, progress on AI pivot
+- [theblock-crypto] **ticker**: BlackRock says bitcoin sentiment is turning as decoupling from stocks takes hold
+- [theblock-crypto] **ticker**: Keel shutters all US bitcoin mining operations amid continuing AI pivot
+- [theblock-crypto] **ticker**: Michael Saylor’s Strategy sells another 1,690 BTC as USD reserve hits $4.65 billion
+
+<!-- u33 entry 2026-08-10 end -->
 <!-- u33 entry 2026-08-07 begin -->
 
 ## 2026-08-07

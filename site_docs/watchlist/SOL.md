@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-10 begin -->
+
+## 2026-08-10
+
+- [coingecko-price] **ticker**: SOL $76.07 (-1.20%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.5B; leader Ethereum
+
+<!-- u33 entry 2026-08-10 end -->
 <!-- u33 entry 2026-08-07 begin -->
 
 ## 2026-08-07
