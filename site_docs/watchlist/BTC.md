@@ -2,6 +2,24 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-11 begin -->
+
+## 2026-08-11
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7240 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,268,450,736,950; BTC dominance 56.27%
+- [coingecko-price] **ticker**: BTC $63,586.00 (-0.70%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $452,163,640 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000261134077684 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Benchmark sees over 150% upside for Bitdeer on bitcoin mining, AI outlook
+- [theblock-crypto] **ticker**: Bitcoin slips toward $64,000 as traders await Wednesday’s inflation test
+- [theblock-crypto] **ticker**: From bitcoin bull to ‘complete demolition’: Keel CEO bets on AI’s greater value
+- [theblock-crypto] **ticker**: New Bitcoin addresses jump as Coldcard exploit pushes users to move funds
+- [theblock-crypto] **ticker**: Trump Media records $360.6 million unrealized loss on digital assets in first half of the year
+- [theblock-crypto] **ticker**: Twenty One Capital takes $414 million Q2 loss as new CEO plots path to become ‘more than a Bitcoin treasury’
+- [theblock-crypto] **ticker**: ‘Clear scale up path’: Bernstein sees 80% upside for Riot after reported $9.1 billion Anthropic deal
+
+<!-- u33 entry 2026-08-11 end -->
 <!-- u33 entry 2026-08-10 begin -->
 
 ## 2026-08-10

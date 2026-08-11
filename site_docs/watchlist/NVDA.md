@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-11 begin -->
+
+## 2026-08-11
+
+- [yfinance-price] **ticker**: NVDA 217.50 (-0.02%)
+- [yonhap-market] **ticker**: UBS "엔비디아 디스펙, 내년 HBM 소비량 늘릴 가능성"
+- [yonhap-market] **ticker**: 엔비디아, 월가 6개사와 710조원 AI인프라 금융플랫폼 구축(종합)
+
+<!-- u33 entry 2026-08-11 end -->
 <!-- u33 entry 2026-08-10 begin -->
 
 ## 2026-08-10
