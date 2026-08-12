@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-12 begin -->
+
+## 2026-08-12
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7240 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,259,598,348,429; BTC dominance 56.26%
+- [coingecko-price] **ticker**: BTC $63,340.00 (-0.30%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $450,793,910 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: BIP-110 failure shows Bitcoin would be ‘almost impossible to reproduce,’ Plan B Network director says
+- [theblock-crypto] **ticker**: Bitcoin dips under $64,000 as in-line CPI buys the Fed time, not conviction: analysts
+- [theblock-crypto] **ticker**: Bitcoin market in ‘hibernation’ as perp trading activity sinks to three-year low ahead of US CPI release: K33
+- [theblock-crypto] **ticker**: Goldman Sachs to gain bitcoin and ETH income ETFs in up to $2.25 billion Neos acquisition
+
+<!-- u33 entry 2026-08-12 end -->
 <!-- u33 entry 2026-08-11 begin -->
 
 ## 2026-08-11

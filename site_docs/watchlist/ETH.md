@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-12 begin -->
+
+## 2026-08-12
+
+- [coingecko-price] **ticker**: ETH $1,876.06 (-0.10%)
+- [defillama-market-structure] **ticker**: DeFi TVL $75.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum staking climbs to 34% as proposal targets validator rewards and ETH treasury firm yields
+- [theblock-crypto] **ticker**: Goldman Sachs to gain bitcoin and ETH income ETFs in up to $2.25 billion Neos acquisition
+
+<!-- u33 entry 2026-08-12 end -->
 <!-- u33 entry 2026-08-11 begin -->
 
 ## 2026-08-11

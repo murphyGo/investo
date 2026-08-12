@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-12 begin -->
+
+## 2026-08-12
+
+- [yahoo-finance-news] **ticker**: Bank of America sends blunt message to Nvidia stock investors
+- [yfinance-price] **ticker**: NVDA 224.09 (+3.03%)
+- [yonhap-market] **ticker**: "엔비디아 금융플랫폼, 시장 우려 완화할 것"
+- [yonhap-market] **ticker**: '5천억달러 투자지원' 엔비디아, 건당 최대 25% 지원
+
+<!-- u33 entry 2026-08-12 end -->
 <!-- u33 entry 2026-08-11 begin -->
 
 ## 2026-08-11
