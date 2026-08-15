@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-14 begin -->
+
+## 2026-08-14
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7052 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,251,814,546,477; BTC dominance 56.10%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $456,691,220 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Cboe seeks SEC nod for first US 3x bitcoin and ether ETFs
+- [theblock-crypto] **ticker**: Hyperscale Data sells 685 bitcoin for $43 million to fund Michigan data center
+- [theblock-crypto] **ticker**: Israel’s largest bank taps Galaxy to offer bitcoin, ether and solana trading
+- [theblock-crypto] **ticker**: Norway sovereign wealth fund sees indirect bitcoin exposure hit all-time high, with Strategy accounting for 86%: K33
+
+<!-- u33 entry 2026-08-14 end -->
 <!-- u33 entry 2026-08-12 begin -->
 
 ## 2026-08-12

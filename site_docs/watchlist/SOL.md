@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-14 begin -->
+
+## 2026-08-14
+
+- [defillama-market-structure] **ticker**: DeFi TVL $74.7B; leader Ethereum
+- [nasdaq-earnings-calendar] **ticker**: HSDT earnings — after-hours — EPS forecast ($0.02)
+- [theblock-crypto] **ticker**: Bitwise mulls tokenizing its Solana staking ETF via Superstate partnership
+- [theblock-crypto] **ticker**: Israel’s largest bank taps Galaxy to offer bitcoin, ether and solana trading
+
+<!-- u33 entry 2026-08-14 end -->
 <!-- u33 entry 2026-08-12 begin -->
 
 ## 2026-08-12

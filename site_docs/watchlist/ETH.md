@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-14 begin -->
+
+## 2026-08-14
+
+- [defillama-market-structure] **ticker**: DeFi TVL $74.7B; leader Ethereum
+- [theblock-crypto] **ticker**: Norway sovereign wealth fund sees indirect bitcoin exposure hit all-time high, with Strategy accounting for 86%: K33
+
+<!-- u33 entry 2026-08-14 end -->
 <!-- u33 entry 2026-08-12 begin -->
 
 ## 2026-08-12
