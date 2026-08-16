@@ -7,10 +7,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-08-14
 
 - [yfinance-price] **ticker**: NVDA 225.16 (-0.06%)
-- [yonhap-market] **ticker**: LG전자 소액주주 100만명 첫 돌파…로봇·엔비디아 협력 영향
 - [yonhap-market] **ticker**: SK하이닉스, 상반기 엔비디아 매출 17조…미국 비중 64%
 
 <!-- u33 entry 2026-08-14 end -->
+
 <!-- u33 entry 2026-08-13 begin -->
 
 ## 2026-08-13

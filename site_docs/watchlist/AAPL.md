@@ -8,10 +8,9 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 - [yfinance-price] **ticker**: AAPL 305.93 (+0.22%)
 - [yonhap-market] **ticker**: "애플, 알리바바 협력아래 중국용 자체 AI 모델 개발"
-- [yonhap-market] **ticker**: LG이노텍, 올해 상반기 애플 매출 8.8조…역대 최대
-- [yonhap-market] **ticker**: 애플 수수료 소송 중단요청 기각, 관련 소송 계속 진행
 
 <!-- u33 entry 2026-08-14 end -->
+
 <!-- u33 entry 2026-08-13 begin -->
 
 ## 2026-08-13

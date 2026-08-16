@@ -180,6 +180,6 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/08/2026-08-12.md", "published_at": "2026-08-12T23:01:51.621843+00:00", "segment": "us-equity", "target_date": "2026-08-12", "tickers": ["CPI"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/08/2026-08-13.md", "published_at": "2026-08-13T23:05:52.738972+00:00", "segment": "domestic-equity", "target_date": "2026-08-13", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/08/2026-08-13.md", "published_at": "2026-08-13T23:05:52.738972+00:00", "segment": "us-equity", "target_date": "2026-08-13", "tickers": ["PPI"]}
-{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/08/2026-08-14.md", "published_at": "2026-08-15T01:36:59.849069+00:00", "segment": "crypto", "target_date": "2026-08-14", "tickers": ["UTC"]}
-{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/08/2026-08-14.md", "published_at": "2026-08-15T01:36:59.849069+00:00", "segment": "domestic-equity", "target_date": "2026-08-14", "tickers": ["KOSDAQ", "KOSPI"]}
-{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/08/2026-08-14.md", "published_at": "2026-08-15T01:36:59.849069+00:00", "segment": "us-equity", "target_date": "2026-08-14", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/08/2026-08-14.md", "published_at": "2026-08-16T22:40:09.491796+00:00", "segment": "crypto", "target_date": "2026-08-14", "tickers": ["UTC"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/08/2026-08-14.md", "published_at": "2026-08-16T22:40:09.491796+00:00", "segment": "domestic-equity", "target_date": "2026-08-14", "tickers": ["KOSPI"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/08/2026-08-14.md", "published_at": "2026-08-16T22:40:09.491796+00:00", "segment": "us-equity", "target_date": "2026-08-14", "tickers": []}
