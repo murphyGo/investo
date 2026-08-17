@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-17 begin -->
+
+## 2026-08-17
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7052 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,282,288,250,938; BTC dominance 56.52%
+- [coingecko-price] **ticker**: BTC $64,255.00 (+2.10%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,129,650 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000391737957432 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin miner HIVE inks five-year $350 million AI cloud contract, adds $70 million in annualized revenue
+- [theblock-crypto] **ticker**: Bitcoin production slips again in July for CleanSpark, BitFuFu and Canaan
+- [theblock-crypto] **ticker**: IREN delivers first of four AI cloud deployments to Microsoft under $9.7 billion deal
+- [theblock-crypto] **ticker**: Strategy sells $334 million in MSTR shares, makes no bitcoin purchases or sales as USD reserve hits $4.8 billion
+
+<!-- u33 entry 2026-08-17 end -->
 <!-- u33 entry 2026-08-14 begin -->
 
 ## 2026-08-14

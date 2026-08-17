@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-17 begin -->
+
+## 2026-08-17
+
+- [theblock-crypto] **ticker**: Bitcoin miner HIVE inks five-year $350 million AI cloud contract, adds $70 million in annualized revenue
+- [yfinance-price] **ticker**: NVDA 225.01 (-0.07%)
+
+<!-- u33 entry 2026-08-17 end -->
 <!-- u33 entry 2026-08-14 begin -->
 
 ## 2026-08-14
