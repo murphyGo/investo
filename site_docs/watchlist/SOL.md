@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-18 begin -->
+
+## 2026-08-18
+
+- [coingecko-price] **ticker**: SOL $76.98 (+1.30%)
+- [defillama-market-structure] **ticker**: DeFi TVL $76.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Securitize brings Neuberger’s $230 billion fixed-income platform onchain with new tokenized fund
+- [theblock-crypto] **ticker**: Solana Policy Institute CEO says Clarity Act in ‘August recess purgatory,’ gives it 10% odds before midterms
+
+<!-- u33 entry 2026-08-18 end -->
 <!-- u33 entry 2026-08-17 begin -->
 
 ## 2026-08-17

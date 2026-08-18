@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-18 begin -->
+
+## 2026-08-18
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7052 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,288,007,218,561; BTC dominance 56.62%
+- [coingecko-price] **ticker**: BTC $64,542.00 (+0.30%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $473,386,240 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000558282222507 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin correction may be nearing an end with 8 of 12 capitulation signals flashing, VanEck says
+- [theblock-crypto] **ticker**: Citi expects to launch bitcoin custody later this year under its new Custody+ platform
+- [theblock-crypto] **ticker**: Metaplanet takes 96% of Super League in 2,100 BTC, cash deal to launch US bitcoin treasury firm
+
+<!-- u33 entry 2026-08-18 end -->
 <!-- u33 entry 2026-08-17 begin -->
 
 ## 2026-08-17

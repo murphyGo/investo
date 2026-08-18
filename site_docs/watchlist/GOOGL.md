@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-18 begin -->
+
+## 2026-08-18
+
+- [yfinance-price] **ticker**: GOOGL 344.20 (+0.06%)
+- [yonhap-market] **ticker**: "현금흐름 적자 알파벳, 첫 호주달러 채권 발행 추진"
+- [yonhap-market] **ticker**: [AI픽] 구글클라우드·신한투자, AI로 계약 처리 2시간→5분
+
+<!-- u33 entry 2026-08-18 end -->
 <!-- u33 entry 2026-08-17 begin -->
 
 ## 2026-08-17
