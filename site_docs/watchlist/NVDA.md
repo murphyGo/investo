@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-19 begin -->
+
+## 2026-08-19
+
+- [yfinance-price] **ticker**: NVDA 217.56 (-0.99%)
+- [yonhap-market] **ticker**: FT "바이트댄스·텐센트, 엔비디아 H200 칩 1만개씩 확보"
+- [yonhap-market] **ticker**: 엔비디아, 경쟁사 인텔 주식 42조원어치 보유
+
+<!-- u33 entry 2026-08-19 end -->
 <!-- u33 entry 2026-08-18 begin -->
 
 ## 2026-08-18

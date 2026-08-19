@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-19 begin -->
+
+## 2026-08-19
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7052 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,457,672,798,561; BTC dominance 56.49%
+- [coingecko-price] **ticker**: BTC $69,198.00 (+7.90%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $469,888,990 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000109611854558 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin hits $69,000, ether jumps 10% as Treasury buybacks, SEC crypto proposal fuel market rally
+- [theblock-crypto] **ticker**: Scaramucci points to $100,000 bitcoin as ‘magic number’ for OG sellers, eyes AI-blockchain convergence
+
+<!-- u33 entry 2026-08-19 end -->
 <!-- u33 entry 2026-08-18 begin -->
 
 ## 2026-08-18

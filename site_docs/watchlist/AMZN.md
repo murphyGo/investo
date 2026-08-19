@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-19 begin -->
+
+## 2026-08-19
+
+- [nasdaq-stocks-news] **ticker**: See Which Recent 13F Filers Hold AMZN But SPX Gestao de Recursos, Lombard Odier Asset Management Europe, Pangea Capit…
+- [yfinance-price] **ticker**: AMZN 265.84 (+2.46%)
+
+<!-- u33 entry 2026-08-19 end -->
 <!-- u33 entry 2026-08-18 begin -->
 
 ## 2026-08-18

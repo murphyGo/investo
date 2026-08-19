@@ -1,0 +1,31 @@
+{
+  "additional_metadata": {
+    "allowed_use": "CC0 public republish after subject and endorsement review",
+    "asset_id": "data-center-roof",
+    "author": "Rsparks3",
+    "license": "cc0",
+    "match_reason": "alias:데이터센터;scope=hero;rank=0;offset=65",
+    "matched_key": "topic:data-center",
+    "narrative_sha256": "900c4f2395d9ab29db396c967c5022ce7d30e4430e888ee48c12b4472dcd8714",
+    "selection_contract": "final-body-semantic-v1",
+    "semantic_offset": "65",
+    "semantic_rank": "0",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Data_center_roof.jpg",
+    "variant_contract": "narrative-key-digest-mod-v1",
+    "variant_count": "1",
+    "variant_index": "0"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    1280,
+    960
+  ],
+  "generated_at": "2026-08-19T22:43:32.227613Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "Rsparks3 / Wikimedia Commons / CC0 (Rsparks3) — cc0",
+  "source_type": "external",
+  "version": "0.1.0"
+}
