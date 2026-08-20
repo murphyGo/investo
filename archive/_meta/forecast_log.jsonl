@@ -192,3 +192,6 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/08/2026-08-19.md", "published_at": "2026-08-19T22:43:32.981110+00:00", "segment": "crypto", "target_date": "2026-08-19", "tickers": ["UTC"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/08/2026-08-19.md", "published_at": "2026-08-19T22:43:32.981110+00:00", "segment": "domestic-equity", "target_date": "2026-08-19", "tickers": ["KOSPI"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/08/2026-08-19.md", "published_at": "2026-08-19T22:43:32.981110+00:00", "segment": "us-equity", "target_date": "2026-08-19", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/08/2026-08-20.md", "published_at": "2026-08-20T22:47:22.025274+00:00", "segment": "crypto", "target_date": "2026-08-20", "tickers": ["BTC", "UTC"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/08/2026-08-20.md", "published_at": "2026-08-20T22:47:22.025274+00:00", "segment": "domestic-equity", "target_date": "2026-08-20", "tickers": ["KOSDAQ", "KOSPI"]}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/08/2026-08-20.md", "published_at": "2026-08-20T22:47:22.025274+00:00", "segment": "us-equity", "target_date": "2026-08-20", "tickers": ["CFTC", "COT"]}

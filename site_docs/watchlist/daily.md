@@ -1,32 +1,30 @@
-# 오늘의 관심 자산 영향 — 2026-08-19
+# 오늘의 관심 자산 영향 — 2026-08-20
 
-직접 23 · 관련 0 · 보류 14 · 제외 25
+직접 21 · 관련 0 · 보류 14 · 제외 25
 
 ## 직접 영향 (Direct)
 
-- AAPL: 직접 관련 · [yfinance-price] AAPL 316.83 (+2.19%)
-- AAPL: 직접 관련 · [yonhap-market] 애플, EU 3자 앱스토어 수수료 5% 부과…당국과 갈등 해소 나서
-- AMZN: 직접 관련 · [nasdaq-stocks-news] See Which Recent 13F Filers Hold AMZN But SPX Gestao de Recursos, Lombard Odier Asset Management Europe, Pangea Capit…
-- AMZN: 직접 관련 · [yfinance-price] AMZN 265.84 (+2.46%)
+- AAPL: 직접 관련 · [yfinance-price] AAPL 311.30 (-1.75%)
+- AMZN: 직접 관련 · [yfinance-price] AMZN 260.11 (-2.16%)
+- AMZN: 직접 관련 · [yonhap-market] 아마존 드론 배송 시대 열리나…연내 500곳으로 확대
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -7052 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,457,672,798,561; BTC dominance 56.49%
-- BTC: 직접 관련 · [coingecko-price] BTC $69,198.00 (+7.90%)
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $469,888,990 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000109611854558 (OKX, UTC 24h)
-- BTC: 직접 관련 · [theblock-crypto] Bitcoin hits $69,000, ether jumps 10% as Treasury buybacks, SEC crypto proposal fuel market rally
-- BTC: 직접 관련 · [theblock-crypto] Scaramucci points to $100,000 bitcoin as ‘magic number’ for OG sellers, eyes AI-blockchain convergence
-- ETH: 직접 관련 · [coingecko-price] ETH $2,260.33 (+19.30%)
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $80.0B; leader Ethereum
-- ETH: 직접 관련 · [theblock-crypto] Ethereum engineering firm Nethermind leaves LayerZero verifier role for Chainlink
-- GOOGL: 직접 관련 · [yfinance-price] GOOGL 344.72 (+0.15%)
-- META: 직접 관련 · [yfinance-price] META 546.03 (+0.43%)
-- MSFT: 직접 관련 · [yfinance-price] MSFT 484.31 (+0.56%)
-- NVDA: 직접 관련 · [yfinance-price] NVDA 217.56 (-0.99%)
-- NVDA: 직접 관련 · [yonhap-market] FT "바이트댄스·텐센트, 엔비디아 H200 칩 1만개씩 확보"
-- NVDA: 직접 관련 · [yonhap-market] 엔비디아, 경쟁사 인텔 주식 42조원어치 보유
-- SOL: 직접 관련 · [coingecko-price] SOL $85.59 (+12.50%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $80.0B; leader Ethereum
-- TSLA: 직접 관련 · [yfinance-price] TSLA 351.12 (+4.23%)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,482,933,708,217; BTC dominance 58.69%
+- BTC: 직접 관련 · [coingecko-price] BTC $72,749.00 (+5.30%)
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $481,625,060 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 -0.0000576948854095 (OKX, UTC 24h)
+- BTC: 직접 관련 · [theblock-crypto] Bitcoin’s rally pushes past $72,000 as analysts see demand beyond historic short squeeze
+- BTC: 직접 관련 · [theblock-crypto] Spot bitcoin ETFs report $517 million in net inflows, largest in 3.5 months
+- ETH: 직접 관련 · [coingecko-price] ETH $2,313.74 (+4.40%)
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $84.0B; leader Ethereum
+- ETH: 직접 관련 · [yonhap-market] 美 입법 기대에 코인 가격 들썩…하락 베팅 4조 가까이 청산
+- GOOGL: 직접 관련 · [yfinance-price] GOOGL 340.67 (-1.17%)
+- META: 직접 관련 · [yfinance-price] META 545.83 (-0.04%)
+- META: 직접 관련 · [yonhap-market] "저커버그, 아동안전보다 회사성장 우선 조장했다"
+- MSFT: 직접 관련 · [yfinance-price] MSFT 481.15 (-0.65%)
+- NVDA: 직접 관련 · [yfinance-price] NVDA 216.85 (-0.33%)
+- SOL: 직접 관련 · [coingecko-price] SOL $87.42 (+4.00%)
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $84.0B; leader Ethereum
+- TSLA: 직접 관련 · [yfinance-price] TSLA 345.13 (-1.71%)
 
 ## 관련·매크로 맥락 (Related)
 
@@ -34,9 +32,9 @@ _해당 항목 없음._
 
 ## 관련 시황
 
-- [국내 증시](../archive/domestic-equity/2026/08/2026-08-19.md)
-- [미국 증시](../archive/us-equity/2026/08/2026-08-19.md)
-- [크립토](../archive/crypto/2026/08/2026-08-19.md)
+- [국내 증시](../archive/domestic-equity/2026/08/2026-08-20.md)
+- [미국 증시](../archive/us-equity/2026/08/2026-08-20.md)
+- [크립토](../archive/crypto/2026/08/2026-08-20.md)
 
 <details>
 <summary>진단: 보류/제외된 후보</summary>
@@ -60,30 +58,30 @@ _해당 항목 없음._
 
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
-- AAPL ⊘ AACG [short-ticker-boundary] · nasdaq-earnings-calendar #21745d
-- AAPL ⊘ AAPG [short-ticker-boundary] · nasdaq-earnings-calendar #8a814c
-- AAPL ⊘ ACE [short-ticker-boundary] · yonhap-market #097d2a
-- AAPL ⊘ ADI [short-ticker-boundary] · nasdaq-earnings-calendar #bf7e5e
-- AAPL ⊘ AEXA [short-ticker-boundary] · nasdaq-earnings-calendar #c0b9e2
-- AAPL ⊘ AIRWA [short-ticker-boundary] · sec-edgar-8k #ec79fa
-- AAPL ⊘ ALVO [short-ticker-boundary] · nasdaq-earnings-calendar #75dcd2
-- AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-stocks-news #e13b6f
+- AAPL ⊘ AAP [short-ticker-boundary] · nasdaq-earnings-calendar #f77a8f
+- AAPL ⊘ ACE [short-ticker-boundary] · yonhap-market #a08150
+- AAPL ⊘ AEG [short-ticker-boundary] · nasdaq-earnings-calendar #a70603
+- AAPL ⊘ AIIR [short-ticker-boundary] · nasdaq-earnings-calendar #1e4bc3
 - AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-symbol-directory #beb0ca
 - AAPL ⊘ AMZN [short-ticker-boundary] · sec-company-facts #367e13
-- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #3afceb
-- AAPL ⊘ ANAB [short-ticker-boundary] · nasdaq-earnings-calendar #85cc76
-- AAPL ⊘ ANTA [short-ticker-boundary] · nasdaq-earnings-calendar #8f3f7d
-- AAPL ⊘ ARAY [short-ticker-boundary] · nasdaq-earnings-calendar #bf2777
-- AAPL ⊘ ASIC [short-ticker-boundary] · yonhap-market #a2acc5
-- AAPL ⊘ ATCH [short-ticker-boundary] · nasdaq-earnings-calendar #70ffce
-- AAPL ⊘ AVAX [short-ticker-boundary] · sec-edgar-8k #dfee59
-- AAPL ⊘ AVISTA [short-ticker-boundary] · sec-edgar-8k #7dd76a
-- AMZN ⊘ AACG [short-ticker-boundary] · nasdaq-earnings-calendar #21745d
-- AMZN ⊘ AAPG [short-ticker-boundary] · nasdaq-earnings-calendar #8a814c
+- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #0c5202
+- AAPL ⊘ ASP [short-ticker-boundary] · sec-edgar-8k #0e2826
+- AAPL ⊘ ATAT [short-ticker-boundary] · nasdaq-earnings-calendar #10b91d
+- AAPL ⊘ ATHM [short-ticker-boundary] · nasdaq-earnings-calendar #d9cc39
+- AMZN ⊘ AAP [short-ticker-boundary] · nasdaq-earnings-calendar #f77a8f
 - AMZN ⊘ AAPL [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - AMZN ⊘ AAPL [short-ticker-boundary] · sec-company-facts #6e4883
-- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #f69595
-- AMZN ⊘ ACE [short-ticker-boundary] · yonhap-market #097d2a
-- AMZN ⊘ ADI [short-ticker-boundary] · nasdaq-earnings-calendar #bf7e5e
+- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #e0860f
+- AMZN ⊘ ACE [short-ticker-boundary] · yonhap-market #a08150
+- AMZN ⊘ AEG [short-ticker-boundary] · nasdaq-earnings-calendar #a70603
+- AMZN ⊘ AIIR [short-ticker-boundary] · nasdaq-earnings-calendar #1e4bc3
+- AMZN ⊘ amid [short-ticker-boundary] · nasdaq-stocks-news #294f34
+- AMZN ⊘ amount [short-ticker-boundary] · treasury-auctions #9f5266
+- AMZN ⊘ Amylyx [short-ticker-boundary] · sec-edgar-8k #8546fd
+- AMZN ⊘ ASP [short-ticker-boundary] · sec-edgar-8k #0e2826
+- AMZN ⊘ ATAT [short-ticker-boundary] · nasdaq-earnings-calendar #10b91d
+- AMZN ⊘ ATHM [short-ticker-boundary] · nasdaq-earnings-calendar #d9cc39
+- BTC ⊘ BABA [short-ticker-boundary] · nasdaq-earnings-calendar #dd2dd8
+- BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #84e731
 
 </details>

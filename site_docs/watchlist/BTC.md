@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-20 begin -->
+
+## 2026-08-20
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7052 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,482,933,708,217; BTC dominance 58.69%
+- [coingecko-price] **ticker**: BTC $72,749.00 (+5.30%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $481,625,060 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000576948854095 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin’s rally pushes past $72,000 as analysts see demand beyond historic short squeeze
+- [theblock-crypto] **ticker**: Spot bitcoin ETFs report $517 million in net inflows, largest in 3.5 months
+
+<!-- u33 entry 2026-08-20 end -->
 <!-- u33 entry 2026-08-19 begin -->
 
 ## 2026-08-19
