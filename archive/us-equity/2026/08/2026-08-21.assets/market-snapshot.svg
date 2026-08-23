@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-08-21 · 데이터 partial</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 8월 21일 미국 증시(us-equity) 세그먼트는 UNRATE(실업률) 4.1%로</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전월(4.2%) 대비 하락하고 CPIAUCSL(소비자물가지수)이 332.813으로 전월(332.568)</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 8월 21일 미국 증시(us-equity) 세그먼트는 다우존스산업평균지수(다우지수)가</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">+0.98% 오른 53,277.01로 마감했고, S&amp;P 500과 나스닥종합지수(IXIC)도 각각</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500·다우존스·나스닥100 상승 마감 — Stocks Settle Higher as Crude</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">Oil Prices Stabilize 기사에 따르면 S&amp;P 500 Index($SPX·SPY)는 금요일</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">다우존스·S&amp;P 500·나스닥, 변동성 완화 속 동반 상승 — 다우존스산업평균지수는 +0.98% 상승한</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">53,277.01(O:52,768.87 H:53,355.92 L:52,768.87)로 마감했고, S&amp;P</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: Nasdaq 시황 · 달러지수(DXY)가 목요일 기록한 3.25개월 최저치를 하회하면 추가</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">약세 압력 관찰, 그 위에서 보합권을 유지하면 안정적 흐름으로 해석. 관심 영향: 원자재·수출입 관련</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 미국 재무부 UST(미국국채) 금리 곡선 · 10Y 금리가 4.74%를 상회 유지하면</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">장기금리 주도 상승 압력 관찰, 2Y 금리 4.24% 쪽으로 스프레드가 좁혀지면 커브 평탄화 흐름으로</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

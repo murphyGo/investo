@@ -1,16 +1,16 @@
 {
   "additional_metadata": {
-    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states the creator released the file explicitly under Creative Commons Zero on Pixabay.",
-    "asset_id": "inflation",
-    "author": "Maklay62 (Pixabay)",
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero, FlickreviewR-verified at import.",
+    "asset_id": "wall-street",
+    "author": "Billie Grace Ward",
     "license": "cc0",
-    "match_reason": "alias:물가;scope=hero;rank=10;offset=83",
-    "matched_key": "topic:inflation",
-    "narrative_sha256": "89e449a829dfb9bfd83870b176540e722aaa62191bb371bf519532e411794dde",
+    "match_reason": "alias:S&P 500;scope=hero;rank=10;offset=81",
+    "matched_key": "topic:wall-street",
+    "narrative_sha256": "8864465f977ecdf353a1606bd3248d40b3823d90119f0424b256b3ffdcbdba9a",
     "selection_contract": "final-body-semantic-v1",
-    "semantic_offset": "83",
+    "semantic_offset": "81",
     "semantic_rank": "10",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Money-1428594_1920.jpg",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Sign_of_the_New_York_Stock_Exchange,_Broad_Street.jpg",
     "variant_contract": "narrative-key-digest-mod-v1",
     "variant_count": "1",
     "variant_index": "0"
@@ -19,13 +19,13 @@
   "card_kind": "curated-context-image",
   "content_type": "image/jpeg",
   "dimensions": [
-    1400,
-    933
+    1200,
+    801
   ],
-  "generated_at": "2026-08-22T01:36:03.512765Z",
+  "generated_at": "2026-08-23T22:39:29.850803Z",
   "generator": "investo",
   "schema_version": "1",
-  "source_attribution": "US one-hundred-dollar Federal Reserve notes, by Pixabay contributor Maklay62 (explicit CC0 release; via Wikimedia Commons) (Maklay62 (Pixabay)) — cc0",
+  "source_attribution": "New York Stock Exchange facade sign on Broad Street, by Billie Grace Ward (CC0; via Wikimedia Commons) (Billie Grace Ward) — cc0",
   "source_type": "external",
   "version": "0.1.0"
 }

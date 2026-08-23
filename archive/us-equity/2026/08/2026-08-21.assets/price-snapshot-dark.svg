@@ -5,16 +5,16 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 가격 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-08-21</text>
 <text class="card-emphasis" x="90" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^GSPC</text>
-<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">7,674.37 · +0.43% · V 2.74B</text>
+<text class="card-text" x="310" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">7,674.37 · +0.43% · V 4.50B</text>
 <text class="card-emphasis" x="90" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^IXIC</text>
-<text class="card-text" x="310" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">26,180.46 · +0.43% · V 6.32B</text>
+<text class="card-text" x="310" y="242" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">26,180.46 · +0.43% · V 7.41B</text>
 <text class="card-emphasis" x="90" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^DJI</text>
-<text class="card-text" x="310" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">53,277.01 · +0.98% · V 424.07M</text>
+<text class="card-text" x="310" y="304" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">53,277.01 · +0.98% · V 424.06M</text>
 <text class="card-emphasis" x="90" y="366" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">^VIX</text>
 <text class="card-text" x="310" y="366" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">15.13 · -5.50% · V 0.00</text>
 <text class="card-emphasis" x="90" y="428" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">AAPL</text>
-<text class="card-text" x="310" y="428" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">309.35 · -0.63% · V 42.22M</text>
+<text class="card-text" x="310" y="428" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">309.35 · -0.63% · V 46.77M</text>
 <text class="card-emphasis" x="90" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30" font-weight="700">MSFT</text>
-<text class="card-text" x="310" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">483.24 · +0.43% · V 21.86M</text>
+<text class="card-text" x="310" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">483.24 · +0.43% · V 22.49M</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

@@ -7,15 +7,19 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-08-21
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7439 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,657,644,006,188; BTC dominance 58.84%
-- [nasdaq-stocks-news] **ticker**: Stocks Climb as Crude Oil Stabilizes and Bitcoin Soars
-- [okx-derivatives] **ticker**: BTC 미결제약정 $461,162,600 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000704752149019 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,628,038,062,327; BTC dominance 59.16%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $467,413,200 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin breaks through $75,500 while analyst calls current rally ‘premature’
+- [theblock-crypto] **ticker**: Bitcoin surge toward $80K points to liquidity-driven momentum shift as ETF flows rebound: Bernstein
+- [theblock-crypto] **ticker**: Crypto is still in ‘winter’ price-wise but it’s an ‘institutional summer,’ STS Digital CEO says
+- [theblock-crypto] **ticker**: Strategy shares hit two-month high as STRC rebounds toward $100 alongside bitcoin
+- [theblock-crypto] **ticker**: XRP leads broad altcoin rally as bitcoin’s biggest weekly gain in two years lifts crypto
 - [yonhap-market] **ticker**: [특징주] 가상자산 관련주, 비트코인 7만달러선 돌파에 급등(종합)
 - [yonhap-market] **ticker**: [특징주] 가상자산 관련주, 비트코인 7만달러선 돌파에 장초반 급등
-- [yonhap-market] **ticker**: 비트코인, 규제완화법 청신호에 7만불 돌파…역대2위 공매도청산
 
 <!-- u33 entry 2026-08-21 end -->
+
 <!-- u33 entry 2026-08-20 begin -->
 
 ## 2026-08-20
