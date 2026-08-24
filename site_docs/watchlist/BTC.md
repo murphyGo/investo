@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-24 begin -->
+
+## 2026-08-24
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7439 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,667,421,157,279; BTC dominance 59.04%
+- [coingecko-price] **ticker**: BTC $78,761.00 (+1.37%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $463,233,370 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000229572249064 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin records largest weekly dollar gain in history; Strive CEO predicts ‘strongest’ cycle ever
+- [theblock-crypto] **ticker**: Strategy sells $2 billion in MSTR shares, makes no bitcoin purchases, establishes $1.6 billion ‘USD Cash’ pool
+- [theblock-crypto] **ticker**: Strive acquires 1,110 bitcoin for $81.5 million as total holdings reach 21,356 BTC
+- [yonhap-market] **ticker**: '불장' 돌아오나…비트코인 급등에 원화 거래소 활기
+
+<!-- u33 entry 2026-08-24 end -->
 <!-- u33 entry 2026-08-21 begin -->
 
 ## 2026-08-21

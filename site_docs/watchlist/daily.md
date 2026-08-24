@@ -1,30 +1,27 @@
-# 오늘의 관심 자산 영향 — 2026-08-21
+# 오늘의 관심 자산 영향 — 2026-08-24
 
-직접 21 · 관련 0 · 보류 14 · 제외 25
+직접 18 · 관련 0 · 보류 0 · 제외 19
 
 ## 직접 영향 (Direct)
 
-- AAPL: 직접 관련 · [yfinance-price] AAPL 309.35 (-0.63%)
-- AMZN: 직접 관련 · [yfinance-price] AMZN 258.63 (-0.57%)
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -7439 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,628,038,062,327; BTC dominance 59.16%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $467,413,200 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
-- BTC: 직접 관련 · [theblock-crypto] Bitcoin breaks through $75,500 while analyst calls current rally ‘premature’
-- BTC: 직접 관련 · [theblock-crypto] Bitcoin surge toward $80K points to liquidity-driven momentum shift as ETF flows rebound: Bernstein
-- BTC: 직접 관련 · [theblock-crypto] Crypto is still in ‘winter’ price-wise but it’s an ‘institutional summer,’ STS Digital CEO says
-- BTC: 직접 관련 · [theblock-crypto] Strategy shares hit two-month high as STRC rebounds toward $100 alongside bitcoin
-- BTC: 직접 관련 · [theblock-crypto] XRP leads broad altcoin rally as bitcoin’s biggest weekly gain in two years lifts crypto
-- BTC: 직접 관련 · [yonhap-market] [특징주] 가상자산 관련주, 비트코인 7만달러선 돌파에 급등(종합)
-- BTC: 직접 관련 · [yonhap-market] [특징주] 가상자산 관련주, 비트코인 7만달러선 돌파에 장초반 급등
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $92.1B; leader Ethereum
-- GOOGL: 직접 관련 · [yfinance-price] GOOGL 344.82 (+1.22%)
-- META: 직접 관련 · [yfinance-price] META 549.90 (+0.75%)
-- MSFT: 직접 관련 · [yfinance-price] MSFT 483.24 (+0.43%)
-- NVDA: 직접 관련 · [yfinance-price] NVDA 214.72 (-0.98%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $92.1B; leader Ethereum
-- SOL: 직접 관련 · [theblock-crypto] South Korea’s Shinhan partners with Solana Foundation, Etherfuse, Orca for tokenized fund issuance
-- TSLA: 직접 관련 · [yfinance-price] TSLA 362.86 (+5.14%)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,667,421,157,279; BTC dominance 59.04%
+- BTC: 직접 관련 · [coingecko-price] BTC $78,761.00 (+1.37%)
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $463,233,370 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 -0.0000229572249064 (OKX, UTC 24h)
+- BTC: 직접 관련 · [theblock-crypto] Bitcoin records largest weekly dollar gain in history; Strive CEO predicts ‘strongest’ cycle ever
+- BTC: 직접 관련 · [theblock-crypto] Strategy sells $2 billion in MSTR shares, makes no bitcoin purchases, establishes $1.6 billion ‘USD Cash’ pool
+- BTC: 직접 관련 · [theblock-crypto] Strive acquires 1,110 bitcoin for $81.5 million as total holdings reach 21,356 BTC
+- BTC: 직접 관련 · [yonhap-market] '불장' 돌아오나…비트코인 급등에 원화 거래소 활기
+- ETH: 직접 관련 · [coingecko-price] ETH $2,476.33 (+0.59%)
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $88.0B; leader Ethereum
+- ETH: 직접 관련 · [theblock-crypto] ‘Upside move in ETH was overdue,’ Tom Lee says as Bitmine buys another 32,447 ether
+- ETH: 직접 관련 · [yonhap-market] '불장' 돌아오나…비트코인 급등에 원화 거래소 활기
+- NVDA: 직접 관련 · [yonhap-market] "엔비디아, 퍼플렉시티 추가 지분투자 논의"
+- NVDA: 직접 관련 · [yonhap-market] [마켓뷰] 삼전·닉스 주주환원 약발 이어질까…코스피 향방은
+- NVDA: 직접 관련 · [yonhap-market] 엔비디아, AI 개발사 우회 인수…첨단 오픈소스 AI 개발
+- SOL: 직접 관련 · [coingecko-price] SOL $97.40 (+1.92%)
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $88.0B; leader Ethereum
 
 ## 관련·매크로 맥락 (Related)
 
@@ -32,56 +29,32 @@ _해당 항목 없음._
 
 ## 관련 시황
 
-- [국내 증시](../archive/domestic-equity/2026/08/2026-08-21.md)
-- [미국 증시](../archive/us-equity/2026/08/2026-08-21.md)
-- [크립토](../archive/crypto/2026/08/2026-08-21.md)
+- [국내 증시](../archive/domestic-equity/2026/08/2026-08-24.md)
+- [크립토](../archive/crypto/2026/08/2026-08-24.md)
 
 <details>
 <summary>진단: 보류/제외된 후보</summary>
 
-보류 (Uncertain) — 저신뢰 텍스트 매칭, 추가 근거 필요:
-
-- AAPL · nasdaq-symbol-directory [reference-registry]
-- AAPL · sec-company-facts [reference-registry]
-- AMZN · nasdaq-symbol-directory [reference-registry]
-- AMZN · sec-company-facts [reference-registry]
-- GOOGL · nasdaq-symbol-directory [reference-registry]
-- GOOGL · sec-company-facts [reference-registry]
-- META · nasdaq-symbol-directory [reference-registry]
-- META · sec-company-facts [reference-registry]
-- MSFT · nasdaq-symbol-directory [reference-registry]
-- MSFT · sec-company-facts [reference-registry]
-- NVDA · nasdaq-symbol-directory [reference-registry]
-- NVDA · sec-company-facts [reference-registry]
-- TSLA · nasdaq-symbol-directory [reference-registry]
-- TSLA · sec-company-facts [reference-registry]
-
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
-- AAPL ⊘ ADIAL [short-ticker-boundary] · sec-edgar-8k #ec8661
-- AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-symbol-directory #beb0ca
-- AAPL ⊘ AMZN [short-ticker-boundary] · sec-company-facts #367e13
-- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #084359
-- AMZN ⊘ AAPL [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
-- AMZN ⊘ AAPL [short-ticker-boundary] · sec-company-facts #6e4883
-- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #91d7b1
-- AMZN ⊘ ADIAL [short-ticker-boundary] · sec-edgar-8k #ec8661
-- AMZN ⊘ Amid [short-ticker-boundary] · theblock-crypto #38385b
-- AMZN ⊘ amount [short-ticker-boundary] · treasury-auctions #9f5266
-- BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #84e731
-- BTC ⊘ BEKE [short-ticker-boundary] · nasdaq-earnings-calendar #babca7
-- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #4fa7c6
-- BTC ⊘ BKE [short-ticker-boundary] · nasdaq-earnings-calendar #ca88cf
-- BTC ⊘ BNB [short-ticker-boundary] · theblock-crypto #0b95c2
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #910746
-- BTC ⊘ BXBL [short-ticker-boundary] · nasdaq-earnings-calendar #986593
-- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #845728
-- ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #a067a4
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #f24f91
-- ETH ⊘ etf [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
-- ETH ⊘ ETF [short-ticker-boundary] · theblock-crypto #a8a9c7
-- ETH ⊘ ETF [short-ticker-boundary] · yonhap-market #1452a4
+- AAPL ⊘ ACE [short-ticker-boundary] · yonhap-market #77bac7
+- AMZN ⊘ ACE [short-ticker-boundary] · yonhap-market #77bac7
+- AMZN ⊘ amp [short-ticker-boundary] · yonhap-market #2bb9a0
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #f6691a
+- ETH ⊘ ETF [short-ticker-boundary] · yonhap-market #2bb9a0
 - ETH ⊘ Ether [short-ticker-boundary] · cftc-cot-positioning #eb1e7c
-- ETH ⊘ EVM [short-ticker-boundary] · theblock-crypto #5f9191
+- META ⊘ MLCC [short-ticker-boundary] · yonhap-market #77bd28
+- META ⊘ MSTR [short-ticker-boundary] · theblock-crypto #784404
+- MSFT ⊘ MLCC [short-ticker-boundary] · yonhap-market #77bd28
+- MSFT ⊘ MSTR [short-ticker-boundary] · theblock-crypto #784404
+- NVDA ⊘ NAVER [short-ticker-boundary] · fsc-krx-stock-price #45da2f
+- NVDA ⊘ NNP [short-ticker-boundary] · yonhap-market #152763
+- NVDA ⊘ NOTICE [short-ticker-boundary] · house-financial-services-policy #daab49
+- SOL ⊘ SBI [short-ticker-boundary] · theblock-crypto #32bcd3
+- SOL ⊘ SDI [short-ticker-boundary] · yonhap-market #9022e4
+- SOL ⊘ SEC [short-ticker-boundary] · theblock-crypto #b567f4
+- SOL ⊘ SNS [short-ticker-boundary] · yonhap-market #152763
+- SOL ⊘ so [short-ticker-boundary] · theblock-crypto #4cdada
+- TSLA ⊘ TVL [short-ticker-boundary] · defillama-market-structure #f6691a
 
 </details>

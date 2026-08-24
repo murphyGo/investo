@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-24 begin -->
+
+## 2026-08-24
+
+- [coingecko-price] **ticker**: ETH $2,476.33 (+0.59%)
+- [defillama-market-structure] **ticker**: DeFi TVL $88.0B; leader Ethereum
+- [theblock-crypto] **ticker**: ‘Upside move in ETH was overdue,’ Tom Lee says as Bitmine buys another 32,447 ether
+- [yonhap-market] **ticker**: '불장' 돌아오나…비트코인 급등에 원화 거래소 활기
+
+<!-- u33 entry 2026-08-24 end -->
 <!-- u33 entry 2026-08-21 begin -->
 
 ## 2026-08-21
