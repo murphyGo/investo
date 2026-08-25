@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-25 begin -->
+
+## 2026-08-25
+
+- [yfinance-price] **ticker**: NVDA 213.05 (+2.19%)
+- [yonhap-market] **ticker**: '주주환원 이슈' 삼전닉스, 하루만에 반등…엔비디아 실적이 분기점(종합)
+- [yonhap-market] **ticker**: 머스크 "내년 4분기 첫 AI 위성 발사…2028년엔 대규모"
+- [yonhap-market] **ticker**: 삼전닉스 휘청에 코스피 하락 지속…엔비디아 실적 이벤트 주시
+- [yonhap-market] **ticker**: 서학개미, 반도체·기술주에 '뭉칫돈'…"엔비디아 실적이 분수령"
+- [yonhap-market] **ticker**: 엔비디아, '삼성생산' 추론가속기 그록3 양산 돌입…고객사 확보
+- [yonhap-market] **ticker**: 엔비디아, 4년만에 7거래일 연속 하락…실적 앞두고 AI주 이탈
+
+<!-- u33 entry 2026-08-25 end -->
 <!-- u33 entry 2026-08-24 begin -->
 
 ## 2026-08-24

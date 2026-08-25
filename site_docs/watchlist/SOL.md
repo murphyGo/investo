@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-25 begin -->
+
+## 2026-08-25
+
+- [coingecko-price] **ticker**: SOL $97.23 (-0.24%)
+- [defillama-market-structure] **ticker**: DeFi TVL $88.1B; leader Ethereum
+- [theblock-crypto] **ticker**: Galaxy expands retail crypto lending with new BTC, ETH and SOL-backed credit line
+
+<!-- u33 entry 2026-08-25 end -->
 <!-- u33 entry 2026-08-24 begin -->
 
 ## 2026-08-24

@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-25 begin -->
+
+## 2026-08-25
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7439 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,658,509,942,269; BTC dominance 59.21%
+- [coingecko-price] **ticker**: BTC $78,598.00 (-0.16%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $464,043,470 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000118328505135 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin holds above $80,000 backed by ETF flows; bull market case ‘early but optimistic,’ analyst says
+- [theblock-crypto] **ticker**: Galaxy expands retail crypto lending with new BTC, ETH and SOL-backed credit line
+- [yonhap-market] **ticker**: 랠리 이어가는 비트코인 석 달 만에 8만달러 재진입
+
+<!-- u33 entry 2026-08-25 end -->
 <!-- u33 entry 2026-08-24 begin -->
 
 ## 2026-08-24
