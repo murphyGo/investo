@@ -2,6 +2,26 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-27 begin -->
+
+## 2026-08-27
+
+- [nasdaq-stocks-news] **ticker**: Stock Indices Settle Higher as Nvidia Earnings Spur a Tech Stock Rally
+- [nasdaq-stocks-news] **ticker**: Stocks Rally as Nvidia Earnings Boost AI Optimism
+- [yahoo-finance-news] **ticker**: Bank of America doubles down on Nvidia stock
+- [yfinance-price] **ticker**: NVDA 227.98 (+8.74%)
+- [yonhap-market] **ticker**: "미국, 엔비디아 칩 중국 밀반출 혐의 싱가포르 업체 조사중"
+- [yonhap-market] **ticker**: "엔비디아, AI 모델 공유 플랫폼 허깅페이스 인수 논의중"
+- [yonhap-market] **ticker**: "엔비디아, 허깅페이스 18조원에 인수 합의"(종합)
+- [yonhap-market] **ticker**: 'AI 순환금융' 반박한 젠슨 황 "더 투자하지 못해 후회"
+- [yonhap-market] **ticker**: 뉴욕증시, 엔비디아 호실적에 상승 출발
+- [yonhap-market] **ticker**: 엔비디아 "내년 매출 70% ↑…마진 72~73% 예상"(종합)
+- [yonhap-market] **ticker**: 엔비디아 "내년 매출 70%↑…마진 72~73%"(종합2보)
+- [yonhap-market] **ticker**: 엔비디아, 공급망 확보 약정 386조원…"주로 메모리 조달"
+- [yonhap-market] **ticker**: 젠슨 황 "오픈AI 자체 개발 칩과 엔비디아 제품은 다른 것"
+- [yonhap-market] **ticker**: 코스피, 엔비디아 호실적에 1%대 상승…금리인상에 상승폭 축소(종합)
+
+<!-- u33 entry 2026-08-27 end -->
 <!-- u33 entry 2026-08-26 begin -->
 
 ## 2026-08-26

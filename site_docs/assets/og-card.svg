@@ -1,14 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-08-26 시황 OG 카드">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-08-27 시황 OG 카드">
 <style>.og-bg{fill:#f7f5ef;}.og-frame{fill:#ffffff;stroke:#253238;}.og-title{fill:#1d2b2f;}.og-subtitle{fill:#617176;}.og-label{fill:#476169;}.og-text{fill:#1d2b2f;}.og-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.og-bg{fill:#0f1417;}.og-frame{fill:#1a2026;stroke:#9fb1ba;}.og-title{fill:#f4f6f8;}.og-subtitle{fill:#bfcdd4;}.og-label{fill:#a8c0c8;}.og-text{fill:#e8eef1;}.og-disclaimer{fill:#e2c489;}}</style>
 <rect class="og-bg" width="1200" height="630"/>
 <rect class="og-frame" x="40" y="40" width="1120" height="550" rx="12" stroke-width="3"/>
 <text class="og-title" x="80" y="138" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="56" font-weight="700">Investo · 오늘의 시황</text>
-<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-08-26</text>
+<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-08-27</text>
 <text class="og-label" x="80" y="230" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">국내 증시</text>
-<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">코스피(KOSPI, 한국 유가증권시장 종합지수)는 26일 **+0.97%**</text>
-<text class="og-text" x="80" y="308" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">상승해 6,808.21로 마감했다. 이번 문서는 수집 근거가 제한적입니다.</text>
+<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">코스피는 27일 글로벌 반도체 대장주 엔비디아의 깜짝 실적 발표 소식에 힘입어</text>
+<text class="og-text" x="80" y="308" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">상승 출발했고, 장중 한때 3% 가까이 급등한 뒤 상승폭을 줄여 본문 참고.</text>
 <text class="og-label" x="80" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">미국 증시</text>
-<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">결론 인용을 추출하지 못했습니다.</text>
+<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">2026년 8월 27일 미국 증시(us-equity) 세그먼트는 엔비디아 실적</text>
+<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">호조가 촉발한 AI(인공지능) 투자심리 개선에 힘입어 3대 지수가 본문 참고.</text>
 <text class="og-label" x="80" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">크립토</text>
 <text class="og-text" x="80" y="532" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">결론 인용을 추출하지 못했습니다.</text>
 <text class="og-disclaimer" x="80" y="570" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">투자 자문이 아닙니다 · investo (MIT)</text>
