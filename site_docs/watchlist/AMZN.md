@@ -6,9 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-28
 
-- [yfinance-price] **ticker**: AMZN 256.26 (-1.54%)
+- [yfinance-price] **ticker**: AMZN 266.43 (+3.97%)
 
 <!-- u33 entry 2026-08-28 end -->
+
 <!-- u33 entry 2026-08-27 begin -->
 
 ## 2026-08-27

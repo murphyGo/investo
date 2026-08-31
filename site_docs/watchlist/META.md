@@ -6,9 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-28
 
-- [yfinance-price] **ticker**: META 571.10 (-0.87%)
+- [yfinance-price] **ticker**: META 578.02 (+1.21%)
+- [yonhap-market] **ticker**: '적이자 친구' 메타-앤트로픽…"앤트로픽 최대 고객은 메타"
 
 <!-- u33 entry 2026-08-28 end -->
+
 <!-- u33 entry 2026-08-27 begin -->
 
 ## 2026-08-27

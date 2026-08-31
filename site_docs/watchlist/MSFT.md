@@ -6,9 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-28
 
-- [yfinance-price] **ticker**: MSFT 505.06 (+1.75%)
+- [yfinance-price] **ticker**: MSFT 513.53 (+1.68%)
 
 <!-- u33 entry 2026-08-28 end -->
+
 <!-- u33 entry 2026-08-27 begin -->
 
 ## 2026-08-27

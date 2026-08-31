@@ -1,16 +1,16 @@
 {
   "additional_metadata": {
-    "allowed_use": "Public republish on the investo site and channel; Federal Reserve (US government) photograph, public domain. Verified: Commons file page states public domain, category PD US Federal Reserve, FlickreviewR-verified Fed Flickr import.",
-    "asset_id": "federal-reserve",
-    "author": "Federal Reserve Board",
-    "license": "pd-usgov",
-    "match_reason": "alias:연준;scope=hero;rank=10;offset=52",
-    "matched_key": "topic:federal-reserve",
-    "narrative_sha256": "5a56a922c825ef961163119c3f808a9b89628e02a0f677559f5b3ff99777ef02",
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with archived Pixabay source.",
+    "asset_id": "us-equity-market",
+    "author": "AhmadArdity (Pixabay)",
+    "license": "cc0",
+    "match_reason": "alias:미국 증시;scope=hero;rank=30;offset=13",
+    "matched_key": "topic:us-equity-market",
+    "narrative_sha256": "a22f964305b5f48849431deea5f94693bbbe98e281cf3c5f5023277ea87d7619",
     "selection_contract": "final-body-semantic-v1",
-    "semantic_offset": "52",
-    "semantic_rank": "10",
-    "source_url": "https://commons.wikimedia.org/wiki/File:The_Entrance_to_the_FOMC_Board_Room.jpg",
+    "semantic_offset": "13",
+    "semantic_rank": "30",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Stockmarket.jpg",
     "variant_contract": "narrative-key-digest-mod-v1",
     "variant_count": "1",
     "variant_index": "0"
@@ -19,13 +19,13 @@
   "card_kind": "curated-context-image",
   "content_type": "image/jpeg",
   "dimensions": [
-    1280,
-    1927
+    1400,
+    933
   ],
-  "generated_at": "2026-08-29T06:33:46.437450Z",
+  "generated_at": "2026-08-31T00:34:41.930777Z",
   "generator": "investo",
   "schema_version": "1",
-  "source_attribution": "Entrance to the FOMC Board Room, Eccles Building (Federal Reserve photograph; via Wikimedia Commons, PD US Federal Reserve) (Federal Reserve Board) — pd-usgov",
+  "source_attribution": "Stock exchange price display board, by Pixabay contributor AhmadArdity (CC0-era Pixabay upload; via Wikimedia Commons) (AhmadArdity (Pixabay)) — cc0",
   "source_type": "external",
   "version": "0.1.0"
 }

@@ -6,10 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-28
 
-- [theblock-crypto] **ticker**: Bybit launches 24/7 options on stock perpetuals, starting with SpaceX and Nvidia
-- [yfinance-price] **ticker**: NVDA 227.98 (+8.74%)
+- [yfinance-price] **ticker**: NVDA 217.55 (-4.57%)
+- [yonhap-market] **ticker**: [특징주] 삼전·닉스, 장초반 1%대 약세…엔비디아 약발 끝?
 
 <!-- u33 entry 2026-08-28 end -->
+
 <!-- u33 entry 2026-08-27 begin -->
 
 ## 2026-08-27
