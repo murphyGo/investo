@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-31 begin -->
+
+## 2026-08-31
+
+- [defillama-market-structure] **ticker**: DeFi TVL $88.0B; leader Ethereum
+- [theblock-crypto] **ticker**: OpenSea adds Solana NFT trading more than four years after initial beta
+- [theblock-crypto] **ticker**: Solana fees hit record as validators double pace of inflation cuts
+- [yonhap-market] **ticker**: 신한증권, '신한 SOL 로보연금' 출시…"AI기반 자동투자 서비스"
+
+<!-- u33 entry 2026-08-31 end -->
 <!-- u33 entry 2026-08-28 begin -->
 
 ## 2026-08-28

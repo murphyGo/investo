@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-31 begin -->
+
+## 2026-08-31
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -8089 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,663,056,419,327; BTC dominance 59.18%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $485,448,120 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000564594383988 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Strive becomes fifth-largest public bitcoin treasury after 1,800 BTC buy, TD Cowen lifts ASST price target
+- [theblock-crypto] **ticker**: ‘We’re back’: Strategy buys another 4,603 bitcoin for $369.7 million as holdings hit 845,050 BTC
+
+<!-- u33 entry 2026-08-31 end -->
 <!-- u33 entry 2026-08-28 begin -->
 
 ## 2026-08-28

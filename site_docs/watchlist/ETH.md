@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-31 begin -->
+
+## 2026-08-31
+
+- [defillama-market-structure] **ticker**: DeFi TVL $88.0B; leader Ethereum
+- [theblock-crypto] **ticker**: Tom Lee says ether is ‘best performing macro asset’ as Bitmine adds 53,501 ETH
+
+<!-- u33 entry 2026-08-31 end -->
 <!-- u33 entry 2026-08-28 begin -->
 
 ## 2026-08-28
