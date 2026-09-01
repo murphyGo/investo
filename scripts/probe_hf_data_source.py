@@ -18,7 +18,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Final
+from typing import Final, Literal
 
 API_BASE: Final = "https://api.hfdatalibrary.com/v1"
 API_HOST: Final = "api.hfdatalibrary.com"
@@ -63,6 +63,9 @@ class Response:
     body: bytes
 
 
+AuthScheme = Literal["x_api_key", "bearer"]
+
+
 def _read_bounded(response, limit: int) -> bytes:
     body = response.read(limit + 1)
     if len(body) > limit:
@@ -74,11 +77,15 @@ def _request(
     url: str,
     *,
     api_key: str | None = None,
+    auth_scheme: AuthScheme = "x_api_key",
     limit: int,
 ) -> Response:
     headers = {"Accept": "*/*", "User-Agent": USER_AGENT}
     if api_key is not None:
-        headers["X-API-Key"] = api_key
+        if auth_scheme == "x_api_key":
+            headers["X-API-Key"] = api_key
+        else:
+            headers["Authorization"] = f"Bearer {api_key}"
     request = urllib.request.Request(url, headers=headers)
     try:
         with OPENER.open(request, timeout=TIMEOUT_SECONDS) as response:
@@ -122,12 +129,37 @@ def _public_symbol_status(ticker: str) -> tuple[int, dict[str, object] | None]:
     return response.status, payload
 
 
-def _token_url(ticker: str, api_key: str) -> tuple[str, str]:
-    query = urllib.parse.urlencode({"timeframe": "daily", "format": "csv", "version": "clean"})
-    response = _request(
+def _token_request(
+    ticker: str,
+    api_key: str,
+    *,
+    auth_scheme: AuthScheme,
+    timeframe: str,
+    output_format: str,
+) -> Response:
+    query = urllib.parse.urlencode(
+        {"timeframe": timeframe, "format": output_format, "version": "clean"}
+    )
+    return _request(
         f"{API_BASE}/download-token/{ticker}?{query}",
         api_key=api_key,
+        auth_scheme=auth_scheme,
         limit=TOKEN_RESPONSE_LIMIT,
+    )
+
+
+def _token_url(
+    ticker: str,
+    api_key: str,
+    *,
+    auth_scheme: AuthScheme,
+) -> tuple[str, str]:
+    response = _token_request(
+        ticker,
+        api_key,
+        auth_scheme=auth_scheme,
+        timeframe="daily",
+        output_format="csv",
     )
     if response.status != 200:
         raise ProbeError(
@@ -219,9 +251,18 @@ def _summarize_daily_csv(ticker: str, response: Response) -> dict[str, object]:
     }
 
 
-def _probe_ticker(ticker: str, api_key: str) -> dict[str, object]:
+def _probe_ticker(
+    ticker: str,
+    api_key: str,
+    *,
+    auth_scheme: AuthScheme,
+) -> dict[str, object]:
     started = time.monotonic()
-    signed_url, expires_at = _token_url(ticker, api_key)
+    signed_url, expires_at = _token_url(
+        ticker,
+        api_key,
+        auth_scheme=auth_scheme,
+    )
     response = _request(signed_url, limit=DAILY_RESPONSE_LIMIT)
     if response.status != 200:
         raise ProbeError(f"daily_status:{ticker}:{response.status}")
@@ -241,28 +282,61 @@ def main() -> int:
         )
         public_spy_status, _ = _public_symbol_status("SPY")
         public_xlre_status, _ = _public_symbol_status(EXPECTED_MISSING)
-        xlre_query = urllib.parse.urlencode(
-            {"timeframe": "daily", "format": "csv", "version": "clean"}
+
+        token_matrix: dict[str, dict[str, object]] = {}
+        auth_schemes: tuple[AuthScheme, ...] = ("x_api_key", "bearer")
+        for auth_scheme in auth_schemes:
+            for timeframe, output_format in (
+                ("daily", "csv"),
+                ("daily", "parquet"),
+                ("1min", "parquet"),
+            ):
+                matrix_key = f"{auth_scheme}:{timeframe}:{output_format}"
+                response = _token_request(
+                    "SPY",
+                    api_key,
+                    auth_scheme=auth_scheme,
+                    timeframe=timeframe,
+                    output_format=output_format,
+                )
+                token_matrix[matrix_key] = {
+                    "status": response.status,
+                    "content_type": response.content_type,
+                }
+
+        selected_auth: AuthScheme | None = next(
+            (
+                auth_scheme
+                for auth_scheme in auth_schemes
+                if token_matrix[f"{auth_scheme}:daily:csv"]["status"] == 200
+            ),
+            None,
         )
-        authenticated_xlre = _request(
-            f"{API_BASE}/download-token/{EXPECTED_MISSING}?{xlre_query}",
-            api_key=api_key,
-            limit=TOKEN_RESPONSE_LIMIT,
+        authenticated_xlre = _token_request(
+            EXPECTED_MISSING,
+            api_key,
+            auth_scheme=selected_auth or "x_api_key",
+            timeframe="daily",
+            output_format="csv",
         )
 
         results: list[dict[str, object]] = []
         failures: list[str] = []
-        for ticker in REQUESTED_TICKERS:
-            try:
-                results.append(_probe_ticker(ticker, api_key))
-            except ProbeError as exc:
-                failures.append(str(exc))
+        if selected_auth is None:
+            failures.append("no_working_daily_csv_token_contract")
+        else:
+            for ticker in REQUESTED_TICKERS:
+                try:
+                    results.append(_probe_ticker(ticker, api_key, auth_scheme=selected_auth))
+                except ProbeError as exc:
+                    failures.append(str(exc))
 
         comparable_latest_dates = sorted({item["latest_date"] for item in results})
         evidence = {
             "probe": "u145-hf-step0",
             "endpoint_contract": "download-token_then_signed_daily_csv",
-            "auth_header": "X-API-Key",
+            "selected_auth_header": selected_auth,
+            "token_contract_matrix": token_matrix,
             "version": "clean",
             "requested_count": len(REQUESTED_TICKERS),
             "successful_count": len(results),
