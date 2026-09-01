@@ -265,16 +265,13 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-08-03
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6873 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,260,866,516,425; BTC dominance 56.39%
-- [coingecko-price] **ticker**: BTC $63,545.00 (-0.20%)
-- [okx-derivatives] **ticker**: BTC 미결제약정 $465,062,790 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000571318458058 (OKX, UTC 24h)
-- [theblock-crypto] **ticker**: Eric Trump’s American Bitcoin treasury tops 8,000 BTC as Q2 mining production hits record
-- [theblock-crypto] **ticker**: Jameson Lopp says Coldcard exploit exposes limits of Bitcoin’s ‘don’t trust, verify’ mantra
-- [theblock-crypto] **ticker**: Michael Saylor says he’s never sold his personal bitcoin after Strategy dumps more BTC
-- [theblock-crypto] **ticker**: Michael Saylor’s Strategy sells another 1,638 BTC for $105 million, reducing total holdings to 842,138 BTC
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,618,781,273,251; BTC dominance 59.05%
+- [nasdaq-earnings-calendar] **ticker**: ABTC earnings — not-supplied
+- [okx-derivatives] **ticker**: BTC 미결제약정 $486,803,340 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000682249972416 (OKX, UTC 24h)
 
 <!-- u33 entry 2026-08-03 end -->
+
 <!-- u33 entry 2026-07-31 begin -->
 
 ## 2026-07-31

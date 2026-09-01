@@ -157,11 +157,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-03
 
-- [coingecko-price] **ticker**: ETH $1,858.36 (-1.90%)
-- [defillama-market-structure] **ticker**: DeFi TVL $74.5B; leader Ethereum
-- [theblock-crypto] **ticker**: Tom Lee says ether outperformed Nasdaq 100 in July as Bitmine adds 10,399 ETH
+- [defillama-market-structure] **ticker**: DeFi TVL $87.6B; leader Ethereum
 
 <!-- u33 entry 2026-08-03 end -->
+
 <!-- u33 entry 2026-07-31 begin -->
 
 ## 2026-07-31
