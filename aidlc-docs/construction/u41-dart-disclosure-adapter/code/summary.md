@@ -1,7 +1,8 @@
 # u41 dart-disclosure-adapter — Code stage summary
 
-**Closed**: 2026-05-10
-**Status**: Partial (Steps 1-5 + Step 6 quality-gate complete; Step 6 manual dry-run deferred)
+**Code landed**: 2026-05-10
+**Completed**: 2026-09-02
+**Status**: Complete (6/6; Step 6 manual acceptance closed with production-equivalent evidence)
 **Persona**: #5 국내 (P0)
 
 ## What landed
@@ -17,9 +18,13 @@
 - R10: 7 live fixtures recorded against the live OpenDART endpoint with the operator's API key. Fixtures are byte-equal to live responses; the JSON bodies do not echo the `crtfc_key` parameter (it lives in URL query only). `meta.json` sidecar carries `recorded_at`, masked URL templates, and per-fixture rationale.
 - Step 5 follow-up: domestic coverage now emits `DOMESTIC_DISCLOSURE_QUIET` for successful zero-item DART outcomes, without treating a quiet disclosure day as generic `SOURCE_ZERO` or a coverage downgrade.
 
-## What was deferred (out of scope for this session)
+## Step 6 production-equivalent manual verification
 
-- Step 6 manual: operator-side dry-run with `INVESTO_DRY_RUN=1` is an operator action.
+- GitHub Actions run `33543213131` executed the real pipeline for target date `2026-08-03` with the repository's enrolled `OPENDART_API_KEY`.
+- The source-health log recorded `source_name=dart-disclosure category=news item_count=30` for the strict KST window.
+- The generation log recorded `segment=domestic-equity items=43`, proving the collected source entered the domestic-equity candidate stream.
+- The finalized archive rendered DART-linked HLB제약, 상보, 서진시스템, 엠투엔, and 카카오 disclosures at `archive/domestic-equity/2026/08/2026-08-03.md`.
+- The run completed all three segments, published the bundle, notified Telegram, and exited successfully. This real publish is stronger end-to-end evidence than the originally requested `INVESTO_DRY_RUN=1` rehearsal, so the rehearsal is superseded rather than falsely reported as executed. No workflow-only dry-run input was added.
 
 ## 4-Category Subcategory Mapping + Live Fixture Distribution
 
@@ -88,8 +93,6 @@ All 5 green:
 2. **Plan host typo** — `opendart.fsc.go.kr` → `opendart.fss.or.kr` (planner action: update plan body).
 3. **Plan Step 2 spec drift** — Plan said "missing key → empty list, INFO log" but R13 / fred precedent dictates `SourceFetchError(transient=False)`. Plan body needs alignment.
 4. **`pblntf_detail_ty` parameter ineffective** — does not actually filter the live response. Future per-category pagination would need to filter post-fetch via `report_nm` keywords (which is what the adapter already does).
-5. **Step 6 manual dry-run** — `OPENDART_API_KEY` was not present in the 2026-06-18 coding environment, so the operator dry-run remains pending.
-
 ## Out of scope (per plan)
 
 DART 외 다른 한국 공시 소스 (KIND, KRX), 첨부 PDF/문서 다운로드, 공시 본문 파싱, Category enum 확장.

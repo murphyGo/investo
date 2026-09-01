@@ -115,7 +115,7 @@ The persona's own diagnosis already maps the 4 categories that matter most. Open
 ### Step 6 — Verification
 
 - [x] Run targeted DART tests + the full quality gate.
-- [ ] Manual: with a real `OPENDART_API_KEY` set and a recent date with known disclosures, run a dry-run publish (`INVESTO_DRY_RUN=1`) and confirm the domestic-equity briefing surfaces the disclosure items in the candidate stream.
+- [x] Production-equivalent manual verification (2026-09-02; supersedes the originally requested `INVESTO_DRY_RUN=1` rehearsal): exact-date GitHub Actions run `33543213131` used the enrolled `OPENDART_API_KEY`, returned 30 `dart-disclosure` items, routed 43 items into the domestic-equity generation candidate stream, and published DART-linked HLB제약·상보·서진시스템·엠투엔·카카오 disclosures in `archive/domestic-equity/2026/08/2026-08-03.md`. The successful real publish is stronger end-to-end evidence than a no-side-effect rehearsal; no workflow-only dry-run input was added.
 
 ---
 
