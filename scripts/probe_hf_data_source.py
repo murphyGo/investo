@@ -129,7 +129,9 @@ def _token_url(ticker: str, api_key: str) -> tuple[str, str]:
         limit=TOKEN_RESPONSE_LIMIT,
     )
     if response.status != 200:
-        raise ProbeError(f"download_token_status:{ticker}:{response.status}")
+        raise ProbeError(
+            f"download_token_status:{ticker}:{response.status}:{response.content_type}"
+        )
     try:
         payload = json.loads(response.body)
     except (UnicodeDecodeError, json.JSONDecodeError):
@@ -217,13 +219,6 @@ def _summarize_daily_csv(ticker: str, response: Response) -> dict[str, object]:
 
 
 def _probe_ticker(ticker: str, api_key: str) -> dict[str, object]:
-    public_status, public_payload = _public_symbol_status(ticker)
-    if public_status != 200 or public_payload is None:
-        raise ProbeError(f"symbol_status:{ticker}:{public_status}")
-    versions = public_payload.get("versions")
-    if not isinstance(versions, dict) or "clean" not in versions:
-        raise ProbeError(f"symbol_version:{ticker}")
-
     started = time.monotonic()
     signed_url, expires_at = _token_url(ticker, api_key)
     response = _request(signed_url, limit=DAILY_RESPONSE_LIMIT)
@@ -243,8 +238,24 @@ def main() -> int:
             f"{API_BASE}/download-token/SPY?timeframe=daily&format=csv&version=clean",
             limit=TOKEN_RESPONSE_LIMIT,
         )
-        xlre_status, _ = _public_symbol_status(EXPECTED_MISSING)
-        results = [_probe_ticker(ticker, api_key) for ticker in REQUESTED_TICKERS]
+        public_spy_status, _ = _public_symbol_status("SPY")
+        public_xlre_status, _ = _public_symbol_status(EXPECTED_MISSING)
+        xlre_query = urllib.parse.urlencode(
+            {"timeframe": "daily", "format": "csv", "version": "clean"}
+        )
+        authenticated_xlre = _request(
+            f"{API_BASE}/download-token/{EXPECTED_MISSING}?{xlre_query}",
+            api_key=api_key,
+            limit=TOKEN_RESPONSE_LIMIT,
+        )
+
+        results: list[dict[str, object]] = []
+        failures: list[str] = []
+        for ticker in REQUESTED_TICKERS:
+            try:
+                results.append(_probe_ticker(ticker, api_key))
+            except ProbeError as exc:
+                failures.append(str(exc))
 
         comparable_latest_dates = sorted({item["latest_date"] for item in results})
         evidence = {
@@ -256,21 +267,28 @@ def main() -> int:
             "successful_count": len(results),
             "expected_missing": {
                 "ticker": EXPECTED_MISSING,
-                "public_symbol_status": xlre_status,
+                "public_symbol_status": public_xlre_status,
+                "authenticated_download_token_status": authenticated_xlre.status,
+                "authenticated_content_type": authenticated_xlre.content_type,
             },
+            "public_spy_status": public_spy_status,
             "unauthenticated_download_token_status": unauthenticated.status,
+            "unauthenticated_content_type": unauthenticated.content_type,
             "latest_dates": comparable_latest_dates,
             "total_download_bytes": sum(int(item["size_bytes"]) for item in results),
             "tickers": results,
             "raw_payload_retained": False,
             "signed_url_logged": False,
+            "failures": failures,
         }
         print(json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2))
 
-        if xlre_status != 404:
-            raise ProbeError(f"xlre_contract:{xlre_status}")
+        if authenticated_xlre.status != 404:
+            raise ProbeError(f"xlre_contract:{authenticated_xlre.status}")
         if unauthenticated.status != 401:
             raise ProbeError(f"unauthenticated_contract:{unauthenticated.status}")
+        if failures:
+            raise ProbeError(f"requested_ticker_failures:{len(failures)}")
         if len(comparable_latest_dates) != 1:
             raise ProbeError("same_as_of_contract")
         return 0
