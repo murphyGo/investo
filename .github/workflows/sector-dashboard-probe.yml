@@ -1,0 +1,29 @@
+name: Sector dashboard source probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sector-dashboard-source-probe
+  cancel-in-progress: false
+
+jobs:
+  hf-source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HF_DATA_API_KEY: ${{ secrets.HF_DATA_API_KEY }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run sanitized HF source-contract probe
+        run: python scripts/probe_hf_data_source.py

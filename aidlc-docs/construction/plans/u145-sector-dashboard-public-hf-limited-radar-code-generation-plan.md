@@ -3,7 +3,7 @@
 **Date**: 2026-07-22
 **Unit**: u145 sector-dashboard-public-hf-limited-radar
 **Stage**: Code Generation
-**Status**: Blocked before Step 0 credentialed source qualification
+**Status**: Step 0 credentialed source qualification in progress
 **Dependencies**: u139 complete; u140 strict gate remains blocked; operator-owned HF key required
 
 ## Stage Decision
@@ -11,7 +11,9 @@
 - Application Design: **COMPLETE** on 2026-07-22.
 - Functional Design: **COMPLETE** — R1-R33, E1-E19, I1-I7, C1-C7, L1-L12.
 - NFR/Security Requirements: **COMPLETE** — AC-1.1 through AC-6.6 and TS-1 through TS-8.
-- Code Generation: **BLOCKED** until Step 0 can use an operator-owned verified HF account/key.
+- Code Generation: **STEP 0 IN PROGRESS** after the operator added `HF_DATA_API_KEY` on
+  2026-09-02. Adapter/model implementation remains blocked until the revised live contract is
+  accepted.
 
 ## Scope Boundary
 
@@ -58,7 +60,7 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 0 — Credentialed source-contract qualification — BLOCKED
+### Step 0 — Credentialed source-contract qualification — IN PROGRESS
 
 Prerequisite: operator-owned HF account, verified email, and current API key.
 
@@ -71,6 +73,13 @@ Prerequisite: operator-owned HF account, verified email, and current API key.
   behavior, malformed/empty behavior, 401/403, and 429 policy.
 - [ ] Record only sanitized schema/semantics/count/date evidence; commit no raw response/bar data.
 - [ ] If any binding right/cost/supported-symbol/IEX-label premise changes, stop and amend design.
+
+2026-09-02 pre-probe finding: the current official API no longer exposes the planned daily JSON
+row endpoint. Daily bars now use `GET /download-token/{ticker}` followed by a short-lived signed
+CSV/Parquet download URL; `/bars/{ticker}` serves the full 1-minute Parquet file. The manual,
+read-only Step 0 workflow records only sanitized schema/count/date/size evidence. The 2 MiB/10,000
+row envelope, fixed request path, signed-token handling, and in-memory parser contract must be
+amended from the live result before Step 1 begins.
 
 Exit gate: all unknown payload assumptions are resolved and an operator-owned secret path is
 available for isolated tests. Until then, no adapter/model implementation begins.
@@ -130,14 +139,19 @@ Prerequisite: Step 5 five-run evidence complete.
   memory, attribution, freshness, and negative-path evidence.
 - [ ] Update AIDLC state only after Pages evidence is current and complete.
 
-## Current Blocker
+## Current Gate
 
 HF requires accurate account registration, email verification, and an API key that expires
-every 30 days. No operator-owned key is available in the current environment. Creating an
-identity/account or completing email verification is outside Investo's autonomous code scope.
-Therefore Step 0 payload qualification—and all implementation that depends on it—cannot begin.
+every 30 days. The operator added the repository secret `HF_DATA_API_KEY` on 2026-09-02. Its
+value remains non-observable to local code and is consumed only by the manual, read-only probe.
+Step 1 remains gated on a successful live probe and an amendment that reconciles the current
+signed-download contract with the Functional/NFR design.
 
-Live verification on 2026-07-22 confirmed both boundaries without reading any secret value:
+Historical verification on 2026-07-22 confirmed both boundaries without reading any secret
+value:
 
 - local `HF_DATA_API_KEY`: absent;
 - GitHub Actions secret-name inventory: no `HF_DATA_API_KEY` entry.
+
+Current verification on 2026-09-02 confirmed the repository secret name is present. The value
+was not and cannot be read back through GitHub's secret inventory API.
