@@ -146,13 +146,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-04
 
-- [coingecko-price] **ticker**: ETH $1,872.73 (+0.70%)
-- [defillama-market-structure] **ticker**: DeFi TVL $75.1B; leader Ethereum
-- [theblock-crypto] **ticker**: BlackRock debuts tokenized share classes for select European money market funds with $311 billion in assets
-- [theblock-crypto] **ticker**: BlackRock’s spot Ethereum ETF to undergo 1-for-3 reverse share split in October
-- [theblock-crypto] **ticker**: Ethereum researchers propose burning validator rewards to cap staking at 50%
+- [defillama-market-structure] **ticker**: DeFi TVL $85.6B; leader Ethereum
 
 <!-- u33 entry 2026-08-04 end -->
+
 <!-- u33 entry 2026-08-03 begin -->
 
 ## 2026-08-03

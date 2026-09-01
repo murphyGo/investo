@@ -247,19 +247,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-08-04
 
-- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6873 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,276,931,020,082; BTC dominance 56.58%
-- [coingecko-price] **ticker**: BTC $64,184.00 (+1.10%)
-- [okx-derivatives] **ticker**: BTC 미결제약정 $450,771,530 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000124966169559 (OKX, UTC 24h)
-- [theblock-crypto] **ticker**: Bernstein says Texas data center audit could boost value of existing bitcoin mining and AI sites
-- [theblock-crypto] **ticker**: Binance launches bitcoin-backed ‘Lite Loan’ with $1,000 borrowing limit
-- [theblock-crypto] **ticker**: Bitcoin losses from Coldcard hack could swell to $130 million, Galaxy Research says
-- [theblock-crypto] **ticker**: Bitdeer stock pops and drops on $4.7 billion AI data center lease in Norway
-- [theblock-crypto] **ticker**: Hut 8 shares slip after mild Q2 revenue miss as AI data center pipeline grows
-- [yahoo-finance-news] **ticker**: If you invested $1,000 in gold, Bitcoin and $TRUMP on Inauguration Day, here is what each is worth today
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,622,620,714,690; BTC dominance 59.05%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $487,320,580 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000727053848817 (OKX, UTC 24h)
 
 <!-- u33 entry 2026-08-04 end -->
+
 <!-- u33 entry 2026-08-03 begin -->
 
 ## 2026-08-03

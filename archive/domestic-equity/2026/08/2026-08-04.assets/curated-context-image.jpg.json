@@ -1,0 +1,31 @@
+{
+  "additional_metadata": {
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with archived Pixabay source.",
+    "asset_id": "kospi",
+    "author": "heecheol890102 (Pixabay)",
+    "license": "cc0",
+    "match_reason": "alias:코스피;scope=hero;rank=10;offset=0",
+    "matched_key": "topic:kospi",
+    "narrative_sha256": "4e4c1e1fc997b659ad1a90546db8b0570c9f742d6853357e0a9f554adbf8ffa3",
+    "selection_contract": "final-body-semantic-v1",
+    "semantic_offset": "0",
+    "semantic_rank": "10",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Yeouido_Han_River_Seoul_Bamseom_Pixabay_1602524.jpg",
+    "variant_contract": "narrative-key-digest-mod-v1",
+    "variant_count": "1",
+    "variant_index": "0"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    1600,
+    1063
+  ],
+  "generated_at": "2026-09-01T19:17:02.245962Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "Yeouido financial district skyline over the Han River, Seoul (CC0-era Pixabay photo; via Wikimedia Commons) (heecheol890102 (Pixabay)) — cc0",
+  "source_type": "external",
+  "version": "0.1.0"
+}
