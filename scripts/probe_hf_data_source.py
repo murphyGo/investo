@@ -22,6 +22,7 @@ from typing import Final
 
 API_BASE: Final = "https://api.hfdatalibrary.com/v1"
 API_HOST: Final = "api.hfdatalibrary.com"
+USER_AGENT: Final = "investo-sector-probe/1.0 (+https://github.com/murphyGo/investo)"
 REQUESTED_TICKERS: Final = (
     "SPY",
     "XLB",
@@ -75,7 +76,7 @@ def _request(
     api_key: str | None = None,
     limit: int,
 ) -> Response:
-    headers = {"Accept": "application/json"}
+    headers = {"Accept": "*/*", "User-Agent": USER_AGENT}
     if api_key is not None:
         headers["X-API-Key"] = api_key
     request = urllib.request.Request(url, headers=headers)
