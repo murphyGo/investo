@@ -527,6 +527,21 @@ Implementation order:
 | u146 trusted-curated-image-supply-workbench | More approved images are needed, but manifest-only filing cannot prove the reviewed source revision or decision | US-002, US-003, US-005, FR-002, FR-003, FR-008, NFR-002, NFR-003, NFR-006, NFR-007/R13, NFR-008 | u86 curated library, u137 no-auto-clear posture, CI gate, offline operator workflow |
 | u147 curated-image-semantic-variants | Fixed key priority and first-filed selection concentrate unrelated hero images and leave added variants unused | US-002, US-003, US-005, FR-002, FR-003, FR-008, FR-012, NFR-003, NFR-006, NFR-007/R13 | u141 final-body context, curated registry, provenance, archive replay audit |
 
+### u150 Terminal Markdown Link Containment Planning Notes
+
+Five of the ten scheduled daily runs ending on 2026-09-01 published only a valid subset and exited 2. The link family was the repeated presentation cause: run `33035060796` and run `33146560495` blocked crypto with `markdown.href_ellipsis`; run `33238048642` blocked domestic with `markdown.unmatched_link`; run `33344214754` again blocked crypto with `markdown.href_ellipsis`. Runs `32784998097` and `33035060796` also emitted only `document.fallback_exhausted`, which hides the residual presentation code. The 2026-08-31 run `33457514796` succeeded 3/3, proving the issue is intermittent rather than a permanent pipeline outage.
+
+Implementation order:
+1. Freeze bounded incident metadata and synthetic private fixtures for every scanner-owned link shape; never reconstruct or persist blocked market prose from logs.
+2. Add one canonical pure invalid-target transform beside u112 detection and prove valid-link byte stability plus idempotence.
+3. Amend u144's closed region-disposition table so repairable required-body links unwrap and unrecoverable required regions use canonical replacement text.
+4. Carry bounded residual issue codes beside `document.fallback_exhausted` without evidence, URL, Markdown, or secret leakage.
+5. Prove simultaneous non-presentation hard defects remain blocked, then run full and exact-date production gates; u149 Step 7b closed on 2026-09-02.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+| --- | --- | --- | --- |
+| u150 terminal-markdown-link-containment | Repeated generated link-target defects remove an otherwise usable segment, while generic fallback diagnostics hide the residual code | US-002, US-003, US-005, US-007, FR-002, FR-003, FR-008, FR-009, NFR-003, NFR-005, NFR-006, NFR-007/R13 | u100/u112 scanner and repair, u144 region policy/finalizer/survivor outcomes, u98/u110 watchpoint fallback, u149 hard-gate masking guard |
+
 Compatibility note: u63/u94 partial publication remains a product feature.
 u144 removes only presentation-driven segment loss; genuine generation/trust
 absence remains publishable as a typed valid subset, but daily Actions is red

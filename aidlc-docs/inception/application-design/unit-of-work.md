@@ -2299,6 +2299,49 @@ Plan: `aidlc-docs/construction/plans/u146-trusted-curated-image-supply-workbench
 
 Plan: `aidlc-docs/construction/plans/u147-curated-image-semantic-variants-code-generation-plan.md`.
 
+---
+
+### u150: `terminal-markdown-link-containment` - Contain Broken Link Targets Without Dropping a Market Segment
+
+**Purpose**: Close the production gap between u112's Markdown-link detection and u144's promise that presentation defects degrade inside an owned public region. A link target containing `...`/`…`, or a malformed link fragment, must never be published; when the visible label is recoverable, the finalizer keeps that label and removes only the target. When the fragment is not safely recoverable, the finalizer replaces the owned first-viewport, section-body, or watchpoint region with its canonical limitation text instead of removing the whole segment. Terminal truth, entity, compliance, disclaimer, required-structure, and notification-summary failures remain fail-closed.
+
+**Stories**: US-002, US-003, US-005, US-007, FR-002, FR-003, FR-008, FR-009, NFR-003, NFR-005, NFR-006, NFR-007/R13
+
+**Existing coverage / deduplication**:
+- u100/u112 retain sole ownership of `markdown.href_ellipsis` and `markdown.unmatched_link` detection. u150 adds no scanner family or Markdown parser.
+- u144 retains the generated-to-sealed lifecycle, `PublicDocumentLayout`, region ownership, one-disposition table, survivor fixed point, seal, and partial-publication semantics. u150 changes only the two link-code dispositions and their deterministic repair implementation.
+- u98/u110 retain watchpoint rendering and limitation copy. A link defect in `watchpoints` reuses `PUBLIC_WATCHPOINT_LIMITED_TEXT`; u150 does not synthesize another card.
+- u149 remains the only numeric-claim containment/minimal-fallback path. Link containment cannot make a numeric, entity, compliance, disclaimer, or required-structure finding eligible for degradation.
+- `document.fallback_exhausted` remains the generic terminal marker, but u150 also carries the bounded sorted residual surface codes so operators can identify the failed presentation contract without logging Markdown evidence.
+
+**Module path**:
+- `src/investo/_internal/surface_quality.py` - canonical target-specific link unwrap/drop transforms; existing detection remains unchanged.
+- `src/investo/publisher/_public_document_policy.py` - fixed link-code/owned-region disposition matrix.
+- `src/investo/publisher/public_document.py` - one owned-region action, residual-code propagation, and finalizer integration.
+- `tests/unit/internal/` and `tests/unit/publisher/` - scanner/repair, policy, finalizer, PBT, and incident fixtures.
+- `tests/unit/orchestrator/` and `tests/integration/` - three-segment outcome, exit, Telegram, and Pages sequencing regressions.
+
+**Binding contracts**:
+- Invalid targets are never guessed, completed, fetched, or logged. Inline links preserve visible labels, invalid image links preserve only escaped alt text, invalid autolinks disappear, invalid reference definitions disappear, and exact recoverable incomplete inline fragments preserve their labels.
+- `markdown.href_ellipsis` maps to `repair` for `first_viewport` and `section_body`, `replace_block` for `watchpoints`, the existing closed optional-block lookup for optional augmentations, and `block_segment` for header/navigation/diagnostics/disclaimer ownership.
+- Residual `markdown.unmatched_link` maps to `replace_block` for `first_viewport`, `section_body`, and `watchpoints`, the existing optional-block lookup for optional augmentations, and `block_segment` for header/navigation/diagnostics/disclaimer ownership.
+- One region receives one final recorded outcome. A repair cannot fall through to a second text search or mutate sealed bytes.
+- Residual failure reports contain `document.fallback_exhausted` plus the sorted unique surface issue codes only; raw evidence, source URLs, generated Markdown, and secrets remain absent.
+
+**Definition of Done**:
+- [ ] The 2026-08-26/27/28 incident shapes are fixture-backed: three `markdown.href_ellipsis`, one `markdown.unmatched_link`, and both generic `document.fallback_exhausted` outcomes are characterized without fabricating blocked public artifacts.
+- [ ] The target-specific transform handles inline, image, autolink, reference-definition, and incomplete-inline shapes deterministically and idempotently while leaving valid links and protected regions byte-identical.
+- [ ] A repairable link defect in first viewport or required section body seals the segment with the invalid target absent and visible text preserved.
+- [ ] An unrecoverable unmatched link replaces only its owned first-viewport, section-body, or watchpoint region with existing canonical limitation text; the required H2 shell and sibling regions survive.
+- [ ] Link-only presentation defects cannot produce `trust_blocked`; simultaneous numeric/entity/compliance/disclaimer/required-structure defects retain their pre-u150 block behavior.
+- [ ] Residual diagnostics include exact bounded codes beside `document.fallback_exhausted` and contain no evidence text or URLs.
+- [ ] Example tests and partial-mode PBT prove valid-link byte stability, invalid-target absence, idempotence, region-bound preservation, and scanner/repair closure with reproducible Hypothesis shrinking.
+- [ ] Full static, policy, pytest, strict MkDocs, and production replay gates pass; exact-date replays publish three segments and complete Telegram/Pages/live-URL verification.
+
+**Construction strategy**: Functional Design is required because this unit amends u144's fixed required-region disposition and public failure-containment semantics. NFR Requirements are skipped: the implementation reuses NFR-003/NFR-005/NFR-006 and R13, adds no dependency, source, secret, network call, cost, or runtime retry. The u149 Step 7b prerequisite completed on 2026-09-02, so u150 is ready to enter Functional Design without overlapping finalizer closeouts.
+
+Plan: `aidlc-docs/construction/plans/u150-terminal-markdown-link-containment-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

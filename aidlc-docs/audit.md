@@ -6432,3 +6432,19 @@ passed, scoped format check passed, `mypy src` passed.
 **Merge**: Two-parent commit `c19f6916245c0a0bf245a8ea00d8511b76c1b9fa` (`985b7e4` + `fe0f49e`) pushed to `refs/heads/main`; remote ref matched exactly.
 **Quality**: GitHub Actions run `31025763001` completed success in 4m07s on exact merge SHA `c19f691`. Ruff, format, mypy, full pytest, Anthropic/paid/curated/image-store guards, strict documentation build, and the new Material CSS + built-HTML contract all passed.
 **Status**: U143 construction, cross-check, main integration, and remote quality verification complete. Raw GitHub observation remains an operational first-post-u143-publish check and does not represent executable development.
+
+## Construction — u149 Step 7b production closeout approved
+**Timestamp**: 2026-09-01T18:19:21Z
+**Target**: `u149-numeric-claim-local-containment-and-minimal-fallback`, Code Generation Step 7b only.
+**Approval**: The user replied exactly `진행해줘` after the next-action proposal identified the 2026-08-03/04 exact-date production replays, Telegram delivery, chained Pages deployment, live archive checks, and rejected-value exclusion as the immediate work.
+**Execution boundary**: Dispatch the existing `daily-briefing.yml` on `main` serially for `target_date=2026-08-03` and `2026-08-04`; inspect the three typed finalization outcomes, bounded numeric-containment/source-health diagnostics, publish commit, Telegram HTTP result, pipeline exit, chained Pages run, and live domestic archive. No production-code or workflow change is authorized by this approval.
+**Repository isolation**: Documentation closeout is prepared in an isolated worktree based on current `origin/main`; the user's unrelated dirty root worktree remains untouched. Commit and push of documentation remain a separate explicit approval boundary.
+
+## Construction — u149 Step 7b production closeout complete
+**Timestamp**: 2026-09-01T19:23:50Z
+**2026-08-03 evidence**: Daily run `33543213131` completed success with pipeline rc 0. Domestic sealed as `finalized_degraded` with two `rewritten` numeric-containment witnesses (`^KOSPI`, `^KOSDAQ`); US and crypto sealed as `finalized`. Telegram returned HTTP 200. Bot commit `fafc7d1561d96764b8c5407724a71064c2568959` published the three documents and chained Pages run `33544427195` completed success.
+**2026-08-04 evidence**: Daily run `33547421276` completed success with pipeline rc 0. Domestic sealed as `finalized_degraded` with four `rewritten` witnesses (`^KOSPI` twice, `^KOSDAQ`, `005930.KS`); US and crypto sealed as `finalized`. Telegram returned HTTP 200. Bot commit `a05cd3131fa709ec1e010517304e394dbcee4210` published the three documents and chained Pages run `33548610376` completed success.
+**Live verification**: `https://murphygo.github.io/investo/archive/domestic-equity/2026/08/2026-08-03/` and `https://murphygo.github.io/investo/archive/domestic-equity/2026/08/2026-08-04/` returned HTTP 200. Committed Markdown and live HTML contained none of `150.00`, `344.00`, `483.00`, `7,500.00`, or `7500.00`; bounded data-limited wording replaced unsafe exact claims.
+**Source-health distinction**: Both runs logged `market_anchor domestic=0`. The first returned zero FSC index/Yonhap index rows; the second kept transient FSC failures and zero Yonhap index rows visible while the document independently sealed as degraded and the complete bundle exited 0.
+**Performance observation**: Pipeline steps took 11m46s and 11m33s, exceeding NFR-001's ten-minute target without affecting correctness or delivery. Registered separately as DEBT-090 rather than reopening u149's containment contract.
+**Status**: u148 paired production closeout and u149 Step 7b are complete. The prerequisite for u150 Functional Design is cleared. Documentation remains uncommitted pending explicit commit/push approval.
