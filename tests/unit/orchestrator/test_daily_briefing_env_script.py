@@ -142,6 +142,15 @@ def test_daily_briefing_workflow_calls_script() -> None:
     assert "python scripts/check_daily_briefing_env.py" in workflow
 
 
+def test_daily_briefing_workflow_wires_optional_official_source_keys() -> None:
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "BEA_API_KEY: ${{ secrets.BEA_API_KEY }}" in workflow
+    assert "CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}" in workflow
+
+
 def test_daily_briefing_workflow_installs_claude_cli() -> None:
     workflow = (_REPO_ROOT / ".github" / "workflows" / "daily-briefing.yml").read_text(
         encoding="utf-8"
