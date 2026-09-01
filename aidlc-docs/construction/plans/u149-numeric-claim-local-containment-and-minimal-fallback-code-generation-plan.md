@@ -200,7 +200,7 @@ The typed DTO stores `claim_digest` as exactly 64 lowercase hexadecimal SHA-256 
 - [x] Step 5 — Extract the no-LLM builder to `investo._internal.data_limited_segment`, keep compatibility owners explicit, and add the bundle-scoped `minimal_source_by_segment` / `attempted_minimal_segments` ledgers outside the fixed-point loop with stripped fallback context/artifacts.
 - [x] Step 6 — Add canonical shared `models.public_document_outcome.NumericContainmentOutcome`/literals and thread the exact tuple `PublicDocumentDraft -> FinalizedPublicDocument -> SegmentFinalizationOutcome`; add `finalized_degraded` to the same model, bundle/result/completeness/CLI/workflow summary, quality metrics, and notifier/Pages sequencing. Update exhaustive state tests and serialization compatibility.
 - [x] Step 7a — Run unit/composition/property/full local gates; update `docs/DESIGN.md`, component methods, u144 supersession notes, and code summary.
-- [ ] Step 7b — Complete exact-date production replays for 2026-08-03 and 2026-08-04, followed by Pages/live URL closeout. This remains a separate production closeout action and was not invoked by local construction.
+- [x] Step 7b — Complete exact-date production replays for 2026-08-03 and 2026-08-04, followed by Pages/live URL closeout. Completed 2026-09-02 with daily runs `33543213131` and `33547421276`, bot commits `fafc7d1` and `a05cd31`, chained Pages runs `33544427195` and `33548610376`, Telegram HTTP 200, pipeline exit 0, and both live domestic URLs returning HTTP 200 without the incident values.
 
 ## Acceptance Criteria
 
