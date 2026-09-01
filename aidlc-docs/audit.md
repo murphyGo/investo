@@ -6448,3 +6448,12 @@ passed, scoped format check passed, `mypy src` passed.
 **Source-health distinction**: Both runs logged `market_anchor domestic=0`. The first returned zero FSC index/Yonhap index rows; the second kept transient FSC failures and zero Yonhap index rows visible while the document independently sealed as degraded and the complete bundle exited 0.
 **Performance observation**: Pipeline steps took 11m46s and 11m33s, exceeding NFR-001's ten-minute target without affecting correctness or delivery. Registered separately as DEBT-090 rather than reopening u149's containment contract.
 **Status**: u148 paired production closeout and u149 Step 7b are complete. The prerequisite for u150 Functional Design is cleared. Documentation remains uncommitted pending explicit commit/push approval.
+
+## Construction — u41 Step 6 production-equivalent manual verification complete
+**Timestamp**: 2026-09-01T19:49:37Z
+**Target**: `u41-dart-disclosure-adapter`, Code Generation Step 6 only.
+**Constraint**: The local process and `.env` did not expose `OPENDART_API_KEY`; GitHub Actions holds the enrolled secret, but secret values cannot and were not read. The current `daily-briefing.yml` exposes `target_date` only and has no manual dry-run input.
+**Evidence substitution**: Accepted a later successful real publish as stronger end-to-end evidence than the originally requested no-side-effect rehearsal. This is recorded explicitly; no dry-run execution is claimed and no workflow/config change was introduced.
+**Run evidence**: Exact-date GitHub Actions run `33543213131` targeted `2026-08-03`. It logged `dart-disclosure` with `item_count=30`, then generated the domestic-equity segment from 43 candidates. The run built all three briefings, finalized domestic as `finalized_degraded` only for the independent numeric-anchor finding, published the bundle, notified Telegram, and completed successfully.
+**Reader evidence**: `archive/domestic-equity/2026/08/2026-08-03.md` contains DART receipt links and named disclosures for HLB제약, 상보, 서진시스템, 엠투엔, and 카카오. This closes collection → domestic routing/candidate stream → reader-visible final artifact.
+**Status**: Step 6 complete; u41 Code Generation complete 6/6. Next unit remains u150 Functional Design under a separate AIDLC invocation.
