@@ -25,5 +25,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install probe-only Parquet reader
+        run: >-
+          python -m pip install --disable-pip-version-check --no-cache-dir
+          --only-binary=:all: pyarrow==25.0.1
+
       - name: Run sanitized HF source-contract probe
         run: python scripts/probe_hf_data_source.py

@@ -153,13 +153,14 @@ def _token_url(
     api_key: str,
     *,
     auth_scheme: AuthScheme,
+    output_format: str,
 ) -> tuple[str, str]:
     response = _token_request(
         ticker,
         api_key,
         auth_scheme=auth_scheme,
         timeframe="daily",
-        output_format="csv",
+        output_format=output_format,
     )
     if response.status != 200:
         raise ProbeError(
@@ -198,6 +199,14 @@ def _parse_date(value: str) -> date:
         return datetime.fromisoformat(normalized).date()
     except ValueError:
         return date.fromisoformat(candidate[:10])
+
+
+def _coerce_date(value: object) -> date:
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return _parse_date(str(value))
 
 
 def _summarize_daily_csv(ticker: str, response: Response) -> dict[str, object]:
@@ -251,22 +260,75 @@ def _summarize_daily_csv(ticker: str, response: Response) -> dict[str, object]:
     }
 
 
+def _summarize_daily_parquet(ticker: str, response: Response) -> dict[str, object]:
+    try:
+        import pyarrow.parquet as parquet
+    except ImportError:
+        raise ProbeError("probe_dependency:pyarrow") from None
+
+    try:
+        parquet_file = parquet.ParquetFile(io.BytesIO(response.body))
+        fields = tuple(parquet_file.schema_arrow.names)
+    except Exception as exc:  # pyarrow exposes several format-specific exception types
+        raise ProbeError(f"daily_parquet:{ticker}:{type(exc).__name__}") from None
+
+    if not fields or len(fields) > 128:
+        raise ProbeError(f"daily_fields:{ticker}")
+    lower_fields = {field.strip().lower(): field for field in fields}
+    date_field = next(
+        (lower_fields[name] for name in ("date", "datetime", "timestamp") if name in lower_fields),
+        None,
+    )
+    required = {"open", "high", "low", "close", "volume"}
+    if date_field is None or not required.issubset(lower_fields):
+        raise ProbeError(f"daily_schema:{ticker}")
+
+    try:
+        selected = parquet_file.read(columns=[date_field, lower_fields["volume"]])
+        date_values = selected.column(date_field).to_pylist()
+        volume_values = selected.column(lower_fields["volume"]).to_pylist()
+        dates = [_coerce_date(value) for value in date_values]
+        zero_volume_rows = sum(float(value) == 0 for value in volume_values)
+    except (TypeError, ValueError) as exc:
+        raise ProbeError(f"daily_row:{ticker}:{type(exc).__name__}") from None
+
+    row_count = len(dates)
+    if row_count < MINIMUM_DAILY_ROWS:
+        raise ProbeError(f"daily_history:{ticker}:{row_count}")
+    return {
+        "ticker": ticker,
+        "status": response.status,
+        "content_type": response.content_type,
+        "size_bytes": len(response.body),
+        "columns": sorted(lower_fields),
+        "row_count": row_count,
+        "first_date": min(dates).isoformat(),
+        "latest_date": max(dates).isoformat(),
+        "zero_volume_rows": zero_volume_rows,
+    }
+
+
 def _probe_ticker(
     ticker: str,
     api_key: str,
     *,
     auth_scheme: AuthScheme,
+    output_format: str,
 ) -> dict[str, object]:
     started = time.monotonic()
     signed_url, expires_at = _token_url(
         ticker,
         api_key,
         auth_scheme=auth_scheme,
+        output_format=output_format,
     )
     response = _request(signed_url, limit=DAILY_RESPONSE_LIMIT)
     if response.status != 200:
         raise ProbeError(f"daily_status:{ticker}:{response.status}")
-    result = _summarize_daily_csv(ticker, response)
+    if output_format == "csv":
+        result = _summarize_daily_csv(ticker, response)
+    else:
+        result = _summarize_daily_parquet(ticker, response)
     result["duration_ms"] = round((time.monotonic() - started) * 1000)
     result["signed_url_expires_at_present"] = expires_at != "unknown"
     return result
@@ -304,38 +366,53 @@ def main() -> int:
                     "content_type": response.content_type,
                 }
 
-        selected_auth: AuthScheme | None = next(
+        selected_contract: tuple[AuthScheme, str] | None = next(
             (
-                auth_scheme
+                (auth_scheme, output_format)
                 for auth_scheme in auth_schemes
-                if token_matrix[f"{auth_scheme}:daily:csv"]["status"] == 200
+                for output_format in ("csv", "parquet")
+                if token_matrix[f"{auth_scheme}:daily:{output_format}"]["status"] == 200
             ),
             None,
         )
+        selected_auth = selected_contract[0] if selected_contract else None
+        selected_format = selected_contract[1] if selected_contract else None
         authenticated_xlre = _token_request(
             EXPECTED_MISSING,
             api_key,
             auth_scheme=selected_auth or "x_api_key",
             timeframe="daily",
-            output_format="csv",
+            output_format=selected_format or "parquet",
         )
 
         results: list[dict[str, object]] = []
         failures: list[str] = []
-        if selected_auth is None:
-            failures.append("no_working_daily_csv_token_contract")
+        if selected_auth is None or selected_format is None:
+            failures.append("no_working_daily_token_contract")
         else:
             for ticker in REQUESTED_TICKERS:
                 try:
-                    results.append(_probe_ticker(ticker, api_key, auth_scheme=selected_auth))
+                    results.append(
+                        _probe_ticker(
+                            ticker,
+                            api_key,
+                            auth_scheme=selected_auth,
+                            output_format=selected_format,
+                        )
+                    )
                 except ProbeError as exc:
                     failures.append(str(exc))
 
         comparable_latest_dates = sorted({item["latest_date"] for item in results})
         evidence = {
             "probe": "u145-hf-step0",
-            "endpoint_contract": "download-token_then_signed_daily_csv",
+            "endpoint_contract": (
+                f"download-token_then_signed_daily_{selected_format}"
+                if selected_format
+                else "unresolved"
+            ),
             "selected_auth_header": selected_auth,
+            "selected_format": selected_format,
             "token_contract_matrix": token_matrix,
             "version": "clean",
             "requested_count": len(REQUESTED_TICKERS),
