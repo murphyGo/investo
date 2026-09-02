@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-01 begin -->
+
+## 2026-09-01
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -8089 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,625,666,366,260; BTC dominance 59.12%
+- [coingecko-price] **ticker**: BTC $77,481.00 (-1.34%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $489,268,030 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000981472675333 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin and gold move in lockstep as debasement trade gains more steam
+- [theblock-crypto] **ticker**: Bitcoin defies oil price spike and rising Fed hike bets after best August since 2017
+- [theblock-crypto] **ticker**: Cango shares plunge 20% after bitcoin miner reports $81.6 million Q2 loss
+
+<!-- u33 entry 2026-09-01 end -->
 <!-- u33 entry 2026-08-31 begin -->
 
 ## 2026-08-31

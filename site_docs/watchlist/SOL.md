@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-01 begin -->
+
+## 2026-09-01
+
+- [coingecko-price] **ticker**: SOL $100.08 (-2.81%)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.5B; leader Ethereum
+- [theblock-crypto] **ticker**: DeFi Development Corp proposes $20 million preferred stock offering to buy more SOL
+- [yonhap-market] **ticker**: 신한운용, 'SOL 200타겟위클리커버드콜' ETF 분배금 지급
+
+<!-- u33 entry 2026-09-01 end -->
 <!-- u33 entry 2026-08-31 begin -->
 
 ## 2026-08-31
