@@ -10,12 +10,14 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import os
 import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Final, Literal
@@ -284,17 +286,74 @@ def _summarize_daily_parquet(ticker: str, response: Response) -> dict[str, objec
         raise ProbeError(f"daily_schema:{ticker}")
 
     try:
-        selected = parquet_file.read(columns=[date_field, lower_fields["volume"]])
+        selected_fields = [
+            date_field,
+            lower_fields["open"],
+            lower_fields["high"],
+            lower_fields["low"],
+            lower_fields["close"],
+            lower_fields["volume"],
+        ]
+        source_field = lower_fields.get("source")
+        if source_field is not None:
+            selected_fields.append(source_field)
+        selected = parquet_file.read(columns=selected_fields)
         date_values = selected.column(date_field).to_pylist()
+        open_values = selected.column(lower_fields["open"]).to_pylist()
+        high_values = selected.column(lower_fields["high"]).to_pylist()
+        low_values = selected.column(lower_fields["low"]).to_pylist()
+        close_values = selected.column(lower_fields["close"]).to_pylist()
         volume_values = selected.column(lower_fields["volume"]).to_pylist()
         dates = [_coerce_date(value) for value in date_values]
-        zero_volume_rows = sum(float(value) == 0 for value in volume_values)
+        volumes = [float(value) for value in volume_values]
     except (TypeError, ValueError) as exc:
         raise ProbeError(f"daily_row:{ticker}:{type(exc).__name__}") from None
 
     row_count = len(dates)
     if row_count < MINIMUM_DAILY_ROWS:
         raise ProbeError(f"daily_history:{ticker}:{row_count}")
+    if dates != sorted(dates) or len(dates) != len(set(dates)):
+        raise ProbeError(f"daily_order:{ticker}")
+
+    invalid_ohlc_rows = 0
+    for open_value, high_value, low_value, close_value in zip(
+        open_values,
+        high_values,
+        low_values,
+        close_values,
+        strict=True,
+    ):
+        try:
+            open_number, high_number, low_number, close_number = (
+                float(open_value),
+                float(high_value),
+                float(low_value),
+                float(close_value),
+            )
+        except (TypeError, ValueError):
+            invalid_ohlc_rows += 1
+            continue
+        if (
+            not all(
+                math.isfinite(value) and value > 0
+                for value in (open_number, high_number, low_number, close_number)
+            )
+            or low_number > open_number
+            or low_number > close_number
+            or high_number < open_number
+            or high_number < close_number
+        ):
+            invalid_ohlc_rows += 1
+    negative_volume_rows = sum(value < 0 for value in volumes)
+    if invalid_ohlc_rows or negative_volume_rows:
+        raise ProbeError(f"daily_values:{ticker}:{invalid_ohlc_rows}:{negative_volume_rows}")
+
+    source_counts: dict[str, int] = {}
+    latest_source = "unknown"
+    if source_field is not None:
+        source_values = [str(value) for value in selected.column(source_field).to_pylist()]
+        source_counts = dict(sorted(Counter(source_values).items()))
+        latest_source = source_values[-1]
     return {
         "ticker": ticker,
         "status": response.status,
@@ -304,7 +363,15 @@ def _summarize_daily_parquet(ticker: str, response: Response) -> dict[str, objec
         "row_count": row_count,
         "first_date": min(dates).isoformat(),
         "latest_date": max(dates).isoformat(),
-        "zero_volume_rows": zero_volume_rows,
+        "strictly_ascending_unique_dates": True,
+        "invalid_ohlc_rows": invalid_ohlc_rows,
+        "negative_volume_rows": negative_volume_rows,
+        "zero_volume_rows": sum(value == 0 for value in volumes),
+        "source_counts": source_counts,
+        "latest_source": latest_source,
+        "schema_types": {
+            field: str(parquet_file.schema_arrow.field(field).type) for field in fields
+        },
     }
 
 
