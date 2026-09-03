@@ -2315,16 +2315,16 @@ Plan: `aidlc-docs/construction/plans/u147-curated-image-semantic-variants-code-g
 - `document.fallback_exhausted` remains the generic terminal marker, but u150 also carries the bounded sorted residual surface codes so operators can identify the failed presentation contract without logging Markdown evidence.
 
 **Module path**:
-- `src/investo/_internal/surface_quality.py` - canonical target-specific link unwrap/drop transforms; existing detection remains unchanged.
+- `src/investo/_internal/surface_quality.py` - canonical target-specific link unwrap/drop transforms; existing issue codes and matcher ownership remain, while closed-link finding cardinality and bounded shape metadata are extended.
 - `src/investo/publisher/_public_document_policy.py` - fixed link-code/owned-region disposition matrix.
 - `src/investo/publisher/public_document.py` - one owned-region action, residual-code propagation, and finalizer integration.
 - `tests/unit/internal/` and `tests/unit/publisher/` - scanner/repair, policy, finalizer, PBT, and incident fixtures.
 - `tests/unit/orchestrator/` and `tests/integration/` - three-segment outcome, exit, Telegram, and Pages sequencing regressions.
 
 **Binding contracts**:
-- Invalid targets are never guessed, completed, fetched, or logged. Inline links preserve visible labels, invalid image links preserve only escaped alt text, invalid autolinks disappear, invalid reference definitions disappear, and exact recoverable incomplete inline fragments preserve their labels.
-- `markdown.href_ellipsis` maps to `repair` for `first_viewport` and `section_body`, `replace_block` for `watchpoints`, the existing closed optional-block lookup for optional augmentations, and `block_segment` for header/navigation/diagnostics/disclaimer ownership.
-- Residual `markdown.unmatched_link` maps to `replace_block` for `first_viewport`, `section_body`, and `watchpoints`, the existing optional-block lookup for optional augmentations, and `block_segment` for header/navigation/diagnostics/disclaimer ownership.
+- Invalid targets are never guessed, completed, fetched, or logged. Inline links preserve visible labels, invalid image links preserve only escaped alt text, invalid autolinks disappear, invalid reference definitions select the owning region's unrecoverable action with no line-level rewrite, and canonically complete recoverable incomplete-inline lines preserve their labels.
+- Recoverable `markdown.href_ellipsis` maps to `repair` for `first_viewport` and `section_body`, `replace_block` for `watchpoints`, the existing closed optional-block lookup for optional augmentations, and `block_segment` for header/navigation/anchor-table/diagnostics/disclaimer ownership. A `reference_definition` uses the corresponding unrecoverable matrix column before mutation.
+- Recoverable `markdown.unmatched_link` incomplete lines map to `repair` for `first_viewport` and `section_body`; residual lines map to `replace_block` there. Both shapes map to `replace_block` for `watchpoints`, the existing optional-block lookup for optional augmentations, and `block_segment` for header/navigation/anchor-table/diagnostics/disclaimer ownership.
 - One region receives one final recorded outcome. A repair cannot fall through to a second text search or mutate sealed bytes.
 - Residual failure reports contain `document.fallback_exhausted` plus the sorted unique surface issue codes only; raw evidence, source URLs, generated Markdown, and secrets remain absent.
 
@@ -2333,7 +2333,7 @@ Plan: `aidlc-docs/construction/plans/u147-curated-image-semantic-variants-code-g
 - [ ] The target-specific transform handles inline, image, autolink, reference-definition, and incomplete-inline shapes deterministically and idempotently while leaving valid links and protected regions byte-identical.
 - [ ] A repairable link defect in first viewport or required section body seals the segment with the invalid target absent and visible text preserved.
 - [ ] An unrecoverable unmatched link replaces only its owned first-viewport, section-body, or watchpoint region with existing canonical limitation text; the required H2 shell and sibling regions survive.
-- [ ] Link-only presentation defects cannot produce `trust_blocked`; simultaneous numeric/entity/compliance/disclaimer/required-structure defects retain their pre-u150 block behavior.
+- [ ] Eligible owned-region link-only presentation defects with an available approved action cannot produce `trust_blocked`; protected, unowned, unmapped, unavailable-fallback, or action-exhausted cases remain fail-closed, and simultaneous numeric/entity/compliance/disclaimer/required-structure defects retain their pre-u150 block behavior.
 - [ ] Residual diagnostics include exact bounded codes beside `document.fallback_exhausted` and contain no evidence text or URLs.
 - [ ] Example tests and partial-mode PBT prove valid-link byte stability, invalid-target absence, idempotence, region-bound preservation, and scanner/repair closure with reproducible Hypothesis shrinking.
 - [ ] Full static, policy, pytest, strict MkDocs, and production replay gates pass; exact-date replays publish three segments and complete Telegram/Pages/live-URL verification.
