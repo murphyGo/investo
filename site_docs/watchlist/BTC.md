@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-02 begin -->
+
+## 2026-09-02
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -8089 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,618,033,105,255; BTC dominance 59.07%
+- [coingecko-price] **ticker**: BTC $77,279.00 (-0.20%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $481,225,610 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000293311327847 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Adam Back invests another $8.8 million in Capital B as bitcoin treasury firm targets 3,521 BTC
+- [theblock-crypto] **ticker**: Bitcoin hovers near $77,000 as global bond selloff tests post-rally resilience
+- [theblock-crypto] **ticker**: Hyperscale Data shares hit all-time low as company flips Michigan site from bitcoin mining into AI
+- [theblock-crypto] **ticker**: Japan-listed Remixpoint sells all ETH, SOL, XRP and DOGE holdings in shift to bitcoin-only crypto strategy
+- [theblock-crypto] **ticker**: Strategy CEO says selling bitcoin at $60,000 before buying at $80,000 was the ‘right trade’
+
+<!-- u33 entry 2026-09-02 end -->
 <!-- u33 entry 2026-09-01 begin -->
 
 ## 2026-09-01

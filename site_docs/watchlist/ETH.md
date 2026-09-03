@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-02 begin -->
+
+## 2026-09-02
+
+- [coingecko-price] **ticker**: ETH $2,389.53 (-1.20%)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.1B; leader Ethereum
+- [theblock-crypto] **ticker**: Japan-listed Remixpoint sells all ETH, SOL, XRP and DOGE holdings in shift to bitcoin-only crypto strategy
+
+<!-- u33 entry 2026-09-02 end -->
 <!-- u33 entry 2026-09-01 begin -->
 
 ## 2026-09-01

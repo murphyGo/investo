@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-02 begin -->
+
+## 2026-09-02
+
+- [coingecko-price] **ticker**: SOL $100.31 (+0.32%)
+- [defillama-market-structure] **ticker**: DeFi TVL $85.1B; leader Ethereum
+- [theblock-crypto] **ticker**: Japan-listed Remixpoint sells all ETH, SOL, XRP and DOGE holdings in shift to bitcoin-only crypto strategy
+- [yonhap-market] **ticker**: 신한운용 "SOL 화장품TOP3플러스 1개월 수익률 전체 1위…47.3%"
+
+<!-- u33 entry 2026-09-02 end -->
 <!-- u33 entry 2026-09-01 begin -->
 
 ## 2026-09-01
