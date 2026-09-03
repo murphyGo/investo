@@ -6457,3 +6457,61 @@ passed, scoped format check passed, `mypy src` passed.
 **Run evidence**: Exact-date GitHub Actions run `33543213131` targeted `2026-08-03`. It logged `dart-disclosure` with `item_count=30`, then generated the domestic-equity segment from 43 candidates. The run built all three briefings, finalized domestic as `finalized_degraded` only for the independent numeric-anchor finding, published the bundle, notified Telegram, and completed successfully.
 **Reader evidence**: `archive/domestic-equity/2026/08/2026-08-03.md` contains DART receipt links and named disclosures for HLB제약, 상보, 서진시스템, 엠투엔, and 카카오. This closes collection → domestic routing/candidate stream → reader-visible final artifact.
 **Status**: Step 6 complete; u41 Code Generation complete 6/6. Next unit remains u150 Functional Design under a separate AIDLC invocation.
+
+## Construction — u150 Functional Design stage entry
+**Timestamp**: 2026-09-01T20:05:08Z
+**Approval**: The user replied exactly `진행시켜` after the previous handoff identified u41 documentation commit/push and u150 Functional Design as the next ordered work.
+**Health check**: TECH-DEBT has Critical 0, High 0, Medium 0, and Low 34; no escalation blocks this stage. u41 has no dedicated cross-check report yet, recorded as a non-blocking follow-up because the explicit next target is u150 design.
+**Context loaded**: u150 unit/story mapping; FR-002/003/008/009; NFR-003/005/006/007-R13; execution plan; architecture/component/service contracts; u112 scanner summary and implementation; u144 R8-R12, region entities, finalizer loop, policy table, and code summary; u149 boundary; current u150 Code Generation plan.
+**Decision boundary**: Functional Design is required because the unit amends u144's fixed required-region link dispositions and presentation-containment outcome. NFR Requirements remains skipped because no dependency, source, secret, network, cost, retry, timeout, or new public diagnostic surface is introduced.
+**Artifact**: Created `aidlc-docs/construction/plans/u150-terminal-markdown-link-containment-functional-design-plan.md` with five bounded questions. The reference-style definition/use relationship is called out explicitly because the current Code Generation table removes the invalid definition but does not define how unresolved uses are contained.
+**Status**: Functional Design plan entry complete; answers are required before generating business logic, business rules, or domain entity artifacts. Code Generation remains blocked.
+
+## Construction — u150 Functional Design Step 3 answers validated
+**Timestamp**: 2026-09-02T09:32:42Z
+**Approval**: After the five recommended answers were shown concisely, the user replied exactly `진행시켜`; this records the recommended set `A / B / A / A / A` as the approved answers.
+**Validation**: All five answers are well-formed, unambiguous, mutually consistent, and inside u150's approved no-parser/no-lookup/no-target-disclosure boundary. Presentation containment still precedes unchanged terminal hard gates, and residual diagnostics remain R13-bounded.
+**Contract amendment**: Q2 supersedes the draft empty-line rewrite for `[reference-id]: invalid-target`. The canonical scanner path identifies this already-matched closed shape as unrecoverable before mutation, and the policy selects the owning region's single safe disposition. Required reader regions use existing limitation replacement, optional augmentation keeps its closed lookup, protected regions block, and cross-region definition/use resolution is forbidden. There is no repair-then-replace sequence or second scanner family.
+**Status**: Functional Design plan Step 3 complete (3/7). The Code Generation fixed contracts now match the approved answers; Step 4 business logic model is next.
+
+## Construction — u150 Functional Design Step 4 business logic model complete
+**Timestamp**: 2026-09-02T15:50:06Z
+**Approval and continuity**: The user replied exactly `진행시켜` after the approved `A / B / A / A / A` answer summary. The resumed target was u150 Functional Design Step 4 of 7; prior requirements, application/unit design, u112 scanner behavior, u144 R8-R12 lifecycle/region contracts, u149 numeric boundary, current code paths, and both u150 plans were reloaded.
+**Health check**: TECH-DEBT remains Critical 0, High 0, Medium 0, and Low 34. The previously noted missing dedicated u41 cross-check remains a non-blocking follow-up and does not supersede the explicitly approved u150 queue position.
+**Artifact**: Created `aidlc-docs/construction/u150-terminal-markdown-link-containment/functional-design/business-logic-model.md`. It fixes a pre-mutation canonical scan/shape snapshot, one immutable strongest action per owned region, exact link-shape outcomes, the reference-definition override, read-only residual and hard-gate collection, bounded diagnostics, survivor behavior, and determinism properties.
+**Exhaustiveness refinement**: The model makes explicit that `anchor_table` has no approved u150 replacement body and therefore stays fail-closed, consistent with the no-new-fallback-copy boundary. The Functional Design and Code Generation plans were synchronized without changing the approved answers.
+**Status**: Functional Design Step 4 complete (4/7). Step 5 business rules is next; Code Generation remains design-gated.
+
+## Construction — u150 Functional Design Step 5 business rules complete
+**Timestamp**: 2026-09-02T17:32:05Z
+**Approval and continuity**: The user replied exactly `진행시켜` after Step 4 completed. The resumed target was u150 Functional Design Step 5 of 7; the approved answers, business logic model, u112 scanner behavior, u144 R8-R13 rules, u149 numeric boundary, current policy/finalizer flow, and u150 Code Generation acceptance criteria were reloaded.
+**Health check**: TECH-DEBT remains Critical 0, High 0, Medium 0, and Low 34. No debt escalation changes the explicit u150 queue position.
+**Artifact**: Created `aidlc-docs/construction/u150-terminal-markdown-link-containment/functional-design/business-rules.md` with 17 binding rules. The artifact closes six link shapes, all 16 `PublicBlockKind` rows, existing fallback ownership, one-action precedence, protected/unowned behavior, simultaneous hard-gate collection, residual R13 diagnostics, determinism/PBT, bundle status, and exact-date production qualification.
+**Key interpretation**: A recoverable `incomplete_inline` form is classified before mutation and may receive the region's one `repair`; `unmatched_residual` is selected before mutation and receives direct replacement where eligible. An unexpected residue after repair fails with bounded codes and never falls through to a second replacement.
+**Status**: Functional Design Step 5 complete (5/7). Step 6 domain entities is next; Code Generation remains design-gated.
+
+## Construction — u150 Functional Design Step 6 domain entities complete
+
+**Timestamp**: 2026-09-02T17:38:33Z
+**Approval and continuity**: The user replied exactly `진행시켜` after Step 5 completed. The resumed target was u150 Functional Design Step 6 of 7; the approved answers, business logic model, business rules, current u112 scanner types, u144 region/outcome/finalizer entities, u149 numeric state boundary, and u150 Code Generation contracts were reloaded.
+**Health check**: TECH-DEBT remains Critical 0, High 0, Medium 0, and Low 34. No debt escalation changes the explicit u150 queue position.
+**Artifact**: Created `aidlc-docs/construction/u150-terminal-markdown-link-containment/functional-design/domain-entities.md`. The design adds only the internal closed `SurfaceLinkShape`, amends `SurfaceQualityIssue` with a backward-compatible optional shape, keeps the region decision and public outcome redacted, and adds a bounded residual-actionable link-code subset to the read-only terminal snapshot. Closed invalid-target matches emit one finding per occurrence; an unmatched line is recoverable only when every unmatched construct is canonically covered and a read-only trial closes the predicate, preventing a mixed line from hiding an unrecoverable fragment.
+**Compatibility**: No public/persisted schema or new segment state is introduced. Successful link containment remains `finalized`; `finalized_degraded` remains exclusive to u149 numeric containment. Shape-aware disposition semantics move to the private full-finding resolver because the redacted `(issue_codes, block)` decision cannot reconstruct reference-definition versus incomplete/residual behavior.
+**Next**: Step 7 cross-validates all three Functional Design artifacts against u112/u144/u149, the updated u150 Code Generation plan, partial-PBT scope, and strict Markdown, then presents the complete design for explicit approval before Code Generation.
+
+## Construction — u150 Functional Design Step 7 validation complete; review required
+
+**Timestamp**: 2026-09-03T01:27:22Z
+**Approval and continuity**: The user replied exactly `진행시켜` after Step 6 completed. The resumed target was the final Functional Design Step 7 of 7. The common AIDLC rules, Functional Design rule, three u150 artifacts, unit/story/requirements mappings, u112 scanner summary and live implementation, u144 R8-R13/entity/finalizer contracts, u149 Functional Design/code summary, current Code Generation plan, and enabled extension state were reloaded.
+**Health and extensions**: TECH-DEBT remains Critical 0, High 0, Medium 0, and Low 34, so no escalation blocks review. Property-Based Testing remains Partial and applies to the pure transform properties; Security Baseline remains declined while NFR-007/R13 remains binding.
+**Review corrections**: Removed stale “single reference override” wording and made the link policy exhaustively shape-aware for both codes; synchronized per-occurrence closed-link and whole-line unmatched cardinality; corrected invalid reference definitions from line disappearance to direct owned-region action; restored `anchor_table` to every protected/fail-closed list; and scoped the no-`trust_blocked` promise to eligible owned regions with an available approved action.
+**Compatibility proof**: All 16 u144 block kinds and four link-shape policy columns are closed. u149 retains exclusive ownership of domestic numeric containment and `finalized_degraded`; link containment adds no persisted/public entity or segment state. Partial publication, seal, notification, Pages, Telegram, and exit semantics remain unchanged.
+**Status**: The Functional Design plan is 7/7 and all three artifacts are validated with no unresolved blocking contradiction. Per the Functional Design rule, the stage remains review-required and Code Generation remains gated until the user explicitly chooses Continue rather than Request Changes.
+
+## Construction — u150 Functional Design approved; Code Generation gate opened
+
+**Timestamp**: 2026-09-03T01:56:36Z
+**Approval**: Immediately after the required Functional Design review presented the validated artifacts and Continue/Request Changes boundary, the user replied exactly `커밋 푸시`. This approves persisting and delivering the exact reviewed Functional Design; it does not authorize execution of Code Generation Step 1 in the same invocation.
+**Approved contract**: The approved answers remain `A / B / A / A / A`. The business logic model, 17 binding business rules, domain entities, exhaustive 16-row shape-aware policy matrix, protected `anchor_table`, per-occurrence closed-link findings, whole-line unmatched classification, and u149 ownership boundary are unchanged from the validated review set.
+**Stage transition**: Functional Design is Complete (7/7), NFR Requirements remains SKIP, and Code Generation Step 0 is complete. Step 1 bounded incident characterization is the next executable step.
+**Delivery scope**: Commit and push only the u150 Functional Design/state/plan documentation on the isolated branch. Do not merge `main`, execute implementation, or alter unrelated root-worktree changes.
