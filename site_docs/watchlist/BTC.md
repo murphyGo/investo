@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-03 begin -->
+
+## 2026-09-03
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -8089 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,736,319,103,964; BTC dominance 59.37%
+- [coingecko-price] **ticker**: BTC $81,237.00 (+5.16%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $518,422,280 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $518,425,460 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000410868633392 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin-gold correlation hits six-year high, but analysts question whether equity decoupling will last
+- [theblock-crypto] **ticker**: Crypto market cap surges to $2.82 trillion as Zcash leads rally alongside stocks
+- [theblock-crypto] **ticker**: Strive CEO says company could end 2026 as second-largest public bitcoin holder as ASST climbs
+- [yonhap-market] **ticker**: "연 13% 비트코인 리워드 제공" 빗썸 '플러스 클럽' 개시
+
+<!-- u33 entry 2026-09-03 end -->
 <!-- u33 entry 2026-09-02 begin -->
 
 ## 2026-09-02
