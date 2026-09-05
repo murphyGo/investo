@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-04 begin -->
+
+## 2026-09-04
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7620 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,696,728,085,869; BTC dominance 59.13%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $489,069,700 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000339783649656 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: El Salvador has not used public funds to accumulate bitcoin since June 2025, IMF says
+- [theblock-crypto] **ticker**: US bitcoin ETFs report the largest inflow day since January, worth $731 million
+- [yonhap-market] **ticker**: [특징주] 비트코인 8만 달러 돌파에 관련주 강세(종합)
+- [yonhap-market] **ticker**: [특징주] 비트코인 8만 달러 돌파에 관련주 장 초반 급등
+
+<!-- u33 entry 2026-09-04 end -->
 <!-- u33 entry 2026-09-03 begin -->
 
 ## 2026-09-03

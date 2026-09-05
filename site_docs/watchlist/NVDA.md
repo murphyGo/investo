@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-04 begin -->
+
+## 2026-09-04
+
+- [yfinance-price] **ticker**: NVDA 230.36 (+0.84%)
+- [yonhap-market] **ticker**: "엔비디아, 개방형 AI 개발사 싱킹머신랩에 3.4조원 투자 논의"
+- [yonhap-market] **ticker**: 엔비디아, 'RTX 스파크' 탑재 PC 10월 출시
+
+<!-- u33 entry 2026-09-04 end -->
 <!-- u33 entry 2026-09-03 begin -->
 
 ## 2026-09-03

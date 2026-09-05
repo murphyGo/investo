@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="국내 증시 시장 스냅샷">
+<style>.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">국내 증시 시장 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-09-04 · 데이터 failed</text>
+<text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피(KOSPI, 한국 유가증권시장 종합지수)는 4일 미국 국채 금리 안정에 따른 간밤 뉴욕증시 강세</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">흐름을 이어받아 외국인·기관 매수세가 유입되며 1.6% 상승한 6,687.21로 마감했고,</text>
+<text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피, 미 국채 금리 안정에 외국인·기관 매수 복귀 — 코스피는 4일 미국 국채 금리 안정에 따른</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">뉴욕증시 강세를 이어받아 외국인과 기관의 매수세가 유입되며 1.6% 상승, 6,680대로 올라선 채</text>
+<text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 연합뉴스 · 코스피200 변동성지수(VKOSPI) 40선 아래 마감 — VKOSPI가 40선</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">아래를 유지하면 변동성 진정 국면 관찰, 40선을 다시 상회하면 변동성 확대 경계로 해석. 관심 영향:</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>
