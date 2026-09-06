@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-09-04 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 9월 4일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은 -3.81% 하락한</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$2.70T를 기록했다. 이번 문서는 수집 근거가 제한적입니다.</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">2026년 9월 4일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은 $2.71T로 전 구간 대비</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">-1.96% 하락했고 BTC 도미넌스는 59.19%를 유지했다. 이번 문서는 수집 근거가 제한적입니다.</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC, 현물 ETF 자금 유입에도 파생시장은 방어적 포지셔닝 — 어제(2026-09-03)</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC(비트코인)가 +5.16% 반등하며 $81,000대를 회복한 뒤, 오늘 UTC 24h 스냅샷에서는</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미국 비트코인 ETF, 1월 이후 최대 순유입 — The Block 보도에 따르면 미국 비트코인 ETF는</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">1월 이후 최대 규모인 $731 million 순유입을 기록했다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · CME BTC 선물 레버리지드머니 순포지션이 현재</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">-7,620계약(-38.7%)에서 플러스로 전환되면 숏커버링에 따른 상방 압력을 관찰하고, 순숏 규모가</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT 보고서 · BTC·ETH CME 선물 레버리지드머니 순포지션이 현재 숏</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">우위(BTC -7,620계약, ETH -5,325계약)에서 롱 우위로 전환되면 파생 포지션 개선으로</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
