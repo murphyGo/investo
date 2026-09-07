@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "baseline_sha": "d5530353758b6475cf0852c69ea9b9b3cfd99e0b",
+  "source_dates": [
+    "2026-09-04"
+  ],
+  "note": "Three verbatim archived callout values plus synthetic boundary examples. Expected values describe the u153 target contract; pending identifies known failures before the production fix. Synthetic URLs are never fetched.",
+  "cases": [
+    {
+      "id": "domestic-conclusion-fragment",
+      "segment": "domestic-equity",
+      "surface": "conclusion",
+      "source": "archive/domestic-equity/2026/09/2026-09-04.md:16",
+      "input": "코스피(KOSPI, 한국 유가증권시장 종합지수)는 4일 미국 국채 금리 안정에 따른 간밤 뉴욕증시 강세 흐름을 이어받아 외국인·기관 매수세가 본문 참고.",
+      "expected": "확인된 요약이 부족합니다.",
+      "pending": null
+    },
+    {
+      "id": "domestic-driver-fragment",
+      "segment": "domestic-equity",
+      "surface": "driver",
+      "source": "archive/domestic-equity/2026/09/2026-09-04.md:17",
+      "input": "코스피, 미 국채 금리 안정에 외국인·기관 매수 복귀 — 코스피는 4일 미국 국채 금리 안정에 따른 뉴욕증시 강세를 이어받아 외국인과 기관의 본문 참고.",
+      "expected": "핵심 동인은 추가 확인이 필요합니다.",
+      "pending": null
+    },
+    {
+      "id": "crypto-incomplete-quality-note",
+      "segment": "crypto",
+      "surface": "conclusion",
+      "source": "archive/crypto/2026/09/2026-09-04.md:15",
+      "input": "2026년 9월 4일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은 **-3.81%** 하락한 **$2.70T**를 기록했다. 이번 문서는 본문 참고.",
+      "expected": "2026년 9월 4일 UTC 24h 스냅샷 기준, 가상자산 전체 시가총액은 **-3.81%** 하락한 **$2.70T**를 기록했다. 본문 참고.",
+      "pending": null
+    },
+    {
+      "id": "short-complete-sentence",
+      "segment": "domestic-equity",
+      "surface": "conclusion",
+      "source": "synthetic",
+      "input": "코스피는 **1.20%** 상승했다.",
+      "expected": "코스피는 **1.20%** 상승했다.",
+      "pending": null
+    },
+    {
+      "id": "short-driver-heading",
+      "segment": "us-equity",
+      "surface": "driver",
+      "source": "synthetic",
+      "input": "외국인 매수와 금리 안정",
+      "expected": "외국인 매수와 금리 안정",
+      "pending": null
+    },
+    {
+      "id": "valid-complete-continuation",
+      "segment": "us-equity",
+      "surface": "conclusion",
+      "source": "synthetic",
+      "input": "금리 흐름을 확인했다. 본문 참고.",
+      "expected": "금리 흐름을 확인했다. 본문 참고.",
+      "pending": null
+    },
+    {
+      "id": "short-bold-decimal",
+      "segment": "us-equity",
+      "surface": "tldr_bullet",
+      "source": "synthetic",
+      "input": "지수는 **7,499.36**으로 마감했다.",
+      "expected": "지수는 **7,499.36**으로 마감했다.",
+      "pending": null
+    },
+    {
+      "id": "short-valid-link",
+      "segment": "crypto",
+      "surface": "tldr_plain",
+      "source": "synthetic",
+      "input": "[지표](https://example.invalid/a)는 **1.25%** 올랐다.",
+      "expected": "[지표](https://example.invalid/a)는 **1.25%** 올랐다.",
+      "pending": null
+    },
+    {
+      "id": "long-complete-conclusion",
+      "segment": "us-equity",
+      "surface": "conclusion",
+      "source": "synthetic",
+      "input": "금리 흐름을 확인했다. 이후 금리 변화와 수급 방향을 함께 살피며 새로 발표되는 지표와 기업 실적 및 환율 흐름을 비교하고 시장 참가자의 관망세가 이어지는 이유를 살폈다.",
+      "expected": "금리 흐름을 확인했다. 본문 참고.",
+      "pending": null
+    },
+    {
+      "id": "long-bold-decimal-bullet",
+      "segment": "crypto",
+      "surface": "tldr_bullet",
+      "source": "synthetic",
+      "input": "지수는 **7,499.36**으로 마감했다. 이후 금리 변화와 수급 방향을 함께 살피며 새로 발표되는 지표와 기업 실적 및 환율 흐름을 비교하고 시장 참가자의 관망세가 이어지는 이유를 살폈다.",
+      "expected": "지수는 **7,499.36**으로 마감했다. 본문 참고.",
+      "pending": null
+    },
+    {
+      "id": "long-valid-link-driver",
+      "segment": "us-equity",
+      "surface": "driver",
+      "source": "synthetic",
+      "input": "[지표](https://example.invalid/a)는 **1.25%** 올랐다. 이후 금리 변화와 수급 방향을 함께 살피며 새로 발표되는 지표와 기업 실적 및 환율 흐름을 비교하고 시장 참가자의 관망세가 이어지는 이유를 살폈다.",
+      "expected": "[지표](https://example.invalid/a)는 **1.25%** 올랐다. 본문 참고.",
+      "pending": null
+    },
+    {
+      "id": "long-unbulleted-tldr",
+      "segment": "crypto",
+      "surface": "tldr_plain",
+      "source": "synthetic",
+      "input": "시장 흐름이 엇갈렸다. 이후 금리 변화와 수급 방향을 함께 살피며 새로 발표되는 지표와 기업 실적 및 환율 흐름을 비교하고 시장 참가자의 관망세가 이어지는 이유를 살폈다.",
+      "expected": "시장 흐름이 엇갈렸다. 본문 참고.",
+      "pending": null
+    },
+    {
+      "id": "no-sentence-boundary",
+      "segment": "domestic-equity",
+      "surface": "conclusion",
+      "source": "synthetic",
+      "input": "금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며 금리 변화와 외국인 수급을 살피며",
+      "expected": "확인된 요약이 부족합니다.",
+      "pending": null
+    },
+    {
+      "id": "overlong-first-sentence",
+      "segment": "crypto",
+      "surface": "tldr_bullet",
+      "source": "synthetic",
+      "input": "새로 발표되는 지표와 수급 방향을 함께 살피며 새로 발표되는 지표와 수급 방향을 함께 살피며 새로 발표되는 지표와 수급 방향을 함께 살피며 새로 발표되는 지표와 수급 방향을 함께 살피며 새로 발표되는 지표와 수급 방향을 함께 살피며 새로 발표되는 지표와 수급 방향을 함께 살피며 시장 변화를 확인했다.",
+      "expected": "요약은 본문을 참고하세요.",
+      "pending": null
+    }
+  ]
+}

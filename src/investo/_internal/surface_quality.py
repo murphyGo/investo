@@ -6,7 +6,9 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+from investo._internal.briefing_extract import WATERMARK_PREFIX
 from investo._internal.public_quality_language import first_forbidden_public_evidence
+from investo._internal.text import bound_at_sentence
 
 SurfaceIssueSeverity = Literal["warn", "block"]
 SurfaceIssueRegion = Literal[
@@ -98,6 +100,12 @@ _BODY_BOUNDED_LINE_RE = re.compile(
 )
 _CAUTION_LINE_RE = re.compile(r"^>\s*\*\*주의할 점\*\*\s*:\s*(?P<body>.+)$")
 _BOUNDED_LINE_ELLIPSIS_RE = re.compile(r"(?:\.{3}|…)$")
+_SUMMARY_LIST_RE = re.compile(r"^(?:[-*+]|\d+[.)])[^\S\n]+(.*)$")
+_SUMMARY_REFERENCE_RE = re.compile(r"^\[[^\]\n]+\]:\s*\S")
+_SUMMARY_FENCE_RE = re.compile(r"^(`{3,}|~{3,})(.*)$")
+_SUMMARY_CONTINUATION_CALLOUT_RE = re.compile(
+    r"^>[^\S\n]*\*\*(?:오늘의 결론|핵심 동인)\*\*[^\S\n]*:[^\S\n]*(.*)$"
+)
 _REPEATED_PHRASES = (
     "본문을 참고하세요",
     "데이터가 제한적입니다",
@@ -151,6 +159,58 @@ class _SurfaceLinkMatch:
     replacement: str | None
 
 
+@dataclass(slots=True)
+class _SummaryContinuationScope:
+    """Select u153-owned values during the existing scanner's line traversal.
+
+    This state only gates the new continuation rule; legacy issue checks and
+    their protected-region behavior remain unchanged.
+    """
+
+    before_h2: bool = True
+    in_tldr: bool = False
+    fence: str = ""
+    details_depth: int = 0
+
+    def value(self, line: str) -> str | None:
+        stripped = line.strip()
+        if line.startswith(("    ", "\t")) and not self.details_depth:
+            return None
+        if self.fence:
+            if stripped and set(stripped) == {self.fence[0]} and len(stripped) >= len(self.fence):
+                self.fence = ""
+            return None
+        if self.details_depth or "<details" in stripped:
+            self.details_depth = max(
+                0, self.details_depth + stripped.count("<details") - stripped.count("</details>")
+            )
+            return None
+        fence = _SUMMARY_FENCE_RE.match(stripped)
+        if fence is not None and not (fence.group(1).startswith("`") and "`" in fence.group(2)):
+            self.fence = fence.group(1)
+            return None
+        if re.match(r"^##(?:\s|$)", stripped):
+            self.in_tldr = self.before_h2 and stripped == "## 한눈에 보기"
+            self.before_h2 = False
+            return None
+        if _is_protected_line(line, in_code=False, in_details=False):
+            return None
+        if self.before_h2 or self.in_tldr:
+            callout = _SUMMARY_CONTINUATION_CALLOUT_RE.fullmatch(stripped)
+            if callout is not None:
+                return callout.group(1).strip()
+        if not self.in_tldr:
+            return None
+        item = _SUMMARY_LIST_RE.match(stripped)
+        if item is not None:
+            return item.group(1).strip()
+        if stripped.startswith(("#", "|", ">", "<", "!", WATERMARK_PREFIX, "**세그먼트**:")):
+            return None
+        if _SUMMARY_REFERENCE_RE.match(stripped):
+            return None
+        return stripped
+
+
 def extract_first_viewport(text: str) -> str:
     """Return text from document start through the first section-① anchor."""
 
@@ -173,7 +233,7 @@ def repair_surface_artifacts(text: str) -> str:
     fence_state: tuple[str, int] | None = None
     in_details = False
     for raw_line in lines:
-        line = raw_line.rstrip("\n")
+        line, newline = _split_line_ending(raw_line)
         fence_marker = _fence_marker(line)
         protected = (
             fence_state is not None
@@ -190,7 +250,10 @@ def repair_surface_artifacts(text: str) -> str:
         if "</details>" in line:
             in_details = False
 
-        if protected:
+        if protected or not line.strip():
+            # Preserve existing separators. Only a nonempty artifact line
+            # emptied by repair may disappear; otherwise a later navigation
+            # insertion loses its blank line on repeated finalization.
             out.append(raw_line)
             offset += len(raw_line)
             continue
@@ -220,7 +283,6 @@ def repair_surface_artifacts(text: str) -> str:
                 continue
             if repaired.endswith(" ..."):
                 repaired = repaired[:-4].rstrip()
-        newline = "\n" if raw_line.endswith("\n") else ""
         out.append(repaired + newline)
         offset += len(raw_line)
     return "".join(out)
@@ -280,11 +342,30 @@ def find_surface_quality_issues(text: str) -> tuple[SurfaceQualityIssue, ...]:
 
     issues: list[SurfaceQualityIssue] = []
     first = extract_first_viewport(text)
-    issues.extend(_scan_lines(first, region="segment_first_viewport"))
-    issues.extend(_repeated_phrase_warnings(first))
+    summary_scope = _SummaryContinuationScope()
     body = text[len(first) :]
+    # Keep the legacy 1,600-character split for all old rules, but inspect a
+    # crossing summary line once in full so its continuation cannot disappear.
+    split_line = bool(first and body and not first.endswith(("\n", "\r")))
+    continuation_tail = body.splitlines()[0] if split_line else ""
+    issues.extend(
+        _scan_lines(
+            first,
+            region="segment_first_viewport",
+            summary_scope=summary_scope,
+            continuation_tail=continuation_tail,
+        )
+    )
+    issues.extend(_repeated_phrase_warnings(first))
     if body:
-        issues.extend(_scan_lines(body, region="segment_body"))
+        issues.extend(
+            _scan_lines(
+                body,
+                region="segment_body",
+                summary_scope=summary_scope,
+                skip_first_continuation=split_line,
+            )
+        )
     return tuple(issues)
 
 
@@ -301,7 +382,14 @@ def has_blocking_surface_issue(text: str) -> bool:
     return any(issue.severity == "block" for issue in find_surface_quality_issues(text))
 
 
-def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQualityIssue]:
+def _scan_lines(
+    text: str,
+    *,
+    region: SurfaceIssueRegion,
+    summary_scope: _SummaryContinuationScope,
+    continuation_tail: str = "",
+    skip_first_continuation: bool = False,
+) -> list[SurfaceQualityIssue]:
     issues: list[SurfaceQualityIssue] = []
     fence_state: tuple[str, int] | None = None
     in_details = False
@@ -312,6 +400,17 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
         zip(raw_lines, masked_raw_lines, strict=True)
     ):
         line, _ = _split_line_ending(raw_line)
+        summary_line = (
+            line + continuation_tail if line_index == len(raw_lines) - 1 else line
+        ).rstrip()
+        summary_value = (
+            None
+            if line_index == 0 and skip_first_continuation
+            else summary_scope.value(summary_line)
+        )
+        summary_truncated = summary_value is not None and looks_truncated_caution_continuation(
+            summary_value, require_complete=True
+        )
         inline_scan_line, _ = _split_line_ending(masked_raw_line)
         fence_marker = _fence_marker(line)
         protected_by_fence = fence_state is not None or fence_marker is not None
@@ -339,6 +438,17 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
                         line,
                         region="protected",
                         masked_line=inline_scan_line,
+                    )
+                )
+            # u153 ownership is independent of the legacy protected-region
+            # flags; retain explicit continuation residue alongside link findings.
+            if summary_truncated:
+                issues.append(
+                    SurfaceQualityIssue(
+                        "summary.truncated_mid_token",
+                        "block",
+                        summary_line,
+                        "segment_first_viewport",
                     )
                 )
             continue
@@ -390,17 +500,26 @@ def _scan_lines(text: str, *, region: SurfaceIssueRegion) -> list[SurfaceQuality
             looks_truncated_mid_token(link_scan_line)
             or _BOUNDED_LINE_ELLIPSIS_RE.search(scan_line.strip()) is not None
         )
-        if not link_issues and (
-            (region == "segment_first_viewport" and looks_truncated_mid_token(link_scan_line))
-            or caution_truncated
-            or bounded_line_truncated
+        if summary_truncated or (
+            not link_issues
+            and (
+                (region == "segment_first_viewport" and looks_truncated_mid_token(link_scan_line))
+                or caution_truncated
+                or bounded_line_truncated
+            )
         ):
             issues.append(
                 SurfaceQualityIssue(
                     "summary.truncated_mid_token",
                     "block",
-                    line,
-                    "segment_body" if body_bounded_line else region,
+                    summary_line if summary_truncated else line,
+                    # E3 filters summary-only findings outside its indexed
+                    # viewport. The artificial split is not body ownership.
+                    "segment_body"
+                    if body_bounded_line
+                    else "segment_first_viewport"
+                    if summary_truncated
+                    else region,
                 )
             )
         matcher_reason = _WATCHLIST_MATCHER_REASON_RE.search(scan_line)
@@ -898,8 +1017,12 @@ def looks_truncated_mid_token(line: str) -> bool:
     )
 
 
-def looks_truncated_caution_continuation(line: str) -> bool:
-    """Return whether ``본문 참고.`` follows an incomplete caution clause."""
+def looks_truncated_caution_continuation(line: str, *, require_complete: bool = False) -> bool:
+    """Check continuation residue, preserving the legacy caution default.
+
+    u153 summary callers opt into the same complete, decimal-safe boundary
+    contract as their formatter, without introducing a grammar validator.
+    """
 
     stripped = line.strip()
     match = _CAUTION_LINE_RE.match(stripped)
@@ -908,6 +1031,12 @@ def looks_truncated_caution_continuation(line: str) -> bool:
     if not body.endswith(continuation):
         return False
     retained = body[: -len(continuation)].rstrip()
+    if require_complete:
+        return (
+            not retained
+            or retained.endswith((continuation, "...", "…"))
+            or bound_at_sentence(retained, len(retained), require_complete=True) != retained
+        )
     return bool(retained) and not retained.endswith((".", "!", "?", "。"))
 
 

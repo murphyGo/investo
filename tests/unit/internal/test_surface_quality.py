@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import pytest
+from hypothesis import given, seed, settings
+from hypothesis import strategies as st
 
 from investo._internal.surface_quality import (
     SurfaceQualityIssue,
@@ -41,6 +43,169 @@ def test_surface_quality_issue_rejects_an_incompatible_link_shape_u150() -> None
             "body",
             "autolink",
         )
+
+
+_U153_RESIDUES = (
+    "매수세가 본문 참고.",
+    "기관의 본문 참고.",
+    "이번 문서는 본문 참고.",
+    "반등하며 본문 참고.",
+    "상승...본문 참고.",
+    "상승… 본문 참고.",
+    "본문 참고.",
+    "상승했습니다. 본문 참고. 본문 참고.",
+    "지수는 3.14. 본문 참고.",
+)
+
+
+@pytest.mark.parametrize("value", _U153_RESIDUES)
+@pytest.mark.parametrize(
+    "prefix", ["> **오늘의 결론**: ", "> **핵심 동인**: ", "## 한눈에 보기\n- ", "## 한눈에 보기\n"]
+)
+def test_u153_scanner_rejects_owned_continuation(value: str, prefix: str) -> None:
+    line = f"{prefix}{value}"
+    issues = _issues_with_code(f"# 제목\n{line}\n## ① 요약\n본문", "summary.truncated_mid_token")
+    assert len(issues) == 1
+    assert issues[0].severity == "block"
+    assert issues[0].evidence == line.splitlines()[-1]
+    assert looks_truncated_caution_continuation(value, require_complete=True)
+
+
+@pytest.mark.parametrize(
+    "prefix", [">**오늘의 결론**:", "> **오늘의 결론** :", ">\t**핵심 동인**\t:"]
+)
+def test_u153_scanner_owns_existing_callout_whitespace_variants(prefix: str) -> None:
+    text = f"{prefix} 기관의 본문 참고.\n## ① 요약\n본문"
+    assert len(_issues_with_code(text, "summary.truncated_mid_token")) == 1
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "금리와 실적",
+        "입법 가속화 vs. 정치적 마찰",
+        "지수는 3.14% 상승했습니다. 본문 참고.",
+        "**지수**는 상승했습니다. 본문 참고.",
+        "[지수](https://example.com/a) 상승입니다. 본문 참고.",
+        "추가 확인 필요! 본문 참고.",
+        "확인 필요? 본문 참고.",
+        "상승했습니다。 본문 참고.",
+        "확인된 요약이 부족합니다.",
+        "핵심 동인은 추가 확인이 필요합니다.",
+        "요약은 본문을 참고하세요.",
+    ],
+)
+def test_u153_scanner_accepts_short_headings_and_complete_continuations(value: str) -> None:
+    text = f"> **오늘의 결론**: {value}\n## 한눈에 보기\n{value}\n## ① 요약\n본문"
+    assert not _issues_with_code(text, "summary.truncated_mid_token")
+    assert not looks_truncated_caution_continuation(value, require_complete=True)
+
+
+@pytest.mark.parametrize(
+    "region",
+    [
+        "기관의 본문 참고.",  # unowned preamble prose
+        "## 거시\n기관의 본문 참고.",
+        "## 한눈에 보기\n## 거시\n기관의 본문 참고.",
+        "## 한눈에 보기\n##\t거시\n기관의 본문 참고.",
+        "## 한눈에 보기\n##\u00a0거시\n기관의 본문 참고.",
+        "## 한눈에 보기\n##\n기관의 본문 참고.",
+        "## 한눈에 보기\n## 한눈에 보기\n기관의 본문 참고.",
+        "## 거시\n## 한눈에 보기\n기관의 본문 참고.",
+        "## 한눈에 보기\n| 기관의 본문 참고.",
+        "## 한눈에 보기\n[ref]: https://example.com 기관의 본문 참고.",
+        "## 한눈에 보기\n> **소스 카운트**: 기관의 본문 참고.",
+        "## 한눈에 보기\n**세그먼트**: 기관의 본문 참고.",
+        "## 한눈에 보기\n투자 자문이 아닙니다 기관의 본문 참고.",
+        "## 한눈에 보기\n수집/품질 진단: 기관의 본문 참고.",
+        "## 한눈에 보기\n    기관의 본문 참고.",
+        "## 한눈에 보기\n\t기관의 본문 참고.",
+        "## 한눈에 보기\n```text\n기관의 본문 참고.\n```",
+        "## 한눈에 보기\n~~~text\n기관의 본문 참고.\n~~~",
+        "## 한눈에 보기\n<details>\n기관의 본문 참고.\n</details>",
+        "## 한눈에 보기\n<details>\n<details>\n</details>\n기관의 본문 참고.\n</details>",
+    ],
+)
+def test_u153_scanner_does_not_expand_to_unowned_regions(region: str) -> None:
+    text = f"# 제목\n{region}\n## ① 요약\n기관의 본문 참고.\n> **오늘의 결론**: 기관의 본문 참고."
+    assert not _issues_with_code(text, "summary.truncated_mid_token")
+
+
+@pytest.mark.parametrize(
+    "protected",
+    [
+        "    ## 가짜 제목\n",
+        "~~~text\n## 가짜 제목\n~~~\n",
+        "````text\n```\n## 가짜 제목\n````\n",
+        "<details>\n<details>\n</details>\n## 가짜 제목\n    </details>\n",
+        "```text`oops\n",
+        "~~~text\n```\n~~~\n",
+    ],
+)
+def test_u153_owned_prose_resumes_after_protected_content(protected: str) -> None:
+    text = f"## 한눈에 보기\n{protected}기관의 본문 참고.\n## ① 요약\n본문"
+    issues = _issues_with_code(text, "summary.truncated_mid_token")
+    assert len(issues) == 1
+    assert issues[0].evidence == "기관의 본문 참고."
+
+
+@pytest.mark.parametrize("length", [1575, 1585, 1590, 1599, 1600, 1700, 3200])
+@pytest.mark.parametrize("ending", ["", "\n## ① 요약\n본문"])
+def test_u153_scanner_keeps_full_cross_window_summary_evidence(length: int, ending: str) -> None:
+    line = "> **오늘의 결론**: " + "가" * length + " 기관의 본문 참고."
+    issues = _issues_with_code(line + ending, "summary.truncated_mid_token")
+    assert len(issues) == 1
+    assert issues[0].evidence == line
+    assert issues[0].region == "segment_first_viewport"
+
+
+def test_u153_no_anchor_split_preserves_owned_and_unowned_boundaries() -> None:
+    # The artificial split must not re-read a partial line as a new callout.
+    text = "일반 본문 " + "가" * 1594 + "> **오늘의 결론**: 기관의 본문 참고."
+    assert not _issues_with_code(text, "summary.truncated_mid_token")
+
+
+@pytest.mark.parametrize("length", [100, 1600, 2400])
+def test_u153_summary_finding_never_impersonates_bounded_body_rule(length: int) -> None:
+    text = "일반 본문 " + "가" * length + "\n> **오늘의 결론**: 기관의 본문 참고."
+    issues = _issues_with_code(text, "summary.truncated_mid_token")
+    assert len(issues) == 1
+    assert issues[0].region == "segment_first_viewport"
+
+
+def test_u153_tldr_without_section_one_and_original_link_findings() -> None:
+    text = "## 한눈에 보기\n- [링크](https://example.com/...) 기관의 본문 참고.\n## 거시\n본문"
+    codes = {issue.code for issue in find_surface_quality_issues(text)}
+    assert {"summary.truncated_mid_token", "markdown.href_ellipsis"} <= codes
+
+
+@pytest.mark.parametrize("value", _U153_RESIDUES)
+def test_u153_caution_default_remains_legacy(value: str) -> None:
+    retained = value.removesuffix("본문 참고.").rstrip()
+    expected = bool(retained) and not retained.endswith((".", "!", "?", "。"))
+    assert looks_truncated_caution_continuation(value) is expected
+
+
+@seed(15320260907)
+@settings(max_examples=80, print_blob=True)
+@given(
+    number=st.decimals(
+        min_value="0.01", max_value="999.99", places=2, allow_nan=False, allow_infinity=False
+    ),
+    fragment=st.sampled_from(("매수세가", "기관의", "이번 문서는", "반등하며")),
+    marker=st.sampled_from(("- ", "* ", "+ ", "1. ", "1) ", "")),
+)
+def test_u153_scanner_complete_sentence_and_fragment_property(
+    number: object, fragment: str, marker: str
+) -> None:
+    sentence = f"지수는 {number}% 상승했습니다."
+    safe = f"{sentence} 본문 참고."
+    unsafe = f"{sentence} {fragment} 본문 참고."
+    for value, rejected in ((safe, False), (unsafe, True)):
+        text = f"## 한눈에 보기\n{marker}{value}\n## ① 요약\n{unsafe}"
+        issues = _issues_with_code(text, "summary.truncated_mid_token")
+        assert bool(issues) is rejected
+        assert find_surface_quality_issues(text) == find_surface_quality_issues(text)
 
 
 def test_repair_bad_token_and_dangling_ellipsis() -> None:
@@ -117,6 +282,29 @@ def test_repairs_first_viewport_trace_assignment_lines() -> None:
     assert "stage2_hash" not in repaired
     assert "> **오늘의 결론**: 금리 민감도가 커졌습니다." in repaired
     assert not has_blocking_surface_issue(repaired)
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_u153_integration_preserves_separators_but_removes_trace_lines(newline: str) -> None:
+    clean = newline.join(
+        [
+            "# 제목",
+            "",
+            "**세그먼트**: 국내 증시",
+            " ",
+            "> **오늘의 결론**: 흐름을 확인했다.",
+            "",
+            "## ① 요약",
+        ]
+    )
+    contaminated = clean.replace(
+        "**세그먼트**: 국내 증시", "stage2_hash=redacted" + newline + "**세그먼트**: 국내 증시"
+    )
+
+    assert repair_surface_artifacts(clean) == clean
+    assert repair_surface_artifacts(contaminated) == clean
+    assert repair_surface_artifacts(repair_surface_artifacts(contaminated)) == clean
+    assert not has_blocking_surface_issue(clean)
 
 
 def test_escaped_trace_assignment_cannot_bypass_surface_gate_u150() -> None:

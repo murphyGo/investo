@@ -19,16 +19,21 @@ MEANINGFUL_TEXT: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9가-힣]")
 _SENTENCE_TERMINATOR_RE: Final[re.Pattern[str]] = re.compile(r"(?<=[^\d\s])[.!?。](?=\s|$)")
 
 
-def bound_at_sentence(text: str, max_chars: int) -> str | None:
+def bound_at_sentence(text: str, max_chars: int, *, require_complete: bool = False) -> str | None:
     """Bound ``text`` at its last complete sentence within ``max_chars``.
 
-    Text that already fits is returned byte-for-byte.  Overflowing text is
+    By default, text that already fits is returned byte-for-byte. Overflowing text is
     cut only after the last sentence terminator whose end is within the cap;
     callers receive ``None`` when no complete sentence fits and must use their
     surface-specific deterministic fallback.
+
+    u153 (FR-009): ``require_complete=True`` also scans fitting text, omitting
+    any unfinished tail or returning ``None`` when no boundary exists. This
+    uses the existing syntactic terminators, not grammar or Markdown validation;
+    callers remain responsible for checking candidate safety.
     """
 
-    if len(text) <= max_chars:
+    if not require_complete and len(text) <= max_chars:
         return text
     last_end: int | None = None
     for match in _SENTENCE_TERMINATOR_RE.finditer(text):

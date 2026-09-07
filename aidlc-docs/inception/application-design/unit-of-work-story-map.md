@@ -560,6 +560,35 @@ Deduplicated out:
 
 ---
 
+### u151–u154 September 2026 Generated Briefing Review Notes
+
+The ten published September 1–4 documents at fetched main `d553035` repeat
+four bounded defects: weekly positioning promoted to shared oil evidence,
+conditional numbers accepted as current watchpoints, incomplete summary
+continuations, and duplicate/unordered preamble structure. This wave extends
+named existing owners; it introduces no source adapter, generic quality KPI,
+watchlist matcher, chart redesign or historical backfill.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|------|--------------|------------------|-----------------|
+| u151 shared-macro-positioning-kind-boundary | CFTC WTI contract positions become shared price/driver evidence | US-002, US-003, US-005; FR-002, FR-008, FR-013, FR-015; NFR-003/005/006/007-R13 | u57/u60 matcher, u74 cause-map, u107 delayed positioning, u124 thesis; DEBT-076 typed keys |
+| u152 watchpoint-current-observation-contract | A future threshold or copied paragraph passes as current observation | US-002, US-003; FR-002, FR-009, FR-012; NFR-003/004/005/006/007-R13 | u98/u110 cards, u131 title bound, u135 payload/fallback, u144 typed outcomes |
+| u153 summary-sentence-boundary-extension | Conclusion/driver/TL;DR end in broken clauses before continuation copy | US-002, US-003, US-004; FR-002, FR-004, FR-009; NFR-003/005/006 | u61/u127 summary safety, u71 snippet bound, u131 sentence helper, u134 composition, u144 sealed summary |
+| u154 canonical-preamble-block-assembly | Duplicate H1 and hero-before-summary survive the final composition | US-002, US-003, US-004; FR-002, FR-003, FR-004, FR-008, FR-009, FR-018; NFR-003/004/005/006/007-R13 | u51/u61/u71 blocks, u141 supplements, u144 structure, u150 containment, u153 bounded text |
+
+Implementation order:
+1. u153 Code Generation is complete, 6/6 (2026-09-07): all final Markdown/notification ACs pass, including post-cleanup DTO expansion and safety-before-bounding; Step 6 exact full gate 4,787 passed, independent review Pass. Cross-check APPROVE (2026-09-07), 6/6 ACs and fresh expanded gate 2,734 passed; no new gap/debt. Report: `docs/cross-checks/2026-09-07-u153-summary-sentence-boundary-extension.md`. Main integration complete (2026-09-08), combined full gate 4,950 passed and focused gate 709 passed; production verification remains pending. Integration record: `docs/sessions/2026-09-08-u153-main-integration.md`.
+2. u151/u152 can enter Functional Design independently; no source qualification is required.
+3. u154 Functional Design can run now; u150/u153 integration prerequisites are cleared (2026-09-08), but FD approval and implementation are not started.
+4. Keep DEBT-076 open until u151 implementation tests pass. Keep source-health,
+   historical/current KPI questions and unintegrated work distinct from this backlog.
+
+Review source and dedupe map:
+`aidlc-docs/construction/plans/briefing-review-20260906.md`.
+The exact per-unit plan paths are recorded in each unit's state row.
+No subagent review was requested; local review covered contracts, dependencies,
+negative fixtures and final generated-byte assertions.
+
 ## Definition of Done — Inception Phase Output
 
 이 매핑이 다음 단계(Construction)의 입력입니다:
