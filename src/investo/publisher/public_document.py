@@ -19,7 +19,12 @@ from types import MappingProxyType
 from typing import Final, Literal, Self, TypeVar
 from unicodedata import name as unicode_name
 
-from investo._internal.briefing_extract import extract_conclusion, extract_watchlist_impact
+from investo._internal.briefing_extract import (
+    CONCLUSION_PREFIX,
+    FALLBACK_BY_PREFIX,
+    extract_conclusion,
+    extract_watchlist_impact,
+)
 from investo._internal.daily_thesis_decision import (
     redecide_daily_thesis_for_active_segments,
 )
@@ -100,7 +105,13 @@ from investo.publisher.numeric_containment import (
     apply_numeric_containment_plan,
     plan_numeric_containment,
 )
-from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
+from investo.publisher.reader_format import (
+    SNIPPET_MAX_CHARS,
+    bound_first_viewport_summary_lines,
+    bound_summary_snippet,
+    emit_first_viewport_disclaimer,
+    project_public_markdown,
+)
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 from investo.publisher.verifier import (
     verify_disclaimer,
@@ -349,6 +360,9 @@ def _assemble_phase_one_presentation_briefing(
     markdown = emit_first_viewport_disclaimer(markdown, segment)
     markdown = ensure_canonical_disclaimer(markdown, segment)
     markdown = repair_first_viewport_summary(markdown)
+    # u153 / FR-009: bound repair output before evidence accounting/reindex,
+    # without rerunning layout transforms or changing caution's old policy.
+    markdown = bound_first_viewport_summary_lines(markdown, final_assembly=True)
     markdown = markdown.replace(_DIAGNOSTICS_OPEN_EXPANDED, _DIAGNOSTICS_OPEN)
     return (
         briefing
@@ -2658,6 +2672,12 @@ def _derive_public_notification_summary(
         or first_forbidden_public_evidence(conclusion) is not None
     ):
         raise PublicNotificationSummaryError("summary.invalid_conclusion")
+
+    # u153 / FR-004: Markdown cleanup can expose a public label whose canonical
+    # projection grows beyond the already-bounded Markdown value. Bound this
+    # derived text only after its original safety checks; never rewrite layout.
+    if len(conclusion) > SNIPPET_MAX_CHARS:
+        conclusion = bound_summary_snippet(conclusion) or FALLBACK_BY_PREFIX[CONCLUSION_PREFIX]
 
     watchlist: str | None = None
     raw_watchlist = extract_watchlist_impact(draft.layout.markdown)

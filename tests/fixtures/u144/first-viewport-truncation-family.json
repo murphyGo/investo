@@ -7,7 +7,7 @@
       "case_id": "unbalanced-strong-delimiter",
       "markdown_before_reflow": "> **오늘의 결론**: 공개 지표의 방향과 변동성을 함께 확인합니다.\n",
       "markdown_after_reflow": "> **오늘의 결론**: 공개 지표 수준은 **예시 본문 참고.\n",
-      "current_reflow_output": "> **오늘의 결론**: 공개 지표 수준은 본문 참고.\n",
+      "current_reflow_output": "> **오늘의 결론**: 확인된 요약이 부족합니다.\n",
       "expected_issue_codes": [
         "summary.truncated_mid_token"
       ]
@@ -25,7 +25,7 @@
       "case_id": "literal-ellipsis",
       "markdown_before_reflow": "> **오늘의 결론**: 공개 지표가 바뀌는지 다음 갱신을 확인합니다.\n",
       "markdown_after_reflow": "> **오늘의 결론**: 공개 지표가 바뀌는지…\n",
-      "current_reflow_output": "> **오늘의 결론**: 공개 지표가 바뀌는지 본문 참고.\n",
+      "current_reflow_output": "> **오늘의 결론**: 확인된 요약이 부족합니다.\n",
       "expected_issue_codes": [
         "summary.truncated_mid_token"
       ]

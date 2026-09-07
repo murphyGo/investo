@@ -18,7 +18,11 @@ from investo._internal.briefing_extract import (
     SUMMARY_PREFIXES,
     WATERMARK_PREFIX,
 )
-from investo._internal.surface_quality import has_blocking_surface_issue
+from investo._internal.surface_quality import (
+    find_surface_quality_issues,
+    has_blocking_surface_issue,
+    looks_truncated_caution_continuation,
+)
 from investo._internal.text import MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE
 
 _SUMMARY_PREFIXES: Final[tuple[str, ...]] = SUMMARY_PREFIXES
@@ -50,9 +54,9 @@ class SummaryQualityError(ValueError):
     """Raised when a briefing first-viewport summary is unsafe to publish."""
 
 
-def is_unsafe_summary_value(value: str) -> bool:
-    """Return True when a first-viewport summary value must not be emitted."""
-    return _summary_value_issue(value) is not None
+def is_unsafe_summary_value(value: str, *, check_continuation: bool = True) -> bool:
+    """Return whether a summary value is unsafe; caution retains its legacy opt-out."""
+    return _summary_value_issue(value, check_continuation=check_continuation) is not None
 
 
 def validate_first_viewport_summary(markdown: str) -> None:
@@ -97,7 +101,7 @@ def _summary_value(lines: list[str], prefix: str) -> str | None:
 
 
 def _validate_summary_value(prefix: str, value: str) -> None:
-    issue = _summary_value_issue(value)
+    issue = _summary_value_issue(value, check_continuation=prefix != CAUTION_PREFIX)
     if issue is not None:
         message_by_issue = {
             "empty": "empty first-viewport summary line",
@@ -115,7 +119,7 @@ def _validate_summary_value(prefix: str, value: str) -> None:
         raise SummaryQualityError(f"{message_by_issue[issue]}: {prefix}")
 
 
-def _summary_value_issue(value: str) -> str | None:
+def _summary_value_issue(value: str, *, check_continuation: bool = True) -> str | None:
     if not value:
         return "empty"
     if _LIST_MARKER_ONLY_RE.fullmatch(value) or _NUMBER_DOT_ONLY_RE.fullmatch(value):
@@ -138,7 +142,9 @@ def _summary_value_issue(value: str) -> str | None:
         and _DANGLING_LONG_TAIL_RE.search(value)
     ):
         return "dangling-truncation"
-    if has_blocking_surface_issue(value):
+    if (
+        check_continuation and looks_truncated_caution_continuation(value, require_complete=True)
+    ) or has_blocking_surface_issue(value):
         return "surface-quality"
     if _EN_CONJUNCTION_TAIL_RE.search(value) or _KO_PARTICLE_TAIL_RE.search(value):
         return "conjunction-tail"
@@ -146,6 +152,20 @@ def _summary_value_issue(value: str) -> str | None:
 
 
 def _repair_summary_value(prefix: str, value: str) -> str:
+    if prefix != CAUTION_PREFIX and looks_truncated_caution_continuation(
+        value, require_complete=True
+    ):
+        if any(
+            issue.severity == "block" and issue.code != "summary.truncated_mid_token"
+            for context in (value, f"{prefix} {value}")
+            for issue in find_surface_quality_issues(f"{context}\n## ①")
+        ):
+            # Preserve simultaneous link/non-presentation findings for their
+            # existing owner, including values resembling protected tables.
+            return value
+        # Generic Markdown cleanup strips terminal periods. Do not let it
+        # disguise the same incomplete clause by removing the suffix's dot.
+        return _FALLBACK_BY_PREFIX[prefix]
     cleaned = _MARKDOWN_LINK_RE.sub(r"\1", value)
     cleaned = _URL_RE.sub("", cleaned)
     cleaned = re.sub(r"^(?:>\s*)?#{1,6}\s+", "", cleaned).strip()

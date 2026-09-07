@@ -37,12 +37,12 @@ class SummaryHeader:
     caution: str
 
 
-def _is_unsafe_summary_candidate(candidate: str) -> bool:
+def _is_unsafe_summary_candidate(candidate: str, *, check_continuation: bool = True) -> bool:
     """Reject candidate strings that would later trip the publish gate."""
-    return is_unsafe_summary_value(candidate)
+    return is_unsafe_summary_value(candidate, check_continuation=check_continuation)
 
 
-def _summary_sentence(text: str, *, fallback: str) -> str:
+def _summary_sentence(text: str, *, fallback: str, check_continuation: bool = True) -> str:
     """Extract the first publish-safe sentence from a section body.
 
     Iterates sentence-shaped chunks (terminator-anchored) and returns
@@ -65,7 +65,7 @@ def _summary_sentence(text: str, *, fallback: str) -> str:
 
     # Per-sentence scan first: pick the first complete, safe sentence.
     for candidate in sentences:
-        if not _is_unsafe_summary_candidate(candidate):
+        if not _is_unsafe_summary_candidate(candidate, check_continuation=check_continuation):
             return candidate[:_SUMMARY_SENTENCE_MAX_CHARS].strip()
 
     # No complete sentence survived. Try each cleaned line as a
@@ -73,13 +73,13 @@ def _summary_sentence(text: str, *, fallback: str) -> str:
     # phrases without a terminator can still be valid summaries.
     for line in cleaned_lines:
         candidate = line[:_SUMMARY_LINE_MAX_CHARS].strip()
-        if not _is_unsafe_summary_candidate(candidate):
+        if not _is_unsafe_summary_candidate(candidate, check_continuation=check_continuation):
             return candidate
 
     # Last resort: the truncated normalized blob. If even that is
     # unsafe, hand back the explicit data-limited fallback string.
     candidate = normalized[:_SUMMARY_LINE_MAX_CHARS].strip()
-    if not _is_unsafe_summary_candidate(candidate):
+    if not _is_unsafe_summary_candidate(candidate, check_continuation=check_continuation):
         return candidate
     return fallback
 
@@ -135,7 +135,13 @@ def _build_summary_header(
             section_text=sections[0],
         ),
         driver=_driver_summary(sections[1], fallback="핵심 동인은 추가 확인이 필요합니다."),
-        caution=_summary_sentence(sections[5], fallback="관전 포인트는 데이터 회복 후 보강합니다."),
+        caution=_summary_sentence(
+            sections[5],
+            fallback="관전 포인트는 데이터 회복 후 보강합니다.",
+            # u153 / AC-153.6: only non-caution summary surfaces opt into
+            # the stricter continuation contract; preserve u131 extraction.
+            check_continuation=False,
+        ),
     )
 
 

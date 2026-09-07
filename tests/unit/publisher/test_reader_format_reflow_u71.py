@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 
 from investo._internal.public_quality_language import project_public_quality_language
-from investo._internal.surface_quality import find_surface_quality_issues
+from investo._internal.surface_quality import SurfaceQualityIssue, find_surface_quality_issues
 from investo.briefing.segments import US_EQUITY
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.quality_consistency import parse_segment_status_block
@@ -220,7 +220,7 @@ def test_long_tldr_bullet_bounded_before_surface_gate() -> None:
     out = reflow_first_viewport(text, segment="us-equity")
     first_viewport = out[: out.index("## ①")]
 
-    assert "본문 참고." in first_viewport
+    assert "- 요약은 본문을 참고하세요." in first_viewport
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
 
@@ -235,7 +235,7 @@ def test_long_summary_callout_bounded_before_surface_gate() -> None:
     out = reflow_first_viewport(_header(summary=summary), segment="us-equity")
     first_viewport = out[: out.index("## ①")]
 
-    assert "본문 참고." in first_viewport
+    assert "> **오늘의 결론**: 확인된 요약이 부족합니다." in first_viewport
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
 
@@ -248,7 +248,7 @@ def test_short_ellipsis_summary_completed_before_surface_gate() -> None:
     out = reflow_first_viewport(_header(summary=summary), segment="us-equity")
     first_viewport = out[: out.index("## ①")]
 
-    assert "충돌 본문 참고." in first_viewport
+    assert "> **핵심 동인**: 핵심 동인은 추가 확인이 필요합니다." in first_viewport
     assert "충돌..." not in first_viewport
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
@@ -263,18 +263,20 @@ def test_unbalanced_parenthetical_summary_is_bounded_before_surface_gate() -> No
     first_viewport = out[: out.index("## ①")]
 
     assert "마감했다(연합뉴스 본문 참고." not in first_viewport
-    assert "본문 참고." in first_viewport
+    assert "> **오늘의 결론**: 확인된 요약이 부족합니다." in first_viewport
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
 
 def test_cut_backtracks_before_unclosed_numeric_emphasis() -> None:
-    value = "금리 민감도 확인 후 " + "**-39.4%**(-2,079계약) 변화를 점검합니다 " * 3
+    first = "**-39.4%**(-2,079계약) 변화를 확인했다."
+    value = first + " **후속 문장을 확인했다. " + "아직 닫히지 않은 강조 " * 8
 
     bounded = bound_summary_snippet(value)
 
     assert bounded
     assert len(bounded) <= SNIPPET_MAX_CHARS
     assert "**-39.4%**(-2,079계약)" in bounded
+    assert bounded == f"{first} 본문 참고."
     assert (
         _surface_issues(
             f"# title\n\n> **오늘의 결론**: {bounded}\n\n## ① 요약",
@@ -289,15 +291,8 @@ def test_short_unclosed_bold_number_is_bounded_before_surface_gate() -> None:
 
     bounded = bound_summary_snippet(value)
 
-    assert bounded
-    assert "**56" not in bounded
-    assert (
-        _surface_issues(
-            f"# title\n\n> **오늘의 결론**: {bounded}\n\n## ① 요약",
-            "summary.truncated_mid_token",
-        )
-        == []
-    )
+    # No complete safe sentence exists; the caller must choose its fallback.
+    assert bounded == ""
 
 
 def test_wrapped_plain_summary_residue_is_repaired_before_surface_gate() -> None:
@@ -311,21 +306,21 @@ def test_wrapped_plain_summary_residue_is_repaired_before_surface_gate() -> None
     first_viewport = out[: out.index("## ①")]
 
     assert residue not in first_viewport
-    assert "본문 참고." in first_viewport
+    assert "요약은 본문을 참고하세요." in first_viewport
     assert _summary_truncation_issues_without_fixture_watermark(first_viewport) == []
 
 
 def test_numeric_separator_inside_number_is_not_a_cut_boundary() -> None:
     bounded = bound_summary_snippet("가격 " + "64,612.00" * 12, max_chars=18)
 
-    assert bounded == "가격 본문 참고."
+    assert bounded == ""
 
 
-def _surface_issues(text: str, code: str) -> list[object]:
+def _surface_issues(text: str, code: str) -> list[SurfaceQualityIssue]:
     return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
 
 
-def _summary_truncation_issues_without_fixture_watermark(text: str) -> list[object]:
+def _summary_truncation_issues_without_fixture_watermark(text: str) -> list[SurfaceQualityIssue]:
     return [
         issue
         for issue in _surface_issues(text, "summary.truncated_mid_token")

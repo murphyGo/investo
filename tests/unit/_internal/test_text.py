@@ -9,7 +9,10 @@ still import the same helpers via the notifier alias.
 
 from __future__ import annotations
 
-from hypothesis import given
+from decimal import Decimal
+
+import pytest
+from hypothesis import given, seed, settings
 from hypothesis import strategies as st
 
 from investo._internal.text import (
@@ -61,6 +64,127 @@ def test_bound_at_sentence_rejects_digit_preceded_period_before_space() -> None:
 
 def test_bound_at_sentence_returns_none_without_terminator() -> None:
     assert bound_at_sentence("완결 경계 없이 이어지는 문장", 10) is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "",
+        " \t\n",
+        "금리 안정과 수급 회복",
+        "기관의 본문 참고.",
+        "가격은 **7,499.36** 수준",
+        "[근거](https://example.invalid/market)",
+        "  시장 흐름을 확인했다.\n\n",
+    ),
+)
+def test_bound_at_sentence_default_keeps_all_fitting_bytes(text: str) -> None:
+    for cap in (len(text), len(text) + 1):
+        assert bound_at_sentence(text, cap) == text
+        assert bound_at_sentence(text, cap, require_complete=False) == text
+
+
+@pytest.mark.parametrize(
+    ("text", "cap", "expected"),
+    (
+        ("", 90, None),
+        (" \t\n", 90, None),
+        (".", 90, None),
+        ("기관의", 90, None),
+        ("확인했다. 아직 미완성", 90, "확인했다."),
+        ("확인했다. 이어졌다! 아직 미완성", 90, "확인했다. 이어졌다!"),
+        ("확인했다. 이어졌다!", 6, "확인했다."),
+        ("확인했다.", 5, "확인했다."),
+        ("확인했다.", 4, None),
+        ("확인했다.", 0, None),
+        ("확인했다.", -1, None),
+        ("  확인했다.\n\t", 90, "  확인했다."),
+        ("가격은 7,499.36", 90, None),
+        ("가격은 7,499.36. 후속 설명", 90, None),
+        ("가격은 **7,499.36**로 확인했다. 후속 설명", 90, "가격은 **7,499.36**로 확인했다."),
+        (
+            "[근거](https://example.invalid/market)를 확인했다. 후속 설명",
+            90,
+            "[근거](https://example.invalid/market)를 확인했다.",
+        ),
+    ),
+)
+def test_bound_at_sentence_requires_boundary_even_when_text_fits(
+    text: str, cap: int, expected: str | None
+) -> None:
+    assert bound_at_sentence(text, cap, require_complete=True) == expected
+
+
+@pytest.mark.parametrize("terminator", (".", "!", "?", "。"))
+def test_bound_at_sentence_complete_mode_uses_existing_terminators(terminator: str) -> None:
+    sentence = f"시장을 확인했다{terminator}"
+
+    assert bound_at_sentence(sentence, len(sentence), require_complete=True) == sentence
+
+
+@st.composite
+def _market_sentences(draw: st.DrawFn) -> str:
+    """Generate complete market-like prose with decimal and Markdown boundaries."""
+    value: Decimal = draw(
+        st.decimals(
+            min_value="0.01",
+            max_value="99999.99",
+            places=2,
+            allow_nan=False,
+            allow_infinity=False,
+        )
+    )
+    price = f"{value:,.2f}"
+    style = draw(st.sampled_from(("plain", "bold", "link")))
+    if style == "bold":
+        price = f"**{price}**"
+    elif style == "link":
+        price = f"[{price}](https://example.invalid/market)"
+    terminator = draw(st.sampled_from((".", "!", "?", "。")))
+    return f"관측값 {price} 수준을 확인했다{terminator}"
+
+
+@seed(15320260907)
+@settings(max_examples=100, print_blob=True)
+@given(
+    sentences=st.lists(_market_sentences(), min_size=1, max_size=4),
+    cap=st.integers(min_value=-1, max_value=300),
+)
+def test_bound_at_sentence_complete_mode_boundary_and_cap_property(
+    sentences: list[str], cap: int
+) -> None:
+    # An independent oracle uses the generated sentence boundaries, not the regex.
+    prefixes = [" ".join(sentences[:end]) for end in range(1, len(sentences) + 1)]
+    text = prefixes[-1] + " 이후의 수급 방향은"
+    fitting = [prefix for prefix in prefixes if len(prefix) <= cap]
+    expected = fitting[-1] if fitting else None
+
+    result = bound_at_sentence(text, cap, require_complete=True)
+
+    assert result == expected
+    if result is not None:
+        assert len(result) <= cap
+        assert text.startswith(result)
+        assert bound_at_sentence(result, cap, require_complete=True) == result
+    # Overflow scanning must remain the same in both modes.
+    legacy_expected = text if len(text) <= cap else expected
+    assert bound_at_sentence(text, cap) == legacy_expected
+    assert bound_at_sentence(text, cap, require_complete=False) == legacy_expected
+
+
+@seed(15320260907)
+@settings(max_examples=60, print_blob=True)
+@given(sentence=_market_sentences(), whitespace=st.sampled_from(("", " ", "\n\t")))
+def test_bound_at_sentence_complete_mode_short_tail_property(
+    sentence: str, whitespace: str
+) -> None:
+    text = whitespace + sentence + "  아직 이어지는 설명" + whitespace
+    cap = len(text)
+    expected = whitespace + sentence
+
+    assert bound_at_sentence(text, cap) == text
+    assert bound_at_sentence(text, cap, require_complete=True) == expected
+    assert bound_at_sentence(expected, cap, require_complete=True) == expected
 
 
 @given(

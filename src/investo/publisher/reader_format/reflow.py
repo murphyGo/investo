@@ -11,12 +11,13 @@ u71 is NOT a new summary-quality gate (u51 owns TL;DR / H3 / bold; u61
 owns malformed-summary validation/repair; u54/u62 own status values and
 public quality truth; u56 owns compliance). u71 only controls *ordering*,
 *compactness*, and *diagnostic collapse*. It is a pure ``str -> str``
-transform that runs AFTER the u51/u61/u56 chain so it reflows already-
-cleaned values — it never re-validates or regenerates them.
+transform that runs AFTER the u51/u61/u56 chain. u153 delegates bounded
+candidate safety to the existing canonical predicate; it adds no new validator
+or summary generator.
 
 Reflow contract (stable order, reader-facing lead):
   1. title + watermark + segment nav            (untouched, stays first)
-  2. ``## 한눈에 보기`` TL;DR bullets             (u51, untouched)
+  2. ``## 한눈에 보기`` TL;DR values              (u51 structure, u153 bounded)
   3. ``> **오늘의 결론/핵심 동인/주의할 점**``       (summary callouts, bounded)
   4. ``## ①`` ... body
   5. compact status chip + collapsed diagnostics before the disclaimer
@@ -31,12 +32,20 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.briefing_extract import (
+    CONCLUSION_PREFIX,
+    FALLBACK_BY_PREFIX,
+    WATERMARK_PREFIX,
+)
 from investo._internal.public_quality_language import (
     PUBLIC_LOW_COVERAGE_TEXT,
     PUBLIC_SOURCE_DETAIL_TEXT,
+    first_forbidden_public_evidence,
     project_public_quality_language,
 )
+from investo._internal.summary_quality import is_unsafe_summary_value
 from investo._internal.surface_quality import (
+    find_surface_quality_issues,
     has_blocking_surface_issue,
     looks_truncated_caution_continuation,
     looks_truncated_mid_token,
@@ -45,7 +54,14 @@ from investo._internal.text import bound_at_sentence
 from investo.publisher.reader_format._constants import (
     _DISCLAIMER_FOOTER_ANCHOR,
     _FIRST_SECTION_MARKER,
+    _SECTION_HEADER_RE,
+    TLDR_HEADER,
     _logger,
+)
+from investo.publisher.reader_format.public_projection import (
+    _is_closing_fence,
+    _line_content_and_ending,
+    _opening_fence,
 )
 
 # Coverage-badge blockquote line prefixes emitted by
@@ -80,12 +96,7 @@ _DIAGNOSTICS_DETAILS_CLOSE: Final[str] = "</details>"
 SNIPPET_MAX_CHARS: Final[int] = 90
 _SNIPPET_CONTINUATION: Final[str] = " 본문 참고."
 _CAUTION_SNIPPET_FALLBACK: Final[str] = "본문 §②·§④ 참조"
-# Word-boundary characters we may truncate at (whitespace + sentence punct).
-# The set intentionally includes Korean / typographic punctuation glyphs;
-# these are the literal boundary characters we cut at, not lookalikes.
-_SNIPPET_BOUNDARY_CHARS: Final[str] = " \t,.;:!?·…—)]」』"
-_SNIPPET_TRIMMABLE_BOUNDARY_CHARS: Final[str] = " \t,.;:!?·…—"
-_NUMERIC_SEPARATOR_CHARS: Final[str] = ",."
+_TLDR_SNIPPET_FALLBACK: Final[str] = "요약은 본문을 참고하세요."
 
 
 def _compact_status_chip(text: str) -> str | None:
@@ -156,34 +167,75 @@ def is_diagnostic_source_count_line(line: str) -> bool:
     return _BADGE_COUNT_RE.fullmatch(line.strip()) is not None
 
 
-def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> str:
+def bound_summary_snippet(
+    value: str, *, max_chars: int = SNIPPET_MAX_CHARS, final_assembly: bool = False
+) -> str:
     """Bound a non-caution summary snippet for the first viewport.
 
-    u71 only reflows/truncates *valid* values; malformed-summary repair is
-    u61's job (we never add a parallel validator here). A too-long but valid
-    snippet is truncated at the last word boundary before ``max_chars`` and
-    suffixed with a complete continuation note. If no boundary exists before
-    ``max_chars`` (a single unbroken token), the snippet is omitted by
-    returning ``""`` — a mid-token cut would risk the malformed concatenation
-    u71 must prevent.
-
-    Idempotent: a valid value already ``<= max_chars`` is returned unchanged.
-    Short values that still look truncated are completed with the same safe
-    continuation note used for over-long values.
+    u153 / FR-009: retain a complete safe sentence or return ``""`` for the
+    caller's canonical fallback. Short valid headings remain unchanged.
+    Existing link findings stay verbatim with their dedicated repair owner;
+    length bounding must not hide them by discarding the defective tail.
     """
     stripped = value.strip()
-    if len(stripped) <= max_chars and not _looks_like_truncated_summary_snippet(stripped):
+    issues = tuple(
+        issue
+        # Preserve both anchored reference definitions and values which only
+        # resemble protected tables/headings outside their callout/list context.
+        for context in (stripped, f"{CONCLUSION_PREFIX} {stripped}")
+        for issue in find_surface_quality_issues(f"{context}\n{_FIRST_SECTION_MARKER}")
+    )
+    if any(
+        issue.code in {"markdown.href_ellipsis", "markdown.unmatched_link"}
+        or (
+            final_assembly
+            and issue.severity == "block"
+            and issue.code not in {"summary.truncated_mid_token", "public_diagnostic.raw_label"}
+        )
+        for issue in issues
+    ):
         return stripped
+    if final_assembly and first_forbidden_public_evidence(stripped) is not None:
+        # Repair can expose a diagnostic fragment hidden inside Markdown.
+        # Resolve it with its existing canonical projector before bounding;
+        # the later public projection must not expand this summary again.
+        # Mixed hard/link defects returned above remain with their owner.
+        stripped = project_public_quality_language(stripped)
+
+    content = stripped
+    continuation_count = 0
+    while content.endswith(_SNIPPET_CONTINUATION.strip()):
+        content = content[: -len(_SNIPPET_CONTINUATION.strip())].rstrip()
+        continuation_count += 1
+    valid_continuation = continuation_count == 1 and (
+        not content.endswith(("...", "…"))
+        and not is_unsafe_summary_value(content)
+        and bound_at_sentence(content, len(content), require_complete=True) == content
+    )
+    if (
+        len(stripped) <= max_chars
+        and not _looks_like_truncated_summary_snippet(stripped)
+        and not looks_truncated_caution_continuation(stripped)
+        and (not continuation_count or valid_continuation)
+    ):
+        return stripped
+
     budget = max_chars - len(_SNIPPET_CONTINUATION)
-    if budget <= 0:
-        return ""
-    for end in reversed(_snippet_boundary_ends(stripped, budget=budget)):
-        head = stripped[:end].rstrip(_SNIPPET_TRIMMABLE_BOUNDARY_CHARS)
-        if not head:
-            continue
-        bounded = f"{head}{_SNIPPET_CONTINUATION}"
-        if not has_blocking_surface_issue(bounded):
-            return bounded
+    while budget > 0:
+        head = bound_at_sentence(content, budget, require_complete=True)
+        if head is None:
+            break
+        omitted = stripped[len(head) :].strip()
+        candidate = f"{head}{_SNIPPET_CONTINUATION}" if omitted else head
+        if (
+            not head.endswith((_SNIPPET_CONTINUATION.strip(), "...", "…"))
+            and not is_unsafe_summary_value(head)
+            and not is_unsafe_summary_value(candidate)
+        ):
+            return candidate
+        # Keep the original input for lookahead: slicing at the new cap could
+        # manufacture a terminator inside a decimal or a Markdown token.
+        budget = len(head) - 1
     return ""
 
 
@@ -218,31 +270,6 @@ def _bound_caution_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) ->
     return "" if has_blocking_surface_issue(candidate) else candidate
 
 
-def _snippet_boundary_ends(value: str, *, budget: int) -> tuple[int, ...]:
-    """Return candidate cut ends without splitting formatted numbers.
-
-    Closing brackets are included in the candidate so a balanced construct
-    stays balanced.  Punctuation between digits is not a boundary: cutting
-    ``64,612`` at the comma would exchange a Markdown-safe line for a false
-    numeric claim.
-    """
-
-    ends: list[int] = []
-    for index, char in enumerate(value[:budget]):
-        if char not in _SNIPPET_BOUNDARY_CHARS:
-            continue
-        if (
-            char in _NUMERIC_SEPARATOR_CHARS
-            and index > 0
-            and index + 1 < len(value)
-            and value[index - 1].isdigit()
-            and value[index + 1].isdigit()
-        ):
-            continue
-        ends.append(index if char.isspace() else index + 1)
-    return tuple(end for end in ends if end > 0)
-
-
 def _looks_like_truncated_summary_snippet(value: str) -> bool:
     # Unmatched square brackets belong to the dedicated link/Markdown repair
     # that runs after reflow and preserves the visible link text.
@@ -255,84 +282,108 @@ def _has_unmatched_square_bracket(value: str) -> bool:
 
 _SUMMARY_CALLOUT_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?P<prefix>>[^\S\n]*\*\*"
-    r"(?:오늘의 결론|핵심 동인|주의할 점)"
-    r"\*\*[^\S\n]*:[^\S\n]*)(?P<body>[^\n]+?)[^\S\n]*$",
+    r"(?P<label>오늘의 결론|핵심 동인|주의할 점)"
+    r"\*\*[^\S\n]*:[^\S\n]*)(?P<body>[^\n]*?)[^\S\n]*$",
     re.MULTILINE,
 )
 _FIRST_VIEWPORT_BULLET_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?P<prefix>-[^\S\n]+)(?P<body>[^\n]+?)[^\S\n]*$",
+    r"^(?P<prefix>[-*+][^\S\n]+)(?P<body>[^\n]*?)[^\S\n]*$",
     re.MULTILINE,
 )
+_REFERENCE_DEFINITION_RE: Final[re.Pattern[str]] = re.compile(r"^ {0,3}\[[^\]\n]+\]:")
 
 
-def _bound_first_viewport_summary_lines(text: str) -> str:
-    """Bound first-viewport TL;DR bullets and summary callout bodies.
+def bound_first_viewport_summary_lines(text: str, *, final_assembly: bool = False) -> str:
+    """Bound owned summary values without reordering any document blocks.
 
-    When the bounded body is empty (an unbreakable over-long token), the line
-    falls back to a fixed safe message rather than emitting an empty line.
+    Original reflow callers retain caution's u131 behavior by default. The
+    u153 final-assembly mode leaves caution unchanged, resolves newly exposed
+    public labels before bounding, and preserves simultaneous hard/link defects
+    for existing terminal owners. It never changes block layout.
     """
-    split_at = text.find(_FIRST_SECTION_MARKER)
-    if split_at == -1:
-        head = text
-        tail = ""
-    else:
-        head = text[:split_at]
-        tail = text[split_at:]
+    out: list[str] = []
+    in_tldr = False
+    in_body = False
+    fence: tuple[str, int] | None = None
+    details_depth = 0
+    for raw_line in text.splitlines(keepends=True):
+        line, ending = _line_content_and_ending(raw_line)
+        stripped = line.strip()
+        if in_body:
+            out.append(raw_line)
+            continue
+        if not details_depth and line.startswith(("    ", "\t")):
+            out.append(raw_line)
+            continue
+        if fence is not None:
+            if _is_closing_fence(line, fence):
+                fence = None
+            out.append(raw_line)
+            continue
+        opening = _opening_fence(line)
+        if opening is not None and not details_depth:
+            fence = opening
+            out.append(raw_line)
+            continue
+        if details_depth or "<details" in line:
+            details_depth = max(
+                0, details_depth + line.count("<details") - line.count("</details>")
+            )
+            out.append(raw_line)
+            continue
+        if stripped == "##" or _SECTION_HEADER_RE.fullmatch(stripped):
+            in_tldr = not in_tldr and stripped == TLDR_HEADER
+            in_body = not in_tldr
+            out.append(raw_line)
+            continue
+        bounded_line = _bound_owned_summary_line(
+            line,
+            in_tldr=in_tldr,
+            final_assembly=final_assembly,
+        )
+        out.append(bounded_line + ending)
+    return "".join(out)
 
-    def _summary_repl(match: re.Match[str]) -> str:
-        is_caution = "주의할 점" in match.group("prefix")
+
+def _bound_owned_summary_line(line: str, *, in_tldr: bool, final_assembly: bool) -> str:
+    # Definitions can supply links used by the body; they are structure, not
+    # plain TL;DR prose. Leave both valid and defective definitions to their owner.
+    if _REFERENCE_DEFINITION_RE.match(line):
+        return line
+    match = _SUMMARY_CALLOUT_LINE_RE.fullmatch(line)
+    if match is not None:
+        is_caution = match.group("label") == "주의할 점"
+        if is_caution and final_assembly:
+            return line
         bounded = (
             _bound_caution_snippet(match.group("body"))
             if is_caution
-            else bound_summary_snippet(match.group("body"))
+            else bound_summary_snippet(match.group("body"), final_assembly=final_assembly)
         )
         if not bounded:
-            bounded = _CAUTION_SNIPPET_FALLBACK if is_caution else "요약은 본문을 참고하세요."
-        return f"{match.group('prefix')}{bounded}"
-
-    def _bullet_repl(match: re.Match[str]) -> str:
-        bounded = bound_summary_snippet(match.group("body"))
-        if not bounded:
-            bounded = "요약은 본문을 참고하세요."
-        return f"{match.group('prefix')}{bounded}"
-
-    head = _SUMMARY_CALLOUT_LINE_RE.sub(_summary_repl, head)
-    head = _FIRST_VIEWPORT_BULLET_RE.sub(_bullet_repl, head)
-    head = _bound_residual_truncated_summary_lines(head)
-    return f"{head}{tail}"
-
-
-def _bound_residual_truncated_summary_lines(text: str) -> str:
-    """Repair malformed summary continuations missed by line-shape regexes.
-
-    LLM output can wrap a TL;DR bullet or callout onto an unprefixed second
-    line.  The surface gate scans that line, but the targeted callout/bullet
-    regexes above cannot see its ownership.  Limit this fallback to the
-    reader-summary window and leave coverage diagnostics untouched because
-    those lines are moved into the protected details block later.
-    """
-
-    summary_start = text.find("## 한눈에 보기")
-    if summary_start == -1:
-        return text
-    prefix = text[:summary_start]
-    summary = text[summary_start:]
-    repaired: list[str] = []
-    for raw_line in summary.splitlines(keepends=True):
-        newline = "\n" if raw_line.endswith("\n") else ""
-        line = raw_line.removesuffix("\n")
+            bounded = (
+                _CAUTION_SNIPPET_FALLBACK
+                if is_caution
+                else FALLBACK_BY_PREFIX[f"> **{match.group('label')}**:"]
+            )
+        return line if bounded == match.group("body") else f"{match.group('prefix')}{bounded}"
+    if not in_tldr:
+        return line
+    match = _FIRST_VIEWPORT_BULLET_RE.fullmatch(line)
+    if match is not None:
+        body = match.group("body")
+        prefix = match.group("prefix")
+    else:
+        body = line.strip()
         if (
-            not line.strip()
-            or line.lstrip().startswith("#")
-            or _BADGE_LINE_RE.fullmatch(line) is not None
-            or _has_unmatched_square_bracket(line)
-            or not looks_truncated_mid_token(line)
+            not body
+            or body.startswith(("#", "|", ">", "<", "!", WATERMARK_PREFIX, "**세그먼트**:"))
+            or line.startswith(("    ", "\t"))
         ):
-            repaired.append(raw_line)
-            continue
-        bounded = bound_summary_snippet(line.strip())
-        repaired.append(f"{bounded or '요약은 본문을 참고하세요.'}{newline}")
-    return f"{prefix}{''.join(repaired)}"
+            return line
+        prefix = line[: len(line) - len(line.lstrip())]
+    bounded = bound_summary_snippet(body, final_assembly=final_assembly) or _TLDR_SNIPPET_FALLBACK
+    return line if bounded == body else f"{prefix}{bounded}"
 
 
 # Anchor used to locate the end of the summary callout block (after which
@@ -353,8 +404,8 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
     TL;DR / u56 short-disclaimer placement.
 
     Steps:
-      1. Bound first-viewport snippets to ≤ 90 chars. Caution callouts use a
-         sentence boundary; TL;DR and other callouts keep their u71 word boundary.
+      1. Bound owned first-viewport snippets at safe complete sentences, keeping
+         each surface's fallback and existing malformed-link repair ownership.
       2. Extract the coverage-badge blockquote lines from wherever they sit.
       3. Build a compact status chip from the status/count lines.
       4. Re-insert the chip + a collapsed ``<details>`` diagnostics block
@@ -362,7 +413,7 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
          callouts are present). The block is expanded by default only when
          the segment status is the fully-failed tier.
     """
-    text = _bound_first_viewport_summary_lines(text)
+    text = bound_first_viewport_summary_lines(text)
 
     # Already reflowed? The collapsed diagnostics block exists — the chip
     # and the moved badge lines are in place, so a second pass is a no-op

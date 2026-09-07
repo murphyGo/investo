@@ -92,6 +92,7 @@ from investo.publisher.reader_format.public_projection import (
 from investo.publisher.reader_format.reflow import (
     DIAGNOSTICS_SUMMARY_LABEL,
     SNIPPET_MAX_CHARS,
+    bound_first_viewport_summary_lines,
     bound_summary_snippet,
     is_diagnostic_source_count_line,
     reflow_first_viewport,
@@ -236,6 +237,7 @@ __all__ = [
     "PublicLabelLeakage",
     "SentenceEndingReport",
     "apply_reader_format",
+    "bound_first_viewport_summary_lines",
     "bound_summary_snippet",
     "check_action_bullet_ratio",
     "check_filler_phrase_density",

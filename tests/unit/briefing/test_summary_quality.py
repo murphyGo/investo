@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import pytest
+from hypothesis import given, seed, settings
+from hypothesis import strategies as st
 
+from investo._internal.briefing_extract import CONCLUSION_PREFIX, DRIVER_PREFIX, FALLBACK_BY_PREFIX
+from investo._internal.surface_quality import find_surface_quality_issues
+from investo.briefing._assembly.summary_extraction import _build_summary_header, _summary_sentence
 from investo.briefing.summary_quality import (
     SummaryQualityError,
     is_unsafe_summary_value,
@@ -133,3 +138,108 @@ def test_repair_first_viewport_summary_strips_heading_and_residue() -> None:
     validate_first_viewport_summary(repaired)
     assert "###" not in repaired
     assert " ROS" not in repaired
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "매수세가 본문 참고.",
+        "기관의 본문 참고.",
+        "이번 문서는 본문 참고.",
+        "반등하며 본문 참고.",
+        "상승...본문 참고.",
+        "상승… 본문 참고.",
+        "본문 참고.",
+        "상승했습니다. 본문 참고. 본문 참고.",
+        "지수는 3.14. 본문 참고.",
+        "지수는 상승했습니다. " * 120 + "기관의 본문 참고.",
+        "| 기관의 본문 참고.",
+    ],
+)
+@pytest.mark.parametrize("surface", ["conclusion", "driver"])
+def test_u153_canonical_gate_rejects_and_repairs_continuation(value: str, surface: str) -> None:
+    markdown = _markdown(**{surface: value})
+    assert is_unsafe_summary_value(value)
+    with pytest.raises(SummaryQualityError, match="surface-quality"):
+        validate_first_viewport_summary(markdown)
+    repaired = repair_first_viewport_summary(markdown)
+    prefix = CONCLUSION_PREFIX if surface == "conclusion" else DRIVER_PREFIX
+    assert f"{prefix} {FALLBACK_BY_PREFIX[prefix]}" in repaired
+    assert repair_first_viewport_summary(repaired) == repaired
+    validate_first_viewport_summary(repaired)
+
+
+@pytest.mark.parametrize(
+    "value", ["기관의 본문 참고.", "상승했습니다. 본문 참고. 본문 참고.", "지수는 3.14. 본문 참고."]
+)
+def test_u153_typed_caution_gate_and_repair_remain_unchanged(value: str) -> None:
+    markdown = _markdown(caution=value)
+    validate_first_viewport_summary(markdown)
+    assert repair_first_viewport_summary(markdown) == markdown
+
+
+@pytest.mark.parametrize("value", ["본문 참고.", "기관의 본문 참고.", "지수는 3.14. 본문 참고."])
+def test_u153_caution_extraction_retains_legacy_predicate(value: str) -> None:
+    sections = ("지수는 상승했습니다.", "금리 변화입니다.", "", "", "", value)
+    assert _build_summary_header(sections).caution == value
+    assert _summary_sentence(value, fallback="fallback") == "fallback"
+    assert not is_unsafe_summary_value(value, check_continuation=False)
+
+
+@pytest.mark.parametrize("value", ["1.", "정책과.", "**입법 가속화", "[미국 증시"])
+def test_u153_caution_opt_out_does_not_disable_other_summary_safety(value: str) -> None:
+    assert is_unsafe_summary_value(value, check_continuation=False)
+
+
+@pytest.mark.parametrize(
+    "value, code",
+    [
+        ("| [링크](https://example.com/...) 기관의 본문 참고.", "markdown.href_ellipsis"),
+        ("[링크](https://example.com/...) 기관의 본문 참고.", "markdown.href_ellipsis"),
+        ("| [깨진 링크 기관의 본문 참고.", "markdown.unmatched_link"),
+        ("| input_hash=redacted 기관의 본문 참고.", "trace.fragment"),
+        ("[ref]: https://example.com/... 기관의 본문 참고.", "markdown.href_ellipsis"),
+        (
+            "가" * 1650 + " [링크](https://example.com/...) 기관의 본문 참고.",
+            "markdown.href_ellipsis",
+        ),
+    ],
+)
+@pytest.mark.parametrize("surface", ["conclusion", "driver"])
+def test_u153_continuation_fallback_does_not_erase_other_blockers(
+    value: str, code: str, surface: str
+) -> None:
+    markdown = _markdown(**{surface: value})
+    assert repair_first_viewport_summary(markdown) == markdown
+    with pytest.raises(SummaryQualityError):
+        validate_first_viewport_summary(markdown)
+    # Keep anchored reference syntax and callout context for their existing
+    # scanner owner, just as the formatter does; no new issue/disposition.
+    codes = {
+        issue.code
+        for context in (markdown, f"{value}\n## ①")
+        for issue in find_surface_quality_issues(context)
+    }
+    assert code in codes
+
+
+@seed(15320260907)
+@settings(max_examples=80, print_blob=True)
+@given(
+    number=st.decimals(
+        min_value="0.01", max_value="999.99", places=2, allow_nan=False, allow_infinity=False
+    ),
+    shape=st.sampled_from(("plain", "bold", "link")),
+    fragment=st.sampled_from(("매수세가", "기관의", "이번 문서는", "반등하며")),
+)
+def test_u153_canonical_continuation_property(number: object, shape: str, fragment: str) -> None:
+    subject = {"plain": "지수", "bold": "**지수**", "link": "[지수](https://example.com/a)"}[shape]
+    sentence = f"{subject}는 {number}% 상승했습니다."
+    safe = f"{sentence} 본문 참고."
+    assert not is_unsafe_summary_value(safe)
+    assert repair_first_viewport_summary(_markdown(conclusion=safe)) == _markdown(conclusion=safe)
+    unsafe = f"{sentence} {fragment} 본문 참고."
+    assert is_unsafe_summary_value(unsafe)
+    repaired = repair_first_viewport_summary(_markdown(driver=unsafe))
+    validate_first_viewport_summary(repaired)
+    assert repaired == repair_first_viewport_summary(repaired)

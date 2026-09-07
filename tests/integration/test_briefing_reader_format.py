@@ -16,13 +16,28 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
+import pytest
+
+from investo._internal.briefing_extract import extract_conclusion
+from investo._internal.public_summary_extract import clean_public_summary_text
 from investo._internal.summary_quality import repair_first_viewport_summary
 from investo._internal.surface_quality import repair_surface_artifacts
+from investo._internal.text import utf16_units
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.market_anchor import MarketAnchor
 from investo.briefing.pipeline import _enhance_reader_experience, parse_six_sections
 from investo.models import Briefing, NormalizedItem
+from investo.models.facts import VerifiedFactBundle
+from investo.models.segments import (
+    CRYPTO,
+    DOMESTIC_EQUITY,
+    US_EQUITY,
+    MarketSegment,
+    SegmentCoverage,
+)
+from investo.notifier.summary import build_segmented_summary, plain_text_summary
 from investo.orchestrator.pipeline import _apply_reader_format_to_segments
+from investo.publisher.public_document import PublicDocumentContext, finalize_public_bundle
 
 
 def _make_briefing(rendered: str, *, target_date: date = date(2026, 5, 11)) -> Briefing:
@@ -379,3 +394,99 @@ def test_apply_reader_format_idempotent_on_second_pass() -> None:
         first["us-equity"].rendered_markdown  # type: ignore[index]
         == second["us-equity"].rendered_markdown  # type: ignore[index]
     )
+
+
+@pytest.mark.parametrize("missing", ((), (DOMESTIC_EQUITY,), (US_EQUITY, CRYPTO)))
+@pytest.mark.parametrize("masked_label", (False, True))
+def test_u153_sealed_summary_reaches_notification_without_fragment_or_regrowth(
+    missing: tuple[MarketSegment, ...],
+    masked_label: bool,
+) -> None:
+    """Real finalizer → DTO → Telegram format, with no send or external I/O."""
+    segments: tuple[MarketSegment, ...] = (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+    active = tuple(segment for segment in segments if segment not in missing)
+    target_date = date(2026, 9, 4)
+    original_values = {
+        DOMESTIC_EQUITY: "기관의 본문 참고.",
+        US_EQUITY: "지표는 **7,499.36**으로 확인했다. " + "후속 수급 설명 " * 20,
+        CRYPTO: "변동성을 확인했다. 이번 문서는 본문 참고.",
+    }
+    expected = {
+        DOMESTIC_EQUITY: "확인된 요약이 부족합니다.",
+        US_EQUITY: "지표는 7,499.36으로 확인했다. 본문 참고.",
+        CRYPTO: "변동성을 확인했다. 본문 참고.",
+    }
+    if masked_label:
+        original_values[DOMESTIC_EQUITY] = ("price mi**ssing** " + "상황을 살핍니다. " * 6).strip()
+        expected[DOMESTIC_EQUITY] = (
+            "핵심 가격 근거가 확인되지 않아 정확한 가격 서술은 줄였습니다. "
+            + "상황을 살핍니다. " * 4
+            + "본문 참고."
+        )
+    briefings = {
+        segment: _make_briefing(
+            f"# {target_date} 합성 시황\n\n"
+            f"> **오늘의 결론**: {original_values[segment]}\n"
+            "> **핵심 동인**: 외국인 매수와 금리 안정\n"
+            "> **주의할 점**: 변동성을 확인해야 합니다.\n\n"
+            "<details><summary>수집/품질 진단</summary>\n정상 수집\n</details>\n\n"
+            f"{_U132_STAGE2_BODY}\n{DISCLAIMER}\n",
+            target_date=target_date,
+        ).model_copy(update={"market_summary": "기관의 본문 참고. GENERATED_ONLY_SENTINEL"})
+        for segment in active
+    }
+    context = PublicDocumentContext(
+        target_date=target_date,
+        expected_segments=segments,
+        input_absences={segment: "generation_failed" for segment in missing},
+        anchors_by_segment={},
+        items_by_segment={},
+        coverage_by_segment={
+            segment: SegmentCoverage(
+                segment=segment,
+                status="normal",
+                item_count=1,
+                source_count=1,
+                categories=("news",),
+                missing_categories=(),
+            )
+            for segment in active
+        },
+        source_outcomes=(),
+        bundle_context=None,
+        fact_bundle=VerifiedFactBundle(target_date=target_date),
+        entity_observed_at_utc=datetime(2026, 9, 5, tzinfo=UTC),
+    )
+
+    bundle = finalize_public_bundle(briefings, context=context)
+    summaries = {document.segment: document.notification_summary for document in bundle.documents}
+    message = build_segmented_summary(
+        summaries,
+        site_urls={segment: f"https://example.invalid/{segment}/2026-09-04" for segment in active},
+        enabled_segments=segments,
+        missing_segments=missing,
+        now_utc=datetime(2026, 9, 5, tzinfo=UTC),
+    )
+
+    assert tuple(summaries) == active
+    for document in bundle.documents:
+        conclusion = extract_conclusion(document.briefing.rendered_markdown)
+        assert conclusion is not None
+        if masked_label and document.segment == DOMESTIC_EQUITY:
+            assert conclusion == original_values[DOMESTIC_EQUITY]
+            assert len(clean_public_summary_text(conclusion)) == 95
+        else:
+            assert clean_public_summary_text(conclusion) == expected[document.segment]
+        assert summaries[document.segment].conclusion == expected[document.segment]
+        assert expected[document.segment] in message.splitlines()
+    assert utf16_units(message) <= 4096
+    for text in (message, plain_text_summary(message)):
+        assert all(
+            fragment not in text
+            for fragment in (
+                "매수세가 본문 참고.",
+                "기관의 본문 참고.",
+                "이번 문서는 본문 참고.",
+                "GENERATED_ONLY_SENTINEL",
+            )
+        )

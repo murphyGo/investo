@@ -272,6 +272,32 @@ def test_truncated_summary_finding_is_owned_only_by_actual_first_viewport() -> N
     )
 
 
+@pytest.mark.parametrize("repeats", [10, 270, 400])
+def test_u153_region_local_scan_keeps_body_callout_continuations_unowned(repeats: int) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "수급 본문", "몸통 설명 " * repeats + "\n> **오늘의 결론**: 기관의 본문 참고."
+    )
+    draft, _ = _projected_draft(markdown)
+    assert all(
+        finding.issue.code != "summary.truncated_mid_token"
+        for finding in _find_owned_surface_quality_issues(draft.layout)
+    )
+    assert draft.layout.markdown == markdown
+
+
+def test_u153_region_local_scan_still_owns_real_viewport_continuations() -> None:
+    markdown = _canonical_markdown(
+        watchpoint_body="- 확인할 조건",
+        first_viewport_lines=("설명 " * 600, "> **오늘의 결론**: 기관의 본문 참고."),
+    )
+    draft, _ = _projected_draft(markdown)
+    findings = _find_owned_surface_quality_issues(draft.layout)
+    assert any(
+        finding.issue.code == "summary.truncated_mid_token" and finding.block == "first_viewport"
+        for finding in findings
+    )
+
+
 def test_owned_bounded_body_truncation_findings_survive_region_local_scan() -> None:
     watchpoint_markdown = _canonical_markdown(
         watchpoint_body="#### 관찰 신호: CoinGecko BTC · UTC 24h…"

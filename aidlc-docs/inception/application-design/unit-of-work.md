@@ -2342,6 +2342,138 @@ Plan: `aidlc-docs/construction/plans/u147-curated-image-semantic-variants-code-g
 
 Plan: `aidlc-docs/construction/plans/u150-terminal-markdown-link-containment-code-generation-plan.md`.
 
+### u151: `shared-macro-positioning-kind-boundary` — Exclude Weekly Positions from Shared Price/Policy Evidence
+
+**Purpose**: Prevent the September 4 CFTC WTI contract count from being rendered
+as international oil-price evidence and promoted into deterministic shared
+cause-map/daily-thesis signals.
+
+**Stories / FR / NFR coverage**: US-002, US-003, US-005; FR-002, FR-008,
+FR-013, FR-015; NFR-003, NFR-005, NFR-006, NFR-007/R13.
+
+**Existing Coverage / Deduplication**:
+- Extend u57/u60's existing matcher and selected-evidence path, u74's cause-map,
+  and u124's thesis evidence. Preserve u107 collection/routing/delayed rows.
+- Implement DEBT-076 typed-key transport; do not close its debt entry during planning.
+- No new macro detector, source, arbitrary narrative causality validator or KPI.
+
+**Module path**: `src/investo/models/bundle_context.py`,
+`src/investo/orchestrator/bundle_context.py`,
+`src/investo/publisher/cross_market_cause_map.py`; related model,
+orchestrator and finalized publisher tests.
+
+**Definition of Done**:
+- [ ] Source identity excludes all CFTC positioning rows from the three existing shared keys and the two-segment threshold.
+- [ ] `detected_macro_keys` contains only selected `fomc/oil/ust_yield`; empty legacy fields never trigger string inference.
+- [ ] Cause-map and thesis consume matching eligible evidence; existing allowed-type and UST gates remain.
+- [ ] Finalized three-segment regression preserves delayed positioning rows while removing their shared-macro overpromotion.
+- [ ] Typed-key, relabel-resilience, copy, deterministic-order and forbidden-type tests pass; then close DEBT-076.
+
+**Construction strategy**: Backlog; FD required for shared-model/compatibility
+rules, NFR Requirements skipped. Plan:
+`aidlc-docs/construction/plans/u151-shared-macro-positioning-kind-boundary-code-generation-plan.md`.
+
+### u152: `watchpoint-current-observation-contract` — Separate Current Observations from Future Conditions
+
+**Purpose**: Stop a number inside an ETH price threshold or full CFTC conditional
+paragraph from satisfying the current-value requirement, and keep card fields distinct.
+
+**Stories / FR / NFR coverage**: US-002, US-003; FR-002, FR-009, FR-012;
+NFR-003, NFR-004, NFR-005, NFR-006, NFR-007/R13.
+
+**Existing Coverage / Deduplication**:
+- Extend u135's resolver for all rows; remove numeric passthrough. Reuse
+  u98/u110 card shape/filtering, u131 title bounding and u144 typed outcomes.
+- No second resolver, new KRX/UST/TVL family, watchlist matcher or forecast engine.
+- Unsupported rows use u135's existing fallback, with body evidence preserved.
+
+**Module path**: `src/investo/publisher/watchpoint_matrix.py`,
+`watchpoint_fallback.py`, `segment_reader_format.py`; finalized publisher tests.
+
+**Definition of Done**:
+- [ ] All currents come from exactly matched existing asset/metric observations; digits in thresholds/source/date never suffice.
+- [ ] Ambiguous identities/conflicting best candidates are filtered; supported-family precedence remains.
+- [ ] CFTC current includes existing as-of/release dates and weekly delay, confidence no higher than `보통`.
+- [ ] Titles/current exclude copied conditions/impact clauses; unsupported domestic-flow rows use existing fallback.
+- [ ] Final Markdown, notification, compliance, preserved-supplement and repeated-conversion tests pass.
+
+**Construction strategy**: Backlog; FD required for observation/unsupported
+policy, NFR Requirements skipped. Independent of u151. Plan:
+`aidlc-docs/construction/plans/u152-watchpoint-current-observation-contract-code-generation-plan.md`.
+
+### u153: `summary-sentence-boundary-extension` — Finish Bounded Conclusion, Driver and TL;DR Sentences
+
+**Purpose**: Eliminate `매수세가 본문 참고.`, `기관의 본문 참고.` and
+`이번 문서는 본문 참고.` from final summary surfaces.
+
+**Stories / FR / NFR coverage**: US-002, US-003, US-004; FR-002, FR-004,
+FR-009; NFR-003, NFR-005, NFR-006.
+
+**Existing Coverage / Deduplication**:
+- u131 migrated caution/meaning/title surfaces; extend its sentence helper to
+  conclusion, driver and TL;DR. Preserve u134 composition and u61/u127 safety.
+- No new sentence splitter, summary generator, layout order or cap.
+- u154 separately owns preamble structure; u150 keeps malformed-link policy.
+
+**Module path**: `src/investo/_internal/text.py`,
+`summary_quality.py`, `surface_quality.py`;
+`src/investo/publisher/reader_format/reflow.py`,
+`src/investo/publisher/public_document.py`; internal/publisher tests.
+
+**Definition of Done**:
+- [x] Final values use the existing 90-character budget; overflow retains complete safe sentences or canonical fallback.
+- [x] Continuation follows only a complete sentence and never repeats.
+- [x] Short valid headings, decimal values and safe Markdown remain intact.
+- [x] Bounding runs after summary repair before sealing; final notification summary agrees (same cleaned text, bounded at complete sentences if cleanup expands beyond the cap).
+- [x] Generated-byte, idempotence, link-policy and unaffected-region regressions pass.
+
+**Construction strategy**: Code Generation complete — 6/6 (2026-09-07).
+Shared Markdown bounding follows summary repair; derived notification bounding
+follows canonical cleanup and original safety checks, before DTO construction.
+Caution, original hard/link gates, layout and validated/sealed bytes remain
+unchanged. Step 6 adds 72 cases; exact focused gate 202 passed and full repository
+gate 4,787 passed in 464.71s. Mypy 254 source files, scoped static checks and
+independent five-category review pass; 372 review tests and 216 twice-run real
+finalizer combinations, no remaining finding or new debt. The integration test
+module's 20 scoped mypy diagnostics reproduce on HEAD; no new diagnostic.
+FD/NFR skipped under the existing-helper extension. Cross-check APPROVE
+(2026-09-07): 6/6 ACs complete, fresh expanded gate 2,734 passed in 102.06s;
+no new gap/task/debt. Report:
+`docs/cross-checks/2026-09-07-u153-summary-sentence-boundary-extension.md`.
+No main integration, commit/push or production closeout. Plan:
+`aidlc-docs/construction/plans/u153-summary-sentence-boundary-extension-code-generation-plan.md`.
+
+### u154: `canonical-preamble-block-assembly` — Assemble One Title and One Three-Item Summary
+
+**Purpose**: Close the late assembly gap that left duplicate H1 titles in all
+ten September 1–4 documents and allowed hero images before the useful summary.
+
+**Stories / FR / NFR coverage**: US-002, US-003, US-004; FR-002, FR-003,
+FR-004, FR-008, FR-009, FR-018; NFR-003, NFR-004, NFR-005, NFR-006, NFR-007/R13.
+
+**Existing Coverage / Deduplication**:
+- Integrate u51/u61/u71 producers under u144 phase-one assembly; no parallel
+  finalizer or generic new first-viewport system.
+- u141 retains hero choice/caption/artifact ownership; move whole blocks only.
+- Consume u153 bounded text; preserve u150 link disposition, footer diagnostics,
+  numerical/trust gates and active-survivor navigation.
+
+**Module path**: `src/investo/publisher/reader_format/tldr.py`,
+new `reader_format/preamble.py`, `public_document.py`; publisher and offline
+HTML integration fixtures.
+
+**Definition of Done**:
+- [ ] Final documents contain one canonical H1 and exactly three TL;DR list items.
+- [ ] Existing anchor table precedes TL;DR; summary/callouts precede the hero; other known blocks use the pinned order.
+- [ ] Conflicting extra titles and unresolved structural defects remain fail-closed.
+- [ ] Whole supplement bytes/artifact IDs, body evidence, diagnostics and disclaimer are preserved.
+- [ ] Sealed Markdown, partial navigation, idempotence and article HTML H1/list/image-order checks pass.
+
+**Construction strategy**: Backlog / partial-scope-ready. FD ready now, NFR
+Requirements skipped; code integration blocked on completed/integrated u150
+and u153. Plan:
+`aidlc-docs/construction/plans/u154-canonical-preamble-block-assembly-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

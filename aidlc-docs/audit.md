@@ -6448,3 +6448,109 @@ passed, scoped format check passed, `mypy src` passed.
 **Source-health distinction**: Both runs logged `market_anchor domestic=0`. The first returned zero FSC index/Yonhap index rows; the second kept transient FSC failures and zero Yonhap index rows visible while the document independently sealed as degraded and the complete bundle exited 0.
 **Performance observation**: Pipeline steps took 11m46s and 11m33s, exceeding NFR-001's ten-minute target without affecting correctness or delivery. Registered separately as DEBT-090 rather than reopening u149's containment contract.
 **Status**: u148 paired production closeout and u149 Step 7b are complete. The prerequisite for u150 Functional Design is cleared. Documentation remains uncommitted pending explicit commit/push approval.
+
+## Construction — u153 Code Generation Step 1 approved
+**Recorded at**: 2026-09-06T16:18:58Z (2026-09-07 KST)
+**Target**: `u153-summary-sentence-boundary-extension`, Code Generation Step 1/6 only.
+**Approval**: The user replied exactly `진행시켜` to the proposal identifying u153 Step 1 characterization fixtures as the immediate work.
+**Boundary**: Add regression fixtures and tests, run scoped checks and independent review, and update construction records. Production implementation, archive/site rewrites, publishing, Telegram, commit and push are outside this step.
+**Isolation**: `/private/tmp/investo-briefing-review-20260906`, branch `codex/briefing-review-20260906`, baseline `d5530353758b6475cf0852c69ea9b9b3cfd99e0b`. Preserve existing u151–u154 planning changes, the dirty original workspace, and independent u145/u150 worktrees.
+
+## Construction — u153 Code Generation Step 1 complete
+**Date**: 2026-09-07 KST
+**Action**: Added three verbatim September 4 archive fragments and eleven synthetic target cases. The new reader-reflow tests pin literal desired output, strict owning-step expected failures, next-H2/body/disclaimer preservation, idempotence and a seeded 60-example decimal property.
+**Validation**: Final scoped u153/u71/u131/text gate 73 passed / 9 xfailed in 1.82s; Ruff/check+format and scoped mypy passed. Explicit `--runxfail` target audit produced exactly 9 failed / 5 passed / 15 deselected in 0.78s, confirming pre-fix gaps rather than claiming their resolution. Archive provenance and fixture JSON verified.
+**Review**: Independent fresh-eyes review had no blocking findings. Its Low request for a protected >90-character macro paragraph immediately after the next H2 was implemented; independent re-review confirmed resolution with no additional findings.
+**Evidence**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-1-characterization.md`; `docs/sessions/2026-09-07-u153-code-generation-step1.md`.
+**Status**: Step 1/6 complete, Step 2 sentence-helper extension next. Production behavior and implementation acceptance criteria remain open. No source/generated/debt changes, no commit/push, and no live publication.
+
+## Construction — u153 Code Generation Step 2 approved
+**Recorded at**: 2026-09-06T16:25:10Z (2026-09-07 KST)
+**Approval**: The user replied exactly `진행시켜` after the Step 1 completion report identified Step 2, the shared sentence-helper extension, as next.
+**Target**: `u153-summary-sentence-boundary-extension`, Code Generation Step 2/6 only. Add optional complete-boundary behavior with default compatibility tests, scoped checks, independent review and documentation. No caller migration, publication, commit or push.
+**Continuity**: Re-read current state, plan, Step 1 evidence, requirements, existing helper/callers and enabled Partial PBT rules. No Critical/High/Medium debt escalation applies. Continue in the existing isolated planning worktree; preserve prior changes and independent worktrees.
+**Plan**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-2-sentence-helper.md`. Plan-mode switching is unavailable; bounded research/planning is performed in Default mode before implementation.
+
+## Construction — u153 Code Generation Step 2 complete
+**Timestamp**: 2026-09-06T16:34:19Z (2026-09-07 KST)
+**Action**: Added keyword-only `require_complete=False` to the existing shared sentence helper. Opt-in skips the fitting-input shortcut and reuses the unchanged decimal-safe terminator scan; no caller opts in yet. Added 29 collected tests, including two seeded market-sentence properties.
+**Validation**: Helper 54 passed; focused helper/summary/u71/u76/u131/u153 gate 165 passed / 9 xfailed in 3.48s. The nine expected failures remain Step 3 target gaps, not a completed surface fix. Scoped Ruff/check+format, mypy across all 254 source files, scoped test mypy and diff check passed. Partial PBT-03/07/08/09 compliant; PBT-02 N/A for the lossy no-inverse helper.
+**Review**: Independent fresh-eyes review approved all five categories with no findings/debt candidates. It reran helper/static checks and compared 37,459 inputs / 294,391 input-cap combinations against legacy defaults and an independent forced-boundary oracle; all matched. Performance protocol confirmed linear production scanning and bounded test-oracle work.
+**Evidence**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-2-sentence-helper.md`; `docs/sessions/2026-09-07-u153-code-generation-step2.md`.
+**Status**: Step 2/6 complete; Step 3 sentence-only summary bounding, canonical caller safety/fallback and H2 containment next. Final-output acceptance criteria remain open. Original dirty root, prior planning/Step 1 changes and other worktrees preserved. No archive/site/workflow/debt changes, live publication, commit or push.
+
+## Construction — u153 Code Generation Step 3 approved
+**Recorded at**: 2026-09-06T17:00:51Z (2026-09-07 KST)
+**Approval**: The user replied exactly `진행시켜` after the Step 2 completion report named Step 3 conclusion/driver/TL;DR sentence bounding as next.
+**Scope**: Step 3/6 only, in the existing isolated worktree. Preserve Steps 1–2 and other units; no scanner-policy change, finalizer ordering change, live publication, commit or push.
+**Plan**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-3-summary-callers.md`. Existing common/construction rules and Partial PBT remain applicable; no Critical/High/Medium debt escalation applies. Plan-mode switching remains unavailable; research and written planning precede implementation in Default mode.
+
+## Construction — u153 Code Generation Step 3 complete
+**Timestamp**: 2026-09-07T01:08:19Z
+**Action**: Migrated non-caution summary callers to the existing complete-boundary helper with canonical candidate safety, earlier-boundary rollback, one continuation and per-surface fallback. TL;DR list/plain processing now stays within its H2 and preserves structural/protected lines. Original link defects remain with their existing owner even over the local cap.
+**Regression evidence**: All nine Step 1 expected failures now pass as unconditional assertions, with original incident inputs and target outputs unchanged. Added 94 tests including seeded long-summary PBT and context/ownership regressions. Updated eight superseded u71 expectations and exactly two u144 current-output fields; historical incident fields and issue codes remain intact.
+**Review corrections**: Fixed pipe-leading values being misclassified as tables, indented code headings ending ownership, reference definitions being treated as prose, 1,600-character scanner fallback splitting link evidence, and indented active-details closing tags being ignored. Canonical scans retain bare/callout contexts and a full-value section sentinel; real reference-definition lines are preserved as structure. No global scanner/finalizer policy changed.
+**Final review**: Independent re-review approved Correctness/Safety/Reliability/Maintainability/Test Coverage, with 273 related tests and 250 exact boundary variants passing and no remaining findings/debt candidates. Security Boundary, Performance, Memory and Error Contract protocols applied.
+**Final validation**: Focused gate 268 passed in 6.46s; publisher-wide gate 1,169 passed in 31.14s (overlapping suites, no xfails). Mypy passed 254 source files and two scoped tests; Ruff/check+format, JSON and diff checks passed. Partial PBT-03/07/08/09 compliant; PBT-02 N/A. A supplemental broader run passed 1,569 tests but began before final guard corrections, so it is not claimed as an exact-final-tree gate.
+**Evidence**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-3-summary-callers.md`; `docs/sessions/2026-09-07-u153-code-generation-step3.md`.
+**Status**: Step 3/6 complete; Step 4 canonical continuation-residue rejection next. Steps 4–6 and final Markdown/notification acceptance remain open. No archive/site/workflow/debt edits, production publication, commit or push; original dirty work and independent worktrees preserved.
+
+## Construction — u153 Code Generation Step 4 approved
+**Timestamp**: 2026-09-07T01:15:52Z
+**User**: `진행시켜`
+**Scope**: Execute only canonical continuation-residue rejection through the existing surface scanner and summary-safety gate. Preserve caution/body policies and all earlier work; no Step 5 finalizer change or Step 6 closeout.
+**Plan**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-4-canonical-residue-rejection.md`. Research and written planning precede implementation in Default mode; Partial PBT and the independent-review gate apply. No debt escalation, publication, commit or push.
+
+## Construction — u153 Code Generation Step 4 complete
+**Timestamp**: 2026-09-07T02:27:52Z
+**Action**: Extended the existing continuation predicate, surface scanner and canonical summary gate to reject incomplete/empty/ellipsis/repeated continuation residue. Caution validation and production extraction retain their existing behavior through an explicit compatibility flag. No new scanner, grammar, issue family or disposition.
+**Review corrections**: Preserved protected phrases and formatter-compatible H2/callout/fence ownership, full-line evidence across the 1,600-character split, simultaneous link/trace findings before fallback, and actual E3 body ownership. New summary-only findings remain viewport-tagged; legacy bounded body findings remain unchanged. No finalizer production edit.
+**Final validation**: Added 154 tests. Focused gate 492 passed in 9.93s; broad publisher/briefing/internal/_internal gate 2,439 passed in 61.50s (overlapping suites, no xfails). Mypy 254 source/3 test files, Ruff/check+format 6 changed Python files and diff checks passed. Two new seeded 80-example properties; Partial PBT-03/07/08/09 compliant, PBT-02 N/A.
+**Final review**: Independent re-review approved Correctness/Safety/Reliability/Maintainability/Test Coverage with no remaining findings/debt candidates. Reviewer ran 346 related tests, exact legacy-scanner parity over 840 non-target documents and E3 body repros at seven lengths. Security Boundary, Error Contract, Performance and Memory protocols applied.
+**Evidence**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-4-canonical-residue-rejection.md`; `docs/sessions/2026-09-07-u153-code-generation-step4.md`.
+**Status**: Step 4/6 complete; Step 5 post-summary-repair finalizer ordering next. Steps 5–6 and final-output AC remain open. No full repository/live pipeline run, fixture/archive/site/workflow/debt edit, commit, push, deployment or notification. Prior work and original dirty root preserved.
+
+## Construction — u153 Code Generation Step 5 approved
+**Timestamp**: 2026-09-07T07:46:13Z
+**User**: `진행시켜`
+**Scope**: Execute only the post-summary-repair bounding invocation in phase-one presentation assembly and its ordering/compatibility regressions. Reuse the existing publisher traversal without layout changes or a new caution policy. Preserve Steps 1–4, unrelated work and all hard-gate/disposition ownership.
+**Plan**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-5-final-assembly-ordering.md`. Written planning follows research in Default mode; common/construction rules, Partial PBT and separate review apply. Step 6 final-output acceptance, publication and commit/push remain outside this invocation.
+
+## Construction — u153 Code Generation Step 5 complete
+**Timestamp**: 2026-09-07T08:06:58Z
+**Action**: Re-exported the existing owned summary-line helper and invoked final-assembly mode immediately after canonical summary repair, before evidence accounting/reindex. Original reflow defaults and caution behavior remain unchanged; no layout reorder or validated/sealed-byte mutation.
+**Review corrections**: Preserved simultaneous hard/link findings that the late bound could otherwise erase. Fixed a proven 83-character input sealing as 96 characters after repair exposed a raw public label: reuse the existing canonical projection predicate/projector on eligible owned non-caution values before bounding. Protected-phrase variants are covered. No new scanner, label grammar, disposition or global phase order.
+**Regression evidence**: Initial red ordering gate 14 failed/1 passed. Added 54 passing cases including two 60-example seeded properties, actual accounting-through-seal ordering, six real public-label expansion cases and mixed-blocker controls.
+**Final validation**: Exact final focused gate 186 passed in 3.61s; broad publisher/briefing/internal/_internal gate 2,493 passed in 57.32s (overlapping suites). Mypy 254 source/1 test files, Ruff/check+format 4 changed Python files and diff checks passed. Partial PBT-03/07/08/09 compliant; PBT-02 N/A. Intermediate broad counts preceded corrections and are not final-tree claims.
+**Final review**: Independent re-review approved Correctness/Safety/Reliability/Maintainability/Test Coverage with no remaining findings/debt candidates. Reviewer ran 238 related tests and 216 real-finalizer combinations checking cap, projection idempotence and sealed SHA. Error Contract, Security Boundary, Performance and Memory protocols applied.
+**Evidence**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-5-final-assembly-ordering.md`; `docs/sessions/2026-09-07-u153-code-generation-step5.md`.
+**Status**: Step 5/6 complete; Step 6 comprehensive final Markdown/notification acceptance next. No unit-completion or production-closeout claim, full repository/live pipeline run, archive/site/workflow/debt edit, commit, push, deployment or send. Original dirty root and previous work preserved.
+
+## Construction — u153 Code Generation Step 6 approved
+**Timestamp**: 2026-09-07T08:15:47Z
+**User**: `진행시켜`
+**Scope**: Execute final Markdown/notification acceptance, repeated finalization, decimal/Markdown safety, unaffected-region and terminal-gate regressions. Preserve earlier work and current policy boundaries; no commit/push/publication or next-unit execution.
+**Plan**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-6-final-output-acceptance.md`. Research and written planning in Default mode; common/construction rules, Partial PBT and separate fresh-eyes review apply.
+
+## Construction — u153 Code Generation Step 6 complete
+**Timestamp**: 2026-09-07T08:52:39Z
+**Action**: Completed all six final Markdown/notification acceptance criteria with 72 new cases (66 unit, 6 integration), two seeded 60-example properties, real three-segment/full/partial finalization, all TL;DR positions, original incident expectations, repeated Markdown/SHA/DTO and actual notifier formatting. Original link policy and non-summary trust gates retain usable siblings.
+**Review correction**: Fixed a High derived-text gap: 77-character Markdown with a masked public label became a 95-character notification after cleanup. Reuse the existing 90-character sentence helper/canonical fallback after original cleaned-value safety checks and before DTO creation. Preserve original Markdown; the literal DTO is 82 characters. A persistent 86-to-100-character unsafe case proves zero bounding calls, `summary.invalid_conclusion` and surviving crypto. No new scanner, cap, generic masking policy, disposition or sealed-byte mutation.
+**Exact final validation**: Focused gate 202 passed in 6.20s; full repository 4,787 passed in 464.71s, no failures/xfails. Overlapping counts are not additive. Mypy 254 source/1 unit test files, scoped Ruff/check+format, all fifteen u153 Python-file format checks, no-paid and diff checks pass. Integration scoped mypy's 20 diagnostics reproduce exactly on HEAD (1 private export, 19 unused ignores); no new diagnostic, no passing integration mypy claim. Earlier 4,776 full and 2,733 broad counts are intermediate only.
+**Independent final review**: Correctness/Safety/Reliability/Maintainability/Test Coverage all Pass; 372 related tests in 9.90s, 216 real-finalizer combinations each run twice, no remaining finding or new TECH-DEBT candidate. Error Contract, Security Boundary, Performance and Memory protocols applied. Partial PBT-03/07/08/09 compliant; PBT-02 N/A for lossy text transforms.
+**Evidence**: `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-6-final-output-acceptance.md`; `docs/sessions/2026-09-07-u153-code-generation-step6.md`.
+**Status / next approval**: Code Generation complete (6/6), all unit DoDs checked. Request Changes or Continue to u153 cross-check; cross-check is not yet approved/executed. No next-unit/global-stage transition, main integration, archive/site/workflow/fixture/debt edit in Step 6, live pipeline, commit/push/deployment/send. Original dirty root and prior planning/Steps 1–5 preserved.
+
+## Construction — u153 cross-check approved
+**Recorded at**: 2026-09-07T14:32:46Z
+**User**: `진행시켜`
+**Scope**: The Step 6 handoff proposed the u153 requirements cross-check. Inspect the six unit acceptance criteria, fixed contracts, five DoDs and scoped FR/NFR/story/component traceability; write the report and completion records. No implementation repair, next-unit execution, commit/push, main integration or production action.
+**Skill**: `cross-check`; bounded compliance matrix and individual source/test evidence. Preserve previous planning/Steps 1–6, the original dirty root and independent worktrees.
+
+## Construction — u153 cross-check complete
+**Recorded at**: 2026-09-07T14:32:46Z
+**Result**: APPROVE — 6/6 unit ACs complete (100%), all five DoDs satisfied, zero Partial/Gap/Deferred/In Progress items within scope. Parent FR-002/004/009 and NFR-003/005/006 are mapped only for u153's contribution, not globally recertified.
+**Fresh validation**: Expanded publisher/briefing/internal/_internal/notifier/integration gate 2,734 passed in 102.06s, seed `15320260907`; source mypy 254 files, scoped u153 unit mypy, all 15 scoped Python-file Ruff/check+format, no-paid and diff checks pass. Three archived fixture inputs match exact baseline source lines; all 14 fixture cases have no pending marker. Current integration scoped mypy and a byte-verified HEAD baseline both produce the same 20 diagnostics (1 private export, 19 unused ignores), exit 1; no new diagnostic or passing integration type-gate claim.
+**Evidence distinction**: Step 6's 4,787-test full gate and independent review remain historical exact-tree evidence; this cross-check does not claim a fresh full repository run or separate new review.
+**Artifacts**: `docs/cross-checks/2026-09-07-u153-summary-sentence-boundary-extension.md`; `docs/sessions/2026-09-07-u153-cross-check.md`; current unit state, plan and story-map completion updated. Zero new development tasks or TECH-DEBT entries; no source/test/fixture edit.
+**Boundary / handoff**: Code Generation 6/6 and cross-check complete. Main integration/production closeout remain incomplete; u154 prerequisites unchanged. No remote refresh, commit, push, archive/site/workflow edit, live pipeline, deployment or notification send. Original dirty root paths and previous work preserved.
