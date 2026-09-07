@@ -284,6 +284,24 @@ def test_cut_backtracks_before_unclosed_numeric_emphasis() -> None:
     )
 
 
+def test_bound_summary_preserves_terminal_link_defect_for_u150() -> None:
+    value = ("정상 문장입니다. " * 8) + "[자료](https://example.invalid/path/...)"
+
+    assert bound_summary_snippet(value) == value
+
+
+def test_reflow_preserves_long_caution_link_defect_for_u150() -> None:
+    invalid = ("정상 문장입니다. " * 8) + "[자료](https://example.invalid/path/...)"
+    summary = _SUMMARY.replace(
+        "> **주의할 점**: CPI 발표를 앞두고 변동성 확대 가능성에 유의.",
+        f"> **주의할 점**: {invalid}",
+    )
+
+    out = reflow_first_viewport(_header(summary=summary), segment="us-equity")
+
+    assert invalid in out
+
+
 def test_short_unclosed_bold_number_is_bounded_before_surface_gate() -> None:
     value = "크립토 전체 시가총액은 2조 달러이며 BTC 도미넌스 **56 본문 참고."
 

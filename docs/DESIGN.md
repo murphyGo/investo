@@ -154,6 +154,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Containment order**: trusted whole-block renderer → 문장 rewrite/표 행·H3 subtree 제외 → owned region replace/omit → 한 번의 no-LLM 6-section minimal fallback 순서다. 원본 offset으로 region당 한 번만 적용하고 재투영·재인덱싱·read-only terminal validation 후에만 봉인한다.
 **State contract**: 격리 witness가 있는 봉인 문서는 `finalized_degraded`다. witness는 symbol/region/line kind/action/sorted code/SHA-256 claim digest만 가지며 원문은 로그에 남기지 않는다. `finalized`와 `finalized_degraded`는 모두 published document로 계산되므로 세 문서가 봉인되면 content completeness와 exit는 complete/0을 유지한다.
 **Fallback boundary**: neutral `_internal.data_limited_segment` builder는 네트워크·LLM·파일·환경·현재시각 없이 세그먼트당 최대 한 번만 호출된다. items/anchors/facts/supplements/staged artifacts/bundle semantics를 제거한 context로 같은 finalizer와 seal을 통과하며, 실패 시에만 `numeric.fallback_exhausted`로 차단된다.
+
 ### TD-013: Material 사이트 토글과 SVG 테마 패리티 (u143)
 
 **Choice**: `<img>`로 삽입되는 네 카드 종류는 `{kind}.svg` forced-light와
@@ -190,6 +191,15 @@ GitHub는 현재 `<picture>`를 권장하므로 fallback 화면의 단일 표시
 코드 브랜치에는 아직 u143 이후 production archive가 없으므로 실제 archive
 페이지의 육안 결과는 첫 post-u143 발행에서 기록한다. Pages가 canonical reader
 surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건이 아니다.
+
+### TD-014: terminal Markdown link-target 국소 격리 (u150)
+
+**Choice**: `markdown.href_ellipsis`와 `markdown.unmatched_link`의 탐지·형상 분류·순수 변환은 `_internal.surface_quality` 한 곳만 소유한다. finalizer 정책은 target/evidence를 받지 않고 닫힌 `SurfaceLinkShape`와 16개 `PublicBlockKind` 조합으로 한 region의 최강 disposition을 mutation 전에 정확히 한 번 선택한다.
+**Containment**: recoverable inline/image/incomplete link는 표시 label/alt만 남기고 target을 제거하며 autolink는 제거한다. reference definition과 residual unmatched fragment는 승인된 기존 region fallback으로 바로 교체한다. protected/unowned/unmapped region과 action residue는 `trust_blocked`로 닫힌다.
+**Compatibility**: link finding 때문에 u71/u61/u76의 기존 presentation 정규화가 사전 단계에서 보류된 경우, 동일 E3 region action 안에서 target 제거 뒤 기존 snippet/summary/meaning owner를 재적용한다. 이는 두 번째 containment action이 아니며 no-op target transform은 성공 outcome을 만들지 않는다.
+**Terminal boundary**: action 뒤 canonical projection/reindex를 거쳐 numeric/entity/compliance/summary/disclaimer/structure/notification 및 surface gate를 read-only로 모두 수집한다. actionable link residue만 `document.fallback_exhausted`와 exact link code를 추가하며 evidence, URL, Markdown, region, shape, payload, secret은 failure surface에 남기지 않는다.
+**Compatibility**: u144 seal/survivor/artifact/Telegram/Pages 흐름은 유지하고 u149만 `finalized_degraded`를 소유한다. 링크만 격리된 문서는 `finalized`, 진짜 hard block은 valid sibling commit + Pages + exit 2 계약을 유지한다.
+
 ---
 
 ## Data Model

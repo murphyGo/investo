@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from investo._internal.surface_quality import (
     SurfaceQualityIssue,
     extract_first_viewport,
@@ -10,6 +12,7 @@ from investo._internal.surface_quality import (
     has_blocking_surface_issue,
     looks_truncated_caution_continuation,
     repair_surface_artifacts,
+    repair_surface_link_targets,
 )
 
 
@@ -23,6 +26,23 @@ def _issues_with_code(text: str, code: str) -> list[SurfaceQualityIssue]:
     return [issue for issue in find_surface_quality_issues(text) if issue.code == code]
 
 
+def test_surface_quality_issue_four_argument_construction_remains_compatible_u150() -> None:
+    issue = SurfaceQualityIssue("trace.fragment", "block", "trace", "body")
+
+    assert issue.link_shape is None
+
+
+def test_surface_quality_issue_rejects_an_incompatible_link_shape_u150() -> None:
+    with pytest.raises(ValueError, match="link_shape must be compatible"):
+        SurfaceQualityIssue(
+            "markdown.unmatched_link",
+            "block",
+            "fragment",
+            "body",
+            "autolink",
+        )
+
+
 def test_repair_bad_token_and_dangling_ellipsis() -> None:
     text = "# title\n\n불강한성 확대 ...\n...\n\n## ① 요약\n본문"
 
@@ -34,13 +54,12 @@ def test_repair_bad_token_and_dangling_ellipsis() -> None:
     assert repair_surface_artifacts(repaired) == repaired
 
 
-def test_repairs_trace_fragments_and_unmatched_link_markers() -> None:
+def test_repairs_trace_fragments_without_mutating_unmatched_link_markers() -> None:
     text = "# title\n\n[broken link\nstage1_hash=abc\n\n## ① 요약"
 
     repaired = repair_surface_artifacts(text)
     assert "stage1_hash" not in repaired
-    assert "[broken link" not in repaired
-    assert "broken link" in repaired
+    assert "[broken link" in repaired
 
     issues = find_surface_quality_issues(text)
     codes = {issue.code for issue in issues if issue.severity == "block"}
@@ -50,27 +69,37 @@ def test_repairs_trace_fragments_and_unmatched_link_markers() -> None:
     assert has_blocking_surface_issue(text)
 
     repaired_issues = find_surface_quality_issues(repaired)
-    assert [issue for issue in repaired_issues if issue.severity == "block"] == []
+    assert {issue.code for issue in repaired_issues if issue.severity == "block"} == {
+        "markdown.unmatched_link",
+    }
 
 
-def test_repairs_recoverable_markdown_link_fragment() -> None:
+def test_owned_link_transform_repairs_recoverable_markdown_link_fragment() -> None:
     text = "# title\n\n> **오늘의 결론**: [broken link](https://example.com\n\n## ① 요약"
 
-    repaired = repair_surface_artifacts(text)
+    cosmetically_repaired = repair_surface_artifacts(text)
+    repaired = repair_surface_link_targets(text)
 
+    assert "[broken link](" in cosmetically_repaired
     assert "[broken link](" not in repaired
     assert "broken link" in repaired
     assert not has_blocking_surface_issue(repaired)
+    assert [
+        issue.code for issue in find_surface_quality_issues(text) if issue.severity == "block"
+    ] == ["markdown.unmatched_link"]
 
 
-def test_repairs_plain_unmatched_bracket_marker() -> None:
+def test_both_repair_helpers_leave_unmatched_residual_unchanged() -> None:
     text = "# title\n\n> **오늘의 결론**: [국내 증시 변동성 확대\n\n## ① 요약"
 
-    repaired = repair_surface_artifacts(text)
+    cosmetically_repaired = repair_surface_artifacts(text)
+    link_repaired = repair_surface_link_targets(text)
 
-    assert "[국내 증시" not in repaired
-    assert "국내 증시 변동성 확대" in repaired
-    assert not has_blocking_surface_issue(repaired)
+    assert "[국내 증시" in cosmetically_repaired
+    assert link_repaired == text
+    residual = _issues_with_code(link_repaired, "markdown.unmatched_link")
+    assert len(residual) == 1
+    assert residual[0].link_shape == "unmatched_residual"
 
 
 def test_repairs_first_viewport_trace_assignment_lines() -> None:
@@ -88,6 +117,27 @@ def test_repairs_first_viewport_trace_assignment_lines() -> None:
     assert "stage2_hash" not in repaired
     assert "> **오늘의 결론**: 금리 민감도가 커졌습니다." in repaired
     assert not has_blocking_surface_issue(repaired)
+
+
+def test_escaped_trace_assignment_cannot_bypass_surface_gate_u150() -> None:
+    text = "# title\n\ninput\\_hash=private\n\n## ① 요약"
+
+    issues = find_surface_quality_issues(text)
+    repaired = repair_surface_artifacts(text)
+
+    assert any(issue.code == "trace.fragment" for issue in issues)
+    assert "input\\_hash" not in repaired
+
+
+def test_cosmetic_repair_never_erases_a_link_finding_before_policy_u150() -> None:
+    text = "[ref]: https://example.invalid/... stage1_hash=private"
+
+    assert repair_surface_artifacts(text) == text
+    issues = find_surface_quality_issues(text)
+    assert [(issue.code, issue.link_shape) for issue in issues] == [
+        ("trace.fragment", None),
+        ("markdown.href_ellipsis", "reference_definition"),
+    ]
 
 
 def test_preserves_protected_regions() -> None:
@@ -282,9 +332,562 @@ def test_href_ellipsis_blocks_targets_but_not_visible_text_u112() -> None:
     code = "# title\n\n`[x](https://example.com/...)`\n\n## ① 요약"
 
     assert _issues_with_code(visible, "markdown.href_ellipsis") == []
-    for text in (inline, image, ref, autolink):
-        assert any(i.code == "markdown.href_ellipsis" for i in find_surface_quality_issues(text))
+    expected_shapes = ("inline_link", "image", "reference_definition", "autolink")
+    for text, expected_shape in zip((inline, image, ref, autolink), expected_shapes, strict=True):
+        issues = _issues_with_code(text, "markdown.href_ellipsis")
+        assert len(issues) == 1
+        assert issues[0].link_shape == expected_shape
     assert _issues_with_code(code, "markdown.href_ellipsis") == []
+
+
+def test_closed_invalid_links_emit_one_finding_per_occurrence_in_span_order_u150() -> None:
+    line = (
+        "[첫째](https://example.invalid/a/...) 뒤 "
+        "![둘째](https://example.invalid/b/…) 뒤 "
+        "<https://example.invalid/c/...>"
+    )
+
+    issues = _issues_with_code(line, "markdown.href_ellipsis")
+
+    assert [issue.link_shape for issue in issues] == ["inline_link", "image", "autolink"]
+    assert [issue.evidence for issue in issues] == [
+        "https://example.invalid/a/...",
+        "https://example.invalid/b/…",
+        "https://example.invalid/c/...",
+    ]
+    assert repair_surface_link_targets(line) == "첫째 뒤 둘째 뒤 "
+
+
+@pytest.mark.parametrize(
+    "target",
+    (
+        "https://example.invalid/a/.../(tail)",
+        "https://example.invalid/a/(x)/.../tail",
+        r"https://example.invalid/a/\(...\)/tail",
+    ),
+)
+def test_inline_invalid_target_balances_unescaped_parentheses_u150(target: str) -> None:
+    line = f"[표시 이름]({target})"
+
+    issues = _issues_with_code(line, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "inline_link"
+    assert issues[0].evidence == target
+    assert repair_surface_link_targets(line) == "표시 이름"
+
+
+@pytest.mark.parametrize(
+    ("text", "shape", "replacement"),
+    (
+        (
+            "[표시 이름](<https://example.invalid/a/...>)",
+            "inline_link",
+            "표시 이름",
+        ),
+        (
+            "![대체문구](<https://example.invalid/a/...>)",
+            "image",
+            "대체문구",
+        ),
+        (
+            "[바깥 [안쪽]](https://example.invalid/a/...)",
+            "inline_link",
+            "바깥 [안쪽]",
+        ),
+        (
+            "![바깥 [안쪽]](https://example.invalid/a/...)",
+            "image",
+            r"바깥 \[안쪽\]",
+        ),
+    ),
+)
+def test_closed_inline_shapes_support_angle_targets_and_nested_labels_u150(
+    text: str,
+    shape: str,
+    replacement: str,
+) -> None:
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == shape
+    assert repair_surface_link_targets(text) == replacement
+
+
+@pytest.mark.parametrize(
+    ("text", "shape", "replacement"),
+    (
+        (
+            '[표시 이름](<https://example.invalid/a/...> "title")',
+            "inline_link",
+            "표시 이름",
+        ),
+        (
+            '![대체문구](<https://example.invalid/a/...> "title")',
+            "image",
+            "대체문구",
+        ),
+    ),
+)
+def test_angle_destination_with_optional_title_keeps_one_owner_u150(
+    text: str,
+    shape: str,
+    replacement: str,
+) -> None:
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == shape
+    assert repair_surface_link_targets(text) == replacement
+
+
+@pytest.mark.parametrize(
+    ("text", "shape", "replacement"),
+    (
+        (
+            r"[표시](<https://example.invalid/a\>/...>)",
+            "inline_link",
+            "표시",
+        ),
+        (
+            r"[표시](<https://example.invalid/a/...\>/tail>)",
+            "inline_link",
+            "표시",
+        ),
+        (
+            r"![대체](<https://example.invalid/a\>/...>)",
+            "image",
+            "대체",
+        ),
+    ),
+)
+def test_angle_destination_escaped_close_keeps_outer_owner_u150(
+    text: str,
+    shape: str,
+    replacement: str,
+) -> None:
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == shape
+    assert repair_surface_link_targets(text) == replacement
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        '[표시](https://example.com/full "more...")',
+        '![대체](https://example.com/image.png "설명…")',
+        '[표시](<https://example.com/full> "more...")',
+        '![대체](<https://example.com/image.png> "설명…")',
+    ),
+)
+def test_ellipsis_in_optional_title_does_not_invalidate_destination_u150(text: str) -> None:
+    assert _issues_with_code(text, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(text) == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        '[표시](https://example.com/full "<https://example.invalid/a/...>")',
+        '![대체](https://example.com/image.png "<https://example.invalid/a/...>")',
+        '[표시](<https://example.com/full> "<https://example.invalid/a/...>")',
+        '[id]: https://example.com/full "<https://example.invalid/a/...>"',
+        '[id]: <https://example.com/full> "<https://example.invalid/a/...>"',
+    ),
+)
+def test_angle_text_in_optional_title_is_not_a_top_level_autolink_u150(text: str) -> None:
+    assert _issues_with_code(text, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(text) == text
+
+
+@pytest.mark.parametrize(
+    "target",
+    (
+        "<HTTPS://example.invalid/a/...>",
+        "<HttpS://example.invalid/a/…>",
+    ),
+)
+def test_autolink_scheme_is_ascii_case_insensitive_u150(target: str) -> None:
+    issues = _issues_with_code(target, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "autolink"
+    assert repair_surface_link_targets(target) == ""
+
+
+def test_mixed_closed_and_incomplete_links_share_one_ordered_transform_u150() -> None:
+    line = (
+        "[닫힌 링크](https://example.invalid/...) / "
+        "[불완전 링크](https://example.invalid/incomplete"
+    )
+
+    issues = [
+        issue
+        for issue in find_surface_quality_issues(line)
+        if issue.code in {"markdown.href_ellipsis", "markdown.unmatched_link"}
+    ]
+
+    assert [(issue.code, issue.link_shape) for issue in issues] == [
+        ("markdown.href_ellipsis", "inline_link"),
+        ("markdown.unmatched_link", "incomplete_inline"),
+    ]
+    assert repair_surface_link_targets(line) == "닫힌 링크 / 불완전 링크"
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "[<https://example.invalid/inner/...>](https://example.invalid/outer/...)",
+        "[[안쪽](https://example.invalid/inner/...)](https://example.invalid/outer/...)",
+        "![<https://example.invalid/inner/...>](https://example.invalid/outer/...)",
+    ),
+)
+def test_nested_invalid_targets_fail_closed_without_partial_transform_u150(text: str) -> None:
+    repaired = repair_surface_link_targets(text)
+
+    assert repaired == text
+    assert repair_surface_link_targets(repaired) == repaired
+    assert _issues_with_code(repaired, "markdown.href_ellipsis")
+    unmatched = _issues_with_code(repaired, "markdown.unmatched_link")
+    assert len(unmatched) == 1
+    assert unmatched[0].link_shape == "unmatched_residual"
+
+
+def test_link_transform_escapes_unicode_image_alt_in_fixed_order_u150() -> None:
+    text = r"![한글 & <위험> \`*_\[\]()!](https://example.invalid/image/…)"
+
+    repaired = repair_surface_link_targets(text)
+
+    assert repaired == r"한글 &amp; &lt;위험&gt; \\\`\*\_\\\[\\\]\(\)\!"
+    assert repair_surface_link_targets(repaired) == repaired
+    assert [
+        issue
+        for issue in find_surface_quality_issues(repaired)
+        if issue.code in {"markdown.href_ellipsis", "markdown.unmatched_link"}
+    ] == []
+
+
+def test_reference_definition_is_signaled_but_never_rewritten_u150() -> None:
+    text = "[합성-참조]: https://example.invalid/source/..."
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "reference_definition"
+    assert repair_surface_link_targets(text) == text
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    (
+        "[](https://example.invalid/first/...)",
+        "<https://example.invalid/first/...>",
+    ),
+)
+def test_transform_fails_closed_when_reference_definition_is_newly_exposed_u150(
+    prefix: str,
+) -> None:
+    text = f"{prefix}[id]: https://example.invalid/second/..."
+
+    repaired = repair_surface_link_targets(text)
+
+    assert repaired == text
+    assert repair_surface_link_targets(repaired) == repaired
+    assert len(_issues_with_code(repaired, "markdown.href_ellipsis")) == 1
+
+
+@pytest.mark.parametrize(
+    "target",
+    (
+        r"https://example.invalid/\_/.../tail",
+        r"https://example.invalid/.../\_/tail",
+    ),
+)
+def test_reference_definition_escape_keeps_full_target_evidence_u150(target: str) -> None:
+    text = f"[합성-참조]: {target}"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "reference_definition"
+    assert issues[0].evidence == target
+    assert repair_surface_link_targets(text) == text
+
+
+def test_legacy_cosmetic_repair_does_not_mutate_either_link_code_u150() -> None:
+    samples = (
+        "[닫힌 링크](https://example.invalid/...)",
+        "[불완전 링크](https://example.invalid/incomplete",
+        "[잔여 조각",
+    )
+
+    assert all(repair_surface_artifacts(sample) == sample for sample in samples)
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        r"\[리터럴 괄호]",
+        r"\[링크가 아님](https://example.invalid/...)",
+        r"\<https://example.invalid/...>",
+    ),
+)
+def test_escaped_link_like_literals_remain_byte_identical_u150(text: str) -> None:
+    issues = find_surface_quality_issues(text)
+
+    assert [
+        issue
+        for issue in issues
+        if issue.code in {"markdown.href_ellipsis", "markdown.unmatched_link"}
+    ] == []
+    assert repair_surface_link_targets(text) == text
+
+
+def test_backslash_before_autolink_close_does_not_hide_invalid_target_u150() -> None:
+    text = r"<https://example.invalid/...\>"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "autolink"
+    assert repair_surface_link_targets(text) == ""
+
+
+@pytest.mark.parametrize("escaped_uri_text", (r"\[x", r"\_x", r"\*x"))
+def test_backslash_punctuation_inside_autolink_remains_part_of_target_u150(
+    escaped_uri_text: str,
+) -> None:
+    text = f"<https://example.invalid/.../{escaped_uri_text}>"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "autolink"
+    assert repair_surface_link_targets(text) == ""
+
+
+def test_mixed_unmatched_line_is_residual_and_not_delimiter_stripped_u150() -> None:
+    text = "[잔여 [읽을 수 있는 이름](https://example.invalid/incomplete"
+
+    issues = _issues_with_code(text, "markdown.unmatched_link")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "unmatched_residual"
+    assert repair_surface_link_targets(text) == text
+
+
+@pytest.mark.parametrize("escaped_target_part", (r"\_", r"\*", r"\)", r"\["))
+def test_incomplete_link_removes_the_full_escaped_target_u150(
+    escaped_target_part: str,
+) -> None:
+    text = f"[표시 이름](https://example.invalid/{escaped_target_part}/incomplete"
+
+    issues = _issues_with_code(text, "markdown.unmatched_link")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "incomplete_inline"
+    assert repair_surface_link_targets(text) == "표시 이름"
+
+
+def test_link_transform_preserves_protected_and_inline_code_bytes_u150() -> None:
+    text = (
+        "`[코드](https://example.invalid/...)`\n"
+        "``[다중 코드](https://example.invalid/...)``\n"
+        "```markdown [펜스 경계](https://example.invalid/...)\n"
+        "[펜스](https://example.invalid/...)\n```\n"
+        "~~~markdown\n[물결 펜스](https://example.invalid/...)\n~~~\n"
+        "````markdown\n``` nested\n[긴 펜스](https://example.invalid/...)\n````\n"
+        "<details data-link='[태그](https://example.invalid/...)'><summary>진단</summary>\n"
+        "[세부](https://example.invalid/...)\n</details>\n"
+        "열 A | 열 B\n"
+        "--- | ---\n"
+        "값 | [표](https://example.invalid/...)\n"
+        "```markdown\n[펜스](https://example.invalid/...)\n```\n"
+        "| [표](https://example.invalid/...) |\n"
+        "[일반](https://example.invalid/...)\n"
+        "## ⑦ 면책조항\n[면책](https://example.invalid/...)\n"
+        "투자 자문이 아닙니다 [고지](https://example.invalid/...)\n"
+    )
+
+    repaired = repair_surface_link_targets(text)
+
+    assert repaired == text.replace("[일반](https://example.invalid/...)", "일반")
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "| 열 | [표](https://example.invalid/table/...) |\n",
+        "열 A | 열 B\n--- | ---\n값 | [표](https://example.invalid/table/...)\n",
+        "<details><summary>진단</summary>\n[진단](https://example.invalid/diag/...)\n</details>\n",
+        "<details><summary>[진단](https://example.invalid/diag/...)</summary>\n내용\n</details>\n",
+        "<details> [진단](https://example.invalid/diag/...)\n내용\n</details>\n",
+        "<details><summary>진단</summary>\n내용\n</details> [진단](https://example.invalid/diag/...)\n",
+        "투자 자문이 아닙니다 [고지](https://example.invalid/disclaimer/...)\n",
+    ),
+)
+def test_protected_markdown_links_are_scanned_but_never_rewritten_u150(text: str) -> None:
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].region == "protected"
+    assert repair_surface_link_targets(text) == text
+
+
+def test_incomplete_image_is_unmatched_residual_and_never_leaks_bang_u150() -> None:
+    text = "![대체문구](https://example.invalid/image/..."
+
+    issues = _issues_with_code(text, "markdown.unmatched_link")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "unmatched_residual"
+    assert repair_surface_link_targets(text) == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    (
+        "``[표시](https://example.invalid/a/...)```",
+        "```[표시](https://example.invalid/a/...)``",
+    ),
+)
+def test_unequal_inline_code_delimiters_do_not_hide_link_findings_u150(text: str) -> None:
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].link_shape == "inline_link"
+
+
+@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+def test_multiline_inline_code_link_literal_is_byte_identical_u150(newline: str) -> None:
+    text = f"앞 `코드 시작{newline}[리터럴](https://example.invalid/a/...){newline}코드 끝` 뒤"
+
+    assert _issues_with_code(text, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(text) == text
+
+
+@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+def test_visible_link_next_to_multiline_code_literal_repairs_alone_u150(newline: str) -> None:
+    hidden = "[숨김](https://example.invalid/hidden/...)"
+    visible = "[표시](https://example.invalid/visible/...)"
+    text = f"`코드 시작{newline}{hidden}` 뒤 {visible}"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].evidence == "https://example.invalid/visible/..."
+    assert _issues_with_code(text, "markdown.unmatched_link") == []
+    assert repair_surface_link_targets(text) == f"`코드 시작{newline}{hidden}` 뒤 표시"
+
+
+@pytest.mark.parametrize(
+    "separator",
+    (
+        "\n\n",
+        "\n> ",
+    ),
+)
+def test_stray_backticks_cannot_hide_link_across_block_boundary_u150(separator: str) -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"문단 `열림{separator}{invalid}\n다른 문단 `닫힘"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert repair_surface_link_targets(text) != text
+
+
+def test_stray_backticks_cannot_hide_protected_table_link_u150() -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"| 열 A | 열 B |\n| --- | --- |\n| `열림 | 값 |\n| {invalid} | `닫힘 |"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].region == "protected"
+    assert repair_surface_link_targets(text) == text
+
+
+def test_non_table_pipe_preserves_multiline_code_span_u150() -> None:
+    invalid = "[리터럴](https://example.invalid/a/...)"
+    text = f"`code | pipe\n{invalid}\nclose`"
+
+    assert _issues_with_code(text, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(text) == text
+
+
+def test_list_item_continuation_preserves_multiline_code_span_u150() -> None:
+    invalid = "[리터럴](https://example.invalid/a/...)"
+    text = f"- item `code\n  {invalid}\n  close`"
+
+    assert _issues_with_code(text, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(text) == text
+
+
+def test_list_item_code_span_cannot_escape_into_blockquote_u150() -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"- item `open\n> {invalid}\n> close`"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert invalid not in repair_surface_link_targets(text)
+
+
+@pytest.mark.parametrize("boundary", ("---", "***", "___"))
+def test_stray_backticks_cannot_cross_setext_or_thematic_boundary_u150(
+    boundary: str,
+) -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"문단 `열림\n제목\n{boundary}\n{invalid}\n다른 문단 `닫힘"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert invalid not in repair_surface_link_targets(text)
+
+
+def test_stray_backticks_cannot_cross_details_boundary_u150() -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"문단 `열림\n<details>\n{invalid}\n</details>\n다른 문단 `닫힘"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert issues[0].region == "protected"
+    assert repair_surface_link_targets(text) == text
+
+
+def test_unanchored_first_viewport_never_splits_markdown_at_1600_u150() -> None:
+    valid_link = f"{'가' * 1590} [정상](https://example.com/full) 뒤"
+    code_literal = f"{'가' * 1590} `[리터럴](https://example.invalid/a/...)` 뒤"
+
+    assert extract_first_viewport(valid_link) == valid_link
+    assert _issues_with_code(valid_link, "markdown.unmatched_link") == []
+    assert _issues_with_code(code_literal, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(valid_link) == valid_link
+    assert repair_surface_link_targets(code_literal) == code_literal
+
+
+@pytest.mark.parametrize("indent", ("    ", "\t"))
+def test_non_fence_indentation_does_not_protect_middle_link_u150(indent: str) -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"{indent}```\n{invalid}\n{indent}```"
+
+    issues = _issues_with_code(text, "markdown.href_ellipsis")
+
+    assert len(issues) == 1
+    assert invalid not in repair_surface_link_targets(text)
+
+
+def test_three_space_fence_remains_protected_u150() -> None:
+    invalid = "[표시](https://example.invalid/a/...)"
+    text = f"   ```\n{invalid}\n   ```"
+
+    assert _issues_with_code(text, "markdown.href_ellipsis") == []
+    assert repair_surface_link_targets(text) == text
 
 
 def test_first_viewport_truncation_residue_blocks_bounded_shapes_u112() -> None:

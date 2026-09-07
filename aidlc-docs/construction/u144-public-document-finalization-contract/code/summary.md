@@ -6,6 +6,16 @@ Code Generation and Step 7 production closeout are complete (2026-07-22).
 Both the exact failed date and a no-input current-date run published all three
 segments, notified successfully, and completed their separate Pages runs.
 
+## Later amendments
+
+- u149 adds domestic numeric-only owned-region containment and the
+  `finalized_degraded` seal while preserving u144's hard-gate and survivor
+  lifecycle.
+- u150 supersedes only the two terminal Markdown link-code policies. It adds
+  scanner-owned closed shapes, an exhaustive shape/block matrix, one strongest
+  region action, and bounded residual diagnostics without changing u144's
+  seal, artifact, Telegram, Pages, or partial-publication contracts.
+
 ## Delivered boundary
 
 Default segmented publishing now has one typed transition:

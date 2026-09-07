@@ -62,7 +62,7 @@ def test_segment_reader_repairs_bad_token_before_publish() -> None:
     assert "불확실성" in out
 
 
-def test_segment_reader_repairs_recoverable_first_viewport_link_fragment() -> None:
+def test_segment_reader_defers_recoverable_first_viewport_link_fragment() -> None:
     briefing = _briefing(
         "# title\n\n> **오늘의 결론**: [broken link](https://example.com\n\n## ① 요약\n본문"
     )
@@ -72,8 +72,7 @@ def test_segment_reader_repairs_recoverable_first_viewport_link_fragment() -> No
         anchors_by_segment={},
     )[US_EQUITY].rendered_markdown
 
-    assert "[broken link](" not in out
-    assert "broken link" in out
+    assert "[broken link](https://example.com" in out
 
 
 def test_segment_reader_repairs_first_viewport_trace_fragments() -> None:
@@ -95,7 +94,7 @@ def test_segment_reader_repairs_first_viewport_trace_fragments() -> None:
     assert "정책 변수 확인 필요" in out
 
 
-def test_segment_reader_repairs_unrecoverable_first_viewport_link_marker() -> None:
+def test_segment_reader_preserves_unrecoverable_link_marker_for_region_policy_u150() -> None:
     briefing = _briefing("# title\n\n> **오늘의 결론**: [broken link\n\n## ① 요약\n본문")
 
     out = apply_reader_format_to_segments(
@@ -103,11 +102,10 @@ def test_segment_reader_repairs_unrecoverable_first_viewport_link_marker() -> No
         anchors_by_segment={},
     )[US_EQUITY].rendered_markdown
 
-    assert "[broken link" not in out
-    assert "broken link" in out
+    assert "[broken link" in out
 
 
-def test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132(
+def test_legacy_watermark_bracket_is_preserved_for_region_policy_u150(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     legacy_watermark = "**기준 시각**: 2026-06-30 NY · [2026-06-30T04:00Z, 2026-07-01T04:00Z)"
@@ -146,8 +144,8 @@ def test_legacy_watermark_bracket_is_removed_by_surface_artifact_repair_u132(
         )
 
     assert legacy_watermark in captured["input"]
-    assert legacy_watermark not in captured["output"]
-    assert malformed_watermark in captured["output"]
+    assert legacy_watermark in captured["output"]
+    assert malformed_watermark not in captured["output"]
     assert any(issue.code == "watermark.window_bracket" for issue in exc_info.value.issues)
 
 
@@ -392,20 +390,33 @@ def test_public_document_boundary_scans_reader_output_before_return(
         )
 
 
-def test_segment_reader_blocks_u112_href_ellipsis() -> None:
+def test_segment_reader_defers_u150_href_ellipsis() -> None:
     briefing = _briefing(
         "# title\n\n> **오늘의 결론**: [자료](https://example.com/...)\n\n## ① 요약\n본문"
     )
 
-    try:
-        _assemble_phase_one_reader_briefings({US_EQUITY: briefing}, anchors_by_segment={})
-    except SurfaceQualityError as exc:
-        assert any(issue.code == "markdown.href_ellipsis" for issue in exc.issues)
-    else:  # pragma: no cover - assertion clarity
-        raise AssertionError("expected SurfaceQualityError")
+    rewritten = _assemble_phase_one_reader_briefings({US_EQUITY: briefing}, anchors_by_segment={})[
+        US_EQUITY
+    ]
+
+    assert "[자료](https://example.com/...)" in rewritten.rendered_markdown
 
 
-def test_phase_one_surface_block_precedes_later_segment_hard_error(
+def test_phase_one_link_deferral_log_has_no_evidence_derived_fields(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_line = "[private](https://example.invalid/path/..."
+    briefing = _briefing(f"# title\n\n> **오늘의 결론**: {private_line}\n\n## ① 요약\n본문")
+
+    _assemble_phase_one_reader_briefings({US_EQUITY: briefing}, anchors_by_segment={})
+
+    surfaces = tuple(f"{record.getMessage()} {record.__dict__!r}" for record in caplog.records)
+    assert all("evidence_len" not in surface for surface in surfaces)
+    assert all("example.invalid" not in surface for surface in surfaces)
+    assert all("https://" not in surface for surface in surfaces)
+
+
+def test_phase_one_link_deferral_does_not_precede_later_segment_hard_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     real_scan = segment_reader_format.scan_compliance
@@ -436,7 +447,7 @@ def test_phase_one_surface_block_precedes_later_segment_hard_error(
         "# title\n\n> **오늘의 결론**: 정책 변수를 확인합니다.\n\n## ① 요약\n본문"
     )
 
-    with pytest.raises(SurfaceQualityError) as exc_info:
+    with pytest.raises(ComplianceLanguageError):
         _assemble_phase_one_reader_briefings(
             {
                 DOMESTIC_EQUITY: blocked_first,
@@ -445,5 +456,4 @@ def test_phase_one_surface_block_precedes_later_segment_hard_error(
             anchors_by_segment={},
         )
 
-    assert exc_info.value.segment == DOMESTIC_EQUITY
-    assert later_segment_scanned is False
+    assert later_segment_scanned is True

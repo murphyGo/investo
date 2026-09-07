@@ -3,6 +3,14 @@
 **Date**: 2026-07-21
 **Source**: `aidlc-docs/construction/plans/u144-public-document-finalization-contract-code-generation-plan.md`
 
+> **Supersession note (2026-09-07)**: u150 supersedes only the
+> `markdown.href_ellipsis` / `markdown.unmatched_link` scan, disposition,
+> one-action containment, and residual-diagnostic details in this model. The
+> current binding flow is documented in
+> `aidlc-docs/construction/u150-terminal-markdown-link-containment/functional-design/`.
+> All other u144 lifecycle, ownership, survivor, seal, artifact, notifier, and
+> publication contracts remain authoritative.
+
 This model fixes the canonical control flow. Rule IDs refer to
 `business-rules.md`; entity IDs refer to `domain-entities.md`.
 

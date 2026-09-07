@@ -4,6 +4,12 @@
 **Frozen**: 2026-07-21
 **Executable owner**: `src/investo/publisher/_public_document_policy.py`
 
+> **Historical baseline**: u150 superseded the
+> `markdown.href_ellipsis` / `markdown.unmatched_link` rows on 2026-09-07.
+> Current behavior is the exhaustive `(issue_code, PublicBlockKind,
+> SurfaceLinkShape)` matrix in the executable owner and the u150 Functional
+> Design. The remaining u144 rows and optional-block ownership stay current.
+
 ## Current scanner inventory
 
 The AST exhaustiveness test finds 13 static `SurfaceQualityIssue.code` values in

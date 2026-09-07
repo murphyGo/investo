@@ -11,6 +11,8 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Final, Literal
 
+from investo._internal.surface_quality import SurfaceLinkShape
+
 PublicBlockKind = Literal[
     "header",
     "navigation",
@@ -83,6 +85,25 @@ SURFACE_ISSUE_CODES: Final[frozenset[str]] = frozenset(
     }
 )
 
+SURFACE_LINK_SHAPES_BY_CODE: Final[Mapping[str, tuple[SurfaceLinkShape, ...]]] = MappingProxyType(
+    {
+        "markdown.href_ellipsis": (
+            "inline_link",
+            "image",
+            "autolink",
+            "reference_definition",
+        ),
+        "markdown.unmatched_link": (
+            "incomplete_inline",
+            "unmatched_residual",
+        ),
+    }
+)
+
+_RECOVERABLE_LINK_SHAPES: Final[frozenset[SurfaceLinkShape]] = frozenset(
+    {"inline_link", "image", "autolink", "incomplete_inline"}
+)
+
 OPTIONAL_BLOCK_DISPOSITIONS: Final[Mapping[PublicBlockKind, FinalizationIssueDisposition]] = (
     MappingProxyType(
         {
@@ -152,10 +173,10 @@ def _disposition_for(
         return _optional_augmentation_disposition(block, default="block_segment")
     if issue_code == "watermark.window_bracket":
         return "replace_block" if block in {"header", "first_viewport"} else "block_segment"
-    if issue_code in {"markdown.href_ellipsis", "markdown.unmatched_link"}:
-        if block == "first_viewport":
-            return "repair"
-        return _optional_augmentation_disposition(block, default="block_segment")
+    if issue_code in SURFACE_LINK_SHAPES_BY_CODE:
+        # Link policy requires the canonical scanner-owned shape. The legacy
+        # two-key lookup remains fail-closed for callers that omit it.
+        return "block_segment"
     if issue_code == "summary.truncated_mid_token":
         return "replace_block" if block == "first_viewport" else "block_segment"
     if issue_code == "watchlist.matcher_reason.public":
@@ -182,11 +203,49 @@ SURFACE_ISSUE_DISPOSITION_TABLE: Final[
 )
 
 
+def _link_disposition_for(
+    block: PublicBlockKind,
+    link_shape: SurfaceLinkShape,
+) -> FinalizationIssueDisposition:
+    if block in {"first_viewport", "section_body"}:
+        return "repair" if link_shape in _RECOVERABLE_LINK_SHAPES else "replace_block"
+    if block in OPTIONAL_BLOCK_DISPOSITIONS:
+        return OPTIONAL_BLOCK_DISPOSITIONS[block]
+    return "block_segment"
+
+
+SURFACE_LINK_ISSUE_DISPOSITION_TABLE: Final[
+    MappingProxyType[
+        tuple[str, PublicBlockKind, SurfaceLinkShape],
+        FinalizationIssueDisposition,
+    ]
+] = MappingProxyType(
+    {
+        (issue_code, block, link_shape): _link_disposition_for(block, link_shape)
+        for issue_code, link_shapes in SURFACE_LINK_SHAPES_BY_CODE.items()
+        for block in PUBLIC_BLOCK_KINDS
+        for link_shape in link_shapes
+    }
+)
+
+
 def surface_issue_disposition(
     issue_code: str,
     block: PublicBlockKind,
+    *,
+    link_shape: SurfaceLinkShape | None = None,
 ) -> FinalizationIssueDisposition:
-    """Return the closed policy or fail a missing code/block pair safely."""
+    """Return the closed policy or fail a missing code/block/shape safely."""
+
+    if issue_code in SURFACE_LINK_SHAPES_BY_CODE:
+        if link_shape is None:
+            return "block_segment"
+        return SURFACE_LINK_ISSUE_DISPOSITION_TABLE.get(
+            (issue_code, block, link_shape),
+            "block_segment",
+        )
+    if link_shape is not None:
+        return "block_segment"
 
     return SURFACE_ISSUE_DISPOSITION_TABLE.get((issue_code, block), "block_segment")
 
@@ -214,6 +273,8 @@ __all__ = [
     "PUBLIC_BLOCK_KINDS",
     "SURFACE_ISSUE_CODES",
     "SURFACE_ISSUE_DISPOSITION_TABLE",
+    "SURFACE_LINK_ISSUE_DISPOSITION_TABLE",
+    "SURFACE_LINK_SHAPES_BY_CODE",
     "FinalizationIssueDisposition",
     "PublicBlockKind",
     "strongest_surface_disposition",

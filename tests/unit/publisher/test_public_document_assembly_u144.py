@@ -11,7 +11,6 @@ from investo._internal.briefing_extract import CONCLUSION_PREFIX
 from investo._internal.disclaimer import DISCLAIMER_CRYPTO
 from investo.models import Briefing
 from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
-from investo.publisher.errors import SurfaceQualityError
 from investo.publisher.public_document import (
     _assemble_phase_one_body_evidence,
     _assemble_phase_one_presentation_briefings,
@@ -72,6 +71,28 @@ def test_phase_one_presentation_orders_nav_disclaimers_and_summary_repair() -> N
     assert repeated is assembled
 
 
+def test_phase_one_presentation_preserves_summary_link_for_u150_classification() -> None:
+    invalid = "[자료](https://example.invalid/a/(x)/.../tail)"
+    source = _phase_one_briefing()
+    source = source.model_copy(
+        update={
+            "rendered_markdown": source.rendered_markdown.replace(
+                "금리 경로를 확인합니다.",
+                invalid,
+                1,
+            )
+        }
+    )
+
+    assembled = _assemble_phase_one_presentation_briefings(
+        {CRYPTO: source},
+        target_date=_TARGET_DATE,
+        active_segments=(CRYPTO,),
+    )[CRYPTO]
+
+    assert invalid in assembled.rendered_markdown
+
+
 def test_phase_one_body_evidence_renders_after_presentation() -> None:
     assembled = _assemble_phase_one_presentation_briefings(
         {CRYPTO: _phase_one_briefing()},
@@ -126,7 +147,7 @@ def test_segment_reader_is_internal_phase_one_collaborator() -> None:
     assert "investo.publisher.segment_reader_format" not in pipeline_source
 
 
-def test_phase_one_reader_boundary_preserves_surface_fail_close() -> None:
+def test_phase_one_reader_boundary_defers_link_failure_to_u150_finalizer() -> None:
     base = _phase_one_briefing()
     briefing = base.model_copy(
         update={
@@ -138,13 +159,12 @@ def test_phase_one_reader_boundary_preserves_surface_fail_close() -> None:
         }
     )
 
-    with pytest.raises(SurfaceQualityError) as exc_info:
-        _assemble_phase_one_reader_briefings(
-            {CRYPTO: briefing},
-            anchors_by_segment={},
-        )
+    rewritten = _assemble_phase_one_reader_briefings(
+        {CRYPTO: briefing},
+        anchors_by_segment={},
+    )[CRYPTO]
 
-    assert {issue.code for issue in exc_info.value.issues} == {"markdown.href_ellipsis"}
+    assert "[자료](https://example.com/...)" in rewritten.rendered_markdown
 
 
 def test_phase_one_reader_boundary_reports_typed_watchpoint_result() -> None:

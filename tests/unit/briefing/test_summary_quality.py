@@ -110,7 +110,7 @@ def test_validate_first_viewport_summary_rejects_missing_required_line() -> None
         validate_first_viewport_summary(markdown)
 
 
-def test_repair_first_viewport_summary_cleans_markdown_artifacts() -> None:
+def test_repair_first_viewport_summary_preserves_link_artifacts_for_u150_gate() -> None:
     markdown = _markdown(
         conclusion="[미국 증시(https://example.com)",
         driver="**입법 가속화 vs.",
@@ -119,8 +119,9 @@ def test_repair_first_viewport_summary_cleans_markdown_artifacts() -> None:
 
     repaired = repair_first_viewport_summary(markdown)
 
-    validate_first_viewport_summary(repaired)
-    assert "[미국 증시" not in repaired
+    with pytest.raises(SummaryQualityError, match="unbalanced markdown link"):
+        validate_first_viewport_summary(repaired)
+    assert "[미국 증시(https://example.com)" in repaired
     assert "**입법" not in repaired
     assert "> **주의할 점**: 관전 포인트는 데이터 회복 후 보강합니다." in repaired
 

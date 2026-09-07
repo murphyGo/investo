@@ -39,6 +39,8 @@ def test_pages_dispatch_is_gated_only_by_publication_commit() -> None:
 
     assert pipeline_start < pages_start < final_start
     assert "if: steps.pipeline.outputs.publication_committed == 'true'" in block
+    assert "process_exit_code" not in block
+    assert "content_completeness" not in block
     assert 'gh workflow run pages.yml --ref "$GITHUB_REF_NAME"' in block
 
 

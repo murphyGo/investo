@@ -318,7 +318,11 @@ def _pipeline_exit_code(result: PipelineResult) -> int:
 
 
 def _public_result_counts(result: PipelineResult) -> tuple[int, int, int]:
-    finalized = sum(1 for outcome in result.segment_outcomes if outcome.state == "finalized")
+    finalized = sum(
+        1
+        for outcome in result.segment_outcomes
+        if outcome.state in {"finalized", "finalized_degraded"}
+    )
     published = finalized if result.publication_committed else 0
     return _EXPECTED_PUBLIC_SEGMENTS, finalized, published
 

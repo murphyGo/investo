@@ -35,6 +35,7 @@ from investo.publisher.public_document import (
     PublicRegionExpectation,
     finalize_public_bundle,
 )
+from investo.publisher.reader_format import MEANING_MARKER, MEANING_MAX_CHARS, SNIPPET_MAX_CHARS
 
 _TARGET = date(2026, 8, 4)
 _SHORT = "> 정보 제공용 자동 시황이며 매매 권유가 아닙니다."
@@ -302,8 +303,227 @@ def test_protected_diagnostic_claim_uses_one_minimal_fallback_and_seals_degraded
     assert outcome.issue_codes == ("numeric.anchor_assertion",)
 
 
+def test_u150_link_runs_through_full_lifecycle_and_seals_repaired_owner(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    invalid = "[자료](https://example.invalid/private/...)"
+    markdown = (
+        _markdown()
+        .replace("| 코스피 | 150.00 |", "| 지수 | 확인 중 |")
+        .replace(
+            "요약 본문",
+            invalid,
+            1,
+        )
+    )
+    source = _briefing(markdown)
+    real_transform = public_document_module.repair_surface_link_targets
+    observed_inputs: list[str] = []
+
+    def observe_transform(value: str) -> str:
+        observed_inputs.append(value)
+        return real_transform(value)
+
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_link_targets",
+        observe_transform,
+    )
+
+    bundle = finalize_public_bundle({DOMESTIC_EQUITY: source}, context=_context())
+
+    assert len(bundle.documents) == 1
+    document = bundle.documents[0]
+    assert observed_inputs == [f"{invalid}\n\n"]
+    assert invalid not in document.briefing.rendered_markdown
+    assert "example.invalid" not in document.briefing.rendered_markdown
+    outcome = next(
+        outcome for outcome in document.block_outcomes if outcome.region_id == "section:1"
+    )
+    assert outcome.disposition == "repaired"
+    assert outcome.issue_codes == ("markdown.href_ellipsis",)
+
+
+@pytest.mark.parametrize(
+    ("suffix", "expected"),
+    (
+        (" ROS", "자료"),
+        (" **-**0.04%**p**", "자료 **-0.04%p**"),
+    ),
+)
+def test_u150_link_and_same_summary_line_artifact_share_one_e3_action(
+    suffix: str,
+    expected: str,
+) -> None:
+    invalid = "[자료](https://example.invalid/private/...)"
+    markdown = (
+        _markdown()
+        .replace("| 코스피 | 150.00 |", "| 지수 | 확인 중 |")
+        .replace(
+            "확인 가능한 근거만 반영합니다.",
+            f"{invalid}{suffix}",
+            1,
+        )
+    )
+
+    bundle = finalize_public_bundle(
+        {DOMESTIC_EQUITY: _briefing(markdown)},
+        context=_context(),
+    )
+
+    document = bundle.documents[0]
+    assert f"> **오늘의 결론**: {expected}" in document.briefing.rendered_markdown
+    assert "example.invalid" not in document.briefing.rendered_markdown
+    outcome = next(
+        outcome for outcome in document.block_outcomes if outcome.block == "first_viewport"
+    )
+    assert outcome.disposition == "repaired"
+    assert "markdown.href_ellipsis" in outcome.issue_codes
+
+
+@pytest.mark.parametrize(
+    ("prefix", "original"),
+    (
+        ("> **오늘의 결론**: ", "확인 가능한 근거만 반영합니다."),
+        ("> **주의할 점**: ", "확인 전 방향을 단정하지 않습니다."),
+    ),
+)
+def test_u150_first_viewport_link_repair_reapplies_canonical_snippet_bound(
+    prefix: str,
+    original: str,
+) -> None:
+    invalid = "[자료](https://example.invalid/private/...)"
+    long_value = (
+        "시장 변동성이 확대되어 주요 지표와 수급 변화를 확인합니다. "
+        "정책 경로와 실적 변수를 함께 점검하고 확인된 근거만 판단에 반영합니다. "
+        "해외 시장과 환율의 동행 여부도 추가로 살펴봅니다. "
+        f"{invalid}"
+    )
+    markdown = (
+        _markdown()
+        .replace("| 코스피 | 150.00 |", "| 지수 | 확인 중 |")
+        .replace(f"{prefix}{original}", f"{prefix}{long_value}", 1)
+    )
+
+    bundle = finalize_public_bundle(
+        {DOMESTIC_EQUITY: _briefing(markdown)},
+        context=_context(),
+    )
+
+    document = bundle.documents[0]
+    line = next(
+        line for line in document.briefing.rendered_markdown.splitlines() if line.startswith(prefix)
+    )
+    bounded = line.removeprefix(prefix)
+    assert len(bounded) <= SNIPPET_MAX_CHARS
+    assert bounded.endswith("본문 참고.")
+    assert "example.invalid" not in document.briefing.rendered_markdown
+
+
+def test_u150_section_link_repair_reapplies_meaning_bound_and_dedupe() -> None:
+    invalid = "[자료](https://example.invalid/private/...)"
+    long_meaning = f"{MEANING_MARKER}{'정상 문장입니다. ' * 8}{invalid}"
+    duplicate = f"{MEANING_MARKER}중복 의미 문장입니다."
+    markdown = (
+        _markdown()
+        .replace("| 코스피 | 150.00 |", "| 지수 | 확인 중 |")
+        .replace("수급 본문", f"수급 본문\n\n{long_meaning}\n{duplicate}", 1)
+    )
+
+    bundle = finalize_public_bundle(
+        {DOMESTIC_EQUITY: _briefing(markdown)},
+        context=_context(),
+    )
+
+    document = bundle.documents[0]
+    meaning_lines = tuple(
+        line
+        for line in document.briefing.rendered_markdown.splitlines()
+        if line.startswith(MEANING_MARKER)
+    )
+    assert len(meaning_lines) == 1
+    assert len(meaning_lines[0].removeprefix(MEANING_MARKER)) <= MEANING_MAX_CHARS
+    assert "example.invalid" not in document.briefing.rendered_markdown
+    outcome = next(
+        outcome for outcome in document.block_outcomes if outcome.region_id == "section:3"
+    )
+    assert outcome.disposition == "repaired"
+    assert "markdown.href_ellipsis" in outcome.issue_codes
+
+
+def test_u150_incomplete_image_reaches_first_viewport_replacement_and_seal() -> None:
+    invalid = "![대체문구](https://example.invalid/image/..."
+    markdown = (
+        _markdown()
+        .replace("| 코스피 | 150.00 |", "| 지수 | 확인 중 |")
+        .replace("확인 가능한 근거만 반영합니다.", invalid, 1)
+    )
+
+    bundle = finalize_public_bundle(
+        {DOMESTIC_EQUITY: _briefing(markdown)},
+        context=_context(),
+    )
+
+    document = bundle.documents[0]
+    assert "example.invalid" not in document.briefing.rendered_markdown
+    outcome = next(
+        outcome for outcome in document.block_outcomes if outcome.block == "first_viewport"
+    )
+    assert outcome.disposition == "replaced"
+    assert "markdown.unmatched_link" in outcome.issue_codes
+
+
+def test_u150_incomplete_image_in_long_meaning_reaches_section_replacement() -> None:
+    invalid = "![대체문구](https://example.invalid/image/..."
+    meaning = f"> **그래서 의미는?** {('정상 문장입니다. ' * 8)}{invalid}"
+    markdown = (
+        _markdown()
+        .replace("| 코스피 | 150.00 |", "| 지수 | 확인 중 |")
+        .replace("수급 본문", f"수급 본문\n\n{meaning}", 1)
+    )
+
+    bundle = finalize_public_bundle(
+        {DOMESTIC_EQUITY: _briefing(markdown)},
+        context=_context(),
+    )
+
+    document = bundle.documents[0]
+    assert "example.invalid" not in document.briefing.rendered_markdown
+    outcome = next(
+        outcome for outcome in document.block_outcomes if outcome.region_id == "section:3"
+    )
+    assert outcome.disposition == "replaced"
+    assert "markdown.unmatched_link" in outcome.issue_codes
+
+
 def test_default_finalizer_excludes_local_table_row_and_seals_degraded() -> None:
     source = _briefing(_markdown())
+
+    bundle = finalize_public_bundle(
+        {DOMESTIC_EQUITY: source},
+        context=_context(),
+    )
+
+    document = bundle.documents[0]
+    assert "| 코스피 | 150.00 |" not in document.briefing.rendered_markdown
+    assert "| 수급 | 확인 중 |" in document.briefing.rendered_markdown
+    assert {outcome.action for outcome in document.numeric_containment_outcomes} == {"excluded"}
+    assert bundle.segment_outcomes[0].state == "finalized_degraded"
+
+
+def test_numeric_containment_does_not_run_global_post_action_surface_repair(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _briefing(_markdown())
+
+    def reject_global_repair(_markdown: str) -> str:
+        raise AssertionError("numeric containment must not mutate the whole document")
+
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_artifacts",
+        reject_global_repair,
+    )
 
     bundle = finalize_public_bundle(
         {DOMESTIC_EQUITY: source},

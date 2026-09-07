@@ -117,6 +117,16 @@ def test_overlong_meaning_body_keeps_last_complete_sentence_without_ellipsis() -
     assert not line.endswith(("...", "…"))
 
 
+def test_overlong_meaning_link_defect_is_preserved_for_u150() -> None:
+    invalid = ("정상 문장입니다. " * 8) + "[자료](https://example.invalid/path/...)"
+    body2 = f"문단.\n\n{MEANING_MARKER}{invalid}\n"
+    text = _doc("요약", body2, "섹터", "지표", "종목", "관전")
+
+    out = normalize_meaning_lines(text)
+
+    assert f"{MEANING_MARKER}{invalid}" in out
+
+
 def test_section_without_meaning_line_untouched() -> None:
     text = _doc("요약", "이슈 문단", "섹터", "지표", "종목", "관전")
     out = normalize_meaning_lines(text)

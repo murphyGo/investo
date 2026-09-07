@@ -37,6 +37,7 @@ from investo._internal.public_quality_language import (
     project_public_quality_language,
 )
 from investo._internal.surface_quality import (
+    find_surface_quality_issues,
     has_blocking_surface_issue,
     looks_truncated_caution_continuation,
     looks_truncated_mid_token,
@@ -172,6 +173,8 @@ def bound_summary_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) -> 
     continuation note used for over-long values.
     """
     stripped = value.strip()
+    if _has_surface_link_issue(stripped):
+        return stripped
     if len(stripped) <= max_chars and not _looks_like_truncated_summary_snippet(stripped):
         return stripped
     budget = max_chars - len(_SNIPPET_CONTINUATION)
@@ -197,6 +200,8 @@ def _bound_caution_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) ->
     broken clause.
     """
     stripped = value.strip()
+    if _has_surface_link_issue(stripped):
+        return stripped
     if len(stripped) <= max_chars:
         return (
             ""
@@ -216,6 +221,10 @@ def _bound_caution_snippet(value: str, *, max_chars: int = SNIPPET_MAX_CHARS) ->
         return bounded
     candidate = f"{bounded}{_SNIPPET_CONTINUATION}"
     return "" if has_blocking_surface_issue(candidate) else candidate
+
+
+def _has_surface_link_issue(value: str) -> bool:
+    return any(issue.link_shape is not None for issue in find_surface_quality_issues(value))
 
 
 def _snippet_boundary_ends(value: str, *, budget: int) -> tuple[int, ...]:
@@ -302,6 +311,12 @@ def _bound_first_viewport_summary_lines(text: str) -> str:
     return f"{head}{tail}"
 
 
+def bound_first_viewport_snippets(text: str) -> str:
+    """Apply the canonical u71 snippet bounds without moving diagnostics."""
+
+    return _bound_first_viewport_summary_lines(text)
+
+
 def _bound_residual_truncated_summary_lines(text: str) -> str:
     """Repair malformed summary continuations missed by line-shape regexes.
 
@@ -362,7 +377,7 @@ def reflow_first_viewport(text: str, *, segment: str | None = None) -> str:
          callouts are present). The block is expanded by default only when
          the segment status is the fully-failed tier.
     """
-    text = _bound_first_viewport_summary_lines(text)
+    text = bound_first_viewport_snippets(text)
 
     # Already reflowed? The collapsed diagnostics block exists — the chip
     # and the moved badge lines are in place, so a second pass is a no-op

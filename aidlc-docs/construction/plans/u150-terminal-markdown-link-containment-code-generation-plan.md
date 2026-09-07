@@ -3,7 +3,7 @@
 **Date**: 2026-09-02
 **Unit**: u150 terminal-markdown-link-containment
 **Stage**: Code Generation
-**Status**: Approved — Step 0 design gate complete; Step 1 incident characterization next
+**Status**: In Progress — Steps 1-5 complete; Step 6 local quality, documentation, and cross-check complete; explicit production approval and qualification pending
 **Source**: Scheduled daily-briefing runs `32784998097`, `33035060796`, `33146560495`, `33238048642`, `33344214754`, and successful comparison run `33457514796`; target dates 2026-08-24/26/27/28/31; `archive/_meta/quality_history.jsonl`
 **Estimated Effort**: ~12-18 h across seven bounded steps plus production closeout
 **Dependencies**:
@@ -148,12 +148,13 @@ Link containment is a presentation phase action, not a general fallback. A docum
 ## Implementation Steps
 
 - [x] Step 0 — Author and independently review Functional Design. Freeze the link-shape action table, region matrix, simultaneous-hard-defect precedence, residual diagnostics, call graph, and PBT properties. Stop before code generation until the design is approved.
-- [ ] Step 1 — Add bounded incident characterization: run metadata for `32784998097`, `33035060796`, `33146560495`, `33238048642`, `33344214754`, and `33457514796`; private synthetic Markdown fixtures for each link shape; current-policy tests proving the pre-u150 segment-block/fallback outcomes.
-- [ ] Step 2 — Implement `SurfaceLinkShape`, backward-compatible shaped findings, per-occurrence closed-link classification, whole-line unmatched classification, and the canonical target-specific pure transform in `_internal.surface_quality`; keep legacy `repair_surface_artifacts()` responsible for non-link cosmetic repairs but prevent it from mutating either link code before policy, integrate the link helper only through the owned-region action path, and add example plus Hypothesis tests for mixed same-line shapes, valid-link stability, invalid-target absence, idempotence, protected-region byte stability, Unicode labels, reference-definition signaling, and scanner/repair closure.
-- [ ] Step 3 — Amend `_public_document_policy.py` and `public_document.py` to apply the exhaustive shape-aware region matrix, reuse existing safe fallbacks, preserve one redacted outcome per region without repair-then-replace, and prove required H2/sibling-region/supplement/seal stability.
-- [ ] Step 4 — Propagate bounded residual codes beside `document.fallback_exhausted`; add R13 negative tests proving evidence, URLs, Markdown, payloads, and secrets never reach logs, workflow summary, or typed outcomes.
-- [ ] Step 5 — Add finalizer/orchestrator/integration regressions for link-only 3/3 success, simultaneous hard-gate blocking, US/crypto numeric non-regression, partial exit-2 preservation for genuine blocks, Telegram summary inputs, and Pages sequencing.
+- [x] Step 1 — Add bounded incident characterization: run metadata for `32784998097`, `33035060796`, `33146560495`, `33238048642`, `33344214754`, and `33457514796`; private synthetic Markdown fixtures for each link shape; current-policy tests proving the pre-u150 segment-block/fallback outcomes.
+- [x] Step 2 — Implement `SurfaceLinkShape`, backward-compatible shaped findings, per-occurrence closed-link classification, whole-line unmatched classification, and the canonical target-specific pure transform in `_internal.surface_quality`; keep legacy `repair_surface_artifacts()` responsible for non-link cosmetic repairs but prevent it from mutating either link code before policy, integrate the link helper only through the owned-region action path, and add example plus Hypothesis tests for mixed same-line shapes, valid-link stability, invalid-target absence, idempotence, protected-region byte stability, Unicode labels, reference-definition signaling, and scanner/repair closure.
+- [x] Step 3 — Amend `_public_document_policy.py` and `public_document.py` to apply the exhaustive shape-aware region matrix, reuse existing safe fallbacks, preserve one redacted outcome per region without repair-then-replace, and prove required H2/sibling-region/supplement/seal stability.
+- [x] Step 4 — Propagate bounded residual codes beside `document.fallback_exhausted`; add R13 negative tests proving evidence, URLs, Markdown, payloads, and secrets never reach logs, workflow summary, or typed outcomes.
+- [x] Step 5 — Add finalizer/orchestrator/integration regressions for link-only 3/3 success, simultaneous hard-gate blocking, US/crypto numeric non-regression, partial exit-2 preservation for genuine blocks, Telegram summary inputs, and Pages sequencing.
 - [ ] Step 6 — Run scoped and full quality gates; update u144 supersession notes, DESIGN/component methods, state/audit/code summary, and cross-check. After local approval, replay 2026-08-27 and 2026-08-28, verify three archive URLs, Telegram, pipeline exit 0, chained Pages success, live HTTP 200, invalid-target absence, and record workflow/commit/Page IDs.
+  - Local checkpoint 2026-09-07: lock, Ruff/format, strict mypy, 4,516 tests, policy guards, strict MkDocs, Material contract, diff integrity, documentation synchronization, pre-production cross-check, and separate cumulative review passed. The checkbox remains open until the approved implementation is committed/pushed and both exact-date production replays are qualified.
 
 ## Acceptance Criteria
 

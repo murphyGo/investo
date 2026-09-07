@@ -18,8 +18,8 @@ from investo._internal.public_quality_language import (
     project_public_quality_language,
 )
 from investo._internal.public_watermark import render_timestamp_watermark
-from investo._internal.surface_quality import SurfaceQualityIssue
-from investo.models import Briefing
+from investo._internal.surface_quality import SurfaceLinkShape, SurfaceQualityIssue
+from investo.models import Briefing, PublicNotificationSummary, SegmentFinalizationOutcome
 from investo.models.facts import VerifiedFactBundle
 from investo.models.segments import DOMESTIC_EQUITY, SegmentCoverage
 from investo.publisher._public_document_policy import (
@@ -35,6 +35,7 @@ from investo.publisher.public_document import (
     PublicDocumentSupplement,
     PublicRegionExpectation,
     _append_region_block_outcome,
+    _collect_terminal_hard_gates,
     _find_owned_surface_quality_issues,
     _new_generated_draft,
     _OwnedSurfaceQualityFinding,
@@ -43,7 +44,10 @@ from investo.publisher.public_document import (
     _repair_projected_draft,
     _resolve_owned_region_dispositions,
     _SegmentTrustBlockedError,
+    _terminal_failure_issue_codes,
+    _TerminalHardGateSnapshot,
     _transition_draft,
+    _validate_repaired_draft,
 )
 
 _TARGET_DATE = date(2026, 7, 21)
@@ -96,6 +100,7 @@ def _finding(
     issue_code: str,
     *,
     evidence: str = "private evidence must not enter outcomes",
+    link_shape: SurfaceLinkShape | None = None,
 ) -> _OwnedSurfaceQualityFinding:
     return _OwnedSurfaceQualityFinding(
         region_id=region_id,
@@ -105,6 +110,38 @@ def _finding(
             severity="warn",
             evidence=evidence,
             region="body",
+            link_shape=link_shape,
+        ),
+    )
+
+
+def _isolate_terminal_surface_gates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        public_document_module,
+        "validate_first_viewport_summary",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        public_document_module,
+        "verify_disclaimer",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        public_document_module,
+        "verify_short_disclaimer_first_viewport",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        public_document_module,
+        "_derive_public_notification_summary",
+        lambda draft, _context: PublicNotificationSummary(
+            segment=draft.segment,
+            target_date=draft.target_date,
+            conclusion="[관망] 확인된 결론",
+            coverage_status="normal",
+            coverage_label="정상",
         ),
     )
 
@@ -177,6 +214,7 @@ def _projected_draft(
     markdown: str,
     *,
     supplement_ids: tuple[str, ...] = (),
+    anchor_table_required: bool = False,
 ) -> tuple[PublicDocumentDraft, PublicDocumentContext]:
     expectation = PublicRegionExpectation(
         target_date=_TARGET_DATE,
@@ -187,9 +225,10 @@ def _projected_draft(
         crypto_indicators_required=False,
         channel_anchors_required=False,
         daily_thesis_required=False,
-        anchor_table_required=False,
+        anchor_table_required=anchor_table_required,
     )
     layout = PublicDocumentLayout.reindex(markdown, expectation=expectation)
+    rendered_disclaimer = markdown.split("## ⑦ 면책조항\n\n", 1)[1].strip()
     briefing = Briefing(
         target_date=_TARGET_DATE,
         market_summary="요약 본문",
@@ -198,7 +237,7 @@ def _projected_draft(
         indicators_events="이벤트 본문",
         notable_tickers="종목 본문",
         today_watch="확인할 조건",
-        disclaimer="본 문서는 정보 제공용입니다.",
+        disclaimer=rendered_disclaimer,
         rendered_markdown=markdown,
     )
     generated = _new_generated_draft(
@@ -348,6 +387,30 @@ def test_multiple_findings_group_once_in_region_order_and_record_redacted_outcom
     assert all("private evidence" not in repr(outcome) for outcome in outcomes)
 
 
+def test_repeated_link_code_uses_every_shape_before_redacting_the_region_decision() -> None:
+    findings = (
+        _finding(
+            "first_viewport:1",
+            "first_viewport",
+            "markdown.href_ellipsis",
+            link_shape="inline_link",
+        ),
+        _finding(
+            "first_viewport:1",
+            "first_viewport",
+            "markdown.href_ellipsis",
+            link_shape="reference_definition",
+        ),
+    )
+
+    decision = _resolve_owned_region_dispositions(_layout(), findings)[0]
+
+    assert decision.issue_codes == ("markdown.href_ellipsis",)
+    assert decision.disposition == "replace_block"
+    assert "link_shape" not in repr(decision)
+    assert "private evidence" not in repr(decision)
+
+
 @pytest.mark.parametrize(
     ("issue_code", "block", "expected"),
     (
@@ -429,10 +492,10 @@ def test_required_watchpoint_fallback_preserves_heading_and_replaces_only_body()
     assert repaired.block_outcomes[-1].disposition == "replaced"
 
 
-def test_malformed_chart_and_visual_are_omitted_without_dropping_segment() -> None:
+def test_invalid_link_chart_and_visual_are_omitted_without_dropping_segment() -> None:
     supplements = (
-        ("chart", "bad-chart", "source missing"),
-        ("visual", "bad-visual", "price missing"),
+        ("chart", "bad-chart", "[차트](https://example.invalid/chart/...)"),
+        ("visual", "bad-visual", "![시각화](https://example.invalid/visual/…)"),
     )
     markdown = _canonical_markdown(
         watchpoint_body="- 확인할 조건",
@@ -456,8 +519,115 @@ def test_malformed_chart_and_visual_are_omitted_without_dropping_segment() -> No
         assert f"<!-- /investo:block {region_id} -->" in repaired.layout.markdown
 
 
+@pytest.mark.parametrize(
+    ("protected_block", "needle"),
+    (
+        ("diagnostics", "정상 수집"),
+        ("disclaimer", "본 문서는 정보 제공용입니다."),
+    ),
+)
+def test_protected_region_link_finding_reaches_fail_closed_policy(
+    protected_block: str,
+    needle: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    invalid = "[비공개](https://example.invalid/protected/...)"
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(needle, invalid)
+    projected, context = _projected_draft(markdown)
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    findings = _find_owned_surface_quality_issues(projected.layout)
+    link_finding = next(
+        finding
+        for finding in findings
+        if finding.block == protected_block and finding.issue.code == "markdown.href_ellipsis"
+    )
+    assert link_finding.issue.region == "segment_first_viewport"
+
+    repaired = _repair_projected_draft(projected, context)
+    assert invalid in repaired.layout.markdown
+    assert all(outcome.block != protected_block for outcome in repaired.block_outcomes)
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == ("markdown.href_ellipsis",)
+
+
+def test_anchor_table_invalid_link_is_not_mutated_and_blocks_segment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    invalid = "[비공개](https://example.invalid/anchor/...)"
+    anchor_table = (
+        "| 종목 | 종가 | 변동 | 비고 |\n"
+        "|------|------|------|------|\n"
+        f"| KOSPI | {invalid} | +1.0% | 마감 |\n\n"
+    )
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "## ① 요약",
+        f"{anchor_table}## ① 요약",
+    )
+    projected, context = _projected_draft(markdown, anchor_table_required=True)
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert invalid in repaired.layout.markdown
+    assert all(outcome.block != "anchor_table" for outcome in repaired.block_outcomes)
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == ("markdown.href_ellipsis",)
+
+
+def test_section_markdown_table_link_uses_protected_direct_block(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    invalid = "[비공개](https://example.invalid/table/...)"
+    table = f"열 A | 열 B\n--- | ---\n값 | {invalid}"
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "이슈 본문",
+        table,
+        1,
+    )
+    projected, context = _projected_draft(markdown)
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert invalid in repaired.layout.markdown
+    assert all(outcome.region_id != "section:2" for outcome in repaired.block_outcomes)
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == ("markdown.href_ellipsis",)
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    (
+        "[<https://example.invalid/inner/...>](https://example.invalid/outer/...)",
+        "![대체문구](https://example.invalid/incomplete...",
+    ),
+)
+def test_ambiguous_link_shape_replaces_owner_without_false_repaired_outcome(
+    fragment: str,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "요약 본문",
+        fragment,
+        1,
+    )
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    outcome = next(
+        outcome for outcome in repaired.block_outcomes if outcome.region_id == "section:1"
+    )
+    assert outcome.disposition == "replaced"
+    assert "markdown.unmatched_link" in outcome.issue_codes
+    assert fragment not in repaired.layout.markdown
+
+
 def test_first_viewport_replacements_use_canonical_summary_and_watermark_owners() -> None:
-    malformed_watermark = "**기준 시각**: 2026-07-21 KST · 수집창 [깨짐"
+    malformed_watermark = "**기준 시각**: 2026-07-21 KST · 수집창 invalid"
     malformed_summary = "> **오늘의 결론**: 확인이 더 필요한 관"
     unrelated_line = "> 정상적인 별도 안내는 유지합니다."
     markdown = _canonical_markdown(
@@ -481,6 +651,73 @@ def test_first_viewport_replacements_use_canonical_summary_and_watermark_owners(
     )
 
 
+@pytest.mark.parametrize(
+    ("special_line", "special_code"),
+    (
+        ("**기준 시각**: 2026-07-21 KST · 수집창 invalid", "watermark.window_bracket"),
+        ("> **오늘의 결론**: 확인이 더 필요한 관", "summary.truncated_mid_token"),
+    ),
+)
+def test_unrecoverable_first_viewport_link_uses_the_stronger_whole_region_replacement(
+    special_line: str,
+    special_code: str,
+) -> None:
+    reference = "[synthetic-ref]: https://example.invalid/path/..."
+    markdown = _canonical_markdown(
+        watchpoint_body="- 확인할 조건",
+        first_viewport_lines=(special_line, reference),
+    )
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    outcome = next(
+        outcome
+        for outcome in repaired.block_outcomes
+        if outcome.block == "first_viewport" and "markdown.href_ellipsis" in outcome.issue_codes
+    )
+    assert outcome.disposition == "replaced"
+    assert outcome.issue_codes == tuple(sorted((special_code, "markdown.href_ellipsis")))
+    assert reference not in repaired.layout.markdown
+    assert special_line not in repaired.layout.markdown
+    assert repaired.layout.markdown.count("## ① 요약") == 1
+    assert "## ② 전일 핵심 이슈\n\n이슈 본문" in repaired.layout.markdown
+
+
+def test_stronger_link_replacement_prevents_pre_or_post_cosmetic_repair(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "요약 본문",
+        "불강한성\n[synthetic-ref]: https://example.invalid/path/...",
+        1,
+    )
+    projected, context = _projected_draft(markdown)
+
+    def reject_extra_repair(_text: str) -> str:
+        raise AssertionError("cosmetic repair must not run before or after replacement")
+
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_artifacts",
+        reject_extra_repair,
+    )
+
+    repaired = _repair_projected_draft(projected, context)
+
+    outcome = next(
+        outcome for outcome in repaired.block_outcomes if outcome.region_id == "section:1"
+    )
+    assert outcome.disposition == "replaced"
+    assert outcome.issue_codes == (
+        "bad_token.bulganghanseong",
+        "markdown.href_ellipsis",
+    )
+    assert "example.invalid" not in repaired.layout.markdown
+    assert repaired.layout.markdown.count("## ① 요약") == 1
+    assert "## ② 전일 핵심 이슈\n\n이슈 본문" in repaired.layout.markdown
+
+
 def test_new_actionable_residual_after_projection_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -500,10 +737,283 @@ def test_new_actionable_residual_after_projection_fails_closed(
         "project_public_markdown",
         inject_required_body_issue,
     )
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
 
     with pytest.raises(_SegmentTrustBlockedError) as blocked:
-        _repair_projected_draft(projected, context)
-    assert blocked.value.issue_codes == ("document.fallback_exhausted",)
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == ("trace.fragment",)
+
+
+def test_actionable_link_residual_keeps_exact_code_and_simultaneous_hard_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건")
+    projected, context = _projected_draft(markdown)
+    private_line = (
+        "[private label](https://example.invalid/path/...?token=synthetic-secret-must-not-escape)"
+    )
+
+    def inject_required_body_link(
+        layout: PublicDocumentLayout,
+        *,
+        limitation_reasons: tuple[str, ...],
+    ) -> PublicDocumentLayout:
+        del limitation_reasons
+        return layout.replace_region_body("section:2", f"\n{private_line}\n\n")
+
+    monkeypatch.setattr(
+        public_document_module,
+        "project_public_markdown",
+        inject_required_body_link,
+    )
+    monkeypatch.setattr(
+        public_document_module,
+        "_scan_terminal_entity_fact_claims",
+        lambda *_args, **_kwargs: (object(),),
+    )
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+    snapshot = _collect_terminal_hard_gates(repaired, context)
+
+    assert snapshot.issue_codes == (
+        "entity.fact_contradiction",
+        "markdown.href_ellipsis",
+    )
+    assert snapshot.residual_actionable_link_codes == ("markdown.href_ellipsis",)
+    assert snapshot.notification_summary is None
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.phase == "validated"
+    assert blocked.value.issue_codes == (
+        "document.fallback_exhausted",
+        "entity.fact_contradiction",
+        "markdown.href_ellipsis",
+    )
+
+    typed_outcome = SegmentFinalizationOutcome(
+        segment=DOMESTIC_EQUITY,
+        state="trust_blocked",
+        issue_codes=blocked.value.issue_codes,
+    )
+    forbidden = (
+        "private label",
+        "example.invalid",
+        "synthetic-secret",
+        "section:2",
+        "inline_link",
+        "https://example.invalid/path/...",
+    )
+    bounded_surfaces = (
+        repr(snapshot),
+        str(blocked.value),
+        repr(blocked.value),
+        repr(typed_outcome),
+    )
+    assert all(token not in surface for token in forbidden for surface in bounded_surfaces)
+
+
+def test_residual_failure_with_warning_keeps_log_fields_bounded(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_line = (
+        "[private label](https://example.invalid/path/...?token=synthetic-secret-must-not-escape)"
+    )
+    markdown = _canonical_markdown(
+        watchpoint_body="- 확인할 조건",
+        first_viewport_lines=("본문을 참고하세요. 본문을 참고하세요. 본문을 참고하세요.",),
+    ).replace("요약 본문", private_line, 1)
+    projected, context = _projected_draft(markdown)
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_link_targets",
+        lambda text: text,
+    )
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+    assert all(outcome.region_id != "section:1" for outcome in repaired.block_outcomes)
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+
+    assert blocked.value.issue_codes == (
+        "document.fallback_exhausted",
+        "markdown.href_ellipsis",
+    )
+    assert any(record.code == "template.repeated_phrase" for record in caplog.records)
+    forbidden = (
+        "first_viewport:",
+        "region_id",
+        "private label",
+        "example.invalid",
+        "synthetic-secret",
+        "inline_link",
+    )
+    log_surfaces = tuple(f"{record.getMessage()} {record.__dict__!r}" for record in caplog.records)
+    assert all(token not in surface for token in forbidden for surface in log_surfaces)
+
+
+def test_protected_link_block_waits_for_exhaustive_terminal_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    private_navigation = (
+        "**세그먼트**: "
+        "[private label](https://example.invalid/path/...?token=synthetic-secret-must-not-escape)"
+    )
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "**세그먼트**: [국내](/domestic)",
+        private_navigation,
+    )
+    projected, context = _projected_draft(markdown)
+    monkeypatch.setattr(
+        public_document_module,
+        "_scan_terminal_entity_fact_claims",
+        lambda *_args, **_kwargs: (object(),),
+    )
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+    snapshot = _collect_terminal_hard_gates(repaired, context)
+
+    assert snapshot.issue_codes == (
+        "entity.fact_contradiction",
+        "markdown.href_ellipsis",
+    )
+    assert snapshot.residual_actionable_link_codes == ()
+    assert snapshot.notification_summary is None
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == (
+        "entity.fact_contradiction",
+        "markdown.href_ellipsis",
+    )
+
+
+def test_warn_severity_policy_block_survives_terminal_deferral(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "요약 본문",
+        "본문을 참고하세요. 본문을 참고하세요. 본문을 참고하세요.",
+        1,
+    )
+    projected, context = _projected_draft(markdown)
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+    snapshot = _collect_terminal_hard_gates(repaired, context)
+
+    assert snapshot.issue_codes == ("template.repeated_phrase",)
+    assert snapshot.residual_actionable_link_codes == ()
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == ("template.repeated_phrase",)
+
+
+def test_non_link_action_residual_keeps_exact_code_without_link_marker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "요약 본문",
+        "불강한성",
+        1,
+    )
+    projected, context = _projected_draft(markdown)
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_artifacts",
+        lambda text: text,
+    )
+    _isolate_terminal_surface_gates(monkeypatch)
+
+    repaired = _repair_projected_draft(projected, context)
+    snapshot = _collect_terminal_hard_gates(repaired, context)
+
+    assert snapshot.issue_codes == ("bad_token.bulganghanseong",)
+    assert snapshot.residual_actionable_link_codes == ()
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _validate_repaired_draft(repaired, context)
+    assert blocked.value.issue_codes == ("bad_token.bulganghanseong",)
+
+
+def test_failing_terminal_snapshot_discards_derived_private_summary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "[국내](/domestic)",
+        "[국내](https://example.invalid/path/...)",
+    )
+    projected, context = _projected_draft(markdown)
+    private_summary = PublicNotificationSummary(
+        segment=DOMESTIC_EQUITY,
+        target_date=_TARGET_DATE,
+        conclusion="[관망] private label",
+        coverage_status="normal",
+        coverage_label="정상",
+        watchlist="https://example.invalid/secret?token=synthetic-secret",
+    )
+    _isolate_terminal_surface_gates(monkeypatch)
+    monkeypatch.setattr(
+        public_document_module,
+        "_derive_public_notification_summary",
+        lambda *_args, **_kwargs: private_summary,
+    )
+
+    repaired = _repair_projected_draft(projected, context)
+    snapshot = _collect_terminal_hard_gates(repaired, context)
+
+    assert snapshot.issue_codes == ("markdown.href_ellipsis",)
+    assert snapshot.notification_summary is None
+    assert "private label" not in repr(snapshot)
+    assert "example.invalid" not in repr(snapshot)
+    assert "synthetic-secret" not in repr(snapshot)
+
+
+def test_terminal_snapshot_enforces_residual_code_bounds() -> None:
+    snapshot = _TerminalHardGateSnapshot(
+        issue_codes=("markdown.href_ellipsis", "markdown.href_ellipsis"),
+        residual_actionable_link_codes=("markdown.href_ellipsis",),
+        notification_summary=None,
+    )
+
+    assert snapshot.issue_codes == ("markdown.href_ellipsis",)
+    assert _terminal_failure_issue_codes(snapshot) == (
+        "document.fallback_exhausted",
+        "markdown.href_ellipsis",
+    )
+    protected_snapshot = _TerminalHardGateSnapshot(
+        issue_codes=("markdown.href_ellipsis",),
+        residual_actionable_link_codes=(),
+        notification_summary=None,
+    )
+    assert _terminal_failure_issue_codes(protected_snapshot) == ("markdown.href_ellipsis",)
+    with pytest.raises(ValueError, match="subset of issue_codes"):
+        _TerminalHardGateSnapshot(
+            issue_codes=(),
+            residual_actionable_link_codes=("markdown.href_ellipsis",),
+            notification_summary=None,
+        )
+    with pytest.raises(ValueError, match="registered link codes"):
+        _TerminalHardGateSnapshot(
+            issue_codes=("entity.fact_contradiction",),
+            residual_actionable_link_codes=("entity.fact_contradiction",),
+            notification_summary=None,
+        )
+    with pytest.raises(ValueError, match="must not retain notification summary"):
+        _TerminalHardGateSnapshot(
+            issue_codes=("entity.fact_contradiction",),
+            residual_actionable_link_codes=(),
+            notification_summary=PublicNotificationSummary(
+                segment=DOMESTIC_EQUITY,
+                target_date=_TARGET_DATE,
+                conclusion="[관망] 확인된 결론",
+                coverage_status="normal",
+                coverage_label="정상",
+            ),
+        )
 
 
 _FORBIDDEN_PROPERTY_TOKENS = (

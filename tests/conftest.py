@@ -114,6 +114,7 @@ _SITE_PATH_CONSTANTS: tuple[tuple[str, str, str], ...] = (
     ("investo.publisher.site_index", "ARCHIVE_INDEX_PATH", "archive/index.md"),
     ("investo.publisher.site_index", "QUALITY_PAGE_PATH", "site_docs/quality.md"),
     ("investo.publisher.site_index", "ACCURACY_PAGE_PATH", "site_docs/accuracy.md"),
+    ("investo.orchestrator.pipeline", "ACCURACY_PAGE_PATH", "site_docs/accuracy.md"),
     ("investo.publisher.watchlist_pages", "WATCHLIST_PAGES_ROOT", "site_docs/watchlist"),
     ("investo.visuals.og_card", "OG_CARD_RELATIVE_PATH", "site_docs/assets/og-card.svg"),
     ("investo.visuals.og_card", "OG_CARD_PNG_RELATIVE_PATH", "site_docs/assets/og-card.png"),

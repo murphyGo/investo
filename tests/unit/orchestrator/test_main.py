@@ -20,6 +20,7 @@ import investo.__main__ as main_mod
 from investo.models import (
     ContentCompleteness,
     FailureContext,
+    NumericContainmentOutcome,
     PipelineResult,
     PipelineStatus,
     SegmentFinalizationOutcome,
@@ -423,6 +424,28 @@ _CONTENT_PARTIAL_OUTCOMES = (
     SegmentFinalizationOutcome(segment=CRYPTO, state="finalized"),
 )
 
+_COMPLETE_WITH_DEGRADED_OUTCOMES = (
+    SegmentFinalizationOutcome(
+        segment=DOMESTIC_EQUITY,
+        state="finalized_degraded",
+        issue_codes=("numeric.anchor_assertion",),
+        numeric_containment_outcomes=(
+            NumericContainmentOutcome(
+                target_date=date(2026, 4, 27),
+                segment=DOMESTIC_EQUITY,
+                symbol="^KS11",
+                region_id="section:2",
+                line_kind="table_row",
+                action="excluded",
+                issue_codes=("numeric.anchor_assertion",),
+                claim_digest="0" * 64,
+            ),
+        ),
+    ),
+    SegmentFinalizationOutcome(segment=US_EQUITY, state="finalized"),
+    SegmentFinalizationOutcome(segment=CRYPTO, state="finalized"),
+)
+
 
 @pytest.mark.parametrize(
     ("status", "content_completeness", "segment_outcomes", "expected_rc"),
@@ -478,6 +501,31 @@ def test_main_writes_bounded_github_outputs_for_content_partial(
         "finalized_segments=2",
         "published_segments=2",
     ]
+
+
+def test_github_outputs_count_finalized_degraded_as_published_document(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    output_path = tmp_path / "github-output.txt"
+    summary_path = tmp_path / "github-summary.md"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output_path))
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+    result = _make_pipeline_result(
+        PipelineStatus.SUCCESS,
+        content_completeness="complete",
+        segment_outcomes=_COMPLETE_WITH_DEGRADED_OUTCOMES,
+        publication_committed=True,
+    )
+
+    main_mod._write_github_outputs(result)
+    main_mod._write_github_step_summary(result)
+
+    output = output_path.read_text(encoding="utf-8")
+    assert "finalized_segments=3" in output
+    assert "published_segments=3" in output
+    summary = summary_path.read_text(encoding="utf-8")
+    assert "Public segments: `3/3` finalized, `3` published" in summary
 
 
 def test_github_outputs_report_zero_published_without_commit(
@@ -568,6 +616,44 @@ def test_github_step_summary_reports_public_document_outcomes(
     assert "| domestic-equity | finalized | - |" in summary
     assert "| us-equity | trust_blocked | entity.fact_contradiction |" in summary
     assert "| crypto | finalized | - |" in summary
+
+
+def test_github_step_summary_exposes_only_bounded_residual_codes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    summary_path = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+    result = _make_pipeline_result(
+        PipelineStatus.PARTIAL,
+        content_completeness="none",
+        segment_outcomes=(
+            SegmentFinalizationOutcome(
+                segment=US_EQUITY,
+                state="trust_blocked",
+                issue_codes=(
+                    "markdown.href_ellipsis",
+                    "document.fallback_exhausted",
+                ),
+            ),
+        ),
+    )
+
+    main_mod._write_github_step_summary(result)
+
+    summary = summary_path.read_text(encoding="utf-8")
+    assert (
+        "| us-equity | trust_blocked | document.fallback_exhausted, markdown.href_ellipsis |"
+    ) in summary
+    for forbidden in (
+        "private label",
+        "example.invalid",
+        "synthetic-secret",
+        "section:2",
+        "inline_link",
+        "https://example.invalid/path/...",
+    ):
+        assert forbidden not in summary
 
 
 def test_github_step_summary_bounds_finalization_code_count(

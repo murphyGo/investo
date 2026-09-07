@@ -205,6 +205,19 @@ def test_escape_krx_stock_code_link_fragments_preserves_real_links() -> None:
     assert escape_krx_stock_code_link_fragments(text) == text
 
 
+def test_escape_krx_stock_code_link_fragments_defers_invalid_link_to_u150() -> None:
+    text = "[123456](https://example.invalid/path/...)"
+
+    assert escape_krx_stock_code_link_fragments(text) == text
+
+
+def test_escape_krx_stock_code_link_fragments_keeps_independent_same_line_escape() -> None:
+    invalid = "[표시](https://example.invalid/path/...)"
+    text = f"종목[123456](가격)와 {invalid}"
+
+    assert escape_krx_stock_code_link_fragments(text) == rf"종목\[123456\](가격)와 {invalid}"
+
+
 def test_normalize_data_limited_reader_copy_rewrites_standalone_placeholder() -> None:
     text = "## ③ 섹터/수급 동향\n\n데이터 부족.\n\n> 데이터 부족\n\n문장 안 데이터 부족은 유지."
     out = normalize_data_limited_reader_copy(text)

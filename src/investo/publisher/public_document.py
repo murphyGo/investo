@@ -47,6 +47,7 @@ from investo._internal.surface_quality import (
     SurfaceQualityIssue,
     find_surface_quality_issues,
     repair_surface_artifacts,
+    repair_surface_link_targets,
 )
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
@@ -73,10 +74,11 @@ from investo.models.segments import (
     SegmentCoverage,
 )
 from investo.publisher._public_document_policy import (
+    FINALIZATION_DISPOSITION_PRECEDENCE,
     PUBLIC_BLOCK_KINDS,
     FinalizationIssueDisposition,
     PublicBlockKind,
-    strongest_surface_disposition,
+    surface_issue_disposition,
 )
 from investo.publisher.anchor_assertion_gate import (
     AnchorAssertionFinding,
@@ -100,7 +102,12 @@ from investo.publisher.numeric_containment import (
     apply_numeric_containment_plan,
     plan_numeric_containment,
 )
-from investo.publisher.reader_format import emit_first_viewport_disclaimer, project_public_markdown
+from investo.publisher.reader_format import (
+    bound_first_viewport_snippets,
+    emit_first_viewport_disclaimer,
+    normalize_meaning_region_body,
+    project_public_markdown,
+)
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 from investo.publisher.verifier import (
     verify_disclaimer,
@@ -144,6 +151,12 @@ _CANONICAL_SEGMENT_ORDER: Final[tuple[MarketSegment, ...]] = (
     CRYPTO,
 )
 _SUPPLEMENT_KINDS: Final[frozenset[str]] = frozenset({"visual", "chart", "carryover"})
+_SURFACE_LINK_ISSUE_CODES: Final[frozenset[str]] = frozenset(
+    {"markdown.href_ellipsis", "markdown.unmatched_link"}
+)
+_RESIDUAL_ACTIONABLE_LINK_DISPOSITIONS: Final[frozenset[FinalizationIssueDisposition]] = frozenset(
+    {"repair", "replace_block", "omit_optional_block"}
+)
 _SEGMENTS: Final[frozenset[str]] = frozenset(_CANONICAL_SEGMENT_ORDER)
 _PROJECTION_POLICIES: Final[frozenset[str]] = frozenset(
     {"reader_visible", "protected_diagnostics", "exact_disclaimer"}
@@ -415,7 +428,7 @@ def _enforce_phase_one_surface_compatibility(
     before_repair: str,
     after_repair: str,
 ) -> None:
-    """Preserve the legacy per-segment fail-close order until Step 4."""
+    """Keep legacy diagnostics while deferring u150-owned link findings to E3."""
 
     issues_before = find_surface_quality_issues(before_repair)
     issues_after = find_surface_quality_issues(after_repair)
@@ -429,10 +442,19 @@ def _enforce_phase_one_surface_compatibility(
                     "segment": segment,
                     "code": issue.code,
                     "region": issue.region,
-                    "evidence_len": len(issue.evidence),
                 },
             )
-    blocking_issues = tuple(issue for issue in issues_after if issue.severity == "block")
+    # When this projected document contains any link defect, E3 must retain the
+    # complete owned-region finding set from the same original bytes. Deferring
+    # only the link code would let a co-located legacy blocker stop before the
+    # terminal containment policy can apply one stable region action.
+    has_link_issue = any(issue.code in _SURFACE_LINK_ISSUE_CODES for issue in issues_after)
+    has_watermark_issue = any(issue.code == "watermark.window_bracket" for issue in issues_after)
+    blocking_issues = (
+        ()
+        if has_link_issue and not has_watermark_issue
+        else tuple(issue for issue in issues_after if issue.severity == "block")
+    )
     if blocking_issues:
         raise SurfaceQualityError(segment=segment, issues=blocking_issues)
 
@@ -1933,8 +1955,8 @@ class _RegionDispositionDecision:
         codes = _canonical_issue_codes(self.issue_codes)
         if not codes:
             raise ValueError("issue_codes must not be empty")
-        if self.disposition != strongest_surface_disposition(codes, self.block):
-            raise ValueError("disposition must equal the grouped policy decision")
+        if self.disposition not in FINALIZATION_DISPOSITION_PRECEDENCE:
+            raise ValueError("disposition must be a supported policy decision")
         object.__setattr__(self, "issue_codes", codes)
 
 
@@ -1961,15 +1983,33 @@ def _resolve_owned_region_dispositions(
         if not region_findings:
             continue
         issue_codes = tuple(sorted({finding.issue.code for finding in region_findings}))
+        dispositions = {_owned_surface_disposition(finding) for finding in region_findings}
+        disposition = next(
+            candidate
+            for candidate in FINALIZATION_DISPOSITION_PRECEDENCE
+            if candidate in dispositions
+        )
         decisions.append(
             _RegionDispositionDecision(
                 region_id=region.region_id,
                 block=region.block,
                 issue_codes=issue_codes,
-                disposition=strongest_surface_disposition(issue_codes, region.block),
+                disposition=disposition,
             )
         )
     return tuple(decisions)
+
+
+def _owned_surface_disposition(
+    finding: _OwnedSurfaceQualityFinding,
+) -> FinalizationIssueDisposition:
+    if finding.issue.link_shape is not None and finding.issue.region == "protected":
+        return "block_segment"
+    return surface_issue_disposition(
+        finding.issue.code,
+        finding.block,
+        link_shape=finding.issue.link_shape,
+    )
 
 
 def _append_region_block_outcome(
@@ -2020,12 +2060,10 @@ _REGION_SAFE_FALLBACK_TEXT: Final[Mapping[PublicBlockKind, str]] = MappingProxyT
 def _find_owned_surface_quality_issues(
     layout: PublicDocumentLayout,
 ) -> tuple[_OwnedSurfaceQualityFinding, ...]:
-    """Run the canonical scanner once per reader-visible E3 region."""
+    """Run the canonical scanner once per E3 region with owned policy."""
 
     findings: list[_OwnedSurfaceQualityFinding] = []
     for region in layout.regions:
-        if region.projection_policy != "reader_visible":
-            continue
         body = layout.markdown[region.content_start : region.content_end]
         findings.extend(
             _OwnedSurfaceQualityFinding(
@@ -2034,6 +2072,10 @@ def _find_owned_surface_quality_issues(
                 issue=issue,
             )
             for issue in find_surface_quality_issues(body)
+            # Protected diagnostics and disclaimer bytes are immutable, but a
+            # link finding there must still reach their fail-closed policy.
+            if region.projection_policy == "reader_visible"
+            or issue.code in _SURFACE_LINK_ISSUE_CODES
             # The scanner treats the start of an isolated input as a document
             # first viewport. E3 scans region bodies in isolation, so retain a
             # truncation finding only for the actual indexed viewport or for a
@@ -2049,7 +2091,9 @@ def _replace_region_with_safe_fallback(
     layout: PublicDocumentLayout,
     decision: _RegionDispositionDecision,
 ) -> PublicDocumentLayout:
-    if decision.block == "first_viewport":
+    if decision.block == "first_viewport" and not _SURFACE_LINK_ISSUE_CODES.intersection(
+        decision.issue_codes
+    ):
         updated = layout
         if "watermark.window_bracket" in decision.issue_codes:
             region = _require_layout_region(updated, decision.region_id)
@@ -2088,7 +2132,26 @@ def _repair_owned_region_once(
 ) -> PublicDocumentLayout:
     region = _require_layout_region(layout, decision.region_id)
     body = layout.markdown[region.content_start : region.content_end]
-    repaired_body = repair_surface_artifacts(body)
+    repaired_body = body
+    has_link_issue = bool(_SURFACE_LINK_ISSUE_CODES.intersection(decision.issue_codes))
+    if has_link_issue:
+        repaired_body = repair_surface_link_targets(repaired_body)
+        if repaired_body == body:
+            return layout
+    if any(code not in _SURFACE_LINK_ISSUE_CODES for code in decision.issue_codes):
+        repaired_body = repair_surface_artifacts(repaired_body)
+    if has_link_issue and decision.block == "first_viewport":
+        repaired_body = bound_first_viewport_snippets(repaired_body)
+        repaired_body = repair_first_viewport_summary(repaired_body)
+    if (
+        has_link_issue
+        and decision.block == "section_body"
+        and decision.region_id.startswith(("section:2", "section:3", "section:4", "section:5"))
+    ):
+        repaired_body = normalize_meaning_region_body(
+            repaired_body,
+            segment=layout.expectation.segment,
+        )
     if repaired_body == body:
         return layout
     return layout.replace_region_body(decision.region_id, repaired_body)
@@ -2481,11 +2544,7 @@ def _repair_projected_draft(
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("surface containment context identity must match draft")
 
-    initially_repaired = repair_surface_artifacts(draft.layout.markdown)
-    layout = PublicDocumentLayout.reindex(
-        initially_repaired,
-        expectation=draft.layout.expectation,
-    )
+    layout = draft.layout
     decisions = _resolve_owned_region_dispositions(
         layout,
         _find_owned_surface_quality_issues(layout),
@@ -2499,19 +2558,24 @@ def _repair_projected_draft(
                 issue_codes=("document.fallback_repeat",),
             )
         attempted_region_ids.add(decision.region_id)
+        if decision.disposition == "block_segment":
+            # Preserve the projected bytes so the single terminal snapshot can
+            # collect this finding together with every other hard gate.
+            continue
+        prior_layout = layout
         layout = _apply_region_disposition_once(layout, decision)
+        if decision.disposition != "record_warning" and layout.markdown == prior_layout.markdown:
+            continue
         outcomes = _append_region_block_outcome(outcomes, decision)
         if decision.disposition == "record_warning":
             for issue_code in decision.issue_codes:
                 _surface_logger.warning(
-                    "surface_quality.%s segment=%s region_id=%s",
+                    "surface_quality.%s segment=%s",
                     issue_code,
                     draft.segment,
-                    decision.region_id,
                     extra={
                         "segment": draft.segment,
                         "code": issue_code,
-                        "region_id": decision.region_id,
                     },
                 )
 
@@ -2519,21 +2583,10 @@ def _repair_projected_draft(
         layout,
         limitation_reasons=draft.limitation_reasons,
     )
-    final_markdown = repair_surface_artifacts(layout.markdown)
     layout = PublicDocumentLayout.reindex(
-        final_markdown,
+        layout.markdown,
         expectation=draft.layout.expectation,
     )
-
-    residual_decisions = _resolve_owned_region_dispositions(
-        layout,
-        _find_owned_surface_quality_issues(layout),
-    )
-    if any(decision.disposition != "record_warning" for decision in residual_decisions):
-        raise _SegmentTrustBlockedError(
-            phase="repaired",
-            issue_codes=("document.fallback_exhausted",),
-        )
 
     anchor_findings = _scan_terminal_anchor_assertions_for_layout(draft, context, layout)
     if anchor_findings and draft.segment == DOMESTIC_EQUITY:
@@ -2541,7 +2594,7 @@ def _repair_projected_draft(
         if original_gate_snapshot.issue_codes != ("numeric.anchor_assertion",):
             raise _SegmentTrustBlockedError(
                 phase="repaired",
-                issue_codes=original_gate_snapshot.issue_codes,
+                issue_codes=_terminal_failure_issue_codes(original_gate_snapshot),
             )
         plan = plan_numeric_containment(
             layout,
@@ -2558,7 +2611,7 @@ def _repair_projected_draft(
             limitation_reasons=draft.limitation_reasons,
         )
         layout = PublicDocumentLayout.reindex(
-            repair_surface_artifacts(layout.markdown),
+            layout.markdown,
             expectation=draft.layout.expectation,
         )
         if _scan_terminal_anchor_assertions_for_layout(draft, context, layout):
@@ -2682,7 +2735,29 @@ def _derive_public_notification_summary(
 @dataclass(frozen=True, slots=True)
 class _TerminalHardGateSnapshot:
     issue_codes: tuple[str, ...]
+    residual_actionable_link_codes: tuple[str, ...]
     notification_summary: PublicNotificationSummary | None
+
+    def __post_init__(self) -> None:
+        issue_codes = _canonical_issue_codes(self.issue_codes)
+        residual_codes = _canonical_issue_codes(self.residual_actionable_link_codes)
+        if not set(residual_codes) <= set(issue_codes):
+            raise ValueError("residual actionable link codes must be a subset of issue_codes")
+        if not set(residual_codes) <= _SURFACE_LINK_ISSUE_CODES:
+            raise ValueError("residual actionable link codes must use registered link codes")
+        if issue_codes and self.notification_summary is not None:
+            raise ValueError("failing terminal snapshot must not retain notification summary")
+        object.__setattr__(self, "issue_codes", issue_codes)
+        object.__setattr__(self, "residual_actionable_link_codes", residual_codes)
+
+
+def _terminal_failure_issue_codes(
+    snapshot: _TerminalHardGateSnapshot,
+) -> tuple[str, ...]:
+    fallback_codes = (
+        ("document.fallback_exhausted",) if snapshot.residual_actionable_link_codes else ()
+    )
+    return _canonical_issue_codes((*snapshot.issue_codes, *fallback_codes))
 
 
 def _draft_with_layout(
@@ -2722,10 +2797,26 @@ def _collect_terminal_hard_gates(
         _scan_terminal_compliance(candidate, context)
     except ComplianceLanguageError:
         codes.add("compliance.language")
+    surface_findings = _find_owned_surface_quality_issues(candidate.layout)
+    surface_dispositions = tuple(
+        (
+            finding,
+            _owned_surface_disposition(finding),
+        )
+        for finding in surface_findings
+    )
     codes.update(
         finding.issue.code
-        for finding in _find_owned_surface_quality_issues(candidate.layout)
-        if finding.issue.severity == "block"
+        for finding, disposition in surface_dispositions
+        if finding.issue.severity == "block" or disposition != "record_warning"
+    )
+    residual_actionable_link_codes = _canonical_issue_codes(
+        tuple(
+            finding.issue.code
+            for finding, disposition in surface_dispositions
+            if finding.issue.code in _SURFACE_LINK_ISSUE_CODES
+            and disposition in _RESIDUAL_ACTIONABLE_LINK_DISPOSITIONS
+        )
     )
     try:
         validate_first_viewport_summary(candidate.layout.markdown)
@@ -2740,9 +2831,11 @@ def _collect_terminal_hard_gates(
         notification_summary = _derive_public_notification_summary(candidate, context)
     except PublicNotificationSummaryError as exc:
         codes.add(exc.issue_code)
+    issue_codes = _canonical_issue_codes(tuple(codes))
     return _TerminalHardGateSnapshot(
-        issue_codes=_canonical_issue_codes(tuple(codes)),
-        notification_summary=notification_summary,
+        issue_codes=issue_codes,
+        residual_actionable_link_codes=residual_actionable_link_codes,
+        notification_summary=None if issue_codes else notification_summary,
     )
 
 
@@ -2758,7 +2851,7 @@ def _validate_repaired_draft(
     if snapshot.issue_codes:
         raise _SegmentTrustBlockedError(
             phase="validated",
-            issue_codes=snapshot.issue_codes,
+            issue_codes=_terminal_failure_issue_codes(snapshot),
         )
     if snapshot.notification_summary is None:
         raise _FinalizationInvariantError(

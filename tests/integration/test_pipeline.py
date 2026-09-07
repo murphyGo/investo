@@ -113,13 +113,11 @@ def _stage2_markdown() -> str:
     return "\n\n".join(parts) + "\n"
 
 
-@pytest.fixture
-def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
-    """Replace u2's ``call_claude_code`` with canned segmented stubs.
-
-    Yields the list of prompts u2 receives — assertions can check that
-    the orchestrator triggered exactly the expected number of LLM calls.
-    """
+def _install_u2_claude_stub(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    stage2_markdown: str,
+) -> list[str]:
     captured_prompts: list[str] = []
     # Production run_pipeline generates three market segments in fixed
     # order. Empty data-limited segments now use a local fallback without
@@ -127,11 +125,11 @@ def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
     # outputs for this fixture.
     stdouts = [
         _stage1_classification_json(0),
-        _stage2_markdown(),
+        stage2_markdown,
         _stage1_classification_json(2),
-        _stage2_markdown(),
+        stage2_markdown,
         _stage1_classification_json(0),
-        _stage2_markdown(),
+        stage2_markdown,
     ]
     call_index = 0
 
@@ -155,7 +153,17 @@ def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
     monkeypatch.setattr(briefing_orchestration, "call_claude_code", _fake_call)
     # Disable u2's retry backoff so the integration test runs in milliseconds.
     monkeypatch.setattr(briefing_orchestration, "_BACKOFF_SCHEDULE", (0.0, 0.0, 0.0))
-    yield captured_prompts
+    return captured_prompts
+
+
+@pytest.fixture
+def stub_u2_claude(monkeypatch: pytest.MonkeyPatch) -> Iterator[list[str]]:
+    """Replace u2's ``call_claude_code`` with canned segmented stubs.
+
+    Yields the list of prompts u2 receives — assertions can check that
+    the orchestrator triggered exactly the expected number of LLM calls.
+    """
+    yield _install_u2_claude_stub(monkeypatch, stage2_markdown=_stage2_markdown())
 
 
 class _SuccessfulGitRunner:
@@ -310,6 +318,62 @@ async def test_pipeline_end_to_end_success(
     assert "/archive/crypto/2026/04/2026-04-27/" in str(public_sends[0]["text"])
     # NO operator alert on the happy path (CLAUDE.md #5 isolation pin).
     assert operator_alerts == []
+
+
+@pytest.mark.asyncio
+async def test_u150_link_containment_reaches_archive_and_telegram_from_sealed_summary(
+    isolated_archive: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    invalid_target = "https://example.invalid/private/path/..."
+    visible_label = "봉인된 통합 요약"
+    link_markdown = _stage2_markdown().replace(
+        "오늘은 FOMC 일정이 시장 관심사입니다.",
+        f"오늘은 [{visible_label}]({invalid_target})이 시장 관심사입니다.",
+    )
+    captured_prompts = _install_u2_claude_stub(
+        monkeypatch,
+        stage2_markdown=link_markdown,
+    )
+    git = _SuccessfulGitRunner()
+    public_sends: list[dict[str, object]] = []
+    transport = httpx.MockTransport(_telegram_send_handler(captured=public_sends))
+
+    async with httpx.AsyncClient(transport=transport, timeout=5.0) as http_client:
+        result = await run_pipeline(
+            _TARGET,
+            publisher=BriefingPublisher(
+                bot_token=_BOT_TOKEN,
+                channel_id=_PUBLIC_CHANNEL,
+                http=http_client,
+            ),
+            alerter=OperatorAlerter(
+                bot_token=_BOT_TOKEN,
+                operator_chat_id=_OPERATOR_CHAT,
+                http=http_client,
+            ),
+            site_url_base=_SITE_BASE,
+            fetch=_make_fetch_callable(_fake_items(2)),
+            git_runner=git,
+        )
+
+    assert len(captured_prompts) == 2
+    assert result.status == PipelineStatus.SUCCESS
+    assert result.content_completeness == "complete"
+    assert tuple(outcome.state for outcome in result.segment_outcomes) == (
+        "finalized",
+        "finalized",
+        "finalized",
+    )
+    assert result.publication_committed is True
+    us_markdown = archive_path(_TARGET, segment=US_EQUITY).read_text(encoding="utf-8")
+    assert visible_label in us_markdown
+    assert invalid_target not in us_markdown
+    assert len(public_sends) == 1
+    telegram_text = str(public_sends[0]["text"])
+    assert invalid_target not in telegram_text
+    assert "/archive/us-equity/2026/04/2026-04-27/" in telegram_text
+    assert [call[1] for call in git.calls] == ["add", "commit", "push"]
 
 
 @pytest.mark.asyncio

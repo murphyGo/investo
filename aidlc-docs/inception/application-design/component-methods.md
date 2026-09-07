@@ -187,7 +187,9 @@ def finalize_public_bundle(
        terminal trust gates, active-survivor fixed point, notification DTO
        derivation, and SHA-256 sealing without I/O. Domestic numeric-only
        findings use owned-region containment or one neutral minimal fallback;
-       sealed witnesses produce finalized_degraded."""
+       sealed witnesses produce finalized_degraded. Terminal Markdown link
+       defects use scanner-owned closed shapes and one shape-aware owned-region
+       action; actionable residue fails with bounded codes."""
 
 def write_finalized_document(document: FinalizedPublicDocument) -> Path:
     """Verify seal/date/segment/disclaimer, then atomically write exact E5 bytes."""
@@ -292,7 +294,7 @@ def resolve_target_date(now_utc: datetime, *, weekday_only_us_close: bool = True
 | `briefing.call_claude_code` | US-009 (CLI only, no anthropic SDK) |
 | `publisher.write_briefing` | US-003, US-006 |
 | `orchestrator.project_domestic_public_items` | u148 AC-148.1~AC-148.9 |
-| `publisher.finalize_public_bundle` | u144 AC-144.1~AC-144.12, u149 AC-149.1~AC-149.22 |
+| `publisher.finalize_public_bundle` | u144 AC-144.1~AC-144.12, u149 AC-149.1~AC-149.22, u150 AC-150.1~AC-150.14 |
 | `publisher.write_finalized_document` | u144 AC-144.2, AC-144.10 |
 | `publisher.verify_disclaimer` | NFR-004 강제 (Q6 보강) |
 | `publisher.commit_and_push` | US-006 (영구 보관) |

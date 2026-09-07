@@ -62,6 +62,7 @@ from investo._internal.public_quality_language import (
     first_forbidden_public_evidence,
     project_public_quality_language,
 )
+from investo._internal.surface_quality import find_surface_quality_issues
 
 # Private regexes consumed by ``investo.publisher.watchpoint_matrix`` via the
 # historical ``from investo.publisher.reader_format import _BULLET_RE`` path.
@@ -83,7 +84,10 @@ from investo.publisher.reader_format.disclaimer import (
 from investo.publisher.reader_format.emphasis import wrap_numbers_bold
 from investo.publisher.reader_format.glossary import dedupe_glossings
 from investo.publisher.reader_format.headings import enforce_h3_subheadings
-from investo.publisher.reader_format.meaning import normalize_meaning_lines
+from investo.publisher.reader_format.meaning import (
+    normalize_meaning_lines,
+    normalize_meaning_region_body,
+)
 from investo.publisher.reader_format.public_projection import (
     PublicLabelLeakage,
     find_reader_visible_public_label_leaks,
@@ -92,6 +96,7 @@ from investo.publisher.reader_format.public_projection import (
 from investo.publisher.reader_format.reflow import (
     DIAGNOSTICS_SUMMARY_LABEL,
     SNIPPET_MAX_CHARS,
+    bound_first_viewport_snippets,
     bound_summary_snippet,
     is_diagnostic_source_count_line,
     reflow_first_viewport,
@@ -168,7 +173,24 @@ def apply_reader_format(
 
 def escape_krx_stock_code_link_fragments(text: str) -> str:
     """Prevent ``종목[000000](가격...)`` from becoming a Markdown link."""
-    return _KR_CODE_LINK_RE.sub(r"\\[\1\\]", text)
+    lines: list[str] = []
+    for raw_line in text.splitlines(keepends=True):
+        updated = raw_line
+        for match in reversed(tuple(_KR_CODE_LINK_RE.finditer(raw_line))):
+            escaped = rf"\[{match.group(1)}\]"
+            trial = updated[: match.start()] + escaped + updated[match.end() :]
+            if _surface_link_fingerprint(trial) == _surface_link_fingerprint(updated):
+                updated = trial
+        lines.append(updated)
+    return "".join(lines)
+
+
+def _surface_link_fingerprint(text: str) -> tuple[tuple[str, object, str], ...]:
+    return tuple(
+        (issue.code, issue.link_shape, issue.evidence)
+        for issue in find_surface_quality_issues(text)
+        if issue.link_shape is not None
+    )
 
 
 def normalize_data_limited_reader_copy(
@@ -236,6 +258,7 @@ __all__ = [
     "PublicLabelLeakage",
     "SentenceEndingReport",
     "apply_reader_format",
+    "bound_first_viewport_snippets",
     "bound_summary_snippet",
     "check_action_bullet_ratio",
     "check_filler_phrase_density",
@@ -250,6 +273,7 @@ __all__ = [
     "is_diagnostic_source_count_line",
     "normalize_data_limited_reader_copy",
     "normalize_meaning_lines",
+    "normalize_meaning_region_body",
     "project_public_markdown",
     "reflow_first_viewport",
     "wrap_numbers_bold",

@@ -3,6 +3,12 @@
 **Date**: 2026-07-21
 **Source**: `aidlc-docs/construction/plans/u144-public-document-finalization-contract-code-generation-plan.md`
 
+> **Supersession note (2026-09-07)**: u150 replaces only the R8/R10 handling
+> of `markdown.href_ellipsis` and `markdown.unmatched_link` with a closed
+> shape-aware 16-block matrix, pre-mutation classification, one strongest
+> action per region, and bounded residual codes. For those two codes, use u150
+> R1-R17. Every non-link u144 rule below remains binding.
+
 Rules are binding and listed in lifecycle order. Entity/invariant references
 point to `domain-entities.md`.
 
@@ -130,7 +136,11 @@ validator is read-only.
 
 ## R8. Presentation defects degrade at the smallest safe boundary
 
-Use this exhaustive current surface policy table. `required` means header,
+The two Markdown link-code rows in the historical table below are superseded
+by u150 R3-R10 and are retained only to show the u144 baseline. They are not
+the current executable policy.
+
+For non-link codes, use this u144 surface policy table. `required` means header,
 navigation, first viewport, section body (including the required watchpoint
 section), or disclaimer; `optional` means the E3
 visual/chart/carryover/cause-map/indicator augmentation regions.

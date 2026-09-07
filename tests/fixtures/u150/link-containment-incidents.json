@@ -1,0 +1,115 @@
+{
+  "fixture_id": "u150-link-containment-incidents",
+  "run_metadata": [
+    {
+      "github_actions_run_id": 32784998097,
+      "target_date": "2026-08-24",
+      "workflow_conclusion": "failure",
+      "pipeline_status": "partial",
+      "segment_outcomes": [
+        {"segment": "domestic-equity", "state": "finalized_degraded", "issue_codes": ["numeric.anchor_assertion"]},
+        {"segment": "us-equity", "state": "trust_blocked", "issue_codes": ["document.fallback_exhausted"]},
+        {"segment": "crypto", "state": "finalized", "issue_codes": []}
+      ]
+    },
+    {
+      "github_actions_run_id": 33035060796,
+      "target_date": "2026-08-26",
+      "workflow_conclusion": "failure",
+      "pipeline_status": "partial",
+      "segment_outcomes": [
+        {"segment": "domestic-equity", "state": "finalized", "issue_codes": []},
+        {"segment": "us-equity", "state": "trust_blocked", "issue_codes": ["document.fallback_exhausted"]},
+        {"segment": "crypto", "state": "trust_blocked", "issue_codes": ["markdown.href_ellipsis"]}
+      ]
+    },
+    {
+      "github_actions_run_id": 33146560495,
+      "target_date": "2026-08-27",
+      "workflow_conclusion": "failure",
+      "pipeline_status": "partial",
+      "segment_outcomes": [
+        {"segment": "domestic-equity", "state": "finalized_degraded", "issue_codes": ["numeric.anchor_assertion"]},
+        {"segment": "us-equity", "state": "finalized", "issue_codes": []},
+        {"segment": "crypto", "state": "trust_blocked", "issue_codes": ["markdown.href_ellipsis"]}
+      ]
+    },
+    {
+      "github_actions_run_id": 33238048642,
+      "target_date": "2026-08-28",
+      "workflow_conclusion": "failure",
+      "pipeline_status": "partial",
+      "segment_outcomes": [
+        {"segment": "domestic-equity", "state": "trust_blocked", "issue_codes": ["markdown.unmatched_link"]},
+        {"segment": "us-equity", "state": "finalized", "issue_codes": []},
+        {"segment": "crypto", "state": "finalized", "issue_codes": []}
+      ]
+    },
+    {
+      "github_actions_run_id": 33344214754,
+      "target_date": "2026-08-28",
+      "workflow_conclusion": "failure",
+      "pipeline_status": "partial",
+      "segment_outcomes": [
+        {"segment": "domestic-equity", "state": "finalized_degraded", "issue_codes": ["numeric.anchor_assertion"]},
+        {"segment": "us-equity", "state": "finalized", "issue_codes": []},
+        {"segment": "crypto", "state": "trust_blocked", "issue_codes": ["markdown.href_ellipsis"]}
+      ]
+    },
+    {
+      "github_actions_run_id": 33457514796,
+      "target_date": "2026-08-31",
+      "workflow_conclusion": "success",
+      "pipeline_status": "success",
+      "segment_outcomes": [
+        {"segment": "domestic-equity", "state": "finalized_degraded", "issue_codes": ["numeric.anchor_assertion"]},
+        {"segment": "us-equity", "state": "finalized", "issue_codes": []},
+        {"segment": "crypto", "state": "finalized", "issue_codes": []}
+      ]
+    }
+  ],
+  "synthetic_markdown": [
+    {
+      "fixture_id": "inline-link",
+      "shape": "inline_link",
+      "markdown": "[합성 링크](https://example.invalid/path/.../item)",
+      "visible_text": "합성 링크",
+      "expected_issue_code": "markdown.href_ellipsis"
+    },
+    {
+      "fixture_id": "image",
+      "shape": "image",
+      "markdown": "![합성 이미지 & <위험>](https://example.invalid/…/image.png)",
+      "visible_text": "합성 이미지 & <위험>",
+      "expected_issue_code": "markdown.href_ellipsis"
+    },
+    {
+      "fixture_id": "autolink",
+      "shape": "autolink",
+      "markdown": "<https://example.invalid/path/...>",
+      "visible_text": null,
+      "expected_issue_code": "markdown.href_ellipsis"
+    },
+    {
+      "fixture_id": "reference-definition",
+      "shape": "reference_definition",
+      "markdown": "[synthetic-ref]: https://example.invalid/path/...",
+      "visible_text": null,
+      "expected_issue_code": "markdown.href_ellipsis"
+    },
+    {
+      "fixture_id": "incomplete-inline",
+      "shape": "incomplete_inline",
+      "markdown": "[합성 불완전 링크](https://example.invalid/incomplete",
+      "visible_text": "합성 불완전 링크",
+      "expected_issue_code": "markdown.unmatched_link"
+    },
+    {
+      "fixture_id": "unmatched-residual",
+      "shape": "unmatched_residual",
+      "markdown": "[합성 잔여 조각",
+      "visible_text": "합성 잔여 조각",
+      "expected_issue_code": "markdown.unmatched_link"
+    }
+  ]
+}

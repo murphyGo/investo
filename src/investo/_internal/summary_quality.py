@@ -18,7 +18,10 @@ from investo._internal.briefing_extract import (
     SUMMARY_PREFIXES,
     WATERMARK_PREFIX,
 )
-from investo._internal.surface_quality import has_blocking_surface_issue
+from investo._internal.surface_quality import (
+    find_surface_quality_issues,
+    has_blocking_surface_issue,
+)
 from investo._internal.text import MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE
 
 _SUMMARY_PREFIXES: Final[tuple[str, ...]] = SUMMARY_PREFIXES
@@ -40,10 +43,12 @@ _GENERATOR_RESIDUE_TAIL_RE: Final[re.Pattern[str]] = re.compile(r"\b(?:ROS)\s*$"
 _DANGLING_LONG_TAIL_RE: Final[re.Pattern[str]] = re.compile(
     r"(?:기관|정책|입법|시장|수급|이슈|흐름|요인|변수|데이터)\s*$"
 )
-_MARKDOWN_LINK_RE: Final[re.Pattern[str]] = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 _MARKDOWN_TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 _URL_RE: Final[re.Pattern[str]] = re.compile(r"https?://\S+")
 _FALLBACK_BY_PREFIX: Final[dict[str, str]] = FALLBACK_BY_PREFIX
+_SURFACE_LINK_ISSUE_CODES: Final[frozenset[str]] = frozenset(
+    {"markdown.href_ellipsis", "markdown.unmatched_link"}
+)
 
 
 class SummaryQualityError(ValueError):
@@ -77,6 +82,13 @@ def repair_first_viewport_summary(markdown: str) -> str:
         if prefix is None:
             continue
         value = line.removeprefix(prefix).strip()
+        # u150 owns link classification from the original projected bytes.
+        # Preserve unsafe link syntax here so the canonical scanner can retain
+        # its exact code and shape before the finalizer applies region policy.
+        if any(
+            issue.code in _SURFACE_LINK_ISSUE_CODES for issue in find_surface_quality_issues(value)
+        ):
+            continue
         try:
             _validate_summary_value(prefix, value)
         except SummaryQualityError:
@@ -146,8 +158,7 @@ def _summary_value_issue(value: str) -> str | None:
 
 
 def _repair_summary_value(prefix: str, value: str) -> str:
-    cleaned = _MARKDOWN_LINK_RE.sub(r"\1", value)
-    cleaned = _URL_RE.sub("", cleaned)
+    cleaned = _URL_RE.sub("", value)
     cleaned = re.sub(r"^(?:>\s*)?#{1,6}\s+", "", cleaned).strip()
     cleaned = _GENERATOR_RESIDUE_TAIL_RE.sub("", cleaned).strip()
     cleaned = _MARKDOWN_TOKEN_RE.sub("", cleaned)

@@ -37,6 +37,7 @@ from typing import cast
 import pytest
 from pydantic import HttpUrl, TypeAdapter
 
+import investo.__main__ as main_module
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.quality_history import QualitySnapshot
@@ -342,7 +343,7 @@ def _failing_segment_generate(fail_segment: MarketSegment) -> object:
     return _fake
 
 
-def _surface_blocking_segment_generate(block_segment: MarketSegment) -> object:
+def _link_defect_segment_generate(affected_segment: MarketSegment) -> object:
     async def _fake(
         target_date: date,
         items: list[NormalizedItem],
@@ -358,13 +359,14 @@ def _surface_blocking_segment_generate(block_segment: MarketSegment) -> object:
         del items, runner, data_limited, source_outcomes, recent_context, market_anchors
         del carryover, bundle_context
         briefing = _briefing(target_date, segment=segment)
-        if segment != block_segment:
+        if segment != affected_segment:
             return briefing
         return briefing.model_copy(
             update={
                 "rendered_markdown": briefing.rendered_markdown.replace(
                     "> **오늘의 결론**: 오늘 시장 요약",
-                    "> **오늘의 결론**: [broken link",
+                    "> **오늘의 결론**: "
+                    "[봉인된 링크 요약](https://example.invalid/private/path/...)",
                 )
             }
         )
@@ -600,6 +602,11 @@ async def test_run_pipeline_success_appends_quality_history(
         pipeline_module,
         "write_og_card",
         lambda *args, **kwargs: Path("site_docs/assets/og-card.svg"),
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "ACCURACY_PAGE_PATH",
+        tmp_path / "site_docs" / "accuracy.md",
     )
     git = _SuccessfulGitRunner()
     result = await run_pipeline(
@@ -1669,7 +1676,7 @@ async def test_run_pipeline_segment_generation_failure_publishes_remaining_segme
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_surface_quality_defect_is_contained_without_segment_drop(
+async def test_run_pipeline_link_only_defect_keeps_three_sealed_segments_and_telegram(
     archive_root: Path,
 ) -> None:
     publisher = _FakePublisher()
@@ -1682,18 +1689,32 @@ async def test_run_pipeline_surface_quality_defect_is_contained_without_segment_
         site_url_base=_SITE_BASE,
         fetch=_success_fetch([_item("Bitcoin"), _item("AAPL")]),
         git_runner=git,
-        generate_segment=_surface_blocking_segment_generate(CRYPTO),
+        generate_segment=_link_defect_segment_generate(CRYPTO),
     )
 
     assert result.status == PipelineStatus.SUCCESS
+    assert result.content_completeness == "complete"
+    assert tuple(outcome.state for outcome in result.segment_outcomes) == (
+        "finalized",
+        "finalized",
+        "finalized",
+    )
+    assert result.publication_committed is True
+    assert main_module._pipeline_exit_code(result) == 0
     assert result.stages["publish"] == "ok"
     assert "publish:crypto" not in result.stages
     assert result.stages["notify_briefing"] == "ok"
     assert len(publisher.calls) == 1
     assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
-    assert (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
+    crypto_path = archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md"
+    assert crypto_path.exists()
+    crypto_markdown = crypto_path.read_text(encoding="utf-8")
+    assert "봉인된 링크 요약" in crypto_markdown
+    assert "example.invalid" not in crypto_markdown
     assert "/archive/crypto/2026/04/2026-04-27/" in publisher.calls[0].summary_text
+    assert "봉인된 링크 요약" in publisher.calls[0].summary_text
+    assert "example.invalid" not in publisher.calls[0].summary_text
     assert "push" in [call[1] for call in git.calls]
 
 
@@ -2095,6 +2116,271 @@ async def test_run_pipeline_segment_disclaimer_failure_withholds_only_failed_seg
     assert (archive_root / DOMESTIC_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert not (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
     assert (archive_root / CRYPTO / "2026" / "04" / "2026-04-27.md").exists()
+
+
+@pytest.mark.asyncio
+async def test_link_action_does_not_mask_hard_gate_and_partial_commit_exits_two(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    publisher = _FakePublisher()
+    git = _SuccessfulGitRunner()
+    repair_inputs: list[str] = []
+    original_repair = public_document_module.repair_surface_link_targets
+
+    def observe_link_repair(markdown: str) -> str:
+        if "example.invalid" in markdown:
+            repair_inputs.append(markdown)
+        return original_repair(markdown)
+
+    def reject_us_disclaimer(
+        markdown: str,
+        segment: MarketSegment | None = None,
+        *,
+        legacy: bool = False,
+    ) -> bool:
+        del markdown, legacy
+        return segment != US_EQUITY
+
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_link_targets",
+        observe_link_repair,
+    )
+    monkeypatch.setattr(public_document_module, "verify_disclaimer", reject_us_disclaimer)
+    monkeypatch.setattr(
+        pipeline_module,
+        "ACCURACY_PAGE_PATH",
+        tmp_path / "site_docs" / "accuracy.md",
+    )
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=publisher,
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("AAPL")]),
+        git_runner=git,
+        generate_segment=_link_defect_segment_generate(US_EQUITY),
+    )
+
+    us_outcome = next(
+        outcome for outcome in result.segment_outcomes if outcome.segment == US_EQUITY
+    )
+    assert repair_inputs
+    assert us_outcome.state == "trust_blocked"
+    assert us_outcome.issue_codes == ("disclaimer.canonical",)
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.content_completeness == "partial"
+    assert result.publication_committed is True
+    assert main_module._pipeline_exit_code(result) == 2
+    github_output = tmp_path / "github-output.txt"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(github_output))
+    main_module._write_github_outputs(result)
+    assert github_output.read_text(encoding="utf-8").splitlines() == [
+        "pipeline_status=partial",
+        "content_completeness=partial",
+        "publication_committed=true",
+        "expected_segments=3",
+        "finalized_segments=2",
+        "published_segments=2",
+    ]
+    assert result.stages["publish"] == "ok"
+    assert result.stages["notify_briefing"] == "ok"
+    assert "push" in [call[1] for call in git.calls]
+    assert "⚠️ 부분 발행: 미국 증시 생성 실패" in publisher.calls[0].summary_text
+    assert "/archive/us-equity/2026/04/2026-04-27/" not in publisher.calls[0].summary_text
+    assert "example.invalid" not in publisher.calls[0].summary_text
+    assert not (archive_root / US_EQUITY / "2026" / "04" / "2026-04-27.md").exists()
+
+
+@pytest.mark.parametrize(
+    ("blocked_segment", "numeric_claim"),
+    (
+        (US_EQUITY, "| 나스닥 종합 | 15,000.00 | +0.5% | 상승 |"),
+        (CRYPTO, "| 비트코인 | $95,000.00 | +3.2% | 급등 |"),
+    ),
+)
+@pytest.mark.asyncio
+async def test_non_domestic_numeric_claims_remain_fail_closed(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    blocked_segment: MarketSegment,
+    numeric_claim: str,
+) -> None:
+    async def generate_numeric_claim(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del items, runner, data_limited, source_outcomes, recent_context
+        del market_anchors, carryover, bundle_context
+        briefing = _briefing(target_date, segment=segment)
+        if segment != blocked_segment:
+            return briefing
+        return briefing.model_copy(
+            update={
+                "rendered_markdown": briefing.rendered_markdown.replace(
+                    "## ② 전일 핵심 이슈\n핵심 이슈",
+                    f"## ② 전일 핵심 이슈\n{numeric_claim}",
+                )
+            }
+        )
+
+    async def no_market_anchors(
+        target_date: date,
+    ) -> tuple[
+        dict[MarketSegment, tuple[object, ...]],
+        dict[str, tuple[object, ...]],
+    ]:
+        assert target_date == _TARGET
+        return ({segment: () for segment in pipeline_module.SEGMENT_ORDER}, {})
+
+    monkeypatch.setattr(pipeline_module, "_load_market_anchors_for_run", no_market_anchors)
+    monkeypatch.setattr(
+        pipeline_module,
+        "ACCURACY_PAGE_PATH",
+        tmp_path / "site_docs" / "accuracy.md",
+    )
+
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        fetch=_success_fetch([_item("seed")]),
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=generate_numeric_claim,
+    )
+
+    blocked_outcome = next(
+        outcome for outcome in result.segment_outcomes if outcome.segment == blocked_segment
+    )
+    assert blocked_outcome.state == "trust_blocked"
+    assert blocked_outcome.issue_codes == ("numeric.anchor_assertion",)
+    assert all(outcome.state != "finalized_degraded" for outcome in result.segment_outcomes)
+    assert result.status == PipelineStatus.PARTIAL
+    assert result.content_completeness == "partial"
+    assert result.publication_committed is True
+    assert main_module._pipeline_exit_code(result) == 2
+    assert not (archive_root / blocked_segment / "2026" / "04" / "2026-04-27.md").exists()
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_logs_only_bounded_residual_link_codes(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+) -> None:
+    private_line = (
+        "[private label](https://example.invalid/path/.../ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789)"
+    )
+
+    async def residual_segment_generate(
+        target_date: date,
+        items: list[NormalizedItem],
+        runner: object,
+        segment: MarketSegment,
+        data_limited: bool,
+        source_outcomes: object = (),
+        recent_context: object = None,
+        market_anchors: object = (),
+        carryover: object = None,
+        bundle_context: object = None,
+    ) -> Briefing:
+        del items, runner, data_limited, source_outcomes, recent_context
+        del market_anchors, carryover, bundle_context
+        briefing = _briefing(target_date, segment=segment)
+        if segment != US_EQUITY:
+            return briefing
+        return briefing.model_copy(
+            update={
+                "rendered_markdown": briefing.rendered_markdown.replace(
+                    "## ② 전일 핵심 이슈\n핵심 이슈",
+                    f"## ② 전일 핵심 이슈\n{private_line}",
+                )
+            }
+        )
+
+    async def no_market_anchors(
+        target_date: date,
+    ) -> tuple[
+        dict[MarketSegment, tuple[object, ...]],
+        dict[str, tuple[object, ...]],
+    ]:
+        assert target_date == _TARGET
+        return ({segment: () for segment in pipeline_module.SEGMENT_ORDER}, {})
+
+    monkeypatch.setattr(
+        public_document_module,
+        "repair_surface_link_targets",
+        lambda markdown: markdown,
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "ACCURACY_PAGE_PATH",
+        tmp_path / "site_docs" / "accuracy.md",
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "_load_market_anchors_for_run",
+        no_market_anchors,
+    )
+
+    with caplog.at_level(logging.INFO, logger="investo.orchestrator.pipeline"):
+        result = await run_pipeline(
+            _TARGET,
+            publisher=_FakePublisher(),
+            alerter=_FakeAlerter(),
+            site_url_base=_SITE_BASE,
+            fetch=_success_fetch([_item("AAPL")]),
+            git_runner=_SuccessfulGitRunner(),
+            generate_segment=residual_segment_generate,
+        )
+
+    us_outcome = next(
+        outcome for outcome in result.segment_outcomes if outcome.segment == US_EQUITY
+    )
+    assert us_outcome.state == "trust_blocked"
+    assert us_outcome.issue_codes == (
+        "document.fallback_exhausted",
+        "markdown.href_ellipsis",
+    )
+    finalize_log = next(
+        record.getMessage()
+        for record in caplog.records
+        if record.getMessage().startswith("[finalize]")
+        and "segment=us-equity" in record.getMessage()
+    )
+    assert finalize_log.endswith(
+        "state=trust_blocked codes=document.fallback_exhausted,markdown.href_ellipsis"
+    )
+    summary_path = tmp_path / "step-summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+    main_module._write_github_step_summary(result)
+    summary = summary_path.read_text(encoding="utf-8")
+    assert (
+        "| us-equity | trust_blocked | document.fallback_exhausted, markdown.href_ellipsis |"
+    ) in summary
+    for forbidden in (
+        "private label",
+        "example.invalid",
+        "ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "inline_link",
+        "https://example.invalid/path/...",
+    ):
+        assert forbidden not in caplog.text
+        assert forbidden not in summary
 
 
 @pytest.mark.asyncio

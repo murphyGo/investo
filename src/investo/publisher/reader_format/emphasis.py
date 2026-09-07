@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.surface_quality import find_surface_quality_issues
 from investo.publisher.reader_format._constants import _TABLE_ROW_RE
 
 # Numeric token shapes we wrap:
@@ -82,6 +83,8 @@ def wrap_numbers_bold(text: str) -> str:
 
 
 def _wrap_line(line: str) -> str:
+    if any(issue.link_shape is not None for issue in find_surface_quality_issues(line)):
+        return line
     # Pre-split on link URL spans so the number regex never sees the
     # href contents. Each odd-indexed piece is an URL — we re-insert it
     # verbatim and only run the wrap on prose (even indices).

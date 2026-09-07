@@ -36,6 +36,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.surface_quality import find_surface_quality_issues
 from investo._internal.text import bound_at_sentence
 from investo.publisher.reader_format._constants import (
     _SECTION_HEADER_RE,
@@ -109,13 +110,17 @@ def normalize_meaning_lines(text: str, *, segment: str | None = None) -> str:
         out.append(text[cursor:start])  # header line text (verbatim)
         body = text[start:end]
         if eligible:
-            body = _repair_section_meaning(body, segment=segment)
+            body = normalize_meaning_region_body(body, segment=segment)
         out.append(body)
         cursor = end
     return "".join(out)
 
 
-def _repair_section_meaning(body: str, *, segment: str | None) -> str:
+def normalize_meaning_region_body(body: str, *, segment: str | None = None) -> str:
+    """Apply the canonical u76 bound/dedupe contract to one eligible body."""
+
+    if any(issue.link_shape is not None for issue in find_surface_quality_issues(body)):
+        return body
     matches = list(_MEANING_LINE_RE.finditer(body))
     if not matches:
         return body
