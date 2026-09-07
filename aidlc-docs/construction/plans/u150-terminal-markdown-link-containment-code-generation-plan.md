@@ -3,7 +3,7 @@
 **Date**: 2026-09-02
 **Unit**: u150 terminal-markdown-link-containment
 **Stage**: Code Generation
-**Status**: In Progress — Steps 1-5 complete; Step 6 local quality, documentation, and cross-check complete; explicit production approval and qualification pending
+**Status**: Complete — Steps 0-6 and exact-date production qualification completed 2026-09-07
 **Source**: Scheduled daily-briefing runs `32784998097`, `33035060796`, `33146560495`, `33238048642`, `33344214754`, and successful comparison run `33457514796`; target dates 2026-08-24/26/27/28/31; `archive/_meta/quality_history.jsonl`
 **Estimated Effort**: ~12-18 h across seven bounded steps plus production closeout
 **Dependencies**:
@@ -153,8 +153,9 @@ Link containment is a presentation phase action, not a general fallback. A docum
 - [x] Step 3 — Amend `_public_document_policy.py` and `public_document.py` to apply the exhaustive shape-aware region matrix, reuse existing safe fallbacks, preserve one redacted outcome per region without repair-then-replace, and prove required H2/sibling-region/supplement/seal stability.
 - [x] Step 4 — Propagate bounded residual codes beside `document.fallback_exhausted`; add R13 negative tests proving evidence, URLs, Markdown, payloads, and secrets never reach logs, workflow summary, or typed outcomes.
 - [x] Step 5 — Add finalizer/orchestrator/integration regressions for link-only 3/3 success, simultaneous hard-gate blocking, US/crypto numeric non-regression, partial exit-2 preservation for genuine blocks, Telegram summary inputs, and Pages sequencing.
-- [ ] Step 6 — Run scoped and full quality gates; update u144 supersession notes, DESIGN/component methods, state/audit/code summary, and cross-check. After local approval, replay 2026-08-27 and 2026-08-28, verify three archive URLs, Telegram, pipeline exit 0, chained Pages success, live HTTP 200, invalid-target absence, and record workflow/commit/Page IDs.
-  - Local checkpoint 2026-09-07: lock, Ruff/format, strict mypy, 4,516 tests, policy guards, strict MkDocs, Material contract, diff integrity, documentation synchronization, pre-production cross-check, and separate cumulative review passed. The checkbox remains open until the approved implementation is committed/pushed and both exact-date production replays are qualified.
+- [x] Step 6 — Run scoped and full quality gates; update u144 supersession notes, DESIGN/component methods, state/audit/code summary, and cross-check. After local approval, replay 2026-08-27 and 2026-08-28, verify three archive URLs, Telegram, pipeline exit 0, chained Pages success, live HTTP 200, invalid-target absence, and record workflow/commit/Page IDs.
+  - Local checkpoint 2026-09-07: lock, Ruff/format, strict mypy, 4,516 tests, policy guards, strict MkDocs, Material contract, diff integrity, documentation synchronization, pre-production cross-check, and separate cumulative review passed.
+  - Production qualification 2026-09-07: implementation commit `e867b0f` reached `main`; daily runs `34072608117`/`34074873175` finalized and published all three segments with exit 0, created bot commits `b949c54`/`02607d3`, sent Telegram with HTTP 200, completed Pages runs `34073340478`/`34075738426`, returned HTTP 200 for all six live archive URLs, and left zero canonical surface/link issues in the six published Markdown files.
 
 ## Acceptance Criteria
 
@@ -200,7 +201,7 @@ uv run --extra docs mkdocs build --strict
 git diff --check
 ```
 
-Production closeout occurs only after the now-complete u149 Step 7b evidence remains documented and the u150 implementation is approved.
+Production closeout completed after the existing u149 Step 7b evidence was preserved and the u150 implementation was explicitly approved.
 
 ## Non-Goals
 

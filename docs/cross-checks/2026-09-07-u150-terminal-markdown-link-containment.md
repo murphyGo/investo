@@ -3,24 +3,22 @@
 **Scope**: component `u150 terminal-markdown-link-containment`
 **Date**: 2026-09-07
 **Checked by**: Codex
-**Implementation base**: `0f81a5dd6c40840255a3f4188c60221d5db3dd56` plus isolated uncommitted Steps 1-6 local changes
+**Implementation**: `e867b0f0f21a3e048d5b5a345c7e07a3e04bf1d0`; production commits `b949c54a711eed0ad54ae6af13dded69cbb4a814` and `02607d3874b075bdf23382b26187eacf1f2d6bbc`
 
 ## Summary
 
 | Status | Count | Percentage |
 | --- | ---: | ---: |
-| ✅ Complete | 13 | 92.9% |
+| ✅ Complete | 14 | 100% |
 | ⚠️ Partial | 0 | 0% |
 | ❌ Gap | 0 | 0% |
 | 🔄 Deferred | 0 | 0% |
-| ⏳ In Progress | 1 | 7.1% |
+| ⏳ In Progress | 0 | 0% |
 | **Total ACs** | **14** | **100%** |
 
-**Verdict**: LOCALLY APPROVE. AC-150.1 through AC-150.13 are implemented,
-tested, and documented with no development gap. AC-150.14 is intentionally in
-progress because its two exact-date production replays require an explicitly
-approved committed/pushed implementation. The unit and Step 6 remain open
-until that operational evidence is recorded.
+**Verdict**: APPROVE — COMPLETE. AC-150.1 through AC-150.14 are implemented,
+tested, documented, delivered, and production-qualified with no development or
+operational gap.
 
 ## Requirement traceability
 
@@ -53,7 +51,7 @@ until that operational evidence is recorded.
 | AC-150.11 — numeric non-regression | ✅ | u149 global-post-action guard at `test_numeric_degradation_containment_u149.py:320`; US/crypto pipeline fail-close at `test_run_pipeline.py:2206`. |
 | AC-150.12 — delivery and exit semantics | ✅ | 3/3 success at `test_run_pipeline.py:1679`; genuine 2/3 commit/exit 2 at `test_run_pipeline.py:2122`; Pages contract at `test_daily_workflow_contract_u144.py:36-45`; degraded 3/3 output counts at `test_main.py:506`. |
 | AC-150.13 — example and partial PBT | ✅ | `tests/unit/internal/test_surface_quality.py` and `tests/unit/internal/test_surface_quality_properties.py`; both run in the normal 4,516-test suite. |
-| AC-150.14 — exact-date production qualification | ⏳ | Synthetic/fixture branch evidence is complete; 2026-08-27 and 2026-08-28 workflow, archive commit, Pages, Telegram, live HTTP, and target-absence IDs remain pending explicit production approval. |
+| AC-150.14 — exact-date production qualification | ✅ | Daily runs `34072608117`/`34074873175` succeeded with exit 0 and 3/3 `finalized`; bot commits `b949c54`/`02607d3`; Pages `34073340478`/`34075738426` succeeded; Telegram returned HTTP 200 twice per run; all six live archive URLs returned 200; canonical scans found zero surface/link issues. |
 
 ## Validation evidence
 
@@ -61,7 +59,7 @@ until that operational evidence is recorded.
 - Ruff check and format: 576 Python files passed.
 - Strict mypy: 254 source files passed.
 - Focused cumulative regression scope: **346 passed**.
-- Full pytest: **4,516 passed in 280.64 seconds**.
+- Final integrated-SHA pytest: **4,516 passed in 305.48 seconds**.
 - Anthropic SDK, paid API, curated-assets, and image-store guards passed.
 - Strict MkDocs passed on Material 9.7.6.
 - Material CSS and rendered-pair contract guards passed.
@@ -72,11 +70,5 @@ until that operational evidence is recorded.
 
 ## Gaps and proposed actions
 
-No implementation gap and no new TECH-DEBT candidate were found. One planned
-operational acceptance item remains:
-
-| Item | Status | Required action |
-| --- | --- | --- |
-| AC-150.14 | ⏳ In Progress | After explicit approval, commit/push the reviewed implementation, replay 2026-08-27 and 2026-08-28, and record daily workflow, archive commit, Pages workflow, Telegram, live HTTP, and invalid-target-absence evidence. |
-
-Development Plan additions: 0. TECH-DEBT additions: 0.
+No implementation or operational gap and no new TECH-DEBT candidate were
+found. Development Plan additions: 0. TECH-DEBT additions: 0.

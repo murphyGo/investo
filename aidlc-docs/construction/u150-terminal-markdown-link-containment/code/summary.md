@@ -2,11 +2,10 @@
 
 ## Status
 
-Code Generation Steps 1-5 and the Step 6 local quality, documentation, and
-cross-check checkpoint are complete as of 2026-09-07. The implementation is
-locally approved. The stage remains open until the cumulative change is
-explicitly approved for commit/push and the 2026-08-27 and 2026-08-28
-exact-date production replays are qualified.
+Code Generation Steps 0-6 and exact-date production qualification are complete
+as of 2026-09-07. The reviewed implementation was committed as `e867b0f`,
+pushed to the feature branch and `main`, and qualified through the approved
+2026-08-27 and 2026-08-28 replays.
 
 ## Delivered boundary
 
@@ -34,7 +33,7 @@ second parser or finalization path:
 | 3 | Exhaustive shape-aware 16-block policy, one strongest action per region, existing fallback reuse, and required/sibling/artifact/seal preservation. |
 | 4 | Bounded actionable-residual diagnostics, exhaustive simultaneous hard gates, and R13 negative coverage over logs, outcomes, summaries, and exceptions. |
 | 5 | Pipeline and integration coverage for link-only 3/3 success, genuine partial exit 2, US/crypto numeric fail-close, sealed Telegram inputs, Pages sequencing, and `finalized_degraded` output counts. |
-| 6 local | Full repository quality gates, u144 supersession notes, DESIGN/component synchronization, code summary, and pre-production cross-check. |
+| 6 | Full repository quality gates, u144 supersession notes, DESIGN/component synchronization, cross-check, delivery, and paired exact-date production qualification. |
 
 ## Fixed contracts
 
@@ -70,7 +69,7 @@ second parser or finalization path:
 - Focused Step 5 finalizer/orchestrator/integration contract: 9 passed.
 - Broad Step 5 internal/publisher/orchestrator/integration scope: 1,350 passed.
 - Step 6 focused cumulative regression scope: **346 passed**.
-- Step 6 final full pytest: **4,516 passed in 280.64 seconds**.
+- Step 6 final integrated-SHA pytest: **4,516 passed in 305.48 seconds**.
 - `uv lock --check`: passed with 65 resolved packages and no lock drift.
 - Ruff lint and format: 576 Python files passed.
 - Strict mypy: 254 source files passed.
@@ -82,20 +81,25 @@ second parser or finalization path:
   remaining Critical, High, or Medium finding; its independent final scope
   passed 289 tests plus Ruff, mypy, and diff integrity.
 
-## Production qualification pending
+## Production qualification
 
-The required replays have not run from the uncommitted isolated worktree.
-After explicit approval, the cumulative implementation must be committed and
-pushed, then both target dates must prove:
+The approved cumulative implementation was pushed to `main` at `e867b0f`.
+Both exact-date runs completed with workflow success and exit 0; every segment
+logged `state=finalized codes=none`, published its archive path, and produced
+two Telegram `HTTP/1.1 200 OK` responses (briefing plus operator surface).
 
 | Target date | Daily workflow | Archive commit | Pages workflow | Telegram | Three live HTTP 200 | Invalid target absent |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-08-27 | Pending | Pending | Pending | Pending | Pending | Pending |
-| 2026-08-28 | Pending | Pending | Pending | Pending | Pending | Pending |
+| 2026-08-27 | `34072608117` success, exit 0, 3/3 finalized | `b949c54` | `34073340478` success | 2 × HTTP 200 | 3/3 | canonical scan 0/3 documents |
+| 2026-08-28 | `34074873175` success, exit 0, 3/3 finalized | `02607d3` | `34075738426` success | 2 × HTTP 200 | 3/3 | canonical scan 0/3 documents |
 
-Fixture and PBT coverage remain the containment-branch proof if generation
-does not naturally reproduce the historical malformed target. An unrelated
-hard gate must remain fail-closed and be reported separately.
+Live paths for both dates were checked under `archive/domestic-equity`,
+`archive/us-equity`, and `archive/crypto` at
+`https://murphygo.github.io/investo/`. The canonical scanner reported zero
+surface issues and zero `markdown.href_ellipsis`/`markdown.unmatched_link`
+issues in all six committed Markdown documents. Fixture and PBT coverage
+remains the deterministic malformed-target branch proof; unrelated hard gates
+remain fail-closed.
 
 ## Scope and debt
 
