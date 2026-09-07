@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-08-27 begin -->
+
+## 2026-08-27
+
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,702,621,914,071; BTC dominance 59.21%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $495,295,990 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000209209868392 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000213848197224 (OKX, UTC 24h)
+
+<!-- u33 entry 2026-08-27 end -->
 <!-- u33 entry 2026-09-04 begin -->
 
 ## 2026-09-04
