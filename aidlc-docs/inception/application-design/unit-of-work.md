@@ -2380,7 +2380,12 @@ review five categories Pass; 394 focused tests and ten properties with
 DEBT-076 is resolved locally (Low 34→33), with no new debt.
 Step 6 has no Python change. Fixed-original-draft repeat, internal snapshot
 JSON and existing fixture-type/glossary limitations remain explicit.
-Cross-check, commit/push/main integration and production acceptance are pending.
+Implementation commit/push is complete (bf9d52b8), with exact remote branch
+SHA verified. Cross-check APPROVE (2026-09-09): 6/6 ACs; fresh 5,204 tests in
+329.62s, source mypy 254/supplemental typed scope 261 and ten properties with
+500 passing examples; no new gap/task/debt. Main integration and production
+acceptance remain pending. Cross-check report:
+`docs/cross-checks/2026-09-09-u151-shared-macro-positioning-kind-boundary.md`.
 Summary:
 `aidlc-docs/construction/u151-shared-macro-positioning-kind-boundary/code/summary.md`.
 Step record:

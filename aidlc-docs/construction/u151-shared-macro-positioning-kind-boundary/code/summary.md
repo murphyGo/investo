@@ -1,15 +1,25 @@
 # u151 — Shared macro positioning boundary: implementation summary
 
 **Date**: 2026-09-08
-**Status**: Code Generation complete — 6/6; six ACs/five DoDs Pass; DEBT-076 resolved locally.
+**Status**: Code Generation complete — 6/6; cross-check APPROVE (2026-09-09), six ACs/five DoDs Pass; DEBT-076 resolved locally.
 **Closed at**: 2026-09-08T11:24:45Z
-**Next**: Cross-check pending; no main integration or production acceptance.
-**Scope**: Approved Functional Design Q1=A / Q2=A; Code Generation only.
+**Next**: Cross-check report delivery, main integration and production acceptance remain pending.
+**Scope**: Approved Functional Design Q1=A / Q2=A; historical Code Generation record with subsequent branch delivery and cross-check handoff below.
 **Traceability**: US-002/003/005, FR-002/008/013/015,
 NFR-003/005/006/007-R13, DEBT-076. This is u151 contribution evidence,
 not a global requirements cross-check or production acceptance.
 
 ## Implementation
+
+Latest checkpoint (2026-09-09 KST): implementation commit/push is complete,
+`bf9d52b839143f166238dcf30ef32e8bd127d6f8` matches the remote branch.
+Cross-check APPROVE, 6/6 ACs and no new gap/task/debt. Fresh full gate:
+5,204 passed in 329.62s; source/supplemental mypy 254/261, full Ruff/format,
+policy guards, strict MkDocs/Material and ten properties/500 examples pass.
+Only report/current-state documentation changes were made during cross-check.
+See the [cross-check report](../../../../docs/cross-checks/2026-09-09-u151-shared-macro-positioning-kind-boundary.md).
+The implementation and Step 6 evidence below preserve their original timings
+and historical no-commit/no-cross-check boundaries.
 
 Only three production owners changed:
 
@@ -178,7 +188,8 @@ remain unchanged.
 
 Subsequent Git handoff: the user approved commit/push on 2026-09-09 KST,
 targeting the isolated branch only. Step 6's no-commit statements above
-describe its original checkpoint. Cross-check/main/production remain pending;
+describe its original checkpoint. The later cross-check is approved above;
+main/production remain pending;
 see the [commit/push handoff](../../../../docs/sessions/2026-09-09-u151-commit-push.md).
 
 - [Approved Functional Design](../functional-design/design-validation.md)

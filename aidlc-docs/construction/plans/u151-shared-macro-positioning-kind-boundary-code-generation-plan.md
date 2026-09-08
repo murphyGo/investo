@@ -3,13 +3,23 @@
 **Date**: 2026-09-06
 **Unit**: u151 shared-macro-positioning-kind-boundary
 **Stage**: Code Generation
-**Status**: Complete — 6/6 (2026-09-08); independent review Pass; cross-check pending
+**Status**: Complete — 6/6 (2026-09-08); independent review Pass; cross-check APPROVE (2026-09-09), 6/6 ACs
 **Source**: `briefing-review-20260906.md`; September 1–4 committed briefings at `d553035`
 **Estimated Effort**: ~5–8 h
 **Dependencies**:
 - u57/u60 shared-macro detection and representative ranking — complete.
 - u74 cause-map, u107 CFTC metadata/routing, u124 daily thesis — complete.
 - DEBT-076 tracks rendered-label coupling; close it only after implementation validation.
+
+## Subsequent verification
+
+Subsequent delivery and verification: implementation commit/push completed as
+`bf9d52b8`, exact remote branch SHA verified. The September 9 cross-check
+confirms six ACs/five DoDs, with a fresh 5,204-test full gate in 329.62s,
+all static/policy/docs checks and ten properties/500 examples passing.
+No new gap/task/debt; main integration and production acceptance remain pending.
+See the [cross-check report](../../../docs/cross-checks/2026-09-09-u151-shared-macro-positioning-kind-boundary.md).
+Earlier approval and step records below retain their historical scope.
 
 ## Problem Statement
 
