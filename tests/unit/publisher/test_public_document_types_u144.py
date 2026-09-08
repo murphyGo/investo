@@ -1267,6 +1267,7 @@ def _three_segment_thesis_context() -> BundleContext:
     return BundleContext(
         bundle_id="u144-active-thesis",
         target_kst_date=_TARGET_DATE,
+        detected_macro_keys=frozenset({"ust_yield"}),
         daily_thesis_signals=signals,
         daily_thesis_decision=DailyThesisDecision(
             mode="strong",
@@ -1319,6 +1320,7 @@ def test_bundle_fixed_point_redecides_active_thesis_before_each_assembly(
     ) -> PublicDocumentDraft:
         assert active_context.bundle_context is not None
         thesis = active_context.bundle_context
+        assert thesis.detected_macro_keys == frozenset({"ust_yield"})
         assembly_contexts.append(
             (
                 draft.segment,

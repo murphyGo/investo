@@ -54,6 +54,7 @@ from investo.models.bundle_context import (
     DailyThesisDecision,
     DailyThesisSignal,
     MarketStateSummary,
+    SharedMacroKey,
 )
 
 _logger = logging.getLogger(__name__)
@@ -67,6 +68,7 @@ _SEGMENT_TZ: Final[dict[MarketSegment, str]] = {
 
 
 _CANONICAL_UST_SOURCES: Final[frozenset[str]] = frozenset({"treasury-rates", "fred-macro"})
+_POSITIONING_SOURCE: Final[str] = "cftc-cot-positioning"
 _CANONICAL_FOMC_SOURCES: Final[frozenset[str]] = frozenset(
     {"fomc-calendar", "fomc-rss", "fred-economic-calendar"}
 )
@@ -98,7 +100,7 @@ _FED_CONTEXT_RE: Final[re.Pattern[str]] = re.compile(
 
 @dataclass(frozen=True, slots=True)
 class _SharedMacroCandidate:
-    key: str
+    key: SharedMacroKey
     segment: MarketSegment
     title: str
     source_name: str
@@ -195,14 +197,19 @@ def _matches_fomc(item: NormalizedItem) -> bool:
     return _FOMC_RE.search(title) is not None or _has_near(title, _FED_WORD_RE, _FED_CONTEXT_RE)
 
 
-_SHARED_MACRO_MATCHERS: Final[dict[str, Callable[[NormalizedItem], bool]]] = {
+_SHARED_MACRO_MATCHERS: Final[dict[SharedMacroKey, Callable[[NormalizedItem], bool]]] = {
     "ust_yield": _matches_ust_yield,
     "oil": _matches_oil,
     "fomc": _matches_fomc,
 }
 
 
-def _source_rank(key: str, source_name: str) -> int:
+def _matches_shared_macro(key: SharedMacroKey, item: NormalizedItem) -> bool:
+    """Share the producer-kind boundary across detection and thesis emission."""
+    return item.source_name != _POSITIONING_SOURCE and _SHARED_MACRO_MATCHERS[key](item)
+
+
+def _source_rank(key: SharedMacroKey, source_name: str) -> int:
     return _SOURCE_RANKS.get(key, {}).get(source_name, 9)
 
 
@@ -210,7 +217,7 @@ def _category_rank(category: Category) -> int:
     return _CATEGORY_RANKS.get(category, 9)
 
 
-def _title_rank(key: str, title: str) -> int:
+def _title_rank(key: SharedMacroKey, title: str) -> int:
     if key == "ust_yield":
         if _DGS_RATE_RE.search(title):
             return 0
@@ -232,7 +239,9 @@ def _title_rank(key: str, title: str) -> int:
     return 9
 
 
-def _rejection_reason(key: str, item: NormalizedItem) -> str | None:
+def _rejection_reason(key: SharedMacroKey, item: NormalizedItem) -> str | None:
+    if item.source_name == _POSITIONING_SOURCE:
+        return "positioning_not_shared_macro"
     title = item.title
     if key == "ust_yield":
         lowered = title.lower()
@@ -246,7 +255,7 @@ def _rejection_reason(key: str, item: NormalizedItem) -> str | None:
 
 
 def _candidate_for(
-    key: str,
+    key: SharedMacroKey,
     segment: MarketSegment,
     item: NormalizedItem,
 ) -> _SharedMacroCandidate:
@@ -291,13 +300,13 @@ def _select_close_state_for_segment(
 
 def _detect_shared_macros(
     routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
-) -> list[tuple[str, str]]:
+) -> list[tuple[SharedMacroKey, str]]:
     """Return list of (macro_key, evidence_title) for keys hit by ≥ 2 segments."""
-    candidates_by_key: dict[str, list[_SharedMacroCandidate]] = {}
+    candidates_by_key: dict[SharedMacroKey, list[_SharedMacroCandidate]] = {}
     for segment, items in routed.items():
         for item in items:
-            for key, matcher in _SHARED_MACRO_MATCHERS.items():
-                if matcher(item):
+            for key in _SHARED_MACRO_MATCHERS:
+                if _matches_shared_macro(key, item):
                     candidate = _candidate_for(key, segment, item)
                     candidates_by_key.setdefault(key, []).append(candidate)
                     _log_candidate(
@@ -317,7 +326,7 @@ def _detect_shared_macros(
                         item=item,
                         reason=reason,
                     )
-    shared: list[tuple[str, str]] = []
+    shared: list[tuple[SharedMacroKey, str]] = []
     for key, candidates in candidates_by_key.items():
         segments = {candidate.segment for candidate in candidates}
         if len(segments) < 2:
@@ -365,7 +374,7 @@ _MACRO_KEY_LABELS: Final[dict[str, str]] = {
 }
 
 
-def _render_shared_macro_block(shared: Sequence[tuple[str, str]]) -> str | None:
+def _render_shared_macro_block(shared: Sequence[tuple[SharedMacroKey, str]]) -> str | None:
     """Render the ``## ⓪ 오늘의 매크로`` body.
 
     Returns ``None`` when no macro hits ≥ 2 segments — caller skips H2
@@ -380,15 +389,15 @@ def _render_shared_macro_block(shared: Sequence[tuple[str, str]]) -> str | None:
 def _daily_thesis_signals(
     routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
     *,
-    shared: Sequence[tuple[str, str]],
+    shared: Sequence[tuple[SharedMacroKey, str]],
 ) -> tuple[DailyThesisSignal, ...]:
-    shared_keys = {key for key, _title in shared}
+    # Q2: one signal per item; only selected keys may win an overlapping title.
+    shared_keys = sorted({key for key, _title in shared})
     signals: list[DailyThesisSignal] = []
     for segment, items in routed.items():
         for item in items:
             for key in shared_keys:
-                matcher = _SHARED_MACRO_MATCHERS.get(key)
-                if matcher is None or not matcher(item):
+                if not _matches_shared_macro(key, item):
                     continue
                 signals.append(
                     DailyThesisSignal(
@@ -416,7 +425,7 @@ def _daily_thesis_signals(
 def _decide_daily_thesis(
     routed: Mapping[MarketSegment, Sequence[NormalizedItem]],
     *,
-    shared: Sequence[tuple[str, str]],
+    shared: Sequence[tuple[SharedMacroKey, str]],
     signals: Sequence[DailyThesisSignal],
 ) -> DailyThesisDecision:
     successful_segments = tuple(segment for segment, items in routed.items() if items)
@@ -473,6 +482,7 @@ def compute_bundle_context(
         target_kst_date=target_date,
         segments=summaries,
         shared_macro_block=shared_block,
+        detected_macro_keys=frozenset(key for key, _title in shared),
         cross_market_core_allowed=CROSS_MARKET_CORE_ALLOWED,
         daily_thesis_signals=daily_thesis_signals,
         daily_thesis_decision=daily_thesis_decision,
