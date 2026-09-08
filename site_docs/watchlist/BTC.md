@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-07 begin -->
+
+## 2026-09-07
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7620 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,680,480,034,921; BTC dominance 59.10%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $471,424,280 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000008644742134 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin holds near $80,000 despite renewed Fed rate hike fears as CPI test looms
+- [theblock-crypto] **ticker**: Capital B buys $29 million in bitcoin after raises, its largest BTC purchase in a year
+- [theblock-crypto] **ticker**: Coldcard exploiter moves 45% of funds stolen from ‘Wave 3’ attacks, Galaxy says
+- [theblock-crypto] **ticker**: Liquid Network attacker returns 3,400 BTC after bug fix, retains nearly 600 BTC
+- [theblock-crypto] **ticker**: Spot bitcoin ETFs pull in $987 million last week as institutional demand recovers
+- [yonhap-market] **ticker**: 비트코인 연계 블록체인, 4천300억원 상당 비트코인 해킹당해
+
+<!-- u33 entry 2026-09-07 end -->
 <!-- u33 entry 2026-08-27 begin -->
 
 ## 2026-08-27

@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-07 begin -->
+
+## 2026-09-07
+
+- [defillama-market-structure] **ticker**: DeFi TVL $88.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Harmony to fully sunset Layer 1, proposes token migration to Ethereum for AI video initiative
+
+<!-- u33 entry 2026-09-07 end -->
 <!-- u33 entry 2026-08-27 begin -->
 
 ## 2026-08-27
