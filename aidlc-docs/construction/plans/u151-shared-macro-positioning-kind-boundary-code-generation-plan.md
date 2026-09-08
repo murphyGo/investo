@@ -3,7 +3,7 @@
 **Date**: 2026-09-06
 **Unit**: u151 shared-macro-positioning-kind-boundary
 **Stage**: Code Generation
-**Status**: Backlog — ready for Functional Design; implementation design-gated
+**Status**: Complete — 6/6 (2026-09-08); independent review Pass; cross-check pending
 **Source**: `briefing-review-20260906.md`; September 1–4 committed briefings at `d553035`
 **Estimated Effort**: ~5–8 h
 **Dependencies**:
@@ -50,8 +50,55 @@ new price/positioning scores, historical archive edits.
 ## Stage Decision
 
 Functional Design: REQUIRED — add a shared model field and freeze the legacy
-context compatibility rule before implementation. Fixed Contracts below are
-the proposed design baseline; this planning run does not record approval.
+context compatibility rule before implementation. Q1=A and Q2=A were approved
+on 2026-09-08. After Step 7's final design presentation, the user responded
+`진행시켜` (recorded 2026-09-08T04:17:23Z), approving the completed design
+and its next Code Generation step. Step 1 characterization is complete;
+Steps 2–6 are not executed by this approval.
+
+After Step 1's handoff, the user responded `진행시켜` (recorded
+2026-09-08T07:54:08Z), approving Step 2 only. Step 2 implementation and
+independent review are complete; Steps 3–6 require subsequent approval.
+Execution record:
+[Step 2](../u151-shared-macro-positioning-kind-boundary/code/step-2-eligibility-and-keys.md).
+
+After Step 2's handoff, the user responded `진행시켜` (recorded
+2026-09-08T08:21:30Z), approving Step 3 only. Implementation/validation and
+independent review are complete; Steps 4–6 remain subsequent approval.
+Execution record:
+[Step 3](../u151-shared-macro-positioning-kind-boundary/code/step-3-typed-cause-map.md).
+
+After Step 3 and Step 4 handoffs, the user responded `진행시켜` (observed
+2026-09-08T08:34:39Z and 2026-09-08T10:23:36Z respectively).
+Steps 4 and 5 completed with independent review; this invocation approved
+Step 5 only. The stale Step 3 header was reconciled with the completed Step 4
+checkbox/state/session. Step 6 remains a subsequent approval.
+Execution records:
+[Step 4](../u151-shared-macro-positioning-kind-boundary/code/step-4-context-transport-audit.md),
+[Step 5](../u151-shared-macro-positioning-kind-boundary/code/step-5-finalized-positioning-regression.md).
+
+After Step 5's handoff, the user responded `진행시켜` (observed
+2026-09-08T10:59:52Z), approving Step 6 only. The full local gate and
+independent cumulative review passed; six ACs and five DoDs are complete,
+and DEBT-076 is resolved locally. Code Generation is complete (6/6).
+Cross-check, commit/push/main integration and production acceptance remain
+separate and unperformed. Final evidence:
+[Step 6](../u151-shared-macro-positioning-kind-boundary/code/step-6-local-gate-and-closeout.md),
+[summary](../u151-shared-macro-positioning-kind-boundary/code/summary.md).
+
+Design inputs: [Functional Design plan](u151-shared-macro-positioning-kind-boundary-functional-design-plan.md),
+[business logic](../u151-shared-macro-positioning-kind-boundary/functional-design/business-logic-model.md),
+[business rules](../u151-shared-macro-positioning-kind-boundary/functional-design/business-rules.md),
+[domain entities](../u151-shared-macro-positioning-kind-boundary/functional-design/domain-entities.md),
+and [design validation](../u151-shared-macro-positioning-kind-boundary/functional-design/design-validation.md).
+Testable Properties in all three artifacts are mandatory inputs for the
+implementation test steps below. Final design approval must precede Step 1.
+
+Historical Step 1 execution detail:
+[approved bounded plan](../u151-shared-macro-positioning-kind-boundary/code/step-1-characterization.md).
+Its baseline assertions deliberately described the then-current defect, not
+desired repaired behavior. Step 2 has converted all ten defect cases to
+exclusion assertions; no skip/xfail or conditional old/new expectations.
 
 NFR Requirements: SKIP — existing NFR-003/005/006 and R13 apply; no new I/O,
 dependency, source, secret, LLM invocation, retry or cost.
@@ -89,28 +136,72 @@ dependency, source, secret, LLM invocation, retry or cost.
    fixtures that intend proven evidence to supply keys explicitly.
 7. Rejection logging uses the existing bounded candidate log with reason
    `positioning_not_shared_macro`; no raw_metadata, URL, or full payload output.
+8. Q2=A: each eligible routed item per segment emits at most one thesis
+   signal, selecting the first matching final selected key in canonical
+   `fomc, oil, ust_yield` order. Unselected keys must not shadow selected
+   matches. Do not emit all matches, limit earlier all-key candidate
+   collection, shrink the shared keys/block or change representative ranking
+   and the existing thesis decision algorithm.
 
 ## Implementation Steps
 
-- [ ] Step 1 — Characterize September 4's CFTC WTI promotion with synthetic
+- [x] Step 1 — Characterize September 4's CFTC WTI promotion with synthetic
   `NormalizedItem` fixtures and the existing `compute_bundle_context` path.
   Include a mixed case where eligible oil news in one segment plus CFTC in
   another must not meet the two-segment threshold.
-- [ ] Step 2 — Add the typed model field and source-kind exclusion in
+  Completed baseline characterization: 15 new cases (13 examples, two seeded
+  properties), focused 52 and expanded 103 passed; independent review all five
+  categories Pass. The current defect is reproduced, not repaired. Step 2
+  converts the defect assertions to the required exclusion behavior.
+- [x] Step 2 — Add the typed model field and source-kind exclusion in
   `orchestrator/bundle_context.py`; update `_detect_shared_macros`,
   `_daily_thesis_signals` and `compute_bundle_context` as one eligibility path.
-- [ ] Step 3 — Replace `_candidate_types(block)` label search in
+  Implement Q2's ordered first-selected-match emission while retaining every
+  qualified shared key and the existing u60 threshold/UST/ranking rules.
+  Complete: ten characterization cases converted; 76 cases added. Focused
+  134 / expanded 854 passed, four seeded properties and four interpreter
+  hash seeds verified. Scoped static checks and mypy 256 source/test files
+  pass; independent review five categories Pass. No cause-map consumer
+  conversion, finalizer acceptance or DEBT-076 closure in this step.
+- [x] Step 3 — Replace `_candidate_types(block)` label search in
   `publisher/cross_market_cause_map.py` with typed-key lookup; remove dead label
   mirrors while preserving cause ordering and forbidden-type suppression.
-- [ ] Step 4 — Inspect all `BundleContext` construction/copy/serialization sites,
+  Complete: 34 new cases; cause-map 44, expanded publisher/orchestrator/model
+  2,197 and reader-format integration 13 passed. Cumulative static checks and
+  mypy 257 files pass; independent review five categories Pass, 178 focused
+  tests passed. Legacy/relabel/gating verified; no exhaustive copy audit,
+  new finalizer suite or DEBT-076 closure in this step.
+- [x] Step 4 — Inspect all `BundleContext` construction/copy/serialization sites,
   including `public_document.py::_snapshot_bundle_context` and
   `models/bundle_context.py::with_self_pending`, to preserve the field. Update
   prompt and daily-thesis fixtures without changing their ranking policies.
-- [ ] Step 5 — Run finalizer-backed rendered regression: CFTC WTI alone produces
+  Complete: existing three copy owners preserve keys without production
+  edits; proven oil/UST fixtures updated, legacy/None/minimal prompt contracts
+  retained. Added 78 cases including two seeded properties. Focused 140 and
+  expanded related 3,252 passed; cumulative twelve-file Ruff/format and
+  source/new-test mypy 257 files pass. Expanded existing-fixture mypy retains
+  13 baseline-identical diagnostics, not a clean gate. Independent review
+  five categories Pass; no new debt. Finalizer acceptance and closure pending.
+- [x] Step 5 — Run finalizer-backed rendered regression: CFTC WTI alone produces
   neither the shared oil line nor oil cause-map/thesis; US/crypto positioning
   channel rows still contain their existing dates and weekly-lag label.
-- [ ] Step 6 — Run the local gate; record AC results and close DEBT-076 only
+  Complete: 51 new cases (49 examples, two seeded properties) use the real
+  finalizer and terminal seal/notification path, with no extra production
+  edits. Native rows/date/lag/group/cap, eligible controls, legacy/relabel,
+  forbidden cause and fixed-original repeat verified. Focused 51 / expanded
+  related 3,303 passed; thirteen-file Ruff/format and cumulative source/test
+  mypy 261 files pass. Independent review all five categories Pass, 254
+  related tests passed. Existing sealed-input glossary replay limitation
+  recorded separately; no universal F(F(x)) claim. Step 6 gate/closure remains.
+- [x] Step 6 — Run the local gate; record AC results and close DEBT-076 only
   after relabel-resilience and legacy-empty-key behavior pass.
+  Complete: full repository 5,204 passed in 304.88s; locked dev/docs sync,
+  full Ruff/check+581-file format, source mypy 254 files, all four policy
+  guards, strict MkDocs and Material contracts pass. Supplemental typed
+  source/test mypy 261 files pass. Independent cumulative 13-file review
+  five categories Pass, 394 focused tests and ten properties/500 generated
+  examples pass. All six ACs/five DoDs satisfied; DEBT-076 closed, Low 34→33.
+  No Step 6 Python edit, new debt, cross-check, commit or live operation.
 
 ## Acceptance Criteria
 
@@ -127,13 +218,21 @@ dependency, source, secret, LLM invocation, retry or cost.
    overpromotion while retaining routed positioning rows and delayed labels.
 6. AC-151.6: Identical/permuted equivalent input produces the same selected
    evidence and rendered output; no adapter/network/source contract changes.
+   Include selected-key subsets, overlap one-signal behavior and hash-seed
+   stability. Full rendered-byte comparisons fix drafts, active segments,
+   market-state inputs and positioning row order; adding a first CFTC item
+   to an empty segment is not a global pipeline-invariance claim.
 
 ## Tests / Validation
 
 - Extend `tests/unit/orchestrator/test_bundle_context.py` with source-kind,
-  threshold, missing metadata, representative ranking and permutation cases.
+  threshold, missing metadata, representative ranking, overlap, selected-key
+  subset, permutation and hash-seed cases. Keep original routed inputs.
 - Extend `tests/unit/models/test_bundle_context_allowlist.py` with typed-key
-  validation/default/copy checks.
+  validation/default/copy checks, invalid/null rejection, duplicate valid
+  values, canonical JSON key-array order and ordinary context JSON round-trip.
+  Do not promise full snapshot MappingProxyType JSON support or globally
+  override unchecked model-copy behavior.
 - Extend `tests/unit/publisher/test_cross_market_cause_map.py`,
   `test_shared_macro_block.py`, `test_daily_thesis.py`, and
   `test_daily_thesis_owner_u144.py` with typed and legacy contexts.
@@ -141,6 +240,14 @@ dependency, source, secret, LLM invocation, retry or cost.
   using the u144 finalized-document fixture pattern and synthetic official
   item metadata; assert final Markdown and notification summary, not just
   `_matches_oil`'s return value.
+- PBT (Partial): use structured NormalizedItem/BundleContext strategies,
+  including model-valid scalar metadata defects, key subsets and overlap.
+  Each new u151 property test uses `@seed(15120260908)` with shrinking enabled.
+  The ordinary `uv run pytest` CI job runs these tests with that fixed seed;
+  no workflow edit or blanket random-retry suppression is needed. On failure
+  capture the seed and shrunk minimal counterexample and retain a regression.
+  Complement properties with explicit six-AC examples; do not claim test
+  success during Functional Design.
 - Local gate: `uv run --extra dev pytest tests/unit/orchestrator/test_bundle_context.py tests/unit/models/test_bundle_context_allowlist.py tests/unit/publisher/test_cross_market_cause_map.py tests/unit/publisher/test_shared_macro_block.py tests/unit/publisher/test_daily_thesis.py tests/unit/publisher/test_daily_thesis_owner_u144.py tests/unit/publisher/test_shared_macro_positioning_regression_u151.py -q`;
   scoped Ruff/check+format and `uv run --extra dev mypy src`.
 

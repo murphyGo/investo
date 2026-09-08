@@ -35,6 +35,7 @@ def _base_context() -> BundleContext:
     return BundleContext(
         bundle_id="u144-neutral-owner",
         target_kst_date=_TARGET_DATE,
+        detected_macro_keys=frozenset({"ust_yield"}),
         daily_thesis_signals=signals,
         daily_thesis_decision=DailyThesisDecision(
             mode="strong",
@@ -76,6 +77,7 @@ def test_neutral_owner_removes_non_survivor_from_all_thesis_state() -> None:
     assert "BTC" not in rendered
     assert "ETH" not in rendered
     assert CRYPTO in base.daily_thesis_decision.supporting_segments
+    assert active.detected_macro_keys == base.detected_macro_keys == frozenset({"ust_yield"})
 
 
 def test_orchestrator_compatibility_name_is_the_neutral_owner() -> None:

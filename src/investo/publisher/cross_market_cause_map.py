@@ -13,16 +13,17 @@ The only admissible evidence is a u57 shared-macro key that the
 bundle-context detector already promoted (i.e. it appeared in ≥ 2
 segments — that two-segment threshold is enforced by
 ``orchestrator.bundle_context._detect_shared_macros`` before the block
-is rendered). u74 re-derives the allowed cause-map *type* from that
-rendered block; it never invents a linkage and never reads tickers.
+is rendered). u151 carries those final selected keys in
+``BundleContext.detected_macro_keys``; this consumer maps them to cause
+types without parsing display labels or tickers. A nonempty block remains
+required, and legacy blocks without typed evidence stay display-only.
 
 Cause-map types (plan Step 4 table):
 
-* ``geopolitical_oil_macro`` ← shared ``국제 유가`` macro line.
-* ``fed_policy_event`` ← shared ``FOMC 일정`` / ``미 국채 수익률`` line.
-* ``global_systemic_risk`` ← only when an explicit allow-listed systemic
-  key is present (no current detector emits one, so it stays dormant
-  until u57 adds the key — never fabricated here).
+* ``geopolitical_oil_macro`` ← selected ``oil`` key.
+* ``fed_policy_event`` ← selected ``fomc`` / ``ust_yield`` keys.
+* ``global_systemic_risk`` stays dormant: no current shared key maps to it,
+  even when the context allowlist includes it.
 
 Every cause-map type must also be in
 :data:`BundleContext.cross_market_core_allowed`; an unapproved type is
@@ -38,20 +39,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-from investo.models.bundle_context import BundleContext
+from investo.models.bundle_context import BundleContext, SharedMacroKey
 
 CAUSE_MAP_HEADER: Final[str] = "> **크로스마켓 연결 고리**:"
 
-# Macro-key labels exactly as ``orchestrator.bundle_context`` renders
-# them in ``shared_macro_block``. Matching the rendered label is how u74
-# stays a pure consumer of u57's existing output without adding a model
-# field. (Single source of these strings is ``_MACRO_KEY_LABELS`` in
-# bundle_context; mirrored here as the consumption contract.)
-_OIL_LABEL: Final[str] = "국제 유가"
-_FOMC_LABEL: Final[str] = "FOMC 일정"
-_UST_LABEL: Final[str] = "미 국채 수익률"
+# u151: consume selected evidence, never re-derive it from presentation text.
+_CAUSE_TYPE_BY_MACRO_KEY: Final[dict[SharedMacroKey, str]] = {
+    "oil": "geopolitical_oil_macro",
+    "fomc": "fed_policy_event",
+    "ust_yield": "fed_policy_event",
+}
 
-# Cause-map type -> (evidence labels that ground it, observational wording).
+# Cause-map type -> observational wording.
 # Wording is taken verbatim from the plan Step 4 allowed-wording column;
 # it is observational ("관찰" / "점검") and never predictive.
 _CAUSE_MAP_WORDING: Final[dict[str, str]] = {
@@ -84,14 +83,9 @@ class CauseMapDecision:
     suppressed: tuple[str, ...]
 
 
-def _candidate_types(block: str) -> list[str]:
-    """Map a rendered shared-macro block to candidate cause-map types."""
-    candidates: list[str] = []
-    if _OIL_LABEL in block:
-        candidates.append("geopolitical_oil_macro")
-    if _FOMC_LABEL in block or _UST_LABEL in block:
-        candidates.append("fed_policy_event")
-    return candidates
+def _candidate_types(keys: frozenset[SharedMacroKey]) -> frozenset[str]:
+    """Map selected keys to deduplicated candidates; ordering is applied later."""
+    return frozenset(_CAUSE_TYPE_BY_MACRO_KEY[key] for key in keys)
 
 
 def evaluate_cause_map(ctx: BundleContext | None) -> CauseMapDecision:
@@ -100,7 +94,7 @@ def evaluate_cause_map(ctx: BundleContext | None) -> CauseMapDecision:
     Returns an empty-rendered decision when:
     * ``ctx`` is ``None`` or has no ``shared_macro_block`` (no u57
       two-segment macro evidence), or
-    * no candidate type maps to the rendered block, or
+    * no candidate type maps to the selected typed keys, or
     * the only candidates are not in ``cross_market_core_allowed``.
 
     Approved candidates render one compact ``> **크로스마켓 연결 고리**``
@@ -112,7 +106,7 @@ def evaluate_cause_map(ctx: BundleContext | None) -> CauseMapDecision:
         return CauseMapDecision(rendered="", emitted=(), suppressed=())
 
     allowed = ctx.cross_market_core_allowed
-    candidates = _candidate_types(ctx.shared_macro_block)
+    candidates = _candidate_types(ctx.detected_macro_keys)
     emitted: list[str] = []
     suppressed: list[str] = []
     for cause_type in _CAUSE_MAP_ORDER:

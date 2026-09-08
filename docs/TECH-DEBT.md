@@ -7,7 +7,7 @@
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 0 | - |
-| Low | 34 | 2026-04-27 |
+| Low | 33 | 2026-04-27 |
 
 ---
 
@@ -94,15 +94,7 @@ _No medium priority items._
 - **Effort**: ~2-3 h — write the archive-walk backfill (reuse the `chart_sidecar` contract + `charts.py` placeholder rewrite), or ~1 h for the JS legacy-fallback alternative; pin a fixture for a legacy-schema archive file in either case.
 - **Priority Reasoning**: Low — only the historical archive is affected and only the expand affordance is lost (compact summary still renders); all briefings generated after u75 are fully expandable per AC-75.4. It is archive-completeness polish, not a live-pipeline or reader-facing correctness issue. Promote to Medium only if archive expandability is deemed important for reader-trust or if a user review flags legacy charts as broken.
 
-#### DEBT-076: cross-market cause-map re-derives type from rendered macro label strings — plumb structured `detected_macro_keys`
 
-- **Created**: 2026-05-24
-- **Source**: u74 market-channel-depth-v2 closeout (cause-map label-coupling risk)
-- **Reference**: AC-74.5 (cross-market cause-map limited to u57-approved links, observational), NFR-005 (consistency / maintainability)
-- **Description**: `src/investo/publisher/cross_market_cause_map.py` is double-gated correctly on u57 `BundleContext.shared_macro_block` (only keys hit by ≥2 segments) and the `cross_market_core_allowed` gate, so forbidden / single-segment links are already suppressed. However, `BundleContext` exposes only the *rendered* shared-macro **string**, not a structured key set, so the cause-map must re-derive its cause-map type (`geopolitical_oil_macro` / `fed_policy_event` / `global_systemic_risk`) by string-matching the Korean macro labels inside that block (`국제 유가` / `FOMC 일정` / `미 국채 수익률`). This label-coupling is brittle: a future relabel of the shared-macro block text (a presentation change) silently breaks the cause-map type derivation even though the underlying macro signal is unchanged. This is **not** a correctness or scope defect — the double gate still bounds which links can render, and forbidden types are suppressed + logged regardless — it is a maintenance / coupling concern.
-- **Suggested Fix**: Add a structured `detected_macro_keys` field (typed key set, e.g. an enum or frozenset) to `BundleContext` in the orchestrator/u57 layer and have the cause-map key its type derivation off that field instead of the rendered label string. This is a **model change** — planner / scope-gated — so it is deferred rather than forced into the u74 presentation-only slice. Keep the double gate and the suppress-and-log behavior unchanged; the change only removes the label-text dependency. Note the related dormant type: `global_systemic_risk` has no emitting detector today, so its branch is currently exercised only by fixtures.
-- **Effort**: ~1.5-2 h — add the `detected_macro_keys` field + populate it where the shared-macro block is computed, switch `cross_market_cause_map` type derivation to the structured key, and pin regression fixtures (allowed-link kept, forbidden-link still suppressed, relabel-resilient).
-- **Priority Reasoning**: Low — the double gate already enforces the scope contract (AC-74.5 holds) and forbidden links are suppressed independent of the label match, so the residual is brittleness to a presentation relabel, not a reader-facing or scope error. Promote to Medium only if the shared-macro block labels are relabeled (or a new macro key is added) and the cause-map silently stops firing.
 
 #### DEBT-075: watchlist Rejected near-miss heuristic (uppercase ticker-shaped lookalike) is intentionally broad
 
@@ -386,6 +378,16 @@ _No medium priority items._
 ---
 
 ## Resolved Items
+
+#### DEBT-076: cross-market cause-map re-derives type from rendered macro label strings — plumb structured `detected_macro_keys`
+
+- **Created**: 2026-05-24
+- **Resolved**: 2026-09-08 — u151 Code Generation 6/6 local closeout. BundleContext now carries selected `fomc/oil/ust_yield` keys as a closed frozenset with sorted JSON projection; the cause-map maps typed keys rather than Korean display labels. Nonempty-block and independent allowlist gates, oil/Fed dedup/order and forbidden suppression are preserved; systemic risk remains dormant. Legacy empty-key blocks stay display-only. The common producer matcher also excludes exact CFTC positioning from shared candidates/core thesis without removing original delayed channel rows.
+- **Evidence**: All six u151 ACs/five DoDs pass: full repository 5,204 tests in 304.88s, full static/policy/docs gate and independent cumulative 13-file review Pass; independent 394 focused tests and ten properties/500 generated examples pass. Relabel/legacy/forbidden behavior is covered through the actual three-segment finalizer. [Code summary](../aidlc-docs/construction/u151-shared-macro-positioning-kind-boundary/code/summary.md).
+- **Boundary**: Resolved in the isolated working tree; cross-check, commit/push/main integration and production acceptance are still pending. No historical archive backfill or universal LLM-causality/sealed-input replay guarantee.
+- **Source**: u74 market-channel-depth-v2 closeout (cause-map label-coupling risk)
+- **Reference**: AC-74.5, NFR-005, u151 AC-151.1..6
+- **Priority Reasoning**: Closed.
 
 #### DEBT-049: SVG `@media (prefers-color-scheme)` disagrees with mkdocs Material site toggle
 

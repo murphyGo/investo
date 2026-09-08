@@ -15,7 +15,7 @@ import pytest
 from investo.briefing.disclaimer import DISCLAIMER
 from investo.briefing.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY
 from investo.models import Briefing, NormalizedItem
-from investo.models.bundle_context import BundleContext, MarketStateSummary
+from investo.models.bundle_context import BundleContext, MarketStateSummary, SharedMacroKey
 from investo.orchestrator.bundle_context import compute_bundle_context
 from investo.orchestrator.pipeline import _apply_reader_format_to_segments
 
@@ -53,7 +53,12 @@ def _item(
     )
 
 
-def _ctx(close_states: dict[str, str], *, shared_macro: str | None = None) -> BundleContext:
+def _ctx(
+    close_states: dict[str, str],
+    *,
+    shared_macro: str | None = None,
+    keys: frozenset[SharedMacroKey] = frozenset(),
+) -> BundleContext:
     return BundleContext(
         bundle_id="2026-05-11-bundle",
         target_kst_date=date(2026, 5, 11),
@@ -67,6 +72,7 @@ def _ctx(close_states: dict[str, str], *, shared_macro: str | None = None) -> Bu
             for seg, state in close_states.items()
         },
         shared_macro_block=shared_macro,
+        detected_macro_keys=keys,
     )
 
 
@@ -83,6 +89,7 @@ class TestSharedMacroInjection:
         ctx = _ctx(
             {DOMESTIC_EQUITY: "close", US_EQUITY: "close", CRYPTO: "pending"},
             shared_macro="- **국제 유가** — Brent 79$",
+            keys=frozenset({"oil"}),
         )
         briefings = {DOMESTIC_EQUITY: _make_briefing(DOMESTIC_EQUITY, MINIMAL_BODY)}
         out = _apply_reader_format_to_segments(

@@ -2363,14 +2363,31 @@ FR-013, FR-015; NFR-003, NFR-005, NFR-006, NFR-007/R13.
 orchestrator and finalized publisher tests.
 
 **Definition of Done**:
-- [ ] Source identity excludes all CFTC positioning rows from the three existing shared keys and the two-segment threshold.
-- [ ] `detected_macro_keys` contains only selected `fomc/oil/ust_yield`; empty legacy fields never trigger string inference.
-- [ ] Cause-map and thesis consume matching eligible evidence; existing allowed-type and UST gates remain.
-- [ ] Finalized three-segment regression preserves delayed positioning rows while removing their shared-macro overpromotion.
-- [ ] Typed-key, relabel-resilience, copy, deterministic-order and forbidden-type tests pass; then close DEBT-076.
+- [x] Source identity excludes all CFTC positioning rows from the three existing shared keys and the two-segment threshold.
+- [x] `detected_macro_keys` contains only selected `fomc/oil/ust_yield`; empty legacy fields never trigger string inference.
+- [x] Cause-map and thesis consume matching eligible evidence; existing allowed-type and UST gates remain.
+- [x] Finalized three-segment regression preserves delayed positioning rows while removing their shared-macro overpromotion.
+- [x] Typed-key, relabel-resilience, copy, deterministic-order and forbidden-type tests pass; then close DEBT-076.
 
-**Construction strategy**: Backlog; FD required for shared-model/compatibility
-rules, NFR Requirements skipped. Plan:
+**Construction strategy**: FD approved (7/7, 2026-09-08). Q1=A legacy display
+and Q2=A canonical one-signal contracts are reconciled across three design
+artifacts, twelve rules and six ACs. Code Generation is complete (6/6):
+full repository 5,204 passed in 304.88s, full Ruff/581-file format, source
+mypy 254 and supplemental typed source/test mypy 261 files, all policy
+guards and strict MkDocs/Material pass. Independent cumulative 13-file
+review five categories Pass; 394 focused tests and ten properties with
+500 generated examples pass. All six ACs and five DoDs are satisfied;
+DEBT-076 is resolved locally (Low 34→33), with no new debt.
+Step 6 has no Python change. Fixed-original-draft repeat, internal snapshot
+JSON and existing fixture-type/glossary limitations remain explicit.
+Cross-check, commit/push/main integration and production acceptance are pending.
+Summary:
+`aidlc-docs/construction/u151-shared-macro-positioning-kind-boundary/code/summary.md`.
+Step record:
+`aidlc-docs/construction/u151-shared-macro-positioning-kind-boundary/code/step-6-local-gate-and-closeout.md`.
+Recovery provenance and approval handoff:
+`aidlc-docs/construction/u151-shared-macro-positioning-kind-boundary/functional-design/design-validation.md`.
+NFR Requirements skipped. Plan:
 `aidlc-docs/construction/plans/u151-shared-macro-positioning-kind-boundary-code-generation-plan.md`.
 
 ### u152: `watchpoint-current-observation-contract` — Separate Current Observations from Future Conditions

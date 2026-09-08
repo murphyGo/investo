@@ -31,7 +31,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Final, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from investo.models.time_state import TimeState
 
@@ -46,6 +46,7 @@ __all__ = [
     "DailyThesisSignal",
     "MarketStateSummary",
     "SegmentDailyThesisInput",
+    "SharedMacroKey",
 ]
 
 
@@ -55,6 +56,7 @@ __all__ = [
 # segment whose routed items contain zero time-state-bearing titles.
 CloseState = TimeState | Literal["pending"]
 DailyThesisMode = Literal["strong", "data_limited", "omit"]
+SharedMacroKey = Literal["fomc", "oil", "ust_yield"]
 DAILY_THESIS_FALLBACK_LINE: Final[str] = (
     "> **오늘의 큰 그림:** 이 세그먼트의 공통 신호는 제한적입니다. "
     "본문 수급·지표 항목을 먼저 확인하세요."
@@ -148,6 +150,8 @@ class BundleContext(BaseModel):
     target_kst_date: date
     segments: dict[str, MarketStateSummary] = Field(default_factory=dict)
     shared_macro_block: str | None = None
+    # Final selected evidence keys, never inferred from the display block.
+    detected_macro_keys: frozenset[SharedMacroKey] = frozenset()
     cross_market_core_allowed: frozenset[str] = Field(
         default=CROSS_MARKET_CORE_ALLOWED,
     )
@@ -155,6 +159,12 @@ class BundleContext(BaseModel):
     daily_thesis_decision: DailyThesisDecision = Field(
         default_factory=lambda: DailyThesisDecision(mode="omit", reason="not_evaluated"),
     )
+
+    @field_serializer("detected_macro_keys", when_used="json")
+    def _serialize_detected_macro_keys(
+        self, value: frozenset[SharedMacroKey]
+    ) -> list[SharedMacroKey]:
+        return sorted(value)
 
     def for_segment(self, segment: str) -> MarketStateSummary | None:
         """Return the summary for ``segment`` or ``None`` if missing."""
