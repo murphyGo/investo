@@ -6,9 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-09-07
 
-- [yonhap-market] **ticker**: 애플 보란 듯…화웨이·샤오미, 폴더블폰 신제품 동시 출격
+- [yahoo-finance-news] **ticker**: Jim Cramer Wants Nvidia to Buy Back $500 Billion. Can Apple’s Playbook Work?
+- [yfinance-price] **ticker**: AAPL 319.97 (-2.51%)
 
 <!-- u33 entry 2026-09-07 end -->
+
 <!-- u33 entry 2026-09-04 begin -->
 
 ## 2026-09-04

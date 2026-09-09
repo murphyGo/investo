@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-07 begin -->
+
+## 2026-09-07
+
+- [yahoo-finance-news] **ticker**: Broadcom’s AI Forecast Suggests Hyperscalers Want More Than Just Nvidia GPUs
+- [yahoo-finance-news] **ticker**: If You Only Own Nvidia for AI Exposure, You're Missing Half the Trade. Here's the Other Half.
+- [yahoo-finance-news] **ticker**: Jim Cramer Discusses NVIDIA (NVDA) Acquiring Hugging Face
+- [yahoo-finance-news] **ticker**: Jim Cramer Wants Nvidia to Buy Back $500 Billion. Can Apple’s Playbook Work?
+- [yfinance-price] **ticker**: NVDA 230.36 (+0.84%)
+
+<!-- u33 entry 2026-09-07 end -->
 <!-- u33 entry 2026-09-04 begin -->
 
 ## 2026-09-04
