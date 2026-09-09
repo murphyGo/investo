@@ -622,6 +622,112 @@ def test_finalized_complete_and_partial_bundle_repeatability(
         )
 
 
+def test_finalized_complete_body_noun_endings_do_not_block_us_segment() -> None:
+    source = _finalizer_briefing(replace(_CASES[0], segment=US_EQUITY))
+    markdown = source.rendered_markdown.replace(
+        "> **그래서 의미는?** 수급 흐름을 함께 확인해야 합니다.",
+        "> **그래서 의미는?** 주요 매수 주체는 기관",
+    ).replace(
+        "추가 발표를 확인한다.",
+        "#### 관찰 신호: 미 국채",
+    )
+    source = source.model_copy(update={"rendered_markdown": markdown})
+    context = _acceptance_context(missing=(DOMESTIC_EQUITY, CRYPTO))
+
+    result = finalize_public_bundle({US_EQUITY: source}, context=context)
+
+    assert tuple(document.segment for document in result.documents) == (US_EQUITY,)
+    outcome = next(item for item in result.segment_outcomes if item.segment == US_EQUITY)
+    assert outcome.state == "finalized"
+    assert outcome.issue_codes == ()
+    document = result.documents[0]
+    assert "> **그래서 의미는?** 주요 매수 주체는 기관" in (document.briefing.rendered_markdown)
+    assert "#### 관찰 신호: 미 국채" in document.briefing.rendered_markdown
+    assert document.block_outcomes == ()
+    repeated = finalize_public_bundle({US_EQUITY: document.briefing}, context=context).documents[0]
+    assert repeated.briefing.rendered_markdown == document.briefing.rendered_markdown
+    assert repeated.markdown_sha256 == document.markdown_sha256
+
+
+@pytest.mark.parametrize(
+    ("original", "defect", "expected_code", "expected_block", "expected_fallback"),
+    (
+        (
+            "> **그래서 의미는?** 수급 흐름을 함께 확인해야 합니다.",
+            "> **그래서 의미는?** 수급 변화가 특정 지역의...",
+            "meaning.truncated_surface",
+            "section_body",
+            "검증된 수치 근거가 부족해 이 섹션의 정밀 판단을 보류합니다.",
+        ),
+        (
+            "추가 발표를 확인한다.",
+            "#### 관찰 신호: CoinGecko BTC · UTC 24h…",
+            "watchpoint.title_truncated_surface",
+            "watchpoints",
+            "오늘은 공개 근거가 충분한 관전 신호만 본문에 남겼습니다.",
+        ),
+    ),
+)
+def test_finalized_body_structural_truncation_is_locally_contained(
+    original: str,
+    defect: str,
+    expected_code: str,
+    expected_block: str,
+    expected_fallback: str,
+) -> None:
+    source = _finalizer_briefing(replace(_CASES[0], segment=US_EQUITY))
+    source = source.model_copy(
+        update={"rendered_markdown": source.rendered_markdown.replace(original, defect)}
+    )
+    context = _acceptance_context(missing=(DOMESTIC_EQUITY, CRYPTO))
+
+    result = finalize_public_bundle({US_EQUITY: source}, context=context)
+
+    assert tuple(document.segment for document in result.documents) == (US_EQUITY,)
+    outcome = next(item for item in result.segment_outcomes if item.segment == US_EQUITY)
+    assert outcome.state == "finalized"
+    document = result.documents[0]
+    block_outcome = next(
+        item for item in document.block_outcomes if expected_code in item.issue_codes
+    )
+    assert block_outcome.block == expected_block
+    assert block_outcome.disposition == "replaced"
+    assert expected_fallback in document.briefing.rendered_markdown
+    assert defect not in document.briefing.rendered_markdown
+    repeated = finalize_public_bundle({US_EQUITY: document.briefing}, context=context).documents[0]
+    assert repeated.briefing.rendered_markdown == document.briefing.rendered_markdown
+    assert repeated.markdown_sha256 == document.markdown_sha256
+
+
+def test_non_surface_hard_gate_precedes_body_fallback_and_keeps_sibling() -> None:
+    domestic = _finalizer_briefing(replace(_CASES[0], segment=DOMESTIC_EQUITY))
+    domestic = domestic.model_copy(
+        update={
+            "rendered_markdown": domestic.rendered_markdown.replace(
+                "> **그래서 의미는?** 수급 흐름을 함께 확인해야 합니다.",
+                "> **그래서 의미는?** KOSPI **+1.20%** 상승...",
+            )
+        }
+    )
+    crypto = _finalizer_briefing(replace(_CASES[0], segment=CRYPTO))
+    context = _acceptance_context(missing=(US_EQUITY,))
+
+    result = finalize_public_bundle(
+        {DOMESTIC_EQUITY: domestic, CRYPTO: crypto},
+        context=context,
+    )
+
+    assert tuple(document.segment for document in result.documents) == (CRYPTO,)
+    domestic_outcome = next(
+        item for item in result.segment_outcomes if item.segment == DOMESTIC_EQUITY
+    )
+    assert domestic_outcome.state == "trust_blocked"
+    assert "numeric.anchor_assertion" in domestic_outcome.issue_codes
+    assert "meaning.truncated_surface" in domestic_outcome.issue_codes
+    assert result.segment_outcomes[2].state == "finalized"
+    _assert_sealed_summary(result.documents[0])
+
+
 @pytest.mark.parametrize("surface", ("conclusion", "driver", "tldr_bullet", "tldr_plain"))
 @pytest.mark.parametrize(
     "defect,code",

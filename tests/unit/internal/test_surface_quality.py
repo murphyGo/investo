@@ -1078,17 +1078,73 @@ def test_three_space_fence_remains_protected_u150() -> None:
     assert repair_surface_link_targets(text) == text
 
 
-def test_first_viewport_truncation_residue_blocks_bounded_shapes_u112() -> None:
-    deny = "# title\n\n> **오늘의 결론**: 금리 민\n\n## ① 요약"
+def test_first_viewport_truncation_residue_blocks_structural_shapes_u112_u153() -> None:
     ellipsis = "# title\n\n> **오늘의 결론**: 변동성 확대...\n\n## ① 요약"
     unmatched = "# title\n\n> **오늘의 결론**: 반도체 수급(\n\n## ① 요약"
-    allowed = "# title\n\n> **오늘의 결론**: 장중 변동성 확대 중\n\n## ① 요약"
+    allowed = (
+        "# title\n\n> **오늘의 결론**: 장중 변동성 확대 중\n> **핵심 동인**: 미 국채\n\n## ① 요약"
+    )
 
-    for text in (deny, ellipsis, unmatched):
+    for text in (ellipsis, unmatched):
         assert any(
             i.code == "summary.truncated_mid_token" for i in find_surface_quality_issues(text)
         )
     assert _issues_with_code(allowed, "summary.truncated_mid_token") == []
+
+
+@pytest.mark.parametrize(
+    ("line", "expected_code"),
+    (
+        ("> **그래서 의미는?** 수급 변화가 특정 지역의...", "meaning.truncated_surface"),
+        ("#### 관찰 신호: CoinGecko BTC · UTC 24h…", "watchpoint.title_truncated_surface"),
+    ),
+)
+def test_body_owned_structural_truncation_uses_owner_specific_code(
+    line: str, expected_code: str
+) -> None:
+    document = f"# title\n\n## ① 요약\n본문\n\n{line}"
+    issues = _issues_with_code(document, expected_code)
+
+    assert len(issues) == 1
+    assert issues[0].severity == "block"
+    assert issues[0].evidence == line
+    assert issues[0].region == "segment_body"
+    assert not _issues_with_code(document, "summary.truncated_mid_token")
+
+
+@pytest.mark.parametrize(
+    "line",
+    (
+        "> **그래서 의미는?** 주요 매수 주체는 기관",
+        "> **그래서 의미는?** 시민 참여를 확인",
+        "#### 관찰 신호: 미 국채",
+        "#### 관찰 신호: 정책 확인",
+    ),
+)
+def test_body_owned_complete_korean_noun_endings_are_not_inferred_as_truncation(
+    line: str,
+) -> None:
+    issues = find_surface_quality_issues(f"# title\n\n## ① 요약\n본문\n\n{line}")
+
+    assert all("truncated" not in issue.code for issue in issues)
+
+
+@seed(15320260909)
+@settings(max_examples=80, print_blob=True)
+@given(
+    marker=st.sampled_from(("> **그래서 의미는?** ", "#### 관찰 신호: ")),
+    lead=st.text(alphabet="가나다라마바사아자차카타파하", min_size=1, max_size=24),
+    noun=st.sampled_from(("국채", "확인", "시민", "기관")),
+)
+def test_body_owner_terminal_syllable_never_implies_truncation_property(
+    marker: str,
+    lead: str,
+    noun: str,
+) -> None:
+    line = f"{marker}{lead} {noun}"
+    issues = find_surface_quality_issues(f"# title\n\n## ① 요약\n본문\n\n{line}")
+
+    assert all("truncated" not in issue.code for issue in issues)
 
 
 def test_u131_production_bounded_line_residue_is_blocking() -> None:
@@ -1097,23 +1153,29 @@ def test_u131_production_bounded_line_residue_is_blocking() -> None:
             "> **그래서 의미는?** Ethereum 기반 DeFi TVL 집중은 ETH 생태계 수요의 "
             "구조적 기반으로 관찰되며, 인도 USDT 프리미엄 이상 급등은 특정 지역의...",
             "body",
+            "meaning.truncated_surface",
         ),
         (
             "> **주의할 점**: 확인 소스: FOMC(연방공개시장위원회) 일정 · "
             "Kevin Warsh(케빈 워시) 연준 의장의 7월 1일 ECB(유럽중앙은행) 포럼 "
             "발언이 매파적 본문 참고.",
             "first_viewport",
+            "summary.truncated_mid_token",
         ),
-        ("#### 관찰 신호: CoinGecko BTC · UTC 24h…", "body"),
+        (
+            "#### 관찰 신호: CoinGecko BTC · UTC 24h…",
+            "body",
+            "watchpoint.title_truncated_surface",
+        ),
     )
 
-    for line, placement in production_lines:
+    for line, placement, issue_code in production_lines:
         text = (
             f"# title\n\n{line}\n\n## ① 요약\n본문"
             if placement == "first_viewport"
             else f"# title\n\n## ① 요약\n본문\n\n{line}"
         )
-        issues = _issues_with_code(text, "summary.truncated_mid_token")
+        issues = _issues_with_code(text, issue_code)
 
         assert len(issues) == 1
         assert issues[0].severity == "block"
@@ -1147,6 +1209,12 @@ def test_u131_caution_blocks_non_hangul_ellipsis_endings() -> None:
         assert len(issues) == 1
         assert issues[0].severity == "block"
         assert issues[0].region == "segment_first_viewport"
+
+
+def test_body_caution_does_not_impersonate_first_viewport_summary_owner() -> None:
+    text = "# title\n\n## ① 요약\n본문\n\n> **주의할 점**: BTC..."
+
+    assert _issues_with_code(text, "summary.truncated_mid_token") == []
 
 
 def test_repairs_bad_particle_mingamdo_eul_u112() -> None:

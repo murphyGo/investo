@@ -141,6 +141,17 @@ def test_repair_first_viewport_summary_strips_heading_and_residue() -> None:
     assert " ROS" not in repaired
 
 
+@pytest.mark.parametrize("ending", ("...", "…", "("))
+def test_u153_structural_summary_truncation_uses_owner_fallback(ending: str) -> None:
+    markdown = _markdown(conclusion=f"확인이 더 필요{ending}")
+
+    repaired = repair_first_viewport_summary(markdown)
+
+    assert f"{CONCLUSION_PREFIX} {FALLBACK_BY_PREFIX[CONCLUSION_PREFIX]}" in repaired
+    assert ending not in repaired
+    validate_first_viewport_summary(repaired)
+
+
 @pytest.mark.parametrize(
     "value",
     [

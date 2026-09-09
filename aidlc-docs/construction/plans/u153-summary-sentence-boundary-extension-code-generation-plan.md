@@ -3,7 +3,7 @@
 **Date**: 2026-09-06
 **Unit**: u153 summary-sentence-boundary-extension
 **Stage**: Code Generation
-**Status**: Complete — 6/6; cross-check APPROVE (2026-09-07); main integrated (2026-09-08); production verification pending
+**Status**: Complete — 7/7; follow-up cross-check and production re-verification pending
 **Source**: `briefing-review-20260906.md`; September 1–4 callouts/TL;DR
 **Estimated Effort**: ~3–5 h
 **Dependencies**:
@@ -114,6 +114,11 @@ no new dependency/I/O/source/secret/LLM/cost.
   Assert no later writer regenerates an over-budget callout before sealing.
 - [x] Step 6 — Validate finalized Markdown and `PublicNotificationSummary`,
   repeated assembly, decimal safety and unrelated-region byte stability.
+- [x] Step 7 — Repair the 2026-09-07 US production false-positive path:
+  remove generic Korean terminal-syllable inference, classify meaning lines and
+  watchpoint titles with owner-specific structural issue codes, contain those
+  presentation defects in their indexed region, and prove complete noun endings
+  plus genuine truncation through the real finalizer.
 
 ## Acceptance Criteria
 
@@ -233,6 +238,25 @@ change, main integration or production action in this cross-check.
 Report: `docs/cross-checks/2026-09-07-u153-summary-sentence-boundary-extension.md`.
 Session: `docs/sessions/2026-09-07-u153-cross-check.md`.
 
+Step 7 evidence (2026-09-09 KST): removed generic Korean terminal-syllable
+inference and assigned structural meaning/watchpoint defects distinct closed
+policy codes with indexed regional fallback. Hard numeric/entity/compliance
+findings are snapshotted before a mutating surface action can erase evidence;
+all actionable codes survive fail-closed aggregation. Link-plus-visible-clipping
+is grouped once, while incomplete link punctuation cannot impersonate body
+truncation. Real finalizer/sibling/repeatability regressions and an 80-example
+seeded property cover safe `기관`/`미 국채` endings and genuine structural defects.
+Final related gate **571 passed**; exact full repository gate **5,229 passed in
+299.25s**; Ruff 581 files, mypy 254 source files, policy/assets/docs/diff gates
+and the final independent review pass. No remaining finding or new debt. The
+2026-09-07 cross-check remains evidence for Steps 1–6; a fresh Step 7 follow-up
+cross-check and production re-verification remain pending. The later explicit
+delivery request produced implementation commit `c5cdfa48b637f07f4c95afa75c6c992b74251453`
+and pushed branch `codex/u153-operational-fix-20260909`; no live publication.
+Evidence:
+`aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-7-production-incident-followup.md`.
+Session: `docs/sessions/2026-09-09-u153-production-incident-followup-step7.md`.
+
 PBT partial mode: Step 1 adds seeded domain-specific decimal/surface preservation
 coverage (PBT-03/07/08/09). There is no new production serialization pair
 (PBT-02 N/A); existing text-helper PBT remains in the regression gates. Steps 2–6
@@ -264,6 +288,45 @@ are repaired and sentence-bounded; residual unmatched syntax retains owned-regio
 replacement. All quality workflow gates pass locally; exact remote commit/CI
 confirmation belongs to the integration handoff. No manual production replay or
 notification send. Integration record: `docs/sessions/2026-09-08-u153-main-integration.md`.
+
+## Production Incident Follow-up — 2026-09-09
+
+Scheduled run `34172164168` generated all three segments but trust-blocked US
+equity with `summary.truncated_mid_token`; domestic and crypto published in
+partial commit `f93def42`, Telegram succeeded, and Pages run `34172964321`
+completed. The rejected US bytes were not persisted, but the exact policy path
+is reproducible: `_TRUNCATED_DENYLIST_RE = [채확민관]$` classifies complete body
+labels such as `미 국채` and `기관` as `segment_body`, while the shared summary
+code maps every non-first-viewport owner to `block_segment`.
+
+The user's `개발 진행해줘` approves this bounded follow-up after reviewing the
+root solution. Functional Design and NFR Requirements remain skipped: this is
+a deterministic owner/policy correction under existing FR-002/FR-009 and
+NFR-003/005/006, with no new entity, I/O, source, secret, dependency or cost.
+
+### Step 7 fixed contracts
+
+1. Terminal quality checks must not infer truncation from the last Korean
+   syllable. Complete nouns and labels ending in `채`, `확`, `민` or `관` are
+   ordinary text unless an explicit structural defect is present.
+2. `summary.truncated_mid_token` remains owned by the actual first viewport.
+   Meaning callouts and watchpoint titles use distinct machine-readable issue
+   codes and retain `segment_body` scanner ownership.
+3. Body-owner truncation is limited to observable structural evidence already
+   supported by the scanner: ASCII/Unicode ellipsis and unmatched Markdown
+   delimiters. An ellipsis attached to content is a clipping marker; a spaced
+   standalone `...` retains the existing cosmetic repair path. No Korean
+   grammar classifier or replacement suffix heuristic.
+4. A meaning defect replaces only its indexed `section_body`; a watchpoint-title
+   defect replaces only `watchpoints`. Unexpected owner/code combinations stay
+   fail-closed. Numeric, entity, compliance, disclaimer, link and structure
+   gates remain unchanged.
+5. Finalizer regressions must prove `미 국채` and `기관` do not block a segment,
+   genuine ellipsis/unmatched syntax is locally contained, usable siblings and
+   sealed-output determinism remain intact, and every issue code is present in
+   the closed disposition matrix.
+6. Record only bounded code/owner/action metadata. Do not persist rejected
+   Markdown or expand logs with evidence text.
 
 ## Non-Goals
 

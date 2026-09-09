@@ -21,6 +21,7 @@ from investo._internal.briefing_extract import (
 from investo._internal.surface_quality import (
     find_surface_quality_issues,
     has_blocking_surface_issue,
+    has_terminal_truncation_marker,
     looks_truncated_caution_continuation,
 )
 from investo._internal.text import MEANINGFUL_TEXT as _MEANINGFUL_TEXT_RE
@@ -161,6 +162,17 @@ def _summary_value_issue(value: str, *, check_continuation: bool = True) -> str 
 
 
 def _repair_summary_value(prefix: str, value: str) -> str:
+    if has_terminal_truncation_marker(value):
+        if any(
+            issue.severity == "block" and issue.code != "summary.truncated_mid_token"
+            for context in (value, f"{prefix} {value}")
+            for issue in find_surface_quality_issues(f"{context}\n## ①")
+        ):
+            # Structural truncation can coexist with a harder owner such as
+            # malformed link syntax. Preserve the original bytes so that
+            # owner's finalizer policy still sees the evidence.
+            return value
+        return _FALLBACK_BY_PREFIX[prefix]
     if prefix != CAUTION_PREFIX and looks_truncated_caution_continuation(
         value, require_complete=True
     ):

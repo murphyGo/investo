@@ -165,6 +165,9 @@ _SURFACE_LINK_ISSUE_CODES: Final[frozenset[str]] = frozenset(
 _RESIDUAL_ACTIONABLE_LINK_DISPOSITIONS: Final[frozenset[FinalizationIssueDisposition]] = frozenset(
     {"repair", "replace_block", "omit_optional_block"}
 )
+_MUTATING_SURFACE_DISPOSITIONS: Final[frozenset[FinalizationIssueDisposition]] = frozenset(
+    {"repair", "replace_block", "omit_optional_block"}
+)
 _SEGMENTS: Final[frozenset[str]] = frozenset(_CANONICAL_SEGMENT_ORDER)
 _PROJECTION_POLICIES: Final[frozenset[str]] = frozenset(
     {"reader_visible", "protected_diagnostics", "exact_disclaimer"}
@@ -2089,11 +2092,9 @@ def _find_owned_surface_quality_issues(
             or issue.code in _SURFACE_LINK_ISSUE_CODES
             # The scanner treats the start of an isolated input as a document
             # first viewport. E3 scans region bodies in isolation, so retain a
-            # truncation finding only for the actual indexed viewport or for a
-            # scanner-owned bounded body line (meaning/watchpoint title).
-            if issue.code != "summary.truncated_mid_token"
-            or region.block == "first_viewport"
-            or issue.region == "segment_body"
+            # summary finding only for the actual indexed viewport. Body-owned
+            # meaning/watchpoint truncation has distinct codes and policy.
+            if issue.code != "summary.truncated_mid_token" or region.block == "first_viewport"
         )
     return tuple(findings)
 
@@ -2560,6 +2561,36 @@ def _repair_projected_draft(
         layout,
         _find_owned_surface_quality_issues(layout),
     )
+    # Surface replacement must never erase evidence owned by a stricter trust
+    # gate. Snapshot numeric/entity/compliance findings on the projected bytes
+    # and fail closed before the first mutating presentation action. Domestic
+    # numeric-only inputs retain their existing bounded containment path when
+    # no surface mutation competes with that evidence.
+    mutating_decisions = tuple(
+        decision for decision in decisions if decision.disposition in _MUTATING_SURFACE_DISPOSITIONS
+    )
+    non_surface_hard_codes = (
+        _collect_non_surface_hard_gate_codes(
+            draft,
+            context,
+            layout=layout,
+        )
+        if mutating_decisions
+        else ()
+    )
+    if non_surface_hard_codes and mutating_decisions:
+        actionable_decisions = tuple(
+            decision for decision in decisions if decision.disposition != "record_warning"
+        )
+        raise _SegmentTrustBlockedError(
+            phase="repaired",
+            issue_codes=_canonical_issue_codes(
+                (
+                    *non_surface_hard_codes,
+                    *(code for decision in actionable_decisions for code in decision.issue_codes),
+                )
+            ),
+        )
     outcomes = draft.block_outcomes
     attempted_region_ids: set[str] = set()
     for decision in decisions:
@@ -2805,15 +2836,7 @@ def _collect_terminal_hard_gates(
     """Run every existing read-only hard gate without short-circuiting."""
 
     candidate = draft if layout is None else _draft_with_layout(draft, layout)
-    codes: set[str] = set()
-    if _scan_terminal_anchor_assertions(candidate, context):
-        codes.add("numeric.anchor_assertion")
-    if _scan_terminal_entity_fact_claims(candidate, context):
-        codes.add("entity.fact_contradiction")
-    try:
-        _scan_terminal_compliance(candidate, context)
-    except ComplianceLanguageError:
-        codes.add("compliance.language")
+    codes = set(_collect_non_surface_hard_gate_codes(candidate, context))
     surface_findings = _find_owned_surface_quality_issues(candidate.layout)
     surface_dispositions = tuple(
         (
@@ -2854,6 +2877,27 @@ def _collect_terminal_hard_gates(
         residual_actionable_link_codes=residual_actionable_link_codes,
         notification_summary=None if issue_codes else notification_summary,
     )
+
+
+def _collect_non_surface_hard_gate_codes(
+    draft: PublicDocumentDraft,
+    context: PublicDocumentContext,
+    *,
+    layout: PublicDocumentLayout | None = None,
+) -> tuple[str, ...]:
+    """Snapshot hard trust findings whose evidence surface repair could erase."""
+
+    candidate = draft if layout is None else _draft_with_layout(draft, layout)
+    codes: set[str] = set()
+    if _scan_terminal_anchor_assertions(candidate, context):
+        codes.add("numeric.anchor_assertion")
+    if _scan_terminal_entity_fact_claims(candidate, context):
+        codes.add("entity.fact_contradiction")
+    try:
+        _scan_terminal_compliance(candidate, context)
+    except ComplianceLanguageError:
+        codes.add("compliance.language")
+    return _canonical_issue_codes(tuple(codes))
 
 
 def _validate_repaired_draft(
