@@ -7,6 +7,10 @@
 **Verdict**: APPROVE — all six Step 7 fixed contracts are complete; no new
 gap, development task or technical debt.
 
+**Operational status**: Closed — exact-incident-date and current-date live
+re-verification both completed all three segments, publication, Telegram,
+exit-code and Pages checks successfully.
+
 **Validated main**: `71c1db17fab62dde0caf981b909e51c2d6564c4c`, equal to
 `origin/main` at validation start. GitHub Quality run
 [`34309893210`](https://github.com/murphyGo/investo/actions/runs/34309893210)
@@ -14,11 +18,12 @@ completed successfully for the same SHA.
 
 ## Scope and compliance summary
 
-This follow-up checks only the six contracts introduced by u153 Code Generation
-Step 7 after production run `34172164168` rejected US equity with
-`summary.truncated_mid_token`. The original Steps 1–6 cross-check remains the
-historical evidence for AC-153.1–6. This report does not claim a new production
-replay, publish, Pages deployment or Telegram delivery.
+The requirements cross-check checks only the six contracts introduced by u153
+Code Generation Step 7 after production run `34172164168` rejected US equity
+with `summary.truncated_mid_token`. The original Steps 1–6 cross-check remains
+the historical evidence for AC-153.1–6. A later user-authorized operational
+closeout, recorded below, adds live replay, publication, Pages and Telegram
+evidence without changing the six-contract denominator.
 
 | Status | Count | Percentage |
 |---|---:|---:|
@@ -30,8 +35,8 @@ replay, publish, Pages deployment or Telegram delivery.
 | Total Step 7 fixed contracts | 6 | 100% |
 
 The denominator is Step 7 contracts S7.1–S7.6, not every acceptance criterion
-of the parent requirements. Production re-verification remains a separate
-operational closeout item and is not reclassified as a code gap.
+of the parent requirements. Production re-verification is a separate
+operational acceptance axis, now closed, and is not reclassified as a code gap.
 
 ## Requirements and design traceability
 
@@ -71,8 +76,9 @@ No requirement deviation, owner leak, unsupported disposition or missing test
 case was found. The rejected US Markdown from the original incident was not
 persisted, so byte-for-byte replay of that rejected draft is impossible. This
 known evidence limit does not invalidate the reproducible policy-path and
-literal safe-ending controls, but it is why production re-verification remains
-open.
+literal safe-ending controls. Exact-date and current-date live runs provide the
+available post-fix production evidence instead of an unavailable rejected-byte
+replay.
 
 ## Fresh validation in this cross-check
 
@@ -108,18 +114,41 @@ The fixed-seed property is finite, shrinking-enabled and collected by normal
 pytest. PBT-03/07/08/09 apply; PBT-02 remains N/A for this lossy presentation
 repair with no inverse serialization contract.
 
+## Production re-verification
+
+The user subsequently authorized the remaining work with `진행시켜`. Following
+the incident procedure, the failing target date and a no-input current-date run
+were checked separately, and generation, finalization, publication,
+notification, exit status and Pages were classified independently.
+
+| Target | Daily run | Finalization | Publish / notify / exit | Bot commit | Pages |
+|---|---|---|---|---|---|
+| `2026-09-07` exact incident date | [`34328379033`](https://github.com/murphyGo/investo/actions/runs/34328379033), success, `847.442s` | domestic `finalized_degraded` with only `numeric.anchor_assertion`; US and crypto `finalized`; no u153 surface code | three archives written and pushed; Telegram HTTP 200, message `124`; rc 0 | `978d37ed49039f20aeca60e67836f7a0f7713f64` | [`34329717519`](https://github.com/murphyGo/investo/actions/runs/34329717519), success |
+| `2026-09-08` resolved current date | [`34330763708`](https://github.com/murphyGo/investo/actions/runs/34330763708), success, `1083.996s` | domestic `finalized_degraded` with only `numeric.anchor_assertion`; US and crypto `finalized`; no u153 surface code | three archives written and pushed; Telegram HTTP 200, message `125`; rc 0 | `eb137d788209917bd972e6790169e0b02b37fe97` | [`34332491487`](https://github.com/murphyGo/investo/actions/runs/34332491487), success |
+
+Both runs reported `[generate] ... ok=3 failed=0`. The US segment that the
+original incident rejected survived finalization and publication in both runs,
+with none of `summary.truncated_mid_token`, `meaning.truncated_surface` or
+`watchpoint.title_truncated_surface`. Domestic `numeric.anchor_assertion` is the
+expected u149 local containment state, not a u153 regression or partial
+pipeline. All six published URLs (three segments for each target date) returned
+HTTP 200 after the matching Pages deployments.
+
+Both pipeline durations exceed NFR-001's ten-minute target. This is additional
+evidence for existing `DEBT-090`, not a new u153 correctness gap or duplicate
+debt item.
+
 ## Gaps, actions and boundary
 
 **Cross-check result**: 6 Complete, 0 Partial, 0 Gap, 0 Deferred, 0 In Progress.
 No code/test repair was needed during this cross-check. No ADR or TECH-DEBT
 entry is warranted, and there are **0 new development tasks**.
 
-**Remaining operational action**: run a separately authorized production
-re-verification and inspect generation, finalization, publication, Pages,
-notification and exit status independently. Until then, u153 Step 7 is
-requirements-approved and main-integrated, but not operationally closed by a
-post-fix live run.
+**Remaining operational action**: none for u153 Step 7. The implementation is
+requirements-approved, main-integrated and operationally closed by two post-fix
+live runs. `DEBT-090` remains an independent performance follow-up.
 
-This cross-check creates documentation only. It performs no live pipeline,
-source/LLM call, archive/site write, publish, deploy, Telegram send, commit or
-push. The original dirty root remains outside this isolated worktree.
+The initial cross-check was documentation-only. The later operational closeout
+performed the authorized live pipeline, archive/site publication, Pages
+deployment and Telegram send from the isolated main worktree. The original
+dirty root remained outside that worktree and untouched.

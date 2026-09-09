@@ -1,7 +1,7 @@
 # u153 Code Generation Step 7 — Production incident follow-up
 
 **Date**: 2026-09-09 KST
-**Status**: Complete — Step 7/7; follow-up cross-check APPROVE, production re-verification pending
+**Status**: Complete — Step 7/7; follow-up cross-check APPROVE and production re-verification closed
 **Baseline**: `origin/main` at `28b95f8c41894f0e6a3240fde7ea0696117d799b`
 **Workspace**: `/private/tmp/investo-u153-fix.G4IkCe`
 
@@ -134,5 +134,23 @@ checks. GitHub Quality run `34309893210` is successful for the same SHA.
 
 Verdict: **APPROVE, 6/6 Step 7 contracts Complete**, with no new gap, task or
 TECH-DEBT. The original rejected US draft was not persisted, so production
-re-verification remains a distinct operational closeout item. Report:
+re-verification was retained as a distinct operational closeout item. Report:
 `docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`.
+
+## Production re-verification closeout
+
+The user's subsequent `진행시켜` authorized the remaining live verification.
+Exact-incident-date daily run `34328379033` (`2026-09-07`) and no-input
+current-date run `34330763708` (resolved `2026-09-08`) both generated 3/3,
+finalized and published all three segments, sent Telegram successfully and
+exited 0. US equity finalized normally in both runs with no u153 surface code;
+domestic alone used the established u149 `numeric.anchor_assertion`
+`finalized_degraded` containment. Bot commits `978d37ed49039f20aeca60e67836f7a0f7713f64`
+and `eb137d788209917bd972e6790169e0b02b37fe97` reached `main`; Pages runs
+`34329717519` and `34332491487` succeeded, and all six live segment URLs
+returned HTTP 200.
+
+The two pipeline durations were `847.442s` and `1083.996s`, so existing
+`DEBT-090` receives additional evidence for the NFR-001 performance miss. No
+new correctness gap, task or duplicate debt is created. Step 7 is now
+requirements-approved, main-integrated and operationally closed.

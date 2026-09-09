@@ -27,15 +27,15 @@ _No medium priority items._
 
 ### Low Priority
 
-#### DEBT-090: exact-date daily pipeline exceeds the NFR-001 ten-minute wall-clock target
+#### DEBT-090: daily pipeline exceeds the NFR-001 ten-minute wall-clock target
 
 - **Created**: 2026-09-02
-- **Source**: u149 Step 7b exact-date production closeout (`33543213131`, `33547421276`)
+- **Source**: u149 Step 7b exact-date production closeout (`33543213131`, `33547421276`); u153 Step 7 exact/current-date operational closeout (`34328379033`, `34330763708`)
 - **Reference**: NFR-001 (daily workflow <=10 min), u92 runtime observability, u95 workflow/enrichment critical-path budget
-- **Description**: The 2026-08-03 and 2026-08-04 exact-date replays completed correctly but their `Run pipeline (python -m investo)` steps took 11m46s and 11m33s. Both runs still published all three documents, sent Telegram, exited 0, and completed Pages. Source collection included bounded slow/failing calls (for example, the second run spent about 41s on each FSC price adapter and 60s on `korea-policy-rss`), but the remaining wall time was dominated by the three-segment generation/finalization path. Two consecutive observations make the former ten-minute margin stale.
+- **Description**: The 2026-08-03 and 2026-08-04 exact-date replays completed correctly but their `Run pipeline (python -m investo)` steps took 11m46s and 11m33s. Both runs still published all three documents, sent Telegram, exited 0, and completed Pages. Source collection included bounded slow/failing calls (for example, the second run spent about 41s on each FSC price adapter and 60s on `korea-policy-rss`), but the remaining wall time was dominated by the three-segment generation/finalization path. u153 operational verification on 2026-09-09 added an exact-date 14m07s (`847.442s`) run and a no-input current-date 18m04s (`1083.996s`) run; both were functionally successful with 3/3 publication, Telegram rc 0, and successful Pages. The repeated observations confirm that the former ten-minute margin is stale; the 18-minute current-date sample warrants timing-owner analysis but is not yet three consecutive current-date runs.
 - **Suggested Fix**: Use the existing u92 stage timings to compare current scheduled runs and split source collection, Claude stage 1/2, visual preparation, finalization, git, and notification wall time. Extend u95 only at the measured owner: shorten or parallelize bounded source waits where safe, and optimize prompt/generation work without weakening terminal trust gates or introducing paid APIs. Add an operational acceptance check over at least two runs; do not enforce a hard cancellation that can leave Claude subprocesses or publish transactions partially active.
 - **Effort**: ~4-8 h after timing review, depending on whether the dominant owner is source fan-out or Claude generation.
-- **Priority Reasoning**: Low — the 10-minute performance target is missed, but the runs remain complete and correct at roughly 12 minutes with no schedule overlap. Promote if scheduled runs exceed 15 minutes, overlap the next trigger, or the measured regression grows across three consecutive current-date runs.
+- **Priority Reasoning**: Low — the 10-minute performance target is missed, but the observed runs remain complete and correct with no schedule overlap. One manual current-date sample now exceeds 15 minutes; promote after timing-owner analysis confirms a scheduled-run regression, on schedule overlap, or when the regression persists across three consecutive current-date runs.
 
 #### DEBT-084: archive-side visuals manifests stamp wall-clock `generated_at` while the u137 image store persists no wall clock — determinism inconsistency
 

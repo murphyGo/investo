@@ -3,7 +3,7 @@
 **Date**: 2026-09-06
 **Unit**: u153 summary-sentence-boundary-extension
 **Stage**: Code Generation
-**Status**: Complete — 7/7; follow-up cross-check APPROVE, production re-verification pending
+**Status**: Complete — 7/7; follow-up cross-check APPROVE and production re-verification closed
 **Source**: `briefing-review-20260906.md`; September 1–4 callouts/TL;DR
 **Estimated Effort**: ~3–5 h
 **Dependencies**:
@@ -272,10 +272,20 @@ passes a fresh 571-test related gate in 16.69s, full 5,229-test gate in 316.94s,
 lock/Ruff/581-file format/source mypy 254/policy/assets/strict-doc checks, and
 GitHub Quality run `34309893210` for the same SHA. No new gap, task or debt.
 The unpersisted rejected US draft prevents exact-byte incident replay, so live
-production re-verification remains pending as a separate operational closeout.
+production re-verification was retained as a separate operational closeout.
 Report:
 `docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`.
 Session: `docs/sessions/2026-09-09-u153-step7-cross-check.md`.
+
+Production re-verification closeout (2026-09-09 KST): exact-date run
+`34328379033` for `2026-09-07` and no-input run `34330763708` resolving to
+`2026-09-08` both completed 3/3 generation, normal US/crypto finalization,
+expected u149 domestic numeric containment, three-segment publication,
+Telegram HTTP 200 and rc 0. Bot commits `978d37ed` and `eb137d78` each received
+a successful Pages deployment (`34329717519`, `34332491487`), and all six live
+segment URLs returned HTTP 200. No u153 surface code recurred. Durations
+`847.442s` and `1083.996s` add evidence to existing `DEBT-090`; they do not
+create a new u153 gap or duplicate debt. Operational status is Closed.
 
 PBT partial mode: Step 1 adds seeded domain-specific decimal/surface preservation
 coverage (PBT-03/07/08/09). There is no new production serialization pair

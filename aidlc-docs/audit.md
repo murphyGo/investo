@@ -7010,3 +7010,50 @@ remains untouched.
 **Evidence**:
 `docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`;
 `docs/sessions/2026-09-09-u153-step7-cross-check.md`.
+
+## Operations — u153 production incident follow-up Step 7 re-verification
+
+**Timestamp**: 2026-09-09T18:06:02+09:00
+
+**Authorization / procedure**: The user replied `진행시켜` after the handoff
+identified cross-check documentation delivery and production re-verification as
+the remaining work. Applied the daily-briefing incident procedure in the clean
+isolated main worktree: exact incident date plus no-input current date, with
+generation, finalization, publication, notification, exit status, bot commit,
+Pages and live URLs evaluated separately. The isolated-main procedure preserved
+the unrelated dirty root.
+
+**Documentation delivery baseline**: Six cross-check/state files were committed
+as `bed6f053cd2c2fd84ba2a807f36516cd56cd4ee9` (`docs: close u153 step7
+cross-check`) and pushed to `main`. Quality run `34328356049` succeeded for that
+exact SHA.
+
+**Exact-date result**: Daily run `34328379033` on target `2026-09-07` completed
+successfully in `847.442s`: generation 3/3, domestic `finalized_degraded` only
+for established u149 `numeric.anchor_assertion`, US/crypto `finalized`, three
+archives written and pushed, Telegram HTTP 200/message 124, pipeline rc 0. Bot
+commit `978d37ed49039f20aeca60e67836f7a0f7713f64`; Pages run `34329717519`
+success.
+
+**Current-date result**: No-input daily run `34330763708` resolved target
+`2026-09-08` and completed successfully in `1083.996s`: the same 3/3 and
+finalization disposition, three archives written and pushed, Telegram HTTP
+200/message 125, pipeline rc 0. Bot commit
+`eb137d788209917bd972e6790169e0b02b37fe97`; Pages run `34332491487` success.
+
+**Acceptance / debt**: Neither run emitted `summary.truncated_mid_token`,
+`meaning.truncated_surface` or `watchpoint.title_truncated_surface`; US survived
+and published in both. All six live segment URLs returned HTTP 200. Step 7 is
+requirements-approved, main-integrated and operationally closed. Both durations
+miss NFR-001; they extend existing `DEBT-090` evidence without creating a
+duplicate debt or u153 correctness gap.
+
+**Preservation / delivery**: Original root HEAD
+`985b7e4063a8037bf46f7e6f87426a816cf715f7` and its three dirty paths remain
+untouched. Bot archive/site commits were workflow-owned. The isolated branch was
+fast-forwarded through current bot head `eb137d78`; only closeout documentation
+is staged for the final exact-SHA main delivery.
+
+**Evidence**:
+`docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`;
+`docs/sessions/2026-09-09-u153-step7-production-reverification.md`.

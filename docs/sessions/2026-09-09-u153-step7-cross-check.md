@@ -32,10 +32,26 @@ cross-check remains historical and was not overwritten.
 
 The original incident's rejected US draft was not persisted, so exact rejected
 byte replay is unavailable. The policy path and safe-ending regressions are
-reproducible and complete, while a new live production run remains required for
-operational closeout. No live pipeline, publication, deployment, notification,
-commit or push was performed in this cross-check. Documentation-only closeout
-is left in the isolated main worktree for separate delivery authorization.
+reproducible and complete. No live pipeline, publication, deployment,
+notification, commit or push was performed in this cross-check itself. The
+user later authorized the remaining operational closeout with `진행시켜`.
+
+## Subsequent operational closeout
+
+Exact-date daily run `34328379033` for `2026-09-07` and no-input daily run
+`34330763708` resolving to `2026-09-08` both completed successfully. Each
+generated 3/3 segments, finalized US and crypto normally, contained only the
+known domestic `numeric.anchor_assertion` through u149, committed and pushed
+all three archives, sent Telegram with HTTP 200, exited 0 and triggered a
+successful Pages deployment (`34329717519`, `34332491487`). The matching bot
+commits are `978d37ed49039f20aeca60e67836f7a0f7713f64` and
+`eb137d788209917bd972e6790169e0b02b37fe97`; all six live pages returned HTTP
+200. No u153 surface issue code recurred. Operational status is Closed.
+
+Pipeline durations `847.442s` and `1083.996s` remain additional evidence for
+existing `DEBT-090`, not a new u153 debt item.
 
 Full report:
 `docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`.
+Operational session:
+`docs/sessions/2026-09-09-u153-step7-production-reverification.md`.
