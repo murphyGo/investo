@@ -105,6 +105,18 @@ def test_context_sensitive_dispositions_match_functional_design() -> None:
     assert surface_issue_disposition("summary.truncated_mid_token", "first_viewport") == (
         "replace_block"
     )
+    assert surface_issue_disposition("meaning.truncated_surface", "section_body") == (
+        "replace_block"
+    )
+    assert surface_issue_disposition("watchpoint.title_truncated_surface", "watchpoints") == (
+        "replace_block"
+    )
+    assert surface_issue_disposition("meaning.truncated_surface", "watchpoints") == (
+        "block_segment"
+    )
+    assert surface_issue_disposition("watchpoint.title_truncated_surface", "section_body") == (
+        "block_segment"
+    )
     assert surface_issue_disposition("watchlist.matcher_reason.public", "watchpoints") == (
         "replace_block"
     )

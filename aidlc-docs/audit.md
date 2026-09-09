@@ -6840,3 +6840,78 @@ passed, scoped format check passed, `mypy src` passed.
 **Operational boundary**: FD 7/7, CG 6/6 and cross-check 6/6 remain complete; main integration completes in this merge. Production acceptance remains pending. Existing quality workflow runs automatically on main push; daily-briefing remains scheduled/manual and Pages filtered paths are untouched. No manual workflow dispatch. DEBT-090 and other unit/activation queues remain unchanged.
 **Preservation / final delivery**: Original root HEAD `985b7e4063a8037bf46f7e6f87426a816cf715f7` and its three dirty paths preserved. Final docs/preservation checks and current-main recheck precede push; exact remote merge SHA and automatic quality result are verified in the final handoff.
 **Evidence**: `docs/sessions/2026-09-09-u151-main-integration.md`; `docs/cross-checks/2026-09-09-u151-shared-macro-positioning-kind-boundary.md`.
+
+## Construction — u153 production incident follow-up Step 7 approved
+
+**Timestamp**: 2026-09-09T03:43:49+09:00
+
+**Incident**: Scheduled daily run `34172164168` generated 3/3 drafts but
+trust-blocked US equity with `summary.truncated_mid_token`; domestic and crypto
+published, Telegram succeeded, and Pages run `34172964321` completed. A clean
+`origin/main` worktree reproduces complete `미 국채` and `기관` body surfaces as
+the same blocking code because `_TRUNCATED_DENYLIST_RE` infers truncation from
+their terminal syllable.
+
+**Approval**: The user replied exactly `개발 진행해줘` after the root solution
+was presented as owner-specific generation/validation plus region containment.
+
+**Plan**: Reopen only u153 Code Generation Step 7. Remove generic terminal-
+syllable inference, split meaning/watchpoint structural findings from the
+first-viewport summary code, map each to its owned regional fallback, add
+scanner/policy/real-finalizer regressions and run focused/static/full gates plus
+independent review. Functional Design and NFR Requirements remain skipped under
+existing FR-002/FR-009 and NFR-003/005/006. No archive/site/workflow/dependency,
+live publish, notification, commit or push is authorized.
+
+## Construction — u153 production incident follow-up Step 7 complete
+
+**Timestamp**: 2026-09-09T10:27:31+09:00
+
+**Scope / continuity**: Applied `dev-investo` to the user-approved Step 7 only
+in isolated worktree `/private/tmp/investo-u153-fix.G4IkCe`, based on fetched
+`origin/main` `28b95f8c41894f0e6a3240fde7ea0696117d799b`. Functional Design and NFR
+Requirements remain skipped under the approved bounded correction. Partial PBT
+is enabled. TECH-DEBT remains Critical 0 / High 0 / Medium 0 / Low 33; no
+escalation or new debt.
+
+**Implementation**: Removed generic `[채확민관]$` truncation inference. Structural
+first-viewport summary, meaning callout and watchpoint-title findings now have
+distinct owner codes and closed policies. Meaning/watchpoint clipping uses only
+explicit terminal markers after safe link projection and receives one indexed
+regional fallback. Summary marker repair reuses canonical per-prefix fallback
+without discarding harder link evidence. Before any mutating surface action,
+numeric/entity/compliance findings are snapshotted; coexistence blocks before
+evidence deletion and aggregates every actionable surface code. Numeric-only
+domestic containment and all unexpected-owner fail-closed paths remain intact.
+
+**Tests / PBT**: TDD regressions first reproduced safe `기관`/`미 국채` false
+positives, owner-code confusion, numeric evidence deletion and link/tail
+two-pass behavior. Review-driven regressions additionally cover incomplete
+links without double classification, numeric plus regional mutation plus a
+separate protected link, entity/compliance coexistence and terminal entity scan
+cardinality. Seeded property `15320260909` exercises 80 complete Korean owner
+lines. Final related gate 571 passed in 14.58s. Exact final full repository gate
+5,229 passed in 299.25s. An intermediate full run reported 5,225 passed / 1
+failed because the initial pre-snapshot ran the entity guard twice; restricting
+it to actual mutating decisions restored the existing one-scan-per-attempt
+contract before the final gate. No waiver or xfail.
+
+**Static / policy / review**: Full Ruff/check and 581-file format, source mypy
+254 files, lock, no-paid/no-Anthropic, curated-assets 19 filed / 0 deferred,
+image-store, strict MkDocs/Material and diff integrity pass. The skill-mandated
+fresh-eyes review found four boundary defects over two passes; each was fixed
+with a regression. Final review reports no remaining correctness, security,
+error-contract or test-gap finding. PBT-03/07/08/09 pass; PBT-02 N/A. No ADR.
+
+**Preservation / next boundary**: Original root HEAD
+`985b7e4063a8037bf46f7e6f87426a816cf715f7` and its existing dirty paths
+`.claude/settings.local.json`, `.claude/worktrees/`, and
+`archive/_meta/fact_snapshots.jsonl` remain untouched. No archive/site/workflow,
+dependency, requirements/DESIGN or TECH-DEBT edit; no live source/LLM call,
+pipeline, deploy, publish, Telegram send, commit, push or merge. Step 7 Code
+Generation is complete locally. Its fresh cross-check and production
+re-verification require separate approval.
+
+**Evidence**:
+`aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-7-production-incident-followup.md`;
+`docs/sessions/2026-09-09-u153-production-incident-followup-step7.md`.

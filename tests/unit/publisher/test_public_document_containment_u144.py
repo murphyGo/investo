@@ -27,6 +27,7 @@ from investo.publisher._public_document_policy import (
     FinalizationIssueDisposition,
     strongest_surface_disposition,
 )
+from investo.publisher.compliance_language import ComplianceLanguageError
 from investo.publisher.public_document import (
     PublicDocumentContext,
     PublicDocumentDraft,
@@ -300,7 +301,7 @@ def test_truncated_summary_finding_is_owned_only_by_actual_first_viewport() -> N
 
     viewport_markdown = _canonical_markdown(
         watchpoint_body="- 확인할 조건",
-        first_viewport_lines=("공급망 관",),
+        first_viewport_lines=("공급망 관...",),
     )
     viewport_draft, _ = _projected_draft(viewport_markdown)
     findings = _find_owned_surface_quality_issues(viewport_draft.layout)
@@ -337,7 +338,7 @@ def test_u153_region_local_scan_still_owns_real_viewport_continuations() -> None
     )
 
 
-def test_owned_bounded_body_truncation_findings_survive_region_local_scan() -> None:
+def test_owned_bounded_body_truncation_findings_use_owner_specific_codes() -> None:
     watchpoint_markdown = _canonical_markdown(
         watchpoint_body="#### 관찰 신호: CoinGecko BTC · UTC 24h…"
     )
@@ -345,7 +346,8 @@ def test_owned_bounded_body_truncation_findings_survive_region_local_scan() -> N
     watchpoint_findings = _find_owned_surface_quality_issues(watchpoint_draft.layout)
 
     assert any(
-        finding.issue.code == "summary.truncated_mid_token" and finding.block == "watchpoints"
+        finding.issue.code == "watchpoint.title_truncated_surface"
+        and finding.block == "watchpoints"
         for finding in watchpoint_findings
     )
 
@@ -357,9 +359,214 @@ def test_owned_bounded_body_truncation_findings_survive_region_local_scan() -> N
     meaning_findings = _find_owned_surface_quality_issues(meaning_draft.layout)
 
     assert any(
-        finding.issue.code == "summary.truncated_mid_token" and finding.block == "section_body"
+        finding.issue.code == "meaning.truncated_surface" and finding.block == "section_body"
         for finding in meaning_findings
     )
+
+
+@pytest.mark.parametrize(
+    ("body", "expected_region", "expected_code", "expected_fallback"),
+    (
+        (
+            "> **그래서 의미는?** 수급 변화가 특정 지역의...",
+            "section:3",
+            "meaning.truncated_surface",
+            "검증된 수치 근거가 부족해 이 섹션의 정밀 판단을 보류합니다.",
+        ),
+        (
+            "#### 관찰 신호: CoinGecko BTC · UTC 24h…",
+            "watchpoints:section",
+            "watchpoint.title_truncated_surface",
+            PUBLIC_WATCHPOINT_LIMITED_TEXT,
+        ),
+    ),
+)
+def test_body_owned_structural_truncation_is_contained_in_its_region(
+    body: str,
+    expected_region: str,
+    expected_code: str,
+    expected_fallback: str,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건")
+    if expected_region == "section:3":
+        markdown = markdown.replace("수급 본문", body)
+    else:
+        markdown = markdown.replace("- 확인할 조건", body)
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert repaired.phase == "repaired"
+    outcome = next(item for item in repaired.block_outcomes if item.region_id == expected_region)
+    assert outcome.disposition == "replaced"
+    assert outcome.issue_codes == (expected_code,)
+    region = next(item for item in repaired.layout.regions if item.region_id == expected_region)
+    region_body = repaired.layout.markdown[region.content_start : region.content_end]
+    assert expected_fallback in region_body
+    assert body not in repaired.layout.markdown
+
+
+@pytest.mark.parametrize(
+    ("body", "expected_region", "expected_codes", "expected_fallback"),
+    (
+        (
+            "> **그래서 의미는?** [수급](https://example.invalid/a/...) 흐름...",
+            "section:3",
+            ("markdown.href_ellipsis", "meaning.truncated_surface"),
+            "검증된 수치 근거가 부족해 이 섹션의 정밀 판단을 보류합니다.",
+        ),
+        (
+            "#### 관찰 신호: [국채](https://example.invalid/a/...) 변동…",
+            "watchpoints:section",
+            ("markdown.href_ellipsis", "watchpoint.title_truncated_surface"),
+            PUBLIC_WATCHPOINT_LIMITED_TEXT,
+        ),
+    ),
+)
+def test_link_and_body_truncation_are_grouped_into_one_local_containment(
+    body: str,
+    expected_region: str,
+    expected_codes: tuple[str, ...],
+    expected_fallback: str,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건")
+    if expected_region == "section:3":
+        markdown = markdown.replace("수급 본문", body)
+    else:
+        markdown = markdown.replace("- 확인할 조건", body)
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert repaired.phase == "repaired"
+    assert len(repaired.block_outcomes) == 1
+    outcome = repaired.block_outcomes[0]
+    assert outcome.region_id == expected_region
+    assert outcome.disposition == "replaced"
+    assert outcome.issue_codes == expected_codes
+    assert expected_fallback in repaired.layout.markdown
+    assert body not in repaired.layout.markdown
+    assert not _find_owned_surface_quality_issues(repaired.layout)
+
+
+@pytest.mark.parametrize(
+    ("body", "expected_region", "expected_disposition"),
+    (
+        (
+            "> **그래서 의미는?** [수급](https://example.invalid/a/...",
+            "section:3",
+            "repaired",
+        ),
+        (
+            "#### 관찰 신호: [국채](https://example.invalid/a/...",
+            "watchpoints:section",
+            "replaced",
+        ),
+    ),
+)
+def test_incomplete_link_does_not_impersonate_body_truncation(
+    body: str,
+    expected_region: str,
+    expected_disposition: str,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건")
+    if expected_region == "section:3":
+        markdown = markdown.replace("수급 본문", body)
+    else:
+        markdown = markdown.replace("- 확인할 조건", body)
+    projected, context = _projected_draft(markdown)
+
+    findings = _find_owned_surface_quality_issues(projected.layout)
+    repaired = _repair_projected_draft(projected, context)
+
+    owner_codes = tuple(
+        finding.issue.code for finding in findings if finding.region_id == expected_region
+    )
+    assert owner_codes == ("markdown.unmatched_link",)
+    assert len(repaired.block_outcomes) == 1
+    outcome = repaired.block_outcomes[0]
+    assert outcome.region_id == expected_region
+    assert outcome.disposition == expected_disposition
+    assert outcome.issue_codes == ("markdown.unmatched_link",)
+    assert body not in repaired.layout.markdown
+
+
+@pytest.mark.parametrize(
+    "hard_code",
+    ("entity.fact_contradiction", "compliance.language"),
+)
+def test_non_surface_hard_gate_blocks_before_body_fallback(
+    hard_code: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    markdown = _canonical_markdown(watchpoint_body="- 확인할 조건").replace(
+        "수급 본문",
+        "> **그래서 의미는?** 수급 변화가 특정 지역의...",
+    )
+    projected, context = _projected_draft(markdown)
+    if hard_code == "entity.fact_contradiction":
+        monkeypatch.setattr(
+            public_document_module,
+            "_scan_terminal_entity_fact_claims",
+            lambda *_args, **_kwargs: (object(),),
+        )
+    else:
+
+        def reject_compliance(*_args: object, **_kwargs: object) -> None:
+            raise ComplianceLanguageError(segment=DOMESTIC_EQUITY, hits=())
+
+        monkeypatch.setattr(
+            public_document_module,
+            "_scan_terminal_compliance",
+            reject_compliance,
+        )
+
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _repair_projected_draft(projected, context)
+
+    assert blocked.value.phase == "repaired"
+    assert blocked.value.issue_codes == (
+        hard_code,
+        "meaning.truncated_surface",
+    )
+
+
+def test_early_hard_gate_snapshot_keeps_every_actionable_surface_code() -> None:
+    markdown = (
+        _canonical_markdown(watchpoint_body="- 확인할 조건")
+        .replace(
+            "수급 본문",
+            "> **그래서 의미는?** KOSPI **+1.20%** 상승...",
+        )
+        .replace(
+            "**세그먼트**: [국내](/domestic)",
+            "**세그먼트**: [국내](https://example.invalid/a/...)",
+        )
+    )
+    projected, context = _projected_draft(markdown)
+
+    with pytest.raises(_SegmentTrustBlockedError) as blocked:
+        _repair_projected_draft(projected, context)
+
+    assert blocked.value.issue_codes == (
+        "markdown.href_ellipsis",
+        "meaning.truncated_surface",
+        "numeric.anchor_assertion",
+    )
+
+
+def test_complete_body_noun_endings_do_not_create_region_outcomes() -> None:
+    markdown = _canonical_markdown(watchpoint_body="#### 관찰 신호: 미 국채").replace(
+        "수급 본문",
+        "> **그래서 의미는?** 주요 매수 주체는 기관",
+    )
+    projected, context = _projected_draft(markdown)
+
+    repaired = _repair_projected_draft(projected, context)
+
+    assert repaired.phase == "repaired"
+    assert repaired.block_outcomes == ()
+    assert repaired.layout.markdown == markdown
 
 
 def test_multiple_findings_group_once_in_region_order_and_record_redacted_outcomes() -> None:
@@ -654,7 +861,7 @@ def test_ambiguous_link_shape_replaces_owner_without_false_repaired_outcome(
 
 def test_first_viewport_replacements_use_canonical_summary_and_watermark_owners() -> None:
     malformed_watermark = "**기준 시각**: 2026-07-21 KST · 수집창 invalid"
-    malformed_summary = "> **오늘의 결론**: 확인이 더 필요한 관"
+    malformed_summary = "> **오늘의 결론**: 확인이 더 필요..."
     unrelated_line = "> 정상적인 별도 안내는 유지합니다."
     markdown = _canonical_markdown(
         watchpoint_body="- 확인할 조건",
@@ -681,7 +888,7 @@ def test_first_viewport_replacements_use_canonical_summary_and_watermark_owners(
     ("special_line", "special_code"),
     (
         ("**기준 시각**: 2026-07-21 KST · 수집창 invalid", "watermark.window_bracket"),
-        ("> **오늘의 결론**: 확인이 더 필요한 관", "summary.truncated_mid_token"),
+        ("> **오늘의 결론**: 확인이 더 필요...", "summary.truncated_mid_token"),
     ),
 )
 def test_unrecoverable_first_viewport_link_uses_the_stronger_whole_region_replacement(

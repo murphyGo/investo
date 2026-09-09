@@ -93,11 +93,9 @@ _AUTOLINK_RE = re.compile(
 _FENCE_RE = re.compile(r"^ {0,3}(?P<marker>`{3,}|~{3,})(?P<rest>.*)$")
 _TABLE_DELIMITER_RE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$")
 _DANGLING_ELLIPSIS_RE = re.compile(r"(?:^|\s)\.\.\.$")
-_TRUNCATED_KOREAN_ELLIPSIS_RE = re.compile(r"[가-힣](?:\.{3}|…)$")
-_TRUNCATED_DENYLIST_RE = re.compile(r"[채확민관]$")
-_BODY_BOUNDED_LINE_RE = re.compile(
-    r"^(?:>\s*\*\*그래서 의미는\?\*\*|####\s+관찰 신호\s*:)",
-)
+_ATTACHED_TRUNCATION_ELLIPSIS_RE = re.compile(r"\S(?:\.{3}|…)$")
+_MEANING_LINE_RE = re.compile(r"^>\s*\*\*그래서 의미는\?\*\*")
+_WATCHPOINT_TITLE_LINE_RE = re.compile(r"^####\s+관찰 신호\s*:")
 _CAUTION_LINE_RE = re.compile(r"^>\s*\*\*주의할 점\*\*\s*:\s*(?P<body>.+)$")
 _BOUNDED_LINE_ELLIPSIS_RE = re.compile(r"(?:\.{3}|…)$")
 _SUMMARY_LIST_RE = re.compile(r"^(?:[-*+]|\d+[.)])[^\S\n]+(.*)$")
@@ -490,22 +488,37 @@ def _scan_lines(
             )
         link_issues = _scan_link_issues(line, region=region, masked_line=scan_line)
         issues.extend(link_issues)
-        body_bounded_line = _BODY_BOUNDED_LINE_RE.match(scan_line.strip()) is not None
+        body_owner_scan_line = link_scan_line
+        if link_issues:
+            repaired_link_line = _repair_surface_link_line(
+                line,
+                masked_line=inline_scan_line,
+            )
+            # Only reader-visible residue after a safe link repair may support
+            # an independent owner truncation finding. If link ownership is
+            # ambiguous, its fail-closed policy remains the sole classifier.
+            body_owner_scan_line = (
+                _mask_escaped_markdown_punctuation(_mask_inline_code(repaired_link_line))
+                if repaired_link_line != line
+                else ""
+            )
+        stripped_scan_line = scan_line.strip()
+        meaning_line = _MEANING_LINE_RE.match(stripped_scan_line) is not None
+        watchpoint_title_line = _WATCHPOINT_TITLE_LINE_RE.match(stripped_scan_line) is not None
         caution_line = _CAUTION_LINE_RE.match(scan_line.strip()) is not None
         caution_truncated = caution_line and (
             looks_truncated_caution_continuation(scan_line)
             or _BOUNDED_LINE_ELLIPSIS_RE.search(scan_line.strip()) is not None
         )
-        bounded_line_truncated = body_bounded_line and (
-            looks_truncated_mid_token(link_scan_line)
-            or _BOUNDED_LINE_ELLIPSIS_RE.search(scan_line.strip()) is not None
+        body_owner_truncated = (meaning_line or watchpoint_title_line) and (
+            looks_truncated_mid_token(body_owner_scan_line)
+            or _BOUNDED_LINE_ELLIPSIS_RE.search(body_owner_scan_line.strip()) is not None
         )
         if summary_truncated or (
             not link_issues
             and (
                 (region == "segment_first_viewport" and looks_truncated_mid_token(link_scan_line))
-                or caution_truncated
-                or bounded_line_truncated
+                or (region == "segment_first_viewport" and caution_truncated)
             )
         ):
             issues.append(
@@ -513,13 +526,28 @@ def _scan_lines(
                     "summary.truncated_mid_token",
                     "block",
                     summary_line if summary_truncated else line,
-                    # E3 filters summary-only findings outside its indexed
-                    # viewport. The artificial split is not body ownership.
-                    "segment_body"
-                    if body_bounded_line
-                    else "segment_first_viewport"
-                    if summary_truncated
-                    else region,
+                    "segment_first_viewport" if summary_truncated else region,
+                )
+            )
+        # A recoverable link target and an independent terminal clipping marker
+        # can coexist on the same owned line. Emit both findings in this pass so
+        # the finalizer can apply one strongest, region-local disposition.
+        if body_owner_truncated and meaning_line:
+            issues.append(
+                SurfaceQualityIssue(
+                    "meaning.truncated_surface",
+                    "block",
+                    line,
+                    "segment_body",
+                )
+            )
+        if body_owner_truncated and watchpoint_title_line:
+            issues.append(
+                SurfaceQualityIssue(
+                    "watchpoint.title_truncated_surface",
+                    "block",
+                    line,
+                    "segment_body",
                 )
             )
         matcher_reason = _WATCHLIST_MATCHER_REASON_RE.search(scan_line)
@@ -995,19 +1023,19 @@ def _split_line_ending(raw_line: str) -> tuple[str, str]:
 
 
 def looks_truncated_mid_token(line: str) -> bool:
-    """Return whether a reader-facing line has a truncated surface shape.
+    """Return whether a reader-facing line has observable structural truncation.
 
     Reader-format repair imports this predicate so the repair and blocking
-    gate share one structural contract.  Keep the checks here conservative:
-    the caller may pass either a complete Markdown line or a summary body.
+    gate share one structural contract. Korean terminal syllables are not
+    evidence: complete labels such as ``국채`` and ``기관`` may end with the
+    same character as a clipped fragment. The caller may pass either a
+    complete Markdown line or a summary body.
     """
 
     stripped = line.strip()
     if not stripped:
         return False
-    if _TRUNCATED_KOREAN_ELLIPSIS_RE.search(stripped):
-        return True
-    if _TRUNCATED_DENYLIST_RE.search(stripped):
+    if has_terminal_truncation_marker(stripped):
         return True
     return (
         stripped.endswith(("(", "["))
@@ -1015,6 +1043,13 @@ def looks_truncated_mid_token(line: str) -> bool:
         or stripped.count("[") > stripped.count("]")
         or stripped.count("**") % 2 == 1
     )
+
+
+def has_terminal_truncation_marker(line: str) -> bool:
+    """Return whether ``line`` ends in an explicit clipping marker."""
+
+    stripped = line.strip()
+    return bool(_ATTACHED_TRUNCATION_ELLIPSIS_RE.search(stripped)) or stripped.endswith(("(", "["))
 
 
 def looks_truncated_caution_continuation(line: str, *, require_complete: bool = False) -> bool:

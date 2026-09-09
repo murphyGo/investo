@@ -76,10 +76,12 @@ SURFACE_ISSUE_CODES: Final[frozenset[str]] = frozenset(
         "markdown.broken_numeric_bold",
         "markdown.href_ellipsis",
         "markdown.unmatched_link",
+        "meaning.truncated_surface",
         "public_diagnostic.raw_label",
         "summary.truncated_mid_token",
         "template.repeated_phrase",
         "trace.fragment",
+        "watchpoint.title_truncated_surface",
         "watchlist.matcher_reason.public",
         "watermark.window_bracket",
     }
@@ -179,6 +181,10 @@ def _disposition_for(
         return "block_segment"
     if issue_code == "summary.truncated_mid_token":
         return "replace_block" if block == "first_viewport" else "block_segment"
+    if issue_code == "meaning.truncated_surface":
+        return "replace_block" if block == "section_body" else "block_segment"
+    if issue_code == "watchpoint.title_truncated_surface":
+        return "replace_block" if block == "watchpoints" else "block_segment"
     if issue_code == "watchlist.matcher_reason.public":
         if block == "watchpoints":
             return OPTIONAL_BLOCK_DISPOSITIONS[block]
