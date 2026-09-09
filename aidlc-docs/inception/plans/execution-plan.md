@@ -168,6 +168,27 @@ Application Design + Units Generation 후 확정되겠지만 현재 가정:
 
 ## Extension Compliance Summary
 
+### u155 stage override — 2026-09-09
+
+This bounded extension adds provider selection and rotating ChatGPT credentials
+in private automation. It supersedes the original global infrastructure-skip
+decision for u155 only.
+
+| Stage | Decision | Reason |
+|---|---|---|
+| Functional Design | REQUIRED; APPROVED 2026-09-09 | user “진행시켜”; provider choice, session state, persistence-before-publication |
+| NFR Requirements | REQUIRED; APPROVED 2026-09-09 | N155-01–16; secret lifecycle, isolation, budgets, failure and cost |
+| NFR Design | SKIP separate stage | focused NFR contracts mapped in runtime/Infrastructure design |
+| Infrastructure Design | REQUIRED; APPROVED 2026-09-09 | approved single Environment/job, private execution/public output, scoped tokens and schedule ownership |
+| Code Generation | REQUIRED; local Steps 1–7 COMPLETE | shared provider boundary, private manual workflow and regression coverage |
+| Build/Test + review/cross-check | COMPLETE locally | 5,026 tests; Ruff/format, mypy, actionlint, lock/guards and independent review/cross-check PASS; operational Steps 8/9 remain |
+
+Existing Partial PBT scope and declined Security Baseline extension stay as
+recorded. New explicit u155 security requirements are still binding.
+No next-unit or activation approval is inferred from this stage registration.
+
+### Existing extension choices
+
 | Extension | Status | Applicable Stages | Compliance Action |
 |-----------|--------|-------------------|-------------------|
 | Security Baseline | DECLINED | (n/a) | 별도 강제 없음. Secrets는 GitHub Secrets로 관리(NFR-007 baseline) |

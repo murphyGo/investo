@@ -20,7 +20,9 @@ never printed.
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import Mapping
+from pathlib import Path
 from urllib.parse import urlparse
 
 REQUIRED_ENV_VARS: tuple[str, ...] = (
@@ -41,10 +43,21 @@ OPENAI_API_KEY_VAR = "OPENAI_API_KEY"
 
 def validate_env(env: Mapping[str, str]) -> list[str]:
     """Return secret-safe validation error messages for ``env``."""
-    values = {name: env.get(name, "").strip() for name in REQUIRED_ENV_VARS}
+    from investo._internal.llm_config import (
+        LlmConfigError,
+        LlmExecutionConfig,
+        required_environment,
+    )
+
+    try:
+        config = LlmExecutionConfig.from_env(env)
+    except LlmConfigError as exc:
+        return [str(exc)]
+    required = required_environment(config, dry_run=env.get("INVESTO_DRY_RUN", "").strip() == "1")
+    values = {name: env.get(name, "").strip() for name in (*REQUIRED_ENV_VARS, *required)}
     errors: list[str] = []
 
-    for name in REQUIRED_ENV_VARS:
+    for name in required:
         if not values[name]:
             errors.append(f"Missing required GitHub Secret: {name}")
 
@@ -81,4 +94,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # The public workflow calls this stdlib bootstrap with system Python,
+    # before entering uv's virtual environment. Resolve only its own source tree.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
     raise SystemExit(main())

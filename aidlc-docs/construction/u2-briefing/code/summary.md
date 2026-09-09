@@ -209,3 +209,11 @@ Test breakdown for u2: 9 disclaimer + 3 disclaimer-pbt + 26 leak_guard + 20 erro
 1. `u3 publisher`, `u4 notifier`, `u5 orchestrator` Code Generation (per `aidlc-docs/inception/plans/execution-plan.md`)
 2. `u6 infra/CI` (YAML/config only — Code Generation but no FD/NFR)
 3. Global `Build and Test` after every unit's CG completes
+
+## u155 compatibility extension — 2026-09-09
+
+The historical Claude-only statements above describe u2 at completion. The
+user-approved u155 adds an opt-in ChatGPT-only Codex CLI behind the existing
+runner seam. Default Claude, parsers and finalization contracts remain. See
+`../u155-codex-chatgpt-briefing-provider/code/summary.md` for current evidence.
+The SDK and shell-form subprocess guards remain enforced.

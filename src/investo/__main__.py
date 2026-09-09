@@ -33,6 +33,7 @@ import asyncio
 import logging
 import os
 import sys
+from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Final
@@ -40,7 +41,9 @@ from typing import Final
 import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
+from investo._internal.llm_config import LlmConfigError, LlmExecutionConfig, missing_environment
 from investo._internal.redaction import RedactionPolicy, redact_text
+from investo.briefing.claude_code import ClaudeRunner
 from investo.models import FailureContext, PipelineResult, PipelineStatus
 from investo.notifier import BriefingPublisher, OperatorAlerter
 from investo.notifier._telegram import send_message as _telegram_send
@@ -115,10 +118,14 @@ def _missing_env_vars() -> tuple[str, ...]:
     surface an unset secret as anything other than empty, so empty
     is functionally the same as absent for env-validation purposes.
     """
-    return tuple(name for name in _REQUIRED_ENV_VARS if not os.environ.get(name))
+    try:
+        config = LlmExecutionConfig.from_env(os.environ)
+    except LlmConfigError as exc:
+        raise ConfigError.for_bad_value(exc.variable, str(exc)) from None
+    return missing_environment(os.environ, config)
 
 
-def _validate_env() -> tuple[str, str, str, str, HttpUrl]:
+def _validate_env(config: LlmExecutionConfig | None = None) -> tuple[str, str, str, str, HttpUrl]:
     """Validate the 5 required env vars and return their parsed values.
 
     Returns a 5-tuple in the order
@@ -133,7 +140,12 @@ def _validate_env() -> tuple[str, str, str, str, HttpUrl]:
         ``ConfigError.missing_vars`` discriminates: empty tuple ⇒
         equality violation; non-empty ⇒ missing-var case.
     """
-    missing = _missing_env_vars()
+    if config is None:
+        try:
+            config = LlmExecutionConfig.from_env(os.environ)
+        except LlmConfigError as exc:
+            raise ConfigError.for_bad_value(exc.variable, str(exc)) from None
+    missing = missing_environment(os.environ, config)
     if missing:
         raise ConfigError.for_missing(missing)
 
@@ -144,10 +156,15 @@ def _validate_env() -> tuple[str, str, str, str, HttpUrl]:
     # strip the disjointness check would pass and the public channel
     # would receive operator alerts. We carry the stripped values
     # forward so downstream callers see the canonical form too.
-    claude_oauth = os.environ["CLAUDE_CODE_OAUTH_TOKEN"].strip()
-    bot_token = os.environ["TELEGRAM_BOT_TOKEN"].strip()
-    channel_id = os.environ["TELEGRAM_BRIEFING_CHANNEL_ID"].strip()
-    operator_id = os.environ["TELEGRAM_OPERATOR_CHAT_ID"].strip()
+    dry_run = os.environ.get("INVESTO_DRY_RUN", "").strip() == "1"
+    claude_oauth = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", "").strip()
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    channel_id = os.environ.get("TELEGRAM_BRIEFING_CHANNEL_ID", "").strip()
+    operator_id = os.environ.get("TELEGRAM_OPERATOR_CHAT_ID", "").strip()
+    if dry_run:
+        bot_token = bot_token or "dry-run"
+        channel_id = channel_id or "dry-run-public"
+        operator_id = operator_id or "dry-run-operator"
     site_url_raw = os.environ["SITE_URL_BASE"].strip()
 
     # CLAUDE.md project rule #5 — disjointness enforced BEFORE either
@@ -199,6 +216,8 @@ async def _attempt_boot_alert(exc: BaseException) -> None:
     misroute even if the operator misconfigured them to be equal —
     the alert lands at the operator chat, full stop.
     """
+    if os.environ.get("INVESTO_DRY_RUN", "").strip() == "1":
+        return
     if any(not os.environ.get(name) for name in _ALERT_PREREQ_VARS):
         return
 
@@ -496,19 +515,33 @@ def _write_github_step_summary(result: PipelineResult) -> None:
         _logger.warning("failed to write GitHub step summary", exc_info=True)
 
 
-async def _async_main() -> int:
+async def _async_main(
+    *,
+    llm_config: LlmExecutionConfig | None = None,
+    llm_runner: ClaudeRunner | None = None,
+    before_publication: Callable[[], Awaitable[None]] | None = None,
+) -> int:
     """Async core of :func:`main` — separated so ``main`` can synchronously
     drive ``asyncio.run`` and translate the final integer to the
     process exit code.
     """
     try:
+        try:
+            config = llm_config or LlmExecutionConfig.from_env(os.environ)
+        except LlmConfigError as exc:
+            raise ConfigError.for_bad_value(exc.variable, str(exc)) from None
+        if config.provider == "codex" and (llm_runner is None or before_publication is None):
+            raise ConfigError.for_bad_value(
+                "INVESTO_LLM_PROVIDER",
+                "Codex requires python -m investo.orchestrator.codex_runtime",
+            )
         (
             _claude_oauth,  # consumed by the ``claude`` CLI itself, not by Python.
             bot_token,
             channel_id,
             operator_id,
             site_url_base,
-        ) = _validate_env()
+        ) = _validate_env(config)
         # Optional override from u6's workflow_dispatch input. Parsed
         # alongside the required vars so a malformed value rejects
         # before any httpx client is constructed (matches the
@@ -547,12 +580,22 @@ async def _async_main() -> int:
                 dry_run=dry_run,
             )
 
-            result = await run_pipeline(
-                target_date_override,
-                publisher=publisher,
-                alerter=alerter,
-                site_url_base=site_url_base,
-            )
+            if llm_runner is None:
+                result = await run_pipeline(
+                    target_date_override,
+                    publisher=publisher,
+                    alerter=alerter,
+                    site_url_base=site_url_base,
+                )
+            else:
+                result = await run_pipeline(
+                    target_date_override,
+                    publisher=publisher,
+                    alerter=alerter,
+                    site_url_base=site_url_base,
+                    runner=llm_runner,
+                    before_publication=before_publication,
+                )
 
             # u33 Step 4 — multi-channel watchlist webhook fan-out.
             # Best-effort: failure here never changes the run's exit

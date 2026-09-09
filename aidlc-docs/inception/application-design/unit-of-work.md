@@ -2477,6 +2477,44 @@ skipped. u150/u153 code dependencies are integrated (2026-09-08); FD approval
 and this unit's implementation remain separate and not started. Plan:
 `aidlc-docs/construction/plans/u154-canonical-preamble-block-assembly-code-generation-plan.md`.
 
+### u155: `codex-chatgpt-briefing-provider` — Optional Codex with Private ChatGPT Automation
+
+**Purpose**: Add Codex CLI alongside the existing default Claude CLI, using
+ChatGPT subscription login and GitHub Actions Secrets in a private execution
+repository, with durable auth rotation and unchanged public quality gates.
+
+**Stories / requirements**: US-002/003/004/005/006/007/009;
+FR-002/003/004/005/006/007; NFR-001/002/003/004/005/006/007.
+The 2026-09-09 user request expands the earlier Claude-only constraint.
+
+**Existing coverage / deduplication**: Extend u2/u83 generation and
+GenerationInput rather than add a second pipeline. Reuse u27/R13 redaction,
+u31 dry-run and existing u144/u148/u149/u150/u153 publication contracts.
+u151/u152/u154 are not dependencies of the provider feature.
+
+**Module scope**: briefing CLI boundary, neutral config, entrypoint/preflight,
+orchestrator auth checkpoint, operations helpers and private workflow template.
+No model-specific data adapter, replacement finalizer or direct paid LLM API.
+
+**Definition of Done**:
+- [ ] Claude-default compatibility and explicit Codex selection pass.
+- [ ] ChatGPT-only auth isolation, rotation, Environment Secret preservation
+  and queued/in-process serialization pass failure tests.
+- [ ] Auth write failure prevents new public side effects; existing trust,
+  partial-sibling and notification contracts pass for both providers.
+- [ ] Reviewed execution code and latest public archive checkout are separated.
+- [ ] Local gates, independent review and cross-check are complete.
+- [ ] Private dry-run and controlled schedule activation have distinct live
+  evidence, secret-safe receipts and a tested rollback procedure.
+
+**Construction strategy**: Functional Design approved by “진행시켜” on
+2026-09-09. NFR Requirements and Infrastructure Design approved by user
+“구현까지 진행시켜”. Local Steps 1–7 complete: 5,026 tests, independent review/cross-check PASS.
+Private operational qualification and activation remain Steps 8/9.
+Account-plan qualification remains pending before
+private Environment provisioning.
+Plan: `aidlc-docs/construction/plans/u155-codex-chatgpt-briefing-provider-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)
