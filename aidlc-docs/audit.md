@@ -6977,3 +6977,36 @@ the remote main SHA must match that final closeout commit. Step 7 production
 re-verification and follow-up cross-check remain pending.
 
 **Evidence**: `docs/sessions/2026-09-09-u153-main-integration-step7.md`.
+
+## Cross-Check — u153 production incident follow-up Step 7
+
+**Timestamp**: 2026-09-09T15:30:41+09:00
+
+**Scope / traceability**: Applied the `cross-check` skill to the six Step 7 fixed
+contracts under FR-002/FR-009 and NFR-003/005/006. The original Steps 1–6 report
+remains historical. Validated clean isolated main
+`71c1db17fab62dde0caf981b909e51c2d6564c4c`, equal to `origin/main`; GitHub
+Quality run `34309893210` is successful for that exact SHA.
+
+**Verdict**: **APPROVE — 6/6 Complete**, with 0 Partial, 0 Gap, 0 Deferred and
+0 In Progress. Structural-only clipping detection, owner-specific
+summary/meaning/watchpoint codes, indexed regional fallback, canonical summary
+marker repair, pre-mutation numeric/entity/compliance snapshot and single-pass
+link/body coexistence all trace to implementation and named tests. No
+requirement deviation, new development task, ADR or TECH-DEBT.
+
+**Fresh validation**: Seven-module related gate **571 passed in 16.69s**; exact
+full repository **5,229 passed in 316.94s**. Lock, Ruff/check, 581-file format,
+source mypy 254, no-SDK/no-paid, curated-assets 19 filed / 0 deferred, empty
+image-store, strict MkDocs/Material and diff integrity gates pass. The report
+and session receive a second documentation/diff gate after closeout edits.
+
+**Boundary**: The incident's rejected US draft was not persisted, so exact-byte
+replay is unavailable. Production re-verification remains a separate operational
+closeout; no live pipeline, source/LLM call, archive/site write, publication,
+deployment, Telegram send, commit or push was performed. Original dirty root
+remains untouched.
+
+**Evidence**:
+`docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`;
+`docs/sessions/2026-09-09-u153-step7-cross-check.md`.

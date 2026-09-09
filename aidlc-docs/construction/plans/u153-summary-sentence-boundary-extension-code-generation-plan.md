@@ -3,7 +3,7 @@
 **Date**: 2026-09-06
 **Unit**: u153 summary-sentence-boundary-extension
 **Stage**: Code Generation
-**Status**: Complete — 7/7; follow-up cross-check and production re-verification pending
+**Status**: Complete — 7/7; follow-up cross-check APPROVE, production re-verification pending
 **Source**: `briefing-review-20260906.md`; September 1–4 callouts/TL;DR
 **Estimated Effort**: ~3–5 h
 **Dependencies**:
@@ -250,7 +250,8 @@ Final related gate **571 passed**; exact full repository gate **5,229 passed in
 299.25s**; Ruff 581 files, mypy 254 source files, policy/assets/docs/diff gates
 and the final independent review pass. No remaining finding or new debt. The
 2026-09-07 cross-check remains evidence for Steps 1–6; a fresh Step 7 follow-up
-cross-check and production re-verification remain pending. The later explicit
+cross-check and production re-verification remained pending at construction
+handoff. The later explicit
 delivery request produced implementation commit `c5cdfa48b637f07f4c95afa75c6c992b74251453`
 and pushed branch `codex/u153-operational-fix-20260909`; no live publication.
 The later explicit main-integration request merged source
@@ -258,11 +259,23 @@ The later explicit main-integration request merged source
 `a63f863f44fb62ce81993bcda7ed7d351737273e` without conflict as
 `64747390541a7cd5d4eab6ab16651e7c351a9d8b`. The combined tree passes 5,229
 full and 571 focused tests plus all workflow/static/docs guards. Production
-re-verification and the Step 7 follow-up cross-check remain pending.
+re-verification and the Step 7 follow-up cross-check remained pending at
+integration handoff.
 Evidence:
 `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-7-production-incident-followup.md`.
 Session: `docs/sessions/2026-09-09-u153-production-incident-followup-step7.md`.
 Integration: `docs/sessions/2026-09-09-u153-main-integration-step7.md`.
+
+Step 7 follow-up cross-check (2026-09-09 KST): **APPROVE, 6/6 fixed contracts
+Complete**. Current main `71c1db17fab62dde0caf981b909e51c2d6564c4c`
+passes a fresh 571-test related gate in 16.69s, full 5,229-test gate in 316.94s,
+lock/Ruff/581-file format/source mypy 254/policy/assets/strict-doc checks, and
+GitHub Quality run `34309893210` for the same SHA. No new gap, task or debt.
+The unpersisted rejected US draft prevents exact-byte incident replay, so live
+production re-verification remains pending as a separate operational closeout.
+Report:
+`docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`.
+Session: `docs/sessions/2026-09-09-u153-step7-cross-check.md`.
 
 PBT partial mode: Step 1 adds seeded domain-specific decimal/surface preservation
 coverage (PBT-03/07/08/09). There is no new production serialization pair

@@ -1,7 +1,7 @@
 # u153 Code Generation Step 7 — Production incident follow-up
 
 **Date**: 2026-09-09 KST
-**Status**: Complete — Step 7/7; follow-up cross-check and production re-verification pending
+**Status**: Complete — Step 7/7; follow-up cross-check APPROVE, production re-verification pending
 **Baseline**: `origin/main` at `28b95f8c41894f0e6a3240fde7ea0696117d799b`
 **Workspace**: `/private/tmp/investo-u153-fix.G4IkCe`
 
@@ -97,8 +97,9 @@ integrity; no finding remains.
 
 No ADR or TECH-DEBT entry is needed: this changes no architecture, dependency,
 I/O, secret, retry or performance contract. The original six-step u153
-cross-check remains historical evidence; this new Step 7 requires its own
-follow-up cross-check and production re-verification before operational closeout.
+cross-check remains historical evidence; at construction handoff this new Step 7
+required its own follow-up cross-check and production re-verification before
+operational closeout.
 
 ## Delivery follow-up
 
@@ -120,4 +121,18 @@ The user's later `main에 병합해줘` authorized integration. Freshly fetched
 `64747390541a7cd5d4eab6ab16651e7c351a9d8b`; no archive/site path changed from
 the main parent. The exact combined code tree passes 5,229 full and 571 focused
 tests, Ruff/mypy, all policy/asset guards and strict docs/Material checks.
-Cross-check and production re-verification remain separate pending work.
+At integration handoff, cross-check and production re-verification remained
+separate pending work.
+
+## Follow-up cross-check
+
+The user later requested the Step 7 follow-up cross-check. Current main
+`71c1db17fab62dde0caf981b909e51c2d6564c4c` passes a fresh **571-test** related
+gate in 16.69s and a fresh **5,229-test** full gate in 316.94s, plus lock,
+Ruff/581-file format, source mypy 254, policy/assets and strict docs/Material
+checks. GitHub Quality run `34309893210` is successful for the same SHA.
+
+Verdict: **APPROVE, 6/6 Step 7 contracts Complete**, with no new gap, task or
+TECH-DEBT. The original rejected US draft was not persisted, so production
+re-verification remains a distinct operational closeout item. Report:
+`docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`.
