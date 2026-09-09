@@ -6,12 +6,11 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-09-08
 
-- [coingecko-price] **ticker**: ETH $2,484.22 (-0.26%)
-- [defillama-market-structure] **ticker**: DeFi TVL $88.0B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $88.4B; leader Ethereum
 - [theblock-crypto] **ticker**: Bitmine nears 5% of Ethereum supply after buying 28,086 ETH
-- [theblock-crypto] **ticker**: Ethereum aims for quantum-safe L1 by 2029 as Hegotá upgrade takes form
 
 <!-- u33 entry 2026-09-08 end -->
+
 <!-- u33 entry 2026-09-07 begin -->
 
 ## 2026-09-07

@@ -7,15 +7,15 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-09-08
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7620 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,695,132,367,115; BTC dominance 58.33%
-- [coingecko-price] **ticker**: BTC $78,424.00 (-0.88%)
-- [okx-derivatives] **ticker**: BTC 미결제약정 $477,047,860 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000725969373203 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,705,328,968,434; BTC dominance 58.98%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $465,040,100 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000646488544993 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: Bitcoin volatility remains subdued as supply in profit nears historical bear-to-bull transition level: analysts
 - [theblock-crypto] **ticker**: Strategy repurchases $176 million of STRC shares, makes no bitcoin purchases or sales
 - [theblock-crypto] **ticker**: Strive adds 1,375 bitcoin as SATA approaches ‘billion-dollar’ milestone
 
 <!-- u33 entry 2026-09-08 end -->
+
 <!-- u33 entry 2026-09-07 begin -->
 
 ## 2026-09-07
