@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-08 begin -->
+
+## 2026-09-08
+
+- [coingecko-price] **ticker**: SOL $103.32 (-0.52%)
+- [defillama-market-structure] **ticker**: DeFi TVL $88.0B; leader Ethereum
+- [theblock-crypto] **ticker**: DeFi Development closes Strategy-style $11 million CHAD offering to grow Solana treasury
+- [theblock-crypto] **ticker**: ‘The chain is now earnings’: Bernstein sees 31% upside for Robinhood as fees top Solana, BNB Chain
+
+<!-- u33 entry 2026-09-08 end -->
 <!-- u33 entry 2026-09-07 begin -->
 
 ## 2026-09-07
