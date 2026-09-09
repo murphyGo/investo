@@ -6942,3 +6942,38 @@ commit/push and remote SHA readback complete the handoff.
 **Boundaries**: Original dirty root and its HEAD remain untouched. No merge,
 cross-check, live pipeline, deploy, publish or Telegram send. Step 7 follow-up
 cross-check, main integration and production re-verification remain pending.
+
+## Construction — u153 production incident follow-up Step 7 main integration
+
+**Timestamp**: 2026-09-09T13:08:52+09:00
+
+**Approval / procedure**: The user explicitly requested `main에 병합해줘`.
+Applied the isolated-main integration procedure because the root checkout has
+unrelated changes. Fetched source
+`f55e3a446a05b67a36b482e060f8c4286c997308` and current `origin/main`
+`a63f863f44fb62ce81993bcda7ed7d351737273e`, then created separate worktree
+`/private/tmp/investo-u153-main-integration.TJGaZx`.
+
+**Integration**: Clean no-ff merge, no conflicts, commit
+`64747390541a7cd5d4eab6ab16651e7c351a9d8b` (`merge: integrate u153 operational
+truncation fix`). Current main's `briefing: 2026-09-08 segmented partial`
+archive/site outputs are preserved; first-parent merge diff has no `archive/`
+or `site_docs/` path.
+
+**Combined gate**: The current Quality workflow uses `dev` plus `docs`; an
+initial stale `sector` extra invocation stopped before testing because that
+extra is absent, then exact `uv sync --extra dev --extra docs` resolved 65
+locked packages. Focused gate 571 passed in 18.15s; exact full repository gate
+5,229 passed in 325.65s. Ruff/check and 581-file format, source mypy 254,
+no-SDK/no-paid, curated-assets/image-store, strict MkDocs/Material, lock and
+diff checks pass. No waiver/new debt. Post-gate fetch confirmed `origin/main`
+still equals the merge first parent.
+
+**Preservation / boundary**: Original root HEAD
+`985b7e4063a8037bf46f7e6f87426a816cf715f7` and its three dirty paths are
+unchanged. No cross-check, live pipeline, deployment, publication or Telegram
+send. Closeout docs receive strict-doc/diff validation before final main push;
+the remote main SHA must match that final closeout commit. Step 7 production
+re-verification and follow-up cross-check remain pending.
+
+**Evidence**: `docs/sessions/2026-09-09-u153-main-integration-step7.md`.

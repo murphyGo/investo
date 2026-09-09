@@ -110,3 +110,14 @@ false positives`) and pushed to
 exact SHA. The earlier no-commit/no-push boundary records the construction
 turn before this later authorization. Cross-check, main integration and live
 production re-verification remain unperformed.
+
+## Main integration follow-up
+
+The user's later `main에 병합해줘` authorized integration. Freshly fetched
+`origin/main` was `a63f863f44fb62ce81993bcda7ed7d351737273e` and included the
+2026-09-08 partial briefing outputs. A separate clean worktree merged source
+`f55e3a446a05b67a36b482e060f8c4286c997308` without conflict as
+`64747390541a7cd5d4eab6ab16651e7c351a9d8b`; no archive/site path changed from
+the main parent. The exact combined code tree passes 5,229 full and 571 focused
+tests, Ruff/mypy, all policy/asset guards and strict docs/Material checks.
+Cross-check and production re-verification remain separate pending work.

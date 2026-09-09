@@ -253,9 +253,16 @@ and the final independent review pass. No remaining finding or new debt. The
 cross-check and production re-verification remain pending. The later explicit
 delivery request produced implementation commit `c5cdfa48b637f07f4c95afa75c6c992b74251453`
 and pushed branch `codex/u153-operational-fix-20260909`; no live publication.
+The later explicit main-integration request merged source
+`f55e3a446a05b67a36b482e060f8c4286c997308` into current main
+`a63f863f44fb62ce81993bcda7ed7d351737273e` without conflict as
+`64747390541a7cd5d4eab6ab16651e7c351a9d8b`. The combined tree passes 5,229
+full and 571 focused tests plus all workflow/static/docs guards. Production
+re-verification and the Step 7 follow-up cross-check remain pending.
 Evidence:
 `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-7-production-incident-followup.md`.
 Session: `docs/sessions/2026-09-09-u153-production-incident-followup-step7.md`.
+Integration: `docs/sessions/2026-09-09-u153-main-integration-step7.md`.
 
 PBT partial mode: Step 1 adds seeded domain-specific decimal/surface preservation
 coverage (PBT-03/07/08/09). There is no new production serialization pair

@@ -201,20 +201,24 @@ closeout; that history is preserved alongside u153's completed integration.
 | u154 canonical-preamble-block-assembly | 📋 REQUIRED — canonical known-block order and final structure | ⏭️ SKIP — existing NFR-003/004/005/006 and R13 | 📋 Backlog — ready for Functional Design; code dependencies integrated | P2 u51/u61/u71/u141/u144 extension: one H1, three TL;DR items, hero after summary, owned block preservation. u150 and u153 dependencies are integrated; Functional Design approval and implementation remain separate. Diagnostics stay at current footer. Plan: `aidlc-docs/construction/plans/u154-canonical-preamble-block-assembly-code-generation-plan.md`. |
 
 Implementation order: u153 original Code Generation/cross-check and main
-integration are complete. Production incident follow-up Step 7 is complete
-locally; its follow-up cross-check and production re-verification remain pending.
+integration are complete. Production incident follow-up Step 7 source delivery
+and main integration are also complete; its follow-up cross-check and production
+re-verification remain pending.
 The validated Step 7 implementation commit
 `c5cdfa48b637f07f4c95afa75c6c992b74251453` is pushed to
-`origin/codex/u153-operational-fix-20260909`; this does not complete cross-check,
-main integration or live production acceptance.
+`origin/codex/u153-operational-fix-20260909`. Clean no-ff integration commit
+`64747390541a7cd5d4eab6ab16651e7c351a9d8b` preserves current-main
+`a63f863f` briefing artifacts and passes 5,229 full / 571 focused tests plus all
+static, policy and docs gates. Record:
+`docs/sessions/2026-09-09-u153-main-integration-step7.md`.
 u151 Functional Design is approved (7/7) and Code Generation is complete (6/6).
 Its full local gate/ACs/DoDs pass and DEBT-076 is resolved locally. Implementation
 commit/push is complete (bf9d52b8); cross-check APPROVE (2026-09-09), 6/6 ACs.
 Cross-check report delivery and main integration are complete in this merge
 (2026-09-09); combined full gate 5,204 passed. Production acceptance remains
 pending. u152 stays independently design-ready.
-u154's u150/u153 integration
-prerequisites are cleared; its Functional Design and implementation are not started.
+u154's u150/u153 integration prerequisites are cleared; its Functional Design
+and implementation are not started.
 
 ## Extension Configuration
 | Extension | Enabled | Opted In |
