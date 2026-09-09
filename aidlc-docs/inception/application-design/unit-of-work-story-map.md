@@ -591,6 +591,22 @@ The exact per-unit plan paths are recorded in each unit's state row.
 No subagent review was requested; local review covered contracts, dependencies,
 negative fixtures and final generated-byte assertions.
 
+## u155 — Optional Codex / Private Runtime (2026-09-09)
+
+| Unit | User need | Story / requirement coverage | Existing owners |
+|---|---|---|---|
+| u155 codex-chatgpt-briefing-provider | Select Claude or Codex while using subscription login and Actions Secrets | US-002/003/004/005/006/007/009; FR-002/003/004/005/006/007; NFR-001/002/003/004/005/006/007 | u2/u83 generation, u27/R13 secrets, u31 dry-run, u6 workflow, u144 public finalization |
+
+The user approved the detailed FD and NFR/Infrastructure preparation with
+“진행시켜” on 2026-09-09. NFR N155-01–16 and Infrastructure artifacts
+were approved by “구현까지 진행시켜”; local Steps 1–7 are complete
+with 5,026 passing tests and independent review/cross-check PASS. Remote qualification/activation remains Steps 8/9.
+No earlier unit completion is changed.
+Acceptance criteria AC-155.1–AC-155.12 and approved R1–R14 are in the
+`u155-codex-chatgpt-briefing-provider` plans/design directory.
+US-009's Claude-only wording is expanded by the new user request while the
+no-additional-LLM-API-cost goal remains; private Actions usage must be qualified.
+
 ## Definition of Done — Inception Phase Output
 
 이 매핑이 다음 단계(Construction)의 입력입니다:

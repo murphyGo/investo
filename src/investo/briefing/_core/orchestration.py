@@ -41,9 +41,10 @@ from investo.briefing.claude_code import (
     DEFAULT_TOTAL_BUDGET_S,
     ClaudeRunner,
     RetryBudget,
-    call_claude_code,
 )
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
+from investo.briefing.llm import CodexRunner
+from investo.briefing.llm import call_llm as call_claude_code
 from investo.briefing.prompts import (
     STAGE1_SYSTEM,
     STAGE1_USER_TEMPLATE,
@@ -260,7 +261,9 @@ async def _classify(
         # conservative choice — a fast call may still be allowed when
         # remaining budget < timeout, but we cannot prove that ahead
         # of time.
-        if budget.would_exceed(policy.timeout_s):
+        backoff = _BACKOFF_SCHEDULE[attempt] if attempt > 0 else 0.0
+        accounted_backoff = backoff if isinstance(runner, CodexRunner) else 0.0
+        if budget.would_exceed(policy.timeout_s + accounted_backoff):
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
@@ -269,7 +272,8 @@ async def _classify(
                 cause=last_cause,
             )
         if attempt > 0:
-            await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
+            await asyncio.sleep(backoff)
+            budget.record(accounted_backoff)
 
         outcome = await call_claude_code(full_prompt, timeout_s=policy.timeout_s, runner=runner)
         _logger.info(
@@ -391,7 +395,9 @@ async def _synthesize(
         # FD R3: pre-dispatch budget gate. See ``_classify`` for the
         # rationale — same shape, shared budget across both stages
         # (AC-1.5).
-        if budget.would_exceed(policy.timeout_s):
+        backoff = _BACKOFF_SCHEDULE[attempt] if attempt > 0 else 0.0
+        accounted_backoff = backoff if isinstance(runner, CodexRunner) else 0.0
+        if budget.would_exceed(policy.timeout_s + accounted_backoff):
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
@@ -400,7 +406,8 @@ async def _synthesize(
                 cause=last_cause,
             )
         if attempt > 0:
-            await asyncio.sleep(_BACKOFF_SCHEDULE[attempt])
+            await asyncio.sleep(backoff)
+            budget.record(accounted_backoff)
 
         attempt_prompt = f"{full_prompt}{_stage2_retry_feedback(last_cause)}"
         outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)

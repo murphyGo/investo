@@ -370,7 +370,30 @@
 
 ## 5. Constraints & Assumptions
 
-### Constraints
+### 2026-09-09 u155 user-requested extension (local implementation; activation pending)
+
+The user approved starting an optional Codex CLI provider while retaining
+Claude as the default. Codex uses ChatGPT subscription login in a separate
+private execution repository, with credentials in GitHub Actions Secrets.
+This expands the historical Claude-only restriction for u155; direct Anthropic
+SDK calls and additional paid LLM API invocation remain outside scope.
+
+FR-002/003/004/005/006/007 and NFR-001/002/003/004/005/006/007 apply to this
+extension. Existing public trust/disclaimer/partial-publication gates remain.
+NFR-002's cost goal excludes existing Claude/ChatGPT subscriptions and requires
+private Actions usage qualification; public-repository unlimited-minute
+assumptions do not apply to the new private job.
+
+The detailed provider/auth/publishing Functional Design was approved by
+“진행시켜” on 2026-09-09. NFR N155-01–16 and Infrastructure were approved
+by “구현까지 진행시켜”. Provider selection, isolated CLI execution, auth
+write-back and a private manual dry-run template are locally implemented.
+Private Environment eligibility, Linux effective tools/model access, next-job
+auth rotation and usage remain operational qualification requirements. See
+`aidlc-docs/construction/u155-codex-chatgpt-briefing-provider/design-brief.md`
+and AC-155.1–AC-155.12 in its Code Generation plan.
+
+### Constraints (original MVP baseline; u155 extension above takes precedence in its scope)
 - **LLM은 Claude Code CLI로만 호출** — Anthropic API key 사용 불가 (사용자 명시)
 - 일 1회 배치 (실시간 시세/뉴스 아님)
 - GitHub Actions 단일 job 실행 시간 한도

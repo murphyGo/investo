@@ -94,7 +94,7 @@ Common matches in Investo:
 - `asyncio.gather`, `httpx.AsyncClient` → `protocols/concurrency.md`
 - File writes, git ops → `protocols/data-integrity.md` + `protocols/resource-lifecycle.md`
 - Custom error types, retry logic → `protocols/error-contract.md`
-- Subprocess invocations (claude, git) → `protocols/security-boundary.md` + `protocols/resource-lifecycle.md`
+- Subprocess invocations (claude, codex, git) → `protocols/security-boundary.md` + `protocols/resource-lifecycle.md`
 
 ### Step 3: Review with Focus Areas
 
@@ -116,7 +116,7 @@ These rules are blocking findings (🔴) when violated:
 | Rule | Reference | Check |
 |------|-----------|-------|
 | **No Anthropic SDK import** | NFR-002, US-009 | grep `from anthropic`, `import anthropic`, `@anthropic-ai/sdk` — must be 0 hits in `src/` |
-| **LLM call only via subprocess(claude -p)** | NFR-002, US-009 | All LLM-bound calls flow through `briefing/claude_code.py` |
+| **LLM call only via approved CLI runner** | NFR-002, US-009, u155 | `briefing/llm.py` preserves default Claude and injected ChatGPT-only Codex; no SDK/API fallback; inspect private auth/tool/process boundaries |
 | **Disclaimer auto-append in briefing** | NFR-004 | `briefing.append_disclaimer` is called and idempotent |
 | **Disclaimer presence verified before publish** | NFR-004 | `publisher.verify_disclaimer` called before `commit_and_push` |
 | **Module boundary** | Application Design | Only `orchestrator` imports `sources/briefing/publisher/notifier`. The 4 work units do not import each other. |

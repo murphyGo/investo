@@ -1,6 +1,6 @@
 # Investo
 
-매일 미국 주식·크립토(보조: 코스피)의 데일리 시황을 자동 생성·게시하는 1인용 자동화 도구. 무료 공개 데이터를 수집해 Claude Code CLI로 한국어 7섹션 시황을 만들고, GitHub Pages 정적 사이트에 영구 보관 + 공개 텔레그램 채널로 푸시한다.
+매일 미국 주식·크립토(보조: 코스피)의 데일리 시황을 자동 생성·게시하는 1인용 자동화 도구. 무료 공개 데이터를 수집해 Claude Code CLI(기본) 또는 승인된 Codex CLI 옵션으로 한국어 7섹션 시황을 만들고, GitHub Pages 정적 사이트에 영구 보관 + 공개 텔레그램 채널로 푸시한다.
 
 ---
 
@@ -52,7 +52,7 @@ The lead's "Mode B: autonomous" prompt picks the highest-ROI next step (pending 
 
 Every specialist's prompt re-states the project's hard rules so violations are caught at the team level, not at code-review time:
 
-1. **No Anthropic SDK** — LLM calls only via Claude Code CLI subprocess
+1. **No Anthropic SDK** — LLM calls via Claude Code CLI (default) or the approved ChatGPT-only Codex CLI runner; no paid API fallback
 2. **Module boundary** — only `orchestrator` imports `sources/briefing/publisher/notifier`
 3. **No paid APIs** — every external call free-tier reachable
 4. **Disclaimer enforcement** — `publisher.verify_disclaimer` is the gate
@@ -106,7 +106,7 @@ investo/                       # repo root
 │       ├── __main__.py        # python -m investo entry
 │       ├── models/            # shared pydantic types (foundation)
 │       ├── sources/           # u1: Source Adapters (plugin)
-│       ├── briefing/          # u2: Briefing Generator (Claude Code CLI)
+│       ├── briefing/          # u2/u155: Briefing Generator (Claude + optional Codex CLI)
 │       ├── publisher/         # u3: Publisher (markdown + git)
 │       ├── notifier/          # u4: Notifier (BriefingPublisher + OperatorAlerter)
 │       └── orchestrator/      # u5: Pipeline runner
@@ -126,7 +126,7 @@ investo/                       # repo root
 | Component | Technology |
 |-----------|------------|
 | Language | Python 3.11+ |
-| LLM Runtime | **Claude Code CLI** (`subprocess.run(["claude", "-p", ...])`) — Anthropic SDK 직접 호출 금지 |
+| LLM Runtime | **Claude Code CLI (기본) + Codex CLI (선택)** — 공통 runner 경계, Codex는 비공개 ChatGPT 로그인 전용, Anthropic SDK 직접 호출 금지 |
 | HTTP | httpx (async) |
 | Validation | pydantic v2 |
 | Static Site | MkDocs Material → GitHub Pages |
@@ -143,7 +143,7 @@ investo/                       # repo root
 
 이 규칙들은 모든 PR과 코드 리뷰에서 강제됨:
 
-1. **Anthropic SDK import 금지** — LLM 호출은 오직 Claude Code CLI subprocess. 운영비 0원 목표(NFR-002).
+1. **Anthropic SDK import 금지** — LLM 호출은 Claude Code CLI(기본) 또는 승인된 Codex CLI runner. 추가 유료 API fallback 금지. Codex 비공개 Actions 사용량은 운영 전에 검증한다(u155, NFR-002).
 2. **면책조항 자동 삽입 강제** — 모든 시황은 disclaimer 포함. Publisher가 게시 직전 검증.
 3. **모듈 경계** — orchestrator만 다른 4 unit을 import. 4 unit은 서로 import 금지 (모두 models만 공유).
 4. **무료 API only** — 유료 데이터 키 등록 금지.

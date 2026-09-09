@@ -4,8 +4,8 @@ subprocess invocation reaches ``src/`` or ``pyproject.toml``.
 
 Implements NFR-002 AC-2.2 / AC-2.3 + NFR-007 AC-7.1 / AC-7.6 for the
 u2 briefing unit (and repo-wide enforcement). The Anthropic SDK is
-forbidden by US-009: every LLM call must go through the Claude Code
-CLI subprocess wrapper in ``src/investo/briefing/claude_code.py``.
+forbidden by US-009. u155 permits Claude Code CLI (default) and the
+ChatGPT-only Codex CLI runner via ``src/investo/briefing/llm.py``.
 
 Three source-code regexes are checked against every ``.py`` file
 under ``SRC_ROOT``:
@@ -147,7 +147,7 @@ def main() -> int:
 
     print(
         "\nFix: route every LLM call through "
-        "src/investo/briefing/claude_code.py (Claude Code CLI subprocess, "
+        "src/investo/briefing/llm.py (Claude or approved Codex CLI runner, "
         "list-form args, no shell=True). Remove the anthropic dependency "
         "if present.",
         file=sys.stderr,
