@@ -6915,3 +6915,30 @@ re-verification require separate approval.
 **Evidence**:
 `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-7-production-incident-followup.md`;
 `docs/sessions/2026-09-09-u153-production-incident-followup-step7.md`.
+
+## Construction — u153 production incident follow-up Step 7 commit and push
+
+**Timestamp**: 2026-09-09T11:22:22+09:00
+
+**Approval / scope**: The user explicitly requested `커밋, 푸시 해줘` after the
+validated Step 7 handoff. Staged only the 15 u153 implementation, regression,
+fixture and AIDLC/session files from isolated branch
+`codex/u153-operational-fix-20260909`; no original-root or unrelated path.
+
+**Source delivery**: `git diff --cached --check` passed after removing three
+Markdown trailing spaces. Commit
+`c5cdfa48b637f07f4c95afa75c6c992b74251453` (`fix: contain u153 truncation false
+positives`) records 841 insertions / 56 deletions across the exact reviewed
+15-file slice. Push created
+`origin/codex/u153-operational-fix-20260909`; immediate `git ls-remote` returned
+the same full SHA.
+
+**Validation inheritance**: No production or test byte changed after the exact
+5,229-pass full gate, 571-pass related gate, source mypy 254, Ruff 581-file,
+policy/assets/strict-docs and final independent review evidence. This delivery
+adds only current commit/push records. A final cached-diff check, documentation
+commit/push and remote SHA readback complete the handoff.
+
+**Boundaries**: Original dirty root and its HEAD remain untouched. No merge,
+cross-check, live pipeline, deploy, publish or Telegram send. Step 7 follow-up
+cross-check, main integration and production re-verification remain pending.

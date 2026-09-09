@@ -250,8 +250,10 @@ Final related gate **571 passed**; exact full repository gate **5,229 passed in
 299.25s**; Ruff 581 files, mypy 254 source files, policy/assets/docs/diff gates
 and the final independent review pass. No remaining finding or new debt. The
 2026-09-07 cross-check remains evidence for Steps 1–6; a fresh Step 7 follow-up
-cross-check and production re-verification remain pending. No commit/push/live
-publication. Evidence:
+cross-check and production re-verification remain pending. The later explicit
+delivery request produced implementation commit `c5cdfa48b637f07f4c95afa75c6c992b74251453`
+and pushed branch `codex/u153-operational-fix-20260909`; no live publication.
+Evidence:
 `aidlc-docs/construction/u153-summary-sentence-boundary-extension/code/step-7-production-incident-followup.md`.
 Session: `docs/sessions/2026-09-09-u153-production-incident-followup-step7.md`.
 

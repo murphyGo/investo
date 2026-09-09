@@ -99,3 +99,14 @@ No ADR or TECH-DEBT entry is needed: this changes no architecture, dependency,
 I/O, secret, retry or performance contract. The original six-step u153
 cross-check remains historical evidence; this new Step 7 requires its own
 follow-up cross-check and production re-verification before operational closeout.
+
+## Delivery follow-up
+
+After the completed development handoff, the user explicitly requested
+`커밋, 푸시 해줘`. The validated 15-file slice was committed as
+`c5cdfa48b637f07f4c95afa75c6c992b74251453` (`fix: contain u153 truncation
+false positives`) and pushed to
+`origin/codex/u153-operational-fix-20260909`; `git ls-remote` returned that
+exact SHA. The earlier no-commit/no-push boundary records the construction
+turn before this later authorization. Cross-check, main integration and live
+production re-verification remain unperformed.

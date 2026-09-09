@@ -44,3 +44,12 @@ requirements, design and TECH-DEBT remain untouched. No live source/LLM call,
 manual pipeline, publish, deployment, Telegram send, commit, push or merge was
 performed. Code Generation Step 7 is complete locally. A fresh follow-up
 cross-check and production re-verification remain separate approval stages.
+
+## Delivery follow-up
+
+The user's later explicit `커밋, 푸시 해줘` authorized source delivery.
+Implementation commit `c5cdfa48b637f07f4c95afa75c6c992b74251453`
+contains the validated 15-file slice and is pushed to
+`origin/codex/u153-operational-fix-20260909`; the first remote readback matched
+that SHA exactly. This delivery does not authorize cross-check, main
+integration, live pipeline execution, deployment or notification.
