@@ -1,0 +1,168 @@
+# Copy to .github/workflows/daily-briefing.yml in the PRIVATE runtime repository.
+# Deliberately manual and dry-run only; production cutover is a separate operation.
+name: Private briefing qualification
+
+on:
+  workflow_dispatch:
+    inputs:
+      llm_provider:
+        description: Briefing CLI provider
+        type: choice
+        options: [claude, codex]
+        default: claude
+      codex_model:
+        description: Explicit account-accessible model for Codex
+        type: string
+        required: false
+      target_date:
+        description: Optional YYYY-MM-DD
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: investo-codex-auth-v1
+  cancel-in-progress: false
+
+jobs:
+  qualification:
+    if: >-
+      github.repository == 'murphyGo/investo-runtime' &&
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    environment: codex-runtime
+    env:
+      INVESTO_LLM_PROVIDER: ${{ inputs.llm_provider }}
+      INVESTO_CODEX_MODEL: ${{ inputs.codex_model }}
+      INVESTO_TARGET_DATE: ${{ inputs.target_date }}
+      INVESTO_DRY_RUN: '1'
+      INVESTO_OPENAI_VISUALS: '0'
+      INVESTO_EXTERNAL_IMAGE_ASSETS: '1'
+      INVESTO_SEGMENT_GENERATION_CONCURRENCY: '1'
+      INVESTO_RUNTIME_VISIBILITY: ${{ github.event.repository.private && 'private' || 'public' }}
+      SITE_URL_BASE: https://murphygo.github.io/investo
+      # Only trusted repository configuration can select executable code.
+      REVIEWED_CODE_SHA: ${{ vars.REVIEWED_CODE_SHA }}
+
+    steps:
+      - name: Validate trusted configuration
+        id: start
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$REVIEWED_CODE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$INVESTO_LLM_PROVIDER" == claude || "$INVESTO_LLM_PROVIDER" == codex ]]
+          if [[ "$INVESTO_LLM_PROVIDER" == codex ]]; then
+            [[ "$INVESTO_CODEX_MODEL" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$ ]]
+          fi
+          echo "started_at=$(date +%s)" >> "$GITHUB_OUTPUT"
+          echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/investo-venv" >> "$GITHUB_ENV"
+
+      - name: Checkout reviewed execution code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: murphyGo/investo
+          ref: ${{ vars.REVIEWED_CODE_SHA }}
+          path: runtime-code
+          persist-credentials: false
+
+      - name: Checkout current public data and publication history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: murphyGo/investo
+          ref: main
+          path: public-data
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: '0.7.15'
+          enable-cache: false
+
+      - name: Install reviewed runtime before any auth is restored
+        working-directory: runtime-code
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$REVIEWED_CODE_SHA"
+          uv python install 3.11.9
+          sudo apt-get update
+          sudo apt-get install -y libcairo2
+          uv sync --frozen --no-dev --extra operations --no-editable --python 3.11.9
+
+      - name: Install pinned Codex native CLI
+        if: inputs.llm_provider == 'codex'
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/codex-bin"
+          curl --fail --location --silent --show-error --max-time 120 https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-x86_64-unknown-linux-musl.tar.gz -o "$RUNNER_TEMP/codex.tar.gz"
+          echo "f479424eca092484dc40d87ae28c44f4cc40234a60045d6131e493800d814a30  $RUNNER_TEMP/codex.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/codex.tar.gz" -C "$RUNNER_TEMP/codex-bin"
+          install -m 0755 "$RUNNER_TEMP/codex-bin/codex-x86_64-unknown-linux-musl" "$RUNNER_TEMP/codex-bin/codex"
+          echo "$RUNNER_TEMP/codex-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/codex-bin/codex" --version
+
+      - name: Set up Node for Claude
+        if: inputs.llm_provider == 'claude'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22.17.1'
+
+      - name: Install pinned Claude CLI
+        if: inputs.llm_provider == 'claude'
+        timeout-minutes: 5
+        run: npm install -g @anthropic-ai/claude-code@2.1.258
+
+      - name: Verify import provenance and setup allowance
+        working-directory: public-data
+        env:
+          SETUP_STARTED_AT: ${{ steps.start.outputs.started_at }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(( $(date +%s) - SETUP_STARTED_AT ))" -lt 900
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I -c 'import investo, os; from pathlib import Path; assert Path(investo.__file__).resolve().is_relative_to(Path(os.environ["UV_PROJECT_ENVIRONMENT"]).resolve())'
+          test "$(git remote get-url origin)" = https://github.com/murphyGo/investo
+          git config core.hooksPath /dev/null
+          git config credential.helper ''
+
+      - name: Run Claude dry-run
+        if: inputs.llm_provider == 'claude'
+        working-directory: public-data
+        timeout-minutes: 225
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          INVESTO_KRX_SERVICE_KEY: ${{ secrets.INVESTO_KRX_SERVICE_KEY }}
+          INVESTO_DATA_GO_KR_SERVICE_KEY: ${{ secrets.INVESTO_DATA_GO_KR_SERVICE_KEY }}
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
+        run: '"$UV_PROJECT_ENVIRONMENT/bin/python" -I -m investo.orchestrator.codex_runtime'
+
+      - name: Run Codex dry-run with auth checkpoint and preservation
+        if: inputs.llm_provider == 'codex'
+        working-directory: public-data
+        timeout-minutes: 225
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+          CODEX_SECRET_WRITE_TOKEN: ${{ secrets.CODEX_SECRET_WRITE_TOKEN }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          INVESTO_KRX_SERVICE_KEY: ${{ secrets.INVESTO_KRX_SERVICE_KEY }}
+          INVESTO_DATA_GO_KR_SERVICE_KEY: ${{ secrets.INVESTO_DATA_GO_KR_SERVICE_KEY }}
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
+        run: '"$UV_PROJECT_ENVIRONMENT/bin/python" -I -m investo.orchestrator.codex_runtime'
+
+      # No publisher/Telegram credentials, artifact upload, cron or Pages dispatch.
+      # The supervisor handles catchable cancellation; hard runner kill needs recovery.

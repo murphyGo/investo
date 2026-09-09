@@ -224,6 +224,22 @@ pending. u152 stays independently design-ready.
 u154's u150/u153 integration prerequisites are cleared; its Functional Design
 and implementation are not started.
 
+### u155 — Codex ChatGPT Briefing Provider (2026-09-09)
+
+| Unit | Functional Design | NFR Requirements | Code Generation | Notes |
+|---|---|---|---|---|
+| u155 codex-chatgpt-briefing-provider | APPROVED — user “진행시켜”, 2026-09-09 | APPROVED — N155-01–16; user “구현까지 진행시켜” | Local Steps 1–7 COMPLETE — 5,026 tests; review/cross-check PASS; Steps 8/9 pending | Claude default and optional pinned Codex CLI; provider-aware dry-run, restricted child environment, bounded process cleanup, serialized ChatGPT auth restore/checkpoint/encrypted Environment Secret write-back. Private manual template and two-repository tests added. Feature committed/pushed as `27a6c42c`; combined latest-main gate 5,305 passed; integration and quality-gate evidence is in `docs/sessions/2026-09-09-u155-main-integration.md`. No private repository/Secret provisioning, live account generation or Codex schedule activation. Account plan, Linux effective tools/model and next-job rotation/usage remain operational gates. |
+
+Design: `aidlc-docs/construction/u155-codex-chatgpt-briefing-provider/design-brief.md`.
+Plans: `aidlc-docs/construction/plans/u155-codex-chatgpt-briefing-provider-functional-design-plan.md`
+and `aidlc-docs/construction/plans/u155-codex-chatgpt-briefing-provider-code-generation-plan.md`.
+NFR and Infrastructure plans use the same unit prefix with
+`-nfr-requirements-plan.md` and `-infrastructure-design-plan.md`.
+Infrastructure Design is approved for implementation; separate NFR Design is
+absorbed into focused NFR/Infrastructure artifacts. u151/u152/u154 and production-closeout statuses
+remain independent. The existing user-declined Security Baseline extension is
+unchanged; explicit u155 credential requirements still apply.
+
 ## Extension Configuration
 | Extension | Enabled | Opted In |
 |-----------|---------|----------|

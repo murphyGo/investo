@@ -12,7 +12,7 @@
 Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions cron이 매일 `python -m investo`를 실행해 다음 단계를 순차로 수행한다:
 
 1. **수집** (sources): 무료 공개 API/RSS에서 전일 시장 데이터 수집
-2. **시황 초안 작성** (briefing): Claude Code CLI를 two-stage prompt로 호출해 국내 증시·미국 증시·크립토 세그먼트별 한국어 초안을 생성
+2. **시황 초안 작성** (briefing): 기본 Claude 또는 선택형 Codex CLI를 two-stage prompt로 호출해 국내 증시·미국 증시·크립토 세그먼트별 한국어 초안을 생성
 3. **최종화·게시** (publisher): 모든 조립/공개 projection/repair를 수행한 뒤 read-only 신뢰 게이트와 SHA-256 seal을 통과한 문서만 `archive/{segment}/YYYY/MM/`에 exact-byte 저장 + 단일 git commit/push
 4. **알림** (notifier): 봉인 직전 terminal validation에서 파생된 `PublicNotificationSummary` DTO로 세 세그먼트 요약과 링크를 공개 Telegram 채널에 푸시 (실패 시 운영자 1:1 chat에 별도 알림)
 
@@ -59,7 +59,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 | Component | Responsibility | Module path |
 |-----------|---------------|-------------|
 | sources | 무료 데이터 plugin 수집 + 부분 실패 허용 | `src/investo/sources/` |
-| briefing | Claude Code CLI two-stage 초안 생성 + 호환 면책조항 보장 | `src/investo/briefing/` |
+| briefing | Claude/Codex CLI two-stage 초안 생성 + 호환 면책조항 보장 | `src/investo/briefing/` |
 | publisher | generated→sealed 단일 finalizer, exact-byte archive, sealed consumer view, git commit | `src/investo/publisher/` |
 | notifier | terminal `PublicNotificationSummary` formatter + BriefingPublisher (공개 채널) + OperatorAlerter (1:1) | `src/investo/notifier/` |
 | orchestrator | 파이프라인 단일 진입점 + 단계별 에러 정책 | `src/investo/orchestrator/` |
@@ -71,7 +71,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 
 ## Technical Decisions
 
-### TD-001: LLM 호출은 Claude Code CLI subprocess로만
+### TD-001: 초기 Claude Code CLI subprocess 경계 (u155 확장은 TD-015)
 
 **Choice**: `subprocess.run(["claude", "-p", prompt, ...])` 패턴
 **Rationale**: 사용자가 Claude Max/Pro 구독자로서 setup token 발급 가능. Anthropic API key 직접 호출은 별도 요금 발생 → NFR-002(월 $0) 위반.
@@ -86,7 +86,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 
 ### TD-003: Two-Stage Prompt
 
-**Choice**: 1차 분류·요약 → 2차 7섹션 통합 (각각 Claude Code CLI 호출).
+**Choice**: 1차 분류·요약 → 2차 7섹션 통합 (각각 선택한 CLI runner 호출).
 **Rationale**: 토큰 효율 + 품질 향상. Single-shot은 컨텍스트 폭발 위험.
 **Alternatives Considered**: Single-shot, templating + LLM hybrid.
 
@@ -202,6 +202,32 @@ surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건�
 
 ---
 
+### TD-015: 선택형 CLI 제공자와 비공개 인증 수명 관리 (u155)
+
+**Decision**: Claude를 기본으로 유지하고 Codex CLI를 명시적으로 선택한다.
+실행 시작 시 provider/model을 고정하고 기존 두 단계 프롬프트·파서·finalizer를
+공통 runner 경계로 재사용한다. Codex는 전용 ChatGPT 로그인만 허용한다.
+
+**Runtime**: 승인한 공개 코드 SHA를 비편집 설치한 비공개 Actions job이
+최신 공개 archive checkout을 cwd로 사용한다. LLM child는 빈 cwd/HOME,
+허용된 환경 변수 및 제한된 도구 설정으로 실행한다. Codex 호출은 직렬이며
+기존 호출/세그먼트 예산 안에서 종료한다. outer/runtime/generation은
+240/225/210분, runtime 마지막 120초는 종료와 인증 보존을 위한 여유다.
+
+**Auth and publication**: `codex-runtime` Environment의 `CODEX_AUTH_JSON`을
+제한된 임시 파일로 복원한다. CLI 종료 후 유효한 갱신 인증을 암호화해
+같은 Environment Secret에 저장한 뒤 publish stage를 허용한다.
+실패·취소 때도 보존하며 checkpoint 실패는 공개 발행을 차단한다.
+유료 API나 다른 provider로 자동 전환하지 않는다.
+
+**Operational boundary**: 초기 템플릿은 수동 dry-run이다. 비공개 Environment
+지원, 실제 Linux 도구 제한/모델 접근, 다음 job의 갱신 인증, 시간·사용량,
+발행 토큰·스케줄 이전은 Steps 8/9에서 별도 검증한다. 공개 Claude 운영은
+아직 전환하지 않았다. [런북](../ops/private-runtime/README.md)과
+[u155 설계](../aidlc-docs/construction/u155-codex-chatgpt-briefing-provider/design-brief.md).
+
+---
+
 ## Data Model
 
 ### NormalizedItem (Source 출력)
@@ -253,9 +279,9 @@ surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건�
 | GH Actions overhead | ≤ 30초 |
 
 ### Cost (NFR-002 월 $0)
-- LLM = Claude Code CLI only
+- LLM = Claude Code CLI 기본 + 승인된 Codex CLI 옵션(u155); 추가 유료 API 금지
 - 데이터 = 무료 tier only
-- public repo → GitHub Actions 무제한
+- 기존 public repo의 Actions 조건과 달리 u155 private runtime은 포함 분량·요금제 검증 필요
 
 ### Reliability (NFR-003)
 - Q9=B graceful degradation 다단계 (services.md 참조)

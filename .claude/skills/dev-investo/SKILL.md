@@ -302,7 +302,7 @@ Only load protocols whose signals are present in the code.
 
 **LLM call constraint (NFR-002, US-009)**:
 - Never import the Anthropic SDK (`from anthropic ...`, `import anthropic`, `@anthropic-ai/sdk` are all forbidden)
-- All LLM calls go through `briefing/claude_code.py` using the `subprocess.run(["claude", "-p", ...])` pattern
+- All LLM calls use list-form CLI runners via `briefing/llm.py`: Claude by default, or the user-approved ChatGPT-only Codex option (u155). Preserve secret isolation, bounded cleanup, and no API fallback.
 - Reject any attempt to add the `anthropic` package as a dependency
 
 **Disclaimer enforcement (NFR-004)**:

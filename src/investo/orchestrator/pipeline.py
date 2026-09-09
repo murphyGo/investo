@@ -3535,6 +3535,7 @@ async def run_pipeline(
     generate: GenerateCallable | None = None,
     generate_segment: SegmentGenerateCallable | None = None,
     stages: tuple[Stage, ...] | None = None,
+    before_publication: Callable[[], Awaitable[None]] | None = None,
 ) -> PipelineResult:
     """Run the four-stage pipeline under Q9=B Error Policy routing.
 
@@ -3607,6 +3608,7 @@ async def run_pipeline(
             alerter=alerter,
             pipeline_start=pipeline_start,
             artifact_staging_root=artifact_staging_root,
+            before_publication=before_publication,
         )
 
 
@@ -3618,6 +3620,7 @@ async def _execute_pipeline_stages(
     alerter: OperatorAlerter,
     pipeline_start: float,
     artifact_staging_root: Path,
+    before_publication: Callable[[], Awaitable[None]] | None = None,
 ) -> PipelineResult:
     """Execute one stage sequence inside its run-owned artifact root."""
 
@@ -3635,6 +3638,8 @@ async def _execute_pipeline_stages(
     status: PipelineStatus = PipelineStatus.SUCCESS
     briefing_url: HttpUrl | None = None
     for stage in stages:
+        if stage.name == "publish" and before_publication is not None:
+            await before_publication()
         result = await stage.execute(ctx, accumulated)
         stage_status.update(result.stage_notes)
         stage_timings.update(result.timings)

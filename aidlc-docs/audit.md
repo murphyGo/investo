@@ -7057,3 +7057,111 @@ is staged for the final exact-SHA main delivery.
 **Evidence**:
 `docs/cross-checks/2026-09-09-u153-step7-production-incident-followup.md`;
 `docs/sessions/2026-09-09-u153-step7-production-reverification.md`.
+
+## Construction — u155 optional Codex scope accepted and Functional Design prepared
+
+**Date**: 2026-09-09 KST
+**Recorded at**: 2026-09-08T17:58:34Z
+**User request**: `Claude와 더불어 Codex 옵션을 추가하고, Codex CLI + ChatGPT 로그인 방식으로, 시크릿 정보는 githun actions secret으로 등록하는 방식으로 가능?`
+**User start authorization**: `오케이. 일단 작업 시작해줘`, after the private runtime/public code-and-output recommendation.
+**Interpretation**: Start the bounded feature with Claude as default, optional Codex, subscription auth and GitHub Actions Secrets in private automation. The new request supersedes the old Claude-only restriction in this scope. It is not approval of newly generated FD artifacts or authorization to move personal auth, activate a schedule or publish.
+**Baseline / isolation**: Refreshed `origin/main@f93def427be2d16365685102c7e9dcf1cad073e1`; worktree `.tmp/codex-provider-20260909`, branch `codex/codex-provider-20260909`. Preserved original local main and dirty paths.
+**Stage Decision**: Functional Design, NFR Requirements and Infrastructure Design REQUIRED; separate NFR Design absorbed into the focused artifacts. Code Generation not started. Existing PBT Partial and Security Baseline opt-out unchanged; new explicit credential contracts apply.
+**Artifacts**: u155 unit/story/execution/state registration, scoped requirements extension, design brief, three FD artifacts and FD/Code Generation plans. Proposed R1–R14 cover immutable provider choice, Claude compatibility, ChatGPT-only auth, Environment Secret rotation, workflow/in-process serialization, pre-publication auth persistence, R13 and single schedule ownership.
+**Evidence**: Official OpenAI CI/CD auth guidance requires trusted private automation and refreshed-file persistence. GitHub documents repository secrets read at queue time versus environment secrets at job start; proposed storage therefore uses Environment Secrets and environment-write privileges. Current production budgets are 1,800s per call and 3,900/5,700s per segment, not the wrapper's 120/300s defaults.
+**Validation**: Six new Markdown design/plan artifacts passed local links/fences/whitespace; 12 ACs, 14 rules, nine unstarted implementation steps and five registry references verified; diff check passed. No runtime test/build or implementation-complete claim.
+**Approval checkpoint**: FD preparation 7/7; explicit detailed-design approval pending under dev-investo Step 4A. Next is focused NFR/Infrastructure work before implementation. No credential access, remote provisioning, source/test/workflow/site/archive edit, live generation, commit/push, deployment or send.
+**Session**: `docs/sessions/2026-09-09-u155-functional-design.md`.
+
+## Construction — u155 Functional Design approved; NFR/Infrastructure prepared
+
+**Date**: 2026-09-09 KST
+**Approval recorded at**: 2026-09-08T18:06:59Z
+**User**: `진행시켜`
+**Scope**: Approves the immediately preceding detailed Functional Design and
+its proposed continuation to NFR/Infrastructure. R1–R14 approved; code,
+personal auth handling, remote provisioning and activation are not inferred.
+**Worktree**: Continue `codex/codex-provider-20260909` at
+`f93def427be2d16365685102c7e9dcf1cad073e1`; refreshed origin/main matches.
+**Artifacts**: Two stage plans, sixteen NFRs, tech-stack decisions,
+infrastructure and deployment architecture. Single Environment/job with
+separate scoped tokens refines the FD's publishing-environment suggestion
+and is explicitly proposed for this review. Existing pipeline/finalizer
+ownership retained; auth checkpoint precedes public side effects.
+**Current evidence**: Local Codex 0.153.4 help/features, actual generation
+budgets, source-relative archive paths, existing sequential segment default
+and single-process publication inspected. CLI/model live access and effective
+tool suppression are not claimed. GitHub account plan is null; candidate
+private repository returns 404. Asked account-tier question asynchronously;
+private Environment support remains an operational prerequisite.
+**Design limits**: Private job/runtime/generation caps 240/225/210 minutes,
+bounded auth HTTP/output/termination and separate generation/auth/publication
+receipts. No unconditional zero-cost or permanent-login guarantee.
+**Handoff**: NFR/Infrastructure artifacts prepared; explicit approval before
+Code Generation under dev-investo Step 4A. No source/test/workflow changes,
+credential reads, real LLM calls, external mutation, commit/push or sends.
+**Session / validation**: `docs/sessions/2026-09-09-u155-nfr-infrastructure.md`.
+
+## Construction — u155 implementation authorized
+
+**Date**: 2026-09-09 KST
+**User**: `구현까지 진행시켜`
+**Scope**: Approves NFR/Infrastructure and authorizes local Code Generation Steps 1–7 through tests and review. This explicit through-implementation instruction takes precedence over the skill default of stopping after one plan step. Steps 8/9 remain separate private provisioning/activation, with account support and dedicated credentials unverified. No automatic commit/push or personal auth access.
+
+## Construction — u155 local implementation complete
+
+**Date**: 2026-09-09 KST
+**Scope completed**: Steps 1–7 under user “구현까지 진행시켜”. Claude default,
+optional pinned Codex CLI, shared preflight, isolated/bounded CLI processes,
+ChatGPT auth lifecycle and encrypted Environment Secret checkpoint/finally,
+private manual dry-run template, compatibility/failure/Git integration tests.
+**Final validation**: 5,026 pytest passed in 326.68s; Ruff/check+format590,
+mypy263, lock, SDK/paid guards, actionlint1.7.12, independent review and local
+requirements cross-check passed. Earlier review/schema issues fixed. No new debt.
+**Boundary**: Steps8/9 pending; private plan/repo/dedicated login/model/Linux
+effective-tool/next-job refresh/usage remain operational qualifications. No real
+account generation, secret registration, remote provisioning, public activation,
+commit/push or sends. A failed synthetic endpoint probe is explicitly not CLI
+qualification evidence. Existing personal login and root dirty work preserved.
+**Remote**: base f93def427be2d16365685102c7e9dcf1cad073e1; refreshed main now
+ a63f863f44fb62ce81993bcda7ed7d351737273e (u151 + archive), with no overlapping
+application-code changes. Shared state requires later integration; no merge done.
+**Records**: `docs/sessions/2026-09-09-u155-implementation.md`,
+`docs/cross-checks/2026-09-09-u155-codex-chatgpt-briefing-provider.md` and
+`aidlc-docs/construction/u155-codex-chatgpt-briefing-provider/code/`.
+
+## Delivery — u155 feature-branch commit/push authorized
+
+**User**: `커밋·푸시해줘`
+**Scope**: Commit and push the validated u155 implementation, tests, inactive
+private runtime template and associated design/review records to
+`codex/codex-provider-20260909`. No main merge or production activation.
+**Validation reused**: Final application code unchanged since 5,026-test gate,
+Ruff/format, mypy, guards, actionlint and independent review. Recheck staged
+scope/diff and exact remote branch SHA. Preserve root dirty entries.
+**Record**: `docs/sessions/2026-09-09-u155-implementation.md` follow-up.
+
+## Integration — u155 latest main reconciliation authorized
+
+**User**: `1번 진행해줘`
+**Scope**: Execute the proposed latest-main integration, local/PR quality gates
+and merge. The private runtime/Secret provisioning and activation stages are
+not included. Applied the isolated-main procedure to preserve root dirty work.
+**Parents**: main `fc373277125e5455dc4e4292bcd7a098e877fbe8`, feature
+`27a6c42c14c93672b5b7458394f551220c68cfe4`.
+**Resolution**: One append-only audit conflict; both complete parent histories
+retained and verified. u151/u153 state is preserved. The 24 feature-owned
+code/test/template/dependency files are byte-identical to the reviewed feature;
+no first-parent active-workflow/archive/site changes.
+**Evidence**: `docs/sessions/2026-09-09-u155-main-integration.md` records local
+checks. PR checks and the exact merged SHA are the remote delivery evidence.
+
+## Integration — u155 combined local gate complete
+
+**Result**: 5,305 tests passed in 344.97s on main `fc373277` plus feature
+`27a6c42c`. Ruff/check+format594, mypy263, lock, SDK/paid guards,
+curated-assets/image-store, strict MkDocs/Material and actionlint passed.
+The refreshed main still equals the first parent. No application-code repair
+or new debt was required. Integration documentation is the only post-gate edit;
+PR/main checks and exact remote-SHA verification complete the authorized delivery.
+**Boundary**: No private Codex credentials, dry-run, provisioning or activation.
