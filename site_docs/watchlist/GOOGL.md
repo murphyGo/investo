@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-09 begin -->
+
+## 2026-09-09
+
+- [yfinance-price] **ticker**: GOOGL 330.65 (-2.28%)
+- [yonhap-market] **ticker**: AI칩 셀레로 3천700억원 투자유치…알파벳 벤처 주도
+- [yonhap-market] **ticker**: 구글, EU 벌금폭탄 압박에 마지못해 검색 개편
+- [yonhap-market] **ticker**: 구글클라우드 "TPU 사업규모, 경쟁사의 2배 이상"
+
+<!-- u33 entry 2026-09-09 end -->
 <!-- u33 entry 2026-09-08 begin -->
 
 ## 2026-09-08

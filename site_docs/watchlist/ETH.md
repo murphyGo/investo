@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-09 begin -->
+
+## 2026-09-09
+
+- [coingecko-price] **ticker**: ETH $2,467.84 (-0.65%)
+- [defillama-market-structure] **ticker**: DeFi TVL $88.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Consensys splits MetaMask from institutional and Ethereum infrastructure businesses
+
+<!-- u33 entry 2026-09-09 end -->
 <!-- u33 entry 2026-09-08 begin -->
 
 ## 2026-09-08

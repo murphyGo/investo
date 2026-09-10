@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-09 begin -->
+
+## 2026-09-09
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7620 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,679,552,763,551; BTC dominance 58.55%
+- [coingecko-price] **ticker**: BTC $78,265.00 (-0.20%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $468,381,020 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 -0.0000032651115224 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin miners are missing the crypto rally as exchanges, stablecoins surge
+- [theblock-crypto] **ticker**: Renzo expands beyond restaking with basis trade product on Hyperliquid
+
+<!-- u33 entry 2026-09-09 end -->
 <!-- u33 entry 2026-09-08 begin -->
 
 ## 2026-09-08

@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-09 begin -->
+
+## 2026-09-09
+
+- [coingecko-price] **ticker**: SOL $101.71 (-1.55%)
+- [defillama-market-structure] **ticker**: DeFi TVL $88.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Solana treasury firm SkyAI faces board challenge from would-be acquirer Forward Industries, shareholder group
+- [yonhap-market] **ticker**: 신한운용 "AI반도체소부장 순자산 1조 돌파…1개월 수익률 23%"
+
+<!-- u33 entry 2026-09-09 end -->
 <!-- u33 entry 2026-09-08 begin -->
 
 ## 2026-09-08
