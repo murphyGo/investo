@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-10 begin -->
+
+## 2026-09-10
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7620 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,627,321,264,096; BTC dominance 58.48%
+- [coingecko-price] **ticker**: BTC $76,712.00 (-1.95%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $478,276,330 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000662115190489 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Coinbase CEO Brian Armstrong says bitcoin has bottomed for current cycle, expects uptrend over next two years
+- [theblock-crypto] **ticker**: Researchers halve quantum resource benchmark for key operation in Bitcoin, Ethereum attack
+- [yonhap-market] **ticker**: [게시판] 비트플래닛, 비트코인 채굴기 1천204대 양수 완료
+- [yonhap-market] **ticker**: 슈퍼카·명품 자랑하던 20대…美법정서 3천억 비트코인 절도 유죄
+
+<!-- u33 entry 2026-09-10 end -->
 <!-- u33 entry 2026-09-09 begin -->
 
 ## 2026-09-09

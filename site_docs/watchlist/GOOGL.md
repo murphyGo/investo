@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-10 begin -->
+
+## 2026-09-10
+
+- [theblock-crypto] **ticker**: Researchers halve quantum resource benchmark for key operation in Bitcoin, Ethereum attack
+- [yfinance-price] **ticker**: GOOGL 332.60 (+0.59%)
+
+<!-- u33 entry 2026-09-10 end -->
 <!-- u33 entry 2026-09-09 begin -->
 
 ## 2026-09-09
