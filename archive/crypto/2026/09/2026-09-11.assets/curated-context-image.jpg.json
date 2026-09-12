@@ -1,0 +1,31 @@
+{
+  "additional_metadata": {
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with Pixabay source link.",
+    "asset_id": "bitcoin",
+    "author": "Pixabay contributor",
+    "license": "cc0",
+    "match_reason": "alias:BTC;scope=hero;rank=10;offset=93",
+    "matched_key": "asset:bitcoin",
+    "narrative_sha256": "09466176fc289d498a4a945112944c3f2d675e9d8c1515c4e312f7ad362effef",
+    "selection_contract": "final-body-semantic-v1",
+    "semantic_offset": "93",
+    "semantic_rank": "10",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Bitcoin_currency_stack.jpg",
+    "variant_contract": "narrative-key-digest-mod-v1",
+    "variant_count": "1",
+    "variant_index": "0"
+  },
+  "asset_path": "curated-context-image.jpg",
+  "card_kind": "curated-context-image",
+  "content_type": "image/jpeg",
+  "dimensions": [
+    960,
+    540
+  ],
+  "generated_at": "2026-09-12T03:58:37.995295Z",
+  "generator": "investo",
+  "schema_version": "1",
+  "source_attribution": "Stacks of physical bitcoin tokens (CC0-era Pixabay illustration; via Wikimedia Commons) (Pixabay contributor) — cc0",
+  "source_type": "external",
+  "version": "0.1.0"
+}
