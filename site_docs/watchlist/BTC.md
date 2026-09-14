@@ -7,13 +7,14 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-09-11
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7892 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,658,897,731,453; BTC dominance 58.26%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $502,182,220 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000360020536693 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,614,255,312,691; BTC dominance 58.91%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $502,795,640 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000611905252901 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: Bitcoin, ether rise as inflation data does little to alter Fed interest rate outlook
 - [theblock-crypto] **ticker**: ‘Return the bitcoin’: Blockstream refuses ransom demand for remaining 600 BTC from Liquid exploit
 
 <!-- u33 entry 2026-09-11 end -->
+
 <!-- u33 entry 2026-09-10 begin -->
 
 ## 2026-09-10

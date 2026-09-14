@@ -1,16 +1,16 @@
 {
   "additional_metadata": {
-    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states the creator released the file explicitly under Creative Commons Zero on Pixabay.",
-    "asset_id": "inflation",
-    "author": "Maklay62 (Pixabay)",
+    "allowed_use": "Public republish on the investo site and channel; CC0 public-domain dedication. Verified: Commons file page states Creative Commons Zero with archived Pixabay source.",
+    "asset_id": "us-equity-market",
+    "author": "AhmadArdity (Pixabay)",
     "license": "cc0",
-    "match_reason": "alias:CPI;scope=hero;rank=10;offset=10",
-    "matched_key": "topic:inflation",
-    "narrative_sha256": "27def73a2bc6cc82c76c31e4437eb59a00150a1f715883fa11e52f9e2345ba63",
+    "match_reason": "alias:미국 증시;scope=hero;rank=30;offset=7",
+    "matched_key": "topic:us-equity-market",
+    "narrative_sha256": "abb58327079e3f8219734f945d55fb820a52d65724598939b473d41e5efd053f",
     "selection_contract": "final-body-semantic-v1",
-    "semantic_offset": "10",
-    "semantic_rank": "10",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Money-1428594_1920.jpg",
+    "semantic_offset": "7",
+    "semantic_rank": "30",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Stockmarket.jpg",
     "variant_contract": "narrative-key-digest-mod-v1",
     "variant_count": "1",
     "variant_index": "0"
@@ -22,10 +22,10 @@
     1400,
     933
   ],
-  "generated_at": "2026-09-12T03:58:37.984339Z",
+  "generated_at": "2026-09-14T00:15:20.712929Z",
   "generator": "investo",
   "schema_version": "1",
-  "source_attribution": "US one-hundred-dollar Federal Reserve notes, by Pixabay contributor Maklay62 (explicit CC0 release; via Wikimedia Commons) (Maklay62 (Pixabay)) — cc0",
+  "source_attribution": "Stock exchange price display board, by Pixabay contributor AhmadArdity (CC0-era Pixabay upload; via Wikimedia Commons) (AhmadArdity (Pixabay)) — cc0",
   "source_type": "external",
   "version": "0.1.0"
 }

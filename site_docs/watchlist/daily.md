@@ -7,18 +7,18 @@
 - AAPL: 직접 관련 · [yfinance-price] AAPL 332.27 (+1.75%)
 - AMZN: 직접 관련 · [yfinance-price] AMZN 256.78 (+1.94%)
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -7892 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,658,897,731,453; BTC dominance 58.26%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $502,182,220 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000360020536693 (OKX, UTC 24h)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,614,255,312,691; BTC dominance 58.91%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $502,795,640 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000611905252901 (OKX, UTC 24h)
 - BTC: 직접 관련 · [theblock-crypto] Bitcoin, ether rise as inflation data does little to alter Fed interest rate outlook
 - BTC: 직접 관련 · [theblock-crypto] ‘Return the bitcoin’: Blockstream refuses ransom demand for remaining 600 BTC from Liquid exploit
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $88.3B; leader Ethereum
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $88.2B; leader Ethereum
 - GOOGL: 직접 관련 · [yfinance-price] GOOGL 338.50 (+1.77%)
 - META: 직접 관련 · [yfinance-price] META 648.03 (+0.57%)
 - MSFT: 직접 관련 · [yfinance-price] MSFT 495.63 (+0.65%)
 - MSFT: 직접 관련 · [yonhap-market] "MS, 2032년까지 데이터센터 용량 3배로 확대…수요 충족 목적"
 - NVDA: 직접 관련 · [yfinance-price] NVDA 218.29 (-0.03%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $88.3B; leader Ethereum
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $88.2B; leader Ethereum
 - TSLA: 직접 관련 · [yfinance-price] TSLA 365.44 (+0.52%)
 
 ## 관련·매크로 맥락 (Related)
@@ -72,11 +72,11 @@ _해당 항목 없음._
 - BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #a2b9ba
 - BTC ⊘ BIO [short-ticker-boundary] · sec-edgar-8k #c7efce
 - BTC ⊘ BONK [short-ticker-boundary] · sec-edgar-8k #203f76
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #f22143
-- ETH ⊘ ECB [short-ticker-boundary] · yonhap-market #2c7fed
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #94561d
 - ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #e28de3
 - ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #ec4010
-- ETH ⊘ EIA [short-ticker-boundary] · nasdaq-stocks-news #664e92
 - ETH ⊘ ENLV [short-ticker-boundary] · nasdaq-earnings-calendar #a071cf
+- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #f8c8a5
+- ETH ⊘ ESMA [short-ticker-boundary] · theblock-crypto #77b176
 
 </details>
