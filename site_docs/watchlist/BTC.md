@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-14 begin -->
+
+## 2026-09-14
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7892 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,672,628,199,117; BTC dominance 58.45%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $507,027,900 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000555458105256 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin production rebounds in August for BitFuFu, edges higher at CleanSpark as Canaan slips
+- [theblock-crypto] **ticker**: Strategy repurchases $139 million of STRC shares, leaves bitcoin holdings unchanged
+- [theblock-crypto] **ticker**: Strive reaches 25,000 BTC milestone with latest $36.6 million purchase
+- [theblock-crypto] **ticker**: TD Cowen sees 90% upside for bitcoin treasury firm Smarter Web following proposed ‘MORE’ preferred IPO
+
+<!-- u33 entry 2026-09-14 end -->
 <!-- u33 entry 2026-09-11 begin -->
 
 ## 2026-09-11

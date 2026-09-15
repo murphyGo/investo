@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-14 begin -->
+
+## 2026-09-14
+
+- [defillama-market-structure] **ticker**: DeFi TVL $89.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitcoin production rebounds in August for BitFuFu, edges higher at CleanSpark as Canaan slips
+- [theblock-crypto] **ticker**: Bitmine adds 27,180 ETH as adviser Tom DeMark sees sharp move in coming weeks
+
+<!-- u33 entry 2026-09-14 end -->
 <!-- u33 entry 2026-09-11 begin -->
 
 ## 2026-09-11
