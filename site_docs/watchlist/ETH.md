@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-15 begin -->
+
+## 2026-09-15
+
+- [defillama-market-structure] **ticker**: DeFi TVL $86.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum, Base developers abandon effort to align account abstraction proposals
+- [theblock-crypto] **ticker**: Tonkeeper rebrands as Keeper with support for 7 networks, including Bitcoin and Ethereum
+- [theblock-crypto] **ticker**: Zama expands confidential Morpho lineup after first vault hits $40 million, launches private swaps on Ethereum
+
+<!-- u33 entry 2026-09-15 end -->
 <!-- u33 entry 2026-09-14 begin -->
 
 ## 2026-09-14

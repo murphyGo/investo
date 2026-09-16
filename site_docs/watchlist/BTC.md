@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-15 begin -->
+
+## 2026-09-15
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7892 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,592,559,071,696; BTC dominance 58.48%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $488,436,150 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000821283841786 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin price recovery unlikely to lure AI-focused miners back, CoinShares says
+- [theblock-crypto] **ticker**: Tonkeeper rebrands as Keeper with support for 7 networks, including Bitcoin and Ethereum
+
+<!-- u33 entry 2026-09-15 end -->
 <!-- u33 entry 2026-09-14 begin -->
 
 ## 2026-09-14

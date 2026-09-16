@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-15 begin -->
+
+## 2026-09-15
+
+- [yfinance-price] **ticker**: GOOGL 349.39 (+3.22%)
+- [yonhap-market] **ticker**: "인류 안전이 동기는 아닐것"…AI 속도조절론에 증권가 갑론을박
+- [yonhap-market] **ticker**: 딥마인드 퇴사 직원도 "AI가 우리를 죽일 수 있다" 경고
+
+<!-- u33 entry 2026-09-15 end -->
 <!-- u33 entry 2026-09-14 begin -->
 
 ## 2026-09-14
