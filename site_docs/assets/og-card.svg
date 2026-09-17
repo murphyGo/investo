@@ -1,15 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-09-15 시황 OG 카드">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Investo 2026-09-16 시황 OG 카드">
 <style>.og-bg{fill:#f7f5ef;}.og-frame{fill:#ffffff;stroke:#253238;}.og-title{fill:#1d2b2f;}.og-subtitle{fill:#617176;}.og-label{fill:#476169;}.og-text{fill:#1d2b2f;}.og-disclaimer{fill:#7b5e2a;}@media (prefers-color-scheme: dark){.og-bg{fill:#0f1417;}.og-frame{fill:#1a2026;stroke:#9fb1ba;}.og-title{fill:#f4f6f8;}.og-subtitle{fill:#bfcdd4;}.og-label{fill:#a8c0c8;}.og-text{fill:#e8eef1;}.og-disclaimer{fill:#e2c489;}}</style>
 <rect class="og-bg" width="1200" height="630"/>
 <rect class="og-frame" x="40" y="40" width="1120" height="550" rx="12" stroke-width="3"/>
 <text class="og-title" x="80" y="138" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="56" font-weight="700">Investo · 오늘의 시황</text>
-<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-09-15</text>
+<text class="og-subtitle" x="80" y="186" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="30">2026-09-16</text>
 <text class="og-label" x="80" y="230" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">국내 증시</text>
-<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">15일 코스피는 전일 대비 **0.8%** 하락한 6,627.26으로 나흘째</text>
-<text class="og-text" x="80" y="308" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">하락을 이어갔고, 코스닥은 812.41로 마감했다. 본문 참고.</text>
+<text class="og-text" x="80" y="272" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">확인된 요약이 부족합니다.</text>
 <text class="og-label" x="80" y="360" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">미국 증시</text>
-<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">9월 15일 미국 증시는 국채·주가지수 선물에 대한 레버리지드머니 순매도 확대와</text>
-<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">8월 물가지표 상승이 겹치며 방향성이 엇갈렸다. 본문 참고.</text>
+<text class="og-text" x="80" y="402" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">9월 1516일 FOMC(연방공개시장위원회) 회의 결과 발표 이후 미국 증시는</text>
+<text class="og-text" x="80" y="438" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">지수별로 엇갈린 흐름을 보였다. 이번 문서는 수집 근거가 제한적입니다.</text>
 <text class="og-label" x="80" y="490" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32" font-weight="700">크립토</text>
 <text class="og-text" x="80" y="532" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="28">확인된 요약이 부족합니다.</text>
 <text class="og-disclaimer" x="80" y="570" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">투자 자문이 아닙니다 · investo (MIT)</text>

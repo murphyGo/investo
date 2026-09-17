@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-16 begin -->
+
+## 2026-09-16
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7892 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,615,154,675,257; BTC dominance 58.40%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $495,916,290 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000989093511388 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin, ether swing after unanimous quarter-point Fed rate hike as Warsh takes aim at inflation
+- [theblock-crypto] **ticker**: Deutsche Bank plans bitcoin, ether custody for institutional clients in Europe
+- [theblock-crypto] **ticker**: ‘Nothing truly structural’: Analysts downplay Clarity Act defeat as bitcoin, major crypto stocks dip
+- [yonhap-market] **ticker**: 美 클래러티법 부결에 비트코인 2.8%↓…서클·코인베이스 급락
+
+<!-- u33 entry 2026-09-16 end -->
 <!-- u33 entry 2026-09-15 begin -->
 
 ## 2026-09-15

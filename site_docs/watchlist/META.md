@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-16 begin -->
+
+## 2026-09-16
+
+- [yfinance-price] **ticker**: META 670.24 (+0.70%)
+- [yonhap-market] **ticker**: "메타, 카메라 없는 스마트안경 10월 출시"
+- [yonhap-market] **ticker**: 메타, 자체 개발 저비용 칩 내년에 순차 투입
+
+<!-- u33 entry 2026-09-16 end -->
 <!-- u33 entry 2026-09-15 begin -->
 
 ## 2026-09-15

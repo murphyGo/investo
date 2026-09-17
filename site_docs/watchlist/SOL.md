@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-16 begin -->
+
+## 2026-09-16
+
+- [defillama-market-structure] **ticker**: DeFi TVL $86.9B; leader Ethereum
+- [yonhap-market] **ticker**: 신한운용, 'SOL 코리아고배당' ETF 9월 분배금 지급
+
+<!-- u33 entry 2026-09-16 end -->
 <!-- u33 entry 2026-09-15 begin -->
 
 ## 2026-09-15
