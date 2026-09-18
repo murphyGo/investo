@@ -2,6 +2,22 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-17 begin -->
+
+## 2026-09-17
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7892 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,636,289,877,602; BTC dominance 58.10%
+- [coingecko-price] **ticker**: BTC $76,407.00 (+0.33%)
+- [okx-derivatives] **ticker**: BTC 미결제약정 $503,518,070 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000683914186336 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitwise CIO Hougan revises Clarity Act outlook, says crypto bull market may continue without legislation
+- [theblock-crypto] **ticker**: Grayscale’s Pandl still sees bitcoin’s $58K low as the bottom, gives clients ‘green light’
+- [theblock-crypto] **ticker**: House committee moves to codify Trump’s Strategic Bitcoin Reserve
+- [theblock-crypto] **ticker**: JPMorgan says bitcoin could get more support than gold if ETF hedging eases
+- [theblock-crypto] **ticker**: US sanctions Iranian crypto exchange BitBank over alleged bitcoin transfers to IRGC
+
+<!-- u33 entry 2026-09-17 end -->
 <!-- u33 entry 2026-09-16 begin -->
 
 ## 2026-09-16

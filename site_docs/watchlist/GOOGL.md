@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-17 begin -->
+
+## 2026-09-17
+
+- [yfinance-price] **ticker**: GOOGL 342.87 (-0.61%)
+- [yonhap-market] **ticker**: "미 은행들, 구글 TPU 구매용 30조원 대출 제공"
+
+<!-- u33 entry 2026-09-17 end -->
 <!-- u33 entry 2026-09-16 begin -->
 
 ## 2026-09-16
