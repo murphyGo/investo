@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="미국 증시 시장 스냅샷">
+<style>.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">미국 증시 시장 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-09-18 · 데이터 partial</text>
+<text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">미국 증시는 국채금리와 유가 움직임 속에 3대 지수가 종목별·일자별로 엇갈린 흐름을 이어갔다. 이번</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">문서는 수집 근거가 제한적입니다.</text>
+<text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">S&amp;P 500, 국채금리·유가 속 지수별 온도차 — S&amp;P 500 지수(SPX)는 최근 며칠간 국채금리와</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">국제유가 움직임에 연동해 등락을 반복했다.</text>
+<text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · VIX 선물 레버리지드머니 순매도가 현재 -16,504계약보다 확대되면</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">변동성 확대 압력을 관찰하고, -16,504계약보다 축소되면 변동성 완화로 점검한다.</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>
