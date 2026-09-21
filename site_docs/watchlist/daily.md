@@ -1,6 +1,6 @@
 # 오늘의 관심 자산 영향 — 2026-09-18
 
-직접 19 · 관련 0 · 보류 14 · 제외 25
+직접 18 · 관련 0 · 보류 14 · 제외 25
 
 ## 직접 영향 (Direct)
 
@@ -8,18 +8,17 @@
 - AMZN: 직접 관련 · [yfinance-price] AMZN 253.71 (+1.00%)
 - AMZN: 직접 관련 · [yonhap-market] 아마존 "준비되고 안전할 때 AI 출시해야"
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -6354 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,785,810,862,781; BTC dominance 58.34%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $524,247,580 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,793,119,532,870; BTC dominance 58.21%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $487,215,310 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000428770729187 (OKX, UTC 24h)
 - BTC: 직접 관련 · [theblock-crypto] Bitcoin reclaims $80,000, Solana and Hyperliquid rally as crypto markets shrug off Clarity setback
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $92.8B; leader Ethereum
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $93.6B; leader Ethereum
 - GOOGL: 직접 관련 · [yfinance-price] GOOGL 349.54 (+0.64%)
 - GOOGL: 직접 관련 · [yonhap-market] "구글 검색 지배력, AI 시대에 되레 강화됐다"
 - META: 직접 관련 · [yfinance-price] META 665.75 (-2.43%)
 - MSFT: 직접 관련 · [yfinance-price] MSFT 493.78 (-0.80%)
 - NVDA: 직접 관련 · [yfinance-price] NVDA 222.27 (+1.34%)
-- NVDA: 직접 관련 · [yonhap-market] 젠슨 황 "엔비디아, 내년 칩 판매량 2배로 증가"
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $92.8B; leader Ethereum
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $93.6B; leader Ethereum
 - SOL: 직접 관련 · [theblock-crypto] Bitcoin reclaims $80,000, Solana and Hyperliquid rally as crypto markets shrug off Clarity setback
 - SOL: 직접 관련 · [yonhap-market] 신한운용 "美AI소프트웨어, 동종 ETF 중 기간별 수익률 1위"
 - TSLA: 직접 관련 · [yfinance-price] TSLA 364.27 (-0.53%)
@@ -75,10 +74,10 @@ _해당 항목 없음._
 - BTC ⊘ BCB [short-ticker-boundary] · sec-edgar-8k #8a8bc9
 - BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #add12b
 - BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #d60590
+- BTC ⊘ BLSM [short-ticker-boundary] · nasdaq-earnings-calendar #05ae96
 - BTC ⊘ BNK [short-ticker-boundary] · yonhap-market #86b260
 - BTC ⊘ BPGC [short-ticker-boundary] · sec-edgar-8k #41f32b
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #c434be
-- ETH ⊘ EDGE [short-ticker-boundary] · yonhap-market #7d8205
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #1ab53d
 - ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #1293c2
 - ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #5aae1c
 

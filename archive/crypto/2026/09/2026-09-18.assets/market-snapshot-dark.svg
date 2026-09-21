@@ -5,13 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-09-18 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">크립토 시장은 UTC 24시간 기준 전체 시가총액이 +2.14% 상승한 $2.79T를 기록했고, BTC는</text>
-<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$80,000를 다시 넘어서며 솔라나(Solana)·하이퍼리퀴드(Hyperliquid) 등 알트코인도</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">크립토 전체 시가총액은 UTC 24h 스냅샷 기준 -1.69% 하락한 $2,793,119,532,870을</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">기록했고, 공포·탐욕 지수는 71(Greed)로 낙관적 심리를 유지했다. 이번 문서는 수집 근거가</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC $80,000 회복, 알트코인 동반 강세 — BTC가 UTC 24시간 기준 $80,000을</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">회복했고 솔라나(Solana)·하이퍼리퀴드(Hyperliquid) 등 주요 알트코인도 동반</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC, $80,000 회복 속 파생 포지셔닝은 순매도 우위 — The Block 보도에 따르면 BTC가</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">$80,000를 회복했고 Solana·Hyperliquid도 동반 상승했다.</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · BTC CME 레버리지드머니 순포지션(현재 -6,354계약, OI 대비</text>
-<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">-30.6%)이 순매수로 전환되면 상방 압력을, 순매도 폭이 더 벌어지면 하방 압력을 관찰한다.</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: CFTC COT · BTC 레버리지드머니 순포지션이 플러스로 전환되면 매수 우위 전환 관찰,</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">순매도폭이 현재 -6,354계약보다 확대되면 방어적 해석. 관심 영향: 파생시장 심리 점검. 확인 소스:</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>

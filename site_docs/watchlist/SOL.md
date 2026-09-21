@@ -6,11 +6,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-09-18
 
-- [defillama-market-structure] **ticker**: DeFi TVL $92.8B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $93.6B; leader Ethereum
 - [theblock-crypto] **ticker**: Bitcoin reclaims $80,000, Solana and Hyperliquid rally as crypto markets shrug off Clarity setback
 - [yonhap-market] **ticker**: 신한운용 "美AI소프트웨어, 동종 ETF 중 기간별 수익률 1위"
 
 <!-- u33 entry 2026-09-18 end -->
+
 <!-- u33 entry 2026-09-17 begin -->
 
 ## 2026-09-17

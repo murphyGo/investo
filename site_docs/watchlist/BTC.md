@@ -7,12 +7,13 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 ## 2026-09-18
 
 - [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6354 contracts
-- [coingecko-global-market] **ticker**: Global crypto market cap $2,785,810,862,781; BTC dominance 58.34%
-- [okx-derivatives] **ticker**: BTC 미결제약정 $524,247,580 (OKX, UTC 24h)
-- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,793,119,532,870; BTC dominance 58.21%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $487,215,310 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000428770729187 (OKX, UTC 24h)
 - [theblock-crypto] **ticker**: Bitcoin reclaims $80,000, Solana and Hyperliquid rally as crypto markets shrug off Clarity setback
 
 <!-- u33 entry 2026-09-18 end -->
+
 <!-- u33 entry 2026-09-17 begin -->
 
 ## 2026-09-17
