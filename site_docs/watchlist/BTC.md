@@ -2,6 +2,21 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-21 begin -->
+
+## 2026-09-21
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6354 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,936,762,895,984; BTC dominance 58.84%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $498,965,910 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000907707141138 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin taps $85,000 for first time since January as crypto short liquidations surge
+- [theblock-crypto] **ticker**: Strive adds 1,355 bitcoin, picks up pace toward year-end second-place treasury goal
+- [theblock-crypto] **ticker**: ‘A little more orange’: Strategy buys 950 bitcoin for $76 million, bringing total holdings to 846,000 BTC
+- [yonhap-market] **ticker**: [특징주] 비트코인 8만달러 탈환에 국내 가상화폐 관련주 강세(종합)
+- [yonhap-market] **ticker**: [특징주] 비트코인 8만달러 탈환에 국내 가상화폐 관련주 급등
+
+<!-- u33 entry 2026-09-21 end -->
 <!-- u33 entry 2026-09-18 begin -->
 
 ## 2026-09-18

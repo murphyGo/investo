@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-21 begin -->
+
+## 2026-09-21
+
+- [defillama-market-structure] **ticker**: DeFi TVL $96.6B; leader Ethereum
+- [theblock-crypto] **ticker**: ‘Crypto bull market is underway,’ Tom Lee says as Bitmine nears 5% Ethereum supply target with 27,562 ETH buy
+
+<!-- u33 entry 2026-09-21 end -->
 <!-- u33 entry 2026-09-18 begin -->
 
 ## 2026-09-18
