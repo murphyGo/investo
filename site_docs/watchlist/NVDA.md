@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-22 begin -->
+
+## 2026-09-22
+
+- [yfinance-price] **ticker**: NVDA 227.38 (+2.30%)
+- [yonhap-market] **ticker**: [특징주] LG전자, 'ADIC 냉각 솔루션' 엔비디아 규격 승인에 장 초반 강세
+- [yonhap-market] **ticker**: [특징주] LG전자·LG, 엔비디아·MS 호재에 급등(종합)
+- [yonhap-market] **ticker**: 데이터센터에 엔비디아 '올인'…월가는 회의론 '꿈틀'
+
+<!-- u33 entry 2026-09-22 end -->
 <!-- u33 entry 2026-09-21 begin -->
 
 ## 2026-09-21

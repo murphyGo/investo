@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-22 begin -->
+
+## 2026-09-22
+
+- [defillama-market-structure] **ticker**: DeFi TVL $96.5B; leader Ethereum
+- [yonhap-market] **ticker**: 신한운용 "SOL초단기채권액티브 ETF 순자산 1조원 돌파"
+
+<!-- u33 entry 2026-09-22 end -->
 <!-- u33 entry 2026-09-21 begin -->
 
 ## 2026-09-21

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="국내 증시 시장 스냅샷">
+<style>.card-bg{fill:#0f1417;}.card-frame{fill:#1a2026;stroke:#9fb1ba;}.card-title{fill:#f4f6f8;}.card-subtitle{fill:#bfcdd4;}.card-label{fill:#a8c0c8;}.card-emphasis{fill:#7adfe8;}.card-text{fill:#e8eef1;}.card-disclaimer{fill:#e2c489;}</style>
+<rect class="card-bg" width="1200" height="630"/>
+<rect class="card-frame" x="40" y="40" width="1120" height="550" rx="8" stroke-width="3"/>
+<text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">국내 증시 시장 스냅샷</text>
+<text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-09-22 · 데이터 limited</text>
+<text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">22일 코스피는 7,017.91로 강보합 마감해 &#x27;7,000선&#x27;을 지켰고, 코스닥은 834.38로</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">마감했다. 이번 문서는 수집 근거가 제한적입니다.</text>
+<text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">코스피, 미국 반도체주 강세 업고 상승 출발했으나 &#x27;전강후약&#x27; — 코스피는 22일 미국 반도체 관련주</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">강세 등에 힘입어 장 초반 2%대까지 오르며 강세를 나타냈지만, 이후 상승폭을 줄이며 7,017.91로</text>
+<text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">확인 소스: 코스피 종가(&#x27;7천피&#x27; 사수, 7,017.91) · 코스피가 이 수준을 상회 유지하면 상승</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">압력 지속으로 관찰하고, 7,000선을 다시 이탈하면 방어적 흐름으로 해석한다.</text>
+<text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
+</svg>

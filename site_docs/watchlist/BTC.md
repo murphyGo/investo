@@ -2,6 +2,20 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-22 begin -->
+
+## 2026-09-22
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6354 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,937,650,874,275; BTC dominance 58.70%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $557,602,370 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000537376542265 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: CME adds Bitcoin Cash and Uniswap futures as crypto derivatives push grows
+- [theblock-crypto] **ticker**: Coinbase adds fixed-rate bitcoin-backed loans through Morpho Midnight
+- [theblock-crypto] **ticker**: Spot bitcoin ETFs attract nearly $1 billion in largest daily inflow in 11 months
+- [yonhap-market] **ticker**: 비트코인 8만7천달러 찍고 숨 고르기…숏청산·美규제완화 기대
+
+<!-- u33 entry 2026-09-22 end -->
 <!-- u33 entry 2026-09-21 begin -->
 
 ## 2026-09-21

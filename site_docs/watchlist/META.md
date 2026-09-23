@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-22 begin -->
+
+## 2026-09-22
+
+- [yfinance-price] **ticker**: META 741.25 (+11.34%)
+- [yonhap-market] **ticker**: 뉴욕증시, 'AI낙관론'에 메타·인텔 급등…나스닥 사상 최고치(종합)
+- [yonhap-market] **ticker**: 메타 AI에이전트 뮤즈 돌풍에 AMD 시총 1조달러 돌파
+- [yonhap-market] **ticker**: 메타, 대서양 횡단 페타비트급 해저케이블 2029년 가동
+
+<!-- u33 entry 2026-09-22 end -->
 <!-- u33 entry 2026-09-21 begin -->
 
 ## 2026-09-21

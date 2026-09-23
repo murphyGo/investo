@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-22 begin -->
+
+## 2026-09-22
+
+- [defillama-market-structure] **ticker**: DeFi TVL $96.5B; leader Ethereum
+- [theblock-crypto] **ticker**: Onchain prediction market Trueo migrates to Ethereum; Vitalik Buterin welcomes ‘ethical’ market contender
+
+<!-- u33 entry 2026-09-22 end -->
 <!-- u33 entry 2026-09-21 begin -->
 
 ## 2026-09-21
