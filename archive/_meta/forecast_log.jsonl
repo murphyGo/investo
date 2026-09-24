@@ -261,3 +261,6 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/09/2026-09-22.md", "published_at": "2026-09-23T00:26:01.192222+00:00", "segment": "crypto", "target_date": "2026-09-22", "tickers": ["BTC", "UTC"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/09/2026-09-22.md", "published_at": "2026-09-23T00:26:01.192222+00:00", "segment": "domestic-equity", "target_date": "2026-09-22", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/09/2026-09-22.md", "published_at": "2026-09-23T00:26:01.192222+00:00", "segment": "us-equity", "target_date": "2026-09-22", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/09/2026-09-23.md", "published_at": "2026-09-24T00:32:56.366644+00:00", "segment": "crypto", "target_date": "2026-09-23", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/09/2026-09-23.md", "published_at": "2026-09-24T00:32:56.366644+00:00", "segment": "domestic-equity", "target_date": "2026-09-23", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/09/2026-09-23.md", "published_at": "2026-09-24T00:32:56.366644+00:00", "segment": "us-equity", "target_date": "2026-09-23", "tickers": []}

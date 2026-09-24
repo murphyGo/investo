@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-23 begin -->
+
+## 2026-09-23
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6354 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,871,794,791,646; BTC dominance 58.81%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $531,038,390 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000392465210408 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: ‘BTC still has room to catch up’: Bitcoin’s $80,000 breakout draws institutional demand as analysts weigh durability
+
+<!-- u33 entry 2026-09-23 end -->
 <!-- u33 entry 2026-09-22 begin -->
 
 ## 2026-09-22
