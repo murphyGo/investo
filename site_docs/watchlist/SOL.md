@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-24 begin -->
+
+## 2026-09-24
+
+- [defillama-market-structure] **ticker**: DeFi TVL $95.2B; leader Ethereum
+- [theblock-crypto] **ticker**: Solana Foundation taps Binance, Polygon vets to drive institutional adoption and payments
+- [theblock-crypto] **ticker**: Solana treasury firm SkyAI keeps board after shareholder protest, loses equity plan vote
+
+<!-- u33 entry 2026-09-24 end -->
 <!-- u33 entry 2026-09-23 begin -->
 
 ## 2026-09-23

@@ -1,24 +1,26 @@
-# 오늘의 관심 자산 영향 — 2026-09-23
+# 오늘의 관심 자산 영향 — 2026-09-24
 
-직접 15 · 관련 0 · 보류 14 · 제외 25
+직접 17 · 관련 0 · 보류 14 · 제외 25
 
 ## 직접 영향 (Direct)
 
-- AAPL: 직접 관련 · [yfinance-price] AAPL 339.75 (+0.23%)
-- AMZN: 직접 관련 · [yfinance-price] AMZN 254.98 (-1.34%)
+- AAPL: 직접 관련 · [yfinance-price] AAPL 337.02 (-0.80%)
+- AMZN: 직접 관련 · [yfinance-price] AMZN 249.27 (-2.24%)
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -6354 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,871,794,791,646; BTC dominance 58.81%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $531,038,390 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000392465210408 (OKX, UTC 24h)
-- BTC: 직접 관련 · [theblock-crypto] ‘BTC still has room to catch up’: Bitcoin’s $80,000 breakout draws institutional demand as analysts weigh durability
-- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $94.9B; leader Ethereum
-- GOOGL: 직접 관련 · [yfinance-price] GOOGL 351.16 (-1.07%)
-- META: 직접 관련 · [yfinance-price] META 736.60 (-0.63%)
-- META: 직접 관련 · [yonhap-market] "메타, AI 비서 통화에 '인간 대역' 투입 시험"
-- MSFT: 직접 관련 · [yfinance-price] MSFT 498.00 (-0.72%)
-- NVDA: 직접 관련 · [yfinance-price] NVDA 228.87 (+0.66%)
-- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $94.9B; leader Ethereum
-- TSLA: 직접 관련 · [yfinance-price] TSLA 378.90 (+0.96%)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,900,359,737,693; BTC dominance 58.59%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $521,731,690 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000201468497815 (OKX, UTC 24h)
+- BTC: 직접 관련 · [theblock-crypto] JPMorgan says bitcoin crossing $85,000 production cost could ease miner selling pressure
+- ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $95.2B; leader Ethereum
+- ETH: 직접 관련 · [theblock-crypto] ARK Invest brings $1.3 billion venture fund onchain through Securitize
+- GOOGL: 직접 관련 · [yfinance-price] GOOGL 337.83 (-3.80%)
+- META: 직접 관련 · [yfinance-price] META 744.10 (+1.02%)
+- MSFT: 직접 관련 · [yfinance-price] MSFT 500.59 (+0.52%)
+- NVDA: 직접 관련 · [yfinance-price] NVDA 225.51 (-1.47%)
+- SOL: 직접 관련 · [defillama-market-structure] DeFi TVL $95.2B; leader Ethereum
+- SOL: 직접 관련 · [theblock-crypto] Solana Foundation taps Binance, Polygon vets to drive institutional adoption and payments
+- SOL: 직접 관련 · [theblock-crypto] Solana treasury firm SkyAI keeps board after shareholder protest, loses equity plan vote
+- TSLA: 직접 관련 · [yfinance-price] TSLA 380.12 (+0.32%)
 
 ## 관련·매크로 맥락 (Related)
 
@@ -26,9 +28,9 @@ _해당 항목 없음._
 
 ## 관련 시황
 
-- [국내 증시](../archive/domestic-equity/2026/09/2026-09-23.md)
-- [미국 증시](../archive/us-equity/2026/09/2026-09-23.md)
-- [크립토](../archive/crypto/2026/09/2026-09-23.md)
+- [국내 증시](../archive/domestic-equity/2026/09/2026-09-24.md)
+- [미국 증시](../archive/us-equity/2026/09/2026-09-24.md)
+- [크립토](../archive/crypto/2026/09/2026-09-24.md)
 
 <details>
 <summary>진단: 보류/제외된 후보</summary>
@@ -52,30 +54,30 @@ _해당 항목 없음._
 
 제외 (Rejected) — 짧은 티커 오탐 억제 확인:
 
-- AAPL ⊘ AACG [short-ticker-boundary] · nasdaq-earnings-calendar #21745d
-- AAPL ⊘ ADR [short-ticker-boundary] · yonhap-market #fa95cb
-- AAPL ⊘ AGREED [short-ticker-boundary] · house-financial-services-policy #4cbf36
+- AAPL ⊘ ACADIA [short-ticker-boundary] · sec-edgar-8k #292abc
+- AAPL ⊘ ALAR [short-ticker-boundary] · nasdaq-earnings-calendar #7e20fe
+- AAPL ⊘ AMC [short-ticker-boundary] · sec-edgar-8k #85a293
 - AAPL ⊘ AMZN [short-ticker-boundary] · nasdaq-symbol-directory #beb0ca
 - AAPL ⊘ AMZN [short-ticker-boundary] · sec-company-facts #367e13
-- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #e25bec
-- AAPL ⊘ ATCH [short-ticker-boundary] · nasdaq-earnings-calendar #d1765c
-- AMZN ⊘ AACG [short-ticker-boundary] · nasdaq-earnings-calendar #21745d
+- AAPL ⊘ AMZN [short-ticker-boundary] · yfinance-price #d27953
+- AAPL ⊘ ARK [short-ticker-boundary] · theblock-crypto #98ceef
+- AAPL ⊘ ASTC [short-ticker-boundary] · nasdaq-earnings-calendar #b5ac1d
 - AMZN ⊘ AAPL [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
 - AMZN ⊘ AAPL [short-ticker-boundary] · sec-company-facts #6e4883
-- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #3ad8c1
-- AMZN ⊘ ADR [short-ticker-boundary] · yonhap-market #fa95cb
-- AMZN ⊘ AGREED [short-ticker-boundary] · house-financial-services-policy #4cbf36
-- AMZN ⊘ Am [short-ticker-boundary] · sec-edgar-8k #191c82
-- AMZN ⊘ amount [short-ticker-boundary] · treasury-auctions #7cf7a0
-- AMZN ⊘ ATCH [short-ticker-boundary] · nasdaq-earnings-calendar #d1765c
-- BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #add12b
-- BTC ⊘ BELOW [short-ticker-boundary] · sec-edgar-8k #caeaf4
-- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #cfe888
-- BTC ⊘ BIO [short-ticker-boundary] · sec-edgar-8k #0ca72e
-- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #f6f0a5
-- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #14c32b
-- ETH ⊘ EIA [short-ticker-boundary] · eia-petroleum-weekly #aa310b
-- ETH ⊘ EPS [short-ticker-boundary] · nasdaq-earnings-calendar #1c213f
-- ETH ⊘ etf [short-ticker-boundary] · nasdaq-symbol-directory #9aad09
+- AMZN ⊘ AAPL [short-ticker-boundary] · yfinance-price #ed7675
+- AMZN ⊘ ACADIA [short-ticker-boundary] · sec-edgar-8k #292abc
+- AMZN ⊘ ALAR [short-ticker-boundary] · nasdaq-earnings-calendar #7e20fe
+- AMZN ⊘ AMC [short-ticker-boundary] · sec-edgar-8k #85a293
+- AMZN ⊘ amid [short-ticker-boundary] · nasdaq-stocks-news #c5f266
+- AMZN ⊘ ARK [short-ticker-boundary] · theblock-crypto #98ceef
+- AMZN ⊘ ASTC [short-ticker-boundary] · nasdaq-earnings-calendar #b5ac1d
+- BTC ⊘ BEA [short-ticker-boundary] · us-economic-calendar #c2b44b
+- BTC ⊘ BGCR [short-ticker-boundary] · nyfed-reference-rates #c90de7
+- BTC ⊘ BMV [short-ticker-boundary] · nasdaq-stocks-news #010327
+- BTC ⊘ BNP [short-ticker-boundary] · nasdaq-stocks-news #fba5cc
+- BTC ⊘ BSC [short-ticker-boundary] · defillama-market-structure #22e7d0
+- BTC ⊘ BTOC [short-ticker-boundary] · nasdaq-earnings-calendar #70b2a4
+- BTC ⊘ BTTC [short-ticker-boundary] · nasdaq-earnings-calendar #a44043
+- ETH ⊘ EFFR [short-ticker-boundary] · nyfed-reference-rates #5c0710
 
 </details>

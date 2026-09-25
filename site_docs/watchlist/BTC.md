@@ -2,6 +2,17 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-24 begin -->
+
+## 2026-09-24
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6354 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,900,359,737,693; BTC dominance 58.59%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $521,731,690 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000201468497815 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: JPMorgan says bitcoin crossing $85,000 production cost could ease miner selling pressure
+
+<!-- u33 entry 2026-09-24 end -->
 <!-- u33 entry 2026-09-23 begin -->
 
 ## 2026-09-23
