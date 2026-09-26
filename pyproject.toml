@@ -53,6 +53,12 @@ docs = [
 operations = [
     "pynacl>=1.5,<2",
 ]
+# u145 public sector radar: the live HF daily contract is Parquet-only.
+# Keep the pinned reader outside the briefing/runtime dependency set and do
+# not add pandas or a provider SDK around it.
+sector = [
+    "pyarrow==25.0.1",
+]
 
 [project.scripts]
 investo = "investo.__main__:main"

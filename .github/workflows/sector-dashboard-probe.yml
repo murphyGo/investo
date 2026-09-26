@@ -1,4 +1,4 @@
-name: Sector dashboard source probe
+name: Sector dashboard production-adapter probe
 
 on:
   workflow_dispatch:
@@ -7,28 +7,35 @@ permissions:
   contents: read
 
 concurrency:
-  group: sector-dashboard-source-probe
+  group: sector-dashboard-production-probe
   cancel-in-progress: false
 
 jobs:
-  hf-source-contract:
+  public-radar-probe:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      HF_DATA_API_KEY: ${{ secrets.HF_DATA_API_KEY }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: '>=0.4'
+          enable-cache: false
 
       - name: Use Python 3.11
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
+        run: uv python install 3.11
 
-      - name: Install probe-only Parquet reader
-        run: >-
-          python -m pip install --disable-pip-version-check --no-cache-dir
-          --only-binary=:all: pyarrow==25.0.1
+      - name: Install locked sector dependencies
+        run: uv sync --frozen --extra sector --no-dev
 
-      - name: Run sanitized HF source-contract probe
-        run: python scripts/probe_hf_data_source.py
+      - name: Synthetic maximum-shape resource gate
+        run: uv run --frozen --no-sync python scripts/benchmark_sector_dashboard_public.py
+
+      - name: Qualify production adapter without publishing
+        env:
+          HF_DATA_API_KEY: ${{ secrets.HF_DATA_API_KEY }}
+        run: uv run --frozen --no-sync python scripts/build_sector_dashboard_public.py --probe-only

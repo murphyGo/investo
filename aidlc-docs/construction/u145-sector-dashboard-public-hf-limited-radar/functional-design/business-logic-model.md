@@ -2,6 +2,7 @@
 
 **Date**: 2026-07-22
 **Status**: Complete
+**Amended**: 2026-09-02 — credentialed Step 0 signed daily Parquet contract approved
 **Requirements**: US-001, US-003, US-008, US-010, FR-001, FR-003, FR-022,
 NFR-002, NFR-003, NFR-006, NFR-008
 **Parent decision**: `aidlc-docs/inception/plans/us-sector-dashboard-s0-source-decision.md`
@@ -24,14 +25,15 @@ coverage and venue limitations are visible in both machine and reader projection
 - `HF_DATA_API_KEY` from an operator-owned GitHub Actions secret or local environment.
 - Fixed request symbols: `SPY, XLB, XLC, XLE, XLF, XLI, XLK, XLP, XLU, XLV, XLY`.
 - A target New York market date resolved independently from the briefing pipeline.
-- Provider endpoint base fixed in code to `https://api.hfdatalibrary.com/v1`; no
-  user-controlled URL, symbol, format, or query fragment.
+- Provider endpoint base fixed in code to `https://api.hfdatalibrary.com/v1`; token requests
+  use `/download-token/{ticker}?timeframe=daily&format=parquet&version=clean`. No
+  user-controlled URL, symbol, format, version, or query fragment is accepted.
 
 ### Provider normalization output
 
 The adapter returns either one validated `PublicBarSeries` or one closed
-`PublicSourceFailure` per requested ticker. Raw JSON/CSV/Parquet bytes and provider-shaped
-objects do not leave the adapter call scope and are never written to disk.
+`PublicSourceFailure` per requested ticker. Token JSON, signed URLs, raw Parquet bytes, and
+provider-shaped objects do not leave the adapter call scope and are never written to disk.
 
 ### Public outputs
 
@@ -57,18 +59,26 @@ data, or raw response fragment.
 
 ### L2. Fetch the benchmark first
 
-1. Request SPY daily bars with a bounded page/range contract fixed only after the live
-   payload probe records the provider's exact parameters and schema.
-2. Enforce HTTPS, host pinning, connect/read/total timeouts, status handling, byte ceiling,
-   and JSON depth/row ceilings.
-3. A missing or invalid SPY series makes the run `insufficient`; sector requests may be
+1. Request an SPY token with `X-API-Key`, a fixed non-secret User-Agent, and the exact daily
+   Parquet/clean query. Bearer authentication and CSV fallback are forbidden.
+2. Parse the bounded token JSON, require exactly one HTTPS URL on
+   `api.hfdatalibrary.com` with path `/v1/download/SPY`, no userinfo/fragment, and a non-empty
+   signature query, then download it once without forwarding `HF_DATA_API_KEY`.
+3. Disable redirects, apply the same host, timeout, status, and byte policies to both calls,
+   and treat the signed URL as ephemeral secret-equivalent request material that may never be
+   logged or retained.
+4. Decode the in-memory Parquet file through the pinned sector-only reader and accept exactly
+   `datetime, Open, High, Low, Close, Volume, source` with the qualified physical types within
+   the row/field ceilings.
+5. A missing or invalid SPY series makes the run `insufficient`; sector requests may be
    skipped because no relative metric can be published.
 
 ### L3. Fetch supported sectors with isolated failures
 
 Request the ten supported sector tickers with bounded concurrency and a shared rate
-budget. One sector failure does not erase successful siblings. XLRE is never requested:
-its absence is a product contract, not a transient source error.
+budget. Each ticker repeats the same token-then-download unit, so a clean full collection uses
+22 HTTP requests. One sector failure does not erase successful siblings. XLRE is never
+requested: its absence is a product contract, not a transient source error.
 
 Each request yields exactly one of:
 
@@ -83,14 +93,17 @@ For every success:
 
 1. Parse a date-only trading date and finite positive open/high/low/close values.
 2. Require non-negative integer volume and `low <= open/close <= high`.
-3. Sort ascending only if the source order is a documented complete reverse order;
-   reject duplicates, interior disorder, unknown fields that alter shape, and mixed ticker
-   identity.
-4. Record the provider's observed adjustment semantics from the credentialed probe. Until
-   that evidence exists, the implementation step remains blocked and may not assume split
-   adjustment.
-5. Retain at most the bounded calculation window in memory; discard raw fields after
-   normalization.
+3. Require the credentialed-probe order: strictly ascending, unique dates. Reject reverse or
+   interior disorder, unknown/missing columns, and mixed ticker identity.
+4. Require the accepted `clean` contract: provider-adjusted for splits and dividends with the
+   provider's cleaning pipeline, recorded as
+   `source_split_dividend_adjusted_clean`. Unknown or contradictory semantics fail closed.
+5. Validate `source` as provider row provenance. Only `iex` and historical `pitrading` are
+   accepted from this qualified schema, and every row retained for the current calculation
+   window must be `iex`. Historical `pitrading` rows are validation-only and cannot enter the
+   normalized series or change the public IEX-sample label.
+6. Retain only the bounded IEX calculation window in memory; discard raw fields and older rows
+   after normalization.
 
 ### L5. Establish a common comparable date
 

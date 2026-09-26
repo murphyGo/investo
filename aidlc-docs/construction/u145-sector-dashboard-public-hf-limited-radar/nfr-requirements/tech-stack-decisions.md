@@ -2,23 +2,30 @@
 
 **Date**: 2026-07-22
 **Status**: Complete
+**Amended**: 2026-09-02 — credentialed Step 0 signed daily Parquet contract approved
 
-## 1. No new runtime dependency
+## 1. One bounded sector-workflow reader dependency
 
 Use the existing Python 3.11+, `httpx`, Pydantic v2, `Decimal`, `zoneinfo`, pytest,
-Hypothesis, Ruff, and mypy-strict stack. Do not add a provider SDK, dataframe library,
-database, scheduler, browser tool, or JavaScript data client.
+Hypothesis, Ruff, and mypy-strict stack, plus exactly `pyarrow==25.0.1` for the sector workflow's
+in-memory Parquet reader. Keep it in a dedicated optional dependency group consumed only by the
+u145 build/probe workflow. Do not add pandas, another dataframe library, provider SDK, database,
+scheduler, browser tool, or JavaScript data client.
 
-Rationale: the endpoint surface is small, the response envelope is bounded, existing typed
-HTTP/testing conventions are sufficient, and a provider SDK would expand secret/error/payload
-surfaces without removing the need for explicit source validation.
+Rationale: credentialed run `33578785358` proved daily CSV returns 404 while daily Parquet works
+for all eleven supported symbols. PyArrow is the narrow direct reader for that accepted shape;
+isolating and pinning it avoids broadening the daily briefing environment or adding dataframe
+semantics. Dependency version, Python compatibility, binary-wheel install, license, cold-start,
+memory, and CPU are rechecked by the Step 5/7 gates.
 
 ## 2. HTTP ownership
 
 `sector_dashboard.hf_data` accepts an injected `httpx.AsyncClient` and a typed config. The
-dedicated entrypoint owns one client with fixed timeouts, host policy, redirect policy, limits,
-and event hooks. It does not register the provider in the general briefing `sources` aggregator
-during qualification.
+dedicated entrypoint owns one client with a fixed User-Agent, timeouts, host/path policy,
+redirect prohibition, limits, and event hooks. It obtains a bounded token JSON with
+`X-API-Key`, validates the returned same-host `/v1/download/{ticker}` URL, and downloads without
+forwarding the key. Token JSON, signed URLs, and Parquet bytes remain adapter-local. It does not
+register the provider in the general briefing `sources` aggregator during qualification.
 
 ## 3. Model ownership
 
@@ -55,10 +62,11 @@ separate Step 6 activation changes after five probes.
 
 ## 7. Test data
 
-Provider tests use hand-authored schema-equivalent synthetic payloads derived from the accepted
-shape, not copied live bars or raw response recordings. Credentialed probe evidence records
-only schema/semantics/count/date/status summaries. Hypothesis generates normalized value/bar
-series within bounded domains and never invokes network.
+Provider tests use hand-authored, schema-equivalent synthetic Parquet generated through the
+pinned reader/writer dependency, plus synthetic token JSON. They contain no copied live bars,
+signed URLs, or raw response recordings. Credentialed probe evidence records only aggregate
+schema/semantics/count/date/status summaries. Hypothesis generates normalized value/bar series
+within bounded domains and never invokes network.
 
 ## 8. Security chokepoints
 

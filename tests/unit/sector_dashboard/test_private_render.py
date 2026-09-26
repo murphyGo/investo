@@ -205,6 +205,11 @@ def test_private_runner_has_no_network_or_public_pipeline_import() -> None:
     )
     for path in reverse_integration_paths:
         content = path.read_text(encoding="utf-8")
+        if path == repository_root / ".github/workflows/sector-dashboard-probe.yml":
+            # u145's isolated public sibling has its own manual probe. Only
+            # its two exact public commands are exempt from this u139 guard.
+            content = content.replace("scripts/build_sector_dashboard_public.py", "")
+            content = content.replace("scripts/benchmark_sector_dashboard_public.py", "")
         assert "sector_dashboard" not in content
         assert "validate_sector_dashboard_private" not in content
 

@@ -2,6 +2,7 @@
 
 **Date**: 2026-07-22
 **Status**: Complete
+**Amended**: 2026-09-02 — credentialed Step 0 signed daily Parquet contract approved
 **Approved Functional Design**: `aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/functional-design/`
 **Requirements**: NFR-002, NFR-003, NFR-005, NFR-006, NFR-007, NFR-008,
 US-001, US-003, US-008, US-010
@@ -17,17 +18,19 @@ the process environment.
 
 ### AC-1.2 Header-only secret transmission
 
-The key is sent only in the documented `X-API-Key` request header to
-`https://api.hfdatalibrary.com`. It is never accepted from a CLI argument, config file,
-query string, path, stdin, workflow input, artifact, or cache key. Cross-host redirects are
-disabled.
+The key is sent only in the documented `X-API-Key` request header to the fixed token endpoint
+on `https://api.hfdatalibrary.com`. It is not forwarded to the signed download and Bearer auth
+is forbidden. It is never accepted from a CLI argument, config file, query string, path, stdin,
+workflow input, artifact, or cache key. All redirects are disabled.
 
 ### AC-1.3 Central redaction catalogue
 
 `HF_DATA_API_KEY` is added to the project-wide `SECRET_ENV_VARS` catalogue. Its exact runtime
 value is redacted by the existing strict chokepoint across exceptions, logs, GitHub Step
 Summary, diagnostics, publisher errors, and leak scans. Tests inject a sentinel secret and
-prove absence from every output/log/error surface.
+prove absence from every output/log/error surface. Signed download URLs are ephemeral
+secret-equivalent capabilities: they never enter a log/error/summary field, and a synthetic
+signed-URL sentinel proves the same non-observability contract.
 
 ### AC-1.4 Credential validation
 
@@ -48,9 +51,9 @@ duplicate, reordered-to-hide, non-HTTPS, or changed-host attribution blocks publ
 ### AC-1.6 Derived-only public retention
 
 Repository, Actions artifacts/caches, Pages, fixtures, logs, and failure evidence contain no
-daily raw OHLCV arrays, provider-shaped objects, response bodies/headers, account information,
-or request material. Only the approved aggregate metrics, classifications, coverage,
-freshness, and provenance are retained publicly.
+daily raw OHLCV arrays, token JSON, signed URLs, Parquet bytes, provider-shaped objects,
+response bodies/headers, account information, or request material. Only the approved aggregate
+metrics, classifications, coverage, freshness, and provenance are retained publicly.
 
 ### AC-1.7 Zero incremental service cost
 
@@ -68,9 +71,11 @@ publication block and never falls back to partially redacted market data.
 
 ### AC-2.1 Fixed endpoint and request shape
 
-The scheme, host, API version, endpoint path template, ticker allowlist, format, range, and
-pagination parameters are code-owned. The implementation rejects runtime URL/symbol/format
-overrides and does not follow redirects outside the exact host.
+The code-owned token shape is HTTPS host `api.hfdatalibrary.com`, API v1 path
+`/v1/download-token/{ticker}`, and exact query `timeframe=daily&format=parquet&version=clean`
+for the fixed allowlist. The bounded JSON result may authorize only HTTPS, the same host,
+exact `/v1/download/{ticker}` path, a non-empty query, and no userinfo or fragment. Runtime
+URL/symbol/format/version overrides and every redirect are rejected.
 
 ### AC-2.2 Timeout envelope
 
@@ -80,28 +85,34 @@ reference runner or fails visibly.
 
 ### AC-2.3 Response envelope
 
-One response is limited to 2 MiB compressed/on-wire bytes, 10,000 decoded rows, 128 fields per
-row, nesting depth 8, and 256-character scalar strings. Exceeding any limit stops that ticker
-before a large normalized object graph is allocated.
+One token JSON response is limited to 64 KiB, nesting depth 4, and 256-character scalar
+strings. One Parquet response is limited to 2 MiB on-wire bytes, 10,000 decoded rows, and the
+exact seven accepted columns. The reader projects only those columns from an in-memory buffer;
+exceeding any limit stops that ticker before a large normalized object graph is allocated. The
+8 MiB probe ceiling is qualification-only and does not weaken this production limit.
 
 ### AC-2.4 Conservative shared rate budget
 
 All tasks and retries share a token budget of at most 100 HTTP requests in any rolling minute.
-Initial v1 collection requires at most eleven successful calls plus bounded retries. The
-implementation does not use the conflicting 300 requests/minute statement as authority.
+Initial v1 collection requires 22 successful calls: eleven token calls and eleven downloads.
+At most two full ticker-unit retries keep the theoretical maximum at 66 calls. The
+implementation does not use the 300 general requests/minute statement as download authority.
 
 ### AC-2.5 Bounded concurrency and retry
 
-At most three provider requests are in flight. Only timeout, 429, and 5xx classes are retryable,
-for at most two retries per ticker with bounded exponential backoff and `Retry-After` capped at
-30 seconds. 400/401/403/404/schema failures are not retried. Total retry sleep remains within
-the AC-2.2 run budget.
+At most three ticker units are in flight and each unit performs its token and download calls in
+sequence. Only timeout, 429, and 5xx classes are retryable, for at most two full unit retries
+with a fresh token, bounded exponential backoff, and `Retry-After` capped at 30 seconds.
+400/401/403/404/schema/signed-URL failures are not retried. Total retry sleep remains within the
+AC-2.2 run budget.
 
 ### AC-2.6 Memory and CPU budget
 
-On the reference GitHub Actions profile, normalization plus metrics/rendering for eleven series
-of at most 10,000 rows each uses at most 256 MiB peak RSS above interpreter baseline and at most
-30 seconds CPU after network completion. A synthetic maximum-shape benchmark records both.
+The sector workflow uses only pinned `pyarrow==25.0.1` to decode Parquet; pandas/dataframes and a
+provider SDK are forbidden. On the reference GitHub Actions profile, decoding, normalization,
+metrics, and rendering for eleven series of at most 10,000 rows each use at most 256 MiB peak
+RSS above interpreter baseline and at most 30 seconds CPU after network completion. A synthetic
+maximum-shape benchmark records both and fails the gate if the pinned wheel or budget changes.
 
 ### AC-2.7 No client-side source access
 
@@ -183,14 +194,18 @@ accept a private snapshot where a public one is required or vice versa.
 
 ### AC-4.3 Adjustment evidence gate
 
-`PublicAdjustmentPolicy` has no permissive default. Exact raw/split/dividend adjustment
-semantics are fixed only after the credentialed live probe and official API documentation
-agree. Unknown or contradictory semantics block Step 0 and implementation.
+`PublicAdjustmentPolicy` has the one accepted value
+`source_split_dividend_adjusted_clean`: provider-adjusted for splits and dividends with the
+`clean` pipeline. This is fixed by the 2026-09-02 credentialed probe plus official version
+documentation. Unknown, contradictory, or changed semantics block collection and return the
+source to qualification.
 
 ### AC-4.4 Calendar and ordering
 
 Normalized dates are strictly ascending and unique. No forward fill, interpolation, timestamp
-truncation across timezones, or provider-order-dependent tie break is allowed.
+truncation across timezones, or provider-order-dependent tie break is allowed. Raw historical
+`pitrading` rows may be schema-validated, but the retained calculation window must contain only
+`source=iex`; otherwise promotion fails rather than broadening the venue claim.
 
 ### AC-4.5 Metric invariants
 
@@ -237,6 +252,16 @@ Display percentages and percentage points use two decimals with half-even roundi
 The page uses semantic headings/table headers, descriptive attribution links, no color-only
 meaning, and existing MkDocs responsive behavior. Validate at 390×844 and desktop viewport
 before Pages activation; the limitation banner and first four table columns remain readable.
+
+**Approved exception — 2026-09-27**: after repeated Browser setup failures, the user requested
+that actual screen validation be skipped (`아무리 해도 안되는데, 그냥 검증 스킵할 수 없음?`).
+For this u145 delivery, waive the actual 390×844/desktop Browser inspection as a Step 4 and
+pre-Pages prerequisite. Keep semantic/static HTML, table identity/order, scope disclosure,
+attribution, and all other data/security/operational checks binding. The responsive/readable
+product intent remains; clipping, contrast, and visual readability are unverified. Record this
+part of AC-5.4 as `WAIVED / NOT_EXECUTED`, never as a visual PASS. The waiver does not authorize
+deployment or waive Step 5 probes and Step 6 activation evidence. Decision and retained evidence:
+`docs/sessions/2026-09-27-u145-viewport-waiver.md`.
 
 ### AC-5.5 Advice and narrative boundary
 
@@ -285,14 +310,16 @@ pipeline regression tests all pass.
 
 - **TS-1**: model/PBT round-trip, ordering, invalid-state, XLRE structural absence.
 - **TS-2**: pure metric invariants and u139 wrapper compatibility/golden hashes.
-- **TS-3**: adapter fixtures for success, empty, malformed, oversized, duplicate, calendar,
-  401/403/404/429/5xx/timeout, and redirect cases.
-- **TS-4**: secret sentinel across logs, exceptions, summaries, artifacts, URLs, subprocess
-  arguments, and leak scanners.
+- **TS-3**: adapter fixtures for token and synthetic Parquet success, malformed/oversized token,
+  hostile signed URL, wrong/missing/extra columns, empty, duplicate, disorder, calendar,
+  CSV 404, 401/403/404/429/5xx/timeout, and redirect cases.
+- **TS-4**: API-key and synthetic signed-URL sentinels across logs, exceptions, summaries,
+  artifacts, URLs, subprocess arguments, and leak scanners.
 - **TS-5**: rendered pair, attribution, first-viewport order, forbidden wording/raw shape,
   volume non-reachability, and mobile/accessibility checks.
 - **TS-6**: idempotent promotion, pair mismatch, first-publish failure, last-good hold, stale
   `as_of`, pre-git rollback, and post-git error semantics.
 - **TS-7**: workflow permission/schedule/navigation negative assertions and five-run evidence
   schema.
-- **TS-8**: maximum-shape response/parser benchmark and 120-second/256-MiB resource evidence.
+- **TS-8**: pinned-PyArrow maximum-shape response/parser benchmark and 120-second/256-MiB
+  resource evidence.

@@ -2,6 +2,7 @@
 
 **Date**: 2026-07-22
 **Status**: Complete
+**Amended**: 2026-09-02 — credentialed Step 0 signed daily Parquet contract approved
 
 ## E1. `PublicSourceId`
 
@@ -22,9 +23,11 @@ cannot silently change semantics under the same source id.
 - `trading_date: date`
 - `open/high/low/close: Decimal`
 - `volume: int`
+- `source: Literal["iex"]`
 
 It is an in-memory normalization type, not a public DTO. OHLC is finite positive; volume is
-non-negative; bar bounds are internally consistent.
+non-negative; bar bounds are internally consistent. Historical provider `pitrading` rows are
+validated at the adapter boundary but discarded before this bounded metric-window type exists.
 
 ## E4. `PublicBarSeries`
 
@@ -32,10 +35,10 @@ non-negative; bar bounds are internally consistent.
 - `points: tuple[PublicBarPoint, ...]`
 - `first_date/latest_date: date`
 - `market_scope: Literal["iex_venue_sample"]`
-- `adjustment: PublicAdjustmentPolicy`
+- `adjustment: Literal["source_split_dividend_adjusted_clean"]`
 
-The exact adjustment enum values remain blocked until the credentialed payload/docs probe
-confirms provider behavior. The type must not default an unknown policy to adjusted or raw.
+The closed adjustment value is supported by the 2026-09-02 credentialed payload/docs probe.
+The type has no unknown-to-adjusted or raw fallback.
 
 ## E5. `PublicSourceFailure`
 
@@ -79,11 +82,19 @@ conversion owner retains the semantic context; renderers never consume `ValueSer
 - `as_of_date: date | None`
 - `benchmark: ValueSeries | None`
 - `sectors: tuple[ValueSeries, ...]`
-- `coverage: CoverageSummary`
+- `coverage: PublicCoverageSummary`
 - `failures: tuple[PublicSourceFailure, ...]`
 - `provenance: PublicSourceProvenance`
 
 It contains no raw OHLCV rows. XLRE appears in `coverage.missing_tickers` and not in sectors.
+
+### E9a. `PublicCoverageSummary`
+
+This is a public sibling of u139 `CoverageSummary`, with the same identity/count/date shape and
+public diagnostic codes. `partial`/`normal` require at least 64 benchmark observations and
+`warming_up` covers 6-63 observations. The sibling is required because the frozen u139 type
+leaves warming-up at 22 rows; reusing it would make the public 63-session contract
+unrepresentable or would change private model bytes.
 
 ## E10. `PublicMetricName`
 
@@ -144,6 +155,8 @@ by tests before publication.
 - `source_id/provider/market_scope`
 - `requested_tickers/supported_tickers/missing_tickers`
 - `adjustment: PublicAdjustmentPolicy`
+- `transport: Literal["signed_daily_parquet_v1"]`
+- `data_version: Literal["clean"]`
 - `target_date/as_of_date`
 - `license_ids: tuple[str, ...]`
 - `attributions: tuple[AttributionEntry, ...]`
@@ -168,7 +181,7 @@ Closed values: `fresh`, `stale`, `unknown`.
 - `consolidated_market_data: Literal[False]`
 - `as_of_date: date | None`
 - `freshness: FreshnessState`
-- `coverage: CoverageSummary`
+- `coverage: PublicCoverageSummary`
 - `records: tuple[PublicSectorRecord, ...]`
 - `primary_policy: RegimePolicy`
 - `provenance: PublicSourceProvenance`

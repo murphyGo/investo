@@ -1,5 +1,278 @@
 # AI-DLC Audit Log
 
+## Construction — u145 Step 4 post-restart Browser recovery still blocked
+
+**Timestamp**: 2026-09-07T01:31:19+09:00
+**User response**: `진행시켜`
+**Action**: Rechecked the Browser/Chrome capability after the requested full application restart,
+then reran the Browser package's read-only Chromium diagnostics.
+**Evidence**: Codex restarted as `codex-cli 0.153.4`, Chrome 152 is running, and the ChatGPT
+browser extension `1.26.901.11451_0` is installed and enabled in selected `Profile 1`. The current
+session still exposes neither the Browser nor Chrome skill, only Browser cache `26.814.41407` is
+present, and the required `com.openai.codexextension.json` native-host manifest remains absent.
+The official diagnostic exits 1 with `exists=false` and `correct=false`. A read-only npm version
+lookup also remained silent both inside and outside the sandbox and was interrupted safely.
+**Required recovery**: Reinstall the Browser plugin from the ChatGPT/Codex plugin UI so the native
+host is registered, then fully quit and reopen Codex and Chrome. Agent-side manifest creation and
+standalone browser substitution remain forbidden by the Browser recovery contract.
+**Boundary**: No Codex configuration, native-host file, repository code, Step 5 workflow, live
+provider, public artifact, deployment, commit, or push was changed.
+**Status**: Step 4 remains active with the 390x844 and desktop viewport check as its sole open
+acceptance item.
+
+## Construction — u145 Step 4 Browser reinstall requires session restart
+
+**Timestamp**: 2026-09-07T01:22:34+09:00
+**User response**: `진행시켜`
+**Action**: Rechecked Browser-plugin availability after the user's reinstall attempt and inspected
+the local Codex Browser registration state through plugin management and read-only diagnostics.
+**Evidence**: Browser remains enabled in the active profile configuration, but the running session
+does not expose the Browser capability. The configuration references a newer Browser runtime than
+the cached runtime, and the Chrome native-host manifest is still absent. `codex update` remained
+silent for more than two minutes, was interrupted safely, and left `codex-cli 0.153.4` unchanged.
+**Required recovery**: Fully quit and reopen the Codex app so it can load the updated plugin
+configuration and runtime. Then reopen this thread and retry the viewport check.
+**Boundary**: No Codex configuration, native-host file, repository code, Step 5 workflow, live
+provider, deployment, commit, or push was changed.
+**Status**: Step 4 remains active with the 390x844 and desktop viewport check open.
+
+## Construction — u145 Step 4 retry after Chrome profile launch
+
+**Timestamp**: 2026-09-07T01:13:16+09:00
+**User responses**: `완료`, then `진행시켜`
+**Action**: Retried the viewport check after the selected Chrome profile was opened.
+**Evidence**: Chrome was running and the enabled ChatGPT browser extension was selected in
+`Profile 1`, but Browser discovery still returned zero connections. The required
+`com.openai.codexextension.json` native-host manifest remained absent.
+**Boundary**: Opening the profile alone cannot restore the missing native-host registration. No
+agent-side repair was attempted; the loopback server was stopped and Step 5 remains untouched.
+**Status**: Browser-plugin reinstall and application restart are still required before the
+390x844 and desktop viewport check can run.
+
+## Construction — u145 Step 4 viewport blocker diagnosed
+
+**Timestamp**: 2026-09-07T01:07:16+09:00
+**User response**: `진행시켜`
+**Action**: Retried the sole open Step 4 viewport check and ran the Browser integration's
+prescribed Chrome diagnostics after browser discovery again returned an empty list.
+**Evidence**: Google Chrome 152 was installed and running, and the ChatGPT browser extension was
+installed and enabled in the selected profile. The required `com.openai.codexextension.json`
+native-host manifest was absent, which prevents the extension from connecting to Codex.
+**Required recovery**: Reinstall the Browser plugin from the ChatGPT/Codex plugin UI, then restart
+the app and Chrome. The Browser integration explicitly forbids an agent-authored manifest repair.
+**Boundary**: No native-host files were created or changed. The loopback server was stopped;
+Step 5, live calls, public artifacts, deployment, commit, and push remain untouched.
+**Status**: Step 4 remains active with only the 390x844 and desktop viewport check open.
+
+## Construction — u145 Step 4 viewport retry blocked by unavailable browser
+
+**Timestamp**: 2026-09-06T20:29:11+09:00
+**User response**: `진행시켜`
+**Action**: Resumed the sole open Step 4 acceptance item, restarted the previously strict-built
+synthetic sector page on a loopback-only local server, and retried browser selection through the
+configured browser surface.
+**Evidence**: Browser selection returned `No browser is available`; the required troubleshooting
+discovery then returned an empty browser list. No alternate browser-control backend was used.
+**Boundary**: The loopback server was stopped after the retry. Step 5, live HF calls, generated
+public artifacts, navigation, scheduling, Pages, Telegram, commit, and push remain untouched.
+**Status**: Step 4 remains active with only the actual 390x844 and desktop viewport check open.
+
+## Construction — u145 Code Generation Step 4 core complete; viewport gate open
+
+**Timestamp**: 2026-09-06T19:09:12+09:00
+**Approval**: The user repeatedly instructed continuation of the active u145 construction. This
+execution stayed within Step 4 and did not start the Step 5 workflow/probe boundary.
+**Action**: Added the deterministic C1-C7 eleven-sector renderer, canonical Markdown/JSON pair
+verifier, fixed-path derived-only store, unchanged detection, first-publish fail-closed behavior,
+recoverable promotion/rollback, and honest last-good hold outcomes.
+**Trust boundary**: Exact snapshot identity, canonical bytes, cross-record ranks, required
+attribution/first-viewport labels, and raw/secret/wording guards are revalidated at every pair
+boundary. Deep JSON and filesystem errors map to closed codes without paths or rejected content.
+**Recovery and filesystem boundary**: A repository-scoped lock serializes readers/writers. The
+`site_docs` parent and `sectors` output are inode-pinned with `O_DIRECTORY | O_NOFOLLOW`; staging,
+marker, pair, rollback, and cleanup I/O is descriptor-relative. A fsynced `rolled_back` phase makes
+cleanup interruption recoverable. Owner-validated startup cleanup removes markerless transaction
+directories and exact atomic temp orphans. Parent/output symlink swap tests prove zero external
+writes.
+**Review**: Fresh-eyes review drove fixes for active-reader rollback, complete-new-pair retention
+after a failed call, cross-rank validation, symlink TOCTOU, cleanup crash/orphans, JSON recursion,
+raw OS errors, and closed error disclosure/classification. Final review found zero remaining
+Critical, High, or Medium code findings.
+**Validation**: Final renderer/store tests passed 36 tests; combined u145 models, adapter, metrics,
+renderer/store, redaction, and no-paid policy passed 405 tests. Ruff check/format, strict mypy, and
+`git diff --check` passed. Full repository regression passed 4,540 tests in 405.98 seconds. An
+ephemeral synthetic page passed `mkdocs build --strict`; built HTML contained responsive metadata,
+semantic headings/table headers, approved leading columns, eleven rows including XLRE, and
+descriptive HF/IEX links.
+**Open acceptance gate**: The browser connector returned no available browser, so the required
+390x844 and desktop visual render checks remain unexecuted. The Step 4 checklist remains open,
+Step 5 has not started, and workflow/schedule/navigation/Pages/Telegram/daily coupling stay absent.
+**Evidence**:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/code/step-4-renderer-derived-store.md`;
+`docs/sessions/2026-09-06-u145-code-generation-step4.md`.
+**Status**: Step 4 implementation core complete. Actual mobile/desktop viewport evidence is the
+sole remaining Step 4 checklist item and is a pre-activation blocker.
+
+## Construction — u145 Code Generation Step 3 complete
+
+**Timestamp**: 2026-09-06T02:24:33+09:00
+**Approval**: The user asked to continue the active u145 construction. This execution remained
+bounded to Code Generation Step 3. It made no live provider call and enabled no renderer/store,
+probe/scheduled workflow, Pages, repository/public write, Telegram, or daily-briefing coupling.
+**Action**: Added `sector_dashboard/public_metrics.py` to reduce normalized HF/IEX bars to
+source-neutral 64-observation close bundles, resolve SPY-authoritative as-of/freshness/coverage,
+compute approved public price metrics, regime and weighted relative rank, and emit an immutable
+derived-only eleven-record snapshot with canonical SHA-256 identity.
+**Truth boundary**: Freshness uses the versioned 2026 NYSE calendar and is `unknown` outside it.
+Non-fresh benchmarks, fewer than six benchmark observations, or fewer than eight comparable
+sectors force insufficient coverage and suppress every metric/rank/regime. Warming coverage
+exposes only approved 1-day/5-day return and excess slots. XLRE remains present but value-free
+`provider_unavailable`.
+**Data and identity boundary**: Only dates and closes cross into calculation. Source tests and
+equivalence tests prove open/high/low/volume cannot affect bundles or snapshots. Provenance pins
+the HF/IEX source, IEX venue-sample scope, adjustment, target/as-of dates, non-consolidated status,
+and both mandatory attributions. Canonical sorted compact JSON excluding `snapshot_id` is hashed
+with SHA-256 and independently reproduced in tests.
+**Fail-closed hardening**: Calendar, history, provider, benchmark, and numeric failures retain
+their exact closed missing reason through metrics, regime, rank, and diagnostics. Computation and
+model validators independently reject stale/unknown payloads carrying partial, warming, or normal
+coverage, closing a relabeling path to stale computed output.
+**Review**: Fresh-eyes review initially found two High and one Medium issue in missing-reason
+preservation, stale-bundle relabeling, and independent identity/invariant coverage. Each was fixed
+and regression-tested. Final re-review found no remaining Critical, High, or Medium findings.
+**Validation**: Step 3 added 14 focused snapshot tests. Combined u145 Step 1-3 model/kernel/
+adapter/snapshot and policy regressions passed 219 tests. Full pytest passed 4,504 tests in
+457.06 seconds. Ruff check and format covered 582 files; strict mypy passed 258 source files;
+`uv lock --check`, Anthropic/paid-provider guards, `mkdocs build --strict`, Material theme
+contract, and `git diff --check` passed.
+**Evidence**:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/code/step-3-public-snapshot-computation.md`;
+`docs/sessions/2026-09-06-u145-code-generation-step3.md`.
+**Status**: Step 3 complete 3/7. Step 4 renderer and derived-only store is next and requires a
+separate bounded continuation; activation remains deferred to Steps 5-6.
+
+## Construction — u145 Code Generation Step 2 complete
+
+**Timestamp**: 2026-09-03T11:25:31+09:00
+**Approval**: The user asked to continue after adding `HF_DATA_API_KEY`; this execution remained
+bounded to Code Generation Step 2. It made no live provider call and enabled no schedule, Pages,
+repository/public write, Telegram, or daily-briefing coupling.
+**Action**: Added the fixed-host injected-client HF adapter in
+`sector_dashboard/hf_data.py`. It performs the immutable daily/Parquet/clean token request with
+`X-API-Key`, validates the returned HTTPS host/path/query, then downloads without the key or
+redirects. The adapter accepts exactly SPY plus ten qualified sector tickers, requests SPY first,
+fans sectors out at concurrency three, and returns only normalized public bar series or closed
+issue codes.
+**Resource and truth boundary**: Shared limits pin 100 calls/minute, 66 calls per collection,
+two retries, bounded Retry-After/backoff, per-request/collection timeouts, 64 KiB token JSON,
+2 MiB encoded Parquet, 16 MiB decoded columns, and 10,000 rows. Token JSON rejects duplicates,
+deep/long/non-finite shapes. Parquet must have exactly the qualified seven-column physical
+schema; rows must be ascending calendar-safe OHLCV, and pre-IEX PiTrading history is validated
+then discarded. Volume never leaves the bar DTO or enters metrics in this step.
+**Security and dependency boundary**: API keys are validated before use, sent only through the
+token request header, and registered with central redaction. HTTPX/HTTPCore records are converted
+to an opaque marker so signed URLs, request material, and provider headers cannot escape.
+Inherited auth/query/cookie/hook state is rejected or scrubbed, and provider cookies are cleared
+after each response. `pyarrow==25.0.1` is exact in the optional `sector` extra; quality CI now
+installs that extra. No pandas/dataframe or raw/provider payload persistence was added.
+**Policy guard**: `check_no_paid_apis.py` now AST-pins the four fixed HF assignments, immutable
+query, imports, exact token and validated signed-download call sites, and the sole direct
+`build_request`/`send` path. Negative tests reject fallback domains, constructed/reassigned
+identity, alternative clients/import aliases, extra or indirect network methods, owned requests,
+and reflection.
+**Review**: Fresh-eyes review found cancellation-orphan, transport-log, inherited-query,
+dependency-install, configuration-bound, cookie-lifecycle, and AST-policy gaps. Each High/Medium
+finding was corrected and regression-tested. Final re-review found no remaining
+Critical/High/Medium findings.
+**Validation**: Step 2 focused adapter/redaction/policy/workflow tests 175 passed in 6.04 seconds;
+Step 1+2 focused regression 208 passed. Full pytest passed 4,493 tests in 273.40 seconds. Ruff
+check and format covered 580 files; strict mypy passed 257 source files; `uv lock --check`,
+Anthropic/paid-provider guards, `mkdocs build --strict`, Material theme contract, and
+`git diff --check` passed.
+**Evidence**:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/code/step-2-bounded-hf-adapter.md`;
+`docs/sessions/2026-09-03-u145-code-generation-step2.md`.
+**Status**: Step 2 complete 2/7. Step 3 public snapshot computation is next and requires a
+separate bounded continuation; activation remains deferred to Steps 5-6.
+
+## Source qualification — u145 HF credentialed Step 0
+
+**Timestamp**: 2026-09-02T10:18:00+09:00
+**Trigger**: The operator created the repository `HF_DATA_API_KEY` secret and asked to continue
+the previously blocked sector-dashboard qualification. The secret value was never read back or
+printed.
+**Official contract drift**: The current HF API reference now describes whole-ticker files and
+a two-step signed-download flow rather than the planned daily JSON endpoint. It documents both
+CSV and Parquet, but live GitHub Actions evidence showed `X-API-Key + daily CSV = 404` and
+`X-API-Key + daily Parquet = 200`. Bearer requests returned 401.
+**Live result**: Final read-only run `33578785358` on head `a01de8f` passed in 24 seconds. SPY
+plus all ten supported sector ETFs returned the same `2026-08-31` latest date, 2,061-5,954 rows
+per series, 97,924-248,536 bytes per response, and 2,334,018 bytes total. All eleven series were
+strictly ascending with unique dates, zero invalid OHLC rows, zero negative/zero-volume daily
+rows, and latest `source=iex`. XLRE returned 404 from public metadata and the authenticated
+token path. Every series contained 1,126 IEX rows; the earlier rows were tagged PiTrading,
+matching the documented March-2022 source boundary.
+**Security/retention**: The manual workflow has `contents: read`, no schedule or public-write
+step, and no Pages/Telegram/daily-briefing coupling. It retains no raw bars, provider body,
+signed URL, or secret. Only sanitized schema/date/count/size/duration/invariant summaries enter
+the log.
+**Approval/amendment**: The operator replied `gogo` on 2026-09-02, approving the recommended
+bounded amendment. Functional, domain, NFR, technology, and code-plan contracts now require the
+exact two-step signed daily Parquet path, `X-API-Key` only on the token call, a fixed User-Agent,
+strict same-host/path URL validation, no redirects, a 22-call clean collection, and pinned
+sector-only `pyarrow==25.0.1` with no pandas/dataframe or raw persistence. Production retains the
+2 MiB/10,000-row ceiling; the probe's 8 MiB ceiling is observational only. Step 1 is now ready.
+Public premises are unchanged: XLRE stays value-free unavailable, post-2022 metrics remain
+labeled IEX venue sample, IEX volume remains excluded, and attribution stays mandatory. The two
+Step 0 successes do not count toward the five final Step 5 probes. Full evidence:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-09-02-hf-step0.md`.
+**Validation**: probe script Ruff/format passed; u139 private non-interference suite passed
+51/51; final Actions run passed; no raw/public generated files were added. Earlier diagnostic
+runs `33550853646`, `33551046783`, `33551206521`, and `33551499614` remained red while request
+identity and format assumptions were isolated; `33551766482` was the first full Parquet
+success.
+**Amendment validation**: The final Actions log was re-read to pin the physical schema as
+`datetime: timestamp[ns]`, capitalized OHLC doubles, `Volume: int64`, and
+`source: large_string`. The complete R/E/AC/C heading inventory remained 102, stale pre-amendment
+contract scans and secret-assignment scans were empty. Markdown whitespace and
+`git diff --check` passed. This step changed design/state/audit documents only, so runtime tests
+were not re-run.
+
+## Construction — u145 Code Generation Step 1 complete
+
+**Timestamp**: 2026-09-02T11:54:21Z
+**Approval**: The user replied `gogo` after the Step 0A source-contract amendment, authorizing
+Code Generation Step 1 only. Adapter/network code, Pages, schedule, repository/public writes,
+Telegram, and briefing coupling remained outside this approval.
+**Action**: Added frozen public bar/value/coverage/bundle/metric/record/provenance/snapshot/pair/
+outcome siblings in `models/sector_public.py`, package exports, and source-neutral mathematical
+kernels in `sector_dashboard/metric_kernels.py`. Existing u139 `nav_*` APIs delegate through the
+new kernels while retaining signatures, output conventions, golden vectors, and validation
+messages.
+**Design realization**: The frozen u139 `CoverageSummary` changes state at 22 rows and cannot
+represent u145's approved 6-63-row warming window. Step 1 therefore added
+`PublicCoverageSummary` with the same identity/count shape, public diagnostics, 64-row
+partial/normal threshold, and no private model-byte change. Domain E9a and R24 now record that
+bounded sibling correction. Volatility return convention is explicit: private log today,
+public simple in Step 3.
+**Truth invariants**: The model rejects source/scope/request-set broadening, non-HTTPS or changed
+attribution, any XLRE series/request, incomplete request partitions, date/count disagreement,
+and unavailable metric/regime/rank leakage. Snapshots retain exactly eleven records; XLRE is
+provider-unavailable and value-free.
+**Review**: Fresh-eyes review found one High gap where `insufficient_history` was omitted from the
+unavailable suppression/coverage set. The gap and two regressions were fixed. Re-review found no
+remaining Critical/High/Medium findings. Canonical rendered-pair parsing is explicitly retained
+for Step 4 rather than claimed by the Step 1 placeholder type.
+**Validation**: TS-1/TS-2 focused tests 33 passed; u139 plus public sector/model regression 190
+passed; full pytest 4,388 passed in 277.04 seconds. `uv lock --check`, Ruff check, Ruff format
+check over 578 files, strict mypy over 256 source files, and `git diff --check` passed. The u139
+wrapper golden digest is
+`1edbea4830774b00938d1660d54c1be1140c2ff312e93e6c8b8e65f8222d5b73`.
+**Evidence**:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/code/step-1-public-models-shared-kernels.md`;
+`docs/sessions/2026-09-02-u145-code-generation-step1.md`.
+**Status**: Step 1 complete 1/7. Step 2 bounded HF adapter is next and requires separate approval.
+
 ## Construction — u138 price-source-endpoint-lifecycle-repair production closeout
 **Timestamp**: 2026-07-26T20:51:35+09:00
 **Trigger**: The user asked to repair and replay the briefing that appeared to fail. Live analysis showed the 2026-07-24 briefing had actually published successfully but used degraded price endpoints and sent a source-health warning through the pipeline-failure formatter. The completed u138 work existed only on a stale branch, so it was ported onto current `main` in an isolated worktree.
@@ -7165,3 +7438,177 @@ The refreshed main still equals the first parent. No application-code repair
 or new debt was required. Integration documentation is the only post-gate edit;
 PR/main checks and exact remote-SHA verification complete the authorized delivery.
 **Boundary**: No private Codex credentials, dry-run, provisioning or activation.
+
+## Construction — u145 Step 4 recovery and current-main revalidation
+
+**Timestamp**: 2026-09-09T19:45:57+09:00
+
+**Authorization / continuity**: The user replied `진행시켜` to resume the open u145 Step 4
+viewport gate. The deleted temporary worktree was reconstructed from its successful patch and
+formatter transcript, preserved at `.tmp/u145-exact-20260909`, and advanced to current
+`origin/main` `fc373277125e5455dc4e4292bcd7a098e877fbe8` without creating a branch commit.
+
+**Validation**: The current-main focused u145 gate passed 416 tests in 148.79 seconds. Ruff format
+and check, diff integrity, strict mypy over 260 source files, no-paid API guard, and strict MkDocs
+build pass.
+
+**Blocking gate / boundary**: The browser connector still reports `AGENT_UNAVAILABLE`; the
+390x844 and desktop viewport acceptance remains open and Step 5 has not started. No live HF call,
+workflow, Pages, schedule, public write, Telegram send, deployment, commit, or push occurred. The
+unrelated dirty root was preserved.
+
+**Evidence**: `docs/sessions/2026-09-09-u145-code-generation-step4-recovery.md`.
+
+## Construction — u145 Step 4 Browser bootstrap diagnosis and local preview
+
+**Timestamp**: 2026-09-09T22:07:12+09:00
+
+**Authorization / continuity**: The user selected the existing u145 worktree, then replied
+`진행시켜`. Work continued at `.tmp/u145-exact-20260909` on
+`codex/u145-exact-recovery-20260909` with its recovered changes preserved.
+
+**Observed blocker**: Browser initialization references the missing
+`26.901.51231/scripts/browser-service.mjs`; the cached bundle is `26.814.41407`.
+The official Chrome native-host diagnostic exits 1 with `exists=false`, `correct=false`.
+Browser troubleshooting requires plugin UI reinstallation and forbids agent-side native-host
+installation/repair. No alternate browser-control mechanism or package substitution was used.
+
+**Prepared evidence**: Five synthetic local page states pass canonical pair verification, strict
+MkDocs build, and built-HTML checks for the viewport metadata, eleven sector rows, leading four
+headers, XLRE unavailability, and early IEX disclosure. The ignored preview evidence retains
+snapshot IDs, HTML/source hashes, and explicit `viewport_acceptance=NOT_EXECUTED`.
+
+**Boundary / next action**: Actual 390x844/desktop rendering remains unexecuted. Step 4 stays
+open and Step 5 has not started. Plugin UI reinstallation and session restart are needed before
+browser validation can resume. No production code, public site, workflow, live HF request,
+deployment, Telegram send, commit, or push was changed or performed in this continuation.
+
+**Evidence**: `docs/sessions/2026-09-09-u145-code-generation-step4-recovery.md`, continued viewport
+attempt section; local `.tmp/u145-viewport-check/evidence.json` and `prepare.py`.
+
+## Construction — u145 Step 4 requested Browser retry
+
+**Timestamp**: 2026-09-09T22:11:51+09:00
+
+**User request**: `다시 시도해봐`.
+
+**Result**: Two Browser initialization attempts, including one after execution-session reset,
+failed before discovery on the absent `26.901.51231/scripts/browser-service.mjs`. The installed
+cache remains `26.814.41407`; the official Chrome native-host diagnostic exits 1 with
+`exists=false`, `correct=false`. No viewport evidence was produced. Step 4 stays open; Step 5
+and activation remain unstarted. The existing local previews were preserved.
+
+**Evidence**: `docs/sessions/2026-09-09-u145-code-generation-step4-recovery.md`, connection retry
+section at the same timestamp.
+
+## Construction — u145 Step 4 current-main integration and defect repair
+
+**Timestamp**: 2026-09-22T22:25:02+09:00
+
+**User request**: `진행해줘`, following the status report that the public sector dashboard
+still needed viewport acceptance, production-adapter probes, and Pages activation.
+
+**Work**: Preserved all 42 files in the prior recovery worktree and integrated the overlay into
+`.tmp/u145-resume-20260922` at current main `c286f500`. Retained current-main Codex redaction,
+operations dependencies, and audit history. Independent review found and reproduced false
+missing-metric labels and loss of the rollback backup during failed cleanup. Both defects were
+fixed and approved on re-review. Seven regression cases cover normal availability and cleanup
+failure with or without a second interruption during restore.
+
+**Validation**: Repaired renderer/store slice passed 40 tests before three additional durable
+recovery cases were added to the final full-suite run. Ruff, 269-file strict mypy, locked
+dependency consistency, free-API/SDK/assets guards, five synthetic preview builds, and Material
+theme contracts passed. The final full-suite result is recorded in the session log.
+Final current-main run: **5,501 passed in 583.20 seconds**, including all seven new regression
+cases. No source changes were made after this run started; final scope hashes were verified.
+
+**Acceptance blocker**: Browser startup still references an absent service bundle; the official
+Chrome native-host diagnostic reports missing/incorrect. Per the Browser troubleshooting
+instructions, the user was asked to reinstall through the app UI. No alternative browser
+automation or hand-authored native host was used. Actual mobile/desktop viewport acceptance
+remains `NOT_EXECUTED`; Step 5 and activation remain unstarted.
+
+**Evidence**: `docs/sessions/2026-09-22-u145-step4-resume-and-repair.md`.
+
+## Construction — u145 Step 4 viewport retry
+
+**Timestamp**: 2026-09-27T01:55:49+09:00
+
+**User request**: `u145 대시보드 화면 검증 이어서 진행`.
+
+**Result**: Reused the preserved `.tmp/u145-resume-20260922` worktree without application-code
+changes. All five synthetic previews passed canonical pair verification, strict MkDocs build,
+and static HTML structure checks; all five local URLs returned HTTP 200. Browser startup failed
+before discovery on the absent `26.915.31945/scripts/browser-service.mjs`. The official Chrome
+native-host diagnostic again returned `exists=false`, `correct=false`. Per the Browser recovery
+instructions, requested app-UI plugin reinstallation and Codex/Chrome restart. No screenshot
+or actual viewport measurement was obtained. Step 4 remains open and Step 5/activation remain
+unstarted. No public write, live HF call, commit, push, or deployment was made.
+
+**Evidence**: `docs/sessions/2026-09-27-u145-viewport-retry.md` and the rebuilt ignored
+`.tmp/u145-viewport-check/evidence.json`; visual acceptance remains `NOT_EXECUTED`.
+
+## Construction — u145 user-approved viewport waiver
+
+**Timestamp**: 2026-09-27T02:11:01+09:00
+
+**User request**: `아무리 해도 안되는데, 그냥 검증 스킵할 수 없음?`
+
+**Decision**: Waive actual mobile/desktop Browser screen validation for u145 Step 4 and the
+same pre-Pages visual prerequisite in NFR AC-5.4. Close Step 4 with exception; Step 5 is ready.
+Execution remains `NOT_EXECUTED` and disposition `WAIVED`, never PASS. The user request
+supersedes the prior requirement to recover Browser before proceeding. Retain all static,
+data/security, five-probe, and separate Step 6 activation gates. No deployment approval is
+inferred. Updated plan, NFR, summary, and state; no application code or workflow was changed.
+
+**Evidence**: `docs/sessions/2026-09-27-u145-viewport-waiver.md`. The prior retry record and
+preview hashes remain unchanged as historical execution evidence.
+
+## Construction — u145 Step 5 isolated probe implementation and local validation
+
+**Timestamp**: 2026-09-27T03:19:43+09:00
+
+**User request**: `계속 진행해줘`, following the user-approved viewport waiver.
+
+**Work**: Fast-forwarded the isolated u145 worktree to `04978d81`, preserving all 45 existing
+overlay files byte-for-byte. Implemented the probe-only production composition, bounded closed
+evidence CLI, synthetic resource benchmark and manual read-only Actions workflow. Qualification
+requires SPY plus all ten supported sectors, current completed-session data and successful
+canonical verification. No raw or public data is persisted. The existing private-workflow guard
+was amended only for the two exact approved public entrypoints in the dedicated workflow.
+
+**Review**: Independent review found and closed early-close freshness and synchronous timeout
+overrun defects. CLI integration exposed false credential matches for legitimate identifiers;
+exact-field/shape exceptions retain both original and decoded exact-secret checks. Escaped-secret
+regression coverage passed. The reviewer approved the final implementation with no open blockers.
+
+**Validation**: Final full suite **5,547 passed in 581.26 seconds**, focused probe suite 46 passed;
+Ruff/format (609 files), strict mypy (270 source files plus CLI), locked dependencies, policy
+guards, strict MkDocs and Material contracts passed. Synthetic 11 x 10,000-row evidence passed
+with 22 requests, 2,304 ms CPU, 2,426 ms wall and 255,934,464 bytes peak RSS above baseline.
+All 29 code/configuration hashes matched the pre-run manifest after tests. The root worktree's
+unrelated changes and public generated surfaces remain untouched.
+
+**Remaining gate**: Five live production-adapter Actions runs and the Ubuntu reference resource
+benchmark remain pending (0/5). The existing workflow and secret name were confirmed through
+GitHub metadata without reading a secret value. The `dev-investo` skill requires explicit
+approval before committing; all implementation and local validation is complete before asking
+for approval to commit/push the isolated branch and dispatch those runs. No commit, push, live
+HF request, Pages/navigation/schedule activation, deployment or Telegram send has occurred.
+Step 4 remains `WAIVED / NOT_EXECUTED`; Step 6 remains separate and unstarted.
+
+**Evidence**: `docs/sessions/2026-09-27-u145-step5-isolated-probe.md`,
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/code/step-5-isolated-probe.md`
+and `docs/sector-dashboard-probe-runbook.md`.
+
+## Construction — u145 Step 5 commit and probe approval
+
+**Timestamp**: 2026-09-27T03:22:44+09:00
+
+**User request**: `진행`, in direct response to the request to commit/push the isolated
+branch and execute five Actions probes.
+
+**Decision**: Commit and push the 54-file reviewed u145 Step 1–5 scope, then execute five
+sequential production-adapter probes against the same implementation commit. The scope
+manifest was rechecked with zero file/hash changes since the completed local gate.
+Record each remote result and preserve the separate Step 6 activation boundary.

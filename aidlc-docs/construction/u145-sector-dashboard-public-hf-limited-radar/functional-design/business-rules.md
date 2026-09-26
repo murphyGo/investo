@@ -2,6 +2,7 @@
 
 **Date**: 2026-07-22
 **Status**: Complete
+**Amended**: 2026-09-02 — credentialed Step 0 signed daily Parquet contract approved
 
 ## Source and Identity Rules
 
@@ -36,32 +37,42 @@ email verification, key creation, and 30-day rotation are external operator acti
 
 ### R6. Secret non-observability
 
-The key is sent only in the documented `X-API-Key` header. It is absent from URLs, exceptions,
-logs, fixtures, subprocess arguments, snapshot ids, cache keys, test names, and artifacts.
+The key is sent only in the documented `X-API-Key` header on the token request and is not
+forwarded to the signed download. Bearer authentication is forbidden. The key is absent from
+URLs, exceptions, logs, fixtures, subprocess arguments, snapshot ids, cache keys, test names,
+and artifacts.
 
 ### R7. Conservative rate contract
 
 Use no more than 100 requests/minute even where another provider page advertises a higher
-limit. Concurrency and retries share one bounded request budget.
+limit. A clean eleven-symbol collection uses 22 requests: one token and one download per
+ticker. Concurrency and retries share one bounded request budget.
 
 ### R8. Fixed network envelope
 
-HTTPS and the exact HF API host are mandatory. Redirects to another host, unbounded response
-bodies, unbounded pagination, and provider text echoed to logs are rejected.
+HTTPS and the exact HF API host are mandatory. A token response may authorize only the exact
+`/v1/download/{ticker}` path on that host with a non-empty signature query and no userinfo or
+fragment. Redirects, cross-host URLs, ticker/path mismatches, unbounded response bodies, and
+provider text echoed to logs are rejected. The signed URL is never logged or retained.
 
-### R9. Probe before payload assumptions
+### R9. Accepted live transport and payload contract
 
-Endpoint parameters, response schema, date representation, adjustment semantics, empty/error
-shape, and row ordering are fixed only from a credentialed live probe. No implementation may
-guess them from marketing copy.
+The accepted v1 path is `X-API-Key` token request with `timeframe=daily`, `format=parquet`, and
+`version=clean`, followed by one unauthenticated same-host signed download. The Parquet schema
+is exactly `datetime: timestamp[ns]`, `Open/High/Low/Close: double`, `Volume: int64`, and
+`source: large_string`; dates are strictly ascending and unique. Current CSV 404 is a closed
+diagnostic, not a fallback trigger. Any drift in endpoint, host, schema, order, adjustment, or
+source semantics fails closed and returns to qualification.
 
 ## Bar and Calendar Rules
 
 ### R10. Daily-bar validity
 
-Each row requires date-only identity, finite positive OHLC, `low <= open/close <= high`, and
-non-negative integer volume. Duplicate dates, interior disorder, ticker mismatch, and future
-dates fail that ticker.
+Each row requires date-only identity, finite positive OHLC, `low <= open/close <= high`,
+non-negative integer volume, and a recognized provider `source` (`iex` or historical
+`pitrading`). Duplicate dates, any disorder, ticker mismatch, missing/unknown columns, unknown
+source values, and future dates fail that ticker. Every row in the retained calculation window
+must be `iex`; historical `pitrading` rows are discarded before normalization.
 
 ### R11. Close-only metric input
 
@@ -142,13 +153,16 @@ documented deterministic ranked order with XLRE retained. Record count is always
 
 `insufficient > warming_up > partial > normal`. With HF v1, a valid production snapshot is
 normally `partial` because XLRE is structurally unavailable. At least eight comparable sectors
-plus SPY are required for a ranked radar.
+plus SPY are required for a ranked radar. u145 uses a sibling `PublicCoverageSummary` so
+`warming_up` truthfully spans 6-63 SPY observations and `partial`/`normal` begin at 64; the
+frozen u139 `CoverageSummary` and its 22-row transition remain unchanged.
 
 ### R25. Derived-only retention
 
 Public and repository artifacts contain metrics, states, provenance, and coverage only. Daily
-bar arrays, provider-shaped payloads, response headers, and raw request/response samples are
-forbidden outside test fixtures recorded only after terms and probe approval.
+bar arrays, token JSON, signed URLs, Parquet bytes, provider-shaped payloads, response headers,
+and raw request/response samples are forbidden. Tests use synthetic schema-equivalent Parquet,
+never copied live rows.
 
 ### R26. Mandatory qualification language
 

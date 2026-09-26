@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import statistics
 from collections.abc import Callable, Mapping, Sequence
 from datetime import date
@@ -12,7 +11,6 @@ from decimal import (
     DecimalException,
     localcontext,
 )
-from itertools import pairwise
 from typing import Final, Literal
 
 from investo.models.sector import (
@@ -37,6 +35,16 @@ from investo.models.sector import (
     SectorSeriesBundle,
     SectorTicker,
 )
+from investo.sector_dashboard.metric_kernels import (
+    descending_midrank_percentiles as kernel_descending_midrank_percentiles,
+)
+from investo.sector_dashboard.metric_kernels import (
+    excess_return,
+    max_drawdown_20d,
+    realized_volatility_20d,
+    relative_acceleration_5d,
+    simple_return,
+)
 from investo.sector_dashboard.regime import (
     classify_regime_history,
     regime_policy_for_band,
@@ -60,11 +68,7 @@ def nav_return(start_nav: Decimal, end_nav: Decimal) -> Decimal:
     """Return ``end_nav / start_nav - 1`` in the fixed decimal context."""
 
     _validate_navs((start_nav, end_nav))
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        result = end_nav / start_nav - Decimal(1)
-    return _finite_decimal(result)
+    return simple_return(start_nav, end_nav)
 
 
 def nav_excess_return(
@@ -75,14 +79,14 @@ def nav_excess_return(
 ) -> Decimal:
     """Compute sector simple return minus SPY return on identical endpoints."""
 
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        result = nav_return(sector_start_nav, sector_end_nav) - nav_return(
-            benchmark_start_nav,
-            benchmark_end_nav,
-        )
-    return _finite_decimal(result)
+    _validate_navs((sector_start_nav, sector_end_nav))
+    _validate_navs((benchmark_start_nav, benchmark_end_nav))
+    return excess_return(
+        sector_start_nav,
+        sector_end_nav,
+        benchmark_start_nav,
+        benchmark_end_nav,
+    )
 
 
 def nav_relative_acceleration_5d(
@@ -95,23 +99,24 @@ def nav_relative_acceleration_5d(
 ) -> Decimal:
     """Subtract preceding 5D excess return from the current non-overlapping 5D excess."""
 
-    current = nav_excess_return(
+    _validate_navs(
+        (
+            sector_t_minus_10,
+            sector_t_minus_5,
+            sector_t,
+            benchmark_t_minus_10,
+            benchmark_t_minus_5,
+            benchmark_t,
+        )
+    )
+    return relative_acceleration_5d(
+        sector_t_minus_10,
         sector_t_minus_5,
         sector_t,
+        benchmark_t_minus_10,
         benchmark_t_minus_5,
         benchmark_t,
     )
-    previous = nav_excess_return(
-        sector_t_minus_10,
-        sector_t_minus_5,
-        benchmark_t_minus_10,
-        benchmark_t_minus_5,
-    )
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        result = current - previous
-    return _finite_decimal(result)
 
 
 def nav_realized_volatility_20d(navs: Sequence[Decimal]) -> Decimal:
@@ -120,20 +125,7 @@ def nav_realized_volatility_20d(navs: Sequence[Decimal]) -> Decimal:
     if len(navs) != 21:
         raise ValueError("20D realized volatility requires exactly 21 NAV points")
     _validate_navs(navs)
-    daily_log_returns: list[float] = []
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        for previous, current in pairwise(navs):
-            ratio = current / previous
-            ratio_float = float(ratio)
-            if not math.isfinite(ratio_float) or ratio_float <= 0:
-                raise ValueError("daily NAV ratio must be finite and positive")
-            daily_log_returns.append(math.log(ratio_float))
-    volatility = statistics.stdev(daily_log_returns) * math.sqrt(252.0)
-    if not math.isfinite(volatility) or volatility < 0:
-        raise ValueError("realized volatility must be finite and non-negative")
-    return Decimal(repr(volatility))
+    return realized_volatility_20d(navs, return_kind="log")
 
 
 def nav_max_drawdown_20d(navs: Sequence[Decimal]) -> Decimal:
@@ -142,16 +134,7 @@ def nav_max_drawdown_20d(navs: Sequence[Decimal]) -> Decimal:
     if len(navs) != 21:
         raise ValueError("20D max drawdown requires exactly 21 NAV points")
     _validate_navs(navs)
-    peak = navs[0]
-    worst = Decimal(0)
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        for nav in navs:
-            peak = max(peak, nav)
-            drawdown = nav / peak - Decimal(1)
-            worst = min(worst, drawdown)
-    return _finite_decimal(worst)
+    return max_drawdown_20d(navs)
 
 
 def descending_midrank_percentiles(
@@ -165,27 +148,10 @@ def descending_midrank_percentiles(
         raise ValueError("midrank values must use sector tickers")
     if any(not value.is_finite() for value in values.values()):
         raise ValueError("midrank values must be finite")
-
-    ordered = sorted(values.items(), key=lambda item: _TICKER_POSITION[item[0]])
-    ordered.sort(key=lambda item: item[1], reverse=True)
-    count = len(ordered)
-    percentiles: dict[SectorTicker, Decimal] = {}
-    position = 0
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        while position < count:
-            group_end = position + 1
-            while group_end < count and ordered[group_end][1] == ordered[position][1]:
-                group_end += 1
-            first_rank = Decimal(position + 1)
-            last_rank = Decimal(group_end)
-            midrank = (first_rank + last_rank) / Decimal(2)
-            percentile = (Decimal(count) - midrank) / Decimal(count - 1)
-            for group_position in range(position, group_end):
-                percentiles[ordered[group_position][0]] = percentile
-            position = group_end
-    return percentiles
+    return kernel_descending_midrank_percentiles(
+        values,
+        identity_order=SECTOR_TICKERS,
+    )
 
 
 def compute_sector_metrics(
@@ -706,15 +672,15 @@ def _missing(reason: MetricMissingReason) -> MetricValue:
     return MetricValue(missing_reason=reason)
 
 
-def _validate_navs(navs: Sequence[Decimal]) -> None:
-    if any(not nav.is_finite() or nav <= 0 for nav in navs):
-        raise ValueError("NAV values must be finite and strictly positive")
-
-
 def _finite_decimal(value: Decimal) -> Decimal:
     if not value.is_finite():
         raise ValueError("numeric result must be finite")
     return value
+
+
+def _validate_navs(navs: Sequence[Decimal]) -> None:
+    if any(not nav.is_finite() or nav <= 0 for nav in navs):
+        raise ValueError("NAV values must be finite and strictly positive")
 
 
 __all__ = [
