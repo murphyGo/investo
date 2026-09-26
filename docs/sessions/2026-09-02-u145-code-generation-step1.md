@@ -26,4 +26,3 @@ gap. Re-review found no remaining Critical/High/Medium findings. The full reposi
 Step 2 is the bounded HF token-then-signed-Parquet adapter with fixed host/request set, header-only
 secret use, signed-URL validation/redaction, resource/rate ceilings, and synthetic Parquet tests.
 No adapter, workflow, schedule, Pages, Telegram, or public write was enabled in this session.
-

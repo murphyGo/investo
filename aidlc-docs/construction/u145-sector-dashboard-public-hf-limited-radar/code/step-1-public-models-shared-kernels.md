@@ -61,4 +61,3 @@ boundary; substring presence is not treated as promotion validation.
 Step 1 adds no network client, PyArrow dependency, secret access, workflow, repository/public
 write, Pages navigation, schedule, Telegram path, or daily-briefing coupling. Step 2 remains the
 first adapter step and requires separate approval.
-
