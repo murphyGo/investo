@@ -28,6 +28,7 @@ class EventPromptEvidence:
     unassigned: str
     row_count: int
     section_two_row_count: int
+    prompted_items: tuple[NormalizedItem, ...]
 
 
 def prepare_event_selection(
@@ -107,8 +108,13 @@ def render_event_prompt_evidence(
             unassigned.append(item)
     return EventPromptEvidence(
         event_plan=events,
-        grouped_sections=_render_grouped_sections(grouped, segment=segment),
+        grouped_sections=_render_grouped_sections(
+            grouped, story_metadata=plan.story_metadata, segment=segment
+        ),
         unassigned=_render_unassigned(tuple(unassigned), segment=segment),
         row_count=len(used),
         section_two_row_count=events.evidence_row_count + len(grouped[2]),
+        prompted_items=tuple(
+            item for item in items if document_keys[item_evidence_key(item)] in used
+        ),
     )

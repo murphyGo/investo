@@ -487,6 +487,7 @@ async def _default_generate_segment_briefing(
     macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
     watchlist_config: WatchlistConfig | None = None,
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
+    event_observed_at: datetime | None = None,
 ) -> GenerationResult:
     """Adapter for u7 segmented generation."""
     # u68 — pass the archive root so the glossary callout can suppress
@@ -516,6 +517,7 @@ async def _default_generate_segment_briefing(
             fact_context_block=fact_context_block,
             archive_root=ARCHIVE_ROOT,
             macro_lineage_all_items=macro_lineage_all_items,
+            event_observed_at=event_observed_at,
         )
     )
 
@@ -646,6 +648,7 @@ async def _generate_one_segment(
     fact_context_block: str,
     watchlist_config: WatchlistConfig | None,
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
+    event_observed_at: datetime | None = None,
 ) -> _SegmentGenerationResult:
     start = time.monotonic()
     _logger.info(
@@ -673,6 +676,7 @@ async def _generate_one_segment(
                 macro_lineage_all_items=all_items,
                 watchlist_config=watchlist_config,
                 event_config=event_config,
+                event_observed_at=event_observed_at,
             )
             briefing = generation_result.briefing
             macro_lineage = generation_result.macro_lineage
@@ -847,6 +851,7 @@ async def _stage_generate_segments(
                 fact_context_block=fact_context_block,
                 watchlist_config=watchlist_config,
                 event_config=event_config,
+                event_observed_at=fact_now_utc if event_config.uses_v2 else None,
             )
 
     raw_results = await asyncio.gather(
@@ -2802,6 +2807,7 @@ def _build_public_document_context(
     | None = None,
     staged_artifacts: Sequence[StagedArtifact] = (),
     event_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+    event_results: Mapping[MarketSegment, GenerationResult] | None = None,
 ) -> PublicDocumentContext:
     """Freeze the complete E1 input consumed by the pure finalizer."""
 
@@ -2845,6 +2851,11 @@ def _build_public_document_context(
             if supplement_mapping.get(segment)
         },
         staged_artifacts_by_segment=artifacts_by_segment,
+        event_payloads_by_segment={
+            segment: result.event_payload
+            for segment, result in (event_results or {}).items()
+            if segment in generated and result.event_payload is not None
+        },
     )
 
 
@@ -3179,6 +3190,7 @@ class GenerateStage:
                 supplements_by_segment=public_supplements_by_segment,
                 staged_artifacts=staged_public_artifacts,
                 event_items_by_segment=event_items_by_segment,
+                event_results=event_results,
             )
             timings = {
                 "generate": generate_elapsed,
@@ -3687,7 +3699,7 @@ async def run_pipeline(
         total run wall-clock; ``briefing_url`` is the per-day archive
         URL on SUCCESS / PARTIAL, ``None`` on FAILED.
     """
-    event_config.validate_capabilities()
+    event_config.validate_publication()
     if target_date is None:
         target_date = resolve_target_date(datetime.now(UTC))
     target_date = validate_target_date_sanity(target_date)

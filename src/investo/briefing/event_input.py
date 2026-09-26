@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from investo.briefing.event_evidence import evidence_document_from_item
-from investo.models import NormalizedItem
+from investo.models import NormalizedItem, SourceOutcome
 from investo.models.macro import (
     is_required_macro_actual,
     macro_event_date,
@@ -62,6 +62,26 @@ def _is_news(item: NormalizedItem) -> bool:
     return item.scheduled_at is None and (
         item.category == "news" or is_required_macro_actual(item) or explicit_actual
     )
+
+
+def event_collection_limited(
+    items: Sequence[NormalizedItem], outcomes: Sequence[SourceOutcome]
+) -> bool:
+    """Describe event collection, independently of missing price/market coverage.
+
+    The caller scopes outcomes to the recipient segment. A successful empty
+    news fetch is observed zero, whereas absent input and absent collection
+    evidence are unknown. No minimum number of articles implies completeness.
+    """
+    event_sources = {item.source_name for item in items if _is_news(item)}
+    news_outcomes = tuple(
+        outcome
+        for outcome in outcomes
+        if outcome.category in {"news", "earnings"} or outcome.source_name in event_sources
+    )
+    if any(outcome.status == "failed" for outcome in news_outcomes):
+        return True
+    return not event_sources and not news_outcomes
 
 
 def select_event_input_items(

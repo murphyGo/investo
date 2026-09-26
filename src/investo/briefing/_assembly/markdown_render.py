@@ -11,6 +11,7 @@ behavior-preserving (move-only).
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 from investo.briefing._assembly.prompt_fields import (
@@ -190,9 +191,21 @@ def _render_story_prefix(
     return f"[tier={metadata.tier} score={metadata.score} reasons={reasons}] "
 
 
-def _stage2_retry_feedback(cause: BaseException | None) -> str:
+def _stage2_retry_feedback(cause: BaseException | None, *, schema_version: int = 1) -> str:
     if cause is None:
         return ""
+    if schema_version == 2:
+        # Only closed codes belong in the v2 feedback channel; exception input
+        # values can contain private source text or a malformed model response.
+        code = str(cause).split(":", 1)[0]
+        if not re.fullmatch(r"event\.[a-z_]+", code):
+            code = "event.output_invalid"
+        return (
+            "\n\nPrevious Stage 2 JSON failed validation. Return one complete "
+            "schema_version=2 JSON object with all five sections and exactly the "
+            "selected events in order. Do not continue a fragment or emit Markdown "
+            f"outside JSON. Validation code: {code}\n"
+        )
     message = _truncate_prompt_field(str(cause), _STAGE2_RETRY_FEEDBACK_MAX_CHARS)
     return (
         "\n\nPrevious Stage 2 output failed validation. Retry from scratch as a complete "

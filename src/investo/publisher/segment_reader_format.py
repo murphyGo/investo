@@ -126,6 +126,7 @@ def apply_reader_format_to_segments(
     _surface_repair_observer: _SurfaceRepairObserver | None = None,
     _watchpoint_result_observer: _WatchpointResultObserver | None = None,
     _watchpoint_preserved_fragments_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
+    _event_segments: Sequence[MarketSegment] = (),
     _defer_domestic_terminal_gates: bool = False,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
@@ -208,7 +209,11 @@ def apply_reader_format_to_segments(
                 )
             markdown = anchor_gate.markdown
         # Step 3 — pure str → str post-format chain.
-        markdown = apply_reader_format(markdown, segment=segment)
+        markdown = (
+            apply_reader_format(markdown, segment=segment, preserve_event_blocks=True)
+            if segment in _event_segments
+            else apply_reader_format(markdown, segment=segment)
+        )
         # u57 — inject shared macro block + run cross-segment lint.
         if bundle_context is not None:
             markdown = inject_shared_macro_block(

@@ -11,7 +11,7 @@ EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 
 # These are code capabilities, never operator flags. Later units enable their
 # consumers only after their parser/finalizer and quality contracts exist.
-EVENT_PREVIEW_READY = False
+EVENT_PREVIEW_READY = True
 EVENT_ACTIVE_READY = False
 
 
@@ -35,6 +35,11 @@ class EventExecutionConfig:
             raise ValueError("event preview requires the u158 v2 consumer")
         if self.mode == "active" and not EVENT_ACTIVE_READY:
             raise ValueError("event activation requires the u157/u158/u159 consumer contract")
+
+    def validate_publication(self) -> None:
+        if self.mode == "preview":
+            raise ValueError("event preview requires the isolated non-public preview entrypoint")
+        self.validate_capabilities()
 
     @property
     def uses_v2(self) -> bool:

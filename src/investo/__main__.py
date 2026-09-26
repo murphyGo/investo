@@ -531,6 +531,11 @@ async def _async_main(
     drive ``asyncio.run`` and translate the final integer to the
     process exit code.
     """
+    if os.environ.get(EVENT_MODE_ENV, "").strip() == "preview":
+        # Preview is a separate, non-publishing entrypoint. Even a boot-error
+        # alert would violate its no-notification boundary.
+        _logger.error("event preview requires the isolated non-public preview entrypoint")
+        return 1
     try:
         try:
             config = llm_config or LlmExecutionConfig.from_env(os.environ)
@@ -555,7 +560,7 @@ async def _async_main(
         target_date_override = _resolve_target_date_override()
         try:
             event_config = EventExecutionConfig.from_env(os.environ)
-            event_config.validate_capabilities()
+            event_config.validate_publication()
             event_options: _EventPipelineOptions = {}
             if event_config.mode != "off":
                 event_options["event_config"] = event_config

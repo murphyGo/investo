@@ -1,7 +1,7 @@
 # 뉴스·이벤트 중심 시황 개발 설계
 
 **Date**: 2026-09-26
-**Status**: 2026-09-27 사용자 순차 개발 승인; u157 코드·검증 완료(전체5415, 최종경계61 통과). 유닛 완료마다 커밋·푸시하며 운영 활성화는 별도다.
+**Status**: 2026-09-27 사용자 순차 개발 승인; u157 원격 전달 완료(d5aa8f28), u158 코드·검증 완료(전체5521 통과). 유닛 완료마다 커밋·푸시하며 운영 활성화는 별도다.
 **Baseline**: `04978d81ec9ece8f4083e4be190c6539bdf3b5ff` (origin/main).
 **Source**: 사용자 “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
 
@@ -26,7 +26,7 @@
 | 유닛 | 책임 | Hard dependency | 설계 상태 |
 |---|---|---|---|
 | u157 event-evidence-selection-contract | 사건 모델·선정·입력 보존 | 기존 u58/u59/u93/u97 완료 | 코드 완료, 운영 off |
-| u158 event-first-narrative-and-summary | 사건 설명·요약·terminal projection | u157 | 설계 승인, u157 이후 순차 개발 |
+| u158 event-first-narrative-and-summary | 사건 설명·요약·terminal projection | u157 | 코드 완료, preview ready, 운영 active off |
 | u159 event-coverage-replay-and-gate | 최종 반영 검증·평가셋 | u157/u158 | 설계 승인, 선행 유닛 이후 순차 개발 |
 | u160 publication-news-observation-window | 거래일과 별도 뉴스기간·cursor 원자성 | u157 공통 발행 확인 기반; 기존 u113/u144 완료 | 창 설계 병렬 가능, cursor 통합은 선행 구현 후 |
 | u161 bounded-official-event-evidence | 기존 피드 복구 판정·공식 근거 보강 | 보강 런타임은 u157; 자격검증은 독립 | qualification 단계 준비, 신규 fetch는 gate |

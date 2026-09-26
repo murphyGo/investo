@@ -16,7 +16,7 @@ from hashlib import sha256
 from itertools import pairwise
 from pathlib import PurePosixPath
 from types import MappingProxyType
-from typing import Final, Literal, Self, TypeVar
+from typing import Final, Literal, Self, TypedDict, TypeVar
 from unicodedata import name as unicode_name
 
 from investo._internal.briefing_extract import (
@@ -57,6 +57,8 @@ from investo._internal.surface_quality import (
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome
+from investo.models.event_narratives import EventGenerationPayload
+from investo.models.events import EventIdentityReceipt
 from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
@@ -68,7 +70,7 @@ from investo.models.public_document_outcome import (
 from investo.models.public_document_outcome import (
     SegmentFinalizationState as SegmentFinalizationState,
 )
-from investo.models.public_notification import PublicNotificationSummary
+from investo.models.public_notification import PublicEventSummary, PublicNotificationSummary
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -102,6 +104,14 @@ from investo.publisher.daily_thesis import (
 )
 from investo.publisher.entity_fact_guard import EntityFactViolation, scan_entity_fact_claims
 from investo.publisher.errors import DailyThesisConsistencyError, SurfaceQualityError
+from investo.publisher.event_blocks import (
+    event_empty_message,
+    event_hard_issue_codes,
+    event_plain_text,
+    reconcile_event_blocks,
+    reconcile_event_summaries,
+    terminal_events,
+)
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.numeric_containment import (
     apply_numeric_containment_plan,
@@ -144,6 +154,7 @@ PublicNotificationSummaryIssueCode = Literal[
     "summary.invalid_conclusion",
     "summary.invalid_coverage_label",
     "summary.invalid_watchlist",
+    "summary.event_mismatch",
 ]
 
 _PHASES: Final[tuple[PublicDocumentPhase, ...]] = (
@@ -230,6 +241,7 @@ _NOTIFICATION_SUMMARY_ISSUE_CODES: Final[frozenset[str]] = frozenset(
         "summary.invalid_conclusion",
         "summary.invalid_coverage_label",
         "summary.invalid_watchlist",
+        "summary.event_mismatch",
     }
 )
 _ID_RE: Final[re.Pattern[str]] = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
@@ -239,6 +251,9 @@ _MARKER_LINE_RE: Final[re.Pattern[str]] = re.compile(
 )
 _MARKER_CLOSE_LINE_RE: Final[re.Pattern[str]] = re.compile(
     r"^<!-- /investo:block (chart|visual|carryover):([a-z0-9][a-z0-9._-]{0,127}) -->$"
+)
+_EVENT_IDENTITY_LINE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^<!-- (/?)investo:block event:([0-9a-f]{24}) -->$"
 )
 _SECTION_HEADINGS: Final[tuple[str, ...]] = (
     "## ① 요약",
@@ -591,6 +606,9 @@ class PublicDocumentContext:
     staged_artifacts_by_segment: Mapping[MarketSegment, tuple[StagedArtifact, ...]] = field(
         default_factory=dict
     )
+    event_payloads_by_segment: Mapping[MarketSegment, EventGenerationPayload] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self) -> None:
         expected = tuple(self.expected_segments)
@@ -632,12 +650,14 @@ class PublicDocumentContext:
         artifacts = {
             segment: tuple(values) for segment, values in self.staged_artifacts_by_segment.items()
         }
+        event_payloads = dict(self.event_payloads_by_segment)
         for field_name, mapping in (
             ("anchors_by_segment", anchors),
             ("items_by_segment", items),
             ("coverage_by_segment", coverage),
             ("supplements_by_segment", supplements),
             ("staged_artifacts_by_segment", artifacts),
+            ("event_payloads_by_segment", event_payloads),
         ):
             if not set(mapping) <= generated:
                 raise ValueError(f"{field_name} contains an absent or unexpected segment")
@@ -647,6 +667,8 @@ class PublicDocumentContext:
             )
         if any(value.segment != segment for segment, value in coverage.items()):
             raise ValueError("coverage_by_segment key must match SegmentCoverage.segment")
+        if any(not isinstance(value, EventGenerationPayload) for value in event_payloads.values()):
+            raise TypeError("event_payloads_by_segment requires immutable EventGenerationPayload")
 
         supplement_ids: list[str] = []
         artifact_by_id: dict[str, StagedArtifact] = {}
@@ -701,6 +723,7 @@ class PublicDocumentContext:
         object.__setattr__(self, "bundle_context", _snapshot_bundle_context(self.bundle_context))
         object.__setattr__(self, "supplements_by_segment", _freeze_mapping(supplements))
         object.__setattr__(self, "staged_artifacts_by_segment", _freeze_mapping(artifacts))
+        object.__setattr__(self, "event_payloads_by_segment", _freeze_mapping(event_payloads))
 
 
 @dataclass(frozen=True, slots=True)
@@ -1263,10 +1286,33 @@ def _marker_candidates(
     open_marker: tuple[int, str, str] | None = None
     candidates: list[_RegionCandidate] = []
     supplement_ids: list[str] = []
+    open_event: str | None = None
+    event_ids: set[str] = set()
+    event_section_start = markdown.find("## ② 전일 핵심 이슈")
+    event_section_end = markdown.find("\n## ③ 섹터/수급 동향", event_section_start)
     priorities = {"chart": 3, "visual": 4, "carryover": 5}
     for index, line in enumerate(lines):
         if "investo:block" not in line.text:
             continue
+        event_marker = _EVENT_IDENTITY_LINE_RE.fullmatch(line.text)
+        if event_marker is not None:
+            # Event markers identify children of section ②. They never own a
+            # second mutable region or enter the supplement artifact registry.
+            if not event_section_start <= line.start < event_section_end or open_marker is not None:
+                raise _layout_error("structure.event_marker_scope")
+            event_id = event_marker.group(2)
+            if not event_marker.group(1):
+                if open_event is not None or event_id in event_ids:
+                    raise _layout_error("structure.event_marker_identity")
+                open_event = event_id
+                event_ids.add(event_id)
+            else:
+                if open_event != event_id:
+                    raise _layout_error("structure.event_marker_identity")
+                open_event = None
+            continue
+        if open_event is not None:
+            raise _layout_error("structure.event_marker_scope")
         opening = _MARKER_LINE_RE.fullmatch(line.text)
         closing = _MARKER_CLOSE_LINE_RE.fullmatch(line.text)
         if opening is not None:
@@ -1307,6 +1353,8 @@ def _marker_candidates(
         open_marker = None
     if open_marker is not None:
         raise _layout_error("structure.unmatched_supplement_marker")
+    if open_event is not None:
+        raise _layout_error("structure.event_marker_identity")
     if len(set(supplement_ids)) != len(supplement_ids):
         raise _layout_error("structure.duplicate_supplement_id")
     if set(supplement_ids) != set(expectation.supplement_ids):
@@ -2199,6 +2247,7 @@ class PublicDocumentDraft:
     block_outcomes: tuple[PublicBlockOutcome, ...] = ()
     numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...] = ()
     notification_summary: PublicNotificationSummary | None = None
+    surviving_event_ids: tuple[str, ...] = ()
     _validation_witness: object | None = field(default=None, repr=False, compare=False)
 
     def __new__(cls) -> Self:
@@ -2220,6 +2269,7 @@ def _construct_draft(
     block_outcomes: Sequence[PublicBlockOutcome] = (),
     numeric_containment_outcomes: Sequence[NumericContainmentOutcome] = (),
     notification_summary: PublicNotificationSummary | None = None,
+    surviving_event_ids: Sequence[str] = (),
     validation_witness: object | None = None,
 ) -> PublicDocumentDraft:
     if phase not in _PHASES:
@@ -2268,6 +2318,7 @@ def _construct_draft(
     object.__setattr__(draft, "block_outcomes", outcomes)
     object.__setattr__(draft, "numeric_containment_outcomes", numeric_outcomes)
     object.__setattr__(draft, "notification_summary", notification_summary)
+    object.__setattr__(draft, "surviving_event_ids", tuple(surviving_event_ids))
     object.__setattr__(draft, "_validation_witness", validation_witness)
     return draft
 
@@ -2332,6 +2383,7 @@ def _transition_draft(
     block_outcomes: Sequence[PublicBlockOutcome] | None = None,
     numeric_containment_outcomes: Sequence[NumericContainmentOutcome] | None = None,
     notification_summary: PublicNotificationSummary | None = None,
+    surviving_event_ids: Sequence[str] | None = None,
 ) -> PublicDocumentDraft:
     current_index = _PHASES.index(draft.phase)
     if current_index + 1 >= len(_PHASES) or _PHASES[current_index + 1] != next_phase:
@@ -2354,6 +2406,9 @@ def _transition_draft(
             else numeric_containment_outcomes
         ),
         notification_summary=notification_summary,
+        surviving_event_ids=(
+            draft.surviving_event_ids if surviving_event_ids is None else surviving_event_ids
+        ),
         validation_witness=witness,
     )
 
@@ -2437,6 +2492,36 @@ def _default_draft_factory(
     )
 
 
+def _event_payload_for_draft(
+    draft: PublicDocumentDraft, context: PublicDocumentContext
+) -> EventGenerationPayload | None:
+    payload = context.event_payloads_by_segment.get(draft.segment)
+    if payload is None:
+        return None
+    minimal = build_data_limited_briefing(draft.target_date, draft.segment)
+    fields = (
+        "market_summary",
+        "key_issues",
+        "sector_flow",
+        "indicators_events",
+        "notable_tickers",
+        "today_watch",
+    )
+    if all(getattr(draft.source_briefing, name) == getattr(minimal, name) for name in fields):
+        section = re.search(
+            r"(?ms)^## ② 전일 핵심 이슈[^\n]*\n(.*?)(?=^## |\Z)", draft.layout.markdown
+        )
+        if section is not None:
+            body = section.group(1)
+            if "investo:block event:" not in draft.layout.markdown and clean_public_summary_text(
+                minimal.key_issues
+            ) in clean_public_summary_text(body):
+                # Recognize the existing deterministic fallback, not a marker
+                # supplied by a model. Hard gates still use the raw context.
+                return None
+    return payload
+
+
 def _assemble_phase_one_reader_draft(
     draft: PublicDocumentDraft,
     context: PublicDocumentContext,
@@ -2459,6 +2544,19 @@ def _assemble_phase_one_reader_draft(
             raise ValueError("reader assembly must produce exactly one matching watchpoint result")
         observed.append(result)
 
+    event_payload = _event_payload_for_draft(draft, context)
+    if event_payload is not None:
+        original_codes = _collect_non_surface_hard_gate_codes(draft, context)
+        # Keep domestic numeric containment with its existing owner. Every
+        # other hard finding survives before summary/presentation mutation.
+        preserved_codes = tuple(
+            code
+            for code in original_codes
+            if code != "numeric.anchor_assertion" or draft.segment != DOMESTIC_EQUITY
+        )
+        if preserved_codes:
+            raise _SegmentTrustBlockedError(phase="assembled", issue_codes=preserved_codes)
+
     try:
         rewritten = apply_reader_format_to_segments(
             {draft.segment: draft.source_briefing},
@@ -2473,6 +2571,7 @@ def _assemble_phase_one_reader_draft(
                 )
             },
             _defer_domestic_terminal_gates=True,
+            _event_segments=(draft.segment,) if event_payload is not None else (),
         )
     except NumericAnchorReconciliationError as exc:
         raise _SegmentTrustBlockedError(
@@ -2496,6 +2595,23 @@ def _assemble_phase_one_reader_draft(
         segment=draft.segment,
         active_segments=active_segments,
     )
+    if event_payload is not None:
+        # Only summaries are assembled here. Section ② already came from the
+        # canonical renderer; regenerating it would resurrect removed events.
+        markdown = assembled_briefing.rendered_markdown
+        original_numeric = _scan_terminal_anchor_assertions_for_layout(draft, context, draft.layout)
+        # A summary replacement must not hide a numeric claim that the normal
+        # domestic containment pass still needs to observe.
+        if original_numeric:
+            section_one = draft.layout.markdown.find("## ① 요약")
+            if any(finding.start < section_one for finding in original_numeric):
+                raise _SegmentTrustBlockedError(
+                    phase="assembled", issue_codes=("numeric.anchor_assertion",)
+                )
+        markdown = reconcile_event_summaries(
+            markdown, event_payload, terminal_events(markdown, event_payload)
+        )
+        assembled_briefing = assembled_briefing.model_copy(update={"rendered_markdown": markdown})
     verified_report = verify_core_facts(
         assembled_briefing.rendered_markdown,
         context.items_by_segment.get(draft.segment, ()),
@@ -2569,6 +2685,12 @@ def _repair_projected_draft(
     mutating_decisions = tuple(
         decision for decision in decisions if decision.disposition in _MUTATING_SURFACE_DISPOSITIONS
     )
+    event_payload = _event_payload_for_draft(draft, context)
+    event_codes = (
+        event_hard_issue_codes(layout.markdown, event_payload) if event_payload is not None else ()
+    )
+    if event_codes:
+        raise _SegmentTrustBlockedError(phase="repaired", issue_codes=event_codes)
     non_surface_hard_codes = (
         _collect_non_surface_hard_gate_codes(
             draft,
@@ -2669,12 +2791,45 @@ def _repair_projected_draft(
     else:
         numeric_outcomes = draft.numeric_containment_outcomes
 
+    surviving_event_ids = draft.surviving_event_ids
+    if event_payload is not None:
+        # Snapshot before removing incomplete events or replacing dependent
+        # summaries. Existing hard gates remain authoritative.
+        hard_codes = _collect_non_surface_hard_gate_codes(draft, context, layout=layout)
+        if hard_codes:
+            raise _SegmentTrustBlockedError(phase="repaired", issue_codes=hard_codes)
+        allowed = tuple(event.event_id for event in event_payload.plan.selected)
+        for _ in range(len(allowed) + 1):
+            markdown, survivors = reconcile_event_blocks(
+                layout.markdown, event_payload, surviving_event_ids=allowed
+            )
+            if not set(survivors) <= set(allowed):
+                raise _SegmentTrustBlockedError(
+                    phase="repaired", issue_codes=("event.reconciliation_unstable",)
+                )
+            layout = PublicDocumentLayout.reindex(markdown, expectation=layout.expectation)
+            observed = tuple(
+                event.event_id
+                for event in terminal_events(
+                    layout.markdown, event_payload, surviving_event_ids=survivors
+                )
+            )
+            if observed == survivors:
+                surviving_event_ids = survivors
+                break
+            allowed = survivors
+        else:
+            raise _SegmentTrustBlockedError(
+                phase="repaired", issue_codes=("event.reconciliation_unstable",)
+            )
+
     return _transition_draft(
         draft,
         next_phase="repaired",
         layout=layout,
         block_outcomes=outcomes,
         numeric_containment_outcomes=numeric_outcomes,
+        surviving_event_ids=surviving_event_ids,
     )
 
 
@@ -2746,7 +2901,12 @@ def _derive_public_notification_summary(
     raw_conclusion = extract_conclusion(draft.layout.markdown)
     if raw_conclusion is None:
         raise PublicNotificationSummaryError("summary.missing_conclusion")
-    conclusion = clean_public_summary_text(raw_conclusion)
+    event_payload = _event_payload_for_draft(draft, context)
+    conclusion = (
+        event_plain_text(raw_conclusion)
+        if event_payload is not None
+        else clean_public_summary_text(raw_conclusion)
+    )
     if (
         not conclusion
         or is_unsafe_summary_value(conclusion)
@@ -2770,6 +2930,20 @@ def _derive_public_notification_summary(
             raise PublicNotificationSummaryError("summary.invalid_watchlist")
 
     coverage = context.coverage_by_segment[draft.segment]
+    events: tuple[PublicEventSummary, ...] = ()
+    if event_payload is not None:
+        terminal = terminal_events(draft.layout.markdown, event_payload)
+        expected_conclusion = (
+            terminal[0].first_sentence if terminal else event_empty_message(event_payload)
+        )
+        if conclusion != expected_conclusion:
+            raise PublicNotificationSummaryError("summary.event_mismatch")
+        if (
+            draft.phase in {"repaired", "validated"}
+            and tuple(event.event_id for event in terminal) != draft.surviving_event_ids
+        ):
+            raise PublicNotificationSummaryError("summary.event_mismatch")
+        events = tuple(event.notification_summary() for event in terminal[:3])
     return PublicNotificationSummary(
         segment=draft.segment,
         target_date=draft.target_date,
@@ -2777,6 +2951,7 @@ def _derive_public_notification_summary(
         coverage_status=coverage.status,
         coverage_label=coverage.status_label,
         watchlist=watchlist,
+        events=events,
     )
 
 
@@ -2824,6 +2999,7 @@ def _draft_with_layout(
         watchpoint_synthesized=draft.watchpoint_synthesized,
         block_outcomes=draft.block_outcomes,
         numeric_containment_outcomes=draft.numeric_containment_outcomes,
+        surviving_event_ids=draft.surviving_event_ids,
     )
 
 
@@ -2897,6 +3073,9 @@ def _collect_non_surface_hard_gate_codes(
         _scan_terminal_compliance(candidate, context)
     except ComplianceLanguageError:
         codes.add("compliance.language")
+    event_payload = context.event_payloads_by_segment.get(draft.segment)
+    if event_payload is not None:
+        codes.update(event_hard_issue_codes(candidate.layout.markdown, event_payload))
     return _canonical_issue_codes(tuple(codes))
 
 
@@ -3207,7 +3386,30 @@ def _finalize_segment_skeleton(
             phase="validated",
             issue_code="invariant.artifact_selection",
         )
-    return _seal_document(current, staged_artifact_ids=artifact_ids)
+    event_payload = context.event_payloads_by_segment.get(current.segment)
+    identities = (
+        tuple(
+            EventIdentityReceipt(
+                event_id=event.event_id,
+                event_key_hash=event.event_key_hash,
+                semantic_key_hash=event.semantic_key_hash,
+                effective_date=event.effective_date,
+                official_key_hashes=event.official_key_hashes,
+                document_aliases=event.document_aliases,
+                revision_hashes=event.revision_hashes,
+                fact_hashes=event.fact_hashes,
+                published_at=context.entity_observed_at_utc,
+            )
+            for event in event_payload.plan.selected
+            if event.event_id in current.surviving_event_ids
+        )
+        if event_payload is not None
+        else ()
+    )
+    event_seal_options: _EventSealOptions = (
+        {"event_identity_receipts": identities} if identities else {}
+    )
+    return _seal_document(current, staged_artifact_ids=artifact_ids, **event_seal_options)
 
 
 def _context_for_active_segments(
@@ -3255,6 +3457,9 @@ def _context_for_minimal_segment(
             key: value
             for key, value in context.staged_artifacts_by_segment.items()
             if key != segment
+        },
+        event_payloads_by_segment={
+            key: value for key, value in context.event_payloads_by_segment.items() if key != segment
         },
     )
 
@@ -3570,6 +3775,8 @@ class FinalizedPublicDocument:
     notification_summary: PublicNotificationSummary
     block_outcomes: tuple[PublicBlockOutcome, ...]
     numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...]
+    surviving_event_ids: tuple[str, ...] = ()
+    event_identity_receipts: tuple[EventIdentityReceipt, ...] = ()
     watchpoint_synthesized: int = 0
     warnings: tuple[str, ...] = ()
 
@@ -3577,11 +3784,16 @@ class FinalizedPublicDocument:
         raise TypeError("FinalizedPublicDocument is created only by the seal factory")
 
 
+class _EventSealOptions(TypedDict, total=False):
+    event_identity_receipts: tuple[EventIdentityReceipt, ...]
+
+
 def _seal_document(
     draft: PublicDocumentDraft,
     *,
     staged_artifact_ids: Sequence[str] = (),
     warnings: Sequence[str] = (),
+    event_identity_receipts: Sequence[EventIdentityReceipt] = (),
 ) -> FinalizedPublicDocument:
     """Construct E5 from a validated draft; never performs I/O."""
 
@@ -3596,6 +3808,9 @@ def _seal_document(
     for artifact_id in artifact_ids:
         _require_identifier(artifact_id, field_name="artifact_id")
     canonical_warnings = tuple(dict.fromkeys(warnings))
+    identities = tuple(event_identity_receipts)
+    if tuple(receipt.event_id for receipt in identities) != draft.surviving_event_ids:
+        raise ValueError("sealed event identities must match validated survivors")
     final_briefing = draft.source_briefing.model_copy(
         update={"rendered_markdown": draft.layout.markdown}
     )
@@ -3607,6 +3822,8 @@ def _seal_document(
     object.__setattr__(sealed, "markdown_sha256", digest)
     object.__setattr__(sealed, "staged_artifact_ids", artifact_ids)
     object.__setattr__(sealed, "notification_summary", draft.notification_summary)
+    object.__setattr__(sealed, "surviving_event_ids", draft.surviving_event_ids)
+    object.__setattr__(sealed, "event_identity_receipts", identities)
     object.__setattr__(sealed, "block_outcomes", draft.block_outcomes)
     object.__setattr__(
         sealed,

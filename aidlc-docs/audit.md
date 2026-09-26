@@ -7184,3 +7184,11 @@ User: “유닛 하나씩 개발 진행해고 하나 완료할 떄마다 커밋 
 ## u157 Code Generation closeout (2026-09-27)
 
 User-authorized sequential unit 1/6 completed. Eight implementation steps, all seven scoped ACs, 13 independent-review corrections. Full regression 5415 passed in 377.62s; integrated boundary129 and final foundation/input/classification61 passed. Ruff/format614, source mypy273, four policy guards, strict MkDocs and Material pass. NF3 1000-item/10-run p95=57.239ms. No production activation, scheduled shadow, live LLM or notification send. Default off; u158/u159 consume the new contracts. Scoped commit/push is authorized and is the next action.
+
+## u157 remote delivery and u158 start (2026-09-27)
+
+u157 commit `d5aa8f28981c2042741da75a9b501c185baadb5f` pushed to `origin/codex/news-event-design-20260926`; git ls-remote confirmed exact equality. Continue u158 under existing sequential development authorization. No main merge or production activation.
+
+## u158 Code Generation closeout (2026-09-27)
+
+Sequential unit 2/6: seven steps and AC-158.1–6 complete. Stage2 JSON v2, event-first summary, terminal survival/DTO reconciliation and isolated preview implemented. Two review waves resolved 11 findings; no unresolved P1/P2. Final full regression 5521 passed in 402.28s, final preamble/preview112 passed; Ruff/format626, mypy278, policy guards, strict MkDocs and Material passed. NF3 selection/parser/renderer/terminal p95=69.97ms for 1000 inputs. Default off and active capability false. Scoped commit/push follows the user's instruction; u159 is next. No main merge, deployment or operational acceptance claimed.

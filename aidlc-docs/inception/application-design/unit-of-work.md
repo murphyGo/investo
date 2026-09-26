@@ -2584,14 +2584,14 @@ Plan: `aidlc-docs/construction/plans/u157-event-evidence-selection-contract-code
 **Module path**: `briefing/_core/orchestration.py, briefing/prompts.py, briefing/generation_contract.py, models/public_notification.py, publisher/public_document.py, publisher/reader_format/tldr.py, orchestrator/pipeline.py, briefing/_assembly/markdown_render.py (_stage2_retry_feedback)`. New paths proposed: `briefing/event_narrative.py; publisher/event_blocks.py`.
 
 **Definition of Done**:
-- [ ] AC-158.1: 정책결정·실적·제품·발언 fixture에서 selected 사건의 what/when/required facts/why/reaction status/source가최종②에존재한다.
-- [ ] AC-158.2: 동일fixture에서source title나URL만 남은문서는상세설명완료로인정되지않는다.
-- [ ] AC-158.3: 숫자 없는 중요 사건의 80자 이내 첫 문장이 상단 결론에 남는다. 90자 초과 단일 문장은 retry 대상이다. 사건 0건과 수집 부족은 다른 안내문을 쓴다.
-- [ ] AC-158.4: containment/부분bundle재조립후살아있는사건만TL;DR/callout/DTO에있으며finalizer2회byte동일이다.
-- [ ] AC-158.5: 구조화 factual slots의 미허용 fact/entity/refs와 기존 compliance 위반은 hard gate에서 거부한다. 필드별 refs mismatch negative와 자유 서술 주석 평가를 별도로 통과하며 유효 sibling은 게시 가능하다.
-- [ ] AC-158.6: u154 전후layoutfixture와legacyDTOconsumer호환,추가LLM단계0,기존7섹션/면책조항보존을증명한다.
+- [x] AC-158.1: 정책결정·실적·제품·발언 fixture에서 selected 사건의 what/when/required facts/why/reaction status/source가최종②에존재한다.
+- [x] AC-158.2: 동일fixture에서source title나URL만 남은문서는상세설명완료로인정되지않는다.
+- [x] AC-158.3: 숫자 없는 중요 사건의 80자 이내 첫 문장이 상단 결론에 남는다. 90자 초과 단일 문장은 retry 대상이다. 사건 0건과 수집 부족은 다른 안내문을 쓴다.
+- [x] AC-158.4: containment/부분bundle재조립후살아있는사건만TL;DR/callout/DTO에있으며finalizer2회byte동일이다.
+- [x] AC-158.5: 구조화 factual slots의 미허용 fact/entity/refs와 기존 compliance 위반은 hard gate에서 거부한다. 필드별 refs mismatch negative와 자유 서술 주석 평가를 별도로 통과하며 유효 sibling은 게시 가능하다.
+- [x] AC-158.6: u154 전후layoutfixture와legacyDTOconsumer호환,추가LLM단계0,기존7섹션/면책조항보존을증명한다.
 
-**Construction strategy**: Queued — design approved; follows u157.
+**Construction strategy**: Code complete — 7/7 steps, full regression 5521 passed (402.28s); independent review and cross-check PASS. Preview ready; active remains off.
 Functional Design REQUIRED; REQUIRED — Stage2 schema와 public/notification projection 및 실패 처리 변경. NF1/2/3/7/9/10 적용.
 Dependencies: u157 모델/plan 구현. u154 배치 및 u156 Telegram 구성은 hard dependency가 아니다.
 Design: `aidlc-docs/construction/u158-event-first-narrative-and-summary/design-brief.md`.

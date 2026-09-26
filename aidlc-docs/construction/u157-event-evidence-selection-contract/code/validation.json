@@ -60,6 +60,8 @@
   ],
   "delivery": {
     "branch": "codex/news-event-design-20260926",
-    "commit_push": "authorized; ready after passing gate; exact SHA recorded by delivery session"
+    "commit_push": "remote_confirmed",
+    "local_sha": "d5aa8f28981c2042741da75a9b501c185baadb5f",
+    "remote_sha": "d5aa8f28981c2042741da75a9b501c185baadb5f"
   }
 }

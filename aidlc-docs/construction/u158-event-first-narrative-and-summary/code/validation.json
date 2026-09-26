@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-27",
+  "unit": "u158",
+  "baseline": "d5aa8f28981c2042741da75a9b501c185baadb5f",
+  "status": "code_complete",
+  "tests": [
+    {"scope": "final full regression", "passed": 5521, "seconds": 402.28},
+    {"scope": "full regression before final preamble compatibility refinement", "passed": 5519, "seconds": 404.22},
+    {"scope": "finalizer, current/proposed preamble and preview after final refinement", "passed": 112, "seconds": 3.80},
+    {"scope": "producer, private preview, provider replay and review corrections", "passed": 58, "seconds": 3.49},
+    {"scope": "terminal event unit and real finalizer integration", "passed": 42, "seconds": 1.94},
+    {"scope": "legacy finalizer architecture and assembly after compatibility repair", "passed": 75, "seconds": 4.63}
+  ],
+  "static": {"ruff": "pass", "format_files": 626, "mypy_source_files": 278},
+  "guards": {
+    "no_anthropic_sdk": "pass",
+    "no_paid_apis": "pass",
+    "curated_assets": "pass",
+    "image_store": "pass",
+    "mkdocs_strict": "pass",
+    "material_theme": "pass"
+  },
+  "benchmark": {
+    "command": "uv run python scripts/benchmark_event_selection.py",
+    "scope": "selection, v2 parser, event renderer and terminal validation",
+    "input_count": 1000,
+    "selected_count": 5,
+    "iterations": 10,
+    "p95_ms": 69.97,
+    "limit_ms": 200,
+    "status": "pass"
+  },
+  "review": {"independent_reviewers": 2, "waves": 2, "resolved_findings": 11, "unresolved_p1_p2": 0},
+  "not_run": [
+    "live LLM service preview",
+    "scheduled production shadow",
+    "active production publication notification Pages",
+    "production end-to-end p95"
+  ],
+  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "ready_for_commit_push"}
+}

@@ -179,7 +179,7 @@ async def test_shadow_preserves_v1_prompts_public_bytes_and_call_count() -> None
     assert results[1].event_observation.news_count == 1
 
 
-@pytest.mark.parametrize("mode", ["preview", "active"])
+@pytest.mark.parametrize("mode", ["active"])
 @pytest.mark.asyncio
 async def test_unready_consumers_reject_before_generation(mode: str) -> None:
     def forbidden(*args: object, **kwargs: object) -> None:

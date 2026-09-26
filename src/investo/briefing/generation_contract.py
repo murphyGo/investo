@@ -17,6 +17,7 @@ from investo.briefing.segments import MarketSegment
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models import Briefing, BriefingCarryover, NormalizedItem, SourceOutcome
 from investo.models.bundle_context import BundleContext
+from investo.models.event_narratives import EventGenerationPayload
 from investo.models.events import EventIdentityReceipt, EventSelectionPlan
 
 
@@ -96,6 +97,7 @@ class GenerationResult:
     macro_lineage: tuple[MacroLineageTrace, ...] = ()
     event_plan: EventSelectionPlan | None = None
     event_observation: CandidateObservation | None = None
+    event_payload: EventGenerationPayload | None = None
 
 
 __all__ = [

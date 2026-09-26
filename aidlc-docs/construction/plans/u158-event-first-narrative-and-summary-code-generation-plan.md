@@ -3,7 +3,7 @@
 **Date**: 2026-09-26
 **Unit**: u158 event-first-narrative-and-summary
 **Stage**: Code Generation (planned)
-**Status**: Queued — design approved; follows u157.
+**Status**: Code complete — 7/7 steps, full regression 5521 passed (402.28s); independent review and cross-check PASS. Preview ready; active remains off.
 **Source**: `../news-event-briefing/evidence/review-20260922.md`; user planning request 2026-09-26.
 **Estimated Effort**: ~18–26 h
 **Dependencies**: u157 모델/plan 구현. u154 배치 및 u156 Telegram 구성은 hard dependency가 아니다.
@@ -30,13 +30,13 @@ Use the shared NFR/validation document; no boilerplate infrastructure stage. Thi
 Normative: [design-brief](../u158-event-first-narrative-and-summary/design-brief.md), [event-contract](../news-event-briefing/event-contract.md), [business-rules](../news-event-briefing/business-rules.md), [NFR](../news-event-briefing/nfr-and-validation.md). The numbered rules and exact defaults there are part of this plan. Changes require synchronized design/AC updates.
 
 ## Implementation Steps
-- [ ] Step 1: E6 parser와 system/user/retry의 schema version을 일치시킨다. _stage2_retry_feedback의 v1 bytes를 유지하고 v2는 JSON 객체를 재요청한다. 두 provider에서 invalid v2 → valid v2 replay를 검증한다.
-- [ ] Step 2: 사건 renderer와 event validator를 구현한다. 필수 fact, 허용 entity, 필드별 EvidenceRef, actual/forecast/period를 검증하며 event.fact_unsupported / event.entity_unsupported / event.evidence_invalid hard findings를 보존한다.
-- [ ] Step 3: 상단 conclusion/driver/caution/TL;DR content producer를 사건 기반으로 연결하고 u153 sentence bound를 재사용한다.
-- [ ] Step 4: GenerationResult → orchestrator → PublicDocumentContext의 default-empty frozen event payload를 전달한다.
-- [ ] Step 5: B8의 bounded repair reconciliation과 reindex를 구현한다. 모든 수정 후 기존 hard gates와 읽기 전용 terminal/summary 검증을 다시 수행한다.
-- [ ] Step 6: PublicEventSummary와 optional events DTO, 기존 conclusion consumer 호환을 추가한다. notifierlayout은 수정하지 않는다.
-- [ ] Step 7: 전체 real-finalizer/HTML/partial tests와 provider replay를 통과시킨다. u159평가 통과 전active는blocked다.
+- [x] Step 1: E6 parser와 system/user/retry의 schema version을 일치시킨다. _stage2_retry_feedback의 v1 bytes를 유지하고 v2는 JSON 객체를 재요청한다. 두 provider에서 invalid v2 → valid v2 replay를 검증한다.
+- [x] Step 2: 사건 renderer와 event validator를 구현한다. 필수 fact, 허용 entity, 필드별 EvidenceRef, actual/forecast/period를 검증하며 event.fact_unsupported / event.entity_unsupported / event.evidence_invalid hard findings를 보존한다.
+- [x] Step 3: 상단 conclusion/driver/caution/TL;DR content producer를 사건 기반으로 연결하고 u153 sentence bound를 재사용한다.
+- [x] Step 4: GenerationResult → orchestrator → PublicDocumentContext의 default-empty frozen event payload를 전달한다.
+- [x] Step 5: B8의 bounded repair reconciliation과 reindex를 구현한다. 모든 수정 후 기존 hard gates와 읽기 전용 terminal/summary 검증을 다시 수행한다.
+- [x] Step 6: PublicEventSummary와 optional events DTO, 기존 conclusion consumer 호환을 추가한다. notifierlayout은 수정하지 않는다.
+- [x] Step 7: 전체 real-finalizer/HTML/partial tests와 provider replay를 통과시킨다. u159평가 통과 전active는blocked다.
 
 ## Acceptance Criteria
 1. AC-158.1: 정책결정·실적·제품·발언 fixture에서 selected 사건의 what/when/required facts/why/reaction status/source가최종②에존재한다.

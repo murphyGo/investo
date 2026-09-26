@@ -36,15 +36,23 @@ def _macro_lineage_signals_for_segment(
     plan: SectionPlan,
     segment: MarketSegment,
     final_markdown: str,
+    prompted_items: Sequence[NormalizedItem] | None = None,
+    routed_items: Sequence[NormalizedItem] | None = None,
 ) -> tuple[MacroLineageSignal, ...]:
     routed = segment_items(all_items)
-    grouped_rendered = _grouped_stage2_rendered_items(plan, segment=segment)
+    grouped_rendered = (
+        tuple(prompted_items)
+        if prompted_items is not None
+        else _grouped_stage2_rendered_items(plan, segment=segment)
+    )
     lookahead_rendered = filter_lookahead_items(llm_items)
     signals: list[MacroLineageSignal] = []
     for item in all_items:
         if macro_event_key(item) is None:
             continue
         routed_segment = _lineage_routed_segment(item, routed, preferred_segment=segment)
+        if routed_items is not None and _lineage_contains_item(item, routed_items):
+            routed_segment = segment
         selected_id = _lineage_item_id(item, llm_items)
         stage1_assignment = (
             classification.assignments.get(selected_id) if selected_id is not None else None

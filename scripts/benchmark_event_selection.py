@@ -10,11 +10,22 @@ from investo.briefing.event_evidence import (
     build_event_candidates,
     make_evidence_document,
     prepare_evidence_documents,
+    resolve_evidence_ref,
 )
 from investo.briefing.event_input import select_event_input_items
+from investo.briefing.event_narrative import assemble_event_synthesis, parse_event_synthesis
 from investo.briefing.event_selection import select_events
 from investo.models import NormalizedItem
+from investo.models.event_narratives import (
+    EventGenerationPayload,
+    EventMeaning,
+    EventNarrative,
+    EventReaction,
+    Stage2OutputV2,
+    Stage2Sections,
+)
 from investo.models.events import EventCandidateDraft, EventFactDraft, EvidenceDocument, EvidenceRef
+from investo.publisher.event_blocks import event_hard_issue_codes, terminal_events
 
 
 def benchmark() -> dict[str, object]:
@@ -92,6 +103,41 @@ def benchmark() -> dict[str, object]:
             window_start=observed - timedelta(days=1),
             window_end=observed,
         )
+        narratives = tuple(
+            EventNarrative(
+                event_id=event.event_id,
+                headline=resolve_evidence_ref(event.actor_refs[0], plan.evidence_documents),
+                what_happened=(
+                    resolve_evidence_ref(event.actor_refs[0], plan.evidence_documents)
+                    + "는 "
+                    + resolve_evidence_ref(event.object_refs[0], plan.evidence_documents)
+                    + "를 출시했습니다."
+                ),
+                fact_ids=event.required_fact_ids,
+                source_refs=event.evidence_refs,
+                meaning=EventMeaning(text=None, mode="unavailable"),
+                reaction=EventReaction(text=None, status="unavailable"),
+            )
+            for event in plan.selected
+        )
+        output = Stage2OutputV2(
+            schema_version=2,
+            sections=Stage2Sections(
+                market_summary="합성 성능 검증용 발표입니다.",
+                sector_flow="추가 자료는 확인하지 못했습니다.",
+                indicators_events="추가 일정은 확인하지 못했습니다.",
+                notable_tickers="추가 기업 자료는 확인하지 못했습니다.",
+                today_watch="공식 후속 발표를 확인합니다.",
+            ),
+            events=narratives,
+        )
+        parsed = parse_event_synthesis(output.model_dump_json(), plan)
+        markdown = assemble_event_synthesis(parsed, plan)
+        payload = EventGenerationPayload(plan=plan, narratives=parsed.events)
+        if event_hard_issue_codes(markdown, payload) or len(
+            terminal_events(markdown, payload)
+        ) != len(plan.selected):
+            raise ValueError("synthetic event validation failed")
         return len(items), len(plan.selected)
 
     run_once()
@@ -107,6 +153,7 @@ def benchmark() -> dict[str, object]:
         "candidate_count": candidate_count,
         "selected_count": selected_count,
         "iterations": 10,
+        "scope": "selection, v2 parser, event renderer and terminal validation",
         "p95_ms": round(p95, 3),
         "limit_ms": 200,
         "passed": p95 <= 200,

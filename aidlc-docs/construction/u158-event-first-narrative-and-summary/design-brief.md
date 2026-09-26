@@ -1,7 +1,7 @@
 # Functional Design: u158 사건 중심 본문과 상단 요약
 
 **Date**: 2026-09-26
-**Status**: Design approved by the 2026-09-27 sequential-development request. Queued — design approved; follows u157.
+**Status**: Design approved by the 2026-09-27 sequential-development request. Code complete — 7/7 steps, full regression 5521 passed (402.28s); independent review and cross-check PASS. Preview ready; active remains off.
 **Priority / effort**: P0 / 18–26 h (rough engineering estimate, not commitment).
 **Dependencies**: u157 모델/plan 구현. u154 배치 및 u156 Telegram 구성은 hard dependency가 아니다.
 
@@ -44,3 +44,12 @@ Apply B4/B5/B8/B11 and unit-specific states. Off mode preserves current producer
 
 ## Development sequence
 See [code-generation plan](../plans/u158-event-first-narrative-and-summary-code-generation-plan.md). Implementation follows the 2026-09-27 user-authorized sequential queue.
+
+## Implementation refinements (2026-09-27)
+
+- Frozen narrative DTO는 `models/event_narratives.py`, 양 소비자 공통의 순수 span/renderer는 `_internal/event_rendering.py`에 둔다. publisher가 briefing sibling을 import하지 않는다.
+- 비게시 entrypoint는 `orchestrator/event_preview.py`이며 명시적 segment/관측 시각을 받는다. public main/run_pipeline은 preview를 알림까지 포함하여 선차단한다. 기존 2단계 provider/retry 경로를 재사용한다.
+- 사건 수집 상태는 전체 가격 coverage와 분리한다. 정상 0건, 수집 근거 없음, 뉴스 source 실패를 구분하며 기사 건수만으로 전체 뉴스 완전성을 주장하지 않는다.
+- 기존 순수 glossary dedup만 event child를 보존하여 여러 사건의 `(출처 날짜)` 정밀도 표기를 지우지 않는다. 숫자 강조와 escaping은 terminal에서 표현만 복원하며 기존 hard gate는 전체 원문을 검사한다.
+- 요약 내용 교체는 TL;DR 선행 문단만 수정하고 뒤의 callout/hero를 보존한다. 현재 배치와 u154의 제안 배치를 합성 fixture로 검증하되 u154 구현 완료를 의미하지 않는다.
+- 이 유닛의 기본 관측 창은 수신 시장의 calendar-day다. u160 이전에는 공유 후보라도 recipient 창을 우회하지 않는다. source receipt의 active publication ledger 연결과 coverage/운영 gate는 u159 handoff다.

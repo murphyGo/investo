@@ -80,7 +80,7 @@ renderer가 required_fact_ids의 근거값을 `결정/실적/발표 내용` 줄�
 
 ## E7 EventPublicationReceipt / terminal DTO
 
-GenerationResult에 default-empty `event_plan`, `event_narratives`를 추가하고 orchestrator가 PublicDocumentContext로 전달한다. 기존 Briefing 필드문자열을최종사실소스로사용하지않는다.
+GenerationResult의 optional `event_plan=None`과 frozen `event_payload=None`을 통해 orchestrator가 PublicDocumentContext로 전달한다. 구현된 payload는 `EventGenerationPayload(plan, narratives, collection_limited)`이며 plan/narratives를 한 경계로 운반한다. None은 해당 단계 미실행이며, 정상 완료한 0건은 빈 plan/narratives를 가진 payload로 구분한다. 기존 Briefing 필드문자열을최종사실소스로사용하지않는다.
 
 u144 phase-one에서 `<!-- investo:block event:{event_id} -->` owned region을만들고 terminal validation이 실제살아남은block/fact/source를검사한다. ID는보이지않는기존marker관례이며공개설명텍스트/알림에노출하지않는다. generation receipt와 sealed receipt를구분한다.
 
