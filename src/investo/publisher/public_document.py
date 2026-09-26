@@ -3098,6 +3098,18 @@ def _validate_repaired_draft(
             phase="validated",
             issue_code="invariant.notification_summary",
         )
+    payload = context.event_payloads_by_segment.get(draft.segment)
+    if payload is not None:
+        from investo.publisher.event_quality import terminal_event_issue_codes
+
+        event_codes = terminal_event_issue_codes(
+            draft.layout.markdown,
+            payload=payload,
+            notification_summary=snapshot.notification_summary,
+            surviving_event_ids=draft.surviving_event_ids,
+        )
+        if event_codes:
+            raise _SegmentTrustBlockedError(phase="validated", issue_codes=event_codes)
     return _transition_draft(
         draft,
         next_phase="validated",
@@ -3740,6 +3752,7 @@ def _finalize_bundle_skeleton(
         segment=None,
         phase="bundle" if len(blocked) == len(briefings) else "fixed_point",
         issue_codes=all_codes,
+        blocked_issue_codes_by_segment=blocked,
     )
 
 
@@ -3975,6 +3988,7 @@ class PublicDocumentFinalizationError(Exception):
         phase: str,
         issue_codes: Sequence[str],
         cause: Exception | None = None,
+        blocked_issue_codes_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
     ) -> None:
         if not phase or len(phase) > 64 or re.fullmatch(r"[a-z0-9._-]+", phase) is None:
             raise ValueError("phase must be a bounded machine-readable value")
@@ -3982,6 +3996,12 @@ class PublicDocumentFinalizationError(Exception):
         self.segment = segment
         self.phase = phase
         self.issue_codes = _canonical_issue_codes(issue_codes)
+        self.blocked_issue_codes_by_segment = _freeze_mapping(
+            {
+                segment: _canonical_issue_codes(codes)
+                for segment, codes in (blocked_issue_codes_by_segment or {}).items()
+            }
+        )
         self.cause = cause
         self.cause_code = _bounded_finalization_cause_code(cause)
         segment_label = segment if segment is not None else "bundle"

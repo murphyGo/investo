@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-27",
+  "unit": "u159",
+  "baseline": "c3f2e5efe91d1a1284d9e859eedba71728a7d64b",
+  "status": "code_complete_operational_acceptance_pending",
+  "tests": [
+    {"scope": "final full regression", "passed": 5652, "seconds": 416.33},
+    {"scope": "independent replay integration", "passed": 32, "seconds": 4.04},
+    {"scope": "independent terminal review corrections", "passed": 45, "seconds": 2.50},
+    {"scope": "independent quality model and page corrections", "passed": 35, "seconds": 1.04},
+    {"scope": "final preview and finalizer architecture", "passed": 17, "seconds": 3.18},
+    {"scope": "integrated stage receipts, terminal metrics, generation and finalization", "passed": 77, "seconds": 5.82},
+    {"scope": "parent independent-review corrections and publication", "passed": 18, "seconds": 1.71},
+    {"scope": "legacy orchestrator and architecture before offline replay helper relocation", "passed": 154, "failed": 1, "seconds": 41.88},
+    {"scope": "quality history and page implementation before independent-review corrections", "passed": 97},
+    {"scope": "terminal metric implementation", "passed": 30, "seconds": 1.71}
+  ],
+  "static": {"ruff": "pass", "format_files": 638, "mypy_source_files": 282},
+  "guards": {"no_anthropic_sdk": "pass", "no_paid_apis": "pass", "curated_assets": "pass", "image_store": "pass", "mkdocs_strict": "pass", "mkdocs_seconds": 7.84, "material_theme": "pass"},
+  "replay": {"scenario_groups": 12, "variants_passed": 25, "variants_total": 25, "historical_output_inventory": 18, "historical_inventory_sha_mismatches": 0, "fixture_author": "AI-authored synthetic", "human_semantic_score": null},
+  "review": {"waves": 2, "resolved_p2": 8, "unresolved_p1_p2": 0, "independent_packet_and_parent_review": "pass"},
+  "acceptance": {"AC-159.1": "pass", "AC-159.2": "pass", "AC-159.3": "pass", "AC-159.4": "automated_replay_pass_human_semantic_pending", "AC-159.5": "pass", "AC-159.6": "pass"},
+  "benchmark": {"input_count": 1000, "candidate_count": 96, "selected_count": 5, "iterations": 10, "p95_ms": 126.662, "limit_ms": 200, "status": "pass", "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate"},
+  "operational_acceptance": {"human_semantic_review": "pending", "scheduled_shadow_five_runs": "not_run", "active_first_three_publications": "not_run", "production_activation": "off"},
+  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "authorized_after_passed_final_gate"}
+}

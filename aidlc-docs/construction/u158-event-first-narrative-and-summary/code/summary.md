@@ -2,6 +2,8 @@
 
 2026-09-27 사용자 요청에 따라 u157 원격 전달 후 순차 개발했다. 구현 7/7, 독립 리뷰 및 cross-check를 완료했다. 운영 활성화는 별도다.
 
+원격 전달: `c3f2e5efe91d1a1284d9e859eedba71728a7d64b`, `origin/codex/news-event-design-20260926`의 정확한 SHA 일치를 확인했다.
+
 ## 구현
 
 - Stage2는 명시적 JSON v2를 사용한다. 다섯 section body와 선정 순서가 동일한 event 배열을 받아 ②를 한 곳에서 렌더한다. actor/action/object refs, 필수 fact, 필드별 근거, actual/forecast/period/unit을 검증한다. 잘못된 출력은 기존 재시도 안에서 전체 JSON을 재요청하며 오류에 원문을 싣지 않는다.

@@ -39,7 +39,7 @@ cross-unit edges (CLAUDE.md #3).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from typing import Generic, Literal, Protocol, TypeVar
 
 from pydantic import HttpUrl
@@ -81,6 +81,7 @@ class PipelineContext:
     generate: object | None = None
     generate_segment: object | None = None
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG
+    event_observed_at: datetime | None = None
 
 
 @dataclass(frozen=True)

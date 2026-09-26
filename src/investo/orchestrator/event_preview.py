@@ -14,6 +14,8 @@ from investo.briefing.generation_contract import GenerationInput, GenerationResu
 from investo.briefing.pipeline import GenerationPolicy, generate_briefing_from_input
 from investo.briefing.segments import build_segment_coverage, segment_source_outcomes
 from investo.models.event_config import EventExecutionConfig
+from investo.models.event_quality import EventCoverage
+from investo.publisher.event_quality import evaluate_event_quality
 from investo.publisher.public_document import (
     FinalizedPublicBundle,
     PublicDocumentContext,
@@ -25,6 +27,7 @@ from investo.publisher.public_document import (
 class EventPreviewResult:
     generation: GenerationResult
     finalized: FinalizedPublicBundle
+    event_coverage: EventCoverage | None = None
 
 
 async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult:
@@ -71,4 +74,18 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
         event_payloads_by_segment={segment: payload},
     )
     finalized = finalize_public_bundle({segment: generation.briefing}, context=context)
-    return EventPreviewResult(generation=generation, finalized=finalized)
+    document = next(
+        (document for document in finalized.documents if document.segment == segment), None
+    )
+    outcome = next(
+        (outcome for outcome in finalized.segment_outcomes if outcome.segment == segment), None
+    )
+    coverage = evaluate_event_quality(
+        document,
+        payload=payload,
+        receipts=generation.event_stage_receipts,
+        hard_issue_codes=outcome.issue_codes
+        if outcome is not None and outcome.state == "trust_blocked"
+        else (),
+    )
+    return EventPreviewResult(generation=generation, finalized=finalized, event_coverage=coverage)

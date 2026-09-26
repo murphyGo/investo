@@ -1,0 +1,2030 @@
+{
+  "rate-sep": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-rate-sep",
+            "category": "news",
+            "title": "가상중앙은행 금리 결정",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/rate-sep",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3",
+              "revision_id": "edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4",
+              "origin_revision_id": null,
+              "source_name": "fixture-rate-sep",
+              "url": "https://example.invalid/synthetic/rate-sep",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상중앙은행 금리 결정",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "정책금리를 2.75%로 유지했습니다. SEP의 내년 정책금리 예상은 3.00%입니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-rate-sep",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"monetary_policy\", \"actor_refs\": [{\"document_id\": \"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\", \"revision_id\": \"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\", \"field\": \"title\", \"start\": 0, \"end\": 6}], \"action_refs\": [{\"document_id\": \"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\", \"revision_id\": \"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"object_refs\": [], \"relation_refs\": [{\"document_id\": \"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\", \"revision_id\": \"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 20}], \"impact_refs\": [{\"document_id\": \"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\", \"revision_id\": \"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 20}], \"facts\": [{\"predicate\": \"decision\", \"evidence_ref\": {\"document_id\": \"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\", \"revision_id\": \"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 20}, \"status\": \"actual\", \"period\": null, \"unit\": \"%\"}, {\"predicate\": \"decision\", \"evidence_ref\": {\"document_id\": \"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\", \"revision_id\": \"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\", \"field\": \"detail_excerpt\", \"start\": 21, \"end\": 47}, \"status\": \"forecast\", \"period\": null, \"unit\": \"%\"}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"systemic\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"ab2d6aaf4fdf7ee61cc606e4\",\"headline\":\"가상중앙은행 금리 결정\",\"what_happened\":\"가상중앙은행은 정책금리를 2.75%로 유지했습니다.\",\"fact_ids\":[\"7c24946d5150483669c709eb2453fd1243d4f69f08f78e08027f0ba41527c501\",\"81328a929d9f2ca4e3e543fd56a61806f246d85271bc6e21a50e7d46eec60e2b\"],\"source_refs\":[{\"document_id\":\"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\",\"revision_id\":\"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":20},{\"document_id\":\"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\",\"revision_id\":\"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\",\"field\":\"detail_excerpt\",\"start\":21,\"end\":47},{\"document_id\":\"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\",\"revision_id\":\"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\",\"field\":\"title\",\"start\":0,\"end\":6},{\"document_id\":\"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\",\"revision_id\":\"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":\"예상 경로가 유지된다면 자금 조달 여건에 영향을 줄 수 있습니다.\",\"mode\":\"conditional\",\"evidence_refs\":[{\"document_id\":\"a4ecdbd11e59f369c72cdbb68026f5be53066be2d2a8191258c21f012fe654c3\",\"revision_id\":\"edb05c08ea04c262c3ca562f003212a279555c4ddab5bf8908aa4d83e0b19ac4\",\"field\":\"detail_excerpt\",\"start\":21,\"end\":47}]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "geopolitical-unknown-reaction": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-geopolitical",
+            "category": "news",
+            "title": "가상국A와 가상국B 통행 재개 합의",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/geopolitical",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193",
+              "revision_id": "039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297",
+              "origin_revision_id": null,
+              "source_name": "fixture-geopolitical",
+              "url": "https://example.invalid/synthetic/geopolitical",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상국A와 가상국B 통행 재개 합의",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "국경 통행을 다시 허용하기로 합의했습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-geopolitical",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"geopolitical\", \"actor_refs\": [{\"document_id\": \"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\", \"revision_id\": \"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\", \"field\": \"title\", \"start\": 0, \"end\": 10}], \"action_refs\": [{\"document_id\": \"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\", \"revision_id\": \"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\", \"field\": \"title\", \"start\": 11, \"end\": 19}], \"object_refs\": [], \"relation_refs\": [{\"document_id\": \"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\", \"revision_id\": \"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 23}], \"impact_refs\": [{\"document_id\": \"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\", \"revision_id\": \"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 23}], \"facts\": [{\"predicate\": \"agreement\", \"evidence_ref\": {\"document_id\": \"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\", \"revision_id\": \"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 23}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"systemic\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"8c88b3960c3a5c6c9846225f\",\"headline\":\"가상국A와 가상국B 통행 재개 합의\",\"what_happened\":\"가상국A와 가상국B는 국경 통행 재개에 합의했습니다.\",\"fact_ids\":[\"efb4e6e7ee5adaf97d6e965ea76c535da69de2b2b9167d4423b3d284d08275b8\"],\"source_refs\":[{\"document_id\":\"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\",\"revision_id\":\"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":23},{\"document_id\":\"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\",\"revision_id\":\"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\",\"field\":\"title\",\"start\":0,\"end\":10},{\"document_id\":\"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\",\"revision_id\":\"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\",\"field\":\"title\",\"start\":11,\"end\":19}],\"meaning\":{\"text\":\"통행이 재개된다면 물류 회복에 도움이 될 수 있습니다.\",\"mode\":\"conditional\",\"evidence_refs\":[{\"document_id\":\"c89cba3ca02c10734064f1e14f7efa1fd11dae4c856d178d6ed5c52ed9567193\",\"revision_id\":\"039e906e7e1784edd70a42cf63431f8cc4808305251713943c07086f6aebb297\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":23}]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "earnings-actual-estimate-guidance": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-earnings",
+            "category": "news",
+            "title": "가상기업 실적 발표",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/earnings",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759",
+              "revision_id": "180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1",
+              "origin_revision_id": null,
+              "source_name": "fixture-earnings",
+              "url": "https://example.invalid/synthetic/earnings",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상기업 실적 발표",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "2026년 3분기 실제 매출은 10억 달러입니다. 같은 분기 시장 예상 매출은 9억 달러입니다. 다음 분기 가이던스는 예상 매출 12억 달러입니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-earnings",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"earnings_result\", \"actor_refs\": [{\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"title\", \"start\": 0, \"end\": 4}], \"action_refs\": [{\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"title\", \"start\": 5, \"end\": 10}], \"object_refs\": [], \"relation_refs\": [{\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 27}], \"impact_refs\": [{\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 27}], \"facts\": [{\"predicate\": \"result\", \"evidence_ref\": {\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 27}, \"status\": \"actual\", \"period\": \"2026년 3분기\", \"unit\": \"달러\"}, {\"predicate\": \"result\", \"evidence_ref\": {\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"detail_excerpt\", \"start\": 28, \"end\": 53}, \"status\": \"forecast\", \"period\": \"3분기\", \"unit\": \"달러\"}, {\"predicate\": \"guidance\", \"evidence_ref\": {\"document_id\": \"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\", \"revision_id\": \"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\", \"field\": \"detail_excerpt\", \"start\": 54, \"end\": 82}, \"status\": \"forecast\", \"period\": null, \"unit\": \"달러\"}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"3c4e725fb56d6b303b740787\",\"headline\":\"가상기업 실적 발표\",\"what_happened\":\"가상기업은 실제 매출 10억 달러와 예상 매출 12억 달러의 가이던스를 발표했습니다.\",\"fact_ids\":[\"0198113d77d0ec77a861ab50eb91b053fd444f64c3e283fd46c9767dad383ee6\",\"135f1a9544c7ed611a046ca132362a6b6c6ce01fc97b042e6cba0f3f8b663e74\",\"5fdb2f35e3f06f2d3eca16e9596e059133dc4f7a7f8b52753281000be70efb3d\"],\"source_refs\":[{\"document_id\":\"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\",\"revision_id\":\"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":27},{\"document_id\":\"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\",\"revision_id\":\"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\",\"field\":\"detail_excerpt\",\"start\":28,\"end\":53},{\"document_id\":\"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\",\"revision_id\":\"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\",\"field\":\"detail_excerpt\",\"start\":54,\"end\":82},{\"document_id\":\"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\",\"revision_id\":\"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\",\"field\":\"title\",\"start\":0,\"end\":4},{\"document_id\":\"6d1851fb655a0a35bd272096b1790564c2b195ae04e77c0b5690131a14763759\",\"revision_id\":\"180ad3883f44faf51948c753adeb86654f895a2e90d070718ae71be64706d3a1\",\"field\":\"title\",\"start\":5,\"end\":10}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "services-1": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "services-4": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-2",
+            "category": "news",
+            "title": "가상사 출시 서비스 나",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-2",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927",
+              "revision_id": "c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-2",
+              "url": "https://example.invalid/synthetic/service-2",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 나",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 나가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-3",
+            "category": "news",
+            "title": "가상사 출시 서비스 다",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-3",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c",
+              "revision_id": "882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-3",
+              "url": "https://example.invalid/synthetic/service-3",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 다",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 다가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-4",
+            "category": "news",
+            "title": "가상사 출시 서비스 라",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-4",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639",
+              "revision_id": "192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-4",
+              "url": "https://example.invalid/synthetic/service-4",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 라",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 라가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-2",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-3",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-4",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2, \"2\": 2, \"3\": 2, \"4\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [2], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [3], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [4], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"97c9f81f5b65b8b8ffe793ed\",\"headline\":\"가상사 출시 서비스 다\",\"what_happened\":\"가상사는 서비스 다를 정식 출시했습니다.\",\"fact_ids\":[\"02376e2c88713a942a8edeea0b56c5f655a9896ab313585d5f7c3ade3ed7e11e\"],\"source_refs\":[{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"ac71f8b0b00ea06876160119\",\"headline\":\"가상사 출시 서비스 라\",\"what_happened\":\"가상사는 서비스 라를 정식 출시했습니다.\",\"fact_ids\":[\"91c4a4af04250aaa28684c573755a0ecd94eabdd123b7b2adbeb01d2059c8b67\"],\"source_refs\":[{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"aeab0e4a9e3c7559513ea422\",\"headline\":\"가상사 출시 서비스 나\",\"what_happened\":\"가상사는 서비스 나를 정식 출시했습니다.\",\"fact_ids\":[\"de11178de687ad9689b43c0951254956fc2e233bec54270e3cdb8a6219a75f14\"],\"source_refs\":[{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "services-5": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-2",
+            "category": "news",
+            "title": "가상사 출시 서비스 나",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-2",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927",
+              "revision_id": "c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-2",
+              "url": "https://example.invalid/synthetic/service-2",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 나",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 나가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-3",
+            "category": "news",
+            "title": "가상사 출시 서비스 다",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-3",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c",
+              "revision_id": "882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-3",
+              "url": "https://example.invalid/synthetic/service-3",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 다",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 다가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-4",
+            "category": "news",
+            "title": "가상사 출시 서비스 라",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-4",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639",
+              "revision_id": "192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-4",
+              "url": "https://example.invalid/synthetic/service-4",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 라",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 라가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-5",
+            "category": "news",
+            "title": "가상사 출시 서비스 마",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-5",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8",
+              "revision_id": "de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-5",
+              "url": "https://example.invalid/synthetic/service-5",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 마",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 마가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-2",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-3",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-4",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-5",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2, \"2\": 2, \"3\": 2, \"4\": 2, \"5\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [2], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [3], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [4], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [5], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\", \"revision_id\": \"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\", \"revision_id\": \"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\", \"revision_id\": \"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\", \"revision_id\": \"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\", \"revision_id\": \"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\", \"revision_id\": \"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"10a92334f4034f4a9ccf2db1\",\"headline\":\"가상사 출시 서비스 마\",\"what_happened\":\"가상사는 서비스 마를 정식 출시했습니다.\",\"fact_ids\":[\"c06d93ecac62c4ee193a4afbd214b0dc057fa9763adf6096b766d1513241744c\"],\"source_refs\":[{\"document_id\":\"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\",\"revision_id\":\"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\",\"revision_id\":\"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\",\"revision_id\":\"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"4e9c002f8524340de1ad095d509379e58024a2821f5be00ba5cae3f1fb52d8d8\",\"revision_id\":\"de03b32a1c1d1ce5fb6c83988ab62d9a62aa488efb8bb0d9c1c2bd096d3b2b3e\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"97c9f81f5b65b8b8ffe793ed\",\"headline\":\"가상사 출시 서비스 다\",\"what_happened\":\"가상사는 서비스 다를 정식 출시했습니다.\",\"fact_ids\":[\"02376e2c88713a942a8edeea0b56c5f655a9896ab313585d5f7c3ade3ed7e11e\"],\"source_refs\":[{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"8e282cf73027c9973ed866e862b15417374c9e7c3b8488216595501c8920465c\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"ac71f8b0b00ea06876160119\",\"headline\":\"가상사 출시 서비스 라\",\"what_happened\":\"가상사는 서비스 라를 정식 출시했습니다.\",\"fact_ids\":[\"91c4a4af04250aaa28684c573755a0ecd94eabdd123b7b2adbeb01d2059c8b67\"],\"source_refs\":[{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"0e85966ab595b303e7832b9a443f32e943c53bb81aee7b27909aacd0f1fd7639\",\"revision_id\":\"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"aeab0e4a9e3c7559513ea422\",\"headline\":\"가상사 출시 서비스 나\",\"what_happened\":\"가상사는 서비스 나를 정식 출시했습니다.\",\"fact_ids\":[\"de11178de687ad9689b43c0951254956fc2e233bec54270e3cdb8a6219a75f14\"],\"source_refs\":[{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "statement-actor": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-statement",
+            "category": "news",
+            "title": "가상총재 정책 발언",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/statement",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096",
+              "revision_id": "cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce",
+              "origin_revision_id": null,
+              "source_name": "fixture-statement",
+              "url": "https://example.invalid/synthetic/statement",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상총재 정책 발언",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "물가 안정이 우선이라고 밝혔습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-statement",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"public_statement\", \"actor_refs\": [{\"document_id\": \"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\", \"revision_id\": \"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\", \"field\": \"title\", \"start\": 0, \"end\": 4}], \"action_refs\": [{\"document_id\": \"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\", \"revision_id\": \"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\", \"field\": \"title\", \"start\": 5, \"end\": 10}], \"object_refs\": [], \"relation_refs\": [{\"document_id\": \"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\", \"revision_id\": \"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 19}], \"impact_refs\": [{\"document_id\": \"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\", \"revision_id\": \"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 19}], \"facts\": [{\"predicate\": \"statement\", \"evidence_ref\": {\"document_id\": \"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\", \"revision_id\": \"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 19}, \"status\": \"quoted_opinion\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"ce05c23a89cbdc408e630252\",\"headline\":\"가상총재 정책 발언\",\"what_happened\":\"가상총재는 물가 안정이 우선이라고 밝혔습니다.\",\"fact_ids\":[\"c8f56decbf11bc67bd7cfe8153a55ffa6572189b0503f1e20b1473bed4c93ae9\"],\"source_refs\":[{\"document_id\":\"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\",\"revision_id\":\"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":19},{\"document_id\":\"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\",\"revision_id\":\"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\",\"field\":\"title\",\"start\":0,\"end\":4},{\"document_id\":\"e11a8dec10f8de9aa3365fc5bd1b624d7179d64aa95c4ef3838d3ae7ced3c096\",\"revision_id\":\"cdc25c25559eff69baa4e91d329ee95ac06ce203519437feddac07f6e82266ce\",\"field\":\"title\",\"start\":5,\"end\":10}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "unchanged-monthly-cot": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-monthly",
+            "category": "macro",
+            "title": "변화 없는 월간 물가지수 334.131",
+            "summary": "이전 발표의 관측값이 그대로 유지됩니다.",
+            "url": null,
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {}
+          },
+          {
+            "source_name": "fixture-cot",
+            "category": "news",
+            "title": "주간 COT 잔고 배경자료",
+            "summary": "이전에 공개된 주간 잔고이며 새로운 변화는 없습니다.",
+            "url": null,
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {}
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-cot",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 4, \"2\": 4}, \"unassigned\": [], \"events\": []}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "duplicate-report": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-duplicate-a",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/duplicate-a",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-duplicate-a",
+              "url": "https://example.invalid/synthetic/duplicate-a",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-duplicate-b",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/duplicate-b",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-duplicate-b",
+              "url": "https://example.invalid/synthetic/duplicate-b",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-duplicate-a",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-duplicate-b",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2, \"2\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [2], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"6fbd82f5f125c2e1e2d1d9413c03f27b6e349ff0a0fbd9c0f91e214e5b32b1e4\",\"d2291c852fcd9f66b4215fde66c88c55dfbab9a1ed36142c29c55f07c9d98b7c\"],\"source_refs\":[{\"document_id\":\"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"5ec4b9d327ce335e756fb1d3f7e7704594e029addf2ee3c05631a9f0672ac55d\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12},{\"document_id\":\"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"72a0b587ebdab61ddc91ba253daa019908389405a5729a9460e4047f4e9162cf\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "revised-article": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-revision",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/revision",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4",
+              "revision_id": "d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17",
+              "origin_revision_id": null,
+              "source_name": "fixture-revision",
+              "url": "https://example.invalid/synthetic/revision",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-20T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 전 지역에 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-revision",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [
+          {
+            "event_id": "8da735b9a4b3736dcd7bd2a9",
+            "event_key_hash": "8da735b9a4b3736dcd7bd2a90dd0ba51ca29cbbbb08ce31f04cf3aa2d664cd47",
+            "semantic_key_hash": "053bd738a156c791db62fd5ce6fd0d255c2ecb804f9ac2fe13616f36948c81cd",
+            "effective_date": "2026-09-20",
+            "official_key_hashes": [],
+            "document_aliases": [
+              "441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4"
+            ],
+            "revision_hashes": [
+              "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a"
+            ],
+            "fact_hashes": [
+              "f7e9a4ba22ff9e7192c755bc212f7da9c06ad0b548864c89c7bc30ef65972474"
+            ],
+            "published_at": "2026-09-20T12:00:00Z"
+          }
+        ],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\", \"revision_id\": \"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\", \"revision_id\": \"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\", \"revision_id\": \"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\", \"revision_id\": \"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 23}], \"impact_refs\": [{\"document_id\": \"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\", \"revision_id\": \"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 23}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\", \"revision_id\": \"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 23}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"8da735b9a4b3736dcd7bd2a9\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 전 지역에 정식 출시했습니다.\",\"fact_ids\":[\"ad298e5414eab26ac9c52c678264f58df25fcc1c9a5b70ab04533b13d677827a\"],\"source_refs\":[{\"document_id\":\"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\",\"revision_id\":\"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":23},{\"document_id\":\"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\",\"revision_id\":\"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\",\"revision_id\":\"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"441ef9061d5bade5754d31718e106627069976262e554ef8f1dd34e73a16d2a4\",\"revision_id\":\"d298f142985bba9359dacbd5eed1a73c84a814af565a17e01b4ec37d400e1b17\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "few-news-no-qualifying-event": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-quiet",
+            "category": "news",
+            "title": "정기 안내 자료",
+            "summary": "기존 안내문이며 새로운 사건 발표는 없습니다.",
+            "url": null,
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {}
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-quiet",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 4}, \"unassigned\": [], \"events\": []}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "few-news-supported-service": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "classification-unavailable": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\":2,\"events\":\"SYNTHETIC_PRIVATE_FAILURE_SENTINEL\"}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "all-sources-failed": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [],
+        "source_outcomes": [
+          {
+            "source_name": "cnbc-top-news",
+            "category": "news",
+            "status": "failed",
+            "item_count": 0,
+            "failure_reason": "synthetic_unavailable",
+            "transient": true,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [],
+        "mutation": "none"
+      }
+    ]
+  },
+  "successful-empty-collection": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [],
+        "source_outcomes": [
+          {
+            "source_name": "cnbc-top-news",
+            "category": "news",
+            "status": "zero",
+            "item_count": 0,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [],
+        "mutation": "none"
+      }
+    ]
+  },
+  "weekend-outside-calendar-day": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-weekend",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/weekend",
+            "published_at": "2026-09-20T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-weekend",
+              "url": "https://example.invalid/synthetic/weekend",
+              "published_at": "2026-09-20T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-20T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-weekend",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"4bc8df1dce9c78d7f168c0eafa7b1c8f3af2d4dfd0d04a61757b8e2f5f9ef39f\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "dst-spring-boundaries": {
+    "target_date": "2026-03-08",
+    "observed_at": "2026-03-09T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-dst-spring-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-spring-1",
+            "published_at": "2026-03-08T04:59:59Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-spring-1",
+              "url": "https://example.invalid/synthetic/dst-spring-1",
+              "published_at": "2026-03-08T04:59:59Z",
+              "received_at": "2026-03-09T06:00:00Z",
+              "event_time": "2026-03-08T04:59:59Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-dst-spring-2",
+            "category": "news",
+            "title": "가상사 출시 서비스 나",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-spring-2",
+            "published_at": "2026-03-08T05:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e",
+              "revision_id": "c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-spring-2",
+              "url": "https://example.invalid/synthetic/dst-spring-2",
+              "published_at": "2026-03-08T05:00:00Z",
+              "received_at": "2026-03-09T06:00:00Z",
+              "event_time": "2026-03-08T05:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 나",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 나가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-dst-spring-3",
+            "category": "news",
+            "title": "가상사 출시 서비스 다",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-spring-3",
+            "published_at": "2026-03-09T03:59:59Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1",
+              "revision_id": "882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-spring-3",
+              "url": "https://example.invalid/synthetic/dst-spring-3",
+              "published_at": "2026-03-09T03:59:59Z",
+              "received_at": "2026-03-09T06:00:00Z",
+              "event_time": "2026-03-09T03:59:59Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 다",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 다가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-dst-spring-4",
+            "category": "news",
+            "title": "가상사 출시 서비스 라",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-spring-4",
+            "published_at": "2026-03-09T04:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220",
+              "revision_id": "192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-spring-4",
+              "url": "https://example.invalid/synthetic/dst-spring-4",
+              "published_at": "2026-03-09T04:00:00Z",
+              "received_at": "2026-03-09T06:00:00Z",
+              "event_time": "2026-03-09T04:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 라",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 라가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-dst-spring-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-dst-spring-2",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-dst-spring-3",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-dst-spring-4",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2, \"2\": 2, \"3\": 2, \"4\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"fd8043c420172dbab1ad9f3a520429dd2dbe4f35a3086befbd3979adfbf7971d\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [2], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [3], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [4], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"b91797ec9a213982e116e8cffbb96586459deb88564cd7ab14765a095b2ff220\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"d60ffdb9edbf3f1b8aa27945\",\"headline\":\"가상사 출시 서비스 다\",\"what_happened\":\"가상사는 서비스 다를 정식 출시했습니다.\",\"fact_ids\":[\"754acd92a98489d42939c7c38367daabe427acd5d69753b12218252e63d45a4d\"],\"source_refs\":[{\"document_id\":\"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"1f644620e618eaf106355171a64b9eea388748d4beeb0e6f1585d626559802c1\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"45da5c0fcd9bf405cb517b56\",\"headline\":\"가상사 출시 서비스 나\",\"what_happened\":\"가상사는 서비스 나를 정식 출시했습니다.\",\"fact_ids\":[\"63ffc77caa6374af187cb2f12a5917f63cb2914f884697be0710f07206a3506f\"],\"source_refs\":[{\"document_id\":\"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"c0de3f7d1c804d14186f2883056830b05ff9302bd6107963031b18a4d615c82e\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "dst-fall-boundaries": {
+    "target_date": "2026-11-01",
+    "observed_at": "2026-11-02T07:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-dst-fall-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-fall-1",
+            "published_at": "2026-11-01T03:59:59Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-fall-1",
+              "url": "https://example.invalid/synthetic/dst-fall-1",
+              "published_at": "2026-11-01T03:59:59Z",
+              "received_at": "2026-11-02T07:00:00Z",
+              "event_time": "2026-11-01T03:59:59Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-dst-fall-2",
+            "category": "news",
+            "title": "가상사 출시 서비스 나",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-fall-2",
+            "published_at": "2026-11-01T04:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da",
+              "revision_id": "c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-fall-2",
+              "url": "https://example.invalid/synthetic/dst-fall-2",
+              "published_at": "2026-11-01T04:00:00Z",
+              "received_at": "2026-11-02T07:00:00Z",
+              "event_time": "2026-11-01T04:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 나",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 나가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-dst-fall-3",
+            "category": "news",
+            "title": "가상사 출시 서비스 다",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-fall-3",
+            "published_at": "2026-11-02T04:59:59Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7",
+              "revision_id": "882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-fall-3",
+              "url": "https://example.invalid/synthetic/dst-fall-3",
+              "published_at": "2026-11-02T04:59:59Z",
+              "received_at": "2026-11-02T07:00:00Z",
+              "event_time": "2026-11-02T04:59:59Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 다",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 다가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-dst-fall-4",
+            "category": "news",
+            "title": "가상사 출시 서비스 라",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/dst-fall-4",
+            "published_at": "2026-11-02T05:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800",
+              "revision_id": "192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1",
+              "origin_revision_id": null,
+              "source_name": "fixture-dst-fall-4",
+              "url": "https://example.invalid/synthetic/dst-fall-4",
+              "published_at": "2026-11-02T05:00:00Z",
+              "received_at": "2026-11-02T07:00:00Z",
+              "event_time": "2026-11-02T05:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 라",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 라가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-dst-fall-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-dst-fall-2",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-dst-fall-3",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-dst-fall-4",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2, \"2\": 2, \"3\": 2, \"4\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"ee477387442049047fd7fe942eb5106e7568f706dc55d933be495c775af18ac8\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [2], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [3], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\", \"revision_id\": \"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [4], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"4b2bcf06872454638da84636d35639b835862ab73d3df9319b3da39ea48a6800\", \"revision_id\": \"192f5584df558d0cdb973c4aa84f8c7150bb50a871158adb82d88c90176979b1\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"408cb5cb9255191607abe143\",\"headline\":\"가상사 출시 서비스 다\",\"what_happened\":\"가상사는 서비스 다를 정식 출시했습니다.\",\"fact_ids\":[\"e0c98d94c289f736e4d545543cf9b93fbd9220984edcae7a48ff5d863aae1a3e\"],\"source_refs\":[{\"document_id\":\"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"49824987ecf6eb05987fbb8993f03825e20ace6f8944595ee7ee46ecbc1a82e7\",\"revision_id\":\"882d9f59b483791d90b1183427698bec1d19addc6cbcdd893ca0c90d5f1865ac\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"5ce8166ec9cc9bc9dd855182\",\"headline\":\"가상사 출시 서비스 나\",\"what_happened\":\"가상사는 서비스 나를 정식 출시했습니다.\",\"fact_ids\":[\"fa24a615a81eb11246c3a1a5a9e26ee3da762113b3dd0c43400cb3de6eab27b0\"],\"source_refs\":[{\"document_id\":\"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"9af1ac957c90d0dbed64695e4bfe7d3713cda04595b474b6ca7eb65261fb48da\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "afterhours-release": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-afterhours",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/afterhours",
+            "published_at": "2026-09-21T23:30:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-afterhours",
+              "url": "https://example.invalid/synthetic/afterhours",
+              "published_at": "2026-09-21T23:30:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T23:30:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-afterhours",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"facaeffb94ffee7a82e0ab2a94d120d8c02e444fdebb3f19bc59d99a6d1ec606\"],\"source_refs\":[{\"document_id\":\"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"8b19426f950fc7d0c4abf31e0ba310b5a0d3d10773f4e05423fd5d0e81179049\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "containment-remove-fact": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          },
+          {
+            "source_name": "fixture-service-2",
+            "category": "news",
+            "title": "가상사 출시 서비스 나",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-2",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927",
+              "revision_id": "c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-2",
+              "url": "https://example.invalid/synthetic/service-2",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 나",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 나가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          },
+          {
+            "source_name": "fixture-service-2",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2, \"2\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}, {\"item_ids\": [2], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\", \"revision_id\": \"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}},{\"event_id\":\"aeab0e4a9e3c7559513ea422\",\"headline\":\"가상사 출시 서비스 나\",\"what_happened\":\"가상사는 서비스 나를 정식 출시했습니다.\",\"fact_ids\":[\"de11178de687ad9689b43c0951254956fc2e233bec54270e3cdb8a6219a75f14\"],\"source_refs\":[{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"39ba241832d941f4fda480f928c1f411be085eb9516e5cb4f76e0b04d33f3927\",\"revision_id\":\"c84d9bf4aaf0497f5a186a8d5fcd4cede247162638c30ffa7195779872ec4a45\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "remove_fact"
+      }
+    ]
+  },
+  "containment-remove-link": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "remove_link"
+      }
+    ]
+  },
+  "containment-marker-only": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "marker_only"
+      }
+    ]
+  },
+  "containment-url-only": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "url_only"
+      }
+    ]
+  },
+  "forbidden-with-valid-sibling": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "domestic-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "forbidden"
+      },
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  },
+  "numeric-with-valid-sibling": {
+    "target_date": "2026-09-21",
+    "observed_at": "2026-09-22T06:00:00+00:00",
+    "segments": [
+      {
+        "segment": "domestic-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "numeric"
+      },
+      {
+        "segment": "us-equity",
+        "items": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "title": "가상사 출시 서비스 가",
+            "summary": "합성 공식 자료의 발표 내용입니다.",
+            "url": "https://example.invalid/synthetic/service-1",
+            "published_at": "2026-09-21T10:00:00Z",
+            "scheduled_at": null,
+            "raw_metadata": {},
+            "event_evidence": {
+              "document_id": "2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987",
+              "revision_id": "a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a",
+              "origin_revision_id": null,
+              "source_name": "fixture-service-1",
+              "url": "https://example.invalid/synthetic/service-1",
+              "published_at": "2026-09-21T10:00:00Z",
+              "received_at": "2026-09-22T06:00:00Z",
+              "event_time": "2026-09-21T10:00:00Z",
+              "event_time_basis": "source_exact",
+              "source_tier": "official",
+              "source_status": "ok",
+              "title": "가상사 출시 서비스 가",
+              "summary": "합성 공식 자료의 발표 내용입니다.",
+              "detail_excerpt": "서비스 가가 정식 출시됐습니다.",
+              "evidence_budget_limited": false
+            }
+          }
+        ],
+        "source_outcomes": [
+          {
+            "source_name": "fixture-service-1",
+            "category": "news",
+            "status": "ok",
+            "item_count": 1,
+            "failure_reason": null,
+            "transient": null,
+            "tier": "B",
+            "latest_item_at": null,
+            "elapsed_s": null
+          }
+        ],
+        "baseline": [],
+        "responses": [
+          "{\"schema_version\": 2, \"assignments\": {\"1\": 2}, \"unassigned\": [], \"events\": [{\"item_ids\": [1], \"event_kind\": \"product_service\", \"actor_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 0, \"end\": 3}], \"action_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 4, \"end\": 6}], \"object_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"title\", \"start\": 7, \"end\": 12}], \"relation_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"impact_refs\": [{\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}], \"facts\": [{\"predicate\": \"launch\", \"evidence_ref\": {\"document_id\": \"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\", \"revision_id\": \"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\", \"field\": \"detail_excerpt\", \"start\": 0, \"end\": 17}, \"status\": \"actual\", \"period\": null, \"unit\": null}], \"timing\": \"announced\", \"relation\": \"direct\", \"impact\": \"company\", \"evidence_state\": \"supported\"}]}",
+          "{\"schema_version\":2,\"sections\":{\"market_summary\":\"수집된 합성 자료에서 확인한 발표를 정리했습니다.\",\"sector_flow\":\"전체 시장의 수급 흐름을 판단할 자료는 제한적입니다.\",\"indicators_events\":\"다음 공식 발표 시각은 자료에서 확인하지 못했습니다.\",\"notable_tickers\":\"개별 종목의 가격 반응은 자료에서 확인하지 못했습니다.\",\"today_watch\":\"후속 공식 발표에서 현재 상태가 바뀌는지 확인해야 합니다.\"},\"events\":[{\"event_id\":\"7bf3a833d629e7ec52fb1841\",\"headline\":\"가상사 출시 서비스 가\",\"what_happened\":\"가상사는 서비스 가를 정식 출시했습니다.\",\"fact_ids\":[\"419b1a0623130d9dab829babf9372371d2abc785cdfc2c1c9df7efdd8ebbb15d\"],\"source_refs\":[{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"detail_excerpt\",\"start\":0,\"end\":17},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":0,\"end\":3},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":4,\"end\":6},{\"document_id\":\"2130f6364afeacb453b020dc78c9b475406569f7aa7733dd2f305438c3584987\",\"revision_id\":\"a22234d5d9d6cdaf22a7faf9a2fc1a58ed40ebc99e0c0c84eeec0f74c005880a\",\"field\":\"title\",\"start\":7,\"end\":12}],\"meaning\":{\"text\":null,\"mode\":\"unavailable\",\"evidence_refs\":[]},\"reaction\":{\"text\":null,\"status\":\"unavailable\",\"evidence_refs\":[]}}]}"
+        ],
+        "mutation": "none"
+      }
+    ]
+  }
+}

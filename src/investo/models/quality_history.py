@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from typing import Literal
+
+from investo.models.event_quality import EventCoverage
+from investo.models.segments import MarketSegment
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +30,8 @@ class QualityHistoryRow:
     current_run_segments_limited_or_worse: int = 0
     current_run_data_limited_briefings: int = 0
     current_run_briefings_observed: int = 0
+    event_coverage: dict[MarketSegment, EventCoverage] | None = None
+    event_coverage_basis: Literal["terminal"] | None = None
 
     @property
     def has_data(self) -> bool:

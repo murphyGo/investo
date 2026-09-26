@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from investo._internal.text import truncate_stderr
+from investo.models.event_quality import EventStageReceipt
 
 BriefingStage = Literal["classification", "synthesis", "post_validation", "budget"]
 """Stage at which a `BriefingGenerationError` was raised (E4)."""
@@ -99,6 +100,7 @@ class BriefingGenerationError(Exception):
         self.last_stderr = truncate_stderr(last_stderr)
         self.last_stdout = truncate_stderr(last_stdout)
         self.cause = cause
+        self.event_stage_receipts: tuple[EventStageReceipt, ...] = ()
 
 
 __all__ = [

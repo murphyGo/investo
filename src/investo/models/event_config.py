@@ -9,8 +9,8 @@ from typing import Literal, cast
 EventMode = Literal["off", "shadow", "preview", "active"]
 EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 
-# These are code capabilities, never operator flags. Later units enable their
-# consumers only after their parser/finalizer and quality contracts exist.
+# Preview is code-ready. Active stays closed pending the separate human,
+# scheduled-shadow and operational acceptance; implementation is not activation.
 EVENT_PREVIEW_READY = True
 EVENT_ACTIVE_READY = False
 
@@ -34,7 +34,7 @@ class EventExecutionConfig:
         if self.mode == "preview" and not EVENT_PREVIEW_READY:
             raise ValueError("event preview requires the u158 v2 consumer")
         if self.mode == "active" and not EVENT_ACTIVE_READY:
-            raise ValueError("event activation requires the u157/u158/u159 consumer contract")
+            raise ValueError("event activation requires u157/u158/u159 operational acceptance")
 
     def validate_publication(self) -> None:
         if self.mode == "preview":

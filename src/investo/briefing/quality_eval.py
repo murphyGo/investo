@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Final
 
 from investo.briefing.numeric_self_check import extract_flaggable_numbers
+from investo.models.event_quality import parse_public_event_coverage
 from investo.models.quality_history import QualityHistoryRow
 
 # Marker the data-limited body emits in the boilerplate text. Updating
@@ -496,6 +497,14 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
         or 0,
         current_run_briefings_observed=_optional_int(payload.get("current_run_briefings_observed"))
         or 0,
+        event_coverage=(
+            parse_public_event_coverage(payload.get("event_coverage"))
+            if payload.get("event_coverage_basis") == "terminal"
+            else None
+        ),
+        event_coverage_basis="terminal"
+        if payload.get("event_coverage_basis") == "terminal"
+        else None,
     )
 
 

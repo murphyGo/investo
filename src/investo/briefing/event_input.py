@@ -52,7 +52,7 @@ def observe_candidates(
     )
 
 
-def _is_news(item: NormalizedItem) -> bool:
+def is_event_candidate_item(item: NormalizedItem) -> bool:
     # Explicit source publication metadata may describe P2/P3 actuals too.
     # Do not use inferred FRED "actual" status for an unchanged observation.
     explicit_actual = (
@@ -62,6 +62,9 @@ def _is_news(item: NormalizedItem) -> bool:
     return item.scheduled_at is None and (
         item.category == "news" or is_required_macro_actual(item) or explicit_actual
     )
+
+
+_is_news = is_event_candidate_item
 
 
 def event_collection_limited(

@@ -2,8 +2,8 @@
 
 **Date**: 2026-09-26
 **Unit**: u159 event-coverage-replay-and-gate
-**Stage**: Code Generation (planned)
-**Status**: Queued — design approved; follows u157/u158.
+**Stage**: Code Generation complete; operational acceptance pending
+**Status**: Code complete — 6/6 steps, full regression 5652 passed (416.33s); independent review PASS. Human semantic acceptance pending; active remains off.
 **Source**: `../news-event-briefing/evidence/review-20260922.md`; user planning request 2026-09-26.
 **Estimated Effort**: ~12–18 h
 **Dependencies**: u157 선정/trace, u158 terminal event renderer/projection. 기존u65/u123/u144 완료.
@@ -30,12 +30,14 @@ Use the shared NFR/validation document; no boilerplate infrastructure stage. Thi
 Normative: [design-brief](../u159-event-coverage-replay-and-gate/design-brief.md), [event-contract](../news-event-briefing/event-contract.md), [business-rules](../news-event-briefing/business-rules.md), [NFR](../news-event-briefing/nfr-and-validation.md). The numbered rules and exact defaults there are part of this plan. Changes require synchronized design/AC updates.
 
 ## Implementation Steps
-- [ ] Step 1: E8 stage receipts와 terminal result→QualitySnapshot 변환을 작성한다. default-null 역사호환을검증한다.
-- [ ] Step 2: actor/action/fact/source/상태의final-block검사와새event issue codes를추가한다. source-only/marker-onlynegative를고정한다.
-- [ ] Step 3: u144 real-finalizer 후검증과 public-quality consistency를연결하고state별분모를명시한다.
-- [ ] Step 4: 18편출력inventory 및12시나리오goldenmanifest를작성하고합성/R10privatefixture경계를고정한다.
-- [ ] Step 5: 오프라인script가manifest→실제pipelinefixture→sealedHTML/DTO를대조하도록구현한다. 실패원문은stdout에출력하지않는다.
-- [ ] Step 6: 기존 quality/replay/full gate와 독립 리뷰를 통과한 뒤 v2 비게시 preview 품질과 live shadow 비간섭 증거를 분리해 기록한다. 활성화는 별도 운영 단계다.
+- [x] Step 1: E8 stage receipts와 terminal result→QualitySnapshot 변환을 작성한다. default-null 역사호환을검증한다.
+- [x] Step 2: actor/action/fact/source/상태의final-block검사와새event issue codes를추가한다. source-only/marker-onlynegative를고정한다.
+- [x] Step 3: u144 real-finalizer 후검증과 public-quality consistency를연결하고state별분모를명시한다.
+- [x] Step 4: 18편출력inventory 및12시나리오goldenmanifest를작성하고합성/R10privatefixture경계를고정한다.
+- [x] Step 5: 오프라인script가manifest→실제pipelinefixture→sealedHTML/DTO를대조하도록구현한다. 실패원문은stdout에출력하지않는다.
+- [x] Step 6: 기존 quality/replay/full gate와 독립 리뷰를 통과한 뒤 v2 비게시 preview 품질과 live shadow 비간섭 증거를 분리해 기록한다. 활성화는 별도 운영 단계다.
+
+완료 증거: 전체 5652 passed/416.33s, 12그룹/25변형 replay 및 독립 32개 통합 테스트, 리뷰 P2 8건 교정 확인, static/policy/docs PASS. AC-159.4 자동 구조 회귀는 PASS이며 사람의 5/5 의미 수용 검토는 PENDING이다. live shadow는 미실행으로 기록했고 코드 완료가 운영 활성화 승인을 뜻하지 않는다.
 
 ## Acceptance Criteria
 1. AC-159.1: marker-only/URL-only/requiredfact제거/summary재노출negative가전부검출된다.
@@ -63,4 +65,4 @@ Before the final integration, run the repository's current full gate and the sha
 No promise of worldwide event completeness, no fabricated importance/market causality, no copying of unqualified full articles, no increasing LLM stages or removing data-trust gates. u154 layout, u156 Telegram formatting, unrelated sector dashboard/activation gates remain with their owners.
 
 ## Completion and handoff
-Deliver code/test diff, focused/full gate evidence, per-AC results, cumulative read-only review, cross-check and public-surface compatibility proof. State remains Backlog until work actually starts. Code completion, remote delivery and operational activation are distinct statuses. The user authorized a commit and push after each completed unit on 2026-09-27.
+Code/test diff, focused/full gate evidence, per-AC cross-check and independent review are complete. Code completion, remote delivery and operational acceptance are distinct statuses. The user authorized a commit and push after each completed unit on 2026-09-27; u160 follows remote delivery of this unit.

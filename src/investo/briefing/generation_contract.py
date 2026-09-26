@@ -18,6 +18,7 @@ from investo.briefing.watchlist import WatchlistConfig
 from investo.models import Briefing, BriefingCarryover, NormalizedItem, SourceOutcome
 from investo.models.bundle_context import BundleContext
 from investo.models.event_narratives import EventGenerationPayload
+from investo.models.event_quality import EventStageReceipt
 from investo.models.events import EventIdentityReceipt, EventSelectionPlan
 
 
@@ -42,6 +43,7 @@ class GenerationInput:
     event_observed_at: datetime | None = None
     event_baseline: tuple[EventIdentityReceipt, ...] = ()
     event_baseline_available: bool = True
+    event_collection_items: tuple[NormalizedItem, ...] | None = None
 
     def __init__(
         self,
@@ -65,10 +67,16 @@ class GenerationInput:
         event_observed_at: datetime | None = None,
         event_baseline: tuple[EventIdentityReceipt, ...] = (),
         event_baseline_available: bool = True,
+        event_collection_items: Sequence[NormalizedItem] | None = None,
     ) -> None:
         object.__setattr__(self, "event_observed_at", event_observed_at)
         object.__setattr__(self, "event_baseline", event_baseline)
         object.__setattr__(self, "event_baseline_available", event_baseline_available)
+        object.__setattr__(
+            self,
+            "event_collection_items",
+            None if event_collection_items is None else tuple(event_collection_items),
+        )
         object.__setattr__(self, "target_date", target_date)
         object.__setattr__(self, "items", tuple(items))
         object.__setattr__(self, "watchlist_config", watchlist_config)
@@ -98,6 +106,7 @@ class GenerationResult:
     event_plan: EventSelectionPlan | None = None
     event_observation: CandidateObservation | None = None
     event_payload: EventGenerationPayload | None = None
+    event_stage_receipts: tuple[EventStageReceipt, ...] = ()
 
 
 __all__ = [

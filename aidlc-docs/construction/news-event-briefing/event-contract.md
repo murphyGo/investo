@@ -109,6 +109,10 @@ PublicEventSummary(event_id,headline,fact_summary,coverage)와 PublicNotificatio
 
 주 상태 우선순위는 hard_trust_blocked → classification_unavailable → finalization_unavailable → source_limited → detail_limited → no_qualifying_event → qualified다. 여러 원인은 reasons에 모두 유지한다. 내부 terminal 반영률과 published 집계를 분리한다. bundle published 집계는 remote_confirmed이며 분모가 알려진 segment만 합산하고 excluded_segments를 함께 기록한다. 완전 실패를 0/0=100%로 표시하지 않는다.
 
+u159 구현에서 stage receipt는 frozen `EventStageReceipt`이며 완료하지 않은 count는 null이다. 수집 count는 수신 시장에 관련된 원래 수집 pool에서만 관측하고 candidate cap 이후 수로 대체하지 않는다. 알려진 classified count는 selected 이상, prompted는 selected와 동일, generated는 validated narrative 수와 동일해야 한다. 모순 또는 이전 hard trace는 terminal 성공으로 재해석하지 않는다. `unsupported_count`는 관측된 위반 사건 수이며 issue code 수가 아니다.
+
+공개 quality history/page는 commit 전에 봉인된 문서에서 계산한 `terminal` 기준이다. 같은 transaction의 원격 성공을 미리 주장하지 않는다. post-push `PublishedEventCoverage`만 remote-confirmed 기준으로 집계하며 알림 실패와 구분한다. 공개 schema는 receipts를 제외하고 private `.tmp/event-traces`에 bounded hash-only stage 기록을 보관한다. 공개 표/요약의 parity는 주석·code fence를 제외한 실제 보이는 유일한 섹션을 대조한다. 과거 필드 부재는 계속 null이다.
+
 ## E9 실행 설정과 버전 선택
 
 `INVESTO_EVENT_BRIEFING_MODE=off|shadow|preview|active`, 기본 off다.

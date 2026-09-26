@@ -40,6 +40,7 @@ briefing markdown is byte-identical to the pre-refactor pipeline.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import replace
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from typing import TypedDict
@@ -218,6 +219,11 @@ from investo.briefing.event_prompt import (
     prepare_event_selection,
     render_event_prompt_evidence,
 )
+from investo.briefing.event_trace import (
+    collection_stage_receipt,
+    input_stage_receipt,
+    selection_stage_receipt,
+)
 from investo.briefing.generation_contract import GenerationInput, GenerationResult
 from investo.briefing.lineage import (
     MacroLineageTrace,
@@ -249,6 +255,7 @@ from investo.models import (
 from investo.models.bundle_context import BundleContext
 from investo.models.event_config import EventExecutionConfig
 from investo.models.event_narratives import EventGenerationPayload
+from investo.models.event_quality import EventStageReceipt, EventTraceEntry
 from investo.models.events import EventSelectionPlan, EvidenceDocument
 from investo.models.segments import SEGMENT_MARKET_TZ
 
@@ -362,6 +369,25 @@ class _EventEnhancementOptions(TypedDict, total=False):
 
 
 async def generate_briefing_from_input(request: GenerationInput) -> GenerationResult:
+    """Generate atomically, retaining hash-only observed stages on failure."""
+    receipts: list[EventStageReceipt] = []
+    try:
+        result = await _generate_briefing_from_input(request, event_receipts=receipts)
+    except BriefingGenerationError as exc:
+        if receipts:
+            stage = (
+                "classified" if not any(r.stage == "classified" for r in receipts) else "generated"
+            )
+            receipts = [receipt for receipt in receipts if receipt.stage != stage]
+            receipts.append(EventStageReceipt(stage=stage, status="failed"))
+            exc.event_stage_receipts = tuple(receipts)
+        raise
+    return replace(result, event_stage_receipts=tuple(receipts)) if receipts else result
+
+
+async def _generate_briefing_from_input(
+    request: GenerationInput, *, event_receipts: list[EventStageReceipt]
+) -> GenerationResult:
     """Atomic two-stage briefing generation (FD L1 + R12).
 
     Returns a fully-validated ``GenerationResult`` on success. Raises
@@ -402,8 +428,33 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
             if outcome in scoped_outcomes or outcome.source_name in source_names
         )
         news_collection_limited = event_collection_limited(request.items, event_outcomes)
+        collection_items = request.event_collection_items
+        if collection_items is None:
+            collection_items = request.items
+        else:
+            # Global raw inputs are useful for routing exclusions, but another
+            # market's successful feed cannot complete this recipient's collection.
+            collection_sources = source_names | {outcome.source_name for outcome in event_outcomes}
+            collection_items = tuple(
+                item for item in collection_items if item.source_name in collection_sources
+            )
+        event_receipts.extend(
+            (
+                collection_stage_receipt(collection_items, event_outcomes),
+                input_stage_receipt("routed", request.items, excluded_from=collection_items),
+            )
+        )
 
     if request.segment is not None and effective_data_limited and not request.items:
+        if event_config.uses_v2:
+            event_receipts.append(input_stage_receipt("candidate", ()))
+            # A deterministic empty selection is valid only after observed
+            # collection completion; all-source failure leaves its denominator unknown.
+            if event_receipts[0].status == "completed":
+                event_receipts.extend(
+                    EventStageReceipt(stage=stage, status="completed", count=0)
+                    for stage in ("classified", "selected", "prompted")
+                )
         empty_payload = (
             EventGenerationPayload(
                 plan=EventSelectionPlan(), narratives=(), collection_limited=news_collection_limited
@@ -421,6 +472,8 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
             archive_root=request.archive_root,
             event_payload=empty_payload,
         )
+        if event_config.uses_v2:
+            event_receipts.append(EventStageReceipt(stage="generated", status="completed", count=0))
         return GenerationResult(
             briefing=briefing,
             event_plan=empty_payload.plan if empty_payload is not None else None,
@@ -445,6 +498,10 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
         event_mode=policy.event_mode,
     )
     observed_at = request.event_observed_at or datetime.now(UTC) if event_config.uses_v2 else None
+    if event_config.uses_v2:
+        event_receipts.append(
+            input_stage_receipt("candidate", llm_items, excluded_from=request.items)
+        )
     evidence_documents = (
         prepare_evidence_documents(llm_items, received_at=observed_at)
         if observed_at is not None
@@ -473,6 +530,11 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
     if event_config.uses_v2:
         assert isinstance(classification, EventClassificationResult)
         assert observed_at is not None and request.segment is not None
+        event_receipts.append(
+            EventStageReceipt(
+                stage="classified", status="completed", count=len(classification.events)
+            )
+        )
         zone = SEGMENT_MARKET_TZ[request.segment]
         window_start = datetime.combine(request.target_date, time.min, zone).astimezone(UTC)
         window_end = datetime.combine(
@@ -495,6 +557,20 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
             llm_items,
             evidence_documents,
             segment=request.segment,
+        )
+        event_receipts.extend(
+            (
+                selection_stage_receipt(event_plan),
+                EventStageReceipt(
+                    stage="prompted",
+                    status="completed",
+                    count=len(event_plan.selected),
+                    trace=tuple(
+                        EventTraceEntry(hash_id=e.event_id, stage="prompted")
+                        for e in event_plan.selected
+                    ),
+                ),
+            )
         )
         synthesis_options = {
             "event_evidence": event_evidence,
@@ -521,6 +597,18 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
     # section bodies for the Briefing fields.
     sections = parse_six_sections(body_markdown)
     event_payload = event_payloads[0] if event_payloads else None
+    if event_payload is not None:
+        event_receipts.append(
+            EventStageReceipt(
+                stage="generated",
+                status="completed",
+                count=len(event_payload.narratives),
+                trace=tuple(
+                    EventTraceEntry(hash_id=e.event_id, stage="generated")
+                    for e in event_payload.narratives
+                ),
+            )
+        )
     summary_override = SummaryHeader(*event_summary_lines(event_payload)) if event_payload else None
     event_numeric_evidence = _event_numeric_evidence(event_payload)
     enhancement_options: _EventEnhancementOptions = {}

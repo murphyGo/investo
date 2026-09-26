@@ -15,6 +15,11 @@ from investo.briefing.event_evidence import (
 from investo.briefing.event_input import select_event_input_items
 from investo.briefing.event_narrative import assemble_event_synthesis, parse_event_synthesis
 from investo.briefing.event_selection import select_events
+from investo.briefing.event_trace import (
+    collection_stage_receipt,
+    input_stage_receipt,
+    selection_stage_receipt,
+)
 from investo.models import NormalizedItem
 from investo.models.event_narratives import (
     EventGenerationPayload,
@@ -25,7 +30,14 @@ from investo.models.event_narratives import (
     Stage2Sections,
 )
 from investo.models.events import EventCandidateDraft, EventFactDraft, EvidenceDocument, EvidenceRef
-from investo.publisher.event_blocks import event_hard_issue_codes, terminal_events
+from investo.models.public_notification import PublicNotificationSummary
+from investo.models.segments import COVERAGE_STATUS_LABELS
+from investo.publisher.event_blocks import (
+    event_hard_issue_codes,
+    reconcile_event_summaries,
+    terminal_events,
+)
+from investo.publisher.event_quality import terminal_event_issue_codes
 
 
 def benchmark() -> dict[str, object]:
@@ -57,6 +69,9 @@ def benchmark() -> dict[str, object]:
 
     def run_once() -> tuple[int, int]:
         items = select_event_input_items(rows, target_date=observed.date())
+        collection_stage_receipt(rows, ())
+        input_stage_receipt("routed", rows)
+        input_stage_receipt("candidate", items, excluded_from=rows)
         documents = prepare_evidence_documents(items, received_at=observed)
         drafts: list[EventCandidateDraft] = []
         for index, (item, doc) in enumerate(zip(items, documents, strict=True), 1):
@@ -134,10 +149,28 @@ def benchmark() -> dict[str, object]:
         parsed = parse_event_synthesis(output.model_dump_json(), plan)
         markdown = assemble_event_synthesis(parsed, plan)
         payload = EventGenerationPayload(plan=plan, narratives=parsed.events)
+        selection_stage_receipt(plan)
         if event_hard_issue_codes(markdown, payload) or len(
             terminal_events(markdown, payload)
         ) != len(plan.selected):
             raise ValueError("synthetic event validation failed")
+        terminal = terminal_events(markdown, payload)
+        markdown = reconcile_event_summaries(markdown, payload, terminal)
+        summary = PublicNotificationSummary(
+            segment="us-equity",
+            target_date=observed.date(),
+            conclusion=terminal[0].first_sentence,
+            coverage_status="normal",
+            coverage_label=COVERAGE_STATUS_LABELS["normal"],
+            events=tuple(event.notification_summary() for event in terminal[:3]),
+        )
+        if terminal_event_issue_codes(
+            markdown,
+            payload=payload,
+            notification_summary=summary,
+            surviving_event_ids=tuple(event.event_id for event in terminal),
+        ):
+            raise ValueError("synthetic event quality failed")
         return len(items), len(plan.selected)
 
     run_once()
@@ -153,7 +186,7 @@ def benchmark() -> dict[str, object]:
         "candidate_count": candidate_count,
         "selected_count": selected_count,
         "iterations": 10,
-        "scope": "selection, v2 parser, event renderer and terminal validation",
+        "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate",
         "p95_ms": round(p95, 3),
         "limit_ms": 200,
         "passed": p95 <= 200,

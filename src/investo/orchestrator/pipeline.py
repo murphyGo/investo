@@ -75,7 +75,8 @@ from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Final, TypeVar, cast, overload
+from typing import Any, Final, TypedDict, TypeVar, cast, overload
+from uuid import uuid4
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
@@ -154,6 +155,14 @@ from investo.models import (
 )
 from investo.models.bundle_context import BundleContext
 from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
+from investo.models.event_quality import (
+    EventCoverage,
+    EventStageReceipt,
+    EventTraceEntry,
+    PublishedEventCoverage,
+    aggregate_published_event_coverage,
+)
+from investo.models.events import EventIdentityReceipt
 from investo.models.facts import FactId, VerifiedFactBundle
 from investo.models.public_artifact import StagedArtifact
 from investo.models.publication import PublicationRequest, PublishReceipt
@@ -175,7 +184,16 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     project_domestic_public_items,
 )
 from investo.orchestrator.errors import EmptyCollectError
-from investo.orchestrator.event_receipts import persist_publication_receipt, snapshot_git_index
+from investo.orchestrator.event_publication import (
+    load_remote_event_baseline,
+    persist_event_quality_trace,
+    prepare_event_publication,
+)
+from investo.orchestrator.event_receipts import (
+    EventReceiptBaseline,
+    persist_publication_receipt,
+    snapshot_git_index,
+)
 from investo.orchestrator.price_fallback import (
     YFINANCE_SOURCE_NAME,
     reconcile_yahoo_history_fallback,
@@ -222,6 +240,7 @@ from investo.publisher.charts import build_chart_artifacts, inject_chart_block
 from investo.publisher.compliance_language import (
     ComplianceLanguageError,
 )
+from investo.publisher.event_quality import evaluate_event_quality
 from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
 from investo.publisher.public_document import (
@@ -488,6 +507,8 @@ async def _default_generate_segment_briefing(
     watchlist_config: WatchlistConfig | None = None,
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
     event_observed_at: datetime | None = None,
+    event_baseline: tuple[EventIdentityReceipt, ...] = (),
+    event_baseline_available: bool = True,
 ) -> GenerationResult:
     """Adapter for u7 segmented generation."""
     # u68 — pass the archive root so the glossary callout can suppress
@@ -518,6 +539,9 @@ async def _default_generate_segment_briefing(
             archive_root=ARCHIVE_ROOT,
             macro_lineage_all_items=macro_lineage_all_items,
             event_observed_at=event_observed_at,
+            event_baseline=event_baseline,
+            event_baseline_available=event_baseline_available,
+            event_collection_items=macro_lineage_all_items,
         )
     )
 
@@ -649,6 +673,8 @@ async def _generate_one_segment(
     watchlist_config: WatchlistConfig | None,
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
     event_observed_at: datetime | None = None,
+    event_baseline: tuple[EventIdentityReceipt, ...] = (),
+    event_baseline_available: bool = True,
 ) -> _SegmentGenerationResult:
     start = time.monotonic()
     _logger.info(
@@ -677,6 +703,8 @@ async def _generate_one_segment(
                 watchlist_config=watchlist_config,
                 event_config=event_config,
                 event_observed_at=event_observed_at,
+                event_baseline=event_baseline,
+                event_baseline_available=event_baseline_available,
             )
             briefing = generation_result.briefing
             macro_lineage = generation_result.macro_lineage
@@ -732,6 +760,9 @@ async def _stage_generate_segments(
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
     event_results: dict[MarketSegment, GenerationResult] | None = None,
     event_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
+    event_baseline: EventReceiptBaseline | None = None,
+    event_observed_at: datetime | None = None,
+    event_failures: dict[MarketSegment, BriefingGenerationError] | None = None,
 ) -> tuple[
     dict[MarketSegment, Briefing],
     dict[MarketSegment, BriefingGenerationError],
@@ -791,7 +822,7 @@ async def _stage_generate_segments(
         segment_timings["generate:bundle_context"] = time.monotonic() - bundle_start
 
     fact_start = time.monotonic()
-    fact_now_utc = datetime.now(UTC)
+    fact_now_utc = event_observed_at or datetime.now(UTC)
     try:
         fact_bundle = build_verified_fact_bundle(tuple(items), target_date, fact_now_utc)
         fact_context_block = render_fact_context_block(fact_bundle, fact_now_utc)
@@ -852,6 +883,8 @@ async def _stage_generate_segments(
                 watchlist_config=watchlist_config,
                 event_config=event_config,
                 event_observed_at=fact_now_utc if event_config.uses_v2 else None,
+                event_baseline=event_baseline.receipts if event_baseline is not None else (),
+                event_baseline_available=event_baseline is not None or not event_config.uses_v2,
             )
 
     raw_results = await asyncio.gather(
@@ -869,6 +902,8 @@ async def _stage_generate_segments(
         segment_timings[f"generate:{segment}"] = result.elapsed_s
         if result.failure is not None:
             failures[segment] = result.failure
+            if event_failures is not None:
+                event_failures[segment] = result.failure
             continue
         assert result.briefing is not None
         briefings[segment] = result.briefing
@@ -1307,6 +1342,7 @@ async def _stage_publish_segments(
     publication_request: PublicationRequest | None = None,
     transactional_metadata: Mapping[Path, bytes] | None = None,
     publication_receipts: list[PublishReceipt] | None = None,
+    event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -1545,6 +1581,7 @@ async def _stage_publish_segments(
                             len(document.numeric_containment_outcomes)
                             for document in finalized_documents.values()
                         ),
+                        event_coverage=event_coverage,
                     ),
                     history_path=quality_history_path,
                 )
@@ -1574,6 +1611,7 @@ async def _stage_publish_segments(
                 briefings=briefings,
                 history_path=quality_history_path,
                 quality_page_path=quality_path_resolved,
+                expected_event_coverage=event_coverage if not _is_dry_run() else None,
             )
 
             forecast_paths: tuple[Path, ...] = ()
@@ -1711,9 +1749,9 @@ async def _stage_publish_segments(
     else:
 
         def receipt_sink(receipt: PublishReceipt) -> None:
-            persist_publication_receipt(receipt)
             if publication_receipts is not None:
                 publication_receipts.append(receipt)
+            persist_publication_receipt(receipt)
 
         terminal_error: list[PublicationReceiptError] = []
 
@@ -1742,6 +1780,10 @@ async def _stage_publish_segments(
             raise
         if receipt is None or receipt.status != "remote_confirmed":
             raise RuntimeError("publication completed without remote confirmation")
+        if publication_receipts is not None and (
+            not publication_receipts or publication_receipts[-1] != receipt
+        ):
+            publication_receipts.append(receipt)
     if dry_run:
         _logger.info("[publish] dry-run — skipped git commit + push for segmented %s", target_date)
     else:
@@ -2041,6 +2083,7 @@ def _build_quality_snapshot(
     watchpoint_synthesized: int = 0,
     degraded_segments: int = 0,
     numeric_containment_actions: int = 0,
+    event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
 ) -> QualitySnapshot:
     from investo.publisher.quality_consistency import parse_segment_status_block
 
@@ -2148,6 +2191,7 @@ def _build_quality_snapshot(
         watchpoint_synthesized=watchpoint_synthesized,
         current_run_degraded_segments=degraded_segments,
         current_run_numeric_containment_actions=numeric_containment_actions,
+        event_coverage=event_coverage,
     )
 
 
@@ -2166,6 +2210,7 @@ def _enforce_quality_consistency_gate(
     briefings: dict[MarketSegment, Briefing],
     history_path: Path,
     quality_page_path: Path,
+    expected_event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
 ) -> None:
     """u69 — publish-boundary canonical quality-consistency gate.
 
@@ -2184,6 +2229,7 @@ def _enforce_quality_consistency_gate(
         segment_texts=segment_texts,
         history_path=history_path,
         quality_page_text=page_text,
+        expected_event_coverage=expected_event_coverage,
     )
     failures = [finding for finding in findings if finding.is_failure]
     for finding in findings:
@@ -2901,6 +2947,18 @@ class GenerateStage:
         domestic_item_verdicts: tuple[tuple[int, DomesticAnchorVerdict], ...] = ()
         generate_sub_timings: dict[str, float] = {}
         event_results: dict[MarketSegment, GenerationResult] = {}
+        event_baseline: EventReceiptBaseline | None = None
+        if ctx.event_config.uses_v2 and not _is_dry_run():
+            try:
+                event_baseline = await _to_thread_drained(
+                    load_remote_event_baseline,
+                    observed_at=ctx.event_observed_at or datetime.now(UTC),
+                    runner=cast("GitRunner | None", ctx.git_runner),
+                )
+            except PublisherGitError:
+                # Generation may show limited novelty, but PublishStage will
+                # refuse to advance metadata without a known CAS baseline.
+                _logger.warning("[event] baseline unavailable")
         event_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] | None = None
         artifact_staging_root = cast(
             "Path | None",
@@ -3033,6 +3091,9 @@ class GenerateStage:
                     event_config=ctx.event_config,
                     event_results=event_results,
                     event_items_by_segment=event_items_by_segment,
+                    event_baseline=event_baseline,
+                    event_observed_at=ctx.event_observed_at,
+                    event_failures=segment_generation_failures,
                 )
                 generate_sub_timings.update(segment_timings)
                 primary_generated_segment = (
@@ -3055,6 +3116,13 @@ class GenerateStage:
             return StageResult(
                 status="failed",
                 error=exc,
+                data={
+                    "event_coverage": _event_coverage_for_bundle(
+                        results=event_results, failures=segment_generation_failures, bundle=None
+                    )
+                }
+                if ctx.event_config.uses_v2
+                else None,
                 stage_notes={
                     "generate": f"failed: {exc.stage}",
                     "publish": "skipped",
@@ -3230,6 +3298,7 @@ class GenerateStage:
                 "public_document_context": public_document_context,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
                 "event_results": event_results,
+                "event_baseline": event_baseline,
                 "previous_domestic_anchor_closes": previous_domestic_anchor_closes,
                 "public_items": public_items,
                 "raw_items": raw_items,
@@ -3239,6 +3308,47 @@ class GenerateStage:
             stage_notes=stage_notes,
             timings=timings,
         )
+
+
+def _event_coverage_for_bundle(
+    *,
+    results: Mapping[MarketSegment, GenerationResult],
+    failures: Mapping[MarketSegment, BriefingGenerationError],
+    bundle: FinalizedPublicBundle | None,
+    blocked_issue_codes_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
+) -> dict[MarketSegment, EventCoverage]:
+    documents = {document.segment: document for document in bundle.documents} if bundle else {}
+    outcomes = {outcome.segment: outcome for outcome in bundle.segment_outcomes} if bundle else {}
+    coverages: dict[MarketSegment, EventCoverage] = {}
+    for segment in SEGMENT_ORDER:
+        result = results.get(segment)
+        failure = failures.get(segment)
+        outcome = outcomes.get(segment)
+        coverages[segment] = evaluate_event_quality(
+            documents.get(segment),
+            payload=result.event_payload if result is not None else None,
+            receipts=(
+                result.event_stage_receipts
+                if result is not None
+                else failure.event_stage_receipts
+                if failure is not None
+                else ()
+            ),
+            hard_issue_codes=(blocked_issue_codes_by_segment or {}).get(
+                segment,
+                outcome.issue_codes
+                if outcome is not None and outcome.state == "trust_blocked"
+                else (),
+            ),
+        )
+    return coverages
+
+
+class _EventPublishOptions(TypedDict, total=False):
+    publication_request: PublicationRequest
+    transactional_metadata: Mapping[Path, bytes]
+    publication_receipts: list[PublishReceipt]
+    event_coverage: Mapping[MarketSegment, EventCoverage]
 
 
 class PublishStage:
@@ -3307,6 +3417,20 @@ class PublishStage:
         finalized_bundle: FinalizedPublicBundle | None = None
         finalize_elapsed: float | None = None
         stage_notes: dict[str, str] = {}
+        event_results = cast(
+            "Mapping[MarketSegment, GenerationResult]", accumulated.get("event_results", {})
+        )
+        event_failures = cast(
+            "Mapping[MarketSegment, BriefingGenerationError]",
+            accumulated.get("segment_generation_failures", {}),
+        )
+        event_coverage = (
+            _event_coverage_for_bundle(results=event_results, failures=event_failures, bundle=None)
+            if ctx.event_config.uses_v2
+            else None
+        )
+        publication_receipts: list[PublishReceipt] = []
+        published_event_coverage: PublishedEventCoverage | None = None
         try:
             if segmented_mode:
                 assert segment_briefings is not None
@@ -3351,6 +3475,26 @@ class PublishStage:
                 )
                 for blocked_segment in finalization_blocked_segments:
                     stage_notes[f"publish:{blocked_segment}"] = "failed: PublicDocumentTrustGate"
+                event_options: _EventPublishOptions = {}
+                if ctx.event_config.uses_v2:
+                    event_coverage = _event_coverage_for_bundle(
+                        results=event_results, failures=event_failures, bundle=finalized_bundle
+                    )
+                    event_options["event_coverage"] = event_coverage
+                    if not _is_dry_run():
+                        publication_request, metadata = prepare_event_publication(
+                            cast("EventReceiptBaseline | None", accumulated.get("event_baseline")),
+                            run_id="event-" + uuid4().hex,
+                            survivors=tuple(
+                                receipt
+                                for document in finalized_bundle.documents
+                                for receipt in document.event_identity_receipts
+                            ),
+                            observed_at=public_document_context.entity_observed_at_utc,
+                        )
+                        event_options["publication_request"] = publication_request
+                        event_options["transactional_metadata"] = metadata
+                        event_options["publication_receipts"] = publication_receipts
                 await _stage_publish_segments(
                     segment_briefings,
                     target_date,
@@ -3366,10 +3510,50 @@ class PublishStage:
                     phase_one_complete=True,
                     finalized_bundle=finalized_bundle,
                     staging_root=artifact_staging_root,
+                    **event_options,
                 )
+                if event_coverage is not None:
+                    confirmed = bool(
+                        publication_receipts
+                        and publication_receipts[-1].status == "remote_confirmed"
+                    )
+                    published_event_coverage = aggregate_published_event_coverage(
+                        event_coverage,
+                        remote_confirmed_segments=tuple(segment_briefings) if confirmed else (),
+                    )
+                    if confirmed:
+                        for document in finalized_bundle.documents:
+                            metrics = event_coverage[document.segment]
+                            event_coverage[document.segment] = metrics.model_copy(
+                                update={
+                                    "receipts": (
+                                        *metrics.receipts,
+                                        EventStageReceipt(
+                                            stage="published",
+                                            status="completed",
+                                            count=len(document.surviving_event_ids),
+                                            trace=tuple(
+                                                EventTraceEntry(
+                                                    hash_id=event_id,
+                                                    stage="published",
+                                                    reason="published",
+                                                )
+                                                for event_id in document.surviving_event_ids
+                                            ),
+                                        ),
+                                    )
+                                }
+                            )
             else:
                 await _stage_publish(briefing, target_date, git_runner=git_runner)
         except _PUBLISH_FAILURES as exc:
+            if ctx.event_config.uses_v2 and isinstance(exc, PublicDocumentFinalizationError):
+                event_coverage = _event_coverage_for_bundle(
+                    results=event_results,
+                    failures=event_failures,
+                    bundle=finalized_bundle,
+                    blocked_issue_codes_by_segment=exc.blocked_issue_codes_by_segment,
+                )
             _logger.error(
                 "[publish] failed target_date=%s error_type=%s error=%s",
                 target_date,
@@ -3379,6 +3563,12 @@ class PublishStage:
             return StageResult(
                 status="failed",
                 error=exc,
+                data={
+                    "event_coverage": event_coverage,
+                    "published_event_coverage": published_event_coverage,
+                    "publication_receipts": tuple(publication_receipts),
+                    "finalized_bundle": finalized_bundle,
+                },
                 stage_notes={
                     **stage_notes,
                     "publish": f"failed: {type(exc).__name__}",
@@ -3400,6 +3590,9 @@ class PublishStage:
                 "finalized_bundle": finalized_bundle,
                 "finalization_blocked_segments": finalization_blocked_segments,
                 "publication_committed": not _is_dry_run(),
+                "event_coverage": event_coverage,
+                "published_event_coverage": published_event_coverage,
+                "publication_receipts": tuple(publication_receipts),
             },
             stage_notes={**stage_notes, "publish": "ok"},
             timings={
@@ -3700,6 +3893,7 @@ async def run_pipeline(
         URL on SUCCESS / PARTIAL, ``None`` on FAILED.
     """
     event_config.validate_publication()
+    event_observed_at = datetime.now(UTC) if event_config.uses_v2 else None
     if target_date is None:
         target_date = resolve_target_date(datetime.now(UTC))
     target_date = validate_target_date_sanity(target_date)
@@ -3717,6 +3911,7 @@ async def run_pipeline(
         generate=generate,
         generate_segment=generate_segment,
         event_config=event_config,
+        event_observed_at=event_observed_at,
     )
     with temporary_artifact_staging_root() as artifact_staging_root:
         return await _execute_pipeline_stages(
@@ -3824,6 +4019,15 @@ async def _execute_pipeline_stages(
                 )
 
     source_outcomes = cast("tuple[SourceOutcome, ...]", accumulated.get("source_outcomes", ()))
+    if ctx.event_config.uses_v2 and not _is_dry_run():
+        trace_coverage = cast(
+            "dict[MarketSegment, EventCoverage] | None", accumulated.get("event_coverage")
+        )
+        if trace_coverage is not None:
+            try:
+                await _to_thread_drained(persist_event_quality_trace, trace_coverage)
+            except (OSError, ValueError):
+                _logger.warning("[event] private stage trace unavailable")
     finalized_bundle = cast(
         "FinalizedPublicBundle | None",
         accumulated.get("finalized_bundle"),
@@ -3863,6 +4067,15 @@ async def _execute_pipeline_stages(
             content_completeness=content_completeness,
             segment_outcomes=segment_outcomes,
             publication_committed=publication_committed,
+            event_coverage=cast(
+                "dict[MarketSegment, EventCoverage] | None", accumulated.get("event_coverage")
+            ),
+            published_event_coverage=cast(
+                "PublishedEventCoverage | None", accumulated.get("published_event_coverage")
+            ),
+            publication_receipts=cast(
+                "tuple[PublishReceipt, ...]", accumulated.get("publication_receipts", ())
+            ),
         )
 
     return _build_result(
@@ -3876,6 +4089,15 @@ async def _execute_pipeline_stages(
         content_completeness=content_completeness,
         segment_outcomes=segment_outcomes,
         publication_committed=publication_committed,
+        event_coverage=cast(
+            "dict[MarketSegment, EventCoverage] | None", accumulated.get("event_coverage")
+        ),
+        published_event_coverage=cast(
+            "PublishedEventCoverage | None", accumulated.get("published_event_coverage")
+        ),
+        publication_receipts=cast(
+            "tuple[PublishReceipt, ...]", accumulated.get("publication_receipts", ())
+        ),
     )
 
 
@@ -3969,6 +4191,9 @@ def _build_result(
     content_completeness: ContentCompleteness = "complete",
     segment_outcomes: Sequence[SegmentFinalizationOutcome] = (),
     publication_committed: bool = False,
+    event_coverage: dict[MarketSegment, EventCoverage] | None = None,
+    published_event_coverage: PublishedEventCoverage | None = None,
+    publication_receipts: tuple[PublishReceipt, ...] = (),
 ) -> PipelineResult:
     """Final ``PipelineResult`` constructor + closing INFO log."""
     duration = time.monotonic() - pipeline_start
@@ -3989,6 +4214,9 @@ def _build_result(
         content_completeness=content_completeness,
         segment_outcomes=tuple(segment_outcomes),
         publication_committed=publication_committed,
+        event_coverage=event_coverage,
+        published_event_coverage=published_event_coverage,
+        publication_receipts=publication_receipts,
     )
 
 

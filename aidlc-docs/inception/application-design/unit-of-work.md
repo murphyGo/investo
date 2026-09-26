@@ -2615,7 +2615,7 @@ Plan: `aidlc-docs/construction/plans/u158-event-first-narrative-and-summary-code
 - [ ] AC-159.5: 삭제/repair/부분 재조립 후 DTO는 terminal의 알림 적격 최대 3개 ordered subset이며 값이 일치한다. terminal 사건 4개·5개 fixture도 통과한다.
 - [ ] AC-159.6: source원문/privateprose/logsecret이공개fixture/quality에없고추가LLM평가호출0.
 
-**Construction strategy**: Queued — design approved; follows u157/u158.
+**Construction strategy**: Code complete — 6/6 steps, full regression 5652 passed (416.33s); independent review PASS. Human semantic acceptance pending; active remains off.
 Functional Design REQUIRED; REQUIRED — 공개품질의 분모·unknown 의미와 terminal gate 추가. NF1/3/6/7/9/10 적용.
 Dependencies: u157 선정/trace, u158 terminal event renderer/projection. 기존u65/u123/u144 완료.
 Design: `aidlc-docs/construction/u159-event-coverage-replay-and-gate/design-brief.md`.

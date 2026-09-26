@@ -7192,3 +7192,11 @@ u157 commit `d5aa8f28981c2042741da75a9b501c185baadb5f` pushed to `origin/codex/n
 ## u158 Code Generation closeout (2026-09-27)
 
 Sequential unit 2/6: seven steps and AC-158.1–6 complete. Stage2 JSON v2, event-first summary, terminal survival/DTO reconciliation and isolated preview implemented. Two review waves resolved 11 findings; no unresolved P1/P2. Final full regression 5521 passed in 402.28s, final preamble/preview112 passed; Ruff/format626, mypy278, policy guards, strict MkDocs and Material passed. NF3 selection/parser/renderer/terminal p95=69.97ms for 1000 inputs. Default off and active capability false. Scoped commit/push follows the user's instruction; u159 is next. No main merge, deployment or operational acceptance claimed.
+
+## u158 remote delivery and u159 start (2026-09-27)
+
+u158 commit `c3f2e5efe91d1a1284d9e859eedba71728a7d64b` pushed and exact remote branch SHA verified. u159 is now executing under the same user authorization. Stage receipts, nullable per-segment terminal metrics, remote-confirmed aggregate, 12 synthetic golden groups and 18 historical output inventory are in scope. Genuine human semantic approval, five scheduled shadow runs and production activation remain separate evidence; no such completion is inferred from offline fixtures.
+
+## u159 Code Generation closeout (2026-09-27)
+
+Sequential unit 3/6: six code steps complete. Truthful stage/terminal counts, same-basis public quality, remote-confirmed aggregate, E11 sealed-survivor ledger and 12-group/25-variant offline replay implemented. Independent second-wave review resolved eight P2 findings; no remaining P1/P2. Final full regression 5652 passed/416.33s, independent replay32, terminal45, model/page35 and preview/architecture17 passed. Ruff/format638, mypy282, policy and strict docs/Material gates passed. NF3 p95=126.662ms/1000 inputs. AC-159.4 automated structure replay passes; genuine human semantic review remains pending. Scheduled shadow, active/public operational checks not run. Commit/push is authorized; proceed to u160 after exact remote confirmation.

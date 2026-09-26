@@ -6,10 +6,14 @@ import contextlib
 import json
 import logging
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Final
+
+from investo.models.event_quality import EventCoverage
+from investo.models.segments import MarketSegment
 
 _logger = logging.getLogger(__name__)
 
@@ -64,6 +68,8 @@ class QualitySnapshot:
     # u149 — bounded sealed numeric-degradation frequency.
     current_run_degraded_segments: int = 0
     current_run_numeric_containment_actions: int = 0
+    # u159 — precommit terminal measurements, never a publication receipt.
+    event_coverage: Mapping[MarketSegment, EventCoverage] | None = None
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -140,6 +146,12 @@ def append_quality_snapshot(
         row["worst_severity"] = snapshot.worst_severity
     if snapshot.figures_verified is not None:
         row["figures_verified"] = _clamp_rate(snapshot.figures_verified)
+    if snapshot.event_coverage is not None:
+        row["event_coverage_basis"] = "terminal"
+        row["event_coverage"] = {
+            segment: coverage.model_dump(mode="json")
+            for segment, coverage in sorted(snapshot.event_coverage.items())
+        }
     upserted: list[dict[str, object]] = []
     replaced = False
     for existing in rows:

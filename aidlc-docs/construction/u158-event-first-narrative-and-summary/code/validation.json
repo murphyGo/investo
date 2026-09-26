@@ -37,5 +37,5 @@
     "active production publication notification Pages",
     "production end-to-end p95"
   ],
-  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "ready_for_commit_push"}
+  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "complete", "remote_verified_sha": "c3f2e5efe91d1a1284d9e859eedba71728a7d64b"}
 }

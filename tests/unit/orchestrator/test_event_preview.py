@@ -51,6 +51,10 @@ async def test_empty_preview_is_honest_and_never_writes_or_calls_pipeline_stages
     assert document.surviving_event_ids == ()
     assert document.event_identity_receipts == ()
     assert document.notification_summary.events == ()
+    assert result.event_coverage is not None
+    assert result.event_coverage.collected_candidate_count is None
+    assert result.event_coverage.selected_count is None
+    assert result.event_coverage.selection_coverage is None
     assert tuple(tmp_path.rglob("*")) == before
 
 
@@ -92,4 +96,8 @@ async def test_two_stage_preview_seals_grounded_event_without_publication(
     assert document.surviving_event_ids == (case.event_id,)
     assert document.notification_summary.events[0].event_id == case.event_id
     assert "123.45" in document.notification_summary.events[0].fact_summary
+    assert result.event_coverage is not None
+    assert result.event_coverage.selected_count == 1
+    assert result.event_coverage.qualified_coverage == 1.0
+    assert all(receipt.stage != "published" for receipt in result.event_coverage.receipts)
     assert tuple(tmp_path.rglob("*")) == before

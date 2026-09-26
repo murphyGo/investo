@@ -1,7 +1,7 @@
 # Functional Design: u159 중요 사건 반영률과 최종 품질 검증
 
 **Date**: 2026-09-26
-**Status**: Design approved by the 2026-09-27 sequential-development request. Queued — design approved; follows u157/u158.
+**Status**: Design approved by the 2026-09-27 sequential-development request. Code complete — 6/6 steps, full regression 5652 passed (416.33s); independent review PASS. Human semantic acceptance pending; active remains off.
 **Priority / effort**: P0 / 12–18 h (rough engineering estimate, not commitment).
 **Dependencies**: u157 선정/trace, u158 terminal event renderer/projection. 기존u65/u123/u144 완료.
 
