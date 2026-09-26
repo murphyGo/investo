@@ -1,7 +1,7 @@
 # Functional Design: u160 주말·장후 뉴스를 포함하는 관측기간
 
 **Date**: 2026-09-26
-**Status**: Design approved by the 2026-09-27 sequential-development request. Queued — design approved; follows u159 in the user-requested sequence; cursor uses u157 receipt.
+**Status**: Design approved by the 2026-09-27 sequential-development request. Code complete — 7/7 steps, full regression 5798 passed (462.55s); independent review PASS. Scheduled shadow and production cursor activation remain off.
 **Priority / effort**: P1 / 20–30 h (rough engineering estimate, not commitment).
 **Dependencies**: u157의 공통 PublishReceipt/transaction 기반. window 모델·adapter 설계와 구현은 병렬 가능하나 cursor 통합은 u157 이후다. 기존 u1/u5/u31/u35/u102/u113/u144 완료.
 

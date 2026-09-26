@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Final
 
 from investo.models.event_quality import EventCoverage
+from investo.models.news_quality import NewsObservationQuality
 from investo.models.segments import MarketSegment
 
 _logger = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ class QualitySnapshot:
     current_run_numeric_containment_actions: int = 0
     # u159 — precommit terminal measurements, never a publication receipt.
     event_coverage: Mapping[MarketSegment, EventCoverage] | None = None
+    news_observation: Mapping[MarketSegment, NewsObservationQuality] | None = None
 
 
 _SEVERITY_RANK: Final[dict[str, int]] = {
@@ -151,6 +153,11 @@ def append_quality_snapshot(
         row["event_coverage"] = {
             segment: coverage.model_dump(mode="json")
             for segment, coverage in sorted(snapshot.event_coverage.items())
+        }
+    if snapshot.news_observation is not None:
+        row["news_observation"] = {
+            segment: observation.model_dump(mode="json")
+            for segment, observation in sorted(snapshot.news_observation.items())
         }
     upserted: list[dict[str, object]] = []
     replaced = False

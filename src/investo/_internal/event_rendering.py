@@ -302,7 +302,12 @@ def _render_event(
         for key in sorted({(r.document_id, r.revision_id) for r in narrative.source_refs})
     ]
     if event.effective_date is None or event.timing == "unknown":
-        timing = f"보도 기준 {event.published_at:%Y-%m-%d %H:%M} UTC; 사건 시점 미확인"
+        publication_dates = [doc.published_date for doc in docs if doc.published_date is not None]
+        timing = (
+            f"보도 기준 {max(publication_dates).isoformat()} (출처 날짜); 사건 시점 미확인"
+            if publication_dates
+            else f"보도 기준 {event.published_at:%Y-%m-%d %H:%M} UTC; 사건 시점 미확인"
+        )
     else:
         exact = [doc.event_time for doc in docs if isinstance(doc.event_time, datetime)]
         timing = (

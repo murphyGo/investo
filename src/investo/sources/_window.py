@@ -65,6 +65,7 @@ class FetchWindow:
     start_utc: datetime
     end_utc: datetime
     target_date: date
+    news_observation: bool = False
 
     def __post_init__(self) -> None:
         # Both bounds must be tz-aware so the half-open comparison in
@@ -132,7 +133,13 @@ class FetchWindow:
             start_utc=self.end_utc,
             end_utc=self.end_utc + timedelta(days=days),
             target_date=self.target_date,
+            news_observation=self.news_observation,
         )
+
+    def overlaps_local_date(self, value: date, tz: ZoneInfo) -> bool:
+        """Date-only evidence denotes an interval, never an invented instant."""
+        day = FetchWindow.from_local_date(value, tz)
+        return day.start_utc < self.end_utc and self.start_utc < day.end_utc
 
     def contains(self, dt: datetime) -> bool:
         """Return whether ``dt`` falls in the window (half-open ``[start, end)``).

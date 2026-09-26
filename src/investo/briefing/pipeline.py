@@ -382,7 +382,13 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
             receipts.append(EventStageReceipt(stage=stage, status="failed"))
             exc.event_stage_receipts = tuple(receipts)
         raise
-    return replace(result, event_stage_receipts=tuple(receipts)) if receipts else result
+    if receipts or request.news_window_consumptions:
+        return replace(
+            result,
+            event_stage_receipts=tuple(receipts),
+            news_window_consumptions=request.news_window_consumptions,
+        )
+    return result
 
 
 async def _generate_briefing_from_input(
@@ -402,6 +408,11 @@ async def _generate_briefing_from_input(
     )
     event_config = EventExecutionConfig(policy.event_mode)
     event_config.validate_capabilities()
+    if any(
+        receipt.segment != request.segment or receipt.phase != "generated"
+        for receipt in request.news_window_consumptions
+    ):
+        raise ValueError("news window consumption must match the generation recipient")
     if event_config.uses_v2 and request.segment is None:
         raise ValueError("event generation requires an explicit market segment")
     budget = request.budget
@@ -486,6 +497,20 @@ async def _generate_briefing_from_input(
         watchlist_impact=watchlist_impact,
         items=request.items,
     )
+    if request.news_window_consumptions:
+        start = min(receipt.requested_start for receipt in request.news_window_consumptions)
+        end = max(receipt.end_utc for receipt in request.news_window_consumptions)
+        ranges = "\n".join(
+            f"- {receipt.source_name}: {receipt.requested_start.isoformat()} ~ "
+            f"{receipt.end_utc.isoformat()} (종료 미포함)"
+            for receipt in request.news_window_consumptions
+        )
+        segment_context += (
+            f"\n\n뉴스 관측기간: {start.isoformat()} ~ {end.isoformat()} (소스별 범위의 합집합).\n"
+            f"가격 기준일은 {request.target_date.isoformat()}로 별도다. "
+            "장후·주말 발표를 그보다 앞선 종가 변동의 원인으로 서술하지 않는다. "
+            "관측기간은 전체 뉴스의 완전 수집을 뜻하지 않는다.\n" + ranges
+        )
     recent_context_block = _render_recent_context_block(request.segment, request.recent_context)
     carryover_context_block = _render_carryover_context_block(request.carryover)
     bundle_context_block = _render_bundle_context_block(
@@ -540,6 +565,11 @@ async def _generate_briefing_from_input(
         window_end = datetime.combine(
             request.target_date + timedelta(days=1), time.min, zone
         ).astimezone(UTC)
+        if request.news_window_consumptions:
+            window_start = min(
+                receipt.requested_start for receipt in request.news_window_consumptions
+            )
+            window_end = max(receipt.end_utc for receipt in request.news_window_consumptions)
         event_plan = prepare_event_selection(
             classification,
             llm_items,

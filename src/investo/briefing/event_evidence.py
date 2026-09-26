@@ -66,6 +66,7 @@ def make_evidence_document(
     url: str | None = None,
     published_at: datetime,
     received_at: datetime,
+    published_date: date | None = None,
     event_time: date | datetime | None = None,
     event_time_basis: str = "unknown",
     source_tier: str = "unknown",
@@ -82,6 +83,7 @@ def make_evidence_document(
             "source_name": source_name,
             "url": canonical_url,
             "published_at": published_at,
+            "published_date": published_date,
             "received_at": received_at,
             "event_time": event_time,
             "event_time_basis": event_time_basis,
@@ -98,6 +100,21 @@ def evidence_document_from_item(item: NormalizedItem, *, received_at: datetime) 
     """Validate attached evidence, or construct a limited title/summary fallback."""
     attached = cast(EvidenceDocument | None, getattr(item, "event_evidence", None))
     url = str(item.url) if item.url is not None else None
+    publication_day: date | None = None
+    event_day: date | None = None
+    if item.raw_metadata.get("published_at_precision") == "date":
+        try:
+            raw_day = item.raw_metadata["published_date"]
+            if not isinstance(raw_day, str):
+                raise ValueError("source date must be text")
+            publication_day = date.fromisoformat(raw_day)
+            if item.raw_metadata.get("event_time_basis") == "source_date":
+                raw_event_day = item.raw_metadata["event_date"]
+                if not isinstance(raw_event_day, str):
+                    raise ValueError("source event date must be text")
+                event_day = date.fromisoformat(raw_event_day)
+        except (KeyError, TypeError, ValueError):
+            raise ValueError("date precision evidence requires a valid source date") from None
     fallback = make_evidence_document(
         source_name=item.source_name,
         title=item.title,
@@ -105,6 +122,9 @@ def evidence_document_from_item(item: NormalizedItem, *, received_at: datetime) 
         url=url,
         published_at=item.published_at,
         received_at=received_at,
+        published_date=publication_day,
+        event_time=event_day,
+        event_time_basis="source_date" if event_day is not None else "unknown",
         source_tier=(
             "official"
             if item.raw_metadata.get("official_source") == "true"
@@ -120,6 +140,7 @@ def evidence_document_from_item(item: NormalizedItem, *, received_at: datetime) 
         or attached.document_id != fallback.document_id
         or attached.url != fallback.url
         or attached.published_at != item.published_at
+        or attached.published_date != publication_day
         or attached.revision_id
         != event_digest(attached.title, attached.summary, attached.detail_excerpt)
     ):

@@ -2639,7 +2639,7 @@ Plan: `aidlc-docs/construction/plans/u159-event-coverage-replay-and-gate-code-ge
 - [ ] AC-160.5: pre/post-commit 실패, push 성공·응답 유실, remote tip 전진과 clean rebase CAS 변경 후에도 다음 실행은 원격 확정 cursor만 쓴다. 알림만 실패하면 cursor를 유지한다.
 - [ ] AC-160.6: 최초 72h/최대 7d/24h overlap, 지연·수정 기사 dedup, 서로 다른 source 창의 envelope/gap/completeness를 명시하며 포착 완료로 오인시키지 않는다.
 
-**Construction strategy**: Queued — design approved; follows u159 in the user-requested sequence; cursor uses u157 receipt.
+**Construction strategy**: Code complete — 7/7 steps, full regression 5798 passed (462.55s); independent review PASS. Scheduled shadow and production cursor activation remain off.
 Functional Design REQUIRED; REQUIRED — temporal semantics, bounded fetch/pagination, persistentcursor/remotecommit failure 변경. NF3/5/6/7/9/10 적용.
 Dependencies: u157의 공통 PublishReceipt/transaction 기반. window 모델·adapter 설계와 구현은 병렬 가능하나 cursor 통합은 u157 이후다. 기존 u1/u5/u31/u35/u102/u113/u144 완료.
 Design: `aidlc-docs/construction/u160-publication-news-observation-window/design-brief.md`.

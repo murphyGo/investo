@@ -56,12 +56,13 @@ from investo._internal.surface_quality import (
 )
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
-from investo.models.coverage import SourceOutcome
+from investo.models.coverage import SourceOutcome, SourceWindowCoverage
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.events import EventIdentityReceipt
 from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
+from investo.models.news_window import NewsWindowConsumption, NewsWindowPlan
 from investo.models.public_artifact import PublicArtifactKind, StagedArtifact
 from investo.models.public_document_outcome import (
     NumericContainmentOutcome,
@@ -113,6 +114,7 @@ from investo.publisher.event_blocks import (
     terminal_events,
 )
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
+from investo.publisher.news_window import news_observation_matches, render_news_observation
 from investo.publisher.numeric_containment import (
     apply_numeric_containment_plan,
     plan_numeric_containment,
@@ -609,6 +611,11 @@ class PublicDocumentContext:
     event_payloads_by_segment: Mapping[MarketSegment, EventGenerationPayload] = field(
         default_factory=dict
     )
+    news_window_plan: NewsWindowPlan | None = None
+    news_window_consumptions_by_segment: Mapping[
+        MarketSegment, tuple[NewsWindowConsumption, ...]
+    ] = field(default_factory=dict)
+    news_window_coverage: tuple[SourceWindowCoverage, ...] = ()
 
     def __post_init__(self) -> None:
         expected = tuple(self.expected_segments)
@@ -651,6 +658,10 @@ class PublicDocumentContext:
             segment: tuple(values) for segment, values in self.staged_artifacts_by_segment.items()
         }
         event_payloads = dict(self.event_payloads_by_segment)
+        news_consumptions = {
+            segment: tuple(values)
+            for segment, values in self.news_window_consumptions_by_segment.items()
+        }
         for field_name, mapping in (
             ("anchors_by_segment", anchors),
             ("items_by_segment", items),
@@ -658,6 +669,7 @@ class PublicDocumentContext:
             ("supplements_by_segment", supplements),
             ("staged_artifacts_by_segment", artifacts),
             ("event_payloads_by_segment", event_payloads),
+            ("news_window_consumptions_by_segment", news_consumptions),
         ):
             if not set(mapping) <= generated:
                 raise ValueError(f"{field_name} contains an absent or unexpected segment")
@@ -669,6 +681,22 @@ class PublicDocumentContext:
             raise ValueError("coverage_by_segment key must match SegmentCoverage.segment")
         if any(not isinstance(value, EventGenerationPayload) for value in event_payloads.values()):
             raise TypeError("event_payloads_by_segment requires immutable EventGenerationPayload")
+        for segment, receipts in news_consumptions.items():
+            if self.news_window_plan is None:
+                raise ValueError("news consumption requires its exact observation plan")
+            for receipt in receipts:
+                window = self.news_window_plan.windows.get((receipt.source_name, segment))
+                if (
+                    receipt.segment != segment
+                    or receipt.phase != "generated"
+                    or window is None
+                    or receipt.run_id != self.news_window_plan.run_id
+                    or receipt.baseline_ref != self.news_window_plan.baseline_ref
+                    or receipt.baseline_cursor_hash != self.news_window_plan.baseline_cursor_hash
+                    or receipt.requested_start != window.requested_start
+                    or receipt.end_utc != window.end_utc
+                ):
+                    raise ValueError("news consumption must match its generated window")
 
         supplement_ids: list[str] = []
         artifact_by_id: dict[str, StagedArtifact] = {}
@@ -724,6 +752,10 @@ class PublicDocumentContext:
         object.__setattr__(self, "supplements_by_segment", _freeze_mapping(supplements))
         object.__setattr__(self, "staged_artifacts_by_segment", _freeze_mapping(artifacts))
         object.__setattr__(self, "event_payloads_by_segment", _freeze_mapping(event_payloads))
+        object.__setattr__(
+            self, "news_window_consumptions_by_segment", _freeze_mapping(news_consumptions)
+        )
+        object.__setattr__(self, "news_window_coverage", tuple(self.news_window_coverage))
 
 
 @dataclass(frozen=True, slots=True)
@@ -2625,6 +2657,33 @@ def _assemble_phase_one_reader_draft(
         ),
         verified_facts=tuple(verified_report.verified),
     )
+    news_consumed = context.news_window_consumptions_by_segment.get(draft.segment, ())
+    if news_consumed and context.news_window_plan is not None:
+        news_block = render_news_observation(
+            context.news_window_plan,
+            segment=draft.segment,
+            consumed=news_consumed,
+            coverage=context.news_window_coverage,
+        )
+        markdown = assembled_briefing.rendered_markdown
+        if news_block not in markdown:
+            starts = [
+                markdown.find(heading)
+                for heading in (
+                    "## ① 요약",
+                    _SHARED_MACRO_HEADING,
+                    _CRYPTO_INDICATOR_HEADING,
+                    _CHANNEL_ANCHOR_HEADING,
+                )
+                if heading in markdown
+            ]
+            if not starts:
+                raise ValueError("news observation requires the canonical first section")
+            position = min(starts)
+            markdown = markdown[:position] + news_block + "\n\n" + markdown[position:]
+            assembled_briefing = assembled_briefing.model_copy(
+                update={"rendered_markdown": markdown}
+            )
     layout = PublicDocumentLayout.reindex(
         assembled_briefing.rendered_markdown,
         expectation=draft.layout.expectation,
@@ -3110,6 +3169,18 @@ def _validate_repaired_draft(
         )
         if event_codes:
             raise _SegmentTrustBlockedError(phase="validated", issue_codes=event_codes)
+    news_consumed = context.news_window_consumptions_by_segment.get(draft.segment, ())
+    if news_consumed and context.news_window_plan is not None:
+        expected_news = render_news_observation(
+            context.news_window_plan,
+            segment=draft.segment,
+            consumed=news_consumed,
+            coverage=context.news_window_coverage,
+        )
+        if not news_observation_matches(draft.layout.markdown, expected_news):
+            raise _SegmentTrustBlockedError(
+                phase="validated", issue_codes=("news.window_projection_mismatch",)
+            )
     return _transition_draft(
         draft,
         next_phase="validated",
@@ -3421,6 +3492,13 @@ def _finalize_segment_skeleton(
     event_seal_options: _EventSealOptions = (
         {"event_identity_receipts": identities} if identities else {}
     )
+    news_consumed = context.news_window_consumptions_by_segment.get(current.segment, ())
+    if news_consumed:
+        digest = sha256(current.layout.markdown.encode("utf-8")).hexdigest()
+        event_seal_options["news_window_consumptions"] = tuple(
+            replace(receipt, phase="sealed", sealed_markdown_sha256=digest)
+            for receipt in news_consumed
+        )
     return _seal_document(current, staged_artifact_ids=artifact_ids, **event_seal_options)
 
 
@@ -3472,6 +3550,11 @@ def _context_for_minimal_segment(
         },
         event_payloads_by_segment={
             key: value for key, value in context.event_payloads_by_segment.items() if key != segment
+        },
+        news_window_consumptions_by_segment={
+            key: value
+            for key, value in context.news_window_consumptions_by_segment.items()
+            if key != segment
         },
     )
 
@@ -3790,6 +3873,7 @@ class FinalizedPublicDocument:
     numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...]
     surviving_event_ids: tuple[str, ...] = ()
     event_identity_receipts: tuple[EventIdentityReceipt, ...] = ()
+    news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
     watchpoint_synthesized: int = 0
     warnings: tuple[str, ...] = ()
 
@@ -3799,6 +3883,7 @@ class FinalizedPublicDocument:
 
 class _EventSealOptions(TypedDict, total=False):
     event_identity_receipts: tuple[EventIdentityReceipt, ...]
+    news_window_consumptions: tuple[NewsWindowConsumption, ...]
 
 
 def _seal_document(
@@ -3807,6 +3892,7 @@ def _seal_document(
     staged_artifact_ids: Sequence[str] = (),
     warnings: Sequence[str] = (),
     event_identity_receipts: Sequence[EventIdentityReceipt] = (),
+    news_window_consumptions: Sequence[NewsWindowConsumption] = (),
 ) -> FinalizedPublicDocument:
     """Construct E5 from a validated draft; never performs I/O."""
 
@@ -3828,6 +3914,14 @@ def _seal_document(
         update={"rendered_markdown": draft.layout.markdown}
     )
     digest = sha256(draft.layout.markdown.encode("utf-8")).hexdigest()
+    news_receipts = tuple(news_window_consumptions)
+    if any(
+        receipt.phase != "sealed"
+        or receipt.segment != draft.segment
+        or receipt.sealed_markdown_sha256 != digest
+        for receipt in news_receipts
+    ):
+        raise ValueError("sealed news consumption must match terminal document")
     sealed = object.__new__(FinalizedPublicDocument)
     object.__setattr__(sealed, "segment", draft.segment)
     object.__setattr__(sealed, "target_date", draft.target_date)
@@ -3837,6 +3931,7 @@ def _seal_document(
     object.__setattr__(sealed, "notification_summary", draft.notification_summary)
     object.__setattr__(sealed, "surviving_event_ids", draft.surviving_event_ids)
     object.__setattr__(sealed, "event_identity_receipts", identities)
+    object.__setattr__(sealed, "news_window_consumptions", news_receipts)
     object.__setattr__(sealed, "block_outcomes", draft.block_outcomes)
     object.__setattr__(
         sealed,

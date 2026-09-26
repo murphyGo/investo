@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-27",
+  "unit": "u160",
+  "baseline": "f056fbde76efd48f2f5715aa68b3fea278fbcf67",
+  "status": "code_complete_operational_activation_pending",
+  "tests": [
+    {"scope": "final full regression", "passed": 5798, "seconds": 462.55},
+    {"scope": "actual pipeline and local bare Git integration", "passed": 20, "seconds": 43.10},
+    {"scope": "independent corrected window and cursor models", "passed": 61, "seconds": 2.41},
+    {"scope": "source implementation and legacy compatibility", "passed": 227, "seconds": 5.62},
+    {"scope": "source parsing correction", "passed": 59, "seconds": 1.86},
+    {"scope": "independent finalizer projection correction", "passed": 11, "seconds": 0.85},
+    {"scope": "CLI mode and manifest gates", "passed": 6, "seconds": 0.96},
+    {"scope": "existing architecture, event publication and replay", "passed": 63, "seconds": 7.91}
+  ],
+  "static": {"ruff": "pass", "format_files": 648, "mypy_source_files": 286},
+  "guards": {"no_anthropic_sdk": "pass", "no_paid_apis": "pass", "curated_assets": "pass", "image_store": "pass", "mkdocs_strict": "pass", "mkdocs_seconds": 9.22, "material_theme": "pass"},
+  "review": {"waves": 2, "resolved_p2": 4, "unresolved_p1_p2": 0, "independent_packet_and_parent_review": "pass"},
+  "acceptance": {"AC-160.1": "pass", "AC-160.2": "pass", "AC-160.3": "pass", "AC-160.4": "pass", "AC-160.5": "pass", "AC-160.6": "pass"},
+  "benchmark": {"input_count": 1000, "candidate_count": 96, "selected_count": 5, "iterations": 10, "p95_ms": 121.469, "limit_ms": 200, "status": "pass", "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate"},
+  "source_evidence": {"opendart_contract": "official_documentation_checked", "live_provider_qualification": "not_claimed"},
+  "operational_acceptance": {"scheduled_shadow": "not_run", "live_cursor_mutation": "not_run", "live_notification_and_pages": "not_run", "production_activation": "off", "event_active_ready": false, "news_window_active_ready": false, "end_to_end_runtime_p95": "not_measured", "DEBT-090": "unchanged"},
+  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "authorized_after_passed_final_gate"}
+}

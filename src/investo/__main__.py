@@ -46,6 +46,7 @@ from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.briefing.claude_code import ClaudeRunner
 from investo.models import FailureContext, PipelineResult, PipelineStatus
 from investo.models.event_config import EVENT_MODE_ENV, EventExecutionConfig
+from investo.models.news_window import NewsWindowConfig
 from investo.notifier import BriefingPublisher, OperatorAlerter
 from investo.notifier._telegram import send_message as _telegram_send
 from investo.orchestrator import boot_alert_dedup, weekly_ops_digest
@@ -56,6 +57,8 @@ from investo.orchestrator.pipeline import run_pipeline
 
 class _EventPipelineOptions(TypedDict, total=False):
     event_config: EventExecutionConfig
+    news_window_config: NewsWindowConfig
+    news_manifest_path: Path
 
 
 # The 5 required env vars per AC-007-1 + ``component-methods.md`` C5.
@@ -566,6 +569,25 @@ async def _async_main(
                 event_options["event_config"] = event_config
         except ValueError as exc:
             raise ConfigError.for_bad_value(EVENT_MODE_ENV, str(exc)) from None
+        try:
+            news_config = NewsWindowConfig.from_env(os.environ, target_date_override)
+            news_config.validate_publication(
+                replay=target_date_override is not None,
+                dry_run=os.environ.get("INVESTO_DRY_RUN", "").strip() == "1",
+            )
+            if news_config.mode != "off":
+                event_options["news_window_config"] = news_config
+            manifest_value = os.environ.get("INVESTO_NEWS_MANIFEST_PATH", "").strip()
+            if manifest_value:
+                if (
+                    target_date_override is None
+                    or news_config.start_utc is not None
+                    or news_config.mode == "off"
+                ):
+                    raise ValueError("news manifest requires an exclusive explicit replay")
+                event_options["news_manifest_path"] = Path(manifest_value)
+        except ValueError as exc:
+            raise ConfigError.for_bad_value("INVESTO_NEWS_WINDOW_MODE", str(exc)) from None
     except ConfigError as exc:
         _logger.error("config error: %s", exc)
         await _attempt_boot_alert(exc)

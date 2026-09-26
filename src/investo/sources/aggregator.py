@@ -16,19 +16,27 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from investo._internal.source_specs import source_names_for_market_window
+from investo._internal.source_specs import (
+    news_window_source_recipients,
+    source_names_for_market_window,
+)
 from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
+from investo.models.coverage import SourceFetchResult, SourceWindowCoverage
 from investo.models.segments import SEGMENT_MARKET_TZ
 from investo.sources._registry import list_sources
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceAdapter, SourceFetchError
 from investo.sources.tiers import adapter_tier
+
+if TYPE_CHECKING:
+    from investo.models.news_window import NewsObservationWindow
 
 _logger = logging.getLogger(__name__)
 _MAX_FUTURE_PUBLISHED_AT = timedelta(days=30)
@@ -38,7 +46,7 @@ _CRYPTO_MARKET_SOURCES: Final[frozenset[str]] = source_names_for_market_window("
 
 @dataclass(frozen=True, slots=True)
 class _TimedAdapterResult:
-    result: list[NormalizedItem] | BaseException
+    result: list[NormalizedItem] | SourceFetchResult | BaseException
     elapsed_s: float
 
 
@@ -63,7 +71,12 @@ async def fetch_all(target_date: date) -> list[NormalizedItem]:
     return list(report.items)
 
 
-async def collect_sources(target_date: date) -> SourceCollectionReport:
+async def collect_sources(
+    target_date: date,
+    *,
+    news_windows: Mapping[str, NewsObservationWindow] | None = None,
+    held_news_sources: frozenset[str] = frozenset(),
+) -> SourceCollectionReport:
     """Run every registered adapter concurrently and return a full report.
 
     Same execution model as :func:`fetch_all` — concurrent fan-out, FD
@@ -77,23 +90,48 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
     same set of adapters always produces the same outcome sequence.
     """
 
-    adapters = list_sources()
+    overrides = news_windows or {}
+    permitted = news_window_source_recipients()
+    if (set(overrides) | held_news_sources) - set(permitted):
+        raise ValueError("news window override requires explicit source opt-in")
+    if set(overrides) & held_news_sources:
+        raise ValueError("held news source cannot also have a fetch window")
+    adapters = [adapter for adapter in list_sources() if adapter.name not in held_news_sources]
     if not adapters:
         return SourceCollectionReport(items=(), outcomes=())
 
     windows = {adapter.name: _window_for_adapter(target_date, adapter.name) for adapter in adapters}
+    for source_name, requested in overrides.items():
+        if not requested.fetch_required:
+            raise ValueError("held news windows must not be fetched")
+        windows[source_name] = FetchWindow(
+            requested.requested_start, requested.end_utc, target_date, news_observation=True
+        )
 
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(
-            *(_fetch_adapter_timed(adapter, client, windows[adapter.name]) for adapter in adapters),
+            *(
+                _fetch_adapter_timed(
+                    adapter, client, windows[adapter.name], with_coverage=adapter.name in overrides
+                )
+                for adapter in adapters
+            ),
         )
 
     items: list[NormalizedItem] = []
     outcomes: list[SourceOutcome] = []
+    window_coverages: list[SourceWindowCoverage] = []
     for adapter, timed in zip(adapters, results, strict=True):
         result = timed.result
         elapsed_s = timed.elapsed_s
         if isinstance(result, SourceFetchError):
+            if adapter.name in overrides:
+                failed_window = windows[adapter.name]
+                window_coverages.append(
+                    SourceWindowCoverage(
+                        adapter.name, failed_window.start_utc, failed_window.end_utc
+                    )
+                )
             # L5: one WARNING per failed adapter. We log the
             # *exception's* self-reported source_name (not the
             # registry's adapter.name): an adapter that violates
@@ -131,6 +169,9 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
             # long enough to retain elapsed_s. Re-raising here preserves
             # the old contract: adapters never silence non-source errors.
             raise result
+        if isinstance(result, SourceFetchResult):
+            window_coverages.append(result.window_coverage)
+            result = list(result.items)
         window = windows[adapter.name]
         kept: list[NormalizedItem] = []
         for item in result:
@@ -197,17 +238,56 @@ async def collect_sources(target_date: date) -> SourceCollectionReport:
                     elapsed_s=elapsed_s,
                 )
             )
-    return SourceCollectionReport(items=tuple(items), outcomes=tuple(outcomes))
+    return SourceCollectionReport(
+        items=tuple(items), outcomes=tuple(outcomes), window_coverages=tuple(window_coverages)
+    )
 
 
 async def _fetch_adapter_timed(
     adapter: SourceAdapter,
     client: httpx.AsyncClient,
     window: FetchWindow,
+    *,
+    with_coverage: bool = False,
 ) -> _TimedAdapterResult:
     start = time.monotonic()
     try:
-        result = await adapter.fetch(client, window)
+        if with_coverage:
+            fetch_coverage = getattr(adapter, "fetch_with_coverage", None)
+            if callable(fetch_coverage):
+                result = await fetch_coverage(client, window)
+                if not isinstance(result, SourceFetchResult):
+                    raise SourceFetchError(
+                        source_name=adapter.name,
+                        message="invalid window coverage result",
+                        transient=False,
+                    )
+                coverage = result.window_coverage
+                if (
+                    coverage.source_name != adapter.name
+                    or coverage.requested_start != window.start_utc
+                    or coverage.end_utc != window.end_utc
+                ):
+                    raise SourceFetchError(
+                        source_name=adapter.name,
+                        message="window coverage request mismatch",
+                        transient=False,
+                    )
+            else:
+                legacy = await adapter.fetch(client, window)
+                times = [item.published_at for item in legacy]
+                result = SourceFetchResult(
+                    tuple(legacy),
+                    SourceWindowCoverage(
+                        adapter.name,
+                        window.start_utc,
+                        window.end_utc,
+                        earliest_observed=min(times) if times else None,
+                        latest_observed=max(times) if times else None,
+                    ),
+                )
+        else:
+            result = await adapter.fetch(client, window)
     except BaseException as exc:
         return _TimedAdapterResult(result=exc, elapsed_s=time.monotonic() - start)
     return _TimedAdapterResult(result=result, elapsed_s=time.monotonic() - start)

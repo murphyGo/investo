@@ -82,6 +82,7 @@ from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo._internal.archive_layout import ArchiveLayout
 from investo._internal.artifact_staging import temporary_artifact_staging_root
+from investo._internal.source_specs import news_window_source_recipients
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import (
     RecentBriefingsContext,
@@ -154,6 +155,7 @@ from investo.models import (
     SourceOutcome,
 )
 from investo.models.bundle_context import BundleContext
+from investo.models.coverage import SourceWindowCoverage
 from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
 from investo.models.event_quality import (
     EventCoverage,
@@ -164,6 +166,17 @@ from investo.models.event_quality import (
 )
 from investo.models.events import EventIdentityReceipt
 from investo.models.facts import FactId, VerifiedFactBundle
+from investo.models.news_quality import NewsObservationQuality
+from investo.models.news_window import (
+    DEFAULT_NEWS_WINDOW_CONFIG,
+    NewsCursorBaseline,
+    NewsObservationWindow,
+    NewsWindowConfig,
+    NewsWindowConsumption,
+    NewsWindowKey,
+    NewsWindowPlan,
+    utc_datetime,
+)
 from investo.models.public_artifact import StagedArtifact
 from investo.models.publication import PublicationRequest, PublishReceipt
 from investo.models.results import TRACEBACK_EXCERPT_MAX
@@ -190,9 +203,19 @@ from investo.orchestrator.event_publication import (
     prepare_event_publication,
 )
 from investo.orchestrator.event_receipts import (
+    EVENT_RECEIPT_PATH,
     EventReceiptBaseline,
     persist_publication_receipt,
     snapshot_git_index,
+)
+from investo.orchestrator.news_window import (
+    filter_news_items_for_segment,
+    load_committed_news_cursors,
+    load_news_replay_windows,
+    make_news_window_consumptions,
+    make_news_window_plan,
+    prepare_news_window_publication,
+    union_news_windows,
 )
 from investo.orchestrator.price_fallback import (
     YFINANCE_SOURCE_NAME,
@@ -243,6 +266,7 @@ from investo.publisher.compliance_language import (
 from investo.publisher.event_quality import evaluate_event_quality
 from investo.publisher.evidence_accounting import count_rendered_evidence
 from investo.publisher.monthly_index import update_monthly_index
+from investo.publisher.news_window import news_observation_quality
 from investo.publisher.public_document import (
     FinalizedPublicBundle,
     PublicDocumentContext,
@@ -509,6 +533,7 @@ async def _default_generate_segment_briefing(
     event_observed_at: datetime | None = None,
     event_baseline: tuple[EventIdentityReceipt, ...] = (),
     event_baseline_available: bool = True,
+    news_window_consumptions: Sequence[NewsWindowConsumption] = (),
 ) -> GenerationResult:
     """Adapter for u7 segmented generation."""
     # u68 — pass the archive root so the glossary callout can suppress
@@ -542,6 +567,7 @@ async def _default_generate_segment_briefing(
             event_baseline=event_baseline,
             event_baseline_available=event_baseline_available,
             event_collection_items=macro_lineage_all_items,
+            news_window_consumptions=news_window_consumptions,
         )
     )
 
@@ -675,6 +701,7 @@ async def _generate_one_segment(
     event_observed_at: datetime | None = None,
     event_baseline: tuple[EventIdentityReceipt, ...] = (),
     event_baseline_available: bool = True,
+    news_window_consumptions: Sequence[NewsWindowConsumption] = (),
 ) -> _SegmentGenerationResult:
     start = time.monotonic()
     _logger.info(
@@ -705,6 +732,7 @@ async def _generate_one_segment(
                 event_observed_at=event_observed_at,
                 event_baseline=event_baseline,
                 event_baseline_available=event_baseline_available,
+                news_window_consumptions=news_window_consumptions,
             )
             briefing = generation_result.briefing
             macro_lineage = generation_result.macro_lineage
@@ -763,6 +791,7 @@ async def _stage_generate_segments(
     event_baseline: EventReceiptBaseline | None = None,
     event_observed_at: datetime | None = None,
     event_failures: dict[MarketSegment, BriefingGenerationError] | None = None,
+    news_window_plan: NewsWindowPlan | None = None,
 ) -> tuple[
     dict[MarketSegment, Briefing],
     dict[MarketSegment, BriefingGenerationError],
@@ -885,6 +914,13 @@ async def _stage_generate_segments(
                 event_observed_at=fact_now_utc if event_config.uses_v2 else None,
                 event_baseline=event_baseline.receipts if event_baseline is not None else (),
                 event_baseline_available=event_baseline is not None or not event_config.uses_v2,
+                news_window_consumptions=(
+                    make_news_window_consumptions(
+                        news_window_plan, segment=segment, items=segment_source_items
+                    )
+                    if news_window_plan is not None and news_window_plan.mode == "active"
+                    else ()
+                ),
             )
 
     raw_results = await asyncio.gather(
@@ -1343,6 +1379,7 @@ async def _stage_publish_segments(
     transactional_metadata: Mapping[Path, bytes] | None = None,
     publication_receipts: list[PublishReceipt] | None = None,
     event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
+    news_observation: Mapping[MarketSegment, NewsObservationQuality] | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -1582,6 +1619,7 @@ async def _stage_publish_segments(
                             for document in finalized_documents.values()
                         ),
                         event_coverage=event_coverage,
+                        news_observation=news_observation,
                     ),
                     history_path=quality_history_path,
                 )
@@ -2084,6 +2122,7 @@ def _build_quality_snapshot(
     degraded_segments: int = 0,
     numeric_containment_actions: int = 0,
     event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
+    news_observation: Mapping[MarketSegment, NewsObservationQuality] | None = None,
 ) -> QualitySnapshot:
     from investo.publisher.quality_consistency import parse_segment_status_block
 
@@ -2192,6 +2231,7 @@ def _build_quality_snapshot(
         current_run_degraded_segments=degraded_segments,
         current_run_numeric_containment_actions=numeric_containment_actions,
         event_coverage=event_coverage,
+        news_observation=news_observation,
     )
 
 
@@ -2816,8 +2856,72 @@ class CollectStage:
     ) -> StageResult[dict[str, object]]:
         fetch = cast("CollectCallable | None", ctx.fetch)
         start = time.monotonic()
+        news_plan: NewsWindowPlan | None = None
+        news_baseline: NewsCursorBaseline | None = None
+        event_baseline: EventReceiptBaseline | None = None
+        window_coverage: tuple[SourceWindowCoverage, ...] = ()
+        if ctx.news_window_config.mode != "off":
+            run_id = "news-" + uuid4().hex
+            if (
+                ctx.news_window_config.mode == "active"
+                and not ctx.news_replay
+                and not _is_dry_run()
+            ):
+                try:
+                    event_baseline = await _to_thread_drained(
+                        load_remote_event_baseline,
+                        observed_at=ctx.run_started_at or datetime.now(UTC),
+                        runner=cast("GitRunner | None", ctx.git_runner),
+                    )
+                    assert event_baseline is not None
+                    news_baseline = await _to_thread_drained(
+                        load_committed_news_cursors,
+                        event_baseline.baseline_sha,
+                        run_id=run_id,
+                        runner=cast("GitRunner | None", ctx.git_runner),
+                        event_metadata_paths=(EVENT_RECEIPT_PATH,)
+                        if ctx.event_config.uses_v2
+                        else (),
+                    )
+                except (PublisherGitError, ValueError, OSError):
+                    # Collection remains useful, but an unknown CAS baseline
+                    # cannot be used for cursor publication.
+                    _logger.warning("[news_window] baseline unavailable")
+                    news_baseline = None
+            news_plan = make_news_window_plan(
+                ctx.news_window_config,
+                run_id=run_id,
+                target_date=ctx.target_date,
+                observed_at=ctx.run_started_at or datetime.now(UTC),
+                source_recipients={
+                    source: tuple(sorted(recipients))
+                    for source, recipients in news_window_source_recipients().items()
+                },
+                baseline=news_baseline,
+                replay=ctx.news_replay,
+                dry_run=_is_dry_run(),
+                replay_windows=ctx.news_replay_windows,
+            )
         try:
-            items, source_outcomes = await _stage_collect(ctx.target_date, fetch=fetch)
+            if news_plan is not None and news_plan.mode == "active":
+                if fetch is None:
+                    union = union_news_windows(news_plan)
+                    report = await _default_collect_sources(
+                        ctx.target_date,
+                        news_windows=union,
+                        held_news_sources=frozenset(
+                            source for source, _ in news_plan.windows if source not in union
+                        ),
+                    )
+                    items, source_outcomes = list(report.items), report.outcomes
+                    window_coverage = report.window_coverages
+                else:
+                    items = await fetch(ctx.target_date)
+                    source_outcomes = ()
+                if not items:
+                    raise EmptyCollectError("news observation returned no usable items")
+            else:
+                items, source_outcomes = await _stage_collect(ctx.target_date, fetch=fetch)
         except EmptyCollectError as exc:
             return StageResult(
                 status="failed",
@@ -2832,7 +2936,14 @@ class CollectStage:
             )
         return StageResult(
             status="ok",
-            data={"items": items, "source_outcomes": source_outcomes},
+            data={
+                "items": items,
+                "source_outcomes": source_outcomes,
+                "news_window_plan": news_plan,
+                "news_cursor_baseline": news_baseline,
+                "news_window_coverage": window_coverage,
+                "event_baseline": event_baseline,
+            },
             stage_notes={"collect": "ok"},
             timings={"collect": time.monotonic() - start},
         )
@@ -2854,6 +2965,8 @@ def _build_public_document_context(
     staged_artifacts: Sequence[StagedArtifact] = (),
     event_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
     event_results: Mapping[MarketSegment, GenerationResult] | None = None,
+    news_window_plan: NewsWindowPlan | None = None,
+    news_window_coverage: Sequence[SourceWindowCoverage] = (),
 ) -> PublicDocumentContext:
     """Freeze the complete E1 input consumed by the pure finalizer."""
 
@@ -2902,6 +3015,13 @@ def _build_public_document_context(
             for segment, result in (event_results or {}).items()
             if segment in generated and result.event_payload is not None
         },
+        news_window_plan=news_window_plan,
+        news_window_consumptions_by_segment={
+            segment: result.news_window_consumptions
+            for segment, result in (event_results or {}).items()
+            if segment in generated and result.news_window_consumptions
+        },
+        news_window_coverage=tuple(news_window_coverage),
     )
 
 
@@ -2947,8 +3067,15 @@ class GenerateStage:
         domestic_item_verdicts: tuple[tuple[int, DomesticAnchorVerdict], ...] = ()
         generate_sub_timings: dict[str, float] = {}
         event_results: dict[MarketSegment, GenerationResult] = {}
-        event_baseline: EventReceiptBaseline | None = None
-        if ctx.event_config.uses_v2 and not _is_dry_run():
+        event_baseline = cast("EventReceiptBaseline | None", accumulated.get("event_baseline"))
+        news_plan = cast("NewsWindowPlan | None", accumulated.get("news_window_plan"))
+        news_baseline = cast("NewsCursorBaseline | None", accumulated.get("news_cursor_baseline"))
+        if (
+            ctx.event_config.uses_v2
+            and not _is_dry_run()
+            and not ctx.news_replay
+            and ctx.news_window_config.mode != "active"
+        ):
             try:
                 event_baseline = await _to_thread_drained(
                     load_remote_event_baseline,
@@ -3061,6 +3188,16 @@ class GenerateStage:
                     event_items_by_segment = share_official_event_candidates(
                         public_items, candidates_by_segment
                     )
+                if news_plan is not None and news_plan.mode == "active":
+                    candidates = event_items_by_segment or candidates_by_segment
+                    event_items_by_segment = {
+                        segment: tuple(
+                            filter_news_items_for_segment(
+                                news_plan, segment, candidates[segment], baseline=news_baseline
+                            )
+                        )
+                        for segment in SEGMENT_ORDER
+                    }
                 carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
                 # u59 — advance + persist the operator-only macro lifecycle
                 # carryover snapshot from the collected/routed items. Pure
@@ -3092,8 +3229,13 @@ class GenerateStage:
                     event_results=event_results,
                     event_items_by_segment=event_items_by_segment,
                     event_baseline=event_baseline,
-                    event_observed_at=ctx.event_observed_at,
+                    event_observed_at=(
+                        news_plan.observed_at
+                        if news_plan is not None and news_plan.mode == "active"
+                        else ctx.event_observed_at
+                    ),
                     event_failures=segment_generation_failures,
+                    news_window_plan=news_plan,
                 )
                 generate_sub_timings.update(segment_timings)
                 primary_generated_segment = (
@@ -3259,6 +3401,10 @@ class GenerateStage:
                 staged_artifacts=staged_public_artifacts,
                 event_items_by_segment=event_items_by_segment,
                 event_results=event_results,
+                news_window_plan=news_plan,
+                news_window_coverage=cast(
+                    "tuple[SourceWindowCoverage, ...]", accumulated.get("news_window_coverage", ())
+                ),
             )
             timings = {
                 "generate": generate_elapsed,
@@ -3349,6 +3495,7 @@ class _EventPublishOptions(TypedDict, total=False):
     transactional_metadata: Mapping[Path, bytes]
     publication_receipts: list[PublishReceipt]
     event_coverage: Mapping[MarketSegment, EventCoverage]
+    news_observation: Mapping[MarketSegment, NewsObservationQuality]
 
 
 class PublishStage:
@@ -3481,7 +3628,7 @@ class PublishStage:
                         results=event_results, failures=event_failures, bundle=finalized_bundle
                     )
                     event_options["event_coverage"] = event_coverage
-                    if not _is_dry_run():
+                    if not _is_dry_run() and not ctx.news_replay:
                         publication_request, metadata = prepare_event_publication(
                             cast("EventReceiptBaseline | None", accumulated.get("event_baseline")),
                             run_id="event-" + uuid4().hex,
@@ -3494,6 +3641,50 @@ class PublishStage:
                         )
                         event_options["publication_request"] = publication_request
                         event_options["transactional_metadata"] = metadata
+                        event_options["publication_receipts"] = publication_receipts
+                news_plan = cast("NewsWindowPlan | None", accumulated.get("news_window_plan"))
+                if news_plan is not None and news_plan.mode == "active":
+                    news_quality: dict[MarketSegment, NewsObservationQuality] = {}
+                    for document in finalized_bundle.documents:
+                        observation = news_observation_quality(
+                            news_plan,
+                            segment=document.segment,
+                            consumed=document.news_window_consumptions,
+                            coverage=cast(
+                                "tuple[SourceWindowCoverage, ...]",
+                                accumulated.get("news_window_coverage", ()),
+                            ),
+                        )
+                        if observation is not None:
+                            news_quality[document.segment] = observation
+                    event_options["news_observation"] = news_quality
+                    try:
+                        news_publication = prepare_news_window_publication(
+                            news_plan,
+                            cast(
+                                "NewsCursorBaseline | None", accumulated.get("news_cursor_baseline")
+                            ),
+                            coverage=cast(
+                                "tuple[SourceWindowCoverage, ...]",
+                                accumulated.get("news_window_coverage", ()),
+                            ),
+                            consumed=tuple(
+                                receipt
+                                for document in finalized_bundle.documents
+                                for receipt in document.news_window_consumptions
+                            ),
+                            event_metadata=event_options.get("transactional_metadata"),
+                        )
+                    except ValueError:
+                        raise PublisherGitError(
+                            attempt_count=0,
+                            last_stderr="news publication baseline invalid",
+                            cause=None,
+                        ) from None
+                    if news_publication is not None:
+                        request, news_metadata = news_publication
+                        event_options["publication_request"] = request
+                        event_options["transactional_metadata"] = news_metadata
                         event_options["publication_receipts"] = publication_receipts
                 await _stage_publish_segments(
                     segment_briefings,
@@ -3844,6 +4035,10 @@ async def run_pipeline(
     generate_segment: SegmentGenerateCallable | None = None,
     stages: tuple[Stage, ...] | None = None,
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
+    news_window_config: NewsWindowConfig = DEFAULT_NEWS_WINDOW_CONFIG,
+    run_started_at: datetime | None = None,
+    news_replay_windows: Mapping[NewsWindowKey, NewsObservationWindow] | None = None,
+    news_manifest_path: Path | None = None,
     before_publication: Callable[[], Awaitable[None]] | None = None,
 ) -> PipelineResult:
     """Run the four-stage pipeline under Q9=B Error Policy routing.
@@ -3893,9 +4088,23 @@ async def run_pipeline(
         URL on SUCCESS / PARTIAL, ``None`` on FAILED.
     """
     event_config.validate_publication()
-    event_observed_at = datetime.now(UTC) if event_config.uses_v2 else None
+    news_replay = target_date is not None
+    news_window_config.validate_publication(replay=news_replay, dry_run=_is_dry_run())
+    if news_manifest_path is not None:
+        if (
+            not news_replay
+            or news_replay_windows is not None
+            or news_window_config.start_utc is not None
+            or news_window_config.mode == "off"
+        ):
+            raise ValueError("news manifest requires an exclusive explicit replay")
+        news_replay_windows = load_news_replay_windows(news_manifest_path)
+    if news_replay_windows is not None and not news_replay:
+        raise ValueError("stored news windows require an explicit replay date")
+    run_clock = utc_datetime(run_started_at or datetime.now(UTC))
+    event_observed_at = run_clock if event_config.uses_v2 else None
     if target_date is None:
-        target_date = resolve_target_date(datetime.now(UTC))
+        target_date = resolve_target_date(run_clock)
     target_date = validate_target_date_sanity(target_date)
 
     if stages is None:
@@ -3912,6 +4121,10 @@ async def run_pipeline(
         generate_segment=generate_segment,
         event_config=event_config,
         event_observed_at=event_observed_at,
+        news_window_config=news_window_config,
+        run_started_at=run_clock,
+        news_replay=news_replay,
+        news_replay_windows=news_replay_windows,
     )
     with temporary_artifact_staging_root() as artifact_staging_root:
         return await _execute_pipeline_stages(

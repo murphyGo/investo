@@ -320,8 +320,9 @@ async def test_notification_failure_keeps_pipeline_confirmed_event_coverage(
     monkeypatch.setattr(pipeline, "_stage_publish_segments", publish)
     alerter = AsyncMock()
     alerter.alert.return_value = SendResult(ok=True)
+    monkeypatch.setattr(pipeline, "resolve_target_date", lambda _: ctx.target_date)
     result = await pipeline.run_pipeline(
-        ctx.target_date,
+        None,
         publisher=AsyncMock(),
         alerter=alerter,
         site_url_base=ctx.site_url_base,

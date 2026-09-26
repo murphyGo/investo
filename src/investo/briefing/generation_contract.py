@@ -20,6 +20,7 @@ from investo.models.bundle_context import BundleContext
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.event_quality import EventStageReceipt
 from investo.models.events import EventIdentityReceipt, EventSelectionPlan
+from investo.models.news_window import NewsWindowConsumption
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +45,7 @@ class GenerationInput:
     event_baseline: tuple[EventIdentityReceipt, ...] = ()
     event_baseline_available: bool = True
     event_collection_items: tuple[NormalizedItem, ...] | None = None
+    news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
 
     def __init__(
         self,
@@ -68,7 +70,9 @@ class GenerationInput:
         event_baseline: tuple[EventIdentityReceipt, ...] = (),
         event_baseline_available: bool = True,
         event_collection_items: Sequence[NormalizedItem] | None = None,
+        news_window_consumptions: Sequence[NewsWindowConsumption] = (),
     ) -> None:
+        object.__setattr__(self, "news_window_consumptions", tuple(news_window_consumptions))
         object.__setattr__(self, "event_observed_at", event_observed_at)
         object.__setattr__(self, "event_baseline", event_baseline)
         object.__setattr__(self, "event_baseline_available", event_baseline_available)
@@ -107,6 +111,7 @@ class GenerationResult:
     event_observation: CandidateObservation | None = None
     event_payload: EventGenerationPayload | None = None
     event_stage_receipts: tuple[EventStageReceipt, ...] = ()
+    news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
 
 
 __all__ = [

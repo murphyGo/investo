@@ -59,6 +59,7 @@ class EvidenceDocument(EventModel):
     source_name: Text
     url: str | None = None
     published_at: datetime
+    published_date: date | None = None
     received_at: datetime
     event_time: datetime | date | None = None
     event_time_basis: Literal["source_exact", "source_date", "unknown"] = "unknown"

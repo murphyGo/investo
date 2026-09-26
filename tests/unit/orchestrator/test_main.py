@@ -38,6 +38,52 @@ _VALID_ENV: dict[str, str] = {
 }
 
 
+@pytest.mark.parametrize(
+    ("mode", "target", "manifest", "expected_exit"),
+    [
+        ("off", None, None, 0),
+        ("shadow", None, None, 0),
+        ("active", None, None, 1),
+        ("active", "2026-09-25", "saved-news-manifest.json", 0),
+        ("shadow", None, "saved-news-manifest.json", 1),
+        ("off", "2026-09-25", "saved-news-manifest.json", 1),
+    ],
+)
+def test_news_window_boot_gate_and_replay_manifest_forwarding(
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str,
+    target: str | None,
+    manifest: str | None,
+    expected_exit: int,
+) -> None:
+    _set_env(monkeypatch)
+    for name in (
+        "INVESTO_DRY_RUN",
+        "INVESTO_TARGET_DATE",
+        "INVESTO_NEWS_START_UTC",
+        "INVESTO_NEWS_END_UTC",
+        "INVESTO_NEWS_MANIFEST_PATH",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("INVESTO_NEWS_WINDOW_MODE", mode)
+    if target is not None:
+        monkeypatch.setenv("INVESTO_TARGET_DATE", target)
+    if manifest is not None:
+        monkeypatch.setenv("INVESTO_NEWS_MANIFEST_PATH", manifest)
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == expected_exit
+    if expected_exit:
+        assert calls == []
+    elif mode == "off":
+        assert "news_window_config" not in calls[0]
+        assert "news_manifest_path" not in calls[0]
+    else:
+        assert calls[0]["news_window_config"].mode == mode
+        if manifest:
+            assert calls[0]["news_manifest_path"] == Path(manifest)
+            assert calls[0]["target_date"] == date.fromisoformat(target or "")
+
+
 @pytest.fixture(autouse=True)
 def _isolate_boot_alert_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[None]:
     """Each test gets its own boot-alert dedup ledger so ordering is irrelevant.

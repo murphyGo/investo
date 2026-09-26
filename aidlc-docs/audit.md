@@ -7200,3 +7200,11 @@ u158 commit `c3f2e5efe91d1a1284d9e859eedba71728a7d64b` pushed and exact remote b
 ## u159 Code Generation closeout (2026-09-27)
 
 Sequential unit 3/6: six code steps complete. Truthful stage/terminal counts, same-basis public quality, remote-confirmed aggregate, E11 sealed-survivor ledger and 12-group/25-variant offline replay implemented. Independent second-wave review resolved eight P2 findings; no remaining P1/P2. Final full regression 5652 passed/416.33s, independent replay32, terminal45, model/page35 and preview/architecture17 passed. Ruff/format638, mypy282, policy and strict docs/Material gates passed. NF3 p95=126.662ms/1000 inputs. AC-159.4 automated structure replay passes; genuine human semantic review remains pending. Scheduled shadow, active/public operational checks not run. Commit/push is authorized; proceed to u160 after exact remote confirmation.
+
+## u159 remote delivery and u160 start (2026-09-27)
+
+u159 commit `f056fbde76efd48f2f5715aa68b3fea278fbcf67` pushed to `origin/codex/news-event-design-20260926` and exact remote SHA verified. u160 develops independent news windows, optional source coverage, recipient consumption and confirmed E11 cursor metadata under the same sequential authorization. Default off; scheduled shadow and production cursor activation remain separate. Existing dirty root checkout is untouched.
+
+## u160 Code Generation closeout (2026-09-27)
+
+Sequential unit 4/6: seven steps and AC-160.1–6 code validation complete. Independent fixed news clock, source union/recipient filtering, bounded DART/policy coverage, sealed consumption, same-transaction confirmed cursor/manifest and reader/quality observation ranges implemented. Two review waves resolved four P2 findings; no remaining P1/P2. Full5798/462.55s, actual pipeline/bare Git20, independent window61, source correction59, parent projection11 and CLI6 pass. Ruff/format648, mypy286, policy4, strict MkDocs9.22s/Material pass. Existing event NF3 p95=121.469ms/1000 inputs. Off/shadow parity and replay/dry-run cursor boundaries verified offline; no scheduled shadow, live cursor changes, activation, main merge or external notification. Authorized commit/push follows, then u161.

@@ -38,6 +38,7 @@ cross-unit edges (CLAUDE.md #3).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Generic, Literal, Protocol, TypeVar
@@ -46,6 +47,12 @@ from pydantic import HttpUrl
 
 from investo.models import PipelineStatus
 from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
+from investo.models.news_window import (
+    DEFAULT_NEWS_WINDOW_CONFIG,
+    NewsObservationWindow,
+    NewsWindowConfig,
+    NewsWindowKey,
+)
 from investo.models.results import FailureStage
 
 T = TypeVar("T")
@@ -82,6 +89,10 @@ class PipelineContext:
     generate_segment: object | None = None
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG
     event_observed_at: datetime | None = None
+    news_window_config: NewsWindowConfig = DEFAULT_NEWS_WINDOW_CONFIG
+    run_started_at: datetime | None = None
+    news_replay: bool = False
+    news_replay_windows: Mapping[NewsWindowKey, NewsObservationWindow] | None = None
 
 
 @dataclass(frozen=True)

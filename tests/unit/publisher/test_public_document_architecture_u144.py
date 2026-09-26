@@ -252,6 +252,9 @@ def test_rendered_markdown_construction_and_mutation_sites_are_allowlisted() -> 
         # u158 summary reconciliation stays inside the existing assembly phase;
         # terminal validation and sealing retain their original ownership.
         (_PUBLIC_DOCUMENT, "_assemble_phase_one_reader_draft", "model_copy"),
+        # u160 consumes the frozen interval only in this same assembly owner;
+        # the resulting watermark is validated before the sole seal call.
+        (_PUBLIC_DOCUMENT, "_assemble_phase_one_reader_draft", "model_copy"),
         (_PUBLIC_DOCUMENT, "_seal_document", "model_copy"),
         (
             Path("publisher/segment_reader_format.py"),

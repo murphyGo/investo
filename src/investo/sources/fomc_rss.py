@@ -25,6 +25,7 @@ from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.coverage import SourceFetchResult, SourceWindowCoverage
 from investo.sources._config import SUMMARY_MAX_LEN, parse_rfc822_to_utc
 from investo.sources._registry import register
 from investo.sources._retry import retry_get
@@ -58,6 +59,16 @@ class FomcRssAdapter:
         client: httpx.AsyncClient,
         window: FetchWindow,
     ) -> list[NormalizedItem]:
+        return list((await self._fetch_result(client, window)).items)
+
+    async def fetch_with_coverage(
+        self, client: httpx.AsyncClient, window: FetchWindow
+    ) -> SourceFetchResult:
+        return await self._fetch_result(client, window)
+
+    async def _fetch_result(
+        self, client: httpx.AsyncClient, window: FetchWindow
+    ) -> SourceFetchResult:
         response = await retry_get(client, self._FEED_URL, source_name=self.name)
         try:
             root = fromstring(response.content)
@@ -70,13 +81,29 @@ class FomcRssAdapter:
             ) from exc
 
         items: list[NormalizedItem] = []
+        observed = []
+        parse_failures = 0
         for entry in root.iter("item"):
             normalized = self._normalize_entry(entry)
             if normalized is None:
+                parse_failures += 1
                 continue
+            observed.append(normalized.published_at)
             if window.contains(normalized.published_at):
                 items.append(normalized)
-        return items
+        return SourceFetchResult(
+            tuple(items),
+            SourceWindowCoverage(
+                self.name,
+                window.start_utc,
+                window.end_utc,
+                earliest_observed=min(observed) if observed else None,
+                latest_observed=max(observed) if observed else None,
+                pages=1,
+                parse_failures=parse_failures,
+                completeness="partial" if parse_failures else "unknown",
+            ),
+        )
 
     def _normalize_entry(self, entry: Any) -> NormalizedItem | None:
         # `entry` is an :class:`xml.etree.ElementTree.Element` returned

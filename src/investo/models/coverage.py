@@ -22,6 +22,7 @@ Sanitization rules:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from math import isfinite
@@ -31,6 +32,8 @@ from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.models.items import Category, NormalizedItem
 
 SourceStatus = Literal["ok", "zero", "failed"]
+WindowCompleteness = Literal["full", "partial", "unknown"]
+WindowCoverageBasis = Literal["none", "provider_pagination"]
 
 # u32 Step 1 — editorial source-tier classification. Carried on every
 # :class:`SourceOutcome` so downstream surfaces (coverage badge, GHA
@@ -193,6 +196,69 @@ class SourceOutcome:
 
 
 @dataclass(frozen=True, slots=True)
+class SourceWindowCoverage:
+    """Observed provider-query coverage, never a worldwide-news completeness claim."""
+
+    source_name: str
+    requested_start: datetime
+    end_utc: datetime
+    earliest_observed: datetime | None = None
+    latest_observed: datetime | None = None
+    pages: int = 0
+    cap_reached: bool = False
+    parse_failures: int = 0
+    completeness: WindowCompleteness = "unknown"
+    basis: WindowCoverageBasis = "none"
+
+    def __post_init__(self) -> None:
+        if re.fullmatch(r"[A-Za-z0-9_-]{1,80}", self.source_name) is None:
+            raise ValueError("invalid source window name")
+        for value in (
+            self.requested_start,
+            self.end_utc,
+            self.earliest_observed,
+            self.latest_observed,
+        ):
+            if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+                raise ValueError("source window timestamps must be timezone-aware")
+        if self.end_utc <= self.requested_start:
+            raise ValueError("source coverage requires a nonempty requested interval")
+        if (
+            self.earliest_observed is not None
+            and self.latest_observed is not None
+            and self.earliest_observed > self.latest_observed
+        ):
+            raise ValueError("source observed bounds are reversed")
+        if any(
+            type(value) is not int or not 0 <= value <= 100000
+            for value in (self.pages, self.parse_failures)
+        ):
+            raise ValueError("source coverage counts must be bounded nonnegative integers")
+        if type(self.cap_reached) is not bool:
+            raise ValueError("source coverage cap must be boolean")
+        if self.completeness not in {"full", "partial", "unknown"}:
+            raise ValueError("invalid source window completeness")
+        if self.basis not in {"none", "provider_pagination"}:
+            raise ValueError("invalid source window coverage basis")
+        if (self.cap_reached or self.parse_failures) and self.completeness != "partial":
+            raise ValueError("caps and parse failures require partial coverage")
+        if self.completeness == "full" and (self.basis == "none" or self.pages == 0):
+            raise ValueError("full coverage requires completed provider-query evidence")
+
+
+@dataclass(frozen=True, slots=True)
+class SourceFetchResult:
+    items: tuple[NormalizedItem, ...]
+    window_coverage: SourceWindowCoverage
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.items, tuple):
+            raise ValueError("source fetch items must be immutable")
+        if any(item.source_name != self.window_coverage.source_name for item in self.items):
+            raise ValueError("source fetch identity mismatch")
+
+
+@dataclass(frozen=True, slots=True)
 class SourceCollectionReport:
     """Aggregator output bundling items with per-source outcomes.
 
@@ -203,6 +269,7 @@ class SourceCollectionReport:
 
     items: tuple[NormalizedItem, ...]
     outcomes: tuple[SourceOutcome, ...]
+    window_coverages: tuple[SourceWindowCoverage, ...] = ()
 
     @property
     def empty(self) -> bool:
@@ -256,8 +323,12 @@ def sanitize_source_error_message(message: str) -> str:
 
 __all__ = [
     "SourceCollectionReport",
+    "SourceFetchResult",
     "SourceOutcome",
     "SourceStatus",
     "SourceTier",
+    "SourceWindowCoverage",
+    "WindowCompleteness",
+    "WindowCoverageBasis",
     "sanitize_source_error_message",
 ]

@@ -17,16 +17,19 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, time, timedelta
 from email.utils import parsedate_to_datetime
 from typing import Any, ClassVar, Final
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import httpx
 from defusedxml.ElementTree import ParseError, fromstring
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.coverage import SourceFetchResult, SourceWindowCoverage
 from investo.sources._config import SUMMARY_MAX_LEN, parse_symbol_list
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
@@ -42,6 +45,37 @@ _RECENCY_DAYS: Final[int] = 7
 _LOOKAHEAD_DAYS: Final[int] = 30
 _MAX_ITEMS: Final[int] = 12
 _ALLOWED_SCHEMES: Final[tuple[str, ...]] = ("http", "https")
+_POLICY_TZ = ZoneInfo("America/New_York")
+
+
+@dataclass
+class _PolicyCoverage:
+    pages: int = 0
+    parse_failures: int = 0
+    failures: int = 0
+    cap_reached: bool = False
+    observed: list[datetime] = field(default_factory=list)
+
+    def result(
+        self, source_name: str, window: FetchWindow, items: list[NormalizedItem]
+    ) -> SourceFetchResult:
+        return SourceFetchResult(
+            tuple(items),
+            SourceWindowCoverage(
+                source_name,
+                window.start_utc,
+                window.end_utc,
+                earliest_observed=min(self.observed) if self.observed else None,
+                latest_observed=max(self.observed) if self.observed else None,
+                pages=self.pages,
+                cap_reached=self.cap_reached,
+                parse_failures=self.parse_failures,
+                completeness="partial"
+                if self.cap_reached or self.parse_failures or self.failures
+                else "unknown",
+            ),
+        )
+
 
 _ENV_CONGRESS_KEY: Final[str] = "CONGRESS_API_KEY"
 _ENV_CONGRESS_BILLS: Final[str] = "INVESTO_CONGRESS_BILLS"
@@ -104,10 +138,20 @@ class CongressGovBillActionsAdapter:
     category: ClassVar[Category] = "news"
     _ENDPOINT_TEMPLATE: ClassVar[str] = "https://api.congress.gov/v3/bill/{}/{}/{}/actions"
 
+    async def fetch_with_coverage(
+        self, client: httpx.AsyncClient, window: FetchWindow
+    ) -> SourceFetchResult:
+        window = replace(window, news_observation=True)
+        coverage = _PolicyCoverage()
+        items = await self.fetch(client, window, _coverage=coverage)
+        return coverage.result(self.name, window, items)
+
     async def fetch(
         self,
         client: httpx.AsyncClient,
         window: FetchWindow,
+        *,
+        _coverage: _PolicyCoverage | None = None,
     ) -> list[NormalizedItem]:
         api_key = os.environ.get(_ENV_CONGRESS_KEY, "").strip()
         if not api_key:
@@ -125,6 +169,7 @@ class CongressGovBillActionsAdapter:
                     bill_id=bill_id,
                     api_key=api_key,
                     window=window,
+                    coverage=_coverage,
                 )
                 for bill_id in bill_ids
             ),
@@ -134,6 +179,8 @@ class CongressGovBillActionsAdapter:
         failures: list[SourceFetchError] = []
         for result in results:
             if isinstance(result, SourceFetchError):
+                if _coverage is not None:
+                    _coverage.failures += 1
                 failures.append(result)
                 continue
             if isinstance(result, BaseException):
@@ -141,7 +188,7 @@ class CongressGovBillActionsAdapter:
             items.extend(result)
         if not items and failures and len(failures) == len(bill_ids):
             raise failures[0]
-        return _dedupe_and_sort(items)
+        return _dedupe_and_sort(items, coverage=_coverage)
 
     async def _fetch_bill(
         self,
@@ -150,6 +197,7 @@ class CongressGovBillActionsAdapter:
         bill_id: str,
         api_key: str,
         window: FetchWindow,
+        coverage: _PolicyCoverage | None = None,
     ) -> list[NormalizedItem]:
         parsed = _parse_bill_id(bill_id)
         if parsed is None:
@@ -173,10 +221,24 @@ class CongressGovBillActionsAdapter:
             append_exc=False,
         )
         actions = payload.get("actions") if isinstance(payload, dict) else None
+        if coverage is not None:
+            coverage.pages += 1
         if not isinstance(actions, list):
+            if coverage is not None:
+                coverage.parse_failures += 1
             return []
+        if coverage is not None:
+            pagination = payload.get("pagination", {}) if isinstance(payload, dict) else {}
+            if len(actions) >= 20 or (isinstance(pagination, dict) and pagination.get("next")):
+                coverage.cap_reached = True
         items: list[NormalizedItem] = []
         for action in actions:
+            if coverage is not None and (
+                not isinstance(action, dict)
+                or not strip_html(str(action.get("text") or ""))
+                or _parse_iso_date(str(action.get("actionDate") or "")) is None
+            ):
+                coverage.parse_failures += 1
             normalized = self._normalize_action(
                 action,
                 bill_id=bill_id,
@@ -205,7 +267,11 @@ class CongressGovBillActionsAdapter:
         action_date = _parse_iso_date(str(action.get("actionDate") or ""))
         if not text or action_date is None or not _is_crypto_policy_text(text):
             return None
-        if not _within_policy_window(action_date, window.target_date):
+        if not (
+            window.overlaps_local_date(action_date, _POLICY_TZ)
+            if window.news_observation
+            else _within_policy_window(action_date, window.target_date)
+        ):
             return None
         action_type = strip_html(str(action.get("type") or "")) or "bill action"
         title = f"H.R. {bill_number} CLARITY action — {action_type}"
@@ -220,7 +286,9 @@ class CongressGovBillActionsAdapter:
                 title=title,
                 summary=summary,
                 url=url,
-                published_at=datetime.combine(action_date, time.min, tzinfo=UTC),
+                published_at=datetime.combine(
+                    action_date, time.min, tzinfo=_POLICY_TZ if window.news_observation else UTC
+                ).astimezone(UTC),
                 raw_metadata={
                     "policy_priority": _POLICY_PRIORITY,
                     "official_source": _OFFICIAL_SOURCE,
@@ -230,6 +298,7 @@ class CongressGovBillActionsAdapter:
                     "bill_number": bill_number,
                     "committee": "Congress.gov",
                     "event_type": action_type,
+                    **(_date_precision(action_date) if window.news_observation else {}),
                 },
             )
         except ValidationError:
@@ -243,20 +312,32 @@ class SenateBankingPolicyAdapter:
     name: ClassVar[str] = "senate-banking-policy"
     category: ClassVar[Category] = "news"
 
+    async def fetch_with_coverage(
+        self, client: httpx.AsyncClient, window: FetchWindow
+    ) -> SourceFetchResult:
+        window = replace(window, news_observation=True)
+        coverage = _PolicyCoverage()
+        items = await self.fetch(client, window, _coverage=coverage)
+        return coverage.result(self.name, window, items)
+
     async def fetch(
         self,
         client: httpx.AsyncClient,
         window: FetchWindow,
+        *,
+        _coverage: _PolicyCoverage | None = None,
     ) -> list[NormalizedItem]:
         urls = parse_symbol_list(_ENV_SENATE_URLS, _DEFAULT_SENATE_URLS)
         results = await asyncio.gather(
-            *(self._fetch_page(client, url=url, window=window) for url in urls),
+            *(self._fetch_page(client, url=url, window=window, coverage=_coverage) for url in urls),
             return_exceptions=True,
         )
         items: list[NormalizedItem] = []
         failures: list[SourceFetchError] = []
         for result in results:
             if isinstance(result, SourceFetchError):
+                if _coverage is not None:
+                    _coverage.failures += 1
                 failures.append(result)
                 continue
             if isinstance(result, BaseException):
@@ -265,7 +346,7 @@ class SenateBankingPolicyAdapter:
                 items.append(result)
         if not items and failures and len(failures) == len(urls):
             raise failures[0]
-        return _dedupe_and_sort(items)
+        return _dedupe_and_sort(items, coverage=_coverage)
 
     async def _fetch_page(
         self,
@@ -273,6 +354,7 @@ class SenateBankingPolicyAdapter:
         *,
         url: str,
         window: FetchWindow,
+        coverage: _PolicyCoverage | None = None,
     ) -> NormalizedItem | None:
         _validate_url(url, self.name)
         response = await retry_get(
@@ -282,6 +364,12 @@ class SenateBankingPolicyAdapter:
             headers={"User-Agent": _USER_AGENT, "Accept": "text/html, */*"},
         )
         html = response.content.decode("utf-8", errors="replace")
+        if coverage is not None:
+            coverage.pages += 1
+            if _is_crypto_policy_text(strip_html(html)) and (
+                _extract_title(html) is None or _extract_date(strip_html(html)) is None
+            ):
+                coverage.parse_failures += 1
         return self._normalize_page(html, url=url, window=window)
 
     def _normalize_page(
@@ -296,9 +384,15 @@ class SenateBankingPolicyAdapter:
             return None
         title = _extract_title(html) or "Senate Banking crypto-policy item"
         event_date = _extract_date(text)
-        if event_date is None or not _within_policy_window(event_date, window.target_date):
+        if event_date is None:
             return None
         is_calendar = "executive session" in text.lower() or "hearing" in url.lower()
+        if not (
+            window.overlaps_local_date(event_date, _POLICY_TZ)
+            if window.news_observation and not is_calendar
+            else _within_policy_window(event_date, window.target_date)
+        ):
+            return None
         lowered = text.lower()
         event_type = (
             "committee_markup"
@@ -311,7 +405,9 @@ class SenateBankingPolicyAdapter:
         published_at = (
             datetime.combine(window.target_date, time.min, tzinfo=UTC)
             if is_calendar
-            else datetime.combine(event_date, time.min, tzinfo=UTC)
+            else datetime.combine(
+                event_date, time.min, tzinfo=_POLICY_TZ if window.news_observation else UTC
+            ).astimezone(UTC)
         )
         try:
             return NormalizedItem(
@@ -328,6 +424,11 @@ class SenateBankingPolicyAdapter:
                     "bill_id": _extract_bill_id(text) or "",
                     "committee": "Senate Banking",
                     "event_type": event_type,
+                    **(
+                        _date_precision(event_date)
+                        if window.news_observation and not is_calendar
+                        else {}
+                    ),
                 },
             )
         except ValidationError:
@@ -341,20 +442,35 @@ class HouseFinancialServicesPolicyAdapter:
     name: ClassVar[str] = "house-financial-services-policy"
     category: ClassVar[Category] = "news"
 
+    async def fetch_with_coverage(
+        self, client: httpx.AsyncClient, window: FetchWindow
+    ) -> SourceFetchResult:
+        window = replace(window, news_observation=True)
+        coverage = _PolicyCoverage()
+        items = await self.fetch(client, window, _coverage=coverage)
+        return coverage.result(self.name, window, items)
+
     async def fetch(
         self,
         client: httpx.AsyncClient,
         window: FetchWindow,
+        *,
+        _coverage: _PolicyCoverage | None = None,
     ) -> list[NormalizedItem]:
         feed_urls = parse_symbol_list(_ENV_HOUSE_RSS_URLS, _DEFAULT_HOUSE_RSS_URLS)
         results = await asyncio.gather(
-            *(self._fetch_feed(client, feed_url=feed_url, window=window) for feed_url in feed_urls),
+            *(
+                self._fetch_feed(client, feed_url=feed_url, window=window, coverage=_coverage)
+                for feed_url in feed_urls
+            ),
             return_exceptions=True,
         )
         items: list[NormalizedItem] = []
         failures: list[SourceFetchError] = []
         for result in results:
             if isinstance(result, SourceFetchError):
+                if _coverage is not None:
+                    _coverage.failures += 1
                 failures.append(result)
                 continue
             if isinstance(result, BaseException):
@@ -362,7 +478,7 @@ class HouseFinancialServicesPolicyAdapter:
             items.extend(result)
         if not items and failures and len(failures) == len(feed_urls):
             raise failures[0]
-        return _dedupe_and_sort(items)
+        return _dedupe_and_sort(items, coverage=_coverage)
 
     async def _fetch_feed(
         self,
@@ -370,6 +486,7 @@ class HouseFinancialServicesPolicyAdapter:
         *,
         feed_url: str,
         window: FetchWindow,
+        coverage: _PolicyCoverage | None = None,
     ) -> list[NormalizedItem]:
         _validate_url(feed_url, self.name)
         response = await retry_get(
@@ -388,8 +505,28 @@ class HouseFinancialServicesPolicyAdapter:
                 cause=exc,
             ) from exc
         items: list[NormalizedItem] = []
+        if coverage is not None:
+            coverage.pages += 1
         for entry in root.iter("item"):
-            normalized = self._normalize_entry(entry, feed_url=feed_url, window=window)
+            normalization_coverage = coverage
+            if coverage is not None:
+                try:
+                    observed = parsedate_to_datetime(entry.findtext("pubDate") or "")
+                except (TypeError, ValueError):
+                    observed = None
+                if (
+                    not strip_html(entry.findtext("title") or "")
+                    or urlparse(entry.findtext("link") or "").scheme not in _ALLOWED_SCHEMES
+                    or observed is None
+                    or observed.tzinfo is None
+                ):
+                    coverage.parse_failures += 1
+                    normalization_coverage = None  # Count each malformed row once.
+                elif observed is not None:
+                    coverage.observed.append(observed.astimezone(UTC))
+            normalized = self._normalize_entry(
+                entry, feed_url=feed_url, window=window, coverage=normalization_coverage
+            )
             if normalized is not None:
                 items.append(normalized)
         return items
@@ -400,6 +537,7 @@ class HouseFinancialServicesPolicyAdapter:
         *,
         feed_url: str,
         window: FetchWindow,
+        coverage: _PolicyCoverage | None = None,
     ) -> NormalizedItem | None:
         title = strip_html(entry.findtext("title") or "")
         description = strip_html(entry.findtext("description") or "")
@@ -419,7 +557,11 @@ class HouseFinancialServicesPolicyAdapter:
         if published is None or published.tzinfo is None:
             return None
         published_date = published.astimezone(UTC).date()
-        if not _within_policy_window(published_date, window.target_date):
+        if not (
+            window.contains(published)
+            if window.news_observation
+            else _within_policy_window(published_date, window.target_date)
+        ):
             return None
         event_type = "committee_markup" if "markup" in body.lower() else "news_release"
         try:
@@ -440,10 +582,16 @@ class HouseFinancialServicesPolicyAdapter:
                 },
             )
         except ValidationError:
+            if coverage is not None:
+                # Relevance and window filtering already completed. A failure
+                # here loses an eligible row (for example an invalid HttpUrl).
+                coverage.parse_failures += 1
             return None
 
 
-def _dedupe_and_sort(items: list[NormalizedItem]) -> list[NormalizedItem]:
+def _dedupe_and_sort(
+    items: list[NormalizedItem], *, coverage: _PolicyCoverage | None = None
+) -> list[NormalizedItem]:
     seen: set[str] = set()
     deduped: list[NormalizedItem] = []
     for item in items:
@@ -452,7 +600,19 @@ def _dedupe_and_sort(items: list[NormalizedItem]) -> list[NormalizedItem]:
             continue
         seen.add(key)
         deduped.append(item)
+    if coverage is not None and len(deduped) > _MAX_ITEMS:
+        coverage.cap_reached = True
     return sorted(deduped, key=lambda item: item.published_at, reverse=True)[:_MAX_ITEMS]
+
+
+def _date_precision(value: date) -> dict[str, str]:
+    return {
+        "published_at_precision": "date",
+        "published_date": value.isoformat(),
+        "published_timezone": "America/New_York",
+        "event_date": value.isoformat(),
+        "event_time_basis": "source_date",
+    }
 
 
 def _parse_bill_id(value: str) -> tuple[str, str, str] | None:
