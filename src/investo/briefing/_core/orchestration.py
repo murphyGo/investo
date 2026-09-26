@@ -34,7 +34,12 @@ from investo.briefing._assembly.prompt_fields import (
     _render_stage1_prompt_url,
 )
 from investo.briefing._assembly.text_normalize import parse_six_sections
-from investo.briefing._core.classification import ClassificationResult, _parse_classification
+from investo.briefing._core.classification import (
+    ClassificationResult,
+    EventClassificationResult,
+    _parse_classification,
+    parse_event_classification,
+)
 from investo.briefing._core.section_planning import SectionPlan, _required_macro_item_ids
 from investo.briefing.claude_code import (
     DEFAULT_TIMEOUT_S,
@@ -43,9 +48,12 @@ from investo.briefing.claude_code import (
     RetryBudget,
 )
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
+from investo.briefing.event_evidence import build_event_candidates
+from investo.briefing.event_input import select_event_input_items
 from investo.briefing.llm import CodexRunner
 from investo.briefing.llm import call_llm as call_claude_code
 from investo.briefing.prompts import (
+    STAGE1_EVENT_SYSTEM,
     STAGE1_SYSTEM,
     STAGE1_USER_TEMPLATE,
     STAGE2_SYSTEM,
@@ -53,6 +61,8 @@ from investo.briefing.prompts import (
 )
 from investo.briefing.segments import MarketSegment
 from investo.models import NormalizedItem
+from investo.models.event_config import EventMode
+from investo.models.events import EvidenceDocument
 from investo.models.macro import (
     macro_event_date,
     macro_priority,
@@ -92,6 +102,7 @@ class GenerationPolicy:
     timeout_s: float = DEFAULT_TIMEOUT_S
     max_attempts: int = MAX_ATTEMPTS
     total_budget_s: float = DEFAULT_TOTAL_BUDGET_S
+    event_mode: EventMode = "off"
 
 
 def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
@@ -122,7 +133,10 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
 
 
 def _select_llm_candidate_items(
-    items: Sequence[NormalizedItem], *, target_date: date | None = None
+    items: Sequence[NormalizedItem],
+    *,
+    target_date: date | None = None,
+    event_mode: EventMode = "off",
 ) -> tuple[NormalizedItem, ...]:
     """Bound the item set sent to Claude while preserving source diversity.
 
@@ -138,6 +152,8 @@ def _select_llm_candidate_items(
     the same 96-total / 24-per-source cap so the overall LLM input
     budget is preserved (NFR-002 token cost guard).
     """
+    if event_mode in ("preview", "active"):
+        return select_event_input_items(items, target_date=target_date)
     selected: list[NormalizedItem] = []
     per_source_counts: dict[str, int] = {}
     lookahead_count = 0
@@ -234,6 +250,7 @@ async def _classify(
     policy: GenerationPolicy,
     segment_context: str,
     segment: MarketSegment | None = None,
+    evidence_documents: tuple[EvidenceDocument, ...] = (),
 ) -> ClassificationResult:
     """Run Stage 1 with the FD R3 retry loop.
 
@@ -241,13 +258,44 @@ async def _classify(
     exhausting attempts, or ``BriefingGenerationError(stage="budget")``
     if the cumulative budget is hit before a retry can dispatch.
     """
+    uses_events = policy.event_mode in ("preview", "active")
     serialized = serialize_items_for_prompt(items)
+    if uses_events:
+        if len(evidence_documents) != len(items):
+            raise ValueError("event evidence must match the same-run candidate items")
+        legacy_items = json.loads(serialized)
+        serialized = json.dumps(
+            [
+                {
+                    "id": index,
+                    "category": item.category,
+                    "evidence": document.model_dump(mode="json"),
+                    **(
+                        {"macro": legacy_items[index - 1]["macro"]}
+                        if "macro" in legacy_items[index - 1]
+                        else {}
+                    ),
+                }
+                for index, (item, document) in enumerate(
+                    zip(items, evidence_documents, strict=True), 1
+                )
+            ],
+            ensure_ascii=False,
+        )
     required_item_ids = _required_macro_item_ids(items)
     user_prompt = STAGE1_USER_TEMPLATE.format(
         segment_context=segment_context,
         items_json=serialized,
     )
-    full_prompt = f"{STAGE1_SYSTEM}\n\n{user_prompt}"
+    if uses_events:
+        user_prompt += "\nRequired macro item IDs (must be assigned): " + json.dumps(
+            sorted(required_item_ids)
+        )
+        user_prompt += "\nJSON schema:\n" + json.dumps(
+            EventClassificationResult.model_json_schema(), ensure_ascii=False
+        )
+    system = STAGE1_EVENT_SYSTEM if uses_events else STAGE1_SYSTEM
+    full_prompt = f"{system}\n\n{user_prompt}"
 
     last_outcome: SubprocessOutcome | None = None
     last_cause: BaseException | None = None
@@ -267,8 +315,12 @@ async def _classify(
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
-                last_stderr=last_outcome.stderr if last_outcome is not None else None,
-                last_stdout=last_outcome.stdout if last_outcome is not None else None,
+                last_stderr=(
+                    last_outcome.stderr if last_outcome is not None and not uses_events else None
+                ),
+                last_stdout=(
+                    last_outcome.stdout if last_outcome is not None and not uses_events else None
+                ),
                 cause=last_cause,
             )
         if attempt > 0:
@@ -310,6 +362,23 @@ async def _classify(
             continue
 
         try:
+            if uses_events:
+                event_result = parse_event_classification(
+                    outcome.stdout,
+                    len(items),
+                    required_item_ids=required_item_ids,
+                )
+                try:
+                    if evidence_documents:
+                        build_event_candidates(
+                            event_result.events,
+                            items,
+                            evidence_documents,
+                            observed_at=max(doc.received_at for doc in evidence_documents),
+                        )
+                except (ValueError, KeyError, TypeError):
+                    raise ValueError("event_classification_unavailable: invalid_evidence") from None
+                return event_result
             return _parse_classification(
                 outcome.stdout,
                 item_count=len(items),
@@ -322,8 +391,12 @@ async def _classify(
     raise BriefingGenerationError(
         stage="classification",
         attempt_count=policy.max_attempts,
-        last_stderr=last_outcome.stderr if last_outcome is not None else None,
-        last_stdout=last_outcome.stdout if last_outcome is not None else None,
+        last_stderr=None
+        if uses_events
+        else (last_outcome.stderr if last_outcome is not None else None),
+        last_stdout=None
+        if uses_events
+        else (last_outcome.stdout if last_outcome is not None else None),
         cause=last_cause,
     )
 

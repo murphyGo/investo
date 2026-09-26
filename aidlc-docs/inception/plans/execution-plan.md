@@ -193,3 +193,20 @@ No next-unit or activation approval is inferred from this stage registration.
 |-----------|--------|-------------------|-------------------|
 | Security Baseline | DECLINED | (n/a) | 별도 강제 없음. Secrets는 GitHub Secrets로 관리(NFR-007 baseline) |
 | Property-Based Testing | PARTIAL | Code Generation, Build and Test | 순수 함수(데이터 정규화, 섹터 분류, 포맷 변환) + 직렬화 round-trip 한정 hypothesis 적용 |
+
+
+## u157–u162 selective stages (2026-09-26 planning amendment)
+
+The user approved the six designs on 2026-09-27 and authorized sequential development with a commit/push after each completed unit. Active production rollout and source endpoint qualification retain their explicit evidence gates.
+
+| Unit | Functional Design | NFR Requirements | Separate NFR/Infrastructure Design | Implementation prerequisite |
+|---|---|---|---|---|
+| u157 | Required; approved 2026-09-27 | Required; shared focused NF1/2/3/6/7/9/10 | Reuse existing platform; shared contracts specify runtime | u157 code complete; first unit commit/push |
+| u158 | Required; approved 2026-09-27 | Required; shared focused NF1/2/3/7/9/10 | No new platform | u157 |
+| u159 | Required; approved 2026-09-27 | Required; shared focused NF1/3/6/7/9/10 | No new platform | u157/u158 |
+| u160 | Required; approved 2026-09-27 | Required; NF3/5/6/7/9/10 | Focused storage/transaction rules in design; no new platform | u157 receipt for cursor integration; window/adapters parallel |
+| u161 | Required; approved 2026-09-27 | Required; NF1/4/6/7/8/10 + NFR-008 | Focused network/rights rules in design | Qualification independent; runtime u157; body endpoint gate |
+| u162 | Required; approved 2026-09-27 | Skip separate stage; reuse NF6/7/9/10 | No new I/O | u157/u158/u152 |
+
+Normative overview: `aidlc-docs/construction/news-event-briefing/README.md`.
+Code delivery, source qualification and public activation each need their own evidence; none is complete in this docs-only planning amendment.

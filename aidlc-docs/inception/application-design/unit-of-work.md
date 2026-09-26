@@ -2544,6 +2544,154 @@ Account-plan qualification remains pending before
 private Environment provisioning.
 Plan: `aidlc-docs/construction/plans/u155-codex-chatgpt-briefing-provider-code-generation-plan.md`.
 
+## u157–u162: News and Event Briefing (2026-09-26)
+
+Planning source: `aidlc-docs/construction/news-event-briefing/README.md`. Six design drafts are authored for review; no implementation/design approval is implied. u156 is reserved for the existing separate local Telegram branch and is not registered as complete here.
+
+### u157: `event-evidence-selection-contract` — 중요 사건 선정과 입력 보존
+
+**Purpose**: 9/22 검토에서 국내·미국12편의 첫 이슈가 가격 등락이었다. 기존 price/macro core300과 일반 뉴스context100, Stage2 cap 때문에 중요한 비수치 사건이 밀릴 수 있다.
+
+**Stories / FR / NFR coverage**: US-001/002/008/009; FR-001/002/006/008/013/014/023; NFR-001/002/003/004/005/006/007. FR-023 is proposed; existing guarantees remain.
+
+**Existing Coverage / Deduplication**: u97 hierarchy, u93 budget, u58 policy lane, u59 required macro, u45/u57/u74 routing. Only the extension in the linked design is added; existing completion and ownership remain intact.
+
+**Module path**: `models/events.py, briefing/_core/classification.py, _core/orchestration.py, _core/section_planning.py, _assembly/markdown_render.py, briefing/segments.py, briefing/generation_contract.py, orchestrator/pipeline.py, models/items.py (optional evidence field), publisher/git_ops.py (shared publication receipt), models/publication.py`. New paths proposed: `models/events.py; briefing/event_selection.py; briefing/event_evidence.py; models/publication.py; orchestrator/event_receipts.py`.
+
+**Definition of Done**:
+- [ ] AC-157.1: 숫자 없는 사건의 선정과 오래된 월간값 제외가 고정 fixture에서 통과한다. active/preview의 결정론적 후보·선정은 입력 permutation에 불변이며 live LLM 출력 불변을 주장하지 않는다.
+- [ ] AC-157.2: 1000건·대량단일source fixture에서도 모든 기존상한과 reservation accounting을 만족한다. 보호 actual 손실은0 또는 명시적 오류다.
+- [ ] AC-157.3: 가격14개+중요뉴스2개 사례에서 eligible 사건2개가 Stage2에 남는다. 월간값만 있는 날 사건을 꾸미지 않는다.
+- [ ] AC-157.4: invalid item ID/span/future-state/conflict가 supported로 통과하지 않는다. v2누락은classification_unavailable다.
+- [ ] AC-157.5: source-backed 글로벌사건만 허용된시장으로 공유되고 세그먼트 반응은 독립적이다.
+- [ ] AC-157.6: off/shadow는 동일 v1 기록 응답에서 공개 bytes/알림/cursor가 동일하다. preview는 archive/git/알림 쓰기 0회이며 active는 MVP 통합 전 거부된다.
+- [ ] AC-157.7: 하나의 문서 내 두 제품은 서로 다른 사건이며 후속 공식 문서 추가에도 기존 canonical event ID가 유지된다. pre/post-commit 실패, push 응답 유실과 remote cursor CAS를 E11대로 처리한다.
+
+**Construction strategy**: Code complete — 8/8 steps, full regression 5415 passed; final focused boundary suite 61 passed. Default off; v2 delivery waits for u158/u159.
+Functional Design REQUIRED; REQUIRED — 공통 데이터와 Stage1 schema, input budget, routing 및 runtime failure 의미가 바뀐다. 공통 NF1/2/3/6/7/9/10 적용.
+Dependencies: 기존 u58/u59/u93/u97 완료. u160/u161은 hard dependency가 아니다.
+Design: `aidlc-docs/construction/u157-event-evidence-selection-contract/design-brief.md`.
+Plan: `aidlc-docs/construction/plans/u157-event-evidence-selection-contract-code-generation-plan.md`.
+
+### u158: `event-first-narrative-and-summary` — 사건 중심 본문과 상단 요약
+
+**Purpose**: 9/16 미국 문서는 FOMC 성명서 공개만 설명하고 결정 메시지는 빈약했다.13/18 상단 결론은 fallback이어서 본문 사건을 전달하지 못했다.
+
+**Stories / FR / NFR coverage**: US-002/003/004/009; FR-002/003/004/009/023; NFR-001/002/003/004/005/006/007. FR-023 is proposed; existing guarantees remain.
+
+**Existing Coverage / Deduplication**: u2/u83 synthesis, u51/u61/u71 summary, u153 sentence bound, u144 finalizer, u154 layout, reserved u156 notifier. Only the extension in the linked design is added; existing completion and ownership remain intact.
+
+**Module path**: `briefing/_core/orchestration.py, briefing/prompts.py, briefing/generation_contract.py, models/public_notification.py, publisher/public_document.py, publisher/reader_format/tldr.py, orchestrator/pipeline.py, briefing/_assembly/markdown_render.py (_stage2_retry_feedback)`. New paths proposed: `briefing/event_narrative.py; publisher/event_blocks.py`.
+
+**Definition of Done**:
+- [ ] AC-158.1: 정책결정·실적·제품·발언 fixture에서 selected 사건의 what/when/required facts/why/reaction status/source가최종②에존재한다.
+- [ ] AC-158.2: 동일fixture에서source title나URL만 남은문서는상세설명완료로인정되지않는다.
+- [ ] AC-158.3: 숫자 없는 중요 사건의 80자 이내 첫 문장이 상단 결론에 남는다. 90자 초과 단일 문장은 retry 대상이다. 사건 0건과 수집 부족은 다른 안내문을 쓴다.
+- [ ] AC-158.4: containment/부분bundle재조립후살아있는사건만TL;DR/callout/DTO에있으며finalizer2회byte동일이다.
+- [ ] AC-158.5: 구조화 factual slots의 미허용 fact/entity/refs와 기존 compliance 위반은 hard gate에서 거부한다. 필드별 refs mismatch negative와 자유 서술 주석 평가를 별도로 통과하며 유효 sibling은 게시 가능하다.
+- [ ] AC-158.6: u154 전후layoutfixture와legacyDTOconsumer호환,추가LLM단계0,기존7섹션/면책조항보존을증명한다.
+
+**Construction strategy**: Queued — design approved; follows u157.
+Functional Design REQUIRED; REQUIRED — Stage2 schema와 public/notification projection 및 실패 처리 변경. NF1/2/3/7/9/10 적용.
+Dependencies: u157 모델/plan 구현. u154 배치 및 u156 Telegram 구성은 hard dependency가 아니다.
+Design: `aidlc-docs/construction/u158-event-first-narrative-and-summary/design-brief.md`.
+Plan: `aidlc-docs/construction/plans/u158-event-first-narrative-and-summary-code-generation-plan.md`.
+
+### u159: `event-coverage-replay-and-gate` — 중요 사건 반영률과 최종 품질 검증
+
+**Purpose**: 기존 성공지표는 핵심이슈누락없음이지만품질history는숫자/소스/fallback 중심이다. sourceURL 언급만으로정책결정의설명깊이를보장하지못한다.
+
+**Stories / FR / NFR coverage**: US-002/003/005/007; FR-010/017/021/023; NFR-001/003/004/005/006/007/008. FR-023 is proposed; existing guarantees remain.
+
+**Existing Coverage / Deduplication**: u59 lineage, u54/u62/u96/u123 truthful metrics, u65 replay, u144 terminal gate. Only the extension in the linked design is added; existing completion and ownership remain intact.
+
+**Module path**: `briefing/quality_eval.py, briefing/quality_history.py, models/quality_history.py, publisher/public_document.py, publisher/quality_consistency.py, orchestrator/pipeline.py, scripts/check_event_coverage.py`. New paths proposed: `publisher/event_quality.py; tests/fixtures/event_briefing/manifest.json; scripts/check_event_coverage.py`.
+
+**Definition of Done**:
+- [ ] AC-159.1: marker-only/URL-only/requiredfact제거/summary재노출negative가전부검출된다.
+- [ ] AC-159.2: selected0/수집실패/미분류/partialpublish/알림만실패의분모와상태가거짓0/100%없이일치한다.
+- [ ] AC-159.3: historicalrecord의새필드null과현재receipt의실제count가페이지/메타에서동일하다.
+- [ ] AC-159.4:12golden시나리오의must_include/required facts100%,unsupported추가0;의미평가5/5기준을만족한다.
+- [ ] AC-159.5: 삭제/repair/부분 재조립 후 DTO는 terminal의 알림 적격 최대 3개 ordered subset이며 값이 일치한다. terminal 사건 4개·5개 fixture도 통과한다.
+- [ ] AC-159.6: source원문/privateprose/logsecret이공개fixture/quality에없고추가LLM평가호출0.
+
+**Construction strategy**: Queued — design approved; follows u157/u158.
+Functional Design REQUIRED; REQUIRED — 공개품질의 분모·unknown 의미와 terminal gate 추가. NF1/3/6/7/9/10 적용.
+Dependencies: u157 선정/trace, u158 terminal event renderer/projection. 기존u65/u123/u144 완료.
+Design: `aidlc-docs/construction/u159-event-coverage-replay-and-gate/design-brief.md`.
+Plan: `aidlc-docs/construction/plans/u159-event-coverage-replay-and-gate-code-generation-plan.md`.
+
+### u160: `publication-news-observation-window` — 주말·장후 뉴스를 포함하는 관측기간
+
+**Purpose**: 월요일기본target_date가금요일이고RSS도하루창으로필터링되어토·일사건을별도로관측하지못한다. DART와정책adapter는window범위대신target_date를직접사용한다.
+
+**Stories / FR / NFR coverage**: US-001/003/005/006/008; FR-001/005/006/008/013/020/023; NFR-001/003/004/005/006/007/008. FR-023 is proposed; existing guarantees remain.
+
+**Existing Coverage / Deduplication**: u1 FetchWindow, u5 date_resolution, u35 lookahead, u102 source specs, u113 transaction, u144 published survivors. Only the extension in the linked design is added; existing completion and ownership remain intact.
+
+**Module path**: `models/news_window.py, orchestrator/stage_context.py, orchestrator/stages.py, orchestrator/pipeline.py, __main__.py, sources/aggregator.py, _window.py, _internal/source_specs.py, sources/dart_disclosure.py, sources/official_policy.py, publisher/git_ops.py, models/coverage.py (window result capability)`. New paths proposed: `models/news_window.py; orchestrator/news_window.py; archive/_meta/news_cursors.json (runtime output only)`.
+
+**Definition of Done**:
+- [ ] AC-160.1: 월요일실행에토·일보도fixture가들어오고금요일가격기준일은유지된다. DST23/25h날짜와UTC시간이정확하다.
+- [ ] AC-160.2: replay/dry-run이livecursor를읽거나쓰지않고동일manifest재생은동일window다.
+- [ ] AC-160.3: DART 자정 종료/날짜 정밀도/3페이지·총 20초 및 official-policy/FOMC 실제 발표·예정 분리를 검증한다.
+- [ ] AC-160.4: shadow 정상 3/3 게시에도 cursor bytes는 같다. partial segment/failed source/pinned RSS/빈 XML/unknown에서 cursor가 잘못 전진하지 않는다.
+- [ ] AC-160.5: pre/post-commit 실패, push 성공·응답 유실, remote tip 전진과 clean rebase CAS 변경 후에도 다음 실행은 원격 확정 cursor만 쓴다. 알림만 실패하면 cursor를 유지한다.
+- [ ] AC-160.6: 최초 72h/최대 7d/24h overlap, 지연·수정 기사 dedup, 서로 다른 source 창의 envelope/gap/completeness를 명시하며 포착 완료로 오인시키지 않는다.
+
+**Construction strategy**: Queued — design approved; follows u159 in the user-requested sequence; cursor uses u157 receipt.
+Functional Design REQUIRED; REQUIRED — temporal semantics, bounded fetch/pagination, persistentcursor/remotecommit failure 변경. NF3/5/6/7/9/10 적용.
+Dependencies: u157의 공통 PublishReceipt/transaction 기반. window 모델·adapter 설계와 구현은 병렬 가능하나 cursor 통합은 u157 이후다. 기존 u1/u5/u31/u35/u102/u113/u144 완료.
+Design: `aidlc-docs/construction/u160-publication-news-observation-window/design-brief.md`.
+Plan: `aidlc-docs/construction/plans/u160-publication-news-observation-window-code-generation-plan.md`.
+
+### u161: `bounded-official-event-evidence` — 공식 사건 근거 보강과 뉴스 소스 복구 판정
+
+**Purpose**: 기존뉴스에는280자요약/제목수준자료가많아정책발표·실적내용을충분히설명하기어렵다. 9/22검토에서는CNBC/Korea policy반복장애가있었다. 현재접속상태는qualification에서다시확인한다.
+
+**Stories / FR / NFR coverage**: US-001/002/007/008; FR-001/002/010/021/023; NFR-001/002/003/004/005/006/007/008. FR-023 is proposed; existing guarantees remain.
+
+**Existing Coverage / Deduplication**: u103 Fed/SEC RSS, u126 CFTC RSS, u1/u102 adapterregistry, u27 R13, u95 runtime budgets. Only the extension in the linked design is added; existing completion and ownership remain intact.
+
+**Module path**: `sources/fed_speech_rss.py, fomc_rss.py, sec_newsroom_rss.py, cftc_policy_rss.py, cnbc_top_news.py, korea_policy_rss.py, _retry.py, sources/aggregator.py, orchestrator/pipeline.py, briefing/generation_contract.py, models/items.py (u157 evidence field), sources/aggregator.py, briefing/generation_contract.py`. New paths proposed: `sources/event_evidence.py; ops/event_source_qualification.json (planned contract)`.
+
+**Definition of Done**:
+- [ ] AC-161.1: CNBC/Korea policy 각각현재원인/동일source수리결과또는blocked이유가실제증거와함께있다.
+- [ ] AC-161.2: qualification이없는URL/새provider/access제한을자동fetch하지않고qualifiedHTTP외에는원feed를유지한다.
+- [ ] AC-161.3: 281~1200번째 문자에만 있는 핵심 사실이 typed evidence를 통해 Stage1 buffer와 Stage2 선정 span에 실제 도달한다. routing 제외/실패 source의 근거가 다른 item에 붙지 않는다.
+- [ ] AC-161.4:6요청/동시2/20초/500KiB/소스2기사/excerpt1200상한과redirect/SSRFnegative가통과한다.
+- [ ] AC-161.5:본문fetch실패가원뉴스를삭제하지않고가짜실적actual/정책결정/시점을만들지않는다.
+- [ ] AC-161.6:rawbody/secret/privatefixture는publicgit에없고NFR-008/DEBT-090성능상태를정확하게보고한다.
+
+**Construction strategy**: Queued — design approved; source qualification is part of implementation; body fetch remains gated.
+Functional Design REQUIRED; REQUIRED — 새로운외부본문I/O와source권리/fixture/SSRFlimit/latency. NF1/4/6/7/8/10, NFR-008 적용.
+Dependencies: 자격검증/기존feed진단은독립. typed enrichment integration은u157. 신규officialbody는source별qualification후에만구현/활성화.
+Design: `aidlc-docs/construction/u161-bounded-official-event-evidence/design-brief.md`.
+Plan: `aidlc-docs/construction/plans/u161-bounded-official-event-evidence-code-generation-plan.md`.
+
+### u162: `qualitative-event-watchpoints` — 정성 사건 상태를 추적하는 관전 포인트
+
+**Purpose**: 정성현재상태에숫자/지표candidate가없으면기존watchpointresolver에서탈락한다. source-backed협상·법안·서비스후속관찰이정량카드로대체될수있다.
+
+**Stories / FR / NFR coverage**: US-002/003; FR-002/009/012/020/023; NFR-003/004/005/006/007. FR-023 is proposed; existing guarantees remain.
+
+**Existing Coverage / Deduplication**: u152 numericresolver, u98/u110 card, u135 fallback, u144 typed outcomes, u153 bounding. Only the extension in the linked design is added; existing completion and ownership remain intact.
+
+**Module path**: `models/events.py (u157 DTO extension), publisher/event_watchpoints.py, publisher/segment_reader_format.py, publisher/watchpoint_matrix.py (composition/result only), publisher/public_document.py`. New paths proposed: `publisher/event_watchpoints.py`.
+
+**Definition of Done**:
+- [ ] AC-162.1: source-backed숫자없는협상/법안/서비스상태카드가유효하게남는다.
+- [ ] AC-162.2: 미래조건을current로복사하거나numericrow를event로바꿔검증을회피할수없다.
+- [ ] AC-162.3: mixed/event-only는 최대 2개, numeric-only는 기존 최대 6개/zero-row fallback 2개이며 typed aggregate 제약이 유지된다.
+- [ ] AC-162.4: 후처리삭제event가카드/summary에재등장하지않고두번finalizebyte동일이다.
+- [ ] AC-162.5: 기존numeric/fallbackfixture는event0일때동일하고source미상/금지표현은기존정책대로처리된다.
+
+**Construction strategy**: Queued — design approved; follows u161; retains u152 numeric boundary.
+Functional Design REQUIRED; SKIP separate stage — 기존NF6/7/9/10과NFR-003/004/005/006/007 재사용. 새I/O/LLM/비용없음.
+Dependencies: u157 typed 사건, u158 terminal event, 기존u152 current-observation계약 구현/통합.
+Design: `aidlc-docs/construction/u162-qualitative-event-watchpoints/design-brief.md`.
+Plan: `aidlc-docs/construction/plans/u162-qualitative-event-watchpoints-code-generation-plan.md`.
+
 ## Code Organization Strategy
 
 ### Repository Layout (per Q3=A)

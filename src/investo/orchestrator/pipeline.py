@@ -71,7 +71,7 @@ import os
 import time
 import traceback
 from collections.abc import Awaitable, Callable, Mapping, MutableMapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -86,6 +86,7 @@ from investo.briefing.context import (
     RecentBriefingsContext,
 )
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.event_routing import share_official_event_candidates
 from investo.briefing.fact_context import (
     VerifiedFactConflictError,
     append_fact_snapshot_jsonl,
@@ -152,8 +153,10 @@ from investo.models import (
     SourceOutcome,
 )
 from investo.models.bundle_context import BundleContext
+from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
 from investo.models.facts import FactId, VerifiedFactBundle
 from investo.models.public_artifact import StagedArtifact
+from investo.models.publication import PublicationRequest, PublishReceipt
 from investo.models.results import TRACEBACK_EXCERPT_MAX
 from investo.notifier import (
     BriefingPublisher,
@@ -172,6 +175,7 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     project_domestic_public_items,
 )
 from investo.orchestrator.errors import EmptyCollectError
+from investo.orchestrator.event_receipts import persist_publication_receipt, snapshot_git_index
 from investo.orchestrator.price_fallback import (
     YFINANCE_SOURCE_NAME,
     reconcile_yahoo_history_fallback,
@@ -233,6 +237,7 @@ from investo.publisher.public_document import (
 from investo.publisher.public_document import (
     _assemble_phase_one_reader_briefings as _apply_reader_format_to_segments,  # noqa: F401
 )
+from investo.publisher.publication_receipts import PublicationReceiptError
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
     ARCHIVE_INDEX_PATH,
@@ -432,6 +437,7 @@ class _SegmentGenerationResult:
     failure: BriefingGenerationError | None
     macro_lineage: tuple[MacroLineageTrace, ...]
     elapsed_s: float
+    event_result: GenerationResult | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -480,6 +486,7 @@ async def _default_generate_segment_briefing(
     *,
     macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
     watchlist_config: WatchlistConfig | None = None,
+    event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
 ) -> GenerationResult:
     """Adapter for u7 segmented generation."""
     # u68 — pass the archive root so the glossary callout can suppress
@@ -502,7 +509,9 @@ async def _default_generate_segment_briefing(
             recent_context=recent_context,
             carryover=carryover,
             market_anchors=market_anchors,
-            generation_policy=SEGMENT_GENERATION_POLICIES[segment],
+            generation_policy=replace(
+                SEGMENT_GENERATION_POLICIES[segment], event_mode=event_config.mode
+            ),
             bundle_context=bundle_context,
             fact_context_block=fact_context_block,
             archive_root=ARCHIVE_ROOT,
@@ -636,6 +645,7 @@ async def _generate_one_segment(
     bundle_context: BundleContext | None,
     fact_context_block: str,
     watchlist_config: WatchlistConfig | None,
+    event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
 ) -> _SegmentGenerationResult:
     start = time.monotonic()
     _logger.info(
@@ -645,6 +655,7 @@ async def _generate_one_segment(
         data_limited,
         len(segment_outcomes),
     )
+    generation_result: GenerationResult | None = None
     try:
         if use_default_generator:
             generation_result = await _default_generate_segment_briefing(
@@ -661,6 +672,7 @@ async def _generate_one_segment(
                 fact_context_block,
                 macro_lineage_all_items=all_items,
                 watchlist_config=watchlist_config,
+                event_config=event_config,
             )
             briefing = generation_result.briefing
             macro_lineage = generation_result.macro_lineage
@@ -698,6 +710,7 @@ async def _generate_one_segment(
         briefing=briefing,
         failure=None,
         macro_lineage=macro_lineage,
+        event_result=generation_result,
         elapsed_s=time.monotonic() - start,
     )
 
@@ -712,6 +725,9 @@ async def _stage_generate_segments(
     recent_context: RecentBriefingsContext | None = None,
     market_anchors_by_segment: Mapping[MarketSegment, Sequence[MarketAnchor]] | None = None,
     carryover_by_segment: Mapping[MarketSegment, BriefingCarryover] | None = None,
+    event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
+    event_results: dict[MarketSegment, GenerationResult] | None = None,
+    event_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
 ) -> tuple[
     dict[MarketSegment, Briefing],
     dict[MarketSegment, BriefingGenerationError],
@@ -750,7 +766,12 @@ async def _stage_generate_segments(
     # replay tests stay deterministic. The orchestrator's ``run_pipeline``
     # already uses the same convention for target_date resolution.
     routed_by_segment: dict[MarketSegment, Sequence[NormalizedItem]] = {
-        seg: routed.for_segment(seg) for seg in SEGMENT_ORDER
+        seg: (
+            event_items_by_segment[seg]
+            if event_items_by_segment is not None
+            else routed.for_segment(seg)
+        )
+        for seg in SEGMENT_ORDER
     }
     bundle_context: BundleContext | None
     bundle_start = time.monotonic()
@@ -799,7 +820,7 @@ async def _stage_generate_segments(
     semaphore = asyncio.Semaphore(concurrency)
 
     async def _bounded_generate(segment: MarketSegment) -> _SegmentGenerationResult:
-        segment_source_items = routed.for_segment(segment)
+        segment_source_items = routed_by_segment[segment]
         data_limited = routed.is_data_limited(segment)
         segment_outcomes = segment_source_outcomes(segment, source_outcomes)
         segment_anchors: tuple[MarketAnchor, ...] = ()
@@ -825,6 +846,7 @@ async def _stage_generate_segments(
                 bundle_context=bundle_context,
                 fact_context_block=fact_context_block,
                 watchlist_config=watchlist_config,
+                event_config=event_config,
             )
 
     raw_results = await asyncio.gather(
@@ -845,6 +867,8 @@ async def _stage_generate_segments(
             continue
         assert result.briefing is not None
         briefings[segment] = result.briefing
+        if event_results is not None and result.event_result is not None:
+            event_results[segment] = result.event_result
         if result.macro_lineage:
             macro_lineage_by_segment[segment] = result.macro_lineage
 
@@ -1275,6 +1299,9 @@ async def _stage_publish_segments(
     phase_one_complete: bool = False,
     finalized_bundle: FinalizedPublicBundle | None = None,
     staging_root: Path | None = None,
+    publication_request: PublicationRequest | None = None,
+    transactional_metadata: Mapping[Path, bytes] | None = None,
+    publication_receipts: list[PublishReceipt] | None = None,
 ) -> dict[MarketSegment, Path]:
     """Write all segment archive files, then commit/push them together.
 
@@ -1319,8 +1346,26 @@ async def _stage_publish_segments(
         path: _read_existing_bytes(path) for path in snapshot_paths
     }
     snapshots.update({path: None for path in asset_paths})
+    metadata = dict(transactional_metadata or {})
+    if metadata and publication_request is None:
+        raise ValueError("event metadata requires confirmed publication policy")
+    if publication_request is not None and (
+        not set(metadata) <= set(publication_request.metadata_paths)
+        or any(len(data) > 1024 * 1024 for data in metadata.values())
+    ):
+        raise ValueError("publication metadata outside the bounded transaction")
+    if _is_dry_run() and (metadata or publication_request is not None):
+        raise ValueError("dry-run cannot advance event publication metadata")
+    for path in metadata:
+        snapshots[path] = _read_existing_bytes(path)
+    index_snapshot = (
+        snapshot_git_index(runner=git_runner) if publication_request is not None else None
+    )
     promoted_asset_paths: tuple[Path, ...] = ()
     try:
+        for path, content in metadata.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
         if not phase_one_complete:
             briefings = _assemble_phase_one_presentation_briefings(
                 briefings,
@@ -1362,12 +1407,14 @@ async def _stage_publish_segments(
                     archive_root=ARCHIVE_ROOT,
                     snapshots=snapshots,
                 )
-    except Exception:
+    except BaseException:
         # Visual asset files (snapshotted with previous_bytes=None) must be
         # rolled back for every pre-write assembly failure — otherwise an
         # identity invariant (or another phase-1 collaborator error) leaves
         # orphan ``*.assets/`` files that the next run picks up as stale.
         _rollback_paths(snapshots)
+        if index_snapshot is not None:
+            index_snapshot.restore()
         raise
 
     try:
@@ -1628,6 +1675,8 @@ async def _stage_publish_segments(
                 )
     except BaseException:
         _rollback_paths(snapshots)
+        if index_snapshot is not None:
+            index_snapshot.restore()
         raise
 
     commit_message = (
@@ -1636,23 +1685,58 @@ async def _stage_publish_segments(
         else f"briefing: {target_date} segmented partial"
     )
     dry_run = _is_dry_run()
-    await _to_thread_drained(
-        commit_and_push,
-        commit_message,
-        [
-            *archive_paths.values(),
-            *asset_paths,
-            *promoted_asset_paths,
-            *macro_lineage_paths,
-            *index_paths,
-            *weekly_paths,
-            # u137 R9 — image-candidate stage outputs (existence-checked
-            # by the stage helper; never in the rollback snapshots).
-            *extra_commit_paths,
-        ],
-        runner=git_runner,
-        dry_run=dry_run,
-    )
+    commit_paths = [
+        *archive_paths.values(),
+        *asset_paths,
+        *promoted_asset_paths,
+        *macro_lineage_paths,
+        *index_paths,
+        *weekly_paths,
+        *extra_commit_paths,
+        *metadata,
+    ]
+    if publication_request is None:
+        await _to_thread_drained(
+            commit_and_push,
+            commit_message,
+            commit_paths,
+            runner=git_runner,
+            dry_run=dry_run,
+        )
+    else:
+
+        def receipt_sink(receipt: PublishReceipt) -> None:
+            persist_publication_receipt(receipt)
+            if publication_receipts is not None:
+                publication_receipts.append(receipt)
+
+        terminal_error: list[PublicationReceiptError] = []
+
+        def commit_with_phase() -> PublishReceipt | None:
+            try:
+                return commit_and_push(
+                    commit_message,
+                    commit_paths,
+                    runner=git_runner,
+                    publication=publication_request,
+                    receipt_sink=receipt_sink,
+                )
+            except PublicationReceiptError as exc:
+                terminal_error.append(exc)
+                raise
+
+        try:
+            receipt = await _to_thread_drained(commit_with_phase)
+        except BaseException:
+            # Draining a cancelled worker preserves its terminal phase even
+            # though the outward exception remains CancelledError.
+            if terminal_error and terminal_error[-1].phase == "pre_commit":
+                _rollback_paths(snapshots)
+                if index_snapshot is not None:
+                    index_snapshot.restore()
+            raise
+        if receipt is None or receipt.status != "remote_confirmed":
+            raise RuntimeError("publication completed without remote confirmation")
     if dry_run:
         _logger.info("[publish] dry-run — skipped git commit + push for segmented %s", target_date)
     else:
@@ -2717,6 +2801,7 @@ def _build_public_document_context(
     supplements_by_segment: Mapping[MarketSegment, tuple[PublicDocumentSupplement, ...]]
     | None = None,
     staged_artifacts: Sequence[StagedArtifact] = (),
+    event_items_by_segment: Mapping[MarketSegment, Sequence[NormalizedItem]] | None = None,
 ) -> PublicDocumentContext:
     """Freeze the complete E1 input consumed by the pure finalizer."""
 
@@ -2735,7 +2820,14 @@ def _build_public_document_context(
         anchors_by_segment={
             segment: tuple(anchors_by_segment.get(segment, ())) for segment in generated
         },
-        items_by_segment={segment: routed.for_segment(segment) for segment in generated},
+        items_by_segment={
+            segment: (
+                tuple(event_items_by_segment[segment])
+                if event_items_by_segment is not None
+                else routed.for_segment(segment)
+            )
+            for segment in generated
+        },
         coverage_by_segment={
             segment: routed.coverage_for_segment(
                 segment,
@@ -2797,6 +2889,8 @@ class GenerateStage:
         public_items: list[NormalizedItem] = list(raw_items)
         domestic_item_verdicts: tuple[tuple[int, DomesticAnchorVerdict], ...] = ()
         generate_sub_timings: dict[str, float] = {}
+        event_results: dict[MarketSegment, GenerationResult] = {}
+        event_items_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] | None = None
         artifact_staging_root = cast(
             "Path | None",
             accumulated.get("artifact_staging_root"),
@@ -2894,6 +2988,10 @@ class GenerateStage:
                 candidates_by_segment: dict[MarketSegment, tuple[NormalizedItem, ...]] = {
                     segment: routed_candidates.for_segment(segment) for segment in SEGMENT_ORDER
                 }
+                if ctx.event_config.uses_v2:
+                    event_items_by_segment = share_official_event_candidates(
+                        public_items, candidates_by_segment
+                    )
                 carryover_by_segment = _load_carryover_for_run(target_date, candidates_by_segment)
                 # u59 — advance + persist the operator-only macro lifecycle
                 # carryover snapshot from the collected/routed items. Pure
@@ -2921,6 +3019,9 @@ class GenerateStage:
                     recent_context=recent_context,
                     market_anchors_by_segment=market_anchors_by_segment,
                     carryover_by_segment=carryover_by_segment,
+                    event_config=ctx.event_config,
+                    event_results=event_results,
+                    event_items_by_segment=event_items_by_segment,
                 )
                 generate_sub_timings.update(segment_timings)
                 primary_generated_segment = (
@@ -3077,6 +3178,7 @@ class GenerateStage:
                 entity_observed_at_utc=entity_observed_at_utc,
                 supplements_by_segment=public_supplements_by_segment,
                 staged_artifacts=staged_public_artifacts,
+                event_items_by_segment=event_items_by_segment,
             )
             timings = {
                 "generate": generate_elapsed,
@@ -3115,6 +3217,7 @@ class GenerateStage:
                 "entity_observed_at_utc": entity_observed_at_utc,
                 "public_document_context": public_document_context,
                 "macro_lineage_by_segment": macro_lineage_by_segment,
+                "event_results": event_results,
                 "previous_domestic_anchor_closes": previous_domestic_anchor_closes,
                 "public_items": public_items,
                 "raw_items": raw_items,
@@ -3535,6 +3638,7 @@ async def run_pipeline(
     generate: GenerateCallable | None = None,
     generate_segment: SegmentGenerateCallable | None = None,
     stages: tuple[Stage, ...] | None = None,
+    event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
     before_publication: Callable[[], Awaitable[None]] | None = None,
 ) -> PipelineResult:
     """Run the four-stage pipeline under Q9=B Error Policy routing.
@@ -3583,6 +3687,7 @@ async def run_pipeline(
         total run wall-clock; ``briefing_url`` is the per-day archive
         URL on SUCCESS / PARTIAL, ``None`` on FAILED.
     """
+    event_config.validate_capabilities()
     if target_date is None:
         target_date = resolve_target_date(datetime.now(UTC))
     target_date = validate_target_date_sanity(target_date)
@@ -3599,6 +3704,7 @@ async def run_pipeline(
         git_runner=git_runner,
         generate=generate,
         generate_segment=generate_segment,
+        event_config=event_config,
     )
     with temporary_artifact_staging_root() as artifact_staging_root:
         return await _execute_pipeline_stages(

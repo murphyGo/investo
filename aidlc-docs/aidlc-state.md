@@ -240,6 +240,22 @@ absorbed into focused NFR/Infrastructure artifacts. u151/u152/u154 and productio
 remain independent. The existing user-declined Security Baseline extension is
 unchanged; explicit u155 credential requirements still apply.
 
+### u157–u162 — News/Event Briefing Design (2026-09-26)
+
+**Source**: User requested units and development design after the 2026-09-22 briefing review. Baseline `04978d81`. The user approved development on 2026-09-27 and requested sequential unit completion with one commit/push per unit. Operational activation remains separate.
+
+| Unit | Functional Design | NFR Requirements | Code Generation | Notes |
+|---|---|---|---|---|
+| u157 event-evidence-selection-contract | Approved 2026-09-27 | Approved 2026-09-27 | Code complete — 8/8 steps, full regression 5415 passed; final focused boundary suite 61 passed. Default off; v2 delivery waits for u158/u159. | P0; 기존 u58/u59/u93/u97 완료. u160/u161은 hard dependency가 아니다. Plan: `aidlc-docs/construction/plans/u157-event-evidence-selection-contract-code-generation-plan.md`. |
+| u158 event-first-narrative-and-summary | Approved 2026-09-27 | Approved 2026-09-27 | Queued — design approved; follows u157. | P0; u157 모델/plan 구현. u154 배치 및 u156 Telegram 구성은 hard dependency가 아니다. Plan: `aidlc-docs/construction/plans/u158-event-first-narrative-and-summary-code-generation-plan.md`. |
+| u159 event-coverage-replay-and-gate | Approved 2026-09-27 | Approved 2026-09-27 | Queued — design approved; follows u157/u158. | P0; u157 선정/trace, u158 terminal event renderer/projection. 기존u65/u123/u144 완료. Plan: `aidlc-docs/construction/plans/u159-event-coverage-replay-and-gate-code-generation-plan.md`. |
+| u160 publication-news-observation-window | Approved 2026-09-27 | Approved 2026-09-27 | Queued — design approved; follows u159 in the user-requested sequence; cursor uses u157 receipt. | P1; u157의 공통 PublishReceipt/transaction 기반. window 모델·adapter 설계와 구현은 병렬 가능하나 cursor 통합은 u157 이후다. 기존 u1/u5/u31/u35/u102/u113/u144 완료. Plan: `aidlc-docs/construction/plans/u160-publication-news-observation-window-code-generation-plan.md`. |
+| u161 bounded-official-event-evidence | Approved 2026-09-27 | Approved 2026-09-27 | Queued — design approved; source qualification is part of implementation; body fetch remains gated. | P1; 자격검증/기존feed진단은독립. typed enrichment integration은u157. 신규officialbody는source별qualification후에만구현/활성화. Plan: `aidlc-docs/construction/plans/u161-bounded-official-event-evidence-code-generation-plan.md`. |
+| u162 qualitative-event-watchpoints | Approved 2026-09-27 | Reuse existing; separate stage skipped | Queued — design approved; follows u161; retains u152 numeric boundary. | P2; u157 typed 사건, u158 terminal event, 기존u152 current-observation계약 구현/통합. Plan: `aidlc-docs/construction/plans/u162-qualitative-event-watchpoints-code-generation-plan.md`. |
+
+Program and proposed contracts: `aidlc-docs/construction/news-event-briefing/README.md`.
+Implementation order: u157 → u158 → u159 as the first product slice; u160 window/adapters can proceed in parallel; cursor integration follows u157, u161 qualification can proceed independently but typed enrichment waits for u157; u162 waits for u157/u158/u152. u154 retains preamble order; u156 is a reserved separate local Telegram branch with no verifiable plan/implementation in its committed tree. No u156 completion is inferred. u145 and other existing operational/design gates remain separate.
+
 ## Extension Configuration
 | Extension | Enabled | Opted In |
 |-----------|---------|----------|

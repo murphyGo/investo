@@ -208,6 +208,7 @@ from investo.briefing.context import RecentBriefingsContext
 from investo.briefing.crypto_indicators import render_crypto_indicator_block
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.event_input import observe_candidates
 from investo.briefing.generation_contract import GenerationInput, GenerationResult
 from investo.briefing.lineage import (
     MacroLineageTrace,
@@ -237,6 +238,7 @@ from investo.models import (
     SourceOutcome,
 )
 from investo.models.bundle_context import BundleContext
+from investo.models.event_config import EventExecutionConfig
 
 
 def _assemble_prompt_context(
@@ -344,6 +346,7 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
     policy = (
         request.generation_policy if request.generation_policy is not None else GenerationPolicy()
     )
+    EventExecutionConfig(policy.event_mode).validate_capabilities()
     budget = request.budget
     if budget is None:
         budget = RetryBudget(total_budget_s=policy.total_budget_s)
@@ -445,7 +448,13 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
         segment=request.segment,
         target_date=request.target_date,
     )
-    return GenerationResult(briefing=briefing, macro_lineage=macro_lineage)
+    return GenerationResult(
+        briefing=briefing,
+        macro_lineage=macro_lineage,
+        event_observation=(
+            observe_candidates(request.items, llm_items) if policy.event_mode == "shadow" else None
+        ),
+    )
 
 
 async def generate_briefing(

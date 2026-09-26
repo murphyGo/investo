@@ -293,6 +293,21 @@
   - [ ] Telegram 섹터 요약은 웹 대시보드가 연속 안정화 gate를 통과한 뒤 별도 유닛으로 추가한다.
 - **Priority**: Must-have (신규 sector dashboard의 제품·데이터 신뢰 경계)
 
+### FR-023: 전일 중요 사건 중심 시황 (u157–u162, approved 2026-09-27)
+
+- **Status**: Approved requirement amendment, 2026-09-27. Sequential implementation is authorized; unchecked criteria below are not current production guarantees.
+- **Description**: 독자가 전일 새로 일어난 중요 사건과 그 의미를 이해하도록 뉴스·정책 결정·실적 결과·제품/서비스·주요 발언을 선정하고, 확인된 반응과 수치로 설명한다. 후보 범주는 매일 채워야 하는 할당량이 아니다.
+- **Acceptance Criteria**:
+  - [ ] 사건 중요도·신규성·시장 관련성·근거로0~5개를 선정하고 숫자 없는 사건도 입력/최종 본문에서 보존한다. u157.
+  - [ ] 사건마다 주체·시점·새로운 내용·의미·반응 상태·출처를 설명한다. 발생시각 미상/반응 미확인은 명시하고 상단 요약은 최종 유효 사건에서 만든다. u158.
+  - [ ] 최종 봉인 문서의 사건/필수 사실 반영을 검사한다. 내부 반영률과 외부 주요 뉴스 포착률을 구분하고 분모0 또는 미집계는null로 표시한다. u159.
+  - [ ] 가격 거래일과 뉴스 관측기간을 구분하여 주말/장후 보도를 수집한다. 부분 발행/소스 실패/replay는 확정 cursor를 잘못 갱신하지 않는다. u160.
+  - [ ] 공식 근거 보강은 source qualification, 무료/권리/보안/시간 예산을 통과한 범위만 허용한다. 수집/보강 실패는 원료와 품질 상태에 정직하게 반영한다. u161.
+  - [ ] 정성 사건의 현재 상태와 다음 확인 사항을 지원하면서 숫자 관측값 검증을 유지한다. u162.
+- **Relationship to existing requirements**: FR-001/002/008/009/010/013/014/017/020/021의 확장이다. 승인 후 event-mode에서는 첫 TL;DR bullet의 숫자 필수 프롬프트를 사건 설명으로 대체하되 FR-009의3항목/anchor표/숫자 보호/면책조항은 유지한다. u154가 상단 블록 순서를 소유하며 이 요구사항은 배치를 중복 변경하지 않는다. 기존 hard trust gates는 완화하지 않는다.
+- **Normative design**: `aidlc-docs/construction/news-event-briefing/README.md`와 공통 E1~E11/B1~B12/NF1~NF10, 각 유닛의AC.
+- **Priority**: P0 core u157–159; P1 ingestion u160–161; P2 follow-up u162.
+
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.
 - **User Story**: As a 운영자, I want 실패 시 별도 chat으로 즉시 알게 되기를, so that 빠르게 조치할 수 있고 일반 구독자가 노이즈를 보지 않도록.

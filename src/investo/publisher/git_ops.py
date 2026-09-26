@@ -21,11 +21,12 @@ from __future__ import annotations
 import logging
 import subprocess
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Final, Protocol
 
 from investo._internal.redaction import RedactionPolicy, redact_text
+from investo.models.publication import PublicationRequest, PublishReceipt
 from investo.publisher.errors import PublisherGitError
 
 _logger = logging.getLogger("investo.publisher.git_ops")
@@ -218,7 +219,9 @@ def commit_and_push(
     retries: int = 2,
     runner: GitRunner | None = None,
     dry_run: bool = False,
-) -> None:
+    publication: PublicationRequest | None = None,
+    receipt_sink: Callable[[PublishReceipt], None] | None = None,
+) -> PublishReceipt | None:
     """Run ``git add → git commit → git push origin HEAD`` with
     whole-pipeline retry.
 
@@ -238,6 +241,15 @@ def commit_and_push(
         Number of retries AFTER the first attempt. ``0`` = no retry.
     runner:
         Test seam. ``None`` → ``_default_runner`` (real subprocess).
+    publication:
+        E11 opt-in. A receipt is returned only after remote ancestry
+        confirmation. Otherwise ``PublicationReceiptError`` (a
+        ``PublisherGitError``) preserves the transaction state. Omitted
+        requests retain the legacy commands and ``None`` return value.
+    receipt_sink:
+        Optional private persistence callback, called with immutable
+        receipts including pending state before the first push. It must
+        not write into the public archive or stage more Git changes.
 
     Raises
     ------
@@ -255,7 +267,21 @@ def commit_and_push(
         # leaves the working tree dirty so the operator can inspect
         # what *would* have been committed without polluting origin
         # history.
-        return
+        return None
+
+    if publication is not None:
+        from investo.publisher.publication_receipts import publish_with_receipt
+
+        return publish_with_receipt(
+            message,
+            files,
+            request=publication,
+            retries=retries,
+            runner=runner,
+            receipt_sink=receipt_sink,
+        )
+    if receipt_sink is not None:
+        raise ValueError("receipt_sink requires a publication request")
 
     actual_runner = runner if runner is not None else _default_runner
 
@@ -275,7 +301,7 @@ def commit_and_push(
             continue
 
         if result is not None and result.returncode == 0:
-            return
+            return None
 
         # Failed step — record git's diagnostic output + try again (or exhaust).
         last_stderr = _git_diagnostic_output(result) if result is not None else None

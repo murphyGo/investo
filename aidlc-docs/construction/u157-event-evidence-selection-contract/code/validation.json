@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-27",
+  "unit": "u157",
+  "baseline": "04978d81ec9ece8f4083e4be190c6539bdf3b5ff",
+  "status": "pass",
+  "tests": [
+    {
+      "scope": "full regression after review corrections",
+      "passed": 5415,
+      "seconds": 377.62
+    },
+    {
+      "scope": "initial full regression",
+      "passed": 5400,
+      "seconds": 385.95
+    },
+    {
+      "scope": "publication, receipt transaction and event integration",
+      "passed": 129,
+      "seconds": 58.37
+    },
+    {
+      "scope": "final foundation, input and classification including late edge cases",
+      "passed": 61,
+      "seconds": 1.48
+    }
+  ],
+  "static": {
+    "ruff": "pass",
+    "format_files": 614,
+    "mypy_source_files": 273
+  },
+  "guards": {
+    "no_anthropic_sdk": "pass",
+    "no_paid_apis": "pass",
+    "curated_assets": "pass",
+    "image_store": "pass",
+    "mkdocs_strict": "pass",
+    "material_theme": "pass"
+  },
+  "benchmark": {
+    "command": "uv run python scripts/benchmark_event_selection.py",
+    "input_count": 1000,
+    "iterations": 10,
+    "p95_ms": 57.239,
+    "limit_ms": 200,
+    "status": "pass"
+  },
+  "review": {
+    "independent_reviewers": 3,
+    "waves": 2,
+    "resolved_findings": 13,
+    "unresolved_p1_p2": 0
+  },
+  "not_run": [
+    "live LLM preview (u158 consumer)",
+    "scheduled production shadow",
+    "active production publication notification Pages",
+    "production end-to-end p95"
+  ],
+  "delivery": {
+    "branch": "codex/news-event-design-20260926",
+    "commit_push": "authorized; ready after passing gate; exact SHA recorded by delivery session"
+  }
+}

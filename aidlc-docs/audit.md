@@ -7165,3 +7165,22 @@ The refreshed main still equals the first parent. No application-code repair
 or new debt was required. Integration documentation is the only post-gate edit;
 PR/main checks and exact remote-SHA verification complete the authorized delivery.
 **Boundary**: No private Codex credentials, dry-run, provisioning or activation.
+
+
+## Planning — u157–u162 event-first briefing design (2026-09-26)
+
+**User**: “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
+**Scope**: Convert the 2026-09-22 evidence-backed review into six registered units, shared event/window/publication contracts, per-unit design drafts and executable code-generation plans. No implementation, commit/push or public activation requested.
+**Baseline / isolation**: origin/main `04978d81ec9ece8f4083e4be190c6539bdf3b5ff`; branch `codex/news-event-design-20260926` in `.tmp/news-event-design-20260926`. Preserve original dirty checkout and all other worktrees.
+**Decisions**: u157 owns shared event identity/evidence, selection and the common remote publication receipt; u158 narrative and terminal projection; u159 semantic-fixture/runtime coverage; u160 separate news windows and cursor integration after the u157 receipt; u161 bounded qualified official evidence; u162 typed qualitative watchpoints after u152. u154 layout and reserved local u156 notifier ownership remain independent. u156 committed ref lacks verifiable unit artifacts, so its number is reserved without claiming completion.
+**Stage status**: Proposed FD/NFR drafts, reviewable; not user-approved. Code Generation Backlog, dependencies/qualification gates explicitly recorded. Proposed FR-023 is unchecked.
+**Validation**: Docs-only registration/link/dependency/placeholder/whitespace checks and read-only specialist reviews are recorded in `docs/sessions/2026-09-26-news-event-design.md`.
+
+
+## Development authorization — u157–u162 (2026-09-27)
+
+User: “유닛 하나씩 개발 진행해고 하나 완료할 떄마다 커밋 푸시해줘”. This authorizes the presented FD/NFR designs, sequential implementation and scoped commit/push per completed unit. Routine stage approval prompts are superseded by this explicit instruction. Source qualification and actual feature activation remain evidence-gated; no unrelated backlog is included. Start u157 from origin/main 04978d81 in the isolated design worktree.
+
+## u157 Code Generation closeout (2026-09-27)
+
+User-authorized sequential unit 1/6 completed. Eight implementation steps, all seven scoped ACs, 13 independent-review corrections. Full regression 5415 passed in 377.62s; integrated boundary129 and final foundation/input/classification61 passed. Ruff/format614, source mypy273, four policy guards, strict MkDocs and Material pass. NF3 1000-item/10-run p95=57.239ms. No production activation, scheduled shadow, live LLM or notification send. Default off; u158/u159 consume the new contracts. Scoped commit/push is authorized and is the next action.

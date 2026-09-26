@@ -10,20 +10,23 @@ Reference: aidlc-docs/inception/application-design/component-methods.md
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     HttpUrl,
+    SerializerFunctionWrapHandler,
     StrictFloat,
     StrictInt,
     StrictStr,
     field_validator,
+    model_serializer,
 )
 
 from investo.models._validators import ensure_tz_aware, reject_blank_strict
+from investo.models.events import EvidenceDocument
 
 Category = Literal["news", "price", "macro", "calendar", "earnings"]
 
@@ -57,6 +60,14 @@ class NormalizedItem(BaseModel):
     # unchanged. When set, both timestamps must be tz-aware UTC.
     scheduled_at: datetime | None = None
     raw_metadata: dict[str, _MetadataValue] = Field(default_factory=dict)
+    event_evidence: EvidenceDocument | None = Field(default=None, repr=False)
+
+    @model_serializer(mode="wrap")
+    def _serialize_compatible(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = cast("dict[str, object]", handler(self))
+        if self.event_evidence is None:
+            payload.pop("event_evidence", None)
+        return payload
 
     @field_validator("source_name", "title")
     @classmethod

@@ -14,9 +14,11 @@ from __future__ import annotations
 import ast
 import json
 import logging
-from typing import Final
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+
+from investo.models.events import EventCandidateDraft
 
 _logger = logging.getLogger("investo.briefing.pipeline")
 
@@ -51,6 +53,39 @@ class ClassificationResult(BaseModel):
             if v not in _VALID_SECTION_IDS:
                 raise ValueError(f"assignments value {v!r} for item id {k} not in {valid_str}")
         return value
+
+
+class EventClassificationResult(ClassificationResult):
+    """Explicit v2; a missing events field is unavailable, never zero events."""
+
+    schema_version: Literal[2]
+    assignments: dict[int, int]
+    unassigned: list[int]
+    events: tuple[EventCandidateDraft, ...] = Field(max_length=12)
+
+
+def parse_event_classification(
+    stdout: str, item_count: int, *, required_item_ids: frozenset[int] = frozenset()
+) -> EventClassificationResult:
+    """Validate the versioned envelope and both legacy and event item IDs."""
+    if len(stdout.encode("utf-8")) > _STAGE1_STDOUT_MAX_BYTES:
+        raise ValueError("event_classification_unavailable: response_budget")
+    try:
+        # No prose/Python-literal recovery in the explicit JSON v2 contract.
+        result = EventClassificationResult.model_validate_json(stdout)
+        _parse_classification(
+            json.dumps({"assignments": result.assignments, "unassigned": result.unassigned}),
+            item_count,
+            required_item_ids=required_item_ids,
+        )
+        for event in result.events:
+            if any(item_id < 1 or item_id > item_count for item_id in event.item_ids):
+                raise ValueError("invalid event item id")
+    except (ValidationError, ValueError, TypeError):
+        # Pydantic errors contain the input value. Never carry source prose
+        # into the exception/logging boundary.
+        raise ValueError("event_classification_unavailable: invalid_schema_or_item") from None
+    return result
 
 
 def _extract_braced_object(text: str, start: int) -> str | None:

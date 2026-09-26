@@ -4,18 +4,20 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 from investo.briefing._core.orchestration import GenerationPolicy
 from investo.briefing.claude_code import ClaudeRunner, RetryBudget
 from investo.briefing.context import RecentBriefingsContext
+from investo.briefing.event_input import CandidateObservation
 from investo.briefing.lineage import MacroLineageTrace
 from investo.briefing.market_anchor import MarketAnchor
 from investo.briefing.segments import MarketSegment
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models import Briefing, BriefingCarryover, NormalizedItem, SourceOutcome
 from investo.models.bundle_context import BundleContext
+from investo.models.events import EventIdentityReceipt, EventSelectionPlan
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,6 +38,9 @@ class GenerationInput:
     fact_context_block: str = ""
     archive_root: Path | None = None
     macro_lineage_all_items: tuple[NormalizedItem, ...] | None = None
+    event_observed_at: datetime | None = None
+    event_baseline: tuple[EventIdentityReceipt, ...] = ()
+    event_baseline_available: bool = True
 
     def __init__(
         self,
@@ -56,7 +61,13 @@ class GenerationInput:
         fact_context_block: str = "",
         archive_root: Path | None = None,
         macro_lineage_all_items: Sequence[NormalizedItem] | None = None,
+        event_observed_at: datetime | None = None,
+        event_baseline: tuple[EventIdentityReceipt, ...] = (),
+        event_baseline_available: bool = True,
     ) -> None:
+        object.__setattr__(self, "event_observed_at", event_observed_at)
+        object.__setattr__(self, "event_baseline", event_baseline)
+        object.__setattr__(self, "event_baseline_available", event_baseline_available)
         object.__setattr__(self, "target_date", target_date)
         object.__setattr__(self, "items", tuple(items))
         object.__setattr__(self, "watchlist_config", watchlist_config)
@@ -83,6 +94,8 @@ class GenerationInput:
 class GenerationResult:
     briefing: Briefing
     macro_lineage: tuple[MacroLineageTrace, ...] = ()
+    event_plan: EventSelectionPlan | None = None
+    event_observation: CandidateObservation | None = None
 
 
 __all__ = [

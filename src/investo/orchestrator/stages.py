@@ -45,6 +45,7 @@ from typing import Generic, Literal, Protocol, TypeVar
 from pydantic import HttpUrl
 
 from investo.models import PipelineStatus
+from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
 from investo.models.results import FailureStage
 
 T = TypeVar("T")
@@ -79,6 +80,7 @@ class PipelineContext:
     git_runner: object | None = None
     generate: object | None = None
     generate_segment: object | None = None
+    event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG
 
 
 @dataclass(frozen=True)
