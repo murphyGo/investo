@@ -51,6 +51,8 @@ _TOKEN_RESPONSE_LIMIT: Final = 64 * 1024
 _PARQUET_RESPONSE_LIMIT: Final = 2 * 1024 * 1024
 _PARQUET_DECODED_LIMIT: Final = 16 * 1024 * 1024
 _MAX_ROWS: Final = 10_000
+# The public metric layer uses the last 64 SPY observations (63D plus anchor).
+_CALCULATION_POINTS: Final = 64
 _MAX_JSON_DEPTH: Final = 4
 _MAX_JSON_STRING: Final = 256
 _MAX_API_KEY_LENGTH: Final = 512
@@ -699,6 +701,29 @@ def _client_has_observing_hooks(client: httpx.AsyncClient) -> bool:
     return any(client.event_hooks.get(kind, ()) for kind in ("request", "response"))
 
 
+def _retain_calculation_window(
+    series: PublicBarSeries,
+    benchmark_dates: frozenset[date] | None,
+) -> PublicBarSeries:
+    """Discard validated history before collecting the next rich OHLCV series.
+
+    Sector dates follow SPY, not an independent tail that could lose a required
+    anchor. The final two sector points preserve parser success and the latest
+    endpoint even when fewer than two observations overlap the SPY window.
+    """
+    if benchmark_dates is None:
+        points = series.points[-_CALCULATION_POINTS:]
+    else:
+        retained_dates = benchmark_dates | {point.trading_date for point in series.points[-2:]}
+        points = tuple(point for point in series.points if point.trading_date in retained_dates)
+    return PublicBarSeries(
+        ticker=series.ticker,
+        points=points,
+        first_date=points[0].trading_date,
+        latest_date=points[-1].trading_date,
+    )
+
+
 async def collect_public_bars(
     client: httpx.AsyncClient,
     *,
@@ -731,10 +756,11 @@ async def collect_public_bars(
 
     shared_budget = budget or HFRequestBudget(config, sleep=sleep)
     results: dict[SectorTicker, PublicBarSeries | PublicSourceFailure] = {}
+    benchmark_dates: frozenset[date] | None = None
 
     async def fetch_and_record(ticker: SectorTicker) -> None:
         try:
-            results[ticker] = await _fetch_ticker(
+            result = await _fetch_ticker(
                 client,
                 ticker=ticker,
                 api_key=api_key,
@@ -742,6 +768,13 @@ async def collect_public_bars(
                 budget=shared_budget,
                 config=config,
                 sleep=sleep,
+            )
+            # Decode and validate every row first. Retain only the calculation
+            # window so eleven maximum-size rich-model histories never coexist.
+            results[ticker] = (
+                _retain_calculation_window(result, benchmark_dates)
+                if isinstance(result, PublicBarSeries)
+                else result
             )
         except Exception:
             # Injected clocks/sleep functions and custom transports are part
@@ -765,6 +798,7 @@ async def collect_public_bars(
                         retryable=benchmark_result.retryable,
                     )
             else:
+                benchmark_dates = frozenset(point.trading_date for point in benchmark_result.points)
                 semaphore = asyncio.Semaphore(config.concurrency)
 
                 async def bounded_fetch(ticker: SectorTicker) -> None:

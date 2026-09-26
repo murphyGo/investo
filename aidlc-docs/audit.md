@@ -7612,3 +7612,16 @@ branch and execute five Actions probes.
 sequential production-adapter probes against the same implementation commit. The scope
 manifest was rechecked with zero file/hash changes since the completed local gate.
 Record each remote result and preserve the separate Step 6 activation boundary.
+
+## Construction — u145 Ubuntu resource gate repair
+
+**Timestamp**: 2026-09-27T03:31:59+09:00
+
+The approved branch was pushed at `ab1c06c3`. Actions `36262389388` failed only the
+synthetic RSS gate (288,579,584 bytes > 256 MiB); the live HF step was skipped.
+Repaired collector retention after complete validation: SPY last 64, sector SPY-date
+intersection plus final two points. Benchmark shape/limits are unchanged. Relevant suites
+passed 152 tests; independent review approved and separately passed ten new regressions.
+Local peak RSS increase fell to 92,979,200 bytes. Full-suite rerun is in progress.
+Commit/push and subsequent probe execution remain covered by the user approval.
+Evidence: `docs/sessions/2026-09-27-u145-step5-actions.md`.

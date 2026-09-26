@@ -21,8 +21,10 @@ from investo.models.sector import SectorTicker
 from investo.models.sector_public import (
     PUBLIC_REQUEST_TICKERS,
     PublicBarSeries,
+    PublicParsedSet,
     PublicSourceIssueCode,
 )
+from investo.sector_dashboard import hf_data as adapter
 from investo.sector_dashboard.hf_data import (
     HF_API_HOST,
     HF_USER_AGENT,
@@ -31,6 +33,11 @@ from investo.sector_dashboard.hf_data import (
     collect_public_bars,
     compute_hf_retry_delay,
 )
+from investo.sector_dashboard.public_metrics import (
+    build_public_series_bundle,
+    compute_public_sector_snapshot,
+)
+from investo.sector_dashboard.public_render import render_public_sector_projection
 
 _API_KEY = "12345678-1234-1234-1234-123456789abc"
 _TARGET_DATE = date(2026, 9, 1)
@@ -1078,3 +1085,112 @@ def test_config_rejects_wrong_runtime_types(kwargs: dict[str, Any]) -> None:
 def test_config_rejects_non_finite_floats(kwargs: dict[str, Any]) -> None:
     with pytest.raises(ValueError, match="ceiling"):
         HFAdapterConfig(**kwargs)
+
+
+def _history_rows(days: list[date]) -> list[dict[str, Any]]:
+    return [
+        {
+            **_rows()[1],
+            "datetime": datetime.combine(day, datetime.min.time()),
+            "Open": 100.0 + index,
+            "High": 102.0 + index,
+            "Low": 99.0 + index,
+            "Close": 101.0 + index,
+        }
+        for index, day in enumerate(days)
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "scenario",
+    ["complete", "warming", "stale", "newer_sector", "interstitial", "gap", "zero", "one"],
+)
+async def test_retained_collection_preserves_full_history_projection(scenario: str) -> None:
+    days = [_TARGET_DATE - timedelta(days=offset) for offset in range(199, -1, -1)]
+    benchmark_days = days[1::2]
+    sector_days = benchmark_days.copy()
+    if scenario == "warming":
+        benchmark_days = sector_days = benchmark_days[-32:]
+    elif scenario == "stale":
+        benchmark_days = sector_days = benchmark_days[:-1]
+    elif scenario == "newer_sector":
+        benchmark_days = benchmark_days[:-1]
+    elif scenario == "interstitial":
+        sector_days = days
+    elif scenario == "gap":
+        sector_days.remove(benchmark_days[-30])
+    elif scenario in {"zero", "one"}:
+        sector_days = benchmark_days[:2]
+        if scenario == "one":
+            sector_days.append(benchmark_days[-1])
+    bodies = {
+        ticker: _parquet(
+            _history_rows(benchmark_days if ticker is SectorTicker.SPY else sector_days)
+        )
+        for ticker in PUBLIC_REQUEST_TICKERS
+    }
+    full = {
+        ticker: adapter._decode_public_parquet(
+            body, ticker, _TARGET_DATE, adapter.DEFAULT_HF_ADAPTER_CONFIG
+        )
+        for ticker, body in bodies.items()
+    }
+    expected = PublicParsedSet(
+        benchmark=full[SectorTicker.SPY],
+        sectors={ticker: bars for ticker, bars in full.items() if ticker is not SectorTicker.SPY},
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        ticker = SectorTicker(_ticker_from_path(request.url.path))
+        if "/download-token/" in request.url.path:
+            return _token_response(ticker.value)
+        return _download_response(bodies[ticker])
+
+    budget = HFRequestBudget()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        retained = await collect_public_bars(
+            client, environ={"HF_DATA_API_KEY": _API_KEY}, target_date=_TARGET_DATE, budget=budget
+        )
+    assert retained.benchmark is not None
+    assert len(retained.benchmark.points) <= 64
+    assert retained.benchmark.points == full[SectorTicker.SPY].points[-64:]
+    assert retained.failures == expected.failures == ()
+    assert budget.request_count == budget.successful_response_count == 22
+    for ticker, series in retained.sectors.items():
+        assert 2 <= len(series.points) <= 66
+        assert series.latest_date == full[ticker].latest_date
+    expected_bundle = build_public_series_bundle(expected, target_date=_TARGET_DATE)
+    retained_bundle = build_public_series_bundle(retained, target_date=_TARGET_DATE)
+    assert retained_bundle == expected_bundle
+    expected_snapshot = compute_public_sector_snapshot(expected_bundle)
+    retained_snapshot = compute_public_sector_snapshot(retained_bundle)
+    assert retained_snapshot == expected_snapshot
+    assert render_public_sector_projection(retained_snapshot) == render_public_sector_projection(
+        expected_snapshot
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("bad_ticker", [SectorTicker.SPY, SectorTicker.XLK])
+async def test_invalid_old_row_is_rejected_before_retention(bad_ticker: SectorTicker) -> None:
+    days = [_TARGET_DATE - timedelta(days=offset) for offset in range(99, -1, -1)]
+    rows = _history_rows(days)
+    valid = _parquet(rows)
+    rows[0]["Close"] = 0.0
+    invalid = _parquet(rows)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        ticker = SectorTicker(_ticker_from_path(request.url.path))
+        if "/download-token/" in request.url.path:
+            return _token_response(ticker.value)
+        return _download_response(invalid if ticker is bad_ticker else valid)
+
+    budget = HFRequestBudget()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        result = await collect_public_bars(
+            client, environ={"HF_DATA_API_KEY": _API_KEY}, target_date=_TARGET_DATE, budget=budget
+        )
+    failure = next(failure for failure in result.failures if failure.ticker is bad_ticker)
+    assert failure.issue_code is PublicSourceIssueCode.ROW
+    assert budget.request_count == (2 if bad_ticker is SectorTicker.SPY else 22)
