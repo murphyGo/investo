@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-25 begin -->
+
+## 2026-09-25
+
+- [theblock-crypto] **ticker**: Aave V4 on Base adds Coinbase tokenized stocks as collateral for USDC loans
+- [yfinance-price] **ticker**: TSLA 372.11 (-1.54%)
+
+<!-- u33 entry 2026-09-25 end -->
 <!-- u33 entry 2026-09-24 begin -->
 
 ## 2026-09-24
