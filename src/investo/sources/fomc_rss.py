@@ -31,6 +31,7 @@ from investo.sources._registry import register
 from investo.sources._retry import retry_get
 from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
+from investo.sources.event_evidence import attach_feed_evidence
 from investo.sources.protocol import SourceFetchError
 
 _ALLOWED_SCHEMES = ("http", "https")
@@ -90,6 +91,21 @@ class FomcRssAdapter:
                 continue
             observed.append(normalized.published_at)
             if window.contains(normalized.published_at):
+                try:
+                    normalized = attach_feed_evidence(
+                        normalized,
+                        detail_excerpt=(
+                            strip_html(entry.findtext("description") or "")
+                            if window.evidence_received_at is not None
+                            else ""
+                        ),
+                        received_at=window.evidence_received_at,
+                        source_tier="official",
+                    )
+                except ValueError:
+                    # Evidence validation is per entry, like normalization.
+                    parse_failures += 1
+                    continue
                 items.append(normalized)
         return SourceFetchResult(
             tuple(items),

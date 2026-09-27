@@ -46,6 +46,11 @@ from typing import Generic, Literal, Protocol, TypeVar
 from pydantic import HttpUrl
 
 from investo.models import PipelineStatus
+from investo.models.enrichment import (
+    DEFAULT_ENRICHMENT_POLICY,
+    EnrichmentPolicy,
+    EnrichmentQualification,
+)
 from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
 from investo.models.news_window import (
     DEFAULT_NEWS_WINDOW_CONFIG,
@@ -89,6 +94,9 @@ class PipelineContext:
     generate_segment: object | None = None
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG
     event_observed_at: datetime | None = None
+    event_enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY
+    event_qualification: EnrichmentQualification | None = None
+    event_enrichment_deadline: float | None = None
     news_window_config: NewsWindowConfig = DEFAULT_NEWS_WINDOW_CONFIG
     run_started_at: datetime | None = None
     news_replay: bool = False

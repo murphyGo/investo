@@ -1,7 +1,7 @@
 # Functional Design: u161 공식 사건 근거 보강과 뉴스 소스 복구 판정
 
 **Date**: 2026-09-26
-**Status**: Design approved by the 2026-09-27 sequential-development request. Queued — design approved; source qualification is part of implementation; body fetch remains gated.
+**Status**: Design approved by the 2026-09-27 sequential-development request. Code complete — 7/7 steps, full regression 5888 passed (464.69s); bounded evidence and same-provider FSC repair verified. New body HTTP remains off.
 **Priority / effort**: P1 / 16–24 h plus source qualification (rough engineering estimate, not commitment).
 **Dependencies**: 자격검증/기존feed진단은독립. typed enrichment integration은u157. 신규officialbody는source별qualification후에만구현/활성화.
 

@@ -67,6 +67,7 @@ import contextlib
 import importlib
 import json
 import logging
+import math
 import os
 import time
 import traceback
@@ -78,6 +79,7 @@ from pathlib import Path
 from typing import Any, Final, TypedDict, TypeVar, cast, overload
 from uuid import uuid4
 
+import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 from investo._internal.archive_layout import ArchiveLayout
@@ -156,6 +158,12 @@ from investo.models import (
 )
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceWindowCoverage
+from investo.models.enrichment import (
+    DEFAULT_ENRICHMENT_POLICY,
+    EnrichmentPolicy,
+    EnrichmentQualification,
+    EnrichmentResult,
+)
 from investo.models.event_config import DEFAULT_EVENT_CONFIG, EventExecutionConfig
 from investo.models.event_quality import (
     EventCoverage,
@@ -299,6 +307,7 @@ from investo.publisher.weekly_digest import (
 )
 from investo.publisher.writer import write_finalized_document
 from investo.sources import collect_sources as _default_collect_sources
+from investo.sources.event_evidence import enrich_event_evidence, load_enrichment_qualification
 from investo.sources.yfinance import resolve_yfinance_critical_tickers
 from investo.visuals import image_library as _image_library
 from investo.visuals.assets import (
@@ -576,6 +585,7 @@ async def _stage_collect(
     target_date: date,
     *,
     fetch: CollectCallable | None = None,
+    evidence_received_at: datetime | None = None,
 ) -> tuple[list[NormalizedItem], tuple[SourceOutcome, ...]]:
     """Run u1's source aggregator and gate on a non-empty result.
 
@@ -616,7 +626,11 @@ async def _stage_collect(
         items = await fetch(target_date)
         outcomes: tuple[SourceOutcome, ...] = ()
     else:
-        report = await _default_collect_sources(target_date)
+        report = (
+            await _default_collect_sources(target_date, evidence_received_at=evidence_received_at)
+            if evidence_received_at is not None
+            else await _default_collect_sources(target_date)
+        )
         items = list(report.items)
         outcomes = report.outcomes
     _logger.info("[collect] returned %d items outcomes=%d", len(items), len(outcomes))
@@ -2844,6 +2858,52 @@ def _briefing_url_for(
 # ---------------------------------------------------------------------------
 
 
+async def _enrich_collected_events(
+    ctx: PipelineContext,
+    items: Sequence[NormalizedItem],
+    outcomes: Sequence[SourceOutcome],
+    *,
+    observed_at: datetime,
+) -> EnrichmentResult:
+    """Optional official evidence shares source identity, never source success."""
+    qualification = ctx.event_qualification
+    if qualification is None:
+        try:
+            qualification = load_enrichment_qualification(
+                Path("ops/event_source_qualification.json")
+            )
+        except (OSError, ValueError):
+            _logger.warning("[event_enrichment] qualification unavailable")
+            qualification = EnrichmentQualification()
+    failed = {row.source_name for row in outcomes if row.status == "failed"}
+    indexes = [index for index, item in enumerate(items) if item.source_name not in failed]
+    selected = tuple(items[index] for index in indexes)
+    deadlines = [ctx.event_enrichment_deadline]
+    runner_deadline = getattr(ctx.runner, "deadline", None)
+    if (
+        isinstance(runner_deadline, (int, float))
+        and not isinstance(runner_deadline, bool)
+        and math.isfinite(runner_deadline)
+    ):
+        deadlines.append(runner_deadline)
+    existing_deadlines = [value for value in deadlines if value is not None]
+    async with httpx.AsyncClient(follow_redirects=False, trust_env=False) as client:
+        result = await enrich_event_evidence(
+            selected,
+            client=client,
+            policy=ctx.event_enrichment_policy,
+            qualification=qualification,
+            received_at=observed_at,
+            deadline=min(existing_deadlines) if existing_deadlines else None,
+        )
+    updated = list(items)
+    for index, item in zip(indexes, result.items, strict=True):
+        updated[index] = item
+    return EnrichmentResult(
+        items=tuple(updated), outcomes=result.outcomes, request_count=result.request_count
+    )
+
+
 class CollectStage:
     """u1 source aggregation. ``EmptyCollectError`` → routable failure."""
 
@@ -2860,6 +2920,8 @@ class CollectStage:
         news_baseline: NewsCursorBaseline | None = None
         event_baseline: EventReceiptBaseline | None = None
         window_coverage: tuple[SourceWindowCoverage, ...] = ()
+        enrichment: EnrichmentResult | None = None
+        enrichment_timings: dict[str, float] = {}
         if ctx.news_window_config.mode != "off":
             run_id = "news-" + uuid4().hex
             if (
@@ -2902,6 +2964,14 @@ class CollectStage:
                 dry_run=_is_dry_run(),
                 replay_windows=ctx.news_replay_windows,
             )
+        evidence_clock = (
+            news_plan.observed_at
+            if news_plan is not None and news_plan.mode == "active"
+            else ctx.event_observed_at or ctx.run_started_at or datetime.now(UTC)
+        )
+        evidence_options = (
+            {"evidence_received_at": evidence_clock} if ctx.event_config.uses_v2 else {}
+        )
         try:
             if news_plan is not None and news_plan.mode == "active":
                 if fetch is None:
@@ -2912,6 +2982,7 @@ class CollectStage:
                         held_news_sources=frozenset(
                             source for source, _ in news_plan.windows if source not in union
                         ),
+                        **evidence_options,
                     )
                     items, source_outcomes = list(report.items), report.outcomes
                     window_coverage = report.window_coverages
@@ -2921,7 +2992,16 @@ class CollectStage:
                 if not items:
                     raise EmptyCollectError("news observation returned no usable items")
             else:
-                items, source_outcomes = await _stage_collect(ctx.target_date, fetch=fetch)
+                items, source_outcomes = await _stage_collect(
+                    ctx.target_date, fetch=fetch, **evidence_options
+                )
+            if ctx.event_config.uses_v2 and ctx.event_enrichment_policy.mode == "active":
+                enrichment_start = time.monotonic()
+                enrichment = await _enrich_collected_events(
+                    ctx, items, source_outcomes, observed_at=evidence_clock
+                )
+                items = list(enrichment.items)
+                enrichment_timings["collect_event_enrichment"] = time.monotonic() - enrichment_start
         except EmptyCollectError as exc:
             return StageResult(
                 status="failed",
@@ -2943,9 +3023,13 @@ class CollectStage:
                 "news_cursor_baseline": news_baseline,
                 "news_window_coverage": window_coverage,
                 "event_baseline": event_baseline,
+                "event_enrichment_outcomes": enrichment.outcomes if enrichment is not None else (),
+                "event_enrichment_request_count": (
+                    enrichment.request_count if enrichment is not None else 0
+                ),
             },
             stage_notes={"collect": "ok"},
-            timings={"collect": time.monotonic() - start},
+            timings={"collect": time.monotonic() - start, **enrichment_timings},
         )
 
 
@@ -4035,6 +4119,9 @@ async def run_pipeline(
     generate_segment: SegmentGenerateCallable | None = None,
     stages: tuple[Stage, ...] | None = None,
     event_config: EventExecutionConfig = DEFAULT_EVENT_CONFIG,
+    event_enrichment_policy: EnrichmentPolicy = DEFAULT_ENRICHMENT_POLICY,
+    event_qualification: EnrichmentQualification | None = None,
+    event_enrichment_deadline: float | None = None,
     news_window_config: NewsWindowConfig = DEFAULT_NEWS_WINDOW_CONFIG,
     run_started_at: datetime | None = None,
     news_replay_windows: Mapping[NewsWindowKey, NewsObservationWindow] | None = None,
@@ -4088,6 +4175,14 @@ async def run_pipeline(
         URL on SUCCESS / PARTIAL, ``None`` on FAILED.
     """
     event_config.validate_publication()
+    event_enrichment_policy.validate_activation()
+    if event_enrichment_policy.mode == "active" and not event_config.uses_v2:
+        raise ValueError("event body enrichment requires v2 event generation")
+    if event_enrichment_deadline is not None and (
+        type(event_enrichment_deadline) not in {int, float}
+        or not math.isfinite(event_enrichment_deadline)
+    ):
+        raise ValueError("event enrichment deadline must be finite")
     news_replay = target_date is not None
     news_window_config.validate_publication(replay=news_replay, dry_run=_is_dry_run())
     if news_manifest_path is not None:
@@ -4121,6 +4216,9 @@ async def run_pipeline(
         generate_segment=generate_segment,
         event_config=event_config,
         event_observed_at=event_observed_at,
+        event_enrichment_policy=event_enrichment_policy,
+        event_qualification=event_qualification,
+        event_enrichment_deadline=event_enrichment_deadline,
         news_window_config=news_window_config,
         run_started_at=run_clock,
         news_replay=news_replay,

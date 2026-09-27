@@ -20,5 +20,5 @@
   "benchmark": {"input_count": 1000, "candidate_count": 96, "selected_count": 5, "iterations": 10, "p95_ms": 121.469, "limit_ms": 200, "status": "pass", "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate"},
   "source_evidence": {"opendart_contract": "official_documentation_checked", "live_provider_qualification": "not_claimed"},
   "operational_acceptance": {"scheduled_shadow": "not_run", "live_cursor_mutation": "not_run", "live_notification_and_pages": "not_run", "production_activation": "off", "event_active_ready": false, "news_window_active_ready": false, "end_to_end_runtime_p95": "not_measured", "DEBT-090": "unchanged"},
-  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "authorized_after_passed_final_gate"}
+  "delivery": {"branch": "codex/news-event-design-20260926", "commit_push": "complete", "commit": "79b9f03981a2f26ef74126e4bb86928a9b118950", "exact_remote_sha_verified": true}
 }

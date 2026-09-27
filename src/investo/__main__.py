@@ -45,6 +45,7 @@ from investo._internal.llm_config import LlmConfigError, LlmExecutionConfig, mis
 from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.briefing.claude_code import ClaudeRunner
 from investo.models import FailureContext, PipelineResult, PipelineStatus
+from investo.models.enrichment import ENRICHMENT_MODE_ENV, EnrichmentPolicy
 from investo.models.event_config import EVENT_MODE_ENV, EventExecutionConfig
 from investo.models.news_window import NewsWindowConfig
 from investo.notifier import BriefingPublisher, OperatorAlerter
@@ -57,6 +58,7 @@ from investo.orchestrator.pipeline import run_pipeline
 
 class _EventPipelineOptions(TypedDict, total=False):
     event_config: EventExecutionConfig
+    event_enrichment_policy: EnrichmentPolicy
     news_window_config: NewsWindowConfig
     news_manifest_path: Path
 
@@ -569,6 +571,15 @@ async def _async_main(
                 event_options["event_config"] = event_config
         except ValueError as exc:
             raise ConfigError.for_bad_value(EVENT_MODE_ENV, str(exc)) from None
+        try:
+            enrichment_policy = EnrichmentPolicy.from_env(os.environ)
+            enrichment_policy.validate_activation()
+            if enrichment_policy.mode == "active" and not event_config.uses_v2:
+                raise ValueError("event body enrichment requires v2 event generation")
+            if enrichment_policy.mode != "off":
+                event_options["event_enrichment_policy"] = enrichment_policy
+        except ValueError as exc:
+            raise ConfigError.for_bad_value(ENRICHMENT_MODE_ENV, str(exc)) from None
         try:
             news_config = NewsWindowConfig.from_env(os.environ, target_date_override)
             news_config.validate_publication(

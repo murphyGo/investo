@@ -14,8 +14,8 @@ from investo.sources.protocol import SourceFetchError
 
 _FIXTURE_DIR = Path(__file__).parent / "fixtures" / "api" / "korea-policy-rss"
 _WINDOW = FetchWindow.from_kst_date(date(2026, 5, 7))
-_PRESS_URL = "http://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0111"
-_EXPLAIN_URL = "http://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0112"
+_PRESS_URL = "https://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0111"
+_EXPLAIN_URL = "https://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0112"
 
 
 def _mock_client(
@@ -97,3 +97,50 @@ async def test_unsupported_feed_url_scheme_is_terminal(monkeypatch: pytest.Monke
     async with _mock_client({}) as client:
         with pytest.raises(SourceFetchError, match="unsupported feed URL scheme"):
             await adapter.fetch(client, _WINDOW)
+
+
+@pytest.mark.parametrize("raw_date", ["2026-09-23 00:00:00", "2026-09-23"])
+async def test_current_fsc_dc_date_is_a_source_day_not_an_event_instant(raw_date: str) -> None:
+    body = (
+        '<rss xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><item>'
+        "<title>가상 정책 발표</title><link>https://www.fsc.go.kr/example</link>"
+        f"<dc:date>{raw_date}</dc:date><description>정책 설명</description>"
+        "</item></channel></rss>"
+    ).encode()
+    # Midday start excludes a fabricated midnight instant but overlaps the source day.
+    window = FetchWindow(
+        datetime(2026, 9, 23, 3, tzinfo=UTC),
+        datetime(2026, 9, 23, 15, tzinfo=UTC),
+        date(2026, 9, 23),
+        evidence_received_at=datetime(2026, 9, 23, 15, tzinfo=UTC),
+    )
+    async with _mock_client({_PRESS_URL: body}) as client:
+        items = await KoreaPolicyRssAdapter()._fetch_feed(client, _PRESS_URL, window)
+        next_day = await KoreaPolicyRssAdapter()._fetch_feed(
+            client, _PRESS_URL, FetchWindow.from_kst_date(date(2026, 9, 24))
+        )
+    assert len(items) == 1 and next_day == []
+    evidence = items[0].event_evidence
+    assert evidence is not None and evidence.published_date == date(2026, 9, 23)
+    assert evidence.event_time is None and evidence.event_time_basis == "unknown"
+    assert items[0].raw_metadata["published_timezone"] == "Asia/Seoul"
+
+
+@pytest.mark.parametrize(
+    ("url", "raw_date", "pub_date"),
+    [
+        ("https://example.invalid/feed", "2026-09-23 00:00:00", ""),
+        (_PRESS_URL, "invalid", ""),
+        (_PRESS_URL, "2026-09-23 00:00:00", "<pubDate>invalid</pubDate>"),
+    ],
+)
+async def test_dc_date_fallback_does_not_relabel_other_sources_or_invalid_timestamps(
+    url: str, raw_date: str, pub_date: str
+) -> None:
+    body = (
+        '<rss xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><item>'
+        "<title>가상 정책 발표</title><link>https://www.fsc.go.kr/example</link>"
+        f"{pub_date}<dc:date>{raw_date}</dc:date></item></channel></rss>"
+    ).encode()
+    async with _mock_client({url: body}) as client:
+        assert await KoreaPolicyRssAdapter()._fetch_feed(client, url, _WINDOW) == []

@@ -17,8 +17,8 @@ import asyncio
 import logging
 import time
 from collections.abc import Mapping
-from dataclasses import dataclass
-from datetime import date, timedelta
+from dataclasses import dataclass, replace
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Final
 
 import httpx
@@ -76,6 +76,7 @@ async def collect_sources(
     *,
     news_windows: Mapping[str, NewsObservationWindow] | None = None,
     held_news_sources: frozenset[str] = frozenset(),
+    evidence_received_at: datetime | None = None,
 ) -> SourceCollectionReport:
     """Run every registered adapter concurrently and return a full report.
 
@@ -107,6 +108,11 @@ async def collect_sources(
         windows[source_name] = FetchWindow(
             requested.requested_start, requested.end_utc, target_date, news_observation=True
         )
+    if evidence_received_at is not None:
+        windows = {
+            name: replace(window, evidence_received_at=evidence_received_at)
+            for name, window in windows.items()
+        }
 
     async with httpx.AsyncClient() as client:
         results = await asyncio.gather(

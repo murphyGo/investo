@@ -7208,3 +7208,11 @@ u159 commit `f056fbde76efd48f2f5715aa68b3fea278fbcf67` pushed to `origin/codex/n
 ## u160 Code Generation closeout (2026-09-27)
 
 Sequential unit 4/6: seven steps and AC-160.1–6 code validation complete. Independent fixed news clock, source union/recipient filtering, bounded DART/policy coverage, sealed consumption, same-transaction confirmed cursor/manifest and reader/quality observation ranges implemented. Two review waves resolved four P2 findings; no remaining P1/P2. Full5798/462.55s, actual pipeline/bare Git20, independent window61, source correction59, parent projection11 and CLI6 pass. Ruff/format648, mypy286, policy4, strict MkDocs9.22s/Material pass. Existing event NF3 p95=121.469ms/1000 inputs. Off/shadow parity and replay/dry-run cursor boundaries verified offline; no scheduled shadow, live cursor changes, activation, main merge or external notification. Authorized commit/push follows, then u161.
+
+## u160 remote delivery and u161 start (2026-09-27)
+
+u160 `79b9f03981a2f26ef74126e4bb86928a9b118950` pushed to the authorized feature branch and exact remote SHA confirmed. u161 now executes existing feed diagnosis, pre-summary-cut typed evidence and qualified bounded official body enrichment. Read-only official discovery/rights and directly linked live-body checks qualified FOMC, Fed speech and CFTC release families before Stage C implementation; SEC body and CNBC feed remain HTTP403 blocked. Raw probes stay ignored/private. Runtime active capability remains false and source qualification is not activation.
+
+## 2026-09-28 — u161 final validation
+
+Completed all seven steps after actual source qualification. Full regression5888 passed in464.69s; Ruff/format655, mypy289, four policy guards, strict docs7.08s and Material contracts pass. Offline event benchmark p95=129.072ms/200ms. Five same-wave review corrections cover absolute request budget, malformed HTML, URL eligibility quota, feed sibling isolation and decoded gzip headers. Raw bodies remain ignored; CNBC/SEC restrictions remain blocked; event/news/body activation all false. Per-unit commit/push follows final review closure.

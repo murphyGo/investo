@@ -39,6 +39,25 @@ _VALID_ENV: dict[str, str] = {
 
 
 @pytest.mark.parametrize(
+    ("mode", "expected_exit"), [("off", 0), ("shadow", 0), ("active", 1), ("unknown", 1)]
+)
+def test_event_body_enrichment_is_opt_in_and_operationally_gated(
+    monkeypatch: pytest.MonkeyPatch, mode: str, expected_exit: int
+) -> None:
+    _set_env(monkeypatch)
+    monkeypatch.setenv("INVESTO_EVENT_BRIEFING_MODE", "off")
+    monkeypatch.setenv("INVESTO_EVENT_ENRICHMENT_MODE", mode)
+    with _stub_pipeline(monkeypatch) as calls, _capture_alerts(monkeypatch):
+        assert main_mod.main() == expected_exit
+    if expected_exit:
+        assert calls == []
+    elif mode == "off":
+        assert "event_enrichment_policy" not in calls[0]
+    else:
+        assert calls[0]["event_enrichment_policy"].mode == "shadow"
+
+
+@pytest.mark.parametrize(
     ("mode", "target", "manifest", "expected_exit"),
     [
         ("off", None, None, 0),

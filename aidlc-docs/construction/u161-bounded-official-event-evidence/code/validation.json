@@ -1,0 +1,128 @@
+{
+  "date": "2026-09-28",
+  "unit": "u161",
+  "baseline": "79b9f03981a2f26ef74126e4bb86928a9b118950",
+  "status": "code_complete_operational_activation_pending",
+  "tests": [
+    {
+      "scope": "final full regression",
+      "passed": 5888,
+      "seconds": 464.69
+    },
+    {
+      "scope": "gzip, helper, six adapters and actual generation integration",
+      "passed": 104,
+      "seconds": 2.99
+    },
+    {
+      "scope": "evidence factory and helper owner regression",
+      "passed": 81,
+      "seconds": 1.96
+    },
+    {
+      "scope": "independent six adapter and FSC correction",
+      "passed": 23,
+      "seconds": 6.88
+    },
+    {
+      "scope": "independent shared retry correction",
+      "passed": 45,
+      "seconds": 2.05
+    },
+    {
+      "scope": "actual collector/generator/finalizer integration",
+      "passed": 9,
+      "seconds": 1.21
+    },
+    {
+      "scope": "legacy public event and news window compatibility",
+      "passed": 113,
+      "seconds": 30.37
+    },
+    {
+      "scope": "CLI mode boundaries",
+      "passed": 10,
+      "seconds": 1.24
+    },
+    {
+      "scope": "independent corrected helper and identity",
+      "passed": 81,
+      "seconds": 1.84
+    }
+  ],
+  "static": {
+    "ruff": "pass",
+    "format_files": 655,
+    "mypy_source_files": 289
+  },
+  "guards": {
+    "no_anthropic_sdk": "pass",
+    "no_paid_apis": "pass",
+    "curated_assets": "pass",
+    "image_store": "pass",
+    "mkdocs_strict": "pass",
+    "material_theme": "pass",
+    "mkdocs_seconds": 7.08
+  },
+  "review": {
+    "waves": 2,
+    "resolved_p2": 5,
+    "unresolved_p1_p2": 0,
+    "final_helper_closure": "pass"
+  },
+  "acceptance": {
+    "AC-161.1": "pass",
+    "AC-161.2": "pass",
+    "AC-161.3": "pass",
+    "AC-161.4": "pass",
+    "AC-161.5": "pass",
+    "AC-161.6": "pass"
+  },
+  "benchmark": {
+    "input_count": 1000,
+    "candidate_count": 96,
+    "selected_count": 5,
+    "iterations": 10,
+    "p95_ms": 129.072,
+    "limit_ms": 200,
+    "status": "pass",
+    "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate"
+  },
+  "source_evidence": {
+    "qualified": [
+      "fomc-rss",
+      "fed-speech-rss",
+      "cftc-policy-rss"
+    ],
+    "blocked": [
+      "cnbc-top-news feed",
+      "sec-newsroom-rss body"
+    ],
+    "fsc_default_https_single_get": {
+      "status": 200,
+      "matching_date_items": 7,
+      "date_precision": "date",
+      "known_event_time": false
+    },
+    "production_parser_live_body_replay_chars": [
+      963,
+      1200,
+      1126
+    ],
+    "private_bodies_ignored": true
+  },
+  "operational_acceptance": {
+    "scheduled_shadow": "not_run",
+    "live_notification_and_pages": "not_run",
+    "production_activation": "off",
+    "event_active_ready": false,
+    "news_window_active_ready": false,
+    "enrichment_active_ready": false,
+    "end_to_end_runtime_p95": "not_measured",
+    "DEBT-090": "unchanged"
+  },
+  "delivery": {
+    "branch": "codex/news-event-design-20260926",
+    "commit_push": "pending_parent_delivery_after_final_gate"
+  }
+}

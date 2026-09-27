@@ -2656,14 +2656,14 @@ Plan: `aidlc-docs/construction/plans/u160-publication-news-observation-window-co
 **Module path**: `sources/fed_speech_rss.py, fomc_rss.py, sec_newsroom_rss.py, cftc_policy_rss.py, cnbc_top_news.py, korea_policy_rss.py, _retry.py, sources/aggregator.py, orchestrator/pipeline.py, briefing/generation_contract.py, models/items.py (u157 evidence field), sources/aggregator.py, briefing/generation_contract.py`. New paths proposed: `sources/event_evidence.py; ops/event_source_qualification.json (planned contract)`.
 
 **Definition of Done**:
-- [ ] AC-161.1: CNBC/Korea policy 각각현재원인/동일source수리결과또는blocked이유가실제증거와함께있다.
-- [ ] AC-161.2: qualification이없는URL/새provider/access제한을자동fetch하지않고qualifiedHTTP외에는원feed를유지한다.
-- [ ] AC-161.3: 281~1200번째 문자에만 있는 핵심 사실이 typed evidence를 통해 Stage1 buffer와 Stage2 선정 span에 실제 도달한다. routing 제외/실패 source의 근거가 다른 item에 붙지 않는다.
-- [ ] AC-161.4:6요청/동시2/20초/500KiB/소스2기사/excerpt1200상한과redirect/SSRFnegative가통과한다.
-- [ ] AC-161.5:본문fetch실패가원뉴스를삭제하지않고가짜실적actual/정책결정/시점을만들지않는다.
-- [ ] AC-161.6:rawbody/secret/privatefixture는publicgit에없고NFR-008/DEBT-090성능상태를정확하게보고한다.
+- [x] AC-161.1: CNBC/Korea policy 각각현재원인/동일source수리결과또는blocked이유가실제증거와함께있다.
+- [x] AC-161.2: qualification이없는URL/새provider/access제한을자동fetch하지않고qualifiedHTTP외에는원feed를유지한다.
+- [x] AC-161.3: 281~1200번째 문자에만 있는 핵심 사실이 typed evidence를 통해 Stage1 buffer와 Stage2 선정 span에 실제 도달한다. routing 제외/실패 source의 근거가 다른 item에 붙지 않는다.
+- [x] AC-161.4:6요청/동시2/20초/500KiB/소스2기사/excerpt1200상한과redirect/SSRFnegative가통과한다.
+- [x] AC-161.5:본문fetch실패가원뉴스를삭제하지않고가짜실적actual/정책결정/시점을만들지않는다.
+- [x] AC-161.6:rawbody/secret/privatefixture는publicgit에없고NFR-008/DEBT-090성능상태를정확하게보고한다.
 
-**Construction strategy**: Queued — design approved; source qualification is part of implementation; body fetch remains gated.
+**Construction strategy**: Code complete — 7/7 steps, full regression 5888 passed (464.69s); bounded evidence and same-provider FSC repair verified. New body HTTP remains off.
 Functional Design REQUIRED; REQUIRED — 새로운외부본문I/O와source권리/fixture/SSRFlimit/latency. NF1/4/6/7/8/10, NFR-008 적용.
 Dependencies: 자격검증/기존feed진단은독립. typed enrichment integration은u157. 신규officialbody는source별qualification후에만구현/활성화.
 Design: `aidlc-docs/construction/u161-bounded-official-event-evidence/design-brief.md`.

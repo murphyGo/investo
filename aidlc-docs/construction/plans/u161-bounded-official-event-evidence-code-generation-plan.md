@@ -3,7 +3,7 @@
 **Date**: 2026-09-26
 **Unit**: u161 bounded-official-event-evidence
 **Stage**: Code Generation (planned)
-**Status**: Queued — design approved; source qualification is part of implementation; body fetch remains gated.
+**Status**: Code complete — 7/7 steps, full regression 5888 passed (464.69s); bounded evidence and same-provider FSC repair verified. New body HTTP remains off.
 **Source**: `../news-event-briefing/evidence/review-20260922.md`; user planning request 2026-09-26.
 **Estimated Effort**: ~16–24 h plus source qualification
 **Dependencies**: 자격검증/기존feed진단은독립. typed enrichment integration은u157. 신규officialbody는source별qualification후에만구현/활성화.
@@ -30,13 +30,13 @@ Use the shared NFR/validation document; no boilerplate infrastructure stage. Thi
 Normative: [design-brief](../u161-bounded-official-event-evidence/design-brief.md), [event-contract](../news-event-briefing/event-contract.md), [business-rules](../news-event-briefing/business-rules.md), [NFR](../news-event-briefing/nfr-and-validation.md). The numbered rules and exact defaults there are part of this plan. Changes require synchronized design/AC updates.
 
 ## Implementation Steps
-- [ ] Step 1: 기존2개장애source의현재probe와진단기록을작성한다. 결과에따라동일source수리또는blocked판정을명시한다.
-- [ ] Step 2: 4개officialsource의본문qualificationmatrix와fixture/권리증거를채운다. qualified0이면StageC를실행하지않는다.
-- [ ] Step 3: adapter parsing 시 280자 절단 전 bounded detail_excerpt를 만들고 NormalizedItem.event_evidence에 연결한다. 없는 source는 None, off mode serialization은 기존 bytes를 유지한다.
-- [ ] Step 4: qualified manifest만 사용하는 fetch/parser를 구현한다. qualified source가 0이면 Stage C 구현은 보류하고 관련 AC를 blocked/pending으로 남긴다. 다른 stage 완료와 혼동하지 않는다.
-- [ ] Step 5: typed item evidence가 collection/routing/GenerationInput/Stage1 buffer로 전달되게 하고 Stage C는 같은 identity의 새 revision으로 보강한다.
-- [ ] Step 6: Stage1/2 excerptbudget과실적/예상/시점추출negative를검증한다.
-- [ ] Step 7: 수리sourceliveevidence와enrichmentfixture/성능검증을따로기록한다. 신규fetch는sourcequalification및운영승인전off다.
+- [x] Step 1: 기존2개장애source의현재probe와진단기록을작성한다. 결과에따라동일source수리또는blocked판정을명시한다.
+- [x] Step 2: 4개officialsource의본문qualificationmatrix와fixture/권리증거를채운다. qualified0이면StageC를실행하지않는다.
+- [x] Step 3: adapter parsing 시 280자 절단 전 bounded detail_excerpt를 만들고 NormalizedItem.event_evidence에 연결한다. 없는 source는 None, off mode serialization은 기존 bytes를 유지한다.
+- [x] Step 4: qualified manifest만 사용하는 fetch/parser를 구현한다. qualified source가 0이면 Stage C 구현은 보류하고 관련 AC를 blocked/pending으로 남긴다. 다른 stage 완료와 혼동하지 않는다.
+- [x] Step 5: typed item evidence가 collection/routing/GenerationInput/Stage1 buffer로 전달되게 하고 Stage C는 같은 identity의 새 revision으로 보강한다.
+- [x] Step 6: Stage1/2 excerptbudget과실적/예상/시점추출negative를검증한다.
+- [x] Step 7: 수리sourceliveevidence와enrichmentfixture/성능검증을따로기록한다. 신규fetch는sourcequalification및운영승인전off다.
 
 ## Acceptance Criteria
 1. AC-161.1: CNBC/Korea policy 각각현재원인/동일source수리결과또는blocked이유가실제증거와함께있다.

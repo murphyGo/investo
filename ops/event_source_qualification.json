@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "source_name": "fomc-rss",
+      "checked_at": "2026-09-26T18:18:21Z",
+      "official_discovery_url": "https://www.federalreserve.gov/feeds/feeds.htm",
+      "allowed_host": "www.federalreserve.gov",
+      "allowed_path": "/newsevents/pressreleases/",
+      "content_type": "text/html",
+      "public_rights_basis": "https://www.federalreserve.gov/disclaimer.htm — Board website information is public domain unless otherwise indicated; attribution is requested. Qualification covers Board-authored announcement text only, excluding third-party material, images, logos and linked attachments.",
+      "extraction_selector_version": "fed-article-body-v1",
+      "fixture_sha256": "9dfe2c992f5f45592376a155a9406239e19e44a051eef56eb850073ccd6a7a4c",
+      "status": "qualified",
+      "reason": "Official press_all.xml directly linked monetary20260916a.htm; live HTTPS 200 text/html, 82636 decoded bytes, one scoped article body with 963 text characters. Public provenance and parser contract are recorded in u161 evidence. Runtime activation remains gated."
+    },
+    {
+      "source_name": "fed-speech-rss",
+      "checked_at": "2026-09-26T18:18:21Z",
+      "official_discovery_url": "https://www.federalreserve.gov/feeds/feeds.htm",
+      "allowed_host": "www.federalreserve.gov",
+      "allowed_path": "/newsevents/speech/",
+      "content_type": "text/html",
+      "public_rights_basis": "https://www.federalreserve.gov/disclaimer.htm — Board website information is public domain unless otherwise indicated; attribution is requested. Qualification covers Board-authored speech text only, excluding third-party material, images, logos and linked attachments. Testimony paths are outside this body qualification.",
+      "extraction_selector_version": "fed-article-body-v1",
+      "fixture_sha256": "ae93cb877b662d743449dcf79c0a8cddeb0f985f6f08320474948f301b164eba",
+      "status": "qualified",
+      "reason": "Official speeches.xml directly linked barr20260923a.htm; live HTTPS 200 text/html, 113366 decoded bytes, one scoped article body with 25324 text characters; excerpt capped at 1200. Runtime activation remains gated."
+    },
+    {
+      "source_name": "sec-newsroom-rss",
+      "checked_at": "2026-09-26T18:18:21Z",
+      "official_discovery_url": "https://www.sec.gov/about/rss-feeds",
+      "allowed_host": null,
+      "allowed_path": null,
+      "content_type": null,
+      "public_rights_basis": null,
+      "extraction_selector_version": null,
+      "fixture_sha256": null,
+      "status": "blocked",
+      "reason": "Official pressreleases.rss parsed successfully, but its directly linked 2026-93 newsroom body returned HTTP 403 text/html. No access workaround, body selector qualification or general website reuse permission was inferred. Preserve existing feed item; new body HTTP is disabled."
+    },
+    {
+      "source_name": "cftc-policy-rss",
+      "checked_at": "2026-09-26T18:18:21Z",
+      "official_discovery_url": "https://www.cftc.gov/RSS/index.htm",
+      "allowed_host": "www.cftc.gov",
+      "allowed_path": "/PressRoom/PressReleases/",
+      "content_type": "text/html",
+      "public_rights_basis": "https://www.cftc.gov/WebPolicy/index.htm — CFTC government information is public domain and may be copied with acknowledgement requested. Privately contributed or licensed material may be protected and is excluded. Qualification covers CFTC-authored release text, excluding media, logos and linked attachments.",
+      "extraction_selector_version": "cftc-press-article-body-v1",
+      "fixture_sha256": "d4a5f89c3837693b00c54894ebad18f9a555a3cae40125cb348d7ba49a289891",
+      "status": "qualified",
+      "reason": "Official RSSGP/rssgp.xml directly linked PressRoom/PressReleases/9303-26; live HTTPS 200 text/html, 35425 decoded bytes, exactly one article-scoped field--name-body with 1126 text characters. Speech/testimony paths remain outside this body qualification."
+    }
+  ]
+}

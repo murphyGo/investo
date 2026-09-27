@@ -66,6 +66,7 @@ class FetchWindow:
     end_utc: datetime
     target_date: date
     news_observation: bool = False
+    evidence_received_at: datetime | None = None
 
     def __post_init__(self) -> None:
         # Both bounds must be tz-aware so the half-open comparison in
@@ -74,6 +75,8 @@ class FetchWindow:
         _ensure_tz_aware(self.end_utc, label="end_utc")
         if self.end_utc <= self.start_utc:
             raise ValueError("end_utc must be strictly after start_utc")
+        if self.evidence_received_at is not None:
+            _ensure_tz_aware(self.evidence_received_at, label="evidence_received_at")
 
     @classmethod
     def from_local_date(cls, target_date: date, tz: ZoneInfo) -> FetchWindow:
@@ -134,6 +137,7 @@ class FetchWindow:
             end_utc=self.end_utc + timedelta(days=days),
             target_date=self.target_date,
             news_observation=self.news_observation,
+            evidence_received_at=self.evidence_received_at,
         )
 
     def overlaps_local_date(self, value: date, tz: ZoneInfo) -> bool:
