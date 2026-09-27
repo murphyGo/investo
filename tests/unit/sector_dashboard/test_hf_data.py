@@ -112,7 +112,13 @@ def _token_response(ticker: str, *, signed_url: str | None = None) -> httpx.Resp
     )
     return httpx.Response(
         200,
-        json={"url": url, "expires_at": "2026-09-01T00:10:00Z"},
+        json={
+            "url": url,
+            "expires_at": "2026-09-01T00:10:00Z",
+            "version": "clean",
+            "timeframe": "daily",
+            "format": "parquet",
+        },
     )
 
 
@@ -360,6 +366,22 @@ async def test_hostile_signed_url_fails_closed_without_download(signed_url: str)
                 "unexpected": "field",
             }
         ).encode(),
+        *[
+            json.dumps(
+                {
+                    "url": "https://api.hfdatalibrary.com/v1/download/SPY?signature=x",
+                    field: value,
+                }
+            ).encode()
+            for field, value in (
+                ("version", "raw"),
+                ("timeframe", "1min"),
+                ("format", "csv"),
+                ("version", None),
+                ("timeframe", ["daily"]),
+                ("format", True),
+            )
+        ],
     ],
 )
 async def test_malformed_token_json_is_nonretryable_schema(body: bytes) -> None:

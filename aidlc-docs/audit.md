@@ -7625,3 +7625,17 @@ passed 152 tests; independent review approved and separately passed ten new regr
 Local peak RSS increase fell to 92,979,200 bytes. Full-suite rerun is in progress.
 Commit/push and subsequent probe execution remain covered by the user approval.
 Evidence: `docs/sessions/2026-09-27-u145-step5-actions.md`.
+
+## Construction — u145 documented token envelope correction
+
+**Timestamp**: 2026-09-28T01:31:10+09:00
+
+Actions `36262917373` on `fe046fb4` passed the Ubuntu resource gate but rejected
+the first token HTTP 200 as `source.schema`. The official API documents three identity
+fields omitted from the production allow-list: version/timeframe/format. They are now
+accepted only with exact pinned clean/daily/parquet values. All other schema, URL, size,
+auth and output boundaries remain unchanged. Relevant suites passed 158 tests; independent
+review approved and separately passed normal/malformed-token tests. The preceding retention
+repair completed its full suite with 5,557 passed in 594.28 seconds. The later token fix
+will be validated separately against its final commit. Scope remains the approved Step 5
+commit/push and isolated probes. Evidence: `docs/sessions/2026-09-27-u145-step5-actions.md`.

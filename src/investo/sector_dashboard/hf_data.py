@@ -312,7 +312,14 @@ def _token_url(ticker: SectorTicker) -> str:
 
 
 def _validated_signed_url(payload: object, ticker: SectorTicker) -> str:
-    if not isinstance(payload, dict) or not set(payload).issubset({"url", "expires_at"}):
+    expected_metadata = dict(HF_TOKEN_QUERY)
+    if not isinstance(payload, dict) or not set(payload).issubset(
+        {"url", "expires_at", *expected_metadata}
+    ):
+        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
+    # The official token envelope echoes the requested identity. Accept only
+    # the pinned values; mismatches cannot redirect the adapter to other data.
+    if any(payload[name] != value for name, value in expected_metadata.items() if name in payload):
         raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
     signed_url = payload.get("url")
     expires_at = payload.get("expires_at")
