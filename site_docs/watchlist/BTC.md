@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-28 begin -->
+
+## 2026-09-28
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7953 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,845,615,104,262; BTC dominance 58.34%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $556,503,480 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000636879020327 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Strive pushes bitcoin holdings above 27,400 BTC with latest $94.5 million purchase
+- [theblock-crypto] **ticker**: ‘Even more orange’: Strategy buys 1,665 bitcoin for $143 million as total holdings reach 847,666 BTC
+
+<!-- u33 entry 2026-09-28 end -->
 <!-- u33 entry 2026-09-25 begin -->
 
 ## 2026-09-25

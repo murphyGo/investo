@@ -270,3 +270,5 @@
 {"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/09/2026-09-25.md", "published_at": "2026-09-28T00:40:09.753751+00:00", "segment": "crypto", "target_date": "2026-09-25", "tickers": ["UTC"]}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/09/2026-09-25.md", "published_at": "2026-09-28T00:40:09.753751+00:00", "segment": "domestic-equity", "target_date": "2026-09-25", "tickers": []}
 {"action_tag": "[데이터부족]", "briefing_url": "archive/us-equity/2026/09/2026-09-25.md", "published_at": "2026-09-28T00:40:09.753751+00:00", "segment": "us-equity", "target_date": "2026-09-25", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/crypto/2026/09/2026-09-28.md", "published_at": "2026-09-29T01:55:12.959889+00:00", "segment": "crypto", "target_date": "2026-09-28", "tickers": []}
+{"action_tag": "[데이터부족]", "briefing_url": "archive/domestic-equity/2026/09/2026-09-28.md", "published_at": "2026-09-29T01:55:12.959889+00:00", "segment": "domestic-equity", "target_date": "2026-09-28", "tickers": []}

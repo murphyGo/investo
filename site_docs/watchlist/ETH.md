@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-28 begin -->
+
+## 2026-09-28
+
+- [defillama-market-structure] **ticker**: DeFi TVL $95.0B; leader Ethereum
+- [theblock-crypto] **ticker**: Tom Lee’s Bitmine tops 6 million ETH after buying another 17,362 ether
+
+<!-- u33 entry 2026-09-28 end -->
 <!-- u33 entry 2026-09-25 begin -->
 
 ## 2026-09-25
