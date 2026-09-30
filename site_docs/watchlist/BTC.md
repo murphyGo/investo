@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-29 begin -->
+
+## 2026-09-29
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7953 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,867,510,432,780; BTC dominance 58.31%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $549,424,750 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000682856218266 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin tests long-term holder supply cluster as leverage clears, analysts say
+- [theblock-crypto] **ticker**: CryptoQuant says bitcoin correction could be near as traders’ unrealized profit hits 21-month high
+
+<!-- u33 entry 2026-09-29 end -->
 <!-- u33 entry 2026-09-28 begin -->
 
 ## 2026-09-28

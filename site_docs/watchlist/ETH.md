@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-29 begin -->
+
+## 2026-09-29
+
+- [defillama-market-structure] **ticker**: DeFi TVL $94.8B; leader Ethereum
+- [theblock-crypto] **ticker**: Aztec relaunches zk.money privacy wallet on its Ethereum Layer 2
+
+<!-- u33 entry 2026-09-29 end -->
 <!-- u33 entry 2026-09-28 begin -->
 
 ## 2026-09-28
