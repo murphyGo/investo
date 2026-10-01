@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-30 begin -->
+
+## 2026-09-30
+
+- [defillama-market-structure] **ticker**: DeFi TVL $95.0B; leader Ethereum
+- [yonhap-market] **ticker**: "신뢰성 높은 이더리움 플랫폼 활용 더 늘어날 것"
+
+<!-- u33 entry 2026-09-30 end -->
 <!-- u33 entry 2026-09-29 begin -->
 
 ## 2026-09-29

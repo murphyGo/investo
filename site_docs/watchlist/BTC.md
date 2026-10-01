@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-30 begin -->
+
+## 2026-09-30
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -7953 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,876,014,707,665; BTC dominance 58.27%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $523,902,670 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin steadies as soft PCE cools October Fed rate hike bets
+- [yonhap-market] **ticker**: "AI 인프라 투자는 낭비…비트코인, 10년 뒤 100만달러 갈 것"
+
+<!-- u33 entry 2026-09-30 end -->
 <!-- u33 entry 2026-09-29 begin -->
 
 ## 2026-09-29

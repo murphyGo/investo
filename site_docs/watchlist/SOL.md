@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-09-30 begin -->
+
+## 2026-09-30
+
+- [defillama-market-structure] **ticker**: DeFi TVL $95.0B; leader Ethereum
+- [sec-edgar-8k] **ticker**: 8-K: Solana Co (CIK 0001610853)
+
+<!-- u33 entry 2026-09-30 end -->
 <!-- u33 entry 2026-09-29 begin -->
 
 ## 2026-09-29
