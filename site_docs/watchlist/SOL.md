@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-01 begin -->
+
+## 2026-10-01
+
+- [defillama-market-structure] **ticker**: DeFi TVL $95.3B; leader Ethereum
+- [yonhap-market] **ticker**: 신한운용, 'SOL200타겟위클리커버드콜' 9월 분배금 지급
+
+<!-- u33 entry 2026-10-01 end -->
 <!-- u33 entry 2026-09-30 begin -->
 
 ## 2026-09-30

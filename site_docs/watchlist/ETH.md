@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-01 begin -->
+
+## 2026-10-01
+
+- [defillama-market-structure] **ticker**: DeFi TVL $95.3B; leader Ethereum
+- [theblock-crypto] **ticker**: Bitcoin ETFs’ 9-day, $3 billion inflow streak comes to an end as $149 million exits the funds
+- [theblock-crypto] **ticker**: Ethereum staking reward burn proposal EIP-8363 pulled from Hegota upgrade
+
+<!-- u33 entry 2026-10-01 end -->
 <!-- u33 entry 2026-09-30 begin -->
 
 ## 2026-09-30
