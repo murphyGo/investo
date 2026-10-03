@@ -243,6 +243,7 @@ def test_metadata_removes_edit_tools_separately_from_shell() -> None:
         "features.multi_agent=false",
         'web_search="disabled"',
         'forced_login_method="chatgpt"',
+        "suppress_unstable_features_warning=true",
     ):
         assert flag in argv
 
@@ -250,6 +251,36 @@ def test_metadata_removes_edit_tools_separately_from_shell() -> None:
 def test_events_reject_unknown_hosted_tools() -> None:
     with pytest.raises(RuntimeError, match="codex_unexpected_event"):
         _check_events(b'{"type":"item.started","item":{"type":"mcp_tool_call"}}')
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        {"type": "item.completed", "item": {"type": tool}}
+        for tool in (
+            "command_execution",
+            "file_change",
+            "mcp_tool_call",
+            "collab_tool_call",
+            "web_search",
+            "todo_list",
+        )
+    ]
+    + [
+        {"type": "item.completed", "item": {"type": "error", "message": message}}
+        for message in (
+            "model rerouted: expected -> other (limit)",
+            "in-process app-server event stream lagged; dropped 1 events",
+            "unknown warning",
+        )
+    ]
+    + [{"type": "error", "message": "fatal error"}, {"type": "turn.failed"}],
+)
+def test_successful_turn_does_not_hide_tools_or_runtime_errors(event: dict[str, object]) -> None:
+    # Startup-warning suppression must not loosen acceptance of other error items.
+    raw = (json.dumps(event) + '\n{"type":"turn.completed"}\n').encode()
+    with pytest.raises(RuntimeError, match="codex_unexpected_event"):
+        _check_events(raw)
 
 
 async def test_cleanup_failure_permanently_blocks_calls_and_checkpoint(
