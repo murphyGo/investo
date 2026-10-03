@@ -1,0 +1,193 @@
+# Install only after qualification and publication credentials are verified.
+# Keep CODEX_PRODUCTION_ENABLED unset until the public daily owner is stopped.
+name: Codex daily briefing
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: Optional YYYY-MM-DD
+        type: string
+        required: false
+
+  schedule:
+    - cron: '0 22 * * 0,1,2,3,4'
+    - cron: '0 0 * * 6'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: investo-codex-auth-v1
+  cancel-in-progress: false
+
+jobs:
+  briefing:
+    if: >-
+      github.repository == 'murphyGo/investo-runtime' &&
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/main' &&
+      vars.CODEX_PRODUCTION_ENABLED == '1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    environment: codex-runtime
+    env:
+      INVESTO_LLM_PROVIDER: codex
+      INVESTO_CODEX_MODEL: gpt-6-astra
+      INVESTO_TARGET_DATE: ${{ inputs.target_date }}
+      INVESTO_DRY_RUN: '0'
+      INVESTO_OPENAI_VISUALS: '0'
+      INVESTO_EXTERNAL_IMAGE_ASSETS: '1'
+      INVESTO_SEGMENT_GENERATION_CONCURRENCY: '1'
+      INVESTO_RUNTIME_VISIBILITY: ${{ github.event.repository.private && 'private' || 'public' }}
+      SITE_URL_BASE: https://murphygo.github.io/investo
+      # Only trusted repository configuration can select executable code.
+      REVIEWED_CODE_SHA: ${{ vars.REVIEWED_CODE_SHA }}
+
+    steps:
+      - name: Validate trusted configuration
+        id: start
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$REVIEWED_CODE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$INVESTO_LLM_PROVIDER" == codex ]]
+          [[ "$INVESTO_CODEX_MODEL" == gpt-6-astra ]]
+          echo "started_at=$(date +%s)" >> "$GITHUB_OUTPUT"
+          echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/investo-venv" >> "$GITHUB_ENV"
+
+      - name: Checkout reviewed execution code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: murphyGo/investo
+          ref: ${{ vars.REVIEWED_CODE_SHA }}
+          path: runtime-code
+          persist-credentials: false
+
+      - name: Checkout current public data and publication history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: murphyGo/investo
+          ref: main
+          path: public-data
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: '0.7.15'
+          enable-cache: false
+
+      - name: Install reviewed runtime before any auth is restored
+        working-directory: runtime-code
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$REVIEWED_CODE_SHA"
+          uv python install 3.11.9
+          sudo apt-get update
+          sudo apt-get install -y libcairo2
+          uv sync --frozen --no-dev --extra operations --no-editable --python 3.11.9
+
+      - name: Install pinned Codex native CLI
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/codex-bin"
+          curl --fail --location --silent --show-error --max-time 120 https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-x86_64-unknown-linux-musl.tar.gz -o "$RUNNER_TEMP/codex.tar.gz"
+          echo "f479424eca092484dc40d87ae28c44f4cc40234a60045d6131e493800d814a30  $RUNNER_TEMP/codex.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/codex.tar.gz" -C "$RUNNER_TEMP/codex-bin"
+          install -m 0755 "$RUNNER_TEMP/codex-bin/codex-x86_64-unknown-linux-musl" "$RUNNER_TEMP/codex-bin/codex"
+          echo "$RUNNER_TEMP/codex-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/codex-bin/codex" --version
+
+      - name: Verify import provenance and setup allowance
+        working-directory: public-data
+        env:
+          SETUP_STARTED_AT: ${{ steps.start.outputs.started_at }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(( $(date +%s) - SETUP_STARTED_AT ))" -lt 900
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I -c 'import investo, os; from pathlib import Path; assert Path(investo.__file__).resolve().is_relative_to(Path(os.environ["UV_PROJECT_ENVIRONMENT"]).resolve())'
+          test "$(git remote get-url origin)" = https://github.com/murphyGo/investo
+          git config core.hooksPath /dev/null
+          git config credential.helper ''
+          git config credential.useHttpPath true
+          git config --add credential.helper "!sh $GITHUB_WORKSPACE/runtime-code/ops/private-runtime/git-credential-investo.sh"
+          git config user.name 'Investo Bot'
+          git config user.email '${{ github.actor_id }}+investo-bot@users.noreply.github.com'
+
+      - name: Resolve weekly publish flags from reviewed code
+        run: '"$UV_PROJECT_ENVIRONMENT/bin/python" -I "$GITHUB_WORKSPACE/runtime-code/scripts/resolve_weekly_flags.py"'
+
+      - name: Run Codex with auth checkpoint and publication
+        id: pipeline
+        working-directory: public-data
+        timeout-minutes: 225
+        env:
+          INVESTO_PUBLIC_PUBLISH_TOKEN: ${{ secrets.INVESTO_PUBLIC_PUBLISH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BRIEFING_CHANNEL_ID: ${{ secrets.TELEGRAM_BRIEFING_CHANNEL_ID }}
+          TELEGRAM_OPERATOR_CHAT_ID: ${{ secrets.TELEGRAM_OPERATOR_CHAT_ID }}
+          INVESTO_OPERATOR_STATE_DIR: archive/_meta/operator_state
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+          CODEX_SECRET_WRITE_TOKEN: ${{ secrets.CODEX_SECRET_WRITE_TOKEN }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          INVESTO_KRX_SERVICE_KEY: ${{ secrets.INVESTO_KRX_SERVICE_KEY }}
+          INVESTO_DATA_GO_KR_SERVICE_KEY: ${{ secrets.INVESTO_DATA_GO_KR_SERVICE_KEY }}
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for required in INVESTO_PUBLIC_PUBLISH_TOKEN TELEGRAM_BOT_TOKEN TELEGRAM_BRIEFING_CHANNEL_ID TELEGRAM_OPERATOR_CHAT_ID CODEX_AUTH_JSON CODEX_SECRET_WRITE_TOKEN; do
+            if [[ -z "${!required}" ]]; then
+              echo "Required runtime Secret missing: $required" >&2
+              exit 1
+            fi
+          done
+          echo "started_at=$(date +%s)" >> "$GITHUB_OUTPUT"
+          set +e
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I -m investo.orchestrator.codex_runtime
+          pipeline_rc=$?
+          echo "process_exit_code=$pipeline_rc" >> "$GITHUB_OUTPUT"
+          echo "published_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Ensure Pages deployment
+        if: steps.pipeline.outputs.publication_committed == 'true'
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ secrets.INVESTO_PUBLIC_PUBLISH_TOKEN }}
+          PUBLISHED_SHA: ${{ steps.pipeline.outputs.published_sha }}
+          PIPELINE_STARTED_AT: ${{ steps.pipeline.outputs.started_at }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PUBLISHED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$PIPELINE_STARTED_AT" =~ ^[0-9]+$ ]]
+          # Keep Pages dispatch inside the same 225-minute work allowance.
+          test "$(( $(date +%s) - PIPELINE_STARTED_AT ))" -lt 13380
+          # A scoped PAT push normally starts Pages; avoid dispatching it twice.
+          page_state=$(gh run list --repo murphyGo/investo --workflow pages.yml --commit "$PUBLISHED_SHA" --limit 1 --json status,conclusion --jq '.[0] | (if .status == "completed" then .conclusion else .status end) // "missing"')
+          case "$page_state" in
+            queued|in_progress|waiting|pending|requested|success) ;;
+            *) gh workflow run pages.yml --repo murphyGo/investo --ref main ;;
+          esac
+
+      - name: Re-emit pipeline exit code
+        if: always()
+        env:
+          PIPELINE_RC: ${{ steps.pipeline.outputs.process_exit_code }}
+        shell: bash
+        run: |
+          case "$PIPELINE_RC" in
+            0) exit 0 ;;
+            1|2) exit "$PIPELINE_RC" ;;
+            *) echo "Invalid or missing pipeline exit code" >&2; exit 1 ;;
+          esac

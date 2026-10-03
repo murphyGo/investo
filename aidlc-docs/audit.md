@@ -7165,3 +7165,25 @@ The refreshed main still equals the first parent. No application-code repair
 or new debt was required. Integration documentation is the only post-gate edit;
 PR/main checks and exact remote-SHA verification complete the authorized delivery.
 **Boundary**: No private Codex credentials, dry-run, provisioning or activation.
+
+## Operations — u155 Codex cutover continuation
+
+**Date**: 2026-10-03 UTC / 2026-10-04 KST
+**User**: `Codex로 전환하고 싶어. 남은 작업 ㅈ진행해`, followed by `gogo`.
+**Scope**: Remaining qualification, necessary reviewed repairs and remote
+delivery, then production cutover when credentials and usage prerequisites
+are established. This supersedes the earlier local-only scope. No paid fallback
+or personal interactive credential reuse is authorized.
+**Repairs**: Suppress the pinned CLI's unstable-feature startup notice while
+retaining error/tool rejection. Use an isolated current quality ledger for
+dry-run consistency checks; real contradictions continue to fail.
+**Evidence**: Private `37130989203`, reviewed public code `cf519b8c`, generated
+and finalized 3/3, status success, exit 0, 283.882s. Real auth rotation was saved
+in `37128670838` and reused by later jobs. Public push/Telegram were skipped.
+**Preparation**: Inactive gated production template, restricted Git credential
+helper, Pages recovery and rollback instructions. Separate-agent review PASS;
+5,329 full tests and 22 final workflow tests, static/policy/docs/actionlint gates.
+**Pending**: Publication/Telegram Secrets, BEA/Congress/KRX source parity and
+current included Actions allowance/spending limit confirmation. Billing query
+lacks user scope; no scope expansion. Public Claude schedule remains active.
+**Record**: `docs/sessions/2026-10-03-u155-codex-cutover.md`.
