@@ -7224,3 +7224,11 @@ u161470315969c39f708753dcda6e186a803752fa560 pushed to codex/news-event-design-2
 ## 2026-10-03 — u152 prerequisite complete
 
 Existing eight fixed contracts implemented without new source families or I/O. All six code steps, seven ACs and five DoDs pass. Four P2 corrections closed in the single review wave. Final full5961/472.37s, focused165/4.01s, independent66/5.72s plus14 source-slot controls, Ruff/format657, mypy289, policy4, strict docs/Material pass; offline event p95=137.474ms. Separate authorized commit/push follows, then approved u162. No main integration, activation, scheduled shadow or external notification.
+
+## 2026-10-04 — u152 delivery and u162 start
+
+u152 82c4e072bc0ef2570aecf9e590cec5ae392e9af8 pushed and exact feature-branch remote SHA verified. Approved u162 now starts from this prerequisite. Parent owns reader/finalizer integration; three bounded packets own typed event builder, composition helpers and real-finalizer tests. Existing default-off and operational gates remain intact.
+
+## 2026-10-04 — u162 Code Generation closeout
+
+Sequential unit 6/6 completed after separate u152 delivery. Six steps, seven fixed contracts and five ACs pass. Explicit numeric/event cards, source-backed observed state/next checks, frozen full numeric baseline, kind-specific private outcome and bounded terminal survivor reconciliation implemented. Three implementation-test corrections and two cross-owner P2 findings resolved; the latter independently rechecked through original reproductions. Final full6087/460.18s, focused222/9.84s, actual-finalizer24/2.49s, lifecycle50/2.89s and HTML21/1.55s; source/test freeze hashes unchanged. Ruff/format661, mypy290, policy4 and strict docs/Material pass. Shared event benchmark p95=122.515ms/200ms, not card-specific or E2E. Authorized separate commit/push follows. All feature activation remains false; no main integration, scheduled shadow, live semantic evaluation, external notification or Pages acceptance. No new debt; DEBT-090 unchanged.

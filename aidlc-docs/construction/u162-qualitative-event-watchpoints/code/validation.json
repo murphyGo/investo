@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-04",
+  "unit": "u162",
+  "baseline": "82c4e072bc0ef2570aecf9e590cec5ae392e9af8",
+  "status": "code_complete",
+  "tests": [
+    {
+      "scope": "event models/builder plus existing event contracts",
+      "passed": 118,
+      "seconds": 2.42
+    },
+    {
+      "scope": "composition helper final",
+      "passed": 26,
+      "seconds": 1.24
+    },
+    {
+      "scope": "actual finalizer plus existing reader format",
+      "passed": 59,
+      "seconds": 2.59
+    },
+    {
+      "scope": "existing event finalizer and u152 integration",
+      "passed": 46,
+      "seconds": 10.63
+    },
+    {
+      "scope": "shared replay, quality, document types/assembly/containment, reader surface",
+      "passed": 259,
+      "seconds": 11.14
+    },
+    {
+      "scope": "review-corrected event builder controls",
+      "passed": 76,
+      "seconds": 2.0
+    },
+    {
+      "scope": "final real finalizer independent",
+      "passed": 24,
+      "seconds": 2.49
+    },
+    {
+      "scope": "review-corrected focused plus event/u152/golden",
+      "passed": 222,
+      "seconds": 9.84
+    },
+    {
+      "scope": "independent lifecycle composition and actual finalizer",
+      "passed": 50,
+      "seconds": 2.89
+    },
+    {
+      "scope": "independent original HTML repro correction and regressions",
+      "passed": 21,
+      "seconds": 1.55
+    },
+    {
+      "scope": "full repository final source freeze",
+      "passed": 6087,
+      "seconds": 460.18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "static": {
+    "ruff": "pass",
+    "format_files": 661,
+    "mypy_source_files": 290
+  },
+  "guards": {
+    "no_anthropic_sdk": "pass",
+    "no_paid_apis": "pass",
+    "curated_assets": "pass",
+    "image_store": "pass",
+    "mkdocs_strict": "pass",
+    "material_theme": "pass",
+    "mkdocs_seconds": 6.34
+  },
+  "review": {
+    "agents_total": 3,
+    "waves": 2,
+    "status": "approve",
+    "accepted_p2": 2,
+    "lifecycle": "closed",
+    "html_visibility": "closed",
+    "remaining_p1_p2": 0
+  },
+  "benchmark": {
+    "input_count": 1000,
+    "candidate_count": 96,
+    "selected_count": 5,
+    "iterations": 10,
+    "p95_ms": 122.515,
+    "limit_ms": 200,
+    "status": "pass",
+    "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate"
+  },
+  "operational_acceptance": {
+    "production_activation": "off",
+    "main_integration": "not_performed",
+    "scheduled_shadow": "not_run",
+    "live_notification_and_pages": "not_run",
+    "human_semantic_acceptance": "pending",
+    "end_to_end_runtime_p95": "not_measured",
+    "DEBT-090": "unchanged"
+  },
+  "delivery": {
+    "branch": "codex/news-event-design-20260926",
+    "commit_push": "authorized; all gates passed; delivery SHA recorded in commit history and private workflow"
+  },
+  "source_freeze": {
+    "files": 10,
+    "sha256_unchanged_after_full_gate": true
+  },
+  "cross_check": {
+    "status": "approve",
+    "fixed_contracts": 7,
+    "acceptance_criteria": 5
+  }
+}

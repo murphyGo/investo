@@ -2678,16 +2678,16 @@ Plan: `aidlc-docs/construction/plans/u161-bounded-official-event-evidence-code-g
 
 **Existing Coverage / Deduplication**: u152 numericresolver, u98/u110 card, u135 fallback, u144 typed outcomes, u153 bounding. Only the extension in the linked design is added; existing completion and ownership remain intact.
 
-**Module path**: `models/events.py (u157 DTO extension), publisher/event_watchpoints.py, publisher/segment_reader_format.py, publisher/watchpoint_matrix.py (composition/result only), publisher/public_document.py`. New paths proposed: `publisher/event_watchpoints.py`.
+**Module path**: `models/events.py (u157 DTO extension), publisher/event_watchpoints.py, publisher/segment_reader_format.py, publisher/watchpoint_matrix.py (composition/result only), publisher/public_document.py`. New path: `publisher/event_watchpoints.py`.
 
 **Definition of Done**:
-- [ ] AC-162.1: source-backed숫자없는협상/법안/서비스상태카드가유효하게남는다.
-- [ ] AC-162.2: 미래조건을current로복사하거나numericrow를event로바꿔검증을회피할수없다.
-- [ ] AC-162.3: mixed/event-only는 최대 2개, numeric-only는 기존 최대 6개/zero-row fallback 2개이며 typed aggregate 제약이 유지된다.
-- [ ] AC-162.4: 후처리삭제event가카드/summary에재등장하지않고두번finalizebyte동일이다.
-- [ ] AC-162.5: 기존numeric/fallbackfixture는event0일때동일하고source미상/금지표현은기존정책대로처리된다.
+- [x] AC-162.1: source-backed숫자없는협상/법안/서비스상태카드가유효하게남는다.
+- [x] AC-162.2: 미래조건을current로복사하거나numericrow를event로바꿔검증을회피할수없다.
+- [x] AC-162.3: mixed/event-only는 최대 2개, numeric-only는 기존 최대 6개/zero-row fallback 2개이며 typed aggregate 제약이 유지된다.
+- [x] AC-162.4: 후처리삭제event가카드/summary에재등장하지않고두번finalizebyte동일이다.
+- [x] AC-162.5: 기존numeric/fallbackfixture는event0일때동일하고source미상/금지표현은기존정책대로처리된다.
 
-**Construction strategy**: Queued — design approved; follows u161; retains u152 numeric boundary.
+**Construction strategy**: Code complete 2026-10-04 — 6/6 steps, full6087/460.18s; independent review and cross-check APPROVE. Default off; operational acceptance remains separate.
 Functional Design REQUIRED; SKIP separate stage — 기존NF6/7/9/10과NFR-003/004/005/006/007 재사용. 새I/O/LLM/비용없음.
 Dependencies: u157 typed 사건, u158 terminal event, 기존u152 current-observation계약 구현/통합.
 Design: `aidlc-docs/construction/u162-qualitative-event-watchpoints/design-brief.md`.

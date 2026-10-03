@@ -86,6 +86,7 @@
   },
   "delivery": {
     "branch": "codex/news-event-design-20260926",
-    "commit_push": "authorized; performed after this validated commit"
+    "commit_push": "remote_confirmed",
+    "sha": "82c4e072bc0ef2570aecf9e590cec5ae392e9af8"
   }
 }

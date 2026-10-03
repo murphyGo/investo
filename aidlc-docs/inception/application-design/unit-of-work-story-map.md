@@ -609,7 +609,7 @@ no-additional-LLM-API-cost goal remains; private Actions usage must be qualified
 
 ## u157–u162 — News/Event Briefing Planning Notes (2026-09-26)
 
-Design approved for sequential development on 2026-09-27; u157 Code Generation is complete (8/8; full 5415 + final boundary 61 passed); default off. Normative source: `aidlc-docs/construction/news-event-briefing/README.md`; FR-023 in requirements.
+Design approved for sequential development on 2026-09-27; u157–u162 Code Generation and the required u152 prerequisite are complete as of 2026-10-04, with separate per-unit commits. Latest full regression6087/460.18s and independent review/cross-check pass; default off. Human semantic acceptance, scheduled shadow, main integration and activation remain separate. Normative source: `aidlc-docs/construction/news-event-briefing/README.md`; FR-023 in requirements.
 
 | Unit | Main Concern | Primary Coverage | Secondary Touch |
 |---|---|---|---|
@@ -634,3 +634,7 @@ Deduplicated out: generic numeric validation, new dashboard, second finalizer, o
 ## u152 prerequisite completion (2026-10-03)
 
 The earlier design-ready snapshot is superseded: u152 FD and 6/6 code steps are complete as the required prerequisite for approved u162. Full5961/472.37s, focused165, independent66 plus14 source-slot controls passed; four P2 corrections closed. Existing numerical gates, cap/fallback and sealed lifecycle retained. No activation or main integration.
+
+## u162 completion (2026-10-04)
+
+Source-backed qualitative current state and next checks now compose with the existing numeric baseline. Six steps/five ACs pass; event removal updates cards and summary before seal and preserves exact repeat output. Independent source-locator and HTML-visibility P2 corrections closed. Full6087/460.18s; no new I/O, LLM stage or default activation. See `aidlc-docs/construction/u162-qualitative-event-watchpoints/code/validation.json`.

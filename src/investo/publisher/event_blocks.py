@@ -53,6 +53,7 @@ class TerminalEvent:
     first_sentence: str
     reaction: str
     coverage: Literal["supported", "detail_limited"]
+    source_locators_complete: bool
 
     def notification_summary(self) -> PublicEventSummary:
         return PublicEventSummary(
@@ -231,16 +232,21 @@ def terminal_events(
             continue
         source_urls = set(_URL.findall(actual[event_id]))
         expected_urls = set(_URL.findall(expected[event_id]))
+        locators_complete = bool(expected_urls and expected_urls <= source_urls)
         coverage: Literal["supported", "detail_limited"] = (
             "supported"
-            if candidate.evidence_state == "supported"
-            and expected_urls
-            and expected_urls <= source_urls
+            if candidate.evidence_state == "supported" and locators_complete
             else "detail_limited"
         )
         events.append(
             TerminalEvent(
-                event_id, headline, what, first, _field(actual_lines, "시장 반응:"), coverage
+                event_id,
+                headline,
+                what,
+                first,
+                _field(actual_lines, "시장 반응:"),
+                coverage,
+                locators_complete,
             )
         )
     return tuple(events)

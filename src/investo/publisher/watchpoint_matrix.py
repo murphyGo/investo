@@ -93,9 +93,11 @@ from investo._internal.public_quality_language import (
     PUBLIC_WATCHPOINT_LIMITED_TEXT,
     PUBLIC_WATCHPOINT_SOURCE_TEXT,
 )
+from investo.models.events import CompanionOutcome, EventWatchpoint, NumericWatchpoint
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor, anchor_label
 from investo.models.segments import MarketSegment
+from investo.publisher.event_watchpoints import EventWatchpointBuildResult, render_event_watchpoint
 from investo.publisher.reader_format import (
     _BULLET_RE,
     _SECTION_HEADER_RE,
@@ -1688,6 +1690,242 @@ def _compose_watchpoint_body(content: str, preserved_fragments: Sequence[str]) -
     return body
 
 
+@dataclass(frozen=True, slots=True)
+class NumericWatchpointBaseline:
+    """Frozen legacy result, excluding caller-owned visual fragments.
+
+    ``rows`` contains only complete validated numeric cards. Its length is
+    the numeric *attempt* count used by composition: raw/unresolved bullets
+    are never counted as valid candidates or retried as event watchpoints.
+    ``content`` retains the numeric body for restoration after event removal.
+    """
+
+    content: str
+    rows: tuple[NumericWatchpoint, ...]
+    state: WatchpointRenderState
+    usable_card_count: int
+    limitation_reasons: tuple[WatchpointLimitationReason, ...] = ()
+    synthesized_card_count: int = 0
+
+    def __post_init__(self) -> None:
+        rows = tuple(self.rows)
+        # Reuse the aggregate's existing state/count contract, without
+        # loosening it to accommodate private kind-specific limitations.
+        result = WatchpointRenderResult(
+            markdown=self.content or DATA_LIMITED_NOTE,
+            state=self.state,
+            usable_card_count=self.usable_card_count,
+            limitation_reasons=self.limitation_reasons,
+            synthesized_card_count=self.synthesized_card_count,
+        )
+        if len(rows) != result.usable_card_count:
+            raise ValueError("numeric baseline rows must match its usable card count")
+        if rows:
+            parsed = _parse_existing_watchpoint_cards(self.content)
+            if parsed is None or tuple(_tag_numeric_watchpoint(row) for row in parsed[0]) != rows:
+                raise ValueError("numeric baseline requires canonical numeric card content")
+        object.__setattr__(self, "rows", rows)
+        object.__setattr__(self, "limitation_reasons", result.limitation_reasons)
+
+
+@dataclass(frozen=True, slots=True)
+class WatchpointComposition:
+    """Public aggregate plus private event/numeric accounting."""
+
+    result: WatchpointRenderResult
+    companion: CompanionOutcome
+    event_watchpoints: tuple[EventWatchpoint, ...]
+
+    def __post_init__(self) -> None:
+        cards = tuple(self.event_watchpoints)
+        if len(cards) != self.companion.event_rendered:
+            raise ValueError("composed event cards must match the companion count")
+        if self.result.usable_card_count != (
+            self.companion.numeric_rendered + self.companion.event_rendered
+        ):
+            raise ValueError("composed aggregate must match the kind counts")
+        object.__setattr__(self, "event_watchpoints", cards)
+
+
+def _tag_numeric_watchpoint(row: WatchpointRow) -> NumericWatchpoint:
+    """Adapt only a canonical numeric output to the shared tagged boundary."""
+
+    return NumericWatchpoint(
+        signal=row.signal,
+        source=row.source,
+        current=row.current,
+        bullish_trigger=row.bullish_trigger,
+        bearish_trigger=row.bearish_trigger,
+        confidence=row.confidence,
+        implication=row.implication,
+    )
+
+
+def _numeric_watchpoint_row(card: NumericWatchpoint) -> WatchpointRow:
+    return WatchpointRow(
+        signal=card.signal,
+        source=card.source,
+        current=card.current,
+        bullish_trigger=card.bullish_trigger,
+        bearish_trigger=card.bearish_trigger,
+        confidence=card.confidence,
+        implication=card.implication,
+    )
+
+
+def watchpoint_content_span(markdown: str) -> tuple[int, int] | None:
+    """Return the existing §⑥ body boundary, excluding protected diagnostics."""
+
+    headers = list(_SECTION_HEADER_RE.finditer(markdown))
+    for index, header in enumerate(headers):
+        if "⑥" in header.group("header"):
+            return header.end(), _watchpoint_body_end(markdown, headers, index)
+    return None
+
+
+def is_canonical_numeric_watchpoint_content(content: str) -> bool:
+    """Recognize complete legacy cards or the exact limited note.
+
+    This is a shape check for frozen-baseline restoration. Observation
+    grounding remains with the existing numeric resolver on reader re-entry.
+    """
+
+    return _existing_watchpoint_state(content) is not None
+
+
+def capture_numeric_watchpoint_baseline(
+    result: WatchpointRenderResult,
+    *,
+    preserved_fragments: Sequence[str] = (),
+) -> NumericWatchpointBaseline:
+    """Capture the completed numeric renderer/fallback before event mixing.
+
+    A rendered result must be byte-canonical legacy cards. A limited result
+    retains its exact content (including an absent section), leaving existing
+    document structure gates authoritative rather than inventing a section.
+    """
+
+    region = watchpoint_content_span(result.markdown)
+    content = ""
+    if region is not None:
+        content, _ = _extract_preserved_fragments(
+            result.markdown[region[0] : region[1]], preserved_fragments
+        )
+    parsed = _parse_existing_watchpoint_cards(content) if result.state == "rendered" else None
+    return NumericWatchpointBaseline(
+        content=content,
+        rows=tuple(_tag_numeric_watchpoint(row) for row in parsed[0]) if parsed is not None else (),
+        state=result.state,
+        usable_card_count=result.usable_card_count,
+        limitation_reasons=result.limitation_reasons,
+        synthesized_card_count=result.synthesized_card_count,
+    )
+
+
+def replace_watchpoint_content(
+    markdown: str,
+    content: str,
+    *,
+    preserved_fragments: Sequence[str] = (),
+) -> str:
+    """Replace only §⑥ and retain opaque fragments from CURRENT Markdown.
+
+    The unchanged-content case preserves every original byte, including
+    whitespace and fragment placement. Missing sections remain missing so
+    the existing structure gate continues to own that failure.
+    """
+
+    if not markdown:
+        raise ValueError("watchpoint input markdown must not be empty")
+    region = watchpoint_content_span(markdown)
+    if region is None:
+        return markdown
+    start, end = region
+    current, fragments = _extract_preserved_fragments(markdown[start:end], preserved_fragments)
+    if current.strip() == content.strip():
+        return markdown
+    # Captured bodies already own their boundary newlines. Preserve those
+    # exact bytes when restoring a baseline without opaque fragments.
+    body = (
+        content
+        if not fragments and content.startswith(("\n", "\r"))
+        else _compose_watchpoint_body(content.strip(), fragments)
+    )
+    return markdown[:start] + body + markdown[end:]
+
+
+def compose_event_watchpoints(
+    markdown: str,
+    baseline: NumericWatchpointBaseline,
+    built: EventWatchpointBuildResult,
+    *,
+    preserved_fragments: Sequence[str] = (),
+) -> WatchpointComposition:
+    """Compose trusted events with the frozen numeric branch, never raw prose.
+
+    With an event, reserve one of two slots for the first numeric card when
+    available. With no event, restore the complete legacy baseline and its
+    synthesis count. Private cap/exclusion reasons never enter the aggregate.
+    """
+
+    events = built.watchpoints[: 1 if baseline.rows else 2]
+    numeric_count = (1 if events else len(baseline.rows)) if baseline.rows else 0
+    numeric_reasons: tuple[str, ...] = ("watchpoint_unavailable",) if not baseline.rows else ()
+    event_reasons = tuple(dict.fromkeys(reason for _, reason in built.exclusions))
+    if len(baseline.rows) > numeric_count:
+        numeric_reasons += ("watchpoint_limit",)
+    if len(built.watchpoints) > len(events):
+        event_reasons += ("watchpoint_limit",)
+
+    if watchpoint_content_span(markdown) is None:
+        # Do not claim visible cards if no section can hold them.
+        events = ()
+        numeric_count = 0
+        numeric_reasons = ("watchpoint_unavailable",)
+        if built.watchpoints:
+            event_reasons += ("watchpoint_section_missing",)
+        result = WatchpointRenderResult(
+            markdown=markdown,
+            state="limited",
+            usable_card_count=0,
+            limitation_reasons=("watchpoint_unavailable",),
+        )
+    elif events:
+        parts = [render_event_watchpoint(card) for card in events]
+        if numeric_count:
+            parts.append(render_matrix_table([_numeric_watchpoint_row(baseline.rows[0])]))
+        result = WatchpointRenderResult(
+            markdown=replace_watchpoint_content(
+                markdown, "\n\n".join(parts), preserved_fragments=preserved_fragments
+            ),
+            state="rendered",
+            usable_card_count=len(events) + numeric_count,
+            synthesized_card_count=min(numeric_count, baseline.synthesized_card_count),
+        )
+    else:
+        result = WatchpointRenderResult(
+            markdown=replace_watchpoint_content(
+                markdown, baseline.content, preserved_fragments=preserved_fragments
+            ),
+            state=baseline.state,
+            usable_card_count=baseline.usable_card_count,
+            limitation_reasons=baseline.limitation_reasons,
+            synthesized_card_count=baseline.synthesized_card_count,
+        )
+    return WatchpointComposition(
+        result=result,
+        companion=CompanionOutcome(
+            numeric_attempted=len(baseline.rows),
+            event_attempted=built.attempted_count,
+            numeric_rendered=numeric_count,
+            event_rendered=len(events),
+            numeric_limitation_reasons=numeric_reasons,
+            event_limitation_reasons=tuple(dict.fromkeys(event_reasons)),
+        ),
+        event_watchpoints=events,
+    )
+
+
 def render_watchpoint_matrix(
     text: str,
     *,
@@ -1716,17 +1954,24 @@ __all__ = [
     "MATRIX_COLUMNS",
     "MAX_VISIBLE_ROWS",
     "ConfidenceLabel",
+    "NumericWatchpointBaseline",
+    "WatchpointComposition",
     "WatchpointItemSnapshot",
     "WatchpointRenderResult",
     "WatchpointRenderState",
     "WatchpointRow",
     "WatchpointValuePayload",
     "build_watchpoint_rows",
+    "capture_numeric_watchpoint_baseline",
+    "compose_event_watchpoints",
+    "is_canonical_numeric_watchpoint_content",
     "matching_watchpoint_row_count",
     "matching_watchpoint_rows",
     "render_matrix_table",
     "render_watchpoint_matrix",
     "render_watchpoint_matrix_result",
     "render_watchpoint_rows_result",
+    "replace_watchpoint_content",
     "resolve_watchpoint_currents",
+    "watchpoint_content_span",
 ]

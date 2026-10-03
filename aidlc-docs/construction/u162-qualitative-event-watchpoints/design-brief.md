@@ -1,7 +1,7 @@
 # Functional Design: u162 정성 사건 상태를 추적하는 관전 포인트
 
 **Date**: 2026-09-26
-**Status**: Design approved by the 2026-09-27 sequential-development request. Queued — design approved; follows u161; retains u152 numeric boundary.
+**Status**: Design approved by the 2026-09-27 sequential-development request. Code complete 2026-10-04 — 6/6 steps, full6087/460.18s; independent review and cross-check APPROVE. Default off; operational acceptance remains separate.
 **Priority / effort**: P2 / 10–16 h (rough engineering estimate, not commitment).
 **Dependencies**: u157 typed 사건, u158 terminal event, 기존u152 current-observation계약 구현/통합.
 
@@ -43,3 +43,7 @@ Apply B4/B5/B8/B11 and unit-specific states. Off mode preserves current producer
 
 ## Development sequence
 See [code-generation plan](../plans/u162-qualitative-event-watchpoints-code-generation-plan.md). Implementation follows the 2026-09-27 user-authorized sequential queue.
+
+## Implementation notes (2026-10-04)
+
+The original seven fixed contracts are retained. Numeric baseline content is frozen before the mixed cap and retained before seal in the existing internal Briefing.today_watch field for event-attempted passes, including all-event removal; only the numeric renderer consumes that baseline on repeat. The qualitative builder never reads today_watch. Terminal source-locator completeness is distinct from evidence_state, so source-backed detail_limited events can remain cards. Actual missing links produce source_locator_missing. Canonical cards must stand outside Markdown fences and raw HTML containers to witness visible survival. The adjacent event_blocks and reader_format helpers support those existing terminal/idempotence requirements; there is no second finalizer, public schema change or activation.

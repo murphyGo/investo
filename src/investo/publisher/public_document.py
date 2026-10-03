@@ -58,7 +58,7 @@ from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome, SourceWindowCoverage
 from investo.models.event_narratives import EventGenerationPayload
-from investo.models.events import EventIdentityReceipt
+from investo.models.events import CompanionOutcome, EventIdentityReceipt, EventWatchpoint
 from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
 from investo.models.market_anchor import MarketAnchor
@@ -113,6 +113,12 @@ from investo.publisher.event_blocks import (
     reconcile_event_summaries,
     terminal_events,
 )
+from investo.publisher.event_watchpoints import (
+    build_event_watchpoints,
+    event_watchpoint_ids,
+    event_watchpoint_issue_codes,
+    render_event_watchpoint,
+)
 from investo.publisher.evidence_accounting import count_rendered_evidence, render_body_used_count
 from investo.publisher.news_window import news_observation_matches, render_news_observation
 from investo.publisher.numeric_containment import (
@@ -127,13 +133,20 @@ from investo.publisher.reader_format import (
     emit_first_viewport_disclaimer,
     normalize_meaning_region_body,
     project_public_markdown,
+    wrap_numbers_bold,
 )
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 from investo.publisher.verifier import (
     verify_disclaimer,
     verify_short_disclaimer_first_viewport,
 )
-from investo.publisher.watchpoint_matrix import WatchpointRenderResult
+from investo.publisher.watchpoint_matrix import (
+    NumericWatchpointBaseline,
+    WatchpointComposition,
+    WatchpointRenderResult,
+    compose_event_watchpoints,
+    watchpoint_content_span,
+)
 
 PublicDocumentPhase = Literal["generated", "assembled", "projected", "repaired", "validated"]
 PublicBlockDisposition = Literal["kept", "repaired", "replaced", "omitted"]
@@ -2280,6 +2293,9 @@ class PublicDocumentDraft:
     numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...] = ()
     notification_summary: PublicNotificationSummary | None = None
     surviving_event_ids: tuple[str, ...] = ()
+    numeric_watchpoint_baseline: NumericWatchpointBaseline | None = field(default=None, repr=False)
+    watchpoint_companion: CompanionOutcome | None = None
+    event_watchpoints: tuple[EventWatchpoint, ...] = field(default=(), repr=False)
     _validation_witness: object | None = field(default=None, repr=False, compare=False)
 
     def __new__(cls) -> Self:
@@ -2302,6 +2318,9 @@ def _construct_draft(
     numeric_containment_outcomes: Sequence[NumericContainmentOutcome] = (),
     notification_summary: PublicNotificationSummary | None = None,
     surviving_event_ids: Sequence[str] = (),
+    numeric_watchpoint_baseline: NumericWatchpointBaseline | None = None,
+    watchpoint_companion: CompanionOutcome | None = None,
+    event_watchpoints: Sequence[EventWatchpoint] = (),
     validation_witness: object | None = None,
 ) -> PublicDocumentDraft:
     if phase not in _PHASES:
@@ -2351,6 +2370,9 @@ def _construct_draft(
     object.__setattr__(draft, "numeric_containment_outcomes", numeric_outcomes)
     object.__setattr__(draft, "notification_summary", notification_summary)
     object.__setattr__(draft, "surviving_event_ids", tuple(surviving_event_ids))
+    object.__setattr__(draft, "numeric_watchpoint_baseline", numeric_watchpoint_baseline)
+    object.__setattr__(draft, "watchpoint_companion", watchpoint_companion)
+    object.__setattr__(draft, "event_watchpoints", tuple(event_watchpoints))
     object.__setattr__(draft, "_validation_witness", validation_witness)
     return draft
 
@@ -2416,6 +2438,10 @@ def _transition_draft(
     numeric_containment_outcomes: Sequence[NumericContainmentOutcome] | None = None,
     notification_summary: PublicNotificationSummary | None = None,
     surviving_event_ids: Sequence[str] | None = None,
+    numeric_watchpoint_baseline: NumericWatchpointBaseline | None = None,
+    watchpoint_companion: CompanionOutcome | None = None,
+    event_watchpoints: Sequence[EventWatchpoint] | None = None,
+    watchpoint_synthesized: int | None = None,
 ) -> PublicDocumentDraft:
     current_index = _PHASES.index(draft.phase)
     if current_index + 1 >= len(_PHASES) or _PHASES[current_index + 1] != next_phase:
@@ -2430,7 +2456,11 @@ def _transition_draft(
         limitation_reasons=(
             draft.limitation_reasons if limitation_reasons is None else limitation_reasons
         ),
-        watchpoint_synthesized=draft.watchpoint_synthesized,
+        watchpoint_synthesized=(
+            draft.watchpoint_synthesized
+            if watchpoint_synthesized is None
+            else watchpoint_synthesized
+        ),
         block_outcomes=draft.block_outcomes if block_outcomes is None else block_outcomes,
         numeric_containment_outcomes=(
             draft.numeric_containment_outcomes
@@ -2440,6 +2470,17 @@ def _transition_draft(
         notification_summary=notification_summary,
         surviving_event_ids=(
             draft.surviving_event_ids if surviving_event_ids is None else surviving_event_ids
+        ),
+        numeric_watchpoint_baseline=(
+            draft.numeric_watchpoint_baseline
+            if numeric_watchpoint_baseline is None
+            else numeric_watchpoint_baseline
+        ),
+        watchpoint_companion=(
+            draft.watchpoint_companion if watchpoint_companion is None else watchpoint_companion
+        ),
+        event_watchpoints=(
+            draft.event_watchpoints if event_watchpoints is None else event_watchpoints
         ),
         validation_witness=witness,
     )
@@ -2570,21 +2611,41 @@ def _assemble_phase_one_reader_draft(
     if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
         raise ValueError("reader assembly context identity must match draft")
     observed: list[WatchpointRenderResult] = []
+    event_observed: list[tuple[NumericWatchpointBaseline, WatchpointComposition]] = []
 
     def observe(segment: MarketSegment, result: WatchpointRenderResult) -> None:
         if segment != draft.segment or observed:
             raise ValueError("reader assembly must produce exactly one matching watchpoint result")
         observed.append(result)
 
+    def observe_events(
+        segment: MarketSegment,
+        baseline: NumericWatchpointBaseline,
+        composition: WatchpointComposition,
+    ) -> None:
+        if segment != draft.segment or event_observed:
+            raise ValueError("reader assembly must produce exactly one matching watchpoint result")
+        event_observed.append((baseline, composition))
+
     event_payload = _event_payload_for_draft(draft, context)
     if event_payload is not None:
         original_codes = _collect_non_surface_hard_gate_codes(draft, context)
+        # Generated layouts deliberately have no indexed regions yet. Reuse
+        # the numeric owner's raw section boundary before composition can
+        # discard a row and before the ordinary domestic containment pass.
+        watchpoint_span = watchpoint_content_span(draft.layout.markdown)
+        watchpoint_numeric_findings = watchpoint_span is not None and any(
+            watchpoint_span[0] <= finding.start < watchpoint_span[1]
+            for finding in _scan_terminal_anchor_assertions_for_layout(draft, context, draft.layout)
+        )
         # Keep domestic numeric containment with its existing owner. Every
         # other hard finding survives before summary/presentation mutation.
         preserved_codes = tuple(
             code
             for code in original_codes
-            if code != "numeric.anchor_assertion" or draft.segment != DOMESTIC_EQUITY
+            if code != "numeric.anchor_assertion"
+            or draft.segment != DOMESTIC_EQUITY
+            or watchpoint_numeric_findings
         )
         if preserved_codes:
             raise _SegmentTrustBlockedError(phase="assembled", issue_codes=preserved_codes)
@@ -2604,6 +2665,10 @@ def _assemble_phase_one_reader_draft(
             },
             _defer_domestic_terminal_gates=True,
             _event_segments=(draft.segment,) if event_payload is not None else (),
+            _event_payloads_by_segment=(
+                {draft.segment: event_payload} if event_payload is not None else {}
+            ),
+            _event_watchpoint_observer=observe_events,
         )
     except NumericAnchorReconciliationError as exc:
         raise _SegmentTrustBlockedError(
@@ -2617,6 +2682,8 @@ def _assemble_phase_one_reader_draft(
         ) from exc
     if len(observed) != 1 or set(rewritten) != {draft.segment}:
         raise ValueError("reader assembly must produce exactly one segment result")
+    if len(event_observed) != int(event_payload is not None):
+        raise ValueError("reader assembly must produce exactly one matching watchpoint result")
     accumulated = _accumulate_watchpoint_result(draft, observed[0])
     active_segments = context.active_segments
     if active_segments is None or draft.segment not in active_segments:
@@ -2692,6 +2759,9 @@ def _assemble_phase_one_reader_draft(
         accumulated,
         next_phase="assembled",
         layout=layout,
+        numeric_watchpoint_baseline=event_observed[0][0] if event_observed else None,
+        watchpoint_companion=event_observed[0][1].companion if event_observed else None,
+        event_watchpoints=event_observed[0][1].event_watchpoints if event_observed else (),
     )
 
 
@@ -2851,6 +2921,8 @@ def _repair_projected_draft(
         numeric_outcomes = draft.numeric_containment_outcomes
 
     surviving_event_ids = draft.surviving_event_ids
+    watchpoint_composition: WatchpointComposition | None = None
+    limitation_reasons = draft.limitation_reasons
     if event_payload is not None:
         # Snapshot before removing incomplete events or replacing dependent
         # summaries. Existing hard gates remain authoritative.
@@ -2865,6 +2937,37 @@ def _repair_projected_draft(
             if not set(survivors) <= set(allowed):
                 raise _SegmentTrustBlockedError(
                     phase="repaired", issue_codes=("event.reconciliation_unstable",)
+                )
+            if draft.numeric_watchpoint_baseline is not None:
+                provisional = terminal_events(
+                    markdown, event_payload, surviving_event_ids=survivors
+                )
+                built = build_event_watchpoints(
+                    event_payload,
+                    surviving_event_ids=tuple(event.event_id for event in provisional),
+                    source_limited_event_ids=tuple(
+                        event.event_id
+                        for event in provisional
+                        if not event.source_locators_complete
+                    ),
+                )
+                watchpoint_composition = compose_event_watchpoints(
+                    markdown,
+                    draft.numeric_watchpoint_baseline,
+                    built,
+                    preserved_fragments=tuple(
+                        _render_supplement_block(supplement)
+                        for supplement in context.supplements_by_segment.get(draft.segment, ())
+                    ),
+                )
+                markdown = wrap_numbers_bold(watchpoint_composition.result.markdown)
+                limitation_reasons = (
+                    tuple(
+                        reason
+                        for reason in draft.limitation_reasons
+                        if reason != "watchpoint_unavailable"
+                    )
+                    + watchpoint_composition.result.limitation_reasons
                 )
             layout = PublicDocumentLayout.reindex(markdown, expectation=layout.expectation)
             observed = tuple(
@@ -2889,6 +2992,18 @@ def _repair_projected_draft(
         block_outcomes=outcomes,
         numeric_containment_outcomes=numeric_outcomes,
         surviving_event_ids=surviving_event_ids,
+        limitation_reasons=limitation_reasons,
+        watchpoint_companion=(
+            watchpoint_composition.companion if watchpoint_composition is not None else None
+        ),
+        event_watchpoints=(
+            watchpoint_composition.event_watchpoints if watchpoint_composition is not None else None
+        ),
+        watchpoint_synthesized=(
+            watchpoint_composition.result.synthesized_card_count
+            if watchpoint_composition is not None
+            else None
+        ),
     )
 
 
@@ -3059,6 +3174,9 @@ def _draft_with_layout(
         block_outcomes=draft.block_outcomes,
         numeric_containment_outcomes=draft.numeric_containment_outcomes,
         surviving_event_ids=draft.surviving_event_ids,
+        numeric_watchpoint_baseline=draft.numeric_watchpoint_baseline,
+        watchpoint_companion=draft.watchpoint_companion,
+        event_watchpoints=draft.event_watchpoints,
     )
 
 
@@ -3135,6 +3253,7 @@ def _collect_non_surface_hard_gate_codes(
     event_payload = context.event_payloads_by_segment.get(draft.segment)
     if event_payload is not None:
         codes.update(event_hard_issue_codes(candidate.layout.markdown, event_payload))
+        codes.update(event_watchpoint_issue_codes(candidate.layout.markdown, event_payload))
     return _canonical_issue_codes(tuple(codes))
 
 
@@ -3169,6 +3288,28 @@ def _validate_repaired_draft(
         )
         if event_codes:
             raise _SegmentTrustBlockedError(phase="validated", issue_codes=event_codes)
+        watchpoint_codes = event_watchpoint_issue_codes(
+            draft.layout.markdown, payload, surviving_event_ids=draft.surviving_event_ids
+        )
+        actual_watchpoint_ids = event_watchpoint_ids(draft.layout.markdown)
+        source_complete_ids = {
+            event.event_id
+            for event in terminal_events(
+                draft.layout.markdown, payload, surviving_event_ids=draft.surviving_event_ids
+            )
+            if event.source_locators_complete
+        }
+        if (
+            actual_watchpoint_ids != tuple(point.event_id for point in draft.event_watchpoints)
+            or not set(actual_watchpoint_ids) <= source_complete_ids
+            or any(
+                render_event_watchpoint(point) not in draft.layout.markdown
+                for point in draft.event_watchpoints
+            )
+        ):
+            watchpoint_codes = (*watchpoint_codes, "event.watchpoint_mismatch")
+        if watchpoint_codes:
+            raise _SegmentTrustBlockedError(phase="validated", issue_codes=watchpoint_codes)
     news_consumed = context.news_window_consumptions_by_segment.get(draft.segment, ())
     if news_consumed and context.news_window_plan is not None:
         expected_news = render_news_observation(
@@ -3875,6 +4016,7 @@ class FinalizedPublicDocument:
     event_identity_receipts: tuple[EventIdentityReceipt, ...] = ()
     news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
     watchpoint_synthesized: int = 0
+    watchpoint_companion: CompanionOutcome | None = None
     warnings: tuple[str, ...] = ()
 
     def __new__(cls) -> Self:
@@ -3911,7 +4053,17 @@ def _seal_document(
     if tuple(receipt.event_id for receipt in identities) != draft.surviving_event_ids:
         raise ValueError("sealed event identities must match validated survivors")
     final_briefing = draft.source_briefing.model_copy(
-        update={"rendered_markdown": draft.layout.markdown}
+        update={
+            "rendered_markdown": draft.layout.markdown,
+            **(
+                {"today_watch": draft.numeric_watchpoint_baseline.content}
+                if draft.numeric_watchpoint_baseline is not None
+                and draft.numeric_watchpoint_baseline.content.strip()
+                and draft.watchpoint_companion is not None
+                and draft.watchpoint_companion.event_attempted > 0
+                else {}
+            ),
+        }
     )
     digest = sha256(draft.layout.markdown.encode("utf-8")).hexdigest()
     news_receipts = tuple(news_window_consumptions)
@@ -3939,6 +4091,7 @@ def _seal_document(
         draft.numeric_containment_outcomes,
     )
     object.__setattr__(sealed, "watchpoint_synthesized", draft.watchpoint_synthesized)
+    object.__setattr__(sealed, "watchpoint_companion", draft.watchpoint_companion)
     object.__setattr__(sealed, "warnings", canonical_warnings)
     return sealed
 

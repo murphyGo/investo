@@ -263,3 +263,100 @@ class EventSelectionPlan(EventModel):
         if len(ids) != len(set(ids)):
             raise ValueError("selected event IDs must be unique")
         return self
+
+
+class NumericWatchpoint(EventModel):
+    """The existing numeric row contract; never inferred from prose."""
+
+    kind: Literal["numeric"] = "numeric"
+    signal: Text
+    source: Text
+    current: Text
+    bullish_trigger: Text
+    bearish_trigger: Text
+    confidence: Literal["높음", "보통", "낮음", "근거 제한"]
+    implication: Text
+
+
+class EventWatchpointNextCheck(EventModel):
+    kind: Literal["scheduled_fact", "observation_template"]
+    text: Annotated[str, Field(strict=True, min_length=1, max_length=240)]
+    fact_id: Digest | None = None
+    source_refs: tuple[EvidenceRef, ...] = ()
+
+    @model_validator(mode="after")
+    def coherent_origin(self) -> Self:
+        if self.kind == "scheduled_fact":
+            if self.fact_id is None or not self.source_refs:
+                raise ValueError("scheduled next check requires a fact and source refs")
+        elif self.fact_id is not None or self.source_refs:
+            raise ValueError("observation template cannot claim source evidence")
+        if not self.text.strip():
+            raise ValueError("next check text must not be blank")
+        return self
+
+
+class EventWatchpoint(EventModel):
+    """A source fact and its follow-up, independent of numeric thresholds."""
+
+    kind: Literal["event"] = "event"
+    event_id: EventId
+    event_kind: EventKind
+    fact_id: Digest
+    fact_status: Literal["actual", "quoted_opinion", "scheduled"]
+    headline: Annotated[str, Field(strict=True, min_length=1, max_length=80)]
+    observed_state: Annotated[str, Field(strict=True, min_length=1, max_length=240)]
+    observed_at: datetime | date
+    time_basis: Literal["source_exact", "source_date", "publication_exact", "publication_date"]
+    source_refs: Annotated[tuple[EvidenceRef, ...], Field(min_length=1, max_length=64)]
+    source_labels: Annotated[tuple[Text, ...], Field(min_length=1, max_length=3)]
+    source_urls: Annotated[tuple[Text, ...], Field(min_length=1, max_length=3)]
+    next_check: EventWatchpointNextCheck
+    implication: Annotated[str, Field(strict=True, min_length=1, max_length=180)]
+
+    @field_validator("observed_at")
+    @classmethod
+    def normalize_observed_at(cls, value: datetime | date) -> datetime | date:
+        return _utc(value) if isinstance(value, datetime) else value
+
+    @model_validator(mode="after")
+    def coherent_observation(self) -> Self:
+        if self.time_basis.endswith("exact") != isinstance(self.observed_at, datetime):
+            raise ValueError("observation time precision must match its basis")
+        if len(self.source_labels) != len(self.source_urls):
+            raise ValueError("source labels and URLs must correspond")
+        if len(set(self.source_refs)) != len(self.source_refs):
+            raise ValueError("watchpoint source refs must be unique")
+        if not set(self.next_check.source_refs) <= set(self.source_refs):
+            raise ValueError("next-check evidence must belong to the card")
+        if not all(
+            value.strip() for value in (self.headline, self.observed_state, self.implication)
+        ):
+            raise ValueError("event watchpoint fields must not be blank")
+        return self
+
+
+Watchpoint = Annotated[NumericWatchpoint | EventWatchpoint, Field(discriminator="kind")]
+
+
+class CompanionOutcome(EventModel):
+    """Private kind-specific accounting, separate from public availability."""
+
+    numeric_attempted: StrictInt = Field(default=0, ge=0)
+    event_attempted: StrictInt = Field(default=0, ge=0)
+    numeric_rendered: StrictInt = Field(default=0, ge=0)
+    event_rendered: StrictInt = Field(default=0, ge=0)
+    numeric_limitation_reasons: tuple[Text, ...] = ()
+    event_limitation_reasons: tuple[Text, ...] = ()
+
+    @model_validator(mode="after")
+    def coherent_counts(self) -> Self:
+        if (
+            self.numeric_rendered > self.numeric_attempted
+            or self.event_rendered > self.event_attempted
+        ):
+            raise ValueError("rendered watchpoint count cannot exceed attempted count")
+        for reasons in (self.numeric_limitation_reasons, self.event_limitation_reasons):
+            if len(set(reasons)) != len(reasons) or any(not reason.strip() for reason in reasons):
+                raise ValueError("companion limitation reasons must be unique and nonblank")
+        return self
