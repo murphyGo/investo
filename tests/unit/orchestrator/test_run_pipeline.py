@@ -4209,6 +4209,86 @@ async def test_stage_publish_segments_rolls_back_quality_history_append(
     assert history.read_text(encoding="utf-8") == original
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("outcome", ["success", "contradiction", "cancel"])
+@pytest.mark.parametrize("existing_history", [False, True])
+async def test_dry_run_uses_current_quality_without_mutating_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    outcome: str,
+    existing_history: bool,
+) -> None:
+    read_existing = pipeline_module._read_existing_bytes
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
+    monkeypatch.setattr(pipeline_module, "_read_existing_bytes", read_existing)
+    monkeypatch.setenv("INVESTO_DRY_RUN", "1")
+    history = tmp_path / "quality_history.jsonl"
+    monkeypatch.setenv("INVESTO_QUALITY_HISTORY_PATH", str(history))
+    original = json.dumps({"date": _TARGET.isoformat(), "worst_severity": "limited"}) + "\n"
+    if existing_history:
+        history.write_text(original)
+    snapshot = QualitySnapshot(
+        source_liveness=0.0,
+        figures_presence=0.0,
+        fallback_ratio=0.0,
+        published_segments=1,
+        total_items=0,
+        total_failed_sources=0,
+        worst_severity="failed",
+        current_run_segments_limited_or_worse=1,
+        current_run_briefings_observed=1,
+    )
+    monkeypatch.setattr(pipeline_module, "_build_quality_snapshot", lambda **_: snapshot)
+    briefing = _briefing(segment=US_EQUITY)
+    briefing = briefing.model_copy(
+        update={
+            "rendered_markdown": "> **데이터 상태**: 실패 — 수집 실패\n\n"
+            + briefing.rendered_markdown
+        }
+    )
+    observed_paths: list[Path] = []
+    real_update = pipeline_module.update_quality_page
+
+    def capture_page(*args: object, **kwargs: object) -> Path:
+        preview = cast(Path, kwargs["quality_history_path"])
+        observed_paths.append(preview)
+        assert preview != history
+        rows = [json.loads(line) for line in preview.read_text().splitlines()]
+        assert rows[0]["worst_severity"] == "failed"
+        if outcome == "cancel":
+            raise asyncio.CancelledError
+        if outcome == "contradiction":
+            rows[0]["worst_severity"] = "normal"
+            preview.write_text(json.dumps(rows[0]) + "\n")
+        return real_update(*args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(pipeline_module, "update_quality_page", capture_page)
+    git = _SuccessfulGitRunner()
+    call = pipeline_module._stage_publish_segments(
+        {US_EQUITY: briefing},
+        _TARGET,
+        git_runner=git,
+        phase_one_complete=True,
+    )
+    if outcome == "success":
+        paths = await call
+        assert US_EQUITY in paths
+    elif outcome == "cancel":
+        with pytest.raises(asyncio.CancelledError):
+            await call
+    else:
+        with pytest.raises(
+            pipeline_module.QualityConsistencyError, match=r"quality\.status_mismatch"
+        ):
+            await call
+    assert git.calls == []
+    assert len(observed_paths) == 1 and not observed_paths[0].parent.exists()
+    if existing_history:
+        assert history.read_text() == original
+    else:
+        assert not history.exists()
+
+
 def test_maybe_publish_monthly_retrospective_on_month_boundary(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
