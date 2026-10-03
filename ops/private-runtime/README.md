@@ -8,7 +8,8 @@ dry-run을 검증하기 위한 구성이다. 공개 Investo의 daily workflow는
 
 1. 이 변경을 검토·통합한 공개 Investo의 정확한 커밋 SHA를 확정한다.
 2. GitHub 계정이 비공개 Environment Secrets를 지원하는지 확인한다.
-   Pro/Team/Enterprise가 필요하며 현재 계정 요금제는 확인되지 않았다.
+   현재 비공개 Environment의 실제 Secret 전달은 run `34384978043`으로
+   확인했다. 계정 요금제와 이번 달 포함 분량·과금 제한은 별도 확인한다.
 3. 비공개 저장소와 `codex-runtime` Environment를 구성한다.
    `REVIEWED_CODE_SHA` Repository Variable에 검토한 40자리 SHA를 둔다.
 4. `daily-briefing.yml`을 비공개 저장소의
@@ -84,13 +85,69 @@ Codex 0.153.4의 공식 모델 스키마와 도구 등록 코드를 근거로
 `experimental_supported_tools=[]`를 설정한다. 개별 실행 도구,
 web/apps/plugins/hooks/agents도 비활성화한다. macOS native `debug models`로
 이 모델 목록의 실제 해석을 확인했다(개인 인증 파일 사용 없음). CLI 버전이 다르면 실행을
-거부한다. 실제 요청의 도구 목록 전체와 비공개 Linux/model 실행은
-아직 입증하지 않았으므로 Step 8에서 전용 인증 실행 전 추가 검증한다.
-로컬 HTTP 모의 서버 probe는 모델 요청을 포착하지 못했으며 성공 근거로 쓰지 않는다.
+거부한다. 초기 로컬 HTTP probe는 모델 요청을 포착하지 못해 성공 근거로
+사용하지 않았다. 이후 비공개 Linux probe `34384975431`과 선택 모델
+probe `34388520247`에서 운영 정책의 실제 요청 도구 목록이 비어 있음을
+확인했고, 양성 대조군에는 `update_plan`이 나타났다.
+
+2026-10-03 실계정 dry-run `37130989203`은 `gpt-6-astra`로 세 시장 모두
+생성·최종 검증을 통과하고 283.882초에 종료 코드 0으로 끝났다.
+`37128670838`에서 실제 인증 갱신을 암호화 저장했고 이후 실행이
+저장한 인증을 재사용했다. 공개 발행·알림은 dry-run으로 생략했다.
+상세 근거와 남은 활성화 조건은
+`docs/sessions/2026-10-03-u155-codex-cutover.md`에 기록한다.
 
 설치에는 공식 릴리스의 native Linux 바이너리와 확인한 SHA-256을 쓴다.
 npm registry에서는 0.153.4를 조회하지 못했다. 개인 환경의 CLI 설치나
 로그인은 변경하지 않는다.
+
+## 준비된 정기 전환 템플릿 (2026-10-03)
+
+`production-briefing.yml`은 검증이 끝난 뒤 비공개 저장소의
+`.github/workflows/daily-briefing.yml`로 설치할 운영 템플릿이다.
+`CODEX_PRODUCTION_ENABLED=1`이 아니면 수동/예약 job 모두 실행되지 않는다.
+공개 저장소의 daily workflow를 중지하고 실행 중/대기 중 job이 없는지
+확인한 뒤 이 변수를 설정한다. 변수와 템플릿 준비만으로 전환 완료를
+표시하지 않는다.
+
+- 모델은 기존에 선택한 `gpt-6-astra`, 제공자는 `codex`로 고정한다.
+- 평일 07:00/토요일 09:00 KST와 기존 주간 발행 판정을 유지한다.
+- `REVIEWED_CODE_SHA`에는 이 템플릿과 인증 helper를 포함해 검토한
+  공개 커밋을 지정한다. 최신 archive checkout의 코드는 실행하지 않는다.
+- `git-credential-investo.sh`는 `https://github.com/murphyGo/investo`
+  목적지에만 게시 토큰을 반환한다. 토큰은 git 설정이나 파일에 저장하지
+  않으며 Codex child의 환경에도 전달되지 않는다. 인증 보존 checkpoint가
+  성공한 뒤 기존 publisher가 같은 경로 검증·최종 문서 gate를 적용한다.
+- PAT push가 시작한 같은 commit의 Pages 실행을 먼저 찾고, 진행 중이거나
+  성공한 실행이 없으면 명시적으로 dispatch한다. 실패·취소된 이전 실행도
+  재배포 대상이다. Pages 결과는 운영 검증에서 별도로 확인한다.
+- pipeline의 0/1/2 종료 코드를 유지하며 Pages 작업도 같은 runtime
+  시간 범위 안에서 수행한다.
+
+추가 Environment Secrets:
+
+| 이름 | 범위/용도 |
+|---|---|
+| `INVESTO_PUBLIC_PUBLISH_TOKEN` | 공개 `murphyGo/investo`만 선택한 fine-grained PAT, Contents 및 Actions 읽기/쓰기 |
+| `TELEGRAM_BOT_TOKEN` | 기존 브리핑 봇 |
+| `TELEGRAM_BRIEFING_CHANNEL_ID` | 기존 공개 채널 |
+| `TELEGRAM_OPERATOR_CHAT_ID` | 기존 운영자 대화, 공개 채널과 달라야 함 |
+| `FRED_API_KEY`, `OPENDART_API_KEY` | 기존 소스 구성, 2026-10-03 비공개 Environment 등록 확인 |
+| `BEA_API_KEY`, `CONGRESS_API_KEY`, `INVESTO_KRX_SERVICE_KEY` | 기존 공개 실행과 소스 범위를 맞추기 위해 이전 필요 |
+
+GitHub 저장 Secret은 이름만 조회할 수 있다. 값은 채팅에 전달하지 않고
+Environment UI 또는 전용 로컬 파일의 stdin 경로로 등록한다. 개인 GitHub
+CLI 로그인 토큰을 운영 게시 토큰으로 복사하지 않는다.
+
+활성화 전 실제 dry-run 결과, 갱신 인증의 다음 job 재사용, 남은 포함
+Actions 분량과 초과 과금 차단을 확인한다. Billing API가 현재 CLI의
+`user` scope 부족으로 거부되면 권한을 자동 확대하지 않고 계정 소유자가
+Billing 화면에서 남은 분량과 차단 설정을 확인한다.
+
+Rollback: private의 `CODEX_PRODUCTION_ENABLED=0`과 workflow 비활성화로
+새 실행을 막고 현재 job 종료를 기다린 뒤 public `daily-briefing.yml`을
+다시 활성화한다. 이미 공개된 commit과 Telegram 전송 여부를 확인한 뒤
+같은 날짜 재실행을 결정한다. 자동으로 Claude를 재호출하지 않는다.
 
 공식 근거:
 [Codex 인증 자동화](https://learn.chatgpt.com/docs/auth/ci-cd-auth),

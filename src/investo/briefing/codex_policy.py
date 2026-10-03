@@ -95,6 +95,9 @@ def codex_arguments(model: str, *, catalog: Path, work: Path) -> list[str]:
         "tools.experimental_request_user_input.enabled": "false",
         "agents.enabled": "false",
         "features.skip_host_skill_discovery": "true",
+        # The pinned CLI reports this opt-in's startup warning as an error item.
+        # Suppress that notice at source; keep all runtime error/tool events fatal.
+        "suppress_unstable_features_warning": "true",
         **{f"features.{key}": "false" for key in DISABLED_FEATURES},
     }
     args = [

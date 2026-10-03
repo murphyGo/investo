@@ -75,6 +75,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Final, TypeVar, cast, overload
 
 from pydantic import HttpUrl, TypeAdapter, ValidationError
@@ -1370,6 +1371,7 @@ async def _stage_publish_segments(
         _rollback_paths(snapshots)
         raise
 
+    quality_scratch: TemporaryDirectory[str] | None = None
     try:
         index_paths: tuple[Path, ...] = ()
         weekly_paths: tuple[Path, ...] = ()
@@ -1467,35 +1469,44 @@ async def _stage_publish_segments(
                 ).status
                 for segment in published_segments
             }
-            if not _is_dry_run():
+            if _is_dry_run():
+                # Rehearse against this run's metadata without changing the
+                # canonical ledger. Old same-date history can be healthier
+                # than today's source coverage and must not be compared alone.
+                previous_history = _read_existing_bytes(quality_history_path)
+                quality_scratch = TemporaryDirectory(prefix="investo-quality-preview-")
+                quality_history_path = Path(quality_scratch.name) / "quality_history.jsonl"
+                if previous_history is not None:
+                    quality_history_path.write_bytes(previous_history)
+            else:
                 snapshots[quality_history_path] = _read_existing_bytes(quality_history_path)
-                written_quality_history = await _to_thread_drained(
-                    append_quality_snapshot,
-                    target_date,
-                    snapshot=_build_quality_snapshot(
-                        briefings=briefings,
-                        published_segments=published_segments,
-                        items=items,
-                        raw_items=raw_items,
-                        domestic_item_verdicts=domestic_item_verdicts,
-                        source_outcomes=source_outcomes,
-                        previous_domestic_anchor_closes=previous_domestic_anchor_closes,
-                        severities_by_segment=severities_by_segment_for_quality,
-                        watchpoint_synthesized=sum(
-                            document.watchpoint_synthesized
-                            for document in finalized_documents.values()
-                        ),
-                        degraded_segments=sum(
-                            bool(document.numeric_containment_outcomes)
-                            for document in finalized_documents.values()
-                        ),
-                        numeric_containment_actions=sum(
-                            len(document.numeric_containment_outcomes)
-                            for document in finalized_documents.values()
-                        ),
+            written_quality_history = await _to_thread_drained(
+                append_quality_snapshot,
+                target_date,
+                snapshot=_build_quality_snapshot(
+                    briefings=briefings,
+                    published_segments=published_segments,
+                    items=items,
+                    raw_items=raw_items,
+                    domestic_item_verdicts=domestic_item_verdicts,
+                    source_outcomes=source_outcomes,
+                    previous_domestic_anchor_closes=previous_domestic_anchor_closes,
+                    severities_by_segment=severities_by_segment_for_quality,
+                    watchpoint_synthesized=sum(
+                        document.watchpoint_synthesized for document in finalized_documents.values()
                     ),
-                    history_path=quality_history_path,
-                )
+                    degraded_segments=sum(
+                        bool(document.numeric_containment_outcomes)
+                        for document in finalized_documents.values()
+                    ),
+                    numeric_containment_actions=sum(
+                        len(document.numeric_containment_outcomes)
+                        for document in finalized_documents.values()
+                    ),
+                ),
+                history_path=quality_history_path,
+            )
+            if not _is_dry_run():
                 quality_history_paths = (written_quality_history,)
             quality_path_resolved = _site_index_mod.QUALITY_PAGE_PATH
             snapshots[quality_path_resolved] = _read_existing_bytes(quality_path_resolved)
@@ -1629,6 +1640,9 @@ async def _stage_publish_segments(
     except BaseException:
         _rollback_paths(snapshots)
         raise
+    finally:
+        if quality_scratch is not None:
+            quality_scratch.cleanup()
 
     commit_message = (
         f"briefing: {target_date} segmented"

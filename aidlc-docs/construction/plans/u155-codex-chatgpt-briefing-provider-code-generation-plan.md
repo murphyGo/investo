@@ -185,3 +185,28 @@ The combined tree based on `fc373277125e5455dc4e4292bcd7a098e877fbe8` passes
 5,305 tests and the complete Quality-equivalent local gate. Both audit histories
 are preserved; no application-code repair, active workflow or archive/site edit.
 See `docs/sessions/2026-09-09-u155-main-integration.md`. Steps 8/9 remain pending.
+
+## Operational continuation — 2026-10-03
+
+User “Codex로 전환하고 싶어. 남은 작업 ㅈ진행해”, followed by “gogo”,
+authorizes the remaining operational work and Codex production cutover after
+qualification. Preserve the existing `gpt-6-astra` choice, dedicated ChatGPT
+auth and private runtime boundary. The current scope includes necessary
+reviewed repairs and remote delivery; it does not authorize paid API fallback
+or reuse of personal interactive credentials.
+
+Live metadata now confirms both runtime Secrets, and the prior real dry-run
+failed in all three classification stages. This supersedes the older main
+tracker statement that private provisioning has not started. The resumed
+diagnostic and gate evidence are tracked in
+`docs/sessions/2026-10-03-u155-codex-cutover.md`. Steps 8/9 stay unchecked.
+
+Live follow-up: Codex startup-warning handling and dry-run quality-history
+isolation repaired and independently reviewed. Full dry-run `37130989203`
+generated/finalized all three markets, exited 0 in 283.882s without publication.
+Actual auth rotation/write-back and subsequent job reuse are verified.
+The inactive production workflow, destination-scoped credential helper and
+rollback are reviewed. Validation: 5,329 full tests plus 22 final workflow tests,
+static/policy/docs/workflow checks. Step 8 still requires current usage/spending
+limits and source parity; Step 9 awaits publishing/Telegram credentials,
+single-owner activation and actual push/Telegram/Pages verification.
