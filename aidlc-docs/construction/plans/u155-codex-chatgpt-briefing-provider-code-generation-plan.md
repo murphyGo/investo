@@ -210,3 +210,9 @@ rollback are reviewed. Validation: 5,329 full tests plus 22 final workflow tests
 static/policy/docs/workflow checks. Step 8 still requires current usage/spending
 limits and source parity; Step 9 awaits publishing/Telegram credentials,
 single-owner activation and actual push/Telegram/Pages verification.
+
+2026-10-04 KST correction: the existing public Telegram/BEA/Congress/KRX
+Secrets were reused through destination-key encryption (run `37136372915`),
+registered to the private Environment and all transfer artifacts removed.
+These six credentials no longer require user registration. Dedicated publisher
+PAT and current included usage/spending limits remain activation prerequisites.

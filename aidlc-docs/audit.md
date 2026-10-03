@@ -7187,3 +7187,18 @@ helper, Pages recovery and rollback instructions. Separate-agent review PASS;
 current included Actions allowance/spending limit confirmation. Billing query
 lacks user scope; no scope expansion. Public Claude schedule remains active.
 **Record**: `docs/sessions/2026-10-03-u155-codex-cutover.md`.
+
+## Operations — u155 reuse existing source and Telegram Secrets
+
+**Date**: 2026-10-04 KST
+**User**: Existing Telegram, BEA, Congress and KRX keys should be reused.
+**Action**: Reused the exact six public repository Secrets through fixed
+destination-key sealed-box encryption. Source run `37136372915`, reviewed
+one-use code `46d4c791`; consumer verified exact run/SHA/key/destination/names
+before registration. Six private Environment metadata entries verified.
+**Cleanup**: Encrypted transfer artifact deleted; API count zero. One-use remote
+branch deleted; public main schedule unchanged. No plaintext credential values
+were exposed, and no personal or Codex/Claude/OpenAI auth was transferred.
+**Validation**: Independent producer/consumer review PASS; 10 producer tests,
+7 synthetic consumer branches, lint/format/actionlint checks.
+**Remaining**: Publisher PAT and current Actions usage/spending limit evidence.

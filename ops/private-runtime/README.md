@@ -129,11 +129,19 @@ npm registry에서는 0.153.4를 조회하지 못했다. 개인 환경의 CLI �
 | 이름 | 범위/용도 |
 |---|---|
 | `INVESTO_PUBLIC_PUBLISH_TOKEN` | 공개 `murphyGo/investo`만 선택한 fine-grained PAT, Contents 및 Actions 읽기/쓰기 |
-| `TELEGRAM_BOT_TOKEN` | 기존 브리핑 봇 |
-| `TELEGRAM_BRIEFING_CHANNEL_ID` | 기존 공개 채널 |
-| `TELEGRAM_OPERATOR_CHAT_ID` | 기존 운영자 대화, 공개 채널과 달라야 함 |
+| `TELEGRAM_BOT_TOKEN` | 기존 브리핑 봇, 이전 완료 |
+| `TELEGRAM_BRIEFING_CHANNEL_ID` | 기존 공개 채널, 이전 완료 |
+| `TELEGRAM_OPERATOR_CHAT_ID` | 기존 운영자 대화, 공개 채널과 달라야 함, 이전 완료 |
 | `FRED_API_KEY`, `OPENDART_API_KEY` | 기존 소스 구성, 2026-10-03 비공개 Environment 등록 확인 |
-| `BEA_API_KEY`, `CONGRESS_API_KEY`, `INVESTO_KRX_SERVICE_KEY` | 기존 공개 실행과 소스 범위를 맞추기 위해 이전 필요 |
+| `BEA_API_KEY`, `CONGRESS_API_KEY`, `INVESTO_KRX_SERVICE_KEY` | 기존 공개 실행의 키 재사용, 이전 완료 |
+
+2026-10-04 KST: 기존 공개 Investo의 Telegram 3종과 BEA/Congress/KRX
+6개 Secret을 그대로 재사용하도록 비공개 Environment에 등록했다.
+사용자에게 이 키들을 다시 발급하거나 수동 입력하도록 요청할 필요가 없다.
+이전 run `37136372915`은 대상 Environment의 공개키로 암호화한 값만
+전달했고 등록 후 임시 artifact와 일회성 원격 브랜치를 삭제했다.
+위 표에서 이 6개와 FRED/OPENDART는 등록 완료이며,
+현재 남은 자격 증명은 `INVESTO_PUBLIC_PUBLISH_TOKEN`이다.
 
 GitHub 저장 Secret은 이름만 조회할 수 있다. 값은 채팅에 전달하지 않고
 Environment UI 또는 전용 로컬 파일의 stdin 경로로 등록한다. 개인 GitHub
