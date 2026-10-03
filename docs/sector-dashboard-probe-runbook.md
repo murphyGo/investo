@@ -86,6 +86,7 @@ five green runs.
 | `auth.configuration` | Confirm `HF_DATA_API_KEY` exists and is a valid non-placeholder key. |
 | `auth.rejected` | Replace the expired/revoked key through the operator's HF account and GitHub repository Actions secrets; the key may have reached its 30-day lifetime. |
 | `source.throttle` / `source.transport` | Inspect the bounded aggregate result, wait for provider recovery, then rerun; do not increase the limits. |
+| `source.status` | Check the provider endpoint's availability. Repeated attempts indicate retryable HTTP 5xx responses; generic public status/metadata availability does not prove the token endpoint is healthy. Resume qualification after recovery. |
 | `source.schema` / `source.row` / `source.response_size` | Treat as contract drift; return to source qualification before changing the adapter. |
 | `source.calendar` / `source.freshness` | Check expected completed session, source availability and the supported calendar year. |
 | `probe.coverage` | Wait for the complete supported universe/history; do not count a partial run. |

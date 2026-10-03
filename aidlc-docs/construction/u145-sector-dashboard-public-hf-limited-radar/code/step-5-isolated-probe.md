@@ -62,9 +62,14 @@ Ruff. Full-suite, policy and site-build outcomes are recorded in the session log
 
 ## Gate status
 
-The workflow/CLI implementation and local gates are complete: 5,547 full-suite tests passed
-in 581.26 seconds, with unchanged code/configuration hashes throughout the final run.
-The five live Step 5 executions and Ubuntu reference benchmark have not yet occurred and
-are not replaced by Step 0 history, mock-transport tests, or the local resource benchmark.
+The workflow/CLI implementation and local gates are complete: the final `90f09d99` code
+passed 5,563 full-suite tests in 615.76 seconds. Independent review approved bounded-history
+retention and the official token-metadata envelope repair. The unchanged Ubuntu reference
+benchmark passed after repair (approximately 128–130 MiB peak RSS increase).
+Five successful live executions remain 0/5: one final-code run collected all eleven symbols
+but was stale, and two later runs were blocked by the provider's token-server failure.
+Unauthenticated HTTP 503 was independently reproduced on 2026-10-03. Failed executions are
+not replaced by Step 0 history, mock-transport tests, or the resource benchmark.
+Final evidence: `docs/sessions/2026-10-03-u145-step5-closeout.md` and its aggregate JSON.
 Step 6 remains separate and inactive. The earlier screen-validation waiver remains in force;
 it is `WAIVED / NOT_EXECUTED`, never a screenshot-based PASS.

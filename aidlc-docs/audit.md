@@ -7639,3 +7639,30 @@ review approved and separately passed normal/malformed-token tests. The precedin
 repair completed its full suite with 5,557 passed in 594.28 seconds. The later token fix
 will be validated separately against its final commit. Scope remains the approved Step 5
 commit/push and isolated probes. Evidence: `docs/sessions/2026-09-27-u145-step5-actions.md`.
+
+## Construction — u145 Step 5 verified implementation, external qualification gate
+
+**Timestamp**: 2026-10-03T23:33:45+09:00
+
+**User request**: `gogo`, continuing the authorized commit/push and five isolated probes.
+
+**Result**: Final implementation `90f09d99` is pushed. Full suite **5,563 passed in 615.76
+seconds**, zero failures/errors/skips, with application/workflow files unchanged throughout.
+The 158-test focused suite, static/policy/site checks, independent repair reviews and Ubuntu
+maximum-shape resource benchmark passed. The final XML records the exact full-test result.
+
+**External gate**: Five successful live probes remain **0/5**. Run `36333562285` collected
+11/11 symbols but was stale. Runs `37127718087` and `37127886681` passed the unchanged resource
+gate but each exhausted three retryable server-status attempts on the first token request.
+Unauthenticated token HTTP 503 was reproduced independently through 23:31 KST while public
+SPY metadata returned HTTP 200; the public catalog advertised 2026-10-02 data. No authentication
+rejection was observed. Continue five sequential qualifying runs on one reviewed commit after
+provider recovery; do not count the five failed executions as five successful probes.
+
+**Disposition**: Step 5 implementation/local/reference-resource gates complete; live gate
+remains external. Step 4 user waiver remains in force and Step 6 remains unstarted. Record
+closure evidence under the existing commit/push approval. Root dirty files, main, public
+artifacts, Pages/navigation/schedules, Telegram and daily-briefing integration remain untouched.
+
+**Evidence**: `docs/sessions/2026-10-03-u145-step5-closeout.md` and
+`docs/sessions/2026-10-03-u145-step5-actions-evidence.json`.

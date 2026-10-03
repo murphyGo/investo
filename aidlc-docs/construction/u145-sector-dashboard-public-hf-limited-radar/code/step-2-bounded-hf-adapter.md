@@ -15,6 +15,11 @@
   columns are accepted; on-wire, decoded, row-count, calendar, ordering, OHLC, volume, and source
   invariants fail closed. PiTrading rows are validated but discarded and only normalized IEX
   bars cross the adapter boundary.
+- Step 5 live repairs retain only SPY's final 64 observations and each sector's matching SPY
+  dates plus final two points, after complete raw-row validation. The official token envelope's
+  optional version/timeframe/format fields are accepted only as clean/daily/parquet; unknown
+  fields and conflicting values/types remain rejected. These repairs preserve normalized
+  snapshot/rendering output while meeting the unchanged Ubuntu resource ceiling.
 
 ## Secret and transport containment
 

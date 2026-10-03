@@ -3,7 +3,7 @@
 **Date**: 2026-07-22
 **Unit**: u145 sector-dashboard-public-hf-limited-radar
 **Stage**: Code Generation
-**Status**: Step 4 closed with user-approved viewport waiver; Step 5 implementation/local gates complete, live Actions probes 0/5
+**Status**: Step 4 closed with viewport waiver; Step 5 implementation/local/reference-resource gates complete, five live successes 0/5 gated by provider HTTP 503
 **Dependencies**: u139 complete; u140 strict gate remains blocked; operator-owned HF key present
 
 ## Stage Decision
@@ -206,15 +206,19 @@ implied. Decision: `docs/sessions/2026-09-27-u145-viewport-waiver.md`.
 
 - [x] Add manual workflow with read-only permissions, current operator secret, bounded summary,
   zero public writes, no Pages, no Telegram, and no daily briefing invocation.
-- [ ] Run focused/full gates plus TS-7/TS-8 benchmark.
+- [x] Run focused/full gates plus TS-7/TS-8 benchmark.
 - [ ] Execute five successful isolated GHA probes and record run ids/evidence.
 
-Local validation completed on 2026-09-27: 5,547 full-suite tests, 46 focused public-probe tests,
-Ruff/format, strict mypy, policy guards, strict MkDocs/Material contracts and the synthetic
-11 x 10,000-row resource benchmark passed. Independent review approved all repairs. The
-combined gate checkbox remains open until the Ubuntu reference benchmark executes in Actions.
-The user approved committing/pushing the reviewed branch and executing five sequential
-Actions probes on 2026-09-27; execution is in progress and live successes remain 0/5. Evidence: `docs/sessions/2026-09-27-u145-step5-isolated-probe.md`.
+Final validation completed on 2026-10-03 against implementation `90f09d99`: 5,563 full-suite
+tests and 158 focused adapter/metrics/probe tests passed, along with Ruff/format, strict mypy,
+policy/site gates and the synthetic 11 x 10,000-row benchmark. Independent review approved
+both live-found repairs: bounded retained history and the documented token metadata envelope.
+The unchanged Ubuntu resource gate passed in four runs after the memory repair, including
+three runs on the final implementation. The user-approved branch was committed and pushed.
+Live successes remain 0/5: one final-code run collected all eleven symbols but was stale;
+two later runs hit retryable token-server failures. Unauthenticated HTTP 503 was independently
+reproduced while public metadata remained available. Resume the five-run batch after provider
+recovery. Evidence: `docs/sessions/2026-10-03-u145-step5-closeout.md` and its aggregate JSON.
 
 Step 5 execution scope (2026-09-27): the existing Step 0 workflow is upgraded to call
 `scripts/build_sector_dashboard_public.py --probe-only` through the production adapter,
@@ -257,7 +261,8 @@ Step 3 completed on 2026-09-06 with synthetic close-only snapshot evidence and n
 call. Step 4 renderer and derived-only store implementation completed on 2026-09-06 and was
 repaired/revalidated on 2026-09-22. The user waived its actual 390x844 and desktop viewport check
 on 2026-09-27. Step 4 is closed with that exception. Step 5 implementation and local gates
-are complete; the Ubuntu reference benchmark and five live Actions probes remain pending.
+and the Ubuntu reference benchmark are complete; five successful live Actions probes remain
+pending because the provider token endpoint returns HTTP 503 (2026-10-03 evidence).
 Pages, schedule, and public artifact writes remain gated on five successful production-adapter
 Step 5 probes and the separate Step 6 activation checks. Telegram and daily-briefing coupling
 remain out of scope. Browser recovery is no longer a blocking prerequisite for this unit.

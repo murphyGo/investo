@@ -64,6 +64,8 @@ data, or raw response fragment.
 2. Parse the bounded token JSON, require exactly one HTTPS URL on
    `api.hfdatalibrary.com` with path `/v1/download/SPY`, no userinfo/fragment, and a non-empty
    signature query, then download it once without forwarding `HF_DATA_API_KEY`.
+   The documented envelope permits only `url`, `expires_at`, `version`, `timeframe`, and
+   `format`; optional identity metadata must equal `clean`, `daily`, and `parquet` respectively.
 3. Disable redirects, apply the same host, timeout, status, and byte policies to both calls,
    and treat the signed URL as ephemeral secret-equivalent request material that may never be
    logged or retained.
@@ -103,7 +105,10 @@ For every success:
    window must be `iex`. Historical `pitrading` rows are validation-only and cannot enter the
    normalized series or change the public IEX-sample label.
 6. Retain only the bounded IEX calculation window in memory; discard raw fields and older rows
-   after normalization.
+   after normalization. SPY retains its final 64 observations. Each sector retains the
+   intersection with those SPY dates plus its final two IEX observations (at most 66), preserving
+   parser-success and latest-date evidence even when fewer than two dates overlap. All original
+   rows are validated before pruning; missing required SPY dates remain failures.
 
 ### L5. Establish a common comparable date
 
