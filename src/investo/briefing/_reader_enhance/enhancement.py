@@ -14,6 +14,7 @@ from ``briefing/pipeline.py``.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
@@ -25,7 +26,7 @@ from investo._internal.public_watermark import (
     render_timestamp_watermark as _render_timestamp_watermark,
 )
 from investo.briefing import numeric_self_check
-from investo.briefing._assembly.summary_extraction import _build_summary_header
+from investo.briefing._assembly.summary_extraction import SummaryHeader, _build_summary_header
 from investo.briefing._reader_enhance.coverage_badge import _render_coverage_badge
 from investo.briefing.action_tag import DATA_LIMITED_ACTION_TAG
 from investo.briefing.glossary import (
@@ -107,6 +108,8 @@ def _enhance_reader_experience(
     candidates: Sequence[NormalizedItem] | None = None,
     market_anchors: Sequence[MarketAnchor] = (),
     archive_root: Path | None = None,
+    summary_override: SummaryHeader | None = None,
+    event_numeric_evidence: Sequence[str] = (),
 ) -> str:
     """Prepend the reader-facing title, segment nav, and 3-line brief."""
     if segment is None:
@@ -114,7 +117,9 @@ def _enhance_reader_experience(
 
     label = SEGMENT_LABELS[segment]
     effective_data_limited = data_limited or (coverage is not None and coverage.status != "normal")
-    summary_header = _build_summary_header(sections, data_limited=effective_data_limited)
+    summary_header = summary_override or _build_summary_header(
+        sections, data_limited=effective_data_limited
+    )
     public_conclusion = _render_public_conclusion(summary_header.conclusion)
     watermark = _render_timestamp_watermark(target_date, segment)
     # u49 — deterministic market anchor line (ATH / 52w / MTD / YTD).
@@ -126,7 +131,13 @@ def _enhance_reader_experience(
     # render a single-line warning callout when mismatches are found.
     numeric_warning_line = ""
     if candidates is not None:
-        unverified = numeric_self_check.find_unverified(body_markdown, candidates)
+        if summary_override is None:
+            unverified = numeric_self_check.find_unverified(body_markdown, candidates)
+        else:
+            numeric_body = re.sub(r"<!--.*?-->", "", body_markdown, flags=re.S)
+            unverified = numeric_self_check.find_unverified(
+                numeric_body, candidates, additional_evidence=event_numeric_evidence
+            )
         numeric_warning_line = numeric_self_check.render_warning_line(unverified)
     # u68 — cross-day suppression. Terms already glossed in this
     # segment's recent archives are dropped so the "처음 등장한 용어"

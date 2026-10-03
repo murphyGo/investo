@@ -1,0 +1,182 @@
+[
+  {
+    "segment": "domestic-equity",
+    "date": "2026-09-14",
+    "path": "archive/domestic-equity/2026/09/2026-09-14.md",
+    "first_issue_heading": "코스피 3%대 급락, 6,600대로 후퇴",
+    "first_issue_heading_line": 66,
+    "summary_fallback": true,
+    "summary_fallback_line": 23,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "domestic-equity",
+    "date": "2026-09-15",
+    "path": "archive/domestic-equity/2026/09/2026-09-15.md",
+    "first_issue_heading": "코스피, 금리·유가·AI 속도조절론 부담에 나흘째 하락",
+    "first_issue_heading_line": 67,
+    "summary_fallback": false,
+    "summary_fallback_line": null,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "domestic-equity",
+    "date": "2026-09-16",
+    "path": "archive/domestic-equity/2026/09/2026-09-16.md",
+    "first_issue_heading": "코스피, 닷새 만에 반등…반도체 대형주가 주도",
+    "first_issue_heading_line": 68,
+    "summary_fallback": true,
+    "summary_fallback_line": 24,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "domestic-equity",
+    "date": "2026-09-17",
+    "path": "archive/domestic-equity/2026/09/2026-09-17.md",
+    "first_issue_heading": "코스피·코스닥, 엇갈린 마감",
+    "first_issue_heading_line": 68,
+    "summary_fallback": false,
+    "summary_fallback_line": null,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "domestic-equity",
+    "date": "2026-09-18",
+    "path": "archive/domestic-equity/2026/09/2026-09-18.md",
+    "first_issue_heading": "코스피, 외국인 복귀에 **2.66%** 상승 마감",
+    "first_issue_heading_line": 68,
+    "summary_fallback": true,
+    "summary_fallback_line": 23,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "domestic-equity",
+    "date": "2026-09-21",
+    "path": "archive/domestic-equity/2026/09/2026-09-21.md",
+    "first_issue_heading": "코스피, 반도체 강세에 '7천피' 재탈환",
+    "first_issue_heading_line": 68,
+    "summary_fallback": false,
+    "summary_fallback_line": null,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "us-equity",
+    "date": "2026-09-11",
+    "path": "archive/us-equity/2026/09/2026-09-11.md",
+    "first_issue_heading": "AAPL·AMZN·GOOGL·META·MSFT, 상승 마감 — DGS10은 **4.95%**로 재상승",
+    "first_issue_heading_line": 71,
+    "summary_fallback": true,
+    "summary_fallback_line": 25,
+    "monthly_cpi_334131_present": true
+  },
+  {
+    "segment": "us-equity",
+    "date": "2026-09-15",
+    "path": "archive/us-equity/2026/09/2026-09-15.md",
+    "first_issue_heading": "S&P 500·다우존스·나스닥100, 국채금리·유가 상승 속 동반 하락",
+    "first_issue_heading_line": 72,
+    "summary_fallback": false,
+    "summary_fallback_line": null,
+    "monthly_cpi_334131_present": true
+  },
+  {
+    "segment": "us-equity",
+    "date": "2026-09-16",
+    "path": "archive/us-equity/2026/09/2026-09-16.md",
+    "first_issue_heading": "S&P 500·다우·나스닥100, FOMC 이후 혼조 마감",
+    "first_issue_heading_line": 72,
+    "summary_fallback": false,
+    "summary_fallback_line": null,
+    "monthly_cpi_334131_present": true
+  },
+  {
+    "segment": "us-equity",
+    "date": "2026-09-17",
+    "path": "archive/us-equity/2026/09/2026-09-17.md",
+    "first_issue_heading": "S&P 500·나스닥100, 유가·국채금리 하락에 상승 마감",
+    "first_issue_heading_line": 72,
+    "summary_fallback": true,
+    "summary_fallback_line": 26,
+    "monthly_cpi_334131_present": true
+  },
+  {
+    "segment": "us-equity",
+    "date": "2026-09-18",
+    "path": "archive/us-equity/2026/09/2026-09-18.md",
+    "first_issue_heading": "메가캡 기술주, 혼재된 주가 흐름",
+    "first_issue_heading_line": 72,
+    "summary_fallback": true,
+    "summary_fallback_line": 26,
+    "monthly_cpi_334131_present": true
+  },
+  {
+    "segment": "us-equity",
+    "date": "2026-09-21",
+    "path": "archive/us-equity/2026/09/2026-09-21.md",
+    "first_issue_heading": "S&P 500·나스닥100, 반도체 강세와 유가 하락에 상승 마감",
+    "first_issue_heading_line": 71,
+    "summary_fallback": true,
+    "summary_fallback_line": 26,
+    "monthly_cpi_334131_present": true
+  },
+  {
+    "segment": "crypto",
+    "date": "2026-09-14",
+    "path": "archive/crypto/2026/09/2026-09-14.md",
+    "first_issue_heading": "CLARITY 법안 상원 표결을 둘러싼 공방",
+    "first_issue_heading_line": 86,
+    "summary_fallback": true,
+    "summary_fallback_line": 22,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "crypto",
+    "date": "2026-09-15",
+    "path": "archive/crypto/2026/09/2026-09-15.md",
+    "first_issue_heading": "BTC·ETH 관련 Clarity Act 상원 표결 불발",
+    "first_issue_heading_line": 84,
+    "summary_fallback": true,
+    "summary_fallback_line": 23,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "crypto",
+    "date": "2026-09-16",
+    "path": "archive/crypto/2026/09/2026-09-16.md",
+    "first_issue_heading": "BTC·ETH, 연준 금리 인상 이후 변동성 확대",
+    "first_issue_heading_line": 83,
+    "summary_fallback": true,
+    "summary_fallback_line": 22,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "crypto",
+    "date": "2026-09-17",
+    "path": "archive/crypto/2026/09/2026-09-17.md",
+    "first_issue_heading": "BTC 파생 포지셔닝과 JPMorgan 코멘트",
+    "first_issue_heading_line": 84,
+    "summary_fallback": true,
+    "summary_fallback_line": 23,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "crypto",
+    "date": "2026-09-18",
+    "path": "archive/crypto/2026/09/2026-09-18.md",
+    "first_issue_heading": "BTC, **$80,000** 회복 속 파생 포지셔닝은 순매도 우위",
+    "first_issue_heading_line": 83,
+    "summary_fallback": true,
+    "summary_fallback_line": 22,
+    "monthly_cpi_334131_present": false
+  },
+  {
+    "segment": "crypto",
+    "date": "2026-09-21",
+    "path": "archive/crypto/2026/09/2026-09-21.md",
+    "first_issue_heading": "비트코인 24h 스냅샷: **$85,000** 터치",
+    "first_issue_heading_line": 83,
+    "summary_fallback": true,
+    "summary_fallback_line": 22,
+    "monthly_cpi_334131_present": false
+  }
+]

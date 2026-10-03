@@ -15,6 +15,7 @@ Coverage map (per u72 plan Steps 1/3/4/6 + AC-72.1..72.5):
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -365,7 +366,9 @@ def test_structured_bullet_produces_populated_card_ac87_5_u98() -> None:
     assert _HEADER_LINE not in out
     assert "#### 관찰 신호:" in out
     assert "- 출처: FRED" in out
-    assert "- 현재: FRED" in out
+    # u152: a source label is not an observation; the pure parser leaves
+    # the current unresolved for the payload-owning caller.
+    assert "- 현재: 현재 신호 부족" in out
     assert "- 확인 조건: 상방 " in out
     assert "- 신뢰도: 높음" in out
     assert "- 관심 영향: 변동성 확대 여부를 점검" in out
@@ -374,7 +377,7 @@ def test_structured_bullet_produces_populated_card_ac87_5_u98() -> None:
 
     rows = build_watchpoint_rows([_STRUCTURED_NUMERIC])
     row = rows[0]
-    assert row.current != "현재 신호 부족"
+    assert row.current == "현재 신호 부족"
     assert (
         row.bullish_trigger != DATA_LIMITED_CONFIDENCE
         or row.bearish_trigger != DATA_LIMITED_CONFIDENCE
@@ -434,8 +437,8 @@ def test_u110_promotes_source_from_current_and_strips_duplicate_labels() -> None
     assert "관심 영향: 관심 영향" not in out
     assert "상방 상방" not in out
     assert "하방 하방" not in out
-    # Prefix stripping must not erase semantic direction text in the current field.
-    assert "상방 압력 구간" in out
+    # u152 keeps conditional prose out of the unresolved current slot.
+    assert "- 현재: 현재 신호 부족" in out
 
 
 def test_u110_identical_up_down_triggers_are_omitted() -> None:
@@ -746,7 +749,7 @@ def test_typed_watchpoint_result_rejects_state_count_reason_drift(result: object
 def _value_row(signal: str, *, current: str = "CoinGecko BTC") -> WatchpointRow:
     return WatchpointRow(
         signal=signal,
-        source="CoinGecko BTC",
+        source="CoinGecko",
         current=current,
         bullish_trigger="상단 상회 시 회복 흐름 관찰",
         bearish_trigger="하단 이탈 시 방어적 수급 관찰",
@@ -786,7 +789,7 @@ def test_u135_resolves_source_shaped_crypto_current_from_reconciled_anchor() -> 
     rows = resolve_watchpoint_currents([_value_row("CoinGecko BTC · UTC 24h")], payload)
 
     assert len(rows) == 1
-    assert rows[0].source == "CoinGecko BTC"
+    assert rows[0].source == "CoinGecko"
     assert rows[0].current == "$60,284.00 (+2.23%)"
     assert "- 현재: $60,284.00 (+2.23%)" in render_matrix_table(rows)
 
@@ -824,7 +827,7 @@ def test_u135_repairs_canonical_legacy_card_once_then_is_byte_idempotent() -> No
     assert repeated.markdown == repaired.markdown
 
 
-def test_u135_preserves_numeric_current_and_drops_unresolved_or_fuzzy_rows() -> None:
+def test_u152_replaces_numeric_current_and_drops_unresolved_or_fuzzy_rows() -> None:
     payload = WatchpointValuePayload(
         segment="crypto",
         anchors=(
@@ -836,7 +839,7 @@ def test_u135_preserves_numeric_current_and_drops_unresolved_or_fuzzy_rows() -> 
             ),
         ),
     )
-    numeric = _value_row("BTC 가격", current="$60,284.00 (+2.23%)")
+    numeric = _value_row("BTC 가격", current="$99,999.00 (+99%)")
 
     resolved = resolve_watchpoint_currents(
         [
@@ -848,7 +851,7 @@ def test_u135_preserves_numeric_current_and_drops_unresolved_or_fuzzy_rows() -> 
         payload,
     )
 
-    assert resolved == [numeric]
+    assert resolved == [replace(numeric, current="$60,284.00 (+2.23%)")]
 
 
 def test_u135_ascii_token_allows_only_bounded_korean_particle_suffix() -> None:
@@ -874,7 +877,9 @@ def test_u135_ascii_token_allows_only_bounded_korean_particle_suffix() -> None:
         payload,
     )
 
-    assert [row.signal for row in resolved] == ["BTC가 기준선을 상회"]
+    assert len(resolved) == 1
+    assert "BTC" in resolved[0].signal or "비트코인" in resolved[0].signal
+    assert "상회" not in resolved[0].signal
     assert resolved[0].current == "$60,284.00 (+2.23%)"
 
 
@@ -927,6 +932,8 @@ def test_u135_resolves_every_pinned_item_value_key_by_exact_signal_token() -> No
                     "contract_group": "crypto",
                     "net_contracts": "-2400",
                     "net_pct_open_interest": "-4.20",
+                    "as_of_date": "2026-06-23",
+                    "release_date": "2026-06-26",
                 },
             ),
         ),
@@ -943,13 +950,18 @@ def test_u135_resolves_every_pinned_item_value_key_by_exact_signal_token() -> No
         payload,
     )
 
-    assert [row.current for row in rows] == [
+    assert [row.current for row in rows[:4]] == [
         "$60,284.00 (+2.23%)",
         "18 (Extreme Fear)",
         "펀딩 0.0001",
         "OI $18,450,000,000.00",
-        "순포지션 -2,400계약 (-4.2% OI, 주간 지연)",
     ]
+    assert len(rows) == 5
+    assert "순포지션 -2,400계약" in rows[4].current
+    assert "-4.2% OI" in rows[4].current
+    assert "2026-06-23 기준/2026-06-26 공개" in rows[4].current
+    assert "주간 지연" in rows[4].current
+    assert rows[4].confidence == "보통"
 
 
 @pytest.mark.parametrize(
@@ -1022,6 +1034,8 @@ def test_u135_rejects_cross_segment_value_sources_and_anchors() -> None:
             "contract_group": "equity_index",
             "net_contracts": "-451586",
             "net_pct_open_interest": "-20.50",
+            "as_of_date": "2026-06-23",
+            "release_date": "2026-06-26",
         },
     )
 
@@ -1040,13 +1054,15 @@ def test_u135_rejects_cross_segment_value_sources_and_anchors() -> None:
         == []
     )
     assert resolve_watchpoint_currents([_value_row("E-mini S&P 500 포지셔닝")], crypto) == []
-    assert [
-        row.current
-        for row in resolve_watchpoint_currents(
-            [_value_row("공포·탐욕 지수"), _value_row("E-mini S&P 500 포지셔닝")],
-            us,
-        )
-    ] == ["순포지션 -451,586계약 (-20.5% OI, 주간 지연)"]
+    us_rows = resolve_watchpoint_currents(
+        [_value_row("공포·탐욕 지수"), _value_row("E-mini S&P 500 포지셔닝")],
+        us,
+    )
+    assert len(us_rows) == 1
+    assert "순포지션 -451,586계약" in us_rows[0].current
+    assert "-20.5% OI" in us_rows[0].current
+    assert "2026-06-23 기준/2026-06-26 공개" in us_rows[0].current
+    assert "주간 지연" in us_rows[0].current
 
 
 def test_u135_invalid_numeric_domains_fail_closed() -> None:

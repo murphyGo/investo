@@ -55,8 +55,10 @@ Pins:
 
 from __future__ import annotations
 
+import asyncio
 import os
-from datetime import UTC, datetime, time
+from dataclasses import replace
+from datetime import UTC, datetime, time, timedelta
 from typing import Any, ClassVar, Final
 from zoneinfo import ZoneInfo
 
@@ -64,10 +66,11 @@ import httpx
 from pydantic import ValidationError
 
 from investo.models import Category, NormalizedItem
+from investo.models.coverage import SourceFetchResult, SourceWindowCoverage
 from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
-from investo.sources._retry import retry_get
+from investo.sources._retry import DEFAULT_CONFIG, retry_get
 from investo.sources._sanitize import strip_html
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
@@ -119,6 +122,8 @@ class DartDisclosureAdapter:
     _ENDPOINT: ClassVar[str] = "https://opendart.fss.or.kr/api/list.json"
     _PAGE_COUNT: ClassVar[int] = 100
     _MAX_ITEMS: ClassVar[int] = 30
+    _MAX_PAGES: ClassVar[int] = 3
+    _WINDOW_BUDGET_S: ClassVar[float] = 20.0
 
     async def fetch(
         self,
@@ -207,6 +212,196 @@ class DartDisclosureAdapter:
         items.sort(key=lambda i: i.published_at, reverse=True)
         return items[: self._MAX_ITEMS]
 
+    async def fetch_with_coverage(
+        self, client: httpx.AsyncClient, window: FetchWindow
+    ) -> SourceFetchResult:
+        """Read bounded official pagination without assigning a filing time.
+
+        Provider contract: OpenDART DS001/2019001 defines reception-date
+        bounds, page numbers/counts, total pages and YYYYMMDD rcept_dt.
+        https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019001
+        Full means this filtered query was exhausted, not all corporate news.
+        """
+        api_key = os.environ.get(_ENV_KEY, "").strip()
+        if not api_key:
+            raise SourceFetchError(
+                source_name=self.name, message=f"{_ENV_KEY} not set", transient=False
+            )
+        window = replace(window, news_observation=True)
+        bgn_de, end_de = self._window_to_yyyymmdd(window)
+        loop = asyncio.get_running_loop()
+        budget = min(self._WINDOW_BUDGET_S, DEFAULT_CONFIG.total_budget_s)
+        deadline = loop.time() + budget
+        items: list[NormalizedItem] = []
+        seen: set[str] = set()
+        pages = parse_failures = 0
+        cap_reached = False
+        complete = False
+        totals: tuple[int, int] | None = None
+        try:
+            async with asyncio.timeout(budget):
+                for page_no in range(1, self._MAX_PAGES + 1):
+                    remaining = deadline - loop.time()
+                    if remaining <= 0:
+                        raise TimeoutError
+                    response = await retry_get(
+                        client,
+                        self._ENDPOINT,
+                        source_name=self.name,
+                        params={
+                            "crtfc_key": api_key,
+                            "bgn_de": bgn_de,
+                            "end_de": end_de,
+                            "page_no": str(page_no),
+                            "page_count": str(self._PAGE_COUNT),
+                            "sort": "date",
+                            "sort_mth": "asc",
+                            "last_reprt_at": "N",
+                        },
+                        config=replace(
+                            DEFAULT_CONFIG,
+                            total_budget_s=remaining,
+                            timeout_s=min(DEFAULT_CONFIG.timeout_s, remaining),
+                        ),
+                    )
+                    payload = parse_json_response(
+                        response,
+                        source_name=self.name,
+                        message="malformed OpenDART pagination response",
+                        append_exc=False,
+                    )
+                    if not isinstance(payload, dict):
+                        raise SourceFetchError(
+                            source_name=self.name,
+                            message="non-object OpenDART response",
+                            transient=False,
+                        )
+                    status = str(payload.get("status", "")).strip()
+                    if status == _STATUS_EMPTY:
+                        pages += 1
+                        complete = page_no == 1 and not payload.get("list")
+                        for key in ("total_count", "total_page"):
+                            if key in payload and str(payload[key]) != "0":
+                                complete = False
+                        if not complete:
+                            parse_failures += 1
+                        break
+                    if status != _STATUS_OK:
+                        raise SourceFetchError(
+                            source_name=self.name,
+                            message=f"OpenDART status {status[:3]}",
+                            transient=status in _TRANSIENT_STATUSES,
+                        )
+                    pages += 1
+                    raw_list = payload.get("list")
+                    if not isinstance(raw_list, list):
+                        parse_failures += 1
+                        break
+                    pagination = self._pagination(payload, page_no)
+                    if pagination is None or (totals is not None and pagination != totals):
+                        parse_failures += 1
+                    elif totals is None:
+                        totals = pagination
+                    if pagination is not None:
+                        total_count, _total_page = pagination
+                        if len(raw_list) != min(
+                            self._PAGE_COUNT, max(0, total_count - (page_no - 1) * self._PAGE_COUNT)
+                        ):
+                            parse_failures += 1
+                    for entry in raw_list:
+                        if not self._well_formed_entry(entry):
+                            parse_failures += 1
+                            continue
+                        if not bgn_de <= entry["rcept_dt"] <= end_de:
+                            parse_failures += 1
+                            continue
+                        receipt = entry["rcept_no"]
+                        if receipt in seen:
+                            parse_failures += 1
+                            continue
+                        seen.add(receipt)
+                        normalized = self._normalize_entry(entry, date_precision=True)
+                        if normalized is None:
+                            # Filtering unrelated report kinds is intentional;
+                            # failing to parse a relevant report is not coverage.
+                            if self._classify(strip_html(entry["report_nm"])) is not None:
+                                parse_failures += 1
+                            continue
+                        local_date = normalized.published_at.astimezone(_KST).date()
+                        if window.overlaps_local_date(local_date, _KST):
+                            items.append(normalized)
+                    if len(items) > self._MAX_ITEMS:
+                        cap_reached = True
+                        break
+                    if pagination is None:
+                        break
+                    if page_no == pagination[1]:
+                        complete = len(seen) == pagination[0]
+                        break
+                    if page_no == self._MAX_PAGES:
+                        cap_reached = True
+        except TimeoutError as exc:
+            if not pages:
+                raise SourceFetchError(
+                    source_name=self.name,
+                    message="OpenDART news window budget exhausted",
+                    transient=True,
+                ) from exc
+        except SourceFetchError:
+            if not pages:
+                raise
+        items.sort(
+            key=lambda item: (item.published_at, item.raw_metadata["rcept_no"]), reverse=True
+        )
+        return SourceFetchResult(
+            tuple(items[: self._MAX_ITEMS]),
+            SourceWindowCoverage(
+                self.name,
+                window.start_utc,
+                window.end_utc,
+                pages=pages,
+                cap_reached=cap_reached,
+                parse_failures=parse_failures,
+                completeness="full"
+                if complete and not cap_reached and not parse_failures
+                else "partial",
+                basis="provider_pagination",
+            ),
+        )
+
+    @classmethod
+    def _pagination(cls, payload: dict[str, Any], page_no: int) -> tuple[int, int] | None:
+        values = []
+        for key in ("page_no", "page_count", "total_count", "total_page"):
+            raw = payload.get(key)
+            if isinstance(raw, bool) or not isinstance(raw, int | str) or not str(raw).isdigit():
+                return None
+            values.append(int(raw))
+        current, page_count, total_count, total_page = values
+        if (
+            current != page_no
+            or page_count != cls._PAGE_COUNT
+            or total_count <= 0
+            or total_page != (total_count + page_count - 1) // page_count
+        ):
+            return None
+        return total_count, total_page
+
+    @staticmethod
+    def _well_formed_entry(entry: Any) -> bool:
+        if not isinstance(entry, dict) or any(
+            not isinstance(entry.get(key), str) or not entry[key].strip()
+            for key in ("report_nm", "rcept_no", "rcept_dt", "corp_name", "corp_code", "corp_cls")
+        ):
+            return False
+        if len(entry["rcept_no"]) != 14 or not entry["rcept_no"].isdigit():
+            return False
+        try:
+            DartDisclosureAdapter._parse_rcept_dt(entry["rcept_dt"])
+        except (ValueError, TypeError):
+            return False
+        return len(entry["rcept_dt"]) == 8
+
     @staticmethod
     def _window_to_yyyymmdd(window: FetchWindow) -> tuple[str, str]:
         """Map the UTC :class:`FetchWindow` to OpenDART ``YYYYMMDD`` bounds.
@@ -215,11 +410,18 @@ class DartDisclosureAdapter:
         For a single-day publish window the start and end are the same
         KST trading date.
         """
+        if window.news_observation:
+            return (
+                window.start_utc.astimezone(_KST).strftime("%Y%m%d"),
+                (window.end_utc - timedelta(microseconds=1)).astimezone(_KST).strftime("%Y%m%d"),
+            )
         kst_target = window.target_date
         date_str = kst_target.strftime("%Y%m%d")
         return date_str, date_str
 
-    def _normalize_entry(self, entry: Any) -> NormalizedItem | None:
+    def _normalize_entry(
+        self, entry: Any, *, date_precision: bool = False
+    ) -> NormalizedItem | None:
         if not isinstance(entry, dict):
             return None
         report_nm_raw = entry.get("report_nm")
@@ -272,6 +474,18 @@ class DartDisclosureAdapter:
             "rcept_dt": rcept_dt.strip(),
             "subcategory": subcategory,
         }
+        if date_precision:
+            local_date = published_at.astimezone(_KST).date()
+            raw_metadata.update(
+                {
+                    "published_at_precision": "date",
+                    "published_date": local_date.isoformat(),
+                    "published_timezone": "Asia/Seoul",
+                    "event_date": local_date.isoformat(),
+                    "event_time_basis": "source_date",
+                }
+            )
+            published_at = datetime.combine(local_date, time.min, tzinfo=_KST).astimezone(UTC)
         stock_code = entry.get("stock_code")
         if isinstance(stock_code, str) and stock_code.strip():
             raw_metadata["stock_code"] = stock_code.strip()

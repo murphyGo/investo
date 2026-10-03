@@ -607,9 +607,34 @@ Acceptance criteria AC-155.1–AC-155.12 and approved R1–R14 are in the
 US-009's Claude-only wording is expanded by the new user request while the
 no-additional-LLM-API-cost goal remains; private Actions usage must be qualified.
 
+## u157–u162 — News/Event Briefing Planning Notes (2026-09-26)
+
+Design approved for sequential development on 2026-09-27; u157–u162 Code Generation and the required u152 prerequisite are complete as of 2026-10-04, with separate per-unit commits. Latest full regression6087/460.18s and independent review/cross-check pass; default off. Human semantic acceptance, scheduled shadow, main integration and activation remain separate. Normative source: `aidlc-docs/construction/news-event-briefing/README.md`; FR-023 in requirements.
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|---|---|---|---|
+| u157 event-evidence-selection-contract | 중요 사건 선정과 입력 보존 | US-001/002/008/009; FR-001/002/006/008/013/014/023 | u58/u59/u93/u97; source routing and bounded Stage1/2 |
+| u158 event-first-narrative-and-summary | 사건 중심 본문과 상단 요약 | US-002/003/004/009; FR-002/003/004/009/023 | u144/u153; u154 layout and reserved u156 presentation |
+| u159 event-coverage-replay-and-gate | 중요 사건 반영률과 최종 품질 검증 | US-002/003/005/007; FR-010/017/021/023 | u59/u65/u123/u144 terminal quality and replay |
+| u160 publication-news-observation-window | 주말·장후 뉴스를 포함하는 관측기간 | US-001/003/005/006/008; FR-001/005/006/008/013/020/023 | u1/u5/u31/u35/u102/u113/u144 cursor transaction |
+| u161 bounded-official-event-evidence | 공식 사건 근거 보강과 뉴스 소스 복구 판정 | US-001/002/007/008; FR-001/002/010/021/023 | u103/u126 feed evidence; NFR-008 qualification |
+| u162 qualitative-event-watchpoints | 정성 사건 상태를 추적하는 관전 포인트 | US-002/003; FR-002/009/012/020/023 | u152 numeric current; u98/u110/u135/u144 composition |
+
+Hard dependencies: u157→u158→u159; u157→u161 runtime; u157/u158/u152→u162. u157→u160 cursor integration; u160 window/adapters can proceed in parallel. u161 source qualification has no u157 dependency. Do not add u160/u161 as prerequisites for the first event-writing slice. u154 owns layout only and is not a blocker for event content. Implementation must preserve partial-sibling and sealed-DTO contracts.
+
+Deduplicated out: generic numeric validation, new dashboard, second finalizer, official speech RSS re-registration, repeated preamble layout unit, Telegram redesign. No new source endpoint is presumed qualified; u161 records source-by-source qualification/blocked status. u156 local branch ownership is reserved without claiming its implementation exists.
+
 ## Definition of Done — Inception Phase Output
 
 이 매핑이 다음 단계(Construction)의 입력입니다:
 - 각 unit별 Functional Design 대상이 명확 (execution-plan.md의 selective per-unit 정책 참조)
 - 각 unit별 NFR Requirements 작성 시, 본 표의 "AC delivered" 컬럼이 출발점
 - Code Generation은 unit-of-work.md의 Definition of Done 체크리스트를 task로 변환
+
+## u152 prerequisite completion (2026-10-03)
+
+The earlier design-ready snapshot is superseded: u152 FD and 6/6 code steps are complete as the required prerequisite for approved u162. Full5961/472.37s, focused165, independent66 plus14 source-slot controls passed; four P2 corrections closed. Existing numerical gates, cap/fallback and sealed lifecycle retained. No activation or main integration.
+
+## u162 completion (2026-10-04)
+
+Source-backed qualitative current state and next checks now compose with the existing numeric baseline. Six steps/five ACs pass; event removal updates cards and summary before seal and preserves exact repeat output. Independent source-locator and HTML-visibility P2 corrections closed. Full6087/460.18s; no new I/O, LLM stage or default activation. See `aidlc-docs/construction/u162-qualitative-event-watchpoints/code/validation.json`.

@@ -4723,3 +4723,56 @@ def test_segment_generation_policy_carries_postmortem_timeouts_and_cron_budget()
     # classification stage and output validation.
     for policy in (domestic, us, crypto):
         assert policy.total_budget_s >= policy.timeout_s * policy.max_attempts
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tamper", [False, True])
+async def test_dry_run_validates_event_snapshot_without_public_history_write(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, tamper: bool
+) -> None:
+    from investo.models.event_quality import EventCoverage
+
+    read_existing = pipeline_module._read_existing_bytes
+    _patch_publish_segments_side_effects(monkeypatch, tmp_path=tmp_path)
+    monkeypatch.setattr(pipeline_module, "_read_existing_bytes", read_existing)
+    monkeypatch.setenv("INVESTO_DRY_RUN", "1")
+    history = tmp_path / "quality_history.jsonl"
+    monkeypatch.setenv("INVESTO_QUALITY_HISTORY_PATH", str(history))
+    original = '{"date": "2026-04-26", "worst_severity": "normal"}\n'
+    history.write_text(original)
+    coverage = EventCoverage(
+        selected_count=2, terminal_event_count=1, qualified_event_count=1, state="qualified"
+    )
+    real_update = pipeline_module.update_quality_page
+    observed_paths: list[Path] = []
+
+    def capture_page(*args: object, **kwargs: object) -> Path:
+        scratch = cast(Path, kwargs["quality_history_path"])
+        observed_paths.append(scratch)
+        rows = [json.loads(line) for line in scratch.read_text().splitlines()]
+        current = next(row for row in rows if row["date"] == _TARGET.isoformat())
+        assert current["event_coverage"][US_EQUITY] == coverage.model_dump(mode="json")
+        if tamper:
+            current["event_coverage"][US_EQUITY]["selected_count"] = 3
+            scratch.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+        return real_update(*args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(pipeline_module, "update_quality_page", capture_page)
+    git = _SuccessfulGitRunner()
+    call = pipeline_module._stage_publish_segments(
+        {US_EQUITY: _briefing(segment=US_EQUITY)},
+        _TARGET,
+        git_runner=git,
+        phase_one_complete=True,
+        event_coverage={US_EQUITY: coverage},
+    )
+    if tamper:
+        with pytest.raises(
+            pipeline_module.QualityConsistencyError, match="event_coverage_mismatch"
+        ):
+            await call
+    else:
+        assert US_EQUITY in await call
+    assert history.read_text() == original
+    assert git.calls == []
+    assert observed_paths and not observed_paths[0].parent.exists()

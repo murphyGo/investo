@@ -1,0 +1,1054 @@
+{
+  "schema_version": 1,
+  "fixture_author": "AI-authored synthetic",
+  "human_review": "pending",
+  "human_semantic_score": null,
+  "rubric": [
+    "what",
+    "when",
+    "why",
+    "reaction_or_explicit_unknown",
+    "source"
+  ],
+  "input_recording": "records.json",
+  "input_recording_sha256": "7a358c5b4e984dfaa6c61516470db1c94eb4a93549af6d55999a7222d98acfd7",
+  "output_inventory_source": "aidlc-docs/construction/news-event-briefing/evidence/sample-inventory.json",
+  "output_inventory": [
+    {
+      "segment": "domestic-equity",
+      "date": "2026-09-14",
+      "path": "archive/domestic-equity/2026/09/2026-09-14.md",
+      "sha256": "3b29e96b1f0655c7e8650f4e1b55805cc8072e71410ac77176198f7b3df6651d",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "domestic-equity",
+      "date": "2026-09-15",
+      "path": "archive/domestic-equity/2026/09/2026-09-15.md",
+      "sha256": "8e3ce3d6bcd8185c62d9965c4607b026cf4beb7dac9eaa46f511a0b7b731899b",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "domestic-equity",
+      "date": "2026-09-16",
+      "path": "archive/domestic-equity/2026/09/2026-09-16.md",
+      "sha256": "dcc4d0864edd1bef80de30adaa2ea3da45098f28e666006cfebc2e1279ee83df",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "domestic-equity",
+      "date": "2026-09-17",
+      "path": "archive/domestic-equity/2026/09/2026-09-17.md",
+      "sha256": "4ca3b814581d143fcbcb1f843b5404f90cdcec6bbed504318aeaa227fa508707",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "domestic-equity",
+      "date": "2026-09-18",
+      "path": "archive/domestic-equity/2026/09/2026-09-18.md",
+      "sha256": "38ffdf489065013b63e061eff2856f28f908a73a218f3ddb28294764ca911d26",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "domestic-equity",
+      "date": "2026-09-21",
+      "path": "archive/domestic-equity/2026/09/2026-09-21.md",
+      "sha256": "d94dc7624525c1eb8c4aa1d8c8e9eea399f387d98c0ed96c18e56c6c9bc41557",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "us-equity",
+      "date": "2026-09-11",
+      "path": "archive/us-equity/2026/09/2026-09-11.md",
+      "sha256": "11a7ddd81bec7ff5fe77d8d91d13e757f5df740333d877a7ac83fb30a6fb9064",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "us-equity",
+      "date": "2026-09-15",
+      "path": "archive/us-equity/2026/09/2026-09-15.md",
+      "sha256": "cd2d794e8fc263c45ec2d70f60922e1faa39b08c1eb967e874bb22626250c188",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "us-equity",
+      "date": "2026-09-16",
+      "path": "archive/us-equity/2026/09/2026-09-16.md",
+      "sha256": "6e2c9820c6123dc0da53cd476f27f95259ef2ae5a6122dbf2a09b24626db4640",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "us-equity",
+      "date": "2026-09-17",
+      "path": "archive/us-equity/2026/09/2026-09-17.md",
+      "sha256": "a81ab9aaeed37bc12925788e1b24a0bce196d4066438cfa764d661b87377fd51",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "us-equity",
+      "date": "2026-09-18",
+      "path": "archive/us-equity/2026/09/2026-09-18.md",
+      "sha256": "101b5f03ae64d34e2fa74567124867e7fd762e62e4995b8ada8a8b68f48dcc45",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "us-equity",
+      "date": "2026-09-21",
+      "path": "archive/us-equity/2026/09/2026-09-21.md",
+      "sha256": "05a7515c4fc9ddcfacf271fb247e8a4c9bd6ce2f2eac33ef6d0489794964801c",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "crypto",
+      "date": "2026-09-14",
+      "path": "archive/crypto/2026/09/2026-09-14.md",
+      "sha256": "ab7592868591d9a05d062ffa70f4510ada4588c11df181b1929a9e0f123eb6e8",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "crypto",
+      "date": "2026-09-15",
+      "path": "archive/crypto/2026/09/2026-09-15.md",
+      "sha256": "db66836ed966cfb99a4fb3fa0252ca8db6c8ca81f8ddc089aa29c2b7da958009",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "crypto",
+      "date": "2026-09-16",
+      "path": "archive/crypto/2026/09/2026-09-16.md",
+      "sha256": "27e4fcf8bcd76efca19d06711be48b820e20002596daa46b62e402dcf7546f88",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "crypto",
+      "date": "2026-09-17",
+      "path": "archive/crypto/2026/09/2026-09-17.md",
+      "sha256": "20e07d52fe469d9160170a9f00a59c548ad781a5a5ecd364a28c46a7f479a795",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "crypto",
+      "date": "2026-09-18",
+      "path": "archive/crypto/2026/09/2026-09-18.md",
+      "sha256": "a52aec1d3888fc19cdfce0d1526a30a474eb36c61eb05c237692b883952b8869",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    },
+    {
+      "segment": "crypto",
+      "date": "2026-09-21",
+      "path": "archive/crypto/2026/09/2026-09-21.md",
+      "sha256": "622bfe52ca8f1627c77f70a9ce0cc32b443028f9d6c826e0d005a85927e18999",
+      "source_revision": "c286f5003973c3d7a5fc0c7db2eeda0e6e9bb64c",
+      "purpose": "published_output_inventory_only"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "s01",
+      "description": "금리 결정과 SEP"
+    },
+    {
+      "scenario_id": "s02",
+      "description": "지정학 합의와 확인되지 않은 시장 반응"
+    },
+    {
+      "scenario_id": "s03",
+      "description": "실적 실제값·시장 예상·가이던스"
+    },
+    {
+      "scenario_id": "s04",
+      "description": "수치 없는 서비스 출시"
+    },
+    {
+      "scenario_id": "s05",
+      "description": "발언자와 정책 발언"
+    },
+    {
+      "scenario_id": "s06",
+      "description": "변화 없는 월간값과 주간 COT"
+    },
+    {
+      "scenario_id": "s07",
+      "description": "같은 사건의 중복 보도와 수정 기사"
+    },
+    {
+      "scenario_id": "s08",
+      "description": "뉴스가 적은 날"
+    },
+    {
+      "scenario_id": "s09",
+      "description": "모든 뉴스 소스 실패와 정상 빈 수집의 구분"
+    },
+    {
+      "scenario_id": "s10",
+      "description": "주말·DST·장후 발표"
+    },
+    {
+      "scenario_id": "s11",
+      "description": "최종 문서에서 사실 또는 링크 제거"
+    },
+    {
+      "scenario_id": "s12",
+      "description": "금지 표현·수치 조작과 정상 형제 문서"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "rate-sep",
+      "scenario_id": "s01",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "ab2d6aaf4fdf7ee61cc606e4"
+          ],
+          "terminal_event_ids": [
+            "ab2d6aaf4fdf7ee61cc606e4"
+          ],
+          "required_facts": [
+            "SEP의 내년 정책금리 예상은 3.00%입니다.",
+            "정책금리를 2.75%로 유지했습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "geopolitical-unknown-reaction",
+      "scenario_id": "s02",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "8c88b3960c3a5c6c9846225f"
+          ],
+          "terminal_event_ids": [
+            "8c88b3960c3a5c6c9846225f"
+          ],
+          "required_facts": [
+            "국경 통행을 다시 허용하기로 합의했습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "earnings-actual-estimate-guidance",
+      "scenario_id": "s03",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "3c4e725fb56d6b303b740787"
+          ],
+          "terminal_event_ids": [
+            "3c4e725fb56d6b303b740787"
+          ],
+          "required_facts": [
+            "2026년 3분기 실제 매출은 10억 달러입니다.",
+            "다음 분기 가이던스는 예상 매출 12억 달러입니다.",
+            "같은 분기 시장 예상 매출은 9억 달러입니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "services-1",
+      "scenario_id": "s04",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "services-4",
+      "scenario_id": "s04",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841",
+            "97c9f81f5b65b8b8ffe793ed",
+            "ac71f8b0b00ea06876160119",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841",
+            "97c9f81f5b65b8b8ffe793ed",
+            "ac71f8b0b00ea06876160119",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다.",
+            "서비스 다가 정식 출시됐습니다.",
+            "서비스 라가 정식 출시됐습니다.",
+            "서비스 나가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 4,
+          "candidate_visibility": 4,
+          "expected_public_status": "finalized",
+          "qualified_expected": 4,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "services-5",
+      "scenario_id": "s04",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "10a92334f4034f4a9ccf2db1",
+            "7bf3a833d629e7ec52fb1841",
+            "97c9f81f5b65b8b8ffe793ed",
+            "ac71f8b0b00ea06876160119",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "terminal_event_ids": [
+            "10a92334f4034f4a9ccf2db1",
+            "7bf3a833d629e7ec52fb1841",
+            "97c9f81f5b65b8b8ffe793ed",
+            "ac71f8b0b00ea06876160119",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "required_facts": [
+            "서비스 마가 정식 출시됐습니다.",
+            "서비스 가가 정식 출시됐습니다.",
+            "서비스 다가 정식 출시됐습니다.",
+            "서비스 라가 정식 출시됐습니다.",
+            "서비스 나가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 5,
+          "candidate_visibility": 5,
+          "expected_public_status": "finalized",
+          "qualified_expected": 5,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "statement-actor",
+      "scenario_id": "s05",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "ce05c23a89cbdc408e630252"
+          ],
+          "terminal_event_ids": [
+            "ce05c23a89cbdc408e630252"
+          ],
+          "required_facts": [
+            "물가 안정이 우선이라고 밝혔습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "unchanged-monthly-cot",
+      "scenario_id": "s06",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 0,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "no_qualifying_event",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "duplicate-report",
+      "scenario_id": "s07",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다.",
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 2,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "revised-article",
+      "scenario_id": "s07",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "8da735b9a4b3736dcd7bd2a9"
+          ],
+          "terminal_event_ids": [
+            "8da735b9a4b3736dcd7bd2a9"
+          ],
+          "required_facts": [
+            "서비스 가가 전 지역에 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0,
+          "expected_novelties": [
+            "material_update"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "few-news-no-qualifying-event",
+      "scenario_id": "s08",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 0,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "no_qualifying_event",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "few-news-supported-service",
+      "scenario_id": "s08",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "classification-unavailable",
+      "scenario_id": "s08",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": null,
+          "candidate_visibility": 1,
+          "expected_public_status": "generation_absent",
+          "qualified_expected": null,
+          "expected_calls": 1,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "classification_unavailable",
+          "expected_omitted": null
+        }
+      }
+    },
+    {
+      "case_id": "all-sources-failed",
+      "scenario_id": "s09",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": null,
+          "candidate_visibility": null,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 0,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "classification_unavailable",
+          "expected_omitted": null
+        }
+      }
+    },
+    {
+      "case_id": "successful-empty-collection",
+      "scenario_id": "s09",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 0,
+          "candidate_visibility": 0,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 0,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "no_qualifying_event",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "weekend-outside-calendar-day",
+      "scenario_id": "s10",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 0,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 2,
+          "expected_exclusions": [
+            "outside_window"
+          ],
+          "expected_issue_codes": [],
+          "expected_state": "no_qualifying_event",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "dst-spring-boundaries",
+      "scenario_id": "s10",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "d60ffdb9edbf3f1b8aa27945",
+            "45da5c0fcd9bf405cb517b56"
+          ],
+          "terminal_event_ids": [
+            "d60ffdb9edbf3f1b8aa27945",
+            "45da5c0fcd9bf405cb517b56"
+          ],
+          "required_facts": [
+            "서비스 다가 정식 출시됐습니다.",
+            "서비스 나가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 2,
+          "candidate_visibility": 4,
+          "expected_public_status": "finalized",
+          "qualified_expected": 2,
+          "expected_calls": 2,
+          "expected_exclusions": [
+            "outside_window"
+          ],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "dst-fall-boundaries",
+      "scenario_id": "s10",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "408cb5cb9255191607abe143",
+            "5ce8166ec9cc9bc9dd855182"
+          ],
+          "terminal_event_ids": [
+            "408cb5cb9255191607abe143",
+            "5ce8166ec9cc9bc9dd855182"
+          ],
+          "required_facts": [
+            "서비스 다가 정식 출시됐습니다.",
+            "서비스 나가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 2,
+          "candidate_visibility": 4,
+          "expected_public_status": "finalized",
+          "qualified_expected": 2,
+          "expected_calls": 2,
+          "expected_exclusions": [
+            "outside_window"
+          ],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "afterhours-release",
+      "scenario_id": "s10",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "containment-remove-fact",
+      "scenario_id": "s11",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841",
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "terminal_event_ids": [
+            "aeab0e4a9e3c7559513ea422"
+          ],
+          "required_facts": [
+            "서비스 나가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다.",
+            "서비스 가가 정식 출시됐습니다.",
+            "가상사는 서비스 가를 정식 출시했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 2,
+          "candidate_visibility": 2,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 1,
+          "expected_reasons": [
+            "finalization_removed"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "containment-remove-link",
+      "scenario_id": "s11",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "detail_limited",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "containment-marker-only",
+      "scenario_id": "s11",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다.",
+            "서비스 가가 정식 출시됐습니다.",
+            "가상사는 서비스 가를 정식 출시했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "no_qualifying_event",
+          "expected_omitted": 1,
+          "expected_reasons": [
+            "finalization_removed"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "containment-url-only",
+      "scenario_id": "s11",
+      "expectations": {
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다.",
+            "서비스 가가 정식 출시됐습니다.",
+            "가상사는 서비스 가를 정식 출시했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 0,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "no_qualifying_event",
+          "expected_omitted": 1,
+          "expected_reasons": [
+            "finalization_removed"
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "forbidden-with-valid-sibling",
+      "scenario_id": "s12",
+      "expectations": {
+        "domestic-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "trust_blocked",
+          "qualified_expected": null,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [
+            "compliance.language"
+          ],
+          "expected_state": "hard_trust_blocked",
+          "expected_omitted": null
+        },
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    },
+    {
+      "case_id": "numeric-with-valid-sibling",
+      "scenario_id": "s12",
+      "expectations": {
+        "domestic-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [],
+          "required_facts": [],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "trust_blocked",
+          "qualified_expected": null,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [
+            "event.fact_unsupported"
+          ],
+          "expected_state": "hard_trust_blocked",
+          "expected_omitted": null
+        },
+        "us-equity": {
+          "expected_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "terminal_event_ids": [
+            "7bf3a833d629e7ec52fb1841"
+          ],
+          "required_facts": [
+            "서비스 가가 정식 출시됐습니다."
+          ],
+          "forbidden_claims": [
+            "자료 없이 주가 상승을 단정했습니다."
+          ],
+          "allowed_uncertainty": [
+            "시장 반응은 확인하지 못했습니다."
+          ],
+          "selected_expected": 1,
+          "candidate_visibility": 1,
+          "expected_public_status": "finalized",
+          "qualified_expected": 1,
+          "expected_calls": 2,
+          "expected_exclusions": [],
+          "expected_issue_codes": [],
+          "expected_state": "qualified",
+          "expected_omitted": 0
+        }
+      }
+    }
+  ]
+}

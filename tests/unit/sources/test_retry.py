@@ -16,6 +16,7 @@ Tests use ``httpx.MockTransport`` so the suite stays offline.
 from __future__ import annotations
 
 import asyncio
+import gzip
 import time
 from collections.abc import AsyncIterator
 
@@ -298,6 +299,55 @@ async def test_retry_get_preserves_explicit_accept_encoding() -> None:
             config=_NO_SLEEP,
         )
     assert seen["accept_encoding"] == "gzip"
+
+
+async def test_retry_get_returns_gzip_decoded_body_once() -> None:
+    content = b"<html>Official source text.</html>" * 10
+    compressed = gzip.compress(content)
+    stream = _TrackingStream([compressed[:10], compressed[10:]])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={
+                "Content-Encoding": "gzip",
+                "Content-Length": str(len(compressed)),
+                "Content-Type": "text/html; charset=utf-8",
+                "X-Source": "official",
+            },
+            stream=stream,
+        )
+
+    async with _mock_client(handler) as client:
+        response = await retry_get(client, "http://x/path", source_name="test", config=_NO_SLEEP)
+    assert response.content == content
+    assert response.text == content.decode()
+    assert "content-encoding" not in response.headers
+    assert response.headers["content-length"] == str(len(content))
+    assert response.headers["content-type"] == "text/html; charset=utf-8"
+    assert response.headers["x-source"] == "official"
+    assert str(response.request.url) == "http://x/path"
+
+
+async def test_retry_get_enforces_decoded_gzip_cap() -> None:
+    compressed = gzip.compress(b"x" * 10_000)
+    assert len(compressed) < 1_000
+    stream = _TrackingStream([compressed])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"Content-Encoding": "gzip", "Content-Length": str(len(compressed))},
+            stream=stream,
+        )
+
+    config = RetryConfig(retries=0, backoffs=(), max_response_bytes=1_000)
+    async with _mock_client(handler) as client:
+        with pytest.raises(SourceFetchError) as error:
+            await retry_get(client, "http://x", source_name="test", config=config)
+    assert error.value.transient is False
+    assert "cap while streaming" in str(error.value)
+    assert stream.was_read
 
 
 # ---------------------------------------------------------------------------

@@ -9,7 +9,9 @@ production adapters.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Final, Literal
 
 from investo.models import MarketSegment, SourceTier
@@ -32,6 +34,8 @@ class SourceSpec:
     item_segments: frozenset[MarketSegment]
     outcome_segments: frozenset[MarketSegment]
     reference_registry: bool = False
+    news_window_opt_in: bool = False
+    news_window_recipients: frozenset[MarketSegment] = frozenset()
 
 
 def _spec(
@@ -43,6 +47,8 @@ def _spec(
     item_segments: frozenset[MarketSegment],
     outcome_segments: frozenset[MarketSegment] | None = None,
     reference_registry: bool = False,
+    news_window_opt_in: bool = False,
+    news_window_recipients: frozenset[MarketSegment] | None = None,
 ) -> SourceSpec:
     return SourceSpec(
         name=name,
@@ -52,6 +58,14 @@ def _spec(
         item_segments=item_segments,
         outcome_segments=outcome_segments if outcome_segments is not None else item_segments,
         reference_registry=reference_registry,
+        news_window_opt_in=news_window_opt_in,
+        news_window_recipients=(
+            news_window_recipients
+            if news_window_recipients is not None
+            else item_segments
+            if news_window_opt_in
+            else frozenset()
+        ),
     )
 
 
@@ -59,15 +73,38 @@ _DOMESTIC: Final[frozenset[MarketSegment]] = frozenset({"domestic-equity"})
 _US: Final[frozenset[MarketSegment]] = frozenset({"us-equity"})
 _CRYPTO: Final[frozenset[MarketSegment]] = frozenset({"crypto"})
 _US_AND_CRYPTO: Final[frozenset[MarketSegment]] = frozenset({"us-equity", "crypto"})
+_ALL_SEGMENTS: Final[frozenset[MarketSegment]] = frozenset(
+    {"domestic-equity", "us-equity", "crypto"}
+)
 
 SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
     _spec("bea-macro-actuals", tier="S", market_window_segment="us-equity", item_segments=_US),
     _spec("bls-macro-actuals", tier="S", market_window_segment="us-equity", item_segments=_US),
-    _spec("sec-edgar-8k", tier="S", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "sec-edgar-8k",
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+    ),
     _spec("fed-board-leadership", tier="S", market_window_segment="us-equity", item_segments=_US),
-    _spec("fed-speech-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "fed-speech-rss",
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+        news_window_recipients=_ALL_SEGMENTS,
+    ),
     _spec("fomc-calendar", tier="S", market_window_segment="us-equity", item_segments=_US),
-    _spec("fomc-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "fomc-rss",
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+        news_window_recipients=_ALL_SEGMENTS,
+    ),
     _spec(
         "fsc-krx-index-price",
         tier="S",
@@ -85,30 +122,35 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         tier="S",
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,
+        news_window_opt_in=True,
     ),
     _spec(
         "dart-disclosure",
         tier="S",
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,
+        news_window_opt_in=True,
     ),
     _spec(
         "congress-gov-bill-actions",
         tier="S",
         market_window_segment="crypto",
         item_segments=_CRYPTO,
+        news_window_opt_in=True,
     ),
     _spec(
         "house-financial-services-policy",
         tier="S",
         market_window_segment="crypto",
         item_segments=_CRYPTO,
+        news_window_opt_in=True,
     ),
     _spec(
         "senate-banking-policy",
         tier="S",
         market_window_segment="crypto",
         item_segments=_CRYPTO,
+        news_window_opt_in=True,
     ),
     _spec(
         "sec-company-facts",
@@ -117,7 +159,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=_US,
         reference_registry=True,
     ),
-    _spec("sec-newsroom-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "sec-newsroom-rss",
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+    ),
     _spec(
         "treasury-rates",
         tier="S",
@@ -135,7 +183,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=frozenset(),
         outcome_segments=_US_AND_CRYPTO,
     ),
-    _spec("cftc-policy-rss", tier="S", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "cftc-policy-rss",
+        tier="S",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+    ),
     _spec(
         "treasury-auctions",
         tier="A",
@@ -155,7 +209,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=_DOMESTIC,
     ),
     _spec("yfinance-price", tier="A", market_window_segment="us-equity", item_segments=_US),
-    _spec("yahoo-finance-news", tier="A", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "yahoo-finance-news",
+        tier="A",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+    ),
     _spec(
         "binance-crypto-market",
         tier="A",
@@ -183,7 +243,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         item_segments=_US,
     ),
     _spec("us-economic-calendar", tier="A", market_window_segment="us-equity", item_segments=_US),
-    _spec("nasdaq-stocks-news", tier="A", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "nasdaq-stocks-news",
+        tier="A",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+    ),
     _spec("bybit-derivatives", tier="A", market_window_segment="crypto", item_segments=_CRYPTO),
     _spec("okx-derivatives", tier="A", market_window_segment="crypto", item_segments=_CRYPTO),
     _spec(
@@ -192,12 +258,19 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         market_window_segment="us-equity",
         item_segments=_US,
     ),
-    _spec("cnbc-top-news", tier="B", market_window_segment="us-equity", item_segments=_US),
+    _spec(
+        "cnbc-top-news",
+        tier="B",
+        market_window_segment="us-equity",
+        item_segments=_US,
+        news_window_opt_in=True,
+    ),
     _spec(
         "yonhap-market",
         tier="B",
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,
+        news_window_opt_in=True,
     ),
     _spec(
         "yonhap-index-close",
@@ -205,7 +278,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
         market_window_segment="domestic-equity",
         item_segments=_DOMESTIC,
     ),
-    _spec("theblock-crypto", tier="B", market_window_segment="crypto", item_segments=_CRYPTO),
+    _spec(
+        "theblock-crypto",
+        tier="B",
+        market_window_segment="crypto",
+        item_segments=_CRYPTO,
+        news_window_opt_in=True,
+    ),
     _spec("coingecko-price", tier="B", market_window_segment="crypto", item_segments=_CRYPTO),
     _spec(
         "coingecko-global-market",
@@ -223,6 +302,13 @@ SOURCE_SPECS: Final[tuple[SourceSpec, ...]] = (
 )
 
 SOURCE_SPECS_BY_NAME: Final[dict[str, SourceSpec]] = {spec.name: spec for spec in SOURCE_SPECS}
+
+
+def news_window_source_recipients() -> Mapping[str, frozenset[MarketSegment]]:
+    """Explicit news lanes; shared Fed evidence still needs article qualification."""
+    return MappingProxyType(
+        {spec.name: spec.news_window_recipients for spec in SOURCE_SPECS if spec.news_window_opt_in}
+    )
 
 
 def source_names_for_market_window(segment: MarketSegment) -> frozenset[str]:
@@ -254,6 +340,7 @@ __all__ = [
     "SOURCE_SPECS_BY_NAME",
     "SourceItemRouting",
     "SourceSpec",
+    "news_window_source_recipients",
     "source_names_for_item_routing",
     "source_names_for_item_segment",
     "source_names_for_market_window",

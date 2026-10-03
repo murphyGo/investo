@@ -39,15 +39,18 @@ from __future__ import annotations
 import dataclasses
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
+from investo.models.event_quality import EventCoverage, parse_public_event_coverage
 from investo.models.segments import (
     COVERAGE_STATUS_LABELS,
     CRYPTO,
     DOMESTIC_EQUITY,
+    SEGMENT_LABELS,
     US_EQUITY,
     CoverageStatus,
     MarketSegment,
@@ -94,6 +97,7 @@ CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE: Final[str] = (
 CODE_QUALITY_PAGE_MISSING: Final[str] = "quality.quality_page_missing"
 CODE_CURRENT_RUN_UNDERSTATED: Final[str] = "quality.current_run_understated"
 CODE_BODY_EVIDENCE_UNTRACKED: Final[str] = "quality.body_evidence_untracked"
+CODE_EVENT_COVERAGE_MISMATCH: Final[str] = "quality.event_coverage_mismatch"
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,6 +154,9 @@ class CanonicalQualitySnapshot:
     current_run_segments_limited_or_worse: int
     current_run_data_limited_briefings: int
     current_run_briefings_observed: int
+    event_coverage: dict[MarketSegment, EventCoverage] | None = None
+    event_coverage_invalid: bool = False
+    event_coverage_seal_mismatch: bool = False
 
 
 def parse_segment_status_block(text: str, segment: MarketSegment) -> SegmentStatusBlock:
@@ -197,6 +204,7 @@ def build_canonical_snapshot(
     *,
     segment_texts: dict[MarketSegment, str],
     history_row: dict[str, object] | None,
+    expected_event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
 ) -> CanonicalQualitySnapshot:
     """Derive the canonical snapshot from segment bodies + history row."""
     blocks: list[SegmentStatusBlock] = []
@@ -265,6 +273,20 @@ def build_canonical_snapshot(
         history_failed is not None and history_failed > 0
     )
 
+    event_coverage = (
+        parse_public_event_coverage(history_row.get("event_coverage"))
+        if history_row and history_row.get("event_coverage_basis") == "terminal"
+        else None
+    )
+    event_coverage_seal_mismatch = expected_event_coverage is not None and (
+        event_coverage is None
+        or {segment: value.model_dump(mode="json") for segment, value in event_coverage.items()}
+        != {
+            segment: value.model_dump(mode="json")
+            for segment, value in expected_event_coverage.items()
+        }
+    )
+
     return CanonicalQualitySnapshot(
         target_date=target_date,
         worst_status=worst_status,
@@ -277,6 +299,16 @@ def build_canonical_snapshot(
         current_run_segments_limited_or_worse=current_run_segments_limited_or_worse,
         current_run_data_limited_briefings=current_run_data_limited_briefings,
         current_run_briefings_observed=current_run_briefings_observed,
+        event_coverage=event_coverage,
+        event_coverage_invalid=bool(
+            history_row
+            and history_row.get("event_coverage") is not None
+            and (
+                history_row.get("event_coverage_basis") != "terminal"
+                or parse_public_event_coverage(history_row["event_coverage"]) is None
+            )
+        ),
+        event_coverage_seal_mismatch=event_coverage_seal_mismatch,
     )
 
 
@@ -292,6 +324,31 @@ def check_quality_consistency(
     for the dashboard surface rather than failing.
     """
     findings: list[ConsistencyFinding] = []
+
+    if snapshot.event_coverage_invalid:
+        findings.append(
+            ConsistencyFinding(
+                CODE_EVENT_COVERAGE_MISMATCH, None, "event coverage metadata is invalid"
+            )
+        )
+    if snapshot.event_coverage_seal_mismatch:
+        findings.append(
+            ConsistencyFinding(
+                CODE_EVENT_COVERAGE_MISMATCH,
+                None,
+                "event coverage history does not match sealed terminal measurements",
+            )
+        )
+    if snapshot.event_coverage is not None and quality_page_text is not None:
+        expected = render_event_coverage_section(snapshot.event_coverage)
+        if _visible_event_coverage_sections(quality_page_text) != (expected.strip(),):
+            findings.append(
+                ConsistencyFinding(
+                    CODE_EVENT_COVERAGE_MISMATCH,
+                    None,
+                    "event coverage page does not match terminal history counts and basis",
+                )
+            )
 
     # 1. Per-segment status block vs quality-history worst severity.
     #    History must not present a *better* worst severity than any
@@ -356,6 +413,95 @@ def check_quality_consistency(
         findings.extend(_check_quality_page(snapshot, quality_page_text))
 
     return tuple(findings)
+
+
+def _visible_event_coverage_sections(markdown: str) -> tuple[str, ...]:
+    """Compare the single visible section, ignoring hidden comments/code fences."""
+    without_comments = re.sub(r"<!--.*?(?:-->|\Z)", "", markdown, flags=re.DOTALL)
+    visible: list[str] = []
+    fence_character: str | None = None
+    fence_length = 0
+    for line in without_comments.splitlines():
+        match = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if match:
+            marker = match.group(1)
+            if fence_character is None:
+                fence_character, fence_length = marker[0], len(marker)
+            elif (
+                marker[0] == fence_character
+                and len(marker) >= fence_length
+                and not line[match.end() :].strip()
+            ):
+                fence_character = None
+            continue
+        if fence_character is None:
+            visible.append(line)
+    return tuple(
+        match.group(0).strip()
+        for match in re.finditer(
+            r"(?m)^ {0,3}##[ \t]+중요 사건 반영(?:[ \t]+#+)?[ \t]*\n"
+            r".*?(?=^ {0,3}#{1,2}[ \t]+|\Z)",
+            "\n".join(visible),
+            flags=re.DOTALL,
+        )
+    )
+
+
+def render_event_coverage_section(coverages: dict[MarketSegment, EventCoverage]) -> str:
+    """Small current-run projection; never infer missing history or worldwide recall."""
+    states = {
+        None: "미집계",
+        "hard_trust_blocked": "신뢰 검증 차단",
+        "classification_unavailable": "분류 미완료",
+        "finalization_unavailable": "본문 검증 미완료",
+        "source_limited": "수집 제한",
+        "detail_limited": "세부 근거 제한",
+        "no_qualifying_event": "설명 충족 사건 없음",
+        "qualified": "검증 충족",
+    }
+    lines = [
+        "## 중요 사건 반영",
+        "",
+        "최종 본문 검증 기준이며 원격 게시 확정 집계가 아닙니다. "
+        "수집 후보 안의 반영률로, 전체 뉴스 포착률을 뜻하지 않습니다. 미집계는 0건과 다릅니다.",
+        "",
+        "| 구분 | 후보/선정/입력 | 본문/충족/제한 | 요약/누락/근거 위반 | 반영률 | 충족률 | 상태 |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for segment, coverage in sorted(coverages.items()):
+        counts = [
+            "/".join("미집계" if value is None else str(value) for value in group)
+            for group in (
+                (
+                    coverage.collected_candidate_count,
+                    coverage.selected_count,
+                    coverage.prompted_count,
+                ),
+                (
+                    coverage.terminal_event_count,
+                    coverage.qualified_event_count,
+                    coverage.details_limited_count,
+                ),
+                (coverage.summary_event_count, coverage.omitted_count, coverage.unsupported_count),
+            )
+        ]
+        rates = [
+            "미집계" if rate is None else f"{rate:.1%}"
+            for rate in (coverage.selection_coverage, coverage.qualified_coverage)
+        ]
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    SEGMENT_LABELS[segment],
+                    *counts,
+                    *rates,
+                    states[coverage.state],
+                ]
+            )
+            + " |"
+        )
+    return "\n".join(lines) + "\n"
 
 
 def _check_quality_page(
@@ -571,6 +717,7 @@ def validate_date_quality_consistency(
     segment_texts: dict[MarketSegment, str],
     history_path: Path,
     quality_page_text: str | None,
+    expected_event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
 ) -> tuple[ConsistencyFinding, ...]:
     """End-to-end convenience: load history row, build snapshot, validate."""
     history_row = load_quality_history_row(target_date, history_path)
@@ -578,6 +725,7 @@ def validate_date_quality_consistency(
         target_date,
         segment_texts=segment_texts,
         history_row=history_row,
+        expected_event_coverage=expected_event_coverage,
     )
     return check_quality_consistency(snapshot, quality_page_text=quality_page_text)
 
@@ -586,6 +734,7 @@ __all__ = [
     "CODE_BODY_EVIDENCE_UNTRACKED",
     "CODE_CURRENT_RUN_UNDERSTATED",
     "CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE",
+    "CODE_EVENT_COVERAGE_MISMATCH",
     "CODE_FAILED_COUNT_MISMATCH",
     "CODE_QUALITY_PAGE_MISSING",
     "CODE_STATUS_MISMATCH",
@@ -597,5 +746,6 @@ __all__ = [
     "load_quality_history_row",
     "parse_segment_status_block",
     "reconcile_kpis_with_history",
+    "render_event_coverage_section",
     "validate_date_quality_consistency",
 ]

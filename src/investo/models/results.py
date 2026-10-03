@@ -24,14 +24,16 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     HttpUrl,
+    SerializerFunctionWrapHandler,
     field_validator,
+    model_serializer,
     model_validator,
 )
 
@@ -41,10 +43,13 @@ from investo.models._validators import (
     reject_blank_strict,
 )
 from investo.models.coverage import SourceOutcome
+from investo.models.event_quality import EventCoverage, PublishedEventCoverage
 from investo.models.public_document_outcome import (
     ContentCompleteness,
     SegmentFinalizationOutcome,
 )
+from investo.models.publication import PublishReceipt
+from investo.models.segments import MarketSegment
 
 FailureStage = Literal[
     "collect",
@@ -213,6 +218,19 @@ class PipelineResult(BaseModel):
     # True only after the publish transaction completed outside dry-run mode.
     # The workflow uses this bounded flag to decide whether Pages should run.
     publication_committed: bool = False
+    event_coverage: dict[MarketSegment, EventCoverage] | None = None
+    published_event_coverage: PublishedEventCoverage | None = None
+    publication_receipts: tuple[PublishReceipt, ...] = ()
+
+    @model_serializer(mode="wrap")
+    def _serialize_event_compatible(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, object]:
+        payload = cast("dict[str, object]", handler(self))
+        for name in ("event_coverage", "published_event_coverage", "publication_receipts"):
+            if not getattr(self, name):
+                payload.pop(name, None)
+        return payload
 
     @model_validator(mode="after")
     def _check_content_completeness(self) -> PipelineResult:

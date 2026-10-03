@@ -48,7 +48,10 @@ def update_quality_page(
         render_quality_page,
     )
     from investo.briefing.quality_history import resolve_quality_history_path
-    from investo.publisher.quality_consistency import reconcile_kpis_with_history
+    from investo.publisher.quality_consistency import (
+        reconcile_kpis_with_history,
+        render_event_coverage_section,
+    )
     from investo.visuals.quality_sparkline import render_quality_sparkline
 
     target = quality_page_path if quality_page_path is not None else _pkg.QUALITY_PAGE_PATH
@@ -76,6 +79,9 @@ def update_quality_page(
     history_rows = compute_quality_history(30, history_path=history_target, today=target_date)
     sparkline = render_quality_sparkline(history_rows).decode("utf-8")
     body = _render_quality_page_with_history(render_quality_page(kpis), sparkline)
+    current_history = next((row for row in history_rows if row.day == target_date), None)
+    if current_history is not None and current_history.event_coverage is not None:
+        body += "\n" + render_event_coverage_section(current_history.event_coverage)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding="utf-8")
     return target

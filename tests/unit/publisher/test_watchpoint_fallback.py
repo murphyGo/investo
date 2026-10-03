@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import pytest
+
 from investo.models.compliance_phrases import (
     BANNED_P0_ACTION,
     BANNED_P0_CERTAINTY,
@@ -73,14 +75,27 @@ def _cftc(group: str = "equity_index", *, net: str = "-451586") -> NormalizedIte
             "contract_group": group,
             "net_contracts": net,
             "net_pct_open_interest": "-20.50" if group != "crypto" else "-4.20",
+            "as_of_date": "2026-06-23",
+            "release_date": "2026-06-26",
         },
     )
 
 
 def _fear_greed(value: str) -> NormalizedItem:
+    classification = (
+        "Extreme Fear"
+        if Decimal(value) <= 20
+        else "Extreme Greed"
+        if Decimal(value) >= 80
+        else "Neutral"
+    )
     return _item(
         "alternative-fng",
-        {"indicator": "fear_greed", "value": value, "classification": "fixture"},
+        {
+            "indicator": "fear_greed",
+            "value": value,
+            "classification": classification,
+        },
     )
 
 
@@ -122,7 +137,8 @@ def test_us_fallback_synthesizes_range_then_cftc_in_pinned_order() -> None:
     assert rows[0].bullish_trigger == "7,368.42 상회 시 단기 회복 흐름 관찰"
     assert rows[0].bearish_trigger == "5,833.33 이탈 시 방어적 수급 관찰"
     assert rows[0].confidence == "높음"
-    assert rows[1].current == "순포지션 -451,586계약 (-20.5% OI, 주간 지연)"
+    assert "순포지션 -451,586계약 (-20.5% OI" in rows[1].current
+    assert "2026-06-23 기준/2026-06-26 공개 · 주간 지연" in rows[1].current
     assert rows[1].confidence == "보통"
     assert "데이터부족" not in render_matrix_table(list(rows))
 
@@ -154,8 +170,8 @@ def test_fear_greed_extremes_are_third_priority_and_midrange_is_not_resolvable()
     low = synthesize_watchpoint_rows(low_payload)
     high = synthesize_watchpoint_rows(high_payload)
 
-    assert [row.current for row in low] == ["18 (극단 공포)"]
-    assert [row.current for row in high] == ["85 (극단 탐욕)"]
+    assert [row.current for row in low] == ["18 (Extreme Fear)"]
+    assert [row.current for row in high] == ["85 (Extreme Greed)"]
     assert low[0].bullish_trigger == "20 상회 시 심리 회복 관찰"
     assert high[0].bullish_trigger == "90 상회 시 심리 과열 심화 관찰"
     assert high[0].bearish_trigger == "80 이탈 시 심리 과열 완화 관찰"
@@ -177,6 +193,52 @@ def test_missing_range_and_non_short_cftc_do_not_invent_fallbacks() -> None:
 
     assert synthesize_watchpoint_rows(payload) == ()
     assert synthesize_watchpoint_rows(WatchpointValuePayload(segment="domestic-equity")) == ()
+
+
+@pytest.mark.parametrize(
+    "as_of_date,release_date",
+    [
+        (None, "2026-06-26"),
+        ("2026-06-23", None),
+        ("2026-02-30", "2026-06-26"),
+        ("2026-06-23", "invalid"),
+        ("2026-06-26", "2026-06-23"),
+    ],
+)
+def test_cftc_missing_invalid_or_reversed_dates_cannot_synthesize(
+    as_of_date: str | None, release_date: str | None
+) -> None:
+    metadata = {key: str(value) for key, value in _cftc().raw_metadata.items()}
+    for key, value in (("as_of_date", as_of_date), ("release_date", release_date)):
+        if value is None:
+            metadata.pop(key)
+        else:
+            metadata[key] = value
+    item = _item("cftc-cot-positioning", metadata)
+
+    assert (
+        synthesize_watchpoint_rows(WatchpointValuePayload.from_inputs("us-equity", items=(item,)))
+        == ()
+    )
+
+
+def test_fear_greed_conflicting_observations_fail_closed_in_both_orders() -> None:
+    items = (_fear_greed("18"), _fear_greed("85"))
+    for ordered in (items, tuple(reversed(items))):
+        payload = WatchpointValuePayload.from_inputs("crypto", items=ordered)
+        assert synthesize_watchpoint_rows(payload) == ()
+
+
+def test_fear_greed_duplicate_observation_preserves_one_canonical_card() -> None:
+    item = _fear_greed("18")
+    single = synthesize_watchpoint_rows(WatchpointValuePayload.from_inputs("crypto", items=(item,)))
+    duplicated = synthesize_watchpoint_rows(
+        WatchpointValuePayload.from_inputs("crypto", items=(item, item))
+    )
+
+    assert duplicated == single
+    assert len(duplicated) == 1
+    assert duplicated[0].current == "18 (Extreme Fear)"
 
 
 def test_domestic_close_only_anchor_synthesizes_truthful_reference_level() -> None:
@@ -230,6 +292,8 @@ def test_cftc_sign_mismatch_and_zero_quantized_equity_bound_fail_closed() -> Non
             "contract_group": "equity_index",
             "net_contracts": "-100",
             "net_pct_open_interest": "20.00",
+            "as_of_date": "2026-06-23",
+            "release_date": "2026-06-26",
         },
     )
     malformed_range = MarketAnchor(

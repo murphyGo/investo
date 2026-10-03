@@ -204,6 +204,11 @@ jobs:
           # workflow_dispatch input flows in without changing
           # __main__'s positional API.
           INVESTO_TARGET_DATE: ${{ inputs.target_date }}
+          # Observe existing v1 candidates/windows before the separately gated
+          # v2 rollout. Repository variables allow immediate rollback to off.
+          INVESTO_EVENT_BRIEFING_MODE: ${{ vars.INVESTO_EVENT_BRIEFING_MODE || 'shadow' }}
+          INVESTO_NEWS_WINDOW_MODE: ${{ vars.INVESTO_NEWS_WINDOW_MODE || 'shadow' }}
+          INVESTO_EVENT_ENRICHMENT_MODE: 'off'
           # u1 sources extension 2026-05-01: optional FRED API key for
           # the ``fred-macro`` adapter. Absent secret → empty string at
           # runtime → ``FredMacroAdapter.fetch`` raises

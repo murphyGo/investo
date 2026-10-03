@@ -36,7 +36,7 @@ import sys
 from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Final
+from typing import Final, TypedDict
 
 import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
@@ -45,12 +45,23 @@ from investo._internal.llm_config import LlmConfigError, LlmExecutionConfig, mis
 from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.briefing.claude_code import ClaudeRunner
 from investo.models import FailureContext, PipelineResult, PipelineStatus
+from investo.models.enrichment import ENRICHMENT_MODE_ENV, EnrichmentPolicy
+from investo.models.event_config import EVENT_MODE_ENV, EventExecutionConfig
+from investo.models.news_window import NewsWindowConfig
 from investo.notifier import BriefingPublisher, OperatorAlerter
 from investo.notifier._telegram import send_message as _telegram_send
 from investo.orchestrator import boot_alert_dedup, weekly_ops_digest
 from investo.orchestrator.date_resolution import validate_target_date_sanity
 from investo.orchestrator.errors import ConfigError
 from investo.orchestrator.pipeline import run_pipeline
+
+
+class _EventPipelineOptions(TypedDict, total=False):
+    event_config: EventExecutionConfig
+    event_enrichment_policy: EnrichmentPolicy
+    news_window_config: NewsWindowConfig
+    news_manifest_path: Path
+
 
 # The 5 required env vars per AC-007-1 + ``component-methods.md`` C5.
 # Order pinned: governs the order ``ConfigError.for_missing`` reports.
@@ -525,6 +536,11 @@ async def _async_main(
     drive ``asyncio.run`` and translate the final integer to the
     process exit code.
     """
+    if os.environ.get(EVENT_MODE_ENV, "").strip() == "preview":
+        # Preview is a separate, non-publishing entrypoint. Even a boot-error
+        # alert would violate its no-notification boundary.
+        _logger.error("event preview requires the isolated non-public preview entrypoint")
+        return 1
     try:
         try:
             config = llm_config or LlmExecutionConfig.from_env(os.environ)
@@ -547,6 +563,42 @@ async def _async_main(
         # before any httpx client is constructed (matches the
         # ConfigError fail-fast pattern).
         target_date_override = _resolve_target_date_override()
+        try:
+            event_config = EventExecutionConfig.from_env(os.environ)
+            event_config.validate_publication()
+            event_options: _EventPipelineOptions = {}
+            if event_config.mode != "off":
+                event_options["event_config"] = event_config
+        except ValueError as exc:
+            raise ConfigError.for_bad_value(EVENT_MODE_ENV, str(exc)) from None
+        try:
+            enrichment_policy = EnrichmentPolicy.from_env(os.environ)
+            enrichment_policy.validate_activation()
+            if enrichment_policy.mode == "active" and not event_config.uses_v2:
+                raise ValueError("event body enrichment requires v2 event generation")
+            if enrichment_policy.mode != "off":
+                event_options["event_enrichment_policy"] = enrichment_policy
+        except ValueError as exc:
+            raise ConfigError.for_bad_value(ENRICHMENT_MODE_ENV, str(exc)) from None
+        try:
+            news_config = NewsWindowConfig.from_env(os.environ, target_date_override)
+            news_config.validate_publication(
+                replay=target_date_override is not None,
+                dry_run=os.environ.get("INVESTO_DRY_RUN", "").strip() == "1",
+            )
+            if news_config.mode != "off":
+                event_options["news_window_config"] = news_config
+            manifest_value = os.environ.get("INVESTO_NEWS_MANIFEST_PATH", "").strip()
+            if manifest_value:
+                if (
+                    target_date_override is None
+                    or news_config.start_utc is not None
+                    or news_config.mode == "off"
+                ):
+                    raise ValueError("news manifest requires an exclusive explicit replay")
+                event_options["news_manifest_path"] = Path(manifest_value)
+        except ValueError as exc:
+            raise ConfigError.for_bad_value("INVESTO_NEWS_WINDOW_MODE", str(exc)) from None
     except ConfigError as exc:
         _logger.error("config error: %s", exc)
         await _attempt_boot_alert(exc)
@@ -586,6 +638,7 @@ async def _async_main(
                     publisher=publisher,
                     alerter=alerter,
                     site_url_base=site_url_base,
+                    **event_options,
                 )
             else:
                 result = await run_pipeline(
@@ -593,6 +646,7 @@ async def _async_main(
                     publisher=publisher,
                     alerter=alerter,
                     site_url_base=site_url_base,
+                    **event_options,
                     runner=llm_runner,
                     before_publication=before_publication,
                 )

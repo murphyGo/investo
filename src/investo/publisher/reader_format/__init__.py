@@ -140,6 +140,7 @@ def apply_reader_format(
     text: str,
     *,
     segment: str | None = None,
+    preserve_event_blocks: bool = False,
 ) -> str:
     """Run the full reader-format chain in canonical order.
 
@@ -162,7 +163,26 @@ def apply_reader_format(
     out = ensure_tldr_block(body, segment=segment)
     out = enforce_h3_subheadings(out)
     out = wrap_numbers_bold(out)
-    out = dedupe_glossings(out)
+    if preserve_event_blocks:
+        # Event time/precision labels and the canonical anchor table are
+        # structured evidence, not repeated glossary explanations. Numeric
+        # suffixes such as 18,000.00 / 42,000.00 must not share a gloss key
+        # on a repeated mixed-document pass. Only this cosmetic pass excludes
+        # these regions; every trust gate still observes their complete text.
+        parts = re.split(
+            r"(<!-- investo:block event:[0-9a-f]{24} -->.*?"
+            r"<!-- /investo:block event:[0-9a-f]{24} -->|"
+            r"<!-- investo:watch event:[0-9a-f]{24} -->.*?"
+            r"<!-- /investo:watch event:[0-9a-f]{24} -->|"
+            r"^## ⓪-B 채널 기준선[^\n]*\n.*?(?=^## |\Z))",
+            out,
+            flags=re.DOTALL | re.MULTILINE,
+        )
+        out = "".join(
+            part if index % 2 else dedupe_glossings(part) for index, part in enumerate(parts)
+        )
+    else:
+        out = dedupe_glossings(out)
     out = normalize_meaning_lines(out, segment=segment)
     out = escape_krx_stock_code_link_fragments(out)
     out = normalize_data_limited_reader_copy(out, preserve_diagnostic_source_counts=True)

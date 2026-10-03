@@ -32,6 +32,7 @@ from typing import Final
 from investo._internal.surface_quality import repair_surface_artifacts
 from investo.models import Briefing, NormalizedItem
 from investo.models.bundle_context import BundleContext
+from investo.models.event_narratives import EventGenerationPayload
 from investo.models.market_anchor import MarketAnchor
 from investo.models.segments import DOMESTIC_EQUITY, MarketSegment
 from investo.publisher.anchor_assertion_gate import (
@@ -62,6 +63,8 @@ from investo.publisher.daily_thesis import (
     inject_daily_thesis_line,
     render_daily_thesis_line,
 )
+from investo.publisher.event_blocks import terminal_events
+from investo.publisher.event_watchpoints import build_event_watchpoints
 from investo.publisher.reader_format import (
     apply_reader_format,
     check_filler_phrase_density,
@@ -73,13 +76,19 @@ from investo.publisher.reader_format import (
 from investo.publisher.shared_macro import inject_shared_macro_block
 from investo.publisher.watchpoint_fallback import synthesize_watchpoint_rows
 from investo.publisher.watchpoint_matrix import (
+    NumericWatchpointBaseline,
+    WatchpointComposition,
     WatchpointRenderResult,
     WatchpointRow,
     WatchpointValuePayload,
+    capture_numeric_watchpoint_baseline,
+    compose_event_watchpoints,
+    is_canonical_numeric_watchpoint_content,
     matching_watchpoint_rows,
     render_matrix_table,
     render_watchpoint_matrix_result,
     render_watchpoint_rows_result,
+    replace_watchpoint_content,
 )
 
 _logger = logging.getLogger("investo.publisher.segment_reader_format")
@@ -92,6 +101,9 @@ _logger = logging.getLogger("investo.publisher.segment_reader_format")
 _ANCHOR_LINE_RE: Final = re.compile(r"^>\s*\*\*시장 anchor\*\*:.*?\n", re.MULTILINE)
 _SurfaceRepairObserver = Callable[[MarketSegment, str, str], None]
 _WatchpointResultObserver = Callable[[MarketSegment, WatchpointRenderResult], None]
+_EventWatchpointObserver = Callable[
+    [MarketSegment, NumericWatchpointBaseline, WatchpointComposition], None
+]
 
 
 def _filter_compliant_synthesized_rows(
@@ -126,6 +138,9 @@ def apply_reader_format_to_segments(
     _surface_repair_observer: _SurfaceRepairObserver | None = None,
     _watchpoint_result_observer: _WatchpointResultObserver | None = None,
     _watchpoint_preserved_fragments_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
+    _event_segments: Sequence[MarketSegment] = (),
+    _event_payloads_by_segment: Mapping[MarketSegment, EventGenerationPayload] | None = None,
+    _event_watchpoint_observer: _EventWatchpointObserver | None = None,
     _defer_domestic_terminal_gates: bool = False,
 ) -> dict[MarketSegment, Briefing]:
     """Replace the u49 anchor line with a table + apply the u51 format chain.
@@ -208,7 +223,11 @@ def apply_reader_format_to_segments(
                 )
             markdown = anchor_gate.markdown
         # Step 3 — pure str → str post-format chain.
-        markdown = apply_reader_format(markdown, segment=segment)
+        markdown = (
+            apply_reader_format(markdown, segment=segment, preserve_event_blocks=True)
+            if segment in _event_segments
+            else apply_reader_format(markdown, segment=segment)
+        )
         # u57 — inject shared macro block + run cross-segment lint.
         if bundle_context is not None:
             markdown = inject_shared_macro_block(
@@ -305,6 +324,21 @@ def apply_reader_format_to_segments(
         # P0 gate); the resulting matrix is observational only and rescanned
         # by the second scan_compliance below.
         watchpoint_fragments = (_watchpoint_preserved_fragments_by_segment or {}).get(segment, ())
+        event_payload = (_event_payloads_by_segment or {}).get(segment)
+        if event_payload is not None and (
+            "<!-- investo:watch event:" in markdown
+            or (
+                event_payload.plan.selected
+                and is_canonical_numeric_watchpoint_content(briefing.today_watch)
+            )
+        ):
+            # A sealed event pass retains its numeric-only baseline even if
+            # all events were removed. Restore it after cosmetic transforms,
+            # then rerun the existing numeric owner. Free prose never becomes
+            # an EventWatchpoint.
+            markdown = replace_watchpoint_content(
+                markdown, briefing.today_watch, preserved_fragments=watchpoint_fragments
+            )
         watchpoint_payload = WatchpointValuePayload.from_inputs(
             segment,
             anchors=anchors,
@@ -360,6 +394,27 @@ def apply_reader_format_to_segments(
                     watchpoint_result,
                     synthesized_card_count=len(preexisting_synthesized_rows),
                 )
+        if event_payload is not None:
+            baseline = capture_numeric_watchpoint_baseline(
+                watchpoint_result, preserved_fragments=watchpoint_fragments
+            )
+            provisional = terminal_events(watchpoint_result.markdown, event_payload)
+            built = build_event_watchpoints(
+                event_payload,
+                surviving_event_ids=tuple(event.event_id for event in provisional),
+                source_limited_event_ids=tuple(
+                    event.event_id for event in provisional if not event.source_locators_complete
+                ),
+            )
+            composition = compose_event_watchpoints(
+                watchpoint_result.markdown,
+                baseline,
+                built,
+                preserved_fragments=watchpoint_fragments,
+            )
+            watchpoint_result = composition.result
+            if _event_watchpoint_observer is not None:
+                _event_watchpoint_observer(segment, baseline, composition)
         emphasized_watchpoints = wrap_numbers_bold(watchpoint_result.markdown)
         if emphasized_watchpoints != watchpoint_result.markdown:
             watchpoint_result = replace(

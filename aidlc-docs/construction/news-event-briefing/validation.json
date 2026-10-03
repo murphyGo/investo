@@ -1,0 +1,69 @@
+{
+  "baseline": "04978d81ec9ece8f4083e4be190c6539bdf3b5ff",
+  "status": "pass",
+  "changed_file_count_before_validation_record": 27,
+  "new_markdown_files_checked": 19,
+  "checks": [
+    {
+      "name": "docs-only scope",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "git diff --check",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "new markdown whitespace",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "relative markdown links",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "new plan placeholders",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "six units three registries designs plans and AC parity",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "hard dependency graph acyclic",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "review conflict regression scan",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "required handoff docs",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "frozen baseline",
+      "status": "pass",
+      "details": []
+    },
+    {
+      "name": "product source workflow archive site unchanged",
+      "status": "pass",
+      "details": []
+    }
+  ],
+  "not_run": {
+    "pytest_live_llm_publish": "Docs only; no production implementation",
+    "mkdocs": "Changed docs are outside docs_dir site_docs",
+    "source_qualification": "Deferred to explicit u161 planned qualification work; no endpoints claimed qualified"
+  },
+  "scope": "Historical design-only validation on 2026-09-26; implementation evidence is in each unit code/validation.json"
+}

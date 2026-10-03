@@ -283,6 +283,13 @@ async def _retry_get_inner(
                         source_name=source_name,
                         config=config,
                     )
+                    if "Content-Encoding" in response_headers:
+                        # aiter_bytes already decoded the wire representation.
+                        # Rebuilding with its encoding header would decode twice;
+                        # its Content-Length also describes different bytes.
+                        response_headers = httpx.Headers(response_headers)
+                        del response_headers["Content-Encoding"]
+                        response_headers.pop("Content-Length", None)
                     return httpx.Response(
                         status,
                         headers=response_headers,

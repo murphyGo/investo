@@ -127,6 +127,8 @@ def _candidate_text_blobs(item: NormalizedItem) -> list[str]:
 def find_unverified(
     stage2_text: str,
     candidates: Sequence[NormalizedItem],
+    *,
+    additional_evidence: Sequence[str] = (),
 ) -> tuple[str, ...]:
     """Return numeric tokens in Stage 2 output absent from any candidate.
 
@@ -140,6 +142,11 @@ def find_unverified(
     if not flagged:
         return ()
     haystack = _candidate_haystack(candidates)
+    haystack.update(
+        match.group(0).lower()
+        for text in additional_evidence
+        for match in _LITERAL_NUMBER_RE.finditer(text)
+    )
     if not haystack:
         return flagged
     out: list[str] = []

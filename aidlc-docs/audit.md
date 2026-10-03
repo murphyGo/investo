@@ -7187,3 +7187,75 @@ helper, Pages recovery and rollback instructions. Separate-agent review PASS;
 current included Actions allowance/spending limit confirmation. Billing query
 lacks user scope; no scope expansion. Public Claude schedule remains active.
 **Record**: `docs/sessions/2026-10-03-u155-codex-cutover.md`.
+
+## Planning — u157–u162 event-first briefing design (2026-09-26)
+
+**User**: “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
+**Scope**: Convert the 2026-09-22 evidence-backed review into six registered units, shared event/window/publication contracts, per-unit design drafts and executable code-generation plans. No implementation, commit/push or public activation requested.
+**Baseline / isolation**: origin/main `04978d81ec9ece8f4083e4be190c6539bdf3b5ff`; branch `codex/news-event-design-20260926` in `.tmp/news-event-design-20260926`. Preserve original dirty checkout and all other worktrees.
+**Decisions**: u157 owns shared event identity/evidence, selection and the common remote publication receipt; u158 narrative and terminal projection; u159 semantic-fixture/runtime coverage; u160 separate news windows and cursor integration after the u157 receipt; u161 bounded qualified official evidence; u162 typed qualitative watchpoints after u152. u154 layout and reserved local u156 notifier ownership remain independent. u156 committed ref lacks verifiable unit artifacts, so its number is reserved without claiming completion.
+**Stage status**: Proposed FD/NFR drafts, reviewable; not user-approved. Code Generation Backlog, dependencies/qualification gates explicitly recorded. Proposed FR-023 is unchecked.
+**Validation**: Docs-only registration/link/dependency/placeholder/whitespace checks and read-only specialist reviews are recorded in `docs/sessions/2026-09-26-news-event-design.md`.
+
+
+## Development authorization — u157–u162 (2026-09-27)
+
+User: “유닛 하나씩 개발 진행해고 하나 완료할 떄마다 커밋 푸시해줘”. This authorizes the presented FD/NFR designs, sequential implementation and scoped commit/push per completed unit. Routine stage approval prompts are superseded by this explicit instruction. Source qualification and actual feature activation remain evidence-gated; no unrelated backlog is included. Start u157 from origin/main 04978d81 in the isolated design worktree.
+
+## u157 Code Generation closeout (2026-09-27)
+
+User-authorized sequential unit 1/6 completed. Eight implementation steps, all seven scoped ACs, 13 independent-review corrections. Full regression 5415 passed in 377.62s; integrated boundary129 and final foundation/input/classification61 passed. Ruff/format614, source mypy273, four policy guards, strict MkDocs and Material pass. NF3 1000-item/10-run p95=57.239ms. No production activation, scheduled shadow, live LLM or notification send. Default off; u158/u159 consume the new contracts. Scoped commit/push is authorized and is the next action.
+
+## u157 remote delivery and u158 start (2026-09-27)
+
+u157 commit `d5aa8f28981c2042741da75a9b501c185baadb5f` pushed to `origin/codex/news-event-design-20260926`; git ls-remote confirmed exact equality. Continue u158 under existing sequential development authorization. No main merge or production activation.
+
+## u158 Code Generation closeout (2026-09-27)
+
+Sequential unit 2/6: seven steps and AC-158.1–6 complete. Stage2 JSON v2, event-first summary, terminal survival/DTO reconciliation and isolated preview implemented. Two review waves resolved 11 findings; no unresolved P1/P2. Final full regression 5521 passed in 402.28s, final preamble/preview112 passed; Ruff/format626, mypy278, policy guards, strict MkDocs and Material passed. NF3 selection/parser/renderer/terminal p95=69.97ms for 1000 inputs. Default off and active capability false. Scoped commit/push follows the user's instruction; u159 is next. No main merge, deployment or operational acceptance claimed.
+
+## u158 remote delivery and u159 start (2026-09-27)
+
+u158 commit `c3f2e5efe91d1a1284d9e859eedba71728a7d64b` pushed and exact remote branch SHA verified. u159 is now executing under the same user authorization. Stage receipts, nullable per-segment terminal metrics, remote-confirmed aggregate, 12 synthetic golden groups and 18 historical output inventory are in scope. Genuine human semantic approval, five scheduled shadow runs and production activation remain separate evidence; no such completion is inferred from offline fixtures.
+
+## u159 Code Generation closeout (2026-09-27)
+
+Sequential unit 3/6: six code steps complete. Truthful stage/terminal counts, same-basis public quality, remote-confirmed aggregate, E11 sealed-survivor ledger and 12-group/25-variant offline replay implemented. Independent second-wave review resolved eight P2 findings; no remaining P1/P2. Final full regression 5652 passed/416.33s, independent replay32, terminal45, model/page35 and preview/architecture17 passed. Ruff/format638, mypy282, policy and strict docs/Material gates passed. NF3 p95=126.662ms/1000 inputs. AC-159.4 automated structure replay passes; genuine human semantic review remains pending. Scheduled shadow, active/public operational checks not run. Commit/push is authorized; proceed to u160 after exact remote confirmation.
+
+## u159 remote delivery and u160 start (2026-09-27)
+
+u159 commit `f056fbde76efd48f2f5715aa68b3fea278fbcf67` pushed to `origin/codex/news-event-design-20260926` and exact remote SHA verified. u160 develops independent news windows, optional source coverage, recipient consumption and confirmed E11 cursor metadata under the same sequential authorization. Default off; scheduled shadow and production cursor activation remain separate. Existing dirty root checkout is untouched.
+
+## u160 Code Generation closeout (2026-09-27)
+
+Sequential unit 4/6: seven steps and AC-160.1–6 code validation complete. Independent fixed news clock, source union/recipient filtering, bounded DART/policy coverage, sealed consumption, same-transaction confirmed cursor/manifest and reader/quality observation ranges implemented. Two review waves resolved four P2 findings; no remaining P1/P2. Full5798/462.55s, actual pipeline/bare Git20, independent window61, source correction59, parent projection11 and CLI6 pass. Ruff/format648, mypy286, policy4, strict MkDocs9.22s/Material pass. Existing event NF3 p95=121.469ms/1000 inputs. Off/shadow parity and replay/dry-run cursor boundaries verified offline; no scheduled shadow, live cursor changes, activation, main merge or external notification. Authorized commit/push follows, then u161.
+
+## u160 remote delivery and u161 start (2026-09-27)
+
+u160 `79b9f03981a2f26ef74126e4bb86928a9b118950` pushed to the authorized feature branch and exact remote SHA confirmed. u161 now executes existing feed diagnosis, pre-summary-cut typed evidence and qualified bounded official body enrichment. Read-only official discovery/rights and directly linked live-body checks qualified FOMC, Fed speech and CFTC release families before Stage C implementation; SEC body and CNBC feed remain HTTP403 blocked. Raw probes stay ignored/private. Runtime active capability remains false and source qualification is not activation.
+
+## 2026-09-28 — u161 final validation
+
+Completed all seven steps after actual source qualification. Full regression5888 passed in464.69s; Ruff/format655, mypy289, four policy guards, strict docs7.08s and Material contracts pass. Offline event benchmark p95=129.072ms/200ms. Five same-wave review corrections cover absolute request budget, malformed HTML, URL eligibility quota, feed sibling isolation and decoded gzip headers. Raw bodies remain ignored; CNBC/SEC restrictions remain blocked; event/news/body activation all false. Per-unit commit/push follows final review closure.
+
+## 2026-09-28 — u161 delivery and required u152 dependency
+
+u161470315969c39f708753dcda6e186a803752fa560 pushed to codex/news-event-design-20260926 and exact remote SHA confirmed. Before u162, current origin/main04978d81 and feature branch were checked: u152 still uses numeric passthrough and is design-ready, so the approved u162 hard dependency is not yet met. Parent proceeds with the existing u152 fixed contracts as necessary authorized prerequisite, after writing functional design, with separate per-unit commit/push. This is a scope interpretation of the user's sequential-development request, not a fabricated explicit u152 answer. No unrelated unit completion or activation.
+
+## 2026-10-03 — u152 prerequisite complete
+
+Existing eight fixed contracts implemented without new source families or I/O. All six code steps, seven ACs and five DoDs pass. Four P2 corrections closed in the single review wave. Final full5961/472.37s, focused165/4.01s, independent66/5.72s plus14 source-slot controls, Ruff/format657, mypy289, policy4, strict docs/Material pass; offline event p95=137.474ms. Separate authorized commit/push follows, then approved u162. No main integration, activation, scheduled shadow or external notification.
+
+## 2026-10-04 — u152 delivery and u162 start
+
+u152 82c4e072bc0ef2570aecf9e590cec5ae392e9af8 pushed and exact feature-branch remote SHA verified. Approved u162 now starts from this prerequisite. Parent owns reader/finalizer integration; three bounded packets own typed event builder, composition helpers and real-finalizer tests. Existing default-off and operational gates remain intact.
+
+## 2026-10-04 — u162 Code Generation closeout
+
+Sequential unit 6/6 completed after separate u152 delivery. Six steps, seven fixed contracts and five ACs pass. Explicit numeric/event cards, source-backed observed state/next checks, frozen full numeric baseline, kind-specific private outcome and bounded terminal survivor reconciliation implemented. Three implementation-test corrections and two cross-owner P2 findings resolved; the latter independently rechecked through original reproductions. Final full6087/460.18s, focused222/9.84s, actual-finalizer24/2.49s, lifecycle50/2.89s and HTML21/1.55s; source/test freeze hashes unchanged. Ruff/format661, mypy290, policy4 and strict docs/Material pass. Shared event benchmark p95=122.515ms/200ms, not card-specific or E2E. Authorized separate commit/push follows. All feature activation remains false; no main integration, scheduled shadow, live semantic evaluation, external notification or Pages acceptance. No new debt; DEBT-090 unchanged.
+
+## 2026-10-04 — news/event main integration and operational authorization
+
+User: “main 통합, 운영 활성화해줘”. Authorizes current-main integration and necessary live rollout checks/publish/notify on the existing production owner. It does not supply missing human scores or scheduled evidence. Isolated integration combines main77ff63d1 and feature47518dba, preserving both audit histories and dry-run current quality plus event/news metadata. Added private non-publishing live preview, recipient-encrypted artifacts and bounded shadow diagnostics; production event/news defaults shadow and enrichment remains off. All active readiness flags remain false pending frozen launch gates.
+
+Full6149/487.31s, source/workflow671 hash freeze unchanged, Ruff/format666/mypy290, policy4, strict docs6.29s/Material and actionlint2 pass. Independent review CLOSED with no open P1/P2. Parent prepares exact main push then actual preview/manual shadow checks; manual executions cannot count as the required five scheduled runs. Human12-scenario semantics and first3 active publication/notification/Pages remain distinct. Root dirty files and separate u155 runtime work preserved.

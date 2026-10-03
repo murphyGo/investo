@@ -113,7 +113,13 @@ def test_us_equity_2026_06_30_payload_synthesizes_range_then_cftc() -> None:
     )
     cftc = _item(
         "cftc-cot-positioning",
-        fixture["cftc"],
+        {
+            **fixture["cftc"],
+            # Synthetic source dates complete the new observation contract;
+            # the retained u135 fixture did not record these metadata fields.
+            "as_of_date": "2026-06-23",
+            "release_date": "2026-06-26",
+        },
         target_date=target_date,
     )
     observed = []
@@ -133,7 +139,8 @@ def test_us_equity_2026_06_30_payload_synthesizes_range_then_cftc() -> None:
     first, second = fixture["expected_signals"]
     assert output.index(f"#### 관찰 신호: {first}") < output.index(f"#### 관찰 신호: {second}")
     assert "- 현재: 7,499.36 (**+0.79%**)" in output
-    assert "순포지션 -373,468계약 (**-18.86%** OI, 주간 지연)" in output
+    assert "순포지션 -373,468계약 (**-18.86%** OI" in output
+    assert "2026-06-23 기준/2026-06-26 공개 · 주간 지연" in output
     assert len(observed) == 1
     assert observed[0].synthesized_card_count == 2
 

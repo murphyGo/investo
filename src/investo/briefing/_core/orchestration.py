@@ -15,9 +15,10 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import UTC, date
+from datetime import UTC, date, datetime
 from typing import Final
 
 from pydantic import ValidationError
@@ -34,7 +35,12 @@ from investo.briefing._assembly.prompt_fields import (
     _render_stage1_prompt_url,
 )
 from investo.briefing._assembly.text_normalize import parse_six_sections
-from investo.briefing._core.classification import ClassificationResult, _parse_classification
+from investo.briefing._core.classification import (
+    ClassificationResult,
+    EventClassificationResult,
+    _parse_classification,
+    parse_event_classification,
+)
 from investo.briefing._core.section_planning import SectionPlan, _required_macro_item_ids
 from investo.briefing.claude_code import (
     DEFAULT_TIMEOUT_S,
@@ -43,16 +49,26 @@ from investo.briefing.claude_code import (
     RetryBudget,
 )
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
+from investo.briefing.event_evidence import build_event_candidates
+from investo.briefing.event_input import select_event_input_items
+from investo.briefing.event_narrative import assemble_event_synthesis, parse_event_synthesis
+from investo.briefing.event_prompt import EventPromptEvidence
 from investo.briefing.llm import CodexRunner
 from investo.briefing.llm import call_llm as call_claude_code
 from investo.briefing.prompts import (
+    STAGE1_EVENT_SYSTEM,
     STAGE1_SYSTEM,
     STAGE1_USER_TEMPLATE,
+    STAGE2_EVENT_SYSTEM,
+    STAGE2_EVENT_USER_TEMPLATE,
     STAGE2_SYSTEM,
     STAGE2_USER_TEMPLATE,
 )
 from investo.briefing.segments import MarketSegment
 from investo.models import NormalizedItem
+from investo.models.event_config import EventMode
+from investo.models.event_narratives import EventGenerationPayload, Stage2OutputV2
+from investo.models.events import EvidenceDocument
 from investo.models.macro import (
     macro_event_date,
     macro_priority,
@@ -92,6 +108,7 @@ class GenerationPolicy:
     timeout_s: float = DEFAULT_TIMEOUT_S
     max_attempts: int = MAX_ATTEMPTS
     total_budget_s: float = DEFAULT_TOTAL_BUDGET_S
+    event_mode: EventMode = "off"
 
 
 def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
@@ -122,7 +139,10 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
 
 
 def _select_llm_candidate_items(
-    items: Sequence[NormalizedItem], *, target_date: date | None = None
+    items: Sequence[NormalizedItem],
+    *,
+    target_date: date | None = None,
+    event_mode: EventMode = "off",
 ) -> tuple[NormalizedItem, ...]:
     """Bound the item set sent to Claude while preserving source diversity.
 
@@ -138,6 +158,8 @@ def _select_llm_candidate_items(
     the same 96-total / 24-per-source cap so the overall LLM input
     budget is preserved (NFR-002 token cost guard).
     """
+    if event_mode in ("preview", "active"):
+        return select_event_input_items(items, target_date=target_date)
     selected: list[NormalizedItem] = []
     per_source_counts: dict[str, int] = {}
     lookahead_count = 0
@@ -234,6 +256,8 @@ async def _classify(
     policy: GenerationPolicy,
     segment_context: str,
     segment: MarketSegment | None = None,
+    evidence_documents: tuple[EvidenceDocument, ...] = (),
+    observed_at: datetime | None = None,
 ) -> ClassificationResult:
     """Run Stage 1 with the FD R3 retry loop.
 
@@ -241,13 +265,44 @@ async def _classify(
     exhausting attempts, or ``BriefingGenerationError(stage="budget")``
     if the cumulative budget is hit before a retry can dispatch.
     """
+    uses_events = policy.event_mode in ("preview", "active")
     serialized = serialize_items_for_prompt(items)
+    if uses_events:
+        if len(evidence_documents) != len(items):
+            raise ValueError("event evidence must match the same-run candidate items")
+        legacy_items = json.loads(serialized)
+        serialized = json.dumps(
+            [
+                {
+                    "id": index,
+                    "category": item.category,
+                    "evidence": document.model_dump(mode="json"),
+                    **(
+                        {"macro": legacy_items[index - 1]["macro"]}
+                        if "macro" in legacy_items[index - 1]
+                        else {}
+                    ),
+                }
+                for index, (item, document) in enumerate(
+                    zip(items, evidence_documents, strict=True), 1
+                )
+            ],
+            ensure_ascii=False,
+        )
     required_item_ids = _required_macro_item_ids(items)
     user_prompt = STAGE1_USER_TEMPLATE.format(
         segment_context=segment_context,
         items_json=serialized,
     )
-    full_prompt = f"{STAGE1_SYSTEM}\n\n{user_prompt}"
+    if uses_events:
+        user_prompt += "\nRequired macro item IDs (must be assigned): " + json.dumps(
+            sorted(required_item_ids)
+        )
+        user_prompt += "\nJSON schema:\n" + json.dumps(
+            EventClassificationResult.model_json_schema(), ensure_ascii=False
+        )
+    system = STAGE1_EVENT_SYSTEM if uses_events else STAGE1_SYSTEM
+    full_prompt = f"{system}\n\n{user_prompt}"
 
     last_outcome: SubprocessOutcome | None = None
     last_cause: BaseException | None = None
@@ -267,8 +322,12 @@ async def _classify(
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
-                last_stderr=last_outcome.stderr if last_outcome is not None else None,
-                last_stdout=last_outcome.stdout if last_outcome is not None else None,
+                last_stderr=(
+                    last_outcome.stderr if last_outcome is not None and not uses_events else None
+                ),
+                last_stdout=(
+                    last_outcome.stdout if last_outcome is not None and not uses_events else None
+                ),
                 cause=last_cause,
             )
         if attempt > 0:
@@ -310,6 +369,24 @@ async def _classify(
             continue
 
         try:
+            if uses_events:
+                event_result = parse_event_classification(
+                    outcome.stdout,
+                    len(items),
+                    required_item_ids=required_item_ids,
+                )
+                try:
+                    if evidence_documents:
+                        build_event_candidates(
+                            event_result.events,
+                            items,
+                            evidence_documents,
+                            observed_at=observed_at
+                            or max(doc.received_at for doc in evidence_documents),
+                        )
+                except (ValueError, KeyError, TypeError):
+                    raise ValueError("event_classification_unavailable: invalid_evidence") from None
+                return event_result
             return _parse_classification(
                 outcome.stdout,
                 item_count=len(items),
@@ -322,8 +399,12 @@ async def _classify(
     raise BriefingGenerationError(
         stage="classification",
         attempt_count=policy.max_attempts,
-        last_stderr=last_outcome.stderr if last_outcome is not None else None,
-        last_stdout=last_outcome.stdout if last_outcome is not None else None,
+        last_stderr=None
+        if uses_events
+        else (last_outcome.stderr if last_outcome is not None else None),
+        last_stdout=None
+        if uses_events
+        else (last_outcome.stdout if last_outcome is not None else None),
         cause=last_cause,
     )
 
@@ -341,6 +422,9 @@ async def _synthesize(
     fact_context_block: str = "",
     bundle_context_block: str = "",
     segment: MarketSegment | None = None,
+    event_evidence: EventPromptEvidence | None = None,
+    event_payloads: list[EventGenerationPayload] | None = None,
+    collection_limited: bool = False,
 ) -> str:
     """Run Stage 2 with the FD R3 retry loop. Returns body markdown.
 
@@ -367,6 +451,9 @@ async def _synthesize(
     segment has no carryover from prior briefings (matching CARRY-4:
     omit the table rather than fabricate rows).
     """
+    uses_events = policy.event_mode in ("preview", "active")
+    if uses_events != (event_evidence is not None):
+        raise ValueError("event synthesis requires the matching versioned evidence plan")
     grouped = _render_grouped_sections(
         plan.items_by_section,
         story_metadata=plan.story_metadata,
@@ -374,7 +461,11 @@ async def _synthesize(
     )
     required_macro_actuals = _render_required_macro_actuals(plan.required_macro_items)
     unassigned = _render_unassigned(plan.unassigned, segment=segment)
-    user_prompt = STAGE2_USER_TEMPLATE.format(
+    if event_evidence is not None:
+        grouped = event_evidence.grouped_sections
+        unassigned = event_evidence.unassigned
+    template = STAGE2_EVENT_USER_TEMPLATE if uses_events else STAGE2_USER_TEMPLATE
+    user_prompt = template.format(
         segment_context=segment_context,
         grouped_sections=grouped,
         required_macro_actuals=required_macro_actuals,
@@ -385,8 +476,13 @@ async def _synthesize(
         carryover_context=carryover_context_block,
         fact_context=fact_context_block,
         bundle_context=bundle_context_block,
+        protected_events=event_evidence.event_plan.protected_block if event_evidence else "",
+        json_schema=json.dumps(Stage2OutputV2.model_json_schema(), ensure_ascii=False)
+        if uses_events
+        else "",
     )
-    full_prompt = f"{STAGE2_SYSTEM}\n\n{user_prompt}"
+    system = STAGE2_EVENT_SYSTEM if uses_events else STAGE2_SYSTEM
+    full_prompt = f"{system}\n\n{user_prompt}"
 
     last_outcome: SubprocessOutcome | None = None
     last_cause: BaseException | None = None
@@ -401,15 +497,24 @@ async def _synthesize(
             raise BriefingGenerationError(
                 stage="budget",
                 attempt_count=attempt,
-                last_stderr=last_outcome.stderr if last_outcome is not None else None,
-                last_stdout=last_outcome.stdout if last_outcome is not None else None,
+                last_stderr=last_outcome.stderr
+                if last_outcome is not None and not uses_events
+                else None,
+                last_stdout=last_outcome.stdout
+                if last_outcome is not None and not uses_events
+                else None,
                 cause=last_cause,
             )
         if attempt > 0:
             await asyncio.sleep(backoff)
             budget.record(accounted_backoff)
 
-        attempt_prompt = f"{full_prompt}{_stage2_retry_feedback(last_cause)}"
+        feedback = (
+            _stage2_retry_feedback(last_cause, schema_version=2)
+            if uses_events
+            else _stage2_retry_feedback(last_cause)
+        )
+        attempt_prompt = f"{full_prompt}{feedback}"
         outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)
         _logger.info(
             "llm attempt segment=%s stage=synthesis attempt=%d timeout_s=%.1f "
@@ -437,7 +542,9 @@ async def _synthesize(
         budget.record(outcome.elapsed_s)
         last_outcome = outcome
 
-        if outcome.returncode != 0 or len(outcome.stdout) < _STAGE2_SANITY_FLOOR:
+        if outcome.returncode != 0 or (
+            not uses_events and len(outcome.stdout) < _STAGE2_SANITY_FLOOR
+        ):
             last_cause = ValueError(
                 f"Stage 2 subprocess returned rc={outcome.returncode}, "
                 f"stdout_len={len(outcome.stdout)}"
@@ -445,19 +552,39 @@ async def _synthesize(
             continue
 
         try:
-            parse_six_sections(outcome.stdout)
-            _validate_required_macro_mentions(outcome.stdout, plan.required_macro_items)
+            body = outcome.stdout
+            payload = None
+            if event_evidence is not None:
+                output = parse_event_synthesis(outcome.stdout, event_evidence.event_plan)
+                payload = EventGenerationPayload(
+                    plan=event_evidence.event_plan,
+                    narratives=output.events,
+                    collection_limited=collection_limited,
+                )
+                body = assemble_event_synthesis(
+                    output, event_evidence.event_plan, collection_limited=collection_limited
+                )
+            parse_six_sections(body)
+            _validate_required_macro_mentions(body, plan.required_macro_items)
         except ValueError as exc:
-            last_cause = exc
+            if uses_events:
+                code = str(exc).split(":", 1)[0]
+                last_cause = ValueError(
+                    code if re.fullmatch(r"event\.[a-z_]{1,60}", code) else "event.output_invalid"
+                )
+            else:
+                last_cause = exc
             continue
 
-        return outcome.stdout
+        if payload is not None and event_payloads is not None:
+            event_payloads.append(payload)
+        return body
 
     raise BriefingGenerationError(
         stage="synthesis",
         attempt_count=policy.max_attempts,
-        last_stderr=last_outcome.stderr if last_outcome is not None else None,
-        last_stdout=last_outcome.stdout if last_outcome is not None else None,
+        last_stderr=last_outcome.stderr if last_outcome is not None and not uses_events else None,
+        last_stdout=last_outcome.stdout if last_outcome is not None and not uses_events else None,
         cause=last_cause,
     )
 
