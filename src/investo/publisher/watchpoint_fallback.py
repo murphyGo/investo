@@ -296,11 +296,14 @@ def _fear_greed_row(payload: WatchpointValuePayload) -> WatchpointRow | None:
             continue
         is_fear = value <= Decimal(20)
         band = "극단 공포" if is_fear else "극단 탐욕"
-        return _format_template_row(
+        unresolved = _format_template_row(
             FEAR_GREED_TEMPLATE if is_fear else GREED_TEMPLATE,
             value=int(value),
             band=band,
         )
+        resolved = resolve_watchpoint_currents((unresolved,), payload)
+        if resolved:
+            return resolved[0]
     return None
 
 

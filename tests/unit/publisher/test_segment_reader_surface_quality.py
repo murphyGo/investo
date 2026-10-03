@@ -224,8 +224,8 @@ def test_compliance_scans_only_raw_and_rendered_watchpoint_shapes(
         "> **주의할 점**: 변동성을 점검합니다.\n\n"
         "## ① 요약\n본문입니다.\n\n"
         "## ⑥ 오늘의 관전 포인트\n\n"
-        "- 확인 소스: FRED · 10Y 금리가 4.5%를 상회하면 변동성 확대를 관찰; "
-        "4.3%를 이탈하면 완화를 확인. 관심 영향: 성장주 민감도를 점검.\n"
+        "- 확인 소스: Yahoo · S&P 500 가격이 5,100을 상회하면 변동성 확대를 관찰; "
+        "4,900을 이탈하면 완화를 확인. 관심 영향: 성장주 민감도를 점검.\n"
     )
 
     def observe_scan(text: str, segment: MarketSegment) -> object:
@@ -236,11 +236,11 @@ def test_compliance_scans_only_raw_and_rendered_watchpoint_shapes(
 
     apply_reader_format_to_segments(
         {US_EQUITY: _briefing(markdown)},
-        anchors_by_segment={},
+        anchors_by_segment={US_EQUITY: (_fallback_anchor(),)},
     )
 
     assert len(observed) == 2
-    assert "- 확인 소스: FRED" in observed[0]
+    assert "- 확인 소스: Yahoo" in observed[0]
     assert "#### 관찰 신호:" in observed[1]
 
 
@@ -304,6 +304,8 @@ def test_synthesized_compliance_failure_drops_only_failed_row_without_blocking(
             "contract_group": "equity_index",
             "net_contracts": "-451586",
             "net_pct_open_interest": "-20.50",
+            "as_of_date": "2026-06-23",
+            "release_date": "2026-06-26",
         },
     )
     real_scan = segment_reader_format.scan_compliance

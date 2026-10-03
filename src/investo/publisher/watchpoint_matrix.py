@@ -81,6 +81,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from dataclasses import field as dataclass_field
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from itertools import combinations
 from typing import Final, Literal, cast
@@ -511,7 +512,14 @@ _GENERIC_CURRENT_RE: Final[re.Pattern[str]] = re.compile(
     r"^(?:[A-Z0-9.^=-]{2,12}|[가-힣A-Za-z0-9.^=-]{2,20}\s*(?:확인|점검|관찰|추세|흐름)?|"
     r"(?:FOMC|CPI|PPI|환율|금리|유가|비트코인|이더리움)\s*(?:확인|점검|관찰|추세|흐름)?)$"
 )
-_CURRENT_VALUE_RE: Final[re.Pattern[str]] = re.compile(r"\d")
+_EXPLICIT_FIELD_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:^|(?<=[\s;·]))(관찰\s*신호|신호|현재|출처|확인\s?소스|소스|근거|source|"
+    r"상방|하방|관심\s*영향|섹션\s*내\s*관심\s*영향)\s*[:\uff1a]\s*",
+    re.IGNORECASE,
+)
+_UNSAFE_SIGNAL_RE: Final[re.Pattern[str]] = re.compile(
+    r"[:;\uff1a]|현재|상방|하방|상회|하회|돌파|이탈|하면|관심\s*영향"
+)
 _MAX_NUMERIC_INPUT_CHARS: Final[int] = 64
 _MAX_DISPLAY_MAGNITUDE: Final[int] = 18
 _PRICE_QUANTUM: Final[Decimal] = Decimal("0.01")
@@ -562,6 +570,10 @@ def _short_signal(bullet: str) -> str:
     bare Korean particle is trimmed so the label never dangles on a 조사
     (AC-87.3).
     """
+    fields = _explicit_fields(bullet)
+    explicit = fields.get("관찰신호", fields.get("신호"))
+    if explicit:
+        return _trim_trailing_particle(explicit)
     stripped = _SOURCE_PREFIX_RE.sub("", bullet).strip()
     head = _MD_LINK_RE.sub(r"\1", stripped or bullet.strip())
     # Cut at the first directional verb / clause separator so the label stays
@@ -659,7 +671,7 @@ def _field_missing(text: str, *, data_limited_default: str) -> bool:
 def _trigger_key(text: str) -> str:
     normalized = _normalise_field_text(text, default="")
     normalized = re.sub(r"^(?:상방|하방)\s+", "", normalized).strip()
-    return re.sub(r"\s+", " ", normalized).casefold()
+    return re.sub(r"\s+", " ", normalized).rstrip(".。").casefold()
 
 
 def _trigger_display(text: str, *, default: str) -> str:
@@ -678,6 +690,9 @@ def _is_generic_current(text: str) -> bool:
 class _CurrentValueCandidate:
     match_tokens: tuple[str, ...]
     current: str
+    label: str
+    family: Literal["price", "fear_greed", "funding", "oi", "cftc"]
+    identity: str
     source_tokens: tuple[str, ...] = ()
     is_indicator: bool = False
 
@@ -760,6 +775,9 @@ def _anchor_candidate(
             )
         ),
         current=current,
+        label=f"{label.ko} 가격",
+        family="price",
+        identity=anchor.ticker,
     )
 
 
@@ -797,6 +815,9 @@ def _coingecko_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate
             dict.fromkeys((symbol.upper(), ticker, coin_id, label.short, label.ko, label.display))
         ),
         current=f"{rendered_price} ({rendered_pct})",
+        label=f"{label.ko} 가격",
+        family="price",
+        identity=ticker,
         source_tokens=("CoinGecko",),
     )
 
@@ -817,6 +838,9 @@ def _fear_greed_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidat
     return _CurrentValueCandidate(
         match_tokens=("공포·탐욕", "공포 탐욕", "Fear & Greed", "Fear and Greed", "F&G"),
         current=f"{int(value)}{suffix}",
+        label="공포·탐욕 지수",
+        family="fear_greed",
+        identity="fear_greed",
         is_indicator=True,
     )
 
@@ -834,6 +858,9 @@ def _funding_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate |
     return _CurrentValueCandidate(
         match_tokens=("BTC 펀딩", "펀딩", "BTC funding", "funding rate", "funding"),
         current=f"펀딩 {value}",
+        label="BTC 펀딩",
+        family="funding",
+        identity="BTC-USD",
         is_indicator=True,
     )
 
@@ -848,6 +875,9 @@ def _oi_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate | None
     return _CurrentValueCandidate(
         match_tokens=("BTC 미결제약정", "BTC OI", "미결제약정", "open interest", "OI"),
         current=f"OI {value}",
+        label="BTC 미결제약정",
+        family="oi",
+        identity="BTC-USD",
         is_indicator=True,
     )
 
@@ -867,6 +897,15 @@ def _cftc_candidate(
     net = _bounded_decimal(net_raw) if net_raw is not None else None
     pct_value = _bounded_decimal(pct_raw) if pct_raw is not None else None
     pct = _format_pct_value(pct_value) if pct_value is not None else None
+    as_of_text = _metadata_text(item, "as_of_date") or ""
+    release_text = _metadata_text(item, "release_date") or ""
+    try:
+        as_of = date.fromisoformat(as_of_text)
+        release = date.fromisoformat(release_text)
+    except ValueError:
+        return None
+    if as_of.isoformat() != as_of_text or release.isoformat() != release_text or as_of > release:
+        return None
     if (
         contract is None
         or net is None
@@ -877,7 +916,13 @@ def _cftc_candidate(
         return None
     return _CurrentValueCandidate(
         match_tokens=(contract,),
-        current=f"순포지션 {int(net):,}계약 ({pct} OI, 주간 지연)",
+        current=(
+            f"순포지션 {int(net):,}계약 ({pct} OI, "
+            f"{as_of_text} 기준/{release_text} 공개 · 주간 지연)"
+        ),
+        label=f"{contract} 순포지션",
+        family="cftc",
+        identity=contract.casefold(),
         is_indicator=True,
     )
 
@@ -948,13 +993,40 @@ def _candidate_for_signal(
     *,
     source: str = "",
 ) -> _CurrentValueCandidate | None:
-    best: _CurrentValueCandidate | None = None
-    best_score = (-1, -1, -1, 0)
-    for index, candidate in enumerate(candidates):
+    # Identity comes from observation labels, never current prose or future
+    # thresholds. Keep asset recognition even when its payload is missing.
+    # In the source slot this exact name identifies the news/market-data
+    # publisher, not an extra Nasdaq index alongside the signal's asset.
+    source_identity = "" if source.casefold() in {"nasdaq", "나스닥"} else source
+    identity_text = f"{signal} {source_identity}"
+    assets = _mentioned_assets(identity_text, candidates)
+    if len(assets) > 1:
+        return None
+    family = _signal_family(identity_text, candidates)
+    if family == "price" and (
+        not _price_signal_is_supported(signal, candidates)
+        or not _price_signal_is_supported(source_identity, candidates, source_slot=True)
+    ):
+        return None
+    if family is None:
+        return None
+    matched: list[tuple[tuple[int, int, int], _CurrentValueCandidate]] = []
+    for candidate in candidates:
+        if candidate.family != family:
+            continue
+        if family in {"price", "funding", "oi"} and assets and candidate.identity not in assets:
+            continue
+        # The source may supply a metric, but never a missing signal asset.
+        matching_text = (
+            identity_text
+            if family in {"funding", "oi"}
+            and _mentioned_assets(signal, candidates) == {candidate.identity}
+            else signal
+        )
         matched_lengths = [
             len(token.strip())
             for token in candidate.match_tokens
-            if _has_exact_signal_token(signal, token)
+            if _has_exact_signal_token(matching_text, token)
         ]
         if matched_lengths:
             source_specificity = int(
@@ -967,24 +1039,158 @@ def _candidate_for_signal(
                 int(candidate.is_indicator),
                 max(matched_lengths),
                 source_specificity,
-                -index,
             )
-            if score > best_score:
-                best = candidate
-                best_score = score
-    return best
+            matched.append((score, candidate))
+    if not matched:
+        return None
+    # Two distinct identities never become unambiguous because one label is
+    # longer. Within one identity preserve existing specificity precedence.
+    if len({candidate.identity for _, candidate in matched}) != 1:
+        return None
+    best_score = max(score for score, _ in matched)
+    best = [candidate for score, candidate in matched if score == best_score]
+    if len({candidate.current for candidate in best}) != 1:
+        return None
+    return min(best, key=lambda candidate: (candidate.label, candidate.match_tokens))
+
+
+def _mentioned_assets(text: str, candidates: Sequence[_CurrentValueCandidate]) -> set[str]:
+    # The existing label owner supplies aliases; these symbols only detect
+    # contradictory labels and do not create new observation candidates.
+    symbols = {
+        "BTC-USD",
+        "ETH-USD",
+        "SOL-USD",
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "TSLA",
+        "GOOGL",
+        "META",
+        "AMZN",
+        "^GSPC",
+        "^IXIC",
+        "^DJI",
+        "^NDX",
+        "^KOSPI",
+        "^KOSDAQ",
+        "KRW=X",
+        "005930.KS",
+        "000660.KS",
+        *(candidate.identity for candidate in candidates if candidate.family == "price"),
+    }
+    aliases: dict[str, tuple[str, ...]] = {}
+    for symbol in symbols:
+        label = anchor_label(symbol)
+        aliases[symbol] = (symbol, label.short, label.ko, label.display)
+    aliases["BTC-USD"] += ("bitcoin",)
+    aliases["ETH-USD"] += ("ether", "ethereum")
+    aliases["SOL-USD"] += ("SOL", "solana", "솔라나")
+    return {
+        symbol
+        for symbol, tokens in aliases.items()
+        if any(_has_exact_signal_token(text, token) for token in tokens)
+    }
+
+
+def _signal_family(text: str, candidates: Sequence[_CurrentValueCandidate]) -> str | None:
+    if re.search(
+        r"TVL|거래량|거래대금|시가총액|시총|외국인|기관|투자자|순매수|순매도", text, re.IGNORECASE
+    ):
+        return None
+    # CFTC's contract may name a rate instrument; explicit positioning is
+    # still the existing family, never a new rate observation resolver.
+    if re.search(
+        r"금리|수익률|국채|UST",
+        text,
+        re.IGNORECASE,
+    ) and not re.search(r"CFTC|COT|순포지션|포지셔닝", text, re.IGNORECASE):
+        return None
+    hints = {
+        family
+        for family, pattern in (
+            ("price", r"가격|종가|시세"),
+            ("fear_greed", r"공포|탐욕|fear|greed|F&G"),
+            ("funding", r"펀딩|funding"),
+            ("oi", r"미결제약정|open interest|(?<![A-Za-z])OI(?![A-Za-z])"),
+            ("cftc", r"CFTC|COT|순포지션|포지셔닝|계약"),
+        )
+        if re.search(pattern, text, re.IGNORECASE)
+    }
+    if len(hints) > 1:
+        return None
+    if hints:
+        return next(iter(hints))
+    if any(
+        candidate.family == "cftc"
+        and any(_has_exact_signal_token(text, token) for token in candidate.match_tokens)
+        for candidate in candidates
+    ):
+        return "cftc"
+    return "price"
+
+
+def _price_signal_is_supported(
+    signal: str, candidates: Sequence[_CurrentValueCandidate], *, source_slot: bool = False
+) -> bool:
+    # A bare asset means its price; an unknown metric does not. Remove only
+    # existing exact price aliases and a closed set of price/time labels.
+    # Conditional titles are shortened by the existing title owner first.
+    remaining = _short_signal(signal) if _UNSAFE_SIGNAL_RE.search(signal) else signal
+    tokens = {
+        token
+        for candidate in candidates
+        if candidate.family == "price"
+        for token in candidate.match_tokens
+        if _has_exact_signal_token(remaining, token)
+    }
+    for token in sorted(tokens, key=len, reverse=True):
+        remaining = re.sub(re.escape(token), " ", remaining, flags=re.IGNORECASE)
+    remaining = re.sub(
+        r"CoinGecko|검증된 시장 앵커|UTC|KST|24h|가격|종가|시세|주가|price|close|"
+        r"구간|기준선|기준|동향|추세|흐름|확인|점검|관찰",
+        " ",
+        remaining,
+        flags=re.IGNORECASE,
+    )
+    if source_slot:
+        remaining = re.sub(
+            r"Yahoo(?:\s+Finance)?|FRED|Nasdaq|나스닥|KRX|Stooq|Binance|Upbit|"
+            r"한국거래소|공식 자료|시장 앵커",
+            " ",
+            remaining,
+            flags=re.IGNORECASE,
+        )
+    return not remaining.strip(" ·/()[]:-—….")
+
+
+def _explicit_fields(text: str) -> dict[str, str]:
+    matches = list(_EXPLICIT_FIELD_RE.finditer(text))
+    fields: dict[str, str] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        name = re.sub(r"\s+", "", match.group(1)).lower()
+        value = text[match.end() : end].strip(" ;·,\n")
+        if name in {"출처", "확인소스", "소스", "근거", "source"}:
+            value = _CLAUSE_SPLIT_RE.split(value, maxsplit=1)[0].strip()
+        # Repeated labels are not a reason to merge conditions into a current.
+        fields.setdefault(name, value)
+    return fields
+
+
+def _observation_signal(signal: str) -> str:
+    fields = _explicit_fields(signal)
+    if "관찰신호" in fields or "신호" in fields:
+        return fields.get("관찰신호", fields.get("신호", ""))
+    marker = _EXPLICIT_FIELD_RE.search(signal)
+    return signal[: marker.start()].strip(" ;·") if marker else signal
 
 
 def resolve_watchpoint_currents(
     rows: Sequence[WatchpointRow],
     payload: WatchpointValuePayload,
 ) -> list[WatchpointRow]:
-    """Resolve non-numeric current fields by exact signal token or drop them.
-
-    Existing numeric current text is byte-preserved. A non-numeric value must
-    match one canonical ticker/label/indicator token from the supplied payload;
-    otherwise the row is omitted through the existing invalid-row flow.
-    """
+    """Replace every current with one supported asset/metric observation."""
 
     candidates = _current_value_candidates(payload)
     resolved: list[WatchpointRow] = []
@@ -997,13 +1203,26 @@ def resolve_watchpoint_currents(
             row.implication,
         )
         promoted = replace(row, source=source)
-        current = _normalise_field_text(row.current, default="")
-        if _CURRENT_VALUE_RE.search(current):
-            resolved.append(promoted)
-            continue
-        candidate = _candidate_for_signal(row.signal, candidates, source=source)
+        signal = _observation_signal(row.signal)
+        candidate = _candidate_for_signal(signal, candidates, source=row.source)
         if candidate is not None:
-            resolved.append(replace(promoted, current=candidate.current))
+            clean_signal = (
+                _short_signal(candidate.label)
+                if len(row.signal) > _SIGNAL_TITLE_MAX_CHARS or _UNSAFE_SIGNAL_RE.search(row.signal)
+                else signal
+            )
+            resolved.append(
+                replace(
+                    promoted,
+                    signal=clean_signal,
+                    current=candidate.current,
+                    confidence=(
+                        "보통"
+                        if candidate.family == "cftc" and row.confidence == "높음"
+                        else row.confidence
+                    ),
+                )
+            )
     return resolved
 
 
@@ -1067,22 +1286,36 @@ def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
     if confidence == DATA_LIMITED_CONFIDENCE:
         return WatchpointRow.data_limited(_short_signal(bullet))
 
+    fields = _explicit_fields(bullet)
     clauses = _clauses(bullet)
     # Directional verbs are the most specific — bucket them first.
-    bullish = _prefixed_clause_for("상방", clauses) or _clause_for(_BULLISH_KEYWORDS, clauses)
-    bearish = _prefixed_clause_for("하방", clauses) or _clause_for(_BEARISH_KEYWORDS, clauses)
+    bullish = (
+        fields.get("상방")
+        or _prefixed_clause_for("상방", clauses)
+        or _clause_for(_BULLISH_KEYWORDS, clauses)
+    )
+    bearish = (
+        fields.get("하방")
+        or _prefixed_clause_for("하방", clauses)
+        or _clause_for(_BEARISH_KEYWORDS, clauses)
+    )
     # Implication takes a *remaining* clause, preferring explicit markers.
     used = {bullish, bearish}
     remaining = [c for c in clauses if c not in used]
-    implication = _clause_for(_IMPLICATION_STRONG_KEYWORDS, remaining) or _clause_for(
-        _IMPLICATION_WEAK_KEYWORDS, remaining
+    implication = (
+        fields.get("관심영향")
+        or fields.get("섹션내관심영향")
+        or _clause_for(_IMPLICATION_STRONG_KEYWORDS, remaining)
+        or _clause_for(_IMPLICATION_WEAK_KEYWORDS, remaining)
     )
     used.add(implication)
-    current_clause = next(
-        (c for c in clauses if c not in used and not _is_source_only_clause(c)),
-        "",
-    )
-    current = _normalise_field_text(current_clause or bullet.strip(), default="현재 신호 부족")
+    current_clause = fields.get("현재", "")
+    if not fields:
+        current_clause = next(
+            (c for c in clauses if c not in used and not _is_source_only_clause(c)),
+            "",
+        )
+    current = _normalise_field_text(current_clause, default="현재 신호 부족")
     bullish_trigger = _normalise_field_text(
         bullish or "",
         default=PUBLIC_LOW_COVERAGE_INLINE_TEXT,
@@ -1097,7 +1330,20 @@ def _build_row(bullet: str, *, coverage_limited: bool) -> WatchpointRow:
     )
     return WatchpointRow(
         signal=_short_signal(bullet),
-        source=_promote_source(bullet, current, bullish_trigger, bearish_trigger, implication_text),
+        source=_promote_source(
+            next(
+                (
+                    fields[key]
+                    for key in ("출처", "확인소스", "소스", "근거", "source")
+                    if key in fields
+                ),
+                bullet,
+            ),
+            current,
+            bullish_trigger,
+            bearish_trigger,
+            implication_text,
+        ),
         current=current,
         bullish_trigger=bullish_trigger,
         bearish_trigger=bearish_trigger,

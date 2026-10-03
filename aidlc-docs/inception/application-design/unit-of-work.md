@@ -2418,14 +2418,15 @@ NFR-003, NFR-004, NFR-005, NFR-006, NFR-007/R13.
 `watchpoint_fallback.py`, `segment_reader_format.py`; finalized publisher tests.
 
 **Definition of Done**:
-- [ ] All currents come from exactly matched existing asset/metric observations; digits in thresholds/source/date never suffice.
-- [ ] Ambiguous identities/conflicting best candidates are filtered; supported-family precedence remains.
-- [ ] CFTC current includes existing as-of/release dates and weekly delay, confidence no higher than `보통`.
-- [ ] Titles/current exclude copied conditions/impact clauses; unsupported domestic-flow rows use existing fallback.
-- [ ] Final Markdown, notification, compliance, preserved-supplement and repeated-conversion tests pass.
+- [x] All currents come from exactly matched existing asset/metric observations; digits in thresholds/source/date never suffice.
+- [x] Ambiguous identities/conflicting best candidates are filtered; supported-family precedence remains.
+- [x] CFTC current includes existing as-of/release dates and weekly delay, confidence no higher than `보통`.
+- [x] Titles/current exclude copied conditions/impact clauses; unsupported domestic-flow rows use existing fallback.
+- [x] Final Markdown, notification, compliance, preserved-supplement and repeated-conversion tests pass.
 
-**Construction strategy**: Backlog; FD required for observation/unsupported
-policy, NFR Requirements skipped. Independent of u151. Plan:
+**Construction strategy**: Code complete 2026-10-03; FD completed, 6/6 code steps,
+full regression 5961 passed/472.37s and independent review closed. NFR Requirements skipped.
+Implemented as the required u162 prerequisite, independent of u151. Plan:
 `aidlc-docs/construction/plans/u152-watchpoint-current-observation-contract-code-generation-plan.md`.
 
 ### u153: `summary-sentence-boundary-extension` — Finish Bounded Conclusion, Driver and TL;DR Sentences

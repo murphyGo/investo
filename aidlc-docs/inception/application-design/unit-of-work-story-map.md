@@ -630,3 +630,7 @@ Deduplicated out: generic numeric validation, new dashboard, second finalizer, o
 - 각 unit별 Functional Design 대상이 명확 (execution-plan.md의 selective per-unit 정책 참조)
 - 각 unit별 NFR Requirements 작성 시, 본 표의 "AC delivered" 컬럼이 출발점
 - Code Generation은 unit-of-work.md의 Definition of Done 체크리스트를 task로 변환
+
+## u152 prerequisite completion (2026-10-03)
+
+The earlier design-ready snapshot is superseded: u152 FD and 6/6 code steps are complete as the required prerequisite for approved u162. Full5961/472.37s, focused165, independent66 plus14 source-slot controls passed; four P2 corrections closed. Existing numerical gates, cap/fallback and sealed lifecycle retained. No activation or main integration.

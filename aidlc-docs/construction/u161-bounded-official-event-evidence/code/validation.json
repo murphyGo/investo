@@ -123,6 +123,8 @@
   },
   "delivery": {
     "branch": "codex/news-event-design-20260926",
-    "commit_push": "pending_parent_delivery_after_final_gate"
+    "commit_push": "complete",
+    "commit": "470315969c39f708753dcda6e186a803752fa560",
+    "exact_remote_sha_verified": true
   }
 }

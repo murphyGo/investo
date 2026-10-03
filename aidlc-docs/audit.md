@@ -7216,3 +7216,11 @@ u160 `79b9f03981a2f26ef74126e4bb86928a9b118950` pushed to the authorized feature
 ## 2026-09-28 — u161 final validation
 
 Completed all seven steps after actual source qualification. Full regression5888 passed in464.69s; Ruff/format655, mypy289, four policy guards, strict docs7.08s and Material contracts pass. Offline event benchmark p95=129.072ms/200ms. Five same-wave review corrections cover absolute request budget, malformed HTML, URL eligibility quota, feed sibling isolation and decoded gzip headers. Raw bodies remain ignored; CNBC/SEC restrictions remain blocked; event/news/body activation all false. Per-unit commit/push follows final review closure.
+
+## 2026-09-28 — u161 delivery and required u152 dependency
+
+u161470315969c39f708753dcda6e186a803752fa560 pushed to codex/news-event-design-20260926 and exact remote SHA confirmed. Before u162, current origin/main04978d81 and feature branch were checked: u152 still uses numeric passthrough and is design-ready, so the approved u162 hard dependency is not yet met. Parent proceeds with the existing u152 fixed contracts as necessary authorized prerequisite, after writing functional design, with separate per-unit commit/push. This is a scope interpretation of the user's sequential-development request, not a fabricated explicit u152 answer. No unrelated unit completion or activation.
+
+## 2026-10-03 — u152 prerequisite complete
+
+Existing eight fixed contracts implemented without new source families or I/O. All six code steps, seven ACs and five DoDs pass. Four P2 corrections closed in the single review wave. Final full5961/472.37s, focused165/4.01s, independent66/5.72s plus14 source-slot controls, Ruff/format657, mypy289, policy4, strict docs/Material pass; offline event p95=137.474ms. Separate authorized commit/push follows, then approved u162. No main integration, activation, scheduled shadow or external notification.

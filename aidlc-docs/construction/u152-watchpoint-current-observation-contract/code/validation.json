@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-03",
+  "unit": "u152",
+  "baseline": "470315969c39f708753dcda6e186a803752fa560",
+  "status": "code_complete",
+  "scope": "required prerequisite of approved u162; existing fixed contracts only",
+  "tests": [
+    {
+      "scope": "u152 contract, fallback, real finalizer and corrected legacy fixtures",
+      "passed": 164,
+      "seconds": 3.39
+    },
+    {
+      "scope": "latest contract and real finalizer including source-name correction",
+      "passed": 61,
+      "seconds": 2.09
+    },
+    {
+      "scope": "actual event publication/finalization plus u152",
+      "passed": 153,
+      "seconds": 18.1
+    },
+    {
+      "scope": "independent unsupported-metric correction and fixture migration",
+      "passed": 15,
+      "seconds": 1.03
+    },
+    {
+      "scope": "final focused contract, fallback, finalizer and legacy fixtures",
+      "passed": 165,
+      "seconds": 4.01
+    },
+    {
+      "scope": "independent final contract and actual finalizer",
+      "passed": 66,
+      "seconds": 5.72
+    },
+    {
+      "scope": "independent source-slot repros and negative controls",
+      "passed": 14
+    },
+    {
+      "scope": "final full regression",
+      "passed": 5961,
+      "seconds": 472.37
+    }
+  ],
+  "static": {
+    "ruff": "pass",
+    "format_files": 657,
+    "mypy_source_files": 289
+  },
+  "guards": {
+    "no_anthropic_sdk": "pass",
+    "no_paid_apis": "pass",
+    "curated_assets": "pass",
+    "image_store": "pass",
+    "mkdocs_strict": "pass",
+    "mkdocs_seconds": 6.96,
+    "material_theme": "pass"
+  },
+  "review": {
+    "waves": 2,
+    "agents_total": 5,
+    "validation_review": "pass",
+    "code_review": "pass",
+    "closed_p2": 4
+  },
+  "benchmark": {
+    "input_count": 1000,
+    "candidate_count": 96,
+    "selected_count": 5,
+    "iterations": 10,
+    "p95_ms": 137.474,
+    "limit_ms": 200,
+    "status": "pass",
+    "scope": "selection, stage receipts, v2 parser, renderer and terminal event quality gate"
+  },
+  "operational_acceptance": {
+    "production_activation": "off",
+    "main_integration": "not_performed",
+    "scheduled_shadow": "not_run",
+    "live_notification_and_pages": "not_run",
+    "end_to_end_runtime_p95": "not_measured",
+    "DEBT-090": "unchanged"
+  },
+  "delivery": {
+    "branch": "codex/news-event-design-20260926",
+    "commit_push": "authorized; performed after this validated commit"
+  }
+}

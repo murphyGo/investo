@@ -72,8 +72,10 @@ def test_watchpoint_incident_fixture_now_uses_safe_producer_default() -> None:
     legacy_row = fixture["expected_row"]
     assert first_forbidden_public_evidence(legacy_row["implication"]) is not None
     for field, value in legacy_row.items():
-        if field != "implication":
+        if field not in {"implication", "current"}:
             assert getattr(rows[0], field) == value
+    # u152 no longer copies the source-shaped legacy paragraph into current.
+    assert rows[0].current == "현재 신호 부족"
     assert rows[0].implication == PUBLIC_WATCHPOINT_LIMITED_TEXT
 
     rendered = render_watchpoint_matrix(

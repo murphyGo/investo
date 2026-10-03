@@ -3,7 +3,7 @@
 **Date**: 2026-09-06
 **Unit**: u152 watchpoint-current-observation-contract
 **Stage**: Code Generation
-**Status**: Backlog — ready for Functional Design; implementation design-gated
+**Status**: Code complete 2026-10-03 — 6/6 steps; full regression 5961 passed/472.37s, independent review closed. Required u162 prerequisite.
 **Source**: `briefing-review-20260906.md`; September 2–4 domestic/crypto §⑥
 **Estimated Effort**: ~6–9 h
 **Dependencies**:
@@ -112,20 +112,20 @@ NFR-003/004/005/006 and R13, no new network/dependency/LLM/cost/retry.
 
 ## Implementation Steps
 
-- [ ] Step 1 — Add synthetic September 3 ETH threshold-only and September 4
+- [x] Step 1 — Add synthetic September 3 ETH threshold-only and September 4
   CFTC/full-paragraph fixtures; prove the pre-change empty-payload bypass.
-- [ ] Step 2 — Amend `_build_row`, `_short_signal`, and private candidate
+- [x] Step 2 — Amend `_build_row`, `_short_signal`, and private candidate
   identity/labels in `publisher/watchpoint_matrix.py` to keep slots distinct.
-- [ ] Step 3 — Replace the early numeric return in
+- [x] Step 3 — Replace the early numeric return in
   `resolve_watchpoint_currents` with metric-aware exact candidate resolution
   for every row; preserve existing within-family source precedence.
-- [ ] Step 4 — Add CFTC date formatting/validation to `_cftc_candidate` using
+- [x] Step 4 — Add CFTC date formatting/validation to `_cftc_candidate` using
   existing metadata; reject missing dates and update the same synthesized
   candidate consumers in `watchpoint_fallback.py`.
-- [ ] Step 5 — Confirm `segment_reader_format.py` still invokes the existing
+- [x] Step 5 — Confirm `segment_reader_format.py` still invokes the existing
   zero-row fallback and compliance scan and forwards one typed outcome.
   Update fixtures that intentionally relied on ungrounded numeric currents.
-- [ ] Step 6 — Exercise `finalize_public_bundle` and notification summaries
+- [x] Step 6 — Exercise `finalize_public_bundle` and notification summaries
   with generated cards, pre-rendered cards, partial bundles, empty payloads
   and preserved visual fragments. Record the supported-family tradeoff.
 
