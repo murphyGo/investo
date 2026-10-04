@@ -6,11 +6,12 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-10-02
 
-- [defillama-market-structure] **ticker**: DeFi TVL $95.4B; leader Ethereum
+- [defillama-market-structure] **ticker**: DeFi TVL $96.0B; leader Ethereum
 - [theblock-crypto] **ticker**: Ethereum Foundation launches zkAPI to let users pay for AI models without revealing identity
 - [theblock-crypto] **ticker**: Paradigm-backed Layer 2 Blast to wind down network as costs exceed revenue
 
 <!-- u33 entry 2026-10-02 end -->
+
 <!-- u33 entry 2026-10-01 begin -->
 
 ## 2026-10-01

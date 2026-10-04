@@ -6,7 +6,7 @@
     "license": "cc0",
     "match_reason": "alias:코스피;scope=hero;rank=10;offset=3",
     "matched_key": "topic:kospi",
-    "narrative_sha256": "bdf4cc6b9463b55992c44a715763b7860b3caf6bef93016ff2bd0580ef4c7e70",
+    "narrative_sha256": "e78ca91b067edd32c487c72f23c752340946525c771dc046ff803aa817d68075",
     "selection_contract": "final-body-semantic-v1",
     "semantic_offset": "3",
     "semantic_rank": "10",
@@ -22,7 +22,7 @@
     1600,
     1063
   ],
-  "generated_at": "2026-10-03T04:37:59.227673Z",
+  "generated_at": "2026-10-04T14:22:35.614886Z",
   "generator": "investo",
   "schema_version": "1",
   "source_attribution": "Yeouido financial district skyline over the Han River, Seoul (CC0-era Pixabay photo; via Wikimedia Commons) (heecheol890102 (Pixabay)) — cc0",
