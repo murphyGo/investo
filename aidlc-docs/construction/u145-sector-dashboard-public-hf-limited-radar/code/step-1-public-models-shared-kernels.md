@@ -1,5 +1,7 @@
 # u145 Step 1 — Public models and shared kernels
 
+> Historical HF implementation record. The [Yahoo amendment](../source-qualification/2026-10-04-yahoo-public-amendment.md) supersedes source-specific identity, fields, transport, universe and resource details. The active replacement passed independent review, 5,543 full tests plus 160 final related tests, and 5/5 Actions probes on `ec7ac84b` (2026-10-05). See `docs/sessions/2026-10-05-u145-yahoo-public-source.md`.
+
 ## Outcome
 
 - Added frozen sibling public models for validated IEX bars, source-neutral value series,

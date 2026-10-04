@@ -7721,3 +7721,15 @@ Actual Browser viewport acceptance remains `WAIVED / NOT_EXECUTED`.
 Full regression, final independent review and exact-commit Actions evidence are recorded in
 the 2026-10-05 session closeout. Branch push and five isolated probes use existing authorization;
 no main merge, public Pages activation, schedule or unrelated dirty work is included here.
+
+
+### 2026-10-05 — Yahoo Step 5 operational closeout
+
+Reviewed implementation `ec7ac84b927a78e5f3e5f0f3dac6494bb9a7ac6b` was pushed and qualified
+in five sequential Actions runs: `37213980547`, `37214093128`, `37214127663`, `37214182986`,
+`37214258087`. Every Ubuntu resource gate passed; every live result was qualified with 12/12
+symbols, 11 comparable sectors, target/as-of 2026-10-02, identical snapshot and no failed request.
+Step 5 is complete. Evidence: `docs/sessions/2026-10-05-u145-yahoo-actions-evidence.json` and
+`docs/sessions/2026-10-05-u145-yahoo-public-source.md`. Final closeout edits are documentation
+only. Step 6 implementation/activation remains separate and unstarted; no main merge or public
+sector publication occurred. No Browser PASS or provider license approval is asserted.

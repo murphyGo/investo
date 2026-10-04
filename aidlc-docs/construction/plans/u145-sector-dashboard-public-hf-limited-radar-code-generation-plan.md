@@ -3,7 +3,7 @@
 **Date**: 2026-07-22
 **Unit**: u145 sector-dashboard-public-hf-limited-radar
 **Stage**: Code Generation
-**Status**: Step 4 closed with viewport waiver; Step 5 Yahoo public replacement implemented, local live/resource gates passed; full regression and independent review passed; five exact-commit Actions runs pending
+**Status**: Step 5 complete — Yahoo public replacement reviewed, pushed and qualified in 5/5 exact-commit Actions runs; Step 6 separate activation remains unstarted
 **Dependencies**: u139 complete; u140 strict gate unchanged; Yahoo requires no API key
 
 ## Active Yahoo amendment — 2026-10-04/05
@@ -19,13 +19,13 @@ evidence; they are not an instruction to restore HF or require a key. Free-only 
 - [x] Local production path: 12/12 symbols, 11 comparable, target/as-of 2026-10-02, qualified.
 - [x] Local full-window 1 MiB-response resource gate: pass, 12 requests, 140 rows/response.
 - [x] Complete regression, static/site checks and independent review (5,543 full + 160 final focused).
-- [ ] Push reviewed implementation and collect five successful exact-commit Actions probes.
+- [x] Push reviewed implementation `ec7ac84b` and collect five successful exact-commit Actions probes.
 - [ ] Prepare the separate Step 6 activation after qualification; no activation in this slice.
 
 No public-use license is invented. Viewport waiver remains `WAIVED / NOT_EXECUTED`.
 
 
-## Stage Decision
+## Original HF Stage Decision (historical)
 
 - Application Design: **COMPLETE** on 2026-07-22.
 - Functional Design: **COMPLETE, amended 2026-09-02** — R1-R33, E1-E19, I1-I7, C1-C7,
@@ -223,10 +223,14 @@ implied. Decision: `docs/sessions/2026-09-27-u145-viewport-waiver.md`.
 
 ### Step 5 — Isolated probe workflow
 
+**Yahoo closeout (2026-10-05): complete, 5/5 passed on `ec7ac84b`.** See
+`docs/sessions/2026-10-05-u145-yahoo-public-source.md` and its Actions evidence.
+The HF implementation details and 0/5 outcome below are historical, superseded by this closeout.
+
 - [x] Add manual workflow with read-only permissions, current operator secret, bounded summary,
   zero public writes, no Pages, no Telegram, and no daily briefing invocation.
 - [x] Run focused/full gates plus TS-7/TS-8 benchmark.
-- [ ] Execute five successful isolated GHA probes and record run ids/evidence.
+- [x] Execute five successful isolated GHA probes and record run ids/evidence (Yahoo replacement, 2026-10-05).
 
 Final validation completed on 2026-10-03 against implementation `90f09d99`: 5,563 full-suite
 tests and 158 focused adapter/metrics/probe tests passed, along with Ruff/format, strict mypy,
@@ -279,11 +283,14 @@ Prerequisite: Step 5 five-run evidence complete.
 
 ## Current Gate
 
-The active source is Yahoo under the operator exception documented above. Local production
-collection and the resource gate pass. Full regression/review and five successful isolated
-Actions executions remain required on the final implementation. Step 6 Pages/navigation/
-schedule activation remains separate. Browser recovery and HF account/key recovery are not
-prerequisites. Telegram and daily-briefing coupling remain outside this unit.
+The active source is Yahoo under the operator exception. Implementation commit
+`ec7ac84b927a78e5f3e5f0f3dac6494bb9a7ac6b` passed independent review, full regression and
+final focused checks. Actions runs `37213980547`, `37214093128`, `37214127663`, `37214182986`
+and `37214258087` all passed resources and qualified fresh 12/12-symbol production data.
+Step 5 is complete. Step 6 Pages/navigation/schedule implementation and activation remain
+separate and unstarted. No main merge or public sector artifacts were created. Browser
+recovery and HF account/key recovery are not prerequisites. Telegram and daily-briefing
+coupling remain outside this unit.
 
 The following credential notes concern the superseded HF implementation only.
 

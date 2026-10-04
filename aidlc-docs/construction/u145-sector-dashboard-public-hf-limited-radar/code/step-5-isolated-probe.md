@@ -1,5 +1,7 @@
 # u145 Step 5 — Isolated production-adapter probe
 
+> Historical HF implementation record. The [Yahoo amendment](../source-qualification/2026-10-04-yahoo-public-amendment.md) supersedes source-specific identity, fields, transport, universe and resource details. The active replacement passed independent review, 5,543 full tests plus 160 final related tests, and 5/5 Actions probes on `ec7ac84b` (2026-10-05). See `docs/sessions/2026-10-05-u145-yahoo-public-source.md`.
+
 ## Implementation
 
 The existing manual Step 0 workflow now runs a synthetic resource gate and the actual Step 5
