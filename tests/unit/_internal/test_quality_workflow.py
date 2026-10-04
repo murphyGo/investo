@@ -39,3 +39,4 @@ def test_quality_workflow_runs_required_commands() -> None:
 
     for command in required:
         assert command in text
+    assert "uv sync --extra dev --extra docs --extra sector" in text

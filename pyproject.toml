@@ -53,6 +53,11 @@ docs = [
 operations = [
     "pynacl>=1.5,<2",
 ]
+# Historical HF source-qualification tooling uses the pinned Parquet reader.
+# The active Yahoo public sector collector uses only core dependencies.
+sector = [
+    "pyarrow==25.0.1",
+]
 
 [project.scripts]
 investo = "investo.__main__:main"

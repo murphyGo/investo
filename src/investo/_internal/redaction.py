@@ -71,8 +71,11 @@ prevent.
 from __future__ import annotations
 
 import enum
+import logging
 import os
 import re
+import threading
+import traceback
 from typing import Final
 
 # ---------------------------------------------------------------------------
@@ -101,6 +104,10 @@ SECRET_ENV_VARS: Final[tuple[str, ...]] = (
     "EIA_API_KEY",
     "FRED_API_KEY",
     "CONGRESS_API_KEY",
+    # u145 limited public IEX-sample sector radar. The key authorizes only
+    # the fixed HF token endpoint and must be scrubbed even when the sector
+    # workflow itself is not running.
+    "HF_DATA_API_KEY",
     # data.go.kr / KRX adapters (fsc-krx-index-price, fsc-krx-stock-price).
     # The canonical name is ``INVESTO_KRX_SERVICE_KEY``; the legacy
     # ``INVESTO_DATA_GO_KR_SERVICE_KEY`` is consulted as fallback in the
@@ -171,6 +178,12 @@ _KOREAN_PHONE_RE: Final[re.Pattern[str]] = re.compile(r"(?<![\d.])010[- ]?\d{4}[
 # 40-char floor avoids matching short tokens. URL-context filtering is
 # applied only in URL_AWARE policy.
 _LONG_BASE64_RE: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9+/]{40,}={0,2}")
+# u145 signed Parquet URLs are short-lived bearer capabilities. Unlike an
+# ordinary reader-facing URL, the whole value is forbidden on every surface,
+# including URL-aware leak scans.
+_HF_SIGNED_URL_RE: Final[re.Pattern[str]] = re.compile(
+    r"https://api\.hfdatalibrary\.com/v1/download/[A-Z]{2,8}\?[^\s'\"]+"
+)
 # ``?key=value`` and ``&key=value`` segments — for HTTP query strings
 # where the value can be an API key. Both key and value are redacted
 # under the STRICT policy. The leak scanner does not include this
@@ -218,6 +231,13 @@ class _PatternDef:
 # overwrite the JWT shape with a generic redaction marker, losing the
 # pattern-name signal that helps debugging from log excerpts.
 SECRET_PATTERNS: Final[tuple[_PatternDef, ...]] = (
+    _PatternDef(
+        "hf_signed_download_url",
+        _HF_SIGNED_URL_RE,
+        "[REDACTED_HF_SIGNED_URL]",
+        url_filtered=False,
+        include_in_leak_scan=True,
+    ),
     _PatternDef(
         "github_pat",
         _GITHUB_PAT_RE,
@@ -419,6 +439,65 @@ class LeakHit:
         return f"LeakHit(pattern_name={self.pattern_name!r}, match_text={self.match_text!r})"
 
 
+class SecretRedactionFilter(logging.Filter):
+    """Mutate third-party log records through the canonical redactor.
+
+    HTTP clients can log a request URL after the adapter has safely handled
+    the response. Applying this filter at the emitting logger protects root
+    handlers, pytest capture, and future operator handlers consistently.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.name == "httpx" or record.name.startswith("httpcore."):
+            # Third-party HTTP DEBUG records may carry full response headers
+            # and provider-shaped objects. Preserve only a closed event marker;
+            # status/accounting belongs to Investo's typed summary layer.
+            record.msg = "[REDACTED_HTTP_TRANSPORT_EVENT]"
+            record.args = ()
+            record.exc_info = None
+            record.exc_text = None
+            record.stack_info = None
+            return True
+        try:
+            message = record.getMessage()
+            if record.exc_info is not None:
+                message = "\n".join(
+                    (message, "".join(traceback.format_exception(*record.exc_info)))
+                )
+            record.msg = redact_text(message, policy=RedactionPolicy.STRICT)
+            record.args = ()
+            record.exc_info = None
+            record.exc_text = None
+            if record.stack_info is not None:
+                record.stack_info = redact_text(
+                    record.stack_info,
+                    policy=RedactionPolicy.STRICT,
+                )
+        except Exception:
+            # A logging failure must fail closed, not fall back to the
+            # original record that may contain a credential or signed URL.
+            record.msg = "[REDACTED_LOG_RECORD]"
+            record.args = ()
+            record.exc_info = None
+            record.exc_text = None
+            record.stack_info = None
+        return True
+
+
+_SECRET_LOG_FILTER: Final = SecretRedactionFilter()
+_SECRET_LOG_FILTER_LOCK: Final = threading.Lock()
+
+
+def install_secret_log_filters(logger_names: tuple[str, ...]) -> None:
+    """Install the process-wide redactor once on each named emitting logger."""
+
+    with _SECRET_LOG_FILTER_LOCK:
+        for logger_name in logger_names:
+            logger = logging.getLogger(logger_name)
+            if _SECRET_LOG_FILTER not in logger.filters:
+                logger.addFilter(_SECRET_LOG_FILTER)
+
+
 def scan_for_leak(text: str) -> LeakHit | None:
     """Return the first leak-shape match in ``text``, or ``None``.
 
@@ -429,13 +508,25 @@ def scan_for_leak(text: str) -> LeakHit | None:
     short-circuits — order in :data:`SECRET_PATTERNS` defines the
     pattern-name precedence visible to callers.
     """
+    # Exact configured values can be shorter than the generic credential
+    # patterns (the HF key is currently UUID-shaped). Detect them without
+    # returning the raw value to callers: ``LeakGuardHit`` excerpts are
+    # sometimes operator-visible.
+    for name in SECRET_ENV_VARS:
+        value = os.environ.get(name, "").strip()
+        if value and value in text:
+            return LeakHit(pattern_name=f"secret_env_var:{name}", match_text="[REDACTED]")
+
     for defn in SECRET_PATTERNS:
         if not defn.include_in_leak_scan:
             continue
         for match in defn.regex.finditer(text):
             if defn.url_filtered and is_in_url_context(match.start(), text):
                 continue
-            return LeakHit(pattern_name=defn.name, match_text=match.group())
+            match_text = (
+                defn.replacement if defn.name == "hf_signed_download_url" else match.group()
+            )
+            return LeakHit(pattern_name=defn.name, match_text=match_text)
     return None
 
 
@@ -444,6 +535,8 @@ __all__ = [
     "SECRET_PATTERNS",
     "LeakHit",
     "RedactionPolicy",
+    "SecretRedactionFilter",
+    "install_secret_log_filters",
     "is_in_url_context",
     "redact_text",
     "scan_for_leak",

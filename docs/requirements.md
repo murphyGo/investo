@@ -357,6 +357,7 @@
 - 사용자 계정/PII 없음 → 별도 보안 강화 불필요 (Security extension SKIP)
 
 ### NFR-008: Public data rights and private-fixture separation
+- **u145 operator exception (2026-10-04)**: 사용자가 Yahoo 무료 일봉의 자동 수집·공개 이용 권한 미확인 상태를 설명받은 뒤 공개용 진행을 지시했다. u145에 한해 이 불확실성을 기록하고 공개용 구현을 진행한다. 공급자 동의나 라이선스 승인으로 표시하지 않으며, 무료 운영·데이터 검증·신선도·raw 비공개·별도 배포 gate는 유지한다. 이 예외는 FR-022의 u145 공개 권한 확인 전제에만 적용하며 strict u140과 다른 공급원의 기준은 바꾸지 않는다. 근거: `aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-yahoo-public-amendment.md`.
 - 공개 Pages에 데이터 또는 파생 수치를 표시하려면 provider/거래소의 public display 또는 derived redistribution 권한을 primary-source 근거로 문서화한다.
 - 개인·내부용, display-only, 재배포 금지, scraping-only source는 private fixture 검증 또는 reject로 제한한다.
 - private/licensed raw payload와 일별 파생 레코드는 public repo, Pages, archive, fixture, 로그에 포함하지 않는다.
