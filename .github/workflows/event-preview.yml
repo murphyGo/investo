@@ -90,6 +90,7 @@ jobs:
         with:
           name: event-preview-${{ matrix.segment }}
           path: .tmp/event-preview.sealed
+          include-hidden-files: true # Only this exact ciphertext file is selected.
           if-no-files-found: error
           retention-days: 1
       - name: Report preview outcome
