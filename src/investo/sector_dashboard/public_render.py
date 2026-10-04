@@ -106,8 +106,7 @@ _FORBIDDEN_PUBLIC_FRAGMENTS: Final[tuple[str, ...]] = (
 )
 _REQUIRED_FIRST_VIEWPORT_LABELS: Final[tuple[str, ...]] = (
     "제한 공개 베타",
-    "IEX venue sample 기준",
-    "10/11 섹터 사용 가능 · XLRE unavailable",
+    "Yahoo Finance 일별 종가 기준",
     "미국 전체시장 거래량 또는 자금 흐름이 아님",
 )
 
@@ -190,8 +189,8 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         "# 미국 섹터 코어 레이더",
         "",
         "> **제한 공개 베타**",
-        "> **IEX venue sample 기준**",
-        "> **10/11 섹터 사용 가능 · XLRE unavailable**",
+        "> **Yahoo Finance 일별 종가 기준**",
+        f"> **{coverage.available_sector_count}/11 섹터 사용 가능**",
         "> 미국 전체시장 거래량 또는 자금 흐름이 아님",
         "",
         "## 기준 및 커버리지",
@@ -200,8 +199,8 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         f"- 신선도: {_FRESHNESS_LABELS[snapshot.freshness]}",
         f"- 커버리지: {_COVERAGE_LABELS[coverage.status]} · "
         f"{coverage.available_sector_count}/11 가용 · {comparable}/11 비교 가능",
-        "- 벤치마크: SPY (IEX venue sample)",
-        "- 출처: HF Data Library",
+        "- 벤치마크: SPY (Yahoo Finance 일봉)",
+        "- 출처: Yahoo Finance",
         f"- 정책: {snapshot.primary_policy.policy_id}",
         "- 대상: S&P 500 11개 섹터 ETF 프록시",
         "",
@@ -211,7 +210,7 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
     lines.extend(_render_table(snapshot.records))
     if coverage.status in (SectorCoverageStatus.PARTIAL, SectorCoverageStatus.NORMAL):
         lines.extend(_render_quadrant(snapshot.records))
-    lines.extend(_render_missing_coverage())
+    lines.extend(_render_missing_coverage(snapshot))
     lines.extend(_render_method(snapshot))
     return "\n".join(lines).rstrip("\n") + "\n"
 
@@ -242,7 +241,7 @@ def _render_summary(records: Sequence[PublicSectorRecord]) -> list[str]:
                 SectorRegime.LAGGING,
             )
         ),
-        "- 이 IEX 샘플의 상대강도는 관찰값이며 투자 권유나 전체 종목 섹터 폭을 뜻하지 않습니다.",
+        "- 이 ETF 집합의 상대강도는 관찰값이며 투자 권유나 전체 종목 섹터 폭을 뜻하지 않습니다.",
         "",
     ]
 
@@ -251,9 +250,9 @@ def _render_table(records: Sequence[PublicSectorRecord]) -> list[str]:
     lines = [
         "## 섹터 레이더",
         "",
-        "| 순위 | 섹터/티커 | 가용성 | 국면 | IEX 가격수익률 1D | "
+        "| 순위 | 섹터/티커 | 가용성 | 국면 | 가격수익률 1D | "
         "SPY 대비 5D | SPY 대비 21D | 5D 상대 가속 | "
-        "IEX 실현변동성 20D | IEX 최대 낙폭 20D |",
+        "실현변동성 20D | 최대 낙폭 20D |",
         "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for record in records:
@@ -266,12 +265,12 @@ def _render_table(records: Sequence[PublicSectorRecord]) -> list[str]:
                     f"{_SECTOR_LABELS[record.ticker]} ({record.ticker.value})",
                     _availability_label(record),
                     _REGIME_LABELS[record.primary_regime.regime],
-                    _format_metric(metrics.iex_price_return_1d, "%"),
-                    _format_metric(metrics.iex_price_excess_5d, "pp"),
-                    _format_metric(metrics.iex_price_excess_21d, "pp"),
-                    _format_metric(metrics.iex_price_relative_acceleration_5d, "pp"),
-                    _format_metric(metrics.iex_price_realized_volatility_20d, "%"),
-                    _format_metric(metrics.iex_price_max_drawdown_20d, "%"),
+                    _format_metric(metrics.price_return_1d, "%"),
+                    _format_metric(metrics.price_excess_5d, "pp"),
+                    _format_metric(metrics.price_excess_21d, "pp"),
+                    _format_metric(metrics.price_relative_acceleration_5d, "pp"),
+                    _format_metric(metrics.price_realized_volatility_20d, "%"),
+                    _format_metric(metrics.price_max_drawdown_20d, "%"),
                 )
             )
             + " |"
@@ -301,14 +300,14 @@ def _render_quadrant(records: Sequence[PublicSectorRecord]) -> list[str]:
     return lines
 
 
-def _render_missing_coverage() -> list[str]:
+def _render_missing_coverage(snapshot: PublicSectorDashboardSnapshot) -> list[str]:
+    missing = ", ".join(ticker.value for ticker in snapshot.coverage.missing_tickers) or "없음"
     return [
         "## 미제공 커버리지",
         "",
-        "- HF v1 카탈로그는 XLRE를 제공하지 않습니다.",
+        f"- 현재 누락된 섹터: {missing}",
         "- 대체 ETF나 추정 시리즈를 사용하지 않습니다.",
-        "- 순위는 현재 비교 가능한 섹터 샘플만 대상으로 합니다.",
-        "- 커버리지 확장은 별도로 검증된 출처 버전이 필요합니다.",
+        "- 순위는 같은 기준일에 비교 가능한 섹터만 대상으로 합니다.",
         "",
     ]
 
@@ -317,15 +316,15 @@ def _render_method(snapshot: PublicSectorDashboardSnapshot) -> list[str]:
     lines = [
         "## 방법과 출처",
         "",
-        "- 수익률은 IEX 일별 종가의 단순 수익률입니다.",
+        "- 수익률은 Yahoo Finance 일별 종가의 단순 가격 수익률이며 배당 재투자 수익률이 아닙니다.",
         "- 초과 수익률은 같은 날짜 구간의 섹터 수익률에서 SPY 수익률을 뺀 값입니다.",
         "- 5D 상대 가속은 현재 5일과 직전의 겹치지 않는 5일 초과 수익률 차이입니다.",
         "- 실현변동성은 20개 일별 단순 수익률을 연율화한 값이고, 최대 낙폭은 "
         "20세션 구간의 고점 대비 종가 변화입니다.",
-        "- IEX volume은 점수, 순위, 국면 및 요약에서 제외됩니다.",
+        "- 거래량은 점수, 순위, 국면 및 요약에서 제외됩니다.",
         f"- 방법론: {snapshot.primary_policy.policy_id} · 소스 스키마 v{snapshot.schema_version}",
         "",
-        "### 출처 및 라이선스",
+        "### 데이터 출처",
         "",
     ]
     for attribution in snapshot.provenance.attributions:

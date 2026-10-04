@@ -7666,3 +7666,58 @@ artifacts, Pages/navigation/schedules, Telegram and daily-briefing integration r
 
 **Evidence**: `docs/sessions/2026-10-03-u145-step5-closeout.md` and
 `docs/sessions/2026-10-03-u145-step5-actions-evidence.json`.
+
+## Construction — u145 free-only provider replacement qualification
+
+**Date**: 2026-10-04
+
+**User requests**: `다른 공급원으로 교체 진행시켜`, followed by
+`지금은 무료 공급원만 고려해줘`.
+
+**Decision**: Provider replacement is authorized within the existing public-dashboard
+goal, with no paid source or paid public-display entitlement. The visual waiver remains
+valid; this decision does not activate Pages, schedules or briefing integration.
+
+**Evidence and outcome**: Direct bounded HF token inspection identifies HTTP 503 with
+`data_paused` for dataset restructuring, correcting the earlier generic transient-error
+diagnosis. Reviewed free candidates include Twelve Data, Alpha Vantage, Alpaca, Stooq,
+StashGamma, HF Market Data, Convex and the existing Yahoo path. Stooq returned a browser
+challenge instead of CSV; HF Market Data failed TLS both inside and outside the sandbox;
+the other candidates do not currently establish the needed free public-data contract.
+No replacement is qualified and no runtime replacement is claimed. Findings distinguish
+current observed responses, advertised documentation and older u140 evidence.
+
+**Changes**: Add the bounded source-qualification record and implementation-surface map;
+update the u145 plan, state and runbook to avoid repeating identical HF batches during
+the explicit pause. No source/test/workflow/public artifact change, provider contact,
+new credential, account registration or scheduled monitoring. No new numbered unit or
+TECH-DEBT item: this is source requalification within the existing u145 work.
+
+**Validation**: Documentation diff/whitespace and local-reference checks are performed
+on the five-file scope. Application tests are not rerun for this documentation-only
+change. The replacement remains pending a suitable free provider.
+
+**Evidence**:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-free-provider-requalification.md`.
+
+
+## 2026-10-04/05 — u145 public Yahoo source replacement
+
+User decision: `그럼 그냥 공개용으로 진행해줘`, following the explanation that Yahoo
+collection/public-use permissions had not been verified. Free-only remains binding. Treat
+this as a u145 operator exception, not provider consent, a verified license or a u140 waiver.
+The source/FD/NFR amendment was recorded before implementation. Earlier free-provider
+qualification findings remain historical and the no-candidate hold is superseded.
+
+Implemented Yahoo-only bounded daily JSON, schema 2 and price metrics/provenance, all eleven
+sectors including XLRE, no credential or fallback, and source attribution without HF/IEX
+license claims. Replaced the active HF collector and provider-specific tests; retained
+historical HF qualification tooling/evidence. Local live production path qualified 12/12
+symbols / 11 comparable sectors with target/as-of 2026-10-02. The local 1 MiB/full-window
+resource benchmark passed. Reviewable derived-only Markdown/JSON and strict-built HTML exist
+under the ignored `.tmp/u145-yahoo-public-preview/` directory, including five synthetic states.
+Actual Browser viewport acceptance remains `WAIVED / NOT_EXECUTED`.
+
+Full regression, final independent review and exact-commit Actions evidence are recorded in
+the 2026-10-05 session closeout. Branch push and five isolated probes use existing authorization;
+no main merge, public Pages activation, schedule or unrelated dirty work is included here.

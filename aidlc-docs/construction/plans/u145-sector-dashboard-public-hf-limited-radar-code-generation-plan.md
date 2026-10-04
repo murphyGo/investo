@@ -3,8 +3,27 @@
 **Date**: 2026-07-22
 **Unit**: u145 sector-dashboard-public-hf-limited-radar
 **Stage**: Code Generation
-**Status**: Step 4 closed with viewport waiver; Step 5 implementation/local/reference-resource gates complete, five live successes 0/5 gated by provider HTTP 503
-**Dependencies**: u139 complete; u140 strict gate remains blocked; operator-owned HF key present
+**Status**: Step 4 closed with viewport waiver; Step 5 Yahoo public replacement implemented, local live/resource gates passed; full regression and independent review passed; five exact-commit Actions runs pending
+**Dependencies**: u139 complete; u140 strict gate unchanged; Yahoo requires no API key
+
+## Active Yahoo amendment — 2026-10-04/05
+
+The user selected **public** Yahoo implementation after being told permission remains
+unverified. The [source amendment](../u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-yahoo-public-amendment.md)
+supersedes HF-specific scope/invariants/Steps 0–5 below. Those sections are original historical
+evidence; they are not an instruction to restore HF or require a key. Free-only remains binding.
+
+- [x] Replace production collector with bounded, no-key Yahoo daily JSON.
+- [x] Switch schema/provenance/price labels and include XLRE in all eleven sector calculations.
+- [x] Replace provider-specific tests/guard/benchmark and remove the HF workflow secret.
+- [x] Local production path: 12/12 symbols, 11 comparable, target/as-of 2026-10-02, qualified.
+- [x] Local full-window 1 MiB-response resource gate: pass, 12 requests, 140 rows/response.
+- [x] Complete regression, static/site checks and independent review (5,543 full + 160 final focused).
+- [ ] Push reviewed implementation and collect five successful exact-commit Actions probes.
+- [ ] Prepare the separate Step 6 activation after qualification; no activation in this slice.
+
+No public-use license is invented. Viewport waiver remains `WAIVED / NOT_EXECUTED`.
+
 
 ## Stage Decision
 
@@ -217,8 +236,16 @@ The unchanged Ubuntu resource gate passed in four runs after the memory repair, 
 three runs on the final implementation. The user-approved branch was committed and pushed.
 Live successes remain 0/5: one final-code run collected all eleven symbols but was stale;
 two later runs hit retryable token-server failures. Unauthenticated HTTP 503 was independently
-reproduced while public metadata remained available. Resume the five-run batch after provider
-recovery. Evidence: `docs/sessions/2026-10-03-u145-step5-closeout.md` and its aggregate JSON.
+reproduced while public metadata remained available. Evidence:
+`docs/sessions/2026-10-03-u145-step5-closeout.md` and its aggregate JSON.
+
+2026-10-04 source update: the actual token response identifies `data_paused` due to dataset
+restructuring, without a recovery date. The user authorized provider replacement and then
+explicitly limited candidates to free providers. No examined replacement currently clears
+public-use and working-delivery qualification. Do not repeat identical HF qualification
+batches while the pause persists. Replacement implementation remains pending source acceptance;
+the user waiver and separate Step 6 boundary persist. Findings and exact migration surfaces:
+`aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-free-provider-requalification.md`.
 
 Step 5 execution scope (2026-09-27): the existing Step 0 workflow is upgraded to call
 `scripts/build_sector_dashboard_public.py --probe-only` through the production adapter,
@@ -252,20 +279,13 @@ Prerequisite: Step 5 five-run evidence complete.
 
 ## Current Gate
 
-HF requires accurate account registration, email verification, and an API key that expires
-every 30 days. The operator added the repository secret `HF_DATA_API_KEY` on 2026-09-02. Its
-value remains non-observable to local code and is consumed only by the manual, read-only probe.
-The signed daily Parquet amendment and Step 1 were approved and recorded on 2026-09-02. Step 2
-completed on 2026-09-03 with synthetic transport/Parquet evidence and no live provider call.
-Step 3 completed on 2026-09-06 with synthetic close-only snapshot evidence and no live provider
-call. Step 4 renderer and derived-only store implementation completed on 2026-09-06 and was
-repaired/revalidated on 2026-09-22. The user waived its actual 390x844 and desktop viewport check
-on 2026-09-27. Step 4 is closed with that exception. Step 5 implementation and local gates
-and the Ubuntu reference benchmark are complete; five successful live Actions probes remain
-pending because the provider token endpoint returns HTTP 503 (2026-10-03 evidence).
-Pages, schedule, and public artifact writes remain gated on five successful production-adapter
-Step 5 probes and the separate Step 6 activation checks. Telegram and daily-briefing coupling
-remain out of scope. Browser recovery is no longer a blocking prerequisite for this unit.
+The active source is Yahoo under the operator exception documented above. Local production
+collection and the resource gate pass. Full regression/review and five successful isolated
+Actions executions remain required on the final implementation. Step 6 Pages/navigation/
+schedule activation remains separate. Browser recovery and HF account/key recovery are not
+prerequisites. Telegram and daily-briefing coupling remain outside this unit.
+
+The following credential notes concern the superseded HF implementation only.
 
 Historical verification on 2026-07-22 confirmed both boundaries without reading any secret
 value:

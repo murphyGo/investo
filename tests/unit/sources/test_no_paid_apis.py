@@ -29,34 +29,19 @@ def _load_script_module() -> ModuleType:
     return module
 
 
-def _minimal_hf_adapter(extra: str = "") -> str:
+def _minimal_yahoo_adapter(extra: str = "") -> str:
     return (
-        'HF_API_BASE = "https://api.hfdatalibrary.com/v1"\n'
-        'HF_API_HOST = "api.hfdatalibrary.com"\n'
-        'HF_API_KEY_ENV = "HF_DATA_API_KEY"\n'
-        "HF_TOKEN_QUERY = (\n"
-        '    ("timeframe", "daily"),\n'
-        '    ("format", "parquet"),\n'
-        '    ("version", "clean"),\n'
-        ")\n"
+        'YAHOO_API_BASE = "https://query2.finance.yahoo.com/v8/finance/chart"\n'
+        'YAHOO_API_HOST = "query2.finance.yahoo.com"\n'
+        'YAHOO_QUERY = (("interval", "1d"), ("includePrePost", "false"))\n'
         "async def _request_bounded(client, url):\n"
         '    request = client.build_request("GET", url, headers={}, timeout=None)\n'
-        "    return await client.send(\n"
-        "        request, stream=True, auth=None, follow_redirects=False\n"
-        "    )\n"
-        "async def _fetch_ticker_once(client, ticker, api_key, budget, config):\n"
-        "    token_body = await _request_bounded(\n"
-        "        client, _token_url(ticker), api_key=api_key,\n"
-        "        accept=_TOKEN_MEDIA_TYPE, expected_media_type=_TOKEN_MEDIA_TYPE,\n"
-        "        response_limit=config.token_response_limit, budget=budget, config=config,\n"
-        "    )\n"
-        "    signed_url = _parse_token(token_body, ticker)\n"
-        "    parquet_body = await _request_bounded(\n"
-        "        client, signed_url, api_key=None,\n"
-        "        accept=_PARQUET_MEDIA_TYPE, expected_media_type=_PARQUET_MEDIA_TYPE,\n"
-        "        response_limit=config.parquet_response_limit, budget=budget, config=config,\n"
-        "    )\n"
-        "    return parquet_body\n"
+        "    return await client.send(request, stream=True, auth=None, follow_redirects=False)\n"
+        "async def _fetch_ticker_once(client, ticker, target_date, budget, config):\n"
+        "    body = await _request_bounded(client, _chart_url(ticker, target_date),\n"
+        "        accept=_JSON_MEDIA_TYPE, expected_media_type=_JSON_MEDIA_TYPE,\n"
+        "        response_limit=config.json_response_limit, budget=budget, config=config)\n"
+        "    return body\n"
         f"{extra}"
     )
 
@@ -90,8 +75,8 @@ def test_find_offenders_returns_empty_on_clean_sources() -> None:
 def test_blocklist_is_non_empty() -> None:
     script = _load_script_module()
     assert script.BLOCKLIST
-    assert script.HF_REQUIRED_ASSIGNMENTS
-    assert {"api.hfdatalibrary.com"} == script.HF_ALLOWED_DOMAIN_LITERALS
+    assert script.YAHOO_REQUIRED_ASSIGNMENTS
+    assert {"query2.finance.yahoo.com"} == script.YAHOO_ALLOWED_DOMAIN_LITERALS
 
 
 def test_find_offenders_detects_match_when_blocklist_populated(
@@ -155,49 +140,51 @@ def test_find_offenders_allows_current_free_public_provider_shapes(
     assert script.find_offenders() == []
 
 
-def test_hf_adapter_contract_rejects_fallback_provider(
+def test_yahoo_adapter_contract_rejects_fallback_provider(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter("url = 'https://query1.finance.yahoo.com/v8/chart/SPY'\n"),
+        _minimal_yahoo_adapter("url = 'https://query1.finance.yahoo.com/v8/chart/SPY'\n"),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any("yahoo" in offender[2] or "yahoo" in offender[3] for offender in offenders)
 
 
-def test_hf_adapter_contract_rejects_unknown_second_host(
+def test_yahoo_adapter_contract_rejects_unknown_second_host(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter("SECONDARY_HOST = 'api.tiingo.com'\n"),
+        _minimal_yahoo_adapter("SECONDARY_HOST = 'api.tiingo.com'\n"),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any("tiingo" in offender[2] for offender in offenders)
 
 
-def test_hf_adapter_contract_rejects_constructed_second_host(
+def test_yahoo_adapter_contract_rejects_constructed_second_host(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter('SECONDARY = "https:" + "//" + "api" + "." + "tiingo" + "." + "com"\n'),
+        _minimal_yahoo_adapter(
+            'SECONDARY = "https:" + "//" + "api" + "." + "tiingo" + "." + "com"\n'
+        ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any(offender[2] == "constructed URL/domain" for offender in offenders)
@@ -208,64 +195,64 @@ def test_hf_adapter_contract_rejects_constructed_second_host(
     [
         'SECONDARY = "".join(("https:", "//", "api", ".", "tiingo", ".", "com"))\n',
         'SECONDARY = f"https://api.tiingo.com"\n',
-        'HF_API_BASE = "".join(("https://", "api.hfdatalibrary.com", "/v1"))\n',
+        'YAHOO_API_BASE = "".join(("https://", "query2.finance.yahoo.com", "/v1"))\n',
     ],
 )
-def test_hf_adapter_contract_rejects_constructed_or_reassigned_identity(
+def test_yahoo_adapter_contract_rejects_constructed_or_reassigned_identity(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     extra: str,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
-    fake_adapter.write_text(_minimal_hf_adapter(extra), encoding="utf-8")
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    fake_adapter = tmp_path / "yahoo_data.py"
+    fake_adapter.write_text(_minimal_yahoo_adapter(extra), encoding="utf-8")
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     assert script.find_offenders()
 
 
-def test_hf_adapter_contract_rejects_unapproved_internal_provider_helper(
+def test_yahoo_adapter_contract_rejects_unapproved_internal_provider_helper(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter("from investo.sector_dashboard.alt import provider\n"),
+        _minimal_yahoo_adapter("from investo.sector_dashboard.alt import provider\n"),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any("investo.sector_dashboard.alt" in offender[2] for offender in offenders)
 
 
-def test_hf_adapter_contract_rejects_additional_network_sink(
+def test_yahoo_adapter_contract_rejects_additional_network_sink(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter(
+        _minimal_yahoo_adapter(
             "async def fallback(client, request):\n    await client.send(request)\n"
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any(offender[2] == "send" for offender in offenders)
 
 
-def test_hf_adapter_contract_rejects_additional_request_call_site(
+def test_yahoo_adapter_contract_rejects_additional_request_call_site(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter(
+        _minimal_yahoo_adapter(
             "async def hidden(client, dynamic_url, budget, config):\n"
             "    return await _request_bounded(\n"
             "        client, url=dynamic_url, api_key=None,\n"
@@ -275,7 +262,7 @@ def test_hf_adapter_contract_rejects_additional_request_call_site(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any(offender[2] == "_request_bounded call sites" for offender in offenders)
@@ -298,15 +285,15 @@ def test_hf_adapter_contract_rejects_additional_request_call_site(
         ),
     ],
 )
-def test_hf_adapter_contract_rejects_adapter_owned_http_clients(
+def test_yahoo_adapter_contract_rejects_adapter_owned_http_clients(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     extra: str,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
-    fake_adapter.write_text(_minimal_hf_adapter(extra), encoding="utf-8")
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    fake_adapter = tmp_path / "yahoo_data.py"
+    fake_adapter.write_text(_minimal_yahoo_adapter(extra), encoding="utf-8")
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any(offender[2] in {"get", "AsyncClient", "httpx", "hx"} for offender in offenders)
@@ -325,15 +312,15 @@ def test_hf_adapter_contract_rejects_adapter_owned_http_clients(
         ('async def hidden(url):\n    return await getattr(httpx, "get")(url)\n'),
     ],
 )
-def test_hf_adapter_contract_rejects_indirect_network_access(
+def test_yahoo_adapter_contract_rejects_indirect_network_access(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     extra: str,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
-    fake_adapter.write_text(_minimal_hf_adapter(extra), encoding="utf-8")
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    fake_adapter = tmp_path / "yahoo_data.py"
+    fake_adapter.write_text(_minimal_yahoo_adapter(extra), encoding="utf-8")
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any(
@@ -355,46 +342,46 @@ def test_hf_adapter_contract_rejects_indirect_network_access(
         'requester = httpx.__dict__["get"]\n',
     ],
 )
-def test_hf_adapter_contract_rejects_reflective_or_aliased_request_path(
+def test_yahoo_adapter_contract_rejects_reflective_or_aliased_request_path(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     extra: str,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
-    fake_adapter.write_text(_minimal_hf_adapter(extra), encoding="utf-8")
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    fake_adapter = tmp_path / "yahoo_data.py"
+    fake_adapter.write_text(_minimal_yahoo_adapter(extra), encoding="utf-8")
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     assert script.find_offenders()
 
 
-def test_hf_adapter_contract_requires_fixed_identity(
+def test_yahoo_adapter_contract_requires_fixed_identity(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        _minimal_hf_adapter("selected = runtime_config.base_url\n"),
+        _minimal_yahoo_adapter("selected = runtime_config.base_url\n"),
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
     assert any(offender[2] == "base_url" for offender in offenders)
 
 
-def test_hf_adapter_contract_cannot_pin_identity_in_comments_only(
+def test_yahoo_adapter_contract_cannot_pin_identity_in_comments_only(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     script = _load_script_module()
-    fake_adapter = tmp_path / "hf_data.py"
+    fake_adapter = tmp_path / "yahoo_data.py"
     fake_adapter.write_text(
-        "# HF_API_BASE = 'https://api.hfdatalibrary.com/v1'\n",
+        "# YAHOO_API_BASE = 'https://query2.finance.yahoo.com/v1'\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(script, "HF_ADAPTER_PATH", fake_adapter)
+    monkeypatch.setattr(script, "YAHOO_ADAPTER_PATH", fake_adapter)
 
     offenders = script.find_offenders()
-    assert len(offenders) >= len(script.HF_REQUIRED_ASSIGNMENTS)
+    assert len(offenders) >= len(script.YAHOO_REQUIRED_ASSIGNMENTS)

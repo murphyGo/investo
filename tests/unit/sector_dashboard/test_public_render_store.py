@@ -182,14 +182,14 @@ def test_fresh_projection_is_canonical_complete_and_first_viewport_qualified() -
     radar_position = markdown.index("## 섹터 레이더")
     for label in (
         "제한 공개 베타",
-        "IEX venue sample 기준",
-        "10/11 섹터 사용 가능 · XLRE unavailable",
+        "Yahoo Finance 일별 종가 기준",
+        "11/11 섹터 사용 가능",
         "미국 전체시장 거래량 또는 자금 흐름이 아님",
     ):
         assert markdown.index(label) < radar_position
     assert len(_table_rows(markdown)) == 11
     assert "| 순위 | 섹터/티커 | 가용성 | 국면 |" in markdown
-    assert "부동산 (XLRE) | provider 미지원 | 분류 불가" in markdown
+    assert "부동산 (XLRE) | 사용 가능" in markdown
     assert "## 레이더 요약" in markdown
     assert "## 텍스트 국면" in markdown
     assert markdown.count("<!-- snapshot_id:") == 1
@@ -200,8 +200,8 @@ def test_complete_sector_rows_do_not_report_missing_metrics() -> None:
     rows = _table_rows(_projection().markdown_bytes.decode())
     labels = [row.split("|")[3].strip() for row in rows]
 
-    assert labels.count("사용 가능") == 10
-    assert labels.count("provider 미지원") == 1
+    assert labels.count("사용 가능") == 11
+    assert labels.count("provider 미지원") == 0
     assert all("일부 지표 부족" not in label for label in labels)
 
 
@@ -209,11 +209,11 @@ def test_projection_renders_attribution_method_and_two_decimal_half_even_values(
     projection = _projection()
     markdown = projection.markdown_bytes.decode()
 
-    assert "HF Data Library (Elkassabgi 2026)" in markdown
-    assert "https://hfdatalibrary.com/pages/license" in markdown
-    assert "Data provided for free by IEX" in markdown
-    assert "https://www.iex.io/legal/hist-data-terms" in markdown
-    assert "IEX volume은 점수, 순위, 국면 및 요약에서 제외" in markdown
+    assert "Yahoo Finance" in markdown
+    assert "https://finance.yahoo.com/" in markdown
+    assert "CC BY" not in markdown
+    assert "IEX" not in markdown
+    assert "거래량은 점수, 순위, 국면 및 요약에서 제외" in markdown
     assert "정보 제공용이며 투자 권유, 예측 또는 개인화된 조언이 아닙니다" in markdown
     assert (
         public_render._format_metric(public_render.MetricValue(value=Decimal("0.01225")), "%")
@@ -318,7 +318,7 @@ def test_pair_verifier_rejects_rehashed_cross_record_rank_mismatch(mutation: str
     if mutation == "duplicate_ordinal":
         first_rank["ordinal"] = raw["records"][1]["relative_rank"]["ordinal"]
     else:
-        first_rank["comparable_sector_count"] = 11
+        first_rank["comparable_sector_count"] = 10
 
     with pytest.raises(PublicProjectionError, match=r"public_projection\.invalid"):
         verify_public_sector_projection(

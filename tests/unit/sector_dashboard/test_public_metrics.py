@@ -123,17 +123,17 @@ def test_freshness_uses_versioned_nyse_calendar_and_fails_unknown_outside_it() -
     )
 
 
-def test_build_bundle_is_close_only_partial_and_complete_provenance() -> None:
+def test_build_bundle_is_close_only_normal_and_complete_provenance() -> None:
     bundle = build_public_series_bundle(_parsed(), target_date=_AS_OF)
 
-    assert bundle.coverage.status is SectorCoverageStatus.PARTIAL
-    assert bundle.coverage.available_sector_count == 10
-    assert bundle.coverage.missing_tickers == (SectorTicker.XLRE,)
-    assert bundle.coverage.reason_codes == (PublicDiagnosticCode.PROVIDER_UNAVAILABLE,)
+    assert bundle.coverage.status is SectorCoverageStatus.NORMAL
+    assert bundle.coverage.available_sector_count == 11
+    assert bundle.coverage.missing_tickers == ()
+    assert bundle.coverage.reason_codes == ()
     assert bundle.benchmark is not None
     assert len(bundle.benchmark.points) == 64
     assert bundle.failures == ()
-    assert bundle.provenance.market_scope is MarketScope.IEX_VENUE_SAMPLE
+    assert bundle.provenance.market_scope is MarketScope.PROVIDER_REPORTED_US_EQUITY
     assert bundle.provenance.attributions == REQUIRED_PUBLIC_ATTRIBUTIONS
     assert bundle.provenance.target_date == _AS_OF
     assert bundle.provenance.as_of_date == _AS_OF
@@ -160,20 +160,14 @@ def test_full_snapshot_has_price_metrics_regime_rank_and_deterministic_id() -> N
     assert first.snapshot_id == f"sha256:{hashlib.sha256(canonical).hexdigest()}"
     assert first.freshness is FreshnessState.FRESH
     assert len(first.records) == 11
-    comparable = [record for record in first.records if record.ticker is not SectorTicker.XLRE]
+    comparable = first.records
     assert all(record.availability is SectorAvailability.AVAILABLE for record in comparable)
-    assert all(record.metrics.iex_price_return_63d.value is not None for record in comparable)
+    assert all(record.metrics.price_return_63d.value is not None for record in comparable)
     assert all(
         record.primary_regime.regime is not SectorRegime.INSUFFICIENT for record in comparable
     )
-    assert {record.relative_rank.ordinal for record in comparable} == set(range(1, 11))
-    assert all(record.relative_rank.comparable_sector_count == 10 for record in comparable)
-
-    xlre = next(record for record in first.records if record.ticker is SectorTicker.XLRE)
-    assert xlre.availability is SectorAvailability.PROVIDER_UNAVAILABLE
-    assert xlre.primary_regime.regime is SectorRegime.INSUFFICIENT
-    assert xlre.relative_rank.score is None
-    assert all(value.value is None for name, value in xlre.metrics if name != "ticker")
+    assert {record.relative_rank.ordinal for record in comparable} == set(range(1, 12))
+    assert all(record.relative_rank.comparable_sector_count == 11 for record in comparable)
 
 
 def test_changed_ohlcv_with_identical_closes_cannot_change_bundle_or_snapshot() -> None:
@@ -216,7 +210,7 @@ def test_calendar_gap_becomes_explicit_ticker_failure_without_erasing_siblings()
     )
 
     assert bundle.coverage.status is SectorCoverageStatus.PARTIAL
-    assert bundle.coverage.available_sector_count == 9
+    assert bundle.coverage.available_sector_count == 10
     failure = next(item for item in bundle.failures if item.ticker is SectorTicker.XLB)
     assert failure.issue_code is PublicSourceIssueCode.CALENDAR
     snapshot = compute_public_sector_snapshot(bundle)
@@ -224,8 +218,7 @@ def test_calendar_gap_becomes_explicit_ticker_failure_without_erasing_siblings()
     assert xlb_record.availability is SectorAvailability.TEMPORARILY_UNAVAILABLE
     assert PublicDiagnosticCode.TEMPORARILY_UNAVAILABLE in xlb_record.diagnostic_codes
     assert (
-        xlb_record.metrics.iex_price_return_1d.missing_reason
-        is MetricMissingReason.SECTOR_DATE_MISSING
+        xlb_record.metrics.price_return_1d.missing_reason is MetricMissingReason.SECTOR_DATE_MISSING
     )
     assert xlb_record.primary_regime.missing_reason is MetricMissingReason.SECTOR_DATE_MISSING
     assert xlb_record.relative_rank.missing_reason == "sector_date_missing"
@@ -257,11 +250,11 @@ def test_warming_up_exposes_only_short_metrics_with_explicit_reasons() -> None:
     xlk = next(record for record in snapshot.records if record.ticker is SectorTicker.XLK)
 
     assert bundle.coverage.status is SectorCoverageStatus.WARMING_UP
-    assert xlk.metrics.iex_price_return_1d.value is not None
-    assert xlk.metrics.iex_price_return_5d.value is not None
-    assert xlk.metrics.iex_price_return_21d.missing_reason is MetricMissingReason.WARMING_UP
-    assert xlk.metrics.iex_price_excess_63d.missing_reason is MetricMissingReason.WARMING_UP
-    assert xlk.metrics.iex_price_relative_acceleration_5d.missing_reason is (
+    assert xlk.metrics.price_return_1d.value is not None
+    assert xlk.metrics.price_return_5d.value is not None
+    assert xlk.metrics.price_return_21d.missing_reason is MetricMissingReason.WARMING_UP
+    assert xlk.metrics.price_excess_63d.missing_reason is MetricMissingReason.WARMING_UP
+    assert xlk.metrics.price_relative_acceleration_5d.missing_reason is (
         MetricMissingReason.WARMING_UP
     )
     assert xlk.primary_regime.missing_reason is MetricMissingReason.WARMING_UP
@@ -289,7 +282,7 @@ def test_non_fresh_bundle_cannot_be_relabelled_partial_to_publish_rank_or_regime
         target_date=_AS_OF,
     )
     payload = stale_bundle.model_dump(mode="json")
-    payload["coverage"]["status"] = SectorCoverageStatus.PARTIAL.value
+    payload["coverage"]["status"] = SectorCoverageStatus.NORMAL.value
     manipulated = type(stale_bundle).model_validate(payload)
 
     with pytest.raises(ValueError, match="non-fresh"):
@@ -324,7 +317,7 @@ def test_missing_benchmark_is_closed_and_preserves_no_metric_input() -> None:
     assert bundle.coverage.status is SectorCoverageStatus.INSUFFICIENT
     assert PublicDiagnosticCode.BENCHMARK_UNAVAILABLE in bundle.coverage.reason_codes
     assert snapshot.freshness is FreshnessState.UNKNOWN
-    assert all(record.metrics.iex_price_return_1d.value is None for record in snapshot.records)
+    assert all(record.metrics.price_return_1d.value is None for record in snapshot.records)
 
 
 def test_metric_wrapper_uses_simple_price_return_and_simple_realized_volatility() -> None:
@@ -339,9 +332,9 @@ def test_metric_wrapper_uses_simple_price_return_and_simple_realized_volatility(
     )
 
     expected = sector.points[-1].value / sector.points[-2].value - Decimal(1)
-    assert metrics.iex_price_return_1d.value == expected.quantize(Decimal("0.0000000001"))
-    assert metrics.iex_price_realized_volatility_20d.value is not None
-    assert metrics.iex_price_realized_volatility_20d.value >= 0
+    assert metrics.price_return_1d.value == expected.quantize(Decimal("0.0000000001"))
+    assert metrics.price_realized_volatility_20d.value is not None
+    assert metrics.price_realized_volatility_20d.value >= 0
 
 
 def test_target_date_rejects_non_date_values() -> None:

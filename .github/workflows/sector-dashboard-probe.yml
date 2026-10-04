@@ -29,13 +29,11 @@ jobs:
       - name: Use Python 3.11
         run: uv python install 3.11
 
-      - name: Install locked sector dependencies
-        run: uv sync --frozen --extra sector --no-dev
+      - name: Install locked runtime dependencies
+        run: uv sync --frozen --no-dev
 
       - name: Synthetic maximum-shape resource gate
         run: uv run --frozen --no-sync python scripts/benchmark_sector_dashboard_public.py
 
       - name: Qualify production adapter without publishing
-        env:
-          HF_DATA_API_KEY: ${{ secrets.HF_DATA_API_KEY }}
         run: uv run --frozen --no-sync python scripts/build_sector_dashboard_public.py --probe-only

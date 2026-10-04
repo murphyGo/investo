@@ -113,8 +113,6 @@ from investo.models.sector import (
     WorkbookIssueCode,
 )
 from investo.models.sector_public import (
-    HF_DATA_LIBRARY_ATTRIBUTION,
-    IEX_HISTORICAL_DATA_ATTRIBUTION,
     PUBLIC_LICENSE_IDS,
     PUBLIC_REQUEST_TICKERS,
     PUBLIC_SECTOR_PROVIDER,
@@ -122,6 +120,7 @@ from investo.models.sector_public import (
     PUBLIC_STRUCTURALLY_MISSING_TICKERS,
     PUBLIC_SUPPORTED_SECTOR_TICKERS,
     REQUIRED_PUBLIC_ATTRIBUTIONS,
+    YAHOO_FINANCE_ATTRIBUTION,
     AttributionEntry,
     FreshnessState,
     HttpsUrl,
@@ -197,8 +196,6 @@ __all__ = [
     "DEFAULT_HISTORY_WINDOW_DAYS",
     "DOMESTIC_EQUITY",
     "FIXED_SECTOR_UNIVERSE",
-    "HF_DATA_LIBRARY_ATTRIBUTION",
-    "IEX_HISTORICAL_DATA_ATTRIBUTION",
     "METRIC_QUANTUM",
     "PRIMARY_REGIME_POLICY",
     "PUBLIC_LICENSE_IDS",
@@ -219,6 +216,7 @@ __all__ = [
     "SEVERITY_READER_EXPLANATIONS",
     "TELEGRAM_MESSAGE_LIMIT",
     "US_EQUITY",
+    "YAHOO_FINANCE_ATTRIBUTION",
     "AnchorLabel",
     "AttributionEntry",
     "AxisState",

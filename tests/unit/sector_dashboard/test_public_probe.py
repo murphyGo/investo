@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import importlib.util
-import io
 import json
 import logging
 import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from types import ModuleType
+from zoneinfo import ZoneInfo
 
 import httpx
-import pyarrow as pa
-import pyarrow.parquet as pq
 import pytest
 import yaml
 from pydantic import ValidationError
@@ -21,7 +19,6 @@ from pydantic import ValidationError
 import investo.sector_dashboard.public_probe as probe
 from investo.models.market_calendar import is_trading_day
 from investo.models.sector_public import FreshnessState, PublicSourceIssueCode
-from investo.sector_dashboard.hf_data import HF_API_BASE
 
 _ROOT = Path(__file__).resolve().parents[3]
 _TARGET = date(2026, 9, 25)
@@ -29,29 +26,51 @@ _SECRET = "secret-probe-sentinel-12345"
 _CAPABILITY = "signed-capability-sentinel-67890"
 
 
-def _parquet(*, count: int = 64, end: date = _TARGET) -> bytes:
+def _json(*, count: int = 64, end: date = _TARGET) -> bytes:
     days = []
     cursor = end
     while len(days) < count:
         if is_trading_day("us-equity", cursor):
-            days.append(datetime.combine(cursor, datetime.min.time()))
+            days.append(
+                int(
+                    datetime.combine(
+                        cursor, datetime.min.time(), ZoneInfo("America/New_York")
+                    ).timestamp()
+                )
+            )
         cursor -= timedelta(days=1)
     days.reverse()
     prices = [100.0 + i * 0.1 for i in range(count)]
-    table = pa.table(
+    return json.dumps(
         {
-            "datetime": pa.array(days, type=pa.timestamp("ns")),
-            "Open": pa.array(prices, type=pa.float64()),
-            "High": pa.array([p + 1 for p in prices], type=pa.float64()),
-            "Low": pa.array([p - 1 for p in prices], type=pa.float64()),
-            "Close": pa.array(prices, type=pa.float64()),
-            "Volume": pa.array([1000] * count, type=pa.int64()),
-            "source": pa.array(["iex"] * count, type=pa.large_string()),
+            "chart": {
+                "error": None,
+                "result": [
+                    {
+                        "meta": {
+                            "symbol": "SPY",
+                            "currency": "USD",
+                            "instrumentType": "ETF",
+                            "exchangeTimezoneName": "America/New_York",
+                            "dataGranularity": "1d",
+                        },
+                        "timestamp": days,
+                        "indicators": {
+                            "quote": [
+                                {
+                                    "open": prices,
+                                    "high": [p + 1 for p in prices],
+                                    "low": [p - 1 for p in prices],
+                                    "close": prices,
+                                    "volume": [1000] * count,
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
         }
-    )
-    output = io.BytesIO()
-    pq.write_table(table, output)
-    return output.getvalue()
+    ).encode()
 
 
 def _transport(
@@ -62,15 +81,10 @@ def _transport(
         ticker = request.url.path.rsplit("/", 1)[1]
         if ticker == failure:
             return httpx.Response(status, text=_SECRET + _CAPABILITY)
-        if "/download-token/" in request.url.path:
-            assert request.headers["X-API-Key"] == _SECRET
-            return httpx.Response(
-                200, json={"url": f"{HF_API_BASE}/download/{ticker}?token={_CAPABILITY}"}
-            )
         assert "x-api-key" not in request.headers
-        return httpx.Response(
-            200, content=body, headers={"Content-Type": "application/octet-stream"}
-        )
+        payload = json.loads(body)
+        payload["chart"]["result"][0]["meta"]["symbol"] = ticker
+        return httpx.Response(200, json=payload)
 
     return httpx.MockTransport(handler)
 
@@ -79,12 +93,12 @@ def _transport(
 @pytest.mark.parametrize(
     ("count", "end", "failure", "status", "qualified", "successes"),
     [
-        (64, _TARGET, None, 200, True, 11),
-        (64, _TARGET, "XLK", 404, False, 10),
+        (64, _TARGET, None, 200, True, 12),
+        (64, _TARGET, "XLK", 404, False, 11),
         (64, _TARGET, "SPY", 401, False, 0),
-        (32, _TARGET, None, 200, False, 11),
-        (5, _TARGET, None, 200, False, 11),
-        (64, date(2026, 9, 24), None, 200, False, 11),
+        (32, _TARGET, None, 200, False, 12),
+        (5, _TARGET, None, 200, False, 12),
+        (64, date(2026, 9, 24), None, 200, False, 12),
     ],
 )
 async def test_full_pipeline_qualifies_only_complete_fresh_data_without_writes(
@@ -103,12 +117,10 @@ async def test_full_pipeline_qualifies_only_complete_fresh_data_without_writes(
     calls: list[str] = []
     async with httpx.AsyncClient(
         transport=_transport(
-            calls, body=_parquet(count=count, end=end), failure=failure, status=status
+            calls, body=_json(count=count, end=end), failure=failure, status=status
         )
     ) as client:
-        result = await probe.probe_public_sector(
-            client, environ={"HF_DATA_API_KEY": _SECRET}, target_date=_TARGET
-        )
+        result = await probe.probe_public_sector(client, target_date=_TARGET)
     assert (result.status == "qualified") is qualified
     assert result.successful_symbol_count == successes
     assert result.request_count == len(calls)
@@ -121,20 +133,20 @@ async def test_full_pipeline_qualifies_only_complete_fresh_data_without_writes(
         assert len(calls) == 1
         assert PublicSourceIssueCode.AUTH_REJECTED in result.reason_codes
     if qualified:
-        assert result.comparable_sector_count == 10
+        assert result.comparable_sector_count == 11
         assert result.freshness is FreshnessState.FRESH
-        assert result.request_count == result.successful_response_count == 22
+        assert result.request_count == result.successful_response_count == 12
         assert result.snapshot_id is not None
 
 
 @pytest.mark.asyncio
-async def test_missing_key_makes_zero_requests() -> None:
+async def test_no_api_key_is_required(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("HF_DATA_API_KEY", raising=False)
     calls: list[str] = []
-    async with httpx.AsyncClient(transport=_transport(calls, body=b"")) as client:
-        result = await probe.probe_public_sector(client, environ={}, target_date=_TARGET)
-    assert not calls
-    assert result.status == "blocked"
-    assert PublicSourceIssueCode.AUTH_CONFIGURATION in result.reason_codes
+    async with httpx.AsyncClient(transport=_transport(calls, body=_json())) as client:
+        result = await probe.probe_public_sector(client, target_date=_TARGET)
+    assert len(calls) == 12
+    assert result.status == "qualified"
 
 
 @pytest.mark.asyncio
@@ -145,12 +157,10 @@ async def test_projection_exception_never_escapes_with_sensitive_text(
         raise RuntimeError(_SECRET + _CAPABILITY)
 
     monkeypatch.setattr(probe, "render_public_sector_projection", reject)
-    async with httpx.AsyncClient(transport=_transport([], body=_parquet())) as client:
-        result = await probe.probe_public_sector(
-            client, environ={"HF_DATA_API_KEY": _SECRET}, target_date=_TARGET
-        )
+    async with httpx.AsyncClient(transport=_transport([], body=_json())) as client:
+        result = await probe.probe_public_sector(client, target_date=_TARGET)
     assert result.reason_codes == (probe.ProbeIssueCode.INTERNAL,)
-    assert result.successful_symbol_count == 11
+    assert result.successful_symbol_count == 12
     assert result.failed_symbol_count == 0
     assert _SECRET not in result.model_dump_json()
     assert _CAPABILITY not in result.model_dump_json()
@@ -195,24 +205,20 @@ async def test_measured_resource_overrun_never_qualifies(
         "time",
         SimpleNamespace(monotonic=lambda: next(wall_ticks), process_time=lambda: next(cpu_ticks)),
     )
-    async with httpx.AsyncClient(transport=_transport([], body=_parquet())) as client:
-        result = await probe.probe_public_sector(
-            client, environ={"HF_DATA_API_KEY": _SECRET}, target_date=_TARGET
-        )
+    async with httpx.AsyncClient(transport=_transport([], body=_json())) as client:
+        result = await probe.probe_public_sector(client, target_date=_TARGET)
     assert result.status == "blocked"
     assert result.reason_codes == (probe.ProbeIssueCode.RESOURCE,)
-    assert result.successful_symbol_count == 11
+    assert result.successful_symbol_count == 12
 
 
 @pytest.mark.asyncio
 async def test_previous_session_cannot_qualify_after_early_close() -> None:
     target = probe.resolve_probe_target_date(datetime(2026, 11, 27, 19, tzinfo=UTC))
     async with httpx.AsyncClient(
-        transport=_transport([], body=_parquet(end=date(2026, 11, 25)))
+        transport=_transport([], body=_json(end=date(2026, 11, 25)))
     ) as client:
-        result = await probe.probe_public_sector(
-            client, environ={"HF_DATA_API_KEY": _SECRET}, target_date=target
-        )
+        result = await probe.probe_public_sector(client, target_date=target)
     assert result.status == "blocked"
     assert PublicSourceIssueCode.FRESHNESS in result.reason_codes
 
@@ -346,7 +352,7 @@ def test_cli_executes_real_pipeline_and_emits_only_verified_summary(
     module = _cli()
     client_class = httpx.AsyncClient
     calls: list[str] = []
-    transport = _transport(calls, body=_parquet())
+    transport = _transport(calls, body=_json())
 
     def create_client(**kwargs: object) -> httpx.AsyncClient:
         assert kwargs["trust_env"] is False and kwargs["follow_redirects"] is False
@@ -372,7 +378,7 @@ def test_cli_executes_real_pipeline_and_emits_only_verified_summary(
         logging.disable(previous)
     captured = capsys.readouterr()
     result = json.loads(captured.out)
-    assert result["status"] == "qualified" and result["request_count"] == len(calls) == 22
+    assert result["status"] == "qualified" and result["request_count"] == len(calls) == 12
     assert result["commit"] == ("a" * 40 if valid_metadata else None)
     assert result["run_id"] == ("33578785358" if valid_metadata else None)
     assert captured.out.strip() in summary.read_text()
@@ -392,10 +398,13 @@ def test_probe_workflow_is_manual_read_only_and_secret_scoped() -> None:
     assert "env" not in job and "permissions" not in job
     assert job["timeout-minutes"] == 10
     secret_steps = [s for s in job["steps"] if "HF_DATA_API_KEY" in s.get("env", {})]
-    assert len(secret_steps) == 1
-    assert secret_steps[0]["run"].endswith("build_sector_dashboard_public.py --probe-only")
+    assert not secret_steps
+    assert any(
+        step.get("run", "").endswith("build_sector_dashboard_public.py --probe-only")
+        for step in job["steps"]
+    )
     assert "persist-credentials: false" in text and "enable-cache: false" in text
-    assert "uv sync --frozen --extra sector --no-dev" in text
+    assert "uv sync --frozen --no-dev" in text
     assert "benchmark_sector_dashboard_public.py" in text
     for forbidden in (
         "schedule:",

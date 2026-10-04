@@ -1,31 +1,29 @@
-"""Bounded HF Data Library adapter for the limited public sector radar.
+"""Bounded Yahoo daily JSON collector for the public sector radar.
 
-The provider boundary is intentionally closed: one host, one daily-clean
-Parquet request shape, and the fixed public request set. Provider-controlled
-text, token JSON, signed URLs, and Parquet bytes never cross this module.
+Only closed normalized results cross this boundary; no fallback or credential.
 """
 
 from __future__ import annotations
 
 import asyncio
-import io
 import json
 import math
 import time
-import unicodedata
 from collections import deque
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import UTC, date, datetime, timedelta
 from datetime import time as datetime_time
 from decimal import Decimal
 from typing import Final, NoReturn, cast
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import httpx
 
 from investo._internal.redaction import install_secret_log_filters
+from investo.models.market_calendar import is_trading_day
 from investo.models.sector import BENCHMARK_TICKER, SectorTicker
 from investo.models.sector_public import (
     PUBLIC_REQUEST_TICKERS,
@@ -37,43 +35,28 @@ from investo.models.sector_public import (
     PublicSourceIssueCode,
 )
 
-HF_API_BASE: Final = "https://api.hfdatalibrary.com/v1"
-HF_API_HOST: Final = "api.hfdatalibrary.com"
-HF_API_KEY_ENV: Final = "HF_DATA_API_KEY"
-HF_USER_AGENT: Final = "investo-sector-dashboard/1.0"
-HF_TOKEN_QUERY: Final[tuple[tuple[str, str], ...]] = (
-    ("timeframe", "daily"),
-    ("format", "parquet"),
-    ("version", "clean"),
+YAHOO_API_BASE: Final = "https://query2.finance.yahoo.com/v8/finance/chart"
+YAHOO_API_HOST: Final = "query2.finance.yahoo.com"
+YAHOO_USER_AGENT: Final = "investo-sector-dashboard/2.0"
+YAHOO_QUERY: Final[tuple[tuple[str, str], ...]] = (
+    ("interval", "1d"),
+    ("includePrePost", "false"),
 )
-
-_TOKEN_RESPONSE_LIMIT: Final = 64 * 1024
-_PARQUET_RESPONSE_LIMIT: Final = 2 * 1024 * 1024
-_PARQUET_DECODED_LIMIT: Final = 16 * 1024 * 1024
-_MAX_ROWS: Final = 10_000
-# The public metric layer uses the last 64 SPY observations (63D plus anchor).
+_JSON_RESPONSE_LIMIT: Final = 1024 * 1024
+_MAX_ROWS: Final = 256
 _CALCULATION_POINTS: Final = 64
-_MAX_JSON_DEPTH: Final = 4
-_MAX_JSON_STRING: Final = 256
-_MAX_API_KEY_LENGTH: Final = 512
-_MAX_REQUESTS_PER_MINUTE: Final = 100
-_MAX_COLLECTION_REQUESTS: Final = 66
-_MAX_CONCURRENCY: Final = 3
+_MAX_JSON_DEPTH: Final = 16
+_MAX_JSON_STRING: Final = 2048
+_MAX_REQUESTS_PER_MINUTE: Final = 36
+_MAX_COLLECTION_REQUESTS: Final = 36
+_MAX_CONCURRENCY: Final = 2
 _MAX_RETRIES: Final = 2
 _MAX_RETRY_AFTER_S: Final = 30.0
 _CONNECT_TIMEOUT_S: Final = 5.0
 _READ_TIMEOUT_S: Final = 10.0
 _REQUEST_TIMEOUT_S: Final = 15.0
 _COLLECTION_TIMEOUT_S: Final = 120.0
-
-_TOKEN_MEDIA_TYPE: Final = "application/json"
-_PARQUET_MEDIA_TYPE: Final = "application/octet-stream"
-_SENSITIVE_REQUEST_HEADERS: Final = (
-    "Authorization",
-    "Proxy-Authorization",
-    "Cookie",
-    "X-API-Key",
-)
+_JSON_MEDIA_TYPE: Final = "application/json"
 _HTTP_LOGGER_NAMES: Final = (
     "httpx",
     "httpcore.connection",
@@ -82,28 +65,16 @@ _HTTP_LOGGER_NAMES: Final = (
     "httpcore.proxy",
     "httpcore.socks",
 )
-_PLACEHOLDER_KEYS: Final = frozenset(
-    {
-        "changeme",
-        "hf_data_api_key",
-        "placeholder",
-        "replace_me",
-        "your_api_key",
-        "your_hf_data_api_key",
-    }
-)
 
 Sleep = Callable[[float], Awaitable[None]]
 Clock = Callable[[], float]
 
 
 @dataclass(frozen=True, slots=True)
-class HFAdapterConfig:
+class YahooAdapterConfig:
     """Downward-only resource knobs; endpoint and request identity are not configurable."""
 
-    token_response_limit: int = _TOKEN_RESPONSE_LIMIT
-    parquet_response_limit: int = _PARQUET_RESPONSE_LIMIT
-    parquet_decoded_limit: int = _PARQUET_DECODED_LIMIT
+    json_response_limit: int = _JSON_RESPONSE_LIMIT
     max_rows: int = _MAX_ROWS
     requests_per_minute: int = _MAX_REQUESTS_PER_MINUTE
     max_collection_requests: int = _MAX_COLLECTION_REQUESTS
@@ -118,9 +89,7 @@ class HFAdapterConfig:
 
     def __post_init__(self) -> None:
         bounded_integers = (
-            ("token_response_limit", self.token_response_limit, _TOKEN_RESPONSE_LIMIT),
-            ("parquet_response_limit", self.parquet_response_limit, _PARQUET_RESPONSE_LIMIT),
-            ("parquet_decoded_limit", self.parquet_decoded_limit, _PARQUET_DECODED_LIMIT),
+            ("json_response_limit", self.json_response_limit, _JSON_RESPONSE_LIMIT),
             ("max_rows", self.max_rows, _MAX_ROWS),
             ("requests_per_minute", self.requests_per_minute, _MAX_REQUESTS_PER_MINUTE),
             (
@@ -171,7 +140,7 @@ class HFAdapterConfig:
             raise ValueError("max_retry_after_s must stay within the production ceiling")
 
 
-DEFAULT_HF_ADAPTER_CONFIG: Final = HFAdapterConfig()
+DEFAULT_YAHOO_ADAPTER_CONFIG: Final = YahooAdapterConfig()
 
 
 class _AdapterError(Exception):
@@ -192,12 +161,12 @@ class _AdapterError(Exception):
         self.retry_after_s = retry_after_s
 
 
-class HFRequestBudget:
+class YahooRequestBudget:
     """Shared rolling-minute and whole-collection request budget."""
 
     def __init__(
         self,
-        config: HFAdapterConfig = DEFAULT_HF_ADAPTER_CONFIG,
+        config: YahooAdapterConfig = DEFAULT_YAHOO_ADAPTER_CONFIG,
         *,
         clock: Clock = time.monotonic,
         sleep: Sleep = asyncio.sleep,
@@ -223,7 +192,7 @@ class HFRequestBudget:
         self._successful_response_count += 1
 
     @property
-    def config(self) -> HFAdapterConfig:
+    def config(self) -> YahooAdapterConfig:
         return self._config
 
     async def acquire(self) -> None:
@@ -243,10 +212,10 @@ class HFRequestBudget:
             await self._sleep(delay)
 
 
-def compute_hf_retry_delay(
+def compute_yahoo_retry_delay(
     attempt: int,
     retry_after_header: str | None,
-    config: HFAdapterConfig = DEFAULT_HF_ADAPTER_CONFIG,
+    config: YahooAdapterConfig = DEFAULT_YAHOO_ADAPTER_CONFIG,
 ) -> float:
     """Return a deterministic retry delay bounded to 30 seconds."""
 
@@ -262,7 +231,7 @@ def compute_hf_retry_delay(
     return 0.0
 
 
-def _retry_after_seconds(header: str | None, config: HFAdapterConfig) -> float | None:
+def _retry_after_seconds(header: str | None, config: YahooAdapterConfig) -> float | None:
     if header is None:
         return None
     try:
@@ -291,61 +260,16 @@ def _all_failures(failure: _AdapterError) -> PublicParsedSet:
     )
 
 
-def _validated_api_key(environ: Mapping[str, str]) -> str:
-    value = environ.get(HF_API_KEY_ENV, "")
-    normalized_placeholder = value.casefold().replace("-", "_")
-    if (
-        not value
-        or len(value) > _MAX_API_KEY_LENGTH
-        or any(
-            character.isspace() or unicodedata.category(character).startswith("C")
-            for character in value
-        )
-        or normalized_placeholder in _PLACEHOLDER_KEYS
-    ):
-        raise _AdapterError(PublicSourceIssueCode.AUTH_CONFIGURATION, retryable=False)
-    return value
-
-
-def _token_url(ticker: SectorTicker) -> str:
-    return f"{HF_API_BASE}/download-token/{ticker.value}?{urlencode(HF_TOKEN_QUERY)}"
-
-
-def _validated_signed_url(payload: object, ticker: SectorTicker) -> str:
-    expected_metadata = dict(HF_TOKEN_QUERY)
-    if not isinstance(payload, dict) or not set(payload).issubset(
-        {"url", "expires_at", *expected_metadata}
-    ):
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-    # The official token envelope echoes the requested identity. Accept only
-    # the pinned values; mismatches cannot redirect the adapter to other data.
-    if any(payload[name] != value for name, value in expected_metadata.items() if name in payload):
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-    signed_url = payload.get("url")
-    expires_at = payload.get("expires_at")
-    if not isinstance(signed_url, str) or (
-        expires_at is not None and not isinstance(expires_at, str)
-    ):
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-    try:
-        parsed = urlsplit(signed_url)
-        port = parsed.port
-    except ValueError:
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False) from None
-    if (
-        parsed.scheme != "https"
-        or parsed.netloc != HF_API_HOST
-        or parsed.hostname != HF_API_HOST
-        or port is not None
-        or parsed.path != f"/v1/download/{ticker.value}"
-        or not parsed.query
-        or any(character.isspace() or character in "'\"" for character in parsed.query)
-        or parsed.fragment
-        or parsed.username is not None
-        or parsed.password is not None
-    ):
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-    return signed_url
+def _chart_url(ticker: SectorTicker, target_date: date) -> str:
+    zone = ZoneInfo("America/New_York")
+    start = datetime.combine(target_date - timedelta(days=200), datetime_time.min, zone)
+    end = datetime.combine(target_date + timedelta(days=1), datetime_time.min, zone)
+    query = (
+        *YAHOO_QUERY,
+        ("period1", str(int(start.timestamp()))),
+        ("period2", str(int(end.timestamp()))),
+    )
+    return f"{YAHOO_API_BASE}/{ticker.value}?{urlencode(query)}"
 
 
 def _reject_json_constant(_: str) -> NoReturn:
@@ -368,6 +292,8 @@ def _validate_json_envelope(value: object, *, depth: int = 1) -> None:
         if len(value) > _MAX_JSON_STRING:
             raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
         return
+    if isinstance(value, float) and not math.isfinite(value):
+        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
     if value is None or isinstance(value, (bool, int, float)):
         return
     if isinstance(value, dict):
@@ -381,19 +307,6 @@ def _validate_json_envelope(value: object, *, depth: int = 1) -> None:
             _validate_json_envelope(child, depth=depth + 1)
         return
     raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-
-
-def _parse_token(body: bytes, ticker: SectorTicker) -> str:
-    try:
-        payload = json.loads(
-            body,
-            object_pairs_hook=_pairs_without_duplicates,
-            parse_constant=_reject_json_constant,
-        )
-    except (UnicodeDecodeError, json.JSONDecodeError, ValueError, TypeError):
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False) from None
-    _validate_json_envelope(payload)
-    return _validated_signed_url(payload, ticker)
 
 
 def _media_type(headers: httpx.Headers) -> str:
@@ -422,7 +335,7 @@ async def _read_bounded(response: httpx.Response, limit: int) -> bytes:
     return b"".join(chunks)
 
 
-def _status_failure(response: httpx.Response, config: HFAdapterConfig) -> _AdapterError:
+def _status_failure(response: httpx.Response, config: YahooAdapterConfig) -> _AdapterError:
     status = response.status_code
     if status in {401, 403}:
         return _AdapterError(PublicSourceIssueCode.AUTH_REJECTED, retryable=False)
@@ -442,12 +355,11 @@ async def _request_bounded(
     client: httpx.AsyncClient,
     url: str,
     *,
-    api_key: str | None,
     accept: str,
     expected_media_type: str,
     response_limit: int,
-    budget: HFRequestBudget,
-    config: HFAdapterConfig,
+    budget: YahooRequestBudget,
+    config: YahooAdapterConfig,
 ) -> bytes:
     await budget.acquire()
     response: httpx.Response | None = None
@@ -464,22 +376,18 @@ async def _request_bounded(
                 headers={
                     "Accept": accept,
                     "Accept-Encoding": "identity",
-                    "User-Agent": HF_USER_AGENT,
+                    "User-Agent": YAHOO_USER_AGENT,
                 },
                 timeout=timeout,
             )
-            for header in _SENSITIVE_REQUEST_HEADERS:
-                request.headers.pop(header, None)
             request.headers = httpx.Headers(
                 {
-                    "Host": HF_API_HOST,
+                    "Host": YAHOO_API_HOST,
                     "Accept": accept,
                     "Accept-Encoding": "identity",
-                    "User-Agent": HF_USER_AGENT,
+                    "User-Agent": YAHOO_USER_AGENT,
                 }
             )
-            if api_key is not None:
-                request.headers["X-API-Key"] = api_key
             response = await client.send(
                 request,
                 stream=True,
@@ -490,6 +398,10 @@ async def _request_bounded(
                 raise _status_failure(response, config)
             if _media_type(response.headers) != expected_media_type:
                 raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
+            # The identity request is not a guarantee. Reject compression before
+            # httpx can inflate an unbounded decoded chunk inside aiter_bytes().
+            if response.headers.get("Content-Encoding", "").strip().lower() not in {"", "identity"}:
+                raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
             body = await _read_bounded(response, response_limit)
             budget.record_successful_response()
             return body
@@ -499,7 +411,7 @@ async def _request_bounded(
         raise _AdapterError(PublicSourceIssueCode.TRANSPORT, retryable=True) from None
     except Exception:
         # Never let an exception created by the transport or a client hook
-        # carry a signed URL, request headers, or API-key sentinel outward.
+        # carry a request material or provider text outward.
         raise _AdapterError(PublicSourceIssueCode.TRANSPORT, retryable=True) from None
     finally:
         # A provider-controlled Set-Cookie must not persist on the injected
@@ -513,128 +425,96 @@ async def _request_bounded(
                 await response.aclose()
 
 
-def _decode_public_parquet(
+def _decode_public_json(
     body: bytes,
     ticker: SectorTicker,
     target_date: date,
-    config: HFAdapterConfig,
+    config: YahooAdapterConfig,
 ) -> PublicBarSeries:
     try:
-        import pyarrow as pa  # type: ignore[import-untyped]
-        import pyarrow.parquet as pq  # type: ignore[import-untyped]
-    except ImportError:
-        raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False) from None
-
-    expected_schema = pa.schema(
-        [
-            pa.field("datetime", pa.timestamp("ns")),
-            pa.field("Open", pa.float64()),
-            pa.field("High", pa.float64()),
-            pa.field("Low", pa.float64()),
-            pa.field("Close", pa.float64()),
-            pa.field("Volume", pa.int64()),
-            pa.field("source", pa.large_string()),
-        ]
-    )
-    try:
-        parquet_file = pq.ParquetFile(io.BytesIO(body))
-        schema = parquet_file.schema_arrow
-        row_count = parquet_file.metadata.num_rows
-        decoded_bytes = sum(
-            parquet_file.metadata.row_group(group_index)
-            .column(column_index)
-            .total_uncompressed_size
-            for group_index in range(parquet_file.metadata.num_row_groups)
-            for column_index in range(parquet_file.metadata.num_columns)
+        payload = json.loads(
+            body, object_pairs_hook=_pairs_without_duplicates, parse_constant=_reject_json_constant
         )
-        if decoded_bytes < 0:
-            raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-        if not schema.equals(expected_schema, check_metadata=False):
-            raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False)
-        if row_count > config.max_rows or decoded_bytes > config.parquet_decoded_limit:
-            raise _AdapterError(PublicSourceIssueCode.RESPONSE_SIZE, retryable=False)
-        if row_count == 0:
-            raise _AdapterError(
-                PublicSourceIssueCode.INSUFFICIENT_HISTORY,
-                retryable=False,
+        _validate_json_envelope(payload)
+        chart = payload["chart"]
+        if chart["error"] is not None or len(chart["result"]) != 1:
+            raise ValueError
+        result = chart["result"][0]
+        meta = result["meta"]
+        if any(
+            meta.get(key) != expected
+            for key, expected in (
+                ("symbol", ticker.value),
+                ("currency", "USD"),
+                ("instrumentType", "ETF"),
+                ("exchangeTimezoneName", "America/New_York"),
+                ("dataGranularity", "1d"),
             )
-        table = parquet_file.read(columns=expected_schema.names)
-        rows = table.to_pylist()
+        ):
+            raise ValueError
+        stamps = result["timestamp"]
+        quotes = result["indicators"]["quote"]
+        if not isinstance(stamps, list) or not isinstance(quotes, list) or len(quotes) != 1:
+            raise ValueError
+        if len(stamps) > config.max_rows:
+            raise _AdapterError(PublicSourceIssueCode.RESPONSE_SIZE, retryable=False)
+        quote = quotes[0]
+        fields = ("open", "high", "low", "close", "volume")
+        if any(
+            not isinstance(quote.get(key), list) or len(quote[key]) != len(stamps) for key in fields
+        ):
+            raise ValueError
     except _AdapterError:
         raise
-    except Exception:
+    except (ValueError, TypeError, KeyError, IndexError, AttributeError, RecursionError):
         raise _AdapterError(PublicSourceIssueCode.SCHEMA, retryable=False) from None
 
     points: list[PublicBarPoint] = []
     previous_date: date | None = None
-    observed_iex = False
     try:
-        for row in rows:
-            timestamp = row["datetime"]
+        for index, stamp in enumerate(stamps):
+            if type(stamp) is not int:
+                raise ValueError
+            day = datetime.fromtimestamp(stamp, UTC).astimezone(ZoneInfo("America/New_York")).date()
             if (
-                not isinstance(timestamp, datetime)
-                or timestamp.tzinfo is not None
-                or timestamp.time() != datetime_time.min
+                day > target_date
+                or day < target_date - timedelta(days=200)
+                or not is_trading_day("us-equity", day)
             ):
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-            trading_date = timestamp.date()
-            if trading_date > target_date:
                 raise _AdapterError(PublicSourceIssueCode.CALENDAR, retryable=False)
-            if previous_date is not None and trading_date <= previous_date:
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-            previous_date = trading_date
-
-            source = row["source"]
-            if source not in {"iex", "pitrading"}:
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-            if source == "pitrading" and observed_iex:
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-
-            prices = tuple(row[name] for name in ("Open", "High", "Low", "Close"))
+            if previous_date is not None and day <= previous_date:
+                raise ValueError
+            previous_date = day
+            prices = tuple(quote[key][index] for key in fields[:4])
             if any(
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not math.isfinite(value)
-                or value <= 0
+                type(value) not in (float, int) or not math.isfinite(value) or value <= 0
                 for value in prices
             ):
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-            open_value, high_value, low_value, close_value = prices
-            if low_value > min(open_value, close_value) or high_value < max(
-                open_value, close_value
-            ):
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-            volume = row["Volume"]
-            if isinstance(volume, bool) or not isinstance(volume, int) or volume < 0:
-                raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False)
-
-            if source == "iex":
-                observed_iex = True
-                points.append(
-                    PublicBarPoint(
-                        trading_date=trading_date,
-                        open=Decimal(str(open_value)),
-                        high=Decimal(str(high_value)),
-                        low=Decimal(str(low_value)),
-                        close=Decimal(str(close_value)),
-                        volume=volume,
-                    )
+                raise ValueError
+            volume = quote["volume"][index]
+            if type(volume) is not int or volume < 0:
+                raise ValueError
+            points.append(
+                PublicBarPoint(
+                    trading_date=day,
+                    open=Decimal(str(prices[0])),
+                    high=Decimal(str(prices[1])),
+                    low=Decimal(str(prices[2])),
+                    close=Decimal(str(prices[3])),
+                    volume=volume,
                 )
-    except _AdapterError:
-        raise
-    except Exception:
-        raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False) from None
-
-    if len(points) < 2:
-        raise _AdapterError(PublicSourceIssueCode.INSUFFICIENT_HISTORY, retryable=False)
-    try:
+            )
+        if len(points) < 2:
+            raise _AdapterError(PublicSourceIssueCode.INSUFFICIENT_HISTORY, retryable=False)
         return PublicBarSeries(
             ticker=ticker,
             points=tuple(points),
             first_date=points[0].trading_date,
             latest_date=points[-1].trading_date,
         )
-    except Exception:
+    except _AdapterError:
+        raise
+    except (ValueError, TypeError, OverflowError, OSError):
         raise _AdapterError(PublicSourceIssueCode.ROW, retryable=False) from None
 
 
@@ -642,43 +522,29 @@ async def _fetch_ticker_once(
     client: httpx.AsyncClient,
     *,
     ticker: SectorTicker,
-    api_key: str,
     target_date: date,
-    budget: HFRequestBudget,
-    config: HFAdapterConfig,
+    budget: YahooRequestBudget,
+    config: YahooAdapterConfig,
 ) -> PublicBarSeries:
-    token_body = await _request_bounded(
+    body = await _request_bounded(
         client,
-        _token_url(ticker),
-        api_key=api_key,
-        accept=_TOKEN_MEDIA_TYPE,
-        expected_media_type=_TOKEN_MEDIA_TYPE,
-        response_limit=config.token_response_limit,
+        _chart_url(ticker, target_date),
+        accept=_JSON_MEDIA_TYPE,
+        expected_media_type=_JSON_MEDIA_TYPE,
+        response_limit=config.json_response_limit,
         budget=budget,
         config=config,
     )
-    signed_url = _parse_token(token_body, ticker)
-    parquet_body = await _request_bounded(
-        client,
-        signed_url,
-        api_key=None,
-        accept=_PARQUET_MEDIA_TYPE,
-        expected_media_type=_PARQUET_MEDIA_TYPE,
-        response_limit=config.parquet_response_limit,
-        budget=budget,
-        config=config,
-    )
-    return _decode_public_parquet(parquet_body, ticker, target_date, config)
+    return _decode_public_json(body, ticker, target_date, config)
 
 
 async def _fetch_ticker(
     client: httpx.AsyncClient,
     *,
     ticker: SectorTicker,
-    api_key: str,
     target_date: date,
-    budget: HFRequestBudget,
-    config: HFAdapterConfig,
+    budget: YahooRequestBudget,
+    config: YahooAdapterConfig,
     sleep: Sleep,
 ) -> PublicBarSeries | PublicSourceFailure:
     for zero_based_attempt in range(config.retries + 1):
@@ -686,7 +552,6 @@ async def _fetch_ticker(
             return await _fetch_ticker_once(
                 client,
                 ticker=ticker,
-                api_key=api_key,
                 target_date=target_date,
                 budget=budget,
                 config=config,
@@ -698,7 +563,7 @@ async def _fetch_ticker(
             delay = (
                 failure.retry_after_s
                 if failure.retry_after_s is not None
-                else compute_hf_retry_delay(retry_number, None, config)
+                else compute_yahoo_retry_delay(retry_number, None, config)
             )
             await sleep(delay)
     raise AssertionError("bounded retry loop must return")
@@ -734,15 +599,14 @@ def _retain_calculation_window(
 async def collect_public_bars(
     client: httpx.AsyncClient,
     *,
-    environ: Mapping[str, str],
     target_date: date,
-    config: HFAdapterConfig = DEFAULT_HF_ADAPTER_CONFIG,
-    budget: HFRequestBudget | None = None,
+    config: YahooAdapterConfig = DEFAULT_YAHOO_ADAPTER_CONFIG,
+    budget: YahooRequestBudget | None = None,
     sleep: Sleep = asyncio.sleep,
 ) -> PublicParsedSet:
-    """Collect SPY first, then ten sectors, returning only normalized types.
+    """Collect SPY first, then eleven sectors, returning only normalized types.
 
-    Invalid credential/client configuration is represented as a closed failure
+    Invalid client configuration is represented as a closed failure
     for the fixed request partition and performs zero network calls.
     """
 
@@ -750,7 +614,6 @@ async def collect_public_bars(
         raise ValueError("target_date must be date-only")
     install_secret_log_filters(_HTTP_LOGGER_NAMES)
     try:
-        api_key = _validated_api_key(environ)
         if (
             _client_has_observing_hooks(client)
             or client.params
@@ -761,7 +624,7 @@ async def collect_public_bars(
     except _AdapterError as failure:
         return _all_failures(failure)
 
-    shared_budget = budget or HFRequestBudget(config, sleep=sleep)
+    shared_budget = budget or YahooRequestBudget(config, sleep=sleep)
     results: dict[SectorTicker, PublicBarSeries | PublicSourceFailure] = {}
     benchmark_dates: frozenset[date] | None = None
 
@@ -770,14 +633,13 @@ async def collect_public_bars(
             result = await _fetch_ticker(
                 client,
                 ticker=ticker,
-                api_key=api_key,
                 target_date=target_date,
                 budget=shared_budget,
                 config=config,
                 sleep=sleep,
             )
             # Decode and validate every row first. Retain only the calculation
-            # window so eleven maximum-size rich-model histories never coexist.
+            # window so twelve maximum-size rich-model histories never coexist.
             results[ticker] = (
                 _retain_calculation_window(result, benchmark_dates)
                 if isinstance(result, PublicBarSeries)
@@ -856,14 +718,13 @@ async def collect_public_bars(
 
 
 __all__ = [
-    "DEFAULT_HF_ADAPTER_CONFIG",
-    "HF_API_BASE",
-    "HF_API_HOST",
-    "HF_API_KEY_ENV",
-    "HF_TOKEN_QUERY",
-    "HF_USER_AGENT",
-    "HFAdapterConfig",
-    "HFRequestBudget",
+    "DEFAULT_YAHOO_ADAPTER_CONFIG",
+    "YAHOO_API_BASE",
+    "YAHOO_API_HOST",
+    "YAHOO_QUERY",
+    "YAHOO_USER_AGENT",
+    "YahooAdapterConfig",
+    "YahooRequestBudget",
     "collect_public_bars",
-    "compute_hf_retry_delay",
+    "compute_yahoo_retry_delay",
 ]

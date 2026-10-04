@@ -2,7 +2,7 @@
 
 The functions in this module know only ordered positive values and stable
 identity keys.  Source-specific semantics stay in the public ``nav_*`` and
-``iex_price_*`` wrappers owned by their respective products.
+``price_*`` wrappers owned by their respective products.
 """
 
 from __future__ import annotations
@@ -84,7 +84,7 @@ def realized_volatility_20d(
     """Annualize the sample deviation of twenty daily returns.
 
     ``log`` preserves the u139 private NAV contract.  ``simple`` is the u145
-    public IEX close-to-close contract.  Keeping the choice explicit prevents
+    public daily close-to-close contract.  Keeping the choice explicit prevents
     either product from silently inheriting the other's statistical label.
     """
 

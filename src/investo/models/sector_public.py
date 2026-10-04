@@ -1,7 +1,7 @@
-"""Typed contracts for the limited public IEX-sample sector radar (u145).
+"""Typed contracts for the Yahoo daily-price public sector radar (u145).
 
 These are sibling types to the private u139 NAV contract.  Closed literals and
-cross-entity validators make the venue scope, unavailable XLRE identity, and
+cross-entity validators make the provider scope, fixed ETF identity, and
 derived-only boundary impossible to broaden accidentally.
 """
 
@@ -40,10 +40,8 @@ from investo.models.sector import (
     SectorTicker,
 )
 
-PUBLIC_SECTOR_SOURCE_ID: Final[Literal["hf-data-library-iex-daily-v1"]] = (
-    "hf-data-library-iex-daily-v1"
-)
-PUBLIC_SECTOR_PROVIDER: Final[Literal["HF Data Library"]] = "HF Data Library"
+PUBLIC_SECTOR_SOURCE_ID: Final[Literal["yahoo-chart-daily-v2"]] = "yahoo-chart-daily-v2"
+PUBLIC_SECTOR_PROVIDER: Final[Literal["Yahoo Finance"]] = "Yahoo Finance"
 PUBLIC_REQUEST_TICKERS: Final[tuple[SectorTicker, ...]] = (
     SectorTicker.SPY,
     SectorTicker.XLB,
@@ -53,6 +51,7 @@ PUBLIC_REQUEST_TICKERS: Final[tuple[SectorTicker, ...]] = (
     SectorTicker.XLI,
     SectorTicker.XLK,
     SectorTicker.XLP,
+    SectorTicker.XLRE,
     SectorTicker.XLU,
     SectorTicker.XLV,
     SectorTicker.XLY,
@@ -60,11 +59,8 @@ PUBLIC_REQUEST_TICKERS: Final[tuple[SectorTicker, ...]] = (
 PUBLIC_SUPPORTED_SECTOR_TICKERS: Final[tuple[SectorTicker, ...]] = tuple(
     ticker for ticker in PUBLIC_REQUEST_TICKERS if ticker is not BENCHMARK_TICKER
 )
-PUBLIC_STRUCTURALLY_MISSING_TICKERS: Final[tuple[SectorTicker, ...]] = (SectorTicker.XLRE,)
-PUBLIC_LICENSE_IDS: Final[tuple[str, ...]] = (
-    "hf-data-library-cc-by-4.0",
-    "iex-historical-data-terms",
-)
+PUBLIC_STRUCTURALLY_MISSING_TICKERS: Final[tuple[SectorTicker, ...]] = ()
+PUBLIC_LICENSE_IDS: Final[tuple[str, ...]] = ()
 _REQUEST_POSITION: Final[dict[SectorTicker, int]] = {
     ticker: position for position, ticker in enumerate(PUBLIC_REQUEST_TICKERS)
 }
@@ -75,14 +71,14 @@ _SHA256_PATTERN: Final[str] = r"^sha256:[0-9a-f]{64}$"
 
 
 class MarketScope(StrEnum):
-    """Closed market-scope vocabulary; v1 accepts only the IEX venue sample."""
+    """Closed market-scope vocabulary; v2 identifies provider-reported US ETF prices."""
 
-    IEX_VENUE_SAMPLE = "iex_venue_sample"
+    PROVIDER_REPORTED_US_EQUITY = "provider_reported_us_equity"
     CONSOLIDATED_US_MARKET = "consolidated_us_market"
 
 
 class PublicAdjustmentPolicy(StrEnum):
-    SOURCE_SPLIT_DIVIDEND_ADJUSTED_CLEAN = "source_split_dividend_adjusted_clean"
+    PROVIDER_CLOSE = "provider_close_not_total_return"
 
 
 class PublicSourceIssueCode(StrEnum):
@@ -108,17 +104,17 @@ class PublicDiagnosticCode(StrEnum):
 
 
 class PublicMetricName(StrEnum):
-    IEX_PRICE_RETURN_1D = "iex_price_return_1d"
-    IEX_PRICE_RETURN_5D = "iex_price_return_5d"
-    IEX_PRICE_RETURN_21D = "iex_price_return_21d"
-    IEX_PRICE_RETURN_63D = "iex_price_return_63d"
-    IEX_PRICE_EXCESS_1D = "iex_price_excess_1d"
-    IEX_PRICE_EXCESS_5D = "iex_price_excess_5d"
-    IEX_PRICE_EXCESS_21D = "iex_price_excess_21d"
-    IEX_PRICE_EXCESS_63D = "iex_price_excess_63d"
-    IEX_PRICE_RELATIVE_ACCELERATION_5D = "iex_price_relative_acceleration_5d"
-    IEX_PRICE_REALIZED_VOLATILITY_20D = "iex_price_realized_volatility_20d"
-    IEX_PRICE_MAX_DRAWDOWN_20D = "iex_price_max_drawdown_20d"
+    PRICE_RETURN_1D = "price_return_1d"
+    PRICE_RETURN_5D = "price_return_5d"
+    PRICE_RETURN_21D = "price_return_21d"
+    PRICE_RETURN_63D = "price_return_63d"
+    PRICE_EXCESS_1D = "price_excess_1d"
+    PRICE_EXCESS_5D = "price_excess_5d"
+    PRICE_EXCESS_21D = "price_excess_21d"
+    PRICE_EXCESS_63D = "price_excess_63d"
+    PRICE_RELATIVE_ACCELERATION_5D = "price_relative_acceleration_5d"
+    PRICE_REALIZED_VOLATILITY_20D = "price_realized_volatility_20d"
+    PRICE_MAX_DRAWDOWN_20D = "price_max_drawdown_20d"
 
 
 class SectorAvailability(StrEnum):
@@ -168,7 +164,7 @@ def _date_only(value: object) -> date:
 
 
 class PublicBarPoint(BaseModel):
-    """One validated IEX row retained in the bounded calculation window."""
+    """One validated Yahoo row retained in the bounded calculation window."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -178,7 +174,7 @@ class PublicBarPoint(BaseModel):
     low: Decimal
     close: Decimal
     volume: int = Field(ge=0)
-    source: Literal["iex"] = "iex"
+    source: Literal["yahoo"] = "yahoo"
 
     @field_validator("trading_date", mode="before")
     @classmethod
@@ -216,23 +212,25 @@ class PublicBarPoint(BaseModel):
 
 
 class PublicBarSeries(BaseModel):
-    """One strictly ascending series of retained IEX daily bars."""
+    """One strictly ascending series of retained Yahoo daily bars."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     ticker: SectorTicker
-    points: tuple[PublicBarPoint, ...] = Field(min_length=2, max_length=10_000)
+    points: tuple[PublicBarPoint, ...] = Field(min_length=2, max_length=256)
     first_date: date
     latest_date: date
-    market_scope: Literal[MarketScope.IEX_VENUE_SAMPLE] = MarketScope.IEX_VENUE_SAMPLE
-    adjustment: Literal[PublicAdjustmentPolicy.SOURCE_SPLIT_DIVIDEND_ADJUSTED_CLEAN] = (
-        PublicAdjustmentPolicy.SOURCE_SPLIT_DIVIDEND_ADJUSTED_CLEAN
+    market_scope: Literal[MarketScope.PROVIDER_REPORTED_US_EQUITY] = (
+        MarketScope.PROVIDER_REPORTED_US_EQUITY
+    )
+    adjustment: Literal[PublicAdjustmentPolicy.PROVIDER_CLOSE] = (
+        PublicAdjustmentPolicy.PROVIDER_CLOSE
     )
 
     @model_validator(mode="after")
     def _validate_series(self) -> Self:
         if self.ticker not in PUBLIC_REQUEST_TICKERS:
-            raise ValueError("public bar ticker must belong to the fixed HF request set")
+            raise ValueError("public bar ticker must belong to the fixed Yahoo request set")
         dates = tuple(point.trading_date for point in self.points)
         if any(current >= following for current, following in pairwise(dates)):
             raise ValueError("public bar points must be strictly ascending with unique dates")
@@ -253,12 +251,12 @@ class PublicSourceFailure(BaseModel):
     @model_validator(mode="after")
     def _validate_requested_ticker(self) -> Self:
         if self.ticker not in PUBLIC_REQUEST_TICKERS:
-            raise ValueError("source failures can reference only requested HF tickers")
+            raise ValueError("source failures can reference only requested Yahoo tickers")
         return self
 
 
 class PublicParsedSet(BaseModel):
-    """Exactly one success or closed failure per fixed HF request identity."""
+    """Exactly one success or closed failure per fixed Yahoo request identity."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -273,7 +271,7 @@ class PublicParsedSet(BaseModel):
     ) -> Mapping[SectorTicker, PublicBarSeries]:
         for ticker, series in value.items():
             if ticker not in PUBLIC_SUPPORTED_SECTOR_TICKERS or series.ticker is not ticker:
-                raise ValueError("sector mapping must use matching supported HF sector tickers")
+                raise ValueError("sector mapping must use matching supported Yahoo sector tickers")
         return MappingProxyType(
             {ticker: value[ticker] for ticker in PUBLIC_SUPPORTED_SECTOR_TICKERS if ticker in value}
         )
@@ -304,7 +302,7 @@ class PublicParsedSet(BaseModel):
         if successes & failures:
             raise ValueError("ticker cannot be both public source success and failure")
         if successes | failures != set(PUBLIC_REQUEST_TICKERS):
-            raise ValueError("parsed set must account for every fixed HF request ticker")
+            raise ValueError("parsed set must account for every fixed Yahoo request ticker")
         return self
 
 
@@ -342,7 +340,7 @@ class ValueSeries(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     ticker: SectorTicker
-    points: tuple[ValuePoint, ...] = Field(min_length=2, max_length=10_000)
+    points: tuple[ValuePoint, ...] = Field(min_length=2, max_length=256)
 
     @model_validator(mode="after")
     def _validate_series(self) -> Self:
@@ -432,32 +430,18 @@ class AttributionEntry(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    attribution_id: Literal["hf-data-library-cc-by-4.0", "iex-historical-data"]
+    attribution_id: Literal["yahoo-finance"]
     display_text: str = Field(min_length=1, max_length=320)
     url: HttpsUrl
     required: Literal[True] = True
 
 
-HF_DATA_LIBRARY_ATTRIBUTION: Final[AttributionEntry] = AttributionEntry(
-    attribution_id="hf-data-library-cc-by-4.0",
-    display_text=(
-        "Data from the HF Data Library (Elkassabgi 2026), available at "
-        "https://hfdatalibrary.com under CC BY 4.0."
-    ),
-    url="https://hfdatalibrary.com/pages/license",
+YAHOO_FINANCE_ATTRIBUTION: Final[AttributionEntry] = AttributionEntry(
+    attribution_id="yahoo-finance",
+    display_text="Yahoo Finance — daily ETF price data",
+    url="https://finance.yahoo.com/",
 )
-IEX_HISTORICAL_DATA_ATTRIBUTION: Final[AttributionEntry] = AttributionEntry(
-    attribution_id="iex-historical-data",
-    display_text=(
-        "Data provided for free by IEX. By accessing or using IEX Historical Data, "
-        "you agree to the IEX Historical Data Terms of Use."
-    ),
-    url="https://www.iex.io/legal/hist-data-terms",
-)
-REQUIRED_PUBLIC_ATTRIBUTIONS: Final[tuple[AttributionEntry, ...]] = (
-    HF_DATA_LIBRARY_ATTRIBUTION,
-    IEX_HISTORICAL_DATA_ATTRIBUTION,
-)
+REQUIRED_PUBLIC_ATTRIBUTIONS: Final[tuple[AttributionEntry, ...]] = (YAHOO_FINANCE_ATTRIBUTION,)
 
 
 class PublicSourceProvenance(BaseModel):
@@ -465,35 +449,38 @@ class PublicSourceProvenance(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    source_id: Literal["hf-data-library-iex-daily-v1"] = PUBLIC_SECTOR_SOURCE_ID
-    provider: Literal["HF Data Library"] = PUBLIC_SECTOR_PROVIDER
-    market_scope: Literal[MarketScope.IEX_VENUE_SAMPLE] = MarketScope.IEX_VENUE_SAMPLE
+    source_id: Literal["yahoo-chart-daily-v2"] = PUBLIC_SECTOR_SOURCE_ID
+    provider: Literal["Yahoo Finance"] = PUBLIC_SECTOR_PROVIDER
+    market_scope: Literal[MarketScope.PROVIDER_REPORTED_US_EQUITY] = (
+        MarketScope.PROVIDER_REPORTED_US_EQUITY
+    )
     requested_tickers: tuple[SectorTicker, ...] = PUBLIC_REQUEST_TICKERS
     supported_tickers: tuple[SectorTicker, ...] = PUBLIC_REQUEST_TICKERS
     missing_tickers: tuple[SectorTicker, ...] = PUBLIC_STRUCTURALLY_MISSING_TICKERS
-    adjustment: Literal[PublicAdjustmentPolicy.SOURCE_SPLIT_DIVIDEND_ADJUSTED_CLEAN] = (
-        PublicAdjustmentPolicy.SOURCE_SPLIT_DIVIDEND_ADJUSTED_CLEAN
+    adjustment: Literal[PublicAdjustmentPolicy.PROVIDER_CLOSE] = (
+        PublicAdjustmentPolicy.PROVIDER_CLOSE
     )
-    transport: Literal["signed_daily_parquet_v1"] = "signed_daily_parquet_v1"
-    data_version: Literal["clean"] = "clean"
+    transport: Literal["yahoo_chart_json_v8"] = "yahoo_chart_json_v8"
+    data_version: Literal["quote_close"] = "quote_close"
+    public_use_permission: Literal["unverified"] = "unverified"
     target_date: date
     as_of_date: date | None = None
     license_ids: tuple[str, ...] = PUBLIC_LICENSE_IDS
     attributions: tuple[AttributionEntry, ...] = REQUIRED_PUBLIC_ATTRIBUTIONS
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
 
     @model_validator(mode="after")
     def _validate_closed_provenance(self) -> Self:
         if self.requested_tickers != PUBLIC_REQUEST_TICKERS:
-            raise ValueError("requested_tickers must equal the fixed HF request set")
+            raise ValueError("requested_tickers must equal the fixed Yahoo request set")
         if self.supported_tickers != PUBLIC_REQUEST_TICKERS:
-            raise ValueError("supported_tickers must equal the qualified HF v1 set")
+            raise ValueError("supported_tickers must equal the fixed Yahoo v2 set")
         if self.missing_tickers != PUBLIC_STRUCTURALLY_MISSING_TICKERS:
-            raise ValueError("XLRE must be the sole structurally missing HF v1 ticker")
+            raise ValueError("Yahoo v2 has no structurally missing ticker")
         if self.license_ids != PUBLIC_LICENSE_IDS:
-            raise ValueError("license_ids must equal the fixed HF/IEX rights set")
+            raise ValueError("Yahoo v2 must not claim a verified data license")
         if self.attributions != REQUIRED_PUBLIC_ATTRIBUTIONS:
-            raise ValueError("attributions must equal the fixed HF/IEX entries in display order")
+            raise ValueError("attributions must equal the fixed Yahoo entry in display order")
         if self.as_of_date is not None and self.as_of_date > self.target_date:
             raise ValueError("source as-of date must not be after target date")
         return self
@@ -504,9 +491,11 @@ class PublicSectorSeriesBundle(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: Literal[1] = 1
-    source_id: Literal["hf-data-library-iex-daily-v1"] = PUBLIC_SECTOR_SOURCE_ID
-    market_scope: Literal[MarketScope.IEX_VENUE_SAMPLE] = MarketScope.IEX_VENUE_SAMPLE
+    schema_version: Literal[2] = 2
+    source_id: Literal["yahoo-chart-daily-v2"] = PUBLIC_SECTOR_SOURCE_ID
+    market_scope: Literal[MarketScope.PROVIDER_REPORTED_US_EQUITY] = (
+        MarketScope.PROVIDER_REPORTED_US_EQUITY
+    )
     as_of_date: date | None = None
     benchmark: ValueSeries | None = None
     sectors: tuple[ValueSeries, ...] = ()
@@ -550,8 +539,6 @@ class PublicSectorSeriesBundle(BaseModel):
         available = {series.ticker for series in self.sectors}
         if set(self.coverage.missing_tickers) != set(SECTOR_TICKERS) - available:
             raise ValueError("coverage missing_tickers must complement public sector series")
-        if SectorTicker.XLRE in available:
-            raise ValueError("XLRE cannot have a series under the HF v1 source")
         if self.as_of_date != self.coverage.common_as_of:
             raise ValueError("bundle as_of_date must equal coverage common_as_of")
         if self.as_of_date != self.provenance.as_of_date:
@@ -565,27 +552,27 @@ class PublicSectorSeriesBundle(BaseModel):
         if successes & failures:
             raise ValueError("ticker cannot be both public bundle success and failure")
         if successes | failures != set(PUBLIC_REQUEST_TICKERS):
-            raise ValueError("public bundle must account for every fixed HF request ticker")
+            raise ValueError("public bundle must account for every fixed Yahoo request ticker")
         return self
 
 
 class PublicSectorMetrics(BaseModel):
-    """All IEX-price metric slots for one fixed sector identity."""
+    """All price metric slots for one fixed sector identity."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     ticker: SectorTicker
-    iex_price_return_1d: MetricValue
-    iex_price_return_5d: MetricValue
-    iex_price_return_21d: MetricValue
-    iex_price_return_63d: MetricValue
-    iex_price_excess_1d: MetricValue
-    iex_price_excess_5d: MetricValue
-    iex_price_excess_21d: MetricValue
-    iex_price_excess_63d: MetricValue
-    iex_price_relative_acceleration_5d: MetricValue
-    iex_price_realized_volatility_20d: MetricValue
-    iex_price_max_drawdown_20d: MetricValue
+    price_return_1d: MetricValue
+    price_return_5d: MetricValue
+    price_return_21d: MetricValue
+    price_return_63d: MetricValue
+    price_excess_1d: MetricValue
+    price_excess_5d: MetricValue
+    price_excess_21d: MetricValue
+    price_excess_63d: MetricValue
+    price_relative_acceleration_5d: MetricValue
+    price_realized_volatility_20d: MetricValue
+    price_max_drawdown_20d: MetricValue
 
     @model_validator(mode="after")
     def _validate_ticker(self) -> Self:
@@ -596,13 +583,13 @@ class PublicSectorMetrics(BaseModel):
 
 _ALL_PUBLIC_METRIC_FIELDS: Final[tuple[PublicMetricName, ...]] = tuple(PublicMetricName)
 _WARMING_SUPPRESSED_PUBLIC_METRICS: Final[tuple[PublicMetricName, ...]] = (
-    PublicMetricName.IEX_PRICE_RETURN_21D,
-    PublicMetricName.IEX_PRICE_RETURN_63D,
-    PublicMetricName.IEX_PRICE_EXCESS_21D,
-    PublicMetricName.IEX_PRICE_EXCESS_63D,
-    PublicMetricName.IEX_PRICE_RELATIVE_ACCELERATION_5D,
-    PublicMetricName.IEX_PRICE_REALIZED_VOLATILITY_20D,
-    PublicMetricName.IEX_PRICE_MAX_DRAWDOWN_20D,
+    PublicMetricName.PRICE_RETURN_21D,
+    PublicMetricName.PRICE_RETURN_63D,
+    PublicMetricName.PRICE_EXCESS_21D,
+    PublicMetricName.PRICE_EXCESS_63D,
+    PublicMetricName.PRICE_RELATIVE_ACCELERATION_5D,
+    PublicMetricName.PRICE_REALIZED_VOLATILITY_20D,
+    PublicMetricName.PRICE_MAX_DRAWDOWN_20D,
 )
 
 
@@ -639,11 +626,6 @@ class PublicSectorRecord(BaseModel):
             SectorAvailability.INSUFFICIENT_HISTORY,
         }:
             _require_suppressed_record(self)
-        if self.ticker is SectorTicker.XLRE:
-            if self.availability is not SectorAvailability.PROVIDER_UNAVAILABLE:
-                raise ValueError("XLRE must always be provider_unavailable under HF v1")
-            if PublicDiagnosticCode.PROVIDER_UNAVAILABLE not in self.diagnostic_codes:
-                raise ValueError("XLRE must expose the provider_unavailable diagnostic")
         return self
 
 
@@ -652,12 +634,14 @@ class PublicSectorDashboardSnapshot(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     snapshot_id: str | None = Field(default=None, pattern=_SHA256_PATTERN)
     universe_version: Literal["select-sector-spdr-v1"] = SECTOR_UNIVERSE_VERSION
-    input_kind: Literal["iex_daily_close"] = "iex_daily_close"
-    source_id: Literal["hf-data-library-iex-daily-v1"] = PUBLIC_SECTOR_SOURCE_ID
-    market_scope: Literal[MarketScope.IEX_VENUE_SAMPLE] = MarketScope.IEX_VENUE_SAMPLE
+    input_kind: Literal["yahoo_daily_close"] = "yahoo_daily_close"
+    source_id: Literal["yahoo-chart-daily-v2"] = PUBLIC_SECTOR_SOURCE_ID
+    market_scope: Literal[MarketScope.PROVIDER_REPORTED_US_EQUITY] = (
+        MarketScope.PROVIDER_REPORTED_US_EQUITY
+    )
     actual_market_ohlcv: Literal[True] = True
     consolidated_market_data: Literal[False] = False
     as_of_date: date | None = None
@@ -705,8 +689,6 @@ class PublicSectorDashboardSnapshot(BaseModel):
         if self.coverage.available_sector_count != 11 - len(unavailable):
             raise ValueError("record availability must match coverage available count")
 
-        xlre = next(record for record in self.records if record.ticker is SectorTicker.XLRE)
-        _require_suppressed_record(xlre)
         if self.coverage.status is SectorCoverageStatus.INSUFFICIENT:
             for record in self.records:
                 _require_suppressed_record(record)
@@ -811,8 +793,6 @@ def _require_suppressed_record(record: PublicSectorRecord) -> None:
 
 
 __all__ = [
-    "HF_DATA_LIBRARY_ATTRIBUTION",
-    "IEX_HISTORICAL_DATA_ATTRIBUTION",
     "PUBLIC_LICENSE_IDS",
     "PUBLIC_REQUEST_TICKERS",
     "PUBLIC_SECTOR_PROVIDER",
@@ -820,6 +800,7 @@ __all__ = [
     "PUBLIC_STRUCTURALLY_MISSING_TICKERS",
     "PUBLIC_SUPPORTED_SECTOR_TICKERS",
     "REQUIRED_PUBLIC_ATTRIBUTIONS",
+    "YAHOO_FINANCE_ATTRIBUTION",
     "AttributionEntry",
     "FreshnessState",
     "HttpsUrl",

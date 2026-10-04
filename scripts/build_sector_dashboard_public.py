@@ -15,8 +15,8 @@ from pathlib import Path
 import httpx
 
 from investo._internal.redaction import SECRET_ENV_VARS, redact_text, scan_for_leak
-from investo.sector_dashboard.hf_data import HF_USER_AGENT
 from investo.sector_dashboard.public_probe import probe_public_sector, resolve_probe_target_date
+from investo.sector_dashboard.yahoo_data import YAHOO_USER_AGENT
 
 
 async def _probe() -> tuple[str, int]:
@@ -25,13 +25,13 @@ async def _probe() -> tuple[str, int]:
     except ValueError:
         return '{"status":"blocked","reason_codes":["source.calendar"]}', 2
     async with httpx.AsyncClient(
-        headers={"User-Agent": HF_USER_AGENT},
+        headers={"User-Agent": YAHOO_USER_AGENT},
         timeout=httpx.Timeout(15.0, connect=5.0, read=10.0),
         limits=httpx.Limits(max_connections=3, max_keepalive_connections=3),
         follow_redirects=False,
         trust_env=False,
     ) as client:
-        result = await probe_public_sector(client, environ=os.environ, target_date=target_date)
+        result = await probe_public_sector(client, target_date=target_date)
     payload = result.model_dump(mode="json")
     # Runtime metadata is closed before it reaches log/Step Summary surfaces.
     commit = os.environ.get("GITHUB_SHA", "")

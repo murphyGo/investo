@@ -145,8 +145,7 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "WorkbookFailure",
         "WorkbookIssueCode",
         # sector_public.py (u145)
-        "HF_DATA_LIBRARY_ATTRIBUTION",
-        "IEX_HISTORICAL_DATA_ATTRIBUTION",
+        "YAHOO_FINANCE_ATTRIBUTION",
         "PUBLIC_LICENSE_IDS",
         "PUBLIC_REQUEST_TICKERS",
         "PUBLIC_SECTOR_PROVIDER",

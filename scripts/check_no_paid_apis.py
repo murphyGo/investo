@@ -54,27 +54,26 @@ BLOCKLIST: list[str] = [
 ]
 
 SOURCES_ROOT = Path(__file__).resolve().parent.parent / "src" / "investo" / "sources"
-HF_ADAPTER_PATH = (
-    Path(__file__).resolve().parent.parent / "src" / "investo" / "sector_dashboard" / "hf_data.py"
+YAHOO_ADAPTER_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "src"
+    / "investo"
+    / "sector_dashboard"
+    / "yahoo_data.py"
 )
 
 # u145 is a deliberately single-provider product. Parse its syntax rather
 # than trusting comments or a finite fallback blocklist: the fixed assignments
-# must match, every URL/domain literal must be the accepted HF host, provider
+# must match, every URL/domain literal must be the accepted Yahoo host, provider
 # SDK imports are excluded by allowlist, and runtime endpoint identifiers are
 # forbidden.
-HF_REQUIRED_ASSIGNMENTS: dict[str, object] = {
-    "HF_API_BASE": "https://api.hfdatalibrary.com/v1",
-    "HF_API_HOST": "api.hfdatalibrary.com",
-    "HF_API_KEY_ENV": "HF_DATA_API_KEY",
-    "HF_TOKEN_QUERY": (
-        ("timeframe", "daily"),
-        ("format", "parquet"),
-        ("version", "clean"),
-    ),
+YAHOO_REQUIRED_ASSIGNMENTS: dict[str, object] = {
+    "YAHOO_API_BASE": "https://query2.finance.yahoo.com/v8/finance/chart",
+    "YAHOO_API_HOST": "query2.finance.yahoo.com",
+    "YAHOO_QUERY": (("interval", "1d"), ("includePrePost", "false")),
 }
-HF_ALLOWED_DOMAIN_LITERALS = frozenset({"api.hfdatalibrary.com"})
-HF_ALLOWED_NON_PROVIDER_DOTTED_LITERALS = frozenset(
+YAHOO_ALLOWED_DOMAIN_LITERALS = frozenset({"query2.finance.yahoo.com"})
+YAHOO_ALLOWED_NON_PROVIDER_DOTTED_LITERALS = frozenset(
     {
         "httpcore.connection",
         "httpcore.http11",
@@ -83,7 +82,7 @@ HF_ALLOWED_NON_PROVIDER_DOTTED_LITERALS = frozenset(
         "httpcore.socks",
     }
 )
-HF_ALLOWED_IMPORT_MODULES = frozenset(
+YAHOO_ALLOWED_IMPORT_MODULES = frozenset(
     {
         "__future__",
         "asyncio",
@@ -94,21 +93,19 @@ HF_ALLOWED_IMPORT_MODULES = frozenset(
         "datetime",
         "decimal",
         "httpx",
-        "io",
         "json",
         "math",
-        "pyarrow",
         "time",
         "typing",
-        "unicodedata",
         "urllib.parse",
         "investo._internal.redaction",
         "investo.models.sector",
         "investo.models.sector_public",
-        "pyarrow.parquet",
+        "zoneinfo",
+        "investo.models.market_calendar",
     }
 )
-HF_FORBIDDEN_RUNTIME_IDENTIFIERS = frozenset(
+YAHOO_FORBIDDEN_RUNTIME_IDENTIFIERS = frozenset(
     {"base_url", "endpoint", "fallback", "provider_url", "runtime_url"}
 )
 _DOMAIN_LITERAL_RE = re.compile(
@@ -178,53 +175,35 @@ def _is_attribute(node: ast.AST, owner: str, name: str) -> bool:
     return isinstance(node, ast.Attribute) and node.attr == name and _is_name(node.value, owner)
 
 
-def _pinned_request_call(
-    call: ast.Call,
-    *,
-    parent: ast.AST | None,
-    output_name: str,
-    url_shape: str,
-) -> bool:
+def _pinned_request_call(call: ast.Call, *, parent: ast.AST | None) -> bool:
     if (
         not isinstance(parent, ast.Assign)
         or len(parent.targets) != 1
-        or not _is_name(parent.targets[0], output_name)
+        or not _is_name(parent.targets[0], "body")
         or len(call.args) != 2
         or not _is_name(call.args[0], "client")
     ):
         return False
     keywords = {keyword.arg: keyword.value for keyword in call.keywords}
-    if None in keywords or len(keywords) != 6:
-        return False
-    common = _is_name(keywords.get("budget"), "budget") and _is_name(
-        keywords.get("config"), "config"
-    )
-    if not common:
-        return False
-    if url_shape == "token":
-        token_url = call.args[1]
-        return (
-            isinstance(token_url, ast.Call)
-            and _is_name(token_url.func, "_token_url")
-            and len(token_url.args) == 1
-            and _is_name(token_url.args[0], "ticker")
-            and not token_url.keywords
-            and _is_name(keywords.get("api_key"), "api_key")
-            and _is_name(keywords.get("accept"), "_TOKEN_MEDIA_TYPE")
-            and _is_name(keywords.get("expected_media_type"), "_TOKEN_MEDIA_TYPE")
-            and _is_attribute(keywords.get("response_limit"), "config", "token_response_limit")
-        )
+    url = call.args[1]
     return (
-        _is_name(call.args[1], "signed_url")
-        and isinstance(keywords.get("api_key"), ast.Constant)
-        and keywords["api_key"].value is None
-        and _is_name(keywords.get("accept"), "_PARQUET_MEDIA_TYPE")
-        and _is_name(keywords.get("expected_media_type"), "_PARQUET_MEDIA_TYPE")
-        and _is_attribute(keywords.get("response_limit"), "config", "parquet_response_limit")
+        None not in keywords
+        and len(keywords) == 5
+        and isinstance(url, ast.Call)
+        and _is_name(url.func, "_chart_url")
+        and len(url.args) == 2
+        and not url.keywords
+        and _is_name(url.args[0], "ticker")
+        and _is_name(url.args[1], "target_date")
+        and _is_name(keywords.get("accept"), "_JSON_MEDIA_TYPE")
+        and _is_name(keywords.get("expected_media_type"), "_JSON_MEDIA_TYPE")
+        and _is_attribute(keywords.get("response_limit"), "config", "json_response_limit")
+        and _is_name(keywords.get("budget"), "budget")
+        and _is_name(keywords.get("config"), "config")
     )
 
 
-def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, str]]:
+def _yahoo_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, str]]:
     offenders: list[tuple[Path, int, str, str]] = []
     try:
         tree = ast.parse(text, filename=str(path))
@@ -246,14 +225,14 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
                 resolved = value
             assignments.setdefault(target.id, []).append(resolved)
 
-    for name, expected in HF_REQUIRED_ASSIGNMENTS.items():
+    for name, expected in YAHOO_REQUIRED_ASSIGNMENTS.items():
         values = assignments.get(name, [])
         stores = sum(
             isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store) and node.id == name
             for node in ast.walk(tree)
         )
         if len(values) != 1 or values[0] != expected or stores != 1:
-            offenders.append((path, 0, name, "required fixed HF assignment missing or changed"))
+            offenders.append((path, 0, name, "required fixed Yahoo assignment missing or changed"))
 
     parents = {child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)}
     approved_send_count = 0
@@ -261,7 +240,7 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if alias.name not in HF_ALLOWED_IMPORT_MODULES:
+                if alias.name not in YAHOO_ALLOWED_IMPORT_MODULES:
                     offenders.append(
                         (path, node.lineno, alias.name, "non-allowlisted u145 adapter import")
                     )
@@ -272,7 +251,7 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
         elif (
             isinstance(node, ast.ImportFrom)
             and node.module is not None
-            and node.module not in HF_ALLOWED_IMPORT_MODULES
+            and node.module not in YAHOO_ALLOWED_IMPORT_MODULES
         ):
             offenders.append(
                 (path, node.lineno, node.module, "non-allowlisted u145 adapter import")
@@ -286,13 +265,13 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
                 domains = [
                     match.group(1).casefold() for match in _DOMAIN_LITERAL_RE.finditer(constructed)
                 ]
-                if any(domain not in HF_ALLOWED_DOMAIN_LITERALS for domain in domains):
+                if any(domain not in YAHOO_ALLOWED_DOMAIN_LITERALS for domain in domains):
                     offenders.append(
                         (
                             path,
                             node.lineno,
                             "constructed URL/domain",
-                            "non-HF constructed URL/domain forbidden",
+                            "non-Yahoo constructed URL/domain forbidden",
                         )
                     )
 
@@ -329,10 +308,7 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
             if approved_build:
                 approved_build_count += 1
             approved_mapping_get = method == "get" and (
-                (
-                    isinstance(receiver, ast.Name)
-                    and receiver.id in {"environ", "headers", "payload"}
-                )
+                (isinstance(receiver, ast.Name) and receiver.id in {"headers", "meta", "quote"})
                 or _is_attribute(receiver, "response", "headers")
                 or _is_attribute(receiver, "client", "event_hooks")
             )
@@ -416,7 +392,7 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
             identifier = node.id
         elif isinstance(node, ast.Attribute):
             identifier = node.attr
-        if identifier is not None and identifier.casefold() in HF_FORBIDDEN_RUNTIME_IDENTIFIERS:
+        if identifier is not None and identifier.casefold() in YAHOO_FORBIDDEN_RUNTIME_IDENTIFIERS:
             offenders.append(
                 (path, node.lineno, identifier, "runtime/fallback endpoint identifier forbidden")
             )
@@ -425,17 +401,17 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
             for match in _DOMAIN_LITERAL_RE.finditer(node.value):
                 domain = match.group(1).casefold()
                 if (
-                    domain not in HF_ALLOWED_DOMAIN_LITERALS
-                    and domain not in HF_ALLOWED_NON_PROVIDER_DOTTED_LITERALS
+                    domain not in YAHOO_ALLOWED_DOMAIN_LITERALS
+                    and domain not in YAHOO_ALLOWED_NON_PROVIDER_DOTTED_LITERALS
                 ):
                     offenders.append(
-                        (path, node.lineno, domain, "non-HF domain literal in u145 adapter")
+                        (path, node.lineno, domain, "non-Yahoo domain literal in u145 adapter")
                     )
             if node.value.startswith(("http://", "https://")):
                 host = urlsplit(node.value).hostname
-                if host is None or host.casefold() not in HF_ALLOWED_DOMAIN_LITERALS:
+                if host is None or host.casefold() not in YAHOO_ALLOWED_DOMAIN_LITERALS:
                     offenders.append(
-                        (path, node.lineno, node.value, "non-HF URL literal in u145 adapter")
+                        (path, node.lineno, node.value, "non-Yahoo URL literal in u145 adapter")
                     )
     if approved_send_count != 1:
         offenders.append(
@@ -451,33 +427,6 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
         for node in ast.walk(tree)
         if isinstance(node, ast.Call) and _is_name(node.func, "_request_bounded")
     ]
-    fetch_functions = [
-        node
-        for node in tree.body
-        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_fetch_ticker_once"
-    ]
-    signed_assignments = (
-        [
-            node
-            for node in ast.walk(fetch_functions[0])
-            if isinstance(node, ast.Assign)
-            and len(node.targets) == 1
-            and _is_name(node.targets[0], "signed_url")
-        ]
-        if len(fetch_functions) == 1
-        else []
-    )
-    signed_assignment_is_pinned = False
-    if len(signed_assignments) == 1:
-        signed_value = signed_assignments[0].value
-        signed_assignment_is_pinned = (
-            isinstance(signed_value, ast.Call)
-            and _is_name(signed_value.func, "_parse_token")
-            and len(signed_value.args) == 2
-            and _is_name(signed_value.args[0], "token_body")
-            and _is_name(signed_value.args[1], "ticker")
-            and not signed_value.keywords
-        )
     indirect_request_refs = [
         node
         for node in ast.walk(tree)
@@ -487,22 +436,11 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
         and not (isinstance(parents.get(node), ast.Call) and parents.get(node).func is node)
     ]
     pinned_calls = (
-        len(request_calls) == 2
-        and signed_assignment_is_pinned
+        len(request_calls) == 1
         and not indirect_request_refs
         and _inside_named_function(request_calls[0], tree, "_fetch_ticker_once")
-        and _inside_named_function(request_calls[1], tree, "_fetch_ticker_once")
         and _pinned_request_call(
-            request_calls[0],
-            parent=parents.get(parents.get(request_calls[0])),
-            output_name="token_body",
-            url_shape="token",
-        )
-        and _pinned_request_call(
-            request_calls[1],
-            parent=parents.get(parents.get(request_calls[1])),
-            output_name="parquet_body",
-            url_shape="signed",
+            request_calls[0], parent=parents.get(parents.get(request_calls[0]))
         )
     )
     if not pinned_calls:
@@ -511,7 +449,7 @@ def _hf_contract_offenders(path: Path, text: str) -> list[tuple[Path, int, str, 
                 path,
                 0,
                 "_request_bounded call sites",
-                "exact token and validated signed-download call sites are required",
+                "exact fixed chart request call site is required",
             )
         )
     return offenders
@@ -533,17 +471,17 @@ def find_offenders() -> list[tuple[Path, int, str, str]]:
             for regex, pattern in compiled:
                 if regex.search(line):
                     offenders.append((path, line_no, pattern, line.rstrip()))
-    if not HF_ADAPTER_PATH.is_file():
-        offenders.append((HF_ADAPTER_PATH, 0, "u145 fixed HF adapter", "missing adapter"))
+    if not YAHOO_ADAPTER_PATH.is_file():
+        offenders.append((YAHOO_ADAPTER_PATH, 0, "u145 fixed Yahoo adapter", "missing adapter"))
         return offenders
 
     try:
-        hf_text = HF_ADAPTER_PATH.read_text(encoding="utf-8")
+        yahoo_text = YAHOO_ADAPTER_PATH.read_text(encoding="utf-8")
     except OSError:
-        offenders.append((HF_ADAPTER_PATH, 0, "u145 fixed HF adapter", "unreadable adapter"))
+        offenders.append((YAHOO_ADAPTER_PATH, 0, "u145 fixed Yahoo adapter", "unreadable adapter"))
         return offenders
 
-    offenders.extend(_hf_contract_offenders(HF_ADAPTER_PATH, hf_text))
+    offenders.extend(_yahoo_contract_offenders(YAHOO_ADAPTER_PATH, yahoo_text))
     return offenders
 
 

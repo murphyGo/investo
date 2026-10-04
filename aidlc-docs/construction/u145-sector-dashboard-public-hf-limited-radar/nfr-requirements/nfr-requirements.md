@@ -1,5 +1,7 @@
 # NFR Requirements: `u145 sector-dashboard-public-hf-limited-radar`
 
+> Active-source amendment (2026-10-04): the [Yahoo public-source amendment](../source-qualification/2026-10-04-yahoo-public-amendment.md) supersedes HF/IEX source identity, universe, provenance, transport, metric labels and resource ceilings below. Original source-specific text is retained as historical design evidence; source-neutral calculation, storage and output guarantees still apply. Visual acceptance is `WAIVED / NOT_EXECUTED`.
+
 **Date**: 2026-07-22
 **Status**: Complete
 **Amended**: 2026-09-02 — credentialed Step 0 signed daily Parquet contract approved

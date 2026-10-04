@@ -1,6 +1,6 @@
 """Derived-only snapshot computation for the limited public sector radar.
 
-This module is the semantic boundary between validated HF/IEX bars and the
+This module is the semantic boundary between validated Yahoo daily bars and the
 public aggregate model. It retains only dates and closes, computes through the
 shared source-neutral kernels, and never exposes raw provider rows.
 """
@@ -102,7 +102,7 @@ def build_public_series_bundle(
     *,
     target_date: date,
 ) -> PublicSectorSeriesBundle:
-    """Build the close-only, same-as-of bundle from one parsed HF collection."""
+    """Build the close-only, same-as-of bundle from one parsed Yahoo collection."""
 
     if isinstance(target_date, datetime) or not isinstance(target_date, date):
         raise ValueError("target_date must be date-only")
@@ -210,7 +210,7 @@ def compute_public_sector_metrics(
     coverage_status: SectorCoverageStatus,
     target_date: date | None = None,
 ) -> PublicSectorMetrics:
-    """Compute every public IEX-price metric slot for one sector."""
+    """Compute every public price metric slot for one sector."""
 
     if sector.ticker is BENCHMARK_TICKER:
         raise ValueError("public sector metrics cannot be computed for SPY")
@@ -269,17 +269,17 @@ def compute_public_sector_metrics(
 
     return PublicSectorMetrics(
         ticker=sector.ticker,
-        iex_price_return_1d=returns[1],
-        iex_price_return_5d=returns[5],
-        iex_price_return_21d=returns[21],
-        iex_price_return_63d=returns[63],
-        iex_price_excess_1d=excess[1],
-        iex_price_excess_5d=excess[5],
-        iex_price_excess_21d=excess[21],
-        iex_price_excess_63d=excess[63],
-        iex_price_relative_acceleration_5d=acceleration,
-        iex_price_realized_volatility_20d=volatility,
-        iex_price_max_drawdown_20d=drawdown,
+        price_return_1d=returns[1],
+        price_return_5d=returns[5],
+        price_return_21d=returns[21],
+        price_return_63d=returns[63],
+        price_excess_1d=excess[1],
+        price_excess_5d=excess[5],
+        price_excess_21d=excess[21],
+        price_excess_63d=excess[63],
+        price_relative_acceleration_5d=acceleration,
+        price_realized_volatility_20d=volatility,
+        price_max_drawdown_20d=drawdown,
     )
 
 
@@ -388,7 +388,7 @@ def _bundle(
         available_count=len(sectors),
         freshness=freshness,
     )
-    reason_codes: list[PublicDiagnosticCode] = [PublicDiagnosticCode.PROVIDER_UNAVAILABLE]
+    reason_codes: list[PublicDiagnosticCode] = []
     if benchmark is None or freshness is not FreshnessState.FRESH:
         reason_codes.append(PublicDiagnosticCode.BENCHMARK_UNAVAILABLE)
     if status is SectorCoverageStatus.WARMING_UP or benchmark_count < _CALCULATION_OBSERVATIONS:
@@ -628,7 +628,7 @@ def _raw_rank_values(
     benchmark_values = {point.trading_date: point.value for point in benchmark.points}
     values: dict[RankHorizon, Decimal] = {}
     for horizon in RANK_HORIZONS:
-        metric = getattr(metrics, f"iex_price_excess_{horizon}d")
+        metric = getattr(metrics, f"price_excess_{horizon}d")
         if metric.value is None or target_index < horizon:
             continue
         start, end = benchmark_dates[target_index - horizon], benchmark_dates[target_index]
@@ -664,8 +664,8 @@ def _compute_public_regime(
         observations = ()
     else:
         missing_reason = (
-            metrics.iex_price_excess_21d.missing_reason
-            or metrics.iex_price_relative_acceleration_5d.missing_reason
+            metrics.price_excess_21d.missing_reason
+            or metrics.price_relative_acceleration_5d.missing_reason
         )
         observations = (
             _regime_observations(sector, benchmark, target_date=target_date)
@@ -725,8 +725,6 @@ def _availability(
     series: ValueSeries | None,
     failure: PublicSourceFailure | None,
 ) -> tuple[SectorAvailability, tuple[PublicDiagnosticCode, ...]]:
-    if ticker is SectorTicker.XLRE:
-        return SectorAvailability.PROVIDER_UNAVAILABLE, (PublicDiagnosticCode.PROVIDER_UNAVAILABLE,)
     if series is not None:
         return SectorAvailability.AVAILABLE, ()
     if failure is not None and failure.issue_code is PublicSourceIssueCode.INSUFFICIENT_HISTORY:
@@ -751,8 +749,6 @@ def _rank_missing_reason(
     available: Mapping[SectorTicker, ValueSeries],
     metrics: Mapping[SectorTicker, PublicSectorMetrics],
 ) -> str:
-    if ticker is SectorTicker.XLRE:
-        return PublicDiagnosticCode.PROVIDER_UNAVAILABLE.value
     if ticker not in available:
         return _first_metric_missing_reason(metrics[ticker]).value
     return "insufficient_horizons"
@@ -760,17 +756,17 @@ def _rank_missing_reason(
 
 def _first_metric_missing_reason(metrics: PublicSectorMetrics) -> MetricMissingReason:
     return (
-        metrics.iex_price_return_1d.missing_reason
-        or metrics.iex_price_return_5d.missing_reason
-        or metrics.iex_price_return_21d.missing_reason
-        or metrics.iex_price_return_63d.missing_reason
-        or metrics.iex_price_excess_1d.missing_reason
-        or metrics.iex_price_excess_5d.missing_reason
-        or metrics.iex_price_excess_21d.missing_reason
-        or metrics.iex_price_excess_63d.missing_reason
-        or metrics.iex_price_relative_acceleration_5d.missing_reason
-        or metrics.iex_price_realized_volatility_20d.missing_reason
-        or metrics.iex_price_max_drawdown_20d.missing_reason
+        metrics.price_return_1d.missing_reason
+        or metrics.price_return_5d.missing_reason
+        or metrics.price_return_21d.missing_reason
+        or metrics.price_return_63d.missing_reason
+        or metrics.price_excess_1d.missing_reason
+        or metrics.price_excess_5d.missing_reason
+        or metrics.price_excess_21d.missing_reason
+        or metrics.price_excess_63d.missing_reason
+        or metrics.price_relative_acceleration_5d.missing_reason
+        or metrics.price_realized_volatility_20d.missing_reason
+        or metrics.price_max_drawdown_20d.missing_reason
         or MetricMissingReason.COVERAGE_INSUFFICIENT
     )
 
@@ -779,17 +775,17 @@ def _missing_metrics(ticker: SectorTicker, reason: MetricMissingReason) -> Publi
     missing = _missing(reason)
     return PublicSectorMetrics(
         ticker=ticker,
-        iex_price_return_1d=missing,
-        iex_price_return_5d=missing,
-        iex_price_return_21d=missing,
-        iex_price_return_63d=missing,
-        iex_price_excess_1d=missing,
-        iex_price_excess_5d=missing,
-        iex_price_excess_21d=missing,
-        iex_price_excess_63d=missing,
-        iex_price_relative_acceleration_5d=missing,
-        iex_price_realized_volatility_20d=missing,
-        iex_price_max_drawdown_20d=missing,
+        price_return_1d=missing,
+        price_return_5d=missing,
+        price_return_21d=missing,
+        price_return_63d=missing,
+        price_excess_1d=missing,
+        price_excess_5d=missing,
+        price_excess_21d=missing,
+        price_excess_63d=missing,
+        price_relative_acceleration_5d=missing,
+        price_realized_volatility_20d=missing,
+        price_max_drawdown_20d=missing,
     )
 
 

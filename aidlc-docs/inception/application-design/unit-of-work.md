@@ -2158,6 +2158,8 @@ Plan: `aidlc-docs/construction/plans/u140-sector-dashboard-public-ohlcv-source-q
 
 ### u145: `sector-dashboard-public-hf-limited-radar` - Publish a Truthful Limited-Coverage Core Radar
 
+> 2026-10-04 active-source amendment: the user selected public Yahoo implementation with an explicit exception for unverified permission. The [Yahoo contract](../../construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-yahoo-public-amendment.md) supersedes the original HF-specific requirements below: no-key daily JSON, SPY plus all eleven sectors, schema 2, provider-close metrics, Yahoo attribution and tighter request/resource ceilings. HF details below are historical; u140 remains unchanged.
+
 **Purpose**: Resume the public Pages goal after u140 exhausted the strict source inventory. Use the best rights-cleared permanently free candidate without pretending it provides all twelve symbols or consolidated-market activity.
 
 **Stories**: US-001, US-003, US-008, US-010, FR-001, FR-003, FR-022, NFR-002, NFR-003, NFR-006, NFR-008

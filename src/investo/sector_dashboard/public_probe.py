@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 import time
-from collections.abc import Mapping
 from datetime import date, datetime
 from datetime import time as wall_time
 from enum import StrEnum
@@ -20,7 +19,6 @@ from investo.models.sector_public import (
     FreshnessState,
     PublicSourceIssueCode,
 )
-from investo.sector_dashboard.hf_data import HFRequestBudget, collect_public_bars
 from investo.sector_dashboard.public_metrics import (
     build_public_series_bundle,
     compute_public_sector_snapshot,
@@ -29,6 +27,7 @@ from investo.sector_dashboard.public_render import (
     PublicProjectionError,
     render_public_sector_projection,
 )
+from investo.sector_dashboard.yahoo_data import YahooRequestBudget, collect_public_bars
 
 # NYSE official 2026 cash-equity early closes, verified 2026-09-27:
 # https://www.nyse.com/trade/hours-calendars (13:00 ET, Nov 27 and Dec 24).
@@ -47,22 +46,22 @@ class PublicProbeEvidence(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     mode: Literal["production_adapter_probe"] = "production_adapter_probe"
-    source_id: Literal["hf-data-library-iex-daily-v1"] = "hf-data-library-iex-daily-v1"
+    source_id: Literal["yahoo-chart-daily-v2"] = "yahoo-chart-daily-v2"
     status: Literal["qualified", "blocked"]
     target_date: date
     as_of_date: date | None = None
     freshness: FreshnessState = FreshnessState.UNKNOWN
     coverage: SectorCoverageStatus = SectorCoverageStatus.INSUFFICIENT
-    requested_symbol_count: Literal[11] = 11
-    successful_symbol_count: int = Field(default=0, ge=0, le=11)
-    failed_symbol_count: int = Field(default=11, ge=0, le=11)
-    available_sector_count: int = Field(default=0, ge=0, le=10)
-    comparable_sector_count: int = Field(default=0, ge=0, le=10)
-    request_count: int = Field(default=0, ge=0, le=66)
-    successful_response_count: int = Field(default=0, ge=0, le=66)
-    failed_request_count: int = Field(default=0, ge=0, le=66)
+    requested_symbol_count: Literal[12] = 12
+    successful_symbol_count: int = Field(default=0, ge=0, le=12)
+    failed_symbol_count: int = Field(default=12, ge=0, le=12)
+    available_sector_count: int = Field(default=0, ge=0, le=11)
+    comparable_sector_count: int = Field(default=0, ge=0, le=11)
+    request_count: int = Field(default=0, ge=0, le=36)
+    successful_response_count: int = Field(default=0, ge=0, le=36)
+    failed_request_count: int = Field(default=0, ge=0, le=36)
     duration_ms: int = Field(default=0, ge=0)
     collection_duration_ms: int = Field(default=0, ge=0)
     cpu_ms: int = Field(default=0, ge=0)
@@ -71,7 +70,7 @@ class PublicProbeEvidence(BaseModel):
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:
-        if self.successful_symbol_count + self.failed_symbol_count != 11:
+        if self.successful_symbol_count + self.failed_symbol_count != 12:
             raise ValueError("symbol counts must partition the fixed request set")
         if self.successful_response_count + self.failed_request_count != self.request_count:
             raise ValueError("request counts must partition attempts")
@@ -82,10 +81,10 @@ class PublicProbeEvidence(BaseModel):
                 or self.coverage not in {SectorCoverageStatus.NORMAL, SectorCoverageStatus.PARTIAL}
                 or self.snapshot_id is None
                 or self.as_of_date != self.target_date
-                or self.successful_symbol_count != 11
-                or self.available_sector_count != 10
-                or self.comparable_sector_count != 10
-                or self.successful_response_count < 22
+                or self.successful_symbol_count != 12
+                or self.available_sector_count != 11
+                or self.comparable_sector_count != 11
+                or self.successful_response_count < 12
                 or self.collection_duration_ms > 120_000
                 or self.cpu_ms > 30_000
             ):
@@ -118,24 +117,21 @@ def resolve_probe_target_date(now: datetime) -> date:
 async def probe_public_sector(
     client: httpx.AsyncClient,
     *,
-    environ: Mapping[str, str],
     target_date: date,
 ) -> PublicProbeEvidence:
     """Collect, calculate and verify in memory, returning only bounded evidence.
 
-    A promotable partial (eight or nine sectors) is still a failed qualification
-    run: five-run qualification requires all eleven supported symbols. No raw
+    A promotable partial (eight through ten sectors) is still a failed qualification
+    run: five-run qualification requires all twelve supported symbols. No raw
     input or rendered pair is written to disk, logs, caches or artifacts.
     """
     started = time.monotonic()
     cpu_started = time.process_time()
-    budget = HFRequestBudget()
+    budget = YahooRequestBudget()
     collected_ms = 0
     successful = 0
     try:
-        parsed = await collect_public_bars(
-            client, environ=environ, target_date=target_date, budget=budget
-        )
+        parsed = await collect_public_bars(client, target_date=target_date, budget=budget)
         collected_ms = math.ceil((time.monotonic() - started) * 1000)
         successful = len(parsed.sectors) + int(parsed.benchmark is not None)
         bundle = build_public_series_bundle(parsed, target_date=target_date)
@@ -146,7 +142,7 @@ async def probe_public_sector(
         if snapshot.freshness is not FreshnessState.FRESH:
             reasons.add(PublicSourceIssueCode.FRESHNESS)
         comparable = sum(record.relative_rank.score is not None for record in snapshot.records)
-        if successful != 11 or comparable != 10:
+        if successful != 12 or comparable != 11:
             reasons.add(ProbeIssueCode.COVERAGE)
         projection = render_public_sector_projection(snapshot)
         cpu_ms = math.ceil((time.process_time() - cpu_started) * 1000)
@@ -161,7 +157,7 @@ async def probe_public_sector(
             freshness=snapshot.freshness,
             coverage=snapshot.coverage.status,
             successful_symbol_count=successful,
-            failed_symbol_count=11 - successful,
+            failed_symbol_count=12 - successful,
             available_sector_count=snapshot.coverage.available_sector_count,
             comparable_sector_count=comparable,
             request_count=budget.request_count,
@@ -179,7 +175,7 @@ async def probe_public_sector(
             status="blocked",
             target_date=target_date,
             successful_symbol_count=successful,
-            failed_symbol_count=11 - successful,
+            failed_symbol_count=12 - successful,
             request_count=budget.request_count,
             successful_response_count=budget.successful_response_count,
             failed_request_count=budget.request_count - budget.successful_response_count,
