@@ -1,8 +1,10 @@
 # Investo private CLI runtime
 
-이 템플릿은 별도 비공개 `murphyGo/investo-runtime` 저장소에서 수동
-dry-run을 검증하기 위한 구성이다. 공개 Investo의 daily workflow는
-기존 Claude로 유지된다. 템플릿을 복사하는 것만으로 운영 전환이 끝나지 않는다.
+비공개 `murphyGo/investo-runtime` 저장소에서 Codex 브리핑을 실행한다.
+`daily-briefing.yml`은 수동 dry-run 템플릿이고, `production-briefing.yml`은
+실제 발행용이다. 2026-10-04 공개 Claude daily를 중지하고 비공개 Codex
+운영 workflow를 활성화했다. 정확한 SHA, 실행 결과와 남은 확인 사항은
+`docs/sessions/2026-10-04-u155-production-activation.md`를 참조한다.
 
 ## 설치 전 조건
 
@@ -141,7 +143,11 @@ npm registry에서는 0.153.4를 조회하지 못했다. 개인 환경의 CLI �
 이전 run `37136372915`은 대상 Environment의 공개키로 암호화한 값만
 전달했고 등록 후 임시 artifact와 일회성 원격 브랜치를 삭제했다.
 위 표에서 이 6개와 FRED/OPENDART는 등록 완료이며,
-현재 남은 자격 증명은 `INVESTO_PUBLIC_PUBLISH_TOKEN`이다.
+`INVESTO_PUBLIC_PUBLISH_TOKEN`도 2026-10-04 등록을 확인했다.
+점검 run `37209080763`에서 Git 연결과 실제 Pages dispatch를 통과했고,
+Pages `37209101940`이 성공했다. 운영 run `37209545723`은 3개 시장 모두
+최종 검증, 실제 push `e5e59729`, Telegram 148, Pages `37209833667`까지
+성공했다. 현재 계정 전체의 잔여 Actions 분량·과금 차단 설정은 미확인이다.
 
 GitHub 저장 Secret은 이름만 조회할 수 있다. 값은 채팅에 전달하지 않고
 Environment UI 또는 전용 로컬 파일의 stdin 경로로 등록한다. 개인 GitHub
