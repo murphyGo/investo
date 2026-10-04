@@ -8,9 +8,9 @@
 - AMZN: 직접 관련 · [yfinance-price] AMZN 251.52 (+1.33%)
 - AMZN: 직접 관련 · [yonhap-market] "아마존, 엔비디아 칩 활용한 새로운 자금조달 추진"
 - BTC: 직접 관련 · [cftc-cot-positioning] CFTC Bitcoin CME leveraged_money net -6856 contracts
-- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,914,271,310,023; BTC dominance 58.63%
-- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $553,824,020 (OKX, UTC 24h)
-- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000388255811778 (OKX, UTC 24h)
+- BTC: 직접 관련 · [coingecko-global-market] Global crypto market cap $2,888,676,921,477; BTC dominance 59.13%
+- BTC: 직접 관련 · [okx-derivatives] BTC 미결제약정 $553,965,360 (OKX, UTC 24h)
+- BTC: 직접 관련 · [okx-derivatives] BTC 펀딩비 0.0000401965703333 (OKX, UTC 24h)
 - BTC: 직접 관련 · [theblock-crypto] Bitcoin nears highest level since January as $85,000 sell wall clears, US jobs data disappoints
 - BTC: 직접 관련 · [theblock-crypto] Spot bitcoin ETFs log $2.7 billion in September inflows as institutional demand holds
 - ETH: 직접 관련 · [defillama-market-structure] DeFi TVL $96.0B; leader Ethereum

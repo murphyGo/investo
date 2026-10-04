@@ -1,5 +1,9 @@
 # u155 Codex operational cutover — 2026-10-03
 
+Historical preparation record. Actual production was activated and verified on
+2026-10-04; see `2026-10-04-u155-production-activation.md` for current status.
+The account-wide billing visibility item remains open.
+
 ## Authorization and scope
 
 The user requested “Codex로 전환하고 싶어. 남은 작업 ㅈ진행해” and

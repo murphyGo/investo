@@ -78,7 +78,7 @@ Partial-generation and authentication-persistence failures are separate outcomes
   in `CLAUDE.md`, `scripts/check_no_anthropic_sdk.py` diagnostics,
   u2 references and active review guidance to reflect the authorized CLI
   expansion without weakening SDK/shell guards. Recheck final diff/remote base.
-- [ ] Step 8 — Operational provisioning and dry-run qualification, separately
+- [x] Step 8 — Operational provisioning and dry-run qualification, separately
   recorded: create/configure private runtime repository, register automation-
   only login through a local file-to-secret path, validate next-job refreshed
   auth, prove no public writes and measure runtime/usage. Never request raw
@@ -216,3 +216,22 @@ Secrets were reused through destination-key encryption (run `37136372915`),
 registered to the private Environment and all transfer artifacts removed.
 These six credentials no longer require user registration. Dedicated publisher
 PAT and current included usage/spending limits remain activation prerequisites.
+
+
+## Actual production activation — 2026-10-04
+
+Step 8 operational qualification is complete, including measured runtime and
+actual refreshed-auth persistence/reuse. Step 9's **operational switch and
+acceptance passed**: public daily disabled after draining, private Codex active,
+run `37209545723` finalized 3/3 without residual codes, actual push `e5e59729`,
+Telegram 148 and Pages `37209833667` success. Execution SHA `056dd8a1` passed
+6,149 tests and the full quality gate. Latest news/event modes remain shadow.
+
+Step 9 stays unchecked only for the unverified account-wide October allowance
+and spending-limit part of N155-15; do not interpret that checkbox as inactive
+production. The operator requested actual cutover and reports no prior charges;
+existing billing configuration was preserved. Approximately 183 runner minutes
+for 27 scheduled runs is an estimate from the slower measured qualification job,
+not proof of current account allowance or a spending cap.
+See `docs/sessions/2026-10-04-u155-production-activation.md` for exact receipts,
+PAT scope verification, duplicate-date handling and rollback.
