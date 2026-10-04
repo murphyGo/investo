@@ -87,9 +87,35 @@ limits. No active private production schedule or enable variable was created.
 - [x] Identify and repair the real Codex execution failure.
 - [x] Pass real briefing dry-run and finalization with no public effects.
 - [x] Observe actual credential refresh, encrypted persistence and next-job reuse.
-- [ ] Verify publication credentials, source parity, included usage and spending limits.
+- [x] Reuse existing Telegram and source credentials in the private Environment.
+- [ ] Verify publisher credentials, included usage and spending limits.
 - [x] Validate and review private production workflow and rollback.
 - [ ] Stop/wait for public daily owner, then switch the schedule once.
 - [ ] Verify generation, finalization, auth, public push, Telegram and Pages separately.
 
 Steps 8 and 9 remain incomplete until their operational evidence exists.
+
+## Existing-key reuse — 2026-10-04 KST
+
+User correction: “텔레그램, BEA, CONGRESS, KRX 관련 키는 기존 investo에
+있던거 쓰면 되는데,”. Reuse was implemented; asking the user to re-enter these
+existing values was unnecessary. Exact six names: `TELEGRAM_BOT_TOKEN`,
+`TELEGRAM_BRIEFING_CHANNEL_ID`, `TELEGRAM_OPERATOR_CHAT_ID`, `BEA_API_KEY`,
+`CONGRESS_API_KEY`, `INVESTO_KRX_SERVICE_KEY`.
+
+One-use source run [37136372915](https://github.com/murphyGo/investo/actions/runs/37136372915)
+at `46d4c791027c0d51b6a479d4370b8e81c14feff8` encrypted those existing values
+using the destination Environment public key and libsodium sealed boxes.
+No plaintext value, hash or credential-bearing diagnostics were emitted.
+The consumer checked the exact source run/SHA/branch, destination, key, names
+and ciphertext shape, then registered the ciphertexts to the fixed private
+Environment. Metadata confirmed all six on 2026-10-03 16:19:57–59 UTC.
+The encrypted artifact was deleted (`total_count=0`) and the one-use remote
+branch removed. Public main's workflow was never replaced by the transfer
+workflow. Codex/Claude/OpenAI auth and personal credentials were excluded.
+
+Independent reviews found no blocker. Validation: 10 producer tests, 7
+consumer synthetic branches, Ruff/format, actionlint and whitespace checks.
+Source and Telegram credential registration is complete. The remaining
+activation prerequisites are the dedicated publisher PAT and current Actions
+included usage/spending limit confirmation; public Claude remains active.

@@ -38,3 +38,5 @@
 현재 production workflow의 repository variables `INVESTO_EVENT_BRIEFING_MODE=off`, `INVESTO_NEWS_WINDOW_MODE=off`로 shadow를 중지할 수 있다. readiness 상수는 false여서 실수로 active를 지정하면 기존 preflight가 차단한다. 운영 owner를 private runtime으로 옮길 때는 이 mode/로그 연결도 함께 이관해야 하며 두 예약 실행을 동시에 활성화하지 않는다.
 
 미리보기는 `gh workflow run event-preview.yml --ref main -f target_date=YYYY-MM-DD -f recipient_public_key=<public hex>`로 실행한다. 공개키와 일치하는 개인키가 있어야 결과 artifact를 읽을 수 있다. 개인키와 복호화 출력은 Git에 추가하지 않는다. source receipt baseline이 unavailable인 미리보기의 신규성 판정 한계는 manifest에 명시한다.
+
+최종 전달 직전 main의 문서 전용4e029015가 추가되어 함께 통합했다. u155 기록5개를 보존했으며 검증된 source/test/script/workflow671개는 SHA-256까지 동일하다. 실행 코드에 대한 전체6149 결과는 동일 내용의 증거로 유지하고, 합쳐진 문서는 strict 빌드를 다시 수행했다.

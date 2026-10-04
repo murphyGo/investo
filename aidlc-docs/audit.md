@@ -7259,3 +7259,21 @@ Sequential unit 6/6 completed after separate u152 delivery. Six steps, seven fix
 User: “main 통합, 운영 활성화해줘”. Authorizes current-main integration and necessary live rollout checks/publish/notify on the existing production owner. It does not supply missing human scores or scheduled evidence. Isolated integration combines main77ff63d1 and feature47518dba, preserving both audit histories and dry-run current quality plus event/news metadata. Added private non-publishing live preview, recipient-encrypted artifacts and bounded shadow diagnostics; production event/news defaults shadow and enrichment remains off. All active readiness flags remain false pending frozen launch gates.
 
 Full6149/487.31s, source/workflow671 hash freeze unchanged, Ruff/format666/mypy290, policy4, strict docs6.29s/Material and actionlint2 pass. Independent review CLOSED with no open P1/P2. Parent prepares exact main push then actual preview/manual shadow checks; manual executions cannot count as the required five scheduled runs. Human12-scenario semantics and first3 active publication/notification/Pages remain distinct. Root dirty files and separate u155 runtime work preserved.
+## Operations — u155 reuse existing source and Telegram Secrets
+
+**Date**: 2026-10-04 KST
+**User**: Existing Telegram, BEA, Congress and KRX keys should be reused.
+**Action**: Reused the exact six public repository Secrets through fixed
+destination-key sealed-box encryption. Source run `37136372915`, reviewed
+one-use code `46d4c791`; consumer verified exact run/SHA/key/destination/names
+before registration. Six private Environment metadata entries verified.
+**Cleanup**: Encrypted transfer artifact deleted; API count zero. One-use remote
+branch deleted; public main schedule unchanged. No plaintext credential values
+were exposed, and no personal or Codex/Claude/OpenAI auth was transferred.
+**Validation**: Independent producer/consumer review PASS; 10 producer tests,
+7 synthetic consumer branches, lint/format/actionlint checks.
+**Remaining**: Publisher PAT and current Actions usage/spending limit evidence.
+
+## 2026-10-04 — concurrent main documentation preserved
+
+While integration was being validated, main advanced to4e029015 with five u155 documentation files only. The validated local merge046cf558 was retained and current main merged without changing any source, test, script or workflow byte (671-file SHA-256 freeze exact match). Both audit histories are preserved; full6149/static/policy/actionlint evidence remains applicable to identical executable content. Strict documentation/Material validation is repeated on the combined documentation. No runtime owner or credentials were changed by this reconciliation.
