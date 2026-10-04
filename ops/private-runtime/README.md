@@ -6,6 +6,14 @@
 운영 workflow를 활성화했다. 정확한 SHA, 실행 결과와 남은 확인 사항은
 `docs/sessions/2026-10-04-u155-production-activation.md`를 참조한다.
 
+`event-preview.yml`은 별도 수동 비게시 사건 미리보기다. CI와 독립 검토를
+통과한 code SHA를 `REVIEWED_EVENT_PREVIEW_SHA`로 고정한다. production의
+`REVIEWED_CODE_SHA`를 변경하지 않으며 같은 auth concurrency 잠금을 사용한다.
+입력은 기준일, 시장, 로컬에서 만든 임시 recipient 공개키다. publish/Telegram
+자격증명을 전달하지 않고 ciphertext만 하루 보관한다. 개인키는 로컬에 둔다.
+사건 active/사람 의미 검수/예약 shadow 수용은 미리보기 배치와 별개다.
+증거는 `docs/sessions/2026-10-04-news-event-main-and-rollout.md`에 기록한다.
+
 ## 설치 전 조건
 
 1. 이 변경을 검토·통합한 공개 Investo의 정확한 커밋 SHA를 확정한다.

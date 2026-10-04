@@ -1,0 +1,164 @@
+name: Private Codex event preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: 'Price reference date (YYYY-MM-DD); never publishes.'
+        required: true
+        type: string
+      segment:
+        description: 'Preview all markets or one market.'
+        required: true
+        default: all
+        type: choice
+        options: [all, domestic-equity, us-equity, crypto]
+      recipient_public_key:
+        description: 'Ephemeral recipient public key; keep the private key locally.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Share the production auth owner lock, including refresh/cleanup.
+concurrency:
+  group: investo-codex-auth-v1
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    if: >-
+      github.repository == 'murphyGo/investo-runtime' &&
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: codex-runtime
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        segment: ${{ fromJSON(inputs.segment == 'all' && '["domestic-equity","us-equity","crypto"]' || format('["{0}"]', inputs.segment)) }}
+    env:
+      INVESTO_LLM_PROVIDER: codex
+      INVESTO_CODEX_MODEL: gpt-6-astra
+      INVESTO_TARGET_DATE: ${{ inputs.target_date }}
+      INVESTO_RUNTIME_VISIBILITY: ${{ github.event.repository.private && 'private' || 'public' }}
+      REVIEWED_CODE_SHA: ${{ vars.REVIEWED_EVENT_PREVIEW_SHA }}
+
+    steps:
+      - name: Validate trusted code reference
+        id: start
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$REVIEWED_CODE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          echo "started_at=$(date +%s)" >> "$GITHUB_OUTPUT"
+          echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/investo-preview-venv" >> "$GITHUB_ENV"
+      - name: Checkout reviewed preview code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: murphyGo/investo
+          ref: ${{ vars.REVIEWED_EVENT_PREVIEW_SHA }}
+          path: runtime-code
+          persist-credentials: false
+      - name: Checkout current public data
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: murphyGo/investo
+          ref: main
+          path: public-data
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: '0.7.15'
+          enable-cache: false
+      - name: Install reviewed runtime before auth
+        working-directory: runtime-code
+        timeout-minutes: 10
+        run: |
+          test "$(git rev-parse HEAD)" = "$REVIEWED_CODE_SHA"
+          uv python install 3.11.9
+          sudo apt-get update
+          sudo apt-get install -y libcairo2
+          uv sync --frozen --no-dev --extra operations --no-editable --python 3.11.9
+      - name: Install pinned Codex CLI
+        run: |
+          mkdir -p "$RUNNER_TEMP/codex-bin"
+          curl --fail --location --silent --show-error --max-time 120 https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-x86_64-unknown-linux-musl.tar.gz -o "$RUNNER_TEMP/codex.tar.gz"
+          echo "f479424eca092484dc40d87ae28c44f4cc40234a60045d6131e493800d814a30  $RUNNER_TEMP/codex.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/codex.tar.gz" -C "$RUNNER_TEMP/codex-bin"
+          install -m 0755 "$RUNNER_TEMP/codex-bin/codex-x86_64-unknown-linux-musl" "$RUNNER_TEMP/codex-bin/codex"
+          echo "$RUNNER_TEMP/codex-bin" >> "$GITHUB_PATH"
+      - name: Validate recipient and import provenance
+        working-directory: public-data
+        env:
+          PREVIEW_RECIPIENT_PUBLIC_KEY: ${{ inputs.recipient_public_key }}
+          SETUP_STARTED_AT: ${{ steps.start.outputs.started_at }}
+        run: |
+          # Keep work100m + auth cleanup2m + artifact handling inside job120m.
+          test "$(( $(date +%s) - SETUP_STARTED_AT ))" -lt 600
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I - <<'PY'
+          import investo, os, re
+          from pathlib import Path
+          from nacl.public import PublicKey, SealedBox
+          assert Path(investo.__file__).resolve().is_relative_to(Path(os.environ["UV_PROJECT_ENVIRONMENT"]).resolve())
+          key = os.environ["PREVIEW_RECIPIENT_PUBLIC_KEY"]
+          if not re.fullmatch(r"[0-9a-f]{64}", key):
+              raise SystemExit("invalid recipient public key")
+          SealedBox(PublicKey(bytes.fromhex(key))).encrypt(b"preview preflight")
+          PY
+      - name: Generate preview with auth checkpoint
+        id: preview
+        working-directory: public-data
+        timeout-minutes: 110
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+          CODEX_SECRET_WRITE_TOKEN: ${{ secrets.CODEX_SECRET_WRITE_TOKEN }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          INVESTO_KRX_SERVICE_KEY: ${{ secrets.INVESTO_KRX_SERVICE_KEY }}
+          INVESTO_DATA_GO_KR_SERVICE_KEY: ${{ secrets.INVESTO_DATA_GO_KR_SERVICE_KEY }}
+          OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
+          PREVIEW_TARGET_DATE: ${{ inputs.target_date }}
+          PREVIEW_SEGMENT: ${{ matrix.segment }}
+        run: |
+          mkdir -p .tmp
+          set +e
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I "$GITHUB_WORKSPACE/runtime-code/scripts/preview_event_briefing_codex.py" \
+            --target-date "$PREVIEW_TARGET_DATE" --segment "$PREVIEW_SEGMENT" \
+            --output-dir .tmp/event-preview > .tmp/event-preview-status.json
+          preview_rc=$?
+          set -e
+          cat .tmp/event-preview-status.json
+          if [ ! -f .tmp/event-preview/manifest.json ]; then
+            mkdir -p -m 700 .tmp/event-preview
+            cp .tmp/event-preview-status.json .tmp/event-preview/manifest.json
+          fi
+          echo "exit_code=$preview_rc" >> "$GITHUB_OUTPUT"
+      - name: Encrypt private preview
+        working-directory: public-data
+        env:
+          PREVIEW_RECIPIENT_PUBLIC_KEY: ${{ inputs.recipient_public_key }}
+        run: >-
+          "$UV_PROJECT_ENVIRONMENT/bin/python" -I "$GITHUB_WORKSPACE/runtime-code/scripts/seal_event_preview.py"
+          --input-dir .tmp/event-preview --output .tmp/event-preview.sealed
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: event-preview-${{ matrix.segment }}
+          path: public-data/.tmp/event-preview.sealed
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+      - name: Report preview outcome
+        env:
+          PREVIEW_RC: ${{ steps.preview.outputs.exit_code }}
+        run: |
+          case "$PREVIEW_RC" in
+            0) exit 0 ;;
+            1|2|3) exit "$PREVIEW_RC" ;;
+            *) exit 1 ;;
+          esac

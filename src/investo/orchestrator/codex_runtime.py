@@ -15,12 +15,15 @@ import shutil
 import signal
 import tempfile
 import time
+from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import Protocol
 
 import httpx
 
 from investo._internal.codex_auth import AuthDocument, read_auth, validate_auth, write_auth
 from investo._internal.llm_config import LlmExecutionConfig
+from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.codex_cli import CodexRunner
 from investo.briefing.private_claude import PrivateClaudeRunner
 from investo.orchestrator.codex_secrets import (
@@ -35,6 +38,18 @@ RUNTIME_LIMIT_S = 225 * 60
 # final close <=11s plus startup/receipt margin. The work timeout is earlier.
 CLEANUP_RESERVE_S = 120
 _logger = logging.getLogger(__name__)
+
+
+class RuntimeOperation(Protocol):
+    """A reviewed in-process operation inside the existing auth lifecycle."""
+
+    async def __call__(
+        self,
+        *,
+        llm_config: LlmExecutionConfig,
+        llm_runner: ClaudeRunner,
+        before_publication: Callable[[], Awaitable[None]] | None = None,
+    ) -> int: ...
 
 
 class AuthLifecycle:
@@ -95,9 +110,10 @@ def _receipt_provenance(env: dict[str, str]) -> dict[str, str | None]:
     }
 
 
-async def run() -> int:
+async def run(*, operation: RuntimeOperation | None = None) -> int:
     from investo.__main__ import _async_main
 
+    execute: RuntimeOperation = operation or _async_main
     env = dict(os.environ)
     config = LlmExecutionConfig.from_env(env)
     validate_private_context(env)
@@ -108,7 +124,7 @@ async def run() -> int:
         claude_runner = PrivateClaudeRunner(claude, node, env.get("CLAUDE_CODE_OAUTH_TOKEN", ""))
         try:
             async with asyncio.timeout(RUNTIME_LIMIT_S - CLEANUP_RESERVE_S):
-                return await _async_main(llm_config=config, llm_runner=claude_runner)
+                return await execute(llm_config=config, llm_runner=claude_runner)
         finally:
             claude_runner.close()
     binary = shutil.which("codex")
@@ -138,7 +154,7 @@ async def run() -> int:
                         max(0.001, RUNTIME_LIMIT_S - CLEANUP_RESERVE_S - (time.monotonic() - start))
                     ):
                         await store.verify_environment_secret()
-                        rc = await _async_main(
+                        rc = await execute(
                             llm_config=config,
                             llm_runner=runner,
                             before_publication=lifecycle.checkpoint,
@@ -186,14 +202,14 @@ async def run() -> int:
     return rc
 
 
-async def _supervised() -> int:
+async def _supervised(*, operation: RuntimeOperation | None = None) -> int:
     task = asyncio.current_task()
     assert task is not None
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, task.cancel)
     try:
-        return await run()
+        return await run(operation=operation)
     except (Exception, asyncio.CancelledError):
         _logger.error("codex_runtime_failed")
         return 1

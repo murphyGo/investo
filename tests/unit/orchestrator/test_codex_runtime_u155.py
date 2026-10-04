@@ -281,10 +281,12 @@ def test_codex_dry_run_preflight_needs_no_claude_or_send_secrets(
 
 
 @pytest.mark.parametrize("failure", ["cancel", "timeout", "generation"])
+@pytest.mark.parametrize("custom_operation", [False, True])
 async def test_supervisor_always_preserves_rotation_and_emits_failure_receipt(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
     failure: str,
+    custom_operation: bool,
 ) -> None:
     import logging
     import sys
@@ -331,7 +333,7 @@ async def test_supervisor_always_preserves_rotation_and_emits_failure_receipt(
     monkeypatch.setattr(entrypoint, "_async_main", failed_pipeline)
     caplog.set_level(logging.INFO)
     with pytest.raises((RuntimeError, TimeoutError, asyncio.CancelledError)):
-        await runtime.run()
+        await runtime.run(operation=failed_pipeline if custom_operation else None)
     assert saved == [auth("new")]
     receipt = next(
         record.message for record in caplog.records if record.message.startswith("codex_runtime ")

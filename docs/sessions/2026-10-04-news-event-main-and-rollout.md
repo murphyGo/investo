@@ -24,7 +24,7 @@
 |---|---|
 | 유닛 구현 | u157–u162 및 u152 완료 |
 | main 통합 | `6d0d909d` 및 ciphertext 경로 보정 `95c73a8b` 전달, 두 원격 CI 성공 |
-| 실제 v2 비게시 미리보기 | `37208126978` 국내 classification 3회, 미국 classification 2회 실패; 코인 결과 대기 |
+| 실제 v2 비게시 미리보기 | Claude `37208126978` 국내/미국/코인 classification 3/2/3회 실패; 국내 상세 진단 재실행 중 |
 | 사람 의미 검수 | frozen12 시나리오 what/when/why/react/source 검수 대기 |
 | 실제 예약 shadow | 0/5; 뉴스가 풍부한 날과 주말 직후 실행 포함 필요 |
 | 사건 본문 active | false; 위 출시 증거 충족 전 전환하지 않음 |
@@ -68,3 +68,15 @@
 국내에 이어 미국 preview도 classification 2회 후 실패했다. 기존 artifact에는 원문 없이 단계/횟수만 있어 두 시장의 상세 원인은 아직 미확인이다. v2 파서가 기존 오류 메시지와 거부 조건을 유지한 채 알려진 schema 필드/오류 종류 및 evidence 오류만 최대8개 진단 토큰으로 전달하도록 했다. 동적 필드명, 입력값, 원문, URL, native stdout/stderr는 전달하지 않는다. 미리보기 workflow는 `segment=all|domestic-equity|us-equity|crypto`로 해당 시장만 다시 실행할 수 있다. 현재 운영 owner의 reviewed code 포인터는 이 비게시 진단 때문에 변경하지 않는다.
 
 최종 진단 보강 전체6152/656.75s, 집중64/2.80s, 독립40/2.45s 및 리뷰 CLOSED/P1P2없음. Ruff/format666/mypy290, actionlint2, 정책4, strict docs7.58s/Material 통과. 이 전체 검증 후 동시 발행 e5e59729의 archive/site 데이터와 b0a80eab의 운영 문서를 함께 보존한다. 동시 변경에는 실행 코드/테스트 수정이 없다. 합쳐진 문서/게시 자산 검사와 원격 CI는 별도로 확인한다.
+
+진단 보강은 `6e12da89433e6f0cbd6dccbc94cb9c0fe844a124`로 main에 전달하고 정확한 원격 SHA를 확인했다. [quality 37210613485](https://github.com/murphyGo/investo/actions/runs/37210613485)가 성공했다. [국내 진단 재실행 37210636616](https://github.com/murphyGo/investo/actions/runs/37210636616)은 세 시장 run 종료 후 시작했다. 기존 run의 코인도 classification 3회 후 실패했으며 성공 미리보기는 아직 없다.
+
+## 2026-10-05 KST — 현재 Codex owner의 비게시 검증 연결
+
+운영 owner 변경 후에는 Claude preview가 Codex v2 수용을 대신하지 못한다. `ops/private-runtime/event-preview.yml`과 reviewed wrapper `scripts/preview_event_briefing_codex.py`를 추가해 현재 Codex 모델/고정 CLI/비공개 Environment를 재사용한다. 기존 `codex_runtime`에 검토된 in-process operation 인자만 추가했으며, 생략 시 production의 `_async_main` 호출과 auth 보존·취소·정리 경로는 동일하다.
+
+새 preview는 production과 같은 `investo-codex-auth-v1` 잠금, private/main guard, Python `-I` 및 설치 provenance를 사용한다. 실행 코드는 별도 trusted variable `REVIEWED_EVENT_PREVIEW_SHA`로 고정하고 production의 `REVIEWED_CODE_SHA`는 바꾸지 않는다. public-data checkout은 입력 데이터와 Git-ignored preview 파일에만 사용하며 실행 모듈은 reviewed sibling에서만 읽는다. publish token이나 Telegram 자격증명은 전달하지 않고, recipient ciphertext만 하루 보관한다. 기존 인증 갱신 보존은 같은 owner가 맡는다.
+
+독립 리뷰에서 setup 지연 때문에 job 상한이 auth cleanup보다 먼저 올 수 있는 P2를 발견했다. 첫 step 시각부터 setup 600초 미만임을 auth 복원 직전에 확인하고, 작업100분·정리120초가 job120분 안에 들어가도록 보정했다. 실제 guard 실행에서 30초 허용, 601초와1500초 차단을 확인했다. 집중81/9.18s, provider 회귀 추가 후60/6.14s, 독립60/5.99s 통과 및 리뷰 CLOSED/P1P2없음. 전체 회귀와 실제 배치·미리보기 결과는 후속 기록한다.
+
+최종 전체 **6163/655.75s**, Ruff/format668/mypy290, 정책4, 세 workflow actionlint, strict docs/Material 통과. 검증 중 source/test/script/workflow679개를 SHA-256으로 고정했다. 미리보기 전용 workflow를 배치하고 원격 CI로 확인된 SHA만 별도 변수에 등록한 뒤 실제 Codex preview를 실행한다. 이 배치는 사건 본문 active 전환이 아니다.

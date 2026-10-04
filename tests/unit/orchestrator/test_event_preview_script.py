@@ -13,6 +13,7 @@ from typing import Never
 
 import pytest
 
+from investo.briefing.codex_cli import CodexRunner
 from investo.briefing.errors import BriefingGenerationError
 from investo.models.coverage import SourceCollectionReport, SourceOutcome
 from tests.integration.test_event_generation import _case, _ReplayRunner
@@ -57,8 +58,12 @@ async def _empty_anchors(target_date: date) -> tuple[dict[str, object], dict[str
     return {}, {}
 
 
+@pytest.mark.parametrize("provider", ["claude", "codex"])
 async def test_live_boundary_fixture_collects_once_and_seals_without_publication(
-    script: ModuleType, repository: Path, monkeypatch: pytest.MonkeyPatch
+    script: ModuleType,
+    repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    provider: str,
 ) -> None:
     case = _case()
     calls: list[tuple[date, datetime]] = []
@@ -88,7 +93,12 @@ async def test_live_boundary_fixture_collects_once_and_seals_without_publication
     monkeypatch.setattr(script, "collect_sources", collect)
     monkeypatch.setattr(script, "_load_market_anchors_for_run", _empty_anchors)
     _no_publication(monkeypatch)
-    runner = _ReplayRunner([case.classification, case.synthesis])
+
+    class CodexReplayRunner(_ReplayRunner, CodexRunner):
+        """Same frozen responses through the real provider-aware preview boundary."""
+
+    runner_type = CodexReplayRunner if provider == "codex" else _ReplayRunner
+    runner = runner_type([case.classification, case.synthesis])
     output = repository / ".tmp" / "event-preview" / "fixture"
     before = (repository / ".gitignore").read_bytes()
     result = await script.run_preview(
@@ -102,6 +112,7 @@ async def test_live_boundary_fixture_collects_once_and_seals_without_publication
     assert calls == [(_TARGET, _NOW)]
     assert len(runner.prompts) == 2
     assert result["status"] == "sealed"
+    assert result["provider"] == provider
     assert result["event_coverage"]["terminal_event_count"] == 1
     assert result["event_baseline_available"] is False
     assert result["source_status_counts"] == {"ok": 1, "zero": 1, "failed": 1}

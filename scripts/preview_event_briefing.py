@@ -17,6 +17,7 @@ from typing import Never, cast
 
 from investo.briefing._core.classification import event_classification_diagnostics
 from investo.briefing.claude_code import ClaudeRunner
+from investo.briefing.codex_cli import CodexRunner
 from investo.briefing.context import load_recent_briefings, resolve_recent_days
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.event_routing import share_official_event_candidates
@@ -222,7 +223,7 @@ async def run_preview(
     manifest: dict[str, object] = {
         "schema_version": 1,
         "mode": "preview",
-        "provider": "claude",
+        "provider": "codex" if isinstance(runner, CodexRunner) else "claude",
         "target_date": target_date.isoformat(),
         "segment": segment,
         "observed_at": clock.isoformat(),
