@@ -1,7 +1,7 @@
 # 뉴스·이벤트 중심 시황 개발 설계
 
 **Date**: 2026-09-26
-**Status**: u157–u162와 필수 u152의 유닛별 개발·검증·커밋·푸시 완료. 2026-10-04 사용자 main 통합·운영 활성화 승인에 따라 통합 및 비게시 preview/shadow 운영 준비 중이다. 사람 의미 검수와 실제 예약 shadow 5회는 아직 미충족이며 사건 본문 active와 구분한다. 현재 증거: `docs/sessions/2026-10-04-news-event-main-and-rollout.md`.
+**Status**: u157–u162와 필수 u152의 유닛별 개발·검증·커밋·푸시 및 main 통합 완료. 2026-10-04 `95c73a8b`까지 원격 전달하고 CI 통과를 확인했다. 비게시 preview와 운영 shadow의 실제 실행을 검증 중이다. 사람 의미 검수와 실제 예약 shadow 5회는 아직 미충족이며 사건 본문 active와 구분한다. 현재 증거: `docs/sessions/2026-10-04-news-event-main-and-rollout.md`.
 **Baseline**: `04978d81ec9ece8f4083e4be190c6539bdf3b5ff` (origin/main).
 **Source**: 사용자 “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
 
@@ -23,14 +23,14 @@
 
 ## 유닛과 순서
 
-| 유닛 | 책임 | Hard dependency | 설계 상태 |
+| 유닛 | 책임 | Hard dependency | 구현 및 운영 상태 |
 |---|---|---|---|
-| u157 event-evidence-selection-contract | 사건 모델·선정·입력 보존 | 기존 u58/u59/u93/u97 완료 | 코드 완료, 운영 off |
+| u157 event-evidence-selection-contract | 사건 모델·선정·입력 보존 | 기존 u58/u59/u93/u97 완료 | 코드 완료, 운영 shadow 연결, active off |
 | u158 event-first-narrative-and-summary | 사건 설명·요약·terminal projection | u157 | 코드 완료, preview ready, 운영 active off |
-| u159 event-coverage-replay-and-gate | 최종 반영 검증·평가셋 | u157/u158 | 코드 완료, 사람 의미 수용 pending, 운영 off |
-| u160 publication-news-observation-window | 거래일과 별도 뉴스기간·cursor 원자성 | u157 공통 발행 확인 기반; 기존 u113/u144 완료 | 창 설계 병렬 가능, cursor 통합은 선행 구현 후 |
-| u161 bounded-official-event-evidence | 기존 피드 복구 판정·공식 근거 보강 | 보강 런타임은 u157; 자격검증은 독립 | qualification 단계 준비, 신규 fetch는 gate |
-| u162 qualitative-event-watchpoints | 사건 상태 기반 관전 포인트 | u157/u158/u152 | 설계 승인, 선행 유닛 이후 순차 개발 |
+| u159 event-coverage-replay-and-gate | 최종 반영 검증·평가셋 | u157/u158 | 코드 완료, 사람 의미 수용 pending, active off |
+| u160 publication-news-observation-window | 거래일과 별도 뉴스기간·cursor 원자성 | u157 공통 발행 확인 기반; 기존 u113/u144 완료 | 코드 완료, 운영 shadow 연결, cursor active off |
+| u161 bounded-official-event-evidence | 기존 피드 복구 판정·공식 근거 보강 | 보강 런타임은 u157; 자격검증은 독립 | 코드 완료, 신규 본문 HTTP off, 소스별 자격검증 유지 |
+| u162 qualitative-event-watchpoints | 사건 상태 기반 관전 포인트 | u157/u158/u152 | 코드 완료, u152 통합 완료, active 수용 pending |
 
 u156은 별도 로컬 `codex/u156-telegram-narrative-first-digest` 브랜치 이름을 예약된 작업으로 존중하여 사용하지 않는다. 해당 ref에는 계획/구현이 없어 완료 상태를 추정하지 않는다.
 

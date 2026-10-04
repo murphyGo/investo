@@ -312,3 +312,20 @@ def test_error_type_is_a_fixed_category(
     manifest = script._failure_manifest(error)
     assert manifest["error_type"] == expected
     assert "PRIVATE" not in json.dumps(manifest)
+
+
+def test_manifest_exposes_closed_classification_diagnostics(script: ModuleType) -> None:
+    from investo.briefing._core.classification import invalid_event_evidence
+
+    error = BriefingGenerationError(
+        stage="classification",
+        attempt_count=3,
+        last_stderr="PRIVATE",
+        cause=invalid_event_evidence(
+            ValueError("event span exceeds the transmitted evidence buffer")
+        ),
+    )
+    manifest = script._failure_manifest(error)
+    assert manifest["failure_code"] == "classification.invalid_evidence"
+    assert manifest["diagnostics"] == ("evidence.span_out_of_bounds",)
+    assert "PRIVATE" not in json.dumps(manifest)

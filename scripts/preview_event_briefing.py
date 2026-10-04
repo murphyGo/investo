@@ -9,11 +9,13 @@ import hashlib
 import json
 import logging
 import os
+import re
 import subprocess
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Never, cast
 
+from investo.briefing._core.classification import event_classification_diagnostics
 from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.context import load_recent_briefings, resolve_recent_days
 from investo.briefing.errors import BriefingGenerationError
@@ -125,6 +127,23 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
             if type(exc.attempt_count) is int and 0 <= exc.attempt_count <= 100
             else None
         )
+        diagnostics = event_classification_diagnostics(exc.cause)
+        if diagnostics:
+            manifest["diagnostics"] = diagnostics
+        known_causes = {
+            "event_classification_unavailable: response_budget": "classification.response_budget",
+            "event_classification_unavailable: invalid_schema_or_item": (
+                "classification.invalid_schema_or_item"
+            ),
+            "event_classification_unavailable: invalid_evidence": "classification.invalid_evidence",
+        }
+        cause = str(exc.cause) if isinstance(exc.cause, ValueError) else ""
+        if cause in known_causes:
+            manifest["failure_code"] = known_causes[cause]
+        elif re.fullmatch(
+            r"Stage [12] subprocess returned rc=-?\d{1,3}, stdout_len=\d{1,8}", cause
+        ):
+            manifest["failure_code"] = "generation.subprocess_failed"
     elif isinstance(exc, (TimeoutError, subprocess.TimeoutExpired)):
         manifest["error_type"] = "timeout"
     elif isinstance(exc, OSError):

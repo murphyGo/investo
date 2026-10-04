@@ -7277,3 +7277,9 @@ were exposed, and no personal or Codex/Claude/OpenAI auth was transferred.
 ## 2026-10-04 — concurrent main documentation preserved
 
 While integration was being validated, main advanced to4e029015 with five u155 documentation files only. The validated local merge046cf558 was retained and current main merged without changing any source, test, script or workflow byte (671-file SHA-256 freeze exact match). Both audit histories are preserved; full6149/static/policy/actionlint evidence remains applicable to identical executable content. Strict documentation/Material validation is repeated on the combined documentation. No runtime owner or credentials were changed by this reconciliation.
+
+## 2026-10-04 — delivered shadow and live preview diagnostic repair
+
+Main95c73a8b and its CI verified. Manual Claude shadow37208127537 completed3 publications, Telegram147 and Pages success, with no event receipt/news cursor writes. Separate u155 cutover retains shadow in private Codex runtime: manual37209545723 completed3 finalized publications and Telegram148; public daily disabled. Both manual runs remain distinct from scheduled0/5.
+
+Non-publishing encrypted preview37208126978 failed domestic classification3 and US classification2; crypto pending. Do not claim semantic acceptance or active readiness. Added closed schema/evidence diagnostic tokens (no source/model/native output) and per-market preview replay without changing validation or retry budgets. Full6152/656.75s, focused64, independent40, Ruff/format666/mypy290/actionlint2/policy4/docs/Material PASS; independent review CLOSED, no open P1/P2. Concurrent main056dd8a1 and data publicatione5e59729 preserved. Operational details and pending live diagnosis are in docs/sessions/2026-10-04-news-event-main-and-rollout.md.

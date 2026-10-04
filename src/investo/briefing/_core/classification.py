@@ -18,7 +18,7 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from investo.models.events import EventCandidateDraft
+from investo.models.events import EventCandidateDraft, EventFactDraft, EvidenceRef
 
 _logger = logging.getLogger("investo.briefing.pipeline")
 
@@ -64,6 +64,86 @@ class EventClassificationResult(ClassificationResult):
     events: tuple[EventCandidateDraft, ...] = Field(max_length=12)
 
 
+_DIAGNOSTIC_FIELDS = frozenset(
+    {"envelope"}
+    | set(EventClassificationResult.model_fields)
+    | set(EventCandidateDraft.model_fields)
+    | set(EventFactDraft.model_fields)
+    | set(EvidenceRef.model_fields)
+)
+_DIAGNOSTIC_TYPES = frozenset(
+    {
+        "json_invalid",
+        "missing",
+        "extra_forbidden",
+        "literal_error",
+        "string_type",
+        "string_pattern_mismatch",
+        "int_type",
+        "int_parsing",
+        "dict_type",
+        "tuple_type",
+        "list_type",
+        "too_long",
+        "too_short",
+        "greater_than",
+        "greater_than_equal",
+        "value_error",
+        "other",
+    }
+)
+_EVIDENCE_DIAGNOSTICS = {
+    "event reference has an unknown document or revision": "evidence.unknown_document",
+    "event span exceeds the transmitted evidence buffer": "evidence.span_out_of_bounds",
+    "event evidence span must not be whitespace-only": "evidence.blank_span",
+    "event reference does not belong to its item_ids": "evidence.item_mismatch",
+    "event relation requires source evidence": "evidence.relation_missing",
+    "event impact requires source evidence": "evidence.impact_missing",
+    "product event identity requires an object": "evidence.object_missing",
+    "event identity_conflict: source event dates disagree": "evidence.date_conflict",
+    "future scheduled evidence cannot be an occurred event": "evidence.future_occurred",
+    "event fact period/unit must be present in its source": "evidence.fact_metadata_missing",
+}
+_FIXED_DIAGNOSTICS = frozenset(_EVIDENCE_DIAGNOSTICS.values()) | {
+    "evidence.invalid",
+    "classification.invalid_items",
+}
+
+
+class EventClassificationError(ValueError):
+    """Preserve the public error while carrying only closed diagnostic tokens."""
+
+    def __init__(self, message: str, diagnostics: tuple[str, ...]) -> None:
+        super().__init__(message)
+        self.diagnostics = diagnostics
+
+
+def event_classification_diagnostics(exc: BaseException | None) -> tuple[str, ...]:
+    """Never return raw errors, input values, item IDs, or arbitrary field paths."""
+    if not isinstance(exc, EventClassificationError) or type(exc.diagnostics) is not tuple:
+        return ()
+    result: set[str] = set()
+    for code in exc.diagnostics[:8]:
+        if type(code) is not str:
+            continue
+        parts = code.split(".")
+        if code in _FIXED_DIAGNOSTICS or (
+            len(parts) == 3
+            and parts[0] == "schema"
+            and parts[1] in _DIAGNOSTIC_TYPES
+            and parts[2] in _DIAGNOSTIC_FIELDS
+        ):
+            result.add(code)
+    return tuple(sorted(result))
+
+
+def invalid_event_evidence(exc: BaseException) -> EventClassificationError:
+    return EventClassificationError(
+        "event_classification_unavailable: invalid_evidence",
+        (_EVIDENCE_DIAGNOSTICS.get(str(exc), "evidence.invalid"),),
+    )
+
+
 def parse_event_classification(
     stdout: str, item_count: int, *, required_item_ids: frozenset[int] = frozenset()
 ) -> EventClassificationResult:
@@ -81,10 +161,25 @@ def parse_event_classification(
         for event in result.events:
             if any(item_id < 1 or item_id > item_count for item_id in event.item_ids):
                 raise ValueError("invalid event item id")
-    except (ValidationError, ValueError, TypeError):
+    except ValidationError as exc:
+        diagnostics = []
+        for error in exc.errors(include_input=False, include_context=False, include_url=False)[:8]:
+            kind = error["type"] if error["type"] in _DIAGNOSTIC_TYPES else "other"
+            field = next(
+                (part for part in reversed(error["loc"]) if part in _DIAGNOSTIC_FIELDS),
+                "envelope",
+            )
+            diagnostics.append(f"schema.{kind}.{field}")
+        raise EventClassificationError(
+            "event_classification_unavailable: invalid_schema_or_item", tuple(diagnostics)
+        ) from None
+    except (ValueError, TypeError):
         # Pydantic errors contain the input value. Never carry source prose
         # into the exception/logging boundary.
-        raise ValueError("event_classification_unavailable: invalid_schema_or_item") from None
+        raise EventClassificationError(
+            "event_classification_unavailable: invalid_schema_or_item",
+            ("classification.invalid_items",),
+        ) from None
     return result
 
 

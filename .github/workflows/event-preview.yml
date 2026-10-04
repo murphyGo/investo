@@ -7,6 +7,12 @@ on:
         description: 'Price reference date (YYYY-MM-DD); preview only, never publishes.'
         required: true
         type: string
+      segment:
+        description: 'Preview every market or retry one market.'
+        required: true
+        default: all
+        type: choice
+        options: [all, domestic-equity, us-equity, crypto]
       recipient_public_key:
         description: 'Ephemeral recipient public key (64 lowercase hex characters). Keep its private key locally.'
         required: true
@@ -27,7 +33,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        segment: [domestic-equity, us-equity, crypto]
+        segment: ${{ fromJSON(inputs.segment == 'all' && '["domestic-equity","us-equity","crypto"]' || format('["{0}"]', inputs.segment)) }}
     steps:
       - uses: actions/checkout@v7
         with:

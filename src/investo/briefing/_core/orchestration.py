@@ -39,6 +39,7 @@ from investo.briefing._core.classification import (
     ClassificationResult,
     EventClassificationResult,
     _parse_classification,
+    invalid_event_evidence,
     parse_event_classification,
 )
 from investo.briefing._core.section_planning import SectionPlan, _required_macro_item_ids
@@ -384,8 +385,8 @@ async def _classify(
                             observed_at=observed_at
                             or max(doc.received_at for doc in evidence_documents),
                         )
-                except (ValueError, KeyError, TypeError):
-                    raise ValueError("event_classification_unavailable: invalid_evidence") from None
+                except (ValueError, KeyError, TypeError) as exc:
+                    raise invalid_event_evidence(exc) from None
                 return event_result
             return _parse_classification(
                 outcome.stdout,

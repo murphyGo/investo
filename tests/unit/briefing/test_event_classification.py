@@ -8,7 +8,12 @@ from datetime import timedelta
 
 import pytest
 
-from investo.briefing._core.classification import parse_event_classification
+from investo.briefing._core.classification import (
+    EventClassificationError,
+    event_classification_diagnostics,
+    invalid_event_evidence,
+    parse_event_classification,
+)
 from investo.briefing._core.orchestration import GenerationPolicy, _classify
 from investo.briefing.claude_code import RetryBudget
 from investo.briefing.errors import BriefingGenerationError
@@ -140,7 +145,48 @@ async def test_bad_evidence_uses_existing_retry_without_leaking_output(
     assert raised.value.attempt_count == 2
     assert raised.value.last_stdout is None and raised.value.last_stderr is None
     assert "invalid_evidence" in str(raised.value.cause)
+    assert event_classification_diagnostics(raised.value.cause) == ("evidence.span_out_of_bounds",)
     assert "RAW_SOURCE_SENTINEL" not in caplog.text
+
+
+def test_schema_diagnostics_keep_known_fields_without_model_values() -> None:
+    proposal = draft(document()).model_dump(mode="json")
+    proposal["actor_refs"][0]["document_id"] = "PRIVATE_SOURCE_SENTINEL"
+    proposal["PRIVATE_DYNAMIC_FIELD"] = "PRIVATE_MODEL_VALUE"
+    payload = {
+        "schema_version": 2,
+        "assignments": {"1": 2},
+        "unassigned": [],
+        "events": [proposal],
+    }
+    with pytest.raises(EventClassificationError) as raised:
+        parse_event_classification(json.dumps(payload), 1)
+    diagnostics = event_classification_diagnostics(raised.value)
+    assert "schema.string_pattern_mismatch.document_id" in diagnostics
+    assert "schema.extra_forbidden.events" in diagnostics
+    assert "PRIVATE" not in json.dumps(diagnostics)
+
+
+def test_tampered_diagnostics_are_filtered_at_output_boundary() -> None:
+    error = EventClassificationError(
+        "PRIVATE",
+        (
+            "schema.missing.events",
+            "schema.PRIVATE.events",
+            "schema.missing.PRIVATE",
+            "evidence.PRIVATE",
+            "PRIVATE",
+            "evidence.span_out_of_bounds",
+        ),
+    )
+    assert event_classification_diagnostics(error) == (
+        "evidence.span_out_of_bounds",
+        "schema.missing.events",
+    )
+    assert event_classification_diagnostics(ValueError("PRIVATE")) == ()
+    assert event_classification_diagnostics(invalid_event_evidence(ValueError("PRIVATE"))) == (
+        "evidence.invalid",
+    )
 
 
 @pytest.mark.asyncio
