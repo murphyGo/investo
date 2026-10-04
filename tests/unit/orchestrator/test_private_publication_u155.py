@@ -128,6 +128,21 @@ def test_production_is_gated_and_preserves_publication_boundaries() -> None:
     assert job["env"]["INVESTO_LLM_PROVIDER"] == "codex"
     assert job["env"]["INVESTO_CODEX_MODEL"] == "gpt-6-astra"
     assert job["env"]["INVESTO_DRY_RUN"] == "0"
+    public_workflow = yaml.load(
+        (ROOT / ".github/workflows/daily-briefing.yml").read_text(), Loader=yaml.BaseLoader
+    )
+    public_pipeline = next(
+        step
+        for public_job in public_workflow["jobs"].values()
+        for step in public_job["steps"]
+        if step.get("id") == "pipeline"
+    )
+    for name in (
+        "INVESTO_EVENT_BRIEFING_MODE",
+        "INVESTO_NEWS_WINDOW_MODE",
+        "INVESTO_EVENT_ENRICHMENT_MODE",
+    ):
+        assert job["env"][name] == public_pipeline["env"][name]
     assert "CODEX_AUTH_JSON" not in job["env"]
     steps = job["steps"]
     pipeline = next(step for step in steps if step.get("id") == "pipeline")

@@ -39,6 +39,9 @@ jobs:
       INVESTO_OPENAI_VISUALS: '0'
       INVESTO_EXTERNAL_IMAGE_ASSETS: '1'
       INVESTO_SEGMENT_GENERATION_CONCURRENCY: '1'
+      INVESTO_EVENT_BRIEFING_MODE: ${{ vars.INVESTO_EVENT_BRIEFING_MODE || 'shadow' }}
+      INVESTO_NEWS_WINDOW_MODE: ${{ vars.INVESTO_NEWS_WINDOW_MODE || 'shadow' }}
+      INVESTO_EVENT_ENRICHMENT_MODE: 'off'
       INVESTO_RUNTIME_VISIBILITY: ${{ github.event.repository.private && 'private' || 'public' }}
       SITE_URL_BASE: https://murphygo.github.io/investo
       # Only trusted repository configuration can select executable code.
