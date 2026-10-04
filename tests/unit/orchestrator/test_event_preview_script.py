@@ -275,6 +275,7 @@ def test_cli_redacts_invalid_arguments_and_library_errors(
         "status": "failed",
         "code": "preview.execution_failed",
         "error_type": "unexpected",
+        "failure_code": "runtime.runtime_error",
     }
     assert captured.err == ""
     assert logging.root.manager.disable == previous
@@ -378,3 +379,36 @@ def test_synthesis_manifest_accepts_only_exact_known_codes(script: ModuleType, c
         assert "failure_code" not in manifest
     assert "PRIVATE" not in json.dumps(manifest)
     assert "private_source_name" not in json.dumps(manifest)
+
+
+def test_unexpected_failure_has_only_closed_type_and_boundary(script: ModuleType) -> None:
+    def private_source_function() -> None:
+        raise TypeError("PRIVATE_SOURCE_WITH_CREDENTIALS")
+
+    def finalize_public_bundle() -> None:
+        private_source_function()
+
+    try:
+        finalize_public_bundle()
+    except TypeError as exc:
+        manifest = script._failure_manifest(exc)
+    assert manifest["failure_code"] == "runtime.type_error"
+    assert manifest["failure_stage"] == "finalization"
+    assert "PRIVATE" not in json.dumps(manifest)
+    assert "private_source_function" not in json.dumps(manifest)
+    assert "test_event_preview_script" not in json.dumps(manifest)
+
+
+def test_unexpected_custom_class_and_frame_names_are_not_exposed(script: ModuleType) -> None:
+    class PrivateSourceError(Exception):
+        pass
+
+    try:
+        raise PrivateSourceError("PRIVATE")
+    except PrivateSourceError as exc:
+        manifest = script._failure_manifest(exc)
+    assert manifest == {
+        "status": "failed",
+        "code": "preview.execution_failed",
+        "error_type": "unexpected",
+    }

@@ -42,6 +42,30 @@ from investo.sources import collect_sources
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 _MAX_MARKDOWN_BYTES = 256 * 1024
 _MAX_MANIFEST_BYTES = 16 * 1024
+_FAILURE_STAGES = {
+    "run_preview": "preview",
+    "collect_sources": "collection",
+    "_load_market_anchors_for_run": "anchors",
+    "project_domestic_public_items": "projection",
+    "share_official_event_candidates": "routing",
+    "generate_briefing_from_input": "generation",
+    "_classify": "classification",
+    "parse_event_classification": "classification",
+    "_synthesize": "synthesis",
+    "parse_event_synthesis": "synthesis",
+    "finalize_public_bundle": "finalization",
+    "evaluate_event_quality": "event_quality",
+    "_write_private": "artifact",
+}
+_UNEXPECTED_FAILURES = {
+    AssertionError: "runtime.assertion_error",
+    AttributeError: "runtime.attribute_error",
+    KeyError: "runtime.key_error",
+    NameError: "runtime.name_error",
+    TypeError: "runtime.type_error",
+    RuntimeError: "runtime.runtime_error",
+    UnboundLocalError: "runtime.unbound_local_error",
+}
 
 
 class PreviewInputError(ValueError):
@@ -157,6 +181,20 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
         manifest["error_type"] = "io"
     elif isinstance(exc, ValueError):
         manifest["error_type"] = "validation"
+    else:
+        # Return only fixed categories and known boundaries, never exception
+        # text, arbitrary class/frame names, paths, line source or locals.
+        code = _UNEXPECTED_FAILURES.get(type(exc))
+        if code is not None:
+            manifest["failure_code"] = code
+        frame = exc.__traceback__
+        for _ in range(100):
+            if frame is None:
+                break
+            stage = _FAILURE_STAGES.get(frame.tb_frame.f_code.co_name)
+            if stage is not None:
+                manifest["failure_stage"] = stage
+            frame = frame.tb_next
     return manifest
 
 
