@@ -137,6 +137,12 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
                 "classification.invalid_schema_or_item"
             ),
             "event_classification_unavailable: invalid_evidence": "classification.invalid_evidence",
+            "event.narrative_invalid": "event.narrative_invalid",
+            "event.selection_mismatch": "event.selection_mismatch",
+            "event.fact_unsupported": "event.fact_unsupported",
+            "event.entity_unsupported": "event.entity_unsupported",
+            "event.evidence_invalid": "event.evidence_invalid",
+            "event.output_invalid": "event.output_invalid",
         }
         cause = str(exc.cause) if isinstance(exc.cause, ValueError) else ""
         if cause in known_causes:

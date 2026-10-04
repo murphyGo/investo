@@ -340,3 +340,41 @@ def test_manifest_exposes_closed_classification_diagnostics(script: ModuleType) 
     assert manifest["failure_code"] == "classification.invalid_evidence"
     assert manifest["diagnostics"] == ("evidence.span_out_of_bounds",)
     assert "PRIVATE" not in json.dumps(manifest)
+
+
+@pytest.mark.parametrize(
+    "cause",
+    [
+        "event.narrative_invalid",
+        "event.selection_mismatch",
+        "event.fact_unsupported",
+        "event.entity_unsupported",
+        "event.evidence_invalid",
+        "event.output_invalid",
+        "event.narrative_invalid: PRIVATE_RESPONSE",
+        "event.private_source_name",
+        "event.fact_unsupported\nPRIVATE_NATIVE_ERROR",
+    ],
+)
+def test_synthesis_manifest_accepts_only_exact_known_codes(script: ModuleType, cause: str) -> None:
+    error = BriefingGenerationError(
+        stage="synthesis",
+        attempt_count=2,
+        last_stdout="PRIVATE_MODEL_RESPONSE",
+        last_stderr="PRIVATE_NATIVE_ERROR",
+        cause=ValueError(cause),
+    )
+    manifest = script._failure_manifest(error)
+    if cause in {
+        "event.narrative_invalid",
+        "event.selection_mismatch",
+        "event.fact_unsupported",
+        "event.entity_unsupported",
+        "event.evidence_invalid",
+        "event.output_invalid",
+    }:
+        assert manifest["failure_code"] == cause
+    else:
+        assert "failure_code" not in manifest
+    assert "PRIVATE" not in json.dumps(manifest)
+    assert "private_source_name" not in json.dumps(manifest)
