@@ -80,6 +80,7 @@ theme:
 nav:
   - Home: index.md
   - About: about.md
+  - 미국 섹터: sectors/index.md
   - 데이터 품질:
       - 품질 대시보드: quality.md
       - 예측 정확도: accuracy.md

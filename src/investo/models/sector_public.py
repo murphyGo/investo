@@ -137,6 +137,13 @@ class PublicSectorBuildStatus(StrEnum):
     BLOCKED = "blocked"
 
 
+class PublicBuildIssueCode(StrEnum):
+    RESOURCE = "build.resource"
+    PROJECTION = "build.projection"
+    STORE = "build.store"
+    INTERNAL = "build.internal"
+
+
 def _require_https(value: HttpUrl) -> HttpUrl:
     if value.scheme != "https":
         raise ValueError("attribution URL must use HTTPS")
@@ -144,7 +151,7 @@ def _require_https(value: HttpUrl) -> HttpUrl:
 
 
 HttpsUrl = Annotated[HttpUrl, AfterValidator(_require_https)]
-PublicFailureCode = PublicSourceIssueCode | PublicDiagnosticCode
+PublicFailureCode = PublicSourceIssueCode | PublicDiagnosticCode | PublicBuildIssueCode
 
 
 def _date_only(value: object) -> date:
@@ -808,6 +815,7 @@ __all__ = [
     "PublicAdjustmentPolicy",
     "PublicBarPoint",
     "PublicBarSeries",
+    "PublicBuildIssueCode",
     "PublicCoverageSummary",
     "PublicDiagnosticCode",
     "PublicFailureCode",

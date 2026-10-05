@@ -3,7 +3,7 @@
 **Date**: 2026-07-22
 **Unit**: u145 sector-dashboard-public-hf-limited-radar
 **Stage**: Code Generation
-**Status**: Step 5 complete — Yahoo public replacement reviewed, pushed and qualified in 5/5 exact-commit Actions runs; Step 6 separate activation remains unstarted
+**Status**: Step 6 implemented — final integration review/tests and Pages activation in progress
 **Dependencies**: u139 complete; u140 strict gate unchanged; Yahoo requires no API key
 
 ## Active Yahoo amendment — 2026-10-04/05
@@ -265,6 +265,30 @@ AC-6.1..6.6, not new public product behavior. Runbook: `docs/sector-dashboard-pr
 
 Prerequisite: Step 5 five-run evidence complete.
 
+2026-10-05 execution authorization: the user's “진행시켜” after the Step 5 closeout
+authorizes implementation, main integration, public Pages publication and scheduling.
+The qualified implementation is integrated separately at `782ace94`; activation is a
+reviewed descendant commit (AC-6.3). Existing Functional/NFR design and the Yahoo amendment
+cover this step; no new provider or permission claim is introduced.
+
+Implementation plan:
+
+1. Compose the qualified collector, metrics, renderer and transactional store in
+   `public_build.py`; add a separate fixed-mode `publish_sector_dashboard.py` CLI.
+   Fresh normal/partial pairs may promote. Partial publication exits 2; stale, insufficient,
+   source, resource or build failures hold the validated last-good pair and exit 2.
+2. Add `sector-dashboard.yml`: main-only manual and weekday UTC 21:35 collection;
+   validate canonical pair and strict MkDocs before staging only the two sector files.
+   Push without force/rebase; concurrent remote changes fail safely for a fresh rerun.
+   Explicitly dispatch Pages for a valid normal/partial pair, including unchanged reruns
+   so a failed deployment can recover. Keep probe workflow read-only and independent.
+3. Generate the initial real derived pair, add navigation and a Pages canonical-pair gate.
+   Label freshness as generation-time state so retained pages never imply a newer check.
+4. Exercise fresh, unchanged, partial, auth rejection, first failure, stale, resource and
+   damaged-store paths. Run full quality gates and independent review before activation.
+5. Push the separated commits, run the dedicated workflow and verify Pages plus live
+   HTML/JSON identity; record exact SHAs/run IDs and complete the amended AC cross-check.
+
 - [ ] Add scheduled collection/public pair staging in a dedicated sector workflow.
 - [ ] Add `site_docs/sectors/` navigation and Pages validation.
 - [ ] Prove a fresh publish, unchanged run, one transient-sector partial run, auth-expiry
@@ -287,10 +311,11 @@ The active source is Yahoo under the operator exception. Implementation commit
 `ec7ac84b927a78e5f3e5f0f3dac6494bb9a7ac6b` passed independent review, full regression and
 final focused checks. Actions runs `37213980547`, `37214093128`, `37214127663`, `37214182986`
 and `37214258087` all passed resources and qualified fresh 12/12-symbol production data.
-Step 5 is complete. Step 6 Pages/navigation/schedule implementation and activation remain
-separate and unstarted. No main merge or public sector artifacts were created. Browser
-recovery and HF account/key recovery are not prerequisites. Telegram and daily-briefing
-coupling remain outside this unit.
+Step 5 is complete. The 2026-10-05 continuation authorizes Step 6 implementation, main
+integration, public publication and scheduling. A separate activation change now exists;
+final merged-tree validation and live Pages evidence remain required before closeout.
+Browser recovery and HF account/key recovery are not prerequisites. Telegram and
+daily-briefing coupling remain outside this unit.
 
 The following credential notes concern the superseded HF implementation only.
 

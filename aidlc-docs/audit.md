@@ -7857,3 +7857,19 @@ Step 5 is complete. Evidence: `docs/sessions/2026-10-05-u145-yahoo-actions-evide
 `docs/sessions/2026-10-05-u145-yahoo-public-source.md`. Final closeout edits are documentation
 only. Step 6 implementation/activation remains separate and unstarted; no main merge or public
 sector publication occurred. No Browser PASS or provider license approval is asserted.
+
+
+## 2026-10-05 — u145 Step 6 public activation authorized
+
+User: `진행시켜`, following the Step 5 closeout that identified public site publication
+and automatic refresh as the remaining next step. This authorizes the concrete Step 6
+implementation, isolated main integration, commits/push and public Pages activation.
+The qualified code is integrated separately at `782ace94db02da414f1d0e27faf16dc54791ac00`;
+activation is a distinct reviewed descendant. Free-only and unverified-permission provenance
+remain binding, and Browser visual acceptance stays `WAIVED / NOT_EXECUTED`.
+
+The implementation adds a bounded collection/store composition, fixed write/verify CLI,
+main-only weekday 21:35 UTC workflow, canonical-pair/strict-site publication gates, explicit
+Pages dispatch and derived-only bootstrap. Partial publication stays operationally red;
+failed collection preserves the validated last-good pair/date; concurrent main changes
+fail without force push. Final integration checks and live publication evidence are pending.

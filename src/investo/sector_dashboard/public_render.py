@@ -196,7 +196,7 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         "## 기준 및 커버리지",
         "",
         f"- 기준일: {as_of} (미국 정규장 마감 기준)",
-        f"- 신선도: {_FRESHNESS_LABELS[snapshot.freshness]}",
+        f"- 생성 시점 신선도: {_FRESHNESS_LABELS[snapshot.freshness]}",
         f"- 커버리지: {_COVERAGE_LABELS[coverage.status]} · "
         f"{coverage.available_sector_count}/11 가용 · {comparable}/11 비교 가능",
         "- 벤치마크: SPY (Yahoo Finance 일봉)",

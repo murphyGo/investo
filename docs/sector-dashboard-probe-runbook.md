@@ -1,5 +1,8 @@
 # u145 production-adapter probe runbook
 
+Public refresh/deployment uses the separate [public operations runbook](sector-dashboard-public-runbook.md).
+This probe remains read-only after activation.
+
 ## Scope and decision
 
 The manual `sector-dashboard-probe.yml` workflow qualifies the production Yahoo daily-chart

@@ -415,5 +415,3 @@ def test_probe_workflow_is_manual_read_only_and_secret_scoped() -> None:
         "daily-briefing",
     ):
         assert forbidden not in text.lower()
-    assert not (_ROOT / "site_docs/sectors").exists()
-    assert "sectors/" not in (_ROOT / "mkdocs.yml").read_text()
