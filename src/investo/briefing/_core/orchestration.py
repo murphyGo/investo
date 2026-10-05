@@ -520,6 +520,15 @@ async def _synthesize(
             if uses_events
             else _stage2_retry_feedback(last_cause)
         )
+        if uses_events and "synthesis.required_macro_missing" in event_synthesis_diagnostics(
+            last_cause
+        ):
+            feedback += (
+                "A required macro actual was omitted. In indicators_events, retain every item "
+                "from the Required macro actuals block using its exact supplied label or complete "
+                "source URL. Do not translate, shorten, or omit that identifier. Preserve the "
+                "supplied actual/forecast status, period, units and values without calculation.\n"
+            )
         attempt_prompt = f"{full_prompt}{feedback}"
         outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)
         _logger.info(

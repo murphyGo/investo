@@ -30,7 +30,10 @@ from investo.orchestrator.domestic_anchor_quarantine import (
     load_previous_domestic_anchor_closes,
     project_domestic_public_items,
 )
-from investo.orchestrator.event_preview import preview_event_briefing
+from investo.orchestrator.event_preview import (
+    event_preview_compliance_diagnostics,
+    preview_event_briefing,
+)
 from investo.orchestrator.pipeline import SEGMENT_GENERATION_POLICIES, _reconcile_anchor_closes
 from investo.orchestrator.stage_context import (
     SEGMENT_ORDER,
@@ -241,6 +244,9 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
         manifest["unclassified_issue_count"] = sum(
             code not in _FINALIZATION_ISSUES for code in codes
         )
+        diagnostics = event_preview_compliance_diagnostics(exc)
+        if diagnostics:
+            manifest["diagnostics"] = diagnostics
         # The underlying exception is diagnostic context only. Never unwrap
         # its message, source labels, model output, or arbitrary type name.
         cause_code = _UNEXPECTED_FAILURES.get(type(exc.cause))

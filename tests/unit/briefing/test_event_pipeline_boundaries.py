@@ -1,6 +1,7 @@
 """Review regressions at the event producer's existing two-stage boundary."""
 
 import json
+from dataclasses import replace
 
 import pytest
 
@@ -9,7 +10,7 @@ from investo.briefing.event_input import event_collection_limited
 from investo.briefing.event_narrative import event_synthesis_diagnostics
 from investo.briefing.numeric_self_check import find_unverified
 from investo.briefing.pipeline import _event_numeric_evidence, generate_briefing_from_input
-from investo.models import SourceOutcome
+from investo.models import NormalizedItem, SourceOutcome
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.events import EventSelectionPlan
 from tests.integration.test_event_generation import _case, _ReplayRunner, _request
@@ -104,3 +105,36 @@ async def test_post_assembly_diagnostics_do_not_retain_source_labels(
     assert event_synthesis_diagnostics(error.value.cause) == (diagnostic,)
     assert len(runner.prompts) == 3
     assert "PRIVATE" not in runner.prompts[-1]
+
+
+@pytest.mark.asyncio
+async def test_omitted_macro_retry_restores_exact_identifier_with_existing_budget() -> None:
+    case = _case()
+    macro = NormalizedItem(
+        source_name="fred-macro",
+        category="macro",
+        title="CPIAUCSL latest observation",
+        url="https://fred.stlouisfed.org/series/CPIAUCSL",
+        published_at=case.item.published_at,
+        raw_metadata={"series_id": "CPIAUCSL", "value": "314.12", "release_date": "2026-09-21"},
+    )
+    empty = EventGenerationPayload(plan=EventSelectionPlan(), narratives=())
+    missing = output_for(empty).model_dump(mode="json")
+    corrected = output_for(empty).model_dump(mode="json")
+    corrected["sections"]["indicators_events"] = (
+        "CPIAUCSL latest observation 실제값은 314.12입니다."
+    )
+    runner = _ReplayRunner(
+        [
+            '{"schema_version":2,"assignments":{"1":4},"unassigned":[],"events":[]}',
+            json.dumps(missing),
+            json.dumps(corrected),
+        ]
+    )
+    result = await generate_briefing_from_input(replace(_request(case, runner), items=(macro,)))
+    assert len(runner.prompts) == 3
+    hint = "A required macro actual was omitted."
+    assert hint not in runner.prompts[1] and hint in runner.prompts[2]
+    assert "exact supplied label or complete source URL" in runner.prompts[2]
+    assert "CPIAUCSL latest observation" in result.briefing.rendered_markdown
+    assert "314.12" in result.briefing.rendered_markdown

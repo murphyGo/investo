@@ -457,3 +457,32 @@ def test_finalization_manifest_keeps_known_findings_without_private_cause(
     assert "private" not in json.dumps(manifest).lower()
     error.phase = "private.source_label"
     assert script._failure_manifest(error)["failure_stage"] is None
+
+
+def test_finalization_manifest_exports_only_closed_preview_compliance_codes(
+    script: ModuleType,
+) -> None:
+    from investo.orchestrator.event_preview import EventPreviewFinalizationError
+    from investo.publisher.public_document import PublicDocumentFinalizationError
+
+    original = PublicDocumentFinalizationError(
+        target_date=_TARGET,
+        segment="crypto",
+        phase="bundle",
+        issue_codes=("bundle.zero_survivors", "compliance.language"),
+        cause=ValueError("PRIVATE_MODEL_OUTPUT"),
+    )
+    error = EventPreviewFinalizationError(
+        original,
+        (
+            "compliance.generated",
+            "compliance.rule.action.0",
+            "PRIVATE_MODEL_OUTPUT",
+        ),
+    )
+    manifest = script._failure_manifest(error)
+    assert manifest["status"] == "failed"
+    assert manifest["failure_code"] == "finalization.rejected"
+    assert manifest["issue_codes"] == ["bundle.zero_survivors", "compliance.language"]
+    assert manifest["diagnostics"] == ("compliance.generated", "compliance.rule.action.0")
+    assert "PRIVATE" not in json.dumps(manifest)

@@ -1,7 +1,7 @@
 # 뉴스·이벤트 중심 시황 개발 설계
 
 **Date**: 2026-09-26
-**Status**: u157–u162와 필수 u152의 유닛별 개발·검증·커밋·푸시 및 main 통합 완료. 2026-10-05 KST `e5487c2a`까지 원격 전달하고 CI 통과를 확인했다. private Codex 운영 shadow와 암호화된 비게시 preview 경로를 배치했다. 실제 v2 preview 결과를 검증 중이다. 사람 의미 검수와 실제 예약 shadow 5회는 아직 미충족이며 사건 본문 active와 구분한다. 현재 증거: `docs/sessions/2026-10-04-news-event-main-and-rollout.md`.
+**Status**: u157–u162와 필수 u152의 유닛별 개발·검증·커밋·푸시 및 main 통합 완료. 2026-10-06 KST `fc673d3a`까지 원격 전달하고 exact-SHA CI6181 통과를 확인했다. private Codex 운영 shadow와 암호화된 비게시 preview 경로를 배치했다. 실제 v2 preview의 미국 필수 macro 누락과 코인 compliance 차단을 확인해 후속 수정·진단을 검증 중이다. 예약 shadow는 1/5회다. 사람 의미 검수와 실제 예약 shadow 5회는 아직 미충족이며 사건 본문 active와 구분한다. 현재 증거: `docs/sessions/2026-10-04-news-event-main-and-rollout.md`.
 **Baseline**: `04978d81ec9ece8f4083e4be190c6539bdf3b5ff` (origin/main).
 **Source**: 사용자 “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
 

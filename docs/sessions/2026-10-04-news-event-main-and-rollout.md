@@ -126,3 +126,13 @@ Codex `37213412858`의 국내 job은 성공했다. 암호화 artifact를 복호�
 후보54/96/19, 뉴스48/36/8, 누락53/51/0이고 세 시장 모두 `reservation_starved=False`다. 국내는 `finalized_degraded`/`numeric.anchor_assertion`, 미국·코인은 finalized다. 265.485초, pipeline success, 발행 `587787f33d9db4e42e52f6e319703f98b30aef87`, Telegram149, [Pages37248604347](https://github.com/murphyGo/investo/actions/runs/37248604347) 성공을 확인했다. 같은 SHA의 quality37248603142도 성공했다. 이 관찰은 예약 **1/5**이며 주말 직후 실행에 해당한다. 뉴스 풍부한 날의 외부 사람 baseline이나 active 첫3회 완료로 대신 계수하지 않는다.
 
 새 main587787f3는 archive/site 발행 데이터45개만 바꾸었고 실행 코드/테스트/워크플로 변경은 없다. 이 발행 이력을 격리 통합 작업트리에 보존한다. 전체 회귀 **6180/675.62s**가 통과했고, 실행 중 추가한 finalizer manifest/script 테스트는 별도 검증했다. source/test/script/workflow/fixture880개 스냅샷 중 변경된 파일은 해당 script/test2개뿐이며 나머지878개는 동일하다. 최종 합쳐진 SHA의 CI를 추가 확인한다.
+
+## 2026-10-06 KST — 필수 거시지표 누락과 금지 표현 차단 확인
+
+통합 `fc673d3a33e6057f9855d7d46305cfb008fba893`의 [quality37315097799](https://github.com/murphyGo/investo/actions/runs/37315097799)는 전체6181/317.25s 및 모든 gate를 통과했다. 해당 SHA로 실행한 미국 [37315945118](https://github.com/murphyGo/investo-runtime/actions/runs/37315945118)은 synthesis2회 후 `synthesis.required_macro_missing`으로 실패했다. 코인 [37315951706](https://github.com/murphyGo/investo-runtime/actions/runs/37315951706)은 `bundle.zero_survivors`와 `compliance.language`로 차단됐다. 두 암호화 artifact를 복호화해 고정 진단만 확인했으며 원본 모델 응답은 보관하지 않는다. 대상일은 비교를 위해 2026-10-02를 유지했지만 관찰 시각과 live 입력은 달라 동일 입력 replay로 취급하지 않는다.
+
+미국은 기존 v2 재시도에서 이 누락 코드가 나온 경우에만 필수 macro block의 정확한 label 또는 전체 source URL을 indicators_events에 유지하도록 안내를 추가했다. actual/forecast·기간·단위·값은 제공된 그대로 보존한다. 합성 fixture에서 첫 누락 후 두 번째 응답의 복구를 실제 validator로 검증했다. Stage2 최대2회와 전체 기존 예산은 그대로며 off/shadow 및 다른 오류의 feedback은 바뀌지 않는다. 이는 앞선 진단만 추가한 변경과 달리 해당 retry prompt를 의도적으로 보강한 수정이다.
+
+코인은 아직 어떤 금지 표현인지 확인되지 않았다. preview에서 최종화가 compliance로 거부되면 생성 직후 본문을 기존 scanner로 다시 검사해 generated/post_generation 경계와 고정 catalog rule ID만 최대8개로 기록한다. 원문·문장·URL·동적 필드명은 기록하지 않는다. 예외의 phase/issue/cause/blocked-sibling 정보와 실패 상태를 보존하며 보호된 hard gate를 우회하거나 문구를 지워 통과시키지 않는다. 실제 finalizer 차단, 후처리 경계, 비관련 오류의 동일 예외 재전달, 임의 진단 비노출을 포함한 집중54/3.17s 통과. 독립 리뷰68/3.53s, Ruff/diff 검사 PASS 및 CLOSED/P1P2없음. 정적검사·정책·strict docs/Material도 통과했다. 전체 회귀와 exact-SHA CI 후 검토 SHA로 재실행한다.
+
+최신 운영 조회(2026-10-05 16:54 UTC)에서 예약 shadow는 여전히1/5이며 production pin056dd8a1과 active readiness는 유지된다. frozen12 사람 검수 응답과 뉴스 풍부한 날 baseline은 아직 없다.

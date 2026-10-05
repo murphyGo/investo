@@ -1,5 +1,6 @@
 """The private preview reaches the real finalizer without publication I/O."""
 
+import json
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -9,7 +10,12 @@ import pytest
 from investo._internal.event_rendering import COLLECTION_LIMITED_EVENTS
 from investo.briefing.generation_contract import GenerationInput
 from investo.briefing.watchlist import WatchlistConfig
-from investo.orchestrator.event_preview import preview_event_briefing
+from investo.orchestrator.event_preview import (
+    EventPreviewFinalizationError,
+    event_preview_compliance_diagnostics,
+    preview_event_briefing,
+)
+from investo.publisher.public_document import PublicDocumentFinalizationError
 from tests.integration.test_event_generation import _case, _ReplayRunner, _request
 from tests.unit.briefing.test_event_evidence import NOW
 
@@ -56,6 +62,95 @@ async def test_empty_preview_is_honest_and_never_writes_or_calls_pipeline_stages
     assert result.event_coverage.selected_count is None
     assert result.event_coverage.selection_coverage is None
     assert tuple(tmp_path.rglob("*")) == before
+
+
+@pytest.mark.asyncio
+async def test_generated_compliance_failure_keeps_hard_gate_and_closed_rule_id() -> None:
+    case = _case()
+    output = json.loads(case.synthesis)
+    output["sections"]["market_summary"] = "매수 검토를 권합니다."
+    runner = _ReplayRunner([case.classification, json.dumps(output)])
+    with pytest.raises(PublicDocumentFinalizationError) as error:
+        await preview_event_briefing(_request(case, runner))
+    assert error.value.phase == "bundle"
+    assert "compliance.language" in error.value.issue_codes
+    assert event_preview_compliance_diagnostics(error.value) == (
+        "compliance.generated",
+        "compliance.rule.action.0",
+    )
+    assert "매수 검토" not in str(error.value)
+    assert len(runner.prompts) == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("code", ["compliance.language", "numeric.anchor_assertion"])
+async def test_preview_diagnostics_preserve_finalization_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+    code: str,
+) -> None:
+    original = PublicDocumentFinalizationError(
+        target_date=NOW.date(),
+        segment="us-equity",
+        phase="bundle",
+        issue_codes=("bundle.zero_survivors", code),
+        cause=ValueError("PRIVATE_CAUSE"),
+        blocked_issue_codes_by_segment={"us-equity": (code,)},
+    )
+
+    def reject(*args: object, **kwargs: object) -> None:
+        raise original
+
+    monkeypatch.setattr("investo.orchestrator.event_preview.finalize_public_bundle", reject)
+    case = _case()
+    with pytest.raises(PublicDocumentFinalizationError) as error:
+        await preview_event_briefing(
+            _request(
+                case,
+                _ReplayRunner(
+                    [
+                        case.classification,
+                        case.synthesis,
+                    ]
+                ),
+            )
+        )
+    assert error.value.issue_codes == original.issue_codes
+    assert error.value.cause is original.cause
+    assert error.value.blocked_issue_codes_by_segment == original.blocked_issue_codes_by_segment
+    if code == "compliance.language":
+        assert event_preview_compliance_diagnostics(error.value) == ("compliance.post_generation",)
+    else:
+        assert error.value is original
+        assert event_preview_compliance_diagnostics(error.value) == ()
+
+
+def test_preview_compliance_export_rejects_unknown_and_mutated_diagnostics() -> None:
+    original = PublicDocumentFinalizationError(
+        target_date=NOW.date(),
+        segment="crypto",
+        phase="bundle",
+        issue_codes=("compliance.language",),
+    )
+    error = EventPreviewFinalizationError(
+        original,
+        (
+            "compliance.generated",
+            "PRIVATE_SOURCE",
+            "compliance.rule.action.0",
+            "https://private",
+            "compliance.rule.action.999",
+            "compliance.rule.quantified",
+            "compliance.rule.crypto.0",
+            "compliance.rule.certainty.0",
+            "compliance.rule.action.1",
+        ),
+    )
+    codes = event_preview_compliance_diagnostics(error)
+    assert len(codes) == 5
+    assert "compliance.rule.action.1" not in codes
+    assert "PRIVATE" not in str(codes) and "https://" not in str(codes)
+    error.preview_diagnostics = ["compliance.generated"]  # type: ignore[assignment]
+    assert event_preview_compliance_diagnostics(error) == ()
 
 
 @pytest.mark.parametrize(

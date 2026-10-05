@@ -13,14 +13,71 @@ from investo.briefing.fact_context import build_verified_fact_bundle, render_fac
 from investo.briefing.generation_contract import GenerationInput, GenerationResult
 from investo.briefing.pipeline import GenerationPolicy, generate_briefing_from_input
 from investo.briefing.segments import build_segment_coverage, segment_source_outcomes
+from investo.models.compliance_phrases import (
+    BANNED_P0_ACTION,
+    BANNED_P0_CERTAINTY,
+    BANNED_P0_CRYPTO_ONLY,
+)
 from investo.models.event_config import EventExecutionConfig
 from investo.models.event_quality import EventCoverage
+from investo.publisher.compliance_language import ComplianceLanguageError, scan_compliance
 from investo.publisher.event_quality import evaluate_event_quality
 from investo.publisher.public_document import (
     FinalizedPublicBundle,
     PublicDocumentContext,
+    PublicDocumentFinalizationError,
     finalize_public_bundle,
 )
+
+_COMPLIANCE_RULES = {
+    (category, phrase): f"compliance.rule.{category}.{index}"
+    for category, phrases in (
+        ("action", BANNED_P0_ACTION),
+        ("certainty", BANNED_P0_CERTAINTY),
+        ("crypto", BANNED_P0_CRYPTO_ONLY),
+    )
+    for index, phrase in enumerate(phrases)
+}
+_COMPLIANCE_DIAGNOSTICS = frozenset(_COMPLIANCE_RULES.values()) | {
+    "compliance.generated",
+    "compliance.post_generation",
+    "compliance.rule.quantified",
+    "compliance.rule.unclassified",
+}
+
+
+class EventPreviewFinalizationError(PublicDocumentFinalizationError):
+    """Same failure metadata plus closed diagnostics from the generated document."""
+
+    def __init__(
+        self, original: PublicDocumentFinalizationError, diagnostics: tuple[str, ...]
+    ) -> None:
+        super().__init__(
+            target_date=original.target_date,
+            segment=original.segment,
+            phase=original.phase,
+            issue_codes=original.issue_codes,
+            cause=original.cause,
+            blocked_issue_codes_by_segment=original.blocked_issue_codes_by_segment,
+        )
+        self.preview_diagnostics = diagnostics
+
+
+def event_preview_compliance_diagnostics(exc: BaseException) -> tuple[str, ...]:
+    if (
+        not isinstance(exc, EventPreviewFinalizationError)
+        or type(exc.preview_diagnostics) is not tuple
+    ):
+        return ()
+    return tuple(
+        sorted(
+            {
+                code
+                for code in exc.preview_diagnostics[:8]
+                if type(code) is str and code in _COMPLIANCE_DIAGNOSTICS
+            }
+        )
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,7 +130,25 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
         entity_observed_at_utc=observed_at,
         event_payloads_by_segment={segment: payload},
     )
-    finalized = finalize_public_bundle({segment: generation.briefing}, context=context)
+    try:
+        finalized = finalize_public_bundle({segment: generation.briefing}, context=context)
+    except PublicDocumentFinalizationError as exc:
+        if "compliance.language" not in exc.issue_codes:
+            raise
+        diagnostics = {"compliance.post_generation"}
+        try:
+            scan_compliance(generation.briefing.rendered_markdown, segment)
+        except ComplianceLanguageError as generated_error:
+            diagnostics = {"compliance.generated"}
+            diagnostics.update(
+                "compliance.rule.quantified"
+                if hit.category == "quantified"
+                else _COMPLIANCE_RULES.get(
+                    (hit.category, hit.phrase), "compliance.rule.unclassified"
+                )
+                for hit in generated_error.hits
+            )
+        raise EventPreviewFinalizationError(exc, tuple(sorted(diagnostics))[:8]) from None
     document = next(
         (document for document in finalized.documents if document.segment == segment), None
     )
