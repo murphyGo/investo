@@ -7563,6 +7563,7 @@ Main6e12da89 exact remote and quality37210613485 PASS. Claude preview ended with
 
 Independent P2 for setup consuming job cleanup reserve was fixed with a pre-auth600s setup gate; actual30/601/1500s controls passed/rejected/rejected. Independent60/5.99s and review CLOSED, no open P1/P2. Full6163/655.75s; executable679-file freeze, Ruff/format668/mypy290, policy4/actionlint3/docs/Material PASS. Prepared private template deployment and separate REVIEWED_EVENT_PREVIEW_SHA pin after exact-SHA CI; live semantic and scheduled acceptance remain pending. Human12/25 synthetic review packet includes inputs and an unfilled score sheet; user review requested, no response inferred.
 
+
 ## Construction — u145 Step 4 recovery and current-main revalidation
 
 **Timestamp**: 2026-09-09T19:45:57+09:00
@@ -7873,3 +7874,9 @@ main-only weekday 21:35 UTC workflow, canonical-pair/strict-site publication gat
 Pages dispatch and derived-only bootstrap. Partial publication stays operationally red;
 failed collection preserves the validated last-good pair/date; concurrent main changes
 fail without force push. Final integration checks and live publication evidence are pending.
+
+## 2026-10-05 — live preview diagnostics and first scheduled shadow
+
+Private preview278ce158 deployed after publice5487c2a exact CI; separate preview pin preserves production056dd8a1. Codex37213412858: domestic sealed0events/source_limited, US synthesis2 failed, crypto failed at finalization. US37214495353 narrows to event.output_invalid; crypto37214893965 confirms finalization boundary. Closed Stage2/exception diagnostics deliveredfb9e2cfd anded9fd7fc, CI6174/310.66s PASS. Further bounded synthesis schema/JSON/section/macro and existing typed finalization diagnostics preserve all validators and retry feedback. Independent99 plus43 PASS/CLOSED; feedback14/14 identical; parent focused101/full6180/675.62s, static/policy/actionlint/docs/Material PASS. Finalizer manifest script/test were the only2 changes after880-file freeze and separately retested. Actual successful positive-event acceptance remains pending.
+
+Genuine scheduled37248296267 is post-weekend, replay=False;19shadow windows no fetch/cursor change, candidates54/96/19 and news48/36/8, no reservation starvation. Domestic finalized_degraded numeric.anchor_assertion, other2finalized;265.485s, publication587787f3/Telegram149/Pages37248604347 PASS. Scheduled observation1/5; human12 and news-rich baseline stillpending. Concurrent main587787f3 changes45archive/site files only and is preserved. Private concurrentce772cf5 adds queue:max to the same shared auth lock; no overwrite. Event/news active readiness and official-body HTTP remainfalse.

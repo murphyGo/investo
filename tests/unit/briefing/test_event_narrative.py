@@ -20,7 +20,12 @@ from investo._internal.event_rendering import (
     validate_event_payload,
 )
 from investo.briefing.event_evidence import build_event_candidates, make_evidence_document
-from investo.briefing.event_narrative import assemble_event_synthesis, parse_event_synthesis
+from investo.briefing.event_narrative import (
+    EventSynthesisError,
+    assemble_event_synthesis,
+    event_synthesis_diagnostics,
+    parse_event_synthesis,
+)
 from investo.briefing.event_selection import select_events
 from investo.briefing.prompts import STAGE2_SECTION_HEADERS
 from investo.models.event_narratives import (
@@ -376,6 +381,48 @@ def test_schema_errors_are_bounded_and_never_echo_model_prose() -> None:
             parse_event_synthesis(bad, payload.plan)
         assert str(error.value) == "event_synthesis_unavailable: invalid_schema"
         assert "DO_NOT_ECHO" not in str(error.value)
+
+
+def test_synthesis_diagnostics_distinguish_format_schema_and_private_fields() -> None:
+    payload = payload_for()
+    valid = output_for(payload).model_dump(mode="json")
+    cases = (
+        ("PRIVATE_NOT_JSON", ("synthesis.invalid_json",)),
+        ('{"PRIVATE_FIELD":1,"PRIVATE_FIELD":2}', ("synthesis.duplicate_json_field",)),
+        (
+            json.dumps({**valid, "PRIVATE_FIELD": "PRIVATE_VALUE"}),
+            ("schema.extra_forbidden.envelope",),
+        ),
+        (
+            json.dumps({**valid, "sections": {**valid["sections"], "market_summary": 99}}),
+            ("schema.string_type.market_summary",),
+        ),
+    )
+    for stdout, expected in cases:
+        with pytest.raises(EventSynthesisError) as error:
+            parse_event_synthesis(stdout, payload.plan)
+        assert event_synthesis_diagnostics(error.value) == expected
+        assert "PRIVATE" not in str(error.value)
+        assert "PRIVATE" not in json.dumps(event_synthesis_diagnostics(error.value))
+
+
+def test_synthesis_diagnostic_export_rechecks_mutated_tokens() -> None:
+    error = EventSynthesisError(
+        "event.output_invalid",
+        (
+            "schema.missing.events",
+            "schema.missing.PRIVATE",
+            "schema.PRIVATE.events",
+            "synthesis.PRIVATE",
+            "synthesis.required_macro_missing",
+        ),
+    )
+    assert event_synthesis_diagnostics(error) == (
+        "schema.missing.events",
+        "synthesis.required_macro_missing",
+    )
+    error.diagnostics = ("PRIVATE",) * 8 + ("schema.missing.events",)
+    assert event_synthesis_diagnostics(error) == ()
 
 
 def test_model_cannot_supply_urls_or_a_second_key_issues_body() -> None:

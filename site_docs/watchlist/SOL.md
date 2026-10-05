@@ -6,10 +6,10 @@ _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
 ## 2026-10-02
 
-- [defillama-market-structure] **ticker**: DeFi TVL $96.0B; leader Ethereum
-- [yonhap-market] **ticker**: 신한운용 'SOL 글로벌DRAM반도체플러스' ETF 7일 상장
+- [defillama-market-structure] **ticker**: DeFi TVL $96.9B; leader Ethereum
 
 <!-- u33 entry 2026-10-02 end -->
+
 
 
 <!-- u33 entry 2026-10-01 begin -->
