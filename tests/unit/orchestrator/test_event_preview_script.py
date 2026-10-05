@@ -412,3 +412,48 @@ def test_unexpected_custom_class_and_frame_names_are_not_exposed(script: ModuleT
         "code": "preview.execution_failed",
         "error_type": "unexpected",
     }
+
+
+def test_manifest_keeps_synthesis_details_bounded(script: ModuleType) -> None:
+    from investo.briefing.event_narrative import EventSynthesisError
+
+    error = BriefingGenerationError(
+        stage="synthesis",
+        attempt_count=2,
+        last_stdout="PRIVATE",
+        last_stderr="PRIVATE_NATIVE",
+        cause=EventSynthesisError(
+            "event.output_invalid",
+            (
+                "synthesis.required_macro_missing",
+                "schema.missing.PRIVATE_FIELD",
+            ),
+        ),
+    )
+    manifest = script._failure_manifest(error)
+    assert manifest["failure_code"] == "event.output_invalid"
+    assert manifest["diagnostics"] == ("synthesis.required_macro_missing",)
+    assert "PRIVATE" not in json.dumps(manifest)
+
+
+def test_finalization_manifest_keeps_known_findings_without_private_cause(
+    script: ModuleType,
+) -> None:
+    from investo.publisher.public_document import PublicDocumentFinalizationError
+
+    error = PublicDocumentFinalizationError(
+        target_date=date(2026, 10, 2),
+        segment="crypto",
+        phase="bundle",
+        issue_codes=("bundle.zero_survivors", "numeric.anchor_assertion", "private.source_label"),
+        cause=TypeError("PRIVATE_SOURCE_MODEL_RESPONSE"),
+    )
+    manifest = script._failure_manifest(error)
+    assert manifest["error_type"] == "finalization"
+    assert manifest["failure_stage"] == "bundle"
+    assert manifest["issue_codes"] == ["bundle.zero_survivors", "numeric.anchor_assertion"]
+    assert manifest["unclassified_issue_count"] == 1
+    assert manifest["cause_code"] == "runtime.type_error"
+    assert "private" not in json.dumps(manifest).lower()
+    error.phase = "private.source_label"
+    assert script._failure_manifest(error)["failure_stage"] is None

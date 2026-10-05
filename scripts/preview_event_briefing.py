@@ -20,6 +20,7 @@ from investo.briefing.claude_code import ClaudeRunner
 from investo.briefing.codex_cli import CodexRunner
 from investo.briefing.context import load_recent_briefings, resolve_recent_days
 from investo.briefing.errors import BriefingGenerationError
+from investo.briefing.event_narrative import event_synthesis_diagnostics
 from investo.briefing.event_routing import share_official_event_candidates
 from investo.briefing.generation_contract import GenerationInput
 from investo.briefing.segments import segment_items
@@ -37,6 +38,8 @@ from investo.orchestrator.stage_context import (
     _load_market_anchors_for_run,
     _snapshot_close_by_ticker,
 )
+from investo.publisher._public_document_policy import SURFACE_ISSUE_CODES
+from investo.publisher.public_document import PublicDocumentFinalizationError
 from investo.sources import collect_sources
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -66,6 +69,44 @@ _UNEXPECTED_FAILURES = {
     RuntimeError: "runtime.runtime_error",
     UnboundLocalError: "runtime.unbound_local_error",
 }
+_FINALIZATION_ISSUES = SURFACE_ISSUE_CODES | frozenset(
+    {
+        "bundle.zero_survivors",
+        "compliance.language",
+        "disclaimer.canonical",
+        "disclaimer.first_viewport",
+        "document.fallback_exhausted",
+        "document.fallback_repeat",
+        "document.fallback_unavailable",
+        "document.survivor_fixed_point_exhausted",
+        "entity.fact_contradiction",
+        "event.reconciliation_unstable",
+        "event.watchpoint_mismatch",
+        "event.narrative_invalid",
+        "event.selection_mismatch",
+        "event.fact_unsupported",
+        "event.entity_unsupported",
+        "event.evidence_invalid",
+        "generation.failed",
+        "input.briefing_keys",
+        "input.target_date",
+        "invariant.bundle_factory",
+        "invariant.draft_factory",
+        "invariant.notification_summary",
+        "invariant.phase_handler",
+        "invariant.phase_handler_exception",
+        "invariant.phase_transition",
+        "news.window_projection_mismatch",
+        "numeric.anchor_assertion",
+        "numeric.fallback_exhausted",
+        "summary.event_mismatch",
+        "summary.first_viewport",
+        "summary.invalid_conclusion",
+        "summary.invalid_coverage_label",
+        "summary.invalid_watchlist",
+        "summary.missing_conclusion",
+    }
+)
 
 
 class PreviewInputError(ValueError):
@@ -152,7 +193,9 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
             if type(exc.attempt_count) is int and 0 <= exc.attempt_count <= 100
             else None
         )
-        diagnostics = event_classification_diagnostics(exc.cause)
+        diagnostics = event_classification_diagnostics(exc.cause) or event_synthesis_diagnostics(
+            exc.cause
+        )
         if diagnostics:
             manifest["diagnostics"] = diagnostics
         known_causes = {
@@ -175,6 +218,34 @@ def _failure_manifest(exc: Exception) -> dict[str, object]:
             r"Stage [12] subprocess returned rc=-?\d{1,3}, stdout_len=\d{1,8}", cause
         ):
             manifest["failure_code"] = "generation.subprocess_failed"
+    elif isinstance(exc, PublicDocumentFinalizationError):
+        manifest["error_type"] = "finalization"
+        manifest["failure_code"] = "finalization.rejected"
+        manifest["failure_stage"] = (
+            exc.phase
+            if exc.phase
+            in {
+                "input",
+                "generated",
+                "assembled",
+                "projected",
+                "repaired",
+                "validated",
+                "bundle",
+                "fixed_point",
+            }
+            else None
+        )
+        codes = tuple(exc.issue_codes)[:32]
+        manifest["issue_codes"] = sorted({code for code in codes if code in _FINALIZATION_ISSUES})
+        manifest["unclassified_issue_count"] = sum(
+            code not in _FINALIZATION_ISSUES for code in codes
+        )
+        # The underlying exception is diagnostic context only. Never unwrap
+        # its message, source labels, model output, or arbitrary type name.
+        cause_code = _UNEXPECTED_FAILURES.get(type(exc.cause))
+        if cause_code is not None:
+            manifest["cause_code"] = cause_code
     elif isinstance(exc, (TimeoutError, subprocess.TimeoutExpired)):
         manifest["error_type"] = "timeout"
     elif isinstance(exc, OSError):

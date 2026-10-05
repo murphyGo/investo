@@ -4,7 +4,9 @@ import json
 
 import pytest
 
+from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.event_input import event_collection_limited
+from investo.briefing.event_narrative import event_synthesis_diagnostics
 from investo.briefing.numeric_self_check import find_unverified
 from investo.briefing.pipeline import _event_numeric_evidence, generate_briefing_from_input
 from investo.models import SourceOutcome
@@ -60,3 +62,45 @@ def test_verified_reaction_spans_and_typed_dates_are_numeric_evidence() -> None:
         )
         == ()
     )
+
+
+@pytest.mark.asyncio
+async def test_synthesis_diagnostics_survive_retry_without_changing_feedback() -> None:
+    case = _case()
+    runner = _ReplayRunner([case.classification, "PRIVATE_NOT_JSON", "PRIVATE_NOT_JSON"])
+    with pytest.raises(BriefingGenerationError) as error:
+        await generate_briefing_from_input(_request(case, runner))
+    assert error.value.stage == "synthesis" and error.value.attempt_count == 2
+    assert str(error.value.cause) == "event.output_invalid"
+    assert event_synthesis_diagnostics(error.value.cause) == ("synthesis.invalid_json",)
+    assert len(runner.prompts) == 3
+    assert "Validation code: event.output_invalid" in runner.prompts[-1]
+    assert "PRIVATE" not in runner.prompts[-1]
+    assert error.value.last_stdout is None and error.value.last_stderr is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("function", "diagnostic"),
+    [
+        ("parse_six_sections", "synthesis.invalid_sections"),
+        ("_validate_required_macro_mentions", "synthesis.required_macro_missing"),
+    ],
+)
+async def test_post_assembly_diagnostics_do_not_retain_source_labels(
+    monkeypatch: pytest.MonkeyPatch, function: str, diagnostic: str
+) -> None:
+    from investo.briefing._core import orchestration
+
+    def reject(*args: object, **kwargs: object) -> None:
+        raise ValueError("PRIVATE_SOURCE_LABEL")
+
+    monkeypatch.setattr(orchestration, function, reject)
+    case = _case()
+    runner = _ReplayRunner([case.classification, case.synthesis, case.synthesis])
+    with pytest.raises(BriefingGenerationError) as error:
+        await generate_briefing_from_input(_request(case, runner))
+    assert str(error.value.cause) == "event.output_invalid"
+    assert event_synthesis_diagnostics(error.value.cause) == (diagnostic,)
+    assert len(runner.prompts) == 3
+    assert "PRIVATE" not in runner.prompts[-1]

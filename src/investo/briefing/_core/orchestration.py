@@ -52,7 +52,12 @@ from investo.briefing.claude_code import (
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
 from investo.briefing.event_evidence import build_event_candidates
 from investo.briefing.event_input import select_event_input_items
-from investo.briefing.event_narrative import assemble_event_synthesis, parse_event_synthesis
+from investo.briefing.event_narrative import (
+    EventSynthesisError,
+    assemble_event_synthesis,
+    event_synthesis_diagnostics,
+    parse_event_synthesis,
+)
 from investo.briefing.event_prompt import EventPromptEvidence
 from investo.briefing.llm import CodexRunner
 from investo.briefing.llm import call_llm as call_claude_code
@@ -552,6 +557,7 @@ async def _synthesize(
             )
             continue
 
+        validation_step = "output"
         try:
             body = outcome.stdout
             payload = None
@@ -565,13 +571,25 @@ async def _synthesize(
                 body = assemble_event_synthesis(
                     output, event_evidence.event_plan, collection_limited=collection_limited
                 )
+            validation_step = "sections"
             parse_six_sections(body)
+            validation_step = "required_macro"
             _validate_required_macro_mentions(body, plan.required_macro_items)
         except ValueError as exc:
             if uses_events:
                 code = str(exc).split(":", 1)[0]
-                last_cause = ValueError(
+                message = (
                     code if re.fullmatch(r"event\.[a-z_]{1,60}", code) else "event.output_invalid"
+                )
+                diagnostics = event_synthesis_diagnostics(exc)
+                if validation_step == "sections":
+                    diagnostics = ("synthesis.invalid_sections",)
+                elif validation_step == "required_macro":
+                    diagnostics = ("synthesis.required_macro_missing",)
+                last_cause = (
+                    EventSynthesisError(message, diagnostics)
+                    if diagnostics
+                    else ValueError(message)
                 )
             else:
                 last_cause = exc
