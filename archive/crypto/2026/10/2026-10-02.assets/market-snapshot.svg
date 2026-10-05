@@ -5,11 +5,13 @@
 <text class="card-title" x="80" y="118" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="48" font-weight="700">크립토 시장 스냅샷</text>
 <text class="card-subtitle" x="80" y="158" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24">2026-10-02 · 데이터 limited</text>
 <text class="card-label" x="80" y="180" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">오늘의 결론</text>
-<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">전체 가상자산 시가총액은 $2.89T로 -3.04% 하락했다. 이번 문서는 수집 근거가 제한적입니다.</text>
+<text class="card-text" x="80" y="220" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">주간 선물 포지션과 시장 전체 규모에서는 하락 쪽 신호가 관찰됐다. 이번 문서는 수집 근거가</text>
+<text class="card-text" x="80" y="258" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">제한적입니다.</text>
 <text class="card-label" x="80" y="300" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">핵심 동인</text>
-<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·Ether 선물의 순매도 포지션 — 미국 상품선물거래위원회 주간 보고서상 시카고상품거래소의</text>
-<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">차입자금 운용 주체는 Bitcoin 선물 -6,856계약, Ether 선물 -8,083계약의 순포지션을</text>
+<text class="card-text" x="80" y="340" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">BTC·ETH 선물 포지션과 가격 회복의 엇갈림 — CFTC(미국 상품선물거래위원회) 주간 보고서에서</text>
+<text class="card-text" x="80" y="378" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">CME(시카고상품거래소) 차입 활용 자금군의 순포지션은 Bitcoin -6,856계약, Ether</text>
 <text class="card-label" x="80" y="420" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="24" font-weight="700">주의할 점</text>
-<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">가격·수급의 비교 범위 현재 자료에는 상방·하방을 함께 판단할 검증된 임계조건이 부족하다.</text>
+<text class="card-text" x="80" y="460" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">시장 규모와 점유율의 조건부 비교 시장 전체 지표의 현재 시가총액 $2.91T를 비교 기준으로, 이후</text>
+<text class="card-text" x="80" y="498" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="32">스냅샷이 이를 상회하면 시장 규모 회복, 하회하면 축소 지속으로 구분하되 가격 지지선으로 해석하지 않고</text>
 <text class="card-disclaimer" x="80" y="555" font-family="&quot;Noto Sans KR&quot;, Arial, sans-serif" font-size="22">정보 제공용 시황 카드</text>
 </svg>
