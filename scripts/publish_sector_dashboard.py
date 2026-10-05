@@ -14,7 +14,8 @@ from pathlib import Path
 import httpx
 
 from investo._internal.sector_public_summary import screen_public_summary
-from investo.sector_dashboard.public_build import build_public_sector
+from investo.models.sector_public import PublicSourceIssueCode
+from investo.sector_dashboard.public_build import build_public_sector, hold_failed_public_build
 from investo.sector_dashboard.public_probe import resolve_probe_target_date
 from investo.sector_dashboard.public_render import verify_public_sector_projection
 from investo.sector_dashboard.public_store import read_public_sector_projection
@@ -27,7 +28,8 @@ async def _build() -> tuple[str, int]:
     try:
         target_date = resolve_probe_target_date(datetime.now(UTC))
     except ValueError:
-        return '{"status":"blocked","failure_codes":["source.calendar"]}', 2
+        outcome = hold_failed_public_build(_ROOT, (PublicSourceIssueCode.CALENDAR,))
+        return outcome.model_dump_json(), 2
     async with httpx.AsyncClient(
         headers={"User-Agent": YAHOO_USER_AGENT},
         timeout=httpx.Timeout(15.0, connect=5.0, read=10.0),

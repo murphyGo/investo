@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import json
 import logging
@@ -218,6 +219,48 @@ def test_output_screen_failure_never_emits_publishable_control(
         logging.disable(previous)
     assert output.read_text() == "build_status=blocked\n"
     assert "secret-output-sentinel" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("prior", ["absent", "valid", "damaged"])
+def test_unsupported_calendar_holds_verified_last_good_without_network(
+    repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    prior: str,
+) -> None:
+    initial = asyncio.run(_run(repository)) if prior != "absent" else None
+    if prior == "damaged":
+        (repository / "site_docs/sectors/index.md").write_text("damaged")
+    paths = list((repository / "site_docs").rglob("*"))
+    before = {p: p.read_bytes() for p in paths if p.is_file()}
+    module = _cli()
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz: object = None) -> datetime:
+            return datetime(2027, 1, 4, 22, tzinfo=UTC)
+
+    def forbidden_client(**kwargs: object) -> None:
+        pytest.fail("calendar failure must precede all network access")
+
+    monkeypatch.setattr(module, "datetime", Clock)
+    monkeypatch.setattr(module, "_ROOT", repository)
+    monkeypatch.setattr(module.httpx, "AsyncClient", forbidden_client)
+    previous = logging.root.manager.disable
+    try:
+        assert module.main(["--write"]) == 2
+    finally:
+        logging.disable(previous)
+    result = json.loads(capsys.readouterr().out)
+    assert "source.calendar" in result["failure_codes"]
+    if prior == "valid":
+        assert initial is not None
+        assert result["status"] == "held_last_good"
+        assert result["snapshot_id"] == initial.snapshot_id
+        assert result["as_of_date"] == _TARGET.isoformat()
+    else:
+        assert result["status"] == "blocked" and result["snapshot_id"] is None
+    assert before == {p: p.read_bytes() for p in paths if p.is_file()}
 
 
 @pytest.mark.parametrize(

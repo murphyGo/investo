@@ -65,9 +65,10 @@ class PublicBuildReport(PublicSectorBuildOutcome):
         )
 
 
-def _hold(
+def hold_failed_public_build(
     repository_root: Path, reasons: tuple[PublicFailureCode, ...]
 ) -> PublicSectorBuildOutcome:
+    """Report a failed attempt against a verified prior pair, or block if none is usable."""
     try:
         return hold_public_sector_last_good(repository_root, failure_codes=reasons)
     except (PublicSectorStoreError, OSError):
@@ -108,7 +109,9 @@ async def build_public_sector(
         if collected_ms > 120_000 or (time.process_time() - cpu_started) > 30:
             reasons.add(PublicBuildIssueCode.RESOURCE)
         if reasons:
-            outcome = _hold(repository_root, tuple(sorted(reasons | set(source_issues), key=str)))
+            outcome = hold_failed_public_build(
+                repository_root, tuple(sorted(reasons | set(source_issues), key=str))
+            )
         else:
             outcome = promote_public_sector_projection(repository_root, projection)
     except Exception as exc:
@@ -120,7 +123,7 @@ async def build_public_sector(
             if isinstance(exc, PublicProjectionError)
             else PublicBuildIssueCode.INTERNAL
         )
-        outcome = _hold(repository_root, (*source_issues, reason))
+        outcome = hold_failed_public_build(repository_root, (*source_issues, reason))
     return PublicBuildReport(
         **outcome.model_dump(),
         target_date=target_date,

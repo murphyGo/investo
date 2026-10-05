@@ -210,6 +210,14 @@ def test_private_runner_has_no_network_or_public_pipeline_import() -> None:
             # its two exact public commands are exempt from this u139 guard.
             content = content.replace("scripts/build_sector_dashboard_public.py", "")
             content = content.replace("scripts/benchmark_sector_dashboard_public.py", "")
+        if path == repository_root / ".github/workflows/sector-dashboard.yml":
+            # u145 public activation owns these exact commands; the private
+            # runner and arbitrary sector imports remain forbidden here.
+            content = content.replace("scripts/publish_sector_dashboard.py --write", "")
+            content = content.replace("scripts/publish_sector_dashboard.py --verify-only", "")
+            content = content.replace("scripts/benchmark_sector_dashboard_public.py", "")
+        if path == repository_root / ".github/workflows/pages.yml":
+            content = content.replace("scripts/publish_sector_dashboard.py --verify-only", "")
         assert "sector_dashboard" not in content
         assert "validate_sector_dashboard_private" not in content
 
