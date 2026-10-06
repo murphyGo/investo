@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-05 begin -->
+
+## 2026-10-05
+
+- [defillama-market-structure] **ticker**: DeFi TVL $96.8B; leader Ethereum
+- [theblock-crypto] **ticker**: DeFi Development sees NAV per share more than doubling, holds 2.56 million SOL
+
+<!-- u33 entry 2026-10-05 end -->
 <!-- u33 entry 2026-10-02 begin -->
 
 ## 2026-10-02

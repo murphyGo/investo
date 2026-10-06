@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-05 begin -->
+
+## 2026-10-05
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6856 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,926,097,973,992; BTC dominance 58.68%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $554,115,020 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000055069537490 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Metaplanet sold 10,000 BTC in Q3 before buying back 11,000 BTC to ‘demonstrate liquidity’
+- [theblock-crypto] **ticker**: Strive adds 2,000 bitcoin in biggest buy since June, closes in on MARA
+- [theblock-crypto] **ticker**: ‘More orange than ever’: Michael Saylor’s Strategy buys 334 bitcoin for $28.7 million as total holdings top 848,000 BTC
+
+<!-- u33 entry 2026-10-05 end -->
 <!-- u33 entry 2026-10-02 begin -->
 
 ## 2026-10-02
