@@ -2,6 +2,16 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-06 begin -->
+
+## 2026-10-06
+
+- [yfinance-price] **ticker**: GOOGL 347.68 (+0.35%)
+- [yonhap-market] **ticker**: "구글, 콘스텔레이션과 10억달러 전력구매계약 임박"
+- [yonhap-market] **ticker**: FT "월가, 사상 최대 AI칩 대출자산 매각 착수"
+- [yonhap-market] **ticker**: 리플렉션AI, 첫 오픈소스 AI 모델 '빔' 공개
+
+<!-- u33 entry 2026-10-06 end -->
 <!-- u33 entry 2026-10-05 begin -->
 
 ## 2026-10-05
