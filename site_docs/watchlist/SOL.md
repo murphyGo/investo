@@ -2,6 +2,15 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-07 begin -->
+
+## 2026-10-07
+
+- [defillama-market-structure] **ticker**: DeFi TVL $93.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Jito’s JTX plans mobile app this fall, eyes perps integration later this winter
+- [theblock-crypto] **ticker**: Solana’s Orca merges with Loopscale in push to finance AI, robotics and defense
+
+<!-- u33 entry 2026-10-07 end -->
 <!-- u33 entry 2026-10-06 begin -->
 
 ## 2026-10-06

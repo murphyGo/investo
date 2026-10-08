@@ -2,6 +2,19 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-07 begin -->
+
+## 2026-10-07
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6856 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,848,737,874,121; BTC dominance 58.69%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $574,865,620 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0001000000000000 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Bitcoin briefly slides below $84,000 as crypto long liquidations reach $487 million
+- [theblock-crypto] **ticker**: Grayscale says crypto ETF market is entering new phase as Zcash ETF tops $1 billion
+- [theblock-crypto] **ticker**: Robinhood adds $25 million worth of bitcoin to balance sheet as it deepens crypto push
+
+<!-- u33 entry 2026-10-07 end -->
 <!-- u33 entry 2026-10-06 begin -->
 
 ## 2026-10-06

@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-07 begin -->
+
+## 2026-10-07
+
+- [defillama-market-structure] **ticker**: DeFi TVL $93.4B; leader Ethereum
+- [theblock-crypto] **ticker**: Ethereum researcher Justin Drake calls for ‘bunker mode’ planning over private key recovery risk
+
+<!-- u33 entry 2026-10-07 end -->
 <!-- u33 entry 2026-10-06 begin -->
 
 ## 2026-10-06
