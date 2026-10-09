@@ -1,7 +1,7 @@
 # 뉴스·이벤트 중심 시황 개발 설계
 
 **Date**: 2026-09-26
-**Status**: u157–u162와 필수u152 개발·main 통합 완료. 1bb7d23c exact-CI6187 PASS. 운영 shadow의 실제 예약 관찰5/5회(4정상·1부분 발행)를 확인했다. 사람 의미 검수·뉴스 풍부한 날 baseline·실제 사건이 포함된 v2 수용은 pending이며 사건 본문 active는 아직 off다. 미리보기 보정269a15dc가 exact-CI6197을 통과했고 비공개 배포d432c4a를 확인했다. 실제 국내5·미국3사건이 봉인 본문에 보존됐으며 모두 상세근거 제한 상태다. 코인은 synthesis3회 후 event.entity_unsupported로 차단됐다. 사람 검수·뉴스 풍부한 날 baseline 및 운영 수용은 pending이다. 동시u155 저장소 이름 변경 중에는 예약 실행도 일시 중지된다(09:54UTC 스냅샷). 현재 증거: `docs/sessions/2026-10-09-news-event-rollout.md`.
+**Status**: u157–u162와 필수u152 개발·main 통합 완료. 사용자 재승인에 따라 2026-10-09 23:47:50 KST 국내·미국 사건 중심 시황을 운영 활성화했다. 운영 pin `7bc6d287` exact CI6211 PASS, 비공개 daily active·공개 daily disabled 및 event mode active를 재조회했다. 실제 미리보기는 국내5·미국2 사건 보존, 모두 상세근거 제한 상태다. 코인은 synthesis3/event.narrative_invalid 실패로 기존 shadow/v1을 유지한다. 뉴스 기간은 shadow, 신규 공식 본문 HTTP는 off다. 예약 shadow 관찰은5/5회 완료, 첫 active 발행 관찰은0/3회이며 사람 의미 검수·뉴스 풍부한 날 baseline은 pending이다. 다음 예약은10월10일09:00KST. 현재 증거: [운영 전환 기록](../../../docs/sessions/2026-10-09-event-active-rollout.md).
 **Baseline**: `04978d81ec9ece8f4083e4be190c6539bdf3b5ff` (origin/main).
 **Source**: 사용자 “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
 
@@ -25,12 +25,12 @@
 
 | 유닛 | 책임 | Hard dependency | 구현 및 운영 상태 |
 |---|---|---|---|
-| u157 event-evidence-selection-contract | 사건 모델·선정·입력 보존 | 기존 u58/u59/u93/u97 완료 | 코드 완료, 운영 shadow 연결, active off |
-| u158 event-first-narrative-and-summary | 사건 설명·요약·terminal projection | u157 | 코드 완료, preview ready, 운영 active off |
-| u159 event-coverage-replay-and-gate | 최종 반영 검증·평가셋 | u157/u158 | 코드 완료, 사람 의미 수용 pending, active off |
+| u157 event-evidence-selection-contract | 사건 모델·선정·입력 보존 | 기존 u58/u59/u93/u97 완료 | 코드 완료, 국내·미국 active, 코인 shadow/v1 |
+| u158 event-first-narrative-and-summary | 사건 설명·요약·terminal projection | u157 | 코드 완료, 국내·미국 active, 코인 shadow/v1 |
+| u159 event-coverage-replay-and-gate | 최종 반영 검증·평가셋 | u157/u158 | 코드 완료, 국내·미국 active, 사람 의미 수용 pending |
 | u160 publication-news-observation-window | 거래일과 별도 뉴스기간·cursor 원자성 | u157 공통 발행 확인 기반; 기존 u113/u144 완료 | 코드 완료, 운영 shadow 연결, cursor active off |
 | u161 bounded-official-event-evidence | 기존 피드 복구 판정·공식 근거 보강 | 보강 런타임은 u157; 자격검증은 독립 | 코드 완료, 신규 본문 HTTP off, 소스별 자격검증 유지 |
-| u162 qualitative-event-watchpoints | 사건 상태 기반 관전 포인트 | u157/u158/u152 | 코드 완료, u152 통합 완료, active 수용 pending |
+| u162 qualitative-event-watchpoints | 사건 상태 기반 관전 포인트 | u157/u158/u152 | 코드 완료, u152 통합 및 국내·미국 active, 운영 수용 pending |
 
 u156은 별도 로컬 `codex/u156-telegram-narrative-first-digest` 브랜치 이름을 예약된 작업으로 존중하여 사용하지 않는다. 해당 ref에는 계획/구현이 없어 완료 상태를 추정하지 않는다.
 

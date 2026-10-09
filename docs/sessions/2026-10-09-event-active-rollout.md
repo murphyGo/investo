@@ -24,7 +24,7 @@
 - [x] 집중 회귀, 정적 검사, 독립 코드 검토를 통과한다.
 - [x] 정확한 main 코드의 전체 CI를 확인한다.
 - [x] private 비게시 preview에서 수정 결과를 확인한다. 국내·미국은 성공, 코인은 실패로 유지한다.
-- [ ] 운영 pin과 사건 mode를 전환하고 실제 설정을 재조회한다.
+- [x] 운영 pin과 사건 mode를 전환하고 실제 설정을 재조회한다.
 - [ ] 첫 3회 active 예약 실행의 실제 게시·알림·Pages를 별도로 관찰한다.
 
 이미 완료된 예약 shadow 관찰은 5/5회(4성공,1부분)다. 수동 실행으로 예약 관찰을 대체하지 않는다. frozen12와 뉴스 풍부한 날 baseline은 후속 품질 수용 항목으로 계속 추적하며 자동 평가/이번 출시 승인으로 채점하지 않는다. 첫 3회 active 발행 관찰도 실제 확보한 횟수만 기록한다. DEBT-090 성능 목표 완료는 주장하지 않는다.
@@ -33,7 +33,7 @@
 
 ## 정확한 코드와 실제 미리보기
 
-최종 코드 `eea56bd0409d69f7d583a75a83ac5f4d1cbe0623`를 main에 푸시하고 원격 SHA를 확인했다. 동시 추가된 u163–u166 기획 `31bb9521`은 보존했다. 합친 트리에서도 집중117/7.80초와 strict docs/Material를 다시 통과했고 실행 코드의 변경 없음도 확인했다. exact-SHA [CI37937417645](https://github.com/murphyGo/investo/actions/runs/37937417645)는 **6207개/316.94초**, Ruff/format669/mypy290과 모든 policy/docs gate를 통과했다.
+프롬프트 보정 코드 `eea56bd0409d69f7d583a75a83ac5f4d1cbe0623`를 main에 푸시하고 원격 SHA를 확인했다. 동시 추가된 u163–u166 기획 `31bb9521`은 보존했다. 합친 트리에서도 집중117/7.80초와 strict docs/Material를 다시 통과했고 실행 코드의 변경 없음도 확인했다. exact-SHA [CI37937417645](https://github.com/murphyGo/investo/actions/runs/37937417645)는 **6207개/316.94초**, Ruff/format669/mypy290과 모든 policy/docs gate를 통과했다.
 
 Private [미리보기37937493974](https://github.com/murphyGo/automation-runtime/actions/runs/37937493974)는 `REVIEWED_EVENT_PREVIEW_SHA`를 같은 코드로 고정하고 target2026-10-08로 실행했다. 공개 게시 없이 암호화 산출물을 받아 로컬에서 복호화하고 SHA256을 대조한다.
 
@@ -59,7 +59,25 @@ Private [미리보기37937493974](https://github.com/murphyGo/automation-runtime
 
 시장 제한은 production orchestrator의 config 해석 경계다. 명시적으로 구성한 low-level generator/replay의 v2 능력을 제거하지 않는다. 기존 세 시장 전체 v2 frozen-window replay 검사는 해당 테스트에서만 전체 시장을 허용해 기존 범위를 보존한다. 새 혼합 회귀는 실제 config/생성 adapter/비참여 시장의 원문 입력/real finalizer/원격 확인 후 coverage·receipt를 검증한다.
 
-단계 활성화 후속 집중 회귀는 **255개/73.55초** 통과했다. 독립 검토는 초기39통과/1fixture불일치를 찾아 테스트 범위의 의미를 보존해 수정했고, 해당 replay와 신규 혼합4개를 다시 실행해5개/2.21초 통과, CLOSED/P1·P2 없음으로 종료했다. Ruff/format670/mypy290와 diff 검사도 통과했다. 최종 전체 CI와 운영 설정 조회는 다음 실행 단계다.
+단계 활성화 후속 집중 회귀는 **255개/73.55초** 통과했다. 독립 검토는 초기39통과/1fixture불일치를 찾아 테스트 범위의 의미를 보존해 수정했고, 해당 replay와 신규 혼합4개를 다시 실행해5개/2.21초 통과, CLOSED/P1·P2 없음으로 종료했다. Ruff/format670/mypy290와 diff 검사도 통과했다. 최종 전체 CI와 운영 설정 조회도 아래와 같이 완료했다.
+
+## 실제 운영 활성화
+
+2026-10-09 **14:47:50 UTC / 23:47:50 KST**에 `murphyGo/automation-runtime`의 `INVESTO_EVENT_BRIEFING_MODE=active`를 저장하고 재조회했다. 5초 앞서 `REVIEWED_CODE_SHA`를 전체 검증된 `7bc6d28793fdefc19d78652bdc3fd1cb25f87c7f`로 먼저 변경했다. 전환 직전 다른 실행은 없었고 기존 pin `ca0ef610`과 shadow 기본값을 확인했다.
+
+| 항목 | 재조회한 운영 상태 |
+|---|---|
+| 국내·미국 사건 본문 | active — 검증된 코드의 시장별 설정 적용 |
+| 코인 사건 본문 | shadow/v1 — 실제 narrative 실패로 v2 승격 제외 |
+| 뉴스 관찰 기간 / 공식 본문 HTTP | shadow 기본값 / off |
+| 비공개 daily / production gate | active / `CODEX_PRODUCTION_ENABLED=1` |
+| 공개 daily | disabled_manually — 중복 owner 없음 |
+| 별도 preview pin | `eea56bd0` — 실제 미리보기 결과와 일치 |
+| 다음 예약 시각 | 2026-10-10 00:00 UTC / 09:00 KST (`0 0 * * 6`) |
+
+운영 코드의 [CI37940803779](https://github.com/murphyGo/investo/actions/runs/37940803779)는 **6211개/327.34초**, Ruff/format670/mypy290, policy/docs/Material 전체 PASS다. 해당 SHA의 main 조상을 확인했고, 별도 u163 `756c4e3f`·u164 `60ef00ec` 변경은 문서 통합 시 보존했다. 이 두 후속 코드 변경은 이번 운영 pin에는 포함하지 않는다. 운영 기록의 후속 문서 커밋으로 검증된 pin을 움직이지 않는다.
+
+활성 설정과 예약 연결은 완료했다. **첫 active 예약 발행 관찰은 0/3회**이며 게시·Telegram·Pages 성공은 아직 확인 전이다. 기존 날짜를 수동 재발행해 관찰 횟수를 채우지 않았다. frozen12 사람 검수, 뉴스 풍부한 날 baseline, 코인 v2 승격은 미완료다. 운영 전환 승인을 이 항목들의 통과로 기록하지 않는다.
 
 ## 복구
 
