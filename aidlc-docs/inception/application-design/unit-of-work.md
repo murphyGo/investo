@@ -2778,3 +2778,62 @@ investo/                           # repo root
 | (cross-unit) | tests/integration/test_pipeline.py | 모든 외부 호출 | — |
 
 LLM 호출은 `tests/fixtures/llm/`의 record/replay 데이터로 결정성 보장.
+
+## u163–u166: Source Reliability and Partial Publication (2026-10-09)
+
+Evidence: [25 executed runs /44 sources](../../construction/source-reliability-20261009/review.md). Planning only; designs are drafts and implementation is not started. Source degradation and terminal partial publication are separate measures.
+
+### u163: `terminal-numeric-emphasis-containment`
+
+**Purpose**: Repair split numeric emphasis while preserving values and usable market segments.
+**Coverage**: US-002/003/004/005/007; FR-002/003/004/008/010; NFR-003/005/006/R13.
+**Ownership / paths**: u112/u144; `src/investo/_internal/surface_quality.py`, finalizer integration and scoped tests. Preserve u149 content gates/u150 link protection.
+**Definition of Done**:
+- [ ] Split-sign/currency/percent repair preserves all numeric tokens; ambiguous cases stay blocked.
+- [ ] Protected content, real full/partial bundles, summaries and independent trust gates pass.
+- [ ] Repeated processing is idempotent; local and10-run operations acceptance recorded separately.
+**Stage**: FD draft; NFR reuse; Code Generation0/6.
+**Design**: [u163](../../construction/u163-terminal-numeric-emphasis-containment/design-brief.md).
+**Plan**: [u163 code](../../construction/plans/u163-terminal-numeric-emphasis-containment-code-generation-plan.md).
+
+### u164: `crypto-price-time-basis-repair`
+
+**Purpose**: Preserve valid current snapshots with real as-of while excluding future prices from historical replay.
+**Coverage**: US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008.
+**Ownership / paths**: u1/u54/u70/u95/u144/u152; CoinGecko/window/aggregator, orchestrator clock/override, located price/snapshot/watchpoint/public consumers. Distinct from u138 US lifecycle.
+**Definition of Done**:
+- [ ] Current scheduled snapshots retain as-of/lookup-time label; historical replay excludes future prices.
+- [ ] Missing fields never0-fill; actual core freshness and44-source parity remain correct.
+- [ ] Optional free key and candidates qualify before activation; no paid/silent provider fallback.
+- [ ] Local checks pass; three-coin usable9/10 and labels10/10 scheduled acceptance recorded separately.
+**Stage**: FD/NFR draft; Code Generation0/7; historical/new provider integration deferred.
+**Design**: [u164](../../construction/u164-crypto-price-time-basis-repair/design-brief.md).
+**Plan**: [u164 code](../../construction/plans/u164-crypto-price-time-basis-repair-code-generation-plan.md).
+
+### u165: `source-lifecycle-and-failure-truth`
+
+**Purpose**: Stop permanent broken requests explicitly and distinguish skipped, genuine zero and swallowed errors.
+**Coverage**: US-001/005/007/008; FR-001/006/007/017/021; NFR-001/002/003/005/006/007/008.
+**Ownership / paths**: u1/u22/u31/u54/u102/u161 operational follow-up; coverage DTO/SourceSpec/aggregator, Naver/BEA, history/ops/public consumers and workflow config.
+**Definition of Done**:
+- [ ] Inactive sources make no calls and emit skipped+reason; invalid overrides fail before I/O.
+- [ ] All-child failures are failed, valid empty is zero, siblings survive; BEA adapter≤60s.
+- [ ] Historic records load; skip cannot create core health/successful observed-news receipts.
+- [ ] Local/R13 checks pass; deactivation and provider recovery remain separate.
+**Stage**: FD/NFR draft; Code Generation0/8; no new provider adapter.
+**Design**: [u165](../../construction/u165-source-lifecycle-and-failure-truth/design-brief.md).
+**Plan**: [u165 code](../../construction/plans/u165-source-lifecycle-and-failure-truth-code-generation-plan.md).
+
+### u166: `domestic-price-source-qualification`
+
+**Purpose**: Diagnose indexzero and select replacements with verified free/public-use/date evidence.
+**Coverage**: US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008.
+**Ownership / paths**: u36/u67/u138/u148/u149, DEBT-068; FSC index adapter, private schema replay, coverage/domestic projection tests and qualification evidence.
+**Definition of Done**:
+- [ ] Authorized response identifies exact zero cause using bounded row/match/schema/date diagnostics/60s budget.
+- [ ] Delay/calendar/name/schema/API outcomes differ; keys/restricted rawvalues remain private.
+- [ ] No unqualified public fallback/stale promotion; ship/defer/reject facts explicit.
+- [ ] Local checks/limits recorded; source gate and DEBT-068 remain open if no replacement qualifies.
+**Stage**: FD/NFR draft; Code Generation0/6; public replacement source-gated.
+**Design**: [u166](../../construction/u166-domestic-price-source-qualification/design-brief.md).
+**Plan**: [u166 code](../../construction/plans/u166-domestic-price-source-qualification-code-generation-plan.md).

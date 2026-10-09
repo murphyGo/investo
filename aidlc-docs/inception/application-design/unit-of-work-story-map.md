@@ -638,3 +638,14 @@ The earlier design-ready snapshot is superseded: u152 FD and 6/6 code steps are 
 ## u162 completion (2026-10-04)
 
 Source-backed qualitative current state and next checks now compose with the existing numeric baseline. Six steps/five ACs pass; event removal updates cards and summary before seal and preserves exact repeat output. Independent source-locator and HTML-visibility P2 corrections closed. Full6087/460.18s; no new I/O, LLM stage or default activation. See `aidlc-docs/construction/u162-qualitative-event-watchpoints/code/validation.json`.
+
+## u163–u166 — Source Reliability and Partial Publication (2026-10-09)
+
+| Unit | User-visible problem | Stories / requirements | Ownership / priority |
+| --- | --- | --- | --- |
+| u163 terminal-numeric-emphasis-containment | Numeric emphasis drops a generated market briefing | US-002/003/004/005/007; FR-002/003/004/008/010; NFR-003/005/006/R13 | u112/u144, u149/u150 boundaries; P0-1 |
+| u164 crypto-price-time-basis-repair | Valid current crypto price disappears in a prior-day window | US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008 | u1/u54/u70/u95/u144/u152; P0-2 |
+| u165 source-lifecycle-and-failure-truth | Broken feeds recur while swallowed errors masquerade as zero | US-001/005/007/008; FR-001/006/007/017/021; NFR-001/002/003/005/006/007/008 | u1/u22/u31/u54/u102/u161 operational follow-up; P1-1 |
+| u166 domestic-price-source-qualification | Official indices have no usable values and replacement rights are unresolved | US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008 | u36/u67/u138/u148/u149, DEBT-068; P1-2 |
+
+Evidence: `aidlc-docs/construction/source-reliability-20261009/review.md`. Four of25 terminal partial runs were numeric-emphasis; crypto data-limited24/25 is separate. Four designs/plans registered as drafts, no approval/implementation/rollout inferred. Candidate Binance/Coinbase/history/BOK and domestic public rights remain explicit qualification gates. Preserve event/cursor/sector gates. Before rollout recheck renamed private owner/enable/reviewed execution pin; public main integration alone does not update that pin.

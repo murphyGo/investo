@@ -1,0 +1,6920 @@
+{
+  "audited_at": "2026-10-09",
+  "base_sha": "269a15dc6753d48ba6f58f0834401400379244a5",
+  "runs": [
+    {
+      "run_id": 34791235731,
+      "target_date": "2026-09-11",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.299
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.874
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.25
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 3.329
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.608
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.805
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.413
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.199
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.626
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 1.21
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.296
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.295
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 2.053
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.514
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.55
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.235
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.566
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 1.165
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.217
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.663
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.872
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.21
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.881
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.358
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.611
+        },
+        "krx-foreign-flows": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.872
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 14,
+          "elapsed_s": 1.398
+        },
+        "nasdaq-stocks-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.429
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.083
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.662
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.566
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.412
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.545
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.707
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 37,
+          "elapsed_s": 1.209
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.472
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.288
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.226
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 20.064
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.321
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.314
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.344
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.519
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 76,
+          "elapsed_s": 2.297
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/34791235731",
+      "hidden_market_request_http_410": 0
+    },
+    {
+      "run_id": 34913048177,
+      "target_date": "2026-09-14",
+      "pipeline_status": "partial",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "trust_blocked",
+          "codes": "markdown.broken_numeric_bold"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.164
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.41
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.109
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.816
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.22
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.458
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.208
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.826
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.276
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.852
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.117
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.118
+        },
+        "dart-disclosure": {
+          "status": "failed",
+          "reason": "budget_exhausted",
+          "elapsed_s": 60.02
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.251
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.298
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.226
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.14
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 0.824
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.15
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.256
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.258
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.858
+        },
+        "fsc-krx-index-price": {
+          "status": "failed",
+          "reason": "network_error",
+          "elapsed_s": 41.052
+        },
+        "fsc-krx-stock-price": {
+          "status": "failed",
+          "reason": "network_error",
+          "elapsed_s": 41.061
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "budget_exhausted",
+          "elapsed_s": 60.027
+        },
+        "krx-foreign-flows": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.59
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.886
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.153
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.24
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.951
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.41
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.432
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.02
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.505
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 37,
+          "elapsed_s": 0.195
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.05
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 14,
+          "elapsed_s": 0.857
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.41
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.755
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.129
+        },
+        "yahoo-finance-news": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.85
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.846
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.0
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 94,
+          "elapsed_s": 2.187
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/34913048177",
+      "hidden_market_request_http_410": 0
+    },
+    {
+      "run_id": 35038368459,
+      "target_date": "2026-09-15",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.292
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.043
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.455
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 3.099
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.574
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.725
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.361
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 4.981
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.627
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.137
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.137
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.211
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 2.038
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.48
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.381
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.223
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.568
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 17,
+          "elapsed_s": 1.142
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.193
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 5.436
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 7.534
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 4.429
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.503
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 8.048
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.586
+        },
+        "krx-foreign-flows": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.823
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.285
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 1.434
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.925
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.627
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.557
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.957
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.556
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 6.175
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 0.245
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.466
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 0.318
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.649
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 17.548
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.199
+        },
+        "yahoo-finance-news": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.288
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.676
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.209
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 101,
+          "elapsed_s": 2.366
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35038368459",
+      "hidden_market_request_http_410": 0
+    },
+    {
+      "run_id": 35165698318,
+      "target_date": "2026-09-16",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.353
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.542
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.967
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.7
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.407
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.609
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.173
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.932
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.377
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.291
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.214
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.24
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 29,
+          "elapsed_s": 2.768
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.046
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.26
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.348
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.32
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 17,
+          "elapsed_s": 0.861
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.283
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 3.607
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 8.308
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.279
+        },
+        "fsc-krx-index-price": {
+          "status": "failed",
+          "reason": "network_error",
+          "elapsed_s": 41.049
+        },
+        "fsc-krx-stock-price": {
+          "status": "failed",
+          "reason": "network_error",
+          "elapsed_s": 41.049
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "budget_exhausted",
+          "elapsed_s": 60.022
+        },
+        "krx-foreign-flows": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.888
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 22,
+          "elapsed_s": 2.339
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 1.339
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.788
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.608
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.544
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.976
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.454
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.21
+        },
+        "sec-edgar-8k": {
+          "status": "failed",
+          "reason": "budget_exhausted",
+          "elapsed_s": 60.018
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.273
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 0.358
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.888
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.8
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 0.898
+        },
+        "yahoo-finance-news": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.879
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.18
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.837
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 92,
+          "elapsed_s": 2.01
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35165698318",
+      "hidden_market_request_http_410": 0
+    },
+    {
+      "run_id": 35289272257,
+      "target_date": "2026-09-17",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": false
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.147
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.476
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.158
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.58
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.429
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.682
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.401
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 4.696
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.544
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 1.154
+        },
+        "coingecko-price": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.036
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 6.947
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 22,
+          "elapsed_s": 3.681
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.428
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 3.16
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.181
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.951
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 1.014
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.137
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 16.417
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 19.012
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 16.559
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 5.363
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.636
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.79
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.783
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 3.238
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 4.201
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.844
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.417
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.552
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.201
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.524
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.602
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 1.599
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.334
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 14,
+          "elapsed_s": 1.074
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.442
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 17.397
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.185
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.247
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.927
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 3.07
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 102,
+          "elapsed_s": 2.708
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35289272257",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 35419512390,
+      "target_date": "2026-09-18",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.166
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.521
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.171
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.524
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.421
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.853
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.421
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.782
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.521
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 1.011
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.159
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.166
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 3.342
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.446
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.44
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.159
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.225
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 0.972
+        },
+        "fomc-rss": {
+          "status": "failed",
+          "reason": "http_404",
+          "elapsed_s": 0.144
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.458
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.458
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.011
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.784
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.84
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.65
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.835
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.173
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 1.161
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.761
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.478
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.564
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.51
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.321
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.542
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 3.33
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.313
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.01
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.025
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.395
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.105
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.047
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.529
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.215
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 103,
+          "elapsed_s": 2.486
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35419512390",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 35546222225,
+      "target_date": "2026-09-18",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.28
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.508
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.798
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.741
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.189
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.353
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.28
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.192
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.288
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.112
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.25
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 31.285
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 1.566
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.974
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 5.356
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.772
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.173
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 0.738
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.211
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 10.464
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 9.267
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 5.598
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 6.185
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.884
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.189
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.449
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.211
+        },
+        "nasdaq-stocks-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.214
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.783
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.173
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.17
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.175
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.444
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.881
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 0.765
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.101
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 0.278
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 2.189
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.632
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 0.783
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.894
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.382
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.709
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 80,
+          "elapsed_s": 1.854
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35546222225",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 35672856348,
+      "target_date": "2026-09-21",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.188
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.518
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.188
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.663
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.46
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.694
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.359
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.848
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.488
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.188
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.19
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.189
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 23,
+          "elapsed_s": 3.375
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.453
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.712
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.215
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.221
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 1.022
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.162
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.467
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.495
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.491
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.764
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 3.199
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.626
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.745
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.122
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.193
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.663
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.533
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.575
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.812
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.406
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.848
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 40,
+          "elapsed_s": 1.517
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.207
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 0.187
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.06
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.723
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.077
+        },
+        "yahoo-finance-news": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.2
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.52
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.323
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 88,
+          "elapsed_s": 3.027
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35672856348",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 35800905646,
+      "target_date": "2026-09-22",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.166
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.512
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.22
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.944
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.634
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.745
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.429
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.761
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.524
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.109
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.178
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.177
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 24,
+          "elapsed_s": 3.369
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.47
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.643
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.984
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.234
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 0.971
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.154
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.584
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 2.113
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.029
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.949
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.661
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.459
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.002
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 1.199
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.212
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.853
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.637
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.548
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.797
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.361
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.116
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 1.044
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.241
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 13,
+          "elapsed_s": 1.016
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.029
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 17.455
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.119
+        },
+        "yahoo-finance-news": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.055
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.567
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.567
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 97,
+          "elapsed_s": 2.415
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35800905646",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 35937884343,
+      "target_date": "2026-09-23",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.266
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.419
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.297
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.995
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.102
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.282
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.916
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.068
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.119
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.1
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.196
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.204
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 1.573
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.043
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.974
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.285
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.024
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 14,
+          "elapsed_s": 0.757
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.16
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.182
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.343
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.773
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.28
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.263
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.211
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.333
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 21,
+          "elapsed_s": 3.215
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.209
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.592
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.124
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.134
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.609
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.006
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.903
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 36,
+          "elapsed_s": 1.555
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.029
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.21
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.792
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.547
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.785
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.327
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.759
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.624
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 96,
+          "elapsed_s": 1.778
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/35937884343",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36077210188,
+      "target_date": "2026-09-24",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.27
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.609
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.094
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 3.123
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.262
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.491
+        },
+        "cboe-volatility-indices": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.399
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.458
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.363
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.117
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.199
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.232
+        },
+        "dart-disclosure": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.531
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.23
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.289
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.3
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.367
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 13,
+          "elapsed_s": 0.976
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.182
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.411
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.445
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.411
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.7
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.49
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.271
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.547
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 2.156
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 3.315
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 3.115
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.411
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.737
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.889
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.183
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.627
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 39,
+          "elapsed_s": 1.023
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.36
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 0.263
+        },
+        "treasury-auctions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.011
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.955
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.037
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.102
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.12
+        },
+        "yonhap-index-close": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.162
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 2.097
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36077210188",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36216947696,
+      "target_date": "2026-09-25",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.894
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.502
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.915
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.678
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.386
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.601
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.948
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.91
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.341
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.184
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.184
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.202
+        },
+        "dart-disclosure": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.366
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.999
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 6.467
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.857
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.302
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 22,
+          "elapsed_s": 0.842
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.237
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.146
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.226
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.226
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.07
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.681
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.344
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.758
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 3.89
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.982
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.673
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.433
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.476
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.995
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.429
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 5.092
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 40,
+          "elapsed_s": 1.046
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.31
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.978
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.363
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.083
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.112
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.971
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.401
+        },
+        "yonhap-index-close": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.97
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 1.846
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36216947696",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36362203944,
+      "target_date": "2026-09-25",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.183
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.433
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.239
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.32
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.45
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.698
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.167
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.7
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.431
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.108
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.182
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.182
+        },
+        "dart-disclosure": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.702
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.386
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.461
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.202
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.338
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 22,
+          "elapsed_s": 1.015
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.157
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.032
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.045
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.08
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.237
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 3.146
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.558
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.814
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 12,
+          "elapsed_s": 3.236
+        },
+        "nasdaq-stocks-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.319
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.617
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.48
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.534
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.594
+        },
+        "house-financial-services-policy": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.305
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.85
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 40,
+          "elapsed_s": 1.08
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.312
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.064
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.094
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.432
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.187
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.108
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.412
+        },
+        "yonhap-index-close": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.298
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 2.113
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36362203944",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36508936990,
+      "target_date": "2026-09-28",
+      "pipeline_status": "partial",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "trust_blocked",
+          "codes": "markdown.broken_numeric_bold"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.16
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.38
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.215
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.545
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.417
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.82
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.215
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.017
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.378
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.128
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.036
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.036
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 26,
+          "elapsed_s": 3.248
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.321
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.633
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.171
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.22
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 23,
+          "elapsed_s": 1.009
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.151
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.244
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 2.253
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.519
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.202
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.803
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.549
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.775
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 19,
+          "elapsed_s": 2.172
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 4.058
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.714
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.59
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.572
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.748
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.26
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.822
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 1.977
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.394
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.165
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.59
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 20.25
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.343
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.178
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.54
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.538
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 78,
+          "elapsed_s": 2.525
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36508936990",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36653801286,
+      "target_date": "2026-09-29",
+      "pipeline_status": "partial",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "trust_blocked",
+          "codes": "markdown.broken_numeric_bold"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.191
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.266
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.997
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.546
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.188
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.373
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.005
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.874
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.191
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.834
+        },
+        "coingecko-price": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.16
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.16
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 3.155
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.151
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.311
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.856
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.088
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 23,
+          "elapsed_s": 0.808
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.203
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.312
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.673
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.848
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.955
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.113
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.347
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.54
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 14,
+          "elapsed_s": 2.985
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 4.007
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.868
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.182
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.755
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.465
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.078
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.86
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 39,
+          "elapsed_s": 0.847
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.1
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 0.972
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.278
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.436
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 1.124
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.988
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.544
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.389
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 72,
+          "elapsed_s": 2.379
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36653801286",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36799716538,
+      "target_date": "2026-09-30",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.176
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.296
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.924
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.484
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.139
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.338
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.959
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.811
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.171
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.143
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.162
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.162
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 2.905
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.034
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.973
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.227
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.056
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 20,
+          "elapsed_s": 0.82
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.153
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.478
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 1.496
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.832
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.964
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.412
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.483
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.573
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 17,
+          "elapsed_s": 3.956
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 3.445
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.291
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.13
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.627
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.092
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.124
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 5.338
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 0.995
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.136
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 12,
+          "elapsed_s": 0.91
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.387
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.123
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.067
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.956
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.397
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.889
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 79,
+          "elapsed_s": 2.189
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36799716538",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 36951035249,
+      "target_date": "2026-10-01",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.158
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.346
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.978
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.221
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.161
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.352
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.017
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.699
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.186
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.186
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.157
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.14
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 3.242
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.143
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 5.133
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.226
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.071
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 20,
+          "elapsed_s": 0.799
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.163
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.694
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.694
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.225
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.24
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.503
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 2.041
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.699
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 3.194
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 3.204
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.383
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.143
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.334
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.694
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.114
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.949
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 39,
+          "elapsed_s": 1.141
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.16
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.832
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 0.85
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.96
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.864
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.841
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.264
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.558
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 70,
+          "elapsed_s": 2.102
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/36951035249",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37096514850,
+      "target_date": "2026-10-02",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.161
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.17
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.645
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.384
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.979
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.198
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.67
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.397
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.96
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.151
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.161
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.137
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 2.472
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.5
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.913
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.596
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.869
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 13,
+          "elapsed_s": 0.571
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 0.136
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.923
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 0.963
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.591
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.472
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.848
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "malformed_xml",
+          "elapsed_s": 1.084
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.54
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.661
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.608
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.531
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.23
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.046
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.96
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.914
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.393
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 36,
+          "elapsed_s": 0.758
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.016
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.591
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.102
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 17.848
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.784
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.736
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.135
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.566
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 107,
+          "elapsed_s": 1.563
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/37096514850",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37208127537,
+      "target_date": "2026-10-02",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.17
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.718
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.657
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.458
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.558
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.73
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.693
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.996
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.487
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.214
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.612
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.612
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 2.601
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.71
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 0.887
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.617
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.489
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 13,
+          "elapsed_s": 0.604
+        },
+        "fomc-rss": {
+          "status": "failed",
+          "reason": "http_404",
+          "elapsed_s": 0.211
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.122
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.082
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.158
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.689
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.119
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 6.248
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.718
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 3.272
+        },
+        "nasdaq-stocks-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.672
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.786
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.564
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.437
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.609
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.384
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.154
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 36,
+          "elapsed_s": 0.811
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.556
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.677
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.091
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.917
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.846
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.669
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.296
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.846
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 83,
+          "elapsed_s": 2.042
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "public_daily",
+      "repository_at_run": "murphyGo/investo",
+      "workflow_run_url": "https://github.com/murphyGo/investo/actions/runs/37208127537",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37209545723,
+      "target_date": "2026-10-02",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.745
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.46
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.695
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.415
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.529
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.705
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.714
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.848
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.424
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.101
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.091
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.132
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 2.682
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 0.728
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 0.994
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.621
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.371
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 13,
+          "elapsed_s": 0.604
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 0.125
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.428
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.462
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.918
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.008
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.034
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 6.808
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.302
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 3.708
+        },
+        "nasdaq-stocks-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.704
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.661
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.496
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.674
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.319
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.318
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 3.897
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 36,
+          "elapsed_s": 0.753
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.364
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 0.71
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.062
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.156
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 0.761
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.736
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.379
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.108
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 83,
+          "elapsed_s": 2.135
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "private_codex",
+      "repository_at_run": "murphyGo/investo-runtime",
+      "workflow_run_url": "https://github.com/murphyGo/investo-runtime/actions/runs/37209545723",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37248296267,
+      "target_date": "2026-10-02",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.133
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.215
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.122
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 3.437
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.412
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.603
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.184
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.623
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.395
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 1.04
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.152
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.193
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 30,
+          "elapsed_s": 3.145
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.229
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.607
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.211
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.23
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 13,
+          "elapsed_s": 1.021
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 0.183
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.431
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.475
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.04
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 5.06
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.841
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 6.93
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.764
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 3.147
+        },
+        "nasdaq-stocks-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.167
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.588
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.423
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.646
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.045
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.456
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 6.461
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 36,
+          "elapsed_s": 1.199
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.264
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 1.164
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.589
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.375
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.182
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.157
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.408
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.356
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 71,
+          "elapsed_s": 2.351
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "private_codex",
+      "repository_at_run": "murphyGo/investo-runtime",
+      "workflow_run_url": "https://github.com/murphyGo/investo-runtime/actions/runs/37248296267",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37402699684,
+      "target_date": "2026-10-05",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.258
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 180.069
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.15
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.818
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.427
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.589
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.177
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.511
+        },
+        "cftc-policy-rss": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.497
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.115
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.246
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.205
+        },
+        "dart-disclosure": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.555
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.224
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.206
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.061
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.424
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 17,
+          "elapsed_s": 1.009
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.189
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.429
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.429
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.051
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.799
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.557
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 6.073
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.722
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 3.161
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 2.235
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.555
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.429
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.519
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.41
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.379
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.504
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 40,
+          "elapsed_s": 1.05
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.321
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 0.271
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.513
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 18.438
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.073
+        },
+        "yahoo-finance-news": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.037
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.523
+        },
+        "yonhap-index-close": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.877
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 18,
+          "elapsed_s": 2.12
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "private_codex",
+      "repository_at_run": "murphyGo/investo-runtime",
+      "workflow_run_url": "https://github.com/murphyGo/investo-runtime/actions/runs/37402699684",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37556640961,
+      "target_date": "2026-10-06",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized_degraded",
+          "codes": "numeric.anchor_assertion"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.238
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.796
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 0.8
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.596
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.534
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.719
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.822
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.087
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.53
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.757
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.22
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.217
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 28,
+          "elapsed_s": 1.541
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.034
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 1.794
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.747
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.466
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 0.722
+        },
+        "fomc-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.163
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.009
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.228
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.974
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.393
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.607
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 5.826
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.965
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 2.187
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 3.294
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.816
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.6
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.912
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.898
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.436
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.132
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 40,
+          "elapsed_s": 0.283
+        },
+        "sec-newsroom-rss": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.341
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 0.731
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.203
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 16.536
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 0.756
+        },
+        "yahoo-finance-news": {
+          "status": "failed",
+          "reason": "http_404",
+          "elapsed_s": 0.874
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.237
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.721
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 75,
+          "elapsed_s": 1.569
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "private_codex",
+      "repository_at_run": "murphyGo/investo-runtime",
+      "workflow_run_url": "https://github.com/murphyGo/investo-runtime/actions/runs/37556640961",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37714190444,
+      "target_date": "2026-10-07",
+      "pipeline_status": "success",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "finalized",
+          "codes": "none"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.182
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.831
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.096
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.63
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.687
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.919
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.107
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.95
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.731
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.247
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.273
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.283
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.475
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.263
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.187
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.293
+        },
+        "fed-speech-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.65
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 16,
+          "elapsed_s": 1.011
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.238
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.345
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.955
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.03
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 4.365
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.85
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 6.325
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.17
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 3.249
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 1.376
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.411
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.652
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.725
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 2.822
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.632
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 5.069
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 38,
+          "elapsed_s": 10.542
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.522
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 1.128
+        },
+        "treasury-auctions": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.537
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 19.426
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.245
+        },
+        "yahoo-finance-news": {
+          "status": "failed",
+          "reason": "http_404",
+          "elapsed_s": 1.147
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 3.787
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.48
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 68,
+          "elapsed_s": 2.359
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "private_codex",
+      "repository_at_run": "murphyGo/investo-runtime",
+      "workflow_run_url": "https://github.com/murphyGo/investo-runtime/actions/runs/37714190444",
+      "hidden_market_request_http_410": 2
+    },
+    {
+      "run_id": 37872017717,
+      "target_date": "2026-10-08",
+      "pipeline_status": "partial",
+      "generated_ok": 3,
+      "generated_failed": 0,
+      "finalization": [
+        {
+          "segment": "domestic-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "us-equity",
+          "state": "finalized",
+          "codes": "none"
+        },
+        {
+          "segment": "crypto",
+          "state": "trust_blocked",
+          "codes": "markdown.broken_numeric_bold"
+        }
+      ],
+      "data_limited": {
+        "domestic-equity": false,
+        "us-equity": false,
+        "crypto": true
+      },
+      "source_outcomes": {
+        "alternative-fng": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.128
+        },
+        "bea-macro-actuals": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.933
+        },
+        "binance-crypto-market": {
+          "status": "failed",
+          "reason": "http_451",
+          "elapsed_s": 1.188
+        },
+        "bls-macro-actuals": {
+          "status": "ok",
+          "count": 8,
+          "elapsed_s": 2.767
+        },
+        "okx-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.493
+        },
+        "bybit-derivatives": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.77
+        },
+        "cboe-volatility-indices": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.342
+        },
+        "cftc-cot-positioning": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 2.51
+        },
+        "cftc-policy-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.621
+        },
+        "cnbc-top-news": {
+          "status": "failed",
+          "reason": "http_403",
+          "elapsed_s": 0.071
+        },
+        "coingecko-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 0.16
+        },
+        "coingecko-global-market": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.243
+        },
+        "dart-disclosure": {
+          "status": "ok",
+          "count": 25,
+          "elapsed_s": 2.564
+        },
+        "defillama-market-structure": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 1.554
+        },
+        "eia-petroleum-weekly": {
+          "status": "ok",
+          "count": 6,
+          "elapsed_s": 2.329
+        },
+        "fed-board-leadership": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.225
+        },
+        "fed-speech-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.449
+        },
+        "fomc-calendar": {
+          "status": "ok",
+          "count": 20,
+          "elapsed_s": 1.127
+        },
+        "fomc-rss": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 0.124
+        },
+        "fred-macro": {
+          "status": "ok",
+          "count": 3,
+          "elapsed_s": 1.622
+        },
+        "fred-economic-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.576
+        },
+        "fred-fx-close": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 1.672
+        },
+        "fsc-krx-index-price": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 3.56
+        },
+        "fsc-krx-stock-price": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 2.396
+        },
+        "korea-policy-rss": {
+          "status": "failed",
+          "reason": "http_503",
+          "elapsed_s": 6.022
+        },
+        "krx-foreign-flows": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.641
+        },
+        "nasdaq-earnings-calendar": {
+          "status": "ok",
+          "count": 10,
+          "elapsed_s": 1.306
+        },
+        "nasdaq-stocks-news": {
+          "status": "ok",
+          "count": 15,
+          "elapsed_s": 3.191
+        },
+        "nasdaq-symbol-directory": {
+          "status": "ok",
+          "count": 9,
+          "elapsed_s": 1.661
+        },
+        "nyfed-reference-rates": {
+          "status": "ok",
+          "count": 5,
+          "elapsed_s": 1.559
+        },
+        "congress-gov-bill-actions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.456
+        },
+        "senate-banking-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.599
+        },
+        "house-financial-services-policy": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.399
+        },
+        "sec-company-facts": {
+          "status": "ok",
+          "count": 7,
+          "elapsed_s": 4.757
+        },
+        "sec-edgar-8k": {
+          "status": "ok",
+          "count": 39,
+          "elapsed_s": 1.169
+        },
+        "sec-newsroom-rss": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.492
+        },
+        "theblock-crypto": {
+          "status": "ok",
+          "count": 11,
+          "elapsed_s": 0.255
+        },
+        "treasury-auctions": {
+          "status": "zero",
+          "count": 0,
+          "elapsed_s": 1.618
+        },
+        "treasury-rates": {
+          "status": "ok",
+          "count": 1,
+          "elapsed_s": 17.541
+        },
+        "us-economic-calendar": {
+          "status": "ok",
+          "count": 4,
+          "elapsed_s": 1.185
+        },
+        "yahoo-finance-news": {
+          "status": "failed",
+          "reason": "http_404",
+          "elapsed_s": 1.311
+        },
+        "yfinance-price": {
+          "status": "ok",
+          "count": 27,
+          "elapsed_s": 2.937
+        },
+        "yonhap-index-close": {
+          "status": "ok",
+          "count": 2,
+          "elapsed_s": 2.156
+        },
+        "yonhap-market": {
+          "status": "ok",
+          "count": 112,
+          "elapsed_s": 2.196
+        }
+      },
+      "publication_pushed": true,
+      "notification_ok": 1,
+      "cohort": "private_codex",
+      "repository_at_run": "murphyGo/investo-runtime",
+      "workflow_run_url": "https://github.com/murphyGo/investo-runtime/actions/runs/37872017717",
+      "hidden_market_request_http_410": 2
+    }
+  ],
+  "sources": [
+    {
+      "name": "binance-crypto-market",
+      "ok": 0,
+      "zero": 0,
+      "failed": 25,
+      "reasons": {
+        "http_451": 25
+      },
+      "max_elapsed_s": 1.455,
+      "min_items": null,
+      "max_items": null
+    },
+    {
+      "name": "cnbc-top-news",
+      "ok": 0,
+      "zero": 0,
+      "failed": 25,
+      "reasons": {
+        "http_403": 25
+      },
+      "max_elapsed_s": 1.21,
+      "min_items": null,
+      "max_items": null
+    },
+    {
+      "name": "korea-policy-rss",
+      "ok": 0,
+      "zero": 0,
+      "failed": 25,
+      "reasons": {
+        "malformed_xml": 16,
+        "budget_exhausted": 2,
+        "http_503": 7
+      },
+      "max_elapsed_s": 60.027,
+      "min_items": null,
+      "max_items": null
+    },
+    {
+      "name": "yahoo-finance-news",
+      "ok": 5,
+      "zero": 17,
+      "failed": 3,
+      "reasons": {
+        "http_404": 3
+      },
+      "max_elapsed_s": 1.314,
+      "min_items": 0,
+      "max_items": 2
+    },
+    {
+      "name": "fsc-krx-index-price",
+      "ok": 0,
+      "zero": 23,
+      "failed": 2,
+      "reasons": {
+        "network_error": 2
+      },
+      "max_elapsed_s": 41.052,
+      "min_items": 0,
+      "max_items": 0
+    },
+    {
+      "name": "fomc-rss",
+      "ok": 15,
+      "zero": 8,
+      "failed": 2,
+      "reasons": {
+        "http_404": 2
+      },
+      "max_elapsed_s": 0.283,
+      "min_items": 0,
+      "max_items": 3
+    },
+    {
+      "name": "fsc-krx-stock-price",
+      "ok": 23,
+      "zero": 0,
+      "failed": 2,
+      "reasons": {
+        "network_error": 2
+      },
+      "max_elapsed_s": 41.061,
+      "min_items": 5,
+      "max_items": 5
+    },
+    {
+      "name": "coingecko-price",
+      "ok": 1,
+      "zero": 23,
+      "failed": 1,
+      "reasons": {
+        "http_403": 1
+      },
+      "max_elapsed_s": 1.036,
+      "min_items": 0,
+      "max_items": 3
+    },
+    {
+      "name": "dart-disclosure",
+      "ok": 20,
+      "zero": 4,
+      "failed": 1,
+      "reasons": {
+        "budget_exhausted": 1
+      },
+      "max_elapsed_s": 60.02,
+      "min_items": 0,
+      "max_items": 30
+    },
+    {
+      "name": "sec-edgar-8k",
+      "ok": 24,
+      "zero": 0,
+      "failed": 1,
+      "reasons": {
+        "budget_exhausted": 1
+      },
+      "max_elapsed_s": 60.018,
+      "min_items": 36,
+      "max_items": 40
+    },
+    {
+      "name": "bea-macro-actuals",
+      "ok": 0,
+      "zero": 25,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 180.069,
+      "min_items": 0,
+      "max_items": 0
+    },
+    {
+      "name": "congress-gov-bill-actions",
+      "ok": 0,
+      "zero": 25,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.476,
+      "min_items": 0,
+      "max_items": 0
+    },
+    {
+      "name": "senate-banking-policy",
+      "ok": 0,
+      "zero": 25,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.045,
+      "min_items": 0,
+      "max_items": 0
+    },
+    {
+      "name": "krx-foreign-flows",
+      "ok": 4,
+      "zero": 21,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.764,
+      "min_items": 0,
+      "max_items": 8
+    },
+    {
+      "name": "fed-speech-rss",
+      "ok": 10,
+      "zero": 15,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.23,
+      "min_items": 0,
+      "max_items": 3
+    },
+    {
+      "name": "cboe-volatility-indices",
+      "ok": 11,
+      "zero": 14,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.429,
+      "min_items": 0,
+      "max_items": 2
+    },
+    {
+      "name": "cftc-policy-rss",
+      "ok": 12,
+      "zero": 13,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.395,
+      "min_items": 0,
+      "max_items": 4
+    },
+    {
+      "name": "house-financial-services-policy",
+      "ok": 13,
+      "zero": 12,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.456,
+      "min_items": 0,
+      "max_items": 5
+    },
+    {
+      "name": "sec-newsroom-rss",
+      "ok": 14,
+      "zero": 11,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.264,
+      "min_items": 0,
+      "max_items": 9
+    },
+    {
+      "name": "nasdaq-stocks-news",
+      "ok": 19,
+      "zero": 6,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 4.201,
+      "min_items": 0,
+      "max_items": 15
+    },
+    {
+      "name": "yonhap-index-close",
+      "ok": 21,
+      "zero": 4,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.07,
+      "min_items": 0,
+      "max_items": 2
+    },
+    {
+      "name": "treasury-auctions",
+      "ok": 23,
+      "zero": 2,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.189,
+      "min_items": 0,
+      "max_items": 6
+    },
+    {
+      "name": "nasdaq-earnings-calendar",
+      "ok": 24,
+      "zero": 1,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.956,
+      "min_items": 0,
+      "max_items": 22
+    },
+    {
+      "name": "alternative-fng",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.128,
+      "min_items": 1,
+      "max_items": 1
+    },
+    {
+      "name": "bls-macro-actuals",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.437,
+      "min_items": 8,
+      "max_items": 8
+    },
+    {
+      "name": "bybit-derivatives",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.603,
+      "min_items": 2,
+      "max_items": 2
+    },
+    {
+      "name": "cftc-cot-positioning",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 4.981,
+      "min_items": 9,
+      "max_items": 9
+    },
+    {
+      "name": "coingecko-global-market",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 31.285,
+      "min_items": 1,
+      "max_items": 1
+    },
+    {
+      "name": "defillama-market-structure",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.554,
+      "min_items": 2,
+      "max_items": 2
+    },
+    {
+      "name": "eia-petroleum-weekly",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 6.467,
+      "min_items": 6,
+      "max_items": 6
+    },
+    {
+      "name": "fed-board-leadership",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.235,
+      "min_items": 1,
+      "max_items": 1
+    },
+    {
+      "name": "fomc-calendar",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.165,
+      "min_items": 13,
+      "max_items": 23
+    },
+    {
+      "name": "fred-economic-calendar",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 19.012,
+      "min_items": 8,
+      "max_items": 11
+    },
+    {
+      "name": "fred-fx-close",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 16.559,
+      "min_items": 1,
+      "max_items": 1
+    },
+    {
+      "name": "fred-macro",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 16.417,
+      "min_items": 3,
+      "max_items": 5
+    },
+    {
+      "name": "nasdaq-symbol-directory",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.115,
+      "min_items": 9,
+      "max_items": 9
+    },
+    {
+      "name": "nyfed-reference-rates",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.951,
+      "min_items": 5,
+      "max_items": 5
+    },
+    {
+      "name": "okx-derivatives",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 2.412,
+      "min_items": 2,
+      "max_items": 2
+    },
+    {
+      "name": "sec-company-facts",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 6.461,
+      "min_items": 7,
+      "max_items": 7
+    },
+    {
+      "name": "theblock-crypto",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.165,
+      "min_items": 6,
+      "max_items": 15
+    },
+    {
+      "name": "treasury-rates",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 20.25,
+      "min_items": 1,
+      "max_items": 1
+    },
+    {
+      "name": "us-economic-calendar",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 1.343,
+      "min_items": 4,
+      "max_items": 8
+    },
+    {
+      "name": "yfinance-price",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.787,
+      "min_items": 27,
+      "max_items": 27
+    },
+    {
+      "name": "yonhap-market",
+      "ok": 25,
+      "zero": 0,
+      "failed": 0,
+      "reasons": {},
+      "max_elapsed_s": 3.027,
+      "min_items": 4,
+      "max_items": 112
+    }
+  ],
+  "excluded_no_pipeline_log_run_ids": [
+    37136372915
+  ],
+  "sample_kind": "execution_weighted_including_same_target_date_replays",
+  "registered_sources": 44,
+  "operational_snapshot": {
+    "at_audit": {
+      "repository": "murphyGo/investo-runtime",
+      "enabled": "1",
+      "execution_sha": "056dd8a1b4a8e599f44519e54b5bf4f486275dbd"
+    },
+    "rechecked_2026_10_09_0954_utc": {
+      "repository": "murphyGo/automation-runtime",
+      "enabled": "0",
+      "execution_sha": "ca0ef610cdaafea7de188551f06d2107247e8472",
+      "docs_base_sha": "9ff1bcbc5be79d9e811676c56e4e5e7069ed41de",
+      "relevant_source_diff_empty": true
+    }
+  },
+  "totals": {
+    "pipeline_runs": 25,
+    "partial_runs": 4,
+    "crypto_data_limited_runs": 24,
+    "generations_ok_3_failed_0": 25
+  }
+}
