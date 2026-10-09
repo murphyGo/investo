@@ -33,6 +33,7 @@ remain. This follow-up changes presentation, not data collection or calculations
   test required the existing explicit freshness label. Restoring that label
   resolved it: 1 passed in 25.64s. All 68 selected tests passed across these runs.
 - Ruff check and format: PASS, 706 Python files. Strict mypy: PASS, 302 source files.
+- Anthropic, paid-provider, curated-asset and image-store policy guards: PASS.
 - Canonical pair verification: PASS. The existing JSON is byte-identical and its
   snapshot remains
   `sha256:6ac61b30de1c6133f411bb16e426a42d89ee727640dcb4f2bf188ddb0e9057f8`,
@@ -50,6 +51,24 @@ remain. This follow-up changes presentation, not data collection or calculations
 ## Publication
 
 Public destination: <https://murphygo.github.io/investo/sectors/>.
-Scoped commit, exact-SHA quality CI, Pages deployment, live HTML/CSS/JSON checks
-and the normal refresh path are verified during delivery. Final run evidence is
-appended here after publication.
+UI commit `2e701c4211cf2d574a94591bb1fb41953d61d2ec` was pushed to remote main
+and confirmed with `git ls-remote`.
+
+- Initial Pages [37965908527](https://github.com/murphyGo/investo/actions/runs/37965908527)
+  succeeded for build and deploy on the exact UI commit.
+- Live HTML, sector CSS and JSON returned HTTP200. The live page has 4 cards and
+  11 bars preceding the table, then visible sources. CSS bytes equal the scoped
+  stylesheet and JSON bytes equal the original snapshot; the HTML identity agrees.
+- Normal refresh [37966083788](https://github.com/murphyGo/investo/actions/runs/37966083788)
+  succeeded: fresh 2026-10-08, 12 successful responses, zero failures, 11/11
+  available/comparable, status `unchanged`, same snapshot. Collection 880ms,
+  total 2002ms, CPU1189ms. Maximum-shape gate also passed (12×1MiB/140 rows,
+  wall951ms, CPU941ms, incremental RSS27967488 bytes).
+- Refresh-dispatched Pages [37966152984](https://github.com/murphyGo/investo/actions/runs/37966152984)
+  also succeeded on the exact UI commit. Refresh introduced no data commit.
+- Exact code-quality [37965908536](https://github.com/murphyGo/investo/actions/runs/37965908536)
+  succeeded on the UI commit: **6,693 tests passed in 556.12s**, Ruff/format706,
+  mypy302, all four policy guards, strict MkDocs and Material rendered-pair guard.
+
+The public UI and refresh path are delivered. The final evidence-only closeout
+changes no executable code, generated page, stylesheet or snapshot.

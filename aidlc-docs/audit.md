@@ -7973,3 +7973,10 @@ built HTML PASS. Independent reviewer APPROVE without blocking findings. Supplem
 slate desktop screenshot inspected; Browser waiver is not converted to acceptance.
 Exact CI, Pages and live checks follow delivery; session:
 docs/sessions/2026-10-10-u145-data-first-ui.md. Concurrent root/site-wide planning is preserved.
+
+UI closeout: remote2e701c4211cf2d574a94591bb1fb41953d61d2ec confirmed.
+Exact quality37965908536 SUCCESS:6,693 PASS556.12s and all static/policy/docs guards.
+Pages37965908527/37966152984 SUCCESS; HTML/CSS/JSON HTTP200 with correct data-first
+ordering and byte-identical CSS/JSON. Refresh37966083788 SUCCESS:12/12, normal11/11,
+fresh2026-10-08, unchanged6ac61b30, CPU1189ms. Presentation follow-up complete;
+this closeout changes evidence documents only. Browser waiver/source exception remain.

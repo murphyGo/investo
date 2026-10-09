@@ -12,7 +12,7 @@ The user authorized free Yahoo public implementation despite unresolved permissi
 the Step 5 closeout. Permission remains `unverified`: this is an explicit operator exception,
 not provider consent. Actual Browser visual acceptance remains **WAIVED / NOT_EXECUTED**.
 
-**Status: original activation is complete; the data-first presentation follow-up is locally verified.**
+**Status: original activation and the data-first presentation follow-up are complete.**
 Original full regression and live deployment are recorded in the
 [public closeout](../sessions/2026-10-10-u145-public-closeout.md).
 The user's 2026-10-10 presentation instruction supersedes historical source-first
@@ -123,7 +123,7 @@ is completed only when the operational evidence in the session is closed.
 | AC-6.3 | PASS | Qualified probe commit separate from activation `1a753c7c`, review repair `6b371a1c`. |
 | AC-6.4 | PASS, amended | O keyless troubleshooting, rerun/deploy recovery, disable/cancel/remove instructions. No rotation needed. |
 | AC-6.5 | PASS | B/P closed bounded summaries; source, attempt freshness, coverage, stored outcome/id/date, counters and timing. |
-| AC-6.6 | PASS for original activation; UI exact-SHA CI follows delivery | Original 6,689-test regression and exact live deployment in public closeout; UI focused tests/review in UI session. |
+| AC-6.6 | PASS | Original 6,689-test regression in public closeout; UI exact2e701c42 quality37965908536 passed6,693, Pages37965908527/37966152984 and refresh37966083788 succeeded, live identity confirmed in UI session. |
 
 ## Exceptions and residual limits
 
