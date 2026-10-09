@@ -13,6 +13,7 @@ atomic-write implementation in the site_index package.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Final
 
@@ -43,6 +44,7 @@ def _replace_marker_block(
     begin_marker: str,
     end_marker: str,
     replacement: str,
+    content_transform: Callable[[str], str] | None = None,
 ) -> None:
     """Replace the bytes between two marker comments idempotently.
 
@@ -58,6 +60,8 @@ def _replace_marker_block(
         return
 
     content = path.read_text(encoding="utf-8")
+    if content_transform is not None:
+        content = content_transform(content)
     begin_idx = content.find(begin_marker)
     end_idx = content.find(end_marker)
     if begin_idx == -1 or end_idx == -1 or end_idx < begin_idx:

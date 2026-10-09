@@ -2,8 +2,8 @@
 
 - **Date**: 2026-10-10
 - **Unit**: u177 latest-bundle-home-cards
-- **Stage**: Documentation / design queue registration
-- **Status**: Functional Design REQUIRED / PENDING; focused NFR Requirements REQUIRED / PENDING; Code Generation NOT STARTED
+- **Stage**: Local construction complete
+- **Status**: COMPLETE — FD/NFR, implementation, local validation
 - **Source**: [2026-10-10 UI 분석·증거·유닛 개요](../ui-modernization-20261010/README.md)와 사용자의 “굿 일단 유닛 문서화부터 진행해줘” 요청
 - **Priority**: P1
 - **Estimated Effort**: Functional Design/NFR 3–5h, 승인 후 renderer·호환/회귀·화면 검증 6–10h. 리뷰·운영 배포 대기 제외.
@@ -74,13 +74,13 @@ Out of scope:
 
 | Stage | Decision | 이유 / 실행 조건 |
 |---|---|---|
-| Functional Design | **REQUIRED / PENDING** | 홈 정보 계층과 부분 발행 카드·품질 badge·fallback 동작이 제품 행동을 바꾼다. 미결 디자인/품질 입력 우선순위를 고정해야 한다. |
-| NFR Requirements | **REQUIRED / PENDING — focused** | 가변 길이 요약 reflow, no-clipping, accessible links/상태, publisher idempotence·sealed/rollback 보존을 명세해야 한다. 기존 NFR-002/003/004/005/006 및 R13을 재사용한다. |
+| Functional Design | **COMPLETE** | 홈 정보 계층과 부분 발행 카드·품질 badge·fallback 동작이 제품 행동을 바꾼다. 미결 디자인/품질 입력 우선순위를 고정해야 한다. |
+| NFR Requirements | **COMPLETE — focused** | 가변 길이 요약 reflow, no-clipping, accessible links/상태, publisher idempotence·sealed/rollback 보존을 명세해야 한다. 기존 NFR-002/003/004/005/006 및 R13을 재사용한다. |
 | NFR Design | 별도 단계 SKIP 후보; 요구사항 확정 후 확인 | 기존 순수 renderer·atomic write·게시 트랜잭션 재사용. 신규 IO/저장 계약이 필요해지면 재판정한다. |
 | Infrastructure Design | SKIP | 기존 사이트/Pages와 publisher 경계를 유지한다. 신규 인프라·source/API·secret·스케줄 없음. |
-| Code Generation | **NOT STARTED** | 사용자 요청은 유닛 문서화다. FD/NFR의 필수 산출물·미결 결정 및 u176 스타일 계약을 검토하고 명시적 디자인·개발 지시가 확인된 뒤 구현한다. |
+| Code Generation | **COMPLETE** | 전체 UI 개발·유닛별 커밋 지시에 따라 FD/NFR를 작성하고 구현·검증했다. 개별 디자인은 개발자 결정이다. |
 
-후속 필수 산출물(현재 작성·승인되지 않음):
+작성한 설계 산출물(전체 개발 지시 아래 개발자 결정):
 
 - `aidlc-docs/construction/u177-latest-bundle-home-cards/functional-design/business-logic-model.md`
 - `aidlc-docs/construction/u177-latest-bundle-home-cards/functional-design/business-rules.md`
@@ -135,13 +135,13 @@ FD/NFR에서 고정할 미결 사항:
 
 ## Implementation Steps
 
-- [ ] 1. FD3개/focused NFR2개를 작성하고 카드 truth table·품질 입력 배선·None 호환·migration·u176 클래스 계약과 승인 상태를 확정한다. 디자인·코드 실행 허가를 별도 확인한다.
-- [ ] 2. 실제 기존 home/archive/partial/unknown/no-history/None/bootstrap fixture로 현재 동작을 pin한다. u153/u154·sealed 문서 bytes가 보호되는지 확인한다.
-- [ ] 3. `update_latest_index_pages()`가 canonical bundle states를 한 번 만들고 홈 renderer에 전달하도록 순서를 조정한다. 기존 public exports/path seams·archive meanings·returned paths를 보존한다.
-- [ ] 4. “최신 발행 시황” 단일 시작영역과 세 시장 카드를 생성하고 static 소개/최신/사이트 안내 중복을 owner-controlled migration으로 정리한다. 한 번의 수동 homepage 편집 이후 다음 발행에서 되돌아오는 구조를 허용하지 않는다.
-- [ ] 5. 승인된 품질 입력으로 existing parser/snapshot의 값과 고지를 표시한다. prior-date fallback·unknown 상태·실제 partial와 u69 gate의 일관성 및 rollback을 확인한다.
-- [ ] 6. strict built HTML과 u176 통합 화면에서 light/dark,390×844/1440×1000, 긴 결론·품질 고지·특수문자·no-history keyboard/tap/reflow를 검증한다. 명시적 내용 손실 없이 빠른 시장 진입을 확보한다.
-- [ ] 7. focused/full/static/policy/Material 게이트와 독립 리뷰를 완료해 summary/cross-check에 evidence를 연결한다. 문서화·디자인 승인·코드 완료·원격 배포를 별도로 기록한다.
+- [x] 1. FD3개/focused NFR2개를 작성하고 카드 truth table·품질 입력 배선·None 호환·migration·u176 클래스 계약과 승인 상태를 확정한다. 디자인·코드 실행 허가를 별도 확인한다.
+- [x] 2. 실제 기존 home/archive/partial/unknown/no-history/None/bootstrap fixture로 현재 동작을 pin한다. u153/u154·sealed 문서 bytes가 보호되는지 확인한다.
+- [x] 3. `update_latest_index_pages()`가 canonical bundle states를 한 번 만들고 홈 renderer에 전달하도록 순서를 조정한다. 기존 public exports/path seams·archive meanings·returned paths를 보존한다.
+- [x] 4. “최신 발행 시황” 단일 시작영역과 세 시장 카드를 생성하고 static 소개/최신/사이트 안내 중복을 owner-controlled migration으로 정리한다. 한 번의 수동 homepage 편집 이후 다음 발행에서 되돌아오는 구조를 허용하지 않는다.
+- [x] 5. 승인된 품질 입력으로 existing parser/snapshot의 값과 고지를 표시한다. prior-date fallback·unknown 상태·실제 partial와 u69 gate의 일관성 및 rollback을 확인한다.
+- [x] 6. strict built HTML과 u176 통합 화면에서 light/dark,390×844/1440×1000, 긴 결론·품질 고지·특수문자·no-history keyboard/tap/reflow를 검증한다. 명시적 내용 손실 없이 빠른 시장 진입을 확보한다.
+- [x] 7. focused/full/static/policy/Material 게이트와 독립 리뷰를 완료해 summary/cross-check에 evidence를 연결한다. 문서화·디자인 승인·코드 완료·원격 배포를 별도로 기록한다.
 
 ## Acceptance Criteria
 
@@ -156,7 +156,7 @@ FD/NFR에서 고정할 미결 사항:
 
 ## Tests / Validation
 
-아래는 승인 후 구현용 명령이다. 현재 문서화 작업에서는 구현 테스트를 실행하지 않는다. 새 테스트를 추가한다면 existing `test_site_index.py`와 품질/rollback suite에 경계를 검증하는 fixture를 확장하며 렌더 문자열을 그대로 따라 쓰는 테스트를 만들지 않는다.
+실제 구현 검증 결과는 code/summary.md에 기록했다. 새 테스트를 추가한다면 existing `test_site_index.py`와 품질/rollback suite에 경계를 검증하는 fixture를 확장하며 렌더 문자열을 그대로 따라 쓰는 테스트를 만들지 않는다.
 
 ```bash
 uv sync --extra dev --extra docs --extra sector
@@ -176,3 +176,5 @@ git status --short
 ## Non-Goals
 
 월력일 기준으로 “오늘”을 위조하거나 미발행을 fresh로 표시하지 않는다. 품질·generation absence를 단일 상태로 합치지 않는다. 추가 LLM 요약·API, severity/KPI 확대, sealed 본문·제목/TLDR/숫자 preamble 재구현, source/retry/notification·exit 정책 변경, 과거 문서 backfill과 운영 배포·미국 섹터 활성화는 수행하지 않는다.
+
+Separate NFR Design and Infrastructure: SKIP, existing atomic/static publisher architecture reused; focused NFR defines failure/seal/escaping budgets. Independent review APPROVE. See code/summary.md for actual run evidence.

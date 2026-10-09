@@ -156,23 +156,25 @@ def update_latest_index_pages(
     )
     written: list[Path] = [site_index_path, archive_index_path]
 
-    if segment_briefings is not None:
-        update_index_hero(
-            target_date,
-            segment_briefings,
-            site_index_path=site_index_path,
-        )
     bundle_states = _build_bundle_states(
         target_date,
         archive_root=archive_index_path.parent,
         segment_briefings=segment_briefings,
     )
 
-    _replace_section(
-        site_index_path,
-        "## 최신 시황",
-        _site_latest_section(target_date, bundle_states),
-    )
+    if segment_briefings is not None:
+        update_index_hero(
+            target_date,
+            segment_briefings,
+            site_index_path=site_index_path,
+            bundle_states=bundle_states,
+        )
+    else:
+        _replace_section(
+            site_index_path,
+            "## 최신 시황",
+            _site_latest_section(target_date, bundle_states),
+        )
     _replace_section(
         archive_index_path,
         "## 최신 시황",

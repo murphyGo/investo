@@ -1,3 +1,7 @@
+## 2026-10-10 — u177 local construction complete
+
+User all-UI-development/unit commit authorization. FD/NFR, same-run3-market cards, actual hrefs, one atomic migration and mandatory canonical gate/rollback implemented. Python192 + final35, Chromium20, static/type/docs/theme/calendar passes; independent review APPROVE/P1-P2zero. No archive rewrite, push or deployment.
+
 ## 2026-10-10 — u176 local construction complete
 
 FD/NFR authored under all-UI-development authorization, Korean navigation/token/scope/keyboard/no-JS/current-page implementation. Python30, strict/Material/Ruff/format and actual Chromium33 cases. Reviewer corrections applied; final review recorded in summary. Scoped local commit authorized; no push/deployment.

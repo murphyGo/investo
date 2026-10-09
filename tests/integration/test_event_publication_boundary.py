@@ -117,6 +117,7 @@ def repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Repository:
         return (_INDEX,)
 
     monkeypatch.setattr(pipeline, "SITE_INDEX_PATH", _INDEX)
+    monkeypatch.setattr("investo.publisher.site_index.SITE_INDEX_PATH", _INDEX)
     monkeypatch.setattr(pipeline, "_build_publish_heatmap_svg", lambda *_a, **_k: None)
     monkeypatch.setattr(pipeline, "update_latest_index_pages", update_index)
     monkeypatch.setattr(pipeline, "write_og_card", lambda *_a, **_k: ())
