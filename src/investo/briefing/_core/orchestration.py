@@ -39,6 +39,7 @@ from investo.briefing._core.classification import (
     ClassificationResult,
     EventClassificationResult,
     _parse_classification,
+    event_classification_diagnostics,
     invalid_event_evidence,
     parse_event_classification,
 )
@@ -340,7 +341,18 @@ async def _classify(
             await asyncio.sleep(backoff)
             budget.record(accounted_backoff)
 
-        outcome = await call_claude_code(full_prompt, timeout_s=policy.timeout_s, runner=runner)
+        attempt_prompt = full_prompt
+        if uses_events and "evidence.fact_metadata_missing" in event_classification_diagnostics(
+            last_cause
+        ):
+            attempt_prompt += (
+                "\nA fact period or unit was absent from its supplied source. For each fact, "
+                "copy period/unit only as exact substrings from the title, summary or detail "
+                "of the document referenced by that fact's evidence_ref. Use null when absent; "
+                "do not infer, translate or normalize these labels. Keep the source fact and "
+                "its actual/forecast status unchanged.\n"
+            )
+        outcome = await call_claude_code(attempt_prompt, timeout_s=policy.timeout_s, runner=runner)
         _logger.info(
             "llm attempt segment=%s stage=classification attempt=%d timeout_s=%.1f "
             "elapsed_s=%.3f prompt_bytes=%d stdout_len=%d stderr_len=%d returncode=%d",
@@ -348,7 +360,7 @@ async def _classify(
             attempt + 1,
             policy.timeout_s,
             outcome.elapsed_s,
-            len(full_prompt.encode("utf-8")),
+            len(attempt_prompt.encode("utf-8")),
             len(outcome.stdout),
             len(outcome.stderr),
             outcome.returncode,
@@ -358,7 +370,7 @@ async def _classify(
                 "attempt": attempt + 1,
                 "timeout_s": policy.timeout_s,
                 "elapsed_s": outcome.elapsed_s,
-                "prompt_bytes": len(full_prompt.encode("utf-8")),
+                "prompt_bytes": len(attempt_prompt.encode("utf-8")),
                 "stdout_len": len(outcome.stdout),
                 "stderr_len": len(outcome.stderr),
                 "returncode": outcome.returncode,

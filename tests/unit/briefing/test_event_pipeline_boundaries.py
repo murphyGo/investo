@@ -138,3 +138,20 @@ async def test_omitted_macro_retry_restores_exact_identifier_with_existing_budge
     assert "exact supplied label or complete source URL" in runner.prompts[2]
     assert "CPIAUCSL latest observation" in result.briefing.rendered_markdown
     assert "314.12" in result.briefing.rendered_markdown
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("field", ["period", "unit"])
+async def test_invalid_fact_metadata_retry_uses_same_source_and_existing_budget(field: str) -> None:
+    case = _case()
+    invalid = json.loads(case.classification)
+    invalid["events"][0]["facts"][0][field] = "PRIVATE_INVENTED_METADATA"
+    runner = _ReplayRunner([json.dumps(invalid), case.classification, case.synthesis])
+    result = await generate_briefing_from_input(_request(case, runner))
+    assert len(runner.prompts) == 3
+    hint = "A fact period or unit was absent from its supplied source."
+    assert hint not in runner.prompts[0] and hint in runner.prompts[1]
+    assert "Use null when absent" in runner.prompts[1]
+    assert "PRIVATE_INVENTED_METADATA" not in runner.prompts[1]
+    assert result.event_payload is not None
+    assert result.event_payload.plan.selected[0].event_id == case.event_id

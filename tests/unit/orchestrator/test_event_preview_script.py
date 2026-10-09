@@ -486,3 +486,150 @@ def test_finalization_manifest_exports_only_closed_preview_compliance_codes(
     assert manifest["issue_codes"] == ["bundle.zero_survivors", "compliance.language"]
     assert manifest["diagnostics"] == ("compliance.generated", "compliance.rule.action.0")
     assert "PRIVATE" not in json.dumps(manifest)
+
+
+def _commit_preview_baseline(repository: Path, ledger: str | None = None) -> str:
+    paths = [".gitignore"]
+    if ledger is not None:
+        path = repository / "archive/_meta/event_receipts.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(ledger)
+        paths.append("archive/_meta/event_receipts.json")
+    subprocess.run(["git", "add", "--", *paths], cwd=repository, check=True, capture_output=True)
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=Preview Test",
+            "-c",
+            "user.email=preview@example.invalid",
+            "commit",
+            "-m",
+            "remote data fixture",
+        ],
+        cwd=repository,
+        check=True,
+        capture_output=True,
+    )
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repository,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+@pytest.mark.parametrize("known_history", [False, True])
+async def test_known_empty_remote_history_preserves_supported_company_event(
+    script: ModuleType,
+    repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    known_history: bool,
+) -> None:
+    import investo.briefing.segments as segments
+    from investo.models.event_narratives import EventGenerationPayload
+    from investo.models.events import EventSelectionPlan
+    from tests.unit.briefing.test_event_narrative import output_for
+
+    case = _case()
+    assert case.item.event_evidence is not None
+    # A fully evidenced company event from a non-official source: unavailable
+    # history lowers novelty/evidence and its score below the unchanged45 gate.
+    item = case.item.model_copy(
+        update={
+            "event_evidence": case.item.event_evidence.model_copy(
+                update={"source_tier": "primary"}
+            ),
+        }
+    )
+    sha = _commit_preview_baseline(repository)
+
+    async def collect(*args: object, **kwargs: object) -> SourceCollectionReport:
+        return SourceCollectionReport(
+            items=(item,),
+            outcomes=(SourceOutcome.ok(item.source_name, "news", 1),),
+        )
+
+    monkeypatch.setattr(
+        segments, "_US_ONLY_SOURCES", segments._US_ONLY_SOURCES | {item.source_name}
+    )
+    monkeypatch.setattr(script, "collect_sources", collect)
+    monkeypatch.setattr(script, "_load_market_anchors_for_run", _empty_anchors)
+    _no_publication(monkeypatch)
+    empty = EventGenerationPayload(plan=EventSelectionPlan(), narratives=())
+    synthesis = case.synthesis if known_history else output_for(empty).model_dump_json()
+    runner = _ReplayRunner([case.classification, synthesis])
+    before = {
+        p.relative_to(repository): p.read_bytes() for p in repository.rglob("*") if p.is_file()
+    }
+    result = await script.run_preview(
+        target_date=_TARGET,
+        segment="us-equity",
+        repository_root=repository,
+        output_dir=repository / ".tmp/preview",
+        observed_at=_NOW,
+        runner=runner,
+        baseline_sha=sha if known_history else None,
+    )
+    assert result["event_baseline_available"] is known_history
+    assert result["event_baseline_sha"] == (sha if known_history else None)
+    assert result["event_coverage"]["terminal_event_count"] == int(known_history)
+    assert len(runner.prompts) == 2
+    assert not result["publication_committed"] and not result["production_receipt_written"]
+    assert all((repository / path).read_bytes() == content for path, content in before.items())
+    assert not (repository / "archive").exists()
+
+
+def test_preview_baseline_ignores_dirty_ledger_and_never_writes_git(
+    script: ModuleType,
+    repository: Path,
+) -> None:
+    from investo.orchestrator.event_receipts import EventReceiptLedger
+    from tests.unit.orchestrator.test_event_receipts import _identity
+
+    receipt = _identity("committed", published_at=_NOW)
+    sha = _commit_preview_baseline(
+        repository, EventReceiptLedger(receipts=(receipt,)).model_dump_json()
+    )
+    ledger = repository / "archive/_meta/event_receipts.json"
+    ledger.write_text("PRIVATE_DIRTY_LEDGER")
+    before = {
+        p.relative_to(repository): p.read_bytes() for p in repository.rglob("*") if p.is_file()
+    }
+    baseline = script._preview_baseline(repository, sha, _NOW)
+    assert baseline is not None and baseline.receipts == (receipt,)
+    after = {
+        p.relative_to(repository): p.read_bytes() for p in repository.rglob("*") if p.is_file()
+    }
+    assert after == before
+
+
+def test_invalid_committed_ledger_stays_unavailable(script: ModuleType, repository: Path) -> None:
+    sha = _commit_preview_baseline(repository, "PRIVATE_INVALID_LEDGER")
+    assert script._preview_baseline(repository, sha, _NOW) is None
+
+
+@pytest.mark.parametrize("bad_sha", ["main", "0" * 40, "PRIVATE_SOURCE"])
+def test_preview_baseline_rejects_non_matching_checkout(
+    script: ModuleType,
+    repository: Path,
+    bad_sha: str,
+) -> None:
+    _commit_preview_baseline(repository)
+    with pytest.raises(script.PreviewInputError):
+        script._preview_baseline(repository, bad_sha, _NOW)
+
+
+def test_preview_baseline_read_failure_stays_unavailable(
+    script: ModuleType,
+    repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sha = _commit_preview_baseline(repository)
+
+    def fail(*args: object, **kwargs: object) -> Never:
+        raise subprocess.TimeoutExpired("PRIVATE", 10)
+
+    monkeypatch.setattr(script.subprocess, "run", fail)
+    assert script._preview_baseline(repository, sha, _NOW) is None

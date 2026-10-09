@@ -55,6 +55,7 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
         calls.append("preview")
         assert kwargs["runner"] is runner
         assert kwargs["repository_root"] == repository.resolve()
+        assert kwargs["baseline_sha"] == "a" * 40
         if outcome == "generation_failure":
             raise RuntimeError("PRIVATE_MODEL_RESPONSE")
         return {"status": "blocked" if outcome == "blocked" else "sealed", "provider": "codex"}
@@ -79,6 +80,8 @@ def test_private_preview_uses_supervisor_and_never_public_pipeline(
             "us-equity",
             "--output-dir",
             ".tmp/preview",
+            "--baseline-sha",
+            "a" * 40,
         ]
     )
     captured = capsys.readouterr()
@@ -147,6 +150,12 @@ def test_private_preview_workflow_shares_auth_lock_without_publication_credentia
     assert "TELEGRAM" not in text and "INVESTO_PUBLIC_PUBLISH_TOKEN" not in text
     assert "REVIEWED_CODE_SHA }}" not in text  # Production pointer is never changed/reused.
     generation = next(step for step in job["steps"] if step.get("id") == "preview")
+    data = next(step for step in job["steps"] if step.get("id") == "public_data")
+    assert data["with"]["repository"] == "murphyGo/investo"
+    assert data["with"]["ref"] == "main"
+    assert data["with"]["persist-credentials"] is False
+    assert generation["env"]["PREVIEW_BASELINE_SHA"] == "${{ steps.public_data.outputs.commit }}"
+    assert '--baseline-sha "$PREVIEW_BASELINE_SHA"' in generation["run"]
     assert generation["timeout-minutes"] * 60 > wrapper.PREVIEW_WORK_LIMIT_S + CLEANUP_RESERVE_S
     preflight = next(
         step

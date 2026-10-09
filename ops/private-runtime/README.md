@@ -177,3 +177,9 @@ Rollback: private의 `CODEX_PRODUCTION_ENABLED=0`과 workflow 비활성화로
 [0.153.4 도구 등록](https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/core/src/tools/spec_plan.rs),
 [고정 모델 목록](https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/models-manager/src/manager.rs),
 [GitHub Environment 기능](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments).
+
+미리보기는 public-data checkout의 고정 commit 출력으로 발행 이력을 읽는다.
+같은 SHA의 HEAD를 확인한 뒤 canonical loader를 사용하며, 정상 빈 이력과
+읽기 실패를 구분한다. 로컬 미커밋 ledger는 사용하지 않고 Git fetch/write나
+production receipt/cursor 쓰기를 수행하지 않는다. 코드 SHA와 데이터 이력
+SHA는 별도이며 manifest에는 확인된 데이터 SHA만 기록한다.

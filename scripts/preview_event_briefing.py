@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import subprocess
+import time
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Never, cast
@@ -34,6 +35,10 @@ from investo.orchestrator.event_preview import (
     event_preview_compliance_diagnostics,
     preview_event_briefing,
 )
+from investo.orchestrator.event_receipts import (
+    EventReceiptBaseline,
+    load_committed_event_receipts,
+)
 from investo.orchestrator.pipeline import SEGMENT_GENERATION_POLICIES, _reconcile_anchor_closes
 from investo.orchestrator.stage_context import (
     SEGMENT_ORDER,
@@ -42,6 +47,7 @@ from investo.orchestrator.stage_context import (
     _snapshot_close_by_ticker,
 )
 from investo.publisher._public_document_policy import SURFACE_ISSUE_CODES
+from investo.publisher.errors import PublisherGitError
 from investo.publisher.public_document import PublicDocumentFinalizationError
 from investo.sources import collect_sources
 
@@ -127,7 +133,49 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--target-date", required=True, type=date.fromisoformat)
     parser.add_argument("--segment", required=True, choices=SEGMENT_ORDER)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--baseline-sha", help="Trusted remote data checkout commit; read only.")
     return parser.parse_args(argv)
+
+
+def _preview_baseline(
+    repository_root: Path, baseline_sha: str | None, observed_at: datetime
+) -> EventReceiptBaseline | None:
+    """Read only the caller's fixed remote checkout, never the working ledger.
+
+    No SHA means unavailable history. A missing ledger in a verified tree is
+    the canonical loader's known-empty initial history, as in production.
+    """
+    if baseline_sha is None:
+        return None
+    if re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", baseline_sha) is None:
+        raise PreviewInputError
+    deadline = time.monotonic() + 20.0
+
+    def run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        del kwargs
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError
+        return subprocess.run(
+            args,
+            cwd=repository_root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=min(10.0, remaining),
+        )
+
+    try:
+        head = run(["git", "rev-parse", "--verify", "HEAD^{commit}"])
+        if head.returncode != 0:
+            return None
+        if head.stdout.strip() != baseline_sha:
+            raise PreviewInputError
+        return load_committed_event_receipts(baseline_sha, observed_at=observed_at, runner=run)
+    except PreviewInputError:
+        raise
+    except (OSError, ValueError, subprocess.TimeoutExpired, PublisherGitError):
+        return None
 
 
 def _private_path(output_dir: Path, repository_root: Path) -> Path:
@@ -283,6 +331,7 @@ async def run_preview(
     repository_root: Path = _REPOSITORY_ROOT,
     runner: ClaudeRunner | None = None,
     observed_at: datetime | None = None,
+    baseline_sha: str | None = None,
 ) -> dict[str, object]:
     """No run_pipeline, publisher, notifier, receipt or cursor writer is called."""
     if segment not in SEGMENT_ORDER:
@@ -292,6 +341,7 @@ async def run_preview(
         raise PreviewInputError
     clock = clock.astimezone(UTC)
     output = _private_path(output_dir, repository_root)
+    baseline = _preview_baseline(repository_root, baseline_sha, clock)
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
     report = await collect_sources(target_date, evidence_received_at=clock)
     anchors, _history = await _load_market_anchors_for_run(target_date)
@@ -327,8 +377,8 @@ async def run_preview(
             generation_policy=SEGMENT_GENERATION_POLICIES[segment],
             recent_context=load_recent_briefings(archive, target_date, days=days) if days else None,
             event_observed_at=clock,
-            event_baseline=(),
-            event_baseline_available=False,
+            event_baseline=baseline.receipts if baseline is not None else (),
+            event_baseline_available=baseline is not None,
             event_collection_items=projection.public_items,
         )
     )
@@ -361,7 +411,8 @@ async def run_preview(
         "event_coverage": result.event_coverage.model_dump(mode="json")
         if result.event_coverage is not None
         else None,
-        "event_baseline_available": False,
+        "event_baseline_available": baseline is not None,
+        "event_baseline_sha": baseline.baseline_sha if baseline is not None else None,
         "human_semantic_review": "pending",
         "publication_committed": False,
         "notification_sent": False,
@@ -392,6 +443,7 @@ def main(argv: list[str] | None = None) -> int:
                 target_date=args.target_date,
                 segment=cast(MarketSegment, args.segment),
                 output_dir=args.output_dir,
+                baseline_sha=args.baseline_sha,
             )
         )
         print(json.dumps(manifest, ensure_ascii=True, sort_keys=True))

@@ -136,3 +136,7 @@ Codex `37213412858`의 국내 job은 성공했다. 암호화 artifact를 복호�
 코인은 아직 어떤 금지 표현인지 확인되지 않았다. preview에서 최종화가 compliance로 거부되면 생성 직후 본문을 기존 scanner로 다시 검사해 generated/post_generation 경계와 고정 catalog rule ID만 최대8개로 기록한다. 원문·문장·URL·동적 필드명은 기록하지 않는다. 예외의 phase/issue/cause/blocked-sibling 정보와 실패 상태를 보존하며 보호된 hard gate를 우회하거나 문구를 지워 통과시키지 않는다. 실제 finalizer 차단, 후처리 경계, 비관련 오류의 동일 예외 재전달, 임의 진단 비노출을 포함한 집중54/3.17s 통과. 독립 리뷰68/3.53s, Ruff/diff 검사 PASS 및 CLOSED/P1P2없음. 정적검사·정책·strict docs/Material도 통과했다. 전체 회귀와 exact-SHA CI 후 검토 SHA로 재실행한다.
 
 최신 운영 조회(2026-10-05 16:54 UTC)에서 예약 shadow는 여전히1/5이며 production pin056dd8a1과 active readiness는 유지된다. frozen12 사람 검수 응답과 뉴스 풍부한 날 baseline은 아직 없다.
+
+## 2026-10-09 후속
+
+실제 예약 관찰은5/5로 늘었으며4success·1partial다. 현재 미리보기 결과와 추가 연결 보정은 [10-09 운영 기록](2026-10-09-news-event-rollout.md)에 기록한다. 본문의 이전0/5·1/5와 실행중 표시는 당시의 스냅샷이다.

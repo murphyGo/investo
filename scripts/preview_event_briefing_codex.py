@@ -62,6 +62,7 @@ def main(argv: list[str] | None = None) -> int:
                         output_dir=args.output_dir,
                         repository_root=data_root,
                         runner=llm_runner,
+                        baseline_sha=args.baseline_sha,
                     )
                 return 0 if manifest["status"] == "sealed" else 3
             except Exception as exc:
