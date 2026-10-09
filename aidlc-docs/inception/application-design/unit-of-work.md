@@ -2834,10 +2834,10 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Coverage**: US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008.
 **Ownership / paths**: u36/u67/u138/u148/u149, DEBT-068; FSC index adapter, private schema replay, coverage/domestic projection tests and qualification evidence.
 **Definition of Done**:
-- [ ] Authorized response identifies exact zero cause using bounded row/match/schema/date diagnostics/60s budget.
+- [x] Authorized response identifies bounded current exclusion facts: exact e9fb0c9c Actions37955145349, page1 target0/page2 target3 out of171 rows on2026-10-07. First-page loss is proven; all historical25/oldURL causes remain unproven.
 - [x] Delay/calendar/name/schema/API outcomes differ; keys/restricted rawvalues remain private.
 - [x] No unqualified public fallback/stale promotion; ship/defer/reject facts explicit.
 - [x] Local checks/limits recorded; source gate and DEBT-068 remain open if no replacement qualifies.
-**Stage**: FD/NFR complete; Code Generation6/7 code complete. Full6400 tests PASS516.48s; independent144/review CLOSED; static/policy/docs PASS. Authenticated probe step7 follows workflow delivery; historicalzero cause/public fallback and DEBT-068 remain external qualification gates.
+**Stage**: FD/NFR complete; Code Generation7/7 code and source-only diagnosis complete. Full6400 tests PASS516.48s; independent144/review CLOSED; static/policy/docs PASS. Exact source-only probe37955145349 SUCCESS with3 usable index items; historicalzero cause/public fallback and DEBT-068 remain external qualification gates.
 **Design**: [u166](../../construction/u166-domestic-price-source-qualification/design-brief.md).
 **Plan**: [u166 code](../../construction/plans/u166-domestic-price-source-qualification-code-generation-plan.md).
