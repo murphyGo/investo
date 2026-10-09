@@ -249,6 +249,8 @@ def test_rendered_markdown_construction_and_mutation_sites_are_allowlisted() -> 
         ),
         (_PUBLIC_DOCUMENT, "_assemble_phase_one_body_evidence", "model_copy"),
         (_PUBLIC_DOCUMENT, "_apply_pre_finalization_supplements", "model_copy"),
+        # u154 removes only its own shell before existing reader producers.
+        (_PUBLIC_DOCUMENT, "_assemble_phase_one_reader_draft", "model_copy"),
         # u158 summary reconciliation stays inside the existing assembly phase;
         # terminal validation and sealing retain their original ownership.
         (_PUBLIC_DOCUMENT, "_assemble_phase_one_reader_draft", "model_copy"),
