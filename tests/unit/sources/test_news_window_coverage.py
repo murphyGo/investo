@@ -85,7 +85,10 @@ def _xml_client(items: str) -> httpx.AsyncClient:
     )
 
 
-async def test_opted_capability_is_called_once_and_off_keeps_legacy_fetch() -> None:
+async def test_opted_capability_is_called_once_and_off_keeps_legacy_fetch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INVESTO_SOURCE_ENABLE", "cnbc-top-news")
     calls: list[tuple[str, FetchWindow]] = []
 
     @register
@@ -114,7 +117,10 @@ async def test_opted_capability_is_called_once_and_off_keeps_legacy_fetch() -> N
 
 
 @pytest.mark.parametrize("empty", [False, True])
-async def test_legacy_capability_is_unknown_even_with_oldest_before_start(empty: bool) -> None:
+async def test_legacy_capability_is_unknown_even_with_oldest_before_start(
+    empty: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("INVESTO_SOURCE_ENABLE", "cnbc-top-news")
     calls = 0
 
     @register
@@ -138,7 +144,11 @@ async def test_legacy_capability_is_unknown_even_with_oldest_before_start(empty:
 
 
 @pytest.mark.parametrize("wrong_shape", [False, True])
-async def test_capability_mismatch_cannot_produce_full_report(wrong_shape: bool) -> None:
+async def test_capability_mismatch_cannot_produce_full_report(
+    wrong_shape: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("INVESTO_SOURCE_ENABLE", "cnbc-top-news")
+
     @register
     class Invalid:
         name = "cnbc-top-news"

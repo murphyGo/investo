@@ -76,6 +76,7 @@ _BADGE_COUNT_RE: Final[re.Pattern[str]] = re.compile(
     r"성공\s*(?P<succeeded>\d+)\s*/\s*"
     r"0건\s*(?P<zero>\d+)\s*/\s*"
     r"실패\s*(?P<failed>\d+)\s*/\s*"
+    r"(?:시도\s*(?P<attempted>\d+)\s*/\s*비활성\s*(?P<skipped>\d+)\s*/\s*)?"
     r"본문 사용\s*(?P<body>미집계|\d+)[^\S\n]*$",
     re.MULTILINE,
 )
@@ -158,7 +159,12 @@ def _compose_diagnostic_source_count(match: re.Match[str]) -> str:
         f"성공 {match.group('succeeded')} / "
         f"0건 {match.group('zero')} / "
         f"실패 {match.group('failed')} / "
-        f"본문 사용 {match.group('body')}"
+        + (
+            f"시도 {match.group('attempted')} / 비활성 {match.group('skipped')} / "
+            if match.group("skipped") is not None
+            else ""
+        )
+        + f"본문 사용 {match.group('body')}"
     )
 
 

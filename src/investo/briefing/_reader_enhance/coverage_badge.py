@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
+from investo._internal.source_specs import SOURCE_SPECS_BY_NAME
 from investo.briefing.segments import SEVERITY_READER_EXPLANATIONS, SegmentCoverage
 
 
@@ -55,7 +56,12 @@ def _render_coverage_badge(coverage: SegmentCoverage) -> str:
             "> **소스 카운트**: "
             f"수집 대상 {coverage.targeted_count} / 성공 {coverage.succeeded_count} / "
             f"0건 {coverage.zero_count} / 실패 {coverage.failed_count} / "
-            f"본문 사용 {body_used}"
+            + (
+                f"시도 {coverage.attempted_count} / 비활성 {coverage.skipped_count} / "
+                if coverage.skipped_count
+                else ""
+            )
+            + f"본문 사용 {body_used}"
         )
     tier_label = coverage.tier_mix_label
     if tier_label:
@@ -132,7 +138,8 @@ def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
     failed = coverage.failed_source_outcomes
     zero = coverage.zero_source_outcomes
     ok = coverage.ok_source_outcomes
-    if not failed and not zero and not ok:
+    skipped = coverage.skipped_source_outcomes
+    if not failed and not zero and not ok and not skipped:
         return ""
     parts: list[str] = []
     for outcome in failed:
@@ -140,6 +147,19 @@ def _render_source_outcome_line(coverage: SegmentCoverage) -> str:
         parts.append(f"{outcome.source_name} 실패 ({label})")
     for outcome in zero:
         parts.append(f"{outcome.source_name} 0건")
+    for outcome in skipped:
+        parts.append(f"{outcome.source_name} 비활성 ({outcome.skip_reason_label})")
+    if skipped:
+        skipped_domains = {
+            domain
+            for outcome in skipped
+            if (spec := SOURCE_SPECS_BY_NAME.get(outcome.source_name)) is not None
+            for domain in spec.evidence_domains
+        }
+        for outcome in ok:
+            spec = SOURCE_SPECS_BY_NAME.get(outcome.source_name)
+            if spec is not None and spec.evidence_domains & skipped_domains:
+                parts.append(f"{outcome.source_name} 정상")
     if ok:
         parts.append(f"정상 {len(ok)}개")
     return ", ".join(parts)

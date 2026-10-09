@@ -127,6 +127,7 @@ _SOURCE_STATUS_LABELS: Final[dict[str, str]] = {
     "ok": "정상",
     "zero": "0건",
     "failed": "실패",
+    "skipped": "비활성",
 }
 
 

@@ -1,6 +1,7 @@
 # u165 Functional Design / NFR: source lifecycle and failure truth
 
-Status:DRAFT, 2026-10-09; not approved. Priority:P1-1.
+Status:Authorized for implementation, 2026-10-09. Priority:P1-1.
+User: “유닛 개발 진행해줘 / 하나 완료할떄마다 커밋 푸시해줘”.
 Evidence: [source review](../source-reliability-20261009/review.md).
 
 ## Problem, facts and scope

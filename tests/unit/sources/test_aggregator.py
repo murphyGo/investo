@@ -372,7 +372,11 @@ async def test_fetch_all_passes_utc_window_to_crypto_adapter() -> None:
     "source_name",
     ["binance-crypto-market", "defillama-market-structure"],
 )
-async def test_fetch_all_passes_utc_window_to_new_crypto_adapters(source_name: str) -> None:
+async def test_fetch_all_passes_utc_window_to_new_crypto_adapters(
+    source_name: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    if source_name == "binance-crypto-market":
+        monkeypatch.setenv("INVESTO_SOURCE_ENABLE", source_name)
     captured: dict[str, FetchWindow | None] = {"window": None}
 
     @register

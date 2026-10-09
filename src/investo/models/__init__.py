@@ -31,6 +31,7 @@ from investo.models.core_fact import (
 from investo.models.coverage import (
     SourceCollectionReport,
     SourceOutcome,
+    SourceSkipReason,
     SourceStatus,
     SourceTier,
     sanitize_source_error_message,
@@ -243,6 +244,7 @@ __all__ = [
     "SendResult",
     "SourceCollectionReport",
     "SourceOutcome",
+    "SourceSkipReason",
     "SourceStatus",
     "SourceTier",
     "TimeState",

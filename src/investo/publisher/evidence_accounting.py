@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 
 from investo._internal.source_specs import SOURCE_SPECS_BY_NAME
 from investo.models import SourceOutcome
+from investo.models.coverage import SOURCE_SKIP_REASON_LABELS
 from investo.models.segments import MarketSegment
 
 
@@ -86,7 +87,24 @@ def count_rendered_evidence(
         1 for label, url in links if _is_known_source_link(label, url, known_source_names)
     )
     verified_figure_mentions = len({str(fact) for fact in verified_facts})
-    raw_body_used_count = max(known_source_links, verified_figure_mentions)
+    if source_outcomes:
+        skipped_sources = {
+            outcome.source_name for outcome in source_outcomes if outcome.status == "skipped"
+        }
+        healthy_sources = {
+            outcome.source_name for outcome in source_outcomes if outcome.status == "ok"
+        }
+    else:
+        skipped_sources, healthy_sources = _public_source_lifecycle(markdown)
+    skipped_names = {_normalize_token(name) for name in skipped_sources}
+    eligible_links = sum(
+        1
+        for label, url in links
+        if not any(name and name in _normalize_token(label) for name in skipped_names)
+        and not _link_has_only_skipped_provider(url, skipped_sources, healthy_sources)
+        and _is_known_source_link(label, url, known_source_names)
+    )
+    raw_body_used_count = max(eligible_links, verified_figure_mentions)
     succeeded_count = sum(1 for outcome in source_outcomes if outcome.status == "ok")
     body_used_count = (
         min(raw_body_used_count, succeeded_count)
@@ -97,7 +115,9 @@ def count_rendered_evidence(
         markdown_links=len(links),
         known_source_links=known_source_links,
         verified_figure_mentions=verified_figure_mentions,
-        body_used_count=body_used_count,
+        body_used_count=0
+        if source_outcomes and all(outcome.status == "skipped" for outcome in source_outcomes)
+        else body_used_count,
     )
 
 
@@ -143,6 +163,44 @@ def _is_known_source_link(label: str, url: str, source_names: set[str]) -> bool:
         if normalized_source in normalized_label or normalized_source in normalized_host:
             return True
     return False
+
+
+def _public_source_lifecycle(markdown: str) -> tuple[set[str], set[str]]:
+    """Read only closed names/labels from the producer's unfenced diagnostic record."""
+    skipped: set[str] = set()
+    healthy: set[str] = set()
+    fence: tuple[str, int] | None = None
+    labels = set(SOURCE_SKIP_REASON_LABELS.values())
+    for line in markdown.splitlines():
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if fence is not None:
+            if re.fullmatch(r" {0,3}" + re.escape(fence[0]) + "{" + str(fence[1]) + r",}\s*", line):
+                fence = None
+            continue
+        if marker is not None:
+            fence = (marker.group(1)[0], len(marker.group(1)))
+            continue
+        if not line.startswith("> **소스별 상태**: ") or len(line) > 16000:
+            continue
+        for name, label in re.findall(r"([a-z0-9-]+) 비활성 \(([^()]+)\)", line):
+            if name in SOURCE_SPECS_BY_NAME and label in labels:
+                skipped.add(name)
+        healthy.update(
+            name for name in re.findall(r"([a-z0-9-]+) 정상", line) if name in SOURCE_SPECS_BY_NAME
+        )
+    return skipped, healthy
+
+
+def _link_has_only_skipped_provider(url: str, skipped: set[str], healthy: set[str]) -> bool:
+    host = (urlparse(url).hostname or "").lower().removeprefix("www.")
+
+    def matches(name: str) -> bool:
+        spec = SOURCE_SPECS_BY_NAME.get(name)
+        return spec is not None and any(
+            host == domain or host.endswith(f".{domain}") for domain in spec.evidence_domains
+        )
+
+    return any(matches(name) for name in skipped) and not any(matches(name) for name in healthy)
 
 
 def _normalize_token(value: str) -> str:

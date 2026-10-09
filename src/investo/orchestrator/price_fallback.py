@@ -40,6 +40,11 @@ def reconcile_yahoo_history_fallback(
 
     original_items = tuple(items)
     original_outcomes = tuple(outcomes)
+    if any(
+        outcome.source_name == YFINANCE_SOURCE_NAME and outcome.status == "skipped"
+        for outcome in original_outcomes
+    ):
+        return ReconciledPriceCollection(original_items, original_outcomes, 0)
     direct_items = tuple(
         item for item in original_items if item.source_name == YFINANCE_SOURCE_NAME
     )

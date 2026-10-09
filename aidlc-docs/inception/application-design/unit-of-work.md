@@ -2819,11 +2819,11 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Coverage**: US-001/005/007/008; FR-001/006/007/017/021; NFR-001/002/003/005/006/007/008.
 **Ownership / paths**: u1/u22/u31/u54/u102/u161 operational follow-up; coverage DTO/SourceSpec/aggregator, Naver/BEA, history/ops/public consumers and workflow config.
 **Definition of Done**:
-- [ ] Inactive sources make no calls and emit skipped+reason; invalid overrides fail before I/O.
-- [ ] All-child failures are failed, valid empty is zero, siblings survive; BEA adapter≤60s.
-- [ ] Historic records load; skip cannot create core health/successful observed-news receipts.
-- [ ] Local/R13 checks pass; deactivation and provider recovery remain separate.
-**Stage**: FD/NFR draft; Code Generation0/8; no new provider adapter.
+- [x] Inactive sources make no calls and emit skipped+reason; invalid overrides fail before I/O.
+- [x] All-child failures are failed, valid empty is zero, siblings survive; BEA adapter≤60s.
+- [x] Historic records load; skip cannot create core health/successful observed-news receipts.
+- [x] Local/R13 checks pass; deactivation and provider recovery remain separate.
+**Stage**: FD/NFR complete; Code Generation7/8 code complete; ten scheduled observations remain operationalstep8. Full6357 tests, static/policy/docs PASS; independent final311 PASS/review CLOSED. No source recovery/private activation or new provider is claimed.
 **Design**: [u165](../../construction/u165-source-lifecycle-and-failure-truth/design-brief.md).
 **Plan**: [u165 code](../../construction/plans/u165-source-lifecycle-and-failure-truth-code-generation-plan.md).
 

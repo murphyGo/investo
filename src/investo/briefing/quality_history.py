@@ -37,7 +37,7 @@ class QualitySnapshot:
     ``limited`` row to ``normal`` silently.
     """
 
-    source_liveness: float
+    source_liveness: float | None
     figures_presence: float
     fallback_ratio: float
     published_segments: int
@@ -69,6 +69,9 @@ class QualitySnapshot:
     # u149 — bounded sealed numeric-degradation frequency.
     current_run_degraded_segments: int = 0
     current_run_numeric_containment_actions: int = 0
+    current_run_configured_sources: int = 0
+    current_run_attempted_sources: int = 0
+    current_run_skipped_sources: int = 0
     # u159 — precommit terminal measurements, never a publication receipt.
     event_coverage: Mapping[MarketSegment, EventCoverage] | None = None
     news_observation: Mapping[MarketSegment, NewsObservationQuality] | None = None
@@ -113,7 +116,9 @@ def append_quality_snapshot(
     rows = _load_rows(target)
     row: dict[str, object] = {
         "date": target_date.isoformat(),
-        "source_liveness": _clamp_rate(snapshot.source_liveness),
+        "source_liveness": _clamp_rate(snapshot.source_liveness)
+        if snapshot.source_liveness is not None
+        else None,
         "figures_presence": _clamp_rate(snapshot.figures_presence),
         "fallback_ratio": _clamp_rate(snapshot.fallback_ratio),
         "published_segments": max(snapshot.published_segments, 0),
@@ -144,6 +149,14 @@ def append_quality_snapshot(
         "domestic_anchor_withheld_reasons": list(snapshot.domestic_anchor_withheld_reasons),
         "watchpoint_synthesized": max(snapshot.watchpoint_synthesized, 0),
     }
+    if snapshot.current_run_configured_sources or snapshot.current_run_skipped_sources:
+        row.update(
+            {
+                "current_run_configured_sources": max(snapshot.current_run_configured_sources, 0),
+                "current_run_attempted_sources": max(snapshot.current_run_attempted_sources, 0),
+                "current_run_skipped_sources": max(snapshot.current_run_skipped_sources, 0),
+            }
+        )
     if snapshot.worst_severity is not None:
         row["worst_severity"] = snapshot.worst_severity
     if snapshot.figures_verified is not None:

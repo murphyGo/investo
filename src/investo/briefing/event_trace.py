@@ -46,7 +46,7 @@ def collection_stage_receipt(
         for outcome in outcomes
         if outcome.category in {"news", "earnings"} or outcome.source_name in event_sources
     )
-    completed = bool(event_sources) or any(outcome.status != "failed" for outcome in relevant)
+    completed = bool(event_sources) or any(outcome.status in {"ok", "zero"} for outcome in relevant)
     failures = tuple(
         EventTraceEntry(
             hash_id=hashlib.sha256(outcome.source_name.encode()).hexdigest(),
@@ -57,7 +57,7 @@ def collection_stage_receipt(
             else None,
         )
         for outcome in sorted(relevant, key=lambda value: value.source_name)
-        if outcome.status == "failed"
+        if outcome.status in {"failed", "skipped"}
     )
     if not completed:
         return EventStageReceipt(

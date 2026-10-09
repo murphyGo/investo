@@ -7334,3 +7334,7 @@ At14:47:45UTC set automation-runtime REVIEWED_CODE_SHA=7bc6d28793fdefc19d78652bd
 ## 2026-10-10 — numeric-table reduction authorized (u154)
 
 User: “숫자 표를 줄이는 개편도 진행해줘”. Extend existing u154 layout owner; functional design completed, NFR reused, implementation/commit/push covered by current and earlier instructions. New publications place news summary before hero and collapse existing numeric preamble into one closed details panel; evidence and hard gates preserved. Independent review identified shell ownership, final-producer ordering and actual md_in_html rendering requirements; included before implementation. Root dirty work preserved in isolated numeric-tables-20261009. No human acceptance score or scheduled observation inferred.
+
+## 2026-10-10 — u165 source lifecycle construction/code completion
+
+User requested unit development and commit/push per completed unit, authorizing required FD/NFR and implementation. Isolated worktree preserves unrelated dirty root and concurrent main changes. FD/NFR complete; reuse NFR/Infrastructure designs recorded. Steps1–7 complete: skipped state/overrides, Naver/BEA failure truth/60s, public/history/quality/news/price consumers. Fresh independent review closed after final311 tests; full6357 PASS541.11s, Ruff/format682/mypy292/policy4/docs/Material PASS. Canonical date-cohort and real finalizer contracts verified. Five source deactivations are not recovery;10 scheduled observations/private pin/rights gates stay separate. Per-unit commit/push is explicitly authorized.

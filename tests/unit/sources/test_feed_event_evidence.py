@@ -92,6 +92,7 @@ async def test_invalid_evidence_entry_preserves_valid_siblings_and_legacy_bytes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A URL accepted by legacy HttpUrl cannot abort the opted-in source."""
+    monkeypatch.setenv("INVESTO_SOURCE_ENABLE", adapter.name)
     clock = datetime(2026, 9, 26, tzinfo=UTC)
     window = FetchWindow.from_kst_date(date(2026, 9, 25))
     transport = httpx.MockTransport(lambda _: httpx.Response(200, text=_mixed_evidence_xml()))

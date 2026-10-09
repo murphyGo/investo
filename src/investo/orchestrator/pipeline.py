@@ -2189,8 +2189,14 @@ def _build_quality_snapshot(
     core_eligible_segments = sum(
         1 for segment in published_segments if SEGMENT_CORE_SOURCES.get(segment)
     )
+    skipped_sources = sum(outcome.status == "skipped" for outcome in source_outcomes)
+    attempted_sources = len(source_outcomes) - skipped_sources
     source_liveness = (
-        1.0 if source_outcomes and failed_sources == 0 and core_eligible_segments > 0 else 0.0
+        None
+        if source_outcomes and attempted_sources == 0
+        else 1.0
+        if source_outcomes and failed_sources == 0 and core_eligible_segments > 0
+        else 0.0
     )
     bodies = [briefings[segment].rendered_markdown for segment in published_segments]
     routed = segment_items(items)
@@ -2265,6 +2271,9 @@ def _build_quality_snapshot(
     )
     return QualitySnapshot(
         source_liveness=source_liveness,
+        current_run_configured_sources=len(source_outcomes),
+        current_run_attempted_sources=attempted_sources,
+        current_run_skipped_sources=skipped_sources,
         figures_presence=(figures_count / non_limited) if non_limited > 0 else 0.0,
         figures_verified=(verified_figures_count / non_limited) if non_limited > 0 else None,
         fallback_ratio=(data_limited_count / len(bodies)) if bodies else 0.0,
@@ -3231,10 +3240,18 @@ class GenerateStage:
             if segmented_mode:
                 context_start = time.monotonic()
                 recent_context = _load_recent_context_for_run(target_date)
-                (
-                    market_anchors_by_segment,
-                    market_history_by_ticker,
-                ) = await _load_market_anchors_for_run(target_date)
+                yahoo_skipped = any(
+                    outcome.source_name == YFINANCE_SOURCE_NAME and outcome.status == "skipped"
+                    for outcome in source_outcomes
+                )
+                if yahoo_skipped:
+                    market_anchors_by_segment = {segment: () for segment in SEGMENT_ORDER}
+                    market_history_by_ticker = {}
+                else:
+                    (
+                        market_anchors_by_segment,
+                        market_history_by_ticker,
+                    ) = await _load_market_anchors_for_run(target_date)
                 direct_yahoo_count = sum(
                     item.source_name == YFINANCE_SOURCE_NAME for item in raw_items
                 )
