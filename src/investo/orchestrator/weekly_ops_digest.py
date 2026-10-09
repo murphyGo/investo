@@ -68,9 +68,21 @@ def build_weekly_digest_text(
         for outcomes in by_date.values()
         if any(entry.get("status") == "failed" for entry in outcomes)
     )
-    success_rate_pct = round(
-        100 * (runs_observed - runs_with_failures) / runs_observed,
-        1,
+    attempted_runs = sum(
+        any(entry.get("status") in {"ok", "zero", "failed"} for entry in outcomes)
+        for outcomes in by_date.values()
+    )
+    skipped_count = sum(
+        sum(entry.get("status") == "skipped" for entry in outcomes) for outcomes in by_date.values()
+    )
+    configured_count = sum(
+        sum(entry.get("status") in {"ok", "zero", "failed", "skipped"} for entry in outcomes)
+        for outcomes in by_date.values()
+    )
+    success_label = (
+        f"{round(100 * (attempted_runs - runs_with_failures) / attempted_runs, 1)}%"
+        if attempted_runs
+        else "n/a"
     )
 
     failure_counter: Counter[str] = Counter()
@@ -87,8 +99,17 @@ def build_weekly_digest_text(
         "",
         f"- 관측된 실행: {runs_observed}회 / 7일",
         f"- 실패 포함 실행: {runs_with_failures}회",
-        f"- 성공률: {success_rate_pct}%",
+        f"- 성공률: {success_label}",
     ]
+    if skipped_count:
+        lines.extend(
+            [
+                f"- 수집 시도 실행: {attempted_runs}회",
+                f"- 소스 누적: 구성 {configured_count} / 시도 {configured_count - skipped_count} / "
+                f"비활성 {skipped_count}",
+                "- 비활성은 수집 성공 또는 소스 복구로 계산하지 않습니다.",
+            ]
+        )
     if top_failed:
         lines.append("- 실패 누적 상위 소스:")
         for name, count in top_failed:

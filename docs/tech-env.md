@@ -98,3 +98,6 @@
 - 무료 데이터 소스의 rate limit 및 안정성 한계
 - public repo 운영 가정 (코드/시황 모두 공개; 시크릿만 비공개)
 - Claude Code subscription 보유 가정 (token 발급 가능)
+# Source lifecycle overrides (u165)
+
+`INVESTO_SOURCE_ENABLE` / `INVESTO_SOURCE_DISABLE`: optional comma-separated exact registered source names, wired from Variables in public daily and private production templates. Unknown names/overlap fail before source I/O. Enable overrides a default skip; disable records `operator_disabled`. Defaults and enum reasons are canonical in `SOURCE_SPECS`;44 historical identities remain registered. Skipped is a visible non-attempt, not zero or recovery. Re-enable requires current same-provider free/public rights, schema/useful-row/date and actual-runner evidence; see CONTRIBUTING's recovery procedure. Workflow template delivery does not update a private runtime reviewed pin or Variables.

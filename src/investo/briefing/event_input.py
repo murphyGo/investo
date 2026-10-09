@@ -82,7 +82,7 @@ def event_collection_limited(
         for outcome in outcomes
         if outcome.category in {"news", "earnings"} or outcome.source_name in event_sources
     )
-    if any(outcome.status == "failed" for outcome in news_outcomes):
+    if any(outcome.status in {"failed", "skipped"} for outcome in news_outcomes):
         return True
     return not event_sources and not news_outcomes
 

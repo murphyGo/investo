@@ -46,7 +46,7 @@ class DataConfidenceSourceRow(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     source_name: str = Field(min_length=1, max_length=100)
-    status: Literal["ok", "zero", "failed"]
+    status: Literal["ok", "zero", "failed", "skipped"]
     detail: str = Field(default="", max_length=160)
 
 
@@ -179,6 +179,12 @@ def _build_data_confidence_source_rows(
                 source_name=outcome.source_name,
                 status="zero",
                 detail="0건 반환",
+            )
+        )
+    for outcome in coverage.skipped_source_outcomes:
+        rows.append(
+            DataConfidenceSourceRow(
+                source_name=outcome.source_name, status="skipped", detail=outcome.skip_reason_label
             )
         )
     ok = coverage.ok_source_outcomes

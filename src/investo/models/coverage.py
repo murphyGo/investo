@@ -31,7 +31,21 @@ from typing import Final, Literal
 from investo._internal.redaction import RedactionPolicy, redact_text
 from investo.models.items import Category, NormalizedItem
 
-SourceStatus = Literal["ok", "zero", "failed"]
+SourceStatus = Literal["ok", "zero", "failed", "skipped"]
+SourceSkipReason = Literal[
+    "region_denied",
+    "access_denied",
+    "endpoint_removed",
+    "upstream_unavailable",
+    "operator_disabled",
+]
+SOURCE_SKIP_REASON_LABELS: Final[dict[SourceSkipReason, str]] = {
+    "region_denied": "지역 접근 제한",
+    "access_denied": "접근 제한",
+    "endpoint_removed": "종료된 수집 경로",
+    "upstream_unavailable": "제공처 응답 불가",
+    "operator_disabled": "운영자 비활성 설정",
+}
 WindowCompleteness = Literal["full", "partial", "unknown"]
 WindowCoverageBasis = Literal["none", "provider_pagination"]
 
@@ -44,7 +58,7 @@ WindowCoverageBasis = Literal["none", "provider_pagination"]
 SourceTier = Literal["S", "A", "B", "C"]
 
 _CATEGORIES: Final[frozenset[str]] = frozenset({"news", "price", "macro", "calendar", "earnings"})
-_SOURCE_STATUSES: Final[frozenset[str]] = frozenset({"ok", "zero", "failed"})
+_SOURCE_STATUSES: Final[frozenset[str]] = frozenset({"ok", "zero", "failed", "skipped"})
 _SOURCE_TIERS: Final[frozenset[str]] = frozenset({"S", "A", "B", "C"})
 
 # Maximum length of the public-facing failure reason string. Anything
@@ -58,7 +72,7 @@ _MAX_REASON_CHARS: Final[int] = 120
 class SourceOutcome:
     """One adapter's collection verdict for the run.
 
-    ``status`` is a closed three-way enum; ``failure_reason`` is set
+    ``status`` is a closed four-way enum; ``failure_reason`` is set
     only when ``status == "failed"`` and is always pre-sanitized via
     :func:`sanitize_source_error_message` (see
     :meth:`SourceOutcome.from_failure`).
@@ -89,12 +103,13 @@ class SourceOutcome:
     # u92 — source-adapter wall-clock elapsed seconds. Optional so
     # legacy reports and tests constructed before u92 remain valid.
     elapsed_s: float | None = None
+    skip_reason: SourceSkipReason | None = None
 
     def __post_init__(self) -> None:
         if self.category not in _CATEGORIES:
             raise ValueError("category must be one of news, price, macro, calendar, earnings")
         if self.status not in _SOURCE_STATUSES:
-            raise ValueError("status must be one of ok, zero, failed")
+            raise ValueError("status must be one of ok, zero, failed, skipped")
         if self.tier not in _SOURCE_TIERS:
             raise ValueError("tier must be one of S, A, B, C")
         if self.item_count < 0:
@@ -104,6 +119,22 @@ class SourceOutcome:
         if self.elapsed_s is not None and (self.elapsed_s < 0 or not isfinite(self.elapsed_s)):
             raise ValueError("elapsed_s must be finite and >= 0")
 
+        if self.status == "skipped":
+            if self.skip_reason not in SOURCE_SKIP_REASON_LABELS:
+                raise ValueError("skipped outcome requires a known skip_reason")
+            if self.item_count != 0 or any(
+                value is not None
+                for value in (
+                    self.failure_reason,
+                    self.transient,
+                    self.latest_item_at,
+                    self.elapsed_s,
+                )
+            ):
+                raise ValueError("skipped outcome forbids items and attempt evidence")
+            return
+        if self.skip_reason is not None:
+            raise ValueError("attempted outcome forbids skip_reason")
         if self.status == "ok":
             if self.item_count <= 0:
                 raise ValueError("ok outcome requires item_count > 0")
@@ -125,6 +156,22 @@ class SourceOutcome:
                 raise ValueError("failed outcome requires failure_reason")
             if not isinstance(self.transient, bool):
                 raise ValueError("failed outcome requires transient bool")
+
+    @classmethod
+    def skipped(
+        cls,
+        source_name: str,
+        category: Category,
+        *,
+        reason: SourceSkipReason,
+        tier: SourceTier = "B",
+    ) -> SourceOutcome:
+        """An explicit non-attempt; never zero, success or failure evidence."""
+        return cls(source_name, category, "skipped", tier=tier, skip_reason=reason)
+
+    @property
+    def skip_reason_label(self) -> str:
+        return SOURCE_SKIP_REASON_LABELS[self.skip_reason] if self.skip_reason is not None else ""
 
     @classmethod
     def ok(
@@ -271,6 +318,13 @@ class SourceCollectionReport:
     outcomes: tuple[SourceOutcome, ...]
     window_coverages: tuple[SourceWindowCoverage, ...] = ()
 
+    def __post_init__(self) -> None:
+        skipped = {outcome.source_name for outcome in self.outcomes if outcome.status == "skipped"}
+        if any(item.source_name in skipped for item in self.items):
+            raise ValueError("skipped source cannot contribute collection items")
+        if any(coverage.source_name in skipped for coverage in self.window_coverages):
+            raise ValueError("skipped source cannot contribute window coverage")
+
     @property
     def empty(self) -> bool:
         return not self.items
@@ -322,9 +376,11 @@ def sanitize_source_error_message(message: str) -> str:
 
 
 __all__ = [
+    "SOURCE_SKIP_REASON_LABELS",
     "SourceCollectionReport",
     "SourceFetchResult",
     "SourceOutcome",
+    "SourceSkipReason",
     "SourceStatus",
     "SourceTier",
     "SourceWindowCoverage",

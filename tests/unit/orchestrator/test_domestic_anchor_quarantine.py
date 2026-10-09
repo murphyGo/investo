@@ -68,6 +68,18 @@ def test_classifies_trusted_yonhap_index_candidate() -> None:
     assert candidate.close == Decimal("2650.50")
 
 
+def test_skipped_source_cannot_back_a_staged_domestic_candidate() -> None:
+    candidate = candidate_from_item(_item("^KOSPI", "2650.50"))
+    assert candidate is not None
+    skipped = SourceOutcome.skipped("yonhap-index-close", "price", reason="operator_disabled")
+    assert (
+        classify_domestic_anchor_candidate(
+            candidate, target_date=_TARGET, source_outcomes=(skipped,)
+        )
+        == "provenance_missing"
+    )
+
+
 def test_plausibility_boundaries_are_inclusive() -> None:
     verdicts = domestic_anchor_verdicts(
         [

@@ -123,20 +123,26 @@ class KrxForeignFlowsAdapter:
             return_exceptions=True,
         )
         items: list[NormalizedItem] = []
+        failures: list[SourceFetchError] = []
         for result in results:
             if isinstance(result, list):
                 items.extend(result)
             elif isinstance(result, SourceFetchError):
-                # Per-market source-side failure (HTTP 5xx after retries
-                # / malformed HTML). Sibling market continues normally
-                # — analogous to Stooq's per-ticker isolation.
-                _logger.info(
-                    "[krx-foreign-flows] per-market fetch failed: %s",
-                    result,
-                )
-                continue
+                failures.append(result)
             elif isinstance(result, BaseException):
                 raise result
+        if failures:
+            _logger.info(
+                "[krx-foreign-flows] failed_markets=%d total_markets=%d",
+                len(failures),
+                len(results),
+            )
+        if len(failures) == len(results):
+            raise SourceFetchError(
+                source_name=self.name,
+                message="all investor-flow market requests failed",
+                transient=any(error.transient for error in failures),
+            )
         return items
 
     async def _fetch_market(

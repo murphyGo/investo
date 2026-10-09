@@ -104,6 +104,7 @@ def append_daily_coverage(
                 "category": outcome.category,
                 "status": outcome.status,
                 "item_count": outcome.item_count,
+                **({"skip_reason": outcome.skip_reason} if outcome.status == "skipped" else {}),
             }
             for outcome in source_outcomes
         ],

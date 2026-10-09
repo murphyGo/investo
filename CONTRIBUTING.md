@@ -126,6 +126,42 @@ canonical R12 reference (`INVESTO_FRED_SERIES`). It and the fixed-series
 
 ## Recording a fixture
 
+### Explicit source lifecycle and recovery (u165)
+
+`investo._internal.source_specs.SOURCE_SPECS` owns activation defaults.
+All44 adapters remain registered. Binance market data (`region_denied`),
+CNBC (`access_denied`), Yahoo news/Naver flows (`endpoint_removed`) and
+FSC policy RSS (`upstream_unavailable`) are disabled by default after the
+25-run audit. This stops repeated requests; it is not provider recovery.
+Yahoo price remains enabled. A valid empty sparse policy feed stays `zero`.
+
+`INVESTO_SOURCE_ENABLE` and `INVESTO_SOURCE_DISABLE` accept comma-separated,
+case-sensitive registered names. Unknown names or overlap reject the run
+before source I/O. Enable overrides a default skip for that run; disable
+records `operator_disabled`. Both public/private workflow templates read
+these from repository/environment Variables. No persistent quarantine or
+automatic re-enable is performed.
+
+Recovery requires a bounded, source-only probe of the same provider from
+the actual scheduled runner: verify HTTP/API/schema status, parsed useful
+rows, real dates/window, current free access/public-use rights and request
+limits. Call the adapter directly in a harness without LLM, publisher or
+notifier credentials. Retain only allowlisted status/count/exclusion fields;
+never upload raw payloads, article text, numeric rows or key-bearing URLs.
+Offline tests alone do not authorize production re-enable. Record the
+runner/SHA and terms evidence, then explicitly set ENABLE and observe
+scheduled coverage; revert by clearing ENABLE if access/useful rows regress.
+
+Configured sources equal attempted plus skipped. Success/zero/failure count
+attempts only. Skipped reasons remain in coverage/Step Summary/cards/history.
+An all-skipped execution has no measured source liveness (`n/a`); a skipped
+core source remains missing capability, and skipped news cannot create a
+full observation receipt or advance a news cursor. Disabling `yfinance-price`
+also suppresses its Yahoo history context/chart fetch and same-run fallback;
+the skip is never reconstructed as `ok`. Lost FSC policy coverage
+and Naver investor-flow data remain disclosed; other retained news feeds do
+not claim to replace those capabilities.
+
 Adapter tests run **offline** (`business-rules.md` R10). For each new
 adapter, capture a real response once and commit it:
 

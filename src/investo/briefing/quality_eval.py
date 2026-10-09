@@ -93,6 +93,15 @@ class QualityKPIs:
     # briefings observed). ``None`` = no observations.
     briefings_with_verified_figures: int = 0
 
+    runs_attempted: int | None = None
+    configured_sources: int = 0
+    skipped_sources: int = 0
+    source_counts_by_date: tuple[tuple[str, int, int, int, int], ...] = ()
+
+    @property
+    def liveness_denominator(self) -> int:
+        return self.runs_observed if self.runs_attempted is None else self.runs_attempted
+
     @property
     def source_liveness_rate(self) -> float | None:
         """u54 — Returns ``None`` when no runs were observed.
@@ -101,9 +110,10 @@ class QualityKPIs:
         which would falsely imply "we observed zero liveness" instead
         of "we have no observations".
         """
-        if self.runs_observed == 0:
+        denominator = self.liveness_denominator
+        if denominator == 0:
             return None
-        return (self.runs_observed - self.runs_with_failed_source) / self.runs_observed
+        return (denominator - self.runs_with_failed_source) / denominator
 
     @property
     def figures_presence_rate(self) -> float | None:
@@ -181,6 +191,30 @@ def compute_quality_kpis(
         today=today,
         window_days=window_days,
         runs_observed=len(runs),
+        source_counts_by_date=tuple(
+            (
+                day,
+                sum(
+                    entry.get("status") in {"ok", "zero", "failed", "skipped"} for entry in outcomes
+                ),
+                sum(entry.get("status") == "skipped" for entry in outcomes),
+                sum(entry.get("status") == "failed" for entry in outcomes),
+                sum(entry.get("status") == "zero" for entry in outcomes),
+            )
+            for day, outcomes in sorted(runs.items())
+        ),
+        runs_attempted=sum(
+            any(entry.get("status") in {"ok", "zero", "failed"} for entry in outcomes)
+            for outcomes in runs.values()
+        ),
+        configured_sources=sum(
+            sum(entry.get("status") in {"ok", "zero", "failed", "skipped"} for entry in outcomes)
+            for outcomes in runs.values()
+        ),
+        skipped_sources=sum(
+            sum(entry.get("status") == "skipped" for entry in outcomes)
+            for outcomes in runs.values()
+        ),
         runs_with_failed_source=runs_with_failed,
         briefings_observed=briefings_observed,
         briefings_data_limited=briefings_data_limited,
@@ -282,8 +316,20 @@ def render_quality_page(kpis: QualityKPIs) -> str:
     lines.append("| 지표 | 값 | 분모 |")
     lines.append("|------|------|------|")
     lines.append(
-        f"| 소스 라이브니스 | {_format_pct(kpis.source_liveness_rate)} | {kpis.runs_observed} 회 |"
+        f"| 소스 라이브니스 | {_format_pct(kpis.source_liveness_rate)} | "
+        f"{kpis.liveness_denominator} 회 |"
     )
+    if kpis.skipped_sources:
+        lines.append(f"| 구성 소스 누적 | {kpis.configured_sources} 회 | {kpis.runs_observed} 회 |")
+        lines.append(f"| 비활성 소스 누적 | {kpis.skipped_sources} 회 | {kpis.runs_observed} 회 |")
+        lines.append(
+            f"| 수집 시도 소스 누적 | {kpis.configured_sources - kpis.skipped_sources} 회 | "
+            f"{kpis.runs_observed} 회 |"
+        )
+    if kpis.skipped_sources:
+        lines.append(
+            "| 관측된 실행 | " + str(kpis.runs_observed) + " 회 | 비활성만 있는 실행 포함 |"
+        )
     lines.append(
         "| 수치 인용 비율 | "
         f"{_format_pct(kpis.figures_presence_rate)} | "
@@ -308,6 +354,12 @@ def render_quality_page(kpis: QualityKPIs) -> str:
         f"| 제한/실패 세그먼트 | {kpis.segments_limited_or_worse} 건 | {kpis.runs_observed} 회 |"
     )
     lines.append("")
+    if kpis.skipped_sources:
+        lines.append(
+            "> 소스 라이브니스는 수집을 시도한 실행만 계산합니다. "
+            "비활성은 성공 또는 소스 복구가 아닙니다."
+        )
+        lines.append("")
     lines.append(
         "> 이 지표는 매 게시 직후 자동 갱신됩니다. ``n/a`` 는 측정 가능한 "
         "표본이 없다는 뜻이며 0% 가 아닙니다. 표본 크기를 함께 확인하세요."
@@ -465,7 +517,15 @@ def _parse_quality_history_row(payload: dict[str, object]) -> QualityHistoryRow 
     source_liveness = _optional_rate(payload.get("source_liveness"))
     figures_presence = _optional_rate(payload.get("figures_presence"))
     fallback_ratio = _optional_rate(payload.get("fallback_ratio"))
-    if source_liveness is None or figures_presence is None or fallback_ratio is None:
+    no_attempt = (
+        payload.get("current_run_attempted_sources") == 0
+        and (_optional_int(payload.get("current_run_skipped_sources")) or 0) > 0
+    )
+    if (
+        (source_liveness is None and not no_attempt)
+        or figures_presence is None
+        or fallback_ratio is None
+    ):
         return None
     raw_severity = payload.get("worst_severity")
     worst_severity = raw_severity if isinstance(raw_severity, str) else None

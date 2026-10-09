@@ -258,6 +258,7 @@ async def _run_feed_pipeline(
         return await original_generate(request)
 
     with monkeypatch.context() as scoped:
+        scoped.setenv("INVESTO_SOURCE_ENABLE", ",".join(adapter.name for adapter in adapters))
         scoped.setattr(aggregator, "list_sources", lambda: adapters)
         scoped.setattr(
             httpx,

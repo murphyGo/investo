@@ -14,6 +14,23 @@ from investo.orchestrator.price_fallback import reconcile_yahoo_history_fallback
 _TARGET = date(2026, 7, 18)
 
 
+def test_explicit_skip_cannot_be_recovered_from_same_run_history() -> None:
+    skipped = SourceOutcome.skipped("yfinance-price", "price", reason="operator_disabled")
+    row = OHLCRow(
+        trading_date=_TARGET,
+        open=Decimal("100"),
+        high=Decimal("110"),
+        low=Decimal("90"),
+        close=Decimal("105"),
+        volume=Decimal("1000"),
+    )
+    reconciled = reconcile_yahoo_history_fallback(
+        items=(), outcomes=(skipped,), history_by_ticker={"AAPL": (row,)}, target_date=_TARGET
+    )
+    assert reconciled.fallback_count == 0 and reconciled.items == ()
+    assert reconciled.outcomes == (skipped,)
+
+
 def _row(
     trading_date: date,
     *,

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
@@ -26,6 +27,7 @@ import httpx
 from investo._internal.source_specs import (
     news_window_source_recipients,
     source_names_for_market_window,
+    source_skip_reasons,
 )
 from investo.models import NormalizedItem, SourceCollectionReport, SourceOutcome
 from investo.models.coverage import SourceFetchResult, SourceWindowCoverage
@@ -92,6 +94,10 @@ async def collect_sources(
     same set of adapters always produces the same outcome sequence.
     """
 
+    skip_reasons = source_skip_reasons(
+        enable=os.environ.get("INVESTO_SOURCE_ENABLE", ""),
+        disable=os.environ.get("INVESTO_SOURCE_DISABLE", ""),
+    )
     overrides = news_windows or {}
     permitted = news_window_source_recipients()
     if (set(overrides) | held_news_sources) - set(permitted):
@@ -120,20 +126,39 @@ async def collect_sources(
             for name, window in windows.items()
         }
 
-    async with httpx.AsyncClient() as client:
-        results = await asyncio.gather(
-            *(
-                _fetch_adapter_timed(
-                    adapter, client, windows[adapter.name], with_coverage=adapter.name in overrides
+    active = [adapter for adapter in adapters if adapter.name not in skip_reasons]
+    results: list[_TimedAdapterResult] = []
+    if active:
+        async with httpx.AsyncClient() as client:
+            results = list(
+                await asyncio.gather(
+                    *(
+                        _fetch_adapter_timed(
+                            adapter,
+                            client,
+                            windows[adapter.name],
+                            with_coverage=adapter.name in overrides,
+                        )
+                        for adapter in active
+                    ),
                 )
-                for adapter in adapters
-            ),
-        )
+            )
 
     items: list[NormalizedItem] = []
     outcomes: list[SourceOutcome] = []
     window_coverages: list[SourceWindowCoverage] = []
-    for adapter, timed in zip(adapters, results, strict=True):
+    attempted = dict(zip((adapter.name for adapter in active), results, strict=True))
+    for adapter in adapters:
+        reason = skip_reasons.get(adapter.name)
+        if reason is not None:
+            outcomes.append(
+                SourceOutcome.skipped(
+                    adapter.name, adapter.category, reason=reason, tier=adapter_tier(adapter.name)
+                )
+            )
+            _logger.info("source skipped source_name=%s reason=%s", adapter.name, reason)
+            continue
+        timed = attempted[adapter.name]
         result = timed.result
         elapsed_s = timed.elapsed_s
         if isinstance(result, SourceFetchError):

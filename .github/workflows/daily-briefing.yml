@@ -220,6 +220,8 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           # Optional free CoinGecko Demo plan; public host/header only (u164).
           COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+          INVESTO_SOURCE_ENABLE: ${{ vars.INVESTO_SOURCE_ENABLE }}
+          INVESTO_SOURCE_DISABLE: ${{ vars.INVESTO_SOURCE_DISABLE }}
           # u105 official BEA macro actuals. Missing credentials degrade
           # only the BEA adapter through the source-level R6 boundary.
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}

@@ -488,10 +488,17 @@ def _write_github_step_summary(result: PipelineResult) -> None:
         ranked = sorted(
             result.source_outcomes,
             key=lambda outcome: (
-                {"failed": 0, "zero": 1, "ok": 2}.get(outcome.status, 3),
+                {"failed": 0, "skipped": 1, "zero": 2, "ok": 3}.get(outcome.status, 4),
                 outcome.source_name,
             ),
         )
+        skipped_count = sum(outcome.status == "skipped" for outcome in ranked)
+        if skipped_count:
+            lines.append(
+                f"Configured {len(ranked)} / Attempted {len(ranked) - skipped_count} / "
+                f"Skipped {skipped_count}"
+            )
+            lines.append("")
         lines.extend(
             [
                 "### Sources",
@@ -501,7 +508,11 @@ def _write_github_step_summary(result: PipelineResult) -> None:
             ]
         )
         for outcome in ranked:
-            reason = outcome.failure_reason or ""
+            reason = (
+                outcome.skip_reason_label
+                if outcome.status == "skipped"
+                else outcome.failure_reason or ""
+            )
             lines.append(
                 "| "
                 + " | ".join(

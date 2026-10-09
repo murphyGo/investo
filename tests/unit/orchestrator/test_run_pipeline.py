@@ -4776,3 +4776,30 @@ async def test_dry_run_validates_event_snapshot_without_public_history_write(
     assert history.read_text() == original
     assert git.calls == []
     assert observed_paths and not observed_paths[0].parent.exists()
+
+
+async def test_operator_skipped_yahoo_prevents_context_http_and_fallback(archive_root, monkeypatch):
+    from investo.models import SourceCollectionReport
+    from investo.orchestrator import pipeline as pipeline_module
+
+    skipped = SourceOutcome.skipped("yfinance-price", "price", reason="operator_disabled")
+
+    async def collect(target_date, **kwargs):
+        return SourceCollectionReport((_item("non-price seed"),), (skipped,))
+
+    async def forbidden_history(*args, **kwargs):
+        pytest.fail("operator-disabled Yahoo must not load history")
+
+    monkeypatch.setattr(pipeline_module, "_default_collect_sources", collect)
+    monkeypatch.setattr(pipeline_module, "_load_market_anchors_for_run", forbidden_history)
+    calls = []
+    result = await run_pipeline(
+        _TARGET,
+        publisher=_FakePublisher(),
+        alerter=_FakeAlerter(),
+        site_url_base=_SITE_BASE,
+        git_runner=_SuccessfulGitRunner(),
+        generate_segment=_success_segment_generate(calls),
+    )
+    assert calls
+    assert next(o for o in result.source_outcomes if o.source_name == "yfinance-price") == skipped

@@ -85,6 +85,7 @@ EXPECTED_PUBLIC_NAMES: frozenset[str] = frozenset(
         "SourceCollectionReport",
         "SourceOutcome",
         "SourceStatus",
+        "SourceSkipReason",
         "SourceTier",
         "sanitize_source_error_message",
         # results.py

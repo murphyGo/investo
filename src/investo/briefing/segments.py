@@ -589,7 +589,12 @@ def build_segment_coverage(
         succeeded_count=succeeded_count,
         zero_count=zero_count,
         failed_count=failed_count,
-        body_used_count=max(body_used_count, 0),
+        skipped_count=sum(o.status == "skipped" for o in outcomes_tuple),
+        body_used_count=(
+            0
+            if outcomes_tuple and all(o.status == "skipped" for o in outcomes_tuple)
+            else max(body_used_count, 0)
+        ),
     )
 
 
@@ -645,10 +650,8 @@ def _resolve_severity(
     # Row 2: any core failed (but not all) → limited.
     if failed_core_count >= 1:
         return "limited"
-    # Row 3: all core zero (none failed, none ok) → limited.
-    if all_core_bad and zero_core_count == len(
-        [o for o in outcomes if o.source_name in SEGMENT_CORE_SOURCES.get(segment, frozenset())]
-    ):
+    # No usable core attempt, including explicit skips, remains missing capability.
+    if all_core_bad:
         return "limited"
     # Staleness override: any core stale → ≥ limited.
     if core_stale:
@@ -797,6 +800,10 @@ def _derive_reason_codes(
         codes.append(_MISSING_CATEGORY_TO_REASON[category])
     if any(outcome.status == "failed" for outcome in source_outcomes):
         codes.append("SOURCE_FAILED")
+    if any(outcome.status == "skipped" for outcome in source_outcomes):
+        codes.append("SOURCE_SKIPPED")
+    if any(outcome.status == "skipped" for outcome in core_outcomes):
+        codes.append("CORE_SKIPPED")
     if any(
         outcome.status == "zero" and outcome.source_name not in _QUIET_ZERO_SOURCES
         for outcome in source_outcomes

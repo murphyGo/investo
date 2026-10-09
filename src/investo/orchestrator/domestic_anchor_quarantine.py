@@ -153,7 +153,7 @@ def classify_domestic_anchor_candidate(
     if normalize_domestic_anchor_symbol(candidate.raw_ticker) != candidate.symbol:
         return "provenance_missing"
     outcome_status = _source_statuses(source_outcomes).get(candidate.source_name)
-    if outcome_status in {"failed", "zero"}:
+    if outcome_status in {"failed", "zero", "skipped"}:
         return "provenance_missing"
     if target_date is not None and not _date_matches(
         candidate.observed_at,

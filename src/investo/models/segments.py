@@ -24,6 +24,8 @@ CoverageReasonCode = Literal[
     "MISSING_CALENDAR",
     "MISSING_EARNINGS",
     "SOURCE_FAILED",
+    "SOURCE_SKIPPED",
+    "CORE_SKIPPED",
     "SOURCE_ZERO",
     "DOMESTIC_DISCLOSURE_QUIET",
     "LOOKAHEAD_DATA_MISSING",
@@ -53,6 +55,8 @@ COVERAGE_REASON_LABELS: Final[dict[CoverageReasonCode, str]] = {
     "MISSING_CALENDAR": "일정 카테고리 누락",
     "MISSING_EARNINGS": "실적 카테고리 누락",
     "SOURCE_FAILED": "일부 소스 수집 실패",
+    "SOURCE_SKIPPED": "일부 소스 비활성",
+    "CORE_SKIPPED": "핵심 가격 소스 비활성",
     "SOURCE_ZERO": "일부 소스 0건 반환",
     "DOMESTIC_DISCLOSURE_QUIET": "DART 주요 공시 0건",
     "LOOKAHEAD_DATA_MISSING": "예정 일정 데이터 미확보",
@@ -76,7 +80,7 @@ COVERAGE_STATUS_LABELS: Final[dict[CoverageStatus, str]] = {
 SEVERITY_READER_EXPLANATIONS: Final[dict[CoverageStatus, str]] = {
     "normal": "정상 — 핵심 소스 수집 완료, 본문 결론 신뢰도 양호",
     "partial": "부분 — 일부 카테고리 미수집, 본문 일부 결론 보강 필요",
-    "limited": "제한 — 핵심 가격 소스 0건/실패/stale, 본문 결론 신뢰도 낮음",
+    "limited": "제한 — 핵심 가격 소스 0건/실패/비활성/stale, 본문 결론 신뢰도 낮음",
     "failed": "실패 — 핵심 소스 전부 실패 또는 수집 항목 0건",
 }
 CATEGORY_LABELS: Final[dict[Category, str]] = {
@@ -116,6 +120,15 @@ class SegmentCoverage:
     zero_count: int = 0
     failed_count: int = 0
     body_used_count: int = 0
+    skipped_count: int = 0
+
+    @property
+    def attempted_count(self) -> int:
+        return self.targeted_count - self.skipped_count
+
+    @property
+    def skipped_source_outcomes(self) -> tuple[SourceOutcome, ...]:
+        return tuple(outcome for outcome in self.source_outcomes if outcome.status == "skipped")
 
     @property
     def status_label(self) -> str:

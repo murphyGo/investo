@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import os
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, replace
 from datetime import UTC
+from decimal import Decimal, InvalidOperation
 from typing import Any, ClassVar, Final
 
 import httpx
@@ -14,13 +18,15 @@ from investo.models import Category, NormalizedItem
 from investo.sources._config import SUMMARY_MAX_LEN
 from investo.sources._parse import parse_json_response
 from investo.sources._registry import register
-from investo.sources._retry import retry_get
+from investo.sources._retry import DEFAULT_CONFIG, retry_get
 from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _ENV_KEY: Final[str] = "BEA_API_KEY"
 _ENDPOINT: Final[str] = "https://apps.bea.gov/api/data"
 _SOURCE_URL: Final[str] = "https://www.bea.gov/data"
+_ADAPTER_BUDGET_S: Final[float] = 60.0
+_logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -60,13 +66,47 @@ class BeaMacroActualsAdapter:
                 transient=False,
             )
         items: list[NormalizedItem] = []
-        for series in _SERIES:
-            try:
-                item = await self._fetch_one(client, series, api_key, window)
-            except SourceFetchError:
-                continue
-            if item is not None:
-                items.append(item)
+        succeeded = 0
+        failures: list[SourceFetchError] = []
+        timed_out = False
+        deadline = asyncio.get_running_loop().time() + _ADAPTER_BUDGET_S
+        timeout = asyncio.timeout(_ADAPTER_BUDGET_S)
+        try:
+            async with timeout:
+                for series in _SERIES:
+                    remaining = deadline - asyncio.get_running_loop().time()
+                    if remaining <= 0:
+                        timed_out = True
+                        break
+                    try:
+                        item = await self._fetch_one(
+                            client, series, api_key, window, remaining_budget_s=remaining
+                        )
+                    except SourceFetchError as error:
+                        failures.append(error)
+                        continue
+                    succeeded += 1
+                    if item is not None:
+                        items.append(item)
+        except TimeoutError:
+            if not timeout.expired():
+                raise
+            timed_out = True
+        _logger.info(
+            "[bea-macro-actuals] completed_series=%d failed_series=%d "
+            "terminal_errors=%d deadline_exhausted=%s emitted_items=%d",
+            succeeded,
+            len(failures),
+            sum(not error.transient for error in failures),
+            timed_out,
+            len(items),
+        )
+        if succeeded == 0 and (failures or timed_out):
+            raise SourceFetchError(
+                source_name=self.name,
+                message="BEA collection failed without a completed successful response",
+                transient=timed_out or any(error.transient for error in failures),
+            )
         return items
 
     async def _fetch_one(
@@ -75,11 +115,16 @@ class BeaMacroActualsAdapter:
         series: _BeaSeries,
         api_key: str,
         window: FetchWindow,
+        *,
+        remaining_budget_s: float = _ADAPTER_BUDGET_S,
     ) -> NormalizedItem | None:
         response = await retry_get(
             client,
             _ENDPOINT,
             source_name=self.name,
+            config=replace(
+                DEFAULT_CONFIG, total_budget_s=min(_ADAPTER_BUDGET_S, remaining_budget_s)
+            ),
             params={
                 "UserID": api_key,
                 "method": "GetData",
@@ -98,6 +143,21 @@ class BeaMacroActualsAdapter:
             append_exc=False,
         )
         rows = _extract_data_rows(payload, source_name=self.name)
+        matching = [
+            row
+            for row in rows
+            if isinstance(row, dict)
+            and str(row.get("LineNumber", "")).strip() == series.line_number
+        ]
+        _logger.info(
+            "[bea-macro-actuals] series=%s rows=%d matching_rows=%d "
+            "invalid_values=%d invalid_periods=%d",
+            series.code,
+            len(rows),
+            len(matching),
+            sum(not _clean_value(row.get("DataValue")) for row in matching),
+            sum(not _valid_period(row.get("TimePeriod"), series.frequency) for row in matching),
+        )
         latest = _first_matching_row(rows, series)
         if latest is None:
             return None
@@ -177,7 +237,11 @@ def _extract_data_rows(payload: Any, *, source_name: str) -> list[Any]:
             transient=False,
         )
     data = results.get("Data")
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        raise SourceFetchError(
+            source_name=source_name, message="invalid BEA data schema", transient=False
+        )
+    return data
 
 
 def _first_matching_row(
@@ -192,14 +256,30 @@ def _first_matching_row(
             continue
         if str(row.get("LineNumber") or "").strip() != series.line_number:
             continue
-        if not _clean_value(row.get("DataValue")):
+        if not _clean_value(row.get("DataValue")) or not _valid_period(
+            row.get("TimePeriod"), series.frequency
+        ):
             continue
         return idx, row
     return None
 
 
 def _clean_value(value: Any) -> str:
-    return str(value or "").strip().replace(",", "")
+    if value is None or isinstance(value, bool):
+        return ""
+    text = str(value).strip().replace(",", "")
+    try:
+        numeric = Decimal(text)
+    except InvalidOperation:
+        return ""
+    return text if numeric.is_finite() else ""
+
+
+def _valid_period(value: Any, frequency: str) -> bool:
+    if not isinstance(value, str):
+        return False
+    pattern = r"[0-9]{4}Q[1-4]" if frequency == "Q" else r"[0-9]{4}M(?:0[1-9]|1[0-2])"
+    return re.fullmatch(pattern, value.strip()) is not None
 
 
 def _canonical_period(value: str) -> str:

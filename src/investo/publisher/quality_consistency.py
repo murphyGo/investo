@@ -661,6 +661,47 @@ def reconcile_kpis_with_history(
     if row is None:
         return kpis
     raw_failed = _non_negative_int(row.get("total_failed_sources"))
+    current_configured = _non_negative_int(row.get("current_run_configured_sources"))
+    current_attempted = _non_negative_int(row.get("current_run_attempted_sources"))
+    current_skipped = _non_negative_int(row.get("current_run_skipped_sources"))
+    if current_configured > 0:
+        if kpis.source_counts_by_date:
+            # Replace this day's stale coverage measurement instead of double-counting a rerun.
+            counts = {
+                day: (configured, skipped, failed, zero)
+                for day, configured, skipped, failed, zero in kpis.source_counts_by_date
+            }
+            counts[target_date.isoformat()] = (
+                current_configured,
+                current_skipped,
+                raw_failed,
+                _non_negative_int(row.get("current_run_zero_item_sources")),
+            )
+            kpis = dataclasses.replace(
+                kpis,
+                configured_sources=sum(configured for configured, _, _, _ in counts.values()),
+                skipped_sources=sum(skipped for _, skipped, _, _ in counts.values()),
+                failed_sources=sum(failed for _, _, failed, _ in counts.values()),
+                zero_item_sources=sum(zero for _, _, _, zero in counts.values()),
+                runs_attempted=sum(
+                    configured > skipped for configured, skipped, _, _ in counts.values()
+                ),
+                runs_with_failed_source=sum(failed > 0 for _, _, failed, _ in counts.values()),
+                runs_observed=max(kpis.runs_observed, len(counts)),
+                source_counts_by_date=tuple(
+                    (day, *values) for day, values in sorted(counts.items())
+                ),
+            )
+        else:
+            # Legacy/manual KPI inputs have no per-day attribution; retain conservative floors.
+            skipped_floor = max(kpis.skipped_sources, current_skipped)
+            kpis = dataclasses.replace(
+                kpis,
+                skipped_sources=skipped_floor,
+                configured_sources=max(
+                    kpis.configured_sources, current_configured, skipped_floor + current_attempted
+                ),
+            )
     current_run_zero_item_sources = _non_negative_int(row.get("current_run_zero_item_sources"))
     current_run_core_missing_segments = _non_negative_int(
         row.get("current_run_core_missing_segments")
@@ -674,6 +715,7 @@ def reconcile_kpis_with_history(
     current_run_briefings_observed = _non_negative_int(row.get("current_run_briefings_observed"))
     if (
         raw_failed <= 0
+        and current_configured <= 0
         and current_run_zero_item_sources <= 0
         and current_run_core_missing_segments <= 0
         and current_run_segments_limited_or_worse <= 0
@@ -683,6 +725,9 @@ def reconcile_kpis_with_history(
         return kpis
     if (
         kpis.failed_sources >= raw_failed
+        and kpis.skipped_sources >= current_skipped
+        and kpis.configured_sources >= current_configured
+        and (current_attempted == 0 or kpis.liveness_denominator > 0)
         and kpis.zero_item_sources >= current_run_zero_item_sources
         and kpis.core_missing_segments >= current_run_core_missing_segments
         and kpis.segments_limited_or_worse >= current_run_segments_limited_or_worse
@@ -695,6 +740,8 @@ def reconcile_kpis_with_history(
     return dataclasses.replace(
         kpis,
         failed_sources=max(kpis.failed_sources, raw_failed),
+        configured_sources=max(kpis.configured_sources, current_configured),
+        skipped_sources=max(kpis.skipped_sources, current_skipped),
         zero_item_sources=max(kpis.zero_item_sources, current_run_zero_item_sources),
         core_missing_segments=max(kpis.core_missing_segments, current_run_core_missing_segments),
         segments_limited_or_worse=max(
@@ -708,6 +755,13 @@ def reconcile_kpis_with_history(
         briefings_observed=max(kpis.briefings_observed, current_run_briefings_observed),
         runs_observed=runs_observed,
         runs_with_failed_source=runs_with_failed,
+        runs_attempted=(
+            max(kpis.runs_attempted, 1 if raw_failed > 0 or current_attempted > 0 else 0)
+            if kpis.runs_attempted is not None
+            else (1 if current_attempted > 0 else 0)
+            if current_skipped > 0 and kpis.runs_observed == 0
+            else None
+        ),
     )
 
 
