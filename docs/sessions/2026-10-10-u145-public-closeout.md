@@ -32,8 +32,15 @@ freshness, canonical identity and transactional last-good rules remain binding.
 - Exact derived pair passes canonical verification; snapshot
   `sha256:6ac61b30de1c6133f411bb16e426a42d89ee727640dcb4f2bf188ddb0e9057f8`.
 
-Final full regression, independent release review, remote SHA/CI, refresh run,
-Pages deployment and live canonical HTML/JSON evidence are pending.
+Final evidence: the pre-push full regression was **6,689 passed**; final merged-tree
+focused sector/model/redaction suite was **462 passed**. Remote SHA
+`487627931e27548a4a755a53df2dadc7c03543b8` passed quality run
+`37959912073` (Ruff, format, mypy, 6,689-test pytest, four policy/docs guards).
+Refresh run `37959920260` succeeded with 12/12 requests and dispatched Pages.
+Pages run `37959983064` succeeded for both build and deploy. Live HTML and JSON
+return HTTP 200; both contain the same snapshot
+`sha256:6ac61b30de1c6133f411bb16e426a42d89ee727640dcb4f2bf188ddb0e9057f8`,
+as-of `2026-10-08`, 11 records, and normal coverage.
 
 ## Operational contract
 
@@ -46,6 +53,10 @@ retains the last verified date and identity; partial publication remains explici
 
 No unrelated runtime activation, model invocation, Telegram delivery or historical
 briefing republish is included in this rollout.
+
+Operational closeout is complete. The public page and its weekday UTC 21:35 refresh
+are active. Yahoo public-use permission remains unverified under the documented
+operator exception, and Browser visual acceptance remains `WAIVED / NOT_EXECUTED`.
 
 References: [activation implementation](2026-10-06-u145-public-activation.md),
 [cross-check](../cross-checks/2026-10-06-u145-public-activation.md),

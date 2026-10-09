@@ -3,7 +3,7 @@
 **Date**: 2026-07-22
 **Unit**: u145 sector-dashboard-public-hf-limited-radar
 **Stage**: Code Generation
-**Status**: Step 6 implemented — final integration review/tests and Pages activation in progress
+**Status**: Complete — final integration, public refresh and Pages deployment verified 2026-10-10
 **Dependencies**: u139 complete; u140 strict gate unchanged; Yahoo requires no API key
 
 ## Active Yahoo amendment — 2026-10-04/05
@@ -297,13 +297,13 @@ Implementation plan:
 
 ### Step 7 — Quality gates and closeout
 
-- [ ] Run focused tests/PBT, full pytest, Ruff check/format, strict mypy, no-paid guard, leak
+- [x] Run focused tests/PBT, full pytest, Ruff check/format, strict mypy, no-paid guard, leak
   scans, workflow checks, u139 compatibility, `mkdocs build --strict`, and resource benchmark.
-- [ ] Cross-check every Functional/NFR AC and record exact run ids, hashes, request/runtime,
+- [x] Cross-check every Functional/NFR AC and record exact run ids, hashes, request/runtime,
   memory, attribution, freshness, and negative-path evidence.
   Report AC-5.4 visual execution as `WAIVED / NOT_EXECUTED` with the 2026-09-27 user decision;
   do not count it as empirically verified or reopen it solely because Browser remains broken.
-- [ ] Update AIDLC state only after Pages evidence is current and complete.
+- [x] Update AIDLC state only after Pages evidence is current and complete.
 
 ## Current Gate
 
@@ -313,7 +313,12 @@ final focused checks. Actions runs `37213980547`, `37214093128`, `37214127663`, 
 and `37214258087` all passed resources and qualified fresh 12/12-symbol production data.
 Step 5 is complete. The 2026-10-05 continuation authorizes Step 6 implementation, main
 integration, public publication and scheduling. A separate activation change now exists;
-final merged-tree validation and live Pages evidence remain required before closeout.
+Final merged-tree validation and live Pages evidence completed on 2026-10-10. Final
+remote main SHA is `487627931e27548a4a755a53df2dadc7c03543b8`; quality run
+`37959912073`, sector refresh `37959920260`, and Pages deployment `37959983064`
+all succeeded. Live HTML and JSON both return HTTP 200 with 11 records, normal
+coverage, as-of `2026-10-08`, and snapshot
+`sha256:6ac61b30de1c6133f411bb16e426a42d89ee727640dcb4f2bf188ddb0e9057f8`.
 Browser recovery and HF account/key recovery are not prerequisites. Telegram and
 daily-briefing coupling remain outside this unit.
 
