@@ -9,10 +9,11 @@ from typing import Literal, cast
 EventMode = Literal["off", "shadow", "preview", "active"]
 EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 
-# Preview is code-ready. Active stays closed pending the separate human,
-# scheduled-shadow and operational acceptance; implementation is not activation.
+# The user authorized the event-body rollout on 2026-10-09 with outstanding
+# human acceptance tracked separately. Runtime mode still defaults to off;
+# preview publication and unqualified news/enrichment activation stay closed.
 EVENT_PREVIEW_READY = True
-EVENT_ACTIVE_READY = False
+EVENT_ACTIVE_READY = True
 
 
 @dataclass(frozen=True, slots=True)

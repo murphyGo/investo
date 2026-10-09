@@ -200,11 +200,23 @@ def _stage2_retry_feedback(cause: BaseException | None, *, schema_version: int =
         code = str(cause).split(":", 1)[0]
         if not re.fullmatch(r"event\.[a-z_]+", code):
             code = "event.output_invalid"
+        entity_hint = (
+            "The first complete sentence of what_happened must include at least one "
+            "exact source span from each nonempty actor_refs and object_refs group. "
+            "Resolve those references using the supplied protected-event spans. "
+            "Keep that sentence within 80 Unicode codepoints; a name only in the "
+            "headline or a later sentence does not count. Never translate, abbreviate "
+            "or invent aliases or identifier suffixes. Do not invent an object when "
+            "object_refs is empty. Preserve the selected events and all required facts.\n"
+            if code == "event.entity_unsupported"
+            else ""
+        )
         return (
             "\n\nPrevious Stage 2 JSON failed validation. Return one complete "
             "schema_version=2 JSON object with all five sections and exactly the "
             "selected events in order. Do not continue a fragment or emit Markdown "
             f"outside JSON. Validation code: {code}\n"
+            f"{entity_hint}"
         )
     message = _truncate_prompt_field(str(cause), _STAGE2_RETRY_FEEDBACK_MAX_CHARS)
     return (

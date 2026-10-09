@@ -814,8 +814,12 @@ renders section 2, its facts, source links, top summary and disclaimer.
 
 For each event: retain actor/object names verbatim from its source spans.
 headline <=80 Unicode codepoints; what_happened <=240 and its complete FIRST
-sentence <=80. That first sentence must name the actor and actual new change,
-not announce that a link or article exists. No generic 'details need checking'.
+sentence <=80. In that first sentence, include at least one exact source span
+from each nonempty actor_refs and object_refs group, together with the actual
+new change. A name only in the headline or a later sentence does not count.
+Do not translate, abbreviate or replace source names with aliases; empty
+object_refs does not require inventing an object. Do not announce that a link
+or article exists. No generic 'details need checking'.
 fact_ids must include every required_fact_id and only that event's supplied
 facts. source_refs are full EvidenceRef objects reconstructed from the supplied
 document/revision/field/start/end spans. Never invent an ID, quote or URL.

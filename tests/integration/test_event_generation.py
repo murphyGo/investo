@@ -266,14 +266,15 @@ def _assert_event_result(result: GenerationResult, case: _Case) -> None:
 
 
 @pytest.mark.parametrize("provider", ["claude", "codex"])
+@pytest.mark.parametrize("mode", ["preview", "active"])
 async def test_v2_classification_and_json_synthesis_use_exactly_two_provider_calls(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, provider: str
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, provider: str, mode: EventMode
 ) -> None:
     monkeypatch.setattr("investo.models.event_config.EVENT_PREVIEW_READY", True)
     case = _case()
     runner = _subprocess_runner(tmp_path, provider, [case.classification, case.synthesis])
     try:
-        result = await generate_briefing_from_input(_request(case, runner))
+        result = await generate_briefing_from_input(_request(case, runner, mode=mode))
     finally:
         runner.close()
     assert (tmp_path / "calls").read_text() == "2"

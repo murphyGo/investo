@@ -227,7 +227,11 @@ async def test_shadow_preserves_v1_prompts_public_bytes_and_call_count() -> None
 
 @pytest.mark.parametrize("mode", ["active"])
 @pytest.mark.asyncio
-async def test_unready_consumers_reject_before_generation(mode: str) -> None:
+async def test_unready_consumers_reject_before_generation(
+    mode: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("investo.models.event_config.EVENT_ACTIVE_READY", False)
+
     def forbidden(*args: object, **kwargs: object) -> None:
         pytest.fail("unready event consumer invoked LLM")
 
