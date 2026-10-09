@@ -1,0 +1,88 @@
+name: Public sector dashboard
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 21 * * 1-5'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sector-dashboard-public
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: '>=0.4'
+          enable-cache: false
+
+      - name: Use Python 3.11
+        run: uv python install 3.11
+
+      - name: Install locked runtime and docs dependencies
+        run: uv sync --frozen --no-dev --extra docs
+
+      - name: Synthetic maximum-shape resource gate
+        run: uv run --frozen --no-sync python scripts/benchmark_sector_dashboard_public.py
+
+      - name: Collect and stage canonical public pair
+        id: build
+        shell: bash
+        run: |
+          set +e
+          uv run --frozen --no-sync python scripts/publish_sector_dashboard.py --write
+          result=$?
+          echo "process_exit_code=$result" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Validate public pair and site
+        if: steps.build.outputs.build_status == 'promoted' || steps.build.outputs.build_status == 'unchanged'
+        run: |
+          uv run --frozen --no-sync python scripts/publish_sector_dashboard.py --verify-only
+          uv run --frozen --no-sync mkdocs build --strict
+
+      - name: Commit only the validated sector pair
+        if: steps.build.outputs.build_status == 'promoted' || steps.build.outputs.build_status == 'unchanged'
+        shell: bash
+        run: |
+          git add -- site_docs/sectors/index.md site_docs/sectors/latest.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'chore: refresh public sector dashboard'
+            # Concurrent main changes fail safely; a fresh run must recollect.
+            git push origin HEAD:main
+          fi
+
+      - name: Dispatch Pages for validated publication
+        if: steps.build.outputs.build_status == 'promoted' || steps.build.outputs.build_status == 'unchanged'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Token pushes do not trigger push workflows. Unchanged reruns also recover
+        # a prior Pages failure without fabricating a new data commit.
+        run: gh workflow run pages.yml --ref main
+
+      - name: Preserve collection failure status
+        if: always()
+        env:
+          COLLECTION_EXIT_CODE: ${{ steps.build.outputs.process_exit_code }}
+        shell: bash
+        run: |
+          if [[ "$COLLECTION_EXIT_CODE" != '0' ]]; then
+            exit 2
+          fi

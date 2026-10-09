@@ -71,6 +71,7 @@ _JWT = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signaturepartXY-_AB"
 _GITHUB_PAT = "ghp_" + "A" * 40
 # AWS Access Key ID shape.
 _AWS_KEY = "AKIA" + "QRSTUVWXYZ012345"
+_HF_SIGNED_URL = "https://api.hfdatalibrary.com/v1/download/SPY?signature=hf-signed-url-sentinel"
 
 
 # ---------------------------------------------------------------------------
@@ -127,6 +128,18 @@ class TestChokepointRedactText:
         out = redact_text(f"openai status: {secret_value}", policy=RedactionPolicy.STRICT)
         assert secret_value not in out
         assert "[REDACTED]" in out
+
+    def test_strict_redacts_entire_hf_signed_download_url(self) -> None:
+        out = redact_text(f"download failed: {_HF_SIGNED_URL}")
+        assert _HF_SIGNED_URL not in out
+        assert "hf-signed-url-sentinel" not in out
+        assert "[REDACTED_HF_SIGNED_URL]" in out
+
+    def test_strict_redacts_signed_url_query_with_parenthesis(self) -> None:
+        signed_url = "https://api.hfdatalibrary.com/v1/download/SPY?signature=prefix)secret-suffix"
+        out = redact_text(f'HTTP Request: GET {signed_url} "HTTP/1.1 200 OK"')
+        assert "secret-suffix" not in out
+        assert "[REDACTED_HF_SIGNED_URL]" in out
 
     def test_url_aware_skips_long_base64_inside_http_url(self) -> None:
         text = f"see https://example.com/path/{_LONG_BASE64}/page for details"
@@ -309,6 +322,7 @@ class TestSingleSourceOfTruth:
             "FRED_API_KEY",
             "CONGRESS_API_KEY",
             "COINGECKO_DEMO_API_KEY",
+            "HF_DATA_API_KEY",
             "INVESTO_KRX_SERVICE_KEY",
             "INVESTO_DATA_GO_KR_SERVICE_KEY",
             "OPENDART_API_KEY",
@@ -336,6 +350,9 @@ class TestSingleSourceOfTruth:
         # u58 Congress.gov adapter — optional key, but any configured
         # value must be redacted from diagnostics.
         assert "CONGRESS_API_KEY" in SECRET_ENV_VARS
+
+    def test_secret_env_vars_includes_hf_data_api_key(self) -> None:
+        assert "HF_DATA_API_KEY" in SECRET_ENV_VARS
 
     def test_redact_text_scrubs_krx_service_key_value(
         self,
@@ -378,6 +395,7 @@ class TestSingleSourceOfTruth:
             "email",
             "korean_phone",
             "chat_id",
+            "hf_signed_download_url",
             "oauth_long_base64",
         }
 
@@ -495,3 +513,20 @@ class TestScanForLeak:
 
     def test_korean_phone_does_not_match_crypto_decimal(self) -> None:
         assert scan_for_leak("토큰 가격은 0.01012345678달러입니다") is None
+
+    def test_hf_signed_url_is_caught_even_in_url_context(self) -> None:
+        hit = scan_for_leak(f"download failed: {_HF_SIGNED_URL}")
+        assert hit is not None
+        assert hit.pattern_name == "hf_signed_download_url"
+        assert "hf-signed-url-sentinel" not in hit.match_text
+        assert hit.match_text == "[REDACTED_HF_SIGNED_URL]"
+
+    def test_exact_hf_env_value_is_caught_without_echo(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        secret = "12345678-1234-1234-1234-123456789abc"
+        monkeypatch.setenv("HF_DATA_API_KEY", secret)
+        hit = scan_for_leak(f"accidental key: {secret}")
+        assert hit is not None
+        assert hit.pattern_name == "secret_env_var:HF_DATA_API_KEY"
+        assert secret not in hit.match_text
