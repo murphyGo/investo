@@ -1,6 +1,7 @@
 # u163 Functional Design: terminal numeric emphasis containment
 
-Status: DRAFT, 2026-10-09; design/implementation not approved. Priority:P0-1.
+Status: Authorized for implementation, 2026-10-09. Priority:P0-1.
+User instruction: “유닛 개발 진행해줘 / 하나 완료할떄마다 커밋 푸시해줘”.
 Evidence: [25-run review](../source-reliability-20261009/review.md).
 
 ## Problem and scope

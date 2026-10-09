@@ -69,6 +69,11 @@ _BROKEN_DOLLAR_UNIT_BOLD_RE = re.compile(r"(\$\d+(?:\.\d+)?)\*\*([TMB])(?:\*\*)?
 _BROKEN_NESTED_DOLLAR_PERCENT_RE = re.compile(
     r"\*\*([+-]?\d+(?:\.\d+)?달러)\(\*\*([+-]?\d+(?:\.\d+)?%)\*\*\)\*\*"
 )
+_BROKEN_SPLIT_SIGN_BOLD_RE = re.compile(
+    r"(?<![\\*])\*\*(?P<sign>[+-])\*\*(?P<gap>[ \t]*)"
+    r"(?P<value>\$?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?"
+    r"(?:%p?|bp|달러|원|[TMB])?)(?![A-Za-z\d_,%]|\.[.\d])"
+)
 _INLINE_CODE_RE = re.compile(
     r"(?<!`)(?P<ticks>`+)(?!`).*?(?<!`)(?P=ticks)(?!`)",
     re.DOTALL,
@@ -221,21 +226,24 @@ def extract_first_viewport(text: str) -> str:
     return text
 
 
-def repair_surface_artifacts(text: str) -> str:
+def repair_surface_artifacts(text: str, *, numeric_only: bool = False) -> str:
     """Repair non-link deterministic artifacts outside protected regions."""
 
     first_viewport_len = len(extract_first_viewport(text))
     lines = text.splitlines(keepends=True)
+    masked_lines = _mask_inline_code(text).splitlines(keepends=True)
+    table_line_indices = _markdown_table_line_indices(lines)
     out: list[str] = []
     offset = 0
     fence_state: tuple[str, int] | None = None
     in_details = False
-    for raw_line in lines:
+    for line_index, (raw_line, masked_raw_line) in enumerate(zip(lines, masked_lines, strict=True)):
         line, newline = _split_line_ending(raw_line)
         fence_marker = _fence_marker(line)
         protected = (
             fence_state is not None
             or fence_marker is not None
+            or line_index in table_line_indices
             or _is_protected_line(
                 line,
                 in_code=False,
@@ -256,7 +264,7 @@ def repair_surface_artifacts(text: str) -> str:
             offset += len(raw_line)
             continue
 
-        inline_scan_line = _mask_inline_code(line)
+        inline_scan_line, _ = _split_line_ending(masked_raw_line)
         link_scan_line = _mask_escaped_markdown_punctuation(inline_scan_line)
         if _closed_link_matches(line, masked_line=link_scan_line) or _looks_like_unmatched_link(
             inline_scan_line
@@ -264,13 +272,18 @@ def repair_surface_artifacts(text: str) -> str:
             out.append(raw_line)
             offset += len(raw_line)
             continue
-
-        repaired = line.replace(_BAD_TOKEN, _BAD_TOKEN_REPAIR).replace(
-            _BAD_PARTICLE,
-            _BAD_PARTICLE_REPAIR,
-        )
-        repaired = _repair_broken_numeric_bold(repaired)
-        if offset < first_viewport_len:
+        masked = _mask_numeric_link_spans(link_scan_line)
+        repaired = line
+        if not numeric_only:
+            for token, replacement in (
+                (_BAD_TOKEN, _BAD_TOKEN_REPAIR),
+                (_BAD_PARTICLE, _BAD_PARTICLE_REPAIR),
+            ):
+                repaired, masked = _replace_masked_matches(
+                    repaired, masked, re.compile(re.escape(token)), replacement
+                )
+        repaired, masked = _repair_broken_numeric_bold(repaired, masked_line=masked)
+        if not numeric_only and offset < first_viewport_len:
             repaired = _repair_trace_fragments(repaired)
             if not repaired.strip():
                 offset += len(raw_line)
@@ -476,7 +489,7 @@ def _scan_lines(
             issues.append(SurfaceQualityIssue("trace.fragment", "block", line, region))
         if _bad_watermark_window(scan_line):
             issues.append(SurfaceQualityIssue("watermark.window_bracket", "block", line, region))
-        numeric_bold = _BROKEN_NUMERIC_BOLD_RE.search(scan_line)
+        numeric_bold = _BROKEN_NUMERIC_BOLD_RE.search(link_scan_line)
         if numeric_bold is not None:
             issues.append(
                 SurfaceQualityIssue(
@@ -1201,19 +1214,63 @@ def _advance_fence_state(
     return current
 
 
-def _repair_broken_numeric_bold(line: str) -> str:
-    repaired = _BROKEN_SIGN_UNIT_BOLD_RE.sub(r"**\1\2\3**", line)
-    repaired = _BROKEN_DOLLAR_UNIT_BOLD_RE.sub(r"**\1\2**", repaired)
-    return _BROKEN_NESTED_DOLLAR_PERCENT_RE.sub(r"**\1(\2)**", repaired)
+def _mask_numeric_link_spans(line: str) -> str:
+    if _REFERENCE_DEFINITION_RE.match(line):
+        return " " * len(line)
+    spans: list[tuple[int, int]] = []
+    for opener in _INLINE_LINK_OPENER_RE.finditer(line):
+        label_end = _balanced_inline_label_end(line, start=opener.end())
+        if label_end is None:
+            continue
+        following = line[label_end + 1 : label_end + 2]
+        if following == "(":
+            target_end = _balanced_inline_target_end(line, start=label_end + 2)
+        elif following == "[":
+            target_end = _balanced_inline_label_end(line, start=label_end + 2)
+        else:
+            # Conservatively retain shortcut reference labels, including images.
+            target_end = label_end
+        if target_end is not None:
+            spans.append((opener.start(), target_end + 1))
+    spans.extend(match.span() for match in re.finditer(r"<[A-Za-z][A-Za-z\d+.-]*:[^<>\s]*>", line))
+    for start, end in sorted(spans, reverse=True):
+        line = line[:start] + " " * (end - start) + line[end:]
+    return line
+
+
+def _replace_masked_matches(
+    line: str, masked: str, pattern: re.Pattern[str], replacement: str
+) -> tuple[str, str]:
+    for match in reversed(tuple(pattern.finditer(masked))):
+        repaired = match.expand(replacement)
+        line = line[: match.start()] + repaired + line[match.end() :]
+        masked = masked[: match.start()] + repaired + masked[match.end() :]
+    return line, masked
+
+
+def _repair_broken_numeric_bold(line: str, *, masked_line: str) -> tuple[str, str]:
+    masked = _mask_escaped_markdown_punctuation(masked_line)
+    for pattern, replacement in (
+        (_BROKEN_SIGN_UNIT_BOLD_RE, r"**\1\2\3**"),
+        (_BROKEN_DOLLAR_UNIT_BOLD_RE, r"**\1\2**"),
+        (_BROKEN_NESTED_DOLLAR_PERCENT_RE, r"**\1(\2)**"),
+        (_BROKEN_SPLIT_SIGN_BOLD_RE, r"\g<sign>\g<gap>\g<value>"),
+    ):
+        line, masked = _replace_masked_matches(line, masked, pattern, replacement)
+    return line, masked
 
 
 def _repair_trace_fragments(line: str) -> str:
     """Remove model trace hashes from user-facing first-viewport text."""
 
-    without_assignments = _TRACE_ASSIGNMENT_RE.sub("", line).strip()
-    if _TRACE_RE.search(without_assignments):
+    # Trace assignments remain detectable through inline code and escaped
+    # underscores (u150). Only link bytes are protected here.
+    without_assignments, masked = _replace_masked_matches(
+        line, _mask_numeric_link_spans(line), _TRACE_ASSIGNMENT_RE, ""
+    )
+    if _TRACE_RE.search(masked):
         return ""
-    return without_assignments.strip(" -·,;|")
+    return without_assignments.strip().strip(" -·,;|")
 
 
 def _is_protected_line(line: str, *, in_code: bool, in_details: bool) -> bool:

@@ -7312,3 +7312,11 @@ Concurrent u155 rename observed09:54UTC: main9ff1bcbc CI37912699732 PASS preserv
 # 2026-10-09 — renewed event-body operational activation
 
 User request: “운영 활성화도 해줘”. User had just received the report of incomplete human12/news-rich acceptance and crypto entity failure. Proceed with bounded event-body rollout while keeping those quality acceptance items pending, not falsely passed. Preserve news-window shadow and enrichment off. Correct the demonstrated first-sentence entity prompt mismatch without weakening validation or increasing calls. Details: `docs/sessions/2026-10-09-event-active-rollout.md`.
+
+## 2026-10-09 — source reliability development authorized
+
+User: “유닛 개발 진행해줘 / 하나 완료할떄마다 커밋 푸시해줘”. Proceed sequentially with u163–u166 and one validated commit/push per code unit. Existing source/public rights and operational activation gates are not inferred satisfied. Isolated main-based worktree preserves unrelated root modifications.
+
+u163 stage decision: reuse existing functional/NFR contracts for this narrow repair; separate design stages skipped with reasons in its plan. Steps1–4 implemented. Independent review findings fixed; focused428 PASS. Full validation and review closure precede step5/code completion; operational step6 remains pending.
+
+u163 steps1–5/code complete: final full6256/485.42s PASS, independent479/14.69s/review CLOSED; Ruff/format671/mypy290/policy4/strict docs/Material/diff PASS. Empty summary fallback conflicts found in the earlier full run are fixed with numeric-only early repair and observer forwarding; no gate weakening. Concurrent eea56bd0 preserved and included in final full validation. Ten scheduled runs/private pin acceptance remain pending; per-user instruction this code unit is committed/pushed independently.

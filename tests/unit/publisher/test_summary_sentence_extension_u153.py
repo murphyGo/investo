@@ -746,10 +746,10 @@ def test_finalized_original_link_policy_keeps_good_siblings(
     context = _acceptance_context(missing=(DOMESTIC_EQUITY,))
     observed: list[str] = []
 
-    def observe_repair(markdown: str) -> str:
+    def observe_repair(markdown: str, *, numeric_only: bool = False) -> str:
         if any(issue.code == code for issue in find_surface_quality_issues(markdown)):
             observed.append(markdown)
-        return repair_surface_artifacts(markdown)
+        return repair_surface_artifacts(markdown, numeric_only=numeric_only)
 
     monkeypatch.setattr(segment_reader_module, "repair_surface_artifacts", observe_repair)
 

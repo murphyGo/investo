@@ -39,7 +39,8 @@ _NUMBER_RE: Final[re.Pattern[str]] = re.compile(
     r"|[+\-]\d+(?:\.\d+)?%"  # signed percentage
     r"|\b\d+\.\d+%"  # bare decimal percent
     r")"
-    r"(?!\*)"
+    # Do not backtrack to a numeric prefix inside an already-bold token.
+    r"(?![\d,*]|\.\d)"
 )
 
 # Lines that must NOT be touched:
@@ -51,6 +52,7 @@ _FENCE_RE: Final[re.Pattern[str]] = re.compile(r"^\s*```")
 # pre-strip the URL by replacing it with a placeholder of equal length so
 # token offsets are preserved during the regex pass.
 _LINK_URL_RE: Final[re.Pattern[str]] = re.compile(r"(\]\()([^)]+)(\))")
+_BOLD_SPAN_RE: Final[re.Pattern[str]] = re.compile(r"\*\*[^*\n]+\*\*")
 
 
 def wrap_numbers_bold(text: str) -> str:
@@ -85,20 +87,19 @@ def wrap_numbers_bold(text: str) -> str:
 def _wrap_line(line: str) -> str:
     if any(issue.link_shape is not None for issue in find_surface_quality_issues(line)):
         return line
-    # Pre-split on link URL spans so the number regex never sees the
-    # href contents. Each odd-indexed piece is an URL — we re-insert it
-    # verbatim and only run the wrap on prose (even indices).
-    pieces: list[str] = []
-    cursor = 0
-    for match in _LINK_URL_RE.finditer(line):
-        url_start = match.start(2)
-        url_end = match.end(2)
-        pieces.append(line[cursor:url_start])  # prose before URL
-        pieces.append(line[url_start:url_end])  # URL itself
-        cursor = url_end
-    pieces.append(line[cursor:])
-    # Even indices: prose (wrap); odd indices: URLs (preserve).
-    return "".join(_NUMBER_RE.sub(_bold_repl, p) if i % 2 == 0 else p for i, p in enumerate(pieces))
+    # Mask URL and valid emphasis spans without moving token boundaries;
+    # numeric matches are applied to the original prose in reverse order.
+    protected = [match.span(2) for match in _LINK_URL_RE.finditer(line)] + [
+        match.span() for match in _BOLD_SPAN_RE.finditer(line)
+    ]
+    masked = line
+    for start, end in protected:
+        # Keep star boundaries so a neighboring malformed token cannot appear
+        # eligible merely because a protected span was split off.
+        masked = masked[:start] + "*" * (end - start) + masked[end:]
+    for match in reversed(tuple(_NUMBER_RE.finditer(masked))):
+        line = line[: match.start()] + _bold_repl(match) + line[match.end() :]
+    return line
 
 
 def _bold_repl(match: re.Match[str]) -> str:

@@ -2781,7 +2781,7 @@ LLM 호출은 `tests/fixtures/llm/`의 record/replay 데이터로 결정성 보�
 
 ## u163–u166: Source Reliability and Partial Publication (2026-10-09)
 
-Evidence: [25 executed runs /44 sources](../../construction/source-reliability-20261009/review.md). Planning only; designs are drafts and implementation is not started. Source degradation and terminal partial publication are separate measures.
+Evidence: [25 executed runs /44 sources](../../construction/source-reliability-20261009/review.md). User authorized development and per-unit commit/push; u163 code is complete, later units proceed through finalized design and validation. Source degradation, code completion and terminal operational recovery are separate measures.
 
 ### u163: `terminal-numeric-emphasis-containment`
 
@@ -2789,10 +2789,10 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Coverage**: US-002/003/004/005/007; FR-002/003/004/008/010; NFR-003/005/006/R13.
 **Ownership / paths**: u112/u144; `src/investo/_internal/surface_quality.py`, finalizer integration and scoped tests. Preserve u149 content gates/u150 link protection.
 **Definition of Done**:
-- [ ] Split-sign/currency/percent repair preserves all numeric tokens; ambiguous cases stay blocked.
-- [ ] Protected content, real full/partial bundles, summaries and independent trust gates pass.
-- [ ] Repeated processing is idempotent; local and10-run operations acceptance recorded separately.
-**Stage**: FD draft; NFR reuse; Code Generation0/6.
+- [x] Split-sign/currency/percent repair preserves all numeric tokens; ambiguous cases stay blocked.
+- [x] Protected content, real full/partial bundles, summaries and independent trust gates pass.
+- [x] Repeated processing is idempotent; local and10-run operations acceptance recorded separately (10 runs pending).
+**Stage**: Authorized existing-contract fix; separate FD/NFR stages skipped with reasons; Code Generation5/6 complete, operational step6 pending.
 **Design**: [u163](../../construction/u163-terminal-numeric-emphasis-containment/design-brief.md).
 **Plan**: [u163 code](../../construction/plans/u163-terminal-numeric-emphasis-containment-code-generation-plan.md).
 

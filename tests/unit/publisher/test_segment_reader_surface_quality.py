@@ -130,9 +130,9 @@ def test_legacy_watermark_bracket_is_preserved_for_region_policy_u150(
     captured: dict[str, str] = {}
     real_repair = segment_reader_format.repair_surface_artifacts
 
-    def traced_repair(text: str) -> str:
+    def traced_repair(text: str, *, numeric_only: bool = False) -> str:
         captured["input"] = text
-        captured["output"] = real_repair(text)
+        captured["output"] = real_repair(text, numeric_only=numeric_only)
         return captured["output"]
 
     monkeypatch.setattr(segment_reader_format, "repair_surface_artifacts", traced_repair)

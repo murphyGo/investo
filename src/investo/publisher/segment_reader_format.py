@@ -415,7 +415,11 @@ def apply_reader_format_to_segments(
             watchpoint_result = composition.result
             if _event_watchpoint_observer is not None:
                 _event_watchpoint_observer(segment, baseline, composition)
-        emphasized_watchpoints = wrap_numbers_bold(watchpoint_result.markdown)
+        # u163: repair split numeric emphasis before the last style pass so
+        # the first finalization and a repeated finalization emit the same text.
+        emphasized_watchpoints = wrap_numbers_bold(
+            repair_surface_artifacts(watchpoint_result.markdown, numeric_only=True)
+        )
         if emphasized_watchpoints != watchpoint_result.markdown:
             watchpoint_result = replace(
                 watchpoint_result,
