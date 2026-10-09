@@ -59,3 +59,11 @@ One DEBT-060 guard required reuse of the central summary-prefix constants.
 Legacy early-diagnostics single/full/partial refinalization and negative shell
 tests were added. Initial runtime CI37951792214 also failed and was not promoted.
 Corrected focused60/2.76s pass; final full CI and review follow this correction.
+
+Final correction review CLOSED with independent178/5.77s and runtime-focused
+319/14.24s pass; raw-regex assertions also pass Ruff. Corrected code candidate
+`53c7be6351b475b6b34e9756a9b579fdae1400c7` and scoped runtime
+`4e0dc424a65d075a4437e08d849e7b667f2764c2` have the same eight-file patch ID
+`7840753620820faea1b5a382b387807119204ea2`. Full CI is respectively
+[37952760528](https://github.com/murphyGo/investo/actions/runs/37952760528) and
+[37952755909](https://github.com/murphyGo/investo/actions/runs/37952755909).
