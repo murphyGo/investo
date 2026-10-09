@@ -2,6 +2,14 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-08 begin -->
+
+## 2026-10-08
+
+- [yfinance-price] **ticker**: MSFT 522.61 (-1.35%)
+- [yonhap-market] **ticker**: MS, 애플에 도전장…AI 기능 강화한 노트북 출시
+
+<!-- u33 entry 2026-10-08 end -->
 <!-- u33 entry 2026-10-07 begin -->
 
 ## 2026-10-07
