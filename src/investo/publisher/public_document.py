@@ -1694,6 +1694,16 @@ def _reindex_public_document(
         )
     )
 
+    shell_counts = (markdown.count(MARKET_DATA_OPEN), markdown.count(MARKET_DATA_CLOSE))
+    market_close_start: int | None = None
+    if shell_counts != (0, 0):
+        if shell_counts != (1, 1):
+            raise _layout_error("structure.market_data_details")
+        shell_start = markdown.index(MARKET_DATA_OPEN)
+        market_close_start = markdown.index(MARKET_DATA_CLOSE)
+        if not shell_start < market_close_start < markdown.find("## ① 요약"):
+            raise _layout_error("structure.market_data_details")
+
     diagnostics_index = _one_line_index(
         _matching_line_indices(lines, _DIAGNOSTICS_OPEN),
         region_id="diagnostics:quality",
@@ -1704,6 +1714,9 @@ def _reindex_public_document(
         index
         for index in range(diagnostics_index + 1, len(lines))
         if lines[index].text == _DIAGNOSTICS_CLOSE
+        # Legacy generated documents can put diagnostics before our panel.
+        # Exclude only its validated owned closing shell, never arbitrary tags.
+        and lines[index].start != market_close_start
     )
     if not diagnostics_closes:
         raise _layout_error("structure.unmatched_diagnostics")
@@ -1732,14 +1745,7 @@ def _reindex_public_document(
     )
     candidates.extend(_marker_candidates(markdown, lines=lines, expectation=expectation))
 
-    shell_counts = (markdown.count(MARKET_DATA_OPEN), markdown.count(MARKET_DATA_CLOSE))
     if shell_counts != (0, 0):
-        if shell_counts != (1, 1):
-            raise _layout_error("structure.market_data_details")
-        shell_start = markdown.index(MARKET_DATA_OPEN)
-        shell_end = markdown.index(MARKET_DATA_CLOSE)
-        if not shell_start < shell_end < markdown.find("## ① 요약"):
-            raise _layout_error("structure.market_data_details")
         for name, token in (("open", MARKET_DATA_OPEN), ("close", MARKET_DATA_CLOSE)):
             start = markdown.index(token)
             end = start + len(token)

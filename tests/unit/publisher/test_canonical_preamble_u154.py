@@ -164,13 +164,24 @@ def test_fourth_summary_claim_is_never_discarded() -> None:
 @pytest.mark.parametrize(
     "segments", [(DOMESTIC_EQUITY,), (US_EQUITY,), (CRYPTO,), SEGMENTS, (US_EQUITY, CRYPTO)]
 )
+@pytest.mark.parametrize("early_diagnostics", [False, True])
 def test_real_finalizer_seals_and_refinalizes_same_bytes_and_summary(
     segments: tuple[MarketSegment, ...],
+    early_diagnostics: bool,
 ) -> None:
     ctx = context(segments)
-    bundle = public.finalize_public_bundle(
-        {seg: build_data_limited_briefing(DAY, seg) for seg in segments}, context=ctx
-    )
+    briefings = {seg: build_data_limited_briefing(DAY, seg) for seg in segments}
+    if early_diagnostics:
+        for segment, briefing in briefings.items():
+            md = briefing.rendered_markdown
+            diagnostics = re.search(
+                r"<details><summary>수집/품질 진단</summary>[\s\S]*?</details>", md
+            )
+            assert diagnostics is not None
+            block = diagnostics.group()
+            md = md.replace(block, "", 1).replace("## ① 요약", block + "\n\n## ① 요약", 1)
+            briefings[segment] = briefing.model_copy(update={"rendered_markdown": md})
+    bundle = public.finalize_public_bundle(briefings, context=ctx)
     again = public.finalize_public_bundle(
         {doc.segment: doc.briefing for doc in bundle.documents}, context=ctx
     )
@@ -186,7 +197,10 @@ def test_real_finalizer_seals_and_refinalizes_same_bytes_and_summary(
             assert "국내 증시(미발행)" in md
 
 
-def test_numeric_region_replacement_and_link_scanner_preserve_shell() -> None:
+@pytest.mark.parametrize("early_diagnostics", [False, True])
+def test_numeric_region_replacement_and_link_scanner_preserve_shell(
+    early_diagnostics: bool,
+) -> None:
     ctx = context((US_EQUITY,))
     doc = public.finalize_public_bundle(
         {US_EQUITY: build_data_limited_briefing(DAY, US_EQUITY)}, context=ctx
@@ -203,9 +217,21 @@ def test_numeric_region_replacement_and_link_scanner_preserve_shell() -> None:
         anchor_table_required=True,
         canonical_preamble_required=True,
     )
-    layout = public.PublicDocumentLayout.reindex(
-        doc.briefing.rendered_markdown, expectation=expectation
-    )
+    md = doc.briefing.rendered_markdown
+    if early_diagnostics:
+        diagnostics = re.search(r"<details><summary>수집/품질 진단</summary>[\s\S]*?</details>", md)
+        assert diagnostics is not None
+        block = diagnostics.group()
+        md = md.replace(block, "", 1).replace(MARKET_DATA_OPEN, block + "\n\n" + MARKET_DATA_OPEN)
+    layout = public.PublicDocumentLayout.reindex(md, expectation=expectation)
+    with pytest.raises(ValueError, match=r"structure\.duplicate_diagnostics_close"):
+        public.PublicDocumentLayout.reindex(
+            md.replace("## ⑦ 면책조항", "</details>\n\n## ⑦ 면책조항"), expectation=expectation
+        )
+    with pytest.raises(ValueError, match=r"structure\.market_data_details"):
+        public.PublicDocumentLayout.reindex(
+            md.replace(MARKET_DATA_OPEN, ""), expectation=expectation
+        )
     truncated = layout.replace_region_body(
         "summary:tldr", "\n- 기관의 본문 참고.\n- 둘째입니다.\n- 셋째입니다.\n\n"
     )

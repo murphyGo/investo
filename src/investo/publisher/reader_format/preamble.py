@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final
 
+from investo._internal.briefing_extract import SUMMARY_PREFIXES, WATCHLIST_IMPACT_PREFIX
 from investo.publisher.reader_format.public_projection import _is_closing_fence, _opening_fence
 from investo.publisher.reader_format.tldr import ensure_tldr_block, tldr_fallback_items
 
@@ -20,7 +21,6 @@ _NUMERIC_HEADINGS = frozenset(
 _ANCHOR_HEADERS = frozenset(
     ("| 종목 | 종가 | 변동 | 비고 |", "| 종목 | 스냅샷(UTC 24h) | 구간 변동 | 비고 |")
 )
-_CALLOUTS = ("> **오늘의 결론**:", "> **핵심 동인**:", "> **주의할 점**:")
 _SUPPLEMENT_OPEN = re.compile(r"<!-- investo:block (?:visual|chart|carryover):([^ >]+) -->$")
 
 
@@ -81,7 +81,7 @@ def _blocks(markdown: str) -> tuple[list[_Block], str]:
             kind = "watermark"
         elif line.startswith("**세그먼트**:"):
             kind = "navigation"
-        elif line.startswith((*_CALLOUTS, "> **내 관심 자산 영향**:")):
+        elif line.startswith((*SUMMARY_PREFIXES, WATCHLIST_IMPACT_PREFIX)):
             kind = "callout"
         elif line in _ANCHOR_HEADERS:
             kind = "numeric"
