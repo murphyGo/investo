@@ -2,8 +2,8 @@
 
 - **Date**: 2026-10-10
 - **Unit**: u176 site-shell-and-navigation-redesign
-- **Stage**: Documentation / design queue registration
-- **Status**: Functional Design REQUIRED / PENDING; focused NFR Requirements REQUIRED / PENDING; Code Generation NOT STARTED
+- **Stage**: Local construction complete
+- **Status**: COMPLETE — FD/NFR, implementation and local validation
 - **Source**: [2026-10-10 UI 분석·증거·유닛 개요](../ui-modernization-20261010/README.md)와 사용자의 “굿 일단 유닛 문서화부터 진행해줘” 요청
 - **Priority**: P1
 - **Estimated Effort**: Functional Design/NFR 3–5h, 승인 후 구현·관측 검증 6–10h. 디자인 검토 대기와 운영 배포 시간 제외.
@@ -72,13 +72,13 @@ Out of scope:
 
 | Stage | Decision | 이유 / 실행 조건 |
 |---|---|---|
-| Functional Design | **REQUIRED / PENDING** | 주요 메뉴 이름·순서·모바일 동작·홈/본문 폭이 제품 행동을 바꾸며 후보 시안은 승인되지 않았다. |
-| NFR Requirements | **REQUIRED / PENDING — focused** | 테마 대비, 44px 조작 영역, keyboard/search/drawer, reflow와 no-overflow를 구체화해야 한다. 기존 NFR-002/003/004/005/006과 R13을 재사용한다. |
+| Functional Design | **COMPLETE** | 주요 메뉴 이름·순서·모바일 동작·홈/본문 폭이 제품 행동을 바꾸며 후보 시안은 승인되지 않았다. |
+| NFR Requirements | **COMPLETE — focused** | 테마 대비, 44px 조작 영역, keyboard/search/drawer, reflow와 no-overflow를 구체화해야 한다. 기존 NFR-002/003/004/005/006과 R13을 재사용한다. |
 | NFR Design | 별도 단계 SKIP 후보; 요구사항 확정 후 확인 | 기존 정적 Material 셸과 CSS만 사용한다는 전제. 새로운 JS·폰트·외부 의존성이 필요한 결정은 focused NFR 산출물에 비용·fallback을 검토하고 재판정한다. |
 | Infrastructure Design | SKIP | 기존 MkDocs→GitHub Pages 유지. 인프라·secret·런타임/API·스케줄 변경이 없다. |
-| Code Generation | **NOT STARTED** | 이 문서화 요청은 디자인 승인 또는 코드 구현 요청이 아니다. FD/NFR 산출물과 미결 결정을 정리하고 명시적 디자인·개발 지시가 확인된 뒤 실행한다. |
+| Code Generation | **COMPLETE** | 후속 전체 개발·유닛별 커밋 지시에 따라 FD/NFR를 먼저 작성한 뒤 구현·검증했다. 개별 디자인 답변은 개발자 결정이다. |
 
-후속 필수 산출물(현재 생성·승인되지 않음):
+설계 산출물(사용자 전체 개발 지시 아래 개발자 결정으로 작성):
 
 - `aidlc-docs/construction/u176-site-shell-and-navigation-redesign/functional-design/business-logic-model.md`
 - `aidlc-docs/construction/u176-site-shell-and-navigation-redesign/functional-design/business-rules.md`
@@ -107,12 +107,12 @@ FD/NFR에서 결정할 사항:
 
 ## Implementation Steps
 
-- [ ] 1. 최신 main의 nav/테마/페이지 유형을 재확인하고 FD 3개·focused NFR 2개 산출물 및 u177 공유 클래스·미결 디자인 결정을 작성·검토한다. 승인 여부와 코드 실행 허가를 별도 기록한다.
-- [ ] 2. 승인된 토큰/폭/메뉴를 최소 Material override와 전용 CSS에 적용한다. 홈 scope와 본문 scope를 분리하고 OG/search/theme 계약을 보존한다.
-- [ ] 3. 한국어 주요 메뉴와 관심 자산 진입점을 추가한다. 미국 섹터와 기존 아카이브·회고·품질·정확도 진입점을 확인한다.
-- [ ] 4. desktop/mobile keyboard·drawer/search/theme 및 focus/tap target을 검증한다. `390×844`와 `1440×1000`에서 light/dark 화면을 기록하고 대표 본문·미국 섹터·관심 자산을 함께 확인한다.
-- [ ] 5. built HTML/CSS의 링크·홈 scope·OG·테마 pair 회귀를 확인하고 의미 있는 경계 검증이 필요한 경우 focused contract test를 작성한다. 단순 CSS 숫자를 그대로 복사한 테스트는 쓰지 않는다.
-- [ ] 6. 디자인 AC·NFR 관측 및 Material/strict docs 게이트를 독립 검토한다. 코드 완료와 운영 배포 상태를 구분해 summary에 기록한다.
+- [x] 1. 최신 main의 nav/테마/페이지 유형을 재확인하고 FD 3개·focused NFR 2개 산출물 및 u177 공유 클래스·미결 디자인 결정을 작성·검토한다. 승인 여부와 코드 실행 허가를 별도 기록한다.
+- [x] 2. 승인된 토큰/폭/메뉴를 최소 Material override와 전용 CSS에 적용한다. 홈 scope와 본문 scope를 분리하고 OG/search/theme 계약을 보존한다.
+- [x] 3. 한국어 주요 메뉴와 관심 자산 진입점을 추가한다. 미국 섹터와 기존 아카이브·회고·품질·정확도 진입점을 확인한다.
+- [x] 4. desktop/mobile keyboard·drawer/search/theme 및 focus/tap target을 검증한다. `390×844`와 `1440×1000`에서 light/dark 화면을 기록하고 대표 본문·미국 섹터·관심 자산을 함께 확인한다.
+- [x] 5. built HTML/CSS의 링크·홈 scope·OG·테마 pair 회귀를 확인하고 의미 있는 경계 검증이 필요한 경우 focused contract test를 작성한다. 단순 CSS 숫자를 그대로 복사한 테스트는 쓰지 않는다.
+- [x] 6. 디자인 AC·NFR 관측 및 Material/strict docs 게이트를 독립 검토한다. 코드 완료와 운영 배포 상태를 구분해 summary에 기록한다.
 
 ## Acceptance Criteria
 
@@ -125,7 +125,7 @@ FD/NFR에서 결정할 사항:
 
 ## Tests / Validation
 
-현재는 문서만 작성한다. 아래 명령은 승인 후 구현 시 사용할 게이트이며 **현재 실행·통과 기록이 아니다**.
+아래 게이트의 실제 실행 결과는 유닛 code/summary.md와 browser-evidence/metrics.json에 기록한다.
 
 ```bash
 uv sync --extra dev --extra docs
@@ -140,3 +140,7 @@ HTML 링크·페이지 scope 계약이 바뀌면 focused built-HTML fixture로 �
 ## Non-Goals
 
 발행 의미·데이터 품질 정책·매매 판단을 바꾸지 않는다. 홈 요약을 재생성하거나 본문/숫자 evidence를 제거하지 않는다. 미국 섹터 공개 활성화, scheduling, quote/source qualification, 과거 아카이브 backfill, 새로운 framework·accounts·paid service·LLM/API 추가는 본 유닛에서 수행하지 않는다.
+
+## Development decisions — 2026-10-10
+
+FD/NFR decisions are now concrete in [business rules](../u176-site-shell-and-navigation-redesign/functional-design/business-rules.md) and [tech decisions](../u176-site-shell-and-navigation-redesign/nfr-requirements/tech-stack-decisions.md). User authorized the complete development sequence; individual design preferences are developer-selected, not user answers. JS keyboard adapter is local/presentation-only, ≤4KiB, no new external dependency. Required design is implemented before code; independent review verifies it before unit completion.

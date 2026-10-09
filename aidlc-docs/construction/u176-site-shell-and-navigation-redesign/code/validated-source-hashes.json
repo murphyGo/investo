@@ -1,0 +1,7 @@
+{
+  "mkdocs.yml": "b59c92f830a99c677914fe8b5431e2f6658176a9ac07d0580824bc87e3ce27aa",
+  "overrides/main.html": "71b8c4cbea7442ac41eb8e6cd9d3d2964a07017ed284c954100a8ee4c5e3bc2b",
+  "site_docs/assets/investo-ui.css": "1178bcd2560efc2f4c4984771164c164ce0b4e3a45bf8c62e12f7b4f20313f2e",
+  "site_docs/assets/investo-navigation.js": "481a5c478bdd77cbd36a8709dede387d806d10160743ee426446a4c00ec79496",
+  "tests/integration/test_site_shell_u176.py": "44a7d68d75382995aa970ce17146fafa0453215c8277361bda08d8721c65fa64"
+}
