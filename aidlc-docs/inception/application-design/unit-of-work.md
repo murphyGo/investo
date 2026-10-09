@@ -2503,8 +2503,9 @@ HTML integration fixtures.
 
 **Construction strategy**: Functional Design and implementation authorized by
 the user's numeric-table reduction request (2026-10-10); NFR Requirements/Design
-reuse existing contracts with documented reasons. Focused 311 tests and independent
-212 tests pass; full gate and exact delivery are tracked in the plan. Historical
+reuse existing contracts with documented reasons. Final full6382/339.01s and
+independent178 tests pass; main99519774 and scoped runtime4e0dc424/CI6236 are
+verified. All six code steps complete. Operational readback is in the session log. Historical
 archives and event human/scheduled acceptance remain separate. Plan:
 `aidlc-docs/construction/plans/u154-canonical-preamble-block-assembly-code-generation-plan.md`.
 

@@ -67,3 +67,41 @@ Final correction review CLOSED with independent178/5.77s and runtime-focused
 `7840753620820faea1b5a382b387807119204ea2`. Full CI is respectively
 [37952760528](https://github.com/murphyGo/investo/actions/runs/37952760528) and
 [37952755909](https://github.com/murphyGo/investo/actions/runs/37952755909).
+
+Runtime4e0dc424 exact CI37952755909 SUCCESS: **6236 passed/275.10s**, Ruff,
+format673, mypy291, policy4, strict docs and Material all pass. Production pin
+has not yet changed at this checkpoint. Current main advanced to u16521c979e4;
+integration99519774 preserves it, retaining both append-only audit entries.
+No source conflict; final focused50/2.60s pass and the eight-file u154 patch ID
+is still identical. Its exact full CI is
+[37953291269](https://github.com/murphyGo/investo/actions/runs/37953291269).
+
+## Verified delivery and operational activation
+
+Final main9951977471584d31959bfde4003b0e48a5990e1a exact CI37953291269
+SUCCESS: **6382 passed/339.01s**, Ruff/format685/mypy293, policy4, strict docs and
+Material all pass. Remote main matched this SHA after push. Earlier corrected
+pre-u165 candidate53c7be63 also passed6317/333.18s; the combined6382 result is the
+integration gate. Both phases of [Pages37954149133](https://github.com/murphyGo/investo/actions/runs/37954149133)
+completed successfully, so md_in_html is deployed before new documents arrive.
+
+At **2026-10-09 15:47:42 UTC / 2026-10-10 00:47:42 KST**, the private
+automation-runtime REVIEWED_CODE_SHA changed from7bc6d287 to the fully verified
+`4e0dc424a65d075a4437e08d849e7b667f2764c2`. Immediate API readback matched the
+40-character SHA and timestamp. No runtime job was queued/running at transition.
+Production gate remains1, event mode active (domestic/US; crypto shadow/v1),
+news-window shadow default and enrichment off; private daily active/public daily
+disabled. The runtime excludes u163/u164/u165 pending operational qualifications.
+
+Next configured schedule: **2026-10-10 09:00 KST**. New finalized publications
+use the new layout in all three markets. Existing archives are unchanged; no
+manual generation, historical republish or synthetic Telegram send was used.
+The new layout's first scheduled publication is still unobserved, and the
+event rollout's active0/3, frozen12 human/news-rich acceptance and crypto v2
+remain open. Configuration activation is complete, not fabricated publication
+acceptance. Roll back this layout by restoring REVIEWED_CODE_SHA to
+`7bc6d28793fdefc19d78652bdc3fd1cb25f87c7f`, leaving event-mode settings intact.
+
+The final closeout changes documentation only relative to validated99519774;
+no source, tests, dependencies, site config or workflow change is added. Final
+remote closeout SHA is verified after push; repeat full code testing is unnecessary.

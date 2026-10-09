@@ -1,6 +1,6 @@
 # Code Generation Plan: u154 canonical-preamble-block-assembly
 
-**Updated**: 2026-10-10. **Status**: In progress. User explicitly requested numeric-table reduction following event activation; existing commit/push instructions apply. Parent owns implementation; independent read-only review uses dev-investo/code-review.
+**Updated**: 2026-10-10. **Status**: Complete6/6. User explicitly requested numeric-table reduction following event activation; existing commit/push instructions apply. Parent owns implementation; independent read-only review uses dev-investo/code-review.
 
 ## Problem and scope
 
@@ -20,8 +20,8 @@ Pure publisher/reader_format/preamble.py extracts only preamble known spans outs
 - [x] Step2: Implement bounded canonical composer and exact summary normalization.
 - [x] Step3: Integrate final assembly, shell ownership and terminal shape/order checks while preserving trust gates.
 - [x] Step4: Add actual-config HTML, finalizer, partial-sibling, unsafe-hidden-evidence, fallback-shell and idempotence regressions.
-- [ ] Step5: Independent code review, full/static/policy/docs gates and cross-check; fix findings.
-- [ ] Step6: Commit/push on current main; verify exact remote/CI and record operational applicability separately.
+- [x] Step5: Independent code review, full/static/policy/docs gates and cross-check; fix findings. Final independent178 PASS, review CLOSED; full integration6382/339.01s and all guards PASS.
+- [x] Step6: Commit/push on current main; verify exact remote/CI and record operational applicability separately. Main99519774 preserves concurrent u16521c979e4; scoped runtime4e0dc424 exact CI6236/275.10s PASS. Session record owns activation/readback and pending real observations.
 
 ## Acceptance criteria
 
