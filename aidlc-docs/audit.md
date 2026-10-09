@@ -7959,3 +7959,17 @@ New FR-024/025 and normative event-news-v3 C1–C8/F1–F6/B1–B12/N1–N8 repl
 ### 2026-10-10 Event/news v3 문서 검토 반영
 
 작성자와 다른 두 read-only reviewer의 지적을 실제 코드로 확인하여 반영했다. foundation 타입 선행 선언, metric fact 식별, occurrence alias·tuple hash, frozen closure clock, linked release resolution, typed public sidecar와 가격·뉴스창, 실패 outcome, 본문 E1 visual과 post-seal OG를 고정했다. 전체 수정본의 최종 통합 검증은 부모가 수행했으며 reviewer의 최종 재합격이나 설계/운영 승인을 주장하지 않는다. 구현 단계는 모두 0, 코드·production·archive 변경과 commit/push 없음.
+
+## 2026-10-10 — u145 data-first presentation follow-up
+
+User requests core data/charts first and more polished UI; prior publish authorization
+continues. Bounded presentation amendment replaces historical source-first R26/AC5.1
+while preserving top date/freshness/coverage and visible lower source qualifications.
+Four cards, existing-metric diverging bars, typed regime board, ranked detailed table
+and expandable methodology added with scoped light/dark/responsive CSS. Existing
+JSON and snapshot6ac61b30 remain identical. All68 selected tests pass across initial
+67 and freshness-label repair1; Ruff/format706/mypy302/canonical/strict docs/Material/
+built HTML PASS. Independent reviewer APPROVE without blocking findings. Supplementary
+slate desktop screenshot inspected; Browser waiver is not converted to acceptance.
+Exact CI, Pages and live checks follow delivery; session:
+docs/sessions/2026-10-10-u145-data-first-ui.md. Concurrent root/site-wide planning is preserved.

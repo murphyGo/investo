@@ -7,6 +7,7 @@ import json
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from decimal import ROUND_HALF_EVEN, Decimal, localcontext
+from html import escape
 from typing import Final
 
 from pydantic import ValidationError
@@ -104,7 +105,7 @@ _FORBIDDEN_PUBLIC_FRAGMENTS: Final[tuple[str, ...]] = (
     "download-token",
     "api.hfdatalibrary.com/v1/download",
 )
-_REQUIRED_FIRST_VIEWPORT_LABELS: Final[tuple[str, ...]] = (
+_REQUIRED_DISCLOSURES: Final[tuple[str, ...]] = (
     "제한 공개 베타",
     "Yahoo Finance 일별 종가 기준",
     "미국 전체시장 거래량 또는 자금 흐름이 아님",
@@ -186,32 +187,32 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         default=0,
     )
     lines = [
+        '<div class="sector-dashboard" markdown="1">',
+        "",
+        '<p class="sector-eyebrow">MARKET OVERVIEW / SECTOR RADAR</p>',
+        "",
         "# 미국 섹터 코어 레이더",
         "",
-        "> **제한 공개 베타**",
-        "> **Yahoo Finance 일별 종가 기준**",
-        f"> **{coverage.available_sector_count}/11 섹터 사용 가능**",
-        "> 미국 전체시장 거래량 또는 자금 흐름이 아님",
-        "",
-        "## 기준 및 커버리지",
-        "",
-        f"- 기준일: {as_of} (미국 정규장 마감 기준)",
-        f"- 생성 시점 신선도: {_FRESHNESS_LABELS[snapshot.freshness]}",
-        f"- 커버리지: {_COVERAGE_LABELS[coverage.status]} · "
-        f"{coverage.available_sector_count}/11 가용 · {comparable}/11 비교 가능",
-        "- 벤치마크: SPY (Yahoo Finance 일봉)",
-        "- 출처: Yahoo Finance",
-        f"- 정책: {snapshot.primary_policy.policy_id}",
-        "- 대상: S&P 500 11개 섹터 ETF 프록시",
+        '<p class="sector-subtitle">11개 섹터의 상대성과와 흐름을 한눈에.</p>',
+        '<div class="sector-status">',
+        f"<span>기준일: <strong>{as_of}</strong> · 미국 정규장 마감 기준</span>",
+        f'<span class="sector-status-chip" data-freshness="{snapshot.freshness.value}">'
+        f"생성 시점 신선도: {_FRESHNESS_LABELS[snapshot.freshness]}</span>",
+        f'<span class="sector-status-chip">{_COVERAGE_LABELS[coverage.status]} · '
+        f"{coverage.available_sector_count}/11 섹터 사용 가능 · {comparable}/11 비교 가능</span>",
+        "</div>",
         "",
     ]
     if coverage.status in (SectorCoverageStatus.PARTIAL, SectorCoverageStatus.NORMAL):
         lines.extend(_render_summary(snapshot.records))
-    lines.extend(_render_table(snapshot.records))
-    if coverage.status in (SectorCoverageStatus.PARTIAL, SectorCoverageStatus.NORMAL):
+        lines.extend(['<div class="sector-chart-grid">', ""])
+        lines.extend(_render_relative_bars(snapshot.records))
         lines.extend(_render_quadrant(snapshot.records))
+        lines.extend(["</div>", ""])
+    lines.extend(_render_table(snapshot.records))
     lines.extend(_render_missing_coverage(snapshot))
     lines.extend(_render_method(snapshot))
+    lines.extend(["</div>", ""])
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
@@ -223,27 +224,97 @@ def _render_summary(records: Sequence[PublicSectorRecord]) -> list[str]:
     if len(ranked) < 8:
         raise PublicProjectionError
     denominator = ranked[0].relative_rank.comparable_sector_count
-    top = ", ".join(record.ticker.value for record in ranked[:2])
-    bottom = ", ".join(record.ticker.value for record in ranked[-2:])
+    top = " · ".join(record.ticker.value for record in ranked[:2])
+    bottom = " · ".join(record.ticker.value for record in ranked[-2:])
     counts = Counter(record.primary_regime.regime for record in ranked)
-    return [
+    dominant = max(
+        (
+            SectorRegime.LEADING,
+            SectorRegime.WEAKENING,
+            SectorRegime.RECOVERING,
+            SectorRegime.LAGGING,
+        ),
+        key=lambda regime: counts[regime],
+    )
+    cards = (
+        ("상대강도 상위", top, " · ".join(_SECTOR_LABELS[r.ticker] for r in ranked[:2])),
+        ("상대강도 하위", bottom, " · ".join(_SECTOR_LABELS[r.ticker] for r in ranked[-2:])),
+        ("가장 많은 국면", _REGIME_LABELS[dominant], f"{counts[dominant]}개 섹터 · 관찰 국면"),
+        ("비교 가능한 섹터", f"{denominator} / 11", "5 · 21 · 63일 상대성과 기준"),
+    )
+    lines = [
         "## 레이더 요약",
         "",
-        f"- 상위 2개 ({denominator}개 비교): {top}",
-        f"- 하위 2개 ({denominator}개 비교): {bottom}",
-        "- 국면 분포: "
-        + " · ".join(
-            f"{_REGIME_LABELS[regime]} {counts[regime]}"
-            for regime in (
-                SectorRegime.LEADING,
-                SectorRegime.WEAKENING,
-                SectorRegime.RECOVERING,
-                SectorRegime.LAGGING,
-            )
-        ),
-        "- 이 ETF 집합의 상대강도는 관찰값이며 투자 권유나 전체 종목 섹터 폭을 뜻하지 않습니다.",
-        "",
+        '<div class="sector-overview">',
     ]
+    for label, value, note in cards:
+        lines.extend(
+            [
+                '<div class="sector-stat">',
+                f'<span class="sector-stat-label">{escape(label)}</span>',
+                f'<strong class="sector-stat-value">{escape(value)}</strong>',
+                f'<span class="sector-stat-note">{escape(note)}</span>',
+                "</div>",
+            ]
+        )
+    lines.extend(["</div>", ""])
+    return lines
+
+
+def _render_relative_bars(records: Sequence[PublicSectorRecord]) -> list[str]:
+    """Draw bounded diverging bars from existing 21-session excess metrics only."""
+
+    available = [r for r in records if r.metrics.price_excess_21d.value is not None]
+    available.sort(key=lambda r: -(r.metrics.price_excess_21d.value or Decimal(0)))
+    missing = [r for r in records if r.metrics.price_excess_21d.value is None]
+    scale = max((abs(r.metrics.price_excess_21d.value or Decimal(0)) for r in available), default=0)
+    lines = [
+        '<section class="sector-panel" aria-labelledby="sector-performance-title">',
+        '<div class="sector-panel-heading">',
+        '<h2 id="sector-performance-title">21일 상대성과</h2>',
+        '<span class="sector-tag">SPY 대비 · pp</span>',
+        "</div>",
+        '<p class="sector-panel-description">같은 기간의 가격 수익률 차이</p>',
+        '<ol class="sector-bars">',
+    ]
+    for record in (*available, *missing):
+        metric = record.metrics.price_excess_21d
+        value = metric.value
+        with localcontext() as context:
+            context.prec = 34
+            width = Decimal(0) if value is None or not scale else abs(value) / scale * Decimal(48)
+            left = Decimal(50) - width if value is not None and value < 0 else Decimal(50)
+        direction = "positive" if value is not None and value >= 0 else "negative"
+        label = _format_metric(metric, "pp") if value is not None else _availability_label(record)
+        lines.extend(
+            [
+                '<li class="sector-bar-row">',
+                f'<span class="sector-bar-label"><strong>{_SECTOR_LABELS[record.ticker]}</strong>'
+                f"<small>{record.ticker.value}</small></span>",
+                '<span class="sector-bar-track" aria-hidden="true">',
+            ]
+        )
+        if value is not None:
+            lines.append(
+                f'<span class="sector-bar-fill sector-bar-fill--{direction}" '
+                f'style="left:{left:.4f}%;width:{width:.4f}%;"></span>'
+            )
+        lines.extend(
+            [
+                "</span>",
+                f'<span class="sector-bar-value">{escape(label)}</span>',
+                "</li>",
+            ]
+        )
+    lines.extend(
+        [
+            "</ol>",
+            '<p class="sector-chart-caption">왼쪽: SPY 하회 · 오른쪽: SPY 상회</p>',
+            "</section>",
+            "",
+        ]
+    )
+    return lines
 
 
 def _render_table(records: Sequence[PublicSectorRecord]) -> list[str]:
@@ -255,7 +326,7 @@ def _render_table(records: Sequence[PublicSectorRecord]) -> list[str]:
         "실현변동성 20D | 최대 낙폭 20D |",
         "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
-    for record in records:
+    for record in sorted(records, key=lambda record: record.relative_rank.ordinal or 12):
         metrics = record.metrics
         lines.append(
             "| "
@@ -280,23 +351,53 @@ def _render_table(records: Sequence[PublicSectorRecord]) -> list[str]:
 
 
 def _render_quadrant(records: Sequence[PublicSectorRecord]) -> list[str]:
-    lines = ["## 텍스트 국면", "", "기본 중립 구간: 10 bps", ""]
+    lines = [
+        '<section class="sector-panel" aria-labelledby="sector-regime-title">',
+        '<div class="sector-panel-heading">',
+        '<h2 id="sector-regime-title">섹터 국면 분포</h2>',
+        '<span class="sector-tag">21일 상대강도 · 5일 가속</span>',
+        "</div>",
+        '<p class="sector-panel-description">같은 기준일의 관찰 국면</p>',
+        '<div class="sector-regime-grid">',
+    ]
     for regime in (
-        SectorRegime.LEADING,
-        SectorRegime.WEAKENING,
         SectorRegime.RECOVERING,
+        SectorRegime.LEADING,
         SectorRegime.LAGGING,
+        SectorRegime.WEAKENING,
     ):
-        tickers = [
-            record.ticker.value for record in records if record.primary_regime.regime is regime
-        ]
-        lines.append(f"- {_REGIME_LABELS[regime]}: {', '.join(tickers) if tickers else '없음'}")
+        members = [r for r in records if r.primary_regime.regime is regime]
+        lines.extend(
+            [
+                f'<div class="sector-regime sector-regime--{regime.value}">',
+                f"<h3>{_REGIME_LABELS[regime]} <span>{len(members)}</span></h3>",
+                '<div class="sector-regime-members">',
+            ]
+        )
+        for record in members:
+            lines.append(
+                f'<span class="sector-regime-ticker" title="{_SECTOR_LABELS[record.ticker]}">'
+                f"{record.ticker.value}</span>"
+            )
+        if not members:
+            lines.append('<span class="sector-regime-empty">해당 섹터 없음</span>')
+        lines.extend(["</div>", "</div>"])
     unavailable = [
         record.ticker.value
         for record in records
         if record.primary_regime.regime is SectorRegime.INSUFFICIENT
     ]
-    lines.extend([f"- 분류 불가: {', '.join(unavailable) if unavailable else '없음'}", ""])
+    lines.extend(
+        [
+            "</div>",
+            '<p class="sector-chart-caption">기본 중립 구간: 10 bps · 국면 전환은 '
+            "이전 관찰 상태도 반영합니다.</p>",
+            f'<p class="sector-chart-caption">분류 불가: '
+            f"{', '.join(unavailable) if unavailable else '없음'}</p>",
+            "</section>",
+            "",
+        ]
+    )
     return lines
 
 
@@ -316,19 +417,37 @@ def _render_method(snapshot: PublicSectorDashboardSnapshot) -> list[str]:
     lines = [
         "## 방법과 출처",
         "",
-        "- 수익률은 Yahoo Finance 일별 종가의 단순 가격 수익률이며 배당 재투자 수익률이 아닙니다.",
-        "- 초과 수익률은 같은 날짜 구간의 섹터 수익률에서 SPY 수익률을 뺀 값입니다.",
-        "- 5D 상대 가속은 현재 5일과 직전의 겹치지 않는 5일 초과 수익률 차이입니다.",
-        "- 실현변동성은 20개 일별 단순 수익률을 연율화한 값이고, 최대 낙폭은 "
-        "20세션 구간의 고점 대비 종가 변화입니다.",
-        "- 거래량은 점수, 순위, 국면 및 요약에서 제외됩니다.",
-        f"- 방법론: {snapshot.primary_policy.policy_id} · 소스 스키마 v{snapshot.schema_version}",
+        '<div class="sector-source-note">',
+        "<strong>제한 공개 베타 · Yahoo Finance 일별 종가 기준</strong>",
+        "<p>S&P 500 11개 섹터 ETF 프록시 · 벤치마크: SPY<br>"
+        "미국 전체시장 거래량 또는 자금 흐름이 아님</p>",
+        "</div>",
         "",
         "### 데이터 출처",
         "",
     ]
     for attribution in snapshot.provenance.attributions:
         lines.append(f"- [{attribution.display_text}]({attribution.url})")
+    lines.extend(
+        [
+            "",
+            '<details class="sector-method" markdown="1">',
+            "<summary>지표 계산 방법 자세히 보기</summary>",
+            "",
+            "- 수익률은 Yahoo Finance 일별 종가의 단순 가격 수익률이며 "
+            "배당 재투자 수익률이 아닙니다.",
+            "- 초과 수익률은 같은 날짜 구간의 섹터 수익률에서 SPY 수익률을 뺀 값입니다.",
+            "- 5D 상대 가속은 현재 5일과 직전의 겹치지 않는 5일 초과 수익률 차이입니다.",
+            "- 실현변동성은 20개 일별 단순 수익률을 연율화한 값이고, 최대 낙폭은 "
+            "20세션 구간의 고점 대비 종가 변화입니다.",
+            "- 거래량은 점수, 순위, 국면 및 요약에서 제외됩니다.",
+            f"- 방법론: {snapshot.primary_policy.policy_id} · "
+            f"소스 스키마 v{snapshot.schema_version}",
+            "",
+            "</details>",
+            "",
+        ]
+    )
     lines.extend(
         [
             "",
@@ -445,9 +564,10 @@ def _verify_public_text(snapshot: PublicSectorDashboardSnapshot, markdown: str) 
     if markdown.count(f"{_SNAPSHOT_MARKER_PREFIX}{snapshot_id} -->") != 1:
         raise PublicProjectionError
     metric_position = markdown.find("## 섹터 레이더")
-    if metric_position < 0 or any(
-        (position := markdown.find(label)) < 0 or position > metric_position
-        for label in _REQUIRED_FIRST_VIEWPORT_LABELS
+    if (
+        metric_position < 0
+        or markdown.find("## 방법과 출처") < metric_position
+        or any(label not in markdown for label in _REQUIRED_DISCLOSURES)
     ):
         raise PublicProjectionError
     for attribution in snapshot.provenance.attributions:

@@ -12,9 +12,12 @@ The user authorized free Yahoo public implementation despite unresolved permissi
 the Step 5 closeout. Permission remains `unverified`: this is an explicit operator exception,
 not provider consent. Actual Browser visual acceptance remains **WAIVED / NOT_EXECUTED**.
 
-**Status: implementation reviewed; final full regression and live deployment evidence pending.**
-No visual or license-verification PASS is inferred. Evidence is recorded in the
-[activation session](../sessions/2026-10-06-u145-public-activation.md).
+**Status: original activation is complete; the data-first presentation follow-up is locally verified.**
+Original full regression and live deployment are recorded in the
+[public closeout](../sessions/2026-10-10-u145-public-closeout.md).
+The user's 2026-10-10 presentation instruction supersedes historical source-first
+ordering as recorded in the [UI session](../sessions/2026-10-10-u145-data-first-ui.md).
+No Browser or license-verification PASS is inferred.
 
 ## Evidence key
 
@@ -65,12 +68,12 @@ is completed only when the operational evidence in the session is closed.
 | R23 | Eleven rows on every state; missing values distinguished in text | M, R | PASS |
 | R24 | Normal=11, partial=8–10 at full history; insufficient/warmup cannot promote | M, S, B | PASS, amended |
 | R25 | Derived-only repository/page data and bounded aggregate logs | R, G, B, W exact-two-path staging | PASS |
-| R26 | Yahoo daily-close and actual coverage disclosure before metrics | R canonical/order tests | PASS, amended |
+| R26 | Date/freshness/actual coverage above data; visible Yahoo qualifications and attribution below data | R canonical/order tests, UI amendment | PASS, amended 2026-10-10 |
 | R27 | Fixed Yahoo attribution; no invented HF/IEX license | M, R | PASS, amended; permission exception below |
 | R28 | One immutable snapshot, shared hash, canonical deterministic pair | M, R, S | PASS |
 | R29 | First source failure writes no placeholder | S, B | PASS |
 | R30 | Later failure preserves exact pair/id/date; nonzero operational result | S, B auth/stale/calendar tests | PASS |
-| R31 | Five exact-commit probes precede separate reviewed activation | P, W, O | PASS; live rollout pending |
+| R31 | Five exact-commit probes precede separate reviewed activation | P, W, O | PASS; original rollout complete |
 | R32 | Private NAV identity, bytes, CLI and no-network boundary retained | U, narrowly scoped public workflow exceptions | PASS |
 | R33 | No Telegram, flow, earnings, breadth or narrative feature added | W, G, U | PASS |
 
@@ -110,7 +113,7 @@ is completed only when the operational evidence in the session is closed.
 | AC-4.6 | PASS, amended | M fixed eleven records; any unavailable sector suppresses every metric/regime/rank, XLRE no exception. |
 | AC-4.7 | PASS | M/R adversarial OHLCV-with-identical-close tests and static call boundary. |
 | AC-4.8 | PASS | M property round-trips and provenance/scope/identity invalid-state tests. |
-| AC-5.1 | PASS, amended/static | R disclosure precedes rank/metrics, true 11/11 or partial coverage; visual positioning not executed. |
+| AC-5.1 | PASS, amended/static | R date/freshness and true 11/11 or partial coverage precede cards/charts; visible source qualifications follow data per 2026-10-10 user instruction. |
 | AC-5.2 | PASS | R all eleven rows and text availability reasons on normal/partial/warmup/insufficient states. |
 | AC-5.3 | PASS | R half-even two-decimal percent/pp, rank denominator, explicit missing values. |
 | AC-5.4 | STATIC PASS; VISUAL WAIVED / NOT_EXECUTED | Semantic/responsive HTML contract retained; no empirical 390×844/desktop clipping/contrast/readability claim. |
@@ -120,7 +123,7 @@ is completed only when the operational evidence in the session is closed.
 | AC-6.3 | PASS | Qualified probe commit separate from activation `1a753c7c`, review repair `6b371a1c`. |
 | AC-6.4 | PASS, amended | O keyless troubleshooting, rerun/deploy recovery, disable/cancel/remove instructions. No rotation needed. |
 | AC-6.5 | PASS | B/P closed bounded summaries; source, attempt freshness, coverage, stored outcome/id/date, counters and timing. |
-| AC-6.6 | PENDING FINAL RUN | Focused/review repair passed; final complete merged-tree regression and exact deployment recorded in session. |
+| AC-6.6 | PASS for original activation; UI exact-SHA CI follows delivery | Original 6,689-test regression and exact live deployment in public closeout; UI focused tests/review in UI session. |
 
 ## Exceptions and residual limits
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import re
 import traceback
 from collections.abc import Callable
 from datetime import date, timedelta
@@ -164,7 +165,7 @@ def _canonical_rehashed_snapshot(raw: dict[str, object]) -> bytes:
     ).encode()
 
 
-def test_fresh_projection_is_canonical_complete_and_first_viewport_qualified() -> None:
+def test_fresh_projection_is_canonical_complete_and_data_first() -> None:
     snapshot = _snapshot()
     first = render_public_sector_projection(snapshot)
     second = render_public_sector_projection(snapshot)
@@ -179,19 +180,24 @@ def test_fresh_projection_is_canonical_complete_and_first_viewport_qualified() -
     assert raw["snapshot_id"] == first.snapshot_id
 
     markdown = first.markdown_bytes.decode()
+    overview_position = markdown.index("## 레이더 요약")
+    chart_position = markdown.index('class="sector-chart-grid"')
     radar_position = markdown.index("## 섹터 레이더")
+    source_position = markdown.index("## 방법과 출처")
+    assert overview_position < chart_position < radar_position < source_position
+    assert markdown.index("기준일:") < overview_position
+    assert markdown.index("11/11 섹터 사용 가능") < overview_position
     for label in (
         "제한 공개 베타",
         "Yahoo Finance 일별 종가 기준",
-        "11/11 섹터 사용 가능",
         "미국 전체시장 거래량 또는 자금 흐름이 아님",
     ):
-        assert markdown.index(label) < radar_position
+        assert source_position < markdown.index(label)
     assert len(_table_rows(markdown)) == 11
     assert "| 순위 | 섹터/티커 | 가용성 | 국면 |" in markdown
     assert "부동산 (XLRE) | 사용 가능" in markdown
     assert "## 레이더 요약" in markdown
-    assert "## 텍스트 국면" in markdown
+    assert 'id="sector-regime-title"' in markdown
     assert markdown.count("<!-- snapshot_id:") == 1
     assert "<script" not in markdown.casefold()
 
@@ -203,6 +209,61 @@ def test_complete_sector_rows_do_not_report_missing_metrics() -> None:
     assert labels.count("사용 가능") == 11
     assert labels.count("provider 미지원") == 0
     assert all("일부 지표 부족" not in label for label in labels)
+    assert [int(row.split("|")[1].strip().split("/")[0]) for row in rows] == list(range(1, 12))
+
+
+@pytest.mark.parametrize("slope_delta", [Decimal(0), Decimal("-0.5")])
+def test_relative_chart_has_bounded_geometry_and_all_existing_metric_values(
+    slope_delta: Decimal,
+) -> None:
+    snapshot = _snapshot(slope_delta=slope_delta)
+    markdown = render_public_sector_projection(snapshot).markdown_bytes.decode()
+    rows = re.findall(r'<li class="sector-bar-row">(.*?)</li>', markdown, re.DOTALL)
+    assert len(rows) == 11
+    for record in snapshot.records:
+        row = next(row for row in rows if f"<small>{record.ticker.value}</small>" in row)
+        assert public_render._format_metric(record.metrics.price_excess_21d, "pp") in row
+        geometry = re.search(r'style="left:([0-9.]+)%;width:([0-9.]+)%;"', row)
+        assert geometry is not None
+        left, width = map(Decimal, geometry.groups())
+        assert Decimal(2) <= left <= Decimal(50)
+        assert Decimal(0) <= width <= Decimal(48)
+        assert left + width <= Decimal(98)
+    assert 'aria-hidden="true"' in markdown
+    assert 'aria-labelledby="sector-performance-title"' in markdown
+
+
+def test_partial_chart_keeps_missing_sectors_out_of_measured_regimes() -> None:
+    snapshot = _snapshot(sectors=PUBLIC_SUPPORTED_SECTOR_TICKERS[:-2])
+    markdown = render_public_sector_projection(snapshot).markdown_bytes.decode()
+    assert snapshot.coverage.status is SectorCoverageStatus.PARTIAL
+    assert "9/11 비교 가능" in markdown
+    assert len(_table_rows(markdown)) == 11
+    rows = re.findall(r'<li class="sector-bar-row">(.*?)</li>', markdown, re.DOTALL)
+    assert len(rows) == 11
+    for ticker in PUBLIC_SUPPORTED_SECTOR_TICKERS[-2:]:
+        row = next(row for row in rows if f"<small>{ticker.value}</small>" in row)
+        assert "일시 수집 불가" in row
+        assert 'class="sector-bar-fill' not in row
+        assert f">{ticker.value}</span>" not in markdown
+
+
+def test_zero_relative_values_do_not_generate_nan_or_infinite_bars() -> None:
+    snapshot = _snapshot()
+    records = tuple(
+        record.model_copy(
+            update={
+                "metrics": record.metrics.model_copy(
+                    update={"price_excess_21d": public_render.MetricValue(value=Decimal(0))}
+                )
+            }
+        )
+        for record in snapshot.records
+    )
+    chart = "\n".join(public_render._render_relative_bars(records))
+    assert chart.count('style="left:50.0000%;width:0.0000%;"') == 11
+    assert "NaN" not in chart
+    assert "Infinity" not in chart
 
 
 def test_projection_renders_attribution_method_and_two_decimal_half_even_values() -> None:
@@ -233,7 +294,8 @@ def test_warming_projection_keeps_eleven_rows_and_hides_ranked_sections() -> Non
     assert snapshot.coverage.status is SectorCoverageStatus.WARMING_UP
     assert len(_table_rows(markdown)) == 11
     assert "## 레이더 요약" not in markdown
-    assert "## 텍스트 국면" not in markdown
+    assert 'class="sector-chart-grid"' not in markdown
+    assert 'class="sector-stat"' not in markdown
     assert "사용 가능 · 장기 지표 준비 중" in markdown
     assert "| — |" in markdown
 

@@ -140,6 +140,7 @@ extra:
 
 extra_css:
   - assets/u29.css
+  - assets/sector-radar.css
 
 # u50 lightweight-charts-embed: self-hosted TradingView Lightweight
 # Charts (Apache-2.0) plus the project's progressive-enhancement init

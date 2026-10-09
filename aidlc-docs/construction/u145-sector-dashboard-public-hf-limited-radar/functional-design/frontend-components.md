@@ -6,6 +6,24 @@
 **Status**: Complete
 **Surface**: static MkDocs Pages Markdown; no client-side data fetch
 
+## Active data-first presentation amendment — 2026-10-10
+
+The user requested core data/charts first, secondary source information below,
+and a more polished appearance. This supersedes the historical banner-first
+order below. The active order is compact date/freshness/coverage, four summary
+cards, 21-session excess-return bars and the typed regime board, the ranked
+eleven-row detail table, then missing coverage and visible source/qualifications.
+Methodology is expandable. Both chart values and regime labels come directly
+from the existing immutable snapshot; no extra data, metric or client fetch is
+introduced. Scoped CSS adapts to light/dark themes and narrow screens.
+
+The source-first R26/C1/C2 requirement is amended by that explicit instruction.
+Required attribution and limitations remain visible below the main data; missing
+coverage and freshness remain visible in the top status header. Historical
+design and source-specific text below are retained for traceability.
+
+Plan: [data-first presentation](../../plans/u145-sector-radar-data-first-ui-plan.md).
+
 ## 1. Surface Contract
 
 The page answers “which supported sector samples are leading or lagging relative to SPY?”

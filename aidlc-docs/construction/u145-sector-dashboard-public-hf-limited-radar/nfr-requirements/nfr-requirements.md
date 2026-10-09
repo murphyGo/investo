@@ -235,6 +235,13 @@ fields, missing provenance, wrong market scope, wrong source id, or malformed at
 
 ### AC-5.1 First-viewport scope disclosure
 
+**Presentation amendment — 2026-10-10**: the user explicitly requested core data
+and charts first, with source information below. The active requirement is date,
+generation-time freshness and actual coverage before data; source qualifications
+and attribution remain visibly below the detail table. Required source text stays
+outside collapsed methodology. This replaces the source-before-metrics position
+in the historical contract below, while retaining its truthful disclosure purpose.
+
 Before any rank or metric, the page visibly states `IEX venue sample`, `10/11 sectors`, `XLRE
 unavailable`, and that the data is not whole-market volume or fund flow. The disclosure is not
 inside `<details>` and is pinned by rendered-order tests.
