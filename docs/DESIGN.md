@@ -334,3 +334,7 @@ surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건�
 ### u174 calendar raw-island build boundary (2026-10-10)
 
 TD-013 site-scoped SVG styles require an intact SVG subtree. New calendar figures use `markdown="0"`; `scripts/mkdocs_render_hooks.py` repairs only the historical known wrapper on `archive/index.md` in memory. It validates canonical SVG elements/namespaces and leaves fences/unknown/incomplete content untouched. `check_calendar_render_contract.py` fails before Pages upload on split/empty markup; no archive rewrite, numeric panel change, or runtime MkDocs dependency.
+
+### u175 chart client URL/palette owner (2026-10-10)
+
+The u75 sidecar stays beside its source Markdown. The client alone resolves the exact matching MkDocs date directory to that sibling; other URL forms retain browser URL semantics. Charts read Material body palette with live HTML fallback and update existing options without refetch or reconstruction. Numeric and sealed document owners remain unchanged.

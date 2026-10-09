@@ -1,0 +1,300 @@
+{
+  "unit": "u175",
+  "method": "isolated headless Chromium, actual MkDocs built HTML",
+  "base": "http://127.0.0.1:8874/investo/",
+  "rows": [
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "flat",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/flat/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "flat",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/flat/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "flat",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "light",
+      "initial": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/flat/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "investo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/investo/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "root": "flat",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "colorScheme": "dark",
+      "initial": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "toggled": {
+        "scheme": "default",
+        "charts": 1,
+        "textColor": "#212121",
+        "grid": "#eeeeee",
+        "canvases": 7
+      },
+      "restored": {
+        "scheme": "slate",
+        "charts": 1,
+        "textColor": "#d0d0d0",
+        "grid": "#2a2a2a",
+        "canvases": 7
+      },
+      "responses": [
+        {
+          "url": "http://127.0.0.1:8874/flat/archive/us-equity/2026/10/2026-10-08.assets/charts/us-equity-gspc.json",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "case": "failed sibling remains isolated",
+      "responses": []
+    },
+    {
+      "case": "legacy missing-src static fallback",
+      "legacy": {
+        "placeholders": 5,
+        "hidden": true,
+        "visibleFallbacks": 3,
+        "canvases": 0
+      }
+    }
+  ]
+}

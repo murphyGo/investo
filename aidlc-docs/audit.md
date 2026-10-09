@@ -1,5 +1,11 @@
 # AI-DLC Audit Log
 
+## 2026-10-10 — u175 local construction complete
+
+**Result**: Exact-stem sidecar URL and Material body/HTML palette adapter repaired; lazy one-fetch/error isolation/financial inputs/seal/legacy fallback unchanged. Node22 actual-client gate added before Python integration in Quality.
+**Evidence**: Node29, Python51, actual-config directory/flat strict builds, Chromium10 cases, Ruff/format711; independent review APPROVE/P1-P2zero. Archive/bundle/license bytes unchanged. [Summary](construction/u175-chart-sidecar-url-and-theme-repair/code/summary.md).
+**Boundary**: Local per-unit commit follows. DEBT-077/078, event-v3 and u145 operational gates are separate; no push/deploy.
+
 ## 2026-10-10 — u174 local construction complete
 
 **Result**: Raw wrapper + archive-only build compatibility hook + built SVG guard + Pages/Quality wiring completed. Historical archive bytes/runtime dependencies/seal unchanged.

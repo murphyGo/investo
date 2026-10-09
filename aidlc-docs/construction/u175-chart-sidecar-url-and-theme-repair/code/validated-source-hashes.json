@@ -1,0 +1,8 @@
+{
+  "site_docs/assets/investo-chart-init.js": "e0647d5e22de1305b122422b84ebde27cc28236da16bc198b2e2085ec57ec87d",
+  ".github/workflows/quality.yml": "a5f9bffa7ac9b7b447c1eb107c9109f8f0621d9245d6217a5e72081f6208695a",
+  "tests/js/chart_harness.cjs": "9501fa838c3465b5edf56c87d204733a8d6e19083f4f85d9712f13586ddd397b",
+  "tests/js/test_investo_chart_init_u175.cjs": "2698eca4f8c66d002ed61c8e10c434e3cb0f059822202e7a77a28ac404d37aa0",
+  "tests/js/resolve_chart_sidecar_u175.cjs": "b61623890fda461fef4fa5d56472c6142228906a7c8a5a1e18caa6c1bfea8967",
+  "tests/integration/test_chart_sidecar_site_u175.py": "6b643ee5e319b9813fe84beacbc90b70e289252128aaa8c8c593df988f3bf376"
+}

@@ -3,7 +3,7 @@
 - **Date**: 2026-10-10
 - **Unit**: u175 chart-sidecar-url-and-theme-repair
 - **Stage**: Code Generation
-- **Status**: Planned — 0/6; 문서화만 승인됨, 구현 시작 전
+- **Status**: Complete — 6/6; local construction verified 2026-10-10
 - **Source**: 2026-10-10 공개 Investo UI 점검 및 사용자 “일단 유닛 문서화부터” 요청
 - **Estimated Effort**: ~5–7 h
 - **Priority**: P0 — 실제 확장 차트 404 및 사이트 테마 불일치 복구
@@ -63,7 +63,7 @@ Out of scope:
 
 - **Functional Design — SKIP**. u50/u75가 승인한 동일 카드 펼치기와 light/dark 전환을 실제 배포 URL/Material palette에서 복구한다. 차트 범위·데이터·표시 의미·사용자 행동은 바뀌지 않고 새 sparkline/legacy backfill을 결정하지 않는다.
 - **NFR Requirements / Design — SKIP**. 기존 NFR-003/005/006, R13, u75 lazy-load/zero-inline-history 계약을 재사용한다. 신규 런타임 의존성·외부 호출·비용은 없다. JS 행동 검증은 Node built-in만 쓰며 품질 workflow의 개발 검증에 한정된다; Playwright 등 브라우저 패키지를 프로덕션 dependency로 넣지 않는다.
-- **Code Generation — READY**. 경로/테마 결함 복구의 아래 호환 매트릭스가 고정 계약이다. 현재 문서 작성만 승인되어 구현 체크박스는 미완료다.
+- **Code Generation — READY**. 경로/테마 결함 복구의 아래 호환 매트릭스가 고정 계약이다. 사용자의 전체 개발 지시에 따라 구현/검증을 완료했다. [완료 증거](../u175-chart-sidecar-url-and-theme-repair/code/summary.md).
 
 ## Fixed Contracts
 
@@ -92,37 +92,37 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — 실제 URL/팔레트 기준선과 회귀 fixture `[ ]`
+### Step 1 — 실제 URL/팔레트 기준선과 회귀 fixture `[x]`
 
-- [ ] 현재 US `2026-10-08.md`/동일 sidecar 한 쌍과 legacy missing-src fixture를 isolated docs에 복사하여 directory/flat 각각 build한다. 실제 config의 확장/Material·symlink 자산 레이아웃을 보존한다.
-- [ ] 현재 실패 URL, 올바른 sibling JSON 위치, html/body attr 차이와 정적 tests만으로 누락된 행동을 기록한다.
+- [x] 현재 US `2026-10-08.md`/동일 sidecar 한 쌍과 legacy missing-src fixture를 isolated docs에 복사하여 directory/flat 각각 build한다. 실제 config의 확장/Material·symlink 자산 레이아웃을 보존한다.
+- [x] 현재 실패 URL, 올바른 sibling JSON 위치, html/body attr 차이와 정적 tests만으로 누락된 행동을 기록한다.
 
-### Step 2 — 좁은 URL resolver 구현 `[ ]`
+### Step 2 — 좁은 URL resolver 구현 `[x]`
 
-- [ ] 위 matrix와 Fixed Contracts를 만족하는 같은-client 순수 resolver를 작성하고 lazy `loadSidecarBars`에서 사용한다.
-- [ ] prefix·query/hash·flat/raw·directory/index.html·이미 보정된 src·다른 stem·absolute/root-relative case를 실제 client harness에 연결한다. placeholder/schema/staging은 바꾸지 않는다.
+- [x] 위 matrix와 Fixed Contracts를 만족하는 같은-client 순수 resolver를 작성하고 lazy `loadSidecarBars`에서 사용한다.
+- [x] prefix·query/hash·flat/raw·directory/index.html·이미 보정된 src·다른 stem·absolute/root-relative case를 실제 client harness에 연결한다. placeholder/schema/staging은 바꾸지 않는다.
 
-### Step 3 — Material body palette 초기화와 observer 복구 `[ ]`
+### Step 3 — Material body palette 초기화와 observer 복구 `[x]`
 
-- [ ] body palette 우선 reader와 body/html의 선택 owner 변경을 관찰하는 observer로 변경한다. 기존 html fallback·기본 light는 유지한다.
-- [ ] initial slate, body/html 상충 시 body 우선, body 존재/attr 없음/html initial slate 및 html 양방향 전환, body attr 추가·제거, default↔slate, fetch 진행 중 toggle 후 render, reopen을 검증한다. theme transition에 따른 fetch·chart 재생성 0건을 확인한다.
+- [x] body palette 우선 reader와 body/html의 선택 owner 변경을 관찰하는 observer로 변경한다. 기존 html fallback·기본 light는 유지한다.
+- [x] initial slate, body/html 상충 시 body 우선, body 존재/attr 없음/html initial slate 및 html 양방향 전환, body attr 추가·제거, default↔slate, fetch 진행 중 toggle 후 render, reopen을 검증한다. theme transition에 따른 fetch·chart 재생성 0건을 확인한다.
 
-### Step 4 — 행동 회귀 및 Quality gate `[ ]`
+### Step 4 — 행동 회귀 및 Quality gate `[x]`
 
-- [ ] 실제 JS를 실행하는 Node harness를 만들고 클릭/keyboard에 대응하는 details toggle, fetch 횟수, loaded bars, chart/series palette options를 단언한다.
-- [ ] 한 카드 HTTP404/JSON malformed/empty history 실패와 다른 카드 정상 확장의 독립성, legacy missing-src, max5 cap, no-inline/no-prefetch를 검증한다.
-- [ ] 기존 static tests는 필요 시 새 호출 형태로 갱신하되 fetch가 toggle 뒤에 있다는 기존 강도를 보존한다. Quality에 Node22 setup·syntax/behavior gate를 명시한다.
+- [x] 실제 JS를 실행하는 Node harness를 만들고 클릭/keyboard에 대응하는 details toggle, fetch 횟수, loaded bars, chart/series palette options를 단언한다.
+- [x] 한 카드 HTTP404/JSON malformed/empty history 실패와 다른 카드 정상 확장의 독립성, legacy missing-src, max5 cap, no-inline/no-prefetch를 검증한다.
+- [x] 기존 static tests는 필요 시 새 호출 형태로 갱신하되 fetch가 toggle 뒤에 있다는 기존 강도를 보존한다. Quality에 Node22 setup·syntax/behavior gate를 명시한다.
 
-### Step 5 — 실제 MkDocs output 및 브라우저 검증 `[ ]`
+### Step 5 — 실제 MkDocs output 및 브라우저 검증 `[x]`
 
-- [ ] 신규 `tests/integration/test_chart_sidecar_site_u175.py`는 repository config를 바탕으로 isolated **directory/flat** 사이트를 build하고 sidecar가 Markdown sibling으로 복사되는지 검증한다. Node harness를 같은 built page URL/placeholder 기준으로 실행해 resolve된 fetch path를 output file과 대조한다.
-- [ ] 실제 built site를 prefix가 보존된 로컬 서버에서 desktop1440×1000/mobile390×844 각각 light/dark로 연다. expand 전 요청0, click/keyboard expand 후 JSON200·canvas>0, 닫고 재열기 요청추가0, 열린 chart 양방향 theme toggle을 확인한다.
-- [ ] 성공·실패 sibling, legacy no-src의 기존 static fallback을 확인한다. legacy에 새 compact quote를 만들지 않는다. 실제 차트 텍스트/그리드/series가 body palette를 따라가는 증거를 남긴다.
+- [x] 신규 `tests/integration/test_chart_sidecar_site_u175.py`는 repository config를 바탕으로 isolated **directory/flat** 사이트를 build하고 sidecar가 Markdown sibling으로 복사되는지 검증한다. Node harness를 같은 built page URL/placeholder 기준으로 실행해 resolve된 fetch path를 output file과 대조한다.
+- [x] 실제 built site를 prefix가 보존된 로컬 서버에서 desktop1440×1000/mobile390×844 각각 light/dark로 연다. expand 전 요청0, click/keyboard expand 후 JSON200·canvas>0, 닫고 재열기 요청추가0, 열린 chart 양방향 theme toggle을 확인한다.
+- [x] 성공·실패 sibling, legacy no-src의 기존 static fallback을 확인한다. legacy에 새 compact quote를 만들지 않는다. 실제 차트 텍스트/그리드/series가 body palette를 따라가는 증거를 남긴다.
 
-### Step 6 — 검증·리뷰·문서 종결 `[ ]`
+### Step 6 — 검증·리뷰·문서 종결 `[x]`
 
-- [ ] 아래 targeted/full gate, 독립 리뷰·cross-check를 수행한다. 브라우저 실행이 없으면 AC-175.6은 완료로 기록하지 않는다.
-- [ ] DESIGN에 URL/client palette 소유자를 보충하고 summary/state를 evidence와 함께 갱신한다. DEBT-077/078은 계속 별도 미완료로 두고 archive Markdown/JSON 및 bundle/license가 무변경인지 확인한다. 커밋/푸시/공개 배포는 당시 명시적 사용자 지시에 따른다.
+- [x] 아래 targeted/full gate, 독립 리뷰·cross-check를 수행한다. 브라우저 실행이 없으면 AC-175.6은 완료로 기록하지 않는다.
+- [x] DESIGN에 URL/client palette 소유자를 보충하고 summary/state를 evidence와 함께 갱신한다. DEBT-077/078은 계속 별도 미완료로 두고 archive Markdown/JSON 및 bundle/license가 무변경인지 확인한다. 커밋/푸시/공개 배포는 당시 명시적 사용자 지시에 따른다.
 
 ## Acceptance Criteria
 
@@ -136,7 +136,7 @@ Out of scope:
 
 ## Tests / Validation
 
-아래는 구현 단계의 미래 검증 명령이다. 이번 문서화 단계에서는 실행하지 않는다. 새 Node/integration 파일은 Step4/5에서 생성한다.
+아래는 구현 검증 명령이다. 실제 실행 범위/결과는 완료 summary에 기록했으며 전체 회귀는 프로그램의 글로벌 Build & Test에서 추가 확인한다.
 
 ```bash
 uv sync --extra dev --extra docs --extra sector
