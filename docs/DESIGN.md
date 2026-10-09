@@ -3,7 +3,7 @@
 *Generated on 2026-04-27*
 *Source: aidlc-docs/inception/application-design/ (see AI-DLC artifacts for detailed design)*
 
-본 문서는 개발자용 요약본이다. 상세 설계의 단일 출처는 `aidlc-docs/inception/application-design/` 이다 — 본 문서가 그 내용과 모순되면 AIDLC 산출물이 우선한다.
+본 문서는 개발자용 요약본이다. 상세 설계의 단일 출처는 `aidlc-docs/inception/application-design/`와 등록 유닛의 construction 설계다. 사건·뉴스 v3의 목표 계약은 [event-news-v3](../aidlc-docs/construction/event-news-v3/README.md)가 소유한다. 현재 구현/운영 설명과 미래 목표를 구별하며 AIDLC 산출물이 우선한다.
 
 ---
 
@@ -86,7 +86,7 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 
 ### TD-003: Two-Stage Prompt
 
-**Choice**: 1차 분류·요약 → 2차 7섹션 통합 (각각 선택한 CLI runner 호출).
+**Choice**: 현재 v1/v2는1차분류→2차7섹션/사건본문을사용한다. v3목표는같은두단계에서role별context/parenteditorialplan→typedEventEditionDraft로교체한다. TD-016의전환뒤7섹션과6freebody생성을제거한다.
 **Rationale**: 토큰 효율 + 품질 향상. Single-shot은 컨텍스트 폭발 위험.
 **Alternatives Considered**: Single-shot, templating + LLM hybrid.
 
@@ -115,6 +115,8 @@ Investo는 **단일 deployable Python 패키지(monolith)**로, GitHub Actions c
 **Alternatives Considered**: Fail-fast (단일 장애로 시황 누락).
 
 ### TD-008: First-Viewport 표현 계약 (reader-first reflow, u71)
+
+**Version scope**: 아래는 legacy v1/v2 이력이다. v3는 사건 요약을 먼저 두고 시장자료/진단을 접힌참고로 보내며강제3요약/중복콜아웃/상단hero계약을폐기한다. normativeorder는TD-016과event-news-v3 F1이다.
 
 **Choice**: `publisher.reader_format.reflow_first_viewport`가 세그먼트 헤더 영역을 고정·idempotent 순서로 재배치 — (1) 제목+기준 시각 watermark+nav → (2) `## 한눈에 보기` TL;DR → (3) 요약 callout `오늘의 결론`/`핵심 동인`/`주의할 점`(caution <=90자 단어경계 절단) → (4) compact 1줄 status chip `> **데이터 상태**: {label} · 본문 사용 {n|미집계} · 실패 {n} · 0건 {n}` → (5) collapsed `<details><summary>수집/품질 진단</summary>...</details>`(원본 badge body: 소스 카운트/등급분포/상세사유/소스별 상태) → (6) `## ①` 본문. status가 `실패`이거나 u61이 유효 요약을 만들지 못한 경우에만 `<details open>`. orchestrator가 per-segment post-format 체인의 `emit_first_viewport_disclaimer` 직후 1회 와이어.
 **Rationale**: 첫 화면이 운영 로그가 아니라 독자 요약(무엇이/얼마나 신뢰/무엇을 관전)을 먼저 답하도록 우선순위 재배치. 진단은 숨기지 않고 구조적으로 후순위로만 이동.
@@ -313,3 +315,18 @@ surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건�
 ---
 
 *Update this document as architectural decisions evolve during development. 큰 변경은 ADR(`docs/adr/NNNN-*.md`)로 별도 기록.*
+
+
+### TD-016: 사건·뉴스 v3 전체 문서 계약과 구형 생성 폐기 (target design, 2026-10-10)
+
+**Status**: 사용자 문서화·구조변경 지시에 따른 target design. 현재 실행코드/운영 미변경.
+
+**Choice**: 같은 two-stage runner에서 role별 evidence와 parent-owned editorial plan을 생성하고, EventEditionDraft schema3 하나를 단일 u144 finalizer가 렌더/봉인한다. shared models는 u167 context→u168 canonical identity/shared story DTO→u169 edition/public view 순서로 도입한다. u170은 story reducer/ledger, u171은 모든 reader surfaces, u172는 실제 평가/cutover/legacy cleanup, u173은 source-slot qualification만 소유한다.
+
+**Removed target contracts**: 필수7섹션/6freebody, anchor-first, 정확히3요약채우기, 중복상단macro/thesis/callout, 80자본문첫문장, price-onlynews영향, 가짜7fieldcompatibility bridge. 본문600자/headline120자/digest140자는각각독립하며article0~5/digest0~3이다. 가격/지표/품질/시각은사건이해에필요한보조영역으로둔다. 기본hero는없다.
+
+**Retained invariants**: source권한/무료/모듈경계, numeric/entity/actualforecast/freshness/compliance/면책, originalhardfinding보존,단일seal/sha/E1-E5-E6asset/pre-gitrollback/원격확인/partial/exit/Pages/알림채널분리. parser/RegionSpec는schema3typedregions를검증하며old7H2만없다는이유로새문서를허용하거나차단하지않는다.
+
+**State and compatibility**: models/event_story.py의frozenDTO는u168이선언하고u169가typednext_record/visiblefields/hash를검증하며u170만상태진전·확정ledgerIO를한다. FinalizedPublicDocument.payload는Briefing또는PublicEditionView의한variant이며writer/surfaces는readonlysealedview를소비한다. 전환중기본schema2,세시장accepted/실제v3예약10회관찰뒤별도reviewedcleanup은기본schema3와legacygenerator제거를완료한다. 과거archive/URL/read-onlyparser와priorreviewedcommit전체rollback을유지한다.
+
+**Normative references**: [프로그램](../aidlc-docs/construction/event-news-v3/README.md), [공통C1~C8](../aidlc-docs/construction/event-news-v3/contracts.md), [폐기/전환](../aidlc-docs/construction/event-news-v3/migration-and-retirement.md). 실제평가·사람점수·운영pin/activation은futuredesign으로합격시킬수없다.

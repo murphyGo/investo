@@ -1,5 +1,7 @@
 # Component Methods: Investo
 
+> **v3 target boundary (2026-10-10)**: 아래 기존 component/signature/7섹션 내용은 현재·legacy 구조다. 사건·뉴스 v3의 shared model/edition/finalizer/story/surface 목표 계약과 제거 순서는 [event-news-v3](../../construction/event-news-v3/README.md)가 소유하며 구현 후 이 문서의 concrete API를 동기화한다. sibling import와 single-deployable 경계는 유지한다. 이 note는 구현 완료를 의미하지 않는다.
+
 **Date**: 2026-04-27
 **Note**: Method signatures + I/O types만 (high-level). 상세 비즈니스 규칙(예: 두 단계 prompt의 정확한 분류 키, retry 횟수, backoff 계수)은 Construction phase의 Functional Design에서 정의.
 

@@ -1,5 +1,7 @@
 # Code Generation Plan: u154 canonical-preamble-block-assembly
 
+**Version scope (2026-10-10 v3 design)**: 이 계획의 완료 기록과 뉴스 우선·접힌 시장 자료 구현은 유지한다. v3의 전체 typed 문서, 요약 0~3개, 번호 7섹션 폐기는 u169/u171이 소유하며 [v3 설계](../event-news-v3/README.md)를 따른다. 구현자는 현재 u154의 공통 배치 기능을 재사용하고 v3에 정확히 3개 요약·구형 section 계약을 재도입하지 않는다.
+
 **Updated**: 2026-10-10. **Status**: Complete6/6. User explicitly requested numeric-table reduction following event activation; existing commit/push instructions apply. Parent owns implementation; independent read-only review uses dev-investo/code-review.
 
 ## Problem and scope

@@ -47,7 +47,8 @@
 - **User Story**: As a 본인, I want 일관된 형식의 한국어 시황을, so that 빠르게 훑어보고 핵심을 파악할 수 있도록.
 - **Acceptance Criteria**:
   - [x] LLM 호출은 Claude Code CLI를 통해 수행 (Anthropic API key 직접 호출 금지)
-  - [x] 출력은 정해진 섹션 템플릿 준수: ①요약 ②전일 핵심 이슈 ③섹터/수급 동향 ④지표·이벤트 ⑤주요 종목 ⑥오늘의 관전 포인트 ⑦면책조항
+  - [x] legacy v1/v2 출력은 정해진 섹션 템플릿 준수: ①요약 ②전일 핵심 이슈 ③섹터/수급 동향 ④지표·이벤트 ⑤주요 종목 ⑥오늘의 관전 포인트 ⑦면책조항. 이 완료 기록은 역사적 계약이며 v3의 필수 구조로 승계하지 않는다.
+  - [ ] event/news v3는 FR-024의 typed 전체 문서와 사건 중심 읽기 순서를 사용하고, 구형6개자유section이나빈7fieldbridge를생성하지않는다. 전환/제거는u169/u172가소유한다.
   - [x] 한국어로 작성, 영문 종목명/티커는 원문 유지
   - [x] 면책조항 자동 삽입 ("투자 자문이 아닌 정보 제공" 명시) — NFR-004 참조
   - [x] LLM 호출 실패 시 retry (최대 N회), 최종 실패 시 빈 시황 게시 금지 → 알림
@@ -97,6 +98,7 @@
 - **Priority**: Must-have
 
 ### FR-009: Reader-facing 출력 포맷 (u51 tldr-block-and-number-bold-inversion)
+- **Version scope (2026-10-10)**: 아래 checked AC는 legacy v1/v2 완료 증거다. v3에서는 anchor-first/정확히3개TL;DR/번호7섹션을 폐기하고 FR-024의 사건 요약 우선·0~3digest·typed본문을 적용한다. 수치·면책·출처·가독성의 신뢰 요건은 유지한다. u154는 legacy/전환용, v3구조는u169/u171이소유한다.
 - **Description**: 시황의 가독성·액션성을 강제한다. (1) 본문 § 시작 전에 `## 한눈에 보기` TL;DR 3-bullet 블록을 emit 하고, (2) 시장 anchor 정보를 prose blockquote 가 아닌 markdown 표로 렌더하며, (3) §②/③/④/⑥ sub-heading 은 `### Title` (H3) 로 작성하고, (4) 본문 prose 안의 숫자 토큰 (`+11.51%`, `$81,154.06`, `4.42%`) 은 `**...**` 로 강조하며, (5) §⑥ "관전 포인트" bullet 의 관찰형 종결 어미 (`~여부 / ~필요가 있다 / ~관건이다 / ~주목할 필요`) 비율을 40% 이하로 유지하고 (위반 시 WARNING flag, blocking 아님), (6) 같은 segment 내 같은 용어의 풀어쓰기 글로싱은 첫 1회만 표기하고 2번째 이후는 base 용어만 남긴다.
 - **User Story**: As a 시황 reader, I want 페이지를 열자마자 매그니튜드·방향성·액션을 한눈에 보기를, so that 본문을 전부 읽지 않고도 그날의 핵심을 빠르게 잡을 수 있도록.
 - **Acceptance Criteria**:
@@ -304,9 +306,38 @@
   - [ ] 가격 거래일과 뉴스 관측기간을 구분하여 주말/장후 보도를 수집한다. 부분 발행/소스 실패/replay는 확정 cursor를 잘못 갱신하지 않는다. u160.
   - [ ] 공식 근거 보강은 source qualification, 무료/권리/보안/시간 예산을 통과한 범위만 허용한다. 수집/보강 실패는 원료와 품질 상태에 정직하게 반영한다. u161.
   - [ ] 정성 사건의 현재 상태와 다음 확인 사항을 지원하면서 숫자 관측값 검증을 유지한다. u162.
-- **Relationship to existing requirements**: FR-001/002/008/009/010/013/014/017/020/021의 확장이다. 승인 후 event-mode에서는 첫 TL;DR bullet의 숫자 필수 프롬프트를 사건 설명으로 대체하되 FR-009의3항목/anchor표/숫자 보호/면책조항은 유지한다. u154가 상단 블록 순서를 소유하며 이 요구사항은 배치를 중복 변경하지 않는다. 기존 hard trust gates는 완화하지 않는다.
+- **Relationship to existing requirements**: FR-001/002/008/009/010/013/014/017/020/021의 확장이다. 기존 v2 event-mode는 FR-009의3항목/anchor표를 유지하며 u154가 배치를 소유한다. 2026-10-10 작성된 v3 목표는 FR-024/025로 이 구조를 대체한다. 구형 checked AC의 완료 증거를 보존하고 기존 hard trust gates는 완화하지 않는다.
 - **Normative design**: `aidlc-docs/construction/news-event-briefing/README.md`와 공통 E1~E11/B1~B12/NF1~NF10, 각 유닛의AC.
 - **Priority**: P0 core u157–159; P1 ingestion u160–161; P2 follow-up u162.
+
+### FR-024: 사건이 조직하는 전체 시황 문서와 독자 표면 (u167–u173)
+
+- **Status**: 2026-10-10 사용자 문서화·구조변경 지시에 따라 target design 작성. 구현0이며 unchecked criteria는 현재 운영 보장이 아니다.
+- **Description**: 문서 전체를 지난 발행 이후의 새 변화·확인된 사실·시장 관련성·반응·다음 확인으로 조직한다. v3는 고정7섹션과6개freebody,anchor-first,정확히3요약채우기,중복topcallout,80자본문첫문장,price-onlynews영향을 폐기한다. 정상 사건0건과수집/생성/신뢰한계를구별한다. 숫자 자체가 뉴스인 정책/실적은 충분히 설명한다.
+- **Acceptance Criteria**:
+  - [ ] actor/fact와별도인background/comparison/meaning/reaction/follow_upchunk가같은사건의sourceownership/정확한span/예산을통해실제모델입력과최종본문에전달된다. u167.
+  - [ ] 발생/발표/보도/수집시각·통계기준기간과precision을구분하고,내용/time/history/locator/meaning/reaction품질을독립계측한다. source없는시각·actual/forecast/단위를발명하지않는다. u167/u173.
+  - [ ] source-backedentity/fact/occurrence를정규화하고새URL/표현만의변경을materialupdate로판정하지않는다. 불확실한duplicate는합치지않는다. u168.
+  - [ ] EventEditionDraftschema3하나에서요약0~3/사건0~5/후속/관련자산/접힌참고를렌더한다. 빈7sectionbridge와별도Markdown원본은0개다. 필수actual/fact를보호한다. u169.
+  - [ ] u144같은finalizer의schema별requiredregion/hardgates/survivorreconciliation/seal/writer/asset/remote/partial계약을유지하고삭제사건을요약/관전/자산/ledger에재등장시키지않는다. u169/u170.
+  - [ ] 웹·알림·홈·회고·OG·관심자산이같은sealed사건을소비한다. source-backed자산mechanism을표시하고price/ticker만으로news영향을확정하지않는다. u171.
+  - [ ] 세시장×12scenario최소36합성과실제12문서(시장별4/발행일2이상/뉴스-rich)의사람5/5/fact100%/근거없는사건·인과0및실제표면·예산·source범위를수용한다. 내부생존률과외부포착률을분리한다. u172.
+  - [ ] 시장별최초3회active예약수용과세시장accepted/전체10회v3관찰후별도reviewedcleanup으로legacygenerator/free6sections/활성rewrite를defaultruntime에서제거한다. historicalreader/과거URL/priorcommitrollback을보존한다. u172.
+- **Normative design**: [event-news-v3](../aidlc-docs/construction/event-news-v3/README.md)의C1~C8/F1~F6/B1~B12/N1~N8과유닛AC. 기존production의현재상태는aidlc-state와liveevidence로별도확인한다.
+- **Priority**: P0 foundation/whole-document/acceptance; P1 story/surface/source-slot.
+
+### FR-025: 사건의 실제 변화와 장기 진행 상태 (u168/u170/u171/u172)
+
+- **Status**: target design 작성; 구현 미착수.
+- **Description**: document·단일event·장기story를구분한다. 이전확인상태·이번source-backeddelta·열린질문·다음확인·해결근거를제공하고ticker재등장/시간경과를해결로간주하지않는다.
+- **Acceptance Criteria**:
+  - [ ] unit/period/status를보존한canonicalfactdelta와30일remote-confirmedhashhistory를사용한다. history불완전은unknown/limited다. u168.
+  - [ ] source-backed종류별state전이와cancel/resolutionevidence를사용하고date-onlyeventtime과UTCpublication/retentionclock을구별한다. u170.
+  - [ ] 실제terminalarticle/follow_up의typedproposal/next_record/hash/ref를봉인하고같은publicationtransaction의priorhash/CAS/remote확인으로storyledger를확정한다. preview/shadow/미게시proposal은쓰기0회다. u169/u170.
+  - [ ] 예정일이없으면구체적인observationquestion을표시하며,stale/TTL은archived_unknown이고resolved가아니다. 기존numeric/eventfamily검증을재사용한다. u170/u171.
+  - [ ] 동일story의후속과회고가중복보도·oldstate·삭제event를새변화로승격하지않는다. 실제원문과사람검수로수용한다. u171/u172.
+- **Normative design**: [contracts C3/C5/C6](../aidlc-docs/construction/event-news-v3/contracts.md), [u170](../aidlc-docs/construction/u170-story-state-and-follow-up-ledger/design-brief.md).
+- **Priority**: P1 continuity; 기존FR-020lookahead/carryover의v3확장.
 
 ### FR-007: 운영자 실패 알림
 - **Description**: 시황 생성 파이프라인 실패 시 **운영자 본인 1:1 chat**으로 알림한다. 공개 시황 채널(FR-004)과 분리하여 일반 구독자에게 노이즈를 주지 않는다.

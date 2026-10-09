@@ -1,5 +1,7 @@
 # 뉴스·이벤트 중심 시황 개발 설계
 
+> **후속 목표, 2026-10-10**: 이 문서는 u157~u162의 구현·운영 및 v2 계약 이력을 보존한다. 문서 전체의 사건 중심 구조·독립 설명 근거·canonical delta·장기 story·실제 의미 수용·legacy runtime 제거는 [event-news-v3](../event-news-v3/README.md)와 u167~u173이 소유한다. 아래 기존7섹션/anchor-first/80자첫문장/3요약을 v3의 필수 계약으로 승계하지 않는다. 현재 v2 활성화/사람pending 상태는 후속 설계가 바꾸지 않는다.
+
 **Date**: 2026-09-26
 **Status**: u157–u162와 필수u152 개발·main 통합 완료. 사용자 재승인에 따라 2026-10-09 23:47:50 KST 국내·미국 사건 중심 시황을 운영 활성화했다. 운영 pin `7bc6d287` exact CI6211 PASS, 비공개 daily active·공개 daily disabled 및 event mode active를 재조회했다. 실제 미리보기는 국내5·미국2 사건 보존, 모두 상세근거 제한 상태다. 코인은 synthesis3/event.narrative_invalid 실패로 기존 shadow/v1을 유지한다. 뉴스 기간은 shadow, 신규 공식 본문 HTTP는 off다. 예약 shadow 관찰은5/5회 완료, 첫 active 발행 관찰은0/3회이며 사람 의미 검수·뉴스 풍부한 날 baseline은 pending이다. 다음 예약은10월10일09:00KST. 현재 증거: [운영 전환 기록](../../../docs/sessions/2026-10-09-event-active-rollout.md).
 **Baseline**: `04978d81ec9ece8f4083e4be190c6539bdf3b5ff` (origin/main).

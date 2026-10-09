@@ -2843,3 +2843,133 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Stage**: FD/NFR complete; Code Generation7/7 code and source-only diagnosis complete. Full6400 tests PASS516.48s; independent144/review CLOSED; static/policy/docs PASS. Exact source-only probe37955145349 SUCCESS with3 usable index items; historicalzero cause/public fallback and DEBT-068 remain external qualification gates.
 **Design**: [u166](../../construction/u166-domestic-price-source-qualification/design-brief.md).
 **Plan**: [u166 code](../../construction/plans/u166-domestic-price-source-qualification-code-generation-plan.md).
+
+## u167–u173: Event/news v3 — 전체 문서 개편 (2026-10-10)
+
+사용자 문서화·구조변경 지시를 반영한 target design이다. 구현/운영0이며 과거 완료 유닛의 실측 상태를 바꾸지 않는다. [프로그램](../../construction/event-news-v3/README.md), [폐기/전환](../../construction/event-news-v3/migration-and-retirement.md).
+
+### u167: `event-context-evidence-and-quality` — 설명 근거와 품질 축
+
+**Purpose**: 설명 근거와 품질 축를 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-001/002/007/008; FR-001/002/017/021/023/024; NFR-001~007.
+
+**Existing Coverage / Deduplication**: u157/u158/u161의span/factory/카운트 확장; identity u168, 문서 u169와분리.
+
+**Module path**: models/event_context.py, event_config.py; briefing/event_evidence.py/event_input.py/event_prompt.py/event_selection.py; sources/event_evidence.py; publisher/event_quality.py.
+
+**Dependencies / readiness**: 기존u157/u158/u161; foundation착수가능. 문서작성; 구현0/8.
+
+**Definition of Done**: 독립설명ref·시간precision·축별reason과실제bytebudget; legacybytes동일·source없는fact/시각0. [계획](../../construction/plans/u167-event-context-evidence-and-quality-code-generation-plan.md)의번호별 AC를 실제 typed boundary·transmitted buffer·정규화·ledger fixture로 증명한다. downstream finalizer/reader 수용은 u169/u172 통합에서 별도 확인한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u167](../../construction/u167-event-context-evidence-and-quality/design-brief.md).
+
+**Plan**: [u167 code](../../construction/plans/u167-event-context-evidence-and-quality-code-generation-plan.md).
+
+### u168: `canonical-event-identity-and-fact-delta` — 사건 식별과 실제 사실 변화
+
+**Purpose**: 사건 식별과 실제 사실 변화를 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-001/002/006/008; FR-002/008/017/020/024/025; NFR-003/005/006/007.
+
+**Existing Coverage / Deduplication**: u157identity/receipt 확장; u64/u111registry재사용; storyreducer는u170.
+
+**Module path**: models/event_identity.py/event_story.py; briefing/event_identity.py; orchestrator/event_receipts.py/event_publication.py.
+
+**Dependencies / readiness**: u167후구현; sharedstoryDTO를u169보다먼저선언. 문서작성; 구현0/8.
+
+**Definition of Done**: source-backedalias·보수적occurrence·normalizedfactdelta·30일확정hashhistory·sharedstoryDTO; unsafe merge0. [계획](../../construction/plans/u168-canonical-event-identity-and-fact-delta-code-generation-plan.md)의번호별 AC를 실제 typed boundary·transmitted buffer·정규화·ledger fixture로 증명한다. downstream finalizer/reader 수용은 u169/u172 통합에서 별도 확인한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u168](../../construction/u168-canonical-event-identity-and-fact-delta/design-brief.md).
+
+**Plan**: [u168 code](../../construction/plans/u168-canonical-event-identity-and-fact-delta-code-generation-plan.md).
+
+### u169: `event-first-document-and-finalization` — 사건 중심 전체 문서
+
+**Purpose**: 사건 중심 전체 문서를 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-002/003/006/007/009; FR-002/003/008/009/013/014/018/023/024; NFR-001~008.
+
+**Existing Coverage / Deduplication**: u158/u97/u59 확장; u144단일finalizer·u149/u150/u163수리재사용; 새finalizer없음.
+
+**Module path**: models/event_document.py/public_notification.py/event_asset_impact.py; briefing/editorial_plan.py/event_document.py; _internal/event_v3_contract.py; publisher/event_edition.py/public_document.py/writer.py; orchestrator handoff.
+
+**Dependencies / readiness**: u167/u168후구현; u170logic역방향의존없음. 문서작성; 구현0/9.
+
+**Definition of Done**: typedv3하나·0~3digest/0~5article·고정7섹션/빈bridge0·동일seal/partial/asset/remotegate·본문/요약분리. [계획](../../construction/plans/u169-event-first-document-and-finalization-code-generation-plan.md)의번호별AC를실제generated/finalizedreader출력또는qualification판정으로증명한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u169](../../construction/u169-event-first-document-and-finalization/design-brief.md).
+
+**Plan**: [u169 code](../../construction/plans/u169-event-first-document-and-finalization-code-generation-plan.md).
+
+### u170: `story-state-and-follow-up-ledger` — 장기 이슈 상태와 후속 확인
+
+**Purpose**: 장기 이슈 상태와 후속 확인을 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-001/002/003/006/008; FR-006/020/024/025; NFR-003/005/006/007/008.
+
+**Existing Coverage / Deduplication**: u52carryover/u157receipt/u162정성family 확장; u168sharedDTO/u169renderer 재사용.
+
+**Module path**: briefing/event_story.py; orchestrator/event_story.py; existing publisher event-watchpoint composition; models DTO소비.
+
+**Dependencies / readiness**: u168/u169후구현; 상태reducer/ledger owner만. 문서작성; 구현0/8.
+
+**Definition of Done**: source-backed전이/해결·열린질문·NextCheck·terminaltypednext_record/CAS/원격확정·unseenstatewrite0. [계획](../../construction/plans/u170-story-state-and-follow-up-ledger-code-generation-plan.md)의번호별AC를실제generated/finalizedreader출력또는qualification판정으로증명한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u170](../../construction/u170-story-state-and-follow-up-ledger/design-brief.md).
+
+**Plan**: [u170 code](../../construction/plans/u170-story-state-and-follow-up-ledger-code-generation-plan.md).
+
+### u171: `event-reader-surfaces-and-asset-impact` — 독자 표면과 사건별 자산 영향
+
+**Purpose**: 독자 표면과 사건별 자산 영향을 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-002/003/004/006; FR-003/004/009/016/018/019/024/025; NFR-003~008.
+
+**Existing Coverage / Deduplication**: u154legacyreflow/u156notifier경계/u64/u111relevance/u20/u29회고/u141/u143asset재사용.
+
+**Module path**: briefing event-asset matcher (models/event_asset_impact.py의 u169 선언 소비); notifier/summary.py; publisher/event_archive_reader.py; publisher/site_index/weekly_digest/monthly_index/watchlist; visuals consumers.
+
+**Dependencies / readiness**: u169/u170후구현; u156currentowner확인. 문서작성; 구현0/8.
+
+**Definition of Done**: 동일sealedfact/상태·event자산경로·4096UTF16·0기본hero·historicalread·실제viewport. [계획](../../construction/plans/u171-event-reader-surfaces-and-asset-impact-code-generation-plan.md)의번호별AC를실제generated/finalizedreader출력또는qualification판정으로증명한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u171](../../construction/u171-event-reader-surfaces-and-asset-impact/design-brief.md).
+
+**Plan**: [u171 code](../../construction/plans/u171-event-reader-surfaces-and-asset-impact-code-generation-plan.md).
+
+### u172: `real-event-semantic-acceptance-and-cutover` — 실제 의미 품질 수용과 완전 전환
+
+**Purpose**: 실제 의미 품질 수용과 완전 전환을 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-002/003/004/005/006/007; FR-006/007/017/021/023/024/025; NFR-001~008.
+
+**Existing Coverage / Deduplication**: u159evaluator/replay/u144seal/preview/기존runtimeowner 재사용; 사람점수·내부비율·release분리.
+
+**Module path**: models/event_quality.py; publisher/event_quality.py/quality_consistency.py; scripts/check_event_coverage.py/_event_coverage_replay.py; preview/workflowtemplates; finallegacycleanup.
+
+**Dependencies / readiness**: corpus준비는독립; 구현수용u169/u170/u171후; 실제운영/cleanup별도. 문서작성; 구현0/9.
+
+**Definition of Done**: 합성36/실제12·시장별4·발행일2·사람5/5/fact100%/unsupported0·시장별3실예약·all3/10회후reviewedcleanup. [계획](../../construction/plans/u172-real-event-semantic-acceptance-and-cutover-code-generation-plan.md)의번호별AC를실제generated/finalizedreader출력또는qualification판정으로증명한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u172](../../construction/u172-real-event-semantic-acceptance-and-cutover/design-brief.md).
+
+**Plan**: [u172 code](../../construction/plans/u172-real-event-semantic-acceptance-and-cutover-code-generation-plan.md).
+
+### u173: `official-event-source-slot-qualification` — 공식 사건 소스 정보 슬롯 자격검증
+
+**Purpose**: 공식 사건 소스 정보 슬롯 자격검증을 위한 v3 계약과 구현 범위를 정한다.
+
+**Stories / FR / NFR**: US-001/002/007/008/009; FR-001/002/008/017/021/023/024; NFR-001/002/003/005/006/007/008.
+
+**Existing Coverage / Deduplication**: u161bodyqualification/u165source lifecycle/u102registry 확장; 새provider/활성화와분리.
+
+**Module path**: models/enrichment.py; ops/event_source_slot_qualification.json; scripts/check_event_source_slots.py; source별qualificationevidence.
+
+**Dependencies / readiness**: discovery독립; typedchunk출력u167후; 새source는별도boundedadapter계획. 문서작성; 구현0/7.
+
+**Definition of Done**: 정책/실적/국내공시8namedslot의verified/blocked·정확한권리/접근/parser/time 판정·raw공개0·자동HTTP/cursoractivation0. [계획](../../construction/plans/u173-official-event-source-slot-qualification-code-generation-plan.md)의번호별AC를실제generated/finalizedreader출력또는qualification판정으로증명한다. 코드/원격배달/사람/운영/cleanup완료를구별한다.
+
+**Design**: [u173](../../construction/u173-official-event-source-slot-qualification/design-brief.md).
+
+**Plan**: [u173 code](../../construction/plans/u173-official-event-source-slot-qualification-code-generation-plan.md).

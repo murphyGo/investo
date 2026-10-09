@@ -7946,3 +7946,16 @@ User instruction: “공개까지 완료 진행해줘” after current status co
 Per authorized source audit/dev scope, manually dispatched fixed source-only workflow37955145349 on exact e9fb0c9c. SUCCESS:2026-10-07 total171, first page100/target0/valid0, second71/target3/valid3; usable3. Observed first-page exclusion now has direct authenticated runner evidence; no raw prices/messages/credentials or private runtime changes. Step7 complete; public fallback rights, private rollout, ten-run recovery and DEBT-068 remain separate. Historicalall25/oldURL causes not retroactively asserted.
 
 Exact delivered code e9fb0c9c49308788871c49eedec5bf6efe498126 quality37955131278 SUCCESS:6425 tests PASS293.88s, Ruff/format687/mypy293, all4 policy guards/strict docs/Material PASS. Includes concurrent u154 layout and u165 lifecycle. Source-only37955145349 separately SUCCESS with3 usable indices. This follow-up changes records only; code/config/tests remain identical to the reviewed passing code commit. User per-unit commit/push and renewed gogo authorize delivery of this bounded evidence closeout.
+
+
+## 2026-10-10 — event/news v3 documents and retirement target authorized
+
+User: “그래 일단 문서로 작성 진행해줘. 그 과정에서 기존것에서 불필요한건 과감하게 버려도 되고, 구조를 바꿔도 됨”. Proceed with docs/target contracts and seven units u167–u173 in an isolated origin/main19c89b92 worktree. No production code, variables, archive, notification, commit or push.
+
+Retire v3 mandatory7sections/free6body,anchor-first/exact3filler/duplicatecallouts/80charbodyfirstsentence/price-onlynewsinference and fakelegacybridge. Preserve source/numeric/entity/compliance/disclaimer/singlefinalizer/seal/assets/remote/partial/oldarchive invariants. Foundationu168 introduces all shared story DTO to avoid u169/u170 cycle; u170 owns transitions/ledger only. Actual human corpus/market acceptance/source qualification remains pending.
+
+New FR-024/025 and normative event-news-v3 C1–C8/F1–F6/B1–B12/N1–N8 replace target structure while legacy checked ACs preserve historical scope. Seven designs/code-generation plans plus three registration surfaces are authored. u154local4e0dc424 and source reliability branches are preserved; currentrefs must be rechecked during future integration. After all3marketsaccepted and10genuinev3scheduledobservations, separate reviewed u172 cleanup removes resident legacy generation and defaults3; oldreaders/URLs and wholepriorcommitrollback remain.
+
+### 2026-10-10 Event/news v3 문서 검토 반영
+
+작성자와 다른 두 read-only reviewer의 지적을 실제 코드로 확인하여 반영했다. foundation 타입 선행 선언, metric fact 식별, occurrence alias·tuple hash, frozen closure clock, linked release resolution, typed public sidecar와 가격·뉴스창, 실패 outcome, 본문 E1 visual과 post-seal OG를 고정했다. 전체 수정본의 최종 통합 검증은 부모가 수행했으며 reviewer의 최종 재합격이나 설계/운영 승인을 주장하지 않는다. 구현 단계는 모두 0, 코드·production·archive 변경과 commit/push 없음.

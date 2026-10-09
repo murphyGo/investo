@@ -651,3 +651,17 @@ Source-backed qualitative current state and next checks now compose with the exi
 | u166 domestic-price-source-qualification | Official indices have no usable values and replacement rights are unresolved | US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008 | u36/u67/u138/u148/u149, DEBT-068; P1-2 |
 
 Evidence: `aidlc-docs/construction/source-reliability-20261009/review.md`. Four of25 terminal partial runs were numeric-emphasis; crypto data-limited24/25 is separate. Four designs/plans registered as drafts, no approval/implementation/rollout inferred. Candidate Binance/Coinbase/history/BOK and domestic public rights remain explicit qualification gates. Preserve event/cursor/sector gates. Before rollout recheck renamed private owner/enable/reviewed execution pin; public main integration alone does not update that pin.
+
+## u167–u173 — Event/news v3 Planning Notes (2026-10-10)
+
+| Unit | Main Concern | Primary Coverage | Secondary Touch |
+|---|---|---|---|
+| u167 event-context-evidence-and-quality | 설명 근거와 품질 축 | US-001/002/007/008; FR-001/002/017/021/023/024; NFR-001~007 | u157/u158/u161의span/factory/카운트 확장; identity u168, 문서 u169와분리; 기존u157/u158/u161; foundation착수가능 |
+| u168 canonical-event-identity-and-fact-delta | 사건 식별과 실제 사실 변화 | US-001/002/006/008; FR-002/008/017/020/024/025; NFR-003/005/006/007 | u157identity/receipt 확장; u64/u111registry재사용; storyreducer는u170; u167후구현; sharedstoryDTO를u169보다먼저선언 |
+| u169 event-first-document-and-finalization | 사건 중심 전체 문서 | US-002/003/006/007/009; FR-002/003/008/009/013/014/018/023/024; NFR-001~008 | u158/u97/u59 확장; u144단일finalizer·u149/u150/u163수리재사용; 새finalizer없음; u167/u168후구현; u170logic역방향의존없음 |
+| u170 story-state-and-follow-up-ledger | 장기 이슈 상태와 후속 확인 | US-001/002/003/006/008; FR-006/020/024/025; NFR-003/005/006/007/008 | u52carryover/u157receipt/u162정성family 확장; u168sharedDTO/u169renderer 재사용; u168/u169후구현; 상태reducer/ledger owner만 |
+| u171 event-reader-surfaces-and-asset-impact | 독자 표면과 사건별 자산 영향 | US-002/003/004/006; FR-003/004/009/016/018/019/024/025; NFR-003~008 | u154legacyreflow/u156notifier경계/u64/u111relevance/u20/u29회고/u141/u143asset재사용; u169/u170후구현; u156currentowner확인 |
+| u172 real-event-semantic-acceptance-and-cutover | 실제 의미 품질 수용과 완전 전환 | US-002/003/004/005/006/007; FR-006/007/017/021/023/024/025; NFR-001~008 | u159evaluator/replay/u144seal/preview/기존runtimeowner 재사용; 사람점수·내부비율·release분리; corpus준비는독립; 구현수용u169/u170/u171후; 실제운영/cleanup별도 |
+| u173 official-event-source-slot-qualification | 공식 사건 소스 정보 슬롯 자격검증 | US-001/002/007/008/009; FR-001/002/008/017/021/023/024; NFR-001/002/003/005/006/007/008 | u161bodyqualification/u165source lifecycle/u102registry 확장; 새provider/활성화와분리; discovery독립; typedchunk출력u167후; 새source는별도boundedadapter계획 |
+
+등록은문서계획이며구현완료/사람수용/productionrelease를뜻하지않는다. 구조폐기와레거시이력보존범위는[event-news-v3](../../construction/event-news-v3/migration-and-retirement.md)를따른다.
