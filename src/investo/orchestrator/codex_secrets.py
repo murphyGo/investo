@@ -13,7 +13,7 @@ import httpx
 
 from investo._internal.codex_auth import AuthDocument
 
-RUNTIME_REPOSITORY = "murphyGo/investo-runtime"
+RUNTIME_REPOSITORY = "murphyGo/automation-runtime"
 RUNTIME_ENVIRONMENT = "codex-runtime"
 AUTH_SECRET = "CODEX_AUTH_JSON"
 

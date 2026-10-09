@@ -51,7 +51,9 @@ async def test_encrypted_environment_write_round_trip() -> None:
         requests.append(request)
         assert request.headers["Authorization"] == "Bearer synthetic-writer"
         assert request.url.host == "api.github.com"
-        assert "/environments/codex-runtime/secrets/" in request.url.path
+        assert request.url.path.startswith(
+            "/repos/murphyGo/automation-runtime/environments/codex-runtime/secrets/"
+        )
         if request.url.path.endswith("public-key"):
             return httpx.Response(
                 200,
@@ -207,6 +209,7 @@ async def test_valid_unchanged_auth_requires_no_update(tmp_path: Path) -> None:
     "changed",
     [
         {"GITHUB_REPOSITORY": "murphyGo/investo"},
+        {"GITHUB_REPOSITORY": "murphyGo/investo-runtime"},
         {"INVESTO_RUNTIME_VISIBILITY": "public"},
         {"GITHUB_EVENT_NAME": "pull_request_target"},
         {"GITHUB_REF": "refs/heads/unreviewed"},
@@ -216,7 +219,7 @@ async def test_valid_unchanged_auth_requires_no_update(tmp_path: Path) -> None:
 def test_private_runtime_rejects_untrusted_context(changed: dict[str, str]) -> None:
     env = {
         "GITHUB_ACTIONS": "true",
-        "GITHUB_REPOSITORY": "murphyGo/investo-runtime",
+        "GITHUB_REPOSITORY": "murphyGo/automation-runtime",
         "INVESTO_RUNTIME_VISIBILITY": "private",
         "GITHUB_EVENT_NAME": "workflow_dispatch",
         "GITHUB_REF": "refs/heads/main",
@@ -297,7 +300,7 @@ async def test_supervisor_always_preserves_rotation_and_emits_failure_receipt(
         "INVESTO_LLM_PROVIDER": "codex",
         "INVESTO_CODEX_MODEL": "test-model",
         "GITHUB_ACTIONS": "true",
-        "GITHUB_REPOSITORY": "murphyGo/investo-runtime",
+        "GITHUB_REPOSITORY": "murphyGo/automation-runtime",
         "INVESTO_RUNTIME_VISIBILITY": "private",
         "GITHUB_EVENT_NAME": "workflow_dispatch",
         "GITHUB_REF": "refs/heads/main",
@@ -385,7 +388,7 @@ async def test_private_claude_supervisor_reaps_running_cli(
     for key, value in {
         "INVESTO_LLM_PROVIDER": "claude",
         "GITHUB_ACTIONS": "true",
-        "GITHUB_REPOSITORY": "murphyGo/investo-runtime",
+        "GITHUB_REPOSITORY": "murphyGo/automation-runtime",
         "INVESTO_RUNTIME_VISIBILITY": "private",
         "GITHUB_EVENT_NAME": "workflow_dispatch",
         "GITHUB_REF": "refs/heads/main",

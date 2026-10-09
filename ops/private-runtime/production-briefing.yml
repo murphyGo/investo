@@ -24,7 +24,7 @@ concurrency:
 jobs:
   briefing:
     if: >-
-      github.repository == 'murphyGo/investo-runtime' &&
+      github.repository == 'murphyGo/automation-runtime' &&
       github.event.repository.private == true &&
       github.ref == 'refs/heads/main' &&
       vars.CODEX_PRODUCTION_ENABLED == '1'

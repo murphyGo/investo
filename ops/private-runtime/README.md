@@ -1,6 +1,6 @@
 # Investo private CLI runtime
 
-비공개 `murphyGo/investo-runtime` 저장소에서 Codex 브리핑을 실행한다.
+비공개 `murphyGo/automation-runtime` 저장소에서 Codex 브리핑을 실행한다.
 `daily-briefing.yml`은 수동 dry-run 템플릿이고, `production-briefing.yml`은
 실제 발행용이다. 2026-10-04 공개 Claude daily를 중지하고 비공개 Codex
 운영 workflow를 활성화했다. 정확한 SHA, 실행 결과와 남은 확인 사항은
@@ -35,7 +35,7 @@
 아래 명령은 전용 로그인 파일이 준비된 뒤 운영자가 실행할 예시다.
 
 ```bash
-gh secret set CODEX_AUTH_JSON --repo murphyGo/investo-runtime --env codex-runtime < /absolute/path/to/dedicated-automation/auth.json
+gh secret set CODEX_AUTH_JSON --repo murphyGo/automation-runtime --env codex-runtime < /absolute/path/to/dedicated-automation/auth.json
 ```
 
 `CODEX_AUTH_JSON`은 반드시 Environment Secret이어야 한다.
