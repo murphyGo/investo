@@ -423,6 +423,9 @@ async def test_explicit_replay_v2_uses_frozen_windows_without_any_live_git_read(
 ) -> None:
     before = _CURSOR_PATH.read_bytes()
     monkeypatch.setattr("investo.models.event_config.EVENT_ACTIVE_READY", True)
+    # Exercise the all-v2 replay capability independently of the staged
+    # production rollout, which deliberately keeps crypto on v1.
+    monkeypatch.setattr("investo.models.event_config.EVENT_ACTIVE_SEGMENTS", SEGMENT_ORDER)
     replay_items = news_items(published_at=datetime(2026, 9, 25, 12, tzinfo=UTC))
     with monkeypatch.context() as isolated:
         isolated.setattr(subprocess, "run", _forbid_baseline)

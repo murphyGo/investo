@@ -6,6 +6,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, cast
 
+from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSegment
+
 EventMode = Literal["off", "shadow", "preview", "active"]
 EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 
@@ -14,6 +16,9 @@ EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 # preview publication and unqualified news/enrichment activation stay closed.
 EVENT_PREVIEW_READY = True
 EVENT_ACTIVE_READY = True
+# Only these markets passed the reviewed live preview. Crypto retains v1
+# shadow generation until its narrative failures receive a separate promotion.
+EVENT_ACTIVE_SEGMENTS: tuple[MarketSegment, ...] = (DOMESTIC_EQUITY, US_EQUITY)
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,6 +50,19 @@ class EventExecutionConfig:
     @property
     def uses_v2(self) -> bool:
         return self.mode in ("preview", "active")
+
+    def for_segment(self, segment: MarketSegment) -> EventExecutionConfig:
+        if self.mode == "active" and segment not in EVENT_ACTIVE_SEGMENTS:
+            return EventExecutionConfig("shadow")
+        return self
+
+    @property
+    def v2_segments(self) -> tuple[MarketSegment, ...]:
+        return tuple(
+            segment
+            for segment in (DOMESTIC_EQUITY, US_EQUITY, CRYPTO)
+            if self.for_segment(segment).uses_v2
+        )
 
 
 DEFAULT_EVENT_CONFIG = EventExecutionConfig()

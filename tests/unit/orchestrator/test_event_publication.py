@@ -204,7 +204,8 @@ async def test_all_blocked_finalization_retains_attributed_hard_reason(
     assert metrics.state == "hard_trust_blocked"
     assert "event.evidence_invalid" in metrics.issue_codes
     assert metrics.terminal_event_count is None and metrics.selected_count == 1
-    assert result.data["event_coverage"]["crypto"].state == "classification_unavailable"
+    assert "crypto" not in result.data["event_coverage"]
+    assert result.data["event_coverage"]["domestic-equity"].state == "classification_unavailable"
 
 
 @pytest.mark.asyncio

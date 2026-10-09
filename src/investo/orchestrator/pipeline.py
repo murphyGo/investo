@@ -567,7 +567,8 @@ async def _default_generate_segment_briefing(
             carryover=carryover,
             market_anchors=market_anchors,
             generation_policy=replace(
-                SEGMENT_GENERATION_POLICIES[segment], event_mode=event_config.mode
+                SEGMENT_GENERATION_POLICIES[segment],
+                event_mode=event_config.for_segment(segment).mode,
             ),
             bundle_context=bundle_context,
             fact_context_block=fact_context_block,
@@ -899,6 +900,7 @@ async def _stage_generate_segments(
     semaphore = asyncio.Semaphore(concurrency)
 
     async def _bounded_generate(segment: MarketSegment) -> _SegmentGenerationResult:
+        segment_event_config = event_config.for_segment(segment)
         segment_source_items = routed_by_segment[segment]
         data_limited = routed.is_data_limited(segment)
         segment_outcomes = segment_source_outcomes(segment, source_outcomes)
@@ -925,10 +927,12 @@ async def _stage_generate_segments(
                 bundle_context=bundle_context,
                 fact_context_block=fact_context_block,
                 watchlist_config=watchlist_config,
-                event_config=event_config,
-                event_observed_at=fact_now_utc if event_config.uses_v2 else None,
+                event_config=segment_event_config,
+                event_observed_at=fact_now_utc if segment_event_config.uses_v2 else None,
                 event_baseline=event_baseline.receipts if event_baseline is not None else (),
-                event_baseline_available=event_baseline is not None or not event_config.uses_v2,
+                event_baseline_available=(
+                    event_baseline is not None or not segment_event_config.uses_v2
+                ),
                 news_window_consumptions=(
                     make_news_window_consumptions(
                         news_window_plan, segment=segment, items=segment_source_items
@@ -960,7 +964,7 @@ async def _stage_generate_segments(
         briefings[segment] = result.briefing
         if event_results is not None and result.event_result is not None:
             event_results[segment] = result.event_result
-        if event_config.mode == "shadow" and result.event_result is not None:
+        if event_config.for_segment(segment).mode == "shadow" and result.event_result is not None:
             observation = result.event_result.event_observation
             if observation is not None:
                 _logger.info(
@@ -3309,7 +3313,9 @@ class GenerateStage:
                 }
                 if ctx.event_config.uses_v2:
                     event_items_by_segment = share_official_event_candidates(
-                        public_items, candidates_by_segment
+                        public_items,
+                        candidates_by_segment,
+                        recipients=ctx.event_config.v2_segments,
                     )
                 if news_plan is not None and news_plan.mode == "active":
                     candidates = event_items_by_segment or candidates_by_segment
@@ -3383,7 +3389,10 @@ class GenerateStage:
                 error=exc,
                 data={
                     "event_coverage": _event_coverage_for_bundle(
-                        results=event_results, failures=segment_generation_failures, bundle=None
+                        results=event_results,
+                        failures=segment_generation_failures,
+                        bundle=None,
+                        segments=ctx.event_config.v2_segments,
                     )
                 }
                 if ctx.event_config.uses_v2
@@ -3585,11 +3594,12 @@ def _event_coverage_for_bundle(
     failures: Mapping[MarketSegment, BriefingGenerationError],
     bundle: FinalizedPublicBundle | None,
     blocked_issue_codes_by_segment: Mapping[MarketSegment, Sequence[str]] | None = None,
+    segments: Sequence[MarketSegment] = SEGMENT_ORDER,
 ) -> dict[MarketSegment, EventCoverage]:
     documents = {document.segment: document for document in bundle.documents} if bundle else {}
     outcomes = {outcome.segment: outcome for outcome in bundle.segment_outcomes} if bundle else {}
     coverages: dict[MarketSegment, EventCoverage] = {}
-    for segment in SEGMENT_ORDER:
+    for segment in segments:
         result = results.get(segment)
         failure = failures.get(segment)
         outcome = outcomes.get(segment)
@@ -3695,7 +3705,12 @@ class PublishStage:
             accumulated.get("segment_generation_failures", {}),
         )
         event_coverage = (
-            _event_coverage_for_bundle(results=event_results, failures=event_failures, bundle=None)
+            _event_coverage_for_bundle(
+                results=event_results,
+                failures=event_failures,
+                bundle=None,
+                segments=ctx.event_config.v2_segments,
+            )
             if ctx.event_config.uses_v2
             else None
         )
@@ -3748,7 +3763,10 @@ class PublishStage:
                 event_options: _EventPublishOptions = {}
                 if ctx.event_config.uses_v2:
                     event_coverage = _event_coverage_for_bundle(
-                        results=event_results, failures=event_failures, bundle=finalized_bundle
+                        results=event_results,
+                        failures=event_failures,
+                        bundle=finalized_bundle,
+                        segments=ctx.event_config.v2_segments,
                     )
                     event_options["event_coverage"] = event_coverage
                     if not _is_dry_run() and not ctx.news_replay:
@@ -3832,11 +3850,13 @@ class PublishStage:
                         and publication_receipts[-1].status == "remote_confirmed"
                     )
                     published_event_coverage = aggregate_published_event_coverage(
-                        event_coverage,
+                        {segment: event_coverage.get(segment) for segment in SEGMENT_ORDER},
                         remote_confirmed_segments=tuple(segment_briefings) if confirmed else (),
                     )
                     if confirmed:
                         for document in finalized_bundle.documents:
+                            if document.segment not in event_coverage:
+                                continue
                             metrics = event_coverage[document.segment]
                             event_coverage[document.segment] = metrics.model_copy(
                                 update={
@@ -3867,6 +3887,7 @@ class PublishStage:
                     failures=event_failures,
                     bundle=finalized_bundle,
                     blocked_issue_codes_by_segment=exc.blocked_issue_codes_by_segment,
+                    segments=ctx.event_config.v2_segments,
                 )
             _logger.error(
                 "[publish] failed target_date=%s error_type=%s error=%s",

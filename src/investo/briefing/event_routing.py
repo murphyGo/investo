@@ -33,6 +33,8 @@ def is_shared_official_event(item: NormalizedItem) -> bool:
 def share_official_event_candidates(
     items: Sequence[NormalizedItem],
     native: Mapping[MarketSegment, Sequence[NormalizedItem]],
+    *,
+    recipients: Sequence[MarketSegment] | None = None,
 ) -> dict[MarketSegment, tuple[NormalizedItem, ...]]:
     """Add up to six source-qualified inputs; classification decides relevance.
 
@@ -45,6 +47,9 @@ def share_official_event_candidates(
     )
     result: dict[MarketSegment, tuple[NormalizedItem, ...]] = {}
     for segment, rows in native.items():
+        if recipients is not None and segment not in recipients:
+            result[segment] = tuple(rows)
+            continue
         seen = {item_evidence_key(item) for item in rows}
         additions: list[NormalizedItem] = []
         for item in shared:
