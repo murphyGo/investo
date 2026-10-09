@@ -49,6 +49,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from decimal import Decimal, InvalidOperation
+from html import unescape
 from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -171,6 +172,7 @@ def find_body_value(text: str, fact: CoreFact) -> Decimal | None:
     *closest* candidate (by char distance to the keyword start) wins
     when multiple sit inside the window.
     """
+    text = unescape(text)
     keywords = CORE_FACT_KEYWORDS[fact]
     best: tuple[int, Decimal] | None = None  # (distance, value)
     for token in keywords:

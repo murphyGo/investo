@@ -1,0 +1,23 @@
+{
+  "type": "synthetic fixture, actual producer/E1 supplement/trust gates/E6 seal, no archive mutation",
+  "documents": [
+    {
+      "segment": "domestic-equity",
+      "sha256": "98d266b111279fd2dc68b7c4f3c79613c00f8df575121b9ec0d329d5ac621391",
+      "actual_sha256": "98d266b111279fd2dc68b7c4f3c79613c00f8df575121b9ec0d329d5ac621391",
+      "artifacts": 12
+    },
+    {
+      "segment": "us-equity",
+      "sha256": "9c15605e60d19be272642b18232b7ae193f864b377ab6040268049ffe3205948",
+      "actual_sha256": "9c15605e60d19be272642b18232b7ae193f864b377ab6040268049ffe3205948",
+      "artifacts": 12
+    },
+    {
+      "segment": "crypto",
+      "sha256": "ca2cbcfe1449683595f10086d4a7ad3efd45f871d932e2cd299a537481a08970",
+      "actual_sha256": "ca2cbcfe1449683595f10086d4a7ad3efd45f871d932e2cd299a537481a08970",
+      "artifacts": 12
+    }
+  ]
+}

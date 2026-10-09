@@ -39,6 +39,7 @@ import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import date
+from html import unescape
 from typing import Final
 
 from investo.models.market_anchor import anchor_label
@@ -266,6 +267,9 @@ def _is_precise_claim_for_symbol(
     u70 move claims remain first and unchanged. u130 level claims are a
     domestic-only extension, so existing US/crypto semantics stay intact.
     """
+    # HTML card text is escaped. Decode only the predicate input so
+    # findings still point to the exact original region/Markdown bytes.
+    sentence = unescape(sentence)
     if _is_precise_move_claim_for_symbol(sentence, symbol):
         return True
     return segment == DOMESTIC_EQUITY and _is_precise_level_claim_for_symbol(sentence, symbol)

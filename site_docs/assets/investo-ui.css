@@ -39,6 +39,8 @@ body[data-md-color-scheme="slate"] {
   .md-main__inner:has(.investo-page-home) .md-sidebar--primary { display: none; }
 }
 .md-header__button { min-width: 44px; min-height: 44px; box-sizing: border-box; }
+.md-header__title { min-width: 0; position: relative; overflow: hidden; }
+.md-header__topic { max-width: 100%; }
 .md-tabs__link { min-height: 44px; margin-top: 0; display: flex; align-items: center; }
 .md-nav__link { min-height: 44px; padding-block: 8px; box-sizing: border-box; }
 .md-search__input { font-size: 16px; }
@@ -82,3 +84,27 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 @media (prefers-reduced-motion: reduce) {
   .investo-page * { scroll-behavior: auto; }
 }
+.md-typeset .investo-data-card {
+  border: 1px solid var(--investo-border); border-radius: 12px;
+  background: var(--investo-surface); padding: 16px; margin-block: 16px;
+  font-size: 16px; overflow-wrap: anywhere; min-width: 0;
+}
+.investo-data-card h3 { margin-top: 0; font-size: 18px; }
+.investo-data-card dt { font-weight: 700; }
+.investo-data-card dd { margin-inline-start: 0; margin-block-end: 12px; }
+.investo-data-meta { color: var(--investo-muted); font-size: 14px; }
+.investo-data-table { max-width: 100%; overflow-x: auto; }
+.md-typeset .investo-data-table table { width: 100%; min-width: 680px; font-size: 16px; }
+.investo-data-table td { white-space: nowrap; }
+.investo-data-table caption { text-align: left; font-weight: 700; padding: 8px; }
+.investo-data-table[data-overflow="true"]::before {
+  content: "표를 좌우로 이동해 모든 값을 확인하세요."; display: block;
+  color: var(--investo-muted); font-size: 14px; white-space: normal;
+}
+.investo-data-card a, .investo-data-card summary, .investo-data-visual summary,
+.investo-section-nav summary { display: inline-flex; align-items: center; min-height: 44px; }
+.investo-section-nav { margin-block: 12px; }
+.investo-section-nav nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.investo-section-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px; }
+.investo-watchlist-chart { max-width: 100%; margin-inline: 0; }
+.investo-watchlist-chart svg { width: 100%; max-width: 520px; height: auto; }

@@ -1,3 +1,7 @@
+## 2026-10-10 — u178 local construction complete
+
+FD/focused NFR and7 construction steps completed under all-unit development/per-unit commit authorization. Same immutable inputs render before E2; exact values, public projection, whole trust gates and surviving artifact seals preserved. Independent findings corrected. Focused197 and final148 passed; actual Chromium22-case evidence includes exact cells/no-JS200% and themes. Final program regression follows u179. No archived briefing backfill, new data/source/service, push or deployment.
+
 ## 2026-10-10 — u177 local construction complete
 
 User all-UI-development/unit commit authorization. FD/NFR, same-run3-market cards, actual hrefs, one atomic migration and mandatory canonical gate/rollback implemented. Python192 + final35, Chromium20, static/type/docs/theme/calendar passes; independent review APPROVE/P1-P2zero. No archive rewrite, push or deployment.

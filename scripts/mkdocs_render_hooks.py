@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import re
+from html import escape
+from html.parser import HTMLParser
 from typing import TYPE_CHECKING
+from urllib.parse import quote
 
 from defusedxml.common import DefusedXmlException
 from defusedxml.ElementTree import fromstring
@@ -69,3 +72,81 @@ def on_page_markdown(markdown: str, *, page: Page, config: MkDocsConfig, files: 
     if page.file.src_uri != "archive/index.md":
         return markdown
     return preserve_calendar_svg_markdown(markdown)
+
+
+class _SectionHeadings(HTMLParser):
+    def __init__(self, html: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.html = html
+        self.line_starts = [0]
+        for line in html.splitlines(keepends=True):
+            self.line_starts.append(self.line_starts[-1] + len(line))
+        self.headings: list[tuple[str, str, int, str]] = []
+        self.current: tuple[str, int, str] | None = None
+        self.text = ""
+        self.permalink = False
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if tag == "h2" and values.get("id"):
+            line, column = self.getpos()
+            self.current = (
+                values["id"] or "",
+                self.line_starts[line - 1] + column,
+                self.get_starttag_text(),
+            )
+            self.text = ""
+        if self.current and tag == "a" and "headerlink" in (values.get("class") or "").split():
+            self.permalink = True
+
+    def handle_data(self, text: str) -> None:
+        if self.current and not self.permalink:
+            self.text += text
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "a":
+            self.permalink = False
+        if tag == "h2" and self.current:
+            identifier, position, start_tag = self.current
+            self.headings.append((identifier, self.text.strip(), position, start_tag))
+            self.current = None
+
+
+def add_section_navigation(html: str) -> str:
+    """Use real built headings, never a schema-specific heading list (u178)."""
+    if 'class="investo-section-nav"' in html:
+        return html
+    parser = _SectionHeadings(html)
+    parser.feed(html)
+    seen: set[str] = set()
+    headings = []
+    for heading in parser.headings:
+        if heading[0] not in seen and heading[1]:
+            headings.append(heading)
+            seen.add(heading[0])
+    if not headings:
+        return html
+    for _, _, position, start_tag in reversed(headings):
+        if "tabindex=" not in start_tag:
+            updated = start_tag[:-1] + ' tabindex="-1">'
+            html = html[:position] + updated + html[position + len(start_tag) :]
+    links = "".join(
+        f'<a href="#{quote(identifier, safe="")}">{escape(label)}</a>'
+        for identifier, label, _, _ in headings
+    )
+    navigation = (
+        '<details class="investo-section-nav"><summary>본문 목차</summary>'
+        f'<nav aria-label="본문 목차">{links}</nav></details>'
+    )
+    end = html.find("</h1>")
+    position = end + len("</h1>") if end >= 0 else 0
+    return html[:position] + navigation + html[position:]
+
+
+def on_page_content(html: str, *, page: Page, config: MkDocsConfig, files: Files) -> str:
+    if re.fullmatch(
+        r"archive/(?:[a-z-]+/)?\d{4}/\d{2}/\d{4}-\d{2}-\d{2}\.md",
+        page.file.src_uri,
+    ):
+        return add_section_navigation(html)
+    return html

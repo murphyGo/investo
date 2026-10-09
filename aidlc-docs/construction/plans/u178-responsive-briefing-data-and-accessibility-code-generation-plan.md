@@ -4,9 +4,9 @@
 
 - **Unit**: u178 responsive-briefing-data-and-accessibility
 
-- **Stage**: 등록 계획 — Functional Design / focused NFR 선행 필요
+- **Stage**: Construction complete — local
 
-- **Status**: Functional Design REQUIRED/PENDING; focused NFR Requirements REQUIRED/PENDING; separate NFR Design decision PENDING; Code Generation NOT STARTED
+- **Status**: Complete — FD/NFR and Code Generation 7/7; local validation complete
 
 - **Source**: 공개 Investo UI 6페이지의 2026-10-10 데스크톱/390×844 모바일/Material 다크 모드 관측과 현재 코드 확인. 사용자 지시: “굿 일단 유닛 문서화부터 진행해줘”.
 
@@ -120,13 +120,13 @@ Out of scope:
 
 ## Implementation Steps
 
-- [ ] **Step 1 — Functional Design**: 위 3개 산출물, D-178.1–5 및 kind별 필드/region/producer/failure/artifact 표를 작성·검토한다. 승인 전 renderer를 구현하지 않는다.
-- [ ] **Step 2 — Focused NFR**: 위 2개 산출물에서 실제 측정 기준과 승인 상한을 고정한다. u176 토큰/heading/nav 책임 경계를 확인한다.
-- [ ] **Step 3 — 설계에 따른 표현 renderer**: 동일 validated inputs의 HTML 표현과 static fallback을 구현한다. 모델/출처/숫자 계산을 복제하지 않으며 누적 watchlist SVG에는 site theme 대응을 추가한다.
-- [ ] **Step 4 — seal 통합/읽기 동선**: schema별 canonical owner와 조정한 producer/region/expectation/asset 연결을 E2 전에 통합한다. v1/v2의 u154 순서 및 v3 u169/u171 순서를 각각 보존하고 stable section anchors, 표 스크롤과 목차/jump nav를 구현한다.
-- [ ] **Step 5 — 의미/실패 회귀**: 4종 정보·3시장, 최대 rows, 없음/미확인, unsafe 링크/수치, diagnostics 보호, unsafe HTML evidence, fallback/omission, idempotence 및 surviving artifacts를 테스트한다.
-- [ ] **Step 6 — 실제 빌드/viewport 검증**: strict MkDocs와 기존 boundary/finalizer 테스트 후 390×844/1440×1000 light/slate, JS off, 200% 확대와 keyboard를 확인한다. 적용 archive/date/SHA/화면을 증거로 기록한다.
-- [ ] **Step 7 — closeout 기록**: 설계·코드·검증 범위와 신규 발행 적용 시점을 summary에 기록한다. 배포/기존 archive 백필은 별도 명시적 지시가 있을 때만 수행한다.
+- [x] **Step 1 — Functional Design**: 위 3개 산출물, D-178.1–5 및 kind별 필드/region/producer/failure/artifact 표를 작성·검토한다. 승인 전 renderer를 구현하지 않는다.
+- [x] **Step 2 — Focused NFR**: 위 2개 산출물에서 실제 측정 기준과 승인 상한을 고정한다. u176 토큰/heading/nav 책임 경계를 확인한다.
+- [x] **Step 3 — 설계에 따른 표현 renderer**: 동일 validated inputs의 HTML 표현과 static fallback을 구현한다. 모델/출처/숫자 계산을 복제하지 않으며 누적 watchlist SVG에는 site theme 대응을 추가한다.
+- [x] **Step 4 — seal 통합/읽기 동선**: schema별 canonical owner와 조정한 producer/region/expectation/asset 연결을 E2 전에 통합한다. v1/v2의 u154 순서 및 v3 u169/u171 순서를 각각 보존하고 stable section anchors, 표 스크롤과 목차/jump nav를 구현한다.
+- [x] **Step 5 — 의미/실패 회귀**: 4종 정보·3시장, 최대 rows, 없음/미확인, unsafe 링크/수치, diagnostics 보호, unsafe HTML evidence, fallback/omission, idempotence 및 surviving artifacts를 테스트한다.
+- [x] **Step 6 — 실제 빌드/viewport 검증**: strict MkDocs와 기존 boundary/finalizer 테스트 후 390×844/1440×1000 light/slate, JS off, 200% 확대와 keyboard를 확인한다. 적용 archive/date/SHA/화면을 증거로 기록한다.
+- [x] **Step 7 — closeout 기록**: 설계·코드·검증 범위와 신규 발행 적용 시점을 summary에 기록한다. 배포/기존 archive 백필은 별도 명시적 지시가 있을 때만 수행한다.
 
 ## Acceptance Criteria
 
@@ -159,3 +159,11 @@ git diff --check -- aidlc-docs/construction/plans/u178-responsive-briefing-data-
 ## Non-Goals
 
 금융 데이터 변경, 기사/시황 생성 품질의 새 정책, 투자 권유, 새 외부 서비스/의존성, 정적 asset 삭제, 기존 archive backfill, 운영 배포/커밋/푸시, u145 활성화는 이 등록 작업의 완료 조건이 아니다.
+
+## Development decisions 2026-10-10
+
+Required FD/NFR authored before implementation. Individual answers are developer decisions under complete development authorization. Exact producer/fallback/time/region/NFR choices are in unit design artifacts. Separate NFR/Infrastructure SKIP with concrete existing architecture reuse.
+
+## Local completion 2026-10-10
+
+All7 construction steps complete. Current v1/v2 inputs integrated before E2; future v3 owner remains u169/u171. Exact implementation, tests and measured22-case browser evidence: [summary](../u178-responsive-briefing-data-and-accessibility/code/summary.md). New tests are test_html_cards_u178.py, test_visual_html_gate_u178.py, test_section_navigation_u178.py and test_reader_seal_u178.py. Original docs-only validation text is the registration snapshot. Program-wide final gate follows u179. No push/deployment.

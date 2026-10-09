@@ -164,6 +164,7 @@ extra_javascript:
   - assets/lightweight-charts.standalone.production.js
   - assets/investo-chart-init.js
   - assets/investo-navigation.js
+  - assets/investo-reader.js
 
 # Strict mode is enabled at the CLI level (``mkdocs build --strict``)
 # in ``pages.yml``. We do NOT set ``strict: true`` here so that local
