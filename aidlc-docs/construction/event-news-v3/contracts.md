@@ -52,7 +52,7 @@ canonical owner는 `models/event_identity.py`, normalization은 `briefing/event_
 
 document identity, 단일 occurrence의 event_id, 장기 thread의 story_id를 구분한다. 서로 다른 결정/제품/발표 단계는 별도 event다. 같음을 확신하지 못하면 합치지 않고 uncertain_duplicate로 계측한다. novelty는 `new|material_update|repeat|unknown`이며 material_update에는 source-backed 사실 delta가 필요하다.
 
-hash-only fact history는30일 rolling, segment당 최대5000 event records/1MiB를 기본 상한으로 한다. 경로는 `archive/_meta/event_identity_v3/{segment}.json`이다. 확정 remote baseline과 publication receipt를 사용하고 원격 확인 실패는 unknown이다. preview/shadow는 쓰지 않는다. 기존7일 ledger migration은 replay 입력으로만 사용하고 새로운 사실/상태를 발명하지 않는다. receipt는 공식·cross-reference·raw occurrence key를 hash-only typed alias 집합으로 보존하여 늦게 발견한 공식 근거에도 기존 ID를 유지한다. alias-only 변화는 material delta나 freshness 갱신이 아니다. cap으로 history를 완전히 보유하지 못하면 coverage를 limited/novelty unknown으로 명시하고 조용한 완전 이력으로 취급하지 않는다.
+hash-only fact history는30일 rolling, segment당 최대5000 event records/1MiB를 기본 상한으로 한다. 경로는 `archive/_meta/event_identity_v3/{segment}.json`이다. 확정 remote baseline과 publication receipt를 사용하고 원격 확인 실패는 unknown이다. preview/shadow는 쓰지 않는다. 기존7일 ledger migration은 replay 입력으로만 사용하고 새로운 사실/상태를 발명하지 않는다. receipt의 `fact_slots: tuple[FactSlotReceipt,...]`는 `(slot_key_hash,fact_hash,status)`만 보존하며 cumulative_fact_hashes와 membership이 일치한다. slot hash는 CanonicalFact의 value를 제외한 tuple에 결속하여 이전 actual 값과의 충돌을 원문 없이 판별한다. receipt는 공식·cross-reference·raw occurrence key를 hash-only typed alias 집합으로 보존하여 늦게 발견한 공식 근거에도 기존 ID를 유지한다. alias-only 변화는 material delta나 freshness 갱신이 아니다. cap으로 history를 완전히 보유하지 못하면 coverage를 limited/novelty unknown으로 명시하고 조용한 완전 이력으로 취급하지 않는다.
 
 ## C4. 전체 문서 모델·생성·렌더링 — u169
 

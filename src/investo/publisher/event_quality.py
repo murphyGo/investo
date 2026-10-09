@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, cast, get_args
 
 from investo._internal.briefing_extract import SUMMARY_PREFIXES
 from investo._internal.event_rendering import first_event_sentence
+from investo.models.event_context import EventSupportVector
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.event_quality import (
     EventCoverage,
@@ -436,3 +437,23 @@ def evaluate_event_quality(
 
 
 __all__ = ["evaluate_event_quality", "terminal_event_issue_codes"]
+
+
+def support_vector_reader_limits(vector: EventSupportVector) -> tuple[str, ...]:
+    """Render separate truthful limits; never expose private generation buffers."""
+    limits: list[str] = []
+    if vector.facts == "missing":
+        limits.append("핵심 사실 근거 부족")
+    elif vector.facts == "limited":
+        limits.append("일부 사실의 세부 정보 미확인")
+    if vector.time in {"publication_only", "unknown"}:
+        limits.append("사건 발생·발표 시각 미확인")
+    if vector.novelty == "unknown":
+        limits.append("이전 발행과 비교할 이력 미확인")
+    if vector.locator == "missing":
+        limits.append("공개 원문 위치 미확인")
+    if vector.meaning == "unavailable":
+        limits.append("시장 의미 확인 자료 부족")
+    if vector.reaction == "unavailable":
+        limits.append("비교 가능한 시장 반응 미확인")
+    return tuple(limits)

@@ -21,6 +21,27 @@ from investo.models.events import EventIdentityReceipt, EventSelectionPlan, Evid
 from investo.models.segments import MarketSegment
 
 
+def render_context_classification_prompt(evidence_json: str, *, segment: MarketSegment) -> str:
+    """V3 Stage-one template; evidence is the exact 24KiB-accounted buffer."""
+    import json
+
+    from investo.models.event_context import ContextClassificationResult
+
+    schema = json.dumps(ContextClassificationResult.model_json_schema(), ensure_ascii=False)
+    return (
+        "Classify source-backed market events. Return only schema_version=3 JSON. "
+        "Use transmitted item IDs and exact document/revision/chunk offsets. "
+        "Separate identity, fact, background, comparison, meaning, reaction and follow-up refs. "
+        "Meaning/reaction refs may be independent of actor/fact refs, but must belong to "
+        "the same event documents. Never invent URLs, times, units, periods, metrics or status. "
+        "Bind subject, metric, value, unit and period separately. Preserve source status. "
+        "Preserve required release actuals; do not turn forecasts, calendars or repeated "
+        "background into new results. No quotas or filler; a valid event array may be empty.\n"
+        f"Recipient market: {segment}\nJSON schema:\n{schema}\n"
+        f"Transmitted context:\n{evidence_json}"
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class EventPromptEvidence:
     event_plan: EventSelectionPlan

@@ -3,7 +3,7 @@
 **Date**: 2026-10-10
 **Unit**: u167 event-context-evidence-and-quality
 **Stage**: Code Generation — 계획
-**Status**: 설계 작성; 구현0/8
+**Status**: 개발 승인 기록; foundation 구현 7/8; 최종 회귀/독립 검토 진행 중
 **Source**: 사용자 이벤트·뉴스 이상향 분석과 구조 개편 문서화 지시; [근거](../event-news-v3/evidence.md)
 **Estimated Effort**: 24–32h
 **Dependencies**: 기존u157/u158/u161 코드. source-slot확장u173은harddependency가아니다.
@@ -29,13 +29,13 @@ NFR Requirements: REQUIRED — 전송byte예산·private버퍼·진단과schema�
 [C1/C2/C7](../event-news-v3/contracts.md)를재정의하지않는다. ContextEventDraft의identity/fact/relation/impact와설명역할refs는각각같은transmittedcontextdocument안에있다. ContextFactDraft의 성분별 binding과 source-owned metadata chunk 변환을 사용하고 모델이 locator/time/unknown 상태를 발명하지 못한다. policy의기본schema2와기존off/shadowbytes를유지한다. v3실제활성화는u169/u172consumer/gate완료전거절한다.
 
 ## Implementation Steps
-- [ ] 1. models의frozencontext/ref/time/vector/draft와GenerationPolicy를추가한다. precision별null/UTC/date검증과roleenum을고정한다.
-- [ ] 2. source-ownedfactory에서legacytitle/summary/detail을chunk로변환한다. v3opt-in만새필드를전달하며v2serialization은변경하지않는다.
-- [ ] 3. Stage1 v3schema와system/user/retrytemplate을일치시키고설명역할refs를반환하게한다. 기존requiredmacroactual보호를유지한다.
-- [ ] 4. same-run document/chunk/span ownership과독립된meaning/reactionrefs를검증한다. 다른item/failedsource/futurestate음성을고정한다.
-- [ ] 5. 필수근거→설명근거→optional순서의actual UTF-8budget을구현하고Stage1 24KiB/v3protected16KiB/v2 8KiB를별도검증한다.
-- [ ] 6. 품질vector와boundedprivatefield/rule진단을기존qualitytrace에연결한다. 날짜부족·history부족·내용부족을독립fixture로구별한다.
-- [ ] 7. orchestrator→GenerationInput→classification→protectedprompt의명시적handoff를통합한다. u168/u169consumer가없는단계의미관측카운트는null로둔다.
+- [x] 1. models의frozencontext/ref/time/vector/draft와GenerationPolicy를추가한다. precision별null/UTC/date검증과roleenum을고정한다.
+- [x] 2. source-ownedfactory에서legacytitle/summary/detail을chunk로변환한다. v3opt-in만새필드를전달하며v2serialization은변경하지않는다.
+- [x] 3. Stage1 v3schema와system/user/retrytemplate을일치시키고설명역할refs를반환하게한다. 기존requiredmacroactual보호를유지한다.
+- [x] 4. same-run document/chunk/span ownership과독립된meaning/reactionrefs를검증한다. 다른item/failedsource/futurestate음성을고정한다.
+- [x] 5. 필수근거→설명근거→optional순서의actual UTF-8budget을구현하고Stage1 24KiB/v3protected16KiB/v2 8KiB를별도검증한다.
+- [x] 6. 품질vector와boundedprivatefield/rule진단을기존qualitytrace에연결한다. 날짜부족·history부족·내용부족을독립fixture로구별한다.
+- [x] 7. orchestrator→GenerationInput→classification→protectedprompt의명시적handoff를통합한다. u168/u169consumer가없는단계의미관측카운트는null로둔다.
 - [ ] 8. 실제buffer/projectionintegration회귀,static/policy/fullgate와독립review를완료하고per-AC결과를기록한다.
 
 ## Acceptance Criteria
@@ -66,3 +66,7 @@ git diff --check
 
 ## Non-Goals
 표현만바꾸는뉴스증량,유료API,새LLM단계,source권한우회,기존qualified분모재정의,숫자/면책/구조검증완화.
+
+## Implementation checkpoint — 2026-10-10
+
+사용자의 별도 워크트리 개발 지시를 FD/NFR 및 code plan 실행 승인으로 기록했다. source context/model, 동일 소스 성분 binding, Stage1 CLI replacement, actual UTF-8 budgets, shadow 해시 관측, 명시 policy authority를 구현했다. shadow는 실제 classifier/Stage2 observation으로 표시하지 않는다. 실제 schema3 본문 소비는 u169가 담당하며 preview/active capability는 닫혀 있다. 실제 CLI replay의 Stage1→protected buffer 시험과 off/shadow 공개 bytes/calls 동등성을 검증했다. 최종 결과는 `../u167-event-context-evidence-and-quality/code/validation.json`에 기록한다.

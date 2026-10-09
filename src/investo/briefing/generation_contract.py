@@ -17,6 +17,13 @@ from investo.briefing.segments import MarketSegment
 from investo.briefing.watchlist import WatchlistConfig
 from investo.models import Briefing, BriefingCarryover, NormalizedItem, SourceOutcome
 from investo.models.bundle_context import BundleContext
+from investo.models.event_config import EventGenerationPolicy
+from investo.models.event_context import (
+    ContextClassificationResult,
+    ContextPreparationObservation,
+    EventContextDocument,
+    EventSupportVector,
+)
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.event_quality import EventStageReceipt
 from investo.models.events import EventIdentityReceipt, EventSelectionPlan
@@ -46,6 +53,8 @@ class GenerationInput:
     event_baseline_available: bool = True
     event_collection_items: tuple[NormalizedItem, ...] | None = None
     news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
+    event_generation_policy: EventGenerationPolicy | None = None
+    event_context_documents: tuple[EventContextDocument, ...] = ()
 
     def __init__(
         self,
@@ -71,7 +80,11 @@ class GenerationInput:
         event_baseline_available: bool = True,
         event_collection_items: Sequence[NormalizedItem] | None = None,
         news_window_consumptions: Sequence[NewsWindowConsumption] = (),
+        event_generation_policy: EventGenerationPolicy | None = None,
+        event_context_documents: Sequence[EventContextDocument] = (),
     ) -> None:
+        object.__setattr__(self, "event_generation_policy", event_generation_policy)
+        object.__setattr__(self, "event_context_documents", tuple(event_context_documents))
         object.__setattr__(self, "news_window_consumptions", tuple(news_window_consumptions))
         object.__setattr__(self, "event_observed_at", event_observed_at)
         object.__setattr__(self, "event_baseline", event_baseline)
@@ -112,6 +125,9 @@ class GenerationResult:
     event_payload: EventGenerationPayload | None = None
     event_stage_receipts: tuple[EventStageReceipt, ...] = ()
     news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
+    context_classification: ContextClassificationResult | None = None
+    event_support_vectors: tuple[EventSupportVector, ...] = ()
+    context_preparation: ContextPreparationObservation | None = None
 
 
 __all__ = [

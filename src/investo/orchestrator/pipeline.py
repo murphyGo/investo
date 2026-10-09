@@ -570,6 +570,7 @@ async def _default_generate_segment_briefing(
                 SEGMENT_GENERATION_POLICIES[segment],
                 event_mode=event_config.for_segment(segment).mode,
             ),
+            event_generation_policy=event_config.for_segment(segment),
             bundle_context=bundle_context,
             fact_context_block=fact_context_block,
             archive_root=ARCHIVE_ROOT,

@@ -3,7 +3,7 @@
 **Date**: 2026-10-10
 **Unit**: u168 canonical-event-identity-and-fact-delta
 **Stage**: Functional Design/NFR Required → Code Generation planned
-**Status**: 문서 초안 작성; 구현 0/8; 승인·시험·commit/push·운영 활성화 미완료
+**Status**: 개발 승인 기록; foundation 구현 5/8; native finalizer/transaction integration과 최종 unit 수용 미완료
 **Source**: 사용자 event/news 이상향 분석 및 2026-10-10 문서 작성 요청; frozen `19c89b92`의 실제 코드
 **Estimated Effort**: 24–36 h; 실제 identity fixture/CAS 검증 범위에 따라 조정
 **Dependencies**: u167 event-context-evidence-and-quality의 C2 source-addressed refs·quality 입력. 소비 handoff는 u169·u170.
@@ -54,11 +54,11 @@ Out of scope: 새 source/HTTP/LLM 단계, 통화·scale 환산/semantic paraphra
 
 ## Implementation Steps
 
-- [ ] **Step 1 — FD/NFR 확정 및 contract tests**: E168-1~4, actual v2 callsite/import map, source-backed alias/occurrence/correction fixture matrix와 단계 승인 기록을 검수한다. C6 전체 story frozen DTO를 `models/event_story.py`에 foundation으로 선언하고 typed next_record/hash bindings의 standalone round-trip/import tests를 만든다. 이 단계에서 reducer/ledger/render를 구현하지 않는다.
-- [ ] **Step 2 — Entity normalization**: existing registry의 읽기 전용 deterministic resolver와 explicit alias proposals 검증을 구현한다. raw source label/provenance를 retained binding으로 보존한다. source 없이 생성한 alias/역할어→인물/다른 제품 suffix는 거부한다.
-- [ ] **Step 3 — Canonical facts와 delta**: 기계 정규화·value/period/unit/status identity·duplicate provenance union·added/unchanged/explicit supersession/conflict를 구현한다. 누적 facts를 입력 결손 때문에 삭제하지 않는다.
-- [ ] **Step 4 — Occurrence resolution**: official key/cross-reference/raw-document 순으로 match한다. existing remote ID 유지·같은 문서 여러 사건 분리·uncertain duplicate stable pair·official conflict를 구현한다. event identity와 story hint를 분리한다.
-- [ ] **Step 5 — Remote v3 ledger**: 기존 fixed remote load budget을 공유하는 schema-specific reader/serializer를 구현한다. segment scope·30일 rolling·5000/1MiB·cumulative hashes·overflow·missing vs invalid baseline을 검증한다. replay-only legacy adapter를 추가한다.
+- [x] **Step 1 — FD/NFR 확정 및 contract tests**: E168-1~4, actual v2 callsite/import map, source-backed alias/occurrence/correction fixture matrix와 단계 승인 기록을 검수한다. C6 전체 story frozen DTO를 `models/event_story.py`에 foundation으로 선언하고 typed next_record/hash bindings의 standalone round-trip/import tests를 만든다. 이 단계에서 reducer/ledger/render를 구현하지 않는다.
+- [x] **Step 2 — Entity normalization**: existing registry의 읽기 전용 deterministic resolver와 explicit alias proposals 검증을 구현한다. raw source label/provenance를 retained binding으로 보존한다. source 없이 생성한 alias/역할어→인물/다른 제품 suffix는 거부한다.
+- [x] **Step 3 — Canonical facts와 delta**: 기계 정규화·value/period/unit/status identity·duplicate provenance union·added/unchanged/explicit supersession/conflict를 구현한다. 누적 facts를 입력 결손 때문에 삭제하지 않는다.
+- [x] **Step 4 — Occurrence resolution**: official key/cross-reference/raw-document 순으로 match한다. existing remote ID 유지·같은 문서 여러 사건 분리·uncertain duplicate stable pair·official conflict를 구현한다. event identity와 story hint를 분리한다.
+- [x] **Step 5 — Remote v3 ledger**: 기존 fixed remote load budget을 공유하는 schema-specific reader/serializer를 구현한다. segment scope·30일 rolling·5000/1MiB·cumulative hashes·fact slot/value association·overflow·missing vs invalid baseline을 검증한다. replay-only legacy adapter를 추가한다.
 - [ ] **Step 6 — Stage/transaction handoff**: u167 source-linked input→canonical bindings/identity/delta→u169 editorial input을 두 기존 단계 안에 연결한다. E5 receipt를 existing transaction에 추가하고 concurrent metadata/CAS 실패·remote ancestry 확인을 검증한다. 별도 push/fetch·post-seal mutation을 만들지 않는다.
 - [ ] **Step 7 — Negative/compatibility verification**: fixture의 reader-independent typed outcome과 actual public finalizer handoff가 agreement하는지 검증한다. 신규 v3 ledger의 off/shadow/preview write0, 기존 v2 공개 동작/bytes/receipt unchanged, original refs intact, ordering/idempotence/PBT를 통과한다.
 - [ ] **Step 8 — Full gate·독립 review·handoff**: focused/full regression, ruff/mypy/module boundary, actual bound/performance 측정, AC별 evidence를 기록한다. u169/u170에 field·baseline/receipt·fixture를 전달한다. 구현 완료·remote delivery·activation은 각각 기록한다.
@@ -117,3 +117,9 @@ u169 완성 후 actual finalizer 통합 fixture를 위 `test_event_identity_v3_b
 schema3는 v2의 exact source-span tuple key, raw wording novelty,7일 ledger를 사용하지 않는다. legacy 함수와 imports는 schema2 replay/rollback에 한정해 유지한다. 기존 archive나 shared ledger를 고치지 않고 신규 v3 per-segment 파일을 bootstrap한다. 설계의 대담한 변경은 identity 경계의 교체이며 production data 손상이나 gate 삭제를 뜻하지 않는다.
 
 공통 policy/evidence/quality/render/surface/semantic gate와 source registry는 소유자가 유지한다. alias 등록·source qualification의 근거 없이 구현자가 새로운 provider/registry entry를 만들지 않는다. 이 문서 작성의 완료와 실제 코드 완료·commit/push·배포/activation은 분리한다.
+
+## Foundation checkpoint — 2026-10-10
+
+Entity/fact/occurrence/delta 및 전체 story frozen DTO를 구현하고 원격 고정 SHA reader와 30일/5000records/1MiB stable serializer를 추가했다. 사실의 비교 slot/value 연결은 hash-only FactSlotReceipt로 보존한다. source-owned reporting period가 occurrence를 고정하며 새로운 fact 부분집합은 ID를 바꾸지 않는다. 현재 fixture matrix는 별도 JSON 복제 대신 고정 unit-test 입력으로 유지한다. source/private text는 ledger에 넣지 않는다.
+
+Step6–8과 AC-168.7의 native E5 survivor/combined CAS 연결은 u169 이후 미완료다. replay-only v2 inspection adapter는 hash-only inspection으로 검증했다. registry 주체의 explicit correction integration은 source binding을 제공할 수 없는 경우 conservative rejection으로 남는다. v3 ledger production caller/write/activation은 없다. foundation 검증을 전체 unit 완료로 표시하지 않는다.

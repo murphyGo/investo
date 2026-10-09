@@ -279,22 +279,22 @@ Evidence: [25-run /44-source review](construction/source-reliability-20261009/re
 | Security Baseline | No | User declined (본인용 도구, 민감 데이터 없음, public repo) |
 | Property-Based Testing | Partial | 순수 함수 + 직렬화 round-trip만 적용 |
 
-### u167–u173 — Event/news v3 Design (2026-10-10)
+### u167–u173 — Event/news v3 Development (2026-10-10)
 
 사용자는 “문서로 작성 진행해줘. 그 과정에서 기존것에서 불필요한건 과감하게 버려도 되고, 구조를 바꿔도 됨”이라고 지시했다. 문서·target구조 개편만 수행하며 구현/운영 활성화는 시작하지 않았다. 기존7섹션/anchor-first/강제3요약/중복콜아웃/80자본문첫문장/가짜legacybridge는v3target에서폐기한다. source/numeric/entity/compliance/면책/단일seal/partial/remote신뢰요건은유지한다.
 
 | Unit | Functional Design | NFR Requirements | Code Generation | Notes |
 |---|---|---|---|---|
-| u167 event-context-evidence-and-quality | REQUIRED — authored | REQUIRED — authored | Planned — 0/8 | 기존u157/u158/u161; foundation착수가능. [Plan](construction/plans/u167-event-context-evidence-and-quality-code-generation-plan.md). |
-| u168 canonical-event-identity-and-fact-delta | REQUIRED — authored | REQUIRED — authored | Planned — 0/8 | u167후구현; sharedstoryDTO를u169보다먼저선언. [Plan](construction/plans/u168-canonical-event-identity-and-fact-delta-code-generation-plan.md). |
-| u169 event-first-document-and-finalization | REQUIRED — authored | REQUIRED — authored | Planned — 0/9 | u167/u168후구현; u170logic역방향의존없음. [Plan](construction/plans/u169-event-first-document-and-finalization-code-generation-plan.md). |
-| u170 story-state-and-follow-up-ledger | REQUIRED — authored | REQUIRED — authored | Planned — 0/8 | u168/u169후구현; 상태reducer/ledger owner만. [Plan](construction/plans/u170-story-state-and-follow-up-ledger-code-generation-plan.md). |
-| u171 event-reader-surfaces-and-asset-impact | REQUIRED — authored | REQUIRED — authored | Planned — 0/8 | u169/u170후구현; u156currentowner확인. [Plan](construction/plans/u171-event-reader-surfaces-and-asset-impact-code-generation-plan.md). |
-| u172 real-event-semantic-acceptance-and-cutover | REQUIRED — authored | REQUIRED — authored | Planned — 0/9 | corpus준비는독립; 구현수용u169/u170/u171후; 실제운영/cleanup별도. [Plan](construction/plans/u172-real-event-semantic-acceptance-and-cutover-code-generation-plan.md). |
-| u173 official-event-source-slot-qualification | REQUIRED — authored | REQUIRED — authored | Planned — 0/7 | discovery독립; typedchunk출력u167후; 새source는별도boundedadapter계획. [Plan](construction/plans/u173-official-event-source-slot-qualification-code-generation-plan.md). |
+| u167 event-context-evidence-and-quality | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | In progress — 7/8 | foundation 구현; 최종 회귀/독립 검토 진행 중. [Plan](construction/plans/u167-event-context-evidence-and-quality-code-generation-plan.md). |
+| u168 canonical-event-identity-and-fact-delta | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | In progress — 5/8 | canonical/story DTO 및 pure bindings 구현; remote ledger/v2 replay 검증; native seal-CAS 미완료. [Plan](construction/plans/u168-canonical-event-identity-and-fact-delta-code-generation-plan.md). |
+| u169 event-first-document-and-finalization | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | Planned — 0/9 | u167/u168후구현; u170logic역방향의존없음. [Plan](construction/plans/u169-event-first-document-and-finalization-code-generation-plan.md). |
+| u170 story-state-and-follow-up-ledger | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | Planned — 0/8 | u168/u169후구현; 상태reducer/ledger owner만. [Plan](construction/plans/u170-story-state-and-follow-up-ledger-code-generation-plan.md). |
+| u171 event-reader-surfaces-and-asset-impact | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | Planned — 0/8 | u169/u170후구현; u156currentowner확인. [Plan](construction/plans/u171-event-reader-surfaces-and-asset-impact-code-generation-plan.md). |
+| u172 real-event-semantic-acceptance-and-cutover | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | Planned — 0/9 | corpus준비는독립; 구현수용u169/u170/u171후; 실제운영/cleanup별도. [Plan](construction/plans/u172-real-event-semantic-acceptance-and-cutover-code-generation-plan.md). |
+| u173 official-event-source-slot-qualification | APPROVED — user development instruction, 2026-10-10 | APPROVED — user development instruction, 2026-10-10 | Planned — 0/7 | discovery독립; typedchunk출력u167후; 새source는별도boundedadapter계획. [Plan](construction/plans/u173-official-event-source-slot-qualification-code-generation-plan.md). |
 
 [공통설계](construction/event-news-v3/README.md)와C1~C8이normative다. 세시장×12합성36case,실제12문서/시장별4/발행일2이상,기존사람5/5/fact100%/근거없는사건·인과0을수용한다. u172는code1–7/운영8/최종cleanup9을구별하며all3accepted와실제v3예약10회후별도reviewedlegacy제거/defaultschema3로정착한다. u160cursor/u161HTTP/u173slotqualification/u165source상태/기존u163–166운영은독립이다.
 
 구현순서u167→u168→u169→u170→u171→u172. u173discovery와u172corpus준비는병렬가능하다. u168이sharedstoryDTO를먼저선언하고u170이semanticreducer/ledger를소유하여의존cycle을피한다. u154/u156과동시진행브랜치는보존하며currentmain/ref대조뒤재사용한다.
 
-문서 초안은 두 독립 reviewer의 검토 후 부모가 수정·통합했다. [검토 반영](construction/event-news-v3/review-resolution.md). Functional/NFR 승인, 코드 생성, 실제 사람/운영 수용은 미기록이며 Planned 상태를 유지한다.
+문서 초안은 두 독립 reviewer의 검토 후 부모가 수정·통합했다. [검토 반영](construction/event-news-v3/review-resolution.md). 2026-10-10의 사용자 개발 지시로 Functional/NFR 설계와 실행 계획을 승인된 개발 기준으로 적용한다. 코드와 실제 사람/운영 수용은 별도 증거로 갱신한다.

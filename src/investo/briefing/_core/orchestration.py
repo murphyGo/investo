@@ -51,6 +51,11 @@ from investo.briefing.claude_code import (
     RetryBudget,
 )
 from investo.briefing.errors import BriefingGenerationError, SubprocessOutcome
+from investo.briefing.event_context import (
+    ContextEvidenceError,
+    ContextPromptBuffer,
+    parse_context_classification,
+)
 from investo.briefing.event_evidence import build_event_candidates
 from investo.briefing.event_input import select_event_input_items
 from investo.briefing.event_narrative import (
@@ -59,7 +64,7 @@ from investo.briefing.event_narrative import (
     event_synthesis_diagnostics,
     parse_event_synthesis,
 )
-from investo.briefing.event_prompt import EventPromptEvidence
+from investo.briefing.event_prompt import EventPromptEvidence, render_context_classification_prompt
 from investo.briefing.llm import CodexRunner
 from investo.briefing.llm import call_llm as call_claude_code
 from investo.briefing.prompts import (
@@ -74,6 +79,7 @@ from investo.briefing.prompts import (
 from investo.briefing.segments import MarketSegment
 from investo.models import NormalizedItem
 from investo.models.event_config import EventMode
+from investo.models.event_context import ContextClassificationResult
 from investo.models.event_narratives import EventGenerationPayload, Stage2OutputV2
 from investo.models.events import EvidenceDocument
 from investo.models.macro import (
@@ -430,6 +436,61 @@ async def _classify(
         if uses_events
         else (last_outcome.stdout if last_outcome is not None else None),
         cause=last_cause,
+    )
+
+
+async def classify_context(
+    buffer: ContextPromptBuffer,
+    *,
+    runner: ClaudeRunner | None,
+    budget: RetryBudget,
+    policy: GenerationPolicy,
+    segment: MarketSegment,
+    observed_at: datetime,
+) -> ContextClassificationResult:
+    """Schema-three replacement for Stage 1, with the existing CLI/budget owner."""
+    prompt = render_context_classification_prompt(buffer.text, segment=segment)
+    prompt += "\nRequired actual item IDs: " + json.dumps(sorted(buffer.required_prompt_item_ids))
+    cause: ContextEvidenceError | None = None
+    for attempt in range(policy.max_attempts):
+        backoff = _BACKOFF_SCHEDULE[attempt] if attempt else 0.0
+        accounted = backoff if isinstance(runner, CodexRunner) else 0.0
+        if budget.would_exceed(policy.timeout_s + accounted):
+            raise BriefingGenerationError(
+                stage="budget", attempt_count=attempt, last_stderr=None, cause=cause
+            )
+        if attempt:
+            await asyncio.sleep(backoff)
+            budget.record(accounted)
+        feedback = "\nRetry rule: " + cause.rule_code if cause is not None else ""
+        outcome = await call_claude_code(
+            prompt + feedback, timeout_s=policy.timeout_s, runner=runner
+        )
+        budget.record(outcome.elapsed_s)
+        _logger.info(
+            "llm context segment=%s stage=classification attempt=%d prompt_bytes=%d returncode=%d",
+            segment,
+            attempt + 1,
+            len((prompt + feedback).encode("utf-8")),
+            outcome.returncode,
+        )
+        if outcome.returncode != 0 or not outcome.stdout.strip():
+            cause = ContextEvidenceError("context.invalid_schema")
+            continue
+        try:
+            return parse_context_classification(
+                outcome.stdout,
+                buffer.documents,
+                observed_at=observed_at,
+                required_item_ids=buffer.required_prompt_item_ids,
+            )
+        except ContextEvidenceError as exc:
+            cause = exc
+    raise BriefingGenerationError(
+        stage="classification",
+        attempt_count=policy.max_attempts,
+        last_stderr=None,
+        cause=cause,
     )
 
 

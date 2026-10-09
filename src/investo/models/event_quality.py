@@ -7,6 +7,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, ValidationError, computed_field, model_validator
 
+from investo.models.event_context import EventSupportVector
 from investo.models.events import EventModel
 from investo.models.segments import MarketSegment
 
@@ -97,6 +98,13 @@ class EventStageReceipt(EventModel):
         if any(entry.stage != self.stage for entry in self.trace):
             raise ValueError("event trace stage must match receipt")
         return self
+
+
+class EventQualityAxes(EventModel):
+    """Separate v3 axis observations; never relabel the v2 qualified counter."""
+
+    schema_version: Literal[3] = 3
+    vectors: Annotated[tuple[EventSupportVector, ...], Field(max_length=5)] | None = None
 
 
 def _ratio(numerator: int | None, denominator: int | None) -> float | None:

@@ -1,7 +1,7 @@
 # Functional Design Brief: u168 canonical-event-identity-and-fact-delta
 
 **Date**: 2026-10-10
-**Status**: 문서 초안 작성; Functional Design/NFR 승인 미기록; 구현 0/8; 운영 미적용.
+**Status**: 사용자 개발 지시로 Functional Design/NFR 실행 승인, 2026-10-10; foundation 5/8; native E5/CAS/운영 미적용.
 **Dependency**: u167 event-context-evidence-and-quality.
 **Normative contracts**: [event-news-v3/contracts.md C2/C3/C7](../event-news-v3/contracts.md). 공통 정책·예산의 정의와 변경은 해당 문서가 소유한다.
 
@@ -73,9 +73,11 @@ story_id는 occurrence ID와 다르다. `StoryIdentityHint(story_key_hash, entit
 
 ### E168-4. remote hash-only ledger
 
-v3 path는 `archive/_meta/event_identity_v3/{segment}.json`이다. legacy `archive/_meta/event_receipts.json`과 다르다. canonical type `CanonicalEventLedger(schema_version=3, segment, records)`와 `CanonicalEventReceipt`는 models에 둔다. receipt 필드: event_id, event_key_hash, occurrence_key_hash, canonical_tuple_hash, occurrence_aliases, entity_ids, event_kind, document_aliases, revision_hashes, cumulative_fact_hashes, supersession_pairs, first_published_at, last_evidence_at. source text/value/display_label/URL/private chunk/secret은 저장하지 않는다.
+v3 path는 `archive/_meta/event_identity_v3/{segment}.json`이다. legacy `archive/_meta/event_receipts.json`과 다르다. canonical type `CanonicalEventLedger(schema_version=3, segment, records)`와 `CanonicalEventReceipt`는 models에 둔다. receipt 필드: event_id, event_key_hash, occurrence_key_hash, canonical_tuple_hash, occurrence_aliases, entity_ids, event_kind, document_aliases, revision_hashes, cumulative_fact_hashes, fact_slots, supersession_pairs, first_published_at, last_evidence_at. source text/value/display_label/URL/private chunk/secret은 저장하지 않는다.
 
 `OccurrenceAlias(key_hash: Digest, basis: official_key|explicit_cross_reference|raw_document, stage: OccurrenceStage)`는 같은 models 파일의 frozen hash-only DTO다. receipt의 canonical_tuple_hash는 `(kind,ordered actor IDs,action_key_hash,ordered object IDs,stage)`의 versioned digest다. alias match 후 이 tuple과의 양립성을 검증하고 같은 공식 key의 상충 action/actor/object/stage를 conflict로 반환한다. 역할을 합친 entity_ids만으로 판정하지 않는다. receipt의 occurrence_aliases는 최대 32개이며 stable sort/unique로 보존한다. 새 공식/cross-reference key가 같은 occurrence임을 source가 확인하면 최초 event_id를 유지하고 alias를 추가한다. 다음 run은 현재 key를 모든 retained aliases와 대조한다. alias 충돌·다중 remote ID match는 conflict이며 임의 ID를 선택하지 않는다. alias-only provenance 변화는 material_update·fact delta·last_evidence_at 갱신이 아니며 실제 terminal occurrence가 발행된 transaction 안에서만 저장한다. 상한 초과를 조용히 잘라내지 않는다.
+
+2026-10-10 구현 검토에서 hash-only `FactSlotReceipt(slot_key_hash,fact_hash,status)`를 추가했다. slot은 CanonicalFact에서 value만 제외한 tuple의 digest이며 모든 cumulative fact hash의 slot membership을 보존한다. 이전 actual과 같은 slot의 다른 값은 명시적 correction 없이 conflict/novelty unknown이다. occurrence의 period discriminator는 source-owned EventTimeContext.reference_period를 사용하여 선택된 fact 부분집합 변화가 ID를 바꾸지 않는다.
 
 30일 rolling·segment당 최대5000records·serialized1MiB는 C3 기본값이다. 단순 입력 재등장·preview·shadow로 last_evidence_at을 연장하지 않는다. last_evidence_at은 terminal surviving occurrence가 source-backed 새 delta로 실제 봉인·remote confirmed된 시각이다. first publication의 new도 최초 evidence로 기록한다. 사실 집합은 retained occurrence 안에서 누적하며 명시적 supersession은 삭제 대신 hash pair로 보존한다. 오래된 사실이 다시 등장해도 new delta가 되지 않는다.
 
@@ -87,7 +89,7 @@ serialization은 exact UTF-8 bytes·stable ordering이다. TTL 이후에도 over
 
 ## 3. 순수 API와 실행 순서
 
-`normalize_entity_bindings(context_documents, alias_proposals, approved_registry) -> tuple[EntityBinding,...]`, `normalize_fact_bindings(context_documents, proposals, entities) -> tuple[FactBinding,...]`, `resolve_event_identity(proposal, entities, facts, baseline, clock) -> IdentityMatchResult`, `compare_event_facts(identity, current_facts, baseline) -> EventFactDelta`를 `briefing/event_identity.py`가 소유한다. clock/registry/context/baseline을 인자로 받으며 I/O, network, env, LLM 호출이 없다.
+`normalize_entity_bindings(context_documents, alias_proposals, approved_registry) -> tuple[EntityBinding,...]`, `normalize_fact_bindings(context_documents, proposals, entities) -> tuple[FactBinding,...]`, `resolve_event_identity(proposal, entities, facts, baseline, clock) -> IdentityMatchResult`, `compare_event_facts(identity, current_facts, baseline, *, corrections=(), documents=(), prior_fact_bindings=()) -> EventFactDelta`를 `briefing/event_identity.py`가 소유한다. clock/registry/context/baseline을 인자로 받으며 I/O, network, env, LLM 호출이 없다.
 
 orchestrator는 fixed baseline → u167 evidence preparation → Stage1 source-linked proposals → 순수 정규화/identity/delta → u169 editorial plan 순서로 연결한다. Stage2가 고정 ID/fact/ref를 설명한다. finalizer E5 survivor receipt → combined transaction → remote-confirmed publication 이후에만 다음 실행의 history가 된다. budget·source quality·rendering·사람 semantic scoring은 각 공통 owner에 남긴다.
 
@@ -98,3 +100,5 @@ Functional Design REQUIRED: 이름/발표 단계/중복/수정/novelty의 도메
 schema2 원문 tuple hash·문자열 novelty·7일 receipt는 legacy owner에만 남긴다. schema3에서는 호출하지 않는다. migration은 기존7일 ledger를 명시적 replay input adapter로만 읽어 old IDs/hashes/provenance를 점검한다. v2 해시에서 canonical facts, display alias, source body, 사건 날짜, story state를 복원하지 않는다. schema3 initial live baseline은 v3 missing ledger의 empty available bootstrap이다. 기존 archive/URLs/legacy receipt 파일은 고치지 않는다.
 
 alias·duplicate·fact-delta·ledger negative matrix와 AC는 [code-generation plan](../plans/u168-canonical-event-identity-and-fact-delta-code-generation-plan.md)에 있다. 이 문서 작성은 구현 시작·migration 실행·production activation을 뜻하지 않는다.
+
+구현의 explicit correction은 current source에서 다시 결속한 before/after fact bindings, 같은 occurrence의 refs, 주체·지표·이전/새 값을 함께 말하는 명시 정정 claim을 요구한다. hash-only prior receipt에서 원문 값을 복원하지 않는다. 승인 registry 주체의 correction 등 아직 제공하지 못하는 binding은 conservative rejection이며 native integration 이전 미완료 범위로 남긴다.
