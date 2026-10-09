@@ -1425,7 +1425,7 @@ def test_bundle_skeleton_rejects_unexplained_missing_briefing() -> None:
     assert exc.value.issue_codes == ("input.briefing_keys",)
 
 
-def test_region_spec_table_matches_all_seventeen_fd_priorities() -> None:
+def test_region_spec_table_includes_u154_shells_in_fd_priorities() -> None:
     assert tuple(spec.id_pattern for spec in _REGION_SPECS) == (
         "disclaimer:canonical",
         "diagnostics:quality",
@@ -1443,6 +1443,9 @@ def test_region_spec_table_matches_all_seventeen_fd_priorities() -> None:
         "watchpoints:section[`:continuation:{ordinal}`]",
         "section:{n}[`:continuation:{ordinal}`]",
         "header:title",
+        "summary:tldr",
+        "shell:market_data:open",
+        "shell:market_data:close",
         "first_viewport:{ordinal}",
     )
     assert tuple(spec.block for spec in _REGION_SPECS) == (
@@ -1461,6 +1464,9 @@ def test_region_spec_table_matches_all_seventeen_fd_priorities() -> None:
         "anchor_table",
         "watchpoints",
         "section_body",
+        "header",
+        "first_viewport",
+        "header",
         "header",
         "first_viewport",
     )
@@ -1482,13 +1488,16 @@ def test_region_spec_table_matches_all_seventeen_fd_priorities() -> None:
         "always",
         "always",
         "conditional",
+        "conditional",
+        "conditional",
+        "conditional",
     )
     assert tuple(spec.projection_policy for spec in _REGION_SPECS) == (
         "exact_disclaimer",
         "protected_diagnostics",
         *("reader_visible",) * 9,
         "exact_disclaimer",
-        *("reader_visible",) * 5,
+        *("reader_visible",) * 8,
     )
 
 

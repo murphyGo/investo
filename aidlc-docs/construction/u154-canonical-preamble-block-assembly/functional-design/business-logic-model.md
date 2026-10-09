@@ -1,0 +1,11 @@
+# u154 Functional Design — 2026-10-10
+
+User: “숫자 표를 줄이는 개편도 진행해줘”. This extends the existing u154 layout owner and authorizes implementation; earlier per-unit commit/push authorization remains. No duplicate unit. Existing FR-009 anchor-before-summary placement is superseded for new segmented publications.
+
+Final order: one canonical H1; exact short disclaimer; watermark; active navigation; three-item news/summary list; conclusion/driver/caution and watchlist callouts; complete owned preamble supplements; other preserved preamble context; one closed “시장 지표 자세히 보기” containing the existing market table, shared macro, crypto indicators and channel baseline; unchanged §1–§7 body/diagnostics/disclaimer. No compact replacement numbers are invented. All detailed values, dates, URLs and unavailable reasons remain accessible. Existing archives are not rewritten.
+
+Composition runs after event-summary reconciliation, body evidence and news observation producers, before E2 reindex/projection/repair/seal. Reassembly unwraps only the exact owned market-data shell before existing producers. The final composer is pure, fence/owned-marker aware and idempotent. Only exact duplicate canonical preamble H1s can be removed; conflicting or body H1s fail structural validation.
+
+Zero to three nonempty plain lines or flat bullets normalize to three bullets without rewriting supplied values; missing slots reuse existing callout fallbacks. Four or more lines and unsupported summary content are preserved and rejected by terminal shape validation, instead of discarding potentially unsafe claims. Event summaries remain owned by u158 and exactly preserve its existing three values. This narrows the earlier draft's unconditional invalid-summary replacement to preserve existing trust evidence.
+
+The TLDR has separate summary:tldr first-viewport ownership. Existing u150 containment may replace defective TLDR values with the fixed existing three-item fallback without overwriting valid adjacent notification callouts or copying an unrepaired callout link. Surface scanning and post-link repair retain the H2 context required by u153. After all bounded repairs and event reconciliation, the pure composer restores placement before terminal validation and sealing.

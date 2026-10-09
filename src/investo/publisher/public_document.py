@@ -135,6 +135,14 @@ from investo.publisher.reader_format import (
     project_public_markdown,
     wrap_numbers_bold,
 )
+from investo.publisher.reader_format.preamble import (
+    MARKET_DATA_CLOSE,
+    MARKET_DATA_OPEN,
+    compose_canonical_preamble,
+    preamble_issue_codes,
+    unwrap_market_data,
+)
+from investo.publisher.reader_format.tldr import tldr_fallback_items
 from investo.publisher.segment_reader_format import apply_reader_format_to_segments
 from investo.publisher.verifier import (
     verify_disclaimer,
@@ -804,6 +812,7 @@ class PublicRegionExpectation:
     channel_anchors_required: bool
     daily_thesis_required: bool
     anchor_table_required: bool
+    canonical_preamble_required: bool = False
 
     def __post_init__(self) -> None:
         if self.segment not in _SEGMENTS:
@@ -815,6 +824,7 @@ class PublicRegionExpectation:
             self.channel_anchors_required,
             self.daily_thesis_required,
             self.anchor_table_required,
+            self.canonical_preamble_required,
         )
         if any(type(value) is not bool for value in boolean_fields):
             raise TypeError("public region expectation flags must be bool")
@@ -1064,6 +1074,30 @@ _REGION_SPECS: Final[tuple[RegionSpec, ...]] = (
         "first line exact target-date segment title",
         "newline",
         "always",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "summary:tldr",
+        "first_viewport",
+        "canonical TLDR H2 when canonical preamble is required",
+        "next separately owned preamble block",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "shell:market_data:open",
+        "header",
+        "exact owned market-data details opener and summary",
+        "after fixed summary; no replaceable content",
+        "conditional",
+        "reader_visible",
+    ),
+    RegionSpec(
+        "shell:market_data:close",
+        "header",
+        "exact owned market-data closing tag and marker",
+        "after fixed marker; no replaceable content",
+        "conditional",
         "reader_visible",
     ),
     RegionSpec(
@@ -1425,6 +1459,21 @@ def _heading_candidate(
     if index is None:
         return None
     line = lines[index]
+    end = _next_h2_start(lines, after_index=index, markdown_length=markdown_length)
+    # Numeric fallback replaces only its contents, never the native details shell.
+    end = min(
+        end,
+        next(
+            (
+                current.start
+                for offset, current in enumerate(lines[index + 1 :], start=index + 1)
+                if current.text == "</details>"
+                and offset + 1 < len(lines)
+                and lines[offset + 1].text == "<!-- /investo:market-data -->"
+            ),
+            markdown_length,
+        ),
+    )
     return _candidate(
         priority=priority,
         region_id=region_id,
@@ -1432,13 +1481,9 @@ def _heading_candidate(
         required=True,
         projection_policy="reader_visible",
         start=line.start,
-        end=_next_h2_start(lines, after_index=index, markdown_length=markdown_length),
+        end=end,
         content_start=line.end,
-        content_end=_next_h2_start(
-            lines,
-            after_index=index,
-            markdown_length=markdown_length,
-        ),
+        content_end=end,
     )
 
 
@@ -1649,6 +1694,16 @@ def _reindex_public_document(
         )
     )
 
+    shell_counts = (markdown.count(MARKET_DATA_OPEN), markdown.count(MARKET_DATA_CLOSE))
+    market_close_start: int | None = None
+    if shell_counts != (0, 0):
+        if shell_counts != (1, 1):
+            raise _layout_error("structure.market_data_details")
+        shell_start = markdown.index(MARKET_DATA_OPEN)
+        market_close_start = markdown.index(MARKET_DATA_CLOSE)
+        if not shell_start < market_close_start < markdown.find("## ① 요약"):
+            raise _layout_error("structure.market_data_details")
+
     diagnostics_index = _one_line_index(
         _matching_line_indices(lines, _DIAGNOSTICS_OPEN),
         region_id="diagnostics:quality",
@@ -1659,6 +1714,9 @@ def _reindex_public_document(
         index
         for index in range(diagnostics_index + 1, len(lines))
         if lines[index].text == _DIAGNOSTICS_CLOSE
+        # Legacy generated documents can put diagnostics before our panel.
+        # Exclude only its validated owned closing shell, never arbitrary tags.
+        and lines[index].start != market_close_start
     )
     if not diagnostics_closes:
         raise _layout_error("structure.unmatched_diagnostics")
@@ -1686,6 +1744,51 @@ def _reindex_public_document(
         )
     )
     candidates.extend(_marker_candidates(markdown, lines=lines, expectation=expectation))
+
+    if shell_counts != (0, 0):
+        for name, token in (("open", MARKET_DATA_OPEN), ("close", MARKET_DATA_CLOSE)):
+            start = markdown.index(token)
+            end = start + len(token)
+            candidates.append(
+                _candidate(
+                    priority=3,
+                    region_id=f"shell:market_data:{name}",
+                    block="header",
+                    required=True,
+                    projection_policy="reader_visible",
+                    start=start,
+                    end=end,
+                    content_start=end,
+                    content_end=end,
+                )
+            )
+
+    if expectation.canonical_preamble_required:
+        summary_indices = _matching_line_indices(lines, "## 한눈에 보기")
+        if len(summary_indices) > 1:
+            raise _layout_error("structure.tldr_shape")
+        if summary_indices:
+            index = summary_indices[0]
+            end = index + 1
+            while end < len(lines):
+                value = lines[end].text.strip()
+                if value.startswith(("#", ">", "<", "![", "**뉴스 관측기간**:")):
+                    break
+                end += 1
+            boundary = lines[end].start if end < len(lines) else len(markdown)
+            candidates.append(
+                _candidate(
+                    priority=16,
+                    region_id="summary:tldr",
+                    block="first_viewport",
+                    required=True,
+                    projection_policy="reader_visible",
+                    start=lines[index].start,
+                    end=boundary,
+                    content_start=lines[index].end,
+                    content_end=boundary,
+                )
+            )
 
     conditional_headings = (
         (
@@ -2171,7 +2274,10 @@ def _find_owned_surface_quality_issues(
 
     findings: list[_OwnedSurfaceQualityFinding] = []
     for region in layout.regions:
-        body = layout.markdown[region.content_start : region.content_end]
+        # u153 recognizes TLDR values by their heading; keep that scan context
+        # while the replaceable region contents still exclude the heading.
+        start = region.start if region.region_id == "summary:tldr" else region.content_start
+        body = layout.markdown[start : region.content_end]
         findings.extend(
             _OwnedSurfaceQualityFinding(
                 region_id=region.region_id,
@@ -2196,6 +2302,12 @@ def _replace_region_with_safe_fallback(
     layout: PublicDocumentLayout,
     decision: _RegionDispositionDecision,
 ) -> PublicDocumentLayout:
+    if decision.region_id == "summary:tldr":
+        # A defective TLDR must not replace adjacent, valid notification callouts.
+        # A neighboring callout may itself still await its one repair. Use
+        # fixed fallback values here so its malformed link is not resurrected.
+        bullets = "\n".join(f"- {value}" for value in tldr_fallback_items(""))
+        return layout.replace_region_body(decision.region_id, f"\n{bullets}\n\n")
     if decision.block == "first_viewport" and not _SURFACE_LINK_ISSUE_CODES.intersection(
         decision.issue_codes
     ):
@@ -2246,8 +2358,13 @@ def _repair_owned_region_once(
     if any(code not in _SURFACE_LINK_ISSUE_CODES for code in decision.issue_codes):
         repaired_body = repair_surface_artifacts(repaired_body)
     if has_link_issue and decision.block == "first_viewport":
-        repaired_body = bound_first_viewport_snippets(repaired_body)
+        # The explicit TLDR region owns only contents; give u153 its existing
+        # heading context, then retain just the bounded repaired contents.
+        prefix = "## 한눈에 보기\n" if decision.region_id == "summary:tldr" else ""
+        repaired_body = bound_first_viewport_snippets(prefix + repaired_body)
         repaired_body = repair_first_viewport_summary(repaired_body)
+        if prefix:
+            repaired_body = repaired_body.removeprefix(prefix)
     if (
         has_link_issue
         and decision.block == "section_body"
@@ -2651,8 +2768,12 @@ def _assemble_phase_one_reader_draft(
             raise _SegmentTrustBlockedError(phase="assembled", issue_codes=preserved_codes)
 
     try:
+        source_markdown = unwrap_market_data(draft.source_briefing.rendered_markdown)
+        source_briefing = draft.source_briefing.model_copy(
+            update={"rendered_markdown": source_markdown}
+        )
         rewritten = apply_reader_format_to_segments(
-            {draft.segment: draft.source_briefing},
+            {draft.segment: source_briefing},
             anchors_by_segment=context.anchors_by_segment,
             bundle_context=context.bundle_context,
             items_by_segment=context.items_by_segment,
@@ -2751,9 +2872,15 @@ def _assemble_phase_one_reader_draft(
             assembled_briefing = assembled_briefing.model_copy(
                 update={"rendered_markdown": markdown}
             )
-    layout = PublicDocumentLayout.reindex(
+    # Compose after every producer (including event/news summaries). The shell
+    # changes presentation only; all numeric children keep their own trust regions.
+    markdown = compose_canonical_preamble(
         assembled_briefing.rendered_markdown,
-        expectation=draft.layout.expectation,
+        title=f"# {context.target_date.isoformat()} {SEGMENT_LABELS[draft.segment]} 시황",
+    )
+    layout = PublicDocumentLayout.reindex(
+        markdown,
+        expectation=replace(draft.layout.expectation, canonical_preamble_required=True),
     )
     return _transition_draft(
         accumulated,
@@ -2985,6 +3112,15 @@ def _repair_projected_draft(
                 phase="repaired", issue_codes=("event.reconciliation_unstable",)
             )
 
+    if layout.expectation.canonical_preamble_required:
+        # Existing u150/numeric containment can replace the summary region.
+        # Reuse repaired callouts and move-only composition before final gates;
+        # no hidden evidence or post-seal rewrite is introduced.
+        markdown = compose_canonical_preamble(
+            layout.markdown,
+            title=f"# {draft.target_date.isoformat()} {SEGMENT_LABELS[draft.segment]} 시황",
+        )
+        layout = PublicDocumentLayout.reindex(markdown, expectation=layout.expectation)
     return _transition_draft(
         draft,
         next_phase="repaired",
@@ -3211,6 +3347,16 @@ def _collect_terminal_hard_gates(
             and disposition in _RESIDUAL_ACTIONABLE_LINK_DISPOSITIONS
         )
     )
+    if candidate.layout.expectation.canonical_preamble_required:
+        codes.update(
+            preamble_issue_codes(
+                candidate.layout.markdown,
+                title=(
+                    f"# {candidate.target_date.isoformat()} "
+                    f"{SEGMENT_LABELS[candidate.segment]} 시황"
+                ),
+            )
+        )
     try:
         validate_first_viewport_summary(candidate.layout.markdown)
     except SummaryQualityError:

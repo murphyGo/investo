@@ -59,11 +59,7 @@ def ensure_tldr_block(text: str, *, segment: str | None = None) -> str:
         )
         return text
 
-    bullets = [
-        f"- {conclusion}" if conclusion else "- 본문에서 확인할 수 있는 핵심만 정리했습니다.",
-        f"- {driver}" if driver else "- 뚜렷한 단일 동인은 본문 흐름으로 확인하세요.",
-        f"- {caution}" if caution else "- 새로 확인되는 변수는 본문 관전 포인트에서 이어봅니다.",
-    ]
+    bullets = [f"- {value}" for value in tldr_fallback_items(text)]
     block = f"{TLDR_HEADER}\n\n" + "\n".join(bullets) + "\n\n"
 
     insertion = text.find(_FIRST_SECTION_MARKER)
@@ -87,3 +83,14 @@ def _capture_first(text: str, pattern: re.Pattern[str]) -> str | None:
     if match is None:
         return None
     return match.group(1).strip()
+
+
+def tldr_fallback_items(text: str) -> tuple[str, str, str]:
+    """Reuse the existing callout fallbacks without creating new narrative."""
+    return (
+        _capture_first(text, _CONCLUSION_CALLOUT_RE)
+        or "본문에서 확인할 수 있는 핵심만 정리했습니다.",
+        _capture_first(text, _DRIVER_CALLOUT_RE) or "뚜렷한 단일 동인은 본문 흐름으로 확인하세요.",
+        _capture_first(text, _CAUTION_CALLOUT_RE)
+        or "새로 확인되는 변수는 본문 관전 포인트에서 이어봅니다.",
+    )

@@ -210,3 +210,14 @@ The user approved the six designs on 2026-09-27 and authorized sequential develo
 
 Normative overview: `aidlc-docs/construction/news-event-briefing/README.md`.
 Code delivery, source qualification and public activation each need their own evidence; none is complete in this docs-only planning amendment.
+
+## u154 news-first preamble extension (2026-10-10)
+
+The user's numeric-table reduction instruction authorizes extending existing u154
+and completing implementation with the session's per-unit commit/push workflow.
+Functional Design is completed in u154/functional-design. Separate NFR
+Requirements/Design and Infrastructure stages reuse NFR-003/004/005/006/R13:
+pure deterministic assembly, no new I/O, dependency, provider or notification
+policy. Code Generation, full Build and Test, independent review and scoped
+cross-check are required. Current configured Markdown HTML is tested; viewport
+pixel acceptance and event human/scheduled observations are not inferred.

@@ -111,6 +111,8 @@ markdown_extensions:
   - attr_list
   - footnotes
   - tables
+  # Parse preserved numeric evidence inside the closed u154 details panel.
+  - md_in_html
   - toc:
       permalink: true
       toc_depth: 3

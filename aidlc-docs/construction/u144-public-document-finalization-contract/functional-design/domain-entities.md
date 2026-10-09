@@ -189,6 +189,7 @@ class PublicRegionExpectation:
     channel_anchors_required: bool
     daily_thesis_required: bool
     anchor_table_required: bool
+    canonical_preamble_required: bool = False  # u154: enabled by final reader assembly
 
 @dataclass(frozen=True, slots=True)
 class PublicDocumentLayout:
@@ -288,7 +289,17 @@ regions, so regions form a non-overlapping partition of the whole string.
 | 14 `watchpoints:section`, then `watchpoints:section:continuation:{ordinal}` | `watchpoints` | primary starts at line exactly `## ⑥ 오늘의 관전 포인트`; each continuation is the next non-empty residual after a claimed marker | next claimed marker, diagnostics start, or `## ⑦` | primary always; continuations conditional residual | reader-visible; one primary plus zero or more continuations in source order |
 | 15 `section:{n}`, then `section:{n}:continuation:{ordinal}` | `section_body` | primary starts at exact one of `## ① 요약`, `## ② 전일 핵심 이슈`, `## ③ 섹터/수급 동향`, `## ④ 지표·이벤트`, `## ⑤ 주요 종목`; each continuation is the next non-empty residual after a claimed marker | next claimed marker, numbered H2, or special owned H2 | all five primaries required in order; continuations conditional residual | reader-visible; five unique primary IDs plus source-ordered continuations |
 | 16 `header:title` | `header` | first line exactly `# {target_date.isoformat()} {SEGMENT_LABELS[segment]} 시황` | newline | always | reader-visible, once |
-| 17 `first_viewport:{ordinal}` | `first_viewport` | each remaining non-empty unclaimed span before `## ①` | next claimed span or `## ①` | conditional residual | reader-visible, repeatable in source order |
+| 17 `summary:tldr` | `first_viewport` | canonical TLDR H2 when canonical_preamble_required | next separately owned preamble block | conditional | reader-visible, once; H2 retained as scan/repair context and outside replaceable contents |
+| 18 `shell:market_data:open` | `header` | exact u154 details opener and fixed summary | after fixed summary | conditional numeric panel | reader-visible, once; empty replaceable contents |
+| 19 `shell:market_data:close` | `header` | exact u154 closing tag and marker | after fixed marker | paired numeric panel | reader-visible, once; empty replaceable contents |
+| 20 `first_viewport:{ordinal}` | `first_viewport` | each remaining non-empty unclaimed span before `## ①` | next claimed span or `## ①` | conditional residual | reader-visible, repeatable in source order |
+
+u154 (2026-10-10) moves whole preamble numeric blocks inside a closed native
+details panel after the summary/hero. Rows 6–8 stop before its owned closing
+shell as well as the next H2; fallback replacement cannot delete that shell.
+All numeric rows remain reader-visible for trust and compliance validation.
+The final composer restores canonical placement after bounded repair, before
+terminal checks and seal. Historical/direct layouts default the new flag off.
 
 Supplement assembly adds the invisible paired comments in rows 3-5; it never
 discovers supplement regions from image URL/evidence text. Because the existing

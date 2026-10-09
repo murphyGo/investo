@@ -100,8 +100,8 @@
 - **Description**: 시황의 가독성·액션성을 강제한다. (1) 본문 § 시작 전에 `## 한눈에 보기` TL;DR 3-bullet 블록을 emit 하고, (2) 시장 anchor 정보를 prose blockquote 가 아닌 markdown 표로 렌더하며, (3) §②/③/④/⑥ sub-heading 은 `### Title` (H3) 로 작성하고, (4) 본문 prose 안의 숫자 토큰 (`+11.51%`, `$81,154.06`, `4.42%`) 은 `**...**` 로 강조하며, (5) §⑥ "관전 포인트" bullet 의 관찰형 종결 어미 (`~여부 / ~필요가 있다 / ~관건이다 / ~주목할 필요`) 비율을 40% 이하로 유지하고 (위반 시 WARNING flag, blocking 아님), (6) 같은 segment 내 같은 용어의 풀어쓰기 글로싱은 첫 1회만 표기하고 2번째 이후는 base 용어만 남긴다.
 - **User Story**: As a 시황 reader, I want 페이지를 열자마자 매그니튜드·방향성·액션을 한눈에 보기를, so that 본문을 전부 읽지 않고도 그날의 핵심을 빠르게 잡을 수 있도록.
 - **Acceptance Criteria**:
-  - [x] 모든 segmented 시황 상단에 `## 한눈에 보기` H2 + 정확히 3 bullet 블록이 워터마크/세그먼트-네비/anchor 다음, ① 요약 헤더 직전에 배치
-  - [x] 시장 anchor 라인이 4-컬럼 markdown 표 (`| 종목 | 종가 | 변동 | 비고 |`) 로 렌더 — 우선순위 ranking 은 u49 와 동일, 최대 5행
+  - [x] 모든 segmented 시황 상단에 `## 한눈에 보기` H2 + 정확히 3 bullet 블록이 워터마크/세그먼트 네비 다음에 배치되고, hero와 지표 상세보다 먼저 표시됨 (u154, 2026-10-10 숫자 표 축소 요청 반영).
+  - [x] 시장 anchor는 기존 4컬럼 표·u49 우선순위·최대 5행을 유지하며, 상단 매크로/크립토 지표/채널 기준선과 함께 기본적으로 닫힌 `시장 지표 자세히 보기` 하나에 배치. 값·시각·출처·미확인 이유와 검증 규칙을 보존하고 본문 사건 설명에 필요한 숫자/표는 유지.
   - [x] §②/③/④/⑥ 의 sub-heading 이 `### Title` (H3) 로 작성됨; 기존 `**Title** — body` 패턴 부재
   - [x] 본문 prose 의 숫자 토큰 (`[+-]?\d+\.\d+%`, `\$[\d,]+(?:\.\d+)?`, `\d+\.\d+%`) 이 `**...**` 로 wrap; 표 cell / 코드 블록 / 링크 URL 내부 미적용; 이미 wrap 된 토큰 idempotent
   - [x] §⑥ bullet 의 관찰형 종결 어미 비율 ≤ 40% 검증 (위반 시 publisher WARN 로그 + segment / ratio / count 구조화 extra; *blocking 아님* — generation 변동성 흡수)

@@ -2476,8 +2476,9 @@ verification remains pending. Integration record:
 
 ### u154: `canonical-preamble-block-assembly` — Assemble One Title and One Three-Item Summary
 
-**Purpose**: Close the late assembly gap that left duplicate H1 titles in all
-ten September 1–4 documents and allowed hero images before the useful summary.
+**Purpose**: Close the late assembly gap that left duplicate H1 titles and hero
+images before the useful summary. The user's 2026-10-10 extension places news
+first and groups preamble numeric tables in one closed details panel.
 
 **Stories / FR / NFR coverage**: US-002, US-003, US-004; FR-002, FR-003,
 FR-004, FR-008, FR-009, FR-018; NFR-003, NFR-004, NFR-005, NFR-006, NFR-007/R13.
@@ -2494,15 +2495,17 @@ new `reader_format/preamble.py`, `public_document.py`; publisher and offline
 HTML integration fixtures.
 
 **Definition of Done**:
-- [ ] Final documents contain one canonical H1 and exactly three TL;DR list items.
-- [ ] Existing anchor table precedes TL;DR; summary/callouts precede the hero; other known blocks use the pinned order.
-- [ ] Conflicting extra titles and unresolved structural defects remain fail-closed.
-- [ ] Whole supplement bytes/artifact IDs, body evidence, diagnostics and disclaimer are preserved.
-- [ ] Sealed Markdown, partial navigation, idempotence and article HTML H1/list/image-order checks pass.
+- [x] Final documents contain one canonical H1 and exactly three TL;DR list items.
+- [x] Summary/callouts precede the hero; preamble numeric tables use one closed details panel, with their evidence preserved.
+- [x] Conflicting extra titles and unresolved structural defects remain fail-closed.
+- [x] Whole supplement bytes/artifact IDs, body evidence, diagnostics and disclaimer are preserved.
+- [x] Sealed Markdown, partial navigation, idempotence and actual-config article HTML H1/list/details checks pass.
 
-**Construction strategy**: Backlog; ready for Functional Design. NFR Requirements
-skipped. u150/u153 code dependencies are integrated (2026-09-08); FD approval
-and this unit's implementation remain separate and not started. Plan:
+**Construction strategy**: Functional Design and implementation authorized by
+the user's numeric-table reduction request (2026-10-10); NFR Requirements/Design
+reuse existing contracts with documented reasons. Focused 311 tests and independent
+212 tests pass; full gate and exact delivery are tracked in the plan. Historical
+archives and event human/scheduled acceptance remain separate. Plan:
 `aidlc-docs/construction/plans/u154-canonical-preamble-block-assembly-code-generation-plan.md`.
 
 ### u155: `codex-chatgpt-briefing-provider` — Optional Codex with Private ChatGPT Automation
