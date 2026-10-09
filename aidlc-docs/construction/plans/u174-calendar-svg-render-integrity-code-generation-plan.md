@@ -3,7 +3,7 @@
 - **Date**: 2026-10-10
 - **Unit**: u174 calendar-svg-render-integrity
 - **Stage**: Code Generation
-- **Status**: Planned — 0/6; 문서화만 승인됨, 구현 시작 전
+- **Status**: Complete — 6/6; local construction verified 2026-10-10
 - **Source**: 2026-10-10 공개 Investo UI 점검 및 사용자 “일단 유닛 문서화부터” 요청
 - **Estimated Effort**: ~4–6 h
 - **Priority**: P0 — 기존 발행 캘린더 표시 결함 복구
@@ -62,7 +62,7 @@ Out of scope:
 
 - **Functional Design — SKIP**. u29에서 승인된 동일 발행 캘린더의 표시를 복구한다. 날짜 범위·상태 의미·탐색·사용자 행동·접근성 정보에 새 제품 결정이 없다. build hook은 기존 문서의 HTML 해석 방식을 수정하는 기술 소유자다.
 - **NFR Requirements / Design — SKIP**. FR-003, NFR-005/006, u143 TD-013 및 u154 실제-config 렌더 계약을 재사용한다. 새로운 네트워크·키·서비스·런타임 의존성·비용이 없으며, docs-only hook은 daily runtime에 들어가지 않는다. 테스트 목적으로 XML을 파싱하면 기존 R6에 따라 `defusedxml`을 사용한다.
-- **Code Generation — READY**. 아래 소유자와 AC에 제품 선택의 미결정 사항은 없다. 현재 요청은 문서만이므로 모든 구현 체크박스는 미완료로 남긴다.
+- **Code Generation — READY**. 아래 소유자와 AC에 제품 선택의 미결정 사항은 없다. 사용자의 전체 UI 개발 지시에 따라 구현과 검증을 완료했다. [완료 증거](../u174-calendar-svg-render-integrity/code/summary.md).
 
 ## Fixed Contracts
 
@@ -76,37 +76,37 @@ Out of scope:
 
 ## Implementation Steps
 
-### Step 1 — 실제-config 결함과 호환 요구 고정 `[ ]`
+### Step 1 — 실제-config 결함과 호환 요구 고정 `[x]`
 
-- [ ] 현행 archive marker block 및 normal/partial/insufficient/absent/empty fixture를 확보한다. `mkdocs.yml`에서 확장과 options를 읽어 기존 u154 integration 방식으로 동일 변환을 실행한다.
-- [ ] emitter만 바꾸면 이미 커밋된 아카이브가 남는 실패, `md_in_html` 제거 시 u154가 깨지는 실패를 회귀 조건으로 명시한다. 현재 테스트는 raw SVG 문자열만 검사하는 한계가 있음을 기록한다.
+- [x] 현행 archive marker block 및 normal/partial/insufficient/absent/empty fixture를 확보한다. `mkdocs.yml`에서 확장과 options를 읽어 기존 u154 integration 방식으로 동일 변환을 실행한다.
+- [x] emitter만 바꾸면 이미 커밋된 아카이브가 남는 실패, `md_in_html` 제거 시 u154가 깨지는 실패를 회귀 조건으로 명시한다. 현재 테스트는 raw SVG 문자열만 검사하는 한계가 있음을 기록한다.
 
-### Step 2 — Wrapper와 사이트 build hook 구현 `[ ]`
+### Step 2 — Wrapper와 사이트 build hook 구현 `[x]`
 
-- [ ] renderer를 변경하지 않고 `_render_heatmap_block`에 raw 선언을 적용한다.
-- [ ] Fixed Contracts의 canonical hook/순수 정규화를 구현·등록한다. legacy attribute/이미 정규화/무관 페이지/다른 details/fenced code/불완전 block/no-marker 분기를 확인한다.
-- [ ] 입력 Markdown의 변경 범위는 알려진 opening figure attribute 하나이며 디스크 write가 없음을 고정한다.
+- [x] renderer를 변경하지 않고 `_render_heatmap_block`에 raw 선언을 적용한다.
+- [x] Fixed Contracts의 canonical hook/순수 정규화를 구현·등록한다. legacy attribute/이미 정규화/무관 페이지/다른 details/fenced code/불완전 block/no-marker 분기를 확인한다.
+- [x] 입력 Markdown의 변경 범위는 알려진 opening figure attribute 하나이며 디스크 write가 없음을 고정한다.
 
-### Step 3 — 기존 archive와 u154/u143 동시 렌더 회귀 `[ ]`
+### Step 3 — 기존 archive와 u154/u143 동시 렌더 회귀 `[x]`
 
-- [ ] 신규 `tests/integration/test_calendar_svg_html_u174.py`에서 **현재 확장셋과 hook**을 포함한 isolated MkDocs build를 수행한다. legacy fixture와 신규 emitter fixture 모두 보존되는 SVG subtree 및 source-derived rect 수를 검사한다.
-- [ ] `tests/integration/test_canonical_preamble_html_u154.py`와 기존 Material theme contract를 함께 검증한다. 기존 preamble test의 확장셋을 간소화하여 통과시키지 않는다.
+- [x] 신규 `tests/integration/test_calendar_svg_html_u174.py`에서 **현재 확장셋과 hook**을 포함한 isolated MkDocs build를 수행한다. legacy fixture와 신규 emitter fixture 모두 보존되는 SVG subtree 및 source-derived rect 수를 검사한다.
+- [x] `tests/integration/test_canonical_preamble_html_u154.py`와 기존 Material theme contract를 함께 검증한다. 기존 preamble test의 확장셋을 간소화하여 통과시키지 않는다.
 
-### Step 4 — Built-site guard와 CI 연결 `[ ]`
+### Step 4 — Built-site guard와 CI 연결 `[x]`
 
-- [ ] 신규 guard와 `tests/unit/visuals/test_check_calendar_render_contract.py`의 정상/빈 SVG/분리 rect/누락 figure 실패 케이스를 구현한다.
-- [ ] Pages/Quality strict build 뒤 실행한다. hook/guard만 변경되는 후속 commit도 Pages path filter를 통과해야 한다.
+- [x] 신규 guard와 `tests/unit/visuals/test_check_calendar_render_contract.py`의 정상/빈 SVG/분리 rect/누락 figure 실패 케이스를 구현한다.
+- [x] Pages/Quality strict build 뒤 실행한다. hook/guard만 변경되는 후속 commit도 Pages path filter를 통과해야 한다.
 
-### Step 5 — 실제 DOM과 화면 검증 `[ ]`
+### Step 5 — 실제 DOM과 화면 검증 `[x]`
 
-- [ ] 실제 `mkdocs build --strict` 산출물을 로컬 정적 서버로 열고 1440×1000 및 390×844에서 light/dark 각각 확인한다.
-- [ ] 브라우저 DOM에서 셀·범례 namespace/containment, nonempty SVG bounds, caption 1개와 실제 테마 토글 후 fill 변화를 기록한다. 모든 상태 샘플과 empty fixture를 확인한다.
-- [ ] 캘린더 자체의 horizontal scrolling은 기존 CSS를 유지하고, 페이지 전체의 가로 overflow를 만들지 않는지 확인한다. 사용한 도구·URL·viewport를 증거에 명시한다.
+- [x] 실제 `mkdocs build --strict` 산출물을 로컬 정적 서버로 열고 1440×1000 및 390×844에서 light/dark 각각 확인한다.
+- [x] 브라우저 DOM에서 셀·범례 namespace/containment, nonempty SVG bounds, caption 1개와 실제 테마 토글 후 fill 변화를 기록한다. 모든 상태 샘플과 empty fixture를 확인한다.
+- [x] 캘린더 자체의 horizontal scrolling은 기존 CSS를 유지하고, 페이지 전체의 가로 overflow를 만들지 않는지 확인한다. 사용한 도구·URL·viewport를 증거에 명시한다.
 
-### Step 6 — 검증·리뷰·문서 종결 `[ ]`
+### Step 6 — 검증·리뷰·문서 종결 `[x]`
 
-- [ ] 아래 targeted/full gate 및 독립 리뷰·요구사항 cross-check를 완료한다. 실제 브라우저 확인을 실행하지 않았다면 AC-174.5를 미완료로 둔다.
-- [ ] DESIGN TD-013에 raw island/build owner를 추가하고 unit summary/state를 evidence와 함께 갱신한다. 변경된 tracked archive 파일이 없는지 확인한다. 커밋·푸시·공개 배포는 구현 시의 별도 사용자 지시 범위에서 처리한다.
+- [x] 아래 targeted/full gate 및 독립 리뷰·요구사항 cross-check를 완료한다. 실제 브라우저 확인을 실행하지 않았다면 AC-174.5를 미완료로 둔다.
+- [x] DESIGN TD-013에 raw island/build owner를 추가하고 unit summary/state를 evidence와 함께 갱신한다. 변경된 tracked archive 파일이 없는지 확인한다. 커밋·푸시·공개 배포는 구현 시의 별도 사용자 지시 범위에서 처리한다.
 
 ## Acceptance Criteria
 

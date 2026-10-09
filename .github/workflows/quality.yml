@@ -72,3 +72,6 @@ jobs:
         # u143: the light/dark SVG pair relies on Material's built CSS
         # continuing to hide the opposite fragment in each site scheme.
         run: uv run python scripts/check_material_theme_contract.py
+
+      - name: Calendar render contract guard
+        run: uv run python scripts/check_calendar_render_contract.py

@@ -68,7 +68,7 @@ def _render_heatmap_block(heatmap_svg: str) -> str:
         "## 발행 캘린더\n\n"
         "지난 주차별 게시 일자와 데이터 신뢰도(정상·부분·부족)를 "
         "한눈에 표시합니다.\n\n"
-        '<figure class="u29-heatmap" markdown="1">\n'
+        '<figure class="u29-heatmap" markdown="0">\n'
         f"{heatmap_svg.strip()}\n"
         "<figcaption>발행 캘린더 — 색상은 데이터 신뢰도 정책을 따릅니다.</figcaption>\n"
         "</figure>\n"

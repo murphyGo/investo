@@ -128,6 +128,10 @@ plugins:
         - ko
         - en
 
+# u174: recover historical calendar wrappers without rewriting sealed sources.
+hooks:
+  - scripts/mkdocs_render_hooks.py
+
 extra:
   # u38 og-card-png-twin: OG image meta. The PNG primary and SVG
   # secure-url twin are rewritten

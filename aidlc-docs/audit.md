@@ -1,5 +1,11 @@
 # AI-DLC Audit Log
 
+## 2026-10-10 — u174 local construction complete
+
+**Result**: Raw wrapper + archive-only build compatibility hook + built SVG guard + Pages/Quality wiring completed. Historical archive bytes/runtime dependencies/seal unchanged.
+**Evidence**: Full 6711 passed; final review-hardening focused 25 passed; Ruff/format/mypy302/strict MkDocs/Material/calendar/four policy guards passed; actual headless Chromium12 cases. Independent review APPROVE after two P2 fixes, residual P1/P2 zero. [Summary](construction/u174-calendar-svg-render-integrity/code/summary.md).
+**Authorization**: User's all-UI-development/unit-per-commit instruction remains active. Scoped local commit follows; public deployment and push not performed.
+
 ## 2026-10-10 — UI u174–u179 개발 및 유닛별 커밋 승인
 
 **User response**: “모든 유닛 개발 진행해줘, 각 유닛 완료할때마다 커밋 진행해줘 현재 워크트리가 작업중이면 별도 워크트리에서 진행해줘”.
