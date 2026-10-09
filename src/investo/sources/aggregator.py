@@ -77,6 +77,7 @@ async def collect_sources(
     news_windows: Mapping[str, NewsObservationWindow] | None = None,
     held_news_sources: frozenset[str] = frozenset(),
     evidence_received_at: datetime | None = None,
+    price_snapshot_at: datetime | None = None,
 ) -> SourceCollectionReport:
     """Run every registered adapter concurrently and return a full report.
 
@@ -111,6 +112,11 @@ async def collect_sources(
     if evidence_received_at is not None:
         windows = {
             name: replace(window, evidence_received_at=evidence_received_at)
+            for name, window in windows.items()
+        }
+    if price_snapshot_at is not None:
+        windows = {
+            name: replace(window, price_snapshot_at=price_snapshot_at)
             for name, window in windows.items()
         }
 

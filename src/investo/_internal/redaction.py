@@ -101,6 +101,7 @@ SECRET_ENV_VARS: Final[tuple[str, ...]] = (
     "EIA_API_KEY",
     "FRED_API_KEY",
     "CONGRESS_API_KEY",
+    "COINGECKO_DEMO_API_KEY",
     # data.go.kr / KRX adapters (fsc-krx-index-price, fsc-krx-stock-price).
     # The canonical name is ``INVESTO_KRX_SERVICE_KEY``; the legacy
     # ``INVESTO_DATA_GO_KR_SERVICE_KEY`` is consulted as fallback in the

@@ -317,6 +317,9 @@ def _market_snapshot_line(price_items: Sequence[NormalizedItem]) -> str:
 
 
 def _format_snapshot_entry(entry: SnapshotEntry) -> str:
+    if entry.time_basis is not None:
+        label = f"{entry.label} [{entry.time_basis}]"
+        entry = SnapshotEntry(label, entry.pct, entry.price, entry.with_price)
     if entry.with_price:
         if entry.price is not None and entry.pct is not None:
             return f"{entry.label} {_format_compact_price(entry.price)}({_format_pct(entry.pct)})"

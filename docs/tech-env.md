@@ -65,6 +65,7 @@
   - `INVESTO_EXTERNAL_IMAGE_ASSETS` (선택: 라이선스 명시 외부 이미지 다운로드)
   - `INVESTO_EXTERNAL_IMAGE_ALLOWED_HOSTS` (선택: 외부 이미지 host allow-list)
   - `CONGRESS_API_KEY` (선택: Congress.gov 공식 법안 action 수집; 미설정 시 해당 adapter만 graceful degradation)
+  - `COINGECKO_DEMO_API_KEY` (선택: 무료 CoinGecko Demo 플랜, `x-cg-demo-api-key` 헤더로 기존 가격 endpoint 호출; 유료 Pro API 전환 없음). 공개·private runtime 워크플로에 연결되며 실제 키 값은 저장소에 기록하지 않는다. 조회 시점 가격과 UTC 기준 시각을 표시하고, 과거 날짜 재생에는 현재 가격을 넣지 않는다.
   - `INVESTO_CONGRESS_BILLS` (선택: Congress.gov 감시 bill id 목록, 예: `119/hr/3633`)
   - `INVESTO_SENATE_BANKING_WATCH_URLS` (선택: Senate Banking 공식 crypto-policy watch URL 목록)
   - `INVESTO_HOUSE_FINANCIAL_SERVICES_RSS_URLS` (선택: House Financial Services 공식 RSS URL 목록)

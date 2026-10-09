@@ -2781,7 +2781,7 @@ LLM 호출은 `tests/fixtures/llm/`의 record/replay 데이터로 결정성 보�
 
 ## u163–u166: Source Reliability and Partial Publication (2026-10-09)
 
-Evidence: [25 executed runs /44 sources](../../construction/source-reliability-20261009/review.md). User authorized development and per-unit commit/push; u163 code is complete, later units proceed through finalized design and validation. Source degradation, code completion and terminal operational recovery are separate measures.
+Evidence: [25 executed runs /44 sources](../../construction/source-reliability-20261009/review.md). User authorized development and per-unit commit/push; u163/u164 code is complete, later units proceed through finalized design and validation. Source degradation, code completion and terminal operational recovery are separate measures.
 
 ### u163: `terminal-numeric-emphasis-containment`
 
@@ -2802,11 +2802,11 @@ Evidence: [25 executed runs /44 sources](../../construction/source-reliability-2
 **Coverage**: US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008.
 **Ownership / paths**: u1/u54/u70/u95/u144/u152; CoinGecko/window/aggregator, orchestrator clock/override, located price/snapshot/watchpoint/public consumers. Distinct from u138 US lifecycle.
 **Definition of Done**:
-- [ ] Current scheduled snapshots retain as-of/lookup-time label; historical replay excludes future prices.
-- [ ] Missing fields never0-fill; actual core freshness and44-source parity remain correct.
-- [ ] Optional free key and candidates qualify before activation; no paid/silent provider fallback.
-- [ ] Local checks pass; three-coin usable9/10 and labels10/10 scheduled acceptance recorded separately.
-**Stage**: FD/NFR draft; Code Generation0/7; historical/new provider integration deferred.
+- [x] Current scheduled snapshots retain as-of/lookup-time label; historical replay excludes future prices.
+- [x] Missing fields never0-fill; actual core freshness and44-source parity remain correct.
+- [x] Optional free key wiring and primary rights evidence complete; credential/GHA and candidates qualify before activation; no paid/silent provider fallback.
+- [x] Local6292 tests and independent review pass; three-coin usable9/10 and labels10/10 scheduled acceptance recorded separately as pending.
+**Stage**: FD/NFR complete under user development authorization; Code Generation6/7 complete. Live Demo credential/GHA qualification and step7 ten scheduled observations remain pending; historical/new provider integration deferred.
 **Design**: [u164](../../construction/u164-crypto-price-time-basis-repair/design-brief.md).
 **Plan**: [u164 code](../../construction/plans/u164-crypto-price-time-basis-repair-code-generation-plan.md).
 

@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
+from investo._internal.price_time_basis import price_snapshot_label
 from investo.models import NormalizedItem
 from investo.models.segments import (
     CATEGORY_LABELS,
@@ -286,12 +287,13 @@ def _coingecko_price_row(item: NormalizedItem) -> PriceSnapshotRow | None:
     high = metadata.get("high_24h")
     low = metadata.get("low_24h")
     volume = metadata.get("volume_24h")
-    if not isinstance(symbol, str) or not isinstance(price, str) or not isinstance(pct, str):
+    if not isinstance(symbol, str) or not isinstance(price, str):
         return None
     return PriceSnapshotRow(
         symbol=symbol.upper(),
+        label=price_snapshot_label(metadata),
         price=f"${_format_number_text(price)}",
-        percent_change=_format_percent_text(pct),
+        percent_change=_format_percent_text(pct) if isinstance(pct, str) else "미확인",
         volume=f"${_format_number_text(volume)}" if isinstance(volume, str) else None,
         high=f"${_format_number_text(high)}" if isinstance(high, str) else None,
         low=f"${_format_number_text(low)}" if isinstance(low, str) else None,

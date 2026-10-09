@@ -140,6 +140,8 @@ jobs:
           CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
           CODEX_SECRET_WRITE_TOKEN: ${{ secrets.CODEX_SECRET_WRITE_TOKEN }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          # Optional free CoinGecko Demo plan; no Pro API fallback (u164).
+          COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
           CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
           INVESTO_KRX_SERVICE_KEY: ${{ secrets.INVESTO_KRX_SERVICE_KEY }}

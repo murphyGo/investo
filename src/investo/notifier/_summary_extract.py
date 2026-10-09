@@ -28,6 +28,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final
 
+from investo._internal.price_time_basis import price_snapshot_label
 from investo._internal.public_quality_language import project_public_quality_language
 from investo._internal.public_summary_extract import clean_public_summary_text
 from investo.models import Briefing, NormalizedItem
@@ -64,6 +65,7 @@ class SnapshotEntry:
     pct: float | None
     price: float | None
     with_price: bool
+    time_basis: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -222,6 +224,7 @@ def _entry_for_crypto(
                 pct=pct_change(item),
                 price=price_value(item),
                 with_price=True,
+                time_basis=price_snapshot_label(item.raw_metadata),
             )
     return None
 

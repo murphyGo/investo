@@ -160,7 +160,7 @@ def _build_entry(**overrides: Any) -> dict[str, Any]:
     return base
 
 
-async def test_null_pct_24h_defaults_to_zero(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_null_pct_24h_remains_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
     # New-listing scenario: CoinGecko returns null for 24h pct.
     monkeypatch.setenv("INVESTO_COINGECKO_COINS", "bitcoin")
     body = json.dumps([_build_entry(price_change_percentage_24h=None)]).encode("utf-8")
@@ -168,8 +168,8 @@ async def test_null_pct_24h_defaults_to_zero(monkeypatch: pytest.MonkeyPatch) ->
     async with _mock_client(body) as client:
         items = await adapter.fetch(client, _WINDOW)
     assert len(items) == 1
-    assert "(+0.00%)" in items[0].title
-    assert items[0].raw_metadata["pct_24h"] == "0.000000"
+    assert "(+0.00%)" not in items[0].title
+    assert "pct_24h" not in items[0].raw_metadata
 
 
 async def test_naive_last_updated_dropped(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -408,7 +408,13 @@ async def test_shadow_publishes_all_three_segments_with_legacy_bytes_and_unchang
         outcome.state in {"finalized", "finalized_degraded"} for outcome in shadow.segment_outcomes
     )
     assert off_observed["runner"].prompts == shadow_observed["runner"].prompts
-    assert off_observed["collection_kwargs"] == shadow_observed["collection_kwargs"] == {}
+    assert (
+        off_observed["collection_kwargs"]
+        == shadow_observed["collection_kwargs"]
+        == {
+            "price_snapshot_at": _RUN_START,
+        }
+    )
     off_docs = off_observed["publish"].data["finalized_bundle"].documents
     shadow_docs = shadow_observed["publish"].data["finalized_bundle"].documents
     assert [doc.briefing.rendered_markdown for doc in off_docs] == [

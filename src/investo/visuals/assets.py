@@ -902,7 +902,9 @@ def _build_openai_market_prompt(
 
 def _format_price_rows(rows: tuple[PriceSnapshotRow, ...]) -> str:
     return "; ".join(
-        f"{row.symbol} {row.price} {row.percent_change} from {row.source_name}" for row in rows[:6]
+        f"{row.symbol} {row.price} {row.percent_change}"
+        f"{(' · ' + row.label) if row.label else ''} from {row.source_name}"
+        for row in rows[:6]
     )
 
 

@@ -42,6 +42,21 @@ from investo.visuals.provenance import sanitize_provenance_text
 # Canonical fixtures — one per secret-shaped pattern family
 # ---------------------------------------------------------------------------
 
+
+def test_coingecko_demo_key_is_redacted_across_all_diagnostic_surfaces(monkeypatch):
+    secret = "CG-syntheticreviewkey0123456789"
+    monkeypatch.setenv("COINGECKO_DEMO_API_KEY", secret)
+    text = f"COINGECKO_DEMO_API_KEY={secret}"
+    assert "COINGECKO_DEMO_API_KEY" in SECRET_ENV_VARS
+    for redact in (
+        _redact_diagnostic_text,
+        sanitize_source_error_message,
+        sanitize_provenance_text,
+        redact_text,
+    ):
+        assert secret not in redact(text)
+
+
 # Telegram bot token shape — nine-digit ID, colon, 35-char tail.
 _BOT_TOKEN = "1234567890:ABCDEF-thisIsALongerThan20Chars_xyz"
 # Long numeric chat id (≥ 7 digits triggers the chat-id regex).
@@ -293,6 +308,7 @@ class TestSingleSourceOfTruth:
             "EIA_API_KEY",
             "FRED_API_KEY",
             "CONGRESS_API_KEY",
+            "COINGECKO_DEMO_API_KEY",
             "INVESTO_KRX_SERVICE_KEY",
             "INVESTO_DATA_GO_KR_SERVICE_KEY",
             "OPENDART_API_KEY",

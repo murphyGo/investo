@@ -1,6 +1,7 @@
 # u164 Functional Design / NFR: crypto price time basis
 
-Status:DRAFT, 2026-10-09; not approved. Priority:P0-2.
+Status:Authorized for implementation, 2026-10-09. Priority:P0-2.
+User: “유닛 개발 진행해줘 / 하나 완료할떄마다 커밋 푸시해줘”.
 Source facts/candidates: [review](../source-reliability-20261009/review.md).
 
 ## Confirmed defect and bounded scope
@@ -20,7 +21,7 @@ First repair explicitly supports **조회 시점 가격** in normal schedules us
 
 ## Candidate and credential gates
 
-Current no-key request works locally, but current Demo docs require a key header. Record free account limits/attribution and GHA before activation; if needed `COINGECKO_DEMO_API_KEY` is read atfetch time, wired to both workflowtemplates, absent → isolated source failure, no Pro API/paid fallback. This is a proposed optional key path, not an existing credential.
+Current no-key request works locally. Current primary docs allow keyless prototyping but warn against scheduled production use. Preserve the existing keyless path when the optional key is absent; any HTTP failure remains isolated. `COINGECKO_DEMO_API_KEY` is read at fetch time and wired to both workflow templates as the qualified free header path, with central diagnostic redaction and no Pro API/paid fallback. Its credential is not present in the checked runtime environment. GHA access, credential provisioning and scheduled acceptance remain pending; local HTTP200 is not production qualification.
 
 History is defer: same-provider `/coins/{id}/history`, selected-date00UTC snapshot,00:35 availability, Demo365days/keyrequired; BTC local200 only. It is not anOHLC or24h change source.
 

@@ -11,9 +11,9 @@ Design choices (audit log 2026-05-01):
   single response. (Contrast with :mod:`yfinance` which is one HTTP
   per ticker.) This minimises the rate-limit surface against
   CoinGecko's free tier (~30 req/min).
-* **Strict R7 window** — crypto trades 24/7, so ``last_updated`` is
-  always within minutes of ``fetch_all`` invocation and falls
-  naturally inside the KST trading-day window. No relaxation needed.
+* **Explicit time basis** — u164 normal runs permit a live snapshot
+  within six hours of response receipt. Historical callers retain R7
+  date filtering; a current quote is never backdated to a prior close.
 * **Per-coin isolation** — a single bad entry (naive ``last_updated``,
   pydantic validation failure) is dropped without affecting siblings
   in the same response.
@@ -26,6 +26,10 @@ Pins (extension 2026-05-01):
 
 from __future__ import annotations
 
+import logging
+import math
+import os
+from datetime import UTC, datetime, timedelta
 from typing import Any, ClassVar
 
 import httpx
@@ -45,6 +49,24 @@ from investo.sources._window import FetchWindow
 from investo.sources.protocol import SourceFetchError
 
 _ENV_COINS = "INVESTO_COINGECKO_COINS"
+_ENV_DEMO_KEY = "COINGECKO_DEMO_API_KEY"
+_logger = logging.getLogger(__name__)
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _finite_number(value: Any, *, nonnegative: bool = False) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        number = float(value)
+    except (ValueError, OverflowError):
+        return None
+    if not math.isfinite(number) or (nonnegative and number < 0):
+        return None
+    return number
 
 
 @register
@@ -64,16 +86,19 @@ class CoinGeckoPriceAdapter:
         window: FetchWindow,
     ) -> list[NormalizedItem]:
         coins = parse_symbol_list(_ENV_COINS, self._DEFAULT_COINS)
+        demo_key = os.environ.get(_ENV_DEMO_KEY, "").strip()
         response = await retry_get(
             client,
             self._ENDPOINT,
             source_name=self.name,
+            headers={"x-cg-demo-api-key": demo_key} if demo_key else None,
             params={
                 "vs_currency": "usd",
                 "ids": ",".join(coins),
                 "price_change_percentage": "24h",
             },
         )
+        received_at = _utc_now()
         payload = parse_json_response(response, source_name=self.name)
 
         if not isinstance(payload, list):
@@ -91,12 +116,48 @@ class CoinGeckoPriceAdapter:
             )
 
         items: list[NormalizedItem] = []
+        invalid = stale = future = outside = 0
         for entry in payload:
             normalized = self._normalize_entry(entry)
             if normalized is None:
+                invalid += 1
                 continue
-            if window.contains(normalized.published_at):
-                items.append(normalized)
+            if window.price_snapshot_at is not None:
+                if normalized.published_at < received_at - timedelta(hours=6):
+                    stale += 1
+                    continue
+                if normalized.published_at > received_at:
+                    future += 1
+                    continue
+                as_of = normalized.published_at.isoformat()
+                normalized = normalized.model_copy(
+                    update={
+                        "title": f"조회 시점 가격 · {normalized.title}",
+                        "summary": (f"기준 {as_of} (UTC); CoinGecko; {normalized.summary or ''}")[
+                            :SUMMARY_MAX_LEN
+                        ],
+                        "raw_metadata": {
+                            **normalized.raw_metadata,
+                            "price_time_basis": "live_snapshot",
+                            "price_as_of": as_of,
+                            "observed_at": received_at.isoformat(),
+                            "price_snapshot_reference_at": window.price_snapshot_at.isoformat(),
+                            "report_target_date": window.target_date.isoformat(),
+                        },
+                    }
+                )
+            elif not window.contains(normalized.published_at):
+                outside += 1
+                continue
+            items.append(normalized)
+        _logger.info(
+            "coingecko eligibility kept=%d invalid=%d stale=%d future=%d outside_window=%d",
+            len(items),
+            invalid,
+            stale,
+            future,
+            outside,
+        )
         return items
 
     def _normalize_entry(self, entry: Any) -> NormalizedItem | None:
@@ -105,11 +166,12 @@ class CoinGeckoPriceAdapter:
 
         coin_id = entry.get("id")
         symbol = entry.get("symbol")
-        price = entry.get("current_price")
+        price = _finite_number(entry.get("current_price"), nonnegative=True)
         if (
             not isinstance(coin_id, str)
             or not isinstance(symbol, str)
-            or not isinstance(price, (int, float))
+            or price is None
+            or price <= 0
         ):
             return None
 
@@ -121,22 +183,25 @@ class CoinGeckoPriceAdapter:
         except ValueError:
             return None
 
-        # CoinGecko returns null for new listings without a 24h history.
-        # Default to 0.0 so the item is still emitted with a flat title.
-        pct_raw = entry.get("price_change_percentage_24h")
-        pct = float(pct_raw) if isinstance(pct_raw, (int, float)) else 0.0
-
-        volume_24h = entry.get("total_volume") or 0
-        market_cap = entry.get("market_cap") or 0
-        high_24h = entry.get("high_24h") or 0.0
-        low_24h = entry.get("low_24h") or 0.0
-
-        title = f"{symbol.upper()} ${float(price):,.2f} ({pct:+.2f}%)"
-        summary = (
-            f"24h vol: ${float(volume_24h):,.0f}; "
-            f"market cap: ${float(market_cap):,.0f}; "
-            f"high: ${float(high_24h):,.2f}; "
-            f"low: ${float(low_24h):,.2f}"
+        pct = _finite_number(entry.get("price_change_percentage_24h"))
+        metrics = {
+            "volume_24h": _finite_number(entry.get("total_volume"), nonnegative=True),
+            "market_cap": _finite_number(entry.get("market_cap"), nonnegative=True),
+            "high_24h": _finite_number(entry.get("high_24h"), nonnegative=True),
+            "low_24h": _finite_number(entry.get("low_24h"), nonnegative=True),
+        }
+        title = f"{symbol.upper()} ${price:,.2f}"
+        if pct is not None:
+            title += f" ({pct:+.2f}%)"
+        summary = "; ".join(
+            f"{label}: ${value:,.{precision}f}"
+            for key, label, precision in (
+                ("volume_24h", "24h vol", 0),
+                ("market_cap", "market cap", 0),
+                ("high_24h", "high", 2),
+                ("low_24h", "low", 2),
+            )
+            if (value := metrics[key]) is not None
         )
         if len(summary) > SUMMARY_MAX_LEN:
             summary = summary[:SUMMARY_MAX_LEN]
@@ -144,20 +209,20 @@ class CoinGeckoPriceAdapter:
         raw_metadata: dict[str, str] = {
             "coin_id": coin_id,
             "symbol": symbol,
-            "price_usd": format_float(float(price)),
-            "pct_24h": format_float(pct),
-            "volume_24h": format_float(float(volume_24h)),
-            "market_cap": format_float(float(market_cap)),
-            "high_24h": format_float(float(high_24h)),
-            "low_24h": format_float(float(low_24h)),
+            "price_usd": format_float(price),
         }
+        if pct is not None:
+            raw_metadata["pct_24h"] = format_float(pct)
+        raw_metadata.update(
+            {key: format_float(value) for key, value in metrics.items() if value is not None}
+        )
 
         try:
             return NormalizedItem(
                 source_name=self.name,
                 category=self.category,
                 title=title,
-                summary=summary,
+                summary=summary or None,
                 url=f"https://www.coingecko.com/en/coins/{coin_id}",
                 published_at=last_updated,
                 raw_metadata=raw_metadata,

@@ -139,6 +139,12 @@ def serialize_items_for_prompt(items: Sequence[NormalizedItem]) -> str:
             "ts": item.published_at.astimezone(UTC).isoformat(),
         }
         macro_payload = macro_prompt_payload(item)
+        if item.raw_metadata.get("price_time_basis") == "live_snapshot":
+            entry["price_observation"] = {
+                key: item.raw_metadata[key]
+                for key in ("price_time_basis", "price_as_of", "observed_at", "report_target_date")
+                if key in item.raw_metadata
+            }
         if macro_payload is not None:
             entry["macro"] = macro_payload
         payload.append(entry)

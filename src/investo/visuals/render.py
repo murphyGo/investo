@@ -222,11 +222,18 @@ def _render_price_snapshot(
         if row.volume:
             details = f"{details} · V {row.volume}"
         rows.append(_row_line(row.symbol, details, y=y))
+        if row.label is not None:
+            rows.append(
+                f'<text class="card-subtitle" x="310" y="{y + 26}" '
+                f'font-family="{_FONT_FAMILY}" font-size="18">{_escape(row.label)}</text>'
+            )
         y += 62
     # u66 — crypto trades 24/7; label the snapshot as a UTC 24h frame
     # rather than an equity close. Other segments keep the plain date.
     subtitle = card.target_date.isoformat()
-    if card.segment == "crypto":
+    if any(row.label and "조회 시점 가격" in row.label for row in card.rows):
+        subtitle = f"대상일 {subtitle} · 조회 시점 가격"
+    elif card.segment == "crypto":
         subtitle = f"{subtitle} · UTC 24h 스냅샷"
     return _svg_document(
         title=f"{SEGMENT_LABELS[card.segment]} 가격 스냅샷",

@@ -87,6 +87,7 @@ from itertools import combinations
 from typing import Final, Literal, cast
 
 from investo._internal.decimal_format import shortest_exact_decimal
+from investo._internal.price_time_basis import price_snapshot_label
 from investo._internal.public_quality_language import (
     PUBLIC_LOW_COVERAGE_INLINE_TEXT,
     PUBLIC_LOW_COVERAGE_LABEL,
@@ -803,20 +804,26 @@ def _coingecko_candidate(item: WatchpointItemSnapshot) -> _CurrentValueCandidate
     coin_id = _metadata_text(item, "coin_id")
     price = _metadata_text(item, "price_usd")
     pct = _metadata_text(item, "pct_24h")
-    if None in (symbol, coin_id, price, pct):
+    if None in (symbol, coin_id, price):
         return None
-    assert symbol is not None and coin_id is not None and price is not None and pct is not None
+    assert symbol is not None and coin_id is not None and price is not None
     rendered_price = _format_price_value(price, prefix="$")
-    rendered_pct = _format_pct_value(pct)
-    if rendered_price is None or rendered_pct is None:
+    rendered_pct = _format_pct_value(pct) if pct is not None else None
+    if rendered_price is None:
         return None
+    current = rendered_price
+    if rendered_pct is not None:
+        current += f" ({rendered_pct})"
+    snapshot_label = price_snapshot_label(dict(item.metadata))
+    if snapshot_label is not None:
+        current += f" · {snapshot_label}"
     ticker = f"{symbol.upper()}-USD"
     label = anchor_label(ticker)
     return _CurrentValueCandidate(
         match_tokens=tuple(
             dict.fromkeys((symbol.upper(), ticker, coin_id, label.short, label.ko, label.display))
         ),
-        current=f"{rendered_price} ({rendered_pct})",
+        current=current,
         label=f"{label.ko} 가격",
         family="price",
         identity=ticker,

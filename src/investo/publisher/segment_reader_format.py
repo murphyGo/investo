@@ -65,6 +65,7 @@ from investo.publisher.daily_thesis import (
 )
 from investo.publisher.event_blocks import terminal_events
 from investo.publisher.event_watchpoints import build_event_watchpoints
+from investo.publisher.price_time_basis import insert_price_time_basis
 from investo.publisher.reader_format import (
     apply_reader_format,
     check_filler_phrase_density,
@@ -280,6 +281,7 @@ def apply_reader_format_to_segments(
         segment_source_items = (
             items_by_segment.get(segment, ()) if items_by_segment is not None else ()
         )
+        markdown = insert_price_time_basis(markdown, segment_source_items)
         channel_block = render_channel_anchor_block(
             segment,
             anchors=anchors,

@@ -583,11 +583,17 @@ async def _default_generate_segment_briefing(
     )
 
 
+class _CollectionClockOptions(TypedDict, total=False):
+    evidence_received_at: datetime
+    price_snapshot_at: datetime
+
+
 async def _stage_collect(
     target_date: date,
     *,
     fetch: CollectCallable | None = None,
     evidence_received_at: datetime | None = None,
+    price_snapshot_at: datetime | None = None,
 ) -> tuple[list[NormalizedItem], tuple[SourceOutcome, ...]]:
     """Run u1's source aggregator and gate on a non-empty result.
 
@@ -628,11 +634,12 @@ async def _stage_collect(
         items = await fetch(target_date)
         outcomes: tuple[SourceOutcome, ...] = ()
     else:
-        report = (
-            await _default_collect_sources(target_date, evidence_received_at=evidence_received_at)
-            if evidence_received_at is not None
-            else await _default_collect_sources(target_date)
-        )
+        collection_options: _CollectionClockOptions = {}
+        if evidence_received_at is not None:
+            collection_options["evidence_received_at"] = evidence_received_at
+        if price_snapshot_at is not None:
+            collection_options["price_snapshot_at"] = price_snapshot_at
+        report = await _default_collect_sources(target_date, **collection_options)
         items = list(report.items)
         outcomes = report.outcomes
     _logger.info("[collect] returned %d items outcomes=%d", len(items), len(outcomes))
@@ -3015,6 +3022,8 @@ class CollectStage:
         evidence_options = (
             {"evidence_received_at": evidence_clock} if ctx.event_config.uses_v2 else {}
         )
+        if not ctx.news_replay and ctx.run_started_at is not None:
+            evidence_options["price_snapshot_at"] = ctx.run_started_at
         try:
             if news_plan is not None and news_plan.mode == "active":
                 if fetch is None:
