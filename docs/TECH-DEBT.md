@@ -156,6 +156,8 @@ _No medium priority items._
 - **Effort**: ~2-3 h once a structured free KRX index path is confirmed (adapter tier + R10 fixture + precedence test); unknown if no public path exists.
 - **Priority Reasoning**: Low — KRX + Stooq cover KOSPI on the hot path, and the degradation is visible (coverage badge), not silent. Promote to Medium if operations show the Yonhap terminal tier firing frequently (i.e., KRX + Stooq routinely empty on the KST-morning cron) such that KOSPI/KOSDAQ close is regularly missing for readers.
 
+- **u166 revalidation (2026-10-10)**: Remains open. Current FSC guide specifies the V2 URL and pagination; diagnostic repair is scoped to the existing source. FSC public redistribution is not newly qualified, KRX OpenAPI requires separate key/service approvals, and no structured public fallback is promoted. Existing Yonhap fallback remains best effort. See [qualification](../aidlc-docs/construction/u166-domestic-price-source-qualification/qualification.md).
+
 #### DEBT-069: Domestic anchor rows are close-only (no note column) — Yahoo KR history 429
 
 - **Created**: 2026-05-24

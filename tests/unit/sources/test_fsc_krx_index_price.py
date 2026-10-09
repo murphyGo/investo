@@ -76,7 +76,7 @@ async def test_malformed_numeric_row_is_dropped(monkeypatch: pytest.MonkeyPatch)
     {
       "response": {
         "header": {"resultCode": "00", "resultMsg": "NORMAL SERVICE."},
-        "body": {"items": {"item": {
+        "body": {"pageNo": 1, "numOfRows": 100, "totalCount": 1, "items": {"item": {
           "basDt": "20260507",
           "idxNm": "\ucf54\uc2a4\ud53c",
           "clpr": "not-a-number",

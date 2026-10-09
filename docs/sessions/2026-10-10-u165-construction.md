@@ -13,3 +13,5 @@ u16460ef00ec exact remote CI37944367981 SUCCESS; all quality workflow stages pas
 No new unresolved code debt. DEBT-068 and existing source/provider/activation gates remain open. Public workflow template delivery does not edit private runtime pin or Variables.
 
 Final gate: full6357 PASS541.11s, final independent311 PASS/review CLOSED. Ruff/format682/mypy292/policy4/strict docs/Material/diff PASS. Actual coverage reason SOURCE_SKIPPED and CORE_SKIPPED now map exhaustively to existing public limitations; real coverage→finalizer→canonical/replay is tested. Code complete7/8; operationalstep8 remains pending. No original-root dirty files are included.
+
+Remote delivery:21c979e4475fc3cc68ae76dda7897025251776a7 pushed to main and remote exact SHA verified. Quality37952883931 SUCCESS;6357 tests PASS317.24s, all static/policy/docs/Material checks successful.
