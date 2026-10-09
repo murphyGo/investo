@@ -1,6 +1,6 @@
 # Code Generation Plan: u166 domestic-price-source-qualification
 
-Date:2026-10-09. Status:CODE COMPLETE6/7; source-only post-push probe step7 pending; Functional Design/NFR authorized by explicit user development/per-unit commit instruction.
+Date:2026-10-09. Status:CODE/DIAGNOSIS COMPLETE7/7; public fallback/runtime/scheduled recovery gates remain; Functional Design/NFR authorized by explicit user development/per-unit commit instruction.
 Priority:P1-2. Estimate:4–8h diagnosis; qualification depends on externalaccess/terms.
 [Design](../u166-domestic-price-source-qualification/design-brief.md). Debt:DEBT-068.
 Coverage:US-001/002/003/007/008; FR-001/006/008/010/017/021; NFR-001/002/003/005/006/007/008.
@@ -18,7 +18,7 @@ Functional Design and NFR Requirements required and finalized in unit artifacts:
 - [x] 5. Evaluate KRX OpenAPI separatekey/publicdisplay/indexfields/GHA versus existingYonhap fallback. Produce ship-now/defer/reject. Do notadd adapter or swapowner on unresolvedqualifications.
 - [x] 6. Run focused/full/static/policy validation. Record diagnosticcode completion separately fromblocked sourcequalification. DEBT-068 staysopen unless qualifiedfallback is integrated/accepted.
 
-- [ ] 7. After reviewed code/workflow push, dispatch source-only probe on exact main SHA and availabledate. Record sanitized receipt; keep public rights, private activation and ten scheduled recovery separate.
+- [x] 7. After reviewed code/workflow push, dispatch source-only probe on exact main SHA and availabledate. Record sanitized receipt; keep public rights, private activation and ten scheduled recovery separate.
 
 ## Required surfaces and tests
 
@@ -31,3 +31,7 @@ Newqualified source requires its own module/name/auth/cost/rate/license/fields/c
 Implementation: normal fetch delegates to immutable per-call diagnostics report; no adapter instance state. V2 URL/page fields validated, total count/row completeness and cross-page count checked, incomplete-without-usable is failure; existing usable siblings survive. Fixed enums only, no provider message/cause/query URL. Numeric zero/exact integer and basis-date bounds validated. New37 tests PASS; focused source/retry/plugin/domestic/u149 regression152 PASS before final3 paging cases. Full final gate on u16521c979e4 follows.
 
 Final local gate2026-10-10:6400 PASS516.48s. Fresh independent144 PASS3.44s/review CLOSED, Ruff/format684/mypy292/policy4/strict docs/Material/diff PASS. Source qualification may remain defer after a successful diagnosis; neither public redistribution nor private deployment is approved by this code validation.
+
+Step7 complete: exact e9fb0c9c source-only Actions37955145349 SUCCESS, basis2026-10-07 API00 total171, first100 target0, second71 target3/valid3; usable3. Paging exclusion is confirmed on this date; not retrospective proof for all25runs or oldURL behavior. Sanitized receipt in qualification evidence. Rights/private deployment/ten scheduled acceptance remain separate.
+
+Exact delivered code e9fb0c9c49308788871c49eedec5bf6efe498126 quality37955131278 SUCCESS:6425 tests PASS293.88s, Ruff/format687/mypy293, all4 policy guards/strict docs/Material PASS. Includes concurrent u154 layout and u165 lifecycle. Source-only37955145349 separately SUCCESS with3 usable indices. This follow-up changes records only; code/config/tests remain identical to the reviewed passing code commit.

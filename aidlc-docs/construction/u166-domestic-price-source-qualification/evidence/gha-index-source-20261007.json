@@ -1,0 +1,38 @@
+{
+  "source": "fsc-krx-index-price",
+  "target_date": "2026-10-07",
+  "head_sha": "e9fb0c9c49308788871c49eedec5bf6efe498126",
+  "run_id": 37955145349,
+  "run_url": "https://github.com/murphyGo/investo/actions/runs/37955145349",
+  "conclusion": "success",
+  "status": "ok",
+  "usable_items": 3,
+  "diagnostics": [
+    {
+      "requested_date": "2026-10-07",
+      "page": 1,
+      "http_status": 200,
+      "result_code": "00",
+      "total_count": 171,
+      "returned_rows": 100,
+      "wanted_match_count": 0,
+      "valid_row_count": 0,
+      "selected_date": null,
+      "reason": "name_mismatch",
+      "exclusions": [["name_mismatch", 100]]
+    },
+    {
+      "requested_date": "2026-10-07",
+      "page": 2,
+      "http_status": 200,
+      "result_code": "00",
+      "total_count": 171,
+      "returned_rows": 71,
+      "wanted_match_count": 3,
+      "valid_row_count": 3,
+      "selected_date": "2026-10-07",
+      "reason": "usable",
+      "exclusions": [["name_mismatch", 68]]
+    }
+  ]
+}

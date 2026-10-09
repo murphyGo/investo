@@ -15,3 +15,7 @@ Final independent review CLOSED:144 tests PASS3.44s; Ruff/format684/mypy292/diff
 Final local gate:6400 tests PASS516.48s, independent144 PASS/review CLOSED; Ruff/format684/mypy292/policy4/strict docs/Material/diff PASS. Code complete6/7; step7 read-only authenticated runner probe follows delivery. Public rights/private activation/ten scheduled observations remain separate.
 
 Integration preserves concurrent u154301d2c5a. Local full6400/516.48s was on u16521c979e4; rebased combined-head focused437 PASS14.44s, Ruff/format687/mypy293/strict docs/Material/diff PASS. Exact combined-head full verification follows in remote quality CI. Source code did not change during rebase; both audit records are retained.
+
+Step7 diagnosis complete: exact e9fb0c9c Actions37955145349 SUCCESS2026-10-09T15:54:26UTC; basis2026-10-07, API00 total171, first100 target0, second71 target3/valid3; usable3. First-page-only exclusion is confirmed for this date, not every historicalzero or oldURL cause. No raw values/credentials stored. Code/diagnosis7/7 complete; public redistribution/private rollout/ten-run recovery and DEBT-068 stay separate.
+
+Exact delivered code e9fb0c9c49308788871c49eedec5bf6efe498126 quality37955131278 SUCCESS:6425 tests PASS293.88s, Ruff/format687/mypy293, all4 policy guards/strict docs/Material PASS. Includes concurrent u154 layout and u165 lifecycle. Source-only37955145349 separately SUCCESS with3 usable indices. This follow-up changes records only; code/config/tests remain identical to the reviewed passing code commit.
