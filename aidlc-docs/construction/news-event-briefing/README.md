@@ -1,7 +1,7 @@
 # 뉴스·이벤트 중심 시황 개발 설계
 
 **Date**: 2026-09-26
-**Status**: u157–u162와 필수u152 개발·main 통합 완료. 1bb7d23c exact-CI6187 PASS. 운영 shadow의 실제 예약 관찰5/5회(4정상·1부분 발행)를 확인했다. 사람 의미 검수·뉴스 풍부한 날 baseline·실제 사건이 포함된 v2 수용은 pending이며 사건 본문 active는 아직 off다. 미리보기 이력 연결과 기간/단위 retry 보정을 검증 중이다. 현재 증거: `docs/sessions/2026-10-09-news-event-rollout.md`.
+**Status**: u157–u162와 필수u152 개발·main 통합 완료. 1bb7d23c exact-CI6187 PASS. 운영 shadow의 실제 예약 관찰5/5회(4정상·1부분 발행)를 확인했다. 사람 의미 검수·뉴스 풍부한 날 baseline·실제 사건이 포함된 v2 수용은 pending이며 사건 본문 active는 아직 off다. 미리보기 보정269a15dc가 exact-CI6197을 통과했고 비공개 배포d432c4a를 확인했다. 실제 국내5·미국3사건이 봉인 본문에 보존됐으며 모두 상세근거 제한 상태다. 코인은 synthesis3회 후 event.entity_unsupported로 차단됐다. 사람 검수·뉴스 풍부한 날 baseline 및 운영 수용은 pending이다. 동시u155 저장소 이름 변경 중에는 예약 실행도 일시 중지된다(09:54UTC 스냅샷). 현재 증거: `docs/sessions/2026-10-09-news-event-rollout.md`.
 **Baseline**: `04978d81ec9ece8f4083e4be190c6539bdf3b5ff` (origin/main).
 **Source**: 사용자 “그럼, 해당 기획을 유닛으로 정리하고, 어떻게 개발할지 설계해줘”.
 
