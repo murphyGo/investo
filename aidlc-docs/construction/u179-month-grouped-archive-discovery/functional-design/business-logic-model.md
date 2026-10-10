@@ -1,0 +1,9 @@
+# u179 Business logic model
+
+2026-10-10 developer decisions under all-UI-development authorization. Reuse the single `_segment_entries` walker and atomic index writer. Canonical valid date/path entries group by YYYY-MM, newest month/day first. Safe existing noncanonical/date-invalid documents remain reachable in a separate 경로 확인이 필요한 문서 section; they are never promoted to a fabricated date. Files escaping the archive root through symlinks/nonfiles are rejected. Latest fallback continues consuming the same scanner and original actual relative path.
+
+Native closed month jump navigation + all static month groups are present with JS off. Enhancement reveals a month select and date-text search only after installation; inclusive whole-month match + literal date substring, reset, polite result count and distinct no-match message. No URL state/storage/clock. Extra documents stay visible separately.
+
+Historical files have no persisted E6 document hash metadata, so default historical snippets are omitted and contents are never read. Only a passed immutable FinalizedPublicDocument from the current already-written bundle permits legacy summary extraction. Existing neutral extraction/canonical plain-summary cleanup + bound_at_sentence(require_complete=True,120) is reused; incomplete/over120/truncation that could lose a limitation yields link-only. Pipeline passes the actual finalized bundle through the index driver; legacy/nonsegmented callers remain optional/defaultNone. No new metadata reader/registry.
+
+Future u171 adapter may supply exact terminal snippets and limitation copy keyed by canonical path; these bypass legacy extraction/projection/120 limits and are escaped as-is. Missing snippet still preserves exact limitation and date link. Sidecar/hash/digest-vs-headline/availability eligibility remains u171, not a duplicate UI reader.

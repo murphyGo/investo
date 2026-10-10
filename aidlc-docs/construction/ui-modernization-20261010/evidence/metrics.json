@@ -1,0 +1,3029 @@
+[
+  {
+    "name": "home",
+    "variant": "desktop-light",
+    "url": "https://murphygo.github.io/investo/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/home-desktop-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/home-desktop-light-viewport.png",
+    "title": "Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1305,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "Investo — 데일리 시황",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "오늘의 시황 (2026-10-08)",
+        "top": 295,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "최신 시황",
+        "top": 716,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "사이트 안내",
+        "top": 983,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "전체 Archive 보기",
+        "href": "archive/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      },
+      {
+        "text": "주차별 회고",
+        "href": "archive/weekly/"
+      },
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "최근 2026-10-07",
+        "href": "archive/crypto/2026/10/2026-10-07/"
+      },
+      {
+        "text": "전체 Archive 보기",
+        "href": "archive/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      },
+      {
+        "text": "Archive 인덱스",
+        "href": "archive/"
+      },
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/"
+      },
+      {
+        "text": "크립토",
+        "href": "archive/crypto/"
+      },
+      {
+        "text": "주차별 회고",
+        "href": "archive/weekly/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      }
+    ]
+  },
+  {
+    "name": "us",
+    "variant": "desktop-light",
+    "url": "https://murphygo.github.io/investo/archive/us-equity/2026/10/2026-10-08/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/us-desktop-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/us-desktop-light-viewport.png",
+    "title": "2026-10-08 미국 증시 시황 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 7973,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "2026-10-08 미국 증시 시황",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "2026-10-08 미국 증시 시황",
+        "top": 269,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "한눈에 보기",
+        "top": 1491,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⓪ 오늘의 매크로",
+        "top": 1658,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⓪-B 채널 기준선",
+        "top": 1775,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "① 요약",
+        "top": 2233,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "② 전일 핵심 이슈",
+        "top": 3271,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "③ 섹터/수급 동향",
+        "top": 3774,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "④ 지표·이벤트",
+        "top": 4335,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⑤ 주요 종목",
+        "top": 5208,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⑥ 오늘의 관전 포인트",
+        "top": 6731,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⑦ 면책조항",
+        "top": 7777,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 6,
+        "columns": 4,
+        "width": 553,
+        "parentWidth": 585
+      },
+      {
+        "rows": 5,
+        "columns": 2,
+        "width": 688,
+        "parentWidth": 720
+      },
+      {
+        "rows": 4,
+        "columns": 3,
+        "width": 375,
+        "parentWidth": 407
+      },
+      {
+        "rows": 8,
+        "columns": 5,
+        "width": 601,
+        "parentWidth": 633
+      },
+      {
+        "rows": 6,
+        "columns": 3,
+        "width": 302,
+        "parentWidth": 334
+      }
+    ],
+    "details": [
+      {
+        "summary": "^GSPCS&P 5007,765-0.47%",
+        "open": false,
+        "top": 5263,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "^IXIC나스닥 종합27,193-1.25%",
+        "open": false,
+        "top": 5325,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "^DJI다우존스51,232+0.10%",
+        "open": false,
+        "top": 5388,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "AAPL애플340.4+1.11%",
+        "open": false,
+        "top": 5450,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "MSFT마이크로소프트522.6-1.35%",
+        "open": false,
+        "top": 5513,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "수집/품질 진단",
+        "open": false,
+        "top": 7698,
+        "width": 688,
+        "height": 38
+      }
+    ],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "../../../../domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "./"
+      },
+      {
+        "text": "CFTC(미국 상품선물거래위원회) 주간 보고서",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "CFTC 보고서",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "제공된 종가 기사",
+        "href": "https://www.nasdaq.com/articles/broader-market-settles-lower-soaring-crude-prices-and-chipmaker-weakness"
+      },
+      {
+        "text": "CFTC 주간 자료",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "FRED(미국 경제통계 데이터베이스)의 DFF(실효 연방기금금리)",
+        "href": "https://fred.stlouisfed.org/series/DFF"
+      },
+      {
+        "text": "UNRATE(실업률)",
+        "href": "https://fred.stlouisfed.org/series/UNRATE"
+      },
+      {
+        "text": "미국 노동통계국 자료",
+        "href": "https://www.bls.gov/data/"
+      },
+      {
+        "text": "Federal Reserve(미국 연방준비제도)",
+        "href": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+      },
+      {
+        "text": "아멕스의 신규 분석 개시",
+        "href": "https://www.nasdaq.com/articles/amerx-initiates-coverage-crowdstrike-holdings-underweight-rating"
+      },
+      {
+        "text": "제프리스",
+        "href": "https://www.nasdaq.com/articles/jefferies-upgrades-royal-caribbean-cruises-buy-hold"
+      },
+      {
+        "text": "제이피모건",
+        "href": "https://www.nasdaq.com/articles/jp-morgan-upgrades-pacira-biosciences-neutral-underweight"
+      }
+    ]
+  },
+  {
+    "name": "archive",
+    "variant": "desktop-light",
+    "url": "https://murphygo.github.io/investo/archive/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/archive-desktop-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/archive-desktop-light-viewport.png",
+    "title": "최신 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1525,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "시황 아카이브",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "발행 캘린더",
+        "top": 345,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "최신 시황",
+        "top": 760,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "과거 단일 시황",
+        "top": 985,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "경로 안내",
+        "top": 1169,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "최근 2026-10-07",
+        "href": "crypto/2026/10/2026-10-07/"
+      },
+      {
+        "text": "2026-05-06 단일 시황 (레거시)",
+        "href": "2026/05/2026-05-06/"
+      },
+      {
+        "text": "archive/domestic-equity/",
+        "href": "domestic-equity/"
+      },
+      {
+        "text": "archive/us-equity/",
+        "href": "us-equity/"
+      },
+      {
+        "text": "archive/crypto/",
+        "href": "crypto/"
+      },
+      {
+        "text": "archive/weekly/",
+        "href": "weekly/"
+      },
+      {
+        "text": "About",
+        "href": "../about/"
+      }
+    ]
+  },
+  {
+    "name": "us-index",
+    "variant": "desktop-light",
+    "url": "https://murphygo.github.io/investo/archive/us-equity/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/us-index-desktop-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/us-index-desktop-light-viewport.png",
+    "title": "미국 증시 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 3664,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "미국 증시 시황 아카이브",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "전체 Archive로 돌아가기",
+        "href": "../"
+      },
+      {
+        "text": "2026-10-08",
+        "href": "2026/10/2026-10-08/"
+      },
+      {
+        "text": "2026-10-07",
+        "href": "2026/10/2026-10-07/"
+      },
+      {
+        "text": "2026-10-06",
+        "href": "2026/10/2026-10-06/"
+      },
+      {
+        "text": "2026-10-05",
+        "href": "2026/10/2026-10-05/"
+      },
+      {
+        "text": "2026-10-02",
+        "href": "2026/10/2026-10-02/"
+      },
+      {
+        "text": "2026-10-01",
+        "href": "2026/10/2026-10-01/"
+      },
+      {
+        "text": "2026-09-30",
+        "href": "2026/09/2026-09-30/"
+      },
+      {
+        "text": "2026-09-25",
+        "href": "2026/09/2026-09-25/"
+      },
+      {
+        "text": "2026-09-24",
+        "href": "2026/09/2026-09-24/"
+      },
+      {
+        "text": "2026-09-23",
+        "href": "2026/09/2026-09-23/"
+      },
+      {
+        "text": "2026-09-22",
+        "href": "2026/09/2026-09-22/"
+      },
+      {
+        "text": "2026-09-21",
+        "href": "2026/09/2026-09-21/"
+      },
+      {
+        "text": "2026-09-18",
+        "href": "2026/09/2026-09-18/"
+      },
+      {
+        "text": "2026-09-17",
+        "href": "2026/09/2026-09-17/"
+      },
+      {
+        "text": "2026-09-16",
+        "href": "2026/09/2026-09-16/"
+      },
+      {
+        "text": "2026-09-15",
+        "href": "2026/09/2026-09-15/"
+      },
+      {
+        "text": "2026-09-11",
+        "href": "2026/09/2026-09-11/"
+      },
+      {
+        "text": "2026-09-10",
+        "href": "2026/09/2026-09-10/"
+      },
+      {
+        "text": "2026-09-09",
+        "href": "2026/09/2026-09-09/"
+      },
+      {
+        "text": "2026-09-08",
+        "href": "2026/09/2026-09-08/"
+      },
+      {
+        "text": "2026-09-07",
+        "href": "2026/09/2026-09-07/"
+      },
+      {
+        "text": "2026-09-04",
+        "href": "2026/09/2026-09-04/"
+      },
+      {
+        "text": "2026-09-03",
+        "href": "2026/09/2026-09-03/"
+      },
+      {
+        "text": "2026-08-31",
+        "href": "2026/08/2026-08-31/"
+      },
+      {
+        "text": "2026-08-28",
+        "href": "2026/08/2026-08-28/"
+      },
+      {
+        "text": "2026-08-27",
+        "href": "2026/08/2026-08-27/"
+      },
+      {
+        "text": "2026-08-25",
+        "href": "2026/08/2026-08-25/"
+      },
+      {
+        "text": "2026-08-21",
+        "href": "2026/08/2026-08-21/"
+      },
+      {
+        "text": "2026-08-20",
+        "href": "2026/08/2026-08-20/"
+      },
+      {
+        "text": "2026-08-19",
+        "href": "2026/08/2026-08-19/"
+      },
+      {
+        "text": "2026-08-18",
+        "href": "2026/08/2026-08-18/"
+      },
+      {
+        "text": "2026-08-17",
+        "href": "2026/08/2026-08-17/"
+      },
+      {
+        "text": "2026-08-14",
+        "href": "2026/08/2026-08-14/"
+      },
+      {
+        "text": "2026-08-13",
+        "href": "2026/08/2026-08-13/"
+      },
+      {
+        "text": "2026-08-12",
+        "href": "2026/08/2026-08-12/"
+      },
+      {
+        "text": "2026-08-11",
+        "href": "2026/08/2026-08-11/"
+      },
+      {
+        "text": "2026-08-10",
+        "href": "2026/08/2026-08-10/"
+      },
+      {
+        "text": "2026-08-07",
+        "href": "2026/08/2026-08-07/"
+      },
+      {
+        "text": "2026-08-06",
+        "href": "2026/08/2026-08-06/"
+      },
+      {
+        "text": "2026-08-05",
+        "href": "2026/08/2026-08-05/"
+      },
+      {
+        "text": "2026-08-04",
+        "href": "2026/08/2026-08-04/"
+      },
+      {
+        "text": "2026-08-03",
+        "href": "2026/08/2026-08-03/"
+      },
+      {
+        "text": "2026-07-31",
+        "href": "2026/07/2026-07-31/"
+      },
+      {
+        "text": "2026-07-30",
+        "href": "2026/07/2026-07-30/"
+      },
+      {
+        "text": "2026-07-29",
+        "href": "2026/07/2026-07-29/"
+      },
+      {
+        "text": "2026-07-28",
+        "href": "2026/07/2026-07-28/"
+      },
+      {
+        "text": "2026-07-27",
+        "href": "2026/07/2026-07-27/"
+      },
+      {
+        "text": "2026-07-24",
+        "href": "2026/07/2026-07-24/"
+      },
+      {
+        "text": "2026-07-23",
+        "href": "2026/07/2026-07-23/"
+      },
+      {
+        "text": "2026-07-22",
+        "href": "2026/07/2026-07-22/"
+      },
+      {
+        "text": "2026-07-21",
+        "href": "2026/07/2026-07-21/"
+      },
+      {
+        "text": "2026-07-18",
+        "href": "2026/07/2026-07-18/"
+      },
+      {
+        "text": "2026-07-17",
+        "href": "2026/07/2026-07-17/"
+      },
+      {
+        "text": "2026-07-14",
+        "href": "2026/07/2026-07-14/"
+      },
+      {
+        "text": "2026-07-13",
+        "href": "2026/07/2026-07-13/"
+      },
+      {
+        "text": "2026-07-10",
+        "href": "2026/07/2026-07-10/"
+      },
+      {
+        "text": "2026-07-07",
+        "href": "2026/07/2026-07-07/"
+      },
+      {
+        "text": "2026-07-06",
+        "href": "2026/07/2026-07-06/"
+      },
+      {
+        "text": "2026-07-03",
+        "href": "2026/07/2026-07-03/"
+      },
+      {
+        "text": "2026-07-02",
+        "href": "2026/07/2026-07-02/"
+      },
+      {
+        "text": "2026-07-01",
+        "href": "2026/07/2026-07-01/"
+      },
+      {
+        "text": "2026-06-30",
+        "href": "2026/06/2026-06-30/"
+      },
+      {
+        "text": "2026-06-29",
+        "href": "2026/06/2026-06-29/"
+      },
+      {
+        "text": "2026-06-26",
+        "href": "2026/06/2026-06-26/"
+      },
+      {
+        "text": "2026-06-25",
+        "href": "2026/06/2026-06-25/"
+      },
+      {
+        "text": "2026-06-24",
+        "href": "2026/06/2026-06-24/"
+      },
+      {
+        "text": "2026-06-23",
+        "href": "2026/06/2026-06-23/"
+      },
+      {
+        "text": "2026-06-22",
+        "href": "2026/06/2026-06-22/"
+      },
+      {
+        "text": "2026-06-19",
+        "href": "2026/06/2026-06-19/"
+      },
+      {
+        "text": "2026-06-18",
+        "href": "2026/06/2026-06-18/"
+      },
+      {
+        "text": "2026-06-17",
+        "href": "2026/06/2026-06-17/"
+      },
+      {
+        "text": "2026-06-16",
+        "href": "2026/06/2026-06-16/"
+      },
+      {
+        "text": "2026-06-15",
+        "href": "2026/06/2026-06-15/"
+      },
+      {
+        "text": "2026-06-12",
+        "href": "2026/06/2026-06-12/"
+      },
+      {
+        "text": "2026-06-11",
+        "href": "2026/06/2026-06-11/"
+      },
+      {
+        "text": "2026-06-10",
+        "href": "2026/06/2026-06-10/"
+      },
+      {
+        "text": "2026-06-09",
+        "href": "2026/06/2026-06-09/"
+      },
+      {
+        "text": "2026-06-08",
+        "href": "2026/06/2026-06-08/"
+      },
+      {
+        "text": "2026-06-04",
+        "href": "2026/06/2026-06-04/"
+      },
+      {
+        "text": "2026-06-03",
+        "href": "2026/06/2026-06-03/"
+      },
+      {
+        "text": "2026-06-02",
+        "href": "2026/06/2026-06-02/"
+      },
+      {
+        "text": "2026-06-01",
+        "href": "2026/06/2026-06-01/"
+      },
+      {
+        "text": "2026-05-29",
+        "href": "2026/05/2026-05-29/"
+      },
+      {
+        "text": "2026-05-28",
+        "href": "2026/05/2026-05-28/"
+      },
+      {
+        "text": "2026-05-26",
+        "href": "2026/05/2026-05-26/"
+      },
+      {
+        "text": "2026-05-25",
+        "href": "2026/05/2026-05-25/"
+      },
+      {
+        "text": "2026-05-22",
+        "href": "2026/05/2026-05-22/"
+      },
+      {
+        "text": "2026-05-21",
+        "href": "2026/05/2026-05-21/"
+      },
+      {
+        "text": "2026-05-20",
+        "href": "2026/05/2026-05-20/"
+      },
+      {
+        "text": "2026-05-19",
+        "href": "2026/05/2026-05-19/"
+      },
+      {
+        "text": "2026-05-18",
+        "href": "2026/05/2026-05-18/"
+      },
+      {
+        "text": "2026-05-15",
+        "href": "2026/05/2026-05-15/"
+      },
+      {
+        "text": "2026-05-14",
+        "href": "2026/05/2026-05-14/"
+      },
+      {
+        "text": "2026-05-13",
+        "href": "2026/05/2026-05-13/"
+      },
+      {
+        "text": "2026-05-11",
+        "href": "2026/05/2026-05-11/"
+      },
+      {
+        "text": "2026-05-08",
+        "href": "2026/05/2026-05-08/"
+      },
+      {
+        "text": "2026-05-07",
+        "href": "2026/05/2026-05-07/"
+      },
+      {
+        "text": "2026-05-06",
+        "href": "2026/05/2026-05-06/"
+      }
+    ]
+  },
+  {
+    "name": "quality",
+    "variant": "desktop-light",
+    "url": "https://murphygo.github.io/investo/quality/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/quality-desktop-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/quality-desktop-light-viewport.png",
+    "title": "품질 대시보드 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1368,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "데이터 품질",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "현재 7일 KPI",
+        "top": 572,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "최근 30일 추세",
+        "top": 1197,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 9,
+        "columns": 3,
+        "width": 363,
+        "parentWidth": 395
+      }
+    ],
+    "details": [],
+    "links": []
+  },
+  {
+    "name": "watchlist",
+    "variant": "desktop-light",
+    "url": "https://murphygo.github.io/investo/watchlist/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/watchlist-desktop-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/watchlist-desktop-light-viewport.png",
+    "title": "관심 자산 누적 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1684,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "관심 자산 누적",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "영향 그룹 안내",
+        "top": 293,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 11,
+        "columns": 3,
+        "width": 302,
+        "parentWidth": 334
+      }
+    ],
+    "details": [],
+    "links": [
+      {
+        "text": "오늘의 관심 자산 영향",
+        "href": "daily/"
+      },
+      {
+        "text": "AAPL.md",
+        "href": "AAPL/"
+      },
+      {
+        "text": "AMZN.md",
+        "href": "AMZN/"
+      },
+      {
+        "text": "BTC.md",
+        "href": "BTC/"
+      },
+      {
+        "text": "ETH.md",
+        "href": "ETH/"
+      },
+      {
+        "text": "GOOGL.md",
+        "href": "GOOGL/"
+      },
+      {
+        "text": "META.md",
+        "href": "META/"
+      },
+      {
+        "text": "MSFT.md",
+        "href": "MSFT/"
+      },
+      {
+        "text": "NVDA.md",
+        "href": "NVDA/"
+      },
+      {
+        "text": "SOL.md",
+        "href": "SOL/"
+      },
+      {
+        "text": "TSLA.md",
+        "href": "TSLA/"
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "variant": "mobile-light",
+    "url": "https://murphygo.github.io/investo/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/home-mobile-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/home-mobile-light-viewport.png",
+    "title": "Investo — 데일리 시황",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pageHeight": 1452,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 16,
+      "width": 358,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "Investo — 데일리 시황",
+        "top": 98,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "text": "오늘의 시황 (2026-10-08)",
+        "top": 272,
+        "width": 358,
+        "height": 83
+      },
+      {
+        "text": "최신 시황",
+        "top": 812,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "사이트 안내",
+        "top": 1079,
+        "width": 358,
+        "height": 35
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "전체 Archive 보기",
+        "href": "archive/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      },
+      {
+        "text": "주차별 회고",
+        "href": "archive/weekly/"
+      },
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "최근 2026-10-07",
+        "href": "archive/crypto/2026/10/2026-10-07/"
+      },
+      {
+        "text": "전체 Archive 보기",
+        "href": "archive/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      },
+      {
+        "text": "Archive 인덱스",
+        "href": "archive/"
+      },
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/"
+      },
+      {
+        "text": "크립토",
+        "href": "archive/crypto/"
+      },
+      {
+        "text": "주차별 회고",
+        "href": "archive/weekly/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      }
+    ]
+  },
+  {
+    "name": "us",
+    "variant": "mobile-light",
+    "url": "https://murphygo.github.io/investo/archive/us-equity/2026/10/2026-10-08/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/us-mobile-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/us-mobile-light-viewport.png",
+    "title": "2026-10-08 미국 증시 시황 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pageHeight": 9101,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 16,
+      "width": 358,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "2026-10-08 미국 증시 시황",
+        "top": 98,
+        "width": 358,
+        "height": 83
+      },
+      {
+        "text": "2026-10-08 미국 증시 시황",
+        "top": 263,
+        "width": 358,
+        "height": 83
+      },
+      {
+        "text": "한눈에 보기",
+        "top": 1945,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "⓪ 오늘의 매크로",
+        "top": 2190,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "⓪-B 채널 기준선",
+        "top": 2332,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "① 요약",
+        "top": 2923,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "② 전일 핵심 이슈",
+        "top": 3768,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "③ 섹터/수급 동향",
+        "top": 4450,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "④ 지표·이벤트",
+        "top": 5155,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "⑤ 주요 종목",
+        "top": 6299,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "⑥ 오늘의 관전 포인트",
+        "top": 7854,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "⑦ 면책조항",
+        "top": 8854,
+        "width": 358,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 6,
+        "columns": 4,
+        "width": 402,
+        "parentWidth": 434
+      },
+      {
+        "rows": 5,
+        "columns": 2,
+        "width": 358,
+        "parentWidth": 390
+      },
+      {
+        "rows": 4,
+        "columns": 3,
+        "width": 358,
+        "parentWidth": 390
+      },
+      {
+        "rows": 8,
+        "columns": 5,
+        "width": 502,
+        "parentWidth": 534
+      },
+      {
+        "rows": 6,
+        "columns": 3,
+        "width": 302,
+        "parentWidth": 334
+      }
+    ],
+    "details": [
+      {
+        "summary": "^GSPCS&P 5007,765-0.47%",
+        "open": false,
+        "top": 6354,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "summary": "^IXIC나스닥 종합27,193-1.25%",
+        "open": false,
+        "top": 6416,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "summary": "^DJI다우존스51,232+0.10%",
+        "open": false,
+        "top": 6479,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "summary": "AAPL애플340.4+1.11%",
+        "open": false,
+        "top": 6541,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "summary": "MSFT마이크로소프트522.6-1.35%",
+        "open": false,
+        "top": 6604,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "summary": "수집/품질 진단",
+        "open": false,
+        "top": 8775,
+        "width": 358,
+        "height": 38
+      }
+    ],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "../../../../domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "./"
+      },
+      {
+        "text": "CFTC(미국 상품선물거래위원회) 주간 보고서",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "CFTC 보고서",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "제공된 종가 기사",
+        "href": "https://www.nasdaq.com/articles/broader-market-settles-lower-soaring-crude-prices-and-chipmaker-weakness"
+      },
+      {
+        "text": "CFTC 주간 자료",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "FRED(미국 경제통계 데이터베이스)의 DFF(실효 연방기금금리)",
+        "href": "https://fred.stlouisfed.org/series/DFF"
+      },
+      {
+        "text": "UNRATE(실업률)",
+        "href": "https://fred.stlouisfed.org/series/UNRATE"
+      },
+      {
+        "text": "미국 노동통계국 자료",
+        "href": "https://www.bls.gov/data/"
+      },
+      {
+        "text": "Federal Reserve(미국 연방준비제도)",
+        "href": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+      },
+      {
+        "text": "아멕스의 신규 분석 개시",
+        "href": "https://www.nasdaq.com/articles/amerx-initiates-coverage-crowdstrike-holdings-underweight-rating"
+      },
+      {
+        "text": "제프리스",
+        "href": "https://www.nasdaq.com/articles/jefferies-upgrades-royal-caribbean-cruises-buy-hold"
+      },
+      {
+        "text": "제이피모건",
+        "href": "https://www.nasdaq.com/articles/jp-morgan-upgrades-pacira-biosciences-neutral-underweight"
+      }
+    ]
+  },
+  {
+    "name": "archive",
+    "variant": "mobile-light",
+    "url": "https://murphygo.github.io/investo/archive/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/archive-mobile-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/archive-mobile-light-viewport.png",
+    "title": "최신 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pageHeight": 1654,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 16,
+      "width": 358,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "시황 아카이브",
+        "top": 98,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "text": "발행 캘린더",
+        "top": 373,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "최신 시황",
+        "top": 812,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "과거 단일 시황",
+        "top": 1038,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "경로 안내",
+        "top": 1247,
+        "width": 358,
+        "height": 35
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "최근 2026-10-07",
+        "href": "crypto/2026/10/2026-10-07/"
+      },
+      {
+        "text": "2026-05-06 단일 시황 (레거시)",
+        "href": "2026/05/2026-05-06/"
+      },
+      {
+        "text": "archive/domestic-equity/",
+        "href": "domestic-equity/"
+      },
+      {
+        "text": "archive/us-equity/",
+        "href": "us-equity/"
+      },
+      {
+        "text": "archive/crypto/",
+        "href": "crypto/"
+      },
+      {
+        "text": "archive/weekly/",
+        "href": "weekly/"
+      },
+      {
+        "text": "About",
+        "href": "../about/"
+      }
+    ]
+  },
+  {
+    "name": "us-index",
+    "variant": "mobile-light",
+    "url": "https://murphygo.github.io/investo/archive/us-equity/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/us-index-mobile-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/us-index-mobile-light-viewport.png",
+    "title": "미국 증시 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pageHeight": 3683,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 16,
+      "width": 358,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "미국 증시 시황 아카이브",
+        "top": 98,
+        "width": 358,
+        "height": 83
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "전체 Archive로 돌아가기",
+        "href": "../"
+      },
+      {
+        "text": "2026-10-08",
+        "href": "2026/10/2026-10-08/"
+      },
+      {
+        "text": "2026-10-07",
+        "href": "2026/10/2026-10-07/"
+      },
+      {
+        "text": "2026-10-06",
+        "href": "2026/10/2026-10-06/"
+      },
+      {
+        "text": "2026-10-05",
+        "href": "2026/10/2026-10-05/"
+      },
+      {
+        "text": "2026-10-02",
+        "href": "2026/10/2026-10-02/"
+      },
+      {
+        "text": "2026-10-01",
+        "href": "2026/10/2026-10-01/"
+      },
+      {
+        "text": "2026-09-30",
+        "href": "2026/09/2026-09-30/"
+      },
+      {
+        "text": "2026-09-25",
+        "href": "2026/09/2026-09-25/"
+      },
+      {
+        "text": "2026-09-24",
+        "href": "2026/09/2026-09-24/"
+      },
+      {
+        "text": "2026-09-23",
+        "href": "2026/09/2026-09-23/"
+      },
+      {
+        "text": "2026-09-22",
+        "href": "2026/09/2026-09-22/"
+      },
+      {
+        "text": "2026-09-21",
+        "href": "2026/09/2026-09-21/"
+      },
+      {
+        "text": "2026-09-18",
+        "href": "2026/09/2026-09-18/"
+      },
+      {
+        "text": "2026-09-17",
+        "href": "2026/09/2026-09-17/"
+      },
+      {
+        "text": "2026-09-16",
+        "href": "2026/09/2026-09-16/"
+      },
+      {
+        "text": "2026-09-15",
+        "href": "2026/09/2026-09-15/"
+      },
+      {
+        "text": "2026-09-11",
+        "href": "2026/09/2026-09-11/"
+      },
+      {
+        "text": "2026-09-10",
+        "href": "2026/09/2026-09-10/"
+      },
+      {
+        "text": "2026-09-09",
+        "href": "2026/09/2026-09-09/"
+      },
+      {
+        "text": "2026-09-08",
+        "href": "2026/09/2026-09-08/"
+      },
+      {
+        "text": "2026-09-07",
+        "href": "2026/09/2026-09-07/"
+      },
+      {
+        "text": "2026-09-04",
+        "href": "2026/09/2026-09-04/"
+      },
+      {
+        "text": "2026-09-03",
+        "href": "2026/09/2026-09-03/"
+      },
+      {
+        "text": "2026-08-31",
+        "href": "2026/08/2026-08-31/"
+      },
+      {
+        "text": "2026-08-28",
+        "href": "2026/08/2026-08-28/"
+      },
+      {
+        "text": "2026-08-27",
+        "href": "2026/08/2026-08-27/"
+      },
+      {
+        "text": "2026-08-25",
+        "href": "2026/08/2026-08-25/"
+      },
+      {
+        "text": "2026-08-21",
+        "href": "2026/08/2026-08-21/"
+      },
+      {
+        "text": "2026-08-20",
+        "href": "2026/08/2026-08-20/"
+      },
+      {
+        "text": "2026-08-19",
+        "href": "2026/08/2026-08-19/"
+      },
+      {
+        "text": "2026-08-18",
+        "href": "2026/08/2026-08-18/"
+      },
+      {
+        "text": "2026-08-17",
+        "href": "2026/08/2026-08-17/"
+      },
+      {
+        "text": "2026-08-14",
+        "href": "2026/08/2026-08-14/"
+      },
+      {
+        "text": "2026-08-13",
+        "href": "2026/08/2026-08-13/"
+      },
+      {
+        "text": "2026-08-12",
+        "href": "2026/08/2026-08-12/"
+      },
+      {
+        "text": "2026-08-11",
+        "href": "2026/08/2026-08-11/"
+      },
+      {
+        "text": "2026-08-10",
+        "href": "2026/08/2026-08-10/"
+      },
+      {
+        "text": "2026-08-07",
+        "href": "2026/08/2026-08-07/"
+      },
+      {
+        "text": "2026-08-06",
+        "href": "2026/08/2026-08-06/"
+      },
+      {
+        "text": "2026-08-05",
+        "href": "2026/08/2026-08-05/"
+      },
+      {
+        "text": "2026-08-04",
+        "href": "2026/08/2026-08-04/"
+      },
+      {
+        "text": "2026-08-03",
+        "href": "2026/08/2026-08-03/"
+      },
+      {
+        "text": "2026-07-31",
+        "href": "2026/07/2026-07-31/"
+      },
+      {
+        "text": "2026-07-30",
+        "href": "2026/07/2026-07-30/"
+      },
+      {
+        "text": "2026-07-29",
+        "href": "2026/07/2026-07-29/"
+      },
+      {
+        "text": "2026-07-28",
+        "href": "2026/07/2026-07-28/"
+      },
+      {
+        "text": "2026-07-27",
+        "href": "2026/07/2026-07-27/"
+      },
+      {
+        "text": "2026-07-24",
+        "href": "2026/07/2026-07-24/"
+      },
+      {
+        "text": "2026-07-23",
+        "href": "2026/07/2026-07-23/"
+      },
+      {
+        "text": "2026-07-22",
+        "href": "2026/07/2026-07-22/"
+      },
+      {
+        "text": "2026-07-21",
+        "href": "2026/07/2026-07-21/"
+      },
+      {
+        "text": "2026-07-18",
+        "href": "2026/07/2026-07-18/"
+      },
+      {
+        "text": "2026-07-17",
+        "href": "2026/07/2026-07-17/"
+      },
+      {
+        "text": "2026-07-14",
+        "href": "2026/07/2026-07-14/"
+      },
+      {
+        "text": "2026-07-13",
+        "href": "2026/07/2026-07-13/"
+      },
+      {
+        "text": "2026-07-10",
+        "href": "2026/07/2026-07-10/"
+      },
+      {
+        "text": "2026-07-07",
+        "href": "2026/07/2026-07-07/"
+      },
+      {
+        "text": "2026-07-06",
+        "href": "2026/07/2026-07-06/"
+      },
+      {
+        "text": "2026-07-03",
+        "href": "2026/07/2026-07-03/"
+      },
+      {
+        "text": "2026-07-02",
+        "href": "2026/07/2026-07-02/"
+      },
+      {
+        "text": "2026-07-01",
+        "href": "2026/07/2026-07-01/"
+      },
+      {
+        "text": "2026-06-30",
+        "href": "2026/06/2026-06-30/"
+      },
+      {
+        "text": "2026-06-29",
+        "href": "2026/06/2026-06-29/"
+      },
+      {
+        "text": "2026-06-26",
+        "href": "2026/06/2026-06-26/"
+      },
+      {
+        "text": "2026-06-25",
+        "href": "2026/06/2026-06-25/"
+      },
+      {
+        "text": "2026-06-24",
+        "href": "2026/06/2026-06-24/"
+      },
+      {
+        "text": "2026-06-23",
+        "href": "2026/06/2026-06-23/"
+      },
+      {
+        "text": "2026-06-22",
+        "href": "2026/06/2026-06-22/"
+      },
+      {
+        "text": "2026-06-19",
+        "href": "2026/06/2026-06-19/"
+      },
+      {
+        "text": "2026-06-18",
+        "href": "2026/06/2026-06-18/"
+      },
+      {
+        "text": "2026-06-17",
+        "href": "2026/06/2026-06-17/"
+      },
+      {
+        "text": "2026-06-16",
+        "href": "2026/06/2026-06-16/"
+      },
+      {
+        "text": "2026-06-15",
+        "href": "2026/06/2026-06-15/"
+      },
+      {
+        "text": "2026-06-12",
+        "href": "2026/06/2026-06-12/"
+      },
+      {
+        "text": "2026-06-11",
+        "href": "2026/06/2026-06-11/"
+      },
+      {
+        "text": "2026-06-10",
+        "href": "2026/06/2026-06-10/"
+      },
+      {
+        "text": "2026-06-09",
+        "href": "2026/06/2026-06-09/"
+      },
+      {
+        "text": "2026-06-08",
+        "href": "2026/06/2026-06-08/"
+      },
+      {
+        "text": "2026-06-04",
+        "href": "2026/06/2026-06-04/"
+      },
+      {
+        "text": "2026-06-03",
+        "href": "2026/06/2026-06-03/"
+      },
+      {
+        "text": "2026-06-02",
+        "href": "2026/06/2026-06-02/"
+      },
+      {
+        "text": "2026-06-01",
+        "href": "2026/06/2026-06-01/"
+      },
+      {
+        "text": "2026-05-29",
+        "href": "2026/05/2026-05-29/"
+      },
+      {
+        "text": "2026-05-28",
+        "href": "2026/05/2026-05-28/"
+      },
+      {
+        "text": "2026-05-26",
+        "href": "2026/05/2026-05-26/"
+      },
+      {
+        "text": "2026-05-25",
+        "href": "2026/05/2026-05-25/"
+      },
+      {
+        "text": "2026-05-22",
+        "href": "2026/05/2026-05-22/"
+      },
+      {
+        "text": "2026-05-21",
+        "href": "2026/05/2026-05-21/"
+      },
+      {
+        "text": "2026-05-20",
+        "href": "2026/05/2026-05-20/"
+      },
+      {
+        "text": "2026-05-19",
+        "href": "2026/05/2026-05-19/"
+      },
+      {
+        "text": "2026-05-18",
+        "href": "2026/05/2026-05-18/"
+      },
+      {
+        "text": "2026-05-15",
+        "href": "2026/05/2026-05-15/"
+      },
+      {
+        "text": "2026-05-14",
+        "href": "2026/05/2026-05-14/"
+      },
+      {
+        "text": "2026-05-13",
+        "href": "2026/05/2026-05-13/"
+      },
+      {
+        "text": "2026-05-11",
+        "href": "2026/05/2026-05-11/"
+      },
+      {
+        "text": "2026-05-08",
+        "href": "2026/05/2026-05-08/"
+      },
+      {
+        "text": "2026-05-07",
+        "href": "2026/05/2026-05-07/"
+      },
+      {
+        "text": "2026-05-06",
+        "href": "2026/05/2026-05-06/"
+      }
+    ]
+  },
+  {
+    "name": "quality",
+    "variant": "mobile-light",
+    "url": "https://murphygo.github.io/investo/quality/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/quality-mobile-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/quality-mobile-light-viewport.png",
+    "title": "품질 대시보드 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pageHeight": 1274,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 16,
+      "width": 358,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "데이터 품질",
+        "top": 98,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "text": "현재 7일 KPI",
+        "top": 381,
+        "width": 358,
+        "height": 35
+      },
+      {
+        "text": "최근 30일 추세",
+        "top": 1078,
+        "width": 358,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 9,
+        "columns": 3,
+        "width": 358,
+        "parentWidth": 390
+      }
+    ],
+    "details": [],
+    "links": []
+  },
+  {
+    "name": "watchlist",
+    "variant": "mobile-light",
+    "url": "https://murphygo.github.io/investo/watchlist/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/watchlist-mobile-light.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/watchlist-mobile-light-viewport.png",
+    "title": "관심 자산 누적 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pageHeight": 1621,
+    "pageOverflow": 0,
+    "scheme": "default",
+    "article": {
+      "x": 16,
+      "width": 358,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "관심 자산 누적",
+        "top": 98,
+        "width": 358,
+        "height": 42
+      },
+      {
+        "text": "영향 그룹 안내",
+        "top": 245,
+        "width": 358,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 11,
+        "columns": 3,
+        "width": 302,
+        "parentWidth": 334
+      }
+    ],
+    "details": [],
+    "links": [
+      {
+        "text": "오늘의 관심 자산 영향",
+        "href": "daily/"
+      },
+      {
+        "text": "AAPL.md",
+        "href": "AAPL/"
+      },
+      {
+        "text": "AMZN.md",
+        "href": "AMZN/"
+      },
+      {
+        "text": "BTC.md",
+        "href": "BTC/"
+      },
+      {
+        "text": "ETH.md",
+        "href": "ETH/"
+      },
+      {
+        "text": "GOOGL.md",
+        "href": "GOOGL/"
+      },
+      {
+        "text": "META.md",
+        "href": "META/"
+      },
+      {
+        "text": "MSFT.md",
+        "href": "MSFT/"
+      },
+      {
+        "text": "NVDA.md",
+        "href": "NVDA/"
+      },
+      {
+        "text": "SOL.md",
+        "href": "SOL/"
+      },
+      {
+        "text": "TSLA.md",
+        "href": "TSLA/"
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "variant": "desktop-dark",
+    "url": "https://murphygo.github.io/investo/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/home-desktop-dark.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/home-desktop-dark-viewport.png",
+    "title": "Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1305,
+    "pageOverflow": 0,
+    "scheme": "slate",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "Investo — 데일리 시황",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "오늘의 시황 (2026-10-08)",
+        "top": 295,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "최신 시황",
+        "top": 716,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "사이트 안내",
+        "top": 983,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "전체 Archive 보기",
+        "href": "archive/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      },
+      {
+        "text": "주차별 회고",
+        "href": "archive/weekly/"
+      },
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "최근 2026-10-07",
+        "href": "archive/crypto/2026/10/2026-10-07/"
+      },
+      {
+        "text": "전체 Archive 보기",
+        "href": "archive/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      },
+      {
+        "text": "Archive 인덱스",
+        "href": "archive/"
+      },
+      {
+        "text": "국내 증시",
+        "href": "archive/domestic-equity/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "archive/us-equity/"
+      },
+      {
+        "text": "크립토",
+        "href": "archive/crypto/"
+      },
+      {
+        "text": "주차별 회고",
+        "href": "archive/weekly/"
+      },
+      {
+        "text": "About",
+        "href": "about/"
+      }
+    ]
+  },
+  {
+    "name": "us",
+    "variant": "desktop-dark",
+    "url": "https://murphygo.github.io/investo/archive/us-equity/2026/10/2026-10-08/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/us-desktop-dark.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/us-desktop-dark-viewport.png",
+    "title": "2026-10-08 미국 증시 시황 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 7973,
+    "pageOverflow": 0,
+    "scheme": "slate",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "2026-10-08 미국 증시 시황",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "2026-10-08 미국 증시 시황",
+        "top": 269,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "한눈에 보기",
+        "top": 1491,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⓪ 오늘의 매크로",
+        "top": 1658,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⓪-B 채널 기준선",
+        "top": 1775,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "① 요약",
+        "top": 2233,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "② 전일 핵심 이슈",
+        "top": 3271,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "③ 섹터/수급 동향",
+        "top": 3774,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "④ 지표·이벤트",
+        "top": 4335,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⑤ 주요 종목",
+        "top": 5208,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⑥ 오늘의 관전 포인트",
+        "top": 6731,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "⑦ 면책조항",
+        "top": 7777,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 6,
+        "columns": 4,
+        "width": 553,
+        "parentWidth": 585
+      },
+      {
+        "rows": 5,
+        "columns": 2,
+        "width": 688,
+        "parentWidth": 720
+      },
+      {
+        "rows": 4,
+        "columns": 3,
+        "width": 375,
+        "parentWidth": 407
+      },
+      {
+        "rows": 8,
+        "columns": 5,
+        "width": 601,
+        "parentWidth": 633
+      },
+      {
+        "rows": 6,
+        "columns": 3,
+        "width": 302,
+        "parentWidth": 334
+      }
+    ],
+    "details": [
+      {
+        "summary": "^GSPCS&P 5007,765-0.47%",
+        "open": false,
+        "top": 5263,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "^IXIC나스닥 종합27,193-1.25%",
+        "open": false,
+        "top": 5325,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "^DJI다우존스51,232+0.10%",
+        "open": false,
+        "top": 5388,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "AAPL애플340.4+1.11%",
+        "open": false,
+        "top": 5450,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "MSFT마이크로소프트522.6-1.35%",
+        "open": false,
+        "top": 5513,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "summary": "수집/품질 진단",
+        "open": false,
+        "top": 7698,
+        "width": 688,
+        "height": 38
+      }
+    ],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "../../../../domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "./"
+      },
+      {
+        "text": "CFTC(미국 상품선물거래위원회) 주간 보고서",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "CFTC 보고서",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "제공된 종가 기사",
+        "href": "https://www.nasdaq.com/articles/broader-market-settles-lower-soaring-crude-prices-and-chipmaker-weakness"
+      },
+      {
+        "text": "CFTC 주간 자료",
+        "href": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm"
+      },
+      {
+        "text": "FRED(미국 경제통계 데이터베이스)의 DFF(실효 연방기금금리)",
+        "href": "https://fred.stlouisfed.org/series/DFF"
+      },
+      {
+        "text": "UNRATE(실업률)",
+        "href": "https://fred.stlouisfed.org/series/UNRATE"
+      },
+      {
+        "text": "미국 노동통계국 자료",
+        "href": "https://www.bls.gov/data/"
+      },
+      {
+        "text": "Federal Reserve(미국 연방준비제도)",
+        "href": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261008a.htm"
+      },
+      {
+        "text": "아멕스의 신규 분석 개시",
+        "href": "https://www.nasdaq.com/articles/amerx-initiates-coverage-crowdstrike-holdings-underweight-rating"
+      },
+      {
+        "text": "제프리스",
+        "href": "https://www.nasdaq.com/articles/jefferies-upgrades-royal-caribbean-cruises-buy-hold"
+      },
+      {
+        "text": "제이피모건",
+        "href": "https://www.nasdaq.com/articles/jp-morgan-upgrades-pacira-biosciences-neutral-underweight"
+      }
+    ]
+  },
+  {
+    "name": "archive",
+    "variant": "desktop-dark",
+    "url": "https://murphygo.github.io/investo/archive/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/archive-desktop-dark.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/archive-desktop-dark-viewport.png",
+    "title": "최신 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1525,
+    "pageOverflow": 0,
+    "scheme": "slate",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "시황 아카이브",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "발행 캘린더",
+        "top": 345,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "최신 시황",
+        "top": 760,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "과거 단일 시황",
+        "top": 985,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "경로 안내",
+        "top": 1169,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "국내 증시",
+        "href": "domestic-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "미국 증시",
+        "href": "us-equity/2026/10/2026-10-08/"
+      },
+      {
+        "text": "최근 2026-10-07",
+        "href": "crypto/2026/10/2026-10-07/"
+      },
+      {
+        "text": "2026-05-06 단일 시황 (레거시)",
+        "href": "2026/05/2026-05-06/"
+      },
+      {
+        "text": "archive/domestic-equity/",
+        "href": "domestic-equity/"
+      },
+      {
+        "text": "archive/us-equity/",
+        "href": "us-equity/"
+      },
+      {
+        "text": "archive/crypto/",
+        "href": "crypto/"
+      },
+      {
+        "text": "archive/weekly/",
+        "href": "weekly/"
+      },
+      {
+        "text": "About",
+        "href": "../about/"
+      }
+    ]
+  },
+  {
+    "name": "us-index",
+    "variant": "desktop-dark",
+    "url": "https://murphygo.github.io/investo/archive/us-equity/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/us-index-desktop-dark.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/us-index-desktop-dark-viewport.png",
+    "title": "미국 증시 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 3664,
+    "pageOverflow": 0,
+    "scheme": "slate",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "미국 증시 시황 아카이브",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      }
+    ],
+    "tables": [],
+    "details": [],
+    "links": [
+      {
+        "text": "전체 Archive로 돌아가기",
+        "href": "../"
+      },
+      {
+        "text": "2026-10-08",
+        "href": "2026/10/2026-10-08/"
+      },
+      {
+        "text": "2026-10-07",
+        "href": "2026/10/2026-10-07/"
+      },
+      {
+        "text": "2026-10-06",
+        "href": "2026/10/2026-10-06/"
+      },
+      {
+        "text": "2026-10-05",
+        "href": "2026/10/2026-10-05/"
+      },
+      {
+        "text": "2026-10-02",
+        "href": "2026/10/2026-10-02/"
+      },
+      {
+        "text": "2026-10-01",
+        "href": "2026/10/2026-10-01/"
+      },
+      {
+        "text": "2026-09-30",
+        "href": "2026/09/2026-09-30/"
+      },
+      {
+        "text": "2026-09-25",
+        "href": "2026/09/2026-09-25/"
+      },
+      {
+        "text": "2026-09-24",
+        "href": "2026/09/2026-09-24/"
+      },
+      {
+        "text": "2026-09-23",
+        "href": "2026/09/2026-09-23/"
+      },
+      {
+        "text": "2026-09-22",
+        "href": "2026/09/2026-09-22/"
+      },
+      {
+        "text": "2026-09-21",
+        "href": "2026/09/2026-09-21/"
+      },
+      {
+        "text": "2026-09-18",
+        "href": "2026/09/2026-09-18/"
+      },
+      {
+        "text": "2026-09-17",
+        "href": "2026/09/2026-09-17/"
+      },
+      {
+        "text": "2026-09-16",
+        "href": "2026/09/2026-09-16/"
+      },
+      {
+        "text": "2026-09-15",
+        "href": "2026/09/2026-09-15/"
+      },
+      {
+        "text": "2026-09-11",
+        "href": "2026/09/2026-09-11/"
+      },
+      {
+        "text": "2026-09-10",
+        "href": "2026/09/2026-09-10/"
+      },
+      {
+        "text": "2026-09-09",
+        "href": "2026/09/2026-09-09/"
+      },
+      {
+        "text": "2026-09-08",
+        "href": "2026/09/2026-09-08/"
+      },
+      {
+        "text": "2026-09-07",
+        "href": "2026/09/2026-09-07/"
+      },
+      {
+        "text": "2026-09-04",
+        "href": "2026/09/2026-09-04/"
+      },
+      {
+        "text": "2026-09-03",
+        "href": "2026/09/2026-09-03/"
+      },
+      {
+        "text": "2026-08-31",
+        "href": "2026/08/2026-08-31/"
+      },
+      {
+        "text": "2026-08-28",
+        "href": "2026/08/2026-08-28/"
+      },
+      {
+        "text": "2026-08-27",
+        "href": "2026/08/2026-08-27/"
+      },
+      {
+        "text": "2026-08-25",
+        "href": "2026/08/2026-08-25/"
+      },
+      {
+        "text": "2026-08-21",
+        "href": "2026/08/2026-08-21/"
+      },
+      {
+        "text": "2026-08-20",
+        "href": "2026/08/2026-08-20/"
+      },
+      {
+        "text": "2026-08-19",
+        "href": "2026/08/2026-08-19/"
+      },
+      {
+        "text": "2026-08-18",
+        "href": "2026/08/2026-08-18/"
+      },
+      {
+        "text": "2026-08-17",
+        "href": "2026/08/2026-08-17/"
+      },
+      {
+        "text": "2026-08-14",
+        "href": "2026/08/2026-08-14/"
+      },
+      {
+        "text": "2026-08-13",
+        "href": "2026/08/2026-08-13/"
+      },
+      {
+        "text": "2026-08-12",
+        "href": "2026/08/2026-08-12/"
+      },
+      {
+        "text": "2026-08-11",
+        "href": "2026/08/2026-08-11/"
+      },
+      {
+        "text": "2026-08-10",
+        "href": "2026/08/2026-08-10/"
+      },
+      {
+        "text": "2026-08-07",
+        "href": "2026/08/2026-08-07/"
+      },
+      {
+        "text": "2026-08-06",
+        "href": "2026/08/2026-08-06/"
+      },
+      {
+        "text": "2026-08-05",
+        "href": "2026/08/2026-08-05/"
+      },
+      {
+        "text": "2026-08-04",
+        "href": "2026/08/2026-08-04/"
+      },
+      {
+        "text": "2026-08-03",
+        "href": "2026/08/2026-08-03/"
+      },
+      {
+        "text": "2026-07-31",
+        "href": "2026/07/2026-07-31/"
+      },
+      {
+        "text": "2026-07-30",
+        "href": "2026/07/2026-07-30/"
+      },
+      {
+        "text": "2026-07-29",
+        "href": "2026/07/2026-07-29/"
+      },
+      {
+        "text": "2026-07-28",
+        "href": "2026/07/2026-07-28/"
+      },
+      {
+        "text": "2026-07-27",
+        "href": "2026/07/2026-07-27/"
+      },
+      {
+        "text": "2026-07-24",
+        "href": "2026/07/2026-07-24/"
+      },
+      {
+        "text": "2026-07-23",
+        "href": "2026/07/2026-07-23/"
+      },
+      {
+        "text": "2026-07-22",
+        "href": "2026/07/2026-07-22/"
+      },
+      {
+        "text": "2026-07-21",
+        "href": "2026/07/2026-07-21/"
+      },
+      {
+        "text": "2026-07-18",
+        "href": "2026/07/2026-07-18/"
+      },
+      {
+        "text": "2026-07-17",
+        "href": "2026/07/2026-07-17/"
+      },
+      {
+        "text": "2026-07-14",
+        "href": "2026/07/2026-07-14/"
+      },
+      {
+        "text": "2026-07-13",
+        "href": "2026/07/2026-07-13/"
+      },
+      {
+        "text": "2026-07-10",
+        "href": "2026/07/2026-07-10/"
+      },
+      {
+        "text": "2026-07-07",
+        "href": "2026/07/2026-07-07/"
+      },
+      {
+        "text": "2026-07-06",
+        "href": "2026/07/2026-07-06/"
+      },
+      {
+        "text": "2026-07-03",
+        "href": "2026/07/2026-07-03/"
+      },
+      {
+        "text": "2026-07-02",
+        "href": "2026/07/2026-07-02/"
+      },
+      {
+        "text": "2026-07-01",
+        "href": "2026/07/2026-07-01/"
+      },
+      {
+        "text": "2026-06-30",
+        "href": "2026/06/2026-06-30/"
+      },
+      {
+        "text": "2026-06-29",
+        "href": "2026/06/2026-06-29/"
+      },
+      {
+        "text": "2026-06-26",
+        "href": "2026/06/2026-06-26/"
+      },
+      {
+        "text": "2026-06-25",
+        "href": "2026/06/2026-06-25/"
+      },
+      {
+        "text": "2026-06-24",
+        "href": "2026/06/2026-06-24/"
+      },
+      {
+        "text": "2026-06-23",
+        "href": "2026/06/2026-06-23/"
+      },
+      {
+        "text": "2026-06-22",
+        "href": "2026/06/2026-06-22/"
+      },
+      {
+        "text": "2026-06-19",
+        "href": "2026/06/2026-06-19/"
+      },
+      {
+        "text": "2026-06-18",
+        "href": "2026/06/2026-06-18/"
+      },
+      {
+        "text": "2026-06-17",
+        "href": "2026/06/2026-06-17/"
+      },
+      {
+        "text": "2026-06-16",
+        "href": "2026/06/2026-06-16/"
+      },
+      {
+        "text": "2026-06-15",
+        "href": "2026/06/2026-06-15/"
+      },
+      {
+        "text": "2026-06-12",
+        "href": "2026/06/2026-06-12/"
+      },
+      {
+        "text": "2026-06-11",
+        "href": "2026/06/2026-06-11/"
+      },
+      {
+        "text": "2026-06-10",
+        "href": "2026/06/2026-06-10/"
+      },
+      {
+        "text": "2026-06-09",
+        "href": "2026/06/2026-06-09/"
+      },
+      {
+        "text": "2026-06-08",
+        "href": "2026/06/2026-06-08/"
+      },
+      {
+        "text": "2026-06-04",
+        "href": "2026/06/2026-06-04/"
+      },
+      {
+        "text": "2026-06-03",
+        "href": "2026/06/2026-06-03/"
+      },
+      {
+        "text": "2026-06-02",
+        "href": "2026/06/2026-06-02/"
+      },
+      {
+        "text": "2026-06-01",
+        "href": "2026/06/2026-06-01/"
+      },
+      {
+        "text": "2026-05-29",
+        "href": "2026/05/2026-05-29/"
+      },
+      {
+        "text": "2026-05-28",
+        "href": "2026/05/2026-05-28/"
+      },
+      {
+        "text": "2026-05-26",
+        "href": "2026/05/2026-05-26/"
+      },
+      {
+        "text": "2026-05-25",
+        "href": "2026/05/2026-05-25/"
+      },
+      {
+        "text": "2026-05-22",
+        "href": "2026/05/2026-05-22/"
+      },
+      {
+        "text": "2026-05-21",
+        "href": "2026/05/2026-05-21/"
+      },
+      {
+        "text": "2026-05-20",
+        "href": "2026/05/2026-05-20/"
+      },
+      {
+        "text": "2026-05-19",
+        "href": "2026/05/2026-05-19/"
+      },
+      {
+        "text": "2026-05-18",
+        "href": "2026/05/2026-05-18/"
+      },
+      {
+        "text": "2026-05-15",
+        "href": "2026/05/2026-05-15/"
+      },
+      {
+        "text": "2026-05-14",
+        "href": "2026/05/2026-05-14/"
+      },
+      {
+        "text": "2026-05-13",
+        "href": "2026/05/2026-05-13/"
+      },
+      {
+        "text": "2026-05-11",
+        "href": "2026/05/2026-05-11/"
+      },
+      {
+        "text": "2026-05-08",
+        "href": "2026/05/2026-05-08/"
+      },
+      {
+        "text": "2026-05-07",
+        "href": "2026/05/2026-05-07/"
+      },
+      {
+        "text": "2026-05-06",
+        "href": "2026/05/2026-05-06/"
+      }
+    ]
+  },
+  {
+    "name": "quality",
+    "variant": "desktop-dark",
+    "url": "https://murphygo.github.io/investo/quality/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/quality-desktop-dark.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/quality-desktop-dark-viewport.png",
+    "title": "품질 대시보드 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1368,
+    "pageOverflow": 0,
+    "scheme": "slate",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "데이터 품질",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "현재 7일 KPI",
+        "top": 572,
+        "width": 688,
+        "height": 35
+      },
+      {
+        "text": "최근 30일 추세",
+        "top": 1197,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 9,
+        "columns": 3,
+        "width": 363,
+        "parentWidth": 395
+      }
+    ],
+    "details": [],
+    "links": []
+  },
+  {
+    "name": "watchlist",
+    "variant": "desktop-dark",
+    "url": "https://murphygo.github.io/investo/watchlist/",
+    "status": 200,
+    "file": "/private/tmp/investo-ui-audit-20261010/watchlist-desktop-dark.png",
+    "firstFile": "/private/tmp/investo-ui-audit-20261010/watchlist-desktop-dark-viewport.png",
+    "title": "관심 자산 누적 - Investo — 데일리 시황",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pageHeight": 1684,
+    "pageOverflow": 0,
+    "scheme": "slate",
+    "article": {
+      "x": 376,
+      "width": 688,
+      "fontSize": "16px",
+      "lineHeight": "25.6px"
+    },
+    "headings": [
+      {
+        "text": "관심 자산 누적",
+        "top": 146,
+        "width": 688,
+        "height": 42
+      },
+      {
+        "text": "영향 그룹 안내",
+        "top": 293,
+        "width": 688,
+        "height": 35
+      }
+    ],
+    "tables": [
+      {
+        "rows": 11,
+        "columns": 3,
+        "width": 302,
+        "parentWidth": 334
+      }
+    ],
+    "details": [],
+    "links": [
+      {
+        "text": "오늘의 관심 자산 영향",
+        "href": "daily/"
+      },
+      {
+        "text": "AAPL.md",
+        "href": "AAPL/"
+      },
+      {
+        "text": "AMZN.md",
+        "href": "AMZN/"
+      },
+      {
+        "text": "BTC.md",
+        "href": "BTC/"
+      },
+      {
+        "text": "ETH.md",
+        "href": "ETH/"
+      },
+      {
+        "text": "GOOGL.md",
+        "href": "GOOGL/"
+      },
+      {
+        "text": "META.md",
+        "href": "META/"
+      },
+      {
+        "text": "MSFT.md",
+        "href": "MSFT/"
+      },
+      {
+        "text": "NVDA.md",
+        "href": "NVDA/"
+      },
+      {
+        "text": "SOL.md",
+        "href": "SOL/"
+      },
+      {
+        "text": "TSLA.md",
+        "href": "TSLA/"
+      }
+    ]
+  }
+]

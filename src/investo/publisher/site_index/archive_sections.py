@@ -28,7 +28,7 @@ from ._constants import (
     HEATMAP_BEGIN,
     HEATMAP_END,
 )
-from .segment_archives import _segment_entries
+from .segment_archives import _entry_date, _segment_entries
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,7 +68,7 @@ def _render_heatmap_block(heatmap_svg: str) -> str:
         "## 발행 캘린더\n\n"
         "지난 주차별 게시 일자와 데이터 신뢰도(정상·부분·부족)를 "
         "한눈에 표시합니다.\n\n"
-        '<figure class="u29-heatmap" markdown="1">\n'
+        '<figure class="u29-heatmap" markdown="0">\n'
         f"{heatmap_svg.strip()}\n"
         "<figcaption>발행 캘린더 — 색상은 데이터 신뢰도 정책을 따릅니다.</figcaption>\n"
         "</figure>\n"
@@ -199,9 +199,8 @@ def _archive_segment_href(target_date: date, segment: str) -> str:
 
 def _latest_segment_entry_before(archive_dir: Path, *, before: date) -> Path | None:
     for entry in _segment_entries(archive_dir):
-        try:
-            entry_date = date.fromisoformat(entry.stem)
-        except ValueError:
+        entry_date = _entry_date(entry)
+        if entry_date is None:
             continue
         if entry_date < before:
             return entry

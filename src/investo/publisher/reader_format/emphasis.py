@@ -53,6 +53,9 @@ _FENCE_RE: Final[re.Pattern[str]] = re.compile(r"^\s*```")
 # token offsets are preserved during the regex pass.
 _LINK_URL_RE: Final[re.Pattern[str]] = re.compile(r"(\]\()([^)]+)(\))")
 _BOLD_SPAN_RE: Final[re.Pattern[str]] = re.compile(r"\*\*[^*\n]+\*\*")
+_DATA_CARD_RE: Final[re.Pattern[str]] = re.compile(
+    r'^<(section|details)\b[^>]*\bclass="investo-data-card"(?:\s|>)'
+)
 
 
 def wrap_numbers_bold(text: str) -> str:
@@ -67,6 +70,7 @@ def wrap_numbers_bold(text: str) -> str:
     """
     out_lines: list[str] = []
     in_fence = False
+    card_tag: str | None = None
     for line in text.splitlines(keepends=False):
         if _FENCE_RE.match(line):
             in_fence = not in_fence
@@ -74,6 +78,17 @@ def wrap_numbers_bold(text: str) -> str:
             continue
         if in_fence:
             out_lines.append(line)
+            continue
+        # These producer-owned structured cards use raw HTML. Markdown emphasis
+        # would become visible punctuation inside their table/text fields. This
+        # only skips cosmetic wrapping; all reader-visible trust gates still run.
+        card_open = _DATA_CARD_RE.match(line)
+        if card_open is not None:
+            card_tag = card_open.group(1)
+        if card_tag is not None:
+            out_lines.append(line)
+            if line == f"</{card_tag}>":
+                card_tag = None
             continue
         if _TABLE_ROW_RE.match(line):
             out_lines.append(line)

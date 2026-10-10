@@ -298,3 +298,20 @@ Evidence: [25-run /44-source review](construction/source-reliability-20261009/re
 구현순서u167→u168→u169→u170→u171→u172. u173discovery와u172corpus준비는병렬가능하다. u168이sharedstoryDTO를먼저선언하고u170이semanticreducer/ledger를소유하여의존cycle을피한다. u154/u156과동시진행브랜치는보존하며currentmain/ref대조뒤재사용한다.
 
 문서 초안은 두 독립 reviewer의 검토 후 부모가 수정·통합했다. [검토 반영](construction/event-news-v3/review-resolution.md). 2026-10-10의 사용자 개발 지시로 Functional/NFR 설계와 실행 계획을 승인된 개발 기준으로 적용한다. 코드와 실제 사람/운영 수용은 별도 증거로 갱신한다.
+
+### u174–u179 — Web UI Modernization (2026-10-10)
+
+**Source**: 사용자는 현재 웹 UI 분석과 로컬 홈 시안을 확인한 뒤 “굿 일단 유닛 문서화부터 진행해줘”라고 요청했다. 최초 코드 기준은 원격 main `48762793`, 최종 문서 통합 기준은 `838bed60`이다. 동시 등록된 사건·뉴스 v3 u167–u173을 보존하고 번호 충돌을 피해 UI u174–u179의 문서만 등록한다. 구현·기능 설계 승인·커밋/푸시·배포 인수를 뜻하지 않는다.
+
+| Unit | Functional Design | NFR Requirements | Code Generation | Notes |
+|------|-------------------|------------------|-----------------|-------|
+| u174 calendar-svg-render-integrity | SKIP — 기존 u29 캘린더 렌더링 복구; 새 제품 상태 없음 | 기존 NFR-003/005/006 및 u143/u154 계약 재사용; 실제 HTML/DOM 회귀 검증 필요 | ✅ Done — 6/6 (2026-10-10) | P0. md_in_html이 SVG 하위 요소를 XHTML 문단으로 분리하는 현상을 사이트 build 경계에서 복구. 과거 archive 재발행과 u154 숫자 panel 제거 금지. [Plan](construction/plans/u174-calendar-svg-render-integrity-code-generation-plan.md). |
+| u175 chart-sidecar-url-and-theme-repair | SKIP — u50/u70/u75의 URL·테마 동작 복구 | 기존 lazy-load/동일 출처·자산·숫자 및 NFR-003/005/006 계약 재사용 | ✅ Done — 6/6 (2026-10-10) | P0. Pages 날짜 directory URL의 sidecar 404와 Material body palette 읽기/관찰 수정. DEBT-077/078 및 source/runtime 변경 제외. [Plan](construction/plans/u175-chart-sidecar-url-and-theme-repair-code-generation-plan.md). |
+| u176 site-shell-and-navigation-redesign | ✅ Done — 개발자 결정 기록 | ✅ Done — focused | ✅ Done — 6/6 (2026-10-10) | P1. MkDocs 유지, 관심 자산 진입과 주요 메뉴·공통 토큰 개선. 최신 u145 미국 섹터 메뉴·검색·기존 경로 보존. [Plan](construction/plans/u176-site-shell-and-navigation-redesign-code-generation-plan.md). |
+| u177 latest-bundle-home-cards | ✅ Done — 개발자 결정 기록 | ✅ Done — focused | ✅ Done — 7/7 (2026-10-10) | P1. u176 의존. 기존 SegmentBundleState와 검증된 결론·품질 상태 재사용; v3는 u171 adapter 소비, 홈 중복 통합. u154 제목/TLDR/숫자 panel 재구현 제외. [Plan](construction/plans/u177-latest-bundle-home-cards-code-generation-plan.md). |
+| u178 responsive-briefing-data-and-accessibility | ✅ Done — 개발자 결정 기록 | ✅ Done — focused | ✅ Done — 7/7 (2026-10-10) | P1. u176 의존; 차트 인수는 u175 이후. 작은 SVG 정보의 읽기 가능한 표현과 watchlist 다크 대비 개선. u108/u120/u143/u144/u154 소유권·SVG/OG 아티팩트 보존; v3 typed 입력·producer는 u169/u171. [Plan](construction/plans/u178-responsive-briefing-data-and-accessibility-code-generation-plan.md). |
+| u179 month-grouped-archive-discovery | ✅ Done — 개발자 결정 기록 | ✅ Done — focused | ✅ Done — 6/6 (2026-10-10) | P2. u176 의존; 캘린더 포함 인수는 u174 이후. 기존 단일 scanner 재사용; legacy conclusion extractor/v3 u171 hash reader를 구분, 아카이브 본문 재작성 없음. [Plan](construction/plans/u179-month-grouped-archive-discovery-code-generation-plan.md). |
+
+권장 순서: **u174 → u175 → u176 → u177 → u178 → u179**. u174/u175는 독립적인 기존 동작 복구이며 u176–u179는 새 제품 계약 확정을 위한 FD/NFR부터 진행한다. 기존 u145/소스/이벤트/private runtime 운영 조건은 그대로 둔다. v3의 문서·요약·reader payload 의미는 u169/u171이 소유하고, UI는 해당 입력의 표현·탐색만 확장한다. u154의 legacy 문서 형식을 v3에 강제하지 않으며 u172의 semantic/운영 전환 인수를 대체하지 않는다. 2026-10-10 UI 관측과 디자인 후보는 이전 화면의 시점 고정 증거이며 새로운 기능의 인수 증거가 아니다. 개요·중복 대조·증거·리뷰: [Web UI program](construction/ui-modernization-20261010/README.md).
+
+UI 개발 진행: u174–u179 local construction 완료; 유닛별 로컬 커밋 및 검증 완료. [u174 검증](construction/u174-calendar-svg-render-integrity/code/summary.md). 사용자 전체 개발·유닛별 커밋 지시는 audit에 기록했으며 기존 문서화 시점의 NOT STARTED는 초기 상태다.

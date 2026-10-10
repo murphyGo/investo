@@ -292,12 +292,18 @@ from investo.publisher.public_document import (
 from investo.publisher.publication_receipts import PublicationReceiptError
 from investo.publisher.site_index import (
     ACCURACY_PAGE_PATH,
-    ARCHIVE_INDEX_PATH,
-    SEGMENT_ARCHIVE_INDEX_PATHS,
-    SITE_INDEX_PATH,
     update_accuracy_page,
     update_latest_index_pages,
     update_quality_page,
+)
+from investo.publisher.site_index import (
+    ARCHIVE_INDEX_PATH as ARCHIVE_INDEX_PATH,
+)
+from investo.publisher.site_index import (
+    SEGMENT_ARCHIVE_INDEX_PATHS as SEGMENT_ARCHIVE_INDEX_PATHS,
+)
+from investo.publisher.site_index import (
+    SITE_INDEX_PATH as SITE_INDEX_PATH,
 )
 from investo.publisher.staged_artifacts import promote_finalized_bundle_artifacts
 from investo.publisher.weekly_digest import (
@@ -1587,8 +1593,12 @@ async def _stage_publish_segments(
             # subsequent ``write_briefing`` failure rolls them back too.
             snapshots.update(
                 {
-                    SITE_INDEX_PATH: _read_existing_bytes(SITE_INDEX_PATH),
-                    ARCHIVE_INDEX_PATH: _read_existing_bytes(ARCHIVE_INDEX_PATH),
+                    _site_index_mod.SITE_INDEX_PATH: _read_existing_bytes(
+                        _site_index_mod.SITE_INDEX_PATH
+                    ),
+                    _site_index_mod.ARCHIVE_INDEX_PATH: _read_existing_bytes(
+                        _site_index_mod.ARCHIVE_INDEX_PATH
+                    ),
                     OG_CARD_RELATIVE_PATH: _read_existing_bytes(OG_CARD_RELATIVE_PATH),
                     OG_CARD_PNG_RELATIVE_PATH: _read_existing_bytes(OG_CARD_PNG_RELATIVE_PATH),
                     manifest_path_for(OG_CARD_RELATIVE_PATH): _read_existing_bytes(
@@ -1599,7 +1609,7 @@ async def _stage_publish_segments(
                     ),
                 }
             )
-            for segment_index_path in SEGMENT_ARCHIVE_INDEX_PATHS.values():
+            for segment_index_path in _site_index_mod.SEGMENT_ARCHIVE_INDEX_PATHS.values():
                 snapshots[segment_index_path] = _read_existing_bytes(segment_index_path)
 
             heatmap_svg = await _to_thread_drained(
@@ -1611,6 +1621,11 @@ async def _stage_publish_segments(
                 target_date,
                 segment_briefings=briefings,
                 heatmap_svg=heatmap_svg,
+                **(
+                    {"finalized_documents": finalized_bundle.documents}
+                    if finalized_bundle is not None
+                    else {}
+                ),
             )
             og_card_paths = await _to_thread_drained(
                 write_og_card,
@@ -1700,6 +1715,7 @@ async def _stage_publish_segments(
                 history_path=quality_history_path,
                 quality_page_path=quality_path_resolved,
                 expected_event_coverage=event_coverage,
+                home_page_path=_site_index_mod.SITE_INDEX_PATH,
             )
 
             forecast_paths: tuple[Path, ...] = ()
@@ -2313,6 +2329,7 @@ def _enforce_quality_consistency_gate(
     history_path: Path,
     quality_page_path: Path,
     expected_event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
+    home_page_path: Path | None = None,
 ) -> None:
     """u69 — publish-boundary canonical quality-consistency gate.
 
@@ -2332,6 +2349,7 @@ def _enforce_quality_consistency_gate(
         history_path=history_path,
         quality_page_text=page_text,
         expected_event_coverage=expected_event_coverage,
+        home_page_text=home_page_path.read_text(encoding="utf-8") if home_page_path else None,
     )
     failures = [finding for finding in findings if finding.is_failure]
     for finding in findings:

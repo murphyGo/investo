@@ -330,3 +330,11 @@ surface이며, 이 운영 확인은 사이트 테마 패리티의 차단 조건�
 **State and compatibility**: models/event_story.py의frozenDTO는u168이선언하고u169가typednext_record/visiblefields/hash를검증하며u170만상태진전·확정ledgerIO를한다. FinalizedPublicDocument.payload는Briefing또는PublicEditionView의한variant이며writer/surfaces는readonlysealedview를소비한다. 전환중기본schema2,세시장accepted/실제v3예약10회관찰뒤별도reviewedcleanup은기본schema3와legacygenerator제거를완료한다. 과거archive/URL/read-onlyparser와priorreviewedcommit전체rollback을유지한다.
 
 **Normative references**: [프로그램](../aidlc-docs/construction/event-news-v3/README.md), [공통C1~C8](../aidlc-docs/construction/event-news-v3/contracts.md), [폐기/전환](../aidlc-docs/construction/event-news-v3/migration-and-retirement.md). 실제평가·사람점수·운영pin/activation은futuredesign으로합격시킬수없다.
+
+### u174 calendar raw-island build boundary (2026-10-10)
+
+TD-013 site-scoped SVG styles require an intact SVG subtree. New calendar figures use `markdown="0"`; `scripts/mkdocs_render_hooks.py` repairs only the historical known wrapper on `archive/index.md` in memory. It validates canonical SVG elements/namespaces and leaves fences/unknown/incomplete content untouched. `check_calendar_render_contract.py` fails before Pages upload on split/empty markup; no archive rewrite, numeric panel change, or runtime MkDocs dependency.
+
+### u175 chart client URL/palette owner (2026-10-10)
+
+The u75 sidecar stays beside its source Markdown. The client alone resolves the exact matching MkDocs date directory to that sibling; other URL forms retain browser URL semantics. Charts read Material body palette with live HTML fallback and update existing options without refetch or reconstruction. Numeric and sealed document owners remain unchanged.

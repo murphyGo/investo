@@ -1,0 +1,81 @@
+{
+  "calendar": {
+    "svgChildren": 0,
+    "svgRects": 0,
+    "figureRects": 160,
+    "rectNamespace": "http://www.w3.org/1999/xhtml",
+    "firstRectParent": "P",
+    "svgMarkup": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"435\" height=\"165\" viewBox=\"0 0 435 165\" role=\"img\" aria-label=\"투자 시황 발행 캘린더 (2026-05-04 ~ 2026-10-11)\"></svg>"
+  },
+  "article": {
+    "tocLinks": 0,
+    "primaryLinks": 10,
+    "bodyScheme": "slate",
+    "htmlScheme": null,
+    "images": [
+      {
+        "alt": "큐레이션 시황 이미지",
+        "width": 357.96875,
+        "naturalWidth": 1200
+      },
+      {
+        "alt": "데이터 신뢰도",
+        "width": 357.96875,
+        "naturalWidth": 1200
+      },
+      {
+        "alt": "시장 스냅샷",
+        "width": 357.96875,
+        "naturalWidth": 1200
+      },
+      {
+        "alt": "가격 스냅샷",
+        "width": 357.96875,
+        "naturalWidth": 1200
+      },
+      {
+        "alt": "관심 자산 관련성",
+        "width": 357.96875,
+        "naturalWidth": 1200
+      }
+    ],
+    "tableContainers": [
+      {
+        "width": 390,
+        "scrollWidth": 434
+      },
+      {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      {
+        "width": 390,
+        "scrollWidth": 534
+      },
+      {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    ]
+  },
+  "chartWaitError": "locator.waitFor: Timeout 7000ms exceeded.",
+  "chart": {
+    "expanded": true,
+    "canvases": 0,
+    "text": "차트 데이터를 불러오지 못했습니다.",
+    "responses": [
+      {
+        "url": "https://murphygo.github.io/investo/archive/us-equity/2026/10/2026-10-08/2026-10-08.assets/charts/us-equity-gspc.json",
+        "status": 404
+      }
+    ]
+  },
+  "navigation": {
+    "text": "Investo — 데일리 시황\n murphyGo/investo\n0\n0\nHome\nAbout\n데이터 품질\n데이터 품질\n품질 대시보드\n예측 정확도\nArchive\nArchive\n국내 증시\n미국 증시\n크립토\n주차별 회고\n월간 회고",
+    "watchlistInNav": false
+  }
+}
