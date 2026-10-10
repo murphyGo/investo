@@ -365,17 +365,26 @@ def test_correction_requires_event_owned_before_after_bindings() -> None:
         )
 
 
-def test_explicit_source_correction_preserves_the_old_new_pair() -> None:
+@pytest.mark.parametrize(
+    "claim,metric,allowed",
+    [
+        ("Acme revenue corrected from 1200 to 1300.", "revenue", True),
+        ("Acme revenue was not corrected from 1200 to 1300.", "revenue", False),
+        ("Acme net_income corrected from 1200 to 1300.", "net_income", False),
+    ],
+)
+def test_explicit_source_correction_preserves_the_old_new_pair(
+    claim: str, metric: str, allowed: bool
+) -> None:
     from investo.models.event_identity import FactCorrection
 
     old_doc, old_draft = source()
     prior = binding(old_doc, old_draft)
-    claim = "Acme revenue corrected from 1200 to 1300."
     new_doc = make_event_context_document(
         make_evidence_document(
             source_name="official",
             title="Acme announced Widget",
-            summary="Acme revenue actual 1300 USD FY2026. " + claim,
+            summary=f"Acme {metric} actual 1300 USD FY2026. " + claim,
             url="https://example.com/one",
             published_at=NOW,
             received_at=NOW,
@@ -385,7 +394,7 @@ def test_explicit_source_correction_preserves_the_old_new_pair() -> None:
     fact = old_draft.facts[0].model_copy(
         update={
             "subject_refs": (ref(new_doc, "Acme"),),
-            "metric_refs": (ref(new_doc, "revenue"),),
+            "metric_refs": (ref(new_doc, metric),),
             "value_refs": (ref(new_doc, "1300"),),
             "unit_refs": (ref(new_doc, "USD"),),
             "period_refs": (ref(new_doc, "FY2026"),),
@@ -409,6 +418,17 @@ def test_explicit_source_correction_preserves_the_old_new_pair() -> None:
         new_fact_id=current.facts[0].fact_id,
         source_refs=(ref(new_doc, claim),),
     )
+    if not allowed:
+        with pytest.raises(EventIdentityError, match="correction_unbound"):
+            compare_event_facts(
+                current.identity,
+                current.facts,
+                (receipt(prior),),
+                corrections=(correction,),
+                documents=(old_doc, new_doc),
+                prior_fact_bindings=prior.facts,
+            )
+        return
     delta = compare_event_facts(
         current.identity,
         current.facts,
@@ -419,3 +439,43 @@ def test_explicit_source_correction_preserves_the_old_new_pair() -> None:
     )
     assert delta.correction_pairs == ((prior.facts[0].fact_id, current.facts[0].fact_id),)
     assert not delta.unresolved_conflict_ids
+
+
+def test_multi_actor_binding_preserves_each_entity_and_merges_duplicate_refs() -> None:
+    doc = make_event_context_document(
+        make_evidence_document(
+            source_name="official",
+            title="Acme and Beta announced Widget. Acme confirmed agreement.",
+            published_at=NOW,
+            received_at=NOW,
+        )
+    )
+    proposed = ContextEventDraft(
+        item_ids=(1,),
+        event_kind="corporate_action",
+        actor_refs=(ref(doc, "Acme"), ref(doc, "Beta")),
+        action_refs=(ref(doc, "announced"),),
+        object_refs=(ref(doc, "Widget"),),
+        timing="announced",
+        relation="direct",
+        impact="company",
+    )
+    current = binding(doc, proposed)
+    assert len(current.identity.actor_ids) == 2
+    assert {entity.entity.display_label for entity in current.entities} == {
+        "Acme",
+        "Beta",
+        "Widget",
+    }
+    additional = ref(doc, "Acme").model_copy(
+        update={
+            "start": doc.chunks[0].text.rindex("Acme"),
+            "end": doc.chunks[0].text.rindex("Acme") + 4,
+        }
+    )
+    duplicate = binding(
+        doc, proposed.model_copy(update={"actor_refs": (*proposed.actor_refs, additional)})
+    )
+    assert duplicate.identity == current.identity
+    acme = next(entity for entity in duplicate.entities if entity.entity.display_label == "Acme")
+    assert len(acme.identity_refs) == 2

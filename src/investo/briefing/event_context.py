@@ -169,6 +169,30 @@ def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> N
         raise ContextEvidenceError("context.item_mismatch")
     for ref in fact_context_refs(fact):
         resolve_context_ref(ref, documents)
+    component_fields = {
+        "subject_refs": {"fact_subject", "issuer", "company_name"},
+        "predicate_refs": {"fact_predicate", "fact_action"},
+        "object_refs": {"fact_object", "product_name"},
+        "metric_refs": {
+            "fact_metric",
+            "macro_event_metric",
+            "macro_event_key",
+            "macro_label",
+            "series_id",
+        },
+        "unit_refs": {"unit", "fact_unit", "macro_event_unit", "macro_unit"},
+        "period_refs": {
+            "reference_period",
+            "macro_release_period",
+            "macro_event_period",
+            "fact_period",
+        },
+    }
+    for component, allowed in component_fields.items():
+        for ref in getattr(fact, component):
+            field = metadata_ref_field(ref, documents)
+            if field is not None and field not in allowed:
+                raise ContextEvidenceError("context.fact_invalid")
     if fact.value_kind == "numeric":
         for ref in fact.value_refs:
             value = unicodedata.normalize("NFKC", resolve_context_ref(ref, documents)).strip()
@@ -231,6 +255,18 @@ def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> N
             }
             if fact.status not in statuses or not fact.status_refs:
                 raise ContextEvidenceError("context.status_unbound")
+            for component in ("metric_refs", "unit_refs", "period_refs"):
+                expected_values = {
+                    normalized_context_literal(str(fields[key]))
+                    for key in component_fields[component]
+                    if key in fields
+                }
+                if expected_values and any(
+                    normalized_context_literal(resolve_context_ref(ref, documents))
+                    not in expected_values
+                    for ref in getattr(fact, component)
+                ):
+                    raise ContextEvidenceError("context.fact_invalid")
             for ref in fact.status_refs:
                 field = metadata_ref_field(ref, documents)
                 if field is not None and field not in status_fields | {
@@ -240,7 +276,7 @@ def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> N
             continue
         if fact.status == "actual" and "macro_actual" in fields:
             raise ContextEvidenceError("context.fact_invalid")
-        declared = {str(fields[key]) for key in status_fields if key in fields}
+        declared = {str(fields[key]).strip().casefold() for key in status_fields if key in fields}
         if declared and (
             declared != {fact.status}
             or not any(
@@ -254,6 +290,10 @@ def validate_context_fact(fact: ContextFactDraft, documents: ContextLookup) -> N
 
 def normalized_numeric_literal(value: str) -> str:
     return unicodedata.normalize("NFKC", value).strip().replace(",", "")
+
+
+def normalized_context_literal(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).split())
 
 
 def metadata_ref_field(ref: ContextRef, documents: ContextLookup) -> str | None:

@@ -296,3 +296,58 @@ def test_mixed_actual_and_forecast_keep_each_source_slot_status() -> None:
             payload, (doc,), observed_at=NOW, required_item_ids=frozenset({1})
         )
         assert [fact.status for fact in parsed.events[0].facts] == ["actual", "forecast"]
+
+
+@pytest.mark.parametrize(
+    "component,field",
+    [("metric_refs", "unit"), ("unit_refs", "macro_release_period"), ("period_refs", "unit")],
+)
+def test_required_actual_rejects_metadata_component_role_swaps(component: str, field: str) -> None:
+    from investo.briefing.event_context import prepare_context_documents
+    from investo.models.items import NormalizedItem
+
+    item = NormalizedItem(
+        source_name="official",
+        category="macro",
+        title="Acme announced Widget",
+        summary="Acme revenue actual 1000 USD FY2026",
+        published_at=NOW,
+        raw_metadata={
+            "macro_event_key": "revenue",
+            "macro_event_status": "actual",
+            "macro_actual": "1000",
+            "macro_release_period": "FY2026",
+            "unit": "USD",
+        },
+    )
+    doc = prepare_context_documents((item,), received_at=NOW)[0]
+    template = draft(document()).facts[0]
+    fact = template.model_copy(
+        update={
+            "subject_refs": (ref(doc, "Acme"),),
+            "predicate_refs": (ref(doc, "revenue"),),
+            "metric_refs": (metadata_ref(doc, "macro_event_key"),),
+            "value_refs": (metadata_ref(doc, "macro_actual"),),
+            "unit_refs": (metadata_ref(doc, "unit"),),
+            "period_refs": (metadata_ref(doc, "macro_release_period"),),
+            "status_refs": (metadata_ref(doc, "macro_actual_status"),),
+            component: (metadata_ref(doc, field),),
+        }
+    )
+    proposed = draft(document()).model_copy(
+        update={
+            "actor_refs": (ref(doc, "Acme"),),
+            "action_refs": (ref(doc, "announced"),),
+            "object_refs": (),
+            "relation_refs": (),
+            "impact_refs": (),
+            "facts": (fact,),
+            "meaning_refs": (),
+            "reaction_refs": (),
+        }
+    )
+    payload = ContextClassificationResult(schema_version=3, events=(proposed,)).model_dump_json()
+    with pytest.raises(ContextEvidenceError, match="fact_invalid"):
+        parse_context_classification(
+            payload, (doc,), observed_at=NOW, required_item_ids=frozenset({1})
+        )

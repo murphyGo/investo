@@ -7991,3 +7991,7 @@ this closeout changes evidence documents only. Browser waiver/source exception r
 - 독립 검토로 source ownership, typed actual/forecast 슬롯 binding, 필수 actual 보호, optional budget 우선순위, policy authority, 부정 alias, 이전 actual 충돌, correction provenance, occurrence 기간 안정성, bootstrap 직렬화 순서를 보강했다.
 - C3 hash-only 이력에 FactSlotReceipt(slot_key_hash,fact_hash,status)를 추가했다. 기존 raw fact hash만으로는 이전 actual의 slot 충돌을 확인할 수 없다는 재현에 따른 contract 보강이며 신규 v3 이력은 아직 운영되지 않는다.
 - u169 native 문서/봉인, u170 reducer, u171 표면, u172 사람/실제 scheduled 수용, u173 source qualification은 미완료로 구별한다. capability gate와 기존 생산 경로는 유지한다.
+
+### 2026-10-10 — Foundation independent review closure
+
+최종 read-only reviewer가 6ba3a094 이후 correction/component/multi-actor 수정의 이전 재현을 직접 확인했다. 독립 신규7파일81PASS, 변경파일 Ruff/format 및 mypy307PASS; foundation 범위 P1/P2=0. native finalizer/transaction·story reducer·운영 활성화의 미완료는 그대로다. concurrent u145 data-first UI의 audit history를 보존하여 최신 main ea402465에 rebase했다. 최종 통합 회귀는 별도 기록한다.

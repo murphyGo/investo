@@ -373,6 +373,8 @@ def compare_event_facts(
         )
         if before is None or after is None:
             raise EventIdentityError("identity.correction_unbound")
+        if before.canonical.slot_key_hash != after.canonical.slot_key_hash:
+            raise EventIdentityError("identity.correction_unbound")
         if any(ref.document_id not in identity.document_aliases for ref in correction.source_refs):
             raise EventIdentityError("identity.correction_unbound")
         if not {ref.document_id for ref in correction.source_refs} & {
@@ -397,22 +399,22 @@ def compare_event_facts(
         if not subjects or (after.canonical.metric_key_hash is not None and not metrics):
             raise EventIdentityError("identity.correction_unbound")
         claims = [resolve_context_ref(ref, documents) for ref in correction.source_refs]
+        subject_pattern = "(?:" + "|".join(re.escape(label) for label in sorted(subjects)) + ")"
+        metric_pattern = (
+            (" (?:" + "|".join(re.escape(label) for label in sorted(metrics)) + ")")
+            if metrics
+            else ""
+        )
+        affirmative = (
+            rf"{subject_pattern}{metric_pattern} (?:was )?corrected from "
+            rf"{re.escape(before.original_value)} to {re.escape(after.original_value)}[.。]?",
+            rf"{subject_pattern}{metric_pattern} {re.escape(before.original_value)}에서 "
+            rf"{re.escape(after.original_value)}(?:으)?로 정정(?:했다)?[.。]?",
+        )
         if not any(
-            any(label in claim for label in subjects)
-            and (not metrics or any(label in claim for label in metrics))
-            and (
-                re.search(
-                    rf"corrected from {re.escape(before.original_value)} "
-                    rf"to {re.escape(after.original_value)}(?:\b|$)",
-                    claim,
-                )
-                or re.search(
-                    rf"{re.escape(before.original_value)}에서 "
-                    rf"{re.escape(after.original_value)}(?:으)?로 정정",
-                    claim,
-                )
-            )
+            re.fullmatch(pattern, normalized_label(claim))
             for claim in claims
+            for pattern in affirmative
         ):
             raise EventIdentityError("identity.correction_unbound")
         pairs.append((correction.old_fact_id, correction.new_fact_id))
@@ -468,9 +470,10 @@ def canonical_event_binding(
     facts = normalize_fact_bindings(documents, proposal.facts, approved_registry=approved_registry)
     entities = normalize_entity_bindings(
         documents,
-        [proposal.actor_refs, *([proposal.object_refs] if proposal.object_refs else [])],
+        [(ref,) for ref in (*proposal.actor_refs, *proposal.object_refs)],
         approved_registry=approved_registry,
     )
+    entities = _merge_entity_bindings(entities)
     delta = compare_event_facts(match.identity, facts, baseline)
     novelty: Literal["new", "material_update", "repeat", "unknown"] = "unknown"
     if baseline_available and match.outcome != "conflict" and not delta.unresolved_conflict_ids:
@@ -503,6 +506,38 @@ def canonical_event_binding(
         match_outcome=match.outcome,
         story_hint=hint,
     )
+
+
+def _merge_entity_bindings(bindings: Sequence[EntityBinding]) -> tuple[EntityBinding, ...]:
+    by_id: dict[str, EntityBinding] = {}
+    for binding in bindings:
+        key = binding.entity.entity_id
+        old = by_id.get(key)
+        if old is None:
+            by_id[key] = binding
+            continue
+        labels = tuple(sorted(set(old.entity.source_labels) | set(binding.entity.source_labels)))
+        identity_refs = tuple(dict.fromkeys((*old.identity_refs, *binding.identity_refs)))
+        aliases = tuple(dict.fromkeys((*old.entity.alias_refs, *binding.entity.alias_refs)))
+        if len(labels) > 8 or len(identity_refs) > 16 or len(aliases) > 16:
+            raise EventIdentityError("identity.record_budget_exhausted")
+        if old.registry_key != binding.registry_key:
+            raise EventIdentityError("identity.alias_unbound")
+        basis = "explicit_source_alias" if aliases and old.registry_key is None else old.basis
+        by_id[key] = EntityBinding(
+            entity=EntityIdentity(
+                entity_id=key,
+                source_labels=labels,
+                display_label=min(old.entity.display_label, binding.entity.display_label),
+                alias_refs=aliases,
+            ),
+            basis=basis,
+            registry_key=old.registry_key,
+            identity_refs=identity_refs,
+        )
+    if len(by_id) > 16:
+        raise EventIdentityError("identity.record_budget_exhausted")
+    return tuple(by_id[key] for key in sorted(by_id))
 
 
 def source_receipt(

@@ -102,3 +102,5 @@ schema2 원문 tuple hash·문자열 novelty·7일 receipt는 legacy owner에만
 alias·duplicate·fact-delta·ledger negative matrix와 AC는 [code-generation plan](../plans/u168-canonical-event-identity-and-fact-delta-code-generation-plan.md)에 있다. 이 문서 작성은 구현 시작·migration 실행·production activation을 뜻하지 않는다.
 
 구현의 explicit correction은 current source에서 다시 결속한 before/after fact bindings, 같은 occurrence의 refs, 주체·지표·이전/새 값을 함께 말하는 명시 정정 claim을 요구한다. hash-only prior receipt에서 원문 값을 복원하지 않는다. 승인 registry 주체의 correction 등 아직 제공하지 못하는 binding은 conservative rejection이며 native integration 이전 미완료 범위로 남긴다.
+
+최종 foundation 검증: numeric metadata metric/unit/period 성분은 각각의 source-owned 필드와 값에 결속한다. correction은 before/after의 동일 canonical slot과 source의 긍정적인 정정 문장 fullmatch를 요구하며 부정문과 다른 metric 대체를 거절한다. 여러 actor/object는 개별 entity binding 후 동일 ID의 provenance를 합친다. 위 수정은 독립 검토의 이전 재현을 모두 거절/보존하는 것으로 확인했다.
