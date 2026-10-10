@@ -1,7 +1,7 @@
 """Typed contracts for the Yahoo daily-price public sector radar (u145).
 
 These are sibling types to the private u139 NAV contract.  Closed literals and
-cross-entity validators make the provider scope, fixed ETF identity, and
+cross-entity validators make the provider scope, fixed ETF/equity identities, and
 derived-only boundary impossible to broaden accidentally.
 """
 
@@ -503,6 +503,14 @@ YAHOO_FINANCE_ATTRIBUTION: Final[AttributionEntry] = AttributionEntry(
     url="https://finance.yahoo.com/",
 )
 REQUIRED_PUBLIC_ATTRIBUTIONS: Final[tuple[AttributionEntry, ...]] = (YAHOO_FINANCE_ATTRIBUTION,)
+MARKET_GROUP_REQUEST_TICKERS: Final = (*PUBLIC_REQUEST_TICKERS, *ADDITIONAL_REQUEST_TICKERS)
+MARKET_GROUP_ATTRIBUTIONS: Final[tuple[AttributionEntry, ...]] = (
+    AttributionEntry(
+        attribution_id="yahoo-finance",
+        display_text="Yahoo Finance — daily ETF and equity price data",
+        url="https://finance.yahoo.com/",
+    ),
+)
 
 
 class PublicSourceProvenance(BaseModel):
@@ -515,8 +523,8 @@ class PublicSourceProvenance(BaseModel):
     market_scope: Literal[MarketScope.PROVIDER_REPORTED_US_EQUITY] = (
         MarketScope.PROVIDER_REPORTED_US_EQUITY
     )
-    requested_tickers: tuple[SectorTicker, ...] = PUBLIC_REQUEST_TICKERS
-    supported_tickers: tuple[SectorTicker, ...] = PUBLIC_REQUEST_TICKERS
+    requested_tickers: tuple[PublicAssetTicker, ...] = PUBLIC_REQUEST_TICKERS
+    supported_tickers: tuple[PublicAssetTicker, ...] = PUBLIC_REQUEST_TICKERS
     missing_tickers: tuple[SectorTicker, ...] = PUBLIC_STRUCTURALLY_MISSING_TICKERS
     adjustment: Literal[PublicAdjustmentPolicy.PROVIDER_CLOSE] = (
         PublicAdjustmentPolicy.PROVIDER_CLOSE
@@ -528,19 +536,25 @@ class PublicSourceProvenance(BaseModel):
     as_of_date: date | None = None
     license_ids: tuple[str, ...] = PUBLIC_LICENSE_IDS
     attributions: tuple[AttributionEntry, ...] = REQUIRED_PUBLIC_ATTRIBUTIONS
-    schema_version: Literal[2] = 2
+    schema_version: Literal[2, 3] = 2
 
     @model_validator(mode="after")
     def _validate_closed_provenance(self) -> Self:
-        if self.requested_tickers != PUBLIC_REQUEST_TICKERS:
+        expected = (
+            PUBLIC_REQUEST_TICKERS if self.schema_version == 2 else MARKET_GROUP_REQUEST_TICKERS
+        )
+        if self.requested_tickers != expected:
             raise ValueError("requested_tickers must equal the fixed Yahoo request set")
-        if self.supported_tickers != PUBLIC_REQUEST_TICKERS:
-            raise ValueError("supported_tickers must equal the fixed Yahoo v2 set")
+        if self.supported_tickers != expected:
+            raise ValueError("supported_tickers must equal the fixed versioned Yahoo set")
         if self.missing_tickers != PUBLIC_STRUCTURALLY_MISSING_TICKERS:
             raise ValueError("Yahoo v2 has no structurally missing ticker")
         if self.license_ids != PUBLIC_LICENSE_IDS:
             raise ValueError("Yahoo v2 must not claim a verified data license")
-        if self.attributions != REQUIRED_PUBLIC_ATTRIBUTIONS:
+        attributions = (
+            REQUIRED_PUBLIC_ATTRIBUTIONS if self.schema_version == 2 else MARKET_GROUP_ATTRIBUTIONS
+        )
+        if self.attributions != attributions:
             raise ValueError("attributions must equal the fixed Yahoo entry in display order")
         if self.as_of_date is not None and self.as_of_date > self.target_date:
             raise ValueError("source as-of date must not be after target date")
@@ -886,6 +900,8 @@ class PublicSectorDashboardSnapshot(BaseModel):
     def _validate_snapshot(self) -> Self:
         if (self.schema_version == 3) != (self.market_groups is not None):
             raise ValueError("schema3 requires groups and schema2 must omit groups")
+        if self.provenance.schema_version != self.schema_version:
+            raise ValueError("snapshot and source provenance versions must match")
         if self.market_groups is not None:
             if self.market_groups.as_of_date != self.as_of_date or self.coverage.status not in {
                 SectorCoverageStatus.NORMAL,

@@ -451,8 +451,13 @@ def _render_method(snapshot: PublicSectorDashboardSnapshot) -> list[str]:
         "",
         '<div class="sector-source-note">',
         "<strong>제한 공개 베타 · Yahoo Finance 일별 종가 기준</strong>",
-        "<p>S&P 500 11개 섹터 ETF 프록시 · 벤치마크: SPY<br>"
-        "미국 전체시장 거래량 또는 자금 흐름이 아님</p>",
+        (
+            "<p>분야별 14개 관찰 그룹 · 시장 요약: 11개 섹터 ETF · 벤치마크: SPY<br>"
+            "미국 전체시장 거래량 또는 자금 흐름이 아님</p>"
+            if snapshot.market_groups is not None
+            else "<p>S&P 500 11개 섹터 ETF 프록시 · 벤치마크: SPY<br>"
+            "미국 전체시장 거래량 또는 자금 흐름이 아님</p>"
+        ),
         "</div>",
         "",
         "### 데이터 출처",

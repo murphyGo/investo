@@ -13,9 +13,10 @@ There are no public writes, raw artifacts, new secrets or notification steps.
 | [38023741158](https://github.com/murphyGo/investo/actions/runs/38023741158) | PASS | 2026-10-09 | 23 /11 /14 | 914 | 1364 | b90c3968 |
 | [38023798453](https://github.com/murphyGo/investo/actions/runs/38023798453) | PASS | 2026-10-09 | 23 /11 /14 | 482 | 1206 | b90c3968 |
 
-An additional same-hash navigation repair changes only the JS asset. Literal exact-final-commit
-qualification will be repeated on the final implementation commit before activation; the
-initial runner evidence above is retained honestly as preliminary5dc9813b evidence.
+Same-hash navigation and subsequent truthful23-asset provenance repairs supersede this
+preliminary5dc9813b evidence. Literal exact-final-commit qualification will be repeated on
+the final implementation commit before activation. No preliminary run is counted as a
+run on the later changed implementation; a fresh five-run table will record that commit.
 Source availability alone does not activate production.
 Local synthetic benchmark passes but is not substituted for real runner evidence.
 Local noncanonical candidate probing encountered429; no bypass, alternative host or IP

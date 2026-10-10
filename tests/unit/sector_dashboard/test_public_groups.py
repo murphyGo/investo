@@ -114,6 +114,15 @@ async def test_full_universe_has_distinct_rank_denominators_and_preserves_overvi
     assert expanded.records == original.records
     groups = expanded.market_groups
     assert expanded.schema_version == 3 and groups is not None
+    assert expanded.provenance.schema_version == 3
+    assert expanded.provenance.requested_tickers == (
+        *PUBLIC_REQUEST_TICKERS,
+        *ADDITIONAL_REQUEST_TICKERS,
+    )
+    assert expanded.provenance.supported_tickers == expanded.provenance.requested_tickers
+    assert "ETF and equity" in expanded.provenance.attributions[0].display_text
+    assert original.provenance.schema_version == 2
+    assert original.provenance.requested_tickers == PUBLIC_REQUEST_TICKERS
     assert groups.as_of_date == original.as_of_date == _TARGET
     assert groups.available_group_count == groups.comparable_group_count == 14
     assert tuple(r.group_id for r in groups.records) == MARKET_GROUP_IDS
@@ -389,6 +398,30 @@ async def test_group_contract_rejects_inconsistent_or_unclosed_payload(tamper: s
         groups["records"][0]["metrics"]["price_excess_21d"]["value"] = "123"
     with pytest.raises(ValidationError):
         PublicSectorDashboardSnapshot.model_validate(data)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tamper", ["requested", "supported", "attribution", "legacy-version"])
+async def test_schema3_rejects_forged_or_overview_only_provenance(tamper: str) -> None:
+    from investo.models.sector_public import PublicSourceProvenance
+
+    original, expanded, _, _ = await _snapshots()
+    data = expanded.model_dump(mode="json")
+    if tamper == "legacy-version":
+        data["provenance"] = original.provenance.model_dump(mode="json")
+    elif tamper == "attribution":
+        data["provenance"]["attributions"] = original.provenance.model_dump(mode="json")[
+            "attributions"
+        ]
+    else:
+        data["provenance"][f"{tamper}_tickers"] = original.provenance.model_dump(mode="json")[
+            "requested_tickers"
+        ]
+    with pytest.raises(ValidationError):
+        PublicSectorDashboardSnapshot.model_validate(data)
+    if tamper != "legacy-version":
+        with pytest.raises(ValidationError):
+            PublicSourceProvenance.model_validate(data["provenance"])
 
 
 @pytest.mark.asyncio

@@ -55,6 +55,14 @@ reviewer accepts this delta. Data/probe/render Python/workflow slice is unchange
 five new probes on the final implementation commit will honor the literal exact-commit gate.
 Architecture decision: [ADR0001](../adr/0001-flat-market-observation-groups.md).
 
+Full pre-provenance regression completes:6,751 PASS in957.89s. Independent review finds one
+P2: schema3still reported the old12-ETF provenance. Fixed with closed12/23 request/support
+sets, version parity and accurate mixedETF/equity attribution; schema2default bytes stay
+unchanged. Four forgery tests and truthful sourcebox added. Current-fix focused gates and
+exact-commit full GitHub quality remain pending; the earlier full process is not mislabeled
+as a run of changed Python. Local corrected maximum-shape benchmark passes:CPU1358ms,
+wall1492ms, incrementalRSS59,604,992 bytes. Final five-run source qualification resets again.
+
 ## Delivery
 
 Independent review, exact-code Actions probes, main integration, real schema3 refresh,

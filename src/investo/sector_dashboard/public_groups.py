@@ -23,6 +23,8 @@ from investo.models.sector import (
     SectorTicker,
 )
 from investo.models.sector_public import (
+    MARKET_GROUP_ATTRIBUTIONS,
+    MARKET_GROUP_REQUEST_TICKERS,
     AdditionalParsedSet,
     PublicGroupRank,
     PublicGroupRegime,
@@ -264,6 +266,13 @@ def attach_public_market_groups(
             **snapshot.model_dump(exclude={"snapshot_id"}),
             "schema_version": 3,
             "market_groups": groups,
+            "provenance": {
+                **snapshot.provenance.model_dump(),
+                "schema_version": 3,
+                "requested_tickers": MARKET_GROUP_REQUEST_TICKERS,
+                "supported_tickers": MARKET_GROUP_REQUEST_TICKERS,
+                "attributions": MARKET_GROUP_ATTRIBUTIONS,
+            },
         }
     )
     return identify_public_snapshot(amended)

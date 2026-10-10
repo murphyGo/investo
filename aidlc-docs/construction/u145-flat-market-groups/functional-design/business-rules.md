@@ -18,5 +18,7 @@
    retain the complete prior canonical JSON/Markdown pair.
 9. Schema3 hashes both derived views, and only that same two-file transaction is published.
    Schema2 serialization/hash/Markdown stay compatible and remain valid prior last-good state.
+   Provenance uses the exact versioned12/23 request/support set and ETF-only/mixedETF-equity
+   attribution respectively; snapshot/source versions must match, with no legacy metadata graft.
 10. One fixed23-asset request set shares36 total attempts, concurrency2 and existing deadline/size
     limits. No second provider, secret, raw series retention, LLM, Telegram or briefing path is added.
