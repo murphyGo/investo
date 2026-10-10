@@ -2,6 +2,18 @@
 
 _자동 생성된 페이지 — 매 게시 직후 갱신됩니다._
 
+<!-- u33 entry 2026-10-09 begin -->
+
+## 2026-10-09
+
+- [cftc-cot-positioning] **ticker**: CFTC Bitcoin CME leveraged_money net -6852 contracts
+- [coingecko-global-market] **ticker**: Global crypto market cap $2,803,104,406,410; BTC dominance 59.11%
+- [okx-derivatives] **ticker**: BTC 미결제약정 $585,124,090 (OKX, UTC 24h)
+- [okx-derivatives] **ticker**: BTC 펀딩비 0.0000643459065222 (OKX, UTC 24h)
+- [theblock-crypto] **ticker**: Sam Altman-backed bitcoin life insurer Meanwhile raises $37.5 million round led by Bain Capital Crypto
+- [theblock-crypto] **ticker**: Thailand SEC issues bitcoin and ether ETF rules set to take effect Oct. 16
+
+<!-- u33 entry 2026-10-09 end -->
 <!-- u33 entry 2026-10-07 begin -->
 
 ## 2026-10-07

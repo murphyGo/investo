@@ -6,7 +6,7 @@ import hashlib
 import json
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from decimal import ROUND_HALF_EVEN, Decimal, localcontext
+from decimal import Decimal, localcontext
 from html import escape
 from typing import Final
 
@@ -15,7 +15,6 @@ from pydantic import ValidationError
 from investo._internal.redaction import SECRET_ENV_VARS, scan_for_leak
 from investo.models.sector import (
     MetricMissingReason,
-    MetricValue,
     SectorCoverageStatus,
     SectorRegime,
     SectorTicker,
@@ -27,6 +26,8 @@ from investo.models.sector_public import (
     RenderedPublicSectorProjection,
     SectorAvailability,
 )
+from investo.sector_dashboard.public_format import format_public_metric as _format_metric
+from investo.sector_dashboard.public_group_render import render_market_groups
 
 MAX_PUBLIC_PROJECTION_BYTES: Final[int] = 512 * 1024
 _SNAPSHOT_MARKER_PREFIX: Final[str] = "<!-- snapshot_id: "
@@ -191,9 +192,11 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         "",
         '<p class="sector-eyebrow">MARKET OVERVIEW / SECTOR RADAR</p>',
         "",
-        "# 미국 섹터 코어 레이더",
+        "# 미국 분야별 레이더" if snapshot.market_groups is not None else "# 미국 섹터 코어 레이더",
         "",
-        '<p class="sector-subtitle">11개 섹터의 상대성과와 흐름을 한눈에.</p>',
+        '<p class="sector-subtitle">세부 업종과 빅테크 테마의 상대성과를 한눈에.</p>'
+        if snapshot.market_groups is not None
+        else '<p class="sector-subtitle">11개 섹터의 상대성과와 흐름을 한눈에.</p>',
         '<div class="sector-status">',
         f"<span>기준일: <strong>{as_of}</strong> · 미국 정규장 마감 기준</span>",
         f'<span class="sector-status-chip" data-freshness="{snapshot.freshness.value}">'
@@ -203,6 +206,33 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         "</div>",
         "",
     ]
+    if snapshot.market_groups is not None:
+        groups = snapshot.market_groups
+        lines.extend(
+            [
+                f'<p class="sector-group-coverage">분야별 {groups.available_group_count}/14 '
+                f"그룹 사용 가능 · 시장 요약 {coverage.available_sector_count}/11 섹터</p>",
+                '<div class="sector-view-switch" role="tablist" aria-label="레이더 보기">',
+                '<button id="sector-tab-groups" type="button" role="tab" aria-selected="true" '
+                'aria-controls="sector-view-groups" data-sector-view="groups" '
+                'data-testid="sector-view-groups-button">분야별 비교</button>',
+                '<button id="sector-tab-overview" type="button" role="tab" aria-selected="false" '
+                'aria-controls="sector-view-overview" tabindex="-1" data-sector-view="overview" '
+                'data-testid="sector-view-overview-button">시장 요약</button>',
+                "</div>",
+                "",
+            ]
+        )
+        lines.extend(render_market_groups(groups))
+        lines.extend(
+            [
+                '<section id="sector-view-overview" class="sector-view" role="tabpanel" '
+                'aria-labelledby="sector-tab-overview" markdown="1">',
+                "",
+                "## 시장 요약 · 11개 섹터",
+                "",
+            ]
+        )
     if coverage.status in (SectorCoverageStatus.PARTIAL, SectorCoverageStatus.NORMAL):
         lines.extend(_render_summary(snapshot.records))
         lines.extend(['<div class="sector-chart-grid">', ""])
@@ -211,6 +241,8 @@ def _render_markdown(snapshot: PublicSectorDashboardSnapshot) -> str:
         lines.extend(["</div>", ""])
     lines.extend(_render_table(snapshot.records))
     lines.extend(_render_missing_coverage(snapshot))
+    if snapshot.market_groups is not None:
+        lines.extend(["</section>", ""])
     lines.extend(_render_method(snapshot))
     lines.extend(["</div>", ""])
     return "\n".join(lines).rstrip("\n") + "\n"
@@ -419,8 +451,13 @@ def _render_method(snapshot: PublicSectorDashboardSnapshot) -> list[str]:
         "",
         '<div class="sector-source-note">',
         "<strong>제한 공개 베타 · Yahoo Finance 일별 종가 기준</strong>",
-        "<p>S&P 500 11개 섹터 ETF 프록시 · 벤치마크: SPY<br>"
-        "미국 전체시장 거래량 또는 자금 흐름이 아님</p>",
+        (
+            "<p>분야별 14개 관찰 그룹 · 시장 요약: 11개 섹터 ETF · 벤치마크: SPY<br>"
+            "미국 전체시장 거래량 또는 자금 흐름이 아님</p>"
+            if snapshot.market_groups is not None
+            else "<p>S&P 500 11개 섹터 ETF 프록시 · 벤치마크: SPY<br>"
+            "미국 전체시장 거래량 또는 자금 흐름이 아님</p>"
+        ),
         "</div>",
         "",
         "### 데이터 출처",
@@ -428,6 +465,31 @@ def _render_method(snapshot: PublicSectorDashboardSnapshot) -> list[str]:
     ]
     for attribution in snapshot.provenance.attributions:
         lines.append(f"- [{attribution.display_text}]({attribution.url})")
+    if snapshot.market_groups is not None:
+        lines.extend(
+            [
+                "",
+                "### 분야별 측정 범위",
+                "",
+                "- 시장 요약은 기존 11개 섹터 ETF 기준입니다. 분야별 비교는 별도 ETF와 "
+                "대표주 가격지수이며, XLK를 분해한 값이 아닙니다.",
+                "- 그룹 사이에 종목이 겹칠 수 있어 수익률이나 그룹 수를 합산해 "
+                "시장 전체로 해석할 수 없습니다.",
+                "- 반도체·장비: [SMH]"
+                "(https://www.vaneck.com/us/en/investments/semiconductor-etf-smh/) · "
+                "미국 상장 해외 기업 포함.",
+                "- 소프트웨어·IT서비스: [XSW](https://www.ssga.com/us/en/institutional/etfs/"
+                "state-street-spdr-sp-software-services-etf-xsw) · "
+                "미국 전 규모 소프트웨어·서비스 및 일부 인접 업종.",
+                "- 빅테크(M7): [MAGS](https://www.roundhillinvestments.com/etf/mags/) · "
+                "M7 동일비중 노출 ETF.",
+                "- 하드웨어·장비: AAPL · DELL · HPQ · HPE · CSCO · ANET · NTAP · GLW의 "
+                "대표주 바스켓. 매일 8종목 단순수익률의 평균을 누적한 가격지수이며 "
+                "배당 재투자·거래비용을 반영하지 않습니다. 한 종목이라도 이력이 부족하면 "
+                "그룹을 계산하지 않습니다.",
+                "",
+            ]
+        )
     lines.extend(
         [
             "",
@@ -464,19 +526,6 @@ def _format_rank(record: PublicSectorRecord) -> str:
     if rank.ordinal is None or rank.comparable_sector_count <= 0:
         return "—"
     return f"{rank.ordinal}/{rank.comparable_sector_count}"
-
-
-def _format_metric(metric: MetricValue, unit: str) -> str:
-    if metric.value is None:
-        return "—"
-    with localcontext() as context:
-        context.prec = 34
-        context.rounding = ROUND_HALF_EVEN
-        displayed = (metric.value * Decimal(100)).quantize(Decimal("0.01"))
-    if displayed == 0:
-        displayed = Decimal("0.00")
-    sign = "+" if displayed > 0 else ""
-    return f"{sign}{displayed:.2f} {unit}"
 
 
 def _availability_label(record: PublicSectorRecord) -> str:

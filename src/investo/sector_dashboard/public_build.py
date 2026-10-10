@@ -21,6 +21,7 @@ from investo.models.sector_public import (
     PublicSectorBuildStatus,
     PublicSourceIssueCode,
 )
+from investo.sector_dashboard.public_groups import attach_public_market_groups
 from investo.sector_dashboard.public_metrics import (
     build_public_series_bundle,
     compute_public_sector_snapshot,
@@ -47,6 +48,8 @@ class PublicBuildReport(PublicSectorBuildOutcome):
     coverage: SectorCoverageStatus = SectorCoverageStatus.INSUFFICIENT
     available_sector_count: int = Field(default=0, ge=0, le=11)
     comparable_sector_count: int = Field(default=0, ge=0, le=11)
+    available_group_count: int | None = Field(default=None, ge=0, le=14)
+    comparable_group_count: int | None = Field(default=None, ge=0, le=14)
     request_count: int = Field(default=0, ge=0, le=36)
     successful_response_count: int = Field(default=0, ge=0, le=36)
     failed_request_count: int = Field(default=0, ge=0, le=36)
@@ -61,6 +64,7 @@ class PublicBuildReport(PublicSectorBuildOutcome):
             0
             if self.status in {PublicSectorBuildStatus.PROMOTED, PublicSectorBuildStatus.UNCHANGED}
             and self.coverage is SectorCoverageStatus.NORMAL
+            and self.available_group_count in (None, 14)
             else 2
         )
 
@@ -80,7 +84,11 @@ def hold_failed_public_build(
 
 
 async def build_public_sector(
-    client: httpx.AsyncClient, *, repository_root: Path, target_date: date
+    client: httpx.AsyncClient,
+    *,
+    repository_root: Path,
+    target_date: date,
+    include_market_groups: bool = False,
 ) -> PublicBuildReport:
     """Promote only fresh normal/partial output, otherwise preserve last-good bytes."""
     started = time.monotonic()
@@ -90,13 +98,36 @@ async def build_public_sector(
     freshness = FreshnessState.UNKNOWN
     coverage = SectorCoverageStatus.INSUFFICIENT
     available = comparable = 0
+    group_count: int | None = 0 if include_market_groups else None
     source_issues: tuple[PublicSourceIssueCode, ...] = ()
     try:
-        parsed = await collect_public_bars(client, target_date=target_date, budget=budget)
+        parsed = await collect_public_bars(
+            client,
+            target_date=target_date,
+            budget=budget,
+            include_market_groups=include_market_groups,
+        )
         collected_ms = math.ceil((time.monotonic() - started) * 1000)
         bundle = build_public_series_bundle(parsed, target_date=target_date)
         source_issues = tuple(sorted({failure.issue_code for failure in bundle.failures}, key=str))
         snapshot = compute_public_sector_snapshot(bundle)
+        if (
+            include_market_groups
+            and parsed.additional is not None
+            and snapshot.coverage.status
+            in {SectorCoverageStatus.NORMAL, SectorCoverageStatus.PARTIAL}
+        ):
+            snapshot = attach_public_market_groups(snapshot, bundle, parsed.additional)
+            assert snapshot.market_groups is not None
+            group_count = snapshot.market_groups.available_group_count
+        if parsed.additional is not None:
+            source_issues = tuple(
+                sorted(
+                    set(source_issues)
+                    | {failure.issue_code for failure in parsed.additional.failures},
+                    key=str,
+                )
+            )
         freshness, coverage = snapshot.freshness, snapshot.coverage.status
         available = snapshot.coverage.available_sector_count
         comparable = sum(record.relative_rank.score is not None for record in snapshot.records)
@@ -131,6 +162,8 @@ async def build_public_sector(
         coverage=coverage,
         available_sector_count=available,
         comparable_sector_count=comparable,
+        available_group_count=group_count,
+        comparable_group_count=group_count,
         request_count=budget.request_count,
         successful_response_count=budget.successful_response_count,
         failed_request_count=budget.request_count - budget.successful_response_count,

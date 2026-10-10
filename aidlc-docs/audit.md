@@ -8025,6 +8025,20 @@ ordering and byte-identical CSS/JSON. Refresh37966083788 SUCCESS:12/12, normal11
 fresh2026-10-08, unchanged6ac61b30, CPU1189ms. Presentation follow-up complete;
 this closeout changes evidence documents only. Browser waiver/source exception remain.
 
+## 2026-10-10 — u145 flat market groups approved implementation
+
+User “네 제안대로 진행해줘” approves the proposed flat industry/theme view and retained
+market overview; earlier publication authorization persists. FD/NFR and closed schema3
+contracts recorded before implementation, with source-neutral price math, representative
+hardware8 index,14-group independent ranks, bounded23-asset collector and DOM-only filters.
+Source research rejects liquidated XTH and chooses SMH/XSW/MAGS plus disclosed hardware
+basket; optional software preference remains unanswered, with routine XSW choice recorded.
+Root dirty work and unrelated site units are preserved in a separate worktree.
+Static/policy/docs/resource/supplemental UI checks pass; corrected affected test cases pass.
+Full regression, independent review, five exact-commit runner probes and live publication
+remain pending. No completed expanded deployment is inferred. Session:
+`docs/sessions/2026-10-10-u145-flat-market-groups.md`.
+
 ## 2026-10-10 — Event/news v3 개발 지시
 
 사용자: “개발도 진행해줘 / 현재 워크트리가 작업중이면 별도 워크트리에서 해줘”. 앞서 작성·검토한 u167–u173 공통 Functional/NFR 설계와 실행 계획을 개발 기준으로 승인한 지시로 적용한다. 새 worktree codex/news-event-v3-dev-20261010에서 의존 순서대로 구현하며 반복 확인은 하지 않는다. 커밋·푸시 지시도 현재 작업에 적용한다. 사람 의미 수용·source/HTTP/cursor·실제 운영 활성화·첫3/10회와 구형 제거 gate는 별도이며 개발 지시로 완료되지 않는다. 문서는838bed60으로main푸시/원격확인 완료.
@@ -8043,3 +8057,7 @@ this closeout changes evidence documents only. Browser waiver/source exception r
 ### 2026-10-10 — Foundation final integrated validation
 
 정확한 코드0de9d9d2857ca0bd77d10fa5a750a30286caec15 (main ea402465 통합)에서 전체6774PASS873.04s, focused170PASS215.07s, independent81PASS/remainingP1-P2=0. Ruff/format719/mypy307,4policyguards,strictMkDocs7.64s,Material/builtHTML PASS. u167foundation8/8, u168foundation5/8이며 native u169/finalizer-CAS 연결·u170reducer·u171reader·u172실제수용·u173sourcequalification은 미완료다. 기본schema2와v3preview/activeFalse를 유지했다. 후속 closeout은 증거 문서만 변경한다.
+
+## 2026-10-10 — u174–u179 deployment preparation
+
+User requested push and deployment. Isolated integration preserves origin/main8ff7abde, concurrent v3/sector groups, Oct9 crypto-only partial publication and both append-only histories. Latest public pair and archived bodies are unchanged. Generated discovery surfaces use current archived bytes; independent final review APPROVE, noP1/P2. Current local28 real-build regressions and30 browser cases pass. Bounded runtime35ea6c6e exact Quality38035946859 passes6322/289.46s. Main and pin promotion await exact candidate Quality and live Pages evidence; the original dirty root is untouched. See UI deployment checkpoint.
