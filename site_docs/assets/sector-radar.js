@@ -65,9 +65,9 @@
     });
 
     // A table-of-contents link into a hidden view must reveal that view first.
-    dashboard.revealRadarAnchor = () => {
+    dashboard.revealRadarAnchor = (hash = location.hash) => {
       let id;
-      try { id = decodeURIComponent(location.hash.slice(1)); }
+      try { id = decodeURIComponent(hash.slice(1)); }
       catch { return; }
       const target = id ? document.getElementById(id) : null;
       const view = target?.closest(".sector-view");
@@ -83,6 +83,20 @@
 
   window.addEventListener("hashchange", () => {
     document.querySelector(".sector-dashboard")?.revealRadarAnchor?.();
+  });
+  // Clicking the current hash again does not dispatch hashchange.
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey ||
+        event.shiftKey || event.altKey || !(event.target instanceof Element)) return;
+    const anchor = event.target.closest("a[href]");
+    if (!anchor || anchor.hasAttribute("download") ||
+        (anchor.target && anchor.target !== "_self")) return;
+    let url;
+    try { url = new URL(anchor.href); }
+    catch { return; }
+    if (url.origin !== location.origin || url.pathname !== location.pathname ||
+        url.search !== location.search || !url.hash) return;
+    document.querySelector(".sector-dashboard")?.revealRadarAnchor?.(url.hash);
   });
   if (typeof document$ !== "undefined") {
     document$.subscribe(initializeRadar);

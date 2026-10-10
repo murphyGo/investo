@@ -47,6 +47,14 @@ hidden-view anchor reveal and no-JS readability pass. Synthetic preview stays in
 `/private/tmp/investo-groups-ui-20261010`, never in committed product data.
 This is supplemental QA; Browser acceptance remains `WAIVED / NOT_EXECUTED`.
 
+Same-hash navigation edge case found and repaired: after switching views, clicking the
+already-current overview TOC hash must reveal its view despite no hashchange event.
+Bounded same-document click handling fixes it without fetch/history mutation. Actual
+Material same-hash-link regression passes all four viewport/theme variants. Independent
+reviewer accepts this delta. Data/probe/render Python/workflow slice is unchanged from5dc9813b;
+five new probes on the final implementation commit will honor the literal exact-commit gate.
+Architecture decision: [ADR0001](../adr/0001-flat-market-observation-groups.md).
+
 ## Delivery
 
 Independent review, exact-code Actions probes, main integration, real schema3 refresh,
