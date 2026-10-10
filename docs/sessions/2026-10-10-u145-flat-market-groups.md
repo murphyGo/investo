@@ -63,8 +63,46 @@ exact-commit full GitHub quality remain pending; the earlier full process is not
 as a run of changed Python. Local corrected maximum-shape benchmark passes:CPU1358ms,
 wall1492ms, incrementalRSS59,604,992 bytes. Final five-run source qualification resets again.
 
+Post-fix202PASS391.10s and eight selected provenance/golden checks PASS4.29s. Independent
+review approves exactee10d36d with no unresolved finding/new debt. Its remote full quality
+[38024527395](https://github.com/murphyGo/investo/actions/runs/38024527395) passes6,755tests
+in661.95s plus Ruff/format711, mypy306, four policies and strict docs/Material. Supplemental
+UI checks are repeated on the corrected projection across all four viewport/theme variants.
+
+Concurrent origin/main advanced tobb5711f9 with separate event/news foundation. Integrated
+as25eb92207aba6b45eaecaa3eb36b2a4bf94eb078, preserving both appended audit histories and
+state. All dashboard source/models/CLI/workflows/config/assets/tests remain byte-identical
+to approvedee10d36d; integration Ruff/mypy311 pass. Scoped branch/main push and remote SHA
+are confirmed. Exact integration quality38025047604 and renewed final five-run probes
+remain pending; Pages38025047596 passes on the still-valid schema2 prior dataset.
+
 ## Delivery
 
-Independent review, exact-code Actions probes, main integration, real schema3 refresh,
-Pages/live identities and final remote confirmation: pending; fill with actual evidence.
+Independent review, exact-code Actions probes, main integration, real schema3 refresh
+and Pages/live verification are complete. Final evidence commit is documentation only.
 Yahoo public-use permission remains unverified; the u145 exception is not provider consent.
+
+## Final operational closure
+
+- Integration25eb9220 quality[38025047604](https://github.com/murphyGo/investo/actions/runs/38025047604)
+  SUCCESS:6,836PASS583.37s; Ruff/format724, mypy311, four policies, strict docs/Material.
+- Five genuine read-only executions on exact25eb9220 all qualify23assets,11sectors,14groups,
+  fresh2026-10-09, zero failures/reasons, one schema3identity8a1e76ae. Each maximum-shape gate
+  passes; [qualification table](../../aidlc-docs/construction/u145-flat-market-groups/source-qualification.md).
+- Concurrent main3d0e5570 is generated briefing output only; qualified dashboard code stays
+  byte-identical. Refresh[38036114019](https://github.com/murphyGo/investo/actions/runs/38036114019)
+  SUCCESS from that main:promoted23/11/14, collection962ms/CPU5790ms/total6625ms. It commits
+  only the canonical pair as8ff7abdefedd2b5a0716d3911d1dcdeaf8952af2.
+- Pages[38036145271](https://github.com/murphyGo/investo/actions/runs/38036145271) SUCCESS at
+  exact8ff7abde; public route and JSON areHTTP200. Snapshot
+  `sha256:8a1e76ae65b4c8514a7c541ac31acdba69bb55556fd6a9dad0fe2b7b0fe3604a` is identical in
+  canonical pair and deployed HTML/JSON. JSON/CSS/JS bytes match repository exactly.
+- Current production pair verifier PASS:source/snapshot3, provenance requested/support23,
+  actual ETF/equity attribution, all14groups and11overview, as-of2026-10-09.
+- Actual public-page supplemental headless QA PASS across1440x1000/390x844 light/dark:
+  zero overflow/duplicateIDs/JSerrors; tabs/filter/keyboard/new-and-same-hash anchors/noJS
+  readable. Desktop/mobile screenshots inspected. Browser remains WAIVED / NOT_EXECUTED.
+- [Cross-check](../cross-checks/2026-10-10-u145-flat-market-groups.md):11/11approved criteria,
+  no gaps/debt; [independent review](../code-reviews/2026-10-10-u145-flat-market-groups.md) PASS.
+  Root dirty paths unchanged. Closeout preserves all unrelated news/archive work and
+  does not modify tested implementation or produced sector data.

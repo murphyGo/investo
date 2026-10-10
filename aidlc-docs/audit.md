@@ -8013,3 +8013,17 @@ remain pending. No completed expanded deployment is inferred. Session:
 ### 2026-10-10 — Foundation final integrated validation
 
 정확한 코드0de9d9d2857ca0bd77d10fa5a750a30286caec15 (main ea402465 통합)에서 전체6774PASS873.04s, focused170PASS215.07s, independent81PASS/remainingP1-P2=0. Ruff/format719/mypy307,4policyguards,strictMkDocs7.64s,Material/builtHTML PASS. u167foundation8/8, u168foundation5/8이며 native u169/finalizer-CAS 연결·u170reducer·u171reader·u172실제수용·u173sourcequalification은 미완료다. 기본schema2와v3preview/activeFalse를 유지했다. 후속 closeout은 증거 문서만 변경한다.
+
+## 2026-10-10 — u145 flat groups operational closeout
+
+Approved one-layer14group view + retained11overview is implemented and public. Independent
+review resolves provenanceP2 and same-hash navigation; no unresolved finding/debt. Exact
+integration25eb9220 quality38025047604 PASS6,836583.37s and all checks; five exact-commit
+runner probes all23/11/14fresh2026-10-09, resourcePASS. Concurrent newsfoundation/briefing
+commits preserved; dashboard source/config/assets unchanged by those commits.
+Refresh38036114019 promotes canonical schema3pair8ff7abde; Pages38036145271 SUCCESS.
+Live8a1e76ae matches JSON/HTML; JSON/CSS/JS byte-exact. Desktop/mobile light/dark actual
+public-page tabs/filters/keyboard/anchors/noJS pass without overflow/JSerrors. Cross-check
+11/11. Browser waiver and Yahoo unverified-permission exception remain explicit. Final
+closeout changes evidence docs only; root dirty work preserved. Session:
+`docs/sessions/2026-10-10-u145-flat-market-groups.md`.
