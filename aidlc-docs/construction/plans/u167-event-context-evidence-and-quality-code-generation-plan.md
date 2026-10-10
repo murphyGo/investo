@@ -2,8 +2,8 @@
 
 **Date**: 2026-10-10
 **Unit**: u167 event-context-evidence-and-quality
-**Stage**: Code Generation — 계획
-**Status**: 개발 승인 기록; foundation 구현 7/8; 최종 회귀/독립 검토 진행 중
+**Stage**: Code Generation — foundation 완료
+**Status**: foundation 구현 8/8; 최종6774PASS/독립81PASS; native consumer·운영 활성화 미완료
 **Source**: 사용자 이벤트·뉴스 이상향 분석과 구조 개편 문서화 지시; [근거](../event-news-v3/evidence.md)
 **Estimated Effort**: 24–32h
 **Dependencies**: 기존u157/u158/u161 코드. source-slot확장u173은harddependency가아니다.
@@ -36,7 +36,7 @@ NFR Requirements: REQUIRED — 전송byte예산·private버퍼·진단과schema�
 - [x] 5. 필수근거→설명근거→optional순서의actual UTF-8budget을구현하고Stage1 24KiB/v3protected16KiB/v2 8KiB를별도검증한다.
 - [x] 6. 품질vector와boundedprivatefield/rule진단을기존qualitytrace에연결한다. 날짜부족·history부족·내용부족을독립fixture로구별한다.
 - [x] 7. orchestrator→GenerationInput→classification→protectedprompt의명시적handoff를통합한다. u168/u169consumer가없는단계의미관측카운트는null로둔다.
-- [ ] 8. 실제buffer/projectionintegration회귀,static/policy/fullgate와독립review를완료하고per-AC결과를기록한다.
+- [x] 8. 실제buffer/projectionintegration회귀,static/policy/fullgate와독립review를완료하고per-AC결과를기록한다.
 
 ## Acceptance Criteria
 1. AC-167.1: 기존fact/identityrefs와다른meaning/reaction/follow_up문장이동일sourceownership으로Stage2protectedbuffer까지도달한다.
@@ -70,3 +70,5 @@ git diff --check
 ## Implementation checkpoint — 2026-10-10
 
 사용자의 별도 워크트리 개발 지시를 FD/NFR 및 code plan 실행 승인으로 기록했다. source context/model, 동일 소스 성분 binding, Stage1 CLI replacement, actual UTF-8 budgets, shadow 해시 관측, 명시 policy authority를 구현했다. shadow는 실제 classifier/Stage2 observation으로 표시하지 않는다. 실제 schema3 본문 소비는 u169가 담당하며 preview/active capability는 닫혀 있다. 실제 CLI replay의 Stage1→protected buffer 시험과 off/shadow 공개 bytes/calls 동등성을 검증했다. 최종 결과는 `../u167-event-context-evidence-and-quality/code/validation.json`에 기록한다.
+
+최종 latest-main 통합 코드 `0de9d9d2857ca0bd77d10fa5a750a30286caec15`:6774PASS873.04s, focused170PASS215.07s, independent81PASS, Ruff/format719/mypy307 및4policyguards/strictdocs/Material PASS. foundation의8steps 완료이며 actual schema3본문/사람수용/production 활성화는 완료로 주장하지 않는다.
