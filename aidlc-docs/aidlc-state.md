@@ -331,4 +331,4 @@ Source permission remains unverified under the u145 exception; Browser is
 
 권장 순서: **u174 → u175 → u176 → u177 → u178 → u179**. u174/u175는 독립적인 기존 동작 복구이며 u176–u179는 새 제품 계약 확정을 위한 FD/NFR부터 진행한다. 기존 u145/소스/이벤트/private runtime 운영 조건은 그대로 둔다. v3의 문서·요약·reader payload 의미는 u169/u171이 소유하고, UI는 해당 입력의 표현·탐색만 확장한다. u154의 legacy 문서 형식을 v3에 강제하지 않으며 u172의 semantic/운영 전환 인수를 대체하지 않는다. 2026-10-10 UI 관측과 디자인 후보는 이전 화면의 시점 고정 증거이며 새로운 기능의 인수 증거가 아니다. 개요·중복 대조·증거·리뷰: [Web UI program](construction/ui-modernization-20261010/README.md).
 
-UI 개발 진행: u174–u179 local construction 완료; 유닛별 로컬 커밋 및 검증 완료. [u174 검증](construction/u174-calendar-svg-render-integrity/code/summary.md). 사용자 전체 개발·유닛별 커밋 지시는 audit에 기록했으며 기존 문서화 시점의 NOT STARTED는 초기 상태다.
+UI 개발·배포 완료: u174–u179 유닛별 커밋, main 통합·푸시, 정확한 SHA Quality와 Pages 배포 완료. 실제 HTTPS30case/자산8byte-match, bounded runtime35ea6c6e 적용·즉시 재조회 완료; 기존 운영 모드 보존. [배포 증거](construction/ui-modernization-20261010/deployment-closeout.md). 최초 새 UI 예약 발행과 v3/source/event 운영 인수는 별도 관측이며 수동 발행은 실행하지 않았다. 기존 문서화 시점의 NOT STARTED는 초기 상태다.

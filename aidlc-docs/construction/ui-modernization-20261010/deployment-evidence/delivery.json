@@ -1,0 +1,42 @@
+{
+  "application_sha": "24ad770d56526709055de878a3a67e44d1e08512",
+  "public_quality": {
+    "id": 38044175630,
+    "status": "success",
+    "python_passed": 6921,
+    "skipped": 1,
+    "skip_reason": "committed dataset migrated; schema2 fixture tested separately",
+    "seconds": 470.87,
+    "node_passed": 29
+  },
+  "pages": {
+    "id": 38044709772,
+    "status": "success",
+    "build": "success",
+    "deploy": "success",
+    "site": "https://murphygo.github.io/investo/"
+  },
+  "live_cases": 30,
+  "live_asset_matches": 8,
+  "runtime": {
+    "sha": "35ea6c6e8cb3e871bd06bbdb1810065b5d97949f",
+    "parent": "4e0dc424a65d075a4437e08d849e7b667f2764c2",
+    "quality_id": 38035946859,
+    "status": "success",
+    "python_passed": 6322,
+    "seconds": 289.46,
+    "node_passed": 29,
+    "pin_updated_at": "2026-10-10T10:26:29Z",
+    "immediate_readback": "exact",
+    "queued_jobs_at_promotion": 0,
+    "running_jobs_at_promotion": 0,
+    "production_enabled": "1",
+    "event_mode": "active",
+    "news_window_mode": "shadow default (variable absent)",
+    "event_enrichment_mode": "off",
+    "daily_workflow_blob": "5d2bf59af4b2bc7527aedeba9a91278bd4283bc4"
+  },
+  "frozen_files_unchanged": 991,
+  "first_scheduled_ui_publication_observed": false,
+  "manual_publication_dispatched": false
+}

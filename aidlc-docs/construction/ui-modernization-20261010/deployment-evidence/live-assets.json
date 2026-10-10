@@ -1,0 +1,55 @@
+{
+  "site": "https://murphygo.github.io/investo/",
+  "app_sha": "24ad770d56526709055de878a3a67e44d1e08512",
+  "cache_policy": "no-cache and app-sha query",
+  "files": [
+    {
+      "path": "assets/investo-ui.css",
+      "bytes": 7379,
+      "sha256": "df49b6d7589cada69a7ae3231ea682545105c3aa5bab348c287da4e51509dfa5",
+      "result": "PASS"
+    },
+    {
+      "path": "assets/investo-chart-init.js",
+      "bytes": 14024,
+      "sha256": "e0647d5e22de1305b122422b84ebde27cc28236da16bc198b2e2085ec57ec87d",
+      "result": "PASS"
+    },
+    {
+      "path": "assets/investo-navigation.js",
+      "bytes": 2515,
+      "sha256": "481a5c478bdd77cbd36a8709dede387d806d10160743ee426446a4c00ec79496",
+      "result": "PASS"
+    },
+    {
+      "path": "assets/investo-reader.js",
+      "bytes": 737,
+      "sha256": "acf8734e0fa21dafb2a1b68e5f37497a15c57a12cef29a53dcfe5cf6c7eecc53",
+      "result": "PASS"
+    },
+    {
+      "path": "assets/investo-archive.js",
+      "bytes": 2326,
+      "sha256": "26e97e1474b3eb5a64da7cd48707d299a9f9ae7bc5ce0b1b7f751fc8dc34b4f3",
+      "result": "PASS"
+    },
+    {
+      "path": "assets/sector-radar.css",
+      "bytes": 10641,
+      "sha256": "1444d34e4587c3f4edf78a67d7564f414e10b842a4467e0ac4feded9cc46142b",
+      "result": "PASS"
+    },
+    {
+      "path": "assets/sector-radar.js",
+      "bytes": 4636,
+      "sha256": "8f111618eff6ba1d208bff475e1004becb2f0fdf2b80a50c36433aba9845c7ce",
+      "result": "PASS"
+    },
+    {
+      "path": "sectors/latest.json",
+      "bytes": 31755,
+      "sha256": "bbb429b2210a1b7d019f04c2ac53684f6a08149c078ca677924aac79d61ed2f0",
+      "result": "PASS"
+    }
+  ]
+}

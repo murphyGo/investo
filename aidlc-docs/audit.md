@@ -8075,3 +8075,7 @@ public-page tabs/filters/keyboard/anchors/noJS pass without overflow/JSerrors. C
 11/11. Browser waiver and Yahoo unverified-permission exception remain explicit. Final
 closeout changes evidence docs only; root dirty work preserved. Session:
 `docs/sessions/2026-10-10-u145-flat-market-groups.md`.
+
+## 2026-10-10 — u174–u179 verified public and runtime delivery
+
+Exact main application24ad770d Quality38044175630 SUCCESS6921/470.87s,1 known migrated-dataset skip, Node29 and all guards. Pages38044709772 build/deploy SUCCESS. Actual HTTPS30cases PASS;8CSS/JS/JSON assets byte-match. Bounded runtime35ea6c6e Quality38035946859 SUCCESS6322/289.46s; REVIEWED_CODE_SHA promoted at10:26:29UTC with exact immediate readback and zero queued/running private jobs. Production1/eventactive/news-shadow/enrichmentoff and original daily workflow unchanged. No manual briefing/Telegram or historical-body rewrite. First scheduled new-UI publication remains unobserved; v3/source/event operational acceptance stays separate. Final closeout docs only; all991 frozen application/test/workflow/config/index inputs unchanged and original dirty root preserved. Full evidence: `construction/ui-modernization-20261010/deployment-closeout.md`.
