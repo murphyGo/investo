@@ -8061,3 +8061,17 @@ remain pending. No completed expanded deployment is inferred. Session:
 ## 2026-10-10 — u174–u179 deployment preparation
 
 User requested push and deployment. Isolated integration preserves origin/main8ff7abde, concurrent v3/sector groups, Oct9 crypto-only partial publication and both append-only histories. Latest public pair and archived bodies are unchanged. Generated discovery surfaces use current archived bytes; independent final review APPROVE, noP1/P2. Current local28 real-build regressions and30 browser cases pass. Bounded runtime35ea6c6e exact Quality38035946859 passes6322/289.46s. Main and pin promotion await exact candidate Quality and live Pages evidence; the original dirty root is untouched. See UI deployment checkpoint.
+
+## 2026-10-10 — u145 flat groups operational closeout
+
+Approved one-layer14group view + retained11overview is implemented and public. Independent
+review resolves provenanceP2 and same-hash navigation; no unresolved finding/debt. Exact
+integration25eb9220 quality38025047604 PASS6,836583.37s and all checks; five exact-commit
+runner probes all23/11/14fresh2026-10-09, resourcePASS. Concurrent newsfoundation/briefing
+commits preserved; dashboard source/config/assets unchanged by those commits.
+Refresh38036114019 promotes canonical schema3pair8ff7abde; Pages38036145271 SUCCESS.
+Live8a1e76ae matches JSON/HTML; JSON/CSS/JS byte-exact. Desktop/mobile light/dark actual
+public-page tabs/filters/keyboard/anchors/noJS pass without overflow/JSerrors. Cross-check
+11/11. Browser waiver and Yahoo unverified-permission exception remain explicit. Final
+closeout changes evidence docs only; root dirty work preserved. Session:
+`docs/sessions/2026-10-10-u145-flat-market-groups.md`.
