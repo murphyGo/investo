@@ -207,7 +207,7 @@ def test_update_segment_archive_index_lists_archive_files(tmp_path: Path) -> Non
     assert "# 미국 증시 시황 아카이브" in body
     # Newest first.
     assert body.index("2026-05-07") < body.index("2026-05-06")
-    assert "[전체 Archive로 돌아가기](../index.md)" in body
+    assert "[전체 아카이브로 돌아가기](../index.md)" in body
 
 
 def test_update_segment_archive_index_handles_empty_dir(tmp_path: Path) -> None:

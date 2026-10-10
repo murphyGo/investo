@@ -1,0 +1,11 @@
+{
+  "rows": 5000,
+  "scan_ms": 196.58395799342543,
+  "bare_render_ms": 43.132166989380494,
+  "long_render_ms": 44.139834004454315,
+  "bare_bytes": 745931,
+  "long_bytes": 3110931,
+  "historical_body_reads": 0,
+  "js_bytes": 2326,
+  "fixture": "synthetic filesystem and exact terminal presentation inputs, no v3 runtime claim"
+}

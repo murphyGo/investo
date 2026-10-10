@@ -27,7 +27,9 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from investo._internal.archive_layout import ArchiveLayout
 from investo.models import Briefing
 from investo.models.segments import MarketSegment
 
@@ -103,6 +105,9 @@ from .quality_dashboard import (
 from .segment_archives import (
     _render_segment_index as _render_segment_index,
 )
+
+if TYPE_CHECKING:
+    from investo.publisher.public_document import FinalizedPublicDocument
 from .segment_archives import (
     _segment_entries as _segment_entries,
 )
@@ -118,6 +123,7 @@ def update_latest_index_pages(
     archive_index_path: Path | None = None,
     segment_briefings: dict[MarketSegment, Briefing] | None = None,
     heatmap_svg: str | None = None,
+    finalized_documents: tuple[FinalizedPublicDocument, ...] | None = None,
 ) -> tuple[Path, ...]:
     """Refresh Home + Archive landing surfaces for ``target_date``.
 
@@ -196,9 +202,22 @@ def update_latest_index_pages(
     # ``archive/{segment}/index.md`` (relative to repo root) because
     # mkdocs picks them up via the ``site_docs/archive`` symlink.
     archive_root = archive_index_path.parent
+    sealed_by_path = (
+        {
+            ArchiveLayout(archive_root).briefing_path(
+                document.target_date, document.segment
+            ): document
+            for document in finalized_documents
+            if document.target_date == target_date
+        }
+        if finalized_documents is not None
+        else None
+    )
     for segment in _SEGMENTS:
         segment_index = archive_root / segment / "index.md"
-        update_segment_archive_index(segment, segment_index_path=segment_index)
+        update_segment_archive_index(
+            segment, segment_index_path=segment_index, finalized_documents=sealed_by_path
+        )
         written.append(segment_index)
 
     return tuple(written)

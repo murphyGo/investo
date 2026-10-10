@@ -28,7 +28,7 @@ from ._constants import (
     HEATMAP_BEGIN,
     HEATMAP_END,
 )
-from .segment_archives import _segment_entries
+from .segment_archives import _entry_date, _segment_entries
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,9 +199,8 @@ def _archive_segment_href(target_date: date, segment: str) -> str:
 
 def _latest_segment_entry_before(archive_dir: Path, *, before: date) -> Path | None:
     for entry in _segment_entries(archive_dir):
-        try:
-            entry_date = date.fromisoformat(entry.stem)
-        except ValueError:
+        entry_date = _entry_date(entry)
+        if entry_date is None:
             continue
         if entry_date < before:
             return entry

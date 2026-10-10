@@ -6,7 +6,7 @@
 
 - **Stage**: 등록 계획 — Functional Design / focused NFR 선행 필요
 
-- **Status**: Functional Design REQUIRED/PENDING; focused NFR Requirements REQUIRED/PENDING; separate NFR Design decision PENDING; Code Generation NOT STARTED
+- **Status**: Complete — Functional Design/focused NFR and Code Generation6/6
 
 - **Source**: 공개 Investo UI의 2026-10-10 archive 관측 및 현재 `site_index`/archive path/extraction 코드 확인. 사용자 지시: “굿 일단 유닛 문서화부터 진행해줘”.
 
@@ -117,12 +117,12 @@ Out of scope:
 
 ## Implementation Steps
 
-- [ ] **Step 1 — Functional Design**: 위 3개 산출물, D-179.1–5, typed entry/group 및 state/failure/link tables를 작성·검토한다. legacy/current/archive eligibility를 실제 코드/metadata로 확인한다.
-- [ ] **Step 2 — Focused NFR**: 위 2개 산출물에 누적 archive fixture 크기, 읽기/payload/빌드 overhead의 승인 상한과 no-JS/keyboard/browser 검증 방법을 고정한다. u176 tokens 및 u177 state 경계를 확인한다.
-- [ ] **Step 3 — 월별 static grouping**: 기존 scanner/atomic entry point를 사용해 valid 날짜 링크를 월별로 묶고 월 navigation/count를 표시한다. malformed 날짜/경로는 승인된 안전 처리와 fallback을 구현한다.
-- [ ] **Step 4 — 필터/optional snippet**: 설계에서 고른 progressive enhancement와 schema별 소비 경로를 구현한다. legacy만 승인된 bounded snippet을 만들고 v3는 u171의 terminal snippet/제한 상태를 escape해 표시한다. 초기 HTML/JS off에서는 전체 항목 접근이 가능하며 reset/no-result/read-error를 표시한다.
-- [ ] **Step 5 — 회귀/실제 href 검증**: empty/mixed dates/multi-year/partial/current/legacy/read failures/idempotence/no-JS 전체 링크와 existing fallback/re-export 테스트를 추가한다. v3의 마침표 없는 유효 headline, 121–140자 digest 및 missing/hash-mismatch 제한 상태가 UI 때문에 생략·절단·재선택되지 않는지 검증한다. Markdown→built HTML URL을 전수 비교한다.
-- [ ] **Step 6 — 성능/브라우저 검증 및 closeout**: 실제 MkDocs strict build, 승인 archive 규모와 2viewport×2theme, keyboard/JS off/filter/reset을 확인한다. 코드/데이터 SHA와 증거를 summary에 남긴다. 운영 배포와 과거 archive 수정은 별도 지시가 있을 때만 진행한다.
+- [x] **Step 1 — Functional Design**: 위 3개 산출물, D-179.1–5, typed entry/group 및 state/failure/link tables를 작성·검토한다. legacy/current/archive eligibility를 실제 코드/metadata로 확인한다.
+- [x] **Step 2 — Focused NFR**: 위 2개 산출물에 누적 archive fixture 크기, 읽기/payload/빌드 overhead의 승인 상한과 no-JS/keyboard/browser 검증 방법을 고정한다. u176 tokens 및 u177 state 경계를 확인한다.
+- [x] **Step 3 — 월별 static grouping**: 기존 scanner/atomic entry point를 사용해 valid 날짜 링크를 월별로 묶고 월 navigation/count를 표시한다. malformed 날짜/경로는 승인된 안전 처리와 fallback을 구현한다.
+- [x] **Step 4 — 필터/optional snippet**: 설계에서 고른 progressive enhancement와 schema별 소비 경로를 구현한다. legacy만 승인된 bounded snippet을 만들고 v3는 u171의 terminal snippet/제한 상태를 escape해 표시한다. 초기 HTML/JS off에서는 전체 항목 접근이 가능하며 reset/no-result/read-error를 표시한다.
+- [x] **Step 5 — 회귀/실제 href 검증**: empty/mixed dates/multi-year/partial/current/legacy/read failures/idempotence/no-JS 전체 링크와 existing fallback/re-export 테스트를 추가한다. v3의 마침표 없는 유효 headline, 121–140자 digest 및 missing/hash-mismatch 제한 상태가 UI 때문에 생략·절단·재선택되지 않는지 검증한다. Markdown→built HTML URL을 전수 비교한다.
+- [x] **Step 6 — 성능/브라우저 검증 및 closeout**: 실제 MkDocs strict build, 승인 archive 규모와 2viewport×2theme, keyboard/JS off/filter/reset을 확인한다. 코드/데이터 SHA와 증거를 summary에 남긴다. 운영 배포와 과거 archive 수정은 별도 지시가 있을 때만 진행한다.
 
 ## Acceptance Criteria
 
@@ -154,3 +154,11 @@ git diff --check -- aidlc-docs/construction/plans/u179-month-grouped-archive-dis
 ## Non-Goals
 
 새 시황 생성·정보 의미 변경·검색 서비스·데이터 소스·기존 URL/본문 backfill·운영 배포/커밋/푸시·u145 활성화는 이 단위의 등록 작업에 포함되지 않는다.
+
+## Development decisions 2026-10-10
+
+Required FD/NFR authored before implementation under entire development authorization, choices by developer. Minimal optional finalized-document handoff in site_index driver/pipeline is needed to consume actual E6 objects after verified archive write; no old document parsing/hash registry. Future u171 handoff stays presentation-only.
+
+## Local completion2026-10-10
+
+All6 steps complete. Actual legacy sealed-only plain summary and exact terminal presentation seam are distinguished; v3 hash reader remains u171. New tests test_archive_discovery_u179.py and test_archive_site_u179.py; final25 targeted and global6774 earlier snapshot are distinguished in [summary](../u179-month-grouped-archive-discovery/code/summary.md). Actual Chromium36 and5000-file budgets passed. No push/deploy.

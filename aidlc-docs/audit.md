@@ -1,3 +1,7 @@
+## 2026-10-10 — u179 and UI program local construction complete
+
+All6 UI units developed in isolated codex/ui-development-20261010; per-unit local commits. u179 FD/NFR/6steps complete: single safe error-propagating scanner, static monthly exact links, progressive filters/current-sealed-only plain legacy/exact terminal seam. Three indexes regenerated, historical bytes preserved. Full6774/1024.93s + post-small-diff25/2.12s, Node29, Ruff/format/mypy303/policy4/strict docs/Material/calendar; independent APPROVE/P1-P2zero; actual Chromium36/5000budgetsPASS. No push/deploy/private activation. [Program summary](construction/ui-modernization-20261010/development-summary.md).
+
 ## 2026-10-10 — u178 local construction complete
 
 FD/focused NFR and7 construction steps completed under all-unit development/per-unit commit authorization. Same immutable inputs render before E2; exact values, public projection, whole trust gates and surviving artifact seals preserved. Independent findings corrected. Focused197 and final148 passed; actual Chromium22-case evidence includes exact cells/no-JS200% and themes. Final program regression follows u179. No archived briefing backfill, new data/source/service, push or deployment.

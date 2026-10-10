@@ -4116,9 +4116,11 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
         *,
         segment_briefings: dict[MarketSegment, Briefing],
         heatmap_svg: str,
+        finalized_documents: tuple[object, ...],
     ) -> tuple[Path, ...]:
         assert target_date == _TARGET
         assert heatmap_svg == "<svg/>"
+        assert finalized_documents == bundle.documents
         indexed.append(segment_briefings)
         _stub_index_home(target_date, segment_briefings=segment_briefings)
         return (Path("site_docs/index.md"),)

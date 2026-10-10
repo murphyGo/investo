@@ -108,3 +108,23 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .investo-section-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px; }
 .investo-watchlist-chart { max-width: 100%; margin-inline: 0; }
 .investo-watchlist-chart svg { width: 100%; max-width: 520px; height: auto; }
+
+/* u179: all static archive links stay readable without filter JavaScript. */
+.investo-archive { font-size: 16px; }
+.md-typeset .investo-archive-month-nav { font-size: 16px; margin-block: 20px; }
+.investo-archive-month-nav summary { min-height: 44px; padding: 8px 12px; cursor: pointer; }
+.investo-archive-month-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px; }
+.investo-archive-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-block: 20px; }
+.investo-archive-controls[hidden], .investo-archive [hidden] { display: none !important; }
+.investo-archive-controls label { display: flex; flex-direction: column; flex: 1 1 180px; gap: 4px; }
+.investo-archive-controls input, .investo-archive-controls select, .investo-archive-controls button {
+  min-width: 0; max-width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--investo-border);
+  border-radius: 8px; font: inherit; color: var(--investo-ink); background: var(--investo-surface);
+}
+.investo-archive-controls button { cursor: pointer; color: var(--investo-accent); }
+.investo-archive-entry { padding: 12px 16px; margin-block: 8px; border: 1px solid var(--investo-border); border-radius: 12px; background: var(--investo-surface); overflow-wrap: anywhere; }
+.md-typeset .investo-archive-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.md-typeset .investo-archive-snippet, .md-typeset .investo-archive-limitation { margin-block: 8px; }
+.investo-archive-limitation, .investo-archive-result { color: var(--investo-muted); }
+.investo-archive-month h2 { scroll-margin-top: 120px; }
+select:focus-visible { outline: 3px solid var(--investo-accent); outline-offset: 3px; }

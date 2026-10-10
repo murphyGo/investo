@@ -1,3 +1,7 @@
+# 2026-10-10 UI u174–u179 local integrated validation
+
+[Final UI construction evidence](../ui-modernization-20261010/development-summary.md): full6774 PASS/1024.93s before final tiny scanner/plain-summary changes, post-diff25 PASS/2.12s, Node22 client29, Ruff/format/strict Mypy303, strict directory+flat MkDocs, Material/calendar/four policy guards, actual Chromium133 cases and independent per-unit review closures. Historical summary below retains its original2026-05 scope. No push/deploy.
+
 # Build and Test Summary
 
 **Project**: Investo — Daily market briefing automation

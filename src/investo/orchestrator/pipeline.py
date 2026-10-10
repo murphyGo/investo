@@ -1620,6 +1620,11 @@ async def _stage_publish_segments(
                 target_date,
                 segment_briefings=briefings,
                 heatmap_svg=heatmap_svg,
+                **(
+                    {"finalized_documents": finalized_bundle.documents}
+                    if finalized_bundle is not None
+                    else {}
+                ),
             )
             og_card_paths = await _to_thread_drained(
                 write_og_card,
