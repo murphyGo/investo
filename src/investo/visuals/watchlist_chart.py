@@ -20,6 +20,7 @@ Design:
 
 from __future__ import annotations
 
+from html import escape
 from typing import Final
 
 _MAX_BARS: Final[int] = 8
@@ -33,6 +34,13 @@ _PADDING_TOP: Final[int] = 24
 _BAR_COLOR: Final[str] = "#3a8dde"
 _TEXT_COLOR: Final[str] = "#1f2937"
 _TITLE_COLOR: Final[str] = "#111827"
+_STYLE: Final[str] = (
+    "<style>.investo-watchlist-title{fill:#153237}.investo-watchlist-text{fill:#53666b}"
+    ".investo-watchlist-bar{fill:#006d68}"
+    '[data-md-color-scheme="slate"] .investo-watchlist-title{fill:#e8f2f2}'
+    '[data-md-color-scheme="slate"] .investo-watchlist-text{fill:#a9bbc0}'
+    '[data-md-color-scheme="slate"] .investo-watchlist-bar{fill:#81d9cc}</style>'
+)
 
 
 def render_cumulative_match_chart(
@@ -53,22 +61,26 @@ def render_cumulative_match_chart(
     parts: list[str] = [
         f'<svg xmlns="http://www.w3.org/2000/svg" '
         f'viewBox="0 0 {_TOTAL_WIDTH} {height}" '
-        f'role="img" aria-label="{title}">',
-        f'<text x="12" y="16" font-family="Noto Sans KR, Arial, sans-serif" '
-        f'font-size="14" fill="{_TITLE_COLOR}">{title}</text>',
+        f'role="img" aria-label="{escape(title, quote=True)}">',
+        _STYLE,
+        "<desc>각 자산의 전체 매칭 수는 아래 표에서도 확인할 수 있습니다.</desc>",
+        '<text class="investo-watchlist-title" x="12" y="16" '
+        'font-family="Noto Sans KR, Arial, sans-serif" '
+        f'font-size="14" fill="{_TITLE_COLOR}">{escape(title)}</text>',
     ]
     for idx, (term, count) in enumerate(rows):
         y = _PADDING_TOP + idx * (_BAR_HEIGHT + _BAR_GAP)
         bar_w = max(1, int(_CHART_WIDTH * count / max_count)) if max_count > 0 else 0
         parts.extend(
             [
-                f'<text x="12" y="{y + 16}" font-family="Noto Sans KR, Arial, sans-serif" '
-                f'font-size="12" fill="{_TEXT_COLOR}">{_escape(term)}</text>',
-                f'<rect x="{_LABEL_WIDTH}" y="{y}" width="{bar_w}" '
+                f'<text class="investo-watchlist-text" x="12" y="{y + 16}" '
+                'font-family="Noto Sans KR, Arial, sans-serif" '
+                f'font-size="14" fill="{_TEXT_COLOR}">{_escape(term)}</text>',
+                f'<rect class="investo-watchlist-bar" x="{_LABEL_WIDTH}" y="{y}" width="{bar_w}" '
                 f'height="{_BAR_HEIGHT}" fill="{_BAR_COLOR}" rx="3"/>',
-                f'<text x="{_LABEL_WIDTH + bar_w + 6}" y="{y + 16}" '
+                f'<text class="investo-watchlist-text" x="{_LABEL_WIDTH + bar_w + 6}" y="{y + 16}" '
                 f'font-family="Noto Sans KR, Arial, sans-serif" '
-                f'font-size="12" fill="{_TEXT_COLOR}">{count}</text>',
+                f'font-size="14" fill="{_TEXT_COLOR}">{count}</text>',
             ]
         )
     parts.append("</svg>")
@@ -78,9 +90,10 @@ def render_cumulative_match_chart(
 def _empty_chart(title: str) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {_TOTAL_WIDTH} 60" '
-        f'role="img" aria-label="{title}">'
-        f'<text x="12" y="36" font-family="Noto Sans KR, Arial, sans-serif" '
-        f'font-size="13" fill="{_TEXT_COLOR}">집계할 매칭이 아직 없습니다.</text>'
+        f'role="img" aria-label="{escape(title, quote=True)}">{_STYLE}'
+        '<text class="investo-watchlist-text" x="12" y="36" '
+        'font-family="Noto Sans KR, Arial, sans-serif" '
+        f'font-size="14" fill="{_TEXT_COLOR}">집계할 매칭이 아직 없습니다.</text>'
         "</svg>"
     )
 

@@ -274,7 +274,7 @@ def _maybe_write_index(pages_root: Path, *, target_date: date) -> Path | None:
         lines.append("")
     lines.extend(_GROUP_SEMANTICS_GUIDE)
     lines.append("")
-    lines.append(chart_svg)
+    lines.append(f'<figure class="investo-watchlist-chart" markdown="0">{chart_svg}</figure>')
     lines.append("")
     lines.append("| 종목 / 자산 | 매칭 수 | 누적 페이지 |")
     lines.append("|-------------|---------|-------------|")

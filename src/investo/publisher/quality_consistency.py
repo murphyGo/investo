@@ -42,6 +42,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
@@ -90,6 +91,7 @@ _SEGMENTS: Final[tuple[MarketSegment, ...]] = (DOMESTIC_EQUITY, US_EQUITY, CRYPT
 
 # Error codes — stable, machine-greppable.
 CODE_STATUS_MISMATCH: Final[str] = "quality.status_mismatch"
+CODE_HOME_MISMATCH: Final[str] = "quality.home_mismatch"
 CODE_FAILED_COUNT_MISMATCH: Final[str] = "quality.failed_count_mismatch"
 CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE: Final[str] = (
     "quality.denominator_unknown_but_evidence_present"
@@ -316,6 +318,7 @@ def check_quality_consistency(
     snapshot: CanonicalQualitySnapshot,
     *,
     quality_page_text: str | None,
+    home_page_text: str | None = None,
 ) -> tuple[ConsistencyFinding, ...]:
     """Compare every public surface against the canonical snapshot.
 
@@ -324,6 +327,8 @@ def check_quality_consistency(
     for the dashboard surface rather than failing.
     """
     findings: list[ConsistencyFinding] = []
+    if home_page_text is not None:
+        findings.extend(_check_home_cards(snapshot, home_page_text))
 
     if snapshot.event_coverage_invalid:
         findings.append(
@@ -718,6 +723,7 @@ def validate_date_quality_consistency(
     history_path: Path,
     quality_page_text: str | None,
     expected_event_coverage: Mapping[MarketSegment, EventCoverage] | None = None,
+    home_page_text: str | None = None,
 ) -> tuple[ConsistencyFinding, ...]:
     """End-to-end convenience: load history row, build snapshot, validate."""
     history_row = load_quality_history_row(target_date, history_path)
@@ -727,7 +733,112 @@ def validate_date_quality_consistency(
         history_row=history_row,
         expected_event_coverage=expected_event_coverage,
     )
-    return check_quality_consistency(snapshot, quality_page_text=quality_page_text)
+    return check_quality_consistency(
+        snapshot,
+        quality_page_text=quality_page_text,
+        home_page_text=home_page_text,
+    )
+
+
+class _HomeCardParser(HTMLParser):
+    """Read explicit public card fields; summaries cannot impersonate a badge."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.cards: list[tuple[dict[str, str | None], dict[str, list[str]]]] = []
+        self.stack: list[tuple[str, str | None]] = []
+        self.current: tuple[dict[str, str | None], dict[str, list[str]]] | None = None
+        self.card_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if tag == "article" and "investo-market-card" in (values.get("class") or "").split():
+            self.current = (values, {})
+            self.cards.append(self.current)
+            self.card_depth = len(self.stack)
+        field = values.get("data-investo-field")
+        if self.current is not None and field is not None:
+            self.current[1].setdefault(field, []).append("")
+        if tag not in {
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr",
+        }:
+            self.stack.append((tag, field))
+
+    def handle_data(self, data: str) -> None:
+        if self.current is not None:
+            for _, field in reversed(self.stack):
+                if field is not None:
+                    self.current[1][field][-1] += data
+                    break
+
+    def handle_endtag(self, tag: str) -> None:
+        for index in range(len(self.stack) - 1, -1, -1):
+            if self.stack[index][0] == tag:
+                self.stack = self.stack[:index]
+                if self.current is not None and index <= self.card_depth:
+                    self.current = None
+                break
+
+
+def _check_home_cards(
+    snapshot: CanonicalQualitySnapshot,
+    home_page_text: str,
+) -> tuple[ConsistencyFinding, ...]:
+    parser = _HomeCardParser()
+    parser.feed(home_page_text)
+    parser.close()
+    blocks = {block.segment: block for block in snapshot.segment_blocks}
+    failures: list[ConsistencyFinding] = []
+    if len(parser.cards) != len(_SEGMENTS):
+        failures.append(
+            ConsistencyFinding(CODE_HOME_MISMATCH, None, "home must contain three cards")
+        )
+    for segment in _SEGMENTS:
+        matches = [card for card in parser.cards if card[0].get("data-segment") == segment]
+        block = blocks.get(segment)
+        generated = block is not None
+        status = block.status if block else None
+        iso = snapshot.target_date.isoformat()
+        expected = {
+            "market": SEGMENT_LABELS[segment],
+            "date": f"발행 {iso}" if generated else f"{iso} 미발행",
+            "quality": (
+                f"근거 상태: {COVERAGE_STATUS_LABELS[status]}" if status else "근거 상태 미확인"
+            )
+            if generated
+            else "근거 상태 해당 없음",
+        }
+        valid = len(matches) == 1
+        if valid:
+            attrs, fields = matches[0]
+            valid = (
+                attrs.get("data-target-date") == iso
+                and attrs.get("data-generated") == str(generated).lower()
+                and attrs.get("data-quality") == ((status or "unknown") if generated else "absent")
+                and all(fields.get(key) == [value] for key, value in expected.items())
+            )
+        if not valid:
+            failures.append(
+                ConsistencyFinding(
+                    CODE_HOME_MISMATCH,
+                    segment,
+                    f"{iso} {segment}: home date/status/availability mismatch",
+                )
+            )
+    return tuple(failures)
 
 
 __all__ = [
@@ -736,6 +847,7 @@ __all__ = [
     "CODE_DENOMINATOR_UNKNOWN_BUT_EVIDENCE",
     "CODE_EVENT_COVERAGE_MISMATCH",
     "CODE_FAILED_COUNT_MISMATCH",
+    "CODE_HOME_MISMATCH",
     "CODE_QUALITY_PAGE_MISSING",
     "CODE_STATUS_MISMATCH",
     "CanonicalQualitySnapshot",

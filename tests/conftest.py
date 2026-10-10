@@ -118,6 +118,8 @@ _SITE_PATH_CONSTANTS: tuple[tuple[str, str, str], ...] = (
     ("investo.publisher.watchlist_pages", "WATCHLIST_PAGES_ROOT", "site_docs/watchlist"),
     ("investo.visuals.og_card", "OG_CARD_RELATIVE_PATH", "site_docs/assets/og-card.svg"),
     ("investo.visuals.og_card", "OG_CARD_PNG_RELATIVE_PATH", "site_docs/assets/og-card.png"),
+    ("investo.orchestrator.pipeline", "OG_CARD_RELATIVE_PATH", "site_docs/assets/og-card.svg"),
+    ("investo.orchestrator.pipeline", "OG_CARD_PNG_RELATIVE_PATH", "site_docs/assets/og-card.png"),
 )
 
 

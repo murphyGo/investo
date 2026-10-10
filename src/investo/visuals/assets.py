@@ -35,6 +35,7 @@ from investo.visuals.cards import (
 )
 from investo.visuals.curated import CuratedSelection
 from investo.visuals.external_image import fetch_contextual_external_image
+from investo.visuals.html_cards import render_card_html
 from investo.visuals.openai_image import (
     generate_openai_visual,
     load_openai_visual_config,
@@ -328,6 +329,7 @@ def prepare_segment_visual_assets(
         asset_paths=tuple(asset_paths),
         dark_variants=dark_variants,
         artifact_ids_by_path=artifact_ids_by_path,
+        html_by_kind={card.kind: render_card_html(card) for card in cards},
     )
     rendered_markdown = insert_prebuilt_visual_blocks(
         briefing.rendered_markdown,
@@ -348,6 +350,7 @@ def build_visual_markdown_blocks(
     asset_paths: tuple[Path, ...],
     dark_variants: Mapping[Path, Path] | None = None,
     artifact_ids_by_path: Mapping[Path, tuple[str, ...]] | None = None,
+    html_by_kind: Mapping[str, str] | None = None,
 ) -> tuple[VisualMarkdownBlock, ...]:
     """Render visual Markdown once, keeping placement metadata explicit.
 
@@ -359,14 +362,38 @@ def build_visual_markdown_blocks(
     return tuple(
         VisualMarkdownBlock(
             placement_key=path.stem,
-            markdown=_visual_block(
+            markdown=_accessible_visual_block(
                 path,
                 markdown_path=markdown_path,
                 dark_variant=(dark_variants or {}).get(path),
+                html=(html_by_kind or {}).get(path.stem),
             ),
             artifact_ids=(artifact_ids_by_path or {}).get(path, ()),
         )
         for path in asset_paths
+    )
+
+
+def _accessible_visual_block(
+    path: Path,
+    *,
+    markdown_path: Path,
+    dark_variant: Path | None,
+    html: str | None,
+) -> str:
+    fallback = _visual_block(
+        path,
+        markdown_path=markdown_path,
+        dark_variant=dark_variant,
+        include_caption=html is None,
+    )
+    if html is None:
+        return fallback
+    caption = _provenance_caption_for(path)
+    return (
+        f'{html}\n\n<details class="investo-data-visual" markdown="1">\n'
+        f"<summary>{_CARD_LABELS[path.stem]} 원본 SVG 보기</summary>\n\n"
+        f"{fallback}\n\n</details>\n\n{caption or ''}"
     )
 
 
@@ -522,6 +549,7 @@ def _visual_block(
     *,
     markdown_path: Path,
     dark_variant: Path | None = None,
+    include_caption: bool = True,
 ) -> str:
     """Compose ``![label](rel)\\n*caption*`` for one asset."""
     label = _CARD_LABELS[path.stem]
@@ -536,6 +564,8 @@ def _visual_block(
                 f"![{label}]({dark_rel}{DARK_ONLY_FRAGMENT})",
             )
         )
+    if not include_caption:
+        return image_lines
     caption = _provenance_caption_for(path)
     if caption is None:
         return image_lines

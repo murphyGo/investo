@@ -163,18 +163,25 @@ def apply_reader_format(
     out = ensure_tldr_block(body, segment=segment)
     out = enforce_h3_subheadings(out)
     out = wrap_numbers_bold(out)
-    if preserve_event_blocks:
+    card_pattern = (
+        r'^<section\b[^>]*\bclass="investo-data-card"[^>]*>.*?^</section>$|'
+        r'^<details\b[^>]*\bclass="investo-data-card"[^>]*>.*?^</details>$'
+    )
+    if preserve_event_blocks or 'class="investo-data-card"' in out:
         # Event time/precision labels and the canonical anchor table are
         # structured evidence, not repeated glossary explanations. Numeric
         # suffixes such as 18,000.00 / 42,000.00 must not share a gloss key
         # on a repeated mixed-document pass. Only this cosmetic pass excludes
         # these regions; every trust gate still observes their complete text.
-        parts = re.split(
-            r"(<!-- investo:block event:[0-9a-f]{24} -->.*?"
+        event_pattern = (
+            r"<!-- investo:block event:[0-9a-f]{24} -->.*?"
             r"<!-- /investo:block event:[0-9a-f]{24} -->|"
             r"<!-- investo:watch event:[0-9a-f]{24} -->.*?"
             r"<!-- /investo:watch event:[0-9a-f]{24} -->|"
-            r"^## ⓪-B 채널 기준선[^\n]*\n.*?(?=^## |\Z))",
+            r"^## ⓪-B 채널 기준선[^\n]*\n.*?(?=^## |\Z)"
+        )
+        parts = re.split(
+            "(" + card_pattern + ("|" + event_pattern if preserve_event_blocks else "") + ")",
             out,
             flags=re.DOTALL | re.MULTILINE,
         )

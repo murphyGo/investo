@@ -84,6 +84,18 @@ _SITE_BASE: HttpUrl = TypeAdapter(HttpUrl).validate_python("https://example.gith
 # ---------------------------------------------------------------------------
 
 
+def _stub_index_home(target_date: date, *, segment_briefings, **kwargs) -> tuple[Path, ...]:
+    """Index stubs still produce the home consumed by the mandatory public gate."""
+    from investo.publisher import site_index
+
+    site_index.update_index_hero(
+        target_date,
+        segment_briefings,
+        site_index_path=site_index.SITE_INDEX_PATH,
+    )
+    return (Path("site_docs/index.md"),)
+
+
 def _item(title: str = "x") -> NormalizedItem:
     return NormalizedItem(
         source_name="fake-src",
@@ -595,7 +607,7 @@ async def test_run_pipeline_success_appends_quality_history(
     monkeypatch.setattr(
         pipeline_module,
         "update_latest_index_pages",
-        lambda *args, **kwargs: (Path("site_docs/index.md"),),
+        _stub_index_home,
     )
     monkeypatch.setattr(pipeline_module, "_build_publish_heatmap_svg", lambda _date: "<svg/>")
     monkeypatch.setattr(
@@ -3001,6 +3013,7 @@ async def test_stage_publish_segments_stages_latest_index_pages(
         assert segment_briefings is not None
         assert set(segment_briefings.keys()) == {DOMESTIC_EQUITY, US_EQUITY, CRYPTO}
         assert heatmap_svg is not None and heatmap_svg.startswith("<svg")
+        _stub_index_home(target_date, segment_briefings=segment_briefings)
         return index_paths
 
     def fake_build_heatmap(target_date: date) -> str:
@@ -3972,7 +3985,7 @@ def _patch_publish_segments_side_effects(
     monkeypatch.setattr(
         pipeline_module,
         "update_latest_index_pages",
-        lambda *args, **kwargs: (Path("site_docs/index.md"),),
+        _stub_index_home,
     )
     monkeypatch.setattr(pipeline_module, "_build_publish_heatmap_svg", lambda _date: "<svg/>")
     monkeypatch.setattr(
@@ -4103,10 +4116,13 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
         *,
         segment_briefings: dict[MarketSegment, Briefing],
         heatmap_svg: str,
+        finalized_documents: tuple[object, ...],
     ) -> tuple[Path, ...]:
         assert target_date == _TARGET
         assert heatmap_svg == "<svg/>"
+        assert finalized_documents == bundle.documents
         indexed.append(segment_briefings)
+        _stub_index_home(target_date, segment_briefings=segment_briefings)
         return (Path("site_docs/index.md"),)
 
     def capture_og(
@@ -4776,3 +4792,39 @@ async def test_dry_run_validates_event_snapshot_without_public_history_write(
     assert history.read_text() == original
     assert git.calls == []
     assert observed_paths and not observed_paths[0].parent.exists()
+
+
+@pytest.mark.asyncio
+async def test_home_quality_mismatch_rolls_back_same_run_surfaces(
+    archive_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from investo.publisher import site_index
+
+    paths = [
+        site_index.SITE_INDEX_PATH,
+        site_index.ARCHIVE_INDEX_PATH,
+        *site_index.SEGMENT_ARCHIVE_INDEX_PATHS.values(),
+    ]
+    before = {path: path.read_bytes() for path in paths}
+    original_update = pipeline_module.update_latest_index_pages
+
+    def corrupt_home(*args, **kwargs):
+        changed = original_update(*args, **kwargs)
+        home = site_index.SITE_INDEX_PATH
+        home.write_text(
+            home.read_text().replace('data-generated="true"', 'data-generated="false"', 1)
+        )
+        return changed
+
+    monkeypatch.setattr(pipeline_module, "update_latest_index_pages", corrupt_home)
+    git = _SuccessfulGitRunner()
+    with pytest.raises(pipeline_module.QualityConsistencyError, match=r"quality\.home_mismatch"):
+        await pipeline_module._stage_publish_segments(
+            {DOMESTIC_EQUITY: _briefing(segment=DOMESTIC_EQUITY)},
+            _TARGET,
+            git_runner=git,
+        )
+    assert {path: path.read_bytes() for path in paths} == before
+    assert not list(archive_root.rglob("*.md"))
+    assert not git.calls
