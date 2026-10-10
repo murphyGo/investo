@@ -153,6 +153,7 @@ extra_css:
 # unit tests pin its sha256 + LICENSE so an accidental swap fails
 # loudly).
 extra_javascript:
+  - assets/sector-radar.js
   - assets/lightweight-charts.standalone.production.js
   - assets/investo-chart-init.js
 

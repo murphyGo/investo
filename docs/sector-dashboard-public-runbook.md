@@ -3,11 +3,21 @@
 ## Active contract
 
 Public route: <https://murphygo.github.io/investo/sectors/>. The static page and
-`sectors/latest.json` contain derived metrics only, for SPY and eleven Select Sector ETFs.
-The source is free, unauthenticated Yahoo daily closes (`yahoo-chart-daily-v2`, schema 2).
+`sectors/latest.json` contain derived metrics only. The expanded schema3 shows fourteen
+peer industry/theme/representative groups and retains eleven Select Sector ETFs as the
+market overview. Schema2 remains readable as prior last-good state. The source is free,
+unauthenticated Yahoo daily closes (`yahoo-chart-daily-v2`).
 Public-use permission remains **unverified**, under the user's u145 operator exception;
 this is not a license grant. No paid fallback or key is used. See the
 [source amendment](../aidlc-docs/construction/u145-sector-dashboard-public-hf-limited-radar/source-qualification/2026-10-04-yahoo-public-amendment.md).
+
+The [flat-group extension](../aidlc-docs/construction/plans/u145-flat-market-groups-code-generation-plan.md)
+adds SMH, XSW, MAGS and eight fixed hardware equities. One23-asset request set shares the
+same36-attempt, concurrency2 and resource limits. Software/IT services use XSW exposure;
+hardware is a disclosed representative daily equal-weight price index. Missing any member
+suppresses that entire basket. Groups overlap; their returns/counts are not additive.
+Both views have independent rank denominators; category filters alter visibility only.
+Activation of the expanded data requires five exact-commit qualified23-asset runner probes.
 
 ## Refresh and publish
 
@@ -42,9 +52,9 @@ both workflow results; successful collection alone is not evidence of a successf
 
 | Outcome | Files and publication | Exit status |
 | --- | --- | --- |
-| `promoted`, normal | Fresh 11-sector pair staged, validated, committed if changed, Pages dispatched | 0 |
+| `promoted`, normal | Fresh11-sector /14-group pair staged, validated, committed if changed, Pages dispatched | 0 |
 | `unchanged`, normal | Pair bytes and commit preserved; Pages dispatched | 0 |
-| `promoted`/`unchanged`, partial | Fresh 8–10-sector pair may publish with explicit missing-sector states | 2 |
+| `promoted`/`unchanged`, partial | Fresh8–10-sector or incomplete-group pair may publish with explicit missing states | 2 |
 | `held_last_good` | Collection/build failed; verified prior pair, identity and as-of remain unchanged; no publication | 2 |
 | `blocked` | First failure or damaged/missing store; no usable new pair and no publication | 2 |
 
@@ -64,7 +74,8 @@ code. The [probe runbook](sector-dashboard-probe-runbook.md) documents the sourc
 If collection succeeded but Pages failed, rerun the dedicated workflow or dispatch Pages
 against current main after verifying the pair. A failed Pages build/deploy retains the last
 deployed site. Compare live `latest.json` snapshot identity with the committed pair and the
-snapshot identity embedded in HTML; confirm the displayed as-of and 11 sector rows.
+snapshot identity embedded in HTML; confirm the displayed as-of, fourteen group rows and
+eleven overview rows. A schema2 prior pair still shows only the overview until migration.
 
 ```sh
 gh workflow disable sector-dashboard.yml

@@ -13,7 +13,7 @@ import statistics
 from collections.abc import Callable, Mapping, Sequence
 from datetime import date, datetime
 from decimal import ROUND_HALF_EVEN, Decimal, DecimalException, localcontext
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
 from investo.models.market_calendar import is_trading_day, previous_trading_day
 from investo.models.sector import (
@@ -36,6 +36,7 @@ from investo.models.sector_public import (
     PublicCoverageSummary,
     PublicDiagnosticCode,
     PublicParsedSet,
+    PublicPriceMetrics,
     PublicSectorDashboardSnapshot,
     PublicSectorMetrics,
     PublicSectorRecord,
@@ -64,7 +65,7 @@ _CALCULATION_OBSERVATIONS: Final = 64
 _MIN_SHORT_OBSERVATIONS: Final = 6
 _METRIC_HORIZONS: Final[tuple[MetricHorizon, ...]] = (1, 5, 21, 63)
 _WARMING_HORIZONS: Final[frozenset[MetricHorizon]] = frozenset({1, 5})
-_RANK_WEIGHTS: Final[dict[RankHorizon, Decimal]] = {
+PUBLIC_RANK_WEIGHTS: Final[dict[RankHorizon, Decimal]] = {
     5: Decimal("0.20"),
     21: Decimal("0.50"),
     63: Decimal("0.30"),
@@ -106,7 +107,7 @@ def build_public_series_bundle(
 
     if isinstance(target_date, datetime) or not isinstance(target_date, date):
         raise ValueError("target_date must be date-only")
-    source_failures = {failure.ticker: failure for failure in parsed.failures}
+    source_failures = {cast(SectorTicker, failure.ticker): failure for failure in parsed.failures}
     benchmark_bars = parsed.benchmark
     if benchmark_bars is None:
         benchmark_failure = source_failures.get(BENCHMARK_TICKER)
@@ -216,18 +217,32 @@ def compute_public_sector_metrics(
         raise ValueError("public sector metrics cannot be computed for SPY")
     if benchmark.ticker is not BENCHMARK_TICKER:
         raise ValueError("public benchmark series must be SPY")
-    if coverage_status is SectorCoverageStatus.INSUFFICIENT:
-        return _missing_metrics(sector.ticker, MetricMissingReason.COVERAGE_INSUFFICIENT)
+    metrics = compute_public_price_metrics(
+        sector.points, benchmark.points, coverage_status=coverage_status, target_date=target_date
+    )
+    return PublicSectorMetrics(ticker=sector.ticker, **metrics.model_dump())
 
-    benchmark_dates = tuple(point.trading_date for point in benchmark.points)
-    requested_date = target_date or benchmark.latest_date
+
+def compute_public_price_metrics(
+    sector_points: Sequence[ValuePoint],
+    benchmark_points: Sequence[ValuePoint],
+    *,
+    coverage_status: SectorCoverageStatus,
+    target_date: date | None = None,
+) -> PublicPriceMetrics:
+    """Compute identical price slots without assigning an artificial sector identity."""
+    if coverage_status is SectorCoverageStatus.INSUFFICIENT:
+        return missing_public_price_metrics(MetricMissingReason.COVERAGE_INSUFFICIENT)
+
+    benchmark_dates = tuple(point.trading_date for point in benchmark_points)
+    requested_date = target_date or (benchmark_dates[-1] if benchmark_dates else None)
     try:
         target_index = benchmark_dates.index(requested_date)
     except ValueError:
-        return _missing_metrics(sector.ticker, MetricMissingReason.BENCHMARK_DATE_MISSING)
+        return missing_public_price_metrics(MetricMissingReason.BENCHMARK_DATE_MISSING)
 
-    sector_values = {point.trading_date: point.value for point in sector.points}
-    benchmark_values = {point.trading_date: point.value for point in benchmark.points}
+    sector_values = {point.trading_date: point.value for point in sector_points}
+    benchmark_values = {point.trading_date: point.value for point in benchmark_points}
     returns: dict[MetricHorizon, MetricValue] = {}
     excess: dict[MetricHorizon, MetricValue] = {}
     for horizon in _METRIC_HORIZONS:
@@ -267,8 +282,7 @@ def compute_public_sector_metrics(
             calculator=max_drawdown_20d,
         )
 
-    return PublicSectorMetrics(
-        ticker=sector.ticker,
+    return PublicPriceMetrics(
         price_return_1d=returns[1],
         price_return_5d=returns[5],
         price_return_21d=returns[21],
@@ -359,7 +373,14 @@ def compute_public_sector_snapshot(
         records=tuple(records),
         provenance=bundle.provenance,
     )
-    payload = base.model_dump(mode="json", exclude={"snapshot_id"})
+    return identify_public_snapshot(base)
+
+
+def identify_public_snapshot(
+    snapshot: PublicSectorDashboardSnapshot,
+) -> PublicSectorDashboardSnapshot:
+    """Use the same canonical identity algorithm for legacy and expanded snapshots."""
+    payload = snapshot.model_dump(mode="json", exclude={"snapshot_id"})
     canonical = json.dumps(
         payload,
         ensure_ascii=False,
@@ -441,6 +462,8 @@ def _coverage_status(
 
 
 def _close_series(bars: PublicBarSeries) -> ValueSeries:
+    if not isinstance(bars.ticker, SectorTicker):
+        raise ValueError("overview series require an original sector identity")
     points = bars.points[-_CALCULATION_OBSERVATIONS:]
     return ValueSeries(
         ticker=bars.ticker,
@@ -572,14 +595,14 @@ def _compute_public_ranks(
         )
         if len(used) < 2:
             continue
-        weight_total = sum((_RANK_WEIGHTS[horizon] for horizon in used), Decimal(0))
+        weight_total = sum((PUBLIC_RANK_WEIGHTS[horizon] for horizon in used), Decimal(0))
         with localcontext() as context:
             context.prec = 34
             context.rounding = ROUND_HALF_EVEN
             score = (
                 sum(
                     (
-                        percentile_by_horizon[horizon][ticker] * _RANK_WEIGHTS[horizon]
+                        percentile_by_horizon[horizon][ticker] * PUBLIC_RANK_WEIGHTS[horizon]
                         for horizon in used
                     ),
                     Decimal(0),
@@ -686,13 +709,25 @@ def _regime_observations(
     *,
     target_date: date,
 ) -> tuple[tuple[Decimal, Decimal], ...]:
-    benchmark_dates = tuple(point.trading_date for point in benchmark.points)
+    return public_price_regime_observations(
+        sector.points, benchmark.points, target_date=target_date
+    )
+
+
+def public_price_regime_observations(
+    sector_points: Sequence[ValuePoint],
+    benchmark_points: Sequence[ValuePoint],
+    *,
+    target_date: date,
+) -> tuple[tuple[Decimal, Decimal], ...]:
+    """Source-neutral observations with the same calendar and gap/hysteresis policy."""
+    benchmark_dates = tuple(point.trading_date for point in benchmark_points)
     try:
         target_index = benchmark_dates.index(target_date)
     except ValueError:
         return ()
-    sector_values = {point.trading_date: point.value for point in sector.points}
-    benchmark_values = {point.trading_date: point.value for point in benchmark.points}
+    sector_values = {point.trading_date: point.value for point in sector_points}
+    benchmark_values = {point.trading_date: point.value for point in benchmark_points}
     observations: list[tuple[Decimal, Decimal]] = []
     for index in range(21, target_index + 1):
         strength_dates = benchmark_dates[index - 21 : index + 1]
@@ -786,6 +821,12 @@ def _missing_metrics(ticker: SectorTicker, reason: MetricMissingReason) -> Publi
         price_relative_acceleration_5d=missing,
         price_realized_volatility_20d=missing,
         price_max_drawdown_20d=missing,
+    )
+
+
+def missing_public_price_metrics(reason: MetricMissingReason) -> PublicPriceMetrics:
+    return PublicPriceMetrics(
+        **{name: _missing(reason) for name in PublicPriceMetrics.model_fields}
     )
 
 

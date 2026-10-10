@@ -7980,3 +7980,17 @@ Pages37965908527/37966152984 SUCCESS; HTML/CSS/JSON HTTP200 with correct data-fi
 ordering and byte-identical CSS/JSON. Refresh37966083788 SUCCESS:12/12, normal11/11,
 fresh2026-10-08, unchanged6ac61b30, CPU1189ms. Presentation follow-up complete;
 this closeout changes evidence documents only. Browser waiver/source exception remain.
+
+## 2026-10-10 — u145 flat market groups approved implementation
+
+User “네 제안대로 진행해줘” approves the proposed flat industry/theme view and retained
+market overview; earlier publication authorization persists. FD/NFR and closed schema3
+contracts recorded before implementation, with source-neutral price math, representative
+hardware8 index,14-group independent ranks, bounded23-asset collector and DOM-only filters.
+Source research rejects liquidated XTH and chooses SMH/XSW/MAGS plus disclosed hardware
+basket; optional software preference remains unanswered, with routine XSW choice recorded.
+Root dirty work and unrelated site units are preserved in a separate worktree.
+Static/policy/docs/resource/supplemental UI checks pass; corrected affected test cases pass.
+Full regression, independent review, five exact-commit runner probes and live publication
+remain pending. No completed expanded deployment is inferred. Session:
+`docs/sessions/2026-10-10-u145-flat-market-groups.md`.

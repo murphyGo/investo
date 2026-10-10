@@ -273,6 +273,20 @@ Implementation order: u157 → u158 → u159 as the first product slice; u160 wi
 
 Evidence: [25-run /44-source review](construction/source-reliability-20261009/review.md). User subsequently authorized u163–u166 development and one commit/push per completed code unit. u163 code completion is separately validated; later units' draft stages are finalized during implementation. Scheduled acceptance and private runtime pin updates are separate. Existing u138/u149/u161 and event/sector activation gates are preserved. Runtime rename/pin observations above are historical; recheck current owner/pin before rollout. This task does not change runtime activation.
 
+### u145 approved flat-group follow-up — implementation and validation in progress
+
+2026-10-10 user approval: “네 제안대로 진행해줘”; existing publication authorization
+continues. Fourteen peer observation groups (ten sector proxies + SMH/XSW/representative
+hardware/MAGS theme), separate eleven-sector market overview, and display-only filters
+are implemented on an isolated branch. FD/NFR contracts are recorded in
+[plan](construction/plans/u145-flat-market-groups-code-generation-plan.md).
+Canonical schema2 compatibility and schema3 two-file atomic migration remain required.
+Expanded exact-commit five-run source qualification, independent review, quality CI,
+refresh/Pages and live checks are still open; no production completion is inferred.
+The prior u145 closeout remains valid for the currently live eleven-sector product.
+Source permission remains unverified under the u145 exception; Browser is
+`WAIVED / NOT_EXECUTED`. Strict u140/private NAV/briefing/site-wide planning remain separate.
+
 ## Extension Configuration
 | Extension | Enabled | Opted In |
 |-----------|---------|----------|

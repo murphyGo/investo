@@ -112,14 +112,30 @@ def classify_regime_history(
     is passed explicitly and always suppresses the final regime.
     """
 
+    regime, strength, acceleration, missing = classify_price_regime_history(
+        observations, policy=policy, current_missing_reason=current_missing_reason
+    )
+    return RegimeResult(
+        ticker=ticker,
+        regime=regime,
+        strength_state=strength,
+        acceleration_state=acceleration,
+        policy_id=policy.policy_id,
+        missing_reason=missing,
+    )
+
+
+def classify_price_regime_history(
+    observations: Sequence[tuple[Decimal, Decimal]],
+    *,
+    policy: RegimePolicy = PRIMARY_REGIME_POLICY,
+    current_missing_reason: MetricMissingReason | None = None,
+) -> tuple[SectorRegime, AxisState | None, AxisState | None, MetricMissingReason | None]:
+    """Classify price observations without pretending a group is a private sector."""
     if current_missing_reason is not None:
-        return _insufficient_result(ticker, policy, current_missing_reason)
+        return SectorRegime.INSUFFICIENT, None, None, current_missing_reason
     if not observations:
-        return _insufficient_result(
-            ticker,
-            policy,
-            MetricMissingReason.INSUFFICIENT_HISTORY,
-        )
+        return SectorRegime.INSUFFICIENT, None, None, MetricMissingReason.INSUFFICIENT_HISTORY
 
     band = neutral_band_ratio(policy)
     strength_state: AxisState | None = None
@@ -137,37 +153,20 @@ def classify_regime_history(
                 previous_state=acceleration_state,
             )
         except ValueError:
-            return _insufficient_result(
-                ticker,
-                policy,
-                MetricMissingReason.NUMERIC_INVALID,
-            )
+            return SectorRegime.INSUFFICIENT, None, None, MetricMissingReason.NUMERIC_INVALID
 
     assert strength_state is not None
     assert acceleration_state is not None
-    return RegimeResult(
-        ticker=ticker,
-        regime=_REGIME_BY_AXES[(strength_state, acceleration_state)],
-        strength_state=strength_state,
-        acceleration_state=acceleration_state,
-        policy_id=policy.policy_id,
-    )
-
-
-def _insufficient_result(
-    ticker: SectorTicker,
-    policy: RegimePolicy,
-    reason: MetricMissingReason,
-) -> RegimeResult:
-    return RegimeResult(
-        ticker=ticker,
-        regime=SectorRegime.INSUFFICIENT,
-        policy_id=policy.policy_id,
-        missing_reason=reason,
+    return (
+        _REGIME_BY_AXES[(strength_state, acceleration_state)],
+        strength_state,
+        acceleration_state,
+        None,
     )
 
 
 __all__ = [
+    "classify_price_regime_history",
     "classify_regime_history",
     "classify_sector_regime",
     "neutral_band_ratio",

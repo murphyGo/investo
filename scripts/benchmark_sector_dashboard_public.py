@@ -17,13 +17,14 @@ def _rss_bytes() -> int:
     return int(rss if sys.platform == "darwin" else rss * 1024)
 
 
-async def _benchmark() -> dict[str, object]:
+async def _benchmark(*, include_market_groups: bool = False) -> dict[str, object]:
     baseline = _rss_bytes()
     cpu_started = time.process_time()
     wall_started = time.monotonic()
     import httpx
 
     from investo.models.market_calendar import is_trading_day
+    from investo.models.market_groups import HARDWARE_MEMBERS
     from investo.sector_dashboard.public_probe import probe_public_sector
 
     target = date(2026, 10, 2)
@@ -46,7 +47,7 @@ async def _benchmark() -> dict[str, object]:
                         "meta": {
                             "symbol": ticker,
                             "currency": "USD",
-                            "instrumentType": "ETF",
+                            "instrumentType": "EQUITY" if ticker in HARDWARE_MEMBERS else "ETF",
                             "exchangeTimezoneName": "America/New_York",
                             "dataGranularity": "1d",
                         },
@@ -70,13 +71,15 @@ async def _benchmark() -> dict[str, object]:
         return httpx.Response(200, content=body, headers={"Content-Type": "application/json"})
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False) as client:
-        result = await probe_public_sector(client, target_date=target)
+        result = await probe_public_sector(
+            client, target_date=target, include_market_groups=include_market_groups
+        )
     cpu_ms = round((time.process_time() - cpu_started) * 1000)
     wall_ms = round((time.monotonic() - wall_started) * 1000)
     rss_delta = max(0, _rss_bytes() - baseline)
     passed = (
         result.status == "qualified"
-        and result.request_count == 12
+        and result.request_count == (23 if include_market_groups else 12)
         and cpu_ms <= 30_000
         and wall_ms <= 120_000
         and rss_delta <= 256 * 1024 * 1024
@@ -84,7 +87,7 @@ async def _benchmark() -> dict[str, object]:
     return {
         "mode": "synthetic_resource_benchmark",
         "status": "passed" if passed else "failed",
-        "series_count": 12,
+        "series_count": 23 if include_market_groups else 12,
         "rows_per_series": len(days),
         "response_bytes": limit,
         "request_count": result.request_count,
@@ -96,8 +99,12 @@ async def _benchmark() -> dict[str, object]:
 
 
 def main() -> int:
+    args = sys.argv[1:]
+    if args not in ([], ["--market-groups"]):
+        print('{"status":"failed","reason_code":"benchmark.arguments"}')
+        return 2
     try:
-        evidence = asyncio.run(_benchmark())
+        evidence = asyncio.run(_benchmark(include_market_groups=bool(args)))
     except Exception:
         evidence = {"status": "failed", "reason_code": "benchmark.internal"}
     print(json.dumps(evidence, sort_keys=True, separators=(",", ":")))
