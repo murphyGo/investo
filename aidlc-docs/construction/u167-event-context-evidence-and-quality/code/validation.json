@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-10",
+  "unit": "u167",
+  "baseline": "838bed607e1e170893de8f9230634a1f8568a06e",
+  "status": "foundation_code_complete_native_consumer_and_activation_pending",
+  "scope": "context foundation",
+  "tests": [
+    {
+      "scope": "first full snapshot",
+      "passed": 6725,
+      "seconds": 873.39
+    },
+    {
+      "scope": "second full snapshot before final fixes",
+      "passed": 6756,
+      "seconds": 823.26
+    },
+    {
+      "scope": "latest focused foundation and legacy compatibility",
+      "passed": 117,
+      "seconds": 8.7
+    },
+    {
+      "scope": "final independent new seven test files",
+      "passed": 81,
+      "seconds": 1.61
+    },
+    {
+      "scope": "latest main focused foundation, legacy compatibility and concurrent sector UI",
+      "passed": 170,
+      "seconds": 215.07
+    },
+    {
+      "scope": "final integrated full regression on exact code commit",
+      "commit": "0de9d9d2857ca0bd77d10fa5a750a30286caec15",
+      "passed": 6774,
+      "seconds": 873.04
+    }
+  ],
+  "static": {
+    "ruff": "pass",
+    "format_files": 719,
+    "mypy_source_files": 307,
+    "no_paid_apis": "pass",
+    "no_anthropic_sdk": "pass",
+    "diff_check": "pass",
+    "curated_assets": "pass",
+    "image_store": "pass",
+    "mkdocs_strict": "pass",
+    "mkdocs_seconds": 7.64,
+    "material_theme": "pass"
+  },
+  "review": {
+    "status": "all_clear_foundation_scope",
+    "prior_findings_fixed": [
+      "owner/source status",
+      "future announcement",
+      "typed fact status/value binding",
+      "required actual",
+      "protected priority",
+      "shadow errors",
+      "single policy authority",
+      "mixed actual/forecast slots",
+      "negated alias",
+      "baseline actual conflict",
+      "correction ownership",
+      "source period identity",
+      "canonical bootstrap ordering",
+      "component metadata roles and values",
+      "negated correction",
+      "same-slot correction identity",
+      "multiple actors and duplicate entity provenance"
+    ],
+    "unresolved_p1_p2": 0,
+    "independent_mypy_sources": 307
+  },
+  "operational": {
+    "schema_default": 2,
+    "v3_preview_ready": false,
+    "v3_active_ready": false,
+    "new_http_calls": 0,
+    "new_llm_stages": 0,
+    "production_metadata_writes": 0,
+    "human_semantic_acceptance": "not_run",
+    "production_runtime_p95": "not_measured",
+    "DEBT-090": "unchanged"
+  },
+  "benchmark": {
+    "iterations": 10,
+    "input_documents": 96,
+    "retained_documents": 6,
+    "stage1_bytes": 21689,
+    "stage2_bytes": 7674,
+    "median_ms": 10.463,
+    "p95_ms": 10.821,
+    "ledger_records": 5000,
+    "ledger_outcome": "identity.ledger_budget_exhausted",
+    "ledger_ms": 88.423,
+    "scope": "offline bounded preparation only"
+  },
+  "remaining": [],
+  "integrated_base": "ea402465df9a186b11094cc59c5fb4a0312a64f2",
+  "validated_code_commit": "0de9d9d2857ca0bd77d10fa5a750a30286caec15",
+  "acceptance": {
+    "AC-167.1": "pass_replay_stage1_to_protected_buffer",
+    "AC-167.2": "pass_owner_source_span_negatives",
+    "AC-167.3": "pass_independent_quality_axes",
+    "AC-167.4": "pass_precision_and_source_component_bindings",
+    "AC-167.5": "pass_actual_utf8_bounds_required_actual_and_priority",
+    "AC-167.6": "pass_legacy_output_and_call_replays",
+    "AC-167.7": "pass_closed_diagnostics",
+    "AC-167.8": "pass_capabilities_closed_native_acceptance_not_claimed"
+  },
+  "delivery": {
+    "branch": "codex/news-event-v3-dev-20261010",
+    "code_commit": "0de9d9d2857ca0bd77d10fa5a750a30286caec15",
+    "commit_push": "validated_for_authorized_delivery",
+    "root_dirty_work_preserved": true,
+    "remote_confirmation_record": "private workflow state and final delivery response"
+  }
+}

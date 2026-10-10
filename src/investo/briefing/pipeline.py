@@ -213,7 +213,11 @@ from investo.briefing.crypto_indicators import render_crypto_indicator_block
 from investo.briefing.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO, append_disclaimer
 from investo.briefing.errors import BriefingGenerationError
 from investo.briefing.event_evidence import prepare_evidence_documents, resolve_evidence_ref
-from investo.briefing.event_input import event_collection_limited, observe_candidates
+from investo.briefing.event_input import (
+    event_collection_limited,
+    observe_candidates,
+    select_event_input_items,
+)
 from investo.briefing.event_prompt import (
     EventPromptEvidence,
     prepare_event_selection,
@@ -254,6 +258,7 @@ from investo.models import (
 )
 from investo.models.bundle_context import BundleContext
 from investo.models.event_config import EventExecutionConfig
+from investo.models.event_context import ContextPreparationObservation
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.event_quality import EventStageReceipt, EventTraceEntry
 from investo.models.events import EventSelectionPlan, EvidenceDocument
@@ -371,6 +376,12 @@ class _EventEnhancementOptions(TypedDict, total=False):
 async def generate_briefing_from_input(request: GenerationInput) -> GenerationResult:
     """Generate atomically, retaining hash-only observed stages on failure."""
     receipts: list[EventStageReceipt] = []
+    config = request.event_generation_policy or EventExecutionConfig(
+        request.generation_policy.event_mode if request.generation_policy else "off"
+    )
+    preparation = None
+    if config.document_schema == 3 and config.mode == "shadow":
+        preparation = _observe_context_preparation(request)
     try:
         result = await _generate_briefing_from_input(request, event_receipts=receipts)
     except BriefingGenerationError as exc:
@@ -382,13 +393,63 @@ async def generate_briefing_from_input(request: GenerationInput) -> GenerationRe
             receipts.append(EventStageReceipt(stage=stage, status="failed"))
             exc.event_stage_receipts = tuple(receipts)
         raise
-    if receipts or request.news_window_consumptions:
+    if receipts or request.news_window_consumptions or preparation is not None:
         return replace(
             result,
             event_stage_receipts=tuple(receipts),
             news_window_consumptions=request.news_window_consumptions,
+            context_preparation=preparation,
         )
     return result
+
+
+def _observe_context_preparation(request: GenerationInput) -> ContextPreparationObservation:
+    """Consume source context privately; shadow adds no LLM/HTTP or public edits."""
+    import hashlib
+
+    from investo.briefing.event_context import (
+        ContextEvidenceError,
+        build_context_prompt_buffer,
+        prepare_context_documents,
+    )
+    from investo.models.macro import is_required_macro_actual
+
+    candidates: tuple[NormalizedItem, ...] = ()
+    try:
+        candidates = select_event_input_items(request.items, target_date=request.target_date)
+        documents = prepare_context_documents(
+            candidates, received_at=request.event_observed_at or datetime.now(UTC)
+        )
+        if request.event_context_documents:
+            if request.event_context_documents != documents:
+                raise ContextEvidenceError("context.buffer_conflict")
+            documents = request.event_context_documents
+        buffer = build_context_prompt_buffer(
+            documents,
+            required_item_ids=frozenset(
+                i for i, item in enumerate(candidates, 1) if is_required_macro_actual(item)
+            ),
+        )
+    except ContextEvidenceError as exc:
+        return ContextPreparationObservation(
+            input_count=len(candidates),
+            retained_count=0,
+            deferred_count=len(candidates),
+            rule_code=exc.rule_code,
+        )
+    except ValueError:
+        return ContextPreparationObservation(
+            input_count=len(candidates),
+            retained_count=0,
+            deferred_count=len(candidates),
+            rule_code="context.invalid_schema",
+        )
+    return ContextPreparationObservation(
+        buffer_sha256=hashlib.sha256(buffer.text.encode("utf-8")).hexdigest(),
+        input_count=len(candidates),
+        retained_count=len(buffer.documents),
+        deferred_count=len(buffer.deferred_item_ids),
+    )
 
 
 async def _generate_briefing_from_input(
@@ -406,8 +467,9 @@ async def _generate_briefing_from_input(
     policy = (
         request.generation_policy if request.generation_policy is not None else GenerationPolicy()
     )
-    event_config = EventExecutionConfig(policy.event_mode)
+    event_config = request.event_generation_policy or EventExecutionConfig(policy.event_mode)
     event_config.validate_capabilities()
+    policy = replace(policy, event_mode=event_config.mode)
     if any(
         receipt.segment != request.segment or receipt.phase != "generated"
         for receipt in request.news_window_consumptions

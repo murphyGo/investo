@@ -7994,3 +7994,22 @@ Static/policy/docs/resource/supplemental UI checks pass; corrected affected test
 Full regression, independent review, five exact-commit runner probes and live publication
 remain pending. No completed expanded deployment is inferred. Session:
 `docs/sessions/2026-10-10-u145-flat-market-groups.md`.
+
+## 2026-10-10 — Event/news v3 개발 지시
+
+사용자: “개발도 진행해줘 / 현재 워크트리가 작업중이면 별도 워크트리에서 해줘”. 앞서 작성·검토한 u167–u173 공통 Functional/NFR 설계와 실행 계획을 개발 기준으로 승인한 지시로 적용한다. 새 worktree codex/news-event-v3-dev-20261010에서 의존 순서대로 구현하며 반복 확인은 하지 않는다. 커밋·푸시 지시도 현재 작업에 적용한다. 사람 의미 수용·source/HTTP/cursor·실제 운영 활성화·첫3/10회와 구형 제거 gate는 별도이며 개발 지시로 완료되지 않는다. 문서는838bed60으로main푸시/원격확인 완료.
+
+## 2026-10-10 — Event/news v3 foundation development checkpoint
+
+- 별도 worktree `.tmp/news-event-v3-dev-20261010`, branch `codex/news-event-v3-dev-20261010`에서 u167 근거·품질 foundation과 u168 canonical/story/ledger foundation을 구현했다. 기존 root dirty work는 보존했다.
+- 독립 검토로 source ownership, typed actual/forecast 슬롯 binding, 필수 actual 보호, optional budget 우선순위, policy authority, 부정 alias, 이전 actual 충돌, correction provenance, occurrence 기간 안정성, bootstrap 직렬화 순서를 보강했다.
+- C3 hash-only 이력에 FactSlotReceipt(slot_key_hash,fact_hash,status)를 추가했다. 기존 raw fact hash만으로는 이전 actual의 slot 충돌을 확인할 수 없다는 재현에 따른 contract 보강이며 신규 v3 이력은 아직 운영되지 않는다.
+- u169 native 문서/봉인, u170 reducer, u171 표면, u172 사람/실제 scheduled 수용, u173 source qualification은 미완료로 구별한다. capability gate와 기존 생산 경로는 유지한다.
+
+### 2026-10-10 — Foundation independent review closure
+
+최종 read-only reviewer가 6ba3a094 이후 correction/component/multi-actor 수정의 이전 재현을 직접 확인했다. 독립 신규7파일81PASS, 변경파일 Ruff/format 및 mypy307PASS; foundation 범위 P1/P2=0. native finalizer/transaction·story reducer·운영 활성화의 미완료는 그대로다. concurrent u145 data-first UI의 audit history를 보존하여 최신 main ea402465에 rebase했다. 최종 통합 회귀는 별도 기록한다.
+
+### 2026-10-10 — Foundation final integrated validation
+
+정확한 코드0de9d9d2857ca0bd77d10fa5a750a30286caec15 (main ea402465 통합)에서 전체6774PASS873.04s, focused170PASS215.07s, independent81PASS/remainingP1-P2=0. Ruff/format719/mypy307,4policyguards,strictMkDocs7.64s,Material/builtHTML PASS. u167foundation8/8, u168foundation5/8이며 native u169/finalizer-CAS 연결·u170reducer·u171reader·u172실제수용·u173sourcequalification은 미완료다. 기본schema2와v3preview/activeFalse를 유지했다. 후속 closeout은 증거 문서만 변경한다.
