@@ -30,6 +30,8 @@ DISCLAIMER_CRYPTO: Final[str] = (
 )
 
 COMPLIANCE_CUTOFF_DATE: Final[date] = date(2026, 5, 13)
+DISCLAIMER_V3: Final[str] = DISCLAIMER.replace("## ⑦ 면책조항", "## 면책조항", 1)
+DISCLAIMER_CRYPTO_V3: Final[str] = DISCLAIMER_CRYPTO.replace("## ⑦ 면책조항", "## 면책조항", 1)
 _ANCHOR: Final[str] = "## ⑦ 면책조항"
 
 

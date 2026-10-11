@@ -30,7 +30,12 @@ Reference:
 
 from __future__ import annotations
 
-from investo._internal.disclaimer import DISCLAIMER, DISCLAIMER_CRYPTO
+from investo._internal.disclaimer import (
+    DISCLAIMER,
+    DISCLAIMER_CRYPTO,
+    DISCLAIMER_CRYPTO_V3,
+    DISCLAIMER_V3,
+)
 from investo.models.segments import MarketSegment
 from investo.publisher.reader_format import (
     SHORT_DISCLAIMER_CRYPTO,
@@ -77,6 +82,8 @@ def verify_disclaimer(
         # Cutoff archive files: accept either footer; the equity
         # version is the historic shape.
         return DISCLAIMER in briefing_md or DISCLAIMER_CRYPTO in briefing_md
+    if "<!-- investo:edition schema=3 -->" in briefing_md:
+        return (DISCLAIMER_CRYPTO_V3 if segment == "crypto" else DISCLAIMER_V3) in briefing_md
     if segment == "crypto":
         return DISCLAIMER_CRYPTO in briefing_md
     # us-equity / domestic-equity / None — equity footer.

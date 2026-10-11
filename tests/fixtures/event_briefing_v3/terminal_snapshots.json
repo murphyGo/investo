@@ -1,0 +1,503 @@
+{
+  "digest_incomplete-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "digest_incomplete-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "digest_incomplete-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "digest_long-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "digest_long-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "digest_long-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "independent_context-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "independent_context-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "independent_context-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "multi_document-crypto": {
+    "event_ids": [
+      "8f3d09654ce30d94373132e8"
+    ],
+    "fact_ids": [
+      "169297004940e8eaaa53b0e1a363e922dbc67478dd3bd273cc5ab1ad7540f6f3",
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734",
+      "26ca81c41ef54e85449425a5190e315c765efbc42a1f3cbe51ea0884a14273a8",
+      "405fd45bd1d94b97daed211e8e0c5312a7284b98f8d45819e93a6a470c88d064",
+      "464efecebf995d9c91d4a106ebc912dacd353d359e9861d7c4fe3c34c8feccec",
+      "64cdfc7772aafbfb68503a38a568ef012534ec6e31a1cb111548e587d039ad11",
+      "9d68fe0e933dc27a3cf580ee302a9410cbf9c30b255492a461b1862d90ae6d21",
+      "d7debc1f4dd90e49b55e8a684ffacbd68ea688ffa762ab38e392c2e6d226e14a"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "multi_document-domestic-equity": {
+    "event_ids": [
+      "8f3d09654ce30d94373132e8"
+    ],
+    "fact_ids": [
+      "169297004940e8eaaa53b0e1a363e922dbc67478dd3bd273cc5ab1ad7540f6f3",
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734",
+      "26ca81c41ef54e85449425a5190e315c765efbc42a1f3cbe51ea0884a14273a8",
+      "405fd45bd1d94b97daed211e8e0c5312a7284b98f8d45819e93a6a470c88d064",
+      "464efecebf995d9c91d4a106ebc912dacd353d359e9861d7c4fe3c34c8feccec",
+      "64cdfc7772aafbfb68503a38a568ef012534ec6e31a1cb111548e587d039ad11",
+      "9d68fe0e933dc27a3cf580ee302a9410cbf9c30b255492a461b1862d90ae6d21",
+      "d7debc1f4dd90e49b55e8a684ffacbd68ea688ffa762ab38e392c2e6d226e14a"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "multi_document-us-equity": {
+    "event_ids": [
+      "8f3d09654ce30d94373132e8"
+    ],
+    "fact_ids": [
+      "169297004940e8eaaa53b0e1a363e922dbc67478dd3bd273cc5ab1ad7540f6f3",
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734",
+      "26ca81c41ef54e85449425a5190e315c765efbc42a1f3cbe51ea0884a14273a8",
+      "405fd45bd1d94b97daed211e8e0c5312a7284b98f8d45819e93a6a470c88d064",
+      "464efecebf995d9c91d4a106ebc912dacd353d359e9861d7c4fe3c34c8feccec",
+      "64cdfc7772aafbfb68503a38a568ef012534ec6e31a1cb111548e587d039ad11",
+      "9d68fe0e933dc27a3cf580ee302a9410cbf9c30b255492a461b1862d90ae6d21",
+      "d7debc1f4dd90e49b55e8a684ffacbd68ea688ffa762ab38e392c2e6d226e14a"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-extra-long_name-crypto": {
+    "event_ids": [
+      "8d871660eccd879c6003360c"
+    ],
+    "fact_ids": [
+      "89c79e795e218afa36c04527e298210f53b7e194028316c8e98fca78554fb39d"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-extra-long_name-domestic-equity": {
+    "event_ids": [
+      "8d871660eccd879c6003360c"
+    ],
+    "fact_ids": [
+      "89c79e795e218afa36c04527e298210f53b7e194028316c8e98fca78554fb39d"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-extra-long_name-us-equity": {
+    "event_ids": [
+      "8d871660eccd879c6003360c"
+    ],
+    "fact_ids": [
+      "89c79e795e218afa36c04527e298210f53b7e194028316c8e98fca78554fb39d"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-extra-weekend-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-extra-weekend-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-extra-weekend-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "normal_positive-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "quiet_no_events-crypto": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "quiet_no_events-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "quiet_no_events-us-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "repeat_history-crypto": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "repeat_history-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "repeat_history-extra-normalized_repeat-crypto": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "repeat_history-extra-normalized_repeat-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "repeat_history-extra-normalized_repeat-us-equity": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "repeat_history-us-equity": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "required_fact-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "required_fact-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "required_fact-extra-closed_story-crypto": {
+    "event_ids": [
+      "05e544484210c07a1f437cfd"
+    ],
+    "fact_ids": [
+      "3591b271241050f7b8b3a6c569054ea08b52726ea37f582e3aa854e16a44ccc1"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "required_fact-extra-closed_story-domestic-equity": {
+    "event_ids": [
+      "05e544484210c07a1f437cfd"
+    ],
+    "fact_ids": [
+      "3591b271241050f7b8b3a6c569054ea08b52726ea37f582e3aa854e16a44ccc1"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "required_fact-extra-closed_story-us-equity": {
+    "event_ids": [
+      "05e544484210c07a1f437cfd"
+    ],
+    "fact_ids": [
+      "3591b271241050f7b8b3a6c569054ea08b52726ea37f582e3aa854e16a44ccc1"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "required_fact-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "normal"
+  },
+  "role_swap-crypto": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "role_swap-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "role_swap-extra-entity-crypto": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "role_swap-extra-entity-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "role_swap-extra-entity-us-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "role_swap-us-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "scheduled_reference-crypto": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "scheduled_reference-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "scheduled_reference-us-equity": {
+    "event_ids": [],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "quiet"
+  },
+  "source_limited-crypto": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "source_limited"
+  },
+  "source_limited-domestic-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "source_limited"
+  },
+  "source_limited-us-equity": {
+    "event_ids": [
+      "41bf3e983214d44e06395d6e"
+    ],
+    "fact_ids": [
+      "2554df6a393746de9c265a672726fb1d15fb8613ab434fefb7f21dd9e1d69734"
+    ],
+    "human_semantic_review": "pending",
+    "outcome": "source_limited"
+  },
+  "unsupported_claim-crypto": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "unsupported_claim-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  },
+  "unsupported_claim-extra-compliance-crypto": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "trust_blocked"
+  },
+  "unsupported_claim-extra-compliance-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "trust_blocked"
+  },
+  "unsupported_claim-extra-compliance-us-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "trust_blocked"
+  },
+  "unsupported_claim-extra-numeric_anchor-crypto": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "trust_blocked"
+  },
+  "unsupported_claim-extra-numeric_anchor-domestic-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "trust_blocked"
+  },
+  "unsupported_claim-extra-numeric_anchor-us-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "trust_blocked"
+  },
+  "unsupported_claim-us-equity": {
+    "event_ids": [],
+    "fact_ids": [],
+    "human_semantic_review": "pending",
+    "outcome": "generation_failed"
+  }
+}

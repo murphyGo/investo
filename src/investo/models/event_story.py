@@ -18,6 +18,7 @@ StoryState = Literal[
     "announced", "pending", "confirmed", "implemented", "resolved", "cancelled", "unknown"
 ]
 StoryDisposition = Literal["active", "archived_unknown", "closed"]
+StoryContextRefs = Annotated[tuple[ContextRef, ...], Field(max_length=64)]
 StoryTransitionSignal = Literal[
     "announcement",
     "pending_confirmation",
@@ -177,6 +178,8 @@ class StoryRecord(EventModel):
     updated_at: datetime
     source_refs: Annotated[tuple[SealedStorySourceRef, ...], Field(min_length=1, max_length=64)]
     kind: EventKind
+    subject_ids: Annotated[tuple[Digest, ...], Field(max_length=8)] = ()
+    object_ids: Annotated[tuple[Digest, ...], Field(max_length=8)] = ()
     disposition: StoryDisposition = "active"
     closed_at: datetime | None = None
     last_evidence_at: datetime
@@ -226,7 +229,7 @@ def story_record_hash(record: StoryRecord) -> str:
 class StoryTransitionProposal(EventModel):
     signal: StoryTransitionSignal
     proposed_state: StoryState
-    evidence_refs: ContextRefs = ()
+    evidence_refs: StoryContextRefs = ()
     occurrence_ids: tuple[EventId, ...] = ()
     resolution_fact_ids: Annotated[tuple[Digest, ...], Field(max_length=8)] = ()
     transition_time: StoryTransitionTimeDraft = StoryTransitionTimeDraft()
@@ -240,7 +243,7 @@ class StoryObservation(EventModel):
     transition_proposal: StoryTransitionProposal
     question_proposal: ObservationQuestion | None = None
     next_check_proposal: NextCheck | None = None
-    context_refs: ContextRefs
+    context_refs: StoryContextRefs
     observation_clock: datetime
 
     @field_validator("observation_clock")
@@ -259,7 +262,7 @@ class StoryStateProposal(EventModel):
     next_record_hash: Digest
     event_ids: tuple[EventId, ...]
     fact_ids: Annotated[tuple[Digest, ...], Field(max_length=8)]
-    evidence_refs: ContextRefs
+    evidence_refs: StoryContextRefs
     observed_clock: datetime
 
     @model_validator(mode="after")
@@ -339,3 +342,9 @@ class StoryTransitionResult(EventModel):
         "story.record_budget_exhausted",
     ]
     proposed_delta: StoryStateProposal | None = None
+
+
+class StoryLinkResult(EventModel):
+    story_id: Digest
+    prior_record: StoryRecord | None = None
+    disposition: Literal["matched", "new", "conflict"]

@@ -26,6 +26,7 @@ from investo.briefing.event_routing import share_official_event_candidates
 from investo.briefing.generation_contract import GenerationInput
 from investo.briefing.segments import segment_items
 from investo.briefing.watchlist import DEFAULT_WATCHLIST_PATH, load_watchlist
+from investo.models.event_config import EventExecutionConfig
 from investo.models.segments import DOMESTIC_EQUITY, MarketSegment
 from investo.orchestrator.domestic_anchor_quarantine import (
     load_previous_domestic_anchor_closes,
@@ -35,6 +36,7 @@ from investo.orchestrator.event_preview import (
     event_preview_compliance_diagnostics,
     preview_event_briefing,
 )
+from investo.orchestrator.event_publication import EventV3Baseline, load_event_v3_baseline
 from investo.orchestrator.event_receipts import (
     EventReceiptBaseline,
     load_committed_event_receipts,
@@ -134,6 +136,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--segment", required=True, choices=SEGMENT_ORDER)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--baseline-sha", help="Trusted remote data checkout commit; read only.")
+    parser.add_argument("--document-schema", choices=(2, 3), type=int, default=2)
     return parser.parse_args(argv)
 
 
@@ -176,6 +179,31 @@ def _preview_baseline(
         raise
     except (OSError, ValueError, subprocess.TimeoutExpired, PublisherGitError):
         return None
+
+
+def _preview_native_baseline(
+    repository_root: Path,
+    baseline_sha: str | None,
+    observed_at: datetime,
+    target_date: date,
+) -> EventV3Baseline | None:
+    if baseline_sha is None:
+        return None
+    if re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", baseline_sha) is None:
+        raise PreviewInputError
+
+    def run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        del kwargs
+        return subprocess.run(
+            args, cwd=repository_root, capture_output=True, text=True, check=False, timeout=10
+        )
+
+    head = run(["git", "rev-parse", "--verify", "HEAD^{commit}"])
+    if head.returncode or head.stdout.strip() != baseline_sha:
+        raise PreviewInputError
+    return load_event_v3_baseline(
+        target_date=target_date, observed_at=observed_at, baseline_sha=baseline_sha, runner=run
+    )
 
 
 def _private_path(output_dir: Path, repository_root: Path) -> Path:
@@ -332,16 +360,24 @@ async def run_preview(
     runner: ClaudeRunner | None = None,
     observed_at: datetime | None = None,
     baseline_sha: str | None = None,
+    document_schema: int = 2,
 ) -> dict[str, object]:
     """No run_pipeline, publisher, notifier, receipt or cursor writer is called."""
-    if segment not in SEGMENT_ORDER:
+    if segment not in SEGMENT_ORDER or document_schema not in (2, 3):
         raise PreviewInputError
     clock = observed_at or datetime.now(UTC)
     if clock.utcoffset() is None:
         raise PreviewInputError
     clock = clock.astimezone(UTC)
     output = _private_path(output_dir, repository_root)
-    baseline = _preview_baseline(repository_root, baseline_sha, clock)
+    baseline = (
+        _preview_baseline(repository_root, baseline_sha, clock) if document_schema == 2 else None
+    )
+    native_baseline = (
+        _preview_native_baseline(repository_root, baseline_sha, clock, target_date)
+        if document_schema == 3
+        else None
+    )
     output.mkdir(parents=True, mode=0o700, exist_ok=False)
     report = await collect_sources(target_date, evidence_received_at=clock)
     anchors, _history = await _load_market_anchors_for_run(target_date)
@@ -378,7 +414,22 @@ async def run_preview(
             recent_context=load_recent_briefings(archive, target_date, days=days) if days else None,
             event_observed_at=clock,
             event_baseline=baseline.receipts if baseline is not None else (),
-            event_baseline_available=baseline is not None,
+            event_baseline_available=(
+                native_baseline is not None
+                and native_baseline.identity[segment].availability == "available"
+                and native_baseline.stories.available
+            )
+            if document_schema == 3
+            else baseline is not None,
+            event_generation_policy=EventExecutionConfig(mode="preview", document_schema=3)
+            if document_schema == 3
+            else None,
+            canonical_event_baseline=native_baseline.identity[segment].segment_receipts
+            if native_baseline is not None
+            else (),
+            story_baseline=tuple(r for r in native_baseline.stories.records if r.segment == segment)
+            if native_baseline is not None
+            else (),
             event_collection_items=projection.public_items,
         )
     )
@@ -386,7 +437,7 @@ async def run_preview(
     if len(documents) > 1:
         raise ValueError("preview returned multiple documents")
     document = documents[0] if documents else None
-    markdown = document.briefing.rendered_markdown.encode("utf-8") if document else b""
+    markdown = document.rendered_markdown.encode("utf-8") if document else b""
     if len(markdown) > _MAX_MARKDOWN_BYTES:
         raise ValueError("preview exceeds output limit")
     if document and hashlib.sha256(markdown).hexdigest() != document.markdown_sha256:
@@ -419,6 +470,14 @@ async def run_preview(
         "production_cursor_written": False,
         "production_receipt_written": False,
     }
+    if document_schema == 3:
+        manifest["document_schema"] = 3
+        manifest["event_baseline_available"] = native_baseline is not None
+        manifest["event_baseline_sha"] = native_baseline.baseline_sha if native_baseline else None
+        if document is not None and document.edition_view is not None:
+            manifest["projection_sha256"] = document.edition_view.edition.projection_sha256
+            manifest["terminal_event_count"] = len(document.edition_view.edition.events)
+            manifest["availability"] = document.edition_view.edition.availability.status
     encoded = (json.dumps(manifest, ensure_ascii=True, sort_keys=True) + "\n").encode()
     if len(encoded) > _MAX_MANIFEST_BYTES:
         raise ValueError("preview manifest exceeds output limit")
@@ -444,6 +503,7 @@ def main(argv: list[str] | None = None) -> int:
                 segment=cast(MarketSegment, args.segment),
                 output_dir=args.output_dir,
                 baseline_sha=args.baseline_sha,
+                document_schema=args.document_schema,
             )
         )
         print(json.dumps(manifest, ensure_ascii=True, sort_keys=True))

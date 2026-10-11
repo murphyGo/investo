@@ -59,6 +59,7 @@ def main(argv: list[str] | None = None) -> int:
                     manifest = await preview.run_preview(
                         target_date=args.target_date,
                         segment=args.segment,
+                        document_schema=getattr(args, "document_schema", 2),
                         output_dir=args.output_dir,
                         repository_root=data_root,
                         runner=llm_runner,

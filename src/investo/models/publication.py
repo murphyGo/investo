@@ -13,6 +13,11 @@ PublicationStatus = Literal[
 ]
 
 
+def publication_metadata_limit(path: Path) -> int:
+    """One approved story ledger has a larger bound; all other metadata stays 1MiB."""
+    return 5 * 1024 * 1024 if path == Path("archive/_meta/event_stories_v3.json") else 1024 * 1024
+
+
 def _valid_digest(value: str) -> bool:
     return re.fullmatch(r"[0-9a-f]{64}", value) is not None
 

@@ -317,6 +317,14 @@ def test_additional_fact_period_does_not_reidentify_a_fixed_source_occurrence() 
         update={
             "metric_refs": (ref(combined, "net_income"),),
             "period_refs": (ref(combined, "Q4"),),
+            "value_refs": (
+                ref(combined, "1200").model_copy(
+                    update={
+                        "start": combined.chunks[1].text.rindex("1200"),
+                        "end": combined.chunks[1].text.rindex("1200") + 4,
+                    }
+                ),
+            ),
         }
     )
     base = proposed.model_copy(
@@ -479,3 +487,59 @@ def test_multi_actor_binding_preserves_each_entity_and_merges_duplicate_refs() -
     assert duplicate.identity == current.identity
     acme = next(entity for entity in duplicate.entities if entity.entity.display_label == "Acme")
     assert len(acme.identity_refs) == 2
+
+
+@pytest.mark.parametrize("registry", [None, {"Acme": "sec-cik-acme"}], ids=["literal", "registry"])
+def test_parent_derives_only_exact_committed_slot_correction(registry):
+    old_doc, proposal = source()
+    old = canonical_event_binding(
+        proposal,
+        (old_doc,),
+        (),
+        observed_at=NOW,
+        baseline_available=True,
+        approved_registry=registry,
+    )
+    new_doc = make_event_context_document(
+        make_evidence_document(
+            source_name="official",
+            title="Acme announced Widget",
+            summary=(
+                "Acme revenue actual 1300 USD FY2026. Acme revenue was corrected from 1200 to 1300."
+            ),
+            url="https://example.com/one",
+            published_at=NOW,
+            received_at=NOW,
+        ),
+        metadata={"reference_period": "FY2026"},
+    )
+    fact = proposal.facts[0].model_copy(
+        update={
+            "subject_refs": (ref(new_doc, "Acme"),),
+            "metric_refs": (ref(new_doc, "revenue"),),
+            "value_refs": (ref(new_doc, "1300"),),
+            "unit_refs": (ref(new_doc, "USD"),),
+            "period_refs": (ref(new_doc, "FY2026"),),
+            "status_refs": (ref(new_doc, "actual"),),
+        }
+    )
+    current = proposal.model_copy(
+        update={
+            "actor_refs": (ref(new_doc, "Acme"),),
+            "action_refs": (ref(new_doc, "announced"),),
+            "object_refs": (ref(new_doc, "Widget"),),
+            "facts": (fact,),
+        }
+    )
+    binding = canonical_event_binding(
+        current,
+        (new_doc,),
+        (receipt(old),),
+        observed_at=NOW,
+        baseline_available=True,
+        approved_registry=registry,
+    )
+    assert binding.match_outcome == "matched" and binding.novelty == "material_update"
+    assert not binding.delta.unresolved_conflict_ids
+    assert binding.delta.correction_pairs == ((old.facts[0].fact_id, binding.facts[0].fact_id),)
+    assert len(binding.delta.correction_claims) == 1

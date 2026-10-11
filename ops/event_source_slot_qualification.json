@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "source_name": "fomc-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.monetary_decision",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "actor",
+        "decision",
+        "size_or_scope"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "actor",
+        "decision",
+        "size_or_scope"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "fed-speech-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.official_statement",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "speaker",
+        "quoted_claim"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "speaker",
+        "quoted_claim"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "cftc-policy-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.regulatory_action",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "authority",
+        "action",
+        "action_status",
+        "target_scope"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "authority",
+        "action",
+        "action_status",
+        "target_scope"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "korea-policy-rss",
+      "proposed_source_name": null,
+      "slot_id": "policy.domestic_announcement",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "authority",
+        "action",
+        "target_scope"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "authority",
+        "action",
+        "target_scope"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "sec-company-facts",
+      "proposed_source_name": null,
+      "slot_id": "earnings.reported_actual",
+      "access_kind": "structured_api",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+      "rights_scope": "SEC government-created and public EDGAR filing content; excludes illustrative stock photographs.",
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "metric",
+        "actual_value",
+        "unit",
+        "period",
+        "filing_locator"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "metric",
+        "actual_value",
+        "unit",
+        "period",
+        "filing_locator"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "sec-edgar-8k",
+      "proposed_source_name": null,
+      "slot_id": "earnings.guidance",
+      "access_kind": "official_body",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": "https://www.sec.gov/files/about/webmaster-faq.htm",
+      "rights_scope": "SEC government-created and public EDGAR filing content; excludes illustrative stock photographs.",
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "guidance_claim",
+        "guidance_period"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "guidance_claim",
+        "guidance_period"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "dart-disclosure",
+      "proposed_source_name": null,
+      "slot_id": "domestic.disclosure_action",
+      "access_kind": "structured_api",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    },
+    {
+      "source_name": "nasdaq-earnings-calendar",
+      "proposed_source_name": null,
+      "slot_id": "earnings.schedule_context",
+      "access_kind": "structured_api",
+      "endpoint_scope": null,
+      "official_discovery_url": null,
+      "checked_at": "2026-10-11T16:56:52Z",
+      "source_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+      "status": "blocked",
+      "reason_codes": [
+        "access.not_verified",
+        "rights.unknown",
+        "schema.unknown",
+        "slot.required_missing",
+        "runtime.not_verified"
+      ],
+      "access_evidence_hash": null,
+      "rights_evidence_url": null,
+      "rights_scope": null,
+      "schema_fixture_sha256": null,
+      "parser_version": null,
+      "required_slots": [
+        "issuer",
+        "scheduled_date",
+        "report_bucket"
+      ],
+      "verified_slots": [],
+      "missing_slots": [
+        "issuer",
+        "scheduled_date",
+        "report_bucket"
+      ],
+      "chunk_roles": [],
+      "time_precision": "unknown",
+      "public_locator_basis": null,
+      "runtime_probe_status": "not_run",
+      "runtime_evidence_ref": null,
+      "activation_ready": false
+    }
+  ]
+}

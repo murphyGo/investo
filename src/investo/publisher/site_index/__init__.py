@@ -25,10 +25,11 @@ path.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date
 from pathlib import Path
 
-from investo.models import Briefing
+from investo.models.event_document import ReadablePublicDocument
 from investo.models.segments import MarketSegment
 
 from ._blocks import (
@@ -116,7 +117,7 @@ def update_latest_index_pages(
     *,
     site_index_path: Path | None = None,
     archive_index_path: Path | None = None,
-    segment_briefings: dict[MarketSegment, Briefing] | None = None,
+    segment_briefings: Mapping[MarketSegment, ReadablePublicDocument] | None = None,
     heatmap_svg: str | None = None,
 ) -> tuple[Path, ...]:
     """Refresh Home + Archive landing surfaces for ``target_date``.

@@ -1982,3 +1982,11 @@ __all__ = [
     "resolve_watchpoint_currents",
     "watchpoint_content_span",
 ]
+
+
+def native_numeric_watchpoints(payload: WatchpointValuePayload) -> tuple[NumericWatchpoint, ...]:
+    """Reuse validated numeric synthesis without a legacy section or Markdown parser."""
+    from investo.publisher.watchpoint_fallback import synthesize_watchpoint_rows
+
+    rows = resolve_watchpoint_currents(synthesize_watchpoint_rows(payload), payload)
+    return tuple(_tag_numeric_watchpoint(row) for row in rows if _renderable_row(row))

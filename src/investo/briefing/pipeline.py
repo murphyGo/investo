@@ -228,7 +228,11 @@ from investo.briefing.event_trace import (
     input_stage_receipt,
     selection_stage_receipt,
 )
-from investo.briefing.generation_contract import GenerationInput, GenerationResult
+from investo.briefing.generation_contract import (
+    GenerationInput,
+    GenerationOutcome,
+    GenerationResult,
+)
 from investo.briefing.lineage import (
     MacroLineageTrace,
     build_macro_lineage_traces,
@@ -373,12 +377,34 @@ class _EventEnhancementOptions(TypedDict, total=False):
     event_numeric_evidence: tuple[str, ...]
 
 
-async def generate_briefing_from_input(request: GenerationInput) -> GenerationResult:
+async def generate_briefing_from_input(request: GenerationInput) -> GenerationOutcome:
     """Generate atomically, retaining hash-only observed stages on failure."""
     receipts: list[EventStageReceipt] = []
     config = request.event_generation_policy or EventExecutionConfig(
         request.generation_policy.event_mode if request.generation_policy else "off"
     )
+    config.validate_capabilities()
+    if config.uses_v3:
+        from investo._internal.event_context import ContextEvidenceError
+        from investo._internal.event_v3_contract import EventEditionValidationError
+        from investo.briefing.event_document import generate_event_document
+
+        try:
+            return await generate_event_document(request)
+        except ValueError as exc:
+            code = (
+                exc.rule_code
+                if isinstance(exc, ContextEvidenceError)
+                else exc.code
+                if isinstance(exc, EventEditionValidationError)
+                else "event.schema_invalid"
+            )
+            raise BriefingGenerationError(
+                stage="post_validation",
+                attempt_count=1,
+                last_stderr=None,
+                cause=EventEditionValidationError(code),
+            ) from None
     preparation = None
     if config.document_schema == 3 and config.mode == "shadow":
         preparation = _observe_context_preparation(request)

@@ -7,6 +7,7 @@ import json
 import unicodedata
 from collections.abc import Mapping, Sequence
 from datetime import UTC, date, datetime
+from typing import cast
 from urllib.parse import unquote_plus, urlsplit, urlunsplit
 
 from investo.models.event_context import EventContextDocument
@@ -201,7 +202,12 @@ def canonical_evidence_url(url: str | None) -> str | None:
     if url is None:
         return None
     parsed = urlsplit(url)
-    if parsed.scheme not in {"https", "http"} or not parsed.hostname or parsed.username:
+    if (
+        parsed.scheme not in {"https", "http"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
         raise ValueError("event evidence URL must be a public HTTP source locator")
     query = "&".join(
         part
@@ -278,3 +284,41 @@ def make_evidence_document(
             "detail_excerpt": detail_excerpt,
         }
     )
+
+
+def evidence_document_from_item(item: NormalizedItem, *, received_at: datetime) -> EvidenceDocument:
+    """Validate attached evidence, or construct a limited title/summary fallback."""
+    attached = cast(EvidenceDocument | None, getattr(item, "event_evidence", None))
+    url = str(item.url) if item.url is not None else None
+    publication_day, event_day = evidence_date_fields(item.raw_metadata)
+    fallback = make_evidence_document(
+        source_name=item.source_name,
+        title=item.title,
+        summary=item.summary or "",
+        url=url,
+        published_at=item.published_at,
+        received_at=received_at,
+        published_date=publication_day,
+        event_time=event_day,
+        event_time_basis="source_date" if event_day is not None else "unknown",
+        source_tier=(
+            "official"
+            if item.raw_metadata.get("official_source") == "true"
+            else "primary"
+            if item.raw_metadata.get("source_tier") == "primary"
+            else "unknown"
+        ),
+    )
+    if attached is None:
+        return fallback
+    if (
+        attached.source_name != item.source_name
+        or attached.document_id != fallback.document_id
+        or attached.url != fallback.url
+        or attached.published_at != item.published_at
+        or attached.published_date != publication_day
+        or attached.revision_id
+        != event_digest(attached.title, attached.summary, attached.detail_excerpt)
+    ):
+        raise ValueError("event evidence does not match its routed source item")
+    return attached

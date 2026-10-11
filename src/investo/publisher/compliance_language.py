@@ -155,7 +155,10 @@ def _mask_non_scan_regions(markdown: str) -> str:
     out = markdown
     # 1. Disclaimer footer — mask from anchor to end of document. We do
     #    NOT want to flag wording inside the canonical disclaimer.
-    anchor_idx = out.find(_DISCLAIMER_ANCHOR)
+    anchors = [
+        out.find(anchor) for anchor in (_DISCLAIMER_ANCHOR, "## 면책조항") if out.find(anchor) >= 0
+    ]
+    anchor_idx = min(anchors) if anchors else -1
     if anchor_idx >= 0:
         out = out[:anchor_idx] + " " * (len(out) - anchor_idx)
 
@@ -189,7 +192,7 @@ def repair_compliance_language(markdown: str, segment: MarketSegment) -> str:
     in_code = False
     changed = False
     for index, line in enumerate(lines):
-        if _DISCLAIMER_ANCHOR in line:
+        if _DISCLAIMER_ANCHOR in line or "## 면책조항" in line:
             break
         if line.lstrip().startswith("```"):
             in_code = not in_code

@@ -36,6 +36,15 @@ _STYLE_BASELINE = (
 
 
 def _sample_renderable_card(card_type: type[object]) -> _RenderableCard:
+    from investo.visuals.cards import EventFactCardInput
+
+    if card_type is EventFactCardInput:
+        return EventFactCardInput(
+            target_date=date(2026, 10, 10),
+            segment="us-equity",
+            headline="Acme 실적 발표",
+            rows=("revenue · 1200 · USD · FY2026 · actual",),
+        )
     if card_type is DataConfidenceCardInput:
         return DataConfidenceCardInput(
             target_date=date(2026, 5, 7),

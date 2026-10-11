@@ -36,7 +36,9 @@ def main() -> int:
                 "scenario_groups": len({result.scenario_id for result in results}),
                 "input_replay_variants": len(results),
                 "passed_variants": sum(result.passed for result in results),
-                "output_inventory_count": 18,
+                "output_inventory_count": len(
+                    json.loads(args.manifest.read_text()).get("output_inventory", ())
+                ),
                 "human_semantic_review": "pending",
                 "codes": [] if passed else ["replay.failed"],
             },

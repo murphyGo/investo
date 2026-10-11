@@ -72,6 +72,14 @@ class MarketSnapshotCardInput(_CardInput):
     coverage_status: CoverageStatus
 
 
+class EventFactCardInput(_CardInput):
+    """Whole source-owned facts; no legacy conclusion or price inference."""
+
+    kind: Literal["event-facts"] = "event-facts"
+    headline: str = Field(min_length=1, max_length=36)
+    rows: tuple[str, ...] = Field(min_length=1, max_length=6)
+
+
 class PriceSnapshotRow(BaseModel):
     """One normalized price row supported by the visual renderer."""
 

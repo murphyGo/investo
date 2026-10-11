@@ -161,6 +161,13 @@ class CanonicalQualitySnapshot:
 
 def parse_segment_status_block(text: str, segment: MarketSegment) -> SegmentStatusBlock:
     """Extract the canonical status + failed-source count from one segment body."""
+    if "<!-- investo:edition schema=3 -->" in text:
+        match = re.search(r"<!-- investo:availability (normal|quiet|source_limited) -->", text)
+        limited = match is None or match[1] == "source_limited"
+        count = len(re.findall(r"<!-- investo:block event:[0-9a-f]{24} -->", text))
+        return SegmentStatusBlock(
+            segment, "limited" if limited else "normal", 0, count, True, count, limited
+        )
     status: CoverageStatus | None = None
     match = _STATUS_BLOCK_RE.search(text)
     if match is not None:

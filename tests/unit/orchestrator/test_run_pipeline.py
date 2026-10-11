@@ -2689,7 +2689,7 @@ async def test_publish_cancellation_after_promotion_drains_writer_then_rolls_bac
 
     document = SimpleNamespace(
         segment=DOMESTIC_EQUITY,
-        briefing=_briefing(segment=DOMESTIC_EQUITY),
+        payload=_briefing(segment=DOMESTIC_EQUITY),
     )
 
     def blocking_write(value: object) -> Path:
@@ -4080,7 +4080,7 @@ async def test_stage_publish_segments_finalized_bundle_uses_sealed_writer(
     )
     document = SimpleNamespace(
         segment=DOMESTIC_EQUITY,
-        briefing=sealed,
+        payload=sealed,
         watchpoint_synthesized=2,
         numeric_containment_outcomes=(),
     )

@@ -156,8 +156,7 @@ def test_schema_policy_preserves_legacy_default_and_denies_unready_v3() -> None:
     assert policy.document_schema == 2 and policy.mode == "off"
     assert EventGenerationPolicy(mode="active").for_segment("crypto").mode == "shadow"
     assert EventGenerationPolicy(mode="active").v2_segments == ("domestic-equity", "us-equity")
-    with pytest.raises(ValueError, match="u169"):
-        EventGenerationPolicy(mode="preview", document_schema=3).validate_capabilities()
+    EventGenerationPolicy(mode="preview", document_schema=3).validate_capabilities()
     with pytest.raises(ValueError, match="u172"):
         EventGenerationPolicy(mode="active", document_schema=3).validate_capabilities()
     for mode in ("off", "shadow"):

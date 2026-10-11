@@ -33,6 +33,7 @@ from typing import Final
 from investo._internal._io import write_atomic
 from investo._internal.briefing_extract import extract_conclusion
 from investo._internal.disclaimer import DISCLAIMER
+from investo._internal.event_public_text import edition_archive_excerpt, markdown_literal
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -41,6 +42,7 @@ from investo.models.segments import (
     MarketSegment,
 )
 from investo.publisher.errors import PublisherDisclaimerError
+from investo.publisher.event_archive_reader import read_published_event_edition
 from investo.publisher.paths import ARCHIVE_ROOT, archive_path
 from investo.publisher.verifier import verify_disclaimer
 
@@ -209,7 +211,15 @@ def _render_day_block(day: date, *, archive_root: Path) -> list[str]:
             archive_root / segment / f"{day.year:04d}" / f"{day.month:02d}" / f"{iso}.md"
         )
         if absolute_candidate.exists():
-            conclusion = _extract_conclusion(absolute_candidate.read_text(encoding="utf-8"))
+            body = absolute_candidate.read_text(encoding="utf-8")
+            if "<!-- investo:edition schema=3 -->" in body:
+                native = read_published_event_edition(segment, day, archive_root=archive_root)
+                if native.edition is None:
+                    block.append(f"- **{label}** — (사건 원본 확인 제한)")
+                    continue
+                conclusion = markdown_literal(edition_archive_excerpt(native.edition))
+            else:
+                conclusion = _extract_conclusion(body)
             link_target = f"../{segment}/{day.year:04d}/{day.month:02d}/{iso}.md"
             block.append(f"- **[{label}]({link_target})** — {conclusion}")
         else:

@@ -12,6 +12,7 @@ from investo.models.watchlist import DEFAULT_BUNDLE_BADGE_LABEL
 from investo.visuals.cards import (
     DataConfidenceCardInput,
     DataConfidenceSourceRow,
+    EventFactCardInput,
     MarketSnapshotCardInput,
     PriceSnapshotCardInput,
     WatchlistRelevanceCardInput,
@@ -33,6 +34,7 @@ _RenderableCard: TypeAlias = (
     | MarketSnapshotCardInput
     | PriceSnapshotCardInput
     | WatchlistRelevanceCardInput
+    | EventFactCardInput
 )
 
 # One palette owns every card color. The declaration order is part of the
@@ -93,6 +95,15 @@ def render_card_svg(
         return _render_market_snapshot(card, variant=variant)
     if isinstance(card, PriceSnapshotCardInput):
         return _render_price_snapshot(card, variant=variant)
+    if isinstance(card, EventFactCardInput):
+        rows = "\n".join(
+            f'<text class="card-text" x="80" y="{210 + i * 55}" '
+            f'font-family="{_FONT_FAMILY}" font-size="26">{_escape(row)}</text>'
+            for i, row in enumerate(card.rows)
+        )
+        return _svg_document(
+            title="확인된 사건", subtitle=card.headline, body=rows, variant=variant
+        )
     return _render_watchlist(card, variant=variant)
 
 

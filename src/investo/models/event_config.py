@@ -11,7 +11,7 @@ from investo.models.segments import CRYPTO, DOMESTIC_EQUITY, US_EQUITY, MarketSe
 EventMode = Literal["off", "shadow", "preview", "active"]
 EVENT_MODE_ENV = "INVESTO_EVENT_BRIEFING_MODE"
 EVENT_DOCUMENT_SCHEMA_ENV = "INVESTO_EVENT_DOCUMENT_SCHEMA"
-EVENT_V3_PREVIEW_READY = False
+EVENT_V3_PREVIEW_READY = True
 EVENT_V3_ACTIVE_READY = False
 
 # The user authorized the event-body rollout on 2026-10-09 with outstanding

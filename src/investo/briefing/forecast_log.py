@@ -20,7 +20,7 @@ from investo.briefing.action_tag import (
 )
 from investo.briefing.extract import extract_conclusion
 from investo.briefing.segments import MarketSegment
-from investo.models import Briefing
+from investo.models.event_document import PublicEditionView, ReadablePublicDocument
 
 FORECAST_LOG_PATH_ENV: Final[str] = "INVESTO_FORECAST_LOG_PATH"
 DEFAULT_FORECAST_LOG_PATH: Final[Path] = Path("archive/_meta/forecast_log.jsonl")
@@ -48,7 +48,7 @@ def resolve_forecast_log_path() -> Path:
 def append_forecast_entries(
     target_date: date,
     *,
-    segment_briefings: Mapping[MarketSegment, Briefing],
+    segment_briefings: Mapping[MarketSegment, ReadablePublicDocument],
     published_at: datetime,
     briefing_urls: Mapping[MarketSegment, str],
     log_path: Path | None = None,
@@ -59,6 +59,9 @@ def append_forecast_entries(
     existing = [row for row in _load_rows(target) if row.get("target_date") != iso_date]
     for segment in sorted(segment_briefings):
         briefing = segment_briefings[segment]
+        if isinstance(briefing, PublicEditionView):
+            # Native editions do not assert a market stance or a price forecast.
+            continue
         conclusion = extract_conclusion(briefing.rendered_markdown) or briefing.market_summary
         tag = _extract_action_tag(conclusion)
         existing.append(

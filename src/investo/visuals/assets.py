@@ -22,6 +22,7 @@ from investo._internal.briefing_extract import (
     extract_key_drivers,
 )
 from investo.models import Briefing, NormalizedItem
+from investo.models.event_document import EventEditionDraft, EventVisualInput
 from investo.models.public_artifact import StagedArtifact, build_staged_artifact
 from investo.models.segments import MarketSegment, SegmentCoverage
 from investo.models.watchlist import WatchlistImpact
@@ -852,6 +853,7 @@ def _write_generated_svg_manifest(
     *,
     card_kind: str,
     dark_variant: str,
+    evidence_metadata: Mapping[str, str] | None = None,
 ) -> None:
     """Write the JSON sidecar for a freshly rendered SVG card."""
     manifest = build_generated_svg_provenance(
@@ -863,6 +865,7 @@ def _write_generated_svg_manifest(
         additional_metadata={
             "theme_variant": "light",
             "dark_variant": dark_variant,
+            **(evidence_metadata or {}),
         },
     )
     write_manifest(manifest, path)
@@ -1126,3 +1129,96 @@ __all__ = [
     "validate_visual_asset",
     "validate_visual_binary",
 ]
+
+
+def prepare_event_visual_assets(
+    draft: EventEditionDraft, *, staging_root: Path
+) -> tuple[tuple[EventVisualInput, ...], tuple[StagedArtifact, ...]]:
+    """E1 prepares source-owned body cards, with no hero, HTTP or LLM call."""
+
+    from investo._internal.event_context import resolve_context_ref
+    from investo._internal.event_v3_contract import fact_source_map
+    from investo.models.event_document import EventVisualInput
+    from investo.visuals.cards import EventFactCardInput
+
+    layout = ArchiveLayout(staging_root)
+    inputs = []
+    artifacts: list[StagedArtifact] = []
+    bindings = {b.identity.event_id: b for b in draft.bindings}
+    plans = {p.event_id: p for p in draft.editorial_plan.events}
+    for article in draft.articles:
+        binding = bindings[article.event_id]
+        if len(article.headline) > 36 or len(binding.facts) > 6:
+            continue
+        sources = fact_source_map(binding, plans[article.event_id].source_event, draft.documents)
+        rows = []
+        for fact in binding.facts:
+            label = " ".join(
+                resolve_context_ref(r, draft.documents) for r in sources[fact.fact_id].metric_refs
+            )
+            row = " · ".join(
+                v
+                for v in (
+                    label or fact.canonical.predicate,
+                    fact.original_value,
+                    fact.canonical.unit,
+                    fact.canonical.period,
+                    fact.canonical.status,
+                )
+                if v
+            )
+            rows.append(row)
+        # Reserve one full 26px em per character, including wide Latin glyphs.
+        # This bounds the 1040px line without dropping a unit, period or status.
+        if any(len(row) * 26 > 1040 for row in rows):
+            continue  # Omit a whole optional visual; never cut a source fact.
+        refs = tuple(dict.fromkeys(r for f in binding.facts for r in f.source_refs))
+        if len(refs) > 16:
+            continue
+        card = EventFactCardInput(
+            target_date=draft.target_date,
+            segment=draft.segment,
+            headline=article.headline,
+            rows=tuple(rows),
+        )
+        path = visual_asset_path(
+            draft.target_date, draft.segment, "event-" + article.event_id, archive_layout=layout
+        )
+        dark = visual_asset_path(
+            draft.target_date,
+            draft.segment,
+            "event-" + article.event_id + "-dark",
+            archive_layout=layout,
+        )
+        _write_svg(path, render_card_svg(card, variant="light"))
+        _write_svg(dark, render_card_svg(card, variant="dark"))
+        _write_generated_svg_manifest(
+            path,
+            card_kind="event-facts",
+            dark_variant=dark.name,
+            evidence_metadata={
+                "event_id": article.event_id,
+                "fact_ids": ",".join(article.fact_ids),
+            },
+        )
+        validate_visual_asset(path)
+        validate_visual_binary(dark)
+        prepared = tuple(
+            build_staged_artifact(
+                staging_root=staging_root, staged_path=p, segment=draft.segment, kind="visual"
+            )
+            for p in (path, dark, manifest_path_for(path))
+        )
+        markdown_path = layout.briefing_path(draft.target_date, draft.segment)
+        inputs.append(
+            EventVisualInput(
+                event_id=article.event_id,
+                fact_ids=article.fact_ids,
+                source_refs=refs,
+                relative_path=visual_asset_relative_path(path, markdown_path),
+                dark_relative_path=visual_asset_relative_path(dark, markdown_path),
+                artifact_ids=tuple(a.artifact_id for a in prepared),
+            )
+        )
+        artifacts.extend(prepared)
+    return tuple(inputs), tuple(artifacts)

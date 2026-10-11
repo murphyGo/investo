@@ -442,6 +442,14 @@ def load_event_replay(path: Path) -> tuple[tuple[ReplayCase, ReplayRecord], ...]
 
 
 async def replay_event_manifest(path: Path) -> tuple[ReplayCaseResult, ...]:
+    with path.open("rb") as stream:
+        raw = stream.read(_MAX_FIXTURE_BYTES + 1)
+    if len(raw) > _MAX_FIXTURE_BYTES:
+        raise ValueError("replay.manifest_size")
+    if json.loads(raw).get("schema_version") == 3:
+        return tuple(
+            [await replay_native_event_case(record) for record in load_native_event_replay(path)]
+        )
     results: list[ReplayCaseResult] = []
     for case, record in load_event_replay(path):
         try:
@@ -453,3 +461,179 @@ async def replay_event_manifest(path: Path) -> tuple[ReplayCaseResult, ...]:
                 ReplayCaseResult(case.scenario_id, case.case_id, (), ("replay.execution_failed",))
             )
     return tuple(results)
+
+
+class NativeReplayExpectation(_FixtureModel):
+    outcome: Literal["normal", "quiet", "source_limited", "generation_failed", "trust_blocked"]
+    calls: int = Field(ge=0, le=2)
+    event_ids: tuple[str, ...] = ()
+    fact_ids: tuple[str, ...] = ()
+    digest_count: int = Field(default=0, ge=0, le=3)
+    reference_count: int = Field(default=0, ge=0, le=5)
+    story_state: str | None = None
+
+
+class NativeReplayRecord(_FixtureModel):
+    scenario_id: CaseId
+    case_id: CaseId
+    segment: MarketSegment
+    target_date: date
+    observed_at: datetime
+    items: tuple[NormalizedItem, ...]
+    source_outcomes: tuple[SourceOutcome, ...] = ()
+    responses: tuple[str, ...]
+    canonical_baseline: tuple[dict, ...] = ()
+    story_baseline: tuple[dict, ...] = ()
+    expectation: NativeReplayExpectation
+
+
+def load_native_event_replay(path: Path) -> tuple[NativeReplayRecord, ...]:
+    raw = path.read_bytes()
+    if len(raw) > _MAX_FIXTURE_BYTES:
+        raise ValueError("replay.manifest_size")
+    manifest = json.loads(raw)
+    if (
+        manifest.get("schema_version") != 3
+        or manifest.get("fixture_author") != "AI-authored synthetic"
+        or manifest.get("human_review") != "pending"
+        or manifest.get("input_recording") != "records.json"
+    ):
+        raise ValueError("replay.manifest_contract")
+    with (path.parent / "records.json").open("rb") as stream:
+        recording = stream.read(_MAX_FIXTURE_BYTES + 1)
+    if len(recording) > _MAX_FIXTURE_BYTES or hashlib.sha256(recording).hexdigest() != manifest.get(
+        "input_recording_sha256"
+    ):
+        raise ValueError("replay.recording_identity")
+    records = tuple(NativeReplayRecord.model_validate(r) for r in json.loads(recording))
+    scenarios = {r.scenario_id for r in records}
+    if (
+        len(records) < 36
+        or len(scenarios) != 12
+        or len({r.case_id for r in records}) != len(records)
+    ):
+        raise ValueError("replay.matrix_invalid")
+    markets = {"domestic-equity", "us-equity", "crypto"}
+    if any(
+        {r.segment for r in records if r.scenario_id == group} != markets for group in scenarios
+    ):
+        raise ValueError("replay.matrix_invalid")
+    return records
+
+
+async def replay_native_event_case(record: NativeReplayRecord) -> ReplayCaseResult:
+    from investo.models.event_config import EventGenerationPolicy
+    from investo.models.event_identity import CanonicalEventReceipt
+    from investo.models.event_story import StoryRecord
+    from investo.models.public_notification import EventNotificationSummaryV3
+
+    runner = RecordedEventRunner(record.responses)
+    expected = record.expectation
+    codes: set[str] = set()
+    observed = "generation_failed"
+    document = None
+    try:
+        generated = await generate_briefing_from_input(
+            GenerationInput(
+                target_date=record.target_date,
+                segment=record.segment,
+                items=record.items,
+                source_outcomes=record.source_outcomes,
+                watchlist_config=WatchlistConfig(),
+                runner=runner,
+                event_observed_at=record.observed_at,
+                event_generation_policy=EventGenerationPolicy(mode="preview", document_schema=3),
+                canonical_event_baseline=tuple(
+                    CanonicalEventReceipt.model_validate(r) for r in record.canonical_baseline
+                ),
+                story_baseline=tuple(StoryRecord.model_validate(r) for r in record.story_baseline),
+                generation_policy=GenerationPolicy(max_attempts=1, event_mode="preview"),
+            )
+        )
+        context = PublicDocumentContext(
+            target_date=record.target_date,
+            expected_segments=(record.segment,),
+            input_absences={},
+            anchors_by_segment={record.segment: ()},
+            items_by_segment={record.segment: record.items},
+            coverage_by_segment={
+                record.segment: build_segment_coverage(record.segment, record.items)
+            },
+            source_outcomes=record.source_outcomes,
+            bundle_context=None,
+            fact_bundle=build_verified_fact_bundle(
+                record.items, record.target_date, record.observed_at
+            ),
+            entity_observed_at_utc=record.observed_at,
+            canonical_event_baselines={
+                record.segment: tuple(
+                    CanonicalEventReceipt.model_validate(r) for r in record.canonical_baseline
+                )
+            },
+            canonical_baseline_available={record.segment: True},
+            story_baselines={
+                record.segment: tuple(StoryRecord.model_validate(r) for r in record.story_baseline)
+            },
+        )
+        bundle = finalize_public_bundle({record.segment: generated.document}, context=context)
+        document = bundle.documents[0] if bundle.documents else None
+        observed = (
+            document.edition_view.edition.availability.status
+            if document and document.edition_view
+            else "trust_blocked"
+        )
+    except PublicDocumentFinalizationError:
+        observed = "trust_blocked"
+    except (BriefingGenerationError, ValueError):
+        observed = "generation_failed"
+    if observed != expected.outcome:
+        codes.add("replay.outcome")
+    if len(runner.prompts) != expected.calls:
+        codes.add("replay.call_budget")
+    if runner.prompts and len(runner.prompts[0].encode()) > 64 * 1024:
+        codes.add("replay.stage1_budget")
+    if document is not None:
+        view = document.edition_view
+        assert view is not None
+        edition = view.edition
+        event_ids = tuple(e.event_id for e in edition.events)
+        fact_ids = {f.fact_id for e in edition.events for f in e.facts} | {
+            f.fact_id for panel in edition.reference_panels for f in panel.facts
+        }
+        visible = rendered_html_text(view.rendered_markdown)
+        if event_ids != expected.event_ids or not set(expected.fact_ids) <= fact_ids:
+            codes.add("replay.terminal_identity")
+        if (
+            len(edition.digests) != expected.digest_count
+            or len(edition.reference_panels) != expected.reference_count
+        ):
+            codes.add("replay.projection_count")
+        if not isinstance(document.notification_summary, EventNotificationSummaryV3):
+            codes.add("replay.notification_contract")
+        if tuple(e.event_id for e in document.notification_summary.events) != event_ids[:3]:
+            codes.add("replay.summary_identity")
+        for event in edition.events:
+            if event.headline not in visible or any(f.value not in visible for f in event.facts):
+                codes.add("replay.html_fact_missing")
+        if expected.story_state and not any(
+            getattr(f, "reader_state", None) == expected.story_state for f in edition.follow_ups
+        ):
+            codes.add("replay.story_state")
+        if edition.projection_sha256 != edition.canonical_projection_hash:
+            codes.add("replay.projection_hash")
+        if len(edition.events) > 5 or any(len(e.facts) > 8 for e in edition.events):
+            codes.add("replay.boundary")
+        terminal = len(event_ids)
+    else:
+        terminal = None
+    segment = ReplaySegmentResult(
+        record.segment,
+        len(runner.prompts),
+        None,
+        terminal,
+        None,
+        min(terminal, 3) if terminal is not None else None,
+        observed,
+        tuple(sorted(codes)),
+    )
+    return ReplayCaseResult(record.scenario_id, record.case_id, (segment,), ())

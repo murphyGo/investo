@@ -35,7 +35,7 @@ from investo.models.news_window import (
     utc_datetime,
     validate_news_source,
 )
-from investo.models.publication import PublicationRequest
+from investo.models.publication import PublicationRequest, publication_metadata_limit
 from investo.models.segments import SEGMENT_MARKET_TZ, MarketSegment
 from investo.publisher.errors import PublisherGitError
 from investo.publisher.git_ops import GitRunner
@@ -390,9 +390,23 @@ def prepare_news_window_publication(
         raise ValueError("publication requires the exact news baseline")
     extras = dict(event_metadata or {})
     paths = (NEWS_CURSOR_PATH, news_manifest_path(plan.run_id), *sorted(extras))
-    if set(paths) != set(baseline.metadata_paths) or len(paths) != len(set(paths)):
+    untouched = set(baseline.metadata_paths) - set(paths)
+    # Failed native siblings retain their old metadata while remaining CAS inputs.
+    native_read_only = all(
+        (
+            path.parent == Path("archive/_meta/event_identity_v3")
+            or path.parent.parent == Path("archive/_meta/event_editions_v3")
+        )
+        for path in untouched
+    )
+    if (
+        not set(paths) <= set(baseline.metadata_paths)
+        or len(paths) != len(set(paths))
+        or not native_read_only
+    ):
         raise ValueError("news publication metadata differs from baseline CAS fields")
-    if any(len(data) > _MAX_METADATA_BYTES for data in extras.values()):
+    paths = baseline.metadata_paths
+    if any(len(data) > publication_metadata_limit(path) for path, data in extras.items()):
         raise ValueError("news publication metadata exceeds budget")
     observations = {item.source_name: item for item in coverage}
     if (
@@ -503,7 +517,7 @@ def prepare_news_window_publication(
             + "\n"
         ).encode(),
     }
-    if any(len(data) > _MAX_METADATA_BYTES for data in metadata.values()):
+    if any(len(data) > publication_metadata_limit(path) for path, data in metadata.items()):
         raise ValueError("news publication metadata exceeds budget")
     return PublicationRequest(
         run_id=plan.run_id,

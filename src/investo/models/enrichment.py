@@ -173,3 +173,224 @@ class EnrichmentResult(EventModel):
     items: tuple[NormalizedItem, ...]
     outcomes: Annotated[tuple[EnrichmentOutcome, ...], Field(max_length=8)] = ()
     request_count: Annotated[StrictInt, Field(ge=0, le=6)] = 0
+
+
+SourceSlotId = Literal[
+    "policy.monetary_decision",
+    "policy.official_statement",
+    "policy.regulatory_action",
+    "policy.domestic_announcement",
+    "earnings.reported_actual",
+    "earnings.guidance",
+    "domestic.disclosure_action",
+    "earnings.schedule_context",
+]
+SlotReason = Literal[
+    "access.denied",
+    "access.unavailable",
+    "access.not_verified",
+    "rights.unknown",
+    "rights.out_of_scope",
+    "schema.unknown",
+    "schema.mismatch",
+    "slot.required_missing",
+    "time.unknown",
+    "locator.missing",
+    "runtime.not_verified",
+    "candidate.new_provider",
+]
+SLOT_REQUIRED_FIELDS: Mapping[SourceSlotId, tuple[str, ...]] = {
+    "policy.monetary_decision": ("actor", "decision", "size_or_scope"),
+    "policy.official_statement": ("speaker", "quoted_claim"),
+    "policy.regulatory_action": ("authority", "action", "action_status", "target_scope"),
+    "policy.domestic_announcement": ("authority", "action", "target_scope"),
+    "earnings.reported_actual": (
+        "issuer",
+        "metric",
+        "actual_value",
+        "unit",
+        "period",
+        "filing_locator",
+    ),
+    "earnings.guidance": ("issuer", "guidance_claim", "guidance_period"),
+    "domestic.disclosure_action": (
+        "issuer",
+        "action",
+        "action_status",
+        "action_terms",
+        "filing_locator",
+    ),
+    "earnings.schedule_context": ("issuer", "scheduled_date", "report_bucket"),
+}
+
+
+class EndpointScope(EventModel):
+    """Qualification evidence scope; never an HTTP runtime permission."""
+
+    scheme: Literal["https"] = "https"
+    host: Annotated[str, Field(strict=True, min_length=3, max_length=100)]
+    path_prefix: Annotated[str, Field(strict=True, min_length=1, max_length=300)]
+    query_keys: Annotated[tuple[str, ...], Field(max_length=16)] = ()
+
+    @model_validator(mode="after")
+    def literal_endpoint(self) -> Self:
+        import ipaddress
+        from urllib.parse import unquote
+
+        if (
+            self.host != self.host.lower()
+            or re.fullmatch(r"[a-z0-9][a-z0-9.-]*", self.host) is None
+            or "." not in self.host
+            or self.host.endswith((".local", ".localhost", ".internal", "."))
+            or not self.path_prefix.startswith("/")
+            or any(token in unquote(self.path_prefix) for token in ("..", "//", "?", "#", "\\"))
+        ):
+            raise ValueError("slot.endpoint_invalid")
+        try:
+            ipaddress.ip_address(self.host)
+        except ValueError:
+            pass
+        else:
+            raise ValueError("slot.endpoint_invalid")
+        if len(set(self.query_keys)) != len(self.query_keys) or any(
+            re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", key) is None for key in self.query_keys
+        ):
+            raise ValueError("slot.endpoint_invalid")
+        return self
+
+
+class SourceSlotQualification(EventModel):
+    source_name: Annotated[str, Field(pattern=r"^[a-z0-9-]{1,80}$")] | None = None
+    proposed_source_name: Annotated[str, Field(pattern=r"^[a-z0-9-]{1,80}$")] | None = None
+    slot_id: SourceSlotId
+    access_kind: Literal["feed", "structured_api", "official_body"]
+    endpoint_scope: EndpointScope | None = None
+    official_discovery_url: Annotated[str, Field(max_length=1000)] | None = None
+    checked_at: datetime
+    source_code_sha: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    status: Literal["verified", "blocked"]
+    reason_codes: Annotated[tuple[SlotReason, ...], Field(max_length=12)] = ()
+    access_evidence_hash: Digest | None = None
+    rights_evidence_url: Annotated[str, Field(max_length=1000)] | None = None
+    rights_scope: Annotated[str, Field(min_length=1, max_length=500)] | None = None
+    schema_fixture_sha256: Digest | None = None
+    parser_version: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9_.-]{0,79}$")] | None = None
+    required_slots: Annotated[tuple[str, ...], Field(max_length=16)]
+    verified_slots: Annotated[tuple[str, ...], Field(max_length=16)] = ()
+    missing_slots: Annotated[tuple[str, ...], Field(max_length=16)]
+    chunk_roles: Annotated[
+        tuple[
+            Literal[
+                "identity", "fact", "comparison", "background", "meaning", "reaction", "follow_up"
+            ],
+            ...,
+        ],
+        Field(max_length=7),
+    ] = ()
+    time_precision: Literal["exact", "date", "unknown"] = "unknown"
+    public_locator_basis: Annotated[str, Field(min_length=1, max_length=300)] | None = None
+    runtime_probe_status: Literal["verified", "blocked", "not_run"] = "not_run"
+    runtime_evidence_ref: Annotated[str, Field(min_length=1, max_length=300)] | None = None
+    activation_ready: Literal[False] = False
+
+    @field_validator("checked_at")
+    @classmethod
+    def checked_slot_clock(cls, value: datetime) -> datetime:
+        return evidence_clock_utc(value)
+
+    @model_validator(mode="after")
+    def source_slot_evidence(self) -> Self:
+        if (self.source_name is None) == (self.proposed_source_name is None):
+            raise ValueError("slot.source_invalid")
+        for field in (
+            self.required_slots,
+            self.verified_slots,
+            self.missing_slots,
+            self.chunk_roles,
+            self.reason_codes,
+        ):
+            if len(set(field)) != len(field):
+                raise ValueError("slot.duplicate")
+        required = set(SLOT_REQUIRED_FIELDS[self.slot_id])
+        if (
+            set(self.required_slots) != required
+            or not set(self.verified_slots) <= required
+            or set(self.missing_slots) != required - set(self.verified_slots)
+        ):
+            raise ValueError("slot.required_missing")
+        for href in (self.official_discovery_url, self.rights_evidence_url):
+            if href is not None:
+                url = urlsplit(href)
+                if (
+                    url.scheme != "https"
+                    or not url.hostname
+                    or url.username is not None
+                    or url.password is not None
+                    or url.port not in {None, 443}
+                    or url.fragment
+                    or url.query
+                ):
+                    raise ValueError("slot.evidence_url_invalid")
+                EndpointScope(host=url.hostname, path_prefix=url.path or "/")
+        if (
+            self.access_kind == "official_body"
+            and self.endpoint_scope is not None
+            and self.endpoint_scope.query_keys
+        ):
+            raise ValueError("slot.endpoint_invalid")
+        if self.runtime_probe_status == "verified" and self.runtime_evidence_ref is None:
+            raise ValueError("slot.runtime_unbound")
+        if self.status == "blocked" and not self.reason_codes:
+            raise ValueError("slot.blocked_reason_missing")
+        if self.proposed_source_name is not None and (
+            self.status == "verified" or "candidate.new_provider" not in self.reason_codes
+        ):
+            raise ValueError("slot.new_provider_requires_separate_plan")
+        if self.status == "verified":
+            if (
+                any(
+                    value is None
+                    for value in (
+                        self.endpoint_scope,
+                        self.official_discovery_url,
+                        self.access_evidence_hash,
+                        self.rights_evidence_url,
+                        self.rights_scope,
+                        self.schema_fixture_sha256,
+                        self.parser_version,
+                        self.public_locator_basis,
+                    )
+                )
+                or self.missing_slots
+                or "identity" not in self.chunk_roles
+                or any(
+                    reason not in {"time.unknown", "runtime.not_verified"}
+                    for reason in self.reason_codes
+                )
+            ):
+                raise ValueError("slot.verified_evidence_missing")
+            if self.time_precision == "unknown" and "time.unknown" not in self.reason_codes:
+                raise ValueError("slot.time_unbound")
+        return self
+
+
+class SourceSlotQualificationSet(EventModel):
+    schema_version: Literal[1] = 1
+    records: Annotated[tuple[SourceSlotQualification, ...], Field(max_length=64)]
+
+    @model_validator(mode="after")
+    def unique_slots(self) -> Self:
+        keys = [
+            (
+                row.source_name or row.proposed_source_name,
+                row.slot_id,
+                row.access_kind,
+                row.endpoint_scope.model_dump_json() if row.endpoint_scope else None,
+            )
+            for row in self.records
+        ]
+        if len(set(keys)) != len(keys):
+            raise ValueError("slot.duplicate")
+        if len(self.model_dump_json().encode("utf-8")) > 64 * 1024:
+            raise ValueError("slot.manifest_budget_exhausted")
+        return self

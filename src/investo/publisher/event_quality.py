@@ -13,16 +13,21 @@ from typing import TYPE_CHECKING, cast, get_args
 
 from investo._internal.briefing_extract import SUMMARY_PREFIXES
 from investo._internal.event_rendering import first_event_sentence
-from investo.models.event_context import EventSupportVector
+from investo.models.event_context import ContextClassificationResult, EventSupportVector
+from investo.models.event_document import EditorialPlan
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.event_quality import (
     EventCoverage,
     EventCoverageState,
     EventIssueCode,
+    EventQualityV3Measurement,
     EventReason,
+    EventSemanticAnnotation,
+    EventSemanticReview,
     EventStage,
     EventStageReceipt,
     EventTraceEntry,
+    SemanticRate,
 )
 from investo.models.public_notification import PublicNotificationSummary
 from investo.publisher.event_blocks import (
@@ -364,6 +369,8 @@ def evaluate_event_quality(
         reasons.update(("source_limited", "source_unavailable"))
 
     if document is not None and payload is not None:
+        if not isinstance(document.notification_summary, PublicNotificationSummary):
+            raise ValueError("v2 coverage requires a legacy terminal notification")
         markdown = document.briefing.rendered_markdown
         codes.update(
             terminal_event_issue_codes(
@@ -457,3 +464,185 @@ def support_vector_reader_limits(vector: EventSupportVector) -> tuple[str, ...]:
     if vector.reaction == "unavailable":
         limits.append("비교 가능한 시장 반응 미확인")
     return tuple(limits)
+
+
+def measure_event_quality_v3(
+    document: FinalizedPublicDocument | None,
+    *,
+    annotation: EventSemanticAnnotation,
+    candidate_event_ids: tuple[str, ...] | None,
+    selected_event_ids: tuple[str, ...] | None,
+    issue_codes: tuple[str, ...] = (),
+    remote_confirmed_sha: str | None = None,
+    human_review: EventSemanticReview | None = None,
+) -> EventQualityV3Measurement:
+    """Separate observed terminal counts from external and human baselines."""
+    view = document.edition_view if document is not None else None
+    if document is not None and (
+        view is None
+        or document.segment != annotation.segment
+        or document.target_date != annotation.target_date
+    ):
+        raise ValueError("semantic.document_identity_invalid")
+    terminal = {event.event_id for event in view.edition.events} if view else None
+    facts = (
+        {fact.fact_id for event in view.edition.events for fact in event.facts}
+        | {fact.fact_id for panel in view.edition.reference_panels for fact in panel.facts}
+        if view
+        else None
+    )
+
+    def rate(denominator: set[str] | None, observed: set[str] | None) -> SemanticRate:
+        if denominator is None or observed is None:
+            return SemanticRate()
+        return SemanticRate(numerator=len(denominator & observed), denominator=len(denominator))
+
+    candidates = set(candidate_event_ids) if candidate_event_ids is not None else None
+    selected = set(selected_event_ids) if selected_event_ids is not None else None
+    if candidates is not None and selected is not None and not selected <= candidates:
+        raise ValueError("semantic.selection_identity_invalid")
+    if terminal is not None and selected is not None and not terminal <= selected:
+        raise ValueError("semantic.selection_identity_invalid")
+    must = set(annotation.must_include)
+    selection = rate(must if candidates is not None else None, selected)
+    preservation = rate(set(annotation.required_fact_ids), facts)
+    unsupported = (
+        len(terminal - set(annotation.expected_event_ids)) if terminal is not None else None
+    )
+    causal = sum(
+        code in {"event.meaning_unbound", "event.reaction_unbound"} for code in issue_codes
+    )
+    human = SemanticRate()
+    review_refs: tuple[str, ...] = ()
+    if human_review is not None:
+        if (
+            human_review.case_id != annotation.case_id
+            or human_review.annotation_sha256 != annotation.annotation_sha256
+            or (view is not None and human_review.markdown_sha256 != view.edition.markdown_sha256)
+            or (
+                human_review.scores is not None
+                and {s.event_id for s in human_review.scores} != set(annotation.expected_event_ids)
+            )
+        ):
+            raise ValueError("semantic.review_identity_invalid")
+        if human_review.scores is not None:
+            if view is not None:
+                supports = {e.event_id: e.support for e in view.edition.events}
+                for score in human_review.scores:
+                    support = supports.get(score.event_id)
+                    if support is None or (
+                        (score.what == 1 and support.facts != "complete")
+                        or (
+                            score.when == 1
+                            and support.time in {"publication_only", "unknown"}
+                            and "사건 시점: 확인 불가" not in view.rendered_markdown
+                        )
+                        or (score.why == 1 and support.meaning == "unavailable")
+                        or (
+                            score.react == 1
+                            and support.reaction == "unavailable"
+                            and "시장 반응은 확인하지 못했습니다." not in view.rendered_markdown
+                        )
+                        or (score.source == 1 and support.locator != "complete")
+                    ):
+                        raise ValueError("semantic.support_score_invalid")
+            human = SemanticRate(
+                numerator=sum(s.total == 5 for s in human_review.scores),
+                denominator=len(human_review.scores),
+            )
+        review_refs = (human_review.annotation_sha256,)
+    passed = (
+        view is not None
+        and (
+            not annotation.expected_support
+            or annotation.expected_support == tuple(e.support for e in view.edition.events)
+        )
+        and not issue_codes
+        and unsupported == 0
+        and selection.numerator is not None
+        and preservation.numerator is not None
+        and selected is not None
+        and selection.numerator == selection.denominator
+        and preservation.numerator == preservation.denominator
+    )
+    return EventQualityV3Measurement(
+        segment=annotation.segment,
+        basis="remote_confirmed" if remote_confirmed_sha else "terminal",
+        publication_sha=remote_confirmed_sha,
+        must_include_selection=selection,
+        selected_survival=rate(selected, terminal),
+        required_fact_preservation=preservation,
+        external_event_capture=rate(
+            set(annotation.external_baseline_event_ids)
+            if annotation.external_baseline_event_ids is not None
+            else None,
+            terminal,
+        ),
+        human_five_of_five=human,
+        unsupported_event_count=unsupported,
+        unsupported_causality_count=causal if terminal is not None else None,
+        support_vectors=tuple(event.support for event in view.edition.events) if view else None,
+        automated_result="pass" if passed else "fail" if issue_codes or view else "unobserved",
+        review_references=review_refs,
+    )
+
+
+def evaluate_native_event_coverage(
+    document: FinalizedPublicDocument | None,
+    *,
+    classification: ContextClassificationResult,
+    plan: EditorialPlan,
+    hard_issue_codes: Sequence[str] = (),
+) -> EventCoverage:
+    """Current v3 counts read typed terminal facts, not legacy callout text."""
+    from investo.models.event_document import PublicEditionView
+
+    selected = sum(p.placement == "article" for p in plan.events)
+    if hard_issue_codes:
+        return EventCoverage(
+            collected_candidate_count=len(classification.events),
+            selected_count=selected,
+            prompted_count=selected,
+            state="hard_trust_blocked",
+            reasons=("hard_trust_blocked",),
+            issue_codes=("event.fact_unsupported",),
+        )
+    view = document.payload if document else None
+    if not isinstance(view, PublicEditionView):
+        return EventCoverage(
+            collected_candidate_count=len(classification.events),
+            selected_count=selected,
+            prompted_count=selected,
+            state="finalization_unavailable",
+            reasons=("finalization_unavailable",),
+        )
+    edition = view.edition
+    qualified = sum(
+        e.support.facts == "complete"
+        and e.support.time in {"exact", "date"}
+        and e.support.locator == "complete"
+        and e.support.meaning != "unavailable"
+        for e in edition.events
+    )
+    limited = len(edition.events) - qualified
+    state = (
+        "source_limited"
+        if edition.availability.status == "source_limited"
+        else "detail_limited"
+        if limited
+        else "no_qualifying_event"
+        if not edition.events
+        else "qualified"
+    )
+    return EventCoverage(
+        collected_candidate_count=len(classification.events),
+        selected_count=selected,
+        prompted_count=selected,
+        terminal_event_count=len(edition.events),
+        qualified_event_count=qualified,
+        details_limited_count=limited,
+        summary_event_count=min(len(edition.events), 3),
+        unsupported_count=0,
+        state=state,
+        reasons=(state,),
+    )

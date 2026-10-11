@@ -38,6 +38,11 @@ from typing import Final
 from investo._internal.text import utf16_truncate as _utf16_truncate
 from investo._internal.text import utf16_units as _utf16_units
 from investo.models import Briefing, NormalizedItem, PublicNotificationSummary
+from investo.models.event_document import PublicNumericFollowUpView
+from investo.models.public_notification import (
+    EventNotificationSummaryV3,
+    TerminalNotificationSummary,
+)
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -115,7 +120,7 @@ def build_summary(
 
 
 def build_segmented_summary(
-    summaries: Mapping[MarketSegment, PublicNotificationSummary],
+    summaries: Mapping[MarketSegment, TerminalNotificationSummary],
     *,
     site_urls: Mapping[MarketSegment, str],
     max_units: int = DEFAULT_MAX_UNITS,
@@ -162,7 +167,7 @@ def build_segmented_summary(
         raise ValueError("segmented summary requires at least one notification summary")
     for segment in all_published:
         summary = summaries[segment]
-        if type(summary) is not PublicNotificationSummary:
+        if type(summary) not in (PublicNotificationSummary, EventNotificationSummaryV3):
             raise TypeError("segmented summary requires PublicNotificationSummary values")
         if summary.segment != segment:
             raise ValueError("notification summary key/segment mismatch")
@@ -185,6 +190,15 @@ def build_segmented_summary(
     else:
         published_segments = all_published
     target_date = summaries[published_segments[0]].target_date
+    if any(isinstance(summaries[s], EventNotificationSummaryV3) for s in published_segments):
+        return _build_native_segmented_summary(
+            summaries,
+            published_segments,
+            site_urls=site_urls,
+            max_units=max_units,
+            now_utc=now_utc if now_utc is not None else datetime.now(UTC),
+            missing_segments=missing_segments,
+        )
     snapshot = _market_snapshot_line(price_items)
     resolved_now = now_utc if now_utc is not None else datetime.now(tz=UTC)
     publish_label = _publish_time_label(resolved_now, target_date=target_date)
@@ -235,6 +249,87 @@ def build_segmented_summary(
     return header + truncated + _TRUNCATION_SUFFIX + footer
 
 
+def _build_native_segmented_summary(
+    summaries: Mapping[MarketSegment, TerminalNotificationSummary],
+    segments: Sequence[MarketSegment],
+    *,
+    site_urls: Mapping[MarketSegment, str],
+    max_units: int,
+    now_utc: datetime,
+    missing_segments: Sequence[MarketSegment],
+) -> str:
+    """Reserve status, source time, links and disclaimer; add complete event units."""
+    target = summaries[segments[0]].target_date
+    header = f"📈 {target.isoformat()} 데일리 시황\n"
+    header += _publish_time_label(now_utc, target_date=target).split(" · ", 1)[0] + "\n"
+    partial = _partial_publish_line(missing_segments)
+    if partial:
+        header += partial + "\n"
+    blocks: dict[MarketSegment, list[str]] = {}
+    optional: list[tuple[MarketSegment, str]] = []
+
+    def literal(text: str) -> str:
+        return re.sub(r"([\\_*`\[\]])", r"\\\1", text.replace("\n", " "))
+
+    for segment in segments:
+        summary = summaries[segment]
+        required = [
+            f"{_SEGMENT_ICONS[segment]} *{SEGMENT_LABELS[segment]}* [{summary.coverage_label}]",
+            _detail_link(site_urls[segment]),
+        ]
+        if isinstance(summary, EventNotificationSummaryV3):
+            edition = summary.edition
+            price = (
+                edition.price_reference_date.isoformat()
+                if edition.price_reference_date
+                else "확인 불가"
+            )
+            required.append(f"가격 기준일: {price}")
+            if edition.news_window:
+                required.append(
+                    f"뉴스 관측창: {edition.news_window.start_utc.isoformat()} ~ "
+                    f"{edition.news_window.end_utc.isoformat()}"
+                )
+            if edition.availability.status != "normal" or not edition.events:
+                required.append(literal(summary.conclusion))
+            required.extend(
+                f"후속 상태: {f.reader_state}"
+                for f in edition.follow_ups
+                if not isinstance(f, PublicNumericFollowUpView)
+            )
+            digests = {d.event_id: d.text for d in edition.digests}
+            optional.extend(
+                (segment, "• " + literal(digests.get(e.event_id, e.headline)))
+                for e in edition.events[:3]
+            )
+            optional.extend(
+                (segment, "확인된 변화: " + literal(f.verified_delta_text))
+                for f in edition.follow_ups
+                if not isinstance(f, PublicNumericFollowUpView) and f.verified_delta_text
+            )
+        else:
+            optional.append((segment, summary.conclusion))
+        blocks[segment] = required
+    footer = "\n\n※ 투자 참고자료이며 투자 판단과 책임은 본인에게 있습니다."
+    if CRYPTO in segments:
+        footer += " 가상자산은 원금 손실 위험이 큽니다."
+
+    def render() -> str:
+        return header + "\n\n" + "\n\n".join("\n".join(blocks[s]) for s in segments) + footer
+
+    result = render()
+    if _utf16_units(result) > max_units:
+        raise ValueError("native summary required content exceeds UTF-16 budget")
+    for segment, text in optional:
+        blocks[segment].append(text)
+        candidate = render()
+        if _utf16_units(candidate) <= max_units:
+            result = candidate
+        else:
+            blocks[segment].pop()
+    return result
+
+
 def plain_text_summary(markdown_summary: str) -> str:
     """Return a readable plain-text fallback for a Markdown-formatted summary."""
     text = _MARKDOWN_LINK_WITH_URL_RE.sub(r"\1: \2", markdown_summary)
@@ -274,7 +369,7 @@ def resolve_enabled_segments(
 
 def _segment_summary_block(
     segment: MarketSegment,
-    summary: PublicNotificationSummary,
+    summary: TerminalNotificationSummary,
     site_url: str,
     *,
     lookahead_items: Sequence[NormalizedItem] = (),
@@ -344,7 +439,7 @@ def _format_compact_price(value: float) -> str:
 
 
 def _one_line_summary(
-    summary: PublicNotificationSummary,
+    summary: TerminalNotificationSummary,
     *,
     watchlist_prices: Mapping[str, str] | None = None,
 ) -> str:

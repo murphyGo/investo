@@ -24,10 +24,13 @@ from investo.models.event_context import (
     EventContextDocument,
     EventSupportVector,
 )
+from investo.models.event_document import EventEditionDraft
+from investo.models.event_identity import CanonicalEventReceipt
 from investo.models.event_narratives import EventGenerationPayload
 from investo.models.event_quality import EventStageReceipt
+from investo.models.event_story import StoryRecord
 from investo.models.events import EventIdentityReceipt, EventSelectionPlan
-from investo.models.news_window import NewsWindowConsumption
+from investo.models.news_window import NewsWindowConsumption, NewsWindowPlan
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,8 +56,11 @@ class GenerationInput:
     event_baseline_available: bool = True
     event_collection_items: tuple[NormalizedItem, ...] | None = None
     news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
+    news_window_plan: NewsWindowPlan | None = None
     event_generation_policy: EventGenerationPolicy | None = None
     event_context_documents: tuple[EventContextDocument, ...] = ()
+    canonical_event_baseline: tuple[CanonicalEventReceipt, ...] = ()
+    story_baseline: tuple[StoryRecord, ...] = ()
 
     def __init__(
         self,
@@ -80,11 +86,17 @@ class GenerationInput:
         event_baseline_available: bool = True,
         event_collection_items: Sequence[NormalizedItem] | None = None,
         news_window_consumptions: Sequence[NewsWindowConsumption] = (),
+        news_window_plan: NewsWindowPlan | None = None,
         event_generation_policy: EventGenerationPolicy | None = None,
         event_context_documents: Sequence[EventContextDocument] = (),
+        canonical_event_baseline: Sequence[CanonicalEventReceipt] = (),
+        story_baseline: Sequence[StoryRecord] = (),
     ) -> None:
+        object.__setattr__(self, "news_window_plan", news_window_plan)
         object.__setattr__(self, "event_generation_policy", event_generation_policy)
         object.__setattr__(self, "event_context_documents", tuple(event_context_documents))
+        object.__setattr__(self, "canonical_event_baseline", tuple(canonical_event_baseline))
+        object.__setattr__(self, "story_baseline", tuple(story_baseline))
         object.__setattr__(self, "news_window_consumptions", tuple(news_window_consumptions))
         object.__setattr__(self, "event_observed_at", event_observed_at)
         object.__setattr__(self, "event_baseline", event_baseline)
@@ -128,6 +140,32 @@ class GenerationResult:
     context_classification: ContextClassificationResult | None = None
     event_support_vectors: tuple[EventSupportVector, ...] = ()
     context_preparation: ContextPreparationObservation | None = None
+
+    @property
+    def document(self) -> Briefing:
+        return self.briefing
+
+
+@dataclass(frozen=True, slots=True)
+class NativeEventGenerationResult:
+    document: EventEditionDraft
+    context_classification: ContextClassificationResult
+    event_support_vectors: tuple[EventSupportVector, ...]
+    asset_selection_terms: tuple[str, ...] = ()
+    event_stage_receipts: tuple[EventStageReceipt, ...] = ()
+    news_window_consumptions: tuple[NewsWindowConsumption, ...] = ()
+    context_preparation: ContextPreparationObservation | None = None
+    macro_lineage: tuple[MacroLineageTrace, ...] = ()
+    event_plan: EventSelectionPlan | None = None
+    event_observation: CandidateObservation | None = None
+    event_payload: EventGenerationPayload | None = None
+
+    @property
+    def briefing(self) -> Briefing:
+        raise TypeError("native event generation has no legacy Briefing")
+
+
+GenerationOutcome = GenerationResult | NativeEventGenerationResult
 
 
 __all__ = [

@@ -12,6 +12,7 @@ from datetime import date, datetime
 from typing import Literal
 
 from investo._internal.text import bound_at_sentence
+from investo.models.event_document import PublicEventView, PublishedEventEdition
 from investo.models.segments import (
     COVERAGE_STATUS_LABELS,
     SEGMENT_LABELS,
@@ -85,6 +86,52 @@ def _require_clean_line(value: str, *, field_name: str) -> None:
         raise TypeError(f"{field_name} must be str")
     if not value or value != value.strip() or "\n" in value or "\r" in value:
         raise ValueError(f"{field_name} must be a non-empty cleaned single line")
+
+
+@dataclass(frozen=True, slots=True)
+class EventNotificationSummaryV3:
+    """Terminal native edition, with digest → headline → availability fallback."""
+
+    edition: PublishedEventEdition
+
+    @property
+    def segment(self) -> MarketSegment:
+        return self.edition.segment
+
+    @property
+    def target_date(self) -> date:
+        return self.edition.target_date
+
+    @property
+    def conclusion(self) -> str:
+        if self.edition.digests:
+            return self.edition.digests[0].text
+        if self.edition.events:
+            return self.edition.events[0].headline
+        return (
+            "출처 수집 제한"
+            if self.edition.availability.status == "source_limited"
+            else "새로운 주요 사건을 선정하지 못했습니다."
+        )
+
+    @property
+    def coverage_status(self) -> CoverageStatus:
+        return "limited" if self.edition.availability.status == "source_limited" else "normal"
+
+    @property
+    def coverage_label(self) -> str:
+        return COVERAGE_STATUS_LABELS[self.coverage_status]
+
+    @property
+    def events(self) -> tuple[PublicEventView, ...]:
+        return self.edition.events
+
+    @property
+    def watchlist(self) -> None:
+        return None
+
+
+TerminalNotificationSummary = PublicNotificationSummary | EventNotificationSummaryV3
 
 
 __all__ = ["PublicEventSummary", "PublicNotificationSummary"]

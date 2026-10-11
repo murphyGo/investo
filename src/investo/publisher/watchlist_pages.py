@@ -30,6 +30,8 @@ from typing import Final
 
 from investo._internal._io import write_atomic
 from investo.models import NormalizedItem
+from investo.models.event_document import PublicEditionView, PublicFollowUpView
+from investo.models.segments import SEGMENT_LABELS
 from investo.models.watchlist import (
     PublicWatchlistGroup,
     RejectedCandidate,
@@ -137,12 +139,15 @@ def watchlist_publish_paths_for(
     matches: Sequence[WatchlistMatch],
     *,
     pages_root: Path | None = None,
+    event_editions: Sequence[PublicEditionView] = (),
 ) -> tuple[Path, ...]:
     """Return every public watchlist markdown path publish can mutate."""
     pages_root = _resolve_pages_root(pages_root)
     return _unique_paths(
         [
             *watchlist_page_paths_for(matches, pages_root=pages_root),
+            *_event_watchlist_paths(event_editions, pages_root),
+            *([pages_root / "index.md"] if event_editions else []),
             daily_impact_page_path(pages_root=pages_root),
         ]
     )
@@ -153,6 +158,7 @@ def update_watchlist_pages(
     matches: Sequence[WatchlistMatch],
     *,
     pages_root: Path | None = None,
+    event_editions: Sequence[PublicEditionView] = (),
 ) -> tuple[Path, ...]:
     """Regenerate the per-term accumulation pages for ``matches``.
 
@@ -174,10 +180,82 @@ def update_watchlist_pages(
         next_body = _replace_day_section(existing, target_date, term_matches, term=term)
         _write_watchlist_markdown(path, next_body, target_date=target_date)
         written.append(path)
+    for path in _event_watchlist_paths(event_editions, pages_root):
+        existing = path.read_text(encoding="utf-8") if path.exists() else _initial_page(path.stem)
+        begin = f"<!-- event-v3 watchlist {target_date.isoformat()} -->"
+        end = "<!-- /event-v3 watchlist -->"
+        rows = _event_asset_rows(event_editions, term=path.stem)
+        block = begin + "\n" + "\n".join(rows) + "\n" + end + "\n"
+        if begin in existing and end in existing[existing.index(begin) :]:
+            prefix, _, rest = existing.partition(begin)
+            _, _, suffix = rest.partition(end)
+            updated = prefix + block + suffix
+        else:
+            updated = (
+                _initial_page(path.stem)
+                + block
+                + existing.partition("_자동 생성된 페이지 — 매 게시 직후 갱신됩니다._\n\n")[2]
+            )
+        _write_watchlist_markdown(path, updated.rstrip() + "\n", target_date=target_date)
+        written.append(path)
     index_path = _maybe_write_index(pages_root, target_date=target_date)
     if index_path is not None:
         written.append(index_path)
     return tuple(written)
+
+
+def _event_watchlist_paths(editions: Sequence[PublicEditionView], root: Path) -> tuple[Path, ...]:
+    paths = {
+        root / f"{_slug_for_term(i.asset_id)}.md"
+        for view in editions
+        for i in view.edition.asset_impacts
+    }
+    days = {view.target_date.isoformat() for view in editions}
+    for path in root.glob("*.md"):
+        if any(
+            f"<!-- event-v3 watchlist {day} -->" in path.read_text(encoding="utf-8") for day in days
+        ):
+            paths.add(path)
+    return tuple(sorted(paths))
+
+
+def _event_asset_rows(
+    editions: Sequence[PublicEditionView], *, term: str | None = None
+) -> list[str]:
+    from investo._internal.event_public_text import markdown_literal as _plain
+    from investo.publisher.event_edition import _link
+
+    rows: list[str] = []
+    for view in editions:
+        events = {e.event_id: e for e in view.edition.events}
+        for impact in view.edition.asset_impacts:
+            if term is not None and _slug_for_term(impact.asset_id) != term:
+                continue
+            event = events.get(impact.event_id)
+            if event is None:
+                raise ValueError("event.asset_unbound")
+            state = next(
+                (
+                    f.reader_state
+                    for f in view.edition.follow_ups
+                    if isinstance(f, PublicFollowUpView) and f.event_id == event.event_id
+                ),
+                None,
+            )
+            hrefs = sorted({r.source_href for r in impact.source_refs if r.source_href})
+            rows.extend(
+                (
+                    f"<!-- investo:asset-event {impact.event_id} -->",
+                    f"- {_plain(impact.asset_id)} · {SEGMENT_LABELS[view.segment]} · "
+                    f"{_plain(event.headline)}",
+                    f"  연결 근거: {_plain(impact.mechanism)}",
+                    *([f"  조건: {_plain(impact.condition)}"] if impact.condition else []),
+                    *([f"  당시 상태: {state}"] if state else []),
+                    "  출처: " + " · ".join(f"[원문]({_link(href)})" for href in hrefs),
+                    "",
+                )
+            )
+    return rows
 
 
 def _group_by_term(matches: Iterable[WatchlistMatch]) -> dict[str, list[WatchlistMatch]]:
@@ -327,6 +405,7 @@ def render_daily_impact_page(
     *,
     segment_links: Sequence[tuple[str, str]] = (),
     link_prefix: str = "",
+    event_editions: Sequence[PublicEditionView] = (),
 ) -> str:
     """Render the u73 daily-first watchlist impact center page body.
 
@@ -343,6 +422,11 @@ def render_daily_impact_page(
     """
     iso = target_date.isoformat()
     lines = [f"# 오늘의 관심 자산 영향 — {iso}", ""]
+    if event_editions:
+        lines.extend(("## 사건에서 확인한 자산 연결", ""))
+        lines.extend(
+            _event_asset_rows(event_editions) or ["- 출처로 확인된 자산 연결이 없습니다.", ""]
+        )
 
     if not center.configured:
         lines.append(
@@ -438,6 +522,7 @@ def write_daily_impact_page(
     *,
     pages_root: Path | None = None,
     segment_links: Sequence[tuple[str, str]] = (),
+    event_editions: Sequence[PublicEditionView] = (),
 ) -> Path:
     """Write the daily impact center page and return its path.
 
@@ -452,6 +537,7 @@ def write_daily_impact_page(
         target_date,
         center,
         segment_links=segment_links,
+        event_editions=event_editions,
         link_prefix=posixpath.relpath(pages_root.parent.as_posix(), pages_root.as_posix()),
     )
     _write_watchlist_markdown(path, body, target_date=target_date)

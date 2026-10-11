@@ -12,11 +12,12 @@ from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Literal, cast
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import parse_qsl, unquote, urljoin, urlsplit
 
 import httpx
 
 from investo.models.enrichment import (
+    EndpointScope,
     EnrichmentOutcome,
     EnrichmentPolicy,
     EnrichmentQualification,
@@ -24,7 +25,10 @@ from investo.models.enrichment import (
     EnrichmentResult,
     EnrichmentSource,
     SourceQualification,
+    SourceSlotQualification,
+    SourceSlotQualificationSet,
 )
+from investo.models.event_context import ContextRef, EventContextDocument
 from investo.models.event_evidence import (
     canonical_evidence_url,
     event_digest,
@@ -427,3 +431,193 @@ async def enrich_event_evidence(
     return EnrichmentResult(
         items=tuple(enriched_items), outcomes=tuple(outcomes), request_count=request_count
     )
+
+
+# A qualification matrix is evidence about slots, not another source registry.
+_SLOT_EXISTING_SOURCES: Mapping[str, frozenset[str]] = {
+    "policy.monetary_decision": frozenset({"fomc-rss"}),
+    "policy.official_statement": frozenset({"fed-speech-rss"}),
+    "policy.regulatory_action": frozenset({"cftc-policy-rss", "sec-newsroom-rss"}),
+    "policy.domestic_announcement": frozenset({"korea-policy-rss"}),
+    "earnings.reported_actual": frozenset({"sec-company-facts", "sec-edgar-8k"}),
+    "earnings.guidance": frozenset({"sec-company-facts", "sec-edgar-8k"}),
+    "domestic.disclosure_action": frozenset({"dart-disclosure"}),
+    "earnings.schedule_context": frozenset({"nasdaq-earnings-calendar"}),
+}
+
+
+def _slot_locator_allowed(url: str, scope: EndpointScope) -> bool:
+    """A verified endpoint includes its authority and decoded path boundary."""
+    try:
+        locator = urlsplit(url)
+        path = locator.path
+        for _ in range(4):
+            decoded = unquote(path)
+            if decoded == path:
+                break
+            path = decoded
+        return (
+            locator.scheme == "https"
+            and locator.hostname == scope.host
+            and locator.username is None
+            and locator.password is None
+            and locator.port in {None, 443}
+            and not locator.fragment
+            and "\\" not in path
+            and "%" not in path
+            and not any(part in {".", ".."} for part in path.split("/"))
+            and path.startswith(scope.path_prefix)
+            and not (set(key for key, _ in parse_qsl(locator.query)) - set(scope.query_keys))
+        )
+    except ValueError:
+        return False
+
+
+def load_source_slot_qualification(path: Path) -> SourceSlotQualificationSet:
+    """Read a bounded offline matrix; this grants no collection capabilities."""
+    from investo._internal.source_specs import SOURCE_SPECS_BY_NAME
+
+    try:
+        if not path.is_file():
+            raise ValueError("slot.manifest_invalid")
+        with path.open("rb") as handle:
+            data = handle.read(64 * 1024 + 1)
+        if len(data) > 64 * 1024:
+            raise ValueError("slot.manifest_budget_exhausted")
+        matrix = SourceSlotQualificationSet.model_validate_json(data)
+        for row in matrix.records:
+            if row.source_name is None:
+                continue
+            spec = SOURCE_SPECS_BY_NAME.get(row.source_name)
+            if spec is None or row.source_name not in _SLOT_EXISTING_SOURCES[row.slot_id]:
+                raise ValueError("slot.source_invalid")
+            if row.endpoint_scope is not None and not any(
+                row.endpoint_scope.host == domain or row.endpoint_scope.host.endswith("." + domain)
+                for domain in spec.evidence_domains
+            ):
+                raise ValueError("slot.endpoint_invalid")
+            if row.status == "verified":
+                assert row.endpoint_scope is not None and row.official_discovery_url is not None
+                if not _slot_locator_allowed(row.official_discovery_url, row.endpoint_scope):
+                    raise ValueError("slot.endpoint_invalid")
+        return matrix
+    except (OSError, ValueError):
+        raise ValueError("event source slot qualification unavailable") from None
+
+
+def map_source_slot_context(
+    item: NormalizedItem,
+    qualification: SourceSlotQualification,
+    *,
+    received_at: datetime,
+    field_refs: Mapping[str, tuple[ContextRef, ...]] | None = None,
+) -> EventContextDocument:
+    """Reuse the real u167 factory. Missing roles and unknown times stay missing."""
+    from investo.models.event_evidence import (
+        evidence_document_from_item,
+        make_event_context_document,
+    )
+
+    qualification = SourceSlotQualification.model_validate(qualification.model_dump())
+    if qualification.source_name != item.source_name:
+        raise ValueError("slot.source_invalid")
+    if qualification.status != "verified":
+        raise ValueError("slot.required_missing")
+    assert qualification.endpoint_scope is not None
+    if not item.url or not _slot_locator_allowed(str(item.url), qualification.endpoint_scope):
+        raise ValueError("slot.endpoint_invalid")
+    document = make_event_context_document(
+        evidence_document_from_item(item, received_at=received_at),
+        metadata=item.raw_metadata,
+        item=item,
+    )
+    from investo._internal.event_context import (
+        context_lookup,
+        metadata_ref_field,
+        resolve_context_ref,
+    )
+
+    refs_by_field = dict(field_refs or {})
+    if set(refs_by_field) != set(qualification.required_slots):
+        raise ValueError("slot.required_missing")
+    if any(not 1 <= len(refs) <= 16 for refs in refs_by_field.values()):
+        raise ValueError("slot.required_missing")
+    for refs in refs_by_field.values():
+        for ref in refs:
+            resolve_context_ref(ref, (document,))
+    lookup = context_lookup((document,))
+    values = {
+        field: " ".join(resolve_context_ref(ref, lookup) for ref in refs)
+        for field, refs in refs_by_field.items()
+    }
+    if len({ref for refs in refs_by_field.values() for ref in refs}) < min(3, len(refs_by_field)):
+        raise ValueError("slot.required_missing")
+    for field in {
+        "actual_value",
+        "scheduled_date",
+        "unit",
+        "period",
+        "filing_locator",
+    } & values.keys():
+        value = values[field].strip()
+        if (
+            field == "actual_value"
+            and re.fullmatch(r"[+-]?\d+(?:,\d{3})*(?:\.\d+)?", value) is None
+        ):
+            raise ValueError("slot.required_missing")
+        if (
+            field == "unit"
+            and re.fullmatch(r"%|USD|KRW|EUR|JPY|CNY|GBP|원|달러|유로|건|명|bp|bps", value) is None
+        ):
+            raise ValueError("slot.required_missing")
+        if field in {"period", "scheduled_date"} and not re.search(
+            r"\b(?:FY)?20\d{2}\b|Q[1-4]|[1-4]분기", value
+        ):
+            raise ValueError("slot.required_missing")
+        if field == "filing_locator" and not (
+            re.fullmatch(r"\d{10}-\d{2}-\d{6}|\d{14}", value)
+            or (
+                urlsplit(value).scheme == "https"
+                and urlsplit(value).hostname == qualification.endpoint_scope.host
+            )
+        ):
+            raise ValueError("slot.required_missing")
+    if qualification.slot_id == "earnings.reported_actual":
+        from investo._internal.event_context import (
+            validate_context_fact,
+            validate_fact_associations,
+        )
+        from investo.models.event_context import ContextFactDraft, ContextRef
+
+        status_refs = []
+        for chunk in document.chunks:
+            for match in re.finditer(r"\bactual\b|실제|발표치", chunk.text, re.I):
+                candidate = ContextRef(
+                    document_id=document.document_id,
+                    revision_id=document.revision_id,
+                    chunk_id=chunk.chunk_id,
+                    start=match.start(),
+                    end=match.end(),
+                )
+                if chunk.source_locator != "source_metadata" or metadata_ref_field(
+                    candidate, lookup
+                ) in {"fact_status", "macro_status", "macro_actual_status", "macro_event_status"}:
+                    status_refs.append(candidate)
+        if not status_refs:
+            raise ValueError("slot.required_missing")
+        actual = ContextFactDraft(
+            predicate="result",
+            status="actual",
+            value_kind="numeric",
+            subject_refs=refs_by_field["issuer"],
+            metric_refs=refs_by_field["metric"],
+            value_refs=refs_by_field["actual_value"],
+            unit_refs=refs_by_field["unit"],
+            period_refs=refs_by_field["period"],
+            status_refs=tuple(status_refs[:16]),
+        )
+        validate_context_fact(actual, lookup)
+        validate_fact_associations((actual,), lookup)
+    if not set(qualification.chunk_roles) <= {chunk.role for chunk in document.chunks}:
+        raise ValueError("slot.required_missing")
+    return document

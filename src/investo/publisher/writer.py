@@ -81,7 +81,7 @@ def write_finalized_document(document: FinalizedPublicDocument) -> Path:
         )
     notification = document.notification_summary
     if (
-        document.briefing.target_date != document.target_date
+        document.payload.target_date != document.target_date
         or notification.target_date != document.target_date
     ):
         _raise_seal_mismatch(
@@ -96,7 +96,7 @@ def write_finalized_document(document: FinalizedPublicDocument) -> Path:
             path_segment=document.segment,
         )
 
-    markdown = document.briefing.rendered_markdown
+    markdown = document.rendered_markdown
     digest = sha256(markdown.encode("utf-8")).hexdigest()
     if digest != document.markdown_sha256:
         _raise_seal_mismatch(
@@ -112,7 +112,47 @@ def write_finalized_document(document: FinalizedPublicDocument) -> Path:
         raise PublisherDisclaimerError(target_date=document.target_date)
 
     try:
-        write_atomic(path, markdown)
+        view = document.edition_view
+        if view is None:
+            write_atomic(path, markdown)
+        else:
+            from investo.publisher.event_archive_reader import (
+                event_edition_sidecar_path,
+                published_edition_bytes,
+            )
+
+            edition = view.edition
+            if (
+                edition.markdown_sha256 != digest
+                or edition.projection_sha256 != edition.canonical_projection_hash
+                or edition.segment != document.segment
+                or edition.target_date != document.target_date
+                or edition.archive_relative_path
+                != (
+                    f"archive/{document.segment}/{document.target_date:%Y/%m}/{document.target_date}.md"
+                )
+            ):
+                _raise_seal_mismatch(
+                    document, issue_code="seal.projection_mismatch", path_segment=document.segment
+                )
+            sidecar = event_edition_sidecar_path(document.segment, document.target_date)
+            try:
+                sidecar_text = published_edition_bytes(edition).decode("utf-8")
+            except ValueError:
+                _raise_seal_mismatch(
+                    document, issue_code="seal.projection_bounds", path_segment=document.segment
+                )
+            previous = {p: p.read_bytes() if p.exists() else None for p in (path, sidecar)}
+            try:
+                write_atomic(path, markdown)
+                write_atomic(sidecar, sidecar_text)
+            except OSError:
+                for changed, prior in previous.items():
+                    if prior is None:
+                        changed.unlink(missing_ok=True)
+                    else:
+                        write_atomic(changed, prior.decode("utf-8"))
+                raise
     except OSError as exc:
         with contextlib.suppress(OSError):
             path.with_suffix(path.suffix + ".tmp").unlink(missing_ok=True)

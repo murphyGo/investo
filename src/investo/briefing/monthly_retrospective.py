@@ -9,6 +9,8 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from investo._internal.event_archive import read_published_event_edition
+from investo._internal.event_public_text import edition_archive_excerpt
 from investo.briefing.action_tag import (
     ACTION_TAGS,
     DEFAULT_ACTION_TAG,
@@ -38,7 +40,8 @@ class MonthlyEntry:
     day: date
     segment: MarketSegment
     conclusion: str
-    action_tag: ActionTag
+    action_tag: ActionTag | None
+    asset_ids: tuple[str, ...] = ()
 
 
 def render_monthly_retrospective(year: int, month: int, *, archive_root: Path) -> str:
@@ -51,10 +54,12 @@ def render_monthly_retrospective(year: int, month: int, *, archive_root: Path) -
             "> 데이터 부족 — 다음 달부터 회고 가능\n\n"
             "월간 회고를 만들기에는 보관된 일별 시황이 아직 부족합니다.\n"
         )
-    tag_counts = Counter(entry.action_tag for entry in entries)
+    tag_counts = Counter(entry.action_tag for entry in entries if entry.action_tag is not None)
     ticker_counts: Counter[str] = Counter()
     for entry in entries:
-        ticker_counts.update(_extract_tickers(entry.conclusion))
+        ticker_counts.update(
+            entry.asset_ids if entry.action_tag is None else _extract_tickers(entry.conclusion)
+        )
 
     lines: list[str] = [
         f"# {title}",
@@ -68,14 +73,17 @@ def render_monthly_retrospective(year: int, month: int, *, archive_root: Path) -
         lines.append(
             "| "
             f"{entry.day.isoformat()} | {SEGMENT_LABELS[entry.segment]} | "
-            f"{_escape_cell(_strip_action_tag(entry.conclusion))} | {entry.action_tag} |"
+            f"{_escape_cell(_strip_action_tag(entry.conclusion))} | {entry.action_tag or '—'} |"
         )
-    lines.extend(["", "## 결론 톤 분포", "", "| 태그 | 비율 | 표본 |", "|------|------|------|"])
-    total = sum(tag_counts.values())
-    for tag in sorted(ACTION_TAGS):
-        count = tag_counts.get(tag, 0)
-        pct = (count / total * 100) if total else 0.0
-        lines.append(f"| {tag} | {pct:.1f}% | {count} |")
+    if tag_counts:
+        lines.extend(
+            ["", "## 결론 톤 분포", "", "| 태그 | 비율 | 표본 |", "|------|------|------|"]
+        )
+        total = sum(tag_counts.values())
+        for tag in sorted(ACTION_TAGS):
+            count = tag_counts.get(tag, 0)
+            pct = (count / total * 100) if total else 0.0
+            lines.append(f"| {tag} | {pct:.1f}% | {count} |")
     lines.extend(["", "## 자주 언급된 티커·테마", ""])
     if ticker_counts:
         for ticker, count in ticker_counts.most_common(5):
@@ -105,6 +113,21 @@ def _load_month_entries(year: int, month: int, *, archive_root: Path) -> list[Mo
             try:
                 body = path.read_text(encoding="utf-8")
             except OSError:
+                continue
+            if "<!-- investo:edition schema=3 -->" in body:
+                native = read_published_event_edition(segment, day, archive_root=archive_root)
+                if native.edition is None:
+                    entries.append(MonthlyEntry(day, segment, "(사건 원본 확인 제한)", None))
+                else:
+                    entries.append(
+                        MonthlyEntry(
+                            day,
+                            segment,
+                            edition_archive_excerpt(native.edition),
+                            None,
+                            tuple(i.asset_id for i in native.edition.asset_impacts),
+                        )
+                    )
                 continue
             conclusion = extract_conclusion(body) or "(결론 인용을 추출하지 못함)"
             entries.append(
@@ -155,7 +178,7 @@ def _weekly_links(year: int, month: int, *, archive_root: Path) -> list[str]:
 
 
 def _escape_cell(text: str) -> str:
-    return text.replace("|", "\\|").replace("\n", " ")
+    return text.replace("{", "&#123;").replace("}", "&#125;").replace("|", "\\|").replace("\n", " ")
 
 
 __all__ = [

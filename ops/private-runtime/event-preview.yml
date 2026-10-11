@@ -17,6 +17,12 @@ on:
         description: 'Ephemeral recipient public key; keep the private key locally.'
         required: true
         type: string
+      document_schema:
+        description: 'Isolated preview schema; never activates production.'
+        required: true
+        default: '2'
+        type: choice
+        options: ['2', '3']
 
 permissions:
   contents: read
@@ -125,12 +131,14 @@ jobs:
           OPENDART_API_KEY: ${{ secrets.OPENDART_API_KEY }}
           PREVIEW_TARGET_DATE: ${{ inputs.target_date }}
           PREVIEW_SEGMENT: ${{ matrix.segment }}
+          PREVIEW_DOCUMENT_SCHEMA: ${{ inputs.document_schema }}
           PREVIEW_BASELINE_SHA: ${{ steps.public_data.outputs.commit }}
         run: |
           mkdir -p .tmp
           set +e
           "$UV_PROJECT_ENVIRONMENT/bin/python" -I "$GITHUB_WORKSPACE/runtime-code/scripts/preview_event_briefing_codex.py" \
             --target-date "$PREVIEW_TARGET_DATE" --segment "$PREVIEW_SEGMENT" \
+            --document-schema "$PREVIEW_DOCUMENT_SCHEMA" \
             --baseline-sha "$PREVIEW_BASELINE_SHA" \
             --output-dir .tmp/event-preview > .tmp/event-preview-status.json
           preview_rc=$?

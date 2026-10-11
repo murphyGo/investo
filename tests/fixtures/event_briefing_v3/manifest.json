@@ -1,0 +1,65 @@
+{
+  "schema_version": 3,
+  "fixture_author": "AI-authored synthetic",
+  "human_review": "pending",
+  "input_recording": "records.json",
+  "input_recording_sha256": "47fe5d02748026384d2e9ef6f4ed2086e81f51455ad2251a6333292ed517ccd1",
+  "scenarios": [
+    {
+      "scenario_id": "normal_positive"
+    },
+    {
+      "scenario_id": "independent_context"
+    },
+    {
+      "scenario_id": "source_limited"
+    },
+    {
+      "scenario_id": "quiet_no_events"
+    },
+    {
+      "scenario_id": "repeat_history"
+    },
+    {
+      "scenario_id": "scheduled_reference"
+    },
+    {
+      "scenario_id": "digest_long"
+    },
+    {
+      "scenario_id": "digest_incomplete"
+    },
+    {
+      "scenario_id": "role_swap"
+    },
+    {
+      "scenario_id": "unsupported_claim"
+    },
+    {
+      "scenario_id": "multi_document"
+    },
+    {
+      "scenario_id": "required_fact"
+    }
+  ],
+  "output_inventory": [
+    "generation",
+    "sole_finalizer",
+    "markdown",
+    "rendered_html",
+    "public_projection",
+    "notification",
+    "story_delta",
+    "canonical_receipt"
+  ],
+  "case_count": 57,
+  "additional_coverage": [
+    "weekend",
+    "long_name",
+    "normalized_repeat",
+    "closed_story",
+    "original_compliance",
+    "original_numeric_anchor",
+    "wrong_entity"
+  ]
+}

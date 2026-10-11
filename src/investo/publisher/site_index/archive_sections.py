@@ -14,11 +14,12 @@ Move-only split out of the original ``site_index.py`` module (u82).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from investo.models import Briefing
+from investo.models.event_document import ReadablePublicDocument
 from investo.models.segments import SEGMENT_LABELS, MarketSegment
 
 from ._blocks import _replace_marker_block
@@ -79,7 +80,7 @@ def _build_bundle_states(
     target_date: date,
     *,
     archive_root: Path,
-    segment_briefings: dict[MarketSegment, Briefing] | None,
+    segment_briefings: Mapping[MarketSegment, ReadablePublicDocument] | None,
 ) -> tuple[SegmentBundleState, ...]:
     generated = (
         frozenset(segment_briefings) if segment_briefings is not None else frozenset(_SEGMENTS)

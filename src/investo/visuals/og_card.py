@@ -24,6 +24,7 @@ Project rules:
 from __future__ import annotations
 
 import html
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -31,7 +32,8 @@ from typing import Final
 
 from investo._internal._io import write_atomic, write_atomic_bytes
 from investo._internal.briefing_extract import extract_conclusion
-from investo.models import Briefing
+from investo._internal.event_public_text import document_excerpt
+from investo.models.event_document import PublicEditionView, ReadablePublicDocument
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -67,7 +69,7 @@ class OGCardInput:
 
 def build_og_card_input(
     target_date: date,
-    segment_briefings: dict[MarketSegment, Briefing],
+    segment_briefings: Mapping[MarketSegment, ReadablePublicDocument],
 ) -> OGCardInput:
     """Pull conclusion lines off each segmented briefing for the OG card."""
     rows: list[tuple[MarketSegment, str]] = []
@@ -76,7 +78,14 @@ def build_og_card_input(
         if briefing is None:
             rows.append((segment, _OG_FALLBACK_TEXT))
             continue
-        rows.append((segment, _extract_conclusion(briefing.rendered_markdown)))
+        rows.append(
+            (
+                segment,
+                document_excerpt(briefing)
+                if isinstance(briefing, PublicEditionView)
+                else _extract_conclusion(briefing.rendered_markdown),
+            )
+        )
     return OGCardInput(target_date=target_date, segment_lines=tuple(rows))
 
 
@@ -124,7 +133,7 @@ def render_og_card_svg(card: OGCardInput) -> str:
 
 def write_og_card(
     target_date: date,
-    segment_briefings: dict[MarketSegment, Briefing],
+    segment_briefings: Mapping[MarketSegment, ReadablePublicDocument],
     *,
     out_path: Path | None = None,
 ) -> tuple[Path, ...]:

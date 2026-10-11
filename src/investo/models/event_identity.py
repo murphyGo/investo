@@ -115,11 +115,16 @@ class EventFactDelta(EventModel):
     superseded_fact_ids: tuple[Digest, ...] = ()
     unchanged_fact_ids: tuple[Digest, ...] = ()
     correction_pairs: tuple[tuple[Digest, Digest], ...] = ()
+    correction_claims: Annotated[tuple[FactCorrection, ...], Field(max_length=8)] = ()
     unresolved_conflict_ids: tuple[Digest, ...] = ()
     evidence_refs: tuple[ContextRef, ...] = ()
 
     @model_validator(mode="after")
     def disjoint(self) -> Self:
+        if self.correction_claims and {
+            (c.old_fact_id, c.new_fact_id) for c in self.correction_claims
+        } != set(self.correction_pairs):
+            raise ValueError("identity.correction_unbound")
         if set(self.added_fact_ids) & set(self.unchanged_fact_ids):
             raise ValueError("identity.delta_invalid")
         if self.correction_pairs and not self.evidence_refs:

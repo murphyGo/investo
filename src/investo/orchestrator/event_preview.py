@@ -10,7 +10,11 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from investo.briefing.fact_context import build_verified_fact_bundle, render_fact_context_block
-from investo.briefing.generation_contract import GenerationInput, GenerationResult
+from investo.briefing.generation_contract import (
+    GenerationInput,
+    GenerationOutcome,
+    NativeEventGenerationResult,
+)
 from investo.briefing.pipeline import GenerationPolicy, generate_briefing_from_input
 from investo.briefing.segments import build_segment_coverage, segment_source_outcomes
 from investo.models.compliance_phrases import (
@@ -21,6 +25,7 @@ from investo.models.compliance_phrases import (
 from investo.models.event_config import EventExecutionConfig
 from investo.models.event_quality import EventCoverage
 from investo.publisher.compliance_language import ComplianceLanguageError, scan_compliance
+from investo.publisher.event_edition import render_event_edition
 from investo.publisher.event_quality import evaluate_event_quality
 from investo.publisher.public_document import (
     FinalizedPublicBundle,
@@ -82,7 +87,7 @@ def event_preview_compliance_diagnostics(exc: BaseException) -> tuple[str, ...]:
 
 @dataclass(frozen=True, slots=True)
 class EventPreviewResult:
-    generation: GenerationResult
+    generation: GenerationOutcome
     finalized: FinalizedPublicBundle
     event_coverage: EventCoverage | None = None
 
@@ -94,7 +99,10 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
     novelty and terminal entity checks all see the same instant. History must
     be explicitly supplied on ``GenerationInput``; no local ledger is read.
     """
-    EventExecutionConfig(mode="preview").validate_capabilities()
+    config = request.event_generation_policy or EventExecutionConfig(mode="preview")
+    if config.mode != "preview":
+        config = replace(config, mode="preview")
+    config.validate_capabilities()
     segment = request.segment
     observed_at = request.event_observed_at
     if segment is None or observed_at is None or observed_at.utcoffset() is None:
@@ -105,11 +113,12 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
         replace(
             request,
             generation_policy=policy,
+            event_generation_policy=config,
             fact_context_block=render_fact_context_block(facts, observed_at),
         )
     )
     payload = generation.event_payload
-    if payload is None:
+    if payload is None and not isinstance(generation, NativeEventGenerationResult):
         raise ValueError("event preview requires a v2 generation payload")
     context = PublicDocumentContext(
         target_date=request.target_date,
@@ -124,20 +133,35 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
                 source_outcomes=segment_source_outcomes(segment, request.source_outcomes),
             )
         },
+        canonical_event_baselines={segment: request.canonical_event_baseline},
+        canonical_baseline_available={segment: request.event_baseline_available},
+        story_baselines={segment: request.story_baseline},
+        news_window_plan=request.news_window_plan,
+        news_window_consumptions_by_segment={segment: request.news_window_consumptions}
+        if request.news_window_consumptions
+        else {},
+        event_asset_terms_by_segment={segment: generation.asset_selection_terms}
+        if isinstance(generation, NativeEventGenerationResult)
+        else {},
         source_outcomes=request.source_outcomes,
         bundle_context=request.bundle_context,
         fact_bundle=facts,
         entity_observed_at_utc=observed_at,
-        event_payloads_by_segment={segment: payload},
+        event_payloads_by_segment={segment: payload} if payload is not None else {},
     )
     try:
-        finalized = finalize_public_bundle({segment: generation.briefing}, context=context)
+        finalized = finalize_public_bundle({segment: generation.document}, context=context)
     except PublicDocumentFinalizationError as exc:
         if "compliance.language" not in exc.issue_codes:
             raise
         diagnostics = {"compliance.post_generation"}
         try:
-            scan_compliance(generation.briefing.rendered_markdown, segment)
+            scan_compliance(
+                render_event_edition(generation.document, retain_invalid_digests=True)
+                if isinstance(generation, NativeEventGenerationResult)
+                else generation.briefing.rendered_markdown,
+                segment,
+            )
         except ComplianceLanguageError as generated_error:
             diagnostics = {"compliance.generated"}
             diagnostics.update(
@@ -155,6 +179,9 @@ async def preview_event_briefing(request: GenerationInput) -> EventPreviewResult
     outcome = next(
         (outcome for outcome in finalized.segment_outcomes if outcome.segment == segment), None
     )
+    if isinstance(generation, NativeEventGenerationResult):
+        return EventPreviewResult(generation=generation, finalized=finalized)
+    assert payload is not None
     coverage = evaluate_event_quality(
         document,
         payload=payload,

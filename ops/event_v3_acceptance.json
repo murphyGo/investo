@@ -1,0 +1,21 @@
+{
+  "document_schema": 3,
+  "status": "blocked",
+  "reviewed_code_sha": "bb5711f9e689835ccec5ddd2d0d7fffbf2d7c7aa",
+  "policy_sha256": "7e646ef8d39f88bf2ce877f506816a1646343103b2f21b014736a11b7bfab53d",
+  "annotation_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "review_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "market_allowlist": [],
+  "annotations": [],
+  "reviews": [],
+  "measurements": [],
+  "code_ready": false,
+  "source_gate_ready": false,
+  "cursor_gate_ready": false,
+  "capability_ready": false,
+  "release_instruction_ref": null,
+  "rollback_code_sha": null,
+  "rollback_policy_sha256": null,
+  "scheduled_observations": [],
+  "reviewed_cleanup_sha": null
+}

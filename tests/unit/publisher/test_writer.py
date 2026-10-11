@@ -45,7 +45,7 @@ def _sealed_document() -> FinalizedPublicDocument:
     document = object.__new__(FinalizedPublicDocument)
     object.__setattr__(document, "segment", DOMESTIC_EQUITY)
     object.__setattr__(document, "target_date", _TARGET_DATE)
-    object.__setattr__(document, "briefing", final_briefing)
+    object.__setattr__(document, "payload", final_briefing)
     object.__setattr__(document, "markdown_sha256", sha256(markdown.encode()).hexdigest())
     object.__setattr__(document, "staged_artifact_ids", ())
     object.__setattr__(
@@ -137,7 +137,7 @@ def test_write_finalized_document_rejects_date_mismatch_before_io(
     if identity == "briefing_date":
         object.__setattr__(
             document,
-            "briefing",
+            "payload",
             document.briefing.model_copy(update={"target_date": _TARGET_DATE.replace(day=24)}),
         )
     else:

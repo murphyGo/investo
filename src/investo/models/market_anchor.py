@@ -112,6 +112,7 @@ class MarketAnchor(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     ticker: str = Field(min_length=1, max_length=32)
+    trading_date: date | None = None
     close: Decimal
     prev_close: Decimal | None = None
     pct: Decimal | None = None
@@ -210,6 +211,7 @@ def _compute_one(
 
     return MarketAnchor(
         ticker=ticker,
+        trading_date=rows[-1].trading_date,
         close=close,
         prev_close=prev_close,
         pct=pct,

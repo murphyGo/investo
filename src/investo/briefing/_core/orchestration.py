@@ -16,7 +16,7 @@ import asyncio
 import json
 import logging
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Final
@@ -80,6 +80,7 @@ from investo.briefing.segments import MarketSegment
 from investo.models import NormalizedItem
 from investo.models.event_config import EventMode
 from investo.models.event_context import ContextClassificationResult
+from investo.models.event_document import EventEditionDraft
 from investo.models.event_narratives import EventGenerationPayload, Stage2OutputV2
 from investo.models.events import EvidenceDocument
 from investo.models.macro import (
@@ -491,6 +492,56 @@ async def classify_context(
         attempt_count=policy.max_attempts,
         last_stderr=None,
         cause=cause,
+    )
+
+
+async def synthesize_context_document(
+    prompt: str,
+    assemble: Callable[[str], EventEditionDraft],
+    *,
+    runner: ClaudeRunner | None,
+    budget: RetryBudget,
+    policy: GenerationPolicy,
+    segment: MarketSegment,
+) -> EventEditionDraft:
+    """Replace Stage 2 with typed content, retaining the provider retry owner."""
+    from investo._internal.event_identity import EventIdentityError
+    from investo._internal.event_v3_contract import EventEditionValidationError
+
+    cause: Exception | None = None
+    code = "event.schema_invalid"
+    for attempt in range(policy.max_attempts):
+        backoff = _BACKOFF_SCHEDULE[attempt] if attempt else 0.0
+        accounted = backoff if isinstance(runner, CodexRunner) else 0.0
+        if budget.would_exceed(policy.timeout_s + accounted):
+            raise BriefingGenerationError(
+                stage="budget", attempt_count=attempt, last_stderr=None, cause=cause
+            )
+        if attempt:
+            await asyncio.sleep(backoff)
+            budget.record(accounted)
+        feedback = "\nRetry rule: " + code if cause is not None else ""
+        outcome = await call_claude_code(
+            prompt + feedback, timeout_s=policy.timeout_s, runner=runner
+        )
+        budget.record(outcome.elapsed_s)
+        _logger.info(
+            "llm context segment=%s stage=synthesis attempt=%d prompt_bytes=%d returncode=%d",
+            segment,
+            attempt + 1,
+            len((prompt + feedback).encode("utf-8")),
+            outcome.returncode,
+        )
+        if outcome.returncode != 0 or not outcome.stdout.strip():
+            cause = EventEditionValidationError("event.schema_invalid")
+            continue
+        try:
+            return assemble(outcome.stdout)
+        except (EventEditionValidationError, ContextEvidenceError, EventIdentityError) as exc:
+            code = exc.rule_code if isinstance(exc, ContextEvidenceError) else exc.code
+            cause = EventEditionValidationError(code)
+    raise BriefingGenerationError(
+        stage="synthesis", attempt_count=policy.max_attempts, last_stderr=None, cause=cause
     )
 
 

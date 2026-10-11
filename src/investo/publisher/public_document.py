@@ -57,7 +57,15 @@ from investo._internal.surface_quality import (
 from investo.models.briefing import Briefing
 from investo.models.bundle_context import BundleContext
 from investo.models.coverage import SourceOutcome, SourceWindowCoverage
+from investo.models.event_document import (
+    EventEditionDraft,
+    EventVisualInput,
+    NumericFollowUpEntry,
+    PublicEditionView,
+)
+from investo.models.event_identity import CanonicalEventReceipt
 from investo.models.event_narratives import EventGenerationPayload
+from investo.models.event_story import StoryPublicationDelta, StoryRecord
 from investo.models.events import CompanionOutcome, EventIdentityReceipt, EventWatchpoint
 from investo.models.facts import VerifiedFactBundle
 from investo.models.items import NormalizedItem
@@ -71,7 +79,12 @@ from investo.models.public_document_outcome import (
 from investo.models.public_document_outcome import (
     SegmentFinalizationState as SegmentFinalizationState,
 )
-from investo.models.public_notification import PublicEventSummary, PublicNotificationSummary
+from investo.models.public_notification import (
+    EventNotificationSummaryV3,
+    PublicEventSummary,
+    PublicNotificationSummary,
+    TerminalNotificationSummary,
+)
 from investo.models.segments import (
     CRYPTO,
     DOMESTIC_EQUITY,
@@ -639,6 +652,17 @@ class PublicDocumentContext:
         MarketSegment, tuple[NewsWindowConsumption, ...]
     ] = field(default_factory=dict)
     news_window_coverage: tuple[SourceWindowCoverage, ...] = ()
+    canonical_event_baselines: Mapping[MarketSegment, tuple[CanonicalEventReceipt, ...]] = field(
+        default_factory=dict
+    )
+    canonical_baseline_available: Mapping[MarketSegment, bool] = field(default_factory=dict)
+    story_baselines: Mapping[MarketSegment, tuple[StoryRecord, ...]] = field(default_factory=dict)
+    event_asset_terms_by_segment: Mapping[MarketSegment, tuple[str, ...]] = field(
+        default_factory=dict
+    )
+    event_visual_inputs_by_segment: Mapping[MarketSegment, tuple[EventVisualInput, ...]] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self) -> None:
         expected = tuple(self.expected_segments)
@@ -760,6 +784,20 @@ class PublicDocumentContext:
                     ):
                         raise ValueError("supplement artifact segment/kind must match")
                     referenced_ids.append(artifact_id)
+        for segment, visuals in self.event_visual_inputs_by_segment.items():
+            if segment not in generated:
+                raise ValueError("native visual contains an absent segment")
+            for visual in visuals:
+                EventVisualInput.model_validate(visual.model_dump())
+                for artifact_id in visual.artifact_ids:
+                    native_artifact = artifact_by_id.get(artifact_id)
+                    if (
+                        native_artifact is None
+                        or native_artifact.segment != segment
+                        or native_artifact.kind != "visual"
+                    ):
+                        raise ValueError("native visual references an unknown staged artifact")
+                    referenced_ids.append(artifact_id)
         _require_unique(referenced_ids, field_name="supplement artifact references")
         if set(referenced_ids) != set(artifact_by_id):
             raise ValueError("every staged artifact must be referenced by one supplement")
@@ -779,6 +817,30 @@ class PublicDocumentContext:
             self, "news_window_consumptions_by_segment", _freeze_mapping(news_consumptions)
         )
         object.__setattr__(self, "news_window_coverage", tuple(self.news_window_coverage))
+        for name in (
+            "canonical_event_baselines",
+            "canonical_baseline_available",
+            "story_baselines",
+            "event_asset_terms_by_segment",
+            "event_visual_inputs_by_segment",
+        ):
+            native_mapping = dict(getattr(self, name))
+            if not set(native_mapping) <= generated:
+                raise ValueError("native baseline contains an absent segment")
+            if name == "canonical_baseline_available":
+                if any(type(value) is not bool for value in native_mapping.values()):
+                    raise TypeError("native baseline availability requires booleans")
+            else:
+                native_mapping = {
+                    segment: tuple(values) for segment, values in native_mapping.items()
+                }
+                if name == "event_asset_terms_by_segment" and any(
+                    not isinstance(term, str) or not 1 <= len(term) <= 80
+                    for terms in native_mapping.values()
+                    for term in terms
+                ):
+                    raise ValueError("native asset selection invalid")
+            object.__setattr__(self, name, _freeze_mapping(native_mapping))
 
 
 @dataclass(frozen=True, slots=True)
@@ -4129,7 +4191,7 @@ def _finalize_bundle_skeleton(
 
 
 def finalize_public_bundle(
-    briefings: Mapping[MarketSegment, Briefing],
+    briefings: Mapping[MarketSegment, Briefing | EventEditionDraft],
     *,
     context: PublicDocumentContext,
 ) -> FinalizedPublicBundle:
@@ -4142,11 +4204,438 @@ def finalize_public_bundle(
         validate=_validate_repaired_draft,
         artifact_ids=_select_surviving_supplement_artifact_ids,
     )
+    if any(isinstance(value, EventEditionDraft) for value in briefings.values()):
+        return _finalize_variant_bundle(briefings, context=context, handlers=handlers)
+    legacy = {segment: value for segment, value in briefings.items() if isinstance(value, Briefing)}
     return _finalize_bundle_skeleton(
-        briefings,
+        legacy,
         context=context,
         draft_factory=_default_draft_factory,
         handlers=handlers,
+    )
+
+
+def _seal_native_document(
+    draft: EventEditionDraft,
+    context: PublicDocumentContext,
+) -> FinalizedPublicDocument:
+    """Native branch of the sole finalizer: original gates → projection → seal."""
+    from investo._internal.event_context import ContextEvidenceError
+    from investo._internal.event_identity import EventIdentityError, canonical_event_binding
+    from investo._internal.event_v3_contract import (
+        EventEditionValidationError,
+        usable_digest,
+        validate_event_edition,
+    )
+    from investo.models.event_evidence import (
+        event_digest,
+        evidence_document_from_item,
+        make_event_context_document,
+    )
+    from investo.models.event_identity import FactSlotReceipt, OccurrenceAlias
+    from investo.publisher.event_edition import (
+        edition_regions,
+        project_event_edition,
+        render_event_edition,
+    )
+
+    try:
+        draft = EventEditionDraft.model_validate(draft.model_dump())
+    except ValueError:
+        raise _SegmentTrustBlockedError(
+            phase="generated", issue_codes=("edition.schema_invalid",)
+        ) from None
+    if draft.target_date != context.target_date or draft.segment not in context.expected_segments:
+        raise _FinalizationInvariantError(
+            phase="generated", issue_code="invariant.segment_identity"
+        )
+    expected_documents = {
+        (doc.document_id, doc.revision_id): doc
+        for item in context.items_by_segment.get(draft.segment, ())
+        for doc in (
+            make_event_context_document(
+                evidence_document_from_item(item, received_at=context.entity_observed_at_utc),
+                metadata=item.raw_metadata,
+                item=item,
+            ),
+        )
+    }
+    if any(
+        expected_documents.get((doc.document_id, doc.revision_id)) != doc for doc in draft.documents
+    ):
+        raise _SegmentTrustBlockedError(phase="generated", issue_codes=("event.evidence_invalid",))
+    if draft.market_reference.anchors != context.anchors_by_segment.get(draft.segment, ()):
+        raise _SegmentTrustBlockedError(
+            phase="generated", issue_codes=("numeric.anchor_assertion",)
+        )
+    if draft.visual_inputs != context.event_visual_inputs_by_segment.get(draft.segment, ()):
+        raise _SegmentTrustBlockedError(phase="generated", issue_codes=("event.asset_unbound",))
+    artifacts = {
+        a.artifact_id: a for a in context.staged_artifacts_by_segment.get(draft.segment, ())
+    }
+    for visual in draft.visual_inputs:
+        article = next((a for a in draft.articles if a.event_id == visual.event_id), None)
+        if (
+            article is None
+            or not visual.relative_path.startswith(draft.target_date.isoformat() + ".assets/")
+            or visual.fact_ids != article.fact_ids
+            or not set(visual.source_refs) <= set(article.source_refs)
+        ):
+            raise _SegmentTrustBlockedError(phase="generated", issue_codes=("event.asset_unbound",))
+        paths = (
+            visual.relative_path,
+            visual.dark_relative_path,
+            visual.relative_path + ".json",
+        )
+        for artifact_id, href in zip(visual.artifact_ids, paths, strict=True):
+            artifact = artifacts.get(artifact_id)
+            expected_asset_path = (
+                f"{draft.segment}/{draft.target_date.year}/{draft.target_date.month:02d}/{href}"
+            )
+            if (
+                artifact is None
+                or artifact.relative_public_path.as_posix() != expected_asset_path
+                or artifact.kind != "visual"
+            ):
+                raise _SegmentTrustBlockedError(
+                    phase="generated", issue_codes=("event.asset_unbound",)
+                )
+    dates = {anchor.trading_date for anchor in draft.market_reference.anchors}
+    if draft.price_reference_date != (
+        next(iter(dates)) if len(dates) == 1 and None not in dates else None
+    ):
+        raise _SegmentTrustBlockedError(
+            phase="generated", issue_codes=("edition.price_time_invalid",)
+        )
+    from investo.models.event_document import EditionNewsWindow
+
+    windows = context.news_window_consumptions_by_segment.get(draft.segment, ())
+    expected_window = (
+        EditionNewsWindow(
+            start_utc=min(r.requested_start for r in windows),
+            end_utc=max(r.end_utc for r in windows),
+        )
+        if windows
+        else None
+    )
+    if draft.news_window != expected_window:
+        raise _SegmentTrustBlockedError(
+            phase="generated", issue_codes=("edition.news_window_invalid",)
+        )
+    try:
+        from investo._internal.event_asset_impact import match_event_assets
+
+        if draft.asset_impacts != match_event_assets(
+            draft,
+            context.event_asset_terms_by_segment.get(draft.segment, ()),
+        ):
+            raise EventEditionValidationError("event.asset_unbound")
+        from investo.publisher.watchpoint_matrix import (
+            WatchpointValuePayload,
+            native_numeric_watchpoints,
+        )
+
+        allowed_numeric = native_numeric_watchpoints(
+            WatchpointValuePayload.from_inputs(
+                draft.segment,
+                anchors=context.anchors_by_segment.get(draft.segment, ()),
+                items=context.items_by_segment.get(draft.segment, ()),
+            )
+        )
+        if any(
+            f.numeric_values not in allowed_numeric
+            for f in draft.follow_ups
+            if isinstance(f, NumericFollowUpEntry)
+        ):
+            raise EventEditionValidationError("event.follow_up_unbound")
+        validate_event_edition(
+            draft,
+            observed_at=context.entity_observed_at_utc,
+            story_baseline=context.story_baselines.get(draft.segment, ()),
+        )
+        for plan, binding in zip(draft.editorial_plan.events, draft.bindings, strict=True):
+            if (
+                canonical_event_binding(
+                    plan.source_event,
+                    draft.documents,
+                    context.canonical_event_baselines.get(draft.segment, ()),
+                    observed_at=context.entity_observed_at_utc,
+                    baseline_available=context.canonical_baseline_available.get(
+                        draft.segment, True
+                    ),
+                )
+                != binding
+            ):
+                raise EventEditionValidationError("event.identity_mismatch")
+        from investo._internal.event_story import propose_story
+        from investo.models.event_story import story_record_hash
+
+        for proposal in draft.story_proposals:
+            story_plan = next(
+                (p for p in draft.editorial_plan.events if p.event_id in proposal.event_ids), None
+            )
+            story_binding = next(
+                (b for b in draft.bindings if b.identity.event_id in proposal.event_ids), None
+            )
+            if story_plan is None or story_binding is None:
+                raise EventEditionValidationError("event.follow_up_unbound")
+            expected = propose_story(
+                story_binding,
+                story_plan.source_event,
+                draft.documents,
+                context.story_baselines.get(draft.segment, ()),
+                segment=draft.segment,
+                observed_at=context.entity_observed_at_utc,
+            )
+            if expected.proposed_delta != proposal:
+                raise EventEditionValidationError("event.follow_up_unbound")
+            prior = next(
+                (
+                    r
+                    for r in context.story_baselines.get(draft.segment, ())
+                    if r.story_id == proposal.story_id
+                ),
+                None,
+            )
+            if proposal.prior_record_hash != (story_record_hash(prior) if prior else None):
+                raise EventEditionValidationError("event.follow_up_unbound")
+    except (ContextEvidenceError, EventIdentityError, EventEditionValidationError) as exc:
+        code = exc.rule_code if isinstance(exc, ContextEvidenceError) else exc.code
+        raise _SegmentTrustBlockedError(phase="generated", issue_codes=(code,)) from None
+    original = render_event_edition(draft, retain_invalid_digests=True)
+
+    def hard_codes(markdown: str) -> tuple[str, ...]:
+        codes = set()
+        if scan_anchor_assertions(
+            markdown,
+            segment=draft.segment,
+            available_symbols=tuple(a.ticker for a in draft.market_reference.anchors),
+        ):
+            codes.add("numeric.anchor_assertion")
+        if _scan_terminal_entity_fact_markdown(
+            markdown,
+            segment=draft.segment,
+            fact_bundle=context.fact_bundle,
+            target_date=context.target_date,
+            entity_observed_at_utc=context.entity_observed_at_utc,
+        ):
+            codes.add("entity.fact_contradiction")
+        try:
+            scan_compliance(markdown, draft.segment)
+        except ComplianceLanguageError:
+            codes.add("compliance.language")
+        if not verify_disclaimer(markdown, draft.segment):
+            codes.add("disclaimer.canonical")
+        if not verify_short_disclaimer_first_viewport(markdown, draft.segment):
+            codes.add("disclaimer.first_viewport")
+        return tuple(sorted(codes))
+
+    original_codes = hard_codes(original)
+    if original_codes:
+        raise _SegmentTrustBlockedError(phase="assembled", issue_codes=original_codes)
+    markdown = render_event_edition(draft)
+    edition_regions(markdown, draft)
+    terminal_codes = hard_codes(markdown)
+    if terminal_codes:
+        raise _SegmentTrustBlockedError(phase="validated", issue_codes=terminal_codes)
+    visible_story_ids = {
+        f.story_id for f in draft.follow_ups if not isinstance(f, NumericFollowUpEntry)
+    }
+    story_deltas = tuple(
+        StoryPublicationDelta(
+            story_id=p.story_id,
+            segment=p.segment,
+            next_state=p.next_record.latest_state,
+            prior_state=next(
+                (
+                    r.latest_state
+                    for r in context.story_baselines.get(draft.segment, ())
+                    if r.story_id == p.story_id
+                ),
+                None,
+            ),
+            event_ids=p.event_ids,
+            fact_ids=p.fact_ids,
+            prior_record_hash=p.prior_record_hash,
+            next_record=p.next_record,
+            next_record_hash=p.next_record_hash,
+            source_receipts=p.next_record.source_refs,
+            observed_clock=p.observed_clock,
+            disposition=p.next_record.disposition,
+        )
+        for p in draft.story_proposals
+        if p.story_id in visible_story_ids
+        and set(p.event_ids) <= {p.event_id for p in draft.editorial_plan.events}
+        and set(p.fact_ids)
+        <= (
+            {f for a in draft.articles for f in a.fact_ids}
+            | {f for r in draft.reference_panels for f in r.fact_ids}
+        )
+    )
+    view = project_event_edition(draft, markdown, story_deltas=story_deltas)
+    sealed = object.__new__(FinalizedPublicDocument)
+    values: dict[str, object] = {
+        "segment": draft.segment,
+        "target_date": draft.target_date,
+        "payload": view,
+        "markdown_sha256": view.edition.markdown_sha256,
+        "staged_artifact_ids": tuple(a for v in draft.visual_inputs for a in v.artifact_ids),
+        "notification_summary": EventNotificationSummaryV3(view.edition),
+        "block_outcomes": (),
+        "numeric_containment_outcomes": (),
+        "surviving_event_ids": tuple(a.event_id for a in draft.articles),
+        "event_identity_receipts": (),
+        "watchpoint_synthesized": 0,
+        "watchpoint_companion": None,
+        "warnings": ("event.digest_omitted",)
+        if any(not usable_digest(d.text) for d in draft.digests)
+        else (),
+        "story_publication_deltas": story_deltas,
+        "news_window_consumptions": tuple(
+            replace(receipt, phase="sealed", sealed_markdown_sha256=view.edition.markdown_sha256)
+            for receipt in context.news_window_consumptions_by_segment.get(draft.segment, ())
+        ),
+    }
+    receipts = []
+    for plan, binding in zip(draft.editorial_plan.events, draft.bindings, strict=True):
+        identity = binding.identity
+        periods = tuple(
+            sorted(
+                {
+                    str(draft.documents[i - 1].time.reference_period.value)
+                    for i in plan.source_event.item_ids
+                    if draft.documents[i - 1].time.reference_period.value is not None
+                }
+            )
+        )
+        aliases = {
+            OccurrenceAlias(
+                key_hash=event_digest(
+                    "raw-occurrence-v3",
+                    doc_id,
+                    identity.canonical_tuple_hash,
+                    plan.source_event.timing,
+                    periods,
+                ),
+                basis="raw_document",
+                stage=identity.occurrence_stage,
+            )
+            for doc_id in identity.document_aliases
+        }
+        aliases.add(
+            OccurrenceAlias(
+                key_hash=identity.occurrence_key_hash,
+                basis=identity.occurrence_basis,
+                stage=identity.occurrence_stage,
+            )
+        )
+        receipts.append(
+            CanonicalEventReceipt(
+                event_id=identity.event_id,
+                event_key_hash=identity.event_key_hash,
+                occurrence_key_hash=identity.occurrence_key_hash,
+                canonical_tuple_hash=identity.canonical_tuple_hash,
+                occurrence_aliases=tuple(
+                    sorted(aliases, key=lambda a: (a.key_hash, a.basis, a.stage))
+                ),
+                entity_ids=tuple(sorted({e.entity.entity_id for e in binding.entities})),
+                event_kind=identity.event_kind,
+                document_aliases=identity.document_aliases,
+                revision_hashes=tuple(
+                    sorted({draft.documents[i - 1].revision_id for i in plan.source_event.item_ids})
+                ),
+                cumulative_fact_hashes=tuple(sorted(f.fact_id for f in binding.facts)),
+                fact_slots=tuple(
+                    FactSlotReceipt(
+                        slot_key_hash=f.canonical.slot_key_hash,
+                        fact_hash=f.fact_id,
+                        status=f.canonical.status,
+                    )
+                    for f in binding.facts
+                ),
+                supersession_pairs=binding.delta.correction_pairs,
+                first_published_at=context.entity_observed_at_utc,
+                last_evidence_at=context.entity_observed_at_utc,
+            )
+        )
+    values["canonical_event_receipts"] = tuple(receipts)
+    for name, value in values.items():
+        object.__setattr__(sealed, name, value)
+    return sealed
+
+
+def _finalize_variant_bundle(
+    drafts: Mapping[MarketSegment, Briefing | EventEditionDraft],
+    *,
+    context: PublicDocumentContext,
+    handlers: _FinalizationPhaseHandlers,
+) -> FinalizedPublicBundle:
+    if set(drafts) != set(context.expected_segments) - set(context.input_absences):
+        raise PublicDocumentFinalizationError(
+            target_date=context.target_date,
+            segment=None,
+            phase="input",
+            issue_codes=("input.briefing_keys",),
+        )
+    blocked: dict[MarketSegment, tuple[str, ...]] = {}
+    documents: list[FinalizedPublicDocument] = []
+    for _ in range(len(drafts) + 1):
+        active = tuple(s for s in context.expected_segments if s in drafts and s not in blocked)
+        if not active:
+            break
+        active_context = _context_for_active_segments(context, active)
+        documents = []
+        newly_blocked = {}
+        for segment in active:
+            value = drafts[segment]
+            try:
+                document = (
+                    _seal_native_document(value, active_context)
+                    if isinstance(value, EventEditionDraft)
+                    else _finalize_segment_skeleton(
+                        _default_draft_factory(value, segment, active_context),
+                        context=active_context,
+                        handlers=handlers,
+                    )
+                )
+                documents.append(document)
+            except _SegmentTrustBlockedError as exc:
+                newly_blocked[segment] = exc.issue_codes
+        if not newly_blocked:
+            outcomes = tuple(
+                SegmentFinalizationOutcome(
+                    segment=s, state="generation_absent", issue_codes=("generation.failed",)
+                )
+                if s in context.input_absences
+                else SegmentFinalizationOutcome(
+                    segment=s, state="trust_blocked", issue_codes=blocked[s]
+                )
+                if s in blocked
+                else SegmentFinalizationOutcome(
+                    segment=s,
+                    state="finalized_degraded"
+                    if (
+                        witnesses := next(
+                            d.numeric_containment_outcomes for d in documents if d.segment == s
+                        )
+                    )
+                    else "finalized",
+                    issue_codes=("numeric.anchor_assertion",) if witnesses else (),
+                    numeric_containment_outcomes=witnesses,
+                )
+                for s in context.expected_segments
+            )
+            return _build_finalized_bundle(context, documents=documents, segment_outcomes=outcomes)
+        blocked.update(newly_blocked)
+    raise PublicDocumentFinalizationError(
+        target_date=context.target_date,
+        segment=None,
+        phase="bundle",
+        issue_codes=(
+            "bundle.zero_survivors",
+            *(code for codes in blocked.values() for code in codes),
+        ),
+        blocked_issue_codes_by_segment=blocked,
     )
 
 
@@ -4154,10 +4643,10 @@ def finalize_public_bundle(
 class FinalizedPublicDocument:
     segment: MarketSegment
     target_date: date
-    briefing: Briefing
+    payload: Briefing | PublicEditionView
     markdown_sha256: str
     staged_artifact_ids: tuple[str, ...]
-    notification_summary: PublicNotificationSummary
+    notification_summary: TerminalNotificationSummary
     block_outcomes: tuple[PublicBlockOutcome, ...]
     numeric_containment_outcomes: tuple[NumericContainmentOutcome, ...]
     surviving_event_ids: tuple[str, ...] = ()
@@ -4166,6 +4655,22 @@ class FinalizedPublicDocument:
     watchpoint_synthesized: int = 0
     watchpoint_companion: CompanionOutcome | None = None
     warnings: tuple[str, ...] = ()
+    canonical_event_receipts: tuple[CanonicalEventReceipt, ...] = ()
+    story_publication_deltas: tuple[StoryPublicationDelta, ...] = ()
+
+    @property
+    def briefing(self) -> Briefing:
+        if not isinstance(self.payload, Briefing):
+            raise TypeError("native sealed document has no legacy Briefing")
+        return self.payload
+
+    @property
+    def rendered_markdown(self) -> str:
+        return self.payload.rendered_markdown
+
+    @property
+    def edition_view(self) -> PublicEditionView | None:
+        return self.payload if isinstance(self.payload, PublicEditionView) else None
 
     def __new__(cls) -> Self:
         raise TypeError("FinalizedPublicDocument is created only by the seal factory")
@@ -4225,7 +4730,7 @@ def _seal_document(
     sealed = object.__new__(FinalizedPublicDocument)
     object.__setattr__(sealed, "segment", draft.segment)
     object.__setattr__(sealed, "target_date", draft.target_date)
-    object.__setattr__(sealed, "briefing", final_briefing)
+    object.__setattr__(sealed, "payload", final_briefing)
     object.__setattr__(sealed, "markdown_sha256", digest)
     object.__setattr__(sealed, "staged_artifact_ids", artifact_ids)
     object.__setattr__(sealed, "notification_summary", draft.notification_summary)
@@ -4241,6 +4746,8 @@ def _seal_document(
     object.__setattr__(sealed, "watchpoint_synthesized", draft.watchpoint_synthesized)
     object.__setattr__(sealed, "watchpoint_companion", draft.watchpoint_companion)
     object.__setattr__(sealed, "warnings", canonical_warnings)
+    object.__setattr__(sealed, "canonical_event_receipts", ())
+    object.__setattr__(sealed, "story_publication_deltas", ())
     return sealed
 
 
