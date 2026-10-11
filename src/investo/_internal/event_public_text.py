@@ -11,9 +11,9 @@ from investo.models.event_document import (
 )
 
 
-def document_excerpt(document: ReadablePublicDocument) -> str:
-    if isinstance(document, PublicEditionView):
-        edition = document.edition
+def document_excerpt(document: ReadablePublicDocument | PublishedEventEdition) -> str:
+    if isinstance(document, (PublicEditionView, PublishedEventEdition)):
+        edition = document.edition if isinstance(document, PublicEditionView) else document
         if edition.digests:
             return edition.digests[0].text
         if edition.events:

@@ -54,9 +54,14 @@ def contain_event_numeric_context(
             end = markdown.find(closing, start)
             if start < 0 or end < 0:
                 return None
+            reaction_text = article.reaction.text
+            if reaction_text and article.reaction.attribution == "coincidence_only":
+                reaction_text += " 사건과의 인과관계는 확인되지 않았습니다."
             fields = (
                 ("meaning", "의미: ", article.meaning.text),
-                ("reaction", "반응: ", article.reaction.text),
+                ("meaning", "작동 경로: ", article.meaning.mechanism),
+                ("meaning", "전제: ", "; ".join(article.meaning.assumptions) or None),
+                ("reaction", "반응: ", reaction_text),
             )
             for field, prefix, text in fields:
                 if text is None:

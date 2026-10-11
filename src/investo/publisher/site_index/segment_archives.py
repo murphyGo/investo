@@ -219,13 +219,7 @@ def _render_archive_entry(
             edition = read_published_event_edition(
                 segment, date.fromisoformat(entry.stem), archive_root=entry.parents[3]
             ).edition
-            snippet = (
-                edition.digests[0].text
-                if edition and edition.digests
-                else edition.events[0].headline
-                if edition and edition.events
-                else None
-            )
+            snippet = document_excerpt(edition) if edition is not None else None
             terminal_limitation = (
                 "보관된 사건 근거를 확인하지 못했습니다."
                 if edition is None
